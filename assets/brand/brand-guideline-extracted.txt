@@ -1,0 +1,315 @@
+BRAND// VAMOS TAXI
+
+
+
+A Brand Guide is an essential document that defines a company’s visual identity
+and communication style. It serves as a reference to ensure consistency across all
+communication materials and strengthens the brand image in the eyes of the public.
+
+
+
+
+ BRAND
+ GUIDELINE
+Context
+Table                                                  Introduction
+                                                       Brand Essence
+                                                       Logo Guidelines
+                                                       Typography
+                                                       Color Palette
+                                                       Applications & Visual Assets
+                                                       Contact & Support
+
+
+
+ B      R A N D
+  G U I D E L I N E S
+A Brand Guide is an essential document that defines
+a company’s visual identity and communication style.
+Brand Manifesto
+We reimagine the way the world moves for the better, shaping a future where transportation is not just about reaching
+a destination, but about creating meaningful experiences. At Vamos Taxi, we’re driven by innovation and a passion
+for excellence. With a focus on safety, sustainability, and customer satisfaction, we’re transforming the landscape of
+transportation one ride at a time.
+
+
+
+
+                                                     About Vamos Taxi
+                                                      Vamos Taxi is a modern transportation brand built for the discerning
+                                                      traveler. Whether commuting or exploring, our services are designed
+                                                      to offer seamless, safe, and premium rides that reflect the new age of
+                                                      urban mobility.
+
+
+
+
+                                                     Our Purpose
+                                                      To redefine mobility through elegant, sustainable, and people-first
+                                                      transportation experiences.
+                                                          Brand
+                                                         Essence
+Vision                                                   Mission
+To reimagine the way the world moves — creating a        At Vamos Taxi, we aim to redefine urban mobility by
+smarter, safer, and more meaningful transportation       delivering elegant, reliable, and customer-centered
+experience for all.                                      rides. Through smart technology, responsible choices,
+                                                         and premium service, we turn every trip into a refined
+This vision reflects Vamos Taxi’s ambition to go         experience.
+beyond traditional transportation services. It’s about
+                                                         Our mission is action-oriented. It explains how we
+reshaping mobility with innovation, sustainability,
+                                                         achieve our vision: by focusing on safety, simplicity,
+and care for people and cities. The goal isn’t just
+                                                         user experience, and environmental awareness.
+to get people from point A to B, but to make each        From the design of our app to the cleanliness of our
+journey enjoyable, efficient, and valuable.              vehicles and the professionalism of our drivers, every
+                                                         detail is curated to reflect excellence.
+Core
+Values
+Customer First : We are built around the needs of our riders. Every
+touchpoint — from booking to drop-off — is optimized for comfort, trust,
+and satisfaction.
+
+Innovation-Driven : We embrace change and invest in smart solutions
+to improve our services. From route optimization to seamless digital
+payments, we always look forward.
+
+Sustainability : We’re committed to minimizing our environmental
+impact by promoting cleaner vehicles, efficient driving, and eco-
+friendly practices.
+
+Safety & Trust : Safety is our priority. All drivers are vetted, vehicles   “Where every ride is first class.”
+inspected, and services monitored to guarantee peace of mind on
+every ride.
+                                                             Logo
+                                                         Guidelines
+Logo Construction
+The Vamos Taxi logo is a refined typographic logo that
+combines modernity, mobility symbolism, and digital identity,
+reflecting the brand’s mission of elegant, tech-driven
+transportation.
+
+Typography & Structure : The logo is based on a custom
+sans-serif typeface, rounded and geometric, reflecting
+approachability, comfort, and modernity.
+
+Each letter is perfectly spaced, with a harmonious rhythm that
+reinforces simplicity and professionalism.
+
+The overall composition maintains a horizontal alignment,
+ideal for both digital and physical branding applications.
+                                                       Iconic Modifications
+                                                       Letter “V”:
+                                                       Constructed with a clean vertical stem and a soft curve.
+                                                       Topped with three yellow checkered pixels, referencing:
+                                                       The classic visual identity of traditional taxis (checkerboard pattern).
+                                                       The digital transformation of transport (pixels = tech/data).
+                                                       A visual “spark” symbolizing energy, start, or ignition.
+                                                       Letter “t”:
+                                                       Modified to include a yellow horizontal bar, evoking:
+                                                       A road marking or directional line, suggesting forward motion.
+                                                       The color yellow emphasizes energy, speed, and visibility.
+
+
+
+
+Safety Margin
+A minimum clear space surrounds the brand
+logo to ensure maximum visibility and prevent
+any interference from surrounding text or graphic
+elements.
+This buffer zone protects the integrity of the logo
+across all applications and must be respected at all
+times unless otherwise specified.
+   Typography Choice: Qurova
+
+   About Qurova :
+
+   Qurova is a sleek, geometric sans-serif
+   typeface known for its modern curves,
+   balanced proportions, and futuristic simplicity.
+   It blends personality with readability, making it
+   perfect for a brand like Vamos Taxi that values
+   elegance, innovation, and clarity.
+
+   Why Qurova?
+
+   Modern & Stylish
+   Qurova features clean lines and soft curves
+   that project a modern and upscale image.
+   This aligns perfectly with Vamos Taxi’s tagline,
+   “Ride with class,” reinforcing the idea of stylish,
+   forward-thinking service.
+
+   Friendly Yet Professional
+   Its rounded edges and open shapes make
+
+
+
+
+TYPOGR
+   Qurova approachable and friendly, ideal for a
+   customer-focused transportation brand
+ABCD
+       Dm Sans Bold
+       abcdefghijklmnopqrstuvwxyz
+       abcdefghijklmnopqrstuvwxyz
+       1234567890?!*+(.,)
+
+          Name     GREAT DOCUMENTATION
+                   less normal distribution ing Content here, content
+           Lead
+                   here making it look like readable English lasapitio
+                   omnimax.
+
+
+
+       Paragraph   Uditatem adipsam rehendem sunduci usanducia
+                   consend ebitem cone non re, occum, quidi tem
+                   sitam, quam earum dolor aliciis im endent volor
+                   seditiur audamus.Ut aut odis soluptatur, quaescit
+                   opta volloresti dollumquae. Buscidestiis cusanih
+                   itiberum quam, quost as doluptatur accaessinia
+                   nonsequis enim nam occuptatiam
+   Poppin bold
+   abcdefghijklmnopqrstuvwxyz
+
+
+
+
+ABCD
+   abcdefghijklmnopqrstuvwxyz
+   1234567890?!*+(.,)
+       Name    GREAT DOCUMENTATION
+
+       Lead    less normal distribution ing Content here, con-
+               tent here making it look like readable English
+               lasapitio omnimax.
+
+
+
+   Paragraph   Uditatem adipsam rehendem sunduci usandu-
+               cia consend ebitem cone non re, occum, quidi
+               tem
+               sitam, quam earum dolor aliciis im endent volor
+               seditiur audamus.Ut aut odis soluptatur, quaescit
+               opta volloresti dollumquae. Buscidestiis cusanih
+
+
+
+
+   Button
+                    GET STARTED
+Body Text Font — Poppins
+
+Font: Poppins (Google Fonts)
+
+Style: Sans-serif, rounded, friendly, and highly     ABCDEFGHIJ
+                                                     KLMNOPQRST
+readable
+
+Use Cases: Paragraphs, product descriptions,
+digital communication, brochures
+
+
+Why This Choice?
+
+Poppins is a modern and versatile typeface that        UVWXYZ
+                                                     abcdefghijkl
+remains highly readable across all formats, from
+print to digital. Its rounded shapes convey a
+sense of softness, simplicity, and approachability
+key values for the VAMOS TAX I brand. This
+makes it ideal for maintaining clear, consistent
+
+
+
+                                                     mnopqrstuv
+communication while reinforcing a warm and
+welcoming tone.
+
+
+
+
+                                                         wxyz
+Highly Legible on All Devices
+
+While geometric fonts can sometimes feel cold
+or mechanical, Poppins has subtly rounded
+terminals and generous spacing, giving it a warm,
+
+
+                                                      0123456789
+approachable personality. This makes it ideal for
+brands that aim to be trustworthy, user-friendly,
+and accessible.
+  The Vamos Taxi color palette was carefully selected to
+  reflect the brand’s identity: modern, trustworthy, and
+  premium, with a strong visual presence in both digital
+  and physical environments.
+
+
+
+
+COLOR
+CMYK : C=0 M=26 Y=93 K=0
+RGB   : R=253 G=194 B=11
+COLOR : #FDC20B
+
+
+
+
+                             #FDC20B – Yellow (Primary Accent)
+                             Symbolizes: Energy, movement, visibility, warmth
+                             Yellow is traditionally associated with taxis, making it instantly recognizable in the transport industry. This particular shade
+CMYK : C=75 M=65 Y=60 K=80   (fdc20b) adds a modern and vibrant twist — it’s bold without being harsh, capturing attention quickly and conveying
+RGB   : R=30 G=31 B=30       positivity, speed, and reliability. It also evokes the idea of motion, direction, and innovation, aligning with Vamos Taxi’s
+COLOR : #1E1F1F
+                             forward-thinking mission.
+
+                             #1E1F1F – Charcoal Black (Primary Base)
+                             Symbolizes: Elegance, power, professionalism
+                             This deep, nearly black shade gives the brand a refined and premium look. It balances the brightness of yellow by grounding
+                             the design in sophistication and strength. It communicates trust, seriousness, and high-end service — all key attributes of the
+                             “Ride with class” brand promise.
+
+                             #DEDEDE – Light Gray (Secondary Neutral)
+                             Symbolizes: Balance, clarity, simplicity
+CMYK : C=0 M=76 Y=100 K=0    Light gray serves as a neutral, calming background tone. It supports both yellow and black by offering visual contrast without
+RGB   : R=212 G=99 B=43      overpowering them. It adds a sense of clarity and minimalism.
+COLOR : #D4632B
+                            Purpose of the
+                            Mockup Section
+
+                            To showcase the visual projection of the brand in real-world
+                            contexts.
+                            This section brings the branding to life through concrete
+                            applications, helping visualize how the identity translates
+
+
+
+
+                            Mockup
+                            across various touchpoints.
+
+
+
+
+                                                                                       @vamos.taxi
+
+
+
+
+                            [ Packaging - Stationery - Digital media -Billboards and
+                            signage ]
+
+“Ta pause fraîcheur après
+chaque effort.”
+THANKS
+GET IN TOUCH              All final files related to this brand guide
+CALL +216 99 073 272      (high-resolution logos, color palettes,
+KAADIDESIGN@GMAIL.COM     fonts, publication templates, etc.) will
+TUNIS, ARIANA, LASOUKRA
+                          be provided via dedicated link, shared
+                          along with this brand guide.
+
