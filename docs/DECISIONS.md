@@ -17,6 +17,8 @@
 13. Begin from a clean MIT-compatible starter, not Medusa.
 14. Open-source research must be evaluated by required feature coverage, workflow fit, licence clarity, maintenance, security and build quality.
 15. Restaurant menu material is unrelated and must never be included in Vamos Taxi.
+16. Live-site audit (2026-07-16): current production is Inware Freshpage (PHP CMS), not a portable codebase. Do not reverse-engineer or host-fork Freshpage; rebuild greenfield per stack decisions above.
+17. Do not store production admin credentials, Maps API keys, or payment secrets in this repo. Document exposure findings only (see `docs/CURRENT-SITE-AUDIT.md`).
 
 ## Recommended but awaiting confirmation
 

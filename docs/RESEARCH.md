@@ -8,6 +8,28 @@ The current public site already communicates airport/private transfer services a
 
 Production market details must be confirmed from the business rather than inferred from the design agency or brand-guide contact information.
 
+### Full public-surface audit (2026-07-16)
+
+Canonical write-up: [`docs/CURRENT-SITE-AUDIT.md`](CURRENT-SITE-AUDIT.md)
+
+Key findings:
+
+| Topic | Result |
+|-------|--------|
+| Builder / CMS | Inware AG **Freshpage** (Swiss PHP CMS), not a global taxi SaaS clone |
+| Hosting | Inware DNS/IP (`94.126.22.215`), webmail on `webmail.3.inware.ch` |
+| Stack | nginx + PHP sessions, jQuery, scssphp, Froala contentmanager |
+| Legal entity | Vamos Taxi GmbH, Dietikon; owner Ben Othman Houssein; CH-020.4.077.792-7 |
+| Booking | Server-driven form → `POST /booking`; Places autocomplete; multi-step AJAX shell |
+| Payments (public) | Stripe cards, PayPal, TWINT, cash, Apple Pay logos |
+| Admin | `/contentmanager/admin` **401 Basic Auth** (`instance=buchungen` = bookings); `/freshadmin` **public login form** |
+| robots.txt | Discloses `/admin`, `/contentmanager`, `/freshadmin`, `/webmail`, etc. |
+| Open data leak | Not observed without credentials |
+| Template smell | Adobe Stock assets; T&Cs still mention “Connecto” jurisdiction language |
+| App | Separate Play package `com.app.vamostaxim` |
+
+Implication for rebuild: treat current site as **product/requirements reference + content source**, not code to port. Full ownership requires leaving Freshpage/Inware.
+
 ## Competitor reference
 
 Source: [Transfeero](https://www.transfeero.com/en/)
