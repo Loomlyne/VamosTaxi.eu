@@ -5,6 +5,8 @@
 **Milestone:** M002 S03 (`docs/BUILD-PLAYBOOK.md`)
 **Source:** Figma board, node `24:381`
 
+> **Status (2026-08-04):** whether this full Account section ships alongside the new public "Manage a booking" page, or gets superseded by it, is undecided. See [README.md](README.md#not-built--next-up) and [manage-a-booking.md](manage-a-booking.md). Don't build past a wireframe until that resolves.
+
 ## Purpose
 
 View/edit personal info used to prefill bookings ([booking-details-extras.md](booking-details-extras.md) "Prefill from Profile" branch).

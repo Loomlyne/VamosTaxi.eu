@@ -7,7 +7,9 @@
 
 ## Purpose
 
-B2B-angled landing page for corporate transportation (`docs/PROJECT-BRIEF.md` "Corporate transportation"). Same booking engine underneath — no separate corporate billing system is scoped for V1.
+B2B-angled landing page for corporate transportation (`docs/PROJECT-BRIEF.md` "Corporate transportation").
+
+> **Status (2026-08-04):** client wants "real B2B billing" eventually (confirmed, not just a marketing page), but the concrete shape (Stripe Invoicing / net terms vs. a company account with multiple bookers vs. both) is not decided yet. Until that's picked, build this as the marketing page + standard single-Stripe-checkout flow below — no billing schema work. Treat the eventual B2B billing feature as likely SOW change-order territory (`docs/SCOPE-OF-WORK.md` §10), not default V1 scope.
 
 ## Entry points
 
@@ -43,4 +45,5 @@ Same as [booking-details-extras.md](booking-details-extras.md) once engaged. No 
 
 ## Open questions
 
-- Does "corporate" need anything beyond a marketing page + the standard booking flow for V1 (e.g. company name field, PO number)? Not specified in SOW/PROJECT-BRIEF — treat as a content-only page unless the client asks for more.
+- Which B2B billing shape: Stripe Invoicing/net-terms, a company account with multiple bookers, or both — client confirmed wanting "real" billing but hasn't picked a shape.
+- Until that lands, this page stays marketing-only + standard checkout, same as every other service page.

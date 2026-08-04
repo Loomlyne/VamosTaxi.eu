@@ -5,9 +5,9 @@
 **Milestone:** Conditional — not confirmed for V1 launch
 **Source:** Figma board, node `24:402`
 
-## Status: conditional
+## Status: proceeding, pricing model pending (2026-08-04)
 
-`docs/PROJECT-BRIEF.md` lists this "if approved for launch," and `docs/OFFICE-HOURS-DESIGN.md` Open Questions still has "Hourly chauffeur in V1 yes/no" unresolved. Treat this doc as a spec-in-waiting, not a committed build item, until that's confirmed.
+`docs/PROJECT-BRIEF.md` lists this "if approved for launch," and `docs/OFFICE-HOURS-DESIGN.md` Open Questions still has "Hourly chauffeur in V1 yes/no" unresolved as written — but the working signal from this session is that it's moving forward: the client is preparing per-vehicle hourly pricing input for it, not cutting it. Treat this doc as active, with the pricing model itself as the remaining blocker (see below), and land a one-line confirmation in `docs/OFFICE-HOURS-DESIGN.md` when the client input arrives.
 
 ## Purpose
 
@@ -37,15 +37,19 @@ Every other booking path quotes on **route** (pickup → destination, distance/d
 | Pickup point | No destination required |
 | Duration (hours) | Drives price, needs a minimum-hours rule from the client |
 
+**Pricing signal from client (2026-08-04, verbal, not yet formalized):** rate is **per specific vehicle**, not a flat rate per vehicle class — each car may carry its own hourly rate. Client also referenced **per-currency** pricing (not just a CHF rate converted at display time) and pricing that varies **by place**, possibly meaning per-zone or per-city rates. None of this is a locked spec yet — client will send the actual pricing calculator/values later. Do not invent numbers or a schema shape from this — just don't build a rigid single-CHF-rate-per-class assumption into the quote step.
+
 ## Exit points
 
 - → [booking-details-extras.md](booking-details-extras.md), with a duration-based price snapshot instead of a route-based one.
 
 ## Constraints
 
-- Pricing engine must support an hourly rate model in addition to fixed/calculated routes — this is **not** in the current data model listed in `docs/PROJECT-BRIEF.md` (`pricing_rules`, `fixed_routes` are route-shaped). Needs a schema addition if approved.
+- Pricing engine must support an hourly rate model in addition to fixed/calculated routes — this is **not** in the current data model listed in `docs/PROJECT-BRIEF.md` (`pricing_rules`, `fixed_routes` are route-shaped). Needs a schema addition.
+- Possible multi-currency / per-vehicle / per-place pricing (see signal above) may not be a chauffeur-only concern — `docs/DECISIONS.md` currently has CHF as the sole (recommended, not yet locked) currency for the whole platform. If the client's calculator does turn out to need multiple currencies, that's a pricing-engine-wide decision, not just this page's — flag it to whoever owns `docs/DECISIONS.md` before scoping the schema.
 
 ## Open questions
 
-- Is this in V1 at all? (`docs/OFFICE-HOURS-DESIGN.md` open question, unresolved as of this writing.)
-- If yes: minimum booking hours, overage/extension handling, and whether it needs its own `hourly_rates` table.
+- Formal go/no-go still not written down anywhere canonical (`docs/OFFICE-HOURS-DESIGN.md` still says unresolved) even though the working signal is "proceeding" — worth a one-line update once the client's pricing input lands.
+- Exact pricing calculator: per-vehicle rates, currency list, place/zone variation, minimum hours, overage handling — all pending client input.
+- Whether this needs its own `hourly_rates` table, and whether currency handling needs to be added platform-wide.

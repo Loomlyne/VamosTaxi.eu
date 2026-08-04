@@ -60,7 +60,8 @@ Capture passenger + trip details, resolve identity (guest vs account), apply cou
 - Guest checkout allowed for conversion; claim-into-account happens post-payment via email link, not here (`docs/DECISIONS.md` #10).
 - No live flight-status integration in V1 — field is just data capture (`docs/PROJECT-BRIEF.md` out-of-scope list).
 - Price shown here must be server-calculated, not computed in the browser (`docs/SCOPE-OF-WORK.md` §4.3).
+- Auth method locked (2026-08-04): both email+password and magic link are offered, user's choice — see [account-sign-in-sign-up.md](account-sign-in-sign-up.md).
 
 ## Open questions
 
-- Exact auth method (password vs magic link vs both) — not locked in `docs/DECISIONS.md`, only "Supabase Auth" is confirmed.
+- None. Auth method resolved — see Constraints.

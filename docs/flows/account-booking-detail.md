@@ -5,6 +5,8 @@
 **Milestone:** M002 S06 (`docs/BUILD-PLAYBOOK.md`)
 **Source:** Figma board, node `24:387` (also mirrored on the admin side as its own dashboard page — see `docs/PROJECT-BRIEF.md` admin dashboard list, not the same UI)
 
+> **Status (2026-08-04):** overlaps heavily with the new public [manage-a-booking.md](manage-a-booking.md) (lookup-gated, no account required). Whether this authenticated version ships alongside it or gets superseded is undecided — see [README.md](README.md#not-built--next-up). Don't build past a wireframe until that resolves.
+
 ## Purpose
 
 Single-booking view: full trip detail, price breakdown, and the entry point into cancel/manage.
