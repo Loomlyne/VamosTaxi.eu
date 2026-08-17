@@ -35,7 +35,7 @@ or somewhere else?
 **Answer:**
 
 ### Q4 · Qurova webfont licence
-Blocker 5 in the handoff. The only licence on file (`_ds/…/assets/fonts/OFL.txt`) covers
+Blocker 5 in the handoff. The only licence on file (`design-system/assets/fonts/OFL.txt`) covers
 Poppins. Until redistribution rights are confirmed I cannot serve Qurova from production.
 If the licence does not clear, what is the display fallback? That is a visual change, so it
 is your decision.

@@ -5,7 +5,7 @@ ops console exists as a working HTML mock, the brand system is complete and vend
 the build plan is written. Your job is to turn the mocks into the production platform —
 **not** to redesign them.
 
-**Read this file first, then `docs/GSD-LAUNCH.md`, then `docs/MISSING-FEATURES.md`, then
+**Read this file first, then `docs/build/GSD-LAUNCH.md`, then `docs/build/MISSING-FEATURES.md`, then
 `CLAUDE.md`.** Those four are the whole brief. Everything else is reference.
 
 ---
@@ -30,7 +30,7 @@ the build plan is written. Your job is to turn the mocks into the production pla
 
 The `.dc.html` pages **run as-is in a browser**. They are ordinary HTML + JS with relative
 asset paths — no build step, no bundler, no framework install. Serve the **package root**
-(this folder, the one holding `app/`, `_ds/`, `assets/`) with any static server:
+(this folder, the one holding `app/`, `design-system/`, `assets/`) with any static server:
 
 ```bash
 npx serve .            # or: python3 -m http.server 8000
@@ -47,7 +47,7 @@ Then open:
 
 Notes:
 
-- **Serve from the root, don't `file://`.** Every page resolves `../../_ds/…`,
+- **Serve from the root, don't `file://`.** Every page resolves `../../design-system/…`,
   `../../assets/…` and `../vamos-*.js` relatively; the folder structure is load-bearing.
   Moving a file breaks it.
 - **First load needs internet.** `app/support.js` pulls React 18.3.1, ReactDOM and
@@ -68,7 +68,7 @@ changes during the build. Anatomy of a `.dc.html`:
   and read them back from `window.__resources`).
 - `<script src="./support.js">` — the small runtime that compiles the page. One copy sits
   in each folder (`app/`, `app/home/`, `app/pages/`, `app/ops/`); they are identical.
-- A `<helmet>` block loading `_ds/…/styles.css`, `_ds/…/_ds_bundle.js`, Lenis, then
+- A `<helmet>` block loading `design-system/styles.css`, `design-system/_ds_bundle.js`, Lenis, then
   `vamos-i18n-dict.js` + `vamos-locale.js`, plus a `:root` override block (this is where
   `--vt-shadow-accent:none` and `.vt-input--focus{box-shadow:none}` live — keep them).
 - The page markup, **styled with inline styles only** plus a few `[data-*]` layout rules.
@@ -83,6 +83,7 @@ changes during the build. Anatomy of a `.dc.html`:
 ```
 CLAUDE.md                     project rules — the hard constraints, read in full
 HANDOFF-CLAUDE-CODE.md        this file
+README.md                     repo orientation after the reorganisation
 github.md                     provenance of vendored third-party code (Lucide, Lenis)
 
 app/                          ← THE LIVE MOCKS. This is the spec.
@@ -96,7 +97,7 @@ app/                          ← THE LIVE MOCKS. This is the spec.
   vamos-page-transition.js    cross-page transition runtime
   support.js                  page runtime (also copied into home/, pages/, ops/)
 
-_ds/vamos-taxi-design-system-245af154-.../
+design-system/                the bound Vamos Taxi design system (was `_ds/<uuid>/`)
   styles.css                  single entry point; @imports every token file
   tokens/                     colors, typography, spacing, elevation, motion, base, laws
   _ds_bundle.js               all design-system components as one UMD-ish global
@@ -111,34 +112,42 @@ assets/                       what the pages actually load
   photography/                supplied V-Class photograph (the only clean photo we have)
   lenis.js / lenis.css / lenis-boot.js   vendored Lenis 1.3.23 (MIT) + house settings
 
-docs/
+docs/build/                   ← what you build from
   GSD-LAUNCH.md               ← the build plan. Phases 0–9, Goal → Steps → Done when.
   MISSING-FEATURES.md         ← gap audit, page by page, 🔴/🟡/⚪ prioritised.
+  OPEN-QUESTIONS.md           ← 27 questions awaiting the owner; add to it, don't re-ask
   SPEC-*.md                   23 per-screen specs: intended behaviour, rules, edge cases
   i18n-todo.txt               ~600 untranslated strings (mostly legal) + audit files
   LEGAL-PLACEHOLDER-CHECKLIST.md   every data-tok gap and who owes the number
   AUDIT-home-hero.md          hero decisions and why
   *.dc.html                   internal review scaffolds (English on purpose)
-  PROMPT-CLAUDE-CODE-EXPORT.md the request that produced this package
+  PROMPT-CLAUDE-CODE-EXPORT.md the request that produced this package (historical;
+                              its paths describe the pre-reorganisation layout)
 
-screenshots/                  verification captures taken during design review
-uploads/                      source screenshots and pastes from the client
+docs/brief/                   ← the planning material, single copy
+  PROJECT-BRIEF.md, SCOPE-OF-WORK.md, DECISIONS.md, RESEARCH.md, INPUTS-NEEDED.md,
+  BUILD-PLAYBOOK.md, CURRENT-SITE-AUDIT.md, OFFICE-HOURS-DESIGN.md, AGENTS.md, flows/
+
+.planning/codebase/           map of this repo written by the codebase mappers
+deliverables/                 client-facing scope of work + invoices
 hero-arrivals.jpg, rectangle-*.png   root images referenced by mocks
 
-ds-upgrade/                          ⚠ HISTORICAL SNAPSHOT — do not edit, do not copy from
-design_handoff_file_architecture/    ⚠ HISTORICAL SNAPSHOT — do not edit, do not copy from
+archive/                             ⚠ HISTORICAL SNAPSHOTS — do not edit, do not copy from
+  ds-upgrade/
+  design_handoff_file_architecture/
 ```
 
 ### The two archives
 
-`ds-upgrade/` and `design_handoff_file_architecture/` are **frozen snapshots of earlier
-states of this project**, kept for history. They contain older copies of the same page
-names (`ds-upgrade/app/home.dc.html`, `design_handoff_file_architecture/design-reference/home.dc.html`, …)
+`archive/ds-upgrade/` and `archive/design_handoff_file_architecture/` are **frozen
+snapshots of earlier states of this project**, kept for history. They contain older copies
+of the same page names (`archive/ds-upgrade/app/home.dc.html`,
+`archive/design_handoff_file_architecture/design-reference/home.dc.html`, …)
 with a flat layout that predates the `home/ pages/ ops/` split.
 
 **The live pages exist only in `app/`.** Never edit those folders, never port from them,
 and never resolve an ambiguity by looking at them — if a file name appears in both, `app/`
-wins. If you grep the repo, scope it to `app/`, `_ds/`, `assets/`, `docs/`.
+wins. If you grep the repo, scope it to `app/`, `design-system/`, `assets/`, `docs/`.
 
 ---
 
@@ -169,7 +178,7 @@ Next app, one deploy.
 
 ## 4. Build order
 
-Follow `docs/GSD-LAUNCH.md` top to bottom. Each phase states its own "Done when" — treat
+Follow `docs/build/GSD-LAUNCH.md` top to bottom. Each phase states its own "Done when" — treat
 that as the exit test, don't move on early.
 
 | Phase | What | Rough size |
@@ -192,7 +201,7 @@ console** (the rest of Phase 6). Ship in that order even where a later phase loo
 ### How to port a screen (Phase 6)
 
 1. Open the mock next to your route at 1440, 1024, 768 and 390.
-2. **Reuse the design-system CSS verbatim.** Copy `_ds/…/tokens/*` + `styles.css` into
+2. **Reuse the design-system CSS verbatim.** Copy `design-system/tokens/*` + `styles.css` into
    `apps/web/public/brand/` (or `app/globals.css` via `@import`) unchanged — including
    `tokens/laws.css`, which **must stay the last import** (it is what enforces no-glow and
    no-tinted-yellow). Rebuild `Button`, `Input`, `Card`, `Badge`, `StatusBadge`,
@@ -322,7 +331,7 @@ subscriptions on the ops board only — customers never hold sockets.
 - **`vamosCookieConsent`** — consent is stored but gates nothing. Wire actual script
   loading to it, add consent versioning and re-prompt on policy change.
 
-Every one of these is a 🔴 in `docs/MISSING-FEATURES.md`, which lists the gaps **section by
+Every one of these is a 🔴 in `docs/build/MISSING-FEATURES.md`, which lists the gaps **section by
 section for every surface**. Work from that file when you plan a route; it is more
 specific than this summary and it is the definition of "what's missing".
 
@@ -367,7 +376,7 @@ with invoicing. Ask before inventing these — they need a design pass, not a gu
    Economy/Business fall back to an icon tile.
 4. **Payment-provider and social brand marks** → typed in the footer until the kits arrive
    (they are trademarks, not icon-set glyphs — do not draw approximations).
-5. **Qurova webfont license** → the only licence on file (`_ds/…/assets/fonts/OFL.txt`)
+5. **Qurova webfont license** → the only licence on file (`design-system/assets/fonts/OFL.txt`)
    covers Poppins. Confirm redistribution rights **before** serving Qurova from production.
 
 Out of V1 scope, permanently: native apps and a driver app (no GPS/ETA tracking), and
@@ -386,23 +395,26 @@ up front, driver waiting* — copy and UI must never imply "arriving in 3 minute
 - Real data through Hyperdrive; no localStorage left except UI preferences.
 - Lenis running, one instance, `data-lenis-prevent` on nested scrollers.
 - Keyboard focus visible everywhere; touch targets ≥ 44px.
-- The matching 🔴 items in `docs/MISSING-FEATURES.md` for that surface are closed.
+- The matching 🔴 items in `docs/build/MISSING-FEATURES.md` for that surface are closed.
 
 ---
 
 ## 10. Reference index
 
-- `docs/GSD-LAUNCH.md` — the build plan, secrets matrix, cost estimate, the five blockers.
-- `docs/MISSING-FEATURES.md` — gap audit per surface, prioritised.
-- `docs/SPEC-*.md` — 23 screen specs (home widget, flight autofill, reviews, FAQ,
+- `docs/build/GSD-LAUNCH.md` — the build plan, secrets matrix, cost estimate, the five blockers.
+- `docs/build/MISSING-FEATURES.md` — gap audit per surface, prioritised.
+- `docs/build/OPEN-QUESTIONS.md` — the 27 questions awaiting the owner.
+- `docs/build/SPEC-*.md` — 23 screen specs (home widget, flight autofill, reviews, FAQ,
   services, why-vamos, checkout+confirmation, account, bookings, booking detail, manage
   booking, contact, partner, legal shell, terms, privacy, cookies, cancellation, imprint,
   about, ops board, ops detail, ops pricing, ops login, ops coming-soon).
-- `docs/i18n-todo.txt` + `i18n-audit*.txt` — the untranslated string backlog.
-- `docs/LEGAL-PLACEHOLDER-CHECKLIST.md` — every `data-tok` and who owes it.
-- `_ds/…/readme.md` — the design-system guide: brand context, voice (§2), foundations
+- `docs/build/i18n-todo.txt` + `i18n-audit*.txt` — the untranslated string backlog.
+- `docs/build/LEGAL-PLACEHOLDER-CHECKLIST.md` — every `data-tok` and who owes it.
+- `docs/brief/` — the planning material: brief, scope of work, decisions, research,
+  inputs needed, build playbook, current-site audit, flows.
+- `design-system/readme.md` — the design-system guide: brand context, voice (§2), foundations
   (§3), components (§4), iconography (§5), pending inputs (§7), the four laws (§8),
   localisation (§9). Read §2 before writing a single line of customer-facing copy.
-- `_ds/…/components/*/*.prompt.md` — per-component usage rules.
+- `design-system/components/*/*.prompt.md` — per-component usage rules.
 - `github.md` — provenance of the vendored Lucide icons and Lenis (licences, edits made,
   how to upgrade).

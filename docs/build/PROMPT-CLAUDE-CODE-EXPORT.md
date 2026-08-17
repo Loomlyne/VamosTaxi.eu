@@ -1,5 +1,10 @@
 # Prompt for a new session — prepare the Claude Code handoff
 
+> **Historical record — already executed.** This is the request that produced the handoff
+> package, kept verbatim. Its paths describe the pre-reorganisation layout: `_ds/<uuid>/`
+> is now `design-system/`, and `docs/GSD-LAUNCH.md` / `docs/MISSING-FEATURES.md` are now
+> under `docs/build/`. Do not follow it as instructions — read `HANDOFF-CLAUDE-CODE.md`.
+
 Copy-paste everything below the line into a fresh chat in this project.
 
 ---

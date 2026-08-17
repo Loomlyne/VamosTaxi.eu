@@ -112,12 +112,12 @@ Ratios computed against the WCAG 2.1 formula on the actual token values:
 Two consequences, applied in all five pages and in `CookieBanner`:
 
 1. `--vt-text-muted` is re-pointed at a **new** `--vt-grey-550` #6B6D6C. **One definition**, in
-   `_ds/…/tokens/colors.css` beside the alias it replaces — not per page. Five per-page `:root`
+   `design-system/tokens/colors.css` beside the alias it replaces — not per page. Five per-page `:root`
    overrides would be five forks of the design system, eight after the next slice, and the
    Next.js port lands tokens in `globals.css` + `tailwind.config.ts` where a page-level override
    is silently dropped. `--vt-grey-500` itself is untouched and stays available for hairlines and
    disabled glyphs; only the *text* alias moved. **Push this to the source design system** — the
-   bound copy under `_ds/` is overwritten by a re-sync.
+   bound copy under `design-system/` is overwritten by a re-sync.
 
    **Why not charcoal-600.** The obvious fix — point muted at charcoal-600, 7.30:1 — is wrong:
    `--vt-text-secondary` *is* charcoal-600, so muted and secondary would render identically and a
