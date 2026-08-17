@@ -89,7 +89,7 @@ and are final — "matches the mock" is a real acceptance criterion, not a hand-
 - [ ] **LIFE-05**: A customer is reminded before pickup, and receives the driver's name, vehicle and plate once assigned
 - [ ] **LIFE-06**: A delayed flight shifts the pickup time and notifies both the customer and ops
 - [ ] **LIFE-07**: Stale quotes expire and no-shows are swept automatically on a schedule
-- [ ] **LIFE-08**: A customer is asked for a review after the ride is completed
+- [ ] **LIFE-08**: A customer is asked for a review after the ride has completed
 
 ### Public site (SITE)
 
@@ -177,17 +177,96 @@ without a migration that rewrites history.
 
 ## Traceability
 
-Populated during roadmap creation.
+Populated during roadmap creation. Full phase goals and success criteria: `.planning/ROADMAP.md`.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| — | — | Pending |
+| PLAT-01 | Phase 1 | Pending |
+| PLAT-02 | Phase 1 | Pending |
+| PLAT-03 | Phase 1 | Pending |
+| PLAT-04 | Phase 1 | Pending |
+| PLAT-05 | Phase 1 | Pending |
+| PLAT-06 | Phase 1 | Pending |
+| I18N-01 | Phase 1 | Pending |
+| I18N-02 | Phase 1 | Pending |
+| I18N-03 | Phase 1 | Pending |
+| I18N-04 | Phase 1 | Pending |
+| I18N-05 | Phase 1 | Pending |
+| I18N-06 | Phase 1 | Pending |
+| I18N-07 | Phase 6 | Pending |
+| I18N-08 | Phase 5 | Pending |
+| DATA-01 | Phase 2 | Pending |
+| DATA-02 | Phase 2 | Pending |
+| DATA-03 | Phase 2 | Pending |
+| DATA-04 | Phase 2 | Pending |
+| DATA-05 | Phase 3 | Pending |
+| DATA-06 | Phase 3 | Pending |
+| DATA-07 | Phase 2 | Pending |
+| DATA-08 | Phase 8 | Pending |
+| AUTH-01 | Phase 5 | Pending |
+| AUTH-02 | Phase 5 | Pending |
+| AUTH-03 | Phase 5 | Pending |
+| AUTH-04 | Phase 5 | Pending |
+| AUTH-05 | Phase 2 | Pending |
+| AUTH-06 | Phase 8 | Pending |
+| QUOTE-01 | Phase 4 | Pending |
+| QUOTE-02 | Phase 4 | Pending |
+| QUOTE-03 | Phase 4 | Pending |
+| QUOTE-04 | Phase 4 | Pending |
+| QUOTE-05 | Phase 4 | Pending |
+| QUOTE-06 | Phase 4 | Pending |
+| QUOTE-07 | Phase 4 | Pending |
+| QUOTE-08 | Phase 4 | Pending |
+| QUOTE-09 | Phase 4 | Pending |
+| QUOTE-10 | Phase 4 | Pending |
+| QUOTE-11 | Phase 4 | Pending |
+| PAY-01 | Phase 7 | Pending |
+| PAY-02 | Phase 7 | Pending |
+| PAY-03 | Phase 7 | Pending |
+| PAY-04 | Phase 7 | Pending |
+| PAY-05 | Phase 7 | Pending |
+| PAY-06 | Phase 7 | Pending |
+| PAY-07 | Phase 7 | Pending |
+| LIFE-01 | Phase 9 | Pending |
+| LIFE-02 | Phase 9 | Pending |
+| LIFE-03 | Phase 9 | Pending |
+| LIFE-04 | Phase 9 | Pending |
+| LIFE-05 | Phase 9 | Pending |
+| LIFE-06 | Phase 9 | Pending |
+| LIFE-07 | Phase 9 | Pending |
+| LIFE-08 | Phase 9 | Pending |
+| SITE-01 | Phase 5 | Pending |
+| SITE-02 | Phase 5 | Pending |
+| SITE-03 | Phase 8 | Pending |
+| SITE-04 | Phase 5 | Pending |
+| SITE-05 | Phase 5 | Pending |
+| SITE-06 | Phase 5 | Pending |
+| SITE-07 | Phase 5 | Pending |
+| SITE-08 | Phase 10 | Pending |
+| SITE-09 | Phase 5 | Pending |
+| OPS-01 | Phase 8 | Pending |
+| OPS-02 | Phase 8 | Pending |
+| OPS-03 | Phase 8 | Pending |
+| OPS-04 | Phase 8 | Pending |
+| OPS-05 | Phase 8 | Pending |
+| OPS-06 | Phase 6 | Pending |
+| OPS-07 | Phase 6 | Pending |
+| OPS-08 | Phase 6 | Pending |
+| OPS-09 | Phase 6 | Pending |
+| OPS-10 | Phase 6 | Pending |
+| LAUNCH-01 | Phase 10 | Pending |
+| LAUNCH-02 | Phase 10 | Pending |
+| LAUNCH-03 | Phase 10 | Pending |
+| LAUNCH-04 | Phase 10 | Pending |
+| LAUNCH-05 | Phase 11 | Pending |
+| LAUNCH-06 | Phase 11 | Pending |
+| LAUNCH-07 | Phase 10 | Pending |
 
 **Coverage:**
 - v1 requirements: 80 total
-- Mapped to phases: 0
-- Unmapped: 80 ⚠️ (roadmap not yet created)
+- Mapped to phases: 80
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-08-17*
-*Last updated: 2026-08-17 after initialization*
+*Last updated: 2026-08-17 after roadmap creation*

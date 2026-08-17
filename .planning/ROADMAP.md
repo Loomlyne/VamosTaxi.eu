@@ -1,0 +1,230 @@
+# Roadmap: Vamos Taxi V1
+
+## Overview
+
+Vamos Taxi ports 30+ finished `.dc.html` mocks into a production Next.js app on one
+Cloudflare Worker, backed by Supabase Postgres through Hyperdrive, with Stripe as the only
+payment path. The journey is a strict spine — scaffold, then schema, then verified data
+access — because nothing downstream can be built on unproven ground. From there it forks
+into three genuinely parallel tracks (pricing engine, public surfaces + accounts, ops
+reference data), all converging at checkout/payment, the one phase every money-touching
+surface depends on. Ops dispatch and the full booking lifecycle build on that convergence,
+then hardening and cutover close it out. The i18n runtime's SSR-safe architecture and the
+price/policy snapshot pattern are decided in Phase 1 and Phase 2 respectively — both are
+structurally expensive to retrofit and cheap to get right from the first draft.
+
+This roadmap covers the full public-site-plus-ops-console build described in
+`docs/build/GSD-LAUNCH.md`, restructured around three research findings that file predates:
+Hyperdrive is a hard gate with its own load-tested verification (split out as its own phase
+rather than folded into schema work), checkout is a convergence point that ops dispatch and
+lifecycle features sit downstream of (rather than one large "payments + lifecycle" phase),
+and the i18n runtime's SSR incompatibility is a Phase 1 architecture decision, not Phase 7
+cleanup. Deviations from `GSD-LAUNCH.md`'s phase numbering are noted per phase below.
+
+## Phases
+
+**Phase Numbering:**
+- Integer phases (1, 2, 3): Planned milestone work
+- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+
+Decimal phases appear between their surrounding integers in numeric order.
+
+- [ ] **Phase 1: Platform Foundation, Design System Port & i18n Runtime** - Worker deploys to a real staging domain with the ported design system and an SSR-safe i18n runtime
+- [ ] **Phase 2: Data Schema, RLS & Staff Auth Foundations** - Postgres mirrors the VamosOps contract with RLS everywhere and invited, MFA-gated staff auth
+- [ ] **Phase 3: Hyperdrive Data Access Wiring** - The Worker reaches Postgres through Hyperdrive, fast and safely isolated per request
+- [ ] **Phase 4: Quote & Pricing Engine** - The booking widget returns a real, locked, server-priced quote for any eligible route
+- [ ] **Phase 5: Public Surfaces & Customer Accounts** - Every public mock is a live route on real data, and customers can create and access accounts
+- [ ] **Phase 6: Ops Reference Data & Content Console** - Staff manage the reference data and content that power the public site
+- [ ] **Phase 7: Checkout & Payment** - A customer pays for a locked quote and receives a webhook-confirmed booking
+- [ ] **Phase 8: Ops Dispatch — Live Board, Assignment & Account Surfaces** - Staff run the live board, assign real bookings, and customers see their own history
+- [ ] **Phase 9: Booking Lifecycle & Customer Self-Service** - A booking lives its full lifecycle — reminders, delay handling, cancellation, review
+- [ ] **Phase 10: Hardening — Performance, Security & Compliance** - The site survives a launch surge and never captures data ahead of consent
+- [ ] **Phase 11: Launch Cutover** - Vamos Taxi goes live on its real domain with real pricing
+
+## Phase Details
+
+### Phase 1: Platform Foundation, Design System Port & i18n Runtime
+**Goal**: The production Next.js app deploys to Cloudflare Workers on a real staging domain,
+carries the ported Vamos design system verbatim, and can render any string correctly in all
+four languages including RTL — the foundation every later phase builds on. This is also
+where the `VamosLocale` DOM-walking runtime is replaced with an SSR-safe mechanism (render-time
+`t()`/`useT()` lookup over the same dictionary), decided here rather than drifting page by page.
+**Depends on**: Nothing (first phase)
+**Requirements**: PLAT-01, PLAT-02, PLAT-03, PLAT-04, PLAT-05, PLAT-06, I18N-01, I18N-02, I18N-03, I18N-04, I18N-05, I18N-06
+**Success Criteria** (what must be TRUE):
+  1. A pull request triggers typecheck + build + preview deploy, `main` deploys to a real staging domain (not `*.workers.dev`), and a tag deploys production — all via one custom Worker entry exporting `fetch`, `scheduled` and `queue`.
+  2. A ported design-system component (Button, Card, Input) renders pixel-identical to its `.dc.html` source using the same class names, with Lenis scrolling smoothly and honouring `prefers-reduced-motion`.
+  3. No secret is readable from the browser or present in the repo — every credential reaches the Worker via `wrangler secret`.
+  4. Switching language on a rendered page relabels every string (including placeholders, `aria-label`, `title`, `alt`) in place without a reload, is correct in the server-rendered HTML with no English flash, and Arabic renders right-to-left with logical-property layout.
+  5. Switching currency changes only the mark, never the number, and strings the code builds from parts translate too.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 2: Data Schema, RLS & Staff Auth Foundations
+**Goal**: Postgres holds the full `VamosOps`-mirrored schema with row-level security enforced
+on every table, and staff can only reach it through an invited, MFA-verified session. The
+versioned price/policy snapshot shape (needed by Phase 4/9) and the driver double-booking
+exclusion constraint (needed by Phase 8) are designed into the schema here, not retrofitted.
+**Depends on**: Phase 1
+**Requirements**: DATA-01, DATA-02, DATA-03, DATA-04, DATA-07, AUTH-05
+**Success Criteria** (what must be TRUE):
+  1. Every table in the `VamosOps` contract (bookings, booking_events, customers, chauffeurs, vehicles, vehicle classes, coupons, fixed routes, distance rates, surcharges, reviews, content_strings, settings) exists as a versioned migration with RLS on, and a customer's query returns only their own bookings.
+  2. A guest can open a booking using a valid manage token and nothing else.
+  3. A staff query is authorized by a role claim in the JWT; a customer session cannot reach ops data.
+  4. Seeding a fresh environment loads vehicle classes, settings, content strings and the existing reviews.
+  5. A staff account can only be created by invitation and must complete a second factor before reaching ops data.
+**Plans**: TBD
+
+### Phase 3: Hyperdrive Data Access Wiring
+**Goal**: The Worker reaches Postgres exclusively through Hyperdrive on Supabase's direct
+connection string (never the pooled Supavisor string), fast and safely isolated per request.
+This is a hard gate — no other phase's real query work can be trusted until this is verified
+under concurrency, not just smoke-tested.
+**Depends on**: Phase 2
+**Requirements**: DATA-05, DATA-06
+**Success Criteria** (what must be TRUE):
+  1. A representative query from the staging Worker completes with p50 round-trip under 30 ms.
+  2. Two concurrent requests as two different customers, run against the pooled connection, never see each other's row — proven by a concurrent two-customer isolation integration test, not a single manual query.
+**Plans**: TBD
+
+### Phase 4: Quote & Pricing Engine
+**Goal**: The booking widget returns a real, locked, server-priced quote for any eligible
+route and vehicle class. The price snapshot is written once onto the booking row at quote
+time and never recomputed downstream — this is the engine's contract, designed in from the
+start rather than added once checkout exists.
+**Depends on**: Phase 3
+**Parallel with**: Phase 5, Phase 6 (once Phase 3 lands, the pricing engine, public-surface porting and ops reference-data screens touch disjoint code and can build concurrently)
+**Requirements**: QUOTE-01, QUOTE-02, QUOTE-03, QUOTE-04, QUOTE-05, QUOTE-06, QUOTE-07, QUOTE-08, QUOTE-09, QUOTE-10, QUOTE-11
+**Success Criteria** (what must be TRUE):
+  1. A customer enters pickup/destination by search or map pin, sees the route drawn, and receives a price for every eligible vehicle class — a fixed-route price where configured, otherwise per-km rate plus surcharges.
+  2. That quote holds for 30 minutes, and an expired quote is rejected server-side at payment time even if the UI countdown is bypassed.
+  3. The stored booking row carries the price breakdown and the rate version it was computed from, so a later rate change never alters an existing booking's price.
+  4. A coupon reduces the price when valid and is refused outside its window or usage cap; a booking inside the minimum advance time or outside the service area is refused with a message saying which; a flight number fills in the landing time; a customer can add a child seat, an extra stop or oversized luggage as its own priced line.
+  5. The quote endpoint is rate-limited and challenges repeated anonymous requests, and every amount reads `CHF 000` behind `pricing_live=false` until the real matrix is loaded and approved.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 5: Public Surfaces & Customer Accounts
+**Goal**: Every public mock that doesn't depend on live booking state is a live route on
+real data, pixel-faithful at all four widths in all four languages, and a customer can
+create, access and sign out of an account.
+**Depends on**: Phase 3 (the home page's booking widget also requires Phase 4 for live pricing, but the rest of this phase does not)
+**Parallel with**: Phase 4, Phase 6
+**Requirements**: SITE-01, SITE-02, SITE-04, SITE-05, SITE-06, SITE-07, SITE-09, AUTH-01, AUTH-02, AUTH-03, AUTH-04, I18N-08
+**Success Criteria** (what must be TRUE):
+  1. The home page renders with the booking widget prominent and its sections (reviews, FAQ) read from the database; every public page carries the shared header and footer, never a hand-rolled one.
+  2. About, FAQ, contact and become-a-driver pages render, their forms are challenge-protected and reach both the inbox and the database, and a customer can reach support by phone, WhatsApp and the contact form.
+  3. Terms, privacy, cookies, cancellation and imprint render with real numbers where the owner supplied them and labelled TBC pills where not, and a legal page that exists in fewer than four languages says so rather than pretending to be translated.
+  4. Every page holds its layout at 1440, 1024, 768 and 390 px with nothing scrolling sideways, and public pages are server-rendered with correct language alternates for search engines.
+  5. A customer can create an account with email/password or an emailed one-time code, reset a forgotten password from an emailed link, stay signed in across a browser refresh, and sign out from any page.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 6: Ops Reference Data & Content Console
+**Goal**: Staff run the operational reference data and site content that power the public
+site, from a role-gated ops console — the non-money-touching half of the ops build that
+does not need to wait for checkout.
+**Depends on**: Phase 3
+**Parallel with**: Phase 4, Phase 5
+**Requirements**: OPS-06, OPS-07, OPS-08, OPS-09, OPS-10, I18N-07
+**Success Criteria** (what must be TRUE):
+  1. The ops console is reachable only by staff, in its own role-gated route group of the same application.
+  2. Staff can manage vehicle classes, vehicles, chauffeurs, fixed routes, distance rates, surcharges and coupons.
+  3. Staff can see customers and their booking history, and can publish, hide and reorder the reviews shown on the home page.
+  4. Staff can edit business settings and the content strings behind the site copy, and every string it manages is stored in the database rather than the static dictionary file — the ~600-string legal-page dictionary migrates here as professional translations arrive, tracked as ongoing work within this phase rather than a separate late i18n phase.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 7: Checkout & Payment
+**Goal**: A customer can pay for a locked quote and receive a webhook-confirmed booking —
+the convergence point every subsequent money-touching surface (ops board, ops assignment,
+account bookings, lifecycle features) is downstream of. This is not a parallel track; it
+gates Phases 8 and 9.
+**Depends on**: Phase 4
+**Requirements**: PAY-01, PAY-02, PAY-03, PAY-04, PAY-05, PAY-06, PAY-07
+**Success Criteria** (what must be TRUE):
+  1. A customer reaches checkout carrying their locked quote, enters passenger and contact details, and can complete the booking as a guest without creating an account.
+  2. A customer pays by card, Apple Pay, Google Pay or TWINT, charged in CHF, and the booking is confirmed only by the verified payment webhook, never by the browser's return from the payment page.
+  3. A repeated or out-of-order webhook delivery cannot double-charge, double-confirm or double-send the confirmation email.
+  4. A paid customer receives a confirmation email in their language with the booking voucher, a manage link and a calendar invite, and sees a confirmation page showing the reference, route, time, vehicle and amount paid.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 8: Ops Dispatch — Live Board, Assignment & Account Surfaces
+**Goal**: Staff run the day from a live board and dispatch real, paid bookings, and a
+signed-in or newly-claiming customer can see their own booking history. Gated on Phase 7
+because every screen here reads live payment/booking state.
+**Depends on**: Phase 5, Phase 6, Phase 7
+**Requirements**: OPS-01, OPS-02, OPS-03, OPS-04, OPS-05, SITE-03, AUTH-06, DATA-08
+**Success Criteria** (what must be TRUE):
+  1. Staff see a live board of bookings that updates when a booking is paid, without a page refresh.
+  2. Staff open a booking and see its full detail and an append-only event timeline covering every booking, price, payment and assignment change.
+  3. A dispatcher assigns a chauffeur and a vehicle, and the same driver cannot be double-booked for overlapping trips — enforced at the database level, not just the UI.
+  4. A dispatcher can take a booking by phone, price it through the same pricing engine as the public quote, and enter it into the system; staff can confirm, modify and cancel a booking and issue a refund.
+  5. A customer can see their profile, booking history and any single booking in detail, and a guest who booked without an account can claim that booking into a new account from the emailed link.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 9: Booking Lifecycle & Customer Self-Service
+**Goal**: A booking lives its full lifecycle — reminders, flight-delay handling,
+self-serve cancellation, and a post-ride review request — without staff intervention for
+the common cases.
+**Depends on**: Phase 7, Phase 8
+**Requirements**: LIFE-01, LIFE-02, LIFE-03, LIFE-04, LIFE-05, LIFE-06, LIFE-07, LIFE-08
+**Success Criteria** (what must be TRUE):
+  1. A booking moves through quote, pending, paid, confirmed, assigned, completed, cancelled, refunded and no-show, and every move is recorded.
+  2. A customer can cancel and be refunded automatically against the cancellation-tier policy that applied when they booked, not whatever the policy says today.
+  3. A customer can open and manage their booking either signed in or from the tokened email link, is reminded before pickup, and receives the driver's name, vehicle and plate once assigned.
+  4. A delayed flight shifts the pickup time and notifies both the customer and ops; stale quotes expire and no-shows are swept automatically on a schedule.
+  5. A customer is asked for a review after their ride completes.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 10: Hardening — Performance, Security & Compliance
+**Goal**: The site survives a launch-day surge, keeps secrets and payments safe, and never
+captures personal data ahead of a provable, server-side consent record. The consent log
+must exist and be gating before any IP-capturing monitoring tool (Sentry) is enabled — this
+sequencing is deliberate, not incidental.
+**Depends on**: Phase 9
+**Requirements**: LAUNCH-01, LAUNCH-02, LAUNCH-03, LAUNCH-04, LAUNCH-07, SITE-08
+**Success Criteria** (what must be TRUE):
+  1. The site holds 10,000 concurrent browsing visitors with page p95 under one second and the database barely touched.
+  2. Every public API route is rate-limited, every public form is challenge-protected, and the payment webhook is verified by signature.
+  3. The cookie banner gates exactly what it promises to gate, and the customer's choice is recorded server-side with the policy version — live and verified before any IP-capturing monitoring tool is switched on.
+  4. Errors, uptime and a health check covering database, payments and maps report to a place someone actually watches.
+  5. Backups run on a schedule and a restore has actually been performed once; a runbook exists for refunds, resending an email, manual assignment and restoring the database.
+**Plans**: TBD
+
+### Phase 11: Launch Cutover
+**Goal**: Vamos Taxi goes live on its real domain with real pricing — the final, largely
+irreversible gate.
+**Depends on**: Phase 10
+**Requirements**: LAUNCH-05, LAUNCH-06
+**Success Criteria** (what must be TRUE):
+  1. `vamostaxi.eu` points at the Worker, every old Freshpage CMS URL redirects to its new home, and the sitemap is submitted.
+  2. `pricing_live` is flipped to true only after the real CHF matrix is loaded and owner-approved on staging.
+**Plans**: TBD
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 → 9 → 10 → 11
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 1. Platform Foundation, Design System Port & i18n Runtime | 0/TBD | Not started | - |
+| 2. Data Schema, RLS & Staff Auth Foundations | 0/TBD | Not started | - |
+| 3. Hyperdrive Data Access Wiring | 0/TBD | Not started | - |
+| 4. Quote & Pricing Engine | 0/TBD | Not started | - |
+| 5. Public Surfaces & Customer Accounts | 0/TBD | Not started | - |
+| 6. Ops Reference Data & Content Console | 0/TBD | Not started | - |
+| 7. Checkout & Payment | 0/TBD | Not started | - |
+| 8. Ops Dispatch — Live Board, Assignment & Account Surfaces | 0/TBD | Not started | - |
+| 9. Booking Lifecycle & Customer Self-Service | 0/TBD | Not started | - |
+| 10. Hardening — Performance, Security & Compliance | 0/TBD | Not started | - |
+| 11. Launch Cutover | 0/TBD | Not started | - |
+
+---
+*Roadmap created: 2026-08-17*
+*Granularity: fine (11 phases)*
+*Coverage: 80/80 v1 requirements mapped*
