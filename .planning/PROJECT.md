@@ -144,6 +144,8 @@ and every amount on screen reads `CHF 000`.
 | Error monitoring always-on, toggle in `settings` | Owner decision 10, recorded with the caveat that Sentry sends IP and URL data and is commonly treated as consent-requiring | ⚠️ Revisit |
 | Synthetic staging price matrix behind `pricing_live=false` | Lets the engine, checkout and refunds be tested end-to-end before real numbers exist; the UI stays `CHF 000` so nothing leaks | — Pending |
 | Ops manual-booking screen gets mocked first | Same pipeline as every other screen — keeps a design decision out of an implementation PR | — Pending |
+| Language is a route segment, currency is client state | The `VamosLocale` DOM-walking runtime cannot render correct language server-side; see `.planning/ADR-001-i18n-ssr.md`. The mandated contract survives behind a shim | — Pending |
+| No account is created speculatively | Phase 1 creates each external service when it first needs it; a duplicate is caught by the sign-up flow itself rather than by inspection | — Pending |
 | `apps/web` lands in `Loomlyne/VamosTaxi.eu` | Rather than a separate `vamos-platform` repo; the app sits next to the mocks it is ported from | — Pending |
 
 ## Evolution
