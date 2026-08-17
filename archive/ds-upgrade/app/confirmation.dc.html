@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../tokens/fonts.css">
+<link rel="stylesheet" href="../tokens/colors.css">
+<link rel="stylesheet" href="../tokens/typography.css">
+<link rel="stylesheet" href="../tokens/spacing.css">
+<link rel="stylesheet" href="../tokens/elevation.css">
+<link rel="stylesheet" href="../tokens/motion.css">
+<link rel="stylesheet" href="../tokens/base.css">
+<link rel="stylesheet" href="../components/mobile/fig-tokens.css">
+<link rel="stylesheet" href="../components/mobile/fig-assets.css">
+<link rel="stylesheet" href="../styles.css">
+<script src="../_ds_bundle.js"></script>
+<link rel="stylesheet" href="../assets/lenis.css">
+<script src="../assets/lenis.js"></script>
+<script src="../assets/lenis-boot.js"></script>
+<script src="vamos-i18n-dict.js"></script>
+<script src="vamos-locale.js"></script>
+<style>:root{--vt-icon-base:"../assets/icons/";--vt-logo-base:"../assets/logo/";--vt-pattern-base:"../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}.vt-select .vt-input--focus{box-shadow:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}body{margin:0;background:var(--vt-bg-page)}a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}@view-transition{navigation:auto}@media (prefers-reduced-motion:reduce){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation-duration:1ms!important}}</style>
+</helmet>
+<div style="font-family:var(--vt-font-body);color:var(--vt-text-primary)">
+<dc-import name="SiteHeader" variant="inverse" hint-size="100%,76px"></dc-import>
+<main style="padding-bottom:72px">
+<div style="max-width:900px;margin:0 auto;padding:56px clamp(20px,5vw,56px) 0">
+<div style="text-align:center;margin-bottom:32px">
+<span style="width:56px;height:56px;border-radius:999px;background:var(--vt-success-tint);display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-check" size="{{ n28 }}" color="var(--vt-success)" hint-size="28px,28px"></x-import>
+</span>
+<h1 style="margin:0 0 12px;font-family:var(--vt-font-display);font-size:var(--vt-display-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking)">{{ tH1 }}</h1>
+<p style="margin:0 auto;max-width:56ch;font-family:var(--vt-font-body);font-size:var(--vt-body-lg);color:var(--vt-text-secondary)">{{ tSub1 }} <strong>{{ bookingRef }}</strong> {{ tSub2 }}</p>
+</div>
+
+<div style="position:relative">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" tone="inverse" padding="none" hint-size="100%,320px">
+<div style="padding:24px 28px;border-bottom:1px solid var(--vt-border-inverse);display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" height="{{ n24 }}" hint-size="108px,24px"></x-import>
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">{{ tVoucher }}</span>
+<div style="margin-left:auto;display:flex;gap:10px;align-items:center">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StatusBadge" status="confirmed" hint-size="100px,24px"></x-import>
+<span style="font-family:var(--vt-font-display);font-weight:700;letter-spacing:.04em;color:var(--vt-text-inverse)">{{ bookingRef }}</span>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:1.2fr 1fr;gap:32px;padding:28px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.RouteSummary" inverse="{{ yes }}" pickup="{{ pickup }}" pickupDetail="{{ tPickupDetail }}" dropoff="{{ dropoff }}" meta="{{ meta }}" style="view-transition-name:route-block" hint-size="100%,160px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.PriceSummary" inverse="{{ yes }}" lines="{{ lines }}" total="CHF 000.00" totalLabel="{{ tPaid }}" note="{{ tPriceNote }}" style="view-transition-name:price-block" hint-size="100%,160px"></x-import>
+</div>
+</x-import>
+<div style="position:absolute;top:0;right:0;pointer-events:none">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.CheckerMark" size="{{ n96 }}" opacity="{{ pt5 }}" hint-size="96px,96px"></x-import>
+</div>
+</div>
+
+<div style="display:flex;gap:12px;margin:24px 0;flex-wrap:wrap;align-items:center">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" icon="printer" variant="secondary" onClick="{{ printVoucher }}" hint-size="180px,44px">{{ tDownload }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" icon="calendar-days" variant="ghost" hint-size="170px,44px">{{ tCalendar }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" icon="pencil" variant="ghost" href="home.dc.html" hint-size="170px,44px">{{ tManage }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" icon="mail" variant="ghost" onClick="{{ resend }}" hint-size="170px,44px">{{ tResend }}</x-import>
+<sc-if value="{{ resent }}" hint-placeholder-val="{{ false }}">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-success)">{{ tResent }}</span>
+</sc-if>
+</div>
+
+<div style="display:grid;grid-template-columns:minmax(0,1fr) 1fr;gap:16px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="success" title="{{ tNextTitle }}" hint-size="100%,110px">{{ tNextBody }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="inverse" title="{{ tChangedTitle }}" hint-size="100%,110px">{{ tChangedBody }}</x-import>
+</div>
+
+<div style="text-align:center;margin-top:40px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" iconEnd="arrow-right" onClick="{{ bookAnother }}" hint-size="220px,44px">{{ tBookAnother }}</x-import>
+</div>
+</div>
+</main>
+<dc-import name="SiteFooter" hint-size="100%,520px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+function readTrip() {
+  const DEFAULT_TRIP = { mode:'one-way', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'Zurich, Bahnhofstrasse 1', date:'Fri 14 Aug', time:'08:15', pax:2, bags:2, vehicle:'economy', bookingRef:'VT-0000' };
+  try { return Object.assign({}, DEFAULT_TRIP, JSON.parse(localStorage.getItem('vamosTrip') || '{}')); }
+  catch (e) { return Object.assign({}, DEFAULT_TRIP); }
+}
+const VEHICLE_NAME = { economy:'Economy', van:'Van' };
+const T = {
+  en: {
+    h1:'Your driver is booked', sub1:'Booking', sub2:'is confirmed. The voucher is on its way to your inbox — show it to the driver or just give your name.',
+    voucher:'Transfer voucher', pickupDetail:'Arrivals — your driver waits with your name',
+    paid:'Paid', priceNote:"Placeholder amounts — real fares come from the CHF price matrix.",
+    download:'Download voucher', calendar:'Add to calendar', manage:'Manage booking', resend:'Resend email', resent:'Voucher resent.',
+    nextTitle:'What happens next', nextBody:"Dispatch assigns your driver ahead of the pickup. You get the driver's name and vehicle by email the evening before, and a reminder two hours before pickup.",
+    changedTitle:'Changed plans?', changedBody:'Cancel free of charge up to 24 hours before pickup, or move the time from the manage-booking link in your email.',
+    bookAnother:'Book another transfer', pax:'passengers',
+    lineTransfer:'Transfer, ', lineTransferClass:' class', lineAirportFee:'Airport pickup fee', linePaidBy:'Paid by ', lineStripe:'Stripe', lineCash:'cash to driver',
+  },
+  de: {
+    h1:'Ihr Fahrer ist gebucht', sub1:'Buchung', sub2:'ist bestätigt. Der Gutschein ist unterwegs in Ihr Postfach — zeigen Sie ihn dem Fahrer oder nennen Sie einfach Ihren Namen.',
+    voucher:'Transfer-Gutschein', pickupDetail:'Ankunft — Ihr Fahrer wartet mit Ihrem Namen',
+    paid:'Bezahlt', priceNote:'Platzhalterbeträge — die echten Preise stammen aus der CHF-Preistabelle.',
+    download:'Gutschein herunterladen', calendar:'Zum Kalender hinzufügen', manage:'Buchung verwalten', resend:'E-Mail erneut senden', resent:'Gutschein erneut gesendet.',
+    nextTitle:'Wie es weitergeht', nextBody:'Dispatch weist Ihren Fahrer vor der Abholung zu. Sie erhalten Name und Fahrzeug am Vorabend per E-Mail sowie eine Erinnerung zwei Stunden vor der Abholung.',
+    changedTitle:'Pläne geändert?', changedBody:'Kostenlose Stornierung bis 24 Stunden vor Abholung, oder verschieben Sie die Zeit über den Link „Buchung verwalten" in Ihrer E-Mail.',
+    bookAnother:'Weiteren Transfer buchen', pax:'Passagiere',
+    lineTransfer:'Transfer, ', lineTransferClass:'-Klasse', lineAirportFee:'Flughafengebühr', linePaidBy:'Bezahlt mit ', lineStripe:'Stripe', lineCash:'bar beim Fahrer',
+  },
+};
+class Component extends DCLogic {
+  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', trip: readTrip(), resent: false };
+  componentDidMount() {
+    this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
+    window.addEventListener('vamos:locale', this._onLocale);
+  }
+  componentWillUnmount() { if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale); }
+  printVoucher = () => window.print();
+  resend = () => { this.setState({ resent: true }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ resent: false }), 3600); };
+  bookAnother = () => { localStorage.removeItem('vamosTrip'); location.href = 'home.dc.html'; };
+  renderVals() {
+    const t = T[this.state.lang] || T.en;
+    const trip = this.state.trip;
+    const vehicleName = trip.vehicleName || VEHICLE_NAME[trip.vehicle] || 'Business';
+    const isAirport = /airport|zrh|gva/i.test(trip.pickup + ' ' + trip.dropoff);
+    const lines = [
+      { label: t.lineTransfer + vehicleName + t.lineTransferClass, value: 'CHF 000.00' },
+    ];
+    if (isAirport) lines.push({ label: t.lineAirportFee, value: 'CHF 00.00' });
+    lines.push({ label: t.linePaidBy + (trip.pay === 'cash' ? t.lineCash : t.lineStripe), value: trip.pay === 'cash' ? '' : t.lineStripe, muted: true });
+    return {
+      n24:24, n28:28, n96:96, yes:true, no:false, pt5:0.5,
+      tH1: t.h1, bookingRef: trip.bookingRef || 'VT-0000',
+      tSub1: t.sub1, tSub2: t.sub2, tVoucher: t.voucher, tPickupDetail: t.pickupDetail,
+      pickup: trip.pickup, dropoff: trip.dropoff,
+      meta: [
+        { icon:'calendar', label: trip.date }, { icon:'clock', label: 'Pickup ' + trip.time },
+        { icon:'users', label: trip.pax + ' ' + t.pax }, { icon:'car', label: vehicleName },
+      ],
+      lines, tPaid: t.paid, tPriceNote: t.priceNote,
+      printVoucher: this.printVoucher,
+      tDownload: t.download, tCalendar: t.calendar, tManage: t.manage, tResend: t.resend,
+      resend: this.resend, resent: this.state.resent, tResent: t.resent,
+      tNextTitle: t.nextTitle, tNextBody: t.nextBody, tChangedTitle: t.changedTitle, tChangedBody: t.changedBody,
+      bookAnother: this.bookAnother, tBookAnother: t.bookAnother,
+    };
+  }
+}
+</script>
+</body>
+</html>

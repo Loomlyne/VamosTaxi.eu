@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="../support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<style>:root{--vt-icon-base:"../assets/icons/";--vt-logo-base:"../assets/logo/";--vt-pattern-base:"../assets/patterns/";--vt-shadow-accent:none}
+body{margin:0}
+a{color:var(--vt-text-link)}a:hover{color:var(--vt-text-link-hover)}
+[data-why-pin]{box-sizing:border-box;max-width:1200px;margin:0 auto;padding:clamp(56px,7vw,90px) clamp(16px,3.2vw,56px)}
+[data-why-grid]{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(26px,3.6vw,40px);align-items:start}
+[data-why-media]{position:relative;overflow:hidden;border-radius:var(--vt-radius-xl);background:var(--vt-grey-100);aspect-ratio:560/484}
+[data-why-layer]{position:absolute;inset:0;clip-path:inset(100% 0 0 0);will-change:clip-path;transition:clip-path 620ms var(--vt-ease-out)}
+[data-why-layer][data-on="1"]{clip-path:inset(0 0 0 0)}
+[data-why][data-scrub="1"] [data-why-layer]{transition:none}
+[data-why-layer] img{display:block;width:100%;height:100%;object-fit:cover}
+[data-why-list]{display:flex;flex-direction:column}
+[data-why-row]{position:relative;display:grid;grid-template-columns:clamp(52px,7vw,100px) minmax(0,1fr);align-items:start;width:100%;margin:0;padding:clamp(16px,2vw,22px) 0;border:0;border-bottom:1px solid var(--vt-grey-200);background:none;font:inherit;color:inherit;text-align:start;cursor:pointer;-webkit-appearance:none;appearance:none}
+[data-why-row]:first-child{padding-top:6px}
+[data-why-row]:focus-visible{outline:3px solid rgb(253 194 11/.45);outline-offset:2px;border-radius:var(--vt-radius-xs)}
+[data-why-shot]{display:none}
+[data-why-num]{font-family:var(--vt-font-display);font-size:clamp(19px,1.9vw,24px);font-weight:var(--vt-weight-semibold);letter-spacing:-0.03em;line-height:1.3;font-variant-numeric:tabular-nums;color:var(--vt-grey-300);transition:color 240ms var(--vt-ease-standard)}
+[data-why-t]{margin:0;font-family:var(--vt-font-body);font-size:clamp(19px,1.9vw,24px);font-weight:600;letter-spacing:-0.015em;line-height:1.3;color:var(--vt-grey-300);transition:color 240ms var(--vt-ease-standard);text-wrap:balance}
+[data-why-row][data-on="1"] [data-why-num],[data-why-row][data-on="1"] [data-why-t]{color:var(--vt-text-primary)}
+[data-why-row][data-on="0"]:hover [data-why-num],[data-why-row][data-on="0"]:hover [data-why-t]{color:var(--vt-grey-400)}
+[data-why-body]{max-height:0;opacity:0;overflow:hidden;transition:max-height 520ms var(--vt-ease-standard),opacity 300ms var(--vt-ease-standard),margin-top 520ms var(--vt-ease-standard)}
+[data-why-row][data-on="1"] [data-why-body]{max-height:240px;opacity:1;margin-top:14px}
+[data-why-p]{margin:0;font-size:var(--vt-body-sm);line-height:1.6;color:var(--vt-text-secondary);max-width:46ch;text-wrap:pretty;transform:translateY(6px);transition:transform 520ms var(--vt-ease-out)}
+[data-why-row][data-on="1"] [data-why-p]{transform:none}
+[data-why-tag]{display:inline-flex;align-items:center;height:20px;margin-top:10px;padding:0 8px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-xs);font-size:10px;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted);white-space:nowrap}
+[data-why-prog]{position:absolute;inset-inline:0;bottom:-1px;height:2px;background:var(--vt-yellow);transform:scaleX(0);transform-origin:left center;opacity:0;transition:opacity 200ms var(--vt-ease-standard)}
+[data-why-row][data-on="1"] [data-why-prog]{opacity:1}
+@media (min-width:768px){
+[data-why-grid]{grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:40px}
+[data-why][data-pin="1"] [data-why-pin]{position:sticky;top:76px;display:flex;flex-direction:column;justify-content:center;min-height:calc(100vh - 76px);min-height:calc(100svh - 76px)}
+[data-why-row]{padding:clamp(18px,2.1vw,26px) 0}
+[data-why-body]{height:0;max-height:none;transition:height 520ms var(--vt-ease-standard),opacity 300ms var(--vt-ease-standard),margin-top 520ms var(--vt-ease-standard)}
+[data-why-row][data-on="1"] [data-why-body]{height:74px;max-height:none}
+}
+@media (max-width:767px){[data-why-prog]{display:none}
+[data-why-media]{display:none}
+[data-why-grid]{gap:0}
+[data-why-list]{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+[data-why-row]{position:relative;display:block;width:100%;padding:0;border:1px solid var(--vt-grey-200);border-radius:var(--vt-radius-lg);background:var(--vt-white);box-shadow:var(--vt-shadow-sm);overflow:hidden;cursor:default}
+[data-why-row]:first-child{padding-top:0}
+[data-why-shot]{display:block;position:relative;aspect-ratio:16/10;background:var(--vt-grey-100);overflow:hidden}
+[data-why-shot] > [data-why-layer]{position:absolute;inset:0;clip-path:none;transition:none}
+[data-why-shot] img{display:block;width:100%;height:100%;object-fit:cover}
+[data-why-row][data-i="1"] [data-why-shot] > [data-why-layer]{width:172%;height:172%;transform:scale(.581);transform-origin:top left}
+[data-why-num]{position:absolute;top:12px;inset-inline-start:12px;z-index:3;display:inline-flex;align-items:center;justify-content:center;min-width:38px;height:28px;padding:0 10px;border-radius:999px;background:var(--vt-yellow);color:var(--vt-charcoal-950);font-size:14px;letter-spacing:0}
+[data-why-row][data-i="1"] [data-why-num]{display:none}
+[data-why-row] > span:nth-child(3){display:block;padding:18px 18px 20px}
+[data-why-t]{font-size:20px;color:var(--vt-text-primary)}
+[data-why-row][data-on="0"] [data-why-t],[data-why-row][data-on="0"]:hover [data-why-t]{color:var(--vt-text-primary)}
+[data-why-body]{max-height:none;overflow:visible;opacity:1;margin-top:10px}
+[data-why-p]{transform:none;font-size:var(--vt-body-sm);max-width:none}
+}
+@media (prefers-reduced-motion:reduce){[data-why-layer],[data-why-num],[data-why-t],[data-why-body],[data-why-prog]{transition:none}}</style>
+</helmet>
+<section data-why="1" data-pin="{{ pinAttr }}" data-scrub="{{ scrubAttr }}" data-screen-label="Why Vamos" aria-labelledby="why-title" ref="{{ rootRef }}" style="position:relative;color:var(--vt-text-primary);font-family:var(--vt-font-body)">
+<div aria-hidden="true" style="position:absolute;inset:0;background-image:url(../assets/patterns/checker-tile.png);background-size:88px 88px;background-repeat:repeat;opacity:.028;pointer-events:none;z-index:0"></div>
+<div ref="{{ wrapRef }}" style="position:relative;z-index:1">
+<div data-why-pin="1" ref="{{ pinRef }}">
+
+<div style="display:flex;flex-direction:column;gap:14px;margin-bottom:clamp(28px,3.6vw,48px)">
+<p style="margin:0;display:inline-flex;align-self:flex-start;align-items:center;gap:9px;height:32px;padding:0 15px 0 12px;border:1px solid var(--vt-grey-200);border-radius:999px;background:var(--vt-white);font-size:12px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;line-height:1;white-space:nowrap;color:var(--vt-charcoal-900)"><img src="../assets/patterns/checker-mark.png" alt="" style="width:13px;height:13px;display:block">Why Vamos</p>
+<h2 id="why-title" style="margin:0;font-family:var(--vt-font-display);font-size:clamp(34px,4.4vw,52px);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:1.06;max-width:22ch;text-wrap:balance">Booked ahead, priced up front, driver waiting.</h2>
+</div>
+
+<div data-why-grid="1">
+
+<div data-why-media="1">
+<div data-why-layer="1" data-on="{{ img1 }}" style="z-index:1;background:var(--vt-bg-inverse)">
+<img src="../assets/patterns/checker-mark.png" alt="" style="position:absolute;top:0;inset-inline-end:0;width:clamp(34px,4vw,52px);height:auto;z-index:2">
+<div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;gap:24px;padding:clamp(22px,3.2vw,40px);color:var(--vt-text-inverse)">
+<p style="margin:0;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-inverse-muted);max-width:16ch">Fare quoted at booking</p>
+<div style="display:flex;flex-direction:column;gap:10px">
+<p style="margin:0;font-family:var(--vt-font-display);font-size:clamp(15px,1.6vw,19px);font-weight:var(--vt-weight-semibold);letter-spacing:-0.01em;color:rgb(255 255 255/.74)">Zurich Airport (ZRH) → Zermatt</p>
+<strong style="font-family:var(--vt-font-display);font-size:clamp(44px,6vw,76px);font-weight:var(--vt-weight-semibold);letter-spacing:-0.02em;line-height:1">CHF 000</strong>
+<p style="margin:4px 0 0;font-size:var(--vt-body-sm);line-height:1.6;color:var(--vt-text-inverse-muted);max-width:36ch;text-wrap:pretty">Your route's fixed price appears here the moment you enter it. No meter, no surge, no charge until the last step.</p>
+</div>
+</div>
+</div>
+<div data-why-layer="1" data-on="{{ img2 }}" style="z-index:2"><img src="../rectangle-msch23iq-dqll.png" alt="A driver in a dark jacket waits at the airport kerb with a name card, beside a dark saloon car."></div>
+<div data-why-layer="1" data-on="{{ img3 }}" style="z-index:3"><img src="../rectangle-msch2rwv-7g2c.png" alt="A dark car on an Alpine motorway viaduct above the cloud line at first light."></div>
+<div data-why-layer="1" data-on="{{ img4 }}" style="z-index:4"><img src="../rectangle-msch3rzt-lwc6.png" alt="The open rear door of a black car at night, the lit leather cabin waiting."></div>
+<div data-why-layer="1" data-on="{{ img5 }}" style="z-index:5"><img src="../assets/photography/fleet-van-street.jpg" alt="A black Mercedes V-Class in Vamos Taxi livery parked on a city street."></div>
+</div>
+
+<div data-why-list="1">
+
+<button type="button" data-why-row="1" data-i="1" data-on="{{ on1 }}" aria-pressed="{{ pr1 }}" onClick="{{ pick1 }}">
+<span data-why-shot="1" aria-hidden="true"></span>
+<span data-why-num="1" aria-hidden="true">01</span>
+<span style="display:block;min-width:0">
+<span data-why-t="1" style="display:block">Fixed price, no surge</span>
+<sc-if value="{{ showSupport }}" hint-placeholder-val="{{ true }}">
+<span data-why-body="1" style="display:block">
+<span data-why-p="1" style="display:block">The price shown when you book is the price charged — no meter, no demand pricing, no surprise at the curb.</span>
+</span>
+</sc-if>
+</span>
+<span data-why-prog="1" aria-hidden="true"></span>
+</button>
+
+<button type="button" data-why-row="1" data-i="2" data-on="{{ on2 }}" aria-pressed="{{ pr2 }}" onClick="{{ pick2 }}">
+<span data-why-shot="1" aria-hidden="true"></span>
+<span data-why-num="1" aria-hidden="true">02</span>
+<span style="display:block;min-width:0">
+<span data-why-t="1" style="display:block">Scheduled, not on-demand</span>
+<sc-if value="{{ showSupport }}" hint-placeholder-val="{{ true }}">
+<span data-why-body="1" style="display:block">
+<span data-why-p="1" style="display:block">Your driver is booked for your exact pickup time: pickup scheduled for 06:30, not the nearest available car.</span>
+</span>
+</sc-if>
+</span>
+<span data-why-prog="1" aria-hidden="true"></span>
+</button>
+
+<button type="button" data-why-row="1" data-i="3" data-on="{{ on3 }}" aria-pressed="{{ pr3 }}" onClick="{{ pick3 }}">
+<span data-why-shot="1" aria-hidden="true"></span>
+<span data-why-num="1" aria-hidden="true">03</span>
+<span style="display:block;min-width:0">
+<span data-why-t="1" style="display:block">Local Swiss operator</span>
+<sc-if value="{{ showSupport }}" hint-placeholder-val="{{ true }}">
+<span data-why-body="1" style="display:block">
+<span data-why-p="1" style="display:block">We drive from Dietikon ZH — Zurich and Geneva airports, the city, and the Alpine routes we run every week.</span>
+</span>
+</sc-if>
+</span>
+<span data-why-prog="1" aria-hidden="true"></span>
+</button>
+
+<button type="button" data-why-row="1" data-i="4" data-on="{{ on4 }}" aria-pressed="{{ pr4 }}" onClick="{{ pick4 }}">
+<span data-why-shot="1" aria-hidden="true"></span>
+<span data-why-num="1" aria-hidden="true">04</span>
+<span style="display:block;min-width:0">
+<span data-why-t="1" style="display:block">Professional drivers</span>
+<sc-if value="{{ showSupport }}" hint-placeholder-val="{{ true }}">
+<span data-why-body="1" style="display:block">
+<span data-why-p="1" style="display:block">Vetted for airport and corporate travel.</span>
+<span data-why-tag="1">Claim pending approval</span>
+</span>
+</sc-if>
+</span>
+<span data-why-prog="1" aria-hidden="true"></span>
+</button>
+
+<button type="button" data-why-row="1" data-i="5" data-on="{{ on5 }}" aria-pressed="{{ pr5 }}" onClick="{{ pick5 }}">
+<span data-why-shot="1" aria-hidden="true"></span>
+<span data-why-num="1" aria-hidden="true">05</span>
+<span style="display:block;min-width:0">
+<span data-why-t="1" style="display:block">Built for business travel</span>
+<sc-if value="{{ showSupport }}" hint-placeholder-val="{{ true }}">
+<span data-why-body="1" style="display:block">
+<span data-why-p="1" style="display:block">Invoiced transfers, corporate accounts and scheduling you can plan a week around.</span>
+</span>
+</sc-if>
+</span>
+<span data-why-prog="1" aria-hidden="true"></span>
+</button>
+
+</div>
+
+</div>
+</div>
+</div>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showSupportText&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;scrollDriven&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Motion&quot;},&quot;scrollPerStep&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:52,&quot;min&quot;:34,&quot;max&quot;:90,&quot;step&quot;:2,&quot;unit&quot;:&quot;vh&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;}}">
+/**
+ * Rebuilt on Figma /Main/435 (node 319:11570) — "How it works": display heading over a
+ * two-up block, a rounded visual panel on the left and a rule-separated numbered index on
+ * the right, one row open at a time. Geometry from the file: 1440/140 gutters → 1200
+ * container, 560+40+560 → two equal columns with a 40px gap, 560×484 panel (aspect-ratio),
+ * 52px/1.06/-0.03em heading, 24px semibold rows with the numeral in a ~100px left column,
+ * 1px hairline under every row. Vamos substitutions: Qurova numerals + Poppins rows for
+ * Inter, --vt-grey-200 hairlines, --vt-grey-300 for the file's near-white idle state.
+ *
+ * Motion: on desktop the block pins under the 76px header and page scroll drives the step.
+ * Each visual is a stacked layer with clip-path inset(100% 0 0 0) → inset(0), so the next
+ * image *covers* the one below it bottom-to-up (620ms, entrance easing) and un-covers on
+ * the way back. The open row's copy expands, idle rows go light, and a 2px yellow rule
+ * scrubs across the active hairline with progress inside the step (yellow = attention).
+ * Rows are buttons: click jumps to that step. Under 980px nothing pins — the list is a tap
+ * accordion and the panel still wipes. Reduced motion keeps the stepping, drops transitions.
+ * Every row is literal markup so all copy stays directly editable.
+ */
+class Component extends DCLogic {
+  N = 5;
+  i = 0;
+  HEADER = 76;
+  rootRef = (el) => { this.root = el; };
+  wrapRef = (el) => { this.wrap = el; this.sync(); };
+  pinRef = (el) => { this.pin = el; };
+  wide() { return typeof matchMedia !== 'undefined' && matchMedia('(min-width: 768px)').matches; }
+  reduced() { return typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches; }
+  driven() { return this.props.scrollDriven !== false && this.wide(); }
+  stepPx() {
+    const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
+    return Math.max(240, ((this.props.scrollPerStep ?? 52) / 100) * vh);
+  }
+  pinH() { return this.pin ? this.pin.offsetHeight : 0; }
+  layout = () => {
+    if (!this.wrap) return;
+    this.wrap.style.height = this.driven() ? (this.pinH() + this.N * this.stepPx()) + 'px' : '';
+  };
+  /* Scroll-linked, so nothing "jumps": each boundary owns the last 45% of its step and the
+     incoming layer's clip-path is written straight from scroll position (no CSS transition
+     to fight, no React re-render). The row swaps at the halfway point of that window. */
+  WIN = 0.45;
+  ease(t) { return t * t * (3 - 2 * t); }
+  measure = () => {
+    this.raf = 0;
+    if (!this.wrap || !this.driven()) return;
+    const dur = Math.max(1, this.wrap.offsetHeight - this.pinH());
+    const p = Math.min(1, Math.max(0, (this.HEADER - this.wrap.getBoundingClientRect().top) / dur));
+    this.paint(p * this.N);
+  };
+  syncShots = () => {
+    if (!this.root) return;
+    const media = this.root.querySelector('[data-why-media]');
+    const shots = this.root.querySelectorAll('[data-why-shot]');
+    const layers = this.root.querySelectorAll('[data-why-layer]');
+    if (!this.wide()) {
+      shots.forEach((sh, k) => {
+        const L = layers[k];
+        if (L && L.parentNode !== sh) { sh.appendChild(L); }
+        if (L) { L.style.clipPath = 'none'; L.setAttribute('data-on', '1'); }
+      });
+    } else if (media) {
+      layers.forEach((L) => { if (L.parentNode !== media) { L.style.clipPath = ''; media.appendChild(L); } });
+    }
+  };
+  paint(raw) {
+    if (!this.root || !this.wide()) return;
+    const layers = this.root.querySelectorAll('[data-why-layer]');
+    const rows = this.root.querySelectorAll('[data-why-row]');
+    const bars = this.root.querySelectorAll('[data-why-prog]');
+    let active = 0;
+    for (let k = 1; k < layers.length; k++) {
+      const t = this.ease(Math.min(1, Math.max(0, (raw - (k - this.WIN)) / this.WIN)));
+      layers[k].style.clipPath = 'inset(' + ((1 - t) * 100).toFixed(3) + '% 0 0 0)';
+      if (t >= 0.5) active = k;
+    }
+    if (layers[0]) layers[0].style.clipPath = 'inset(0 0 0 0)';
+    const step = Math.min(this.N - 1, Math.floor(raw));
+    for (let k = 0; k < rows.length; k++) {
+      const on = k === active ? '1' : '0';
+      if (rows[k].getAttribute('data-on') !== on) {
+        rows[k].setAttribute('data-on', on);
+        rows[k].setAttribute('aria-pressed', k === active ? 'true' : 'false');
+      }
+      if (bars[k]) {
+        bars[k].style.transform = 'scaleX(' +
+          (k < step ? 1 : k === step ? Math.min(1, Math.max(0, raw - step)).toFixed(4) : 0) + ')';
+      }
+    }
+    this.i = active;
+  }
+  onScroll = () => { if (!this.raf) this.raf = requestAnimationFrame(this.measure); };
+  onResize = () => { this.syncShots(); this.layout(); this.onScroll(); };
+  sync = () => {
+    this.syncShots();
+    this.layout();
+    if (this.driven()) this.onScroll(); else this.select(this.i);
+  };
+  pick(i) {
+    return () => {
+      if (!this.wrap || !this.driven()) { this.select(i); return; }
+      const dur = this.wrap.offsetHeight - this.pinH();
+      const top = this.wrap.getBoundingClientRect().top + window.scrollY - this.HEADER
+        + (i + 0.4) * (dur / this.N);
+      window.scrollTo({ top: top, behavior: this.reduced() ? 'auto' : 'smooth' });
+    };
+  }
+  /* Tap/click mode (mobile, or scrollDriven off): CSS transitions do the wipe. */
+  select(i) {
+    if (!this.root || !this.wide()) return;
+    this.i = i;
+    const layers = this.root.querySelectorAll('[data-why-layer]');
+    const rows = this.root.querySelectorAll('[data-why-row]');
+    for (let k = 0; k < layers.length; k++) {
+      layers[k].style.clipPath = '';
+      layers[k].setAttribute('data-on', k <= i ? '1' : '0');
+    }
+    for (let k = 0; k < rows.length; k++) {
+      rows[k].setAttribute('data-on', k === i ? '1' : '0');
+      rows[k].setAttribute('aria-pressed', k === i ? 'true' : 'false');
+    }
+  }
+  componentDidMount() {
+    window.addEventListener('scroll', this.onScroll, { passive: true });
+    window.addEventListener('resize', this.onResize);
+    this.sync();
+    this._t = setTimeout(this.sync, 450);
+  }
+  componentDidUpdate() { this.layout(); }
+  componentWillUnmount() {
+    window.removeEventListener('scroll', this.onScroll);
+    window.removeEventListener('resize', this.onResize);
+    clearTimeout(this._t);
+    if (this.raf) cancelAnimationFrame(this.raf);
+  }
+  renderVals() {
+    const v = {
+      rootRef: this.rootRef,
+      wrapRef: this.wrapRef,
+      pinRef: this.pinRef,
+      pinAttr: this.props.scrollDriven === false ? '0' : '1',
+      scrubAttr: this.props.scrollDriven === false ? '0' : '1',
+      showSupport: (this.props.showSupportText ?? true) !== false,
+    };
+    /* First paint only — from here the scroll handler writes these attributes directly,
+       so a step change costs one style write, not a React render. */
+    for (let k = 0; k < this.N; k++) {
+      v['on' + (k + 1)] = k === 0 ? '1' : '0';
+      v['pr' + (k + 1)] = k === 0 ? 'true' : 'false';
+      v['img' + (k + 1)] = k === 0 ? '1' : '0';
+      v['pick' + (k + 1)] = this.pick(k);
+    }
+    return v;
+  }
+}
+
+</script>
+</body>
+</html>

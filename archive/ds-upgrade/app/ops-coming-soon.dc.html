@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../tokens/fonts.css">
+<link rel="stylesheet" href="../tokens/colors.css">
+<link rel="stylesheet" href="../tokens/typography.css">
+<link rel="stylesheet" href="../tokens/spacing.css">
+<link rel="stylesheet" href="../tokens/elevation.css">
+<link rel="stylesheet" href="../tokens/motion.css">
+<link rel="stylesheet" href="../tokens/base.css">
+<link rel="stylesheet" href="../components/mobile/fig-tokens.css">
+<link rel="stylesheet" href="../components/mobile/fig-assets.css">
+<link rel="stylesheet" href="../styles.css">
+<script src="../_ds_bundle.js"></script>
+<link rel="stylesheet" href="../assets/lenis.css">
+<script src="../assets/lenis.js"></script>
+<script src="../assets/lenis-boot.js"></script>
+<script src="vamos-i18n-dict.js"></script>
+<script src="vamos-locale.js"></script>
+<style>:root{--vt-icon-base:"../assets/icons/";--vt-logo-base:"../assets/logo/";--vt-pattern-base:"../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}.vt-select .vt-input--focus{box-shadow:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}body{margin:0;background:var(--vt-bg-page)}a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}</style>
+</helmet>
+<div style="display:flex;min-height:100vh;font-family:var(--vt-font-body);color:var(--vt-text-primary)">
+<dc-import name="OpsSidebar" active="{{ activeKey }}" hint-size="236px,900px"></dc-import>
+<main style="flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:center;padding:40px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" hint-size="440px,300px">
+<div style="width:380px;max-width:100%;display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px">
+<span style="width:56px;height:56px;border-radius:999px;background:var(--vt-yellow-50);display:flex;align-items:center;justify-content:center">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ icon }}" size="{{ n26 }}" color="var(--vt-yellow-700)" hint-size="26px,26px"></x-import>
+</span>
+<h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ title }}</h1>
+<p style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-secondary);line-height:1.6">{{ blurb }}</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="secondary" iconEnd="arrow-right" href="ops-board.dc.html" hint-size="180px,44px">{{ tBack }}</x-import>
+</div>
+</x-import>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const SECTIONS = {
+  calendar: { icon:'calendar-days', en:'Calendar', de:'Kalender' },
+  drivers: { icon:'car', en:'Drivers & vehicles', de:'Fahrer & Fahrzeuge' },
+  customers: { icon:'users', en:'Customers', de:'Kunden' },
+  coupons: { icon:'ticket', en:'Coupons', de:'Gutscheine' },
+  settings: { icon:'settings', en:'Settings', de:'Einstellungen' },
+};
+const T = {
+  en: (label) => ({ title: label + ' is not in this design freeze yet.', blurb:'The design freeze for V1 covers the bookings board and pricing & routes only — ' + label.toLowerCase() + ' is on the sidebar for navigational truth, not built out yet.', back:'Back to bookings' }),
+  de: (label) => ({ title: label + ' ist in diesem Design-Freeze noch nicht enthalten.', blurb:'Der Design-Freeze für V1 deckt nur das Buchungsboard sowie Preise & Routen ab — ' + label + ' steht der Vollständigkeit halber in der Seitenleiste, ist aber noch nicht umgesetzt.', back:'Zurück zu Buchungen' }),
+};
+class Component extends DCLogic {
+  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en' };
+  componentWillUnmount() { if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale); }
+  componentDidMount() {
+    this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
+    window.addEventListener('vamos:locale', this._onLocale);
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('vamosOpsAuth') !== '1') location.replace('ops-login.dc.html');
+  }
+  renderVals() {
+    const params = new URLSearchParams(location.search);
+    const key = params.get('section') || 'calendar';
+    const sec = SECTIONS[key] || SECTIONS.calendar;
+    const lang = this.state.lang;
+    const label = lang === 'de' ? sec.de : sec.en;
+    const copy = (T[lang] || T.en)(label);
+    return {
+      n26:26, activeKey: key, icon: sec.icon, title: copy.title, blurb: copy.blurb, tBack: copy.back,
+    };
+  }
+}
+</script>
+</body>
+</html>

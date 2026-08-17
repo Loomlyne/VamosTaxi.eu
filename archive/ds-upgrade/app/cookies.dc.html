@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../tokens/fonts.css">
+<link rel="stylesheet" href="../tokens/colors.css">
+<link rel="stylesheet" href="../tokens/typography.css">
+<link rel="stylesheet" href="../tokens/spacing.css">
+<link rel="stylesheet" href="../tokens/elevation.css">
+<link rel="stylesheet" href="../tokens/motion.css">
+<link rel="stylesheet" href="../tokens/base.css">
+<link rel="stylesheet" href="../styles.css">
+<script src="../_ds_bundle.js"></script>
+<link rel="stylesheet" href="../assets/lenis.css">
+<script src="../assets/lenis.js"></script>
+<script src="../assets/lenis-boot.js"></script>
+<script src="vamos-i18n-dict.js"></script>
+<script src="vamos-locale.js"></script>
+<style>:root{--vt-icon-base:"../assets/icons/";--vt-logo-base:"../assets/logo/";--vt-pattern-base:"../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}.vt-select .vt-input--focus{box-shadow:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}
+body{margin:0;background:var(--vt-bg-page)}
+a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+[data-lg-grid]{display:grid;grid-template-columns:minmax(0,1fr);gap:0}
+[data-lg-prose]{max-width:68ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+[data-lg-prose] section{padding:36px 0;border-top:1px solid var(--vt-grey-200)}
+[data-lg-prose] section:first-of-type{border-top:0;padding-top:4px}
+[data-lg-prose] h2{margin:0 0 16px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary);scroll-margin-top:108px;text-wrap:pretty}
+[data-lg-prose] h3{margin:28px 0 10px;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);line-height:1.28;letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary);text-wrap:pretty}
+[data-lg-prose] h4{margin:22px 0 8px;font-size:var(--vt-body-xs);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-lg-prose] p{margin:0 0 14px;text-wrap:pretty}
+[data-lg-prose] ul{margin:0 0 16px;padding-inline-start:20px}
+[data-lg-prose] li{margin:0 0 9px;padding-inline-start:4px}
+[data-lg-prose] p:last-child,[data-lg-prose] ul:last-child{margin-bottom:0}
+[data-lg-prose] a{color:var(--vt-charcoal-900);text-decoration:underline;text-decoration-color:var(--vt-grey-300);text-underline-offset:3px;transition:color 140ms cubic-bezier(.2,0,.2,1)}
+[data-lg-prose] a:hover{color:var(--vt-yellow-700);text-decoration-color:currentColor}
+[data-lg-n]{display:block;margin-bottom:9px;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);letter-spacing:var(--vt-label-tracking);font-weight:var(--vt-label-weight);color:var(--vt-charcoal-600)}
+[data-tok]{display:inline-flex;align-items:baseline;gap:5px;font-family:var(--vt-font-body);font-weight:var(--vt-weight-medium);font-size:.97em;background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 7px;white-space:nowrap}
+[data-tok]::after{content:"TBC";font-family:var(--vt-font-body);font-size:.66em;font-weight:700;letter-spacing:.1em;color:var(--vt-yellow-700)}
+[data-slot]{margin:0 0 16px;border:1px dashed var(--vt-grey-300);background:var(--vt-grey-50);border-radius:var(--vt-radius-md);padding:16px 18px}
+[data-slot-k]{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-slot-k]::before{content:"";width:8px;height:8px;flex:0 0 auto;background:var(--vt-grey-300)}
+[data-slot] p{margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)}
+[data-flag]{margin:0 0 16px;border:1px solid var(--vt-charcoal-900);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);padding:18px 20px}
+[data-flag-k]{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)}
+[data-flag] p{margin:0 0 10px;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)}
+[data-flag] p:last-child{margin-bottom:0}
+[data-src]{display:block;margin-top:2px;font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
+[data-lg-railcard]{background:none;border:0;box-shadow:none;padding:0}
+[data-lg-eyebrow]{display:flex;align-items:center;gap:9px;margin:0 0 10px;padding:0 6px;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-lg-eyebrow]::before{content:"";width:14px;height:14px;flex:0 0 auto;background:url(../assets/patterns/checker-mark.png) center / contain no-repeat}
+[data-lg-tl]{position:relative;display:flex;gap:9px;align-items:baseline;padding:6px 8px 6px 24px;border-radius:var(--vt-radius-sm);color:var(--vt-text-secondary);font-size:var(--vt-body-sm);line-height:1.35;text-decoration:none;transition:background 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1)}
+[data-lg-tl]::before{content:"";position:absolute;inset-inline-start:6px;top:9px;width:11px;height:11px;background:url(../assets/patterns/checker-mark.png) center / contain no-repeat;opacity:0;transition:opacity 140ms cubic-bezier(.2,0,.2,1)}
+[data-lg-tl]:hover{background:var(--vt-grey-50);color:var(--vt-text-primary)}
+[data-lg-tl][data-on]{color:var(--vt-charcoal-900);font-weight:var(--vt-weight-semibold)}
+[data-lg-tl][data-on]::before{opacity:1}
+[data-lg-tl] i{flex:0 0 20px;font-style:normal;font-family:var(--vt-font-display);font-size:11px;font-weight:var(--vt-weight-semibold);letter-spacing:.01em;font-variant-numeric:tabular-nums;color:var(--vt-grey-500)}
+[data-lg-tl][data-on] i{color:var(--vt-charcoal-900)}
+[data-lg-toc]{display:none}
+[data-lg-toc][data-open]{display:block}
+[data-lg-tocbtn]:hover{border-color:var(--vt-charcoal-900)}
+[data-x-link]:hover{background:var(--vt-grey-50)}
+[data-x-link][aria-current]{color:var(--vt-charcoal-900);font-weight:var(--vt-weight-semibold)}
+[data-crumb]{white-space:nowrap}
+[data-ct]{width:100%;border-collapse:collapse;margin:4px 0 18px;font-size:var(--vt-body-sm)}
+[data-ct] caption{text-align:left;padding:0 0 10px;font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
+[data-ct] th[scope=col]{display:none}
+[data-ct] tbody tr{display:block;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);padding:14px 16px;margin-bottom:10px}
+[data-ct] tbody td{display:grid;grid-template-columns:96px minmax(0,1fr);gap:4px 14px;padding:5px 0;color:var(--vt-text-secondary);vertical-align:top;text-align:left}
+[data-ct] tbody td::before{content:attr(data-l);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted);padding-top:2px}
+[data-ct] tbody td:first-child{font-family:var(--vt-font-mono);font-size:var(--vt-body-xs);color:var(--vt-text-primary)}
+@media (min-width:720px){
+[data-ct] th[scope=col]{display:table-cell;text-align:left;padding:0 16px 10px 0;border-bottom:1px solid var(--vt-charcoal-900);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-primary);white-space:nowrap}
+[data-ct] thead{display:table-header-group}
+[data-ct] tbody tr{display:table-row;background:none;border:0;border-radius:0;padding:0;margin:0}
+[data-ct] tbody td{display:table-cell;padding:13px 16px 13px 0;border-bottom:1px solid var(--vt-grey-200)}
+[data-ct] tbody td::before{display:none}
+}
+[data-state-row]{display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px}
+:focus-visible{outline:3px solid rgb(253 194 11 / .45);outline-offset:3px;border-radius:var(--vt-radius-xs)}
+@media (min-width:900px){[data-lg-grid]{grid-template-columns:264px minmax(0,1fr);gap:clamp(40px,5vw,80px)}
+[data-lg-rail]{position:sticky;top:96px;align-self:start;padding-bottom:8px}
+[data-lg-toc]{display:block}[data-lg-tocbtn]{display:none!important}}
+@media print{[data-lg-noprint]{display:none!important}
+[data-lg-grid]{display:block}
+[data-lg-prose]{max-width:none;font-size:10.5pt;color:#000}
+[data-lg-hero]{background:#fff!important;color:#000!important;border-bottom:1px solid #000}
+[data-lg-hero] *{color:#000!important}
+[data-tok]{background:#fff!important;border-color:#000!important;color:#000!important}
+[data-ct] thead{display:table-header-group}
+[data-ct] th[scope=col]{display:table-cell}
+[data-ct] tbody tr{display:table-row;border:0;padding:0;margin:0}
+[data-ct] tbody td{display:table-cell;padding:8px 12px 8px 0;border-bottom:1px solid #999}
+[data-ct] tbody td::before{display:none}
+[data-lg-prose] h2{break-after:avoid;page-break-after:avoid}
+[data-slot],[data-flag]{break-inside:avoid;page-break-inside:avoid}
+@page{margin:18mm}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}</style>
+</helmet>
+
+<div style="font-family:var(--vt-font-body);background:var(--vt-bg-page);min-height:100vh">
+<div data-lg-noprint="1"><dc-import name="SiteHeader" variant="inverse" hint-size="100%,76px"></dc-import></div>
+
+<main data-screen-label="Cookie policy" data-vt-legal="en">
+
+<header data-lg-hero="1" style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);position:relative;overflow:hidden">
+<div aria-hidden="true" style="position:absolute;top:0;inset-inline-end:0;width:120px;height:120px;background:url(../assets/patterns/checker-mark.png) top right / 56px auto no-repeat;opacity:.9"></div>
+<div style="max-width:1200px;margin:0 auto;padding:44px clamp(20px,5vw,56px) 40px">
+<nav aria-label="Breadcrumb" style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted);margin-bottom:26px">
+<a data-crumb="1" href="home.dc.html" style="color:inherit;text-decoration:none">Home</a><span aria-hidden="true">/</span><span data-crumb="1" style="color:var(--vt-text-inverse)">Cookie policy</span>
+</nav>
+<p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">Legal</p>
+<h1 style="margin:0 0 18px;max-width:20ch;font-family:var(--vt-font-display);font-size:var(--vt-display-2);line-height:var(--vt-display-leading);letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty">Cookie policy</h1>
+<p style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Four categories, one of which you cannot switch off because the booking would stop working. The other three are off until you say otherwise.</p>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;margin-top:32px;padding-top:24px;border-top:1px solid var(--vt-border-inverse)">
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Last updated</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Cookies effective date</span></span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Version</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Cookies version</span></span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Consent model</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">Opt-in by category</span></div>
+<button data-lg-noprint="1" type="button" onClick="{{ openCookiePrefs }}" style="margin-inline-start:auto;display:inline-flex;align-items:center;gap:9px;height:44px;padding:0 20px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:none;color:var(--vt-text-inverse);font-family:inherit;font-size:var(--vt-body-sm);white-space:nowrap;cursor:pointer">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="settings" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>Change your choices</button>
+</div>
+</div>
+</header>
+
+<div style="max-width:1200px;margin:0 auto;padding:44px clamp(20px,5vw,56px) 8px">
+<div data-lg-grid="1">
+
+<aside data-lg-rail="1" data-lg-noprint="1" aria-label="Page navigation">
+<button data-lg-tocbtn="1" type="button" onClick="{{ toggleToc }}" aria-expanded="{{ tocOpen }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:0 18px;margin-bottom:14px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface);font-family:inherit;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-primary);cursor:pointer;transition:border-color 140ms cubic-bezier(.2,0,.2,1)">
+<span>On this page</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n18 }}" color="var(--vt-charcoal-900)" hint-size="18px,18px"></x-import>
+</button>
+
+<nav data-lg-toc="1" data-lg-railcard="1" data-open="{{ tocOpen }}" ref="{{ tocRef }}" aria-label="Sections">
+<p data-lg-eyebrow="1">On this page</p>
+<div style="display:flex;flex-direction:column">
+<a data-lg-tl="1" href="#what"><i>01</i>What we mean by cookies</a>
+<a data-lg-tl="1" href="#choice"><i>02</i>Your current choice</a>
+<a data-lg-tl="1" href="#necessary"><i>03</i>Strictly necessary</a>
+<a data-lg-tl="1" href="#functional"><i>04</i>Functional</a>
+<a data-lg-tl="1" href="#analytics"><i>05</i>Analytics</a>
+<a data-lg-tl="1" href="#marketing"><i>06</i>Marketing</a>
+<a data-lg-tl="1" href="#change"><i>07</i>Changing your mind</a>
+<a data-lg-tl="1" href="#legacy"><i>08</i>The previous site</a>
+</div>
+
+<div style="margin-top:28px;padding-top:22px;border-top:1px solid var(--vt-border-subtle)">
+<p data-lg-eyebrow="1">Related documents</p>
+<div style="display:flex;flex-direction:column;gap:2px">
+<a data-x-link="1" href="terms.dc.html" style="display:block;padding:9px 12px;border-radius:var(--vt-radius-sm);font-size:var(--vt-body-sm);color:var(--vt-text-secondary);text-decoration:none;transition:background 140ms cubic-bezier(.2,0,.2,1)">Terms &amp; conditions</a>
+<a data-x-link="1" href="cancellation.dc.html" style="display:block;padding:9px 12px;border-radius:var(--vt-radius-sm);font-size:var(--vt-body-sm);color:var(--vt-text-secondary);text-decoration:none;transition:background 140ms cubic-bezier(.2,0,.2,1)">Cancellation &amp; refunds</a>
+<a data-x-link="1" href="privacy.dc.html" style="display:block;padding:9px 12px;border-radius:var(--vt-radius-sm);font-size:var(--vt-body-sm);color:var(--vt-text-secondary);text-decoration:none;transition:background 140ms cubic-bezier(.2,0,.2,1)">Privacy policy</a>
+<a data-x-link="1" aria-current="page" href="cookies.dc.html" style="display:block;padding:9px 12px;border-radius:var(--vt-radius-sm);font-size:var(--vt-body-sm);color:var(--vt-text-secondary);text-decoration:none;transition:background 140ms cubic-bezier(.2,0,.2,1)">Cookie policy</a>
+<a data-x-link="1" href="imprint.dc.html" style="display:block;padding:9px 12px;border-radius:var(--vt-radius-sm);font-size:var(--vt-body-sm);color:var(--vt-text-secondary);text-decoration:none;transition:background 140ms cubic-bezier(.2,0,.2,1)">Imprint</a>
+</div>
+</div>
+</nav>
+</aside>
+
+<article data-lg-prose="1" ref="{{ proseRef }}">
+
+<sc-if value="{{ scaffold }}" hint-placeholder-val="{{ true }}">
+<div data-lg-noprint="1" style="margin:0 0 30px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" title="Structure proposal — the tables need real values" hint-size="100%,120px">Purposes and categories are designed. Cookie names, providers and durations can only be filled in once the analytics tool is chosen and the platform is instrumented, so they are tokens. No consent mechanism existed on the previous site — see section 08.</x-import>
+</div>
+</sc-if>
+
+<section id="what">
+<h2><span data-lg-n="1">01</span>What we mean by cookies</h2>
+<p>Small files a site stores in your browser, plus the equivalents — local storage and pixels. We group them by what they are for, not by the technology.</p>
+<p>Nothing except the strictly necessary category is set before you choose. If you never choose, nothing else is ever set.</p>
+</section>
+
+<section id="choice">
+<h2><span data-lg-n="1">02</span>Your current choice</h2>
+<p>Read from this browser, so it is the real state, not an example.</p>
+<div style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);padding:22px;margin:4px 0 18px">
+<p style="margin:0 0 16px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ stateLabel }}</p>
+<div data-state-row="1" style="margin-bottom:18px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Badge" tone="inverse" icon="shield-check" hint-size="150px,24px">Necessary · on</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Badge" tone="{{ toneFunctional }}" hint-size="130px,24px">{{ labelFunctional }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Badge" tone="{{ toneAnalytics }}" hint-size="130px,24px">{{ labelAnalytics }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Badge" tone="{{ toneMarketing }}" hint-size="130px,24px">{{ labelMarketing }}</x-import>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" onClick="{{ openCookiePrefs }}" hint-size="200px,44px">Change preferences</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ resetConsent }}" hint-size="180px,44px">Reset my choice</x-import>
+</div>
+</div>
+<p>Resetting clears the record and brings the banner back, which is also how you check what a first-time visitor sees.</p>
+</section>
+
+<section id="necessary">
+<h2><span data-lg-n="1">03</span>Strictly necessary</h2>
+<p>Set for everyone, no consent needed, because without them a booking cannot be taken or paid for.</p>
+<table data-ct="1">
+<caption>Strictly necessary — cannot be switched off</caption>
+<thead><tr><th scope="col">Name</th><th scope="col">Purpose</th><th scope="col">Provider</th><th scope="col">Duration</th></tr></thead>
+<tbody>
+<tr><td data-l="Name"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Session cookie</span></td><td data-l="Purpose">Keeps you signed in and holds the booking while you fill it in</td><td data-l="Provider">Vamos Taxi · Supabase</td><td data-l="Duration"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Session duration</span></td></tr>
+<tr><td data-l="Name"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Consent cookie</span></td><td data-l="Purpose">Records which categories you allowed, so we can prove it and stop asking</td><td data-l="Provider">Vamos Taxi</td><td data-l="Duration"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Consent duration</span></td></tr>
+<tr><td data-l="Name">__stripe_mid · __stripe_sid</td><td data-l="Purpose">Fraud checks on the payment step</td><td data-l="Provider">Stripe</td><td data-l="Duration"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Stripe cookie duration</span></td></tr>
+<tr><td data-l="Name"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Hosting cookie</span></td><td data-l="Purpose">Routes your request and keeps the site available</td><td data-l="Provider">Vercel</td><td data-l="Duration"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Hosting cookie duration</span></td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="functional">
+<h2><span data-lg-n="1">04</span>Functional</h2>
+<p>Convenience only. Decline them and everything still works, you just retype more.</p>
+<table data-ct="1">
+<caption>Functional — off until you allow them</caption>
+<thead><tr><th scope="col">Name</th><th scope="col">Purpose</th><th scope="col">Provider</th><th scope="col">Duration</th></tr></thead>
+<tbody>
+<tr><td data-l="Name"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Lang cookie</span></td><td data-l="Purpose">Remembers whether you read the site in English or German</td><td data-l="Provider">Vamos Taxi</td><td data-l="Duration"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Lang cookie duration</span></td></tr>
+<tr><td data-l="Name"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Recent address cookie</span></td><td data-l="Purpose">Offers your last pickup address the next time you book</td><td data-l="Provider">Vamos Taxi</td><td data-l="Duration"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Recent address duration</span></td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="analytics">
+<h2><span data-lg-n="1">05</span>Analytics</h2>
+<p>Which step of a booking people give up on, and which errors are breaking. Aggregated, and never used to make a decision about you.</p>
+<table data-ct="1">
+<caption>Analytics — off until you allow them</caption>
+<thead><tr><th scope="col">Name</th><th scope="col">Purpose</th><th scope="col">Provider</th><th scope="col">Duration</th></tr></thead>
+<tbody>
+<tr><td data-l="Name"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Analytics cookie</span></td><td data-l="Purpose">Counts visits and measures where a booking is abandoned</td><td data-l="Provider"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Analytics provider</span></td><td data-l="Duration"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Analytics duration</span></td></tr>
+<tr><td data-l="Name"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Error cookie</span></td><td data-l="Purpose">Links an error report to the session that produced it</td><td data-l="Provider">Sentry</td><td data-l="Duration"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Error cookie duration</span></td></tr>
+</tbody>
+</table>
+<sc-if value="{{ scaffold }}" hint-placeholder-val="{{ true }}">
+<div data-flag="1">
+<p data-flag-k="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="triangle-alert" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import>One tool, not two</p>
+<p>The rebuild has both Vercel Analytics and PostHog on the table, and the old site ran Google Analytics. Whichever survives goes in this row; the others come out of the table entirely. A cookie table that lists a tool you are not running is as wrong as one that omits a tool you are.</p>
+</div>
+<div data-flag="1">
+<p data-flag-k="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="triangle-alert" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import>Is Sentry analytics, or is it necessary?</p>
+<p>It sits in this category today, which means declining analytics also turns off crash reporting. The argument for moving it to strictly necessary is service integrity — you cannot fix a checkout that breaks silently. The argument against is that it is a third party receiving session data, and “necessary” is the category nobody gets to refuse.</p>
+<p>Nobody has made this call. It is a category decision, not a wording one, so it changes the banner as well as this page.</p>
+</div>
+</sc-if>
+</section>
+
+<section id="marketing">
+<h2><span data-lg-n="1">06</span>Marketing</h2>
+<p>Nothing in this category is running today. It is here because the moment a paid campaign starts, something will be, and a category added later looks like a category that was hidden.</p>
+<table data-ct="1">
+<caption>Marketing — off, and currently unused</caption>
+<thead><tr><th scope="col">Name</th><th scope="col">Purpose</th><th scope="col">Provider</th><th scope="col">Duration</th></tr></thead>
+<tbody>
+<tr><td data-l="Name"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Marketing cookie</span></td><td data-l="Purpose">Measures which advert or campaign led to a booking</td><td data-l="Provider"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Marketing providers</span></td><td data-l="Duration"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Marketing duration</span></td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="change">
+<h2><span data-lg-n="1">07</span>Changing your mind</h2>
+<p>Open your preferences from the link in the footer of every page, or from section <a href="#choice">02</a> above. Turning a category off stops it immediately; anything already collected is handled as set out in the <a href="privacy.dc.html#retention">privacy policy</a>.</p>
+<p>Your browser settings also work, and they override anything we do. Blocking the strictly necessary category there will stop a booking from completing.</p>
+</section>
+
+<sc-if value="{{ scaffold }}" hint-placeholder-val="{{ true }}">
+<section id="legacy">
+<h2><span data-lg-n="1">08</span>The previous site</h2>
+<div data-flag="1">
+<p data-flag-k="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="triangle-alert" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import>Live compliance gap on the old site</p>
+<p>vamostaxi.eu declares Google Analytics and third-party advertising cookies, and offers no banner, no opt-in and no consent record — the advice is to change your browser settings. That is the gap this page and the banner close, and it is the reason consent here is opt-in rather than implied.<span data-src="1">Archived privacy policy §3 · Wayback, 2024</span></p>
+<p>This section is scaffolding for your review. It comes off before launch: the published page describes what the new site does, not what the old one failed to do.</p>
+</div>
+</section>
+</sc-if>
+
+</article>
+</div>
+</div>
+
+<sc-if value="{{ scaffold }}" hint-placeholder-val="{{ true }}">
+<section data-lg-review="1" aria-label="Review scaffold" style="max-width:1200px;margin:0 auto;padding:40px clamp(20px,5vw,56px) 0">
+<div style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);border-radius:var(--vt-radius-xl);padding:clamp(26px,3vw,40px)">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:12px 20px;margin-bottom:8px">
+<p style="margin:0;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">Review scaffold — not part of the published page</p>
+<p style="margin:0;font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted)">Turn off with the “show review scaffold” tweak to see the page as it ships.</p>
+</div>
+<h2 style="margin:0 0 26px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse)">What this page still needs from you</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:32px">
+<div>
+<p style="margin:0 0 14px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Decisions — 4</p>
+<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading-tight);color:rgb(255 255 255 / .84)">
+<li>Which analytics tool ships — <a href="#analytics" style="color:var(--vt-accent)">05</a></li>
+<li>Whether Google Analytics is retired — <a href="#legacy" style="color:var(--vt-accent)">08</a></li>
+<li>Whether Sentry is necessary or analytics — <a href="#analytics" style="color:var(--vt-accent)">05</a></li>
+<li>Whether consent is logged server-side as well as in the browser</li>
+</ul>
+</div>
+<div>
+<p style="margin:0 0 14px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Engineering inputs</p>
+<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading-tight);color:rgb(255 255 255 / .84)">
+<li>Real cookie names once instrumented</li>
+<li>Actual durations per provider</li>
+<li>Hosting regions for the provider column</li>
+</ul>
+</div>
+<div>
+<p style="margin:0 0 14px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Tokens in the tables — 21</p>
+<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading-tight);color:rgb(255 255 255 / .84)">
+<li>Effective date, version</li>
+<li>Session, consent, hosting cookies</li>
+<li>Language and recent-address cookies</li>
+<li>Analytics and error cookies</li>
+<li>Marketing cookie and providers</li>
+<li>A duration for every row</li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+</sc-if>
+
+<section data-lg-noprint="1" style="max-width:1200px;margin:0 auto;padding:40px clamp(20px,5vw,56px) 72px">
+<div style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);padding:clamp(24px,3vw,36px);display:flex;flex-wrap:wrap;align-items:center;gap:24px 40px">
+<div style="flex:1 1 320px;min-width:0">
+<h2 style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Change your mind any time</h2>
+<p style="margin:0;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);max-width:52ch">Your choice is a preference, not a contract. Reopen the panel whenever you like — no explanation needed.</p>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" onClick="{{ openCookiePrefs }}" hint-size="200px,44px">Cookie preferences</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" href="privacy.dc.html" iconEnd="arrow-right" hint-size="170px,44px">Privacy policy</x-import>
+</div>
+</div>
+</section>
+
+</main>
+
+<div data-lg-noprint="1"><dc-import name="SiteFooter" hint-size="100%,520px"></dc-import></div>
+<dc-import name="CookieBanner" start-state="{{ cookieState }}" hint-size="0,0"></dc-import>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showReviewScaffold&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Review&quot;},&quot;showSlotNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Review&quot;},&quot;cookieState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;auto&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;banner&quot;,&quot;prefs&quot;,&quot;hidden&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Review&quot;}}">
+const KEY = 'vamosCookieConsent';
+
+class Component extends DCLogic {
+  state = { tocOpen: false, consent: null };
+  proseRef = React.createRef();
+  tocRef = React.createRef();
+
+  componentDidMount() {
+    this.readConsent();
+    this.poll = setInterval(this.readConsent, 700);
+    const prose = this.proseRef.current, toc = this.tocRef.current;
+    if (!prose || !toc || typeof IntersectionObserver === 'undefined') return;
+    const links = Array.from(toc.querySelectorAll('[data-lg-tl]'));
+    const byId = {};
+    links.forEach((a) => { byId[(a.getAttribute('href') || '').slice(1)] = a; });
+    const seen = new Set();
+    this.io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => { if (en.isIntersecting) seen.add(en.target.id); else seen.delete(en.target.id); });
+      // The last section whose heading has passed the reading line wins — picking the
+      // first *intersecting* one lags a section behind, because the previous section still
+      // occupies the top sliver of the band.
+      const secs = Array.from(prose.querySelectorAll('section[id]'));
+      let active = secs.length ? secs[0].id : null;
+      secs.forEach((s) => { if (s.getBoundingClientRect().top <= 140) active = s.id; });
+      links.forEach((a) => a.removeAttribute('data-on'));
+      const hit = active && byId[active];
+      if (hit) {
+        hit.setAttribute('data-on', '1');
+      }
+    }, { rootMargin: '-104px 0px -60% 0px' });
+    prose.querySelectorAll('section[id]').forEach((s) => this.io.observe(s));
+  }
+  componentWillUnmount() { if (this.io) this.io.disconnect(); if (this.poll) clearInterval(this.poll); }
+
+  // The banner writes the record; this page mirrors it, so the two never disagree.
+  readConsent = () => {
+    let c = null;
+    try { c = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { c = null; }
+    const a = JSON.stringify(c), b = JSON.stringify(this.state.consent);
+    if (a !== b) this.setState({ consent: c });
+  };
+
+  resetConsent = () => {
+    try { localStorage.removeItem(KEY); } catch (e) { /* nothing to clear */ }
+    this.setState({ consent: null });
+    window.location.reload();
+  };
+
+  openCookiePrefs = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    window.dispatchEvent(new Event('vamos:cookie-prefs'));
+  };
+
+  toggleToc = () => this.setState((s) => ({ tocOpen: !s.tocOpen }));
+
+  fmt(name, on) { return name + ' · ' + (on ? 'on' : 'off'); }
+
+  renderVals() {
+    const c = this.state.consent;
+    const f = !!(c && c.functional), an = !!(c && c.analytics), m = !!(c && c.marketing);
+    let when = '';
+    if (c && c.ts) {
+      const d = new Date(c.ts);
+      if (!isNaN(d)) when = ' on ' + d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+    return {
+      n14: 14, n16: 16, n18: 18,
+      tocOpen: this.state.tocOpen ? '1' : null,
+      toggleToc: this.toggleToc, openCookiePrefs: this.openCookiePrefs, resetConsent: this.resetConsent,
+      proseRef: this.proseRef, tocRef: this.tocRef,
+      stateLabel: c ? ('Saved' + when) : 'Nothing chosen yet — only strictly necessary cookies are set',
+      toneFunctional: f ? 'success' : 'neutral',
+      toneAnalytics: an ? 'success' : 'neutral',
+      toneMarketing: m ? 'success' : 'neutral',
+      labelFunctional: this.fmt('Functional', f),
+      labelAnalytics: this.fmt('Analytics', an),
+      labelMarketing: this.fmt('Marketing', m),
+      scaffold: (this.props.showReviewScaffold ?? true) !== false,
+      slotNotes: (this.props.showSlotNotes ?? true) !== false,
+      cookieState: this.props.cookieState || 'auto',
+    };
+  }
+}
+
+</script>
+</body>
+</html>

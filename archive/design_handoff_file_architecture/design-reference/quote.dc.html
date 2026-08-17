@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="../support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-tokens.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-assets.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<style>:root{--vt-icon-base:"../assets/icons/";--vt-logo-base:"../assets/logo/";--vt-pattern-base:"../assets/patterns/";--vt-shadow-accent:none}body{margin:0;background:var(--vt-bg-page)}a{color:var(--vt-text-link)}a:hover{color:var(--vt-text-link-hover)}</style>
+</helmet>
+<div style="font-family:var(--vt-font-body);color:var(--vt-text-primary)">
+<dc-import name="SiteHeader" variant="inverse" hint-size="100%,76px"></dc-import>
+<main style="padding-bottom:72px">
+<div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,56px)">
+<div style="padding-top:32px;display:flex;align-items:center;gap:20px;margin-bottom:24px;flex-wrap:wrap">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="sm" icon="chevron-left" href="home.dc.html#book" hint-size="150px,36px">{{ tChangeRoute }}</x-import>
+<div style="flex:1 1 320px;max-width:520px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StepIndicator" steps="{{ steps }}" current="{{ n1 }}" hint-size="100%,28px"></x-import>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:24px;align-items:start">
+<div style="display:flex;flex-direction:column;gap:20px">
+<div style="position:relative;background:var(--vt-charcoal-900);border-radius:var(--vt-radius-lg);min-height:280px;display:flex;align-items:center;justify-content:center;padding:20px">
+<div style="text-align:center;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-inverse-muted);line-height:1.6">
+<strong style="display:block;color:var(--vt-text-inverse);font-weight:600;margin-bottom:6px">{{ tMapLabel }}</strong>{{ tMapSub }}
+</div>
+</div>
+<div>
+<h2 style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tChooseVehicle }}</h2>
+<p style="margin:0 0 20px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">{{ tChooseVehicleSub }}</p>
+<div style="display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{ fleet }}" as="v" hint-placeholder-count="3">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.VehicleCard" name="{{ v.name }}" examples="{{ v.examples }}" icon="{{ v.icon }}" passengers="{{ v.passengers }}" luggage="{{ v.luggage }}" price="CHF 000" image="{{ v.image }}" badge="{{ v.badge }}" selected="{{ v.selected }}" onSelect="{{ v.select }}" hint-size="100%,120px"></x-import>
+</sc-for>
+</div>
+</div>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="accent" title="{{ tAlertTitle }}" hint-size="100%,70px">{{ tAlertBody }}</x-import>
+</div>
+<div style="display:flex;flex-direction:column;gap:16px;position:sticky;top:96px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" hint-size="100%,220px">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+<h3 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);white-space:nowrap">{{ tYourJourney }}</h3>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Badge" tone="accent" hint-size="70px,24px">{{ tModeBadge }}</x-import>
+</div>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.RouteSummary" pickup="{{ pickup }}" pickupDetail="{{ tPickupDetail }}" dropoff="{{ dropoff }}" meta="{{ meta }}" hint-size="100%,140px"></x-import>
+</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" tone="inverse" hint-size="100%,180px">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:600;color:var(--vt-text-inverse-muted)">{{ tSelected }}</span>
+<div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:6px 0 16px">
+<strong style="font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:600;color:var(--vt-text-inverse)">{{ selectedName }}</strong>
+<span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-md);font-weight:700;color:var(--vt-text-inverse)">CHF 000</span>
+</div>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" iconEnd="arrow-right" onClick="{{ goCheckout }}" hint-size="100%,54px">{{ tContinue }}</x-import>
+<p style="display:flex;align-items:center;gap:8px;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted);margin:16px 0 0">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="shield-check" size="{{ n15 }}" color="var(--vt-accent)" hint-size="15px,15px"></x-import>{{ tNoCharge }}
+</p>
+</x-import>
+</div>
+</div>
+</div>
+</main>
+<dc-import name="SiteFooter" wordmark="{{ no }}" hint-size="100%,420px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+function readTrip() {
+  const DEFAULT_TRIP = { mode:'one-way', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'Bleicherstrasse 16, 8953 Dietikon', date:'Fri 14 Aug', time:'08:15', pax:2, bags:2, vehicle:'business' };
+  try { return Object.assign({}, DEFAULT_TRIP, JSON.parse(localStorage.getItem('vamosTrip') || '{}')); }
+  catch (e) { return Object.assign({}, DEFAULT_TRIP); }
+}
+function saveTrip(patch) {
+  const t = Object.assign({}, readTrip(), patch);
+  localStorage.setItem('vamosTrip', JSON.stringify(t));
+  return t;
+}
+const T = {
+  en: {
+    changeRoute:'Change route', steps:['Route','Vehicle','Details','Payment'],
+    mapLabel:'Mapbox route map', mapSub:'Pin-pick pickup and destination · route drawn for distance and duration',
+    chooseVehicle:'Choose a vehicle', chooseVehicleSub:'All classes include 60 minutes of airport waiting, meet & greet and all tolls.',
+    alertTitle:'Placeholder fares', alertBody:'The CHF price matrix, vehicle photography and fixed-route inventory are pending client inputs — figures here are placeholders, not quotes.',
+    yourJourney:'Your journey', oneWay:'One way', return_:'Return', pickupDetail:'Arrivals — meet & greet at the exit',
+    selected:'Selected', continue_:'Continue', noCharge:'No charge until the last step',
+    economy:'Economy', business:'Business', van:'Van',
+    exEconomy:'Skoda Superb or similar', exBusiness:'Mercedes E-Class or similar', exVan:'Mercedes V-Class or similar',
+    mostBooked:'Most booked', kmMeta:'18.4 km · approx. 24 min', pax:'passengers', bags:'bags',
+  },
+  de: {
+    changeRoute:'Route ändern', steps:['Route','Fahrzeug','Angaben','Zahlung'],
+    mapLabel:'Mapbox-Routenkarte', mapSub:'Abholort und Ziel per Stecknadel wählen · Route für Distanz und Dauer eingezeichnet',
+    chooseVehicle:'Fahrzeug wählen', chooseVehicleSub:'Jede Klasse beinhaltet 60 Minuten Wartezeit am Flughafen, Meet & Greet und alle Gebühren.',
+    alertTitle:'Platzhalter-Preise', alertBody:'Die CHF-Preistabelle, Fahrzeugfotos und das Streckenangebot sind noch ausstehende Kundendaten — die Werte hier sind Platzhalter, keine Angebote.',
+    yourJourney:'Ihre Fahrt', oneWay:'Einfache Fahrt', return_:'Rückfahrt', pickupDetail:'Ankunft — Meet & Greet am Ausgang',
+    selected:'Ausgewählt', continue_:'Weiter', noCharge:'Keine Zahlung bis zum letzten Schritt',
+    economy:'Economy', business:'Business', van:'Van',
+    exEconomy:'Skoda Superb oder ähnlich', exBusiness:'Mercedes E-Class oder ähnlich', exVan:'Mercedes V-Class oder ähnlich',
+    mostBooked:'Meistgebucht', kmMeta:'18,4 km · ca. 24 Min.', pax:'Passagiere', bags:'Gepäckstücke',
+  },
+};
+class Component extends DCLogic {
+  state = (() => { const trip = readTrip(); return { lang:(typeof localStorage!=='undefined'&&localStorage.getItem('vamosLang'))||'en', vehicle: trip.vehicle || 'business', trip }; })();
+  selectVehicle = (id) => { this.setState({ vehicle: id }); saveTrip({ vehicle: id }); };
+  goCheckout = () => { saveTrip({ vehicle: this.state.vehicle }); location.href = 'checkout.dc.html'; };
+  renderVals() {
+    const t = T[this.state.lang] || T.en;
+    const trip = this.state.trip;
+    const FLEET = [
+      { id:'economy', name:t.economy, examples:t.exEconomy, icon:'car-front', passengers:'3', luggage:'3' },
+      { id:'business', name:t.business, examples:t.exBusiness, icon:'car', passengers:'3', luggage:'3', badge:t.mostBooked },
+      { id:'van', name:t.van, examples:t.exVan, icon:'bus', passengers:'up to 8', luggage:'up to 8', image:'../assets/photography/fleet-van-street.jpg' },
+    ];
+    const selected = FLEET.find((v) => v.id === this.state.vehicle) || FLEET[1];
+    return {
+      n1:1, n15:15, yes:true, no:false,
+      tChangeRoute: t.changeRoute, steps: t.steps,
+      tMapLabel: t.mapLabel, tMapSub: t.mapSub,
+      tChooseVehicle: t.chooseVehicle, tChooseVehicleSub: t.chooseVehicleSub,
+      tAlertTitle: t.alertTitle, tAlertBody: t.alertBody,
+      tYourJourney: t.yourJourney, tModeBadge: trip.mode === 'return' ? t.return_ : t.oneWay,
+      tPickupDetail: t.pickupDetail, tSelected: t.selected, tContinue: t.continue_, tNoCharge: t.noCharge,
+      pickup: trip.pickup, dropoff: trip.dropoff,
+      meta: [
+        { icon:'calendar', label: trip.date }, { icon:'clock', label: trip.time },
+        { icon:'navigation', label: t.kmMeta },
+        { icon:'users', label: trip.pax + ' ' + t.pax }, { icon:'luggage', label: trip.bags + ' ' + t.bags },
+      ],
+      fleet: FLEET.map((v) => ({
+        name: v.name, examples: v.examples, icon: v.icon, passengers: v.passengers, luggage: v.luggage,
+        image: v.image || '', badge: v.badge || '', selected: v.id === this.state.vehicle,
+        select: () => this.selectVehicle(v.id),
+      })),
+      selectedName: selected.name,
+      goCheckout: this.goCheckout,
+    };
+  }
+}
+</script>
+</body>
+</html>

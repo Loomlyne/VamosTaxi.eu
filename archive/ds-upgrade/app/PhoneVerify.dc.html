@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../tokens/fonts.css">
+<link rel="stylesheet" href="../tokens/colors.css">
+<link rel="stylesheet" href="../tokens/typography.css">
+<link rel="stylesheet" href="../tokens/spacing.css">
+<link rel="stylesheet" href="../tokens/elevation.css">
+<link rel="stylesheet" href="../tokens/motion.css">
+<link rel="stylesheet" href="../tokens/base.css">
+<link rel="stylesheet" href="../components/mobile/fig-tokens.css">
+<link rel="stylesheet" href="../components/mobile/fig-assets.css">
+<link rel="stylesheet" href="../styles.css">
+<script src="../_ds_bundle.js"></script>
+<link rel="stylesheet" href="../assets/lenis.css">
+<script src="../assets/lenis.js"></script>
+<script src="../assets/lenis-boot.js"></script>
+<script src="vamos-i18n-dict.js"></script>
+<script src="vamos-locale.js"></script>
+<style>:root{--vt-icon-base:"../assets/icons/";--vt-logo-base:"../assets/logo/";--vt-pattern-base:"../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}input:focus-visible{outline:none;box-shadow:none}
+body{margin:0}a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+[data-pv-tile]{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:48px;height:48px;border-radius:var(--vt-radius-md);background:var(--vt-charcoal);box-shadow:var(--vt-shadow-sm)}
+[data-pv-h2]{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold);letter-spacing:-.01em;line-height:1.2}
+[data-pv-b]{margin:0;max-width:60ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);text-wrap:pretty}
+[data-pv-pill]{display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:var(--vt-radius-xs);background:var(--vt-yellow);color:var(--vt-charcoal);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);white-space:nowrap}
+[data-pv-done]{display:inline-flex;align-items:center;gap:7px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-success)}
+[data-pv-num]{font-family:var(--vt-font-display);font-size:var(--vt-figure-sm);font-weight:var(--vt-weight-semibold);letter-spacing:-.01em;line-height:1.1;color:var(--vt-charcoal-900)}
+[data-pv-row]{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:end}
+[data-pv-link]{appearance:none;background:none;border:0;padding:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-secondary);text-decoration:underline;text-decoration-color:var(--vt-grey-400);text-underline-offset:3px;cursor:pointer}
+[data-pv-link]:hover{color:var(--vt-charcoal-900);text-decoration-color:currentColor}
+[data-note]{display:flex;flex-direction:column;gap:6px;padding:13px 15px;border-radius:var(--vt-radius-md);border:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface);box-shadow:var(--vt-shadow-xs)}
+[data-note-k]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-note-b]{margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);text-wrap:pretty}
+[data-tok]{display:inline-flex;align-items:baseline;gap:5px;font-family:var(--vt-font-body);font-weight:var(--vt-weight-medium);font-size:.97em;background:var(--vt-grey-100);border:1px solid var(--vt-grey-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 7px;white-space:nowrap}
+[data-tok]::after{content:"TBC";font-family:var(--vt-font-body);font-size:.66em;font-weight:700;letter-spacing:.1em;color:var(--vt-text-muted)}
+[data-pv-view]{animation:vt-pv-in 200ms var(--vt-ease-out) both}
+@keyframes vt-pv-in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+:focus-visible{outline:3px solid rgb(253 194 11 / .45);outline-offset:3px;border-radius:var(--vt-radius-xs)}
+@media (min-width:560px){[data-pv-row]{grid-template-columns:minmax(0,1fr) auto}}</style>
+</helmet>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" hint-size="100%,260px">
+<div style="display:flex;flex-direction:column;gap:22px;font-family:var(--vt-font-body);color:var(--vt-text-primary)">
+
+<div style="display:flex;gap:16px;align-items:flex-start">
+<div data-pv-tile="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="phone" size="{{ n20 }}" color="var(--vt-yellow)" hint-size="20px,20px"></x-import>
+</div>
+<div style="display:flex;flex-direction:column;gap:7px;min-width:0">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px">
+<sc-if value="{{ notDone }}" hint-placeholder-val="{{ true }}"><h2 data-pv-h2="1">Add your mobile number</h2></sc-if>
+<sc-if value="{{ isVerified }}"><h2 data-pv-h2="1">Mobile number</h2></sc-if>
+<sc-if value="{{ notDone }}"><span data-pv-pill="1">Action needed</span></sc-if>
+<sc-if value="{{ isVerified }}"><span data-pv-done="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-check" size="{{ n15 }}" color="var(--vt-success)" hint-size="15px,15px"></x-import>Verified</span></sc-if>
+</div>
+<p data-pv-b="1">Your driver calls this number on arrival, so it has to be one you will answer. We verify it once with a code by text.</p>
+</div>
+</div>
+
+<sc-if value="{{ isAdd }}" hint-placeholder-val="{{ true }}">
+<div data-pv-view="add" style="display:flex;flex-direction:column;gap:16px">
+<div data-pv-row="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="Mobile number" type="tel" icon="phone" size="md" autoComplete="tel" placeholder="+41 79 000 00 00" value="{{ phone }}" onChange="{{ setPhone }}" error="{{ errPhone }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ sendCode }}" hint-size="150px,44px">Send code</x-import>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isCode }}">
+<div data-pv-view="code" style="display:flex;flex-direction:column;gap:16px">
+<p data-pv-b="1" style="color:var(--vt-text-primary)">We sent a six-digit code to <strong style="font-weight:var(--vt-weight-semibold)">{{ phoneEcho }}</strong>.</p>
+<div data-pv-row="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="Verification code" type="text" inputMode="numeric" maxLength="{{ n6 }}" size="md" autoComplete="one-time-code" placeholder="000000" value="{{ code }}" onChange="{{ setCode }}" error="{{ errCode }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ verify }}" hint-size="170px,44px">Verify number</x-import>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:10px 20px;align-items:center">
+<button type="button" data-pv-link="1" onClick="{{ resend }}">Send a new code</button>
+<button type="button" data-pv-link="1" onClick="{{ changeNumber }}">Change number</button>
+<sc-if value="{{ resent }}"><span style="display:inline-flex;align-items:center;gap:7px;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n15 }}" color="var(--vt-success)" hint-size="15px,15px"></x-import>Sent again just now.</span></sc-if>
+</div>
+<div data-note="1">
+<span data-note-k="1">Awaiting client input</span>
+<p data-note-b="1">The code expires after <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Code expiry</span>, and we allow <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Code attempts</span> before the number locks.</p>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isVerified }}">
+<div data-pv-view="verified" style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 24px;padding-top:18px;border-top:1px solid var(--vt-border-subtle)">
+<span data-pv-num="1">{{ phoneEcho }}</span>
+<button type="button" data-pv-link="1" onClick="{{ changeNumber }}">Change number</button>
+</div>
+</sc-if>
+
+</div>
+</x-import>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:720,&quot;height&quot;:300},&quot;stage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;add&quot;,&quot;code&quot;,&quot;verified&quot;],&quot;default&quot;:&quot;add&quot;,&quot;tsType&quot;:&quot;'add'|'code'|'verified'&quot;},&quot;phone&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+/* Demo rules: any six digits verify, except 111111 which fails. */
+class Component extends DCLogic {
+  state = {
+    stage: this.props.stage || 'add',
+    phone: this.props.phone || '',
+    code: '', errors: {}, resent: false,
+  };
+  componentDidUpdate(prev) {
+    if (prev.stage !== this.props.stage || prev.phone !== this.props.phone || prev.nonce !== this.props.nonce) {
+      this.setState({ stage: this.props.stage || 'add', phone: this.props.phone || '', code: '', errors: {}, resent: false });
+    }
+  }
+  sendCode = () => {
+    const digits = this.state.phone.replace(/[^\d]/g, '');
+    if (digits.length < 9) { this.setState({ errors: { phone: 'Check the mobile number, including the country code' } }); return; }
+    this.setState({ stage: 'code', errors: {}, resent: false });
+  };
+  verify = () => {
+    const code = this.state.code.replace(/[^\d]/g, '');
+    if (code.length !== 6) { this.setState({ errors: { code: 'The code is six digits' } }); return; }
+    if (code === '111111') { this.setState({ errors: { code: "That code doesn't match. Send a new one." } }); return; }
+    this.setState({ stage: 'verified', errors: {}, resent: false });
+  };
+  resend = () => this.setState({ resent: true, code: '', errors: {} });
+  changeNumber = () => this.setState({ stage: 'add', code: '', errors: {}, resent: false });
+  renderVals() {
+    const { stage, phone, code, errors, resent } = this.state;
+    return {
+      n6: 6, n15: 15, n20: 20,
+      isAdd: stage === 'add', isCode: stage === 'code', isVerified: stage === 'verified',
+      notDone: stage !== 'verified',
+      phone, code, resent,
+      phoneEcho: phone.trim() || 'your mobile number',
+      errPhone: errors.phone, errCode: errors.code,
+      setPhone: (e) => this.setState({ phone: e.target.value }),
+      setCode: (e) => this.setState({ code: e.target.value }),
+      sendCode: this.sendCode, verify: this.verify, resend: this.resend, changeNumber: this.changeNumber,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

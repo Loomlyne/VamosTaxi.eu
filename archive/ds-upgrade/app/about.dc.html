@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../tokens/fonts.css">
+<link rel="stylesheet" href="../tokens/colors.css">
+<link rel="stylesheet" href="../tokens/typography.css">
+<link rel="stylesheet" href="../tokens/spacing.css">
+<link rel="stylesheet" href="../tokens/elevation.css">
+<link rel="stylesheet" href="../tokens/motion.css">
+<link rel="stylesheet" href="../tokens/base.css">
+<link rel="stylesheet" href="../styles.css">
+<script src="../_ds_bundle.js"></script>
+<link rel="stylesheet" href="../assets/lenis.css">
+<script src="../assets/lenis.js"></script>
+<script src="../assets/lenis-boot.js"></script>
+<script src="vamos-i18n-dict.js"></script>
+<script src="vamos-locale.js"></script>
+<style>:root{--vt-icon-base:"../assets/icons/";--vt-logo-base:"../assets/logo/";--vt-pattern-base:"../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}.vt-select .vt-input--focus{box-shadow:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}
+body{margin:0;background:var(--vt-bg-page)}
+a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+[data-tok]{display:inline-flex;align-items:baseline;gap:5px;font-family:var(--vt-font-body);font-weight:var(--vt-weight-medium);font-size:.97em;background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 7px;white-space:nowrap}
+[data-tok]::after{content:"TBC";font-family:var(--vt-font-body);font-size:.66em;font-weight:700;letter-spacing:.1em;color:var(--vt-yellow-700)}
+[data-a1]{font-weight:var(--vt-weight-semibold);color:var(--vt-charcoal-900)}
+[data-slot]{margin:0;border:1px dashed var(--vt-grey-300);background:var(--vt-grey-50);border-radius:var(--vt-radius-md);padding:16px 18px}
+[data-slot-k]{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-slot-k]::before{content:"";width:8px;height:8px;flex:0 0 auto;background:var(--vt-grey-300)}
+[data-slot] p{margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+[data-flag]{margin:0;border:1px solid var(--vt-charcoal-900);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);padding:18px 20px}
+[data-flag-k]{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)}
+[data-flag] p{margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+[data-flag] p:last-child{margin-bottom:0}
+[data-src]{display:block;margin-top:2px;font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
+[data-sec]{max-width:1200px;margin:0 auto;padding:clamp(48px,6vw,86px) clamp(20px,5vw,56px) 0}
+[data-kick]{margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-h2]{margin:0 0 18px;max-width:22ch;font-family:var(--vt-font-display);font-size:var(--vt-display-3);line-height:1.12;letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary);text-wrap:balance}
+[data-lede]{margin:0 0 16px;max-width:62ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);text-wrap:pretty}
+[data-p]{margin:0 0 14px;max-width:62ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);text-wrap:pretty}
+[data-p]:last-child{margin-bottom:0}
+[data-split]{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(28px,4vw,60px);align-items:start}
+[data-cards]{display:grid;grid-template-columns:minmax(0,1fr);gap:20px}
+[data-card]{background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);padding:26px;display:flex;flex-direction:column;gap:12px}
+[data-card] h3{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);line-height:1.28;letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)}
+[data-card] p{margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+[data-ico]{width:46px;height:46px;border-radius:var(--vt-radius-pill);background:var(--vt-yellow-50);display:grid;place-items:center}
+[data-shot]{position:relative;overflow:hidden;border-radius:var(--vt-radius-xl);background:var(--vt-charcoal-800)}
+[data-shot] img{display:block;width:100%;height:100%;object-fit:cover}
+[data-shot-cap]{position:absolute;inset-inline:0;bottom:0;padding:44px 22px 18px;background:var(--vt-scrim-bottom,linear-gradient(to top,rgb(17 18 18 / .86),transparent));color:var(--vt-white);font-size:var(--vt-body-xs);line-height:1.5}
+[data-imgslot]{display:flex;flex-direction:column;justify-content:flex-end;gap:8px;min-height:300px;padding:22px;border:1px dashed var(--vt-grey-400);border-radius:var(--vt-radius-xl);background:var(--vt-grey-100)}
+[data-imgslot] strong{font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)}
+[data-imgslot] span{font-size:var(--vt-body-sm);line-height:1.5;color:var(--vt-text-secondary);max-width:38ch}
+[data-fleet]{display:grid;grid-template-columns:minmax(0,1fr);gap:0;border-top:1px solid var(--vt-grey-200)}
+[data-fleet-r]{display:grid;grid-template-columns:minmax(0,1fr);gap:4px 24px;padding:18px 0;border-bottom:1px solid var(--vt-grey-200)}
+[data-fleet-k]{font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)}
+[data-fleet-c]{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)}
+[data-fleet-c] span{display:inline-flex;align-items:center;gap:6px}
+[data-fleet-d]{font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+[data-seg]{display:inline-flex;flex-wrap:wrap;padding:3px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:rgb(255 255 255 / .06)}
+[data-seg] button{appearance:none;border:0;background:none;min-height:38px;padding:0 16px;border-radius:var(--vt-radius-pill);font-family:inherit;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-inverse-muted);cursor:pointer;transition:background 140ms var(--vt-ease-standard),color 140ms var(--vt-ease-standard)}
+[data-seg] button:hover{color:var(--vt-text-inverse)}
+[data-seg] button[aria-pressed="true"]{background:var(--vt-accent);color:var(--vt-text-on-accent)}
+:focus-visible{outline:3px solid rgb(253 194 11 / .45);outline-offset:3px;border-radius:var(--vt-radius-xs)}
+@media (min-width:620px){[data-fleet-r]{grid-template-columns:150px minmax(0,1fr)}}
+@media (min-width:760px){[data-cards]{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:980px){[data-split]{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
+[data-cards][data-three]{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}</style>
+</helmet>
+
+<div style="font-family:var(--vt-font-body);background:var(--vt-bg-page);min-height:100vh">
+<dc-import name="SiteHeader" variant="inverse" hint-size="100%,76px"></dc-import>
+
+<main data-screen-label="About">
+
+<header style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);position:relative;overflow:hidden">
+<div aria-hidden="true" style="position:absolute;top:0;inset-inline-end:0;width:120px;height:120px;background:url(../assets/patterns/checker-mark.png) top right / 56px auto no-repeat;opacity:.9"></div>
+<div style="max-width:1200px;margin:0 auto;padding:44px clamp(20px,5vw,56px) 0">
+<nav aria-label="Breadcrumb" style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted);margin-bottom:26px">
+<a href="home.dc.html" style="color:inherit;text-decoration:none">Home</a><span aria-hidden="true">/</span><span style="color:var(--vt-text-inverse)">About</span>
+</nav>
+<p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">About Vamos Taxi</p>
+<h1 style="margin:0 0 20px;max-width:17ch;font-family:var(--vt-font-display);font-size:var(--vt-display-1);line-height:var(--vt-display-leading);letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:balance">A Zurich operator, not a marketplace</h1>
+<p style="margin:0 0 40px;max-width:60ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">You book a day ahead, you see the price before you pay, and at the agreed time the car is already there. That is the whole product. No surge, no meter, no waiting to find out what it costs.</p>
+<sc-if value="{{ scaffold }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;padding:0 0 26px">
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Decision A1 — preview both</span>
+<div data-seg="1" role="group" aria-label="Carrier or intermediary">
+<button type="button" onClick="{{ setCarrier }}" aria-pressed="{{ isCarrier }}">We are the carrier</button>
+<button type="button" onClick="{{ setBroker }}" aria-pressed="{{ isBroker }}">We are the intermediary</button>
+</div>
+<p style="margin:0;flex:1 1 260px;min-width:0;font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted)">Every sentence this changes is <span style="border-bottom:2px solid var(--vt-accent);padding-bottom:1px;color:rgb(255 255 255 / .84)">underlined in yellow</span> below. Nothing moves when you switch — same blocks, same lengths.</p>
+</div>
+</sc-if>
+<div style="border-radius:var(--vt-radius-xl) var(--vt-radius-xl) 0 0;overflow:hidden;background:var(--vt-charcoal-800)">
+<img src="../assets/photography/hero-arrivals.jpg" alt="Arrivals hall at Zurich airport" style="display:block;width:100%;height:clamp(220px,34vw,400px);object-fit:cover">
+</div>
+</div>
+</header>
+
+<section data-sec="1" aria-labelledby="story-h">
+<div data-split="1">
+<div>
+<p data-kick="1">Who we are</p>
+<h2 data-h2="1" id="story-h">Founder-led, and answerable</h2>
+<p data-lede="1">Vamos Taxi GmbH was registered in Dietikon in the Canton of Zurich and is run by its owner, Ben Othman Houssein. When something goes wrong on a transfer, the person who answers is accountable for it — that is the advantage of being this size, and we would rather keep it.</p>
+<p data-p="1"><span data-a1="1">{{ sOperate }}</span> Every driver who works with us is licensed for passenger transport and insured for it, and we do not put a vehicle on a job we would not put a family member in.</p>
+<p data-p="1">We are a scheduled operator. You cannot hail us on the street and there is no app watching a car crawl towards you. What you get instead is a named driver, a confirmed time and a price that was agreed before anyone set off.</p>
+</div>
+<div>
+<div data-imgslot="1">
+<strong>Image slot — the founder</strong>
+<span>A portrait of Ben Othman Houssein, or him beside a vehicle. Cool daylight, no studio background. No photograph exists today, and a founder-led story with a stock face is worse than one with none.</span>
+</div>
+</div>
+</div>
+</section>
+
+<section data-sec="1" aria-labelledby="promise-h">
+<p data-kick="1">What you are buying</p>
+<h2 data-h2="1" id="promise-h">Four things we will hold to</h2>
+<div data-cards="1" style="margin-top:34px">
+<div data-card="1">
+<span data-ico="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="banknote" size="{{ n21 }}" color="var(--vt-yellow-700)" hint-size="21px,21px"></x-import></span>
+<h3>The price does not move</h3>
+<p>What you see before you pay is what you pay. Traffic, a longer route than expected, a busy evening — none of it changes the number. Tolls, airport fees and the gratuity are already in it.</p>
+</div>
+<div data-card="1">
+<span data-ico="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plane-landing" size="{{ n21 }}" color="var(--vt-yellow-700)" hint-size="21px,21px"></x-import></span>
+<h3>We watch your flight</h3>
+<p>Give us the flight number and the pickup follows the actual landing time. A delay does not need a phone call and does not cost you anything. Your driver meets you in arrivals with a name sign.</p>
+</div>
+<div data-card="1">
+<span data-ico="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="clock" size="{{ n21 }}" color="var(--vt-yellow-700)" hint-size="21px,21px"></x-import></span>
+<h3>The car is there first</h3>
+<p>Booked ahead means the vehicle is assigned before the day, not searched for on it. Driver name, plate and number reach you <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Driver details lead time</span> before pickup.</p>
+</div>
+<div data-card="1">
+<span data-ico="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="shield-check" size="{{ n21 }}" color="var(--vt-yellow-700)" hint-size="21px,21px"></x-import></span>
+<h3>A real company behind it</h3>
+<p>Registered in the commercial register of the Canton of Zurich under CH-020.4.077.792-7, with a named managing director and an address you can write to. It is all on the <a href="imprint.dc.html">imprint</a>.</p>
+</div>
+</div>
+</section>
+
+<section data-sec="1" aria-labelledby="fleet-h">
+<div data-split="1">
+<div>
+<p data-kick="1">The fleet</p>
+<h2 data-h2="1" id="fleet-h">Three classes, chosen by what you are carrying</h2>
+<p data-p="1">Capacity is the honest constraint, so it is the first thing we show. Tell us the passenger and luggage count truthfully and the right vehicle turns up; guess low and it will not fit.</p>
+<div data-fleet="1" style="margin-top:26px">
+<div data-fleet-r="1">
+<span data-fleet-k="1">Economy</span>
+<span>
+<span data-fleet-c="1"><span><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="users" size="{{ n15 }}" color="var(--vt-text-muted)" hint-size="15px,15px"></x-import>3 passengers</span><span><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="luggage" size="{{ n15 }}" color="var(--vt-text-muted)" hint-size="15px,15px"></x-import>3 medium cases</span></span>
+<span data-fleet-d="1">A saloon for one or two travellers with ordinary luggage.</span>
+</span>
+</div>
+<div data-fleet-r="1">
+<span data-fleet-k="1">Business</span>
+<span>
+<span data-fleet-c="1"><span><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="users" size="{{ n15 }}" color="var(--vt-text-muted)" hint-size="15px,15px"></x-import><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Business pax</span></span><span><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="luggage" size="{{ n15 }}" color="var(--vt-text-muted)" hint-size="15px,15px"></x-import><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Business bags</span></span></span>
+<span data-fleet-d="1">An executive saloon for corporate travel and airport pickups where the arrival matters.</span>
+</span>
+</div>
+<div data-fleet-r="1">
+<span data-fleet-k="1">Van</span>
+<span>
+<span data-fleet-c="1"><span><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="users" size="{{ n15 }}" color="var(--vt-text-muted)" hint-size="15px,15px"></x-import>8 passengers</span><span><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="luggage" size="{{ n15 }}" color="var(--vt-text-muted)" hint-size="15px,15px"></x-import>8 medium cases</span></span>
+<span data-fleet-d="1">Families, groups, ski trips. The class to book when the luggage is the problem.</span>
+</span>
+</div>
+</div>
+<p data-p="1" style="margin-top:20px">Skis, folding bicycles, collapsible wheelchairs, instruments and pets all travel — declare them when you book so the right vehicle is assigned. Child and booster seats on request, and your own is welcome.</p>
+</div>
+<div>
+<div data-shot="1" style="height:clamp(280px,40vw,460px)">
+<img src="../assets/photography/fleet-van-street.jpg" alt="A charcoal Mercedes V-Class van on a city street">
+<p data-shot-cap="1">The V-Class, our Van class. The only vehicle photograph the brand currently owns.</p>
+</div>
+<div data-imgslot="1" style="margin-top:20px;min-height:200px">
+<strong>Image slots — Economy and Business</strong>
+<span>Two vehicles in the brand's register: clean, dark, cool daylight, no people. Until they exist these classes fall back to an icon tile in the booking flow.</span>
+</div>
+</div>
+</div>
+</section>
+
+<section data-sec="1" aria-labelledby="where-h">
+<div data-split="1">
+<div>
+<p data-kick="1">Where we drive</p>
+<h2 data-h2="1" id="where-h">Zurich first, and the routes that leave it</h2>
+<p data-lede="1">Airport transfers to and from Zurich are the core of the business. Beyond that we run the long-distance routes people actually ask for: the ski resorts in winter, Geneva and the other Swiss cities year round, and cross-border runs into France and Italy.</p>
+<p data-p="1">We do not claim to be everywhere. If a route is outside what we cover, we say so when you ask rather than after you have paid.</p>
+<div data-slot="1" style="margin-top:22px">
+<p data-slot-k="1">Client input · coverage</p>
+<p>The definitive list of cities, resorts and cross-border destinations, and whether any of them are seasonal. It becomes the routes section here and the destination list in the booking flow — one list, two places.</p>
+</div>
+</div>
+<div data-cards="1">
+<div data-card="1">
+<span data-ico="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plane" size="{{ n21 }}" color="var(--vt-yellow-700)" hint-size="21px,21px"></x-import></span>
+<h3>Airports</h3>
+<p>Zurich and Geneva, with meet &amp; greet in arrivals and flight tracking on every booking that carries a flight number.</p>
+</div>
+<div data-card="1">
+<span data-ico="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="snowflake" size="{{ n21 }}" color="var(--vt-yellow-700)" hint-size="21px,21px"></x-import></span>
+<h3>Ski routes</h3>
+<p>Winter transfers to the resorts, with space declared for skis and boards at the time of booking rather than discovered at the door.</p>
+</div>
+<div data-card="1">
+<span data-ico="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="briefcase" size="{{ n21 }}" color="var(--vt-yellow-700)" hint-size="21px,21px"></x-import></span>
+<h3>Corporate</h3>
+<p>Accounts for companies that move people regularly, with consolidated invoicing. <a href="contact.dc.html">Talk to us</a> before the first booking.</p>
+</div>
+<div data-card="1">
+<span data-ico="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="globe" size="{{ n21 }}" color="var(--vt-yellow-700)" hint-size="21px,21px"></x-import></span>
+<h3>In your language</h3>
+<p>Support runs in <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Support languages</span>. Drivers speak <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Driver languages</span>.</p>
+</div>
+</div>
+</div>
+</section>
+
+<section data-sec="1" aria-labelledby="drivers-h">
+<div style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);border-radius:var(--vt-radius-xl);padding:clamp(28px,3.4vw,52px)">
+<div data-split="1">
+<div>
+<p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">Our drivers</p>
+<h2 id="drivers-h" style="margin:0 0 18px;max-width:20ch;font-family:var(--vt-font-display);font-size:var(--vt-display-3);line-height:1.12;letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:balance">The part of this you actually meet</h2>
+<p style="margin:0 0 14px;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)"><span data-a1="1" style="border-bottom-color:var(--vt-accent)">{{ sDrivers }}</span></p>
+<p style="margin:0;max-width:58ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Whoever is driving, the standard is the same: on time, a clean vehicle, help with the bags, and no conversation you did not start.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:flex-start;gap:14px"><span style="flex:0 0 auto;margin-top:2px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n20 }}" color="var(--vt-accent)" hint-size="20px,20px"></x-import></span><span style="font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Licensed for passenger transport and insured for it</span></div>
+<div style="display:flex;align-items:flex-start;gap:14px"><span style="flex:0 0 auto;margin-top:2px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n20 }}" color="var(--vt-accent)" hint-size="20px,20px"></x-import></span><span style="font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Named to you before pickup, never a stranger at the kerb</span></div>
+<div style="display:flex;align-items:flex-start;gap:14px"><span style="flex:0 0 auto;margin-top:2px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n20 }}" color="var(--vt-accent)" hint-size="20px,20px"></x-import></span><span style="font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Paid for the job, so a longer route earns them nothing extra</span></div>
+<div style="display:flex;align-items:flex-start;gap:14px"><span style="flex:0 0 auto;margin-top:2px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n20 }}" color="var(--vt-accent)" hint-size="20px,20px"></x-import></span><span style="font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Local knowledge of Zurich and the routes out of it</span></div>
+<div style="margin-top:8px;padding-top:18px;border-top:1px solid var(--vt-border-inverse)">
+<p style="margin:0 0 14px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-inverse-muted)">Drive professionally in the Zurich area and want the work?</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" href="become-a-partner.dc.html" iconEnd="arrow-right" hint-size="200px,44px">Become a partner</x-import>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<sc-if value="{{ scaffold }}" hint-placeholder-val="{{ true }}">
+<section data-sec="1" aria-label="Review scaffold">
+<div style="display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin-bottom:26px">
+<div data-flag="1">
+<p data-flag-k="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="triangle-alert" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import>This page is blocked on decision A1</p>
+<p>The archived terms declare Vamos a pure intermediary: the transport contract forms between the passenger and a partner carrier, and Vamos disclaims liability for the ride. The service pages sell “our skilled drivers”, “licensed, insured chauffeurs”, “our driver will track your flight”. An About page has to pick one, because it is the page where a customer decides who they are dealing with.<span data-src="1">Archived T&amp;Cs §2 vs. book-transfer page · Wayback, 2024</span></p>
+<p>Two sentences carry the whole difference, and both are underlined in yellow above. Switch the control in the header and read the page each way: the blocks, the lengths and the layout are identical, so whichever answer comes back, nothing gets redesigned. The same answer then fills the slots in <a href="terms.dc.html#parties">terms 01</a>, <a href="terms.dc.html#carriers">05</a> and <a href="terms.dc.html#liability">13</a>.</p>
+</div>
+<div data-flag="1">
+<p data-flag-k="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import>No source copy exists for this page</p>
+<p>The About page was never archived and the live site is offline, so nothing here is recovered — it is written from what the business demonstrably is: a registered Zurich GmbH with a named owner, fixed pricing, airport meet &amp; greet, and a partner-driver network.</p>
+<p>Nothing is invented in the other direction either: no fleet size, no ride count, no years in business, no cities-served total, no review score. The legacy site carried an unverifiable “48,350+ routes” claim; nothing of that shape appears here, and if a number arrives later it should arrive with a source.</p>
+</div>
+</div>
+
+<div style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);border-radius:var(--vt-radius-xl);padding:clamp(26px,3vw,40px)">
+<p style="margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">Review scaffold — not part of the published page</p>
+<h2 style="margin:0 0 26px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse)">What this page still needs from you</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:32px">
+<div>
+<p style="margin:0 0 14px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Decisions — 2</p>
+<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading-tight);color:rgb(255 255 255 / .84)">
+<li>A1 — carrier, or intermediary</li>
+<li>A12 — is there a partner page to link to</li>
+</ul>
+</div>
+<div>
+<p style="margin:0 0 14px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Image slots — 3</p>
+<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading-tight);color:rgb(255 255 255 / .84)">
+<li>Founder portrait</li>
+<li>Economy vehicle</li>
+<li>Business vehicle</li>
+</ul>
+<p style="margin:16px 0 0;font-size:var(--vt-body-xs);line-height:var(--vt-body-leading);color:var(--vt-text-inverse-muted)">Two real photographs are in use: the arrivals hall, and the V-Class for the Van class.</p>
+</div>
+<div>
+<p style="margin:0 0 14px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Tokens — 5 · Slot — 1</p>
+<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading-tight);color:rgb(255 255 255 / .84)">
+<li>Business capacity, passengers and bags</li>
+<li>Support and driver languages</li>
+<li>Driver-details lead time <span style="color:var(--vt-accent)">shared</span></li>
+<li>Coverage list — client slot</li>
+</ul>
+<p style="margin:16px 0 0;font-size:var(--vt-body-xs);line-height:var(--vt-body-leading);color:var(--vt-text-inverse-muted)">Economy 3/3 and Van 8/8 are stated as fact — the client confirmed those. Business was never given a capacity.</p>
+</div>
+</div>
+</div>
+</section>
+</sc-if>
+
+<section data-sec="1" style="padding-bottom:clamp(48px,6vw,86px)">
+<div style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);padding:clamp(24px,3vw,36px);display:flex;flex-wrap:wrap;align-items:center;gap:24px 40px">
+<div style="flex:1 1 320px;min-width:0">
+<h2 style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Ride with class</h2>
+<p style="margin:0;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);max-width:52ch">Enter the two addresses and a time. You will see the price before anything is committed.</p>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" href="home.dc.html" iconEnd="arrow-right" hint-size="200px,54px">Get a price</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" variant="ghost" href="contact.dc.html" hint-size="150px,54px">Contact us</x-import>
+</div>
+</div>
+</section>
+
+</main>
+
+<dc-import name="SiteFooter" hint-size="100%,520px"></dc-import>
+<dc-import name="CookieBanner" start-state="{{ cookieState }}" hint-size="0,0"></dc-import>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;operatorModel&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;carrier&quot;,&quot;options&quot;:[&quot;carrier&quot;,&quot;broker&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Decision A1&quot;},&quot;showReviewScaffold&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Review&quot;},&quot;cookieState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;auto&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;banner&quot;,&quot;prefs&quot;,&quot;hidden&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Review&quot;}}">
+// The two sentences that decision A1 changes. Matched in length on purpose: whichever
+// answer the client gives, the page does not need relaying out.
+const A1 = {
+  carrier: {
+    operate:
+      'We operate the transfers ourselves and we carry the responsibility for them, ' +
+      'with our own vehicles and, at busy times, licensed partner carriers driving to our standard.',
+    drivers:
+      'Your driver works for us, or for a partner carrier we have vetted and hold to the same ' +
+      'standard. Either way your contract is with Vamos Taxi, and if the ride goes wrong it is ' +
+      'us you take it up with.',
+  },
+  broker: {
+    operate:
+      'We arrange your transfer with a licensed carrier and stay with it from booking to arrival, ' +
+      'holding every partner in the network to a standard we set and check.',
+    drivers:
+      'Your driver works for a licensed carrier in our network, vetted by us and held to our ' +
+      'standard. Your transport contract is with that carrier, and we stay responsible for ' +
+      'arranging the journey and for putting it right.',
+  },
+};
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { a1: props.operatorModel === 'broker' ? 'broker' : 'carrier' };
+  }
+  setCarrier = () => this.setState({ a1: 'carrier' });
+  setBroker = () => this.setState({ a1: 'broker' });
+
+  renderVals() {
+    const v = A1[this.state.a1];
+    return {
+      n14: 14, n15: 15, n20: 20, n21: 21,
+      sOperate: v.operate,
+      sDrivers: v.drivers,
+      isCarrier: this.state.a1 === 'carrier' ? 'true' : 'false',
+      isBroker: this.state.a1 === 'broker' ? 'true' : 'false',
+      setCarrier: this.setCarrier, setBroker: this.setBroker,
+      scaffold: (this.props.showReviewScaffold ?? true) !== false,
+      cookieState: this.props.cookieState || 'auto',
+    };
+  }
+}
+
+</script>
+</body>
+</html>

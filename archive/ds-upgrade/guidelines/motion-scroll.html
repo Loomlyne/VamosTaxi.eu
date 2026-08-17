@@ -1,0 +1,17 @@
+<!-- @dsCard group="Spacing" viewport="700x210" name="Scroll" subtitle="Lenis on every page, one instance, house settings in lenis-boot.js" -->
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Scroll</title>
+<link rel="stylesheet" href="../styles.css">
+<style>body{margin:0;padding:20px 22px;background:var(--vt-bg-page);font-family:var(--vt-font-body);color:var(--vt-text-primary)}
+h4{margin:0 0 10px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+.row{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}
+.col{flex:1 1 260px;min-width:0}
+.n{margin:10px 0 0;font-size:12px;line-height:1.5;color:var(--vt-text-muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 24px;border:1px solid var(--vt-charcoal-900);border-radius:999px;background:var(--vt-yellow);color:var(--vt-charcoal-900);font-size:13px;font-weight:600;letter-spacing:.09em;text-transform:uppercase}
+</style></head><body>
+<table style="border-collapse:collapse;font-size:14px">
+<tbody>
+<tr><td style="padding:7px 18px 7px 0;font-family:var(--vt-font-display);font-weight:600;white-space:nowrap">lerp</td><td style="padding:7px 18px 7px 0;white-space:nowrap;color:var(--vt-text-secondary)">0.12</td><td style="padding:7px 0;color:var(--vt-text-muted)">the house glide — never re-tuned per page</td></tr><tr><td style="padding:7px 18px 7px 0;font-family:var(--vt-font-display);font-weight:600;white-space:nowrap">anchors</td><td style="padding:7px 18px 7px 0;white-space:nowrap;color:var(--vt-text-secondary)">true</td><td style="padding:7px 0;color:var(--vt-text-muted)">in-page links are smoothed by Lenis, not by CSS</td></tr><tr><td style="padding:7px 18px 7px 0;font-family:var(--vt-font-display);font-weight:600;white-space:nowrap">allowNestedScroll</td><td style="padding:7px 18px 7px 0;white-space:nowrap;color:var(--vt-text-secondary)">true</td><td style="padding:7px 0;color:var(--vt-text-muted)">a panel with <code>data-lenis-prevent</code> keeps its own scroll</td></tr><tr><td style="padding:7px 18px 7px 0;font-family:var(--vt-font-display);font-weight:600;white-space:nowrap">touch</td><td style="padding:7px 18px 7px 0;white-space:nowrap;color:var(--vt-text-secondary)">native</td><td style="padding:7px 0;color:var(--vt-text-muted)">no wrapped momentum on mobile</td></tr><tr><td style="padding:7px 18px 7px 0;font-family:var(--vt-font-display);font-weight:600;white-space:nowrap">prefers-reduced-motion</td><td style="padding:7px 18px 7px 0;white-space:nowrap;color:var(--vt-text-secondary)">honoured</td><td style="padding:7px 0;color:var(--vt-text-muted)">the instance never starts</td></tr><tr><td style="padding:7px 18px 7px 0;font-family:var(--vt-font-display);font-weight:600;white-space:nowrap">body lock</td><td style="padding:7px 18px 7px 0;white-space:nowrap;color:var(--vt-text-secondary)">stops</td><td style="padding:7px 0;color:var(--vt-text-muted)">a sheet locking the body stops the instance</td></tr>
+</tbody></table>
+<p class="n" style="max-width:80ch">Never construct a second <code>Lenis</code> and never re-add <code>scroll-behavior:smooth</code>. This is the only <em>continuous</em> motion in the system — everything else stays short and flat: 80 ms press, 140 ms hover, 200 ms toasts, 320 ms sheets, no bounce, nothing loops.</p>
+</body></html>

@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../tokens/fonts.css">
+<link rel="stylesheet" href="../tokens/colors.css">
+<link rel="stylesheet" href="../tokens/typography.css">
+<link rel="stylesheet" href="../tokens/spacing.css">
+<link rel="stylesheet" href="../tokens/elevation.css">
+<link rel="stylesheet" href="../tokens/motion.css">
+<link rel="stylesheet" href="../tokens/base.css">
+<link rel="stylesheet" href="../styles.css">
+<script src="../_ds_bundle.js"></script>
+<link rel="stylesheet" href="../assets/lenis.css">
+<script src="../assets/lenis.js"></script>
+<script src="../assets/lenis-boot.js"></script>
+<script src="vamos-i18n-dict.js"></script>
+<script src="vamos-locale.js"></script>
+<style>:root{--vt-icon-base:"../assets/icons/";--vt-logo-base:"../assets/logo/";--vt-pattern-base:"../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+button,.vt-btn,.vt-iconbtn{box-shadow:none}
+body{margin:0;background:var(--vt-bg-page)}
+a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+[data-card]{background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm)}
+[data-grp]{display:flex;align-items:center;gap:12px;margin:0;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-grp]::after{content:"";flex:1 1 auto;height:1px;background:var(--vt-grey-200)}
+[data-empty]{position:relative;overflow:hidden;border-radius:var(--vt-radius-xl);background:var(--vt-bg-inverse);color:var(--vt-text-inverse);display:grid;grid-template-columns:minmax(0,1fr)}
+[data-empty-shot]{position:relative;min-height:210px;background:url(../assets/photography/fleet-van-street.jpg) center 62% / cover no-repeat}
+[data-empty-shot]::after{content:"";position:absolute;inset:0;background:var(--vt-scrim-bottom)}
+[data-empty-copy]{padding:clamp(26px,3.4vw,44px)}
+[data-seg]{display:inline-flex;flex-wrap:wrap;gap:2px;padding:3px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:rgb(255 255 255 / .06)}
+[data-seg] button{appearance:none;border:0;background:none;min-height:38px;padding:0 14px;border-radius:var(--vt-radius-pill);font-family:inherit;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);white-space:nowrap;color:var(--vt-text-inverse-muted);cursor:pointer;transition:background 140ms var(--vt-ease-standard),color 140ms var(--vt-ease-standard)}
+[data-seg] button:hover{color:var(--vt-text-inverse)}
+[data-seg] button[aria-pressed="true"]{background:var(--vt-accent);color:var(--vt-text-on-accent)}
+[data-slot]{margin:0;border:1px dashed var(--vt-grey-300);background:var(--vt-grey-50);border-radius:var(--vt-radius-md);padding:16px 18px}
+[data-slot-k]{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-slot-k]::before{content:"";width:8px;height:8px;flex:0 0 auto;background:var(--vt-grey-300)}
+[data-slot] p{margin:0 0 8px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+[data-slot] p:last-child{margin-bottom:0}
+[data-flag]{margin:0;border:1px solid var(--vt-charcoal-900);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);padding:18px 20px}
+[data-flag-k]{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)}
+[data-flag] p{margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+[data-flag] p:last-child{margin-bottom:0}
+:focus-visible{outline:3px solid rgb(253 194 11 / .45);outline-offset:3px;border-radius:var(--vt-radius-xs)}
+[data-gal]{display:flex;flex-direction:column;gap:12px}
+[data-find]{display:inline-flex;align-items:center;gap:9px;height:44px;padding:0 8px 0 16px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-grey-300);background:var(--vt-bg-surface);transition:border-color 140ms var(--vt-ease-standard)}
+[data-find]:focus-within{border-color:var(--vt-charcoal-900)}
+[data-find] input{appearance:none;width:min(240px,42vw);height:42px;border:0;background:none;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-primary)}
+[data-find] input::placeholder{color:var(--vt-text-muted)}
+[data-find] input:focus{outline:none}
+[data-find] input::-webkit-search-cancel-button{display:none}
+[data-find] button{appearance:none;display:grid;place-items:center;width:34px;height:34px;padding:0;border:0;border-radius:var(--vt-radius-pill);background:var(--vt-grey-100);color:var(--vt-charcoal-900);cursor:pointer}
+[data-find] button:hover{background:var(--vt-grey-200)}
+.vt-iconbtn.vt-view-active,.vt-iconbtn.vt-view-active:hover:not([disabled]){background:var(--vt-charcoal-900);color:var(--vt-white);border-color:var(--vt-charcoal-900)}
+@media (min-width:820px){
+[data-empty]{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr)}
+[data-empty-shot]{min-height:330px}
+[data-empty-shot]::after{background:var(--vt-scrim-left)}
+[dir="rtl"] [data-empty-shot]::after{background:linear-gradient(to left,rgb(17 18 18 / .82) 0%,rgb(17 18 18 / .35) 48%,rgb(17 18 18 / 0) 82%)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}</style>
+</helmet>
+
+<div style="font-family:var(--vt-font-body);background:var(--vt-bg-page);min-height:100vh">
+<dc-import name="SiteHeader" variant="inverse" hint-size="100%,76px"></dc-import>
+
+<main data-screen-label="Booking history">
+
+<header style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);position:relative;overflow:hidden">
+<div aria-hidden="true" style="position:absolute;top:0;inset-inline-end:0;width:120px;height:120px;background:url(../assets/patterns/checker-mark.png) top right / 56px auto no-repeat;opacity:.9"></div>
+<div style="max-width:1200px;margin:0 auto;padding:40px clamp(20px,5vw,56px) 36px">
+<nav aria-label="Breadcrumb" style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted);margin-bottom:24px">
+<a href="home.dc.html" style="color:inherit;text-decoration:none">Home</a><span aria-hidden="true">/</span><a href="account.dc.html" style="color:inherit;text-decoration:none">Your account</a><span aria-hidden="true">/</span><span style="color:var(--vt-text-inverse)">Bookings</span>
+</nav>
+<p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">{{ signedInAs }}</p>
+<h1 style="margin:0 0 16px;max-width:22ch;font-family:var(--vt-font-display);font-size:var(--vt-display-2);line-height:var(--vt-display-leading);letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty">Your bookings</h1>
+<p style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Every transfer booked with this account, the next one first. Open one to see the trip, the price you paid and your voucher.</p>
+<sc-if value="{{ scaffold }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin-top:30px;padding-top:22px;border-top:1px solid var(--vt-border-inverse)">
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">State</span>
+<div data-seg="1" role="group" aria-label="Preview state">
+<button type="button" onClick="{{ goList }}" aria-pressed="{{ pList }}">List</button>
+<button type="button" onClick="{{ goLong }}" aria-pressed="{{ pLong }}">Many bookings</button>
+<button type="button" onClick="{{ goLoading }}" aria-pressed="{{ pLoading }}">Loading</button>
+<button type="button" onClick="{{ goEmpty }}" aria-pressed="{{ pEmpty }}">Nothing booked</button>
+</div>
+<p style="margin:0;flex:1 1 240px;min-width:0;font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted)">Tabs, load-more and row hover all work. This switcher and the notes at the foot are for review only.</p>
+</div>
+</sc-if>
+</div>
+</header>
+
+<section aria-labelledby="bk-list-h" style="max-width:1200px;margin:0 auto;padding:clamp(28px,3.5vw,44px) clamp(20px,5vw,56px) 0">
+
+<sc-if value="{{ hasList }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 24px;margin-bottom:20px">
+<h2 id="bk-list-h" style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">{{ listHeading }}</h2>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px">
+<p style="margin:0;display:flex;align-items:center;gap:7px;font-size:var(--vt-body-sm);color:var(--vt-text-muted)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="list" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>{{ sortNote }}</p>
+<div role="group" style="display:inline-flex;gap:4px;padding:3px;border-radius:999px;border:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="list" label="List view" variant="outline" size="sm" aria-pressed="{{ isListView }}" onClick="{{ setViewList }}" class-name="{{ listBtnCss }}" hint-size="32px,32px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="layout-dashboard" label="Grid view" variant="outline" size="sm" aria-pressed="{{ isGridView }}" onClick="{{ setViewGrid }}" class-name="{{ gridBtnCss }}" hint-size="32px,32px"></x-import>
+</div>
+</div>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin-bottom:26px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Tabs" items="{{ tabs }}" value="{{ tab }}" onChange="{{ setTab }}" hint-size="280px,48px"></x-import>
+<sc-if value="{{ showSearch }}" hint-placeholder-val="{{ false }}">
+<span data-find="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="search" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
+<input type="search" value="{{ q }}" onInput="{{ onQ }}" placeholder="Reference, place or class" aria-label="Search your bookings">
+<sc-if value="{{ hasQ }}">
+<button type="button" onClick="{{ clearQ }}" aria-label="Clear search"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import></button>
+</sc-if>
+</span>
+</sc-if>
+<sc-if value="{{ canExport }}" hint-placeholder-val="{{ false }}">
+<span style="margin-inline-start:auto">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" icon="file-text" onClick="{{ exportCsv }}" hint-size="150px,44px">Export list</x-import>
+</span>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
+<div aria-busy="true" aria-live="polite" style="display:flex;flex-direction:column;gap:12px">
+<p style="margin:0 0 4px;display:flex;align-items:center;gap:8px;font-size:var(--vt-body-sm);color:var(--vt-text-muted)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="clock" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>Loading your bookings</p>
+<sc-if value="{{ isListView }}" hint-placeholder-val="{{ true }}">
+<sc-for list="{{ skeletons }}" as="sk" hint-placeholder-count="4">
+<dc-import name="BookingRow" state="loading" sk-route="{{ sk.w1 }}" sk-meta="{{ sk.w2 }}" hint-size="100%,118px"></dc-import>
+</sc-for>
+</sc-if>
+<sc-if value="{{ isGridView }}">
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
+<sc-for list="{{ skeletons }}" as="sk" hint-placeholder-count="4">
+<dc-import name="BookingRow" variant="grid" state="loading" sk-route="{{ sk.w1 }}" sk-meta="{{ sk.w2 }}" hint-size="100%,190px"></dc-import>
+</sc-for>
+</div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+<div data-empty="1">
+<div data-empty-copy="1">
+<p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">Nothing booked yet</p>
+<h2 style="margin:0 0 14px;max-width:20ch;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty">Your transfers will live here</h2>
+<p style="margin:0 0 10px;max-width:46ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Book a transfer and it appears on this page the moment it is paid — with the fixed price, your voucher and the pickup your driver is holding.</p>
+<p style="margin:0 0 24px;max-width:46ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-inverse-muted)">Zurich Airport, city runs, ski routes and hourly chauffeur work all end up in the same list.</p>
+<div style="display:flex;flex-wrap:wrap;gap:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" href="home.dc.html" iconEnd="arrow-right" hint-size="220px,54px">Book a transfer</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" variant="light" href="manage-booking.dc.html" icon="search" hint-size="230px,54px">I have a reference</x-import>
+</div>
+</div>
+<div data-empty-shot="1" role="img" aria-label="A Vamos Taxi V-Class waiting on a Zurich street"></div>
+</div>
+</sc-if>
+
+<sc-if value="{{ hasRows }}" hint-placeholder-val="{{ true }}">
+<sc-if value="{{ isListView }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:22px">
+<sc-for list="{{ groups }}" as="g" hint-placeholder-count="1">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p data-grp="1">{{ g.label }}</p>
+<sc-for list="{{ g.rows }}" as="b" hint-placeholder-count="3">
+<dc-import name="BookingRow" href="{{ b.href }}" date="{{ b.date }}" time="{{ b.time }}" rel="{{ b.rel }}" route="{{ b.route }}" meta="{{ b.meta }}" price="{{ b.price }}" status="{{ b.status }}" hint-size="100%,118px"></dc-import>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ isGridView }}">
+<div style="display:flex;flex-direction:column;gap:22px">
+<sc-for list="{{ groups }}" as="g" hint-placeholder-count="1">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p data-grp="1">{{ g.label }}</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
+<sc-for list="{{ g.rows }}" as="b" hint-placeholder-count="3">
+<dc-import name="BookingRow" variant="grid" href="{{ b.href }}" date="{{ b.date }}" time="{{ b.time }}" rel="{{ b.rel }}" route="{{ b.route }}" meta="{{ b.meta }}" price="{{ b.price }}" status="{{ b.status }}" hint-size="100%,190px"></dc-import>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+</sc-if>
+
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px;margin-top:26px">
+<sc-if value="{{ canLoadMore }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" icon="chevron-down" onClick="{{ loadMore }}" hint-size="220px,44px">{{ moreLabel }}</x-import>
+</sc-if>
+<p style="margin:0;flex:1 1 200px;min-width:0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ countNote }}</p>
+</div>
+</sc-if>
+
+<sc-if value="{{ noMatch }}" hint-placeholder-val="{{ false }}">
+<div data-card="1" style="padding:clamp(24px,3vw,34px);display:flex;flex-direction:column;gap:14px;align-items:flex-start">
+<span style="width:44px;height:44px;border-radius:var(--vt-radius-pill);background:var(--vt-grey-100);display:grid;place-items:center"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="search" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></span>
+<h3 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold);letter-spacing:-.01em;color:var(--vt-text-primary)">Nothing matches that</h3>
+<p style="margin:0;max-width:52ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Try the booking reference, a place name, or the vehicle class. Only this tab is searched.</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" icon="x" onClick="{{ clearQ }}" hint-size="170px,44px">Clear search</x-import>
+</div>
+</sc-if>
+
+<sc-if value="{{ tabEmpty }}" hint-placeholder-val="{{ false }}">
+<div data-card="1" style="padding:clamp(24px,3vw,34px);display:flex;flex-direction:column;gap:14px;align-items:flex-start">
+<span style="width:44px;height:44px;border-radius:var(--vt-radius-pill);background:var(--vt-grey-100);display:grid;place-items:center"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="calendar" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></span>
+<h3 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold);letter-spacing:-.01em;color:var(--vt-text-primary)">{{ tabEmptyTitle }}</h3>
+<p style="margin:0;max-width:52ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">{{ tabEmptyBody }}</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" href="home.dc.html" iconEnd="arrow-right" hint-size="200px,44px">Book a transfer</x-import>
+</div>
+</sc-if>
+
+</section>
+
+<sc-if value="{{ scaffold }}" hint-placeholder-val="{{ true }}">
+<section aria-label="Review scaffold" style="max-width:1200px;margin:0 auto;padding:clamp(44px,5vw,68px) clamp(20px,5vw,56px) 0">
+<div style="margin-bottom:26px">
+<p data-grp="1" style="margin-bottom:8px">BookingRow · every state side by side</p>
+<p style="margin:0 0 16px;max-width:70ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">One component, used by this list, by the loading state and by the Upcoming block on <a href="account.dc.html">Your account</a>. A booking is a ticket. The date is a tear-off stub with the reference printed on it, perforated and punched where it meets the journey; the journey is two stops; the amount is the counterfoil. The stub carries the tense — charcoal ahead of you, grey once travelled, drained once cancelled — so the row is legible before the badge is read. The five statuses, their notes and the whole hover, press and focus behaviour live inside it; a page passes a status and cannot restyle or rename one.</p>
+<div data-gal="1">
+<dc-import name="BookingRow" status="new" date="Sun 23 Aug" time="14:00" rel="In 18 days" route="Zurich, Europaallee 21 → Zurich Airport (ZRH), Terminal 1" meta="Economy · 1 passenger · VT-4988" price="{{ galPrice }}" hint-size="100%,118px"></dc-import>
+<dc-import name="BookingRow" status="confirmed" date="Fri 14 Aug" time="06:45" rel="In 9 days" route="Zurich, Bahnhofstrasse 1 → Zermatt, Bahnhofstrasse 5" meta="Van · 6 passengers · VT-4907" price="{{ galPrice }}" hint-size="100%,118px"></dc-import>
+<dc-import name="BookingRow" status="assigned" date="Thu 6 Aug" time="08:15" rel="In 14 hours" route="Zurich Airport (ZRH), Terminal 2 → Zurich, Bahnhofstrasse 1" meta="Business · 2 passengers · VT-4821" price="{{ galPrice }}" hint-size="100%,118px"></dc-import>
+<dc-import name="BookingRow" status="completed" date="Tue 14 Jul" time="16:30" route="Chauffeur, 4 hours from Zurich, Bahnhofstrasse 1" meta="Business · 3 passengers · VT-4655" price="{{ galPrice }}" hint-size="100%,118px"></dc-import>
+<dc-import name="BookingRow" status="cancelled" date="Fri 3 Jul" time="21:15" route="Zurich, Bahnhofstrasse 1 → Zurich Airport (ZRH), Terminal 1" meta="Economy · 1 passenger · VT-4590" price="{{ galPrice }}" hint-size="100%,118px"></dc-import>
+<dc-import name="BookingRow" state="loading" hint-size="100%,118px"></dc-import>
+<div style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);padding:6px 22px 10px">
+<p style="margin:14px 0 0;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Inset variant · inside a card</p>
+<dc-import name="BookingRow" variant="inset" status="confirmed" date="Fri 14 Aug" time="06:45" route="Zurich, Bahnhofstrasse 1 → Zermatt, Bahnhofstrasse 5" meta="Van · VT-4907" price="{{ galPrice }}" hint-size="100%,92px"></dc-import>
+<dc-import name="BookingRow" variant="inset" state="loading" hint-size="100%,92px"></dc-import>
+</div>
+<div>
+<p style="margin:14px 0 10px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Grid variant · the view switcher above the list</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
+<dc-import name="BookingRow" variant="grid" status="assigned" date="Thu 6 Aug" time="08:15" rel="In 14 hours" route="Zurich Airport (ZRH), Terminal 2 → Zurich, Bahnhofstrasse 1" meta="Business · 2 passengers · VT-4821" price="{{ galPrice }}" hint-size="100%,190px"></dc-import>
+<dc-import name="BookingRow" variant="grid" status="completed" date="Tue 14 Jul" time="16:30" route="Chauffeur, 4 hours from Zurich, Bahnhofstrasse 1" meta="Business · 3 passengers · VT-4655" price="{{ galPrice }}" hint-size="100%,190px"></dc-import>
+<dc-import name="BookingRow" variant="grid" state="loading" hint-size="100%,190px"></dc-import>
+</div>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin-bottom:26px">
+<div data-flag="1">
+<p data-flag-k="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="triangle-alert" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import>One value owed · what a customer should read for “new”</p>
+<p>The five admin statuses map onto the design system’s own <span style="color:var(--vt-charcoal-900)">StatusBadge</span> so this list can never invent a sixth: new → warning, confirmed → success, assigned → info, completed → neutral, cancelled → danger. Four of them already have customer-facing words the ops board uses.</p>
+<p>“New” does not. It is an internal word for <em>received, not yet confirmed</em>, and it is the one label on this page a customer has to guess at. The row carries a plain-English line underneath as cover; if you would rather the badge said “Awaiting confirmation”, that is a one-word decision and the mapping absorbs it.</p>
+</div>
+<div data-flag="1">
+<p data-flag-k="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="triangle-alert" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import>Why tabs, and why the past list is grouped</p>
+<p>Upcoming and Past are two different questions — “when am I being picked up” and “what did I pay” — and one mixed list can only be sorted for one of them. Tabs keep both sorts honest and cost one tap on a phone.</p>
+<p>Past is grouped by year and Upcoming by month, so a repeat customer scanning 23 rows always knows where they are without a date filter. Load-more rather than pages: no page furniture to thumb on mobile, and the scroll position never jumps.</p>
+</div>
+<div data-slot="1">
+<p data-slot-k="1">Out of scope · what is deliberately absent</p>
+<p>Search appears only once a list is long enough to need it, and it covers the open tab: reference, place, class. No date range and no status filter — the groups already carry the dates, and the tabs already split the one status question a customer asks.</p>
+<p>No backend. Every row opens the one sample booking on the detail page, carrying its reference and status in the link so the detail arrives in the right state. Export writes the visible list as CSV in the browser.</p>
+</div>
+</div>
+
+<div style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);border-radius:var(--vt-radius-xl);padding:clamp(26px,3vw,40px)">
+<p style="margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">Review scaffold — not part of the published page</p>
+<h2 style="margin:0 0 26px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse)">Where this page stands</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:32px">
+<div>
+<p style="margin:0 0 14px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">States built — 10</p>
+<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading-tight);color:rgb(255 255 255 / .84)">
+<li>Upcoming · soonest first, grouped by month</li>
+<li>Past · most recent first, grouped by year</li>
+<li>Long list · 23 bookings, load six at a time</li>
+<li>Loading · skeleton rows, no spinner</li>
+<li>Nothing booked ever · photo, copy, two ways out</li>
+<li>Upcoming empty while Past holds 23 rows</li>
+<li>Five status badges · new, confirmed, assigned, completed, cancelled</li>
+<li>Search · reference, place or class, with a no-match state</li>
+<li>List and grid view · the same row, two densities</li>
+<li>Export · the visible list, as CSV</li>
+</ul>
+</div>
+<div>
+<p style="margin:0 0 14px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Values owed — 3</p>
+<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading-tight);color:rgb(255 255 255 / .84)">
+<li>Customer-facing word for “new”</li>
+<li>Every CHF amount · price matrix pending</li>
+<li>How long a past booking stays listed</li>
+</ul>
+</div>
+<div>
+<p style="margin:0 0 14px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Deliberately absent — 4</p>
+<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading-tight);color:rgb(255 255 255 / .84)">
+<li>Date ranges and status filters</li>
+<li>Any admin status control</li>
+<li>Numbered pages · load-more instead</li>
+<li>Invoices · the CSV export is not one</li>
+</ul>
+</div>
+</div>
+<p style="margin:30px 0 0;padding-top:22px;border-top:1px solid var(--vt-border-inverse);font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted);max-width:78ch">Four languages ship together — English, German, French and Arabic — so switching relabels this list, its groups, its counts and the row inside it, and Arabic flips the whole page to RTL. The currency switch changes the mark and never the number. Your account is a full page now, and a row opens the same way from either place.</p>
+</div>
+</section>
+</sc-if>
+
+<div style="height:clamp(40px,4vw,56px)"></div>
+</main>
+
+<dc-import name="SiteFooter" hint-size="100%,520px"></dc-import>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;listState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;populated&quot;,&quot;long&quot;,&quot;loading&quot;,&quot;empty&quot;],&quot;default&quot;:&quot;populated&quot;,&quot;tsType&quot;:&quot;'populated'|'long'|'loading'|'empty'&quot;,&quot;section&quot;:&quot;Flow&quot;},&quot;openTab&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;upcoming&quot;,&quot;past&quot;],&quot;default&quot;:&quot;upcoming&quot;,&quot;tsType&quot;:&quot;'upcoming'|'past'&quot;,&quot;section&quot;:&quot;Flow&quot;},&quot;showReviewScaffold&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Review&quot;}}">
+/* Status labels, badge tones and the per-status note all live in BookingRow, so this page
+   passes the raw status and cannot relabel it. */
+const UP = [
+  { g: 'August 2026', rows: [
+    { id: 'VT-4821', date: 'Thu 6 Aug', time: '08:15', rel: 'In 14 hours', from: 'Zurich Airport (ZRH), Terminal 2', to: 'Zurich, Bahnhofstrasse 1', vehicle: 'Business', pax: 2, status: 'assigned' },
+    { id: 'VT-4907', date: 'Fri 14 Aug', time: '06:45', rel: 'In 9 days', from: 'Zurich, Bahnhofstrasse 1', to: 'Zermatt, Bahnhofstrasse 5', vehicle: 'Van', pax: 6, status: 'confirmed' },
+    { id: 'VT-4988', date: 'Sun 23 Aug', time: '14:00', rel: 'In 18 days', from: 'Zurich, Europaallee 21', to: 'Zurich Airport (ZRH), Terminal 1', vehicle: 'Economy', pax: 1, status: 'new' },
+  ] },
+  { g: 'September 2026', rows: [
+    { id: 'VT-5031', date: 'Wed 2 Sep', time: '05:30', rel: 'In 28 days', from: 'Zurich, Bahnhofstrasse 1', to: 'Basel EuroAirport', vehicle: 'Business', pax: 2, status: 'new' },
+  ] },
+];
+
+const PAST = [
+  { g: '2026', rows: [
+    { id: 'VT-4712', date: 'Sat 25 Jul', time: '09:30', from: 'Zurich Airport (ZRH), Terminal 2', to: 'Zurich, Bahnhofstrasse 1', vehicle: 'Economy', pax: 2, status: 'completed' },
+    { id: 'VT-4655', date: 'Tue 14 Jul', time: '16:30', hours: 4, from: 'Zurich, Bahnhofstrasse 1', vehicle: 'Business', pax: 3, status: 'completed' },
+    { id: 'VT-4590', date: 'Fri 3 Jul', time: '21:15', from: 'Zurich, Bahnhofstrasse 1', to: 'Zurich Airport (ZRH), Terminal 1', vehicle: 'Economy', pax: 1, status: 'cancelled' },
+    { id: 'VT-4411', date: 'Mon 15 Jun', time: '11:00', from: 'Zermatt, Bahnhofstrasse 5', to: 'Zurich Airport (ZRH), Terminal 2', vehicle: 'Van', pax: 5, status: 'completed' },
+  ] },
+  { g: '2025', rows: [
+    { id: 'VT-3902', date: 'Sun 21 Dec', time: '05:30', from: 'Zurich, Bahnhofstrasse 1', to: 'St. Moritz, Via Serlas 27', vehicle: 'Van', pax: 4, status: 'completed' },
+    { id: 'VT-3781', date: 'Sat 6 Dec', time: '18:45', from: 'Zurich Airport (ZRH), Terminal 2', to: 'Zurich, Europaallee 21', vehicle: 'Business', pax: 2, status: 'completed' },
+  ] },
+];
+
+/* The long list is the same five real routes rotating over three years — enough rows to
+   prove the grouping and the load-more, without inventing 23 fictional trips. */
+const POOL = [
+  { from: 'Zurich Airport (ZRH), Terminal 2', to: 'Zurich, Bahnhofstrasse 1', vehicle: 'Economy', pax: 2 },
+  { from: 'Zurich, Bahnhofstrasse 1', to: 'Zurich Airport (ZRH), Terminal 1', vehicle: 'Business', pax: 2 },
+  { from: 'Zurich Airport (ZRH), Terminal 2', to: 'Zermatt, Bahnhofstrasse 5', vehicle: 'Van', pax: 6 },
+  { from: 'Zurich, Europaallee 21', to: 'Basel EuroAirport', vehicle: 'Business', pax: 1 },
+  { from: 'Zurich, Bahnhofstrasse 1', to: 'St. Moritz, Via Serlas 27', vehicle: 'Van', pax: 4 },
+];
+const DAYS = [
+  ['2026', ['Sat 25 Jul', 'Tue 14 Jul', 'Fri 3 Jul', 'Mon 15 Jun', 'Thu 28 May', 'Sun 10 May', 'Wed 22 Apr', 'Fri 27 Mar', 'Tue 3 Mar']],
+  ['2025', ['Sun 21 Dec', 'Sat 6 Dec', 'Thu 13 Nov', 'Mon 20 Oct', 'Wed 24 Sep', 'Fri 29 Aug', 'Sun 3 Aug', 'Tue 8 Jul']],
+  ['2024', ['Sat 28 Dec', 'Thu 5 Dec', 'Sun 17 Nov', 'Fri 25 Oct', 'Wed 11 Sep', 'Mon 26 Aug']],
+];
+const TIMES = ['09:30', '16:30', '21:15', '11:00', '06:45', '14:00', '05:30', '18:45', '08:15'];
+
+const LONG = (() => {
+  let n = 0;
+  return DAYS.map(([g, days]) => ({
+    g,
+    rows: days.map((date) => {
+      const p = POOL[n % POOL.length];
+      const row = Object.assign({}, p, {
+        id: 'VT-' + (4712 - n * 57),
+        date, time: TIMES[n % TIMES.length],
+        status: n === 2 ? 'cancelled' : 'completed',
+      });
+      if (n === 1) { row.hours = 4; delete row.to; }
+      n += 1;
+      return row;
+    }),
+  }));
+})();
+
+const STEP = 6;
+
+class Component extends DCLogic {
+  state = (() => {
+    const p = this.props || {};
+    return { view: p.listState || 'populated', tab: p.openTab || 'upcoming', shown: STEP, auth: null, q: '', viewMode: 'list' };
+  })();
+  setViewList = () => this.setState({ viewMode: 'list' });
+  setViewGrid = () => this.setState({ viewMode: 'grid' });
+
+  /* Search covers the active tab only, over the fields a customer would actually type:
+     the reference, a place, the class. No date range — the groups already carry the dates. */
+  match(r, q) {
+    if (!q) return true;
+    const hay = [r.id, r.from, r.to, r.vehicle, r.date, r.time].filter(Boolean).join(' ').toLowerCase();
+    return q.toLowerCase().split(/\s+/).every((w) => hay.indexOf(w) > -1);
+  }
+
+  source() {
+    const long = this.state.view === 'long';
+    const upcoming = this.state.tab === 'upcoming';
+    return upcoming ? (long ? [] : UP) : (long ? LONG : PAST);
+  }
+
+  flat(q) {
+    const out = [];
+    this.source().forEach((grp) => grp.rows.forEach((r) => { if (this.match(r, q)) out.push({ r, g: grp.g }); }));
+    return out;
+  }
+
+  exportCsv = () => {
+    const rows = this.flat(this.state.q).map(({ r }) => [
+      r.id, r.date, r.time, r.from, r.to || ('Chauffeur, ' + r.hours + ' hours'),
+      r.vehicle, r.pax, r.status, '000.00',
+    ]);
+    const head = ['Reference', 'Date', 'Time', 'Pickup', 'Destination', 'Class', 'Passengers', 'Status', 'Amount CHF'];
+    const csv = [head].concat(rows)
+      .map((line) => line.map((c) => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\r\n');
+    const url = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'vamos-bookings-' + this.state.tab + '.csv';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  };
+  onQ = (e) => this.setState({ q: e.target.value, shown: STEP });
+  clearQ = () => this.setState({ q: '', shown: STEP });
+
+  componentDidMount() {
+    this._offLocale = window.VamosLocale && window.VamosLocale.onChange(() => this.forceUpdate());
+    let auth = null;
+    try { const raw = localStorage.getItem('vamosAuth'); if (raw) auth = JSON.parse(raw); } catch (e) {}
+    if (auth) this.setState({ auth });
+    /* The loading state is a real wait, not a permanent screenshot: it resolves into the
+       list so a reviewer sees the transition the customer gets. */
+    if (this.state.view === 'loading') this._t = setTimeout(() => this.setState({ view: 'populated' }), 1600);
+  }
+  componentWillUnmount() { if (this._offLocale) this._offLocale(); clearTimeout(this._t); }
+
+  money(a) { return window.VamosLocale ? window.VamosLocale.money(a) : 'CHF ' + a; }
+
+  setTab = (t) => this.setState({ tab: t, shown: STEP });
+  loadMore = () => this.setState((s) => ({ shown: s.shown + STEP }));
+
+  go(view, tab) {
+    clearTimeout(this._t);
+    const next = { view, shown: STEP };
+    if (tab) next.tab = tab;
+    this.setState(next);
+    if (view === 'loading') this._t = setTimeout(() => this.setState({ view: 'populated' }), 1600);
+  }
+  goList = () => this.go('populated', 'upcoming');
+  goLong = () => this.go('long', 'past');
+  goLoading = () => this.go('loading');
+  goEmpty = () => this.go('empty');
+
+  row(r) {
+    const hourly = !!r.hours;
+    const pax = r.pax + (r.pax === 1 ? ' passenger' : ' passengers');
+    return {
+      href: 'booking-detail.dc.html?ref=' + r.id + '&s=' + r.status,
+      date: r.date, time: r.time, rel: r.rel || '',
+      route: hourly ? ('Chauffeur, ' + r.hours + ' hours from ' + r.from) : (r.from + ' → ' + r.to),
+      meta: r.vehicle + ' · ' + pax + ' · ' + r.id,
+      price: this.money('000.00'),
+      status: r.status,
+    };
+  }
+
+  renderVals() {
+    const s = this.state, p = this.props;
+    const v = s.view;
+    const long = v === 'long';
+    const upcoming = s.tab === 'upcoming';
+    const past = long ? LONG : PAST;
+
+    /* Flatten so the load-more can cut across groups, then re-group what survived. */
+    const flat = this.flat(s.q);
+    const all = this.flat('');
+    const cap = long && !upcoming ? s.shown : flat.length;
+    const groups = [];
+    flat.slice(0, cap).forEach((e) => {
+      const last = groups[groups.length - 1];
+      if (last && last.label === e.g) last.rows.push(this.row(e.r));
+      else groups.push({ label: e.g, rows: [this.row(e.r)] });
+    });
+
+    const nUp = (long ? [] : UP).reduce((n, g) => n + g.rows.length, 0);
+    const nPast = past.reduce((n, g) => n + g.rows.length, 0);
+    const shownCount = Math.min(cap, flat.length);
+    const auth = s.auth;
+
+    return {
+      n14: 14, n16: 16, n20: 20, galPrice: this.money('000.00'),
+      signedInAs: auth && auth.email ? 'Signed in as ' + auth.email : 'Your account',
+      isListView: s.viewMode !== 'grid', isGridView: s.viewMode === 'grid',
+      setViewList: this.setViewList, setViewGrid: this.setViewGrid,
+      listBtnCss: s.viewMode !== 'grid' ? 'vt-view-active' : '',
+      gridBtnCss: s.viewMode === 'grid' ? 'vt-view-active' : '',
+
+      hasList: v === 'populated' || v === 'long' || v === 'loading',
+      isLoading: v === 'loading',
+      isEmpty: v === 'empty',
+      hasRows: v !== 'loading' && v !== 'empty' && groups.length > 0,
+      noMatch: v !== 'loading' && v !== 'empty' && groups.length === 0 && all.length > 0,
+      tabEmpty: v !== 'loading' && v !== 'empty' && groups.length === 0 && all.length === 0,
+
+      q: s.q, hasQ: !!s.q, onQ: this.onQ, clearQ: this.clearQ,
+      showSearch: v !== 'loading' && all.length > 8,
+      canExport: v !== 'loading' && flat.length > 0,
+      exportCsv: this.exportCsv,
+      tabEmptyTitle: upcoming ? 'No transfer booked yet' : 'No past transfers',
+      tabEmptyBody: upcoming
+        ? 'Nothing is coming up. Book a transfer and it appears here the moment it is paid, with your voucher attached.'
+        : 'Once a transfer is driven or cancelled it moves here, and it stays for your records.',
+
+      listHeading: upcoming ? 'Coming up' : 'Already travelled',
+      sortNote: upcoming ? 'Soonest first' : 'Most recent first',
+      tabs: [
+        { value: 'upcoming', label: 'Upcoming (' + nUp + ')' },
+        { value: 'past', label: 'Past (' + nPast + ')' },
+      ],
+      tab: s.tab, setTab: this.setTab,
+      groups,
+
+      canLoadMore: shownCount < flat.length,
+      loadMore: this.loadMore,
+      moreLabel: 'Show ' + Math.min(STEP, flat.length - shownCount) + ' more',
+      countNote: flat.length === 0 ? '' : (shownCount < flat.length
+        ? 'Showing ' + shownCount + ' of ' + flat.length + ' bookings.'
+        : 'That is all ' + flat.length + (flat.length === 1 ? ' booking.' : ' bookings.')),
+
+      skeletons: [{ w1: '78%', w2: '44%' }, { w1: '64%', w2: '52%' }, { w1: '82%', w2: '38%' }, { w1: '58%', w2: '48%' }],
+
+      pList: v === 'populated' ? 'true' : 'false',
+      pLong: v === 'long' ? 'true' : 'false',
+      pLoading: v === 'loading' ? 'true' : 'false',
+      pEmpty: v === 'empty' ? 'true' : 'false',
+      goList: this.goList, goLong: this.goLong, goLoading: this.goLoading, goEmpty: this.goEmpty,
+
+      scaffold: (p.showReviewScaffold ?? true) !== false,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="../support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-tokens.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-assets.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<style>:root{--vt-icon-base:"../assets/icons/";--vt-logo-base:"../assets/logo/";--vt-pattern-base:"../assets/patterns/";--vt-shadow-accent:none}body{margin:0;background:var(--vt-bg-page)}a{color:var(--vt-text-link)}a:hover{color:var(--vt-text-link-hover)}</style>
+</helmet>
+<div style="display:flex;min-height:100vh;font-family:var(--vt-font-body);color:var(--vt-text-primary)">
+<dc-import name="OpsSidebar" active="pricing" hint-size="236px,900px"></dc-import>
+<main style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
+<header style="display:flex;align-items:center;gap:22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle)">
+<div>
+<h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tTitle }}</h1>
+<p style="margin:4px 0 0;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSubtitle }}</p>
+</div>
+</header>
+<div style="padding:26px 32px 40px;display:flex;flex-direction:column;gap:20px;min-width:0">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="accent" title="{{ tAlertTitle }}" hint-size="100%,70px">{{ tAlertBody }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Tabs" variant="underline" value="{{ tab }}" onChange="{{ setTab }}" items="{{ tabItems }}" hint-size="100%,44px"></x-import>
+
+<sc-if value="{{ isRoutes }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;align-items:center;gap:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Badge" tone="outline" hint-size="150px,26px">{{ tRoutesConfigured }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Badge" tone="warning" hint-size="110px,26px">{{ tNotLive }}</x-import>
+<div style="margin-left:auto"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" icon="plus" hint-size="160px,36px">{{ tAddRoute }}</x-import></div>
+</div>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Table" columns="{{ routeColumns }}" rows="{{ routes }}" hint-size="100%,320px"></x-import>
+</div>
+</sc-if>
+
+<sc-if value="{{ isDistance }}" hint-placeholder-val="{{ false }}">
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+<sc-for list="{{ classes }}" as="c" hint-placeholder-count="3">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" hint-size="100%,380px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;align-items:center;gap:10px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ c.icon }}" size="{{ n18 }}" color="var(--vt-yellow-700)" hint-size="18px,18px"></x-import>
+<h3 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4)">{{ c.name }}</h3>
+</div>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tBaseFare }}" suffix="CHF" placeholder="000" size="sm" hint-size="100%,68px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tPerKm }}" suffix="CHF" placeholder="0.00" size="sm" hint-size="100%,68px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tMinFare }}" suffix="CHF" placeholder="000" size="sm" hint-size="100%,68px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tMaxPax }}" placeholder="{{ c.maxPax }}" size="sm" hint-size="100%,68px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" label="{{ tAvailable }}" checked="{{ c.available }}" onChange="{{ noop }}" hint-size="200px,24px"></x-import>
+</div>
+</x-import>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ isSurcharges }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Table" columns="{{ surchargeColumns }}" rows="{{ surcharges }}" hint-size="100%,360px"></x-import>
+</sc-if>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const T = {
+  en: { title:'Pricing & routes', subtitle:'Fixed routes, distance rules and surcharges',
+    alertTitle:'Every figure on this screen is a placeholder', alertBody:'Base fares, per-kilometre rates, surcharges and the fixed-route inventory are blocking client inputs. Nothing here is a real Vamos Taxi price.',
+    tabRoutes:'Fixed routes', tabDistance:'Distance rules', tabSurcharges:'Surcharges & extras',
+    routesConfigured:'6 routes configured', notLive:'4 not live', addRoute:'Add fixed route',
+    colId:'ID', colFrom:'From', colTo:'To', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Draft',
+    baseFare:'Base fare', perKm:'Per kilometre', minFare:'Minimum fare', maxPax:'Max passengers', available:'Available for booking',
+    colRule:'Rule', colAppliesWhen:'Applies when', colAmount:'Amount',
+    zurichCity:'Zurich city', dietikon:'Dietikon', zermatt:'Zermatt', stMoritz:'St. Moritz', chamonix:'Chamonix', verbier:'Verbier',
+    sAirport:'Airport pickup', sAirportWhen:'Applied when pickup is inside an airport zone',
+    sNight:'Night surcharge', sNightWhen:'22:00 – 06:00',
+    sWaitAirport:'Waiting, airport', sWaitAirportWhen:'First 60 minutes included, then per 15 min',
+    sWaitCity:'Waiting, city', sWaitCityWhen:'First 15 minutes included, then per 15 min',
+    sStop:'Additional stop', sStopWhen:'Per stop, inside route corridor',
+    sChildSeat:'Child seat', sChildSeatWhen:'Per seat, per journey',
+    sMeet:'Meet & greet, arrivals', sMeetWhen:'Included in every airport pickup', sMeetVal:'Included',
+    sSkiRack:'Ski / board rack', sSkiRackWhen:'Fitted on request, ski season',
+  },
+  de: { title:'Preise & Routen', subtitle:'Feste Routen, Distanzregeln und Zuschläge',
+    alertTitle:'Jeder Wert auf diesem Bildschirm ist ein Platzhalter', alertBody:'Grundpreise, Kilometersätze, Zuschläge und das Streckenangebot sind noch offene Kundendaten. Nichts hier ist ein echter Vamos-Taxi-Preis.',
+    tabRoutes:'Feste Routen', tabDistance:'Distanzregeln', tabSurcharges:'Zuschläge & Extras',
+    routesConfigured:'6 Routen konfiguriert', notLive:'4 nicht live', addRoute:'Feste Route hinzufügen',
+    colId:'ID', colFrom:'Von', colTo:'Nach', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Entwurf',
+    baseFare:'Grundpreis', perKm:'Pro Kilometer', minFare:'Mindestpreis', maxPax:'Max. Passagiere', available:'Für Buchung verfügbar',
+    colRule:'Regel', colAppliesWhen:'Gilt bei', colAmount:'Betrag',
+    zurichCity:'Zürich Stadt', dietikon:'Dietikon', zermatt:'Zermatt', stMoritz:'St. Moritz', chamonix:'Chamonix', verbier:'Verbier',
+    sAirport:'Flughafenabholung', sAirportWhen:'Gilt, wenn die Abholung innerhalb der Flughafenzone liegt',
+    sNight:'Nachtzuschlag', sNightWhen:'22:00 – 06:00 Uhr',
+    sWaitAirport:'Wartezeit, Flughafen', sWaitAirportWhen:'Erste 60 Minuten inklusive, danach pro 15 Min.',
+    sWaitCity:'Wartezeit, Stadt', sWaitCityWhen:'Erste 15 Minuten inklusive, danach pro 15 Min.',
+    sStop:'Zusätzlicher Stopp', sStopWhen:'Pro Stopp, innerhalb des Streckenkorridors',
+    sChildSeat:'Kindersitz', sChildSeatWhen:'Pro Sitz, pro Fahrt',
+    sMeet:'Meet & Greet, Ankunft', sMeetWhen:'In jeder Flughafenabholung inklusive', sMeetVal:'Inklusive',
+    sSkiRack:'Ski-/Boardträger', sSkiRackWhen:'Auf Wunsch montiert, Skisaison',
+  },
+};
+class Component extends DCLogic {
+  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', tab: 0 };
+  componentDidMount() {
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('vamosOpsAuth') !== '1') location.replace('ops-login.dc.html');
+  }
+  renderVals() {
+    const t = T[this.state.lang] || T.en;
+    const tabItems = [t.tabRoutes, t.tabDistance, t.tabSurcharges];
+    const tab = tabItems[this.state.tab] || tabItems[0];
+    const ROUTES = [
+      { id:'FR-01', from:'Zurich Airport (ZRH)', to: t.zurichCity, economy:'CHF 000', business:'CHF 000', van:'CHF 000', live:true },
+      { id:'FR-02', from:'Zurich Airport (ZRH)', to: t.dietikon, economy:'CHF 000', business:'CHF 000', van:'CHF 000', live:true },
+      { id:'FR-03', from:'Zurich Airport (ZRH)', to: t.zermatt, economy:'—', business:'CHF 000', van:'CHF 000', live:false },
+      { id:'FR-04', from:'Zurich Airport (ZRH)', to: t.stMoritz, economy:'—', business:'CHF 000', van:'CHF 000', live:false },
+      { id:'FR-05', from:'Geneva Airport (GVA)', to: t.chamonix, economy:'—', business:'CHF 000', van:'CHF 000', live:false },
+      { id:'FR-06', from:'Zurich Airport (ZRH)', to: t.verbier, economy:'—', business:'CHF 000', van:'CHF 000', live:false },
+    ];
+    const SURCHARGES = [
+      { id:'S1', label: t.sAirport, rule: t.sAirportWhen, value:'CHF 00' },
+      { id:'S2', label: t.sNight, rule: t.sNightWhen, value:'+ 00%' },
+      { id:'S3', label: t.sWaitAirport, rule: t.sWaitAirportWhen, value:'CHF 00' },
+      { id:'S4', label: t.sWaitCity, rule: t.sWaitCityWhen, value:'CHF 00' },
+      { id:'S5', label: t.sStop, rule: t.sStopWhen, value:'CHF 00' },
+      { id:'S6', label: t.sChildSeat, rule: t.sChildSeatWhen, value:'CHF 00' },
+      { id:'S7', label: t.sMeet, rule: t.sMeetWhen, value: t.sMeetVal },
+      { id:'S8', label: t.sSkiRack, rule: t.sSkiRackWhen, value:'CHF 00' },
+    ];
+    return {
+      n18:18, noop: () => {},
+      tTitle: t.title, tSubtitle: t.subtitle, tAlertTitle: t.alertTitle, tAlertBody: t.alertBody,
+      tab, tabItems, setTab: (v) => this.setState({ tab: tabItems.indexOf(v) }),
+      isRoutes: tab === t.tabRoutes, isDistance: tab === t.tabDistance, isSurcharges: tab === t.tabSurcharges,
+      tRoutesConfigured: t.routesConfigured, tNotLive: t.notLive, tAddRoute: t.addRoute,
+      routeColumns: [
+        { key:'id', header: t.colId, width:'76px' },
+        { key:'from', header: t.colFrom }, { key:'to', header: t.colTo },
+        { key:'economy', header: t.colEconomy, align:'right', width:'104px' },
+        { key:'business', header: t.colBusiness, align:'right', width:'104px' },
+        { key:'van', header: t.colVan, align:'right', width:'96px' },
+        { key:'live', header: t.colLive, width:'92px', render:(r) => React.createElement('span', {
+            style:{ display:'inline-flex', alignItems:'center', gap:6, fontFamily:'var(--vt-font-body)', fontSize:'var(--vt-label-sm)', fontWeight:600, textTransform:'uppercase', letterSpacing:'.09em', padding:'5px 10px', borderRadius:'4px',
+              background: r.live ? 'var(--vt-success-tint)' : 'var(--vt-grey-100)', color: r.live ? 'var(--vt-success)' : 'var(--vt-charcoal-700)' } }, r.live ? t.live : t.draft) },
+        { key:'act', header:'', width:'56px', render: () => React.createElement('span', { style:{ display:'inline-flex', width:32, height:32, borderRadius:999, alignItems:'center', justifyContent:'center', color:'var(--vt-text-secondary)' } },
+            React.createElement('span', { style:{ width:16, height:16, display:'inline-block', background:'var(--vt-text-secondary)', WebkitMaskImage:'url("../assets/icons/pencil.svg")', maskImage:'url("../assets/icons/pencil.svg")', WebkitMaskSize:'contain', maskSize:'contain', WebkitMaskRepeat:'no-repeat', maskRepeat:'no-repeat' } })) },
+      ],
+      routes: ROUTES,
+      classes: [
+        { icon:'car-front', name:'Economy', maxPax:'3', available: true },
+        { icon:'car-front', name:'Business', maxPax:'3', available: true },
+        { icon:'bus', name:'Van', maxPax:'8', available: false },
+      ],
+      tBaseFare: t.baseFare, tPerKm: t.perKm, tMinFare: t.minFare, tMaxPax: t.maxPax, tAvailable: t.available,
+      surchargeColumns: [
+        { key:'label', header: t.colRule }, { key:'rule', header: t.colAppliesWhen },
+        { key:'value', header: t.colAmount, align:'right', width:'120px' },
+      ],
+      surcharges: SURCHARGES,
+    };
+  }
+}
+</script>
+</body>
+</html>

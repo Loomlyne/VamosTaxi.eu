@@ -1,0 +1,33 @@
+<!-- @dsCard group="Laws" viewport="760x300" name="No tinted yellow" subtitle="#FDC20B at full strength is a small accent — the tints and the brownish steps are out of the palette" -->
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>No tinted yellow</title>
+<link rel="stylesheet" href="../styles.css">
+<style>body{margin:0;padding:20px 22px;background:var(--vt-bg-page);font-family:var(--vt-font-body);color:var(--vt-text-primary)}
+h4{margin:0 0 10px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+.row{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}
+.col{flex:1 1 260px;min-width:0}
+.n{margin:10px 0 0;font-size:12px;line-height:1.5;color:var(--vt-text-muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 24px;border:1px solid var(--vt-charcoal-900);border-radius:999px;background:var(--vt-yellow);color:var(--vt-charcoal-900);font-size:13px;font-weight:600;letter-spacing:.09em;text-transform:uppercase}
+</style></head><body>
+<div class="row">
+  <div class="col">
+    <h4>Out of the palette</h4>
+    <div style="display:flex;gap:0;border-radius:var(--vt-radius-md);overflow:hidden;border:1px solid var(--vt-grey-200)">
+      <span style="flex:1;height:44px;background:#FFFBEB"></span><span style="flex:1;height:44px;background:#FEF3C7"></span><span style="flex:1;height:44px;background:#FDE68A"></span><span style="flex:1;height:44px;background:#FCD34D"></span>
+    </div>
+    <p class="n" style="margin-top:8px"><code>--vt-yellow-50 / 100 / 200 / 300</code> as a background or border — cream panels, pale icon tiles, tinted alert strips.</p>
+    <p style="margin:10px 0 0;font-size:15px;color:#A67B05;font-weight:600">Brownish, not gold — <code>--vt-yellow-600 / 700</code> as text or icon colour.</p>
+  </div>
+  <div class="col">
+    <h4>In the palette</h4>
+    <div style="display:flex;gap:10px;align-items:center">
+      <span class="btn">Book a transfer</span>
+      <span style="display:inline-flex;align-items:center;height:26px;padding:0 11px;border-radius:var(--vt-radius-sm);background:var(--vt-charcoal-900);color:var(--vt-yellow);font-size:11px;letter-spacing:.09em;text-transform:uppercase;font-weight:600">Assigned</span>
+    </div>
+    <div style="margin-top:12px;padding:14px 16px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-white)">
+      <p style="margin:0;font-size:14px;line-height:1.55">Attention is carried by charcoal, by full-strength yellow on a charcoal ground, or by the semantic <code>--vt-danger</code> / <code>--vt-success</code> — never by a wash of pale yellow.</p>
+    </div>
+    <p class="n">Kit components whose own default is tinted — <code>Alert tone="accent"</code>, <code>ListRow icon=…</code>, <code>Badge tone="warning"</code> — use <code>tone="inverse"</code> / <code>tone="info"</code> instead.</p>
+  </div>
+</div>
+</body></html>

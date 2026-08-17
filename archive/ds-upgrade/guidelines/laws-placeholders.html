@@ -1,0 +1,17 @@
+<!-- @dsCard group="Laws" viewport="700x200" name="Pending client values" subtitle="A value we do not have yet is a labelled gap in human words, never a broken template" -->
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Pending client values</title>
+<link rel="stylesheet" href="../styles.css">
+<style>body{margin:0;padding:20px 22px;background:var(--vt-bg-page);font-family:var(--vt-font-body);color:var(--vt-text-primary)}
+h4{margin:0 0 10px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+.row{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}
+.col{flex:1 1 260px;min-width:0}
+.n{margin:10px 0 0;font-size:12px;line-height:1.5;color:var(--vt-text-muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 24px;border:1px solid var(--vt-charcoal-900);border-radius:999px;background:var(--vt-yellow);color:var(--vt-charcoal-900);font-size:13px;font-weight:600;letter-spacing:.09em;text-transform:uppercase}
+</style></head><body>
+<h4>Right</h4>
+<p style="margin:0;max-width:60ch;font-size:15px;line-height:1.7">You may cancel free of charge up to <span data-tok>free cancel window</span> before the agreed pickup time. After that, <span data-tok>late cancellation fee</span> applies. Every fare is fixed at booking — <strong>CHF 000</strong>, nothing added on arrival.</p>
+<h4 style="margin-top:22px">Wrong</h4>
+<p style="margin:0;max-width:60ch;font-size:15px;line-height:1.7;color:var(--vt-text-muted)">You may cancel free of charge up to <code>{FREE_CANCEL_WINDOW}</code> before pickup. After that a <strong>CHF 45.00</strong> fee applies.</p>
+<p class="n" style="max-width:70ch">The pill appends its own <code>TBC</code> tag, so the sentence still reads as English and a reviewer can see exactly what is owed. Never <code>{TOKEN_NAME}</code>, never a plausible invented number.</p>
+</body></html>

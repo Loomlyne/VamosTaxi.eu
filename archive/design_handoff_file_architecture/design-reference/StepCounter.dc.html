@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="../support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<style>:root{--vt-shadow-accent:none}
+:root{--vt-icon-base:"../assets/icons/"}body{margin:0}a{color:var(--vt-text-link)}a:hover{color:var(--vt-text-link-hover)}</style>
+</helmet>
+<div style="display:flex;flex-direction:column;gap:6px;min-width:0;font-family:var(--vt-font-body)">
+<span style="font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:.02em;color:var(--vt-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ label }}</span>
+<div style="display:flex;align-items:center;justify-content:space-between;gap:2px;height:var(--vt-control-h-md);padding:0 5px;box-sizing:border-box;background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:var(--vt-radius-field);transition:var(--vt-transition-control)" style-hover="border-color:var(--vt-grey-300)">
+<sc-if value="{{ canDec }}" hint-placeholder-val="{{ true }}">
+<button type="button" aria-label="{{ decLabel }}" onClick="{{ dec }}" style="all:unset;box-sizing:border-box;flex:0 0 32px;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:999px;cursor:pointer;color:var(--vt-text-primary);transition:var(--vt-transition-control)" style-hover="background:var(--vt-grey-100)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="minus" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+</button>
+</sc-if>
+<sc-if value="{{ noDec }}" hint-placeholder-val="{{ false }}">
+<span aria-hidden="true" style="flex:0 0 32px;display:flex;align-items:center;justify-content:center;width:32px;height:32px;color:var(--vt-grey-300)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="minus" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+</span>
+</sc-if>
+<span style="display:flex;align-items:center;gap:7px;min-width:0;overflow:hidden">
+<sc-if value="{{ hasIcon }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ icon }}" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
+</sc-if>
+<span style="font-family:var(--vt-font-body);font-size:15px;font-weight:600;letter-spacing:.01em;color:var(--vt-text-primary);font-variant-numeric:tabular-nums">{{ value }}</span>
+</span>
+<sc-if value="{{ canInc }}" hint-placeholder-val="{{ true }}">
+<button type="button" aria-label="{{ incLabel }}" onClick="{{ inc }}" style="all:unset;box-sizing:border-box;flex:0 0 32px;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:999px;cursor:pointer;color:var(--vt-text-primary);transition:var(--vt-transition-control)" style-hover="background:var(--vt-grey-100)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+</button>
+</sc-if>
+<sc-if value="{{ noInc }}" hint-placeholder-val="{{ false }}">
+<span aria-hidden="true" style="flex:0 0 32px;display:flex;align-items:center;justify-content:center;width:32px;height:32px;color:var(--vt-grey-300)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+</span>
+</sc-if>
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:180,&quot;height&quot;:90},&quot;label&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Passengers&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;icon&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;users&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;value&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:2,&quot;min&quot;:0,&quot;max&quot;:99,&quot;tsType&quot;:&quot;number&quot;},&quot;min&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:1,&quot;tsType&quot;:&quot;number&quot;},&quot;max&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:8,&quot;tsType&quot;:&quot;number&quot;},&quot;onChange&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(value:number)=&gt;void&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    const v = Number.isFinite(+p.value) ? +p.value : 0;
+    const min = p.min == null ? 0 : +p.min;
+    const max = p.max == null ? 99 : +p.max;
+    const lbl = p.label || '';
+    return {
+      n16: 16,
+      label: lbl, icon: p.icon || '', hasIcon: !!p.icon, value: v,
+      canDec: v > min, noDec: v <= min, canInc: v < max, noInc: v >= max,
+      decLabel: 'Decrease ' + lbl, incLabel: 'Increase ' + lbl,
+      dec: () => { if (v > min && p.onChange) p.onChange(v - 1); },
+      inc: () => { if (v < max && p.onChange) p.onChange(v + 1); },
+    };
+  }
+}
+
+</script>
+</body>
+</html>

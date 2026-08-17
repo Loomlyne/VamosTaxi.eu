@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../tokens/fonts.css">
+<link rel="stylesheet" href="../tokens/colors.css">
+<link rel="stylesheet" href="../tokens/typography.css">
+<link rel="stylesheet" href="../tokens/spacing.css">
+<link rel="stylesheet" href="../tokens/elevation.css">
+<link rel="stylesheet" href="../tokens/motion.css">
+<link rel="stylesheet" href="../tokens/base.css">
+<link rel="stylesheet" href="../styles.css">
+<script src="../_ds_bundle.js"></script>
+<link rel="stylesheet" href="../assets/lenis.css">
+<script src="../assets/lenis.js"></script>
+<script src="../assets/lenis-boot.js"></script>
+<script src="vamos-i18n-dict.js"></script>
+<script src="vamos-locale.js"></script>
+<style>:root{--vt-icon-base:"../assets/icons/";--vt-logo-base:"../assets/logo/";--vt-pattern-base:"../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+button,.vt-btn,.vt-iconbtn{box-shadow:none}
+body{margin:0;background:var(--vt-bg-page)}
+a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+[data-ac-kick]{margin:0;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)}
+[data-ac-h1]{margin:0;font-family:var(--vt-font-display);font-size:clamp(32px,4.4vw,50px);font-weight:var(--vt-weight-semibold);letter-spacing:-.02em;line-height:1.06;color:var(--vt-text-inverse);overflow-wrap:anywhere}
+[data-ac-mail]{margin:0;font-size:var(--vt-body-md);line-height:1.4;color:rgb(255 255 255 / .82);overflow-wrap:anywhere}
+[data-ac-ring]{flex:0 0 auto;display:grid;place-items:center;padding:5px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse)}
+[data-ac-chip]{display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 12px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);font-size:12px;font-weight:var(--vt-weight-semibold);letter-spacing:.01em;white-space:nowrap;color:rgb(255 255 255 / .82)}
+[data-ac-chip="warn"]{background:var(--vt-accent);border-color:var(--vt-accent);color:var(--vt-text-on-accent)}
+[data-ac-inv-link]{appearance:none;background:none;border:0;padding:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-inverse);text-decoration:underline;text-decoration-color:rgb(255 255 255 / .4);text-underline-offset:3px;cursor:pointer;transition:text-decoration-color 140ms var(--vt-ease-standard)}
+[data-ac-inv-link]:hover{text-decoration-color:currentColor}
+/* Notices belong to the identity, so they sit inside the charcoal band rather than
+   floating above the page as a tinted panel. */
+[data-ac-notice]{display:flex;flex-wrap:wrap;align-items:center;gap:14px 26px;margin-top:26px;padding-top:22px;border-top:1px solid var(--vt-border-inverse)}
+[data-ac-notice-b]{margin:0;flex:1 1 320px;min-width:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .82);text-wrap:pretty}
+[data-ac-notice-b] strong{font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse)}
+[data-ac-ok]{display:inline-flex;align-items:center;gap:7px;font-size:var(--vt-body-sm);color:rgb(255 255 255 / .82)}
+[data-ac-h2]{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold);letter-spacing:-.01em;color:var(--vt-text-primary)}
+[data-ac-sub]{margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);text-wrap:pretty}
+[data-ac-sec]{scroll-margin-top:104px}
+/* The rail. On a phone it is a scrolling row of pills above the content; from 980px it
+   becomes the sticky index of the account, with the promo and support blocks under it. */
+[data-ac-grid]{grid-template-columns:minmax(0,1fr);gap:20px}
+[data-ac-side],[data-ac-rail]{display:contents}
+[data-ac-nav]{order:-1;display:flex;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;padding:2px}
+[data-ac-nav]::-webkit-scrollbar{display:none}
+[data-ac-navitem]{position:relative;box-sizing:border-box;display:flex;align-items:center;gap:10px;flex:0 0 auto;min-height:44px;padding:0 16px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-secondary);text-decoration:none;white-space:nowrap;transition:background 140ms var(--vt-ease-standard),border-color 140ms var(--vt-ease-standard),color 140ms var(--vt-ease-standard)}
+[data-ac-navitem]:hover{border-color:var(--vt-charcoal-900);color:var(--vt-text-primary)}
+[data-ac-navitem][aria-current="page"]{background:var(--vt-charcoal-900);border-color:var(--vt-charcoal-900);color:var(--vt-text-inverse)}
+[data-ac-navlabel]{min-width:0;overflow:hidden;text-overflow:ellipsis}
+[data-ac-navnum]{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:var(--vt-radius-pill);background:var(--vt-grey-100);font-size:12px;font-weight:var(--vt-weight-semibold);font-variant-numeric:tabular-nums;color:var(--vt-text-secondary)}
+[data-ac-navitem][aria-current="page"] [data-ac-navnum]{background:rgb(255 255 255 / .16);color:var(--vt-text-inverse)}
+[data-ac-navdot]{flex:0 0 auto;width:8px;height:8px;border-radius:var(--vt-radius-pill);background:var(--vt-accent)}
+[data-ac-signout]{appearance:none;box-sizing:border-box;display:none;align-items:center;gap:10px;width:100%;min-height:44px;margin-top:4px;padding:0 14px;border:0;border-top:1px solid var(--vt-border-subtle);border-radius:0;background:transparent;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-secondary);cursor:pointer;text-align:start;transition:color 140ms var(--vt-ease-standard)}
+[data-ac-signout]:hover{color:var(--vt-charcoal-900)}
+[data-ac-extras]{order:2;display:flex;flex-direction:column;gap:20px;min-width:0}
+[data-ac-row]{display:grid;grid-template-columns:minmax(0,1fr);gap:6px 20px;padding:16px 0;border-top:1px solid var(--vt-border-subtle)}
+[data-ac-k]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-ac-v]{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;min-width:0;font-size:var(--vt-body-md);line-height:1.4;color:var(--vt-text-primary);overflow-wrap:anywhere}
+[data-ac-hint]{font-size:var(--vt-body-xs);line-height:1.5;color:var(--vt-text-muted)}
+[data-ac-act]{display:flex;align-items:center;justify-self:start}
+[data-ac-link]{appearance:none;background:none;border:0;padding:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-charcoal-900);text-decoration:underline;text-decoration-color:var(--vt-grey-400);text-underline-offset:3px;cursor:pointer;transition:text-decoration-color 140ms var(--vt-ease-standard)}
+[data-ac-link]:hover{text-decoration-color:currentColor}
+[data-ac-edit]{display:flex;flex-direction:column;gap:14px;padding:16px 0;border-top:1px solid var(--vt-charcoal-900)}
+[data-ac-flag]{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-subtle);background:var(--vt-grey-50);font-size:12px;font-weight:var(--vt-weight-semibold);color:var(--vt-text-secondary);white-space:nowrap}
+[data-ac-flag="warn"]{border-color:var(--vt-charcoal-900);background:var(--vt-charcoal-900);color:var(--vt-text-inverse)}
+[data-ac-switch]{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:14px 0;border-top:1px solid var(--vt-border-subtle)}
+[data-ac-switch-t]{display:block;font-size:var(--vt-body-md);line-height:1.4;color:var(--vt-text-primary)}
+[data-ac-switch-s]{display:block;margin-top:3px;font-size:var(--vt-body-xs);line-height:1.5;color:var(--vt-text-muted)}
+/* Closing an account is the one destructive thing on this page, so it is the one place
+   red appears: a red-ruled panel, a red heading, red buttons. Nothing else is tinted. */
+/* The list continues on another page, so its last item is a row like the others —
+   a full-bleed hairline row with the chevron, not a button floating under the card. */
+[data-ac-more]{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:52px;margin-top:2px;padding:0 2px;border-top:1px solid var(--vt-border-subtle);font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium);color:var(--vt-charcoal-900);text-decoration:none;transition:color 140ms var(--vt-ease-standard)}
+[data-ac-more]:hover{color:var(--vt-charcoal-900)}
+[data-ac-more-go]{display:grid;place-items:center;flex:0 0 auto;width:32px;height:32px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-grey-300);transition:background 140ms var(--vt-ease-standard),border-color 140ms var(--vt-ease-standard),color 140ms var(--vt-ease-standard)}
+[data-ac-more]:hover [data-ac-more-go]{background:var(--vt-charcoal-900);border-color:var(--vt-charcoal-900);color:var(--vt-white)}
+[dir="rtl"] [data-ac-more-go]{transform:scaleX(-1)}
+[data-ac-close]{display:flex;flex-direction:column;gap:14px;align-items:flex-start;box-sizing:border-box;padding:clamp(20px,2.4vw,26px);border:1px solid var(--vt-danger);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface)}
+[data-ac-close] [data-ac-h2]{color:var(--vt-danger)}
+[data-ac-close] [data-ac-kick]{color:var(--vt-danger)}
+[data-ac-close] .vt-btn--ghost{color:var(--vt-danger);border-color:var(--vt-danger)}
+[data-ac-close] .vt-btn--ghost:hover:not([disabled]){background:var(--vt-danger);border-color:var(--vt-danger);color:var(--vt-white)}
+[data-ac-close] [data-tok]{border-color:var(--vt-grey-300)}
+/* Backing out is the safe action, so it stays neutral inside the red panel. */
+[data-ac-close] [data-ac-safe] .vt-btn--ghost{color:var(--vt-text-primary);border-color:var(--vt-border-subtle)}
+[data-ac-close] [data-ac-safe] .vt-btn--ghost:hover:not([disabled]){background:var(--vt-grey-50);border-color:var(--vt-charcoal-900);color:var(--vt-text-primary)}
+[data-tok]{display:inline-flex;align-items:baseline;gap:5px;font-family:var(--vt-font-body);font-weight:var(--vt-weight-medium);font-size:.97em;background:var(--vt-grey-100);border:1px solid var(--vt-grey-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 7px;white-space:nowrap}
+[data-tok]::after{content:"TBC";font-family:var(--vt-font-body);font-size:.66em;font-weight:700;letter-spacing:.1em;color:var(--vt-text-muted)}
+[data-note]{display:flex;flex-direction:column;gap:6px;max-width:780px;padding:16px 18px;border-radius:var(--vt-radius-md);border:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface);box-shadow:var(--vt-shadow-xs)}
+[data-note-k]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-note-b]{margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);text-wrap:pretty}
+:focus-visible{outline:3px solid rgb(253 194 11 / .45);outline-offset:3px;border-radius:var(--vt-radius-xs)}
+/* Two columns first: the label, then the value with its action sitting under it. The
+   action only moves up beside the value once the middle column can still hold a real
+   measure — a fixed label plus a button-width action otherwise squeezes the hint into
+   a five-line ribbon everywhere between the rail appearing and a wide desktop. */
+@media (min-width:600px){
+[data-ac-row]{grid-template-columns:minmax(0,112px) minmax(0,1fr);gap:12px 20px;align-items:baseline}
+[data-ac-act]{grid-column:2}
+}
+@media (min-width:1180px){
+[data-ac-row]{grid-template-columns:132px minmax(0,1fr) auto;align-items:center}
+[data-ac-act]{grid-column:auto}
+}
+@media (min-width:900px){
+[data-ac-grid]{grid-template-columns:248px minmax(0,1fr);gap:20px}
+/* The column stretches the full page height; the rail inside it is one sticky block, so
+   the index and the contact card travel together instead of the second one stranding
+   itself at the top. Its gap matches the content column's, so the two columns line up. */
+[data-ac-side]{display:block;min-width:0;align-self:stretch}
+[data-ac-rail]{position:sticky;top:96px;z-index:1;display:flex;flex-direction:column;gap:20px;min-width:0;max-height:calc(100vh - 116px);overflow:auto;overscroll-behavior:contain;scrollbar-width:none}
+[data-ac-rail]::-webkit-scrollbar{display:none}
+[data-ac-nav]{flex-direction:column;gap:2px;overflow:visible;padding:6px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-xs)}
+[data-ac-navitem]{border-color:transparent;border-radius:var(--vt-radius-md);background:transparent;padding-inline:16px}
+[data-ac-navitem]:hover{background:var(--vt-grey-100);border-color:transparent}
+[data-ac-navlabel]{flex:1 1 auto}
+/* Yellow marks the section you are in — the one place on this page it appears at all. */
+[data-ac-navitem][aria-current="page"]::before{content:"";position:absolute;inset-inline-start:6px;top:12px;bottom:12px;width:3px;border-radius:2px;background:var(--vt-accent)}
+[data-ac-signout]{display:flex}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}</style>
+</helmet>
+
+<div style="font-family:var(--vt-font-body);color:var(--vt-text-primary);min-height:100vh">
+<dc-import name="SiteHeader" variant="inverse" hint-size="100%,76px"></dc-import>
+
+<main data-screen-label="Your account">
+
+<header style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);position:relative;overflow:hidden">
+<div aria-hidden="true" style="position:absolute;top:0;inset-inline-end:0;width:120px;height:120px;background:url(../assets/patterns/checker-mark.png) top right / 56px auto no-repeat;opacity:.9"></div>
+<div style="max-width:1200px;margin:0 auto;padding:40px clamp(20px,5vw,56px) 36px">
+<nav aria-label="Breadcrumb" style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted);margin-bottom:26px">
+<a href="home.dc.html" style="color:inherit;text-decoration:none;white-space:nowrap">Home</a><span aria-hidden="true">/</span><span style="color:var(--vt-text-inverse);white-space:nowrap">Your account</span>
+</nav>
+
+<div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:24px 32px">
+<div style="display:flex;align-items:center;gap:clamp(16px,2.2vw,22px);min-width:0">
+<span data-ac-ring="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Avatar" name="{{ displayName }}" icon="{{ avatarIcon }}" size="xl" tone="inverse" hint-size="72px,72px"></x-import>
+</span>
+<div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+<p data-ac-kick="1">Your account</p>
+<h1 data-ac-h1="1">{{ displayName }}</h1>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px">
+<sc-if value="{{ showMail }}" hint-placeholder-val="{{ true }}"><p data-ac-mail="1">{{ authEmail }}</p></sc-if>
+<sc-if value="{{ isVerified }}" hint-placeholder-val="{{ true }}"><span data-ac-chip="ok"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-check" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>Email verified</span></sc-if>
+<sc-if value="{{ showUnverified }}" hint-placeholder-val="{{ false }}"><span data-ac-chip="warn"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="triangle-alert" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>Action needed</span></sc-if>
+</div>
+</div>
+</div>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" href="home.dc.html" iconEnd="arrow-right" hint-size="220px,54px">Book a transfer</x-import>
+</div>
+</div>
+
+<sc-if value="{{ showUnverified }}" hint-placeholder-val="{{ false }}">
+<div data-ac-notice="1">
+<p data-ac-notice-b="1"><strong>Verify your email.</strong> <span>We sent a link to <strong>{{ authEmail }}</strong>.</span> <span>Open it on this device and your receipts and vouchers arrive without a detour.</span></p>
+<sc-if value="{{ verifyResent }}" hint-placeholder-val="{{ false }}">
+<span data-ac-ok="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>Sent again just now.</span>
+</sc-if>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="light" icon="mail" onClick="{{ resendVerify }}" hint-size="190px,44px">Resend email</x-import>
+</div>
+</sc-if>
+
+</div>
+</header>
+
+<div style="max-width:1200px;margin:0 auto;padding:clamp(28px,3.5vw,44px) clamp(20px,5vw,56px) clamp(48px,5vw,72px)">
+<div data-ac-grid="1" style="display:grid;align-items:start">
+
+<aside data-ac-side="1">
+<div data-ac-rail="1" data-lenis-prevent="1">
+<nav data-ac-nav="1" aria-label="Account sections" onClick="{{ jump }}">
+<a data-ac-navitem="1" href="#transfers" aria-current="{{ acTransfers }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="calendar-days" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+<span data-ac-navlabel="1">Upcoming transfers</span>
+<span data-ac-navnum="1">{{ bookingCount }}</span>
+</a>
+<a data-ac-navitem="1" href="#details" aria-current="{{ acDetails }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="user" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+<span data-ac-navlabel="1">Your details</span>
+<sc-if value="{{ showUnverified }}" hint-placeholder-val="{{ false }}"><span data-ac-navdot="1" aria-hidden="true"></span></sc-if>
+</a>
+<a data-ac-navitem="1" href="#mobile" aria-current="{{ acMobile }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="phone" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+<span data-ac-navlabel="1">Mobile number</span>
+<sc-if value="{{ phoneTodo }}" hint-placeholder-val="{{ true }}"><span data-ac-navdot="1" aria-hidden="true"></span></sc-if>
+</a>
+<a data-ac-navitem="1" href="#preferences" aria-current="{{ acPrefs }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="settings" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+<span data-ac-navlabel="1">Preferences</span>
+</a>
+<a data-ac-navitem="1" href="#security" aria-current="{{ acSecurity }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="shield-check" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+<span data-ac-navlabel="1">Sign-in and security</span>
+</a>
+<a data-ac-navitem="1" href="#close" aria-current="{{ acClose }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+<span data-ac-navlabel="1">Close account</span>
+</a>
+<button type="button" data-ac-signout="1" onClick="{{ signOut }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="log-out" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+<span data-ac-navlabel="1">Sign out</span>
+</button>
+</nav>
+
+<div data-ac-extras="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" tone="inverse" padding="lg" hint-size="100%,300px">
+<div style="display:flex;flex-direction:column;gap:10px">
+<h2 data-ac-h2="1" style="color:var(--vt-white);font-size:var(--vt-heading-4);line-height:1.2">Book your next transfer</h2>
+<p style="margin:0;font-size:var(--vt-body-sm);line-height:1.5;color:var(--vt-text-inverse-muted);text-wrap:pretty">Fixed price before you pay, and 60 minutes of airport waiting included.</p>
+<div style="margin-top:4px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="primary" size="md" block="{{ yes }}" href="home.dc.html" iconEnd="arrow-right" hint-size="100%,44px">Book a transfer</x-import>
+</div>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px;margin-top:14px;padding-top:14px;border-top:1px solid var(--vt-border-inverse)">
+<a href="tel:+41796267082" style="display:inline-flex;align-items:center;gap:8px;min-height:36px;font-family:var(--vt-font-display);font-size:var(--vt-body-lg);font-weight:var(--vt-weight-semibold);letter-spacing:-.01em;white-space:nowrap;color:var(--vt-white);text-decoration:none" style-hover="color:var(--vt-accent)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="phone" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>+41 79 626 70 82</a>
+<a href="contact.dc.html" style="min-height:36px;display:inline-flex;align-items:center;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:rgb(255 255 255 / .82)" style-hover="color:var(--vt-white)">Contact us</a>
+</div>
+</div>
+</x-import>
+</div>
+</div>
+</aside>
+
+<div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+
+<section id="transfers" data-ac-sec="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" hint-size="100%,330px">
+<div style="display:flex;flex-direction:column;gap:6px">
+<h2 data-ac-h2="1">Upcoming transfers</h2>
+<p data-ac-sub="1">Everything booked under this email address.</p>
+<div style="margin-top:10px;display:flex;flex-direction:column">
+<sc-for list="{{ bookings }}" as="b" hint-placeholder-count="2">
+<dc-import name="BookingRow" variant="inset" status="{{ b.status }}" href="{{ b.href }}" date="{{ b.date }}" time="{{ b.time }}" route="{{ b.route }}" meta="{{ b.ref }}" price="{{ b.price }}" hint-size="100%,92px"></dc-import>
+</sc-for>
+<sc-if value="{{ noBookings }}" hint-placeholder-val="{{ false }}">
+<p data-ac-sub="1" style="padding:18px 0;border-top:1px solid var(--vt-border-subtle)">No transfers yet. Your next booking appears here the moment it is paid.</p>
+</sc-if>
+</div>
+<a data-ac-more="1" href="bookings.dc.html">
+<span>See all your bookings</span>
+<span data-ac-more-go="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
+</a>
+</div>
+</x-import>
+</section>
+
+<section id="details" data-ac-sec="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" hint-size="100%,340px">
+<div style="display:flex;flex-direction:column;gap:6px">
+<h2 data-ac-h2="1">Your details</h2>
+<p data-ac-sub="1">The name on the voucher and the address every receipt goes to.</p>
+
+<div style="margin-top:12px">
+<sc-if value="{{ nameView }}" hint-placeholder-val="{{ true }}">
+<div data-ac-row="1">
+<span data-ac-k="1">Name</span>
+<span data-ac-v="1">{{ nameValue }}</span>
+<span data-ac-act="1"><button type="button" data-ac-link="1" onClick="{{ editName }}">Change</button></span>
+</div>
+</sc-if>
+<sc-if value="{{ nameEdit }}" hint-placeholder-val="{{ false }}">
+<div data-ac-edit="1">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="First name" type="text" size="lg" autoComplete="given-name" placeholder="Anna" value="{{ first }}" onChange="{{ setFirst }}" error="{{ errFirst }}" hint-size="100%,84px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="Last name" type="text" size="lg" autoComplete="family-name" placeholder="Keller" value="{{ last }}" onChange="{{ setLast }}" error="{{ errLast }}" hint-size="100%,84px"></x-import>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ saveName }}" hint-size="120px,44px">Save</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ cancelEdit }}" hint-size="120px,44px">Cancel</x-import>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ mailView }}" hint-placeholder-val="{{ true }}">
+<div data-ac-row="1">
+<span data-ac-k="1">Email</span>
+<span data-ac-v="1">{{ authEmail }}
+<sc-if value="{{ isVerified }}" hint-placeholder-val="{{ true }}"><span data-ac-flag="ok"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-check" size="{{ n14 }}" color="var(--vt-success)" hint-size="14px,14px"></x-import>Verified</span></sc-if>
+<sc-if value="{{ showUnverified }}" hint-placeholder-val="{{ false }}"><span data-ac-flag="warn">Not verified yet</span></sc-if>
+</span>
+<span data-ac-act="1"><button type="button" data-ac-link="1" onClick="{{ editMail }}">Change</button></span>
+</div>
+</sc-if>
+<sc-if value="{{ mailEdit }}" hint-placeholder-val="{{ false }}">
+<div data-ac-edit="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="Email" type="email" icon="mail" size="lg" autoComplete="email" placeholder="you@example.com" hint="A new address has to be verified again before receipts go to it." value="{{ mail }}" onChange="{{ setMail }}" error="{{ errMail }}" hint-size="100%,96px"></x-import>
+<div style="display:flex;flex-wrap:wrap;gap:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ saveMail }}" hint-size="120px,44px">Save</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ cancelEdit }}" hint-size="120px,44px">Cancel</x-import>
+</div>
+</div>
+</sc-if>
+
+</div>
+</div>
+</x-import>
+</section>
+
+<section id="mobile" data-ac-sec="1">
+<dc-import name="PhoneVerify" stage="{{ phoneStage }}" hint-size="100%,280px"></dc-import>
+</section>
+
+<section id="preferences" data-ac-sec="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" hint-size="100%,300px">
+<div style="display:flex;flex-direction:column;gap:6px">
+<h2 data-ac-h2="1">Preferences</h2>
+<p data-ac-sub="1">Language and currency follow you across the whole site, not just this page.</p>
+<div style="margin-top:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px 20px">
+<div style="display:flex;flex-direction:column;gap:8px;min-width:0"><span data-ac-k="1">Language</span>
+<dc-import name="BrandSelect" size="field" value="{{ lang }}" options="{{ langOptions }}" onSelect="{{ pickLang }}" icon="globe" a11ylabel="Language" hint-size="100%,44px"></dc-import>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;min-width:0"><span data-ac-k="1">Currency</span>
+<dc-import name="BrandSelect" size="field" value="{{ cur }}" options="{{ curOptions }}" onSelect="{{ pickCur }}" icon="banknote" a11ylabel="Currency" hint-size="100%,44px"></dc-import>
+</div>
+</div>
+<div style="margin-top:10px">
+<div data-ac-switch="1">
+<span style="min-width:0">
+<span data-ac-switch-t="1">Email me a receipt after every transfer</span>
+<span data-ac-switch-s="1">Sent to the address above, the moment the trip is closed.</span>
+</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" checked="{{ receipts }}" onChange="{{ toggleReceipts }}" aria-label="Email me a receipt after every transfer" hint-size="44px,26px"></x-import>
+</div>
+<div data-ac-switch="1">
+<span style="min-width:0">
+<span data-ac-switch-t="1">Offers and route news</span>
+<span data-ac-switch-s="1">At most once a month. Never anything about a booking in progress.</span>
+</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" checked="{{ offers }}" onChange="{{ toggleOffers }}" aria-label="Offers and route news" hint-size="44px,26px"></x-import>
+</div>
+</div>
+</div>
+</x-import>
+</section>
+
+<section id="security" data-ac-sec="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" hint-size="100%,330px">
+<div style="display:flex;flex-direction:column;gap:6px">
+<h2 data-ac-h2="1">Sign-in and security</h2>
+<p data-ac-sub="1">How you get into this account, and how you get out of it.</p>
+
+<div style="margin-top:12px">
+<div data-ac-row="1">
+<span data-ac-k="1">Password</span>
+<span data-ac-hint="1">We email you a link and you set a new one on the page it opens. There is nothing to remember in between.</span>
+<span data-ac-act="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" href="reset-password.dc.html" hint-size="180px,38px">Change password</x-import></span>
+</div>
+
+<div data-ac-row="1">
+<span data-ac-k="1">Passkey</span>
+<span data-ac-v="1">{{ passkeyValue }}
+<sc-if value="{{ hasPasskey }}" hint-placeholder-val="{{ false }}"><span data-ac-flag="ok"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-check" size="{{ n14 }}" color="var(--vt-success)" hint-size="14px,14px"></x-import>In use</span></sc-if>
+<span data-ac-hint="1" style="flex-basis:100%">Your face, fingerprint or device PIN signs you in. It never leaves your device, and we never see it.</span>
+</span>
+<span data-ac-act="1">
+<sc-if value="{{ noPasskey }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="shield-check" onClick="{{ addPasskey }}" hint-size="150px,38px">Add a passkey</x-import></sc-if>
+<sc-if value="{{ hasPasskey }}"><button type="button" data-ac-link="1" onClick="{{ dropPasskey }}">Remove</button></sc-if>
+</span>
+</div>
+
+<div data-ac-row="1">
+<span data-ac-k="1">Devices</span>
+<span data-ac-hint="1">Signing out here ends this session on this device only. Anything booked stays booked.</span>
+<span data-ac-act="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="log-out" onClick="{{ signOut }}" hint-size="130px,38px">Sign out</x-import></span>
+</div>
+</div>
+</div>
+</x-import>
+</section>
+
+<section id="close" data-ac-sec="1" data-ac-close="1">
+<p data-ac-kick="1">Permanent</p>
+<h2 data-ac-h2="1">Close your account</h2>
+<sc-if value="{{ notClosing }}" hint-placeholder-val="{{ true }}">
+<p data-ac-sub="1" style="max-width:60ch">We delete your profile and preferences. Booking records we are required to keep stay with us for <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Record retention</span>, and nothing else survives.</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ startClose }}" hint-size="170px,44px">Close account</x-import>
+</sc-if>
+<sc-if value="{{ closing }}" hint-placeholder-val="{{ false }}">
+<p data-ac-sub="1" style="max-width:60ch;color:var(--vt-text-primary)">This cannot be undone. Transfers already booked stay booked — call us if you want them cancelled as well.</p>
+<div style="display:flex;flex-wrap:wrap;gap:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="danger" onClick="{{ confirmClose }}" hint-size="200px,44px">Confirm and close</x-import>
+<span data-ac-safe="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ cancelClose }}" hint-size="180px,44px">Keep my account</x-import></span>
+</div>
+</sc-if>
+</section>
+
+</div>
+
+</div>
+
+<div style="margin-top:clamp(28px,3vw,40px)" data-note="1">
+<span data-note-k="1">Awaiting client input</span>
+<p data-note-b="1">Receipt and offer preferences, and the passkey, live on this device until the account API exists; language and currency already write to the platform store. Password changes hand off to the existing reset flow rather than asking for the old password, and how long a closed account's booking records are kept is the one value still owed.</p>
+</div>
+
+</div>
+</main>
+
+<dc-import name="SiteFooter" hint-size="100%,520px"></dc-import>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;attached&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:2,&quot;min&quot;:0,&quot;max&quot;:2,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Guest bookings found&quot;},&quot;emailState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;verified&quot;,&quot;unverified&quot;],&quot;default&quot;:&quot;auto&quot;,&quot;tsType&quot;:&quot;'auto'|'verified'|'unverified'&quot;,&quot;section&quot;:&quot;State&quot;},&quot;phoneState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;add&quot;,&quot;verified&quot;],&quot;default&quot;:&quot;add&quot;,&quot;tsType&quot;:&quot;'add'|'verified'&quot;,&quot;section&quot;:&quot;State&quot;}}">
+/* Sample transfers use the project's established routes and 000 amounts — the price
+   matrix is still owed, so no figure here is invented. */
+const SAMPLE = [
+  { ref: 'VT-4821', route: 'Zurich Airport (ZRH), Terminal 2 \u2192 Zurich, Bahnhofstrasse 1', date: 'Thu 6 Aug', time: '08:15', status: 'assigned' },
+  { ref: 'VT-4907', route: 'Zurich, Bahnhofstrasse 1 \u2192 Zermatt, Bahnhofstrasse 5', date: 'Fri 14 Aug', time: '06:45', status: 'confirmed' },
+];
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
+/* Opened without a session — a review still needs a person on the page, so the same
+   sample customer the rest of the project uses stands in. Nothing is written back. */
+const DEMO = { firstName: 'Anna', lastName: 'Keller', email: 'anna.keller@example.com', emailVerified: true };
+const LANGS = ['en', 'de', 'fr', 'ar'];
+const LANG_NOTE = { en: 'English', de: 'Deutsch', fr: 'Français', ar: 'العربية' };
+const CUR_NOTE = { CHF: 'Swiss francs', EUR: 'Euro', USD: 'US dollars', AED: 'UAE dirham' };
+const SECTIONS = ['transfers', 'details', 'mobile', 'preferences', 'security', 'close'];
+
+class Component extends DCLogic {
+  state = {
+    dismissed: false, attached: null, auth: null, verifyResent: false,
+    edit: null, first: '', last: '', mail: '', errors: {},
+    receipts: true, offers: false, closing: false, passkey: false,
+    /* Read the store on the way in, not after mount — otherwise the first paint shows
+       Swiss francs to somebody who already chose dirhams. */
+    lang: (window.VamosLocale && window.VamosLocale.lang()) || 'en',
+    cur: (window.VamosLocale && window.VamosLocale.cur()) || 'CHF',
+    active: 'transfers',
+  };
+
+  componentDidMount() {
+    let n = 2, auth = null;
+    try { const q = new URLSearchParams(location.search).get('attached'); if (q !== null) n = parseInt(q, 10) || 0; } catch (e) {}
+    try { const raw = localStorage.getItem('vamosAuth'); if (raw) auth = JSON.parse(raw); } catch (e) {}
+    const v = window.VamosLocale;
+    this.setState({ attached: n, auth: auth, lang: (v && v.lang) || 'en', cur: (v && v.cur) || 'CHF' });
+    /* One store, one broadcast: a choice made here or anywhere else relabels this page. */
+    if (v) this._offLocale = v.onChange((d) => this.setState({ lang: d.lang, cur: d.cur }));
+    /* Read the scroll position rather than watch for intersections: with a sticky
+       header, a sticky rail and cards that stream in at different moments, "which
+       section is under the header right now" is the only question worth asking. A
+       frame ticker rather than a scroll listener, because smooth scrolling can drive
+       the page without ever firing one — it compares a single number per frame. */
+    this._raf = requestAnimationFrame(this._tick);
+    window.addEventListener('scroll', this._pick, { passive: true });
+    window.addEventListener('resize', this._pick);
+    this._pick();
+    /* Sections mount as their cards stream in, so the rail re-reads twice. */
+    this._t1 = setTimeout(this._pick, 400);
+    this._t2 = setTimeout(this._pick, 1400);
+  }
+  componentWillUnmount() {
+    if (this._offLocale) this._offLocale();
+    window.removeEventListener('scroll', this._pick);
+    window.removeEventListener('resize', this._pick);
+    cancelAnimationFrame(this._raf);
+    clearTimeout(this._t1); clearTimeout(this._t2);
+  }
+
+  _tick = () => {
+    this._raf = requestAnimationFrame(this._tick);
+    const y = window.scrollY || 0;
+    if (y === this._lastY) return;
+    this._lastY = y;
+    this._pick();
+  };
+  /* Whichever section has crossed under the header owns the rail, and the foot of the
+     page always belongs to the last one — it is too short to reach the line itself. */
+  _pick = () => {
+    const line = 140;
+    const live = SECTIONS.filter((id) => document.getElementById(id));
+    if (!live.length) return;
+    let next = live[0];
+    live.forEach((id) => { if (document.getElementById(id).getBoundingClientRect().top <= line) next = id; });
+    const d = document.documentElement;
+    if (window.innerHeight + window.scrollY >= d.scrollHeight - 4) next = live[live.length - 1];
+    if (next !== this.state.active) this.setState({ active: next });
+  };
+  /* One delegated handler: the anchor does the scrolling, this just marks it read. */
+  jump = (e) => {
+    const a = e.target && e.target.closest ? e.target.closest('a[href^="#"]') : null;
+    if (a) this.setState({ active: a.getAttribute('href').slice(1) });
+  };
+
+  /* The session is what the header reads, so an edit here has to write it back. */
+  patchAuth(patch) {
+    const auth = Object.assign({}, this.state.auth || DEMO, patch);
+    this.setState({ auth, edit: null, errors: {} });
+    try { localStorage.setItem('vamosAuth', JSON.stringify(auth)); } catch (e) {}
+  }
+
+  signOut = () => {
+    try { localStorage.removeItem('vamosAuth'); } catch (e) {}
+    location.href = 'home.dc.html';
+  };
+  resendVerify = () => this.setState({ verifyResent: true });
+  dismiss = () => this.setState({ dismissed: true });
+
+  editName = () => {
+    const a = this.state.auth || DEMO;
+    this.setState({ edit: 'name', first: a.firstName || '', last: a.lastName || '', errors: {} });
+  };
+  editMail = () => this.setState({ edit: 'mail', mail: (this.state.auth || DEMO).email || '', errors: {} });
+  cancelEdit = () => this.setState({ edit: null, errors: {} });
+  saveName = () => {
+    const first = this.state.first.trim(), last = this.state.last.trim();
+    const errors = {};
+    if (!first) errors.first = 'Enter your first name';
+    if (!last) errors.last = 'Enter your last name';
+    if (Object.keys(errors).length) { this.setState({ errors }); return; }
+    this.patchAuth({ firstName: first, lastName: last });
+  };
+  saveMail = () => {
+    const mail = this.state.mail.trim();
+    if (!mail) { this.setState({ errors: { mail: 'Enter your email address' } }); return; }
+    if (!EMAIL_RE.test(mail)) { this.setState({ errors: { mail: 'Check the email address' } }); return; }
+    /* A new address is unproven, so it goes back to unverified and the notice returns. */
+    this.patchAuth({ email: mail, emailVerified: false });
+    this.setState({ verifyResent: false });
+  };
+
+  addPasskey = () => this.setState({ passkey: true });
+  dropPasskey = () => this.setState({ passkey: false });
+  toggleReceipts = () => this.setState((s) => ({ receipts: !s.receipts }));
+  toggleOffers = () => this.setState((s) => ({ offers: !s.offers }));
+  startClose = () => this.setState({ closing: true });
+  cancelClose = () => this.setState({ closing: false });
+  confirmClose = () => this.signOut();
+
+  setLang = (v) => { if (window.VamosLocale) window.VamosLocale.setLang(v); this.setState({ lang: v }); };
+  setCur = (v) => { if (window.VamosLocale) window.VamosLocale.setCur(v); this.setState({ cur: v }); };
+
+  renderVals() {
+    const s = this.state, p = this.props || {};
+    const auth = s.auth || DEMO;
+    const n = s.attached === null ? (p.attached ?? 2) : s.attached;
+    const money = window.VamosLocale ? window.VamosLocale.money('000.00') : 'CHF 000.00';
+    const bookings = SAMPLE.slice(0, Math.max(0, Math.min(n === 0 ? 2 : n, SAMPLE.length)))
+      .map((b) => Object.assign({ href: 'booking-detail.dc.html?ref=' + b.ref + '&s=' + b.status, price: money }, b));
+
+    const email = auth.email || '';
+    const full = [auth.firstName, auth.lastName].filter(Boolean).join(' ').trim();
+    /* The tweak wins when it is set, so a reviewer can hold either state open. */
+    const forced = p.emailState;
+    const unverified = forced === 'unverified' || (forced !== 'verified' && !!email && auth.emailVerified === false);
+    const phoneStage = p.phoneState === 'verified' ? 'verified' : 'add';
+    const on = (id) => (s.active === id ? 'page' : null);
+
+    return {
+      n14: 14, n16: 16, n18: 18, yes: true, no: false,
+      displayName: full || email || 'Your account',
+      avatarIcon: full || email ? '' : 'user',
+      authEmail: email,
+      showMail: !!full && !!email,
+      isVerified: !unverified && !!email,
+      showUnverified: unverified,
+      verifyResent: s.verifyResent, resendVerify: this.resendVerify, signOut: this.signOut,
+
+      jump: this.jump,
+      acTransfers: on('transfers'), acDetails: on('details'), acMobile: on('mobile'),
+      acPrefs: on('preferences'), acSecurity: on('security'), acClose: on('close'),
+      bookingCount: bookings.length,
+      phoneTodo: phoneStage !== 'verified',
+
+      bookings, noBookings: bookings.length === 0,
+
+      nameView: s.edit !== 'name', nameEdit: s.edit === 'name',
+      nameValue: full || 'Not added yet',
+      first: s.first, last: s.last,
+      setFirst: (e) => this.setState({ first: e.target.value }),
+      setLast: (e) => this.setState({ last: e.target.value }),
+      errFirst: s.errors.first, errLast: s.errors.last,
+      editName: this.editName, saveName: this.saveName, cancelEdit: this.cancelEdit,
+
+      mailView: s.edit !== 'mail', mailEdit: s.edit === 'mail',
+      mail: s.mail, setMail: (e) => this.setState({ mail: e.target.value }),
+      errMail: s.errors.mail, editMail: this.editMail, saveMail: this.saveMail,
+
+      phoneStage,
+
+      lang: s.lang, cur: s.cur,
+      langOptions: LANGS.map((v) => ({ value: v, label: v.toUpperCase(), note: LANG_NOTE[v] })),
+      curOptions: Object.keys(CUR_NOTE).map((v) => ({ value: v, label: v, note: CUR_NOTE[v] })),
+      pickLang: this.setLang, pickCur: this.setCur,
+
+      receipts: s.receipts, offers: s.offers,
+      toggleReceipts: this.toggleReceipts, toggleOffers: this.toggleOffers,
+
+      hasPasskey: s.passkey, noPasskey: !s.passkey,
+      passkeyValue: s.passkey ? 'This device' : 'Not set up yet',
+      addPasskey: this.addPasskey, dropPasskey: this.dropPasskey,
+
+      closing: s.closing, notClosing: !s.closing,
+      startClose: this.startClose, cancelClose: this.cancelClose, confirmClose: this.confirmClose,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

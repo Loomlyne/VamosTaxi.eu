@@ -1,0 +1,18 @@
+/* ── Base ─────────────────────────────────────────────────────────────────
+   Element defaults only. Component styling lives in the components.
+   ------------------------------------------------------------------------ */
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--vt-bg-page);color:var(--vt-text-primary);font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:var(--vt-body-leading);font-weight:var(--vt-weight-regular);-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:var(--vt-heading-leading);margin:0 0 var(--vt-space-3)}
+h1{font-size:var(--vt-heading-1)}h2{font-size:var(--vt-heading-2)}h3{font-size:var(--vt-heading-3)}h4{font-size:var(--vt-heading-4)}
+p{margin:0 0 var(--vt-space-4);text-wrap:pretty}
+a{color:var(--vt-text-link);text-decoration:none;border-bottom:1px solid var(--vt-yellow);transition:color var(--vt-dur-fast) var(--vt-ease-standard),border-color var(--vt-dur-fast) var(--vt-ease-standard)}
+a:hover{color:var(--vt-text-link-hover);border-bottom-color:var(--vt-yellow-600)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
+strong{font-weight:var(--vt-weight-semibold)}
+small{font-size:var(--vt-body-sm)}
+img{max-width:100%;display:block}
+hr{border:0;border-top:1px solid var(--vt-border-subtle);margin:var(--vt-space-6) 0}
+::selection{background:var(--vt-yellow);color:var(--vt-charcoal-900)}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}

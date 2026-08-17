@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="../support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-tokens.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-assets.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<style>:root{--vt-icon-base:"../assets/icons/";--vt-logo-base:"../assets/logo/";--vt-pattern-base:"../assets/patterns/";--vt-shadow-accent:none}body{margin:0}a{color:var(--vt-text-link)}a:hover{color:var(--vt-text-link-hover)}</style>
+</helmet>
+<div style="font-family:var(--vt-font-body);color:var(--vt-text-primary);background:var(--vt-bg-inverse);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;box-sizing:border-box;gap:24px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" height="{{ n28 }}" hint-size="130px,28px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" hint-size="380px,360px">
+<div style="width:340px;max-width:100%;display:flex;flex-direction:column;gap:6px;margin-bottom:20px">
+<h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tTitle }}</h1>
+<p style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">{{ tSubtitle }}</p>
+</div>
+<div style="width:340px;max-width:100%;display:flex;flex-direction:column;gap:16px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tEmail }}" icon="mail" value="{{ email }}" onChange="{{ setEmail }}" error="{{ errEmail }}" placeholder="dispatch@vamostaxi.eu" hint-size="100%,78px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tPassword }}" type="password" value="{{ password }}" onChange="{{ setPassword }}" error="{{ errPassword }}" placeholder="••••••••" hint-size="100%,78px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" onClick="{{ signIn }}" hint-size="100%,54px">{{ tSignIn }}</x-import>
+<p style="margin:0;text-align:center;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tInternal }}</p>
+</div>
+</x-import>
+<a href="home.dc.html" style="display:inline-flex;align-items:center;gap:8px;color:var(--vt-text-inverse-muted);font-size:var(--vt-body-sm);text-decoration:none;border:0">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-left" size="{{ n14 }}" color="var(--vt-text-inverse-muted)" hint-size="14px,14px"></x-import>{{ tBack }}
+</a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const T = {
+  en: { title:'Dispatch sign in', subtitle:'Internal tool for Vamos Taxi dispatchers and admins.', email:'Email', password:'Password', signIn:'Sign in',
+    internal:'Internal tool — dispatcher and admin access only.', back:'Vamos Taxi site',
+    reqEmail:'Enter your email', reqPassword:'Enter your password' },
+  de: { title:'Dispatch-Anmeldung', subtitle:'Internes Tool für Vamos-Taxi-Dispatcher und Admins.', email:'E-Mail', password:'Passwort', signIn:'Anmelden',
+    internal:'Internes Tool — nur für Dispatcher und Admins.', back:'Vamos Taxi Website',
+    reqEmail:'E-Mail eingeben', reqPassword:'Passwort eingeben' },
+};
+class Component extends DCLogic {
+  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', email:'', password:'', errors:{} };
+  signIn = () => {
+    const t = T[this.state.lang] || T.en;
+    const errors = {};
+    if (!this.state.email.trim()) errors.email = t.reqEmail;
+    if (!this.state.password.trim()) errors.password = t.reqPassword;
+    if (Object.keys(errors).length) { this.setState({ errors }); return; }
+    localStorage.setItem('vamosOpsAuth', '1');
+    location.href = 'ops-board.dc.html';
+  };
+  renderVals() {
+    const t = T[this.state.lang] || T.en;
+    return {
+      n14:14, n28:28, yes:true,
+      tTitle: t.title, tSubtitle: t.subtitle, tEmail: t.email, tPassword: t.password, tSignIn: t.signIn, tInternal: t.internal, tBack: t.back,
+      email: this.state.email, setEmail: (e) => this.setState({ email: e.target.value }), errEmail: this.state.errors.email,
+      password: this.state.password, setPassword: (e) => this.setState({ password: e.target.value }), errPassword: this.state.errors.password,
+      signIn: this.signIn,
+    };
+  }
+}
+</script>
+</body>
+</html>

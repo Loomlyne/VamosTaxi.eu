@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../tokens/fonts.css">
+<link rel="stylesheet" href="../tokens/colors.css">
+<link rel="stylesheet" href="../tokens/typography.css">
+<link rel="stylesheet" href="../tokens/spacing.css">
+<link rel="stylesheet" href="../tokens/elevation.css">
+<link rel="stylesheet" href="../tokens/motion.css">
+<link rel="stylesheet" href="../tokens/base.css">
+<link rel="stylesheet" href="../styles.css">
+<script src="../_ds_bundle.js"></script>
+<link rel="stylesheet" href="../assets/lenis.css">
+<script src="../assets/lenis.js"></script>
+<script src="../assets/lenis-boot.js"></script>
+<script src="vamos-i18n-dict.js"></script>
+<script src="vamos-locale.js"></script>
+<style>:root{--vt-icon-base:"../assets/icons/";--vt-logo-base:"../assets/logo/";--vt-pattern-base:"../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}.vt-select .vt-input--focus{box-shadow:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}
+body{margin:0;background:var(--vt-bg-page)}
+a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+[data-tok]{display:inline-flex;align-items:baseline;gap:5px;font-family:var(--vt-font-body);font-weight:var(--vt-weight-medium);font-size:.97em;background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 7px;white-space:nowrap}
+[data-tok]::after{content:"TBC";font-family:var(--vt-font-body);font-size:.66em;font-weight:700;letter-spacing:.1em;color:var(--vt-yellow-700)}
+[data-slot]{margin:0;border:1px dashed var(--vt-grey-300);background:var(--vt-grey-50);border-radius:var(--vt-radius-md);padding:16px 18px}
+[data-slot-k]{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-slot-k]::before{content:"";width:8px;height:8px;flex:0 0 auto;background:var(--vt-grey-300)}
+[data-slot] p{margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+[data-flag]{margin:0;border:1px solid var(--vt-charcoal-900);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);padding:18px 20px}
+[data-flag-k]{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)}
+[data-flag] p{margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+[data-flag] p:last-child{margin-bottom:0}
+[data-src]{display:block;margin-top:2px;font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
+[data-ct-grid]{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(32px,4vw,56px);align-items:start}
+[data-fld]{display:flex;flex-direction:column;gap:7px}
+[data-fld] label{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-primary)}
+[data-fld] input,[data-fld] textarea{box-sizing:border-box;width:100%;font-family:var(--vt-font-body);font-size:var(--vt-body-md);color:var(--vt-text-primary);background:var(--vt-bg-surface);border:1px solid var(--vt-grey-300);transition:border-color 140ms var(--vt-ease-standard),box-shadow 140ms var(--vt-ease-standard)}
+[data-fld] input{height:54px;padding:0 20px;border-radius:var(--vt-radius-field,999px)}
+[data-fld] textarea{min-height:132px;padding:15px 20px;border-radius:var(--vt-radius-lg);resize:vertical;line-height:var(--vt-body-leading)}
+[data-fld] input::placeholder,[data-fld] textarea::placeholder{color:var(--vt-text-muted)}
+[data-fld] input:hover,[data-fld] textarea:hover{border-color:var(--vt-grey-400)}
+[data-fld] input:focus,[data-fld] textarea:focus{outline:none;border-color:var(--vt-charcoal-900);box-shadow:var(--vt-ring)}
+[data-fld][data-bad] input,[data-fld][data-bad] textarea{border-color:var(--vt-danger);border-width:2px}
+[data-fld] input:disabled,[data-fld] textarea:disabled{opacity:.42;cursor:not-allowed}
+[data-hint]{display:flex;align-items:flex-start;gap:7px;font-size:var(--vt-body-xs);line-height:1.45;color:var(--vt-text-muted)}
+[data-err]{display:flex;align-items:flex-start;gap:7px;font-size:var(--vt-body-xs);line-height:1.45;font-weight:var(--vt-weight-medium);color:var(--vt-danger)}
+[data-row2]{display:grid;grid-template-columns:minmax(0,1fr);gap:20px}
+[data-ch]{display:flex;align-items:flex-start;gap:16px;padding:18px 0;border-bottom:1px solid var(--vt-grey-200);text-decoration:none;color:inherit}
+[data-ch]:last-of-type{border-bottom:0}
+[data-ch-i]{flex:0 0 auto;width:44px;height:44px;border-radius:var(--vt-radius-pill);background:var(--vt-yellow-50);display:grid;place-items:center;transition:background 140ms var(--vt-ease-standard)}
+a[data-ch]:hover [data-ch-i]{background:var(--vt-accent)}
+[data-ch-k]{display:block;margin-bottom:3px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-ch-v]{display:block;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);line-height:1.3;color:var(--vt-text-primary)}
+a[data-ch]:hover [data-ch-v]{color:var(--vt-yellow-700)}
+[data-ch-s]{display:block;margin-top:3px;font-size:var(--vt-body-sm);line-height:1.5;color:var(--vt-text-secondary)}
+[data-soc]{width:44px;height:44px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);display:grid;place-items:center;transition:background 140ms var(--vt-ease-standard)}
+[data-soc]:hover{background:rgb(255 255 255 / .1)}
+[data-seg]{display:inline-flex;flex-wrap:wrap;padding:3px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:rgb(255 255 255 / .06)}
+[data-seg] button{appearance:none;border:0;background:none;min-height:38px;padding:0 15px;border-radius:var(--vt-radius-pill);font-family:inherit;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-inverse-muted);cursor:pointer;transition:background 140ms var(--vt-ease-standard),color 140ms var(--vt-ease-standard)}
+[data-seg] button:hover{color:var(--vt-text-inverse)}
+[data-seg] button[aria-pressed="true"]{background:var(--vt-accent);color:var(--vt-text-on-accent)}
+@keyframes spin{to{transform:rotate(360deg)}}
+[data-spin]{display:inline-flex;animation:spin 900ms linear infinite}
+:focus-visible{outline:3px solid rgb(253 194 11 / .45);outline-offset:3px;border-radius:var(--vt-radius-xs)}
+@media (min-width:600px){[data-row2]{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:980px){[data-ct-grid]{grid-template-columns:minmax(0,1.32fr) minmax(0,1fr)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}[data-spin]{animation:none}}</style>
+</helmet>
+
+<div style="font-family:var(--vt-font-body);background:var(--vt-bg-page);min-height:100vh">
+<dc-import name="SiteHeader" variant="inverse" hint-size="100%,76px"></dc-import>
+
+<main data-screen-label="Contact">
+
+<header style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);position:relative;overflow:hidden">
+<div aria-hidden="true" style="position:absolute;top:0;inset-inline-end:0;width:120px;height:120px;background:url(../assets/patterns/checker-mark.png) top right / 56px auto no-repeat;opacity:.9"></div>
+<div style="max-width:1200px;margin:0 auto;padding:44px clamp(20px,5vw,56px) 40px">
+<nav aria-label="Breadcrumb" style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted);margin-bottom:26px">
+<a href="home.dc.html" style="color:inherit;text-decoration:none">Home</a><span aria-hidden="true">/</span><span style="color:var(--vt-text-inverse)">Contact</span>
+</nav>
+<p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">Support</p>
+<h1 style="margin:0 0 18px;max-width:20ch;font-family:var(--vt-font-display);font-size:var(--vt-display-2);line-height:var(--vt-display-leading);letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty">Talk to a person</h1>
+<p style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">One team handles bookings, changes, complaints and everything else. Say what you need and quote a reference if you have one.</p>
+<sc-if value="{{ scaffold }}" hint-placeholder-val="{{ true }}">
+<div data-lg-noprint="1" style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin-top:32px;padding-top:24px;border-top:1px solid var(--vt-border-inverse)">
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Form state</span>
+<div data-seg="1" role="group" aria-label="Preview form state">
+<button type="button" onClick="{{ setDefault }}" aria-pressed="{{ isDefault }}">Default</button>
+<button type="button" onClick="{{ setInvalid }}" aria-pressed="{{ isInvalid }}">Validation error</button>
+<button type="button" onClick="{{ setSending }}" aria-pressed="{{ isSending }}">Sending</button>
+<button type="button" onClick="{{ setSent }}" aria-pressed="{{ isSent }}">Success</button>
+<button type="button" onClick="{{ setFailed }}" aria-pressed="{{ isFailed }}">Send failed</button>
+</div>
+<p style="margin:0;flex:1 1 240px;min-width:0;font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted)">The form is live — submitting it empty reaches the error state on its own. This switcher is for review only.</p>
+</div>
+</sc-if>
+</div>
+</header>
+
+<div style="max-width:1200px;margin:0 auto;padding:clamp(36px,4vw,52px) clamp(20px,5vw,56px) 0">
+
+<div style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);border-radius:var(--vt-radius-xl);padding:clamp(22px,2.6vw,30px);display:flex;flex-wrap:wrap;align-items:center;gap:20px 32px;margin-bottom:clamp(32px,4vw,48px)">
+<div style="flex:0 0 auto;width:48px;height:48px;border-radius:var(--vt-radius-pill);background:var(--vt-accent);display:grid;place-items:center">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="ticket" size="{{ n22 }}" color="var(--vt-charcoal-900)" hint-size="22px,22px"></x-import>
+</div>
+<div style="flex:1 1 300px;min-width:0">
+<h2 style="margin:0 0 6px;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse)">Already have a booking?</h2>
+<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Changes, cancellations and driver details are all in your booking. Opening it is immediate; a message here is not.</p>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" href="manage-booking.dc.html" iconEnd="arrow-right" hint-size="190px,44px">Manage a booking</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" tone="inverse" href="faq.dc.html" hint-size="130px,44px">Read the FAQ</x-import>
+</div>
+</div>
+
+<div data-ct-grid="1">
+
+<section aria-labelledby="form-h">
+<h2 id="form-h" style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Send us a message</h2>
+<p style="margin:0 0 26px;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">We answer within <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Response time</span>. For anything happening in the next few hours, call instead — it is faster.</p>
+
+<sc-if value="{{ isSent }}" hint-placeholder-val="{{ false }}">
+<div role="status" aria-live="polite" style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);padding:clamp(26px,3vw,36px)">
+<div style="width:52px;height:52px;border-radius:var(--vt-radius-pill);background:var(--vt-success-tint);display:grid;place-items:center;margin-bottom:18px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-check" size="{{ n24 }}" color="var(--vt-success)" hint-size="24px,24px"></x-import>
+</div>
+<h3 style="margin:0 0 10px;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Message received</h3>
+<p style="margin:0 0 8px;max-width:52ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">A copy is on its way to <strong style="color:var(--vt-text-primary);font-weight:var(--vt-weight-semibold)">{{ sentTo }}</strong>. Your reference for this conversation is <strong style="font-family:var(--vt-font-display);color:var(--vt-text-primary)">{{ caseRef }}</strong>.</p>
+<p style="margin:0 0 22px;max-width:52ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">We answer within <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Response time</span>. If your travel is sooner than that, call us on the number opposite.</p>
+<div style="display:flex;flex-wrap:wrap;gap:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" onClick="{{ reset }}" hint-size="200px,44px">Send another message</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" href="home.dc.html" hint-size="150px,44px">Back to home</x-import>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ showForm }}" hint-placeholder-val="{{ true }}">
+<form novalidate="novalidate" onSubmit="{{ submit }}" style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);padding:clamp(22px,2.6vw,32px);display:flex;flex-direction:column;gap:20px">
+
+<sc-if value="{{ isInvalid }}" hint-placeholder-val="{{ false }}">
+<div ref="{{ errRef }}" tabindex="-1" role="alert" style="outline:none">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ errTitle }}" hint-size="100%,88px">Nothing has been sent. The fields below are marked — fix those and try again.</x-import>
+</div>
+</sc-if>
+
+<sc-if value="{{ isFailed }}" hint-placeholder-val="{{ false }}">
+<div role="alert">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="Your message did not send" hint-size="100%,96px">Something on our side failed, not yours — your text is still in the form. Try again, or call +41 79 626 70 82 if it is urgent.</x-import>
+</div>
+</sc-if>
+
+<div data-row2="1">
+<div data-fld="1" data-bad="{{ badName }}">
+<label for="ct-name">Your name</label>
+<input id="ct-name" name="name" type="text" autocomplete="name" placeholder="Ben Othman" value="{{ vName }}" onInput="{{ onName }}" disabled="{{ isSending }}" aria-invalid="{{ aName }}" aria-describedby="ct-name-e">
+<sc-if value="{{ badName }}" hint-placeholder-val="{{ false }}">
+<p id="ct-name-e" data-err="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>Tell us what to call you</p>
+</sc-if>
+</div>
+<div data-fld="1" data-bad="{{ badEmail }}">
+<label for="ct-email">Email</label>
+<input id="ct-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" value="{{ vEmail }}" onInput="{{ onEmail }}" disabled="{{ isSending }}" aria-invalid="{{ aEmail }}" aria-describedby="ct-email-e">
+<sc-if value="{{ badEmail }}" hint-placeholder-val="{{ false }}">
+<p id="ct-email-e" data-err="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>{{ emailErr }}</p>
+</sc-if>
+</div>
+</div>
+
+<div data-row2="1">
+<div data-fld="1">
+<label for="ct-phone">Phone <span style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--vt-text-muted)">— optional</span></label>
+<input id="ct-phone" name="phone" type="tel" autocomplete="tel" placeholder="+41 79 000 00 00" value="{{ vPhone }}" onInput="{{ onPhone }}" disabled="{{ isSending }}" aria-describedby="ct-phone-h">
+<p id="ct-phone-h" data-hint="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>Faster than email if we need one detail from you.</p>
+</div>
+<div data-fld="1">
+<label for="ct-ref">Booking reference <span style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--vt-text-muted)">— if you have one</span></label>
+<input id="ct-ref" name="ref" type="text" placeholder="VT-0000" value="{{ vRef }}" onInput="{{ onRef }}" disabled="{{ isSending }}" aria-describedby="ct-ref-h">
+<p id="ct-ref-h" data-hint="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>Top of your confirmation email. It puts your message straight on the right booking.</p>
+</div>
+</div>
+
+<div data-fld="1" data-bad="{{ badMsg }}">
+<label for="ct-msg">How can we help?</label>
+<textarea id="ct-msg" name="message" placeholder="Tell us what you need. If it concerns a journey, the date and the route help." value="{{ vMsg }}" onInput="{{ onMsg }}" disabled="{{ isSending }}" aria-invalid="{{ aMsg }}" aria-describedby="ct-msg-e"></textarea>
+<sc-if value="{{ badMsg }}" hint-placeholder-val="{{ false }}">
+<p id="ct-msg-e" data-err="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>{{ msgErr }}</p>
+</sc-if>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px 20px;padding-top:4px">
+<sc-if value="{{ isSending }}" hint-placeholder-val="{{ false }}">
+<span style="display:inline-flex;align-items:center;gap:10px;height:54px;padding:0 28px;border-radius:var(--vt-radius-pill);background:var(--vt-accent);color:var(--vt-text-on-accent);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;opacity:.42;cursor:not-allowed">
+<span data-spin="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="loader-circle" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span>Sending</span>
+</sc-if>
+<sc-if value="{{ notSending }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" type="submit" iconEnd="arrow-right" hint-size="200px,54px">Send message</x-import>
+</sc-if>
+<p style="margin:0;flex:1 1 220px;min-width:0;font-size:var(--vt-body-xs);line-height:1.5;color:var(--vt-text-muted)">We use what you write here to answer you and nothing else. <a href="privacy.dc.html" style="color:var(--vt-charcoal-900)">Privacy policy</a>.</p>
+</div>
+
+</form>
+</sc-if>
+</section>
+
+<aside aria-labelledby="direct-h">
+<h2 id="direct-h" style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Reach us directly</h2>
+<p style="margin:0 0 22px;max-width:46ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Support runs <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Support hours</span> in <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Support languages</span>.</p>
+
+<div style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);padding:6px 22px 10px">
+<a data-ch="1" href="tel:+41796267082">
+<span data-ch-i="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="phone" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></span>
+<span><span data-ch-k="1">Telephone</span><span data-ch-v="1">+41 79 626 70 82</span><span data-ch-s="1">Fastest for anything travelling today.</span></span>
+</a>
+<a data-ch="1" href="https://wa.me/41796267082" target="_blank" rel="noreferrer noopener">
+<span data-ch-i="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="message-circle" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></span>
+<span><span data-ch-k="1">WhatsApp</span><span data-ch-v="1">+41 79 626 70 82</span><span data-ch-s="1">Same number. Good for a photo of an address.</span></span>
+</a>
+<a data-ch="1" href="mailto:info@vamostaxi.eu">
+<span data-ch-i="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="mail" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></span>
+<span><span data-ch-k="1">Email</span><span data-ch-v="1"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Support email</span></span><span data-ch-s="1">Everything that is not urgent.</span></span>
+</a>
+<div data-ch="1">
+<span data-ch-i="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></span>
+<span><span data-ch-k="1">Registered office</span><span data-ch-v="1">Bleicherstrasse 16</span><span data-ch-s="1">8953 Dietikon ZH, Switzerland. Post only — this is not a passenger office.</span></span>
+</div>
+</div>
+
+<sc-if value="{{ showChat }}" hint-placeholder-val="{{ true }}">
+<div style="margin-top:20px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);padding:22px">
+<p style="margin:0 0 10px;display:flex;align-items:center;gap:9px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="message-circle" size="{{ n16 }}" color="var(--vt-yellow-700)" hint-size="16px,16px"></x-import>Live chat</p>
+<p style="margin:0 0 16px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Open <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Chat hours</span>. Outside those hours leave a message and we reply by email.</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" block="{{ yes }}" hint-size="100%,44px">Start a chat</x-import>
+</div>
+</sc-if>
+
+<div style="margin-top:20px;background:var(--vt-bg-inverse);color:var(--vt-text-inverse);border-radius:var(--vt-radius-lg);padding:22px">
+<p style="margin:0 0 14px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">Follow</p>
+<div style="display:flex;flex-wrap:wrap;gap:10px">
+<a data-soc="1" href="{{ hFacebook }}" aria-label="Facebook" target="_blank" rel="noreferrer noopener"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="facebook" size="{{ n18 }}" color="var(--vt-white)" hint-size="18px,18px"></x-import></a>
+<a data-soc="1" href="{{ hInstagram }}" aria-label="Instagram" target="_blank" rel="noreferrer noopener"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="instagram" size="{{ n18 }}" color="var(--vt-white)" hint-size="18px,18px"></x-import></a>
+<a data-soc="1" href="{{ hYoutube }}" aria-label="YouTube" target="_blank" rel="noreferrer noopener"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="youtube" size="{{ n18 }}" color="var(--vt-white)" hint-size="18px,18px"></x-import></a>
+<a data-soc="1" href="{{ hTrustpilot }}" aria-label="Trustpilot" target="_blank" rel="noreferrer noopener"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n18 }}" color="var(--vt-white)" hint-size="18px,18px"></x-import></a>
+</div>
+<p style="margin:14px 0 0;font-size:var(--vt-body-xs);line-height:1.5;color:var(--vt-text-inverse-muted)">Four slots, no confirmed URLs. Each one drops out cleanly if the account does not exist.</p>
+</div>
+</aside>
+
+</div>
+</div>
+
+<sc-if value="{{ scaffold }}" hint-placeholder-val="{{ true }}">
+<section aria-label="Review scaffold" style="max-width:1200px;margin:0 auto;padding:clamp(44px,5vw,68px) clamp(20px,5vw,56px) 0">
+<div style="display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin-bottom:26px">
+<div data-flag="1">
+<p data-flag-k="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="triangle-alert" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import>Three addresses, one inbox</p>
+<p>The archive has <span style="color:var(--vt-charcoal-900)">info@vamostaxi.eu</span> in the imprint and privacy pages, <span style="color:var(--vt-charcoal-900)">contact@vamostaxi.eu</span> in the FAQ, and a personal gmail account in the terms. This page renders one token, and every legal page points at the same one — set it once and the site agrees with itself.<span data-src="1">Archived imprint, T&amp;Cs §2, FAQ · Wayback, 2024</span></p>
+<p><strong style="color:var(--vt-charcoal-900);font-weight:var(--vt-weight-semibold)">The gmail address does not survive.</strong> A personal mailbox in binding terms is a liability, not a channel.</p>
+</div>
+<div data-flag="1">
+<p data-flag-k="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="triangle-alert" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import>Live chat is promised but not funded</p>
+<p>The old footer and FAQ promise “Customer Service 24/7 · Start a Chat”, and the site ran a chat widget. Chat is not in the V1 scope of work. If it is dropped, the footer changes and three answers change with it.</p>
+<p>So the chat block opposite is behind the <span style="color:var(--vt-charcoal-900)">showLiveChat</span> tweak. Turn it off and the column closes up — no gap, no orphaned heading, no “coming soon”. Decide it either way; do not ship the promise without the widget.</p>
+</div>
+<div data-slot="1">
+<p data-slot-k="1">Client input · social &amp; reviews</p>
+<p>Facebook, Instagram, YouTube and Trustpilot are slots. A Trustpilot profile exists for the domain but no URL was ever linked, and an unlinked review badge is worth less than none.</p>
+</div>
+</div>
+
+<div style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);border-radius:var(--vt-radius-xl);padding:clamp(26px,3vw,40px)">
+<p style="margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">Review scaffold — not part of the published page</p>
+<h2 style="margin:0 0 26px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse)">What this page still needs from you</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:32px">
+<div>
+<p style="margin:0 0 14px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Decisions — 3</p>
+<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading-tight);color:rgb(255 255 255 / .84)">
+<li>Which support address is real</li>
+<li>Live chat: in, or out</li>
+<li>Where the form actually delivers</li>
+</ul>
+</div>
+<div>
+<p style="margin:0 0 14px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Form states built — 5</p>
+<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading-tight);color:rgb(255 255 255 / .84)">
+<li>Default · empty and ready</li>
+<li>Validation error · per field, plus a summary</li>
+<li>Sending · every input locked</li>
+<li>Success · with a case reference</li>
+<li>Send failed · text preserved</li>
+</ul>
+</div>
+<div>
+<p style="margin:0 0 14px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Tokens — 6</p>
+<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading-tight);color:rgb(255 255 255 / .84)">
+<li>Support email, response time</li>
+<li>Support hours and languages</li>
+<li>Chat hours</li>
+<li>Four social and review URLs</li>
+</ul>
+</div>
+</div>
+<p style="margin:30px 0 0;padding-top:22px;border-top:1px solid var(--vt-border-inverse);font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted);max-width:78ch">The case reference on the success screen is generated in the browser for the mock. In production it comes from the ticket the message opens, and it is what the customer quotes when they chase.</p>
+</div>
+</section>
+</sc-if>
+
+<div style="height:clamp(40px,4vw,56px)"></div>
+</main>
+
+<dc-import name="SiteFooter" hint-size="100%,520px"></dc-import>
+<dc-import name="CookieBanner" start-state="{{ cookieState }}" hint-size="0,0"></dc-import>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showLiveChat&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Scope&quot;},&quot;showReviewScaffold&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Review&quot;},&quot;cookieState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;auto&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;banner&quot;,&quot;prefs&quot;,&quot;hidden&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Review&quot;},&quot;facebookUrl&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Social slots&quot;},&quot;instagramUrl&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Social slots&quot;},&quot;youtubeUrl&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Social slots&quot;},&quot;trustpilotUrl&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Social slots&quot;}}">
+class Component extends DCLogic {
+  state = {
+    phase: 'default', // default | invalid | sending | sent | failed
+    name: '', email: '', phone: '', ref: '', msg: '',
+    bad: {}, caseRef: '', sentTo: '',
+  };
+  errRef = React.createRef();
+
+  set(k) { return (e) => {
+    const v = e.target.value;
+    this.setState((s) => {
+      const bad = Object.assign({}, s.bad);
+      delete bad[k]; // a field's error clears the moment it is touched
+      const next = { bad, [k]: v };
+      // Once the last error is gone the summary must go with it, or it would read
+      // "0 fields need your attention".
+      if (s.phase === 'invalid' && !Object.keys(bad).length) next.phase = 'default';
+      return next;
+    });
+  }; }
+
+  validate() {
+    const bad = {};
+    if (!this.state.name.trim()) bad.name = 'missing';
+    const em = this.state.email.trim();
+    if (!em) bad.email = 'missing';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)) bad.email = 'format';
+    const m = this.state.msg.trim();
+    if (!m) bad.msg = 'missing';
+    else if (m.length < 12) bad.msg = 'short';
+    return bad;
+  }
+
+  submit = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    const bad = this.validate();
+    if (Object.keys(bad).length) {
+      this.setState({ phase: 'invalid', bad }, () => {
+        const el = this.errRef.current; if (el) el.focus();
+      });
+      return;
+    }
+    this.setState({ phase: 'sending', bad: {} });
+    clearTimeout(this._t);
+    this._t = setTimeout(() => {
+      this.setState({
+        phase: 'sent',
+        sentTo: this.state.email.trim(),
+        caseRef: 'VT-C' + String(Math.floor(Math.random() * 9000) + 1000),
+      });
+    }, 1400);
+  };
+
+  reset = () => {
+    clearTimeout(this._t);
+    this.setState({ phase: 'default', name: '', email: '', phone: '', ref: '', msg: '', bad: {} });
+  };
+  componentWillUnmount() { clearTimeout(this._t); }
+
+  // Review switcher: fills plausible content so a state is legible on its own.
+  go(phase) {
+    clearTimeout(this._t);
+    if (phase === 'default') { this.reset(); return; }
+    const filled = {
+      name: 'Ben Othman', email: 'ben@example.com', phone: '+41 79 000 00 00', ref: 'VT-0000',
+      msg: 'My flight lands two hours later than booked. Does the pickup move automatically?',
+    };
+    if (phase === 'invalid') {
+      this.setState(Object.assign({ phase: 'invalid', bad: { name: 'missing', email: 'format', msg: 'short' } },
+        filled, { name: '', email: 'ben@example', msg: 'Delayed' }));
+      return;
+    }
+    if (phase === 'sent') {
+      this.setState(Object.assign({ phase: 'sent', bad: {}, sentTo: filled.email, caseRef: 'VT-C4821' }, filled));
+      return;
+    }
+    this.setState(Object.assign({ phase, bad: {} }, filled));
+  }
+
+  setDefault = () => this.go('default');
+  setInvalid = () => this.go('invalid');
+  setSending = () => this.go('sending');
+  setSent = () => this.go('sent');
+  setFailed = () => this.go('failed');
+
+  renderVals() {
+    const p = this.state.phase, bad = this.state.bad;
+    const emailErr = bad.email === 'format' ? 'That address is missing something — check it over' : 'We need an address to reply to';
+    const msgErr = bad.msg === 'short' ? 'A line or two more, so we can answer properly' : 'Tell us what you need';
+    return {
+      n14: 14, n16: 16, n18: 18, n20: 20, n22: 22, n24: 24, yes: true,
+      showForm: p !== 'sent',
+      isDefault: p === 'default' ? 'true' : 'false',
+      isInvalid: p === 'invalid',
+      isSending: p === 'sending',
+      notSending: p !== 'sending',
+      isSent: p === 'sent',
+      isFailed: p === 'failed',
+      errTitle: Object.keys(bad).length === 1 ? 'One field needs your attention' : Object.keys(bad).length + ' fields need your attention',
+      vName: this.state.name, vEmail: this.state.email, vPhone: this.state.phone,
+      vRef: this.state.ref, vMsg: this.state.msg,
+      onName: this.set('name'), onEmail: this.set('email'), onPhone: this.set('phone'),
+      onRef: this.set('ref'), onMsg: this.set('msg'),
+      badName: !!bad.name, badEmail: !!bad.email, badMsg: !!bad.msg,
+      aName: bad.name ? 'true' : 'false', aEmail: bad.email ? 'true' : 'false', aMsg: bad.msg ? 'true' : 'false',
+      emailErr, msgErr,
+      sentTo: this.state.sentTo, caseRef: this.state.caseRef,
+      submit: this.submit, reset: this.reset, errRef: this.errRef,
+      setDefault: this.setDefault, setInvalid: this.setInvalid, setSending: this.setSending,
+      setSent: this.setSent, setFailed: this.setFailed,
+      // Slots — every one is a client input, so they resolve to '#' until supplied.
+      hFacebook: this.props.facebookUrl || '#', hInstagram: this.props.instagramUrl || '#',
+      hYoutube: this.props.youtubeUrl || '#', hTrustpilot: this.props.trustpilotUrl || '#',
+      showChat: (this.props.showLiveChat ?? true) !== false,
+      scaffold: (this.props.showReviewScaffold ?? true) !== false,
+      cookieState: this.props.cookieState || 'auto',
+    };
+  }
+}
+
+</script>
+</body>
+</html>

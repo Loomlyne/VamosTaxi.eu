@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../tokens/fonts.css">
+<link rel="stylesheet" href="../tokens/colors.css">
+<link rel="stylesheet" href="../tokens/typography.css">
+<link rel="stylesheet" href="../tokens/spacing.css">
+<link rel="stylesheet" href="../tokens/elevation.css">
+<link rel="stylesheet" href="../tokens/motion.css">
+<link rel="stylesheet" href="../tokens/base.css">
+<link rel="stylesheet" href="../styles.css">
+<script src="../_ds_bundle.js"></script>
+<link rel="stylesheet" href="../assets/lenis.css">
+<script src="../assets/lenis.js"></script>
+<script src="../assets/lenis-boot.js"></script>
+<script src="vamos-i18n-dict.js"></script>
+<script src="vamos-locale.js"></script>
+<style>:root{--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}.vt-select .vt-input--focus{box-shadow:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}
+:root{--vt-icon-base:"../assets/icons/"}body{margin:0}a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+/* Compact is the header bar: a white data pill next to the phone number. Field is a
+   settings page, where a two-letter code on its own tells a traveller nothing — so the
+   language is spelled out and the code drops back to a mark beside it. */
+[data-vs-btn]{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 12px;border-radius:var(--vt-radius-pill);background:var(--vt-white);border:1px solid rgb(30 31 31/.10);box-shadow:none;color:var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:13px;font-weight:600;line-height:1;letter-spacing:.01em;cursor:pointer;white-space:nowrap;transition:var(--vt-transition-control)}
+[data-vs-btn]:hover{border-color:var(--vt-charcoal-900)}
+[data-vs-txt]{display:inline-flex;align-items:center;gap:8px;min-width:0}
+[data-vs-main]{min-width:0;overflow:hidden;text-overflow:ellipsis}
+[data-vs-root="field"]{display:flex;width:100%;flex:1 1 auto;min-width:0}
+[data-vs-root="field"] [data-vs-btn]{width:100%;min-width:0;justify-content:flex-start;height:44px;padding:0 14px;gap:10px;border-color:var(--vt-grey-300);font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium)}
+[data-vs-root="field"] [data-vs-txt]{flex:1 1 auto;min-width:0}
+[data-vs-root="field"] [data-vs-main]{flex:1 1 auto}
+[data-vs-root="field"] [data-vs-mark]{margin-inline-start:auto}
+[data-vs-mark]{flex:0 0 auto;display:inline-grid;place-items:center;height:22px;padding:0 8px;border-radius:var(--vt-radius-pill);background:var(--vt-grey-100);font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--vt-text-secondary)}
+[data-vs-root="field"] [data-vs-btn]:hover [data-vs-mark]{background:var(--vt-grey-200)}</style>
+</helmet>
+<div data-vs-root="{{ sizeAttr }}" ref="{{ rootRef }}" style="position:relative;display:inline-flex;flex:0 0 auto;font-family:var(--vt-font-body)">
+<button type="button" data-vs-btn="1" aria-haspopup="listbox" aria-label="{{ a11yLabel }}" onClick="{{ toggle }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ icon }}" size="{{ n18 }}" color="var(--vt-charcoal-900)" hint-size="18px,18px"></x-import>
+<span data-vs-txt="1">
+<span data-vs-main="1">{{ mainLabel }}</span>
+<sc-if value="{{ showNote }}" hint-placeholder-val="{{ false }}"><span data-vs-mark="1" data-vt-no-i18n="1">{{ markLabel }}</span></sc-if>
+</span>
+<sc-if value="{{ showChevron }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n16 }}" color="var(--vt-grey-500)" hint-size="16px,16px"></x-import>
+</sc-if>
+</button>
+<sc-if value="{{ open }}" hint-placeholder-val="{{ false }}">
+<div role="listbox" aria-label="{{ a11yLabel }}" style="position:absolute;top:calc(100% + 8px);inset-inline-end:0;min-width:214px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg);padding:6px;z-index:90;display:flex;flex-direction:column;gap:2px">
+<sc-for list="{{ rows }}" as="o" hint-placeholder-count="4">
+<button type="button" role="option" aria-selected="{{ o.selStr }}" onClick="{{ o.pick }}" style="all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border-radius:10px;cursor:pointer;font-family:var(--vt-font-body)" style-hover="background:var(--vt-grey-50)">
+<span style="display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto">
+<span data-vt-no-i18n="1" style="font-size:13px;font-weight:600;color:var(--vt-text-primary);text-align:start">{{ o.label }}</span>
+<span style="font-size:11px;color:var(--vt-text-muted);text-align:start">{{ o.note }}</span>
+</span>
+<sc-if value="{{ o.sel }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n16 }}" color="var(--vt-charcoal-900)" hint-size="16px,16px"></x-import>
+</sc-if>
+</button>
+</sc-for>
+</div>
+</sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:320,&quot;height&quot;:280},&quot;options&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;{value:string,label:string,note?:string}[]&quot;},&quot;value&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;en&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;size&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;compact&quot;,&quot;field&quot;],&quot;default&quot;:&quot;compact&quot;,&quot;tsType&quot;:&quot;'compact'|'field'&quot;},&quot;icon&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;globe&quot;,&quot;banknote&quot;,&quot;user&quot;,&quot;settings&quot;],&quot;default&quot;:&quot;globe&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;a11yLabel&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Language&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onSelect&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(value:string)=&gt;void&quot;}}">
+const DEMO = [
+  { value: 'en', label: 'EN', note: 'English' },
+  { value: 'de', label: 'DE', note: 'Deutsch' },
+  { value: 'fr', label: 'FR', note: 'Français' },
+  { value: 'ar', label: 'AR', note: 'العربية' },
+];
+class Component extends DCLogic {
+  state = { open: false };
+  _rootRef = (el) => { this._root = el; };
+  componentDidMount() {
+    this._away = (e) => { if (this.state.open && this._root && !this._root.contains(e.target)) this.setState({ open: false }); };
+    this._esc = (e) => { if (e.key === 'Escape' && this.state.open) this.setState({ open: false }); };
+    document.addEventListener('mousedown', this._away);
+    document.addEventListener('keydown', this._esc);
+  }
+  componentWillUnmount() {
+    document.removeEventListener('mousedown', this._away);
+    document.removeEventListener('keydown', this._esc);
+  }
+  renderVals() {
+    const opts = (this.props.options && this.props.options.length) ? this.props.options : DEMO;
+    const val = this.props.value;
+    const sel = opts.find((o) => o.value === val) || opts[0];
+    /* In a field the full name leads and the code becomes a mark; in the bar the code
+       is the whole label, because the row has no space for a word. */
+    const field = this.props.size === 'field';
+    return {
+      n16: 16, n18: 18,
+      open: this.state.open,
+      showChevron: !this.props.compact,
+      icon: this.props.icon || 'globe',
+      a11yLabel: this.props.a11yLabel || 'Select',
+      sizeAttr: field ? 'field' : 'compact',
+      mainLabel: sel ? (field ? (sel.note || sel.label) : sel.label) : '',
+      markLabel: sel ? sel.label : '',
+      showNote: field && !!sel && !!sel.note,
+      label: sel ? sel.label : '',
+      rootRef: this._rootRef,
+      toggle: () => this.setState((s) => ({ open: !s.open })),
+      rows: opts.map((o) => ({
+        label: o.label, note: o.note || '',
+        sel: o.value === val, selStr: o.value === val ? 'true' : 'false',
+        pick: () => { this.setState({ open: false }); if (this.props.onSelect) this.props.onSelect(o.value); },
+      })),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

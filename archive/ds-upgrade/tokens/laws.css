@@ -1,0 +1,64 @@
+/* Vamos Taxi — house laws.
+   Four corrections that apply to the whole system, product and marketing alike.
+   Import this LAST from styles.css so it wins over the sheets it corrects.
+
+   Each law is also set locally in every Design Component's :root, so app/ behaves
+   correctly even in a consumer that has not added this import yet. */
+
+:root {
+  /* LAW 1 — no glow, anywhere, ever.
+     The design system used to put a yellow 34%-alpha halo under a hovered primary
+     button. Nothing in this product glows: hover changes colour, press adds
+     translateY(1px), focus shows the ring. Coloured or blurred halos are out on
+     buttons, cards, icons, links and inputs alike.
+     Allowed instead: --vt-shadow-xs … --vt-shadow-xl (neutral charcoal) and --vt-ring. */
+  --vt-shadow-accent: none;
+
+  /* LAW 2 — no tinted yellow or brownish-yellow surfaces.
+     #FDC20B at full strength is an accent: a primary button, a badge, a kicker, a
+     monogram, a stamp label. The pale tints read as cream alert strips and the deep
+     steps read brown, and neither is this brand. They are aliased away rather than
+     deleted so a component that still asks for one degrades to a neutral surface
+     instead of breaking.
+     Attention is carried by charcoal, by full-strength yellow on charcoal, or by the
+     semantic --vt-danger / --vt-success. */
+  --vt-yellow-50:  var(--vt-white);
+  --vt-yellow-100: var(--vt-grey-50);
+  --vt-yellow-200: var(--vt-grey-100);
+  --vt-yellow-300: var(--vt-grey-200);
+  --vt-yellow-600: var(--vt-charcoal-900);
+  --vt-yellow-700: var(--vt-charcoal-900);
+}
+
+/* LAW 3 — a focused text field shows the charcoal border only.
+   The 3px yellow ring stays everywhere else (buttons, links, tabs, rows, checkboxes):
+   this product is used one-handed at an airport and focus must always be visible.
+   On a field the border going charcoal is signal enough, and the ring on a pill field
+   of --vt-control-lg height reads as a glow, which Law 1 forbids. */
+.vt-input--focus { box-shadow: none; }
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible { outline: none; box-shadow: none; }
+
+/* LAW 4 — a value the client still owes us is a labelled gap, not a broken template.
+   Legal and policy copy writes it as human words inside a data-tok pill; the pill
+   appends its own TBC tag, so it reads "Free cancel window TBC".
+   Never {TOKEN_NAME}, never a plausible invented number. Prices stay CHF 000 (§2). */
+[data-tok] {
+  display: inline;
+  padding: 1px 7px 2px;
+  border: 1px dashed var(--vt-grey-300);
+  border-radius: var(--vt-radius-sm);
+  background: var(--vt-grey-50);
+  color: var(--vt-text-secondary);
+  font-style: normal;
+  white-space: nowrap;
+}
+[data-tok]::after {
+  content: " TBC";
+  font-size: var(--vt-label-sm);
+  letter-spacing: var(--vt-label-tracking);
+  text-transform: uppercase;
+  font-weight: var(--vt-label-weight);
+  color: var(--vt-text-muted);
+}

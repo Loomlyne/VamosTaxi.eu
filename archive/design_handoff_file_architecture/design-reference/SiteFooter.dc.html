@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="../support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-tokens.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-assets.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<style>:root{--vt-icon-base:"../assets/icons/";--vt-logo-base:"../assets/logo/";--vt-pattern-base:"../assets/patterns/";--vt-shadow-accent:none}body{margin:0}
+[data-ft-pad]{max-width:1200px;margin:0 auto;padding-left:clamp(16px,3.2vw,56px);padding-right:clamp(16px,3.2vw,56px)}
+[data-ft-grid]{display:grid;grid-template-columns:1fr;gap:44px 32px}
+[data-ft-top]{display:flex;flex-direction:column;align-items:flex-start;gap:24px;padding-bottom:40px;margin-bottom:48px;border-bottom:1px solid var(--vt-border-inverse)}
+[data-ft-bottom]{display:flex;flex-direction:column;align-items:flex-start;gap:16px;margin-top:56px;padding-top:28px;border-top:1px solid var(--vt-border-inverse)}
+[data-ft-band]{display:flex;flex-direction:column;align-items:flex-start;gap:20px}
+[data-ft-link],[data-ft-quiet]{transition:color var(--vt-dur-fast,140ms) var(--vt-ease-standard,cubic-bezier(.2,0,.2,1))}
+[data-ft-link]:hover,[data-ft-quiet]:hover{color:var(--vt-accent)}
+[data-ft-link][data-split]:hover{color:rgb(255 255 255 / .84)}
+.ft-c{display:inline-block;overflow:hidden;vertical-align:top;line-height:1.4}
+.ft-c>i{display:block;position:relative;font-style:normal;transition:transform 320ms var(--vt-ease-standard,cubic-bezier(.2,0,.2,1))}
+.ft-c>i>b{position:absolute;left:0;top:100%;font-weight:inherit;color:var(--vt-accent);user-select:none;pointer-events:none}
+[data-ft-link][data-split]:hover .ft-c>i,[data-ft-link][data-split]:focus-visible .ft-c>i{transform:translateY(-100%)}
+@media (prefers-reduced-motion:reduce){.ft-c>i{transition:none}}
+[data-ft-soc]:hover [data-ft-glyph]{background:var(--vt-accent)}
+[data-ft-soc]:focus-visible{outline:3px solid rgb(253 194 11 / .45);outline-offset:4px;border-radius:4px}
+@media (min-width:768px) and (max-width:1279px){[data-ft-grid]>div:last-child{grid-column:1/-1}}
+@media (min-width:768px){[data-ft-grid]{grid-template-columns:repeat(2,minmax(0,1fr));gap:52px 40px}[data-ft-band]{flex-direction:row;align-items:center;justify-content:space-between;gap:32px}
+[data-ft-top],[data-ft-bottom]{flex-direction:row;align-items:center;justify-content:space-between;gap:32px}}
+@media (min-width:1024px){[data-ft-grid]{grid-template-columns:repeat(3,minmax(0,1fr));gap:48px 32px}
+[data-ft-bottom]{margin-top:90px}}
+@media (min-width:1280px){[data-ft-grid]{grid-template-columns:repeat(4,minmax(0,1fr)) minmax(180px,.8fr);gap:24px}}</style>
+</helmet>
+<footer data-screen-label="Footer" style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);font-family:var(--vt-font-body)">
+
+<sc-if value="{{ wordmark }}" hint-placeholder-val="{{ false }}">
+<div data-ft-pad="1" style="padding-top:72px">
+<div data-ft-band="1" style="margin-bottom:36px">
+<p style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:1.12;color:var(--vt-text-inverse);max-width:22ch">Booked ahead, priced up front.</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" href="home.dc.html#book" iconEnd="arrow-right" hint-size="150px,54px">Book now</x-import>
+</div>
+<img src="../assets/logo/wordmark-reversed.svg" alt="Vamos Taxi" style="width:100%;display:block">
+</div>
+</sc-if>
+
+<div data-ft-pad="1" style="padding-top:76px;padding-bottom:44px">
+
+
+
+<nav data-ft-grid="1" aria-label="Footer" ref="{{ navRef }}">
+
+<div>
+<h2 style="margin:0 0 22px;font-family:var(--vt-font-body);font-size:14px;line-height:1.2;font-weight:var(--vt-weight-medium,500);letter-spacing:0.56px;text-transform:uppercase;color:var(--vt-accent)">Company</h2>
+<ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:13px">
+<li><a data-ft-link="1" href="about.dc.html" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">About</a></li>
+<li><a data-ft-link="1" href="contact.dc.html" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">Contact</a></li>
+</ul>
+</div>
+
+<div>
+<h2 style="margin:0 0 22px;font-family:var(--vt-font-body);font-size:14px;line-height:1.2;font-weight:var(--vt-weight-medium,500);letter-spacing:0.56px;text-transform:uppercase;color:var(--vt-accent)">Services</h2>
+<ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:13px">
+<li><a data-ft-link="1" href="services-airport-transfers.dc.html" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">Airport transfers</a></li>
+<li><a data-ft-link="1" href="services-city-to-city.dc.html" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">City to city</a></li>
+<li><a data-ft-link="1" href="services-corporate-transfers.dc.html" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">Corporate transfers</a></li>
+<sc-if value="{{ showHourly }}" hint-placeholder-val="{{ true }}">
+<li><a data-ft-link="1" href="services-chauffeur-by-the-hour.dc.html" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">Chauffeur by the hour</a></li>
+</sc-if>
+</ul>
+</div>
+
+<div>
+<h2 style="margin:0 0 22px;font-family:var(--vt-font-body);font-size:14px;line-height:1.2;font-weight:var(--vt-weight-medium,500);letter-spacing:0.56px;text-transform:uppercase;color:var(--vt-accent)">Support</h2>
+<ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:13px">
+<li><a data-ft-link="1" href="home.dc.html#faq" onClick="{{ goToFaq }}" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">FAQs</a></li>
+<li><a data-ft-link="1" href="manage-booking.dc.html" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">Manage a booking</a></li>
+<li><a data-ft-link="1" href="contact.dc.html#help" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">Help</a></li>
+</ul>
+</div>
+
+<div>
+<h2 style="margin:0 0 22px;font-family:var(--vt-font-body);font-size:14px;line-height:1.2;font-weight:var(--vt-weight-medium,500);letter-spacing:0.56px;text-transform:uppercase;color:var(--vt-accent)">Legal</h2>
+<ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:13px">
+<li><a data-ft-link="1" href="terms.dc.html" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">Terms &amp; conditions</a></li>
+<li><a data-ft-link="1" href="privacy.dc.html" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">Privacy policy</a></li>
+<li><a data-ft-link="1" href="imprint.dc.html" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">Imprint</a></li>
+<li><a data-ft-link="1" href="cancellation.dc.html" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">Cancellation policy</a></li>
+</ul>
+</div>
+
+<div>
+<h2 style="margin:0 0 22px;font-family:var(--vt-font-body);font-size:14px;line-height:1.2;font-weight:var(--vt-weight-medium,500);letter-spacing:0.56px;text-transform:uppercase;color:var(--vt-accent)">Contact</h2>
+<ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:13px">
+<li style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.45">Vamos Taxi GmbH<br>Bleicherstrasse 16<br>8953 Dietikon ZH</li>
+<li><a data-ft-link="1" href="mailto:info@vamostaxi.eu" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">info@vamostaxi.eu</a></li>
+<li><a data-ft-link="1" href="tel:+41796267082" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">+41 79 626 70 82</a></li>
+</ul>
+<div style="display:flex;align-items:center;gap:24px;margin-top:26px">
+<a data-ft-soc="1" href="https://www.instagram.com/vamos.taxi/" target="_blank" rel="noreferrer noopener" aria-label="Vamos Taxi on Instagram" style="display:block;border:0;text-decoration:none">
+<span data-ft-glyph="1" aria-hidden="true" style="display:block;width:26px;height:26px;background:var(--vt-text-inverse-muted);-webkit-mask:url(../assets/icons/instagram.svg) center/contain no-repeat;mask:url(../assets/icons/instagram.svg) center/contain no-repeat;transition:background 140ms cubic-bezier(.2,0,.2,1)"></span>
+</a>
+<a data-ft-soc="1" href="https://www.facebook.com/VAMOSTAXISWITZERLAND" target="_blank" rel="noreferrer noopener" aria-label="Vamos Taxi on Facebook" style="display:block;border:0;text-decoration:none">
+<span data-ft-glyph="1" aria-hidden="true" style="display:block;width:26px;height:26px;background:var(--vt-text-inverse-muted);-webkit-mask:url(../assets/icons/facebook.svg) center/contain no-repeat;mask:url(../assets/icons/facebook.svg) center/contain no-repeat;transition:background 140ms cubic-bezier(.2,0,.2,1)"></span>
+</a>
+</div>
+</div>
+
+</nav>
+
+<sc-if value="{{ showPaymentMarks }}" hint-placeholder-val="{{ false }}">
+<div style="margin-top:52px;display:flex;flex-wrap:wrap;align-items:center;gap:12px">
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted);margin-right:6px">Payment</span>
+<span style="font-size:var(--vt-body-sm);color:rgb(255 255 255 / .84);border:1px solid var(--vt-border-inverse);border-radius:var(--vt-radius-xs);padding:6px 12px">Visa</span>
+<span style="font-size:var(--vt-body-sm);color:rgb(255 255 255 / .84);border:1px solid var(--vt-border-inverse);border-radius:var(--vt-radius-xs);padding:6px 12px">Mastercard</span>
+<span style="font-size:var(--vt-body-sm);color:rgb(255 255 255 / .84);border:1px solid var(--vt-border-inverse);border-radius:var(--vt-radius-xs);padding:6px 12px">TWINT</span>
+<span style="font-size:var(--vt-body-sm);color:rgb(255 255 255 / .84);border:1px solid var(--vt-border-inverse);border-radius:var(--vt-radius-xs);padding:6px 12px">Apple Pay</span>
+<span style="font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted)">Marks awaiting confirmed Stripe provider config — show only enabled methods.</span>
+</div>
+</sc-if>
+
+<div data-ft-bottom="1">
+<p style="margin: 0; font-size: var(--vt-body-sm); color: var(--vt-text-inverse-muted); text-align: left">{{ copyright }}</p>
+<a data-ft-quiet="1" href="#top" onClick="{{ toTop }}" style="display:flex;align-items:center;gap:8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted);text-decoration:none;border:0">
+Back to top
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-up" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+</a>
+</div>
+
+</div>
+</footer>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:520},&quot;wordmark&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Layout&quot;},&quot;showChauffeurByHour&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;showPaymentMarks&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Content&quot;}}">
+class Component extends DCLogic {
+  navRef = React.createRef();
+
+  componentDidMount() { this.splitLinks(); }
+  componentDidUpdate() { this.splitLinks(); }
+
+  // Progressive enhancement: the label stays plain editable text in the template and
+  // is wrapped per character here, so each link can roll to yellow with a stagger.
+  splitLinks() {
+    const root = this.navRef.current;
+    if (!root) return;
+    root.querySelectorAll('[data-ft-link]').forEach((a) => {
+      if (a.dataset.split) return;
+      // Leave copyable strings (email, phone) as real text nodes — split cells
+      // serialise one character per line on selection.
+      const href = a.getAttribute('href') || '';
+      if (/^(mailto:|tel:)/i.test(href)) return;
+      const label = (a.textContent || '').trim();
+      if (!label) return;
+      const frag = document.createDocumentFragment();
+      Array.from(label).forEach((ch, k) => {
+        const cell = document.createElement('span');
+        cell.className = 'ft-c';
+        const inner = document.createElement('i');
+        inner.style.transitionDelay = (k * 16) + 'ms';
+        if (ch === ' ') {
+          inner.innerHTML = '&nbsp;';
+        } else {
+          inner.appendChild(document.createTextNode(ch));
+          const copy = document.createElement('b');
+          copy.appendChild(document.createTextNode(ch));
+          inner.appendChild(copy);
+        }
+        cell.appendChild(inner);
+        frag.appendChild(cell);
+      });
+      a.textContent = '';
+      const visible = document.createElement('span');
+      visible.setAttribute('aria-hidden', 'true');
+      visible.appendChild(frag);
+      a.appendChild(visible);
+      a.setAttribute('aria-label', label);
+      a.dataset.split = '1';
+    });
+  }
+  // FAQs: scroll to an #faq section on the current page if there is one, otherwise
+  // let the href take the visitor to the homepage FAQ.
+  goToFaq = (e) => {
+    const el = document.getElementById('faq');
+    if (!el) return;
+    e.preventDefault();
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const top = el.getBoundingClientRect().top + window.pageYOffset - 88;
+    window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' });
+    if (history.replaceState) history.replaceState(null, '', '#faq');
+  };
+  toTop = (e) => {
+    e.preventDefault();
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+  };
+  renderVals() {
+    return {
+      n16: 16, n18: 18, n64: 64, toTop: this.toTop, navRef: this.navRef,
+      wordmark: this.props.wordmark ?? false,
+      showHourly: (this.props.showChauffeurByHour ?? true) !== false,
+      showPaymentMarks: this.props.showPaymentMarks ?? false,
+      goToFaq: this.goToFaq,
+      copyright: '\u00A9 ' + new Date().getFullYear() + ' Vamos Taxi. All rights reserved.',
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../tokens/fonts.css">
+<link rel="stylesheet" href="../tokens/colors.css">
+<link rel="stylesheet" href="../tokens/typography.css">
+<link rel="stylesheet" href="../tokens/spacing.css">
+<link rel="stylesheet" href="../tokens/elevation.css">
+<link rel="stylesheet" href="../tokens/motion.css">
+<link rel="stylesheet" href="../tokens/base.css">
+<link rel="stylesheet" href="../styles.css">
+<script src="../_ds_bundle.js"></script>
+<style>:root{--vt-icon-base:"../assets/icons/";--vt-logo-base:"../assets/logo/";--vt-pattern-base:"../assets/patterns/";--vt-shadow-accent:none}
+/* A booking is a ticket. The date is a tear-off stub, the journey is the body, the
+   amount is the stub's counterfoil. Mobile lays the stub across the top; from 820px it
+   stands on the leading edge with a perforation and two punched notches. Colour is
+   carried only by the stub's tense and by the kit's own StatusBadge. */
+[data-bk-row]{position:relative;display:flex;flex-direction:column;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);text-decoration:none;color:inherit;transition:border-color 140ms var(--vt-ease-standard)}
+[data-bk-row][data-bk-variant="card"],[data-bk-row][data-bk-variant="grid"]{overflow:hidden}
+[data-bk-row][data-bk-state="ready"]:hover,[data-bk-row][data-bk-state="ready"]:focus-within{border-color:var(--vt-charcoal-900)}
+[data-bk-row][data-bk-state="loading"]{pointer-events:none}
+/* One stretched link makes the whole ticket the target; the actions button sits above it. */
+[data-bk-hit]{position:absolute;inset:0;border-radius:inherit}
+
+[data-bk-stub]{position:relative;display:flex;align-items:center;gap:9px;padding:0 16px;min-height:38px;background:var(--vt-charcoal-900);color:var(--vt-white);border-bottom:1px dashed rgb(255 255 255 / .3)}
+[data-bk-wd],[data-bk-mo]{font-family:var(--vt-font-body);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;line-height:1;white-space:nowrap}
+[data-bk-wd]{color:var(--vt-yellow)}
+[data-bk-mo]{color:rgb(255 255 255 / .64)}
+[data-bk-day]{font-family:var(--vt-font-display);font-size:16px;font-weight:var(--vt-weight-semibold);line-height:1;font-variant-numeric:tabular-nums;color:var(--vt-white)}
+[data-bk-raw]{font-family:var(--vt-font-display);font-size:13px;line-height:1.2;color:var(--vt-white)}
+[data-bk-ref]{margin-inline-start:auto;font-family:var(--vt-font-body);font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;line-height:1;color:rgb(255 255 255 / .64);white-space:nowrap}
+/* Charcoal is a trip that has not happened. Travelled goes quiet grey; cancelled loses
+   its fill entirely — the tense is legible before the badge is read. */
+[data-bk-tense="past"] [data-bk-stub]{background:var(--vt-grey-100);border-bottom-color:var(--vt-grey-300)}
+[data-bk-tense="past"] [data-bk-wd],[data-bk-tense="past"] [data-bk-mo],[data-bk-tense="past"] [data-bk-ref]{color:var(--vt-text-muted)}
+[data-bk-tense="past"] [data-bk-day],[data-bk-tense="past"] [data-bk-raw]{color:var(--vt-charcoal-900)}
+[data-bk-tense="void"] [data-bk-stub]{background:var(--vt-grey-50);border-bottom-color:var(--vt-grey-300)}
+[data-bk-tense="void"] [data-bk-wd],[data-bk-tense="void"] [data-bk-mo],[data-bk-tense="void"] [data-bk-ref]{color:var(--vt-grey-500)}
+[data-bk-tense="void"] [data-bk-day],[data-bk-tense="void"] [data-bk-raw]{color:var(--vt-grey-500)}
+[data-bk-tense="void"] [data-bk-place]{color:var(--vt-text-muted)}
+[data-bk-tense="void"] [data-bk-pip]{border-color:var(--vt-grey-400)}
+[data-bk-tense="void"] [data-bk-pip-end]{background:var(--vt-grey-400)}
+[data-bk-tense="void"] [data-bk-price]{color:var(--vt-text-muted)}
+/* Arabic weekday and month names are cursive words, not tracked-out abbreviations. */
+[dir="rtl"] [data-bk-wd],[dir="rtl"] [data-bk-mo],[dir="rtl"] [data-bk-ref]{letter-spacing:0;text-transform:none;font-size:10px}
+
+[data-bk-notch]{display:none;position:absolute;z-index:2;width:13px;height:13px;border-radius:var(--vt-radius-pill);background:var(--vt-bg-page);transform:translateX(-50%)}
+[dir="rtl"] [data-bk-notch]{transform:translateX(50%)}
+[data-bk-notch="top"]{top:-7px}
+[data-bk-notch="bot"]{bottom:-7px}
+
+[data-bk-body]{display:flex;flex-direction:column;gap:10px;min-width:0;padding:14px 16px}
+[data-bk-top]{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
+[data-bk-when]{display:flex;align-items:baseline;flex-wrap:wrap;gap:3px 10px;min-width:0}
+[data-bk-time]{font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:-.01em;line-height:1.1;font-variant-numeric:tabular-nums;color:var(--vt-text-primary)}
+[data-bk-rel]{font-size:var(--vt-body-xs);line-height:1.4;color:var(--vt-text-muted)}
+[data-bk-legs]{display:flex;flex-direction:column;gap:7px;min-width:0}
+[data-bk-leg]{position:relative;display:flex;align-items:flex-start;gap:11px;min-width:0}
+[data-bk-leg]:not([data-bk-end])::before{content:"";position:absolute;inset-inline-start:4px;top:17px;bottom:-11px;width:1px;background:var(--vt-grey-300)}
+[data-bk-pip]{flex:0 0 auto;width:9px;height:9px;margin-top:6px;border-radius:var(--vt-radius-pill);border:2px solid var(--vt-charcoal-900);background:var(--vt-bg-surface);box-sizing:border-box}
+[data-bk-pip-end]{background:var(--vt-charcoal-900)}
+[data-bk-place]{min-width:0;font-size:var(--vt-body-md);line-height:1.4;color:var(--vt-text-primary);text-wrap:pretty}
+[data-bk-meta]{font-size:var(--vt-body-sm);line-height:1.45;color:var(--vt-text-secondary)}
+[data-bk-note]{display:flex;align-items:flex-start;gap:7px;font-size:var(--vt-body-xs);line-height:1.5;color:var(--vt-text-muted)}
+
+[data-bk-trail]{display:flex;align-items:center;justify-content:space-between;gap:14px;min-width:0;padding:0 16px 14px}
+[data-bk-price]{font-family:var(--vt-font-display);font-size:var(--vt-figure-sm);font-weight:var(--vt-weight-bold);letter-spacing:-.01em;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--vt-text-primary)}
+[data-bk-actions]{display:flex;align-items:center;gap:6px}
+/* Hover fills the chevron charcoal — a fill change, never a glow. */
+[data-bk-go]{display:grid;place-items:center;width:36px;height:36px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-grey-300);background:transparent;color:var(--vt-charcoal-900);transition:background 140ms var(--vt-ease-standard),border-color 140ms var(--vt-ease-standard),color 140ms var(--vt-ease-standard)}
+[data-bk-row][data-bk-state="ready"]:hover [data-bk-go],[data-bk-row][data-bk-state="ready"]:focus-within [data-bk-go]{background:var(--vt-charcoal-900);border-color:var(--vt-charcoal-900);color:var(--vt-white)}
+[dir="rtl"] [data-bk-go]{transform:scaleX(-1)}
+[data-bk-more]{position:relative;z-index:3;appearance:none;display:grid;place-items:center;width:36px;height:36px;padding:0;border:1px solid transparent;border-radius:var(--vt-radius-pill);background:transparent;box-shadow:none;color:var(--vt-text-muted);cursor:pointer;transition:background 140ms var(--vt-ease-standard),border-color 140ms var(--vt-ease-standard),color 140ms var(--vt-ease-standard)}
+[data-bk-more]:hover{background:var(--vt-grey-100);border-color:var(--vt-grey-300);color:var(--vt-charcoal-900)}
+[data-bk-more][aria-expanded="true"]{background:var(--vt-charcoal-900);border-color:var(--vt-charcoal-900);color:var(--vt-text-inverse)}
+[data-bk-pop]{position:absolute;z-index:4;top:calc(100% + 6px);inset-inline-end:0;min-width:216px;padding:6px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);box-shadow:var(--vt-shadow-lg)}
+[data-bk-pop] a{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 12px;border-radius:var(--vt-radius-sm);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-primary);text-decoration:none}
+[data-bk-pop] a:hover{background:var(--vt-grey-100)}
+[data-bk-pop] p{margin:6px 12px 4px;font-size:var(--vt-body-xs);line-height:1.5;color:var(--vt-text-muted)}
+
+/* Inset · the same ticket inside a card. No panel and no perforation: the stub shrinks
+   to a date chip and a hairline separates one booking from the next. */
+[data-bk-row][data-bk-variant="inset"]{gap:12px;padding:15px 0;border:0;border-top:1px solid var(--vt-border-subtle);border-radius:0;background:transparent}
+[data-bk-row][data-bk-variant="inset"][data-bk-state="ready"]:hover,[data-bk-row][data-bk-variant="inset"][data-bk-state="ready"]:focus-within{border-color:var(--vt-charcoal-900)}
+[data-bk-variant="inset"] [data-bk-stub]{align-self:flex-start;min-height:26px;padding:0 11px;gap:7px;border-bottom:0;border-radius:var(--vt-radius-pill)}
+[data-bk-variant="inset"] [data-bk-day]{font-size:13px}
+[data-bk-variant="inset"] [data-bk-ref],[data-bk-variant="inset"] [data-bk-note]{display:none}
+[data-bk-variant="inset"] [data-bk-body],[data-bk-variant="inset"] [data-bk-trail]{padding:0}
+[data-bk-variant="inset"] [data-bk-body]{gap:8px}
+[data-bk-variant="inset"] [data-bk-time]{font-size:var(--vt-body-md)}
+[data-bk-variant="inset"] [data-bk-price]{font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold)}
+[data-bk-variant="inset"] [data-bk-go]{width:32px;height:32px}
+
+[data-bk-sk]{display:block;height:12px;border-radius:var(--vt-radius-pill);background:var(--vt-grey-200)}
+[data-bk-sk-lg]{height:20px}
+[data-bk-stub][data-bk-sk-stub]{background:var(--vt-grey-100);border-bottom-color:var(--vt-grey-200)}
+
+@media (min-width:600px){
+[data-bk-row][data-bk-variant="inset"]{flex-direction:row;align-items:center;gap:18px}
+[data-bk-variant="inset"] [data-bk-stub]{align-self:center}
+[data-bk-variant="inset"] [data-bk-body]{flex:1 1 auto}
+[data-bk-variant="inset"] [data-bk-trail]{flex:0 0 auto;justify-content:flex-end}
+}
+@media (min-width:820px){
+[data-bk-row][data-bk-variant="card"]{display:grid;grid-template-columns:104px minmax(0,1fr) auto;align-items:stretch}
+[data-bk-variant="card"] [data-bk-stub]{flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:0;padding:16px 10px;border-bottom:0;border-inline-end:1px dashed rgb(255 255 255 / .3)}
+[data-bk-tense="past"] [data-bk-variant="card"] [data-bk-stub],[data-bk-variant="card"] [data-bk-stub]{border-bottom:0}
+[data-bk-tense="past"] [data-bk-stub],[data-bk-tense="void"] [data-bk-stub]{border-inline-end-color:var(--vt-grey-300)}
+[data-bk-variant="card"] [data-bk-day]{font-size:30px;letter-spacing:-.02em;line-height:1.05}
+[data-bk-variant="card"] [data-bk-ref]{width:100%;margin-inline-start:0;margin-top:9px;padding-top:9px;border-top:1px solid rgb(255 255 255 / .2);text-align:center}
+[data-bk-tense="past"] [data-bk-ref],[data-bk-tense="void"] [data-bk-ref]{border-top-color:var(--vt-grey-300)}
+[data-bk-variant="card"] [data-bk-notch]{display:block;inset-inline-start:104px}
+[data-bk-variant="card"] [data-bk-body]{padding:16px 20px}
+[data-bk-variant="card"] [data-bk-trail]{flex-direction:column;align-items:flex-end;justify-content:center;gap:12px;padding:16px 20px 16px 0}
+[dir="rtl"] [data-bk-variant="card"] [data-bk-trail]{padding:16px 0 16px 20px}
+[data-bk-variant="grid"] [data-bk-trail]{justify-content:space-between}
+}
+@media (prefers-reduced-motion:reduce){[data-bk-row],[data-bk-go],[data-bk-more]{transition:none}}</style>
+</helmet>
+
+<sc-if value="{{ isReady }}" hint-placeholder-val="{{ true }}">
+<div data-bk-row="1" data-bk-variant="{{ variant }}" data-bk-tense="{{ tense }}" data-bk-state="ready" ref="{{ rowRef }}">
+<a data-bk-hit="1" href="{{ href }}" aria-label="{{ aria }}"></a>
+<span data-bk-notch="top" aria-hidden="true"></span>
+<span data-bk-notch="bot" aria-hidden="true"></span>
+
+<span data-bk-stub="1">
+<sc-if value="{{ hasStamp }}" hint-placeholder-val="{{ true }}">
+<span data-bk-wd="1">{{ wd }}</span>
+<span data-bk-day="1">{{ day }}</span>
+<span data-bk-mo="1">{{ mo }}</span>
+</sc-if>
+<sc-if value="{{ noStamp }}" hint-placeholder-val="{{ false }}"><span data-bk-raw="1">{{ date }}</span></sc-if>
+<sc-if value="{{ hasRef }}" hint-placeholder-val="{{ true }}"><span data-bk-ref="1">{{ refCode }}</span></sc-if>
+</span>
+
+<span data-bk-body="1">
+<span data-bk-top="1">
+<span data-bk-when="1">
+<span data-bk-time="1">{{ time }}</span>
+<sc-if value="{{ hasRel }}"><span data-bk-rel="1">{{ rel }}</span></sc-if>
+</span>
+<span data-bk-badge="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StatusBadge" status="{{ badge }}" tone="{{ tone }}" label="{{ badgeLabel }}" hint-size="112px,28px"></x-import>
+</span>
+</span>
+<span data-bk-legs="1">
+<span data-bk-leg="1" data-bk-end="{{ soloEnd }}"><span data-bk-pip="1"></span><span data-bk-place="1">{{ from }}</span></span>
+<sc-if value="{{ hasTo }}" hint-placeholder-val="{{ true }}">
+<span data-bk-leg="1" data-bk-end="1"><span data-bk-pip="1" data-bk-pip-end="1"></span><span data-bk-place="1">{{ to }}</span></span>
+</sc-if>
+</span>
+<span data-bk-meta="1">{{ meta }}</span>
+<sc-if value="{{ hasNote }}">
+<span data-bk-note="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>{{ noteText }}</span>
+</sc-if>
+</span>
+
+<span data-bk-trail="1">
+<span data-bk-price="1">{{ price }}</span>
+<span data-bk-actions="1">
+<span data-bk-go="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-right" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span>
+<sc-if value="{{ hasActions }}" hint-placeholder-val="{{ false }}">
+<span style="position:relative">
+<button type="button" data-bk-more="1" aria-label="More actions" aria-expanded="{{ openAttr }}" onClick="{{ toggle }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="ellipsis" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></button>
+<sc-if value="{{ open }}">
+<span data-bk-pop="1" role="menu">
+<a role="menuitem" href="manage-booking.dc.html"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="calendar-days" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>Change time</a>
+<a role="menuitem" href="manage-booking.dc.html"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>Cancel booking</a>
+<p>Both open Manage a booking, where the refund is shown before anything is confirmed.</p>
+</span>
+</sc-if>
+</span>
+</sc-if>
+</span>
+</span>
+</div>
+</sc-if>
+
+<sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
+<span data-bk-row="1" data-bk-variant="{{ variant }}" data-bk-state="loading" aria-hidden="true">
+<span data-bk-stub="1" data-bk-sk-stub="1"><span data-bk-sk="1" style="width:64px;background:var(--vt-grey-200)"></span></span>
+<span data-bk-body="1">
+<span data-bk-top="1"><span data-bk-sk="1" data-bk-sk-lg="1" style="width:72px"></span><span data-bk-sk="1" style="width:96px;height:22px"></span></span>
+<span data-bk-sk="1" style="width:{{ skRoute }}"></span>
+<span data-bk-sk="1" style="width:{{ skMeta }}"></span>
+</span>
+<span data-bk-trail="1">
+<span data-bk-sk="1" data-bk-sk-lg="1" style="width:84px"></span>
+<span data-bk-sk="1" style="width:36px;height:36px"></span>
+</span>
+</span>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:900,&quot;height&quot;:180},&quot;state&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ready&quot;,&quot;loading&quot;],&quot;default&quot;:&quot;ready&quot;,&quot;tsType&quot;:&quot;'ready'|'loading'&quot;,&quot;section&quot;:&quot;State&quot;},&quot;status&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;new&quot;,&quot;confirmed&quot;,&quot;assigned&quot;,&quot;completed&quot;,&quot;cancelled&quot;],&quot;default&quot;:&quot;assigned&quot;,&quot;tsType&quot;:&quot;'new'|'confirmed'|'assigned'|'completed'|'cancelled'&quot;,&quot;section&quot;:&quot;State&quot;},&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;card&quot;,&quot;inset&quot;,&quot;grid&quot;],&quot;default&quot;:&quot;card&quot;,&quot;tsType&quot;:&quot;'card'|'inset'|'grid'&quot;,&quot;section&quot;:&quot;State&quot;},&quot;actions&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;State&quot;},&quot;showNote&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;State&quot;},&quot;date&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Thu 6 Aug&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;time&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;08:15&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;rel&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;In 14 hours&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;route&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Zurich Airport (ZRH), Terminal 2 → Zurich, Bahnhofstrasse 1&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;meta&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Business · 2 passengers · VT-4821&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;reference&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;price&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;CHF 000.00&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;note&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;href&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;booking-detail.dc.html&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;skRoute&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;},&quot;skMeta&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;}}">
+/* The five statuses of the booking lifecycle, and the only place this product maps them
+   to a treatment — a page cannot invent a sixth, or relabel one, by copying a row. */
+const LABEL = { new: 'New', confirmed: 'Confirmed', assigned: 'Driver assigned', completed: 'Completed', cancelled: 'Cancelled' };
+const BADGE = { new: 'pending', confirmed: 'confirmed', assigned: 'assigned', completed: 'completed', cancelled: 'cancelled' };
+/* Brand colours carry four of the five states — yellow for the one that still wants
+   attention, charcoal for the strongest, grey for the quiet ones. Cancelled is the single
+   semantic tone, because red is the only thing that reads as "this is not happening". */
+const TONE = { new: 'accent', confirmed: 'outline', assigned: 'inverse', completed: 'neutral', cancelled: 'danger' };
+/* Tense drives the stub: ahead of you, behind you, or never happening. */
+const TENSE = { new: 'future', confirmed: 'future', assigned: 'future', completed: 'past', cancelled: 'void' };
+const NOTE = {
+  new: 'We are still confirming this one. You get an email as soon as the driver is set.',
+  cancelled: 'Cancelled by you. The refund is with our team for review.',
+};
+/* "Thu 6 Aug" is the shape every surface passes. Anything else falls back to one line
+   inside the stub rather than guessing at a format. */
+const DATE_RE = /^\s*([^\s,]+)[\s,]+(\d{1,2})\.?\s+([^\s,]+)\s*$/;
+/* The reference is printed on the stub, so it is lifted out of the meta line rather
+   than said twice. */
+const REF_RE = /^VT-\d+$/i;
+
+class Component extends DCLogic {
+  state = { open: false };
+  rowRef = React.createRef();
+
+  componentDidMount() {
+    this._away = (e) => {
+      if (!this.state.open) return;
+      const el = this.rowRef.current;
+      if (el && el.contains(e.target)) return;
+      this.setState({ open: false });
+    };
+    this._esc = (e) => { if (e.key === 'Escape' && this.state.open) this.setState({ open: false }); };
+    document.addEventListener('pointerdown', this._away, true);
+    document.addEventListener('keydown', this._esc);
+  }
+  componentWillUnmount() {
+    document.removeEventListener('pointerdown', this._away, true);
+    document.removeEventListener('keydown', this._esc);
+  }
+  toggle = (e) => {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    this.setState((s) => ({ open: !s.open }));
+  };
+
+  renderVals() {
+    const p = this.props || {};
+    const status = LABEL[p.status] ? p.status : 'confirmed';
+    const note = p.note != null && p.note !== '' ? p.note : (NOTE[status] || '');
+    const date = p.date ?? '', time = p.time ?? '';
+    const m = DATE_RE.exec(date);
+    /* An hourly booking has one stop, so it keeps one pip and no connector. */
+    const legs = String(p.route ?? '').split(' \u2192 ');
+    const hasTo = legs.length > 1;
+    const variant = p.variant === 'inset' ? 'inset' : (p.variant === 'grid' ? 'grid' : 'card');
+    /* On a full ticket the stub prints the reference, so it is lifted out of the meta
+       line rather than said twice. The inset row has no stub, so it keeps it. */
+    const parts = String(p.meta ?? '').split(' \u00b7 ').filter(Boolean);
+    const tail = parts[parts.length - 1] || '';
+    const refCode = p.reference || (variant !== 'inset' && REF_RE.test(tail) ? parts.pop() : '');
+    /* Quick actions only where they mean anything: a trip that has not happened yet. */
+    const actionable = status === 'new' || status === 'confirmed' || status === 'assigned';
+    return {
+      n14: 14, n16: 16, n18: 18,
+      rowRef: this.rowRef, toggle: this.toggle,
+      open: this.state.open, openAttr: this.state.open ? 'true' : 'false',
+      hasActions: actionable && (p.actions ?? true) !== false && variant !== 'inset',
+      isReady: (p.state || 'ready') !== 'loading',
+      isLoading: (p.state || 'ready') === 'loading',
+      variant,
+      tense: TENSE[status],
+      href: p.href || 'booking-detail.dc.html',
+      date, time,
+      hasStamp: !!m, noStamp: !m,
+      wd: m ? m[1] : '', day: m ? String(m[2]).padStart(2, '0') : '', mo: m ? m[3] : '',
+      refCode, hasRef: !!refCode,
+      from: legs[0] || '', to: hasTo ? legs[1] : '', hasTo,
+      soloEnd: hasTo ? null : '1',
+      rel: p.rel ?? '', hasRel: !!p.rel,
+      meta: parts.join(' \u00b7 '), price: p.price ?? '',
+      badge: BADGE[status], badgeLabel: LABEL[status], tone: TONE[status],
+      noteText: note, hasNote: !!note && (p.showNote ?? true) !== false,
+      aria: [refCode || (REF_RE.test(tail) ? tail : ''), date, time && 'at ' + time, LABEL[status]].filter(Boolean).join(', '),
+      skRoute: p.skRoute || '74%', skMeta: p.skMeta || '46%',
+    };
+  }
+}
+
+</script>
+</body>
+</html>

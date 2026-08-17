@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../tokens/fonts.css">
+<link rel="stylesheet" href="../tokens/colors.css">
+<link rel="stylesheet" href="../tokens/typography.css">
+<link rel="stylesheet" href="../tokens/spacing.css">
+<link rel="stylesheet" href="../tokens/elevation.css">
+<link rel="stylesheet" href="../tokens/motion.css">
+<link rel="stylesheet" href="../tokens/base.css">
+<link rel="stylesheet" href="../styles.css">
+<script src="../_ds_bundle.js"></script>
+<link rel="stylesheet" href="../assets/lenis.css">
+<script src="../assets/lenis.js"></script>
+<script src="../assets/lenis-boot.js"></script>
+<script src="vamos-i18n-dict.js"></script>
+<script src="vamos-locale.js"></script>
+<style>:root{--vt-icon-base:"../assets/icons/";--vt-logo-base:"../assets/logo/";--vt-pattern-base:"../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}.vt-select .vt-input--focus{box-shadow:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}
+body{margin:0}
+a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+[data-hiw]{--s-bg:var(--vt-bg-page);--s-fg:var(--vt-text-primary);--s-sec:var(--vt-charcoal-600);--s-mut:var(--vt-grey-500);--s-rail:var(--vt-grey-300);--s-card:var(--vt-grey-50);--s-med:var(--vt-charcoal-900);background:var(--s-bg);color:var(--s-fg)}
+[data-hiw][data-tone="dark"]{--s-bg:var(--vt-charcoal-900);--s-fg:var(--vt-white);--s-sec:rgb(255 255 255/.72);--s-mut:rgb(255 255 255/.52);--s-rail:rgb(255 255 255/.24);--s-card:rgb(255 255 255/.06);--s-med:var(--vt-charcoal-700)}
+[data-hiw-link]{color:var(--s-fg)}
+[data-hiw-link]:hover{color:var(--vt-yellow-700)}
+[data-hiw][data-tone="dark"] [data-hiw-link]:hover{color:var(--vt-accent)}
+[data-hiw-board]{position:relative;display:flex;flex-direction:column;gap:20px}
+[data-hiw-spine]{position:absolute;top:28px;bottom:28px;left:27px;width:1px;background:var(--s-rail);transform-origin:top center}
+[data-hiw-row]{position:relative;display:grid;grid-template-columns:56px minmax(0,1fr);column-gap:20px;align-items:center}
+[data-hiw-med]{width:56px;height:56px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:var(--s-med);box-shadow:0 0 0 8px var(--s-bg);z-index:1}
+[data-hiw-med][data-accent="1"]{background:var(--vt-accent)}
+[data-hiw-card]{background:var(--s-card);border-radius:var(--vt-radius-lg);padding:18px 20px;min-width:0}
+@media (min-width:900px){
+[data-hiw-board]{gap:clamp(20px,2.6vw,34px)}
+[data-hiw-spine]{left:50%;margin-left:-0.5px}
+[data-hiw-row]{grid-template-columns:minmax(0,1fr) 104px minmax(0,1fr);column-gap:0}
+[data-hiw-med]{grid-column:2;justify-self:center}
+[data-hiw-card]{padding:22px 24px}
+[data-hiw-row][data-side="l"] [data-hiw-card]{grid-column:1;grid-row:1}
+[data-hiw-row][data-side="r"] [data-hiw-card]{grid-column:3;grid-row:1}}
+[data-hiw][data-anim="1"] [data-hiw-spine]{transform:scaleY(0);transition:transform 900ms cubic-bezier(.16,1,.3,1)}
+[data-hiw][data-anim="1"] [data-hiw-med]{opacity:0;transform:translateY(14px);transition:opacity 520ms var(--vt-ease-out),transform 560ms cubic-bezier(.16,1,.3,1)}
+[data-hiw][data-anim="1"] [data-hiw-card]{opacity:0;transform:translateY(14px);transition:opacity 560ms var(--vt-ease-out),transform 620ms cubic-bezier(.16,1,.3,1)}
+[data-hiw][data-anim="1"][data-seen="1"] [data-hiw-spine]{transform:scaleY(1)}
+[data-hiw][data-anim="1"][data-seen="1"] [data-hiw-med],[data-hiw][data-anim="1"][data-seen="1"] [data-hiw-card]{opacity:1;transform:none}
+[data-hiw-row][data-i="1"] [data-hiw-med]{transition-delay:60ms}
+[data-hiw-row][data-i="1"] [data-hiw-card]{transition-delay:150ms}
+[data-hiw-row][data-i="2"] [data-hiw-med]{transition-delay:200ms}
+[data-hiw-row][data-i="2"] [data-hiw-card]{transition-delay:290ms}
+[data-hiw-row][data-i="3"] [data-hiw-med]{transition-delay:340ms}
+[data-hiw-row][data-i="3"] [data-hiw-card]{transition-delay:430ms}
+[data-hiw-row][data-i="4"] [data-hiw-med]{transition-delay:480ms}
+[data-hiw-row][data-i="4"] [data-hiw-card]{transition-delay:570ms}
+@media (min-width:900px){
+[data-hiw][data-anim="1"] [data-hiw-row][data-side="l"] [data-hiw-card]{transform:translate(-14px,10px)}
+[data-hiw][data-anim="1"] [data-hiw-row][data-side="r"] [data-hiw-card]{transform:translate(14px,10px)}}
+@media (prefers-reduced-motion:reduce){[data-hiw][data-anim="1"] [data-hiw-spine],[data-hiw][data-anim="1"] [data-hiw-med],[data-hiw][data-anim="1"] [data-hiw-card]{opacity:1;transform:none;transition:none}}</style>
+</helmet>
+<section data-hiw="1" style="position:relative" data-tone="{{ tone }}" data-anim="{{ animAttr }}" data-seen="{{ seenAttr }}" data-screen-label="How it works" aria-labelledby="hiw-title" ref="{{ rootRef }}">
+<div aria-hidden="true" style="position:absolute;inset:0;background-image:url(data:image/png;base64,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);background-size:88px 88px;background-repeat:repeat;opacity:.028;pointer-events:none;z-index:0"></div>
+<div style="box-sizing:border-box;position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:clamp(56px,7vw,104px) clamp(16px,3.2vw,56px)">
+
+<div style="display:flex;flex-direction:column;gap:14px;margin-bottom:clamp(36px,5vw,64px)">
+<p style="margin:0;display:inline-flex;align-self:flex-start;align-items:center;gap:9px;height:32px;padding:0 15px 0 12px;border:1px solid var(--s-rail);border-radius:999px;background:var(--s-bg);font-size:12px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;line-height:1;white-space:nowrap;color:var(--s-fg)"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAAChCAYAAABAk7SIAAAEi0lEQVR4AeyUS27bQBQETR1BuU58o1wqZ9F9nEX2YWCuaIA/c379XpcBGYYkznRXF/yYX8852+st4c/8+vF7TrjVI+FWVApEAAEDjZUxKgJmXDVQJwQMNFbGqAiYcdVAnXwFDDRS5qgImHndAN0QMMBImSMiYOZ1A3RDwAAjZY6IgJnXDdANAQOMVDmi1HEIKDWHXxgE9NtcqjECSs3hFwYB/TaXaoyAUnP4hUFAv82lGncVUKo5YSQIIKDEDL4hENB3e4nmCCgxg28IBPTdXqI5AkrM4BsCAbtszyV7BBBwjwzvdyGAgF0wc8keAQTcI8P7XQggYBfMXLJHAAH3yPB+FwII2AWz7yVnzRHwjBCfNyWAgE3xcvgZAQQ8I8TnTQkgYFO8HH5GAAHPCPF5UwII2BQvh58RyCvgWXM+lyCAgBIz+IZAQN/tJZojoMQMviEQ0Hd7ieYIKDGDbwgEzLd9qEYIGGqufGERMN+moRohYKi58oVFwHybhmqEgKHmyhcWAfNtGqpRVQFDNSesBAEElJjBNwQC+m4v0fwxvX9M2V7z6zlne71N//5m2+mzD/8BJf4P+IZAQN/tJZojYJUZOOQuAQS8S47nqhBAwCoYOeQuAQS8S47nqhBAwCoYOeQuAQS8S47nqhBAwCoYfQ8pbY6ApQR5vogAAhbh4+FSAghYSpDniwggYBE+Hi4lgIClBHm+iAACFuHj4VICcQUsbc7zEgQQUGIG3xAI6Lu9RHMElJjBNwQC+m4v0RwBJWbwDYGA8bZPlRgBU80ZrwwCxtssVWIETDVnvDIIGG+zVIkRMNWc8cogYLzNUiX+loCpmlNGggACSszgGwIBfbeXaI6AEjP4hkBA3+0lmiOgxAy+IRDw0vZ8qRUBBGxFlnMvEUDAS5j4UisCCNiKLOdeIoCAlzDxpVYEELAVWc69RAABL2Hy/VLr5gjYmjDnHxJAwEM8fNiaAAK2Jsz5hwQQ8BAPH7YmgICtCXP+IQEEPMTDh60J6ArYujnnSxBAQIkZfEMgoO/2Es0RUGIG3xAI6Lu9RPPH/HrO2V7T+8eU7vXzzy8JYyqH4D9gZaAVjrM6AgGt5tYri4B6m1glQkCrufXKIqDeJlaJENBqbr2yCKi3iVWiLwJaNaesBAEElJjBNwQC+m4v0RwBJWbwDYGAvttLNEdAiRl8QyDgsj2/RhFAwFHkuXchgIALBn6NIoCAo8hz70IAARcM/BpFAAFHkefehQACLhh8f41ujoCjFzC/HwHNBRhdHwFHL2B+PwKaCzC6PgKOXsD8fgQ0F2B0/XECjm7O/RIEEFBiBt8QCOi7vURzBJSYwTcEAvpuL9EcASVm8A2BgP2358YVAQRcweDP/gQQsD9zblwRQMAVDP7sTwAB+zPnxhUBBFzB4M/+BBCwP3PfGzeaI+AGFN7qRwAB+7Hmpg0CCLgBhbf6EUDAfqy5aYMAAm5A4a1+BBCwH2tu2iBgIuBGc96SIICAEjP4hkBA3+0lmiOgxAy+IRDQd3uJ5ggoMYNvCARMvr16PQRUXyh5vv8AAAD//3BQ2wUAAAAGSURBVAMAfqEZH/MwL3sAAAAASUVORK5CYII=" alt="" style="width:13px;height:13px;display:block">How it works</p>
+<h2 id="hiw-title" style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-display-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:1.08">One minute of yours. The rest is ours.</h2>
+</div>
+
+<div data-hiw-board="1">
+<div data-hiw-spine="1" aria-hidden="true" ref="{{ spineRef }}"></div>
+<sc-for list="{{ steps }}" as="s" hint-placeholder-count="4">
+<div data-hiw-row="1" data-i="{{ s.i }}" data-side="{{ s.side }}">
+<span data-hiw-med="1" data-accent="{{ s.accent }}" aria-hidden="true">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ s.icon }}" size="{{ n24 }}" color="{{ s.iconColor }}" hint-size="24px,24px"></x-import></span>
+<div data-hiw-card="1">
+<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+<span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-sm);font-weight:var(--vt-weight-bold);letter-spacing:-0.01em;font-variant-numeric:tabular-nums;line-height:1;color:var(--s-fg);white-space:nowrap">{{ s.time }}</span>
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--s-mut);white-space:nowrap">{{ s.sub }}</span>
+</div>
+<h3 style="margin:0 0 6px;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:1.2;color:var(--s-fg)">{{ s.title }}</h3>
+<p style="margin:0;font-size:var(--vt-body-sm);line-height:1.6;color:var(--s-sec);max-width:46ch;text-wrap:pretty">{{ s.copy }}</p>
+</div>
+</div>
+</sc-for>
+</div>
+
+</div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;tone&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light'|'dark'&quot;,&quot;section&quot;:&quot;Appearance&quot;},&quot;revealOnScroll&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Motion&quot;}}">
+const DEFAULT_TRIP = { pickup: 'Zurich Airport (ZRH), Terminal 2', dropoff: 'Zurich, Bahnhofstrasse 1', date: 'Fri 14 Aug', time: '08:15' };
+const AIRPORT = /airport|flughafen|a[eé]roport|\((ZRH|GVA|BSL)\)/i;
+function readTrip() {
+  try { return Object.assign({}, DEFAULT_TRIP, JSON.parse(localStorage.getItem('vamosTrip') || '{}')); }
+  catch (e) { return Object.assign({}, DEFAULT_TRIP); }
+}
+function minus(hm, mins) {
+  const p = String(hm || '08:15').split(':');
+  const m = ((+p[0]) * 60 + (+p[1]) - mins + 1440) % 1440;
+  return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+}
+function shortPlace(s) {
+  const str = String(s || '');
+  const code = str.match(/\((ZRH|GVA|BSL)\)/i);
+  if (code) return code[1].toUpperCase();
+  return str.split(',')[0].trim() || DEFAULT_TRIP.pickup;
+}
+class Component extends DCLogic {
+  state = (() => {
+    const reduce = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return { trip: readTrip(), seen: false, anim: !reduce };
+  })();
+  rootRef = (el) => { this.root = el; };
+  spineRef = (el) => { this.spine = el; this.fitSpine(); };
+  /** Pin the rail between the first and last medallion centres. */
+  fitSpine = () => {
+    const sp = this.spine;
+    if (!sp || !sp.parentElement) return;
+    const meds = sp.parentElement.querySelectorAll('[data-hiw-med]');
+    if (meds.length < 2) return;
+    const base = sp.parentElement.getBoundingClientRect();
+    const a = meds[0].getBoundingClientRect();
+    const b = meds[meds.length - 1].getBoundingClientRect();
+    const top = a.top + a.height / 2 - base.top;
+    const h = (b.top + b.height / 2 - base.top) - top;
+    if (h <= 0) return;
+    sp.style.top = Math.round(top) + 'px';
+    sp.style.bottom = 'auto';
+    sp.style.height = Math.round(h) + 'px';
+  };
+  componentDidMount() {
+    this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
+    window.addEventListener('vamos:locale', this._onLocale);
+    this.onResize = () => { clearTimeout(this._rt); this._rt = setTimeout(this.fitSpine, 120); };
+    window.addEventListener('resize', this.onResize);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(this.fitSpine);
+    setTimeout(this.fitSpine, 120);
+    this.onStore = (e) => { if (!e || e.key === 'vamosTrip') this.setState({ trip: readTrip() }); };
+    window.addEventListener('storage', this.onStore);
+    if (!(this.props.revealOnScroll ?? true) || !this.state.anim || typeof IntersectionObserver === 'undefined') {
+      this.setState({ anim: false, seen: true });
+      return;
+    }
+    this.io = new IntersectionObserver((es) => {
+      if (es.some((e) => e.isIntersecting)) { this.setState({ seen: true }); this.io.disconnect(); }
+    }, { rootMargin: '-6% 0px -14% 0px' });
+    if (this.root) this.io.observe(this.root);
+    this.safety = setTimeout(() => {
+      const r = this.root && this.root.getBoundingClientRect();
+      if (r && r.top < window.innerHeight && r.bottom > 0) this.setState({ seen: true });
+    }, 1400);
+  }
+  componentDidUpdate() { this.fitSpine(); }
+  componentWillUnmount() {
+    if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
+    if (this.io) this.io.disconnect();
+    clearTimeout(this.safety);
+    clearTimeout(this._rt);
+    window.removeEventListener('resize', this.onResize);
+    window.removeEventListener('storage', this.onStore);
+  }
+  steps() {
+    const t = this.state.trip;
+    const airport = AIRPORT.test(t.pickup || '');
+    const place = shortPlace(t.pickup);
+    const third = airport
+      ? { time: minus(t.time, 45), sub: t.date, icon: 'plane-landing', title: 'Your flight lands',
+          copy: 'Your pickup is set from the arrival, not from a guess. If the flight moves, the pickup moves with it.' }
+      : { time: '−24 h', sub: 'before pickup', icon: 'user', title: 'A named driver is assigned',
+          copy: 'Dispatch puts a driver and a vehicle against your slot. Free cancellation right up to this point.' };
+    return [
+      { time: 'Now', sub: 'today', icon: 'map-pin', title: 'Route or flight number',
+        copy: 'Type a flight number and the pickup point and time come from the arrival. Nothing to look up yourself.' },
+      { time: '+1 min', sub: 'today', icon: 'credit-card', title: 'Fixed price, paid by card',
+        copy: 'Every class is priced as you type. Review the trip, pay securely, and the voucher lands immediately.' },
+      third,
+      { time: t.time, sub: t.date, icon: 'car-front', accent: '1', title: 'Your driver is waiting at ' + place,
+        copy: 'Name board in hand, at the exact pickup time. Sixty minutes of airport waiting are included.' },
+    ];
+  }
+  renderVals() {
+    return {
+      n16: 16, n24: 24,
+      tone: (this.props.tone ?? 'light') === 'dark' ? 'dark' : 'light',
+      animAttr: this.state.anim ? '1' : '0',
+      seenAttr: this.state.seen ? '1' : '0',
+      rootRef: this.rootRef,
+      spineRef: this.spineRef,
+      steps: this.steps().map((s, i) => ({
+        i: String(i + 1), side: i % 2 === 0 ? 'l' : 'r',
+        time: s.time, sub: s.sub, title: s.title, copy: s.copy, icon: s.icon,
+        accent: s.accent || '0',
+        iconColor: s.accent ? 'var(--vt-charcoal-900)' : 'var(--vt-accent)',
+      })),
+    };
+  }
+}
+</script>
+</body>
+</html>

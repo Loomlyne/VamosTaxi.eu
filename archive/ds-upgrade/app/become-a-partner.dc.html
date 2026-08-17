@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../tokens/fonts.css">
+<link rel="stylesheet" href="../tokens/colors.css">
+<link rel="stylesheet" href="../tokens/typography.css">
+<link rel="stylesheet" href="../tokens/spacing.css">
+<link rel="stylesheet" href="../tokens/elevation.css">
+<link rel="stylesheet" href="../tokens/motion.css">
+<link rel="stylesheet" href="../tokens/base.css">
+<link rel="stylesheet" href="../styles.css">
+<script src="../_ds_bundle.js"></script>
+<link rel="stylesheet" href="../assets/lenis.css">
+<script src="../assets/lenis.js"></script>
+<script src="../assets/lenis-boot.js"></script>
+<script src="vamos-i18n-dict.js"></script>
+<script src="vamos-locale.js"></script>
+<style>:root{--vt-icon-base:"../assets/icons/";--vt-logo-base:"../assets/logo/";--vt-pattern-base:"../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}.vt-select .vt-input--focus{box-shadow:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none;box-shadow:none}
+body{margin:0;background:var(--vt-bg-page)}
+a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+[data-tok]{display:inline-flex;align-items:baseline;gap:5px;font-family:var(--vt-font-body);font-weight:var(--vt-weight-medium);font-size:.97em;background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 7px;white-space:nowrap}
+[data-tok]::after{content:"TBC";font-family:var(--vt-font-body);font-size:.66em;font-weight:700;letter-spacing:.1em;color:var(--vt-yellow-700)}
+[data-slot]{margin:0;border:1px dashed var(--vt-grey-300);background:var(--vt-grey-50);border-radius:var(--vt-radius-md);padding:16px 18px}
+[data-slot-k]{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-slot-k]::before{content:"";width:8px;height:8px;flex:0 0 auto;background:var(--vt-grey-300)}
+[data-slot] p{margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+[data-flag]{margin:0;border:1px solid var(--vt-charcoal-900);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);padding:18px 20px}
+[data-flag-k]{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)}
+[data-flag] p{margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+[data-flag] p:last-child{margin-bottom:0}
+[data-bp-grid]{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(32px,4vw,56px);align-items:start}
+[data-fld]{display:flex;flex-direction:column;gap:7px;min-width:0}
+[data-fld] label{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-primary)}
+[data-fld] input,[data-fld] select{box-sizing:border-box;width:100%;height:54px;padding:0 20px;font-family:var(--vt-font-body);font-size:var(--vt-body-md);color:var(--vt-text-primary);background:var(--vt-bg-surface);border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-field,999px);transition:border-color 140ms var(--vt-ease-standard),box-shadow 140ms var(--vt-ease-standard)}
+[data-fld] select{appearance:none;padding-inline-end:44px;cursor:pointer}
+[data-fld] input::placeholder{color:var(--vt-text-muted)}
+[data-fld] input:hover,[data-fld] select:hover{border-color:var(--vt-grey-400)}
+[data-fld] input:focus,[data-fld] select:focus{outline:none;border-color:var(--vt-charcoal-900);box-shadow:var(--vt-ring)}
+[data-fld][data-bad] input,[data-fld][data-bad] select{border-color:var(--vt-danger);border-width:2px}
+[data-fld] input:disabled,[data-fld] select:disabled{opacity:.42;cursor:not-allowed}
+[data-selwrap]{position:relative;display:block}
+[data-selwrap] [data-caret]{position:absolute;inset-inline-end:20px;top:50%;transform:translateY(-50%);pointer-events:none;display:flex}
+[data-hint]{display:flex;align-items:flex-start;gap:7px;font-size:var(--vt-body-xs);line-height:1.45;color:var(--vt-text-muted)}
+[data-err]{display:flex;align-items:flex-start;gap:7px;font-size:var(--vt-body-xs);line-height:1.45;font-weight:var(--vt-weight-medium);color:var(--vt-danger)}
+[data-hint] [data-t],[data-err] [data-t]{min-width:0;flex:1 1 auto}
+[data-row2]{display:grid;grid-template-columns:minmax(0,1fr);gap:20px}
+[data-grp]{display:flex;align-items:center;gap:12px;margin:0;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-grp]::after{content:"";flex:1 1 auto;height:1px;background:var(--vt-grey-200)}
+[data-cons]{display:flex;align-items:flex-start;gap:13px;cursor:pointer;position:relative;font-size:var(--vt-body-sm);line-height:1.5;color:var(--vt-text-primary)}
+[data-cons] input{position:absolute;opacity:0;width:0;height:0}
+[data-consbox]{flex:0 0 auto;width:22px;height:22px;margin-top:1px;border:2px solid var(--vt-grey-300);border-radius:var(--vt-radius-xs);background:var(--vt-bg-surface);display:flex;align-items:center;justify-content:center;transition:background 140ms var(--vt-ease-standard),border-color 140ms var(--vt-ease-standard)}
+[data-cons]:hover [data-consbox]{border-color:var(--vt-charcoal-900)}
+[data-cons] input:checked+[data-consbox]{background:var(--vt-accent);border-color:var(--vt-accent)}
+[data-cons] input:focus-visible+[data-consbox]{box-shadow:var(--vt-ring)}
+[data-cons] input:disabled+[data-consbox]{opacity:.42}
+[data-cons] a{color:var(--vt-charcoal-900);text-decoration:underline;text-decoration-color:var(--vt-grey-400);text-underline-offset:3px}
+[data-cons] a:hover{color:var(--vt-yellow-700)}
+[data-step]{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--vt-grey-200)}
+[data-step]:last-child{border-bottom:0}
+[data-step-n]{flex:0 0 auto;font-family:var(--vt-font-display);font-size:var(--vt-figure-sm);font-weight:var(--vt-weight-semibold);line-height:1;color:var(--vt-grey-400);min-width:28px}
+[data-step-k]{display:block;margin:0 0 4px;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);line-height:1.3;color:var(--vt-text-primary)}
+[data-step-s]{display:block;margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+[data-seg]{display:inline-flex;flex-wrap:wrap;padding:3px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:rgb(255 255 255 / .06)}
+[data-seg] button{appearance:none;border:0;background:none;min-height:38px;padding:0 15px;border-radius:var(--vt-radius-pill);font-family:inherit;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-inverse-muted);cursor:pointer;transition:background 140ms var(--vt-ease-standard),color 140ms var(--vt-ease-standard)}
+[data-seg] button:hover{color:var(--vt-text-inverse)}
+[data-seg] button[aria-pressed="true"]{background:var(--vt-accent);color:var(--vt-text-on-accent)}
+@keyframes spin{to{transform:rotate(360deg)}}
+[data-spin]{display:inline-flex;animation:spin 900ms linear infinite}
+:focus-visible{outline:3px solid rgb(253 194 11 / .45);outline-offset:3px;border-radius:var(--vt-radius-xs)}
+@media (min-width:600px){[data-row2]{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:980px){[data-bp-grid]{grid-template-columns:minmax(0,1.34fr) minmax(0,1fr)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}[data-spin]{animation:none}}</style>
+</helmet>
+
+<div style="font-family:var(--vt-font-body);background:var(--vt-bg-page);min-height:100vh">
+<dc-import name="SiteHeader" variant="inverse" hint-size="100%,76px"></dc-import>
+
+<main data-screen-label="Become a partner">
+
+<header style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);position:relative;overflow:hidden">
+<div aria-hidden="true" style="position:absolute;top:0;inset-inline-end:0;width:120px;height:120px;background:url(../assets/patterns/checker-mark.png) top right / 56px auto no-repeat;opacity:.9"></div>
+<div style="max-width:1200px;margin:0 auto;padding:44px clamp(20px,5vw,56px) 40px">
+<nav aria-label="Breadcrumb" style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted);margin-bottom:26px">
+<a href="home.dc.html" style="color:inherit;text-decoration:none">Home</a><span aria-hidden="true">/</span><span style="color:var(--vt-text-inverse)">Become a partner</span>
+</nav>
+<p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">Drivers and fleet owners</p>
+<h1 style="margin:0 0 18px;max-width:20ch;font-family:var(--vt-font-display);font-size:var(--vt-display-2);line-height:var(--vt-display-leading);letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty">Drive with Vamos</h1>
+<p style="margin:0;max-width:60ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">You drive professionally in the Zurich area and you want the work. Every transfer we sell is booked ahead at a fixed price, so the schedule is known before anyone gets in the car. Tell us about yourself — one form, and we take it from there.</p>
+<sc-if value="{{ scaffold }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin-top:32px;padding-top:24px;border-top:1px solid var(--vt-border-inverse)">
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">State</span>
+<div data-seg="1" role="group" aria-label="Preview form state">
+<button type="button" onClick="{{ setEmpty }}" aria-pressed="{{ pEmpty }}">Empty</button>
+<button type="button" onClick="{{ setBlocked }}" aria-pressed="{{ pBlocked }}">Consent not ticked</button>
+<button type="button" onClick="{{ setInvalid }}" aria-pressed="{{ pInvalid }}">Validation errors</button>
+<button type="button" onClick="{{ setSending }}" aria-pressed="{{ pSending }}">Sending</button>
+<button type="button" onClick="{{ setSent }}" aria-pressed="{{ pSent }}">Confirmation</button>
+</div>
+<p style="margin:0;flex:1 1 240px;min-width:0;font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted)">The form is live — every state above is reachable by using it. This switcher is for review only, and so is the note at the foot of the page.</p>
+</div>
+</sc-if>
+</div>
+</header>
+
+<div style="max-width:1200px;margin:0 auto;padding:clamp(36px,4vw,52px) clamp(20px,5vw,56px) 0">
+<div data-bp-grid="1">
+
+<section aria-labelledby="bp-form-h">
+
+<sc-if value="{{ isSent }}" hint-placeholder-val="{{ false }}">
+<div role="status" aria-live="polite" style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);padding:clamp(26px,3vw,36px)">
+<div style="width:52px;height:52px;border-radius:var(--vt-radius-pill);background:var(--vt-success-tint);display:grid;place-items:center;margin-bottom:18px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-check" size="{{ n24 }}" color="var(--vt-success)" hint-size="24px,24px"></x-import>
+</div>
+<h2 style="margin:0 0 10px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Application received</h2>
+<p style="margin:0 0 8px;max-width:52ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Thank you, <strong style="color:var(--vt-text-primary);font-weight:var(--vt-weight-semibold)">{{ sentName }}</strong>. Someone on our team reads every application and comes back to you on <strong style="color:var(--vt-text-primary);font-weight:var(--vt-weight-semibold)">{{ sentTo }}</strong> within <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Partner reply time</span>.</p>
+<p style="margin:0 0 22px;max-width:52ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">There is nothing to do in the meantime. No account was created, so there is no login and no status page — the background check and the vehicle inspection are arranged with you directly, by phone and email.</p>
+<div style="display:flex;flex-wrap:wrap;gap:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" href="home.dc.html" hint-size="150px,44px">Back to home</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" href="contact.dc.html" hint-size="140px,44px">Contact us</x-import>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ showForm }}" hint-placeholder-val="{{ true }}">
+<h2 id="bp-form-h" style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Apply to drive</h2>
+<p style="margin:0 0 26px;max-width:58ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Six answers is the whole application. We only ask for what we need to decide whether to call you.</p>
+
+<form novalidate="novalidate" onSubmit="{{ submit }}" style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);padding:clamp(22px,2.6vw,32px);display:flex;flex-direction:column;gap:22px">
+
+<sc-if value="{{ isInvalid }}" hint-placeholder-val="{{ false }}">
+<div ref="{{ errRef }}" tabindex="-1" role="alert" style="outline:none">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ errTitle }}" hint-size="100%,88px">Nothing has been sent. The fields below are marked — fix those and try again.</x-import>
+</div>
+</sc-if>
+
+<p data-grp="1">About you</p>
+
+<div data-row2="1">
+<div data-fld="1" data-bad="{{ badName }}">
+<label for="bp-name">Full name</label>
+<input id="bp-name" name="name" type="text" autocomplete="name" placeholder="Ben Othman" value="{{ vName }}" onInput="{{ onName }}" disabled="{{ isSending }}" aria-invalid="{{ aName }}" aria-describedby="bp-name-e">
+<sc-if value="{{ badName }}" hint-placeholder-val="{{ false }}">
+<p id="bp-name-e" data-err="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>Tell us what to call you</p>
+</sc-if>
+</div>
+<div data-fld="1" data-bad="{{ badCity }}">
+<label for="bp-city">Where you drive</label>
+<input id="bp-city" name="city" type="text" autocomplete="address-level2" placeholder="Zurich" value="{{ vCity }}" onInput="{{ onCity }}" disabled="{{ isSending }}" aria-invalid="{{ aCity }}" aria-describedby="bp-city-e bp-city-h">
+<sc-if value="{{ badCity }}" hint-placeholder-val="{{ false }}">
+<p id="bp-city-e" data-err="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>Name the city or canton you work from</p>
+</sc-if>
+<p id="bp-city-h" data-hint="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>Your base, not the routes you want. We start in the Zurich area.</p>
+</div>
+</div>
+
+<div data-row2="1">
+<div data-fld="1" data-bad="{{ badPhone }}">
+<label for="bp-phone">Phone{{ phoneOpt }}</label>
+<input id="bp-phone" name="phone" type="tel" autocomplete="tel" placeholder="+41 79 000 00 00" value="{{ vPhone }}" onInput="{{ onPhone }}" disabled="{{ isSending }}" aria-invalid="{{ aPhone }}" aria-describedby="bp-phone-e">
+<sc-if value="{{ badPhone }}" hint-placeholder-val="{{ false }}">
+<p id="bp-phone-e" data-err="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>{{ phoneErr }}</p>
+</sc-if>
+</div>
+<div data-fld="1" data-bad="{{ badEmail }}">
+<label for="bp-email">Email{{ emailOpt }}</label>
+<input id="bp-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" value="{{ vEmail }}" onInput="{{ onEmail }}" disabled="{{ isSending }}" aria-invalid="{{ aEmail }}" aria-describedby="bp-email-e">
+<sc-if value="{{ badEmail }}" hint-placeholder-val="{{ false }}">
+<p id="bp-email-e" data-err="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>{{ emailErr }}</p>
+</sc-if>
+</div>
+</div>
+<p data-hint="1" style="margin:-8px 0 0"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>{{ contactHint }}</p>
+
+<p data-grp="1">Your vehicle and licence</p>
+
+<div data-fld="1" data-bad="{{ badVehicle }}">
+<label for="bp-vehicle">Vehicle type</label>
+<sc-if value="{{ vehicleAsText }}" hint-placeholder-val="{{ true }}">
+<input id="bp-vehicle" name="vehicle" type="text" placeholder="Mercedes V-Class, 7 seats" value="{{ vVehicle }}" onInput="{{ onVehicle }}" disabled="{{ isSending }}" aria-invalid="{{ aVehicle }}" aria-describedby="bp-vehicle-e bp-vehicle-h">
+</sc-if>
+<sc-if value="{{ vehicleAsList }}" hint-placeholder-val="{{ false }}">
+<span data-selwrap="1">
+<select id="bp-vehicle" name="vehicle" value="{{ vVehicle }}" onChange="{{ onVehicle }}" disabled="{{ isSending }}" aria-invalid="{{ aVehicle }}" aria-describedby="bp-vehicle-e bp-vehicle-h">
+<option value="">Choose the closest match</option>
+<sc-for list="{{ vehicleOptions }}" as="o" hint-placeholder-count="5">
+<option value="{{ o }}">{{ o }}</option>
+</sc-for>
+</select>
+<span data-caret="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import></span>
+</span>
+</sc-if>
+<sc-if value="{{ badVehicle }}" hint-placeholder-val="{{ false }}">
+<p id="bp-vehicle-e" data-err="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>Tell us what you drive</p>
+</sc-if>
+<p id="bp-vehicle-h" data-hint="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="car-front" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">Make, model and how many passengers it seats. Ours is an open field until the <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Partner vehicle classes</span> are agreed.</span></p>
+</div>
+
+<div data-fld="1" data-bad="{{ badPermit }}">
+<label for="bp-permit">Licence and permits</label>
+<input id="bp-permit" name="permit" type="text" placeholder="Professional driving licence, category B121" value="{{ vPermit }}" onInput="{{ onPermit }}" disabled="{{ isSending }}" aria-invalid="{{ aPermit }}" aria-describedby="bp-permit-e bp-permit-h">
+<sc-if value="{{ badPermit }}" hint-placeholder-val="{{ false }}">
+<p id="bp-permit-e" data-err="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>Say which licence or permit you hold</p>
+</sc-if>
+<p id="bp-permit-h" data-hint="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">In words is enough here — <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Required permits</span>. No documents at this stage; we ask for those when we come back to you.</span></p>
+</div>
+
+<p data-grp="1">Consent</p>
+
+<div style="display:flex;flex-direction:column;gap:14px">
+<label data-cons="1">
+<input type="checkbox" name="terms" checked="{{ cTerms }}" onChange="{{ onTerms }}" disabled="{{ isSending }}">
+<span data-consbox="1"><sc-if value="{{ cTerms }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import></sc-if></span>
+<span>I have read and accept the <a href="terms.dc.html">terms and conditions</a>.</span>
+</label>
+<label data-cons="1">
+<input type="checkbox" name="privacy" checked="{{ cPrivacy }}" onChange="{{ onPrivacy }}" disabled="{{ isSending }}">
+<span data-consbox="1"><sc-if value="{{ cPrivacy }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import></sc-if></span>
+<span>I agree that Vamos Taxi may keep and check the details I give here, as set out in the <a href="privacy.dc.html">privacy policy</a>.</span>
+</label>
+</div>
+
+<div style="border-top:1px solid var(--vt-grey-200);padding-top:20px;display:flex;flex-direction:column;gap:18px">
+<p style="margin:0;max-width:62ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)"><strong style="color:var(--vt-text-primary);font-weight:var(--vt-weight-semibold)">Two checks come after this form.</strong> A background check on you and an inspection of your vehicle. Neither happens here — if your application goes forward we arrange both with you, and ask for documents then.</p>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px 20px">
+<sc-if value="{{ isSending }}" hint-placeholder-val="{{ false }}">
+<span style="display:inline-flex;align-items:center;gap:10px;height:54px;padding:0 28px;border-radius:var(--vt-radius-pill);background:var(--vt-accent);color:var(--vt-text-on-accent);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;opacity:.42;cursor:not-allowed">
+<span data-spin="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="loader-circle" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span>Sending</span>
+</sc-if>
+<sc-if value="{{ canSend }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" type="submit" iconEnd="arrow-right" hint-size="230px,54px">Send application</x-import>
+</sc-if>
+<sc-if value="{{ isBlocked }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" type="submit" disabled="{{ yes }}" iconEnd="arrow-right" hint-size="230px,54px">Send application</x-import>
+</sc-if>
+<sc-if value="{{ isBlocked }}" hint-placeholder-val="{{ true }}">
+<p aria-live="polite" style="margin:0;flex:1 1 240px;min-width:0;display:flex;align-items:flex-start;gap:8px;font-size:var(--vt-body-sm);line-height:1.5;font-weight:var(--vt-weight-medium);color:var(--vt-text-primary)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n16 }}" color="var(--vt-yellow-700)" hint-size="16px,16px"></x-import>{{ blockedNote }}</p>
+</sc-if>
+<sc-if value="{{ notBlocked }}" hint-placeholder-val="{{ false }}">
+<p style="margin:0;flex:1 1 220px;min-width:0;font-size:var(--vt-body-xs);line-height:1.5;color:var(--vt-text-muted)">Sending this does not create an account and does not commit either of us to anything.</p>
+</sc-if>
+</div>
+</div>
+
+</form>
+</sc-if>
+</section>
+
+<aside aria-labelledby="bp-after-h">
+<h2 id="bp-after-h" style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">After you send</h2>
+<p style="margin:0 0 22px;max-width:46ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Three steps, all of them run by a person. None of them happen inside this page.</p>
+
+<div style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);padding:6px 22px 10px">
+<div data-step="1">
+<span data-step-n="1">01</span>
+<span><span data-step-k="1">We read it</span><span data-step-s="1">Every application is read by the dispatch team. You hear back within <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Partner reply time</span>, either way.</span></span>
+</div>
+<div data-step="1">
+<span data-step-n="1">02</span>
+<span><span data-step-k="1">Background check</span><span data-step-s="1">We verify your licence and run a check on you. We ask for the documents and your written consent at that point, not now.</span></span>
+</div>
+<div data-step="1">
+<span data-step-n="1">03</span>
+<span><span data-step-k="1">Vehicle inspection</span><span data-step-s="1">Your car is seen in person before your first transfer. We arrange a time and place with you.</span></span>
+</div>
+</div>
+
+<div style="margin-top:20px;background:var(--vt-bg-inverse);color:var(--vt-text-inverse);border-radius:var(--vt-radius-lg);padding:22px">
+<p style="margin:0 0 12px;display:flex;align-items:center;gap:9px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="shield-check" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>No portal, on purpose</p>
+<p style="margin:0 0 14px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">There is no driver login, no application dashboard and nothing to check back on. You send this once; after that we talk to you directly.</p>
+<p style="margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Questions before you apply? Call <a href="tel:+41796267082" style="color:var(--vt-accent);text-decoration:none">+41 79 626 70 82</a>.</p>
+</div>
+
+<div style="margin-top:20px">
+<div data-slot="1">
+<p data-slot-k="1">Client input · who qualifies</p>
+<p>Nothing on record says what a Vamos partner must already have — permit class, vehicle age, insurance cover, languages, minimum availability. Until that arrives this stays a gap rather than a guess: the form asks, and a person decides.</p>
+</div>
+</div>
+</aside>
+
+</div>
+</div>
+
+<sc-if value="{{ scaffold }}" hint-placeholder-val="{{ true }}">
+<section aria-label="Review scaffold" style="max-width:1200px;margin:0 auto;padding:clamp(44px,5vw,68px) clamp(20px,5vw,56px) 0">
+<div style="display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin-bottom:26px">
+<div data-flag="1">
+<p data-flag-k="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="triangle-alert" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import>A12 · build this page, or unlink it</p>
+<p>The footer's Company column links <span style="color:var(--vt-charcoal-900)">become-a-partner</span> and the About page ends with a CTA to it, but the page was never in V1 scope. That is why this one is drawn light: structure, fields and copy, no photography and no illustration to throw away.</p>
+<p><strong style="color:var(--vt-charcoal-900);font-weight:var(--vt-weight-semibold)">Two outcomes.</strong> Build it and this becomes the real funnel. Unlink it and the footer link plus the About CTA come out — and this file goes in the bin, not into V1 half-finished.</p>
+</div>
+<div data-flag="1">
+<p data-flag-k="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="triangle-alert" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import>Two fields are guesses waiting to be told otherwise</p>
+<p><strong style="color:var(--vt-charcoal-900);font-weight:var(--vt-weight-semibold)">Vehicle type</strong> is a free text field, because the partner-side vehicle classes are not agreed. The <span style="color:var(--vt-charcoal-900)">vehicleTypeControl</span> tweak shows the same field as a provisional dropdown so both can be judged side by side — the list in it is body types, not Vamos classes, and is not a final answer.</p>
+<p><strong style="color:var(--vt-charcoal-900);font-weight:var(--vt-weight-semibold)">Licence and permits</strong> is one text line. No upload, no document flow, no permit-number format validation — all three are speculative until somebody says what is actually required.</p>
+</div>
+<div data-slot="1">
+<p data-slot-k="1">Out of scope · where a submission lands</p>
+<p>No backend, no storage, no routing, and no admin table to read applications in. The confirmation state is the end of the deliverable. Whoever picks this up needs an inbox or an ops screen before it can go live.</p>
+</div>
+</div>
+
+<div style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);border-radius:var(--vt-radius-xl);padding:clamp(26px,3vw,40px)">
+<p style="margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">Review scaffold — not part of the published page</p>
+<h2 style="margin:0 0 26px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse)">Where this page stands</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:32px">
+<div>
+<p style="margin:0 0 14px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">States built — 5</p>
+<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading-tight);color:rgb(255 255 255 / .84)">
+<li>Empty form</li>
+<li>Consent not ticked · submit blocked</li>
+<li>Validation errors · per field, plus a summary</li>
+<li>Sending · every input locked</li>
+<li>Confirmation · a dead end by design</li>
+</ul>
+</div>
+<div>
+<p style="margin:0 0 14px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Decisions — 4</p>
+<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading-tight);color:rgb(255 255 255 / .84)">
+<li>A12 — build it or unlink it</li>
+<li>Partner vehicle classes</li>
+<li>Which permits are required</li>
+<li>Phone or email, or both</li>
+</ul>
+</div>
+<div>
+<p style="margin:0 0 14px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Deliberately absent — 4</p>
+<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading-tight);color:rgb(255 255 255 / .84)">
+<li>Any kind of applicant login</li>
+<li>Status tracking after submit</li>
+<li>Document upload</li>
+<li>An admin view of submissions</li>
+</ul>
+</div>
+</div>
+<p style="margin:30px 0 0;padding-top:22px;border-top:1px solid var(--vt-border-inverse);font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted);max-width:78ch">English only this cycle, like every other screen in it — none of this copy is in the translation dictionary yet, so switching language relabels the header and footer around it. German lands with M004, and the strings here are short enough to grow.</p>
+</div>
+</section>
+</sc-if>
+
+<div style="height:clamp(40px,4vw,56px)"></div>
+</main>
+
+<dc-import name="SiteFooter" hint-size="100%,520px"></dc-import>
+<dc-import name="CookieBanner" start-state="{{ cookieState }}" hint-size="0,0"></dc-import>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;vehicleTypeControl&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;text&quot;,&quot;list&quot;],&quot;default&quot;:&quot;text&quot;,&quot;tsType&quot;:&quot;'text'|'list'&quot;,&quot;section&quot;:&quot;Unresolved fields&quot;},&quot;contactRequirement&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;either&quot;,&quot;both&quot;],&quot;default&quot;:&quot;both&quot;,&quot;tsType&quot;:&quot;'either'|'both'&quot;,&quot;section&quot;:&quot;Unresolved fields&quot;},&quot;showReviewScaffold&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Review&quot;},&quot;cookieState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;banner&quot;,&quot;prefs&quot;,&quot;hidden&quot;],&quot;default&quot;:&quot;auto&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Review&quot;}}">
+const VEHICLES = ['Saloon or sedan', 'Estate', 'Van or minibus, up to 8 seats', 'Minibus, 9 seats or more', 'Something else'];
+const FILLED = {
+  name: 'Ben Othman', city: 'Zurich', phone: '+41 79 000 00 00', email: 'ben@example.com',
+  vehicle: 'Mercedes V-Class, 7 seats', permit: 'Professional driving licence, category B121',
+};
+
+class Component extends DCLogic {
+  state = {
+    phase: 'default', // default | invalid | sending | sent
+    name: '', city: '', phone: '', email: '', vehicle: '', permit: '',
+    terms: false, privacy: false, bad: {}, sentName: '', sentTo: '',
+  };
+  errRef = React.createRef();
+
+  set(k) { return (e) => {
+    const v = e.target.value;
+    this.setState((s) => {
+      const bad = Object.assign({}, s.bad);
+      delete bad[k];
+      // Phone and email answer one requirement between them, so touching either clears it.
+      if (k === 'phone' || k === 'email') { delete bad.phone; delete bad.email; }
+      const next = { bad, [k]: v };
+      if (s.phase === 'invalid' && !Object.keys(bad).length) next.phase = 'default';
+      return next;
+    });
+  }; }
+
+  toggle(k) { return () => this.setState((s) => ({ [k]: !s[k] })); }
+
+  bothContacts() { return (this.props.contactRequirement || 'either') === 'both'; }
+
+  validate() {
+    const s = this.state, bad = {};
+    if (!s.name.trim()) bad.name = 'missing';
+    if (!s.city.trim()) bad.city = 'missing';
+    const ph = s.phone.trim(), em = s.email.trim();
+    const phOk = /^[+0-9][0-9 ()./-]{6,}$/.test(ph);
+    const emOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em);
+    if (this.bothContacts()) {
+      if (!ph) bad.phone = 'missing'; else if (!phOk) bad.phone = 'format';
+      if (!em) bad.email = 'missing'; else if (!emOk) bad.email = 'format';
+    } else {
+      if (!ph && !em) { bad.phone = 'either'; bad.email = 'either'; }
+      else {
+        if (ph && !phOk) bad.phone = 'format';
+        if (em && !emOk) bad.email = 'format';
+      }
+    }
+    if (!s.vehicle.trim()) bad.vehicle = 'missing';
+    if (!s.permit.trim()) bad.permit = 'missing';
+    return bad;
+  }
+
+  submit = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!this.state.terms || !this.state.privacy) return; // the submit is disabled in this state
+    const bad = this.validate();
+    if (Object.keys(bad).length) {
+      this.setState({ phase: 'invalid', bad }, () => { const el = this.errRef.current; if (el) el.focus(); });
+      return;
+    }
+    this.setState({ phase: 'sending', bad: {} });
+    clearTimeout(this._t);
+    this._t = setTimeout(() => this.setState((s) => ({
+      phase: 'sent',
+      sentName: s.name.trim().split(/\s+/)[0] || s.name.trim(),
+      sentTo: s.email.trim() || s.phone.trim(),
+    })), 1500);
+  };
+
+  componentWillUnmount() { clearTimeout(this._t); }
+
+  go(phase) {
+    clearTimeout(this._t);
+    if (phase === 'default') {
+      this.setState({ phase: 'default', name: '', city: '', phone: '', email: '', vehicle: '', permit: '', terms: false, privacy: false, bad: {} });
+      return;
+    }
+    if (phase === 'blocked') {
+      this.setState(Object.assign({ phase: 'default', bad: {}, terms: false, privacy: false }, FILLED));
+      return;
+    }
+    if (phase === 'invalid') {
+      this.setState(Object.assign({}, FILLED, {
+        phase: 'invalid', terms: true, privacy: true,
+        name: '', phone: '', email: 'ben@example', permit: '',
+        bad: { name: 'missing', email: 'format', permit: 'missing' },
+      }));
+      return;
+    }
+    if (phase === 'sent') {
+      this.setState(Object.assign({ phase: 'sent', bad: {}, terms: true, privacy: true, sentName: 'Ben', sentTo: FILLED.email }, FILLED));
+      return;
+    }
+    this.setState(Object.assign({ phase: 'sending', bad: {}, terms: true, privacy: true }, FILLED));
+  }
+
+  setEmpty = () => this.go('default');
+  setBlocked = () => this.go('blocked');
+  setInvalid = () => this.go('invalid');
+  setSending = () => this.go('sending');
+  setSent = () => this.go('sent');
+
+  renderVals() {
+    const s = this.state, bad = s.bad, p = s.phase;
+    const consented = s.terms && s.privacy;
+    const both = this.bothContacts();
+    const filled = !!(s.name || s.city || s.phone || s.email || s.vehicle || s.permit);
+    const nBad = Object.keys(bad).length;
+    const listed = (this.props.vehicleTypeControl || 'text') === 'list';
+    const optional = both ? '' : ' — one of these two';
+    return {
+      n14: 14, n16: 16, n18: 18, n24: 24, yes: true,
+      showForm: p !== 'sent',
+      isSent: p === 'sent',
+      isSending: p === 'sending',
+      isInvalid: p === 'invalid',
+      isBlocked: p !== 'sending' && !consented,
+      notBlocked: p !== 'sending' && consented,
+      canSend: p !== 'sending' && consented,
+      pEmpty: p === 'default' && !filled ? 'true' : 'false',
+      pBlocked: p === 'default' && filled && !consented ? 'true' : 'false',
+      pInvalid: p === 'invalid' ? 'true' : 'false',
+      pSending: p === 'sending' ? 'true' : 'false',
+      pSent: p === 'sent' ? 'true' : 'false',
+      blockedNote: !s.terms && !s.privacy ? 'Both boxes above are required before you can send this.'
+        : 'One box above is still unticked.',
+      errTitle: nBad === 1 ? 'One field needs your attention' : nBad + ' fields need your attention',
+      phoneOpt: optional, emailOpt: optional,
+      contactHint: both
+        ? 'We use the phone number to reach you about a shift and the address for anything in writing.'
+        : 'One is enough. Give us both if you want the quickest answer — we call about shifts and write about paperwork.',
+      phoneErr: bad.phone === 'either' ? 'Give us at least one way to reach you' : bad.phone === 'missing' ? 'We need a number to call you on' : 'Check the number — include the country code',
+      emailErr: bad.email === 'either' ? 'A phone number or an email, either will do' : bad.email === 'missing' ? 'We need an address to write to' : 'That address is missing something — check it over',
+      vName: s.name, vCity: s.city, vPhone: s.phone, vEmail: s.email, vVehicle: s.vehicle, vPermit: s.permit,
+      onName: this.set('name'), onCity: this.set('city'), onPhone: this.set('phone'),
+      onEmail: this.set('email'), onVehicle: this.set('vehicle'), onPermit: this.set('permit'),
+      badName: !!bad.name, badCity: !!bad.city, badPhone: !!bad.phone, badEmail: !!bad.email,
+      badVehicle: !!bad.vehicle, badPermit: !!bad.permit,
+      aName: bad.name ? 'true' : 'false', aCity: bad.city ? 'true' : 'false',
+      aPhone: bad.phone ? 'true' : 'false', aEmail: bad.email ? 'true' : 'false',
+      aVehicle: bad.vehicle ? 'true' : 'false', aPermit: bad.permit ? 'true' : 'false',
+      cTerms: s.terms, cPrivacy: s.privacy, onTerms: this.toggle('terms'), onPrivacy: this.toggle('privacy'),
+      vehicleAsText: !listed, vehicleAsList: listed, vehicleOptions: VEHICLES,
+      sentName: s.sentName, sentTo: s.sentTo,
+      submit: this.submit, errRef: this.errRef,
+      setEmpty: this.setEmpty, setBlocked: this.setBlocked, setInvalid: this.setInvalid,
+      setSending: this.setSending, setSent: this.setSent,
+      scaffold: (this.props.showReviewScaffold ?? true) !== false,
+      cookieState: this.props.cookieState || 'auto',
+    };
+  }
+}
+
+</script>
+</body>
+</html>

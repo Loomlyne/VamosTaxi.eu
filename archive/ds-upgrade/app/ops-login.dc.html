@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../tokens/fonts.css">
+<link rel="stylesheet" href="../tokens/colors.css">
+<link rel="stylesheet" href="../tokens/typography.css">
+<link rel="stylesheet" href="../tokens/spacing.css">
+<link rel="stylesheet" href="../tokens/elevation.css">
+<link rel="stylesheet" href="../tokens/motion.css">
+<link rel="stylesheet" href="../tokens/base.css">
+<link rel="stylesheet" href="../components/mobile/fig-tokens.css">
+<link rel="stylesheet" href="../components/mobile/fig-assets.css">
+<link rel="stylesheet" href="../styles.css">
+<script src="../_ds_bundle.js"></script>
+<link rel="stylesheet" href="../assets/lenis.css">
+<script src="../assets/lenis.js"></script>
+<script src="../assets/lenis-boot.js"></script>
+<script src="vamos-i18n-dict.js"></script>
+<script src="vamos-locale.js"></script>
+<style>:root{--vt-icon-base:"../assets/icons/";--vt-logo-base:"../assets/logo/";--vt-pattern-base:"../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}.vt-select .vt-input--focus{box-shadow:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none;box-shadow:none}
+body{margin:0;background:var(--vt-bg-inverse)}a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+[data-ol-note]{margin:0;text-align:center;max-width:34ch;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);line-height:1.5;color:var(--vt-text-inverse-muted)}
+[data-ol-back]{display:inline-flex;align-items:center;gap:8px;color:var(--vt-text-inverse-muted);font-size:var(--vt-body-sm);text-decoration:none;border:0;transition:color 140ms var(--vt-ease-standard)}
+[data-ol-back]:hover{color:var(--vt-white)}
+:focus-visible{outline:3px solid rgb(253 194 11 / .45);outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
+</helmet>
+<div data-screen-label="Ops sign in" style="font-family:var(--vt-font-body);color:var(--vt-text-primary);background:var(--vt-bg-inverse);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;box-sizing:border-box;gap:24px;position:relative;overflow:hidden">
+<div style="position:absolute;inset:0;background-image:url(../assets/patterns/checker-tile.png);background-size:112px;opacity:.05"></div>
+<div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:24px;width:100%;max-width:420px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" height="{{ n28 }}" hint-size="130px,28px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" hint-size="100%,420px">
+<dc-import name="AuthForm" surface="ops" mode="signin" method="password" stage="form" hint-size="100%,420px"></dc-import>
+</x-import>
+<p data-ol-note="1">Internal tool — dispatcher and admin access only. Customer accounts sign in at <a href="sign-in.dc.html" style="color:var(--vt-yellow)">the site sign-in</a>.</p>
+<a href="home.dc.html" data-ol-back="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-left" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>Vamos Taxi site
+</a>
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() { return { n14: 14, n28: 28 }; }
+}
+
+</script>
+</body>
+</html>

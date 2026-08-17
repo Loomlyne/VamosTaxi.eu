@@ -1,0 +1,29 @@
+<!-- @dsCard group="Laws" viewport="760x230" name="No glow, ever" subtitle="Hover changes colour, press moves 1px, focus shows the ring — nothing halos" -->
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>No glow</title>
+<link rel="stylesheet" href="../styles.css">
+<style>body{margin:0;padding:20px 22px;background:var(--vt-bg-page);font-family:var(--vt-font-body);color:var(--vt-text-primary)}
+h4{margin:0 0 10px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+.row{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}
+.col{flex:1 1 260px;min-width:0}
+.n{margin:10px 0 0;font-size:12px;line-height:1.5;color:var(--vt-text-muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 24px;border:1px solid var(--vt-charcoal-900);border-radius:999px;background:var(--vt-yellow);color:var(--vt-charcoal-900);font-size:13px;font-weight:600;letter-spacing:.09em;text-transform:uppercase}
+</style></head><body>
+<div class="row">
+  <div class="col">
+    <h4>Wrong — the retired accent shadow</h4>
+    <span class="btn" style="box-shadow:0 8px 24px rgb(253 194 11/.34);background:#F5B800">Book a transfer</span>
+    <p class="n">A yellow 34 %-alpha halo. <code>--vt-shadow-accent</code> is now <code>none</code>; no coloured or blurred shadow appears on any element, in any state.</p>
+  </div>
+  <div class="col">
+    <h4>Right — hover is a colour step</h4>
+    <span class="btn" style="background:#F5B800">Book a transfer</span>
+    <p class="n">Allowed on hover / press / focus: a colour or fill change, a border change, <code>translateY(1px)</code> on press, the neutral <code>--vt-shadow-xs…xl</code>, and <code>--vt-ring</code>.</p>
+  </div>
+  <div class="col">
+    <h4>Fields are the ring exception</h4>
+    <span style="display:flex;align-items:center;height:54px;padding:0 20px;border:2px solid var(--vt-charcoal-900);border-radius:var(--vt-radius-field);background:var(--vt-white);box-shadow:none;font-size:15px">Zurich Airport (ZRH)</span>
+    <p class="n">A focused text field shows the charcoal border only. On a pill field of this height the ring reads as a glow.</p>
+  </div>
+</div>
+</body></html>

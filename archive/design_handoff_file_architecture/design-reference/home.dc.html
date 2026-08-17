@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="../support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-tokens.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-assets.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<style>:root{--vt-icon-base:"../assets/icons/";--vt-logo-base:"../assets/logo/";--vt-pattern-base:"../assets/patterns/";--vt-shadow-accent:none}body{margin:0}@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}a{color:var(--vt-text-link)}a:hover{color:var(--vt-text-link-hover)}@keyframes vt-skelpulse{0%,100%{opacity:.5}50%{opacity:.85}}
+@keyframes vt-fade-in{from{opacity:0}to{opacity:1}}
+@keyframes vt-sheet-in{from{transform:translateY(14px);opacity:.5}to{transform:translateY(0);opacity:1}}
+@keyframes vt-slide-up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+[data-fields]{display:grid;gap:10px;grid-template-columns:minmax(0,1fr);grid-template-areas:"pickup" "swap" "dest" "when" "party" "flight"}
+[data-f=pickup]{grid-area:pickup}[data-f=swap]{grid-area:swap}[data-f=dest]{grid-area:dest}[data-f=when]{grid-area:when}[data-f=party]{grid-area:party}[data-f=flight]{grid-area:flight}
+[data-party]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+[data-swap]{display:flex;align-items:center;justify-content:center;gap:10px}
+[data-bookcard]{padding:12px}
+[data-hero],[data-hero-inner]{min-height:100vh;min-height:100svh}
+[data-fleet-strip]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (max-width:699px){[data-hide-narrow]{display:none!important}
+[data-fleet-img]{height:56px!important}
+[data-fleet-card]{padding:7px 8px!important;min-height:0!important}
+[data-price-row]{flex-direction:column!important;align-items:stretch!important;gap:3px!important}
+[data-price-slot]{width:100%!important}}
+@media (min-width:700px){[data-only-narrow]{display:none!important}
+[data-fields]{grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr);grid-template-areas:"pickup swap dest" "when when when" "party party flight"}
+[data-swap]{padding-top:28px;align-items:flex-start}
+[data-party]{grid-template-columns:repeat(2,minmax(96px,124px));justify-content:end}}
+@media (min-width:700px) and (max-width:1079px){[data-fleet-strip]{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;padding-bottom:8px;gap:10px}
+[data-fleet-card]{flex:0 0 236px;min-width:0;scroll-snap-align:start}}
+@media (max-width:1079px){[data-only-wide]{display:none!important}}
+@media (min-width:1080px){[data-upto-wide]{display:none!important}
+[data-bookcard]{padding:16px clamp(12px,3vw,18px) 14px}
+[data-fields]{grid-template-columns:minmax(0,1.15fr) 44px minmax(0,1.15fr) minmax(0,1.2fr) auto 126px;grid-template-areas:"pickup swap dest when party flight"}
+[data-party]{grid-template-columns:repeat(2,108px)}
+[data-fleet-strip]{grid-template-columns:repeat(auto-fit,minmax(238px,1fr));gap:10px}}
+[data-shell]{display:block}
+[data-sheetbody]{display:flex;flex-direction:column;gap:14px}
+[data-sheetonly]{display:none}
+[data-swaprot]{display:inline-flex}
+@media (max-width:1079px){[data-shell][data-open="0"]{display:none}
+[data-shell][data-open="1"]{position:fixed;inset:0;z-index:400;background:var(--vt-bg-scrim);display:flex;align-items:flex-end;justify-content:center;animation:vt-fade-in 140ms ease}
+[data-shell][data-open="1"] [data-sheetbody]{width:100%;max-width:640px;max-height:92svh;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl) var(--vt-radius-xl) 0 0;box-shadow:var(--vt-shadow-xl);padding:14px 22px 22px;gap:13px;animation:vt-slide-up 280ms cubic-bezier(.16,1,.3,1)}
+[data-shell][data-open="1"] [data-sheetonly="1"]{display:flex}
+[data-shell][data-open="1"] [data-sheetonly="cta"]{display:block}}
+@media (max-width:699px){[data-shell][data-open="1"] [data-sheetbody]{padding:12px 16px 20px}
+[data-swaprot]{transform:rotate(90deg)}}</style>
+</helmet>
+<div style="font-family:var(--vt-font-body);color:var(--vt-text-primary);background:var(--vt-bg-page)">
+
+
+
+<div dir="{{ dir }}" data-hero="1" data-screen-label="Hero" style="position: relative; overflow: hidden; background: url(&quot;../hero-arrivals.jpg&quot;) center / cover no-repeat; box-shadow: var(--vt-shadow-xl)" data-om-label="Hero section">
+
+<div aria-hidden="true" style="position:absolute;top:-40px;inset-inline-end:-40px;width:clamp(240px,62vw,620px);height:clamp(240px,62vw,620px);background-image:conic-gradient(from 90deg at 50% 50%, var(--vt-yellow) 0 25%, transparent 0 50%, var(--vt-yellow) 0 75%, transparent 0);background-size:clamp(46px,9.6vw,96px) clamp(46px,9.6vw,96px);opacity:.16;-webkit-mask-image:radial-gradient(72% 72% at 100% 0%, #000 0%, rgb(0 0 0/.35) 46%, transparent 74%);mask-image:radial-gradient(72% 72% at 100% 0%, #000 0%, rgb(0 0 0/.35) 46%, transparent 74%)" data-om-label="Element"></div>
+<div aria-hidden="true" style="position:absolute;inset:0;background:linear-gradient(to bottom, rgb(20 21 21/.34) 0%, rgb(20 21 21/.12) 24%, rgb(20 21 21/.82) 100%)"></div>
+
+
+<div data-hero-inner="1" style="position: relative; padding: 0 clamp(16px,4.5vw,40px) clamp(26px,4.5vw,40px); display: flex; flex-direction: column; box-sizing: border-box; max-width: 1440px; margin: 0 auto">
+<div style="position:relative;z-index:120;display:flex;align-items:center;gap:10px;min-height:clamp(60px,8vw,84px)" data-om-label="header">
+<a href="home.dc.html" aria-label="Vamos Taxi — home" style="display:inline-flex;align-items:center;flex:0 0 auto;border:0;text-decoration:none">
+<span data-only-wide="1" style="display:inline-flex"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" form="wordmark" height="{{ n24 }}" hint-size="112px,24px"></x-import></span>
+<span data-upto-wide="1" style="display:inline-flex"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" form="mark" height="{{ n30 }}" hint-size="30px,30px"></x-import></span>
+</a>
+
+<div data-only-wide="1" style="margin-inline-start:auto;display:flex;align-items:center;gap:10px;justify-content:flex-end;min-width:0">
+<a href="tel:+41796267082" aria-label="+41 79 626 70 82" style="display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px;border-radius:999px;background:var(--vt-white);border:1px solid rgb(30 31 31/.10);box-shadow:0 1px 2px rgb(0 0 0/.10);color:var(--vt-charcoal-900);font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="phone" size="{{ n16 }}" color="var(--vt-yellow-700)" hint-size="16px,16px"></x-import><span>+41 79 626 70 82</span></a>
+<dc-import name="BrandSelect" value="{{ lang }}" options="{{ langOptions }}" onSelect="{{ pickLang }}" icon="globe" a11ylabel="Language" hint-size="92px,36px"></dc-import>
+<dc-import name="BrandSelect" value="{{ cur }}" options="{{ curOptions }}" onSelect="{{ pickCur }}" icon="banknote" a11ylabel="Currency" hint-size="104px,36px"></dc-import>
+<a href="ops-login.dc.html" style="height:36px;padding:0 16px;border-radius:999px;background:var(--vt-white);border:1px solid rgb(30 31 31/.10);box-shadow:0 1px 2px rgb(0 0 0/.10);color:var(--vt-charcoal-900);font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:7px;text-decoration:none;white-space:nowrap">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="user" size="{{ n16 }}" color="var(--vt-yellow-700)" hint-size="16px,16px"></x-import><span>{{ tSignIn }}</span></a>
+</div>
+
+<div data-upto-wide="1" data-menuroot="1" style="position:relative;margin-inline-start:auto;display:flex;align-items:center;gap:8px;flex:0 0 auto">
+<a href="tel:+41796267082" aria-label="{{ tCall }}" title="{{ tCall }}" style="width:44px;height:44px;border-radius:999px;background:var(--vt-white);border:1px solid rgb(30 31 31/.10);box-shadow:0 1px 3px rgb(0 0 0/.14);display:inline-flex;align-items:center;justify-content:center;text-decoration:none;flex:0 0 auto">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="phone" size="{{ n18 }}" color="var(--vt-yellow-700)" hint-size="18px,18px"></x-import></a>
+<button type="button" aria-label="{{ tMenu }}" aria-expanded="{{ menuExpanded }}" aria-haspopup="true" onClick="{{ toggleMenu }}" style="all:unset;box-sizing:border-box;width:44px;height:44px;border-radius:999px;background:var(--vt-white);border:1px solid rgb(30 31 31/.10);box-shadow:0 1px 3px rgb(0 0 0/.14);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto" style-focus="box-shadow:var(--vt-ring)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ menuIcon }}" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></button>
+
+<sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+<div role="menu" aria-label="{{ tMenu }}" style="position:absolute;top:calc(100% + 10px);inset-inline-end:0;width:min(300px,calc(100vw - 32px));box-sizing:border-box;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-xl);padding:8px;display:flex;flex-direction:column;gap:2px;z-index:130;animation:vt-sheet-in 180ms cubic-bezier(.16,1,.3,1)">
+
+<a href="ops-login.dc.html" role="menuitem" style="display:flex;align-items:center;justify-content:center;gap:9px;min-height:44px;margin:2px 2px 4px;padding:0 16px;border:1px solid var(--vt-charcoal-900);border-radius:999px;background:var(--vt-white);text-decoration:none;color:var(--vt-charcoal-900);transition:var(--vt-transition-control)" style-hover="background:var(--vt-charcoal-900);color:var(--vt-white)" style-focus="box-shadow:var(--vt-ring)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="user" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+<span style="font-size:14px;font-weight:600;letter-spacing:.01em">{{ tSignIn }}</span></a>
+
+<div style="display:flex;flex-direction:column;gap:7px;padding:2px 10px 6px">
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ tLangLabel }}</span>
+<div style="display:flex;flex-wrap:wrap;gap:6px">
+<sc-for list="{{ menuLangs }}" as="o" hint-placeholder-count="4">
+<button type="button" onClick="{{ o.pick }}" title="{{ o.note }}" style-focus="box-shadow:var(--vt-ring)" style="all:unset;box-sizing:border-box;min-width:44px;height:44px;padding:0 14px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--vt-font-body);font-size:13px;font-weight:600;cursor:pointer;{{ o.css }}">{{ o.label }}</button>
+</sc-for>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:7px;padding:2px 10px 8px">
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ tCurLabel }}</span>
+<div style="display:flex;flex-wrap:wrap;gap:6px">
+<sc-for list="{{ menuCurs }}" as="o" hint-placeholder-count="4">
+<button type="button" onClick="{{ o.pick }}" title="{{ o.note }}" style-focus="box-shadow:var(--vt-ring)" style="all:unset;box-sizing:border-box;min-width:44px;height:44px;padding:0 14px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--vt-font-body);font-size:13px;font-weight:600;cursor:pointer;{{ o.css }}">{{ o.label }}</button>
+</sc-for>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+</div>
+<div style="box-sizing: border-box; display: flex; flex-direction: column; gap: normal; justify-content: flex-end; align-items: normal; flex: 1; min-height: 0"><div style="margin-top:clamp(28px,6vw,52px);max-width:820px;display:flex;flex-direction:column;gap:clamp(10px,2vw,16px)">
+<p style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">{{ tKicker }}</p>
+<h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-display-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);color:var(--vt-white);max-width:16ch;text-wrap:balance">{{ tH1 }}</h1>
+<p style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-lg);line-height:1.6;color:var(--vt-text-inverse-muted);max-width:52ch;text-wrap:pretty">{{ tSub }}</p>
+</div><div id="book" data-bookcard="1" style="margin-top:clamp(20px,4vw,34px);background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-xl);scroll-margin-top:24px">
+
+<div data-upto-wide="1" style="display:flex;flex-direction:column;gap:9px">
+<button type="button" onClick="{{ openSheet }}" aria-haspopup="dialog" aria-expanded="{{ openExpanded }}" style="all:unset;box-sizing:border-box;display:flex;align-items:center;gap:11px;width:100%;min-height:60px;padding:8px 8px 8px 14px;border-radius:var(--vt-radius-field);border:1px solid var(--vt-grey-300);background:var(--vt-grey-50);cursor:pointer;text-align:start;transition:var(--vt-transition-control)" style-hover="border-color:var(--vt-charcoal-900);background:var(--vt-white)" style-focus="border-color:var(--vt-charcoal-900);box-shadow:var(--vt-ring)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="search" size="{{ n18 }}" color="var(--vt-charcoal-900)" hint-size="18px,18px"></x-import>
+<span style="display:flex;flex-direction:column;gap:2px;flex:1 1 auto;min-width:0">
+<span style="font-family:var(--vt-font-body);font-size:14px;font-weight:600;color:var(--vt-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ tripRoute }}</span>
+<span style="display:flex;align-items:center;gap:8px;min-width:0">
+<span style="font-size:11.5px;color:var(--vt-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ tripMeta }}</span>
+<span style="display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--vt-text-muted);flex:0 0 auto"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="users" size="{{ n13 }}" color="var(--vt-text-muted)" hint-size="13px,13px"></x-import>{{ pax }}</span>
+<span style="display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--vt-text-muted);flex:0 0 auto"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="luggage" size="{{ n13 }}" color="var(--vt-text-muted)" hint-size="13px,13px"></x-import>{{ bags }}</span>
+</span>
+</span>
+<span aria-hidden="true" style="width:44px;height:44px;border-radius:999px;background:var(--vt-yellow);display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></span>
+</button>
+
+<div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: space-around">
+<sc-for list="{{ trustBullets }}" as="tb" hint-placeholder-count="3">
+<span data-hide-narrow="{{ tb.hide }}" style="display:inline-flex;align-items:center;gap:6px;font-size:var(--vt-body-xs);color:var(--vt-text-muted);white-space:nowrap">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ tb.icon }}" size="{{ n15 }}" color="{{ tb.color }}" hint-size="15px,15px"></x-import>{{ tb.text }}</span>
+</sc-for>
+</div></div>
+
+<div data-shell="1" data-open="{{ openAttr }}" onClick="{{ scrimClick }}">
+<div data-sheetbody="1" ref="{{ sheetRef }}" role="{{ sheetRole }}" aria-modal="{{ sheetModal }}" aria-label="{{ tSheetTitle }}" tabindex="{{ sheetTab }}">
+<sc-if value="{{ sheetOpen }}" hint-placeholder-val="{{ false }}">
+<div data-sheetonly="1" style="flex-direction:column;gap:8px">
+<span aria-hidden="true" style="width:44px;height:4px;border-radius:999px;background:var(--vt-grey-300);align-self:center"></span>
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+<strong style="font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);color:var(--vt-text-primary)">{{ tSheetTitle }}</strong>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="x" label="{{ tClose }}" variant="ghost" size="md" onClick="{{ closeSheet }}" hint-size="44px,44px"></x-import>
+</div>
+</div>
+</sc-if>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Tabs" variant="segmented" block="{{ compact }}" value="{{ mode }}" onChange="{{ setMode }}" items="{{ modes }}" hint-size="360px,44px"></x-import>
+
+</div>
+<div data-fields="1">
+<div data-f="flight" style="position: relative; min-width: 0; width: 100%" data-om-label="Flight">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tFlight }}" icon="plane" size="md" value="{{ flight }}" onChange="{{ setFlight }}" onKeyDown="{{ flightKey }}" placeholder="LX 318" error="{{ flightError }}" hint="{{ flightHint }}" hint-size="100%,66px"></x-import>
+</div><div data-sugroot="1" data-f="pickup" style="position:relative;min-width:0" data-om-label="Pickup">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tPickup }}" icon="{{ pickupIcon }}" size="md" value="{{ pickupText }}" onChange="{{ editPickupA }}" onFocus="{{ focusPickupA }}" onKeyDown="{{ sugKey }}" placeholder="{{ tPickupPh }}" suffix="{{ pickupBadge }}" hint-size="100%,66px"></x-import>
+<sc-if value="{{ sugPA }}" hint-placeholder-val="{{ false }}">
+<div role="listbox" aria-label="{{ tPickup }}" style="{{ sugCss }}">
+<sc-for list="{{ sugRows }}" as="s" hint-placeholder-count="4">
+<sc-if value="{{ s.geo }}" hint-placeholder-val="{{ false }}">
+<div role="option" id="{{ s.id }}" aria-selected="{{ s.sel }}" onMouseDown="{{ s.pick }}" style="display:flex;align-items:center;gap:11px;padding:10px 11px;border-radius:10px;cursor:pointer;background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-100);{{ s.css }}" style-hover="background:var(--vt-yellow-100)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="navigation" size="{{ n16 }}" color="var(--vt-yellow-700)" hint-size="16px,16px"></x-import>
+<span style="display:flex;flex-direction:column;min-width:0"><span style="font-size:var(--vt-body-sm);font-weight:600;color:var(--vt-text-primary);white-space:nowrap">{{ s.name }}</span><span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.sub }}</span></span>
+</div>
+</sc-if>
+<sc-if value="{{ s.head }}" hint-placeholder-val="{{ false }}">
+<span style="font-size:10px;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted);padding:8px 11px 2px">{{ s.name }}</span>
+</sc-if>
+<sc-if value="{{ s.row }}" hint-placeholder-val="{{ true }}">
+<div role="option" id="{{ s.id }}" aria-selected="{{ s.sel }}" onMouseDown="{{ s.pick }}" style="display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px;cursor:pointer;{{ s.css }}" style-hover="background:var(--vt-grey-50)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ s.icon }}" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
+<span style="display:flex;flex-direction:column;min-width:0"><span style="font-size:var(--vt-body-sm);color:var(--vt-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.name }}</span><span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.sub }}</span></span>
+</div>
+</sc-if>
+</sc-for>
+</div>
+</sc-if>
+</div>
+<div data-f="swap" data-swap="1" style="{{ swapRowCss }}" data-om-label="Destination">
+<span data-only-narrow="1" aria-hidden="true" style="flex:1 1 auto;height:1px;background:var(--vt-border-subtle)"></span>
+<span data-swaprot="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="arrow-left-right" label="{{ tSwap }}" variant="outline" size="md" onClick="{{ swap }}" hint-size="44px,44px"></x-import></span>
+<span data-only-narrow="1" aria-hidden="true" style="flex:1 1 auto;height:1px;background:var(--vt-border-subtle)"></span>
+</div>
+<div data-sugroot="1" data-f="dest" style="position:relative;min-width:0">
+<sc-if value="{{ notHourly }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tDest }}" icon="map-pin" size="md" value="{{ dropText }}" onChange="{{ editDropA }}" onFocus="{{ focusDropA }}" onKeyDown="{{ sugKey }}" placeholder="{{ tDestPh }}" hint-size="100%,66px"></x-import>
+<sc-if value="{{ sugDA }}" hint-placeholder-val="{{ false }}">
+<div role="listbox" aria-label="{{ tDest }}" style="{{ sugCss }}">
+<sc-for list="{{ sugRows }}" as="s" hint-placeholder-count="3">
+<sc-if value="{{ s.head }}" hint-placeholder-val="{{ false }}">
+<span style="font-size:10px;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted);padding:8px 11px 2px">{{ s.name }}</span>
+</sc-if>
+<sc-if value="{{ s.row }}" hint-placeholder-val="{{ true }}">
+<div role="option" id="{{ s.id }}" aria-selected="{{ s.sel }}" onMouseDown="{{ s.pick }}" style="display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px;cursor:pointer;{{ s.css }}" style-hover="background:var(--vt-grey-50)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ s.icon }}" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
+<span style="display:flex;flex-direction:column;min-width:0"><span style="font-size:var(--vt-body-sm);color:var(--vt-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.name }}</span><span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.sub }}</span></span>
+</div>
+</sc-if>
+</sc-for>
+</div>
+</sc-if>
+</sc-if>
+<sc-if value="{{ isHourly }}" hint-placeholder-val="{{ false }}">
+<dc-import name="StepCounter" label="{{ tHours }}" icon="clock" value="{{ hours }}" min="{{ n2 }}" max="{{ n12 }}" onChange="{{ setHours }}" hint-size="100%,66px"></dc-import>
+</sc-if>
+</div>
+<div data-f="when" style="min-width:0">
+<dc-import name="WhenPicker" label="{{ tWhenLbl }}" value="{{ date }}" time="{{ time }}" day="{{ day }}" range="{{ isReturn }}" value2="{{ returnDate }}" time2="{{ returnTime }}" day2="{{ returnDay }}" times="{{ timeSlots }}" baseMonth="2026-08" locale="{{ lang }}" groups="{{ tGroups }}" legLabels="{{ tLegs }}" timeTitle="{{ tPickupTime }}" timeTitle2="{{ tReturnTime }}" savedLabel="{{ tSaved }}" hint="{{ whenHint }}" onDay="{{ setDay }}" onTime="{{ setTime }}" onDay2="{{ setReturnDay }}" onTime2="{{ setReturnTime }}" hint-size="230px,66px"></dc-import>
+</div>
+<div data-f="party" data-party="1" style="display: flex; flex-wrap: wrap; justify-content: flex-start; align-items: center">
+<dc-import name="StepCounter" label="{{ tPax }}" icon="users" value="{{ pax }}" min="{{ n1 }}" max="{{ n8 }}" onChange="{{ setPax }}" hint-size="112px,66px"></dc-import>
+<dc-import name="StepCounter" label="{{ tBags }}" icon="luggage" value="{{ bags }}" min="{{ n0 }}" max="{{ n8 }}" onChange="{{ setBags }}" hint-size="112px,66px"></dc-import>
+</div>
+
+</div>
+<sc-if value="{{ sheetOpen }}" hint-placeholder-val="{{ false }}">
+<div data-sheetonly="cta" style="position:sticky;bottom:0;background:var(--vt-bg-surface);padding-top:10px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="primary" size="lg" block="{{ yes }}" onClick="{{ applySheet }}" hint-size="100%,54px">{{ tShowPrices }}</x-import>
+</div>
+</sc-if>
+</div>
+</div>
+</div><span aria-live="polite" aria-atomic="true" style="position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">{{ announce }}</span><div data-fleet-strip="1" style="margin-top:14px">
+<sc-for list="{{ fleet }}" as="v" hint-placeholder-count="4">
+<div role="button" tabindex="0" aria-disabled="{{ v.dis }}" data-fleet-card="1" onClick="{{ v.select }}" onKeyDown="{{ v.key }}" title="{{ v.title }}" style="position:relative;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);padding:8px 10px;min-height:84px;display:flex;flex-direction:column;gap:6px;cursor:pointer;transition:var(--vt-transition-control)" style-hover="box-shadow:var(--vt-shadow-md);border-color:var(--vt-grey-300)" style-active="transform:translateY(1px)">
+<div style="display:flex;align-items:flex-start;gap:6px;flex-direction:column">
+<div data-fleet-img="1" style="width:100%;height:100px;border-radius:8px;background:var(--vt-grey-100);overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;flex:0 0 auto">
+<sc-if value="{{ v.noImage }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ v.icon }}" size="{{ n24 }}" color="var(--vt-grey-500)" hint-size="24px,24px"></x-import></sc-if>
+<sc-if value="{{ v.hasBadge }}" hint-placeholder-val="{{ false }}">
+<span style="position:absolute;top:6px;inset-inline-start:6px;display:inline-flex;align-items:center;height:18px;padding:0 8px;border-radius:999px;background:var(--vt-yellow);border:1px solid var(--vt-charcoal-900);color:var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap">{{ v.badge }}</span>
+</sc-if>
+</div>
+<div style="display:flex;flex-direction:row;gap:8px;min-width:0;justify-content:space-between;width:100%;align-items:baseline">
+<strong style="font-family:var(--vt-font-display);font-size:13px;font-weight:var(--vt-weight-semibold);white-space:nowrap">{{ v.name }}</strong>
+<span data-hide-narrow="1" style="font-size:11px;color:var(--vt-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ v.examples }}</span>
+</div>
+</div>
+<div style="display:flex;align-items:center;gap:10px;font-size:11px;color:var(--vt-text-secondary)">
+<span style="display:inline-flex;align-items:center;gap:5px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="users" size="{{ n12 }}" color="var(--vt-text-muted)" hint-size="12px,12px"></x-import>{{ v.capText }}</span>
+<span style="display:inline-flex;align-items:center;gap:5px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="luggage" size="{{ n12 }}" color="var(--vt-text-muted)" hint-size="12px,12px"></x-import>{{ v.bagText }}</span>
+</div>
+<div data-price-row="1" style="margin-top:auto;display:flex;align-items:flex-end;justify-content:space-between;gap:8px">
+<span style="display:flex;flex-direction:column;gap:1px"><span style="font-size:9px;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ tFixed }}</span><span data-hide-narrow="1" style="font-size:10px;color:var(--vt-text-muted)">{{ tAllIn }}</span></span>
+<span ref="{{ v.dustRef }}" data-price-slot="1" dir="ltr" style="position:relative;width:92px;height:22px;display:block"></span>
+<span style="position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">{{ v.sr }}</span>
+</div>
+<sc-if value="{{ v.skeleton }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);padding:8px 10px;display:flex;flex-direction:column;gap:6px;animation:vt-skelpulse 1.8s ease-in-out infinite">
+<div style="width:40px;height:26px;border-radius:8px;background:var(--vt-grey-100)"></div>
+<div style="width:60%;height:9px;border-radius:6px;background:var(--vt-grey-100)"></div>
+<div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between"><span style="font-size:10px;color:var(--vt-text-muted)">{{ tGetting }}</span><div style="width:60px;height:16px;border-radius:6px;background:var(--vt-grey-200)"></div></div>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div></div>
+
+
+</div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dc-import name="HowItWorks" hint-size="100%,900px"></dc-import>
+
+<dc-import name="Services" hint-size="100%,620px"></dc-import>
+
+<dc-import name="WhyVamos" hint-size="100%,720px"></dc-import>
+
+<dc-import name="Reviews" hint-size="100%,780px" show-pending-notice="{{ false }}"></dc-import>
+
+<dc-import name="FAQ" hint-size="100%,640px"></dc-import>
+
+<dc-import name="SiteFooter" wordmark="{{ true }}" hint-size="100%,520px" show-payment-marks="{{ true }}"></dc-import>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;quoteLatencyMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:300,&quot;max&quot;:4000,&quot;step&quot;:100,&quot;unit&quot;:&quot;ms&quot;,&quot;default&quot;:1500,&quot;section&quot;:&quot;Quote engine&quot;},&quot;errorRatePct&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:0,&quot;max&quot;:30,&quot;step&quot;:2,&quot;unit&quot;:&quot;%&quot;,&quot;default&quot;:6,&quot;section&quot;:&quot;Quote engine&quot;},&quot;dustParticles&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:120,&quot;max&quot;:600,&quot;step&quot;:20,&quot;default&quot;:340,&quot;section&quot;:&quot;Price animation&quot;}}">
+const LANGS = ['en','de','fr','ar'];
+const CURS = { CHF:{s:'CHF '}, EUR:{s:'€ '}, USD:{s:'$'}, AED:{s:'AED '} };
+const LOCS = [
+  { id:'zrh2', n:'Zurich Airport (ZRH), Terminal 2', s:'Kloten · meet & greet in arrivals', icon:'plane-landing', x:0, y:0, air:true },
+  { id:'zrh1', n:'Zurich Airport (ZRH), Terminal 1', s:'Kloten · meet & greet in arrivals', icon:'plane-landing', x:0, y:0, air:true },
+  { id:'gva', n:'Geneva Airport (GVA)', s:'Grand-Saconnex · arrivals', icon:'plane-landing', x:-192, y:88, air:true },
+  { id:'bsl', n:'Basel EuroAirport (BSL)', s:'Saint-Louis · arrivals', icon:'plane-landing', x:-70, y:-22, air:true },
+  { id:'hb', n:'Zurich HB', s:'Main station · city centre', icon:'map-pin', x:-9, y:7 },
+  { id:'bahnhof', n:'Zurich, Bahnhofstrasse 1', s:'City centre', icon:'map-pin', x:-9.5, y:7.5 },
+  { id:'dolder', n:'The Dolder Grand, Zurich', s:'Hotel · Adlisberg', icon:'map-pin', x:-7, y:9 },
+  { id:'baur', n:'Baur au Lac, Zurich', s:'Hotel · Talstrasse 1', icon:'map-pin', x:-9, y:8 },
+  { id:'diet', n:'Bleicherstrasse 16, 8953 Dietikon', s:'Dietikon ZH', icon:'map-pin', x:-14, y:6 },
+  { id:'baden', n:'Baden, Bahnhofplatz', s:'Aargau', icon:'map-pin', x:-20, y:-2 },
+  { id:'wint', n:'Winterthur, Hauptbahnhof', s:'Zurich east', icon:'map-pin', x:16, y:-6 },
+  { id:'zug', n:'Zug, Bahnhofplatz', s:'Central Switzerland', icon:'map-pin', x:-14, y:24 },
+  { id:'luz', n:'Lucerne, Schwanenplatz', s:'Central Switzerland', icon:'map-pin', x:-26, y:35 },
+  { id:'bern', n:'Bern, Bundesplatz', s:'Capital', icon:'map-pin', x:-78, y:26 },
+  { id:'zermatt', n:'Zermatt, Bahnhofplatz', s:'Car-free — driver meets in Täsch', icon:'snowflake', x:-92, y:118 },
+  { id:'stmoritz', n:'St. Moritz, Bahnhof', s:'Engadin', icon:'snowflake', x:82, y:98 },
+  { id:'verbier', n:'Verbier, Place Centrale', s:'Valais', icon:'snowflake', x:-128, y:112 },
+  { id:'chamonix', n:'Chamonix, Place Balmat', s:'Cross-border · France', icon:'snowflake', x:-168, y:118 },
+];
+const FLIGHTS = {
+  LX318:{ route:'London Heathrow → Zurich', arr:'11:20', to:'zrh2' },
+  LX39:{ route:'New York JFK → Zurich', arr:'07:55', to:'zrh2' },
+  EK87:{ route:'Dubai → Zurich', arr:'13:20', to:'zrh2' },
+  AF1114:{ route:'Paris CDG → Zurich', arr:'09:35', to:'zrh2' },
+  BA710:{ route:'London City → Zurich', arr:'12:35', to:'zrh2' },
+  LH1226:{ route:'Frankfurt → Geneva', arr:'10:05', to:'gva' },
+};
+const FLEET = [
+  { id:'eclass', name:'E-Class', icon:'car-front', cap:4, bags:3, badge:true },
+  { id:'sclass', name:'S-Class', icon:'car', cap:3, bags:3 },
+  { id:'vclass', name:'V-Class', icon:'bus', cap:7, bags:6 }, // vehicle photography pending (INPUTS-NEEDED 2) — icon tile fallback
+  { id:'sprinter', name:'Sprinter', icon:'bus', cap:19, bags:12 },
+];
+const T = {
+  en: {
+    kicker:'Pre-booked transfers · Zurich', h1:'Land in Zurich. Your driver is waiting.', sub:'Reliable, fixed-price airport and corporate rides booked in under one minute.',
+    oneWay:'One way', return_:'Return', hourly:'By the hour', flight:'Flight (optional)', flightHint:'Arrival autofills pickup & time', flightErr:'Check the flight number', checking:'Looking up the flight…', lands:'lands', arrPlus:'arrival + 45 min',
+    pickup:'Pickup', pickupPh:'Airport, address or hotel', dest:'Destination', destPh:'Airport, address or hotel', when:'Pickup date & time', pax:'Passengers', bags:'Luggage', hours:'Duration (hours)', swap:'Swap pickup and destination',
+    trust:'Fixed price before you pay · free cancellation up to 24 h', month:'August 2026',
+    getting:'Getting your fixed price…', selectHint:'Select a class to continue — details & extras next',
+    naPax:'Not available for {n} passengers', naBags:'Not available for {n} bags', quoteErr:'Couldn’t price this — try again', fixed:'Fixed price', allIn:'total, all inclusive', mostBooked:'Most booked',
+    eclass:'E-Class', sclass:'S-Class', vclass:'V-Class', sprinter:'Sprinter', exEclass:'Black quilted leather, digital cockpit', exSclass:'Cognac leather, flagship comfort', exVclass:'Beige leather, air suspension', exSprinter:'19 seats, red-piped leather', seats:'seats', bagsWord:'bags',
+    signIn:'Sign in', customPin:'Use as map pin', dowRef:'Sat,Sun,Mon,Tue,Wed,Thu,Fri', mon:'Aug',
+    menu:'Menu', close:'Close', planTitle:'Plan your transfer', showPrices:'Show fixed prices', call:'Call +41 79 626 70 82', callNote:'Talk to dispatch', langLabel:'Language', curLabel:'Currency',
+    morning:'Morning', afternoon:'Afternoon', evening:'Evening', pickupTime:'Pickup time', returnTimeLbl:'Return time',
+    useLoc:'Use my current location', useLocSub:'GPS · fastest way to set pickup', nearYou:'Near you', popular:'Popular destinations', locating:'Locating…', whenBoth:'Pickup & return', flightChip:'Add a flight number', saved:'Saved',
+    pending:'Photography pending', fixedPriceEyebrow:'Fixed price', fixedPriceH2:'No meter, no surge. The price we quote is the price you pay.',
+    fixedPriceBody:'Every fare is calculated from the route and the vehicle class before you book, then confirmed in writing. Night runs, waiting time and luggage are already in it.',
+    howPricing:'How pricing works',
+    airportPickups:'Airport pickups', waiting60:'60 minutes of waiting, included', included:'Included',
+    waitingBody:'Flight delayed, bags last off the belt, passport queue — your driver waits an hour on every airport pickup at no extra cost, and we track the flight so the pickup time moves with it.',
+    skiSeason:'Ski season, one vehicle door to door',
+    skiBody:'Zermatt, St. Moritz, Verbier and Chamonix run December to April. Ski and board racks are fitted on request and carried at no extra cost.',
+    skiTransfers:'Ski transfers',
+    seasonEyebrow:'Route of the season', racksIncluded:'Racks included',
+    seasonBody:'December to April we drive the ski corridor daily — one vehicle, door to door, no changes at Visp.',
+    getRoute:'Get this route', routesWeekly:'Routes we drive every week',
+    routesDisclaimer:'Route inventory and CHF prices are a pending client input — every amount below reads CHF 000 on purpose.',
+    from:'from',
+    aboutEyebrow:'About us', aboutH2:'One fleet, one price list, drivers we know by name.',
+    aboutBody:'Vamos Taxi is a Dietikon company driving Zurich, Geneva and the Alps. Every transfer is booked ahead, priced up front and assigned to a driver before you land.',
+    closeH2a:'Wherever you land,', closeH2b:'Vamos is ready', book:'Book a transfer',
+    r0t:'Zurich Airport → city', r0n:'20 min · meet & greet in arrivals',
+    r1t:'Zurich Airport → Dietikon', r1n:'22 min · our home canton',
+    r2t:'Zurich Airport → Zermatt', r2n:'3 h 20 · ski racks included',
+    r3t:'Geneva Airport → Chamonix', r3n:'1 h 30 · cross-border transfer',
+  },
+  de: {
+    kicker:'Vorausgebuchte Transfers · Zürich', h1:'Landen Sie in Zürich. Ihr Fahrer wartet bereits.', sub:'Zuverlässige Flughafen- und Geschäftsfahrten zum Festpreis — gebucht in unter einer Minute.',
+    oneWay:'Einfache Fahrt', return_:'Rückfahrt', hourly:'Stundenweise', flight:'Flug (optional)', flightHint:'Ankunft füllt Abholort & Zeit aus', flightErr:'Prüfen Sie die Flugnummer', checking:'Flug wird gesucht…', lands:'landet', arrPlus:'Ankunft + 45 Min.',
+    pickup:'Abholort', pickupPh:'Flughafen, Adresse oder Hotel', dest:'Ziel', destPh:'Flughafen, Adresse oder Hotel', when:'Abholdatum & -zeit', pax:'Passagiere', bags:'Gepäck', hours:'Dauer (Stunden)', swap:'Abholort und Ziel tauschen',
+    trust:'Festpreis vor der Zahlung · kostenlose Stornierung bis 24 Std.', month:'August 2026',
+    getting:'Ihr Festpreis wird berechnet…', selectHint:'Klasse wählen und weiter — Angaben & Extras folgen',
+    naPax:'Nicht verfügbar für {n} Passagiere', naBags:'Nicht verfügbar für {n} Gepäckstücke', quoteErr:'Preis nicht verfügbar — erneut versuchen', fixed:'Festpreis', allIn:'gesamt, alles inklusive', mostBooked:'Meistgebucht',
+    eclass:'E-Klasse', sclass:'S-Klasse', vclass:'V-Klasse', sprinter:'Sprinter', exEclass:'Schwarzes Steppleder, Digital-Cockpit', exSclass:'Cognacfarbenes Leder, Flaggschiff-Komfort', exVclass:'Beigefarbenes Leder, Luftfederung', exSprinter:'19 Sitze, Leder mit roter Ziernaht', seats:'Plätze', bagsWord:'Gepäckstücke',
+    signIn:'Anmelden', customPin:'Als Kartenpunkt verwenden', dowRef:'Sa,So,Mo,Di,Mi,Do,Fr', mon:'Aug.',
+    menu:'Menü', close:'Schliessen', planTitle:'Transfer planen', showPrices:'Festpreise anzeigen', call:'+41 79 626 70 82 anrufen', callNote:'Direkt mit der Disposition sprechen', langLabel:'Sprache', curLabel:'Währung',
+    morning:'Vormittag', afternoon:'Nachmittag', evening:'Abend', pickupTime:'Abholzeit', returnTimeLbl:'Rückfahrtzeit',
+    useLoc:'Aktuellen Standort verwenden', useLocSub:'GPS · schnellster Weg zum Abholort', nearYou:'In Ihrer Nähe', popular:'Beliebte Ziele', locating:'Standort wird ermittelt…', whenBoth:'Hin- & Rückfahrt', flightChip:'Flugnummer hinzufügen', saved:'Gespeichert',
+    pending:'Fotos folgen', fixedPriceEyebrow:'Festpreis', fixedPriceH2:'Kein Taxameter, kein Aufpreis. Der genannte Preis ist der Preis, den Sie zahlen.',
+    fixedPriceBody:'Jeder Fahrpreis wird vor der Buchung aus Route und Fahrzeugklasse berechnet und schriftlich bestätigt. Nachtfahrten, Wartezeit und Gepäck sind bereits enthalten.',
+    howPricing:'So funktioniert die Preisgestaltung',
+    airportPickups:'Flughafenabholung', waiting60:'60 Minuten Wartezeit inklusive', included:'Inklusive',
+    waitingBody:'Verspäteter Flug, Gepäck als Letztes am Band, Warteschlange am Zoll — Ihr Fahrer wartet bei jeder Flughafenabholung eine Stunde ohne Aufpreis, und wir verfolgen den Flug, damit sich die Abholzeit anpasst.',
+    skiSeason:'Skisaison, ein Fahrzeug von Tür zu Tür',
+    skiBody:'Zermatt, St. Moritz, Verbier und Chamonix fahren wir von Dezember bis April. Ski- und Boardträger werden auf Wunsch ohne Aufpreis montiert.',
+    skiTransfers:'Skitransfers',
+    seasonEyebrow:'Route der Saison', racksIncluded:'Skiträger inklusive',
+    seasonBody:'Von Dezember bis April fahren wir den Skikorridor täglich — ein Fahrzeug, von Tür zu Tür, ohne Umsteigen in Visp.',
+    getRoute:'Diese Route wählen', routesWeekly:'Routen, die wir jede Woche fahren',
+    routesDisclaimer:'Routenangebot und CHF-Preise sind noch ausstehende Kundendaten — jeder Betrag unten zeigt absichtlich CHF 000.',
+    from:'ab',
+    aboutEyebrow:'Über uns', aboutH2:'Eine Flotte, eine Preisliste, Fahrer, die wir beim Namen kennen.',
+    aboutBody:'Vamos Taxi ist ein Unternehmen aus Dietikon und fährt Zürich, Genf und die Alpen an. Jeder Transfer wird im Voraus gebucht, vorab bepreist und noch vor der Landung einem Fahrer zugewiesen.',
+    closeH2a:'Wo auch immer Sie landen —', closeH2b:'Vamos ist bereit', book:'Transfer buchen',
+    r0t:'Flughafen Zürich → Stadt', r0n:'20 Min. · Meet & Greet in der Ankunftshalle',
+    r1t:'Flughafen Zürich → Dietikon', r1n:'22 Min. · unser Heimatkanton',
+    r2t:'Flughafen Zürich → Zermatt', r2n:'3 Std. 20 · Skiträger inklusive',
+    r3t:'Flughafen Genf → Chamonix', r3n:'1 Std. 30 · grenzüberschreitender Transfer',
+  },
+  fr: {
+    kicker:'Transferts réservés à l’avance · Zurich', h1:'Vous atterrissez à Zurich. Votre chauffeur vous attend.', sub:'Trajets aéroport et affaires fiables, à prix fixe — réservés en moins d’une minute.',
+    oneWay:'Aller simple', return_:'Aller-retour', hourly:'À l’heure', flight:'Vol (facultatif)', flightHint:'L’arrivée préremplit le départ et l’heure', flightErr:'Vérifiez le numéro de vol', checking:'Recherche du vol…', lands:'atterrit à', arrPlus:'arrivée + 45 min',
+    pickup:'Départ', pickupPh:'Aéroport, adresse ou hôtel', dest:'Destination', destPh:'Aéroport, adresse ou hôtel', when:'Date & heure de départ', pax:'Passagers', bags:'Bagages', hours:'Durée (heures)', swap:'Inverser départ et destination',
+    trust:'Prix fixe avant paiement · annulation gratuite jusqu’à 24 h', month:'Août 2026',
+    getting:'Calcul de votre prix fixe…', selectHint:'Choisissez une classe pour continuer — détails & options ensuite',
+    naPax:'Indisponible pour {n} passagers', naBags:'Indisponible pour {n} bagages', quoteErr:'Tarif indisponible — réessayez', fixed:'Prix fixe', allIn:'total, tout compris', mostBooked:'Le plus réservé',
+    eclass:'Classe E', sclass:'Classe S', vclass:'Classe V', sprinter:'Sprinter', exEclass:'Cuir matelassé noir, cockpit numérique', exSclass:'Cuir cognac, confort amiral', exVclass:'Cuir beige, suspension pneumatique', exSprinter:'19 places, cuir liseré rouge', seats:'places', bagsWord:'bagages',
+    signIn:'Connexion', customPin:'Utiliser comme point sur la carte', dowRef:'sam.,dim.,lun.,mar.,mer.,jeu.,ven.', mon:'août',
+    menu:'Menu', close:'Fermer', planTitle:'Planifiez votre transfert', showPrices:'Afficher les prix fixes', call:'Appeler le +41 79 626 70 82', callNote:'Parler à la centrale', langLabel:'Langue', curLabel:'Devise',
+    morning:'Matin', afternoon:'Après-midi', evening:'Soir', pickupTime:'Heure de départ', returnTimeLbl:'Heure du retour',
+    useLoc:'Utiliser ma position actuelle', useLocSub:'GPS · le plus rapide pour le départ', nearYou:'À proximité', popular:'Destinations populaires', locating:'Localisation…', whenBoth:'Départ & retour', flightChip:'Ajouter un numéro de vol', saved:'Enregistré',
+  },
+  ar: {
+    kicker:'نقل محجوز مسبقًا · زيورخ', h1:'تهبط في زيورخ وسائقك في انتظارك.', sub:'مشاوير مطار وشركات موثوقة بسعر ثابت — تُحجز في أقل من دقيقة.',
+    oneWay:'ذهاب فقط', return_:'ذهاب وعودة', hourly:'بالساعة', flight:'رقم الرحلة (اختياري)', flightHint:'الوصول يعبّئ الانطلاق والوقت تلقائيًا', flightErr:'تحقق من رقم الرحلة', checking:'جارٍ البحث عن الرحلة…', lands:'يصل', arrPlus:'الوصول + 45 دقيقة',
+    pickup:'نقطة الانطلاق', pickupPh:'مطار أو عنوان أو فندق', dest:'الوجهة', destPh:'مطار أو عنوان أو فندق', when:'تاريخ ووقت الانطلاق', pax:'الركاب', bags:'الأمتعة', hours:'المدة (ساعات)', swap:'تبديل الانطلاق والوجهة',
+    trust:'سعر ثابت قبل الدفع · إلغاء مجاني حتى 24 ساعة', month:'أغسطس 2026',
+    getting:'جارٍ حساب سعرك الثابت…', selectHint:'اختر فئة للمتابعة — التفاصيل والإضافات تاليًا',
+    naPax:'غير متاحة لـ {n} ركاب', naBags:'غير متاحة لـ {n} حقائب', quoteErr:'تعذّر التسعير — حاول مجددًا', fixed:'سعر ثابت', allIn:'الإجمالي، شامل كل شيء', mostBooked:'الأكثر حجزًا',
+    eclass:'الفئة E', sclass:'الفئة S', vclass:'الفئة V', sprinter:'سبرينتر', exEclass:'جلد أسود منقوش، لوحة قيادة رقمية', exSclass:'جلد كونياك، راحة الفئة الرائدة', exVclass:'جلد بيج، نظام تعليق هوائي', exSprinter:'19 مقعدًا، جلد بحواف حمراء', seats:'مقاعد', bagsWord:'حقائب',
+    signIn:'تسجيل الدخول', customPin:'استخدامه كنقطة على الخريطة', dowRef:'السبت,الأحد,الاثنين,الثلاثاء,الأربعاء,الخميس,الجمعة', mon:'أغسطس',
+    menu:'القائمة', close:'إغلاق', planTitle:'خطّط رحلتك', showPrices:'إظهار الأسعار الثابتة', call:'اتصل بنا', callNote:'تحدّث مع قسم التوزيع', langLabel:'اللغة', curLabel:'العملة',
+    morning:'صباحًا', afternoon:'بعد الظهر', evening:'مساءً', pickupTime:'وقت الانطلاق', returnTimeLbl:'وقت العودة',
+    useLoc:'استخدام موقعي الحالي', useLocSub:'GPS · أسرع طريقة لتحديد الانطلاق', nearYou:'بالقرب منك', popular:'وجهات شائعة', locating:'جارٍ تحديد الموقع…', whenBoth:'الذهاب والعودة', flightChip:'إضافة رقم الرحلة', saved:'تم الحفظ',
+  },
+};
+const REDUCED = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+const EASE = (t) => 1 - Math.pow(1 - t, 3);
+class Dust {
+  constructor(el, o) {
+    this.el = el; this.o = o || {};
+    const cv = document.createElement('canvas'); cv.setAttribute('aria-hidden', 'true');
+    Object.assign(cv.style, { position:'absolute', inset:'0', width:'100%', height:'100%', opacity:'0', pointerEvents:'none' });
+    const sp = document.createElement('span');
+    Object.assign(sp.style, { position:'absolute', inset:'0', display:'flex', alignItems:'center', pointerEvents:'none',
+      justifyContent: this.o.align === 'left' ? 'flex-start' : 'flex-end' });
+    el.appendChild(cv); el.appendChild(sp);
+    this.cv = cv; this.sp = sp; this.ctx = cv.getContext('2d');
+    this.parts = []; this.mode = 'idle'; this.text = ''; this.small = false;
+    Dust.all.add(this);
+  }
+  destroy() { Dust.all.delete(this); }
+  styleSpan() {
+    const s = this.sp.style;
+    if (this.small) { s.font = '500 12.5px Poppins, sans-serif'; s.letterSpacing = '0'; s.color = 'var(--vt-text-muted)'; s.whiteSpace = 'normal'; s.lineHeight = '1.2'; s.textAlign = this.o.align === 'left' ? 'left' : 'right'; }
+    else { s.font = '600 ' + (this.o.size || 26) + 'px Qurova, Poppins, sans-serif'; s.letterSpacing = '-0.01em'; s.color = 'var(--vt-text-primary)'; s.whiteSpace = 'nowrap'; s.lineHeight = '1'; }
+  }
+  setText(text, small) { this.text = text; this.small = !!small; this.styleSpan(); this.sp.textContent = text; this.sp.style.opacity = '1'; this.cv.style.opacity = '0'; this.parts = []; this.mode = 'idle'; }
+  syncSize() { const w = this.el.clientWidth, h = this.el.clientHeight; if (this.cv.width !== w * 2 || this.cv.height !== h * 2) { this.cv.width = w * 2; this.cv.height = h * 2; } }
+  wrapLines(c, text, maxW) {
+    const words = text.split(' '); const lines = []; let cur = '';
+    for (const w of words) { const t = cur ? cur + ' ' + w : w; if (c.measureText(t).width > maxW && cur) { lines.push(cur); cur = w; } else cur = t; }
+    if (cur) lines.push(cur); return lines.slice(0, 2);
+  }
+  sample(text, small) {
+    const w = this.el.clientWidth, h = this.el.clientHeight; if (!w || !h || !text) return [];
+    const S = 2; const oc = this._oc || (this._oc = document.createElement('canvas'));
+    oc.width = w * S; oc.height = h * S; const c = oc.getContext('2d');
+    c.fillStyle = '#000'; c.textBaseline = 'middle';
+    const ax = (lw) => this.o.align === 'left' ? 0 : (w * S - lw);
+    if (small) {
+      c.font = '500 ' + 12.5 * S + 'px Poppins, sans-serif';
+      const lines = this.wrapLines(c, text, (w - 4) * S); const lh = 15 * S; const y0 = h * S / 2 - (lines.length - 1) * lh / 2;
+      lines.forEach((ln, i) => c.fillText(ln, ax(c.measureText(ln).width), y0 + i * lh));
+    } else {
+      let size = this.o.size || 26;
+      c.font = '600 ' + size * S + 'px Qurova, Poppins, sans-serif';
+      while (c.measureText(text).width > (w - 2) * S && size > 13) { size -= 1; c.font = '600 ' + size * S + 'px Qurova, Poppins, sans-serif'; }
+      c.fillText(text, ax(c.measureText(text).width), h * S / 2 + S);
+    }
+    const data = c.getImageData(0, 0, oc.width, oc.height).data; const pts = [];
+    for (let y = 0; y < oc.height; y += 3) for (let x = 0; x < oc.width; x += 3) { if (data[(y * oc.width + x) * 4 + 3] > 120) pts.push({ x: x / S, y: y / S }); }
+    const target = this.o.count || 340;
+    if (pts.length > target) { const out = []; const step = pts.length / target; for (let i = 0; i < target; i++) out.push(pts[Math.floor(i * step)]); return out; }
+    return pts;
+  }
+  disperse() {
+    if (REDUCED) { this.sp.style.opacity = '.35'; this.mode = 'dim'; return; }
+    const tg = this.sample(this.text, this.small);
+    this.parts = tg.map((p) => ({ x: p.x, y: p.y, vx: (Math.random() - .5) * 130, vy: -10 - Math.random() * 58, a: .9, ph: Math.random() * 6.283, s: .9 + Math.random() * 1.3 }));
+    this.sp.style.opacity = '0'; this.cv.style.opacity = '1'; this.syncSize(); this.mode = 'out'; this.t0 = performance.now(); Dust.wake();
+  }
+  reveal(text, small) {
+    this.text = text; this.small = !!small; this.styleSpan();
+    if (REDUCED) { this.sp.textContent = text; this.sp.style.opacity = '1'; this.cv.style.opacity = '0'; this.mode = 'idle'; try { this.sp.animate([{ opacity: .2 }, { opacity: 1 }], { duration: 160 }); } catch (e) {} return; }
+    const tg = this.sample(text, small); const src = this.parts.length ? this.parts : null;
+    const w = this.el.clientWidth, h = this.el.clientHeight;
+    this.parts = tg.map((p, i) => { const f = src ? src[i % src.length] : { x: Math.random() * w, y: Math.random() * h, a: 0 };
+      return { fx: f.x, fy: f.y, tx: p.x, ty: p.y, dl: Math.random() * .12, a0: .2, s: .9 + Math.random() * 1.1 }; });
+    this.sp.style.opacity = '0'; this.cv.style.opacity = '1'; this.syncSize(); this.mode = 'in'; this.t0 = performance.now(); this.dur = 340; Dust.wake();
+  }
+  tick(dt, now) {
+    if (this.mode === 'idle' || this.mode === 'dim') return false;
+    const ctx = this.ctx, S = 2; ctx.clearRect(0, 0, this.cv.width, this.cv.height);
+    const col = this.small ? '108,109,109' : '30,31,31';
+    if (this.mode === 'out' || this.mode === 'dust') {
+      const age = (now - this.t0) / 1000;
+      for (const p of this.parts) {
+        const k = this.mode === 'out' ? Math.min(1, age / .26) : 1;
+        p.x += p.vx * dt * (1.4 - k); p.y += p.vy * dt * (1.4 - k);
+        p.x += Math.sin(p.ph + now * .0011) * .14; p.y += Math.cos(p.ph * 1.3 + now * .0009) * .12;
+        p.a += ((.28 + .12 * Math.sin(p.ph + now * .002)) - p.a) * .06;
+        ctx.fillStyle = 'rgba(' + col + ',' + p.a.toFixed(3) + ')';
+        ctx.fillRect(p.x * S, p.y * S, p.s * S, p.s * S);
+      }
+      if (this.mode === 'out' && age > .26) this.mode = 'dust';
+      return true;
+    }
+    const T2 = (now - this.t0) / this.dur;
+    for (const p of this.parts) {
+      const e = EASE(Math.max(0, Math.min(1, (T2 - p.dl) / .55)));
+      const x = p.fx + (p.tx - p.fx) * e, y = p.fy + (p.ty - p.fy) * e, a = p.a0 + (1 - p.a0) * e, sz = Math.max(.9, p.s * (1.4 - e * .4));
+      ctx.fillStyle = 'rgba(' + col + ',' + a.toFixed(3) + ')';
+      ctx.fillRect(x * S, y * S, sz * S, sz * S);
+    }
+    if (T2 >= 0.85) { this.setText(this.text, this.small); return false; }
+    return true;
+  }
+}
+Dust.all = new Set(); Dust.running = false;
+Dust.wake = function () {
+  if (Dust.running) return; Dust.running = true; let last = performance.now();
+  const step = (now) => { const dt = Math.min(.05, (now - last) / 1000); last = now; let active = false;
+    Dust.all.forEach((d) => { if (d.tick(dt, now)) active = true; });
+    if (active) requestAnimationFrame(step); else Dust.running = false; };
+  requestAnimationFrame(step);
+};
+const CLOSED = { open: false, field: null, at: null, items: [], custom: false, text: '' };
+const DEFAULT_TRIP = { mode:'one-way', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'Zurich, Bahnhofstrasse 1', date:'Fri 14 Aug', selectedDay:14, time:'08:15', pax:2, bags:2, vehicle:'eclass', vehicleName:'E-Class' };
+function readTrip() {
+  try { return Object.assign({}, DEFAULT_TRIP, JSON.parse(localStorage.getItem('vamosTrip') || '{}')); }
+  catch (e) { return Object.assign({}, DEFAULT_TRIP); }
+}
+function saveTrip(patch) {
+  const t = Object.assign({}, readTrip(), patch);
+  localStorage.setItem('vamosTrip', JSON.stringify(t));
+  return t;
+}
+const NEAR_IDS = ['hb', 'bahnhof', 'baur'];
+const DEST_IDS = ['hb', 'dolder', 'zermatt'];
+function dispLang(v) { try { const n = new Intl.DisplayNames([v], { type: 'language' }).of(v); return n.charAt(0).toUpperCase() + n.slice(1); } catch (e) { return v.toUpperCase(); } }
+function dispCur(v, lang) { try { return new Intl.DisplayNames([lang], { type: 'currency' }).of(v); } catch (e) { return v; } }
+function hashXY(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return { x: ((h % 53 + 53) % 53) - 26, y: (((h >> 4) % 37 + 37) % 37) - 18 }; }
+function TIER() {
+  if (typeof matchMedia === 'undefined') return 2;
+  if (matchMedia('(max-width:699px)').matches) return 0;
+  if (matchMedia('(max-width:1079px)').matches) return 1;
+  return 2;
+}
+function addBuffer(hm) { const p = hm.split(':'); let m = (+p[0]) * 60 + (+p[1]) + 45; m = Math.ceil(m / 15) * 15; m = m % 1440; return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
+class Component extends DCLogic {
+  state = (() => {
+    const trip = readTrip();
+    const lang = (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en';
+    const findLoc = (n) => LOCS.find((l) => l.n === n) || null;
+    return {
+      lang: LANGS.includes(lang) ? lang : 'en',
+      cur: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosCurrency')) || 'CHF',
+      mode: trip.mode || 'one-way', pickupText: trip.pickup, pickupLoc: findLoc(trip.pickup), dropText: trip.dropoff, dropLoc: findLoc(trip.dropoff),
+      day: trip.selectedDay || 14, time: trip.time || '08:15', returnDay: trip.returnDay || 17, returnTime: trip.returnTime || '10:00', dayLabel: null, returnLabel: null,
+      pax: trip.pax || 2, bags: trip.bags || 2, hours: 3,
+      flight: '', flightState: 'idle', flightInfo: null, autofill: { pickup: null, when: null },
+      sug: CLOSED, sugIdx: -1, sugRect: null, quote: { status: 'empty', results: null, inflight: false }, announce: '',
+      tier: TIER(), menuOpen: false, sheetOpen: false,
+    };
+  })();
+  reqSeq = 0; dusts = {}; _refs = {};
+  sheetRef = (el) => { this._sheet = el; };
+  componentDidMount() {
+    this._away = (e) => {
+      const cl = (sel) => !!(e.target.closest && e.target.closest(sel));
+      if (this.state.sug.open && !cl('[data-sugroot]')) this.setState({ sug: CLOSED, sugIdx: -1 });
+      if (this.state.menuOpen && !cl('[data-menuroot]')) this.setState({ menuOpen: false });
+    };
+    document.addEventListener('mousedown', this._away);
+    this._esc = (e) => { if (e.key !== 'Escape') return; if (this.state.sheetOpen) this.closeSheet(); else if (this.state.menuOpen) this.setState({ menuOpen: false }); };
+    document.addEventListener('keydown', this._esc);
+    this._reposSug = () => {
+      if (!this.state.sug.open || !this._sugEl || !this._sugEl.isConnected) return;
+      const r = this._sugEl.getBoundingClientRect();
+      this.setState({ sugRect: { t: Math.round(r.bottom + 6), bt: Math.round(r.top), l: Math.round(r.left), w: Math.round(r.width) } });
+    };
+    window.addEventListener('scroll', this._reposSug, true);
+    window.addEventListener('resize', this._reposSug);
+    this._onResize = () => {
+      const tr = TIER(); if (tr === this.state.tier) return;
+      const patch = { tier: tr };
+      if (tr === 2) { patch.menuOpen = false; if (this.state.sheetOpen) { patch.sheetOpen = false; this.lockScroll(false); } }
+      this.setState(patch);
+    };
+    window.addEventListener('resize', this._onResize);
+    this._mqs = ['(max-width:699px)', '(max-width:1079px)'].map((q) => { const m = matchMedia(q); m.addEventListener ? m.addEventListener('change', this._onResize) : m.addListener(this._onResize); return m; });
+    this._onResize();
+    document.fonts && document.fonts.ready ? document.fonts.ready.then(() => this.q()) : this.q();
+  }
+  componentWillUnmount() { document.removeEventListener('mousedown', this._away); document.removeEventListener('keydown', this._esc); window.removeEventListener('resize', this._onResize); window.removeEventListener('resize', this._reposSug); window.removeEventListener('scroll', this._reposSug, true); (this._mqs || []).forEach((m) => { m.removeEventListener ? m.removeEventListener('change', this._onResize) : m.removeListener(this._onResize); }); Object.values(this.dusts).forEach((d) => d.destroy()); this.lockScroll(false); clearTimeout(this._deb); clearTimeout(this._ft); }
+  t() { return Object.assign({}, T.en, T[this.state.lang]); }
+  /** Fares are a pending client input: every amount reads 000 (design system §2). */
+  fmt() { const c = CURS[this.state.cur] || CURS.CHF; return c.s + '000'; }
+  fmtDate(day) { const t = this.t(); const dow = t.dowRef.split(','); return dow[(day - 1) % 7] + ' ' + day + ' ' + t.mon; }
+  resolveLoc(text, loc) { if (loc) return loc; const s = (text || '').trim(); return s.length >= 4 ? Object.assign({ custom: true, n: s }, hashXY(s)) : null; }
+  routeInfo() {
+    const a = this.resolveLoc(this.state.pickupText, this.state.pickupLoc);
+    if (this.state.mode === 'hourly') return a ? { ok: true, hourly: true, a } : { ok: false };
+    const b = this.resolveLoc(this.state.dropText, this.state.dropLoc);
+    if (!a || !b) return { ok: false };
+    const km = Math.max(6, Math.round(Math.hypot(a.x - b.x, a.y - b.y) * 1.22));
+    return { ok: true, km, min: Math.round(km / 52 * 60 + 8), a, b };
+  }
+  labelFor(id) {
+    const q = this.state.quote; const t = this.t();
+    if (q.status !== 'live' || !q.results) return { text: this.fmt(), small: false };
+    const r = q.results[id];
+    if (r.kind === 'price') return { text: this.fmt(), small: false };
+    if (r.kind === 'na') return { text: (r.sub === 'bags' ? t.naBags : t.naPax).replace('{n}', String(r.n)), small: true };
+    return { text: t.quoteErr, small: true };
+  }
+  dustRef(id) {
+    if (!this._refs[id]) this._refs[id] = (el) => {
+      if (!el) return;
+      if (this.dusts[id] && this.dusts[id].el === el) return;
+      if (this.dusts[id]) this.dusts[id].destroy();
+      this.dusts[id] = new Dust(el, { size: 17, align: 'right', count: +(this.props.dustParticles ?? 340) });
+      const lb = this.labelFor(id); this.dusts[id].setText(lb.text, lb.small);
+    };
+    return this._refs[id];
+  }
+  disperseAll() { Object.values(this.dusts).forEach((d) => d.disperse()); }
+  revealAll() { Object.entries(this.dusts).forEach(([k, d]) => { const lb = this.labelFor(k); d.reveal(lb.text, lb.small); }); }
+  relabelAll() { Object.entries(this.dusts).forEach(([k, d]) => { if (d.mode === 'idle' || d.mode === 'dim') { const lb = this.labelFor(k); d.setText(lb.text, lb.small); } }); }
+  q = () => { clearTimeout(this._deb); this._deb = setTimeout(this.fireQuote, 300); };
+  fireQuote = () => {
+    const r = this.routeInfo(); const id = ++this.reqSeq;
+    if (!r.ok) { this.setState({ quote: { status: 'empty', results: null, inflight: false } }); this.relabelAll(); return; }
+    if (this.state.quote.status === 'live') { this.disperseAll(); this.setState({ quote: Object.assign({}, this.state.quote, { inflight: true }) }); }
+    else this.setState({ quote: { status: 'skeleton', results: null, inflight: true } });
+    const base = +(this.props.quoteLatencyMs ?? 1500);
+    const wait = base * (0.6 + Math.random() * 0.9);
+    setTimeout(() => {
+      if (id !== this.reqSeq) return;
+      const fail = Math.random() < (+(this.props.errorRatePct ?? 6)) / 100;
+      const res = {};
+      FLEET.forEach((v) => {
+        if (this.state.pax > v.cap) res[v.id] = { kind: 'na', sub: 'pax', n: this.state.pax };
+        else if (this.state.bags > v.bags) res[v.id] = { kind: 'na', sub: 'bags', n: this.state.bags };
+        else if (fail) res[v.id] = { kind: 'err' };
+        else res[v.id] = { kind: 'price' };
+      });
+      this.setState({ quote: { status: 'live', results: res, inflight: false } }, () => {
+        this.revealAll();
+        const t = this.t(); const names = { eclass: t.eclass, sclass: t.sclass, vclass: t.vclass, sprinter: t.sprinter };
+        const parts = FLEET.map((v) => names[v.id] + ' ' + this.labelFor(v.id).text).join(', ');
+        const routeStr = r.hourly ? (r.a.n + ' · ' + this.state.hours + ' h') : ((r.a.n.split(',')[0]) + ' → ' + (r.b.n.split(',')[0]));
+        this.setState({ announce: routeStr + ': ' + parts });
+      });
+    }, wait);
+  };
+  pickLang = (v) => { localStorage.setItem('vamosLang', v); this.setState({ lang: v }, () => this.relabelAll()); };
+  pickCur = (v) => { localStorage.setItem('vamosCurrency', v); this.setState({ cur: v }); this.q(); };
+  setMode = (m) => { this.setState({ mode: m }); this.q(); };
+  setFlight = (e) => {
+    const v = e.target.value; this.setState({ flight: v, flightState: 'idle', flightInfo: null });
+    clearTimeout(this._ft); if (v.trim()) this._ft = setTimeout(this.lookupFlight, 800);
+  };
+  flightKey = (e) => { if (e.key === 'Enter') { e.preventDefault(); clearTimeout(this._ft); this.lookupFlight(); } };
+  lookupFlight = () => {
+    const up = this.state.flight.toUpperCase().replace(/\s+/g, ''); if (!up) return;
+    if (!/^[A-Z]{2,3}\d{1,4}$/.test(up)) { this.setState({ flightState: 'err' }); return; }
+    this.setState({ flightState: 'checking' });
+    setTimeout(() => {
+      if (this.state.flight.toUpperCase().replace(/\s+/g, '') !== up) return;
+      const f = FLIGHTS[up];
+      if (!f) { this.setState({ flightState: 'err' }); return; }
+      const loc = LOCS.find((l) => l.id === f.to); const code = up.replace(/^([A-Z]+)/, '$1 ');
+      this.setState({ flightState: 'ok', flightInfo: { code, route: f.route, arr: f.arr }, pickupText: loc.n, pickupLoc: loc, time: addBuffer(f.arr), autofill: { pickup: code, when: code }, sug: CLOSED });
+      this.q();
+    }, 550);
+  };
+  editRoute(field, at) {
+    return (e) => {
+      const txt = e.target.value; const ql = txt.trim().toLowerCase();
+      let items = ql.length >= 1 ? LOCS.filter((l) => (l.n + ' ' + (l.s || '')).toLowerCase().includes(ql)).slice(0, 6) : [];
+      const custom = !items.length && ql.length >= 4;
+      const patch = { sugRect: this.sugPos(e), sugIdx: -1, sug: { open: true, field, at, items, custom, text: txt } };
+      if (field === 'pickup') { patch.pickupText = txt; patch.pickupLoc = null; patch.autofill = Object.assign({}, this.state.autofill, { pickup: null }); }
+      else { patch.dropText = txt; patch.dropLoc = null; }
+      this.setState(patch); this.q();
+    };
+  }
+  choose = (loc) => {
+    const f = this.state.sug.field; const patch = { sug: CLOSED, sugIdx: -1 };
+    const name = loc.custom ? this.state.sug.text : loc.n;
+    if (f === 'pickup') { patch.pickupText = name; patch.pickupLoc = loc.custom ? null : loc; }
+    else { patch.dropText = name; patch.dropLoc = loc.custom ? null : loc; }
+    this.setState(patch); this.q();
+  };
+  lockScroll(on) { try { document.body.style.overflow = on ? 'hidden' : ''; } catch (e) {} }
+  toggleMenu = () => this.setState((s) => ({ menuOpen: !s.menuOpen }));
+  openSheet = (e) => {
+    this._returnFocus = (e && e.currentTarget) || null;
+    this.lockScroll(true);
+    this.setState({ sheetOpen: true, menuOpen: false }, () => { if (this._sheet && this._sheet.focus) this._sheet.focus(); });
+  };
+  closeSheet = () => {
+    this.lockScroll(false);
+    this.setState({ sheetOpen: false, sug: CLOSED, sugIdx: -1 }, () => { const el = this._returnFocus; if (el && el.isConnected) el.focus(); });
+  };
+  applySheet = () => { this.closeSheet(); this.q(); };
+  scrimClick = (e) => { if (e.target === e.currentTarget) this.closeSheet(); };
+  sugPos(e) {
+    try {
+      const root = e && e.target && e.target.closest ? e.target.closest('[data-sugroot]') : null;
+      if (!root) return null;
+      this._sugEl = root;
+      const r = root.getBoundingClientRect();
+      return { t: Math.round(r.bottom + 6), bt: Math.round(r.top), l: Math.round(r.left), w: Math.round(r.width) };
+    } catch (err) { return null; }
+  }
+  focusPickupA = (e) => this.setState({ sugRect: this.sugPos(e), sugIdx: -1, sug: { open: true, field: 'pickup', at: 'a', items: [], custom: false, text: '' } });
+  focusDropA = (e) => this.setState({ sugRect: this.sugPos(e), sugIdx: -1, sug: { open: true, field: 'dropoff', at: 'a', items: [], custom: false, text: '' } });
+  detectLoc = () => {
+    this.setState({ sug: CLOSED, pickupText: this.t().locating, pickupLoc: null });
+    setTimeout(() => {
+      const loc = LOCS.find((l) => l.id === 'bahnhof');
+      this.setState((s) => ({ pickupText: loc.n, pickupLoc: loc, autofill: { pickup: null, when: s.autofill.when } }));
+      this.q();
+    }, 900);
+  };
+  swap = () => this.setState((s) => ({ pickupText: s.dropText, pickupLoc: s.dropLoc, dropText: s.pickupText, dropLoc: s.pickupLoc, autofill: { pickup: null, when: s.autofill.when } }), this.q);
+  setDay = (d, label) => { this.setState((s) => ({ day: d, dayLabel: label || null, autofill: { pickup: s.autofill.pickup, when: null } })); this.q(); };
+  setTime = (tm) => { this.setState((s) => ({ time: tm, autofill: { pickup: s.autofill.pickup, when: null } })); this.q(); };
+  setReturnDay = (d, label) => { this.setState({ returnDay: d, returnLabel: label || null }); this.q(); };
+  setReturnTime = (tm) => { this.setState({ returnTime: tm }); this.q(); };
+  setPax = (n) => { this.setState({ pax: n }); this.q(); };
+  setBags = (n) => { this.setState({ bags: n }); this.q(); };
+  setHours = (n) => { this.setState({ hours: n }); this.q(); };
+  /** Rows of the address list. Also the keyboard model — see sugKey. */
+  sugRowsList() {
+    const s = this.state; const t = this.t(); const sg = s.sug; const rows = []; const isPickup = sg.field === 'pickup';
+    if (isPickup) rows.push({ geo: true, name: t.useLoc, sub: t.useLocSub, pick: this.detectLoc });
+    const items = sg.items || [];
+    const q = (sg.text || '').trim();
+    const cur = ((isPickup ? s.pickupText : s.dropText) || '').trim();
+    const untouched = !q || q === cur;
+    if (untouched) {
+      rows.push({ head: true, name: isPickup ? t.nearYou : t.popular });
+      (isPickup ? NEAR_IDS : DEST_IDS).forEach((id) => { const l = LOCS.find((x) => x.id === id); if (l) rows.push({ row: true, icon: l.icon, name: l.n, sub: l.s || '', pick: () => this.choose(l) }); });
+    } else {
+      items.forEach((l) => rows.push({ row: true, icon: l.icon, name: l.n, sub: l.s || '', pick: () => this.choose(l) }));
+      if (sg.custom) rows.push({ row: true, icon: 'map-pin', name: '“' + sg.text + '”', sub: t.customPin, pick: () => this.choose({ custom: true }) });
+    }
+    let i = -1;
+    rows.forEach((r) => {
+      if (r.head) return;
+      i += 1; r.idx = i; r.id = 'vt-sug-' + i;
+      r.sel = s.sugIdx === i ? 'true' : 'false';
+      r.css = s.sugIdx === i ? (r.geo ? 'background:var(--vt-yellow-100)' : 'background:var(--vt-grey-50)') : '';
+    });
+    return rows;
+  }
+  sugKey = (e) => {
+    if (!this.state.sug.open) return;
+    const rows = this.sugRowsList().filter((r) => !r.head);
+    const k = e.key;
+    if (k === 'Escape') { this.setState({ sug: CLOSED, sugIdx: -1 }); return; }
+    if (!rows.length) return;
+    if (k === 'ArrowDown' || k === 'ArrowUp') {
+      e.preventDefault();
+      const n = rows.length, cur = this.state.sugIdx;
+      this.setState({ sugIdx: k === 'ArrowDown' ? (cur + 1) % n : (cur <= 0 ? n - 1 : cur - 1) });
+    } else if (k === 'Enter') {
+      const r = rows[this.state.sugIdx];
+      if (r) { e.preventDefault(); r.pick(); }
+    }
+  };
+  pick(id) {
+    const r = this.state.quote.results;
+    if (!r || !r[id] || r[id].kind !== 'price') return;
+    const s = this.state;
+    const trip = { mode: s.mode, pickup: s.pickupText, dropoff: s.mode === 'hourly' ? (s.hours + ' h — ' + this.t().hourly) : s.dropText, date: s.dayLabel || this.fmtDate(s.day), selectedDay: s.day, time: s.time, pax: s.pax, bags: s.bags, vehicle: id, vehicleName: (FLEET.find((v) => v.id === id) || {}).name || id };
+    if (s.mode === 'return') { trip.returnDate = s.returnLabel || this.fmtDate(s.returnDay); trip.returnDay = s.returnDay; trip.returnTime = s.returnTime; }
+    saveTrip(trip);
+    location.href = 'checkout.dc.html';
+  }
+  badgeEl(code) {
+    if (!code) return undefined;
+    const DSg = (typeof window !== 'undefined' && window.VamosTaxiDesignSystem_245af1) || {};
+    const kids = [];
+    if (DSg.Icon) kids.push(React.createElement(DSg.Icon, { key: 'i', name: 'plane', size: 11, color: 'var(--vt-yellow-700)' }));
+    kids.push(code);
+    return React.createElement('span', { title: 'Filled from flight ' + code + ' — you can override', style: { display: 'inline-flex', alignItems: 'center', gap: '5px', height: '22px', padding: '0 9px', borderRadius: '999px', background: 'var(--vt-yellow-50)', color: 'var(--vt-yellow-700)', fontSize: '11px', fontWeight: 600, letterSpacing: '.04em', whiteSpace: 'nowrap' } }, kids);
+  }
+  fleetVals() {
+    const t = this.t(); const s = this.state;
+    const names = { eclass: t.eclass, sclass: t.sclass, vclass: t.vclass, sprinter: t.sprinter };
+    const ex = { eclass: t.exEclass, sclass: t.exSclass, vclass: t.exVclass, sprinter: t.exSprinter };
+    return FLEET.map((v) => {
+      const lb = this.labelFor(v.id);
+      const r = (s.quote.status === 'live' && s.quote.results) ? s.quote.results[v.id] : null;
+      const ok = !!r && r.kind === 'price';
+      return {
+        name: names[v.id], examples: ex[v.id], icon: v.icon,
+        hasImage: !!v.image, noImage: !v.image, image: v.image || '',
+        hasBadge: !!v.badge, badge: t.mostBooked,
+        capText: v.cap + ' ' + t.seats, bagText: v.bags + ' ' + t.bagsWord,
+        skeleton: s.quote.status === 'skeleton',
+        dustRef: this.dustRef(v.id),
+        sr: names[v.id] + ': ' + lb.text,
+        title: ok ? t.selectHint : lb.text, dis: ok ? null : 'true',
+        select: () => this.pick(v.id),
+        key: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.pick(v.id); } },
+      };
+    });
+  }
+  renderVals() {
+    const t = this.t(); const s = this.state;
+    const phone = s.tier === 0, sheetOpen = s.sheetOpen;
+    const chip = (sel) => sel ? 'background:var(--vt-charcoal-900);color:var(--vt-white);border:1px solid var(--vt-charcoal-900)' : 'background:var(--vt-white);color:var(--vt-text-primary);border:1px solid var(--vt-border-subtle)';
+    const head = (v) => String(v || '').split(',')[0].trim();
+    const tripRoute = s.mode === 'hourly'
+      ? (head(s.pickupText) || t.pickupPh) + ' · ' + s.hours + ' h'
+      : (head(s.pickupText) || t.pickupPh) + ' → ' + (head(s.dropText) || t.destPh);
+    const modeLabel = s.mode === 'return' ? t.return_ : s.mode === 'hourly' ? t.hourly : t.oneWay;
+    const tripMeta = modeLabel + ' · ' + (s.dayLabel || this.fmtDate(s.day)) + ', ' + s.time;
+    const slots = ['05:30', '06:45', '08:15', '09:30', '11:00', '12:15', '14:00', '16:30', '18:45', '21:15'];
+    if (!slots.includes(s.time)) { slots.push(s.time); slots.sort(); }
+    const flightOk = s.flightState === 'ok' && s.flightInfo;
+    return {
+      n0: 0, n1: 1, n2: 2, n8: 8, n12: 12, n15: 15, n16: 16, n18: 18, n24: 24,
+      yes: true,
+      dir: s.lang === 'ar' ? 'rtl' : 'ltr', lang: s.lang, cur: s.cur, pickLang: this.pickLang, pickCur: this.pickCur,
+      langOptions: LANGS.map((v) => ({ value: v, label: v.toUpperCase(), note: dispLang(v) })),
+      curOptions: Object.keys(CURS).map((v) => ({ value: v, label: v, note: dispCur(v, s.lang) })),
+      mode: s.mode, setMode: this.setMode,
+      modes: [{ value: 'one-way', label: t.oneWay }, { value: 'return', label: t.return_ }, { value: 'hourly', label: t.hourly }],
+      isReturn: s.mode === 'return', isHourly: s.mode === 'hourly', notHourly: s.mode !== 'hourly',
+      flight: s.flight, setFlight: this.setFlight, flightKey: this.flightKey,
+      flightError: s.flightState === 'err' ? t.flightErr : '',
+      flightHint: s.flightState === 'checking' ? t.checking : flightOk ? s.flightInfo.code + ' · ' + s.flightInfo.route + ' — ' + t.lands + ' ' + s.flightInfo.arr : '',
+      pickupText: s.pickupText, dropText: s.dropText,
+      editPickupA: this.editRoute('pickup', 'a'), editDropA: this.editRoute('dropoff', 'a'),
+      pickupIcon: (s.pickupLoc && s.pickupLoc.air) ? 'plane-landing' : 'map-pin',
+      pickupBadge: this.badgeEl(s.autofill.pickup),
+      whenHint: s.autofill.when ? s.autofill.when + ' · ' + t.arrPlus : '',
+      sugPA: s.sug.open && s.sug.field === 'pickup' && s.sug.at === 'a',
+      sugDA: s.sug.open && s.sug.field === 'dropoff' && s.sug.at === 'a',
+      sugRows: this.sugRowsList(),
+      focusDropA: this.focusDropA,
+      sugKey: this.sugKey,
+      sugCss: (() => {
+        const shell = 'box-sizing:border-box;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg);padding:6px;display:flex;flex-direction:column;gap:2px;overflow-y:auto';
+        const sr = s.sugRect, vh = typeof window !== 'undefined' ? window.innerHeight : 900;
+        if (!sr) return 'position:absolute;top:calc(100% + 6px);inset-inline-start:0;width:100%;z-index:600;max-height:min(360px,46svh);' + shell;
+        const flip = (vh - sr.t) < 300;
+        return 'position:fixed;' + (flip ? 'bottom:' + Math.round(vh - sr.bt + 6) + 'px;' : 'top:' + sr.t + 'px;')
+          + 'left:' + sr.l + 'px;width:' + sr.w + 'px;min-width:min(300px,calc(100vw - 24px));z-index:600;max-height:min(420px,' + (flip ? Math.max(160, sr.bt - 16) : Math.max(160, vh - sr.t - 12)) + 'px);' + shell;
+      })(),
+      swapRowCss: s.mode === 'hourly' ? 'display:none' : 'display:flex',
+      focusPickupA: this.focusPickupA,
+      compact: phone,
+      n13: 13, n20: 20, n30: 30,
+      menuOpen: s.menuOpen, menuExpanded: s.menuOpen ? 'true' : 'false', menuIcon: s.menuOpen ? 'x' : 'menu', toggleMenu: this.toggleMenu,
+      menuLangs: LANGS.map((v) => ({ label: v.toUpperCase(), note: dispLang(v), css: chip(v === s.lang), pick: () => { this.setState({ menuOpen: false }); this.pickLang(v); } })),
+      menuCurs: Object.keys(CURS).map((v) => ({ label: v, note: dispCur(v, s.lang), css: chip(v === s.cur), pick: () => { this.setState({ menuOpen: false }); this.pickCur(v); } })),
+      sheetOpen: sheetOpen, openSheet: this.openSheet, closeSheet: this.closeSheet, applySheet: this.applySheet, scrimClick: this.scrimClick,
+      openAttr: s.sheetOpen ? '1' : '0', openExpanded: s.sheetOpen ? 'true' : 'false', sheetRef: this.sheetRef,
+      sheetRole: s.sheetOpen ? 'dialog' : undefined, sheetModal: s.sheetOpen ? 'true' : undefined, sheetTab: s.sheetOpen ? -1 : undefined,
+      tripRoute: tripRoute, tripMeta: tripMeta,
+      tMenu: t.menu, tClose: t.close, tSheetTitle: t.planTitle, tShowPrices: t.showPrices, tCall: t.call, tCallNote: t.callNote,
+      tLangLabel: t.langLabel, tCurLabel: t.curLabel,
+      swap: this.swap, tSwap: t.swap,
+      date: s.dayLabel || this.fmtDate(s.day), day: s.day, setDay: this.setDay, time: s.time, setTime: this.setTime, timeSlots: slots,
+      returnDate: s.returnLabel || this.fmtDate(s.returnDay), returnDay: s.returnDay, setReturnDay: this.setReturnDay, returnTime: s.returnTime, setReturnTime: this.setReturnTime,
+      tGroups: [t.morning, t.afternoon, t.evening], tPickupTime: t.pickupTime, tReturnTime: t.returnTimeLbl,
+      tWhenLbl: s.mode === 'return' ? t.whenBoth : t.when, tLegs: [t.pickup, t.return_], tSaved: t.saved,
+      pax: s.pax, setPax: this.setPax, bags: s.bags, setBags: this.setBags, hours: s.hours, setHours: this.setHours,
+      tPax: t.pax, tBags: t.bags, tHours: t.hours,
+      fleet: this.fleetVals(),
+      announce: s.announce,
+      trustBullets: (() => { const parts = t.trust.split(' · '); return [
+        { icon: 'banknote', color: 'var(--vt-yellow-700)', text: parts[0] || t.trust, hide: null },
+        { icon: 'shield-check', color: 'var(--vt-success)', text: parts[1] || '', hide: '1' },
+        { icon: 'plane-landing', color: 'var(--vt-yellow-700)', text: t.waiting60, hide: '1' },
+      ].filter((b) => b.text); })(),
+      tKicker: t.kicker, tH1: t.h1, tSub: t.sub, tSignIn: t.signIn,
+      tFlight: t.flight, tPickup: t.pickup, tPickupPh: t.pickupPh, tDest: t.dest, tDestPh: t.destPh,
+      tFixed: t.fixed, tAllIn: t.allIn, tGetting: t.getting,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

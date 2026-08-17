@@ -1,0 +1,16 @@
+/* ── Motion ───────────────────────────────────────────────────────────────
+   Short, flat, no bounce. Movement means "on time", not "playful".
+   ------------------------------------------------------------------------ */
+:root{
+  --vt-dur-instant:80ms; /* @kind other */
+  --vt-dur-fast:140ms; /* @kind other */
+  --vt-dur-base:200ms; /* @kind other */
+  --vt-dur-slow:320ms; /* @kind other */
+  --vt-dur-page:480ms; /* @kind other */
+
+  --vt-ease-standard:cubic-bezier(0.2,0,0.2,1); /* @kind other */
+  --vt-ease-out:cubic-bezier(0.16,1,0.3,1); /* @kind other */
+  --vt-ease-in:cubic-bezier(0.4,0,1,1); /* @kind other */
+
+  --vt-transition-control:background-color var(--vt-dur-fast) var(--vt-ease-standard),color var(--vt-dur-fast) var(--vt-ease-standard),border-color var(--vt-dur-fast) var(--vt-ease-standard),box-shadow var(--vt-dur-fast) var(--vt-ease-standard),transform var(--vt-dur-fast) var(--vt-ease-standard); /* @kind other */
+}

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="../tokens/fonts.css">
+<link rel="stylesheet" href="../tokens/colors.css">
+<link rel="stylesheet" href="../tokens/typography.css">
+<link rel="stylesheet" href="../tokens/spacing.css">
+<link rel="stylesheet" href="../tokens/elevation.css">
+<link rel="stylesheet" href="../tokens/motion.css">
+<link rel="stylesheet" href="../tokens/base.css">
+<link rel="stylesheet" href="../components/mobile/fig-tokens.css">
+<link rel="stylesheet" href="../components/mobile/fig-assets.css">
+<link rel="stylesheet" href="../styles.css">
+<script src="../_ds_bundle.js"></script>
+<link rel="stylesheet" href="../assets/lenis.css">
+<script src="../assets/lenis.js"></script>
+<script src="../assets/lenis-boot.js"></script>
+<script src="vamos-i18n-dict.js"></script>
+<script src="vamos-locale.js"></script>
+<style>:root{--vt-icon-base:"../assets/icons/";--vt-logo-base:"../assets/logo/";--vt-pattern-base:"../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}body{margin:0;background:var(--vt-grey-100)}
+a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+[data-bd-badge]{display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:var(--vt-radius-xs);background:var(--vt-charcoal);color:var(--vt-white);font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);font-weight:var(--vt-label-weight);text-transform:uppercase}
+[data-bd-h1]{margin:0;font-family:var(--vt-font-display);font-size:38px;font-weight:var(--vt-weight-semibold);letter-spacing:-.02em;line-height:1.1}
+[data-bd-sub]{margin:0;max-width:80ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);text-wrap:pretty}
+[data-bd-card]{position:relative;display:flex;flex-direction:column;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);overflow:hidden}
+[data-bd-cap]{display:flex;align-items:baseline;gap:10px;padding:14px 18px;border-bottom:1px solid var(--vt-border-subtle);background:var(--vt-grey-50)}
+[data-bd-n]{font-family:var(--vt-font-display);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-semibold);color:var(--vt-text-muted)}
+[data-bd-t]{font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-primary)}
+[data-bd-body]{padding:40px}
+[data-bd-note]{display:flex;flex-direction:column;gap:8px;max-width:620px;padding:18px 20px;border:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface);border-radius:var(--vt-radius-md);box-shadow:var(--vt-shadow-xs)}
+[data-bd-note] p{margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+[data-bd-note] strong{color:var(--vt-charcoal-900);font-weight:var(--vt-weight-semibold)}
+[data-bd-k]{margin:0;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-bd-panel-line]{margin:0;font-family:var(--vt-font-display);font-size:30px;font-weight:var(--vt-weight-semibold);letter-spacing:-.02em;line-height:1.1;color:var(--vt-white)}</style>
+</helmet>
+<section id="turn-1" style="display:flex;flex-direction:column;gap:32px;padding:56px clamp(24px,4vw,64px) 96px;font-family:var(--vt-font-body);color:var(--vt-text-primary)">
+<div id="1a" style="display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;align-items:center;gap:14px">
+<span data-bd-badge="1">1a</span>
+<h1 data-bd-h1="1">Sign in / Sign up — every state</h1>
+</div>
+<p data-bd-sub="1">The reference layout from <a href="https://www.figma.com/design/znjtWMCXoOyqpmomthiaJ5/700-web?node-id=32-3759">700 web</a> — split screen, 360-wide form column, field and button proportions — rendered in the Vamos token system. Working page: <a href="sign-in.dc.html">sign-in.dc.html</a>.</p>
+<div data-bd-note="1">
+<p data-bd-k="1">Applied from your answers</p>
+<p><strong>Vamos tokens, reference structure.</strong> Yellow/charcoal, Qurova + Poppins, pill fields. The reference's purple, Inter and 11px/6px radii are not carried over.</p>
+<p><strong>Social login cut.</strong> Both buttons and the “or” divider are gone — password and magic link are the only confirmed methods.</p>
+<p><strong>Adapted:</strong> “Username or email” → “Email”. Field labels added (the reference is placeholder-only). Sign-up collects first and last name. Policy numbers the client still owes read as TBC pills in a labelled note block.</p>
+<p><strong>Added:</strong> a passkey path on sign-in (card 15), the page the reset email opens (16–18), the ops console on the same auth (19), and mobile-number verification in the profile (20–22).</p>
+<p><strong>Wired site-wide.</strong> The shared header's account control goes to these screens on every page — signed out it is an outlined <em>Sign in</em>, signed in it becomes your monogram, with the name, the address and <em>Sign out</em> in the menu behind it. One session key, so signing in here changes the header everywhere.</p>
+<p><strong>Right panel:</strong> no photograph for now — charcoal with the checker watermark. The V-Class shot stays available as a tweak on the page.</p>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fill,440px);gap:32px;align-items:start;max-width:1856px">
+
+<div data-bd-card="1">
+<div data-bd-cap="1"><span data-bd-n="1">01</span><span data-bd-t="1">Sign in · password</span></div>
+<div data-bd-body="1"><dc-import name="AuthForm" mode="signin" method="password" stage="form" frozen="{{ yes }}" hint-size="360px,520px"></dc-import></div>
+</div>
+
+<div data-bd-card="1">
+<div data-bd-cap="1"><span data-bd-n="1">02</span><span data-bd-t="1">Sign in · invalid credentials</span></div>
+<div data-bd-body="1"><dc-import name="AuthForm" mode="signin" method="password" stage="form" banner="credentials" email="anna.keller@example.com" frozen="{{ yes }}" hint-size="360px,600px"></dc-import></div>
+</div>
+
+<div data-bd-card="1">
+<div data-bd-cap="1"><span data-bd-n="1">03</span><span data-bd-t="1">Sign in · magic link</span></div>
+<div data-bd-body="1"><dc-import name="AuthForm" mode="signin" method="magic" stage="form" frozen="{{ yes }}" hint-size="360px,440px"></dc-import></div>
+</div>
+
+<div data-bd-card="1">
+<div data-bd-cap="1"><span data-bd-n="1">04</span><span data-bd-t="1">Sign in · check your email</span></div>
+<div data-bd-body="1"><dc-import name="AuthForm" mode="signin" method="magic" stage="sent" email="anna.keller@example.com" frozen="{{ yes }}" hint-size="360px,480px"></dc-import></div>
+</div>
+
+<div data-bd-card="1">
+<div data-bd-cap="1"><span data-bd-n="1">05</span><span data-bd-t="1">Sign up · password</span></div>
+<div data-bd-body="1"><dc-import name="AuthForm" mode="signup" method="password" stage="form" frozen="{{ yes }}" hint-size="360px,540px"></dc-import></div>
+</div>
+
+<div data-bd-card="1">
+<div data-bd-cap="1"><span data-bd-n="1">06</span><span data-bd-t="1">Sign up · email already registered → routes to sign in</span></div>
+<div data-bd-body="1"><dc-import name="AuthForm" mode="signup" method="password" stage="form" banner="registered" email="taken@vamostaxi.eu" frozen="{{ yes }}" hint-size="360px,620px"></dc-import></div>
+</div>
+
+<div data-bd-card="1">
+<div data-bd-cap="1"><span data-bd-n="1">07</span><span data-bd-t="1">Sign up · magic link</span></div>
+<div data-bd-body="1"><dc-import name="AuthForm" mode="signup" method="magic" stage="form" frozen="{{ yes }}" hint-size="360px,440px"></dc-import></div>
+</div>
+
+<div data-bd-card="1">
+<div data-bd-cap="1"><span data-bd-n="1">08</span><span data-bd-t="1">Sign up · check your email</span></div>
+<div data-bd-body="1"><dc-import name="AuthForm" mode="signup" method="magic" stage="sent" email="anna.keller@example.com" frozen="{{ yes }}" hint-size="360px,480px"></dc-import></div>
+</div>
+
+<div data-bd-card="1">
+<div data-bd-cap="1"><span data-bd-n="1">09</span><span data-bd-t="1">Forgot password · request</span></div>
+<div data-bd-body="1"><dc-import name="AuthForm" mode="forgot" method="password" stage="form" frozen="{{ yes }}" hint-size="360px,440px"></dc-import></div>
+</div>
+
+<div data-bd-card="1">
+<div data-bd-cap="1"><span data-bd-n="1">10</span><span data-bd-t="1">Forgot password · check your email</span></div>
+<div data-bd-body="1"><dc-import name="AuthForm" mode="forgot" method="password" stage="sent" email="anna.keller@example.com" frozen="{{ yes }}" hint-size="360px,480px"></dc-import></div>
+</div>
+
+<div data-bd-card="1">
+<div data-bd-cap="1"><span data-bd-n="1">11</span><span data-bd-t="1">Return-to context · sign-in success</span></div>
+<div data-bd-body="1"><dc-import name="AuthForm" mode="signin" method="password" stage="returning" frozen="{{ yes }}" hint-size="360px,320px"></dc-import></div>
+</div>
+
+<div data-bd-card="1">
+<div data-bd-cap="1"><span data-bd-n="1">12</span><span data-bd-t="1">Auto-attach banner · sign-up success, guest bookings matched</span></div>
+<div data-bd-body="1" style="display:flex;flex-direction:column;gap:16px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="inverse" title="Welcome — we found 2 bookings under this email and added them to your account" icon="ticket" hint-size="100%,120px">They are listed below, with the same reference and driver details you were emailed.</x-import>
+<p style="margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-muted)">Sits inline at the top of <a href="account.dc.html?attached=2">the account page</a>, dismissible. Not a modal, not a choice. No match found → no banner, straight through.</p>
+</div>
+</div>
+
+<div data-bd-card="1">
+<div data-bd-cap="1"><span data-bd-n="1">13</span><span data-bd-t="1">Mobile · panel column drops, form full width</span></div>
+<div data-bd-body="1" style="padding:24px;display:flex;justify-content:center;background:var(--vt-grey-100)">
+<div style="width:360px;padding:28px 20px 32px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md)">
+<dc-import name="AuthForm" mode="signin" method="password" stage="form" frozen="{{ yes }}" hint-size="100%,520px"></dc-import>
+</div>
+</div>
+</div>
+
+<div data-bd-card="1">
+<div data-bd-cap="1"><span data-bd-n="1">14</span><span data-bd-t="1">Right panel · no image for now (photo stays a tweak)</span></div>
+<div style="position:relative;height:520px;overflow:hidden;background:var(--vt-charcoal)">
+<div style="position:absolute;inset:0;background-image:url(../assets/patterns/checker-tile.png);background-size:112px;opacity:.06"></div>
+<div style="position:absolute;inset:0;background:var(--vt-scrim-bottom)"></div>
+<img src="../assets/patterns/checker-mark.png" alt="" aria-hidden="true" style="position:absolute;top:0;right:0;width:64px;height:auto">
+<div style="position:absolute;inset-inline:0;bottom:0;display:flex;flex-direction:column;gap:12px;padding:32px">
+<p data-bd-panel-line="1">Ride with class</p>
+<p style="margin:0;max-width:30ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .78)">Booked ahead, priced up front, and your assigned driver is already there at the agreed time.</p>
+</div>
+</div>
+</div>
+
+<div data-bd-card="1">
+<div data-bd-cap="1"><span data-bd-n="1">15</span><span data-bd-t="1">Sign in · passkey, confirm on device</span></div>
+<div data-bd-body="1"><dc-import name="AuthForm" mode="signin" method="password" stage="verifying" frozen="{{ yes }}" hint-size="360px,360px"></dc-import></div>
+</div>
+
+<div data-bd-card="1">
+<div data-bd-cap="1"><span data-bd-n="1">16</span><span data-bd-t="1">Reset link opened · set a new password</span></div>
+<div data-bd-body="1"><dc-import name="ResetForm" stage="form" email="anna.keller@example.com" hint-size="360px,640px"></dc-import></div>
+</div>
+
+<div data-bd-card="1">
+<div data-bd-cap="1"><span data-bd-n="1">17</span><span data-bd-t="1">Reset · password updated</span></div>
+<div data-bd-body="1"><dc-import name="ResetForm" stage="saved" email="anna.keller@example.com" hint-size="360px,460px"></dc-import></div>
+</div>
+
+<div data-bd-card="1">
+<div data-bd-cap="1"><span data-bd-n="1">18</span><span data-bd-t="1">Reset · link expired</span></div>
+<div data-bd-body="1"><dc-import name="ResetForm" stage="expired" email="anna.keller@example.com" hint-size="360px,460px"></dc-import></div>
+</div>
+
+<div data-bd-card="1">
+<div data-bd-cap="1"><span data-bd-n="1">19</span><span data-bd-t="1">Ops console · same auth, dispatch wording</span></div>
+<div data-bd-body="1" style="background:var(--vt-charcoal);padding:32px">
+<div style="background:var(--vt-bg-surface);border-radius:var(--vt-radius-lg);padding:26px 24px">
+<dc-import name="AuthForm" surface="ops" mode="signin" method="password" stage="form" frozen="{{ yes }}" hint-size="100%,420px"></dc-import>
+</div>
+</div>
+</div>
+
+<div data-bd-card="1" style="grid-column:span 2">
+<div data-bd-cap="1"><span data-bd-n="1">20</span><span data-bd-t="1">Profile · mobile number, action needed</span></div>
+<div data-bd-body="1" style="padding:28px"><dc-import name="PhoneVerify" stage="add" hint-size="100%,280px"></dc-import></div>
+</div>
+
+<div data-bd-card="1" style="grid-column:span 2">
+<div data-bd-cap="1"><span data-bd-n="1">21</span><span data-bd-t="1">Profile · code sent, waiting for the six digits</span></div>
+<div data-bd-body="1" style="padding:28px"><dc-import name="PhoneVerify" stage="code" phone="+41 79 000 00 00" hint-size="100%,420px"></dc-import></div>
+</div>
+
+<div data-bd-card="1" style="grid-column:span 2">
+<div data-bd-cap="1"><span data-bd-n="1">22</span><span data-bd-t="1">Profile · number verified</span></div>
+<div data-bd-body="1" style="padding:28px"><dc-import name="PhoneVerify" stage="verified" phone="+41 79 000 00 00" hint-size="100%,260px"></dc-import></div>
+</div>
+
+</div>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() { return { yes: true }; }
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../tokens/fonts.css">
+<link rel="stylesheet" href="../tokens/colors.css">
+<link rel="stylesheet" href="../tokens/typography.css">
+<link rel="stylesheet" href="../tokens/spacing.css">
+<link rel="stylesheet" href="../tokens/elevation.css">
+<link rel="stylesheet" href="../tokens/motion.css">
+<link rel="stylesheet" href="../tokens/base.css">
+<link rel="stylesheet" href="../styles.css">
+<script src="../_ds_bundle.js"></script>
+<link rel="stylesheet" href="../assets/lenis.css">
+<script src="../assets/lenis.js"></script>
+<script src="../assets/lenis-boot.js"></script>
+<script src="vamos-i18n-dict.js"></script>
+<script src="vamos-locale.js"></script>
+<style>:root{--vt-icon-base:"../assets/icons/";--vt-logo-base:"../assets/logo/";--vt-pattern-base:"../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}.vt-select .vt-input--focus{box-shadow:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}
+body{margin:0}
+a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+[data-rv-wrap]{box-sizing:border-box;max-width:1200px;margin:0 auto;padding:clamp(56px,7vw,90px) clamp(16px,3.2vw,56px)}
+[data-rv-grid]{position:relative;display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(20px,3vw,28px);align-items:stretch}
+[data-rv-card]{box-sizing:border-box;display:flex;flex-direction:column;align-items:center;background:var(--vt-white);border-radius:20px;padding:clamp(26px,3vw,40px) clamp(20px,2.6vw,36px) clamp(28px,3vw,36px)}
+[data-rv-stack]{display:grid;width:100%;margin:auto 0;overflow:hidden}
+[data-rv-slide]{grid-area:1/1;visibility:hidden;transform:translateX(100%);transition:transform var(--rv-ms,480ms) var(--vt-ease-out),visibility 0s linear var(--rv-ms,480ms)}
+[data-rv-slide][data-on="1"]{visibility:visible;transform:translateX(0);transition:transform var(--rv-ms,480ms) var(--vt-ease-out),visibility 0s}
+[data-rv-slide][data-was="1"]{transform:translateX(-100%)}
+[data-rv][data-dir="-1"] [data-rv-slide]{transform:translateX(-100%)}
+[data-rv][data-dir="-1"] [data-rv-slide][data-on="1"]{transform:translateX(0)}
+[data-rv][data-dir="-1"] [data-rv-slide][data-was="1"]{transform:translateX(100%)}
+[data-rv-face]{display:flex;flex-direction:column;align-items:center;text-align:center}
+[data-rv-mark]{display:flex;align-items:center;justify-content:center;height:36px;margin-bottom:clamp(20px,2.6vw,28px);font-family:var(--vt-font-display);font-size:20px;font-weight:var(--vt-weight-semibold);letter-spacing:-0.01em;line-height:1;color:var(--vt-text-primary)}
+[data-rv-av]{display:flex;align-items:center;justify-content:center;width:clamp(112px,12.4vw,148px);height:clamp(112px,12.4vw,148px);border-radius:999px;background:var(--vt-charcoal-900);color:var(--vt-text-inverse);font-family:var(--vt-font-display);font-size:clamp(34px,3.8vw,44px);font-weight:var(--vt-weight-semibold);letter-spacing:.01em;line-height:1}
+[data-rv-name]{margin-top:clamp(18px,2.2vw,24px);font-family:var(--vt-font-body);font-size:17px;font-weight:600;letter-spacing:-0.005em;line-height:1.3;color:var(--vt-text-primary)}
+[data-rv-sub]{margin-top:6px;font-size:var(--vt-body-sm);line-height:1.45;color:var(--vt-text-secondary)}
+[data-rv-quote]{box-sizing:border-box;background:var(--vt-white);display:flex;flex-direction:column;justify-content:center;border-top:1px solid var(--vt-grey-200);border-bottom:1px solid var(--vt-grey-200);padding:clamp(30px,5vw,64px) clamp(0px,2.4vw,40px)}
+[data-rv-q]{display:flex;align-items:center;justify-content:center;margin:0;padding:0}
+[data-rv-text]{margin:0;max-width:34ch;margin-inline:auto;font-family:var(--vt-font-display);font-size:clamp(21px,2.35vw,28px);font-weight:var(--vt-weight-semibold);letter-spacing:-0.02em;line-height:1.45;text-align:center;text-wrap:pretty;color:var(--vt-text-primary)}
+[data-rv-nav]{display:flex;align-items:center;justify-content:center;gap:clamp(18px,2.4vw,30px);margin-top:clamp(4px,1vw,10px)}
+[data-rv-arrow]{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:50px;height:50px;flex:0 0 auto;padding:0;border:1px solid var(--vt-charcoal-900);border-radius:999px;background:transparent;color:var(--vt-charcoal-900);cursor:pointer;transition:var(--vt-transition-control)}
+[data-rv-arrow]:hover{background:var(--vt-yellow);border-color:var(--vt-charcoal-900);color:var(--vt-charcoal-950)}
+[data-rv-arrow]:active{transform:translateY(1px)}
+[data-rv-arrow]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
+[data-rv-dots]{display:flex;align-items:center;gap:13px}
+[data-rv-dot]{width:7px;height:7px;border-radius:999px;background:var(--vt-grey-300);transition:background 200ms var(--vt-ease-standard)}
+[data-rv-dot][data-on="1"]{background:var(--vt-yellow);box-shadow:0 0 0 1px var(--vt-charcoal-900)}
+[data-rv-note]{box-sizing:border-box;margin-top:clamp(26px,3.4vw,40px);padding:16px 18px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-md);display:flex;flex-direction:column;gap:9px}
+[data-rv-note-k]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-rv-note] ul{margin:0;padding-inline-start:18px;display:flex;flex-direction:column;gap:6px}
+[data-rv-note] li{font-size:var(--vt-body-sm);line-height:1.6;color:var(--vt-text-secondary);max-width:82ch;text-wrap:pretty}
+@media (min-width:900px){
+[data-rv-grid]{grid-template-columns:360fr 760fr;column-gap:40px}
+[data-rv-card]{grid-column:1;padding-bottom:124px;border-radius:20px 0 0 20px}
+[data-rv-quote]{grid-column:2;margin-inline-start:-40px;padding-inline-start:calc(40px + clamp(0px,2.4vw,40px));border-inline-end:1px solid var(--vt-grey-200);border-start-end-radius:20px;border-end-end-radius:20px}
+[data-rv-nav]{position:absolute;bottom:37px;inset-inline-start:0;width:calc((100% - 40px) * 0.32143);margin-top:0}
+}
+@media (prefers-reduced-motion:reduce){[data-rv-slide],[data-rv-dot],[data-rv-arrow]{transition:none}}</style>
+</helmet>
+<section id="reviews" data-rv="1" data-dir="1" data-screen-label="Reviews" aria-labelledby="reviews-title" ref="{{ rootRef }}" style="color:var(--vt-text-primary);font-family:var(--vt-font-body);position:relative;overflow:hidden">
+<div aria-hidden="true" style="position:absolute;inset:0;background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAACFCAYAAAAenrcsAAAGKElEQVR4AeycsY5bRRSGz9w8QUwFj5CCLt06isQDrEKFeIvVplmlSGjSsHkJIkWioaAJKdLESJEQFe8ANMggUdB5mFnW1sV7s7av59yZM/OtfHbtu9dn/vMdf9pU6fxi5jVKlL78u48+08gber7XiOzf3f009FZhHHurZF7M3qtkDrvTyBt7quQNbnSxOQUBCAwTQJBhLlyFwBUBBLnCwDcIDBNAkGEuXIXAFQFFQa768w0CpgkgiOn1EV6bAIJoE6a/aQIIYnp9hNcmgCDahOlvmoBNQUwjJ7wlAghiaVtknZwAgkyOnAMtEUAQS9si6+QEEGRy5BxoiQCCbG2LlxDoE0CQPg2eQ2CLAIJsAeElBPoEEKRPg+cQ2CKAIFtAeAmBPgEE6dPQfU53gwQQxODSiDwdgU5cd1+j/GL2m0aJWz0JdZq+/Hchb/L/fUSce+nmS6dRsbdOZjnTyesvNPLGnhp5Y8/Onfzxs0YFxz/WKbdyJ399n7pE3EL4gsAWgW7rNS8hAIEeAQTpwbD7lORaBBBEiyx9qyCAIFWskSG0CCCIFln6VkEAQapYI0NoEUAQLbK19G18DgRp/APA+LcTQJDb+fDbxgkgSOMfAMa/nQCC3M6H3zZOAEEa/wDkHN/C2QhiYUtkzEYAQbKh52ALBBDEwpbImI0AgmRDz8EWCCCIhS2R8VACye5HkGQoaVQjAQSpcavMlIwAgiRDSaMaCXR+MTvXqADrhUp5/5NKXu8equQV91ojb+wpobeIpOccWMT+qUvC7lTyBgaps677xb8glyF08nLz5WONEuneauQV8acqef3qlU5euZTQWyVzYKGTuXurkTf21Mkrl1GQ0Lv34CkEILAhgCAbFDyBwE0CCHKTCVcgsCGAIBsUPIHATQIIcpMJVyCwITCpIJtTeQIBIwQQxMiiiJmHAILk4c6pRgggiJFFETMPAQTJw51TjRCoRRAjuIlpjQCCWNsYeSclgCCT4uYwawQQxNrGyDspAQSZFDeHWSOAIDs3xg0tE0CQlrfP7DsJIMhORNzQMgEEaXn7zL6TAILsRMQNLROIgnwVACQvv5g90yi5I/c08oaeb1TyOvd56D3MV+S466G3SmaRNyqZnZ9r5I09VfKG/XRuvnymUSHwU5Xyq3sqeZ38oJJX5JFG3tgz5H0UKj3nwCL2T10h60mo9HlFnqbOuu4X/4KEzDwgAIEhAggyRIVrELgmgCDXIPgBgSECCDJEpYJrjJCGAIKk4UiXSgkgSKWLZaw0BBAkDUe6VEoAQSpdLGOlIYAgaTi21KWpWRGkqXUz7KEEEORQYtzfFAEEaWrdDHsoAQQ5lBj3N0UAQZpad+nDlpcPQcrbCYkKIoAgBS2DKOURQJDydkKiggggSEHLIEp5BBCkvJ2QSIPAyJ4IMhIcb2uDQOd/vPtco8T75zrl7vjF7DJ1iXenYeWP05d/lTrrup8494t4+TZ5if9yfUbKnyL+1+RZr+dPmbPfqxPvLjTKPfjziUaFD/Dfoc7Tl3/o5ssXqUu8vE6fVf6bf7X62j1YfpG6xLv7Kpl9903qrOt+KnlFzvknViDLAwIfIoAgHyLDdQgEAvsIEm7jAYE2CSBIm3tn6j0JIMieoLitTQII0ubemXpPAgiyJyhua5NAZkHahM7UdgggiJ1dkTQDAQTJAJ0j7RBAEDu7ImkGAgiSATpH2iFQryB2dkDSggkgSMHLIVp+AgiSfwckKJgAghS8HKLlJ4Ag+XdAgoIJIMiI5fCWdgggSDu7ZtIRBBBkBDTe0g4BBGln17VP+nsYMHl1br50GuUXM69RIu4fjbzi5Ewlr3MvNfLGnhJ662SWs9g/dYnzFxp5Y8+Q9RON4i+IFPVFmMIIIEhhCyFOWQQQpKx9kKYwAghS2EKIUxYBBClrH6QpjACCFLYQvTh0HkMAQcZQ4z3NEECQZlbNoGMIIMgYarynGQII0syqGXQMAQQZQ433/J9Axa8QpOLlMtrxBBDkeIZ0qJgAglS8XEY7ngCCHM+QDhUTQJCKl1vDaLlnQJDcG+D8ogkgSNHrIVxuAgiSewOcXzQBBCl6PYTLTQBBcm+A83MR2OvcfwEAAP//LvhOGAAAAAZJREFUAwDDV9XQwfXxPQAAAABJRU5ErkJggg==);background-size:88px 88px;background-repeat:repeat;opacity:.028;pointer-events:none;z-index:0"></div>
+<div data-rv-wrap="1" style="position:relative;z-index:1">
+
+<div style="display:flex;flex-direction:column;gap:14px;margin-bottom:clamp(28px,3.6vw,40px)">
+<p style="margin:0;display:inline-flex;align-self:flex-start;align-items:center;gap:9px;height:32px;padding:0 15px 0 12px;border:1px solid var(--vt-grey-200);border-radius:999px;background:var(--vt-white);font-size:12px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;line-height:1;white-space:nowrap;color:var(--vt-charcoal-900)"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAAChCAYAAABAk7SIAAAEi0lEQVR4AeyUS27bQBQETR1BuU58o1wqZ9F9nEX2YWCuaIA/c379XpcBGYYkznRXF/yYX8852+st4c/8+vF7TrjVI+FWVApEAAEDjZUxKgJmXDVQJwQMNFbGqAiYcdVAnXwFDDRS5qgImHndAN0QMMBImSMiYOZ1A3RDwAAjZY6IgJnXDdANAQOMVDmi1HEIKDWHXxgE9NtcqjECSs3hFwYB/TaXaoyAUnP4hUFAv82lGncVUKo5YSQIIKDEDL4hENB3e4nmCCgxg28IBPTdXqI5AkrM4BsCAbtszyV7BBBwjwzvdyGAgF0wc8keAQTcI8P7XQggYBfMXLJHAAH3yPB+FwII2AWz7yVnzRHwjBCfNyWAgE3xcvgZAQQ8I8TnTQkgYFO8HH5GAAHPCPF5UwII2BQvh58RyCvgWXM+lyCAgBIz+IZAQN/tJZojoMQMviEQ0Hd7ieYIKDGDbwgEzLd9qEYIGGqufGERMN+moRohYKi58oVFwHybhmqEgKHmyhcWAfNtGqpRVQFDNSesBAEElJjBNwQC+m4v0fwxvX9M2V7z6zlne71N//5m2+mzD/8BJf4P+IZAQN/tJZojYJUZOOQuAQS8S47nqhBAwCoYOeQuAQS8S47nqhBAwCoYOeQuAQS8S47nqhBAwCoYfQ8pbY6ApQR5vogAAhbh4+FSAghYSpDniwggYBE+Hi4lgIClBHm+iAACFuHj4VICcQUsbc7zEgQQUGIG3xAI6Lu9RHMElJjBNwQC+m4v0RwBJWbwDYGA8bZPlRgBU80ZrwwCxtssVWIETDVnvDIIGG+zVIkRMNWc8cogYLzNUiX+loCpmlNGggACSszgGwIBfbeXaI6AEjP4hkBA3+0lmiOgxAy+IRDw0vZ8qRUBBGxFlnMvEUDAS5j4UisCCNiKLOdeIoCAlzDxpVYEELAVWc69RAABL2Hy/VLr5gjYmjDnHxJAwEM8fNiaAAK2Jsz5hwQQ8BAPH7YmgICtCXP+IQEEPMTDh60J6ArYujnnSxBAQIkZfEMgoO/2Es0RUGIG3xAI6Lu9RPPH/HrO2V7T+8eU7vXzzy8JYyqH4D9gZaAVjrM6AgGt5tYri4B6m1glQkCrufXKIqDeJlaJENBqbr2yCKi3iVWiLwJaNaesBAEElJjBNwQC+m4v0RwBJWbwDYGAvttLNEdAiRl8QyDgsj2/RhFAwFHkuXchgIALBn6NIoCAo8hz70IAARcM/BpFAAFHkefehQACLhh8f41ujoCjFzC/HwHNBRhdHwFHL2B+PwKaCzC6PgKOXsD8fgQ0F2B0/XECjm7O/RIEEFBiBt8QCOi7vURzBJSYwTcEAvpuL9EcASVm8A2BgP2358YVAQRcweDP/gQQsD9zblwRQMAVDP7sTwAB+zPnxhUBBFzB4M/+BBCwP3PfGzeaI+AGFN7qRwAB+7Hmpg0CCLgBhbf6EUDAfqy5aYMAAm5A4a1+BBCwH2tu2iBgIuBGc96SIICAEjP4hkBA3+0lmiOgxAy+IRDQd3uJ5ggoMYNvCARMvr16PQRUXyh5vv8AAAD//3BQ2wUAAAAGSURBVAMAfqEZH/MwL3sAAAAASUVORK5CYII=" alt="" style="width:13px;height:13px;display:block">Reviews</p>
+<h2 id="reviews-title" style="margin:0;font-family:var(--vt-font-display);font-size:clamp(34px,4.4vw,52px);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:1.06;max-width:24ch;text-wrap:balance">What clients say about us</h2>
+</div>
+
+<div data-rv-grid="1" role="group" aria-roledescription="carousel" aria-label="Client reviews" onMouseEnter="{{ hoverIn }}" onMouseLeave="{{ hoverOut }}" onFocus="{{ focusIn }}" onBlur="{{ focusOut }}" onKeyDown="{{ key }}">
+
+<div data-rv-card="1">
+<div data-rv-stack="1">
+
+<div data-rv-slide="1" data-rv-face="1" data-i="1" data-on="1">
+<span data-rv-mark="1">Google</span>
+<span data-rv-av="1" aria-hidden="true">FL</span>
+<strong data-rv-name="1">First L.</strong>
+<span data-rv-sub="1">Verified Google review</span>
+</div>
+
+<div data-rv-slide="1" data-rv-face="1" data-i="2" data-on="0" aria-hidden="true">
+<span data-rv-mark="1">Tripadvisor</span>
+<span data-rv-av="1" aria-hidden="true">FL</span>
+<strong data-rv-name="1">First L.</strong>
+<span data-rv-sub="1">Verified Tripadvisor review</span>
+</div>
+
+<div data-rv-slide="1" data-rv-face="1" data-i="3" data-on="0" aria-hidden="true">
+<span data-rv-mark="1">Trustpilot</span>
+<span data-rv-av="1" aria-hidden="true">FL</span>
+<strong data-rv-name="1">First L.</strong>
+<span data-rv-sub="1">Verified Trustpilot review</span>
+</div>
+
+<div data-rv-slide="1" data-rv-face="1" data-i="4" data-on="0" aria-hidden="true">
+<span data-rv-mark="1">Google</span>
+<span data-rv-av="1" aria-hidden="true">FL</span>
+<strong data-rv-name="1">First L.</strong>
+<span data-rv-sub="1">Verified Google review</span>
+</div>
+
+<div data-rv-slide="1" data-rv-face="1" data-i="5" data-on="0" aria-hidden="true">
+<span data-rv-mark="1">Tripadvisor</span>
+<span data-rv-av="1" aria-hidden="true">FL</span>
+<strong data-rv-name="1">First L.</strong>
+<span data-rv-sub="1">Verified Tripadvisor review</span>
+</div>
+
+</div>
+</div>
+
+<div data-rv-quote="1">
+<div data-rv-stack="1">
+
+<blockquote data-rv-slide="1" data-rv-q="1" data-i="1" data-on="1" role="group" aria-roledescription="slide" aria-label="Review 1 of 5">
+<p data-rv-text="1">“One verbatim sentence from a real review sits here — pasted from the platform, never rewritten.”</p>
+</blockquote>
+
+<blockquote data-rv-slide="1" data-rv-q="1" data-i="2" data-on="0" aria-hidden="true" role="group" aria-roledescription="slide" aria-label="Review 2 of 5">
+<p data-rv-text="1">“Two or three sentences is the length this block is drawn for. Longer reviews are cut at the end and marked with an ellipsis; nothing inside the quote is edited, reordered or tidied up.”</p>
+</blockquote>
+
+<blockquote data-rv-slide="1" data-rv-q="1" data-i="3" data-on="0" aria-hidden="true" role="group" aria-roledescription="slide" aria-label="Review 3 of 5">
+<p data-rv-text="1">“This is about the longest excerpt the measure holds before it is trimmed. A review that runs past it keeps its opening and loses only its tail, so the words a traveller chose first are the words that show…”</p>
+</blockquote>
+
+<blockquote data-rv-slide="1" data-rv-q="1" data-i="4" data-on="0" aria-hidden="true" role="group" aria-roledescription="slide" aria-label="Review 4 of 5">
+<p data-rv-text="1">“German reviews land here too. Strings grow around 30 per cent and the block takes it without the card reflowing.”</p>
+</blockquote>
+
+<blockquote data-rv-slide="1" data-rv-q="1" data-i="5" data-on="0" aria-hidden="true" role="group" aria-roledescription="slide" aria-label="Review 5 of 5">
+<p data-rv-text="1">“Whichever platform a review came from, that platform’s own mark sits at the top of the card — one review, one source, no borrowed logos.”</p>
+</blockquote>
+
+</div>
+</div>
+
+<div data-rv-nav="1">
+<button type="button" data-rv-arrow="1" aria-label="Previous review" onClick="{{ prev }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-left" size="{{ n20 }}" color="currentColor" hint-size="20px,20px"></x-import>
+</button>
+<div data-rv-dots="1" aria-hidden="true">
+<span data-rv-dot="1" data-i="1" data-on="1"></span>
+<span data-rv-dot="1" data-i="2" data-on="0"></span>
+<span data-rv-dot="1" data-i="3" data-on="0"></span>
+<span data-rv-dot="1" data-i="4" data-on="0"></span>
+<span data-rv-dot="1" data-i="5" data-on="0"></span>
+</div>
+<button type="button" data-rv-arrow="1" aria-label="Next review" onClick="{{ next }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-right" size="{{ n20 }}" color="currentColor" hint-size="20px,20px"></x-import>
+</button>
+</div>
+
+</div>
+
+<span ref="{{ liveRef }}" aria-live="polite" style="position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap"></span>
+
+<sc-if value="{{ showNotice }}" hint-placeholder-val="{{ true }}">
+<div data-rv-note="1">
+<span data-rv-note-k="1">Pending client input</span>
+<ul>
+<li>No name, quote or count on this page is real. Each quote is a placeholder describing its own slot — real reviews are fetched server-side and shown verbatim, trimmed only at the end.</li>
+<li>Platform names are set in type as stand-ins. Confirm which of Google, Tripadvisor and Trustpilot has a live Vamos profile before any mark ships: a logo with no account behind it is a false claim.</li>
+<li>Autoplay advances every 1.5 s, as specified, with a 360 ms cross-slide. It pauses on hover or focus and stops for good once either arrow is used.</li>
+</ul>
+</div>
+</sc-if>
+
+</div>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:780},&quot;autoplaySeconds&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:2.5,&quot;min&quot;:0,&quot;max&quot;:12,&quot;step&quot;:0.5,&quot;unit&quot;:&quot;s&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;},&quot;slideMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:480,&quot;min&quot;:200,&quot;max&quot;:900,&quot;step&quot;:20,&quot;unit&quot;:&quot;ms&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;},&quot;showPendingNotice&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Content&quot;}}">
+/**
+ * Home · Reviews — structure from Figma /Main/263 (node 315:25968): H2 over a two-up block,
+ * a 360-wide rounded info card on the left and a 760-wide quote panel ruled top and bottom on
+ * the right, geometry verbatim (20px radius, 40px gap, 50px pagination circles, gap 30, 88px
+ * dot row). Recoloured to Vamos: card --vt-grey-50, type Qurova/Poppins, hairlines the brand
+ * grey #DEDEDE, both arrows outlined charcoal — the reference's purple is gone entirely.
+ *
+ * Both stacks (card identity, quote) hold all five slides as literal markup in one grid cell,
+ * so every string stays directly editable and the panel is as tall as its longest quote — no
+ * measuring, no reflow on advance. A step writes data-on/aria-hidden imperatively; CSS does
+ * the cross-slide on the entrance curve --vt-ease-out, the incoming fade held back 70ms so the
+ * two overlap instead of swapping. Direction comes from data-dir on the section.
+ *
+ * Autoplay: 1.5s dwell (client-specified), paused while the block is hovered or holds focus, off under
+ * prefers-reduced-motion or a hidden tab, and stopped for good the moment either arrow is
+ * clicked — a manual reader is never overruled by the timer.
+ */
+class Component extends DCLogic {
+  N = 5;
+  i = 0;
+  reduced() { return typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches; }
+  dwell() { const s = this.props.autoplaySeconds ?? 6; return s > 0 ? s * 1000 : 0; }
+  rootRef = (el) => { this.root = el; this.boot(); };
+  liveRef = (el) => { this.live = el; };
+  boot() {
+    if (!this.root) return;
+    this.root.style.setProperty('--rv-ms', (this.props.slideMs ?? 400) + 'ms');
+    this.arm();
+  }
+  paint() {
+    if (!this.root) return;
+    this.root.querySelectorAll('[data-rv-slide]').forEach((el) => {
+      const n = +el.getAttribute('data-i');
+      const on = n === this.i + 1;
+      el.setAttribute('data-on', on ? '1' : '0');
+      /* The slide that just left is parked one full width the other way, so the pair travels
+         across the panel together instead of the incoming one arriving over a static ghost. */
+      el.setAttribute('data-was', !on && this.fromI != null && n === this.fromI + 1 ? '1' : '0');
+      if (on) el.removeAttribute('aria-hidden'); else el.setAttribute('aria-hidden', 'true');
+    });
+    this.root.querySelectorAll('[data-rv-dot]').forEach((el) => {
+      el.setAttribute('data-on', +el.getAttribute('data-i') === this.i + 1 ? '1' : '0');
+    });
+  }
+  step(d, manual) {
+    if (manual) { this.stopped = true; clearTimeout(this.t); }
+    this.fromI = this.i;
+    this.i = (this.i + d + this.N) % this.N;
+    if (this.root) this.root.setAttribute('data-dir', d < 0 ? '-1' : '1');
+    this.paint();
+    if (manual) { if (this.live) this.live.textContent = 'Review ' + (this.i + 1) + ' of ' + this.N; }
+    else this.arm();
+  }
+  arm() {
+    clearTimeout(this.t);
+    if (this.stopped || this.hoverP || this.focusP || this.reduced() || !this.dwell()) return;
+    if (typeof document !== 'undefined' && document.hidden) return;
+    this.t = setTimeout(() => this.step(1, false), this.dwell());
+  }
+  hold(k, v) { this[k] = v; if (v) clearTimeout(this.t); else this.arm(); }
+  prev = () => this.step(-1, true);
+  next = () => this.step(1, true);
+  hoverIn = () => this.hold('hoverP', true);
+  hoverOut = () => this.hold('hoverP', false);
+  focusIn = () => this.hold('focusP', true);
+  focusOut = () => this.hold('focusP', false);
+  key = (e) => {
+    if (e.key === 'ArrowRight') { e.preventDefault(); this.step(1, true); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); this.step(-1, true); }
+  };
+  vis = () => { if (document.hidden) clearTimeout(this.t); else this.arm(); };
+  componentDidMount() { document.addEventListener('visibilitychange', this.vis); }
+  componentDidUpdate() { this.boot(); }
+  componentWillUnmount() { clearTimeout(this.t); document.removeEventListener('visibilitychange', this.vis); }
+  renderVals() {
+    return {
+      n20: 20,
+      rootRef: this.rootRef, liveRef: this.liveRef,
+      prev: this.prev, next: this.next, key: this.key,
+      hoverIn: this.hoverIn, hoverOut: this.hoverOut, focusIn: this.focusIn, focusOut: this.focusOut,
+      showNotice: (this.props.showPendingNotice ?? true) !== false,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

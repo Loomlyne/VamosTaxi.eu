@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../tokens/fonts.css">
+<link rel="stylesheet" href="../tokens/colors.css">
+<link rel="stylesheet" href="../tokens/typography.css">
+<link rel="stylesheet" href="../tokens/spacing.css">
+<link rel="stylesheet" href="../tokens/elevation.css">
+<link rel="stylesheet" href="../tokens/motion.css">
+<link rel="stylesheet" href="../tokens/base.css">
+<link rel="stylesheet" href="../components/mobile/fig-tokens.css">
+<link rel="stylesheet" href="../components/mobile/fig-assets.css">
+<link rel="stylesheet" href="../styles.css">
+<script src="../_ds_bundle.js"></script>
+<link rel="stylesheet" href="../assets/lenis.css">
+<script src="../assets/lenis.js"></script>
+<script src="../assets/lenis-boot.js"></script>
+<script src="vamos-i18n-dict.js"></script>
+<script src="vamos-locale.js"></script>
+<style>:root{--vt-icon-base:"../assets/icons/";--vt-logo-base:"../assets/logo/";--vt-pattern-base:"../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}.vt-select .vt-input--focus{box-shadow:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none;box-shadow:none}
+body{margin:0;background:var(--vt-bg-page)}a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+[data-auth]{display:grid;grid-template-columns:minmax(0,1fr);background:var(--vt-bg-surface)}
+[data-auth-col]{display:flex;justify-content:flex-start;padding:48px clamp(20px,5vw,56px) 64px}
+[data-auth-panel]{display:none}
+[data-auth-guest]{margin:44px 0 0;padding-top:22px;border-top:1px solid var(--vt-border-subtle);max-width:36ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-muted);text-wrap:pretty}
+[data-auth-guest] a{color:var(--vt-charcoal-900);text-decoration:underline;text-decoration-color:var(--vt-grey-400);text-underline-offset:3px}
+[data-auth-guest] a:hover{color:var(--vt-charcoal-900)}
+[data-panel-line]{margin:0;font-family:var(--vt-font-display);font-size:clamp(28px,2.6vw,38px);font-weight:var(--vt-weight-semibold);letter-spacing:-.02em;line-height:1.1;color:var(--vt-white)}
+[data-panel-sub]{margin:0;max-width:34ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .78);text-wrap:pretty}
+[data-jump]{position:fixed;right:16px;bottom:16px;z-index:600;width:236px;border-radius:var(--vt-radius-md);background:var(--vt-charcoal);border:1px solid rgb(255 255 255 / .14);box-shadow:var(--vt-shadow-lg);overflow:hidden;font-family:var(--vt-font-body)}
+[data-jump-head]{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;appearance:none;background:none;border:0;padding:11px 12px;color:var(--vt-white);font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);cursor:pointer}
+[data-jump-list]{display:flex;flex-direction:column;padding:0 8px 10px}
+[data-jump-item]{appearance:none;background:none;border:0;border-radius:var(--vt-radius-xs);padding:7px 9px;text-align:start;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);line-height:1.35;color:rgb(255 255 255 / .74);cursor:pointer;transition:background 140ms var(--vt-ease-standard),color 140ms var(--vt-ease-standard)}
+[data-jump-item]:hover{background:var(--vt-charcoal-900);color:var(--vt-white)}
+[data-jump-item][data-on="1"]{background:var(--vt-yellow);color:var(--vt-charcoal);font-weight:var(--vt-weight-semibold)}
+[data-jump-note]{margin:0;padding:0 17px 12px;font-size:10px;line-height:1.45;color:rgb(255 255 255 / .5)}
+[data-jump-collapsed] [data-jump-list],[data-jump-collapsed] [data-jump-note]{display:none}
+:focus-visible{outline:3px solid rgb(253 194 11 / .45);outline-offset:3px;border-radius:var(--vt-radius-xs)}
+@media (min-width:960px){[data-auth]{grid-template-columns:640fr 800fr;min-height:720px}
+[data-auth-col]{padding:96px clamp(24px,9.7vw,140px)}
+[data-auth-panel]{display:block}}
+@media print{[data-jump]{display:none!important}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}</style>
+</helmet>
+<div style="font-family:var(--vt-font-body);color:var(--vt-text-primary)">
+<dc-import name="SiteHeader" variant="inverse" hide-account="{{ yes }}" hint-size="100%,76px"></dc-import>
+<main data-auth="1" data-screen-label="Sign in">
+<div data-auth-col="1">
+<div style="width:100%;max-width:360px">
+<dc-import name="AuthForm" mode="{{ mode }}" method="{{ method }}" stage="{{ stage }}" banner="{{ banner }}" email="{{ seedEmail }}" nonce="{{ nonce }}" on-state="{{ onState }}" hint-size="100%,520px"></dc-import>
+<sc-if value="{{ showGuest }}" hint-placeholder-val="{{ true }}">
+<p data-auth-guest="1">You never need an account to book. Guest checkout takes you straight through — an account just keeps your transfers, vouchers and receipts in one place. <a href="home.dc.html">Book a transfer</a></p>
+</sc-if>
+</div>
+</div>
+<aside data-auth-panel="1" style="position:relative;overflow:hidden;background:var(--vt-charcoal)">
+<sc-if value="{{ isPhoto }}" hint-placeholder-val="{{ true }}">
+<img src="../assets/photography/fleet-van-street.jpg" alt="A Vamos Taxi V-Class waiting on a city street" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:52% 50%">
+</sc-if>
+<sc-if value="{{ isCharcoal }}">
+<div style="position:absolute;inset:0;background-image:url(../assets/patterns/checker-tile.png);background-size:112px;opacity:.06"></div>
+</sc-if>
+<div style="position:absolute;inset:0;background:var(--vt-scrim-bottom)"></div>
+<img src="../assets/patterns/checker-mark.png" alt="" aria-hidden="true" style="position:absolute;top:0;right:0;width:74px;height:auto">
+<div style="position:absolute;inset-inline:0;bottom:0;display:flex;flex-direction:column;gap:14px;padding:clamp(32px,4vw,56px)">
+<p data-panel-line="1">Ride with class</p>
+<p data-panel-sub="1">Booked ahead, priced up front, and your assigned driver is already there at the agreed time.</p>
+</div>
+</aside>
+</main>
+<dc-import name="SiteFooter" hint-size="100%,520px"></dc-import>
+<sc-if value="{{ showJumper }}" hint-placeholder-val="{{ true }}">
+<div data-jump="1" data-jump-collapsed="{{ collapsedAttr }}">
+<button type="button" data-jump-head="1" onClick="{{ toggleJumper }}">Review · states<span style="font-size:11px;letter-spacing:0">{{ caret }}</span></button>
+<div data-jump-list="1">
+<sc-for list="{{ jumps }}" as="j" hint-placeholder-count="10">
+<button type="button" data-jump-item="1" data-on="{{ j.on }}" onClick="{{ j.go }}">{{ j.label }}</button>
+</sc-for>
+</div>
+<p data-jump-note="1">Live too: password “wrong” fails sign-in, taken@vamostaxi.eu is already registered.</p>
+</div>
+</sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;panel&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;charcoal&quot;,&quot;photo&quot;],&quot;default&quot;:&quot;charcoal&quot;,&quot;tsType&quot;:&quot;'charcoal'|'photo'&quot;,&quot;section&quot;:&quot;Layout&quot;},&quot;showGuestNote&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Layout&quot;},&quot;showStateJumper&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Review&quot;}}">
+const STATES = [
+  { key: 'a', label: 'Sign in · password', mode: 'signin', method: 'password', stage: 'form', banner: '' },
+  { key: 'b', label: 'Sign in · invalid credentials', mode: 'signin', method: 'password', stage: 'form', banner: 'credentials' },
+  { key: 'c', label: 'Sign in · magic link', mode: 'signin', method: 'magic', stage: 'form', banner: '' },
+  { key: 'd', label: 'Sign in · link sent', mode: 'signin', method: 'magic', stage: 'sent', banner: '' },
+  { key: 'e', label: 'Sign up · password', mode: 'signup', method: 'password', stage: 'form', banner: '' },
+  { key: 'f', label: 'Sign up · email already registered', mode: 'signup', method: 'password', stage: 'form', banner: 'registered', email: 'taken@vamostaxi.eu' },
+  { key: 'g', label: 'Sign up · magic link', mode: 'signup', method: 'magic', stage: 'form', banner: '' },
+  { key: 'h', label: 'Sign up · link sent', mode: 'signup', method: 'magic', stage: 'sent', banner: '' },
+  { key: 'i', label: 'Forgot password · request', mode: 'forgot', method: 'password', stage: 'form', banner: '' },
+  { key: 'j', label: 'Forgot password · link sent', mode: 'forgot', method: 'password', stage: 'sent', banner: '' },
+  { key: 'k', label: 'Sign in · passkey prompt', mode: 'signin', method: 'password', stage: 'verifying', banner: '' },
+  { key: 'l', label: 'Returning you to your booking', mode: 'signin', method: 'password', stage: 'returning', banner: '' },
+];
+class Component extends DCLogic {
+  state = { active: 'a', mode: 'signin', method: 'password', stage: 'form', banner: '', email: '', nonce: 0,
+    /* collapsed on narrow viewports so the review panel never sits on top of the form */
+    open: typeof window === 'undefined' || window.innerWidth >= 1200 };
+  componentDidMount() {
+    /* ?state=forgot lands here from the expired-reset-link page */
+    try {
+      const s = new URLSearchParams(location.search).get('state');
+      const hit = STATES.filter((x) => x.key === s || x.mode === s)[0];
+      if (hit) this.jump(hit);
+    } catch (e) {}
+  }
+  jump(s) {
+    this.setState((prev) => ({
+      active: s.key, mode: s.mode, method: s.method, stage: s.stage,
+      banner: s.banner || '', email: s.email || '', nonce: prev.nonce + 1,
+    }));
+  }
+  onState = (s) => {
+    const hit = STATES.filter((x) => x.mode === s.mode && x.method === s.method && x.stage === s.stage && (x.banner || '') === (s.banner || ''))[0];
+    this.setState({ active: hit ? hit.key : '' });
+  };
+  renderVals() {
+    const { mode, method, stage, banner, email, nonce, active, open } = this.state;
+    const panel = this.props.panel || 'charcoal';
+    return {
+      mode, method, stage, banner, seedEmail: email, nonce,
+      yes: true,
+      onState: this.onState,
+      isPhoto: panel === 'photo', isCharcoal: panel !== 'photo',
+      showGuest: this.props.showGuestNote !== false,
+      showJumper: this.props.showStateJumper !== false,
+      collapsedAttr: open ? null : '1',
+      caret: open ? '—' : '+',
+      toggleJumper: () => this.setState({ open: !open }),
+      jumps: STATES.map((s) => ({ label: s.label, on: active === s.key ? '1' : null, go: () => this.jump(s) })),
+    };
+  }
+}
+
+</script>
+</body>
+</html>
