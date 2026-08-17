@@ -1,0 +1,51 @@
+/* ── Type ─────────────────────────────────────────────────────────────────
+   Qurova (the logo typeface) carries headlines and numerals-as-statement.
+   Poppins carries everything a customer has to read. The guide also shows a
+   DM Sans specimen page; it is NOT used here — Qurova + Poppins is the pair.
+   ------------------------------------------------------------------------ */
+:root{
+  --vt-font-display:"Qurova","Poppins",system-ui,sans-serif;
+  --vt-font-body:"Poppins",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --vt-font-mono:ui-monospace,"SFMono-Regular",Menlo,monospace;
+
+  --vt-weight-light:300;
+  --vt-weight-regular:400;
+  --vt-weight-medium:500;
+  --vt-weight-semibold:600;
+  --vt-weight-bold:700;
+  --vt-weight-extrabold:800;
+
+  /* Display — Qurova, tight tracking, sentence case */
+  --vt-display-1:clamp(44px,6vw,76px); /* @kind font */
+  --vt-display-2:clamp(34px,4.4vw,56px); /* @kind font */
+  --vt-display-3:clamp(28px,3.2vw,40px); /* @kind font */
+  --vt-display-leading:1.04;
+  --vt-display-tracking:-0.02em;
+
+  /* Headings — Qurova */
+  --vt-heading-1:32px;
+  --vt-heading-2:26px;
+  --vt-heading-3:20px;
+  --vt-heading-4:17px;
+  --vt-heading-leading:1.18;
+  --vt-heading-tracking:-0.01em;
+
+  /* Body / UI — Poppins */
+  --vt-body-lg:18px;
+  --vt-body-md:16px;
+  --vt-body-sm:14px;
+  --vt-body-xs:13px;
+  --vt-body-leading:1.6;
+  --vt-body-leading-tight:1.45;
+
+  /* Labels, eyebrows, table headers — Poppins, uppercase, wide */
+  --vt-label-md:13px;
+  --vt-label-sm:11px;
+  --vt-label-tracking:0.09em;
+  --vt-label-weight:600;
+
+  /* Price / metric figures — Qurova */
+  --vt-figure-lg:38px;
+  --vt-figure-md:26px;
+  --vt-figure-sm:19px;
+}

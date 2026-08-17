@@ -1,0 +1,65 @@
+/* ── The four platform laws ───────────────────────────────────────────────
+   Import LAST from styles.css. These are corrections, so they are written as
+   token values and a handful of override rules rather than as advice in a
+   document: a consumer who links styles.css gets them whether or not they
+   read the guide. Every Design Component repeats the same declarations in
+   its own :root so a file still behaves correctly outside this tree.
+
+   01  No glow, ever
+   02  No tinted yellow
+   03  Four languages, same pass
+   04  A pending value is a labelled gap
+   ------------------------------------------------------------------------ */
+
+/* ── 01 · No glow, ever ───────────────────────────────────────────────────
+   No coloured or blurred halo on hover, focus, press or active — not on
+   buttons, cards, icons, links or inputs. Hover is a colour step, press
+   moves 1px, focus shows the ring. The one exception the system used to
+   make (yellow under the primary CTA) is switched off at the token, so
+   every existing `box-shadow:var(--vt-shadow-accent)` resolves to none.
+
+   On a text field the focus signal is the charcoal border, not a ring on
+   top of it — a 3px yellow halo around a pill field reads as an error
+   state. Buttons, checkboxes, rows and cards keep --vt-ring. */
+:root{
+  --vt-shadow-accent:none;
+}
+.vt-input.vt-input--focus{box-shadow:none}
+.vt-dp__field.vt-dp__field:focus-visible{box-shadow:none;border-color:var(--vt-charcoal-900)}
+
+/* ── 02 · No tinted yellow ────────────────────────────────────────────────
+   Full-strength #FDC20B is a small accent. The pale tints read as cream
+   alert strips and the deep steps read brown; neither is the brand. The
+   scale stays in colors.css as reference, but the usable tokens alias to
+   neutrals, so a tinted default inherited from a kit degrades to a clean
+   surface instead of shipping. --vt-yellow-400/500 (the accent and its
+   hover step) are untouched.
+
+   Cascades automatically to everything built on them:
+   --vt-bg-accent-tint · --vt-warning-tint · --vt-text-link-hover
+   · .vt-row__lead · every tinted icon tile. */
+:root{
+  --vt-yellow-50:var(--vt-white);
+  --vt-yellow-100:var(--vt-grey-50);
+  --vt-yellow-200:var(--vt-grey-100);
+  --vt-yellow-300:var(--vt-grey-200);
+  --vt-yellow-600:var(--vt-charcoal-900);
+  --vt-yellow-700:var(--vt-charcoal-800);
+}
+
+/* ── 03 · Four languages, same pass ───────────────────────────────────────
+   English, German, French and Arabic. A surface is not finished until every
+   visible string — including placeholder, aria-label, title and alt —
+   exists in the dictionary. Arabic is RTL and first-class, so direction is
+   a document-level switch (VamosLocale sets dir="rtl"), never a per-block
+   hack. Anything that must not mirror is marked, not excluded. */
+[dir="rtl"]{text-align:start}
+[dir="rtl"] .vt-dir-keep{direction:ltr;unicode-bidi:isolate} /* references, times, CHF figures, flight numbers */
+
+/* ── 04 · A pending value is a labelled gap ───────────────────────────────
+   A number the client still owes us is written as human words in a pill
+   that appends its own TBC tag. Never {TOKEN_NAME}, never a plausible
+   invented figure, and never a CHF price.
+   Usage: <span data-tok>free cancel window</span> */
+[data-tok]{display:inline;padding:1px 7px 2px;border:1px dashed var(--vt-grey-300);border-radius:var(--vt-radius-xs,4px);background:var(--vt-grey-50);color:var(--vt-text-secondary);white-space:nowrap}
+[data-tok]::after{content:" TBC";font-size:11px;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-weight-semibold);color:var(--vt-text-muted)}

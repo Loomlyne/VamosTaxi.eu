@@ -1,0 +1,22 @@
+@import "tokens/fonts.css";
+@import "tokens/colors.css";
+@import "tokens/typography.css";
+@import "tokens/spacing.css";
+@import "tokens/elevation.css";
+@import "tokens/motion.css";
+@import "tokens/base.css";
+
+/* ── Rolic.app mobile kit (materialized from the attached .fig) ────────────
+   Loaded after the Vamos tokens above. The Rolic variables use their own
+   namespace (--colors-*, --element-*, --brand-*, --neutral-*, numeric radius
+   and spacing names), so they never override a --vt-* token. Vamos remains
+   the authoritative brand; these exist so components/mobile/* render as
+   designed in the source kit. See readme.md §4.1. */
+@import "components/mobile/fig-tokens.css";
+@import "components/mobile/fig-assets.css";
+
+/* ── The four platform laws — must stay last ───────────────────────────────
+   Corrections that override the token layers above. See tokens/laws.css and
+   readme.md §8. Moving this import up the list silently re-enables the
+   yellow glow and the tinted-yellow surfaces. */
+@import "tokens/laws.css";
