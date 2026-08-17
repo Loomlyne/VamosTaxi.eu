@@ -2,7 +2,7 @@
 
 ## Vision
 
-Replace the current Vamos Taxi website with a premium, mobile-first transfer-booking experience and an operations dashboard. Customers should be able to receive a clear quote, select a vehicle, pay and receive confirmation without contacting dispatch manually.
+Replace the current Vamos Taxi website with a premium, mobile-first **scheduled** transfer-booking experience and an operations dashboard. Customers book ahead (e.g. today for tomorrow), get a fixed price, pay, and receive confirmation. At the agreed pickup time the assigned driver is waiting. This is not on-demand ride-hailing and not live GPS matching.
 
 Proposed promise:
 
@@ -17,26 +17,32 @@ Proposed promise:
 
 ## Core customer journey
 
-1. Enter pickup and destination.
+1. Enter pickup and destination (search and/or map pin click).
 2. Select one-way or return journey.
 3. Select pickup date, time, passengers and luggage.
-4. Calculate route and price.
+4. Calculate route and price (server-side); show route on map.
 5. Select an eligible vehicle class.
-6. Add flight details and extras.
-7. Enter customer details.
-8. Pay online or select an approved offline method.
-9. Receive confirmation and booking voucher.
-10. Manage the booking through a secure email link.
+6. Add flight details and extras; apply coupon/voucher if any.
+7. Sign in / create account or continue as guest with email.
+8. Pay online (Stripe) or select an approved offline method.
+9. Receive confirmation and booking voucher (Resend).
+10. Manage booking via account history and/or secure email link.
+11. Status updates automated where possible (paid → confirmed, reminders, cancel rules).
 
 ## V1 public website
 
-- Homepage with prominent booking widget
+- Homepage with prominent booking widget (mobile-first, strong desktop)
+- Mapbox map: search + click-to-set pickup/destination
 - Quote and vehicle-selection flow
 - Passenger, luggage and flight fields
 - Extras such as child seats and additional stops
+- Coupon / voucher code at checkout
+- Auth: sign up / sign in (magic link or email+password via Supabase)
+- Account area: profile, booking history, open booking detail
+- Guest checkout + claim-into-account via email
 - Checkout and payment result pages
 - Booking confirmation and voucher
-- Secure booking-management page
+- Secure booking-management page (works logged-in or token link)
 - Airport transfers
 - City-to-city/private transfers
 - Chauffeur by the hour, if approved for launch
@@ -99,14 +105,16 @@ Pricing rules must be versioned or snapshotted on each booking so later rule cha
 - shadcn/ui
 - Supabase PostgreSQL, Auth, Storage and Row Level Security
 - Vercel hosting, server functions, webhooks and cron
-- Google Places API for address/airport autocomplete
-- Google Routes API for distance and duration
-- Stripe for cards, Apple Pay and TWINT where eligible
+- Mapbox (free tier first): map UI, pin-pick pickup/destination, directions/route for distance/duration and quote map
+- Stripe **standard** merchant account for cards / Apple Pay / TWINT where eligible (not Stripe Connect)
+- Own coupons/vouchers table + checkout apply (discounts before payment)
 - Resend for transactional email
 - Sentry for production error monitoring
 - Vercel Analytics or PostHog for booking-funnel analytics
 
 Use a clean Next.js/Supabase starter. Do not add Medusa for V1 because its product/cart/order model introduces unnecessary commerce infrastructure and still requires custom booking, pricing and dispatch modules.
+
+Fallback: if Mapbox geocoding quality for Swiss airports is weak, add Google Places for autocomplete only; keep Mapbox for map/pin UX.
 
 ## Initial data model
 
@@ -146,8 +154,11 @@ Use a clean Next.js/Supabase starter. Do not add Medusa for V1 because its produ
 ## Explicitly out of scope for V1
 
 - Uber-style on-demand marketplace
+- Global multi-country partner marketplace
 - Automatic nearest-driver dispatch
-- Continuous driver GPS tracking
+- Continuous driver GPS tracking without a driver location feed
+- Driver app or driver dashboard
+- Stripe Connect multi-merchant payouts
 - Driver wallets and automated payouts
 - Surge pricing
 - Native customer or driver applications
@@ -210,8 +221,8 @@ Use a clean Next.js/Supabase starter. Do not add Medusa for V1 because its produ
 - Vercel Pro: approximately USD 20/month for commercial use
 - Supabase Free during development; Pro approximately USD 25/month recommended for live bookings
 - Resend Free initially within limits
-- Google Maps usage-based after free SKU allowances; billing account required
-- Stripe has no normal monthly fee but charges transaction fees
+- Mapbox free tier first; paid only after free limits
+- Stripe has no normal monthly fee but charges transaction fees (standard account, not Connect)
 - Existing domain renewal depends on the current registrar
 
 Expected early production platform baseline: approximately USD 45/month for Vercel Pro plus Supabase Pro, excluding maps overages, email overages, domain renewal and payment fees.
