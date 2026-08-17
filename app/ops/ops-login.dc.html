@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
+     injects every stylesheet and script from <helmet> only after React has loaded, so
+     without these the arriving document paints uncovered frames before
+     vamos-page-transition.js exists and can build its overlay. That script adopts
+     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
+     animation below is the fallback for when the script never runs. -->
+<style id="vt-boot">html{background:#1E1F1F}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#1E1F1F;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-tokens.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-assets.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<link rel="stylesheet" href="../../assets/lenis.css">
+<script src="../../assets/lenis.js"></script>
+<script src="../../assets/lenis-boot.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+/* Button hover/press — colour step only, no shadow, no glow */
+.vt-btn{transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
+.vt-btn:hover,.vt-btn:active{box-shadow:none!important}
+.vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
+.vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
+.vt-btn--secondary:hover:not([disabled]){background:var(--vt-charcoal-800)}
+.vt-btn--secondary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn--ghost:hover:not([disabled]),.vt-btn--outline:hover:not([disabled]),.vt-btn--tertiary:hover:not([disabled]){background:var(--vt-grey-50);border-color:var(--vt-charcoal-900)}
+.vt-btn--ghost:active:not([disabled]),.vt-btn--outline:active:not([disabled]),.vt-btn--tertiary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn:focus-visible{box-shadow:var(--vt-ring)!important}
+.vt-btn[disabled],.vt-btn[aria-disabled="true"]{transform:none}.vt-select .vt-input--focus{box-shadow:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none;box-shadow:none}
+body{margin:0;background:var(--vt-bg-inverse)}a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+[data-ol-note]{margin:0;text-align:center;max-width:34ch;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);line-height:1.5;color:var(--vt-text-inverse-muted)}
+[data-ol-back]{display:inline-flex;align-items:center;gap:8px;color:var(--vt-text-inverse-muted);font-size:var(--vt-body-sm);text-decoration:none;border:0;transition:color 140ms var(--vt-ease-standard)}
+[data-ol-back]:hover{color:var(--vt-white)}
+:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
+</helmet>
+<div data-screen-label="Ops sign in" style="font-family:var(--vt-font-body);color:var(--vt-text-primary);background:var(--vt-bg-inverse);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;box-sizing:border-box;gap:24px;position:relative;overflow:hidden">
+<div style="position:absolute;inset:0;background-image:url(../../assets/patterns/checker-tile.png);background-size:112px;opacity:.05"></div>
+<div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:24px;width:100%;max-width:420px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" height="{{ n28 }}" hint-size="130px,28px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" hint-size="100%,420px">
+<dc-import name="AuthForm" surface="ops" mode="signin" method="password" stage="form" hint-size="100%,420px"></dc-import>
+</x-import>
+<p data-ol-note="1">Internal tool — dispatcher and admin access only. Customer accounts sign in at <a href="../pages/sign-in.dc.html" style="color:var(--vt-yellow)">the site sign-in</a>.</p>
+<a href="../home/home.dc.html" data-ol-back="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-left" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>Vamos Taxi site
+</a>
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() { return { n14: 14, n28: 28 }; }
+}
+
+</script>
+</body>
+</html>

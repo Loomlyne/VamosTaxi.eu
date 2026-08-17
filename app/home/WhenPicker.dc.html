@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
+     injects every stylesheet and script from <helmet> only after React has loaded, so
+     without these the arriving document paints uncovered frames before
+     vamos-page-transition.js exists and can build its overlay. That script adopts
+     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
+     animation below is the fallback for when the script never runs. -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<link rel="stylesheet" href="../../assets/lenis.css">
+<script src="../../assets/lenis.js"></script>
+<script src="../../assets/lenis-boot.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>:root{--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+/* Button hover/press — colour step only, no shadow, no glow */
+.vt-btn{transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
+.vt-btn:hover,.vt-btn:active{box-shadow:none!important}
+.vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
+.vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
+.vt-btn--secondary:hover:not([disabled]){background:var(--vt-charcoal-800)}
+.vt-btn--secondary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn--ghost:hover:not([disabled]),.vt-btn--outline:hover:not([disabled]),.vt-btn--tertiary:hover:not([disabled]){background:var(--vt-grey-50);border-color:var(--vt-charcoal-900)}
+.vt-btn--ghost:active:not([disabled]),.vt-btn--outline:active:not([disabled]),.vt-btn--tertiary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn:focus-visible{box-shadow:var(--vt-ring)!important}
+.vt-btn[disabled],.vt-btn[aria-disabled="true"]{transform:none}.vt-select .vt-input--focus{box-shadow:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}
+:root{--vt-icon-base:"../../assets/icons/"}body{margin:0}a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}@keyframes vt-when-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}@media (max-width:560px){[data-wp-row]{flex-direction:column!important}[data-wp-cal]{width:100%!important;flex:0 0 auto!important}[data-wp-div]{width:100%!important;height:1px!important;flex:0 0 auto!important}[data-wp-time]{width:100%!important}}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
+</helmet>
+<div ref="{{ rootRef }}" style="position:relative;display:flex;flex-direction:column;gap:6px;min-width:0;font-family:var(--vt-font-body)">
+<span style="font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:.02em;color:var(--vt-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ label }}</span>
+<div style="position:relative;width:100%;min-width:0">
+<button type="button" aria-haspopup="dialog" aria-expanded="{{ openStr }}" onClick="{{ toggle }}" style="all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;height:var(--vt-control-h-md);padding:0 14px;background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:var(--vt-radius-field);cursor:pointer;font-size:var(--vt-body-md);color:var(--vt-text-primary);transition:var(--vt-transition-control)" style-hover="border-color:var(--vt-grey-300)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="calendar" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
+<span style="flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:7px;text-align:start">
+<sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--vt-text-muted)">{{ placeholder }}</span>
+</sc-if>
+<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ value }}</span>
+<span style="color:var(--vt-text-secondary);font-variant-numeric:tabular-nums">{{ time }}</span>
+<sc-if value="{{ range }}" hint-placeholder-val="{{ false }}">
+<span style="color:var(--vt-text-muted);flex:0 0 auto">→</span>
+<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ value2 }}</span>
+<span style="color:var(--vt-text-secondary);font-variant-numeric:tabular-nums">{{ time2 }}</span>
+</sc-if>
+</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
+</button>
+<sc-if value="{{ open }}" hint-placeholder-val="{{ false }}">
+<div role="dialog" aria-label="{{ label }}" ref="{{ popRef }}" style="{{ popCss }}">
+<sc-if value="{{ range }}" hint-placeholder-val="{{ false }}">
+<div role="tablist" style="display:flex;gap:4px;width:100%;height:36px;padding:3px;margin-bottom:14px;box-sizing:border-box;border-radius:999px;background:var(--vt-grey-100)">
+<sc-for list="{{ legs }}" as="g" hint-placeholder-count="2">
+<sc-if value="{{ g.on }}" hint-placeholder-val="{{ false }}">
+<button type="button" role="tab" aria-selected="true" style="all:unset;box-sizing:border-box;flex:1 1 0;display:flex;align-items:center;justify-content:center;gap:7px;height:30px;border-radius:999px;background:var(--vt-charcoal-900);color:var(--vt-text-inverse);font-size:12px;font-weight:600;letter-spacing:.02em;cursor:pointer;white-space:nowrap">{{ g.label }}<span style="color:var(--vt-accent);font-variant-numeric:tabular-nums;font-weight:600">{{ g.stamp }}</span></button>
+</sc-if>
+<sc-if value="{{ g.off }}" hint-placeholder-val="{{ true }}">
+<button type="button" role="tab" aria-selected="false" onClick="{{ g.pick }}" style="all:unset;box-sizing:border-box;flex:1 1 0;display:flex;align-items:center;justify-content:center;gap:7px;height:30px;border-radius:999px;color:var(--vt-text-secondary);font-size:12px;font-weight:600;letter-spacing:.02em;cursor:pointer;white-space:nowrap;transition:var(--vt-transition-control)" style-hover="color:var(--vt-text-primary)">{{ g.label }}<span style="color:var(--vt-text-muted);font-variant-numeric:tabular-nums;font-weight:500">{{ g.stamp }}</span></button>
+</sc-if>
+</sc-for>
+</div>
+</sc-if>
+<div data-wp-row="" style="display:flex;gap:16px;align-items:stretch">
+<div data-wp-cal="" style="flex:0 0 264px;width:264px;display:flex;flex-direction:column;gap:6px">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;height:32px">
+<button type="button" aria-label="Previous month" onClick="{{ prev }}" style="all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:999px;cursor:pointer;color:var(--vt-text-secondary)" style-hover="background:var(--vt-grey-100);color:var(--vt-text-primary)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-left" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+</button>
+<span style="font-family:var(--vt-font-display);font-size:15px;font-weight:var(--vt-weight-semibold);letter-spacing:-0.01em">{{ monthTitle }}</span>
+<button type="button" aria-label="Next month" onClick="{{ next }}" style="all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:999px;cursor:pointer;color:var(--vt-text-secondary)" style-hover="background:var(--vt-grey-100);color:var(--vt-text-primary)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-right" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+</button>
+</div>
+<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px">
+<sc-for list="{{ dows }}" as="w" hint-placeholder-count="7">
+<span style="font-size:10px;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted);text-align:center;padding:4px 0">{{ w }}</span>
+</sc-for>
+<sc-for list="{{ cells }}" as="c" hint-placeholder-count="31">
+<sc-if value="{{ c.blank }}" hint-placeholder-val="{{ false }}"><span></span></sc-if>
+<sc-if value="{{ c.plain }}" hint-placeholder-val="{{ true }}">
+<button type="button" onClick="{{ c.pick }}" style="all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:center;height:34px;border-radius:10px;cursor:pointer;font-size:13px;color:var(--vt-text-primary);font-variant-numeric:tabular-nums;transition:background var(--vt-dur-fast) var(--vt-ease-out)" style-hover="background:var(--vt-grey-100)">{{ c.d }}</button>
+</sc-if>
+<sc-if value="{{ c.tween }}" hint-placeholder-val="{{ false }}">
+<button type="button" onClick="{{ c.pick }}" style="all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:center;height:34px;border-radius:10px;cursor:pointer;font-size:13px;color:var(--vt-charcoal-900);background:var(--vt-yellow-50);font-variant-numeric:tabular-nums" style-hover="background:var(--vt-yellow-100)">{{ c.d }}</button>
+</sc-if>
+<sc-if value="{{ c.sel }}" hint-placeholder-val="{{ false }}">
+<button type="button" aria-pressed="true" onClick="{{ c.pick }}" style="all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:center;height:34px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:var(--vt-weight-semibold);background:var(--vt-accent);color:var(--vt-charcoal-900);font-variant-numeric:tabular-nums">{{ c.d }}</button>
+</sc-if>
+</sc-for>
+</div>
+</div>
+<div data-wp-div="" style="flex:0 0 1px;background:var(--vt-border-subtle)"></div>
+<div data-wp-time="" style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;align-items:center;gap:7px;height:32px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="clock" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
+<span style="font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:.02em;color:var(--vt-text-secondary);white-space:nowrap">{{ activeTimeTitle }}</span>
+</div>
+<div style="flex:1 1 auto;max-height:274px;overflow-y:auto;display:flex;flex-wrap:wrap;align-content:flex-start;gap:6px;padding-inline-end:2px">
+<sc-for list="{{ timeRows }}" as="r" hint-placeholder-count="10">
+<sc-if value="{{ r.isHead }}" hint-placeholder-val="{{ false }}">
+<span style="flex:0 0 100%;font-size:10px;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted);padding:4px 2px 0">{{ r.label }}</span>
+</sc-if>
+<sc-if value="{{ r.isPlain }}" hint-placeholder-val="{{ true }}">
+<button type="button" onClick="{{ r.pick }}" style="all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface);cursor:pointer;font-size:13px;color:var(--vt-text-secondary);font-variant-numeric:tabular-nums;transition:var(--vt-transition-control)" style-hover="border-color:var(--vt-charcoal-900);color:var(--vt-text-primary)">{{ r.label }}</button>
+</sc-if>
+<sc-if value="{{ r.isSel }}" hint-placeholder-val="{{ false }}">
+<button type="button" aria-pressed="true" style="all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--vt-charcoal-900);background:var(--vt-charcoal-900);cursor:pointer;font-size:13px;font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);font-variant-numeric:tabular-nums">{{ r.label }}</button>
+</sc-if>
+</sc-for>
+</div>
+</div>
+</div>
+<sc-if value="{{ range }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid var(--vt-border-subtle)">
+<sc-if value="{{ legA.on }}" hint-placeholder-val="{{ true }}">
+<span style="flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:2px;padding:9px 12px;border-radius:12px;background:var(--vt-charcoal-900);border:1px solid var(--vt-charcoal-900)">
+<span style="font-size:9px;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">{{ legA.label }}</span>
+<span style="font-size:14px;font-weight:var(--vt-weight-semibold);color:var(--vt-white);white-space:nowrap;font-variant-numeric:tabular-nums">{{ legA.stamp }}</span>
+</span>
+</sc-if>
+<sc-if value="{{ legA.off }}" hint-placeholder-val="{{ false }}">
+<button type="button" onClick="{{ legA.pick }}" style="all:unset;box-sizing:border-box;flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:2px;padding:9px 12px;border-radius:12px;border:1px solid var(--vt-border-subtle);cursor:pointer;transition:var(--vt-transition-control)" style-hover="border-color:var(--vt-grey-300);background:var(--vt-grey-50)">
+<span style="font-size:9px;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ legA.label }}</span>
+<span style="font-size:14px;font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary);white-space:nowrap;font-variant-numeric:tabular-nums">{{ legA.stamp }}</span>
+</button>
+</sc-if>
+<span style="flex:0 0 auto;display:inline-flex;color:var(--vt-text-muted)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+</span>
+<sc-if value="{{ legB.on }}" hint-placeholder-val="{{ false }}">
+<span style="flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:2px;padding:9px 12px;border-radius:12px;background:var(--vt-charcoal-900);border:1px solid var(--vt-charcoal-900)">
+<span style="font-size:9px;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">{{ legB.label }}</span>
+<span style="font-size:14px;font-weight:var(--vt-weight-semibold);color:var(--vt-white);white-space:nowrap;font-variant-numeric:tabular-nums">{{ legB.stamp }}</span>
+</span>
+</sc-if>
+<sc-if value="{{ legB.off }}" hint-placeholder-val="{{ true }}">
+<button type="button" onClick="{{ legB.pick }}" style="all:unset;box-sizing:border-box;flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:2px;padding:9px 12px;border-radius:12px;border:1px solid var(--vt-border-subtle);cursor:pointer;transition:var(--vt-transition-control)" style-hover="border-color:var(--vt-grey-300);background:var(--vt-grey-50)">
+<span style="font-size:9px;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ legB.label }}</span>
+<span style="font-size:14px;font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary);white-space:nowrap;font-variant-numeric:tabular-nums">{{ legB.stamp }}</span>
+</button>
+</sc-if>
+</div>
+<div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:10px">
+<span style="display:flex;align-items:center;gap:8px;flex:0 0 auto">
+<button type="button" onClick="{{ clearAll }}" style="all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface);color:var(--vt-text-secondary);font-family:var(--vt-font-body);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:var(--vt-transition-control)" style-hover="border-color:var(--vt-charcoal-900);color:var(--vt-text-primary)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>{{ clearLabel }}</button>
+<sc-if value="{{ notSaved }}" hint-placeholder-val="{{ true }}">
+<button type="button" onClick="{{ done }}" style="all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 16px;border-radius:999px;border:1px solid var(--vt-charcoal-900);background:var(--vt-accent);color:var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:13px;font-weight:700;letter-spacing:.01em;cursor:pointer;white-space:nowrap;transition:var(--vt-transition-control)" style-hover="background:var(--vt-charcoal-900);color:var(--vt-accent)">{{ saveLabel }}</button>
+</sc-if>
+<sc-if value="{{ isSaved }}" hint-placeholder-val="{{ false }}">
+<button type="button" onClick="{{ done }}" style="all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 16px;border-radius:999px;border:1px solid var(--vt-charcoal-900);background:var(--vt-charcoal-900);color:var(--vt-white);font-family:var(--vt-font-body);font-size:13px;font-weight:600;letter-spacing:.01em;cursor:pointer;white-space:nowrap;transition:var(--vt-transition-control)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n14 }}" color="var(--vt-accent)" hint-size="14px,14px"></x-import>{{ savedLabel }}</button>
+</sc-if>
+</span>
+</div>
+</sc-if>
+<sc-if value="{{ notRange }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid var(--vt-border-subtle)">
+<span style="display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto">
+<span style="font-size:10px;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ label }}</span>
+<span style="font-size:14px;font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary);font-variant-numeric:tabular-nums;white-space:nowrap">{{ summary }}</span>
+</span>
+<span style="display:flex;align-items:center;gap:8px;flex:0 0 auto">
+<button type="button" onClick="{{ clearAll }}" style="all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface);color:var(--vt-text-secondary);font-family:var(--vt-font-body);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:var(--vt-transition-control)" style-hover="border-color:var(--vt-charcoal-900);color:var(--vt-text-primary)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>{{ clearLabel }}</button>
+<sc-if value="{{ notSaved }}" hint-placeholder-val="{{ true }}">
+<button type="button" onClick="{{ done }}" style="all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 16px;border-radius:999px;border:1px solid var(--vt-charcoal-900);background:var(--vt-accent);color:var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:13px;font-weight:700;letter-spacing:.01em;cursor:pointer;white-space:nowrap;transition:var(--vt-transition-control)" style-hover="background:var(--vt-charcoal-900);color:var(--vt-accent)">{{ saveLabel }}</button>
+</sc-if>
+<sc-if value="{{ isSaved }}" hint-placeholder-val="{{ false }}">
+<button type="button" onClick="{{ done }}" style="all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 16px;border-radius:999px;border:1px solid var(--vt-charcoal-900);background:var(--vt-charcoal-900);color:var(--vt-white);font-family:var(--vt-font-body);font-size:13px;font-weight:600;letter-spacing:.01em;cursor:pointer;white-space:nowrap;transition:var(--vt-transition-control)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n14 }}" color="var(--vt-accent)" hint-size="14px,14px"></x-import>{{ savedLabel }}</button>
+</sc-if>
+</span>
+</div>
+</sc-if>
+</div>
+</sc-if>
+</div>
+<sc-if value="{{ hasHint }}" hint-placeholder-val="{{ false }}">
+<span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ hint }}</span>
+</sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:600,&quot;height&quot;:180},&quot;label&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Pickup date &amp; time&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;value&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Fri 14 Aug&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;time&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;08:15&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;day&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:14,&quot;min&quot;:1,&quot;max&quot;:31,&quot;tsType&quot;:&quot;number&quot;},&quot;range&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Return trip&quot;},&quot;value2&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Mon 17 Aug&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Return trip&quot;},&quot;time2&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;10:00&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Return trip&quot;},&quot;day2&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:17,&quot;min&quot;:1,&quot;max&quot;:31,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Return trip&quot;},&quot;baseMonth&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;2026-08&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;locale&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;en&quot;,&quot;de&quot;,&quot;fr&quot;,&quot;ar&quot;],&quot;default&quot;:&quot;en&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;timeTitle&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Pickup time&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;timeTitle2&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Return time&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Return trip&quot;},&quot;savedLabel&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Saved&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;hint&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;align&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;start&quot;,&quot;end&quot;],&quot;default&quot;:&quot;start&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;times&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string[]&quot;},&quot;groups&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;[string,string,string]&quot;},&quot;legLabels&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;[string,string]&quot;},&quot;onDay&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(day:number,label:string)=&gt;void&quot;},&quot;onTime&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(time:string)=&gt;void&quot;},&quot;onDay2&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(day:number,label:string)=&gt;void&quot;},&quot;onTime2&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(time:string)=&gt;void&quot;}}">
+const FALLBACK_TIMES = ['05:30', '06:45', '08:15', '09:30', '11:00', '12:15', '14:00', '16:30', '18:45', '21:15'];
+class Component extends DCLogic {
+  state = (() => {
+    const b = String((this.props && this.props.baseMonth) || '2026-08').split('-');
+    const y = +b[0] || 2026, m = (+b[1] || 8) - 1;
+    return { open: false, leg: 0, rect: null, popH: 0, y, m, selY: y, selM: m, selY2: y, selM2: m };
+  })();
+  _rootRef = (el) => { this._root = el; };
+  _popRef = (el) => { this._pop = el; };
+  componentDidMount() {
+    this._away = (e) => { if (this.state.open && this._root && !this._root.contains(e.target)) { this.setState({ open: false }); if (this.props.onOpenChange) this.props.onOpenChange(false); } };
+    this._esc = (e) => { if (e.key === 'Escape' && this.state.open) { this.setState({ open: false }); if (this.props.onOpenChange) this.props.onOpenChange(false); } };
+    document.addEventListener('mousedown', this._away);
+    document.addEventListener('keydown', this._esc);
+    this._repos = () => { if (this.state.open) this.setState({ rect: this.rectNow() }); };
+    window.addEventListener('scroll', this._repos, true);
+    window.addEventListener('resize', this._repos);
+  }
+  componentWillUnmount() {
+    document.removeEventListener('mousedown', this._away);
+    document.removeEventListener('keydown', this._esc);
+    window.removeEventListener('scroll', this._repos, true);
+    window.removeEventListener('resize', this._repos);
+    clearTimeout(this._closeT);
+  }
+  loc() { const l = this.props.locale || 'en'; return l === 'en' ? 'en-GB' : l; }
+  fmt(opts, d) { try { return new Intl.DateTimeFormat(this.loc(), opts).format(d); } catch (e) { return ''; } }
+  dayLabel(y, m, d) { return this.fmt({ weekday: 'short', day: 'numeric', month: 'short' }, new Date(y, m, d)).replace(/,/g, ''); }
+  shift(n) { this.setState((s) => { const d = new Date(s.y, s.m + n, 1); return { y: d.getFullYear(), m: d.getMonth() }; }); }
+  /** Everything applies as you pick it — this just gets the sheet out of the way. */
+  closeSoon() { clearTimeout(this._closeT); this._closeT = setTimeout(() => { this.setState({ open: false }); if (this.props.onOpenChange) this.props.onOpenChange(false); }, 220); }
+  /** The trigger's viewport rect — the popup is fixed to it, so no scroll container can clip it. */
+  rectNow() {
+    const el = this._root;
+    if (!el || !el.getBoundingClientRect) return null;
+    const btn = el.querySelector('button[aria-haspopup="dialog"]') || el;
+    const r = btn.getBoundingClientRect();
+    return { top: Math.round(r.top), bottom: Math.round(r.bottom), left: Math.round(r.left), right: Math.round(r.right) };
+  }
+  componentDidUpdate() {
+    if (this.state.open) {
+      if (!this._measured) {
+        this._measured = true;
+        const h = this._pop ? this._pop.offsetHeight : 0;
+        if (h && h !== this.state.popH) this.setState({ popH: h });
+      }
+    } else if (this._measured) { this._measured = false; }
+  }
+  toggleOpen() {
+    const willOpen = !this.state.open;
+    this.setState(willOpen ? { open: true, leg: 0, popH: 0, rect: this.rectNow() } : { open: false });
+    if (this.props.onOpenChange) this.props.onOpenChange(willOpen);
+  }
+  renderVals() {
+    const s = this.state, p = this.props;
+    const range = !!p.range;
+    const leg = range ? (s.leg || 0) : 0;
+    const hasDay = !!(+p.day), d1 = +p.day || 0, d2 = +p.day2 || 0;
+    const first = (new Date(s.y, s.m, 1).getDay() + 6) % 7;
+    const dim = new Date(s.y, s.m + 1, 0).getDate();
+    const dows = [];
+    for (let i = 0; i < 7; i++) dows.push(this.fmt({ weekday: 'short' }, new Date(2024, 0, 1 + i)));
+    const on1 = s.y === s.selY && s.m === s.selM;
+    const on2 = range && s.y === s.selY2 && s.m === s.selM2;
+    const lo = Math.min(d1, d2), hi = Math.max(d1, d2);
+    const cells = [];
+    for (let i = 0; i < first; i++) cells.push({ blank: true, plain: false, sel: false, tween: false });
+    for (let d = 1; d <= dim; d++) {
+      const sel = (hasDay && on1 && d === d1) || (on2 && d === d2);
+      const tween = !sel && range && on1 && on2 && d2 > 0 && d > lo && d < hi;
+      cells.push({
+        blank: false, sel, tween, plain: !sel && !tween, d,
+        pick: () => {
+          const label = this.dayLabel(s.y, s.m, d);
+          if (range && leg === 1) { this.setState({ selY2: s.y, selM2: s.m }); if (p.onDay2) p.onDay2(d, label); }
+          else { this.setState({ selY: s.y, selM: s.m, leg: range ? 1 : 0 }); if (p.onDay) p.onDay(d, label); }
+        },
+      });
+    }
+    const groups = p.groups && p.groups.length === 3 ? p.groups : ['Morning', 'Afternoon', 'Evening'];
+    const times = (p.times && p.times.length) ? p.times : FALLBACK_TIMES;
+    const activeTime = leg === 1 ? p.time2 : p.time;
+    const timeRows = []; let lastG = -1;
+    times.forEach((tm) => {
+      const hr = +String(tm).split(':')[0];
+      const g = hr < 12 ? 0 : hr < 17 ? 1 : 2;
+      if (g !== lastG) { timeRows.push({ isHead: true, isPlain: false, isSel: false, label: groups[g] }); lastG = g; }
+      const sel = tm === activeTime;
+      timeRows.push({
+        isHead: false, isSel: sel, isPlain: !sel, label: tm,
+        /** Picking applies straight away. The sheet stays open so the Save button can
+         *  say so — closing it instantly would hide the only confirmation there is. */
+        pick: () => {
+          if (range && leg === 1) { if (p.onTime2) p.onTime2(tm); }
+          else if (range) { if (p.onTime) p.onTime(tm); this.setState({ leg: 1 }); }
+          else if (p.onTime) p.onTime(tm);
+        },
+      });
+    });
+    const full1 = p.value || (hasDay ? this.dayLabel(s.selY, s.selM, d1) : '');
+    const full2 = p.value2 || (d2 ? this.dayLabel(s.selY2, s.selM2, d2) : '');
+    const short = (v) => String(v).replace(/^\S+\s/, '');
+    const names = (p.legLabels && p.legLabels.length === 2) ? p.legLabels : ['Pickup', 'Return'];
+    const titles = [p.timeTitle || 'Time', p.timeTitle2 || p.timeTitle || 'Time'];
+    const stamps = [full1 + ' · ' + (p.time || ''), full2 + ' · ' + (p.time2 || '')];
+    const saved = range ? !!(full1 && p.time && full2 && p.time2) : !!(full1 && p.time);
+    const legObj = (i) => ({ label: names[i], stamp: i === 0 ? (p.time || '') : (p.time2 || ''), on: leg === i, off: leg !== i, pick: () => this.setState({ leg: i }) });
+    return {
+      n14: 14, n16: 16,
+      open: s.open, openStr: s.open ? 'true' : 'false',
+      range, notRange: !range,
+      label: p.label || 'Date & time',
+      isEmpty: !full1 && !p.time, placeholder: p.placeholder || 'Select date & time',
+      value: range ? short(full1) : full1, value2: range ? short(full2) : full2,
+      time: p.time || '', time2: p.time2 || '',
+      hint: p.hint || '', hasHint: !!p.hint,
+      activeTimeTitle: titles[leg], savedLabel: p.savedLabel || 'Saved',
+      clearLabel: p.clearLabel || 'Clear', saveLabel: p.saveLabel || 'Save',
+      isSaved: saved, notSaved: !saved,
+      clearAll: () => { this.setState({ leg: 0 }); if (p.onClear) p.onClear(); },
+      done: () => { clearTimeout(this._closeT); this.setState({ open: false }); if (p.onOpenChange) p.onOpenChange(false); },
+      summary: full1 + ' · ' + (p.time || ''),
+      legs: [legObj(0), legObj(1)],
+      legA: { label: names[0], stamp: stamps[0], on: leg === 0, off: leg !== 0, pick: () => this.setState({ leg: 0 }) },
+      legB: { label: names[1], stamp: stamps[1], on: leg === 1, off: leg !== 1, pick: () => this.setState({ leg: 1 }) },
+      popRef: this._popRef,
+      popCss: (() => {
+        const base = 'box-sizing:border-box;z-index:800;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-xl);padding:16px;display:flex;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch;animation:vt-when-in var(--vt-dur-fast) var(--vt-ease-out)';
+        const r = s.rect, hasWin = typeof window !== 'undefined';
+        if (!r || !hasWin) return 'position:absolute;' + (p.align === 'end' ? 'inset-inline-end:0' : 'inset-inline-start:0') + ';top:calc(100% + 8px);width:min(560px,calc(100vw - 40px));max-height:min(70svh,540px);' + base;
+        const vw = window.innerWidth || 1200, vh = window.innerHeight || 800;
+        const w = Math.min(560, vw - 24);
+        const wanted = p.align === 'end' ? r.right - w : r.left;
+        const left = Math.round(Math.min(Math.max(12, wanted), Math.max(12, vw - w - 12)));
+        const need = s.popH || (range ? 520 : 460);
+        const below = vh - r.bottom - 10, above = r.top - 10;
+        const up = below < need && above > below;
+        const room = Math.max(240, Math.floor(up ? above : below));
+        return 'position:fixed;left:' + left + 'px;'
+          + (up ? 'bottom:' + Math.round(vh - r.top + 8) + 'px;' : 'top:' + Math.round(r.bottom + 8) + 'px;')
+          + 'width:' + w + 'px;max-height:' + room + 'px;' + base;
+      })(),
+      monthTitle: this.fmt({ month: 'long', year: 'numeric' }, new Date(s.y, s.m, 1)),
+      dows, cells, timeRows,
+      rootRef: this._rootRef,
+      toggle: () => this.toggleOpen(),
+      prev: () => this.shift(-1),
+      next: () => this.shift(1),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
+     injects every stylesheet and script from <helmet> only after React has loaded, so
+     without these the arriving document paints uncovered frames before
+     vamos-page-transition.js exists and can build its overlay. That script adopts
+     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
+     animation below is the fallback for when the script never runs. -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-tokens.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-assets.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<link rel="stylesheet" href="../../assets/lenis.css">
+<script src="../../assets/lenis.js"></script>
+<script src="../../assets/lenis-boot.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+/* Button hover/press — colour step only, no shadow, no glow */
+.vt-btn{transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
+.vt-btn:hover,.vt-btn:active{box-shadow:none!important}
+.vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
+.vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
+.vt-btn--secondary:hover:not([disabled]){background:var(--vt-charcoal-800)}
+.vt-btn--secondary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn--ghost:hover:not([disabled]),.vt-btn--outline:hover:not([disabled]),.vt-btn--tertiary:hover:not([disabled]){background:var(--vt-grey-50);border-color:var(--vt-charcoal-900)}
+.vt-btn--ghost:active:not([disabled]),.vt-btn--outline:active:not([disabled]),.vt-btn--tertiary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn:focus-visible{box-shadow:var(--vt-ring)!important}
+.vt-btn[disabled],.vt-btn[aria-disabled="true"]{transform:none}input:focus-visible{outline:none;box-shadow:none}
+body{margin:0}a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+[data-rf-h1]{margin:0;font-family:var(--vt-font-display);font-size:clamp(34px,4.8vw,48px);font-weight:var(--vt-weight-semibold);letter-spacing:-.02em;line-height:1.1;color:var(--vt-text-primary);text-wrap:balance}
+[data-rf-sub]{margin:0;max-width:36ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);text-wrap:pretty}
+[data-rf-tile]{display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:var(--vt-radius-md);background:var(--vt-charcoal);box-shadow:var(--vt-shadow-sm)}
+[data-rf-dest]{display:flex;flex-direction:column;gap:5px;padding:16px 18px;border-radius:var(--vt-radius-md);background:var(--vt-grey-50);border:1px solid var(--vt-border-subtle)}
+[data-rf-dest-k]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-rf-dest-v]{font-family:var(--vt-font-display);font-size:var(--vt-body-lg);font-weight:var(--vt-weight-semibold);letter-spacing:-.01em;line-height:1.25;color:var(--vt-charcoal-900);overflow-wrap:anywhere}
+[data-rf-rule]{display:flex;align-items:center;gap:10px;font-size:var(--vt-body-sm);color:var(--vt-text-muted);transition:color 140ms var(--vt-ease-standard)}
+[data-rf-rule][data-met="1"]{color:var(--vt-charcoal-900)}
+[data-rf-dot]{flex:0 0 auto;width:16px;height:16px;border-radius:50%;border:1.5px solid var(--vt-grey-400);box-sizing:border-box}
+[data-rf-rule][data-met="1"] [data-rf-dot]{display:none}
+[data-rf-tick]{display:none}
+[data-rf-rule][data-met="1"] [data-rf-tick]{display:inline-flex}
+[data-note]{display:flex;flex-direction:column;gap:6px;padding:14px 16px;border-radius:var(--vt-radius-md);border:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface);box-shadow:var(--vt-shadow-xs)}
+[data-note-k]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-note-b]{margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);text-wrap:pretty}
+[data-tok]{display:inline-flex;align-items:baseline;gap:5px;font-family:var(--vt-font-body);font-weight:var(--vt-weight-medium);font-size:.97em;background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 7px;white-space:nowrap}
+[data-tok]::after{content:"TBC";font-family:var(--vt-font-body);font-size:.66em;font-weight:700;letter-spacing:.1em;color:var(--vt-yellow-700)}
+[data-rf-link]{appearance:none;background:none;border:0;padding:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-secondary);text-decoration:underline;text-decoration-color:var(--vt-grey-400);text-underline-offset:3px;cursor:pointer}
+[data-rf-link]:hover{color:var(--vt-charcoal-900);text-decoration-color:currentColor}
+[data-rf-view]{animation:vt-rf-in 200ms var(--vt-ease-out) both}
+@keyframes vt-rf-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}
+button,.vt-btn{box-shadow:none}
+[data-rf-cta] .vt-btn,[data-rf-cta] button,[data-rf-cta] a{width:100%}
+@media (prefers-reduced-motion:reduce){[data-rf-view]{animation:none}}</style>
+</helmet>
+<div style="width:100%;display:flex;flex-direction:column;gap:30px;font-family:var(--vt-font-body);color:var(--vt-text-primary)">
+
+<sc-if value="{{ isForm }}" hint-placeholder-val="{{ true }}">
+<div data-rf-view="form" style="display:flex;flex-direction:column;gap:30px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<h1 data-rf-h1="1">Set a new password</h1>
+<p data-rf-sub="1">Choose something you don't use anywhere else. It replaces your old password straight away.</p>
+</div>
+
+<div data-rf-dest="1">
+<span data-rf-dest-k="1">Account</span>
+<span data-rf-dest-v="1">{{ emailEcho }}</span>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:20px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="New password" type="password" size="lg" autoComplete="new-password" placeholder="••••••••" value="{{ pw }}" onChange="{{ setPw }}" error="{{ errPw }}" hint-size="100%,84px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="Confirm new password" type="password" size="lg" autoComplete="new-password" placeholder="••••••••" value="{{ confirm }}" onChange="{{ setConfirm }}" error="{{ errConfirm }}" hint-size="100%,84px"></x-import>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:11px">
+<div data-rf-rule="1" data-met="{{ metLength }}">
+<span data-rf-dot="1"></span>
+<span data-rf-tick="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-check" size="{{ n16 }}" color="var(--vt-success)" hint-size="16px,16px"></x-import></span>
+At least 8 characters
+</div>
+<div data-rf-rule="1" data-met="{{ metMatch }}">
+<span data-rf-dot="1"></span>
+<span data-rf-tick="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-check" size="{{ n16 }}" color="var(--vt-success)" hint-size="16px,16px"></x-import></span>
+Both entries match
+</div>
+</div>
+
+<div data-note="1">
+<span data-note-k="1">Awaiting client input</span>
+<p data-note-b="1">Minimum length and complexity rules are <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Password policy</span>. Eight characters is the floor used in these screens.</p>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:18px;align-items:flex-start">
+<div data-rf-cta="1" style="width:100%">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" onClick="{{ save }}" hint-size="240px,54px">Save new password</x-import>
+</div>
+<a href="sign-in.dc.html" data-rf-link="1">Back to sign in</a>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isSaved }}">
+<div data-rf-view="saved" style="display:flex;flex-direction:column;gap:26px;align-items:flex-start">
+<div style="display:flex;flex-direction:column;gap:16px">
+<div data-rf-tile="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n22 }}" color="var(--vt-yellow)" hint-size="22px,22px"></x-import>
+</div>
+<h1 data-rf-h1="1">Password updated</h1>
+</div>
+<p data-rf-sub="1">You are signed in on this device. Use the new password next time you sign in anywhere else.</p>
+<div data-rf-dest="1" style="align-self:stretch">
+<span data-rf-dest-k="1">Account</span>
+<span data-rf-dest-v="1">{{ emailEcho }}</span>
+</div>
+<div data-rf-cta="1" style="width:100%">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" href="account.dc.html?attached=0" iconEnd="arrow-right" hint-size="230px,54px">Go to your account</x-import>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isExpired }}">
+<div data-rf-view="expired" style="display:flex;flex-direction:column;gap:26px;align-items:flex-start">
+<div style="display:flex;flex-direction:column;gap:16px">
+<div data-rf-tile="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n22 }}" color="var(--vt-yellow)" hint-size="22px,22px"></x-import>
+</div>
+<h1 data-rf-h1="1">This link has expired</h1>
+</div>
+<p data-rf-sub="1">Reset links work once, and only for a short while. Ask for a new one and it arrives in the same inbox.</p>
+<div data-note="1" style="align-self:stretch">
+<span data-note-k="1">Awaiting client input</span>
+<p data-note-b="1">Links expire after <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Link expiry</span>.</p>
+</div>
+<div data-rf-cta="1" style="width:100%">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" href="sign-in.dc.html?state=forgot" icon="mail" hint-size="230px,54px">Send a new link</x-import>
+</div>
+</div>
+</sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:640},&quot;stage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;form&quot;,&quot;saved&quot;,&quot;expired&quot;],&quot;default&quot;:&quot;form&quot;,&quot;tsType&quot;:&quot;'form'|'saved'|'expired'&quot;},&quot;email&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;anna.keller@example.com&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onState&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(stage: string) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = { stage: this.props.stage || 'form', pw: '', confirm: '', errors: {} };
+  componentDidUpdate(prev) {
+    if (prev.stage !== this.props.stage || prev.nonce !== this.props.nonce) {
+      this.setState({ stage: this.props.stage || 'form', pw: '', confirm: '', errors: {} });
+    }
+  }
+  save = () => {
+    const { pw, confirm } = this.state;
+    const errors = {};
+    if (!pw) errors.pw = 'Choose a new password';
+    else if (pw.length < 8) errors.pw = 'Use at least 8 characters';
+    if (!confirm) errors.confirm = 'Type the password again';
+    else if (pw && confirm !== pw) errors.confirm = 'The two entries are different';
+    if (Object.keys(errors).length) { this.setState({ errors }); return; }
+    /* the copy says you are signed in on this device — so make that true site-wide */
+    try {
+      const email = (this.props.email || '').trim();
+      if (email) localStorage.setItem('vamosAuth', JSON.stringify({ email: email, at: Date.now() }));
+    } catch (e) {}
+    this.setState({ stage: 'saved', errors: {} }, () => { if (this.props.onState) this.props.onState('saved'); });
+  };
+  renderVals() {
+    const { stage, pw, confirm, errors } = this.state;
+    return {
+      n16: 16, n22: 22,
+      isForm: stage === 'form', isSaved: stage === 'saved', isExpired: stage === 'expired',
+      emailEcho: (this.props.email || '').trim() || 'the email you booked with',
+      pw, confirm, errPw: errors.pw, errConfirm: errors.confirm,
+      metLength: pw.length >= 8 ? '1' : null,
+      metMatch: pw.length > 0 && pw === confirm ? '1' : null,
+      setPw: (e) => this.setState({ pw: e.target.value }),
+      setConfirm: (e) => this.setState({ confirm: e.target.value }),
+      save: this.save,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

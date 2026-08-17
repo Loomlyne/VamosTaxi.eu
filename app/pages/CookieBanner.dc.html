@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
+     injects every stylesheet and script from <helmet> only after React has loaded, so
+     without these the arriving document paints uncovered frames before
+     vamos-page-transition.js exists and can build its overlay. That script adopts
+     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
+     animation below is the fallback for when the script never runs. -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<link rel="stylesheet" href="../../assets/lenis.css">
+<script src="../../assets/lenis.js"></script>
+<script src="../../assets/lenis-boot.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+/* Button hover/press — colour step only, no shadow, no glow */
+.vt-btn{transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
+.vt-btn:hover,.vt-btn:active{box-shadow:none!important}
+.vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
+.vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
+.vt-btn--secondary:hover:not([disabled]){background:var(--vt-charcoal-800)}
+.vt-btn--secondary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn--ghost:hover:not([disabled]),.vt-btn--outline:hover:not([disabled]),.vt-btn--tertiary:hover:not([disabled]){background:var(--vt-grey-50);border-color:var(--vt-charcoal-900)}
+.vt-btn--ghost:active:not([disabled]),.vt-btn--outline:active:not([disabled]),.vt-btn--tertiary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn:focus-visible{box-shadow:var(--vt-ring)!important}
+.vt-btn[disabled],.vt-btn[aria-disabled="true"]{transform:none}.vt-select .vt-input--focus{box-shadow:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}
+[data-tok]::after{content:"TBC";font-family:var(--vt-font-body);font-size:.66em;font-weight:700;letter-spacing:.1em;color:var(--vt-yellow-700);margin-inline-start:5px}body{margin:0}
+a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+@keyframes ck-in{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes ck-fade{from{opacity:0}to{opacity:1}}
+[data-ck-sheet]{animation:ck-in 320ms cubic-bezier(.16,1,.3,1) both}
+[data-ck-veil]{animation:ck-fade 200ms cubic-bezier(.2,0,.2,1) both}
+[data-ck-link]{color:var(--vt-charcoal-900);text-decoration:underline;text-decoration-color:var(--vt-grey-300);text-underline-offset:3px;transition:color 140ms cubic-bezier(.2,0,.2,1)}
+[data-ck-link]:hover{color:var(--vt-yellow-700);text-decoration-color:currentColor}
+[data-ck-row]:last-child{border-bottom:0}
+[data-ck-pill]:hover{background:var(--vt-charcoal-800)}
+[data-ck-pill]:active{transform:translateY(1px)}
+[data-ck-x]:hover{background:var(--vt-grey-100)}
+[data-ck-banner]{position:fixed;left:16px;right:16px;bottom:16px;z-index:70}
+[data-ck-cats]{display:flex;flex-direction:column}
+[data-ck-meta]{display:flex;flex-direction:column;gap:4px}
+[data-ck-acts]{display:flex;flex-direction:column;gap:10px}
+[data-ck-modal]{width:min(680px,calc(100vw - 32px));max-height:min(86vh,760px)}
+@media (min-width:640px){[data-ck-banner]{left:32px;right:auto;bottom:32px;width:452px}[data-ck-acts]{flex-direction:row;flex-wrap:wrap;align-items:center}[data-ck-meta]{flex-direction:row;gap:20px}}
+@media print{[data-ck-banner],[data-ck-veil]{display:none!important}}
+@media (prefers-reduced-motion:reduce){[data-ck-sheet],[data-ck-veil]{animation:none}}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
+</helmet>
+
+<sc-if value="{{ showBanner }}" hint-placeholder-val="{{ true }}">
+<div data-ck-banner="1" ref="{{ bannerRef }}" data-screen-label="Cookie banner" role="region" aria-label="Cookie choices" style="font-family:var(--vt-font-body)">
+<div data-ck-sheet="1" style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-lg);padding:24px">
+<p style="margin:0 0 10px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Cookies</p>
+<h2 style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">You choose what we measure</h2>
+<p style="margin:0 0 18px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);max-width:46ch">Strictly necessary cookies keep the booking flow working. Analytics and marketing stay off until you turn them on. Read the <a data-ck-link="1" href="cookies.dc.html">cookie policy</a>.</p>
+<div data-ck-acts="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ acceptAll }}" hint-size="128px,44px">Accept all</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ rejectAll }}" hint-size="184px,44px">Necessary only</x-import>
+<button type="button" onClick="{{ openPrefs }}" style="appearance:none;background:none;border:0;padding:6px 2px;min-height:44px;font-family:inherit;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-secondary);text-decoration:underline;text-decoration-color:var(--vt-grey-300);text-underline-offset:3px;cursor:pointer">Manage preferences</button>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ showPrefs }}" hint-placeholder-val="{{ false }}">
+<div data-ck-veil="1" style="position:fixed;inset:0;z-index:80;background:var(--vt-bg-scrim);display:flex;align-items:flex-end;justify-content:center;padding:16px;font-family:var(--vt-font-body)" onClick="{{ veilClick }}">
+<div data-ck-modal="1" data-ck-sheet="1" role="dialog" aria-modal="true" aria-labelledby="ck-title" ref="{{ dialogRef }}" tabindex="-1" style="background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-xl);display:flex;flex-direction:column;overflow:hidden;outline:none;margin:auto 0">
+
+<div style="display:flex;align-items:flex-start;gap:16px;padding:26px 26px 20px;border-bottom:1px solid var(--vt-border-subtle)">
+<div style="flex:1 1 auto;min-width:0">
+<p style="margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Cookie preferences</p>
+<h2 id="ck-title" style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Choose your categories</h2>
+</div>
+<button data-ck-x="1" type="button" onClick="{{ closePrefs }}" aria-label="Close" style="flex:0 0 auto;width:44px;height:44px;display:grid;place-items:center;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface);cursor:pointer;transition:background 140ms cubic-bezier(.2,0,.2,1)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n18 }}" color="var(--vt-charcoal-900)" hint-size="18px,18px"></x-import>
+</button>
+</div>
+
+<div data-ck-cats="1" style="overflow:auto;padding:4px 26px">
+
+<div data-ck-row="1" style="display:flex;gap:20px;align-items:flex-start;padding:22px 0;border-bottom:1px solid var(--vt-grey-100)">
+<div style="flex:1 1 auto;min-width:0">
+<h3 style="margin:0 0 6px;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);line-height:1.3;font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Strictly necessary</h3>
+<p style="margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Holds your booking while you fill it in, processes the payment, blocks fraud and records this consent. The site does not work without them.</p>
+<div data-ck-meta="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)"><span>Vamos Taxi · Stripe · Supabase · Vercel</span><span>Session to <span data-tok="1" style="display:inline-block;font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 5px" title="Awaiting a confirmed value from Vamos Taxi">Necessary duration</span></span></div>
+</div>
+<div style="flex:0 0 auto;display:flex;align-items:center;gap:10px;min-height:44px">
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Always on</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" checked="{{ on }}" disabled="{{ on }}" aria-label="Strictly necessary cookies, always on" hint-size="44px,26px"></x-import>
+</div>
+</div>
+
+<div data-ck-row="1" style="display:flex;gap:20px;align-items:flex-start;padding:22px 0;border-bottom:1px solid var(--vt-grey-100)">
+<div style="flex:1 1 auto;min-width:0">
+<h3 style="margin:0 0 6px;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);line-height:1.3;font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Functional</h3>
+<p style="margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Remembers your language and your last pickup address so you do not type them twice.</p>
+<div data-ck-meta="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)"><span>Vamos Taxi</span><span><span data-tok="1" style="display:inline-block;font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 5px" title="Awaiting a confirmed value from Vamos Taxi">Functional duration</span></span></div>
+</div>
+<div style="flex:0 0 auto;display:flex;align-items:center;min-height:44px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" checked="{{ pFunctional }}" onChange="{{ toggleFunctional }}" aria-label="Functional cookies" hint-size="44px,26px"></x-import>
+</div>
+</div>
+
+<div data-ck-row="1" style="display:flex;gap:20px;align-items:flex-start;padding:22px 0;border-bottom:1px solid var(--vt-grey-100)">
+<div style="flex:1 1 auto;min-width:0">
+<h3 style="margin:0 0 6px;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);line-height:1.3;font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Analytics</h3>
+<p style="margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Tells us which step of a booking people abandon, and reports errors so we can fix them.</p>
+<div data-ck-meta="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)"><span><span data-tok="1" style="display:inline-block;font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 5px" title="Awaiting a confirmed value from Vamos Taxi">Analytics provider</span> · Sentry</span><span><span data-tok="1" style="display:inline-block;font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 5px" title="Awaiting a confirmed value from Vamos Taxi">Analytics duration</span></span></div>
+</div>
+<div style="flex:0 0 auto;display:flex;align-items:center;min-height:44px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" checked="{{ pAnalytics }}" onChange="{{ toggleAnalytics }}" aria-label="Analytics cookies" hint-size="44px,26px"></x-import>
+</div>
+</div>
+
+<div data-ck-row="1" style="display:flex;gap:20px;align-items:flex-start;padding:22px 0;border-bottom:1px solid var(--vt-grey-100)">
+<div style="flex:1 1 auto;min-width:0">
+<h3 style="margin:0 0 6px;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);line-height:1.3;font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Marketing</h3>
+<p style="margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Measures which advert brought you here. Nothing in this category is running today.</p>
+<div data-ck-meta="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)"><span><span data-tok="1" style="display:inline-block;font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 5px" title="Awaiting a confirmed value from Vamos Taxi">Marketing providers</span></span><span><span data-tok="1" style="display:inline-block;font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 5px" title="Awaiting a confirmed value from Vamos Taxi">Marketing duration</span></span></div>
+</div>
+<div style="flex:0 0 auto;display:flex;align-items:center;min-height:44px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" checked="{{ pMarketing }}" onChange="{{ toggleMarketing }}" aria-label="Marketing cookies" hint-size="44px,26px"></x-import>
+</div>
+</div>
+
+</div>
+
+<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:20px 26px;border-top:1px solid var(--vt-border-subtle);background:var(--vt-grey-50)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ savePrefs }}" hint-size="150px,44px">Save choices</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ acceptAll }}" hint-size="128px,44px">Accept all</x-import>
+<p style="margin:0;margin-left:auto;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">Your choice is stored for {STORE_CONSENT_MONTHS} months and can be changed any time.</p>
+</div>
+
+</div>
+</div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:560},&quot;startState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;auto&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;banner&quot;,&quot;prefs&quot;,&quot;hidden&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Review&quot;}}">
+const KEY = 'vamosCookieConsent';
+
+class Component extends DCLogic {
+  dialogRef = React.createRef();
+  bannerRef = React.createRef();
+
+  constructor(props) {
+    super(props);
+    const start = props.startState || 'auto';
+    this.state = {
+      decided: false,
+      mode: start === 'auto' ? 'banner' : start,
+      functional: false, analytics: false, marketing: false,
+    };
+  }
+
+  componentDidMount() {
+    if ((this.props.startState || 'auto') === 'auto') {
+      let saved = null;
+      try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { saved = null; }
+      if (saved && typeof saved === 'object') {
+        this.setState({ decided: true, mode: 'hidden',
+          functional: !!saved.functional, analytics: !!saved.analytics, marketing: !!saved.marketing });
+      }
+    }
+    window.addEventListener('vamos:cookie-prefs', this.openPrefs);
+    document.addEventListener('keydown', this.onKey);
+    window.addEventListener('resize', this.syncBodyPad);
+    this.syncBodyPad();
+  }
+  componentDidUpdate() { this.syncBodyPad(); }
+  componentWillUnmount() {
+    window.removeEventListener('vamos:cookie-prefs', this.openPrefs);
+    document.removeEventListener('keydown', this.onKey);
+    window.removeEventListener('resize', this.syncBodyPad);
+    document.body.style.paddingBottom = '';
+  }
+
+  // The banner is fixed, so reserve real space for it — measured, not guessed, because
+  // its height changes with viewport width and with German copy. Desktop is a 452px
+  // card in the bottom-left corner, clear of the booking widget, so it reserves nothing.
+  syncBodyPad = () => {
+    if (this.state.mode !== 'banner') { document.body.style.paddingBottom = ''; return; }
+    if (window.innerWidth >= 640) { document.body.style.paddingBottom = ''; return; }
+    const el = this.bannerRef.current;
+    const h = el ? Math.ceil(el.getBoundingClientRect().height) : 0;
+    document.body.style.paddingBottom = h ? (h + 32) + 'px' : '';
+  };
+
+  onKey = (e) => { if (e.key === 'Escape' && this.state.mode === 'prefs') this.closePrefs(); };
+
+  write(next) {
+    try {
+      localStorage.setItem(KEY, JSON.stringify({
+        necessary: true, functional: next.functional, analytics: next.analytics,
+        marketing: next.marketing, ts: new Date().toISOString(), v: 1,
+      }));
+    } catch (e) { /* storage unavailable — the choice still applies to this visit */ }
+  }
+
+  acceptAll = () => {
+    const next = { functional: true, analytics: true, marketing: true };
+    this.write(next); this.setState(Object.assign({ decided: true, mode: 'hidden' }, next));
+  };
+  rejectAll = () => {
+    const next = { functional: false, analytics: false, marketing: false };
+    this.write(next); this.setState(Object.assign({ decided: true, mode: 'hidden' }, next));
+  };
+  savePrefs = () => {
+    this.write(this.state); this.setState({ decided: true, mode: 'hidden' });
+  };
+  openPrefs = () => {
+    this.setState({ mode: 'prefs' }, () => {
+      const el = this.dialogRef.current; if (el) el.focus();
+    });
+  };
+  closePrefs = () => { this.setState({ mode: this.state.decided ? 'hidden' : 'banner' }); };
+  veilClick = (e) => { if (e.target === e.currentTarget) this.closePrefs(); };
+
+  toggleFunctional = (e) => this.setState({ functional: e.target.checked });
+  toggleAnalytics = (e) => this.setState({ analytics: e.target.checked });
+  toggleMarketing = (e) => this.setState({ marketing: e.target.checked });
+
+  renderVals() {
+    return {
+      n18: 18, on: true,
+      showBanner: this.state.mode === 'banner',
+      showPrefs: this.state.mode === 'prefs',
+      pFunctional: this.state.functional,
+      pAnalytics: this.state.analytics,
+      pMarketing: this.state.marketing,
+      acceptAll: this.acceptAll, rejectAll: this.rejectAll, savePrefs: this.savePrefs,
+      openPrefs: this.openPrefs, closePrefs: this.closePrefs, veilClick: this.veilClick,
+      toggleFunctional: this.toggleFunctional, toggleAnalytics: this.toggleAnalytics,
+      toggleMarketing: this.toggleMarketing,
+      dialogRef: this.dialogRef, bannerRef: this.bannerRef,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

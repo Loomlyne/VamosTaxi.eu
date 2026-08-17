@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<main style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
+
+<header style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle)">
+<div style="min-width:0">
+<h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ title }}</h1>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ subtitle }}</p>
+</div>
+<div style="margin-inline-start:auto;display:flex;flex-wrap:wrap;align-items:center;gap:8px">
+<sc-for list="{{ tabs }}" as="t" hint-placeholder-count="2">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Tag" active="{{ t.active }}" onClick="{{ t.go }}" hint-size="120px,34px">{{ t.label }}</x-import>
+</sc-for>
+</div>
+</header>
+
+<div style="padding:26px 32px 48px;display:flex;flex-direction:column;gap:20px;min-width:0">
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(212px,1fr));gap:16px">
+<sc-for list="{{ counts }}" as="c" hint-placeholder-count="3">
+<div style="box-sizing:border-box;display:flex;flex-direction:column;gap:10px;min-height:120px;padding:18px 20px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg)">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ c.label }}</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ c.icon }}" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
+</div>
+<span style="display:flex;align-items:baseline;gap:8px;font-family:var(--vt-font-display);font-size:var(--vt-figure-lg);font-weight:var(--vt-weight-bold);line-height:1;color:var(--vt-text-primary)">{{ c.value }}<span style="font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:400;color:var(--vt-text-muted)">{{ c.of }}</span></span>
+<span style="margin-top:auto;font-size:var(--vt-body-xs);line-height:1.45;color:var(--vt-text-muted)">{{ c.foot }}</span>
+</div>
+</sc-for>
+</div>
+
+<dc-import name="OpsTable" rows="{{ rows }}" columns="{{ columns }}" fields="{{ fields }}" blank="{{ blank }}" onSave="{{ onSave }}" onDelete="{{ onDelete }}" noun="{{ noun }}" noun-plural="{{ nounPlural }}" add-title="{{ addTitle }}" edit-title="{{ editTitle }}" delete-title="{{ deleteTitle }}" label-key="{{ labelKey }}" add-label="{{ addLabel }}" search-placeholder="{{ searchPlaceholder }}" search-keys="{{ searchKeys }}" empty-title="{{ emptyTitle }}" empty-body="{{ emptyBody }}" delete-body="{{ deleteBody }}" hint-size="100%,460px"></dc-import>
+
+<p style="margin:0;max-width:78ch;font-size:var(--vt-body-xs);line-height:1.6;color:var(--vt-text-muted);text-wrap:pretty">{{ note }}</p>
+
+</div>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900},&quot;section&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;vehicles&quot;,&quot;options&quot;:[&quot;vehicles&quot;,&quot;chauffeurs&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+/* Fleet — vehicles first, then the chauffeurs who drive them. Adding a vehicle,
+   editing it and taking it off the road all happen here; a chauffeur is attached
+   to a vehicle from the chauffeur side, so the pairing has exactly one owner.
+
+   Every amount stays CHF 000 (design system §2) — a vehicle is priced by its
+   class on the Pricing screen, never per plate. */
+const VSTATUS = {
+  service: { tone:'success', label:'In service' },
+  idle: { tone:'neutral', label:'Free' },
+  workshop: { tone:'outline', label:'In the workshop' },
+};
+const CSTATUS = {
+  shift: { tone:'success', label:'On shift' },
+  off: { tone:'neutral', label:'Off duty' },
+  leave: { tone:'outline', label:'On leave' },
+};
+const LANGUAGE_OPTIONS = ['German', 'French', 'Italian', 'English', 'Arabic'].map((l) => ({ value: l, label: l }));
+const T = {
+  en: {
+    vehicles:'Vehicles', chauffeurs:'Chauffeurs',
+    vSub:'What the fleet is, what it seats, and whether it is on the road',
+    cSub:'Who drives, which vehicle they are on, and whether they are on shift',
+    colVehicle:'Vehicle', colPlate:'Plate', colCapacity:'Capacity', colBase:'Base fare',
+    colChauffeur:'Chauffeur', colStatus:'Status', colPhone:'Phone', colLicence:'Licence',
+    unassigned:'No chauffeur', noVehicle:'No vehicle',
+    cntVehicles:'Vehicles', cntInService:'In service', cntSeats:'Largest party',
+    cntChauffeurs:'Chauffeurs', cntOnShift:'On shift', cntWithVehicle:'With a vehicle',
+    footVehicles:'Rest are free or in the workshop', footFleet:'Across the whole fleet', footSeats:'Seats in the largest vehicle',
+    seats:'seats', footShift:'Available to assign now', footPaired:'Paired to a vehicle', footChauffeurs:'On the books',
+    addVehicle:'Add a vehicle', addChauffeur:'Add a chauffeur',
+    nounV:'vehicle', nounVs:'vehicles', nounC:'chauffeur', nounCs:'chauffeurs',
+    editV:'Edit vehicle', editC:'Edit chauffeur', delV:'Delete this vehicle?', delC:'Delete this chauffeur?',
+    searchVehicles:'Class, model or plate', searchChauffeurs:'Name, phone or licence',
+    emptyVTitle:'No vehicles yet', emptyVBody:'Add the fleet first — chauffeurs are attached to a vehicle afterwards.',
+    emptyCTitle:'No chauffeurs yet', emptyCBody:'Add a chauffeur and pair them with one of the vehicles.',
+    delVBody:'The vehicle leaves the fleet, and any chauffeur paired with it is left without one.',
+    delCBody:'The chauffeur leaves the console. Their vehicle stays in the fleet.',
+    fClass:'Class', fModel:'Model', fPlate:'Plate', fSeats:'Seats', fBags:'Bags', fYear:'Year', fStatus:'Status', fNote:'Note',
+    fName:'Name', fPhone:'Phone', fEmail:'Email', fLicence:'Licence number', fLanguages:'Languages', fVehicle:'Vehicle',
+    hClass:'Sets the price — a class is priced once, on the Pricing screen.',
+    hPlate:'As it reads on the plate.', hVehicle:'The vehicle this chauffeur drives.',
+    hLanguages:'Shown to the traveller. Pick every language this chauffeur speaks.',
+    none:'No vehicle',
+    vNote:'A vehicle is priced by its class, so changing a class price on the Pricing screen changes every vehicle in it. Add vehicles first; chauffeurs are attached to them afterwards.',
+    cNote:'Each chauffeur drives one vehicle at a time, and that pairing is what the bookings board assigns against. A chauffeur with no vehicle cannot be given a transfer.',
+  },
+  de: {
+    vehicles:'Fahrzeuge', chauffeurs:'Chauffeure',
+    vSub:'Was die Flotte ist, wie viele Plätze sie hat und ob sie unterwegs ist',
+    cSub:'Wer fährt, auf welchem Fahrzeug, und ob er im Dienst ist',
+    colVehicle:'Fahrzeug', colPlate:'Kennzeichen', colCapacity:'Kapazität', colBase:'Grundpreis',
+    colChauffeur:'Chauffeur', colStatus:'Status', colPhone:'Telefon', colLicence:'Führerausweis',
+    unassigned:'Kein Chauffeur', noVehicle:'Kein Fahrzeug',
+    cntVehicles:'Fahrzeuge', cntInService:'Im Einsatz', cntSeats:'Grösste Gruppe',
+    cntChauffeurs:'Chauffeure', cntOnShift:'Im Dienst', cntWithVehicle:'Mit Fahrzeug',
+    footVehicles:'Der Rest ist frei oder in der Werkstatt', footFleet:'In der ganzen Flotte', footSeats:'Plätze im grössten Fahrzeug',
+    seats:'Plätze', footShift:'Jetzt zuweisbar', footPaired:'Einem Fahrzeug zugeordnet', footChauffeurs:'Im Bestand',
+    addVehicle:'Fahrzeug hinzufügen', addChauffeur:'Chauffeur hinzufügen',
+    nounV:'Fahrzeug', nounVs:'Fahrzeuge', nounC:'Chauffeur', nounCs:'Chauffeure',
+    editV:'Fahrzeug bearbeiten', editC:'Chauffeur bearbeiten', delV:'Dieses Fahrzeug löschen?', delC:'Diesen Chauffeur löschen?',
+    searchVehicles:'Klasse, Modell oder Kennzeichen', searchChauffeurs:'Name, Telefon oder Ausweis',
+    emptyVTitle:'Noch keine Fahrzeuge', emptyVBody:'Zuerst die Flotte anlegen — Chauffeure werden danach einem Fahrzeug zugeordnet.',
+    emptyCTitle:'Noch keine Chauffeure', emptyCBody:'Chauffeur hinzufügen und mit einem Fahrzeug verbinden.',
+    delVBody:'Das Fahrzeug verlässt die Flotte, und ein damit verbundener Chauffeur steht ohne da.',
+    delCBody:'Der Chauffeur verlässt die Konsole. Sein Fahrzeug bleibt in der Flotte.',
+    fClass:'Klasse', fModel:'Modell', fPlate:'Kennzeichen', fSeats:'Plätze', fBags:'Gepäck', fYear:'Jahr', fStatus:'Status', fNote:'Notiz',
+    fName:'Name', fPhone:'Telefon', fEmail:'E-Mail', fLicence:'Ausweisnummer', fLanguages:'Sprachen', fVehicle:'Fahrzeug',
+    hClass:'Bestimmt den Preis — eine Klasse wird einmal auf dem Preis-Bildschirm bepreist.',
+    hPlate:'So, wie es auf dem Kennzeichen steht.', hVehicle:'Das Fahrzeug, das dieser Chauffeur fährt.',
+    hLanguages:'Für den Reisenden sichtbar. Alle Sprachen wählen, die dieser Chauffeur spricht.',
+    none:'Kein Fahrzeug',
+    vNote:'Ein Fahrzeug wird über seine Klasse bepreist — eine Preisänderung auf dem Preis-Bildschirm gilt für alle Fahrzeuge dieser Klasse. Zuerst Fahrzeuge anlegen, die Chauffeure kommen danach dazu.',
+    cNote:'Jeder Chauffeur fährt jeweils ein Fahrzeug, und genau diese Paarung weist das Buchungsboard zu. Ein Chauffeur ohne Fahrzeug kann keinen Transfer bekommen.',
+  },
+  fr: {
+    vehicles:'Véhicules', chauffeurs:'Chauffeurs',
+    vSub:'Ce qu’est la flotte, ce qu’elle transporte et si elle roule',
+    cSub:'Qui conduit, sur quel véhicule, et s’il est en service',
+    colVehicle:'Véhicule', colPlate:'Plaque', colCapacity:'Capacité', colBase:'Tarif de base',
+    colChauffeur:'Chauffeur', colStatus:'Statut', colPhone:'Téléphone', colLicence:'Permis',
+    unassigned:'Aucun chauffeur', noVehicle:'Aucun véhicule',
+    cntVehicles:'Véhicules', cntInService:'En service', cntSeats:'Groupe le plus grand',
+    cntChauffeurs:'Chauffeurs', cntOnShift:'En service', cntWithVehicle:'Avec véhicule',
+    footVehicles:'Le reste est libre ou à l’atelier', footFleet:'Sur toute la flotte', footSeats:'Places dans le plus grand véhicule',
+    seats:'places', footShift:'Attribuables maintenant', footPaired:'Associés à un véhicule', footChauffeurs:'Au registre',
+    addVehicle:'Ajouter un véhicule', addChauffeur:'Ajouter un chauffeur',
+    nounV:'véhicule', nounVs:'véhicules', nounC:'chauffeur', nounCs:'chauffeurs',
+    editV:'Modifier le véhicule', editC:'Modifier le chauffeur', delV:'Supprimer ce véhicule ?', delC:'Supprimer ce chauffeur ?',
+    searchVehicles:'Classe, modèle ou plaque', searchChauffeurs:'Nom, téléphone ou permis',
+    emptyVTitle:'Aucun véhicule', emptyVBody:'Ajoutez d’abord la flotte — les chauffeurs y sont rattachés ensuite.',
+    emptyCTitle:'Aucun chauffeur', emptyCBody:'Ajoutez un chauffeur et associez-le à un véhicule.',
+    delVBody:'Le véhicule quitte la flotte, et le chauffeur qui y était associé se retrouve sans.',
+    delCBody:'Le chauffeur quitte la console. Son véhicule reste dans la flotte.',
+    fClass:'Classe', fModel:'Modèle', fPlate:'Plaque', fSeats:'Places', fBags:'Bagages', fYear:'Année', fStatus:'Statut', fNote:'Note',
+    fName:'Nom', fPhone:'Téléphone', fEmail:'E-mail', fLicence:'Numéro de permis', fLanguages:'Langues', fVehicle:'Véhicule',
+    hClass:'Détermine le tarif — une classe est tarifée une fois, sur l’écran Tarifs.',
+    hPlate:'Tel qu’il figure sur la plaque.', hVehicle:'Le véhicule que ce chauffeur conduit.',
+    hLanguages:'Visibles par le voyageur. Choisissez toutes les langues parlées par ce chauffeur.',
+    none:'Aucun véhicule',
+    vNote:'Un véhicule est tarifé par sa classe : changer le prix d’une classe sur l’écran Tarifs change tous ses véhicules. Ajoutez d’abord les véhicules ; les chauffeurs y sont rattachés ensuite.',
+    cNote:'Chaque chauffeur conduit un véhicule à la fois, et c’est cette association que le tableau des réservations attribue. Un chauffeur sans véhicule ne peut pas recevoir de transfert.',
+  },
+  ar: {
+    vehicles:'المركبات', chauffeurs:'السائقون',
+    vSub:'ما هي المركبات، وكم تتسع، وهل هي على الطريق',
+    cSub:'من يقود، وعلى أي مركبة، وهل هو في الدورية',
+    colVehicle:'المركبة', colPlate:'اللوحة', colCapacity:'السعة', colBase:'الأجرة الأساسية',
+    colChauffeur:'السائق', colStatus:'الحالة', colPhone:'الهاتف', colLicence:'الرخصة',
+    unassigned:'بلا سائق', noVehicle:'بلا مركبة',
+    cntVehicles:'المركبات', cntInService:'في الخدمة', cntSeats:'أكبر مجموعة',
+    cntChauffeurs:'السائقون', cntOnShift:'في الدورية', cntWithVehicle:'لديهم مركبة',
+    footVehicles:'البقية متاحة أو في الورشة', footFleet:'في كامل الأسطول', footSeats:'مقاعد أكبر مركبة',
+    seats:'مقاعد', footShift:'متاحون للإسناد الآن', footPaired:'مرتبطون بمركبة', footChauffeurs:'في السجل',
+    addVehicle:'إضافة مركبة', addChauffeur:'إضافة سائق',
+    nounV:'مركبة', nounVs:'مركبات', nounC:'سائق', nounCs:'سائقون',
+    editV:'تعديل المركبة', editC:'تعديل السائق', delV:'حذف هذه المركبة؟', delC:'حذف هذا السائق؟',
+    searchVehicles:'الفئة أو الطراز أو اللوحة', searchChauffeurs:'الاسم أو الهاتف أو الرخصة',
+    emptyVTitle:'لا توجد مركبات بعد', emptyVBody:'أضف الأسطول أولًا — ثم يُربط السائقون بالمركبات.',
+    emptyCTitle:'لا يوجد سائقون بعد', emptyCBody:'أضف سائقًا واربطه بإحدى المركبات.',
+    delVBody:'تخرج المركبة من الأسطول، ويبقى السائق المرتبط بها بلا مركبة.',
+    delCBody:'يخرج السائق من لوحة التحكم، وتبقى مركبته في الأسطول.',
+    fClass:'الفئة', fModel:'الطراز', fPlate:'اللوحة', fSeats:'المقاعد', fBags:'الحقائب', fYear:'السنة', fStatus:'الحالة', fNote:'ملاحظة',
+    fName:'الاسم', fPhone:'الهاتف', fEmail:'البريد الإلكتروني', fLicence:'رقم الرخصة', fLanguages:'اللغات', fVehicle:'المركبة',
+    hClass:'تحدّد السعر — تُسعَّر الفئة مرة واحدة في شاشة الأسعار.',
+    hPlate:'كما هو مكتوب على اللوحة.', hVehicle:'المركبة التي يقودها هذا السائق.',
+    hLanguages:'تظهر للمسافر. اختر كل اللغات التي يتحدثها هذا السائق.',
+    none:'بلا مركبة',
+    vNote:'تُسعَّر المركبة حسب فئتها، وتغيير سعر الفئة في شاشة الأسعار يغيّر كل مركباتها. أضف المركبات أولًا، ثم يُربط بها السائقون.',
+    cNote:'يقود كل سائق مركبة واحدة في كل وقت، وهذا الاقتران هو ما تُسنِده لوحة الحجوزات. السائق بلا مركبة لا يمكن إسناد رحلة إليه.',
+  },
+};
+
+class Component extends DCLogic {
+  state = { lang: 'en' };
+  bind = () => {
+    if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
+    this._off = window.VamosOps.onAny(() => this.forceUpdate());
+    this.forceUpdate();
+  };
+  componentDidMount() {
+    this.bind();
+    this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
+    window.addEventListener('vamos:locale', this._onLocale);
+    if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() });
+  }
+  componentWillUnmount() {
+    if (this._off) this._off();
+    if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
+    clearTimeout(this._retry);
+  }
+
+  renderVals() {
+    const t = T[this.state.lang] || T.en;
+    const ops = window.VamosOps;
+    const isChauffeurs = (this.props.section || 'vehicles') === 'chauffeurs';
+    const vehicles = ops ? ops.vehicles.all() : [];
+    const chauffeurs = ops ? ops.chauffeurs.all() : [];
+
+    const vehicleById = {};
+    vehicles.forEach((v) => { vehicleById[v.id] = v; });
+    const chauffeurByVehicle = {};
+    chauffeurs.forEach((c) => { if (c.vehicle) chauffeurByVehicle[c.vehicle] = c; });
+
+    const inService = vehicles.filter((v) => v.status === 'service').length;
+    const onShift = chauffeurs.filter((c) => c.status === 'shift').length;
+    const paired = chauffeurs.filter((c) => c.vehicle).length;
+    const largest = vehicles.reduce((n, v) => Math.max(n, v.seats), 0);
+
+    const vehicleLabel = (v) => v.klass + ' · ' + (v.plate || v.id);
+    const classOptions = (ops ? ops.VEHICLE_CLASSES : []).map((c) => ({ value: c, label: c }));
+    const vStatusOptions = (ops ? ops.VEHICLE_STATUS : []).map((s) => ({ value: s, label: VSTATUS[s].label }));
+    const cStatusOptions = (ops ? ops.CHAUFFEUR_STATUS : []).map((s) => ({ value: s, label: CSTATUS[s].label }));
+    const vehicleOptions = [{ value:'', label: t.none }].concat(vehicles.map((v) => ({ value: v.id, label: vehicleLabel(v) })));
+
+    const vehicleColumns = [
+      { key:'klass', header:t.colVehicle, kind:'stack', subKey:'model' },
+      { key:'plate', header:t.colPlate, width:'132px', kind:'mono' },
+      { key:'cap', header:t.colCapacity, width:'128px', lookup:(r) => r.seats + ' / ' + r.bags },
+      { key:'base', header:t.colBase, width:'108px', align:'right', kind:'money' },
+      { key:'chauffeur', header:t.colChauffeur, width:'150px', kind:'need', emptyLabel:t.unassigned,
+        lookup:(r) => (chauffeurByVehicle[r.id] ? chauffeurByVehicle[r.id].name : '') },
+      { key:'status', header:t.colStatus, width:'150px', kind:'badge', tones:VSTATUS },
+    ];
+    const chauffeurColumns = [
+      { key:'name', header:t.colChauffeur, kind:'stack', subKey:'phone' },
+      { key:'vehicle', header:t.colVehicle, width:'190px', kind:'need', emptyLabel:t.noVehicle,
+        lookup:(r) => (vehicleById[r.vehicle] ? vehicleLabel(vehicleById[r.vehicle]) : '') },
+      { key:'licence', header:t.colLicence, width:'140px', kind:'mono' },
+      { key:'status', header:t.colStatus, width:'150px', kind:'badge', tones:CSTATUS },
+    ];
+
+    const vehicleFields = [
+      { key:'klass', label:t.fClass, editor:'select', options:classOptions, icon:'car', half:true, hint:t.hClass, required:true },
+      { key:'model', label:t.fModel, half:true, placeholder:'Sedan or similar' },
+      { key:'plate', label:t.fPlate, half:true, placeholder:'ZH 000 000', hint:t.hPlate, required:true },
+      { key:'year', label:t.fYear, half:true, placeholder:'0000' },
+      { key:'seats', label:t.fSeats, editor:'number', min:1, half:true },
+      { key:'bags', label:t.fBags, editor:'number', min:0, half:true },
+      { key:'status', label:t.fStatus, editor:'select', options:vStatusOptions, icon:'settings', half:true },
+      { key:'note', label:t.fNote, editor:'area', placeholder:'' },
+    ];
+    const chauffeurFields = [
+      { key:'name', label:t.fName, half:true, required:true },
+      { key:'phone', label:t.fPhone, half:true, placeholder:'+41 00 000 00 00' },
+      { key:'email', label:t.fEmail, half:true, placeholder:'name@example.com' },
+      { key:'licence', label:t.fLicence, half:true, placeholder:'CH 000 000' },
+      { key:'vehicle', label:t.fVehicle, editor:'select', options:vehicleOptions, icon:'car', half:true, hint:t.hVehicle },
+      { key:'status', label:t.fStatus, editor:'select', options:cStatusOptions, icon:'user', half:true },
+      { key:'languages', label:t.fLanguages, editor:'select', multi:true, options:LANGUAGE_OPTIONS, icon:'globe', hint:t.hLanguages },
+      { key:'note', label:t.fNote, editor:'area', placeholder:'' },
+    ];
+
+    const store = ops ? (isChauffeurs ? ops.chauffeurs : ops.vehicles) : null;
+
+    return {
+      n18: 18,
+      title: isChauffeurs ? t.chauffeurs : t.vehicles,
+      subtitle: isChauffeurs ? t.cSub : t.vSub,
+      note: isChauffeurs ? t.cNote : t.vNote,
+      tabs: [
+        { label: t.vehicles, active: !isChauffeurs, go: () => { location.hash = '#vehicles'; } },
+        { label: t.chauffeurs, active: isChauffeurs, go: () => { location.hash = '#chauffeurs'; } },
+      ],
+      counts: isChauffeurs ? [
+        { label:t.cntChauffeurs, value:String(chauffeurs.length), of:'', icon:'users', foot:t.footChauffeurs },
+        { label:t.cntOnShift, value:String(onShift), of:'/ ' + chauffeurs.length, icon:'clock', foot:t.footShift },
+        { label:t.cntWithVehicle, value:String(paired), of:'/ ' + chauffeurs.length, icon:'car', foot:t.footPaired },
+      ] : [
+        { label:t.cntVehicles, value:String(vehicles.length), of:'', icon:'car', foot:t.footFleet },
+        { label:t.cntInService, value:String(inService), of:'/ ' + vehicles.length, icon:'circle-check', foot:t.footVehicles },
+        { label:t.cntSeats, value:String(largest), of:t.seats, icon:'users', foot:t.footSeats },
+      ],
+      rows: isChauffeurs ? chauffeurs : vehicles,
+      columns: isChauffeurs ? chauffeurColumns : vehicleColumns,
+      fields: isChauffeurs ? chauffeurFields : vehicleFields,
+      blank: () => (store ? store.blank() : {}),
+      onSave: (rec) => { if (store) store.upsert(rec); },
+      onDelete: (id) => { if (store) store.remove(id); },
+      noun: isChauffeurs ? t.nounC : t.nounV,
+      nounPlural: isChauffeurs ? t.nounCs : t.nounVs,
+      addTitle: isChauffeurs ? t.addChauffeur : t.addVehicle,
+      editTitle: isChauffeurs ? t.editC : t.editV,
+      deleteTitle: isChauffeurs ? t.delC : t.delV,
+      labelKey: isChauffeurs ? 'name' : 'plate',
+      addLabel: isChauffeurs ? t.addChauffeur : t.addVehicle,
+      searchPlaceholder: isChauffeurs ? t.searchChauffeurs : t.searchVehicles,
+      searchKeys: isChauffeurs ? ['name','phone','email','licence','languages'] : ['klass','model','plate','year'],
+      emptyTitle: isChauffeurs ? t.emptyCTitle : t.emptyVTitle,
+      emptyBody: isChauffeurs ? t.emptyCBody : t.emptyVBody,
+      deleteBody: isChauffeurs ? t.delCBody : t.delVBody,
+    };
+  }
+}
+</script>
+</body>
+</html>

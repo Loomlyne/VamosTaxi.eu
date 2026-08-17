@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ops · Booking</title>
+<script src="../support.js"></script>
+</head>
+<body>
+<x-dc>
+<main style="flex:1 1 auto;min-width:0;padding:26px 32px 40px;display:flex;flex-direction:column;gap:16px;max-width:760px">
+<a href="#bookings" style="display:inline-flex;align-items:center;gap:6px;color:var(--vt-text-secondary);font-size:var(--vt-body-sm);text-decoration:none;border:0">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-left" size="{{ n16 }}" color="var(--vt-text-secondary)" hint-size="16px,16px"></x-import>{{ tBackToBookings }}
+</a>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" hint-size="100%,600px">
+<div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:16px">
+<div>
+<span style="font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:700;letter-spacing:.02em">{{ booking.id }}</span>
+<p style="margin:2px 0 0;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ booking.channel }} · {{ tBookedBy }} {{ booking.customer }}</p>
+</div>
+<div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StatusBadge" status="{{ booking.status }}" hint-size="110px,24px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="ellipsis" label="{{ tMoreActions }}" size="sm" hint-size="32px,32px"></x-import>
+</div>
+</div>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Tabs" variant="underline" value="{{ tab }}" onChange="{{ setTab }}" items="{{ tabItems }}" hint-size="100%,44px"></x-import>
+
+<sc-if value="{{ isDetails }}" hint-placeholder-val="{{ true }}">
+<div style="margin-top:20px;display:flex;flex-direction:column;gap:20px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.RouteSummary" pickup="{{ booking.pickup }}" dropoff="{{ booking.dropoff }}" meta="{{ routeMeta }}" hint-size="100%,140px"></x-import>
+
+<div>
+<div style="display:flex;align-items:flex-end;gap:16px;padding-bottom:12px;border-bottom:1px solid var(--vt-border-subtle)">
+<span style="flex:1 1 auto;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:600;color:var(--vt-text-muted)">{{ tAssignment }}</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="{{ assignVariant }}" onClick="{{ openAssignDialog }}" hint-size="130px,32px">{{ assignLabel }}</x-import>
+</div>
+<div style="margin-top:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.List" hint-size="100%,120px">
+<sc-if value="{{ hasDriver }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.ListRow" icon="car-front" title="{{ driverName }}" subtitle="{{ driverSubtitle }}" meta="{{ tOnShift }}" hint-size="100%,60px"></x-import>
+</sc-if>
+<sc-if value="{{ noDriver }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.ListRow" icon="triangle-alert" title="{{ tNoDriver }}" subtitle="{{ tNoDriverSub }}" hint-size="100%,60px"></x-import>
+</sc-if>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.ListRow" icon="user" title="{{ booking.customer }}" subtitle="{{ booking.email }}" hint-size="100%,60px"></x-import>
+</x-import>
+</div>
+</div>
+
+<div>
+<h3 style="margin:0 0 12px;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:600;color:var(--vt-text-muted)">{{ tPassengerTrip }}</h3>
+<div style="display:grid;grid-template-columns:132px 1fr;gap:8px 14px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm)">
+<span style="color:var(--vt-text-muted)">{{ tPassengers }}</span><span>{{ booking.pax }} · {{ booking.bags }} {{ tBags }}</span>
+<span style="color:var(--vt-text-muted)">{{ tVehicleClass }}</span><span>{{ booking.vehicle }}</span>
+<span style="color:var(--vt-text-muted)">{{ tFlight }}</span><span>{{ booking.flight }}</span>
+<span style="color:var(--vt-text-muted)">{{ tEmail }}</span><span>{{ booking.email }}</span>
+<span style="color:var(--vt-text-muted)">{{ tMobile }}</span><span>{{ booking.phone }}</span>
+<span style="color:var(--vt-text-muted)">{{ tPayment }}</span><span>{{ booking.pay }}</span>
+</div>
+</div>
+
+<div>
+<h3 style="margin:0 0 12px;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:600;color:var(--vt-text-muted)">{{ tFare }}</h3>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.PriceSummary" lines="{{ fareLines }}" total="{{ booking.total }}" totalLabel="{{ tTotalLabel }}" note="{{ tFareNote }}" hint-size="100%,120px"></x-import>
+</div>
+
+<sc-if value="{{ isPending }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ tOutstandingTitle }}" hint-size="100%,70px">{{ tOutstandingBody }}</x-import>
+</sc-if>
+<sc-if value="{{ isCancelled }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ tRefundTitle }}" hint-size="100%,70px">{{ tRefundBody }}</x-import>
+</sc-if>
+
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ tDispatcherNote }}" rows="{{ n2 }}" placeholder="{{ tDispatcherNotePh }}" hint-size="100%,90px"></x-import>
+
+<div style="display:flex;gap:10px;flex-wrap:wrap">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="secondary" icon="mail" onClick="{{ resendVoucher }}" hint-size="170px,36px">{{ tResendVoucher }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="pencil" hint-size="140px,36px">{{ tEditBooking }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="danger" icon="x" hint-size="110px,36px">{{ tCancelBooking }}</x-import>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isHistory }}" hint-placeholder-val="{{ false }}">
+<div style="margin-top:20px;display:flex;flex-direction:column;gap:16px">
+<sc-for list="{{ events }}" as="ev" hint-placeholder-count="4">
+<div style="display:grid;grid-template-columns:30px 1fr;gap:12px">
+<span style="width:30px;height:30px;border-radius:999px;background:var(--vt-yellow-50);display:flex;align-items:center;justify-content:center">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ ev.icon }}" size="{{ n15 }}" color="var(--vt-yellow-700)" hint-size="15px,15px"></x-import>
+</span>
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-body-sm);line-height:1.35">
+{{ ev.label }}<span style="display:block;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ ev.when }} · {{ ev.who }}</span>
+</span>
+</div>
+</sc-for>
+</div>
+</sc-if>
+</x-import>
+
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ dialogOpen }}" title="{{ tAssignDriver }}" size="sm" subtitle="{{ dialogSubtitle }}" onClose="{{ closeDialog }}" hint-size="400px,280px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Select" label="{{ tDriver }}" options="{{ driverOptions }}" value="{{ pickDriver }}" onChange="{{ setPickDriver }}" hint-size="100%,78px"></x-import>
+<p style="font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted);margin:16px 0 0">{{ tManualNote }}</p>
+<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--vt-border-subtle)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" onClick="{{ closeDialog }}" hint-size="90px,44px">{{ tCancel }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" onClick="{{ confirmAssign }}" hint-size="90px,44px">{{ tAssign }}</x-import>
+</div>
+</x-import>
+
+<sc-if value="{{ showToast }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Toast" tone="success" onClose="{{ closeToast }}" hint-size="320px,50px">{{ toastMsg }}</x-import>
+</div>
+</sc-if>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900},&quot;id&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;VT-4821&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+const BOOKINGS = [
+  { id:'VT-4821', time:'08:15', date:'Fri 14 Aug', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'Bleicherstrasse 16, 8953 Dietikon', vehicle:'Business', pax:2, bags:2, status:'assigned', total:'CHF 000', driver:'Driver 2', customer:'A. Lehmann', email:'a.lehmann@example.com', phone:'+41 79 000 00 00', flight:'LX317', pay:'Card · Stripe', channel:'Website', km:'18.4 km · 24 min' },
+  { id:'VT-4822', time:'09:40', date:'Fri 14 Aug', pickup:'Zurich HB, Bahnhofplatz', dropoff:'Zurich Airport (ZRH), Terminal 1', vehicle:'Economy', pax:1, bags:1, status:'paid', total:'CHF 000', driver:null, customer:'M. Rey', email:'m.rey@example.com', phone:'+41 78 000 00 00', flight:'—', pay:'TWINT · Stripe', channel:'Website', km:'11.2 km · 19 min' },
+  { id:'VT-4823', time:'11:05', date:'Fri 14 Aug', pickup:'Dietikon, Bahnhofstrasse', dropoff:'Zermatt, Bahnhofplatz', vehicle:'Van', pax:6, bags:8, status:'pending', total:'CHF 000', driver:null, customer:'K. Brunner', email:'k.brunner@example.com', phone:'+41 76 000 00 00', flight:'—', pay:'Awaiting card', channel:'Phone', km:'243 km · 3 h 05' },
+  { id:'VT-4824', time:'14:30', date:'Fri 14 Aug', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'St. Moritz, Via Serlas', vehicle:'Business', pax:2, bags:3, status:'confirmed', total:'CHF 000', driver:null, customer:'S. Frei', email:'s.frei@example.com', phone:'+41 79 000 00 01', flight:'LX1071', pay:'Card · Stripe', channel:'Website', km:'204 km · 2 h 40' },
+  { id:'VT-4825', time:'17:50', date:'Fri 14 Aug', pickup:'Baden, Kurplatz', dropoff:'Zurich Airport (ZRH), Terminal 1', vehicle:'Economy', pax:3, bags:3, status:'paid', total:'CHF 000', driver:'Driver 1', customer:'T. Wyss', email:'t.wyss@example.com', phone:'+41 79 000 00 02', flight:'—', pay:'Cash to driver', channel:'Phone', km:'27.6 km · 31 min' },
+  { id:'VT-4829', time:'21:00', date:'Fri 14 Aug', pickup:'Zurich, City', dropoff:'Zurich Airport (ZRH), Terminal 1', vehicle:'Economy', pax:1, bags:1, status:'assigned', total:'CHF 000', driver:'Driver 1', customer:'N. Keller', email:'n.keller@example.com', phone:'+41 79 000 00 05', flight:'LX346', pay:'Card · Stripe', channel:'Website', km:'12.8 km · 20 min' },
+  { id:'VT-4818', time:'06:20', date:'Fri 14 Aug', pickup:'Uster, Zürichstrasse', dropoff:'Zurich Airport (ZRH), Terminal 2', vehicle:'Business', pax:1, bags:2, status:'completed', total:'CHF 000', driver:'Driver 3', customer:'R. Iten', email:'r.iten@example.com', phone:'+41 79 000 00 03', flight:'—', pay:'Card · Stripe', channel:'Website', km:'23.1 km · 27 min' },
+  { id:'VT-4826', time:'07:30', date:'Sat 15 Aug', pickup:'Zurich Airport (ZRH), Terminal 1', dropoff:'Baden, Kurplatz', vehicle:'Economy', pax:2, bags:2, status:'confirmed', total:'CHF 000', driver:null, customer:'J. Steiner', email:'j.steiner@example.com', phone:'+41 78 000 00 06', flight:'LX1830', pay:'Card · Stripe', channel:'Website', km:'29.4 km · 33 min' },
+  { id:'VT-4827', time:'10:00', date:'Sat 15 Aug', pickup:'Zurich, City', dropoff:'Zurich Airport (ZRH), Terminal 2', vehicle:'Business', pax:2, bags:2, status:'paid', total:'CHF 000', driver:'Driver 3', customer:'P. Huber', email:'p.huber@example.com', phone:'+41 79 000 00 07', flight:'LX1274', pay:'Card · Stripe', channel:'Website', km:'11.9 km · 20 min' },
+  { id:'VT-4828', time:'13:20', date:'Sat 15 Aug', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'Verbier, Place Centrale', vehicle:'Van', pax:5, bags:6, status:'pending', total:'CHF 000', driver:null, customer:'C. Roth', email:'c.roth@example.com', phone:'+41 76 000 00 08', flight:'LX2098', pay:'Awaiting card', channel:'Website', km:'297 km · 3 h 30' },
+  { id:'VT-4830', time:'08:00', date:'Thu 13 Aug', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'Zurich, City', vehicle:'Business', pax:2, bags:2, status:'completed', total:'CHF 000', driver:'Driver 2', customer:'E. Bachmann', email:'e.bachmann@example.com', phone:'+41 79 000 00 09', flight:'LX348', pay:'Card · Stripe', channel:'Website', km:'18.4 km · 24 min' },
+  { id:'VT-4812', time:'19:15', date:'Thu 13 Aug', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'Verbier, Place Centrale', vehicle:'Van', pax:5, bags:6, status:'cancelled', total:'CHF 000', driver:null, customer:'L. Michel', email:'l.michel@example.com', phone:'+41 78 000 00 04', flight:'LX2814', pay:'Refund due', channel:'Website', km:'297 km · 3 h 30' },
+];
+const DRIVERS = ['Driver 1', 'Driver 2', 'Driver 3', 'Partner carrier'];
+const T = {
+  en: { backToBookings:'Back to bookings', bookedBy:'booked by', moreActions:'More actions', details:'Details', history:'History',
+    assignment:'Assignment', assign:'Assign driver', reassign:'Reassign', onShift:'On shift', noDriver:'No driver assigned', noDriverSub:'Assign before the pickup reminder goes out',
+    passengerTrip:'Passenger & trip', passengers:'Passengers', bags:'bags', vehicleClass:'Vehicle class', flight:'Flight', email:'Email', mobile:'Mobile', payment:'Payment',
+    fare:'Fare', due:'Due', paid:'Paid', fareNote:'Price snapshot taken at booking; later rule changes do not alter it.',
+    outstandingTitle:'Payment outstanding', outstandingBody:'No capture received. Send a payment link or mark as cash before assigning a driver.',
+    refundTitle:'Refund due', refundBody:'Cancelled inside the free window — issue the refund in Stripe and record it here.',
+    dispatcherNote:'Dispatcher note', dispatcherNotePh:'Add a note visible to dispatch only…',
+    resendVoucher:'Resend voucher', editBooking:'Edit booking', cancelBooking:'Cancel', driver:'Driver', manualNote:'Assignment is manual in V1 — there is no driver app and no automatic dispatch.', cancel:'Cancel',
+    voucherResent:'Voucher re-sent to ', driverAssigned:'Driver assigned to ',
+    evQuote:'Quote created', evPayment:'Payment captured', evVoucher:'Voucher sent', evAssigned:'Driver assigned',
+    website:'Website', stripeWebhook:'Stripe webhook', resend:'Resend', dispatch:'Dispatch',
+    lineTransfer:'Transfer, ', lineAirportFee:'Airport pickup fee',
+  },
+  de: { backToBookings:'Zurück zu Buchungen', bookedBy:'gebucht von', moreActions:'Weitere Aktionen', details:'Details', history:'Verlauf',
+    assignment:'Zuweisung', assign:'Fahrer zuweisen', reassign:'Neu zuweisen', onShift:'Im Dienst', noDriver:'Kein Fahrer zugewiesen', noDriverSub:'Vor der Abholerinnerung zuweisen',
+    passengerTrip:'Passagier & Fahrt', passengers:'Passagiere', bags:'Gepäck', vehicleClass:'Fahrzeugklasse', flight:'Flug', email:'E-Mail', mobile:'Mobil', payment:'Zahlung',
+    fare:'Fahrpreis', due:'Offen', paid:'Bezahlt', fareNote:'Preis-Snapshot bei Buchung; spätere Regeländerungen ändern ihn nicht.',
+    outstandingTitle:'Zahlung ausstehend', outstandingBody:'Keine Zahlung erhalten. Zahlungslink senden oder als Barzahlung markieren, bevor ein Fahrer zugewiesen wird.',
+    refundTitle:'Rückerstattung fällig', refundBody:'Innerhalb der Frist storniert — Rückerstattung in Stripe ausführen und hier vermerken.',
+    dispatcherNote:'Dispatcher-Notiz', dispatcherNotePh:'Notiz hinzufügen, nur für Dispatch sichtbar…',
+    resendVoucher:'Gutschein erneut senden', editBooking:'Buchung bearbeiten', cancelBooking:'Stornieren', driver:'Fahrer', manualNote:'Die Zuweisung erfolgt in V1 manuell — es gibt keine Fahrer-App und keine automatische Vermittlung.', cancel:'Abbrechen',
+    voucherResent:'Gutschein erneut gesendet an ', driverAssigned:'Fahrer zugewiesen zu ',
+    evQuote:'Angebot erstellt', evPayment:'Zahlung erfasst', evVoucher:'Gutschein gesendet', evAssigned:'Fahrer zugewiesen',
+    website:'Website', stripeWebhook:'Stripe-Webhook', resend:'Resend', dispatch:'Dispatch',
+    lineTransfer:'Transfer, ', lineAirportFee:'Flughafengebühr',
+  },
+};
+class Component extends DCLogic {
+  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', tab:'Details', dialogOpen:false, pickDriver:'', assigned:{}, toastMsg:'', showToast:false };
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.dialogOpen !== this.state.dialogOpen) { try { document.body.style.overflow = this.state.dialogOpen ? 'hidden' : ''; } catch (e) {} }
+  }
+  componentWillUnmount() {
+    try { if (this.state.dialogOpen) document.body.style.overflow = ''; } catch (e) {}
+    if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
+  }
+  componentDidMount() {
+    this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
+    window.addEventListener('vamos:locale', this._onLocale);
+  }
+  getBooking() {
+    const params = new URLSearchParams('?id=' + encodeURIComponent((this.props && this.props.id) || ''));
+    const id = params.get('id');
+    return BOOKINGS.find((b) => b.id === id) || BOOKINGS[0];
+  }
+  notify = (msg) => { this.setState({ toastMsg: msg, showToast: true }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ showToast: false }), 3600); };
+  renderVals() {
+    const t = T[this.state.lang] || T.en;
+    const booking = this.getBooking();
+    const assignedDriver = this.state.assigned[booking.id] || booking.driver;
+    const isAirport = /airport|zrh/i.test(booking.pickup + ' ' + booking.dropoff);
+    const fareLines = [{ label: t.lineTransfer + booking.vehicle, value: 'CHF 000.00' }];
+    if (isAirport) fareLines.push({ label: t.lineAirportFee, value: 'CHF 00.00' });
+    const EVENTS = [
+      { icon:'receipt', label: t.evQuote, when:'Wed 12 Aug · 18:04', who: t.website },
+      { icon:'credit-card', label: t.evPayment, when:'Wed 12 Aug · 18:06', who: t.stripeWebhook },
+      { icon:'mail', label: t.evVoucher, when:'Wed 12 Aug · 18:06', who: t.resend },
+      { icon:'user', label: t.evAssigned, when:'Thu 13 Aug · 09:12', who: t.dispatch },
+    ];
+    return {
+      n2:2, n15:15, n16:16, yes:true,
+      tBackToBookings: t.backToBookings, tMoreActions: t.moreActions, tBookedBy: t.bookedBy,
+      booking,
+      tab: this.state.tab, setTab: (v) => this.setState({ tab: v }), tabItems: [t.details, t.history],
+      isDetails: this.state.tab === t.details, isHistory: this.state.tab === t.history,
+      routeMeta: [{ icon:'calendar', label: booking.date }, { icon:'clock', label: booking.time }, { icon:'navigation', label: booking.km }],
+      tAssignment: t.assignment,
+      assignVariant: assignedDriver ? 'ghost' : 'primary',
+      assignLabel: assignedDriver ? t.reassign : t.assign,
+      openAssignDialog: () => this.setState({ dialogOpen: true, pickDriver: assignedDriver || DRIVERS[1] }),
+      hasDriver: !!assignedDriver, noDriver: !assignedDriver,
+      driverName: assignedDriver || '', driverSubtitle: booking.vehicle + ' · ' + t.onShift, tOnShift: t.onShift,
+      tNoDriver: t.noDriver, tNoDriverSub: t.noDriverSub,
+      tPassengerTrip: t.passengerTrip, tPassengers: t.passengers, tBags: t.bags, tVehicleClass: t.vehicleClass,
+      tFlight: t.flight, tEmail: t.email, tMobile: t.mobile, tPayment: t.payment,
+      tFare: t.fare, fareLines, tTotalLabel: booking.status === 'pending' ? t.due : t.paid, tFareNote: t.fareNote,
+      isPending: booking.status === 'pending', isCancelled: booking.status === 'cancelled',
+      tOutstandingTitle: t.outstandingTitle, tOutstandingBody: t.outstandingBody, tRefundTitle: t.refundTitle, tRefundBody: t.refundBody,
+      tDispatcherNote: t.dispatcherNote, tDispatcherNotePh: t.dispatcherNotePh,
+      tResendVoucher: t.resendVoucher, tEditBooking: t.editBooking, tCancelBooking: t.cancelBooking,
+      resendVoucher: () => this.notify(t.voucherResent + booking.email),
+      events: EVENTS,
+      dialogOpen: this.state.dialogOpen, tAssignDriver: t.assign, dialogSubtitle: booking.id + ' · ' + booking.time + ' · ' + booking.vehicle,
+      closeDialog: () => this.setState({ dialogOpen: false }),
+      tDriver: t.driver, driverOptions: DRIVERS, pickDriver: this.state.pickDriver, setPickDriver: (e) => this.setState({ pickDriver: e.target.value }),
+      tManualNote: t.manualNote, tCancel: t.cancel, tAssign: t.assign,
+      confirmAssign: () => {
+        const chosen = this.state.pickDriver;
+        this.setState((s) => ({ assigned: Object.assign({}, s.assigned, { [booking.id]: chosen }), dialogOpen: false }));
+        this.notify(t.driverAssigned + booking.id);
+      },
+      showToast: this.state.showToast, toastMsg: this.state.toastMsg, closeToast: () => this.setState({ showToast: false }),
+    };
+  }
+}
+</script>
+</body>
+</html>

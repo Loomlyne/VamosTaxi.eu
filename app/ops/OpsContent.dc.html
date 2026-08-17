@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<main style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
+
+<header style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle)">
+<div style="min-width:0">
+<h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tTitle }}</h1>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSubtitle }}</p>
+</div>
+<div style="margin-inline-start:auto;display:flex;flex-wrap:wrap;align-items:center;gap:12px">
+<a href="../home/home.dc.html" target="_blank" rel="noopener" style="text-decoration:none;border:0;display:inline-flex">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" icon="external-link" hint-size="150px,44px">{{ tOpenSite }}</x-import>
+</a>
+</div>
+</header>
+
+<div data-set-grid="1" style="padding:26px 32px 48px">
+
+<nav data-set-rail="1" aria-label="{{ tTitle }}">
+<sc-for list="{{ railGroups }}" as="g" hint-placeholder-count="3">
+<div style="display:flex;flex-direction:column;gap:2px">
+<p style="margin:10px 10px 2px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--vt-text-muted)">{{ g.kicker }}</p>
+<sc-for list="{{ g.rows }}" as="p" hint-placeholder-count="3">
+<button type="button" data-set-item="1" data-on="{{ p.on }}" onClick="{{ p.pick }}" title="{{ p.label }}">
+<span style="flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.label }}</span>
+</button>
+</sc-for>
+</div>
+</sc-for>
+</nav>
+
+<div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+
+<p data-hint="1" style="max-width:78ch">{{ tIntro }}</p>
+
+<section style="box-sizing:border-box;display:flex;flex-direction:column;gap:16px;padding:22px 24px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);min-width:0">
+<div style="display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:14px">
+<div style="min-width:0">
+<p data-panel-k="1">{{ current.kicker }}</p>
+<h2 data-panel-h="1">{{ current.title }}</h2>
+<p data-vt-no-i18n="1" style="margin:6px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ current.path }}</p>
+</div>
+<a href="{{ current.href }}" target="_blank" rel="noopener" style="text-decoration:none;border:0">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" icon="external-link" hint-size="150px,36px">{{ tOpen }}</x-import>
+</a>
+</div>
+<sc-if value="{{ current.hasSections }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:8px;padding-top:10px;border-top:1px solid var(--vt-grey-200)">
+<p data-panel-k="1">{{ tSections }}</p>
+<sc-for list="{{ current.sections }}" as="s" hint-placeholder-count="3">
+<a href="{{ s.href }}" target="_blank" rel="noopener" data-row="1" style="text-decoration:none;color:inherit;padding:12px 14px;gap:10px">
+<span style="flex:1 1 auto;min-width:0;font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ s.label }}</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
+</a>
+</sc-for>
+</div>
+</sc-if>
+</section>
+
+</div>
+</div>
+</main>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900},&quot;section&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;pages&quot;,&quot;options&quot;:[&quot;pages&quot;,&quot;legal&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+const PAGES = [
+  { kicker: { en:'Marketing', de:'Marketing', fr:'Marketing', ar:'التسويق' }, rows: [
+    { file:'home.dc.html', en:'Home', de:'Startseite', fr:'Accueil', ar:'الرئيسية' },
+    { file:'about.dc.html', en:'About', de:'Über uns', fr:'À propos', ar:'من نحن' },
+    { file:'faq.dc.html', en:'FAQ', de:'FAQ', fr:'FAQ', ar:'الأسئلة الشائعة' },
+    { file:'contact.dc.html', en:'Contact', de:'Kontakt', fr:'Contact', ar:'اتصل بنا' },
+    { file:'become-a-partner.dc.html', en:'Become a partner', de:'Partner werden', fr:'Devenir partenaire', ar:'كن شريكًا' },
+    { file:'coming-soon.dc.html', en:'Coming soon', de:'Demnächst', fr:'Bientôt disponible', ar:'قريبًا' },
+  ] },
+  { kicker: { en:'Booking flow', de:'Buchungsstrecke', fr:'Parcours de réservation', ar:'مسار الحجز' }, rows: [
+    { file:'checkout.dc.html', en:'Checkout', de:'Kasse', fr:'Paiement', ar:'الدفع' },
+    { file:'confirmation.dc.html', en:'Confirmation', de:'Bestätigung', fr:'Confirmation', ar:'التأكيد' },
+    { file:'manage-booking.dc.html', en:'Manage booking', de:'Buchung verwalten', fr:'Gérer la réservation', ar:'إدارة الحجز' },
+  ] },
+  { kicker: { en:'Account', de:'Konto', fr:'Compte', ar:'الحساب' }, rows: [
+    { file:'sign-in.dc.html', en:'Sign in', de:'Anmelden', fr:'Se connecter', ar:'تسجيل الدخول' },
+    { file:'account.dc.html', en:'Account', de:'Konto', fr:'Compte', ar:'الحساب' },
+    { file:'bookings.dc.html', en:'My bookings', de:'Meine Buchungen', fr:'Mes réservations', ar:'حجوزاتي' },
+    { file:'reset-password.dc.html', en:'Reset password', de:'Passwort zurücksetzen', fr:'Réinitialiser le mot de passe', ar:'إعادة تعيين كلمة المرور' },
+  ] },
+];
+const LEGAL = [
+  { kicker: { en:'Documents', de:'Dokumente', fr:'Documents', ar:'المستندات' }, rows: [
+    { file:'terms.dc.html', en:'Terms and conditions', de:'AGB', fr:'Conditions générales', ar:'الشروط والأحكام' },
+    { file:'privacy.dc.html', en:'Privacy policy', de:'Datenschutzerklärung', fr:'Politique de confidentialité', ar:'سياسة الخصوصية' },
+    { file:'cookies.dc.html', en:'Cookie policy', de:'Cookie-Richtlinie', fr:'Politique de cookies', ar:'سياسة ملفات تعريف الارتباط' },
+    { file:'imprint.dc.html', en:'Imprint', de:'Impressum', fr:'Mentions légales', ar:'بيانات الناشر' },
+    { file:'cancellation.dc.html', en:'Cancellation and refunds', de:'Storno und Rückerstattung', fr:'Annulation et remboursements', ar:'الإلغاء واسترداد المبالغ' },
+  ] },
+];
+const HOME_SECTIONS = [
+  { key:'book', en:'Booking widget', de:'Buchungswidget', fr:'Widget de réservation', ar:'أداة الحجز' },
+  { key:'fleet', en:'Fleet & classes', de:'Flotte & Klassen', fr:'Flotte et classes', ar:'الأسطول والفئات' },
+  { key:'reviews', en:'Reviews', de:'Bewertungen', fr:'Avis', ar:'التقييمات' },
+];
+const T = {
+  en: { pages:'Pages', pagesSub:'What the public site shows',
+    legal:'Legal', legalSub:'Terms, privacy, cookies, imprint',
+    open:'Open the page', openSite:'Open the site', sections:'Jump to a section',
+    pagesIntro:'Every public page, where it lives, and the four languages it ships in. Copy is edited on the page itself — open one to read it the way a traveller does.',
+    legalIntro:'The documents a booking is sold under. The wording belongs to the client’s legal counsel; this screen says where each document lives and confirms it exists in all four languages.' },
+  de: { pages:'Seiten', pagesSub:'Was die öffentliche Website zeigt',
+    legal:'Rechtliches', legalSub:'AGB, Datenschutz, Cookies, Impressum',
+    open:'Seite öffnen', openSite:'Website öffnen', sections:'Zu einem Abschnitt springen',
+    pagesIntro:'Jede öffentliche Seite, ihr Ort und die vier Sprachen, in denen sie erscheint. Texte werden auf der Seite selbst bearbeitet — eine Seite öffnen und so lesen wie ein Reisender.',
+    legalIntro:'Die Dokumente, unter denen eine Buchung verkauft wird. Der Wortlaut liegt bei der Rechtsberatung des Kunden; dieser Bildschirm nennt den Ort und bestätigt alle vier Sprachen.' },
+  fr: { pages:'Pages', pagesSub:'Ce que montre le site public',
+    legal:'Mentions légales', legalSub:'CG, confidentialité, cookies, mentions',
+    open:'Ouvrir la page', openSite:'Ouvrir le site', sections:'Aller à une section',
+    pagesIntro:'Chaque page publique, son emplacement et les quatre langues dans lesquelles elle paraît. Les textes se modifient sur la page même — ouvrez-en une pour la lire comme un voyageur.',
+    legalIntro:'Les documents qui encadrent une réservation. Le texte relève du conseil juridique du client ; cet écran indique l’emplacement et confirme les quatre langues.' },
+  ar: { pages:'الصفحات', pagesSub:'ما يظهره الموقع العام',
+    legal:'المستندات القانونية', legalSub:'الشروط والخصوصية والكوكيز وبيانات الناشر',
+    open:'فتح الصفحة', openSite:'فتح الموقع', sections:'الانتقال إلى قسم',
+    pagesIntro:'كل صفحة عامة، ومكانها، واللغات الأربع التي تُنشر بها. تُحرَّر النصوص في الصفحة نفسها — افتح صفحة لتقرأها كما يقرأها المسافر.',
+    legalIntro:'المستندات التي يُباع الحجز بموجبها. صياغة النصوص من مسؤولية المستشار القانوني للعميل؛ وتُبيّن هذه الشاشة مكان كل مستند وتؤكد وجوده باللغات الأربع.' },
+};
+
+class Component extends DCLogic {
+  state = { lang: 'en', selected: null };
+  componentDidMount() {
+    this._onLocale = (e) => this.setState({ lang: e.detail.lang });
+    window.addEventListener('vamos:locale', this._onLocale);
+    if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() });
+  }
+  componentWillUnmount() {
+    if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
+  }
+  renderVals() {
+    const lang = this.state.lang;
+    const t = T[lang] || T.en;
+    const legal = this.props.section === 'legal';
+    const source = legal ? LEGAL : PAGES;
+    const flat = [];
+    source.forEach((g) => g.rows.forEach((r) => flat.push({ group: g, row: r })));
+    const selectedFile = (this.state.selected && flat.some((x) => x.row.file === this.state.selected))
+      ? this.state.selected : (flat[0] ? flat[0].row.file : null);
+    const found = flat.filter((x) => x.row.file === selectedFile)[0] || null;
+    const sectionsFor = (file) => file === 'home.dc.html'
+      ? HOME_SECTIONS.map((s) => ({ label: s[lang] || s.en, href: '../home/home.dc.html#' + s.key }))
+      : [];
+    const sections = found ? sectionsFor(found.row.file) : [];
+    const current = found ? {
+      kicker: found.group.kicker[lang] || found.group.kicker.en,
+      title: found.row[lang] || found.row.en,
+      path: (found.row.file === 'home.dc.html' ? 'app/home/' : 'app/pages/') + found.row.file,
+      href: (found.row.file === 'home.dc.html' ? '../home/' : '../pages/') + found.row.file,
+      sections,
+      hasSections: sections.length > 0,
+    } : { kicker:'', title:'', path:'', href:'#', sections:[], hasSections:false };
+    return {
+      n16: 16,
+      langs: ['EN', 'DE', 'FR', 'AR'],
+      tTitle: legal ? t.legal : t.pages,
+      tSubtitle: legal ? t.legalSub : t.pagesSub,
+      tIntro: legal ? t.legalIntro : t.pagesIntro,
+      tOpen: t.open, tOpenSite: t.openSite, tSections: t.sections,
+      railGroups: source.map((g) => ({
+        kicker: g.kicker[lang] || g.kicker.en,
+        rows: g.rows.map((r) => ({
+          label: r[lang] || r.en,
+          on: r.file === selectedFile ? '1' : '0',
+          pick: () => this.setState({ selected: r.file }),
+        })),
+      })),
+      current,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

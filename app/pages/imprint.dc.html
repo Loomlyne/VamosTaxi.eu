@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
+     injects every stylesheet and script from <helmet> only after React has loaded, so
+     without these the arriving document paints uncovered frames before
+     vamos-page-transition.js exists and can build its overlay. That script adopts
+     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
+     animation below is the fallback for when the script never runs. -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<link rel="stylesheet" href="../../assets/lenis.css">
+<script src="../../assets/lenis.js"></script>
+<script src="../../assets/lenis-boot.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+/* Button hover/press — colour step only, no shadow, no glow */
+.vt-btn{transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
+.vt-btn:hover,.vt-btn:active{box-shadow:none!important}
+.vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
+.vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
+.vt-btn--secondary:hover:not([disabled]){background:var(--vt-charcoal-800)}
+.vt-btn--secondary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn--ghost:hover:not([disabled]),.vt-btn--outline:hover:not([disabled]),.vt-btn--tertiary:hover:not([disabled]){background:var(--vt-grey-50);border-color:var(--vt-charcoal-900)}
+.vt-btn--ghost:active:not([disabled]),.vt-btn--outline:active:not([disabled]),.vt-btn--tertiary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn:focus-visible{box-shadow:var(--vt-ring)!important}
+.vt-btn[disabled],.vt-btn[aria-disabled="true"]{transform:none}.vt-select .vt-input--focus{box-shadow:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}
+body{margin:0;background:var(--vt-bg-page)}
+a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+[data-lg-grid]{display:grid;grid-template-columns:minmax(0,1fr);gap:0}
+[data-lg-prose]{max-width:68ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+[data-lg-prose] section{padding:36px 0;border-top:1px solid var(--vt-grey-200)}
+[data-lg-prose] section:first-of-type{border-top:0;padding-top:4px}
+[data-lg-prose] h2{margin:0 0 16px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary);scroll-margin-top:108px;text-wrap:pretty}
+[data-lg-prose] h3{margin:26px 0 10px;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);line-height:1.28;letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)}
+[data-lg-prose] p{margin:0 0 14px;text-wrap:pretty}
+[data-lg-prose] ul{margin:0 0 16px;padding-inline-start:20px}
+[data-lg-prose] li{margin:0 0 9px;padding-inline-start:4px}
+[data-lg-prose] p:last-child,[data-lg-prose] ul:last-child{margin-bottom:0}
+[data-lg-prose] a{color:var(--vt-charcoal-900);text-decoration:underline;text-decoration-color:var(--vt-grey-300);text-underline-offset:3px;transition:color 140ms cubic-bezier(.2,0,.2,1)}
+[data-lg-prose] a:hover{color:var(--vt-yellow-700);text-decoration-color:currentColor}
+[data-lg-n]{display:block;margin-bottom:9px;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);letter-spacing:var(--vt-label-tracking);font-weight:var(--vt-label-weight);color:var(--vt-charcoal-600)}
+[data-tok]{display:inline-flex;align-items:baseline;gap:5px;font-family:var(--vt-font-body);font-weight:var(--vt-weight-medium);font-size:.97em;background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 7px;white-space:nowrap}
+[data-tok]::after{content:"TBC";font-family:var(--vt-font-body);font-size:.66em;font-weight:700;letter-spacing:.1em;color:var(--vt-yellow-700)}
+[data-slot]{margin:0 0 16px;border:1px dashed var(--vt-grey-300);background:var(--vt-grey-50);border-radius:var(--vt-radius-md);padding:16px 18px}
+[data-slot-k]{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-slot-k]::before{content:"";width:8px;height:8px;flex:0 0 auto;background:var(--vt-grey-300)}
+[data-slot] p{margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)}
+[data-flag]{margin:0 0 16px;border:1px solid var(--vt-charcoal-900);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);padding:18px 20px}
+[data-flag-k]{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)}
+[data-flag] p{margin:0 0 10px;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)}
+[data-flag] p:last-child{margin-bottom:0}
+[data-src]{display:block;margin-top:2px;font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
+[data-lg-railcard]{background:none;border:0;box-shadow:none;padding:0}
+[data-lg-eyebrow]{display:flex;align-items:center;gap:9px;margin:0 0 10px;padding:0 6px;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-lg-eyebrow]::before{content:"";width:14px;height:14px;flex:0 0 auto;background:url(../../assets/patterns/checker-mark.png) center / contain no-repeat}
+[data-lg-tl]{position:relative;display:flex;gap:9px;align-items:baseline;padding:6px 8px 6px 24px;border-radius:var(--vt-radius-sm);color:var(--vt-text-secondary);font-size:var(--vt-body-sm);line-height:1.35;text-decoration:none;transition:background 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1)}
+[data-lg-tl]::before{content:"";position:absolute;inset-inline-start:6px;top:9px;width:11px;height:11px;background:url(../../assets/patterns/checker-mark.png) center / contain no-repeat;opacity:0;transition:opacity 140ms cubic-bezier(.2,0,.2,1)}
+[data-lg-tl]:hover{background:var(--vt-grey-50);color:var(--vt-text-primary)}
+[data-lg-tl][data-on]{color:var(--vt-charcoal-900);font-weight:var(--vt-weight-semibold)}
+[data-lg-tl][data-on]::before{opacity:1}
+[data-lg-tl] i{flex:0 0 20px;font-style:normal;font-family:var(--vt-font-display);font-size:11px;font-weight:var(--vt-weight-semibold);letter-spacing:.01em;font-variant-numeric:tabular-nums;color:var(--vt-grey-500)}
+[data-lg-tl][data-on] i{color:var(--vt-charcoal-900)}
+[data-lg-toc]{display:none}
+[data-lg-toc][data-open]{display:block}
+[data-lg-tocbtn]:hover{border-color:var(--vt-charcoal-900)}
+[data-x-link]:hover{background:var(--vt-grey-50)}
+[data-x-link][aria-current]{color:var(--vt-charcoal-900);font-weight:var(--vt-weight-semibold)}
+[data-crumb]{white-space:nowrap}
+[data-dl]{display:grid;grid-template-columns:minmax(0,1fr);margin:2px 0 18px;border-top:1px solid var(--vt-grey-200)}
+[data-dl-r]{display:grid;grid-template-columns:minmax(0,1fr);gap:2px 24px;padding:14px 0;border-bottom:1px solid var(--vt-grey-200)}
+[data-dl-k]{font-size:var(--vt-body-sm);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)}
+[data-dl-v]{font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+[data-seg]{display:inline-flex;padding:3px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:rgb(255 255 255 / .06)}
+[data-seg] button{appearance:none;border:0;background:none;min-height:38px;padding:0 16px;border-radius:var(--vt-radius-pill);font-family:inherit;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-inverse-muted);cursor:pointer;transition:background 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1)}
+[data-seg] button:hover{color:var(--vt-text-inverse)}
+[data-seg] button[aria-pressed="true"]{background:var(--vt-accent);color:var(--vt-text-on-accent)}
+[data-lang="de"] [lang="en"]{display:none}
+[data-lang="en"] [lang="de"]{display:none}
+[data-lang="both"] [data-lg-tl] [lang="en"],[data-lang="both"] [data-crumb] [lang="en"],[data-lang="both"] [data-x-link] [lang="en"]{display:none}
+[data-lang="both"] h1 [lang="en"],[data-lang="both"] h2 [lang="en"],[data-lang="both"] h3 [lang="en"]{display:block;margin-top:4px;font-size:var(--vt-heading-3);color:var(--vt-text-muted)}
+[data-lang="both"] h1 [lang="en"]{font-size:var(--vt-heading-2);color:var(--vt-text-inverse-muted)}
+[data-lang="both"] [data-dl-v] [lang="en"],[data-lang="both"] p [lang="en"],[data-lang="both"] [data-slot] [lang="en"]{display:block;margin-top:6px;color:var(--vt-text-muted)}
+[data-lang="both"] [data-hero-sub] [lang="en"]{display:block;margin-top:8px;color:var(--vt-text-inverse-muted)}
+:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}
+@media (min-width:620px){[data-dl-r]{grid-template-columns:230px minmax(0,1fr)}}
+@media (min-width:900px){[data-lg-grid]{grid-template-columns:264px minmax(0,1fr);gap:clamp(40px,5vw,80px)}
+[data-lg-rail]{position:sticky;top:96px;align-self:start;padding-bottom:8px}
+[data-lg-toc]{display:block}[data-lg-tocbtn]{display:none!important}}
+@media print{[data-lg-noprint]{display:none!important}
+[data-lg-grid]{display:block}
+[data-lg-prose]{max-width:none;font-size:10.5pt;color:#000}
+[data-lg-hero]{background:#fff!important;color:#000!important;border-bottom:1px solid #000}
+[data-lg-hero] *{color:#000!important}
+[data-tok]{background:#fff!important;border-color:#000!important;color:#000!important}
+[data-dl-r],[data-slot],[data-flag]{break-inside:avoid;page-break-inside:avoid}
+@page{margin:18mm}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}</style>
+</helmet>
+
+<div data-lang="{{ lang }}" style="font-family:var(--vt-font-body);background:var(--vt-bg-page);min-height:100vh">
+<div data-lg-noprint="1"><dc-import name="SiteHeader" variant="inverse" hint-size="100%,76px"></dc-import></div>
+
+<main data-screen-label="Imprint" data-vt-legal="en de fr ar">
+
+<header data-lg-hero="1" style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);position:relative;overflow:hidden">
+<div aria-hidden="true" style="position:absolute;top:0;inset-inline-end:0;width:120px;height:120px;background:url(../../assets/patterns/checker-mark.png) top right / 56px auto no-repeat;opacity:.9"></div>
+<div style="max-width:1200px;margin:0 auto;padding:44px clamp(20px,5vw,56px) 40px">
+<nav aria-label="Breadcrumb" style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted);margin-bottom:26px">
+<a data-crumb="1" href="../home/home.dc.html" style="color:inherit;text-decoration:none"><span lang="de" data-vt-no-i18n="1">Startseite</span><span lang="en">Home</span></a><span aria-hidden="true">/</span><span data-crumb="1"><span lang="de" data-vt-no-i18n="1">Rechtliches</span><span lang="en">Legal</span></span><span aria-hidden="true">/</span><span data-crumb="1" style="color:var(--vt-text-inverse)"><span lang="de" data-vt-no-i18n="1">Impressum</span><span lang="en">Imprint</span></span>
+</nav>
+<p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)"><span lang="de" data-vt-no-i18n="1">Rechtliches</span><span lang="en">Legal</span></p>
+<h1 style="margin:0 0 18px;max-width:22ch;font-family:var(--vt-font-display);font-size:var(--vt-display-2);line-height:var(--vt-display-leading);letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty"><span lang="de" data-vt-no-i18n="1">Impressum</span><span lang="en">Imprint</span></h1>
+<p data-hero-sub="1" style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)"><span lang="de" data-vt-no-i18n="1">Wer hinter dieser Website steht, wo das Unternehmen eingetragen ist und wie Sie uns erreichen. Deutsch ist die verbindliche Fassung.</span><span lang="en">Who stands behind this site, where the company is registered and how to reach us. The German version is the binding one.</span></p>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px 28px;margin-top:32px;padding-top:24px;border-top:1px solid var(--vt-border-inverse)">
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)"><span lang="de" data-vt-no-i18n="1">Letzte Aktualisierung</span><span lang="en">Last updated</span></span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Imprint effective date</span></span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)"><span lang="de" data-vt-no-i18n="1">Fassung</span><span lang="en">Version</span></span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Imprint version</span></span></div>
+<div data-lg-noprint="1" style="margin-inline-start:auto;display:flex;flex-wrap:wrap;align-items:center;gap:12px">
+<button type="button" onClick="{{ doPrint }}" aria-label="Print" style="width:44px;height:44px;display:grid;place-items:center;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:none;cursor:pointer">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="printer" size="{{ n18 }}" color="var(--vt-accent)" hint-size="18px,18px"></x-import>
+</button>
+</div>
+</div>
+</div>
+</header>
+
+<div style="max-width:1200px;margin:0 auto;padding:44px clamp(20px,5vw,56px) 8px">
+<div data-lg-grid="1">
+
+<aside data-lg-rail="1" data-lg-noprint="1" aria-label="Page navigation">
+<button data-lg-tocbtn="1" type="button" onClick="{{ toggleToc }}" aria-expanded="{{ tocOpen }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:0 18px;margin-bottom:14px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface);font-family:inherit;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-primary);cursor:pointer;transition:border-color 140ms cubic-bezier(.2,0,.2,1)">
+<span><span lang="de" data-vt-no-i18n="1">Auf dieser Seite</span><span lang="en">On this page</span></span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n18 }}" color="var(--vt-charcoal-900)" hint-size="18px,18px"></x-import>
+</button>
+
+<nav data-lg-toc="1" data-lg-railcard="1" data-open="{{ tocOpen }}" ref="{{ tocRef }}" aria-label="Sections">
+<p data-lg-eyebrow="1"><span lang="de" data-vt-no-i18n="1">Auf dieser Seite</span><span lang="en">On this page</span></p>
+<div style="display:flex;flex-direction:column">
+<a data-lg-tl="1" href="#register"><i>01</i><span lang="de" data-vt-no-i18n="1">Handelsregister</span><span lang="en">Register details</span></a>
+<a data-lg-tl="1" href="#kontakt"><i>02</i><span lang="de" data-vt-no-i18n="1">Kontakt</span><span lang="en">Contact</span></a>
+<a data-lg-tl="1" href="#vertretung"><i>03</i><span lang="de" data-vt-no-i18n="1">Vertretungsberechtigte Person</span><span lang="en">Authorised representative</span></a>
+<a data-lg-tl="1" href="#mwst"><i>04</i><span lang="de" data-vt-no-i18n="1">Mehrwertsteuer</span><span lang="en">VAT</span></a>
+<a data-lg-tl="1" href="#aufsicht"><i>05</i><span lang="de" data-vt-no-i18n="1">Aufsichtsbehörde</span><span lang="en">Supervisory authority</span></a>
+<a data-lg-tl="1" href="#dispute"><i>06</i><span lang="de" data-vt-no-i18n="1">Streitbeilegung</span><span lang="en">Dispute resolution</span></a>
+<a data-lg-tl="1" href="#haftung"><i>07</i><span lang="de" data-vt-no-i18n="1">Haftungsausschluss</span><span lang="en">Disclaimer</span></a>
+<a data-lg-tl="1" href="#urheberrecht"><i>08</i><span lang="de" data-vt-no-i18n="1">Urheberrecht</span><span lang="en">Copyright</span></a>
+<a data-lg-tl="1" href="#credits"><i>09</i><span lang="de" data-vt-no-i18n="1">Gestaltung</span><span lang="en">Design &amp; build</span></a>
+</div>
+
+<div style="margin-top:28px;padding-top:22px;border-top:1px solid var(--vt-border-subtle)">
+<p data-lg-eyebrow="1"><span lang="de" data-vt-no-i18n="1">Verwandte Dokumente</span><span lang="en">Related documents</span></p>
+<div style="display:flex;flex-direction:column;gap:2px">
+<a data-x-link="1" href="terms.dc.html" style="display:block;padding:9px 12px;border-radius:var(--vt-radius-sm);font-size:var(--vt-body-sm);color:var(--vt-text-secondary);text-decoration:none;transition:background 140ms cubic-bezier(.2,0,.2,1)"><span lang="de" data-vt-no-i18n="1">Allgemeine Geschäftsbedingungen</span><span lang="en">Terms &amp; conditions</span></a>
+<a data-x-link="1" href="cancellation.dc.html" style="display:block;padding:9px 12px;border-radius:var(--vt-radius-sm);font-size:var(--vt-body-sm);color:var(--vt-text-secondary);text-decoration:none;transition:background 140ms cubic-bezier(.2,0,.2,1)"><span lang="de" data-vt-no-i18n="1">Storno &amp; Rückerstattung</span><span lang="en">Cancellation &amp; refunds</span></a>
+<a data-x-link="1" href="privacy.dc.html" style="display:block;padding:9px 12px;border-radius:var(--vt-radius-sm);font-size:var(--vt-body-sm);color:var(--vt-text-secondary);text-decoration:none;transition:background 140ms cubic-bezier(.2,0,.2,1)"><span lang="de" data-vt-no-i18n="1">Datenschutzerklärung</span><span lang="en">Privacy policy</span></a>
+<a data-x-link="1" href="cookies.dc.html" style="display:block;padding:9px 12px;border-radius:var(--vt-radius-sm);font-size:var(--vt-body-sm);color:var(--vt-text-secondary);text-decoration:none;transition:background 140ms cubic-bezier(.2,0,.2,1)"><span lang="de" data-vt-no-i18n="1">Cookie-Richtlinie</span><span lang="en">Cookie policy</span></a>
+<a data-x-link="1" aria-current="page" href="imprint.dc.html" style="display:block;padding:9px 12px;border-radius:var(--vt-radius-sm);font-size:var(--vt-body-sm);color:var(--vt-text-secondary);text-decoration:none;transition:background 140ms cubic-bezier(.2,0,.2,1)"><span lang="de" data-vt-no-i18n="1">Impressum</span><span lang="en">Imprint</span></a>
+</div>
+</div>
+</nav>
+</aside>
+
+<article data-lg-prose="1" ref="{{ proseRef }}">
+
+<section id="register">
+<h2><span data-lg-n="1">01</span><span lang="de" data-vt-no-i18n="1">Angaben gemäss Handelsregister</span><span lang="en">Register details</span></h2>
+<div data-dl="1">
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Eingetragener Firmenname</span><span lang="en">Registered firm name</span></span><span data-dl-v="1">Vamos Taxi<span lang="de" data-vt-no-i18n="1"> — der Registereintrag führt den Namen ohne „GmbH“</span><span lang="en"> — the register entry carries the name without “GmbH”</span></span></div>
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Rechtsform</span><span lang="en">Legal form</span></span><span data-dl-v="1">GmbH<span lang="en"> · Swiss limited liability company</span></span></div>
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Firmennummer</span><span lang="en">Company number</span></span><span data-dl-v="1">CH-020.4.077.792-7</span></div>
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Handelsregisteramt</span><span lang="en">Register office</span></span><span data-dl-v="1"><span lang="de" data-vt-no-i18n="1">Kanton Zürich</span><span lang="en">Canton of Zurich</span></span></div>
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Sitz</span><span lang="en">Registered office</span></span><span data-dl-v="1">Bleicherstrasse 16, 8953 Dietikon ZH<span lang="en">, Switzerland</span></span></div>
+</div>
+
+</section>
+
+<section id="kontakt">
+<h2><span data-lg-n="1">02</span><span lang="de" data-vt-no-i18n="1">Kontakt</span><span lang="en">Contact</span></h2>
+<div data-dl="1">
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">E-Mail</span><span lang="en">Email</span></span><span data-dl-v="1"><a href="mailto:info@vamostaxi.eu">info@vamostaxi.eu</a></span></div>
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Telefon</span><span lang="en">Telephone</span></span><span data-dl-v="1"><a href="tel:+41796267082">+41 79 626 70 82</a></span></div>
+<div data-dl-r="1"><span data-dl-k="1">WhatsApp</span><span data-dl-v="1"><a href="https://wa.me/41796267082" target="_blank" rel="noreferrer noopener">+41 79 626 70 82</a></span></div>
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Website</span><span lang="en">Website</span></span><span data-dl-v="1">vamostaxi.eu</span></div>
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Postadresse</span><span lang="en">Postal address</span></span><span data-dl-v="1">Vamos Taxi GmbH, Bleicherstrasse 16, 8953 Dietikon ZH</span></div>
+</div>
+<p><span lang="de" data-vt-no-i18n="1">Fragen zu einer bestehenden Buchung beantwortet dieselbe Adresse — bitte mit Buchungsreferenz.</span><span lang="en">The same address answers questions about an existing booking — quote the booking reference.</span></p>
+</section>
+
+<section id="vertretung">
+<h2><span data-lg-n="1">03</span><span lang="de" data-vt-no-i18n="1">Vertretungsberechtigte Person</span><span lang="en">Authorised representative</span></h2>
+<div data-dl="1">
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Name</span><span lang="en">Name</span></span><span data-dl-v="1">Ben Othman Houssein</span></div>
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Funktion</span><span lang="en">Role</span></span><span data-dl-v="1"><span lang="de" data-vt-no-i18n="1">Inhaber und Geschäftsleitung</span><span lang="en">Owner and managing director</span></span></div>
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Inhaltlich verantwortlich</span><span lang="en">Responsible for content</span></span><span data-dl-v="1">Ben Othman Houssein</span></div>
+</div>
+</section>
+
+<section id="mwst">
+<h2><span data-lg-n="1">04</span><span lang="de" data-vt-no-i18n="1">Mehrwertsteuer</span><span lang="en">VAT</span></h2>
+<div data-dl="1">
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">UID / MWST-Nummer</span><span lang="en">UID / VAT number</span></span><span data-dl-v="1"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Uid number</span></span></div>
+</div>
+<div data-vt-no-i18n="1" data-slot="1">
+<p data-slot-k="1"><span lang="de" data-vt-no-i18n="1">Kundeneingabe · UID</span><span lang="en">Client input · UID</span></p>
+<sc-if value="{{ slotNotes }}" hint-placeholder-val="{{ true }}">
+<p><span lang="de" data-vt-no-i18n="1">Die Nummer erscheint nirgends auf der bisherigen Website. Sie wird hier nicht erfunden: entweder die echte UID im Format CHE mit MWST-Zusatz, oder die Zeile entfällt, falls das Unternehmen nicht mehrwertsteuerpflichtig ist. Eine falsche UID ist schlimmer als keine.</span><span lang="en">The number appears nowhere on the previous site. It is not invented here: either the real UID in the CHE format with the VAT suffix, or the row comes out if the company is not VAT-registered. A wrong UID is worse than none.</span></p>
+</sc-if>
+</div>
+</section>
+
+<section id="aufsicht">
+<h2><span data-lg-n="1">05</span><span lang="de" data-vt-no-i18n="1">Aufsichtsbehörde und Bewilligung</span><span lang="en">Supervisory authority and licence</span></h2>
+<div data-vt-no-i18n="1" data-slot="1">
+<p data-slot-k="1"><span lang="de" data-vt-no-i18n="1">Kundeneingabe · Bewilligung</span><span lang="en">Client input · licence</span></p>
+<sc-if value="{{ slotNotes }}" hint-placeholder-val="{{ true }}">
+<p><span lang="de" data-vt-no-i18n="1">Personentransport im Kanton Zürich ist bewilligungspflichtig. Hier gehören die erteilende Stelle und die Bewilligungsnummer hin — sie sind ein Vertrauenssignal und kein Kleingedrucktes. Auf der bisherigen Website fehlen beide.</span><span lang="en">Carrying passengers in the Canton of Zurich requires a licence. The issuing authority and the licence number belong here — they are a trust signal, not small print. Both are missing from the previous site.</span></p>
+</sc-if>
+</div>
+</section>
+
+<section id="dispute">
+<h2><span data-lg-n="1">06</span><span lang="de" data-vt-no-i18n="1">Streitbeilegung</span><span lang="en">Dispute resolution</span></h2>
+<p><span lang="de" data-vt-no-i18n="1">Beschwerden nehmen wir direkt entgegen; der Ablauf steht in den <a href="terms.dc.html#complaints">AGB</a>.</span><span lang="en">We take complaints directly; the route is in the <a href="terms.dc.html#complaints">terms</a>.</span></p>
+<div data-vt-no-i18n="1" data-slot="1">
+<p data-slot-k="1"><span lang="de" data-vt-no-i18n="1">Kundeneingabe · Schlichtungsstelle</span><span lang="en">Client input · dispute body</span></p>
+<sc-if value="{{ slotNotes }}" hint-placeholder-val="{{ true }}">
+<p><span lang="de" data-vt-no-i18n="1">Falls eine Schlichtungsstelle zuständig ist, wird sie hier genannt; für Gäste aus der EU zusätzlich, ob eine Online-Streitbeilegungsplattform gilt. Dieselbe Antwort füllt den Slot in den <a href="terms.dc.html#complaints">AGB</a>.</span><span lang="en">If an ombudsman or conciliation body applies, it is named here; for EU guests, also whether an online dispute-resolution platform applies. One answer fills this slot and the matching one in the <a href="terms.dc.html#complaints">terms</a>.</span></p>
+</sc-if>
+</div>
+</section>
+
+<section id="haftung">
+<h2><span data-lg-n="1">07</span><span lang="de" data-vt-no-i18n="1">Haftungsausschluss</span><span lang="en">Disclaimer</span></h2>
+<div data-vt-no-i18n="1" data-slot="1">
+<p data-slot-k="1"><span lang="de" data-vt-no-i18n="1">Kundeneingabe · Haftung für Inhalte und Links</span><span lang="en">Client input · content and links</span></p>
+<sc-if value="{{ slotNotes }}" hint-placeholder-val="{{ true }}">
+<p><span lang="de" data-vt-no-i18n="1">Standardtext zu Inhalten, externen Links und Verfügbarkeit. Er ersetzt nicht die Haftungsregelung für die Fahrt selbst — die steht in den <a href="terms.dc.html#liability">AGB</a>, und beide dürfen sich nicht widersprechen.</span><span lang="en">Standard wording on content, external links and availability. It does not replace liability for the journey itself, which sits in the <a href="terms.dc.html#liability">terms</a> — the two must not contradict each other.</span></p>
+</sc-if>
+</div>
+</section>
+
+<section id="urheberrecht">
+<h2><span data-lg-n="1">08</span><span lang="de" data-vt-no-i18n="1">Urheberrecht</span><span lang="en">Copyright</span></h2>
+<p><span lang="de" data-vt-no-i18n="1">Texte, Bilder, Marke und Gestaltung dieser Website gehören Vamos Taxi GmbH oder den jeweiligen Rechteinhabern. Weiterverwendung nur mit schriftlicher Zustimmung.</span><span lang="en">Text, images, the brand and the design of this site belong to Vamos Taxi GmbH or to the respective rights holders. Reuse only with written permission.</span></p>
+<div data-dl="1">
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Bildnachweis</span><span lang="en">Image credits</span></span><span data-dl-v="1"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Photography credit</span></span></div>
+</div>
+</section>
+
+<section id="credits">
+<h2><span data-lg-n="1">09</span><span lang="de" data-vt-no-i18n="1">Gestaltung und Umsetzung</span><span lang="en">Design and build</span></h2>
+<div data-dl="1">
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Marke und Gestaltung</span><span lang="en">Brand and design</span></span><span data-dl-v="1"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Brand agency credit</span></span></div>
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Website</span><span lang="en">Website</span></span><span data-dl-v="1"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Build agency credit</span></span></div>
+</div>
+<p><span lang="de" data-vt-no-i18n="1">Nennung nur, wenn die Agenturen zustimmen — sonst entfallen die Zeilen.</span><span lang="en">Credit only where the agencies agree — otherwise the rows come out.</span></p>
+</section>
+
+</article>
+</div>
+</div>
+
+<section data-lg-noprint="1" style="max-width:1200px;margin:0 auto;padding:40px clamp(20px,5vw,56px) 72px">
+<div style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);padding:clamp(24px,3vw,36px);display:flex;flex-wrap:wrap;align-items:center;gap:24px 40px">
+<div style="flex:1 1 320px;min-width:0">
+<h2 style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)"><span lang="de" data-vt-no-i18n="1">Direkt erreichbar</span><span lang="en">Reach us directly</span></h2>
+<p style="margin:0;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);max-width:52ch"><span lang="de" data-vt-no-i18n="1">Eine Nummer, eine Adresse, eine Person, die antwortet.</span><span lang="en">One number, one address, one person who answers.</span></p>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" href="tel:+41796267082" icon="phone" hint-size="200px,44px">+41 79 626 70 82</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" href="mailto:info@vamostaxi.eu" hint-size="210px,44px">info@vamostaxi.eu</x-import>
+</div>
+</div>
+</section>
+
+</main>
+
+<div data-lg-noprint="1"><dc-import name="SiteFooter" hint-size="100%,520px"></dc-import></div>
+<dc-import name="CookieBanner" start-state="{{ cookieState }}" hint-size="0,0"></dc-import>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;startLanguage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;en&quot;,&quot;options&quot;:[&quot;de&quot;,&quot;en&quot;,&quot;both&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Language&quot;},&quot;showSlotNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Review&quot;},&quot;cookieState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;auto&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;banner&quot;,&quot;prefs&quot;,&quot;hidden&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Review&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const active = (window.VamosLocale && window.VamosLocale.lang()) || 'en';
+    this.state = { tocOpen: false, lang: props.startLanguage || (active === 'de' ? 'de' : 'en') };
+  }
+  proseRef = React.createRef();
+  tocRef = React.createRef();
+
+  componentDidMount() {
+    /* This page's toggle picks the legal text, not the UI: German for a German
+       reader, the English text for everyone else, with the notice explaining why. */
+    this._onLocale = (e) => this.setState({ lang: e.detail.lang === 'de' ? 'de' : 'en' });
+    window.addEventListener('vamos:locale', this._onLocale);
+    const prose = this.proseRef.current, toc = this.tocRef.current;
+    if (!prose || !toc || typeof IntersectionObserver === 'undefined') return;
+    const links = Array.from(toc.querySelectorAll('[data-lg-tl]'));
+    const byId = {};
+    links.forEach((a) => { byId[(a.getAttribute('href') || '').slice(1)] = a; });
+    const seen = new Set();
+    this.io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => { if (en.isIntersecting) seen.add(en.target.id); else seen.delete(en.target.id); });
+      // The last section whose heading has passed the reading line wins — picking the
+      // first *intersecting* one lags a section behind, because the previous section still
+      // occupies the top sliver of the band.
+      const secs = Array.from(prose.querySelectorAll('section[id]'));
+      let active = secs.length ? secs[0].id : null;
+      secs.forEach((s) => { if (s.getBoundingClientRect().top <= 140) active = s.id; });
+      links.forEach((a) => a.removeAttribute('data-on'));
+      const hit = active && byId[active];
+      if (hit) {
+        hit.setAttribute('data-on', '1');
+      }
+    }, { rootMargin: '-104px 0px -60% 0px' });
+    prose.querySelectorAll('section[id]').forEach((s) => this.io.observe(s));
+  }
+  componentWillUnmount() {
+    if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale); if (this.io) this.io.disconnect(); }
+
+  // Page-local: the header's own DE/EN toggle reloads and is read on mount, so the
+  // two never contradict each other, and switching here does not reload the page.
+  setLang = (lang) => { this.setState({ lang }); };
+  setDe = () => this.setLang('de');
+  setEn = () => this.setLang('en');
+  setBoth = () => this.setLang('both');
+  toggleToc = () => this.setState((s) => ({ tocOpen: !s.tocOpen }));
+  doPrint = () => window.print();
+
+  renderVals() {
+    const l = this.state.lang;
+    return {
+      n14: 14, n16: 16, n18: 18,
+      lang: l,
+      tocOpen: this.state.tocOpen ? '1' : null,
+      toggleToc: this.toggleToc, doPrint: this.doPrint,
+      proseRef: this.proseRef, tocRef: this.tocRef,
+      slotNotes: (this.props.showSlotNotes ?? true) !== false,
+      cookieState: this.props.cookieState || 'auto',
+    };
+  }
+}
+
+</script>
+</body>
+</html>

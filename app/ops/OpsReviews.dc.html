@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ops · Reviews</title>
+<script src="../support.js"></script>
+</head>
+<body>
+<x-dc>
+<main style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
+
+<header style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle)">
+<div style="min-width:0">
+<h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tTitle }}</h1>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSubtitle }}</p>
+</div>
+<div style="margin-inline-start:auto;display:flex;align-items:center;gap:10px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="outline" size="sm" icon="external-link" href="../home/home.dc.html#reviews" hint-size="150px,36px">{{ tViewOnSite }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" icon="plus" onClick="{{ addNew }}" hint-size="150px,36px">{{ tAdd }}</x-import>
+</div>
+</header>
+
+<div style="padding:26px 32px 48px;display:flex;flex-direction:column;gap:20px;min-width:0">
+
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px">
+<span data-chip="1">{{ tPublishedCount }}</span>
+<span data-chip="1">{{ tHiddenCount }}</span>
+<p data-hint="1" style="flex:1 1 260px;min-width:0">{{ tOrderNote }}</p>
+</div>
+
+<div data-cols="1">
+
+<div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+
+<sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+<div data-empty="1">
+<strong style="font-family:var(--vt-font-display);font-size:var(--vt-heading-4)">{{ tEmptyTitle }}</strong>
+<p data-hint="1">{{ tEmptyBody }}</p>
+</div>
+</sc-if>
+
+<sc-for list="{{ rows }}" as="r" hint-placeholder-count="5">
+<div data-row="1" data-sel="{{ r.sel }}" data-off="{{ r.off }}" data-drag="{{ r.dragging }}" data-over="{{ r.over }}" draggable="true" onDragStart="{{ r.dragStart }}" onDragOver="{{ r.dragOver }}" onDrop="{{ r.drop }}" onDragEnd="{{ r.dragEnd }}">
+
+<button type="button" data-grip="1" aria-label="{{ tReorder }}" title="{{ tReorder }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="grip-vertical" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+</button>
+
+<span data-av="1" data-fade="1" aria-hidden="true" style="background-image:{{ r.photo }};color:{{ r.initialsColor }}">{{ r.initials }}</span>
+
+<div data-fade="1" style="flex:1 1 auto;min-width:0">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px">
+<strong style="font-size:var(--vt-body-md);font-weight:600">{{ r.name }}</strong>
+<span data-chip="1">{{ r.sourceLabel }}</span>
+<span data-chip="1" style="display:{{ r.hiddenShow }}">{{ tHidden }}</span>
+</div>
+<p data-quote="1">{{ r.quote }}</p>
+<div data-meta="1">
+<span data-stars="1" role="img" aria-label="{{ r.ratingLabel }}" style="display:{{ r.starsShow }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n12 }}" color="{{ r.s1 }}" hint-size="12px,12px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n12 }}" color="{{ r.s2 }}" hint-size="12px,12px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n12 }}" color="{{ r.s3 }}" hint-size="12px,12px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n12 }}" color="{{ r.s4 }}" hint-size="12px,12px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n12 }}" color="{{ r.s5 }}" hint-size="12px,12px"></x-import>
+</span>
+<span>{{ r.role }}</span>
+<span style="display:{{ r.metaShow }}">{{ r.meta }}</span>
+</div>
+</div>
+
+<div data-act="1">
+<button type="button" data-ico-btn="1" onClick="{{ r.up }}" disabled="{{ r.isFirst }}" aria-label="{{ tMoveUp }}" title="{{ tMoveUp }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-up" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+</button>
+<button type="button" data-ico-btn="1" onClick="{{ r.togglePublish }}" aria-label="{{ r.publishLabel }}" title="{{ r.publishLabel }}" aria-pressed="{{ r.publishedAria }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ r.publishIcon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+</button>
+<button type="button" data-ico-btn="1" onClick="{{ r.edit }}" aria-label="{{ tEdit }}" title="{{ tEdit }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="pencil" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+</button>
+<button type="button" data-ico-btn="1" data-danger="1" onClick="{{ r.remove }}" aria-label="{{ r.removeLabel }}" title="{{ r.removeLabel }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ r.removeIcon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+</button>
+</div>
+
+</div>
+</sc-for>
+
+<p data-hint="1">{{ tStorageNote }}</p>
+</div>
+
+<aside data-panel="1">
+
+<sc-if value="{{ editing }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:16px">
+
+<div style="display:flex;align-items:flex-start;gap:12px">
+<div style="flex:1 1 auto;min-width:0">
+<p data-panel-k="1">{{ tEditingKicker }}</p>
+<h2 data-panel-h="1">{{ tEditingTitle }}</h2>
+</div>
+<button type="button" data-ico-btn="1" onClick="{{ closePanel }}" aria-label="{{ tClose }}" title="{{ tClose }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+</button>
+</div>
+
+<div style="display:flex;align-items:center;gap:14px">
+<span style="position:relative;flex:0 0 auto;display:inline-flex">
+<button type="button" data-av="1" onClick="{{ pickPhoto }}" aria-label="{{ tUpload }}" title="{{ tUpload }}" style="width:64px;height:64px;font-size:20px;padding:0;border:0;cursor:pointer;background-image:{{ draftPhoto }};color:{{ draftInitialsColor }}" style-hover="opacity:.86">{{ draftInitials }}</button>
+<button type="button" onClick="{{ clearPhoto }}" aria-label="{{ tRemovePhoto }}" title="{{ tRemovePhoto }}" style="position:absolute;inset-inline-end:-2px;top:-2px;display:{{ photoClearShow }};align-items:center;justify-content:center;width:24px;height:24px;padding:0;border:2px solid var(--vt-bg-surface);border-radius:999px;background:var(--vt-charcoal-900);color:var(--vt-text-inverse);cursor:pointer" style-hover="background:var(--vt-danger)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n12 }}" color="currentColor" hint-size="12px,12px"></x-import>
+</button>
+</span>
+<p data-hint="1" style="flex:1 1 auto;min-width:0">{{ tPhotoHint }}</p>
+</div>
+<input type="file" accept="image/*" ref="{{ fileRef }}" onChange="{{ onPhoto }}" style="display:none">
+
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tName }}" size="md" value="{{ draftName }}" onChange="{{ setName }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tRole }}" size="md" value="{{ draftRole }}" onChange="{{ setRole }}" placeholder="{{ tRolePh }}" hint-size="100%,76px"></x-import>
+
+<div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+<span data-fld-l="1">{{ tSource }}</span>
+<dc-import name="BrandSelect" size="field" icon="star" value="{{ draftSource }}" options="{{ sourceOptions }}" onSelect="{{ pickSource }}" a11y-label="{{ tSource }}" hint-size="100%,44px"></dc-import>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:7px">
+<span data-panel-k="1">{{ tRating }}</span>
+<div style="display:flex;align-items:center;gap:2px">
+<sc-for list="{{ ratingButtons }}" as="b" hint-placeholder-count="5">
+<button type="button" data-star-btn="1" onClick="{{ b.set }}" aria-label="{{ b.label }}" title="{{ b.label }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n20 }}" color="{{ b.color }}" hint-size="20px,20px"></x-import>
+</button>
+</sc-for>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+<span data-fld-l="1">{{ tRoute }}</span>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;min-width:0">
+<sc-for list="{{ locationFields }}" as="lf" hint-placeholder-count="2">
+<div data-locfield="1" style="position:relative;min-width:0">
+<div style="box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;height:44px;padding:0 12px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-pill);background:var(--vt-white)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
+<input type="text" value="{{ lf.value }}" onChange="{{ lf.onChange }}" onFocus="{{ lf.onFocus }}" placeholder="{{ lf.placeholder }}" aria-label="{{ lf.placeholder }}" autoComplete="off" style="all:unset;box-sizing:border-box;flex:1 1 auto;min-width:0;font-family:var(--vt-font-body);font-size:14px;color:var(--vt-text-primary)">
+</div>
+<sc-if value="{{ lf.open }}" hint-placeholder-val="{{ false }}">
+<div role="listbox" aria-label="{{ lf.placeholder }}" style="position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:120;display:flex;flex-direction:column;gap:2px;padding:6px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg);max-height:220px;overflow-y:auto">
+<sc-for list="{{ lf.matches }}" as="m" hint-placeholder-count="3">
+<button type="button" role="option" onClick="{{ m.pick }}" style="all:unset;box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;cursor:pointer;font-family:var(--vt-font-body);font-size:13px;color:var(--vt-text-primary)" style-hover="background:var(--vt-grey-50)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import>{{ m.label }}
+</button>
+</sc-for>
+<sc-if value="{{ lf.noMatches }}" hint-placeholder-val="{{ false }}">
+<span style="padding:9px 10px;font-size:12px;color:var(--vt-text-muted)">{{ tNoMatch }}</span>
+</sc-if>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+<span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tRouteHint }}</span>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+<span data-fld-l="1">{{ tClass }}</span>
+<dc-import name="BrandSelect" size="field" icon="car" value="{{ draftClass }}" options="{{ classOptions }}" onSelect="{{ pickClass }}" a11y-label="{{ tClass }}" hint-size="100%,44px"></dc-import>
+</div>
+
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ tText }}" rows="{{ n5 }}" value="{{ draftText }}" onChange="{{ setText }}" placeholder="{{ tTextPh }}" hint-size="100%,130px"></x-import>
+
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tUrl }}" size="md" icon="external-link" value="{{ draftUrl }}" onChange="{{ setUrl }}" placeholder="{{ tUrlPh }}" hint-size="100%,76px"></x-import>
+
+<div style="display:flex;flex-direction:column;gap:12px;padding-top:14px;border-top:1px solid var(--vt-border-subtle)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" label="{{ tVerified }}" checked="{{ draftVerified }}" onChange="{{ setVerified }}" hint-size="100%,24px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" label="{{ tPublished }}" checked="{{ draftPublished }}" onChange="{{ setPublished }}" hint-size="100%,24px"></x-import>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;gap:10px;padding-top:14px;border-top:1px solid var(--vt-border-subtle)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" onClick="{{ closePanel }}" hint-size="110px,36px">{{ tDone }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="sm" icon="trash-2" onClick="{{ removeDraft }}" hint-size="120px,36px">{{ tRemove }}</x-import>
+</div>
+
+</div>
+</sc-if>
+
+<sc-if value="{{ idle }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:10px">
+<p data-panel-k="1">{{ tPanelKicker }}</p>
+<h2 data-panel-h="1">{{ tIdleTitle }}</h2>
+<p data-hint="1">{{ tIdleBody }}</p>
+</div>
+</sc-if>
+
+</aside>
+
+</div>
+</div>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900}}">
+/**
+ * Ops · Reviews — the console side of the home page's Reviews section.
+ *
+ * One store (app/vamos-reviews.js) holds the list; this screen writes to it and the
+ * site reads from it, so a review is published, hidden or reordered in one place.
+ * Imported rows (Google, Tripadvisor, Trustpilot) carry the customer's own words:
+ * they can be shown, hidden, reordered and annotated with the trip, never reworded.
+ *
+ * Order on this screen is order on the site — drag a row, or use the up arrow for
+ * a keyboard path that does not depend on pointer drag.
+ */
+const T = {
+  en: {
+    title: 'Reviews', subtitle: 'What the home page shows, in this order',
+    viewOnSite: 'View on site', add: 'Add a review',
+    lockTitle: 'Imported reviews cannot be reworded',
+    lockBody: 'Rows pulled from Google, Tripadvisor or Trustpilot carry the customer’s own words. Hide them, reorder them or add the trip details around them — only reviews you collected yourself can be rewritten.',
+    orderNote: 'The site shows published reviews in this order. Drag a row, or move it with the up arrow.',
+    published: 'published', hidden: 'hidden', hiddenTag: 'Hidden', imported: 'Imported',
+    reorder: 'Drag to reorder', moveUp: 'Move up', edit: 'Edit', remove: 'Remove', confirmRemove: 'Remove — click again',
+    publish: 'Publish', unpublish: 'Hide from the site',
+    emptyTitle: 'No reviews yet', emptyBody: 'Add one by hand, or connect a platform and import what is already written about you.',
+    storageNote: 'Saved in this browser until the reviews API exists. Order, wording and photos travel with it.',
+    panelKicker: 'Editor', idleTitle: 'Pick a review to edit', idleBody: 'Or add one. Everything you type is saved as you go — there is no separate save step.',
+    editingKicker: 'Editing', editingNew: 'New review',
+    name: 'Name', role: 'Role or trip', rolePh: 'Airport transfer, Zurich',
+    source: 'Source', rating: 'Rating', route: 'Route', routePh: 'ZRH → Zermatt', pickupPh: 'Pickup', dropoffPh: 'Drop-off', routeHint: 'Pick from known places so the trip reads the same way everywhere.', noMatch: 'No match', vehicleClass: 'Vehicle class',
+    text: 'Review', textPh: 'Paste the review exactly as it was written.',
+    url: 'Link to the original', urlPh: 'https://',
+    verified: 'Verified traveller', publishedLabel: 'Published on the site',
+    upload: 'Upload a photo', removePhoto: 'Remove the photo', photoHint: 'Click the circle to upload. Square works best — without a photo the initials show.',
+    lockedNote: 'This review was imported, so the name, the words and the rating are read-only.',
+    done: 'Done', close: 'Close', notStated: 'Not stated', starsOf: 'Rate %n out of 5'
+  },
+  de: {
+    title: 'Bewertungen', subtitle: 'Was die Startseite zeigt, in dieser Reihenfolge',
+    viewOnSite: 'Auf der Website', add: 'Bewertung hinzufügen',
+    lockTitle: 'Importierte Bewertungen lassen sich nicht umschreiben',
+    lockBody: 'Zeilen von Google, Tripadvisor oder Trustpilot enthalten die Worte der Kundin oder des Kunden. Sie können sie ausblenden, neu ordnen oder die Fahrtdaten ergänzen — umschreiben lässt sich nur, was Sie selbst gesammelt haben.',
+    orderNote: 'Die Website zeigt veröffentlichte Bewertungen in dieser Reihenfolge. Ziehen Sie eine Zeile oder verschieben Sie sie mit dem Pfeil nach oben.',
+    published: 'veröffentlicht', hidden: 'ausgeblendet', hiddenTag: 'Ausgeblendet', imported: 'Importiert',
+    reorder: 'Zum Umsortieren ziehen', moveUp: 'Nach oben', edit: 'Bearbeiten', remove: 'Entfernen', confirmRemove: 'Entfernen — nochmals klicken',
+    publish: 'Veröffentlichen', unpublish: 'Auf der Website ausblenden',
+    emptyTitle: 'Noch keine Bewertungen', emptyBody: 'Fügen Sie eine von Hand hinzu oder verbinden Sie eine Plattform und importieren Sie, was bereits über Sie geschrieben wurde.',
+    storageNote: 'Bis zur Bewertungs-API in diesem Browser gespeichert. Reihenfolge, Text und Fotos inklusive.',
+    panelKicker: 'Editor', idleTitle: 'Wählen Sie eine Bewertung', idleBody: 'Oder fügen Sie eine hinzu. Alles wird beim Tippen gespeichert — es gibt keinen separaten Speicherschritt.',
+    editingKicker: 'Bearbeiten', editingNew: 'Neue Bewertung',
+    name: 'Name', role: 'Rolle oder Fahrt', rolePh: 'Flughafentransfer, Zürich',
+    source: 'Quelle', rating: 'Bewertung', route: 'Strecke', routePh: 'ZRH → Zermatt', pickupPh: 'Abholung', dropoffPh: 'Ziel', routeHint: 'Aus bekannten Orten wählen, damit die Fahrt überall gleich aussieht.', noMatch: 'Keine Übereinstimmung', vehicleClass: 'Fahrzeugklasse',
+    text: 'Bewertung', textPh: 'Fügen Sie die Bewertung genau so ein, wie sie geschrieben wurde.',
+    url: 'Link zum Original', urlPh: 'https://',
+    verified: 'Verifizierte Reisende', publishedLabel: 'Auf der Website veröffentlicht',
+    upload: 'Foto hochladen', removePhoto: 'Foto entfernen', photoHint: 'Auf den Kreis klicken, um ein Foto hochzuladen. Quadratisch passt am besten — ohne Foto erscheinen die Initialen.',
+    lockedNote: 'Diese Bewertung wurde importiert; Name, Text und Sterne sind schreibgeschützt.',
+    done: 'Fertig', close: 'Schliessen', notStated: 'Keine Angabe', starsOf: '%n von 5 Sternen geben'
+  },
+  fr: {
+    title: 'Avis', subtitle: 'Ce que la page d’accueil affiche, dans cet ordre',
+    viewOnSite: 'Voir sur le site', add: 'Ajouter un avis',
+    lockTitle: 'Les avis importés ne peuvent pas être réécrits',
+    lockBody: 'Les lignes venant de Google, Tripadvisor ou Trustpilot contiennent les mots du client. Vous pouvez les masquer, les réordonner ou ajouter les détails du trajet — seuls les avis que vous avez recueillis peuvent être réécrits.',
+    orderNote: 'Le site affiche les avis publiés dans cet ordre. Faites glisser une ligne ou déplacez-la avec la flèche.',
+    published: 'publiés', hidden: 'masqués', hiddenTag: 'Masqué', imported: 'Importé',
+    reorder: 'Glisser pour réordonner', moveUp: 'Monter', edit: 'Modifier', remove: 'Supprimer', confirmRemove: 'Supprimer — cliquez à nouveau',
+    publish: 'Publier', unpublish: 'Masquer sur le site',
+    emptyTitle: 'Aucun avis pour l’instant', emptyBody: 'Ajoutez-en un à la main, ou connectez une plateforme et importez ce qui est déjà écrit sur vous.',
+    storageNote: 'Enregistré dans ce navigateur jusqu’à l’API des avis. L’ordre, le texte et les photos suivent.',
+    panelKicker: 'Éditeur', idleTitle: 'Choisissez un avis à modifier', idleBody: 'Ou ajoutez-en un. Tout est enregistré au fur et à mesure — pas d’étape de sauvegarde.',
+    editingKicker: 'Modification', editingNew: 'Nouvel avis',
+    name: 'Nom', role: 'Rôle ou trajet', rolePh: 'Transfert aéroport, Zurich',
+    source: 'Source', rating: 'Note', route: 'Trajet', routePh: 'ZRH → Zermatt', pickupPh: 'Prise en charge', dropoffPh: 'Destination', routeHint: 'Choisissez parmi les lieux connus pour un trajet toujours lisible de la même façon.', noMatch: 'Aucun résultat', vehicleClass: 'Classe de véhicule',
+    text: 'Avis', textPh: 'Collez l’avis exactement tel qu’il a été écrit.',
+    url: 'Lien vers l’original', urlPh: 'https://',
+    verified: 'Voyageur vérifié', publishedLabel: 'Publié sur le site',
+    upload: 'Téléverser une photo', removePhoto: 'Retirer la photo', photoHint: 'Cliquez sur le cercle pour téléverser. Le carré fonctionne le mieux — sans photo, les initiales s’affichent.',
+    lockedNote: 'Cet avis a été importé : le nom, le texte et la note sont en lecture seule.',
+    done: 'Terminé', close: 'Fermer', notStated: 'Non précisé', starsOf: 'Donner %n sur 5'
+  },
+  ar: {
+    title: 'التقييمات', subtitle: 'ما تعرضه الصفحة الرئيسية، بهذا الترتيب',
+    viewOnSite: 'عرض في الموقع', add: 'إضافة تقييم',
+    lockTitle: 'لا يمكن إعادة صياغة التقييمات المستوردة',
+    lockBody: 'الصفوف الواردة من Google أو Tripadvisor أو Trustpilot تحمل كلمات العميل نفسه. يمكنك إخفاؤها أو إعادة ترتيبها أو إضافة تفاصيل الرحلة — أما إعادة الصياغة فتقتصر على التقييمات التي جمعتموها بأنفسكم.',
+    orderNote: 'يعرض الموقع التقييمات المنشورة بهذا الترتيب. اسحب الصف أو حرّكه بالسهم لأعلى.',
+    published: 'منشورة', hidden: 'مخفية', hiddenTag: 'مخفي', imported: 'مستورد',
+    reorder: 'اسحب لإعادة الترتيب', moveUp: 'تحريك لأعلى', edit: 'تحرير', remove: 'حذف', confirmRemove: 'حذف — انقر مرة أخرى',
+    publish: 'نشر', unpublish: 'إخفاء من الموقع',
+    emptyTitle: 'لا توجد تقييمات بعد', emptyBody: 'أضف واحدًا يدويًا، أو اربط منصة واستورد ما كُتب عنكم بالفعل.',
+    storageNote: 'محفوظ في هذا المتصفح إلى أن تتوفر واجهة التقييمات. الترتيب والنص والصور تُحفظ معه.',
+    panelKicker: 'المحرر', idleTitle: 'اختر تقييمًا للتحرير', idleBody: 'أو أضف واحدًا. يُحفظ كل شيء أثناء الكتابة — لا توجد خطوة حفظ منفصلة.',
+    editingKicker: 'تحرير', editingNew: 'تقييم جديد',
+    name: 'الاسم', role: 'الصفة أو الرحلة', rolePh: 'نقل من المطار، زيورخ',
+    source: 'المصدر', rating: 'التقييم', route: 'المسار', routePh: 'ZRH → تسرمات', pickupPh: 'الانطلاق', dropoffPh: 'الوجهة', routeHint: 'اختر من الأماكن المعروفة ليظهر المسار بالشكل نفسه في كل مكان.', noMatch: 'لا توجد نتيجة', vehicleClass: 'فئة المركبة',
+    text: 'نص التقييم', textPh: 'الصق التقييم كما كُتب تمامًا.',
+    url: 'رابط الأصل', urlPh: 'https://',
+    verified: 'مسافر موثّق', publishedLabel: 'منشور في الموقع',
+    upload: 'رفع صورة', removePhoto: 'إزالة الصورة', photoHint: 'انقر على الدائرة لرفع صورة. الصورة المربعة أنسب — وبدون صورة تظهر الأحرف الأولى.',
+    lockedNote: 'هذا التقييم مستورد، لذا الاسم والنص والتقييم للقراءة فقط.',
+    done: 'تم', close: 'إغلاق', notStated: 'غير محدد', starsOf: 'إعطاء %n من 5'
+  }
+};
+const CLASSES = ['Economy', 'Business', 'Van'];
+function splitRoute(route) {
+  const parts = String(route || '').split('→').map((s) => s.trim());
+  return { pickup: parts[0] || '', dropoff: parts[1] || '' };
+}
+function joinRoute(pickup, dropoff) {
+  pickup = (pickup || '').trim(); dropoff = (dropoff || '').trim();
+  if (!pickup && !dropoff) return '';
+  return pickup + ' → ' + dropoff;
+}
+
+class Component extends DCLogic {
+  state = {
+    lang: 'en', selected: null, isNew: false,
+    dragId: null, overId: null, confirmId: null, locOpen: null
+  };
+  fileRef = React.createRef();
+
+  /* The store is the single source of truth and is read fresh on every render —
+     mirroring it into state left row handlers holding a stale copy, so a second
+     click wrote the value it had just written. */
+  rows() { const s = window.VamosReviews; return s ? s.all() : []; }
+
+  /* The store and the locale runtime arrive with the page's own scripts, which can
+     land after this screen mounts — so wait for them rather than assuming. */
+  bindStore = () => {
+    const store = window.VamosReviews;
+    if (!store) { this._retry = setTimeout(this.bindStore, 120); return; }
+    this._off = store.onChange(() => this.forceUpdate());
+    this.forceUpdate();
+  };
+  componentDidMount() {
+    this.bindStore();
+    this._onLocale = (e) => this.setState({ lang: e.detail.lang });
+    window.addEventListener('vamos:locale', this._onLocale);
+    if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() });
+    this._away = (e) => { if (this.state.locOpen && !e.target.closest('[data-locfield]')) this.setState({ locOpen: null }); };
+    document.addEventListener('mousedown', this._away);
+  }
+  componentWillUnmount() {
+    if (this._off) this._off();
+    if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
+    if (this._away) document.removeEventListener('mousedown', this._away);
+    clearTimeout(this._retry);
+    clearTimeout(this._confirmT);
+  }
+
+  copy() { return T[this.state.lang] || T.en; }
+  store() { return window.VamosReviews; }
+  current() {
+    const id = this.state.selected;
+    return id ? (this.rows().filter((r) => r.id === id)[0] || null) : null;
+  }
+  /* Every write goes through here, so a store mutation raised inside a React event
+     handler always repaints this screen. */
+  after(fn) { const out = fn(); this.forceUpdate(); return out; }
+  initials(name) {
+    const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '';
+    return ((parts[0][0] || '') + (parts.length > 1 ? parts[parts.length - 1][0] || '' : '')).toUpperCase();
+  }
+  patch(p) {
+    const cur = this.current();
+    if (cur) this.after(() => this.store().update(cur.id, p));
+  }
+  addNew = () => {
+    const store = this.store();
+    if (!store) return;
+    const blank = store.blank();
+    this.after(() => store.add(blank));
+    this.setState({ selected: blank.id, isNew: true, confirmId: null });
+  };
+  closePanel = () => this.setState({ selected: null, isNew: false });
+  pickPhoto = () => { if (this.fileRef.current) this.fileRef.current.click(); };
+  onPhoto = (e) => {
+    const file = e.target && e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => this.patch({ avatar: String(reader.result || '') });
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+  clearPhoto = () => this.patch({ avatar: '' });
+
+  /* Two-step delete, no dialog: the first click arms the row and relabels the
+     button, the second removes it. Arming clears itself after four seconds. */
+  removeRow = (id) => {
+    if (this.state.confirmId !== id) {
+      this.setState({ confirmId: id });
+      clearTimeout(this._confirmT);
+      this._confirmT = setTimeout(() => this.setState({ confirmId: null }), 4000);
+      return;
+    }
+    clearTimeout(this._confirmT);
+    this.after(() => this.store().remove(id));
+    this.setState((s) => ({ confirmId: null, selected: s.selected === id ? null : s.selected }));
+  };
+
+  renderVals() {
+    const t = this.copy();
+    const store = this.store();
+    const rows = this.rows();
+    const cur = this.current();
+    const sourceOptions = (store ? store.SOURCES : []).map((s) => ({ value: s.id, label: s.label }));
+    const classOptions = [{ value: '', label: t.notStated }].concat(CLASSES.map((c) => ({ value: c, label: c })));
+
+    const pub = rows.filter((r) => r.published).length;
+
+    const LOCS = (window.VamosOps && window.VamosOps.LOCATIONS) || [];
+    const routeParts = splitRoute(cur ? cur.route : '');
+    const matchesFor = (text) => {
+      const q = text.trim().toLowerCase();
+      const list = q ? LOCS.filter((l) => l.toLowerCase().indexOf(q) !== -1) : LOCS;
+      return list.slice(0, 5);
+    };
+    const makeLocField = (key, value, placeholder) => {
+      const matches = matchesFor(value);
+      const pickValue = (v) => {
+        const next = key === 'pickup' ? joinRoute(v, routeParts.dropoff) : joinRoute(routeParts.pickup, v);
+        this.patch({ route: next });
+      };
+      return {
+        value, placeholder,
+        open: this.state.locOpen === key,
+        onFocus: () => this.setState({ locOpen: key }),
+        onChange: (e) => pickValue(e.target.value),
+        matches: matches.map((m) => ({ label: m, pick: () => { pickValue(m); this.setState({ locOpen: null }); } })),
+        noMatches: matches.length === 0,
+      };
+    };
+    const locationFields = cur ? [
+      makeLocField('pickup', routeParts.pickup, t.pickupPh),
+      makeLocField('dropoff', routeParts.dropoff, t.dropoffPh),
+    ] : [];
+
+    return {
+      n12: 12, n14: 14, n16: 16, n18: 18, n20: 20, n5: 5,
+      tTitle: t.title, tSubtitle: t.subtitle, tViewOnSite: t.viewOnSite, tAdd: t.add,
+      tOrderNote: t.orderNote,
+      tPublishedCount: pub + ' ' + t.published,
+      tHiddenCount: (rows.length - pub) + ' ' + t.hidden,
+      tHidden: t.hiddenTag, tReorder: t.reorder, tMoveUp: t.moveUp, tEdit: t.edit,
+      tEmptyTitle: t.emptyTitle, tEmptyBody: t.emptyBody, tStorageNote: t.storageNote,
+      tPanelKicker: t.panelKicker, tIdleTitle: t.idleTitle, tIdleBody: t.idleBody,
+      tClose: t.close, tDone: t.done, tRemove: t.remove,
+      tName: t.name, tRole: t.role, tRolePh: t.rolePh, tSource: t.source, tRating: t.rating,
+      tRoute: t.route, tRouteHint: t.routeHint, tNoMatch: t.noMatch, locationFields, tClass: t.vehicleClass, tText: t.text, tTextPh: t.textPh,
+      tUrl: t.url, tUrlPh: t.urlPh, tVerified: t.verified, tPublished: t.publishedLabel,
+      tUpload: t.upload, tRemovePhoto: t.removePhoto, tPhotoHint: t.photoHint,
+      tEditingKicker: t.editingKicker,
+      tEditingTitle: cur ? (this.state.isNew && !cur.name ? t.editingNew : cur.name || t.editingNew) : t.editingNew,
+
+      addNew: this.addNew, closePanel: this.closePanel,
+      isEmpty: rows.length === 0,
+      editing: !!cur,
+      idle: !cur,
+
+      rows: rows.map((r, i) => {
+        const stars = {};
+        for (let s = 1; s <= 5; s++) stars['s' + s] = s <= r.rating ? 'var(--vt-yellow)' : 'var(--vt-grey-300)';
+        const meta = [r.route, r.vehicleClass].filter(Boolean).join(' · ');
+        const armed = this.state.confirmId === r.id;
+        return Object.assign({
+          name: r.name || t.editingNew,
+          role: r.role,
+          quote: r.text ? '“' + r.text + '”' : '',
+          sourceLabel: store ? store.sourceLabel(r.source) : r.source,
+          initials: r.avatar ? '' : this.initials(r.name),
+          initialsColor: r.avatar ? 'transparent' : 'var(--vt-text-inverse)',
+          photo: r.avatar ? 'url(' + r.avatar + ')' : 'none',
+          starsShow: r.rating > 0 ? 'flex' : 'none',
+          ratingLabel: String(r.rating) + '/5',
+          meta: meta, metaShow: meta ? 'inline' : 'none',
+          hiddenShow: r.published ? 'none' : 'inline-flex',
+          sel: this.state.selected === r.id ? '1' : '0',
+          off: r.published ? '0' : '1',
+          dragging: this.state.dragId === r.id ? '1' : '0',
+          over: this.state.overId === r.id ? '1' : '0',
+          isFirst: i === 0,
+          publishIcon: r.published ? 'eye' : 'eye-off',
+          publishLabel: r.published ? t.unpublish : t.publish,
+          publishedAria: r.published ? 'true' : 'false',
+          removeIcon: armed ? 'circle-alert' : 'trash-2',
+          removeLabel: armed ? t.confirmRemove : t.remove,
+          edit: () => this.setState({ selected: r.id, isNew: false, confirmId: null }),
+          togglePublish: () => this.after(() => store.update(r.id, { published: !store.get(r.id).published })),
+          remove: () => this.removeRow(r.id),
+          up: () => this.after(() => store.move(r.id, -1)),
+          dragStart: (e) => {
+            this.setState({ dragId: r.id });
+            if (e.dataTransfer) { e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', r.id); } catch (err) {} }
+          },
+          dragOver: (e) => {
+            e.preventDefault();
+            if (this.state.overId !== r.id) this.setState({ overId: r.id });
+          },
+          drop: (e) => {
+            e.preventDefault();
+            const from = this.state.dragId;
+            if (from && from !== r.id) this.after(() => store.reorder(from, r.id));
+            this.setState({ dragId: null, overId: null });
+          },
+          dragEnd: () => this.setState({ dragId: null, overId: null }),
+        }, stars);
+      }),
+
+      /* Editor */
+      draftName: cur ? cur.name : '',
+      draftRole: cur ? cur.role : '',
+      draftText: cur ? cur.text : '',
+      draftRoute: cur ? cur.route : '',
+      draftUrl: cur ? cur.url : '',
+      draftSource: cur ? cur.source : 'manual',
+      draftClass: cur && cur.vehicleClass ? cur.vehicleClass : '',
+      draftVerified: !!(cur && cur.verified),
+      draftPublished: !!(cur && cur.published),
+      draftPhoto: cur && cur.avatar ? 'url(' + cur.avatar + ')' : 'none',
+      draftInitials: cur && !cur.avatar ? this.initials(cur.name) : '',
+      draftInitialsColor: cur && cur.avatar ? 'transparent' : 'var(--vt-text-inverse)',
+      photoClearShow: cur && cur.avatar ? 'inline-flex' : 'none',
+      sourceOptions: sourceOptions,
+      classOptions: classOptions,
+      ratingButtons: [1, 2, 3, 4, 5].map((n) => ({
+        color: cur && n <= cur.rating ? 'var(--vt-yellow)' : 'var(--vt-grey-300)',
+        label: t.starsOf.replace('%n', String(n)),
+        set: () => this.patch({ rating: n }),
+      })),
+      fileRef: this.fileRef, pickPhoto: this.pickPhoto, onPhoto: this.onPhoto, clearPhoto: this.clearPhoto,
+      setName: (e) => this.patch({ name: e.target.value }),
+      setRole: (e) => this.patch({ role: e.target.value }),
+      setText: (e) => this.patch({ text: e.target.value }),
+      setRoute: (e) => this.patch({ route: e.target.value }),
+      setUrl: (e) => this.patch({ url: e.target.value }),
+      pickSource: (v) => this.patch({ source: v || 'manual' }),
+      pickClass: (v) => this.patch({ vehicleClass: v || '' }),
+      setVerified: (e) => this.patch({ verified: e.target.checked }),
+      setPublished: (e) => this.patch({ published: e.target.checked }),
+      removeDraft: () => { if (cur) this.removeRow(cur.id); },
+    };
+  }
+}
+</script>
+</body>
+</html>

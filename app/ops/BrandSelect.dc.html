@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* The console copy of the brand dropdown. Same control as the site header, but its
+   list is positioned against the viewport, so a dialog or a scrolling panel can
+   never clip it. */
+[data-vs-root]{position:relative;display:inline-flex;flex:0 0 auto}
+[data-vs-root="field"]{display:flex;width:100%;flex:1 1 auto;min-width:0}
+[data-vs-btn]{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 12px;border-radius:var(--vt-radius-pill);background:var(--vt-white);border:1px solid rgb(30 31 31/.10);box-shadow:none;color:var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:13px;font-weight:600;line-height:1;letter-spacing:.01em;cursor:pointer;white-space:nowrap;transition:var(--vt-transition-control)}
+[data-vs-btn]:hover{border-color:var(--vt-charcoal-900)}
+[data-vs-btn][aria-expanded="true"]{border-color:var(--vt-charcoal-900)}
+[data-vs-txt]{display:inline-flex;align-items:center;gap:8px;min-width:0}
+[data-vs-main]{min-width:0;overflow:hidden;text-overflow:ellipsis}
+[data-vs-root="field"] [data-vs-btn]{width:100%;min-width:0;justify-content:flex-start;height:44px;padding:0 14px;gap:10px;border-color:var(--vt-grey-300);font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium)}
+[data-vs-root="field"] [data-vs-txt]{flex:1 1 auto;min-width:0}
+[data-vs-root="field"] [data-vs-main]{flex:1 1 auto}
+[data-vs-root="field"] [data-vs-mark]{margin-inline-start:auto}
+[data-vs-mark]{flex:0 0 auto;display:inline-grid;place-items:center;height:22px;padding:0 8px;border-radius:var(--vt-radius-pill);background:var(--vt-grey-100);font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--vt-text-secondary)}
+[data-vs-btn]:hover [data-vs-mark]{background:var(--vt-grey-200)}
+[data-vs-pop]{position:fixed;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg);padding:6px;z-index:200;display:flex;flex-direction:column;gap:2px;max-height:300px;overflow-y:auto}
+[data-vs-opt]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border-radius:10px;cursor:pointer;font-family:var(--vt-font-body)}
+[data-vs-opt]:hover{background:var(--vt-grey-50)}
+</style>
+</helmet>
+<div data-vs-root="{{ sizeAttr }}" ref="{{ rootRef }}">
+<button type="button" data-vs-btn="1" ref="{{ btnRef }}" aria-haspopup="listbox" aria-expanded="{{ expanded }}" aria-label="{{ a11yLabel }}" onClick="{{ toggle }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ icon }}" size="{{ n18 }}" color="var(--vt-charcoal-900)" hint-size="18px,18px"></x-import>
+<span data-vs-txt="1">
+<sc-if value="{{ hasSelColor }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="display:inline-block;flex:0 0 auto;width:9px;height:9px;border-radius:999px;background:{{ selColor }};box-shadow:inset 0 0 0 1px rgb(0 0 0/.14)"></span></sc-if>
+<span data-vs-main="1">{{ mainLabel }}</span>
+<sc-if value="{{ showNote }}" hint-placeholder-val="{{ false }}"><span data-vs-mark="1" data-vt-no-i18n="1">{{ markLabel }}</span></sc-if>
+</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n16 }}" color="var(--vt-grey-500)" hint-size="16px,16px"></x-import>
+</button>
+<sc-if value="{{ open }}" hint-placeholder-val="{{ false }}">
+<div data-vs-pop="1" data-lenis-prevent="1" role="listbox" aria-label="{{ a11yLabel }}" ref="{{ popRef }}" style="top:{{ popTop }};left:{{ popLeft }};width:{{ popWidth }}">
+<sc-for list="{{ rows }}" as="o" hint-placeholder-count="4">
+<button type="button" data-vs-opt="1" role="option" aria-selected="{{ o.selStr }}" onClick="{{ o.pick }}">
+<sc-if value="{{ o.hasColor }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="display:inline-block;flex:0 0 auto;width:10px;height:10px;border-radius:999px;background:{{ o.color }};box-shadow:inset 0 0 0 1px rgb(0 0 0/.14)"></span></sc-if>
+<sc-if value="{{ o.multi }}" hint-placeholder-val="{{ false }}">
+<span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:18px;height:18px;border-radius:5px;border:1.5px solid {{ o.boxBorder }};background:{{ o.boxBg }}">
+<sc-if value="{{ o.sel }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n12 }}" color="var(--vt-text-inverse)" hint-size="12px,12px"></x-import>
+</sc-if>
+</span>
+</sc-if>
+<span style="display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto">
+<span style="font-size:13px;font-weight:600;color:var(--vt-text-primary);text-align:start">{{ o.label }}</span>
+<span style="display:{{ o.noteShow }};font-size:11px;color:var(--vt-text-muted);text-align:start">{{ o.note }}</span>
+</span>
+<sc-if value="{{ o.singleSel }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n16 }}" color="var(--vt-charcoal-900)" hint-size="16px,16px"></x-import>
+</sc-if>
+</button>
+</sc-for>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:320,&quot;height&quot;:280},&quot;options&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;{value:string,label:string,note?:string,color?:string}[]&quot;},&quot;value&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;size&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;compact&quot;,&quot;field&quot;],&quot;default&quot;:&quot;field&quot;,&quot;tsType&quot;:&quot;'compact'|'field'&quot;},&quot;icon&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;globe&quot;,&quot;banknote&quot;,&quot;star&quot;,&quot;car&quot;,&quot;user&quot;,&quot;settings&quot;],&quot;default&quot;:&quot;star&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;a11yLabel&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Select&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;multi&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;onSelect&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(value:string)=&gt;void&quot;}}">
+class Component extends DCLogic {
+  state = { open: false, rect: null };
+  _rootRef = (el) => { this._root = el; };
+  _btnRef = (el) => { this._btn = el; };
+  _popRef = (el) => { this._pop = el; };
+
+  componentDidMount() {
+    this._away = (e) => {
+      if (!this.state.open) return;
+      const inRoot = this._root && this._root.contains(e.target);
+      const inPop = this._pop && this._pop.contains(e.target);
+      if (!inRoot && !inPop) this.close();
+    };
+    this._esc = (e) => { if (e.key === 'Escape' && this.state.open) this.close(); };
+    /* A fixed list has to follow its button or leave the screen — simplest correct
+       answer is to close on any scroll or resize. */
+    this._bail = () => { if (this.state.open) this.close(); };
+    document.addEventListener('mousedown', this._away);
+    document.addEventListener('keydown', this._esc);
+    window.addEventListener('resize', this._bail);
+    window.addEventListener('scroll', this._bail, true);
+  }
+  componentWillUnmount() {
+    document.removeEventListener('mousedown', this._away);
+    document.removeEventListener('keydown', this._esc);
+    window.removeEventListener('resize', this._bail);
+    window.removeEventListener('scroll', this._bail, true);
+  }
+  close = () => this.setState({ open: false, rect: null });
+  toggle = () => {
+    if (this.state.open) return this.close();
+    const r = this._btn ? this._btn.getBoundingClientRect() : null;
+    this.setState({ open: true, rect: r });
+  };
+
+  renderVals() {
+    const multi = !!this.props.multi;
+    const opts = (this.props.options && this.props.options.length) ? this.props.options : [];
+    const val = this.props.value;
+    const selectedSet = multi ? String(val || '').split(',').map((s) => s.trim()).filter(Boolean) : [];
+    const sel = multi ? null : (opts.filter((o) => o.value === val)[0] || opts[0] || null);
+    const selectedLabels = multi ? opts.filter((o) => selectedSet.indexOf(o.value) !== -1).map((o) => o.label) : [];
+    /* In a field the full name leads and the code becomes a mark; in the bar the
+       code is the whole label, because the row has no space for a word. */
+    const field = this.props.size === 'field';
+    const r = this.state.rect;
+    const width = r ? Math.max(r.width, field ? r.width : 214) : 214;
+    const belowSpace = r ? window.innerHeight - r.bottom : 0;
+    const wantsUp = r && belowSpace < 240 && r.top > belowSpace;
+    const est = Math.min(300, 12 + opts.length * 44);
+    let left = r ? r.left : 0;
+    if (r && left + width > window.innerWidth - 12) left = Math.max(12, window.innerWidth - 12 - width);
+    return {
+      n12: 12, n16: 16, n18: 18,
+      open: this.state.open,
+      expanded: this.state.open ? 'true' : 'false',
+      icon: this.props.icon || 'globe',
+      a11yLabel: this.props.a11yLabel || 'Select',
+      sizeAttr: field ? 'field' : 'compact',
+      mainLabel: multi
+        ? (selectedLabels.length ? selectedLabels.join(', ') : '—')
+        : (sel ? (field ? (sel.note || sel.label) : sel.label) : ''),
+      markLabel: sel ? sel.label : '',
+      hasSelColor: !!(sel && sel.color), selColor: (sel && sel.color) || '',
+      showNote: !multi && field && !!sel && !!sel.note,
+      popTop: r ? (wantsUp ? Math.max(12, r.top - est - 8) : r.bottom + 8) + 'px' : '0px',
+      popLeft: left + 'px',
+      popWidth: width + 'px',
+      rootRef: this._rootRef, btnRef: this._btnRef, popRef: this._popRef,
+      toggle: this.toggle,
+      rows: opts.map((o) => {
+        const checked = multi ? selectedSet.indexOf(o.value) !== -1 : o.value === val;
+        return {
+          label: o.label, note: o.note || '', noteShow: o.note ? 'block' : 'none',
+          color: o.color || '', hasColor: !!o.color,
+          multi, sel: checked, selStr: checked ? 'true' : 'false', singleSel: !multi && checked,
+          boxBg: checked ? 'var(--vt-charcoal-900)' : 'var(--vt-white)',
+          boxBorder: checked ? 'var(--vt-charcoal-900)' : 'var(--vt-grey-300)',
+          pick: () => {
+            if (multi) {
+              const next = checked ? selectedSet.filter((v) => v !== o.value) : selectedSet.concat([o.value]);
+              if (this.props.onSelect) this.props.onSelect(next.join(', '));
+              return;
+            }
+            this.close();
+            if (this.props.onSelect) this.props.onSelect(o.value);
+          },
+        };
+      }),
+    };
+  }
+}
+</script>
+</body>
+</html>

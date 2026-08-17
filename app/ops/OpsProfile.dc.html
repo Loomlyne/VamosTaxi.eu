@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<main style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
+
+<header style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle)">
+<div style="min-width:0">
+<h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tTitle }}</h1>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSubtitle }}</p>
+</div>
+<div style="margin-inline-start:auto;display:flex;flex-wrap:wrap;align-items:center;gap:10px">
+<span style="display:{{ savedShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSaved }}</span>
+<span style="display:{{ dirtyShow }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" onClick="{{ discard }}" hint-size="110px,44px">{{ tDiscard }}</x-import>
+</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ save }}" disabled="{{ notDirty }}" hint-size="150px,44px">{{ tSave }}</x-import>
+</div>
+</header>
+
+<div data-set-grid="1" style="padding:26px 32px 48px">
+
+<nav data-set-rail="1" aria-label="{{ tTitle }}">
+<sc-for list="{{ panes }}" as="p" hint-placeholder-count="2">
+<button type="button" data-set-item="1" data-on="{{ p.on }}" onClick="{{ p.pick }}" title="{{ p.label }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ p.icon }}" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+<span style="flex:1 1 auto;min-width:0">
+<span style="display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.label }}</span>
+<span data-set-hint="1">{{ p.hint }}</span>
+</span>
+</button>
+</sc-for>
+</nav>
+
+<div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+
+<sc-if value="{{ isPersonal }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+
+<section style="box-sizing:border-box;display:flex;flex-direction:column;gap:16px;padding:22px 24px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);min-width:0">
+<div>
+<h2 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tWho }}</h2>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tWhoSub }}</p>
+</div>
+
+<div style="display:flex;align-items:center;gap:14px">
+<span style="position:relative;flex:0 0 auto;display:inline-flex">
+<button type="button" data-av="1" onClick="{{ pickPhoto }}" aria-label="{{ tUpload }}" title="{{ tUpload }}" style="position:relative;overflow:hidden;width:64px;height:64px;font-size:20px;padding:0;border:0;cursor:pointer" style-hover="opacity:.86">
+<sc-if value="{{ hasPhoto }}" hint-placeholder-val="{{ false }}">
+<img src="{{ photo }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block">
+</sc-if>
+<sc-if value="{{ noPhoto }}" hint-placeholder-val="{{ true }}">{{ initials }}</sc-if>
+</button>
+<button type="button" onClick="{{ clearPhoto }}" aria-label="{{ tRemovePhoto }}" title="{{ tRemovePhoto }}" style="position:absolute;inset-inline-end:-2px;top:-2px;display:{{ photoClearShow }};align-items:center;justify-content:center;width:24px;height:24px;padding:0;border:2px solid var(--vt-bg-surface);border-radius:999px;background:var(--vt-charcoal-900);color:var(--vt-text-inverse);cursor:pointer" style-hover="background:var(--vt-danger)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n12 }}" color="currentColor" hint-size="12px,12px"></x-import>
+</button>
+</span>
+<p data-hint="1" style="flex:1 1 auto;min-width:0">{{ tPhotoHint }}</p>
+</div>
+
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tName }}" value="{{ vName }}" onChange="{{ setName }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tRole }}" value="{{ vRole }}" onChange="{{ setRole }}" hint="{{ tRoleHint }}" hint-size="100%,76px"></x-import>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tEmail }}" value="{{ vEmail }}" onChange="{{ setEmail }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tPhone }}" value="{{ vPhone }}" onChange="{{ setPhone }}" hint-size="100%,76px"></x-import>
+</div>
+</section>
+
+<div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+
+<section style="box-sizing:border-box;display:flex;flex-direction:column;gap:14px;padding:22px 24px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);min-width:0">
+<div>
+<h2 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tConsole }}</h2>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tConsoleSub }}</p>
+</div>
+<sc-for list="{{ toggles }}" as="p" hint-placeholder-count="2">
+<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--vt-grey-200)">
+<span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px">
+<span style="font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ p.label }}</span>
+<span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ p.hint }}</span>
+</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" checked="{{ p.on }}" onChange="{{ p.toggle }}" aria-label="{{ p.label }}" hint-size="46px,26px"></x-import>
+</div>
+</sc-for>
+</section>
+
+<section style="box-sizing:border-box;display:flex;flex-direction:column;gap:14px;padding:22px 24px;background:var(--vt-bg-inverse);border-radius:var(--vt-radius-lg);color:var(--vt-text-inverse);min-width:0">
+<h2 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);color:var(--vt-text-inverse)">{{ tSession }}</h2>
+<p style="margin:0;font-size:var(--vt-body-sm);line-height:1.55;color:var(--vt-text-inverse-muted);text-wrap:pretty">{{ tSessionBody }}</p>
+<div style="display:flex;flex-wrap:wrap;gap:10px;padding-top:14px;border-top:1px solid var(--vt-border-inverse)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="light" icon="log-out" onClick="{{ signOut }}" hint-size="140px,44px">{{ tSignOut }}</x-import>
+</div>
+</section>
+
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isBranding }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+
+<section style="box-sizing:border-box;display:flex;flex-direction:column;gap:16px;padding:22px 24px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);min-width:0">
+<div>
+<h2 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tBrandLogos }}</h2>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tBrandLogosSub }}</p>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px">
+<sc-for list="{{ logoSwatches }}" as="lg" hint-placeholder-count="3">
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="box-sizing:border-box;display:flex;align-items:center;justify-content:center;min-height:96px;padding:18px;border-radius:var(--vt-radius-md);border:1px solid var(--vt-border-subtle);background:{{ lg.bg }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="{{ lg.variant }}" form="{{ lg.form }}" height="{{ n28 }}" hint-size="130px,28px"></x-import>
+</div>
+<span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted);text-align:center">{{ lg.label }}</span>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section style="box-sizing:border-box;display:flex;flex-direction:column;gap:16px;padding:22px 24px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);min-width:0">
+<div>
+<h2 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tBrandColors }}</h2>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tBrandColorsSub }}</p>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px">
+<sc-for list="{{ colorSwatches }}" as="c" hint-placeholder-count="3">
+<button type="button" onClick="{{ c.copy }}" style="all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:8px">
+<span style="display:block;height:56px;border-radius:var(--vt-radius-md);background:{{ c.hex }};border:1px solid var(--vt-border-subtle)"></span>
+<span style="font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ c.name }}</span>
+<span data-vt-no-i18n="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted);font-family:var(--vt-font-mono)">{{ c.shown }}</span>
+</button>
+</sc-for>
+</div>
+<p data-hint="1">{{ tBrandColorsHint }}</p>
+</section>
+
+<section style="box-sizing:border-box;display:flex;flex-direction:column;gap:16px;padding:22px 24px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);min-width:0">
+<div>
+<h2 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tBrandType }}</h2>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tBrandTypeSub }}</p>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px">
+<div>
+<p style="margin:0 0 6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ tDisplayFont }}</p>
+<p style="margin:0;font-family:var(--vt-font-display);font-size:30px;font-weight:600;letter-spacing:var(--vt-heading-tracking);color:var(--vt-text-primary)">Qurova</p>
+</div>
+<div>
+<p style="margin:0 0 6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ tBodyFont }}</p>
+<p style="margin:0;font-family:var(--vt-font-body);font-size:20px;color:var(--vt-text-primary)">Poppins</p>
+</div>
+</div>
+</section>
+
+</div>
+</sc-if>
+
+</div>
+</div>
+</main>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const T = {
+  en: { title:'Profile', subtitle:'You, on this console', save:'Save changes', discard:'Discard', saved:'Saved',
+    who:'Who you are', whoSub:'Shown on bookings you touch and on the notes you leave',
+    name:'Name', role:'Role', roleHint:'What the team calls this seat — dispatcher, owner, night desk.',
+    email:'Email', phone:'Phone',
+    upload:'Upload a photo', removePhoto:'Remove the photo',
+    photoHint:'Click the circle to upload. Square works best — it saves straight away and shows in the sidebar.',
+    console:'Console', consoleSub:'How this console behaves for you',
+    twoFactor:'Two-step sign in', twoFactorHint:'A code as well as a password. Needs a provider connected.',
+    digest:'Morning digest', digestHint:'One email at 06:00 with the day’s pickups',
+    session:'This session', sessionBody:'Signing out ends this session on this device only. Nothing you have saved is lost.',
+    signOut:'Sign out',
+    railPersonal:'Personal info', railPersonalHint:'Name, role, contact',
+    railBranding:'Platform branding', railBrandingHint:'Logos, colour and type',
+    brandLogos:'Logos', brandLogosSub:'The only artwork to use — never retype the wordmark',
+    onLight:'On light', onDark:'On dark', markOnly:'Mark only',
+    brandColors:'Colours', brandColorsSub:'The three brand colours. Click one to copy its hex.',
+    brandColorsHint:'Yellow is a small accent — action or attention, never a large surface.',
+    colorYellow:'Yellow', colorCharcoal:'Charcoal', colorGrey:'Grey', copied:'Copied',
+    brandType:'Type', brandTypeSub:'Qurova for headings, Poppins for everything you read',
+    displayFont:'Display', bodyFont:'Body & UI' },
+  de: { title:'Profil', subtitle:'Sie, auf dieser Konsole', save:'Änderungen speichern', discard:'Verwerfen', saved:'Gespeichert',
+    who:'Wer Sie sind', whoSub:'Erscheint bei Buchungen, die Sie bearbeiten, und bei Ihren Notizen',
+    name:'Name', role:'Rolle', roleHint:'Wie das Team diesen Platz nennt — Disponent, Inhaber, Nachtschicht.',
+    email:'E-Mail', phone:'Telefon',
+    upload:'Foto hochladen', removePhoto:'Foto entfernen',
+    photoHint:'Auf den Kreis klicken, um ein Foto hochzuladen. Quadratisch passt am besten — es wird sofort gespeichert und erscheint in der Seitenleiste.',
+    console:'Konsole', consoleSub:'Wie sich diese Konsole für Sie verhält',
+    twoFactor:'Zwei-Schritt-Anmeldung', twoFactorHint:'Ein Code zusätzlich zum Passwort. Benötigt einen verbundenen Anbieter.',
+    digest:'Morgenübersicht', digestHint:'Eine E-Mail um 06:00 Uhr mit den Abholungen des Tages',
+    session:'Diese Sitzung', sessionBody:'Das Abmelden beendet diese Sitzung nur auf diesem Gerät. Gespeichertes geht nicht verloren.',
+    signOut:'Abmelden',
+    railPersonal:'Persönliche Angaben', railPersonalHint:'Name, Rolle, Kontakt',
+    railBranding:'Markenauftritt', railBrandingHint:'Logos, Farbe und Schrift',
+    brandLogos:'Logos', brandLogosSub:'Die einzigen Dateien, die verwendet werden — den Schriftzug nie neu setzen',
+    onLight:'Auf hell', onDark:'Auf dunkel', markOnly:'Nur Zeichen',
+    brandColors:'Farben', brandColorsSub:'Die drei Markenfarben. Anklicken kopiert den Hex-Wert.',
+    brandColorsHint:'Gelb ist ein kleiner Akzent — für Aktion oder Aufmerksamkeit, nie eine grosse Fläche.',
+    colorYellow:'Gelb', colorCharcoal:'Anthrazit', colorGrey:'Grau', copied:'Kopiert',
+    brandType:'Schrift', brandTypeSub:'Qurova für Überschriften, Poppins für alles, was gelesen wird',
+    displayFont:'Headline', bodyFont:'Text & UI' },
+  fr: { title:'Profil', subtitle:'Vous, sur cette console', save:'Enregistrer', discard:'Annuler', saved:'Enregistré',
+    who:'Qui vous êtes', whoSub:'Affiché sur les réservations que vous traitez et sur vos notes',
+    name:'Nom', role:'Rôle', roleHint:'Le nom que l’équipe donne à ce poste — régulateur, propriétaire, poste de nuit.',
+    email:'E-mail', phone:'Téléphone',
+    upload:'Téléverser une photo', removePhoto:'Retirer la photo',
+    photoHint:'Cliquez sur le cercle pour téléverser. Le carré fonctionne le mieux — elle est enregistrée aussitôt et apparaît dans la barre latérale.',
+    console:'Console', consoleSub:'Le comportement de cette console pour vous',
+    twoFactor:'Connexion en deux étapes', twoFactorHint:'Un code en plus du mot de passe. Nécessite un fournisseur connecté.',
+    digest:'Résumé du matin', digestHint:'Un e-mail à 06:00 avec les prises en charge du jour',
+    session:'Cette session', sessionBody:'Se déconnecter met fin à la session sur cet appareil uniquement. Rien d’enregistré n’est perdu.',
+    signOut:'Se déconnecter',
+    railPersonal:'Infos personnelles', railPersonalHint:'Nom, rôle, contact',
+    railBranding:'Image de marque', railBrandingHint:'Logos, couleurs et typographie',
+    brandLogos:'Logos', brandLogosSub:'Les seuls fichiers à utiliser — ne jamais recomposer le logotype',
+    onLight:'Sur fond clair', onDark:'Sur fond foncé', markOnly:'Symbole seul',
+    brandColors:'Couleurs', brandColorsSub:'Les trois couleurs de la marque. Cliquez pour copier le code hexadécimal.',
+    brandColorsHint:'Le jaune est un petit accent — action ou attention, jamais une grande surface.',
+    colorYellow:'Jaune', colorCharcoal:'Anthracite', colorGrey:'Gris', copied:'Copié',
+    brandType:'Typographie', brandTypeSub:'Qurova pour les titres, Poppins pour tout le reste',
+    displayFont:'Titres', bodyFont:'Texte & interface' },
+  ar: { title:'الملف الشخصي', subtitle:'أنت، على لوحة التحكم هذه', save:'حفظ التغييرات', discard:'تجاهل', saved:'تم الحفظ',
+    who:'من أنت', whoSub:'يظهر على الحجوزات التي تعالجها وعلى ملاحظاتك',
+    name:'الاسم', role:'الدور', roleHint:'ما يسمّيه الفريق لهذا المقعد — موزّع، مالك، مناوبة ليلية.',
+    email:'البريد الإلكتروني', phone:'الهاتف',
+    upload:'رفع صورة', removePhoto:'إزالة الصورة',
+    photoHint:'انقر على الدائرة لرفع صورة. الصورة المربعة أنسب — وتُحفظ فورًا وتظهر في الشريط الجانبي.',
+    console:'لوحة التحكم', consoleSub:'كيف تتصرّف هذه اللوحة معك',
+    twoFactor:'تسجيل دخول بخطوتين', twoFactorHint:'رمز إضافي مع كلمة المرور. يتطلب ربط مزوّد.',
+    digest:'ملخّص الصباح', digestHint:'رسالة واحدة الساعة 06:00 بمواعيد اليوم',
+    session:'هذه الجلسة', sessionBody:'تسجيل الخروج ينهي الجلسة على هذا الجهاز فقط، ولا يضيع شيء مما حفظته.',
+    signOut:'تسجيل الخروج',
+    railPersonal:'البيانات الشخصية', railPersonalHint:'الاسم والدور وبيانات التواصل',
+    railBranding:'هوية المنصة', railBrandingHint:'الشعارات والألوان والخط',
+    brandLogos:'الشعارات', brandLogosSub:'الملفات الوحيدة المعتمدة — لا تُعاد كتابة الشعار أبدًا',
+    onLight:'على خلفية فاتحة', onDark:'على خلفية داكنة', markOnly:'الرمز فقط',
+    brandColors:'الألوان', brandColorsSub:'ألوان العلامة الثلاثة. انقر لنسخ الرمز اللوني.',
+    brandColorsHint:'الأصفر لمسة بسيطة — للفعل أو التنبيه، لا لتغطية مساحة كبيرة.',
+    colorYellow:'أصفر', colorCharcoal:'فحمي', colorGrey:'رمادي', copied:'تم النسخ',
+    brandType:'الخط', brandTypeSub:'Qurova للعناوين، وPoppins لكل ما يُقرأ',
+    displayFont:'العناوين', bodyFont:'النص وواجهة الاستخدام' },
+};
+
+class Component extends DCLogic {
+  state = { lang:'en', draft:null, saved:false, pane:'personal', copiedHex:'' };
+  bind = () => {
+    if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
+    this.setState({ draft: window.VamosOps.profile.get() });
+  };
+  componentDidMount() {
+    this.bind();
+    this._onLocale = (e) => this.setState({ lang: e.detail.lang });
+    window.addEventListener('vamos:locale', this._onLocale);
+    if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() });
+  }
+  componentWillUnmount() {
+    if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
+    clearTimeout(this._retry); clearTimeout(this._savedT); clearTimeout(this._copyT);
+  }
+  set = (key, value) => this.setState((s) => {
+    const d = {}; for (const k in s.draft) d[k] = s.draft[k];
+    d[key] = value;
+    return { draft: d, saved: false };
+  });
+  setPhoto = (value) => {
+    if (window.VamosOps) window.VamosOps.profile.update({ avatar: value });
+    this.setState((s) => {
+      const d = {}; for (const k in s.draft) d[k] = s.draft[k];
+      d.avatar = value;
+      return { draft: d };
+    });
+  };
+  pickPhoto = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = () => {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => this.setPhoto(String(reader.result));
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  };
+  clearPhoto = () => this.setPhoto('');
+  save = () => {
+    if (!window.VamosOps || !this.state.draft) return;
+    window.VamosOps.profile.update(this.state.draft);
+    this.setState({ saved: true });
+    clearTimeout(this._savedT);
+    this._savedT = setTimeout(() => this.setState({ saved: false }), 2400);
+  };
+  discard = () => { if (window.VamosOps) this.setState({ draft: window.VamosOps.profile.get(), saved: false }); };
+  signOut = () => { localStorage.removeItem('vamosOpsAuth'); location.href = './ops-login.dc.html'; };
+  pickPane = (key) => this.setState({ pane: key });
+  copyHex = (hex) => {
+    try { navigator.clipboard.writeText(hex); } catch (e) {}
+    this.setState({ copiedHex: hex });
+    clearTimeout(this._copyT);
+    this._copyT = setTimeout(() => this.setState({ copiedHex: '' }), 1400);
+  };
+
+  renderVals() {
+    const t = T[this.state.lang] || T.en;
+    const d = this.state.draft || {};
+    const saved = window.VamosOps ? window.VamosOps.profile.get() : {};
+    const dirty = Object.keys(d).some((k) => String(d[k]) !== String(saved[k]));
+    const initials = (d.name || '')
+      .split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join('') || '—';
+    const sw = (key, label, hint) => ({
+      label, hint, on: !!d[key], toggle: (e) => this.set(key, e.target.checked),
+    });
+    const txt = (key) => (e) => this.set(key, e.target.value);
+    const pane = this.state.pane;
+    return {
+      n12: 12, n18: 18, n28: 28,
+      tTitle: t.title, tSubtitle: t.subtitle, tSave: t.save, tDiscard: t.discard, tSaved: t.saved,
+      tWho: t.who, tWhoSub: t.whoSub, tName: t.name, tRole: t.role, tRoleHint: t.roleHint,
+      tEmail: t.email, tPhone: t.phone,
+      tUpload: t.upload, tRemovePhoto: t.removePhoto, tPhotoHint: t.photoHint,
+      tConsole: t.console, tConsoleSub: t.consoleSub,
+      tSession: t.session, tSessionBody: t.sessionBody, tSignOut: t.signOut,
+      dirtyShow: dirty ? 'inline-flex' : 'none',
+      savedShow: this.state.saved && !dirty ? 'inline' : 'none',
+      notDirty: !dirty,
+      initials,
+      photo: d.avatar || '',
+      hasPhoto: !!d.avatar,
+      noPhoto: !d.avatar,
+      photoClearShow: d.avatar ? 'flex' : 'none',
+      pickPhoto: this.pickPhoto, clearPhoto: this.clearPhoto,
+      vName: d.name || '', setName: txt('name'),
+      vRole: d.role || '', setRole: txt('role'),
+      vEmail: d.email || '', setEmail: txt('email'),
+      vPhone: d.phone || '', setPhone: txt('phone'),
+      toggles: [
+        sw('twoFactor', t.twoFactor, t.twoFactorHint),
+        sw('digest', t.digest, t.digestHint),
+      ],
+      save: this.save, discard: this.discard, signOut: this.signOut,
+      panes: [
+        { key:'personal', icon:'user', label:t.railPersonal, hint:t.railPersonalHint, on: pane === 'personal' ? '1' : '0', pick: () => this.pickPane('personal') },
+        { key:'branding', icon:'image', label:t.railBranding, hint:t.railBrandingHint, on: pane === 'branding' ? '1' : '0', pick: () => this.pickPane('branding') },
+      ],
+      isPersonal: pane !== 'branding',
+      isBranding: pane === 'branding',
+      tBrandLogos: t.brandLogos, tBrandLogosSub: t.brandLogosSub,
+      tBrandColors: t.brandColors, tBrandColorsSub: t.brandColorsSub, tBrandColorsHint: t.brandColorsHint,
+      tBrandType: t.brandType, tBrandTypeSub: t.brandTypeSub, tDisplayFont: t.displayFont, tBodyFont: t.bodyFont,
+      logoSwatches: [
+        { variant:'primary', form:'wordmark', bg:'var(--vt-white)', label:t.onLight },
+        { variant:'reversed', form:'wordmark', bg:'var(--vt-charcoal-900)', label:t.onDark },
+        { variant:'primary', form:'mark', bg:'var(--vt-grey-50)', label:t.markOnly },
+      ],
+      colorSwatches: [
+        { name:t.colorYellow, hex:'#FDC20B' },
+        { name:t.colorCharcoal, hex:'#1E1F1F' },
+        { name:t.colorGrey, hex:'#DEDEDE' },
+      ].map((c) => ({ name:c.name, hex:c.hex, shown: this.state.copiedHex === c.hex ? t.copied : c.hex, copy: () => this.copyHex(c.hex) })),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

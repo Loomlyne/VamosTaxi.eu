@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
+     injects every stylesheet and script from <helmet> only after React has loaded, so
+     without these the arriving document paints uncovered frames before
+     vamos-page-transition.js exists and can build its overlay. That script adopts
+     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
+     animation below is the fallback for when the script never runs. -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-tokens.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-assets.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<link rel="stylesheet" href="../../assets/lenis.css">
+<script src="../../assets/lenis.js"></script>
+<script src="../../assets/lenis-boot.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+/* Button hover/press — colour step only, no shadow, no glow */
+.vt-btn{transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
+.vt-btn:hover,.vt-btn:active{box-shadow:none!important}
+.vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
+.vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
+.vt-btn--secondary:hover:not([disabled]){background:var(--vt-charcoal-800)}
+.vt-btn--secondary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn--ghost:hover:not([disabled]),.vt-btn--outline:hover:not([disabled]),.vt-btn--tertiary:hover:not([disabled]){background:var(--vt-grey-50);border-color:var(--vt-charcoal-900)}
+.vt-btn--ghost:active:not([disabled]),.vt-btn--outline:active:not([disabled]),.vt-btn--tertiary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn:focus-visible{box-shadow:var(--vt-ring)!important}
+.vt-btn[disabled],.vt-btn[aria-disabled="true"]{transform:none}.vt-select .vt-input--focus{box-shadow:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}body{margin:0}
+[data-ft-pad]{max-width:1200px;margin:0 auto;padding-left:clamp(16px,3.2vw,56px);padding-right:clamp(16px,3.2vw,56px)}
+[data-ft-grid]{display:grid;grid-template-columns:1fr;gap:44px 32px}
+[data-ft-top]{display:flex;flex-direction:column;align-items:flex-start;gap:24px;padding-bottom:40px;margin-bottom:48px;border-bottom:1px solid var(--vt-border-inverse)}
+[data-ft-bottom]{display:flex;flex-direction:column;align-items:flex-start;gap:16px;margin-top:56px;padding-top:28px;border-top:1px solid var(--vt-border-inverse)}
+[data-ft-band]{display:flex;flex-direction:column;align-items:flex-start;gap:20px}
+[data-ft-link],[data-ft-quiet]{transition:color var(--vt-dur-fast,140ms) var(--vt-ease-standard,cubic-bezier(.2,0,.2,1))}
+[data-ft-link]:hover,[data-ft-quiet]:hover{color:var(--vt-accent)}
+[data-ft-link][data-split]:hover{color:rgb(255 255 255 / .84)}
+.ft-w{display:inline-block;white-space:nowrap;vertical-align:top}
+.ft-c{display:inline-block;overflow:hidden;vertical-align:top;line-height:1.4}
+.ft-c>i{display:block;position:relative;font-style:normal;transition:transform 320ms var(--vt-ease-standard,cubic-bezier(.2,0,.2,1))}
+.ft-c>i>b{position:absolute;left:0;top:100%;font-weight:inherit;color:var(--vt-accent);user-select:none;pointer-events:none}
+[data-ft-link][data-split]:hover .ft-c>i,[data-ft-link][data-split]:focus-visible .ft-c>i{transform:translateY(-100%)}
+@media (prefers-reduced-motion:reduce){.ft-c>i{transition:none}}
+[data-ft-soc]:hover [data-ft-glyph]{background:var(--vt-accent)}
+[data-ft-soc]:focus-visible{outline:3px solid rgb(253 194 11 / .45);outline-offset:4px;border-radius:4px}
+@media (min-width:768px) and (max-width:1279px){[data-ft-grid]>div:last-child{grid-column:1/-1}}
+@media (min-width:768px){[data-ft-grid]{grid-template-columns:repeat(2,minmax(0,1fr));gap:52px 40px}[data-ft-band]{flex-direction:row;align-items:center;justify-content:space-between;gap:32px}
+[data-ft-top],[data-ft-bottom]{flex-direction:row;align-items:center;justify-content:space-between;gap:32px}}
+@media (min-width:1024px){[data-ft-grid]{grid-template-columns:repeat(3,minmax(0,1fr));gap:48px 32px}
+[data-ft-bottom]{margin-top:90px}}
+@media (min-width:1280px){[data-ft-grid]{grid-template-columns:repeat(4,minmax(0,1fr)) minmax(180px,.8fr);gap:24px}}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
+</helmet>
+<footer data-screen-label="Footer" style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);font-family:var(--vt-font-body)">
+
+<sc-if value="{{ wordmark }}" hint-placeholder-val="{{ false }}">
+<div data-ft-pad="1" style="padding-top:72px">
+<div data-ft-band="1" style="margin-bottom:36px">
+<p style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:1.12;color:var(--vt-text-inverse);max-width:22ch">Booked ahead, priced up front.</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" href="home.dc.html#book" iconEnd="arrow-right" hint-size="150px,54px">Book now</x-import>
+</div>
+<img src="data:image/svg+xml,%3Csvg%20width%3D%222490%22%20height%3D%22344%22%20viewBox%3D%220%200%202490%20344%22%20version%3D%221.1%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20xml%3Aspace%3D%22preserve%22%20xmlns%3Aserif%3D%22http%3A%2F%2Fwww.serif.com%2F%22%20style%3D%22fill-rule%3Aevenodd%3Bclip-rule%3Aevenodd%3Bstroke-linejoin%3Around%3Bstroke-miterlimit%3A2%3B%22%3E%20%3Cg%20transform%3D%22matrix%281%2C0%2C0%2C1%2C-6067.878333%2C-1986.7875%29%22%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%281%2C0%2C0%2C1%2C343.732%2C512.0635%29%22%3E%20%3Cpath%20d%3D%22M0%2C34.188C11.861%2C34.188%2016.861%2C27.211%2016.861%2C17.094C16.861%2C6.628%2010.466%2C0%200.349%2C0C-9.652%2C0%20-16.396%2C6.862%20-16.396%2C17.094C-16.396%2C27.561%20-10.117%2C34.188%200%2C34.188M0.349%2C-13.14C18.606%2C-13.14%2030.816%2C-1.046%2030.932%2C17.094L30.932%2C46.166L16.861%2C46.166L16.861%2C34.305L15.815%2C34.421L15.815%2C35.467C15.815%2C40.817%209.187%2C47.328%20-3.372%2C47.328C-19.42%2C47.328%20-30.234%2C35.7%20-30.234%2C18.024C-30.234%2C-1.511%20-18.141%2C-13.14%200.349%2C-13.14%22%20style%3D%22fill%3Awhite%3Bfill-rule%3Anonzero%3B%22%3E%3C%2Fpath%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%281%2C0%2C0%2C1%2C480.5937%2C528.9243%29%22%3E%20%3Cpath%20d%3D%22M0%2C-0.696L0%2C29.305L-13.955%2C29.305L-13.955%2C-1.626C-13.955%2C-12.092%20-19.885%2C-16.861%20-27.327%2C-16.861C-36.746%2C-16.861%20-41.63%2C-10.464%20-41.63%2C-1.626L-41.63%2C29.305L-55.701%2C29.305L-55.701%2C-1.626C-55.701%2C-10.464%20-60.585%2C-16.861%20-70.004%2C-16.861C-77.446%2C-16.861%20-83.377%2C-12.092%20-83.377%2C-1.626L-83.377%2C29.305L-97.332%2C29.305L-97.332%2C-0.696C-97.332%2C-19.651%20-88.261%2C-30.001%20-71.167%2C-30.001C-57.329%2C-30.001%20-49.189%2C-21.395%20-49.189%2C-11.163L-48.026%2C-11.163C-48.142%2C-21.395%20-40.003%2C-30.001%20-26.165%2C-30.001C-9.071%2C-30.001%200%2C-19.651%200%2C-0.696%22%20style%3D%22fill%3Awhite%3Bfill-rule%3Anonzero%3B%22%3E%3C%2Fpath%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%281%2C0%2C0%2C1%2C519.7718%2C512.0635%29%22%3E%20%3Cpath%20d%3D%22M0%2C34.188C9.884%2C34.188%2016.629%2C27.211%2016.629%2C17.094C16.629%2C6.862%209.884%2C0%200%2C0C-10.001%2C0%20-16.745%2C6.862%20-16.745%2C17.094C-16.745%2C27.211%20-10.001%2C34.188%200%2C34.188M0%2C-13.14C18.256%2C-13.14%2030.583%2C-1.046%2030.583%2C17.094C30.583%2C35.235%2018.256%2C47.328%200%2C47.328C-18.373%2C47.328%20-30.584%2C35.235%20-30.584%2C17.094C-30.584%2C-1.046%20-18.373%2C-13.14%200%2C-13.14%22%20style%3D%22fill%3Awhite%3Bfill-rule%3Anonzero%3B%22%3E%3C%2Fpath%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%281%2C0%2C0%2C1%2C584.0722%2C559.5087%29%22%3E%20%3Cpath%20d%3D%22M0%2C-60.701C8.605%2C-60.701%2015.466%2C-59.771%2021.745%2C-57.446L21.745%2C-44.886C17.559%2C-46.398%208.954%2C-49.073%20-1.163%2C-49.073C-8.838%2C-49.073%20-12.442%2C-47.212%20-12.442%2C-43.84C-12.442%2C-33.723%2024.187%2C-39.538%2024.187%2C-18.605C24.187%2C-6.512%2014.768%2C0%20-2.209%2C0C-10.815%2C0%20-17.675%2C-0.931%20-24.071%2C-3.256L-24.071%2C-15.815C-19.885%2C-14.303%20-11.28%2C-11.628%20-1.163%2C-11.628C6.628%2C-11.628%2010.117%2C-14.303%2010.117%2C-17.676C10.117%2C-27.677%20-26.397%2C-21.979%20-26.397%2C-42.91C-26.397%2C-55.003%20-16.978%2C-60.701%200%2C-60.701%22%20style%3D%22fill%3Awhite%3Bfill-rule%3Anonzero%3B%22%3E%3C%2Fpath%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%281%2C0%2C0%2C1%2C0%2C-33.781%29%22%3E%20%3Cpath%20d%3D%22M657.44%2C521.772L643.485%2C521.772L643.485%2C534.56L657.44%2C534.56L657.44%2C521.772ZM656.049%2C546.941L643.485%2C546.941L643.485%2C556.314C643.485%2C580.387%20653.14%2C592.009%20677.437%2C592.009L677.437%2C578.293C662.316%2C578.293%20657.44%2C572.475%20657.44%2C558.408L657.44%2C546.95%22%20style%3D%22fill%3Awhite%3Bfill-rule%3Anonzero%3B%22%3E%3C%2Fpath%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%281%2C0%2C0%2C1%2C713.4841%2C512.0635%29%22%3E%20%3Cpath%20d%3D%22M0%2C34.188C11.861%2C34.188%2016.861%2C27.211%2016.861%2C17.094C16.861%2C6.628%2010.466%2C0%200.349%2C0C-9.652%2C0%20-16.396%2C6.862%20-16.396%2C17.094C-16.396%2C27.561%20-10.117%2C34.188%200%2C34.188M0.349%2C-13.14C18.606%2C-13.14%2030.816%2C-1.046%2030.932%2C17.094L30.932%2C46.166L16.861%2C46.166L16.861%2C34.305L15.815%2C34.421L15.815%2C35.467C15.815%2C40.817%209.187%2C47.328%20-3.372%2C47.328C-19.42%2C47.328%20-30.234%2C35.7%20-30.234%2C18.024C-30.234%2C-1.511%20-18.141%2C-13.14%200.349%2C-13.14%22%20style%3D%22fill%3Awhite%3Bfill-rule%3Anonzero%3B%22%3E%3C%2Fpath%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%281%2C0%2C0%2C1%2C766.9683%2C508.9244%29%22%3E%20%3Cpath%20d%3D%22M0%2C40.467L0%2C49.305L-13.955%2C49.305L-13.955%2C40.235C-13.955%2C24.652%20-1.977%2C20.815%203.837%2C20.815L3.837%2C19.652C-1.977%2C19.652%20-13.955%2C15.815%20-13.955%2C0.232L-13.955%2C-8.838L0%2C-8.838L0%2C0C0%2C6.744%203.721%2C12.21%2016.977%2C12.21C30.35%2C12.21%2034.072%2C6.744%2034.072%2C0L34.072%2C-8.838L48.026%2C-8.838L48.026%2C0.232C48.026%2C15.815%2036.048%2C19.652%2030.234%2C19.652L30.234%2C20.815C36.048%2C20.815%2048.026%2C24.652%2048.026%2C40.235L48.026%2C49.305L34.072%2C49.305L34.072%2C40.467C34.072%2C33.723%2030.35%2C28.257%2016.977%2C28.257C3.721%2C28.257%200%2C33.723%200%2C40.467%22%20style%3D%22fill%3Awhite%3Bfill-rule%3Anonzero%3B%22%3E%3C%2Fpath%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%281%2C0%2C0%2C1%2C0%2C-21.683%29%22%3E%20%3Crect%20x%3D%22824.756%22%20y%3D%22521.77%22%20width%3D%2213.954%22%20height%3D%2258.143%22%20style%3D%22fill%3Awhite%3B%22%3E%3C%2Frect%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%281%2C0%2C0%2C1%2C449.8343%2C593.1225%29%22%3E%20%3Cpath%20d%3D%22M0%2C0.028L3.958%2C0.028C5.492%2C0.028%206.648%2C-0.347%207.424%2C-1.095C8.201%2C-1.843%208.589%2C-2.844%208.589%2C-4.098C8.589%2C-5.389%208.215%2C-6.386%207.466%2C-7.088C6.718%2C-7.789%205.539%2C-8.14%203.929%2C-8.14L0%2C-8.14L0%2C0.028ZM8.476%2C9.824L3.621%2C1.628L0%2C1.628L0%2C9.824L-1.964%2C9.824L-1.964%2C-9.796L3.929%2C-9.796C6.119%2C-9.796%207.779%2C-9.272%208.912%2C-8.224C10.044%2C-7.176%2010.61%2C-5.801%2010.61%2C-4.098C10.61%2C-2.676%2010.203%2C-1.464%209.389%2C-0.464C8.575%2C0.538%207.372%2C1.188%205.782%2C1.487L10.834%2C9.824L8.476%2C9.824Z%22%20style%3D%22fill%3Awhite%3Bfill-rule%3Anonzero%3B%22%3E%3C%2Fpath%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%281%2C0%2C0%2C1%2C0%2C104.785%29%22%3E%20%3Cpath%20d%3D%22M466.31%2C498.161L464.346%2C498.161L464.346%2C482.836L466.31%2C482.836L466.31%2C498.161ZM464.318%2C479.524C464.037%2C479.243%20463.896%2C478.897%20463.896%2C478.485C463.896%2C478.074%20464.037%2C477.732%20464.318%2C477.461C464.599%2C477.19%20464.935%2C477.054%20465.328%2C477.054C465.721%2C477.054%20466.058%2C477.19%20466.338%2C477.461C466.619%2C477.732%20466.759%2C478.074%20466.759%2C478.485C466.759%2C478.897%20466.619%2C479.243%20466.338%2C479.524C466.058%2C479.805%20465.721%2C479.944%20465.328%2C479.944C464.935%2C479.944%20464.599%2C479.805%20464.318%2C479.524%22%20style%3D%22fill%3Awhite%3Bfill-rule%3Anonzero%3B%22%3E%3C%2Fpath%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%281%2C0%2C0%2C1%2C482.5047%2C593.3186%29%22%3E%20%3Cpath%20d%3D%22M0%2C-1.291C-0.505%2C-2.226%20-1.193%2C-2.947%20-2.062%2C-3.452C-2.933%2C-3.958%20-3.892%2C-4.21%20-4.94%2C-4.21C-6.025%2C-4.21%20-6.999%2C-3.967%20-7.859%2C-3.481C-8.72%2C-2.993%20-9.398%2C-2.288%20-9.894%2C-1.361C-10.39%2C-0.435%20-10.638%2C0.665%20-10.638%2C1.937C-10.638%2C3.19%20-10.39%2C4.29%20-9.894%2C5.235C-9.398%2C6.18%20-8.72%2C6.9%20-7.859%2C7.396C-6.999%2C7.892%20-6.025%2C8.14%20-4.94%2C8.14C-3.892%2C8.14%20-2.933%2C7.888%20-2.062%2C7.382C-1.193%2C6.877%20-0.505%2C6.156%200%2C5.221C0.506%2C4.285%200.759%2C3.2%200.759%2C1.965C0.759%2C0.73%200.506%2C-0.355%200%2C-1.291M-11.676%2C-2.203C-11.04%2C-3.391%20-10.165%2C-4.308%20-9.052%2C-4.954C-7.939%2C-5.599%20-6.679%2C-5.923%20-5.277%2C-5.923C-3.929%2C-5.923%20-2.713%2C-5.595%20-1.627%2C-4.94C-0.543%2C-4.284%200.253%2C-3.434%200.759%2C-2.386L0.759%2C-11.143L2.723%2C-11.143L2.723%2C9.628L0.759%2C9.628L0.759%2C6.203C0.29%2C7.27%20-0.477%2C8.145%20-1.544%2C8.828C-2.61%2C9.511%20-3.864%2C9.852%20-5.305%2C9.852C-6.708%2C9.852%20-7.966%2C9.525%20-9.08%2C8.87C-10.193%2C8.215%20-11.064%2C7.289%20-11.69%2C6.091C-12.317%2C4.894%20-12.63%2C3.509%20-12.63%2C1.937C-12.63%2C0.365%20-12.312%2C-1.015%20-11.676%2C-2.203%22%20style%3D%22fill%3Awhite%3Bfill-rule%3Anonzero%3B%22%3E%3C%2Fpath%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%281%2C0%2C0%2C1%2C500.904%2C599.0444%29%22%3E%20%3Cpath%20d%3D%22M0%2C-7.522C-0.477%2C-8.327%20-1.127%2C-8.935%20-1.951%2C-9.346C-2.774%2C-9.758%20-3.673%2C-9.964%20-4.645%2C-9.964C-6.105%2C-9.964%20-7.349%2C-9.496%20-8.378%2C-8.56C-9.407%2C-7.624%20-9.978%2C-6.305%20-10.091%2C-4.603L0.688%2C-4.603C0.707%2C-5.744%200.477%2C-6.717%200%2C-7.522M2.625%2C-3.003L-10.091%2C-3.003C-10.035%2C-1.843%20-9.754%2C-0.851%20-9.249%2C-0.028C-8.744%2C0.796%20-8.079%2C1.418%20-7.255%2C1.839C-6.432%2C2.26%20-5.534%2C2.47%20-4.561%2C2.47C-3.289%2C2.47%20-2.218%2C2.162%20-1.347%2C1.544C-0.477%2C0.926%200.098%2C0.094%200.379%2C-0.954L2.456%2C-0.954C2.081%2C0.543%201.282%2C1.764%200.056%2C2.709C-1.17%2C3.654%20-2.708%2C4.126%20-4.561%2C4.126C-6.002%2C4.126%20-7.293%2C3.804%20-8.435%2C3.158C-9.576%2C2.513%20-10.47%2C1.596%20-11.115%2C0.408C-11.761%2C-0.781%20-12.083%2C-2.17%20-12.083%2C-3.761C-12.083%2C-5.351%20-11.765%2C-6.746%20-11.129%2C-7.943C-10.493%2C-9.141%20-9.605%2C-10.057%20-8.463%2C-10.694C-7.321%2C-11.329%20-6.021%2C-11.648%20-4.561%2C-11.648C-3.102%2C-11.648%20-1.824%2C-11.329%20-0.73%2C-10.694C0.365%2C-10.057%201.207%2C-9.201%201.796%2C-8.125C2.386%2C-7.049%202.68%2C-5.856%202.68%2C-4.547C2.68%2C-3.873%202.661%2C-3.358%202.625%2C-3.003%22%20style%3D%22fill%3Awhite%3Bfill-rule%3Anonzero%3B%22%3E%3C%2Fpath%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%281%2C0%2C0%2C1%2C535.0762%2C602.9462%29%22%3E%20%3Cpath%20d%3D%22M0%2C-15.325L-4.8%2C0L-6.765%2C0L-11.003%2C-12.856L-15.241%2C0L-17.235%2C0L-22.034%2C-15.325L-20.041%2C-15.325L-16.223%2C-1.993L-11.93%2C-15.325L-9.965%2C-15.325L-5.726%2C-1.965L-1.937%2C-15.325L0%2C-15.325Z%22%20style%3D%22fill%3Awhite%3Bfill-rule%3Anonzero%3B%22%3E%3C%2Fpath%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%281%2C0%2C0%2C1%2C0%2C104.785%29%22%3E%20%3Cpath%20d%3D%22M539.707%2C498.161L537.743%2C498.161L537.743%2C482.836L539.707%2C482.836L539.707%2C498.161ZM537.714%2C479.524C537.434%2C479.243%20537.293%2C478.897%20537.293%2C478.485C537.293%2C478.074%20537.434%2C477.732%20537.714%2C477.461C537.995%2C477.19%20538.331%2C477.054%20538.725%2C477.054C539.117%2C477.054%20539.454%2C477.19%20539.735%2C477.461C540.016%2C477.732%20540.156%2C478.074%20540.156%2C478.485C540.156%2C478.897%20540.016%2C479.243%20539.735%2C479.524C539.454%2C479.805%20539.117%2C479.944%20538.725%2C479.944C538.331%2C479.944%20537.995%2C479.805%20537.714%2C479.524%22%20style%3D%22fill%3Awhite%3Bfill-rule%3Anonzero%3B%22%3E%3C%2Fpath%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%281%2C0%2C0%2C1%2C546.7234%2C597.4456%29%22%3E%20%3Cpath%20d%3D%22M0%2C-8.169L0%2C1.347C0%2C2.282%200.177%2C2.928%200.533%2C3.283C0.888%2C3.639%201.515%2C3.816%202.414%2C3.816L4.21%2C3.816L4.21%2C5.501L2.105%2C5.501C0.72%2C5.501%20-0.309%2C5.178%20-0.982%2C4.532C-1.656%2C3.887%20-1.993%2C2.825%20-1.993%2C1.347L-1.993%2C-8.169L-4.126%2C-8.169L-4.126%2C-9.824L-1.993%2C-9.824L-1.993%2C-13.67L0%2C-13.67L0%2C-9.824L4.21%2C-9.824L4.21%2C-8.169L0%2C-8.169Z%22%20style%3D%22fill%3Awhite%3Bfill-rule%3Anonzero%3B%22%3E%3C%2Fpath%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%281%2C0%2C0%2C1%2C564.5886%2C597.0521%29%22%3E%20%3Cpath%20d%3D%22M0%2C-8.982C0.926%2C-8.496%201.656%2C-7.752%202.19%2C-6.751C2.723%2C-5.75%202.989%2C-4.529%202.989%2C-3.088L2.989%2C5.894L1.052%2C5.894L1.052%2C-2.863C1.052%2C-4.529%200.636%2C-5.801%20-0.196%2C-6.681C-1.029%2C-7.56%20-2.167%2C-8%20-3.607%2C-8C-5.086%2C-8%20-6.264%2C-7.531%20-7.144%2C-6.596C-8.023%2C-5.66%20-8.463%2C-4.285%20-8.463%2C-2.471L-8.463%2C5.894L-10.427%2C5.894L-10.427%2C-14.876L-8.463%2C-14.876L-8.463%2C-6.821C-7.977%2C-7.737%20-7.261%2C-8.449%20-6.315%2C-8.954C-5.371%2C-9.459%20-4.308%2C-9.712%20-3.13%2C-9.712C-1.969%2C-9.712%20-0.927%2C-9.468%200%2C-8.982%22%20style%3D%22fill%3Awhite%3Bfill-rule%3Anonzero%3B%22%3E%3C%2Fpath%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%281%2C0%2C0%2C1%2C579.6746%2C599.4514%29%22%3E%20%3Cpath%20d%3D%22M0%2C-8.336C0.637%2C-9.524%201.516%2C-10.441%202.638%2C-11.087C3.761%2C-11.732%205.043%2C-12.055%206.484%2C-12.055C8.374%2C-12.055%209.931%2C-11.587%2011.157%2C-10.652C12.383%2C-9.716%2013.174%2C-8.444%2013.529%2C-6.834L11.424%2C-6.834C11.162%2C-7.938%2010.596%2C-8.804%209.726%2C-9.431C8.856%2C-10.057%207.775%2C-10.371%206.484%2C-10.371C5.455%2C-10.371%204.528%2C-10.136%203.705%2C-9.67C2.882%2C-9.201%202.231%2C-8.504%201.754%2C-7.578C1.277%2C-6.652%201.038%2C-5.515%201.038%2C-4.168C1.038%2C-2.82%201.277%2C-1.679%201.754%2C-0.744C2.231%2C0.193%202.882%2C0.894%203.705%2C1.362C4.528%2C1.829%205.455%2C2.063%206.484%2C2.063C7.775%2C2.063%208.856%2C1.75%209.726%2C1.123C10.596%2C0.496%2011.162%2C-0.378%2011.424%2C-1.501L13.529%2C-1.501C13.174%2C0.071%2012.379%2C1.333%2011.143%2C2.288C9.908%2C3.242%208.355%2C3.719%206.484%2C3.719C5.043%2C3.719%203.761%2C3.397%202.638%2C2.751C1.516%2C2.106%200.637%2C1.189%200%2C0.001C-0.636%2C-1.188%20-0.954%2C-2.577%20-0.954%2C-4.168C-0.954%2C-5.758%20-0.636%2C-7.147%200%2C-8.336%22%20style%3D%22fill%3Awhite%3Bfill-rule%3Anonzero%3B%22%3E%3C%2Fpath%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%28-1%2C0%2C0%2C1%2C1195.614%2C105.121%29%22%3E%20%3Crect%20x%3D%22596.825%22%20y%3D%22477.054%22%20width%3D%221.964%22%20height%3D%2220.771%22%20style%3D%22fill%3Awhite%3B%22%3E%3C%2Frect%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%281%2C0%2C0%2C1%2C614.9841%2C598.5386%29%22%3E%20%3Cpath%20d%3D%22M0%2C-6.511C-0.505%2C-7.446%20-1.193%2C-8.167%20-2.062%2C-8.672C-2.933%2C-9.178%20-3.892%2C-9.43%20-4.94%2C-9.43C-6.025%2C-9.43%20-6.999%2C-9.187%20-7.859%2C-8.701C-8.72%2C-8.213%20-9.398%2C-7.508%20-9.894%2C-6.581C-10.39%2C-5.655%20-10.638%2C-4.555%20-10.638%2C-3.283C-10.638%2C-2.03%20-10.39%2C-0.93%20-9.894%2C0.015C-9.398%2C0.96%20-8.72%2C1.68%20-7.859%2C2.176C-6.999%2C2.672%20-6.025%2C2.92%20-4.94%2C2.92C-3.892%2C2.92%20-2.933%2C2.668%20-2.062%2C2.162C-1.193%2C1.657%20-0.505%2C0.936%200%2C0.001C0.506%2C-0.935%200.759%2C-2.02%200.759%2C-3.255C0.759%2C-4.49%200.506%2C-5.575%200%2C-6.511M-11.69%2C-7.423C-11.064%2C-8.611%20-10.193%2C-9.528%20-9.08%2C-10.174C-7.966%2C-10.819%20-6.708%2C-11.143%20-5.305%2C-11.143C-3.845%2C-11.143%20-2.586%2C-10.806%20-1.529%2C-10.131C-0.473%2C-9.458%200.29%2C-8.597%200.759%2C-7.549L0.759%2C-10.917L2.723%2C-10.917L2.723%2C4.408L0.759%2C4.408L0.759%2C1.012C0.271%2C2.059%20-0.5%2C2.925%20-1.557%2C3.608C-2.614%2C4.291%20-3.873%2C4.632%20-5.332%2C4.632C-6.718%2C4.632%20-7.966%2C4.305%20-9.08%2C3.65C-10.193%2C2.995%20-11.064%2C2.069%20-11.69%2C0.871C-12.317%2C-0.326%20-12.63%2C-1.711%20-12.63%2C-3.283C-12.63%2C-4.855%20-12.317%2C-6.235%20-11.69%2C-7.423%22%20style%3D%22fill%3Awhite%3Bfill-rule%3Anonzero%3B%22%3E%3C%2Fpath%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%281%2C0%2C0%2C1%2C623.1654%2C588.6165%29%22%3E%20%3Cpath%20d%3D%22M0%2C13.333C-1.114%2C12.519%20-1.736%2C11.411%20-1.866%2C10.007L0.154%2C10.007C0.248%2C10.868%200.655%2C11.565%201.375%2C12.098C2.096%2C12.632%203.064%2C12.898%204.281%2C12.898C5.347%2C12.898%206.185%2C12.645%206.793%2C12.14C7.4%2C11.635%207.705%2C11.009%207.705%2C10.259C7.705%2C9.736%207.537%2C9.306%207.2%2C8.968C6.863%2C8.631%206.437%2C8.365%205.923%2C8.169C5.408%2C7.972%204.711%2C7.762%203.832%2C7.538C2.69%2C7.238%201.764%2C6.939%201.053%2C6.639C0.341%2C6.34%20-0.262%2C5.895%20-0.758%2C5.305C-1.253%2C4.717%20-1.501%2C3.926%20-1.501%2C2.934C-1.501%2C2.186%20-1.277%2C1.493%20-0.828%2C0.857C-0.379%2C0.221%200.258%2C-0.284%201.081%2C-0.659C1.904%2C-1.033%202.84%2C-1.221%203.888%2C-1.221C5.534%2C-1.221%206.863%2C-0.803%207.873%2C0.029C8.884%2C0.861%209.426%2C2.007%209.501%2C3.467L7.537%2C3.467C7.481%2C2.569%207.13%2C1.844%206.484%2C1.292C5.838%2C0.74%204.954%2C0.464%203.832%2C0.464C2.84%2C0.464%202.035%2C0.698%201.418%2C1.165C0.8%2C1.634%200.491%2C2.214%200.491%2C2.906C0.491%2C3.505%200.674%2C3.996%201.039%2C4.38C1.404%2C4.764%201.858%2C5.063%202.4%2C5.278C2.943%2C5.493%203.672%2C5.731%204.59%2C5.993C5.693%2C6.293%206.573%2C6.583%207.228%2C6.863C7.883%2C7.144%208.444%2C7.556%208.912%2C8.098C9.379%2C8.642%209.623%2C9.362%209.642%2C10.259C9.642%2C11.084%209.418%2C11.818%208.968%2C12.463C8.519%2C13.109%207.892%2C13.619%207.087%2C13.993C6.283%2C14.367%205.357%2C14.554%204.309%2C14.554C2.55%2C14.554%201.114%2C14.147%200%2C13.333%22%20style%3D%22fill%3Awhite%3Bfill-rule%3Anonzero%3B%22%3E%3C%2Fpath%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%281%2C0%2C0%2C1%2C637.48%2C588.6165%29%22%3E%20%3Cpath%20d%3D%22M0%2C13.333C-1.114%2C12.519%20-1.736%2C11.411%20-1.866%2C10.007L0.154%2C10.007C0.248%2C10.868%200.655%2C11.565%201.375%2C12.098C2.096%2C12.632%203.064%2C12.898%204.281%2C12.898C5.348%2C12.898%206.185%2C12.645%206.793%2C12.14C7.401%2C11.635%207.705%2C11.009%207.705%2C10.259C7.705%2C9.736%207.537%2C9.306%207.2%2C8.968C6.863%2C8.631%206.437%2C8.365%205.923%2C8.169C5.408%2C7.972%204.711%2C7.762%203.832%2C7.538C2.69%2C7.238%201.764%2C6.939%201.053%2C6.639C0.341%2C6.34%20-0.262%2C5.895%20-0.758%2C5.305C-1.253%2C4.717%20-1.501%2C3.926%20-1.501%2C2.934C-1.501%2C2.186%20-1.276%2C1.493%20-0.828%2C0.857C-0.379%2C0.221%200.258%2C-0.284%201.081%2C-0.659C1.905%2C-1.033%202.84%2C-1.221%203.888%2C-1.221C5.534%2C-1.221%206.863%2C-0.803%207.873%2C0.029C8.884%2C0.861%209.426%2C2.007%209.501%2C3.467L7.537%2C3.467C7.481%2C2.569%207.13%2C1.844%206.484%2C1.292C5.838%2C0.74%204.954%2C0.464%203.832%2C0.464C2.84%2C0.464%202.035%2C0.698%201.418%2C1.165C0.8%2C1.634%200.492%2C2.214%200.492%2C2.906C0.492%2C3.505%200.674%2C3.996%201.039%2C4.38C1.404%2C4.764%201.858%2C5.063%202.4%2C5.278C2.943%2C5.493%203.673%2C5.731%204.59%2C5.993C5.693%2C6.293%206.573%2C6.583%207.228%2C6.863C7.883%2C7.144%208.444%2C7.556%208.912%2C8.098C9.379%2C8.642%209.623%2C9.362%209.642%2C10.259C9.642%2C11.084%209.418%2C11.818%208.968%2C12.463C8.519%2C13.109%207.892%2C13.619%207.087%2C13.993C6.283%2C14.367%205.357%2C14.554%204.309%2C14.554C2.55%2C14.554%201.114%2C14.147%200%2C13.333%22%20style%3D%22fill%3Awhite%3Bfill-rule%3Anonzero%3B%22%3E%3C%2Fpath%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%281%2C0%2C0%2C1%2C0%2C-98.559%29%22%3E%20%3Crect%20x%3D%22824.756%22%20y%3D%22585.2%22%20width%3D%2213.819%22%20height%3D%228.159%22%20style%3D%22fill%3Awhite%3B%22%3E%3C%2Frect%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%281%2C0%2C0%2C1%2C643.4824%2C513.1885%29%22%3E%20%3Cpath%20d%3D%22M0%2C-12.409L33.952%2C-12.409L33.952%2C0C27.287%2C-0.007%2020.622%2C-0.013%2013.958%2C-0.02C9.305%2C-4.15%204.653%2C-8.279%200%2C-12.409%22%20style%3D%22fill%3Argb%28255%2C195%2C6%29%3Bfill-rule%3Anonzero%3B%22%3E%3C%2Fpath%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%28-1%2C0%2C0%2C1%2C591.455%2C-121.632%29%22%3E%20%3Crect%20x%3D%22293.39%22%20y%3D%22598.461%22%20width%3D%224.675%22%20height%3D%224.71%22%20style%3D%22fill%3Argb%28255%2C195%2C6%29%3B%22%3E%3C%2Frect%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%28-1%2C0%2C0%2C1%2C600.826%2C-112.232%29%22%3E%20%3Crect%20x%3D%22298.066%22%20y%3D%22593.769%22%20width%3D%224.694%22%20height%3D%224.694%22%20style%3D%22fill%3Argb%28255%2C195%2C6%29%3B%22%3E%3C%2Frect%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%28-1%2C0%2C0%2C1%2C610.213%2C-121.631%29%22%3E%20%3Crect%20x%3D%22302.758%22%20y%3D%22598.463%22%20width%3D%224.697%22%20height%3D%224.705%22%20style%3D%22fill%3Argb%28255%2C195%2C6%29%3B%22%3E%3C%2Frect%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%28-1%2C0%2C0%2C1%2C591.457%2C-102.83%29%22%3E%20%3Crect%20x%3D%22293.391%22%20y%3D%22589.06%22%20width%3D%224.675%22%20height%3D%224.71%22%20style%3D%22fill%3Argb%28255%2C195%2C6%29%3B%22%3E%3C%2Frect%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3Cg%20transform%3D%22matrix%284.166667%2C0%2C0%2C4.166667%2C5062.5%2C0%29%22%3E%20%3Cg%20transform%3D%22matrix%281%2C0%2C0%2C1%2C307.4578%2C548.8309%29%22%3E%20%3Cpath%20d%3D%22M0%2C-62.601L0%2C-42.923C0%2C-8.97%20-18.722%2C9.399%20-53.485%2C9.399L-66.167%2C9.399L-66.167%2C-72L-52.204%2C-72L-52.204%2C-3.741L-49.295%2C-3.741C-26.396%2C-3.741%20-14.067%2C-17.69%20-14.067%2C-42.009L-14.067%2C-53.195L-9.385%2C-53.195L-9.385%2C-57.891L-4.696%2C-57.891L-4.696%2C-62.601L0%2C-62.601Z%22%20style%3D%22fill%3Awhite%3Bfill-rule%3Anonzero%3B%22%3E%3C%2Fpath%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3C%2Fsvg%3E" alt="Vamos Taxi" style="width:100%;display:block">
+</div>
+</sc-if>
+
+<div data-ft-pad="1" style="padding-top:76px;padding-bottom:44px">
+
+
+
+<nav data-ft-grid="1" aria-label="Footer" ref="{{ navRef }}">
+
+<div>
+<h2 style="margin:0 0 22px;font-family:var(--vt-font-body);font-size:14px;line-height:1.2;font-weight:var(--vt-weight-medium,500);letter-spacing:0.56px;text-transform:uppercase;color:var(--vt-accent)">Company</h2>
+<ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:13px">
+<li><a data-ft-link="1" href="../pages/about.dc.html" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">About</a></li>
+<li><a data-ft-link="1" href="../pages/become-a-partner.dc.html" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">Drive with us</a></li>
+</ul>
+</div>
+
+<div>
+<h2 style="margin:0 0 22px;font-family:var(--vt-font-body);font-size:14px;line-height:1.2;font-weight:var(--vt-weight-medium,500);letter-spacing:0.56px;text-transform:uppercase;color:var(--vt-accent)">Services</h2>
+<ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:13px">
+<li><a data-ft-link="1" href="home.dc.html?service=airport#book" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">Airport transfers</a></li>
+<li><a data-ft-link="1" href="home.dc.html?service=city#book" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">City to city</a></li>
+<li><a data-ft-link="1" href="home.dc.html?service=corporate#book" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">Corporate transfers</a></li>
+<sc-if value="{{ showHourly }}" hint-placeholder-val="{{ true }}">
+<li><a data-ft-link="1" href="home.dc.html?service=hourly#book" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">Chauffeur by the hour</a></li>
+</sc-if>
+</ul>
+</div>
+
+<div>
+<h2 style="margin:0 0 22px;font-family:var(--vt-font-body);font-size:14px;line-height:1.2;font-weight:var(--vt-weight-medium,500);letter-spacing:0.56px;text-transform:uppercase;color:var(--vt-accent)">Support</h2>
+<ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:13px">
+<li><a data-ft-link="1" href="home.dc.html#faq" onClick="{{ goToFaq }}" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">FAQs</a></li>
+<li><a data-ft-link="1" href="../pages/manage-booking.dc.html" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">Manage a booking</a></li>
+<li><a data-ft-link="1" href="../pages/contact.dc.html" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">Contact</a></li>
+</ul>
+</div>
+
+<div>
+<h2 style="margin:0 0 22px;font-family:var(--vt-font-body);font-size:14px;line-height:1.2;font-weight:var(--vt-weight-medium,500);letter-spacing:0.56px;text-transform:uppercase;color:var(--vt-accent)">Legal</h2>
+<ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:13px">
+<li><a data-ft-link="1" href="../pages/terms.dc.html" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">Terms &amp; conditions</a></li>
+<li><a data-ft-link="1" href="../pages/cancellation.dc.html" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">Cancellation &amp; refunds</a></li>
+<li><a data-ft-link="1" href="../pages/privacy.dc.html" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">Privacy policy</a></li>
+<li><a data-ft-link="1" href="../pages/cookies.dc.html" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">Cookie policy</a></li>
+<li><a data-ft-link="1" href="../pages/imprint.dc.html" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">Imprint</a></li>
+<li><button type="button" onClick="{{ openCookiePrefs }}" style="appearance:none;background:none;border:0;padding:0;text-align:start;font-family:inherit;color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;cursor:pointer">Cookie preferences</button></li>
+</ul>
+</div>
+
+<div>
+<h2 style="margin:0 0 22px;font-family:var(--vt-font-body);font-size:14px;line-height:1.2;font-weight:var(--vt-weight-medium,500);letter-spacing:0.56px;text-transform:uppercase;color:var(--vt-accent)">Get in touch</h2>
+<ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:13px">
+<li style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.45">Vamos Taxi GmbH<br>Bleicherstrasse 16<br>8953 Dietikon ZH</li>
+<li><a data-ft-link="1" href="mailto:info@vamostaxi.eu" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">info@vamostaxi.eu</a></li>
+<li><a data-ft-link="1" href="tel:+41796267082" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">+41 79 626 70 82</a></li>
+</ul>
+<div style="display:flex;align-items:center;gap:24px;margin-top:26px">
+<a data-ft-soc="1" href="https://www.instagram.com/vamos.taxi/" target="_blank" rel="noreferrer noopener" aria-label="Vamos Taxi on Instagram" style="display:block;border:0;text-decoration:none">
+<span data-ft-glyph="1" aria-hidden="true" style="display:block;width:26px;height:26px;background:var(--vt-text-inverse-muted);-webkit-mask:url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2221.668%22%20height%3D%2221.667%22%20viewBox%3D%220%200%2021.668%2021.667%22%20fill%3D%22%23000%22%3E%20%3Cpath%20d%3D%22M%2011.948%200.001%20C%2012.738%20-0.002%2013.529%200.006%2014.319%200.025%20L%2014.529%200.033%20C%2014.772%200.041%2015.011%200.052%2015.301%200.065%20C%2016.453%200.119%2017.24%200.301%2017.93%200.569%20C%2018.645%200.844%2019.247%201.217%2019.849%201.819%20C%2020.4%202.36%2020.826%203.015%2021.099%203.738%20C%2021.366%204.428%2021.548%205.215%2021.602%206.368%20C%2021.615%206.656%2021.626%206.897%2021.635%207.139%20L%2021.641%207.35%20C%2021.661%208.14%2021.669%208.93%2021.666%209.72%20L%2021.667%2010.528%20L%2021.667%2011.947%20C%2021.67%2012.738%2021.662%2013.528%2021.642%2014.319%20L%2021.636%2014.529%20C%2021.627%2014.772%2021.616%2015.011%2021.603%2015.3%20C%2021.549%2016.453%2021.365%2017.239%2021.099%2017.929%20C%2020.827%2018.653%2020.401%2019.308%2019.849%2019.849%20C%2019.308%2020.4%2018.653%2020.826%2017.93%2021.098%20C%2017.24%2021.366%2016.453%2021.548%2015.301%2021.602%20C%2015.011%2021.615%2014.772%2021.626%2014.529%2021.634%20L%2014.319%2021.641%20C%2013.529%2021.66%2012.738%2021.668%2011.948%2021.666%20L%2011.139%2021.667%20L%209.721%2021.667%20C%208.931%2021.67%208.14%2021.661%207.35%2021.642%20L%207.14%2021.636%20C%206.883%2021.626%206.626%2021.615%206.368%2021.603%20C%205.216%2021.549%204.429%2021.365%203.738%2021.098%20C%203.015%2020.827%202.36%2020.4%201.82%2019.849%20C%201.268%2019.308%200.842%2018.653%200.569%2017.929%20C%200.302%2017.239%200.12%2016.453%200.066%2015.3%20C%200.054%2015.043%200.043%2014.786%200.033%2014.529%20L%200.028%2014.319%20C%200.008%2013.528%20-0.001%2012.738%200.001%2011.947%20L%200.001%209.72%20C%20-0.002%208.93%200.006%208.14%200.024%207.35%20L%200.032%207.139%20C%200.041%206.897%200.052%206.656%200.065%206.368%20C%200.119%205.214%200.301%204.429%200.568%203.738%20C%200.841%203.015%201.268%202.36%201.821%201.82%20C%202.361%201.269%203.015%200.842%203.738%200.569%20C%204.429%200.301%205.215%200.119%206.368%200.065%20L%207.14%200.033%20L%207.35%200.027%20C%208.14%200.007%208.93%20-0.002%209.72%200%20L%2011.948%200.001%20Z%20M%2010.834%205.418%20C%2010.116%205.408%209.404%205.54%208.738%205.808%20C%208.072%206.076%207.465%206.473%206.954%206.977%20C%206.443%207.481%206.037%208.081%205.76%208.744%20C%205.483%209.406%205.341%2010.116%205.341%2010.834%20C%205.341%2011.552%205.483%2012.263%205.76%2012.925%20C%206.037%2013.587%206.443%2014.187%206.954%2014.691%20C%207.465%2015.195%208.072%2015.593%208.738%2015.86%20C%209.404%2016.128%2010.116%2016.26%2010.834%2016.25%20C%2012.271%2016.25%2013.648%2015.68%2014.664%2014.664%20C%2015.68%2013.648%2016.251%2012.27%2016.251%2010.834%20C%2016.251%209.397%2015.68%208.019%2014.664%207.003%20C%2013.648%205.988%2012.271%205.418%2010.834%205.418%20Z%20M%2010.834%207.585%20C%2011.266%207.577%2011.695%207.655%2012.096%207.815%20C%2012.497%207.974%2012.862%208.212%2013.17%208.515%20C%2013.479%208.817%2013.723%209.178%2013.891%209.576%20C%2014.058%209.974%2014.144%2010.402%2014.144%2010.834%20C%2014.144%2011.265%2014.058%2011.693%2013.891%2012.091%20C%2013.724%2012.489%2013.479%2012.85%2013.171%2013.153%20C%2012.863%2013.455%2012.498%2013.693%2012.097%2013.853%20C%2011.696%2014.013%2011.267%2014.091%2010.835%2014.084%20C%209.973%2014.084%209.146%2013.741%208.537%2013.132%20C%207.927%2012.522%207.585%2011.696%207.585%2010.834%20C%207.585%209.972%207.927%209.145%208.537%208.535%20C%209.146%207.926%209.973%207.584%2010.835%207.584%20L%2010.834%207.585%20Z%20M%2016.521%203.793%20C%2016.172%203.807%2015.841%203.956%2015.599%204.208%20C%2015.357%204.46%2015.221%204.796%2015.221%205.146%20C%2015.221%205.496%2015.357%205.832%2015.599%206.084%20C%2015.841%206.337%2016.172%206.485%2016.521%206.499%20C%2016.881%206.499%2017.225%206.356%2017.479%206.103%20C%2017.733%205.849%2017.876%205.504%2017.876%205.145%20C%2017.876%204.786%2017.733%204.441%2017.479%204.187%20C%2017.225%203.934%2016.881%203.791%2016.521%203.791%20L%2016.521%203.793%20Z%22%20fill%3D%22%23000%22%20fill-rule%3D%22nonzero%22%3E%3C%2Fpath%3E%20%3C%2Fsvg%3E) center/contain no-repeat;mask:url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2221.668%22%20height%3D%2221.667%22%20viewBox%3D%220%200%2021.668%2021.667%22%20fill%3D%22%23000%22%3E%20%3Cpath%20d%3D%22M%2011.948%200.001%20C%2012.738%20-0.002%2013.529%200.006%2014.319%200.025%20L%2014.529%200.033%20C%2014.772%200.041%2015.011%200.052%2015.301%200.065%20C%2016.453%200.119%2017.24%200.301%2017.93%200.569%20C%2018.645%200.844%2019.247%201.217%2019.849%201.819%20C%2020.4%202.36%2020.826%203.015%2021.099%203.738%20C%2021.366%204.428%2021.548%205.215%2021.602%206.368%20C%2021.615%206.656%2021.626%206.897%2021.635%207.139%20L%2021.641%207.35%20C%2021.661%208.14%2021.669%208.93%2021.666%209.72%20L%2021.667%2010.528%20L%2021.667%2011.947%20C%2021.67%2012.738%2021.662%2013.528%2021.642%2014.319%20L%2021.636%2014.529%20C%2021.627%2014.772%2021.616%2015.011%2021.603%2015.3%20C%2021.549%2016.453%2021.365%2017.239%2021.099%2017.929%20C%2020.827%2018.653%2020.401%2019.308%2019.849%2019.849%20C%2019.308%2020.4%2018.653%2020.826%2017.93%2021.098%20C%2017.24%2021.366%2016.453%2021.548%2015.301%2021.602%20C%2015.011%2021.615%2014.772%2021.626%2014.529%2021.634%20L%2014.319%2021.641%20C%2013.529%2021.66%2012.738%2021.668%2011.948%2021.666%20L%2011.139%2021.667%20L%209.721%2021.667%20C%208.931%2021.67%208.14%2021.661%207.35%2021.642%20L%207.14%2021.636%20C%206.883%2021.626%206.626%2021.615%206.368%2021.603%20C%205.216%2021.549%204.429%2021.365%203.738%2021.098%20C%203.015%2020.827%202.36%2020.4%201.82%2019.849%20C%201.268%2019.308%200.842%2018.653%200.569%2017.929%20C%200.302%2017.239%200.12%2016.453%200.066%2015.3%20C%200.054%2015.043%200.043%2014.786%200.033%2014.529%20L%200.028%2014.319%20C%200.008%2013.528%20-0.001%2012.738%200.001%2011.947%20L%200.001%209.72%20C%20-0.002%208.93%200.006%208.14%200.024%207.35%20L%200.032%207.139%20C%200.041%206.897%200.052%206.656%200.065%206.368%20C%200.119%205.214%200.301%204.429%200.568%203.738%20C%200.841%203.015%201.268%202.36%201.821%201.82%20C%202.361%201.269%203.015%200.842%203.738%200.569%20C%204.429%200.301%205.215%200.119%206.368%200.065%20L%207.14%200.033%20L%207.35%200.027%20C%208.14%200.007%208.93%20-0.002%209.72%200%20L%2011.948%200.001%20Z%20M%2010.834%205.418%20C%2010.116%205.408%209.404%205.54%208.738%205.808%20C%208.072%206.076%207.465%206.473%206.954%206.977%20C%206.443%207.481%206.037%208.081%205.76%208.744%20C%205.483%209.406%205.341%2010.116%205.341%2010.834%20C%205.341%2011.552%205.483%2012.263%205.76%2012.925%20C%206.037%2013.587%206.443%2014.187%206.954%2014.691%20C%207.465%2015.195%208.072%2015.593%208.738%2015.86%20C%209.404%2016.128%2010.116%2016.26%2010.834%2016.25%20C%2012.271%2016.25%2013.648%2015.68%2014.664%2014.664%20C%2015.68%2013.648%2016.251%2012.27%2016.251%2010.834%20C%2016.251%209.397%2015.68%208.019%2014.664%207.003%20C%2013.648%205.988%2012.271%205.418%2010.834%205.418%20Z%20M%2010.834%207.585%20C%2011.266%207.577%2011.695%207.655%2012.096%207.815%20C%2012.497%207.974%2012.862%208.212%2013.17%208.515%20C%2013.479%208.817%2013.723%209.178%2013.891%209.576%20C%2014.058%209.974%2014.144%2010.402%2014.144%2010.834%20C%2014.144%2011.265%2014.058%2011.693%2013.891%2012.091%20C%2013.724%2012.489%2013.479%2012.85%2013.171%2013.153%20C%2012.863%2013.455%2012.498%2013.693%2012.097%2013.853%20C%2011.696%2014.013%2011.267%2014.091%2010.835%2014.084%20C%209.973%2014.084%209.146%2013.741%208.537%2013.132%20C%207.927%2012.522%207.585%2011.696%207.585%2010.834%20C%207.585%209.972%207.927%209.145%208.537%208.535%20C%209.146%207.926%209.973%207.584%2010.835%207.584%20L%2010.834%207.585%20Z%20M%2016.521%203.793%20C%2016.172%203.807%2015.841%203.956%2015.599%204.208%20C%2015.357%204.46%2015.221%204.796%2015.221%205.146%20C%2015.221%205.496%2015.357%205.832%2015.599%206.084%20C%2015.841%206.337%2016.172%206.485%2016.521%206.499%20C%2016.881%206.499%2017.225%206.356%2017.479%206.103%20C%2017.733%205.849%2017.876%205.504%2017.876%205.145%20C%2017.876%204.786%2017.733%204.441%2017.479%204.187%20C%2017.225%203.934%2016.881%203.791%2016.521%203.791%20L%2016.521%203.793%20Z%22%20fill%3D%22%23000%22%20fill-rule%3D%22nonzero%22%3E%3C%2Fpath%3E%20%3C%2Fsvg%3E) center/contain no-repeat;transition:background 140ms cubic-bezier(.2,0,.2,1)"></span>
+</a>
+<a data-ft-soc="1" href="https://www.facebook.com/VAMOSTAXISWITZERLAND" target="_blank" rel="noreferrer noopener" aria-label="Vamos Taxi on Facebook" style="display:block;border:0;text-decoration:none">
+<span data-ft-glyph="1" aria-hidden="true" style="display:block;width:26px;height:26px;background:var(--vt-text-inverse-muted);-webkit-mask:url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2222%22%20height%3D%2222%22%20viewBox%3D%220%200%2022%2022%22%20fill%3D%22none%22%3E%20%3Cg%20transform%3D%22translate%287%203%29%22%3E%20%3Cpath%20d%3D%22M%205.499%2016%20L%205.499%208.702%20L%207.995%208.702%20L%208.37%205.857%20L%205.499%205.857%20L%205.499%204.041%20C%205.499%203.218%205.731%202.657%206.936%202.657%20L%208.471%202.656%20L%208.471%200.111%20C%208.205%200.078%207.294%200%206.234%200%20C%204.02%200%202.504%201.326%202.504%203.759%20L%202.504%205.857%20L%200%205.857%20L%200%208.702%20L%202.504%208.702%20L%202.504%2016%20L%205.499%2016%20Z%22%20fill%3D%22%23000%22%20fill-rule%3D%22evenodd%22%3E%3C%2Fpath%3E%20%3C%2Fg%3E%20%3C%2Fsvg%3E) center/contain no-repeat;mask:url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2222%22%20height%3D%2222%22%20viewBox%3D%220%200%2022%2022%22%20fill%3D%22none%22%3E%20%3Cg%20transform%3D%22translate%287%203%29%22%3E%20%3Cpath%20d%3D%22M%205.499%2016%20L%205.499%208.702%20L%207.995%208.702%20L%208.37%205.857%20L%205.499%205.857%20L%205.499%204.041%20C%205.499%203.218%205.731%202.657%206.936%202.657%20L%208.471%202.656%20L%208.471%200.111%20C%208.205%200.078%207.294%200%206.234%200%20C%204.02%200%202.504%201.326%202.504%203.759%20L%202.504%205.857%20L%200%205.857%20L%200%208.702%20L%202.504%208.702%20L%202.504%2016%20L%205.499%2016%20Z%22%20fill%3D%22%23000%22%20fill-rule%3D%22evenodd%22%3E%3C%2Fpath%3E%20%3C%2Fg%3E%20%3C%2Fsvg%3E) center/contain no-repeat;transition:background 140ms cubic-bezier(.2,0,.2,1)"></span>
+</a>
+</div>
+</div>
+
+</nav>
+
+<sc-if value="{{ showPaymentMarks }}" hint-placeholder-val="{{ false }}">
+<div style="margin-top:52px;display:flex;flex-wrap:wrap;align-items:center;gap:12px">
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted);margin-right:6px">Payment</span>
+<span style="font-size:var(--vt-body-sm);color:rgb(255 255 255 / .84);border:1px solid var(--vt-border-inverse);border-radius:var(--vt-radius-xs);padding:6px 12px;white-space:nowrap">Visa</span>
+<span style="font-size:var(--vt-body-sm);color:rgb(255 255 255 / .84);border:1px solid var(--vt-border-inverse);border-radius:var(--vt-radius-xs);padding:6px 12px;white-space:nowrap">Mastercard</span>
+<span style="font-size:var(--vt-body-sm);color:rgb(255 255 255 / .84);border:1px solid var(--vt-border-inverse);border-radius:var(--vt-radius-xs);padding:6px 12px;white-space:nowrap">TWINT</span>
+<span style="font-size:var(--vt-body-sm);color:rgb(255 255 255 / .84);border:1px solid var(--vt-border-inverse);border-radius:var(--vt-radius-xs);padding:6px 12px;white-space:nowrap">Apple Pay</span>
+<span style="font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted)">Marks awaiting confirmed Stripe provider config — show only enabled methods.</span>
+</div>
+</sc-if>
+
+<div data-ft-bottom="1">
+<p style="margin: 0; font-size: var(--vt-body-sm); color: var(--vt-text-inverse-muted); text-align: left">{{ copyright }}</p>
+<a data-ft-quiet="1" href="#top" onClick="{{ toTop }}" style="display:flex;align-items:center;gap:8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted);text-decoration:none;border:0">
+Back to top
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-up" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+</a>
+</div>
+
+</div>
+</footer>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:520},&quot;wordmark&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Layout&quot;},&quot;showChauffeurByHour&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;showPaymentMarks&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Content&quot;}}">
+class Component extends DCLogic {
+  navRef = React.createRef();
+
+  componentDidMount() {
+    this.splitLinks();
+    this._onLocale = () => this.relabelLinks();
+    window.addEventListener('vamos:locale', this._onLocale);
+  }
+  componentDidUpdate() { this.splitLinks(); }
+  componentWillUnmount() { if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale); }
+
+  /** Language changed: throw the character cells away and rebuild them translated. */
+  relabelLinks() {
+    const root = this.navRef.current;
+    if (!root) return;
+    root.querySelectorAll('[data-ft-link]').forEach((a) => {
+      if (!a.dataset.ftLabel) return;
+      delete a.dataset.split;
+      a.textContent = a.dataset.ftLabel;
+      a.removeAttribute('aria-label');
+    });
+    this.splitLinks();
+  }
+
+  // Progressive enhancement: the label stays plain editable text in the template and
+  // is wrapped per character here, so each link can roll to yellow with a stagger.
+  splitLinks() {
+    const root = this.navRef.current;
+    if (!root) return;
+    const rtl = !!(window.VamosLocale && window.VamosLocale.isRTL());
+    root.querySelectorAll('[data-ft-link]').forEach((a) => {
+      if (a.dataset.split) return;
+      // Leave copyable strings (email, phone) as real text nodes — split cells
+      // serialise one character per line on selection.
+      const href = a.getAttribute('href') || '';
+      if (/^(mailto:|tel:)/i.test(href)) return;
+      // The plain English label is the source of truth; the cells are built from its
+      // translation, so a language change re-splits instead of leaving letters behind.
+      const src = a.dataset.ftLabel || (a.textContent || '').trim();
+      if (!src) return;
+      a.dataset.ftLabel = src;
+      const label = (window.VamosLocale ? window.VamosLocale.t(src) : src);
+      // Arabic is cursive and right-to-left: one inline-block per character breaks the
+      // joins and reverses the word. Those languages get plain text and the plain
+      // colour hover instead of the per-letter roll.
+      if (rtl || /[\u0600-\u06FF]/.test(label)) {
+        a.textContent = label;
+        a.setAttribute('aria-label', label);
+        a.removeAttribute('data-split');
+        return;
+      }
+      const frag = document.createDocumentFragment();
+      // Group cells per WORD. Every cell is inline-block, so without a nowrap wrapper
+      // a line can break between any two characters — which is what long German labels
+      // ("Stornierung & Rückerstattung") hit in the 264px legal column.
+      const cell = (ch, k) => {
+        const c = document.createElement('span');
+        c.className = 'ft-c';
+        const inner = document.createElement('i');
+        inner.style.transitionDelay = (k * 16) + 'ms';
+        if (ch === ' ') {
+          inner.innerHTML = '&nbsp;';
+        } else {
+          inner.appendChild(document.createTextNode(ch));
+          const copy = document.createElement('b');
+          copy.appendChild(document.createTextNode(ch));
+          inner.appendChild(copy);
+        }
+        c.appendChild(inner);
+        return c;
+      };
+      let k = 0;
+      label.split(' ').forEach((word, w, all) => {
+        const grp = document.createElement('span');
+        grp.className = 'ft-w';
+        Array.from(word).forEach((ch) => { grp.appendChild(cell(ch, k)); k += 1; });
+        // Trailing space rides with its word, so the break opportunity sits between groups.
+        if (w < all.length - 1) { grp.appendChild(cell(' ', k)); k += 1; }
+        frag.appendChild(grp);
+      });
+      a.textContent = '';
+      const visible = document.createElement('span');
+      visible.setAttribute('aria-hidden', 'true');
+      visible.setAttribute('data-vt-no-i18n', '');
+      visible.appendChild(frag);
+      a.appendChild(visible);
+      a.setAttribute('aria-label', label);
+      a.dataset.split = '1';
+    });
+  }
+  // FAQs: scroll to an #faq section on the current page if there is one, otherwise
+  // let the href take the visitor to the homepage FAQ.
+  goToFaq = (e) => {
+    const el = document.getElementById('faq');
+    if (!el) return;
+    e.preventDefault();
+    if (window.vtScrollTo) window.vtScrollTo(el, -88);
+    else {
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const top = el.getBoundingClientRect().top + window.pageYOffset - 88;
+      window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' });
+    }
+    if (history.replaceState) history.replaceState(null, '', '#faq');
+  };
+  // Every page carries CookieBanner, which listens for this event.
+  openCookiePrefs = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    window.dispatchEvent(new Event('vamos:cookie-prefs'));
+  };
+  toTop = (e) => {
+    e.preventDefault();
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+  };
+  renderVals() {
+    return {
+      n16: 16, n18: 18, n64: 64, toTop: this.toTop, navRef: this.navRef,
+      wordmark: this.props.wordmark ?? true,
+      showHourly: (this.props.showChauffeurByHour ?? true) !== false,
+      showPaymentMarks: this.props.showPaymentMarks ?? true,
+      goToFaq: this.goToFaq,
+      openCookiePrefs: this.openCookiePrefs,
+      copyright: '\u00A9 ' + new Date().getFullYear() + ' Vamos Taxi. All rights reserved.',
+    };
+  }
+}
+</script>
+</body>
+</html>

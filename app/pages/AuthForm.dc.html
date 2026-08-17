@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
+     injects every stylesheet and script from <helmet> only after React has loaded, so
+     without these the arriving document paints uncovered frames before
+     vamos-page-transition.js exists and can build its overlay. That script adopts
+     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
+     animation below is the fallback for when the script never runs. -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-tokens.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-assets.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<link rel="stylesheet" href="../../assets/lenis.css">
+<script src="../../assets/lenis.js"></script>
+<script src="../../assets/lenis-boot.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+/* Button hover/press — colour step only, no shadow, no glow */
+.vt-btn{transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
+.vt-btn:hover,.vt-btn:active{box-shadow:none!important}
+.vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
+.vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
+.vt-btn--secondary:hover:not([disabled]){background:var(--vt-charcoal-800)}
+.vt-btn--secondary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn--ghost:hover:not([disabled]),.vt-btn--outline:hover:not([disabled]),.vt-btn--tertiary:hover:not([disabled]){background:var(--vt-grey-50);border-color:var(--vt-charcoal-900)}
+.vt-btn--ghost:active:not([disabled]),.vt-btn--outline:active:not([disabled]),.vt-btn--tertiary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn:focus-visible{box-shadow:var(--vt-ring)!important}
+.vt-btn[disabled],.vt-btn[aria-disabled="true"]{transform:none}.vt-select .vt-input--focus{box-shadow:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none;box-shadow:none}
+body{margin:0}a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+[data-af-h1]{margin:0;font-family:var(--vt-font-display);font-size:clamp(36px,5.2vw,52px);font-weight:var(--vt-weight-semibold);letter-spacing:-.02em;line-height:1.1;color:var(--vt-text-primary);text-wrap:balance}
+[data-af-sub]{margin:0;max-width:36ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);text-wrap:pretty}
+[data-af-link]{appearance:none;-webkit-appearance:none;background:none;border:0;padding:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-secondary);text-align:start;text-decoration:underline;text-decoration-color:var(--vt-grey-400);text-underline-offset:3px;cursor:pointer;transition:color 140ms var(--vt-ease-standard)}
+[data-af-link]:hover{color:var(--vt-charcoal-900);text-decoration-color:currentColor}
+[data-af-link][data-on-alert]{color:var(--vt-charcoal-900)}
+[data-af-kick]{margin:0;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-af-st]{margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);text-wrap:pretty}
+[data-note]{display:flex;flex-direction:column;gap:6px;padding:14px 16px;border-radius:var(--vt-radius-md);border:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface);box-shadow:var(--vt-shadow-xs)}
+[data-note-k]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-note-b]{margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);text-wrap:pretty}
+[data-tok]{display:inline-flex;align-items:baseline;gap:5px;font-family:var(--vt-font-body);font-weight:var(--vt-weight-medium);font-size:.97em;background:var(--vt-grey-100);border:1px solid var(--vt-grey-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 7px;white-space:nowrap}
+[data-tok]::after{content:"TBC";font-family:var(--vt-font-body);font-size:.66em;font-weight:700;letter-spacing:.1em;color:var(--vt-text-muted)}
+/* What happens next, numbered. Charcoal figures on white — the kit's icon-lead list
+   tints its tile pale yellow, which is not a surface this product uses. */
+[data-af-steps]{display:flex;flex-direction:column;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-bg-surface);box-shadow:var(--vt-shadow-xs)}
+[data-af-step]{display:grid;grid-template-columns:22px minmax(0,1fr);gap:12px;align-items:start;padding:14px 16px;border-top:1px solid var(--vt-border-subtle)}
+[data-af-step]:first-child{border-top:0}
+[data-af-step-n]{font-family:var(--vt-font-display);font-size:13px;font-weight:var(--vt-weight-semibold);line-height:1.5;font-variant-numeric:tabular-nums;color:var(--vt-charcoal-900)}
+[data-af-step-k]{display:block;margin-bottom:3px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-af-step-v]{display:block;font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);line-height:1.35;color:var(--vt-text-primary);overflow-wrap:anywhere}
+[data-af-step-b]{display:block;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);text-wrap:pretty}
+[data-af-track]{position:relative;width:100%;max-width:240px;height:3px;border-radius:2px;background:var(--vt-grey-200);overflow:hidden}
+[data-af-fill]{position:absolute;inset:0;background:var(--vt-yellow);transform-origin:left center;animation:vt-af-prog 2200ms var(--vt-ease-standard) forwards}
+[data-af-view]{animation:vt-af-in 200ms var(--vt-ease-out) both}
+@keyframes vt-af-prog{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes vt-af-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}
+/* Every control in the auth column is the same width — the form is one stack, so a
+   button that stops short of the field above it reads as a different kind of thing. */
+button,.vt-btn,.vt-iconbtn{box-shadow:none}
+[data-af-cta] .vt-btn,[data-af-links]{width:100%}
+[data-af-links]{justify-content:space-between}
+[data-af-opt]{display:flex;align-items:center;gap:12px;width:100%;appearance:none;-webkit-appearance:none;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);padding:11px 13px;text-align:start;cursor:pointer;box-shadow:none;transition:border-color 140ms var(--vt-ease-standard),background 140ms var(--vt-ease-standard)}
+[data-af-opt]:hover{border-color:var(--vt-charcoal-900);background:var(--vt-grey-50)}
+[data-af-opt]:active{transform:translateY(1px)}
+[data-af-opt-tile]{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:34px;height:34px;border-radius:var(--vt-radius-sm,8px);background:var(--vt-charcoal)}
+[data-af-opt-txt]{display:flex;flex-direction:column;gap:1px;flex:1 1 auto;min-width:0}
+[data-af-opt-t]{font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-semibold);color:var(--vt-charcoal-900);line-height:1.35}
+[data-af-opt-c]{font-size:var(--vt-body-xs);color:var(--vt-text-muted);line-height:1.35}
+[data-af-links]{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px}
+@media (prefers-reduced-motion:reduce){[data-af-view],[data-af-fill]{animation:none}[data-af-fill]{transform:scaleX(1)}}</style>
+</helmet>
+<div data-af="1" style="width:100%;display:flex;flex-direction:column;gap:30px;font-family:var(--vt-font-body);color:var(--vt-text-primary)">
+
+<sc-if value="{{ showTabs }}" hint-placeholder-val="{{ true }}">
+<div style="width:100%">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Tabs" items="{{ tabItems }}" value="{{ mode }}" onChange="{{ setMode }}" variant="segmented" block="{{ yes }}" hint-size="100%,44px"></x-import>
+</div>
+</sc-if>
+
+<sc-if value="{{ isForm }}" hint-placeholder-val="{{ true }}">
+<div data-af-view="form" style="display:flex;flex-direction:column;gap:24px">
+
+<div style="display:flex;flex-direction:column;gap:12px">
+<sc-if value="{{ hSignIn }}" hint-placeholder-val="{{ true }}"><h1 data-af-h1="1">Sign in</h1></sc-if>
+<sc-if value="{{ hOps }}"><h1 data-af-h1="1" style="font-size:clamp(28px,3.4vw,36px)">Dispatch sign in</h1></sc-if>
+<sc-if value="{{ hSignUp }}"><h1 data-af-h1="1">Sign up</h1></sc-if>
+<sc-if value="{{ hForgot }}"><h1 data-af-h1="1">Reset your password</h1></sc-if>
+<sc-if value="{{ sSignInPw }}" hint-placeholder-val="{{ true }}"><p data-af-sub="1">Your transfers, vouchers and receipts, all in one place.</p></sc-if>
+<sc-if value="{{ sOpsPw }}"><p data-af-sub="1">Internal tool for Vamos Taxi dispatchers and admins.</p></sc-if>
+<sc-if value="{{ sSignInMagic }}"><p data-af-sub="1">We email you a sign-in link. No password to remember.</p></sc-if>
+<sc-if value="{{ sSignUpPw }}"><p data-af-sub="1">Create an account and every transfer you book stays together in one place.</p></sc-if>
+<sc-if value="{{ sSignUpMagic }}"><p data-af-sub="1">Give us your email and we send a link that creates your account. No password to set.</p></sc-if>
+<sc-if value="{{ hForgot }}"><p data-af-sub="1">Enter the email you booked with and we send you a link to set a new password.</p></sc-if>
+</div>
+
+<sc-if value="{{ bannerCred }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="That email and password don't match" hint-size="100%,88px">Try again, or <button type="button" data-af-link="1" data-on-alert="1" onClick="{{ useMagic }}">email yourself a sign-in link</button> instead.</x-import>
+</sc-if>
+<sc-if value="{{ bannerTaken }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" title="This email already has an account" hint-size="100%,88px">You booked with it before. <button type="button" data-af-link="1" data-on-alert="1" onClick="{{ signInInstead }}">Sign in instead</button> — we'll keep the address filled in.</x-import>
+</sc-if>
+
+<div style="display:flex;flex-direction:column;gap:16px">
+<sc-if value="{{ needName }}">
+<div data-af-2col="1" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="First name" type="text" size="lg" autoComplete="given-name" placeholder="Anna" value="{{ firstName }}" onChange="{{ setFirstName }}" error="{{ errFirst }}" hint-size="100%,84px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="Last name" type="text" size="lg" autoComplete="family-name" placeholder="Keller" value="{{ lastName }}" onChange="{{ setLastName }}" error="{{ errLast }}" hint-size="100%,84px"></x-import>
+</div>
+</sc-if>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="Email" type="email" icon="mail" size="lg" autoComplete="email" placeholder="you@example.com" value="{{ email }}" onChange="{{ setEmail }}" error="{{ errEmail }}" hint-size="100%,84px"></x-import>
+<sc-if value="{{ needPassword }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="Password" type="password" size="lg" autoComplete="{{ pwAutoComplete }}" placeholder="••••••••" hint="{{ pwHint }}" value="{{ password }}" onChange="{{ setPassword }}" error="{{ errPassword }}" hint-size="100%,84px"></x-import>
+</sc-if>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:16px;align-items:stretch">
+<div data-af-cta="1" style="width:100%">
+<sc-if value="{{ ctaSignIn }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" onClick="{{ submit }}" hint-size="100%,54px">Sign in</x-import></sc-if>
+<sc-if value="{{ ctaSignUp }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" onClick="{{ submit }}" hint-size="100%,54px">Create account</x-import></sc-if>
+<sc-if value="{{ ctaMagic }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" icon="mail" onClick="{{ submit }}" hint-size="100%,54px">Email me a link</x-import></sc-if>
+<sc-if value="{{ ctaReset }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" onClick="{{ submit }}" hint-size="100%,54px">Send reset link</x-import></sc-if>
+</div>
+
+<sc-if value="{{ showPasskey }}">
+<button type="button" data-af-opt="1" onClick="{{ startPasskey }}">
+<span data-af-opt-tile="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="shield-check" size="{{ n18 }}" color="var(--vt-yellow)" hint-size="18px,18px"></x-import></span>
+<span data-af-opt-txt="1">
+<span data-af-opt-t="1">Sign in with a passkey</span>
+<span data-af-opt-c="1">Face, fingerprint or device PIN</span>
+</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-right" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
+</button>
+</sc-if>
+
+<div data-af-links="1">
+<sc-if value="{{ linkSignInPw }}" hint-placeholder-val="{{ true }}"><button type="button" data-af-link="1" onClick="{{ goForgot }}">Forgot password?</button></sc-if>
+<sc-if value="{{ linkSignInPw }}"><button type="button" data-af-link="1" onClick="{{ useMagic }}">Email me a link instead</button></sc-if>
+<sc-if value="{{ linkSignUpPw }}"><button type="button" data-af-link="1" onClick="{{ useMagic }}">Sign up with a link instead</button></sc-if>
+<sc-if value="{{ isMagic }}"><button type="button" data-af-link="1" onClick="{{ usePassword }}">Use a password instead</button></sc-if>
+<sc-if value="{{ hForgot }}"><button type="button" data-af-link="1" onClick="{{ backToSignIn }}">Back to sign in</button></sc-if>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isSent }}">
+<div data-af-view="sent" style="display:flex;flex-direction:column;gap:20px;align-items:stretch">
+<div style="display:flex;flex-direction:column;gap:16px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Avatar" icon="mail" size="lg" shape="square" tone="inverse" hint-size="56px,56px"></x-import>
+<h1 data-af-h1="1" style="font-size:clamp(32px,4.4vw,44px)">Check your email</h1>
+</div>
+
+<div data-af-steps="1">
+<div data-af-step="1">
+<span data-af-step-n="1">01</span>
+<span><span data-af-step-k="1">Sent to</span><span data-af-step-v="1">{{ emailEcho }}</span></span>
+</div>
+<div data-af-step="1">
+<span data-af-step-n="1">02</span>
+<span data-af-step-b="1">Open the link in your inbox. Use this device, so you land back here.</span>
+</div>
+<div data-af-step="1">
+<span data-af-step-n="1">03</span>
+<sc-if value="{{ sentSignIn }}" hint-placeholder-val="{{ true }}"><span data-af-step-b="1">You are signed in, and back where you left off.</span></sc-if>
+<sc-if value="{{ sentSignUp }}"><span data-af-step-b="1">Your account is created. We then look for transfers you booked as a guest with this address.</span></sc-if>
+<sc-if value="{{ sentForgot }}"><span data-af-step-b="1">Set a new password on the page it opens, and you are signed in.</span></sc-if>
+</div>
+</div>
+
+<div data-note="1">
+<span data-note-k="1">Awaiting client input</span>
+<p data-note-b="1">The link works once and expires after <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Link expiry</span>. Nothing there? Check spam, then send another.</p>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:14px;align-items:stretch">
+<sc-if value="{{ resent }}"><p style="margin:0;display:flex;align-items:center;gap:8px;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n16 }}" color="var(--vt-success)" hint-size="16px,16px"></x-import>Sent again just now.</p></sc-if>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="lg" block="{{ yes }}" icon="mail" onClick="{{ resend }}" hint-size="100%,54px">Send another link</x-import>
+<sc-if value="{{ sentForgot }}"><button type="button" data-af-link="1" onClick="{{ backToSignIn }}">Back to sign in</button></sc-if>
+<sc-if value="{{ sentMagicAny }}" hint-placeholder-val="{{ true }}"><button type="button" data-af-link="1" onClick="{{ usePassword }}">Use a password instead</button></sc-if>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isVerifying }}">
+<div data-af-view="verifying" style="display:flex;flex-direction:column;gap:24px;align-items:flex-start">
+<div style="display:flex;flex-direction:column;gap:16px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Avatar" icon="shield-check" size="lg" shape="square" tone="inverse" hint-size="56px,56px"></x-import>
+<h1 data-af-h1="1" style="font-size:clamp(30px,3.8vw,40px)">Confirm on your device</h1>
+</div>
+<p data-af-st="1" style="font-size:var(--vt-body-md);max-width:38ch">Your device is asking for your face, fingerprint or PIN. Approve it and you are straight in — the passkey never leaves your device, and we never see it.</p>
+<div data-af-track="1"><div data-af-fill="1"></div></div>
+<button type="button" data-af-link="1" onClick="{{ cancelPasskey }}">Cancel and use a password</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ isReturning }}">
+<div data-af-view="returning" style="display:flex;flex-direction:column;gap:24px;align-items:flex-start">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p data-af-kick="1">One moment</p>
+<sc-if value="{{ notOps }}" hint-placeholder-val="{{ true }}"><h1 data-af-h1="1" style="font-size:clamp(30px,3.6vw,38px)">Returning you to your booking</h1></sc-if>
+<sc-if value="{{ isOps }}"><h1 data-af-h1="1" style="font-size:clamp(28px,3.4vw,36px)">Opening the dispatch board</h1></sc-if>
+</div>
+<sc-if value="{{ notOps }}" hint-placeholder-val="{{ true }}"><p data-af-st="1" style="font-size:var(--vt-body-md);max-width:38ch">You are signed in. We are taking you back to where you left off — your journey and price are unchanged.</p></sc-if>
+<sc-if value="{{ isOps }}"><p data-af-st="1" style="font-size:var(--vt-body-md);max-width:38ch">You are signed in. Taking you through to today's bookings.</p></sc-if>
+<div data-af-track="1"><div data-af-fill="1"></div></div>
+</div>
+</sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:640},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;signin&quot;,&quot;signup&quot;,&quot;forgot&quot;],&quot;default&quot;:&quot;signin&quot;,&quot;tsType&quot;:&quot;'signin'|'signup'|'forgot'&quot;},&quot;method&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;password&quot;,&quot;magic&quot;],&quot;default&quot;:&quot;password&quot;,&quot;tsType&quot;:&quot;'password'|'magic'&quot;},&quot;stage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;form&quot;,&quot;sent&quot;,&quot;verifying&quot;,&quot;returning&quot;],&quot;default&quot;:&quot;form&quot;,&quot;tsType&quot;:&quot;'form'|'sent'|'verifying'|'returning'&quot;},&quot;banner&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;&quot;,&quot;credentials&quot;,&quot;registered&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;'credentials'|'registered'|null&quot;},&quot;email&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;firstName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;lastName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;frozen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;onState&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(s: {mode:string;method:string;stage:string;banner:string|null}) =&gt; void&quot;}}">
+const REGISTERED = ['taken@vamostaxi.eu'];
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
+/* Demo rules so every state is reachable by interacting, not just by the jumper:
+   password "wrong" fails sign-in · taken@vamostaxi.eu is already registered. */
+class Component extends DCLogic {
+  state = {
+    mode: this.props.mode || 'signin',
+    method: this.props.method || 'password',
+    stage: this.props.stage || 'form',
+    banner: this.props.banner || null,
+    email: this.props.email || '',
+    password: this.props.password || '',
+    firstName: this.props.firstName || '',
+    lastName: this.props.lastName || '',
+    errors: {},
+    resent: false,
+  };
+  componentDidMount() {
+    if (this.state.stage === 'returning') this.armExit();
+    if (this.state.stage === 'verifying') this.armPasskey();
+  }
+  componentDidUpdate(prev) {
+    const keys = ['mode', 'method', 'stage', 'banner', 'email', 'nonce'];
+    if (keys.some((k) => prev[k] !== this.props[k])) {
+      this.setState({
+        mode: this.props.mode || 'signin',
+        method: this.props.method || 'password',
+        stage: this.props.stage || 'form',
+        banner: this.props.banner || null,
+        email: this.props.email || '',
+        password: this.props.password || '',
+        firstName: this.props.firstName || '',
+        lastName: this.props.lastName || '',
+        errors: {}, resent: false,
+      }, () => {
+        if (this.state.stage === 'returning') this.armExit();
+        if (this.state.stage === 'verifying') this.armPasskey();
+      });
+    }
+  }
+  componentWillUnmount() { clearTimeout(this.exitTimer); clearTimeout(this.pkTimer); }
+  armExit() {
+    clearTimeout(this.exitTimer);
+    if (this.props.frozen) return;
+    const to = this.props.surface === 'ops' ? '../ops/ops.dc.html' : 'checkout.dc.html';
+    this.exitTimer = setTimeout(() => { location.href = to; }, 2400);
+  }
+  /* the OS passkey sheet is system UI — this stands in for the wait, then lands on the same
+     return-to-booking transition a password sign-in uses */
+  armPasskey() {
+    clearTimeout(this.pkTimer);
+    if (this.props.frozen) return;
+    this.pkTimer = setTimeout(() => { this.saveSession(); this.go({ stage: 'returning' }); }, 1900);
+  }
+  /* One session key, read by SiteHeader on every page — so signing in here changes the
+     whole site's header, not just this screen. */
+  saveSession() {
+    if (this.props.frozen) return;
+    try {
+      if (this.props.surface === 'ops') { localStorage.setItem('vamosOpsAuth', '1'); return; }
+      /* Clicking an emailed link, or signing in to an existing account, already proves the
+         address. Only a brand-new password sign-up still needs that proof. */
+      const verified = this.state.mode === 'signin' || this.state.method === 'magic';
+      localStorage.setItem('vamosAuth', JSON.stringify({
+        email: this.state.email.trim(),
+        firstName: this.state.firstName.trim(),
+        lastName: this.state.lastName.trim(),
+        emailVerified: verified,
+        at: Date.now(),
+      }));
+    } catch (e) {}
+  }
+  startPasskey = () => this.go({ stage: 'verifying', banner: null });
+  cancelPasskey = () => { clearTimeout(this.pkTimer); this.go({ stage: 'form', method: 'password', banner: null }); };
+  go(patch) {
+    this.setState(Object.assign({ errors: {}, resent: false }, patch), () => {
+      const s = this.state;
+      if (this.props.onState) this.props.onState({ mode: s.mode, method: s.method, stage: s.stage, banner: s.banner });
+      if (s.stage === 'returning') this.armExit();
+      if (s.stage === 'verifying') this.armPasskey();
+    });
+  }
+  setMode = (v) => this.go({ mode: v, stage: 'form', banner: null, password: '' });
+  useMagic = () => this.go({ method: 'magic', stage: 'form', banner: null, password: '' });
+  usePassword = () => this.go({ method: 'password', stage: 'form', banner: null });
+  goForgot = () => this.go({ mode: 'forgot', method: 'password', stage: 'form', banner: null, password: '' });
+  backToSignIn = () => this.go({ mode: 'signin', method: 'password', stage: 'form', banner: null });
+  signInInstead = () => this.go({ mode: 'signin', method: 'password', stage: 'form', banner: null, password: '' });
+  resend = () => this.setState({ resent: true });
+  submit = () => {
+    const { mode, method, email, password, firstName, lastName } = this.state;
+    const addr = email.trim().toLowerCase();
+    const needName = mode === 'signup' && method === 'password';
+    const errors = {};
+    if (needName && !firstName.trim()) errors.firstName = 'Enter your first name';
+    if (needName && !lastName.trim()) errors.lastName = 'Enter your last name';
+    if (!addr) errors.email = 'Enter your email address';
+    else if (!EMAIL_RE.test(addr)) errors.email = 'Check the email address';
+    if (mode !== 'forgot' && method === 'password' && !password) errors.password = mode === 'signup' ? 'Choose a password' : 'Enter your password';
+    else if (mode === 'signup' && method === 'password' && password.length < 8) errors.password = 'Use at least 8 characters';
+    if (Object.keys(errors).length) { this.setState({ errors, banner: null }); return; }
+    if (mode === 'forgot' || method === 'magic') return this.go({ stage: 'sent' });
+    if (mode === 'signin') {
+      if (password.toLowerCase() === 'wrong') return this.go({ banner: 'credentials' });
+      this.saveSession();
+      return this.go({ stage: 'returning', banner: null });
+    }
+    if (REGISTERED.indexOf(addr) !== -1) return this.go({ banner: 'registered' });
+    this.saveSession();
+    if (!this.props.frozen) { location.href = 'account.dc.html?attached=2'; return; }
+    this.go({ stage: 'form', banner: null });
+  };
+  renderVals() {
+    const { mode, method, stage, banner, email, password, firstName, lastName, errors, resent } = this.state;
+    const isForm = stage === 'form', isSent = stage === 'sent';
+    const isMagic = method === 'magic' && mode !== 'forgot';
+    /* the ops console is the same auth, one surface across: no sign-up, its own
+       destination and session key, dispatch wording */
+    const isOps = this.props.surface === 'ops';
+    return {
+      isOps, notOps: !isOps,
+      hOps: isForm && mode === 'signin' && isOps,
+      sOpsPw: isForm && mode === 'signin' && !isMagic && isOps,
+      n16: 16, n18: 18, n22: 22, yes: true,
+      tabItems: [{ value: 'signin', label: 'Sign in' }, { value: 'signup', label: 'Sign up' }],
+      mode, showTabs: isForm && mode !== 'forgot' && !isOps,
+      isForm, isSent, isReturning: stage === 'returning', isVerifying: stage === 'verifying',
+      showPasskey: isForm && mode === 'signin',
+      startPasskey: this.startPasskey, cancelPasskey: this.cancelPasskey,
+      hSignIn: isForm && mode === 'signin' && !isOps, hSignUp: isForm && mode === 'signup', hForgot: isForm && mode === 'forgot',
+      sSignInPw: isForm && mode === 'signin' && !isMagic && !isOps,
+      sSignInMagic: isForm && mode === 'signin' && isMagic,
+      sSignUpPw: isForm && mode === 'signup' && !isMagic,
+      sSignUpMagic: isForm && mode === 'signup' && isMagic,
+      needName: isForm && mode === 'signup' && !isMagic,
+      needPassword: mode !== 'forgot' && !isMagic,
+      pwAutoComplete: mode === 'signup' ? 'new-password' : 'current-password',
+      pwHint: mode === 'signup' ? 'At least 8 characters.' : undefined,
+      bannerCred: isForm && banner === 'credentials', bannerTaken: isForm && banner === 'registered',
+      ctaSignIn: isForm && mode === 'signin' && !isMagic,
+      ctaSignUp: isForm && mode === 'signup' && !isMagic,
+      ctaMagic: isForm && isMagic,
+      ctaReset: isForm && mode === 'forgot',
+      linkSignInPw: isForm && mode === 'signin' && !isMagic,
+      linkSignUpPw: isForm && mode === 'signup' && !isMagic,
+      isMagic: isForm && isMagic,
+      sentSignIn: isSent && mode === 'signin', sentSignUp: isSent && mode === 'signup', sentForgot: isSent && mode === 'forgot',
+      sentMagicAny: isSent && mode !== 'forgot',
+      emailEcho: email.trim() || 'your email address',
+      email, password, firstName, lastName, resent,
+      setEmail: (e) => this.setState({ email: e.target.value }),
+      setPassword: (e) => this.setState({ password: e.target.value }),
+      setFirstName: (e) => this.setState({ firstName: e.target.value }),
+      setLastName: (e) => this.setState({ lastName: e.target.value }),
+      errEmail: errors.email, errPassword: errors.password, errFirst: errors.firstName, errLast: errors.lastName,
+      setMode: this.setMode, useMagic: this.useMagic, usePassword: this.usePassword,
+      goForgot: this.goForgot, backToSignIn: this.backToSignIn, signInInstead: this.signInInstead,
+      resend: this.resend, submit: this.submit,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

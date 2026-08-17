@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
+     injects every stylesheet and script from <helmet> only after React has loaded, so
+     without these the arriving document paints uncovered frames before
+     vamos-page-transition.js exists and can build its overlay. That script adopts
+     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
+     animation below is the fallback for when the script never runs. -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-tokens.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-assets.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<link rel="stylesheet" href="../../assets/lenis.css">
+<script src="../../assets/lenis.js"></script>
+<script src="../../assets/lenis-boot.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+/* Button hover/press — colour step only, no shadow, no glow */
+.vt-btn{transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
+.vt-btn:hover,.vt-btn:active{box-shadow:none!important}
+.vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
+.vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
+.vt-btn--secondary:hover:not([disabled]){background:var(--vt-charcoal-800)}
+.vt-btn--secondary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn--ghost:hover:not([disabled]),.vt-btn--outline:hover:not([disabled]),.vt-btn--tertiary:hover:not([disabled]){background:var(--vt-grey-50);border-color:var(--vt-charcoal-900)}
+.vt-btn--ghost:active:not([disabled]),.vt-btn--outline:active:not([disabled]),.vt-btn--tertiary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn:focus-visible{box-shadow:var(--vt-ring)!important}
+.vt-btn[disabled],.vt-btn[aria-disabled="true"]{transform:none}.vt-select .vt-input--focus{box-shadow:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}body{margin:0;background:var(--vt-bg-page)}a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}a.vt-btn--ghost:hover{color:var(--vt-text-primary)}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
+</helmet>
+<div style="font-family:var(--vt-font-body);color:var(--vt-text-primary)">
+<dc-import name="SiteHeader" variant="inverse" hint-size="100%,76px"></dc-import>
+<main style="padding-bottom:72px">
+<div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,56px)">
+<div style="padding-top:32px;display:flex;align-items:center;gap:20px;margin-bottom:24px;flex-wrap:wrap">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="sm" icon="chevron-left" href="../home/home.dc.html#fleet" hint-size="150px,36px">{{ tChangeVehicle }}</x-import>
+<div style="flex:1 1 320px;max-width:520px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StepIndicator" steps="{{ steps }}" current="{{ n1 }}" hint-size="100%,28px"></x-import>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:24px;align-items:start">
+<div style="display:flex;flex-direction:column;gap:20px">
+
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" hint-size="100%,260px">
+<h2 style="margin:0 0 16px;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold)">{{ tWhoTravelling }}</h2>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) 1fr;gap:16px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tFirstName }}" required="{{ yes }}" value="{{ firstName }}" onChange="{{ setFirstName }}" error="{{ errFirstName }}" placeholder="Ada" hint-size="100%,78px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tLastName }}" required="{{ yes }}" value="{{ lastName }}" onChange="{{ setLastName }}" error="{{ errLastName }}" placeholder="Lehmann" hint-size="100%,78px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tEmail }}" icon="mail" required="{{ yes }}" value="{{ email }}" onChange="{{ setEmail }}" error="{{ errEmail }}" placeholder="you@example.com" hint="{{ tEmailHint }}" hint-size="100%,78px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tMobile }}" icon="phone" required="{{ yes }}" value="{{ mobile }}" onChange="{{ setMobile }}" error="{{ errMobile }}" placeholder="+41 …" hint="{{ tMobileHint }}" hint-size="100%,78px"></x-import>
+</div>
+<div style="display:flex;gap:24px;margin-top:20px;flex-wrap:wrap">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Radio" name="acct" label="{{ tGuest }}" description="{{ tGuestDesc }}" checked="{{ isGuest }}" onChange="{{ setGuestTrue }}" hint-size="240px,44px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Radio" name="acct" label="{{ tAccount }}" description="{{ tAccountDesc }}" checked="{{ isAccount }}" onChange="{{ setGuestFalse }}" hint-size="240px,44px"></x-import>
+</div>
+</x-import>
+
+<sc-if value="{{ isAirport }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" hint-size="100%,220px">
+<h2 style="margin:0 0 16px;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold)">{{ tFlightDetails }}</h2>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) 1fr;gap:16px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tFlightNumber }}" icon="plane-landing" value="{{ flight }}" onChange="{{ setFlight }}" placeholder="LX317" hint="{{ tFlightHint }}" hint-size="100%,78px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tAirline }}" value="{{ airline }}" onChange="{{ setAirline }}" placeholder="SWISS" hint-size="100%,78px"></x-import>
+</div>
+<div style="margin-top:16px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ tNotes }}" rows="{{ n2 }}" value="{{ notes }}" onChange="{{ setNotes }}" placeholder="{{ tNotesPh }}" hint-size="100%,90px"></x-import>
+</div>
+</x-import>
+</sc-if>
+
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" hint-size="100%,160px">
+<h2 style="margin:0 0 16px;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold)">{{ tExtras }}</h2>
+<div style="display:flex;flex-direction:column;gap:16px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Checkbox" label="{{ tChildSeat }}" description="{{ tChildSeatDesc }}" checked="{{ childSeat }}" onChange="{{ toggleChildSeat }}" hint-size="260px,24px"></x-import>
+<div style="max-width:220px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Counter" label="{{ tAdditionalStops }}" icon="map-pin" value="{{ stops }}" min="{{ n0 }}" max="{{ n3 }}" onChange="{{ setStops }}" hint-size="100%,68px"></x-import>
+</div>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" hint-size="100%,280px">
+<h2 style="margin:0 0 16px;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold)">{{ tPayment }}</h2>
+<div style="display:flex;flex-direction:column;gap:16px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Radio" name="pay" label="{{ tPayCard }}" description="{{ tPayCardDesc }}" checked="{{ payCard }}" onChange="{{ setPayCard }}" hint-size="100%,44px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Radio" name="pay" label="{{ tPayPaypal }}" description="{{ tPayPaypalDesc }}" checked="{{ payPaypal }}" onChange="{{ setPayPaypal }}" hint-size="100%,44px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Radio" name="pay" label="{{ tPayCash }}" description="{{ tPayCashDesc }}" checked="{{ payCash }}" onChange="{{ setPayCash }}" hint-size="100%,44px"></x-import>
+</div>
+<div style="display:flex;align-items:flex-end;gap:12px;margin-top:20px;padding-top:20px;border-top:1px solid var(--vt-border-subtle);flex-wrap:wrap">
+<div style="flex:1 1 200px;max-width:260px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tCoupon }}" icon="ticket" value="{{ coupon }}" onChange="{{ setCoupon }}" placeholder="WELCOME10" hint-size="100%,78px"></x-import>
+</div>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" onClick="{{ applyCoupon }}" hint-size="90px,44px">{{ tApply }}</x-import>
+<sc-if value="{{ hasCoupon }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Tag" icon="ticket" onRemove="{{ removeCoupon }}" hint-size="100px,32px">{{ couponApplied }}</x-import>
+</sc-if>
+</div>
+</x-import>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:16px;position:sticky;top:96px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" style="view-transition-name:vehicle-card" hint-size="100%,520px">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+<h3 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);white-space:nowrap">{{ tYourTransfer }}</h3>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Badge" tone="accent" hint-size="70px,24px">{{ tModeBadge }}</x-import>
+</div>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.RouteSummary" pickup="{{ pickup }}" dropoff="{{ dropoff }}" meta="{{ meta }}" style="view-transition-name:route-block" hint-size="100%,120px"></x-import>
+<div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--vt-border-subtle)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.PriceSummary" lines="{{ lines }}" total="{{ total }}" note="{{ tPriceNote }}" style="view-transition-name:price-block" hint-size="100%,160px"></x-import>
+</div>
+<div style="margin-top:20px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" onClick="{{ pay }}" hint-size="100%,54px">{{ tPayLabel }}</x-import>
+</div>
+<p style="display:flex;gap:8px;align-items:flex-start;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted);margin:16px 0 0">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="shield-check" size="{{ n15 }}" color="var(--vt-success)" hint-size="15px,15px"></x-import>{{ tTerms }}
+</p>
+</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" hint-size="100%,70px">{{ tCallDispatch }}</x-import>
+</div>
+</div>
+</div>
+</main>
+<dc-import name="SiteFooter" hint-size="100%,520px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+function readTrip() {
+  const DEFAULT_TRIP = { mode:'one-way', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'Zurich, Bahnhofstrasse 1', date:'Fri 14 Aug', time:'08:15', pax:2, bags:2, vehicle:'economy' };
+  try { return Object.assign({}, DEFAULT_TRIP, JSON.parse(localStorage.getItem('vamosTrip') || '{}')); }
+  catch (e) { return Object.assign({}, DEFAULT_TRIP); }
+}
+function saveTrip(patch) {
+  const t = Object.assign({}, readTrip(), patch);
+  localStorage.setItem('vamosTrip', JSON.stringify(t));
+  return t;
+}
+const VEHICLE_NAME = { economy:'Economy', van:'Van' };
+const T = {
+  en: {
+    changeVehicle:'Change vehicle', steps:['Trip','Details','Payment'],
+    whoTravelling:'Who is travelling', firstName:'First name', lastName:'Last name', email:'Email', mobile:'Mobile',
+    emailHint:'Your confirmation and voucher go here', mobileHint:'The driver calls this number on arrival',
+    guest:'Continue as guest', guestDesc:'You can claim the booking into an account later',
+    account:'Create an account', accountDesc:'Keeps your booking history and addresses',
+    flightDetails:'Flight and pickup details', flightNumber:'Flight number', airline:'Airline',
+    flightHint:'We track the flight and hold the driver if you land late', notes:'Notes for the driver', notesPh:'Meeting point, gate code, ski equipment…',
+    extras:'Extras', childSeat:'Child seat', childSeatDesc:'Price pending — child-seat fee is a client input', additionalStops:'Additional stops',
+    payment:'Payment', payCard:'Card, Apple Pay or TWINT', payCardDesc:'Charged now, secured by Stripe',
+    payPaypal:'PayPal', payPaypalDesc:'You are redirected to PayPal to approve',
+    payCash:'Cash to the driver', payCashDesc:'Approved routes only — dispatch confirms by email',
+    coupon:'Coupon or voucher code', apply:'Apply',
+    yourTransfer:'Your transfer', oneWay:'One way', return_:'Return',
+    priceNote:'Fixed price, all taxes and tolls included. Free cancellation up to 24 h before pickup.',
+    payLabel:'Pay and confirm', payLabelCash:'Confirm booking',
+    terms:'By continuing you accept the terms and the cancellation policy.',
+    callDispatch:'Need something unusual — a bus, a wedding, an overnight? Call dispatch on +41 79 626 70 82.',
+    lineTransfer:'Transfer, ', lineTransferClass:' class', lineAirportFee:'Airport pickup fee', lineChildSeat:'Child seat × 1',
+    lineStop:'Additional stop × ', lineWaiting:'60 min airport waiting', lineIncluded:'included', lineCoupon:'Coupon ',
+    reqFirstName:'Enter a first name', reqLastName:'Enter a last name', reqEmail:'Enter an email address', reqMobile:'Enter a mobile number',
+    pax:'passengers', bags:'bags',
+  },
+  de: {
+    changeVehicle:'Fahrzeug ändern', steps:['Fahrt','Angaben','Zahlung'],
+    whoTravelling:'Wer reist mit', firstName:'Vorname', lastName:'Nachname', email:'E-Mail', mobile:'Mobilnummer',
+    emailHint:'Bestätigung und Gutschein gehen hierhin', mobileHint:'Der Fahrer ruft diese Nummer bei Ankunft an',
+    guest:'Als Gast fortfahren', guestDesc:'Sie können die Buchung später einem Konto zuordnen',
+    account:'Konto erstellen', accountDesc:'Speichert Buchungsverlauf und Adressen',
+    flightDetails:'Flug- und Abholdetails', flightNumber:'Flugnummer', airline:'Fluggesellschaft',
+    flightHint:'Wir verfolgen den Flug und halten den Fahrer bei Verspätung', notes:'Hinweise für den Fahrer', notesPh:'Treffpunkt, Torcode, Skiausrüstung…',
+    extras:'Extras', childSeat:'Kindersitz', childSeatDesc:'Preis ausstehend — Kindersitzgebühr ist noch offen', additionalStops:'Zusätzliche Stopps',
+    payment:'Zahlung', payCard:'Karte, Apple Pay oder TWINT', payCardDesc:'Wird jetzt belastet, gesichert durch Stripe',
+    payPaypal:'PayPal', payPaypalDesc:'Sie werden zur Bestätigung zu PayPal weitergeleitet',
+    payCash:'Bar beim Fahrer', payCashDesc:'Nur auf freigegebenen Strecken — Dispatch bestätigt per E-Mail',
+    coupon:'Gutschein- oder Rabattcode', apply:'Anwenden',
+    yourTransfer:'Ihr Transfer', oneWay:'Einfache Fahrt', return_:'Rückfahrt',
+    priceNote:'Festpreis, alle Steuern und Gebühren inklusive. Kostenlose Stornierung bis 24 Std. vor Abholung.',
+    payLabel:'Zahlen und bestätigen', payLabelCash:'Buchung bestätigen',
+    terms:'Mit dem Fortfahren akzeptieren Sie die AGB und die Stornobedingungen.',
+    callDispatch:'Etwas Ausgefallenes — ein Bus, eine Hochzeit, eine Übernachtung? Rufen Sie den Dispatch unter +41 79 626 70 82 an.',
+    lineTransfer:'Transfer, ', lineTransferClass:'-Klasse', lineAirportFee:'Flughafengebühr', lineChildSeat:'Kindersitz × 1',
+    lineStop:'Zusätzlicher Stopp × ', lineWaiting:'60 Min. Wartezeit am Flughafen', lineIncluded:'inklusive', lineCoupon:'Gutschein ',
+    reqFirstName:'Vornamen eingeben', reqLastName:'Nachnamen eingeben', reqEmail:'E-Mail-Adresse eingeben', reqMobile:'Mobilnummer eingeben',
+    pax:'Passagiere', bags:'Gepäckstücke',
+  },
+};
+class Component extends DCLogic {
+  state = {
+    lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en',
+    trip: readTrip(),
+    firstName:'', lastName:'', email:'', mobile:'', guest:true,
+    flight:'', airline:'', notes:'',
+    childSeat:false, stops:0,
+    pay:'card', coupon:'', couponApplied:null,
+    errors:{},
+  };
+  componentDidMount() {
+    this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
+    window.addEventListener('vamos:locale', this._onLocale);
+  }
+  componentWillUnmount() { if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale); }
+  setField = (key) => (e) => this.setState({ [key]: e.target.value });
+  applyCoupon = () => { if (this.state.coupon) this.setState({ couponApplied: this.state.coupon.toUpperCase(), coupon:'' }); };
+  removeCoupon = () => this.setState({ couponApplied: null });
+  pay = () => {
+    const t = T[this.state.lang] || T.en;
+    const errors = {};
+    if (!this.state.firstName.trim()) errors.firstName = t.reqFirstName;
+    if (!this.state.lastName.trim()) errors.lastName = t.reqLastName;
+    if (!this.state.email.trim()) errors.email = t.reqEmail;
+    if (!this.state.mobile.trim()) errors.mobile = t.reqMobile;
+    if (Object.keys(errors).length) { this.setState({ errors }); return; }
+    const ref = 'VT-' + (5000 + Math.floor(Math.random() * 900));
+    saveTrip({
+      firstName: this.state.firstName, lastName: this.state.lastName, email: this.state.email, mobile: this.state.mobile,
+      flight: this.state.flight, airline: this.state.airline, notes: this.state.notes,
+      childSeat: this.state.childSeat, stops: this.state.stops,
+      pay: this.state.pay, couponApplied: this.state.couponApplied,
+      bookingRef: ref, status: 'confirmed',
+    });
+    location.href = 'confirmation.dc.html';
+  };
+  renderVals() {
+    const t = T[this.state.lang] || T.en;
+    const trip = this.state.trip;
+    const isAirport = /airport|zrh|gva/i.test(trip.pickup + ' ' + trip.dropoff);
+    const vehicleName = trip.vehicleName || VEHICLE_NAME[trip.vehicle] || 'Business';
+    const lines = [
+      { label: t.lineTransfer + vehicleName + t.lineTransferClass, value: 'CHF 000.00' },
+    ];
+    if (isAirport) lines.push({ label: t.lineAirportFee, value: 'CHF 00.00' });
+    if (this.state.childSeat) lines.push({ label: t.lineChildSeat, value: 'CHF 00.00' });
+    if (this.state.stops > 0) lines.push({ label: t.lineStop + this.state.stops, value: 'CHF 00.00' });
+    lines.push({ label: t.lineWaiting, value: t.lineIncluded, muted: true });
+    if (this.state.couponApplied) lines.push({ label: t.lineCoupon + this.state.couponApplied, value: '− CHF 00.00', credit: true });
+    return {
+      n0:0, n1:1, n2:2, n3:3, n15:15, yes:true, no:false,
+      tChangeVehicle: t.changeVehicle, steps: t.steps,
+      tWhoTravelling: t.whoTravelling, tFirstName: t.firstName, tLastName: t.lastName, tEmail: t.email, tMobile: t.mobile,
+      tEmailHint: t.emailHint, tMobileHint: t.mobileHint,
+      firstName: this.state.firstName, setFirstName: this.setField('firstName'), errFirstName: this.state.errors.firstName,
+      lastName: this.state.lastName, setLastName: this.setField('lastName'), errLastName: this.state.errors.lastName,
+      email: this.state.email, setEmail: this.setField('email'), errEmail: this.state.errors.email,
+      mobile: this.state.mobile, setMobile: this.setField('mobile'), errMobile: this.state.errors.mobile,
+      tGuest: t.guest, tGuestDesc: t.guestDesc, tAccount: t.account, tAccountDesc: t.accountDesc,
+      isGuest: this.state.guest, isAccount: !this.state.guest,
+      setGuestTrue: () => this.setState({ guest: true }), setGuestFalse: () => this.setState({ guest: false }),
+      isAirport,
+      tFlightDetails: t.flightDetails, tFlightNumber: t.flightNumber, tAirline: t.airline, tFlightHint: t.flightHint,
+      tNotes: t.notes, tNotesPh: t.notesPh,
+      flight: this.state.flight, setFlight: this.setField('flight'), airline: this.state.airline, setAirline: this.setField('airline'),
+      notes: this.state.notes, setNotes: this.setField('notes'),
+      tExtras: t.extras, tChildSeat: t.childSeat, tChildSeatDesc: t.childSeatDesc, tAdditionalStops: t.additionalStops,
+      childSeat: this.state.childSeat, toggleChildSeat: () => this.setState((s) => ({ childSeat: !s.childSeat })),
+      stops: this.state.stops, setStops: (n) => this.setState({ stops: n }),
+      tPayment: t.payment, tPayCard: t.payCard, tPayCardDesc: t.payCardDesc, tPayPaypal: t.payPaypal, tPayPaypalDesc: t.payPaypalDesc,
+      tPayCash: t.payCash, tPayCashDesc: t.payCashDesc,
+      payCard: this.state.pay === 'card', payPaypal: this.state.pay === 'paypal', payCash: this.state.pay === 'cash',
+      setPayCard: () => this.setState({ pay: 'card' }), setPayPaypal: () => this.setState({ pay: 'paypal' }), setPayCash: () => this.setState({ pay: 'cash' }),
+      tCoupon: t.coupon, tApply: t.apply,
+      coupon: this.state.coupon, setCoupon: this.setField('coupon'), applyCoupon: this.applyCoupon,
+      hasCoupon: !!this.state.couponApplied, couponApplied: this.state.couponApplied || '', removeCoupon: this.removeCoupon,
+      tYourTransfer: t.yourTransfer, tModeBadge: trip.mode === 'return' ? t.return_ : t.oneWay,
+      pickup: trip.pickup, dropoff: trip.dropoff,
+      meta: [
+        { icon:'calendar', label: trip.date }, { icon:'clock', label: trip.time }, { icon:'car', label: vehicleName },
+      ],
+      lines, total: 'CHF 000.00', tPriceNote: t.priceNote,
+      tPayLabel: this.state.pay === 'cash' ? t.payLabelCash : t.payLabel, pay: this.pay,
+      tTerms: t.terms, tCallDispatch: t.callDispatch,
+    };
+  }
+}
+</script>
+</body>
+</html>

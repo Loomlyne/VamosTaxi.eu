@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
+     injects every stylesheet and script from <helmet> only after React has loaded, so
+     without these the arriving document paints uncovered frames before
+     vamos-page-transition.js exists and can build its overlay. That script adopts
+     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
+     animation below is the fallback for when the script never runs. -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<title>Vamos Taxi — Coming soon</title>
+<link rel="icon" href="../../assets/logo/favicon.svg">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<link rel="stylesheet" href="../../assets/lenis.css">
+<script src="../../assets/lenis.js"></script>
+<script src="../../assets/lenis-boot.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+/* Button hover/press — colour step only, no shadow, no glow */
+.vt-btn{transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
+.vt-btn:hover,.vt-btn:active{box-shadow:none!important}
+.vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
+.vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
+.vt-btn--secondary:hover:not([disabled]){background:var(--vt-charcoal-800)}
+.vt-btn--secondary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn--ghost:hover:not([disabled]),.vt-btn--outline:hover:not([disabled]),.vt-btn--tertiary:hover:not([disabled]){background:var(--vt-grey-50);border-color:var(--vt-charcoal-900)}
+.vt-btn--ghost:active:not([disabled]),.vt-btn--outline:active:not([disabled]),.vt-btn--tertiary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn:focus-visible{box-shadow:var(--vt-ring)!important}
+.vt-btn[disabled],.vt-btn[aria-disabled="true"]{transform:none}
+body{margin:0;background:var(--vt-charcoal);color:var(--vt-white)}
+a{color:var(--vt-text-link);border-bottom:0}
+a:hover{color:var(--vt-text-link-hover)}
+/* Defaults a state or media rule has to beat live here, not inline — an inline
+   value outranks a stylesheet rule and would leave the state dead. */
+[data-cs-lang]{appearance:none;color:rgb(255 255 255 / .62);border:0;border-radius:999px;background:rgb(255 255 255 / 0)}
+[data-cs-tel]{color:var(--vt-white);border:1px solid rgb(255 255 255 / .16);background:rgb(255 255 255 / .07)}
+[data-cs-bar]{min-height:76px}
+[data-cs-foot]{padding-bottom:clamp(16px,2.4vw,26px)}
+/* Hover is a colour step, press moves 1px, focus shows the ring — no glow. */
+[data-cs-lang]:hover:not([data-on="1"]){color:var(--vt-white);background:rgb(255 255 255 / .12)}
+[data-cs-lang]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
+[data-cs-lang][data-on="1"]{color:var(--vt-text-on-accent);background:var(--vt-accent)}
+[data-cs-tel]:hover{color:var(--vt-white);border-color:rgb(255 255 255 / .42);background:rgb(255 255 255 / .12)}
+[data-cs-tel]:active{transform:translateY(1px)}
+[data-cs-tel]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
+/* The headline is printed inside the halftone screen, so the DOM copy stays for
+   screen readers, translation and search — not for sighted layout. */
+[data-cs-sr]{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+@keyframes vt-cs-in{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+[data-cs-anim]{opacity:0;animation:vt-cs-in 620ms cubic-bezier(.16,1,.3,1) forwards}
+@media (max-width:1080px){[data-cs-bar]{min-height:60px}}
+@media (max-width:680px){[data-cs-rail]{flex-wrap:wrap;gap:10px}[data-cs-foot]{padding-bottom:18px}}
+@media (prefers-reduced-motion:reduce){[data-cs-anim]{animation:none;opacity:1}}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
+</helmet>
+<div data-screen-label="Coming soon" ref="{{ rootRef }}" style="position:relative;isolation:isolate;overflow:hidden;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;background:var(--vt-charcoal);color:var(--vt-white);font-family:var(--vt-font-body)">
+
+<x-import component-from-global-scope="cubes-grid" from="./cubes-grid.js" cube="{{ cubeSize }}" gap="8" max-angle="{{ maxAngle }}" radius="5.5" face="#1E1F1F" ripple="#FDC20B" ripple-speed="1.6" auto-animate="{{ autoAnimate }}" hint-size="100%,100%" style="position:absolute;inset:0;z-index:0;pointer-events:none;--cg-face:#1E1F1F;--cg-border:1px solid rgb(255 255 255 / .14)"></x-import>
+
+<div style="position:absolute;inset:0;z-index:2;display:grid;place-items:center;padding:0 clamp(20px,5vw,56px);pointer-events:none">
+<h1 data-cs-anim="1" style="margin:0;font-family:var(--vt-font-display);font-size:clamp(48px,8.4vw,124px);font-weight:600;letter-spacing:-0.02em;line-height:1.04;color:var(--vt-white);text-align:center;text-wrap:balance;animation-delay:240ms">Coming soon</h1>
+</div>
+
+<img data-cs-mark="1" src="../../assets/patterns/checker-mark.png" alt="" aria-hidden="true" style="position:absolute;top:0;inset-inline-end:0;z-index:2;width:clamp(68px,7.4vw,112px);height:auto;pointer-events:none">
+
+<header style="position: relative; z-index: 3; flex: 0 0 auto">
+<div data-cs-bar="1" style="display:flex;align-items:center;max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,56px)">
+<span data-cs-anim="1" style="display:inline-flex;animation-delay:80ms"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" form="wordmark" height="{{ n30 }}" hint-size="217px,30px"></x-import></span>
+</div>
+</header>
+
+<main style="position:relative;z-index:3;flex:1 1 auto;display:flex;align-items:flex-end;width:100%;box-sizing:border-box;max-width:1200px;margin:0 auto;padding:clamp(28px,5vw,64px) clamp(20px,5vw,56px) clamp(20px,3vw,34px);pointer-events:none">
+<div style="display:flex;flex-direction:column;align-items:flex-start;gap:14px;max-width:620px;min-width:0">
+
+<p data-cs-anim="1" style="display:flex;align-items:center;gap:14px;margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-md);font-weight:600;letter-spacing:.09em;text-transform:uppercase;white-space:nowrap;color:rgb(255 255 255 / .66);animation-delay:400ms">
+<span aria-hidden="true" style="display:flex;gap:4px;flex:0 0 auto">
+<span style="width:7px;height:7px;background:var(--vt-accent)"></span>
+<span style="width:7px;height:7px;background:var(--vt-accent)"></span>
+<span style="width:7px;height:7px;background:var(--vt-accent)"></span>
+</span>
+Zurich · Geneva
+</p>
+
+<p data-cs-anim="1" style="margin:0;max-width:38ch;font-size:clamp(16px,1.5vw,20px);line-height:1.6;color:rgb(255 255 255 / .74);text-wrap:pretty;animation-delay:480ms">The new Vamos Taxi is on its way.</p>
+
+</div>
+</main>
+
+<footer data-cs-foot="1" style="position: relative; z-index: 3; flex: 0 0 auto">
+<div data-cs-rail="1" data-cs-anim="1" style="display:flex;align-items:center;justify-content:space-between;gap:20px;max-width:1200px;margin:0 auto;padding:14px clamp(20px,5vw,56px) 0;border-top:1px solid rgb(255 255 255 / .14);animation-delay:560ms">
+
+<div role="group" aria-label="Language" style="display:flex;align-items:center;gap:2px;min-width:0;flex:0 0 auto;padding:3px;border-radius:999px;border:1px solid rgb(255 255 255 / .16);background:rgb(255 255 255 / .07)">
+<sc-for list="{{ langs }}" as="l" hint-placeholder-count="4">
+<button type="button" data-cs-lang="1" data-on="{{ l.on }}" aria-current="{{ l.ac }}" title="{{ l.name }}" onClick="{{ l.pick }}" style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:0 15px;font-family:var(--vt-font-body);font-size:13px;font-weight:600;letter-spacing:.09em;cursor:pointer;transition:var(--vt-transition-control)">{{ l.code }}</button>
+</sc-for>
+</div>
+
+<sc-if value="{{ showPhone }}" hint-placeholder-val="{{ true }}">
+<a data-cs-tel="1" href="tel:+41796267082" aria-label="Call us" dir="ltr" style="display:inline-flex;align-items:center;gap:10px;flex:0 0 auto;min-height:44px;padding:0 18px;border-radius:999px;text-decoration:none;font-size:14px;font-weight:600;letter-spacing:.01em;white-space:nowrap;font-variant-numeric:tabular-nums;transition:var(--vt-transition-control)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="phone" size="{{ n16 }}" hint-size="16px,16px"></x-import>
++41 79 626 70 82
+</a>
+</sc-if>
+
+</div>
+</footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;cubeSize&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:18,&quot;max&quot;:120,&quot;step&quot;:2,&quot;default&quot;:34,&quot;unit&quot;:&quot;px&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Cube field&quot;},&quot;maxAngle&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:0,&quot;max&quot;:90,&quot;step&quot;:2,&quot;default&quot;:52,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Cube field&quot;},&quot;autoAnimate&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Cube field&quot;},&quot;showPhone&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Footer&quot;}}">
+const LANGS = [
+  { code: 'EN', v: 'en', name: 'English' },
+  { code: 'DE', v: 'de', name: 'Deutsch' },
+  { code: 'FR', v: 'fr', name: 'Français' },
+  { code: 'AR', v: 'ar', name: 'العربية' },
+];
+
+/* Two VamosLocale builds can win the window in this platform — the app store
+   (`lang()` a getter) and the design-system bundle (`lang` a string). Read
+   through helpers so the page is right whichever one lands last. */
+function curLang() {
+  const d = document.documentElement.getAttribute('lang');
+  if (d) return d;
+  const L = window.VamosLocale;
+  if (!L) return 'en';
+  return (typeof L.lang === 'function' ? L.lang() : L.lang) || 'en';
+}
+function tr(s) {
+  const L = window.VamosLocale;
+  try {
+    const hit = L && L.t && L.t(s);
+    if (hit && hit !== s) return hit;
+    const d = window.VamosI18n && window.VamosI18n.strings && window.VamosI18n.strings[s];
+    const lang = curLang();
+    return (d && d[lang]) || s;
+  } catch (e) { return s; }
+}
+
+function loc() { return window.VamosLocale || null; }
+
+/* Platform guard, not a second dictionary. The design-system bundle ships its own
+   VamosLocale on a non-configurable global and loads async; app/vamos-locale.js
+   opens with `if (window.VamosLocale) return;`, so on this page the app store never
+   initialises and none of the app's 888 strings translate. This walks the page's own
+   subtree and applies `window.VamosI18n` — the same shared table every other surface
+   uses. Delete it the day the two builds are reconciled. */
+const ORIG = new WeakMap();
+const ATTRS = ['placeholder', 'aria-label', 'title', 'alt'];
+
+function pick(src, lang) {
+  const S = window.VamosI18n && window.VamosI18n.strings;
+  const hit = S && S[src];
+  if (hit && hit[lang]) return hit[lang];
+  const P = window.VamosI18n && window.VamosI18n.patterns;
+  if (P) {
+    for (const p of P) {
+      const m = p.re.exec(src);
+      if (m && p[lang]) return p[lang].replace(/\$(\d)/g, (_, i) => m[+i] || '');
+    }
+  }
+  return null;
+}
+
+function relabel(root, lang) {
+  if (!root) return;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  for (let n = walker.nextNode(); n; n = walker.nextNode()) nodes.push(n);
+  for (const n of nodes) {
+    const raw = (ORIG.has(n) ? ORIG.get(n) : n.nodeValue) || '';
+    if (!raw.trim()) continue;
+    ORIG.set(n, raw);
+    const out = lang === 'en' ? raw : (pick(raw.trim(), lang) || raw);
+    if (n.nodeValue !== out) n.nodeValue = out;
+  }
+  for (const el of root.querySelectorAll('[' + ATTRS.join('],[') + ']')) {
+    for (const a of ATTRS) {
+      if (!el.hasAttribute(a)) continue;
+      const key = 'data-vt-orig-' + a;
+      const raw = el.getAttribute(key) || el.getAttribute(a);
+      if (!raw || !raw.trim()) continue;
+      el.setAttribute(key, raw);
+      const out = lang === 'en' ? raw : (pick(raw.trim(), lang) || raw);
+      if (el.getAttribute(a) !== out) el.setAttribute(a, out);
+    }
+  }
+}
+
+class Component extends DCLogic {
+  state = { lang: 'en' };
+  _root = React.createRef();
+
+  componentDidUpdate() { relabel(this._root.current, this.state.lang); }
+
+  componentDidMount() {
+    const sync = () => this.setState({ lang: curLang() }, () => relabel(this._root.current, curLang()));
+    const L = loc();
+    if (L && L.onChange) this._off = L.onChange(sync);
+    this._evt = sync;
+    window.addEventListener('vamos:locale', this._evt);
+    /* Whichever store wins, it ends by writing lang/dir on <html> — watching that
+       attribute is the one signal both builds agree on. */
+    this._mo = new MutationObserver(sync);
+    this._mo.observe(document.documentElement, { attributes: true, attributeFilter: ['lang', 'dir'] });
+    this._t1 = setTimeout(sync, 500);
+    /* The bundle's own observer keeps rewriting nodes after boot; a couple of late
+       passes settle Arabic instead of leaving half the page in English. */
+    this._t2 = setTimeout(() => relabel(this._root.current, curLang()), 1200);
+    this._t3 = setTimeout(() => relabel(this._root.current, curLang()), 2400);
+  }
+
+  componentWillUnmount() {
+    if (this._off) this._off();
+    if (this._mo) this._mo.disconnect();
+    [this._t1, this._t2, this._t3].forEach((t) => t && clearTimeout(t));
+    window.removeEventListener('vamos:locale', this._evt);
+  }
+
+  renderVals() {
+    const cur = this.state.lang;
+    return {
+      n16: 16,
+      n30: 30,
+      rootRef: this._root,
+      cubeSize: this.props.cubeSize ?? 34,
+      maxAngle: this.props.maxAngle ?? 52,
+      autoAnimate: this.props.autoAnimate === false ? 'false' : 'true',
+      showPhone: this.props.showPhone !== false,
+      langs: LANGS.map((l) => ({
+        code: l.code,
+        name: l.name,
+        on: l.v === cur ? '1' : '0',
+        ac: l.v === cur ? 'true' : undefined,
+        pick: () => {
+          const L = loc();
+          if (L && L.setLang) L.setLang(l.v);
+          this.setState({ lang: l.v });
+        },
+      })),
+    };
+  }
+}
+</script>
+</body>
+</html>

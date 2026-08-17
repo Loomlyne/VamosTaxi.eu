@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+[data-rate-grid]{display:grid;grid-template-columns:1fr;gap:16px}
+@media (min-width:760px){[data-rate-grid]{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:1000px){[data-price-rail]{position:sticky;top:24px}}
+</style>
+</helmet>
+<main style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
+
+<header style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle)">
+<div style="min-width:0">
+<h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tTitle }}</h1>
+<p style="margin:4px 0 0;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSubtitle }}</p>
+</div>
+<div style="margin-inline-start:auto;display:flex;flex-wrap:wrap;align-items:center;gap:10px">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ tCurrencyLabel }}</span>
+<div style="display:flex;gap:6px">
+<sc-for list="{{ currencies }}" as="cu" hint-placeholder-count="3">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Tag" active="{{ cu.active }}" onClick="{{ cu.pick }}" data-vt-no-i18n="1" hint-size="60px,34px">{{ cu.code }}</x-import>
+</sc-for>
+</div>
+</div>
+</header>
+
+<div data-set-grid="1" style="padding:26px 32px 44px">
+
+<div data-price-rail="1" style="display:flex;flex-direction:column;gap:14px;min-width:0">
+<nav data-set-rail="1" aria-label="{{ tTitle }}">
+<sc-for list="{{ panes }}" as="p" hint-placeholder-count="3">
+<button type="button" data-set-item="1" data-on="{{ p.on }}" onClick="{{ p.pick }}" title="{{ p.label }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ p.icon }}" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+<span style="flex:1 1 auto;min-width:0">
+<span style="display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.label }}</span>
+<span data-set-hint="1">{{ p.hint }}</span>
+</span>
+</button>
+</sc-for>
+</nav>
+
+<aside role="note" style="box-sizing:border-box;display:flex;flex-direction:column;gap:6px;padding:16px 18px;background:var(--vt-bg-inverse);border-radius:var(--vt-radius-lg);min-width:0">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">{{ tAlertTitle }}</span>
+<p style="margin:0;font-size:var(--vt-body-xs);line-height:1.55;color:var(--vt-text-inverse-muted);text-wrap:pretty">{{ tAlertBody }}</p>
+</aside>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+
+<sc-if value="{{ isRoutes }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;min-width:0">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Badge" tone="outline" hint-size="150px,26px">{{ tRoutesConfigured }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Badge" tone="inverse" hint-size="110px,26px">{{ tNotLive }}</x-import>
+</div>
+<dc-import name="OpsTable" rows="{{ routes }}" columns="{{ routeColumns }}" fields="{{ routeFields }}" blank="{{ routeBlank }}" onSave="{{ saveRoute }}" onDelete="{{ deleteRoute }}" noun="{{ tNounRoute }}" noun-plural="{{ tNounRoutes }}" add-title="{{ tAddRoute }}" edit-title="{{ tEditRoute }}" delete-title="{{ tDeleteRouteTitle }}" label-key="routeLabel" add-label="{{ tAddRoute }}" search-placeholder="{{ tSearchRoutes }}" search-keys="{{ routeSearchKeys }}" empty-title="{{ tEmptyRoutesTitle }}" empty-body="{{ tEmptyRoutesBody }}" delete-body="{{ tDeleteRouteBody }}" hint-size="100%,420px"></dc-import>
+</sc-if>
+
+<sc-if value="{{ isDistance }}" hint-placeholder-val="{{ false }}">
+<div data-rate-grid="1" style="min-width:0">
+<sc-for list="{{ classes }}" as="c" hint-placeholder-count="4">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" hint-size="100%,440px">
+<div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+<div style="display:flex;align-items:center;gap:10px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ c.icon }}" size="{{ n18 }}" color="var(--vt-charcoal-900)" hint-size="18px,18px"></x-import>
+<h3 data-vt-no-i18n="1" style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold)">{{ c.name }}</h3>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ c.pricingLabel }}</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tBaseFare }}" icon="banknote" suffix="{{ cur }}" value="{{ c.baseFare }}" onChange="{{ c.setBase }}" placeholder="000" size="md" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tPerKm }}" icon="navigation" suffix="{{ cur }}" value="{{ c.perKm }}" onChange="{{ c.setPerKm }}" placeholder="0.00" size="md" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tMinFare }}" icon="banknote" suffix="{{ cur }}" value="{{ c.minFare }}" onChange="{{ c.setMinFare }}" placeholder="000" size="md" hint-size="100%,76px"></x-import>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;padding-top:14px;border-top:1px solid var(--vt-border-subtle);min-width:0">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ tCapacityLabel }}</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tMaxPax }}" icon="users" type="number" min="{{ n1 }}" value="{{ c.maxPax }}" onChange="{{ c.setMaxPax }}" size="md" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" label="{{ tAvailable }}" checked="{{ c.available }}" onChange="{{ c.toggleAvailable }}" hint-size="200px,24px"></x-import>
+</div>
+</div>
+</x-import>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ isSurcharges }}" hint-placeholder-val="{{ false }}">
+<dc-import name="OpsTable" rows="{{ surcharges }}" columns="{{ surchargeColumns }}" fields="{{ surchargeFields }}" blank="{{ surchargeBlank }}" onSave="{{ saveSurcharge }}" onDelete="{{ deleteSurcharge }}" noun="{{ tNounSurcharge }}" noun-plural="{{ tNounSurcharges }}" add-title="{{ tAddSurcharge }}" edit-title="{{ tEditSurcharge }}" delete-title="{{ tDeleteSurchargeTitle }}" label-key="label" add-label="{{ tAddSurcharge }}" search-placeholder="{{ tSearchSurcharges }}" search-keys="{{ surchargeSearchKeys }}" empty-title="{{ tEmptySurchargesTitle }}" empty-body="{{ tEmptySurchargesBody }}" delete-body="{{ tDeleteSurchargeBody }}" hint-size="100%,420px"></dc-import>
+</sc-if>
+
+</div>
+</div>
+</main>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const RATE_ICON = { Economy:'car-front', Business:'car', First:'star', Van:'bus' };
+const CLASS_KEYS = ['economy', 'business', 'van'];
+const PANES = [
+  { key:'routes', icon:'navigation' },
+  { key:'distance', icon:'arrow-left-right' },
+  { key:'surcharges', icon:'banknote' },
+];
+/* Pricing & routes reads and writes window.VamosOps directly. Every priced field
+   (route class prices, distance-rule rates, surcharge amounts) is stored per
+   currency \u2014 dispatch can genuinely price differently in EUR than in CHF, not
+   just relabel the same figure (contrast VamosLocale.money(), which only swaps
+   the mark). The screen's currency switcher IS the platform currency
+   (VamosLocale.setCur) per CLAUDE.md \u2014 one store, no per-section state \u2014 so every
+   field on screen shows and edits whichever currency is currently active; every
+   figure still reads 000/0.00/00 on purpose (design system \u00a72), a placeholder
+   in every currency alike. */
+const T = {
+  en: { title:'Pricing & routes', subtitle:'Fixed routes, distance rules and surcharges',
+    alertTitle:'Every figure here is a placeholder', alertBody:'Base fares, per-kilometre rates, surcharges and the fixed-route inventory are blocking client inputs. Nothing on this screen is a real Vamos Taxi price.',
+    tabRoutes:'Fixed routes', tabDistance:'Distance rules', tabSurcharges:'Surcharges & extras',
+    hintRoutes:'Airport to resort, one price', hintDistance:'Base fare and per kilometre', hintSurcharges:'Night, waiting, extras',
+    routesConfigured:(n) => n + ' routes configured', notLive:(n) => n + ' not live',
+    currencyLabel:'Pricing currency', hCurrencyField:'Changes the console’s currency everywhere, not just here.',
+    colId:'ID', colFrom:'From', colTo:'To', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Draft',
+    pricingSection:(cur) => 'Pricing in ' + cur, capacitySection:'Capacity & availability',
+    baseFare:'Base fare', perKm:'Per kilometre', minFare:'Minimum fare', maxPax:'Max passengers', available:'Available for booking',
+    colRule:'Rule', colAppliesWhen:'Applies when', colAmount:'Amount',
+    addRoute:'Add fixed route', editRoute:'Edit fixed route', deleteRouteTitle:'Delete this route?', deleteRouteBody:'The route is removed from the price list immediately.',
+    emptyRoutesTitle:'No fixed routes yet', emptyRoutesBody:'Add a route and it appears in the price list as soon as you switch it live.',
+    searchRoutes:'From, to or ID', nounRoute:'route', nounRoutes:'routes',
+    hRoutePrice:'Leave empty if this class isn\u2019t offered on this route.', fLive:'Live for booking', hLive:'Off keeps the route on file but hides it from the booking flow.',
+    addSurcharge:'Add surcharge', editSurcharge:'Edit surcharge', deleteSurchargeTitle:'Delete this surcharge?', deleteSurchargeBody:'It stops applying to new fares immediately.',
+    emptySurchargesTitle:'No surcharges yet', emptySurchargesBody:'Add a rule and it applies to every fare it matches.',
+    searchSurcharges:'Rule or note', nounSurcharge:'surcharge', nounSurcharges:'surcharges',
+    fUnit:'Unit', hSurchargeValue:(cur) => 'The amount in ' + cur + ', or the percentage \u2014 ignored when the unit is Included.',
+    unitAmount:'Fixed amount, in the selected currency', unitPct:'% of the fare', unitIncluded:'Included, no charge', included:'Included',
+  },
+  de: { title:'Preise & Routen', subtitle:'Feste Routen, Distanzregeln und Zuschläge',
+    alertTitle:'Jeder Wert hier ist ein Platzhalter', alertBody:'Grundpreise, Kilometersätze, Zuschläge und das Streckenangebot sind noch offene Kundendaten. Nichts auf diesem Bildschirm ist ein echter Vamos-Taxi-Preis.',
+    tabRoutes:'Feste Routen', tabDistance:'Distanzregeln', tabSurcharges:'Zuschläge & Extras',
+    hintRoutes:'Flughafen bis Resort, ein Preis', hintDistance:'Grundpreis und pro Kilometer', hintSurcharges:'Nacht, Wartezeit, Extras',
+    routesConfigured:(n) => n + ' Routen konfiguriert', notLive:(n) => n + ' nicht live',
+    currencyLabel:'Preiswährung', hCurrencyField:'Ändert die Währung für die ganze Konsole, nicht nur hier.',
+    colId:'ID', colFrom:'Von', colTo:'Nach', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Entwurf',
+    pricingSection:(cur) => 'Preise in ' + cur, capacitySection:'Kapazität & Verfügbarkeit',
+    baseFare:'Grundpreis', perKm:'Pro Kilometer', minFare:'Mindestpreis', maxPax:'Max. Passagiere', available:'Für Buchung verfügbar',
+    colRule:'Regel', colAppliesWhen:'Gilt bei', colAmount:'Betrag',
+    addRoute:'Feste Route hinzufügen', editRoute:'Feste Route bearbeiten', deleteRouteTitle:'Diese Route löschen?', deleteRouteBody:'Die Route wird sofort aus der Preisliste entfernt.',
+    emptyRoutesTitle:'Noch keine festen Routen', emptyRoutesBody:'Route hinzufügen — sie erscheint in der Preisliste, sobald sie live geschaltet ist.',
+    searchRoutes:'Von, nach oder ID', nounRoute:'Route', nounRoutes:'Routen',
+    hRoutePrice:'Leer lassen, wenn diese Klasse auf dieser Route nicht angeboten wird.', fLive:'Für Buchung live', hLive:'Aus behält die Route, blendet sie aber aus dem Buchungsablauf aus.',
+    addSurcharge:'Zuschlag hinzufügen', editSurcharge:'Zuschlag bearbeiten', deleteSurchargeTitle:'Diesen Zuschlag löschen?', deleteSurchargeBody:'Er gilt sofort nicht mehr für neue Fahrpreise.',
+    emptySurchargesTitle:'Noch keine Zuschläge', emptySurchargesBody:'Regel hinzufügen — sie gilt für jeden Fahrpreis, auf den sie zutrifft.',
+    searchSurcharges:'Regel oder Notiz', nounSurcharge:'Zuschlag', nounSurcharges:'Zuschläge',
+    fUnit:'Einheit', hSurchargeValue:(cur) => 'Der Betrag in ' + cur + ', oder der Prozentsatz — wird bei „Inklusive“ ignoriert.',
+    unitAmount:'Fester Betrag, in der gewählten Währung', unitPct:'% des Fahrpreises', unitIncluded:'Inklusive, ohne Aufpreis', included:'Inklusive',
+  },
+  fr: { title:'Tarifs & trajets', subtitle:'Trajets fixes, règles de distance et suppléments',
+    alertTitle:'Chaque montant ici est un espace réservé', alertBody:'Les tarifs de base, les prix au kilomètre, les suppléments et la liste des trajets fixes sont des données client en attente. Aucun montant de cet écran n\u2019est un vrai prix Vamos Taxi.',
+    tabRoutes:'Trajets fixes', tabDistance:'Règles de distance', tabSurcharges:'Suppléments & extras',
+    hintRoutes:'Aéroport à station, un prix', hintDistance:'Tarif de base et par kilomètre', hintSurcharges:'Nuit, attente, extras',
+    routesConfigured:(n) => n + ' trajets configurés', notLive:(n) => n + ' hors ligne',
+    currencyLabel:'Devise des tarifs', hCurrencyField:'Change la devise pour toute la console, pas seulement ici.',
+    colId:'ID', colFrom:'De', colTo:'À', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'En ligne', live:'En ligne', draft:'Brouillon',
+    pricingSection:(cur) => 'Tarifs en ' + cur, capacitySection:'Capacité & disponibilité',
+    baseFare:'Tarif de base', perKm:'Par kilomètre', minFare:'Tarif minimum', maxPax:'Passagers max.', available:'Disponible à la réservation',
+    colRule:'Règle', colAppliesWhen:'S\u2019applique quand', colAmount:'Montant',
+    addRoute:'Ajouter un trajet fixe', editRoute:'Modifier le trajet fixe', deleteRouteTitle:'Supprimer ce trajet ?', deleteRouteBody:'Le trajet est retiré de la liste de prix immédiatement.',
+    emptyRoutesTitle:'Aucun trajet fixe', emptyRoutesBody:'Ajoutez un trajet : il apparaît dans la liste de prix dès qu\u2019il est activé.',
+    searchRoutes:'De, à ou ID', nounRoute:'trajet', nounRoutes:'trajets',
+    hRoutePrice:'Laissez vide si cette classe n\u2019est pas proposée sur ce trajet.', fLive:'En ligne pour la réservation', hLive:'Désactivé conserve le trajet mais le masque du parcours de réservation.',
+    addSurcharge:'Ajouter un supplément', editSurcharge:'Modifier le supplément', deleteSurchargeTitle:'Supprimer ce supplément ?', deleteSurchargeBody:'Il ne s\u2019applique plus aux nouveaux tarifs, immédiatement.',
+    emptySurchargesTitle:'Aucun supplément', emptySurchargesBody:'Ajoutez une règle : elle s\u2019applique à chaque tarif concerné.',
+    searchSurcharges:'Règle ou note', nounSurcharge:'supplément', nounSurcharges:'suppléments',
+    fUnit:'Unité', hSurchargeValue:(cur) => 'Le montant en ' + cur + ', ou le pourcentage — ignoré quand l\u2019unité est Inclus.',
+    unitAmount:'Montant fixe, dans la devise choisie', unitPct:'% du tarif', unitIncluded:'Inclus, sans supplément', included:'Inclus',
+  },
+  ar: { title:'الأسعار والمسارات', subtitle:'مسارات ثابتة وقواعد المسافة والرسوم الإضافية',
+    alertTitle:'كل رقم هنا مؤقت', alertBody:'الأسعار الأساسية وأسعار الكيلومتر والرسوم الإضافية وقائمة المسارات الثابتة بيانات ينتظرها المشروع من العميل. لا شيء في هذه الشاشة سعر حقيقي لفاموس تاكسي.',
+    tabRoutes:'مسارات ثابتة', tabDistance:'قواعد المسافة', tabSurcharges:'الرسوم والإضافات',
+    hintRoutes:'من المطار إلى المنتجع بسعر واحد', hintDistance:'السعر الأساسي وسعر الكيلومتر', hintSurcharges:'الليل والانتظار والإضافات',
+    routesConfigured:(n) => n + ' مسارات مُعدّة', notLive:(n) => n + ' غير منشورة',
+    currencyLabel:'عملة التسعير', hCurrencyField:'يغيّر العملة في كل لوحة التحكم، وليس هنا فقط.',
+    colId:'المعرّف', colFrom:'من', colTo:'إلى', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'منشور', live:'منشور', draft:'مسودة',
+    pricingSection:(cur) => 'التسعير بعملة ' + cur, capacitySection:'السعة والتوفر',
+    baseFare:'السعر الأساسي', perKm:'لكل كيلومتر', minFare:'الحد الأدنى للسعر', maxPax:'أقصى عدد مسافرين', available:'متاح للحجز',
+    colRule:'القاعدة', colAppliesWhen:'تُطبَّق عندما', colAmount:'المبلغ',
+    addRoute:'إضافة مسار ثابت', editRoute:'تعديل المسار الثابت', deleteRouteTitle:'حذف هذا المسار؟', deleteRouteBody:'يُحذف المسار من قائمة الأسعار فورًا.',
+    emptyRoutesTitle:'لا توجد مسارات ثابتة بعد', emptyRoutesBody:'أضف مسارًا، ويظهر في قائمة الأسعار بمجرد تفعيله.',
+    searchRoutes:'من أو إلى أو المعرّف', nounRoute:'مسار', nounRoutes:'مسارات',
+    hRoutePrice:'اتركه فارغًا إذا كانت هذه الفئة غير متاحة على هذا المسار.', fLive:'منشور للحجز', hLive:'الإيقاف يُبقي المسار مسجّلاً لكنه يخفيه من مسار الحجز.',
+    addSurcharge:'إضافة رسم إضافي', editSurcharge:'تعديل الرسم الإضافي', deleteSurchargeTitle:'حذف هذا الرسم الإضافي؟', deleteSurchargeBody:'يتوقف عن الانطباق على الأجرات الجديدة فورًا.',
+    emptySurchargesTitle:'لا توجد رسوم إضافية بعد', emptySurchargesBody:'أضف قاعدة، وستُطبَّق على كل أجرة تنطبق عليها.',
+    searchSurcharges:'القاعدة أو الملاحظة', nounSurcharge:'رسم إضافي', nounSurcharges:'رسوم إضافية',
+    fUnit:'الوحدة', hSurchargeValue:(cur) => 'المبلغ بعملة ' + cur + '، أو النسبة المئوية — تُتجاهل عندما تكون الوحدة "مشمول".',
+    unitAmount:'مبلغ ثابت، بالعملة المحددة', unitPct:'% من الأجرة', unitIncluded:'مشمول، بلا رسوم', included:'مشمول',
+  },
+};
+
+class Component extends DCLogic {
+  state = {
+    lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en',
+    cur: (typeof window !== 'undefined' && window.VamosLocale) ? window.VamosLocale.cur() : 'CHF',
+    pane: 'routes',
+  };
+  bind = () => {
+    if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
+    this._off = window.VamosOps.onAny(() => this.forceUpdate());
+    this.forceUpdate();
+  };
+  componentDidMount() {
+    this.bind();
+    this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
+    window.addEventListener('vamos:locale', this._onLocale);
+    if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang(), cur: window.VamosLocale.cur() });
+  }
+  componentWillUnmount() {
+    if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
+    if (this._off) this._off();
+    clearTimeout(this._retry);
+  }
+  updateRate(id, patch) { if (window.VamosOps) window.VamosOps.rates.update(id, patch); }
+
+  renderVals() {
+    const t = T[this.state.lang] || T.en;
+    const ops = window.VamosOps;
+    const pane = this.state.pane;
+    const cur = this.state.cur;
+    const RAIL = {
+      routes: [t.tabRoutes, t.hintRoutes], distance: [t.tabDistance, t.hintDistance],
+      surcharges: [t.tabSurcharges, t.hintSurcharges],
+    };
+    const routesRaw = ops ? ops.routes.all() : [];
+    const surchargesRaw = ops ? ops.surcharges.all() : [];
+    const rates = ops ? ops.rates.all() : [];
+    const liveCount = routesRaw.filter((r) => r.live).length;
+    const money = (v) => (v ? (window.VamosLocale ? window.VamosLocale.money(v) : cur + ' ' + v) : '—');
+    const locationOptions = ((ops && ops.LOCATIONS) || []).map((l) => ({ value: l, label: l }));
+    const currencyOptions = ((ops && ops.CURRENCIES) || ['CHF', 'EUR', 'USD']).map((c) => ({ value: c, label: c }));
+    const setCur = (v) => { if (window.VamosLocale) window.VamosLocale.setCur(v); };
+
+    return {
+      n1: 1, n18: 18,
+      tTitle: t.title, tSubtitle: t.subtitle, tAlertTitle: t.alertTitle, tAlertBody: t.alertBody,
+      tCurrencyLabel: t.currencyLabel,
+      currencies: ((ops && ops.CURRENCIES) || ['CHF', 'EUR', 'USD']).map((code) => ({
+        code, active: cur === code,
+        pick: () => { if (window.VamosLocale) window.VamosLocale.setCur(code); },
+      })),
+      panes: PANES.map((p) => ({
+        icon: p.icon, label: RAIL[p.key][0], hint: RAIL[p.key][1],
+        on: pane === p.key ? '1' : '0',
+        pick: () => this.setState({ pane: p.key }),
+      })),
+      isRoutes: pane === 'routes', isDistance: pane === 'distance', isSurcharges: pane === 'surcharges',
+
+      tRoutesConfigured: t.routesConfigured(routesRaw.length), tNotLive: t.notLive(routesRaw.length - liveCount),
+      routes: routesRaw.map((r) => Object.assign({}, r, {
+        routeLabel: r.from + ' \u2192 ' + r.to,
+        economy: (r.economy && r.economy[cur]) || '',
+        business: (r.business && r.business[cur]) || '',
+        van: (r.van && r.van[cur]) || '',
+      })),
+      routeColumns: [
+        { key:'id', header: t.colId, width:'88px', kind:'mono' },
+        { key:'from', header: t.colFrom }, { key:'to', header: t.colTo },
+        { key:'economy', header: t.colEconomy, align:'right', width:'104px', lookup:(r) => money(r.economy) },
+        { key:'business', header: t.colBusiness, align:'right', width:'104px', lookup:(r) => money(r.business) },
+        { key:'van', header: t.colVan, align:'right', width:'96px', lookup:(r) => money(r.van) },
+        { key:'live', header: t.colLive, width:'92px', kind:'bool', onLabel:t.live, offLabel:t.draft },
+      ],
+      routeFields: [
+        { key:'from', label:t.colFrom, editor:'select', options:locationOptions, half:true, required:true, icon:'map-pin' },
+        { key:'to', label:t.colTo, editor:'select', options:locationOptions, half:true, required:true, icon:'map-pin' },
+        { key:'currency', label:t.currencyLabel, editor:'select', options:currencyOptions, value:cur, onSelect:setCur, half:true, icon:'banknote', hint:t.hCurrencyField },
+        { key:'economy', label:t.colEconomy, half:true, placeholder:'000', hint:t.hRoutePrice, icon:'banknote', suffix:cur },
+        { key:'business', label:t.colBusiness, half:true, placeholder:'000', icon:'banknote', suffix:cur },
+        { key:'van', label:t.colVan, half:true, placeholder:'000', icon:'banknote', suffix:cur },
+        { key:'live', label:t.fLive, editor:'switch', half:true, hint:t.hLive },
+      ],
+      routeBlank: () => {
+        const blank = ops ? ops.routes.blank() : { economy:{}, business:{}, van:{} };
+        return Object.assign({}, blank, { economy:'', business:'', van:'' });
+      },
+      saveRoute: (rec) => {
+        if (!ops) return;
+        const existing = rec.id ? ops.routes.get(rec.id) : null;
+        const patch = { id: rec.id, from: rec.from, to: rec.to, live: rec.live };
+        CLASS_KEYS.forEach((k) => {
+          const base = (existing && existing[k]) || {};
+          patch[k] = Object.assign({}, base, { [cur]: rec[k] });
+        });
+        ops.routes.upsert(patch);
+      },
+      deleteRoute: (id) => { if (ops) ops.routes.remove(id); },
+      tNounRoute: t.nounRoute, tNounRoutes: t.nounRoutes,
+      tAddRoute: t.addRoute, tEditRoute: t.editRoute,
+      tDeleteRouteTitle: t.deleteRouteTitle, tDeleteRouteBody: t.deleteRouteBody,
+      tSearchRoutes: t.searchRoutes, routeSearchKeys: ['id', 'from', 'to'],
+      tEmptyRoutesTitle: t.emptyRoutesTitle, tEmptyRoutesBody: t.emptyRoutesBody,
+
+      classes: rates.map((r) => ({
+        id: r.id, icon: RATE_ICON[r.klass] || 'car', name: r.klass,
+        pricingLabel: t.pricingSection(cur),
+        baseFare: (r.baseFare && r.baseFare[cur]) || '', perKm: (r.perKm && r.perKm[cur]) || '', minFare: (r.minFare && r.minFare[cur]) || '',
+        maxPax: String(r.maxPax), available: r.available,
+        setBase: (e) => this.updateRate(r.id, { baseFare: Object.assign({}, r.baseFare, { [cur]: e.target.value }) }),
+        setPerKm: (e) => this.updateRate(r.id, { perKm: Object.assign({}, r.perKm, { [cur]: e.target.value }) }),
+        setMinFare: (e) => this.updateRate(r.id, { minFare: Object.assign({}, r.minFare, { [cur]: e.target.value }) }),
+        setMaxPax: (e) => this.updateRate(r.id, { maxPax: parseInt(e.target.value, 10) || 1 }),
+        toggleAvailable: (e) => this.updateRate(r.id, { available: e.target.checked }),
+      })),
+      tBaseFare: t.baseFare, tPerKm: t.perKm, tMinFare: t.minFare, tMaxPax: t.maxPax, tAvailable: t.available,
+      tCapacityLabel: t.capacitySection,
+
+      surcharges: surchargesRaw.map((r) => Object.assign({}, r, {
+        value: r.kind === 'percent' ? r.pct : r.kind === 'amount' ? ((r.amounts && r.amounts[cur]) || '') : '',
+      })),
+      surchargeColumns: [
+        { key:'label', header: t.colRule }, { key:'rule', header: t.colAppliesWhen },
+        { key:'value', header: t.colAmount, align:'right', width:'150px',
+          lookup:(r) => (r.kind === 'included' ? t.included : r.kind === 'percent' ? '+ ' + (r.value || '00') + '%' : money(r.value)) },
+      ],
+      surchargeFields: [
+        { key:'label', label:t.colRule, required:true },
+        { key:'rule', label:t.colAppliesWhen, required:true },
+        { key:'kind', label:t.fUnit, editor:'select', icon:'banknote', half:true,
+          options:[{ value:'amount', label:t.unitAmount }, { value:'percent', label:t.unitPct }, { value:'included', label:t.unitIncluded }] },
+        { key:'currency', label:t.currencyLabel, editor:'select', options:currencyOptions, value:cur, onSelect:setCur, half:true, icon:'banknote', hint:t.hCurrencyField },
+        { key:'value', label:t.colAmount, placeholder:'00', hint:t.hSurchargeValue(cur), icon:'banknote' },
+      ],
+      surchargeBlank: () => {
+        const blank = ops ? ops.surcharges.blank() : { kind:'amount', amounts:{}, pct:'' };
+        return Object.assign({}, blank, { value:'' });
+      },
+      saveSurcharge: (rec) => {
+        if (!ops) return;
+        const existing = rec.id ? ops.surcharges.get(rec.id) : null;
+        const patch = { id: rec.id, label: rec.label, rule: rec.rule, kind: rec.kind };
+        if (rec.kind === 'percent') {
+          patch.pct = rec.value; patch.amounts = existing ? existing.amounts : undefined;
+        } else if (rec.kind === 'amount') {
+          const base = (existing && existing.amounts) || {};
+          patch.amounts = Object.assign({}, base, { [cur]: rec.value });
+          patch.pct = existing ? existing.pct : undefined;
+        } else {
+          patch.pct = existing ? existing.pct : undefined;
+          patch.amounts = existing ? existing.amounts : undefined;
+        }
+        ops.surcharges.upsert(patch);
+      },
+      deleteSurcharge: (id) => { if (ops) ops.surcharges.remove(id); },
+      tNounSurcharge: t.nounSurcharge, tNounSurcharges: t.nounSurcharges,
+      tAddSurcharge: t.addSurcharge, tEditSurcharge: t.editSurcharge,
+      tDeleteSurchargeTitle: t.deleteSurchargeTitle, tDeleteSurchargeBody: t.deleteSurchargeBody,
+      tSearchSurcharges: t.searchSurcharges, surchargeSearchKeys: ['label', 'rule'],
+      tEmptySurchargesTitle: t.emptySurchargesTitle, tEmptySurchargesBody: t.emptySurchargesBody,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

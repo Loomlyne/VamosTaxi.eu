@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<main style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
+
+<header style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle)">
+<div style="min-width:0">
+<h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tTitle }}</h1>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSubtitle }}</p>
+</div>
+<div style="margin-inline-start:auto;display:flex;flex-wrap:wrap;align-items:center;gap:10px">
+<span style="display:{{ savedShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSaved }}</span>
+<span style="display:{{ dirtyShow }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" onClick="{{ discard }}" hint-size="110px,44px">{{ tDiscard }}</x-import>
+</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ save }}" disabled="{{ notDirty }}" hint-size="150px,44px">{{ tSave }}</x-import>
+</div>
+</header>
+
+<div data-set-grid="1" style="padding:26px 32px 48px">
+
+<nav data-set-rail="1" aria-label="{{ tTitle }}">
+<sc-for list="{{ panes }}" as="p" hint-placeholder-count="5">
+<button type="button" data-set-item="1" data-on="{{ p.on }}" onClick="{{ p.pick }}" title="{{ p.label }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ p.icon }}" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+<span style="flex:1 1 auto;min-width:0">
+<span style="display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.label }}</span>
+<span data-set-hint="1">{{ p.hint }}</span>
+</span>
+<span title="{{ tUnsaved }}" aria-label="{{ tUnsaved }}" style="display:{{ p.dotShow }};width:7px;height:7px;flex:0 0 auto;border-radius:999px;background:var(--vt-accent)"></span>
+</button>
+</sc-for>
+</nav>
+
+<div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+
+<sc-if value="{{ isCompany }}" hint-placeholder-val="{{ true }}">
+<section style="box-sizing:border-box;display:flex;flex-direction:column;gap:16px;padding:24px 26px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);min-width:0">
+<div>
+<h2 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tCompany }}</h2>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tCompanySub }}</p>
+</div>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tLegalName }}" value="{{ vCompany }}" onChange="{{ setCompany }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tAddress }}" value="{{ vAddress }}" onChange="{{ setAddress }}" hint-size="100%,76px"></x-import>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tUid }}" value="{{ vUid }}" onChange="{{ setUid }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tPhone }}" value="{{ vPhone }}" onChange="{{ setPhone }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tEmail }}" value="{{ vEmail }}" onChange="{{ setEmail }}" hint-size="100%,76px"></x-import>
+</div>
+<p data-hint="1">{{ tCompanyNote }}</p>
+</section>
+</sc-if>
+
+<sc-if value="{{ isPolicy }}" hint-placeholder-val="{{ false }}">
+<section style="box-sizing:border-box;display:flex;flex-direction:column;gap:16px;padding:24px 26px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);min-width:0">
+<div>
+<h2 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tPolicy }}</h2>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tPolicySub }}</p>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tMinAdvance }}" value="{{ vMinAdvance }}" onChange="{{ setMinAdvance }}" placeholder="{{ tHours }}" suffix="{{ tHours }}" hint="{{ tTbc }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tCancelWindow }}" value="{{ vCancelWindow }}" onChange="{{ setCancelWindow }}" placeholder="{{ tHours }}" suffix="{{ tHours }}" hint="{{ tTbc }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tAirportWait }}" value="{{ vAirportWait }}" onChange="{{ setAirportWait }}" suffix="{{ tMinutes }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tCityWait }}" value="{{ vCityWait }}" onChange="{{ setCityWait }}" suffix="{{ tMinutes }}" hint-size="100%,76px"></x-import>
+</div>
+<p data-hint="1">{{ tPolicyNote }}</p>
+</section>
+</sc-if>
+
+<sc-if value="{{ isLocale }}" hint-placeholder-val="{{ false }}">
+<section style="box-sizing:border-box;display:flex;flex-direction:column;gap:16px;padding:24px 26px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);min-width:0">
+<div>
+<h2 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tLocale }}</h2>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tLocaleSub }}</p>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px">
+<div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+<span data-fld-l="1">{{ tDefaultLang }}</span>
+<dc-import name="BrandSelect" size="field" icon="globe" value="{{ vLang }}" options="{{ langOptions }}" onSelect="{{ pickLang }}" a11y-label="{{ tDefaultLang }}" hint-size="100%,44px"></dc-import>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+<span data-fld-l="1">{{ tDefaultCur }}</span>
+<span data-vt-no-i18n="1" style="display:flex;min-width:0">
+<dc-import name="BrandSelect" size="field" icon="banknote" value="{{ vCur }}" options="{{ curOptions }}" onSelect="{{ pickCur }}" a11y-label="{{ tDefaultCur }}" hint-size="100%,44px"></dc-import>
+</span>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;padding-top:16px;border-top:1px solid var(--vt-grey-200)">
+<span data-fld-l="1">{{ tPublished }}</span>
+<span data-vt-no-i18n="1" style="display:flex;flex-wrap:wrap;gap:6px">
+<sc-for list="{{ langs }}" as="l" hint-placeholder-count="4">
+<span data-chip="1">{{ l }}</span>
+</sc-for>
+</span>
+<p data-hint="1">{{ tPublishedHint }}</p>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{ isPayments }}" hint-placeholder-val="{{ false }}">
+<section style="box-sizing:border-box;display:flex;flex-direction:column;gap:14px;padding:24px 26px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);min-width:0">
+<div>
+<h2 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tPayments }}</h2>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tPaymentsSub }}</p>
+</div>
+<sc-for list="{{ payments }}" as="p" hint-placeholder-count="4">
+<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--vt-grey-200)">
+<span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px">
+<span style="font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ p.label }}</span>
+<span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ p.hint }}</span>
+</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" checked="{{ p.on }}" onChange="{{ p.toggle }}" aria-label="{{ p.label }}" hint-size="46px,26px"></x-import>
+</div>
+</sc-for>
+<p data-hint="1">{{ tPaymentsNote }}</p>
+</section>
+</sc-if>
+
+<sc-if value="{{ isNotify }}" hint-placeholder-val="{{ false }}">
+<section style="box-sizing:border-box;display:flex;flex-direction:column;gap:14px;padding:24px 26px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);min-width:0">
+<div>
+<h2 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tNotifications }}</h2>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tNotificationsSub }}</p>
+</div>
+<sc-for list="{{ notifications }}" as="p" hint-placeholder-count="4">
+<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--vt-grey-200)">
+<span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px">
+<span style="font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ p.label }}</span>
+<span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ p.hint }}</span>
+</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" checked="{{ p.on }}" onChange="{{ p.toggle }}" aria-label="{{ p.label }}" hint-size="46px,26px"></x-import>
+</div>
+</sc-for>
+<p data-hint="1">{{ tNotificationsNote }}</p>
+</section>
+</sc-if>
+
+<sc-if value="{{ isSecurity }}" hint-placeholder-val="{{ false }}">
+<section style="box-sizing:border-box;display:flex;flex-direction:column;gap:16px;padding:24px 26px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);min-width:0">
+<div>
+<h2 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tSecurity }}</h2>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSecuritySub }}</p>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:10px">
+<span data-panel-k="1">{{ tSecEmailLabel }}</span>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" aria-label="{{ tSecEmailLabel }}" value="{{ secEmail }}" onChange="{{ setSecEmail }}" hint-size="100%,44px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" onClick="{{ saveEmail }}" hint-size="150px,44px">{{ tSecEmailBtn }}</x-import>
+</div>
+<span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSecEmailHint }}</span>
+<span style="display:{{ emailSavedShow }};font-size:var(--vt-body-xs);color:var(--vt-text-primary);font-weight:500">{{ tSecUpdated }}</span>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid var(--vt-grey-200)">
+<span data-panel-k="1">{{ tSecPasswordLabel }}</span>
+<p style="margin:0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSecPasswordSub }}</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" type="password" size="md" label="{{ tSecNewPw }}" value="{{ pw1 }}" onChange="{{ setPw1 }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" type="password" size="md" label="{{ tSecConfirmPw }}" value="{{ pw2 }}" onChange="{{ setPw2 }}" hint-size="100%,76px"></x-import>
+</div>
+<span style="display:{{ pwMsgShow }};font-size:var(--vt-body-xs);color:var(--vt-danger)">{{ pwMsg }}</span>
+<div style="display:flex;align-items:center;gap:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" onClick="{{ changePassword }}" hint-size="170px,44px">{{ tSecPasswordBtn }}</x-import>
+<span style="display:{{ pwSavedShow }};font-size:var(--vt-body-xs);color:var(--vt-text-primary);font-weight:500">{{ tSecUpdated }}</span>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid var(--vt-grey-200)">
+<span data-panel-k="1">{{ tSecPasskeyLabel }}</span>
+<p style="margin:0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSecPasskeySub }}</p>
+<sc-if value="{{ noPasskey }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px">
+<span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSecPasskeyEmpty }}</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" icon="shield-check" onClick="{{ addPasskey }}" hint-size="150px,36px">{{ tSecPasskeyAdd }}</x-import>
+</div>
+</sc-if>
+<sc-if value="{{ passkeyAdded }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--vt-grey-200)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="shield-check" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
+<span style="flex:1 1 auto;min-width:0;font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ tSecPasskeyName }}</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ removePasskey }}" hint-size="100px,36px">{{ tSecPasskeyRemove }}</x-import>
+</div>
+</sc-if>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid var(--vt-grey-200)">
+<span data-panel-k="1">{{ tSecDangerLabel }}</span>
+<p style="margin:0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSecDangerSub }}</p>
+<div>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="danger" icon="trash-2" onClick="{{ openDelete }}" hint-size="180px,44px">{{ tSecDeleteBtn }}</x-import>
+</div>
+</div>
+
+</section>
+</sc-if>
+
+<sc-if value="{{ deleteOpen }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="sm" title="{{ tSecDeleteConfirmTitle }}" onClose="{{ closeDelete }}" hint-size="420px,240px">
+<p style="margin:0;font-size:var(--vt-body-sm);line-height:1.6;color:var(--vt-text-secondary);text-wrap:pretty">{{ tSecDeleteConfirmBody }}</p>
+<div style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;margin-top:20px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" onClick="{{ closeDelete }}" hint-size="130px,44px">{{ tSecKeepAccount }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="danger" onClick="{{ confirmDelete }}" hint-size="160px,44px">{{ tSecDeleteConfirmBtn }}</x-import>
+</div>
+</x-import>
+</sc-if>
+
+</div>
+</div>
+</main>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900}}">
+/* Settings — the values every other screen reads. The sections are a sub-rail, one pane
+   at a time, so a screen's worth of controls is never five cards deep. Edits are held as
+   a draft and committed on Save; the rail marks the pane holding uncommitted edits.
+   The two policy numbers the client still owes us stay empty on purpose. */
+const PANES = [
+  { key:'company', icon:'briefcase', keys:['company', 'address', 'uid', 'phone', 'email'] },
+  { key:'policy', icon:'clock', keys:['minAdvance', 'cancelWindow', 'airportWait', 'cityWait'] },
+  { key:'locale', icon:'globe', keys:['defaultLang', 'defaultCur'] },
+  { key:'payments', icon:'credit-card', keys:['cash', 'card', 'twint', 'invoice'] },
+  { key:'notify', icon:'bell', keys:['emailConfirm', 'emailReminder', 'smsReminder', 'opsAlerts'] },
+  { key:'security', icon:'shield-check', keys:[] },
+];
+const T = {
+  en: { title:'Settings', subtitle:'Company details, booking policy, payment and notifications',
+    save:'Save changes', discard:'Discard', saved:'Saved', unsaved:'Unsaved changes',
+    railCompany:'Company', railCompanyHint:'Name, address, UID',
+    railPolicy:'Booking policy', railPolicyHint:'Advance, cancellation, waiting',
+    railLocale:'Localisation', railLocaleHint:'Language and currency',
+    railPayments:'Payments', railPaymentsHint:'What checkout offers',
+    railNotify:'Notifications', railNotifyHint:'Emails, SMS, alerts',
+    company:'Company', companySub:'What appears on invoices, the footer and the imprint',
+    companyNote:'Changing these changes every invoice, email footer and the imprint page.',
+    legalName:'Legal name', address:'Address', uid:'UID', phone:'Phone', email:'Email',
+    policy:'Booking policy', policySub:'The rules the booking form and the emails quote',
+    policyNote:'Waiting time is what a chauffeur holds for free before waiting is charged.',
+    minAdvance:'Minimum advance', cancelWindow:'Free cancellation', airportWait:'Airport waiting included', cityWait:'City waiting included',
+    hours:'hours', minutes:'min', tbc:'Still to be confirmed by the client',
+    locale:'Localisation', localeSub:'What a first-time visitor lands on before they choose',
+    defaultLang:'Default language', defaultCur:'Default currency',
+    published:'Published languages', publishedHint:'Every page, email and document ships in all four. The currency switch changes the mark, never the number.',
+    payments:'Payment methods', paymentsSub:'What a traveller can choose at checkout',
+    paymentsNote:'Switching a method off hides it at checkout straight away; bookings already paid with it are untouched.',
+    cash:'Cash to the chauffeur', cashHint:'Paid in the vehicle, on arrival',
+    card:'Card', cardHint:'Visa and Mastercard through Stripe',
+    twint:'TWINT', twintHint:'Swiss mobile payment',
+    invoice:'Invoice', invoiceHint:'Corporate accounts only',
+    notifications:'Notifications', notificationsSub:'What leaves the platform automatically',
+    notificationsNote:'Confirmations are the only message a traveller cannot switch off.',
+    emailConfirm:'Booking confirmation', emailConfirmHint:'Sent the moment a booking is paid',
+    emailReminder:'Reminder, day before', emailReminderHint:'Pickup time, address and chauffeur',
+    smsReminder:'SMS reminder', smsReminderHint:'Needs an SMS provider connected',
+    opsAlerts:'Dispatch alerts', opsAlertsHint:'A new or cancelled booking wakes the console',
+    langEn:'English', langDe:'German', langFr:'French', langAr:'Arabic',
+    railSecurity:'Security', railSecurityHint:'Email, password, passkeys',
+    security:'Security', securitySub:'Sign-in email, password, passkeys and account deletion',
+    secEmailLabel:'Sign-in email', secEmailHint:'Used to sign in and for account recovery.', secEmailBtn:'Update email',
+    secPasswordLabel:'Password', secPasswordSub:'Change the password used to sign in to this console.',
+    secNewPw:'New password', secConfirmPw:'Confirm password', secPasswordBtn:'Change password', secPasswordMismatch:'Passwords don’t match.',
+    secUpdated:'Updated',
+    secPasskeyLabel:'Passkeys', secPasskeySub:'Sign in with Face ID, Touch ID or a security key instead of a password.',
+    secPasskeyEmpty:'No passkey added yet.', secPasskeyAdd:'Add a passkey', secPasskeyName:'Passkey · this device', secPasskeyRemove:'Remove',
+    secDangerLabel:'Delete this profile', secDangerSub:'Permanently removes your sign-in from this console. Bookings and records you touched are not deleted.',
+    secDeleteBtn:'Delete my profile', secDeleteConfirmTitle:'Delete your profile?', secDeleteConfirmBody:'You will be signed out and your name, photo and preferences are removed from this browser. This cannot be undone.',
+    secDeleteConfirmBtn:'Delete permanently', secKeepAccount:'Keep my profile',
+  },
+  de: { title:'Einstellungen', subtitle:'Firmendaten, Buchungsregeln, Zahlung und Benachrichtigungen',
+    save:'Änderungen speichern', discard:'Verwerfen', saved:'Gespeichert', unsaved:'Ungespeicherte Änderungen',
+    railCompany:'Firma', railCompanyHint:'Name, Adresse, UID',
+    railPolicy:'Buchungsregeln', railPolicyHint:'Vorlauf, Storno, Wartezeit',
+    railLocale:'Lokalisierung', railLocaleHint:'Sprache und Währung',
+    railPayments:'Zahlung', railPaymentsHint:'Was die Kasse anbietet',
+    railNotify:'Benachrichtigungen', railNotifyHint:'E-Mails, SMS, Alarme',
+    company:'Firma', companySub:'Was auf Rechnungen, im Footer und im Impressum steht',
+    companyNote:'Eine Änderung hier ändert jede Rechnung, jeden E-Mail-Footer und das Impressum.',
+    legalName:'Firmenname', address:'Adresse', uid:'UID', phone:'Telefon', email:'E-Mail',
+    policy:'Buchungsregeln', policySub:'Die Regeln, die Buchungsformular und E-Mails nennen',
+    policyNote:'Die Wartezeit ist die Zeit, die ein Chauffeur kostenlos wartet, bevor Wartezeit verrechnet wird.',
+    minAdvance:'Mindestvorlaufzeit', cancelWindow:'Kostenlose Stornierung', airportWait:'Wartezeit Flughafen inklusive', cityWait:'Wartezeit Stadt inklusive',
+    hours:'Stunden', minutes:'Min.', tbc:'Vom Kunden noch zu bestätigen',
+    locale:'Lokalisierung', localeSub:'Womit ein neuer Besucher startet, bevor er wählt',
+    defaultLang:'Standardsprache', defaultCur:'Standardwährung',
+    published:'Veröffentlichte Sprachen', publishedHint:'Jede Seite, E-Mail und jedes Dokument erscheint in allen vier. Die Währungsumschaltung ändert das Zeichen, nie die Zahl.',
+    payments:'Zahlungsmittel', paymentsSub:'Was ein Reisender an der Kasse wählen kann',
+    paymentsNote:'Ein abgeschaltetes Zahlungsmittel verschwindet sofort aus der Kasse; bereits damit bezahlte Buchungen bleiben unberührt.',
+    cash:'Bar an den Chauffeur', cashHint:'Im Fahrzeug bei Ankunft bezahlt',
+    card:'Karte', cardHint:'Visa und Mastercard über Stripe',
+    twint:'TWINT', twintHint:'Schweizer Mobile-Payment',
+    invoice:'Rechnung', invoiceHint:'Nur Firmenkonten',
+    notifications:'Benachrichtigungen', notificationsSub:'Was die Plattform automatisch verschickt',
+    notificationsNote:'Die Bestätigung ist die einzige Nachricht, die ein Reisender nicht abschalten kann.',
+    emailConfirm:'Buchungsbestätigung', emailConfirmHint:'Sofort nach bezahlter Buchung',
+    emailReminder:'Erinnerung, Vortag', emailReminderHint:'Abholzeit, Adresse und Chauffeur',
+    smsReminder:'SMS-Erinnerung', smsReminderHint:'Benötigt einen verbundenen SMS-Anbieter',
+    opsAlerts:'Dispatch-Alarme', opsAlertsHint:'Eine neue oder stornierte Buchung weckt die Konsole',
+    langEn:'Englisch', langDe:'Deutsch', langFr:'Französisch', langAr:'Arabisch',
+    railSecurity:'Sicherheit', railSecurityHint:'E-Mail, Passwort, Passkeys',
+    security:'Sicherheit', securitySub:'Anmelde-E-Mail, Passwort, Passkeys und Kontolöschung',
+    secEmailLabel:'Anmelde-E-Mail', secEmailHint:'Für die Anmeldung und zur Kontowiederherstellung.', secEmailBtn:'E-Mail aktualisieren',
+    secPasswordLabel:'Passwort', secPasswordSub:'Ändert das Passwort für die Anmeldung an dieser Konsole.',
+    secNewPw:'Neues Passwort', secConfirmPw:'Passwort bestätigen', secPasswordBtn:'Passwort ändern', secPasswordMismatch:'Die Passwörter stimmen nicht überein.',
+    secUpdated:'Aktualisiert',
+    secPasskeyLabel:'Passkeys', secPasskeySub:'Anmelden mit Face ID, Touch ID oder einem Sicherheitsschlüssel statt einem Passwort.',
+    secPasskeyEmpty:'Noch kein Passkey hinzugefügt.', secPasskeyAdd:'Passkey hinzufügen', secPasskeyName:'Passkey · dieses Gerät', secPasskeyRemove:'Entfernen',
+    secDangerLabel:'Dieses Profil löschen', secDangerSub:'Entfernt Ihre Anmeldung dauerhaft von dieser Konsole. Buchungen und Datensätze, die Sie bearbeitet haben, werden nicht gelöscht.',
+    secDeleteBtn:'Mein Profil löschen', secDeleteConfirmTitle:'Profil löschen?', secDeleteConfirmBody:'Sie werden abgemeldet, und Name, Foto und Einstellungen werden aus diesem Browser entfernt. Dies kann nicht rückgängig gemacht werden.',
+    secDeleteConfirmBtn:'Endgültig löschen', secKeepAccount:'Profil behalten',
+  },
+  fr: { title:'Réglages', subtitle:'Coordonnées, règles de réservation, paiement et notifications',
+    save:'Enregistrer', discard:'Annuler', saved:'Enregistré', unsaved:'Modifications non enregistrées',
+    railCompany:'Société', railCompanyHint:'Nom, adresse, IDE',
+    railPolicy:'Réservation', railPolicyHint:'Délai, annulation, attente',
+    railLocale:'Localisation', railLocaleHint:'Langue et devise',
+    railPayments:'Paiement', railPaymentsHint:'Ce que propose le paiement',
+    railNotify:'Notifications', railNotifyHint:'E-mails, SMS, alertes',
+    company:'Société', companySub:'Ce qui figure sur les factures, le pied de page et les mentions légales',
+    companyNote:'Une modification ici change chaque facture, chaque pied d’e-mail et les mentions légales.',
+    legalName:'Raison sociale', address:'Adresse', uid:'IDE', phone:'Téléphone', email:'E-mail',
+    policy:'Règles de réservation', policySub:'Les règles citées par le formulaire et les e-mails',
+    policyNote:'L’attente est le temps qu’un chauffeur patiente gratuitement avant facturation.',
+    minAdvance:'Délai minimum', cancelWindow:'Annulation gratuite', airportWait:'Attente aéroport incluse', cityWait:'Attente ville incluse',
+    hours:'heures', minutes:'min', tbc:'À confirmer par le client',
+    locale:'Localisation', localeSub:'Ce que voit un nouveau visiteur avant de choisir',
+    defaultLang:'Langue par défaut', defaultCur:'Devise par défaut',
+    published:'Langues publiées', publishedHint:'Chaque page, e-mail et document existe dans les quatre. Le changement de devise change le symbole, jamais le nombre.',
+    payments:'Moyens de paiement', paymentsSub:'Ce qu’un voyageur peut choisir au paiement',
+    paymentsNote:'Un moyen désactivé disparaît aussitôt du paiement ; les réservations déjà payées ainsi ne changent pas.',
+    cash:'Espèces au chauffeur', cashHint:'Payé dans le véhicule, à l’arrivée',
+    card:'Carte', cardHint:'Visa et Mastercard via Stripe',
+    twint:'TWINT', twintHint:'Paiement mobile suisse',
+    invoice:'Facture', invoiceHint:'Comptes entreprises uniquement',
+    notifications:'Notifications', notificationsSub:'Ce que la plateforme envoie automatiquement',
+    notificationsNote:'La confirmation est le seul message qu’un voyageur ne peut pas désactiver.',
+    emailConfirm:'Confirmation de réservation', emailConfirmHint:'Envoyée dès qu’une réservation est payée',
+    emailReminder:'Rappel, la veille', emailReminderHint:'Heure, adresse et chauffeur',
+    smsReminder:'Rappel SMS', smsReminderHint:'Nécessite un fournisseur SMS connecté',
+    opsAlerts:'Alertes dispatch', opsAlertsHint:'Une réservation nouvelle ou annulée réveille la console',
+    langEn:'Anglais', langDe:'Allemand', langFr:'Français', langAr:'Arabe',
+    railSecurity:'Sécurité', railSecurityHint:'E-mail, mot de passe, clés d’accès',
+    security:'Sécurité', securitySub:'E-mail de connexion, mot de passe, clés d’accès et suppression du compte',
+    secEmailLabel:'E-mail de connexion', secEmailHint:'Utilisé pour la connexion et la récupération du compte.', secEmailBtn:'Mettre à jour l’e-mail',
+    secPasswordLabel:'Mot de passe', secPasswordSub:'Modifie le mot de passe utilisé pour se connecter à cette console.',
+    secNewPw:'Nouveau mot de passe', secConfirmPw:'Confirmer le mot de passe', secPasswordBtn:'Changer le mot de passe', secPasswordMismatch:'Les mots de passe ne correspondent pas.',
+    secUpdated:'Mis à jour',
+    secPasskeyLabel:'Clés d’accès', secPasskeySub:'Se connecter avec Face ID, Touch ID ou une clé de sécurité plutôt qu’un mot de passe.',
+    secPasskeyEmpty:'Aucune clé d’accès ajoutée.', secPasskeyAdd:'Ajouter une clé d’accès', secPasskeyName:'Clé d’accès · cet appareil', secPasskeyRemove:'Retirer',
+    secDangerLabel:'Supprimer ce profil', secDangerSub:'Retire définitivement votre connexion de cette console. Les réservations et fiches que vous avez traitées ne sont pas supprimées.',
+    secDeleteBtn:'Supprimer mon profil', secDeleteConfirmTitle:'Supprimer votre profil ?', secDeleteConfirmBody:'Vous serez déconnecté et votre nom, photo et préférences seront retirés de ce navigateur. Cette action est irréversible.',
+    secDeleteConfirmBtn:'Supprimer définitivement', secKeepAccount:'Garder mon profil',
+  },
+  ar: { title:'الإعدادات', subtitle:'بيانات الشركة وقواعد الحجز والدفع والإشعارات',
+    save:'حفظ التغييرات', discard:'تجاهل', saved:'تم الحفظ', unsaved:'تغييرات غير محفوظة',
+    railCompany:'الشركة', railCompanyHint:'الاسم والعنوان والرقم الضريبي',
+    railPolicy:'قواعد الحجز', railPolicyHint:'المهلة والإلغاء والانتظار',
+    railLocale:'التوطين', railLocaleHint:'اللغة والعملة',
+    railPayments:'الدفع', railPaymentsHint:'ما يعرضه الدفع',
+    railNotify:'الإشعارات', railNotifyHint:'رسائل ونصوص وتنبيهات',
+    company:'الشركة', companySub:'ما يظهر على الفواتير وفي التذييل والبيانات القانونية',
+    companyNote:'أي تغيير هنا يغيّر كل فاتورة وكل تذييل بريد وصفحة البيانات القانونية.',
+    legalName:'الاسم القانوني', address:'العنوان', uid:'الرقم الضريبي', phone:'الهاتف', email:'البريد الإلكتروني',
+    policy:'قواعد الحجز', policySub:'القواعد التي يذكرها نموذج الحجز ورسائل البريد',
+    policyNote:'الانتظار هو المدة التي ينتظرها السائق مجانًا قبل أن يُحسب الانتظار.',
+    minAdvance:'أقل مهلة مسبقة', cancelWindow:'إلغاء مجاني', airportWait:'انتظار المطار المشمول', cityWait:'انتظار المدينة المشمول',
+    hours:'ساعات', minutes:'دقيقة', tbc:'بانتظار تأكيد العميل',
+    locale:'التوطين', localeSub:'ما يبدأ به الزائر الجديد قبل أن يختار',
+    defaultLang:'اللغة الافتراضية', defaultCur:'العملة الافتراضية',
+    published:'اللغات المنشورة', publishedHint:'كل صفحة ورسالة ومستند متوفّرة باللغات الأربع. وتبديل العملة يغيّر الرمز، لا الرقم.',
+    payments:'وسائل الدفع', paymentsSub:'ما يمكن للمسافر اختياره عند الدفع',
+    paymentsNote:'إيقاف وسيلة دفع يخفيها من صفحة الدفع فورًا، ولا يمسّ الحجوزات المدفوعة بها.',
+    cash:'نقدًا للسائق', cashHint:'يُدفع في المركبة عند الوصول',
+    card:'بطاقة', cardHint:'فيزا وماستركارد عبر Stripe',
+    twint:'TWINT', twintHint:'الدفع عبر الهاتف في سويسرا',
+    invoice:'فاتورة', invoiceHint:'لحسابات الشركات فقط',
+    notifications:'الإشعارات', notificationsSub:'ما ترسله المنصّة تلقائيًا',
+    notificationsNote:'تأكيد الحجز هو الرسالة الوحيدة التي لا يستطيع المسافر إيقافها.',
+    emailConfirm:'تأكيد الحجز', emailConfirmHint:'يُرسل فور دفع الحجز',
+    emailReminder:'تذكير قبل يوم', emailReminderHint:'وقت الاستقبال والعنوان والسائق',
+    smsReminder:'تذكير برسالة نصية', smsReminderHint:'يتطلب ربط مزوّد رسائل',
+    opsAlerts:'تنبيهات التوزيع', opsAlertsHint:'الحجز الجديد أو الملغى يُنبّه لوحة التحكم',
+    langEn:'الإنجليزية', langDe:'الألمانية', langFr:'الفرنسية', langAr:'العربية',
+    railSecurity:'الأمان', railSecurityHint:'البريد وكلمة المرور ومفاتيح المرور',
+    security:'الأمان', securitySub:'بريد الدخول وكلمة المرور ومفاتيح المرور وحذف الحساب',
+    secEmailLabel:'بريد تسجيل الدخول', secEmailHint:'يُستخدم لتسجيل الدخول واسترداد الحساب.', secEmailBtn:'تحديث البريد الإلكتروني',
+    secPasswordLabel:'كلمة المرور', secPasswordSub:'يغيّر كلمة المرور المستخدمة لتسجيل الدخول إلى لوحة التحكم هذه.',
+    secNewPw:'كلمة مرور جديدة', secConfirmPw:'تأكيد كلمة المرور', secPasswordBtn:'تغيير كلمة المرور', secPasswordMismatch:'كلمتا المرور غير متطابقتين.',
+    secUpdated:'تم التحديث',
+    secPasskeyLabel:'مفاتيح المرور', secPasskeySub:'سجّل الدخول باستخدام Face ID أو Touch ID أو مفتاح أمان بدلاً من كلمة المرور.',
+    secPasskeyEmpty:'لم تتم إضافة أي مفتاح مرور بعد.', secPasskeyAdd:'إضافة مفتاح مرور', secPasskeyName:'مفتاح مرور · هذا الجهاز', secPasskeyRemove:'إزالة',
+    secDangerLabel:'حذف هذا الملف الشخصي', secDangerSub:'يُزيل تسجيل دخولك نهائيًا من هذه اللوحة. لا تُحذف الحجوزات والسجلات التي تعاملت معها.',
+    secDeleteBtn:'حذف ملفي الشخصي', secDeleteConfirmTitle:'حذف ملفك الشخصي؟', secDeleteConfirmBody:'سيتم تسجيل خروجك، وسيُزال اسمك وصورتك وتفضيلاتك من هذا المتصفح. لا يمكن التراجع عن هذا.',
+    secDeleteConfirmBtn:'حذف نهائيًا', secKeepAccount:'الاحتفاظ بملفي',
+  },
+};
+
+class Component extends DCLogic {
+  state = { lang:'en', draft:null, saved:false, pane:'company', secEmail:'', pw1:'', pw2:'', pwMsg:'', pwSaved:false, emailSaved:false, passkeyAdded:false, deleteOpen:false };
+  bind = () => {
+    if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
+    /* The runtime is what the operator can actually see, so it wins on mount —
+       written through the store so the screen does not boot claiming edits. */
+    if (window.VamosLocale) {
+      const live = { defaultCur: window.VamosLocale.cur(), defaultLang: window.VamosLocale.lang() };
+      const stored = window.VamosOps.settings.get();
+      if (stored.defaultCur !== live.defaultCur || stored.defaultLang !== live.defaultLang) {
+        window.VamosOps.settings.update(live);
+      }
+    }
+    const profile = window.VamosOps.profile.get();
+    this.setState({ draft: window.VamosOps.settings.get(), secEmail: profile.email || '', passkeyAdded: !!profile.passkey });
+  };
+  componentDidMount() {
+    this.bind();
+    this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
+    window.addEventListener('vamos:locale', this._onLocale);
+    if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() });
+  }
+  componentWillUnmount() {
+    if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
+    if (this.state.deleteOpen) { try { document.body.style.overflow = ''; } catch (e) {} }
+    clearTimeout(this._retry); clearTimeout(this._savedT); clearTimeout(this._emailT); clearTimeout(this._pwT);
+  }
+  saveEmail = () => {
+    if (window.VamosOps) window.VamosOps.profile.update({ email: this.state.secEmail });
+    this.setState({ emailSaved: true });
+    clearTimeout(this._emailT);
+    this._emailT = setTimeout(() => this.setState({ emailSaved: false }), 2400);
+  };
+  changePassword = () => {
+    const t = T[this.state.lang] || T.en;
+    if (!this.state.pw1 || this.state.pw1 !== this.state.pw2) { this.setState({ pwMsg: t.secPasswordMismatch, pwSaved: false }); return; }
+    this.setState({ pw1: '', pw2: '', pwMsg: '', pwSaved: true });
+    clearTimeout(this._pwT);
+    this._pwT = setTimeout(() => this.setState({ pwSaved: false }), 2400);
+  };
+  addPasskey = () => { if (window.VamosOps) window.VamosOps.profile.update({ passkey: true }); this.setState({ passkeyAdded: true }); };
+  removePasskey = () => { if (window.VamosOps) window.VamosOps.profile.update({ passkey: false }); this.setState({ passkeyAdded: false }); };
+  openDelete = () => { try { document.body.style.overflow = 'hidden'; } catch (e) {} this.setState({ deleteOpen: true }); };
+  closeDelete = () => { try { document.body.style.overflow = ''; } catch (e) {} this.setState({ deleteOpen: false }); };
+  confirmDelete = () => {
+    try { document.body.style.overflow = ''; } catch (e) {}
+    if (window.VamosOps) window.VamosOps.profile.reset();
+    try { localStorage.removeItem('vamosOpsAuth'); } catch (e) {}
+    location.href = './ops-login.dc.html';
+  };
+  set = (key, value) => this.setState((s) => {
+    const d = {}; for (const k in s.draft) d[k] = s.draft[k];
+    d[key] = value;
+    return { draft: d, saved: false };
+  });
+  save = () => {
+    if (!window.VamosOps || !this.state.draft) return;
+    window.VamosOps.settings.update(this.state.draft);
+    if (window.VamosLocale) {
+      if (this.state.draft.defaultCur) window.VamosLocale.setCur(this.state.draft.defaultCur);
+      if (this.state.draft.defaultLang) window.VamosLocale.setLang(this.state.draft.defaultLang);
+    }
+    this.setState({ saved: true });
+    clearTimeout(this._savedT);
+    this._savedT = setTimeout(() => this.setState({ saved: false }), 2400);
+  };
+  discard = () => { if (window.VamosOps) this.setState({ draft: window.VamosOps.settings.get(), saved: false }); };
+
+  renderVals() {
+    const t = T[this.state.lang] || T.en;
+    const ops = window.VamosOps;
+    const d = this.state.draft || {};
+    const saved = ops ? ops.settings.get() : {};
+    const changed = (k) => String(d[k]) !== String(saved[k]);
+    const dirty = Object.keys(d).some(changed);
+    const pane = this.state.pane;
+    /* Offer every currency the runtime knows, so the console can always name the
+       one it is currently showing. */
+    const curCodes = window.VamosLocale && window.VamosLocale.CURRENCIES
+      ? Object.keys(window.VamosLocale.CURRENCIES) : ['CHF', 'EUR', 'USD'];
+    const sw = (key, label, hint) => ({
+      label, hint, on: !!d[key], toggle: (e) => this.set(key, e.target.checked),
+    });
+    const txt = (key) => (e) => this.set(key, e.target.value);
+    const RAIL = {
+      company: [t.railCompany, t.railCompanyHint], policy: [t.railPolicy, t.railPolicyHint],
+      locale: [t.railLocale, t.railLocaleHint], payments: [t.railPayments, t.railPaymentsHint],
+      notify: [t.railNotify, t.railNotifyHint], security: [t.railSecurity, t.railSecurityHint],
+    };
+    return {
+      n18: 18,
+      tTitle: t.title, tSubtitle: t.subtitle, tSave: t.save, tDiscard: t.discard, tSaved: t.saved,
+      tUnsaved: t.unsaved,
+      tCompany: t.company, tCompanySub: t.companySub, tCompanyNote: t.companyNote,
+      tLegalName: t.legalName, tAddress: t.address, tUid: t.uid, tPhone: t.phone, tEmail: t.email,
+      tPolicy: t.policy, tPolicySub: t.policySub, tPolicyNote: t.policyNote,
+      tMinAdvance: t.minAdvance, tCancelWindow: t.cancelWindow,
+      tAirportWait: t.airportWait, tCityWait: t.cityWait, tHours: t.hours, tMinutes: t.minutes, tTbc: t.tbc,
+      tLocale: t.locale, tLocaleSub: t.localeSub, tDefaultLang: t.defaultLang, tDefaultCur: t.defaultCur,
+      tPublished: t.published, tPublishedHint: t.publishedHint,
+      tPayments: t.payments, tPaymentsSub: t.paymentsSub, tPaymentsNote: t.paymentsNote,
+      tNotifications: t.notifications, tNotificationsSub: t.notificationsSub, tNotificationsNote: t.notificationsNote,
+      tSecurity: t.security, tSecuritySub: t.securitySub,
+      tSecEmailLabel: t.secEmailLabel, tSecEmailHint: t.secEmailHint, tSecEmailBtn: t.secEmailBtn,
+      tSecPasswordLabel: t.secPasswordLabel, tSecPasswordSub: t.secPasswordSub,
+      tSecNewPw: t.secNewPw, tSecConfirmPw: t.secConfirmPw, tSecPasswordBtn: t.secPasswordBtn, tSecUpdated: t.secUpdated,
+      tSecPasskeyLabel: t.secPasskeyLabel, tSecPasskeySub: t.secPasskeySub, tSecPasskeyEmpty: t.secPasskeyEmpty,
+      tSecPasskeyAdd: t.secPasskeyAdd, tSecPasskeyName: t.secPasskeyName, tSecPasskeyRemove: t.secPasskeyRemove,
+      tSecDangerLabel: t.secDangerLabel, tSecDangerSub: t.secDangerSub, tSecDeleteBtn: t.secDeleteBtn,
+      tSecDeleteConfirmTitle: t.secDeleteConfirmTitle, tSecDeleteConfirmBody: t.secDeleteConfirmBody,
+      tSecDeleteConfirmBtn: t.secDeleteConfirmBtn, tSecKeepAccount: t.secKeepAccount,
+      isSecurity: pane === 'security', yes: true,
+      secEmail: this.state.secEmail, setSecEmail: (e) => this.setState({ secEmail: e.target.value }),
+      saveEmail: this.saveEmail, emailSavedShow: this.state.emailSaved ? 'inline' : 'none',
+      pw1: this.state.pw1, setPw1: (e) => this.setState({ pw1: e.target.value, pwMsg: '' }),
+      pw2: this.state.pw2, setPw2: (e) => this.setState({ pw2: e.target.value, pwMsg: '' }),
+      changePassword: this.changePassword, pwMsg: this.state.pwMsg, pwMsgShow: this.state.pwMsg ? 'block' : 'none',
+      pwSavedShow: this.state.pwSaved ? 'inline' : 'none',
+      passkeyAdded: this.state.passkeyAdded, noPasskey: !this.state.passkeyAdded,
+      addPasskey: this.addPasskey, removePasskey: this.removePasskey,
+      deleteOpen: this.state.deleteOpen, openDelete: this.openDelete, closeDelete: this.closeDelete, confirmDelete: this.confirmDelete,
+      langs: ['EN', 'DE', 'FR', 'AR'],
+      panes: PANES.map((p) => ({
+        icon: p.icon,
+        label: RAIL[p.key][0],
+        hint: RAIL[p.key][1],
+        on: pane === p.key ? '1' : '0',
+        dotShow: p.keys.some(changed) ? 'block' : 'none',
+        pick: () => this.setState({ pane: p.key }),
+      })),
+      isCompany: pane === 'company', isPolicy: pane === 'policy', isLocale: pane === 'locale',
+      isPayments: pane === 'payments', isNotify: pane === 'notify',
+      dirtyShow: dirty ? 'inline-flex' : 'none',
+      savedShow: this.state.saved && !dirty ? 'inline' : 'none',
+      notDirty: !dirty,
+      vCompany: d.company || '', setCompany: txt('company'),
+      vAddress: d.address || '', setAddress: txt('address'),
+      vUid: d.uid || '', setUid: txt('uid'),
+      vPhone: d.phone || '', setPhone: txt('phone'),
+      vEmail: d.email || '', setEmail: txt('email'),
+      vMinAdvance: d.minAdvance || '', setMinAdvance: txt('minAdvance'),
+      vCancelWindow: d.cancelWindow || '', setCancelWindow: txt('cancelWindow'),
+      vAirportWait: d.airportWait || '', setAirportWait: txt('airportWait'),
+      vCityWait: d.cityWait || '', setCityWait: txt('cityWait'),
+      vLang: d.defaultLang || 'en', pickLang: (v) => this.set('defaultLang', v),
+      vCur: d.defaultCur || 'CHF', pickCur: (v) => this.set('defaultCur', v),
+      langOptions: [
+        { value:'en', label:'EN', note:t.langEn }, { value:'de', label:'DE', note:t.langDe },
+        { value:'fr', label:'FR', note:t.langFr }, { value:'ar', label:'AR', note:t.langAr },
+      ],
+      curOptions: curCodes.map((c) => ({ value: c, label: c })),
+      payments: [
+        sw('cash', t.cash, t.cashHint), sw('card', t.card, t.cardHint),
+        sw('twint', t.twint, t.twintHint), sw('invoice', t.invoice, t.invoiceHint),
+      ],
+      notifications: [
+        sw('emailConfirm', t.emailConfirm, t.emailConfirmHint),
+        sw('emailReminder', t.emailReminder, t.emailReminderHint),
+        sw('smsReminder', t.smsReminder, t.smsReminderHint),
+        sw('opsAlerts', t.opsAlerts, t.opsAlertsHint),
+      ],
+      save: this.save, discard: this.discard,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

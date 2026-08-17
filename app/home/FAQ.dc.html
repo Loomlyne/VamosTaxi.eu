@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
+     injects every stylesheet and script from <helmet> only after React has loaded, so
+     without these the arriving document paints uncovered frames before
+     vamos-page-transition.js exists and can build its overlay. That script adopts
+     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
+     animation below is the fallback for when the script never runs. -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<link rel="stylesheet" href="../../assets/lenis.css">
+<script src="../../assets/lenis.js"></script>
+<script src="../../assets/lenis-boot.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+/* Button hover/press — colour step only, no shadow, no glow */
+.vt-btn{transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
+.vt-btn:hover,.vt-btn:active{box-shadow:none!important}
+.vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
+.vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
+.vt-btn--secondary:hover:not([disabled]){background:var(--vt-charcoal-800)}
+.vt-btn--secondary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn--ghost:hover:not([disabled]),.vt-btn--outline:hover:not([disabled]),.vt-btn--tertiary:hover:not([disabled]){background:var(--vt-grey-50);border-color:var(--vt-charcoal-900)}
+.vt-btn--ghost:active:not([disabled]),.vt-btn--outline:active:not([disabled]),.vt-btn--tertiary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn:focus-visible{box-shadow:var(--vt-ring)!important}
+.vt-btn[disabled],.vt-btn[aria-disabled="true"]{transform:none}.vt-select .vt-input--focus{box-shadow:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}
+body{margin:0}
+a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+[data-faq-wrap]{box-sizing:border-box;max-width:1200px;margin:0 auto;padding:clamp(56px,7vw,90px) clamp(16px,3.2vw,56px)}
+[data-faq-grid]{display:grid;grid-template-columns:minmax(0,1fr);column-gap:40px;row-gap:44px;align-items:start}
+[data-faq-card]{position:relative;box-sizing:border-box;display:flex;flex-direction:column;min-height:190px;padding:31px 31px 34px;border:1px solid var(--vt-grey-300);border-radius:20px;background:var(--vt-white);transition:background-color 200ms var(--vt-ease-standard),border-color 200ms var(--vt-ease-standard)}
+[data-faq-card][data-open="1"]{background:var(--vt-white);border-color:var(--vt-grey-300)}
+[data-faq-card][data-open="0"]:hover{border-color:var(--vt-charcoal-900)}
+[data-faq-toggle]{all:unset;box-sizing:border-box;display:block;width:100%;cursor:pointer;font-family:var(--vt-font-display);font-size:24px;font-weight:var(--vt-weight-semibold);letter-spacing:-0.03em;line-height:1.35;color:var(--vt-text-primary);text-align:start;text-wrap:pretty}
+[data-faq-toggle]:focus-visible{outline:none;border-radius:10px;box-shadow:var(--vt-ring)}
+[data-faq-circle]{position:absolute;inset-inline-end:30px;bottom:-25px;width:50px;height:50px;border-radius:999px;background:var(--vt-charcoal-900);color:var(--vt-white);display:inline-flex;align-items:center;justify-content:center;transition:background-color 140ms var(--vt-ease-standard),transform 80ms var(--vt-ease-standard)}
+[data-faq-toggle]:hover [data-faq-circle]{background:var(--vt-charcoal-800)}
+[data-faq-card][data-open="1"] [data-faq-circle]{background:var(--vt-yellow);color:var(--vt-charcoal-950)}
+[data-faq-card][data-open="1"] [data-faq-toggle]:hover [data-faq-circle]{background:var(--vt-yellow-600,#e0aa08)}
+[data-faq-toggle]:active [data-faq-circle]{transform:translateY(1px)}
+[data-faq-chev]{display:inline-flex;transition:transform var(--faq-ms,200ms) var(--vt-ease-standard)}
+[data-faq-card][data-open="1"] [data-faq-chev]{transform:rotate(180deg)}
+[data-faq-panel]{display:grid;grid-template-rows:0fr;visibility:hidden;transition:grid-template-rows var(--faq-ms,200ms) var(--vt-ease-standard),visibility 0s linear var(--faq-ms,200ms)}
+[data-faq-card][data-open="1"] [data-faq-panel]{grid-template-rows:1fr;visibility:visible;transition:grid-template-rows var(--faq-ms,200ms) var(--vt-ease-standard),visibility 0s}
+[data-faq-inner]{overflow:hidden;min-height:0;padding-top:26px;opacity:0;transition:opacity var(--faq-ms,200ms) var(--vt-ease-standard)}
+[data-faq-card][data-open="1"] [data-faq-inner]{opacity:1}
+[data-faq-a]{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary);text-wrap:pretty}
+[data-faq-flag]{display:inline-flex;align-items:center;gap:6px;margin-bottom:12px;height:22px;padding:0 8px;border:1px solid var(--vt-grey-300);border-radius:4px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+@media (min-width:700px){[data-faq-grid]{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:1024px){[data-faq-grid]{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (prefers-reduced-motion:reduce){[data-faq-card],[data-faq-panel],[data-faq-inner],[data-faq-chev],[data-faq-circle]{transition:none}}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
+</helmet>
+<section id="faq" data-faq="1" data-screen-label="FAQ" aria-labelledby="faq-title" ref="{{ rootRef }}" style="color:var(--vt-text-primary);font-family:var(--vt-font-body);position:relative;overflow:hidden">
+<div aria-hidden="true" style="position:absolute;inset:0;background-image:url(data:image/png;base64,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);background-size:88px 88px;background-repeat:repeat;opacity:.028;pointer-events:none;z-index:0"></div>
+<div data-faq-wrap="1" style="position:relative;z-index:1">
+
+<p style="margin:0 0 16px;display:inline-flex;align-self:flex-start;align-items:center;gap:9px;height:32px;padding:0 15px 0 12px;border:1px solid var(--vt-grey-200);border-radius:999px;background:var(--vt-white);font-size:12px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;line-height:1;white-space:nowrap;color:var(--vt-charcoal-900)"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAAChCAYAAABAk7SIAAAEi0lEQVR4AeyUS27bQBQETR1BuU58o1wqZ9F9nEX2YWCuaIA/c379XpcBGYYkznRXF/yYX8852+st4c/8+vF7TrjVI+FWVApEAAEDjZUxKgJmXDVQJwQMNFbGqAiYcdVAnXwFDDRS5qgImHndAN0QMMBImSMiYOZ1A3RDwAAjZY6IgJnXDdANAQOMVDmi1HEIKDWHXxgE9NtcqjECSs3hFwYB/TaXaoyAUnP4hUFAv82lGncVUKo5YSQIIKDEDL4hENB3e4nmCCgxg28IBPTdXqI5AkrM4BsCAbtszyV7BBBwjwzvdyGAgF0wc8keAQTcI8P7XQggYBfMXLJHAAH3yPB+FwII2AWz7yVnzRHwjBCfNyWAgE3xcvgZAQQ8I8TnTQkgYFO8HH5GAAHPCPF5UwII2BQvh58RyCvgWXM+lyCAgBIz+IZAQN/tJZojoMQMviEQ0Hd7ieYIKDGDbwgEzLd9qEYIGGqufGERMN+moRohYKi58oVFwHybhmqEgKHmyhcWAfNtGqpRVQFDNSesBAEElJjBNwQC+m4v0fwxvX9M2V7z6zlne71N//5m2+mzD/8BJf4P+IZAQN/tJZojYJUZOOQuAQS8S47nqhBAwCoYOeQuAQS8S47nqhBAwCoYOeQuAQS8S47nqhBAwCoYfQ8pbY6ApQR5vogAAhbh4+FSAghYSpDniwggYBE+Hi4lgIClBHm+iAACFuHj4VICcQUsbc7zEgQQUGIG3xAI6Lu9RHMElJjBNwQC+m4v0RwBJWbwDYGA8bZPlRgBU80ZrwwCxtssVWIETDVnvDIIGG+zVIkRMNWc8cogYLzNUiX+loCpmlNGggACSszgGwIBfbeXaI6AEjP4hkBA3+0lmiOgxAy+IRDw0vZ8qRUBBGxFlnMvEUDAS5j4UisCCNiKLOdeIoCAlzDxpVYEELAVWc69RAABL2Hy/VLr5gjYmjDnHxJAwEM8fNiaAAK2Jsz5hwQQ8BAPH7YmgICtCXP+IQEEPMTDh60J6ArYujnnSxBAQIkZfEMgoO/2Es0RUGIG3xAI6Lu9RPPH/HrO2V7T+8eU7vXzzy8JYyqH4D9gZaAVjrM6AgGt5tYri4B6m1glQkCrufXKIqDeJlaJENBqbr2yCKi3iVWiLwJaNaesBAEElJjBNwQC+m4v0RwBJWbwDYGAvttLNEdAiRl8QyDgsj2/RhFAwFHkuXchgIALBn6NIoCAo8hz70IAARcM/BpFAAFHkefehQACLhh8f41ujoCjFzC/HwHNBRhdHwFHL2B+PwKaCzC6PgKOXsD8fgQ0F2B0/XECjm7O/RIEEFBiBt8QCOi7vURzBJSYwTcEAvpuL9EcASVm8A2BgP2358YVAQRcweDP/gQQsD9zblwRQMAVDP7sTwAB+zPnxhUBBFzB4M/+BBCwP3PfGzeaI+AGFN7qRwAB+7Hmpg0CCLgBhbf6EUDAfqy5aYMAAm5A4a1+BBCwH2tu2iBgIuBGc96SIICAEjP4hkBA3+0lmiOgxAy+IRDQd3uJ5ggoMYNvCARMvr16PQRUXyh5vv8AAAD//3BQ2wUAAAAGSURBVAMAfqEZH/MwL3sAAAAASUVORK5CYII=" alt="" style="width:13px;height:13px;display:block">Answers</p>
+<h2 id="faq-title" style="margin:0 0 clamp(30px,3.6vw,40px);font-family:var(--vt-font-display);font-size:var(--vt-display-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:1.12;max-width:22ch;text-wrap:balance">Frequently asked questions</h2>
+
+<div data-faq-grid="1">
+
+<div data-faq-card="1" data-open="1">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="faq-q1" aria-expanded="true" aria-controls="faq-a1">Is the price I see the final price?
+<span data-faq-circle="1" aria-hidden="true"><span data-faq-chev="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n22 }}" color="currentColor" hint-size="22px,22px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="faq-a1" role="region" aria-labelledby="faq-q1">
+<div data-faq-inner="1">
+<p data-faq-a="1">Yes. Your fare is calculated from the route and the vehicle class before you book, confirmed in writing, and it does not change afterwards. No meter, no surge, nothing added at the airport.</p>
+</div>
+</div>
+</div>
+
+<div data-faq-card="1" data-open="0">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="faq-q2" aria-expanded="false" aria-controls="faq-a2">Do I need an account to book?
+<span data-faq-circle="1" aria-hidden="true"><span data-faq-chev="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n22 }}" color="currentColor" hint-size="22px,22px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="faq-a2" role="region" aria-labelledby="faq-q2">
+<div data-faq-inner="1">
+<p data-faq-a="1">No. Guest checkout takes an email address and a mobile number — the address for your confirmation, the number for the driver to call on arrival. You can open an account later if you want your transfers in one place.</p>
+</div>
+</div>
+</div>
+
+<div data-faq-card="1" data-open="0">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="faq-q3" aria-expanded="false" aria-controls="faq-a3">What payment methods do you accept?
+<span data-faq-circle="1" aria-hidden="true"><span data-faq-chev="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n22 }}" color="currentColor" hint-size="22px,22px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="faq-a3" role="region" aria-labelledby="faq-q3">
+<div data-faq-inner="1">
+<p data-faq-a="1">Card payment, processed by Stripe. Every method available for your booking is shown at checkout before you pay.</p>
+</div>
+</div>
+</div>
+
+<div data-faq-card="1" data-open="0">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="faq-q4" aria-expanded="false" aria-controls="faq-a4">How far in advance do I need to book?
+<span data-faq-circle="1" aria-hidden="true"><span data-faq-chev="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n22 }}" color="currentColor" hint-size="22px,22px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="faq-a4" role="region" aria-labelledby="faq-q4">
+<div data-faq-inner="1">
+<span data-faq-flag="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n12 }}" color="currentColor" hint-size="12px,12px"></x-import>Pending client input</span>
+<p data-faq-a="1">Placeholder — the minimum notice before a pickup has not been set yet, so no cut-off is stated here. The rule goes into this answer once the client confirms it.</p>
+</div>
+</div>
+</div>
+
+<div data-faq-card="1" data-open="0">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="faq-q5" aria-expanded="false" aria-controls="faq-a5">Can I cancel or change my booking?
+<span data-faq-circle="1" aria-hidden="true"><span data-faq-chev="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n22 }}" color="currentColor" hint-size="22px,22px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="faq-a5" role="region" aria-labelledby="faq-q5">
+<div data-faq-inner="1">
+<span data-faq-flag="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n12 }}" color="currentColor" hint-size="12px,12px"></x-import>Pending client input</span>
+<p data-faq-a="1">Placeholder — the cancellation and change policy is with the client and their legal advisers. No window, fee or refund term is stated here until it is agreed.</p>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:640},&quot;expandMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:400,&quot;min&quot;:0,&quot;max&quot;:400,&quot;step&quot;:20,&quot;unit&quot;:&quot;ms&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;},&quot;singleOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Behaviour&quot;},&quot;startOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Behaviour&quot;}}">
+/**
+ * Home · FAQ — layout from Figma /Main/510 (node 32:18065): 3-up 360px card grid, 40px gutter,
+ * 20px radius, question inset 31px, and the 50px circular toggle sitting bottom-right with its
+ * centre exactly on the card's bottom edge (matrix(0,±1,1,0,…) in the source, so it straddles).
+ * Recoloured to Vamos: collapsed white + 1px --vt-grey-300, expanded --vt-grey-50 with no
+ * border, Qurova questions / Poppins answers, toggle charcoal with a white Lucide chevron —
+ * the source's #5B40FF purple is deliberately not carried over (yellow stays reserved for one
+ * primary action per region, and three yellow toggles would break that).
+ *
+ * Card heights are never pinned: the source's 230/354 belong to its placeholder copy. Each card
+ * hugs its own content and the panel animates 0fr → 1fr grid rows, so any length of real FAQ
+ * copy expands without clipping. 200ms, the system's panel timing; visibility flips with it so
+ * a collapsed answer is out of the a11y tree. prefers-reduced-motion → instant.
+ *
+ * All five Q&As are literal markup (every string stays directly editable) and behaviour is wired
+ * by one delegated click listener, so opening a card never re-renders or remounts anything.
+ */
+class Component extends DCLogic {
+  rootRef = (el) => { this.root = el; this.boot(); };
+  ms() { return Math.max(0, Math.round(this.props.expandMs ?? 200)); }
+  cards() { return this.root ? Array.from(this.root.querySelectorAll('[data-faq-card]')) : []; }
+  boot() {
+    if (!this.root) return;
+    this.root.style.setProperty('--faq-ms', this.ms() + 'ms');
+    if (this._bound !== this.root) {
+      if (this._bound) this._bound.removeEventListener('click', this.onClick);
+      this.root.addEventListener('click', this.onClick);
+      this._bound = this.root;
+    }
+    /* Initial open state comes from the prop once, and again only if the prop itself changes —
+       never on an unrelated re-render, which would slam the reader's open card shut. */
+    const start = (this.props.startOpen ?? true) !== false;
+    if (this._start !== start) { this._start = start; this.cards().forEach((c, i) => this.set(c, start && i === 0)); }
+  }
+  set(card, open) {
+    card.setAttribute('data-open', open ? '1' : '0');
+    const b = card.querySelector('[data-faq-toggle]');
+    if (b) b.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  onClick = (e) => {
+    const btn = e.target.closest && e.target.closest('[data-faq-toggle]');
+    if (!btn || !this.root || !this.root.contains(btn)) return;
+    const card = btn.closest('[data-faq-card]');
+    if (!card) return;
+    const wasOpen = card.getAttribute('data-open') === '1';
+    if ((this.props.singleOpen ?? true) !== false) this.cards().forEach((c) => { if (c !== card) this.set(c, false); });
+    this.set(card, !wasOpen);
+  };
+  componentDidUpdate() { this.boot(); }
+  componentWillUnmount() { if (this._bound) this._bound.removeEventListener('click', this.onClick); }
+  renderVals() { return { rootRef: this.rootRef, n22: 22, n12: 12 }; }
+}
+
+</script>
+</body>
+</html>

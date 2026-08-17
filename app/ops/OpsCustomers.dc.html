@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<main style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
+
+<header style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle)">
+<div style="min-width:0">
+<h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tTitle }}</h1>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSubtitle }}</p>
+</div>
+</header>
+
+<div style="padding:26px 32px 48px;display:flex;flex-direction:column;gap:20px;min-width:0">
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(212px,1fr));gap:16px">
+<sc-for list="{{ counts }}" as="c" hint-placeholder-count="3">
+<div style="box-sizing:border-box;display:flex;flex-direction:column;gap:10px;min-height:120px;padding:18px 20px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg)">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ c.label }}</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ c.icon }}" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
+</div>
+<span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-lg);font-weight:var(--vt-weight-bold);line-height:1;color:var(--vt-text-primary)">{{ c.value }}</span>
+<span style="margin-top:auto;font-size:var(--vt-body-xs);line-height:1.45;color:var(--vt-text-muted)">{{ c.foot }}</span>
+</div>
+</sc-for>
+</div>
+
+<dc-import name="OpsTable" rows="{{ rows }}" columns="{{ columns }}" fields="{{ fields }}" blank="{{ blank }}" onSave="{{ onSave }}" onDelete="{{ onDelete }}" noun="{{ tNoun }}" noun-plural="{{ tNounPlural }}" add-title="{{ tAdd }}" edit-title="{{ tEditTitle }}" delete-title="{{ tDeleteTitle }}" label-key="name" add-label="{{ tAdd }}" search-placeholder="{{ tSearch }}" search-keys="{{ searchKeys }}" empty-title="{{ tEmptyTitle }}" empty-body="{{ tEmptyBody }}" delete-body="{{ tDeleteBody }}" history-label="{{ tHistoryLabel }}" history-rows="{{ historyRows }}" history-empty-label="{{ tHistoryEmpty }}" hint-size="100%,460px"></dc-import>
+
+<p style="margin:0;max-width:78ch;font-size:var(--vt-body-xs);line-height:1.6;color:var(--vt-text-muted);text-wrap:pretty">{{ tNote }}</p>
+
+</div>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900}}">
+/* Customers — the people and companies who book. A corporate account is the same
+   record with a company name and an invoice arrangement, not a second table. */
+const TYPES = {
+  private: { tone:'neutral', label:'Private' },
+  corporate: { tone:'inverse', label:'Corporate' },
+};
+const T = {
+  en: { title:'Customers', subtitle:'Everyone who has booked, and how to reach them',
+    colName:'Customer', colPhone:'Phone', colType:'Type', colCompany:'Company', colTrips:'Trips',
+    cntAll:'Customers', cntCorporate:'Corporate accounts', cntTrips:'Trips booked',
+    footAll:'On the books', footCorporate:'Invoiced, not card-paid', footTrips:'Across every customer',
+    add:'Add a customer', search:'Name, email, phone or company',
+    noun:'customer', nounPlural:'customers', editTitle:'Edit customer', deleteTitle:'Delete this customer?',
+    emptyTitle:'No customers yet', emptyBody:'Every booking creates one — or add a corporate account by hand before their first trip.',
+    deleteBody:'The customer leaves the console. Their past bookings stay on the board.',
+    fName:'Name', fEmail:'Email', fPhone:'Phone', fType:'Type', fCompany:'Company', fTrips:'Trips booked', fSince:'Customer since', fNote:'Note',
+    hCompany:'Only for a corporate account.', hNote:'Anything a dispatcher should know before the call.',
+    historyLabel:'Booking history', historyEmpty:'No trips on the board yet.',
+    note:'A customer record is what the booking form fills in and what the invoice is addressed to. Trip counts come from the bookings board once the platform API is connected.',
+  },
+  de: { title:'Kunden', subtitle:'Alle, die gebucht haben, und wie man sie erreicht',
+    colName:'Kunde', colPhone:'Telefon', colType:'Typ', colCompany:'Firma', colTrips:'Fahrten',
+    cntAll:'Kunden', cntCorporate:'Firmenkonten', cntTrips:'Gebuchte Fahrten',
+    footAll:'Im Bestand', footCorporate:'Auf Rechnung, nicht per Karte', footTrips:'Über alle Kunden',
+    add:'Kunde hinzufügen', search:'Name, E-Mail, Telefon oder Firma',
+    noun:'Kunde', nounPlural:'Kunden', editTitle:'Kunde bearbeiten', deleteTitle:'Diesen Kunden löschen?',
+    emptyTitle:'Noch keine Kunden', emptyBody:'Jede Buchung legt einen an — oder ein Firmenkonto vor der ersten Fahrt von Hand erfassen.',
+    deleteBody:'Der Kunde verlässt die Konsole. Frühere Buchungen bleiben auf dem Board.',
+    fName:'Name', fEmail:'E-Mail', fPhone:'Telefon', fType:'Typ', fCompany:'Firma', fTrips:'Gebuchte Fahrten', fSince:'Kunde seit', fNote:'Notiz',
+    hCompany:'Nur für ein Firmenkonto.', hNote:'Was ein Disponent vor dem Anruf wissen sollte.',
+    historyLabel:'Buchungsverlauf', historyEmpty:'Noch keine Fahrten auf dem Board.',
+    note:'Der Kundendatensatz ist das, was das Buchungsformular ausfüllt und worauf die Rechnung lautet. Die Fahrtenzahlen kommen vom Buchungsboard, sobald die Plattform-API verbunden ist.',
+  },
+  fr: { title:'Clients', subtitle:'Tous ceux qui ont réservé, et comment les joindre',
+    colName:'Client', colPhone:'Téléphone', colType:'Type', colCompany:'Société', colTrips:'Courses',
+    cntAll:'Clients', cntCorporate:'Comptes entreprises', cntTrips:'Courses réservées',
+    footAll:'Au registre', footCorporate:'Facturés, pas payés par carte', footTrips:'Tous clients confondus',
+    add:'Ajouter un client', search:'Nom, e-mail, téléphone ou société',
+    noun:'client', nounPlural:'clients', editTitle:'Modifier le client', deleteTitle:'Supprimer ce client ?',
+    emptyTitle:'Aucun client', emptyBody:'Chaque réservation en crée un — ou ajoutez un compte entreprise avant sa première course.',
+    deleteBody:'Le client quitte la console. Ses réservations passées restent au tableau.',
+    fName:'Nom', fEmail:'E-mail', fPhone:'Téléphone', fType:'Type', fCompany:'Société', fTrips:'Courses réservées', fSince:'Client depuis', fNote:'Note',
+    hCompany:'Uniquement pour un compte entreprise.', hNote:'Ce qu’un régulateur doit savoir avant l’appel.',
+    historyLabel:'Historique des réservations', historyEmpty:'Aucune course sur le tableau pour l’instant.',
+    note:'La fiche client est ce que le formulaire de réservation remplit et ce à quoi la facture est adressée. Les compteurs de courses viendront du tableau des réservations une fois l’API connectée.',
+  },
+  ar: { title:'العملاء', subtitle:'كل من حجز، وكيفية الوصول إليه',
+    colName:'العميل', colPhone:'الهاتف', colType:'النوع', colCompany:'الشركة', colTrips:'الرحلات',
+    cntAll:'العملاء', cntCorporate:'حسابات الشركات', cntTrips:'الرحلات المحجوزة',
+    footAll:'في السجل', footCorporate:'بفاتورة لا ببطاقة', footTrips:'عبر كل العملاء',
+    add:'إضافة عميل', search:'الاسم أو البريد أو الهاتف أو الشركة',
+    noun:'عميل', nounPlural:'عملاء', editTitle:'تعديل العميل', deleteTitle:'حذف هذا العميل؟',
+    emptyTitle:'لا يوجد عملاء بعد', emptyBody:'كل حجز يُنشئ عميلًا — أو أضف حساب شركة يدويًا قبل رحلته الأولى.',
+    deleteBody:'يخرج العميل من لوحة التحكم، وتبقى حجوزاته السابقة على اللوحة.',
+    fName:'الاسم', fEmail:'البريد الإلكتروني', fPhone:'الهاتف', fType:'النوع', fCompany:'الشركة', fTrips:'الرحلات المحجوزة', fSince:'عميل منذ', fNote:'ملاحظة',
+    hCompany:'لحسابات الشركات فقط.', hNote:'ما ينبغي أن يعرفه الموزّع قبل الاتصال.',
+    historyLabel:'سجل الحجوزات', historyEmpty:'لا رحلات على اللوحة بعد.',
+    note:'سجل العميل هو ما يملؤه نموذج الحجز وما تُوجَّه إليه الفاتورة. تأتي أعداد الرحلات من لوحة الحجوزات بعد ربط واجهة المنصّة.',
+  },
+};
+
+class Component extends DCLogic {
+  state = { lang: 'en' };
+  bind = () => {
+    if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
+    this._off = window.VamosOps.customers.onChange(() => this.forceUpdate());
+    this.forceUpdate();
+  };
+  componentDidMount() {
+    this.bind();
+    this._onLocale = (e) => this.setState({ lang: e.detail.lang });
+    window.addEventListener('vamos:locale', this._onLocale);
+    if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() });
+  }
+  componentWillUnmount() {
+    if (this._off) this._off();
+    if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
+    clearTimeout(this._retry);
+  }
+  renderVals() {
+    const t = T[this.state.lang] || T.en;
+    const ops = window.VamosOps;
+    const rows = ops ? ops.customers.all() : [];
+    const corporate = rows.filter((r) => r.type === 'corporate').length;
+    const trips = rows.reduce((n, r) => n + (r.trips || 0), 0);
+    const typeOptions = (ops ? ops.CUSTOMER_TYPES : []).map((v) => ({ value: v, label: TYPES[v].label }));
+    return {
+      n18: 18,
+      tTitle: t.title, tSubtitle: t.subtitle, tAdd: t.add, tSearch: t.search,
+      tNoun: t.noun, tNounPlural: t.nounPlural, tEditTitle: t.editTitle, tDeleteTitle: t.deleteTitle,
+      tEmptyTitle: t.emptyTitle, tEmptyBody: t.emptyBody, tDeleteBody: t.deleteBody, tNote: t.note,
+      tHistoryLabel: t.historyLabel, tHistoryEmpty: t.historyEmpty,
+      historyRows: (row) => (ops ? ops.bookings.all() : [])
+        .filter((b) => b.customer && row.name && b.customer.toLowerCase() === row.name.toLowerCase())
+        .sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time))
+        .map((b) => ({ ref: b.id, route: (b.pickup || '') + ' → ' + (b.dropoff || ''), when: b.time + ' · ' + b.date, status: b.status })),
+      counts: [
+        { label:t.cntAll, value:String(rows.length), icon:'user', foot:t.footAll },
+        { label:t.cntCorporate, value:String(corporate), icon:'briefcase', foot:t.footCorporate },
+        { label:t.cntTrips, value:String(trips), icon:'car-front', foot:t.footTrips },
+      ],
+      rows,
+      columns: [
+        { key:'name', header:t.colName, kind:'stack', subKey:'email' },
+        { key:'phone', header:t.colPhone, width:'170px' },
+        { key:'company', header:t.colCompany, width:'190px', lookup:(r) => r.company || '—' },
+        { key:'trips', header:t.colTrips, width:'92px', align:'right' },
+        { key:'type', header:t.colType, width:'130px', kind:'badge', tones:TYPES },
+      ],
+      fields: [
+        { key:'name', label:t.fName, half:true, required:true },
+        { key:'email', label:t.fEmail, half:true, placeholder:'name@example.com' },
+        { key:'phone', label:t.fPhone, half:true, placeholder:'+41 00 000 00 00' },
+        { key:'type', label:t.fType, editor:'select', options:typeOptions, icon:'user', half:true },
+        { key:'company', label:t.fCompany, half:true, hint:t.hCompany },
+        { key:'since', label:t.fSince, half:true, placeholder:'0000' },
+        { key:'trips', label:t.fTrips, editor:'number', min:0, half:true },
+        { key:'note', label:t.fNote, editor:'area', hint:t.hNote },
+      ],
+      searchKeys: ['name','email','phone','company'],
+      blank: () => (ops ? ops.customers.blank() : {}),
+      onSave: (rec) => { if (ops) ops.customers.upsert(rec); },
+      onDelete: (id) => { if (ops) ops.customers.remove(id); },
+    };
+  }
+}
+</script>
+</body>
+</html>

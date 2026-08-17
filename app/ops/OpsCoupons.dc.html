@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<main style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
+
+<header style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle)">
+<div style="min-width:0">
+<h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tTitle }}</h1>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSubtitle }}</p>
+</div>
+</header>
+
+<div style="padding:26px 32px 48px;display:flex;flex-direction:column;gap:20px;min-width:0">
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(212px,1fr));gap:16px">
+<sc-for list="{{ counts }}" as="c" hint-placeholder-count="3">
+<div style="box-sizing:border-box;display:flex;flex-direction:column;gap:10px;min-height:120px;padding:18px 20px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg)">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ c.label }}</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ c.icon }}" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
+</div>
+<span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-lg);font-weight:var(--vt-weight-bold);line-height:1;color:var(--vt-text-primary)">{{ c.value }}</span>
+<span style="margin-top:auto;font-size:var(--vt-body-xs);line-height:1.45;color:var(--vt-text-muted)">{{ c.foot }}</span>
+</div>
+</sc-for>
+</div>
+
+<dc-import name="OpsTable" rows="{{ rows }}" columns="{{ columns }}" fields="{{ fields }}" blank="{{ blank }}" onSave="{{ onSave }}" onDelete="{{ onDelete }}" noun="{{ tNoun }}" noun-plural="{{ tNounPlural }}" add-title="{{ tAdd }}" edit-title="{{ tEditTitle }}" delete-title="{{ tDeleteTitle }}" label-key="code" add-label="{{ tAdd }}" search-placeholder="{{ tSearch }}" search-keys="{{ searchKeys }}" empty-title="{{ tEmptyTitle }}" empty-body="{{ tEmptyBody }}" delete-body="{{ tDeleteBody }}" hint-size="100%,460px"></dc-import>
+
+<p style="margin:0;max-width:78ch;font-size:var(--vt-body-xs);line-height:1.6;color:var(--vt-text-muted);text-wrap:pretty">{{ tNote }}</p>
+
+</div>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900}}">
+/* Coupons — a code, what it takes off, and how long it lives. Percentages and
+   amounts stay placeholders (00) until the price matrix lands: a discount off an
+   unknown fare is not a number we can print. */
+const T = {
+  en: { title:'Coupons', subtitle:'Codes a traveller can enter at checkout',
+    colCode:'Code', colValue:'Takes off', colUses:'Used', colExpires:'Expires', colActive:'Status',
+    cntAll:'Codes', cntActive:'Live', cntRedeemed:'Redemptions',
+    footAll:'Created so far', footActive:'Accepted at checkout right now', footRedeemed:'Across every code',
+    add:'Add a coupon', search:'Code or note',
+    noun:'coupon', nounPlural:'coupons', editTitle:'Edit coupon', deleteTitle:'Delete this coupon?',
+    emptyTitle:'No coupons yet', emptyBody:'Add a code and it is accepted at checkout as soon as you switch it live.',
+    deleteBody:'The code stops working at checkout immediately.',
+    fCode:'Code', fKind:'Discount', fValue:'Value', fLimit:'Redemption limit', fExpires:'Expires', fActive:'Live at checkout', fNote:'Note',
+    hCode:'What the traveller types. Uppercase, no spaces.',
+    hValue:'A placeholder until the fare matrix lands.',
+    hLimit:'0 means no limit.', hExpires:'Leave empty for no end date.',
+    hActive:'Off keeps the code but stops it being accepted.',
+    kPercent:'Percentage off', kAmount:'Amount off',
+    live:'Live', paused:'Paused', noEnd:'No end date', unlimited:'no limit',
+    note:'Discount values stay at 00 until the fare matrix is connected — a percentage off an unknown fare is not a figure we can show a traveller. Switching a code off keeps its history and stops it being accepted.',
+  },
+  de: { title:'Gutscheine', subtitle:'Codes, die ein Reisender an der Kasse eingeben kann',
+    colCode:'Code', colValue:'Rabatt', colUses:'Eingelöst', colExpires:'Läuft ab', colActive:'Status',
+    cntAll:'Codes', cntActive:'Aktiv', cntRedeemed:'Einlösungen',
+    footAll:'Bisher erstellt', footActive:'Jetzt an der Kasse gültig', footRedeemed:'Über alle Codes',
+    add:'Gutschein hinzufügen', search:'Code oder Notiz',
+    noun:'Gutschein', nounPlural:'Gutscheine', editTitle:'Gutschein bearbeiten', deleteTitle:'Diesen Gutschein löschen?',
+    emptyTitle:'Noch keine Gutscheine', emptyBody:'Code anlegen — sobald er aktiv geschaltet ist, wird er an der Kasse akzeptiert.',
+    deleteBody:'Der Code wird an der Kasse sofort ungültig.',
+    fCode:'Code', fKind:'Rabatt', fValue:'Wert', fLimit:'Einlösungslimit', fExpires:'Läuft ab', fActive:'An der Kasse aktiv', fNote:'Notiz',
+    hCode:'Was der Reisende eintippt. Grossbuchstaben, keine Leerzeichen.',
+    hValue:'Platzhalter, bis die Preismatrix vorliegt.',
+    hLimit:'0 bedeutet kein Limit.', hExpires:'Leer lassen für kein Enddatum.',
+    hActive:'Aus behält den Code, verhindert aber die Einlösung.',
+    kPercent:'Prozent Rabatt', kAmount:'Betrag Rabatt',
+    live:'Aktiv', paused:'Pausiert', noEnd:'Kein Enddatum', unlimited:'kein Limit',
+    note:'Rabattwerte bleiben bei 00, bis die Preismatrix verbunden ist — ein Prozentsatz auf einen unbekannten Fahrpreis ist keine Zahl, die wir zeigen können. Ein deaktivierter Code behält seine Historie und wird nicht mehr akzeptiert.',
+  },
+  fr: { title:'Codes promo', subtitle:'Codes qu’un voyageur peut saisir au paiement',
+    colCode:'Code', colValue:'Remise', colUses:'Utilisé', colExpires:'Expire', colActive:'Statut',
+    cntAll:'Codes', cntActive:'Actifs', cntRedeemed:'Utilisations',
+    footAll:'Créés à ce jour', footActive:'Acceptés au paiement en ce moment', footRedeemed:'Tous codes confondus',
+    add:'Ajouter un code', search:'Code ou note',
+    noun:'code promo', nounPlural:'codes promo', editTitle:'Modifier le code', deleteTitle:'Supprimer ce code ?',
+    emptyTitle:'Aucun code promo', emptyBody:'Ajoutez un code : il est accepté au paiement dès que vous l’activez.',
+    deleteBody:'Le code cesse immédiatement de fonctionner au paiement.',
+    fCode:'Code', fKind:'Remise', fValue:'Valeur', fLimit:'Limite d’utilisation', fExpires:'Expire', fActive:'Actif au paiement', fNote:'Note',
+    hCode:'Ce que le voyageur saisit. Majuscules, sans espaces.',
+    hValue:'Valeur provisoire tant que la matrice tarifaire n’est pas connectée.',
+    hLimit:'0 signifie sans limite.', hExpires:'Laissez vide pour aucune date de fin.',
+    hActive:'Désactivé conserve le code mais empêche son utilisation.',
+    kPercent:'Pourcentage de remise', kAmount:'Montant de remise',
+    live:'Actif', paused:'En pause', noEnd:'Sans date de fin', unlimited:'sans limite',
+    note:'Les valeurs de remise restent à 00 tant que la matrice tarifaire n’est pas connectée — un pourcentage sur un tarif inconnu n’est pas un chiffre affichable. Désactiver un code conserve son historique et bloque son utilisation.',
+  },
+  ar: { title:'القسائم', subtitle:'رموز يمكن للمسافر إدخالها عند الدفع',
+    colCode:'الرمز', colValue:'الخصم', colUses:'مستخدَم', colExpires:'ينتهي', colActive:'الحالة',
+    cntAll:'الرموز', cntActive:'فعّالة', cntRedeemed:'مرات الاستخدام',
+    footAll:'المُنشأة حتى الآن', footActive:'مقبولة عند الدفع الآن', footRedeemed:'عبر كل الرموز',
+    add:'إضافة قسيمة', search:'الرمز أو الملاحظة',
+    noun:'قسيمة', nounPlural:'قسائم', editTitle:'تعديل القسيمة', deleteTitle:'حذف هذه القسيمة؟',
+    emptyTitle:'لا توجد قسائم بعد', emptyBody:'أضف رمزًا، ويُقبل عند الدفع بمجرد تفعيله.',
+    deleteBody:'يتوقف الرمز عن العمل عند الدفع فورًا.',
+    fCode:'الرمز', fKind:'نوع الخصم', fValue:'القيمة', fLimit:'حد الاستخدام', fExpires:'ينتهي في', fActive:'فعّال عند الدفع', fNote:'ملاحظة',
+    hCode:'ما يكتبه المسافر. أحرف كبيرة بلا مسافات.',
+    hValue:'قيمة مؤقتة إلى أن تُربط مصفوفة الأسعار.',
+    hLimit:'0 تعني بلا حد.', hExpires:'اتركه فارغًا لبلا تاريخ انتهاء.',
+    hActive:'الإيقاف يُبقي الرمز ويمنع قبوله.',
+    kPercent:'نسبة مئوية', kAmount:'مبلغ ثابت',
+    live:'فعّال', paused:'متوقف', noEnd:'بلا تاريخ انتهاء', unlimited:'بلا حد',
+    note:'تبقى قيم الخصم 00 إلى أن تُربط مصفوفة الأسعار — فالنسبة من أجرة مجهولة ليست رقمًا يمكن عرضه. وإيقاف الرمز يحفظ سجله ويمنع قبوله.',
+  },
+};
+
+class Component extends DCLogic {
+  state = { lang: 'en' };
+  bind = () => {
+    if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
+    this._off = window.VamosOps.coupons.onChange(() => this.forceUpdate());
+    this.forceUpdate();
+  };
+  componentDidMount() {
+    this.bind();
+    this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
+    window.addEventListener('vamos:locale', this._onLocale);
+    if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() });
+  }
+  componentWillUnmount() {
+    if (this._off) this._off();
+    if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
+    clearTimeout(this._retry);
+  }
+  renderVals() {
+    const t = T[this.state.lang] || T.en;
+    const ops = window.VamosOps;
+    const rows = ops ? ops.coupons.all() : [];
+    const live = rows.filter((r) => r.active).length;
+    const used = rows.reduce((n, r) => n + (r.uses || 0), 0);
+    return {
+      n18: 18,
+      tTitle: t.title, tSubtitle: t.subtitle, tAdd: t.add, tSearch: t.search,
+      tNoun: t.noun, tNounPlural: t.nounPlural, tEditTitle: t.editTitle, tDeleteTitle: t.deleteTitle,
+      tEmptyTitle: t.emptyTitle, tEmptyBody: t.emptyBody, tDeleteBody: t.deleteBody, tNote: t.note,
+      counts: [
+        { label:t.cntAll, value:String(rows.length), icon:'ticket', foot:t.footAll },
+        { label:t.cntActive, value:String(live), icon:'circle-check', foot:t.footActive },
+        { label:t.cntRedeemed, value:String(used), icon:'receipt', foot:t.footRedeemed },
+      ],
+      rows,
+      columns: [
+        { key:'code', header:t.colCode, kind:'mono' },
+        { key:'value', header:t.colValue, width:'150px',
+          lookup:(r) => (r.kind === 'percent'
+            ? (r.value || '00') + ' %'
+            : (window.VamosLocale ? window.VamosLocale.money(r.value || '00') : 'CHF ' + (r.value || '00'))) },
+        { key:'uses', header:t.colUses, width:'128px',
+          lookup:(r) => r.uses + ' / ' + (r.limit ? r.limit : t.unlimited) },
+        { key:'expires', header:t.colExpires, width:'150px', lookup:(r) => r.expires || t.noEnd },
+        { key:'active', header:t.colActive, width:'128px', kind:'bool', onLabel:t.live, offLabel:t.paused },
+      ],
+      fields: [
+        { key:'code', label:t.fCode, half:true, required:true, hint:t.hCode, placeholder:'WELCOME' },
+        { key:'kind', label:t.fKind, editor:'select', icon:'ticket', half:true,
+          options:[{ value:'percent', label:t.kPercent }, { value:'amount', label:t.kAmount }] },
+        { key:'value', label:t.fValue, half:true, placeholder:'00', hint:t.hValue },
+        { key:'limit', label:t.fLimit, editor:'number', min:0, half:true, hint:t.hLimit },
+        { key:'expires', label:t.fExpires, half:true, placeholder:'0000-00-00', hint:t.hExpires },
+        { key:'active', label:t.fActive, editor:'switch', half:true, hint:t.hActive },
+        { key:'note', label:t.fNote, editor:'area' },
+      ],
+      searchKeys: ['code','note'],
+      blank: () => (ops ? ops.coupons.blank() : {}),
+      onSave: (rec) => { if (ops) ops.coupons.upsert(rec); },
+      onDelete: (id) => { if (ops) ops.coupons.remove(id); },
+    };
+  }
+}
+</script>
+</body>
+</html>

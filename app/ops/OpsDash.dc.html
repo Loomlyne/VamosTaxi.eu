@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<main style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
+
+<header style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle)">
+<div style="min-width:0">
+<h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">Dashboard</h1>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ subtitle }}</p>
+</div>
+<div style="margin-inline-start:auto;display:flex;flex-wrap:wrap;align-items:center;gap:8px">
+<sc-for list="{{ periods }}" as="p" hint-placeholder-count="3">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Tag" active="{{ p.active }}" onClick="{{ p.select }}" hint-size="96px,34px">{{ p.label }}</x-import>
+</sc-for>
+</div>
+</header>
+
+<div style="padding:26px 32px 48px;display:flex;flex-direction:column;gap:26px;min-width:0">
+
+<section style="display:flex;flex-direction:column;gap:12px">
+<h2 style="margin:0;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Money</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(212px,1fr));gap:16px">
+
+<div style="box-sizing:border-box;display:flex;flex-direction:column;gap:10px;min-height:136px;padding:18px 20px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg)">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Income</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="banknote" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
+</div>
+<span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-lg);font-weight:var(--vt-weight-bold);line-height:1;color:var(--vt-text-primary)">{{ money }}</span>
+<span style="margin-top:auto;font-size:var(--vt-body-xs);line-height:1.45;color:var(--vt-text-muted)">Fares captured, before costs</span>
+</div>
+
+<div style="box-sizing:border-box;display:flex;flex-direction:column;gap:10px;min-height:136px;padding:18px 20px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg)">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Expenses</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="receipt" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
+</div>
+<span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-lg);font-weight:var(--vt-weight-bold);line-height:1;color:var(--vt-text-primary)">{{ money }}</span>
+<span style="margin-top:auto;font-size:var(--vt-body-xs);line-height:1.45;color:var(--vt-text-muted)">Chauffeur pay, vehicles, fees</span>
+</div>
+
+<div style="box-sizing:border-box;display:flex;flex-direction:column;gap:10px;min-height:136px;padding:18px 20px;background:var(--vt-bg-inverse);border:1px solid var(--vt-bg-inverse);border-radius:var(--vt-radius-lg)">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-inverse-muted)">Net</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-up" size="{{ n18 }}" color="var(--vt-accent)" hint-size="18px,18px"></x-import>
+</div>
+<span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-lg);font-weight:var(--vt-weight-bold);line-height:1;color:var(--vt-accent)">{{ money }}</span>
+<span style="margin-top:auto;font-size:var(--vt-body-xs);line-height:1.45;color:var(--vt-text-inverse-muted)">Income less expenses</span>
+</div>
+
+<div style="box-sizing:border-box;display:flex;flex-direction:column;gap:10px;min-height:136px;padding:18px 20px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg)">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Average fare</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="credit-card" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
+</div>
+<span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-lg);font-weight:var(--vt-weight-bold);line-height:1;color:var(--vt-text-primary)">{{ money }}</span>
+<span style="margin-top:auto;font-size:var(--vt-body-xs);line-height:1.45;color:var(--vt-text-muted)">Per completed transfer</span>
+</div>
+
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:12px">
+<h2 style="margin:0;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Operation</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(212px,1fr));gap:16px">
+<sc-for list="{{ counts }}" as="c" hint-placeholder-count="4">
+<a href="{{ c.href }}" style="box-sizing:border-box;display:flex;flex-direction:column;gap:10px;min-height:136px;padding:18px 20px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);text-decoration:none;color:inherit;transition:border-color 140ms cubic-bezier(.2,0,.2,1),background 140ms cubic-bezier(.2,0,.2,1)" style-hover="border-color:var(--vt-charcoal-900);background:var(--vt-grey-50)">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ c.label }}</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ c.icon }}" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
+</div>
+<span style="display:flex;align-items:baseline;gap:8px;font-family:var(--vt-font-display);font-size:var(--vt-figure-lg);font-weight:var(--vt-weight-bold);line-height:1;color:var(--vt-text-primary)">{{ c.value }}<span style="font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:400;color:var(--vt-text-muted)">{{ c.of }}</span></span>
+<span style="margin-top:auto;font-size:var(--vt-body-xs);line-height:1.45;color:var(--vt-text-muted)">{{ c.foot }}</span>
+</a>
+</sc-for>
+</div>
+</section>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;align-items:start">
+
+<section style="box-sizing:border-box;display:flex;flex-direction:column;gap:4px;padding:22px 24px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);min-width:0">
+<h2 style="margin:0 0 10px;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);color:var(--vt-text-primary)">Where the money goes</h2>
+
+<p style="margin:0 0 6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Money in</p>
+<sc-for list="{{ income }}" as="r" hint-placeholder-count="4">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;padding:11px 0;border-bottom:1px solid var(--vt-grey-200)">
+<span style="flex:1 1 160px;min-width:0;font-size:var(--vt-body-sm);color:var(--vt-text-primary)">{{ r.label }}</span>
+<span style="font-family:var(--vt-font-display);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);font-variant-numeric:tabular-nums;color:var(--vt-text-primary)">{{ money }}</span>
+</div>
+</sc-for>
+
+<p style="margin:18px 0 6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Money out</p>
+<sc-for list="{{ expenses }}" as="r" hint-placeholder-count="5">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;padding:11px 0;border-bottom:1px solid var(--vt-grey-200)">
+<span style="flex:1 1 160px;min-width:0;font-size:var(--vt-body-sm);color:var(--vt-text-primary)">{{ r.label }}</span>
+<span style="font-family:var(--vt-font-display);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);font-variant-numeric:tabular-nums;color:var(--vt-text-primary)">{{ money }}</span>
+</div>
+</sc-for>
+
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;margin-top:14px;padding:14px 16px;background:var(--vt-grey-50);border-radius:var(--vt-radius-md)">
+<span style="flex:1 1 160px;min-width:0;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-primary)">Net</span>
+<span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-sm);font-weight:var(--vt-weight-bold);font-variant-numeric:tabular-nums;color:var(--vt-text-primary)">{{ money }}</span>
+</div>
+<p style="margin:14px 0 0;font-size:var(--vt-body-xs);line-height:1.55;color:var(--vt-text-muted);text-wrap:pretty">Every amount is a placeholder until Stripe payouts and the cost sheet are connected. Counts below come from the bookings in this starting point.</p>
+</section>
+
+<div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+
+<section style="box-sizing:border-box;display:flex;flex-direction:column;gap:8px;padding:22px 24px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg)">
+<h2 style="margin:0 0 4px;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);color:var(--vt-text-primary)">Needs attention</h2>
+<sc-for list="{{ attention }}" as="a" hint-placeholder-count="3">
+<a href="{{ a.href }}" style="box-sizing:border-box;display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 12px;margin:0 -12px;border-radius:var(--vt-radius-md);text-decoration:none;color:inherit;transition:background 140ms cubic-bezier(.2,0,.2,1)" style-hover="background:var(--vt-grey-50)">
+<span style="flex:0 0 auto;display:grid;place-items:center;width:36px;height:36px;border-radius:999px;background:var(--vt-charcoal-900)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ a.icon }}" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>
+</span>
+<span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px">
+<span style="font-size:var(--vt-body-sm);font-weight:600;color:var(--vt-text-primary)">{{ a.title }}</span>
+<span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ a.note }}</span>
+</span>
+<span style="flex:0 0 auto;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-bold);color:var(--vt-text-primary)">{{ a.count }}</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-right" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
+</a>
+</sc-for>
+</section>
+
+<section style="box-sizing:border-box;display:flex;flex-direction:column;gap:14px;padding:22px 24px;background:var(--vt-bg-inverse);border-radius:var(--vt-radius-lg);color:var(--vt-text-inverse)">
+<h2 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);color:var(--vt-text-inverse)">Fleet today</h2>
+<div style="display:flex;flex-wrap:wrap;gap:22px">
+<span style="display:flex;flex-direction:column;gap:3px;min-width:0">
+<span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-md);font-weight:var(--vt-weight-bold);line-height:1;color:var(--vt-accent)">{{ chauffeursOn }}</span>
+<span style="font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted)">{{ chauffeursNote }}</span>
+</span>
+<span style="display:flex;flex-direction:column;gap:3px;min-width:0">
+<span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-md);font-weight:var(--vt-weight-bold);line-height:1;color:var(--vt-accent)">{{ vehiclesOn }}</span>
+<span style="font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted)">{{ vehiclesNote }}</span>
+</span>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:10px;padding-top:14px;border-top:1px solid var(--vt-border-inverse)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="light" href="#vehicles" hint-size="120px,36px">Vehicles</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="light" href="#chauffeurs" hint-size="130px,36px">Chauffeurs</x-import>
+</div>
+</section>
+
+</div>
+</div>
+
+</div>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900}}">
+/* The number screen. Money is a placeholder everywhere (design system §2 — never
+   invent a CHF figure); the counts are read off the same sample bookings the board
+   shows, so the two screens never disagree. */
+const PERIODS = [
+  { key:'today', en:'Today', de:'Heute', fr:'Aujourd’hui', ar:'اليوم',
+    bookings:7, pickups:7, unassigned:2, awaiting:2, refunds:1, sub:'Friday 14 August · figures for today' },
+  { key:'week', en:'7 days', de:'7 Tage', fr:'7 jours', ar:'٧ أيام',
+    bookings:46, pickups:44, unassigned:5, awaiting:4, refunds:2, sub:'Last seven days, to Friday 14 August' },
+  { key:'month', en:'30 days', de:'30 Tage', fr:'30 jours', ar:'٣٠ يومًا',
+    bookings:188, pickups:180, unassigned:9, awaiting:7, refunds:4, sub:'Last thirty days, to Friday 14 August' },
+];
+const FLEET = { chauffeurs: 5, onShift: 3, vehicles: 6, inService: 4 };
+const INCOME = ['Transfers', 'Airport pickups', 'Extras and waiting time', 'Corporate accounts'];
+const EXPENSES = ['Chauffeur pay', 'Fuel and tolls', 'Vehicle leasing', 'Insurance', 'Card and platform fees'];
+
+class Component extends DCLogic {
+  state = { lang: 'en', period: 'today' };
+  componentDidMount() {
+    this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
+    window.addEventListener('vamos:locale', this._onLocale);
+    if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() });
+  }
+  componentWillUnmount() { if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale); }
+  renderVals() {
+    const lang = this.state.lang;
+    const p = PERIODS.find((x) => x.key === this.state.period) || PERIODS[0];
+    return {
+      n16: 16, n18: 18,
+      money: window.VamosLocale ? window.VamosLocale.money('000') : 'CHF 000',
+      subtitle: p.sub,
+      periods: PERIODS.map((x) => ({
+        label: x[lang] || x.en,
+        active: x.key === this.state.period,
+        select: () => this.setState({ period: x.key }),
+      })),
+      counts: [
+        { label:'Bookings', value:String(p.bookings), of:'', icon:'list', href:'#bookings', foot:'Taken in this period' },
+        { label:'Pickups', value:String(p.pickups), of:'', icon:'car-front', href:'#bookings', foot:'Scheduled to run' },
+        { label:'Chauffeurs on shift', value:String(FLEET.onShift), of:'/ ' + FLEET.chauffeurs, icon:'users', href:'#chauffeurs', foot:'Available to assign' },
+        { label:'Vehicles in service', value:String(FLEET.inService), of:'/ ' + FLEET.vehicles, icon:'car', href:'#vehicles', foot:'Rest are off the road' },
+      ],
+      income: INCOME.map((label) => ({ label })),
+      expenses: EXPENSES.map((label) => ({ label })),
+      attention: [
+        { icon:'triangle-alert', title:'Unassigned bookings', note:'No chauffeur yet', count:String(p.unassigned), href:'#bookings' },
+        { icon:'clock', title:'Awaiting payment', note:'Needs a payment or cash confirmation', count:String(p.awaiting), href:'#bookings' },
+        { icon:'banknote', title:'Refunds to issue', note:'Cancelled inside the free window', count:String(p.refunds), href:'#bookings' },
+      ],
+      chauffeursOn: FLEET.onShift + '/' + FLEET.chauffeurs,
+      chauffeursNote: 'Chauffeurs on shift',
+      vehiclesOn: FLEET.inService + '/' + FLEET.vehicles,
+      vehiclesNote: 'Vehicles in service',
+    };
+  }
+}
+</script>
+</body>
+</html>

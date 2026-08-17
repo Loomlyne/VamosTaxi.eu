@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
+     injects every stylesheet and script from <helmet> only after React has loaded, so
+     without these the arriving document paints uncovered frames before
+     vamos-page-transition.js exists and can build its overlay. That script adopts
+     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
+     animation below is the fallback for when the script never runs. -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<link rel="stylesheet" href="../../assets/lenis.css">
+<script src="../../assets/lenis.js"></script>
+<script src="../../assets/lenis-boot.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+/* Button hover/press — colour step only, no shadow, no glow */
+.vt-btn{transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
+.vt-btn:hover,.vt-btn:active{box-shadow:none!important}
+.vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
+.vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
+.vt-btn--secondary:hover:not([disabled]){background:var(--vt-charcoal-800)}
+.vt-btn--secondary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn--ghost:hover:not([disabled]),.vt-btn--outline:hover:not([disabled]),.vt-btn--tertiary:hover:not([disabled]){background:var(--vt-grey-50);border-color:var(--vt-charcoal-900)}
+.vt-btn--ghost:active:not([disabled]),.vt-btn--outline:active:not([disabled]),.vt-btn--tertiary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn:focus-visible{box-shadow:var(--vt-ring)!important}
+.vt-btn[disabled],.vt-btn[aria-disabled="true"]{transform:none}
+body{margin:0;background:var(--vt-bg-page)}
+a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+[data-card]{background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm)}
+[data-grp]{display:flex;align-items:center;gap:12px;margin:0;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-grp]::after{content:"";flex:1 1 auto;height:1px;background:var(--vt-grey-200)}
+[data-row]{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between;padding:15px 0;border-bottom:1px solid var(--vt-grey-200)}
+[data-row]:last-child{border-bottom:0}
+[data-row-k]{display:block;margin:0 0 3px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-row-v]{display:block;margin:0;font-size:var(--vt-body-md);line-height:1.4;color:var(--vt-text-primary)}
+[data-row-s]{display:block;margin:2px 0 0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading-tight);color:var(--vt-text-secondary)}
+/* The kit's Tag has no inverse tone, so the one pill that sits on the charcoal header is
+   local; every light pill on this page is the real Tag with its inset class. */
+[data-pill-dark]{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 13px;border-radius:var(--vt-radius-pill);background:rgb(255 255 255 / .1);font-size:var(--vt-body-xs);font-weight:var(--vt-weight-medium);white-space:nowrap;color:var(--vt-text-inverse)}
+[data-tl]{display:grid;grid-template-columns:16px minmax(0,1fr);gap:0 14px}
+[data-tl-rail]{display:flex;flex-direction:column;align-items:center;gap:6px;padding-top:5px}
+[data-tl-pip]{flex:0 0 auto;width:12px;height:12px;border-radius:var(--vt-radius-pill);box-sizing:border-box}
+[data-tl-pip="done"]{background:var(--vt-charcoal-900)}
+[data-tl-pip="now"]{width:16px;height:16px;background:var(--vt-accent);border:3px solid var(--vt-charcoal-900)}
+[data-tl-pip="next"]{background:var(--vt-bg-surface);border:2px solid var(--vt-grey-300)}
+[data-tl-pip="bad"]{background:var(--vt-danger)}
+[data-tl-line]{width:2px;flex:1 1 auto;min-height:20px;background:var(--vt-grey-200)}
+[data-tl-last="1"] [data-tl-line]{display:none}
+[data-tl-body]{padding-bottom:20px;min-width:0}
+[data-tl-last="1"] [data-tl-body]{padding-bottom:0}
+[data-tl-t]{display:block;font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium);line-height:1.35;color:var(--vt-text-primary)}
+[data-tl-at]{display:block;margin:2px 0 5px;font-size:var(--vt-body-xs);font-variant-numeric:tabular-nums;color:var(--vt-text-muted)}
+[data-tl-b]{display:block;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading-tight);color:var(--vt-text-secondary);max-width:56ch}
+[data-tl-fut="1"] [data-tl-t]{color:var(--vt-text-muted);font-weight:var(--vt-weight-regular)}
+[data-tl-fut="1"] [data-tl-b]{color:var(--vt-text-muted)}
+[data-fork]{display:flex;flex-wrap:wrap;gap:14px;align-items:center;text-align:start;padding:18px;background:var(--vt-bg-surface);border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);text-decoration:none;color:inherit;transition:border-color 140ms var(--vt-ease-standard),background 140ms var(--vt-ease-standard)}
+[data-fork]:hover{border-color:var(--vt-charcoal-900);background:var(--vt-grey-50)}
+[data-fork]:active{transform:translateY(1px)}
+[data-fork-t]{display:block;margin:0 0 3px;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);line-height:1.3;color:var(--vt-text-primary)}
+[data-fork-s]{display:block;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading-tight);color:var(--vt-text-secondary)}
+[data-fork-cta]{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;gap:9px;height:44px;padding:0 22px;border-radius:var(--vt-radius-pill);font-family:var(--vt-font-body);font-size:13px;font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;white-space:nowrap;background:var(--vt-accent);color:var(--vt-text-on-accent);border:1px solid var(--vt-accent);transition:background 140ms var(--vt-ease-standard),border-color 140ms var(--vt-ease-standard)}
+[data-fork]:hover [data-fork-cta]{background:var(--vt-accent-hover);border-color:var(--vt-accent-hover)}
+[data-tile]{flex:0 0 auto;width:40px;height:40px;border-radius:var(--vt-radius-pill);display:grid;place-items:center;background:var(--vt-yellow-50)}
+[data-back]{display:inline-flex;align-items:center;gap:6px;min-height:36px;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-inverse-muted);text-decoration:none;transition:color 140ms var(--vt-ease-standard)}
+[data-back]:hover{color:var(--vt-accent)}
+[data-sk]{display:block;height:12px;border-radius:var(--vt-radius-pill);background:var(--vt-grey-200)}
+[data-sk-dark]{background:rgb(255 255 255 / .16)}
+[data-tok]{display:inline-flex;align-items:baseline;gap:5px;font-family:var(--vt-font-body);font-weight:var(--vt-weight-medium);font-size:.97em;background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 7px;white-space:nowrap}
+[data-tok]::after{content:"TBC";font-family:var(--vt-font-body);font-size:.66em;font-weight:700;letter-spacing:.1em;color:var(--vt-yellow-700)}
+[data-seg]{display:inline-flex;flex-wrap:wrap;gap:2px;padding:3px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:rgb(255 255 255 / .06)}
+[data-seg] button{appearance:none;border:0;background:none;min-height:38px;padding:0 14px;border-radius:var(--vt-radius-pill);font-family:inherit;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);white-space:nowrap;color:var(--vt-text-inverse-muted);cursor:pointer;transition:background 140ms var(--vt-ease-standard),color 140ms var(--vt-ease-standard)}
+[data-seg] button:hover{color:var(--vt-text-inverse)}
+[data-seg] button[aria-pressed="true"]{background:var(--vt-accent);color:var(--vt-text-on-accent)}
+[data-slot]{margin:0;border:1px dashed var(--vt-grey-300);background:var(--vt-grey-50);border-radius:var(--vt-radius-md);padding:16px 18px}
+[data-slot-k]{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-slot-k]::before{content:"";width:8px;height:8px;flex:0 0 auto;background:var(--vt-grey-300)}
+[data-slot] p{margin:0 0 8px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+[data-slot] p:last-child{margin-bottom:0}
+[data-flag]{margin:0;border:1px solid var(--vt-charcoal-900);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);padding:18px 20px}
+[data-flag-k]{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)}
+[data-flag] p{margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+[data-flag] p:last-child{margin-bottom:0}
+[data-bd-grid]{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(24px,3vw,40px);align-items:start}
+[data-vch]{display:grid;grid-template-columns:minmax(0,1fr);gap:28px;padding:26px}
+:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}
+@media (min-width:700px){[data-vch]{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);padding:28px}}
+@media (min-width:980px){[data-bd-grid]{grid-template-columns:minmax(0,1.5fr) minmax(320px,1fr)}[data-rail]{position:sticky;top:96px}}
+@media print{footer,[data-noprint]{display:none!important}body{background:#fff}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}</style>
+</helmet>
+
+<div style="font-family:var(--vt-font-body);background:var(--vt-bg-page);min-height:100vh">
+<dc-import name="SiteHeader" variant="inverse" hint-size="100%,76px"></dc-import>
+
+<main data-screen-label="Booking detail">
+
+<header data-noprint="1" style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);position:relative;overflow:hidden">
+<div aria-hidden="true" style="position:absolute;top:0;inset-inline-end:0;width:120px;height:120px;background:url(../../assets/patterns/checker-mark.png) top right / 56px auto no-repeat;opacity:.9"></div>
+<div style="max-width:1200px;margin:0 auto;padding:36px clamp(20px,5vw,56px) 34px">
+<nav aria-label="Breadcrumb" style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted);margin-bottom:20px">
+<a href="../home/home.dc.html" style="color:inherit;text-decoration:none">Home</a><span aria-hidden="true">/</span><a href="account.dc.html" style="color:inherit;text-decoration:none">Your account</a><span aria-hidden="true">/</span><a href="bookings.dc.html" style="color:inherit;text-decoration:none">Bookings</a><span aria-hidden="true">/</span><span style="color:var(--vt-text-inverse)">{{ crumb }}</span>
+</nav>
+
+<sc-if value="{{ isDetail }}" hint-placeholder-val="{{ true }}">
+<p style="margin:0 0 14px"><a data-back="1" href="bookings.dc.html"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-left" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>All bookings</a></p>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 18px;margin-bottom:14px">
+<h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-display-3);line-height:1.05;letter-spacing:.03em;font-weight:var(--vt-weight-bold);color:var(--vt-text-inverse)">{{ ref }}</h1>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StatusBadge" status="{{ badge }}" label="{{ badgeLabel }}" hint-size="120px,26px"></x-import>
+<span data-pill-dark="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="clock" size="{{ n14 }}" color="var(--vt-accent)" hint-size="14px,14px"></x-import>{{ countdown }}</span>
+</div>
+<p style="margin:0;max-width:60ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">{{ routeLine }}</p>
+</sc-if>
+
+<sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
+<div aria-busy="true" aria-live="polite" style="display:flex;flex-direction:column;gap:14px">
+<span data-sk="1" data-sk-dark="1" style="width:180px;height:38px;border-radius:var(--vt-radius-sm)"></span>
+<span data-sk="1" data-sk-dark="1" style="width:min(420px,80%)"></span>
+<p style="margin:6px 0 0;display:flex;align-items:center;gap:8px;font-size:var(--vt-body-sm);color:var(--vt-text-inverse-muted)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="clock" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>Opening your booking</p>
+</div>
+</sc-if>
+
+<sc-if value="{{ isMissing }}" hint-placeholder-val="{{ false }}">
+<h1 style="margin:0 0 14px;max-width:24ch;font-family:var(--vt-font-display);font-size:var(--vt-display-2);line-height:var(--vt-display-leading);letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty">We cannot open this booking</h1>
+<p style="margin:0;max-width:56ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">The link may be old, or the booking belongs to another account. Your own bookings are all still here.</p>
+</sc-if>
+
+</div>
+</header>
+
+<sc-if value="{{ isMissing }}" hint-placeholder-val="{{ false }}">
+<section style="max-width:1200px;margin:0 auto;padding:clamp(32px,4vw,48px) clamp(20px,5vw,56px) 0">
+<div data-card="1" style="max-width:620px;padding:clamp(24px,3vw,34px)">
+<span style="display:grid;place-items:center;width:52px;height:52px;border-radius:var(--vt-radius-pill);background:var(--vt-grey-100);margin-bottom:18px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="triangle-alert" size="{{ n24 }}" color="var(--vt-charcoal-900)" hint-size="24px,24px"></x-import></span>
+<h2 style="margin:0 0 10px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Nothing to show here</h2>
+<p style="margin:0 0 10px;max-width:54ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">We will not say which booking this was, or whose — that is the same answer whether the reference never existed or simply is not yours.</p>
+<p style="margin:0 0 24px;max-width:54ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Take yourself back to your bookings; everything you have booked with this account is listed there.</p>
+<div style="display:flex;flex-wrap:wrap;gap:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" href="bookings.dc.html" iconEnd="arrow-right" hint-size="220px,54px">Go to your bookings</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" variant="ghost" href="manage-booking.dc.html" icon="search" hint-size="230px,54px">Use a reference</x-import>
+</div>
+<p style="margin:22px 0 0;padding-top:18px;border-top:1px solid var(--vt-grey-200);max-width:58ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-muted)">Booked without an account? Your confirmation email opens the booking directly — that link is the key, no sign-in needed.</p>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{ notMissing }}" hint-placeholder-val="{{ true }}">
+<section style="max-width:1200px;margin:0 auto;padding:clamp(28px,3.5vw,44px) clamp(20px,5vw,56px) 0">
+<div data-bd-grid="1">
+
+<div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+
+<sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
+<div data-card="1" aria-hidden="true" style="padding:clamp(20px,2.4vw,26px);display:flex;flex-direction:column;gap:14px">
+<span data-sk="1" style="width:120px;height:16px"></span>
+<span data-sk="1" style="width:76%"></span>
+<span data-sk="1" style="width:64%"></span>
+<span data-sk="1" style="width:40%"></span>
+<span data-sk="1" style="width:88%;margin-top:10px"></span>
+<span data-sk="1" style="width:52%"></span>
+</div>
+<div data-card="1" aria-hidden="true" style="padding:clamp(20px,2.4vw,26px);display:flex;flex-direction:column;gap:14px">
+<span data-sk="1" style="width:96px;height:16px"></span>
+<span data-sk="1" style="width:58%"></span>
+<span data-sk="1" style="width:66%"></span>
+<span data-sk="1" style="width:44%"></span>
+</div>
+</sc-if>
+
+<sc-if value="{{ isDetail }}" hint-placeholder-val="{{ true }}">
+<article data-card="1" aria-labelledby="bd-trip-h" style="padding:clamp(20px,2.4vw,26px)">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 16px;margin-bottom:18px">
+<h2 id="bd-trip-h" style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);line-height:1.15;letter-spacing:-.01em;font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Your trip</h2>
+<p style="margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-muted)">As booked on {{ bookedOn }}</p>
+</div>
+
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.RouteSummary" pickup="{{ pickup }}" pickupDetail="{{ pickupDetail }}" dropoff="{{ dropoff }}" dropoffDetail="{{ dropoffDetail }}" meta="{{ meta }}" hint-size="100%,190px"></x-import>
+
+<div style="margin-top:18px;border-top:1px solid var(--vt-grey-200)">
+<div data-row="1">
+<span style="min-width:0"><span data-row-k="1">Passenger</span><span data-row-v="1">{{ passenger }}</span><span data-row-s="1">The driver holds a name board with this name.</span></span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Tag" icon="phone" className="vt-tag--inset" hint-size="150px,32px">{{ phone }}</x-import>
+</div>
+<div data-row="1">
+<span style="min-width:0"><span data-row-k="1">Flight</span><span data-row-v="1" style="font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);letter-spacing:.03em">{{ flight }}</span><span data-row-s="1">Your driver tracks this flight and waits for it, delayed or early.</span></span>
+</div>
+<div data-row="1">
+<span style="min-width:0"><span data-row-k="1">Extras</span><span data-row-v="1">{{ extras }}</span><span data-row-s="1">Fitted and waiting in the car — nothing to ask for on the day.</span></span>
+</div>
+<div data-row="1">
+<span style="min-width:0"><span data-row-k="1">For the driver</span><span data-row-v="1" style="font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">{{ note }}</span></span>
+</div>
+</div>
+
+<p style="margin:16px 0 0;display:flex;align-items:flex-start;gap:8px;font-size:var(--vt-body-xs);line-height:1.5;color:var(--vt-text-muted)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span>This page shows the booking as it stands. Editing the flight number, resending the confirmation email or changing anything else all happen on <a href="manage-booking.dc.html">Manage a booking</a>.</span></p>
+</article>
+
+<article data-card="1" data-noprint="1" aria-labelledby="bd-tl-h" style="padding:clamp(20px,2.4vw,26px)">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:10px 16px;margin-bottom:20px">
+<h2 id="bd-tl-h" style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);line-height:1.15;letter-spacing:-.01em;font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">What has happened so far</h2>
+<p style="margin:0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">Zurich time</p>
+</div>
+<sc-for list="{{ steps }}" as="st" hint-placeholder-count="4">
+<div data-tl="1" data-tl-last="{{ st.last }}" data-tl-fut="{{ st.fut }}">
+<span data-tl-rail="1"><span data-tl-pip="{{ st.pip }}"></span><span data-tl-line="1"></span></span>
+<span data-tl-body="1">
+<span data-tl-t="1">{{ st.title }}</span>
+<span data-tl-at="1">{{ st.at }}</span>
+<span data-tl-b="1">{{ st.body }}</span>
+</span>
+</div>
+</sc-for>
+<p style="margin:18px 0 0;padding-top:16px;border-top:1px solid var(--vt-grey-200);display:flex;align-items:flex-start;gap:8px;font-size:var(--vt-body-xs);line-height:1.5;color:var(--vt-text-muted)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span>A record, not a control panel — each line is stamped when it happened. We email you on every one of them, so nothing here is news.</span></p>
+</article>
+
+<div data-noprint="1">
+<p data-grp="1" style="margin-bottom:14px">{{ nextGroup }}</p>
+
+<sc-if value="{{ canManage }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:14px">
+<a data-fork="1" data-noprint="1" href="manage-booking.dc.html">
+<span data-tile="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="calendar-days" size="{{ n20 }}" color="var(--vt-yellow-700)" hint-size="20px,20px"></x-import></span>
+<span style="min-width:0;flex:1 1 200px"><span data-fork-t="1">Change the time or cancel</span><span data-fork-s="1">Both live on Manage a booking, with the refund you are due shown before anything is confirmed.</span></span>
+<span data-fork-cta="1">Manage or cancel<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span>
+</a>
+<p style="margin:0;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)"><span>Too close to pickup, or something we have not thought of? Dispatch answers the phone and can do anything this page will not.</span><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" icon="phone" href="tel:+41796267082" hint-size="200px,44px">+41 79 626 70 82</x-import></p>
+</div>
+</sc-if>
+
+<sc-if value="{{ isPast }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:14px">
+<a data-fork="1" data-noprint="1" href="../home/home.dc.html">
+<span data-tile="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="car-front" size="{{ n20 }}" color="var(--vt-yellow-700)" hint-size="20px,20px"></x-import></span>
+<span style="min-width:0;flex:1 1 200px"><span data-fork-t="1">Book this route again</span><span data-fork-s="1">Same pickup, same destination, same class — you only choose the day and the time.</span></span>
+<span data-fork-cta="1">Book again<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span>
+</a>
+<p style="margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">{{ pastNote }} Anything else about this trip — a receipt, a lost item, a word about the driver — is a job for <a href="contact.dc.html">our team</a>.</p>
+</div>
+</sc-if>
+</div>
+
+<sc-if value="{{ hasVoucher }}" hint-placeholder-val="{{ true }}">
+<div>
+<p data-grp="1" data-noprint="1" style="margin-bottom:14px">Your voucher</p>
+<div data-card="1" data-noprint="1" style="padding:6px 20px 10px;margin-bottom:16px">
+<div data-row="1">
+<span style="min-width:0"><span data-row-k="1">Transfer voucher</span><span data-row-s="1" style="margin-top:0">The same voucher you were emailed when you booked. Show it to the driver, or just give your name.</span></span>
+<sc-if value="{{ voucherClosed }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" icon="ticket" onClick="{{ openVoucher }}" hint-size="160px,44px">Show voucher</x-import>
+</sc-if>
+<sc-if value="{{ voucherOpen }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" icon="chevron-up" onClick="{{ closeVoucher }}" hint-size="160px,44px">Hide voucher</x-import>
+</sc-if>
+</div>
+</div>
+
+<sc-if value="{{ voucherOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position:relative">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" tone="inverse" padding="none" hint-size="100%,340px">
+<div style="padding:22px 28px;border-bottom:1px solid var(--vt-border-inverse);display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" height="{{ n24 }}" hint-size="108px,24px"></x-import>
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Transfer voucher</span>
+<div style="margin-inline-start:auto;display:flex;gap:10px;align-items:center">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StatusBadge" status="{{ badge }}" label="{{ badgeLabel }}" hint-size="110px,24px"></x-import>
+<span style="font-family:var(--vt-font-display);font-weight:700;letter-spacing:.04em;color:var(--vt-text-inverse)">{{ ref }}</span>
+</div>
+</div>
+<div data-vch="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.RouteSummary" inverse="{{ yes }}" pickup="{{ pickup }}" pickupDetail="{{ pickupDetail }}" dropoff="{{ dropoff }}" meta="{{ meta }}" hint-size="100%,170px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.PriceSummary" inverse="{{ yes }}" lines="{{ lines }}" total="{{ total }}" totalLabel="Paid" note="Placeholder amounts — real fares come from the CHF price matrix." hint-size="100%,170px"></x-import>
+</div>
+</x-import>
+<div aria-hidden="true" style="position:absolute;top:0;inset-inline-end:0;pointer-events:none">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.CheckerMark" size="{{ n96 }}" opacity="{{ pt5 }}" hint-size="96px,96px"></x-import>
+</div>
+</div>
+<div data-noprint="1" style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:14px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" icon="printer" onClick="{{ printVoucher }}" hint-size="180px,44px">Print voucher</x-import>
+<p style="margin:0;flex:1 1 220px;min-width:0;font-size:var(--vt-body-xs);line-height:1.5;color:var(--vt-text-muted)">Printing gives you the voucher alone. To have it emailed again, use <a href="manage-booking.dc.html">Manage a booking</a>.</p>
+</div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isCancelled }}" hint-placeholder-val="{{ false }}">
+<div data-card="1" style="padding:clamp(20px,2.4vw,26px)">
+<div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+<span style="display:grid;place-items:center;width:44px;height:44px;border-radius:var(--vt-radius-pill);background:var(--vt-danger-tint)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n20 }}" color="var(--vt-danger)" hint-size="20px,20px"></x-import></span>
+<h2 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);line-height:1.15;letter-spacing:-.01em;font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Refund · waiting on review</h2>
+</div>
+<p style="margin:0 0 6px;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">You are eligible for</p>
+<p style="margin:0 0 14px;display:flex;flex-wrap:wrap;align-items:baseline;gap:10px"><span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-md);line-height:1.1"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Late cancel share</span></span><span style="font-size:var(--vt-body-md);color:var(--vt-text-secondary)">{{ ofTotal }}</span></p>
+<p style="margin:0 0 16px;max-width:60ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Every refund is checked by a person before it is sent, back to the card you paid with, within <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Refund payout time</span>. You get a second email when the money is on its way.</p>
+<p style="margin:0;padding-top:16px;border-top:1px solid var(--vt-grey-200);max-width:60ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-muted)">The shares and the windows are set by the <a href="cancellation.dc.html">cancellation policy</a>, which governs. This page quotes it and never restates it.</p>
+</div>
+</sc-if>
+
+</div>
+
+<aside data-noprint="1" style="min-width:0">
+<div data-rail="1" style="display:flex;flex-direction:column;gap:16px">
+
+<sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
+<div data-card="1" aria-hidden="true" style="padding:22px;display:flex;flex-direction:column;gap:13px">
+<span data-sk="1" style="width:110px;height:16px"></span>
+<span data-sk="1" style="width:100%"></span>
+<span data-sk="1" style="width:82%"></span>
+<span data-sk="1" style="width:90%"></span>
+<span data-sk="1" style="width:60%;height:22px;margin-top:8px"></span>
+</div>
+</sc-if>
+
+<sc-if value="{{ isDetail }}" hint-placeholder-val="{{ true }}">
+<div style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);border-radius:var(--vt-radius-lg);padding:24px">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-bottom:16px">
+<p style="margin:0;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">{{ priceKicker }}</p>
+<span data-pill-dark="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="shield-check" size="{{ n14 }}" color="var(--vt-accent)" hint-size="14px,14px"></x-import>Locked at booking</span>
+</div>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.PriceSummary" inverse="{{ yes }}" lines="{{ lines }}" total="{{ total }}" totalLabel="{{ totalLabel }}" hint-size="100%,300px"></x-import>
+<p style="margin:16px 0 0;padding-top:14px;border-top:1px solid var(--vt-border-inverse);font-size:var(--vt-body-xs);line-height:1.6;color:var(--vt-text-inverse-muted)">This is the fixed price you agreed on {{ bookedOn }}. It does not move with traffic, waiting time or the meter — there is no meter. Placeholder amounts: the CHF price matrix is still owed.</p>
+</div>
+
+<div data-card="1" style="padding:22px">
+<p style="margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Payment</p>
+<div data-row="1">
+<span style="min-width:0"><span data-row-k="1">Status</span><span data-row-v="1" style="font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">Nothing is left to pay.</span></span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StatusBadge" status="paid" label="Paid in full" hint-size="110px,26px"></x-import>
+</div>
+<div data-row="1">
+<span style="min-width:0"><span data-row-k="1">Card</span><span data-row-v="1">{{ card }}</span></span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="credit-card" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
+</div>
+<div data-row="1">
+<span style="min-width:0"><span data-row-k="1">Paid</span><span data-row-v="1" style="font-variant-numeric:tabular-nums">{{ paidAt }}</span></span>
+</div>
+<div data-row="1">
+<span style="min-width:0"><span data-row-k="1">Receipt</span><span data-row-v="1">{{ email }}</span></span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="receipt" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:10px;margin:16px 0 0">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" icon="printer" block="{{ yes }}" onClick="{{ printVoucher }}" hint-size="100%,44px">Print receipt</x-import>
+</div>
+<p style="margin:14px 0 0;font-size:var(--vt-body-xs);line-height:1.6;color:var(--vt-text-muted)">The receipt is this page's trip, price and payment — enough for an expense claim. Refunds only ever go back to this card; if it is gone, call us and we will sort it out.</p>
+</div>
+
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" icon="list" block="{{ yes }}" href="bookings.dc.html" hint-size="100%,44px">All your bookings</x-import>
+</sc-if>
+
+</div>
+</aside>
+
+</div>
+</section>
+</sc-if>
+
+<div style="height:clamp(40px,4vw,56px)"></div>
+</main>
+
+<dc-import name="SiteFooter" hint-size="100%,520px"></dc-import>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;status&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;new&quot;,&quot;confirmed&quot;,&quot;assigned&quot;,&quot;completed&quot;,&quot;cancelled&quot;],&quot;default&quot;:&quot;assigned&quot;,&quot;tsType&quot;:&quot;'new'|'confirmed'|'assigned'|'completed'|'cancelled'&quot;,&quot;section&quot;:&quot;Flow&quot;},&quot;pageState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;detail&quot;,&quot;loading&quot;,&quot;missing&quot;],&quot;default&quot;:&quot;detail&quot;,&quot;tsType&quot;:&quot;'detail'|'loading'|'missing'&quot;,&quot;section&quot;:&quot;Flow&quot;}}">
+const TRIP = {
+  ref: 'VT-4821',
+  pickup: 'Zurich Airport (ZRH), Terminal 2',
+  pickupDetail: 'Arrivals hall — your driver waits with your name',
+  dropoff: 'Zurich, Bahnhofstrasse 1',
+  dropoffDetail: 'Kerbside drop-off, Paradeplatz end',
+  date: 'Thu 6 Aug 2026', time: '08:15',
+  vehicle: 'Business', pax: 2, bags: 2,
+  flight: 'LX 318',
+  passenger: 'Ben Othman',
+  phone: '+41 79 ••• •• 08',
+  extras: 'Child seat · Meet and greet',
+  note: 'Two cabin bags and one ski bag. Please call on arrival, the entrance is round the back.',
+  email: 'ben•••@example.com',
+  card: 'Visa ···· 0000',
+  bookedOn: 'Mon 4 Aug 2026',
+  paidAt: 'Mon 4 Aug 2026 · 18:44',
+};
+
+/* The customer-facing lifecycle, in order. `at` is stamped when the step has happened;
+   `soon` is what a step that has not happened yet says instead of a timestamp. */
+const STEPS = [
+  { key: 'new', title: 'Booking received', at: 'Mon 4 Aug 2026 · 18:42', soon: '',
+    body: 'Your request reached us and the fare was fixed on the spot.' },
+  { key: 'confirmed', title: 'Confirmed', at: 'Mon 4 Aug 2026 · 18:44', soon: 'Usually within minutes',
+    body: 'We confirmed the route, the vehicle and the price in writing.' },
+  { key: 'assigned', title: 'Driver assigned', at: 'Tue 5 Aug 2026 · 09:10', soon: 'By the day before pickup',
+    body: 'A driver is scheduled against your pickup. You get their name and number the day before.' },
+  { key: 'completed', title: 'Completed', at: 'Thu 6 Aug 2026 · 09:02', soon: 'After your ride',
+    body: 'Your driver closed the job after drop-off. Nothing further to do.' },
+];
+const CANCEL_STEP = {
+  key: 'cancelled', title: 'Cancelled', at: 'Tue 5 Aug 2026 · 21:30',
+  body: 'You cancelled this transfer. The driver was stood down straight away and the refund went for review.',
+};
+const ORDER = ['new', 'confirmed', 'assigned', 'completed'];
+const BADGE = { new: 'pending', confirmed: 'confirmed', assigned: 'assigned', completed: 'completed', cancelled: 'cancelled' };
+const LABEL = { new: 'New', confirmed: 'Confirmed', assigned: 'Driver assigned', completed: 'Completed', cancelled: 'Cancelled' };
+const COUNTDOWN = {
+  new: 'Pickup in 14 hours', confirmed: 'Pickup in 14 hours', assigned: 'Pickup in 14 hours',
+  completed: 'Travelled 6 Aug 2026', cancelled: 'Cancelled 5 Aug 2026',
+};
+
+class Component extends DCLogic {
+  state = (() => {
+    const p = this.props || {};
+    let status = p.status || 'assigned', ref = TRIP.ref, view = p.pageState || 'detail';
+    try {
+      const q = new URLSearchParams(location.search);
+      const s = q.get('s'); if (s && BADGE[s]) status = s;
+      const r = q.get('ref'); if (r) ref = r.toUpperCase();
+    } catch (e) {}
+    return { view, status, ref, voucher: false };
+  })();
+
+  componentDidMount() {
+    this._offLocale = window.VamosLocale && window.VamosLocale.onChange(() => this.forceUpdate());
+    if (this.state.view === 'loading') this._t = setTimeout(() => this.setState({ view: 'detail' }), 1600);
+  }
+  componentWillUnmount() { if (this._offLocale) this._offLocale(); clearTimeout(this._t); }
+
+  money(a) { return window.VamosLocale ? window.VamosLocale.money(a) : 'CHF ' + a; }
+
+  go(view, status) {
+    clearTimeout(this._t);
+    const next = { view, voucher: false };
+    if (status) next.status = status;
+    this.setState(next);
+    if (view === 'loading') this._t = setTimeout(() => this.setState({ view: 'detail' }), 1600);
+  }
+  goNew = () => this.go('detail', 'new');
+  goConfirmed = () => this.go('detail', 'confirmed');
+  goAssigned = () => this.go('detail', 'assigned');
+  goCompleted = () => this.go('detail', 'completed');
+  goCancelled = () => this.go('detail', 'cancelled');
+  goLoading = () => this.go('loading');
+  goMissing = () => this.go('missing');
+
+  openVoucher = () => this.setState({ voucher: true });
+  closeVoucher = () => this.setState({ voucher: false });
+  printVoucher = () => window.print();
+
+  steps() {
+    const st = this.state.status;
+    if (st === 'cancelled') {
+      const kept = STEPS.slice(0, 2).map((s) => ({ ...s, state: 'done' }));
+      return kept.concat([{ ...CANCEL_STEP, state: 'bad' }]);
+    }
+    const idx = ORDER.indexOf(st);
+    return STEPS.map((s, i) => ({ ...s, state: i < idx ? 'done' : i === idx ? 'now' : 'next' }));
+  }
+
+  renderVals() {
+    const s = this.state, p = this.props;
+    const v = s.view;
+    const st = s.status;
+    const cancelled = st === 'cancelled';
+    const past = st === 'completed';
+    const steps = this.steps();
+
+    const lines = [
+      { label: 'Base fare', value: this.money('000.00') },
+      { label: 'Distance, 18.4 km', value: this.money('00.00') },
+      { label: 'Business class', value: this.money('00.00') },
+      { label: 'Airport pickup', value: this.money('00.00'), icon: 'plane-landing' },
+      { label: 'Night surcharge', value: this.money('00.00') },
+      { label: 'Child seat', value: this.money('00.00'), icon: 'baby' },
+      { label: 'Returning customer', value: '−' + this.money('00.00'), credit: true },
+    ];
+
+    return {
+      n14: 14, n16: 16, n18: 18, n20: 20, n24: 24, n96: 96, yes: true, pt5: 0.5,
+
+      isDetail: v === 'detail', isLoading: v === 'loading', isMissing: v === 'missing',
+      notMissing: v !== 'missing',
+      crumb: v === 'missing' ? 'Not found' : s.ref,
+
+      ref: s.ref, badge: BADGE[st], badgeLabel: LABEL[st], countdown: COUNTDOWN[st],
+      routeLine: TRIP.pickup + ' → ' + TRIP.dropoff + ' · ' + TRIP.date + ' · ' + TRIP.time,
+
+      pickup: TRIP.pickup, pickupDetail: TRIP.pickupDetail,
+      dropoff: TRIP.dropoff, dropoffDetail: TRIP.dropoffDetail,
+      meta: [
+        { icon: 'calendar', label: TRIP.date },
+        { icon: 'clock', label: 'Pickup ' + TRIP.time },
+        { icon: 'users', label: TRIP.pax + ' passengers' },
+        { icon: 'luggage', label: TRIP.bags + ' bags' },
+        { icon: 'car', label: TRIP.vehicle + ' class' },
+        { icon: 'plane-landing', label: TRIP.flight },
+      ],
+      passenger: TRIP.passenger, phone: TRIP.phone, flight: TRIP.flight,
+      extras: TRIP.extras, note: TRIP.note, email: TRIP.email,
+      card: TRIP.card, bookedOn: TRIP.bookedOn, paidAt: TRIP.paidAt,
+
+      steps: steps.map((x, i) => ({
+        title: x.title,
+        at: x.state === 'next' ? x.soon : x.at,
+        body: x.body,
+        pip: x.state,
+        fut: x.state === 'next' ? '1' : '0',
+        last: i === steps.length - 1 ? '1' : '0',
+      })),
+
+      nextGroup: cancelled ? 'What happens now' : past ? 'Travel this route again' : 'Need to change something',
+      canManage: !cancelled && !past,
+      isPast: past || cancelled,
+      pastNote: cancelled
+        ? 'This booking is closed; a new one starts from scratch.'
+        : 'Prices are quoted fresh, so the fare may differ from the one you paid.',
+
+      hasVoucher: !cancelled,
+      isCancelled: cancelled,
+      voucherOpen: s.voucher, voucherClosed: !s.voucher,
+      openVoucher: this.openVoucher, closeVoucher: this.closeVoucher, printVoucher: this.printVoucher,
+
+      priceKicker: 'Price paid', totalLabel: 'Paid',
+      lines, total: this.money('000.00'),
+      /* One node, so the dictionary's "of …" pattern can reach it. */
+      ofTotal: 'of ' + this.money('000.00'),
+
+    };
+  }
+}
+
+</script>
+</body>
+</html>

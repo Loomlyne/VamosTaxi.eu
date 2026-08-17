@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
+     injects every stylesheet and script from <helmet> only after React has loaded, so
+     without these the arriving document paints uncovered frames before
+     vamos-page-transition.js exists and can build its overlay. That script adopts
+     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
+     animation below is the fallback for when the script never runs. -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<link rel="stylesheet" href="../../assets/lenis.css">
+<script src="../../assets/lenis.js"></script>
+<script src="../../assets/lenis-boot.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+/* Button hover/press — colour step only, no shadow, no glow */
+.vt-btn{transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
+.vt-btn:hover,.vt-btn:active{box-shadow:none!important}
+.vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
+.vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
+.vt-btn--secondary:hover:not([disabled]){background:var(--vt-charcoal-800)}
+.vt-btn--secondary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn--ghost:hover:not([disabled]),.vt-btn--outline:hover:not([disabled]),.vt-btn--tertiary:hover:not([disabled]){background:var(--vt-grey-50);border-color:var(--vt-charcoal-900)}
+.vt-btn--ghost:active:not([disabled]),.vt-btn--outline:active:not([disabled]),.vt-btn--tertiary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn:focus-visible{box-shadow:var(--vt-ring)!important}
+.vt-btn[disabled],.vt-btn[aria-disabled="true"]{transform:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none;box-shadow:none}
+body{margin:0}
+/* One header, two surfaces. The control row is identical on every page — logo,
+   phone, language, currency, sign in — so the site never changes its mind. */
+[data-hd="inverse"]{background:var(--vt-bg-inverse);position:sticky;top:0;z-index:40;border-bottom:1px solid var(--vt-border-inverse)}
+[data-hd="overlay"]{background:transparent;position:relative;z-index:120}
+/* Scrolled past its own place on the hero, the overlay bar comes back as a floating
+   pane: charcoal glass over whatever is behind it, a hairline, and the neutral shadow.
+   A spacer of the same height holds its place in the hero, so nothing moves. */
+[data-hd="overlay"][data-hd-float="1"]{position:fixed;top:clamp(8px,1.4vw,14px);inset-inline:clamp(12px,3vw,28px);z-index:200;border-radius:var(--vt-radius-xl);border:1px solid rgb(255 255 255/.14);background:rgb(30 31 31/.72);-webkit-backdrop-filter:blur(20px) saturate(1.35);backdrop-filter:blur(20px) saturate(1.35);box-shadow:var(--vt-shadow-lg);animation:vt-hd-drop 280ms cubic-bezier(.16,1,.3,1)}
+[data-hd="overlay"][data-hd-float="1"] [data-hd-row]{padding:0 clamp(14px,2.4vw,22px);min-height:clamp(56px,7vw,68px)}
+[data-hd-spacer]{min-height:clamp(60px,8vw,84px)}
+@keyframes vt-hd-drop{from{opacity:0;transform:translateY(calc(-100% - 20px))}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){[data-hd="overlay"][data-hd-float="1"]{animation:none}}
+[data-hd-row]{max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,56px);display:flex;align-items:center;gap:10px;min-height:76px}
+[data-hd="overlay"] [data-hd-row]{max-width:none;padding:0;min-height:clamp(60px,8vw,84px)}
+[data-hd-wide]{display:none}
+[data-hd-narrow]{display:flex}
+@media (min-width:1080px){[data-hd-wide]{display:flex}[data-hd-narrow]{display:none!important}}
+[data-hd-pill]:hover{border-color:rgb(30 31 31/.28)}
+[data-hd-menuitem]:hover{background:var(--vt-charcoal-900);color:var(--vt-white)}
+/* The account control is the one thing in this bar that is about you. Signed out it is
+   a plain outlined control; signed in it is not a link at all but a monogram disc that
+   opens your account menu, so the bar answers "who am I and where do I go" in one place
+   instead of throwing you at a page. Hover changes the fill, never adds a glow. */
+/* The account and notification controls belong to the same family as the phone,
+   language and currency pills — white on the charcoal bar, never a dark control on a
+   dark ground. */
+[data-hd-acct]{position:relative;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;padding:0;border-radius:999px;border:1px solid rgb(30 31 31/.10);background:var(--vt-white);box-shadow:none;font:inherit;color:var(--vt-charcoal-900);text-decoration:none;white-space:nowrap;cursor:pointer;transition:var(--vt-transition-control)}
+[data-hd-acct]:hover{border-color:rgb(30 31 31/.28)}
+[data-hd-acct="disc"]{width:36px;height:36px}
+[data-hd-acct="disc"][aria-expanded="true"]{border-color:var(--vt-charcoal-900)}
+[data-hd-bell]{position:relative;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:36px;height:36px;padding:0;border-radius:999px;border:1px solid rgb(30 31 31/.10);background:var(--vt-white);box-shadow:none;color:var(--vt-charcoal-900);cursor:pointer;transition:var(--vt-transition-control)}
+[data-hd-bell]:hover{border-color:rgb(30 31 31/.28)}
+[data-hd-bell][aria-expanded="true"]{border-color:var(--vt-charcoal-900)}
+[data-hd-count]{position:absolute;top:-3px;inset-inline-end:-3px;min-width:17px;height:17px;padding:0 4px;box-sizing:border-box;display:grid;place-items:center;border-radius:999px;background:var(--vt-accent);border:2px solid var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:10px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--vt-charcoal-900)}
+/* One row, three states. Unread carries the yellow pip and the charcoal tile;
+   read steps back to grey; handled keeps the grey and adds the green tag. */
+[data-hd-note]{position:relative;display:flex;align-items:flex-start;gap:8px;padding:11px 10px;border-radius:10px;transition:var(--vt-transition-control)}
+[data-hd-note]:hover{background:var(--vt-grey-100)}
+[data-hd-note-a]{display:flex;align-items:flex-start;gap:11px;flex:1 1 auto;min-width:0;color:var(--vt-text-primary);text-decoration:none}
+[data-hd-note-i]{flex:0 0 auto;display:grid;place-items:center;width:30px;height:30px;border-radius:999px;background:var(--vt-charcoal-900);color:var(--vt-accent)}
+[data-hd-note][data-state="read"] [data-hd-note-i],[data-hd-note][data-state="done"] [data-hd-note-i]{background:var(--vt-grey-100);color:var(--vt-text-secondary)}
+[data-hd-note][data-state="read"] [data-hd-note-t],[data-hd-note][data-state="done"] [data-hd-note-t]{font-weight:500;color:var(--vt-text-secondary)}
+/* The pip is the control, not just a marker: filled means unread, and clicking
+   it puts a row back to unread after you have read or handled it. */
+[data-hd-pip]{all:unset;box-sizing:border-box;position:relative;flex:0 0 auto;display:grid;place-items:center;width:20px;height:20px;margin-top:5px;border-radius:999px;cursor:pointer}
+[data-hd-pip]::before{content:"";width:8px;height:8px;border-radius:999px;border:1.5px solid var(--vt-grey-400);background:transparent;transition:var(--vt-transition-control)}
+[data-hd-pip][data-on="1"]::before{border-color:var(--vt-accent);background:var(--vt-accent)}
+[data-hd-pip]:hover::before{border-color:var(--vt-charcoal-900)}
+[data-hd-allread][disabled]{opacity:.38;cursor:default}
+[data-hd-allread][disabled]:hover{background:none;color:var(--vt-text-muted)}
+[data-hd-tag]{display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:11px;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-success)}
+[data-hd-act],[data-hd-allread]{all:unset;box-sizing:border-box;position:relative;flex:0 0 auto;display:grid;place-items:center;width:28px;height:28px;border-radius:999px;color:var(--vt-text-muted);cursor:pointer;transition:var(--vt-transition-control)}
+[data-hd-act]{opacity:0}
+[data-hd-note]:hover [data-hd-act],[data-hd-act]:focus-visible,[data-hd-act][aria-pressed="true"]{opacity:1}
+[data-hd-act]:hover,[data-hd-allread]:hover{background:var(--vt-charcoal-900);color:var(--vt-white)}
+/* Handled changes the ground, not the glyph: the check stays exactly as it was
+   and the button fills behind it. */
+[data-hd-act][aria-pressed="true"]{background:var(--vt-grey-200);color:var(--vt-text-muted)}
+[data-hd-act][aria-pressed="true"]:hover{background:var(--vt-charcoal-900);color:var(--vt-white)}
+[data-hd-tiptext]{position:absolute;top:calc(100% + 7px);inset-inline-end:0;z-index:6;padding:5px 9px;border-radius:8px;background:var(--vt-charcoal-900);color:var(--vt-white);font-size:11px;font-weight:500;letter-spacing:0;text-transform:none;line-height:1.3;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity 120ms var(--vt-ease-standard)}
+[data-hd-tip]:hover [data-hd-tiptext],[data-hd-tip]:focus-visible [data-hd-tiptext]{opacity:1}
+[data-hd-note-t]{display:block;font-size:13px;font-weight:600;line-height:1.35;color:var(--vt-text-primary)}
+[data-hd-note-b]{display:block;margin-top:2px;font-size:12px;line-height:1.45;color:var(--vt-text-muted);text-wrap:pretty}
+[data-hd-empty]{margin:0;padding:18px 12px 20px;font-size:13px;line-height:1.5;color:var(--vt-text-muted);text-align:center}
+[data-hd-acctmenu]{position:absolute;top:calc(100% + 12px);inset-inline-end:0;z-index:130;box-sizing:border-box;width:272px;padding:6px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-xl);display:flex;flex-direction:column;gap:2px;animation:vt-hd-in 180ms cubic-bezier(.16,1,.3,1)}
+[data-hd-acctid]{display:flex;align-items:center;gap:11px;min-width:0;margin-bottom:5px;padding:8px 10px 12px;border-bottom:1px solid var(--vt-border-subtle)}
+[data-hd-acctname]{display:block;font-size:14px;font-weight:600;color:var(--vt-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[data-hd-mi]{box-sizing:border-box;display:flex;align-items:center;gap:11px;width:100%;min-height:44px;padding:0 10px;border:0;border-radius:10px;background:transparent;box-shadow:none;font-family:var(--vt-font-body);font-size:14px;font-weight:500;letter-spacing:.01em;color:var(--vt-text-primary);text-align:start;text-decoration:none;cursor:pointer;transition:var(--vt-transition-control)}
+[data-hd-mi]:hover{background:var(--vt-grey-100)}
+[data-hd-mifoot]{margin-top:5px;padding-top:5px;border-top:1px solid var(--vt-border-subtle)}
+[data-hd-mifoot] [data-hd-mi]{color:var(--vt-text-secondary)}
+/* Unverified is a charcoal strip inside the menu, not a tinted alert on the page. */
+[data-hd-verify]{box-sizing:border-box;display:flex;align-items:center;gap:9px;min-height:44px;margin-bottom:5px;padding:0 12px;border-radius:10px;background:var(--vt-charcoal-900);color:var(--vt-white);font-size:13px;font-weight:600;letter-spacing:.01em;text-decoration:none;transition:var(--vt-transition-control)}
+[data-hd-verify]:hover{background:var(--vt-charcoal-800);color:var(--vt-white)}
+[data-hd-acct="pill"]{height:36px;padding:0 16px;gap:8px;font-size:13px;font-weight:600}
+[data-hd-acct="pill"]:hover{background:var(--vt-white);border-color:var(--vt-white);color:var(--vt-charcoal-900)}
+[data-hd-dot]{position:absolute;top:-1px;inset-inline-end:-1px;width:10px;height:10px;border-radius:999px;background:var(--vt-yellow);border:2px solid var(--vt-charcoal-900)}
+[data-hd-acctrow]{transition:var(--vt-transition-control)}
+[data-hd-acctrow]:hover{background:var(--vt-charcoal-900);border-color:var(--vt-charcoal-900);color:var(--vt-white)}
+[data-hd-acctrow]:hover [data-hd-sub]{color:rgb(255 255 255/.7)}
+[data-hd-sub]{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--vt-text-muted)}
+@keyframes vt-hd-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@media print{[data-hd]{display:none!important}}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
+</helmet>
+<header data-hd="{{ variant }}" data-hd-float="{{ floatAttr }}" data-screen-label="Header">
+<div data-hd-row="1">
+
+<a href="../home/home.dc.html" aria-label="Vamos Taxi — home" style="display:inline-flex;align-items:center;flex:0 0 auto;border:0;text-decoration:none">
+<span data-hd-wide="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" form="wordmark" height="{{ n24 }}" hint-size="112px,24px"></x-import></span>
+<span data-hd-narrow="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" form="mark" height="{{ n30 }}" hint-size="30px,30px"></x-import></span>
+</a>
+
+<div data-hd-wide="1" style="margin-inline-start:auto;align-items:center;gap:10px;justify-content:flex-end;min-width:0">
+<a data-hd-pill="1" href="tel:+41796267082" aria-label="+41 79 626 70 82" style="display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px;border-radius:999px;background:var(--vt-white);border:1px solid rgb(30 31 31/.10);box-shadow:none;color:var(--vt-charcoal-900);font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap;transition:var(--vt-transition-control)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="phone" size="{{ n16 }}" color="var(--vt-charcoal-900)" hint-size="16px,16px"></x-import><span>+41 79 626 70 82</span></a>
+<dc-import name="BrandSelect" value="{{ lang }}" options="{{ langOptions }}" onSelect="{{ pickLang }}" icon="globe" a11ylabel="Language" hint-size="92px,36px"></dc-import>
+<span data-vt-no-i18n="1" style="display:inline-flex"><dc-import name="BrandSelect" value="{{ cur }}" options="{{ curOptions }}" onSelect="{{ pickCur }}" icon="banknote" a11ylabel="Currency" hint-size="104px,36px"></dc-import></span>
+<sc-if value="{{ showAccountLink }}" hint-placeholder-val="{{ true }}">
+<sc-if value="{{ signedOut }}" hint-placeholder-val="{{ true }}">
+<a data-hd-acct="pill" href="{{ acctHref }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="user" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import><span>{{ tAcct }}</span></a>
+</sc-if>
+<sc-if value="{{ signedIn }}" hint-placeholder-val="{{ false }}">
+<div ref="{{ bellRootRef }}" style="position:relative;display:inline-flex;flex:0 0 auto">
+<button type="button" data-hd-bell="1" aria-haspopup="menu" aria-expanded="{{ bellExpanded }}" aria-label="{{ tNotifications }}" onClick="{{ toggleBell }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="bell" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+<sc-if value="{{ hasUnread }}" hint-placeholder-val="{{ false }}"><span data-hd-count="1">{{ unreadCount }}</span></sc-if>
+</button>
+<sc-if value="{{ bellOpen }}" hint-placeholder-val="{{ false }}">
+<div data-hd-acctmenu="1" role="menu" aria-label="{{ tNotifications }}">
+<div data-hd-acctid="1" style="justify-content:space-between;padding:6px 10px 10px">
+<span data-hd-acctname="1">{{ tNotifications }}</span>
+<button type="button" data-hd-allread="1" data-hd-tip="1" disabled="{{ noUnread }}" aria-label="{{ tMarkAll }}" onClick="{{ markAllRead }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+<span data-hd-tiptext="1">{{ tMarkAll }}</span>
+</button>
+</div>
+<sc-for list="{{ notices }}" as="n" hint-placeholder-count="1">
+<div data-hd-note="1" data-state="{{ n.state }}">
+<a data-hd-note-a="1" href="{{ n.href }}" role="menuitem" onClick="{{ n.open }}">
+<span data-hd-note-i="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ n.icon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
+<span style="min-width:0">
+<span data-hd-note-t="1">{{ n.title }}</span>
+<span data-hd-note-b="1">{{ n.body }}</span>
+<sc-if value="{{ n.isDone }}" hint-placeholder-val="{{ false }}">
+<span data-hd-tag="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>{{ tHandled }}</span>
+</sc-if>
+</span>
+</a>
+<button type="button" data-hd-pip="1" data-hd-tip="1" data-on="{{ n.pipOn }}" aria-label="{{ n.readLabel }}" onClick="{{ n.toggleRead }}">
+<span data-hd-tiptext="1">{{ n.readLabel }}</span>
+</button>
+<button type="button" data-hd-act="1" data-hd-tip="1" aria-pressed="{{ n.donePressed }}" aria-label="{{ n.doneLabel }}" onClick="{{ n.toggleDone }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+<span data-hd-tiptext="1">{{ n.doneLabel }}</span>
+</button>
+</div>
+</sc-for>
+<sc-if value="{{ noNotices }}" hint-placeholder-val="{{ false }}"><p data-hd-empty="1">{{ tNoNotices }}</p></sc-if>
+</div>
+</sc-if>
+</div>
+<div ref="{{ acctRootRef }}" style="position:relative;display:inline-flex;flex:0 0 auto">
+<button type="button" data-hd-acct="disc" aria-haspopup="menu" aria-expanded="{{ acctExpanded }}" aria-label="{{ tAcct }}" title="{{ acctTitle }}" onClick="{{ toggleAcct }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Avatar" name="{{ acctName }}" src="{{ acctPhoto }}" size="sm" hint-size="32px,32px"></x-import>
+</button>
+<sc-if value="{{ acctOpen }}" hint-placeholder-val="{{ false }}">
+<div data-hd-acctmenu="1" role="menu" aria-label="{{ tAcct }}">
+<div data-hd-acctid="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Avatar" name="{{ acctName }}" src="{{ acctPhoto }}" size="sm" tone="inverse" hint-size="32px,32px"></x-import>
+<span style="display:flex;flex-direction:column;gap:2px;min-width:0">
+<span data-hd-acctname="1">{{ acctFull }}</span>
+<span data-hd-sub="1">{{ acctTitle }}</span>
+</span>
+</div>
+<sc-if value="{{ showUnverified }}">
+<a data-hd-verify="1" href="account.dc.html#details" role="menuitem">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="mail" size="{{ n16 }}" color="var(--vt-yellow)" hint-size="16px,16px"></x-import>
+<span>{{ tVerify }}</span></a>
+</sc-if>
+<a data-hd-mi="1" href="account.dc.html" role="menuitem">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="user" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
+<span>{{ tAcctPage }}</span></a>
+<a data-hd-mi="1" href="bookings.dc.html" role="menuitem">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="calendar-days" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
+<span>{{ tBookings }}</span></a>
+<a data-hd-mi="1" href="manage-booking.dc.html" role="menuitem">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="settings" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
+<span>{{ tManage }}</span></a>
+<div data-hd-mifoot="1">
+<button type="button" data-hd-mi="1" role="menuitem" onClick="{{ signOut }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="log-out" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+<span>{{ tSignOut }}</span></button>
+</div>
+</div>
+</sc-if>
+</div>
+</sc-if>
+</sc-if>
+<sc-if value="{{ showCta }}" hint-placeholder-val="{{ true }}">
+<a href="../home/home.dc.html#book" style="height:36px;padding:0 18px;border-radius:999px;background:var(--vt-yellow);border:1px solid var(--vt-charcoal-900);color:var(--vt-charcoal-900);font-size:13px;font-weight:700;letter-spacing:.01em;display:inline-flex;align-items:center;gap:8px;text-decoration:none;white-space:nowrap;transition:var(--vt-transition-control)" style-hover="background:var(--vt-charcoal-900);color:var(--vt-yellow)">
+<span>{{ tBook }}</span><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n15 }}" color="currentColor" hint-size="15px,15px"></x-import></a>
+</sc-if>
+</div>
+
+<div data-hd-narrow="1" ref="{{ menuRootRef }}" style="position:relative;margin-inline-start:auto;align-items:center;gap:8px;flex:0 0 auto">
+<a href="tel:+41796267082" aria-label="{{ tCall }}" title="{{ tCall }}" style="width:44px;height:44px;border-radius:999px;background:var(--vt-white);border:1px solid rgb(30 31 31/.10);box-shadow:none;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;flex:0 0 auto">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="phone" size="{{ n18 }}" color="var(--vt-charcoal-900)" hint-size="18px,18px"></x-import></a>
+<span style="position:relative;display:inline-flex;flex:0 0 auto">
+<button type="button" aria-label="{{ menuLabel }}" aria-expanded="{{ menuExpanded }}" aria-haspopup="true" onClick="{{ toggleMenu }}" style="all:unset;box-sizing:border-box;width:44px;height:44px;border-radius:999px;background:var(--vt-white);border:1px solid rgb(30 31 31/.10);box-shadow:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ menuIcon }}" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></button>
+<sc-if value="{{ showNarrowCount }}" hint-placeholder-val="{{ false }}"><span data-hd-count="1">{{ unreadCount }}</span></sc-if>
+</span>
+
+<sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+<div role="menu" aria-label="{{ menuLabel }}" style="position:absolute;top:calc(100% + 10px);inset-inline-end:0;width:min(300px,calc(100vw - 32px));box-sizing:border-box;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-xl);padding:8px;display:flex;flex-direction:column;gap:2px;z-index:130;animation:vt-hd-in 180ms cubic-bezier(.16,1,.3,1)">
+
+<sc-if value="{{ showCta }}" hint-placeholder-val="{{ true }}">
+<a href="../home/home.dc.html#book" role="menuitem" style="display:flex;align-items:center;justify-content:center;gap:9px;min-height:44px;margin:2px 2px 4px;padding:0 16px;border:1px solid var(--vt-charcoal-900);border-radius:999px;background:var(--vt-yellow);text-decoration:none;color:var(--vt-charcoal-900);font-size:14px;font-weight:700">
+<span>{{ tBook }}</span><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></a>
+</sc-if>
+
+<sc-if value="{{ showAccountLink }}" hint-placeholder-val="{{ true }}">
+<sc-if value="{{ signedOut }}" hint-placeholder-val="{{ true }}">
+<a data-hd-menuitem="1" href="{{ acctHref }}" role="menuitem" style="display:flex;align-items:center;justify-content:center;gap:9px;min-height:44px;margin:2px 2px 4px;padding:0 16px;border:1px solid var(--vt-charcoal-900);border-radius:999px;background:var(--vt-white);text-decoration:none;color:var(--vt-charcoal-900);transition:var(--vt-transition-control)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="user" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+<span style="font-size:14px;font-weight:600;letter-spacing:.01em">{{ tAcct }}</span></a>
+</sc-if>
+<sc-if value="{{ signedIn }}" hint-placeholder-val="{{ false }}">
+<a data-hd-acctrow="1" href="{{ acctHref }}" role="menuitem" style="display:flex;align-items:center;gap:11px;min-height:56px;margin:2px 2px 6px;padding:8px 12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-bg-surface);text-decoration:none;color:var(--vt-text-primary)">
+<span style="position:relative;display:inline-flex;line-height:0">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Avatar" name="{{ acctName }}" src="{{ acctPhoto }}" size="sm" tone="inverse" hint-size="32px,32px"></x-import>
+<sc-if value="{{ showUnverified }}"><span aria-hidden="true" style="position:absolute;top:-2px;inset-inline-end:-2px;width:10px;height:10px;border-radius:999px;background:var(--vt-yellow);border:2px solid var(--vt-bg-surface)"></span></sc-if>
+</span>
+<span style="display:flex;flex-direction:column;gap:2px;flex:1 1 auto;min-width:0">
+<span style="font-size:14px;font-weight:600;letter-spacing:.01em">{{ tAcct }}</span>
+<span data-hd-sub="1">{{ acctTitle }}</span>
+</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-right" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></a>
+</sc-if>
+</sc-if>
+<sc-if value="{{ hasNotices }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:2px;margin:0 0 6px;padding-top:6px;border-top:1px solid var(--vt-border-subtle)">
+<span style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:2px 10px 4px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)"><span>{{ tNotifications }}</span>
+<button type="button" data-hd-allread="1" data-hd-tip="1" disabled="{{ noUnread }}" aria-label="{{ tMarkAll }}" onClick="{{ markAllRead }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+<span data-hd-tiptext="1">{{ tMarkAll }}</span>
+</button></span>
+<sc-for list="{{ notices }}" as="n" hint-placeholder-count="1">
+<div data-hd-note="1" data-state="{{ n.state }}">
+<a data-hd-note-a="1" href="{{ n.href }}" role="menuitem" onClick="{{ n.open }}">
+<span data-hd-note-i="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ n.icon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
+<span style="min-width:0">
+<span data-hd-note-t="1">{{ n.title }}</span>
+<span data-hd-note-b="1">{{ n.body }}</span>
+<sc-if value="{{ n.isDone }}" hint-placeholder-val="{{ false }}">
+<span data-hd-tag="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>{{ tHandled }}</span>
+</sc-if>
+</span>
+</a>
+<button type="button" data-hd-pip="1" data-hd-tip="1" data-on="{{ n.pipOn }}" aria-label="{{ n.readLabel }}" onClick="{{ n.toggleRead }}">
+<span data-hd-tiptext="1">{{ n.readLabel }}</span>
+</button>
+<button type="button" data-hd-act="1" data-hd-tip="1" aria-pressed="{{ n.donePressed }}" aria-label="{{ n.doneLabel }}" onClick="{{ n.toggleDone }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+<span data-hd-tiptext="1">{{ n.doneLabel }}</span>
+</button>
+</div>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ signedIn }}">
+<button type="button" data-hd-menuitem="1" role="menuitem" onClick="{{ signOut }}" style="all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:9px;min-height:44px;margin:0 2px 4px;padding:0 16px;border:1px solid var(--vt-border-subtle);border-radius:999px;background:var(--vt-white);color:var(--vt-text-secondary);cursor:pointer;transition:var(--vt-transition-control)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="log-out" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+<span style="font-size:14px;font-weight:600;letter-spacing:.01em">{{ tSignOut }}</span></button>
+</sc-if>
+
+<div style="display:flex;flex-direction:column;gap:7px;padding:2px 10px 6px">
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ tLangLabel }}</span>
+<div style="display:flex;flex-wrap:wrap;gap:6px">
+<sc-for list="{{ menuLangs }}" as="o" hint-placeholder-count="4">
+<button type="button" onClick="{{ o.pick }}" title="{{ o.note }}" style="all:unset;box-sizing:border-box;min-width:44px;height:44px;padding:0 14px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--vt-font-body);font-size:13px;font-weight:600;cursor:pointer;{{ o.css }}">{{ o.label }}</button>
+</sc-for>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:7px;padding:2px 10px 8px">
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ tCurLabel }}</span>
+<div data-vt-no-i18n="1" style="display:flex;flex-wrap:wrap;gap:6px">
+<sc-for list="{{ menuCurs }}" as="o" hint-placeholder-count="4">
+<button type="button" onClick="{{ o.pick }}" title="{{ o.note }}" style="all:unset;box-sizing:border-box;min-width:44px;height:44px;padding:0 14px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--vt-font-body);font-size:13px;font-weight:600;cursor:pointer;{{ o.css }}">{{ o.label }}</button>
+</sc-for>
+</div>
+</div>
+
+<sc-if value="{{ showLinks }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:2px;padding-top:6px;border-top:1px solid var(--vt-border-subtle)">
+<sc-for list="{{ links }}" as="l" hint-placeholder-count="2">
+<a data-hd-menuitem="1" href="{{ l.href }}" role="menuitem" style="display:flex;align-items:center;min-height:44px;padding:0 12px;border-radius:10px;color:var(--vt-text-primary);font-size:14px;text-decoration:none;transition:var(--vt-transition-control)">{{ l.label }}</a>
+</sc-for>
+</div>
+</sc-if>
+
+</div>
+</sc-if>
+</div>
+
+</div>
+</header>
+<sc-if value="{{ floating }}" hint-placeholder-val="{{ false }}">
+<div data-hd-spacer="1" aria-hidden="true"></div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1400,&quot;height&quot;:96},&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;inverse&quot;,&quot;options&quot;:[&quot;inverse&quot;,&quot;overlay&quot;],&quot;tsType&quot;:&quot;string&quot;},&quot;cta&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;signInLabel&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Sign in&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;hideAccount&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;lang&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;},&quot;cur&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;},&quot;onLang&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(v:string)=&gt;void&quot;},&quot;onCur&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(v:string)=&gt;void&quot;}}">
+const T = {
+  en: { signIn:'Sign in', account:'Your account', bookings:'Your bookings', manage:'Manage a booking', verify:'Verify your email', signOut:'Sign out', book:'Book a transfer', faq:'FAQs', contact:'Contact', menu:'Menu', close:'Close', call:'Call +41 79 626 70 82', langLabel:'Language', curLabel:'Currency',
+    notifications:'Notifications', noNotices:'Nothing new. Anything about a booking lands here.',
+    markAll:'Mark all as read', markDone:'Mark as handled', markUndone:'Not handled yet', handled:'Handled',
+    markRead:'Mark as read', markUnread:'Mark as unread',
+    attachedT:(n) => 'We found ' + n + (n === 1 ? ' booking' : ' bookings') + ' under your email',
+    attachedB:'They are on your account now, with the same reference and driver details you were emailed.',
+    verifyB:'Open the link we sent you and your receipts and vouchers arrive without a detour.' },
+  de: { signIn:'Anmelden', account:'Ihr Konto', bookings:'Ihre Buchungen', manage:'Buchung verwalten', verify:'E-Mail bestätigen', signOut:'Abmelden', book:'Transfer buchen', faq:'Häufige Fragen', contact:'Kontakt', menu:'Menü', close:'Schliessen', call:'+41 79 626 70 82 anrufen', langLabel:'Sprache', curLabel:'Währung',
+    notifications:'Mitteilungen', noNotices:'Nichts Neues. Alles zu einer Buchung landet hier.',
+    markAll:'Alle als gelesen markieren', markDone:'Als erledigt markieren', markUndone:'Noch nicht erledigt', handled:'Erledigt',
+    markRead:'Als gelesen markieren', markUnread:'Als ungelesen markieren',
+    attachedT:(n) => 'Wir haben ' + n + (n === 1 ? ' Buchung' : ' Buchungen') + ' unter Ihrer E-Mail gefunden',
+    attachedB:'Sie sind jetzt in Ihrem Konto — mit derselben Referenz und denselben Fahrerangaben wie in der E-Mail.',
+    verifyB:'Öffnen Sie den Link, den wir Ihnen gesendet haben, dann kommen Belege und Gutscheine direkt an.' },
+  fr: { signIn:'Connexion', account:'Votre compte', bookings:'Vos réservations', manage:'Gérer une réservation', verify:'Vérifier votre e-mail', signOut:'Déconnexion', book:'Réserver', faq:'Questions fréquentes', contact:'Contact', menu:'Menu', close:'Fermer', call:'Appeler le +41 79 626 70 82', langLabel:'Langue', curLabel:'Devise',
+    notifications:'Notifications', noNotices:'Rien de nouveau. Tout ce qui concerne une réservation arrive ici.',
+    markAll:'Tout marquer comme lu', markDone:'Marquer comme traité', markUndone:'Pas encore traité', handled:'Traité',
+    markRead:'Marquer comme lu', markUnread:'Marquer comme non lu',
+    attachedT:(n) => 'Nous avons trouvé ' + n + (n === 1 ? ' réservation' : ' réservations') + ' sous votre e-mail',
+    attachedB:'Elles sont maintenant sur votre compte, avec la référence et les informations chauffeur reçues par e-mail.',
+    verifyB:'Ouvrez le lien que nous vous avons envoyé et vos reçus et bons arrivent sans détour.' },
+  ar: { signIn:'تسجيل الدخول', account:'حسابك', bookings:'حجوزاتك', manage:'إدارة الحجز', verify:'تأكيد بريدك الإلكتروني', signOut:'تسجيل الخروج', book:'احجز رحلتك', faq:'الأسئلة الشائعة', contact:'اتصل بنا', menu:'القائمة', close:'إغلاق', call:'اتصل بنا', langLabel:'اللغة', curLabel:'العملة',
+    notifications:'الإشعارات', noNotices:'لا جديد. كل ما يخصّ حجزًا يصلك هنا.',
+    markAll:'تعليم الكل كمقروء', markDone:'تعليمه كمُعالَج', markUndone:'لم يُعالَج بعد', handled:'مُعالَج',
+    markRead:'تعليمه كمقروء', markUnread:'تعليمه كغير مقروء',
+    attachedT:(n) => 'وجدنا ' + n + ' حجزًا مسجّلًا ببريدك',
+    attachedB:'أصبحت الآن في حسابك، بالمرجع نفسه وبيانات السائق التي وصلتك بالبريد.',
+    verifyB:'افتح الرابط الذي أرسلناه إليك لتصلك الإيصالات والقسائم مباشرة.' },
+};
+const LANGS = ['en', 'de', 'fr', 'ar'];
+const LANG_NOTE = { en:'English', de:'Deutsch', fr:'Français', ar:'العربية' };
+const CUR_NOTE = { CHF:'Swiss francs', EUR:'Euro', USD:'US dollars', AED:'UAE dirham' };
+/* One session, read by every surface: the auth screens write it, the header reflects it. */
+const readAuth = () => {
+  try {
+    const raw = localStorage.getItem('vamosAuth');
+    if (!raw) return null;
+    const a = JSON.parse(raw);
+    return a && a.email ? a : null;
+  } catch (e) { return null; }
+};
+/* Notification state survives the session: unread → read once you open it,
+   handled once you say so. Same store on every surface that shows the bell. */
+const NOTE_KEY = 'vamosNotices';
+const readNotes = () => { try { return JSON.parse(localStorage.getItem(NOTE_KEY) || '{}') || {}; } catch (e) { return {}; } };
+const writeNotes = (m) => { try { localStorage.setItem(NOTE_KEY, JSON.stringify(m)); } catch (e) {} };
+const chip = (on) => on
+  ? 'background:var(--vt-charcoal-900);color:var(--vt-white);border:1px solid var(--vt-charcoal-900)'
+  : 'background:var(--vt-white);color:var(--vt-text-primary);border:1px solid var(--vt-border-subtle)';
+
+class Component extends DCLogic {
+  state = (() => {
+    let lang = 'en', cur = 'CHF';
+    try {
+      lang = localStorage.getItem('vamosLang') || 'en';
+      cur = localStorage.getItem('vamosCurrency') || 'CHF';
+    } catch (e) {}
+    /* The one thing a signed-in traveller is told without asking: guest bookings we
+       matched to their email, and an address still waiting on proof. */
+    let attached = 2;
+    try { const q = new URLSearchParams(location.search).get('attached'); if (q !== null) attached = parseInt(q, 10) || 0; } catch (e) {}
+    return { lang: LANGS.indexOf(lang) > -1 ? lang : 'en', cur, menuOpen: false, acctOpen: false, bellOpen: false, floating: false, attached, auth: readAuth(), noteSt: readNotes() };
+  })();
+  _ids = [];
+  setNote = (id, st) => this.setState((s) => {
+    const m = Object.assign({}, s.noteSt); m[id] = st; writeNotes(m); return { noteSt: m };
+  });
+  markAllRead = () => this.setState((s) => {
+    const m = Object.assign({}, s.noteSt);
+    this._ids.forEach((id) => { if (m[id] !== 'done') m[id] = 'read'; });
+    writeNotes(m); return { noteSt: m };
+  });
+  _menuRoot = (el) => { this._root = el; };
+  _acctRoot = (el) => { this._acct = el; };
+  _bellRoot = (el) => { this._bell = el; };
+  toggleAcct = () => this.setState((s) => ({ acctOpen: !s.acctOpen, bellOpen: false }));
+  toggleBell = () => this.setState((s) => ({ bellOpen: !s.bellOpen, acctOpen: false }));
+
+  componentDidMount() {
+    /* One store for the whole platform — the choice made here reaches every
+       surface through VamosLocale, and any change made elsewhere lands back. */
+    this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
+    window.addEventListener('vamos:locale', this._onLocale);
+    this._esc = (e) => { if (e.key !== 'Escape') return; if (this.state.menuOpen) this.setState({ menuOpen: false }); if (this.state.acctOpen) this.setState({ acctOpen: false }); if (this.state.bellOpen) this.setState({ bellOpen: false }); };
+    this._away = (e) => {
+      if (this.state.menuOpen && this._root && !this._root.contains(e.target)) this.setState({ menuOpen: false });
+      if (this.state.acctOpen && this._acct && !this._acct.contains(e.target)) this.setState({ acctOpen: false });
+      if (this.state.bellOpen && this._bell && !this._bell.contains(e.target)) this.setState({ bellOpen: false });
+    };
+    this._resize = () => { if (this.state.menuOpen && window.innerWidth >= 1080) this.setState({ menuOpen: false }); };
+    /* Only the overlay bar floats — the charcoal one is already sticky and solid. */
+    this._onScroll = () => {
+      if (this._raf) return;
+      this._raf = requestAnimationFrame(() => {
+        this._raf = 0;
+        if (this.props.variant !== 'overlay') return;
+        const y = window.scrollY || document.documentElement.scrollTop || 0;
+        const on = y > 120;
+        if (on !== this.state.floating) this.setState({ floating: on });
+      });
+    };
+    window.addEventListener('scroll', this._onScroll, { passive: true });
+    this._onScroll();
+    document.addEventListener('keydown', this._esc);
+    document.addEventListener('mousedown', this._away);
+    window.addEventListener('resize', this._resize);
+  }
+  componentWillUnmount() {
+    if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
+    if (this._raf) cancelAnimationFrame(this._raf);
+    window.removeEventListener('scroll', this._onScroll);
+    document.removeEventListener('keydown', this._esc);
+    document.removeEventListener('mousedown', this._away);
+    window.removeEventListener('resize', this._resize);
+  }
+  toggleMenu = () => this.setState((s) => ({ menuOpen: !s.menuOpen }));
+
+  /** Nothing reloads: VamosLocale relabels the whole page in place — this bar,
+   *  the sections under it, the footer, and any dialog that is open. */
+  lang() { return this.props.lang || this.state.lang; }
+  cur() { return this.props.cur || this.state.cur; }
+  setLang = (v) => {
+    this.setState({ lang: v, menuOpen: false });
+    if (window.VamosLocale) window.VamosLocale.setLang(v);
+    else { try { localStorage.setItem('vamosLang', v); } catch (e) {} }
+    if (this.props.onLang) this.props.onLang(v);
+  };
+  setCur = (v) => {
+    this.setState({ cur: v, menuOpen: false });
+    if (window.VamosLocale) window.VamosLocale.setCur(v);
+    else { try { localStorage.setItem('vamosCurrency', v); } catch (e) {} }
+    if (this.props.onCur) this.props.onCur(v);
+  };
+
+  renderVals() {
+    const lang = this.lang(), cur = this.cur();
+    const t = T[lang] || T.en;
+    const variant = this.props.variant === 'overlay' ? 'overlay' : 'inverse';
+    const floating = variant === 'overlay' && this.state.floating;
+    /* Home drops the CTA while its booking card is on screen. Once you have scrolled
+       past it the floating bar carries it, so the way to book is never off the page. */
+    const showCta = ((this.props.cta ?? (variant !== 'overlay')) !== false) || floating;
+    const auth = this.state.auth;
+    const unverified = !!auth && auth.emailVerified === false;
+    const raw = [];
+    if (this.state.attached > 0) raw.push({
+      id: 'attached', icon: 'ticket', href: 'account.dc.html#transfers',
+      title: t.attachedT(this.state.attached), body: t.attachedB,
+    });
+    if (unverified) raw.push({
+      id: 'verify', icon: 'mail', href: 'account.dc.html#details', title: t.verify, body: t.verifyB,
+    });
+    this._ids = raw.map((n) => n.id);
+    const st = this.state.noteSt || {};
+    const notices = raw.map((n) => {
+      const state = st[n.id] === 'done' ? 'done' : (st[n.id] === 'read' ? 'read' : 'unread');
+      return Object.assign({}, n, {
+        state, isUnread: state === 'unread', isDone: state === 'done',
+        icon: state === 'done' ? 'check' : n.icon,
+        donePressed: state === 'done' ? 'true' : 'false',
+        doneLabel: state === 'done' ? t.markUndone : t.markDone,
+        pipOn: state === 'unread' ? '1' : '0',
+        readLabel: state === 'unread' ? t.markRead : t.markUnread,
+        toggleRead: (e) => {
+          if (e && e.preventDefault) { e.preventDefault(); e.stopPropagation(); }
+          this.setNote(n.id, state === 'unread' ? 'read' : 'unread');
+        },
+        open: () => { if (state === 'unread') this.setNote(n.id, 'read'); },
+        toggleDone: (e) => {
+          if (e && e.preventDefault) { e.preventDefault(); e.stopPropagation(); }
+          this.setNote(n.id, state === 'done' ? 'read' : 'done');
+        },
+      });
+    });
+    const unread = notices.filter((n) => n.state === 'unread').length;
+    return {
+      tNotifications: t.notifications, tNoNotices: t.noNotices,
+      tMarkAll: t.markAll, tHandled: t.handled,
+      markAllRead: this.markAllRead,
+      notices, hasNotices: notices.length > 0, noNotices: notices.length === 0,
+      noticeCount: notices.length, unreadCount: unread, hasUnread: unread > 0, noUnread: unread === 0,
+      showNarrowCount: unread > 0 && !this.state.menuOpen,
+      bellOpen: this.state.bellOpen,
+      bellExpanded: this.state.bellOpen ? 'true' : 'false',
+      toggleBell: this.toggleBell, bellRootRef: this._bellRoot,
+      n14: 14, n15: 15, n16: 16, n18: 18, n20: 20, n24: 24, n30: 30,
+      variant, showCta, floating, floatAttr: floating ? '1' : null,
+      lang, cur,
+      langOptions: LANGS.map((v) => ({ value: v, label: v.toUpperCase(), note: LANG_NOTE[v] })),
+      curOptions: Object.keys(CUR_NOTE).map((v) => ({ value: v, label: v, note: CUR_NOTE[v] })),
+      pickLang: this.setLang, pickCur: this.setCur,
+      tSignIn: this.props.signInLabel || t.signIn,
+      tBookings: t.bookings, tManage: t.manage, tVerify: t.verify,
+      acctOpen: this.state.acctOpen,
+      acctExpanded: this.state.acctOpen ? 'true' : 'false',
+      toggleAcct: this.toggleAcct, acctRootRef: this._acctRoot,
+      acctHref: this.state.auth ? 'account.dc.html' : 'sign-in.dc.html',
+      tAcct: this.state.auth ? (this.state.auth.firstName || t.account) : (this.props.signInLabel || t.signIn),
+      signedIn: !!this.state.auth, signedOut: !this.state.auth, tSignOut: t.signOut,
+      showAccountLink: !this.props.hideAccount,
+      showUnverified: !!this.state.auth && this.state.auth.emailVerified === false,
+      acctName: this.state.auth ? (this.state.auth.firstName || this.state.auth.email || '') : '',
+      /* The photo set on the account page is the same person up here. */
+      acctPhoto: (function () { try { return localStorage.getItem('vamosPhoto') || ''; } catch (e) { return ''; } })(),
+      acctFull: this.state.auth
+        ? ([this.state.auth.firstName, this.state.auth.lastName].filter(Boolean).join(' ') || this.state.auth.email || t.account)
+        : '',
+      tAcctPage: t.account,
+      /* An address, not copy — it stays as typed in every language. */
+      acctTitle: (this.state.auth && this.state.auth.email) || '',
+      signOut: () => {
+        try { localStorage.removeItem('vamosAuth'); } catch (e) {}
+        location.href = '../home/home.dc.html';
+      },
+      tBook: t.book, tCall: t.call, tLangLabel: t.langLabel, tCurLabel: t.curLabel,
+      menuOpen: this.state.menuOpen,
+      menuExpanded: this.state.menuOpen ? 'true' : 'false',
+      menuIcon: this.state.menuOpen ? 'x' : 'menu',
+      menuLabel: this.state.menuOpen ? t.close : t.menu,
+      toggleMenu: this.toggleMenu, menuRootRef: this._menuRoot,
+      menuLangs: LANGS.map((v) => ({ label: v.toUpperCase(), note: LANG_NOTE[v], css: chip(v === lang), pick: () => this.setLang(v) })),
+      menuCurs: Object.keys(CUR_NOTE).map((v) => ({ label: v, note: CUR_NOTE[v], css: chip(v === cur), pick: () => this.setCur(v) })),
+      showLinks: showCta,
+      links: [{ href: 'faq.dc.html', label: t.faq }, { href: 'contact.dc.html', label: t.contact }],
+    };
+  }
+}
+</script>
+</body>
+</html>

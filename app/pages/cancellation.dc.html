@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
+     injects every stylesheet and script from <helmet> only after React has loaded, so
+     without these the arriving document paints uncovered frames before
+     vamos-page-transition.js exists and can build its overlay. That script adopts
+     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
+     animation below is the fallback for when the script never runs. -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<link rel="stylesheet" href="../../assets/lenis.css">
+<script src="../../assets/lenis.js"></script>
+<script src="../../assets/lenis-boot.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+/* Button hover/press — colour step only, no shadow, no glow */
+.vt-btn{transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
+.vt-btn:hover,.vt-btn:active{box-shadow:none!important}
+.vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
+.vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
+.vt-btn--secondary:hover:not([disabled]){background:var(--vt-charcoal-800)}
+.vt-btn--secondary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn--ghost:hover:not([disabled]),.vt-btn--outline:hover:not([disabled]),.vt-btn--tertiary:hover:not([disabled]){background:var(--vt-grey-50);border-color:var(--vt-charcoal-900)}
+.vt-btn--ghost:active:not([disabled]),.vt-btn--outline:active:not([disabled]),.vt-btn--tertiary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn:focus-visible{box-shadow:var(--vt-ring)!important}
+.vt-btn[disabled],.vt-btn[aria-disabled="true"]{transform:none}.vt-select .vt-input--focus{box-shadow:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}
+body{margin:0;background:var(--vt-bg-page)}
+a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+[data-lg-grid]{display:grid;grid-template-columns:minmax(0,1fr);gap:0}
+[data-lg-prose]{max-width:68ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+[data-lg-prose] section{padding:36px 0;border-top:1px solid var(--vt-grey-200)}
+[data-lg-prose] section:first-of-type{border-top:0;padding-top:4px}
+[data-lg-prose] h2{margin:0 0 16px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary);scroll-margin-top:108px;text-wrap:pretty}
+[data-lg-prose] h3{margin:28px 0 10px;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);line-height:1.28;letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary);text-wrap:pretty}
+[data-lg-prose] h4{margin:22px 0 8px;font-size:var(--vt-body-xs);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-lg-prose] p{margin:0 0 14px;text-wrap:pretty}
+[data-lg-prose] ul{margin:0 0 16px;padding-inline-start:20px}
+[data-lg-prose] li{margin:0 0 9px;padding-inline-start:4px}
+[data-lg-prose] p:last-child,[data-lg-prose] ul:last-child{margin-bottom:0}
+[data-lg-prose] a{color:var(--vt-charcoal-900);text-decoration:underline;text-decoration-color:var(--vt-grey-300);text-underline-offset:3px;transition:color 140ms cubic-bezier(.2,0,.2,1)}
+[data-lg-prose] a:hover{color:var(--vt-yellow-700);text-decoration-color:currentColor}
+[data-lg-n]{display:block;margin-bottom:9px;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);letter-spacing:var(--vt-label-tracking);font-weight:var(--vt-label-weight);color:var(--vt-charcoal-600)}
+[data-tok]{display:inline-flex;align-items:baseline;gap:5px;font-family:var(--vt-font-body);font-weight:var(--vt-weight-medium);font-size:.97em;background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 7px;white-space:nowrap}
+[data-tok]::after{content:"TBC";font-family:var(--vt-font-body);font-size:.66em;font-weight:700;letter-spacing:.1em;color:var(--vt-yellow-700)}
+[data-tok-fig]{display:inline-flex;align-items:baseline;font-family:var(--vt-font-display);font-size:var(--vt-figure-md);font-weight:var(--vt-weight-semibold);letter-spacing:-.015em;line-height:1.05;color:var(--vt-charcoal-900);white-space:nowrap}
+[data-slot]{margin:0 0 16px;border:1px dashed var(--vt-grey-300);background:var(--vt-grey-50);border-radius:var(--vt-radius-md);padding:16px 18px}
+[data-slot-k]{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-slot-k]::before{content:"";width:8px;height:8px;flex:0 0 auto;background:var(--vt-grey-300)}
+[data-slot] p{margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)}
+[data-flag]{margin:0 0 16px;border:1px solid var(--vt-charcoal-900);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);padding:18px 20px}
+[data-flag-k]{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)}
+[data-flag] p{margin:0 0 10px;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)}
+[data-flag] p:last-child{margin-bottom:0}
+[data-src]{display:block;margin-top:2px;font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
+[data-lg-railcard]{background:none;border:0;box-shadow:none;padding:0}
+[data-lg-eyebrow]{display:flex;align-items:center;gap:9px;margin:0 0 10px;padding:0 6px;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-lg-eyebrow]::before{content:"";width:14px;height:14px;flex:0 0 auto;background:url(../../assets/patterns/checker-mark.png) center / contain no-repeat}
+[data-lg-tl]{position:relative;display:flex;gap:9px;align-items:baseline;padding:6px 8px 6px 24px;border-radius:var(--vt-radius-sm);color:var(--vt-text-secondary);font-size:var(--vt-body-sm);line-height:1.35;text-decoration:none;transition:background 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1)}
+[data-lg-tl]::before{content:"";position:absolute;inset-inline-start:6px;top:9px;width:11px;height:11px;background:url(../../assets/patterns/checker-mark.png) center / contain no-repeat;opacity:0;transition:opacity 140ms cubic-bezier(.2,0,.2,1)}
+[data-lg-tl]:hover{background:var(--vt-grey-50);color:var(--vt-text-primary)}
+[data-lg-tl][data-on]{color:var(--vt-charcoal-900);font-weight:var(--vt-weight-semibold)}
+[data-lg-tl][data-on]::before{opacity:1}
+[data-lg-tl] i{flex:0 0 20px;font-style:normal;font-family:var(--vt-font-display);font-size:11px;font-weight:var(--vt-weight-semibold);letter-spacing:.01em;font-variant-numeric:tabular-nums;color:var(--vt-grey-500)}
+[data-lg-tl][data-on] i{color:var(--vt-charcoal-900)}
+[data-lg-toc]{display:none}
+[data-lg-toc][data-open]{display:block}
+[data-lg-tocbtn]:hover{border-color:var(--vt-charcoal-900)}
+[data-x-link]:hover{background:var(--vt-grey-50)}
+[data-x-link][aria-current]{color:var(--vt-charcoal-900);font-weight:var(--vt-weight-semibold)}
+[data-crumb]{white-space:nowrap}
+[data-tiers]{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin:4px 0 18px}
+[data-tier]{background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);padding:22px;display:flex;flex-direction:column;gap:12px}
+[data-tier] h3{margin:0!important;font-size:var(--vt-heading-4)!important}
+[data-tier] p{margin:0}
+[data-paths]{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin:4px 0 18px}
+@media (min-width:640px){[data-tiers]{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:760px){[data-paths]{grid-template-columns:repeat(2,minmax(0,1fr))}}
+:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}
+@media (min-width:900px){[data-lg-grid]{grid-template-columns:264px minmax(0,1fr);gap:clamp(40px,5vw,80px)}
+[data-lg-rail]{position:sticky;top:96px;align-self:start;padding-bottom:8px}
+[data-lg-toc]{display:block}[data-lg-tocbtn]{display:none!important}}
+@media print{[data-lg-noprint]{display:none!important}
+[data-lg-grid]{display:block}
+[data-lg-prose]{max-width:none;font-size:10.5pt;color:#000}
+[data-lg-hero]{background:#fff!important;color:#000!important;border-bottom:1px solid #000}
+[data-lg-hero] *{color:#000!important}
+[data-tok],[data-tok-fig]{background:#fff!important;border-color:#000!important;color:#000!important}
+[data-tiers]{grid-template-columns:repeat(3,minmax(0,1fr))}
+[data-tier]{box-shadow:none!important;border-color:#000!important}
+[data-lg-prose] h2{break-after:avoid;page-break-after:avoid}
+[data-slot],[data-flag],[data-tier]{break-inside:avoid;page-break-inside:avoid}
+@page{margin:18mm}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}</style>
+</helmet>
+
+<div style="font-family:var(--vt-font-body);background:var(--vt-bg-page);min-height:100vh">
+<div data-lg-noprint="1"><dc-import name="SiteHeader" variant="inverse" hint-size="100%,76px"></dc-import></div>
+
+<main data-screen-label="Cancellation and refund policy" data-vt-legal="en de fr ar">
+
+<header data-lg-hero="1" style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);position:relative;overflow:hidden">
+<div aria-hidden="true" style="position:absolute;top:0;inset-inline-end:0;width:120px;height:120px;background:url(../../assets/patterns/checker-mark.png) top right / 56px auto no-repeat;opacity:.9"></div>
+<div style="max-width:1200px;margin:0 auto;padding:44px clamp(20px,5vw,56px) 40px">
+<nav aria-label="Breadcrumb" style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted);margin-bottom:26px">
+<a data-crumb="1" href="../home/home.dc.html" style="color:inherit;text-decoration:none">Home</a><span aria-hidden="true">/</span><span>Legal</span><span aria-hidden="true">/</span><span data-crumb="1" style="color:var(--vt-text-inverse)">Cancellation &amp; refunds</span>
+</nav>
+<p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">Legal</p>
+<h1 style="margin:0 0 18px;max-width:20ch;font-family:var(--vt-font-display);font-size:var(--vt-display-2);line-height:var(--vt-display-leading);letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty">Cancellation &amp; refunds</h1>
+<p style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Plans change. This page says exactly what happens to your money when they do — and it is the one page that decides.</p>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;margin-top:32px;padding-top:24px;border-top:1px solid var(--vt-border-inverse)">
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Last updated</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Cancellation effective date</span></span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Version</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Cancellation version</span></span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Applies to</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">Every booking made on this site</span></div>
+<button data-lg-noprint="1" type="button" onClick="{{ doPrint }}" style="margin-inline-start:auto;display:inline-flex;align-items:center;gap:9px;height:44px;padding:0 20px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:none;color:var(--vt-text-inverse);font-family:inherit;font-size:var(--vt-body-sm);white-space:nowrap;cursor:pointer">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="printer" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>Print or save as PDF</button>
+</div>
+</div>
+</header>
+
+<div style="max-width:1200px;margin:0 auto;padding:44px clamp(20px,5vw,56px) 8px">
+<div data-lg-grid="1">
+
+<aside data-lg-rail="1" data-lg-noprint="1" aria-label="Page navigation">
+<button data-lg-tocbtn="1" type="button" onClick="{{ toggleToc }}" aria-expanded="{{ tocOpen }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:0 18px;margin-bottom:14px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface);font-family:inherit;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-primary);cursor:pointer;transition:border-color 140ms cubic-bezier(.2,0,.2,1)">
+<span>On this page</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n18 }}" color="var(--vt-charcoal-900)" hint-size="18px,18px"></x-import>
+</button>
+
+<nav data-lg-toc="1" data-lg-railcard="1" data-open="{{ tocOpen }}" ref="{{ tocRef }}" aria-label="Sections">
+<p data-lg-eyebrow="1">On this page</p>
+<div style="display:flex;flex-direction:column">
+<a data-lg-tl="1" href="#tiers"><i>01</i>What you get back</a>
+<a data-lg-tl="1" href="#how"><i>02</i>How to cancel</a>
+<a data-lg-tl="1" href="#modify"><i>03</i>Changing a booking</a>
+<a data-lg-tl="1" href="#delays"><i>04</i>Flight delays</a>
+<a data-lg-tl="1" href="#driver"><i>05</i>If no driver arrives</a>
+<a data-lg-tl="1" href="#noshow"><i>06</i>No-show</a>
+<a data-lg-tl="1" href="#disruption"><i>07</i>Snow, strikes, closures</a>
+<a data-lg-tl="1" href="#refunds"><i>08</i>How refunds are paid</a>
+<a data-lg-tl="1" href="#vouchers"><i>09</i>Vouchers</a>
+</div>
+
+<div style="margin-top:28px;padding-top:22px;border-top:1px solid var(--vt-border-subtle)">
+<p data-lg-eyebrow="1">Related documents</p>
+<div style="display:flex;flex-direction:column;gap:2px">
+<a data-x-link="1" href="terms.dc.html" style="display:block;padding:9px 12px;border-radius:var(--vt-radius-sm);font-size:var(--vt-body-sm);color:var(--vt-text-secondary);text-decoration:none;transition:background 140ms cubic-bezier(.2,0,.2,1)">Terms &amp; conditions</a>
+<a data-x-link="1" aria-current="page" href="cancellation.dc.html" style="display:block;padding:9px 12px;border-radius:var(--vt-radius-sm);font-size:var(--vt-body-sm);color:var(--vt-text-secondary);text-decoration:none;transition:background 140ms cubic-bezier(.2,0,.2,1)">Cancellation &amp; refunds</a>
+<a data-x-link="1" href="privacy.dc.html" style="display:block;padding:9px 12px;border-radius:var(--vt-radius-sm);font-size:var(--vt-body-sm);color:var(--vt-text-secondary);text-decoration:none;transition:background 140ms cubic-bezier(.2,0,.2,1)">Privacy policy</a>
+<a data-x-link="1" href="cookies.dc.html" style="display:block;padding:9px 12px;border-radius:var(--vt-radius-sm);font-size:var(--vt-body-sm);color:var(--vt-text-secondary);text-decoration:none;transition:background 140ms cubic-bezier(.2,0,.2,1)">Cookie policy</a>
+<a data-x-link="1" href="imprint.dc.html" style="display:block;padding:9px 12px;border-radius:var(--vt-radius-sm);font-size:var(--vt-body-sm);color:var(--vt-text-secondary);text-decoration:none;transition:background 140ms cubic-bezier(.2,0,.2,1)">Imprint</a>
+</div>
+</div>
+</nav>
+</aside>
+
+<article data-lg-prose="1" ref="{{ proseRef }}">
+
+<div style="margin:0 0 30px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="inverse" title="This page governs" hint-size="100%,110px">Where the FAQ, a service page or the terms say anything different about windows, shares or refunds, what you read here applies. One document, one answer.</x-import>
+</div>
+
+<section id="tiers">
+<h2><span data-lg-n="1">01</span>What you get back</h2>
+<p>Measured from the pickup time in your confirmation, not from the time you booked.</p>
+<div data-tiers="1">
+<div data-tier="1">
+<p style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">More than</p>
+<h3>24 hours before pickup</h3>
+<p><span data-tok-fig="1">100% refunded</span></p>
+<p style="font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Refunded to the card you paid with. Or take the full value as a voucher instead — see section <a href="#vouchers">09</a>.</p>
+</div>
+<div data-tier="1">
+<p style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Inside</p>
+<h3>24 hours before pickup</h3>
+<p><span data-tok-fig="1">75% refunded</span></p>
+<p style="font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">A driver is already committed to your journey by this point, which is what the retained share covers.</p>
+</div>
+<div data-tier="1">
+<p style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">After pickup time</p>
+<h3>No-show, or not cancelled</h3>
+<p><span data-tok-fig="1">No refund</span></p>
+<p style="font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">The vehicle waited. Section <a href="#noshow">06</a> sets out when a booking counts as a no-show.</p>
+</div>
+</div>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:16px 18px;border-radius:var(--vt-radius-md);background:var(--vt-grey-50);border:1px solid var(--vt-border-subtle);margin-bottom:16px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="bus" size="{{ n18 }}" color="var(--vt-charcoal-900)" hint-size="18px,18px"></x-import>
+<p style="margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">Vehicles over <span data-tok-fig="1" style="font-size:1em">8</span> seats work to a longer window of <span data-tok-fig="1" style="font-size:1em">72 hours</span>, because a coach cannot be re-sold at short notice.</p>
+</div>
+
+</section>
+
+<section id="how">
+<h2><span data-lg-n="1">02</span>How to cancel</h2>
+<p>Two routes, both ending in the same written confirmation. A cancellation counts from the moment we confirm it, so keep that email.</p>
+<div data-paths="1">
+<div style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);padding:22px">
+<p style="margin:0 0 12px;display:flex;align-items:center;gap:9px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="ticket" size="{{ n16 }}" color="var(--vt-yellow-700)" hint-size="16px,16px"></x-import>Booked as a guest</p>
+<p style="margin:0 0 14px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Use the manage-booking link in your confirmation email. It opens your booking without a password and works for one booking only.</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" href="manage-booking.dc.html" iconEnd="arrow-right" hint-size="190px,44px">Manage a booking</x-import>
+</div>
+<div style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);padding:22px">
+<p style="margin:0 0 12px;display:flex;align-items:center;gap:9px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="user" size="{{ n16 }}" color="var(--vt-yellow-700)" hint-size="16px,16px"></x-import>You have an account</p>
+<p style="margin:0 0 14px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Sign in and open the booking under your reservations. Past journeys stay listed for your records.</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" href="../ops/ops-login.dc.html" iconEnd="arrow-right" hint-size="150px,44px">Sign in</x-import>
+</div>
+</div>
+<p>Cannot reach either? Call <a href="tel:+41796267082">+41 79 626 70 82</a> and quote your reference. We will do it for you and send the confirmation.</p>
+
+</section>
+
+<section id="modify">
+<h2><span data-lg-n="1">03</span>Changing a booking</h2>
+<p>Time, address, passenger count and vehicle class can be changed up to <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Modification deadline</span> before pickup, free of charge. If the change moves the fare, you pay or we refund the difference — never more than the difference.</p>
+<p>A change requested after that deadline is treated as a cancellation and a new booking. It is worth calling us first: if a driver can still be moved, we will move them.</p>
+</section>
+
+<section id="delays">
+<h2><span data-lg-n="1">04</span>Flight delays</h2>
+<p>Give us the flight number and a delay costs you nothing. We track the flight and the driver arrives for the actual landing time; the included waiting allowance starts from then, not from the time you booked.</p>
+<ul>
+<li>Delay within the same day: the pickup moves automatically. No call needed.</li>
+<li>Flight cancelled or diverted: tell us as soon as you know and we treat it under section <a href="#disruption">07</a>, not as a late cancellation.</li>
+<li>No flight number on the booking: we cannot see the delay, so the ordinary waiting rules in the <a href="terms.dc.html#waiting">terms</a> apply.</li>
+</ul>
+</section>
+
+<section id="driver">
+<h2><span data-lg-n="1">05</span>If no driver arrives</h2>
+<p>Call the number in your confirmation before you make another arrangement, so we have a chance to fix it.</p>
+<p>Where our records show you were at the pickup point and no vehicle came, you receive <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Driver noshow share</span> back.</p>
+<div data-vt-no-i18n="1" data-slot="1">
+<p data-slot-k="1">Client legal text · consequential costs</p>
+<sc-if value="{{ slotNotes }}" hint-placeholder-val="{{ true }}">
+<p>Must say whether anything beyond the fare is covered when a driver does not arrive — a replacement taxi, a missed flight — and what evidence is needed. This is the claim customers pursue hardest, and it has to agree with the liability section of the <a href="terms.dc.html#liability">terms</a>.</p>
+</sc-if>
+</div>
+</section>
+
+<section id="noshow">
+<h2><span data-lg-n="1">06</span>No-show</h2>
+<p>A booking becomes a no-show once the included waiting time has run out and we have called your number <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Noshow call attempts</span> times with no answer.</p>
+<ul>
+<li>Airport pickups: <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Airport waiting</span> from the actual landing time.</li>
+<li>All other pickups: <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Standard waiting</span> from the booked time.</li>
+</ul>
+<p>Answer the phone and the driver waits — the extra time is chargeable at <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Extra waiting rate</span>, which is cheaper than losing the transfer.</p>
+</section>
+
+<section id="disruption">
+<h2><span data-lg-n="1">07</span>Snow, strikes, closures</h2>
+<p>Where a journey becomes impossible or unsafe through something neither of us controls, we do not treat it as your cancellation. We re-plan first; if the journey cannot happen at all, the money is dealt with under this section rather than under the tiers above.</p>
+<div data-vt-no-i18n="1" data-slot="1">
+<p data-slot-k="1">Client legal text · disruption outcome</p>
+<sc-if value="{{ slotNotes }}" hint-placeholder-val="{{ true }}">
+<p>Must state the outcome — refund, voucher, or re-planning at no cost — and how long a booking stays open before it lapses. It has to match force majeure in the <a href="terms.dc.html#force">terms</a>; write it once, cross-link it twice.</p>
+</sc-if>
+</div>
+</section>
+
+<section id="refunds">
+<h2><span data-lg-n="1">08</span>How refunds are paid</h2>
+<ul>
+<li>Always to the original payment method. We cannot redirect a refund to a different card or account.</li>
+<li>Approved within <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Refund decision days</span> of your cancellation confirmation.</li>
+<li>Paid within <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Refund payout days</span> days. Your bank may take a few days more to show it.</li>
+<li>Bookings paid with a voucher are refunded as a voucher.</li>
+</ul>
+<p>Unhappy with the outcome? The complaints route is in the <a href="terms.dc.html#complaints">terms</a>, and we answer within <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Complaint resolution days</span> days.</p>
+</section>
+
+<section id="vouchers">
+<h2><span data-lg-n="1">09</span>Vouchers</h2>
+<p>Instead of a refund you can take the full value of the booking as a voucher, valid for <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Voucher validity</span>. It is worth more than the refunded share, which is why we offer it.</p>
+<ul>
+<li>Usable on any route we serve, by anyone you pass it to.</li>
+<li>Redeemable against a higher fare — you pay the difference.</li>
+<li>Not exchangeable for cash once issued.</li>
+</ul>
+<div data-vt-no-i18n="1" data-slot="1">
+<p data-slot-k="1">Client legal text · voucher terms</p>
+<sc-if value="{{ slotNotes }}" hint-placeholder-val="{{ true }}">
+<p>Must state validity, transferability, part-redemption and what happens on expiry. Swiss law limits how short an expiry can be, so this needs checking rather than choosing.</p>
+</sc-if>
+</div>
+</section>
+
+</article>
+</div>
+</div>
+
+<section data-lg-noprint="1" style="max-width:1200px;margin:0 auto;padding:40px clamp(20px,5vw,56px) 72px">
+<div style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);padding:clamp(24px,3vw,36px);display:flex;flex-wrap:wrap;align-items:center;gap:24px 40px">
+<div style="flex:1 1 320px;min-width:0">
+<h2 style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Need to cancel now?</h2>
+<p style="margin:0;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);max-width:52ch">Open your booking from the confirmation email, or call us and quote the reference. Same outcome, same written confirmation.</p>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" href="manage-booking.dc.html" iconEnd="arrow-right" hint-size="190px,44px">Manage a booking</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" href="tel:+41796267082" icon="phone" hint-size="200px,44px">+41 79 626 70 82</x-import>
+</div>
+</div>
+</section>
+
+</main>
+
+<div data-lg-noprint="1"><dc-import name="SiteFooter" hint-size="100%,520px"></dc-import></div>
+<dc-import name="CookieBanner" start-state="{{ cookieState }}" hint-size="0,0"></dc-import>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showSlotNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Review&quot;},&quot;cookieState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;auto&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;banner&quot;,&quot;prefs&quot;,&quot;hidden&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Review&quot;}}">
+class Component extends DCLogic {
+  state = { tocOpen: false };
+  proseRef = React.createRef();
+  tocRef = React.createRef();
+
+  componentDidMount() {
+    const prose = this.proseRef.current, toc = this.tocRef.current;
+    if (!prose || !toc || typeof IntersectionObserver === 'undefined') return;
+    const links = Array.from(toc.querySelectorAll('[data-lg-tl]'));
+    const byId = {};
+    links.forEach((a) => { byId[(a.getAttribute('href') || '').slice(1)] = a; });
+    const seen = new Set();
+    this.io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => { if (en.isIntersecting) seen.add(en.target.id); else seen.delete(en.target.id); });
+      // The last section whose heading has passed the reading line wins — picking the
+      // first *intersecting* one lags a section behind, because the previous section still
+      // occupies the top sliver of the band.
+      const secs = Array.from(prose.querySelectorAll('section[id]'));
+      let active = secs.length ? secs[0].id : null;
+      secs.forEach((s) => { if (s.getBoundingClientRect().top <= 140) active = s.id; });
+      links.forEach((a) => a.removeAttribute('data-on'));
+      const hit = active && byId[active];
+      if (hit) {
+        hit.setAttribute('data-on', '1');
+      }
+    }, { rootMargin: '-104px 0px -60% 0px' });
+    prose.querySelectorAll('section[id]').forEach((s) => this.io.observe(s));
+  }
+  componentWillUnmount() { if (this.io) this.io.disconnect(); }
+
+  toggleToc = () => this.setState((s) => ({ tocOpen: !s.tocOpen }));
+  doPrint = () => window.print();
+
+  renderVals() {
+    return {
+      n14: 14, n16: 16, n18: 18,
+      tocOpen: this.state.tocOpen ? '1' : null,
+      toggleToc: this.toggleToc, doPrint: this.doPrint,
+      proseRef: this.proseRef, tocRef: this.tocRef,
+      slotNotes: (this.props.showSlotNotes ?? true) !== false,
+      cookieState: this.props.cookieState || 'auto',
+    };
+  }
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
+     injects every stylesheet and script from <helmet> only after React has loaded, so
+     without these the arriving document paints uncovered frames before
+     vamos-page-transition.js exists and can build its overlay. That script adopts
+     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
+     animation below is the fallback for when the script never runs. -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<link rel="stylesheet" href="../../assets/lenis.css">
+<script src="../../assets/lenis.js"></script>
+<script src="../../assets/lenis-boot.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+/* Button hover/press — colour step only, no shadow, no glow */
+.vt-btn{transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
+.vt-btn:hover,.vt-btn:active{box-shadow:none!important}
+.vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
+.vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
+.vt-btn--secondary:hover:not([disabled]){background:var(--vt-charcoal-800)}
+.vt-btn--secondary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn--ghost:hover:not([disabled]),.vt-btn--outline:hover:not([disabled]),.vt-btn--tertiary:hover:not([disabled]){background:var(--vt-grey-50);border-color:var(--vt-charcoal-900)}
+.vt-btn--ghost:active:not([disabled]),.vt-btn--outline:active:not([disabled]),.vt-btn--tertiary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn:focus-visible{box-shadow:var(--vt-ring)!important}
+.vt-btn[disabled],.vt-btn[aria-disabled="true"]{transform:none}.vt-select .vt-input--focus{box-shadow:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}
+body{margin:0;background:var(--vt-bg-page)}
+a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+[data-tok]{display:inline-flex;align-items:baseline;gap:5px;font-family:var(--vt-font-body);font-weight:var(--vt-weight-medium);font-size:.97em;background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 7px;white-space:nowrap}
+[data-tok]::after{content:"TBC";font-family:var(--vt-font-body);font-size:.66em;font-weight:700;letter-spacing:.1em;color:var(--vt-yellow-700)}
+[data-flag]{margin:0 0 16px;border:1px solid var(--vt-charcoal-900);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);padding:18px 20px}
+[data-flag-k]{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)}
+[data-flag] p{margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+[data-flag] p:last-child{margin-bottom:0}
+[data-src]{display:block;margin-top:2px;font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
+[data-grp]{margin-top:clamp(48px,5vw,72px)}
+[data-grp]:first-of-type{margin-top:clamp(30px,3vw,40px)}
+[data-grp-h]{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;margin:0 0 8px;padding-bottom:16px;border-bottom:2px solid var(--vt-charcoal-900);scroll-margin-top:104px}
+[data-grp-h] h2{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary);text-wrap:pretty}
+[data-grp-h] span{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-grp-note]{margin:16px 0 0;max-width:64ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);text-wrap:pretty}
+[data-faq-grid]{display:grid;grid-template-columns:minmax(0,1fr);column-gap:40px;row-gap:44px;align-items:start;margin-top:34px}
+[data-faq-card]{position:relative;box-sizing:border-box;display:flex;flex-direction:column;min-height:170px;padding:31px 31px 34px;border:1px solid var(--vt-grey-300);border-radius:20px;background:var(--vt-white);transition:border-color 200ms var(--vt-ease-standard)}
+[data-faq-card][data-open="0"]:hover{border-color:var(--vt-charcoal-900)}
+[data-faq-toggle]{all:unset;box-sizing:border-box;display:block;width:100%;cursor:pointer;font-family:var(--vt-font-display);font-size:24px;font-weight:var(--vt-weight-semibold);letter-spacing:-0.03em;line-height:1.35;color:var(--vt-text-primary);text-align:start;text-wrap:pretty}
+[data-faq-toggle]:focus-visible{outline:none;border-radius:10px;box-shadow:var(--vt-ring)}
+[data-faq-circle]{position:absolute;inset-inline-end:30px;bottom:-25px;width:50px;height:50px;border-radius:999px;background:var(--vt-charcoal-900);color:var(--vt-white);display:inline-flex;align-items:center;justify-content:center;transition:background-color 140ms var(--vt-ease-standard),transform 80ms var(--vt-ease-standard)}
+[data-faq-toggle]:hover [data-faq-circle]{background:var(--vt-charcoal-800)}
+[data-faq-card][data-open="1"] [data-faq-circle]{background:var(--vt-yellow);color:var(--vt-charcoal-950)}
+[data-faq-card][data-open="1"] [data-faq-toggle]:hover [data-faq-circle]{background:var(--vt-yellow-600)}
+[data-faq-toggle]:active [data-faq-circle]{transform:translateY(1px)}
+[data-faq-chev]{display:inline-flex;transition:transform 200ms var(--vt-ease-standard)}
+[data-faq-card][data-open="1"] [data-faq-chev]{transform:rotate(180deg)}
+[data-faq-panel]{display:grid;grid-template-rows:0fr;visibility:hidden;transition:grid-template-rows 200ms var(--vt-ease-standard),visibility 0s linear 200ms}
+[data-faq-card][data-open="1"] [data-faq-panel]{grid-template-rows:1fr;visibility:visible;transition:grid-template-rows 200ms var(--vt-ease-standard),visibility 0s}
+[data-faq-inner]{overflow:hidden;min-height:0;padding-top:26px;opacity:0;transition:opacity 200ms var(--vt-ease-standard)}
+[data-faq-card][data-open="1"] [data-faq-inner]{opacity:1}
+[data-faq-a]{margin:0 0 14px;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary);text-wrap:pretty}
+[data-faq-a]:last-child{margin-bottom:0}
+[data-defer]{display:flex;flex-direction:column;gap:10px;margin:16px 0 0;padding:15px 17px;border:1px solid var(--vt-charcoal-900);border-radius:var(--vt-radius-md);background:var(--vt-bg-surface)}
+[data-defer-k]{display:flex;align-items:center;gap:8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)}
+[data-defer-a]{display:inline-flex;align-items:center;gap:9px;align-self:flex-start;min-height:44px;font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium);color:var(--vt-charcoal-900);text-decoration:underline;text-decoration-color:var(--vt-grey-300);text-underline-offset:4px;transition:color 140ms var(--vt-ease-standard)}
+[data-defer-a]:hover{color:var(--vt-yellow-700);text-decoration-color:currentColor}
+[data-chip]{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-grey-300);background:var(--vt-bg-surface);font-family:inherit;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-primary);text-decoration:none;cursor:pointer;transition:border-color 140ms var(--vt-ease-standard),background 140ms var(--vt-ease-standard)}
+[data-chip]:hover{border-color:var(--vt-charcoal-900);background:var(--vt-grey-50)}
+[data-chip] b{font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);color:var(--vt-text-muted)}
+:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}
+@media (min-width:760px){[data-faq-grid]{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:1160px){[data-faq-grid]{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media print{[data-lg-noprint]{display:none!important}
+[data-faq-grid]{display:block}
+[data-faq-card]{min-height:0;border:0;border-bottom:1px solid #999;border-radius:0;padding:12px 0;break-inside:avoid;page-break-inside:avoid}
+[data-faq-circle]{display:none}
+[data-faq-panel]{grid-template-rows:1fr!important;visibility:visible!important}
+[data-faq-inner]{opacity:1!important;padding-top:8px}
+[data-faq-toggle]{font-size:13pt}
+[data-tok]{background:#fff!important;border-color:#000!important}
+@page{margin:18mm}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}</style>
+</helmet>
+
+<div style="font-family:var(--vt-font-body);background:var(--vt-bg-page);min-height:100vh">
+<div data-lg-noprint="1"><dc-import name="SiteHeader" variant="inverse" hint-size="100%,76px"></dc-import></div>
+
+<main data-screen-label="FAQ">
+
+<header style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);position:relative;overflow:hidden">
+<div aria-hidden="true" style="position:absolute;top:0;inset-inline-end:0;width:120px;height:120px;background:url(../../assets/patterns/checker-mark.png) top right / 56px auto no-repeat;opacity:.9"></div>
+<div style="max-width:1200px;margin:0 auto;padding:44px clamp(20px,5vw,56px) 40px">
+<nav aria-label="Breadcrumb" style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted);margin-bottom:26px">
+<a href="../home/home.dc.html" style="color:inherit;text-decoration:none">Home</a><span aria-hidden="true">/</span><span>Support</span><span aria-hidden="true">/</span><span style="color:var(--vt-text-inverse)">FAQs</span>
+</nav>
+<p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">Support</p>
+<h1 style="margin:0 0 18px;max-width:20ch;font-family:var(--vt-font-display);font-size:var(--vt-display-2);line-height:var(--vt-display-leading);letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty">Questions, answered</h1>
+<p style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">The things travellers ask us most. Anything with a number or a deadline attached links to the page that owns it, so you are never reading two versions of the same rule.</p>
+</div>
+</header>
+
+<div style="max-width:1200px;margin:0 auto;padding:36px clamp(20px,5vw,56px) 8px">
+
+<div data-lg-noprint="1" style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:8px">
+<nav aria-label="Categories" style="display:flex;flex-wrap:wrap;gap:10px">
+<a data-chip="1" href="#booking"><b>01</b>Booking &amp; reservations</a>
+<a data-chip="1" href="#pricing"><b>02</b>Pricing &amp; payment</a>
+<a data-chip="1" href="#service"><b>03</b>Service &amp; safety</a>
+</nav>
+<button data-chip="1" type="button" onClick="{{ toggleAll }}" style="margin-inline-start:auto">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ allIcon }}" size="{{ n16 }}" color="var(--vt-charcoal-900)" hint-size="16px,16px"></x-import>{{ allLabel }}</button>
+</div>
+
+<section data-grp="1" aria-labelledby="booking-h">
+<div data-grp-h="1" id="booking"><h2 id="booking-h">Booking &amp; reservations</h2><span>Two questions</span></div>
+<div data-faq-grid="1">
+
+<div data-faq-card="1" data-open="{{ o1 }}">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="q1" aria-expanded="{{ e1 }}" aria-controls="a1" onClick="{{ t1 }}">How can I change the date or time of my booking?
+<span data-faq-circle="1" aria-hidden="true"><span data-faq-chev="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n22 }}" color="currentColor" hint-size="22px,22px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="a1" role="region" aria-labelledby="q1">
+<div data-faq-inner="1">
+<p data-faq-a="1">Open your booking from the link in your confirmation email, or from your account, and change it there. The change takes effect when we confirm it in writing — not when you send it.</p>
+<p data-faq-a="1">If the new time changes the fare, you pay or we refund the difference, and never more than the difference.</p>
+<div data-defer="1">
+<p data-defer-k="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="file-text" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import>The deadline lives here</p>
+<a data-defer-a="1" href="cancellation.dc.html#modify">Cancellation &amp; refunds, section 03<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></a>
+</div>
+</div>
+</div>
+</div>
+
+<div data-faq-card="1" data-open="{{ o2 }}">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="q2" aria-expanded="{{ e2 }}" aria-controls="a2" onClick="{{ t2 }}">How do I cancel my ride?
+<span data-faq-circle="1" aria-hidden="true"><span data-faq-chev="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n22 }}" color="currentColor" hint-size="22px,22px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="a2" role="region" aria-labelledby="q2">
+<div data-faq-inner="1">
+<p data-faq-a="1">From the manage-booking link in your confirmation email, or from your account if you made one. You get a cancellation confirmation in writing; keep it, because that is what the refund is calculated from.</p>
+<p data-faq-a="1">Cannot reach either? Call us and quote your booking reference and we will do it for you.</p>
+<div data-defer="1">
+<p data-defer-k="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="file-text" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import>What you get back lives here</p>
+<a data-defer-a="1" href="cancellation.dc.html#tiers">Cancellation &amp; refunds, section 01<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></a>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+</section>
+
+<section data-grp="1" aria-labelledby="pricing-h">
+<div data-grp-h="1" id="pricing"><h2 id="pricing-h">Pricing &amp; payment</h2><span>Three questions</span></div>
+<div data-faq-grid="1">
+
+<div data-faq-card="1" data-open="{{ o3 }}">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="q3" aria-expanded="{{ e3 }}" aria-controls="a3" onClick="{{ t3 }}">When will I receive my booking confirmation?
+<span data-faq-circle="1" aria-hidden="true"><span data-faq-chev="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n22 }}" color="currentColor" hint-size="22px,22px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="a3" role="region" aria-labelledby="q3">
+<div data-faq-inner="1">
+<p data-faq-a="1">Immediately after payment, by email. It carries your booking reference, the pickup time and address, the vehicle class and the price you paid.</p>
+<p data-faq-a="1">Your driver's name, vehicle and telephone number arrive separately, by SMS and email, <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Driver details lead time</span> before pickup. Ask us and we will send them sooner.</p>
+</div>
+</div>
+</div>
+
+<div data-faq-card="1" data-open="{{ o4 }}">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="q4" aria-expanded="{{ e4 }}" aria-controls="a4" onClick="{{ t4 }}">What is the cancellation policy?
+<span data-faq-circle="1" aria-hidden="true"><span data-faq-chev="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n22 }}" color="currentColor" hint-size="22px,22px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="a4" role="region" aria-labelledby="q4">
+<div data-faq-inner="1">
+<p data-faq-a="1">Cancel early and you get the most back; the closer to pickup, the less, because a driver is already committed to your journey. Flight delays are handled separately and cost you nothing when we have your flight number.</p>
+<p data-faq-a="1">We do not restate the windows or the shares here, on purpose. One page owns them, and it is kept correct.</p>
+<div data-defer="1">
+<p data-defer-k="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="shield-check" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import>Single source of truth</p>
+<a data-defer-a="1" href="cancellation.dc.html">Read the cancellation &amp; refund policy<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></a>
+</div>
+</div>
+</div>
+</div>
+
+<div data-faq-card="1" data-open="{{ o5 }}">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="q5" aria-expanded="{{ e5 }}" aria-controls="a5" onClick="{{ t5 }}">Do I need to tip the chauffeur?
+<span data-faq-circle="1" aria-hidden="true"><span data-faq-chev="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n22 }}" color="currentColor" hint-size="22px,22px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="a5" role="region" aria-labelledby="q5">
+<div data-faq-inner="1">
+<p data-faq-a="1">No. The gratuity is already in the price you were shown, along with tolls and airport access fees. Nothing is expected on top and no driver will ask.</p>
+<div data-defer="1">
+<p data-defer-k="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="file-text" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import>What the fare includes</p>
+<a data-defer-a="1" href="terms.dc.html#price">Terms &amp; conditions, section 04<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></a>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+</section>
+
+<section data-grp="1" aria-labelledby="service-h">
+<div data-grp-h="1" id="service"><h2 id="service-h">Service &amp; safety</h2><span>Two questions</span></div>
+<p data-grp-note="1">Every transfer is booked ahead and assigned to a named driver. You are not waiting for a car to be found — at the agreed time it is already there.</p>
+
+<div style="display:grid;grid-template-columns:minmax(0,1fr);gap:20px;margin-top:28px">
+<div style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);border-radius:var(--vt-radius-xl);padding:clamp(24px,3vw,34px);display:flex;flex-wrap:wrap;align-items:flex-start;gap:22px 34px">
+<div style="flex:0 0 auto;width:52px;height:52px;border-radius:var(--vt-radius-pill);background:var(--vt-accent);display:grid;place-items:center">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plane-landing" size="{{ n24 }}" color="var(--vt-charcoal-900)" hint-size="24px,24px"></x-import>
+</div>
+<div style="flex:1 1 320px;min-width:0">
+<p style="margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">Included at the airport</p>
+<h3 style="margin:0 0 10px;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse)">Meet &amp; greet</h3>
+<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Your driver waits in the arrivals hall with a name sign, helps with the bags and walks you to the car. We watch the flight, so a delay moves the pickup without you doing anything. Available at <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Meet greet airports</span>.</p>
+</div>
+</div>
+</div>
+
+<div data-faq-grid="1">
+
+<div data-faq-card="1" data-open="{{ o6 }}">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="q6" aria-expanded="{{ e6 }}" aria-controls="a6" onClick="{{ t6 }}">How do I get in touch with my chauffeur?
+<span data-faq-circle="1" aria-hidden="true"><span data-faq-chev="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n22 }}" color="currentColor" hint-size="22px,22px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="a6" role="region" aria-labelledby="q6">
+<div data-faq-inner="1">
+<p data-faq-a="1">You get their name and direct number by SMS and email <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Driver details lead time</span> before pickup. Call or message them directly on the day.</p>
+<p data-faq-a="1">Before that, or if nobody answers, call our number and quote your booking reference. Keep your mobile reachable on the day of travel — the driver calls it on arrival.</p>
+</div>
+</div>
+</div>
+
+<div data-faq-card="1" data-open="{{ o7 }}">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="q7" aria-expanded="{{ e7 }}" aria-controls="a7" onClick="{{ t7 }}">Can I bring my own child or booster seat?
+<span data-faq-circle="1" aria-hidden="true"><span data-faq-chev="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n22 }}" color="currentColor" hint-size="22px,22px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="a7" role="region" aria-labelledby="q7">
+<div data-faq-inner="1">
+<p data-faq-a="1">Yes, and it travels free. We can also provide one — request it when you book so the right seat is in the right vehicle.</p>
+<p data-faq-a="1">Swiss law decides which seat a child needs, and the driver will not set off without it. Tell us the children's ages at booking and we will get it right.</p>
+<div data-defer="1">
+<p data-defer-k="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="file-text" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import>Luggage and seats in full</p>
+<a data-defer-a="1" href="terms.dc.html#luggage">Terms &amp; conditions, section 07<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></a>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+</section>
+
+</div>
+
+<section data-lg-noprint="1" style="max-width:1200px;margin:0 auto;padding:clamp(40px,4vw,56px) clamp(20px,5vw,56px) 72px">
+<div style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);padding:clamp(24px,3vw,36px);display:flex;flex-wrap:wrap;align-items:center;gap:24px 40px">
+<div style="flex:1 1 320px;min-width:0">
+<h2 style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Still not answered?</h2>
+<p style="margin:0;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);max-width:52ch">If your question is about a booking you have already made, open it directly — that is faster than writing to us.</p>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" href="manage-booking.dc.html" iconEnd="arrow-right" hint-size="190px,44px">Manage a booking</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" href="contact.dc.html" hint-size="150px,44px">Contact us</x-import>
+</div>
+</div>
+</section>
+
+</main>
+
+<div data-lg-noprint="1"><dc-import name="SiteFooter" hint-size="100%,520px"></dc-import></div>
+<dc-import name="CookieBanner" start-state="{{ cookieState }}" hint-size="0,0"></dc-import>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;cookieState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;auto&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;banner&quot;,&quot;prefs&quot;,&quot;hidden&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Review&quot;}}">
+const N = 7;
+
+class Component extends DCLogic {
+  // Independent toggles, not exclusive: on a dedicated FAQ page people compare two
+  // answers side by side, and the home teaser keeps the exclusive behaviour.
+  state = { open: { 1: true } };
+
+  toggle(i) {
+    this.setState((s) => {
+      const next = Object.assign({}, s.open);
+      if (next[i]) delete next[i]; else next[i] = true;
+      return { open: next };
+    });
+  }
+
+  allOpen() {
+    for (let i = 1; i <= N; i += 1) if (!this.state.open[i]) return false;
+    return true;
+  }
+
+  toggleAll = () => {
+    if (this.allOpen()) { this.setState({ open: {} }); return; }
+    const next = {};
+    for (let i = 1; i <= N; i += 1) next[i] = true;
+    this.setState({ open: next });
+  };
+
+  renderVals() {
+    const v = { n14: 14, n16: 16, n22: 22, n24: 24 };
+    for (let i = 1; i <= N; i += 1) {
+      const on = !!this.state.open[i];
+      v['o' + i] = on ? '1' : '0';
+      v['e' + i] = on ? 'true' : 'false';
+      v['t' + i] = () => this.toggle(i);
+    }
+    const all = this.allOpen();
+    v.allLabel = all ? 'Collapse all' : 'Expand all';
+    v.allIcon = all ? 'chevron-up' : 'chevron-down';
+    v.toggleAll = this.toggleAll;
+    v.scaffold = (this.props.showReviewScaffold ?? true) !== false;
+    v.cookieState = this.props.cookieState || 'auto';
+    return v;
+  }
+}
+
+</script>
+</body>
+</html>

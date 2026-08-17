@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
+     injects every stylesheet and script from <helmet> only after React has loaded, so
+     without these the arriving document paints uncovered frames before
+     vamos-page-transition.js exists and can build its overlay. That script adopts
+     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
+     animation below is the fallback for when the script never runs. -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<link rel="stylesheet" href="../../assets/lenis.css">
+<script src="../../assets/lenis.js"></script>
+<script src="../../assets/lenis-boot.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+/* Button hover/press — colour step only, no shadow, no glow */
+.vt-btn{transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
+.vt-btn:hover,.vt-btn:active{box-shadow:none!important}
+.vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
+.vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
+.vt-btn--secondary:hover:not([disabled]){background:var(--vt-charcoal-800)}
+.vt-btn--secondary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn--ghost:hover:not([disabled]),.vt-btn--outline:hover:not([disabled]),.vt-btn--tertiary:hover:not([disabled]){background:var(--vt-grey-50);border-color:var(--vt-charcoal-900)}
+.vt-btn--ghost:active:not([disabled]),.vt-btn--outline:active:not([disabled]),.vt-btn--tertiary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn:focus-visible{box-shadow:var(--vt-ring)!important}
+.vt-btn[disabled],.vt-btn[aria-disabled="true"]{transform:none}.vt-select .vt-input--focus{box-shadow:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none;box-shadow:none}
+body{margin:0;background:var(--vt-bg-page)}
+a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+[data-tok]{display:inline-flex;align-items:baseline;gap:5px;font-family:var(--vt-font-body);font-weight:var(--vt-weight-medium);font-size:.97em;background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 7px;white-space:nowrap}
+[data-tok]::after{content:"TBC";font-family:var(--vt-font-body);font-size:.66em;font-weight:700;letter-spacing:.1em;color:var(--vt-yellow-700)}
+[data-tok-fig]{display:inline-flex;font-family:var(--vt-font-display);font-size:var(--vt-figure-md);line-height:1.1}
+[data-slot]{margin:0;border:1px dashed var(--vt-grey-300);background:var(--vt-grey-50);border-radius:var(--vt-radius-md);padding:16px 18px}
+[data-slot-k]{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-slot-k]::before{content:"";width:8px;height:8px;flex:0 0 auto;background:var(--vt-grey-300)}
+[data-slot] p{margin:0 0 8px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+[data-slot] p:last-child{margin-bottom:0}
+[data-flag]{margin:0;border:1px solid var(--vt-charcoal-900);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);padding:18px 20px}
+[data-flag-k]{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)}
+[data-flag] p{margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+[data-flag] p:last-child{margin-bottom:0}
+[data-fld]{display:flex;flex-direction:column;gap:7px;min-width:0}
+[data-fld] label{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-primary)}
+[data-fld] input{box-sizing:border-box;width:100%;height:54px;padding:0 20px;font-family:var(--vt-font-body);font-size:var(--vt-body-md);color:var(--vt-text-primary);background:var(--vt-bg-surface);border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-field,999px);transition:border-color 140ms var(--vt-ease-standard)}
+[data-fld] input::placeholder{color:var(--vt-text-muted)}
+[data-fld] input:hover{border-color:var(--vt-grey-400)}
+[data-fld] input:focus{outline:none;border-color:var(--vt-charcoal-900)}
+[data-fld][data-bad="true"] input{border-color:var(--vt-danger);border-width:2px}
+[data-fld] input:disabled{opacity:.42;cursor:not-allowed}
+[data-ref] input{font-family:var(--vt-font-display);font-size:var(--vt-heading-4);letter-spacing:.08em;text-transform:uppercase}
+[data-hint]{display:flex;align-items:flex-start;gap:7px;margin:0;font-size:var(--vt-body-xs);line-height:1.45;color:var(--vt-text-muted)}
+[data-err]{display:flex;align-items:flex-start;gap:7px;margin:0;font-size:var(--vt-body-xs);line-height:1.45;font-weight:var(--vt-weight-medium);color:var(--vt-danger)}
+[data-hint] [data-t],[data-err] [data-t]{min-width:0;flex:1 1 auto}
+[data-swap]{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;min-height:24px;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);font-weight:var(--vt-weight-medium);color:var(--vt-charcoal-900);text-decoration:underline;text-decoration-color:var(--vt-grey-400);text-underline-offset:3px;cursor:pointer}
+[data-swap]:hover{color:var(--vt-charcoal-900);text-decoration-color:var(--vt-charcoal-900)}
+[data-grp]{display:flex;align-items:center;gap:12px;margin:0;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-grp]::after{content:"";flex:1 1 auto;height:1px;background:var(--vt-grey-200)}
+[data-card]{background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm)}
+[data-fork]{all:unset;box-sizing:border-box;display:flex;flex-wrap:wrap;gap:14px;align-items:center;text-align:start;padding:18px;background:var(--vt-bg-surface);border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);cursor:pointer;transition:border-color 140ms var(--vt-ease-standard),background 140ms var(--vt-ease-standard)}
+[data-fork]:hover{border-color:var(--vt-charcoal-900);background:var(--vt-grey-50)}
+[data-fork]:active{transform:translateY(1px)}
+[data-fork-t]{display:block;margin:0 0 3px;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);line-height:1.3;color:var(--vt-text-primary)}
+[data-fork-s]{display:block;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading-tight);color:var(--vt-text-secondary)}
+[data-fork-cta]{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;gap:9px;height:44px;padding:0 22px;border-radius:var(--vt-radius-pill);font-family:var(--vt-font-body);font-size:13px;font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;white-space:nowrap;transition:background 140ms var(--vt-ease-standard),color 140ms var(--vt-ease-standard),border-color 140ms var(--vt-ease-standard)}
+[data-fork-cta="accent"]{background:var(--vt-accent);color:var(--vt-text-on-accent);border:1px solid var(--vt-accent)}
+[data-fork]:hover [data-fork-cta="accent"]{background:var(--vt-accent-hover);border-color:var(--vt-accent-hover)}
+[data-fork-cta="ghost"]{background:transparent;color:var(--vt-text-primary);border:1px solid var(--vt-grey-300)}
+[data-fork]:hover [data-fork-cta="ghost"]{background:var(--vt-charcoal-900);border-color:var(--vt-charcoal-900);color:var(--vt-text-inverse)}
+[data-back]{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:6px;min-height:36px;margin:0 0 8px;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-secondary);cursor:pointer;transition:color 140ms var(--vt-ease-standard)}
+[data-back]:hover{color:var(--vt-charcoal-900)}
+[data-tile]{flex:0 0 auto;width:40px;height:40px;border-radius:var(--vt-radius-pill);display:grid;place-items:center;background:var(--vt-grey-100)}
+[data-row]{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--vt-grey-200)}
+[data-row]:last-child{border-bottom:0}
+[data-row-k]{display:block;margin:0 0 3px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-row-v]{display:block;margin:0;font-size:var(--vt-body-md);line-height:1.4;color:var(--vt-text-primary)}
+[data-pill]{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 13px;border-radius:var(--vt-radius-pill);background:var(--vt-grey-100);font-size:var(--vt-body-xs);font-weight:var(--vt-weight-medium);color:var(--vt-text-secondary);white-space:nowrap}
+[data-seg]{display:inline-flex;flex-wrap:wrap;gap:2px;padding:3px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:rgb(255 255 255 / .06)}
+[data-seg] button{appearance:none;border:0;background:none;min-height:38px;padding:0 14px;border-radius:var(--vt-radius-pill);font-family:inherit;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-inverse-muted);cursor:pointer;transition:background 140ms var(--vt-ease-standard),color 140ms var(--vt-ease-standard)}
+[data-seg] button:hover{color:var(--vt-text-inverse)}
+[data-seg] button[aria-pressed="true"]{background:var(--vt-accent);color:var(--vt-text-on-accent)}
+[data-mb-grid]{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(24px,3vw,40px);align-items:start}
+[data-gate-grid]{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(24px,3vw,36px);align-items:start}
+[data-two]{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+[data-vch]{display:grid;grid-template-columns:minmax(0,1fr);gap:28px;padding:26px}
+[data-refund]{background:var(--vt-grey-50);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);padding:20px}
+/* RouteSummary's rail is a flex column, so its end pip stops wherever the rail runs out
+   instead of sitting beside the destination. Promoting the stops to grid rows puts one
+   pip on each stop, at every width and in both directions. */
+.vt-route .vt-route__leg{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:12px;align-items:start}
+.vt-route .vt-route__rail,.vt-route .vt-route__leg>div:last-child{display:contents}
+.vt-route .vt-route__pip{grid-column:1;grid-row:1;align-self:start;margin-top:4px}
+.vt-route .vt-route__pip--end{grid-row:2}
+.vt-route .vt-route__line{grid-column:1;grid-row:1;align-self:stretch;justify-self:center;margin:21px 0 4px;min-height:0}
+.vt-route .vt-route__stop{grid-column:2;grid-row:1}
+.vt-route .vt-route__stop--last{grid-row:2}
+[data-actions2]{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+[data-opts]{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px}
+[data-opt]{all:unset;box-sizing:border-box;display:flex;flex-direction:column;gap:5px;min-height:96px;padding:14px;background:var(--vt-bg-surface);border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-md);cursor:pointer;transition:border-color 140ms var(--vt-ease-standard),background 140ms var(--vt-ease-standard)}
+[data-opt]:hover{border-color:var(--vt-charcoal-900)}
+[data-opt][aria-pressed="true"]{padding:13px;border-width:2px;border-color:var(--vt-charcoal-900);background:var(--vt-grey-50)}
+[data-opt-t]{font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);line-height:1.2;color:var(--vt-text-primary)}
+[data-opt-s]{font-size:var(--vt-body-xs);line-height:1.45;color:var(--vt-text-secondary)}
+[data-step]{display:flex;align-items:center;gap:6px}
+[data-step] button{appearance:none;width:44px;height:44px;display:grid;place-items:center;padding:0;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-pill);background:var(--vt-bg-surface);color:var(--vt-charcoal-900);cursor:pointer;transition:background 140ms var(--vt-ease-standard),border-color 140ms var(--vt-ease-standard),color 140ms var(--vt-ease-standard)}
+[data-step] button:hover{background:var(--vt-charcoal-900);border-color:var(--vt-charcoal-900);color:var(--vt-text-inverse)}
+[data-step] button:disabled{opacity:.36;cursor:not-allowed}
+[data-step] button:disabled:hover{background:var(--vt-bg-surface);border-color:var(--vt-grey-300);color:var(--vt-charcoal-900)}
+[data-step-v]{min-width:32px;text-align:center;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);font-variant-numeric:tabular-nums;color:var(--vt-text-primary)}
+[data-diff]{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding:12px 0;border-bottom:1px solid var(--vt-grey-200);font-size:var(--vt-body-sm);line-height:1.5;color:var(--vt-text-primary)}
+[data-diff]:last-child{border-bottom:0}
+[data-diff-k]{flex:0 0 130px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-diff-o]{color:var(--vt-text-muted);text-decoration:line-through}
+[data-diff-n]{font-weight:var(--vt-weight-semibold)}
+[data-stop]{position:relative;overflow:hidden;background:var(--vt-bg-inverse);color:var(--vt-text-inverse);border-radius:var(--vt-radius-lg);padding:clamp(20px,2.4vw,26px);margin-bottom:24px}
+[data-stop-fig]{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:1.05;letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse)}
+:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}
+@media (min-width:520px){[data-actions2]{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:700px){[data-two]{grid-template-columns:repeat(2,minmax(0,1fr))}[data-vch]{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);padding:28px}}
+@media (min-width:860px){[data-gate-grid]{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}}
+@media (min-width:980px){[data-mb-grid]{grid-template-columns:minmax(0,1.5fr) minmax(320px,1fr)}[data-rail]{position:sticky;top:96px}}
+@media print{footer,[data-noprint]{display:none!important}body{background:#fff}[data-vch-card]{border:0!important;box-shadow:none!important;padding:0!important}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}</style>
+</helmet>
+
+<div style="font-family:var(--vt-font-body);background:var(--vt-bg-page);min-height:100vh">
+<dc-import name="SiteHeader" variant="inverse" hint-size="100%,76px"></dc-import>
+
+<main data-screen-label="Manage a booking">
+
+<header data-noprint="1" style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);position:relative;overflow:hidden">
+<div aria-hidden="true" style="position:absolute;top:0;inset-inline-end:0;width:120px;height:120px;background:url(../../assets/patterns/checker-mark.png) top right / 56px auto no-repeat;opacity:.9"></div>
+<div style="max-width:1200px;margin:0 auto;padding:40px clamp(20px,5vw,56px) 36px">
+<nav aria-label="Breadcrumb" style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted);margin-bottom:24px">
+<a href="../home/home.dc.html" style="color:inherit;text-decoration:none">Home</a><span aria-hidden="true">/</span><span>Support</span><span aria-hidden="true">/</span><span style="color:var(--vt-text-inverse)">Manage a booking</span>
+</nav>
+<p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">Your trip</p>
+<h1 style="margin:0 0 16px;max-width:22ch;font-family:var(--vt-font-display);font-size:var(--vt-display-2);line-height:var(--vt-display-leading);letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty">Manage a booking</h1>
+<p style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Check the details, move the pickup time, cancel, or get your voucher again. No account needed — your booking reference is the key.</p>
+
+</div>
+</header>
+
+<sc-if value="{{ isLookup }}" hint-placeholder-val="{{ true }}">
+<section aria-labelledby="mb-gate-h" style="max-width:1200px;margin:0 auto;padding:clamp(32px,4vw,48px) clamp(20px,5vw,56px) 0">
+<div data-gate-grid="1">
+
+<div>
+<h2 id="mb-gate-h" style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Open your booking</h2>
+<p style="margin:0 0 20px;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Two details from your confirmation email. If you opened the link in that email you are taken straight to your trip instead.</p>
+
+<a data-fork="1" href="sign-in.dc.html" style="width:100%;margin-bottom:20px">
+<span data-tile="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="user" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></span>
+<span style="min-width:0;flex:1 1 200px"><span data-fork-t="1">Booked with an account?</span><span data-fork-s="1">Sign in and every trip is listed — no reference to look up.</span></span>
+<span data-fork-cta="ghost">Sign in<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span>
+</a>
+
+<p data-grp="1" style="margin-bottom:16px">Or use your reference</p>
+
+<form novalidate="novalidate" onSubmit="{{ lookup }}" data-card="1" style="padding:clamp(22px,2.6vw,30px);display:flex;flex-direction:column;gap:20px">
+
+<sc-if value="{{ notFound }}" hint-placeholder-val="{{ false }}">
+<div ref="{{ errRef }}" tabindex="-1" role="alert" style="outline:none">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="We could not find that booking" hint-size="100%,92px">Check the reference and the email or last name against your confirmation email, then try again. Still nothing? Call us and we will look it up for you.</x-import>
+</div>
+</sc-if>
+
+<div data-fld="1" data-ref="1" data-bad="{{ badRef }}">
+<label for="mb-ref">Booking reference</label>
+<input id="mb-ref" name="reference" type="text" autocomplete="off" spellcheck="false" placeholder="VT-0000" value="{{ vRef }}" onInput="{{ onRef }}" aria-invalid="{{ aRef }}" aria-describedby="mb-ref-e mb-ref-h">
+<sc-if value="{{ badRef }}" hint-placeholder-val="{{ false }}">
+<p id="mb-ref-e" data-err="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>Your reference is on the confirmation email, six characters like VT-4821</p>
+</sc-if>
+<p id="mb-ref-h" data-hint="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">It is in the subject line of your confirmation email and at the top of your voucher.</span></p>
+</div>
+
+<div data-fld="1" data-bad="{{ badWho }}">
+<div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 14px">
+<label for="mb-who">{{ whoLabel }}</label>
+<button type="button" data-swap="1" onClick="{{ swapWho }}">{{ swapLabel }}</button>
+</div>
+<input id="mb-who" name="who" type="text" autocomplete="off" placeholder="{{ whoPlaceholder }}" value="{{ vWho }}" onInput="{{ onWho }}" aria-invalid="{{ aWho }}" aria-describedby="mb-who-e mb-who-h">
+<sc-if value="{{ badWho }}" hint-placeholder-val="{{ false }}">
+<p id="mb-who-e" data-err="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>{{ whoError }}</p>
+</sc-if>
+<p id="mb-who-h" data-hint="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">{{ whoHint }}</span></p>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px 20px;padding-top:4px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" type="submit" iconEnd="arrow-right" hint-size="220px,54px">Open my booking</x-import>
+<p style="margin:0;flex:1 1 200px;min-width:0;font-size:var(--vt-body-xs);line-height:1.5;color:var(--vt-text-muted)">Nothing changes until you tell it to. Opening a booking only shows it to you.</p>
+</div>
+
+</form>
+</div>
+
+<aside style="display:flex;flex-direction:column;gap:16px">
+<div data-card="1" style="padding:22px">
+<p style="margin:0 0 14px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Where your reference is</p>
+<div data-row="1" style="padding-top:0">
+<span style="min-width:0"><span data-row-k="1">Confirmation email</span><span data-row-v="1" style="font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">Subject line, right after “Booking”.</span></span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="mail" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
+</div>
+<div data-row="1">
+<span style="min-width:0"><span data-row-k="1">Your voucher</span><span data-row-v="1" style="font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">Top right of the charcoal panel.</span></span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="ticket" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
+</div>
+</div>
+
+<div style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);border-radius:var(--vt-radius-lg);padding:22px">
+<p style="margin:0 0 12px;display:flex;align-items:center;gap:9px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="phone" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>Cannot get in?</p>
+<p style="margin:0 0 14px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Call us with whatever you have — the email address you booked with is usually enough. A dispatcher can change or cancel your trip on the phone.</p>
+<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="light" icon="phone" href="tel:+41796267082" hint-size="200px,44px">+41 79 626 70 82</x-import>
+</div>
+<p style="margin:0;padding-top:14px;border-top:1px solid var(--vt-border-inverse);font-size:var(--vt-body-xs);line-height:1.6;color:var(--vt-text-inverse-muted)">Rather write? Use the <a href="contact.dc.html" style="color:var(--vt-accent);text-decoration:none">contact form</a> and quote whatever you remember.</p>
+</div>
+
+</aside>
+
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{ hasBooking }}" hint-placeholder-val="{{ false }}">
+<section style="max-width:1200px;margin:0 auto;padding:clamp(28px,3.5vw,44px) clamp(20px,5vw,56px) 0">
+<div data-mb-grid="1">
+
+<div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+
+<sc-if value="{{ viaLink }}" hint-placeholder-val="{{ false }}">
+<div data-noprint="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="inverse" title="Opened from your confirmation email" hint-size="100%,84px">This link opens booking {{ ref }} and nothing else. To see other trips, sign in or look them up one at a time.</x-import>
+</div>
+</sc-if>
+
+<article data-card="1" aria-labelledby="mb-bk-h" style="padding:clamp(20px,2.4vw,26px)">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin-bottom:20px">
+<h2 id="mb-bk-h" style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);line-height:1.1;letter-spacing:.04em;font-weight:var(--vt-weight-bold);color:var(--vt-text-primary)">{{ ref }}</h2>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StatusBadge" status="{{ status }}" hint-size="110px,26px"></x-import>
+<span style="margin-inline-start:auto;display:flex"><span data-pill="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="clock" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import>{{ countdown }}</span></span>
+</div>
+
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.RouteSummary" pickup="{{ pickup }}" pickupDetail="{{ pickupDetail }}" dropoff="{{ dropoff }}" meta="{{ meta }}" hint-size="100%,180px"></x-import>
+
+<div style="margin-top:18px;border-top:1px solid var(--vt-grey-200)">
+<sc-if value="{{ changePending }}" hint-placeholder-val="{{ false }}">
+<div data-row="1">
+<span style="min-width:0;display:flex;align-items:flex-start;gap:10px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="clock" size="{{ n18 }}" color="var(--vt-charcoal-900)" hint-size="18px,18px"></x-import>
+<span><span data-row-k="1">Change requested</span>
+<sc-for list="{{ requested }}" as="r" hint-placeholder-count="1">
+<span data-row-v="1"><span data-diff-n="1">{{ r.n }}</span> · <span style="color:var(--vt-text-secondary)">{{ r.k }}</span></span>
+</sc-for>
+<span data-row-v="1" style="font-size:var(--vt-body-sm);color:var(--vt-text-secondary);margin-top:2px">Not applied yet. We confirm every change by email, and the booking above stands until we do.</span></span>
+</span>
+</div>
+</sc-if>
+<sc-if value="{{ flightRow }}" hint-placeholder-val="{{ true }}">
+<div data-row="1">
+<sc-if value="{{ flightIdle }}" hint-placeholder-val="{{ true }}">
+<span style="min-width:0"><span data-row-k="1">Flight number</span><span data-row-v="1" style="font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);letter-spacing:.03em">{{ flight }}</span></span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" icon="pencil" onClick="{{ editFlight }}" hint-size="120px,44px">Edit</x-import>
+</sc-if>
+<sc-if value="{{ flightEditing }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1 1 100%;min-width:0;display:flex;flex-direction:column;gap:12px">
+<div data-fld="1">
+<label for="mb-flight">Flight number</label>
+<input id="mb-flight" name="flight" type="text" autocomplete="off" spellcheck="false" placeholder="LX 318" value="{{ flightDraft }}" onInput="{{ onFlight }}" aria-describedby="mb-flight-h">
+<p id="mb-flight-h" data-hint="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plane-landing" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">Airline code and number, as printed on your boarding pass. Your driver watches this flight, so a change of flight matters more than a change of time.</span></p>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:10px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ saveFlight }}" hint-size="180px,44px">Save flight number</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ cancelFlight }}" hint-size="110px,44px">Cancel</x-import>
+</div>
+</div>
+</sc-if>
+</div>
+</sc-if>
+<div data-row="1">
+<span style="min-width:0"><span data-row-k="1">Confirmation sent to</span><span data-row-v="1">{{ email }}</span></span>
+<span data-pill="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="shield-check" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import>Paid in full</span>
+</div>
+</div>
+</article>
+
+<sc-if value="{{ isBooking }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:20px">
+
+<div data-noprint="1">
+<p data-grp="1" style="margin-bottom:14px">What would you like to do</p>
+<div data-two="1">
+<button type="button" data-fork="1" onClick="{{ startModify }}">
+<span data-tile="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="calendar-days" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></span>
+<span style="min-width:0;flex:1 1 180px"><span data-fork-t="1">Change this booking</span><span data-fork-s="1">{{ modifySub }}</span></span>
+<span data-fork-cta="accent">Make a change<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span>
+</button>
+<button type="button" data-fork="1" onClick="{{ startCancel }}">
+<span data-tile="1" style="background:var(--vt-grey-100)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></span>
+<span style="min-width:0;flex:1 1 180px"><span data-fork-t="1">Cancel this transfer</span><span data-fork-s="1">{{ cancelSub }}</span></span>
+<span data-fork-cta="ghost">Cancel booking<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span>
+</button>
+</div>
+</div>
+
+<div>
+<p data-noprint="1" data-grp="1" style="margin-bottom:6px">Voucher and email</p>
+<div data-card="1" data-vch-card="1" style="padding:6px 20px 10px">
+<div data-noprint="1" data-row="1">
+<span style="min-width:0"><span data-row-k="1">Transfer voucher</span><span data-row-v="1" style="font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">The same voucher you got when you booked. Show it to the driver, or just give your name.</span></span>
+<sc-if value="{{ voucherClosed }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" icon="ticket" onClick="{{ openVoucher }}" hint-size="160px,44px">Show voucher</x-import>
+</sc-if>
+<sc-if value="{{ voucherOpen }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" icon="chevron-up" onClick="{{ closeVoucher }}" hint-size="160px,44px">Hide voucher</x-import>
+</sc-if>
+</div>
+
+<sc-if value="{{ voucherOpen }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:14px;padding:4px 0 18px;border-bottom:1px solid var(--vt-grey-200)">
+<div style="position:relative">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" tone="inverse" padding="none" hint-size="100%,340px">
+<div style="padding:22px 28px;border-bottom:1px solid var(--vt-border-inverse);display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" height="{{ n24 }}" hint-size="108px,24px"></x-import>
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Transfer voucher</span>
+<div style="margin-inline-start:auto;display:flex;gap:10px;align-items:center">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StatusBadge" status="{{ status }}" hint-size="100px,24px"></x-import>
+<span style="font-family:var(--vt-font-display);font-weight:700;letter-spacing:.04em;color:var(--vt-text-inverse)">{{ ref }}</span>
+</div>
+</div>
+<div data-vch="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.RouteSummary" inverse="{{ yes }}" pickup="{{ pickup }}" pickupDetail="{{ pickupDetail }}" dropoff="{{ dropoff }}" meta="{{ meta }}" hint-size="100%,170px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.PriceSummary" inverse="{{ yes }}" lines="{{ lines }}" total="{{ total }}" totalLabel="Paid" note="Placeholder amounts — real fares come from the CHF price matrix." hint-size="100%,170px"></x-import>
+</div>
+</x-import>
+<div aria-hidden="true" style="position:absolute;top:0;inset-inline-end:0;pointer-events:none">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.CheckerMark" size="{{ n96 }}" opacity="{{ pt5 }}" hint-size="96px,96px"></x-import>
+</div>
+</div>
+<div data-noprint="1" style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" icon="printer" onClick="{{ printVoucher }}" hint-size="180px,44px">Print voucher</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" icon="mail" onClick="{{ resend }}" hint-size="200px,44px">Email it to me</x-import>
+<p style="margin:0;flex:1 1 200px;min-width:0;font-size:var(--vt-body-xs);line-height:1.5;color:var(--vt-text-muted)">Printing gives you the voucher alone — the rest of this page is left off the page.</p>
+</div>
+</div>
+</sc-if>
+
+<div data-noprint="1" data-row="1">
+<span style="min-width:0"><span data-row-k="1">Confirmation email</span><span data-row-v="1" style="font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">Send it again to {{ email }}, voucher attached.</span></span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" icon="mail" onClick="{{ resend }}" hint-size="160px,44px">Resend email</x-import>
+</div>
+</div>
+</div>
+
+</div>
+</sc-if>
+
+<sc-if value="{{ isModify }}" hint-placeholder-val="{{ false }}">
+<div data-noprint="1" data-card="1" style="padding:clamp(22px,2.6vw,30px)">
+<button type="button" data-back="1" onClick="{{ backToBooking }}" style-hover="color:var(--vt-charcoal-900)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-left" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>Back to your booking</button>
+<h2 style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Change your booking</h2>
+<p style="margin:0 0 26px;max-width:58ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Move the pickup, change where you are going, or travel with a different party. Nothing is applied until we confirm it in writing.</p>
+
+<p data-grp="1" style="margin-bottom:16px">Pickup date and time</p>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin-bottom:16px">
+<span style="display:flex;flex-direction:column;gap:2px"><span data-row-k="1">Booked for</span><span data-row-v="1" style="font-variant-numeric:tabular-nums">{{ bookedWhen }}</span></span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
+<span style="display:flex;flex-direction:column;gap:2px"><span data-row-k="1">New pickup</span><span data-row-v="1" style="font-variant-numeric:tabular-nums;font-weight:var(--vt-weight-semibold)">{{ newWhen }}</span></span>
+</div>
+<div style="max-width:420px;margin-bottom:30px">
+<dc-import name="WhenPicker" label="New pickup date &amp; time" placeholder="Pick a new date and time" value="{{ mDate }}" time="{{ mTime }}" day="{{ mDay }}" times="{{ timeSlots }}" baseMonth="2026-08" timeTitle="Pickup time" saveLabel="Use this time" savedLabel="Time set" clearLabel="Reset" onDay="{{ setDay }}" onTime="{{ setTime }}" onClear="{{ resetWhen }}" hint-size="100%,84px"></dc-import>
+</div>
+
+<p data-grp="1" style="margin-bottom:16px">Where you are going</p>
+<div data-two="1" style="margin-bottom:12px">
+<div data-fld="1">
+<label for="mb-pickup">Pickup address</label>
+<input id="mb-pickup" name="pickup" type="text" autocomplete="off" placeholder="Airport, address or hotel" value="{{ pickupDraft }}" onInput="{{ onPickupDraft }}">
+</div>
+<div data-fld="1">
+<label for="mb-dropoff">Destination</label>
+<input id="mb-dropoff" name="dropoff" type="text" autocomplete="off" placeholder="Airport, address or hotel" value="{{ dropoffDraft }}" onInput="{{ onDropoffDraft }}">
+</div>
+</div>
+<p data-hint="1" style="margin-bottom:30px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">A new route is priced again. If it comes to more you pay the difference, if it comes to less we refund it — never more than the difference.</span></p>
+
+<p data-grp="1" style="margin-bottom:16px">Vehicle class</p>
+<div data-opts="1" style="margin-bottom:12px">
+<sc-for list="{{ vehicles }}" as="v" hint-placeholder-count="4">
+<button type="button" data-opt="1" aria-pressed="{{ v.on }}" onClick="{{ v.pick }}">
+<span data-opt-t="1">{{ v.name }}</span>
+<span data-opt-s="1">{{ v.ex }}</span>
+<span data-opt-s="1" style="color:var(--vt-text-muted)">{{ v.cap }}</span>
+</button>
+</sc-for>
+</div>
+<p data-hint="1" style="margin-bottom:30px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="car" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">A larger class costs more and a smaller one costs less. We quote the difference before anything is charged.</span></p>
+
+<p data-grp="1" style="margin-bottom:16px">Passengers and bags</p>
+<div data-two="1" style="margin-bottom:12px">
+<div data-card="1" style="padding:14px 16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px">
+<span style="min-width:0"><span data-row-k="1">Passengers</span><span data-row-v="1" style="font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">{{ vehicleCap }}</span></span>
+<span data-step="1">
+<button type="button" aria-label="One passenger fewer" onClick="{{ paxDec }}" disabled="{{ paxMin }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="minus" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></button>
+<span data-step-v="1">{{ paxN }}</span>
+<button type="button" aria-label="One passenger more" onClick="{{ paxInc }}" disabled="{{ paxMax }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></button>
+</span>
+</div>
+<div data-card="1" style="padding:14px 16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px">
+<span style="min-width:0"><span data-row-k="1">Bags</span><span data-row-v="1" style="font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">{{ vehicleBags }}</span></span>
+<span data-step="1">
+<button type="button" aria-label="One bag fewer" onClick="{{ bagDec }}" disabled="{{ bagMin }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="minus" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></button>
+<span data-step-v="1">{{ bagN }}</span>
+<button type="button" aria-label="One bag more" onClick="{{ bagInc }}" disabled="{{ bagMax }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></button>
+</span>
+</div>
+</div>
+<sc-if value="{{ overCapacity }}" hint-placeholder-val="{{ false }}">
+<p data-err="1" style="margin-bottom:30px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">That is more people than this class seats. Pick a larger class above.</span></p>
+</sc-if>
+<sc-if value="{{ withinCapacity }}" hint-placeholder-val="{{ true }}">
+<p data-hint="1" style="margin-bottom:30px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="luggage" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">Count a cabin bag as a bag. Skis, a cot or a bike are worth a word to dispatch before you travel.</span></p>
+</sc-if>
+
+<p data-grp="1" style="margin-bottom:8px">What you are changing</p>
+<sc-if value="{{ hasDiff }}" hint-placeholder-val="{{ false }}">
+<div style="margin-bottom:18px">
+<sc-for list="{{ diffs }}" as="d" hint-placeholder-count="2">
+<div data-diff="1">
+<span data-diff-k="1">{{ d.k }}</span>
+<span data-diff-o="1">{{ d.o }}</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import>
+<span data-diff-n="1">{{ d.n }}</span>
+</div>
+</sc-for>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;margin-bottom:22px">
+<p data-hint="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">The change takes effect when we confirm it in writing — not when you send it. Until then the booking stands as it is.</span></p>
+<p data-hint="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="receipt" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">You pay any difference in the fare, or we refund it. We never charge for the change itself.</span></p>
+<p data-hint="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="clock" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">Changes are open until <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Change deadline</span> before pickup. After that, call us.</span></p>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" iconEnd="arrow-right" onClick="{{ confirmModify }}" hint-size="240px,54px">Request these changes</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" variant="ghost" onClick="{{ resetChanges }}" hint-size="180px,54px">Discard changes</x-import>
+</div>
+</sc-if>
+<sc-if value="{{ noDiff }}" hint-placeholder-val="{{ true }}">
+<p style="margin:0 0 22px;max-width:58ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Nothing yet. Adjust anything above and it is listed here, old value beside new, before you send it.</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" iconEnd="arrow-right" disabled="{{ yes }}" hint-size="240px,54px">Request these changes</x-import>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isBlocked }}" hint-placeholder-val="{{ false }}">
+<div data-noprint="1" data-card="1" style="padding:clamp(22px,2.6vw,30px)">
+<button type="button" data-back="1" onClick="{{ backToBooking }}" style-hover="color:var(--vt-charcoal-900)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-left" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>Back to your booking</button>
+
+<div data-stop="1">
+<div aria-hidden="true" style="position:absolute;top:0;inset-inline-end:0;width:96px;height:96px;background:url(../../assets/patterns/checker-mark.png) top right / 44px auto no-repeat;opacity:.9"></div>
+<p style="margin:0 0 12px;display:flex;align-items:center;gap:9px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="clock" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>This change needs a person</p>
+<p data-stop-fig="1">{{ countdown }}</p>
+<p style="margin:14px 0 0;max-width:52ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">A driver is already scheduled against this pickup, and you are inside the <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Change deadline</span>. Dispatch can still move it. This page cannot.</p>
+</div>
+
+<p data-grp="1" style="margin-bottom:14px">Two ways forward</p>
+<div style="display:flex;flex-direction:column;gap:12px;margin-bottom:22px">
+<a data-fork="1" href="tel:+41796267082">
+<span data-tile="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="phone" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></span>
+<span style="min-width:0;flex:1 1 200px"><span data-fork-t="1">Call dispatch</span><span data-fork-s="1">Quote your reference. If we can move it we will, and we say so on the call.</span></span>
+<span data-fork-cta="accent">+41 79 626 70 82</span>
+</a>
+<button type="button" data-fork="1" onClick="{{ startCancel }}">
+<span data-tile="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></span>
+<span style="min-width:0;flex:1 1 200px"><span data-fork-t="1">Cancel instead</span><span data-fork-s="1">Cancelling is still open to you, but this close in it no longer earns a full refund.</span></span>
+<span data-fork-cta="ghost">See what comes back<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span>
+</button>
+</div>
+
+<div style="padding-top:18px;border-top:1px solid var(--vt-grey-200);display:flex;flex-direction:column;gap:8px">
+<p style="margin:0;max-width:62ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Nothing has changed. Your pickup stands as booked and your driver is expecting you.</p>
+<p style="margin:0;max-width:62ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-muted)">Rather write than call? <a href="contact.dc.html">Contact us</a> — but this close in, the phone is faster. The <a href="cancellation.dc.html">cancellation policy</a> sets out what comes back.</p>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isCancel }}" hint-placeholder-val="{{ false }}">
+<div data-noprint="1" data-card="1" style="padding:clamp(22px,2.6vw,30px)">
+<button type="button" data-back="1" onClick="{{ backToBooking }}" style-hover="color:var(--vt-charcoal-900)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-left" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>Back to your booking</button>
+<h2 style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Cancel this transfer</h2>
+<p style="margin:0 0 22px;max-width:58ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">{{ ref }} · {{ routeShort }} · {{ bookedWhen }}. This is what you get back if you cancel now.</p>
+
+<div data-refund="1" style="margin-bottom:20px">
+<sc-if value="{{ earlyTier }}" hint-placeholder-val="{{ true }}">
+<p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)">More than <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Free cancel window</span> before pickup</p>
+<p style="margin:0 0 6px;font-size:var(--vt-body-sm);color:var(--vt-charcoal-800)">You get back</p>
+<p style="margin:0 0 12px;display:flex;flex-wrap:wrap;align-items:baseline;gap:10px"><span data-tok-fig="1"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Full refund share</span></span><span style="font-size:var(--vt-body-md);color:var(--vt-charcoal-800)">of CHF 000.00</span></p>
+<p style="margin:0;max-width:56ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">You are cancelling far enough ahead that we can sell the slot again, so nothing is held back.</p>
+</sc-if>
+<sc-if value="{{ lateTier }}" hint-placeholder-val="{{ false }}">
+<p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)">Inside <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Free cancel window</span> of pickup</p>
+<p style="margin:0 0 6px;font-size:var(--vt-body-sm);color:var(--vt-charcoal-800)">You get back</p>
+<p style="margin:0 0 12px;display:flex;flex-wrap:wrap;align-items:baseline;gap:10px"><span data-tok-fig="1"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Late cancel share</span></span><span style="font-size:var(--vt-body-md);color:var(--vt-charcoal-800)">of CHF 000.00</span></p>
+<p style="margin:0;max-width:56ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">Your pickup is {{ countdown }}. A driver is scheduled and the slot can no longer be resold, so part of the fare is retained.</p>
+</sc-if>
+</div>
+
+<p style="margin:0 0 18px;display:flex;align-items:flex-start;gap:9px;max-width:60ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-primary)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n18 }}" color="var(--vt-yellow-700)" hint-size="18px,18px"></x-import><span>Every refund is checked by our team before it is sent. Cancelling here stands the driver down straight away; the money follows once that check is done.</span></p>
+
+<p style="margin:0 0 22px;padding-top:18px;border-top:1px solid var(--vt-grey-200);max-width:64ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-muted)">If the pickup time passes without you cancelling, the no-show rule applies instead and <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">No-show share</span> comes back. Coaches and groups have their own window. All of it is in the <a href="cancellation.dc.html">cancellation policy</a>, which governs.</p>
+
+<sc-if value="{{ earlyTier }}" hint-placeholder-val="{{ true }}">
+<p data-grp="1" style="margin-bottom:14px">Before you cancel</p>
+<button type="button" data-fork="1" onClick="{{ startModify }}" style="width:100%;margin-bottom:22px">
+<span data-tile="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="calendar-days" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></span>
+<span style="min-width:0;flex:1 1 200px"><span data-fork-t="1">Move it instead</span><span data-fork-s="1">Keep the booking and the fare where they are, and pick another day, another route or a different vehicle.</span></span>
+<span data-fork-cta="ghost">Change instead<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span>
+</button>
+</sc-if>
+
+<div style="display:flex;flex-wrap:wrap;gap:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" variant="secondary" onClick="{{ confirmCancel }}" hint-size="240px,54px">Cancel this transfer</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" variant="ghost" onClick="{{ backToBooking }}" hint-size="180px,54px">Keep my booking</x-import>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isCancelled }}" hint-placeholder-val="{{ false }}">
+<div data-card="1" style="padding:clamp(22px,2.6vw,30px)">
+<div style="width:52px;height:52px;border-radius:var(--vt-radius-pill);background:var(--vt-danger-tint);display:grid;place-items:center;margin-bottom:18px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n24 }}" color="var(--vt-danger)" hint-size="24px,24px"></x-import>
+</div>
+<h2 style="margin:0 0 10px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">This transfer is cancelled</h2>
+<p style="margin:0 0 20px;max-width:58ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">{{ ref }} is cancelled and no driver will come. The cancellation confirmation is on its way to {{ email }} — keep it, because that is what your refund is calculated from.</p>
+
+<div data-refund="1" style="margin-bottom:20px">
+<p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)">Refund · waiting on review</p>
+<p style="margin:0 0 6px;font-size:var(--vt-body-sm);color:var(--vt-charcoal-800)">You are eligible for</p>
+<p style="margin:0 0 12px;display:flex;flex-wrap:wrap;align-items:baseline;gap:10px"><span data-tok-fig="1"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">{{ shareLabel }}</span></span><span style="font-size:var(--vt-body-md);color:var(--vt-charcoal-800)">of CHF 000.00</span></p>
+<p style="margin:0;max-width:58ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">Our team processes this within <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Refund payout time</span>, back to the card you paid with. Nothing has been sent yet — you will get a second email when it has.</p>
+</div>
+
+<p data-hint="1" style="margin-bottom:22px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">Refunds go back to the original payment method only, and we cannot send one to a different card. If that card is gone, call us.</span></p>
+
+<div data-noprint="1" style="padding-top:20px;border-top:1px solid var(--vt-grey-200)">
+<p data-grp="1" style="margin-bottom:12px">Travel this route again</p>
+<p style="margin:0 0 16px;max-width:58ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Same pickup, same destination, same class — you only choose the day and the time. Prices are quoted fresh, so the fare may differ from the one you paid.</p>
+<div data-card="1" style="padding:16px 18px;margin-bottom:18px;display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px">
+<span data-tile="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="car" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></span>
+<span style="min-width:0;flex:1 1 220px"><span data-row-k="1">The trip you cancelled</span><span data-row-v="1">{{ routeShort }}</span><span data-row-v="1" style="font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">{{ vehicleName }} · {{ paxLabel }} · {{ bagLabel }}</span></span>
+</div>
+<div data-actions2="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" href="../home/home.dc.html" iconEnd="arrow-right" hint-size="100%,54px">Rebook this trip</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" variant="ghost" icon="mail" onClick="{{ resend }}" hint-size="100%,54px">Resend confirmation</x-import>
+</div>
+<p style="margin:14px 0 0;font-size:var(--vt-body-xs);line-height:1.5;color:var(--vt-text-muted)">Booking something else starts on the <a href="../home/home.dc.html">home page</a>, at the same fixed price before you pay.</p>
+</div>
+</div>
+</sc-if>
+
+</div>
+
+<aside data-noprint="1" style="min-width:0">
+<div data-rail="1" style="display:flex;flex-direction:column;gap:16px">
+<div data-card="1" style="padding:22px">
+<p style="margin:0 0 14px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">What you paid</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.PriceSummary" lines="{{ lines }}" total="{{ total }}" totalLabel="Paid" note="Placeholder amounts — real fares come from the CHF price matrix." hint-size="100%,180px"></x-import>
+</div>
+<div style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);border-radius:var(--vt-radius-lg);padding:22px">
+<p style="margin:0 0 12px;display:flex;align-items:center;gap:9px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="phone" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>A person, if you need one</p>
+<p style="margin:0 0 14px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Dispatch answers the phone. Quote {{ ref }} and they can do anything on this page for you, including the things this page will not.</p>
+<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="light" icon="phone" href="tel:+41796267082" hint-size="200px,44px">+41 79 626 70 82</x-import>
+</div>
+<p style="margin:0;padding-top:14px;border-top:1px solid var(--vt-border-inverse);font-size:var(--vt-body-xs);line-height:1.6;color:var(--vt-text-inverse-muted)">Read the <a href="cancellation.dc.html" style="color:var(--vt-accent);text-decoration:none">cancellation and refund policy</a> · <a href="faq.dc.html" style="color:var(--vt-accent);text-decoration:none">FAQ</a> · <a href="contact.dc.html" style="color:var(--vt-accent);text-decoration:none">Contact</a></p>
+</div>
+<sc-if value="{{ notLink }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" icon="search" block="{{ yes }}" onClick="{{ goLookup }}" hint-size="100%,44px">Another booking</x-import>
+</sc-if>
+</div>
+</aside>
+
+</div>
+</section>
+</sc-if>
+
+<div style="height:clamp(40px,4vw,56px)"></div>
+</main>
+
+<dc-import name="SiteFooter" hint-size="100%,520px"></dc-import>
+<dc-import name="CookieBanner" start-state="{{ cookieState }}" hint-size="0,0"></dc-import>
+
+<sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+<div data-noprint="1" aria-live="polite" style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;align-items:center;gap:10px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Toast" tone="{{ toastTone }}" onClose="{{ hideToast }}" hint-size="300px,48px">{{ toast }}</x-import>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;entryPath&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;gate&quot;,&quot;link&quot;],&quot;default&quot;:&quot;auto&quot;,&quot;tsType&quot;:&quot;'auto'|'gate'|'link'&quot;,&quot;section&quot;:&quot;Flow&quot;},&quot;bookingTiming&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ahead&quot;,&quot;late&quot;],&quot;default&quot;:&quot;ahead&quot;,&quot;tsType&quot;:&quot;'ahead'|'late'&quot;,&quot;section&quot;:&quot;Flow&quot;},&quot;bookingType&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;airport&quot;,&quot;city&quot;],&quot;default&quot;:&quot;airport&quot;,&quot;tsType&quot;:&quot;'airport'|'city'&quot;,&quot;section&quot;:&quot;Flow&quot;},&quot;cookieState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;banner&quot;,&quot;prefs&quot;,&quot;hidden&quot;],&quot;default&quot;:&quot;auto&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Review&quot;}}">
+const TIMES = ['05:30', '06:45', '08:15', '09:30', '11:00', '12:15', '14:00', '16:30', '18:45', '21:15'];
+
+/* One sample booking. `ahead` is the ordinary case; `late` is the same trip sitting
+   inside the deadline windows, which is what makes the blocked and part-refund
+   states legible. Neither carries a policy number — only how far off pickup is. */
+/* The four classes the booking widget offers, with the facts that decide whether a
+   party fits. Names and capacities are the fleet's, not this page's invention. */
+const CLASSES = [
+  { id: 'economy', name: 'Economy', ex: 'Sedan or similar', seats: 3, bags: 3 },
+  { id: 'business', name: 'Business', ex: 'Executive sedan', seats: 3, bags: 3 },
+  { id: 'first', name: 'First', ex: 'S-Class or similar', seats: 3, bags: 2 },
+  { id: 'van', name: 'Van', ex: 'Minivan or similar', seats: 7, bags: 8 },
+];
+const nameOf = (id) => (CLASSES.find((c) => c.id === id) || CLASSES[0]).name;
+
+const TRIP = {
+  ref: 'VT-4821',
+  pickup: 'Zurich Airport (ZRH), Terminal 2',
+  pickupDetail: 'Arrivals — your driver waits with your name',
+  dropoff: 'Zurich, Bahnhofstrasse 1',
+  vehicle: 'Economy',
+  vehicleId: 'economy',
+  pax: 2, bags: 2,
+  flight: 'LX 318',
+  email: 'ben•••@example.com',
+  ahead: { date: 'Fri 14 Aug', day: 14, time: '08:15', countdown: 'Pickup in 9 days' },
+  late: { date: 'Thu 6 Aug', day: 6, time: '08:15', countdown: 'Pickup in 14 hours' },
+};
+
+class Component extends DCLogic {
+  state = (() => {
+    const p = this.props || {};
+    let entry = p.entryPath || 'auto';
+    if (entry === 'auto') {
+      let tok = false;
+      /* A specific param only. Hosts and mailers append their own `t=`/`k=`
+         cache-busters, and matching those would skip the gate on every load. */
+      try { tok = /[?&](token|mb)=[A-Za-z0-9_-]{8,}/.test(String(location.search || '')); } catch (e) {}
+      entry = tok ? 'link' : 'gate';
+    }
+    const t = TRIP[(p.bookingTiming === 'late') ? 'late' : 'ahead'];
+    return {
+      view: entry === 'link' ? 'booking' : 'lookup',
+      entry,
+      timing: null,
+      ref: '', who: '', whoBy: 'email', bad: {}, notFound: false,
+      mDay: t.day, mDate: t.date, mTime: t.time,
+      pickupDraft: TRIP.pickup, dropoffDraft: TRIP.dropoff,
+      vehicle: TRIP.vehicleId, pax: TRIP.pax, bags: TRIP.bags,
+      voucher: false, flightMode: 'idle', flightDraft: TRIP.flight, flight: TRIP.flight,
+      requested: null, status: 'confirmed',
+      toast: null, toastTone: 'neutral',
+    };
+  })();
+  errRef = React.createRef();
+
+  componentDidMount() {
+    this._offLocale = window.VamosLocale && window.VamosLocale.onChange(() => this.forceUpdate());
+  }
+  componentWillUnmount() {
+    if (this._offLocale) this._offLocale();
+    clearTimeout(this._toastT);
+  }
+
+  timing() { return this.state.timing || this.props.bookingTiming || 'ahead'; }
+  trip() { return TRIP[this.timing() === 'late' ? 'late' : 'ahead']; }
+  money(a) { return (window.VamosLocale ? window.VamosLocale.money(a) : 'CHF ' + a); }
+
+  /* Every editable field, back at what was actually booked. Entering the change
+     screen starts from the booking, never from a half-finished earlier attempt. */
+  drafts(timing) {
+    const t = TRIP[(timing || this.timing()) === 'late' ? 'late' : 'ahead'];
+    return {
+      mDay: t.day, mDate: t.date, mTime: t.time,
+      pickupDraft: TRIP.pickup, dropoffDraft: TRIP.dropoff,
+      vehicle: TRIP.vehicleId, pax: TRIP.pax, bags: TRIP.bags,
+    };
+  }
+
+  /* One list drives the summary, the request button and the pending row on the
+     booking card — so the three can never disagree about what was asked for. */
+  diffList() {
+    const s = this.state, t = this.trip(), out = [];
+    const booked = t.date + ' · ' + t.time, next = s.mDate + ' · ' + s.mTime;
+    const pu = (s.pickupDraft || '').trim(), df = (s.dropoffDraft || '').trim();
+    if (next !== booked) out.push({ k: 'Pickup time', o: booked, n: next });
+    if (pu && pu !== TRIP.pickup) out.push({ k: 'Pickup address', o: TRIP.pickup, n: pu });
+    if (df && df !== TRIP.dropoff) out.push({ k: 'Destination', o: TRIP.dropoff, n: df });
+    if (s.vehicle !== TRIP.vehicleId) out.push({ k: 'Vehicle class', o: nameOf(TRIP.vehicleId), n: nameOf(s.vehicle) });
+    if (s.pax !== TRIP.pax) out.push({ k: 'Passengers', o: String(TRIP.pax), n: String(s.pax) });
+    if (s.bags !== TRIP.bags) out.push({ k: 'Bags', o: String(TRIP.bags), n: String(s.bags) });
+    return out;
+  }
+
+  say(msg, tone) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: msg, toastTone: tone || 'neutral' });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 4200);
+  }
+  hideToast = () => { clearTimeout(this._toastT); this.setState({ toast: null }); };
+
+  set(k) { return (e) => {
+    const v = e.target.value;
+    this.setState((s) => {
+      const bad = Object.assign({}, s.bad);
+      delete bad[k];
+      return { [k]: v, bad, notFound: false };
+    });
+  }; }
+
+  swapWho = () => this.setState((s) => ({ whoBy: s.whoBy === 'email' ? 'name' : 'email', who: '', bad: {}, notFound: false }));
+
+  lookup = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    const ref = this.state.ref.trim(), who = this.state.who.trim();
+    const bad = {};
+    if (!ref) bad.ref = 'missing';
+    if (!who) bad.who = 'missing';
+    if (Object.keys(bad).length) { this.setState({ bad, notFound: false }); return; }
+    /* No backend: anything shaped like a reference opens the sample booking, and
+       anything else gets the one generic error — never which field was wrong. */
+    if (!/^vt[-\s]?\d{3,5}$/i.test(ref)) {
+      this.setState({ notFound: true, bad: {} }, () => { const el = this.errRef.current; if (el) el.focus(); });
+      return;
+    }
+    const t = this.trip();
+    this.setState({ view: 'booking', entry: 'gate', notFound: false, bad: {}, mDay: t.day, mDate: t.date, mTime: t.time });
+  };
+
+  goTo(view, timing) {
+    const next = { view, notFound: false, bad: {} };
+    if (timing) next.timing = timing;
+    if (view === 'modify') Object.assign(next, this.drafts(timing));
+    if (view === 'lookup') { next.ref = ''; next.who = ''; next.entry = 'gate'; next.status = 'confirmed'; next.requested = null; next.voucher = false; }
+    if (view !== 'cancelled') next.status = 'confirmed';
+    this.setState(next);
+  }
+
+  goLookup = () => this.goTo('lookup');
+  goNotFound = () => this.setState({ view: 'lookup', notFound: true, bad: {}, ref: 'VT-0000', who: 'ben@example.com' });
+  goBooking = () => { this.setState({ entry: 'gate', voucher: false, requested: null, flightMode: 'idle' }); this.goTo('booking', 'ahead'); };
+  goLink = () => { this.setState({ entry: 'link', voucher: false, requested: null, flightMode: 'idle' }); this.goTo('booking', 'ahead'); };
+  goModify = () => this.goTo('modify', 'ahead');
+  goBlocked = () => this.goTo('modify', 'late');
+  goCancel = () => this.goTo('cancel');
+  goCancelled = () => this.setState({ view: 'cancelled', status: 'cancelled', voucher: false, notFound: false, bad: {} });
+
+  startModify = () => this.goTo('modify');
+  startCancel = () => this.goTo('cancel');
+  backToBooking = () => this.goTo('booking');
+
+  setDay = (d, label) => this.setState({ mDay: d, mDate: label });
+  setTime = (t) => this.setState({ mTime: t });
+  resetWhen = () => { const t = this.trip(); this.setState({ mDay: t.day, mDate: t.date, mTime: t.time }); };
+  resetChanges = () => this.setState(this.drafts());
+
+  onPickupDraft = (e) => this.setState({ pickupDraft: e.target.value });
+  onDropoffDraft = (e) => this.setState({ dropoffDraft: e.target.value });
+  pickVehicle = (id) => () => this.setState({ vehicle: id });
+  bump = (k, d, min, max) => () => this.setState((s) => ({ [k]: Math.min(max, Math.max(min, s[k] + d)) }));
+
+  confirmModify = () => {
+    const list = this.diffList();
+    if (!list.length) return;
+    this.setState({ view: 'booking', requested: list });
+    this.say('Change requested. We confirm every change by email.', 'accent');
+  };
+
+  confirmCancel = () => {
+    this.setState({ view: 'cancelled', status: 'cancelled', voucher: false, requested: null });
+    this.say('Booking cancelled. The confirmation is on its way.', 'neutral');
+  };
+
+  openVoucher = () => this.setState({ voucher: true });
+  closeVoucher = () => this.setState({ voucher: false });
+  printVoucher = () => window.print();
+  resend = () => this.say('Sent. Check ' + TRIP.email + ' in a minute or two.', 'success');
+
+  editFlight = () => this.setState((s) => ({ flightMode: 'edit', flightDraft: s.flight }));
+  cancelFlight = () => this.setState((s) => ({ flightMode: 'idle', flightDraft: s.flight }));
+  onFlight = (e) => this.setState({ flightDraft: e.target.value.toUpperCase() });
+  saveFlight = () => {
+    const v = this.state.flightDraft.trim();
+    if (!v) { this.setState({ flightMode: 'idle' }); return; }
+    this.setState({ flight: v, flightMode: 'idle' });
+    this.say('Flight number saved as ' + v + '. Your driver tracks this flight.', 'success');
+  };
+
+  renderVals() {
+    const s = this.state, p = this.props;
+    const v = s.view;
+    const late = this.timing() === 'late';
+    const t = this.trip();
+    const airport = (p.bookingType || 'airport') !== 'city';
+    const blocked = v === 'modify' && late;
+    const bookedWhen = t.date + ' · ' + t.time;
+    const newWhen = s.mDate + ' · ' + s.mTime;
+    const lines = [
+      { label: 'Transfer, ' + TRIP.vehicle + ' class', value: this.money('000.00') },
+    ];
+    if (airport) lines.push({ label: 'Airport pickup fee', value: this.money('00.00') });
+    lines.push({ label: 'Paid by Stripe', value: '', muted: true });
+    const meta = [
+      { icon: 'calendar', label: t.date },
+      { icon: 'clock', label: 'Pickup ' + t.time },
+      { icon: 'users', label: TRIP.pax + ' passengers' },
+      { icon: 'car', label: TRIP.vehicle },
+    ];
+    if (airport) meta.push({ icon: 'plane-landing', label: s.flight });
+    const cls = CLASSES.find((c) => c.id === s.vehicle) || CLASSES[0];
+    const diffs = this.diffList();
+
+    return {
+      n14: 14, n16: 16, n18: 18, n20: 20, n24: 24, n96: 96, yes: true, pt5: 0.5,
+
+      isLookup: v === 'lookup',
+      hasBooking: v !== 'lookup',
+      isBooking: v === 'booking',
+      isModify: v === 'modify' && !late,
+      isBlocked: blocked,
+      isCancel: v === 'cancel',
+      isCancelled: v === 'cancelled',
+      viaLink: v !== 'lookup' && s.entry === 'link',
+      notLink: s.entry !== 'link',
+
+      notFound: s.notFound, errRef: this.errRef,
+      vRef: s.ref, vWho: s.who,
+      onRef: this.set('ref'), onWho: this.set('who'),
+      badRef: !!s.bad.ref, badWho: !!s.bad.who,
+      aRef: s.bad.ref ? 'true' : 'false', aWho: s.bad.who ? 'true' : 'false',
+      whoLabel: s.whoBy === 'email' ? 'Email address' : 'Last name',
+      whoPlaceholder: s.whoBy === 'email' ? 'you@example.com' : 'Ben Othman',
+      swapLabel: s.whoBy === 'email' ? 'Use the last name instead' : 'Use the email address instead',
+      whoHint: s.whoBy === 'email'
+        ? 'The address the confirmation was sent to. Either detail works — pick whichever you have to hand.'
+        : 'The surname on the booking, spelled as you gave it. Either detail works.',
+      whoError: s.whoBy === 'email' ? 'Add the email address the booking was made with' : 'Add the surname on the booking',
+      lookup: this.lookup, swapWho: this.swapWho,
+
+      ref: TRIP.ref, status: s.status, countdown: t.countdown,
+      pickup: TRIP.pickup, pickupDetail: TRIP.pickupDetail, dropoff: TRIP.dropoff,
+      routeShort: 'ZRH → Bahnhofstrasse 1',
+      meta, lines, total: this.money('000.00'),
+      email: TRIP.email, isAirport: airport,
+      vehicleName: TRIP.vehicle,
+      paxLabel: TRIP.pax + ' passengers', bagLabel: TRIP.bags + ' bags',
+      /* A cancelled booking has no driver to track a flight for, so the inline
+         row goes away with the rest of the live-booking actions. */
+      flightRow: airport && s.status !== 'cancelled',
+      bookedWhen, newWhen,
+      changePending: !!(s.requested && s.requested.length), requested: s.requested || [],
+
+      modifySub: late
+        ? 'Your pickup is close, so a change now needs a phone call — we will show you why.'
+        : 'Time, route, vehicle or passengers. We confirm every change by email before it counts.',
+      cancelSub: late
+        ? 'See what comes back at this notice before you decide.'
+        : 'See the refund you are due before anything is confirmed.',
+
+      startModify: this.startModify, startCancel: this.startCancel, backToBooking: this.backToBooking,
+
+      mDate: s.mDate, mTime: s.mTime, mDay: s.mDay, timeSlots: TIMES,
+      setDay: this.setDay, setTime: this.setTime, resetWhen: this.resetWhen,
+      pickupDraft: s.pickupDraft, dropoffDraft: s.dropoffDraft,
+      onPickupDraft: this.onPickupDraft, onDropoffDraft: this.onDropoffDraft,
+      vehicles: CLASSES.map((c) => ({
+        id: c.id, name: c.name, ex: c.ex,
+        cap: 'Up to ' + c.seats + ' passengers',
+        on: s.vehicle === c.id ? 'true' : 'false',
+        pick: this.pickVehicle(c.id),
+      })),
+      vehicleCap: 'Up to ' + cls.seats + ' passengers',
+      vehicleBags: 'Up to ' + cls.bags + ' bags',
+      overCapacity: s.pax > cls.seats, withinCapacity: s.pax <= cls.seats,
+      paxN: String(s.pax), bagN: String(s.bags),
+      paxDec: this.bump('pax', -1, 1, 8), paxInc: this.bump('pax', 1, 1, 8),
+      bagDec: this.bump('bags', -1, 0, 10), bagInc: this.bump('bags', 1, 0, 10),
+      paxMin: s.pax <= 1, paxMax: s.pax >= 8, bagMin: s.bags <= 0, bagMax: s.bags >= 10,
+      diffs, hasDiff: diffs.length > 0, noDiff: diffs.length === 0,
+      confirmModify: this.confirmModify, resetChanges: this.resetChanges,
+
+      earlyTier: !late, lateTier: late,
+      shareLabel: late ? 'Late cancel share' : 'Full refund share',
+      confirmCancel: this.confirmCancel,
+
+      voucherOpen: s.voucher, voucherClosed: !s.voucher,
+      openVoucher: this.openVoucher, closeVoucher: this.closeVoucher, printVoucher: this.printVoucher,
+      resend: this.resend,
+
+      flight: s.flight, flightDraft: s.flightDraft,
+      flightIdle: s.flightMode === 'idle', flightEditing: s.flightMode === 'edit',
+      editFlight: this.editFlight, saveFlight: this.saveFlight, cancelFlight: this.cancelFlight, onFlight: this.onFlight,
+
+      toast: s.toast, hasToast: !!s.toast, toastTone: s.toastTone, hideToast: this.hideToast,
+
+      goLookup: this.goLookup, goNotFound: this.goNotFound, goBooking: this.goBooking, goLink: this.goLink,
+      cookieState: p.cookieState || 'auto',
+    };
+  }
+}
+</script>
+</body>
+</html>

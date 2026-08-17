@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ops · Bookings</title>
+<script src="../support.js"></script>
+</head>
+<body>
+<x-dc>
+<main style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
+<header style="display:flex;align-items:center;gap:22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle);flex-wrap:wrap">
+<div>
+<h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tBookings }}</h1>
+<p style="margin:4px 0 0;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tOrdered }}</p>
+</div>
+<div style="margin-left:auto;display:flex;align-items:center;gap:14px">
+<div style="width:280px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" icon="search" placeholder="{{ tSearchPh }}" hint-size="280px,44px"></x-import>
+</div>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" icon="plus" hint-size="150px,44px">{{ tNewBooking }}</x-import>
+</div>
+</header>
+<div style="padding:26px 32px 40px;display:flex;flex-direction:column;gap:24px;min-width:0">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(212px,1fr));gap:16px">
+
+<sc-for list="{{ statCards }}" as="s" hint-placeholder-count="3">
+<button type="button" onClick="{{ s.select }}" aria-pressed="{{ s.pressed }}" style="all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:10px;min-height:136px;padding:18px 20px;border-radius:var(--vt-radius-lg);background:{{ s.bg }};border:1px solid {{ s.border }};transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1)" style-hover="border-color:var(--vt-charcoal-900)" style-active="transform:translateY(1px)">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:{{ s.labelColor }}">{{ s.label }}</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ s.icon }}" size="{{ n18 }}" color="{{ s.iconColor }}" hint-size="18px,18px"></x-import>
+</div>
+<span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-lg);font-weight:var(--vt-weight-bold);line-height:1;color:{{ s.valueColor }}">{{ s.value }}</span>
+<span style="margin-top:auto;font-size:var(--vt-body-xs);line-height:1.45;color:{{ s.footColor }}">{{ s.foot }}</span>
+</button>
+</sc-for>
+
+<div style="box-sizing:border-box;display:flex;flex-direction:column;gap:10px;min-height:136px;padding:18px 20px;border-radius:var(--vt-radius-lg);background:var(--vt-bg-inverse);border:1px solid var(--vt-bg-inverse)">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-inverse-muted)">{{ tRevenue }}</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="banknote" size="{{ n18 }}" color="var(--vt-accent)" hint-size="18px,18px"></x-import>
+</div>
+<span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-lg);font-weight:var(--vt-weight-bold);line-height:1;color:var(--vt-accent)">CHF 000</span>
+<span style="margin-top:auto;font-size:var(--vt-body-xs);line-height:1.45;color:var(--vt-text-inverse-muted)">{{ tRevenueFoot }}</span>
+</div>
+
+</div>
+<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+<sc-for list="{{ filters }}" as="f" hint-placeholder-count="5">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Tag" active="{{ f.active }}" onClick="{{ f.select }}" hint-size="110px,34px">{{ f.label }}</x-import>
+</sc-for>
+<div style="margin-left:auto;display:flex;gap:8px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="funnel" label="{{ tMoreFilters }}" variant="outline" size="sm" hint-size="36px,36px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="printer" label="{{ tExport }}" variant="outline" size="sm" hint-size="36px,36px"></x-import>
+</div>
+</div>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Table" columns="{{ columns }}" rows="{{ pageRows }}" onRowClick="{{ openRow }}" hint-size="100%,320px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" tone="flat" padding="sm" hint-size="100%,60px">
+<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tShowing }}</span>
+<div style="margin-left:auto;display:flex;gap:8px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="outline" size="sm" icon="chevron-left" onClick="{{ prevPage }}" disabled="{{ noPrev }}" hint-size="110px,36px">{{ tPrevPage }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="outline" size="sm" icon="chevron-right" onClick="{{ nextPage }}" disabled="{{ noNext }}" hint-size="90px,36px">{{ tNextPage }}</x-import>
+</div>
+</div>
+</x-import>
+</div>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900}}">
+const BOOKINGS = [
+  { id:'VT-4821', time:'08:15', date:'Fri 14 Aug', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'Bleicherstrasse 16, 8953 Dietikon', vehicle:'Business', pax:2, bags:2, status:'assigned', driver:'Driver 2' },
+  { id:'VT-4822', time:'09:40', date:'Fri 14 Aug', pickup:'Zurich HB, Bahnhofplatz', dropoff:'Zurich Airport (ZRH), Terminal 1', vehicle:'Economy', pax:1, bags:1, status:'paid', driver:null },
+  { id:'VT-4823', time:'11:05', date:'Fri 14 Aug', pickup:'Dietikon, Bahnhofstrasse', dropoff:'Zermatt, Bahnhofplatz', vehicle:'Van', pax:6, bags:8, status:'pending', driver:null },
+  { id:'VT-4824', time:'14:30', date:'Fri 14 Aug', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'St. Moritz, Via Serlas', vehicle:'Business', pax:2, bags:3, status:'confirmed', driver:null },
+  { id:'VT-4825', time:'17:50', date:'Fri 14 Aug', pickup:'Baden, Kurplatz', dropoff:'Zurich Airport (ZRH), Terminal 1', vehicle:'Economy', pax:3, bags:3, status:'paid', driver:'Driver 1' },
+  { id:'VT-4829', time:'21:00', date:'Fri 14 Aug', pickup:'Zurich, City', dropoff:'Zurich Airport (ZRH), Terminal 1', vehicle:'Economy', pax:1, bags:1, status:'assigned', driver:'Driver 1' },
+  { id:'VT-4818', time:'06:20', date:'Fri 14 Aug', pickup:'Uster, Zürichstrasse', dropoff:'Zurich Airport (ZRH), Terminal 2', vehicle:'Business', pax:1, bags:2, status:'completed', driver:'Driver 3' },
+  { id:'VT-4826', time:'07:30', date:'Sat 15 Aug', pickup:'Zurich Airport (ZRH), Terminal 1', dropoff:'Baden, Kurplatz', vehicle:'Economy', pax:2, bags:2, status:'confirmed', driver:null },
+  { id:'VT-4827', time:'10:00', date:'Sat 15 Aug', pickup:'Zurich, City', dropoff:'Zurich Airport (ZRH), Terminal 2', vehicle:'Business', pax:2, bags:2, status:'paid', driver:'Driver 3' },
+  { id:'VT-4828', time:'13:20', date:'Sat 15 Aug', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'Verbier, Place Centrale', vehicle:'Van', pax:5, bags:6, status:'pending', driver:null },
+  { id:'VT-4830', time:'08:00', date:'Thu 13 Aug', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'Zurich, City', vehicle:'Business', pax:2, bags:2, status:'completed', driver:'Driver 2' },
+  { id:'VT-4812', time:'19:15', date:'Thu 13 Aug', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'Verbier, Place Centrale', vehicle:'Van', pax:5, bags:6, status:'cancelled', driver:null },
+];
+const T = {
+  en: { bookings:'Bookings', ordered:'Ordered by pickup time', searchPh:'Reference, name, phone or address', newBooking:'New booking',
+    pickupsToday:'Pickups today', pickupsFoot:'Ordered by pickup time', awaitingPayment:'Awaiting payment', awaitingFoot:'Needs a payment or cash confirmation',
+    unassigned:'Unassigned', unassignedFoot:'No driver assigned yet', revenue:'Revenue, 7 days', revenueFoot:'Awaiting live Stripe data',
+    moreFilters:'More filters', export_:'Export CSV', showingRange:'Showing %a–%b of %c', showingNone:'Nothing to show',
+    prevPage:'Previous page', nextPage:'Next page', filterToday:'Today', filterTomorrow:'Tomorrow', filterUnassigned:'Unassigned', filterAwaiting:'Awaiting payment', filterCancelled:'Cancelled',
+    colPickup:'Pickup', colRef:'Ref', colRoute:'Route', colVehicle:'Vehicle', colDriver:'Driver', colStatus:'Status', colTotal:'Total', unassignedCell:'Unassigned', bagsShort:'bags',
+  },
+  de: { bookings:'Buchungen', ordered:'Nach Abholzeit sortiert', searchPh:'Referenz, Name, Telefon oder Adresse', newBooking:'Neue Buchung',
+    pickupsToday:'Abholungen heute', pickupsFoot:'Nach Abholzeit sortiert', awaitingPayment:'Zahlung ausstehend', awaitingFoot:'Benötigt Zahlungs- oder Barbestätigung',
+    unassigned:'Nicht zugewiesen', unassignedFoot:'Noch kein Fahrer zugewiesen', revenue:'Umsatz, 7 Tage', revenueFoot:'Live-Stripe-Daten ausstehend',
+    moreFilters:'Weitere Filter', export_:'CSV exportieren', showingRange:'Zeigt %a–%b von %c', showingNone:'Nichts anzuzeigen',
+    prevPage:'Vorherige Seite', nextPage:'Nächste Seite', filterToday:'Heute', filterTomorrow:'Morgen', filterUnassigned:'Nicht zugewiesen', filterAwaiting:'Zahlung ausstehend', filterCancelled:'Storniert',
+    colPickup:'Abholung', colRef:'Ref.', colRoute:'Route', colVehicle:'Fahrzeug', colDriver:'Fahrer', colStatus:'Status', colTotal:'Total', unassignedCell:'Nicht zugewiesen', bagsShort:'Gepäck',
+  },
+};
+class Component extends DCLogic {
+  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', filter: 'Today', page: 0 };
+  componentWillUnmount() { if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale); }
+  componentDidMount() {
+    this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
+    window.addEventListener('vamos:locale', this._onLocale);
+  }
+  openRow = (row) => { location.hash = '#detail/' + encodeURIComponent(row.id); };
+  renderVals() {
+    const t = T[this.state.lang] || T.en;
+    const FILTERS = [
+      { key:'Today', label: t.filterToday, test:(b) => b.date === 'Fri 14 Aug' },
+      { key:'Tomorrow', label: t.filterTomorrow, test:(b) => b.date === 'Sat 15 Aug' },
+      { key:'Unassigned', label: t.filterUnassigned, test:(b) => !b.driver && b.status !== 'cancelled' && b.status !== 'completed' },
+      { key:'Awaiting payment', label: t.filterAwaiting, test:(b) => b.status === 'pending' },
+      { key:'Cancelled', label: t.filterCancelled, test:(b) => b.status === 'cancelled' },
+    ];
+    const active = FILTERS.find((f) => f.key === this.state.filter) || FILTERS[0];
+    const visibleRows = BOOKINGS.filter(active.test);
+    const PAGE_SIZE = 5;
+    const pageCount = Math.max(1, Math.ceil(visibleRows.length / PAGE_SIZE));
+    const page = Math.min(this.state.page || 0, pageCount - 1);
+    const pageStart = page * PAGE_SIZE;
+    const pageRows = visibleRows.slice(pageStart, pageStart + PAGE_SIZE);
+    const showingFrom = visibleRows.length ? pageStart + 1 : 0;
+    const showingTo = Math.min(visibleRows.length, pageStart + PAGE_SIZE);
+    const pickupsToday = BOOKINGS.filter((b) => b.date === 'Fri 14 Aug').length;
+    const awaitingPayment = BOOKINGS.filter((b) => b.status === 'pending').length;
+    const unassigned = BOOKINGS.filter((b) => !b.driver && b.status !== 'cancelled' && b.status !== 'completed').length;
+    const DS = window.VamosTaxiDesignSystem_245af1 || {};
+    /* A figure and the filter that shows it are the same thing, so the cards are
+       the filter: pressing one narrows the table under it. */
+    const card = (key, label, value, icon, foot) => {
+      const on = this.state.filter === key;
+      return {
+        label, value: String(value), icon, foot,
+        pressed: on ? 'true' : 'false',
+        bg: on ? 'var(--vt-charcoal-900)' : 'var(--vt-bg-surface)',
+        border: on ? 'var(--vt-charcoal-900)' : 'var(--vt-border-subtle)',
+        labelColor: on ? 'var(--vt-text-inverse-muted)' : 'var(--vt-text-muted)',
+        valueColor: on ? 'var(--vt-accent)' : 'var(--vt-text-primary)',
+        footColor: on ? 'var(--vt-text-inverse-muted)' : 'var(--vt-text-muted)',
+        iconColor: on ? 'var(--vt-accent)' : 'var(--vt-text-muted)',
+        select: () => this.setState({ filter: key, page: 0 }),
+      };
+    };
+    return {
+      n18: 18,
+      statCards: [
+        card('Today', t.pickupsToday, pickupsToday, 'car-front', t.pickupsFoot),
+        card('Awaiting payment', t.awaitingPayment, awaitingPayment, 'clock', t.awaitingFoot),
+        card('Unassigned', t.unassigned, unassigned, 'triangle-alert', t.unassignedFoot),
+      ],
+      tBookings: t.bookings, tOrdered: t.ordered, tSearchPh: t.searchPh, tNewBooking: t.newBooking,
+      tPickupsToday: t.pickupsToday, vPickupsToday: String(pickupsToday), tPickupsFoot: t.pickupsFoot,
+      tAwaitingPayment: t.awaitingPayment, vAwaitingPayment: String(awaitingPayment), tAwaitingFoot: t.awaitingFoot,
+      tUnassigned: t.unassigned, vUnassigned: String(unassigned), tUnassignedFoot: t.unassignedFoot,
+      tRevenue: t.revenue, tRevenueFoot: t.revenueFoot,
+      tMoreFilters: t.moreFilters, tExport: t.export_,
+      tShowing: visibleRows.length ? t.showingRange.replace('%a', showingFrom).replace('%b', showingTo).replace('%c', visibleRows.length) : t.showingNone,
+      tPrevPage: t.prevPage, tNextPage: t.nextPage,
+      pageRows,
+      prevPage: () => this.setState((s) => ({ page: Math.max(0, (s.page || 0) - 1) })),
+      nextPage: () => this.setState((s) => ({ page: Math.min(pageCount - 1, (s.page || 0) + 1) })),
+      noPrev: page <= 0, noNext: page >= pageCount - 1,
+      filters: FILTERS.map((f) => ({ label: f.label, active: f.key === this.state.filter, select: () => this.setState({ filter: f.key, page: 0 }) })),
+      columns: [
+        { key:'time', header: t.colPickup, width:'92px', render:(r) => React.createElement('span', { style:{ display:'flex', flexDirection:'column', lineHeight:1.25 } },
+            React.createElement('strong', { style:{ fontFamily:'var(--vt-font-display)', fontSize:'var(--vt-figure-sm)' } }, r.time),
+            React.createElement('span', { style:{ fontSize:'var(--vt-body-xs)', color:'var(--vt-text-muted)' } }, r.date.slice(0, 3))) },
+        { key:'id', header: t.colRef, width:'96px', render:(r) => React.createElement('span', { style:{ fontFamily:'var(--vt-font-display)', fontWeight:600 } }, r.id) },
+        { key:'route', header: t.colRoute, render:(r) => React.createElement('span', { style:{ display:'flex', flexDirection:'column', gap:2, lineHeight:1.3 } },
+            React.createElement('span', null, r.pickup),
+            React.createElement('span', { style:{ fontSize:'var(--vt-body-xs)', color:'var(--vt-text-muted)' } }, '→ ' + r.dropoff)) },
+        { key:'vehicle', header: t.colVehicle, width:'112px', render:(r) => React.createElement('span', { style:{ display:'flex', flexDirection:'column', gap:2, lineHeight:1.3 } },
+            React.createElement('span', null, r.vehicle),
+            React.createElement('span', { style:{ fontSize:'var(--vt-body-xs)', color:'var(--vt-text-muted)' } }, r.pax + ' pax · ' + r.bags + ' ' + t.bagsShort)) },
+        { key:'driver', header: t.colDriver, width:'120px', render:(r) => r.driver
+            ? React.createElement('span', null, r.driver)
+            : React.createElement('span', { style:{ color:'var(--vt-danger)', fontWeight:500 } }, t.unassignedCell) },
+        { key:'status', header: t.colStatus, width:'168px', render:(r) => DS.StatusBadge ? React.createElement(DS.StatusBadge, { status: r.status }) : r.status },
+        { key:'total', header: t.colTotal, width:'96px', align:'right', render: () => 'CHF 000' },
+      ],
+      visibleRows, openRow: this.openRow,
+    };
+  }
+}
+</script>
+</body>
+</html>

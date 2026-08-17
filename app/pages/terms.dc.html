@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
+     injects every stylesheet and script from <helmet> only after React has loaded, so
+     without these the arriving document paints uncovered frames before
+     vamos-page-transition.js exists and can build its overlay. That script adopts
+     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
+     animation below is the fallback for when the script never runs. -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<link rel="stylesheet" href="../../assets/lenis.css">
+<script src="../../assets/lenis.js"></script>
+<script src="../../assets/lenis-boot.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+/* Button hover/press — colour step only, no shadow, no glow */
+.vt-btn{transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
+.vt-btn:hover,.vt-btn:active{box-shadow:none!important}
+.vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
+.vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
+.vt-btn--secondary:hover:not([disabled]){background:var(--vt-charcoal-800)}
+.vt-btn--secondary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn--ghost:hover:not([disabled]),.vt-btn--outline:hover:not([disabled]),.vt-btn--tertiary:hover:not([disabled]){background:var(--vt-grey-50);border-color:var(--vt-charcoal-900)}
+.vt-btn--ghost:active:not([disabled]),.vt-btn--outline:active:not([disabled]),.vt-btn--tertiary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn:focus-visible{box-shadow:var(--vt-ring)!important}
+.vt-btn[disabled],.vt-btn[aria-disabled="true"]{transform:none}.vt-select .vt-input--focus{box-shadow:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}
+body{margin:0;background:var(--vt-bg-page)}
+a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+[data-lg-grid]{display:grid;grid-template-columns:minmax(0,1fr);gap:0}
+[data-lg-prose]{max-width:68ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+[data-lg-prose] section{padding:36px 0;border-top:1px solid var(--vt-grey-200)}
+[data-lg-prose] section:first-of-type{border-top:0;padding-top:4px}
+[data-lg-prose] h2{margin:0 0 16px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary);scroll-margin-top:108px;text-wrap:pretty}
+[data-lg-prose] h3{margin:28px 0 10px;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);line-height:1.28;letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary);text-wrap:pretty}
+[data-lg-prose] h4{margin:22px 0 8px;font-size:var(--vt-body-xs);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-lg-prose] p{margin:0 0 14px;text-wrap:pretty}
+[data-lg-prose] ul{margin:0 0 16px;padding-inline-start:20px}
+[data-lg-prose] li{margin:0 0 9px;padding-inline-start:4px}
+[data-lg-prose] p:last-child,[data-lg-prose] ul:last-child{margin-bottom:0}
+[data-lg-prose] a{color:var(--vt-charcoal-900);text-decoration:underline;text-decoration-color:var(--vt-grey-300);text-underline-offset:3px;transition:color 140ms cubic-bezier(.2,0,.2,1)}
+[data-lg-prose] a:hover{color:var(--vt-yellow-700);text-decoration-color:currentColor}
+[data-lg-n]{display:block;margin-bottom:9px;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);letter-spacing:var(--vt-label-tracking);font-weight:var(--vt-label-weight);color:var(--vt-charcoal-600)}
+[data-tok]{display:inline-flex;align-items:baseline;gap:5px;font-family:var(--vt-font-body);font-weight:var(--vt-weight-medium);font-size:.97em;background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 7px;white-space:nowrap}
+[data-tok]::after{content:"TBC";font-family:var(--vt-font-body);font-size:.66em;font-weight:700;letter-spacing:.1em;color:var(--vt-yellow-700)}
+[data-slot]{margin:0 0 16px;border:1px dashed var(--vt-grey-300);background:var(--vt-grey-50);border-radius:var(--vt-radius-md);padding:16px 18px}
+[data-slot-k]{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-slot-k]::before{content:"";width:8px;height:8px;flex:0 0 auto;background:var(--vt-grey-300)}
+[data-slot] p{margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)}
+[data-flag]{margin:0 0 16px;border:1px solid var(--vt-charcoal-900);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);padding:18px 20px}
+[data-flag-k]{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)}
+[data-flag] p{margin:0 0 10px;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)}
+[data-flag] p:last-child{margin-bottom:0}
+[data-src]{display:block;margin-top:2px;font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
+[data-lg-railcard]{background:none;border:0;box-shadow:none;padding:0}
+[data-lg-eyebrow]{display:flex;align-items:center;gap:9px;margin:0 0 10px;padding:0 6px;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-lg-eyebrow]::before{content:"";width:14px;height:14px;flex:0 0 auto;background:url(../../assets/patterns/checker-mark.png) center / contain no-repeat}
+[data-lg-tl]{position:relative;display:flex;gap:9px;align-items:baseline;padding:6px 8px 6px 24px;border-radius:var(--vt-radius-sm);color:var(--vt-text-secondary);font-size:var(--vt-body-sm);line-height:1.35;text-decoration:none;transition:background 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1)}
+[data-lg-tl]::before{content:"";position:absolute;inset-inline-start:6px;top:9px;width:11px;height:11px;background:url(../../assets/patterns/checker-mark.png) center / contain no-repeat;opacity:0;transition:opacity 140ms cubic-bezier(.2,0,.2,1)}
+[data-lg-tl]:hover{background:var(--vt-grey-50);color:var(--vt-text-primary)}
+[data-lg-tl][data-on]{color:var(--vt-charcoal-900);font-weight:var(--vt-weight-semibold)}
+[data-lg-tl][data-on]::before{opacity:1}
+[data-lg-tl] i{flex:0 0 20px;font-style:normal;font-family:var(--vt-font-display);font-size:11px;font-weight:var(--vt-weight-semibold);letter-spacing:.01em;font-variant-numeric:tabular-nums;color:var(--vt-grey-500)}
+[data-lg-tl][data-on] i{color:var(--vt-charcoal-900)}
+[data-lg-toc]{display:none}
+[data-lg-toc][data-open]{display:block}
+[data-lg-tocbtn]:hover{border-color:var(--vt-charcoal-900)}
+[data-x-link]:hover{background:var(--vt-grey-50)}
+[data-x-link][aria-current]{color:var(--vt-charcoal-900);font-weight:var(--vt-weight-semibold)}
+:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}
+@media (min-width:900px){[data-lg-grid]{grid-template-columns:264px minmax(0,1fr);gap:clamp(40px,5vw,80px)}
+[data-lg-rail]{position:sticky;top:96px;align-self:start;padding-bottom:8px}
+[data-lg-toc]{display:block}[data-lg-tocbtn]{display:none!important}}
+@media print{[data-lg-noprint]{display:none!important}
+[data-lg-grid]{display:block}
+[data-lg-prose]{max-width:none;font-size:10.5pt;color:#000}
+[data-lg-hero]{background:#fff!important;color:#000!important;border-bottom:1px solid #000}
+[data-lg-hero] *{color:#000!important}
+[data-tok]{background:#fff!important;border-color:#000!important;color:#000!important}
+[data-lg-prose] h2{break-after:avoid;page-break-after:avoid}
+[data-slot],[data-flag]{break-inside:avoid;page-break-inside:avoid}
+@page{margin:18mm}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}</style>
+</helmet>
+
+<div style="font-family:var(--vt-font-body);background:var(--vt-bg-page);min-height:100vh">
+<div data-lg-noprint="1"><dc-import name="SiteHeader" variant="inverse" hint-size="100%,76px"></dc-import></div>
+
+<main data-screen-label="Terms and conditions" data-vt-legal="en de fr ar">
+
+<header data-lg-hero="1" style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);position:relative;overflow:hidden">
+<div aria-hidden="true" style="position:absolute;top:0;inset-inline-end:0;width:120px;height:120px;background:url(../../assets/patterns/checker-mark.png) top right / 56px auto no-repeat;opacity:.9"></div>
+<div style="max-width:1200px;margin:0 auto;padding:44px clamp(20px,5vw,56px) 40px">
+<nav aria-label="Breadcrumb" style="display:flex;align-items:center;gap:10px;font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted);margin-bottom:26px">
+<a href="../home/home.dc.html" style="color:inherit;text-decoration:none">Home</a><span aria-hidden="true">/</span><span>Legal</span><span aria-hidden="true">/</span><span style="color:var(--vt-text-inverse)">Terms &amp; conditions</span>
+</nav>
+<p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">Legal</p>
+<h1 style="margin:0 0 18px;max-width:20ch;font-family:var(--vt-font-display);font-size:var(--vt-display-2);line-height:var(--vt-display-leading);letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty">Terms &amp; conditions</h1>
+<p style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">The rules that apply when you book a transfer with us: how a booking is formed, what the fixed price covers, what we owe you and what we need from you.</p>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;margin-top:32px;padding-top:24px;border-top:1px solid var(--vt-border-inverse)">
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Last updated</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Terms effective date</span></span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Version</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Terms version</span></span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Language</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">English · Deutsch · Français · العربية</span></div>
+<button data-lg-noprint="1" type="button" onClick="{{ doPrint }}" style="margin-inline-start:auto;display:inline-flex;align-items:center;gap:9px;height:44px;padding:0 20px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:none;color:var(--vt-text-inverse);font-family:inherit;font-size:var(--vt-body-sm);cursor:pointer">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="printer" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>Print or save as PDF</button>
+</div>
+</div>
+</header>
+
+<div style="max-width:1200px;margin:0 auto;padding:44px clamp(20px,5vw,56px) 8px">
+<div data-lg-grid="1">
+
+<aside data-lg-rail="1" data-lg-noprint="1" aria-label="Page navigation">
+<button data-lg-tocbtn="1" type="button" onClick="{{ toggleToc }}" aria-expanded="{{ tocOpen }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:0 18px;margin-bottom:14px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface);font-family:inherit;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-primary);cursor:pointer;transition:border-color 140ms cubic-bezier(.2,0,.2,1)">
+<span>On this page</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n18 }}" color="var(--vt-charcoal-900)" hint-size="18px,18px"></x-import>
+</button>
+
+<nav data-lg-toc="1" data-lg-railcard="1" data-open="{{ tocOpen }}" ref="{{ tocRef }}" aria-label="Sections">
+<p data-lg-eyebrow="1">On this page</p>
+<div style="display:flex;flex-direction:column">
+<a data-lg-tl="1" href="#parties"><i>01</i>Who you contract with</a>
+<a data-lg-tl="1" href="#scope"><i>02</i>Scope</a>
+<a data-lg-tl="1" href="#booking"><i>03</i>How a booking is formed</a>
+<a data-lg-tl="1" href="#price"><i>04</i>Fixed price</a>
+<a data-lg-tl="1" href="#carriers"><i>05</i>Partner carriers</a>
+<a data-lg-tl="1" href="#passenger"><i>06</i>Your obligations</a>
+<a data-lg-tl="1" href="#luggage"><i>07</i>Luggage &amp; child seats</a>
+<a data-lg-tl="1" href="#waiting"><i>08</i>Waiting time</a>
+<a data-lg-tl="1" href="#noshow"><i>09</i>No-show</a>
+<a data-lg-tl="1" href="#changes"><i>10</i>Changes &amp; cancellation</a>
+<a data-lg-tl="1" href="#payment"><i>11</i>Payment</a>
+<a data-lg-tl="1" href="#complaints"><i>12</i>Complaints</a>
+<a data-lg-tl="1" href="#liability"><i>13</i>Liability</a>
+<a data-lg-tl="1" href="#force"><i>14</i>Force majeure</a>
+<a data-lg-tl="1" href="#data"><i>15</i>Your data</a>
+<a data-lg-tl="1" href="#law"><i>16</i>Governing law &amp; venue</a>
+</div>
+
+<div style="margin-top:28px;padding-top:22px;border-top:1px solid var(--vt-border-subtle)">
+<p data-lg-eyebrow="1">Related documents</p>
+<div style="display:flex;flex-direction:column;gap:2px">
+<a data-x-link="1" aria-current="page" href="terms.dc.html" style="display:block;padding:9px 12px;border-radius:var(--vt-radius-sm);font-size:var(--vt-body-sm);color:var(--vt-text-secondary);text-decoration:none;transition:background 140ms cubic-bezier(.2,0,.2,1)">Terms &amp; conditions</a>
+<a data-x-link="1" href="cancellation.dc.html" style="display:block;padding:9px 12px;border-radius:var(--vt-radius-sm);font-size:var(--vt-body-sm);color:var(--vt-text-secondary);text-decoration:none;transition:background 140ms cubic-bezier(.2,0,.2,1)">Cancellation &amp; refunds</a>
+<a data-x-link="1" href="privacy.dc.html" style="display:block;padding:9px 12px;border-radius:var(--vt-radius-sm);font-size:var(--vt-body-sm);color:var(--vt-text-secondary);text-decoration:none;transition:background 140ms cubic-bezier(.2,0,.2,1)">Privacy policy</a>
+<a data-x-link="1" href="cookies.dc.html" style="display:block;padding:9px 12px;border-radius:var(--vt-radius-sm);font-size:var(--vt-body-sm);color:var(--vt-text-secondary);text-decoration:none;transition:background 140ms cubic-bezier(.2,0,.2,1)">Cookie policy</a>
+<a data-x-link="1" href="imprint.dc.html" style="display:block;padding:9px 12px;border-radius:var(--vt-radius-sm);font-size:var(--vt-body-sm);color:var(--vt-text-secondary);text-decoration:none;transition:background 140ms cubic-bezier(.2,0,.2,1)">Imprint</a>
+</div>
+</div>
+</nav>
+</aside>
+
+<article data-lg-prose="1" ref="{{ proseRef }}">
+
+<section id="parties">
+<h2><span data-lg-n="1">01</span>Who you contract with</h2>
+<p>Vamos Taxi GmbH, Bleicherstrasse 16, 8953 Dietikon ZH, Switzerland, operates this site and takes your booking.</p>
+
+<div data-vt-no-i18n="1" data-slot="1">
+<p data-slot-k="1">Client legal text · contracting party</p>
+<sc-if value="{{ slotNotes }}" hint-placeholder-val="{{ true }}">
+<p>Must state who the transport contract is with, in one sentence a passenger can understand, and must match the About page and the service pages.</p>
+</sc-if>
+</div>
+<p>Registered as <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Registered firm name</span>, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the <a href="imprint.dc.html">imprint</a>.</p>
+</section>
+
+<section id="scope">
+<h2><span data-lg-n="1">02</span>Scope</h2>
+<p>These terms cover pre-booked private transfers arranged through vamostaxi.eu: airport pickups and drop-offs, city and long-distance journeys, and chauffeur bookings by the hour. They apply from the moment you confirm a booking.</p>
+<p>We do not operate a street-hail or on-demand service. Every journey is booked ahead for a stated time, at a price agreed before you pay.</p>
+<h4>Not covered by this document</h4>
+<ul>
+<li>How we handle your personal data — see the <a href="privacy.dc.html">privacy policy</a>.</li>
+<li>Cookies and consent — see the <a href="cookies.dc.html">cookie policy</a>.</li>
+<li>Cancellations, changes and refunds — see the <a href="cancellation.dc.html">cancellation &amp; refund policy</a>, which governs.</li>
+</ul>
+</section>
+
+<section id="booking">
+<h2><span data-lg-n="1">03</span>How a booking is formed</h2>
+<p>You enter the route, the date and the time, and the number of passengers and bags. We show a price for each vehicle class. You pay. We send a written confirmation with a booking reference.</p>
+<p>The booking exists once that confirmation reaches you. Until then nothing is reserved and nothing is charged.</p>
+<h3>What the confirmation contains</h3>
+<ul>
+<li>Booking reference, pickup time and pickup address.</li>
+<li>Vehicle class, passenger and luggage count.</li>
+<li>The price you paid, in Swiss francs.</li>
+<li>How to change or cancel the booking.</li>
+</ul>
+<p>Driver name, vehicle and telephone number are sent by SMS and email <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Driver details lead time</span> before pickup. Ask us and we will send them sooner.</p>
+</section>
+
+<section id="price">
+<h2><span data-lg-n="1">04</span>Fixed price</h2>
+<p>The price shown at the last step is the price you pay. It is quoted in Swiss francs and it does not move afterwards — not for traffic, not for a longer route than expected, not for a busy evening.</p>
+<h4>Included</h4>
+<ul>
+<li>The journey between the two addresses you gave us, and the driver's time for it.</li>
+<li>Waiting time as set out in section <a href="#waiting">08</a>.</li>
+<li>Tolls, road charges and airport access fees.</li>
+<li>The gratuity. Tipping is not expected on top.</li>
+</ul>
+<h4>Charged separately, only if you ask for it</h4>
+<ul>
+<li>Additional stops: <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Extra stop fee</span> per stop.</li>
+<li>Waiting beyond the included allowance: <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Extra waiting rate</span>.</li>
+<li>Extended city stay, maximum <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">City stay minutes</span> minutes: <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">City stay fee</span>.</li>
+<li>Oversized or unusual items declared at booking: <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Oversize item fee</span>.</li>
+</ul>
+
+</section>
+
+<section id="carriers">
+<h2><span data-lg-n="1">05</span>Partner carriers</h2>
+<p>Some journeys are driven by a partner carrier working to our standards rather than by our own vehicle. You are told the vehicle class at booking; the driver's details arrive before pickup.</p>
+<div data-vt-no-i18n="1" data-slot="1">
+<p data-slot-k="1">Client legal text · subcontracting</p>
+<sc-if value="{{ slotNotes }}" hint-placeholder-val="{{ true }}">
+<p>Must state that we may use partner carriers, what standard they are held to, who carries the licence and insurance, and who the passenger complains to. Must agree with section <a href="#parties">01</a> and section <a href="#liability">13</a>.</p>
+</sc-if>
+</div>
+</section>
+
+<section id="passenger">
+<h2><span data-lg-n="1">06</span>Your obligations</h2>
+<ul>
+<li>Give an address the driver can reach, and a mobile number you will answer on the day.</li>
+<li>Be at the pickup point at the agreed time.</li>
+<li>Tell us the flight number for an airport pickup, so a delay is visible to us.</li>
+<li>Declare passengers and bags honestly — a vehicle is assigned on those numbers.</li>
+<li>Wear a seatbelt, and keep to Swiss road law.</li>
+</ul>
+<p>Smoking is not permitted in our vehicles. Alcohol and food only with the driver's agreement.</p>
+<div data-vt-no-i18n="1" data-slot="1">
+<p data-slot-k="1">Client legal text · refusal of carriage &amp; soiling</p>
+<sc-if value="{{ slotNotes }}" hint-placeholder-val="{{ true }}">
+<p>Must state when a driver may refuse or end a journey, and what a passenger is liable for if a vehicle is damaged or soiled. A cleaning charge needs a figure or a stated method.</p>
+</sc-if>
+</div>
+</section>
+
+<section id="luggage">
+<h2><span data-lg-n="1">07</span>Luggage &amp; child seats</h2>
+<p>Every booked seat carries one medium case of <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Case dimensions</span> and one piece of hand luggage. A vehicle is assigned on the count you gave us, so tell us if it changes.</p>
+<h3>Declare in advance</h3>
+<p>Skis and snowboards, folding bicycles, collapsible wheelchairs, musical instruments, pets. We will confirm the vehicle class that takes them.</p>
+<h3>Children</h3>
+<p>Child and booster seats are available on request. You may fit your own. Swiss law decides which seat a child needs, and the driver will not travel without it.</p>
+<div data-vt-no-i18n="1" data-slot="1">
+<p data-slot-k="1">Client legal text · refused and unaccompanied items</p>
+<sc-if value="{{ slotNotes }}" hint-placeholder-val="{{ true }}">
+<p>Must state what may not be carried, and what happens to luggage left in a vehicle.</p>
+</sc-if>
+</div>
+</section>
+
+<section id="waiting">
+<h2><span data-lg-n="1">08</span>Waiting time</h2>
+<p>Waiting is included, measured from the pickup time in your confirmation.</p>
+<ul>
+<li>Airport pickups: <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Airport waiting</span>, counted from the actual landing time we see against your flight number.</li>
+<li>All other pickups: <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Standard waiting</span>, counted from the booked time.</li>
+</ul>
+<p>Beyond the allowance we charge <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Extra waiting rate</span>. If your flight is delayed, the allowance moves with the flight — you do not need to call us.</p>
+</section>
+
+<section id="noshow">
+<h2><span data-lg-n="1">09</span>No-show</h2>
+<p>A booking counts as a no-show when the waiting allowance in section <a href="#waiting">08</a> has run out and we have called your number <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Noshow call attempts</span> times without an answer.</p>
+<p>A no-show is not refunded. What we hold on record as evidence is set out in the <a href="privacy.dc.html#retention">privacy policy</a>.</p>
+<h3>If the driver does not arrive</h3>
+<p>Call us on the number in your confirmation. Where we can see that you were at the pickup point and no vehicle came, the <a href="cancellation.dc.html#driver">cancellation &amp; refund policy</a> sets out what you get back.</p>
+</section>
+
+<section id="changes">
+<h2><span data-lg-n="1">10</span>Changes &amp; cancellation</h2>
+<p>Change or cancel from the link in your confirmation email, or from your account if you made one. A change is effective when we confirm it in writing, not when you send it.</p>
+<div data-flag="1">
+<p data-flag-k="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import>One source of truth</p>
+<p>Windows, refund shares, modification deadlines and flight-delay handling all live in one place: the <a href="cancellation.dc.html">cancellation &amp; refund policy</a>.</p>
+<p>That document governs. This section stays short on purpose, so the two can never drift apart.</p>
+</div>
+</section>
+
+<section id="payment">
+<h2><span data-lg-n="1">11</span>Payment</h2>
+<p>You pay when you book. Card payments are processed by Stripe; we never see or store your full card number.</p>
+<p>Accepted methods: <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Payment methods</span>.</p>
+
+<p>Invoices and corporate accounts: <a href="contact.dc.html">talk to us</a> before you book.</p>
+</section>
+
+<section id="complaints">
+<h2><span data-lg-n="1">12</span>Complaints</h2>
+<p>Tell us within <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Complaint window days</span> days of the journey, by email or telephone, quoting your booking reference.</p>
+<ul>
+<li>We answer within <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Complaint resolution days</span> days.</li>
+<li>Any refund we agree is paid within <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Refund payout days</span> days.</li>
+</ul>
+<div data-vt-no-i18n="1" data-slot="1">
+<p data-slot-k="1">Client legal text · escalation &amp; dispute resolution</p>
+<sc-if value="{{ slotNotes }}" hint-placeholder-val="{{ true }}">
+<p>Must name the body a customer can go to if we cannot agree, and — for EU customers — whether an online dispute-resolution platform applies. Same slot as on the <a href="imprint.dc.html#dispute">imprint</a>; fill both from one answer.</p>
+</sc-if>
+</div>
+</section>
+
+<section id="liability">
+<h2><span data-lg-n="1">13</span>Liability</h2>
+<div data-vt-no-i18n="1" data-slot="1">
+<p data-slot-k="1">Client legal text · liability</p>
+<sc-if value="{{ slotNotes }}" hint-placeholder-val="{{ true }}">
+<p>The one section that must be drafted, not adapted. It has to sit with the answer to section <a href="#parties">01</a>: an intermediary and a carrier carry different liability. Consequential loss — a missed flight, a missed meeting — needs to be addressed explicitly, because that is what customers claim for.</p>
+</sc-if>
+</div>
+<p>What we do say plainly, whatever the drafting: we do not exclude liability for death or personal injury caused by our negligence, and nothing in these terms removes rights Swiss consumer law gives you.</p>
+</section>
+
+<section id="force">
+<h2><span data-lg-n="1">14</span>Force majeure</h2>
+<p>Snow, closed roads, strikes, an airport shutdown: events outside anyone's control can stop a journey. Where that happens we will get you moving if it is safe and possible, and the <a href="cancellation.dc.html#disruption">cancellation &amp; refund policy</a> says what happens to the money.</p>
+<div data-vt-no-i18n="1" data-slot="1">
+<p data-slot-k="1">Client legal text · definition and consequences</p>
+<sc-if value="{{ slotNotes }}" hint-placeholder-val="{{ true }}">
+<p>Must define the events and state the consequence — suspension, re-planning, or refund — and how long the position holds before the booking lapses.</p>
+</sc-if>
+</div>
+</section>
+
+<section id="data">
+<h2><span data-lg-n="1">15</span>Your data</h2>
+<p>What we collect, why, who processes it and how long we keep it is in the <a href="privacy.dc.html">privacy policy</a>. Cookies and consent are in the <a href="cookies.dc.html">cookie policy</a>.</p>
+
+</section>
+
+<section id="law">
+<h2><span data-lg-n="1">16</span>Governing law &amp; venue</h2>
+<p>Swiss law applies.</p>
+<div data-vt-no-i18n="1" data-slot="1">
+<p data-slot-k="1">Client legal text · venue</p>
+<sc-if value="{{ slotNotes }}" hint-placeholder-val="{{ true }}">
+<p>Must name the court. The archived clause put the venue at a third party's registered office, which is not a place Vamos can be sued or sue. The obvious answer is the seat of the company in Dietikon ZH — confirm it, because a wrong venue clause is worse than none.</p>
+</sc-if>
+</div>
+<p>Should any part of these terms be unenforceable, the rest continues to apply.</p>
+</section>
+
+</article>
+</div>
+</div>
+
+<section data-lg-noprint="1" style="max-width:1200px;margin:0 auto;padding:40px clamp(20px,5vw,56px) 72px">
+<div style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);padding:clamp(24px,3vw,36px);display:flex;flex-wrap:wrap;align-items:center;gap:24px 40px">
+<div style="flex:1 1 320px;min-width:0">
+<h2 style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Something not clear?</h2>
+<p style="margin:0;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);max-width:52ch">Cancellations, changes, complaints and no-shows all go through the same team. Quote your booking reference and we will pick it up.</p>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" href="contact.dc.html" iconEnd="arrow-right" hint-size="150px,44px">Contact us</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" href="manage-booking.dc.html" hint-size="190px,44px">Manage a booking</x-import>
+</div>
+</div>
+</section>
+
+</main>
+
+<div data-lg-noprint="1"><dc-import name="SiteFooter" hint-size="100%,520px"></dc-import></div>
+<dc-import name="CookieBanner" start-state="{{ cookieState }}" hint-size="0,0"></dc-import>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showSlotNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Review&quot;},&quot;cookieState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;auto&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;banner&quot;,&quot;prefs&quot;,&quot;hidden&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Review&quot;}}">
+class Component extends DCLogic {
+  state = { tocOpen: false };
+  proseRef = React.createRef();
+  tocRef = React.createRef();
+
+  componentDidMount() {
+    const prose = this.proseRef.current, toc = this.tocRef.current;
+    if (!prose || !toc || typeof IntersectionObserver === 'undefined') return;
+    const links = Array.from(toc.querySelectorAll('[data-lg-tl]'));
+    const byId = {};
+    links.forEach((a) => { byId[(a.getAttribute('href') || '').slice(1)] = a; });
+    const seen = new Set();
+    this.io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        if (en.isIntersecting) seen.add(en.target.id); else seen.delete(en.target.id);
+      });
+      // Highlight the topmost section currently in the reading band.
+      // The last section whose heading has passed the reading line wins — picking the
+      // first *intersecting* one lags a section behind, because the previous section still
+      // occupies the top sliver of the band.
+      const secs = Array.from(prose.querySelectorAll('section[id]'));
+      let active = secs.length ? secs[0].id : null;
+      secs.forEach((s) => { if (s.getBoundingClientRect().top <= 140) active = s.id; });
+      links.forEach((a) => a.removeAttribute('data-on'));
+      const hit = active && byId[active];
+      if (hit) {
+        hit.setAttribute('data-on', '1');
+      }
+    }, { rootMargin: '-104px 0px -60% 0px' });
+    prose.querySelectorAll('section[id]').forEach((s) => this.io.observe(s));
+  }
+  componentWillUnmount() { if (this.io) this.io.disconnect(); }
+
+  toggleToc = () => this.setState((s) => ({ tocOpen: !s.tocOpen }));
+  doPrint = () => window.print();
+
+  renderVals() {
+    return {
+      n14: 14, n16: 16, n18: 18,
+      tocOpen: this.state.tocOpen ? '1' : null,
+      toggleToc: this.toggleToc,
+      doPrint: this.doPrint,
+      proseRef: this.proseRef, tocRef: this.tocRef,
+      slotNotes: (this.props.showSlotNotes ?? true) !== false,
+      cookieState: this.props.cookieState || 'auto',
+    };
+  }
+}
+
+</script>
+</body>
+</html>

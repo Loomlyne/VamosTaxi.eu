@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ops · Section</title>
+<script src="../support.js"></script>
+</head>
+<body>
+<x-dc>
+<main style="flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:center;padding:40px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" hint-size="440px,300px">
+<div style="width:380px;max-width:100%;display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px">
+<span style="width:56px;height:56px;border-radius:999px;background:var(--vt-charcoal-900);display:flex;align-items:center;justify-content:center">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ icon }}" size="{{ n26 }}" color="var(--vt-accent)" hint-size="26px,26px"></x-import>
+</span>
+<h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ title }}</h1>
+<p style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-secondary);line-height:1.6">{{ blurb }}</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="secondary" iconEnd="arrow-right" href="#bookings" hint-size="180px,44px">{{ tBack }}</x-import>
+</div>
+</x-import>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900},&quot;section&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;calendar&quot;,&quot;options&quot;:[&quot;calendar&quot;,&quot;customers&quot;,&quot;coupons&quot;,&quot;settings&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+const SECTIONS = {
+  calendar: { icon:'calendar-days', en:'Calendar', de:'Kalender', fr:'Calendrier', ar:'التقويم' },
+  customers: { icon:'user', en:'Customers', de:'Kunden', fr:'Clients', ar:'العملاء' },
+  coupons: { icon:'ticket', en:'Coupons', de:'Gutscheine', fr:'Codes promo', ar:'القسائم' },
+  settings: { icon:'settings', en:'Settings', de:'Einstellungen', fr:'Réglages', ar:'الإعدادات' },
+};
+const T = {
+  en: (label) => ({ title: label + ' is not in this design freeze yet.', blurb:'V1 covers the dashboard, the bookings board, the fleet and pricing & routes — ' + label.toLowerCase() + ' is on the sidebar for navigational truth, not built out yet.', back:'Back to bookings' }),
+  de: (label) => ({ title: label + ' ist in diesem Design-Freeze noch nicht enthalten.', blurb:'V1 deckt die Übersicht, das Buchungsboard, die Flotte sowie Preise & Routen ab — ' + label + ' steht der Vollständigkeit halber in der Seitenleiste, ist aber noch nicht umgesetzt.', back:'Zurück zu Buchungen' }),
+  fr: (label) => ({ title: label + ' n’est pas encore dans ce gel de design.', blurb:'La V1 couvre le tableau de bord, les réservations, la flotte et les tarifs & trajets — ' + label.toLowerCase() + ' figure dans la barre latérale par souci d’exactitude, mais n’est pas encore construit.', back:'Retour aux réservations' }),
+  ar: (label) => ({ title: label + ' غير مشمول بعد في هذا الإصدار.', blurb:'يغطي الإصدار الأول لوحة المعلومات ولوحة الحجوزات والأسطول والأسعار والمسارات — أما ' + label + ' فيظهر في الشريط الجانبي للدقة، ولم يُبنَ بعد.', back:'العودة إلى الحجوزات' }),
+};
+class Component extends DCLogic {
+  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en' };
+  componentWillUnmount() { if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale); }
+  componentDidMount() {
+    this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
+    window.addEventListener('vamos:locale', this._onLocale);
+  }
+  renderVals() {
+    const key = (this.props && this.props.section) || 'calendar';
+    const sec = SECTIONS[key] || SECTIONS.calendar;
+    const lang = this.state.lang;
+    const label = sec[lang] || sec.en;
+    const copy = (T[lang] || T.en)(label);
+    return {
+      n26:26, activeKey: key, icon: sec.icon, title: copy.title, blurb: copy.blurb, tBack: copy.back,
+    };
+  }
+}
+</script>
+</body>
+</html>

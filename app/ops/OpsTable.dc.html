@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;min-width:0">
+<div style="flex:1 1 240px;max-width:360px;min-width:0">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" icon="search" placeholder="{{ searchPlaceholder }}" value="{{ query }}" onChange="{{ setQuery }}" aria-label="{{ searchPlaceholder }}" hint-size="100%,44px"></x-import>
+</div>
+<span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted);white-space:nowrap">{{ countLabel }}</span>
+<div style="margin-inline-start:auto;display:flex;flex-wrap:wrap;gap:8px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" icon="plus" onClick="{{ startAdd }}" hint-size="150px,44px">{{ addLabel }}</x-import>
+</div>
+</div>
+
+<sc-if value="{{ filterPanelOpen }}" hint-placeholder-val="{{ false }}">
+<div style="box-sizing:border-box;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:12px 14px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);min-width:0">
+<span data-panel-k="1">Filter</span>
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ filterPanelTitle }}</span>
+<div style="display:flex;flex-wrap:wrap;gap:6px;min-width:0">
+<sc-for list="{{ filterOptions }}" as="o" hint-placeholder-count="4">
+<button type="button" data-tagbtn="1" data-on="{{ o.on }}" onClick="{{ o.pick }}">{{ o.label }}<span data-tagcount="1">{{ o.count }}</span></button>
+</sc-for>
+</div>
+<button type="button" data-ico-btn="1" onClick="{{ closeFilter }}" aria-label="Close the filter" title="Close the filter" style="margin-inline-start:auto">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ hasFilters }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-width:0">
+<sc-for list="{{ activeFilters }}" as="a" hint-placeholder-count="1">
+<button type="button" data-tagbtn="1" data-on="1" onClick="{{ a.clear }}" title="{{ a.title }}">{{ a.label }}<span data-tagcount="1" aria-hidden="true">✕</span></button>
+</sc-for>
+<button type="button" data-linkbtn="1" onClick="{{ clearFilters }}">Clear filters</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ hasRows }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Table" columns="{{ tableColumns }}" rows="{{ visibleRows }}" hint-size="100%,320px"></x-import>
+</sc-if>
+
+<sc-if value="{{ noMatches }}" hint-placeholder-val="{{ false }}">
+<div data-empty="1">
+<p style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">{{ noMatchTitle }}</p>
+<p style="margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-muted);text-wrap:pretty">{{ noMatchBody }}</p>
+<div style="margin-top:6px;display:flex;gap:8px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" onClick="{{ clearQuery }}" hint-size="130px,36px">Clear the search</x-import>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+<div data-empty="1">
+<p style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">{{ emptyTitle }}</p>
+<p style="margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-muted);text-wrap:pretty">{{ emptyBody }}</p>
+<div style="margin-top:6px;display:flex;gap:8px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" icon="plus" onClick="{{ startAdd }}" hint-size="150px,36px">{{ addLabel }}</x-import>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ editorOpen }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="md" title="{{ editorTitle }}" subtitle="{{ editorSubtitle }}" onClose="{{ requestClose }}" hint-size="560px,520px">
+<sc-if value="{{ closeAttempted }}" hint-placeholder-val="{{ false }}">
+<div style="box-sizing:border-box;display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:14px 16px;margin-bottom:16px;border:1px solid var(--vt-charcoal-900);border-radius:var(--vt-radius-md);background:var(--vt-grey-50)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="triangle-alert" size="{{ n16 }}" color="var(--vt-charcoal-900)" hint-size="16px,16px"></x-import>
+<span style="flex:1 1 220px;min-width:0;font-size:var(--vt-body-sm);color:var(--vt-text-primary)">Unsaved changes here.</span>
+<span style="display:flex;gap:8px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" onClick="{{ keepEditing }}" hint-size="110px,36px">Keep editing</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ discardClose }}" hint-size="110px,36px">Discard</x-import>
+</span>
+</div>
+</sc-if>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px">
+<sc-for list="{{ formFields }}" as="f" hint-placeholder-count="5">
+<div style="grid-column:{{ f.span }};min-width:0">
+
+<sc-if value="{{ f.isText }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" icon="{{ f.inputIcon }}" label="{{ f.label }}" value="{{ f.value }}" onChange="{{ f.set }}" placeholder="{{ f.placeholder }}" hint="{{ f.hint }}" error="{{ f.error }}" suffix="{{ f.suffix }}" required="{{ f.required }}" hint-size="100%,76px"></x-import>
+</sc-if>
+
+<sc-if value="{{ f.isNumber }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" icon="{{ f.inputIcon }}" type="number" min="{{ f.min }}" label="{{ f.label }}" value="{{ f.value }}" onChange="{{ f.set }}" placeholder="{{ f.placeholder }}" hint="{{ f.hint }}" error="{{ f.error }}" suffix="{{ f.suffix }}" hint-size="100%,76px"></x-import>
+</sc-if>
+
+<sc-if value="{{ f.isSelect }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+<span data-fld-l="1">{{ f.label }}</span>
+<dc-import name="BrandSelect" size="field" icon="{{ f.icon }}" value="{{ f.value }}" options="{{ f.options }}" multi="{{ f.multi }}" onSelect="{{ f.pick }}" a11y-label="{{ f.label }}" hint-size="100%,44px"></dc-import>
+<span style="display:{{ f.hintShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ f.hint }}</span>
+</div>
+</sc-if>
+
+<sc-if value="{{ f.isArea }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ f.label }}" rows="{{ n3 }}" value="{{ f.value }}" onChange="{{ f.set }}" placeholder="{{ f.placeholder }}" hint="{{ f.hint }}" hint-size="100%,120px"></x-import>
+</sc-if>
+
+<sc-if value="{{ f.isSwitch }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:6px;padding:10px 0">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" label="{{ f.label }}" checked="{{ f.checked }}" onChange="{{ f.toggle }}" hint-size="100%,26px"></x-import>
+<span style="display:{{ f.hintShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ f.hint }}</span>
+</div>
+</sc-if>
+
+</div>
+</sc-for>
+</div>
+
+<sc-if value="{{ hasHistory }}" hint-placeholder-val="{{ false }}">
+<div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--vt-border-subtle)">
+<button type="button" onClick="{{ toggleHistory }}" style="all:unset;box-sizing:border-box;display:flex;align-items:center;gap:8px;cursor:pointer;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ historyChevron }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>{{ historyLabel }}
+</button>
+<sc-if value="{{ historyOpen }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;max-height:260px;overflow-y:auto">
+<sc-for list="{{ historyList }}" as="h" hint-placeholder-count="3">
+<div style="box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-grey-50)">
+<span style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 auto">
+<span style="font-family:var(--vt-font-display);font-size:13px;font-weight:600">{{ h.ref }}</span>
+<span style="font-size:12px;color:var(--vt-text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ h.route }}</span>
+</span>
+<span style="font-size:12px;color:var(--vt-text-muted);white-space:nowrap;flex:0 0 auto">{{ h.when }}</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StatusBadge" status="{{ h.status }}" hint-size="auto,22px"></x-import>
+</div>
+</sc-for>
+<sc-if value="{{ historyEmpty }}" hint-placeholder-val="{{ false }}">
+<span style="font-size:12px;color:var(--vt-text-muted)">{{ historyEmptyLabel }}</span>
+</sc-if>
+</div>
+</sc-if>
+</div>
+</sc-if>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:20px;padding-top:18px;border-top:1px solid var(--vt-border-subtle)">
+<span style="display:{{ deleteShow }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" icon="trash-2" onClick="{{ askDeleteCurrent }}" hint-size="110px,44px">Delete</x-import>
+</span>
+<span style="margin-inline-start:auto;display:flex;flex-wrap:wrap;gap:10px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" onClick="{{ requestClose }}" hint-size="110px,44px">Cancel</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ save }}" hint-size="130px,44px">{{ saveLabel }}</x-import>
+</span>
+</div>
+</x-import>
+</sc-if>
+
+<sc-if value="{{ confirmOpen }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="sm" title="{{ confirmTitle }}" onClose="{{ cancelDelete }}" hint-size="400px,220px">
+<p style="margin:0;font-size:var(--vt-body-sm);line-height:1.6;color:var(--vt-text-secondary);text-wrap:pretty">{{ confirmBody }}</p>
+<p data-vt-no-i18n="1" style="margin:10px 0 0;font-family:var(--vt-font-display);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">{{ confirmName }}</p>
+<div style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;margin-top:20px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" onClick="{{ cancelDelete }}" hint-size="110px,44px">Keep it</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="danger" onClick="{{ confirmDelete }}" hint-size="130px,44px">Delete</x-import>
+</div>
+</x-import>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1100,&quot;height&quot;:640},&quot;rows&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;any[]&quot;},&quot;columns&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;TableColumn[]&quot;},&quot;fields&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;FieldSchema[]&quot;},&quot;blank&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;()=&gt;any&quot;},&quot;onSave&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(rec:any)=&gt;void&quot;},&quot;onDelete&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(id:string)=&gt;void&quot;},&quot;noun&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;row&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;nounPlural&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;labelKey&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;name&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;addLabel&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Add&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;searchPlaceholder&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Search&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;searchKeys&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string[]&quot;},&quot;emptyTitle&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;emptyBody&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+/* One table for the whole console. Every list screen — vehicles, chauffeurs,
+   bookings, customers, coupons, routes, surcharges — is this component with a
+   different column set and field schema, so add / edit / delete behaves the same
+   everywhere and only exists once.
+
+   columns: [{ key, header, width, align, kind, subKey, tones, emptyLabel, prefix }]
+     kind  'text' | 'stack' | 'mono' | 'badge' | 'money' | 'need' | 'bool'
+   fields:  [{ key, label, editor, options, placeholder, hint, required, half, icon }]
+     editor 'text' | 'number' | 'select' | 'switch' | 'area'                        */
+/* A leading icon is what makes a console field read like the client-facing ones on the
+   booking widget, so the schema's key picks the same glyph the front page uses. */
+const FIELD_ICONS = {
+  id:'receipt', ref:'receipt', reference:'receipt', code:'ticket',
+  name:'user', customer:'user', contact:'user', company:'briefcase',
+  email:'mail', phone:'phone',
+  date:'calendar', time:'clock', expires:'calendar', from:'clock', to:'clock', year:'calendar',
+  languages:'globe', flight:'plane',
+  pickup:'map-pin', dropoff:'map-pin', address:'map-pin', route:'navigation',
+  plate:'car', model:'car', vehicle:'car', licence:'shield-check', chauffeur:'users',
+  seats:'users', pax:'users', passengers:'users', bags:'luggage', luggage:'luggage',
+  price:'banknote', total:'banknote', amount:'banknote', value:'banknote', discount:'banknote',
+  uses:'check', limit:'check', notes:'file-text', note:'file-text',
+};
+
+class Component extends DCLogic {
+  state = { q: '', draft: null, isNew: false, errors: {}, confirm: null, filters: {}, filterCol: null, closeAttempted: false, historyOpen: false };
+  lockScroll = () => { try { document.body.style.overflow = 'hidden'; } catch (e) {} };
+  unlockScroll = () => { try { document.body.style.overflow = ''; } catch (e) {} };
+  componentWillUnmount() {
+    if (this.state.draft || this.state.confirm) this.unlockScroll();
+  }
+
+  /* Clicking a column header filters on that column. Badge and yes/no columns are
+     filterable by nature; anything else opts in with filter:true. */
+  filterable(c) { return c.filter === true || c.kind === 'badge' || c.kind === 'bool'; }
+  optionLabel(key, value) {
+    const f = (this.props.fields || []).filter((x) => x.key === key)[0];
+    if (f && f.options) {
+      const o = f.options.filter((x) => String(x.value) === String(value))[0];
+      if (o) return o.label;
+    }
+    const c = (this.props.columns || []).filter((x) => x.key === key)[0];
+    if (c && c.kind === 'bool') return String(value) === 'true' ? (c.onLabel || 'Live') : (c.offLabel || 'Draft');
+    if (c && c.tones && c.tones[value] && c.tones[value].label) return c.tones[value].label;
+    return String(value);
+  }
+  values(col) {
+    const out = [];
+    (this.props.rows || []).forEach((r) => {
+      const raw = col.kind === 'bool' ? String(!!r[col.key]) : String(r[col.key] === undefined || r[col.key] === null ? '' : r[col.key]);
+      const hit = out.filter((o) => o.value === raw)[0];
+      if (hit) hit.count += 1; else out.push({ value: raw, count: 1 });
+    });
+    return out;
+  }
+  openFilter = (key) => this.setState((s) => ({ filterCol: s.filterCol === key ? null : key }));
+  closeFilter = () => this.setState({ filterCol: null });
+  pickFilter = (key, value) => this.setState((s) => {
+    const f = {}; for (const k in s.filters) f[k] = s.filters[k];
+    if (String(f[key]) === String(value)) delete f[key]; else f[key] = value;
+    return { filters: f };
+  });
+  clearFilter = (key) => this.setState((s) => {
+    const f = {}; for (const k in s.filters) if (k !== key) f[k] = s.filters[k];
+    return { filters: f };
+  });
+  clearFilters = () => this.setState({ filters: {}, filterCol: null });
+  headerCell(c) {
+    const DS = window.VamosTaxiDesignSystem_245af1 || {};
+    const active = this.state.filters[c.key];
+    const on = active !== undefined || this.state.filterCol === c.key;
+    const kids = [c.header];
+    if (active !== undefined) {
+      kids.push(React.createElement('span', { key:'v', 'data-thval':'1' }, this.optionLabel(c.key, active)));
+    }
+    if (DS.Icon) kids.push(React.createElement(DS.Icon, { key:'i', name:'funnel', size:12, color:'currentColor' }));
+    return React.createElement('button', {
+      type:'button', 'data-thbtn':'1', 'data-on': on ? '1' : '0',
+      onClick: () => this.openFilter(c.key),
+    }, kids);
+  }
+
+  startAdd = () => {
+    const blank = this.props.blank ? this.props.blank() : {};
+    this._original = JSON.stringify(blank);
+    this.lockScroll();
+    this.setState({ draft: blank, isNew: true, errors: {}, closeAttempted: false, historyOpen: false });
+  };
+  startEdit = (row) => {
+    const copy = {}; for (const k in row) copy[k] = row[k];
+    this._original = JSON.stringify(copy);
+    this.lockScroll();
+    this.setState({ draft: copy, isNew: false, errors: {}, closeAttempted: false, historyOpen: false });
+  };
+  closeEditor = () => { this.unlockScroll(); this.setState({ draft: null, errors: {}, closeAttempted: false }); };
+  isDirty = () => {
+    if (!this.state.draft) return false;
+    try { return JSON.stringify(this.state.draft) !== this._original; } catch (e) { return false; }
+  };
+  requestClose = () => { if (this.isDirty()) this.setState({ closeAttempted: true }); else this.closeEditor(); };
+  keepEditing = () => this.setState({ closeAttempted: false });
+  discardClose = () => this.closeEditor();
+  toggleHistory = () => this.setState((s) => ({ historyOpen: !s.historyOpen }));
+  setField = (key, value) => this.setState((s) => {
+    const d = {}; for (const k in s.draft) d[k] = s.draft[k];
+    d[key] = value;
+    const errors = {}; for (const k in s.errors) if (k !== key) errors[k] = s.errors[k];
+    return { draft: d, errors };
+  });
+  save = () => {
+    const fields = this.props.fields || [];
+    const d = this.state.draft || {};
+    const errors = {};
+    fields.forEach((f) => {
+      if (!f.required) return;
+      const v = d[f.key];
+      if (v === undefined || v === null || String(v).trim() === '') errors[f.key] = this.props.requiredMessage || 'Needed';
+    });
+    if (Object.keys(errors).length) return this.setState({ errors });
+    if (this.props.onSave) this.props.onSave(d);
+    this.closeEditor();
+  };
+  askDelete = (row) => { this.lockScroll(); this.setState({ confirm: row }); };
+  askDeleteCurrent = () => { this.lockScroll(); this.setState({ confirm: this.state.draft, draft: null }); };
+  cancelDelete = () => { this.unlockScroll(); this.setState({ confirm: null }); };
+  confirmDelete = () => {
+    const row = this.state.confirm;
+    if (row && this.props.onDelete) this.props.onDelete(row.id);
+    this.unlockScroll();
+    this.setState({ confirm: null });
+  };
+
+  label(row) {
+    const key = this.props.labelKey || 'name';
+    return (row && (row[key] || row.id)) || '';
+  }
+
+  /* ── cells ───────────────────────────────────────────────────────────── */
+  stack(main, sub, mono) {
+    return React.createElement('span', { style:{ display:'flex', flexDirection:'column', gap:2, lineHeight:1.3, minWidth:0 } },
+      React.createElement('span', { style: mono
+        ? { fontFamily:'var(--vt-font-display)', fontWeight:600, letterSpacing:'.04em' }
+        : { fontWeight:500 } }, main),
+      sub ? React.createElement('span', { style:{ fontSize:'var(--vt-body-xs)', color:'var(--vt-text-muted)' } }, sub) : null);
+  }
+  cell(col, row) {
+    const DS = window.VamosTaxiDesignSystem_245af1 || {};
+    const v = row[col.key];
+    if (col.kind === 'stack') return this.stack(v, row[col.subKey], col.mono);
+    if (col.kind === 'mono') return this.stack(v, '', true);
+    if (col.kind === 'money') {
+      const amt = v === '' || v === undefined || v === null ? '000' : v;
+      return window.VamosLocale ? window.VamosLocale.money(amt) : 'CHF ' + amt;
+    }
+    if (col.kind === 'need') {
+      const shown = col.lookup ? col.lookup(row) : v;
+      return shown
+        ? React.createElement('span', null, shown)
+        : React.createElement('span', { style:{ color:'var(--vt-danger)', fontWeight:500 } }, col.emptyLabel || '—');
+    }
+    if (col.kind === 'bool') {
+      const on = !!v;
+      return React.createElement('span', { style:{ display:'inline-flex', alignItems:'center', gap:6,
+        fontFamily:'var(--vt-font-body)', fontSize:'var(--vt-label-sm)', fontWeight:600, textTransform:'uppercase',
+        letterSpacing:'.09em', padding:'5px 10px', borderRadius:'var(--vt-radius-pill)',
+        background: on ? 'var(--vt-charcoal-900)' : 'var(--vt-grey-100)',
+        color: on ? 'var(--vt-accent)' : 'var(--vt-charcoal-700)' } }, on ? (col.onLabel || 'Live') : (col.offLabel || 'Draft'));
+    }
+    if (col.kind === 'badge') {
+      const s = (col.tones || {})[v] || { tone:'neutral', label:v };
+      if (col.status && DS.StatusBadge) return React.createElement(DS.StatusBadge, { status: v });
+      return DS.Badge ? React.createElement(DS.Badge, { tone: s.tone }, s.label) : s.label;
+    }
+    return col.lookup ? col.lookup(row) : v;
+  }
+  actionCell(row) {
+    const t = this.props;
+    const DS = window.VamosTaxiDesignSystem_245af1 || {};
+    const ib = (icon, label, onClick, variant) => React.createElement(DS.IconButton, {
+      icon, label, size:'sm', variant: variant || 'outline',
+      onClick: (e) => { if (e && e.stopPropagation) e.stopPropagation(); onClick(); },
+    });
+    if (!DS.IconButton) return null;
+    return React.createElement('span', { style:{ display:'flex', gap:6, justifyContent:'flex-end' } },
+      ib('pencil', t.editLabel || 'Edit', () => this.startEdit(row)),
+      ib('trash-2', t.deleteLabel || 'Delete', () => this.askDelete(row), 'ghost'));
+  }
+
+  renderVals() {
+    const rows = this.props.rows || [];
+    const columns = this.props.columns || [];
+    const fields = this.props.fields || [];
+    const q = this.state.q.trim().toLowerCase();
+    const keys = this.props.searchKeys || columns.map((c) => c.key);
+    const fkeys = Object.keys(this.state.filters);
+    const kindOf = {}; columns.forEach((c) => { kindOf[c.key] = c.kind; });
+    const filtered = !fkeys.length ? rows : rows.filter((r) => fkeys.every((k) => {
+      const raw = kindOf[k] === 'bool' ? String(!!r[k]) : String(r[k] === undefined || r[k] === null ? '' : r[k]);
+      return raw === String(this.state.filters[k]);
+    }));
+    const visible = !q ? filtered : filtered.filter((r) =>
+      keys.some((k) => String(r[k] === undefined ? '' : r[k]).toLowerCase().indexOf(q) !== -1));
+    const d = this.state.draft || {};
+    const noun = this.props.noun || 'row';
+    const histRows = (!this.state.isNew && this.props.historyRows && this.state.draft) ? (this.props.historyRows(d) || []) : [];
+    const histCount = histRows.length;
+
+    const tableColumns = columns.map((c) => ({
+      key: c.key, header: this.filterable(c) ? this.headerCell(c) : c.header, width: c.width, align: c.align,
+      render: (row) => this.cell(c, row),
+    })).concat([{ key:'__act', header:'', width:'104px', align:'right', render:(row) => this.actionCell(row) }]);
+
+    const openCol = columns.filter((c) => c.key === this.state.filterCol)[0];
+    const filterOptions = !openCol ? [] : [{
+      label: 'All', count: rows.length,
+      on: this.state.filters[openCol.key] === undefined ? '1' : '0',
+      pick: () => this.clearFilter(openCol.key),
+    }].concat(this.values(openCol).map((v) => ({
+      label: this.optionLabel(openCol.key, v.value), count: v.count,
+      on: String(this.state.filters[openCol.key]) === v.value ? '1' : '0',
+      pick: () => this.pickFilter(openCol.key, v.value),
+    })));
+
+    const formFields = fields.map((f) => {
+      const raw = d[f.key] !== undefined ? d[f.key] : f.value;
+      const val = raw === undefined || raw === null ? '' : raw;
+      const err = this.state.errors[f.key] || '';
+      return {
+        label: f.label, hint: f.hint || '', hintShow: f.hint ? 'block' : 'none',
+        placeholder: f.placeholder || '', suffix: f.suffix || '',
+        error: err, required: !!f.required,
+        span: f.half ? 'span 1' : 'span 2',
+        icon: f.icon || 'settings',
+        min: f.min === undefined ? 0 : f.min,
+        options: f.options || [],
+        multi: !!f.multi,
+        inputIcon: f.icon || FIELD_ICONS[f.key] || '',
+        isText: f.editor === undefined || f.editor === 'text',
+        isNumber: f.editor === 'number',
+        isSelect: f.editor === 'select',
+        isSwitch: f.editor === 'switch',
+        isArea: f.editor === 'area',
+        value: String(val),
+        checked: !!raw,
+        set: (e) => this.setField(f.key, f.editor === 'number' ? parseInt(e.target.value, 10) || 0 : e.target.value),
+        pick: (v) => { this.setField(f.key, v); if (f.onSelect) f.onSelect(v); },
+        toggle: (e) => this.setField(f.key, e.target.checked),
+      };
+    });
+
+    /* Both halves are language-neutral: a slash instead of a joining word, and
+       a noun the screen already translated. */
+    const countLabel = (q || fkeys.length)
+      ? visible.length + ' / ' + rows.length
+      : rows.length + ' ' + (rows.length === 1 ? noun : (this.props.nounPlural || noun));
+
+    return {
+      n3: 3, n16: 16, yes: true,
+      filterPanelOpen: !!openCol,
+      filterPanelTitle: openCol ? openCol.header : '',
+      filterOptions,
+      closeFilter: this.closeFilter,
+      hasFilters: fkeys.length > 0,
+      clearFilters: this.clearFilters,
+      activeFilters: fkeys.map((k) => ({
+        label: this.optionLabel(k, this.state.filters[k]),
+        title: (columns.filter((c) => c.key === k)[0] || {}).header || k,
+        clear: () => this.clearFilter(k),
+      })),
+      query: this.state.q,
+      setQuery: (e) => this.setState({ q: e.target.value }),
+      clearQuery: () => this.setState({ q: '' }),
+      searchPlaceholder: this.props.searchPlaceholder || 'Search',
+      addLabel: this.props.addLabel || 'Add',
+      countLabel,
+      hasRows: visible.length > 0,
+      isEmpty: rows.length === 0,
+      noMatches: rows.length > 0 && visible.length === 0,
+      noMatchTitle: this.props.noMatchTitle || 'Nothing matches that search',
+      noMatchBody: this.props.noMatchBody || 'Try a shorter search, or clear it to see everything again.',
+      emptyTitle: this.props.emptyTitle || 'Nothing here yet',
+      emptyBody: this.props.emptyBody || 'Add the first one and it appears in this table.',
+      tableColumns, visibleRows: visible,
+      startAdd: this.startAdd,
+      editorOpen: !!this.state.draft,
+      editorTitle: this.state.isNew ? (this.props.addTitle || 'Add') : (this.props.editTitle || 'Edit'),
+      editorSubtitle: this.state.isNew ? (this.props.editorSubtitle || '') : this.label(d),
+      saveLabel: this.state.isNew ? (this.props.addSaveLabel || 'Add') : (this.props.saveLabel || 'Save changes'),
+      deleteShow: this.state.isNew ? 'none' : 'inline-flex',
+      formFields, closeEditor: this.closeEditor, save: this.save,
+      requestClose: this.requestClose, keepEditing: this.keepEditing, discardClose: this.discardClose,
+      closeAttempted: this.state.closeAttempted,
+      hasHistory: !this.state.isNew && !!this.props.historyRows,
+      historyOpen: this.state.historyOpen,
+      historyChevron: this.state.historyOpen ? 'chevron-up' : 'chevron-down',
+      toggleHistory: this.toggleHistory,
+      historyLabel: (this.props.historyLabel || 'History') + (histCount ? ' (' + histCount + ')' : ''),
+      historyList: histRows, historyEmpty: histRows.length === 0,
+      historyEmptyLabel: this.props.historyEmptyLabel || 'Nothing yet',
+      askDeleteCurrent: this.askDeleteCurrent,
+      confirmOpen: !!this.state.confirm,
+      confirmTitle: this.props.deleteTitle || 'Delete this?',
+      confirmBody: this.props.deleteBody || 'This removes it from the console for good.',
+      confirmName: this.label(this.state.confirm || {}),
+      cancelDelete: this.cancelDelete, confirmDelete: this.confirmDelete,
+    };
+  }
+}
+</script>
+</body>
+</html>
