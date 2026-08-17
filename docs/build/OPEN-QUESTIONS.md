@@ -20,19 +20,27 @@ Cross-references: `A1`–`A15` are the blocking decisions in
 Do I create the Cloudflare, Supabase, Stripe, Resend and Mapbox accounts, or do you invite
 me to existing ones? Which email owns billing?
 
-**Answer:**
+**Answer:** *(2026-08-17)* Mixed. I create whichever accounts do not exist yet; the owner
+takes billing on all of them, and invites me to the ones that already exist.
+
+Still needed before Phase 0 can close: **the list of which accounts already exist**, so I
+create rather than duplicate. Cloudflare, Supabase, Stripe, Resend, Mapbox, AeroDataBox,
+Sentry.
 
 ### Q2 · DNS control and staging hostnames
 Do you control `vamostaxi.eu` DNS today? Can I create `staging.vamostaxi.eu` and
 `ops-staging.vamostaxi.eu` this week, with the current CMS left live until Phase 9?
 
-**Answer:**
+**Answer:** *(2026-08-17)* Yes — the owner controls DNS, and both staging hostnames can be
+created this week with the Freshpage CMS left live until the Phase 9 cutover.
 
 ### Q3 · Repository
 GitHub org and name for the monorepo — `vamos-platform` under Loomlyne, under a Vamos org,
 or somewhere else?
 
-**Answer:**
+**Answer:** *(2026-08-17)* **Keep building in `Loomlyne/VamosTaxi.eu`.** No separate
+`vamos-platform` repo — `apps/web` lands in this repo, next to the mocks it is ported from,
+so a port and its source sit in one diff.
 
 ### Q4 · Qurova webfont licence
 Blocker 5 in the handoff. The only licence on file (`design-system/assets/fonts/OFL.txt`) covers
@@ -103,7 +111,10 @@ staging matrix behind `pricing_live=false` so the engine is exercisable end-to-e
 nothing it produces ever reaches a screen, because the UI stays `CHF 000` — or must staging
 carry no numbers at all?
 
-**Answer:**
+**Answer:** *(2026-08-17)* The owner expects the **real matrix within days**, so the
+synthetic-staging question is largely moot. Until it arrives the engine is built behind
+`pricing_live=false` and every amount on screen stays `CHF 000`; the moment the real matrix
+lands it is loaded on staging and the flag flip becomes the launch trigger.
 
 ### Q12 · Per-currency pricing — genuine, or display-only
 `app/vamos-ops-data.js` stores a separate figure per CHF/EUR/USD/AED for fixed routes,
@@ -279,7 +290,13 @@ decisions out of an implementation PR.
 Confirm that route, and say whether the 🟡 partner-application review queue and the 🟡
 refund/finance report get the same treatment or slip to post-launch.
 
-**Answer:**
+**Answer:** *(2026-08-17)* **Route confirmed** — the ops new-booking screen is mocked first
+as a `.dc.html`, reviewed at 1440/1024/768/390 in all four languages, and only then ported.
+A design decision stays out of an implementation PR.
+
+Still open: whether the 🟡 partner-application review queue and the 🟡 refund/finance report
+get the same treatment or slip past launch. Given the 2–3 week target and ops deepening
+after go-live, the working assumption is post-launch unless the owner says otherwise.
 
 ---
 
