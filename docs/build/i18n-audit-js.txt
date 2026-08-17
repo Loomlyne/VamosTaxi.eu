@@ -1,0 +1,101 @@
+
+=== terms JS literals:0 MISSING:0
+
+=== privacy JS literals:0 MISSING:0
+
+=== imprint JS literals:1 MISSING:1
+  · vamosLang
+=== cookies JS literals:7 MISSING:4
+  · vamosCookieConsent
+  · en-GB
+  · Saved
+  · Nothing chosen yet — only strictly necessary cookies are set
+=== cancellation JS literals:0 MISSING:0
+
+=== contact JS literals:16 MISSING:16
+  · , email:
+  · , phone:
+  · , ref:
+  · , msg:
+  · , sentTo:
+  · VT-C
+  · Ben Othman
+  · VT-0000
+  · My flight lands two hours later than booked. Does the pickup move automatically?
+  · VT-C4821
+  · That address is missing something — check it over
+  · We need an address to reply to
+  · A line or two more, so we can answer properly
+  · Tell us what you need
+  · One field needs your attention
+  · fields need your attention
+=== faq JS literals:3 MISSING:3
+  · + i] = on ?
+  · Collapse all
+  · Expand all
+=== about JS literals:10 MISSING:10
+  · We operate the transfers ourselves and we carry the responsibility for them,
+  · with our own vehicles and, at busy times, licensed partner carriers driving to our standard.
+  · Your driver works for us, or for a partner carrier we have vetted and hold to the same
+  · standard. Either way your contract is with Vamos Taxi, and if the ride goes wrong it is
+  · us you take it up with.
+  · We arrange your transfer with a licensed carrier and stay with it from booking to arrival,
+  · holding every partner in the network to a standard we set and check.
+  · Your driver works for a licensed carrier in our network, vetted by us and held to our
+  · standard. Your transport contract is with that carrier, and we stay responsible for
+  · arranging the journey and for putting it right.
+=== coming-soon JS literals:5 MISSING:5
+  · , v:
+  · , name:
+  · s 888 strings translate. This walks the page
+  · window.VamosI18n
+  · + ATTRS.join(
+=== become-a-partner JS literals:28 MISSING:28
+  · Saloon or sedan
+  · Estate
+  · Van or minibus, up to 8 seats
+  · Minibus, 9 seats or more
+  · Something else
+  · Ben Othman
+  · Zurich
+  · Mercedes V-Class, 7 seats
+  · Professional driving licence, category B121
+  · , city:
+  · , phone:
+  · , email:
+  · , vehicle:
+  · , permit:
+  · , sentTo:
+  · Ben
+  · Both boxes above are required before you can send this.
+  · One box above is still unticked.
+  · One field needs your attention
+  · fields need your attention
+  · We use the phone number to reach you about a shift and the address for anything in writing.
+  · One is enough. Give us both if you want the quickest answer — we call about shifts and write about paperwork.
+  · Give us at least one way to reach you
+  · We need a number to call you on
+  · Check the number — include the country code
+  · A phone number or an email, either will do
+  · We need an address to write to
+  · That address is missing something — check it over
+=== Services JS literals:3 MISSING:2
+  · scrollPerStep
+  · [data-svc-cta],[data-sc-name="ServiceCard"]
+=== ServiceCard JS literals:15 MISSING:15
+  · uCenter
+  · uHalfSize
+  · uRadius
+  · uAngle
+  · uPx
+  · uLineColor
+  · uBaseColor
+  · uIntensity
+  · uShineSize
+  · uShineFade
+  · uThickness
+  · uBaseWidth
+  · #FDC20B
+  · #C2C3C3
+  · WEBGL_lose_context
+=== FAQ JS literals:0 MISSING:0

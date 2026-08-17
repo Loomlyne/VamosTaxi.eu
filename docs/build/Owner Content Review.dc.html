@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/laws.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<style>:root{--vt-shadow-accent:none;--vt-logo-base:"../assets/logo/";--vt-icon-base:"../assets/icons/";--vt-pattern-base:"../assets/patterns/"}body{margin:0}::selection{background:var(--vt-yellow-400);color:var(--vt-charcoal-900)}</style>
+</helmet>
+
+<div style="background:var(--vt-bg-page);min-height:100vh;font-family:var(--vt-font-body)">
+
+<div style="position:relative;overflow:hidden;background:var(--vt-charcoal-900);padding:clamp(28px,5vw,48px) clamp(20px,5vw,56px) 32px" data-screen-label="Intro">
+<div style="position:absolute;top:0;right:0"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.CheckerMark" size="{{ n56 }}" hint-size="56px,56px"></x-import></div>
+<div style="max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:18px;position:relative">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" form="wordmark" height="{{ n26 }}" hint-size="150px,26px"></x-import>
+<div>
+<p style="margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-yellow-400)">For the owner — please review</p>
+<h1 style="margin:0 0 10px;font-family:var(--vt-font-body);font-size:var(--vt-display-2);line-height:1.08;letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:#fff">Content &amp; photography review</h1>
+<p style="margin:0;max-width:60ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .78)">Everything below is either missing or contradicted somewhere else on the site. Tap an option where you can decide, or add a note to explain — nothing here is final until you say so.</p>
+</div>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 28px;margin-top:4px">
+<div style="min-width:220px;flex:1 1 260px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.ProgressIndicator" value="{{ answeredCount }}" max="{{ totalCount }}" valueLabel="{{ progressLabel }}" label="Your progress" tone="accent" inverse="{{ true }}" hint-size="100%,44px"></x-import>
+</div>
+<p style="margin:0;font-size:var(--vt-body-sm);color:rgb(255 255 255 / .6)">Saves automatically on this device as you go.</p>
+</div>
+</div>
+</div>
+
+<div style="position:sticky;top:0;z-index:30;background:#fff;border-bottom:1px solid var(--vt-border-subtle);box-shadow:var(--vt-shadow-xs)">
+<div style="max-width:900px;margin:0 auto;display:flex;gap:8px;padding:10px clamp(20px,5vw,56px);overflow-x:auto">
+<a href="#sec-decisions" style="flex:none;display:inline-flex;align-items:center;height:36px;padding:0 16px;border-radius:999px;background:var(--vt-grey-50);border:1px solid var(--vt-border-subtle);font-size:13px;font-weight:600;color:var(--vt-charcoal-900);text-decoration:none;white-space:nowrap">Decisions · 15</a>
+<a href="#sec-photo" style="flex:none;display:inline-flex;align-items:center;height:36px;padding:0 16px;border-radius:999px;background:var(--vt-grey-50);border:1px solid var(--vt-border-subtle);font-size:13px;font-weight:600;color:var(--vt-charcoal-900);text-decoration:none;white-space:nowrap">Photography · 10</a>
+<a href="#sec-details" style="flex:none;display:inline-flex;align-items:center;height:36px;padding:0 16px;border-radius:999px;background:var(--vt-grey-50);border:1px solid var(--vt-border-subtle);font-size:13px;font-weight:600;color:var(--vt-charcoal-900);text-decoration:none;white-space:nowrap">Page-by-page details</a>
+<a href="#sec-send" style="flex:none;display:inline-flex;align-items:center;height:36px;padding:0 16px;border-radius:999px;background:var(--vt-charcoal-900);border:1px solid var(--vt-charcoal-900);font-size:13px;font-weight:600;color:#fff;text-decoration:none;white-space:nowrap">Send back your answers</a>
+</div>
+</div>
+
+<div style="max-width:900px;margin:0 auto;padding:clamp(32px,5vw,56px) clamp(20px,5vw,56px) 90px;display:flex;flex-direction:column;gap:60px">
+
+<section id="sec-decisions" data-screen-label="Decisions">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.SectionHeader" eyebrow="Start here" title="15 decisions" subtitle="{{ decisionsSubtitle }}" level="h2" rule="{{ true }}" hint-size="100%,90px"></x-import>
+<div style="display:flex;flex-direction:column;gap:18px;margin-top:22px">
+<sc-for list="{{ decisionsView }}" as="dec" hint-placeholder-count="3">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" tone="default" padding="lg" hint-size="100%,220px">
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+<div style="display:flex;align-items:flex-start;gap:12px;flex:1;min-width:0">
+<span style="flex:none;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:999px;background:var(--vt-charcoal-900);color:#fff;font-family:var(--vt-font-display);font-size:13px;font-weight:600;margin-top:2px">{{ dec.num }}</span>
+<div style="flex:1;min-width:0">
+<h3 style="margin:0 0 6px;font-family:var(--vt-font-body);font-size:var(--vt-heading-3);line-height:1.25;font-weight:var(--vt-weight-semibold);color:var(--vt-charcoal-900)">{{ dec.title }}</h3>
+<p style="margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">{{ dec.context }}</p>
+</div>
+</div>
+<sc-if value="{{ dec.isAnswered }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Badge" tone="outline" hint-size="70px,22px">Answered</x-import>
+</sc-if>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;padding-left:42px">
+<sc-for list="{{ dec.optionsView }}" as="opt" hint-placeholder-count="3">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" tone="flat" padding="md" selectable="{{ true }}" selected="{{ opt.sel }}" onClick="{{ opt.onClick }}" hint-size="100%,48px">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+<span style="font-size:var(--vt-body-md);color:var(--vt-charcoal-900);line-height:1.4">{{ opt.text }}</span>
+<sc-if value="{{ opt.sel }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n18 }}" color="var(--vt-charcoal-900)" hint-size="18px,18px"></x-import>
+</sc-if>
+</div>
+</x-import>
+</sc-for>
+<div style="display:flex;align-items:center;gap:14px;margin-top:4px;flex-wrap:wrap">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="sm" onClick="{{ dec.onToggleNote }}" hint-size="140px,36px">{{ dec.noteToggleLabel }}</x-import>
+<span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">Affects: {{ dec.affects }}</span>
+</div>
+<sc-if value="{{ dec.noteOpen }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" value="{{ dec.noteVal }}" onChange="{{ dec.onNoteChange }}" rows="3" placeholder="Explain, correct, or add detail…" hint-size="100%,80px"></x-import>
+</sc-if>
+</div>
+</div>
+</x-import>
+</sc-for>
+</div>
+</section>
+
+<section id="sec-photo" data-screen-label="Photography">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.SectionHeader" eyebrow="Same brief throughout" title="12 photos needed" subtitle="{{ photoSubtitle }}" level="h2" rule="{{ true }}" hint-size="100%,90px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" hint-size="100%,60px">Premium black vehicles, cool daylight, no warm filter, no grain, no people-first lifestyle shots — wherever these land.</x-import>
+<div style="display:flex;flex-direction:column;gap:18px;margin-top:18px">
+<sc-for list="{{ photoView }}" as="pho" hint-placeholder-count="3">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" tone="default" padding="lg" hint-size="100%,200px">
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+<div style="display:flex;align-items:flex-start;gap:12px;flex:1;min-width:0">
+<span style="flex:none;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:999px;background:var(--vt-charcoal-900);color:#fff;font-family:var(--vt-font-display);font-size:13px;font-weight:600;margin-top:2px">{{ pho.num }}</span>
+<div style="flex:1;min-width:0">
+<h3 style="margin:0 0 6px;font-family:var(--vt-font-body);font-size:var(--vt-heading-3);line-height:1.25;font-weight:var(--vt-weight-semibold);color:var(--vt-charcoal-900)">{{ pho.title }}</h3>
+<p style="margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">{{ pho.context }}</p>
+</div>
+</div>
+<sc-if value="{{ pho.isAnswered }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Badge" tone="outline" hint-size="70px,22px">Answered</x-import>
+</sc-if>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;padding-left:42px">
+<sc-for list="{{ pho.optionsView }}" as="opt" hint-placeholder-count="4">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" tone="flat" padding="md" selectable="{{ true }}" selected="{{ opt.sel }}" onClick="{{ opt.onClick }}" hint-size="100%,48px">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+<span style="font-size:var(--vt-body-md);color:var(--vt-charcoal-900);line-height:1.4">{{ opt.text }}</span>
+<sc-if value="{{ opt.sel }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n18 }}" color="var(--vt-charcoal-900)" hint-size="18px,18px"></x-import>
+</sc-if>
+</div>
+</x-import>
+</sc-for>
+<div style="margin-top:4px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="sm" onClick="{{ pho.onToggleNote }}" hint-size="140px,36px">{{ pho.noteToggleLabel }}</x-import>
+</div>
+<sc-if value="{{ pho.noteOpen }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" value="{{ pho.noteVal }}" onChange="{{ pho.onNoteChange }}" rows="3" placeholder="Explain, correct, or add detail…" hint-size="100%,80px"></x-import>
+</sc-if>
+</div>
+</div>
+</x-import>
+</sc-for>
+</div>
+</section>
+
+<section id="sec-details" data-screen-label="Page by page details">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.SectionHeader" eyebrow="Everything else" title="Page-by-page details" subtitle="Fill in what you know and skip the rest — we'll follow up on anything left blank. A dashed chip fills the field with what the old site used to say; check it before keeping it." level="h2" rule="{{ true }}" hint-size="100%,100px"></x-import>
+<div style="display:flex;flex-direction:column;gap:34px;margin-top:22px">
+<sc-for list="{{ groupsView }}" as="grp" hint-placeholder-count="4">
+<div>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.SectionHeader" title="{{ grp.page }}" subtitle="{{ grp.progressLabel }}" level="h3" hint-size="100%,50px"></x-import>
+<sc-if value="{{ grp.hasNote }}" hint-placeholder-val="{{ false }}">
+<div style="margin:8px 0 12px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" hint-size="100%,60px">{{ grp.note }}</x-import></div>
+</sc-if>
+<div style="margin-top:10px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" tone="flat" padding="none" hint-size="100%,120px">
+<div>
+<sc-for list="{{ grp.itemsView }}" as="it" hint-placeholder-count="4">
+<div style="padding:16px 18px;border-bottom:1px solid var(--vt-border-subtle);display:flex;flex-direction:column;gap:9px">
+<p style="margin:0;font-size:14px;font-weight:600;color:var(--vt-charcoal-900)">{{ it.label }}</p>
+<sc-if value="{{ it.hasHint }}" hint-placeholder-val="{{ false }}">
+<p style="margin:0;font-size:12.5px;line-height:1.5;color:var(--vt-text-muted)">{{ it.hint }}</p>
+</sc-if>
+<sc-if value="{{ it.isText }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px">
+<sc-if value="{{ it.hasSuggestion }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Tag" onClick="{{ it.onSuggest }}" hint-size="120px,28px">Use "{{ it.suggestion }}"</x-import>
+</sc-if>
+<div style="flex:1;min-width:200px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" value="{{ it.value }}" onChange="{{ it.onChange }}" placeholder="{{ it.placeholder }}" size="md" hint-size="100%,44px"></x-import></div>
+</div>
+</sc-if>
+<sc-if value="{{ it.isChoice }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:6px">
+<sc-for list="{{ it.optionsView }}" as="opt3" hint-placeholder-count="3">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" tone="flat" padding="sm" selectable="{{ true }}" selected="{{ opt3.sel }}" onClick="{{ opt3.onClick }}" hint-size="100%,40px">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+<span style="font-size:13.5px;color:var(--vt-charcoal-900)">{{ opt3.text }}</span>
+<sc-if value="{{ opt3.sel }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n18 }}" color="var(--vt-charcoal-900)" hint-size="18px,18px"></x-import>
+</sc-if>
+</div>
+</x-import>
+</sc-for>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</x-import>
+</div>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section id="sec-send" data-screen-label="Send answers back">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" tone="inverse" padding="lg" hint-size="100%,220px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<div>
+<p style="margin:0 0 6px;text-transform:uppercase;letter-spacing:.09em;font-size:11px;font-weight:600;color:var(--vt-yellow-400)">Last step</p>
+<h2 style="margin:0 0 8px;font-family:var(--vt-font-body);font-size:var(--vt-heading-1);color:#fff">Send your answers back</h2>
+<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:1.6;color:rgb(255 255 255 / .78)">Copy everything below and send it back over email or chat — whichever's easiest. {{ progressLabel }} so far.</p>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="primary" size="lg" onClick="{{ copyAnswers }}" hint-size="200px,54px">Copy my answers</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="light" size="lg" onClick="{{ downloadAnswers }}" hint-size="220px,54px">Download as a text file</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="light" size="lg" onClick="{{ emailAnswers }}" hint-size="180px,54px">Email it over</x-import>
+</div>
+<sc-if value="{{ copied }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="success" hint-size="100%,50px">Copied — paste it into an email or message.</x-import>
+</sc-if>
+</div>
+</x-import>
+
+<div style="margin-top:20px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" tone="flat" padding="md" hint-size="100%,260px">
+<p style="margin:0 0 10px;font-size:var(--vt-label-sm);text-transform:uppercase;letter-spacing:var(--vt-label-tracking);font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Preview of what gets copied</p>
+<textarea readOnly="{{ true }}" value="{{ summaryText }}" style="width:100%;min-height:220px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);padding:12px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;line-height:1.5;color:var(--vt-charcoal-800);background:var(--vt-grey-50);resize:vertical;box-sizing:border-box"></textarea>
+</x-import>
+<div style="margin-top:14px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="sm" onClick="{{ resetAll }}" hint-size="200px,36px">Clear all my answers on this device</x-import>
+</div>
+</div>
+</section>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const PHOTO_OPTS = [
+  `We already have this — I'll send it over`,
+  `Needs a real photoshoot`,
+  `Use a temporary stand-in for now`,
+  `Not needed for launch`
+];
+
+const DECISIONS = [
+  { id:'carrier', title:`Are we the carrier, or a booking intermediary?`, context:`This decides who's legally liable for the ride, and whether About can keep saying "our drivers."`, affects:`Terms, About`, options:[
+    `We are the carrier — Vamos is directly liable for the ride`,
+    `We are an intermediary — partner drivers are liable, we just book it`,
+    `Other — explain below`
+  ]},
+  { id:'refunds', title:`Which cancellation refund policy is correct?`, context:`Two different promises exist at once: the current Cancellation page, and an older marketing line.`, affects:`Cancellation, Terms, FAQ`, options:[
+    `Tiered — 100% refund if cancelled more than 24h before pickup, 75% inside 24h, no refund for no-shows (current Cancellation page)`,
+    `Simple — full refund any time up to 24h before pickup, nothing after that (older promise)`,
+    `Other — explain below`
+  ]},
+  { id:'address', title:`Which is the correct company address?`, context:`An older address is still floating around; current pages use a different one.`, affects:`Privacy, Imprint, Terms`, options:[
+    `Bleicherstrasse 16, 8953 Dietikon ZH (used on current pages)`,
+    `Badenerstrasse 582, 8048 Zürich (older, archived)`,
+    `Other — type it below`
+  ]},
+  { id:'email', title:`Which email is the one official support address?`, context:`Three different addresses show up across old and new material, including a personal address in a draft.`, affects:`Contact, Privacy, Terms, footer`, options:[
+    `info@vamostaxi.eu`,
+    `contact@vamostaxi.eu`,
+    `Other — type it below`
+  ]},
+  { id:'payments', title:`Which payment methods do we actually accept?`, context:`Terms and FAQ currently list two different sets.`, affects:`Terms, footer, checkout`, options:[
+    `Amex, Visa, Mastercard, cash, bank transfer`,
+    `Visa, Mastercard, Apple Pay, TWINT, PayPal`,
+    `Other — type the real list below`
+  ]},
+  { id:'analytics', title:`Which analytics tool should the site use?`, context:`Changes the cookie table and the privacy-policy wording.`, affects:`Privacy, Cookies`, options:[
+    `Vercel Analytics`, `PostHog`, `Google Analytics`, `Other — type it below`
+  ]},
+  { id:'venue', title:`Where is the legal court of venue for disputes?`, context:`This is the city whose courts would hear a legal dispute with a customer — a standard contract clause. Courts are usually named where the company is registered, so Dietikon is the obvious default unless you'd rather name Zürich.`, affects:`Terms`, options:[
+    `Dietikon`, `Zürich`, `Other — type it below`
+  ]},
+  { id:'cancelchannel', title:`Which channels can a customer use to cancel a booking?`, context:`Terms says account only; FAQ says chat, WhatsApp or email.`, affects:`Cancellation, FAQ`, options:[
+    `Account only`, `Chat, WhatsApp or email`, `All of the above`, `Other — explain below`
+  ]},
+  { id:'consentlog', title:`Is a customer's cookie choice logged on our servers?`, context:`When someone accepts or declines cookies, that choice can be remembered just in their own browser, or also saved on our servers. Saving it server-side makes compliance easier to prove later, but it's more to build and needs its own retention rule.`, affects:`Cookies, Privacy`, options:[
+    `Yes — log it server-side`, `No — browser only`, `Not sure — ask engineering`
+  ]},
+  { id:'sentry', title:`Is crash/error reporting a "strictly necessary" cookie, or does it need consent?`, context:`Sentry is the tool that alerts us automatically when the site breaks for a customer. Right now it's bundled with analytics in the cookie banner, so anyone who declines analytics also switches off our crash alerts without knowing it. This decides whether error-reporting should always run, or stay tied to consent.`, affects:`Cookies, Privacy`, options:[
+    `Strictly necessary — always on`, `Consent-gated, grouped with analytics (current)`, `Give it its own separate toggle`
+  ]},
+  { id:'chat', title:`Does live chat exist in V1?`, context:`The old site advertised 24/7 chat; three FAQ answers and the footer currently assume it still does.`, affects:`FAQ, Contact, footer`, options:[
+    `Yes — keep or build live chat`, `No — remove every chat mention`, `Not yet — but keep the copy ready for later`
+  ]},
+  { id:'partner', title:`Build the "Become a driver" page, or remove the link?`, context:`A draft exists — copy and fields only, no photography — but it sits outside the agreed scope.`, affects:`Footer, About, Become a driver`, options:[
+    `Build it for launch`, `Unlink it for now — remove the footer and About links`, `Keep the draft on file, just don't link to it yet`
+  ]},
+  { id:'fleet', title:`Final vehicle lineup — which classes, capacities and names?`, context:`Economy (3 passengers / 3 bags) and Van are confirmed, but Van's own number is on file as both 7/8 and 8/8 — and the live booking page also shows a "Business" and a "First" class with no capacity given at all.`, affects:`Home, Checkout, Confirmation, About, FAQ, Cancellation`, options:[
+    `Economy 3/3 + Van 8/8 only — 2 classes`,
+    `Economy 3/3 + Business + Van 8/8 — 3 classes`,
+    `Economy 3/3 + Business + First + Van 8/8 — 4 classes (what the code currently shows)`,
+    `Other — describe below`
+  ]},
+  { id:'flighttrack', title:`Is automated flight-status tracking in scope for V1?`, context:`This is the feature where a customer types their flight number and the site automatically shows real landing time, gate and delays, instead of a plain text field. It needs a paid data subscription that hasn't been approved yet, so it's built but probably should stay switched off until that's confirmed.`, affects:`Home`, options:[
+    `Yes — ship it in V1`, `No — postpone, show a plain flight-number field only`, `Not sure`
+  ]},
+  { id:'hourly', title:`Is "book by the hour" launching in V1?`, context:`The tab and fields already exist; scope says "if approved for launch."`, affects:`Home, footer`, options:[
+    `Yes — launch it`, `No — remove the tab for now`, `Not sure`
+  ]}
+];
+
+const PHOTO = [
+  { id:'hero', title:`Home & About hero photo`, context:`Both pages currently show the same placeholder — a black car at night with warm cabin light on wet asphalt, the opposite of the brand's cool-daylight rule. Needs a cool-daylight arrivals or curbside shot.` },
+  { id:'econ', title:`Economy vehicle photo`, context:`No photo exists yet — falls back to a plain icon on Home's fleet cards and About's fleet section.` },
+  { id:'biz', title:`Business vehicle photo`, context:`Same as Economy — no photo yet, and its capacity is still an open decision too (#13 above).` },
+  { id:'first', title:`"First" class photo`, context:`Only relevant if the First class launches (decision #13) — no photo, no brief yet.` },
+  { id:'founder', title:`Founder portrait`, context:`Ben Othman Houssein, cool daylight, no studio backdrop — for the "Founder-led, and answerable" section on About.` },
+  { id:'curb', title:`Driver at the curb, holding a name board`, context:`The classic arrivals shot — a driver at the curb holding a sign with the passenger's name — for Home's "why Vamos" section.` },
+  { id:'alpine', title:`Vehicle on an alpine or ski-route road`, context:`One of our vehicles on a snowy mountain road — supports the ski-transfer routes (Zermatt, St. Moritz, etc.) mentioned elsewhere on the site.` },
+  { id:'chauffeur', title:`Chauffeur opening the rear door`, context:`Same section as above.` },
+  { id:'lifestyle', title:`Destination / lifestyle photo library`, context:`A broader set of destination photos — city streets, resorts, drop-off points — so future route and coverage pages aren't all reusing the one van photo.` },
+  { id:'signin', title:`Sign-in / reset-password side panel image`, context:`Currently just charcoal with the checker mark. The one Van photo is wired up behind a toggle if you'd rather use it there.` }
+];
+
+const GROUPS = [
+  { page:`Shared — used on more than one page`, items:[
+    { id:'airportwait', label:`Airport pickup waiting time included free`, type:'text', suggestion:`60 minutes`, placeholder:`e.g. 60 minutes` },
+    { id:'stdwait', label:`Standard (non-airport) waiting time included free`, type:'text', suggestion:`30 minutes`, placeholder:`e.g. 30 minutes` },
+    { id:'extrawait', label:`Rate charged for extra waiting beyond that`, type:'text', hint:`Never published anywhere — needs a number.`, placeholder:`e.g. CHF 00.00 per 15 min` },
+    { id:'noshowcalls', label:`Call attempts made before a booking counts as a no-show`, type:'text', suggestion:`2 calls`, placeholder:`e.g. 2 calls` },
+    { id:'complaintdays', label:`Days we take to respond to a complaint`, type:'text', suggestion:`30 days`, placeholder:`e.g. 30 days` },
+    { id:'refundpayoutdays', label:`Days a refund takes to pay out`, type:'text', suggestion:`30 days`, placeholder:`e.g. 30 days` },
+    { id:'driverleadtime', label:`How long before pickup you get the driver's name, plate and number`, type:'text', suggestion:`6 hours`, placeholder:`e.g. 6 hours` },
+    { id:'supportlangs', label:`Which languages support and drivers speak`, type:'text', suggestion:`English (primary); German, French, Arabic where possible`, placeholder:`e.g. English, German, French` }
+  ]},
+  { page:`Terms & conditions`, items:[
+    { id:'legalname', label:`Registered legal company name`, type:'choice', options:[`Vamos Taxi`,`Vamos Taxi GmbH`,`Other — type it below`] },
+    { id:'extrastopfee', label:`Fee for an extra stop`, type:'text', placeholder:`e.g. CHF 00.00` },
+    { id:'citystaymin', label:`Free minutes included for a city stop/wait`, type:'text', suggestion:`15 minutes`, placeholder:`e.g. 15 minutes` },
+    { id:'citystayfee', label:`Fee charged beyond that`, type:'text', hint:`Old figure was €15 — needs a CHF number.`, placeholder:`e.g. CHF 00.00` },
+    { id:'oversizefee', label:`Fee for an oversized item`, type:'text', placeholder:`e.g. CHF 00.00` },
+    { id:'casedims', label:`Case size and hand-luggage allowance`, type:'text', suggestion:`56 × 45 × 25 cm, plus 1 hand-luggage per seat`, placeholder:`e.g. 56 × 45 × 25 cm` },
+    { id:'complaintwindow', label:`Days a customer has to file a complaint`, type:'text', suggestion:`10 days`, placeholder:`e.g. 10 days` }
+  ]},
+  { page:`Cancellation & refunds`, items:[
+    { id:'freecancelwindow', label:`Free-cancellation window before pickup`, type:'text', suggestion:`24 hours`, placeholder:`e.g. 24 hours` },
+    { id:'largevehseats', label:`Seat count that makes a vehicle "large" (its own rules apply)`, type:'text', suggestion:`15 seats`, placeholder:`e.g. 15 seats` },
+    { id:'largevehwindow', label:`Cancellation window for those large vehicles`, type:'text', suggestion:`5 days`, placeholder:`e.g. 5 days` },
+    { id:'moddeadline', label:`How close to pickup a booking can still be changed`, type:'text', placeholder:`e.g. 12 hours` },
+    { id:'drivernoshowshare', label:`Refund share if our driver doesn't show`, type:'text', suggestion:`80%`, placeholder:`e.g. 80%` },
+    { id:'vouchervalidity', label:`How long a cancellation voucher stays valid`, type:'text', hint:`Old wording just said "valid next year."`, placeholder:`e.g. 12 months` }
+  ]},
+  { page:`Privacy policy`, items:[
+    { id:'dpo', label:`Do we have a named data protection officer?`, type:'choice', options:[`Yes — I'll give the name below`,`No — not required for us`] },
+    { id:'eurep', label:`EU representative (if we have one)`, type:'text', placeholder:`Name and contact, or "none"` },
+    { id:'archiveyears', label:`Years booking records are kept`, type:'text', suggestion:`10 years`, hint:`Swiss Archiving Act reference.`, placeholder:`e.g. 10 years` },
+    { id:'financeretention', label:`How long finance records are kept`, type:'text', placeholder:`e.g. 10 years` },
+    { id:'logretention', label:`How long server logs are kept`, type:'text', placeholder:`e.g. 30 days` },
+    { id:'consentlogretention', label:`How long consent records are kept`, type:'text', placeholder:`e.g. 12 months` },
+    { id:'dsrdays', label:`Days we take to respond to a data request`, type:'text', placeholder:`e.g. 30 days` }
+  ]},
+  { page:`Cookies & banner`, note:`Swiss and EU rules require telling visitors what cookies you use and getting consent for anything beyond the strictly necessary ones (like staying logged in). This section is just the real names and durations for that disclosure — it doesn't need marketing input, just the factual list from whoever sets up hosting and analytics.`, items:[
+    { id:'cookienames', label:`Real cookie names and durations (session, consent, language, recent address, analytics, error monitoring, marketing)`, type:'text', hint:`Only __stripe_mid and __stripe_sid are confirmed so far — the rest arrive with instrumentation.`, placeholder:`List whatever you know` },
+    { id:'consentmonths', label:`How many months a consent choice is remembered`, type:'text', placeholder:`e.g. 12 months` }
+  ]},
+  { page:`Imprint`, items:[
+    { id:'uid', label:`UID / company registration number`, type:'text', placeholder:`CHE-000.000.000` },
+    { id:'authority', label:`Supervisory authority and licence`, type:'text', placeholder:`Name of authority + licence no.` },
+    { id:'disputebody', label:`Dispute-resolution body`, type:'text', placeholder:`Name of the body` },
+    { id:'liabilitytext', label:`Liability disclaimer wording`, type:'text', placeholder:`Paste the wording, or say "draft it for us"` },
+    { id:'credits', label:`Photography / brand-agency / build-agency credits`, type:'text', hint:`Only include a name if that party has agreed to be credited.`, placeholder:`Names, or "none to credit"` }
+  ]},
+  { page:`Contact page`, items:[
+    { id:'responsetime', label:`Response-time commitment`, type:'text', placeholder:`e.g. within 24 hours` },
+    { id:'supporthours', label:`Support hours`, type:'text', placeholder:`e.g. Mon–Sun, 07:00–22:00` },
+    { id:'chathours', label:`Chat hours`, type:'text', hint:`Only needed if live chat ships — see decision #11.`, placeholder:`e.g. same as support hours` },
+    { id:'facebookurl', label:`Facebook page URL`, type:'text', placeholder:`https://facebook.com/...` },
+    { id:'instagramurl', label:`Instagram profile URL`, type:'text', placeholder:`https://instagram.com/...` },
+    { id:'youtubeurl', label:`YouTube channel URL`, type:'text', placeholder:`https://youtube.com/...` },
+    { id:'trustpiloturl', label:`Trustpilot profile URL`, type:'text', placeholder:`https://trustpilot.com/review/...` }
+  ]},
+  { page:`FAQ`, items:[
+    { id:'meetgreet', label:`Which airports offer meet-and-greet`, type:'text', placeholder:`e.g. Zurich (ZRH), Geneva (GVA)` }
+  ]},
+  { page:`About page`, note:`This is the company-story page — who we are, the founder, why to trust us — not a service or booking page. These two capacity numbers are here only because About also shows a short fleet/coverage summary; everything else on the page is narrative and needs no numbers from you.`, items:[
+    { id:'coverage', label:`Full coverage list — cities, resorts, cross-border routes, and which are seasonal`, type:'text', hint:`One answer fills About and the booking widget's destination list.`, placeholder:`List them, or say you'll attach a document` },
+    { id:'bizpax', label:`Business class passenger capacity`, type:'text', placeholder:`e.g. 3` },
+    { id:'bizbags', label:`Business class bag capacity`, type:'text', placeholder:`e.g. 3` }
+  ]},
+  { page:`Account & booking management`, items:[
+    { id:'codeexpiry', label:`How long a verification code stays valid`, type:'text', placeholder:`e.g. 10 minutes` },
+    { id:'resendattempts', label:`How many times a customer can request a new code`, type:'text', placeholder:`e.g. 3` },
+    { id:'guestlink', label:`When does a guest's "manage my booking" link expire?`, type:'choice', options:[`After the trip date has passed`,`After a fixed time, regardless of pickup date`,`Other — explain below`] }
+  ]},
+  { page:`Become a driver — only if decision #12 says build it`, items:[
+    { id:'partnerreply', label:`Reply-time commitment to applicants`, type:'text', placeholder:`e.g. within 5 business days` },
+    { id:'partnerclasses', label:`Vehicle classes / body types drivers can apply with`, type:'text', placeholder:`List them` },
+    { id:'partnerlicences', label:`Licences and permits required`, type:'text', placeholder:`List them` },
+    { id:'partnercontact', label:`Is phone, email, or both mandatory on the form?`, type:'choice', options:[`Phone mandatory`,`Email mandatory`,`Either one is fine`] }
+  ]},
+  { page:`Site-wide`, items:[
+    { id:'effectivedate', label:`Effective date to print on the legal pages`, type:'text', placeholder:`e.g. the date this goes live` },
+    { id:'qurovalicense', label:`Qurova webfont licence`, type:'choice', options:[`We have redistribution rights — confirmed`,`Need to confirm with the foundry first`,`Switch to a different display font if we can't confirm`] }
+  ]}
+];
+
+const TOTAL_COUNT = DECISIONS.length + PHOTO.length + GROUPS.reduce((n,g)=>n+g.items.length,0);
+const LS_KEY = 'vamosReviewAnswers_v1';
+
+function mkOptions(id, options, answers, setChoice) {
+  const cur = (answers[id] || {}).choice;
+  return options.map(function (opt) {
+    return { text: opt, sel: cur === opt, onClick: function () { setChoice(id, opt); } };
+  });
+}
+
+function noteToggleLabel(open, val) {
+  if (open) return 'Hide note';
+  return (val && val.trim()) ? 'Note added — edit' : 'Add a note instead';
+}
+
+class Component extends DCLogic {
+  state = { answers: {}, notes: {}, notesOpen: {}, copied: false };
+
+  componentDidMount() {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        this.setState({ answers: parsed.answers || {}, notes: parsed.notes || {}, notesOpen: parsed.notesOpen || {} });
+      }
+    } catch (e) {}
+  }
+
+  persist(next) {
+    try { localStorage.setItem(LS_KEY, JSON.stringify(next)); } catch (e) {}
+  }
+
+  setChoice(id, value) {
+    this.setState(s => {
+      const already = (s.answers[id] || {}).choice === value;
+      const nextValue = already ? null : value;
+      const answers = { ...s.answers, [id]: { ...(s.answers[id] || {}), choice: nextValue } };
+      const notesOpen = (nextValue && nextValue.indexOf('Other') === 0) ? { ...s.notesOpen, [id]: true } : s.notesOpen;
+      const next = { answers, notes: s.notes, notesOpen };
+      this.persist(next);
+      return next;
+    });
+  }
+
+  setText(id, value) {
+    this.setState(s => {
+      const answers = { ...s.answers, [id]: { ...(s.answers[id] || {}), text: value } };
+      const next = { answers, notes: s.notes, notesOpen: s.notesOpen };
+      this.persist(next);
+      return next;
+    });
+  }
+
+  setNote(id, value) {
+    this.setState(s => {
+      const notes = { ...s.notes, [id]: value };
+      const next = { answers: s.answers, notes, notesOpen: s.notesOpen };
+      this.persist(next);
+      return next;
+    });
+  }
+
+  toggleNote(id) {
+    this.setState(s => ({ notesOpen: { ...s.notesOpen, [id]: !s.notesOpen[id] } }));
+  }
+
+  resetAll() {
+    if (!window.confirm('Clear every answer on this device? This cannot be undone.')) return;
+    this.setState({ answers: {}, notes: {}, notesOpen: {} });
+    try { localStorage.removeItem(LS_KEY); } catch (e) {}
+  }
+
+  buildSummary() {
+    const answers = this.state.answers, notes = this.state.notes;
+    const lines = [];
+    lines.push('VAMOS TAXI — CONTENT & PHOTOGRAPHY REVIEW');
+    lines.push('Answers recorded ' + new Date().toLocaleDateString());
+    lines.push('');
+    lines.push('DECISIONS');
+    DECISIONS.forEach((d, i) => {
+      const a = answers[d.id] || {};
+      lines.push((i + 1) + '. ' + d.title);
+      lines.push('   -> ' + (a.choice || '(not answered)'));
+      const note = notes[d.id];
+      if (note && note.trim()) lines.push('   Note: ' + note.trim());
+    });
+    lines.push('');
+    lines.push('PHOTOGRAPHY');
+    PHOTO.forEach((p, i) => {
+      const a = answers[p.id] || {};
+      lines.push((i + 1) + '. ' + p.title);
+      lines.push('   -> ' + (a.choice || '(not answered)'));
+      const note = notes[p.id];
+      if (note && note.trim()) lines.push('   Note: ' + note.trim());
+    });
+    lines.push('');
+    lines.push('PAGE-BY-PAGE DETAILS');
+    GROUPS.forEach(g => {
+      lines.push('');
+      lines.push(g.page.toUpperCase());
+      g.items.forEach(it => {
+        const a = answers[it.id] || {};
+        const val = it.type === 'choice' ? a.choice : a.text;
+        lines.push('- ' + it.label + ': ' + ((val && val.trim && val.trim()) ? val.trim() : (val || '(not answered)')));
+      });
+    });
+    return lines.join('\n');
+  }
+
+  fallbackCopy(text, done) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+      done();
+    } catch (e) {}
+  }
+
+  copyAnswers() {
+    const text = this.buildSummary();
+    const done = () => { this.setState({ copied: true }); setTimeout(() => this.setState({ copied: false }), 2500); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(() => this.fallbackCopy(text, done));
+    } else {
+      this.fallbackCopy(text, done);
+    }
+  }
+
+  emailAnswers() {
+    const text = this.buildSummary();
+    const body = text.length > 6000 ? text.slice(0, 6000) + '\n\n[Truncated by email length — please attach the downloaded file too.]' : text;
+    const url = 'mailto:?subject=' + encodeURIComponent('Vamos Taxi — content & photography review answers') + '&body=' + encodeURIComponent(body);
+    window.location.href = url;
+  }
+
+  downloadAnswers() {
+    const text = this.buildSummary();
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'vamos-taxi-review-answers.txt';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  renderVals() {
+    const answers = this.state.answers, notes = this.state.notes, notesOpen = this.state.notesOpen;
+    const setChoiceFn = (id, v) => this.setChoice(id, v);
+
+    const decisionsView = DECISIONS.map((d, i) => {
+      const optionsView = mkOptions(d.id, d.options, answers, setChoiceFn);
+      return {
+        id: d.id, num: String(i + 1).padStart(2, '0'), title: d.title, context: d.context, affects: d.affects,
+        optionsView, isAnswered: optionsView.some(o => o.sel),
+        noteOpen: !!notesOpen[d.id], noteVal: notes[d.id] || '',
+        noteToggleLabel: noteToggleLabel(!!notesOpen[d.id], notes[d.id] || ''),
+        onToggleNote: () => this.toggleNote(d.id), onNoteChange: (e) => this.setNote(d.id, e.target.value)
+      };
+    });
+
+    const photoView = PHOTO.map((p, i) => {
+      const optionsView = mkOptions(p.id, PHOTO_OPTS, answers, setChoiceFn);
+      return {
+        id: p.id, num: String(i + 1).padStart(2, '0'), title: p.title, context: p.context,
+        optionsView, isAnswered: optionsView.some(o => o.sel),
+        noteOpen: !!notesOpen[p.id], noteVal: notes[p.id] || '',
+        noteToggleLabel: noteToggleLabel(!!notesOpen[p.id], notes[p.id] || ''),
+        onToggleNote: () => this.toggleNote(p.id), onNoteChange: (e) => this.setNote(p.id, e.target.value)
+      };
+    });
+
+    let decAnswered = decisionsView.filter(d => d.isAnswered).length;
+    let phoAnswered = photoView.filter(p => p.isAnswered).length;
+
+    const groupsView = GROUPS.map(g => {
+      const itemsView = g.items.map(it => {
+        const isChoice = it.type === 'choice';
+        const base = { id: it.id, label: it.label, hint: it.hint || '', hasHint: !!(it.hint && it.hint.trim()), isText: !isChoice, isChoice };
+        if (isChoice) {
+          base.optionsView = mkOptions(it.id, it.options, answers, setChoiceFn);
+        } else {
+          const a = answers[it.id] || {};
+          base.value = a.text || '';
+          base.placeholder = it.placeholder || '';
+          base.onChange = (e) => this.setText(it.id, e.target.value);
+          base.suggestion = it.suggestion || '';
+          base.hasSuggestion = !!it.suggestion;
+          base.onSuggest = it.suggestion ? (() => this.setText(it.id, it.suggestion)) : null;
+        }
+        return base;
+      });
+      const answeredN = itemsView.filter(iv => iv.isChoice ? iv.optionsView.some(o => o.sel) : !!(iv.value && iv.value.trim())).length;
+      return { page: g.page, hasNote: !!g.note, note: g.note || '', itemsView, answeredN, progressLabel: answeredN + ' of ' + itemsView.length + ' answered' };
+    });
+
+    const groupsAnswered = groupsView.reduce((n, g) => n + g.answeredN, 0);
+    const answeredCount = decAnswered + phoAnswered + groupsAnswered;
+
+    return {
+      decisionsView, photoView, groupsView,
+      decisionsSubtitle: `Each one changes more than one page — settle these first. ${decAnswered} of ${DECISIONS.length} answered.`,
+      photoSubtitle: `${phoAnswered} of ${PHOTO.length} answered.`,
+      answeredCount, totalCount: TOTAL_COUNT,
+      progressLabel: `${answeredCount} / ${TOTAL_COUNT} answered`,
+      copied: this.state.copied,
+      summaryText: this.buildSummary(),
+      copyAnswers: () => this.copyAnswers(),
+      downloadAnswers: () => this.downloadAnswers(),
+      emailAnswers: () => this.emailAnswers(),
+      resetAll: () => this.resetAll(),
+      n18: 18, n26: 26, n56: 56
+    };
+  }
+}
+</script>
+</body>
+</html>

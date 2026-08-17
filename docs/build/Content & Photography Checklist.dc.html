@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/laws.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<script src="../doc-page.js"></script>
+<style>:root{--vt-shadow-accent:none}body{margin:0}doc-page:not(:defined){visibility:hidden}</style>
+</helmet>
+
+<doc-page size="letter" margin="0.75in">
+
+<div slot="footer" style="display:flex;justify-content:space-between;width:100%;font-family:var(--vt-font-body);font-size:10.5px;color:var(--vt-text-muted)">
+<span>Vamos Taxi &mdash; content &amp; photography checklist</span>
+<span>Internal &mdash; not for customer distribution</span>
+</div>
+
+<h1 style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:32px;font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:1.1;color:var(--vt-charcoal-900)">Content &amp; photography still needed</h1>
+<p style="margin:0 0 40px;max-width:64ch;font-family:var(--vt-font-body);font-size:15px;line-height:1.6;color:var(--vt-text-secondary)">Every page below is built and working. This is what's still missing before it can leave placeholder state &mdash; decisions first, since each one settles more than one page at once, then photography, then each page's own copy and numbers. Nothing here should be guessed: every fare stays <code>CHF 000</code> and every pending fact stays a labelled placeholder until it's answered.</p>
+
+<section style="break-before:page">
+<p style="margin:0 0 6px;font-family:var(--vt-font-body);font-size:12px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;color:var(--vt-yellow-700)">Settle once &mdash; unlocks several pages</p>
+<h2 style="margin:0 0 10px;font-family:var(--vt-font-display);font-size:24px;font-weight:var(--vt-weight-semibold);color:var(--vt-charcoal-900)">Decisions first</h2>
+<div style="height:2px;width:56px;background:var(--vt-charcoal-900);margin:0 0 20px"></div>
+<ol style="margin:0;padding-left:22px;display:flex;flex-direction:column;gap:13px;font-family:var(--vt-font-body);font-size:14.5px;line-height:1.55;color:var(--vt-charcoal-800)">
+<li><strong>Carrier or booking intermediary?</strong> Whether Vamos is legally the carrier or an intermediary changes the liability and subcontracting clauses, and whether About can keep saying &ldquo;our drivers.&rdquo; <span style="color:var(--vt-text-muted)">&rarr; Terms, About</span></li>
+<li><strong>Vehicle lineup &mdash; final classes, names and capacities.</strong> Economy (3 passengers / 3 bags) and a Van class were confirmed in July, but Van's own capacity is on file as both 7/8 and 8/8, and the live code now also ships a &ldquo;Business&rdquo; and a &ldquo;First&rdquo; class whose capacities were never given at all. One settled table &mdash; class, passenger capacity, bag capacity, which of them actually launch &mdash; before more code or copy points at any of it. <span style="color:var(--vt-text-muted)">&rarr; Home, Checkout, Confirmation, About, FAQ, Cancellation</span></li>
+<li><strong>The three cancellation shares.</strong> One source promises a full refund inside 24 hours; another grants 75% and keeps 25%. Both are live promises on file at once. <span style="color:var(--vt-text-muted)">&rarr; Cancellation, Terms, FAQ</span></li>
+<li><strong>One company address.</strong> Older material gives a Z&uuml;rich address; current pages give Bleicherstrasse&nbsp;16, Dietikon. <span style="color:var(--vt-text-muted)">&rarr; Privacy, Imprint, Terms</span></li>
+<li><strong>One support email.</strong> Three addresses are on file, including a personal address in an old terms draft. <span style="color:var(--vt-text-muted)">&rarr; Contact, Privacy, Terms, footer</span></li>
+<li><strong>One payment-method list.</strong> Terms names Amex/Visa/Mastercard/cash/bank transfer; FAQ names Visa/Mastercard/Apple&nbsp;Pay/TWINT/PayPal. <span style="color:var(--vt-text-muted)">&rarr; Terms, footer, checkout</span></li>
+<li><strong>Which analytics tool.</strong> Vercel Analytics, PostHog or Google Analytics &mdash; changes the cookie table and the privacy clause. <span style="color:var(--vt-text-muted)">&rarr; Privacy, Cookies</span></li>
+<li><strong>Is crash reporting (Sentry) &ldquo;strictly necessary,&rdquo; or consent-gated?</strong> As written today it sits under Analytics, so declining analytics also turns off crash reporting. <span style="color:var(--vt-text-muted)">&rarr; Cookies, Privacy</span></li>
+<li><strong>Does live chat exist in V1?</strong> The old site advertised 24/7 chat; three FAQ answers and the footer currently assume it still does. <span style="color:var(--vt-text-muted)">&rarr; FAQ, Contact, footer</span></li>
+<li><strong>Build &ldquo;Become a partner,&rdquo; or unlink it?</strong> A draft exists (copy and fields only, no photography) but it sits outside the agreed scope. If it's cut, delete the file and drop the footer and About links to it. <span style="color:var(--vt-text-muted)">&rarr; Footer, About, Become a partner</span></li>
+<li><strong>Is automated flight-status tracking in scope for V1?</strong> Other docs say postpone it; the home page field already does live polling against a flight-data API key that isn't confirmed. <span style="color:var(--vt-text-muted)">&rarr; Home</span></li>
+<li><strong>Is &ldquo;book by the hour&rdquo; launching?</strong> The tab and fields exist; scope says &ldquo;if approved for launch,&rdquo; not yet decided. <span style="color:var(--vt-text-muted)">&rarr; Home, footer</span></li>
+<li><strong>Court of venue</strong> for disputes &mdash; the old clause names a third party's registered office. <span style="color:var(--vt-text-muted)">&rarr; Terms</span></li>
+<li><strong>Which channels can cancel a booking?</strong> Terms says account only; FAQ says chat, WhatsApp or email. <span style="color:var(--vt-text-muted)">&rarr; Cancellation, FAQ</span></li>
+<li><strong>Is consent logged server-side?</strong> Changes the consent-log retention period and the engineering behind the cookie banner. <span style="color:var(--vt-text-muted)">&rarr; Cookies, Privacy</span></li>
+</ol>
+</section>
+
+<section style="break-before:page">
+<p style="margin:0 0 6px;font-family:var(--vt-font-body);font-size:12px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;color:var(--vt-yellow-700)">The brand owns exactly one usable vehicle photo today</p>
+<h2 style="margin:0 0 10px;font-family:var(--vt-font-display);font-size:24px;font-weight:var(--vt-weight-semibold);color:var(--vt-charcoal-900)">Photography</h2>
+<div style="height:2px;width:56px;background:var(--vt-charcoal-900);margin:0 0 14px"></div>
+<p style="margin:0 0 18px;max-width:66ch;font-family:var(--vt-font-body);font-size:13.5px;line-height:1.55;color:var(--vt-text-muted)">Same brief wherever these land: premium black vehicles, cool daylight, no warm filter, no grain, no people-first lifestyle shots.</p>
+<ul style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:12px;font-family:var(--vt-font-body);font-size:14.5px;line-height:1.55;color:var(--vt-charcoal-800)">
+<li><strong>Home &amp; About hero.</strong> Both currently show the same placeholder: a black car at night, warm amber cabin light, wet asphalt &mdash; the opposite of the cool-daylight rule. About also captions it &ldquo;Arrivals hall at Zurich airport,&rdquo; though the shot is a car door and interior, not an airport hall. Needs a real cool-daylight arrivals or curbside shot, captioned to match.</li>
+<li><strong>Economy vehicle.</strong> No photo exists &mdash; falls back to an icon tile on Home's fleet cards and About's fleet section.</li>
+<li><strong>Business vehicle.</strong> Same &mdash; no photo, and its capacity was never confirmed either (Decision 2).</li>
+<li><strong>&ldquo;First&rdquo; class</strong>, if it is launching at all (Decision 2): no photo, no brief.</li>
+<li><strong>Founder portrait.</strong> Ben Othman Houssein, cool daylight, no studio background, for About's &ldquo;Founder-led, and answerable&rdquo; section. A founder-led story with a stock face is worse than one with none, so this stays empty until the real portrait exists.</li>
+<li><strong>Driver at the curb, with a name board</strong> &mdash; Home's &ldquo;why Vamos&rdquo; section.</li>
+<li><strong>Vehicle on an alpine / ski-corridor route</strong> &mdash; same section.</li>
+<li><strong>Chauffeur at the rear door</strong> &mdash; same section.</li>
+<li><strong>Destination / lifestyle photography.</strong> No library beyond the single Van street photo; needed for any future route or coverage imagery.</li>
+<li><strong>Sign-in / reset-password side panel.</strong> Charcoal and the checker mark only today; the one Van photo is wired up behind a toggle if it should be used there instead.</li>
+<li><strong>Payment marks.</strong> Visa, Mastercard, TWINT, Apple&nbsp;Pay, PayPal, cash &mdash; plain text chips in the footer today; swap for the real marks once the provider list is confirmed (Decision 6).</li>
+<li><strong>Social platform marks.</strong> Instagram, Facebook and LinkedIn icons must come from each platform's own brand kit (the icon library dropped its brand glyphs); the footer currently uses plain glyphs.</li>
+</ul>
+</section>
+
+<section style="break-before:page">
+<p style="margin:0 0 6px;font-family:var(--vt-font-body);font-size:12px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;color:var(--vt-yellow-700)">Everything else, by page</p>
+<h2 style="margin:0 0 10px;font-family:var(--vt-font-display);font-size:24px;font-weight:var(--vt-weight-semibold);color:var(--vt-charcoal-900)">Copy &amp; numbers</h2>
+<div style="height:2px;width:56px;background:var(--vt-charcoal-900);margin:0 0 8px"></div>
+
+<h3 style="margin:26px 0 10px;padding-top:16px;border-top:1px solid var(--vt-border-subtle);font-family:var(--vt-font-body);font-size:17px;font-weight:600;color:var(--vt-charcoal-900)">Home</h3>
+<ul style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-family:var(--vt-font-body);font-size:14.5px;line-height:1.55;color:var(--vt-charcoal-800)">
+<li>The CHF fare matrix &mdash; fixed routes and surcharges. The last real money gap; every fare on the page is a placeholder until it lands.</li>
+<li>The vehicle-lineup decision (2) &mdash; drives the fleet cards directly.</li>
+<li>Hero photography (see above).</li>
+</ul>
+
+<h3 style="margin:26px 0 10px;padding-top:16px;border-top:1px solid var(--vt-border-subtle);font-family:var(--vt-font-body);font-size:17px;font-weight:600;color:var(--vt-charcoal-900)">About</h3>
+<ul style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-family:var(--vt-font-body);font-size:14.5px;line-height:1.55;color:var(--vt-charcoal-800)">
+<li><strong>Coverage list</strong> &mdash; every city, resort and cross-border destination served, and which are seasonal. One answer fills About's routes section and the booking widget's destination list.</li>
+<li>Support languages, and which languages drivers speak.</li>
+<li>How many hours before pickup you get the driver's name, plate and number (shown twice on this page).</li>
+<li>Founder portrait, Economy and Business photography (see Photography above).</li>
+</ul>
+
+<h3 style="margin:26px 0 10px;padding-top:16px;border-top:1px solid var(--vt-border-subtle);font-family:var(--vt-font-body);font-size:17px;font-weight:600;color:var(--vt-charcoal-900)">Contact</h3>
+<ul style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-family:var(--vt-font-body);font-size:14.5px;line-height:1.55;color:var(--vt-charcoal-800)">
+<li>Support email (Decision 5), response-time commitment, support hours, and chat hours if chat ships (Decision 9).</li>
+<li>Facebook, Instagram, YouTube and Trustpilot profile URLs &mdash; a domain exists but nothing is linked yet.</li>
+</ul>
+
+<h3 style="margin:26px 0 10px;padding-top:16px;border-top:1px solid var(--vt-border-subtle);font-family:var(--vt-font-body);font-size:17px;font-weight:600;color:var(--vt-charcoal-900)">FAQ</h3>
+<ul style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-family:var(--vt-font-body);font-size:14.5px;line-height:1.55;color:var(--vt-charcoal-800)">
+<li>Which airports offer meet-and-greet.</li>
+<li>Shares its remaining answers with Decisions 2, 3, 9 and 12, and the driver-lead-time / support-language facts from About.</li>
+</ul>
+
+<h3 style="margin:26px 0 10px;padding-top:16px;border-top:1px solid var(--vt-border-subtle);font-family:var(--vt-font-body);font-size:17px;font-weight:600;color:var(--vt-charcoal-900)">Manage a booking, account, bookings, booking detail</h3>
+<ul style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-family:var(--vt-font-body);font-size:14.5px;line-height:1.55;color:var(--vt-charcoal-800)">
+<li>All read off the same refund-share numbers as Cancellation (Decision 3) &mdash; nothing new to supply once that's settled.</li>
+<li>Verification-code expiry time and how many resend attempts are allowed (phone verification, reached from Account).</li>
+<li>Guest manage-booking link: does the access token expire only after the trip, or after a fixed duration regardless of pickup date?</li>
+</ul>
+
+<h3 style="margin:26px 0 10px;padding-top:16px;border-top:1px solid var(--vt-border-subtle);font-family:var(--vt-font-body);font-size:17px;font-weight:600;color:var(--vt-charcoal-900)">Sign in, reset password</h3>
+<ul style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-family:var(--vt-font-body);font-size:14.5px;line-height:1.55;color:var(--vt-charcoal-800)">
+<li>Whether the side panel keeps the one Van photo or stays photo-free (see Photography above).</li>
+</ul>
+
+<h3 style="margin:26px 0 10px;padding-top:16px;border-top:1px solid var(--vt-border-subtle);font-family:var(--vt-font-body);font-size:17px;font-weight:600;color:var(--vt-charcoal-900)">Become a partner <span style="font-weight:400;color:var(--vt-text-muted)">&mdash; draft only, pending Decision 10</span></h3>
+<ul style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-family:var(--vt-font-body);font-size:14.5px;line-height:1.55;color:var(--vt-charcoal-800)">
+<li>Reply-time commitment.</li>
+<li>Which vehicle classes / body types partners can apply with.</li>
+<li>Which licences and permits are actually required.</li>
+<li>Whether phone, email, or both, are mandatory.</li>
+</ul>
+
+<h3 style="margin:26px 0 10px;padding-top:16px;border-top:1px solid var(--vt-border-subtle);font-family:var(--vt-font-body);font-size:17px;font-weight:600;color:var(--vt-charcoal-900)">Terms &amp; conditions</h3>
+<ul style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-family:var(--vt-font-body);font-size:14.5px;line-height:1.55;color:var(--vt-charcoal-800)">
+<li>Registered legal name (the register shows &ldquo;Vamos Taxi,&rdquo; no GmbH &mdash; confirm which is correct).</li>
+<li>Extra-stop fee; city-stay minutes and fee (only a &euro;15 figure is on file, needs a CHF number); oversized-item fee; case dimensions and hand-luggage allowance.</li>
+<li>Airport and standard waiting minutes included, extra-waiting rate, no-show call attempts (shared with Cancellation), complaint response window in days.</li>
+<li>Legal text to draft: contracting party, subcontracting, refusal of carriage &amp; soiling, refused/unaccompanied items, dispute-resolution body, liability, force majeure, court of venue (Decision 11).</li>
+<li>Plus Decisions 1, 3, 4, 5, 6 above.</li>
+</ul>
+
+<h3 style="margin:26px 0 10px;padding-top:16px;border-top:1px solid var(--vt-border-subtle);font-family:var(--vt-font-body);font-size:17px;font-weight:600;color:var(--vt-charcoal-900)">Cancellation &amp; refunds</h3>
+<ul style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-family:var(--vt-font-body);font-size:14.5px;line-height:1.55;color:var(--vt-charcoal-800)">
+<li>Free-cancellation window (hours); large-vehicle seat threshold and its own booking window; modification deadline; driver-no-show refund share; refund decision days and payout days; voucher validity period.</li>
+<li>Legal text: consequential costs when no driver arrives, disruption outcome, voucher terms.</li>
+<li>Plus Decisions 3 and 12 above.</li>
+</ul>
+
+<h3 style="margin:26px 0 10px;padding-top:16px;border-top:1px solid var(--vt-border-subtle);font-family:var(--vt-font-body);font-size:17px;font-weight:600;color:var(--vt-charcoal-900)">Privacy policy</h3>
+<ul style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-family:var(--vt-font-body);font-size:14.5px;line-height:1.55;color:var(--vt-charcoal-800)">
+<li>Data-protection-officer name, or confirmation none is required; EU representative.</li>
+<li>Data-hosting regions for Supabase, Vercel, Resend, Sentry and the analytics tool.</li>
+<li>Retention periods: booking records (years), finance, logs, consent log; data-subject-request response time in days.</li>
+<li>Legal text: statutory basis per data use, transfer mechanism per destination &mdash; the old Privacy Shield clause cannot be reused.</li>
+<li>Plus Decisions 4, 7, 8 and 15 above.</li>
+</ul>
+
+<h3 style="margin:26px 0 10px;padding-top:16px;border-top:1px solid var(--vt-border-subtle);font-family:var(--vt-font-body);font-size:17px;font-weight:600;color:var(--vt-charcoal-900)">Cookie policy &amp; banner</h3>
+<ul style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-family:var(--vt-font-body);font-size:14.5px;line-height:1.55;color:var(--vt-charcoal-800)">
+<li>Real cookie names and exact durations for: session, consent, hosting, language, recent-address, analytics, error-monitoring, marketing.</li>
+<li>How many months a consent choice is stored.</li>
+<li>Plus Decisions 7, 8 and 15 above.</li>
+</ul>
+
+<h3 style="margin:26px 0 10px;padding-top:16px;border-top:1px solid var(--vt-border-subtle);font-family:var(--vt-font-body);font-size:17px;font-weight:600;color:var(--vt-charcoal-900)">Imprint</h3>
+<ul style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-family:var(--vt-font-body);font-size:14.5px;line-height:1.55;color:var(--vt-charcoal-800)">
+<li>UID / company registration number &mdash; not published anywhere yet.</li>
+<li>Supervisory authority and licence; dispute-resolution body; liability disclaimer text.</li>
+<li>Photography, brand-agency and build-agency credits &mdash; only if each party agrees to be named.</li>
+</ul>
+
+<h3 style="margin:26px 0 10px;padding-top:16px;border-top:1px solid var(--vt-border-subtle);font-family:var(--vt-font-body);font-size:17px;font-weight:600;color:var(--vt-charcoal-900)">Site-wide</h3>
+<ul style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-family:var(--vt-font-body);font-size:14.5px;line-height:1.55;color:var(--vt-charcoal-800)">
+<li>Qurova's webfont / redistribution licence &mdash; only Poppins has a licence file on record; confirm the foundry grants web rights before this ships.</li>
+</ul>
+</section>
+
+<section style="break-before:page">
+<p style="margin:0 0 6px;font-family:var(--vt-font-body);font-size:12px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;color:var(--vt-yellow-700)">Don't re-ask</p>
+<h2 style="margin:0 0 10px;font-family:var(--vt-font-display);font-size:24px;font-weight:var(--vt-weight-semibold);color:var(--vt-charcoal-900)">Already settled</h2>
+<div style="height:2px;width:56px;background:var(--vt-charcoal-900);margin:0 0 20px"></div>
+<ul style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-family:var(--vt-font-body);font-size:14.5px;line-height:1.55;color:var(--vt-charcoal-800)">
+<li>Logo, favicon and the full lockup set &mdash; nine SVGs supplied, wired on every page.</li>
+<li>CTA casing &mdash; uppercase, confirmed.</li>
+<li>Economy's capacity (3/3) and the Van class itself &mdash; accepted. Only Van's exact number and the extra classes are still open (Decision 2).</li>
+<li>German &mdash; confirmed as a launch language alongside English, French and Arabic.</li>
+</ul>
+</section>
+
+</doc-page>
+</x-dc>
+</body>
+</html>

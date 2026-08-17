@@ -1,0 +1,604 @@
+
+=== terms (102)
+The rules that apply when you book a transfer with us: how a booking is formed, what the fixed price covers, what we owe you and what we need from you.
+Last updated
+Version
+English · Deutsch to follow
+Print or save as PDF
+Page navigation
+On this page
+Sections
+Who you contract with
+Scope
+How a booking is formed
+Fixed price
+Partner carriers
+Your obligations
+Luggage & child seats
+Waiting time
+No-show
+Changes & cancellation
+Complaints
+Liability
+Force majeure
+Your data
+Governing law & venue
+Related documents
+Vamos Taxi GmbH, Bleicherstrasse 16, 8953 Dietikon ZH, Switzerland, operates this site and takes your booking.
+Registered as
+, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the
+These terms cover pre-booked private transfers arranged through vamostaxi.eu: airport pickups and drop-offs, city and long-distance journeys, and chauffeur bookings by the hour. They apply from the moment you confirm a booking.
+We do not operate a street-hail or on-demand service. Every journey is booked ahead for a stated time, at a price agreed before you pay.
+Not covered by this document
+How we handle your personal data — see the
+privacy policy
+Cookies and consent — see the
+Cancellations, changes and refunds — see the
+cancellation & refund policy
+, which governs.
+You enter the route, the date and the time, and the number of passengers and bags. We show a price for each vehicle class. You pay. We send a written confirmation with a booking reference.
+The booking exists once that confirmation reaches you. Until then nothing is reserved and nothing is charged.
+What the confirmation contains
+Booking reference, pickup time and pickup address.
+Vehicle class, passenger and luggage count.
+The price you paid, in Swiss francs.
+How to change or cancel the booking.
+Driver name, vehicle and telephone number are sent by SMS and email
+The price shown at the last step is the price you pay. It is quoted in Swiss francs and it does not move afterwards — not for traffic, not for a longer route than expected, not for a busy evening.
+The journey between the two addresses you gave us, and the driver's time for it.
+Waiting time as set out in section
+Tolls, road charges and airport access fees.
+The gratuity. Tipping is not expected on top.
+Charged separately, only if you ask for it
+Additional stops:
+per stop.
+Waiting beyond the included allowance:
+Extended city stay, maximum
+minutes:
+Oversized or unusual items declared at booking:
+Some journeys are driven by a partner carrier working to our standards rather than by our own vehicle. You are told the vehicle class at booking; the driver's details arrive before pickup.
+Give an address the driver can reach, and a mobile number you will answer on the day.
+Be at the pickup point at the agreed time.
+Tell us the flight number for an airport pickup, so a delay is visible to us.
+Declare passengers and bags honestly — a vehicle is assigned on those numbers.
+Wear a seatbelt, and keep to Swiss road law.
+Smoking is not permitted in our vehicles. Alcohol and food only with the driver's agreement.
+Every booked seat carries one medium case of
+and one piece of hand luggage. A vehicle is assigned on the count you gave us, so tell us if it changes.
+Declare in advance
+Skis and snowboards, folding bicycles, collapsible wheelchairs, musical instruments, pets. We will confirm the vehicle class that takes them.
+Children
+Child and booster seats are available on request. You may fit your own. Swiss law decides which seat a child needs, and the driver will not travel without it.
+Waiting is included, measured from the pickup time in your confirmation.
+Airport pickups:
+, counted from the actual landing time we see against your flight number.
+All other pickups:
+, counted from the booked time.
+Beyond the allowance we charge
+. If your flight is delayed, the allowance moves with the flight — you do not need to call us.
+A booking counts as a no-show when the waiting allowance in section
+has run out and we have called your number
+times without an answer.
+A no-show is not refunded. What we hold on record as evidence is set out in the
+If the driver does not arrive
+Call us on the number in your confirmation. Where we can see that you were at the pickup point and no vehicle came, the
+sets out what you get back.
+Change or cancel from the link in your confirmation email, or from your account if you made one. A change is effective when we confirm it in writing, not when you send it.
+You pay when you book. Card payments are processed by Stripe; we never see or store your full card number.
+Accepted methods:
+Invoices and corporate accounts:
+talk to us
+before you book.
+Tell us within
+days of the journey, by email or telephone, quoting your booking reference.
+days.
+Any refund we agree is paid within
+What we do say plainly, whatever the drafting: we do not exclude liability for death or personal injury caused by our negligence, and nothing in these terms removes rights Swiss consumer law gives you.
+Snow, closed roads, strikes, an airport shutdown: events outside anyone's control can stop a journey. Where that happens we will get you moving if it is safe and possible, and the
+says what happens to the money.
+What we collect, why, who processes it and how long we keep it is in the
+. Cookies and consent are in the
+Swiss law applies.
+Should any part of these terms be unenforceable, the rest continues to apply.
+Something not clear?
+Cancellations, changes, complaints and no-shows all go through the same team. Quote your booking reference and we will pick it up.
+
+=== privacy (107)
+A transfer needs your name, two addresses, a time and a way to reach you. This is what happens to that information, who else touches it, and how long it stays.
+Last updated
+Version
+Applies to
+revFADP · GDPR
+Print or save as PDF
+Page navigation
+On this page
+Sections
+Who is responsible
+What we collect
+Why we may use it
+Who processes it
+Transfers abroad
+How long we keep it
+Your rights
+Cookies & consent
+Making a request
+Changes to this policy
+Related documents
+Vamos Taxi GmbH is the controller of your personal data.
+Controller
+Vamos Taxi GmbH, Bleicherstrasse 16, 8953 Dietikon ZH, Switzerland
+Contact for data
+Data protection officer
+Representative in the EU
+Only what a transfer needs, plus what the law makes us keep. We do not buy data about you and we do not build advertising profiles.
+When you get a price
+Pickup and drop-off address, date and time, passenger and luggage count. This is enough to price a journey and nothing here identifies you.
+When you book
+Lead passenger name, email address and mobile number.
+Pickup and drop-off address, and any additional stop.
+Flight number, where you gave one, and the arrival time we read from it.
+Passenger and luggage count, child seat requests, declared items.
+Anything you type into the notes field for the driver.
+When you pay
+Payment metadata only: the amount, the currency, the method, the last four digits, and whether it succeeded. Card numbers are entered on Stripe's own form and never reach our systems.
+While you use the site
+Server logs — page, timestamp, referrer, browser, operating system and IP address — and whatever the cookie categories you allowed are set to collect. See the
+When you contact us
+Your message and the channel it came in on, kept with the booking it refers to.
+To perform the contract
+Taking a booking, assigning a driver, collecting payment, sending your confirmation and driver details, handling a change or a cancellation.
+Legal obligation
+Accounting, tax, and the trip records Swiss archiving law requires us to hold — see section
+Legitimate interest
+Fraud prevention, service quality, evidence of a no-show, and defending a claim.
+Consent
+Analytics and marketing cookies, and any newsletter. You can withdraw it at any time without giving a reason.
+Suppliers who handle data on our instructions, under contract, and for nothing else.
+The platform we are building
+Stripe Payments Europe Ltd
+Card payments · Dublin, Ireland
+Booking database and sign-in ·
+Website hosting and delivery ·
+Address lookup and route distance · United States
+Confirmation and driver-detail emails ·
+Error diagnostics ·
+Site analytics, only with your consent ·
+Partner carriers
+The driver assigned to your journey receives your name, mobile number, pickup and drop-off address and the time. Nothing else.
+Declared on the previous site — confirm or drop
+PayPal (Europe) S.à r.l.
+Payments · Luxembourg — only if PayPal is switched on
+Twint AG
+Payments · Zurich — only if TWINT is switched on
+Google Analytics
+Analytics · being replaced. If it stays, it belongs in the cookie table too.
+AWStats
+Self-hosted log statistics on a Swiss server · drops out with the old hosting
+Some of these suppliers process data outside Switzerland. Where that happens we rely on the transfer mechanism named in the row above, and we tell you which country.
+Trip records
+Lead passenger name, passenger count, email, start and destination —
+years, because Swiss archiving law requires it.
+Payment records
+for accounting and tax.
+Account and marketing preferences
+Until you close the account or withdraw consent.
+Server logs
+Consent record
+— proof of what you chose, and when.
+Two things are true at once, and this page shows them side by side rather than burying one of them.
+You can ask us to
+Give you a copy of what we hold
+Correct anything that is wrong
+Delete what we are not required to keep
+Restrict or object to a particular use
+Send your data to another provider
+Withdraw a consent you gave
+We have to keep
+Trip records for
+years
+Payment and tax records
+The record of your cookie choice
+Evidence relating to an open claim
+So a deletion request does not erase a journey we are legally obliged to archive. What we can delete, we delete. What we cannot, we tell you about, and we say which rule keeps it and when it expires.
+You can also complain to the Federal Data Protection and Information Commissioner in Bern, and — if you are in the EU — to your national authority. We would rather you came to us first.
+Strictly necessary cookies keep a booking working. Everything else is off until you switch it on, and you can change your mind at any time.
+Read the cookie policy
+, or
+open your cookie preferences
+with the booking reference if there is one. We answer within
+days.
+We may ask you to confirm who you are before we send data anywhere — for your protection, not as an obstacle.
+When this policy changes we update the date and the version at the top of the page. If a change affects what you agreed to, we ask you again rather than assuming.
+Want a copy of your data?
+Ask, and we will send what we hold. One person handles these requests, so quote the booking reference if your question is about a journey.
+
+=== imprint (98)
+Startseite
+Impressum
+Rechtliches
+Wer hinter dieser Website steht, wo das Unternehmen eingetragen ist und wie Sie uns erreichen. Deutsch ist die verbindliche Fassung.
+Who stands behind this site, where the company is registered and how to reach us. The German version is the binding one.
+Letzte Aktualisierung
+Last updated
+Fassung
+Version
+Sprache / Language
+Deutsch
+English
+DE + EN
+Print
+Page navigation
+Auf dieser Seite
+On this page
+Sections
+Handelsregister
+Register details
+Kontakt
+Vertretungsberechtigte Person
+Authorised representative
+Mehrwertsteuer
+VAT
+Aufsichtsbehörde
+Supervisory authority
+Streitbeilegung
+Dispute resolution
+Haftungsausschluss
+Disclaimer
+Urheberrecht
+Copyright
+Gestaltung
+Design & build
+Verwandte Dokumente
+Related documents
+Allgemeine Geschäftsbedingungen
+Storno & Rückerstattung
+Datenschutzerklärung
+Cookie-Richtlinie
+Bilingual proof page
+German is the original — the live imprint exists only in German — so it leads, and English is the translation. Switch to DE + EN to read both at once and to see how far the German headings run. Register details are verbatim from the commercial register; four blocks are still empty and are marked as slots.
+Angaben gemäss Handelsregister
+Eingetragener Firmenname
+Registered firm name
+— der Registereintrag führt den Namen ohne „GmbH“
+— the register entry carries the name without “GmbH”
+Rechtsform
+Legal form
+GmbH
+· Swiss limited liability company
+Firmennummer
+Company number
+CH-020.4.077.792-7
+Handelsregisteramt
+Register office
+Kanton Zürich
+Canton of Zurich
+Sitz
+Bleicherstrasse 16, 8953 Dietikon ZH
+, Switzerland
+E-Mail
+Telefon
+vamostaxi.eu
+Postadresse
+Postal address
+Vamos Taxi GmbH, Bleicherstrasse 16, 8953 Dietikon ZH
+Fragen zu einer bestehenden Buchung beantwortet dieselbe Adresse — bitte mit Buchungsreferenz.
+The same address answers questions about an existing booking — quote the booking reference.
+Ben Othman Houssein
+Funktion
+Role
+Inhaber und Geschäftsleitung
+Owner and managing director
+Inhaltlich verantwortlich
+Responsible for content
+UID / MWST-Nummer
+UID / VAT number
+Aufsichtsbehörde und Bewilligung
+Supervisory authority and licence
+Beschwerden nehmen wir direkt entgegen; der Ablauf steht in den
+AGB
+We take complaints directly; the route is in the
+terms
+Texte, Bilder, Marke und Gestaltung dieser Website gehören Vamos Taxi GmbH oder den jeweiligen Rechteinhabern. Weiterverwendung nur mit schriftlicher Zustimmung.
+Text, images, the brand and the design of this site belong to Vamos Taxi GmbH or to the respective rights holders. Reuse only with written permission.
+Bildnachweis
+Image credits
+Gestaltung und Umsetzung
+Design and build
+Marke und Gestaltung
+Brand and design
+Nennung nur, wenn die Agenturen zustimmen — sonst entfallen die Zeilen.
+Credit only where the agencies agree — otherwise the rows come out.
+Direkt erreichbar
+Eine Nummer, eine Adresse, eine Person, die antwortet.
+One number, one address, one person who answers.
+
+=== cookies (49)
+Four categories, one of which you cannot switch off because the booking would stop working. The other three are off until you say otherwise.
+Last updated
+Version
+Consent model
+Opt-in by category
+Change your choices
+Page navigation
+On this page
+Sections
+What we mean by cookies
+Your current choice
+Changing your mind
+The previous site
+Related documents
+Small files a site stores in your browser, plus the equivalents — local storage and pixels. We group them by what they are for, not by the technology.
+Nothing except the strictly necessary category is set before you choose. If you never choose, nothing else is ever set.
+Read from this browser, so it is the real state, not an example.
+Necessary · on
+Change preferences
+Reset my choice
+Resetting clears the record and brings the banner back, which is also how you check what a first-time visitor sees.
+Set for everyone, no consent needed, because without them a booking cannot be taken or paid for.
+Strictly necessary — cannot be switched off
+Purpose
+Provider
+Duration
+Keeps you signed in and holds the booking while you fill it in
+Vamos Taxi · Supabase
+Records which categories you allowed, so we can prove it and stop asking
+__stripe_mid · __stripe_sid
+Fraud checks on the payment step
+Routes your request and keeps the site available
+Convenience only. Decline them and everything still works, you just retype more.
+Functional — off until you allow them
+Remembers whether you read the site in English or German
+Offers your last pickup address the next time you book
+Which step of a booking people give up on, and which errors are breaking. Aggregated, and never used to make a decision about you.
+Analytics — off until you allow them
+Counts visits and measures where a booking is abandoned
+Links an error report to the session that produced it
+Nothing in this category is running today. It is here because the moment a paid campaign starts, something will be, and a category added later looks like a category that was hidden.
+Marketing — off, and currently unused
+Measures which advert or campaign led to a booking
+Open your preferences from the link in the footer of every page, or from section
+above. Turning a category off stops it immediately; anything already collected is handled as set out in the
+privacy policy
+Your browser settings also work, and they override anything we do. Blocking the strictly necessary category there will stop a booking from completing.
+Change your mind any time
+Your choice is a preference, not a contract. Reopen the panel whenever you like — no explanation needed.
+
+=== cancellation (82)
+Plans change. This page says exactly what happens to your money when they do — and it is the one page that decides.
+Last updated
+Version
+Applies to
+Every booking made on this site
+Print or save as PDF
+Page navigation
+On this page
+Sections
+What you get back
+How to cancel
+Changing a booking
+Flight delays
+If no driver arrives
+No-show
+Snow, strikes, closures
+How refunds are paid
+Vouchers
+Related documents
+This page governs
+Where the FAQ, a service page or the terms say anything different about windows, shares or refunds, what you read here applies. One document, one answer.
+Measured from the pickup time in your confirmation, not from the time you booked.
+More than
+24 hours before pickup
+100% refunded
+Refunded to the card you paid with. Or take the full value as a voucher instead — see section
+Inside
+75% refunded
+A driver is already committed to your journey by this point, which is what the retained share covers.
+After pickup time
+No-show, or not cancelled
+No refund
+The vehicle waited. Section
+sets out when a booking counts as a no-show.
+Vehicles over
+seats work to a longer window of
+72 hours
+, because a coach cannot be re-sold at short notice.
+Two routes, both ending in the same written confirmation. A cancellation counts from the moment we confirm it, so keep that email.
+Booked as a guest
+Use the manage-booking link in your confirmation email. It opens your booking without a password and works for one booking only.
+You have an account
+Sign in and open the booking under your reservations. Past journeys stay listed for your records.
+Cannot reach either? Call
+and quote your reference. We will do it for you and send the confirmation.
+Time, address, passenger count and vehicle class can be changed up to
+before pickup, free of charge. If the change moves the fare, you pay or we refund the difference — never more than the difference.
+A change requested after that deadline is treated as a cancellation and a new booking. It is worth calling us first: if a driver can still be moved, we will move them.
+Give us the flight number and a delay costs you nothing. We track the flight and the driver arrives for the actual landing time; the included waiting allowance starts from then, not from the time you booked.
+Delay within the same day: the pickup moves automatically. No call needed.
+Flight cancelled or diverted: tell us as soon as you know and we treat it under section
+, not as a late cancellation.
+No flight number on the booking: we cannot see the delay, so the ordinary waiting rules in the
+terms
+apply.
+Call the number in your confirmation before you make another arrangement, so we have a chance to fix it.
+Where our records show you were at the pickup point and no vehicle came, you receive
+back.
+A booking becomes a no-show once the included waiting time has run out and we have called your number
+times with no answer.
+Airport pickups:
+from the actual landing time.
+All other pickups:
+from the booked time.
+Answer the phone and the driver waits — the extra time is chargeable at
+, which is cheaper than losing the transfer.
+Where a journey becomes impossible or unsafe through something neither of us controls, we do not treat it as your cancellation. We re-plan first; if the journey cannot happen at all, the money is dealt with under this section rather than under the tiers above.
+Always to the original payment method. We cannot redirect a refund to a different card or account.
+Approved within
+Paid within
+days. Your bank may take a few days more to show it.
+Bookings paid with a voucher are refunded as a voucher.
+Unhappy with the outcome? The complaints route is in the
+, and we answer within
+days.
+Instead of a refund you can take the full value of the booking as a voucher, valid for
+. It is worth more than the refunded share, which is why we offer it.
+Usable on any route we serve, by anyone you pass it to.
+Redeemable against a higher fare — you pay the difference.
+Not exchangeable for cash once issued.
+Need to cancel now?
+Open your booking from the confirmation email, or call us and quote the reference. Same outcome, same written confirmation.
+
+=== contact (28)
+The form is live — submitting it empty reaches the error state on its own. This switcher is for review only.
+Bleicherstrasse 16
+Facebook
+Instagram
+YouTube
+Trustpilot
+Four slots, no confirmed URLs. Each one drops out cleanly if the account does not exist.
+The archive has
+in the imprint and privacy pages,
+contact@vamostaxi.eu
+in the FAQ, and a personal gmail account in the terms. This page renders one token, and every legal page points at the same one — set it once and the site agrees with itself.
+Archived imprint, T&Cs §2, FAQ · Wayback, 2024
+The gmail address does not survive.
+A personal mailbox in binding terms is a liability, not a channel.
+The old footer and FAQ promise “Customer Service 24/7 · Start a Chat”, and the site ran a chat widget. Chat is not in the V1 scope of work. If it is dropped, the footer changes and three answers change with it.
+So the chat block opposite is behind the
+showLiveChat
+tweak. Turn it off and the column closes up — no gap, no orphaned heading, no “coming soon”. Decide it either way; do not ship the promise without the widget.
+Facebook, Instagram, YouTube and Trustpilot are slots. A Trustpilot profile exists for the domain but no URL was ever linked, and an unlinked review badge is worth less than none.
+Decisions — 3
+Form states built — 5
+Default · empty and ready
+Validation error · per field, plus a summary
+Sending · every input locked
+Success · with a case reference
+Send failed · text preserved
+Tokens — 6
+The case reference on the success screen is generated in the browser for the mock. In production it comes from the ticket the message opens, and it is what the customer quotes when they chase.
+
+=== faq (12)
+This is everything the archived site actually published, regrouped. No desktop search: at this volume a search field is a control that finds nothing. The category chips are the navigation and the growth path — see the growth note at the foot of the page.
+Change a booking → cancellation 03
+Cancel a ride → cancellation 01
+Cancellation policy → cancellation, whole
+Tipping → terms 04
+Child seats → terms 07
+No refund share, window, waiting allowance or baggage dimension is restated on this page. That is the structural fix for the archive's worst contradiction — the old FAQ promised a full refund the terms did not grant.
+Search is designed but not shipped: eight questions across three categories are faster to scan than to search, and an empty result state on a set this small reads as a broken site.
+Turn it on when the set passes roughly 25 questions or five categories. It goes in the chip row, as a 44px pill field on the same baseline, and the chips become filters. The category headings already carry ids, so nothing needs relaying out.
+Each is a new
+<section data-grp>
+plus one chip. Three tokens on this page; the driver-details lead time is shared with the terms, so it takes the common key.
+
+=== about (17)
+Every sentence this changes is
+underlined in yellow
+below. Nothing moves when you switch — same blocks, same lengths.
+A portrait of Ben Othman Houssein, or him beside a vehicle. Cool daylight, no studio background. No photograph exists today, and a founder-led story with a stock face is worse than one with none.
+Two vehicles in the brand's register: clean, dark, cool daylight, no people. Until they exist these classes fall back to an icon tile in the booking flow.
+The definitive list of cities, resorts and cross-border destinations, and whether any of them are seasonal. It becomes the routes section here and the destination list in the booking flow — one list, two places.
+The archived terms declare Vamos a pure intermediary: the transport contract forms between the passenger and a partner carrier, and Vamos disclaims liability for the ride. The service pages sell “our skilled drivers”, “licensed, insured chauffeurs”, “our driver will track your flight”. An About page has to pick one, because it is the page where a customer decides who they are dealing with.
+Archived T&Cs §2 vs. book-transfer page · Wayback, 2024
+Two sentences carry the whole difference, and both are underlined in yellow above. Switch the control in the header and read the page each way: the blocks, the lengths and the layout are identical, so whichever answer comes back, nothing gets redesigned. The same answer then fills the slots in
+The About page was never archived and the live site is offline, so nothing here is recovered — it is written from what the business demonstrably is: a registered Zurich GmbH with a named owner, fixed pricing, airport meet & greet, and a partner-driver network.
+Nothing is invented in the other direction either: no fleet size, no ride count, no years in business, no cities-served total, no review score. The legacy site carried an unverifiable “48,350+ routes” claim; nothing of that shape appears here, and if a number arrives later it should arrive with a source.
+Decisions — 2
+Image slots — 3
+Two real photographs are in use: the arrivals hall, and the V-Class for the Van class.
+Tokens — 5 · Slot — 1
+Driver-details lead time
+Economy 3/3 and Van 8/8 are stated as fact — the client confirmed those. Business was never given a capacity.
+
+=== become-a-partner (91)
+Drivers and fleet owners
+Drive with Vamos
+You drive professionally in the Zurich area and you want the work. Every transfer we sell is booked ahead at a fixed price, so the schedule is known before anyone gets in the car. Tell us about yourself — one form, and we take it from there.
+State
+Empty
+Consent not ticked
+Validation errors
+Confirmation
+The form is live — every state above is reachable by using it. This switcher is for review only, and so is the note at the foot of the page.
+Application received
+Thank you,
+. Someone on our team reads every application and comes back to you on
+within
+Partner reply time
+There is nothing to do in the meantime. No account was created, so there is no login and no status page — the background check and the vehicle inspection are arranged with you directly, by phone and email.
+Apply to drive
+Six answers is the whole application. We only ask for what we need to decide whether to call you.
+About you
+Full name
+Where you drive
+Name the city or canton you work from
+Your base, not the routes you want. We start in the Zurich area.
+Phone{{ phoneOpt }}
+Email{{ emailOpt }}
+Your vehicle and licence
+Vehicle type
+Mercedes V-Class, 7 seats
+Choose the closest match
+Tell us what you drive
+Make, model and how many passengers it seats. Ours is an open field until the
+Partner vehicle classes
+are agreed.
+Licence and permits
+Professional driving licence, category B121
+Say which licence or permit you hold
+In words is enough here —
+Required permits
+. No documents at this stage; we ask for those when we come back to you.
+Consent
+I have read and accept the
+terms and conditions
+I agree that Vamos Taxi may keep and check the details I give here, as set out in the
+privacy policy
+Two checks come after this form.
+A background check on you and an inspection of your vehicle. Neither happens here — if your application goes forward we arrange both with you, and ask for documents then.
+Send application
+Sending this does not create an account and does not commit either of us to anything.
+After you send
+Three steps, all of them run by a person. None of them happen inside this page.
+We read it
+Every application is read by the dispatch team. You hear back within
+, either way.
+Background check
+We verify your licence and run a check on you. We ask for the documents and your written consent at that point, not now.
+Vehicle inspection
+Your car is seen in person before your first transfer. We arrange a time and place with you.
+No portal, on purpose
+There is no driver login, no application dashboard and nothing to check back on. You send this once; after that we talk to you directly.
+Questions before you apply? Call
+Client input · who qualifies
+Nothing on record says what a Vamos partner must already have — permit class, vehicle age, insurance cover, languages, minimum availability. Until that arrives this stays a gap rather than a guess: the form asks, and a person decides.
+A12 · build this page, or unlink it
+The footer's Company column links
+become-a-partner
+and the About page ends with a CTA to it, but the page was never in V1 scope. That is why this one is drawn light: structure, fields and copy, no photography and no illustration to throw away.
+Two outcomes.
+Build it and this becomes the real funnel. Unlink it and the footer link plus the About CTA come out — and this file goes in the bin, not into V1 half-finished.
+Two fields are guesses waiting to be told otherwise
+is a free text field, because the partner-side vehicle classes are not agreed. The
+vehicleTypeControl
+tweak shows the same field as a provisional dropdown so both can be judged side by side — the list in it is body types, not Vamos classes, and is not a final answer.
+is one text line. No upload, no document flow, no permit-number format validation — all three are speculative until somebody says what is actually required.
+Out of scope · where a submission lands
+No backend, no storage, no routing, and no admin table to read applications in. The confirmation state is the end of the deliverable. Whoever picks this up needs an inbox or an ops screen before it can go live.
+Where this page stands
+States built — 5
+Empty form
+Consent not ticked · submit blocked
+Validation errors · per field, plus a summary
+Sending · every input locked
+Confirmation · a dead end by design
+Decisions — 4
+A12 — build it or unlink it
+Which permits are required
+Phone or email, or both
+Deliberately absent — 4
+Any kind of applicant login
+Status tracking after submit
+Document upload
+An admin view of submissions
+English only this cycle, like every other screen in it — none of this copy is in the translation dictionary yet, so switching language relabels the header and footer around it. German lands with M004, and the strings here are short enough to grow.

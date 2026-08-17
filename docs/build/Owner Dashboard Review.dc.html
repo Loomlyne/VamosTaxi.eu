@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/laws.css">
+<link rel="stylesheet" href="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<style>:root{--vt-shadow-accent:none;--vt-logo-base:"../assets/logo/";--vt-icon-base:"../assets/icons/";--vt-pattern-base:"../assets/patterns/"}body{margin:0}::selection{background:var(--vt-yellow-400);color:var(--vt-charcoal-900)}</style>
+</helmet>
+
+<div style="background:var(--vt-bg-page);min-height:100vh;font-family:var(--vt-font-body)">
+
+<div style="position:relative;overflow:hidden;background:var(--vt-charcoal-900);padding:clamp(28px,5vw,48px) clamp(20px,5vw,56px) 32px" data-screen-label="Intro">
+<div style="position:absolute;top:0;right:0"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.CheckerMark" size="{{ n56 }}" hint-size="56px,56px"></x-import></div>
+<div style="max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:18px;position:relative">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" form="wordmark" height="{{ n26 }}" hint-size="150px,26px"></x-import>
+<div>
+<p style="margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-yellow-400)">For the owner — please review</p>
+<h1 style="margin:0 0 10px;font-family:var(--vt-font-body);font-size:var(--vt-display-2);line-height:1.08;letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:#fff">Dashboard review</h1>
+<p style="margin:0;max-width:60ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .78)">This one's about the dispatcher dashboard — logins, what the board shows, refund rules, and which sidebar screens to build next. Pricing and cancellation numbers are already covered in the site content review, so they're not repeated here.</p>
+</div>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 28px;margin-top:4px">
+<div style="min-width:220px;flex:1 1 260px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.ProgressIndicator" value="{{ answeredCount }}" max="{{ totalCount }}" valueLabel="{{ progressLabel }}" label="Your progress" tone="accent" inverse="{{ true }}" hint-size="100%,44px"></x-import>
+</div>
+<p style="margin:0;font-size:var(--vt-body-sm);color:rgb(255 255 255 / .6)">Saves automatically on this device as you go.</p>
+</div>
+</div>
+</div>
+
+<div style="position:sticky;top:0;z-index:30;background:#fff;border-bottom:1px solid var(--vt-border-subtle);box-shadow:var(--vt-shadow-xs)">
+<div style="max-width:900px;margin:0 auto;display:flex;gap:8px;padding:10px clamp(20px,5vw,56px);overflow-x:auto">
+<a href="#sec-access" style="flex:none;display:inline-flex;align-items:center;height:36px;padding:0 16px;border-radius:999px;background:var(--vt-grey-50);border:1px solid var(--vt-border-subtle);font-size:13px;font-weight:600;color:var(--vt-charcoal-900);text-decoration:none;white-space:nowrap">Access &amp; accounts</a>
+<a href="#sec-dispatch" style="flex:none;display:inline-flex;align-items:center;height:36px;padding:0 16px;border-radius:999px;background:var(--vt-grey-50);border:1px solid var(--vt-border-subtle);font-size:13px;font-weight:600;color:var(--vt-charcoal-900);text-decoration:none;white-space:nowrap">Dispatch &amp; bookings</a>
+<a href="#sec-pricing" style="flex:none;display:inline-flex;align-items:center;height:36px;padding:0 16px;border-radius:999px;background:var(--vt-grey-50);border:1px solid var(--vt-border-subtle);font-size:13px;font-weight:600;color:var(--vt-charcoal-900);text-decoration:none;white-space:nowrap">Pricing rules</a>
+<a href="#sec-build" style="flex:none;display:inline-flex;align-items:center;height:36px;padding:0 16px;border-radius:999px;background:var(--vt-grey-50);border:1px solid var(--vt-border-subtle);font-size:13px;font-weight:600;color:var(--vt-charcoal-900);text-decoration:none;white-space:nowrap">Build next</a>
+<a href="#sec-send" style="flex:none;display:inline-flex;align-items:center;height:36px;padding:0 16px;border-radius:999px;background:var(--vt-charcoal-900);border:1px solid var(--vt-charcoal-900);font-size:13px;font-weight:600;color:#fff;text-decoration:none;white-space:nowrap">Send back your answers</a>
+</div>
+</div>
+
+<div style="max-width:900px;margin:0 auto;padding:clamp(32px,5vw,56px) clamp(20px,5vw,56px) 90px;display:flex;flex-direction:column;gap:56px">
+
+<sc-for list="{{ sectionsView }}" as="sec" hint-placeholder-count="4">
+<section id="{{ sec.anchorId }}" data-screen-label="{{ sec.name }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.SectionHeader" eyebrow="{{ sec.eyebrow }}" title="{{ sec.name }}" subtitle="{{ sec.progressLabel }}" level="h2" rule="{{ true }}" hint-size="100%,90px"></x-import>
+<div style="display:flex;flex-direction:column;gap:18px;margin-top:22px">
+<sc-for list="{{ sec.itemsView }}" as="dec" hint-placeholder-count="3">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" tone="default" padding="lg" hint-size="100%,220px">
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+<div style="display:flex;align-items:flex-start;gap:12px;flex:1;min-width:0">
+<span style="flex:none;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:999px;background:var(--vt-charcoal-900);color:#fff;font-family:var(--vt-font-body);font-size:13px;font-weight:600;margin-top:2px">{{ dec.num }}</span>
+<div style="flex:1;min-width:0">
+<h3 style="margin:0 0 6px;font-family:var(--vt-font-body);font-size:var(--vt-heading-3);line-height:1.25;font-weight:var(--vt-weight-semibold);color:var(--vt-charcoal-900)">{{ dec.title }}</h3>
+<p style="margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">{{ dec.context }}</p>
+</div>
+</div>
+<sc-if value="{{ dec.isAnswered }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Badge" tone="outline" hint-size="70px,22px">Answered</x-import>
+</sc-if>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;padding-left:42px">
+<sc-if value="{{ dec.isChoice }}" hint-placeholder-val="{{ false }}">
+<sc-for list="{{ dec.optionsView }}" as="opt" hint-placeholder-count="3">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" tone="flat" padding="md" selectable="{{ true }}" selected="{{ opt.sel }}" onClick="{{ opt.onClick }}" hint-size="100%,48px">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+<span style="font-size:var(--vt-body-md);color:var(--vt-charcoal-900);line-height:1.4">{{ opt.text }}</span>
+<sc-if value="{{ opt.sel }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n18 }}" color="var(--vt-charcoal-900)" hint-size="18px,18px"></x-import>
+</sc-if>
+</div>
+</x-import>
+</sc-for>
+</sc-if>
+<sc-if value="{{ dec.isText }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px">
+<sc-if value="{{ dec.hasSuggestion }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Tag" onClick="{{ dec.onSuggest }}" hint-size="150px,28px">Use "{{ dec.suggestion }}"</x-import>
+</sc-if>
+<div style="flex:1;min-width:200px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" value="{{ dec.value }}" onChange="{{ dec.onTextChange }}" placeholder="{{ dec.placeholder }}" size="md" hint-size="100%,44px"></x-import></div>
+</div>
+</sc-if>
+<div style="display:flex;align-items:center;gap:14px;margin-top:4px;flex-wrap:wrap">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="sm" onClick="{{ dec.onToggleNote }}" hint-size="140px,36px">{{ dec.noteToggleLabel }}</x-import>
+<span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">Screen: {{ dec.affects }}</span>
+</div>
+<sc-if value="{{ dec.noteOpen }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" value="{{ dec.noteVal }}" onChange="{{ dec.onNoteChange }}" rows="3" placeholder="Explain, correct, or add detail…" hint-size="100%,80px"></x-import>
+</sc-if>
+</div>
+</div>
+</x-import>
+</sc-for>
+</div>
+</section>
+</sc-for>
+
+<section id="sec-send" data-screen-label="Send answers back">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" tone="inverse" padding="lg" hint-size="100%,220px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<div>
+<p style="margin:0 0 6px;text-transform:uppercase;letter-spacing:.09em;font-size:11px;font-weight:600;color:var(--vt-yellow-400)">Last step</p>
+<h2 style="margin:0 0 8px;font-family:var(--vt-font-body);font-size:var(--vt-heading-1);color:#fff">Send your answers back</h2>
+<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:1.6;color:rgb(255 255 255 / .78)">Copy everything below and send it back over email or chat — whichever's easiest. {{ progressLabel }} so far.</p>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="primary" size="lg" onClick="{{ copyAnswers }}" hint-size="200px,54px">Copy my answers</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="light" size="lg" onClick="{{ downloadAnswers }}" hint-size="220px,54px">Download as a text file</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="light" size="lg" onClick="{{ emailAnswers }}" hint-size="180px,54px">Email it over</x-import>
+</div>
+<sc-if value="{{ copied }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="success" hint-size="100%,50px">Copied — paste it into an email or message.</x-import>
+</sc-if>
+</div>
+</x-import>
+
+<div style="margin-top:20px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" tone="flat" padding="md" hint-size="100%,260px">
+<p style="margin:0 0 10px;font-size:var(--vt-label-sm);text-transform:uppercase;letter-spacing:var(--vt-label-tracking);font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Preview of what gets copied</p>
+<textarea readOnly="{{ true }}" value="{{ summaryText }}" style="width:100%;min-height:220px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);padding:12px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;line-height:1.5;color:var(--vt-charcoal-800);background:var(--vt-grey-50);resize:vertical;box-sizing:border-box"></textarea>
+</x-import>
+<div style="margin-top:14px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="sm" onClick="{{ resetAll }}" hint-size="200px,36px">Clear all my answers on this device</x-import>
+</div>
+</div>
+</section>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const BUILD_OPTS = [`Build it for V1`, `Build it later`, `Not needed`];
+
+const ITEMS = [
+  { id:'authmethod', section:`Access & accounts`, title:`How should dispatchers log in?`, context:`Sign-in today is a placeholder that doesn't check anything real — anyone who finds the ops URL can get in.`, affects:`Ops sign-in`, options:[
+    `Email + password`, `Magic link — an emailed sign-in link, no password`, `Other — explain below`
+  ]},
+  { id:'acctmodel', section:`Access & accounts`, title:`Should each dispatcher have their own login, or share one?`, context:`Individual logins let you see later who assigned which driver or issued which refund. A shared login is quicker to set up but leaves no trail.`, affects:`Ops sign-in, ops detail`, options:[
+    `Individual accounts per dispatcher, with an activity trail`, `One shared login for the whole team`, `Not sure`
+  ]},
+  { id:'pwreset', section:`Access & accounts`, title:`Do dispatchers need their own password-reset flow?`, context:`The customer side already has one. This decides whether to build the same thing for the dispatch team, or handle it manually for now — e.g. you reset it for them yourself.`, affects:`Ops sign-in`, options:[
+    `Yes, build it now`, `No, handle it manually for now`, `Not sure`
+  ]},
+  { id:'kpitiles', section:`Dispatch board & bookings`, title:`Which four numbers matter most at the top of the board?`, context:`Today's placeholders: today's bookings, awaiting payment, unassigned, and revenue over 7 days. Confirm them, or swap in what you'd actually check first each morning.`, affects:`Ops board`, options:[
+    `Keep these four — bookings today, awaiting payment, unassigned, revenue (7 days)`, `Different four — describe below`, `Not sure yet`
+  ]},
+  { id:'bulkactions', section:`Dispatch board & bookings`, title:`Should a dispatcher be able to act on several bookings at once?`, context:`Today every action — assigning a driver, cancelling — is done one booking at a time. Multi-select would let a dispatcher handle a batch together.`, affects:`Ops board`, options:[
+    `Yes, build it for launch`, `No, one at a time is fine for now`, `Not sure`
+  ]},
+  { id:'statusrules', section:`Dispatch board & bookings`, title:`Which booking changes should a dispatcher be allowed to make by hand?`, context:`Some changes probably shouldn't be a manual click — marking a booking "paid" should really only happen once a payment actually clears, never by someone clicking a button that could be wrong.`, affects:`Ops detail`, options:[
+    `Only assign a driver and cancel — payment status always stays automatic`, `Let a dispatcher override any status by hand if needed`, `Not sure — let's talk through it`
+  ]},
+  { id:'refundrule', section:`Dispatch board & bookings`, title:`When a dispatcher issues a refund, is the amount free to type, or locked to the cancellation policy?`, context:`Free-entry is more flexible but risks a mistake. Locking it to the policy tiers keeps every refund consistent with what the customer was promised.`, affects:`Ops detail`, options:[
+    `Locked to the cancellation-policy tiers`, `Free-entry amount, dispatcher's judgement`, `Not sure`
+  ]},
+  { id:'reassignnotify', section:`Dispatch board & bookings`, title:`If a driver gets swapped after a booking is confirmed, should the customer be told automatically?`, context:`For example, an automatic text or email the moment dispatch reassigns them to someone new.`, affects:`Ops detail`, options:[
+    `Yes, notify automatically`, `No, only if the dispatcher chooses to send one`, `Not sure`
+  ]},
+  { id:'pricingaccess', section:`Pricing rules`, title:`Who should be allowed to change prices?`, context:`This is the screen that sets fares by route or zone and vehicle class — worth deciding if that's every dispatcher, or a separate admin-only role.`, affects:`Ops pricing`, options:[
+    `Any dispatcher`, `Admin-only — separate from day-to-day dispatch`, `Not sure`
+  ]},
+  { id:'pricingstructure', section:`Pricing rules`, title:`Does pricing vary by zone, vehicle class and season — or should it be simpler?`, context:`The draft plan: a base fare and a per-kilometre rate for each route or zone, multiplied by vehicle class, plus surcharges for things like airport pickups, night hours or ski season.`, affects:`Ops pricing`, options:[
+    `Yes, that structure is right`, `Simpler — one flat price per vehicle class, no zones or surcharges`, `Other — describe below`
+  ]},
+  { id:'skiwindow', section:`Pricing rules`, title:`If there's a ski-season surcharge, which months should it apply?`, context:`Sketched as roughly December to April — confirm the real months, or say there's no ski surcharge at all.`, affects:`Ops pricing`, type:'text', suggestion:`December to April`, placeholder:`e.g. December to April` },
+  { id:'calendarscreen', section:`What to build next`, title:`Calendar — a day/week view of bookings by pickup time`, context:`Clicking this in the sidebar currently shows a "coming soon" placeholder.`, affects:`Sidebar`, options: BUILD_OPTS },
+  { id:'driversscreen', section:`What to build next`, title:`Drivers — add/edit drivers and toggle who is available`, context:`Same placeholder today.`, affects:`Sidebar`, options: BUILD_OPTS },
+  { id:'customersscreen', section:`What to build next`, title:`Customers — view customer records and their booking history`, context:`Same placeholder today.`, affects:`Sidebar`, options: BUILD_OPTS },
+  { id:'couponsscreen', section:`What to build next`, title:`Coupons — promo codes with a discount and a usage limit`, context:`Same placeholder today.`, affects:`Sidebar`, options: BUILD_OPTS },
+  { id:'settingswireup', section:`What to build next`, title:`The Settings screen is built, but not yet linked from the sidebar`, context:`It already covers booking-policy numbers and default language/currency — this just decides whether to switch the link on.`, affects:`Sidebar, ops settings`, options:[
+    `Yes, link it now`, `No, keep it hidden for now`, `Not sure`
+  ]}
+];
+
+const SECTION_ORDER = [
+  { name:`Access & accounts`, anchorId:'sec-access', eyebrow:'Who gets in' },
+  { name:`Dispatch board & bookings`, anchorId:'sec-dispatch', eyebrow:'The day-to-day screen' },
+  { name:`Pricing rules`, anchorId:'sec-pricing', eyebrow:'How fares get set' },
+  { name:`What to build next`, anchorId:'sec-build', eyebrow:'Still a placeholder' }
+];
+
+const TOTAL_COUNT = ITEMS.length;
+const LS_KEY = 'vamosDashboardReviewAnswers_v1';
+
+function mkOptions(id, options, answers, setChoice) {
+  const cur = (answers[id] || {}).choice;
+  return options.map(function (opt) {
+    return { text: opt, sel: cur === opt, onClick: function () { setChoice(id, opt); } };
+  });
+}
+
+function noteToggleLabel(open, val) {
+  if (open) return 'Hide note';
+  return (val && val.trim()) ? 'Note added — edit' : 'Add a note instead';
+}
+
+class Component extends DCLogic {
+  state = { answers: {}, notes: {}, notesOpen: {}, copied: false };
+
+  componentDidMount() {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        this.setState({ answers: parsed.answers || {}, notes: parsed.notes || {}, notesOpen: parsed.notesOpen || {} });
+      }
+    } catch (e) {}
+  }
+
+  persist(next) {
+    try { localStorage.setItem(LS_KEY, JSON.stringify(next)); } catch (e) {}
+  }
+
+  setChoice(id, value) {
+    this.setState(s => {
+      const already = (s.answers[id] || {}).choice === value;
+      const nextValue = already ? null : value;
+      const answers = { ...s.answers, [id]: { ...(s.answers[id] || {}), choice: nextValue } };
+      const notesOpen = (nextValue && nextValue.indexOf('Other') === 0) ? { ...s.notesOpen, [id]: true } : s.notesOpen;
+      const next = { answers, notes: s.notes, notesOpen };
+      this.persist(next);
+      return next;
+    });
+  }
+
+  setText(id, value) {
+    this.setState(s => {
+      const answers = { ...s.answers, [id]: { ...(s.answers[id] || {}), text: value } };
+      const next = { answers, notes: s.notes, notesOpen: s.notesOpen };
+      this.persist(next);
+      return next;
+    });
+  }
+
+  setNote(id, value) {
+    this.setState(s => {
+      const notes = { ...s.notes, [id]: value };
+      const next = { answers: s.answers, notes, notesOpen: s.notesOpen };
+      this.persist(next);
+      return next;
+    });
+  }
+
+  toggleNote(id) {
+    this.setState(s => ({ notesOpen: { ...s.notesOpen, [id]: !s.notesOpen[id] } }));
+  }
+
+  resetAll() {
+    if (!window.confirm('Clear every answer on this device? This cannot be undone.')) return;
+    this.setState({ answers: {}, notes: {}, notesOpen: {} });
+    try { localStorage.removeItem(LS_KEY); } catch (e) {}
+  }
+
+  buildSummary() {
+    const answers = this.state.answers, notes = this.state.notes;
+    const lines = [];
+    lines.push('VAMOS TAXI — DASHBOARD REVIEW');
+    lines.push('Answers recorded ' + new Date().toLocaleDateString());
+    SECTION_ORDER.forEach(sec => {
+      lines.push('');
+      lines.push(sec.name.toUpperCase());
+      ITEMS.filter(it => it.section === sec.name).forEach(it => {
+        const a = answers[it.id] || {};
+        const val = it.type === 'text' ? a.text : a.choice;
+        lines.push('- ' + it.title);
+        lines.push('  -> ' + ((val && val.trim && val.trim()) ? val.trim() : (val || '(not answered)')));
+        const note = notes[it.id];
+        if (note && note.trim()) lines.push('  Note: ' + note.trim());
+      });
+    });
+    return lines.join('\n');
+  }
+
+  fallbackCopy(text, done) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+      done();
+    } catch (e) {}
+  }
+
+  copyAnswers() {
+    const text = this.buildSummary();
+    const done = () => { this.setState({ copied: true }); setTimeout(() => this.setState({ copied: false }), 2500); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(() => this.fallbackCopy(text, done));
+    } else {
+      this.fallbackCopy(text, done);
+    }
+  }
+
+  downloadAnswers() {
+    const text = this.buildSummary();
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'vamos-taxi-dashboard-review-answers.txt';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  emailAnswers() {
+    const text = this.buildSummary();
+    const body = text.length > 6000 ? text.slice(0, 6000) + '\n\n[Truncated by email length — please attach the downloaded file too.]' : text;
+    const url = 'mailto:?subject=' + encodeURIComponent('Vamos Taxi — dashboard review answers') + '&body=' + encodeURIComponent(body);
+    window.location.href = url;
+  }
+
+  renderVals() {
+    const answers = this.state.answers, notes = this.state.notes, notesOpen = this.state.notesOpen;
+    const setChoiceFn = (id, v) => this.setChoice(id, v);
+
+    const itemsView = ITEMS.map((it, i) => {
+      const isText = it.type === 'text';
+      const isChoice = !isText;
+      const base = {
+        id: it.id, num: String(i + 1).padStart(2, '0'), title: it.title, context: it.context, affects: it.affects,
+        section: it.section, isChoice, isText,
+        noteOpen: !!notesOpen[it.id], noteVal: notes[it.id] || '',
+        noteToggleLabel: noteToggleLabel(!!notesOpen[it.id], notes[it.id] || ''),
+        onToggleNote: () => this.toggleNote(it.id), onNoteChange: (e) => this.setNote(it.id, e.target.value)
+      };
+      if (isChoice) {
+        base.optionsView = mkOptions(it.id, it.options, answers, setChoiceFn);
+        base.isAnswered = base.optionsView.some(o => o.sel);
+      } else {
+        const a = answers[it.id] || {};
+        base.value = a.text || '';
+        base.placeholder = it.placeholder || '';
+        base.onTextChange = (e) => this.setText(it.id, e.target.value);
+        base.suggestion = it.suggestion || '';
+        base.hasSuggestion = !!it.suggestion;
+        base.onSuggest = it.suggestion ? (() => this.setText(it.id, it.suggestion)) : null;
+        base.isAnswered = !!(a.text && a.text.trim());
+      }
+      return base;
+    });
+
+    const answeredCount = itemsView.filter(iv => iv.isAnswered).length;
+
+    const sectionsView = SECTION_ORDER.map(sec => {
+      const secItems = itemsView.filter(iv => iv.section === sec.name);
+      const secAnswered = secItems.filter(iv => iv.isAnswered).length;
+      return { name: sec.name, anchorId: sec.anchorId, eyebrow: sec.eyebrow, itemsView: secItems, progressLabel: secAnswered + ' of ' + secItems.length + ' answered' };
+    });
+
+    return {
+      sectionsView,
+      answeredCount, totalCount: TOTAL_COUNT,
+      progressLabel: `${answeredCount} / ${TOTAL_COUNT} answered`,
+      copied: this.state.copied,
+      summaryText: this.buildSummary(),
+      copyAnswers: () => this.copyAnswers(),
+      downloadAnswers: () => this.downloadAnswers(),
+      emailAnswers: () => this.emailAnswers(),
+      resetAll: () => this.resetAll(),
+      n18: 18, n26: 26, n56: 56
+    };
+  }
+}
+</script>
+</body>
+</html>
