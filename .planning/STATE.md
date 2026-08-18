@@ -25,7 +25,7 @@ confirmation — must.
 Phase: 1 of 11 (Platform Foundation, Design System Port & i18n Runtime)
 Plan: 0 of TBD in current phase
 Status: Ready to plan
-Last activity: 2026-08-18 - Completed quick task 260818-wxa: Stream 1 blocker reconciliation
+Last activity: 2026-08-19 - Completed quick task 260819-0l5: Stream 2 engineering decisions (ADR-002..ADR-008)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -76,6 +76,7 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260818-wxa | Stream 1 blocker reconciliation: mark every LEGAL-PLACEHOLDER-CHECKLIST decision and conflict resolved-or-open against OWNER-ANSWERS, correct stale counts, register five new conflicts, list contradicted mock sites | 2026-08-18 | e15eaec | [260818-wxa-stream-1-blocker-reconciliation-mark-eve](./quick/260818-wxa-stream-1-blocker-reconciliation-mark-eve/) |
+| 260819-0l5 | Stream 2: decide the eight engineering-decidable open questions as ADRs and fill their answer lines in OPEN-QUESTIONS.md | 2026-08-19 | 364e45f | [260819-0l5-stream-2-decide-the-eight-engineering-de](./quick/260819-0l5-stream-2-decide-the-eight-engineering-de/) |
 
 ## Deferred Items
 
