@@ -25,7 +25,7 @@ confirmation — must.
 Phase: 1 of 11 (Platform Foundation, Design System Port & i18n Runtime)
 Plan: 0 of TBD in current phase
 Status: Ready to plan
-Last activity: 2026-08-19 - Completed quick task 260819-0zd: Stream 3 Client Input Pack
+Last activity: 2026-08-19 - Completed quick task 260819-1kt: Stream 4 Qurova webfont licence
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -78,6 +78,7 @@ None yet.
 | 260818-wxa | Stream 1 blocker reconciliation: mark every LEGAL-PLACEHOLDER-CHECKLIST decision and conflict resolved-or-open against OWNER-ANSWERS, correct stale counts, register five new conflicts, list contradicted mock sites | 2026-08-18 | e15eaec | [260818-wxa-stream-1-blocker-reconciliation-mark-eve](./quick/260818-wxa-stream-1-blocker-reconciliation-mark-eve/) |
 | 260819-0l5 | Stream 2: decide the eight engineering-decidable open questions as ADRs and fill their answer lines in OPEN-QUESTIONS.md | 2026-08-19 | 364e45f | [260819-0l5-stream-2-decide-the-eight-engineering-de](./quick/260819-0l5-stream-2-decide-the-eight-engineering-de/) |
 | 260819-0zd | Stream 3: write the Client Input Pack - one sendable document converting every open gap into a sitting's work for a non-technical reader | 2026-08-19 | 39da7c7 | [260819-0zd-stream-3-write-the-client-input-pack-one](./quick/260819-0zd-stream-3-write-the-client-input-pack-one/) |
+| 260819-1kt | Stream 4: Qurova webfont licence - provenance, ADR-009, vendored OFL text, rendered fallback comparison, conflict C25 | 2026-08-19 | b1c1cc9 | [260819-1kt-stream-4-qurova-webfont-licence-establis](./quick/260819-1kt-stream-4-qurova-webfont-licence-establis/) |
 
 ## Deferred Items
 
