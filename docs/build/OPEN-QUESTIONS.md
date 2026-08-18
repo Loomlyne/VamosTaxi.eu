@@ -48,10 +48,36 @@ Poppins. Until redistribution rights are confirmed I cannot serve Qurova from pr
 If the licence does not clear, what is the display fallback? That is a visual change, so it
 is your decision.
 
-**Answer:** *(2026-08-19)* **Owner must answer.** This is a visual and brand call, not an engineering one — the
-display fallback changes what the site looks like. Stream 4 of `.planning/BLOCKER-SOLVE-PLAN.md`
-is preparing a rendered fallback so the choice is between two rendered options rather than an
-abstract question. Engineering does not pick the display face.
+**Answer:** *(2026-08-19, updated following the provenance work)* The question's own premise is now
+corrected: the licence file it names never existed for either family. It exists now, vendored in
+this pass at `design-system/assets/fonts/OFL.txt`, and covers the Poppins body family only —
+Qurova is explicitly out of its scope. Qurova's actual provenance, read out of the font files'
+own name tables: a commercial retail face from Prioritype Co., all rights reserved, with **no
+licence description and no licence URL entry inside the files at all**.
+
+The engineering-decidable part is now costed and sourced. Prioritype's Web Font tier is **$69**
+(`https://prioritypeco.com/product/qurova-logo-font/`), and the recommendation is to buy it. The
+binding constraint is not the price — it is the licence's **100,000 monthly pageview cap on a
+single website** (`https://prioritypeco.com/license/`). The cheapest tier ($39 Standard)
+explicitly excludes web embedding, so an existing desktop licence bought for the design work
+would not cover the site. Two questions go to the foundry in writing before money moves, because
+the published price list does not answer either one: what tier (if any) covers web usage above
+the cap, and whether the licence is perpetual or an annual subscription. Full reasoning, the
+complete price list and both open foundry questions are in
+`.planning/ADR-009-qurova-webfont-licence.md`.
+
+**Owner must still answer.** This is a visual and brand call, not an engineering one — the
+display fallback changes what the site looks like, and engineering does not pick the display
+face. `docs/build/Owner Typeface Review.dc.html` is the rendered fallback this stream promised:
+the real Vamos headlines, in Qurova and in three verified open-licence candidates, side by side.
+What remains yours to decide: authorise the $69 purchase (and the two foundry questions above),
+or pick a rendered fallback from that page instead.
+
+Two things this work surfaced that the question never asked about, both recorded and neither
+solved here: no vendored type family — not Qurova, not Poppins — contains a single Arabic glyph,
+so an Arabic display face is its own open item; and the current Arabic fallback hotlinks a
+third-party font CDN before consent, now registered as conflict C25 in
+`docs/build/LEGAL-PLACEHOLDER-CHECKLIST.md`.
 
 ---
 
