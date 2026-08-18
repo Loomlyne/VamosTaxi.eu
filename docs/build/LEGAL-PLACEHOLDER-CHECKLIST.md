@@ -2,8 +2,25 @@
 
 **Built:** 4 Aug 2026 · **Pages:** terms · privacy · cookies · cancellation · imprint · faq ·
 contact · about · plus the shared `CookieBanner`
-**Total open items:** 90 tokens · 18 legal-text slots · 5 content/image slots · 15 blocking
-decisions · 18 documented conflicts (1 reopened)
+**Reconciled:** 18 Aug 2026, walked against `docs/build/OWNER-ANSWERS.md` — the 13 Aug 2026
+owner answers plus the 17 Aug 2026 engineering scoping notes carried in the same file.
+**Total open items:** 90 tokens catalogued (§C 73 + §G 9 + §H 8) — measured live in `app/`:
+121 `data-tok` pills, 90 unique pill labels (89 distinct facts + 1 dynamic binding,
+`{{ shareLabel }}` at `app/pages/manage-booking.dc.html:557`, which resolves to three shares
+already counted). The `173` figure that circulates elsewhere is a grep artifact, not a content
+count — it is 121 pills plus 41 `[data-tok]` CSS selector lines plus 8 `data-tok-fig="1"` plus
+3 `[data-tok-fig]` selectors. The catalogue's 90 and the live 90 are **not proven to be the
+same 90**: §F carries 82 keys and 8 live pill labels have no key at all (closed in task 3
+below), so the two sets have not been matched item by item and this pass does not claim they
+have. 17 legal-text slots (Terms 8 + Privacy 2 + Cancellation 3 + Imprint 4 + Cookies 0 —
+corrected from a stale `18`; §B's own heading and table already say 17) · 5 content/image
+slots · 15 blocking decisions — 10 resolved, 4 resolved with a named residual, 1 open · 23
+documented conflicts (the original 18 plus C19–C23 registered below; `(1 reopened)` is dropped
+because conflict 13 is closed by decision 13) · 10 photography slots (per
+`OWNER-ANSWERS.md`), every one blank — 1 of them ("First" class) is moot after decision 13,
+so 9 are live.
+
+Legend: **RESOLVED** closed by a dated owner answer · **RESOLVED (residual)** answered, but a named gap survives · **RESOLVED (mocks stale)** the decision is made, the mocks still say the old thing · **CLOSED BY DESIGN** settled before 13 Aug 2026 by the design work itself, not an owner answer · **OPEN** not closed, including "structure settled, value still TBC".
 
 One list across both slices. Slice 1 was the legal core; slice 2 added FAQ, Contact and About.
 
@@ -18,18 +35,37 @@ recorded as evidence of what the old site said, **not** as the answer.
 
 | # | Decision | Where it lands | Why it blocks |
 |---|---|---|---|
-| A1 | **Carrier or intermediary?** | terms 01, 05, 13 · about | The archive disclaims liability for the ride while marketing sells “our drivers”. Liability, subcontracting and the About page all follow from this one answer |
-| A2 | **The three refund shares** | cancellation 01 | FAQ promised a full refund ≤24h; terms grant 75% and keep 25%. Both are live consumer promises |
-| A3 | **Controller address** | privacy 01 | Archive gives Badenerstrasse 582, 8048 Zürich; imprint and terms give Bleicherstrasse 16, Dietikon |
-| A4 | **One contact address** | all five pages | `info@vamostaxi.eu` vs `contact@vamostaxi.eu` vs a personal gmail in the terms |
-| A5 | **One payment-method list** | terms 11 · footer | Terms: Amex, Visa, Mastercard, cash, bank transfer. FAQ: Visa, Mastercard, Apple Pay, TWINT, PayPal |
-| A6 | **Which analytics tool** | cookies 05 · privacy 04 | Vercel Analytics vs PostHog vs retiring Google Analytics |
-| A7 | **Court of venue** | terms 16 | The archived clause puts venue at a third party's registered office |
-| A8 | **Cancellation channels** | cancellation 02 | Terms say account only; FAQ says chat / WhatsApp / email |
-| A9 | **Is consent logged server-side?** | cookies · privacy 06 | Changes the consent-log retention row and the engineering work |
-| A10 | **Is Sentry strictly-necessary or consent-gated?** | cookies 03 vs 05 · privacy 04 | Error monitoring is arguably necessary for service integrity and arguably analytics. It currently sits in **Analytics**, so declining analytics turns off crash reporting. Nobody has made this call |
-| A11 | **Does live chat exist in V1?** | contact · FAQ ×3 · footer | The legacy site ran a chat widget and promises "Customer Service 24/7 · Start a Chat". Chat is not in the scope of work. If it is dropped, three FAQ answers and the footer change |
-| A12 | **Build `become-a-partner`, or unlink it?** | footer Company column · About CTA | It was orphaned, so the footer now links it — but the page is not in V1 scope and it is a real funnel (application, background check, vehicle inspection, consent checkbox bound to Terms + Privacy). A footer link to a page that does not exist is worse than neither. **A light draft now exists** (`become-a-partner.dc.html`, 5 Aug 2026 — structure, fields and copy only, no photography). Still unanswered: if the call is *unlink*, delete that file and remove the footer link plus the About CTA |
+| A1 | **Carrier or intermediary?** | terms 01, 05, 13 · about | The archive disclaims liability for the ride while marketing sells “our drivers”. Liability, subcontracting and the About page all follow from this one answer. **RESOLVED** — decision 1, 13 Aug 2026: Carrier, directly liable. Archive liability disclaimer must not be carried over |
+| A2 | **The three refund shares** | cancellation 01 | FAQ promised a full refund ≤24h; terms grant 75% and keep 25%. Both are live consumer promises. **RESOLVED (residual)** — decision 2, 13 Aug 2026: 100% more than 24 h before pickup, 75% inside 24 h, nothing for a no-show. Residual: the refund share when *our* driver fails to show (`{DRIVER_NOSHOW_SHARE}`) is still blank on the owner sheet |
+| A3 | **Controller address** | privacy 01 | Archive gives Badenerstrasse 582, 8048 Zürich; imprint and terms give Bleicherstrasse 16, Dietikon. **RESOLVED (residual)** — decision 3, 13 Aug 2026: "Zürich, Switzerland". The two-address conflict is dead — neither archive address is authoritative. Residual: street and postcode |
+| A4 | **One contact address** | all five pages | `info@vamostaxi.eu` vs `contact@vamostaxi.eu` vs a personal gmail in the terms. **RESOLVED** — decision 4, 13 Aug 2026: `contact@vamostaxi.eu`. Six mock sites still ship `info@vamostaxi.eu`; listed in §I |
+| A5 | **One payment-method list** | terms 11 · footer | Terms: Amex, Visa, Mastercard, cash, bank transfer. FAQ: Visa, Mastercard, Apple Pay, TWINT, PayPal. **RESOLVED (residual)** — decision 5, 13 Aug 2026 + 17 Aug 2026: Visa, Mastercard, Apple Pay, Google Pay, TWINT. PayPal out of V1 (Stripe has no CH PayPal support). Residual: cash-to-driver is absent from the accepted list, so it reads as out, and needs one word of owner confirmation before the mock option is removed |
+| A6 | **Which analytics tool** | cookies 05 · privacy 04 | Vercel Analytics vs PostHog vs retiring Google Analytics. **OPEN** — decision 6 left blank 13 Aug 2026. Vercel Analytics is off the table with the stack change; the live choice is Cloudflare Web Analytics (cookieless) vs PostHog (consent-gated). Blocks `{ANALYTICS_COOKIE}` `{ANALYTICS_PROVIDER}` `{ANALYTICS_DURATION}` `{ANALYTICS_REGION}`, cookies 05 and the banner |
+| A7 | **Court of venue** | terms 16 | The archived clause puts venue at a third party's registered office. **RESOLVED** — decision 7, 13 Aug 2026: Zürich |
+| A8 | **Cancellation channels** | cancellation 02 | Terms say account only; FAQ says chat / WhatsApp / email. **RESOLVED** — decision 8, 13 Aug 2026 + Q14: chat, WhatsApp or email, additive to the self-serve button, not a replacement |
+| A9 | **Is consent logged server-side?** | cookies · privacy 06 | Changes the consent-log retention row and the engineering work. **RESOLVED** — decision 9, 13 Aug 2026: owner deferred to engineering; engineering answer is yes, consent is logged server-side, adding a `consent_log` table. A browser-only cookie cannot prove consent to a Swiss nFADP or GDPR regulator |
+| A10 | **Is Sentry strictly-necessary or consent-gated?** | cookies 03 vs 05 · privacy 04 | Error monitoring is arguably necessary for service integrity and arguably analytics. It currently sits in **Analytics**, so declining analytics turns off crash reporting. Nobody has made this call. **RESOLVED** — decision 10, 13 Aug 2026: crash reporting is strictly necessary and always on, moved out from under the Analytics toggle, with the recorded caveat that Sentry transmits IP and URL data. Toggle lives in `settings` |
+| A11 | **Does live chat exist in V1?** | contact · FAQ ×3 · footer | The legacy site ran a chat widget and promises "Customer Service 24/7 · Start a Chat". Chat is not in the scope of work. If it is dropped, three FAQ answers and the footer change. **RESOLVED** — decision 11, 13 Aug 2026, scoped 17 Aug 2026: live chat is a WhatsApp deep link, not a third-party widget and not an in-house build |
+| A12 | **Build `become-a-partner`, or unlink it?** | footer Company column · About CTA | It was orphaned, so the footer now links it — but the page is not in V1 scope and it is a real funnel (application, background check, vehicle inspection, consent checkbox bound to Terms + Privacy). A footer link to a page that does not exist is worse than neither. **A light draft now exists** (`become-a-partner.dc.html`, 5 Aug 2026 — structure, fields and copy only, no photography). Still unanswered: if the call is *unlink*, delete that file and remove the footer link plus the About CTA. **RESOLVED** — decision 12, 13 Aug 2026: build `become-a-partner` for launch. The unlink branch is dead; the four blanks on that page stay open (see §C/§F work in task 3) |
+
+### What actually survives — five residuals
+
+`.planning/BLOCKER-SOLVE-PLAN.md` predicted three residuals (A3, A6, and the driver-no-show
+share inside A2). The true count is **five residuals**, because A5 and A13 also survive the
+13 Aug 2026 answers. Each row below names an owner and what it blocks — no guessed value
+anywhere.
+
+| residual | inside | owner | blocks |
+|---|---|---|---|
+| driver-no-show refund share | A2 | owner | `{DRIVER_NOSHOW_SHARE}`, cancellation 01, refund logic |
+| street and postcode | A3 | owner | imprint, privacy 01, `{UID_NUMBER}` neighbourhood |
+| cash-to-driver: in or out | A5 | owner (one word) | checkout payment options, `{PAYMENT_METHODS}` |
+| which analytics tool | A6 | owner, engineering can recommend | four analytics tokens, cookies 05, banner |
+| Business passenger and bag capacity | A13 | owner | `{BUSINESS_PAX}` `{BUSINESS_BAGS}`, About, booking flow |
+
+This register is not the same list as the page-by-page blanks in `OWNER-ANSWERS.md` — those are
+data gaps that were never decisions. These five are the residue of decisions that *were*
+answered, which is exactly what Stream 3 needs to see separated.
 
 ## B. Legal text slots — 17
 
@@ -325,9 +361,9 @@ Added 4 Aug 2026 from a motion-and-correctness review of `home.dc.html` / `check
 
 | # | Decision | Where it lands | Why it blocks |
 |---|---|---|---|
-| A13 | **Vehicle class count & capacities** | home, checkout, confirmation | This review's spec states Economy 3/3 and Van 7/8 as an *unsupplied* default to tokenize. §G of this file says the client already confirmed Van at 8/8. Both can't be the settled answer — reopens conflict 13. Code now runs on the reviewer's 3/3 · 7/8 fixture, tokenized, pending whichever number is actually final |
-| A14 | **Is automated flight-status tracking in V1 scope?** | home, flight field | `DECISIONS.md` says postpone it, `PROJECT-BRIEF.md` lists it out of V1, `INPUTS-NEEDED.md` carries it unticked — yet the field does live polling, ETA/gate/belt diffing and is one API key from AeroDataBox. Built and switchable (`flightTrackingEnabled` prop, default on); needs a yes/no before it ships live |
-| A15 | **Is "by the hour" in V1 scope?** | home, mode tabs | `DECISIONS.md`: "if approved for launch." Tab stays; `hourlyEnabled` prop (default on) drops it cleanly — tabs, pill and field logic all degrade to two modes with no relayout |
+| A13 | **Vehicle class count & capacities** | home, checkout, confirmation | This review's spec states Economy 3/3 and Van 7/8 as an *unsupplied* default to tokenize. §G of this file says the client already confirmed Van at 8/8. Both can't be the settled answer — reopens conflict 13. Code now runs on the reviewer's 3/3 · 7/8 fixture, tokenized, pending whichever number is actually final. **RESOLVED (residual)** — decision 13, 13 Aug 2026 + Q5/Q6: three classes, Economy 3/3, Van 8/8, `first` does not ship. This closes §D conflict 13's reopening: §G's confirmed 8/8 stands and §H's 7/8 fixture is superseded. Residual: Business passenger and bag capacity |
+| A14 | **Is automated flight-status tracking in V1 scope?** | home, flight field | `DECISIONS.md` says postpone it, `PROJECT-BRIEF.md` lists it out of V1, `INPUTS-NEEDED.md` carries it unticked — yet the field does live polling, ETA/gate/belt diffing and is one API key from AeroDataBox. Built and switchable (`flightTrackingEnabled` prop, default on); needs a yes/no before it ships live. **RESOLVED** — decision 14, 13 Aug 2026, scoped 17 Aug 2026 to autofill plus delay-aware pickup, not live ops-board tracking. This row's parenthetical claim of "default on" is corrected here: `app/home/home.dc.html:505` declares `"default":false`. Marked as conflict C23 (registered in task 2) — the doc was wrong, not the code |
+| A15 | **Is "by the hour" in V1 scope?** | home, mode tabs | `DECISIONS.md`: "if approved for launch." Tab stays; `hourlyEnabled` prop (default on) drops it cleanly — tabs, pill and field logic all degrade to two modes with no relayout. **RESOLVED** — decision 15, 13 Aug 2026: no hourly mode, remove the tab, `hourlyEnabled=false`. The mock change is authorised by the owner but is out of scope for this docs pass; it is listed in §I |
 
 ### New tokens — 8, `common.*`
 
