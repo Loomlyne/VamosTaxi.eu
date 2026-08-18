@@ -82,7 +82,7 @@ Each is a dashed block on the page with a caption saying what it must cover.
 Two archived clauses must **not** be reused: Privacy Shield as the US transfer basis, and the
 e-commerce paragraph about passing addresses to a delivery company for goods.
 
-## C. Tokens by page — 73
+## C. Tokens by page — 73 in slice 1 (subtotal; 82 with §G's 9, 90 with §H's 8 — see the header's live-pill figures)
 
 ### Every page — 10
 Effective date and version, once per document. Archive stamps for reference: terms *Zurich,
@@ -102,19 +102,38 @@ Effective date and version, once per document. Archive stamps for reference: ter
 `{REGISTERED_FIRM_NAME}` (register says *Vamos Taxi*, no GmbH) · `{EXTRA_STOP_FEE}` ·
 `{CITY_STAY_MINUTES}` (archive 15) · `{CITY_STAY_FEE}` (**archive €15 — must become CHF**) ·
 `{OVERSIZE_ITEM_FEE}` · `{CASE_DIMENSIONS}` (archive 56×45×25 cm + 1 hand luggage per seat) ·
-`{DRIVER_DETAILS_LEAD_TIME}` (archive 6 h) · `{PAYMENT_METHODS}` (see A5) ·
+`{DRIVER_DETAILS_LEAD_TIME}` (archive 6 h — **OPEN**, §D conflict 15, ties to C21) ·
+`{PAYMENT_METHODS}` (**RESOLVED (residual)** — decision 5, 13 Aug 2026 + 17 Aug 2026: Visa, Mastercard, Apple Pay, Google Pay, TWINT; PayPal out of V1; cash-to-driver unconfirmed, the A5 residual) ·
 `{COMPLAINT_WINDOW_DAYS}` (archive 10).
 
 ### Cancellation — 10 more
-`{FREE_CANCEL_WINDOW}` (archive 24 h, ≤15 seats) · `{FULL_REFUND_SHARE}` (archive 75%) ·
-`{PARTIAL_REFUND_SHARE}` (archive: 25% retained) · `{NOSHOW_REFUND_SHARE}` (archive: none) ·
-`{LARGE_VEHICLE_SEATS}` (archive 15) · `{LARGE_VEHICLE_WINDOW}` (archive 5 days) ·
-`{MODIFICATION_DEADLINE}` · `{DRIVER_NOSHOW_SHARE}` (archive 80%) · `{REFUND_DECISION_DAYS}` ·
+`{FREE_CANCEL_WINDOW}` (archive 24 h, ≤15 seats — decision 2, 13 Aug 2026 states "more than 24 h
+before pickup" verbatim, so 24 h is stated, not inferred; **but** the page-by-page blanks in
+`OWNER-ANSWERS.md` still list the free-cancellation window as unanswered. That is an internal
+inconsistency inside the owner sheet, resolved here in favour of the explicit decision, and
+flagged for a one-line owner confirmation — neither side is dropped silently) ·
+`{FULL_REFUND_SHARE}` / `{PARTIAL_REFUND_SHARE}` (**RESOLVED** — decision 2, 13 Aug 2026: 100%
+more than 24 h before pickup carries `{FULL_REFUND_SHARE}`, 75% inside 24 h carries
+`{PARTIAL_REFUND_SHARE}` — the archive's 75/25 framing this table quoted is superseded, not
+confirmed) · `{NOSHOW_REFUND_SHARE}` (**RESOLVED** — decision 2, 13 Aug 2026: nothing for a
+no-show) ·
+`{LARGE_VEHICLE_SEATS}` (archive 15 — **OPEN**, §D conflict C20) ·
+`{LARGE_VEHICLE_WINDOW}` (archive 5 days — **OPEN**, §D conflict C20) ·
+`{MODIFICATION_DEADLINE}` · `{DRIVER_NOSHOW_SHARE}` (archive 80% — **OPEN**, the A2 residual; a
+different fact from `{NOSHOW_REFUND_SHARE}` above and one careless read apart from it) ·
+`{REFUND_DECISION_DAYS}` ·
 `{VOUCHER_VALIDITY}` (archive: “valid next year”).
 
 ### Privacy — 12
-`{DPO_OR_NOT_REQUIRED}` · `{EU_REPRESENTATIVE}` · `{SUPABASE_REGION}` · `{VERCEL_REGION}` ·
-`{RESEND_REGION}` · `{SENTRY_REGION}` · `{ANALYTICS_REGION}` · `{ARCHIVING_YEARS}` (archive: 10,
+`{DPO_OR_NOT_REQUIRED}` · `{EU_REPRESENTATIVE}` · `{SUPABASE_REGION}` · `{VERCEL_REGION}`
+(**flagged** — the platform is Cloudflare Workers, not Vercel, per Q21, 17 Aug 2026 and
+`.planning/PROJECT.md`; naming Vercel on the privacy page is a false subprocessor disclosure.
+The token and its key `legal.privacy.vercelRegion` need renaming, landing with the mock edit
+pass in §I so the doc and the code move together — the key cell in §F is not rewritten now. The
+region *value* stays open: data residency is still with counsel per `.planning/STATE.md`) ·
+`{RESEND_REGION}` · `{SENTRY_REGION}` (values still open, no longer under the Analytics toggle —
+decision 10, 13 Aug 2026: error monitoring is strictly necessary and always on) ·
+`{ANALYTICS_REGION}` (blocked on A6, **OPEN**) · `{ARCHIVING_YEARS}` (archive: 10,
 Swiss Archiving Act — lead passenger name, passenger count, email, start and destination) ·
 `{FINANCE_RETENTION}` · `{LOG_RETENTION}` · `{CONSENT_LOG_RETENTION}` · `{DSR_RESPONSE_DAYS}`.
 
@@ -123,8 +142,15 @@ Swiss Archiving Act — lead passenger name, passenger count, email, start and d
 `{STRIPE_COOKIE_DURATION}` `{HOSTING_COOKIE}` `{HOSTING_COOKIE_DURATION}` `{LANG_COOKIE}`
 `{LANG_COOKIE_DURATION}` `{RECENT_ADDRESS_COOKIE}` `{RECENT_ADDRESS_DURATION}`
 `{ANALYTICS_COOKIE}` `{ANALYTICS_PROVIDER}` `{ANALYTICS_DURATION}` `{ERROR_COOKIE}`
-`{ERROR_COOKIE_DURATION}` `{MARKETING_COOKIE}` `{MARKETING_PROVIDERS}` `{MARKETING_DURATION}`
+(**RESOLVED** — decision 10, 13 Aug 2026: strictly necessary, always on, value still open)
+`{ERROR_COOKIE_DURATION}` (**RESOLVED** — decision 10, 13 Aug 2026: strictly necessary, always
+on, value still open) `{MARKETING_COOKIE}` `{MARKETING_PROVIDERS}` `{MARKETING_DURATION}`
 `{NECESSARY_DURATION}` `{FUNCTIONAL_DURATION}` `{STORE_CONSENT_MONTHS}`.
+
+The four analytics tokens (`{ANALYTICS_COOKIE}` `{ANALYTICS_PROVIDER}` `{ANALYTICS_DURATION}`
+`{ANALYTICS_REGION}`) are blocked on A6, which is **OPEN**. The two candidates — Cloudflare Web
+Analytics (cookieless) and PostHog (consent-gated) — are named here as the choice, not as an
+answer.
 
 Only real cookie names are printed on the page: `__stripe_mid`, `__stripe_sid`. The rest arrive
 with instrumentation.
@@ -208,6 +234,16 @@ Three rules that matter more than the shape:
 3. **Keys stay stable when a value changes.** `freeCancelWindow` does not become `cancelWindow24h`
    when the client picks 24 hours.
 
+**Four namespaces close the eight-label gap found in the 18 Aug 2026 reconciliation pass**
+(task 3 of the Stream 1 quick task). `site.signIn.*`, `site.resetPassword.*` and
+`site.account.*` extend the existing `site.<page>.*` pattern to three pages that carried live
+`data-tok` pills but no §F entry; `site.becomeAPartner.*` does the same for the page decision 12
+brought into V1 scope. A fifth namespace is new in kind, not just in name: **`ops.<page>.<camelKey>`**
+for the one fact that lives only on the staff sign-in screen (`app/ops/AuthForm.dc.html`) —
+`site.*` was defined for customer-facing content (faq · contact · about) and the ops console is
+a separate signed-in surface (`CLAUDE.md`: "the ops console is the one exception"), so it gets
+its own top-level namespace rather than being folded into `site.*`.
+
 ### Shared — `common.*` (12)
 
 | Token | Key | Appears on |
@@ -217,7 +253,7 @@ Three rules that matter more than the shape:
 | `{EXTRA_WAITING_RATE}` | `common.extraWaitingRate` | terms 04 + 08, cancellation 06 |
 | `{NOSHOW_CALL_ATTEMPTS}` | `common.noShowCallAttempts` | terms 09, cancellation 06 |
 | `{COMPLAINT_RESOLUTION_DAYS}` | `common.complaintResolutionDays` | terms 12, cancellation 08 |
-| `{REFUND_PAYOUT_DAYS}` | `common.refundPayoutDays` | terms 12, cancellation 08 |
+| `{REFUND_PAYOUT_DAYS}` | `common.refundPayoutDays` | terms 12, cancellation 08 · also `booking-detail.dc.html:312` and `manage-booking.dc.html:558`, labelled "Refund payout time" — one fact, two wordings, collapsed here per rule 1; normalise the wording in the mock pass (§I) |
 | `{ANALYTICS_PROVIDER}` | `common.analyticsProvider` | privacy 04, cookies 05, banner |
 | `{ANALYTICS_DURATION}` | `common.analyticsDuration` | cookies 05, banner |
 | `{MARKETING_PROVIDERS}` | `common.marketingProviders` | cookies 06, banner |
@@ -260,6 +296,11 @@ the rule working, and it is the check to run whenever a new page reuses a fact.
 | `{DRIVER_NOSHOW_SHARE}` | `legal.cancellation.driverNoShowShare` |
 | `{REFUND_DECISION_DAYS}` | `legal.cancellation.refundDecisionDays` |
 | `{VOUCHER_VALIDITY}` | `legal.cancellation.voucherValidity` |
+
+`{MODIFICATION_DEADLINE}` / `legal.cancellation.modificationDeadline` is also labelled "Change
+deadline" at `manage-booking.dc.html:459` and `:481` (two call sites, one fact — same pairing
+rule as `archivingYears` above). One fact, two wordings, collapsed here per rule 1; normalise
+the wording in the mock pass (§I).
 
 ### `legal.privacy.*` (14)
 
@@ -356,8 +397,60 @@ out cleanly when an account does not exist.
 | `{BUSINESS_BAGS}` | `site.about.businessBags` |
 | `{DRIVER_LANGUAGES}` | `site.about.driverLanguages` |
 
-**82 tokens · 82 keys · 12 of them shared.** Every key appears exactly once in this table, so the
-find-replace is safe to run unattended.
+### `site.signIn.*` (1) — new, closes a key gap
+
+| Token | Key | Appears on |
+|---|---|---|
+| `{SIGNIN_LINK_EXPIRY}` | `site.signIn.linkExpiry` | sign-in — `app/pages/AuthForm.dc.html:193` ("Link expiry") |
+
+### `ops.signIn.*` (1) — new namespace, closes a key gap
+
+| Token | Key | Appears on |
+|---|---|---|
+| `{OPS_SIGNIN_LINK_EXPIRY}` | `ops.signIn.linkExpiry` | ops sign-in — `app/ops/AuthForm.dc.html:193` ("Link expiry") |
+
+### `site.resetPassword.*` (2) — new, closes a key gap
+
+| Token | Key | Appears on |
+|---|---|---|
+| `{RESET_LINK_EXPIRY}` | `site.resetPassword.linkExpiry` | reset-password — `app/pages/ResetForm.dc.html:152` ("Link expiry") |
+| `{PASSWORD_POLICY}` | `site.resetPassword.passwordPolicy` | reset-password — `app/pages/ResetForm.dc.html:110` ("Password policy") |
+
+### `site.account.*` (3) — new, closes a key gap
+
+| Token | Key | Appears on |
+|---|---|---|
+| `{CODE_EXPIRY}` | `site.account.codeExpiry` | account (phone verification) — `app/pages/PhoneVerify.dc.html:110` ("Code expiry"), hosted by `app/pages/account.dc.html:346` |
+| `{CODE_ATTEMPTS}` | `site.account.codeAttempts` | account (phone verification) — `app/pages/PhoneVerify.dc.html:110` ("Code attempts"), hosted by `app/pages/account.dc.html:346` |
+| `{RECORD_RETENTION}` | `site.account.recordRetention` | account — `app/pages/account.dc.html:424` ("Record retention") |
+
+### `site.becomeAPartner.*` (3) — new, closes a key gap, in scope per decision 12
+
+| Token | Key | Appears on |
+|---|---|---|
+| `{REQUIRED_PERMITS}` | `site.becomeAPartner.requiredPermits` | become-a-partner — `app/pages/become-a-partner.dc.html:222` ("Required permits") |
+| `{PARTNER_VEHICLE_CLASSES}` | `site.becomeAPartner.partnerVehicleClasses` | become-a-partner — `app/pages/become-a-partner.dc.html:213` ("Partner vehicle classes") |
+| `{PARTNER_REPLY_TIME}` | `site.becomeAPartner.partnerReplyTime` | become-a-partner — `app/pages/become-a-partner.dc.html:133`, `:273` ("Partner reply time") |
+
+**Open question on the three link-expiry keys — not resolved here.** Whether
+`{SIGNIN_LINK_EXPIRY}`, `{OPS_SIGNIN_LINK_EXPIRY}` and `{RESET_LINK_EXPIRY}` are the same
+underlying value (one magic-link/reset-link TTL) or three genuinely different settings is not
+established by any evidence in `OWNER-ANSWERS.md` or the mocks. Nor is it established whether
+any of the three matches the guest manage-booking link expiry that `OWNER-ANSWERS.md`'s
+page-by-page blanks list separately (no live `data-tok` pill for that one was found in `app/`).
+Per §F rule 1, a shared fact gets exactly one key — but rule 1 does not license a guess: each
+surface keeps its own key, registered separately above, until the owner or engineering confirms
+sameness.
+
+**92 keys registered in this table** — the 82 recorded 4 Aug 2026, plus the ten added in this
+18 Aug 2026 pass to close the eight-label gap (three of the ten for the Link expiry family
+alone, kept separate rather than merged, per the open question above). That is a distinct
+figure from §H's 8 vehicle-class keys, which sit outside this table, and from the 90 live
+unique pill labels measured in `app/` (89 distinct facts + 1 dynamic binding). The three counts
+— 92, 8, 90 — are **not proven to match item for item**; closing that gap is an open
+reconciliation item, not a number to round into a tidy match nobody performed. Every key that is
+here appears exactly once in this table, so the find-replace over the recorded set is safe to
+run unattended.
 
 ---
 
@@ -380,8 +473,11 @@ Added 4 Aug 2026 from a motion-and-correctness review of `home.dc.html` / `check
 `{VEHICLE_CLASS_2_NAME}` `{VEHICLE_CLASS_2_MAX_PAX}` `{VEHICLE_CLASS_2_MAX_BAGS}` `{VEHICLE_CLASS_2_EXAMPLE}`.
 
 A third–fifth class (the grid and capacity logic hold 2–5 with no relayout) follows the same
-four-token pattern: `{VEHICLE_CLASS_3_NAME}` etc. Fixture default in code today: Economy 3
-passengers / 3 bags, Van 7 passengers / 8 bags — placeholders per A13, not an answer.
+four-token pattern: `{VEHICLE_CLASS_3_NAME}` etc — though decision 13 (13 Aug 2026) settles the
+lineup at three classes, not four or five, since `first` does not ship. Fixture default in code
+today: Economy 3 passengers / 3 bags, Van 7 passengers / 8 bags — **superseded**: decision 13
+settles Economy 3/3 and Van 8/8, so the Van 7/8 fixture is stale. See §D conflict 13, closed by
+that decision, and §G's confirmed 8/8, which stands.
 
 | Token | Key | Appears on |
 |---|---|---|
@@ -422,11 +518,111 @@ feasible"; the driver-details lead time was 6 h, expedited on 24 h notice.
 
 Economy 3 passengers / 3 medium cases and Van 8 / 8 — the client confirmed these, so they are
 written plainly. **Business capacity was never given**, which is why it is the one class carrying
-tokens. Van appears as 7/8 on the archived booking page and 8/8 in the terms example (conflict 13);
-the confirmed 8/8 is used.
+tokens — this is the A13 residual, linked to `{BUSINESS_PAX}` / `{BUSINESS_BAGS}`, owner-owed.
+Van appears as 7/8 on the archived booking page and 8/8 in the terms example (conflict 13); the
+confirmed 8/8 is used, and decision 13 (13 Aug 2026) now confirms it directly, superseding §H's
+7/8 fixture.
 
 ### What slice 2 does *not* contain
 
 No refund share, cancellation window, waiting allowance, baggage dimension or fee appears on the
 FAQ, Contact or About page. Every one of them defers to the page that owns it. That is the
 structural answer to conflict 1, and it is the rule to enforce on every page added after this.
+
+## I. Mocks the answers contradict — list only, not edited in this pass
+
+This is a work order for a separate, reviewable pass. Nothing under `app/` was modified in this
+reconciliation pass; every line below is a citation, not a diff.
+
+**Decision 13, vehicle lineup**
+- `app/home/home.dc.html:747` — the `first` class entry must go.
+- `app/home/home.dc.html:748` — `van` cap 7 → 8.
+- `app/home/home.dc.html:772` — `first` label map entry.
+- `app/home/home.dc.html:831` — `first` label map entry, plus the fr and ar label maps
+  (`first:'First'` / `exFirst:…` entries).
+
+**Decisions 14 and 15, feature flags**
+- `app/home/home.dc.html:505` — `hourlyEnabled` default `true` → `false`; `flightTrackingEnabled`
+  default `false` → `true`.
+
+**Decision 15, hourly copy**
+- `app/home/home.dc.html:753` and the de/fr/ar equivalents.
+- `app/home/home.dc.html:763` and the de/fr/ar equivalents.
+- `app/home/home.dc.html:781` and the de/fr/ar equivalents.
+
+**Decision 5, payment options — PayPal radio and its strings**
+- `app/pages/checkout.dc.html:105`
+- `app/pages/checkout.dc.html:168`
+- `app/pages/checkout.dc.html:191`
+- `app/pages/checkout.dc.html:274`
+- `app/pages/checkout.dc.html:276`
+- `app/pages/checkout.dc.html:277`
+
+**Decision 5, payment options — cash-to-driver, conditional on the A5 residual**
+Blocked on one word from the owner; must not be removed on inference.
+- `app/pages/checkout.dc.html:106`
+- `app/pages/checkout.dc.html:169`
+- `app/pages/checkout.dc.html:192`
+- `app/pages/checkout.dc.html:275`
+- `app/pages/checkout.dc.html:287`
+- `app/pages/confirmation.dc.html:122`
+- `app/pages/confirmation.dc.html:132`
+- `app/pages/confirmation.dc.html:154`
+
+**Decision 2, cancellation promise — hard-coded 24 h free-cancellation string**
+The 24 h number is now confirmed by decision 2, so this is a maintainability change (make it
+settings-driven), no longer a Law 04 breach.
+- `app/pages/checkout.dc.html:172`
+- `app/home/home.dc.html:769`
+- `app/home/home.dc.html:886`
+- `app/home/home.dc.html:920`
+- `app/pages/confirmation.dc.html:120`
+- `app/pages/confirmation.dc.html:130`
+
+**Q21, subprocessor naming**
+- `app/pages/privacy.dc.html` — the Vercel region pill becomes Cloudflare.
+
+**Decision 4, contact address — `info@vamostaxi.eu` → `contact@vamostaxi.eu`**
+- `app/home/SiteFooter.dc.html:136`
+- `app/pages/SiteFooter.dc.html:136`
+- `app/pages/contact.dc.html:233`
+- `app/pages/privacy.dc.html:182`
+- `app/pages/privacy.dc.html:302`
+- `app/pages/imprint.dc.html:200`
+- `app/vamos-ops-data.js:321`
+
+**Law 04 breaches from §D — C20, invented figures on a legal page**
+The 8 seats / 72 hours figures must become `data-tok` pills, not `data-tok-fig` wrappers.
+- `app/pages/cancellation.dc.html:208`
+
+**Law 04 breaches from §D — C21, invented driver-assignment lead time**
+- `app/home/HowItWorks.dc.html:196`
+
+**Law 04 breaches from §D — C19, the full site list, airport-waiting allowance**
+- `app/home/HowItWorks.dc.html:205`
+- `app/home/home.dc.html:759` (en)
+- `app/home/home.dc.html:791` (en)
+- `app/home/home.dc.html:817` (de)
+- `app/home/home.dc.html:849` (de)
+- `app/home/home.dc.html:875` (fr)
+- `app/pages/account.dc.html:255`
+- `app/vamos-i18n-dict.js:180`
+- `app/vamos-i18n-dict.js:314`
+- `app/vamos-i18n-dict.js:316`
+- `app/vamos-i18n-dict.js:1321`
+- `app/vamos-ops-data.js:298`
+
+**§F label normalisation**
+"Refund payout time" normalises to the wording carried by `{REFUND_PAYOUT_DAYS}` /
+`common.refundPayoutDays`:
+- `app/pages/booking-detail.dc.html:312`
+- `app/pages/manage-booking.dc.html:558`
+
+"Change deadline" normalises to the wording carried by `{MODIFICATION_DEADLINE}` /
+`legal.cancellation.modificationDeadline`:
+- `app/pages/manage-booking.dc.html:459`
+- `app/pages/manage-booking.dc.html:481`
+
+Every item here is a copy or fixture change; none of it is in this pass's diff. The
+A5-conditional group (cash-to-driver) is blocked on the owner and must not be actioned without
+that one word of confirmation.
