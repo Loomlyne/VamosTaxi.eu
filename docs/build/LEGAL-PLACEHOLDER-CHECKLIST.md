@@ -14,8 +14,8 @@ same 90**: §F carries 82 keys and 8 live pill labels have no key at all (closed
 below), so the two sets have not been matched item by item and this pass does not claim they
 have. 17 legal-text slots (Terms 8 + Privacy 2 + Cancellation 3 + Imprint 4 + Cookies 0 —
 corrected from a stale `18`; §B's own heading and table already say 17) · 5 content/image
-slots · 15 blocking decisions — 10 resolved, 4 resolved with a named residual, 1 open · 23
-documented conflicts (the original 18 plus C19–C23 registered below; `(1 reopened)` is dropped
+slots · 15 blocking decisions — 10 resolved, 4 resolved with a named residual, 1 open · 24
+documented conflicts (the original 18 plus C19–C24 registered below; `(1 reopened)` is dropped
 because conflict 13 is closed by decision 13) · 10 photography slots (per
 `OWNER-ANSWERS.md`), every one blank — 1 of them ("First" class) is moot after decision 13,
 so 9 are live.
@@ -159,7 +159,7 @@ with instrumentation.
 `{UID_NUMBER}` (published nowhere) · `{PHOTOGRAPHY_CREDIT}` · `{BRAND_AGENCY_CREDIT}` ·
 `{BUILD_AGENCY_CREDIT}`.
 
-## D. Conflicts register — 23, and where each is answered
+## D. Conflicts register — 24, and where each is answered
 
 | # | Conflict | Severity | Handled |
 |---|---|---|---|
@@ -186,10 +186,11 @@ with instrumentation.
 | C21 | Invented driver-assignment lead time | high | `app/home/HowItWorks.dc.html:196` states a named driver is assigned at −24 h as fact; `{DRIVER_DETAILS_LEAD_TIME}` is open (archive 6 h). Ties to conflict 15. **OPEN** |
 | C22 | `data-vt-legal` asserts language coverage that does not exist | high | All five legal pages carry `data-vt-legal="en de fr ar"` (`app/pages/terms.dc.html:109`, `privacy.dc.html:117`, `cookies.dc.html:130`, `cancellation.dc.html:120`, `imprint.dc.html:124`) and `terms.dc.html:123` prints the four language names — while `docs/build/i18n-todo.txt` lists 438 untranslated legal strings (terms 102, privacy 107, imprint 98, cookies 49, cancellation 82). The attribute exists precisely to stop this pretence. Feeds Stream 5 and interacts with #16. **OPEN** |
 | C23 | Doc contradicts code | low | §H asserts `flightTrackingEnabled` has "default on"; `app/home/home.dc.html:505` declares `"default":false`. The §H note is what Phase 2 would read. Corrected in §H by task 1; registered here so the correction is traceable. **OPEN** |
+| C24 | Real-looking company identity hard-coded in a seed while its tokens are open | critical | `app/vamos-ops-data.js:317` seeds `company: 'Vamos Taxi GmbH'`, `:318` seeds `address: 'Bleicherstrasse 16, 8953 Dietikon ZH'`, `:319` seeds `uid: 'CH-020.4.077.792-7'`, `:320` seeds `phone: '+41 79 626 70 82'` and `:321` seeds `email: 'info@vamostaxi.eu'` — while every other value in the same SETTINGS fixture is a visible placeholder (`ZH 000 001`, `+41 00 000 00 00`, `year:'0000'`, `CHF 000`), which makes these five stand out as deliberate real data rather than scaffolding. Each contradicts an open item: `{REGISTERED_FIRM_NAME}` is open and §C records the register says *Vamos Taxi*, no GmbH; A3 was answered "Zürich, Switzerland" and the Dietikon street address is one of the two disputed archive addresses that answer explicitly rejected; `{UID_NUMBER}` is recorded in §C as published nowhere; A4 chose `contact@vamostaxi.eu`. A company registration number sitting in a fixture is the specific case `CLAUDE.md`'s never-invent rule names — not even in a test, a seed, a fixture or an example. The owner must confirm whether these five are the real registered values or were filled in to make the ops screens look populated; until then they must not be relied on and must not reach a rendered surface. The email at `:321` is already listed in §I under the A4 fix — this row registers the other four and the pattern, not re-registering that line. **OPEN** |
 
-23 conflicts — 7 resolved by the 13 Aug answers (#1, #2, #3, #5, #6, #13, #14), 7 closed by
-design before them (#8, #9, #10, #11, #12, #17, #18), 1 resolved with stale mocks (#4), 8 open
-(#7, #15, #16, C19–C23).
+24 conflicts — 7 resolved by the 13 Aug answers (#1, #2, #3, #5, #6, #13, #14), 7 closed by
+design before them (#8, #9, #10, #11, #12, #17, #18), 1 resolved with stale mocks (#4), 9 open
+(#7, #15, #16, C19–C24).
 
 ## E. Not designed in this slice
 

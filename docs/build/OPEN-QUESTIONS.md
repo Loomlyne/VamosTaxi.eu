@@ -48,7 +48,10 @@ Poppins. Until redistribution rights are confirmed I cannot serve Qurova from pr
 If the licence does not clear, what is the display fallback? That is a visual change, so it
 is your decision.
 
-**Answer:**
+**Answer:** *(2026-08-19)* **Owner must answer.** This is a visual and brand call, not an engineering one — the
+display fallback changes what the site looks like. Stream 4 of `.planning/BLOCKER-SOLVE-PLAN.md`
+is preparing a rendered fallback so the choice is between two rendered options rather than an
+abstract question. Engineering does not pick the display face.
 
 ---
 
@@ -98,13 +101,20 @@ to be fixed in the same pass.
 `VT-####` runs out at 9999. Keep four digits and let it grow to five, or move to
 `VT-YY-####` now? Changing it after launch leaves two formats in circulation.
 
-**Answer:**
+**Answer:** *(2026-08-19, engineering decision)* Move to `VT-YY-####` now — see `.planning/ADR-003-booking-reference-format.md`. Digits stay so
+dispatchers can read a reference aloud on the phone; the year prefix resets the numeric space
+annually and also replaces the mock's collision-prone random-suffix generator. Sequential
+references stay enumerable, so the manage-booking link must stay a signed token, never a
+lookup by reference alone.
 
 ### Q10 · Initial staff users
 Names and emails for the invite-only `dispatcher` / `admin` seed. TOTP MFA is required for
 all of them.
 
-**Answer:**
+**Answer:** *(2026-08-19)* **Owner must answer.** Names and emails are personal data only the owner holds — engineering
+cannot invent or guess a real staff roster. TOTP MFA is required for every seeded staff
+account regardless of who they are; that is a stated requirement already carried in the
+question, not a new decision made here.
 
 ---
 
@@ -130,7 +140,11 @@ mark and never the number — and Stripe charges CHF.
 The proposed schema assumes CHF is the one priced currency and the others are display marks
 only. If dispatch really maintains four price lists, the pricing tables change shape.
 
-**Answer:**
+**Answer:** *(2026-08-19, engineering decision)* Display-only — see `.planning/ADR-004-currency-display-only.md`. CHF is the one priced
+currency in the schema; one CHF amount per rate, route and surcharge, no per-currency columns.
+`CLAUDE.md` already mandates this behaviour and Stripe settles CHF regardless of the currency
+shown, so the other marks are presentational. Checkout must state the charge currency
+explicitly once a non-CHF mark is shown — flagged as a requirement, not decided here.
 
 ### Q13 · Refund shares and cancellation window (A2)
 Free-cancel window, full-refund share, partial-refund share, no-show share, driver-no-show
@@ -161,7 +175,13 @@ Free cancellation up to 24 h before pickup."* — an unconfirmed policy number s
 a `data-tok` pill, contradicting law 04. May I convert it to a settings-driven string that
 shows the TBC pill until the number lands? It is a copy change, so it needs your approval.
 
-**Answer:**
+**Answer:** *(2026-08-19, engineering decision)* Convert it to a settings-driven string — see `.planning/ADR-005-cancellation-copy-settings-driven.md`.
+The 24 h figure is already correct per owner decision 2 (13 Aug 2026), so this is not a Law 04
+breach any more, but the same promise is rendered independently at six or more sites across
+four languages; one settings key keeps them all in sync under any future change. Note:
+`OWNER-ANSWERS.md` still lists the free-cancellation window as a separate blank number even
+though decision 2 already answers it — one line of owner confirmation that they are the same
+24 h figure is still wanted.
 
 ### Q16 · Payment methods (A5)
 `checkout.dc.html` offers Card / Apple Pay / TWINT, **PayPal**, and **cash to the driver**.
@@ -184,7 +204,11 @@ treated as out, needs one word of confirmation before the checkout option is rem
 ### Q17 · Corporate pay-by-invoice
 In or out of V1? (`MISSING-FEATURES` has it 🟡 on checkout and ⚪ for corporate accounts.)
 
-**Answer:**
+**Answer:** *(2026-08-19, engineering decision)* Out of V1, hidden, kept in planning — see `.planning/ADR-008-recorded-scope-decisions.md`. The pay-by-invoice
+flag ships `false` and the ops surface hides the option; the mock's `invoice: true` seed and
+"Invoiced monthly" customer note imply a working feature the build does not ship, which the
+mock fixture needs correcting. The `corporate` customer type stays in the schema as a customer
+attribute, not a payment feature.
 
 ### Q18 · Flight tracking (A14)
 Live in V1? `flightTrackingEnabled` defaults on in the mock and the field already does
@@ -208,7 +232,12 @@ The widget has a return tab. Priced as two one-ways, one discounted round trip, 
 booking carrying two legs? This is a schema question — currently modelled as a single
 `bookings` row with `return_at`.
 
-**Answer:**
+**Answer:** *(2026-08-19, engineering decision)* One booking, two legs — see `.planning/ADR-006-return-trips-booking-legs.md`. A
+`bookings` row stays the commercial record; a new `booking_legs` table carries one or two rows,
+each with its own driver, vehicle, pickup time, flight and status — a `return_at` column
+cannot carry any of that, and two separate one-way bookings would break "one booking, one
+fixed price." Whether a round trip is discounted is a pricing rule on top of this shape, not
+decided here, and no discount percentage is stated — that stays open under Q11.
 
 ---
 
@@ -264,21 +293,31 @@ Supabase is pinned to eu-central (Frankfurt), but Workers execute wherever the r
 lands. Is edge processing of passenger data acceptable to your counsel, or do the booking
 API routes need pinning near Frankfurt (Smart Placement)? This affects the Phase 8 design.
 
-**Answer:**
+**Answer:** *(2026-08-19)* Engineering's proposal only, per `.planning/ADR-007-edge-data-residency.md` — counsel has the final word and
+this does not read as settled. The proposal: pin data-touching routes (booking POST, account
+reads, ops) near Frankfurt via Smart Placement, leave public marketing pages at the edge —
+costed against pinning everything and pinning nothing. Whether transient edge processing with
+no persistence counts as a transfer under nFADP/GDPR is a legal question this ADR does not
+answer.
 
 ### Q25 · Phone verification and social sign-in
 `PhoneVerify.dc.html` exists as a mock, and `sign-in.dc.html` has Google/Apple buttons.
 Phone verification via Twilio Verify in V1 or deferred behind a flag? OAuth — ship or
 remove the buttons?
 
-**Answer:**
+**Answer:** *(2026-08-19)* **Owner must answer.** Removing the Google/Apple buttons or the `PhoneVerify` mock changes a
+designed screen, which makes this a design decision, not an engineering one. Engineering does
+not delete a designed surface without the owner choosing to.
 
 ### Q26 · Review import
 `vamos-reviews.js` carries a `source` field for Google, Tripadvisor and Trustpilot. Is
 importing existing reviews a V1 requirement, or post-launch? Import needs API access per
 platform.
 
-**Answer:**
+**Answer:** *(2026-08-19, engineering decision)* Post-launch, tracked as LATER-02 — see `.planning/ADR-008-recorded-scope-decisions.md`. Each
+platform import needs its own API access and per-platform onboarding, which has no launch
+value. The `source` field stays in the schema — it costs nothing and the manual review-entry
+path already uses it.
 
 ---
 
