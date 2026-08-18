@@ -41,7 +41,11 @@ body{margin:0}
 <div style="background:var(--vt-bg-page);min-height:100vh;font-family:var(--vt-font-body)">
 
 <div style="position:relative;overflow:hidden;background:var(--vt-charcoal-900);padding:clamp(28px,5vw,48px) clamp(20px,5vw,56px) 40px" data-screen-label="Intro">
-<div style="position:absolute;top:0;inset-inline-end:0"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.CheckerMark" size="56" hint-size="56px,56px"></x-import></div>
+<!-- The wrapper is clipped to the mark's own footprint on purpose. This page has no logic
+     class, so it cannot pass the numeric `size`/`opacity` bindings every other page uses
+     (`size="{{ n96 }}" opacity="{{ pt5 }}"`); given a bare string the component tiles to fill
+     its container instead, which put body copy on full-strength yellow squares. -->
+<div style="position:absolute;top:0;inset-inline-end:0;width:56px;height:56px;overflow:hidden;opacity:.5;pointer-events:none"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.CheckerMark" size="56" hint-size="56px,56px"></x-import></div>
 <div style="max-width:1140px;margin:0 auto;display:flex;flex-direction:column;gap:16px;position:relative">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" form="wordmark" height="26" hint-size="150px,26px"></x-import>
 <div style="display:flex;flex-direction:column;gap:10px">
