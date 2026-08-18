@@ -87,7 +87,12 @@ Never supplied — it is the one class carrying `{VEHICLE_CLASS_n_MAX_PAX}` /
 ("marketing claim, never confirmed"). The proposed `settings` table has them NULL, which is
 what renders the `data-tok` TBC pill. Confirm NULL, or confirm 60 and 15 as real numbers.
 
-**Answer:**
+**Answer:** *(2026-08-19, engineering decision)* **Seed NULL, not 60/15** — see `.planning/ADR-002-waiting-allowances-null.md`. An unconfirmed
+archive figure seeded as the default silently becomes the answer, which is how the archive's
+claims became live consumer promises in the first place; NULL renders the `data-tok` TBC pill,
+which is Law 04 working as designed. The setting alone does not close conflict C19: plain prose
+across eleven sites still asserts 60 minutes regardless of what the setting holds, and that has
+to be fixed in the same pass.
 
 ### Q9 · Booking reference format
 `VT-####` runs out at 9999. Keep four digits and let it grow to five, or move to
