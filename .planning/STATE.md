@@ -25,7 +25,7 @@ confirmation — must.
 Phase: 1 of 11 (Platform Foundation, Design System Port & i18n Runtime)
 Plan: 0 of TBD in current phase
 Status: Ready to plan
-Last activity: 2026-08-17 — ROADMAP.md created, 80/80 v1 requirements mapped across 11 phases
+Last activity: 2026-08-18 - Completed quick task 260818-wxa: Stream 1 blocker reconciliation
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -70,6 +70,12 @@ None yet.
 - Hyperdrive must bind to Supabase's **direct** connection string, never the pooled Supavisor (6543) string — double-pooling only surfaces under real concurrency (Phase 3).
 - Data residency / Worker region-pinning is still open with counsel per PROJECT.md — must resolve before Phase 10 (hardening), since Sentry/monitoring must not ship ahead of a working `consent_log`.
 - `docs/brief/PROJECT-BRIEF.md` and `DECISIONS.md` #14 are stale (name Vercel, shadcn/ui, EN+DE-first) — superseded by `docs/build/GSD-LAUNCH.md`, the bound design system and `CLAUDE.md`'s four-language rule. Do not consult them as current guidance.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260818-wxa | Stream 1 blocker reconciliation: mark every LEGAL-PLACEHOLDER-CHECKLIST decision and conflict resolved-or-open against OWNER-ANSWERS, correct stale counts, register five new conflicts, list contradicted mock sites | 2026-08-18 | e15eaec | [260818-wxa-stream-1-blocker-reconciliation-mark-eve](./quick/260818-wxa-stream-1-blocker-reconciliation-mark-eve/) |
 
 ## Deferred Items
 
