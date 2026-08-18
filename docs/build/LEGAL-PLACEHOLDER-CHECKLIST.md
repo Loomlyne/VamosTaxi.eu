@@ -133,28 +133,37 @@ with instrumentation.
 `{UID_NUMBER}` (published nowhere) · `{PHOTOGRAPHY_CREDIT}` · `{BRAND_AGENCY_CREDIT}` ·
 `{BUILD_AGENCY_CREDIT}`.
 
-## D. Conflicts register — the 18, and where each is answered
+## D. Conflicts register — 23, and where each is answered
 
 | # | Conflict | Severity | Handled |
 |---|---|---|---|
-| 1 | Full refund vs 75/25 | critical | cancellation 01 flag · A2 |
-| 2 | Third-party name in venue and data clauses | critical | terms 16 slot, 15 flag · A7 |
-| 3 | Two controller addresses | critical | privacy 01 flag · A3 |
-| 4 | Three contact emails incl. gmail | high | privacy 09 flag · A4 |
-| 5 | Intermediary vs “our drivers” | critical | terms 01 flag · A1 |
-| 6 | Payment lists disagree | high | terms 11 flag · A5 |
-| 7 | €15 on a CHF operation | high | terms 04 flag |
-| 8 | Unreplaced template token in the archive | high | not carried over |
-| 9 | Privacy Shield | high | privacy 05 slot note |
-| 10 | GDPR only, no revFADP | high | privacy stamp reads revFADP · GDPR |
-| 11 | E-commerce “delivering the goods” | medium | not carried over |
-| 12 | No cookie consent at all | high | cookies 08 flag + `CookieBanner` |
-| 13 | Van capacity 7 vs 8 | medium | **reopened** — §H below; the booking-flow review of 4 Aug 2026 defaults Van to 7/8, contradicting this file's own "confirmed 8/8" note in §G. Not re-resolved here — see A13 |
-| 14 | Account-only cancellation vs chat/WhatsApp | medium | cancellation 02 flag · A8 |
-| 15 | SMS “on request” vs standard at 6 h | medium | terms 03, token `{DRIVER_DETAILS_LEAD_TIME}` |
-| 16 | Imprint German, site English | medium | imprint is bilingual, DE leading |
-| 17 | “Anywhere in the world” | medium | scope stated as pre-booked transfers, Zurich first (terms 02) |
-| 18 | DPA inside the T&Cs | medium | lifted to privacy; terms 15 is a pointer, flagged |
+| 1 | Full refund vs 75/25 | critical | cancellation 01 flag · A2. **RESOLVED** — decision 2, 13 Aug 2026: tiered, 100% more than 24 h before pickup, 75% inside 24 h, nothing for a no-show |
+| 2 | Third-party name in venue and data clauses | critical | terms 16 slot, 15 flag · A7. **RESOLVED** — decision 7, 13 Aug 2026: Zürich |
+| 3 | Two controller addresses | critical | privacy 01 flag · A3. **RESOLVED** — decision 3, 13 Aug 2026: "Zürich, Switzerland" — neither archive address is authoritative. Street and postcode remain the A3 residual |
+| 4 | Three contact emails incl. gmail | high | privacy 09 flag · A4. **RESOLVED (mocks stale)** — decision 4, 13 Aug 2026 chose `contact@vamostaxi.eu`, yet `info@vamostaxi.eu` still ships in six places. See §I |
+| 5 | Intermediary vs “our drivers” | critical | terms 01 flag · A1. **RESOLVED** — decision 1, 13 Aug 2026: carrier |
+| 6 | Payment lists disagree | high | terms 11 flag · A5. **RESOLVED** — decision 5, 13 Aug 2026 + 17 Aug 2026: Visa, Mastercard, Apple Pay, Google Pay, TWINT. Cash-to-driver is the A5 residual |
+| 7 | €15 on a CHF operation | high | terms 04 flag. **OPEN** — the archive €15 is deliberately not carried over; the shape is fixed (a CHF figure belongs here), only the number is missing |
+| 8 | Unreplaced template token in the archive | high | not carried over. **CLOSED BY DESIGN** — was never waiting on the owner |
+| 9 | Privacy Shield | high | privacy 05 slot note. **CLOSED BY DESIGN** — was never waiting on the owner |
+| 10 | GDPR only, no revFADP | high | privacy stamp reads revFADP · GDPR. **CLOSED BY DESIGN** — was never waiting on the owner |
+| 11 | E-commerce “delivering the goods” | medium | not carried over. **CLOSED BY DESIGN** — was never waiting on the owner |
+| 12 | No cookie consent at all | high | cookies 08 flag + `CookieBanner`. **CLOSED BY DESIGN** — was never waiting on the owner |
+| 13 | Van capacity 7 vs 8 | medium | **RESOLVED** — decision 13, 13 Aug 2026: Van 8/8. Retires the `**reopened**` note previously in this cell and the `(1 reopened)` note in the header — see A13 |
+| 14 | Account-only cancellation vs chat/WhatsApp | medium | cancellation 02 flag · A8. **RESOLVED** — decision 8, 13 Aug 2026 + Q14: additive channels, chat/WhatsApp/email alongside the self-serve button |
+| 15 | SMS “on request” vs standard at 6 h | medium | terms 03, token `{DRIVER_DETAILS_LEAD_TIME}`. **OPEN** — the shape is fixed (a lead-time figure belongs here), archive 6 h is evidence, not the answer; only the number is missing |
+| 16 | Imprint German, site English | medium | The bilingual answer is not available under Law 03 (four languages, same pass, in `CLAUDE.md`): the imprint must ship in en/de/fr/ar like every other surface, or carry `data-vt-legal` naming the languages the text actually exists in. **OPEN** |
+| 17 | “Anywhere in the world” | medium | scope stated as pre-booked transfers, Zurich first (terms 02). **CLOSED BY DESIGN** — was never waiting on the owner |
+| 18 | DPA inside the T&Cs | medium | lifted to privacy; terms 15 is a pointer, flagged. **CLOSED BY DESIGN** — was never waiting on the owner |
+| C19 | Airport-waiting allowance promised as fact while its token is TBC | critical | `{AIRPORT_WAITING}` is an open `data-tok` pill on terms and cancellation, and `OWNER-ANSWERS.md` leaves free airport waiting time blank — yet plain copy asserts 60 minutes at `app/home/home.dc.html:759` and `:791` (en), `:817` and `:849` (de), `:875` (fr); `app/home/HowItWorks.dc.html:205`; `app/pages/account.dc.html:255`; `app/vamos-i18n-dict.js:180`, `:314`, `:316`, `:1321`; `app/vamos-ops-data.js:298`. Same failure mode as conflict 1: a live consumer promise contradicting the page that owns the fact. **OPEN** |
+| C20 | Invented figures on a legal page | critical | `app/pages/cancellation.dc.html:208` states that vehicles over 8 seats work to a longer window of 72 hours, as plain fact inside `data-tok-fig` wrappers — which are typographic only and render no TBC suffix. `{LARGE_VEHICLE_SEATS}` and `{LARGE_VEHICLE_WINDOW}` are both open, and §C records archive values of 15 seats / 5 days, which those two figures match neither. Direct Law 04 breach on a consumer legal page. **OPEN** |
+| C21 | Invented driver-assignment lead time | high | `app/home/HowItWorks.dc.html:196` states a named driver is assigned at −24 h as fact; `{DRIVER_DETAILS_LEAD_TIME}` is open (archive 6 h). Ties to conflict 15. **OPEN** |
+| C22 | `data-vt-legal` asserts language coverage that does not exist | high | All five legal pages carry `data-vt-legal="en de fr ar"` (`app/pages/terms.dc.html:109`, `privacy.dc.html:117`, `cookies.dc.html:130`, `cancellation.dc.html:120`, `imprint.dc.html:124`) and `terms.dc.html:123` prints the four language names — while `docs/build/i18n-todo.txt` lists 438 untranslated legal strings (terms 102, privacy 107, imprint 98, cookies 49, cancellation 82). The attribute exists precisely to stop this pretence. Feeds Stream 5 and interacts with #16. **OPEN** |
+| C23 | Doc contradicts code | low | §H asserts `flightTrackingEnabled` has "default on"; `app/home/home.dc.html:505` declares `"default":false`. The §H note is what Phase 2 would read. Corrected in §H by task 1; registered here so the correction is traceable. **OPEN** |
+
+23 conflicts — 7 resolved by the 13 Aug answers (#1, #2, #3, #5, #6, #13, #14), 7 closed by
+design before them (#8, #9, #10, #11, #12, #17, #18), 1 resolved with stale mocks (#4), 8 open
+(#7, #15, #16, C19–C23).
 
 ## E. Not designed in this slice
 
