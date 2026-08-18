@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../design-system/tokens/fonts.css">
+<link rel="stylesheet" href="../../design-system/tokens/colors.css">
+<link rel="stylesheet" href="../../design-system/tokens/typography.css">
+<link rel="stylesheet" href="../../design-system/tokens/spacing.css">
+<link rel="stylesheet" href="../../design-system/tokens/elevation.css">
+<link rel="stylesheet" href="../../design-system/tokens/motion.css">
+<link rel="stylesheet" href="../../design-system/tokens/base.css">
+<link rel="stylesheet" href="../../design-system/tokens/laws.css">
+<link rel="stylesheet" href="../../design-system/styles.css">
+<script src="../../design-system/_ds_bundle.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Candidate faces load live from Google Fonts' CDN for this internal review page only.
+     This page never ships; a chosen face is vendored into design-system/assets/fonts/
+     before it goes anywhere near production — see the C25 note below for why hotlinking
+     is the exact problem this project is trying not to repeat. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap">
+<style>
+:root{--vt-shadow-accent:none;--vt-logo-base:"../../assets/logo/";--vt-icon-base:"../../assets/icons/";--vt-pattern-base:"../../assets/patterns/"}
+.vt-input--focus{box-shadow:none}
+body{margin:0}
+::selection{background:var(--vt-yellow-400);color:var(--vt-charcoal-900)}
+/* This page deliberately overrides font-family and font-size on the specimen
+   cells in the matrix below, rather than composing purely from design-system
+   tokens — rendering each candidate at the mocks' real display settings is
+   the entire point of the page, so this one departure is intentional and
+   scoped to [data-specimen] only. */
+</style>
+</helmet>
+
+<div style="background:var(--vt-bg-page);min-height:100vh;font-family:var(--vt-font-body)">
+
+<div style="position:relative;overflow:hidden;background:var(--vt-charcoal-900);padding:clamp(28px,5vw,48px) clamp(20px,5vw,56px) 40px" data-screen-label="Intro">
+<div style="position:absolute;top:0;inset-inline-end:0"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.CheckerMark" size="56" hint-size="56px,56px"></x-import></div>
+<div style="max-width:1140px;margin:0 auto;display:flex;flex-direction:column;gap:16px;position:relative">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" form="wordmark" height="26" hint-size="150px,26px"></x-import>
+<div style="display:flex;flex-direction:column;gap:10px">
+<p style="margin:0;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-yellow-400)">For the owner — internal review scaffold, never shipped</p>
+<h1 style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-display-3);line-height:1.12;letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:#fff;max-width:26ch">Qurova, or the open-licence fallback — read the real headlines before you choose</h1>
+<p style="margin:0;max-width:74ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .82)">This page is an internal review scaffold. It never ships. The candidate faces
+below load live from Google Fonts' CDN for this review only — the moment a face is chosen it
+gets vendored into <span style="font-family:var(--vt-font-mono)">design-system/assets/fonts/</span> before it goes anywhere near
+production, for exactly the reason recorded as conflict <strong style="color:#fff">C25</strong>
+in <span style="font-family:var(--vt-font-mono)">docs/build/LEGAL-PLACEHOLDER-CHECKLIST.md</span>: hotlinking a third-party
+font CDN in production leaks a visitor's IP address and user-agent before consent.</p>
+<p style="margin:0;max-width:74ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .72)">The recommendation, argued in full in
+<span style="font-family:var(--vt-font-mono)">.planning/ADR-009-qurova-webfont-licence.md</span>, is to buy the $69 Prioritype
+Web Font licence and keep Qurova. This page exists as insurance in case that purchase does not
+happen — every string below is taken verbatim from the live mocks, set at the sizes, weights and
+tracking Qurova is actually used at, so the choice is between rendered options rather than an
+abstract typographic question asked under launch pressure.</p>
+</div>
+</div>
+</div>
+
+<div style="max-width:1140px;margin:0 auto;padding:clamp(32px,5vw,56px) clamp(20px,5vw,56px) 90px;display:flex;flex-direction:column;gap:56px">
+
+<section data-screen-label="What this page is">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.SectionHeader" eyebrow="Read this first" title="What you're looking at" subtitle="Four short facts before the specimens, so nothing below is misread." level="h2" rule="{{ true }}" hint-size="100%,90px"></x-import>
+<div style="display:flex;flex-direction:column;gap:14px;margin-top:20px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" title="This is a scaffold, not a shipped page" hint-size="100%,70px">It exists to make one open decision concrete. Nothing on it is production markup, and it carries none of the four-language requirement Law 03 sets for shipped surfaces — it is English only, on purpose, as the internal-review exception that law names.</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" title="Candidate faces are hotlinked here, on purpose, for review only" hint-size="100%,70px">Outfit and Manrope load from Google Fonts' CDN so you can see them rendered without vendoring three families to compare them. That is acceptable for one reviewer's own browser loading this internal page — it would not be acceptable in production, which is exactly the C25 finding above.</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" title="Arabic is deliberately absent from the matrix below" hint-size="100%,70px">No candidate on this page — and not Qurova either — contains a single Arabic glyph. An Arabic row would render in a browser or system fallback and prove nothing about any of these faces. The Arabic display face is a separate open item, recorded in ADR-009, and this page does not attempt to answer it.</x-import>
+</div>
+</section>
+
+<section data-screen-label="Candidates and licences">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.SectionHeader" eyebrow="Before the specimens" title="Candidates and their licences" subtitle="Verified on 2026-08-19. A candidate whose licence could not be verified is not on this page." level="h2" rule="{{ true }}" hint-size="100%,90px"></x-import>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-top:20px">
+
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" tone="default" padding="lg" hint-size="100%,220px">
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+<strong style="font-family:var(--vt-font-display);font-size:var(--vt-heading-3);color:var(--vt-charcoal-900)">Qurova</strong>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Badge" tone="outline" hint-size="90px,22px">Current brand</x-import>
+</div>
+<p style="margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Commercial retail face, Prioritype Co. All rights reserved; the font files carry no licence
+description and no licence URL at all. Not open-licensed. Full provenance and the vendor's
+published Web Font tier ($69) are in ADR-009.</p>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" tone="default" padding="lg" hint-size="100%,220px">
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+<strong style="font-family:var(--vt-font-display);font-size:var(--vt-heading-3);color:var(--vt-charcoal-900)">Poppins</strong>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Badge" tone="outline" hint-size="130px,22px">Already vendored</x-import>
+</div>
+<p style="margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">SIL Open Font License, Version 1.1 — verified with no network call at all, directly from the
+font files' own name table, and from <span style="font-family:var(--vt-font-mono)">design-system/assets/fonts/OFL.txt</span> vendored
+in this same pass. <strong>What you give up:</strong> the display voice and the UI voice collapse
+into one typeface — a real loss, not a neutral simplification.</p>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" tone="default" padding="lg" hint-size="100%,220px">
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+<strong style="font-family:var(--vt-font-display);font-size:var(--vt-heading-3);color:var(--vt-charcoal-900)">Outfit</strong>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Badge" tone="outline" hint-size="100px,22px">Google Fonts</x-import>
+</div>
+<p style="margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Open Font License (SIL OFL 1.1). Verified at
+<span style="font-family:var(--vt-font-mono);word-break:break-word">fonts.google.com/specimen/Outfit/license</span> on 2026-08-19; that
+specimen page renders client-side, so the licence text was cross-checked against the same
+family's own <span style="font-family:var(--vt-font-mono);word-break:break-word">OFL.txt</span> in Google's
+<span style="font-family:var(--vt-font-mono);word-break:break-word">github.com/google/fonts</span> source repository (path
+<span style="font-family:var(--vt-font-mono);word-break:break-word">ofl/outfit/OFL.txt</span>), same date. <strong>What you give
+up:</strong> a geometric grotesque with no history in this brand's mocks — every existing display
+setting has to be re-judged by eye rather than carried forward.</p>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" tone="default" padding="lg" hint-size="100%,220px">
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+<strong style="font-family:var(--vt-font-display);font-size:var(--vt-heading-3);color:var(--vt-charcoal-900)">Manrope</strong>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Badge" tone="outline" hint-size="100px,22px">Google Fonts</x-import>
+</div>
+<p style="margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Open Font License (SIL OFL 1.1). Verified at
+<span style="font-family:var(--vt-font-mono);word-break:break-word">fonts.google.com/specimen/Manrope/license</span> on 2026-08-19; also
+cross-checked, same date, against
+<span style="font-family:var(--vt-font-mono);word-break:break-word">github.com/google/fonts</span> path
+<span style="font-family:var(--vt-font-mono);word-break:break-word">ofl/manrope/OFL.txt</span>. <strong>What you give up:</strong> Manrope's
+tighter, rounder terminals read softer than Qurova's cut — the confident, plain brand voice would
+lean gentler than the mocks were built to.</p>
+</div>
+</x-import>
+
+</div>
+</section>
+
+<section data-screen-label="Specimen matrix">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.SectionHeader" eyebrow="The reason this page exists" title="Real Vamos strings, side by side" subtitle="Every string below is copied from the live mocks — not a pangram, not invented text." level="h2" rule="{{ true }}" hint-size="100%,90px"></x-import>
+<div data-specimen style="display:flex;flex-direction:column;gap:36px;margin-top:24px">
+
+<div style="display:flex;flex-direction:column;gap:12px" id="spec-h1-en">
+<div style="display:flex;flex-direction:column;gap:2px">
+<strong style="font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);color:var(--vt-charcoal-900)">Hero headline — English</strong>
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted)">display-2 setting: font-size:var(--vt-display-2), weight semibold, tracking var(--vt-display-tracking), leading var(--vt-display-leading)</span>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;min-width:0">
+<div style="min-width:0;padding:18px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);display:flex;flex-direction:column;gap:10px">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Qurova</span>
+<p lang="en" style="margin:0;font-family:'Qurova','Poppins',system-ui,sans-serif;font-size:var(--vt-display-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);color:var(--vt-charcoal-900);max-width:none;overflow-wrap:break-word">Land in Zurich.      Your driver is waiting.</p>
+</div>
+<div style="min-width:0;padding:18px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);display:flex;flex-direction:column;gap:10px">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Poppins</span>
+<p lang="en" style="margin:0;font-family:'Poppins',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:var(--vt-display-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);color:var(--vt-charcoal-900);max-width:none;overflow-wrap:break-word">Land in Zurich.      Your driver is waiting.</p>
+</div>
+<div style="min-width:0;padding:18px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);display:flex;flex-direction:column;gap:10px">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Outfit</span>
+<p lang="en" style="margin:0;font-family:'Outfit',system-ui,sans-serif;font-size:var(--vt-display-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);color:var(--vt-charcoal-900);max-width:none;overflow-wrap:break-word">Land in Zurich.      Your driver is waiting.</p>
+</div>
+<div style="min-width:0;padding:18px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);display:flex;flex-direction:column;gap:10px">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Manrope</span>
+<p lang="en" style="margin:0;font-family:'Manrope',system-ui,sans-serif;font-size:var(--vt-display-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);color:var(--vt-charcoal-900);max-width:none;overflow-wrap:break-word">Land in Zurich.      Your driver is waiting.</p>
+</div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:12px" id="spec-h1-de">
+<div style="display:flex;flex-direction:column;gap:2px">
+<strong style="font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);color:var(--vt-charcoal-900)">Hero headline — German</strong>
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted)">display-2 setting, same weight and tracking as English — German grows roughly 30%</span>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;min-width:0">
+<div style="min-width:0;padding:18px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);display:flex;flex-direction:column;gap:10px">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Qurova</span>
+<p lang="de" style="margin:0;font-family:'Qurova','Poppins',system-ui,sans-serif;font-size:var(--vt-display-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);color:var(--vt-charcoal-900);max-width:none;overflow-wrap:break-word">Landen Sie in Zürich. Ihr Fahrer wartet bereits.</p>
+</div>
+<div style="min-width:0;padding:18px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);display:flex;flex-direction:column;gap:10px">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Poppins</span>
+<p lang="de" style="margin:0;font-family:'Poppins',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:var(--vt-display-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);color:var(--vt-charcoal-900);max-width:none;overflow-wrap:break-word">Landen Sie in Zürich. Ihr Fahrer wartet bereits.</p>
+</div>
+<div style="min-width:0;padding:18px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);display:flex;flex-direction:column;gap:10px">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Outfit</span>
+<p lang="de" style="margin:0;font-family:'Outfit',system-ui,sans-serif;font-size:var(--vt-display-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);color:var(--vt-charcoal-900);max-width:none;overflow-wrap:break-word">Landen Sie in Zürich. Ihr Fahrer wartet bereits.</p>
+</div>
+<div style="min-width:0;padding:18px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);display:flex;flex-direction:column;gap:10px">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Manrope</span>
+<p lang="de" style="margin:0;font-family:'Manrope',system-ui,sans-serif;font-size:var(--vt-display-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);color:var(--vt-charcoal-900);max-width:none;overflow-wrap:break-word">Landen Sie in Zürich. Ihr Fahrer wartet bereits.</p>
+</div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:12px" id="spec-h1-fr">
+<div style="display:flex;flex-direction:column;gap:2px">
+<strong style="font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);color:var(--vt-charcoal-900)">Hero headline — French</strong>
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted)">display-2 setting, same weight and tracking as English</span>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;min-width:0">
+<div style="min-width:0;padding:18px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);display:flex;flex-direction:column;gap:10px">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Qurova</span>
+<p lang="fr" style="margin:0;font-family:'Qurova','Poppins',system-ui,sans-serif;font-size:var(--vt-display-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);color:var(--vt-charcoal-900);max-width:none;overflow-wrap:break-word">Vous atterrissez à Zurich. Votre chauffeur vous attend.</p>
+</div>
+<div style="min-width:0;padding:18px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);display:flex;flex-direction:column;gap:10px">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Poppins</span>
+<p lang="fr" style="margin:0;font-family:'Poppins',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:var(--vt-display-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);color:var(--vt-charcoal-900);max-width:none;overflow-wrap:break-word">Vous atterrissez à Zurich. Votre chauffeur vous attend.</p>
+</div>
+<div style="min-width:0;padding:18px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);display:flex;flex-direction:column;gap:10px">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Outfit</span>
+<p lang="fr" style="margin:0;font-family:'Outfit',system-ui,sans-serif;font-size:var(--vt-display-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);color:var(--vt-charcoal-900);max-width:none;overflow-wrap:break-word">Vous atterrissez à Zurich. Votre chauffeur vous attend.</p>
+</div>
+<div style="min-width:0;padding:18px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);display:flex;flex-direction:column;gap:10px">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Manrope</span>
+<p lang="fr" style="margin:0;font-family:'Manrope',system-ui,sans-serif;font-size:var(--vt-display-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);color:var(--vt-charcoal-900);max-width:none;overflow-wrap:break-word">Vous atterrissez à Zurich. Votre chauffeur vous attend.</p>
+</div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:12px" id="spec-h4">
+<div style="display:flex;flex-direction:column;gap:2px">
+<strong style="font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);color:var(--vt-charcoal-900)">Card / strip title — “Choose your class”</strong>
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted)">heading-4 setting: font-size:var(--vt-heading-4), weight semibold, tracking var(--vt-heading-tracking)</span>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;min-width:0">
+<div style="min-width:0;padding:18px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);display:flex;flex-direction:column;gap:10px">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Qurova</span>
+<p lang="en" style="margin:0;font-family:'Qurova','Poppins',system-ui,sans-serif;font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);color:var(--vt-charcoal-900);max-width:none;overflow-wrap:break-word">Choose your class</p>
+</div>
+<div style="min-width:0;padding:18px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);display:flex;flex-direction:column;gap:10px">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Poppins</span>
+<p lang="en" style="margin:0;font-family:'Poppins',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);color:var(--vt-charcoal-900);max-width:none;overflow-wrap:break-word">Choose your class</p>
+</div>
+<div style="min-width:0;padding:18px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);display:flex;flex-direction:column;gap:10px">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Outfit</span>
+<p lang="en" style="margin:0;font-family:'Outfit',system-ui,sans-serif;font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);color:var(--vt-charcoal-900);max-width:none;overflow-wrap:break-word">Choose your class</p>
+</div>
+<div style="min-width:0;padding:18px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);display:flex;flex-direction:column;gap:10px">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Manrope</span>
+<p lang="en" style="margin:0;font-family:'Manrope',system-ui,sans-serif;font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);color:var(--vt-charcoal-900);max-width:none;overflow-wrap:break-word">Choose your class</p>
+</div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:12px" id="spec-figure">
+<div style="display:flex;flex-direction:column;gap:2px">
+<strong style="font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);color:var(--vt-charcoal-900)">Figure voice — amount, time, reference, distance</strong>
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted)">figure setting: font-size:var(--vt-figure-md), weight bold — the placeholder amount stays in the project's CHF 000 form until the price matrix lands</span>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;min-width:0">
+<div style="min-width:0;padding:18px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);display:flex;flex-direction:column;gap:10px">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Qurova</span>
+<p style="margin:0;font-family:'Qurova','Poppins',system-ui,sans-serif;font-size:var(--vt-figure-md);font-weight:var(--vt-weight-bold);color:var(--vt-charcoal-900);max-width:none;overflow-wrap:break-word">CHF 000.00 · 08:15 · VT-4821 · 18.4 km</p>
+</div>
+<div style="min-width:0;padding:18px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);display:flex;flex-direction:column;gap:10px">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Poppins</span>
+<p style="margin:0;font-family:'Poppins',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:var(--vt-figure-md);font-weight:var(--vt-weight-bold);color:var(--vt-charcoal-900);max-width:none;overflow-wrap:break-word">CHF 000.00 · 08:15 · VT-4821 · 18.4 km</p>
+</div>
+<div style="min-width:0;padding:18px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);display:flex;flex-direction:column;gap:10px">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Outfit</span>
+<p style="margin:0;font-family:'Outfit',system-ui,sans-serif;font-size:var(--vt-figure-md);font-weight:var(--vt-weight-bold);color:var(--vt-charcoal-900);max-width:none;overflow-wrap:break-word">CHF 000.00 · 08:15 · VT-4821 · 18.4 km</p>
+</div>
+<div style="min-width:0;padding:18px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);display:flex;flex-direction:column;gap:10px">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Manrope</span>
+<p style="margin:0;font-family:'Manrope',system-ui,sans-serif;font-size:var(--vt-figure-md);font-weight:var(--vt-weight-bold);color:var(--vt-charcoal-900);max-width:none;overflow-wrap:break-word">CHF 000.00 · 08:15 · VT-4821 · 18.4 km</p>
+</div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:12px" id="spec-label">
+<div style="display:flex;flex-direction:column;gap:2px">
+<strong style="font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);color:var(--vt-charcoal-900)">Uppercase button label — “Book a transfer” / German</strong>
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted)">label setting: font-size:var(--vt-label-md), uppercase, tracking var(--vt-label-tracking), weight var(--vt-label-weight) — production sets button labels in the UI font regardless of the display choice; this row exists so a candidate that also becomes the UI voice (Poppins) can be checked at the label setting including the German label's roughly 30% growth</span>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;min-width:0">
+<div style="min-width:0;padding:18px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);display:flex;flex-direction:column;gap:10px">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Qurova</span>
+<p style="margin:0;font-family:'Qurova','Poppins',system-ui,sans-serif;font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-charcoal-900);max-width:none;overflow-wrap:break-word">Book a transfer / Transfer buchen</p>
+</div>
+<div style="min-width:0;padding:18px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);display:flex;flex-direction:column;gap:10px">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Poppins</span>
+<p style="margin:0;font-family:'Poppins',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-charcoal-900);max-width:none;overflow-wrap:break-word">Book a transfer / Transfer buchen</p>
+</div>
+<div style="min-width:0;padding:18px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);display:flex;flex-direction:column;gap:10px">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Outfit</span>
+<p style="margin:0;font-family:'Outfit',system-ui,sans-serif;font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-charcoal-900);max-width:none;overflow-wrap:break-word">Book a transfer / Transfer buchen</p>
+</div>
+<div style="min-width:0;padding:18px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);display:flex;flex-direction:column;gap:10px">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Manrope</span>
+<p style="margin:0;font-family:'Manrope',system-ui,sans-serif;font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-charcoal-900);max-width:none;overflow-wrap:break-word">Book a transfer / Transfer buchen</p>
+</div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:12px" id="spec-tagline">
+<div style="display:flex;flex-direction:column;gap:2px">
+<strong style="font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);color:var(--vt-charcoal-900)">Tagline — “Ride with class”</strong>
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted)">Set artwork, never re-set in type by any page — shown here once for context, not as a live comparison across candidates.</span>
+</div>
+<div style="padding:18px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);max-width:340px">
+<p style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);color:var(--vt-charcoal-900)">Ride with class</p>
+</div>
+</div>
+
+</div>
+</section>
+
+<section data-screen-label="Closing">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.SectionHeader" eyebrow="Decide from here" title="Recommendation" subtitle="{{ null }}" level="h2" rule="{{ true }}" hint-size="100%,60px"></x-import>
+<div style="margin-top:20px;display:flex;flex-direction:column;gap:16px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" tone="flat" padding="lg" hint-size="100%,140px">
+<p style="margin:0;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-charcoal-900)"><strong>Buy the $69 Prioritype Web Font licence and keep Qurova.</strong> Against a 2–3 week
+launch and a bound design system whose display face is the brand voice, $69 is not a real
+trade-off. The two questions that have to go to Prioritype in writing before the purchase — what
+covers web usage above the 100,000 monthly pageview cap, and whether the licence is perpetual or
+annual — are recorded in ADR-009 and do not block buying the licence itself.</p>
+</x-import>
+<div style="display:flex;flex-direction:column;gap:10px">
+<strong style="font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);color:var(--vt-charcoal-900)">What you are giving up, per candidate</strong>
+<ul style="margin:0;padding-inline-start:20px;display:flex;flex-direction:column;gap:8px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">
+<li><strong style="color:var(--vt-charcoal-900)">Poppins</strong> — the display voice and the UI voice become one typeface; nothing on the
+page reads as distinctly "brand" versus "interface" anymore.</li>
+<li><strong style="color:var(--vt-charcoal-900)">Outfit</strong> — a competent geometric grotesque with no history in this brand; every
+existing display setting across 30+ screens has to be re-judged by eye rather than carried
+forward as-is.</li>
+<li><strong style="color:var(--vt-charcoal-900)">Manrope</strong> — softer, rounder terminals than Qurova's cut; the confident, plain voice
+the copy is written to land in would read gentler than the mocks were built for.</li>
+</ul>
+</div>
+<p style="margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-muted)">Full reasoning, the vendor's price list and both open questions for the foundry: see
+<span style="font-family:var(--vt-font-mono)">.planning/ADR-009-qurova-webfont-licence.md</span>.</p>
+</div>
+</section>
+
+</div>
+</div>
+
+</x-dc>
+</body>
+</html>
