@@ -195,30 +195,28 @@ with instrumentation.
 design before them (#8, #9, #10, #11, #12, #17, #18), 1 resolved with stale mocks (#4), 1
 resolved as already-mitigated in markup (C26), 11 open (#7, #15, #16, C19–C25, C27).
 
-**Pending items recorded here, not numbered as conflicts, because the register is fixed at 26
-for this pass and each needs an owner decision or a code change outside this pass's file scope:**
+**Items previously recorded here as pending and unnumbered, now settled — each below points at
+the ADR that carries its full record:**
 
-- **`data-tok` pill-label translation is contested between the project's own instruction files,
-  and the repository is already inconsistent on it.** Root `CLAUDE.md` says the only copy that
-  stays English on purpose is internal, naming TBC placeholder labels among it; `.claude/CLAUDE.md`
-  §Copy Voice says copy inside `[data-tok]` pills is to be translated in place. This pass follows
-  the root file, because it is the project-rules file and it is unambiguous, so TBC pill labels
-  stay English here. The evidence the owner needs: measured live across `app/pages/*.dc.html`
-  with the same text-node extraction as Task 1's harness (CSS `[data-tok]` selector rules and
-  `data-tok-fig` figure wrappers excluded), there are **90 distinct `data-tok` pill labels**
-  (114 raw occurrences), of which **21 already have a dictionary key** and **69 do not** — so
-  the repository has already half-implemented both readings of the two instruction files at
-  once. This decides whether roughly ninety pill labels are a translation obligation, so it
-  needs settling once by the owner rather than being re-decided per pass.
-- **`app/pages/privacy.dc.html:233` and `app/pages/cookies.dc.html:223` name Vercel as a
-  subprocessor the project does not use.** Privacy names Vercel as the website-hosting
-  subprocessor and cookies names Vercel as the hosting-cookie provider, on consumer-facing legal
-  pages, while `PROJECT.md` fixes the stack as Cloudflare Workers with no Vercel anywhere and the
-  subprocessor set recorded under C25 (Cloudflare, Supabase, Stripe, Resend, Mapbox, AeroDataBox,
-  Sentry) does not include Vercel. A privacy notice naming the wrong data processor is an
-  nFADP/GDPR transparency problem, not a typo. Not numbered here because the remedy is an edit to
-  two legal pages this pass may not touch; the stream that next opens those files should register
-  and fix it.
+- **`data-tok` pill-label translation — closed.** See
+  `.planning/ADR-011-data-tok-labels-stay-english.md`. Outcome: labels stay English, deliberately,
+  in every language — the two instruction files were never a genuine tie, and the dissenting
+  sentence in `.claude/CLAUDE.md` was a transcription defect (traced and corrected in the same
+  ADR), not a second authored rule. The measured evidence stands as recorded: **90 distinct
+  `data-tok` pill labels** (114 raw occurrences) across `app/pages/*.dc.html`, of which **21
+  already have a dictionary key** and **69 do not**. The 69 are compliant as-is and excluded from
+  future i18n residual counts, not debt; the 21 stay in the dictionary (at least one, `Registered
+  firm name`, is confirmed to also serve ordinary non-pill copy on `imprint.dc.html`, so deleting
+  keys page-by-page risks exactly this collision); enforcement moves to the runtime — a `[data-tok]`
+  skip check beside the existing opt-out logic in `app/vamos-locale.js`.
+- **Vercel misnamed as a subprocessor — closed, now numbered C27.** See
+  `.planning/ADR-010-privacy-subprocessor-list-cloudflare.md` and §D above. Correcting the count
+  this entry previously carried: there are **four** occurrences, not two —
+  `app/pages/privacy.dc.html:233`, `app/pages/cookies.dc.html:223`, and both per-folder duplicates
+  of the cookie banner, `app/pages/CookieBanner.dc.html:105` and `app/home/CookieBanner.dc.html:105`
+  — plus a second finding the ADR traces: AeroDataBox, which does process personal data (the
+  flight number collected at `privacy.dc.html:198`), is missing from the same processor table
+  entirely. The ADR carries the full site-by-site detail; this entry no longer repeats it.
 
 ## E. Not designed in this slice
 
