@@ -358,9 +358,10 @@ VamosI18nDict.patterns = {
 
 **Never:**
 - "Ride with class" (tagline is set artwork, never change it)
-- Product names vary (always `Vamos Taxi`, `Economy`, `Business`, `Van`)
-- Codes/references change (always `ZRH`, `CHF`, `VT-4821`)
-- Copy inside `[data-tok]` pills (those are pending client input, translate them in place)
+- Product names, never varied — always `Vamos Taxi`, `Economy`, `Business`, `Van`
+- Codes/references, never changed — always `ZRH`, `CHF`, `VT-4821`
+- Copy inside `[data-tok]` pills, never translated — deliberately stays English in every language
+  (corrected 2026-08-19; see `.planning/ADR-011-data-tok-labels-stay-english.md`)
 
 ## Error Handling
 
