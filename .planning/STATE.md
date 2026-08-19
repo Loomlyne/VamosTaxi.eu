@@ -25,7 +25,7 @@ confirmation — must.
 Phase: 1 of 11 (Platform Foundation, Design System Port & i18n Runtime)
 Plan: 0 of TBD in current phase
 Status: Ready to plan
-Last activity: 2026-08-19 - Completed quick task 260819-mdn: Stream 5 translation measurement (residual zero)
+Last activity: 2026-08-19 - Completed quick task 260819-uoq: ADR-010/011/012 recorded, C27 registered
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -81,6 +81,7 @@ None yet.
 | 260819-1kt | Stream 4: Qurova webfont licence - provenance, ADR-009, vendored OFL text, rendered fallback comparison, conflict C25 | 2026-08-19 | b1c1cc9 | [260819-1kt-stream-4-qurova-webfont-licence-establis](./quick/260819-1kt-stream-4-qurova-webfont-licence-establis/) |
 | 260819-279 | Stream 5 (superseded): translation split - premise voided by measurement, replaced by 260819-mdn | 2026-08-19 | 366fb89 | [260819-279-stream-5-translation-draft-the-156-produ](./quick/260819-279-stream-5-translation-draft-the-156-produ/) |
 | 260819-mdn | Stream 5 resumed: measured i18n residual to zero, marked both snapshot files superseded, rewrote C22, registered C26 | 2026-08-19 | 354b2e3 | [260819-mdn-stream-5-resumed-translate-the-8-residua](./quick/260819-mdn-stream-5-resumed-translate-the-8-residua/) |
+| 260819-uoq | Record three decided items: ADR-010 Vercel-to-Cloudflare subprocessor fix (C27), ADR-011 data-tok labels stay English, ADR-012 dictionary duplicates and Arabic product names | 2026-08-19 | c23a5a0 | [260819-uoq-record-three-decided-items-as-adrs-verce](./quick/260819-uoq-record-three-decided-items-as-adrs-verce/) |
 
 ## Deferred Items
 
