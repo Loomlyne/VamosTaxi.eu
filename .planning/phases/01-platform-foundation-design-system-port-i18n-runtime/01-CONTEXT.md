@@ -123,27 +123,46 @@ page content beyond what is needed to prove the foundation (Phase 5), the ops co
   is present in the **server-rendered** HTML for `/ar`, plus the per-surface manual Arabic pass
   `CLAUDE.md` already mandates.
   — **Reversibility:** reversible.
-- **D-22:** An available OFL/SIL-licensed Arabic sans is vendored and self-hosted in Phase 1 so
+- **D-22:** An available OFL/SIL-licensed Arabic sans is vendored and **self-hosted** in Phase 1 so
   Arabic is typeset rather than falling to whatever the device has. It sits behind a swappable
   token so the designer's eventual choice replaces it without touching call sites, and its
   licence is recorded the way ADR-009 recorded Qurova's. The designer's pick is an open
-  client-input item.
+  client-input item. **Amended after research:** the mocks currently hotlink an Arabic face from
+  the Google Fonts CDN (`app/vamos-locale.js:296`) — that contradicts D-31, adds an origin the
+  WAF does not control, and sends every visitor's IP to Google, which the nFADP/GDPR position
+  does not want. Phase 1 replaces it with a self-hosted face; the planner picks between **Noto
+  Sans Arabic** and **IBM Plex Sans Arabic** (both OFL, licence verified during research) on how
+  each sits beside Poppins. Owner delegated the choice between the two.
   — **Reversibility:** reversible.
 
 ### Design-system port
-- **D-23:** **All 100+ design-system components are ported in Phase 1**, up front — the owner's
-  explicit call over the recommended funnel-first subset. Recorded costs, accepted knowingly:
-  this is the single largest work item in the phase and pushes it past the "foundation" size
-  the 2–3 week public-site timeline assumes, and many components will be ported before any
-  surface exercises them, so their states are proven by the gallery rather than by use.
+- **D-23:** **The full Vamos design-system set is ported in Phase 1 — 33 components**, not the
+  "100+" figure quoted during discussion. `_ds_manifest.json` lists 96, but ~63 of those
+  (`ActionButtons` … `ToolBarInput`, `DynamicIsland`, `SystemKeyboards`, the `Mobile*` set) are
+  an unrelated iOS UI kit mounted into the same project, which `design-system/readme.md` §4.1
+  states is "a different product from Vamos Taxi… kept separate". Porting it would contradict
+  the single-visual-truth law. **The Vamos 33 are:** Avatar, Badge, Button, Card, CheckerMark,
+  Icon, IconButton, Logo, Tag, ListRow, List, StatTile, Table, Alert, Dialog, ProgressIndicator,
+  Toast, Tooltip, Checkbox, Counter, DatePicker, Input, Radio, Select, Switch, Textarea,
+  SectionHeader, StepIndicator, Tabs, PriceSummary, RouteSummary, StatusBadge, VehicleCard.
+  27 of them are confirmed in live use by existing mocks; the remaining 6 are ported too, so the
+  kit is complete. Corrected after research, with the owner's agreement — the original "port
+  everything" intent is preserved, applied to what is actually Vamos.
   — **Reversibility:** reversible.
 - **D-24:** Stylesheets are copied **verbatim** into the app with `tokens/laws.css` as the final
-  import; React components are thin shells emitting the same `.vt-*` class names. CSS is never
-  rewritten, so pixel-identity is structural rather than eyeballed. Owner delegated this one.
+  import; React components are thin shells emitting the same `.vt-*` class names. CSS values are
+  never rewritten, so pixel-identity is structural rather than eyeballed. Owner delegated this one.
+  **Amended after research:** each component's own CSS is not a static file — it is a JS template
+  literal injected into `<head>` at render time by a helper that no-ops when `document` is
+  undefined (`design-system/_ds_bundle.js:43186`). Porting the component logic alone would ship
+  unstyled server HTML. So the port **extracts** that CSS into real stylesheets the app imports.
+  "Verbatim" still binds: values are copied out, not rewritten.
   — **Reversibility:** costly — extracting per-component CSS later touches every ported file.
 - **D-25:** "Pixel-identical" (success criterion 2) is proven by a **screenshot diff in CI**
   between the `.dc.html` source render and the React port, per component and variant, able to
-  fail a PR. Owner delegated this one.
+  fail a PR. Owner delegated this one. **Amended after research:** the mocks pull React and Babel
+  from unpkg at load time, so the diff job serves them from a **locally vendored copy** instead —
+  the job needs no network egress, and a CDN hiccup cannot fail an unrelated PR.
   — **Reversibility:** reversible.
 - **D-26:** Icons ship as CSS masks exactly as in the mocks, with `currentColor` inheritance,
   from the vendored Lucide set only. Not React SVG components — that would be a genuine
