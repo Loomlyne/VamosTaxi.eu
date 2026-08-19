@@ -4,13 +4,13 @@
 contact · about · plus the shared `CookieBanner`
 **Reconciled:** 18 Aug 2026, walked against `docs/build/OWNER-ANSWERS.md` — the 13 Aug 2026
 owner answers plus the 17 Aug 2026 engineering scoping notes carried in the same file.
-**Total open items:** 90 tokens catalogued (§C 73 + §G 9 + §H 8) — measured live in `app/`:
-121 `data-tok` pills, 90 unique pill labels (89 distinct facts + 1 dynamic binding,
+**Total open items:** 91 tokens catalogued (§C 74 + §G 9 + §H 8) — measured live in `app/`:
+122 `data-tok` pills, 91 unique pill labels (90 distinct facts + 1 dynamic binding,
 `{{ shareLabel }}` at `app/pages/manage-booking.dc.html:557`, which resolves to three shares
-already counted). The `173` figure that circulates elsewhere is a grep artifact, not a content
-count — it is 121 pills plus 41 `[data-tok]` CSS selector lines plus 8 `data-tok-fig="1"` plus
-3 `[data-tok-fig]` selectors. The catalogue's 90 and the live 90 are **not proven to be the
-same 90**: §F carries 82 keys and 8 live pill labels have no key at all (closed in task 3
+already counted). The `174` figure that circulates elsewhere is a grep artifact, not a content
+count — it is 122 pills plus 41 `[data-tok]` CSS selector lines plus 8 `data-tok-fig="1"` plus
+3 `[data-tok-fig]` selectors. The catalogue's 91 and the live 91 are **not proven to be the
+same 91**: §F carries 82 keys and 8 live pill labels have no key at all (closed in task 3
 below), so the two sets have not been matched item by item and this pass does not claim they
 have. 17 legal-text slots (Terms 8 + Privacy 2 + Cancellation 3 + Imprint 4 + Cookies 0 —
 corrected from a stale `18`; §B's own heading and table already say 17) · 5 content/image
@@ -82,7 +82,7 @@ Each is a dashed block on the page with a caption saying what it must cover.
 Two archived clauses must **not** be reused: Privacy Shield as the US transfer basis, and the
 e-commerce paragraph about passing addresses to a delivery company for goods.
 
-## C. Tokens by page — 73 in slice 1 (subtotal; 82 with §G's 9, 90 with §H's 8 — see the header's live-pill figures)
+## C. Tokens by page — 74 in slice 1 (subtotal; 83 with §G's 9, 91 with §H's 8 — see the header's live-pill figures)
 
 ### Every page — 10
 Effective date and version, once per document. Archive stamps for reference: terms *Zurich,
@@ -124,13 +124,12 @@ different fact from `{NOSHOW_REFUND_SHARE}` above and one careless read apart fr
 `{REFUND_DECISION_DAYS}` ·
 `{VOUCHER_VALIDITY}` (archive: “valid next year”).
 
-### Privacy — 12
-`{DPO_OR_NOT_REQUIRED}` · `{EU_REPRESENTATIVE}` · `{SUPABASE_REGION}` · `{VERCEL_REGION}`
-(**flagged** — the platform is Cloudflare Workers, not Vercel, per Q21, 17 Aug 2026 and
-`.planning/PROJECT.md`; naming Vercel on the privacy page is a false subprocessor disclosure.
-The token and its key `legal.privacy.vercelRegion` need renaming, landing with the mock edit
-pass in §I so the doc and the code move together — the key cell in §F is not rewritten now. The
-region *value* stays open: data residency is still with counsel per `.planning/STATE.md`) ·
+### Privacy — 13
+`{DPO_OR_NOT_REQUIRED}` · `{EU_REPRESENTATIVE}` · `{SUPABASE_REGION}` · `{CLOUDFLARE_REGION}`
+(the mock now names Cloudflare as the hosting processor, per Q21 / ADR-010, 17–19 Aug 2026;
+the region *value* stays open: data residency is still with counsel per `.planning/STATE.md`
+and ADR-007) · `{AERODATABOX_REGION}` (new TBC pill on the AeroDataBox processor row added
+with the C27 mock correction — flight number and arrival time; no country invented) ·
 `{RESEND_REGION}` · `{SENTRY_REGION}` (values still open, no longer under the Analytics toggle —
 decision 10, 13 Aug 2026: error monitoring is strictly necessary and always on) ·
 `{ANALYTICS_REGION}` (blocked on A6, **OPEN**) · `{ARCHIVING_YEARS}` (archive: 10,
@@ -189,11 +188,11 @@ with instrumentation.
 | C24 | Real-looking company identity hard-coded in a seed while its tokens are open | critical | `app/vamos-ops-data.js:317` seeds `company: 'Vamos Taxi GmbH'`, `:318` seeds `address: 'Bleicherstrasse 16, 8953 Dietikon ZH'`, `:319` seeds `uid: 'CH-020.4.077.792-7'`, `:320` seeds `phone: '+41 79 626 70 82'` and `:321` seeds `email: 'info@vamostaxi.eu'` — while every other value in the same SETTINGS fixture is a visible placeholder (`ZH 000 001`, `+41 00 000 00 00`, `year:'0000'`, `CHF 000`), which makes these five stand out as deliberate real data rather than scaffolding. Each contradicts an open item: `{REGISTERED_FIRM_NAME}` is open and §C records the register says *Vamos Taxi*, no GmbH; A3 was answered "Zürich, Switzerland" and the Dietikon street address is one of the two disputed archive addresses that answer explicitly rejected; `{UID_NUMBER}` is recorded in §C as published nowhere; A4 chose `contact@vamostaxi.eu`. A company registration number sitting in a fixture is the specific case `CLAUDE.md`'s never-invent rule names — not even in a test, a seed, a fixture or an example. The owner must confirm whether these five are the real registered values or were filled in to make the ops screens look populated; until then they must not be relied on and must not reach a rendered surface. The email at `:321` is already listed in §I under the A4 fix — this row registers the other four and the pattern, not re-registering that line. **OPEN** |
 | C25 | Arabic fallback hotlinks a third-party font CDN before consent | high | `app/vamos-locale.js:296–301` injects a `<link id="vt-ar-font">` to `https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap` whenever Arabic is selected, and `:288–289` set `--vt-font-body`/`--vt-font-display` to lead with `'Noto Sans Arabic'`. Every Arabic page load discloses the visitor's IP address and user-agent to Google, and the link fires before any consent interaction. Google is absent from the privacy page's subprocessor list (Cloudflare, Supabase, Stripe, Resend, Mapbox, AeroDataBox and Sentry, per Q21/A6 in `OPEN-QUESTIONS.md`). This is a **data-protection** finding, not a licensing one — Noto Sans Arabic is itself OFL and free to vendor; the hotlink is the problem. It also contradicts this repository's own practice, where the Lucide icons, both type families and the Lenis scroll runtime are all vendored locally rather than hotlinked. Remedy — vendor an open-licence Arabic face into `design-system/assets/fonts/` and drop the CDN `<link>` — is a code change belonging with the other mock edits in §I and is **not performed in this pass**. See `.planning/ADR-009-qurova-webfont-licence.md` for the full write-up alongside the related Qurova licence question. **OPEN** |
 | C26 | `data-slot` reviewer-instruction leak — measured, and already mitigated in markup | medium | The seventeen `data-slot="1"` legal-text-drafting containers (terms 8, privacy 2, cookies 0, cancellation 3, imprint 4 — matching §B's count of 17) hold internal instructions addressed to a lawyer, not consumer copy: counted with the same text-node extraction Task 1's harness uses, they hold 52 distinct text strings across the five pages (terms 20, privacy 4, cookies 0, cancellation 8, imprint 20; 55 raw text-node occurrences before de-duplication) — a different number from the planning session's estimate of 51, recorded as measured rather than corrected quietly. **Correcting the working assumption this row was written against**: every one of the seventeen `data-slot="1"` opening tags already carries `data-vt-no-i18n="1"` on the same element, in all five pages, and has done so since the mocks were first committed — not something an earlier stream added. `app/vamos-locale.js`'s `skipped()` walk and its `acceptNode` TreeWalker reject (lines 216, 256, 477) check exactly `data-vt-no-i18n` and `translate="no"`, so the runtime already rejects each container's full subtree and never renders the drafting notes in any language. The leak this row set out to register is **not live**. What remains true and worth keeping on record: the root `CLAUDE.md` names `data-i18n-skip` for exactly this purpose, but `app/vamos-locale.js` implements no such attribute (`grep -c 'data-i18n-skip' app/vamos-locale.js` is 0) — the documented mechanism and the one actually shipped are different names, so a remedy written against the documented name would silently do nothing. No markup change is needed or recommended. **RESOLVED (already mitigated in markup; `CLAUDE.md` still documents the wrong attribute name for it)** |
-| C27 | Vercel misnamed as a subprocessor on the privacy and cookie pages, while a real one is missing | critical | `app/pages/privacy.dc.html:233` names Vercel in the §04 processor table's Website-hosting row; `app/pages/cookies.dc.html:223` names Vercel as the Hosting-cookie Provider; `app/pages/CookieBanner.dc.html:105` and `app/home/CookieBanner.dc.html:105` — the per-folder duplicates of the same banner component — both list Vercel in the strictly-necessary category meta line. No Vercel exists anywhere in this stack (`PROJECT.md`, `GSD-LAUNCH.md`); a privacy notice naming a party that processes nothing, on a consumer-facing legal surface and the consent banner every visitor sees first, is an nFADP/GDPR transparency problem, not a typo — worse, the correct processor (Cloudflare) goes unnamed and AeroDataBox, which does process personal data (the flight number collected at `privacy.dc.html:198`), is missing from the same table entirely. Q21 in `docs/build/OPEN-QUESTIONS.md`, answered 2026-08-17, already decided the fix: rename to Cloudflare and add AeroDataBox. See `.planning/ADR-010-privacy-subprocessor-list-cloudflare.md` for the full write-up, the four cited sites, and the exact edits it authorises. **OPEN — remedy is a code edit to the four cited mock sites plus a new privacy-page row, outside this pass's file scope** |
+| C27 | Vercel misnamed as a subprocessor on the privacy and cookie pages, while a real one is missing | critical | `app/pages/privacy.dc.html:233` names Vercel in the §04 processor table's Website-hosting row; `app/pages/cookies.dc.html:223` names Vercel as the Hosting-cookie Provider; `app/pages/CookieBanner.dc.html:105` and `app/home/CookieBanner.dc.html:105` — the per-folder duplicates of the same banner component — both list Vercel in the strictly-necessary category meta line. No Vercel exists anywhere in this stack (`PROJECT.md`, `GSD-LAUNCH.md`); a privacy notice naming a party that processes nothing, on a consumer-facing legal surface and the consent banner every visitor sees first, is an nFADP/GDPR transparency problem, not a typo — worse, the correct processor (Cloudflare) goes unnamed and AeroDataBox, which does process personal data (the flight number collected at `privacy.dc.html:198`), is missing from the same table entirely. Q21 in `docs/build/OPEN-QUESTIONS.md`, answered 2026-08-17, already decided the fix: rename to Cloudflare and add AeroDataBox. See `.planning/ADR-010-privacy-subprocessor-list-cloudflare.md` for the full write-up, the four cited sites, and the exact edits it authorises. **RESOLVED (mocks corrected)** — the four cited surfaces now name Cloudflare; the AeroDataBox row is present on privacy §04 after Mapbox; the Cloudflare-region and AeroDataBox-region pills remain TBC. |
 
 27 conflicts — 7 resolved by the 13 Aug answers (#1, #2, #3, #5, #6, #13, #14), 7 closed by
 design before them (#8, #9, #10, #11, #12, #17, #18), 1 resolved with stale mocks (#4), 1
-resolved as already-mitigated in markup (C26), 11 open (#7, #15, #16, C19–C25, C27).
+resolved as already-mitigated in markup (C26), 1 resolved (mocks corrected) (C27), 10 open (#7, #15, #16, C19–C25).
 
 **Items previously recorded here as pending and unnumbered, now settled — each below points at
 the ADR that carries its full record:**
@@ -329,7 +328,7 @@ deadline" at `manage-booking.dc.html:459` and `:481` (two call sites, one fact �
 rule as `archivingYears` above). One fact, two wordings, collapsed here per rule 1; normalise
 the wording in the mock pass (§I).
 
-### `legal.privacy.*` (14)
+### `legal.privacy.*` (15)
 
 | Token | Key |
 |---|---|
@@ -338,7 +337,8 @@ the wording in the mock pass (§I).
 | `{DPO_OR_NOT_REQUIRED}` | `legal.privacy.dpo` |
 | `{EU_REPRESENTATIVE}` | `legal.privacy.euRepresentative` |
 | `{SUPABASE_REGION}` | `legal.privacy.supabaseRegion` |
-| `{VERCEL_REGION}` | `legal.privacy.vercelRegion` |
+| `{CLOUDFLARE_REGION}` | `legal.privacy.cloudflareRegion` |
+| `{AERODATABOX_REGION}` | `legal.privacy.aeroDataBoxRegion` |
 | `{RESEND_REGION}` | `legal.privacy.resendRegion` |
 | `{SENTRY_REGION}` | `legal.privacy.sentryRegion` |
 | `{ANALYTICS_REGION}` | `legal.privacy.analyticsRegion` |
@@ -469,12 +469,14 @@ Per §F rule 1, a shared fact gets exactly one key — but rule 1 does not licen
 surface keeps its own key, registered separately above, until the owner or engineering confirms
 sameness.
 
-**92 keys registered in this table** — the 82 recorded 4 Aug 2026, plus the ten added in this
+**93 keys registered in this table** — the 82 recorded 4 Aug 2026, plus the ten added in this
 18 Aug 2026 pass to close the eight-label gap (three of the ten for the Link expiry family
-alone, kept separate rather than merged, per the open question above). That is a distinct
-figure from §H's 8 vehicle-class keys, which sit outside this table, and from the 90 live
-unique pill labels measured in `app/` (89 distinct facts + 1 dynamic binding). The three counts
-— 92, 8, 90 — are **not proven to match item for item**; closing that gap is an open
+alone, kept separate rather than merged, per the open question above), plus the AeroDataBox
+region key added 19 Aug 2026 with the C27 mock correction (the hosting-region key was renamed
+to `{CLOUDFLARE_REGION}` in the same pass, not added). That is a distinct
+figure from §H's 8 vehicle-class keys, which sit outside this table, and from the 91 live
+unique pill labels measured in `app/` (90 distinct facts + 1 dynamic binding). The three counts
+— 93, 8, 91 — are **not proven to match item for item**; closing that gap is an open
 reconciliation item, not a number to round into a tidy match nobody performed. Every key that is
 here appears exactly once in this table, so the find-replace over the recorded set is safe to
 run unattended.
@@ -606,8 +608,13 @@ settings-driven), no longer a Law 04 breach.
 - `app/pages/confirmation.dc.html:120`
 - `app/pages/confirmation.dc.html:130`
 
-**Q21, subprocessor naming**
-- `app/pages/privacy.dc.html` — the Vercel region pill becomes Cloudflare.
+**Q21, subprocessor naming — landed 19 Aug 2026**
+Four consumer surfaces now name Cloudflare, not the outgoing host; privacy §04 includes
+AeroDataBox with a TBC region. Region values remain open with counsel (ADR-007).
+- `app/pages/privacy.dc.html` — hosting row names Cloudflare; AeroDataBox row added after Mapbox
+- `app/pages/cookies.dc.html` — Hosting-cookie Provider cell names Cloudflare
+- `app/pages/CookieBanner.dc.html` — strictly-necessary meta names Cloudflare
+- `app/home/CookieBanner.dc.html` — same meta line, in lockstep (cookie-policy href still per-folder)
 
 **Decision 4, contact address — `info@vamostaxi.eu` → `contact@vamostaxi.eu`**
 - `app/home/SiteFooter.dc.html:136`
