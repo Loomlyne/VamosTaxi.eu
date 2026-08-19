@@ -1,3 +1,20 @@
+=== SUPERSEDED 2026-08-19 ===
+This file is a snapshot superseded on 2026-08-19 and must not be cited as current.
+It reports per-page line counts of purportedly-missing strings (terms 102,
+privacy 107, imprint 98, cookies 49, cancellation 82, contact 28, faq 12, about 17,
+become-a-partner 91) from a snapshot taken before app/vamos-i18n-dict.js was filled in.
+The live tree instead reports, measured 2026-08-19 via i18n-measure.mjs --all:
+terms 0, privacy 6, cookies 6, cancellation 0, imprint 7, become-a-partner 4, contact 9,
+about 0, faq 0 — legal MISSING total 19, product MISSING total 13.
+Proof this file is stale: it lists "English · Deutsch to follow" among the terms lines;
+that string no longer exists anywhere under app/.
+Re-run rather than trust either number:
+  node .planning/quick/260819-279-stream-5-translation-draft-the-156-produ/i18n-measure.mjs --all
+The harness's own header states its MISSING counts are an UPPER BOUND on the real gap,
+never an under-count, and it does not see strings a page's own JavaScript builds at
+runtime — docs/build/i18n-audit-js.txt is the record of those, which this snapshot does
+not cover either.
+=== END SUPERSEDED NOTICE ===
 
 === terms (102)
 The rules that apply when you book a transfer with us: how a booking is formed, what the fixed price covers, what we owe you and what we need from you.
