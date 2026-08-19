@@ -25,7 +25,7 @@ confirmation — must.
 Phase: 1 of 11 (Platform Foundation, Design System Port & i18n Runtime)
 Plan: 0 of TBD in current phase
 Status: Ready to plan
-Last activity: 2026-08-19 - Completed quick task 260819-1kt: Stream 4 Qurova webfont licence
+Last activity: 2026-08-19 - Completed quick task 260819-mdn: Stream 5 translation measurement (residual zero)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -79,6 +79,8 @@ None yet.
 | 260819-0l5 | Stream 2: decide the eight engineering-decidable open questions as ADRs and fill their answer lines in OPEN-QUESTIONS.md | 2026-08-19 | 364e45f | [260819-0l5-stream-2-decide-the-eight-engineering-de](./quick/260819-0l5-stream-2-decide-the-eight-engineering-de/) |
 | 260819-0zd | Stream 3: write the Client Input Pack - one sendable document converting every open gap into a sitting's work for a non-technical reader | 2026-08-19 | 39da7c7 | [260819-0zd-stream-3-write-the-client-input-pack-one](./quick/260819-0zd-stream-3-write-the-client-input-pack-one/) |
 | 260819-1kt | Stream 4: Qurova webfont licence - provenance, ADR-009, vendored OFL text, rendered fallback comparison, conflict C25 | 2026-08-19 | b1c1cc9 | [260819-1kt-stream-4-qurova-webfont-licence-establis](./quick/260819-1kt-stream-4-qurova-webfont-licence-establis/) |
+| 260819-279 | Stream 5 (superseded): translation split - premise voided by measurement, replaced by 260819-mdn | 2026-08-19 | 366fb89 | [260819-279-stream-5-translation-draft-the-156-produ](./quick/260819-279-stream-5-translation-draft-the-156-produ/) |
+| 260819-mdn | Stream 5 resumed: measured i18n residual to zero, marked both snapshot files superseded, rewrote C22, registered C26 | 2026-08-19 | 354b2e3 | [260819-mdn-stream-5-resumed-translate-the-8-residua](./quick/260819-mdn-stream-5-resumed-translate-the-8-residua/) |
 
 ## Deferred Items
 
