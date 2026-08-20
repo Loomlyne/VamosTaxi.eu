@@ -1,0 +1,23 @@
+/* Extracted verbatim from the vendored design-system bundle (reference-only, D-30),
+   `components/forms/Switch.jsx`'s `const CSS` template literal, with one intentional
+   deviation from the literal source (see the knob rule below). No Error column on
+   Switch's Component State Matrix row (the field group owns validation), so no Rule 2
+   error affordance is added here — same reasoning as Radio.css. */
+.vt-switch{display:inline-flex;align-items:center;gap:12px;cursor:pointer;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-primary);position:relative}
+.vt-switch input{position:absolute;opacity:0;inline-size:0;block-size:0}
+.vt-switch__track{inline-size:46px;block-size:26px;flex:0 0 auto;border-radius:var(--vt-radius-pill);background:var(--vt-grey-300);position:relative;transition:var(--vt-transition-control)}
+/* Rule 1 fix (bug — I18N-04): the source animates the knob with
+   `transform:translateX(20px)`, a fixed physical translate that always moves toward
+   the physical right regardless of writing direction — correct in English, but under
+   `dir="rtl"` it would still slide the knob further right instead of toward the
+   track's other end, since `inset-inline-start` below already mirrors the knob's
+   *resting* position for RTL but a hardcoded translateX doesn't know about that flip.
+   Animating `inset-inline-start` directly between the same two pixel values (3px ->
+   23px, the same 20px travel distance the source's translateX(20px) produced) is the
+   direction-aware equivalent — same pixels, same motion, correct in both directions.
+   Documented in 01-09-SUMMARY.md § Deviations. */
+.vt-switch__knob{position:absolute;inset-block-start:3px;inset-inline-start:3px;inline-size:20px;block-size:20px;border-radius:var(--vt-radius-pill);background:var(--vt-white);box-shadow:var(--vt-shadow-sm);transition:inset-inline-start var(--vt-dur-fast) var(--vt-ease-standard)}
+.vt-switch input:checked+.vt-switch__track{background:var(--vt-charcoal-900)}
+.vt-switch input:checked+.vt-switch__track .vt-switch__knob{inset-inline-start:23px;background:var(--vt-accent)}
+.vt-switch input:focus-visible+.vt-switch__track{box-shadow:var(--vt-ring)}
+.vt-switch--disabled{opacity:.45;cursor:not-allowed}

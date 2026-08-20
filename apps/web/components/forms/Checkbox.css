@@ -1,0 +1,33 @@
+/* Extracted verbatim from the vendored design-system bundle (reference-only, D-30),
+   `components/forms/Checkbox.jsx`'s `const CSS` template literal — the source injects
+   this identical block for both Checkbox and Radio under one shared runtime
+   style-injection scope key ('vt-choice'). Each ported component gets its own
+   statically-imported copy per the CSS-delivery contract (D-24 amended); the
+   duplication across Checkbox.css/Radio.css mirrors the source's own duplication and
+   is harmless — identical CSS rules are idempotent. Radio-specific rules
+   (.vt-radio__box/.vt-radio__dot) are kept in both files, same as the source, even
+   though only Radio.tsx ever applies the .vt-radio class — dead but harmless, exactly
+   matching the source's own shape. */
+.vt-check{display:inline-flex;align-items:flex-start;gap:10px;cursor:pointer;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-primary);line-height:1.45;position:relative}
+.vt-check input{position:absolute;opacity:0;inline-size:0;block-size:0}
+.vt-check__box{inline-size:20px;block-size:20px;flex:0 0 auto;border:var(--vt-border-w-strong) solid var(--vt-grey-300);border-radius:var(--vt-radius-xs);background:var(--vt-bg-surface);display:flex;align-items:center;justify-content:center;transition:var(--vt-transition-control);margin-block-start:1px}
+.vt-check:hover .vt-check__box{border-color:var(--vt-charcoal-900)}
+.vt-check input:checked+.vt-check__box{background:var(--vt-accent);border-color:var(--vt-accent)}
+.vt-check input:focus-visible+.vt-check__box{box-shadow:var(--vt-ring)}
+.vt-check--disabled{opacity:.45;cursor:not-allowed}
+.vt-check__text{display:flex;flex-direction:column;gap:2px}
+.vt-check__desc{font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
+.vt-radio__box{border-radius:var(--vt-radius-pill)}
+.vt-radio input:checked+.vt-radio__box{background:var(--vt-bg-surface);border-color:var(--vt-charcoal-900)}
+.vt-radio__dot{inline-size:10px;block-size:10px;border-radius:var(--vt-radius-pill);background:var(--vt-charcoal-900)}
+
+/* Rule 2 additions (neither in the compiled source): the Component State Matrix marks
+   Checkbox with "Selected = checked/indeterminate" — one row, not two — and an Error
+   column ("error = invalid"), neither of which the source's `function Checkbox`
+   signature has any prop or CSS for. `input:indeterminate` reuses the exact same
+   accent fill/border `:checked` gets, matching the matrix's "same row" framing;
+   `.vt-check--invalid` is a border-only signal (danger, not a filled/tinted surface —
+   Law 02) since Checkbox carries no error-message slot of its own (the field group
+   composing it owns that message, same as Radio/Switch per forms_specific). */
+.vt-check input:indeterminate+.vt-check__box{background:var(--vt-accent);border-color:var(--vt-accent)}
+.vt-check--invalid .vt-check__box{border-color:var(--vt-danger)}

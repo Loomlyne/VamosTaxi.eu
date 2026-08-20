@@ -1,0 +1,26 @@
+/* Extracted verbatim from the vendored design-system bundle (reference-only, D-30),
+   `components/forms/Counter.jsx`'s `const CSS` template literal, plus Rule 2
+   additions for the whole-control disabled and error states (see Counter.tsx's
+   header comment — neither exists in the compiled source). */
+.vt-counter{display:flex;flex-direction:column;gap:6px}
+.vt-counter__label{font-family:var(--vt-font-body);font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:.02em;color:var(--vt-text-secondary)}
+.vt-counter__box{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:var(--vt-radius-field);padding:0 8px}
+.vt-counter__box--sm{block-size:var(--vt-control-h-sm)}
+.vt-counter__box--md{block-size:var(--vt-control-h-md)}
+.vt-counter__box--lg{block-size:var(--vt-control-h-lg)}
+.vt-counter__val{display:flex;align-items:center;gap:8px;font-family:var(--vt-font-display);font-size:var(--vt-figure-sm);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary);min-inline-size:52px;justify-content:center}
+.vt-counter__btn{all:unset;display:flex;align-items:center;justify-content:center;inline-size:32px;block-size:32px;border-radius:var(--vt-radius-pill);cursor:pointer;color:var(--vt-text-primary);transition:var(--vt-transition-control)}
+.vt-counter__btn:hover:not(:disabled){background:var(--vt-grey-100)}
+.vt-counter__btn:focus-visible{box-shadow:var(--vt-ring)}
+.vt-counter__btn:disabled{opacity:.3;cursor:not-allowed}
+
+/* Rule 2 additions (neither in the compiled source — the source's Counter signature
+   has no `disabled` prop at all, only the per-button clamp-driven `disabled={value<=
+   min}`/`disabled={value>=max}`; the Component State Matrix's Disabled column needs a
+   way to disable the whole control regardless of where value sits relative to
+   min/max. `error` mirrors Input's border-danger treatment for the same reason the
+   matrix gives: "value outside vehicle-class capacity clamp" (Phase 4's rule; this
+   control only takes the clamp values and the error copy as props). */
+.vt-counter__box--disabled{opacity:.5}
+.vt-counter__box--error{border-color:var(--vt-danger)}
+.vt-counter__err{font-size:var(--vt-body-xs);color:var(--vt-danger);display:flex;align-items:center;gap:5px}

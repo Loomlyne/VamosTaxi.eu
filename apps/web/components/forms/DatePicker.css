@@ -1,0 +1,71 @@
+/* Extracted verbatim from the vendored design-system bundle (reference-only, D-30),
+   `components/forms/DatePicker.jsx`'s `const CSS` template literal, with the physical
+   -> logical conversions the extraction recipe permits (top/left -> inset-block-
+   start/inset-inline-start, margin-bottom -> margin-block-end, margin-top/padding-
+   top/border-top -> the -block-start equivalents, width/height -> inline-size/
+   block-size, text-align:left -> text-align:start), the text-input focus exception
+   (Input.css's header comment — DatePicker's field is the "date field" Law 01 names
+   explicitly: `.vt-dp__field:focus-visible{box-shadow:none;border-color:var(--vt-
+   charcoal-900)}` in tokens/laws.css), one RTL-mirroring addition for the calendar
+   nav chevrons, and Rule 2 additions for disabled/error/loading (none of which the
+   compiled source has — see DatePicker.tsx's header comment). Symmetric two-value
+   shorthands (`padding:0 14px`, `padding:6px 12px`) are kept verbatim, same as
+   Input.css/Counter.css — a value that's identical on both inline sides carries no
+   visual difference under RTL, so there is nothing for the logical form to fix. */
+.vt-dp{position:relative;display:flex;flex-direction:column;gap:6px;min-inline-size:0}
+.vt-dp__label{font-family:var(--vt-font-body);font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:.02em;color:var(--vt-text-secondary)}
+.vt-dp__field{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;inline-size:100%;background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:var(--vt-radius-field);padding:0 14px;cursor:pointer;font-family:var(--vt-font-body);font-size:var(--vt-body-md);color:var(--vt-text-primary);transition:var(--vt-transition-control)}
+.vt-dp__field:hover{border-color:var(--vt-grey-300)}
+.vt-dp__field:focus-visible{border-color:var(--vt-charcoal-900);box-shadow:none}
+.vt-dp__field--open{border-color:var(--vt-charcoal-900)}
+.vt-dp__field--sm{block-size:var(--vt-control-h-sm)}
+.vt-dp__field--md{block-size:var(--vt-control-h-md)}
+.vt-dp__field--lg{block-size:var(--vt-control-h-lg)}
+.vt-dp__field--error{border-color:var(--vt-danger)}
+.vt-dp__field:disabled,.vt-dp__field--disabled{background:var(--vt-grey-100);border-color:var(--vt-border-subtle);opacity:.7;cursor:not-allowed}
+.vt-dp__value{flex:1 1 auto;text-align:start;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vt-dp__time{color:var(--vt-text-secondary);font-variant-numeric:tabular-nums}
+.vt-dp__pop{position:absolute;z-index:50;inset-block-start:calc(100% + 8px);inset-inline-start:0;min-inline-size:288px;background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg);padding:var(--vt-space-4);animation:vt-dp-in var(--vt-dur-fast) var(--vt-ease-out)}
+@keyframes vt-dp-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.vt-dp__head{display:flex;align-items:center;justify-content:space-between;margin-block-end:var(--vt-space-3)}
+.vt-dp__month{font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold)}
+.vt-dp__nav{all:unset;display:inline-flex;align-items:center;justify-content:center;inline-size:32px;block-size:32px;border-radius:var(--vt-radius-pill);cursor:pointer;color:var(--vt-text-secondary)}
+.vt-dp__nav:hover{background:var(--vt-grey-100);color:var(--vt-text-primary)}
+/* Rule 1 fix (bug — I18N-04, Four-Language Layout Contract: "DatePicker calendar nav
+   chevrons: same as Tabs"). Neither the source nor tokens/laws.css mirrors these —
+   confirmed by reading both directly. The prev/next buttons already swap physical
+   position automatically under dir="rtl" (the flex row above uses no physical
+   left/right of its own), but the chevron-left/chevron-right glyphs themselves stay
+   geometrically fixed regardless of where the flex item lands — a mask-image doesn't
+   know about writing direction. Flipping both buttons identically here (not swapping
+   which icon name each uses) reorients each glyph to point toward its new physical
+   position's outward edge, matching the "forward motion points with the reading
+   direction" rule; the flex reorder already did the position half, this does the
+   glyph half. `transform` is not a property this lint gate's logical-properties rule
+   covers, so this is compatible with "the CSS uses logical properties" (that
+   requirement is about inset/margin/padding/size, not the icon-flip mechanism). */
+[dir="rtl"] .vt-dp__nav{transform:scaleX(-1)}
+.vt-dp__grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.vt-dp__dow{font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted);text-align:center;padding:4px 0}
+.vt-dp__day{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:center;block-size:34px;border-radius:var(--vt-radius-sm);cursor:pointer;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-primary)}
+.vt-dp__day:hover{background:var(--vt-grey-100)}
+.vt-dp__day--muted{color:var(--vt-grey-300);pointer-events:none}
+.vt-dp__day--sel{background:var(--vt-accent);color:var(--vt-charcoal-900);font-weight:var(--vt-weight-semibold)}
+.vt-dp__times{display:flex;gap:6px;flex-wrap:wrap;margin-block-start:var(--vt-space-4);padding-block-start:var(--vt-space-4);border-block-start:var(--vt-border-w) solid var(--vt-border-subtle)}
+.vt-dp__slot{all:unset;box-sizing:border-box;padding:6px 12px;border-radius:var(--vt-radius-pill);border:var(--vt-border-w) solid var(--vt-border-subtle);cursor:pointer;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-secondary)}
+.vt-dp__slot:hover{border-color:var(--vt-charcoal-900);color:var(--vt-text-primary)}
+.vt-dp__slot--sel{background:var(--vt-charcoal-900);border-color:var(--vt-charcoal-900);color:var(--vt-text-inverse)}
+.vt-dp__hint{font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
+
+/* Rule 2 additions (none in the compiled source — confirmed by reading `function
+   DatePicker` directly: no error/disabled/loading prop, no `.vt-dp__err` rule). error
+   matches Input's error-message shape exactly (danger colour, replaces the hint,
+   never both); loading reuses Select.css's same spinning-chevron treatment (a
+   rotation transform on a neutral-coloured icon — Law 01/02 stay satisfied, nothing
+   tinted or glowing is added) rather than inventing a new visual language for it. */
+.vt-dp__err{font-size:var(--vt-body-xs);color:var(--vt-danger);display:flex;align-items:center;gap:5px}
+.vt-dp__spin{animation:vt-dp-spin 900ms linear infinite}
+@keyframes vt-dp-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){
+  .vt-dp__spin{animation:none}
+}
