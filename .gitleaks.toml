@@ -1,0 +1,31 @@
+title = "Vamos Taxi — gitleaks configuration"
+
+# Secret-scan configuration for both wiring points D-35 requires: the
+# `.husky/pre-commit` hook (staged diff, local) and the CI job in
+# `.github/workflows/pr.yml` (full PR range). Both read this file.
+
+[extend]
+# Inherit gitleaks' maintained default detection rules rather than
+# hand-rolling a rule set — see 01-RESEARCH.md § Don't Hand-Roll.
+useDefault = true
+
+[allowlist]
+description = "Vendored binaries and inlined design-system data URIs are not credentials"
+
+# The only two places this repo legitimately contains high-entropy strings
+# that are not secrets: vendored font/icon binaries, and the design-system
+# bundle's own asset tree.
+paths = [
+  '''^assets/.*''',
+  '''^design-system/assets/.*''',
+]
+
+# The design-system bundle inlines images/fonts as base64 data URIs — those
+# are high-entropy by construction but are public asset bytes, not
+# credentials. Matched against the finding's line, not just the path, since
+# the bundle file itself (`design-system/_ds_bundle.js`) is not otherwise
+# exempted and should still be scanned for anything else.
+regexTarget = "line"
+regexes = [
+  '''data:[a-zA-Z0-9.+-]+/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+''',
+]

@@ -1,0 +1,20 @@
+{
+  "_comment": "The named allowlist D-35 requires: every NEXT_PUBLIC_* identifier this app is deliberately allowed to expose to the browser. Adding an entry here is a deliberate act with a reviewer — anything listed is readable by every visitor. Starts empty on purpose: no client-exposed variable has been approved yet.",
+  "allowed": [],
+  "_forbidden_substrings_comment": "Credential names from docs/build/GSD-LAUNCH.md § Secrets and its Cloudflare CI entries. None of these may ever appear in the built client bundle (.open-next/assets/**) — every one reaches the Worker via `wrangler secret put`, never a client-exposed variable.",
+  "forbidden_substrings": [
+    "HYPERDRIVE",
+    "SUPABASE_URL",
+    "SUPABASE_ANON_KEY",
+    "SUPABASE_SERVICE_ROLE",
+    "STRIPE_SECRET_KEY",
+    "STRIPE_WEBHOOK_SECRET",
+    "RESEND_API_KEY",
+    "MAPBOX_TOKEN",
+    "FLIGHT_API_KEY",
+    "TURNSTILE_SECRET",
+    "SENTRY_DSN",
+    "CLOUDFLARE_API_TOKEN",
+    "CLOUDFLARE_ACCOUNT_ID"
+  ]
+}

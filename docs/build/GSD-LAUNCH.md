@@ -220,6 +220,19 @@ thing to size.
 `MAPBOX_TOKEN` · `FLIGHT_API_KEY` · `TURNSTILE_SECRET` · `SENTRY_DSN` — all via
 `wrangler secret put`, never in the repo.
 
+CI/deploy also needs `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` as GitHub Actions
+repository secrets (`.github/workflows/deploy-staging.yml` and `deploy-production.yml`) —
+not yet configured; no Cloudflare account exists as of Phase 1 (see 01-01-SUMMARY.md).
+
+**Automated gates proving this matrix stays honest (D-35, Phase 1):**
+- `gitleaks` — a credential-pattern scan, wired twice from the same `.gitleaks.toml`: at
+  pre-commit (`.husky/pre-commit`, staged diff) and as the first job in
+  `.github/workflows/pr.yml` (full PR range), both before any build or deploy step runs.
+- `scripts/check-next-public-allowlist.mjs` — fails when a `NEXT_PUBLIC_*` identifier is
+  used in `apps/web` outside `scripts/public-env-allowlist.json`'s `allowed` array, and
+  when a name from that file's `forbidden_substrings` array (the credential list above)
+  is found in the built client bundle (`apps/web/.open-next/assets/**`).
+
 ## Cost at launch (order of magnitude, monthly)
 
 Workers Paid $5 + usage · Supabase Pro 2×$25 + Small compute $15 + PITR $100 · Stripe per-txn
