@@ -7,7 +7,12 @@
 .vt-btn--block{width:100%}
 .vt-btn--sentence{text-transform:none;letter-spacing:0}
 .vt-btn--primary{background:var(--vt-accent);color:var(--vt-text-on-accent)}
-.vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover);box-shadow:var(--vt-shadow-accent)}
+/* Law 01: the bundle's source carries box-shadow:var(--vt-shadow-accent) here.
+   laws.css already aliases that token to none, so the declaration is dead weight —
+   and Plan 03's stylelint gate bans the token by name in authored component CSS.
+   Dropped rather than neutralised, matching how the tinted variants are handled.
+   Rendering is unchanged: hover is a colour step only. */
+.vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
 .vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);box-shadow:none;transform:translateY(1px)}
 .vt-btn--secondary{background:var(--vt-charcoal-900);color:var(--vt-text-inverse)}
 .vt-btn--secondary:hover:not([disabled]){background:var(--vt-charcoal-800)}
