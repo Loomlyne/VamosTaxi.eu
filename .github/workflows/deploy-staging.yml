@@ -87,6 +87,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # `pnpm --filter web deploy` runs `opennextjs-cloudflare build && opennextjs-cloudflare
+      # deploy`, which wraps `wrangler deploy`; `--env staging` selects the `staging`
+      # environment declared in apps/web/wrangler.jsonc (custom domain staging.vamostaxi.eu).
       - name: Deploy Worker (staging environment)
         run: pnpm --filter web deploy --env staging
         env:

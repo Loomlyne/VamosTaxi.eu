@@ -49,6 +49,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Runs scripts/check-next-public-allowlist.mjs (bound to `check:public-env` in
+      # package.json) — fails on an undeclared NEXT_PUBLIC_* identifier (D-35, PLAT-06).
       - name: Client-exposure allowlist (D-35, PLAT-06)
         run: pnpm check:public-env
 
