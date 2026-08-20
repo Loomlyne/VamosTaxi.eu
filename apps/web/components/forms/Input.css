@@ -1,0 +1,39 @@
+/* Extracted verbatim from the vendored design-system bundle (reference-only, D-30),
+   `components/forms/Input.jsx`'s `const CSS` template literal — the same block the
+   compiled source also injects (identically) for Textarea and Select under one shared
+   the same runtime style-injection scope key ('vt-field'). Each of the three ported components gets
+   its own statically-imported copy of this file per the CSS-delivery contract (D-24
+   amended); the duplication across Input.css/Textarea.css/Select.css mirrors the
+   source's own duplication and is harmless — identical CSS rules are idempotent.
+
+   The text-input focus exception (Law 01, CLAUDE.md "Never use glow effects"): the
+   source's own `.vt-input--focus` declaration carries the button/card focus ring value —
+   its un-corrected pre-law value, overridden at runtime by `tokens/laws.css`'s
+   higher-specificity `.vt-input.vt-input--focus{box-shadow:none}` rule (already
+   copied into apps/web/public/brand/tokens/laws.css by Plan 05). This file sets
+   `box-shadow:none` directly below instead of the source's literal value — this
+   plan's own automated verify gate greps the whole forms/ tree for
+   `box-shadow:\s*var\(--vt-ring\)` and fails the build on any match, so the
+   exception must be expressed in the component's own extracted source, not left to
+   the laws.css cascade alone (the same "keep the source itself clean rather than
+   relying on runtime aliasing" principle Law 02's yellow-token lint rule already
+   applies elsewhere in this file). The rendered result is identical either way. */
+.vt-field{display:flex;flex-direction:column;gap:6px;min-inline-size:0}
+.vt-field__label{font-family:var(--vt-font-body);font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:.02em;color:var(--vt-text-secondary)}
+.vt-field__req{color:var(--vt-charcoal-800)} /* was var(--vt-yellow-700) in the source -- Law 02 bans that value at lint time (D-32); tokens/laws.css already aliases -700 to this exact charcoal-800 value at runtime, so this is a same-pixel source cleanup, not a visual change */
+.vt-field__hint{font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
+.vt-field__err{font-size:var(--vt-body-xs);color:var(--vt-danger);display:flex;align-items:center;gap:5px}
+.vt-input{display:flex;align-items:center;gap:10px;background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:var(--vt-radius-field);padding:0 14px;transition:var(--vt-transition-control);min-inline-size:0}
+.vt-input:hover{border-color:var(--vt-grey-300)}
+.vt-input--focus{border-color:var(--vt-charcoal-900);box-shadow:none}
+.vt-input--error{border-color:var(--vt-danger)}
+.vt-input--disabled{background:var(--vt-grey-100);border-color:var(--vt-border-subtle);opacity:.7}
+.vt-input--sm{block-size:var(--vt-control-h-sm)}
+.vt-input--md{block-size:var(--vt-control-h-md)}
+.vt-input--lg{block-size:var(--vt-control-h-lg)}
+.vt-input input,.vt-input select,.vt-input textarea{all:unset;flex:1 1 auto;min-inline-size:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);color:var(--vt-text-primary);line-height:1.4}
+.vt-input input::placeholder,.vt-input textarea::placeholder{color:var(--vt-grey-400)}
+.vt-input__affix{font-size:var(--vt-body-sm);color:var(--vt-text-muted);white-space:nowrap}
+.vt-input--area{block-size:auto;padding:12px 14px;align-items:flex-start}
+.vt-input--area textarea{resize:vertical;min-block-size:76px;line-height:var(--vt-body-leading)}
+.vt-select select{appearance:none;cursor:pointer;padding-inline-end:4px} /* padding-right -> padding-inline-end (logical property conversion, the one permitted extraction edit) */

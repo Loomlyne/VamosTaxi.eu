@@ -1,0 +1,40 @@
+/* Extracted verbatim from the vendored design-system bundle (reference-only, D-30),
+   `components/forms/Select.jsx`'s `const CSS` template literal — identical to
+   Input.css/Textarea.css (see Input.css for the full provenance note); the source
+   injects this same block for all three under one shared
+   the same runtime style-injection scope key ('vt-field'). Each of the three ported components gets
+   its own statically-imported copy of this file per the CSS-delivery contract (D-24
+   amended); the duplication across Input.css/Textarea.css/Select.css mirrors the
+   source's own duplication and is harmless — identical CSS rules are idempotent. */
+.vt-field{display:flex;flex-direction:column;gap:6px;min-inline-size:0}
+.vt-field__label{font-family:var(--vt-font-body);font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:.02em;color:var(--vt-text-secondary)}
+.vt-field__req{color:var(--vt-charcoal-800)} /* was var(--vt-yellow-700) in the source -- Law 02 bans that value at lint time (D-32); tokens/laws.css already aliases -700 to this exact charcoal-800 value at runtime, so this is a same-pixel source cleanup, not a visual change */
+.vt-field__hint{font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
+.vt-field__err{font-size:var(--vt-body-xs);color:var(--vt-danger);display:flex;align-items:center;gap:5px}
+.vt-input{display:flex;align-items:center;gap:10px;background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:var(--vt-radius-field);padding:0 14px;transition:var(--vt-transition-control);min-inline-size:0}
+.vt-input:hover{border-color:var(--vt-grey-300)}
+.vt-input--focus{border-color:var(--vt-charcoal-900);box-shadow:none} /* text-input focus exception — see Input.css's header comment */
+.vt-input--error{border-color:var(--vt-danger)}
+.vt-input--disabled{background:var(--vt-grey-100);border-color:var(--vt-border-subtle);opacity:.7}
+.vt-input--sm{block-size:var(--vt-control-h-sm)}
+.vt-input--md{block-size:var(--vt-control-h-md)}
+.vt-input--lg{block-size:var(--vt-control-h-lg)}
+.vt-input input,.vt-input select,.vt-input textarea{all:unset;flex:1 1 auto;min-inline-size:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);color:var(--vt-text-primary);line-height:1.4}
+.vt-input input::placeholder,.vt-input textarea::placeholder{color:var(--vt-grey-400)}
+.vt-input__affix{font-size:var(--vt-body-sm);color:var(--vt-text-muted);white-space:nowrap}
+.vt-input--area{block-size:auto;padding:12px 14px;align-items:flex-start}
+.vt-input--area textarea{resize:vertical;min-block-size:76px;line-height:var(--vt-body-leading)}
+.vt-select select{appearance:none;cursor:pointer;padding-inline-end:4px} /* padding-right -> padding-inline-end (logical property conversion, the one permitted extraction edit) */
+
+/* Rule 2 addition (01-09-PLAN.md's own must_haves: "Only the select and the date
+   picker have a loading state" — explicit, plan-directed; neither the compiled
+   source's `function Select` signature nor any `.dc.html` usage has a loading
+   concept to port verbatim, so this is new, not extracted). The trailing chevron is
+   swapped for a spinning `loader-circle` glyph rather than adding a new tinted
+   surface or a coloured shadow (Law 01/02 stay satisfied — this is a rotation
+   transform on a neutral-coloured icon, nothing else changes). */
+.vt-select__spin{animation:vt-select-spin 900ms linear infinite}
+@keyframes vt-select-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){
+  .vt-select__spin{animation:none}
+}
