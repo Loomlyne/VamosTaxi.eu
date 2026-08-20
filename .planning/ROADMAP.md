@@ -60,7 +60,7 @@ where the `VamosLocale` DOM-walking runtime is replaced with an SSR-safe mechani
 **Plans**: 14 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Tracer: pnpm monorepo, Next 15 + OpenNext Worker (fetch/scheduled/queue), `[locale]` routing, first ported component, deployed to staging.vamostaxi.eu
+- [x] 01-01-PLAN.md — Tracer: pnpm monorepo, Next 15 + OpenNext Worker (fetch/scheduled/queue), `[locale]` routing, first ported component, deployed to staging.vamostaxi.eu
 - [ ] 01-02-PLAN.md — CI pipeline (PR/main/tag) and the two blocking secret gates
 - [ ] 01-03-PLAN.md — Quality gate toolchain: stylelint law + logical-property rules, i18n key coverage, offline screenshot-diff harness
 - [ ] 01-04-PLAN.md — Cloudflare bindings provisioned, scheduled/queue proven in staging, Access + noindex, structured logging to Logpush
@@ -229,7 +229,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Platform Foundation, Design System Port & i18n Runtime | 0/14 | Planned | - |
+| 1. Platform Foundation, Design System Port & i18n Runtime | 1/14 | In Progress|  |
 | 2. Data Schema, RLS & Staff Auth Foundations | 0/TBD | Not started | - |
 | 3. Hyperdrive Data Access Wiring | 0/TBD | Not started | - |
 | 4. Quote & Pricing Engine | 0/TBD | Not started | - |

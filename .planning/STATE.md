@@ -2,18 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 1
-current_phase_name: Platform Foundation, Design System Port & i18n Runtime
-status: planning
-stopped_at: Phase 1 planned — 14 plans across 7 waves, plan-checker APPROVED
-last_updated: "2026-08-20T12:32:42.813Z"
-last_activity: 2026-08-19
-last_activity_desc: "Completed quick task 260819-uoq: ADR-010/011/012 recorded, C27 registered"
+status: executing
+stopped_at: Completed 01-01-PLAN.md (Task 1+2 done, Task 3 deferred — Cloudflare account setup needed)
+last_updated: "2026-08-20T18:00:28.231Z"
+last_activity: 2026-08-20
 progress:
-  total_phases: 1
+  total_phases: 11
   completed_phases: 0
   total_plans: 14
-  completed_plans: 0
+  completed_plans: 1
+  percent: 0
 ---
 
 # Project State
@@ -30,11 +28,11 @@ confirmation — must.
 ## Current Position
 
 Phase: 1 of 11 (Platform Foundation, Design System Port & i18n Runtime)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-08-19 - Completed quick task 260819-uoq: ADR-010/011/012 recorded, C27 registered
+Plan: 1 of 14 in current phase
+Status: Ready to execute
+Last activity: 2026-08-20
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░] 7%
 
 ## Performance Metrics
 
@@ -56,6 +54,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: -
 
 *Updated after each plan completion*
+| Phase 01 P01 | 55min | 2 tasks | 51 files |
 
 ## Accumulated Context
 
@@ -68,6 +67,9 @@ Recent decisions affecting current work:
 - Roadmap: Checkout/payment (Phase 7) is a convergence point, not a parallel track — ops dispatch (Phase 8) and the full booking lifecycle (Phase 9) are sequenced after it, not alongside it.
 - Roadmap: the i18n runtime's SSR-safe architecture (render-time `t()`/`useT()` over the existing `vamos-i18n-dict.js`, replacing DOM-walking) is decided in Phase 1, not deferred.
 - Roadmap: no standalone late-i18n phase — the ~600-string legal dictionary migration and the content-strings admin UI fold into Phase 6 (ops reference/content) as ongoing work, since no orphan v1 requirement justified a separate phase under fine-granularity guidance.
+- [Phase ?]: Checkpoint D-11/D-12 resolved: option-a — /en/<path> permanently (308) redirects to /<path>; next-intl's own middleware issues that redirect as 307 by default, corrected in middleware.ts scoped to explicit /en paths only.
+- [Phase ?]: initOpenNextCloudflareForDev() gated to NODE_ENV=development in next.config.ts — calling it unconditionally broke next build against the declared-but-unprovisioned Hyperdrive binding.
+- [Phase ?]: Task 3 (deploy to staging.vamostaxi.eu) deferred — no Cloudflare account/DNS setup exists yet; Task 1+2 fully verified locally via opennextjs-cloudflare preview instead.
 
 ### Pending Todos
 
@@ -79,6 +81,7 @@ None yet.
 - Hyperdrive must bind to Supabase's **direct** connection string, never the pooled Supavisor (6543) string — double-pooling only surfaces under real concurrency (Phase 3).
 - Data residency / Worker region-pinning is still open with counsel per PROJECT.md — must resolve before Phase 10 (hardening), since Sentry/monitoring must not ship ahead of a working `consent_log`.
 - `docs/brief/PROJECT-BRIEF.md` and `DECISIONS.md` #14 are stale (name Vercel, shadcn/ui, EN+DE-first) — superseded by `docs/build/GSD-LAUNCH.md`, the bound design system and `CLAUDE.md`'s four-language rule. Do not consult them as current guidance.
+- Phase 1 Plan 1 Task 3 (deploy to staging.vamostaxi.eu) blocked on owner Cloudflare account setup: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, and the vamostaxi.eu zone added with existing Freshpage DNS imported first.
 
 ### Quick Tasks Completed
 
@@ -102,6 +105,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-20T12:32:42.798Z
-Stopped at: Phase 1 planned — 14 plans across 7 waves, plan-checker APPROVED
-Resume file: .planning/phases/01-platform-foundation-design-system-port-i18n-runtime/01-01-PLAN.md
+Last session: 2026-08-20T18:00:24.519Z
+Stopped at: Completed 01-01-PLAN.md (Task 1+2 done, Task 3 deferred — Cloudflare account setup needed)
+Resume file: None
