@@ -21,7 +21,7 @@ and are final — "matches the mock" is a real acceptance criterion, not a hand-
 - [ ] **PLAT-01**: The app serves server-rendered pages from a single Cloudflare Worker built with `@opennextjs/cloudflare`, on a real custom domain from the first deploy
 - [x] **PLAT-02**: The Worker exports `fetch`, `scheduled` and `queue` handlers from one custom entry file, so cron sweeps and queue consumers live in the same deployment
 - [x] **PLAT-03**: A pull request runs typecheck, build and a preview upload; `main` deploys staging; a tag deploys production
-- [ ] **PLAT-04**: Design-system tokens, fonts, icons and logos are served from the app, and its components are React with the same class names so the CSS carries over unchanged
+- [x] **PLAT-04**: Design-system tokens, fonts, icons and logos are served from the app, and its components are React with the same class names so the CSS carries over unchanged
 - [ ] **PLAT-05**: Lenis smooth scroll runs as a single instance per page, honouring `prefers-reduced-motion` and stopping while a sheet locks the body
 - [x] **PLAT-06**: Every secret reaches the Worker through `wrangler secret`, and none is readable from the browser or committed to the repo
 
@@ -30,7 +30,7 @@ and are final — "matches the mock" is a real acceptance criterion, not a hand-
 - [ ] **I18N-01**: Every visible string renders in English, German, French and Arabic — including placeholders, `aria-label`, `title` and `alt`
 - [ ] **I18N-02**: Changing language relabels the page in place without a reload, and the choice survives navigation and a return visit
 - [x] **I18N-03**: The chosen language is correct in the server-rendered HTML — no English flash and no direction flip on hydration
-- [ ] **I18N-04**: Arabic renders right-to-left with correct layout, because every surface uses logical properties rather than left/right
+- [x] **I18N-04**: Arabic renders right-to-left with correct layout, because every surface uses logical properties rather than left/right
 - [ ] **I18N-05**: Changing currency swaps the mark and never the number, and the charge is always CHF
 - [ ] **I18N-06**: Strings the code builds from parts are translated too, never left English because they contain a number
 - [ ] **I18N-07**: Editable content strings live in the database and are editable from the ops Content screen
@@ -184,13 +184,13 @@ Populated during roadmap creation. Full phase goals and success criteria: `.plan
 | PLAT-01 | Phase 1 | Pending (Worker/build verified locally; real custom-domain deploy deferred — see 01-01-SUMMARY.md) |
 | PLAT-02 | Phase 1 | Complete |
 | PLAT-03 | Phase 1 | Complete |
-| PLAT-04 | Phase 1 | Pending |
+| PLAT-04 | Phase 1 | Complete |
 | PLAT-05 | Phase 1 | Pending |
 | PLAT-06 | Phase 1 | Complete |
 | I18N-01 | Phase 1 | Pending |
 | I18N-02 | Phase 1 | Pending |
 | I18N-03 | Phase 1 | Complete |
-| I18N-04 | Phase 1 | Pending |
+| I18N-04 | Phase 1 | Complete |
 | I18N-05 | Phase 1 | Pending |
 | I18N-06 | Phase 1 | Pending |
 | I18N-07 | Phase 6 | Pending |

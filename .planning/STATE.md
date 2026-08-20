@@ -5,14 +5,14 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Platform Foundation, Design System Port & i18n Runtime
 status: executing
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-08-20T18:17:46.880Z"
+stopped_at: Completed 01-05-PLAN.md
+last_updated: "2026-08-20T18:21:36.096Z"
 last_activity: 2026-08-20
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 14
-  completed_plans: 2
+  completed_plans: 3
 ---
 
 # Project State
@@ -29,11 +29,11 @@ confirmation — must.
 ## Current Position
 
 Phase: 1 of 11 (Platform Foundation, Design System Port & i18n Runtime)
-Plan: 2 of 14 in current phase
+Plan: 3 of 14 in current phase
 Status: Ready to execute
 Last activity: 2026-08-20
 
-Progress: [█░░░░░░░░░] 14%
+Progress: [██░░░░░░░░] 21%
 
 ## Performance Metrics
 
@@ -61,6 +61,7 @@ Progress: [█░░░░░░░░░] 14%
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 01 P02 | 40min | 3 tasks | 8 files |
+| Phase 01 P05 | ~25min | 3 tasks | 95 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,9 @@ Recent decisions affecting current work:
 - [Phase ?]: Task 3 (deploy to staging.vamostaxi.eu) deferred — no Cloudflare account/DNS setup exists yet; Task 1+2 fully verified locally via opennextjs-cloudflare preview instead.
 - [Phase ?]: 01-02: core.hooksPath set locally (not via husky npm package) since package.json is out of this plan's scope — pre-commit hook works on this machine but needs a prepare script later for portability
 - [Phase ?]: 01-02: GSD-LAUNCH.md § Secrets stayed prose (no table exists to add rows to, contrary to the plan's assumption) — gates appended in matching style
+- [Phase ?]: 01-05: Self-hosted Noto Sans Arabic (D-22's delegated choice) vendored directly from its own upstream GitHub release; Google Fonts hotlink fully removed from apps/web, verified zero external requests on a real /ar preview load
+- [Phase ?]: 01-05: --vt-orange (#D4632B, D-07's fourth guideline swatch) recorded as a palette token in design-system/tokens/colors.css with no product-UI usage
+- [Phase ?]: 01-05: next/image on this platform proven to require wrangler.jsonc's images.binding=IMAGES (Plan 01-04's file scope) for real resizing — without it /_next/image returns 200 with correct content-type but passes the original file through unresized; flagged for Phase 5, not fixed in this plan's scope
 
 ### Pending Todos
 
@@ -113,6 +117,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-20T18:17:46.872Z
-Stopped at: Completed 01-02-PLAN.md
+Last session: 2026-08-20T18:21:36.088Z
+Stopped at: Completed 01-05-PLAN.md
 Resume file: None
