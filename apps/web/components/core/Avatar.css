@@ -1,0 +1,7 @@
+.vt-avatar{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;overflow:hidden;background:var(--vt-grey-100);color:var(--vt-charcoal-800);font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);line-height:1;position:relative}
+.vt-avatar img{inline-size:100%;block-size:100%;object-fit:cover}
+.vt-avatar--circle{border-radius:var(--vt-radius-pill)}
+.vt-avatar--square{border-radius:var(--vt-radius-md)}
+.vt-avatar--accent{background:var(--vt-accent);color:var(--vt-charcoal-900)}
+.vt-avatar--inverse{background:var(--vt-charcoal-800);color:var(--vt-accent)}
+.vt-avatar__dot{position:absolute;inset-inline-end:0;inset-block-end:0;inline-size:28%;block-size:28%;min-inline-size:8px;min-block-size:8px;border-radius:var(--vt-radius-pill);box-shadow:0 0 0 2px var(--vt-bg-surface)}

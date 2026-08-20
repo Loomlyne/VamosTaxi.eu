@@ -13,3 +13,18 @@ export type { LogoProps, LogoVariant, LogoForm } from "./Logo";
 
 export { CheckerMark } from "./CheckerMark";
 export type { CheckerMarkProps } from "./CheckerMark";
+
+export { Avatar } from "./Avatar";
+export type { AvatarProps, AvatarSize, AvatarShape, AvatarTone, AvatarStatus } from "./Avatar";
+
+export { Badge } from "./Badge";
+export type { BadgeProps, BadgeTone } from "./Badge";
+
+export { Tag } from "./Tag";
+export type { TagProps } from "./Tag";
+
+export { Card } from "./Card";
+export type { CardProps, CardTone, CardPadding } from "./Card";
+
+export { IconButton } from "./IconButton";
+export type { IconButtonProps, IconButtonVariant, IconButtonSize } from "./IconButton";

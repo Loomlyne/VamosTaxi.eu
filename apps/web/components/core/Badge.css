@@ -1,0 +1,8 @@
+.vt-badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);font-weight:var(--vt-label-weight);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;padding:5px 10px;border-radius:var(--vt-radius-xs);border:var(--vt-border-w) solid transparent;white-space:nowrap}
+.vt-badge--neutral{background:var(--vt-grey-100);color:var(--vt-charcoal-700)}
+.vt-badge--accent{background:var(--vt-yellow);color:var(--vt-charcoal-900)}
+.vt-badge--success{background:var(--vt-success-tint);color:var(--vt-success)}
+.vt-badge--danger{background:var(--vt-danger-tint);color:var(--vt-danger)}
+.vt-badge--info{background:var(--vt-info-tint);color:var(--vt-info)}
+.vt-badge--inverse{background:var(--vt-charcoal-800);color:var(--vt-text-inverse)}
+.vt-badge--outline{background:transparent;border-color:var(--vt-border-subtle);color:var(--vt-text-secondary)}
