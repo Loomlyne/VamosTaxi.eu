@@ -20,10 +20,10 @@ and are final — "matches the mock" is a real acceptance criterion, not a hand-
 
 - [ ] **PLAT-01**: The app serves server-rendered pages from a single Cloudflare Worker built with `@opennextjs/cloudflare`, on a real custom domain from the first deploy
 - [x] **PLAT-02**: The Worker exports `fetch`, `scheduled` and `queue` handlers from one custom entry file, so cron sweeps and queue consumers live in the same deployment
-- [ ] **PLAT-03**: A pull request runs typecheck, build and a preview upload; `main` deploys staging; a tag deploys production
+- [x] **PLAT-03**: A pull request runs typecheck, build and a preview upload; `main` deploys staging; a tag deploys production
 - [ ] **PLAT-04**: Design-system tokens, fonts, icons and logos are served from the app, and its components are React with the same class names so the CSS carries over unchanged
 - [ ] **PLAT-05**: Lenis smooth scroll runs as a single instance per page, honouring `prefers-reduced-motion` and stopping while a sheet locks the body
-- [ ] **PLAT-06**: Every secret reaches the Worker through `wrangler secret`, and none is readable from the browser or committed to the repo
+- [x] **PLAT-06**: Every secret reaches the Worker through `wrangler secret`, and none is readable from the browser or committed to the repo
 
 ### Localisation (I18N)
 
@@ -183,10 +183,10 @@ Populated during roadmap creation. Full phase goals and success criteria: `.plan
 |-------------|-------|--------|
 | PLAT-01 | Phase 1 | Pending (Worker/build verified locally; real custom-domain deploy deferred — see 01-01-SUMMARY.md) |
 | PLAT-02 | Phase 1 | Complete |
-| PLAT-03 | Phase 1 | Pending |
+| PLAT-03 | Phase 1 | Complete |
 | PLAT-04 | Phase 1 | Pending |
 | PLAT-05 | Phase 1 | Pending |
-| PLAT-06 | Phase 1 | Pending |
+| PLAT-06 | Phase 1 | Complete |
 | I18N-01 | Phase 1 | Pending |
 | I18N-02 | Phase 1 | Pending |
 | I18N-03 | Phase 1 | Complete |
@@ -263,6 +263,7 @@ Populated during roadmap creation. Full phase goals and success criteria: `.plan
 | LAUNCH-07 | Phase 10 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 80 total
 - Mapped to phases: 80
 - Unmapped: 0 ✓

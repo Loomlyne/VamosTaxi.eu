@@ -2,16 +2,17 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
+current_phase: 1
+current_phase_name: Platform Foundation, Design System Port & i18n Runtime
 status: executing
-stopped_at: Completed 01-01-PLAN.md (Task 1+2 done, Task 3 deferred — Cloudflare account setup needed)
-last_updated: "2026-08-20T18:00:28.231Z"
+stopped_at: Completed 01-02-PLAN.md
+last_updated: "2026-08-20T18:17:46.880Z"
 last_activity: 2026-08-20
 progress:
-  total_phases: 11
+  total_phases: 1
   completed_phases: 0
   total_plans: 14
-  completed_plans: 1
-  percent: 0
+  completed_plans: 2
 ---
 
 # Project State
@@ -28,11 +29,11 @@ confirmation — must.
 ## Current Position
 
 Phase: 1 of 11 (Platform Foundation, Design System Port & i18n Runtime)
-Plan: 1 of 14 in current phase
+Plan: 2 of 14 in current phase
 Status: Ready to execute
 Last activity: 2026-08-20
 
-Progress: [█░░░░░░░░░] 7%
+Progress: [█░░░░░░░░░] 14%
 
 ## Performance Metrics
 
@@ -55,6 +56,11 @@ Progress: [█░░░░░░░░░] 7%
 
 *Updated after each plan completion*
 | Phase 01 P01 | 55min | 2 tasks | 51 files |
+**Per-Plan Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 01 P02 | 40min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -70,6 +76,8 @@ Recent decisions affecting current work:
 - [Phase ?]: Checkpoint D-11/D-12 resolved: option-a — /en/<path> permanently (308) redirects to /<path>; next-intl's own middleware issues that redirect as 307 by default, corrected in middleware.ts scoped to explicit /en paths only.
 - [Phase ?]: initOpenNextCloudflareForDev() gated to NODE_ENV=development in next.config.ts — calling it unconditionally broke next build against the declared-but-unprovisioned Hyperdrive binding.
 - [Phase ?]: Task 3 (deploy to staging.vamostaxi.eu) deferred — no Cloudflare account/DNS setup exists yet; Task 1+2 fully verified locally via opennextjs-cloudflare preview instead.
+- [Phase ?]: 01-02: core.hooksPath set locally (not via husky npm package) since package.json is out of this plan's scope — pre-commit hook works on this machine but needs a prepare script later for portability
+- [Phase ?]: 01-02: GSD-LAUNCH.md § Secrets stayed prose (no table exists to add rows to, contrary to the plan's assumption) — gates appended in matching style
 
 ### Pending Todos
 
@@ -105,6 +113,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-20T18:00:24.519Z
-Stopped at: Completed 01-01-PLAN.md (Task 1+2 done, Task 3 deferred — Cloudflare account setup needed)
+Last session: 2026-08-20T18:17:46.872Z
+Stopped at: Completed 01-02-PLAN.md
 Resume file: None
