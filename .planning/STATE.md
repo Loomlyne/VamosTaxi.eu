@@ -5,14 +5,14 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Platform Foundation, Design System Port & i18n Runtime
 status: executing
-stopped_at: Completed 01-08-PLAN.md
-last_updated: "2026-08-20T19:17:43.728Z"
+stopped_at: Completed 01-07-PLAN.md
+last_updated: "2026-08-20T19:22:31.531Z"
 last_activity: 2026-08-20
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 14
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -29,11 +29,11 @@ confirmation — must.
 ## Current Position
 
 Phase: 1 of 11 (Platform Foundation, Design System Port & i18n Runtime)
-Plan: 5 of 14 in current phase
+Plan: 6 of 14 in current phase
 Status: Ready to execute
 Last activity: 2026-08-20
 
-Progress: [████░░░░░░] 36%
+Progress: [████░░░░░░] 43%
 
 ## Performance Metrics
 
@@ -64,6 +64,7 @@ Progress: [████░░░░░░] 36%
 | Phase 01 P05 | ~25min | 3 tasks | 95 files |
 | Phase 01 P03 | 50min | 3 tasks | 36 files |
 | Phase 01 P08 | 55min | 2 tasks | 3 files |
+| Phase 01 P07 | 50min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,7 @@ Recent decisions affecting current work:
 - [Phase ?]: 01-03: mountPort renders server-side via react-dom/server + the TypeScript compiler API (no bundler, no new dependency) rather than the Next dev server
 - [Phase ?]: isLocked() reads inline style, not getComputedStyle() — a literal port of the vendored locked() function deadlocks the body-lock release direction because Lenis's own lenis-stopped CSS class sets overflow:clip on the root element
 - [Phase ?]: Raw Lenis core class over lenis/react bindings for direct instance control the singleton/reduced-motion/pathname effects need
+- [Phase ?]: 01-07: Dictionary migration to dotted-key ICU JSON — product names non-translatable, ADR-012 duplicates auto-collapsed by JS semantics, 20 data-tok pending-value keys detected programmatically, 44 concatenation patterns converted to 39 ICU messages (15 plurals)
 
 ### Pending Todos
 
@@ -124,6 +126,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-20T19:17:43.721Z
-Stopped at: Completed 01-08-PLAN.md
+Last session: 2026-08-20T19:22:31.523Z
+Stopped at: Completed 01-07-PLAN.md
 Resume file: None
