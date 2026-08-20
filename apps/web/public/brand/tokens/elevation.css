@@ -1,0 +1,27 @@
+/* ── Elevation, borders, overlays ─────────────────────────────────────────
+   Shadows are neutral-charcoal and low-spread: this is a premium-service
+   brand, not a playful one. Yellow is never used as a shadow colour.
+   ------------------------------------------------------------------------ */
+:root{
+  --vt-shadow-none:none;
+  --vt-shadow-xs:0 1px 2px rgb(17 18 18 / 0.06);
+  --vt-shadow-sm:0 1px 3px rgb(17 18 18 / 0.08),0 1px 2px rgb(17 18 18 / 0.04);
+  --vt-shadow-md:0 4px 14px rgb(17 18 18 / 0.08),0 1px 3px rgb(17 18 18 / 0.05);
+  --vt-shadow-lg:0 12px 32px rgb(17 18 18 / 0.12),0 2px 6px rgb(17 18 18 / 0.06);
+  --vt-shadow-xl:0 24px 64px rgb(17 18 18 / 0.18);
+  --vt-shadow-accent:0 8px 22px rgb(253 194 11 / 0.34);
+  --vt-shadow-inset:inset 0 1px 0 rgb(255 255 255 / 0.06);
+
+  --vt-ring:0 0 0 3px rgb(253 194 11 / 0.45);
+  --vt-ring-inverse:0 0 0 3px rgb(253 194 11 / 0.55);
+
+  --vt-blur-panel:saturate(140%) blur(18px); /* @kind other */
+  --vt-glass-light:rgb(255 255 255 / 0.82);
+  --vt-glass-dark:rgb(30 31 31 / 0.62);
+
+  /* photo protection: bottom-up charcoal veil for white type over imagery */
+  --vt-scrim-bottom:linear-gradient(to top,rgb(17 18 18 / 0.86) 0%,rgb(17 18 18 / 0.55) 34%,rgb(17 18 18 / 0) 78%); /* @kind color */
+  --vt-scrim-left:linear-gradient(to right,rgb(17 18 18 / 0.82) 0%,rgb(17 18 18 / 0.35) 48%,rgb(17 18 18 / 0) 82%); /* @kind color */
+  /* the brand's signature yellow arc veil (social templates) */
+  --vt-veil-yellow:rgb(253 194 11 / 0.88);
+}

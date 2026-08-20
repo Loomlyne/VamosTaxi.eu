@@ -1,0 +1,71 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "vamos-web",
+  "main": "worker.ts",
+  "compatibility_date": "2026-08-20",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  },
+
+  // Declared now per D-34 — every resource below must be genuinely
+  // provisioned via its own `wrangler <resource> create` command before
+  // `wrangler deploy` is run against it (01-RESEARCH.md Pitfall 4); no
+  // Phase 1 code references any of these bindings yet. Phases 3-7 attach
+  // code to plumbing that already exists.
+  "kv_namespaces": [
+    { "binding": "GEO_CACHE", "id": "<created via wrangler kv namespace create geo-cache>" }
+  ],
+  "r2_buckets": [
+    { "binding": "PHOTOS", "bucket_name": "vamos-photos" }
+  ],
+  "queues": {
+    "producers": [
+      { "binding": "STRIPE_EVENTS", "queue": "vamos-stripe-events" }
+    ],
+    "consumers": [
+      { "queue": "vamos-stripe-events" }
+    ]
+  },
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "<created in Phase 3, points at Supabase's direct connection string, never the pooled 6543 Supavisor string>",
+      // Not a secret — a placeholder pointing at localhost, required so
+      // `wrangler dev`/`preview` can boot the platform proxy locally before
+      // any code queries this binding (D-04, Pitfall 4). Phase 2/3 wires a
+      // real local Postgres via `supabase start`; nothing in Phase 1
+      // connects to this binding yet.
+      "localConnectionString": "postgres://postgres:postgres@localhost:5432/postgres"
+    }
+  ],
+
+  // No `vars` block ever carries a credential — `vars` is plaintext in this
+  // committed file. Every secret (Stripe, Supabase, Resend, Mapbox,
+  // AeroDataBox, Turnstile, Sentry) reaches the Worker via `wrangler secret
+  // put`, per PLAT-06 and threat T-01-01. Turnstile has no wrangler.jsonc
+  // binding shape of its own — it is a site-key pair delivered as a secret
+  // plus a public key, wired at Phase 4 planning.
+
+  "env": {
+    "staging": {
+      "name": "vamos-web-staging",
+      "routes": [
+        { "pattern": "staging.vamostaxi.eu", "custom_domain": true }
+      ]
+    },
+    "production": {
+      "name": "vamos-web-production",
+      // Not deployed until Phase 11 (Launch Cutover) — D-33 is explicit
+      // that the live Freshpage site keeps serving vamostaxi.eu's apex
+      // until then. Declared now so the environment shape exists.
+      "routes": [
+        { "pattern": "vamostaxi.eu", "custom_domain": true }
+      ]
+    }
+  }
+}

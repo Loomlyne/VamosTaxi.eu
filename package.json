@@ -1,0 +1,21 @@
+{
+  "name": "vamos-taxi",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Vamos Taxi V1 — Next.js on Cloudflare Workers monorepo",
+  "scripts": {
+    "dev": "pnpm --filter web run dev",
+    "build": "pnpm --filter web run build",
+    "preview": "pnpm --filter web run preview",
+    "deploy": "pnpm --filter web run deploy",
+    "typecheck": "pnpm -r --if-present run typecheck",
+    "lint:css": "pnpm --filter web run lint:css",
+    "i18n:check": "node scripts/check-i18n-coverage.mjs",
+    "test:visual": "pnpm --filter web exec playwright test",
+    "check:public-env": "node scripts/check-next-public-allowlist.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@11.7.0"
+}

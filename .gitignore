@@ -17,6 +17,11 @@ Thumbs.db
 !.env.example
 node_modules/
 .next/
+.open-next/
+.wrangler/
+.dev.vars
+.dev.vars.*
+*.tsbuildinfo
 dist/
 build/
 !docs/build/

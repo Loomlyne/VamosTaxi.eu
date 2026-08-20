@@ -1,0 +1,14 @@
+/* Vamos design-system token chain — reproduces design-system/styles.css's
+   import order exactly (D-10, D-24), minus the two Rolic.app iOS-kit
+   imports (an unrelated mobile design language RESEARCH's scope correction
+   excludes — see 01-RESEARCH.md "Component Port Scope Correction").
+   tokens/laws.css MUST remain the final import — moving it up silently
+   re-enables the yellow glow and the tinted-yellow surfaces. */
+@import "../public/brand/tokens/fonts.css";
+@import "../public/brand/tokens/colors.css";
+@import "../public/brand/tokens/typography.css";
+@import "../public/brand/tokens/spacing.css";
+@import "../public/brand/tokens/elevation.css";
+@import "../public/brand/tokens/motion.css";
+@import "../public/brand/tokens/base.css";
+@import "../public/brand/tokens/laws.css";

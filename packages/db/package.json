@@ -1,0 +1,7 @@
+{
+  "name": "@vamos/db",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Supabase (Postgres) migrations and SQL access helpers for Vamos Taxi.",
+  "main": "index.ts"
+}

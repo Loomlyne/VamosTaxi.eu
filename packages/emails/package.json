@@ -1,0 +1,7 @@
+{
+  "name": "@vamos/emails",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Resend transactional email templates for Vamos Taxi, four languages.",
+  "main": "index.ts"
+}

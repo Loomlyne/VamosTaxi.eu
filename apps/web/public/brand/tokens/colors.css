@@ -1,0 +1,76 @@
+/* ── Colour ───────────────────────────────────────────────────────────────
+   Three colours are fixed by the brand guide (COLORS.pdf / p."COLOR"):
+   #FDC20B yellow, #1E1F1F charcoal, #DEDEDE light grey.
+   Everything else is a tint/shade derived from those three, plus a small
+   semantic set the guide does not define (needed for booking states).
+   ------------------------------------------------------------------------ */
+:root{
+  /* Brand — exact values from the guide */
+  --vt-yellow:#FDC20B;
+  --vt-charcoal:#1E1F1F;
+  --vt-grey:#DEDEDE;
+
+  /* Yellow scale (derived) */
+  --vt-yellow-50:#FFFBEE;
+  --vt-yellow-100:#FEF3CD;
+  --vt-yellow-200:#FEE79B;
+  --vt-yellow-300:#FDD65A;
+  --vt-yellow-400:#FDC20B;
+  --vt-yellow-500:#EDB306;
+  --vt-yellow-600:#D19C04;
+  --vt-yellow-700:#A67B05;
+
+  /* Charcoal / neutral scale (derived) */
+  --vt-black:#000000;
+  --vt-charcoal-950:#111212;
+  --vt-charcoal-900:#1E1F1F;
+  --vt-charcoal-800:#2B2D2C;
+  --vt-charcoal-700:#3C3E3D;
+  --vt-charcoal-600:#545756;
+  --vt-grey-500:#767877;
+  --vt-grey-400:#9B9D9C;
+  --vt-grey-300:#C2C3C3;
+  --vt-grey-200:#DEDEDE;
+  --vt-grey-100:#ECECEC;
+  --vt-grey-50:#F6F6F6;
+  --vt-white:#FFFFFF;
+
+  /* Semantic — NOT in the brand guide, derived in oklch to sit beside the yellow */
+  --vt-success:oklch(0.60 0.13 152);
+  --vt-success-tint:oklch(0.95 0.04 152);
+  --vt-warning:var(--vt-yellow-500);
+  --vt-warning-tint:var(--vt-yellow-100);
+  --vt-danger:oklch(0.56 0.19 27);
+  --vt-danger-tint:oklch(0.95 0.04 27);
+  --vt-info:oklch(0.55 0.10 240);
+  --vt-info-tint:oklch(0.95 0.03 240);
+
+  /* ── Semantic aliases — use these in components ── */
+  --vt-bg-page:var(--vt-grey-50);
+  --vt-bg-surface:var(--vt-white);
+  --vt-bg-inset:var(--vt-grey-100);
+  --vt-bg-inverse:var(--vt-charcoal-900);
+  --vt-bg-inverse-raised:var(--vt-charcoal-800);
+  --vt-bg-accent:var(--vt-yellow);
+  --vt-bg-accent-tint:var(--vt-yellow-50);
+  --vt-bg-scrim:rgb(17 18 18 / 0.62);
+
+  --vt-text-primary:var(--vt-charcoal-900);
+  --vt-text-secondary:var(--vt-charcoal-600);
+  --vt-text-muted:var(--vt-grey-500);
+  --vt-text-inverse:var(--vt-white);
+  --vt-text-inverse-muted:rgb(255 255 255 / 0.66);
+  --vt-text-on-accent:var(--vt-charcoal-900);
+  --vt-text-link:var(--vt-charcoal-900);
+  --vt-text-link-hover:var(--vt-yellow-700);
+
+  --vt-border-subtle:var(--vt-grey-200);
+  --vt-border-strong:var(--vt-charcoal-900);
+  --vt-border-inverse:rgb(255 255 255 / 0.14);
+  --vt-border-accent:var(--vt-yellow);
+
+  --vt-accent:var(--vt-yellow);
+  --vt-accent-hover:var(--vt-yellow-500);
+  --vt-accent-press:var(--vt-yellow-600);
+  --vt-focus:var(--vt-yellow-400);
+}
