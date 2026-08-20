@@ -1,0 +1,105 @@
+name: Deploy Staging
+
+# PLAT-03's staging deploy half: a push to main re-runs the full gate set (a merge
+# queue is not a guarantee that main is green) and, only if it's green, deploys and
+# smoke-tests staging.vamostaxi.eu (D-33).
+on:
+  push:
+    branches: [main]
+
+# A second deploy queues behind the first instead of racing it — cancelling a
+# half-finished deploy is worse than waiting (T-01-07).
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    name: Typecheck, build, secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (full history for the secret scan)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: gitleaks secret scan
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }} # only required for GitHub orgs
+          GITLEAKS_CONFIG: .gitleaks.toml
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        with:
+          version: 11.7.0
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Client-exposure allowlist (D-35, PLAT-06)
+        run: pnpm check:public-env
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: CSS law + RTL logical-property lint (D-21, D-32)
+        run: pnpm lint:css
+
+      - name: i18n key-coverage check (D-17)
+        run: pnpm i18n:check
+
+      - name: Build
+        run: pnpm build
+
+      - name: Install Playwright browsers
+        run: pnpm --filter web exec playwright install --with-deps chromium
+
+      - name: Visual + integration tests (screenshot diffs, D-25)
+        run: pnpm test:visual
+
+  deploy:
+    name: Deploy to staging
+    needs: gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        with:
+          version: 11.7.0
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Deploy Worker (staging environment)
+        run: pnpm --filter web deploy --env staging
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      # A deploy that returns 200 but serves the wrong language is a failed deploy —
+      # this asserts the locale layer, not only that the process is reachable.
+      - name: Smoke test — staging is reachable
+        run: curl -sfI https://staging.vamostaxi.eu | head -1
+
+      - name: Smoke test — German copy renders on the German path
+        run: curl -sf https://staging.vamostaxi.eu/de | grep -q 'lang="de"'
+
+      - name: Smoke test — Arabic path renders right-to-left
+        run: curl -sf https://staging.vamostaxi.eu/ar | grep -q 'dir="rtl"'
