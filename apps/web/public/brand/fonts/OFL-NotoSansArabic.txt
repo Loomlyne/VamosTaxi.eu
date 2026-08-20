@@ -1,35 +1,22 @@
 SCOPE OF THIS FILE — READ BEFORE THE LICENCE BELOW
 ====================================================
 
-This licence file covers the Poppins family in this folder
-(`Poppins-*.ttf`) only. The Qurova files in this same folder
-(`Qurova-*.ttf`) are a commercial retail typeface from a different
-foundry (Prioritype Co.) and are NOT covered by this file, and are not
-under the SIL Open Font License at all — their own name tables carry no
-licence description and no licence URL. The `NotoSansArabic-*.ttf` files
-in this same folder are also OFL 1.1, but from a different copyright
-holder (The Noto Project Authors) — their licence is recorded separately
-in `OFL-NotoSansArabic.txt`, fetched verbatim from the upstream release,
-rather than folded into this file. Do not read the presence of this file
-in this folder as evidence that every family here is open-licensed.
+This licence file covers the Noto Sans Arabic family in this folder
+(`NotoSansArabic-*.ttf`) only — the self-hosted stand-in Arabic face vendored
+per D-22 and ADR-013, pending the designer's eventual pick. The Qurova and
+Poppins files in this same folder are covered by the separate `OFL.txt`
+(itself scoped to Poppins only for Qurova's part — see that file). Do not
+read the presence of this file as covering any other family in this folder.
 
-This is the file `design-system/tokens/fonts.css` line 2 has been
-pointing at since it was written; until this pass, the file it pointed
-at did not exist on disk.
-
-For the full provenance of both families — what each font file's own
-name table declares, the Qurova licence cost and terms, the Arabic
-glyph-coverage gap, and the open questions still owed to the foundry —
-see `.planning/ADR-009-qurova-webfont-licence.md`.
-
-The text below this rule is the SIL Open Font License, Version 1.1,
-fetched verbatim from https://openfontlicense.org/documents/OFL.txt on
-2026-08-19, with only the copyright/holder line filled in to match what
-the Poppins font files' own name table declares. No other line of the
-licence body below is altered.
+The text below this rule is the SIL Open Font License, Version 1.1, copied
+verbatim, unaltered, from the `OFL.txt` shipped inside the upstream release
+zip `NotoSansArabic-v2.013.zip`, published by github.com/notofonts/arabic on
+2025-10-15 and fetched directly from that release on 2026-08-20 (see
+`.planning/ADR-013-arabic-webfont-licence.md` for the full provenance,
+including what each font file's own `name` table declares).
 ====================================================
 
-Copyright 2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins)
+Copyright 2022 The Noto Project Authors (https://github.com/notofonts/arabic)
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
@@ -49,7 +36,7 @@ with others.
 
 The OFL allows the licensed fonts to be used, studied, modified and
 redistributed freely as long as they are not sold by themselves. The
-fonts, including any derivative works, can be bundled, embedded,
+fonts, including any derivative works, can be bundled, embedded, 
 redistributed and/or sold with any software provided that any reserved
 names are not used by derivative works. The fonts and derivatives,
 however, cannot be released under any other type of license. The

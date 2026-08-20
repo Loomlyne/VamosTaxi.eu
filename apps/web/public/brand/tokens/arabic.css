@@ -1,0 +1,35 @@
+/* ── Arabic typeface ──────────────────────────────────────────────────────
+   Neither Qurova nor Poppins carries a single Arabic glyph (ADR-009), so the
+   brand has never had an Arabic display face. This is the stand-in: Noto
+   Sans Arabic, OFL 1.1, self-hosted from public/brand/fonts/ (ADR-013).
+
+   D-22's "swappable token" design lives entirely in --vt-font-arabic below.
+   The eventual designer pick replaces that one value; no call site — no
+   component, no page — ever names "Noto Sans Arabic" directly.
+
+   This is the same token-swap shape app/vamos-locale.js's chrome() function
+   already applies at runtime (setting --vt-font-body/--vt-font-display
+   inline on <html> when RTL is active), reproduced here as a static,
+   direction-scoped CSS rule instead of a JS side effect — layout.tsx
+   already sets dir="rtl" server-side, so no runtime toggle is needed.
+   [dir="rtl"] and :root share specificity (0,1,0); this file must be
+   imported after typography.css in globals.css so this override wins the
+   cascade for Arabic pages. ------------------------------------------- */
+
+:root{
+  --vt-font-arabic:"Noto Sans Arabic";
+}
+
+@font-face{font-family:"Noto Sans Arabic";src:url("../fonts/NotoSansArabic-Regular.ttf") format("truetype");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Noto Sans Arabic";src:url("../fonts/NotoSansArabic-Medium.ttf") format("truetype");font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:"Noto Sans Arabic";src:url("../fonts/NotoSansArabic-SemiBold.ttf") format("truetype");font-weight:600;font-style:normal;font-display:swap}
+@font-face{font-family:"Noto Sans Arabic";src:url("../fonts/NotoSansArabic-Bold.ttf") format("truetype");font-weight:700;font-style:normal;font-display:swap}
+
+/* One shared token for display and body in Arabic mode (RESEARCH Open
+   Question 2) — matches what app/vamos-locale.js's chrome() already does.
+   If the designer's eventual pick splits display from body, that split
+   happens here, by adding a second token, without touching a call site. */
+[dir="rtl"]{
+  --vt-font-display:var(--vt-font-arabic),"Qurova","Poppins",system-ui,sans-serif;
+  --vt-font-body:var(--vt-font-arabic),"Poppins",system-ui,-apple-system,"Segoe UI",sans-serif;
+}

@@ -7,6 +7,10 @@
 @import "../public/brand/tokens/fonts.css";
 @import "../public/brand/tokens/colors.css";
 @import "../public/brand/tokens/typography.css";
+/* Arabic self-hosted face (D-22, ADR-013) — imported after typography.css
+   so its [dir="rtl"] override wins the cascade over typography.css's
+   :root default (equal selector specificity, source order decides). */
+@import "../public/brand/tokens/arabic.css";
 @import "../public/brand/tokens/spacing.css";
 @import "../public/brand/tokens/elevation.css";
 @import "../public/brand/tokens/motion.css";
