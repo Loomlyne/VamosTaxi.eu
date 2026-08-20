@@ -57,7 +57,24 @@ where the `VamosLocale` DOM-walking runtime is replaced with an SSR-safe mechani
   3. No secret is readable from the browser or present in the repo — every credential reaches the Worker via `wrangler secret`.
   4. Switching language on a rendered page relabels every string (including placeholders, `aria-label`, `title`, `alt`) in place without a reload, is correct in the server-rendered HTML with no English flash, and Arabic renders right-to-left with logical-property layout.
   5. Switching currency changes only the mark, never the number, and strings the code builds from parts translate too.
-**Plans**: TBD
+**Plans**: 14 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Tracer: pnpm monorepo, Next 15 + OpenNext Worker (fetch/scheduled/queue), `[locale]` routing, first ported component, deployed to staging.vamostaxi.eu
+- [ ] 01-02-PLAN.md — CI pipeline (PR/main/tag) and the two blocking secret gates
+- [ ] 01-03-PLAN.md — Quality gate toolchain: stylelint law + logical-property rules, i18n key coverage, offline screenshot-diff harness
+- [ ] 01-04-PLAN.md — Cloudflare bindings provisioned, scheduled/queue proven in staging, Access + noindex, structured logging to Logpush
+- [ ] 01-05-PLAN.md — Brand layer vendored into the app, self-hosted Arabic face replacing the CDN hotlink, image delivery verified
+- [ ] 01-06-PLAN.md — Design-system port batch 1: nine core primitives, dev gallery, first German and Arabic passes
+- [ ] 01-07-PLAN.md — Dictionary migration to per-locale JSON with dotted keys and ICU messages, plus the runtime fallback
+- [ ] 01-08-PLAN.md — Lenis smooth scroll as a single provider, with navigation resync and automated proof
+- [ ] 01-09-PLAN.md — Design-system port batch 2: eight form controls
+- [ ] 01-10-PLAN.md — Design-system port batch 3: three navigation and five feedback components, plus focus and scroll behaviour specs
+- [ ] 01-11-PLAN.md — Design-system port batch 4: four data and four transfer composites
+- [ ] 01-12-PLAN.md — i18n runtime: locale shim, currency store, booking draft persistence and the ADR-001 acceptance test, alternates and sitemap
+- [ ] 01-13-PLAN.md — Shared header and footer ported and composed around every page
+- [ ] 01-14-PLAN.md — Localised 404 and error pages, gallery production exclusion, baseline review and the phase-wide language passes
+
 **UI hint**: yes
 
 ### Phase 2: Data Schema, RLS & Staff Auth Foundations
@@ -212,7 +229,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Platform Foundation, Design System Port & i18n Runtime | 0/TBD | Not started | - |
+| 1. Platform Foundation, Design System Port & i18n Runtime | 0/14 | Planned | - |
 | 2. Data Schema, RLS & Staff Auth Foundations | 0/TBD | Not started | - |
 | 3. Hyperdrive Data Access Wiring | 0/TBD | Not started | - |
 | 4. Quote & Pricing Engine | 0/TBD | Not started | - |
