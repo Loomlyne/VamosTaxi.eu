@@ -1,0 +1,46 @@
+# Vendored test-only runtime
+
+D-25 as amended: the `.dc.html` mocks load React, ReactDOM and Babel from `unpkg.com` at
+page-load time (`app/support.js`'s `src/cdn.ts` block). D-31 already bans that origin in
+production; this phase extends the ban to the screenshot-diff job itself, so a CDN hiccup
+cannot fail an unrelated PR (Open Question 3, `01-RESEARCH.md`). The three files below are
+byte-identical copies of the exact versions `app/support.js` pins by SRI hash, downloaded
+once and committed here.
+
+**These files are test-only.** Nothing under `apps/web/app` or `apps/web/components` may
+import them — `apps/web/tests/support/mock-harness.ts` is the only consumer, and it only
+ever serves them to the mock side of a screenshot diff (`serveMock`) or the reference-bundle
+side (`mountBundle`), never to the ported React application.
+
+| File | Upstream URL | Version | Licence | SHA-384 (base64) |
+|---|---|---|---|---|
+| `react.production.min.js` | `https://unpkg.com/react@18.3.1/umd/react.production.min.js` | 18.3.1 | MIT | `DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z` |
+| `react-dom.production.min.js` | `https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js` | 18.3.1 | MIT | `gTGxhz21lVGYNMcdJOyq01Edg0jhn/c22nsx0kyqP0TxaV5WVdsSH1fSDUf5YJj1` |
+| `babel.min.js` | `https://unpkg.com/@babel/standalone@7.29.0/babel.min.js` | 7.29.0 | MIT | `m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y` |
+
+Each SHA-384 above is the same digest `app/support.js`'s `src/cdn.ts` already carries as the
+`integrity` attribute for that URL (`REACT_SRI`, `REACT_DOM_SRI`, `BABEL_SRI`) — verified by
+downloading fresh from `unpkg.com` and hashing locally (`openssl dgst -sha384 -binary <file>
+| openssl base64 -A`) during this plan's execution; the digests matched byte-for-byte, so
+these are exactly the bytes the mocks already trust, just served from disk instead of a
+third-party origin.
+
+## How the swap works
+
+`app/support.js`'s runtime already has the hook this harness needs, with no changes to the
+mock tree (D-03): `cdnScriptFor(url, sri)` checks `window.__resources[url]` first and, if it
+finds a string there, uses it as the script `src` with **no** `integrity` attribute — bypassing
+the CDN entirely. `mock-harness.ts`'s `serveMock()` injects a small
+`<script>window.__resources = { "<unpkg URL>": "<local vendored URL>", ... }</script>` as the
+first child of `<head>`, before `<script src="./support.js">` runs, for the three URLs above.
+Both `loadReactUmd()` (React/ReactDOM) and `ensureBabel()` (Babel, loaded lazily on first
+`x-import`) read the same map, so a mock page served through the harness never makes a
+network request to `unpkg.com`.
+
+## Updating a pinned version
+
+If `app/support.js`'s `REACT_URL`/`REACT_DOM_URL`/`BABEL_URL`/`*_SRI` constants ever change
+(a mock-tooling upgrade, out of this project's control), re-download the new version, verify
+its SHA-384 matches the new `*_SRI` constant before trusting it, replace the file here, and
+update this table. Never vendor a file whose hash does not match the mock runtime's own pin —
+that would silently diff the port against different bytes than the mock itself trusts.

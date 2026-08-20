@@ -36,6 +36,20 @@ coverage/
 .cache/
 tmp/
 
+# Playwright run output — regenerated every run, never meaningful to commit.
+test-results/
+playwright-report/
+blob-report/
+
+# `vendor/` above is meant for other ecosystems' dependency-vendoring directories
+# (PHP/Ruby-style); apps/web/tests/vendor/ is this project's own committed, hash-verified
+# test fixture (D-25 as amended — apps/web/tests/vendor/README.md records provenance) and
+# must not be caught by that blanket rule. Both the directory and its contents need an
+# explicit re-include — gitignore does not descend into an already-excluded directory to
+# apply a narrower negation.
+!apps/web/tests/vendor/
+!apps/web/tests/vendor/**
+
 # ── GSD baseline (auto-generated) ──
 .gsd-worktrees/
 .gsd-backups/
