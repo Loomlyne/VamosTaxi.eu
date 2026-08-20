@@ -1,0 +1,14 @@
+/* Icon (the vendored design-system bundle, reference-only per D-30, function Icon,
+   components/core/Icon.jsx) has no `const CSS` template literal and no call to the
+   source's runtime style-injection helper to extract — confirmed by
+   reading the compiled bundle source directly at port time. Every visual property
+   (mask size/position/image, box size, colour) is source-rendered as an inline style
+   reading design tokens and the `name`/`size`/`color` props directly; there is
+   nothing here to copy verbatim (D-24 has no value to preserve for this component).
+
+   This file exists anyway, and is statically imported by Icon.tsx, to keep the "CSS
+   arrives by static import only" contract (D-24, this batch's prohibitions) uniform
+   across all nine core primitives — a future reviewer scanning for a component's
+   styles should always find a .css file beside it, even an intentionally empty one,
+   rather than wondering whether the import was forgotten. See 01-06-SUMMARY.md §
+   Deviations for the full note. */

@@ -1,0 +1,7 @@
+/* CheckerMark (the vendored design-system bundle, reference-only per D-30, function
+   CheckerMark, components/core/CheckerMark.jsx) has no template-literal CSS block and
+   makes no call to the source's runtime style-injection helper — same finding as
+   Icon.css and Logo.css, see Icon.css's comment for the full reasoning. Size/opacity
+   are inline styles computed from props. This file exists and is statically imported
+   to keep the CSS-delivery contract uniform across the batch (D-24); it intentionally
+   holds no rules. See 01-06-SUMMARY.md § Deviations. */
