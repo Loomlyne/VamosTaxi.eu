@@ -1,0 +1,83 @@
+name: Pull Request
+
+# PLAT-03's pull-request gate plus every D-39 blocking check. Every step below fails
+# the merge on a non-zero exit — none is advisory. The secret scan runs before any
+# build or upload step so a leaked credential never reaches a published artifact.
+on:
+  pull_request:
+
+# Two pushes to the same branch must not race two overlapping runs of this workflow —
+# the second push cancels the first's in-flight run (01-CONTEXT.md's edge-coverage
+# probe for PLAT-03, T-01-07).
+concurrency:
+  group: pr-${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    name: Typecheck, build, secret scan, preview
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout (full history for the secret scan)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      # Secret scan first — before pnpm install, before build, before any artifact
+      # is produced or uploaded (T-01-01).
+      - name: gitleaks secret scan
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }} # only required for GitHub orgs
+          GITLEAKS_CONFIG: .gitleaks.toml
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        with:
+          version: 11.7.0
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Client-exposure allowlist (D-35, PLAT-06)
+        run: pnpm check:public-env
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: CSS law + RTL logical-property lint (D-21, D-32)
+        run: pnpm lint:css
+
+      - name: i18n key-coverage check (D-17)
+        run: pnpm i18n:check
+
+      - name: Build
+        run: pnpm build
+
+      - name: Install Playwright browsers
+        run: pnpm --filter web exec playwright install --with-deps chromium
+
+      - name: Visual + integration tests (screenshot diffs, D-25)
+        run: pnpm test:visual
+
+      - name: Build Worker bundle (OpenNext)
+        run: pnpm --filter web exec opennextjs-cloudflare build
+
+      - name: Upload preview (Cloudflare Worker version preview)
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/web
+          command: versions upload
+          packageManager: pnpm
