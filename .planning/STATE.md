@@ -5,14 +5,14 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Platform Foundation, Design System Port & i18n Runtime
 status: executing
-stopped_at: Completed 01-07-PLAN.md
-last_updated: "2026-08-20T19:22:31.531Z"
+stopped_at: Completed 01-06-PLAN.md
+last_updated: "2026-08-20T19:28:17.696Z"
 last_activity: 2026-08-20
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 14
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # Project State
@@ -29,11 +29,11 @@ confirmation — must.
 ## Current Position
 
 Phase: 1 of 11 (Platform Foundation, Design System Port & i18n Runtime)
-Plan: 6 of 14 in current phase
+Plan: 7 of 14 in current phase
 Status: Ready to execute
 Last activity: 2026-08-20
 
-Progress: [████░░░░░░] 43%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
@@ -65,6 +65,7 @@ Progress: [████░░░░░░] 43%
 | Phase 01 P03 | 50min | 3 tasks | 36 files |
 | Phase 01 P08 | 55min | 2 tasks | 3 files |
 | Phase 01 P07 | 50min | 3 tasks | 7 files |
+| Phase 01 P06 | ~70min | 3 tasks | 75 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,9 @@ Recent decisions affecting current work:
 - [Phase ?]: isLocked() reads inline style, not getComputedStyle() — a literal port of the vendored locked() function deadlocks the body-lock release direction because Lenis's own lenis-stopped CSS class sets overflow:clip on the root element
 - [Phase ?]: Raw Lenis core class over lenis/react bindings for direct instance control the singleton/reduced-motion/pathname effects need
 - [Phase ?]: 01-07: Dictionary migration to dotted-key ICU JSON — product names non-translatable, ADR-012 duplicates auto-collapsed by JS semantics, 20 data-tok pending-value keys detected programmatically, 44 concatenation patterns converted to 39 ICU messages (15 plurals)
+- [Phase ?]: Badge/Card tinted tones (warning/accent) dropped per Law 02, matching plan's pre-resolved Card decision applied identically to Badge
+- [Phase ?]: IconButton ships with no Selected/pressed state — no source to port from (compiled bundle has none; the header notification bell is a bespoke element, not built from IconButton)
+- [Phase ?]: Dev gallery routes live under app/[locale]/dev/components/** (not the plan's literal app/dev/components/** path), required by the existing [locale]-segment routing architecture
 
 ### Pending Todos
 
@@ -126,6 +130,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-20T19:22:31.523Z
-Stopped at: Completed 01-07-PLAN.md
+Last session: 2026-08-20T19:28:17.688Z
+Stopped at: Completed 01-06-PLAN.md
 Resume file: None
