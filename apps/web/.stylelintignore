@@ -1,0 +1,8 @@
+# public/brand is the design system's own vendored source, copied byte-for-byte
+# into this app per D-10/D-24 (see apps/web/app/globals.css). tokens/laws.css in
+# particular has to NAME every banned token (--vt-yellow-50…700, --vt-shadow-accent)
+# in order to alias it away at runtime — linting the neutraliser for mentioning
+# what it neutralises would be theatre, not signal (01-03-PLAN.md Task 1).
+# The gate still runs, and still blocks, on everything this app or its components
+# author: apps/web/app/**/*.css and apps/web/components/**/*.css.
+public/brand/**

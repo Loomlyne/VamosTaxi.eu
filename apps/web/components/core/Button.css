@@ -1,10 +1,10 @@
 .vt-btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;font-family:var(--vt-font-body);font-weight:var(--vt-weight-semibold);text-transform:uppercase;letter-spacing:var(--vt-label-tracking);border:var(--vt-border-w) solid transparent;border-radius:var(--vt-radius-pill);cursor:pointer;text-decoration:none;white-space:nowrap;transition:var(--vt-transition-control)}
 .vt-btn:focus-visible{outline:none;box-shadow:var(--vt-ring)}
 .vt-btn[disabled],.vt-btn[aria-disabled=true]{opacity:.42;cursor:not-allowed;box-shadow:none}
-.vt-btn--sm{height:var(--vt-control-h-sm);padding:0 18px;font-size:12px}
-.vt-btn--md{height:var(--vt-control-h-md);padding:0 24px;font-size:13px}
-.vt-btn--lg{height:var(--vt-control-h-lg);padding:0 32px;font-size:14px}
-.vt-btn--block{width:100%}
+.vt-btn--sm{block-size:var(--vt-control-h-sm);padding:0 18px;font-size:12px}
+.vt-btn--md{block-size:var(--vt-control-h-md);padding:0 24px;font-size:13px}
+.vt-btn--lg{block-size:var(--vt-control-h-lg);padding:0 32px;font-size:14px}
+.vt-btn--block{inline-size:100%}
 .vt-btn--sentence{text-transform:none;letter-spacing:0}
 .vt-btn--primary{background:var(--vt-accent);color:var(--vt-text-on-accent)}
 /* Law 01: the bundle's source carries box-shadow:var(--vt-shadow-accent) here.

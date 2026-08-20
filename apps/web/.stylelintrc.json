@@ -1,0 +1,29 @@
+{
+  "plugins": ["stylelint-use-logical"],
+  "rules": {
+    "csstools/use-logical": [
+      "always",
+      {
+        "severity": "error",
+        "message": "Unexpected physical inline-direction property in \"%s\": \"%s\". Arabic is a first-class RTL language here — use the logical equivalent (e.g. margin-inline-start, inset-inline-end, padding-inline). Law 03 / I18N-04 (D-21), CLAUDE.md \"Four languages, no exceptions, in the same pass\"."
+      }
+    ],
+    "declaration-property-value-disallowed-list": [
+      {
+        "box-shadow": [
+          "/#[0-9a-fA-F]{3,8}\\b/",
+          "/\\b(rgb|rgba|hsl|hsla|color)\\(/i",
+          "var(--vt-shadow-accent)"
+        ],
+        "/.*/": [
+          "/--vt-yellow-(50|100|200|300|600|700)\\b/",
+          "/--vt-shadow-accent\\b/"
+        ]
+      },
+      {
+        "severity": "error",
+        "message": "Banned value \"%s\" for \"%s\". Law 01 bans any coloured/tinted box-shadow and the --vt-shadow-accent glow token; Law 02 bans the pale (--vt-yellow-50/100/200/300) and brown (--vt-yellow-600/700) tints on any surface. CLAUDE.md \"Never use glow effects\" / \"Never use tinted yellow or brownish surfaces\" (D-32). design-system/tokens/laws.css aliases these away at runtime — this gate keeps the source itself clean."
+      }
+    ]
+  }
+}

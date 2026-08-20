@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "typecheck": "tsc --noEmit",
-    "lint:css": "stylelint \"**/*.css\" --ignore-path .gitignore",
+    "lint:css": "stylelint \"**/*.css\" --ignore-path .gitignore --ignore-path .stylelintignore",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy"
   },
