@@ -314,19 +314,119 @@ ships), pending values as `data-tok` pills rather than `{TOKEN_NAME}` placeholde
 
 ## UI Considerations
 
-Applicable state considerations resolved: 3 covered, 4 backstop, 2 unresolved.
+Computed by `ui-consideration-probe.cjs` over the nine surfaces this phase ships, then resolved.
+**40 applicable considerations: 27 resolved (explicit) · 9 backstop · 4 unresolved.**
+
+Three surfaces (`StatusBadge`, the feedback set, the 404 page) came back `unclassified` from the
+prose classifier and were re-run with an authored kind override of `static-content` +
+`interactive-control`, which raised their `loading` / `error` / `overflow` / `long-text` rows. A
+toast **stack** was considered as a `list-collection` and rejected: the mocks render one toast at a
+time, so a queue is a Phase 5 concern, not a Phase 1 port contract.
+
+Empty-state and error-state **copy** lives in `## Copywriting Contract` and is referenced, not
+restated, here.
+
+### E1 · Dev-only states gallery (`/dev/components`)
+
+| Category | Status | Resolution |
+|----------|--------|------------|
+| populated | ✅ explicit | One canonical fixture per component per state — enough for a reviewer and stable as a screenshot baseline. |
+| zero-one-many | ✅ explicit | The five data components (`Table`, `List`, `StatTile`, `PriceSummary`, `RouteSummary`) additionally render zero / one / many fixtures, because volume is what changes their layout. Every other component gets the single fixture. |
+| empty | ✅ explicit | Each data component's documented empty copy pattern renders as its own gallery tile, so the state is reviewable without a data source. |
+| partial | ✅ explicit | Data components render one fixture with optional fields absent (no flight number, no return leg) — the port must not collapse or shift layout when a field is missing. |
+| loading | ✅ explicit | Skeleton tiles render beside the populated tile for every component whose state matrix marks loading. |
+| error | 🧪 backstop | The gallery itself has no failure mode in Phase 1 — it renders static fixtures with no fetch. If a component fails to render, the screenshot diff fails, which is the evidence. |
+| overflow | ✅ explicit | The gallery is checked at 1440 / 1024 / 768 / 390 px like every other surface; nothing scrolls sideways at 390 px. |
+
+### E2 · `SiteHeader`
+
+| Category | Status | Resolution |
+|----------|--------|------------|
+| loading | ✅ explicit | The header has no async content in Phase 1 — language and currency come from the route segment and `localStorage`. No skeleton exists or is needed. |
+| error | ✅ explicit | The header renders identically on the 404 and error pages (D-20); it has no error state of its own. |
+| overflow | ✅ explicit | Nav links drop at `.vt-nav-lo` / `.vt-nav-md`, the phone pill hides under 620 px, height steps 76 → 60 px under 1080 px — all ported from the mock, all diffed at the four viewports. |
+| long-text | ⚠ unresolved | German control-row labels and the *Book a transfer* CTA are the tightest strings in the product, and no mock ships them at German length. The manual DE-at-1080 px pass is the only planned evidence. Planner should treat "the control row fits in German at 1080 px" as an assumption to verify early, not a fact. |
+
+### E3 · Form controls
+
+| Category | Status | Resolution |
+|----------|--------|------------|
+| empty | ✅ explicit | Unfilled fields show their placeholder, which is itself a translated string subject to the I18N-01 key check. |
+| loading | ✅ explicit | Only `Select` and `DatePicker` have a loading state in the matrix; both port the mock's treatment. Text inputs have none. |
+| error | ✅ explicit | `error="{{ message }}"` renders the message in `--vt-danger` under the field, per the project error-handling convention. The state persists until the input changes. |
+| partial | ✅ explicit | A partially-filled field group is the normal case; no component collapses or reflows when only some fields carry values. |
+| long-text | ✅ explicit | Pill fields flex to their container, never to content; the label above wraps rather than truncating. |
+
+### E4 · Data display
+
+| Category | Status | Resolution |
+|----------|--------|------------|
+| empty | ✅ explicit | Stated in words, never a fake number or a shimmering block (`readme.md` §3). Copy in `## Copywriting Contract`. |
+| populated | ✅ explicit | The mock's fixture is the baseline; the port must match it pixel-for-pixel at all four viewports. |
+| partial | ✅ explicit | `RouteSummary` without a return leg and `PriceSummary` without a discount line are ported as first-class fixtures, not edge cases. |
+| zero-one-many | ✅ explicit | Covered by the gallery volume fixtures above. |
+| loading | 🧪 backstop | Skeletons are ported verbatim and screenshot-diffed; they are not exercised against a real async source until Phase 3. |
+| error | 🧪 backstop | A failed data load has no source to fail in Phase 1. The components carry the mock's error treatment; it is proven by diff, not by a live failure. |
+| overflow | ✅ explicit | `Table` scrolls horizontally inside a `data-lenis-prevent` region at narrow widths, as the mocks do; long cell text wraps rather than truncating. |
+
+### E5 · `StatusBadge`
+
+| Category | Status | Resolution |
+|----------|--------|------------|
+| zero-one-many | ✅ explicit | Nine lifecycle tones form a closed, enumerable set — there is no "unknown status" fallback to design because no tenth value can exist. |
+| loading | ✅ explicit | None. A badge renders a known status or is not rendered. |
+| error | ✅ explicit | None — an absent status renders no badge rather than an error badge. |
+| overflow | ✅ explicit | The badge sizes to its label; a longer label makes a wider badge, never a clipped one. |
+| long-text | ⚠ unresolved | German status labels ("Fahrer zugewiesen", "Rückerstattung fällig") are materially longer than English and appear inside table cells. Manual DE pass is the evidence; planner should hold "badges widen, cells do not clip" as an assumption. |
+
+### E6 · Feedback set
+
+| Category | Status | Resolution |
+|----------|--------|------------|
+| loading | ✅ explicit | `ProgressIndicator` *is* the loading affordance; `Dialog` renders a skeleton body when its content is content-dependent. |
+| error | ✅ explicit | `Alert` and `Toast` carry the `--vt-danger` semantic tone; neither uses `tone="accent"`, which ships tinted yellow and is banned. |
+| overflow | ✅ explicit | Dialog body scrolls inside itself with `data-lenis-prevent`; Tooltip repositions rather than clipping. |
+| long-text | ✅ explicit | Alert and Toast bodies wrap; neither truncates, because a truncated error message is not an instruction. |
+| focus & scroll behaviour | ✅ explicit | **Phase 1 automates these**, because a screenshot diff cannot see them: Playwright asserts focus stays inside an open `Dialog`, that body scroll and the Lenis instance are stopped while it is open and restored on close, and that `Toast` renders inside a live region. Deferring them to Phase 5 would let a silent regression sit in the foundation. |
+
+### E7 · Buttons
+
+| Category | Status | Resolution |
+|----------|--------|------------|
+| loading | ✅ explicit | Loading buttons keep their width and remain disabled, so the layout does not jump mid-submit. |
+| error | ✅ explicit | Buttons have no error state; the surrounding form owns the error. |
+| long-text | ✅ explicit | Button labels are UPPERCASE and set at label scale; the button grows with the label. CTAs never truncate — a clipped CTA is a broken CTA. |
+
+### E8 · 404 and error pages
+
+| Category | Status | Resolution |
+|----------|--------|------------|
+| loading | ✅ explicit | Rendered server-side inside the shell; no loading state. |
+| error | ✅ explicit | This surface *is* the error state. It falls back to English when the URL's language segment cannot resolve (D-20). |
+| overflow | ✅ explicit | A single centred block inside the standard container; checked at all four viewports. |
+| long-text | ✅ explicit | Two short strings, both in the dictionary in all four languages. |
+
+### E9 · Localised text across every component
+
+| Category | Status | Resolution |
+|----------|--------|------------|
+| overflow | ✅ explicit | Fluid layout throughout — `clamp()` type and gutters, `minmax()`/`auto-fit` grids, `min-width:0` on text-bearing flex children. Breakpoints only where the layout changes shape. |
+| long-text | ⚠ unresolved | The German ~30 % growth contract is asserted but not yet proven anywhere; it becomes provable only when real German strings render in real components. Manual pass at 1080 px is the planned evidence. |
+| RTL reads correctly | ⚠ unresolved | D-21's CI gate proves the *mechanism* — no physical `left`/`right` in app CSS, `dir="rtl"` in the server HTML — but not that the mirrored result reads correctly: chevrons pointing the right way, nothing clipped, `.vt-dir-keep` holding on figures, times, flight numbers, `CHF` amounts and references like `VT-4821`. Manual-only per `01-VALIDATION.md`. |
+
+### Carried forward from the researcher's pass
 
 | Category | Element(s) | Status | Resolution / Reason |
 |----------|------------|--------|---------------------|
-| zero-one-many | `StatusBadge` | ✅ covered | All nine lifecycle tones (quote/pending/paid/confirmed/assigned/completed/cancelled/refunded/no-show) are ported 1:1 as an enumerable, closed `variant` set from `design-system/readme.md` §4 — not open-ended, no "unknown status" gap. |
-| decorative-a11y | `CheckerMark`, decorative icons | ✅ covered | `aria-hidden="true"` on every decorative render, matching the existing mock pattern (`app/pages/coming-soon.dc.html`) — ported verbatim, not re-decided. |
-| focus-visibility | Every interactive component | ✅ covered | The global `:focus-visible` fallback plus the per-component `--vt-ring`/charcoal-border rules (Focus, Motion & Reduced-Motion Contract above) guarantee a visible focus state on every ported control — no "focus is invisible on X" gap. |
-| empty | `List`, `Table`, `StatTile`, `PriceSummary`, `RouteSummary` | 🧪 backstop | Each renders its documented empty-state copy pattern ("state it in words," `readme.md` §3) in the `/dev/components` gallery; verified by the CI screenshot diff against the mock's empty variant baseline, not by a live-data assertion — no data source exists until Phase 2/3. |
-| loading | `Table`, `List`, `StatTile`, `PriceSummary`, `RouteSummary`, `VehicleCard`, `Dialog` (content-dependent), `ProgressIndicator` | 🧪 backstop | Skeleton/loading treatment ported verbatim from the mock and screenshot-diffed; not functionally exercised against a real async data source this phase. |
-| long-text (German ~30% growth) | `Button`, `Tabs`, `StatusBadge`, `Tag`, `Table` headers | ⚠ unresolved | No mock currently ships German-length CTA/tab/badge/status labels to diff against. The manual DE-at-1080px pass (`01-VALIDATION.md` § Manual-Only Verifications) is the only planned verification; the planner should treat "pill/tab widths flex to content, never truncate" as an assumption to hold, not a proven fact, until that pass runs. |
-| RTL-reads-correctly | `Tabs`, `StepIndicator`, `RouteSummary`, `DatePicker` nav chevrons | ⚠ unresolved | D-21's CI gate proves the mechanism (no physical `left`/`right` properties, `dir="rtl"` present in server HTML) but not that the mirrored result visually reads correctly (chevrons pointing the right way, nothing clipped) — that is explicitly manual-only per `01-VALIDATION.md`. Planner assumption: the dev gallery's real-locale-switch design (above) is what makes this pass practical, but it has not run yet. |
-| Arabic-font-pick | All Qurova/Poppins-adjacent Arabic text | 🧪 backstop | D-22 delegates the final Noto Sans Arabic vs IBM Plex Sans Arabic choice to the planner "on how each sits beside Poppins" — a visual judgement call recorded as a pending decision, not resolved by this document. See Open Items below. |
-| screenshot-diff-tolerance | All 33 components, all states | 🧪 backstop | The `maxDiffPixelRatio: 0.01` default proposed in the Component Port Fidelity Contract is untested against the actual baseline set — the planner should tune it after the first real diff run rather than trust the number as final. |
+| decorative-a11y | `CheckerMark`, decorative icons | ✅ explicit | `aria-hidden="true"` on every decorative render, ported from the existing mock pattern. |
+| focus-visibility | Every interactive component | ✅ explicit | The global `:focus-visible` fallback plus the per-component `--vt-ring` / charcoal-border rules. "No glow" constrains colour and blur; it never licenses an invisible focus state. |
+| Arabic-font-pick | All Arabic text | 🧪 backstop | D-22 leaves the Noto Sans Arabic vs IBM Plex Sans Arabic choice to the planner, on how each sits beside Poppins. |
+| screenshot-diff-tolerance | All 33 components | 🧪 backstop | `maxDiffPixelRatio: 0.01` is a proposed starting value, untested against a real baseline set. Tune after the first diff run rather than trusting the number. |
+
+**The four `unresolved` rows are the planner's assumptions, not proven facts** — all four are
+language-layout claims whose only planned evidence is a manual pass. If any of them fails, it fails
+across the whole component set at once, so the manual German and Arabic passes should run early in
+the port, not at the end of the phase.
 
 ---
 
