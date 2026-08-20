@@ -1,7 +1,7 @@
 "use client";
 
 import "./Avatar.css";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { HTMLAttributes } from "react";
 import { Icon } from "./Icon";
 import type { IconName } from "./Icon";
@@ -62,7 +62,28 @@ export function Avatar({
   // broken-image glyph") and the design system's own empty-state rule forbid.
   // Tracking failure locally and falling through to the branch the source already
   // has is additive behaviour, not an invented prop or class.
+  //
+  // Two-pronged check, not just onError: this is SSR'd markup, so the browser
+  // starts loading the <img> the instant it parses the initial HTML — before
+  // React hydrates and attaches any listener. A same-origin 404 (the gallery's own
+  // "error" fixture, and the common real case of an expired photo URL) routinely
+  // fails *before* hydration completes, and the DOM `error` event on <img> does
+  // not bubble, so a purely event-driven handler silently misses it (verified
+  // directly during this plan's execution — the naive onError-only version left
+  // the broken source in the DOM after a real page load). The mount-time
+  // `complete && naturalWidth === 0` check catches that already-failed case; the
+  // onError handler still covers a failure that happens after hydration.
+  const imgRef = useRef<HTMLImageElement>(null);
   const [imgFailed, setImgFailed] = useState(false);
+
+  useEffect(() => {
+    setImgFailed(false);
+    const el = imgRef.current;
+    if (el && el.complete && el.naturalWidth === 0) {
+      setImgFailed(true);
+    }
+  }, [src]);
+
   const showImg = Boolean(src) && !imgFailed;
 
   const px = SIZES[size] || SIZES.md;
@@ -83,7 +104,7 @@ export function Avatar({
       {...rest}
     >
       {showImg ? (
-        <img src={src} alt={name || ""} onError={() => setImgFailed(true)} />
+        <img ref={imgRef} src={src} alt={name || ""} onError={() => setImgFailed(true)} />
       ) : icon ? (
         <Icon name={icon} size={Math.round(px * 0.5)} />
       ) : (

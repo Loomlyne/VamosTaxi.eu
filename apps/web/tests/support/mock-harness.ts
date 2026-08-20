@@ -156,7 +156,19 @@ function handleRequest(url: string, res: ServerResponse) {
     return;
   }
 
-  const relPath = pathname.replace(/^\/+/, "");
+  // Plan 06 addition: `/brand/...` is the site-root-relative URL Next.js's own
+  // public/ folder serving produces in the real app for every asset Plan 05
+  // vendored (apps/web/public/brand/**, D-10) — and the value the ported Icon/
+  // Logo/CheckerMark components' FALLBACK_BASE constants point at, since (unlike
+  // the mocks' page-relative "../../assets/...") those constants are what
+  // actually ships (see apps/web/components/core/Icon.tsx's comment). Map it to
+  // the real file location so a mountPort render of any icon/logo/pattern-bearing
+  // component resolves under this harness the same way it resolves in
+  // `next dev`/`next build`, rather than 404ing against a path that only exists
+  // once Next's dev server does the public/ -> / remap itself.
+  const relPath = pathname.startsWith("/brand/")
+    ? `apps/web/public${pathname}`
+    : pathname.replace(/^\/+/, "");
   const absPath = join(REPO_ROOT, relPath);
   if (!absPath.startsWith(REPO_ROOT) || !existsSync(absPath) || !statSync(absPath).isFile()) {
     res.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
