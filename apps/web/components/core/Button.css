@@ -1,0 +1,23 @@
+.vt-btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;font-family:var(--vt-font-body);font-weight:var(--vt-weight-semibold);text-transform:uppercase;letter-spacing:var(--vt-label-tracking);border:var(--vt-border-w) solid transparent;border-radius:var(--vt-radius-pill);cursor:pointer;text-decoration:none;white-space:nowrap;transition:var(--vt-transition-control)}
+.vt-btn:focus-visible{outline:none;box-shadow:var(--vt-ring)}
+.vt-btn[disabled],.vt-btn[aria-disabled=true]{opacity:.42;cursor:not-allowed;box-shadow:none}
+.vt-btn--sm{height:var(--vt-control-h-sm);padding:0 18px;font-size:12px}
+.vt-btn--md{height:var(--vt-control-h-md);padding:0 24px;font-size:13px}
+.vt-btn--lg{height:var(--vt-control-h-lg);padding:0 32px;font-size:14px}
+.vt-btn--block{width:100%}
+.vt-btn--sentence{text-transform:none;letter-spacing:0}
+.vt-btn--primary{background:var(--vt-accent);color:var(--vt-text-on-accent)}
+.vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover);box-shadow:var(--vt-shadow-accent)}
+.vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);box-shadow:none;transform:translateY(1px)}
+.vt-btn--secondary{background:var(--vt-charcoal-900);color:var(--vt-text-inverse)}
+.vt-btn--secondary:hover:not([disabled]){background:var(--vt-charcoal-800)}
+.vt-btn--secondary:active:not([disabled]){background:var(--vt-charcoal-950);transform:translateY(1px)}
+.vt-btn--ghost{background:transparent;color:var(--vt-text-primary);border-color:var(--vt-border-subtle)}
+.vt-btn--ghost:hover:not([disabled]){background:var(--vt-grey-50);border-color:var(--vt-charcoal-900)}
+.vt-btn--ghost:active:not([disabled]){background:var(--vt-grey-100);transform:translateY(1px)}
+.vt-btn--light{background:var(--vt-white);color:var(--vt-charcoal-900)}
+.vt-btn--light:hover:not([disabled]){background:var(--vt-grey-100)}
+.vt-btn--light:active:not([disabled]){background:var(--vt-grey-200);transform:translateY(1px)}
+.vt-btn--danger{background:var(--vt-danger);color:var(--vt-white)}
+.vt-btn--danger:hover:not([disabled]){filter:brightness(1.08)}
+.vt-btn--danger:active:not([disabled]){filter:brightness(.94);transform:translateY(1px)}
