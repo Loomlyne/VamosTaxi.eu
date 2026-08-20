@@ -5,14 +5,14 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Platform Foundation, Design System Port & i18n Runtime
 status: executing
-stopped_at: Completed 01-05-PLAN.md
-last_updated: "2026-08-20T18:21:36.096Z"
+stopped_at: Completed 01-03-PLAN.md
+last_updated: "2026-08-20T18:38:59.940Z"
 last_activity: 2026-08-20
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 14
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -29,11 +29,11 @@ confirmation — must.
 ## Current Position
 
 Phase: 1 of 11 (Platform Foundation, Design System Port & i18n Runtime)
-Plan: 3 of 14 in current phase
+Plan: 4 of 14 in current phase
 Status: Ready to execute
 Last activity: 2026-08-20
 
-Progress: [██░░░░░░░░] 21%
+Progress: [███░░░░░░░] 29%
 
 ## Performance Metrics
 
@@ -62,6 +62,7 @@ Progress: [██░░░░░░░░] 21%
 |------|----------|-------|-------|
 | Phase 01 P02 | 40min | 3 tasks | 8 files |
 | Phase 01 P05 | ~25min | 3 tasks | 95 files |
+| Phase 01 P03 | 50min | 3 tasks | 36 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 01-05: Self-hosted Noto Sans Arabic (D-22's delegated choice) vendored directly from its own upstream GitHub release; Google Fonts hotlink fully removed from apps/web, verified zero external requests on a real /ar preview load
 - [Phase ?]: 01-05: --vt-orange (#D4632B, D-07's fourth guideline swatch) recorded as a palette token in design-system/tokens/colors.css with no product-UI usage
 - [Phase ?]: 01-05: next/image on this platform proven to require wrangler.jsonc's images.binding=IMAGES (Plan 01-04's file scope) for real resizing — without it /_next/image returns 200 with correct content-type but passes the original file through unresized; flagged for Phase 5, not fixed in this plan's scope
+- [Phase ?]: 01-03: stylelint's declaration-property-value-disallowed-list is one rule with two prop-pattern entries (box-shadow, catch-all) — the config format allows only one entry per rule name
+- [Phase ?]: 01-03: i18n gate's ADR-011/D-18 exclusions read from a reserved $meta block in en.json, not hardcoded, so Plan 10's migration and the script can't drift apart
+- [Phase ?]: 01-03: mountPort renders server-side via react-dom/server + the TypeScript compiler API (no bundler, no new dependency) rather than the Next dev server
 
 ### Pending Todos
 
@@ -117,6 +121,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-20T18:21:36.088Z
-Stopped at: Completed 01-05-PLAN.md
+Last session: 2026-08-20T18:38:59.933Z
+Stopped at: Completed 01-03-PLAN.md
 Resume file: None

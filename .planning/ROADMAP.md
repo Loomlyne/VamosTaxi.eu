@@ -61,13 +61,13 @@ where the `VamosLocale` DOM-walking runtime is replaced with an SSR-safe mechani
   4. Switching language on a rendered page relabels every string (including placeholders, `aria-label`, `title`, `alt`) in place without a reload, is correct in the server-rendered HTML with no English flash, and Arabic renders right-to-left with logical-property layout.
   5. Switching currency changes only the mark, never the number, and strings the code builds from parts translate too.
 
-**Plans**: 3/14 plans executed
+**Plans**: 4/14 plans executed
 
 Plans:
 
 - [x] 01-01-PLAN.md — Tracer: pnpm monorepo, Next 15 + OpenNext Worker (fetch/scheduled/queue), `[locale]` routing, first ported component, deployed to staging.vamostaxi.eu
 - [x] 01-02-PLAN.md — CI pipeline (PR/main/tag) and the two blocking secret gates
-- [ ] 01-03-PLAN.md — Quality gate toolchain: stylelint law + logical-property rules, i18n key coverage, offline screenshot-diff harness
+- [x] 01-03-PLAN.md — Quality gate toolchain: stylelint law + logical-property rules, i18n key coverage, offline screenshot-diff harness
 - [ ] 01-04-PLAN.md — Cloudflare bindings provisioned, scheduled/queue proven in staging, Access + noindex, structured logging to Logpush
 - [x] 01-05-PLAN.md — Brand layer vendored into the app, self-hosted Arabic face replacing the CDN hotlink, image delivery verified
 - [ ] 01-06-PLAN.md — Design-system port batch 1: nine core primitives, dev gallery, first German and Arabic passes
@@ -264,7 +264,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Platform Foundation, Design System Port & i18n Runtime | 3/14 | In Progress|  |
+| 1. Platform Foundation, Design System Port & i18n Runtime | 4/14 | In Progress|  |
 | 2. Data Schema, RLS & Staff Auth Foundations | 0/TBD | Not started | - |
 | 3. Hyperdrive Data Access Wiring | 0/TBD | Not started | - |
 | 4. Quote & Pricing Engine | 0/TBD | Not started | - |
