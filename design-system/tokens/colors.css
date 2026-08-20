@@ -10,6 +10,12 @@
   --vt-charcoal:#1E1F1F;
   --vt-grey:#DEDEDE;
 
+  /* Fourth guideline swatch (COLORS.pdf), parked with no assigned role (D-07).
+     The guide's own body text names only the three colours above; this one
+     is never assigned a job in that text. No surface may reference this
+     token until the designer states what it is for. */
+  --vt-orange:#D4632B;
+
   /* Yellow scale (derived) */
   --vt-yellow-50:#FFFBEE;
   --vt-yellow-100:#FEF3CD;
