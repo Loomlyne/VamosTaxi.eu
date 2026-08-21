@@ -791,6 +791,16 @@
     "you-choose-what-we-measure": "Sie entscheiden, was wir messen",
     "your-choice-is-stored-for-store-consent-months-m": "Ihre Auswahl wird {STORE_CONSENT_MONTHS} Monate gespeichert und kann jederzeit geändert werden."
   },
+  "errors": {
+    "notFoundTitle": "Diese Seite finden wir nicht.",
+    "notFoundBody": "Der Link ist vielleicht veraltet oder falsch eingegeben. Gehen Sie zurück zur Startseite, oder wenden Sie sich an den Support, wenn Sie das für einen Fehler halten.",
+    "notFoundHomeCta": "Zur Startseite",
+    "notFoundContactCta": "Support kontaktieren",
+    "errorTitle": "Etwas ist schiefgelaufen.",
+    "errorBody": "Das liegt an uns. Versuchen Sie es erneut, oder gehen Sie zurück zur Startseite.",
+    "errorRetryCta": "Erneut versuchen",
+    "errorHomeCta": "Zur Startseite"
+  },
   "faq": {
     "answers": "Antworten",
     "before-pickup-ask-us-and-we-will-send-them-soone": "vor der Abholung. Auf Wunsch senden wir sie früher.",

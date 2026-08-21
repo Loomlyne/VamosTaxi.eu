@@ -791,6 +791,16 @@
     "you-choose-what-we-measure": "أنت تختار ما نقيسه",
     "your-choice-is-stored-for-store-consent-months-m": "يُحفظ اختيارك مدة {STORE_CONSENT_MONTHS} شهرًا ويمكن تغييره في أي وقت."
   },
+  "errors": {
+    "notFoundTitle": "لم نتمكن من العثور على هذه الصفحة.",
+    "notFoundBody": "قد يكون الرابط قديمًا أو غير صحيح. عد إلى الصفحة الرئيسية، أو تواصل مع الدعم إذا كنت تعتقد أن هذا خطأ.",
+    "notFoundHomeCta": "الذهاب إلى الصفحة الرئيسية",
+    "notFoundContactCta": "التواصل مع الدعم",
+    "errorTitle": "حدث خطأ ما.",
+    "errorBody": "هذا خطأ من جانبنا. حاول مرة أخرى، أو عد إلى الصفحة الرئيسية.",
+    "errorRetryCta": "حاول مرة أخرى",
+    "errorHomeCta": "الذهاب إلى الصفحة الرئيسية"
+  },
   "faq": {
     "answers": "إجابات",
     "before-pickup-ask-us-and-we-will-send-them-soone": "قبل موعد الاستقبال. واطلب منّا إرسالها قبل ذلك إن شئت.",
