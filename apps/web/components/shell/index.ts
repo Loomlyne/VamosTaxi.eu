@@ -4,5 +4,10 @@
 export { SiteHeader } from "./SiteHeader";
 export type { SiteHeaderProps, SiteHeaderVariant } from "./SiteHeader";
 
+export { SiteFooter } from "./SiteFooter";
+export type { SiteFooterProps } from "./SiteFooter";
+
+export { SiteShell } from "./SiteShell";
+
 export { BrandSelect } from "./BrandSelect";
 export type { BrandSelectProps, BrandSelectOption, BrandSelectSize } from "./BrandSelect";

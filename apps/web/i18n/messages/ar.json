@@ -854,6 +854,10 @@
     "copyright": "© {year} فاموس تاكسي. جميع الحقوق محفوظة.",
     "get-in-touch": "تواصل معنا",
     "marks-awaiting-confirmed-stripe-provider-config": "الشعارات بانتظار تأكيد إعدادات Stripe — أظهر وسائل الدفع المفعّلة فقط.",
+    "payment-apple-pay": "Apple Pay",
+    "payment-mastercard": "Mastercard",
+    "payment-twint": "TWINT",
+    "payment-visa": "Visa",
     "vamos-taxi-on-facebook": "فاموس تاكسي على فيسبوك",
     "vamos-taxi-on-instagram": "فاموس تاكسي على إنستغرام"
   },

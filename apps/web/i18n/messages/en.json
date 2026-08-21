@@ -854,6 +854,10 @@
     "copyright": "© {year} Vamos Taxi. All rights reserved.",
     "get-in-touch": "Get in touch",
     "marks-awaiting-confirmed-stripe-provider-config": "Marks awaiting confirmed Stripe provider config — show only enabled methods.",
+    "payment-apple-pay": "Apple Pay",
+    "payment-mastercard": "Mastercard",
+    "payment-twint": "TWINT",
+    "payment-visa": "Visa",
     "vamos-taxi-on-facebook": "Vamos Taxi on Facebook",
     "vamos-taxi-on-instagram": "Vamos Taxi on Instagram"
   },
@@ -1546,7 +1550,11 @@
       "common.brandName",
       "common.vehicleClassEconomy",
       "common.vehicleClassBusiness",
-      "common.vehicleClassVan"
+      "common.vehicleClassVan",
+      "footer.payment-visa",
+      "footer.payment-mastercard",
+      "footer.payment-twint",
+      "footer.payment-apple-pay"
     ],
     "noParamKeys": {
       "partner.mercedes-v-class-7-seats": "fixed vehicle-class specification copy, not a live count",

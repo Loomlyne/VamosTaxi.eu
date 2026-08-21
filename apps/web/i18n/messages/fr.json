@@ -854,6 +854,10 @@
     "copyright": "© {year} Vamos Taxi. Tous droits réservés.",
     "get-in-touch": "Nous joindre",
     "marks-awaiting-confirmed-stripe-provider-config": "Marques en attente de la configuration Stripe confirmée — n’afficher que les méthodes activées.",
+    "payment-apple-pay": "Apple Pay",
+    "payment-mastercard": "Mastercard",
+    "payment-twint": "TWINT",
+    "payment-visa": "Visa",
     "vamos-taxi-on-facebook": "Vamos Taxi sur Facebook",
     "vamos-taxi-on-instagram": "Vamos Taxi sur Instagram"
   },

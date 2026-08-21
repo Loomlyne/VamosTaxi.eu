@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
+import { SiteFooter, SiteHeader, SiteShell } from "@/components/shell";
 import { Providers } from "./providers";
 import "../globals.css";
 
@@ -46,7 +47,19 @@ export default async function LocaleLayout({
     <html lang={locale} dir={dir}>
       <body>
         <Providers locale={locale} messages={messages}>
-          {children}
+          {/* CLAUDE.md: "`SiteHeader` and `SiteFooter` are mandatory on every public
+              page — old ones and any new one. Never hand-roll a header or footer."
+              Composing them here, once, is what makes that rule structural rather than
+              remembered: Phase 5's eighteen public routes and the 404/error pages
+              (D-20) inherit the shell by construction and cannot forget it.
+              `variant="inverse"` — the charcoal sticky bar — is the default everywhere;
+              a page whose hero already carries a photograph (home, Phase 5) is the only
+              case for `variant="overlay"`, and it will pass that itself once that hero
+              exists. `SiteShell` keeps the dev-only gallery outside the composition —
+              see its own file for why. */}
+          <SiteShell header={<SiteHeader />} footer={<SiteFooter />}>
+            {children}
+          </SiteShell>
         </Providers>
       </body>
     </html>

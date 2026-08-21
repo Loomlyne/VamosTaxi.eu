@@ -1,0 +1,85 @@
+/* Extracted from `app/pages/SiteFooter.dc.html` — its `<helmet><style>` block's
+   `[data-ft-*]` / `.ft-*` rules, plus the inline `style="..."` attributes the mock's own
+   markup carries on the footer's headings, lists, links, social row, payment marks and
+   bottom bar. Both move here for the same reason every other ported component gives:
+   styling arrives by static import only, never at runtime and never as an attribute.
+
+   No value is rewritten (D-24). The edits are the physical -> logical conversions Law 03
+   / D-21 requires — `padding-left`/`right` -> `padding-inline`, `margin-top` ->
+   `margin-block-start`, `border-top` -> `border-block-start`, `max-width` ->
+   `max-inline-size`, `left`/`top` -> `inset-inline-start`/`inset-block-start`,
+   `margin-right` -> `margin-inline-end` — plus one that is a genuine RTL fix rather than
+   a rename: the copyright line's `text-align:left` becomes `text-align:start`, so it
+   sits at the reading edge under Arabic instead of stranded on the left.
+
+   `.ft-w` / `.ft-c` keep the mock's own class names rather than being renamed to a
+   `[data-*]` hook: they are the per-character roll's own machinery and renaming them
+   would be a rewrite, not a port. */
+
+[data-ft]{background:var(--vt-bg-inverse);color:var(--vt-text-inverse);font-family:var(--vt-font-body)}
+[data-ft-pad]{max-inline-size:1200px;margin:0 auto;padding-inline:clamp(16px,3.2vw,56px)}
+[data-ft-pad="band"]{padding-block-start:72px}
+[data-ft-pad="main"]{padding-block-start:76px;padding-block-end:44px}
+[data-ft-grid]{display:grid;grid-template-columns:1fr;gap:44px 32px}
+[data-ft-top]{display:flex;flex-direction:column;align-items:flex-start;gap:24px;padding-block-end:40px;margin-block-end:48px;border-block-end:1px solid var(--vt-border-inverse)}
+[data-ft-bottom]{display:flex;flex-direction:column;align-items:flex-start;gap:16px;margin-block-start:56px;padding-block-start:28px;border-block-start:1px solid var(--vt-border-inverse)}
+[data-ft-band]{display:flex;flex-direction:column;align-items:flex-start;gap:20px;margin-block-end:36px}
+
+/* ── the wordmark band ───────────────────────────────────────────────────────────── */
+/* D-09: the tagline is set artwork. It is drawn inside `wordmark-reversed.svg`, not
+   typeset here, which is why this band is a plain full-bleed <img> and not the `Logo`
+   component — `Logo` renders a fixed pixel height with `width:auto`, which cannot
+   express a wordmark that spans the whole container. */
+[data-ft-wordmark]{inline-size:100%;display:block}
+[data-ft-lead]{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:1.12;color:var(--vt-text-inverse);max-inline-size:22ch}
+
+/* ── the link groups ─────────────────────────────────────────────────────────────── */
+[data-ft-h]{margin:0 0 22px;font-family:var(--vt-font-body);font-size:14px;line-height:1.2;font-weight:var(--vt-weight-medium,500);letter-spacing:.56px;text-transform:uppercase;color:var(--vt-accent)}
+[data-ft-list]{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:13px}
+[data-ft-link]{color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0}
+[data-ft-btnlink]{appearance:none;background:none;border:0;padding:0;text-align:start;font-family:inherit;color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;cursor:pointer}
+[data-ft-addr]{color:rgb(255 255 255 / .84);font-size:18px;line-height:1.45}
+[data-ft-link],[data-ft-quiet]{transition:color var(--vt-dur-fast,140ms) var(--vt-ease-standard,cubic-bezier(.2,0,.2,1))}
+[data-ft-link]:hover,[data-ft-quiet]:hover{color:var(--vt-accent)}
+[data-ft-link][data-split]:hover{color:rgb(255 255 255 / .84)}
+
+/* The per-character roll. Every cell is inline-block, so without the `.ft-w` nowrap
+   wrapper a line could break between any two characters — which is what long German
+   labels ("Stornierung & Rückerstattung") hit in the narrow legal column. */
+.ft-w{display:inline-block;white-space:nowrap;vertical-align:top}
+.ft-c{display:inline-block;overflow:hidden;vertical-align:top;line-height:1.4}
+.ft-c>i{display:block;position:relative;font-style:normal;transition:transform 320ms var(--vt-ease-standard,cubic-bezier(.2,0,.2,1))}
+.ft-c>i>b{position:absolute;inset-inline-start:0;inset-block-start:100%;font-weight:inherit;color:var(--vt-accent);user-select:none;pointer-events:none}
+[data-ft-link][data-split]:hover .ft-c>i,[data-ft-link][data-split]:focus-visible .ft-c>i{transform:translateY(-100%)}
+@media (prefers-reduced-motion:reduce){.ft-c>i{transition:none}}
+
+/* ── the social row ──────────────────────────────────────────────────────────────── */
+/* `--vt-ft-soc` exists because `Icon` paints its own mask colour as an inline style,
+   which a stylesheet rule cannot override — the hover step therefore changes the custom
+   property the icon reads, not the icon's own declaration. Colour step only, no glow. */
+[data-ft-socrow]{display:flex;align-items:center;gap:24px;margin-block-start:26px}
+[data-ft-soc]{--vt-ft-soc:var(--vt-text-inverse-muted);display:block;border:0;text-decoration:none}
+[data-ft-soc]:hover{--vt-ft-soc:var(--vt-accent)}
+[data-ft-soc]:focus-visible{outline:3px solid rgb(253 194 11 / .45);outline-offset:4px;border-radius:4px}
+
+/* ── the payment marks ───────────────────────────────────────────────────────────── */
+[data-ft-pay]{margin-block-start:52px;display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+[data-ft-paylabel]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted);margin-inline-end:6px}
+[data-ft-paymark]{font-size:var(--vt-body-sm);color:rgb(255 255 255 / .84);border:1px solid var(--vt-border-inverse);border-radius:var(--vt-radius-xs);padding:6px 12px;white-space:nowrap}
+[data-ft-paynote]{font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted)}
+
+/* ── the bottom bar ──────────────────────────────────────────────────────────────── */
+[data-ft-copy]{margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-inverse-muted);text-align:start}
+[data-ft-quiet]{display:flex;align-items:center;gap:8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted);text-decoration:none;border:0;background:none;padding:0;font-family:inherit;cursor:pointer}
+
+@media (min-width:768px) and (max-width:1279px){[data-ft-grid]>div:last-child{grid-column:1/-1}}
+@media (min-width:768px){
+  [data-ft-grid]{grid-template-columns:repeat(2,minmax(0,1fr));gap:52px 40px}
+  [data-ft-band]{flex-direction:row;align-items:center;justify-content:space-between;gap:32px}
+  [data-ft-top],[data-ft-bottom]{flex-direction:row;align-items:center;justify-content:space-between;gap:32px}
+}
+@media (min-width:1024px){
+  [data-ft-grid]{grid-template-columns:repeat(3,minmax(0,1fr));gap:48px 32px}
+  [data-ft-bottom]{margin-block-start:90px}
+}
+@media (min-width:1280px){[data-ft-grid]{grid-template-columns:repeat(4,minmax(0,1fr)) minmax(180px,.8fr);gap:24px}}
