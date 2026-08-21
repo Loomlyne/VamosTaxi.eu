@@ -17,6 +17,11 @@ const CATEGORIES = [
   { slug: "feedback", label: "Feedback", count: 5 },
   { slug: "transfer", label: "Transfer", count: 4 },
   { slug: "data", label: "Data", count: 4 },
+  // Plan 13's addition: the shell is a seventh review surface, not one of the six
+  // design-system categories — `SiteHeader`/`SiteFooter` are the two composites
+  // CLAUDE.md makes mandatory on every public page, and they need the same states
+  // gallery and the same German/Arabic pass every other category gets.
+  { slug: "shell", label: "Shell", count: 2 },
 ] as const;
 
 function localeHref(locale: string, path: string): string {
