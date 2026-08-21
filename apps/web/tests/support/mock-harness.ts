@@ -51,6 +51,9 @@ import type { Page } from "@playwright/test";
 const here = __dirname;
 // apps/web/tests/support -> repo root is three levels up.
 const REPO_ROOT = join(here, "..", "..", "..", "..");
+// apps/web's own root — the `baseUrl` `apps/web/tsconfig.json`'s `"@/*": ["./*"]` alias
+// resolves against (Plan 13 addition, see localRequire's own comment).
+const WEB_ROOT = join(here, "..", "..");
 // Resolves bare specifiers ("react", etc.) the way apps/web itself would, so mountPort
 // renders with the exact same React/ReactDOM the ported app ships.
 const webRequire = createRequire(join(here, "..", "..", "package.json"));
@@ -331,6 +334,57 @@ export async function waitForMockReady(page: Page): Promise<void> {
 
 const tsModuleCache = new Map<string, Record<string, unknown>>();
 
+/** Plan 13 addition (Rule 3 — blocking issue, not a package install): `SiteHeader.tsx`
+ *  and `SiteFooter.tsx` are the first ported components to call
+ *  `createNavigation(routing)` from `"next-intl/navigation"` (`apps/web/lib/
+ *  locale-shim.ts` does too, transitively). That package's `"./navigation"` export map
+ *  ships ESM only (confirmed by reading `next-intl`'s own `package.json`: no `require`
+ *  condition), and Node's `require()` of an ES module resolves it under strict-ESM
+ *  rules — its own compiled `navigation/react-client/createNavigation.js` does
+ *  `import ... from "next/navigation"` with no extension, which is valid under Next's
+ *  bundler resolution (what `next build`/`next dev` actually use, confirmed: Task 1/2's
+ *  `pnpm build` already passes with this exact import) but is rejected outright by
+ *  Node's own ESM resolver, which requires an explicit extension. Reproduced directly,
+ *  independent of this harness's own module loader: a plain `createRequire(...)
+ *  ("next-intl/navigation")` in a bare Node script throws the identical
+ *  `ERR_MODULE_NOT_FOUND` / "Did you mean to import next/navigation.js" error. This is
+ *  an upstream package-resolution gap, not a defect in `SiteHeader`/`SiteFooter`
+ *  themselves (@next-intl/next-intl needs to ship a `require` condition or the
+ *  extension internally) — patching `node_modules` is not an option (unversioned, lost
+ *  on reinstall), so this is a substitute for the ONE named export both files
+ *  destructure (`const { Link } = createNavigation(routing)`), scoped to this bare
+ *  specifier only.
+ *
+ *  next-intl's real `Link` statically renders to a plain `<a href="…">` during SSR —
+ *  the locale-aware prefixing and client-side prefetch/transition are additive
+ *  behaviour on top of that anchor, invisible to a screenshot diff of the *initial*
+ *  render this harness produces (no hydration). This stand-in renders exactly that
+ *  anchor, so the pixel output stays faithful; the two hooks are stubbed as no-ops
+ *  because neither `SiteHeader`'s controlled-mode render path nor `SiteFooter`'s own
+ *  markup calls them outside a click handler (never invoked during a static render). */
+function navigationShim(): {
+  createNavigation: () => {
+    Link: (props: Record<string, unknown>) => unknown;
+    useRouter: () => { push: () => void; replace: () => void };
+    usePathname: () => string;
+    redirect: () => void;
+  };
+} {
+  return {
+    createNavigation: () => ({
+      Link: ({ href, children, ...rest }: Record<string, unknown>) =>
+        ReactActual.createElement(
+          "a",
+          { href: typeof href === "string" ? href : "#", ...rest },
+          children as never,
+        ),
+      useRouter: () => ({ push: () => {}, replace: () => {} }),
+      usePathname: () => "/",
+      redirect: () => {},
+    }),
+  };
+}
+
 /** Transpiles and executes one `.tsx`/`.ts` component module with the TypeScript compiler
  *  API's single-file transpile (`typescript` is already a devDependency — no new package
  *  for this), classic JSX (`React.createElement`, `React` supplied as an explicit
@@ -362,6 +416,16 @@ function loadTsModule(absPath: string): Record<string, unknown> {
   const localRequire = (spec: string): unknown => {
     if (spec.endsWith(".css")) return {};
     if (spec.startsWith(".")) return loadTsModule(resolveLocal(dirname(absPath), spec));
+    // Plan 13 addition: `SiteHeader.tsx`/`SiteFooter.tsx` are the first ported
+    // components to use the `"@/*"` path alias (`apps/web/tsconfig.json`'s own
+    // `paths` map, `"@/*": ["./*"]` — bare `@/lib/locale-shim`, `@/i18n/routing`,
+    // `@/components/core`) rather than a relative import. Node's plain `require()`
+    // has no concept of tsconfig path aliases (those are a TypeScript/bundler-only
+    // resolution feature) — resolved here the same way `resolveLocal`'s own
+    // directory-import fallback works, rooted at `apps/web/` (the alias's `baseUrl`)
+    // instead of the importing file's own directory.
+    if (spec.startsWith("@/")) return loadTsModule(resolveLocal(WEB_ROOT, `./${spec.slice(2)}`));
+    if (spec === "next-intl/navigation") return navigationShim();
     return webRequire(spec);
   };
 
