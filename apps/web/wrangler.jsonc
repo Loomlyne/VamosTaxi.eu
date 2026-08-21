@@ -12,37 +12,10 @@
     "enabled": true
   },
 
-  // Declared now per D-34 — every resource below must be genuinely
-  // provisioned via its own `wrangler <resource> create` command before
-  // `wrangler deploy` is run against it (01-RESEARCH.md Pitfall 4); no
-  // Phase 1 code references any of these bindings yet. Phases 3-7 attach
-  // code to plumbing that already exists.
-  "kv_namespaces": [
-    { "binding": "GEO_CACHE", "id": "<created via wrangler kv namespace create geo-cache>" }
-  ],
-  "r2_buckets": [
-    { "binding": "PHOTOS", "bucket_name": "vamos-photos" }
-  ],
-  "queues": {
-    "producers": [
-      { "binding": "STRIPE_EVENTS", "queue": "vamos-stripe-events" }
-    ],
-    "consumers": [
-      { "queue": "vamos-stripe-events" }
-    ]
-  },
-  "hyperdrive": [
-    {
-      "binding": "HYPERDRIVE",
-      "id": "<created in Phase 3, points at Supabase's direct connection string, never the pooled 6543 Supavisor string>",
-      // Not a secret — a placeholder pointing at localhost, required so
-      // `wrangler dev`/`preview` can boot the platform proxy locally before
-      // any code queries this binding (D-04, Pitfall 4). Phase 2/3 wires a
-      // real local Postgres via `supabase start`; nothing in Phase 1
-      // connects to this binding yet.
-      "localConnectionString": "postgres://postgres:postgres@localhost:5432/postgres"
-    }
-  ],
+  // Top-level bindings are unused — named environments below do not inherit
+  // them (wrangler warns and drops them silently otherwise), so every real
+  // binding lives under env.staging / env.production, each pointed at its
+  // own resource per D-34's staging/production split.
 
   // No `vars` block ever carries a credential — `vars` is plaintext in this
   // committed file. Every secret (Stripe, Supabase, Resend, Mapbox,
@@ -54,9 +27,38 @@
   "env": {
     "staging": {
       "name": "vamos-web-staging",
-      "routes": [
-        { "pattern": "staging.vamostaxi.eu", "custom_domain": true }
-      ]
+      // No zone for vamostaxi.eu on this account yet (owner decision:
+      // stay off any real domain until Phase 11 cutover) — deploys to
+      // the account's *.workers.dev subdomain instead of a custom route.
+      "workers_dev": true,
+      // Plain, non-secret marker (never a credential — see the top-level
+      // `vars` comment above) — apps/web/middleware.ts reads this to scope
+      // the X-Robots-Tag: noindex header to staging only (D-37). Absent
+      // under env.production, which is what keeps the header off production.
+      "vars": {
+        "DEPLOY_ENV": "staging"
+      },
+      "kv_namespaces": [
+        { "binding": "GEO_CACHE", "id": "48cd800d63e44c03aa1f49be83d39d7a" }
+      ],
+      "r2_buckets": [
+        { "binding": "PHOTOS", "bucket_name": "vamos-photos-staging" }
+      ],
+      "queues": {
+        "producers": [
+          { "binding": "STRIPE_EVENTS", "queue": "vamos-stripe-events-staging" }
+        ],
+        "consumers": [
+          { "queue": "vamos-stripe-events-staging" }
+        ]
+      },
+      "triggers": {
+        "crons": ["0 3 * * *"]
+      }
+      // hyperdrive omitted here: unlike the other bindings, wrangler deploy
+      // validates the id against the API as a real UUID — a placeholder
+      // fails the deploy outright. Phase 3 adds it back once
+      // `wrangler hyperdrive create` runs against a real Supabase Postgres.
     },
     "production": {
       "name": "vamos-web-production",
@@ -65,6 +67,35 @@
       // until then. Declared now so the environment shape exists.
       "routes": [
         { "pattern": "vamostaxi.eu", "custom_domain": true }
+      ],
+      "kv_namespaces": [
+        { "binding": "GEO_CACHE", "id": "a11bc8c7d13d4eeb9c2dad091e978dcb" }
+      ],
+      "r2_buckets": [
+        { "binding": "PHOTOS", "bucket_name": "vamos-photos-production" }
+      ],
+      "queues": {
+        "producers": [
+          { "binding": "STRIPE_EVENTS", "queue": "vamos-stripe-events-production" }
+        ],
+        "consumers": [
+          { "queue": "vamos-stripe-events-production" }
+        ]
+      },
+      "triggers": {
+        "crons": ["0 3 * * *"]
+      },
+      "hyperdrive": [
+        {
+          "binding": "HYPERDRIVE",
+          "id": "<created in Phase 3, points at Supabase's direct connection string, never the pooled 6543 Supavisor string>",
+          // Not a secret — a placeholder pointing at localhost, required so
+          // `wrangler dev`/`preview` can boot the platform proxy locally
+          // before any code queries this binding (D-04, Pitfall 4). Phase 3
+          // wires a real Hyperdrive config; nothing in Phase 1 connects to
+          // this binding yet, and production never deploys before then.
+          "localConnectionString": "postgres://postgres:postgres@localhost:5432/postgres"
+        }
       ]
     }
   }
