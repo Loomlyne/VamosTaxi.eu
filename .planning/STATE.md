@@ -5,14 +5,14 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Platform Foundation, Design System Port & i18n Runtime
 status: executing
-stopped_at: Completed 01-06-PLAN.md
-last_updated: "2026-08-20T19:28:17.696Z"
-last_activity: 2026-08-20
+stopped_at: Completed 01-09-PLAN.md
+last_updated: "2026-08-21T00:25:22.691Z"
+last_activity: 2026-08-21
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 14
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -29,11 +29,11 @@ confirmation — must.
 ## Current Position
 
 Phase: 1 of 11 (Platform Foundation, Design System Port & i18n Runtime)
-Plan: 7 of 14 in current phase
+Plan: 8 of 14 in current phase
 Status: Ready to execute
-Last activity: 2026-08-20
+Last activity: 2026-08-21
 
-Progress: [█████░░░░░] 50%
+Progress: [██████░░░░] 57%
 
 ## Performance Metrics
 
@@ -66,6 +66,7 @@ Progress: [█████░░░░░] 50%
 | Phase 01 P08 | 55min | 2 tasks | 3 files |
 | Phase 01 P07 | 50min | 3 tasks | 7 files |
 | Phase 01 P06 | ~70min | 3 tasks | 75 files |
+| Phase 01 P09 | ~3h (two sessions) | 3 tasks | 100 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,8 @@ Recent decisions affecting current work:
 - [Phase ?]: Badge/Card tinted tones (warning/accent) dropped per Law 02, matching plan's pre-resolved Card decision applied identically to Badge
 - [Phase ?]: IconButton ships with no Selected/pressed state — no source to port from (compiled bundle has none; the header notification bell is a bespoke element, not built from IconButton)
 - [Phase ?]: Dev gallery routes live under app/[locale]/dev/components/** (not the plan's literal app/dev/components/** path), required by the existing [locale]-segment routing architecture
+- [Phase ?]: Every Rule 2 addition the compiled design-system bundle doesn't recognize as a prop at all (Checkbox indeterminate/invalid, Counter disabled/error, Select loading, DatePicker disabled/error/loading) gets a single-sided port-only screenshot baseline, not a bundle-vs-port diff — the bundle silently ignores an unrecognized prop rather than rendering a comparable state.
+- [Phase ?]: mock-harness.ts's resolveLocal and waitForMockReady both gained generalizable fixes (directory/index.ts import fallback; infinite-CSS-animation filter in the settle wait) — every later port batch that imports across components/{core,forms,...}/ categories or adds another loading spinner inherits both.
 
 ### Pending Todos
 
@@ -130,6 +133,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-20T19:28:17.688Z
-Stopped at: Completed 01-06-PLAN.md
+Last session: 2026-08-21T00:25:16.063Z
+Stopped at: Completed 01-09-PLAN.md
 Resume file: None
