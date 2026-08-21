@@ -1,0 +1,38 @@
+/* Extracted verbatim from the vendored design-system bundle (reference-only, D-30),
+   `components/navigation/SectionHeader.jsx`'s `const CSS` template literal, with the
+   physical -> logical conversions the extraction recipe permits (width -> inline-size,
+   min-width -> min-inline-size, max-width -> max-inline-size, margin-bottom ->
+   margin-block-end, padding-bottom -> padding-block-end, border-bottom ->
+   border-block-end, border-bottom-color -> border-block-end-color), one Law 02 fix,
+   and one RTL-mirroring addition for the action link's chevron.
+
+   Law 02 fix: `.vt-sh__eyebrow`'s source colour is `var(--vt-yellow-700)` — banned
+   outright (reads brown, not gold; CLAUDE.md "Never use tinted yellow or brownish
+   surfaces", D-32's stylelint gate fails the build on this exact token). Set directly
+   to `var(--vt-charcoal-800)` here instead of shipping the banned token and trusting
+   `tokens/laws.css`'s runtime alias to fix it — `--vt-yellow-700` aliases to that exact
+   value at runtime today, so this is a same-pixel source cleanup, identical treatment
+   to Select.css/Input.css's `.vt-field__req` fix (01-09-SUMMARY.md).
+
+   RTL: the action link's `chevron-right` glyph is a literal forward-motion icon (see
+   SectionHeader.tsx) — the Four-Language Layout Contract requires it to mirror under
+   `dir="rtl"`, the same reasoning DatePicker.css's nav-chevron fix documents. The
+   flex row itself already reorders for free (no physical left/right in `.vt-sh__link`),
+   this only flips the glyph. */
+.vt-sh{display:flex;align-items:flex-end;gap:var(--vt-space-4);inline-size:100%}
+.vt-sh__main{min-inline-size:0;flex:1 1 auto}
+.vt-sh__eyebrow{display:block;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-800);margin-block-end:8px}
+.vt-sh__title{font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:var(--vt-heading-leading);color:var(--vt-text-primary);margin:0}
+.vt-sh__sub{font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-secondary);margin:6px 0 0;max-inline-size:60ch}
+.vt-sh__action{flex:0 0 auto}
+.vt-sh--h1 .vt-sh__title{font-size:var(--vt-heading-1)}
+.vt-sh--h2 .vt-sh__title{font-size:var(--vt-heading-2)}
+.vt-sh--h3 .vt-sh__title{font-size:var(--vt-heading-3)}
+.vt-sh--label .vt-sh__title{font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+.vt-sh--rule{padding-block-end:var(--vt-space-3);border-block-end:var(--vt-border-w) solid var(--vt-border-subtle)}
+.vt-sh--inverse .vt-sh__title{color:var(--vt-text-inverse)}
+.vt-sh--inverse .vt-sh__sub{color:var(--vt-text-inverse-muted)}
+.vt-sh--inverse .vt-sh__eyebrow{color:var(--vt-accent)}
+.vt-sh--inverse.vt-sh--rule{border-block-end-color:var(--vt-border-inverse)}
+.vt-sh__link{display:inline-flex;align-items:center;gap:7px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);border:0}
+[dir="rtl"] .vt-sh__link-icon{transform:scaleX(-1)}

@@ -1,0 +1,36 @@
+/* Extracted verbatim from the vendored design-system bundle (reference-only, D-30),
+   `components/navigation/StepIndicator.jsx`'s `const CSS` template literal, with the
+   physical -> logical conversions the extraction recipe permits (height -> block-size,
+   min-width -> min-inline-size). `margin:0 14px` on `.vt-step__rule` is a symmetric
+   two-value shorthand (identical on both inline sides) — kept verbatim, same
+   "nothing for the logical form to fix" reasoning DatePicker.css's header comment
+   documents. No chevron glyph exists anywhere in this component (confirmed by reading
+   `function StepIndicator` directly — steps render as numbered dots plus a plain
+   divider rule, never an icon pointing in a direction); the "progression mirrors under
+   RTL" contract (01-UI-SPEC.md's Four-Language Layout Contract) is met for free by
+   `.vt-steps{display:flex}`'s own direction-aware row order under `dir="rtl"` — no
+   `[dir="rtl"]` override is needed or added, verified live during the Arabic pass (see
+   01-10-SUMMARY.md). */
+.vt-steps{display:flex;align-items:center;gap:0;font-family:var(--vt-font-body);inline-size:100%}
+.vt-step{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+.vt-step__dot{inline-size:28px;block-size:28px;border-radius:var(--vt-radius-pill);display:flex;align-items:center;justify-content:center;font-size:var(--vt-body-xs);font-weight:var(--vt-weight-semibold);background:var(--vt-grey-100);color:var(--vt-text-muted);border:var(--vt-border-w-strong) solid transparent;transition:var(--vt-transition-control)}
+.vt-step__label{font-size:var(--vt-body-sm);color:var(--vt-text-muted);white-space:nowrap}
+.vt-step--done .vt-step__dot{background:var(--vt-charcoal-900);color:var(--vt-accent)}
+.vt-step--done .vt-step__label{color:var(--vt-text-secondary)}
+.vt-step--current .vt-step__dot{background:var(--vt-accent);color:var(--vt-text-on-accent)}
+.vt-step--current .vt-step__label{color:var(--vt-text-primary);font-weight:var(--vt-weight-semibold)}
+.vt-step--error .vt-step__dot{background:var(--vt-danger);color:var(--vt-text-inverse)}
+.vt-step--error .vt-step__label{color:var(--vt-danger)}
+.vt-step__rule{flex:1 1 auto;block-size:2px;background:var(--vt-grey-200);margin:0 14px;min-inline-size:18px}
+.vt-step__rule--done{background:var(--vt-charcoal-900)}
+
+/* Accessibility Rule 2 addition (01-10-PLAN.md Task 1: "a step's 'completed'
+   announcement — resolves through the dictionary, never as an English literal").
+   The source's own "done" signal is entirely visual (a checkmark glyph swapped in for
+   the step number) — a screen-reader user hears only the step label, with no cue that
+   the step is complete. `completedLabel` (StepIndicator.tsx) is an optional,
+   caller-supplied string with no built-in English default, matching the "no default,
+   not a better default" precedent 01-09-SUMMARY.md set for Counter's button labels
+   and DatePicker's weekday abbreviations — when supplied, it renders here,
+   visually hidden but reachable by assistive technology. */
+.vt-step__sr{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;padding:0;margin:-1px}

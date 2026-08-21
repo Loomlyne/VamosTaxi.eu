@@ -1,0 +1,26 @@
+/* Extracted verbatim from the vendored design-system bundle (reference-only, D-30),
+   `components/navigation/Tabs.jsx`'s `const CSS` template literal, with the physical
+   -> logical conversions the extraction recipe permits (height -> block-size) and one
+   Rule 2 addition: the source has no overflow rule at all, so a tab row wider than its
+   container simply overflows the page in the source today — confirmed by reading
+   `function Tabs` directly, there is no `overflow` declaration anywhere in its CSS.
+   The Four-Language Layout Contract (01-UI-SPEC.md) is explicit that German tab labels
+   must not wrap to a second row, so `.vt-tabs`/`.vt-tabs--block` gain `overflow-x:auto`
+   and `.vt-tab` gains `min-inline-size:max-content` (a tab can still flex to share the
+   row evenly when everything fits, but can never shrink below its own content — the
+   standard technique for "grow freely, never truncate"). Marked `data-lenis-prevent`
+   in Tabs.tsx so the smooth-scroll instance never intercepts this region's own
+   horizontal scroll. */
+.vt-tabs{display:inline-flex;gap:4px;padding:4px;background:var(--vt-grey-100);border-radius:var(--vt-radius-pill);overflow-x:auto}
+.vt-tabs--block{display:flex;inline-size:100%;overflow-x:auto}
+.vt-tabs--inverse{background:var(--vt-charcoal-800)}
+.vt-tab{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:8px;flex:1 1 auto;min-inline-size:max-content;block-size:40px;padding:0 20px;border-radius:var(--vt-radius-pill);cursor:pointer;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-secondary);white-space:nowrap;transition:var(--vt-transition-control)}
+.vt-tab:hover{color:var(--vt-text-primary)}
+.vt-tab:focus-visible{box-shadow:var(--vt-ring)}
+.vt-tab--active{background:var(--vt-bg-surface);color:var(--vt-text-primary);font-weight:var(--vt-weight-semibold);box-shadow:var(--vt-shadow-sm)}
+.vt-tab--disabled{opacity:.45;cursor:not-allowed;pointer-events:none}
+.vt-tabs--inverse .vt-tab{color:var(--vt-text-inverse-muted)}
+.vt-tabs--inverse .vt-tab--active{background:var(--vt-bg-surface);color:var(--vt-text-primary)}
+.vt-tabs--underline{background:transparent;padding:0;gap:26px;border-block-end:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:0}
+.vt-tabs--underline .vt-tab{block-size:44px;padding:0;border-radius:0;box-shadow:none;background:transparent;flex:0 0 auto;min-inline-size:0;border-block-end:var(--vt-border-w-strong) solid transparent;margin-block-end:-1px}
+.vt-tabs--underline .vt-tab--active{background:transparent;border-block-end-color:var(--vt-accent);box-shadow:none}
