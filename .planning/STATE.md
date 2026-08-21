@@ -5,14 +5,14 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Platform Foundation, Design System Port & i18n Runtime
 status: executing
-stopped_at: Completed 01-09-PLAN.md
-last_updated: "2026-08-21T00:25:22.691Z"
+stopped_at: Completed 01-04-PLAN.md
+last_updated: "2026-08-21T18:22:04.209Z"
 last_activity: 2026-08-21
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 14
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 # Project State
@@ -29,11 +29,11 @@ confirmation — must.
 ## Current Position
 
 Phase: 1 of 11 (Platform Foundation, Design System Port & i18n Runtime)
-Plan: 8 of 14 in current phase
+Plan: 9 of 14 in current phase
 Status: Ready to execute
 Last activity: 2026-08-21
 
-Progress: [██████░░░░] 57%
+Progress: [██████░░░░] 64%
 
 ## Performance Metrics
 
@@ -67,6 +67,7 @@ Progress: [██████░░░░] 57%
 | Phase 01 P07 | 50min | 3 tasks | 7 files |
 | Phase 01 P06 | ~70min | 3 tasks | 75 files |
 | Phase 01 P09 | ~3h (two sessions) | 3 tasks | 100 files |
+| Phase 01 P04 | 45min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -98,6 +99,9 @@ Recent decisions affecting current work:
 - [Phase ?]: Dev gallery routes live under app/[locale]/dev/components/** (not the plan's literal app/dev/components/** path), required by the existing [locale]-segment routing architecture
 - [Phase ?]: Every Rule 2 addition the compiled design-system bundle doesn't recognize as a prop at all (Checkbox indeterminate/invalid, Counter disabled/error, Select loading, DatePicker disabled/error/loading) gets a single-sided port-only screenshot baseline, not a bundle-vs-port diff — the bundle silently ignores an unrecognized prop rather than rendering a comparable state.
 - [Phase ?]: mock-harness.ts's resolveLocal and waitForMockReady both gained generalizable fixes (directory/index.ts import fallback; infinite-CSS-animation filter in the settle wait) — every later port batch that imports across components/{core,forms,...}/ categories or adds another loading spinner inherits both.
+- [Phase ?]: 01-04: @cloudflare/workers-types added as devDependency (pinned to compatibility_date) so CloudflareEnv gets real runtime typing instead of any-under-skipLibCheck; confirmed with a @ts-expect-error smoke test
+- [Phase ?]: 01-04: DEPLOY_ENV added as a plain wrangler.jsonc vars entry under env.staging only, the seam apps/web/middleware.ts reads to scope X-Robots-Tag: noindex to staging
+- [Phase ?]: 01-04: Cloudflare Access (D-37) and Logpush (D-38) deferred by explicit owner decision, not implemented — recorded in docs/build/CLOUDFLARE-RESOURCES.md and .planning/WINDOWS.md
 
 ### Pending Todos
 
@@ -133,6 +137,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-21T00:25:16.063Z
-Stopped at: Completed 01-09-PLAN.md
+Last session: 2026-08-21T18:22:04.201Z
+Stopped at: Completed 01-04-PLAN.md
 Resume file: None
