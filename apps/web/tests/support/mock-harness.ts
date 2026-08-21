@@ -281,9 +281,31 @@ export async function waitForMockReady(page: Page): Promise<void> {
   // Waiting for every currently-registered Web Animation to finish, twice with a short
   // gap so a late-registering animation gets a second pass, catches both cases without
   // a fixed guess-a-number sleep.
+  //
+  // Plan 09 fix (generalizable, same class of gap as the `/brand/...` remap and the
+  // directory-import fallback above): the first components with a genuinely
+  // *infinite* CSS animation (`animation: … infinite` — Select's and DatePicker's
+  // Rule 2 loading-spinner additions) exposed a real bug here. Per the Web
+  // Animations API spec, an animation whose effect has `iterations: Infinity` never
+  // reaches the "finished" play state on its own, so its `.finished` promise never
+  // settles — `Promise.all(...)` above hung the full 30s test timeout waiting for a
+  // spinner that is, by design, still spinning. `toHaveScreenshot()`'s own
+  // `animations: 'disabled'` already freezes it correctly at capture time (confirmed:
+  // the loading tiles this fix unblocked screenshot the spinner's static rest frame,
+  // not a spinning one), so an infinite animation needs no settling wait at all —
+  // filtered out here rather than raced against an arbitrary timeout, which would
+  // either flake (too short) or reintroduce the same hang (too long).
   for (let i = 0; i < 2; i++) {
     await page.evaluate(() =>
-      Promise.all(document.getAnimations().map((a) => a.finished.catch(() => {}))),
+      Promise.all(
+        document
+          .getAnimations()
+          .filter((a) => {
+            const timing = a.effect?.getTiming();
+            return timing?.iterations !== Infinity;
+          })
+          .map((a) => a.finished.catch(() => {})),
+      ),
     );
     await page.waitForTimeout(50);
   }
@@ -360,10 +382,26 @@ function loadTsModule(absPath: string): Record<string, unknown> {
   return moduleObj.exports;
 }
 
+/** Plan 09 fix (generalizable, same class of gap Plan 06's own `/brand/...` remap
+ *  fixed in this file): the first spec batch whose ported components import a
+ *  *sibling category's* barrel (`import { Icon } from "../core"`, Checkbox/Counter/
+ *  DatePicker.tsx) rather than only files within their own category — core.spec.ts's
+ *  own eight components never needed this, since they *are* the core barrel, not
+ *  importers of it. A bare `"../core"` specifier is a directory import that resolves
+ *  to `../core/index.ts` under Node/bundler module resolution; the file-only lookup
+ *  below had no directory fallback and threw. Every later port batch that imports
+ *  across `components/{core,forms,navigation,feedback,transfer,data}/` needs this
+ *  same fallback — fixed once, here. */
 function resolveLocal(fromDir: string, spec: string): string {
   const base = join(fromDir, spec);
   for (const ext of ["", ".tsx", ".ts"]) {
     if (existsSync(base + ext) && statSync(base + ext).isFile()) return base + ext;
+  }
+  if (existsSync(base) && statSync(base).isDirectory()) {
+    for (const indexFile of ["index.ts", "index.tsx"]) {
+      const candidate = join(base, indexFile);
+      if (existsSync(candidate) && statSync(candidate).isFile()) return candidate;
+    }
   }
   throw new Error(`mock-harness: cannot resolve local import "${spec}" from ${fromDir}`);
 }

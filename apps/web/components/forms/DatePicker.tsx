@@ -131,7 +131,19 @@ export function DatePicker({
         onClick={() => setOpen((o) => !o)}
       >
         <Icon name="calendar" size={18} color="var(--vt-text-muted)" />
-        <span className="vt-dp__value">{value || placeholder}</span>
+        {/* Rule 1 fix (bug — I18N-04, found during the Arabic manual pass): a plain
+            "14 August 2026" text node inside an ambient dir="rtl" context gets
+            reordered by the Unicode bidi algorithm to "August 2026 14" — the day
+            number, a weak-directionality run with no strong RTL anchor of its own,
+            drifts to the end of the phrase. `.vt-dir-keep` only wraps `time` below
+            (a single "08:15" token, too short to visibly reorder) not `value`
+            (multi-token, the one that actually broke). Times and dates must both
+            stay LTR per the Four-Language Layout Contract — the placeholder itself
+            (ordinary translated prose, not a date) is intentionally left outside the
+            wrapper so it still follows the reading direction normally. */}
+        <span className="vt-dp__value">
+          {value ? <span className="vt-dir-keep">{value}</span> : placeholder}
+        </span>
         {time ? (
           <span className="vt-dp__time vt-dir-keep">{time}</span>
         ) : null}
