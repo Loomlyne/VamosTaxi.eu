@@ -31,7 +31,7 @@ and are final — "matches the mock" is a real acceptance criterion, not a hand-
 - [ ] **I18N-02**: Changing language relabels the page in place without a reload, and the choice survives navigation and a return visit
 - [x] **I18N-03**: The chosen language is correct in the server-rendered HTML — no English flash and no direction flip on hydration
 - [x] **I18N-04**: Arabic renders right-to-left with correct layout, because every surface uses logical properties rather than left/right
-- [ ] **I18N-05**: Changing currency swaps the mark and never the number, and the charge is always CHF
+- [x] **I18N-05**: Changing currency swaps the mark and never the number, and the charge is always CHF
 - [x] **I18N-06**: Strings the code builds from parts are translated too, never left English because they contain a number
 - [ ] **I18N-07**: Editable content strings live in the database and are editable from the ops Content screen
 - [ ] **I18N-08**: A legal page that exists in fewer languages than four says so, rather than pretending to be translated
@@ -191,7 +191,7 @@ Populated during roadmap creation. Full phase goals and success criteria: `.plan
 | I18N-02 | Phase 1 | Pending |
 | I18N-03 | Phase 1 | Complete |
 | I18N-04 | Phase 1 | Complete |
-| I18N-05 | Phase 1 | Pending |
+| I18N-05 | Phase 1 | Complete |
 | I18N-06 | Phase 1 | Complete |
 | I18N-07 | Phase 6 | Pending |
 | I18N-08 | Phase 5 | Pending |

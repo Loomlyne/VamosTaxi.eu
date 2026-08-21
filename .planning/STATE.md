@@ -5,14 +5,14 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Platform Foundation, Design System Port & i18n Runtime
 status: executing
-stopped_at: Completed 01-04-PLAN.md
-last_updated: "2026-08-21T18:22:04.209Z"
+stopped_at: "Completed 01-11-PLAN.md (Task 3: data/transfer galleries, baselines, language passes)"
+last_updated: "2026-08-21T18:52:52.398Z"
 last_activity: 2026-08-21
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 14
-  completed_plans: 9
+  completed_plans: 10
 ---
 
 # Project State
@@ -29,11 +29,11 @@ confirmation — must.
 ## Current Position
 
 Phase: 1 of 11 (Platform Foundation, Design System Port & i18n Runtime)
-Plan: 9 of 14 in current phase
+Plan: 10 of 14 in current phase
 Status: Ready to execute
 Last activity: 2026-08-21
 
-Progress: [██████░░░░] 64%
+Progress: [███████░░░] 71%
 
 ## Performance Metrics
 
@@ -68,6 +68,7 @@ Progress: [██████░░░░] 64%
 | Phase 01 P06 | ~70min | 3 tasks | 75 files |
 | Phase 01 P09 | ~3h (two sessions) | 3 tasks | 100 files |
 | Phase 01 P04 | 45min | 3 tasks | 8 files |
+| Phase 01 P11 | ~3h (Task 3 this session) | 3 tasks | 116 files |
 
 ## Accumulated Context
 
@@ -102,6 +103,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 01-04: @cloudflare/workers-types added as devDependency (pinned to compatibility_date) so CloudflareEnv gets real runtime typing instead of any-under-skipLibCheck; confirmed with a @ts-expect-error smoke test
 - [Phase ?]: 01-04: DEPLOY_ENV added as a plain wrangler.jsonc vars entry under env.staging only, the seam apps/web/middleware.ts reads to scope X-Robots-Tag: noindex to staging
 - [Phase ?]: 01-04: Cloudflare Access (D-37) and Logpush (D-38) deferred by explicit owner decision, not implemented — recorded in docs/build/CLOUDFLARE-RESOURCES.md and .planning/WINDOWS.md
+- [Phase ?]: 01-11: mock-harness.ts mountPort now links every composed component's CSS transitively (collectLocalCssLinks), not just the top-level component's own — a real, silent styling gap found while diffing StatusBadge/VehicleCard's composed Badge against the bundle
+- [Phase ?]: 01-11: PriceSummary's bundle-vs-port screenshot diff uses two intentionally different prop shapes per side (bundle: pre-formatted value/total strings; port: amount:number|null routed through formatAmount) since the compiled bundle does no currency formatting of its own at all
 
 ### Pending Todos
 
@@ -137,6 +140,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-21T18:22:04.201Z
-Stopped at: Completed 01-04-PLAN.md
+Last session: 2026-08-21T18:52:52.390Z
+Stopped at: Completed 01-11-PLAN.md (Task 3: data/transfer galleries, baselines, language passes)
 Resume file: None

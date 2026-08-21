@@ -61,7 +61,7 @@ where the `VamosLocale` DOM-walking runtime is replaced with an SSR-safe mechani
   4. Switching language on a rendered page relabels every string (including placeholders, `aria-label`, `title`, `alt`) in place without a reload, is correct in the server-rendered HTML with no English flash, and Arabic renders right-to-left with logical-property layout.
   5. Switching currency changes only the mark, never the number, and strings the code builds from parts translate too.
 
-**Plans**: 9/14 plans executed
+**Plans**: 10/14 plans executed
 
 Plans:
 
@@ -75,7 +75,7 @@ Plans:
 - [x] 01-08-PLAN.md — Lenis smooth scroll as a single provider, with navigation resync and automated proof
 - [x] 01-09-PLAN.md — Design-system port batch 2: eight form controls
 - [ ] 01-10-PLAN.md — Design-system port batch 3: three navigation and five feedback components, plus focus and scroll behaviour specs
-- [ ] 01-11-PLAN.md — Design-system port batch 4: four data and four transfer composites
+- [x] 01-11-PLAN.md — Design-system port batch 4: four data and four transfer composites
 - [ ] 01-12-PLAN.md — i18n runtime: locale shim, currency store, booking draft persistence and the ADR-001 acceptance test, alternates and sitemap
 - [ ] 01-13-PLAN.md — Shared header and footer ported and composed around every page
 - [ ] 01-14-PLAN.md — Localised 404 and error pages, gallery production exclusion, baseline review and the phase-wide language passes
@@ -264,7 +264,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Platform Foundation, Design System Port & i18n Runtime | 9/14 | In Progress|  |
+| 1. Platform Foundation, Design System Port & i18n Runtime | 10/14 | In Progress|  |
 | 2. Data Schema, RLS & Staff Auth Foundations | 0/TBD | Not started | - |
 | 3. Hyperdrive Data Access Wiring | 0/TBD | Not started | - |
 | 4. Quote & Pricing Engine | 0/TBD | Not started | - |
