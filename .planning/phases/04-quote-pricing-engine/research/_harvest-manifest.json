@@ -1,0 +1,55 @@
+{
+  "run": "/Users/koss/.claude/projects/-Users-koss-Developer-VamosTaxi-eu/b0a3e441-189f-44da-9d1d-6b576b18e103/subagents/workflows/wf_748ad5af-88b",
+  "started": 9,
+  "completed": 8,
+  "manifest": [
+    {
+      "agentId": "aefe0122af930b8a2",
+      "name": "isolation-proof",
+      "bytes": 78011,
+      "file": "/tmp/p34-harvest/isolation-proof.md"
+    },
+    {
+      "agentId": "ab76622841a9b380f",
+      "name": "quote-engine-core",
+      "bytes": 76566,
+      "file": "/tmp/p34-harvest/quote-engine-core.md"
+    },
+    {
+      "agentId": "a96f2fcc03426bdb7",
+      "name": "hyperdrive-wiring",
+      "bytes": 39104,
+      "file": "/tmp/p34-harvest/hyperdrive-wiring.md"
+    },
+    {
+      "agentId": "a8e261865fd751af2",
+      "name": "quote-lock-expiry",
+      "bytes": 34901,
+      "file": "/tmp/p34-harvest/quote-lock-expiry.md"
+    },
+    {
+      "agentId": "afe259d64c84bbf8b",
+      "name": "abuse-ratelimit",
+      "bytes": 30243,
+      "file": "/tmp/p34-harvest/abuse-ratelimit.md"
+    },
+    {
+      "agentId": "a5cc5a363bccd3c55",
+      "name": "flight-autofill",
+      "bytes": 22655,
+      "file": "/tmp/p34-harvest/flight-autofill.md"
+    },
+    {
+      "agentId": "a8c4645daebccd108",
+      "name": "coupons-extras",
+      "bytes": 2846,
+      "file": "/tmp/p34-harvest/coupons-extras.md"
+    },
+    {
+      "agentId": "aa8c8abb316ff7efa",
+      "name": "geo-routing",
+      "bytes": 2806,
+      "file": "/tmp/p34-harvest/geo-routing.md"
+    }
+  ]
+}
