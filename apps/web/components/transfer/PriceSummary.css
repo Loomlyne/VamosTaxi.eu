@@ -1,0 +1,30 @@
+/* Extracted verbatim from the vendored design-system bundle (reference-only, D-30),
+   `components/transfer/PriceSummary.jsx`'s `const CSS` template literal
+   (`_ds_bundle.js:44650-44663`), with logical-property conversions (Law 03/I18N-04)
+   and Rule 2 additions for the loading/empty/error states the source has no CSS for
+   at all. No Law 02 issue here — no yellow token appears anywhere in the source. */
+.vt-price{font-family:var(--vt-font-body)}
+.vt-price__row{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding-block:7px;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)}
+.vt-price__row--muted{color:var(--vt-text-muted)}
+.vt-price__row--credit{color:var(--vt-success)}
+.vt-price__label{display:inline-flex;align-items:center;gap:7px;min-inline-size:0}
+.vt-price__val{font-variant-numeric:tabular-nums;white-space:nowrap}
+.vt-price__total{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-block-start:10px;padding-block-start:14px;border-block-start:var(--vt-border-w-strong) solid var(--vt-charcoal-900)}
+.vt-price__totallabel{font-family:var(--vt-font-body);font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-primary)}
+.vt-price__totalval{font-family:var(--vt-font-display);font-size:var(--vt-figure-lg);font-weight:var(--vt-weight-bold);color:var(--vt-text-primary);line-height:1;white-space:nowrap}
+.vt-price__note{font-size:var(--vt-body-xs);color:var(--vt-text-muted);margin-block:10px 0}
+.vt-price--inverse .vt-price__row{color:var(--vt-text-inverse-muted)}
+.vt-price--inverse .vt-price__total{border-block-start-color:var(--vt-accent)}
+.vt-price--inverse .vt-price__totallabel,.vt-price--inverse .vt-price__totalval{color:var(--vt-text-inverse)}
+.vt-price--inverse .vt-price__note{color:var(--vt-text-inverse-muted)}
+
+/* Rule 2 additions — same restrained spinner+label loading treatment as the other
+   components in this batch, a plain-words empty state, and the danger-tone error
+   treatment `Alert`'s own danger tone already establishes (no invented colour). */
+.vt-price__state{display:flex;align-items:center;justify-content:center;gap:8px;padding:20px 0;text-align:center;color:var(--vt-text-muted);font-size:var(--vt-body-sm);margin:0}
+.vt-price__state--error{color:var(--vt-danger)}
+.vt-price__spin{animation:vt-price-spin 900ms linear infinite}
+@keyframes vt-price-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){
+  .vt-price__spin{animation:none}
+}

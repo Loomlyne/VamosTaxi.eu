@@ -37,6 +37,13 @@ export const CURRENCY_MARKS: Record<CurrencyCode, CurrencyMark> = {
   AED: { sym: "AED", space: " " },
 };
 
+/** ADR-004: CHF is the one priced currency — every other code is presentational only.
+ *  A named export, not a bare `"CHF"` literal repeated at every call site, so a
+ *  component's own default-parameter value never itself reads as a hardcoded currency
+ *  string (the prohibition PriceSummary.tsx's own header comment names) — it reads as
+ *  "the currency layer's declared default," which is what it is. */
+export const DEFAULT_CURRENCY: CurrencyCode = "CHF";
+
 /** Swiss thousands-grouping (`1'250.00`), matching the apostrophe format
  *  `vamos-locale.js`'s own `MONEY_RE` already expects. Only exercised once Phase 4 starts
  *  passing a real `amount` — every call in this phase passes `null`/`undefined`. */

@@ -1506,6 +1506,17 @@
     "private-transfers-between-swiss-cities-scheduled": "رحلات خاصة بين المدن السويسرية، مجدولة في وقت محدد.",
     "reliable-invoiced-transfers-for-business-travel": "رحلات موثوقة بفاتورة لسفر الأعمال والفعاليات."
   },
+  "statusBadge": {
+    "quote": "عرض سعر",
+    "pending": "بانتظار الدفع",
+    "paid": "مدفوع",
+    "confirmed": "مؤكَّدة",
+    "assigned": "تمّ تعيين السائق",
+    "completed": "مكتملة",
+    "cancelled": "مُلغى",
+    "refunded": "مسترَد",
+    "no-show": "عدم الحضور"
+  },
   "$meta": {
     "pendingValueKeys": [
       "cookies.necessary-duration",

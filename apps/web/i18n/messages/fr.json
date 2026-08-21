@@ -1506,6 +1506,17 @@
     "private-transfers-between-swiss-cities-scheduled": "Transferts privés entre villes suisses, programmés à une heure précise.",
     "reliable-invoiced-transfers-for-business-travel": "Transferts fiables et facturés pour les voyages d’affaires et les événements."
   },
+  "statusBadge": {
+    "quote": "Devis",
+    "pending": "Paiement en attente",
+    "paid": "Payé",
+    "confirmed": "Confirmée",
+    "assigned": "Chauffeur attribué",
+    "completed": "Terminé",
+    "cancelled": "Annulé",
+    "refunded": "Remboursé",
+    "no-show": "Non-présentation"
+  },
   "$meta": {
     "pendingValueKeys": [
       "cookies.necessary-duration",

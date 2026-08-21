@@ -1,0 +1,37 @@
+/* Extracted verbatim from the vendored design-system bundle (reference-only, D-30),
+   `components/transfer/VehicleCard.jsx`'s `const CSS` template literal
+   (`_ds_bundle.js:44850-44864`), with logical-property conversions (Law 03/I18N-04)
+   and Rule 2 additions for the disabled/loading states the source has no CSS for at
+   all. No Law 02 issue here — no yellow token appears in the source's own CSS (the
+   `badge="accent"` prop composes the already-untinted Badge accent tone). */
+.vt-veh{display:grid;grid-template-columns:132px 1fr auto;gap:18px;align-items:center;background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);padding:16px;cursor:pointer;transition:var(--vt-transition-control);text-align:start;inline-size:100%}
+.vt-veh:hover{border-color:var(--vt-charcoal-900);box-shadow:var(--vt-shadow-md)}
+.vt-veh:focus-visible{outline:none;box-shadow:var(--vt-ring)}
+.vt-veh--selected{border-color:var(--vt-charcoal-900);border-width:var(--vt-border-w-strong);box-shadow:var(--vt-shadow-md);padding:15px}
+.vt-veh__shot{inline-size:132px;block-size:84px;border-radius:var(--vt-radius-md);background:var(--vt-grey-100);display:flex;align-items:center;justify-content:center;overflow:hidden;flex:0 0 auto}
+.vt-veh__shot img{inline-size:100%;block-size:100%;object-fit:cover}
+/* Was an inline style={{display:'flex',alignItems:'center',gap:8,marginBottom:2}} in
+   the source — extracted to real classes alongside everything else. */
+.vt-veh__body{min-inline-size:0}
+.vt-veh__headline{display:flex;align-items:center;gap:8px;margin-block-end:2px}
+.vt-veh__name{font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary);margin:0}
+.vt-veh__examples{font-size:var(--vt-body-xs);color:var(--vt-text-muted);margin:0 0 8px}
+.vt-veh__caps{display:flex;flex-wrap:wrap;gap:6px 14px}
+.vt-veh__cap{display:inline-flex;align-items:center;gap:6px;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)}
+.vt-veh__price{text-align:end;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.vt-veh__amount{font-family:var(--vt-font-display);font-size:var(--vt-figure-md);font-weight:var(--vt-weight-bold);color:var(--vt-text-primary);line-height:1;white-space:nowrap}
+.vt-veh__note{font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
+@media (max-width:560px){.vt-veh{grid-template-columns:96px 1fr;gap:14px}.vt-veh__shot{inline-size:96px;block-size:66px}.vt-veh__price{grid-column:1/-1;flex-direction:row;align-items:baseline;justify-content:space-between;text-align:start}}
+
+/* Rule 2 additions. Disabled = capacity exceeded (matches Button/Input's own
+   opacity+not-allowed disabled treatment, no new visual language invented); loading =
+   price still computing, the same restrained spinner glyph every other component in
+   this batch uses in place of its amount/value. */
+.vt-veh--disabled,.vt-veh[disabled]{opacity:.45;cursor:not-allowed}
+.vt-veh--disabled:hover,.vt-veh[disabled]:hover{border-color:var(--vt-border-subtle);box-shadow:none}
+.vt-veh--loading{cursor:default}
+.vt-veh__spin{animation:vt-veh-spin 900ms linear infinite}
+@keyframes vt-veh-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){
+  .vt-veh__spin{animation:none}
+}

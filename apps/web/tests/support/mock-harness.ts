@@ -412,9 +412,28 @@ function resolveLocal(fromDir: string, spec: string): string {
  *  handlers to express), and returns its URL. `componentRelPath` is repo-root-relative,
  *  e.g. `"apps/web/components/core/Button.tsx"`; the exported component name is the
  *  file's own basename (`Button.tsx` -> `Button`), matching this codebase's convention. */
+/** Plan 11 addition (generalizable, same class of extension as Plan 09's directory-
+ *  import fallback and infinite-animation filter above): the first components in this
+ *  port whose own JSX calls `useTranslations()` directly (`RouteSummary`, `StatusBadge`
+ *  — I18N-01's dictionary-lookup requirement for both) need *some* `NextIntlClientProvider`
+ *  ancestor or the hook throws `No intl context found` — real `next-intl` behaviour,
+ *  not a harness quirk (confirmed by rendering the same call through plain
+ *  `react-dom/server` outside Next entirely: it throws without a provider, succeeds
+ *  with one, and needs no browser/hydration for either — `NextIntlClientProvider` is
+ *  just a `React.Context.Provider` under the hood, which SSRs identically to any other
+ *  context provider). `now`/`timeZone` are supplied explicitly so next-intl doesn't
+ *  fall back to reading the host's clock (`ENVIRONMENT_FALLBACK`, a noisy but non-fatal
+ *  console.error next-intl emits when neither is provided) — deterministic output for a
+ *  screenshot-diff test either way, but a clean one. */
+export interface MountPortIntlOptions {
+  locale?: string;
+  messages: Record<string, unknown>;
+}
+
 export async function mountPort(
   componentRelPath: string,
   props: Record<string, unknown> = {},
+  intl?: MountPortIntlOptions,
 ): Promise<string> {
   const abs = join(REPO_ROOT, componentRelPath);
   if (!existsSync(abs)) throw new Error(`mock-harness: no component at ${componentRelPath}`);
@@ -430,9 +449,18 @@ export async function mountPort(
     );
   }
 
-  const markup = ReactDOMServer.renderToStaticMarkup(
-    ReactActual.createElement(Component, props),
-  );
+  let element = ReactActual.createElement(Component, props);
+  if (intl) {
+    const { NextIntlClientProvider } = webRequire("next-intl") as {
+      NextIntlClientProvider: FunctionComponent<Record<string, unknown>>;
+    };
+    element = ReactActual.createElement(
+      NextIntlClientProvider,
+      { locale: intl.locale ?? "en", now: new Date(0), timeZone: "UTC", messages: intl.messages },
+      element,
+    );
+  }
+  const markup = ReactDOMServer.renderToStaticMarkup(element);
 
   // The CSS-extraction recipe (D-24 amended) always places a component's stylesheet
   // beside it under the same basename.
@@ -446,7 +474,7 @@ export async function mountPort(
     bodyHtml: `<div id="root">${markup}</div>`,
   });
 
-  const id = `port-${hashId(componentRelPath + JSON.stringify(props))}`;
+  const id = `port-${hashId(componentRelPath + JSON.stringify(props) + JSON.stringify(intl ?? null))}`;
   generatedPages.set(id, html);
   const { baseUrl } = await startServer();
   return `${baseUrl}/__generated__/${id}`;

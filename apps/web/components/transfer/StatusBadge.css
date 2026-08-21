@@ -1,0 +1,7 @@
+/* StatusBadge is a pure composition over the ported `Badge` (StatusBadge.tsx's own
+   header comment) — the compiled source has no `const CSS` literal or `injectStyles()`
+   call of its own at all, every visual property comes from the `Badge` it renders.
+   Intentionally near-empty; kept as its own statically-imported stylesheet anyway to
+   hold the "CSS arrives by static import only" contract mechanically uniform across
+   every ported component, the same call Plan 06 made for Icon/Logo/CheckerMark
+   (01-06-SUMMARY.md's tech-stack.patterns entry on this exact case). */
