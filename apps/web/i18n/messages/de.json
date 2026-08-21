@@ -360,8 +360,10 @@
     "your-driver-calls-this-number-on-arrival-so-it-h": "Ihr Fahrer ruft diese Nummer bei der Ankunft an — sie muss also erreichbar sein. Wir bestätigen sie einmalig mit einem Code per SMS."
   },
   "booking": {
+    "date": "Datum",
     "next-month": "Nächster Monat",
-    "previous-month": "Vorheriger Monat"
+    "previous-month": "Vorheriger Monat",
+    "time": "Zeit"
   },
   "checkout": {
     "60-min-airport-waiting": "60 Min. Wartezeit am Flughafen",

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Button } from "@/components/core";
+import { BookingDraftFields } from "@/components/booking";
 
 export default async function HomePage({
   params,
@@ -41,6 +42,11 @@ export default async function HomePage({
         height={228}
         data-image-proof="320"
       />
+      {/* Plan 12, Task 2: the ADR-001 acceptance-test surface — a half-filled draft
+          here must survive a language switch (tests/integration/lang-switch.spec.ts).
+          Phase 4/5 replace this minimal field set with the real booking widget on top
+          of the same apps/web/lib/booking-draft.ts store. */}
+      <BookingDraftFields />
     </main>
   );
 }

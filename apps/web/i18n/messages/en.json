@@ -360,8 +360,10 @@
     "your-driver-calls-this-number-on-arrival-so-it-h": "Your driver calls this number on arrival, so it has to be one you will answer. We verify it once with a code by text."
   },
   "booking": {
+    "date": "Date",
     "next-month": "Next month",
-    "previous-month": "Previous month"
+    "previous-month": "Previous month",
+    "time": "Time"
   },
   "checkout": {
     "60-min-airport-waiting": "60 min airport waiting",

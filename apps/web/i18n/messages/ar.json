@@ -360,8 +360,10 @@
     "your-driver-calls-this-number-on-arrival-so-it-h": "يتصل بك السائق على هذا الرقم عند الوصول، لذا يجب أن تردّ عليه. ونؤكّده مرة واحدة برمز عبر رسالة نصية."
   },
   "booking": {
+    "date": "التاريخ",
     "next-month": "الشهر التالي",
-    "previous-month": "الشهر السابق"
+    "previous-month": "الشهر السابق",
+    "time": "الوقت"
   },
   "checkout": {
     "60-min-airport-waiting": "60 دقيقة انتظار في المطار",
