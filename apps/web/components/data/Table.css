@@ -1,0 +1,34 @@
+/* Extracted verbatim from the vendored design-system bundle (reference-only, D-30),
+   `components/data/Table.jsx`'s `const CSS` template literal (`_ds_bundle.js:43624-
+   43635`), with one Law 02 fix and Rule 2 additions for the loading/error/empty states
+   the source has no CSS for at all. */
+.vt-tablewrap{background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);overflow-x:auto}
+.vt-table{inline-size:100%;min-inline-size:720px;border-collapse:collapse;font-family:var(--vt-font-body);font-size:var(--vt-body-sm)}
+.vt-table th{text-align:start;padding:12px 16px;background:var(--vt-grey-50);border-block-end:var(--vt-border-w) solid var(--vt-border-subtle);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted);white-space:nowrap}
+.vt-table td{padding:14px 16px;border-block-end:var(--vt-border-w) solid var(--vt-border-subtle);color:var(--vt-text-primary);vertical-align:middle}
+.vt-table tbody tr:last-child td{border-block-end:0}
+.vt-table tbody tr{transition:background-color var(--vt-dur-fast) var(--vt-ease-standard)}
+.vt-table--rows tbody tr:hover{background:var(--vt-grey-50)}
+.vt-table--rows tbody tr{cursor:pointer}
+/* Law 02 fix: the source reads `tr[data-selected=true]{background:var(--vt-yellow-50)}`
+   — a banned tinted-yellow row accent. Replaced with an untinted grey one step darker
+   than the hover state above, so hover and selection stay visually distinguishable
+   without any tinted surface (CLAUDE.md § "when a kit component has no untinted
+   variant, build the piece from tokens"). */
+.vt-table tr[data-selected="true"]{background:var(--vt-grey-100)}
+.vt-table__num{text-align:end;font-variant-numeric:tabular-nums}
+
+/* Rule 2 additions — loading/error/empty. The compiled source has no CSS for any of
+   these (Table.tsx's own header comment); same neutral spinner-glyph treatment
+   Select.css already established for its own Rule 2 loading state, reused here rather
+   than a shimmering skeleton block (CLAUDE.md's "never a shimmering block pretending
+   to be data" is scoped to the *empty* state, but a shimmer gradient reads as exactly
+   the kind of decorative motion the platform's anti-AI-generated rule warns against, so
+   the same restrained spinner+label treatment is used for loading too). */
+.vt-table__state{padding:28px 16px;text-align:center;color:var(--vt-text-muted);font-size:var(--vt-body-sm);display:flex;align-items:center;justify-content:center;gap:8px}
+.vt-table__state--error{color:var(--vt-danger)}
+.vt-table__spin{animation:vt-table-spin 900ms linear infinite}
+@keyframes vt-table-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){
+  .vt-table__spin{animation:none}
+}

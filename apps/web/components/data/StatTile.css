@@ -1,0 +1,28 @@
+/* Extracted verbatim from the vendored design-system bundle (reference-only, D-30),
+   `components/data/StatTile.jsx`'s `const CSS` template literal
+   (`_ds_bundle.js:43574-43588`), with one Law 02 fix and Rule 2 additions for the
+   loading/empty states the source has no CSS for at all. */
+.vt-stat{background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);padding:18px 20px;display:flex;flex-direction:column;gap:10px;min-inline-size:0}
+.vt-stat__top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.vt-stat__label{font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+/* Law 02 fix: the source reads `background:var(--vt-yellow-50)` here — a banned
+   tinted-yellow glyph tile, same fix and same reasoning as ListRow.css's lead tile. */
+.vt-stat__glyph{inline-size:32px;block-size:32px;border-radius:var(--vt-radius-sm);background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.vt-stat__value{font-family:var(--vt-font-display);font-size:var(--vt-figure-lg);font-weight:var(--vt-weight-bold);line-height:1;color:var(--vt-text-primary)}
+.vt-stat__foot{font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
+.vt-stat--accent{background:var(--vt-accent);border-color:var(--vt-accent)}
+.vt-stat--accent .vt-stat__label{color:var(--vt-charcoal-800)}
+.vt-stat--accent .vt-stat__glyph{background:rgb(30 31 31 / .12);border-color:transparent}
+.vt-stat--accent .vt-stat__foot{color:var(--vt-charcoal-700)}
+.vt-stat--inverse{background:var(--vt-bg-inverse);border-color:var(--vt-border-inverse)}
+.vt-stat--inverse .vt-stat__value{color:var(--vt-text-inverse)}
+.vt-stat--inverse .vt-stat__glyph{background:var(--vt-charcoal-800);border-color:var(--vt-border-inverse)}
+
+/* Rule 2 additions — same restrained spinner treatment as Table.css/List.css, and a
+   plain-words empty state (design-system readme.md §3). */
+.vt-stat__value--empty{font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-muted)}
+.vt-stat__spin{animation:vt-stat-spin 900ms linear infinite}
+@keyframes vt-stat-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){
+  .vt-stat__spin{animation:none}
+}

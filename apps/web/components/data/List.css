@@ -1,0 +1,19 @@
+/* Extracted verbatim from the vendored design-system bundle (reference-only, D-30),
+   `components/data/ListRow.jsx`'s `const CSS` — the `.vt-list*` rules only, split from
+   `.vt-row*` (ListRow.css owns those; the source's single file, single injectStyles key
+   ('vt-listrow') covers both, but the CSS-delivery contract gives each ported component
+   its own statically-imported stylesheet — see 01-06-SUMMARY.md's Select.css/Card.css
+   precedent for this same split). Plus Rule 2 additions for List's loading/empty state,
+   which the source has no CSS for at all. */
+.vt-list{display:flex;flex-direction:column;background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);overflow:hidden}
+.vt-list--plain{background:transparent;border:0;border-radius:0}
+.vt-list>*:last-child{border-block-end:0}
+
+/* Rule 2 additions — same restrained spinner+label loading treatment as
+   Table.css/Select.css, and a plain-words empty state (design-system readme.md §3). */
+.vt-list__state{padding:24px 16px;text-align:center;color:var(--vt-text-muted);font-size:var(--vt-body-sm);display:flex;align-items:center;justify-content:center;gap:8px}
+.vt-list__spin{animation:vt-list-spin 900ms linear infinite}
+@keyframes vt-list-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){
+  .vt-list__spin{animation:none}
+}

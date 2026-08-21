@@ -1,0 +1,37 @@
+/* Extracted verbatim from the vendored design-system bundle (reference-only, D-30),
+   `components/data/ListRow.jsx`'s `const CSS` — the `.vt-row*` rules only (List.css owns
+   the `.vt-list*` rules from the same source block; see that file's header comment for
+   why the split). Two Law 02 fixes and one Rule 2 addition (`--selected`) below. */
+.vt-row{display:flex;align-items:center;gap:var(--vt-space-4);inline-size:100%;box-sizing:border-box;padding:14px 16px;border-block-end:var(--vt-border-w) solid var(--vt-border-subtle);font-family:var(--vt-font-body);text-align:start;background:transparent;transition:var(--vt-transition-control)}
+.vt-row--last{border-block-end:0}
+.vt-row--button{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:var(--vt-space-4);inline-size:100%;padding:14px 16px;border-block-end:var(--vt-border-w) solid var(--vt-border-subtle);cursor:pointer;font-family:var(--vt-font-body)}
+.vt-row--button:hover{background:var(--vt-grey-50)}
+.vt-row--button:focus-visible{outline:none;box-shadow:var(--vt-ring)}
+/* Law 02 fix: the source reads `background:var(--vt-yellow-50)` here — a banned
+   tinted-yellow lead tile. Decision: the tinted icon-lead variant is dropped, not
+   neutralised — plain white with the design system's own subtle hairline instead
+   (CLAUDE.md § "when a kit component has no untinted variant, build the piece from
+   tokens"). ListRow.tsx's own comment carries the full reasoning. */
+.vt-row__lead{flex:0 0 auto;display:flex;align-items:center;justify-content:center;inline-size:36px;block-size:36px;border-radius:var(--vt-radius-md);background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle)}
+.vt-row__main{flex:1 1 auto;min-inline-size:0}
+.vt-row__title{display:block;font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium);color:var(--vt-text-primary);line-height:1.35}
+.vt-row__sub{display:block;font-size:var(--vt-body-sm);color:var(--vt-text-muted);line-height:1.4;margin-block-start:2px}
+.vt-row__meta{flex:0 0 auto;display:flex;align-items:center;gap:var(--vt-space-3);color:var(--vt-text-secondary);font-size:var(--vt-body-sm)}
+.vt-row--inverse{border-block-end-color:var(--vt-border-inverse)}
+.vt-row--inverse .vt-row__title{color:var(--vt-text-inverse)}
+.vt-row--inverse .vt-row__sub,.vt-row--inverse .vt-row__meta{color:var(--vt-text-inverse-muted)}
+/* Untouched — was already untinted (a plain charcoal step, not a yellow one). */
+.vt-row--inverse .vt-row__lead{background:var(--vt-charcoal-800);border-color:var(--vt-border-inverse)}
+
+/* Rule 2 addition — the compiled source has no `selected` prop or CSS at all
+   (ListRow.tsx's own comment). Neutral background + bolder title, the same
+   "no tinted surface" constraint the lead-tile fix above already applies. */
+.vt-row--selected{background:var(--vt-grey-50)}
+.vt-row--selected .vt-row__title{font-weight:var(--vt-weight-semibold)}
+.vt-row--inverse.vt-row--selected{background:var(--vt-charcoal-800)}
+
+/* RTL mirror — a forward-pointing chevron must flip under dir="rtl" (UI-SPEC's
+   Four-Language Layout Contract). ListRow.tsx wraps the chevron icon in this class
+   specifically so this rule has something to target, mirroring DatePicker's own nav-
+   chevron fix (01-09-SUMMARY.md § Deviations). */
+[dir="rtl"] .vt-row__chevron{transform:scaleX(-1)}
