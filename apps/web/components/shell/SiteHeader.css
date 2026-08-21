@@ -1,0 +1,108 @@
+/* Extracted from `app/pages/SiteHeader.dc.html` — its `<helmet><style>` block's
+   `[data-hd-*]` rules, plus the inline `style="..."` attributes the mock's own markup
+   carries on the control row's children (the phone pill, the CTA, the two round narrow
+   controls, the narrow menu panel and its chips). Both move here for the same reason:
+   in this port a component's styling arrives by static import only, never at runtime and
+   never as an attribute. No value is rewritten (D-24); the only edits are the
+   physical -> logical conversions Law 03 / D-21 requires (`top` -> `inset-block-start`,
+   `height` -> `block-size`, `min-width` -> `min-inline-size`, `border-bottom` ->
+   `border-block-end`).
+
+   The mock's own comment on why this file exists at all, kept verbatim:
+   "One header, two surfaces. The control row is identical on every page — logo, phone,
+   language, currency, sign in — so the site never changes its mind."
+
+   Two additions this port makes, both from `design-system/readme.md` §11's documented
+   responsive contract rather than from the mock's CSS (which never wrote them — see
+   the `@media` block below and 01-13-SUMMARY.md's Deviations). */
+
+/* ── the bar ─────────────────────────────────────────────────────────────────────── */
+[data-hd="inverse"]{background:var(--vt-bg-inverse);position:sticky;inset-block-start:0;z-index:40;border-block-end:1px solid var(--vt-border-inverse)}
+[data-hd="overlay"]{background:transparent;position:relative;z-index:120}
+
+/* Scrolled past its own place on the hero, the overlay bar comes back as a floating
+   pane: charcoal glass over whatever is behind it, a hairline, and the neutral shadow.
+   A spacer of the same height holds its place in the hero, so nothing moves. */
+[data-hd="overlay"][data-hd-float="1"]{position:fixed;inset-block-start:clamp(8px,1.4vw,14px);inset-inline:clamp(12px,3vw,28px);z-index:200;border-radius:var(--vt-radius-xl);border:1px solid rgb(255 255 255/.14);background:rgb(30 31 31/.72);-webkit-backdrop-filter:blur(20px) saturate(1.35);backdrop-filter:blur(20px) saturate(1.35);box-shadow:var(--vt-shadow-lg);animation:vt-hd-drop 280ms cubic-bezier(.16,1,.3,1)}
+[data-hd="overlay"][data-hd-float="1"] [data-hd-row]{padding:0 clamp(14px,2.4vw,22px);min-block-size:clamp(56px,7vw,68px)}
+[data-hd-spacer]{min-block-size:clamp(60px,8vw,84px)}
+@keyframes vt-hd-drop{from{opacity:0;transform:translateY(calc(-100% - 20px))}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){[data-hd="overlay"][data-hd-float="1"]{animation:none}}
+
+[data-hd-row]{max-inline-size:1200px;margin:0 auto;padding:0 clamp(20px,5vw,56px);display:flex;align-items:center;gap:10px;min-block-size:76px}
+[data-hd="overlay"] [data-hd-row]{max-inline-size:none;padding:0;min-block-size:clamp(60px,8vw,84px)}
+
+/* ── the two control rows ────────────────────────────────────────────────────────── */
+[data-hd-wide]{display:none}
+[data-hd-narrow]{display:flex}
+@media (min-width:1080px){[data-hd-wide]{display:flex}[data-hd-narrow]{display:none!important}}
+
+/* `margin-inline-start:auto` is the header's one genuinely direction-sensitive rule
+   (01-UI-SPEC.md § Shell Contract, RTL row): it is what pushes the trailing control
+   group to the end of the row, and being logical rather than `margin-left` is what puts
+   that group on the left under Arabic instead of leaving it stranded on the right.
+   Ported unchanged from the mock's own inline style. */
+[data-hd-tail]{margin-inline-start:auto;align-items:center;gap:10px;justify-content:flex-end;min-inline-size:0}
+[data-hd-narrow][data-hd-tail]{position:relative;gap:8px;flex:0 0 auto;justify-content:flex-end}
+
+[data-hd-logo]{display:inline-flex;align-items:center;flex:0 0 auto;border:0;text-decoration:none}
+
+/* ── the phone affordance ────────────────────────────────────────────────────────── */
+[data-hd-pill]{display:inline-flex;align-items:center;gap:8px;block-size:36px;padding:0 14px;border-radius:999px;background:var(--vt-white);border:1px solid rgb(30 31 31/.10);box-shadow:none;color:var(--vt-charcoal-900);font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap;transition:var(--vt-transition-control)}
+[data-hd-pill]:hover{border-color:rgb(30 31 31/.28)}
+
+/* The two round controls on the narrow row (call, menu). 44px is the touch-target
+   floor CLAUDE.md § Responsive sets, not a chosen number. */
+[data-hd-round]{all:unset;box-sizing:border-box;inline-size:44px;block-size:44px;border-radius:999px;background:var(--vt-white);border:1px solid rgb(30 31 31/.10);box-shadow:none;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer;flex:0 0 auto}
+
+/* ── the account control ─────────────────────────────────────────────────────────── */
+/* The account control is the one thing in this bar that is about you. Signed out it is
+   a plain outlined control. Hover changes the fill, never adds a glow. It belongs to
+   the same family as the phone, language and currency pills — white on the charcoal
+   bar, never a dark control on a dark ground. */
+[data-hd-acct]{position:relative;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;padding:0;border-radius:999px;border:1px solid rgb(30 31 31/.10);background:var(--vt-white);box-shadow:none;font:inherit;color:var(--vt-charcoal-900);text-decoration:none;white-space:nowrap;cursor:pointer;transition:var(--vt-transition-control)}
+[data-hd-acct]:hover{border-color:rgb(30 31 31/.28)}
+[data-hd-acct="pill"]{block-size:36px;padding:0 16px;gap:8px;font-size:13px;font-weight:600}
+[data-hd-acct="pill"]:hover{background:var(--vt-white);border-color:var(--vt-white);color:var(--vt-charcoal-900)}
+
+/* ── the primary call to action ──────────────────────────────────────────────────── */
+/* Full-strength yellow on the charcoal bar — the one accent in the row. The stored
+   string stays sentence case ("Book a transfer"); `text-transform` is what makes it
+   read uppercase, because German and Arabic do not uppercase the way English does and
+   the transformation belongs in CSS (design-system/readme.md §2/§7, D-24). */
+[data-hd-cta]{block-size:36px;padding:0 18px;border-radius:999px;background:var(--vt-yellow);border:1px solid var(--vt-charcoal-900);color:var(--vt-charcoal-900);font-size:13px;font-weight:700;letter-spacing:.01em;text-transform:uppercase;display:inline-flex;align-items:center;gap:8px;text-decoration:none;white-space:nowrap;transition:var(--vt-transition-control)}
+[data-hd-cta]:hover{background:var(--vt-charcoal-900);color:var(--vt-yellow)}
+[data-hd-cta]:active{transform:translateY(1px)}
+
+/* ── the narrow menu ─────────────────────────────────────────────────────────────── */
+[data-hd-menu]{position:absolute;inset-block-start:calc(100% + 10px);inset-inline-end:0;inline-size:min(300px,calc(100vw - 32px));box-sizing:border-box;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-xl);padding:8px;display:flex;flex-direction:column;gap:2px;z-index:130;animation:vt-hd-in 180ms cubic-bezier(.16,1,.3,1)}
+@media (prefers-reduced-motion:reduce){[data-hd-menu]{animation:none}}
+@keyframes vt-hd-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+
+[data-hd-menucta]{display:flex;align-items:center;justify-content:center;gap:9px;min-block-size:44px;margin:2px 2px 4px;padding:0 16px;border:1px solid var(--vt-charcoal-900);border-radius:999px;background:var(--vt-yellow);text-decoration:none;color:var(--vt-charcoal-900);font-size:14px;font-weight:700;text-transform:uppercase}
+[data-hd-menuacct]{display:flex;align-items:center;justify-content:center;gap:9px;min-block-size:44px;margin:2px 2px 4px;padding:0 16px;border:1px solid var(--vt-charcoal-900);border-radius:999px;background:var(--vt-white);text-decoration:none;color:var(--vt-charcoal-900);font-size:14px;font-weight:600;letter-spacing:.01em;transition:var(--vt-transition-control)}
+[data-hd-menuitem]{display:flex;align-items:center;min-block-size:44px;padding:0 12px;border-radius:10px;color:var(--vt-text-primary);font-size:14px;text-decoration:none;transition:var(--vt-transition-control)}
+[data-hd-menuitem]:hover{background:var(--vt-charcoal-900);color:var(--vt-white)}
+[data-hd-mgroup]{display:flex;flex-direction:column;gap:7px;padding:2px 10px 6px}
+[data-hd-mgroup="last"]{padding-block-end:8px}
+[data-hd-mlabel]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-hd-mchips]{display:flex;flex-wrap:wrap;gap:6px}
+[data-hd-chip]{all:unset;box-sizing:border-box;min-inline-size:44px;block-size:44px;padding:0 14px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--vt-font-body);font-size:13px;font-weight:600;cursor:pointer;background:var(--vt-white);color:var(--vt-text-primary);border:1px solid var(--vt-border-subtle)}
+[data-hd-chip][data-on="1"]{background:var(--vt-charcoal-900);color:var(--vt-white);border:1px solid var(--vt-charcoal-900)}
+[data-hd-mlinks]{display:flex;flex-direction:column;gap:2px;padding-block-start:6px;border-block-start:1px solid var(--vt-border-subtle)}
+
+@media print{[data-hd]{display:none!important}}
+
+/* ── the documented responsive contract (Rule 2 additions) ───────────────────────────
+   `design-system/readme.md` §11 states the header steps to 60px under 1080px and the
+   phone pill hides at 620px; `01-UI-SPEC.md` § Shell Contract restates both as the
+   port's contract. The mock's own CSS writes neither — its `[data-hd-row]` is 76px at
+   every width and its phone affordance never hides — so these two rules are added here
+   from the written contract rather than copied from the mock, and the screenshot
+   baselines at 1024/768/390 record the port's behaviour, not the mock's. */
+@media (max-width:1080px){
+  [data-hd-row]{min-block-size:60px}
+}
+@media (max-width:620px){
+  [data-hd-callbtn]{display:none}
+}
