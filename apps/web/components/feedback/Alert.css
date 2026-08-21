@@ -1,0 +1,23 @@
+/* Extracted verbatim from the vendored design-system bundle (reference-only, D-30),
+   `components/feedback/Alert.jsx`'s `const CSS` template literal, with the physical
+   -> logical conversion the extraction recipe permits (margin-bottom -> margin-block-
+   end) and one Law 02 decision.
+
+   Law 02 decision (01-10-PLAN.md Task 2, binding): the source's `accent` tone
+   (`background:var(--vt-yellow-50);border-color:var(--vt-yellow-200)`) is a banned
+   pale-yellow surface — CLAUDE.md names this exact component's accent tone as one of
+   the kit defaults that must not ship. Dropped entirely, not neutralised at runtime,
+   matching the call Plan 06 made for Card's accent tone and Badge's warning tone. The
+   remaining tones (info/success/danger/inverse) carry every attention state this
+   product needs (must_haves: "attention is carried by charcoal or by the semantic
+   danger and success colours"). Body copy (`.vt-alert__body`) carries no
+   `-webkit-line-clamp`/fixed line-height cap in the source — confirmed by reading
+   `function Alert` directly — so the "Alert body copy wraps rather than truncating"
+   contract is already met verbatim, nothing to add. */
+.vt-alert{display:flex;gap:12px;padding:14px 16px;border-radius:var(--vt-radius-md);border:var(--vt-border-w) solid transparent;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);line-height:var(--vt-body-leading-tight)}
+.vt-alert__title{display:block;font-weight:var(--vt-weight-semibold);margin-block-end:2px}
+.vt-alert__body{min-inline-size:0}
+.vt-alert--info{background:var(--vt-grey-50);border-color:var(--vt-border-subtle);color:var(--vt-text-secondary)}
+.vt-alert--success{background:var(--vt-success-tint);border-color:transparent;color:var(--vt-charcoal-800)}
+.vt-alert--danger{background:var(--vt-danger-tint);border-color:transparent;color:var(--vt-charcoal-800)}
+.vt-alert--inverse{background:var(--vt-charcoal-800);border-color:var(--vt-border-inverse);color:var(--vt-text-inverse)}

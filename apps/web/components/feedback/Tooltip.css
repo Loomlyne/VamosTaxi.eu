@@ -1,0 +1,29 @@
+/* Extracted verbatim from the vendored design-system bundle (reference-only, D-30),
+   `components/feedback/Tooltip.jsx`'s `const CSS` template literal, with the physical
+   -> logical conversions the extraction recipe permits (top/bottom/left ->
+   inset-block-start/inset-block-end/inset-inline-start) and one RTL-centring fix.
+
+   The `--top`/`--bottom` variants centre the bubble horizontally with
+   `inset-inline-start:50%` + `transform:translateX(-50%)` — a `transform` is never
+   direction-aware, so under `dir="rtl"` `inset-inline-start:50%` becomes `right:50%`
+   (the bubble's own *right* edge, not its left edge, lands at the midpoint) and the
+   unflipped `translateX(-50%)` would then shift the bubble a further half-width past
+   true centre rather than onto it. The `[dir="rtl"]` override below flips the sign to
+   compensate, the same "flip the compensating value, not the anchor" treatment
+   DatePicker.css's nav-chevron fix and Toast.css's `.vt-toaster` fix use. Verified
+   live during the Arabic pass (01-10-SUMMARY.md).
+
+   `--right` keeps its one-directional conversion unmodified (`inset-inline-start:
+   calc(100% + 8px)`) — under RTL this now opens toward the reading-direction end
+   (visually the trigger's left) rather than staying pinned to the physical right,
+   which is the intended outcome of "physical -> logical," not a bug: `placement`
+   becomes direction-relative like everything else the D-21 gate governs, matching
+   what CLAUDE.md's Four-Language rules ask of any component with a directional
+   affordance. Also verified live (01-10-SUMMARY.md's Arabic Pass section). */
+.vt-tip{position:relative;display:inline-flex}
+.vt-tip__bubble{position:absolute;z-index:50;background:var(--vt-charcoal-900);color:var(--vt-text-inverse);font-family:var(--vt-font-body);font-size:var(--vt-body-xs);line-height:1.4;padding:7px 10px;border-radius:var(--vt-radius-sm);box-shadow:var(--vt-shadow-md);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity var(--vt-dur-fast) var(--vt-ease-standard)}
+.vt-tip__bubble--on{opacity:1}
+.vt-tip__bubble--top{inset-block-end:calc(100% + 8px);inset-inline-start:50%;transform:translateX(-50%)}
+.vt-tip__bubble--bottom{inset-block-start:calc(100% + 8px);inset-inline-start:50%;transform:translateX(-50%)}
+.vt-tip__bubble--right{inset-inline-start:calc(100% + 8px);inset-block-start:50%;transform:translateY(-50%)}
+[dir="rtl"] .vt-tip__bubble--top,[dir="rtl"] .vt-tip__bubble--bottom{transform:translateX(50%)}

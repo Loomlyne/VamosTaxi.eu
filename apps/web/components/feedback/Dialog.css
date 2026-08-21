@@ -1,0 +1,32 @@
+/* Extracted verbatim from the vendored design-system bundle (reference-only, D-30),
+   `components/feedback/Dialog.jsx`'s `const CSS` template literal, with the physical
+   -> logical conversions the extraction recipe permits (width -> inline-size,
+   max-height -> max-block-size, max-width -> max-inline-size) and a reduced-motion
+   companion for both `@keyframes` rules (neither had one in the source — Rule 2, the
+   same "every mock already does this" contract the Focus/Motion Contract states,
+   01-UI-SPEC.md).
+
+   The scrim + panel structure, `position:fixed;inset:0` and `overflow:auto` on
+   `.vt-dialog`, are unchanged — `.vt-dialog` is the element Dialog.tsx marks
+   `data-lenis-prevent` on (it is the actual scrolling region, not a separate
+   `.vt-dialog__body` — confirmed by reading `function Dialog` directly, there is no
+   independent scroll container inside it), and the element document.body's scroll
+   lock (Dialog.tsx) cooperates with, never fights, `apps/web/lib/lenis-provider.tsx`'s
+   own inline-style lock detector (see Dialog.tsx's header comment). */
+.vt-dialog__scrim{position:fixed;inset:0;background:var(--vt-bg-scrim);display:flex;align-items:center;justify-content:center;padding:24px;z-index:70;animation:vt-fade var(--vt-dur-base) var(--vt-ease-standard)}
+.vt-dialog{background:var(--vt-bg-surface);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-xl);inline-size:100%;max-block-size:88vh;overflow:auto;animation:vt-rise var(--vt-dur-base) var(--vt-ease-out)}
+.vt-dialog--sm{max-inline-size:400px}
+.vt-dialog--md{max-inline-size:560px}
+.vt-dialog--lg{max-inline-size:760px}
+.vt-dialog__head{display:flex;align-items:flex-start;gap:16px;padding:22px 24px 0}
+.vt-dialog__titles{flex:1 1 auto}
+.vt-dialog__title{font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);margin:0}
+.vt-dialog__sub{font-size:var(--vt-body-sm);color:var(--vt-text-muted);margin:4px 0 0}
+.vt-dialog__body{padding:18px 24px}
+.vt-dialog__foot{display:flex;justify-content:flex-end;gap:10px;padding:0 24px 22px}
+@keyframes vt-fade{from{opacity:0}to{opacity:1}}
+@keyframes vt-rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){
+  .vt-dialog__scrim{animation:none}
+  .vt-dialog{animation:none}
+}

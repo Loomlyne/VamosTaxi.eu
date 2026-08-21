@@ -1,0 +1,29 @@
+/* Extracted verbatim from the vendored design-system bundle (reference-only, D-30),
+   `components/feedback/ProgressIndicator.jsx`'s `const CSS` template literal, with
+   the physical -> logical conversion the extraction recipe permits (height ->
+   block-size). This *is* the loading-state primitive (Component State Matrix) — a
+   busy button composes this rather than growing its own loading prop (same contract
+   Button.tsx documents for its own missing `loading` prop, 01-01/01-PATTERNS.md).
+
+   Fill direction under RTL: `.vt-prog__fill` is a plain block box in normal flow
+   inside `.vt-prog__track` (not floated, not absolutely positioned) — its inline-
+   start edge aligns with the track's inline-start edge by the CSS box model's own
+   direction-aware default, so `width:X%` (set inline in ProgressIndicator.tsx) grows
+   toward the reading direction for free under `dir="rtl"`, with no property to
+   convert or override. Verified live during the Arabic pass (01-10-SUMMARY.md). */
+.vt-prog{display:flex;flex-direction:column;gap:8px;inline-size:100%;font-family:var(--vt-font-body)}
+.vt-prog__row{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.vt-prog__label{min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+.vt-prog__val{flex:0 0 auto;white-space:nowrap;font-family:var(--vt-font-display);font-size:var(--vt-figure-sm);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary);font-variant-numeric:tabular-nums}
+.vt-prog__track{block-size:8px;border-radius:var(--vt-radius-pill);background:var(--vt-grey-200);overflow:hidden}
+.vt-prog__fill{display:block;block-size:100%;border-radius:var(--vt-radius-pill);background:var(--vt-accent);transition:width var(--vt-dur-slow) var(--vt-ease-out)}
+.vt-prog--sm .vt-prog__track{block-size:4px}
+.vt-prog--charcoal .vt-prog__fill{background:var(--vt-charcoal-900)}
+.vt-prog--success .vt-prog__fill{background:var(--vt-success)}
+.vt-prog--danger .vt-prog__fill{background:var(--vt-danger)}
+.vt-prog--inverse .vt-prog__track{background:var(--vt-charcoal-700)}
+.vt-prog--inverse .vt-prog__label{color:var(--vt-text-inverse-muted)}
+.vt-prog--inverse .vt-prog__val{color:var(--vt-text-inverse)}
+.vt-prog__segs{display:flex;gap:5px}
+.vt-prog__seg{flex:1 1 0;block-size:8px;border-radius:var(--vt-radius-pill);background:var(--vt-grey-200)}
+.vt-prog__seg--on{background:var(--vt-accent)}

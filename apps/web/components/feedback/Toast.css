@@ -1,0 +1,41 @@
+/* Extracted verbatim from the vendored design-system bundle (reference-only, D-30),
+   `components/feedback/Toast.jsx`'s `const CSS` template literal, with the physical
+   -> logical conversions the extraction recipe permits (max-width -> max-inline-size,
+   left/bottom on `.vt-toaster` -> inset-inline-start/inset-block-end), one Law 02
+   decision, and the reduced-motion companion the one `@keyframes` rule here needs.
+
+   Law 02 decision (01-10-PLAN.md Task 2, binding, matching Alert.css): the source's
+   `accent` tone only ever changes the leading glyph's colour to full-strength
+   `var(--vt-accent)` on the same fixed `--vt-charcoal-900` background every tone
+   shares (confirmed by reading `function Toast` directly — there is no per-tone
+   background rule anywhere in this component's CSS at all, unlike Alert). That is
+   full-strength yellow on a charcoal ground, which CLAUDE.md's own Law 02 text
+   explicitly allows ("Attention is carried by charcoal, by full-strength yellow on a
+   charcoal ground...") — not a tinted surface. It is still dropped from the tone
+   union here, per the plan's own explicit instruction to drop accent from *both*
+   Alert's and Toast's tone unions for consistency (01-10-PLAN.md Task 2 action,
+   must_haves: "No feedback component uses the tinted accent tone"), even though this
+   specific case is not itself a tint. Recorded honestly in 01-10-SUMMARY.md.
+
+   `.vt-toaster` (the fixed bottom-center stacking container) is extracted verbatim
+   even though this plan's Toast.tsx renders a single toast, not a toaster/queue
+   manager (must_haves: "One toast renders at a time; a queue is a later concern and
+   no stack behaviour is invented here") — kept for Phase 5's eventual toast-manager
+   component to reuse without re-extracting this rule from the bundle a second time. */
+.vt-toast{display:inline-flex;align-items:center;gap:12px;background:var(--vt-charcoal-900);color:var(--vt-text-inverse);border-radius:var(--vt-radius-md);padding:13px 16px;box-shadow:var(--vt-shadow-lg);font-family:var(--vt-font-body);font-size:var(--vt-body-sm);max-inline-size:420px;animation:vt-toast-in var(--vt-dur-base) var(--vt-ease-out)}
+.vt-toast__msg{flex:1 1 auto}
+.vt-toast__close{all:unset;display:flex;cursor:pointer;color:var(--vt-text-inverse-muted)}
+.vt-toast__close:hover{color:var(--vt-text-inverse)}
+@keyframes vt-toast-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){
+  .vt-toast{animation:none}
+}
+.vt-toaster{position:fixed;inset-inline-start:50%;inset-block-end:24px;transform:translateX(-50%);display:flex;flex-direction:column;gap:10px;align-items:center;z-index:60}
+/* `inset-inline-start:50%` anchors this box's logical-start edge at the horizontal
+   midpoint (physically `left` in LTR, `right` in RTL) — `translateX(-50%)` alone only
+   centres the LTR case, since `transform` is never direction-aware. Under RTL the
+   anchor is now the box's own right edge, so centring needs the mirrored shift; same
+   reasoning as Tooltip.css's `--top`/`--bottom` fix. Dead code today (no `.vt-toaster`
+   is rendered by this plan's Toast.tsx — see the header comment above), corrected
+   now so a future toast-manager component inherits a working rule, not a latent bug. */
+[dir="rtl"] .vt-toaster{transform:translateX(50%)}
