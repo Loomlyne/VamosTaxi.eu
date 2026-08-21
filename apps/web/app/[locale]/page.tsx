@@ -1,7 +1,18 @@
 import Image from "next/image";
+import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Button } from "@/components/core";
 import { BookingDraftFields } from "@/components/booking";
+import { buildAlternates } from "@/lib/metadata";
+
+// D-19: the home page's own `alternates` come from the one shared helper — no
+// hand-maintained hreflang block here. I18N-03's own automated check (01-VALIDATION.md)
+// asserts these land in the raw server-rendered response, not just in a client-side
+// <head> mutation, so this runs through Next's `generateMetadata` (server-only) rather
+// than a client effect.
+export async function generateMetadata(): Promise<Metadata> {
+  return { alternates: buildAlternates("/") };
+}
 
 export default async function HomePage({
   params,
