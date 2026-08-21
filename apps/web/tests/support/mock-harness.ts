@@ -38,7 +38,7 @@ import { createServer, type Server, type ServerResponse } from "node:http";
 import { readFileSync, existsSync, statSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
-import { extname, join, dirname, basename } from "node:path";
+import { extname, join, dirname, basename, relative } from "node:path";
 import ts from "typescript";
 import * as ReactDOMServer from "react-dom/server";
 import ReactActual from "react";
@@ -406,6 +406,57 @@ function resolveLocal(fromDir: string, spec: string): string {
   throw new Error(`mock-harness: cannot resolve local import "${spec}" from ${fromDir}`);
 }
 
+/** Plan 11 addition (generalizable, same class of gap as the directory-import
+ *  fallback above): the first components in this port that COMPOSE a sibling
+ *  category's component rather than only importing its type/value (`StatusBadge`
+ *  and `VehicleCard` both render a real `<Badge>` from `../core`, not just import
+ *  `BadgeTone`'s type) exposed a real bug here — `mountPort` previously linked only
+ *  the ONE stylesheet matching the top-level component's own basename
+ *  (`StatusBadge.css`), never the CSS of any component it composes internally
+ *  (`Badge.css`). The composed child rendered with no styling at all (a plain-text
+ *  "Popular" instead of a yellow pill — confirmed by direct visual inspection of the
+ *  bundle-vs-port diff this fix was found from), a real, silent Fidelity Contract
+ *  gap, not a flaky screenshot. This walks the component's own import graph via
+ *  static source-text scanning (not execution — cheap, and avoids threading extra
+ *  state through `loadTsModule`'s memoized `localRequire`) and links every local
+ *  `.css` file transitively reachable from it, not just its own. Every later port
+ *  batch whose components compose across `components/{core,forms,navigation,
+ *  feedback,transfer,data}/` relies on this same fix — done once, here. */
+function collectLocalCssLinks(absPath: string, visited: Set<string> = new Set()): string[] {
+  if (visited.has(absPath) || !existsSync(absPath)) return [];
+  visited.add(absPath);
+
+  const source = readFileSync(absPath, "utf8");
+  const specs = new Set<string>();
+  // Matches both `import ... from "./X"` / `import "./X.css"` and `require("./X")` —
+  // covers every import shape this codebase's components actually use.
+  const importRe = /(?:from\s+["']([^"']+)["'])|(?:import\s+["']([^"']+)["'])|(?:require\(\s*["']([^"']+)["']\s*\))/g;
+  let m: RegExpExecArray | null;
+  while ((m = importRe.exec(source))) {
+    const spec = m[1] ?? m[2] ?? m[3];
+    if (spec && spec.startsWith(".")) specs.add(spec);
+  }
+
+  const links: string[] = [];
+  for (const spec of specs) {
+    if (spec.endsWith(".css")) {
+      const cssAbs = join(dirname(absPath), spec);
+      if (existsSync(cssAbs)) links.push(cssAbs);
+      continue;
+    }
+    try {
+      const resolved = resolveLocal(dirname(absPath), spec);
+      links.push(...collectLocalCssLinks(resolved, visited));
+    } catch {
+      // Not a resolvable local module (e.g. a type-only import already erased by
+      // the time this file is read, or a bare package specifier accidentally
+      // starting with "." in some edge case) — nothing to link, skip rather than
+      // fail the whole render over a decorative import.
+    }
+  }
+  return links;
+}
+
 /** Renders the React port of one component with one prop set, statically (no hydration
  *  needed — Playwright drives real `:hover`/`:focus-visible`/`:active` pseudo-classes in
  *  the browser for the interaction states none of these components need live event
@@ -463,10 +514,14 @@ export async function mountPort(
   const markup = ReactDOMServer.renderToStaticMarkup(element);
 
   // The CSS-extraction recipe (D-24 amended) always places a component's stylesheet
-  // beside it under the same basename.
-  const cssRelPath = componentRelPath.replace(/\.tsx?$/, ".css");
-  const cssAbs = join(REPO_ROOT, cssRelPath);
-  const extraLinks = existsSync(cssAbs) ? [`/${cssRelPath}`] : [];
+  // beside it under the same basename — plus (Plan 11 addition, see
+  // collectLocalCssLinks's own comment) every stylesheet belonging to a component
+  // this one composes internally, transitively, so a composed child (StatusBadge's
+  // and VehicleCard's own `<Badge>`) renders styled here exactly as it does in the
+  // real app rather than as unstyled plain text.
+  const extraLinks = Array.from(new Set(collectLocalCssLinks(abs))).map(
+    (cssAbs) => `/${relative(REPO_ROOT, cssAbs)}`,
+  );
 
   const html = wrapHtml({
     title: `mountPort: ${componentRelPath}`,
