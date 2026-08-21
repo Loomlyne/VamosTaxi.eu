@@ -5,14 +5,14 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Platform Foundation, Design System Port & i18n Runtime
 status: executing
-stopped_at: "Completed 01-11-PLAN.md (Task 3: data/transfer galleries, baselines, language passes)"
-last_updated: "2026-08-21T18:52:52.398Z"
+stopped_at: "Completed 01-10-PLAN.md (Task 3: navigation/feedback galleries, baselines, feedback behaviour spec)"
+last_updated: "2026-08-21T19:00:03.230Z"
 last_activity: 2026-08-21
 progress:
-  total_phases: 1
+  total_phases: 2
   completed_phases: 0
   total_plans: 14
-  completed_plans: 10
+  completed_plans: 11
 ---
 
 # Project State
@@ -29,11 +29,11 @@ confirmation — must.
 ## Current Position
 
 Phase: 1 of 11 (Platform Foundation, Design System Port & i18n Runtime)
-Plan: 10 of 14 in current phase
+Plan: 11 of 14 in current phase
 Status: Ready to execute
 Last activity: 2026-08-21
 
-Progress: [███████░░░] 71%
+Progress: [████████░░] 79%
 
 ## Performance Metrics
 
@@ -69,6 +69,7 @@ Progress: [███████░░░] 71%
 | Phase 01 P09 | ~3h (two sessions) | 3 tasks | 100 files |
 | Phase 01 P04 | 45min | 3 tasks | 8 files |
 | Phase 01 P11 | ~3h (Task 3 this session) | 3 tasks | 116 files |
+| Phase 01 P10 | ~90min (Task 3 this session) | 3 tasks | 25 files |
 
 ## Accumulated Context
 
@@ -105,6 +106,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 01-04: Cloudflare Access (D-37) and Logpush (D-38) deferred by explicit owner decision, not implemented — recorded in docs/build/CLOUDFLARE-RESOURCES.md and .planning/WINDOWS.md
 - [Phase ?]: 01-11: mock-harness.ts mountPort now links every composed component's CSS transitively (collectLocalCssLinks), not just the top-level component's own — a real, silent styling gap found while diffing StatusBadge/VehicleCard's composed Badge against the bundle
 - [Phase ?]: 01-11: PriceSummary's bundle-vs-port screenshot diff uses two intentionally different prop shapes per side (bundle: pre-formatted value/total strings; port: amount:number|null routed through formatAmount) since the compiled bundle does no currency formatting of its own at all
+- [Phase ?]: 01-10: Tooltip's port-side 'shown' state has no automated screenshot coverage (mountPort serves static, non-hydrated markup with no live event handlers) — verified via the bundle-side screenshot and the gallery's real-focus AutoShowTooltip fixture instead, recorded in WINDOWS.md entry 5
+- [Phase ?]: 01-10: A flex item's default min-inline-size:auto silently defeats maxInlineSize for a white-space:nowrap child (StepIndicator's step flow) — fixed with explicit minInlineSize:0 plus an inner overflow-x:auto wrapper, not a wider box, to avoid forcing the whole page to scroll sideways at 390px
 
 ### Pending Todos
 
@@ -140,6 +143,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-21T18:52:52.390Z
-Stopped at: Completed 01-11-PLAN.md (Task 3: data/transfer galleries, baselines, language passes)
+Last session: 2026-08-21T19:00:03.222Z
+Stopped at: Completed 01-10-PLAN.md (Task 3: navigation/feedback galleries, baselines, feedback behaviour spec)
 Resume file: None

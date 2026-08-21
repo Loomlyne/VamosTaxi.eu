@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 4
+open_count: 5
 waived_count: 0
 fixed_count: 0
-total_count: 4
-last_updated: 2026-08-21T18:19:37.275Z
+total_count: 5
+last_updated: 2026-08-21T18:57:19.261Z
 ---
 
 # Broken Windows Ledger
@@ -19,6 +19,7 @@ last_updated: 2026-08-21T18:19:37.275Z
 | 2 | 01 | unrun-verify | apps/web/components/forms/DatePicker.tsx |  | DatePicker's internal open calendar-panel state has no automated screenshot coverage — React-state-only (no controlled prop), so neither the static gallery nor the static mountPort harness can exercise it. Verified live against opennextjs-cloudflare preview (chevron mirroring, panel contents) but not covered by a committed repeatable test. | open |  | 2026-08-21T00:24:46.926Z |  |
 | 3 | 1 | deviation | apps/web/middleware.ts |  | Cloudflare Access on staging (D-37) deferred by explicit owner decision — no identity provider chosen yet; only the noindex header half was implemented. See docs/build/CLOUDFLARE-RESOURCES.md. | open |  | 2026-08-21T18:19:33.458Z |  |
 | 4 | 1 | deviation | docs/build/CLOUDFLARE-RESOURCES.md |  | Logpush enablement (D-38) deferred by explicit owner decision — no destination chosen yet. lib/logger.ts already emits the structured stream Logpush would read from; no code change needed when a destination lands. | open |  | 2026-08-21T18:19:37.275Z |  |
+| 5 | 01 | unrun-verify | apps/web/components/feedback/Tooltip.tsx |  | Tooltip's 'shown' state (React state toggled by a live onMouseEnter/onFocus handler, not a controllable prop) has no automated screenshot coverage on the port side — mountPort serves fully static, non-hydrated markup with no attached event handlers, so a real hover/focus has nothing to react to. Only the bundle side (real client-hydrated React) is screenshot-tested; the port side's rendering fidelity for this state is verified manually instead, via the dev gallery's AutoShowTooltip fixture (focus-triggered on mount), during the German/Arabic passes. | open |  | 2026-08-21T18:57:19.261Z |  |
 
 ````json
 [
@@ -68,6 +69,18 @@ last_updated: 2026-08-21T18:19:37.275Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-21T18:19:37.275Z",
+    "resolved_at": null
+  },
+  {
+    "id": 5,
+    "kind": "unrun-verify",
+    "phase": "01",
+    "file": "apps/web/components/feedback/Tooltip.tsx",
+    "line": null,
+    "description": "Tooltip's 'shown' state (React state toggled by a live onMouseEnter/onFocus handler, not a controllable prop) has no automated screenshot coverage on the port side — mountPort serves fully static, non-hydrated markup with no attached event handlers, so a real hover/focus has nothing to react to. Only the bundle side (real client-hydrated React) is screenshot-tested; the port side's rendering fidelity for this state is verified manually instead, via the dev gallery's AutoShowTooltip fixture (focus-triggered on mount), during the German/Arabic passes.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-21T18:57:19.261Z",
     "resolved_at": null
   }
 ]
