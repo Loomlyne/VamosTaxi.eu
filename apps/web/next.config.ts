@@ -31,6 +31,29 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [],
   },
+
+  // D-28: the dev-only states gallery carries `X-Robots-Tag: noindex` in EVERY
+  // environment (not just production/staging — `middleware.ts`'s own D-37 header is
+  // conditioned on `DEPLOY_ENV === "staging"`, which is exactly the wrong gate here:
+  // staging is where the gallery is actually reviewed, so a header that only applied
+  // in production would protect nothing a reviewer ever hits it on). Two source
+  // patterns are both needed for the same reason `apps/web/lib/metadata.ts`'s own
+  // `localizedUrl` branches on `routing.defaultLocale`: `localePrefix: "as-needed"`
+  // (D-11/D-12) means English is served unprefixed (`/dev/components`) while German/
+  // French/Arabic are always explicitly prefixed (`/de/dev/components`) — one pattern
+  // alone would miss one of the two URL shapes. The production-exclusion itself
+  // (`notFound()` when `NODE_ENV === "production"`) lives in
+  // `apps/web/app/[locale]/dev/layout.tsx`, not here — a `next.config.ts` `headers()`
+  // rule has no way to gate on route existence, only to attach a header to whichever
+  // response a matching path produces (a 404 response still carries this header, which
+  // is fine — nothing about a 404 needs to be indexable either).
+  async headers() {
+    const noindex = [{ key: "X-Robots-Tag", value: "noindex" }];
+    return [
+      { source: "/dev/:path*", headers: noindex },
+      { source: "/:locale/dev/:path*", headers: noindex },
+    ];
+  },
 };
 
 // Lets `next dev` read Cloudflare bindings (KV/R2/Queues/Hyperdrive) locally
