@@ -91,7 +91,7 @@ test.describe("Dev gallery production exclusion @dev-exclusion", () => {
     // carries no `vars.DEPLOY_ENV` entry at all rather than an empty one.
     const prodEnv: NodeJS.ProcessEnv = { ...process.env, TEST_DIST_DIR: distDir };
     delete prodEnv.DEPLOY_ENV;
-    const server = spawn("pnpm", ["exec", "next", "start", "-p", String(port)], {
+    const server = spawn(NEXT_BIN, ["start", "-p", String(port)], {
       cwd: WEB_ROOT,
       stdio: "ignore",
       detached: true,
@@ -111,7 +111,7 @@ test.describe("Dev gallery production exclusion @dev-exclusion", () => {
     testInfo.setTimeout(60_000);
     const port = 4300 + testInfo.workerIndex;
     const baseURL = `http://localhost:${port}`;
-    const server = spawn("pnpm", ["exec", "next", "start", "-p", String(port)], {
+    const server = spawn(NEXT_BIN, ["start", "-p", String(port)], {
       cwd: WEB_ROOT,
       stdio: "ignore",
       detached: true,
