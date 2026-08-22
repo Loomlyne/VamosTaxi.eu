@@ -32,9 +32,11 @@ Authoritative. Full write-up: `.planning/ADR-014-owner-sitting-2026-08-22.md`.
 | Coupon | Paid booking consumes it, not an abandoned quote. |
 | Cash | No. |
 | Service area | Fail-closed, named routes only. |
-| Qurova | Buy ~$69 webfont. |
+| Qurova | Buy ~$69 webfont. **Keep open until purchased** — no fallback, no production serve as licensed. |
 | Analytics | Cloudflare Web Analytics (cookieless). |
 | Imprint street | TBC. |
+| Sentry | Owner creates **when asked**. Not inside Supabase. |
+| AeroDataBox | **Later.** Manual flight time until then. |
 
 ---
 

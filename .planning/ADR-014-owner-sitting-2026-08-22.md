@@ -88,8 +88,8 @@ lock (Phase 8 exclusion). Production store of Directions results is the Order.
 | Stripe | Owner creates when asked. |
 | Resend | Owner creates when asked. |
 | Mapbox | Owner creates when asked (after the sales email). |
-| AeroDataBox | **Later.** Flight autofill degrades to manual time until then. |
-| Sentry | **Not inside Supabase.** Separate crash-reporter. Owner previously said crash reporting is strictly necessary (OWNER-ANSWERS #10). Create Sentry when asked; do not invent a substitute. |
+| AeroDataBox | **Later.** Confirmed 2026-08-22: do not provision now. Flight autofill degrades to manual time until the account exists. |
+| Sentry | **Not inside Supabase.** Separate crash-reporter. Owner will create the account **when asked** (same pattern as Stripe/Resend). Do not invent a substitute; do not create it unprompted. |
 
 Do not create duplicate accounts. Ask the owner for access when a phase actually
 needs the dashboard.
@@ -138,7 +138,7 @@ amounts) is still missing. Engine stays behind no live `rate_versions` row.
 
 | Item | Decision |
 |---|---|
-| Qurova | **Buy** the Prioritype Web Font licence (~$69). Authorises ADR-009. |
+| Qurova | **Buy** the Prioritype Web Font licence (~$69). Authorises ADR-009. **Keep this item open until the purchase lands** — do not pick a fallback, do not treat the webfont as licensed for production redistribution. Vendored files stay in the repo; the Phase 1 font-copy / production-serve gate waits. |
 | Analytics | **Cloudflare Web Analytics** (cookieless). Not PostHog at launch. |
 | Imprint street / postcode | **Stays TBC.** |
 
@@ -153,4 +153,4 @@ amounts) is still missing. Engine stays behind no live `rate_versions` row.
 
 ## Still open (not this sitting)
 
-CHF price matrix · imprint street · vehicle/destination photography · staff invite emails · driver-no-show refund share · Qurova purchase actually completed · Cloudflare/Supabase/Stripe/Resend/Mapbox dashboards existing as live projects · Mapbox Order in writing · AeroDataBox · Sentry account.
+CHF price matrix · imprint street · vehicle/destination photography · staff invite emails · driver-no-show refund share · **Qurova purchase (open until bought)** · Cloudflare/Supabase/Stripe/Resend/Mapbox dashboards as live projects · Mapbox Order in writing · **AeroDataBox (deferred, later)** · **Sentry (create when asked)**.
