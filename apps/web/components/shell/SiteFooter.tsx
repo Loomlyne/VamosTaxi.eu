@@ -336,7 +336,7 @@ export function SiteFooter({
       ) : null}
 
       <div data-ft-pad="main">
-        <nav data-ft-grid="1" aria-label="Footer">
+        <nav data-ft-grid="1" aria-label={tFooter("nav-label")}>
           {groups.map((group) => (
             <div key={group.key}>
               <h2 data-ft-h="1">{group.heading}</h2>
