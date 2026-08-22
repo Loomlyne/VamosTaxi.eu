@@ -9,6 +9,33 @@ Anything marked **(blank)** was left unanswered and stays blocked. Nothing on th
 guessed, and no CHF figure, policy number or capacity is invented to unblock work — a blank
 keeps its `data-tok` TBC pill on the live page.
 
+## Sitting 2026-08-22
+
+Authoritative. Full write-up: `.planning/ADR-014-owner-sitting-2026-08-22.md`.
+
+| # | Answer |
+|---|---|
+| Charge currency | CHF in the engine. Display CHF/EUR/USD/AED via **Stripe FX**. Hero switch converts immediately. Checkout shows the converted amount. **Card is charged in the chosen currency**; customer can change it again on Stripe Checkout. Copy in en/de/fr/ar. |
+| Schema Q1–Q4 | All **A**: snapshots, hashed manage tokens, assignment on legs, settings + settings_versions. |
+| Guest | Booking stored on email as a new user. Details email + manage link. Later signup (password or magic link); after verify, all bookings for that email. |
+| Mapbox | Email sales before signup (draft in ADR-014). |
+| Accounts | Cloudflare exists (Free until live). Owner creates Supabase, Stripe, Resend, Mapbox when asked. AeroDataBox later. Sentry is **not** inside Supabase — ask when crash reporting is wired. |
+| Waiting | Airport **60**, city **15**. |
+| Min advance | **180** min. |
+| Manage link | **30** days after last leg. |
+| Round-trip | **10 %**. |
+| Night | **20:00–06:00** Zurich (not 22:00). |
+| Quote / checkout lock | **30** min, same clock. |
+| Business | **3/3**. Van **8/8** (fix widget 7). |
+| Return extras | Both legs. Child seat max **1**. Extra stop **flat fee**, 0–3. |
+| Hourly | Out of V1. |
+| Coupon | Paid booking consumes it, not an abandoned quote. |
+| Cash | No. |
+| Service area | Fail-closed, named routes only. |
+| Qurova | Buy ~$69 webfont. |
+| Analytics | Cloudflare Web Analytics (cookieless). |
+| Imprint street | TBC. |
+
 ---
 
 ## Decisions
@@ -20,14 +47,14 @@ keeps its `data-tok` TBC pill on the live page.
 | 3 | Company address | "Zürich, Switzerland" — **street and postcode still blank** | Imprint stays on `data-tok` until the full address lands |
 | 4 | Official support address | `contact@vamostaxi.eu` | Contact page, email templates, Resend sender |
 | 5 | Payment methods accepted | Visa, Mastercard, Apple Pay, TWINT, PayPal | PayPal dropped from V1 on 2026-08-17 (Stripe has no CH PayPal support). Google Pay added free with Apple Pay. Cash-to-driver **not listed** → treated as out, needs confirmation. See Q16 |
-| 6 | Analytics tool | **(blank)** | Nothing wired. Cloudflare Web Analytics (cookieless) vs PostHog (consent-gated) still to choose. See Q22 |
+| 6 | Analytics tool | **Cloudflare Web Analytics** (cookieless) — sitting 2026-08-22 | Wire in Phase 10 / launch; no PostHog at launch. See Q22 |
 | 7 | Court of venue | **Zürich** | Terms, imprint |
 | 8 | Cancellation channels | Chat, WhatsApp or email | Additive to the self-serve button, not a replacement. See Q14 |
 | 9 | Is a cookie choice logged server-side? | "Not sure — ask engineering" | **Engineering answer: yes.** A browser-only cookie cannot prove consent to a Swiss nFADP or GDPR regulator. Adds a `consent_log` table. See Q22 |
 | 10 | Is crash reporting strictly necessary? | **Strictly necessary — always on** | Built as decided, with the caveat that Sentry transmits IP and URL data and is commonly treated as consent-requiring. Toggle lives in `settings`. See Q22 |
 | 11 | Live chat in V1? | **Yes** | Scoped 2026-08-17 to a **WhatsApp deep link**, not a third-party widget or an in-house build — no chat exists in any mock, and a vendor widget conflicts with the design system and the cookie banner |
 | 12 | "Become a driver" page | **Build it for launch** | `app/pages/become-a-partner.dc.html` ports; needs the four blanks below |
-| 13 | Vehicle lineup | **Economy 3/3, Business, Van 8/8 — three classes** | `first` does not ship. Van is 8/8, not 7/8. Business capacity still blank. See Q5–Q7 |
+| 13 | Vehicle lineup | **Economy 3/3, Business 3/3, Van 8/8 — three classes** | `first` does not ship. Van is 8/8, not 7/8. Business **3/3** confirmed 2026-08-22. Fix widget Van 7. See Q5–Q7 |
 | 14 | Automated flight-status tracking in V1? | **Yes** | Scoped 2026-08-17 to autofill + delay-aware pickup, not live ops-board tracking. See Q18 |
 | 15 | "Book by the hour" in V1? | **No — remove the tab** | `hourlyEnabled=false`. Owner decision, so the mock change is authorised. See Q19 |
 

@@ -1,5 +1,8 @@
 # Owner rulings needed before Phase 2 migrations or Phase 4 planning
 
+**Resolved:** 2026-08-22 sitting — see `.planning/ADR-014-owner-sitting-2026-08-22.md`.
+Q1–Q4 all **A**. Q5 **A** (Mapbox sales email). Schema conflicts are closed.
+
 **Written:** 2026-08-22. Cold-session pickup of Phases 3–4.
 **Why this exists:** four places `docs/build/GSD-LAUNCH.md` contradicts the reviewed
 Phase 2 schema, plus one Mapbox-terms finding that overturns the stated KV-cache
