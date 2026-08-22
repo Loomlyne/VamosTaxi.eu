@@ -29,26 +29,13 @@
 // Tagged "@dev-exclusion" per this plan's own artifact list.
 
 import { test, expect } from "@playwright/test";
-import { execFileSync } from "node:child_process";
 import { spawn, type ChildProcess } from "node:child_process";
-import { join } from "node:path";
+import { execFileLogged, NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
 const RUN_PROJECT = "component-1440";
-const WEB_ROOT = join(__dirname, "..", "..");
 
 async function waitForServer(url: string, timeoutMs = 60_000): Promise<void> {
-  const start = Date.now();
-  let lastError: unknown;
-  while (Date.now() - start < timeoutMs) {
-    try {
-      const res = await fetch(url);
-      if (res.status < 500) return;
-    } catch (err) {
-      lastError = err;
-    }
-    await new Promise((resolve) => setTimeout(resolve, 300));
-  }
-  throw new Error(`Server at ${url} did not become ready within ${timeoutMs}ms: ${String(lastError)}`);
+  return waitForNextServer(url, timeoutMs);
 }
 
 function killServer(proc: ChildProcess | null): void {
@@ -88,10 +75,10 @@ test.describe("Dev gallery production exclusion @dev-exclusion", () => {
     testInfo.setTimeout(180_000);
     // One production build, reused by every `next start` in this file — the exact
     // "build once, toggle DEPLOY_ENV at request time" shape this suite exists to prove.
-    execFileSync("pnpm", ["exec", "next", "build"], {
+    execFileLogged(NEXT_BIN, ["build"], {
       cwd: WEB_ROOT,
-      stdio: "ignore",
-      env: { ...process.env, TEST_DIST_DIR: distDir },
+      env: { ...process.env, TEST_DIST_DIR: distDir } as NodeJS.ProcessEnv,
+      timeoutMs: 180_000,
     });
   });
 

@@ -48,8 +48,8 @@
 
 import { test, expect, type Page } from "@playwright/test";
 import { spawn, type ChildProcess } from "node:child_process";
-import { join } from "node:path";
 import { mountPort, waitForMockReady } from "../support/mock-harness";
+import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 import enMessages from "../../i18n/messages/en.json";
 import deMessages from "../../i18n/messages/de.json";
 import frMessages from "../../i18n/messages/fr.json";
@@ -91,25 +91,8 @@ test.afterEach(async ({ page }) => {
 
 // ── not-found.tsx: real dev server, real browser navigation ────────────────────────────
 
-const WEB_ROOT = join(__dirname, "..", "..");
-
 let devServer: ChildProcess | null = null;
 let baseURL = "";
-
-async function waitForServer(url: string, timeoutMs = 60_000): Promise<void> {
-  const start = Date.now();
-  let lastError: unknown;
-  while (Date.now() - start < timeoutMs) {
-    try {
-      const res = await fetch(url);
-      if (res.status < 500) return;
-    } catch (err) {
-      lastError = err;
-    }
-    await new Promise((resolve) => setTimeout(resolve, 300));
-  }
-  throw new Error(`Dev server at ${url} did not become ready within ${timeoutMs}ms: ${String(lastError)}`);
-}
 
 /** Waits for the client to hydrate past the two-phase `notFound()` shell this file's own
  *  header comment documents — polling for the real `<main data-error-page>` markup (only
@@ -131,12 +114,12 @@ test.describe("not-found.tsx @component @error-pages", () => {
     testInfo.setTimeout(90_000);
     const port = 4100 + testInfo.workerIndex;
     baseURL = `http://localhost:${port}`;
-    devServer = spawn("pnpm", ["exec", "next", "dev", "-p", String(port)], {
+    devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
       cwd: WEB_ROOT,
       stdio: "ignore",
       detached: true,
     });
-    await waitForServer(baseURL);
+    await waitForNextServer(baseURL);
   });
 
   test.afterAll(() => {
