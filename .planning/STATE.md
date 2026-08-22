@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 1
-current_phase_name: Platform Foundation, Design System Port & i18n Runtime
-status: executing
-stopped_at: "Completed 01-10-PLAN.md (Task 3: navigation/feedback galleries, baselines, feedback behaviour spec)"
-last_updated: "2026-08-21T19:00:03.230Z"
-last_activity: 2026-08-21
+current_phase: 2
+current_phase_name: Data Schema, RLS & Staff Auth Foundations
+status: phase-complete
+stopped_at: "Phase 1 complete — 14/14 plans, verified PASS_WITH_GAPS (see 01-VERIFICATION.md). Phase 2 not yet planned."
+last_updated: "2026-08-22T13:00:00.000Z"
+last_activity: 2026-08-22
 progress:
   total_phases: 2
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 14
-  completed_plans: 11
+  completed_plans: 14
 ---
 
 # Project State
@@ -24,14 +24,14 @@ See: .planning/PROJECT.md (updated 2026-08-17)
 **Core value:** A customer can book a fixed-price transfer in under a minute and trust that
 the driver will be there. If nothing else works, the booking funnel — quote, pay,
 confirmation — must.
-**Current focus:** Phase 1 — Platform Foundation, Design System Port & i18n Runtime
+**Current focus:** Phase 2 — Data Schema, RLS & Staff Auth Foundations
 
 ## Current Position
 
-Phase: 1 of 11 (Platform Foundation, Design System Port & i18n Runtime)
+Phase: 2 of 11 (Data Schema, RLS & Staff Auth Foundations) — Phase 1 complete
 Plan: 11 of 14 in current phase
-Status: Ready to execute
-Last activity: 2026-08-21
+Status: Phase 1 verified PASS_WITH_GAPS; Phase 2 awaiting plan
+Last activity: 2026-08-22
 
 Progress: [████████░░] 79%
 

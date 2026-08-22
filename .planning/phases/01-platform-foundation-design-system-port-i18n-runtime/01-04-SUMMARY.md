@@ -194,7 +194,12 @@ These were explicitly named as out of scope for this pass by the orchestrator's 
 
 ## Issues Encountered
 
-- The plan's literal `staging.vamostaxi.eu` verify targets were already known-stale per the orchestrator's context; adapted every relevant check to `https://vamos-web-staging.koussayzayeni-e64.workers.dev` throughout.
+- The plan's literal `staging.vamostaxi.eu` verify targets were already known-stale per the orchestrator's context; adapted every relevant check to the account's workers.dev host throughout.
+  **Correction (2026-08-22):** the hostname recorded in this summary as
+  `vamos-web-staging.koussayzayeni-e64.workers.dev` no longer resolves. The account's
+  workers.dev subdomain is `koussayzayeni`, so the live host is
+  `https://vamos-web-staging.koussayzayeni.workers.dev`. The checks recorded here did pass
+  against the host wrangler printed at the time; only the hostname has since changed.
 - `wrangler types --include-runtime` (the officially recommended path to a typed env file) produces a ~560KB generated file — rejected as the committed artifact; used `@cloudflare/workers-types` + a hand-authored, concise `env.d.ts` instead, matching the plan's evident intent for a curated document rather than a generated dump.
 
 ## User Setup Required

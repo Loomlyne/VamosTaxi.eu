@@ -30,7 +30,7 @@ cleanup. Deviations from `GSD-LAUNCH.md`'s phase numbering are noted per phase b
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Platform Foundation, Design System Port & i18n Runtime** - Worker deploys to a real staging domain with the ported design system and an SSR-safe i18n runtime
+- [x] **Phase 1: Platform Foundation, Design System Port & i18n Runtime** - Worker deploys to a real staging domain with the ported design system and an SSR-safe i18n runtime
 - [ ] **Phase 2: Data Schema, RLS & Staff Auth Foundations** - Postgres mirrors the VamosOps contract with RLS everywhere and invited, MFA-gated staff auth
 - [ ] **Phase 3: Hyperdrive Data Access Wiring** - The Worker reaches Postgres through Hyperdrive, fast and safely isolated per request
 - [ ] **Phase 4: Quote & Pricing Engine** - The booking widget returns a real, locked, server-priced quote for any eligible route
@@ -61,7 +61,7 @@ where the `VamosLocale` DOM-walking runtime is replaced with an SSR-safe mechani
   4. Switching language on a rendered page relabels every string (including placeholders, `aria-label`, `title`, `alt`) in place without a reload, is correct in the server-rendered HTML with no English flash, and Arabic renders right-to-left with logical-property layout.
   5. Switching currency changes only the mark, never the number, and strings the code builds from parts translate too.
 
-**Plans**: 11/14 plans executed
+**Plans**: 14/14 plans executed
 
 Plans:
 
@@ -76,9 +76,9 @@ Plans:
 - [x] 01-09-PLAN.md — Design-system port batch 2: eight form controls
 - [x] 01-10-PLAN.md — Design-system port batch 3: three navigation and five feedback components, plus focus and scroll behaviour specs
 - [x] 01-11-PLAN.md — Design-system port batch 4: four data and four transfer composites
-- [ ] 01-12-PLAN.md — i18n runtime: locale shim, currency store, booking draft persistence and the ADR-001 acceptance test, alternates and sitemap
-- [ ] 01-13-PLAN.md — Shared header and footer ported and composed around every page
-- [ ] 01-14-PLAN.md — Localised 404 and error pages, gallery production exclusion, baseline review and the phase-wide language passes
+- [x] 01-12-PLAN.md — i18n runtime: locale shim, currency store, booking draft persistence and the ADR-001 acceptance test, alternates and sitemap
+- [x] 01-13-PLAN.md — Shared header and footer ported and composed around every page
+- [x] 01-14-PLAN.md — Localised 404 and error pages, gallery production exclusion, baseline review and the phase-wide language passes
 
 **UI hint**: yes
 
