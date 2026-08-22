@@ -32,6 +32,22 @@ const nextConfig: NextConfig = {
     remotePatterns: [],
   },
 
+  // `tests/integration/dev-exclusion.spec.ts` isolation seam. That spec runs its own
+  // real `next build` + two sequential `next start` processes to prove D-28's
+  // exclusion against a genuine production artifact — Playwright's `fullyParallel`
+  // config runs it alongside every other integration spec that spins up its own
+  // `next dev` (`lenis.spec.ts`, `ssr-locale.spec.ts`, `lang-switch.spec.ts`,
+  // `currency.spec.ts`), all of which default to the SAME `apps/web/.next` output
+  // directory — a `next build` wiping and regenerating that directory while another
+  // worker's `next dev` is mid-compile against it is a real, reproduced conflict
+  // (`execFileSync` throwing during the full-suite run, confirmed independent of any
+  // logic bug in either spec by re-running each file in isolation, where both pass
+  // clean). `TEST_DIST_DIR`, read only when the spec sets it, routes that ONE spec's
+  // build to its own directory instead — every other invocation (`pnpm build`,
+  // `next dev`, every other test file) is completely unaffected, since the env var is
+  // unset for all of them and `distDir` falls back to Next's own default.
+  ...(process.env.TEST_DIST_DIR ? { distDir: process.env.TEST_DIST_DIR } : {}),
+
   // D-28: the dev-only states gallery carries `X-Robots-Tag: noindex` in EVERY
   // environment (not just production/staging — `middleware.ts`'s own D-37 header is
   // conditioned on `DEPLOY_ENV === "staging"`, which is exactly the wrong gate here:

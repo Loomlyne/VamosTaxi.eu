@@ -20,6 +20,12 @@
 // server-start-adjacent request time and toggling it under a live server would race
 // whichever request happened to be in flight.
 //
+// `TEST_DIST_DIR` (`next.config.ts`'s own comment has the full story): this file's own
+// `next build` writes to an isolated `distDir` rather than the shared `apps/web/.next`
+// every other integration spec's `next dev` also targets — a real, reproduced conflict
+// during a full-suite run (`execFileSync` throwing while another worker's `next dev`
+// was mid-compile against the same directory; each spec passes clean in isolation).
+//
 // Tagged "@dev-exclusion" per this plan's own artifact list.
 
 import { test, expect } from "@playwright/test";
@@ -65,12 +71,28 @@ test.describe("Dev gallery production exclusion @dev-exclusion", () => {
     );
   });
 
+  // A single, fixed, gitignored (`test-results/`) build output — isolated from the
+  // `apps/web/.next` directory every other integration spec's `next dev` targets.
+  // Fixed rather than keyed by `testInfo.workerIndex`: this describe block is
+  // `serial`-mode and gated to one Playwright project (`RUN_PROJECT`), so only one
+  // worker ever builds here in a given run — a worker-suffixed name bought no real
+  // isolation, only a fresh `${distDir}/types/**/*.ts` entry that Next's own
+  // `writeConfigurationDefaults` appends to the committed `tsconfig.json` on every
+  // run with a new distDir. A fixed name makes that append idempotent (Next only
+  // writes when the exact string is missing from `include`) instead of growing the
+  // file forever.
+  const distDir = "test-results/.next-dev-exclusion";
+
   test.beforeAll(async ({}, testInfo) => {
     if (testInfo.project.name !== RUN_PROJECT) return;
     testInfo.setTimeout(180_000);
     // One production build, reused by every `next start` in this file — the exact
     // "build once, toggle DEPLOY_ENV at request time" shape this suite exists to prove.
-    execFileSync("pnpm", ["exec", "next", "build"], { cwd: WEB_ROOT, stdio: "ignore" });
+    execFileSync("pnpm", ["exec", "next", "build"], {
+      cwd: WEB_ROOT,
+      stdio: "ignore",
+      env: { ...process.env, TEST_DIST_DIR: distDir },
+    });
   });
 
   test("a genuine production deploy (no DEPLOY_ENV) returns not-found for the gallery, with the noindex header still present", async ({}, testInfo) => {
@@ -80,7 +102,7 @@ test.describe("Dev gallery production exclusion @dev-exclusion", () => {
     // `DEPLOY_ENV` genuinely absent (deleted, not set to an empty string) — matching
     // `apps/web/wrangler.jsonc`'s own documented state under `env.production`, which
     // carries no `vars.DEPLOY_ENV` entry at all rather than an empty one.
-    const prodEnv: NodeJS.ProcessEnv = { ...process.env };
+    const prodEnv: NodeJS.ProcessEnv = { ...process.env, TEST_DIST_DIR: distDir };
     delete prodEnv.DEPLOY_ENV;
     const server = spawn("pnpm", ["exec", "next", "start", "-p", String(port)], {
       cwd: WEB_ROOT,
@@ -106,7 +128,7 @@ test.describe("Dev gallery production exclusion @dev-exclusion", () => {
       cwd: WEB_ROOT,
       stdio: "ignore",
       detached: true,
-      env: { ...process.env, DEPLOY_ENV: "staging" },
+      env: { ...process.env, DEPLOY_ENV: "staging", TEST_DIST_DIR: distDir },
     });
     try {
       await waitForServer(baseURL);

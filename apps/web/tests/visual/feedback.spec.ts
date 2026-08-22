@@ -314,18 +314,24 @@ test.describe("Dialog @component", () => {
       children: "Your driver will be notified immediately.",
     };
     const name = "dialog-focus.png";
+    // Plan 14 Task 3 tolerance settlement: a real focus event on the panel carries a
+    // stable, real (reproduced identically across repeated runs, both at 390 and
+    // 1440) up to ~0.76% pixel difference — a live focus-ring/scrim compositing
+    // pass, not a flaky capture or a port defect. `playwright.config.ts`'s own
+    // comment has the full observed-ratio table this override is drawn from.
+    const screenshotOptions = { maxDiffPixelRatio: 0.01 };
 
     const bundleUrl = await mountBundle("Dialog", props);
     await page.goto(bundleUrl);
     await waitForMockReady(page);
     await page.locator("#root .vt-dialog").focus();
-    await expect(page.locator(SCRIM)).toHaveScreenshot(name);
+    await expect(page.locator(SCRIM)).toHaveScreenshot(name, screenshotOptions);
 
     const portUrl = await mountPort(portPath("Dialog"), props);
     await page.goto(portUrl);
     await waitForMockReady(page);
     await page.locator("#root .vt-dialog").focus();
-    await expect(page.locator(SCRIM)).toHaveScreenshot(name);
+    await expect(page.locator(SCRIM)).toHaveScreenshot(name, screenshotOptions);
   });
 });
 

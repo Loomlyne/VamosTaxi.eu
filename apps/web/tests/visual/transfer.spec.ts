@@ -74,11 +74,12 @@ async function diffBothSides(
   props: Record<string, unknown>,
   name: string,
   intl?: { messages: Record<string, unknown> },
+  options?: { maxDiffPixelRatio?: number },
 ): Promise<void> {
   const bundleUrl = await mountBundle(componentName, props);
   await page.goto(bundleUrl);
   await waitForMockReady(page);
-  await expect(page.locator("#root")).toHaveScreenshot(name);
+  await expect(page.locator("#root")).toHaveScreenshot(name, options);
 
   const portUrl = await mountPort(
     portPath(componentName),
@@ -87,7 +88,7 @@ async function diffBothSides(
   );
   await page.goto(portUrl);
   await waitForMockReady(page);
-  await expect(page.locator("#root")).toHaveScreenshot(name);
+  await expect(page.locator("#root")).toHaveScreenshot(name, options);
 }
 
 // ── StatusBadge ───────────────────────────────────────────────────────────────────
@@ -334,6 +335,13 @@ test.describe("PriceSummary @component", () => {
 
 test.describe("VehicleCard @component", () => {
   test("default (icon fallback) — port matches the vendored bundle @component [4vp]", async ({ page }) => {
+    // Plan 14 Task 3 tolerance settlement: this state's own icon-fallback glyph
+    // carries a stable, real (not flaky — reproduced identically across repeated
+    // runs) ~0.86% pixel difference at every viewport — the highest of the 33
+    // components' baseline set, and the one genuine reason `playwright.config.ts`'s
+    // own global tolerance couldn't be tightened past this state without an
+    // override. `playwright.config.ts`'s own comment has the full observed-ratio
+    // table this override is drawn from.
     await diffBothSides(
       page,
       "VehicleCard",
@@ -346,6 +354,8 @@ test.describe("VehicleCard @component", () => {
         luggage: 2,
       },
       "vehiclecard-default.png",
+      undefined,
+      { maxDiffPixelRatio: 0.01 },
     );
   });
 

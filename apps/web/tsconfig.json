@@ -21,7 +21,8 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "test-results/.next-dev-exclusion/types/**/*.ts"
   ],
   "exclude": ["node_modules", ".open-next", ".next"]
 }
