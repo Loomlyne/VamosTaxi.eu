@@ -19,33 +19,12 @@
 
 import { test, expect } from "@playwright/test";
 import { spawn, type ChildProcess } from "node:child_process";
-import { join } from "node:path";
+import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
 const RUN_PROJECT = "component-1440";
-// Playwright compiles this file to CommonJS (apps/web/package.json has no "type":
-// "module"), so __dirname is the plain CJS global, matching lenis.spec.ts's own
-// convention. tests/integration -> tests -> apps/web.
-const WEB_ROOT = join(__dirname, "..", "..");
 
 let devServer: ChildProcess | null = null;
 let baseURL = "";
-
-async function waitForServer(url: string, timeoutMs = 60_000): Promise<void> {
-  const start = Date.now();
-  let lastError: unknown;
-  while (Date.now() - start < timeoutMs) {
-    try {
-      const res = await fetch(url);
-      if (res.status < 500) return;
-    } catch (err) {
-      lastError = err;
-    }
-    await new Promise((resolve) => setTimeout(resolve, 300));
-  }
-  throw new Error(
-    `Dev server at ${url} did not become ready within ${timeoutMs}ms: ${String(lastError)}`,
-  );
-}
 
 test.beforeAll(async ({}, testInfo) => {
   // Only the one project this spec actually runs under spends the cost of a dev
@@ -62,7 +41,7 @@ test.beforeAll(async ({}, testInfo) => {
     stdio: "ignore",
     detached: true,
   });
-  await waitForServer(baseURL);
+  await waitForNextServer(baseURL);
 });
 
 test.afterAll(() => {
