@@ -1,9 +1,10 @@
 # Phase 4 Research — Quote & Pricing Engine
 
 **Written:** 2026-08-22. Synthesised from the six harvested Phase 4 lanes. Not re-researched.
+**Hardened:** 2026-08-22 against five returned verify lenses (abuse-money, forward-compat, fidelity, i18n-rtl, ops-reality). Ledger: `04-HARDEN.md`. New decisions **D61–D75**. New U-items **U54–U58**.
 **Extends:** Phase 2 `D1–D24` (settled; not re-litigated). New decisions start at **D41** (Phase 3 already took D25–D40).
 **Companion:** `04-API-CONTRACT.md` — the HTTP contract this document's engine produces.
-**U-item numbering:** Phase 3 took U23–U32. New Phase 4 items start at **U33**.
+**U-item numbering:** Phase 3 took U23–U32. New Phase 4 items start at **U33**. U6 and U7 remain named contradictions of Phase 2 recommendations. U8 / U16 / U20 stay open. Mapbox KV cache stays barred pending owner Order (U33).
 
 ---
 
@@ -16,8 +17,8 @@
 5. Coupon validation at reprice and **consumption at PaymentIntent creation** under `SELECT … FOR UPDATE` on the `coupons` row. No KV reservation (U7, settled here, **contradicting** Phase 2's recommendation).
 6. Child seat, additional stop and oversized luggage each as their **own** `surcharges` line (QUOTE-11). A ninth seeded code `oversized_luggage`. Additional stops go into the Directions waypoint list **before** the fare is computed.
 7. Five-layer `pricing_live=false` (D9): no live `rate_versions` row ⇒ every `total_rappen` is `null` ⇒ `CHF 000` by data ⇒ checkout unreachable ⇒ `tg_payment_matches_snapshot` refuses every charge. The engine ships this way. Real numbers are last and small.
-8. Additive schema (Phase 4 migrations, not a rewrite of Phase 2): `surcharges.predicate`, `surcharges.quantity_source`, `price_snapshots.shown_alternatives`, `settings_versions.service_area_geojson`, `settings.quote_lock_minutes`, flight provenance columns, `evaluate_coupon()`, coupon-reserve trigger, lines-reconcile trigger, charge-gate `SECURITY DEFINER`. **No invented columns that replace Phase 2's.**
-9. Four-language copy for every string this phase introduces, ICU not concatenation, instructions not blame. Arabic is first-class RTL; place names, flight numbers, coupon codes and `CHF 000` wear `.vt-dir-keep`.
+8. Additive schema (Phase 4 migrations, not a rewrite of Phase 2): `surcharges.predicate`, `surcharges.quantity_source`, `price_snapshots.shown_alternatives`, `price_snapshots.quote_lock_expires_at`, `settings_versions.service_area_geojson`, `settings.quote_lock_minutes`, `service_zones.zone_type`, `service_zones.tags`, `coupon_redemptions.released_at`, flight provenance columns, `evaluate_coupon()`, coupon-reserve trigger, lines-reconcile trigger, charge-gate `SECURITY DEFINER` plus quote-lock clock. Seed tenth surcharge `return_trip` next to ninth `oversized_luggage`. **No invented columns that replace Phase 2's.**
+9. Four-language copy for every string this phase introduces, ICU not concatenation, instructions not blame. Arabic is first-class RTL; place names, flight numbers, coupon codes and `CHF 000` wear `.vt-dir-keep`. Every key in §14 ships `en`/`de`/`fr`/`ar` in this document, not as a later ticket.
 
 ### The corrections that changed the shape
 
@@ -30,6 +31,10 @@ Four findings from the lanes, plus one independent terms check, that Phase 2 (or
 | 3 | Phase 2 schema comment: "the snapshot's `expires_at` is **extended** to cover the payment window at intent creation" | The snapshot is append-only (D19). It **cannot** be extended. Two clocks, each in the right place. | §5. `tg_append_only` requires every column other than `booking_id` to be byte-identical on the one permitted UPDATE. |
 | 4 | GSD-LAUNCH / `CLOUDFLARE-RESOURCES.md`: Mapbox Geocoding + Directions "cached in Cloudflare KV by place-id pair (24 h TTL)" | **Barred** under current self-serve Mapbox Product Terms. Live Mapbox on every quote. `GEO_CACHE` holds only our polygon and hand-curated fixed-route geometry. | §7. Independently verified 2026-08-22 against the 21 July 2026 PDF. Owner decision, not an engineering preference. |
 | 5 | quote-lock-expiry lane: the 30-minute lock **is** `price_snapshots.expires_at` | That assumption requires a snapshot row at quote time, which U6 (this document) just forbade. The 30-minute lock is a **signed token**; `expires_at` on the snapshot is the payment window. | §5. Named, not silently merged. |
+| 6 | Harden AM-01: Worker `expires_at` check is the 30-min gate | After D42 the payment-window `expires_at` is in the future on the same INSERT the charge gate sees. Persist `quote_lock_expires_at` and have the trigger read **that** clock. | §5 D61. |
+| 7 | Harden AM-02: `rate_version_is_live = (status = 'live')` at checkout INSERT | A republish under a live lock would retire A and refuse the pinned book. Flag means "was published" (`live` or `retired`); `draft` still refused. | §5 D62. |
+| 8 | Harden FC-01: coupon/extras-only reprice reuses the original lock's `class_totals` | Reprice always re-signs `class_totals` (and pins extras/coupon). Checkout 400s a body that disagrees with the lock. | §4 D64. |
+| 9 | coupons-extras §5: land `price.line.coupon` as a `patterns` regex | Production i18n is ICU via `next-intl`. `{code}` untranslated + `.vt-dir-keep`. The regex instruction is **superseded**. | §14 D75 / I-08. |
 
 ---
 
@@ -133,14 +138,27 @@ Until U16 is answered the round-trip line exists with `percent: null` and `amoun
 {"kind":"quantity"}
 ```
 
-An empty object is an **unanswered rule** and blocks `draft → live` (extend `tg_rate_version_transition`). The night window **seeds into the draft** with the mock's `22:00–06:00` because a draft cannot charge; it is an owner input (U38), not an engine constant.
+**D66:** those discriminators need columns Phase 2's `service_zones` does not have (`id`, `slug`, `iata`, `active` only). Inferring "airport" from `iata IS NOT NULL` is still engine code — the D7 hole D46 exists to close. Same Phase 4 migration adds:
+
+```sql
+alter table public.service_zones
+  add column zone_type text not null default 'other'
+    check (zone_type in ('airport','city','ski','other')),
+  add column tags text[] not null default '{}';
+```
+
+Seed: `zrh-airport` / `gva-airport` → `zone_type='airport'`; alpine destinations that carry the ski surcharge → `tags @> '{ski}'`. Do not ship D46 against the current four-column table.
+
+An empty predicate object is an **unanswered rule** and blocks `draft → live` (extend `tg_rate_version_transition`). The night window **seeds into the draft** with the mock's `22:00–06:00` because a draft cannot charge; it is an owner input (U38), not an engine constant.
 
 The night window is evaluated against `scheduled_local` (`YYYY-MM-DDTHH:MM`, Europe/Zurich, already on `booking_legs`). No `Date`, no `Intl`, no DST question. A window that wraps midnight (`from > to`) is `(t >= from || t < to)`.
 
 ### Two vocabulary gaps
 
 - **`oversized_luggage` does not exist in the mock's eight surcharge codes.** QUOTE-11 requires the line. Seed a ninth: `kind='amount'`, `quantity_source='oversize_bags'`, `amount_rappen NULL` (OWNER-ANSWERS lists the fee as an open blank).
-- **"By the hour" has no rate model.** The widget ships a third mode behind `hourlyEnabled` (default true in the mock, labelled "Scope flags — pending approval"). There is no `hourly_rates` table. **D57: Phase 4 ships with `hourlyEnabled=false`.** Hourly is an owner question alongside the matrix (U50). `POST /api/quote` with `mode: "hourly"` is `422 mode_not_offered`.
+- **`return_trip` is a tenth code**, required by the U16 publish gate, absent from the Phase 2 eight-code comment. **D72:** seed `return_trip` (`kind='percent'`, `applies_to='booking'`, `percent NULL`, `predicate {"kind":"always"}`) next to `oversized_luggage`. Do not synthesise the line without a `surcharges` row — a draft with no such row would silently omit the U16 shape. Amount stays `null` until the owner answers U16.
+- **"By the hour" has no rate model.** The widget ships a third mode behind `hourlyEnabled` (default true in the mock, labelled "Scope flags — pending approval"). There is no `hourly_rates` table. **D57: Phase 4 ships with `hourlyEnabled=false`.** Hourly is an owner question alongside the matrix (U50).
+- **D68: widget tokens vs API union.** The mock sends `mode: "one-way" | "return" | "hourly"` and collects `hours`. The contract union is `"one_way" | "return"`. A preprocess **before** the strict Zod union accepts the mock tokens and maps `one-way` → `one_way`; `hourly` is `422 mode_not_offered` (not `400 untrusted_input`). `hours` is listed in API §0 as rejected with D57.
 
 ### Loading the rate book — D3's split, applied
 
@@ -148,12 +166,13 @@ Hyperdrive does not cache a query containing `NOW()`. Default `max_age` 60 s, `s
 
 | Read | Binding | Why |
 |---|---|---|
-| Live-version resolution (`status='live'`) | `HYPERDRIVE` | Small, no `now()`. A ~75 s lag on a *publish* is harmless; the charge gate re-reads status on NOCACHE at payment. |
-| Frozen rate book for a version id | `HYPERDRIVE` | Immutable by trigger. The biggest lever on the warm-quote target. |
-| `distance_rates.available` / `fixed_routes.live` | `HYPERDRIVE` (same query) | Mutable flags, up to ~75 s stale. **State in the ops Pricing hint:** taking a route off sale takes up to about a minute to reach the widget. |
-| `settings_versions` | `HYPERDRIVE` — query **must not contain `now()`** | Fetch recent rows, pick "current as of `computedAt`" in engine code. |
+| Live-version resolution (`status='live'`) | `HYPERDRIVE_NOCACHE` via `asQuote` | Phase 3 D79. Cached `vamos_public` has no grant on `rate_versions` (§14c). Do not add one. |
+| Frozen rate book for a version id | `HYPERDRIVE_NOCACHE` via `asQuote` | Same door. A 60 s cache of the `pricing_live` flip was the thing D3 forbade. |
+| `distance_rates.available` / `fixed_routes.live` | `HYPERDRIVE_NOCACHE` via `asQuote` | Off-sale is a billing read, not content. |
+| `settings_versions` | `HYPERDRIVE_NOCACHE` via `asQuote` | Policy is billed. Query still must not contain `now()` inside the engine (pick current-as-of `computedAt` in code). |
 | Coupon validation + redemption counts | `HYPERDRIVE_NOCACHE` | Window and caps are time-sensitive; the query contains `now()` / joins `coupon_redemptions`. |
 | Snapshot / booking write | `HYPERDRIVE_NOCACHE` | D1/D2: one explicit transaction. |
+| Published reviews / `content_strings` | `HYPERDRIVE` / `publicSql` | The only cached path. Not the quote engine. |
 
 `ORDER BY` on every engine query is not cosmetic (threat T5): classes by `sort_order, slug`; rates by `vehicle_class_id`; routes by the zone tuple; surcharges by `code`.
 
@@ -240,20 +259,27 @@ alter table public.price_snapshots
       check (jsonb_typeof(shown_alternatives) = 'array');
 ```
 
-Shape:
+**D73.** Shape — totals + eligibility are not enough for a dispute ("Van was shown cheaper because min-fare / no night surcharge"). Thicken per class:
 
 ```json
 [
-  { "class_slug": "economy",  "eligible": true,  "total_rappen": null, "ineligible_reason": null,  "chosen": false },
-  { "class_slug": "business", "eligible": true,  "total_rappen": null, "ineligible_reason": null,  "chosen": true  },
-  { "class_slug": "first",    "eligible": false, "total_rappen": null, "ineligible_reason": "bags", "chosen": false },
-  { "class_slug": "van",      "eligible": true,  "total_rappen": null, "ineligible_reason": null,  "chosen": false }
+  { "class_slug": "economy",  "eligible": true,  "total_rappen": null, "ineligible_reason": null,  "chosen": false,
+    "fixed_route": false, "effective_max_pax": 3, "max_bags": 3,
+    "lines": [ { "code": "distance_fare", "kind": "fare", "amount_rappen": null } ] },
+  { "class_slug": "business", "eligible": true,  "total_rappen": null, "ineligible_reason": null,  "chosen": true,
+    "fixed_route": false, "effective_max_pax": 3, "max_bags": 3,
+    "lines": [ { "code": "distance_fare", "kind": "fare", "amount_rappen": null } ] },
+  { "class_slug": "first",    "eligible": false, "total_rappen": null, "ineligible_reason": "bags", "chosen": false,
+    "fixed_route": false, "effective_max_pax": 3, "max_bags": 2, "lines": [] },
+  { "class_slug": "van",      "eligible": true,  "total_rappen": null, "ineligible_reason": null,  "chosen": false,
+    "fixed_route": false, "effective_max_pax": 7, "max_bags": 8,
+    "lines": [ { "code": "distance_fare", "kind": "fare", "amount_rappen": null } ] }
 ]
 ```
 
-`total_rappen` is `null` until a live rate version exists; the renderer prints `CHF 000`.
+`lines` on unchosen classes may keep `amount_rappen` only (plus `code`/`kind`) — enough to show *why*. The full `basis`/`source_row` derivation is only ever stored on the **chosen** snapshot `lines`. `total_rappen` is `null` until a live rate version exists; the renderer prints `CHF 000`.
 
-The unique index `(quote_id, vehicle_class_id)` **stays**. Changing class mid-checkout writes a second snapshot under the same `quote_id` (the previous one remains unbound evidence; `supersedes_id` links them). The comment on `quote_id` is updated in the same migration so the two documents do not disagree.
+The unique index `(quote_id, vehicle_class_id)` **stays** as a safety net. **Class change is one intent POST, one snapshot.** Do not write a second snapshot for the unchosen class; `bookings.quote_id` unique means Phase 7 cannot land two purchased rows, and LIFE-07 sweeping unbound "evidence" would delete it. D42: there are no unbound web-funnel rows.
 
 ### The write point moves to the booking transaction
 
@@ -279,6 +305,8 @@ This is also what `02-SCHEMA-DRAFT.md` worried about — "a NOT NULL booking FK 
 
 The recompute at `/api/checkout/intent` is a **deterministic rerun of the engine against the pinned inputs**, asserted equal to the locked per-class totals — never a copy of a number from the request body. Mismatch → `409 price_changed` / `engine_changed` → re-quote.
 
+**D64. The lock pins extras and coupon.** `QuoteLockPayload` carries `extras` and `coupon` (normalised for lookup; typed copy stored on the snapshot — F3). Coupon-only / child-seat / oversize reprice **keeps** `quote_id` and `expires_at` (metres unchanged) but **always re-signs `class_totals`** and those fields. Checkout uses the lock as the sole extras/coupon source and **400s** a body that disagrees. Comparing against a stale pre-coupon board is how a legitimate code 409s `price_changed` on the happy path.
+
 ---
 
 ## 5. Quote lock and expiry (QUOTE-04) — Wave B `quote-lock-expiry`
@@ -297,16 +325,28 @@ Those two settlements cannot both be implemented as written. Implementing the lo
 
 | Clock | Lives in | Checked | Length |
 |---|---|---|---|
-| 30-minute quote lock (QUOTE-04) | signed lock token (`quote_id` + `expires_at` + HMAC of canonical pinned inputs) | `/api/quote/reprice` and `/api/checkout/intent`, **before** a snapshot is written | `settings.quote_lock_minutes` (seed 30 — owner-approved product number, not a `data-tok` gap) |
-| Snapshot `expires_at` | `price_snapshots.expires_at` | `tg_payment_matches_snapshot` at `booking_payments` INSERT | the **payment window**, from snapshot write. Column is `NOT NULL` so a value is written once. **Never extended** (D19). |
+| 30-minute quote lock (QUOTE-04) | signed lock token (`quote_id` + `exp` + HMAC of canonical pinned inputs) **and** `price_snapshots.quote_lock_expires_at` once the snapshot exists | `/api/quote/reprice` and `/api/checkout/intent`, **inside the snapshot-write transaction**, then `tg_payment_matches_snapshot` | `settings.quote_lock_minutes` (seed 30 — owner-approved product number, not a `data-tok` gap) |
+| Snapshot `expires_at` | `price_snapshots.expires_at` | `tg_payment_matches_snapshot` at `booking_payments` INSERT | the **payment window**, from snapshot write (`now() + payment_window`, U49). Column is `NOT NULL` so a value is written once. **Never extended** (D19). **Not** the 30-min lock. |
 
 **D48. The 30-minute lock is a server-signed token, not a snapshot row and not a KV document.** The Worker mints `quote_id` (UUID) and a payload of pinned inputs, signs with HMAC-SHA256 over a canonical JSON encoding using `QUOTE_LOCK_SECRET`, and returns `quote_id`, `lock`, `expires_at`. The client holds the token; the server re-verifies signature, expiry and that the reprice/checkout body does not smuggle a different distance or total.
 
+**D61. The quote-lock clock must be trigger-visible.** After D42 there is no snapshot row at quote time, so `tg_payment_matches_snapshot` reading `s.expires_at` sees a **fresh payment window** written on the same INSERT — it cannot fail a held, expired token. Phase 2's proof (`curl` of an expired `quote_id` → trigger `restrict_violation`) is no longer true of the 30-min clock unless:
+
+1. Step 2 (Worker `Date`) stays **decorative**.
+2. Step 3 is a `raise` **inside the write transaction of the snapshot INSERT** (`if lock.exp <= now() then restrict_violation`), using Postgres `now()` against the verified payload — never Worker `Date`.
+3. Persist `lock.exp` on the snapshot as `quote_lock_expires_at timestamptz not null`.
+4. Extend `tg_payment_matches_snapshot` to refuse when `quote_lock_expires_at` is past, **even if** payment-window `expires_at` is in the future. A handler that forgets the `if` still dies. A direct `INSERT INTO booking_payments` against a snapshot minted from an expired token still dies.
+5. pgTAP: insert a snapshot whose `quote_lock_expires_at` is in the past → `restrict_violation`, with a future payment-window `expires_at`.
+
+Do not claim "deleting the Worker check changes nothing" until the trigger reads `quote_lock_expires_at`.
+
+**D65. HMAC `kid` + dual-verify.** Token format: `kid + "." + base64url(payload) + "." + base64url(mac)` (or `v` on the payload). Rotation (or a leaked-secret replacement) dual-verifies `QUOTE_LOCK_SECRET` then `QUOTE_LOCK_SECRET_PREVIOUS` for **one lock TTL** after rotation. Public HMAC failure stays `404 quote_not_found` / `quote.error.expired` (oracle-free). Distinct `error: "lock_secret_rotated"` is **ops-only**. Runbook: wait 30 minutes (or force requote) — not an instant `wrangler secret put` that mass-expires every checkout (U58).
+
 Clock discipline, keeping the lock lane's load-bearing rule as far as it still applies:
 
-- `expires_at` on the token is minted from **Postgres `now() + quote_lock_minutes`** via a one-row `select`, not from `Date.now()` in the Worker. The Worker's clock does not author the deadline.
-- The comparison that can refuse a payment is **Postgres `now()`** inside the checkout transaction (`token.expires_at <= now()` → `409 quote_expired`, no Stripe call, no snapshot write) **and** `tg_payment_matches_snapshot` on `s.expires_at` after the snapshot exists.
-- A Worker-side `expires_at` check and the UI countdown are **decorative**. Deleting them changes nothing about correctness. A `curl` of an expired `quote_id` still 409s.
+- `exp` on the token is minted from **Postgres `now() + quote_lock_minutes`** via a one-row `select`, not from `Date.now()` in the Worker. The Worker's clock does not author the deadline.
+- The comparison that can refuse a payment is **Postgres `now()`** inside the checkout **write** transaction (`lock.exp <= now()` → `restrict_violation` / `409 quote_expired`, no Stripe call if this check runs before the PI, no snapshot write) **and** `tg_payment_matches_snapshot` on `quote_lock_expires_at` after the snapshot exists.
+- A Worker-side `expires_at` check and the UI countdown are **decorative** *once D61 lands*. A `curl` of an expired `quote_id` still 409s at the transaction check; a skipped `if` still dies at the trigger.
 - `timestamptz` is UTC internally. Local wall clock appears only as `scheduled_local` on legs.
 
 KV is **not** the lock. The lock lane's consistency argument stands: KV must not be the thing a charge decision reads. The signed token is visible to every PoP the instant it is issued (it travels in the request, not through KV replication).
@@ -327,7 +367,11 @@ Keep, they do not depend on writing a snapshot at quote time:
 
 ### Rate-version change under a live quote
 
-The lock pins `rate_version_id` and `engine_version`. Recompute loads **that** version by id, not "the live one now." If the recomputed total differs from the locked total → `409 price_changed`. If `ENGINE_VERSION !== lock.engine_version` → `409 engine_changed`. A routine deploy must not silently re-price a checkout in flight (threat T8). Snapshots already locked against a **retired** version are still honoured at payment — the customer was shown that price and the version's rows are frozen.
+The lock pins `rate_version_id` and `engine_version`. Recompute loads **that** version by id, not "the live one now." If the recomputed total differs from the locked total → `409 price_changed`. If `ENGINE_VERSION !== lock.engine_version` → `409 engine_changed`. A routine deploy must not silently re-price a checkout in flight (threat T8).
+
+**D62. Honour `retired` under a live lock.** Phase 2 already chose "honour retired; refuse draft" (schema L2282; charge gate `if v_status = 'draft'`). D42 moved the snapshot INSERT to checkout. `tg_snapshot_rate_version_flag` as drafted sets `rate_version_is_live = (status = 'live')` **now** — a mid-lock publish (`A: live→retired`, `B: draft→live`) makes the flag false, `is_chargeable` false, and the customer is forced onto the new matrix. Fail-closed, but QUOTE-04 does not hold.
+
+Phase 4 additive: set the flag with `status in ('live','retired')` (i.e. "was published", not "is live this instant"). Keep refusing `draft` (QUOTE-10 / `PRICING_PREVIEW`). pgTAP: lock against version A, retire A + publish B, checkout of the A lock writes `rate_version_is_live = true` and charges A's frozen rows. The sentence "snapshots already locked against a retired version are still honoured at payment" is true **only after D62**.
 
 ---
 
@@ -363,11 +407,13 @@ Informational path (reprice): `evaluate_coupon()` is `language sql stable`, no w
 | 6 | `count(redemptions) >= global_limit` | `quote.coupon.error.usage_cap` | This code has reached its limit |
 | 7 | per-user cap (customer_id **or** contact_email) | `quote.coupon.error.per_user_cap` | You've already used this code |
 
-Lookup always `upper($1)` server-side; never trust the client's uppercase. `price_snapshots.coupon_code` stores the normalised value. Per-user identity for a guest is `bookings.contact_email` (`citext NOT NULL` by the time a booking exists).
+Lookup always `upper($1)` server-side; never trust the client's uppercase. **`price_snapshots.coupon_code` stores the value as the customer typed it** (Phase 2 column comment). Lookup-`upper($1)` is compatible with a stored typed copy; overwriting the typed column would lose the dispute packet. Line `params.code` / `.vt-dir-keep` uses the typed value; comparison uses `upper`. Per-user identity for a guest is `bookings.contact_email` (`citext NOT NULL` by the time a booking exists).
 
 Unpriced coupon: **refuse to apply**, do not treat as zero. Same as the engine's handling of a NULL rate.
 
-Abandoned PaymentIntent (declined card, closed 3-D Secure sheet): `coupon_redemptions` is **not** append-only in Phase 2, so a sweep `DELETE` of a reservation whose booking never reached `succeeded` is a plain delete. The interval is U42 (`checkout_abandon_release_minutes` does not exist yet). Until it lands, the sweep **must not run** rather than invent a number; a conservative hard-code inside a later Phase 5/7 cron is that phase's problem, not a seeded setting pretending to be confirmed.
+**D69. `coupon_redemptions.released_at timestamptz`.** `evaluate_coupon` counts `released_at is null` only. Abandon sweep and a Phase 9 100 % refund / cancel-before-pickup **SET `released_at`** (and a reason) rather than DELETE — unique `(coupon_id, booking_id)` stays, and the row that says this paid booking consumed the code survives. Partial refund does **not** release. Until U42 lands a number, the abandon sweep **must not run** rather than invent one.
+
+Abandoned PaymentIntent (declined card, closed 3-D Secure sheet): SET `released_at`, do not DELETE.
 
 A KV soft-reservation remains a legitimate **future UX** layer if the owner runs visibly-scarce campaigns. It is additive, not required for correctness, and must key `(coupon_id, quote_id)` — never email or customer id (Phase 2 residency rule). Not built in Phase 4.
 
@@ -411,8 +457,8 @@ The mock uses Komoot Photon. Production does not. Provider is Mapbox; the four l
 - **Type-ahead:** Mapbox **Search Box API** `/search/searchbox/v1/suggest` + `/retrieve`, session-tokened (one UUID per widget-open, not per keystroke). One session = one billable unit regardless of keystrokes; the 320 ms debounce is UX, not a cost lever. `/suggest` returns no coordinates; `/retrieve` is called on pick.
 - **Dropped pin:** Geocoding API **v6** `/reverse`, `types=address,poi`, no session. Show `full_address` / `place_formatted`, never raw coordinates.
 - **Bias, not gate:** `country=CH`, `proximity` default Zurich HB `(8.5417, 47.3769)`. A Milano result can still appear; QUOTE-07 is the gate, run server-side on the retrieved coordinate.
-- **Arabic / four languages:** `language=en|de|fr|ar` changes Mapbox's label where they have data. Swiss street names generally stay Latin even in `ar` — that is Mapbox's data, out of `content_strings`, and wears `.vt-dir-keep`. What we translate is every surrounding UI string (label, placeholder, empty, no-results, aria-label, refusals).
-- **Never send an unrestricted Mapbox token from the browser.** Proxy through `/api/geo/suggest`, `/api/geo/retrieve`, `/api/geo/reverse`. Session-token discipline: reject a `/retrieve` whose token was never seen in a prior `/suggest` from the same rate-limit bucket.
+- **Arabic / four languages:** `language=en|de|fr|ar` changes Mapbox's label where they have data. Forward `language={locale}` on **suggest, retrieve, and reverse** (retrieve was missing it — I-05). Swiss street names generally stay Latin even in `ar` — that is Mapbox's data, out of `content_strings`, and wears `.vt-dir-keep`. What we translate is every surrounding UI string (label, placeholder, empty, no-results, aria-label, refusals).
+- **Never send an unrestricted Mapbox token from the browser.** Proxy through `/api/geo/suggest`, `/api/geo/retrieve`, `/api/geo/reverse`. Session-token discipline: reject a `/retrieve` whose token was never seen in a prior `/suggest` from the same rate-limit bucket. `kind: "coords"` on `/api/quote` requires a seen `geo_session` / verified `vamos_qs` so it is not a retrieve-bypass for a caller who never hit `/suggest` (AM-03).
 
 ### Distance, duration, route line
 
@@ -425,13 +471,20 @@ GET /directions/v5/mapbox/driving/{lng},{lat};{lng},{lat}
     ?geometries=geojson&overview=full&alternatives=false&steps=false
 ```
 
-Waypoints for additional stops are inserted **between** pickup and dropoff **before** this call, so the fare's `distance_m` already includes the detour. The `extra_stop` surcharge then prices the stop itself, not the kilometres (those are already in the fare). Never fold the two into one number — a refund has to explain them separately.
+**D67. Extra-stop at MVP is quantity-only.** Checkout collects a **count** (0–3), not stop addresses (`checkout.dc.html`). Do not 422 a legal mock payload for missing `waypoints[]`. The `extra_stop` surcharge prices `amount_rappen × extra_stops`. Detour km (pipeline step 6 + Directions waypoints) is **U41** and requires stop PlaceInputs the mock never had — Phase 5 widget port, not a Phase 4 422. When `waypoints[]` **is** sent, `length === extra_stops` and Directions re-runs live; otherwise skip the waypoint call.
 
-Convert once at the boundary: `distance_km` (display, 2-dp) derived from metres; `duration_min = round(duration_s / 60)`. A failed Directions call **fails the quote** (`422 route_unavailable`). A zero duration must never reach `booking_legs.estimated_duration_minutes` silently (Phase 2: empty `tstzrange` makes the exclusion constraint a no-op).
+Convert once at the boundary: `distance_km` (display, 2-dp) derived from metres; `duration_min = round(duration_s / 60)`. A failed Directions call **fails the quote** (`422 route_unavailable`). **D70:** a zero / null duration must never reach `booking_legs.estimated_duration_minutes`. Intent INSERT requires `estimated_duration_minutes = round(lock.duration_s / 60) > 0` in the same sentence as Permanent Geocode. Refuse snapshot write on 0/null. **No silent 30-minute floor** — that under-blocks a Zermatt run (FC-02). Filling the column from Directions seconds **is** storing a Navigation API result; U33 stays open (owner Order). The web path cannot assign without the number; production fill of the column remains the owner's legal risk.
 
-One Directions call per **quote**, not per class — every class reuses the same metres/seconds.
+One Directions call per **quote**, not per class — every class reuses the same metres/seconds. A *successful* Directions call through a closed or seasonal road is accepted (`mapbox/driving`, not `driving-traffic` — traffic-now is the wrong number for a future pickup). Metres pin in the HMAC (T6). Geometry stays request-scoped (D52 / U33). **U55:** live closures on the travel day are unknowable at quote time. Persist a dispatcher-visible summary that is **not** Licensed Map Content: named via + duration band (already on the lock), never the GeoJSON. No dispatcher override of metres (`untrusted_input`).
 
-Phone bookings with no Mapbox route (U22, Phase 8): the assign dialog must supply a duration; Phase 4's web funnel never writes a leg without one.
+**U22 — ops path named, Phase 8 implements.** Public `/api/quote` requires coordinates and always calls live Directions (even for a named fixed route whose fare ignores metres). Phase 4 specifies `POST /api/ops/quote` as the contract Phase 8 builds (FC-08 / OR-01):
+
+- Staff auth; staff tokens **do** bypass public rate limits on this route only.
+- Zone-or-text input. Skip Directions when a live `fixed_routes` pair matches.
+- Duration **required** from the dispatcher, stored as `source: "ops_phone"` — not as a Mapbox result.
+- Permit per-leg coordinates for asymmetric returns (ADR-006); public `/api/quote` still refuses a different return pair.
+- Write `source='ops_phone'` snapshots (unbound allowed; D42 reserved `booking_id` nullable for this). Do not build `app.checkout_quote` for `/api/quote`.
+- Same integer kernel, same `pricing_live=false` gate. U22 covers **pricing + duration**, not only the assign field. Phase 4's web funnel never writes a leg without a duration.
 
 ### Service area and minimum advance (QUOTE-07)
 
@@ -449,7 +502,7 @@ There is **no** service-area field anywhere in the repo today, not even in the m
 
 Point-in-polygon runs in the Worker (ray-casting). PostGIS is not installed (Phase 2 extensions are `pgcrypto`, `btree_gist`, `citext`, `pgtap`) and will not be added for one boolean.
 
-Refusal messages say **which** rule failed. Three distinct keys, never a generic 400.
+Refusal messages say **which** rule failed. Distinct keys, never a generic 400: `out_of_service_area`, `min_advance`, `service_area_undefined`, plus **`same_place`** (`quote.error.same_place`) and **`place_out_of_box`** (`quote.error.place_out_of_box` — **not** the service-area message). QUOTE-07's three stay; the two pre-Mapbox refusals get their own instruction (I-02 / FC-09).
 
 ---
 
@@ -504,13 +557,13 @@ The QUOTE-05 unit test asserts `JSON.stringify` equality of two `priceQuote` res
 | `extra_stop` | checkout counter 0–3 | `leg` | Applied to **leg 1 (outbound) only** — the UI cannot collect return-leg stops. Stops are Directions waypoints on that leg. |
 | `oversized_luggage` | **not in the mock** — new QUOTE-11 control | seed as `leg` | Same duplication rule as child seat. API accepts a boolean in Phase 4; the widget port adds the control. |
 
-A booking-level toggle that duplicates onto legs still writes **two lines** with two `leg_seq`s, never one line silently covering two legs — ADR-006 single-leg cancellation must be able to drop exactly its own extras.
+A booking-level toggle that duplicates onto legs still writes **two lines** with two `leg_seq`s, never one line silently covering two legs — ADR-006 single-leg cancellation must be able to drop exactly its own extras. Keep `leg_seq: null` only for true booking-level lines (coupon, `return_trip`). Every `leg_seq: null` line **requires** `allocation`. `leg_subtotal_rappen = Σ fare+surcharge on that leg` (booking-level lines stay out, apportioned at refund by recorded `allocation`). Engine unit-test: cancel leg 2 of a return with child seat + coupon; amounts reconstruct from the row alone.
 
-This duplication rule is an inference from the mock, **not** an owner decision (U40). A per-leg extras UI is a later enhancement. Until then, this is what the engine does.
+This duplication rule is an inference from the mock, **not** an owner decision (U40). A per-leg extras UI is a later enhancement. Until then, this is what the engine does. **U51:** follow Phase 2 seed (`applies_to='leg'`) + D51; do not change `applies_to` without U40.
 
-`child_seat` stays a checkbox (`params` count 1), not a counter, until the owner says families need two seats priced separately (U43). REQUIREMENTS says "a child seat," singular.
+`child_seat` stays a checkbox, not a counter, until the owner says families need two seats priced separately (U43). REQUIREMENTS says "a child seat," singular. **I-01:** always pass ICU `n` (including `n=1`). Do not ship `+ n` or `× n`. Param name is `n`, not `count` and not `quantity`.
 
-**Must not be accepted from the client as a price.** The client sends quantities (`child_seats`, `extra_stops`, `oversized_luggage`). The engine looks up `surcharges.amount_rappen` from the pinned rate version. A client-supplied extra amount is unknown-field / ignored.
+**Must not be accepted from the client as a price.** The client sends quantities (`child_seats`, `extra_stops`, `oversized_luggage`). The engine looks up `surcharges.amount_rappen` from the pinned rate version. A client-supplied extra amount is unknown-field / ignored. Extra-stop **count** without waypoints is legal (D67).
 
 ---
 
@@ -518,15 +571,20 @@ This duplication rule is an inference from the mock, **not** an owner decision (
 
 **D55. AeroDataBox**, already the mock's contract (`aerodatabox.p.rapidapi.com`, `scheduledTime` / `revisedTime` / `runwayTime`). FlightAware's floor is a tracking product this project does not need. LIFE-06 (delay shift on a **paid** booking) is Phase 9.
 
-`GET /api/flight/:no?date=YYYY-MM-DD`
+`GET /api/flight/:no?date=YYYY-MM-DD&locale={en|de|fr|ar}`
 
-- Normalise: uppercase, strip non-alphanumerics (`LX 318` → `LX318`). Display with a space (`LX 318`).
+- Normalise: uppercase, strip non-alphanumerics (`LX 318` → `LX318`). Display with a space (`LX 318`, `.vt-dir-keep`).
 - Reject before spending a unit unless `^[A-Z0-9]{2}\d{1,4}$`.
-- Date: explicit query param; widget defaults to today Europe/Zurich with a today/tomorrow toggle.
+- **Date binds to `legs[0].scheduled_local`'s Zurich civil date when the WhenPicker already has one**; keep today/tomorrow only when it does not (OR-03). A daily LX318 for next Friday must not stamp today's landing into `scheduled_local`. Surface more-than-two-days as a date, not two chips.
 - Codeshares: return the record for the number typed (the boarding-pass number). Do not dedupe.
-- Overnight / multi-row: **do not take `j[0]`**. Surface a disambiguation choice (U45: confirm `dateLocalRole` against a live key). Guessing is how a 23:40 departure becomes a 00:15 arrival on the wrong calendar day.
-- Landing time written as pickup: `runwayTime ?? revisedTime ?? scheduledTime`. **No invented buffer.** The post-landing allowance is `settings_versions.airport_waiting_minutes`, seeded NULL (ADR-002). Flight autofill does not get a private 60.
+- Overnight / multi-row: **do not take `j[0]`**. Surface a disambiguation choice (`action: "disambiguate"`, i18n `quote.flight.pick_one` + candidate `depart`/`arrive` ICU — I-03). U45: confirm `dateLocalRole` against a live key. Guessing is how a 23:40 departure becomes a 00:15 arrival on the wrong calendar day.
+- The API returns `status` and `dir` (`to-airport` | `from-airport` | `neither` | `cancelled` | `departed`) so the widget can implement SPEC-home-flight-autofill §1. **The lookup does not write pickup/dest itself**; the widget applies the decision table: not-departed + our departure airport fills **destination** and never overwrites date/time; cancelled / neither-airport-ours / already-departed fill nothing. "Landing time written as pickup" is the **from-airport** widget path, not an API always-overwrite.
+- **No invented buffer.** The post-landing allowance is `settings_versions.airport_waiting_minutes`, seeded NULL (ADR-002). Flight autofill does not get a private 60.
 - Terminal / gate / belt render when present, nothing when null. Never invent a gate.
+
+**Named drops (F4), next to the 45 s poll:** no `GET /api/flight/search` / mock `FLIGHT_API.search` term-search in Phase 4 (U57). Lookup-only. Do not claim "matching the mock" for autocomplete.
+
+**D74.** `flight_no` and `landing_source` (if autofilled) go on `QuoteLockPayload.legs[]`. Checkout intent must not accept a client flight number that disagrees with the lock. Additive columns `flight_checked_at` / `flight_time_source` are written from the lock in the same INSERT as duration. Phase 9 LIFE-06 cannot shift a delayed flight it never stored.
 
 **KV cache of AeroDataBox** (not Mapbox) is allowed — it is not Licensed Map Content. Key `flight:{NUMBER}:{YYYY-MM-DD}`, never a customer or booking id. TTL 90 s same-day / 30 min next-day / 6 h further out. Cloudflare KV refuses TTL < 60 s.
 
@@ -556,15 +614,15 @@ The zone is **presumptively Cloudflare Free** today (GSD-LAUNCH budgets Workers 
 
 ### Layer 1 — zone-level Rate Limiting Rule (outer backstop)
 
-`POST /api/quote` (and `/api/geo/*`): `ip.src`, 30 requests / 60 s, action **`managed_challenge`** not `block`. Survives a Turnstile `siteverify` outage (edge challenge does not call the Worker). A `fetch()` from React will see a non-JSON body; the widget must treat "response isn't the quote shape" as "challenged — reload, retry once," not a parse error.
+Cover **`POST /api/quote`, `POST /api/quote/reprice`, and `/api/geo/*`** in the one Free zone rule (abuse-ratelimit's expression was `/api/quote` POST only — AM-03). `ip.src`, 30 requests / 60 s, action **`managed_challenge`** not `block`. Survives a Turnstile `siteverify` outage (edge challenge does not call the Worker). A `fetch()` from React will see a non-JSON body; the widget must treat "response isn't the quote shape" as "challenged — reload, retry once," not a parse error.
 
-On Free, this is the **one** rule. On Pro, keep it as the loose outer tier.
+On Free, this is the **one** rule. On Pro, keep it as the loose outer tier. **Layer 1 is the only non-rotatable cap until `vamos_qs` is authentic (D63).**
 
 ### Layer 2 — Workers Rate Limiting binding (the real per-visitor gate)
 
 Available on Workers Paid regardless of WAF plan. `wrangler.jsonc` `ratelimits` binding `QUOTE_RATE_LIMITER`.
 
-Key: **`ip + vamos_qs` cookie**, not bare IP. Home mints a `HttpOnly; SameSite=Lax; 24h` UUID cookie on first response. Same-origin `fetch` sends it. Ten tabs behind one CGNAT IP = ten counters. A script that never loaded the page has no cookie → **bare-IP bucket at a tighter limit** (4/60 s vs 8/60 s cookie'd).
+**D63. Sign `vamos_qs`.** An unsigned UUID is client-settable: `Cookie: vamos_qs=<fresh uuid>` mints a new 8/60 bucket and resets Turnstile's "3rd request" counter. HMAC with a server secret, same shape as the quote lock (`VAMOS_QS_SECRET`). Unverifiable / missing cookies fall into the **4/60 bare-IP bucket — never into a new 8/60**. Do not key Turnstile's "3rd request" on a client-mintable string; key it on `ip` (or on the **verified** cookie). HttpOnly stops *reading* the cookie from JS on the first-party page; it does not stop a script from *sending* one.
 
 The binding is "permissive, eventually consistent, **per colo**." A geographically distributed campaign will see a multiple of the nominal limit. Acceptable for defeating a single-origin hammer; **not** the layer that catches low-and-slow. Say so in the ops runbook.
 
@@ -574,8 +632,8 @@ Threshold reasoning: a real customer comparing classes or nudging pax/bags re-qu
 
 **Invisible mode**, mounted once pickup **and** dropoff have been touched — not on page load, not a checkbox. The background challenge typically resolves while the rest of the form is filled.
 
-- First **2** `/api/quote` requests in the window: token is sent to `siteverify` and **logged**, not enforced. Missing/failed token is not a 403.
-- From the **3rd** request: `siteverify.success === true` required, else 403 `turnstile_required`.
+- First **2** `/api/quote` requests in the window **per IP (or verified cookie)**: token is sent to `siteverify` and **logged**, not enforced. Missing/failed token is not a 403.
+- From the **3rd** request on that key: `siteverify.success === true` required, else 403 `turnstile_required`. Rotation of an unsigned cookie must not reset this counter (D63).
 - `idempotency_key` on `siteverify` so a timeout can retry the **same** token without a false `timeout-or-duplicate`. Tokens are single-use; a new key on a consumed token is a real failure — tell the client to mint a fresh token (`timeout-or-duplicate` → "try again," not a hard block).
 - Turnstile itself down, below the soft threshold: fail open (those requests never required it). At/above: do **not** hard-block; fall back to layer 1's edge `managed_challenge`. Log degraded-mode.
 
@@ -592,7 +650,9 @@ Reject before the Directions call:
 - coordinates outside a generous box around Switzerland + neighbours (not the service-area polygon — that is QUOTE-07 after a real route exists)
 - `/api/geo/retrieve` whose session token was never seen
 
-**Daily Mapbox-spend circuit breaker** in a dedicated `QUOTE_ABUSE` KV namespace (not `GEO_CACHE`): one key per UTC day, coarse counter, graceful `503 quote.temporarily_unavailable` at the ceiling. KV is the wrong tool for a per-visitor hot counter (1 write/s/key, last-write-wins); it is the right tool for this. The ceiling number is U37 — unset until a Mapbox plan exists; until then the breaker is **wired but the ceiling is a large sentinel that still logs**, not a guessed commercial limit.
+**Daily Mapbox-spend circuit breaker** in a dedicated `QUOTE_ABUSE` KV namespace (not `GEO_CACHE`): one key per UTC day, coarse counter, graceful `503 quote.temporarily_unavailable` at the ceiling. Increment on **every** Mapbox call (suggest / retrieve / reverse / Directions), not only `/api/quote`. Geo stays Turnstile-off (type-ahead); the breaker does **not** stay off geo (AM-03).
+
+KV is the wrong tool for a per-visitor hot counter (1 write/s/key, last-write-wins); it is the right tool for this. The commercial ceiling is U37 — unset until a Mapbox plan exists. Until then **D71:** trip a conservative **engineering sentinel** (wrangler var `MAPBOX_DAILY_UNIT_SENTINEL`, a unit count, **not** a guessed CHF figure, U54) rather than log-only. Do not invent a Mapbox dollar amount in this document.
 
 Do not reuse `GEO_CACHE` for abuse counters (different TTL semantics).
 
@@ -649,9 +709,9 @@ Canonical launch-state example — this is what the engine produces **today**, w
                "source": "settings_versions.airport_waiting_minutes" },
     "amount_rappen": null },
 
-  { "seq": 5, "leg_seq": null, "kind": "surcharge",
+  { "seq": 5, "leg_seq": 1, "kind": "surcharge",
     "code": "child_seat", "i18n_key": "price.surcharge.child_seat.label",
-    "params": { "quantity": 1 },
+    "params": { "n": 1 },
     "basis": { "rule": "amount", "amount_rappen": null, "quantity": 1,
                "why": { "predicate": "quantity", "quantity_source": "child_seats" } },
     "source_row": { "table": "surcharges", "id": 14, "rate_version_id": 7 },
@@ -668,11 +728,13 @@ Canonical launch-state example — this is what the engine produces **today**, w
 ]
 ```
 
+This example is a **one-way**. On a return, `child_seat` is two lines (`leg_seq` 1 and 2), never one `leg_seq: null` covering both (D51 / F2 / FC-05). Do not copy a booking-level child-seat into a return snapshot.
+
 Four load-bearing rules (unchanged from Phase 2, restated because they bind the implementation):
 
-- `i18n_key` + `params`, never rendered prose. Coupon `code` is the one literal.
+- `i18n_key` + `params`, never rendered prose. Coupon `code` is the one literal (ICU `Coupon {code}`, not a `patterns` regex — I-08).
 - `basis.why` is wall-clock justification. Recomputing "was this 23:10?" from a UTC instant in month 7 is a DST bug.
-- `leg_seq` on every line, `null` for booking-level, plus `allocation` on booking-level lines so a single-leg refund apportions by the recorded rule.
+- `leg_seq` on every line, `null` **only** for true booking-level (coupon, `return_trip`), plus **required** `allocation` on every `leg_seq: null` line so a single-leg refund apportions by the recorded rule. `leg_subtotal_rappen = Σ fare+surcharge on that leg`.
 - `amount_rappen: null` for `included` and for anything the matrix has not priced.
 
 Maps onto the mock renderer with no UI change: `kind:"included"` → `muted:true`; `kind:"discount"` → `credit:true`.
@@ -700,7 +762,7 @@ Built from `currentSettingsVersion(rows, computedAt)`. Waiting minutes and (unti
 }
 ```
 
-`price_snapshots_policy_shape` already refuses a snapshot that omits the keys, so "we forgot the waiting policy" and "the waiting policy is unanswered" are distinguishable at the row.
+`price_snapshots_policy_shape` as drafted omits `modification_deadline_hours`, `min_advance_minutes`, and `policy_doc` even though §13 emits them. **Phase 4 additive migration** extends the CHECK to require those keys (FC-05). "We forgot the waiting policy" and "the waiting policy is unanswered" stay distinguishable at the row.
 
 U9 (`display_currency`): `VamosLocale.money()` concatenates a mark onto the unchanged figure, so the customer can literally see a euro mark in front of a CHF amount. The engine returns the CHF number and the mark separately and records `display_currency` on the snapshot. The unwritten ADR-004 requirement — *the charge currency must be stated in words at checkout* — is Phase 7 copy, four languages, not closed here.
 
@@ -708,56 +770,74 @@ U9 (`display_currency`): `VamosLocale.money()` concatenates a mark onto the unch
 
 ## 14. Customer-visible strings this phase introduces
 
-Every key ships `en` / `de` (Swiss, "ss" not "ß") / `fr` / `ar` in the same pass. Concatenated strings are ICU. Errors are instructions.
+Every key ships `en` / `de` (Swiss, "ss" not "ß") / `fr` / `ar` **in this table**. Concatenated strings are ICU. Errors are instructions, not blame. D8: i18n keys, never English prose on a line. Param name for counts is **`n`** (never `count` and `quantity` on the same key). Arabic plural categories 0/1/2/3–10/11+ are carried by ICU `plural`; do not glue `" min"` after a number.
 
-| Key | English source | Params | Notes |
-|---|---|---|---|
-| `quote.class.up_to_pax` | Up to {n} passengers | `{n}` | ICU plural |
-| `quote.class.up_to_bags` | Up to {n} bags | `{n}` | ICU plural |
-| `quote.class.na_pax` | Not available for {n} passengers | `{n}` | |
-| `quote.class.na_bags` | Not available for {n} bags | `{n}` | |
-| `quote.none_fit` | No class fits this party size yet. | — | |
-| `quote.moved_to` | Moved to {v} — {from} fits up to {cap}. | `{v, from, cap}` | `{v}` is a product name (ADR-012, non-translatable) |
-| `quote.error` | Couldn't price this — try again | — | |
-| `quote.pricing_pending` | Prices come once the fare table is approved | — | CTA disabled state |
-| `quote.error.min_advance` | This pickup is too soon — we need {minutes} minutes' notice | `{minutes}` | Only rendered when the setting is non-null |
-| `quote.error.out_of_service_area` | This route is outside our service area | — | |
-| `quote.error.service_area_undefined` | Service area | — | rendered as `data-tok` TBC pill, English on purpose (ADR-011) |
-| `quote.error.route_unavailable` | We can't calculate this route right now — try again in a moment | — | |
-| `quote.error.expired` | This quote has expired — get a new price | — | |
-| `quote.error.price_changed` | The fare table changed — get a new price | — | |
-| `quote.error.engine_changed` | Get a new price to continue | — | |
-| `quote.error.pricing_not_live` | Checkout isn't open yet | — | |
-| `quote.error.coupon_no_longer_valid` | This code can't be used — get a new price | — | |
-| `quote.error.rate_limited` | Too many prices in a short time — wait a moment and try again | — | |
-| `quote.error.turnstile_required` | Confirm this request and try again | — | |
-| `quote.error.temporarily_unavailable` | We can't price this right now — try again shortly | — | daily budget / degraded |
-| `quote.error.mode_not_offered` | Hourly hire isn't available yet — book a transfer instead | — | |
-| `quote.coupon.error.not_found` | Check the coupon code | — | |
-| `quote.coupon.error.inactive` | This code is no longer active | — | |
-| `quote.coupon.error.not_yet_valid` | This code isn't active yet | — | |
-| `quote.coupon.error.expired` | This code has expired | — | |
-| `quote.coupon.error.usage_cap` | This code has reached its limit | — | |
-| `quote.coupon.error.per_user_cap` | You've already used this code | — | |
-| `quote.coupon.error.unpriced` | This code isn't ready yet | — | |
-| `quote.extras.error.max_stops` | Check the number of stops | — | max 3 |
-| `quote.extras.error.max_child_seats` | Check the number of child seats | — | |
-| `quote.flight.unavailable` | We can't check flights right now — enter your pickup time. | — | |
-| `quote.flight.recheck` | Check again | — | |
-| `quote.flight.malformed` | Check the flight number | — | already in the mock; keep |
-| `quote.flight.not_found` | No flight on that number today | — | already in the mock; keep |
-| `quote.geo.no_results` | No matching places — try a fuller address | — | |
-| `quote.geo.suggest_unavailable` | Place search is down — type the address, or drop a pin | — | |
-| `price.line.transfer` | Transfer · {vehicle_class} | `{vehicle_class}` | class slug resolves via non-translatable product name |
-| `price.line.coupon` | Coupon {code} | `{code}` | `{code}` literal, `.vt-dir-keep` |
-| `price.line.return_discount` | Return-trip reduction | — | amount NULL until U16 |
-| `price.surcharge.oversized_luggage.label` | Oversized luggage | — | |
-| `price.surcharge.oversized_luggage.rule` | Per declared item | — | |
-| `price.surcharge.waiting_airport.label` | Airport waiting · {minutes} min | `{minutes}` | TBC pill when `minutes` is null |
+`data-tok` labels stay English on purpose (ADR-011). Product names (`Economy`, `Business`, `First`, `Van`) are ADR-012 literals.
 
-Existing `price.surcharge.{night,airport_pickup,child_seat,extra_stop,waiting_airport}.*` keys from Phase 2's snapshot research remain; this table only lists what Phase 4 newly owes or must re-parameterise.
+**Client rule (I-07), also in the API contract:** wrap Mapbox `name`/`address`, `coupon.code`, formatted money, flight numbers, `VT-YY-####`, and class names in `.vt-dir-keep`. Do not translate those literals. Widget: logical separator (never a raw `→`); ICU for duration; never English `" h"` (I-10).
 
-German / French / Arabic for the new coupon, extras, flight-unavailable and geo keys ship in the same dictionary PR as the English source (the coupons-extras and flight lanes already drafted them). Planner: land them in `apps/web/i18n/messages/{en,de,fr,ar}.json` in the same plan that lands the route.
+Planner: land this table in `apps/web/i18n/messages/{en,de,fr,ar}.json` in the **same** plan that lands the route. Coupons-extras §5 `patterns` regex for `price.line.coupon` is **superseded** (I-08).
+
+| Key | en | de | fr | ar | Params / notes |
+|---|---|---|---|---|---|
+| `quote.class.up_to_pax` | Up to {n, plural, one {# passenger} other {# passengers}} | Bis zu {n, plural, one {# Passagier} other {# Passagiere}} | Jusqu'à {n, plural, one {# passager} other {# passagers}} | حتى {n, plural, zero {# راكب} one {راكب واحد} two {راكبين} few {# ركاب} many {# راكبًا} other {# راكب}} | ICU plural |
+| `quote.class.up_to_bags` | Up to {n, plural, one {# bag} other {# bags}} | Bis zu {n, plural, one {# Gepäckstück} other {# Gepäckstücke}} | Jusqu'à {n, plural, one {# bagage} other {# bagages}} | حتى {n, plural, zero {# حقيبة} one {حقيبة واحدة} two {حقيبتين} few {# حقائب} many {# حقيبة} other {# حقيبة}} | ICU plural |
+| `quote.class.na_pax` | Not available for {n, plural, one {# passenger} other {# passengers}} | Nicht verfügbar für {n, plural, one {# Passagier} other {# Passagiere}} | Indisponible pour {n, plural, one {# passager} other {# passagers}} | غير متاحة لـ {n, plural, zero {# راكب} one {راكب واحد} two {راكبين} few {# ركاب} many {# راكبًا} other {# راكب}} | ICU plural; also 422 at intent when `lock.pax < 1` |
+| `quote.class.na_bags` | Not available for {n, plural, one {# bag} other {# bags}} | Nicht verfügbar für {n, plural, one {# Gepäckstück} other {# Gepäckstücke}} | Indisponible pour {n, plural, one {# bagage} other {# bagages}} | غير متاحة لـ {n, plural, zero {# حقيبة} one {حقيبة واحدة} two {حقيبتين} few {# حقائب} many {# حقيبة} other {# حقيبة}} | ICU plural |
+| `quote.class.unavailable` | This class isn't offered on this route yet | Diese Klasse wird auf dieser Strecke noch nicht angeboten | Cette classe n'est pas encore proposée sur cet itinéraire | هذه الفئة غير متاحة على هذا المسار بعد | I-09 |
+| `quote.class.no_rate` | No fare table for this class yet | Für diese Klasse gibt es noch keine Preistabelle | Pas encore de grille tarifaire pour cette classe | لا توجد تعرفة لهذه الفئة بعد | I-09 |
+| `quote.class.route_off` | This class is off sale on this route | Diese Klasse ist auf dieser Strecke nicht im Verkauf | Cette classe n'est pas en vente sur cet itinéraire | هذه الفئة غير معروضة للبيع على هذا المسار | I-09 |
+| `quote.none_fit` | No class fits this party size yet. | Keine Klasse passt bisher zu dieser Gruppengrösse. | Aucune classe ne convient encore à cette taille de groupe. | لا فئة تناسب حجم هذه المجموعة بعد. | |
+| `quote.moved_to` | Moved to {v} — {from} fits up to {cap}. | Zu {v} gewechselt — {from} bietet Platz für bis zu {cap}. | Déplacé vers {v} — {from} convient jusqu'à {cap}. | نُقل إلى {v} — {from} تتسع حتى {cap}. | `{v}` `{from}` ADR-012 literals, `.vt-dir-keep` |
+| `quote.error` | Couldn't price this — try again | Preis nicht verfügbar — erneut versuchen | Tarif indisponible — réessayez | تعذّر التسعير — حاول مجددًا | Catalogue / abuse / engine bugs only |
+| `quote.pricing_pending` | Prices come once the fare table is approved | Die Preise erscheinen, sobald die Preistabelle freigegeben ist | Les prix s'affichent une fois la grille tarifaire approuvée | تظهر الأسعار بعد اعتماد جدول الأجرة | CTA disabled |
+| `quote.error.min_advance` | This pickup is too soon — we need {minutes, plural, one {# minute} other {# minutes}} notice | Diese Abholung ist zu früh — wir brauchen {minutes, plural, one {# Minute} other {# Minuten}} Vorlauf | Cette prise en charge est trop tôt — il nous faut {minutes, plural, one {# minute} other {# minutes}} de préavis | هذا الانطلاق مبكر جدًا — نحتاج إشعارًا قبل {minutes, plural, zero {# دقيقة} one {دقيقة واحدة} two {دقيقتين} few {# دقائق} many {# دقيقة} other {# دقيقة}} | ICU; TBC when minutes null — do not emit |
+| `quote.error.out_of_service_area` | This route is outside our service area | Diese Strecke liegt ausserhalb unseres Einzugsgebiets | Cet itinéraire est hors de notre zone de desserte | هذا المسار خارج منطقة خدمتنا | Polygon / named-pair |
+| `quote.error.place_out_of_box` | These points are outside the area we can quote | Diese Punkte liegen ausserhalb des Gebiets, das wir berechnen können | Ces points sont hors de la zone que nous pouvons tarifer | هذه النقاط خارج المنطقة التي يمكننا تسعيرها | Distinct from service area (I-02) |
+| `quote.error.same_place` | Pickup and drop-off are the same place — pick two | Abholung und Ziel sind derselbe Ort — wählen Sie zwei | Le départ et la destination sont le même lieu — choisissez-en deux | نقطة الانطلاق والوجهة المكان نفسه — اختر اثنين | I-02 |
+| `quote.error.service_area_undefined` | Service area | Service area | Service area | Service area | `data-tok` TBC, English on purpose (ADR-011) |
+| `quote.error.route_unavailable` | We can't calculate this route right now — try again in a moment | Diese Strecke können wir gerade nicht berechnen — versuchen Sie es gleich noch einmal | Impossible de calculer cet itinéraire pour le moment — réessayez dans un instant | يتعذّر حساب هذا المسار حاليًا — حاول بعد لحظات | |
+| `quote.error.expired` | This quote has expired — get a new price | Dieses Angebot ist abgelaufen — holen Sie einen neuen Preis | Ce devis a expiré — obtenez un nouveau prix | انتهت صلاحية هذا السعر — احصل على سعر جديد | |
+| `quote.error.price_changed` | The fare table changed — get a new price | Die Preistabelle hat sich geändert — holen Sie einen neuen Preis | La grille tarifaire a changé — obtenez un nouveau prix | تغيّر جدول الأجرة — احصل على سعر جديد | |
+| `quote.error.engine_changed` | Get a new price to continue | Holen Sie einen neuen Preis, um fortzufahren | Obtenez un nouveau prix pour continuer | احصل على سعر جديد للمتابعة | |
+| `quote.error.pricing_not_live` | Checkout isn't open yet | Die Kasse ist noch nicht geöffnet | Le paiement n'est pas encore ouvert | الدفع غير مفتوح بعد | |
+| `quote.error.coupon_no_longer_valid` | This code can't be used — get a new price | Dieser Code kann nicht verwendet werden — holen Sie einen neuen Preis | Ce code ne peut plus être utilisé — obtenez un nouveau prix | لا يمكن استخدام هذا الرمز — احصل على سعر جديد | |
+| `quote.error.rate_limited` | Too many prices in a short time — wait a moment and try again | Zu viele Preise in kurzer Zeit — warten Sie einen Moment und versuchen Sie es erneut | Trop de tarifs en peu de temps — patientez un instant et réessayez | طلبات أسعار كثيرة في وقت قصير — انتظر لحظة ثم حاول مجددًا | |
+| `quote.error.turnstile_required` | Confirm this request and try again | Bestätigen Sie diese Anfrage und versuchen Sie es erneut | Confirmez cette demande et réessayez | أكّد هذا الطلب ثم حاول مجددًا | |
+| `quote.error.temporarily_unavailable` | We can't price this right now — try again shortly | Wir können gerade keinen Preis berechnen — versuchen Sie es gleich noch einmal | Impossible de tarifer pour le moment — réessayez sous peu | يتعذّر التسعير الآن — حاول بعد قليل | daily breaker / degraded |
+| `quote.error.mode_not_offered` | Hourly hire isn't available yet — book a transfer instead | Stundenweise ist noch nicht verfügbar — buchen Sie stattdessen einen Transfer | La formule à l'heure n'est pas encore disponible — réservez un transfert | الحجز بالساعة غير متاح بعد — احجز نقلًا بدلًا منه | |
+| `quote.coupon.error.not_found` | Check the coupon code | Prüfen Sie den Gutscheincode | Vérifiez le code du coupon | تحقّق من رمز القسيمة | drafted coupons-extras |
+| `quote.coupon.error.inactive` | This code is no longer active | Dieser Code ist nicht mehr aktiv | Ce code n'est plus actif | لم يعد هذا الرمز نشطًا | |
+| `quote.coupon.error.not_yet_valid` | This code isn't active yet | Dieser Code ist noch nicht aktiv | Ce code n'est pas encore actif | هذا الرمز غير نشط بعد | |
+| `quote.coupon.error.expired` | This code has expired | Dieser Code ist abgelaufen | Ce code a expiré | انتهت صلاحية هذا الرمز | |
+| `quote.coupon.error.usage_cap` | This code has reached its limit | Dieser Code hat sein Limit erreicht | Ce code a atteint sa limite | بلغ هذا الرمز حده الأقصى | |
+| `quote.coupon.error.per_user_cap` | You've already used this code | Sie haben diesen Code bereits verwendet | Vous avez déjà utilisé ce code | لقد استخدمت هذا الرمز من قبل | |
+| `quote.coupon.error.unpriced` | This code isn't ready yet | Dieser Code ist noch nicht bereit | Ce code n'est pas encore prêt | هذا الرمز غير جاهز بعد | |
+| `quote.extras.error.max_stops` | Check the number of stops | Prüfen Sie die Anzahl der Stopps | Vérifiez le nombre d'arrêts | تحقّق من عدد التوقفات | max 3 |
+| `quote.extras.error.max_child_seats` | Check the number of child seats | Prüfen Sie die Anzahl der Kindersitze | Vérifiez le nombre de sièges enfant | تحقّق من عدد مقاعد الأطفال | |
+| `quote.flight.unavailable` | We can't check flights right now — enter your pickup time. | Wir können Flüge gerade nicht prüfen — geben Sie Ihre Abholzeit ein. | Impossible de vérifier les vols pour le moment — indiquez votre heure de prise en charge. | يتعذّر علينا التحقق من الرحلات حاليًا — أدخل وقت الاستلام بنفسك. | drafted flight-autofill |
+| `quote.flight.recheck` | Check again | Erneut prüfen | Vérifier à nouveau | إعادة التحقق | |
+| `quote.flight.malformed` | Check the flight number | Prüfen Sie die Flugnummer | Vérifiez le numéro de vol | تحقق من رقم الرحلة | mock |
+| `quote.flight.not_found` | No flight on that number today | Zu dieser Nummer liegt heute kein Flug vor | Aucun vol sous ce numéro aujourd'hui | لا رحلة بهذا الرقم اليوم | mock; "today" = the asked civil date |
+| `quote.flight.pick_one` | Pick which flight you mean | Welche dieser Flüge meinen Sie? | Quel vol voulez-vous dire ? | أي رحلة تقصد؟ | disambiguate chrome |
+| `quote.flight.candidate.depart` | Departs {time} {day} | Abflug {time} {day} | Départ {time} {day} | المغادرة {time} {day} | `{time}` `{day}` `.vt-dir-keep` |
+| `quote.flight.candidate.arrive` | Arrives {time} {day} | Ankunft {time} {day} | Arrivée {time} {day} | الوصول {time} {day} | `{time}` `{day}` `.vt-dir-keep` |
+| `quote.flight.today` | today | heute | aujourd'hui | اليوم | `{day}` param |
+| `quote.flight.tomorrow` | tomorrow | morgen | demain | غدًا | `{day}` param |
+| `quote.geo.no_results` | No matching places — try a fuller address | Keine passenden Orte — versuchen Sie eine vollständigere Adresse | Aucun lieu correspondant — essayez une adresse plus complète | لا أماكن مطابقة — جرّب عنوانًا أوضح | |
+| `quote.geo.suggest_unavailable` | Place search is down — type the address, or drop a pin | Die Ortssuche ist ausgefallen — tippen Sie die Adresse oder setzen Sie eine Stecknadel | La recherche de lieux est indisponible — saisissez l'adresse ou déposez une épingle | البحث عن الأماكن متوقف — اكتب العنوان أو أسقط دبوسًا | |
+| `price.line.transfer` | Transfer · {vehicle_class} | Transfer · {vehicle_class} | Transfert · {vehicle_class} | نقل · {vehicle_class} | `{vehicle_class}` ADR-012, `.vt-dir-keep` |
+| `price.line.coupon` | Coupon {code} | Gutschein {code} | Coupon {code} | قسيمة {code} | ICU, `{code}` literal `.vt-dir-keep`. **Not** a `patterns` regex |
+| `price.line.return_discount` | Return-trip reduction | Rückfahrt-Ermässigung | Réduction aller-retour | تخفيض الذهاب والعودة | amount NULL until U16 |
+| `price.surcharge.oversized_luggage.label` | Oversized luggage | Übergrosses Gepäck | Bagage volumineux | أمتعة كبيرة الحجم | drafted coupons-extras |
+| `price.surcharge.oversized_luggage.rule` | Per declared item | Pro angegebenes Stück | Par article déclaré | لكل قطعة معلنة | |
+| `price.surcharge.waiting_airport.label` | Airport waiting · {minutes, plural, one {# minute} other {# minutes}} | Flughafenwarten · {minutes, plural, one {# Minute} other {# Minuten}} | Attente aéroport · {minutes, plural, one {# minute} other {# minutes}} | انتظار المطار · {minutes, plural, zero {# دقيقة} one {دقيقة واحدة} two {دقيقتين} few {# دقائق} many {# دقيقة} other {# دقيقة}} | TBC pill when minutes null — never `"null min"` |
+| `price.surcharge.extra_stop.label` | {n, plural, one {# extra stop} other {# extra stops}} | {n, plural, one {# Extra-Stopp} other {# Extra-Stopps}} | {n, plural, one {# arrêt supplémentaire} other {# arrêts supplémentaires}} | {n, plural, zero {# توقف إضافي} one {توقف إضافي واحد} two {توقفان إضافيان} few {# توقفات إضافية} many {# توقفًا إضافيًا} other {# توقف إضافي}} | always pass `n`, including 1 (I-01) |
+| `price.surcharge.child_seat.label` | {n, plural, one {# child seat} other {# child seats}} | {n, plural, one {# Kindersitz} other {# Kindersitze}} | {n, plural, one {# siège enfant} other {# sièges enfant}} | {n, plural, zero {# مقعد طفل} one {مقعد طفل واحد} two {مقعدا طفل} few {# مقاعد طفل} many {# مقعدًا للطفل} other {# مقعد طفل}} | always pass `n`, including 1 (I-01) |
+
+Existing `price.surcharge.{night,airport_pickup,waiting_city}.*` keys from Phase 2 remain. `untrusted_input`, `retrieve_without_suggest`, `no_settings_version`, `partially_priced_class` stay on `quote.error` — they are not a normal customer path.
+
+Phase 7 must persist `bookings.locale` + `bookings.note`. Phase 8 OpsDetail must show the customer note with `dir` from `locale`, a locale badge, and a dispatch-only field on a **different** column. Do not auto-translate. Do not freeze Arabic prose into an i18n key. **U56**, deferred.
 
 ---
 
@@ -772,7 +852,7 @@ German / French / Arabic for the new coupon, extras, flight-unavailable and geo 
 | D45 | Fixed-route match | `(origin,dest)` then `(dest,origin)`; record `matched` | Require two rows per pair | Ops will half-do "add Zermatt"; airport surcharge already carries direction | Fare step, ops Pricing |
 | D46 | Surcharge when | `predicate jsonb` + publish gate refuses `{}` | TypeScript `if (hour >= 22)` | Otherwise the rule that fired is not versioned with the batch (D7 hole) | Publish trigger, night/airport lines |
 | D47 | Two expiry clocks | 30-min lock on the signed token; `price_snapshots.expires_at` = payment window, written once | One clock that is both; extending `expires_at` | D42 forbids a snapshot at quote; D19 forbids the UPDATE Phase 2's comment assumed | QUOTE-04, charge gate |
-| D48 | Lock artefact | HMAC-SHA256 signed pin of inputs + version ids; Postgres `now()` authors `expires_at` and re-checks at checkout | KV as the lock; snapshot row as the lock; `Date.now()` as author | KV 60 s lag is wrong for a gate; D42 forbids the snapshot; Worker clock is decorative | `/api/quote`, reprice, checkout |
+| D48 | Lock artefact | HMAC-SHA256 signed pin of inputs + version ids; Postgres `now()` authors `exp` and re-checks at checkout; **kid + previous-secret** (D65) | KV as the lock; snapshot row as the lock; `Date.now()` as author; single secret with no kid | KV 60 s lag is wrong for a gate; D42 forbids the snapshot; Worker clock is decorative once D61 lands | `/api/quote`, reprice, checkout |
 | D49 | Quote-expiry Cron | None that mutates `price_snapshots` | GSD-LAUNCH "Cron expire stale quotes" | D19; expiry is a derived predicate | LIFE-07 split (no-show remains Phase 9) |
 | D50 | U7 coupon consume | At PaymentIntent creation, `FOR UPDATE` on `coupons`, no KV reservation | Quote-time consume; Phase 2's soft KV reservation | Coupon is not on `/api/quote`; `booking_id NOT NULL`; KV is a second truth | `coupon_redemptions`, checkout intent |
 | D51 | Extras catalogue | Ninth `surcharges` code `oversized_luggage`; quantities from the client, amounts from the rate book | A parallel extras table; client-supplied extra prices | Freeze/publish/i18n already exist on `surcharges` | QUOTE-11, refunds |
@@ -780,11 +860,26 @@ German / French / Arabic for the new coupon, extras, flight-unavailable and geo 
 | D53 | Geo providers | Search Box `/suggest`+`/retrieve` (session-tokened, proxied); Geocoding v6 reverse; Directions v5 `mapbox/driving` | Photon in production; Matrix; `driving-traffic`; unrestricted browser token | QUOTE-01 needs geometry; traffic-aware duration is wrong for a future pickup | `/api/geo/*`, `/api/quote` |
 | D54 | Service area | Named `fixed_routes` pair OR both ends in polygon; NULL polygon fail-closed; NULL min-advance skip | Radius around HB; skip polygon when NULL; invent 180 minutes | Distant ski destinations are products; skip-polygon = quote Earth | QUOTE-07 |
 | D55 | Flight provider | AeroDataBox, one-shot, no poll, no invented buffer, landing time = actual › estimated › scheduled | FlightAware; mock's 45 s poll; landing + N minutes | Cost model; LATER-01 / LIFE-06 are Phase 9; ADR-002 | `/api/flight/:no` |
-| D56 | Abuse layers | Zone RL 30/60 `managed_challenge` + Worker `ratelimits` on `ip+vamos_qs` 8/60 (4/60 bare) + invisible Turnstile enforced from the 3rd request | Bare-IP only; Turnstile on the first quote; KV as the per-visitor counter | CGNAT; "under a minute"; KV write-rate; edge challenge survives siteverify outage | QUOTE-09 |
+| D56 | Abuse layers | Zone RL 30/60 `managed_challenge` on quote+reprice+geo + Worker `ratelimits` on `ip+verified vamos_qs` 8/60 (4/60 bare / unverifiable) + invisible Turnstile from the 3rd **per IP** | Bare-IP only; unsigned cookie as the key; Turnstile on the first quote; KV as the per-visitor counter | CGNAT; AM-04 rotation; "under a minute"; edge challenge survives siteverify outage | QUOTE-09 |
 | D57 | Hourly | `hourlyEnabled=false`; `mode: "hourly"` → 422 | Shipping an unmodelled third product | No `hourly_rates` table; owner question with the matrix (U50) | Widget, `/api/quote` |
 | D58 | Charge-gate hardening | `SECURITY DEFINER`, `search_path = ''`, explicit `IF NOT FOUND` | Invoker-rights trigger that happens to fail on `IS DISTINCT FROM` | An RLS miss currently skips the `IF`s | `tg_payment_matches_snapshot` |
 | D59 | Preview env | `PRICING_PREVIEW` staging-only, **absent** in production | `"false"` string in prod; preview that can charge | Missing binding is a boot error; a draft snapshot is never `is_chargeable` | Staging funnel tests |
-| D60 | Hyperdrive split for pricing | Cached book / settings (no `now()`); NOCACHE coupons + writes | One binding; `where effective_from <= now()` on the cached config | Hyperdrive will not cache `now()`; a 75 s publish lag is acceptable, a coupon-cap lag is not | `loadRateBook`, checkout |
+| D60 | Hyperdrive split for pricing | **Corrected on harden:** rate book, coupons, snapshot writes all go through `asQuote` / definer RPCs on `HYPERDRIVE_NOCACHE` (Phase 3 D79). Cached `HYPERDRIVE` stays content-only (D39). A ~75 s publish lag is **not** an acceptable billing read | Loading the rate book via cached `HYPERDRIVE` / `vamos_public` | Phase 3 FC-02: §14c revokes pricing tables from `vamos_public`; granting them is survival path 13 | `loadRateBook`, checkout |
+| D61 | Quote-lock clock trigger-visible | Persist `quote_lock_expires_at`; raise inside snapshot-write tx; charge gate refuses past lock even with a future payment-window `expires_at` | Worker Date as the 30-min gate; trigger reading payment-window `expires_at` for QUOTE-04 | AM-01; D42 deleted the quote-time row the lock lane assumed | QUOTE-04, pgTAP |
+| D62 | Honour retired under a live lock | `rate_version_is_live = (status in ('live','retired'))`; still refuse `draft` | Flag = `status = 'live'` at checkout INSERT | AM-02; Phase 2 already chose honour-retired | Charge gate, republish |
+| D63 | Signed `vamos_qs` | HMAC cookie; unverifiable/missing → 4/60 bare-IP; Turnstile 3rd keyed on IP or verified cookie | Unsigned UUID as Layer 2/3 key | AM-04; HttpOnly does not stop sending a fresh cookie | QUOTE-09 |
+| D64 | Lock pins extras + coupon | Reprice always re-signs `class_totals`; coupon/extras-only keeps `quote_id`/`exp`; checkout 400s a disagreeing body | Reuse original `class_totals` (pre-coupon) | FC-01; happy-path coupon 409 `price_changed` | Reprice, intent |
+| D65 | HMAC kid + previous secret | `kid.payload.mac`; dual-verify `QUOTE_LOCK_SECRET` / `_PREVIOUS` for one lock TTL | Single secret; rotation = mass requote disguised as expiry | FC-04 | Secrets, runbook U58 |
+| D66 | Zone type + tags | `service_zones.zone_type`, `tags text[]` in the D46 migration | Infer airport from `iata IS NOT NULL` | F1; otherwise D46 is TypeScript again | Publish gate, airport/ski |
+| D67 | Extra-stop quantity-only at MVP | Count 0–3 is a legal reprice; waypoints optional; detour km is U41 | 422 mock payload for missing `waypoints[]` | F6; checkout has no stop addresses | QUOTE-11, U41 |
+| D68 | Widget mode tokens | Preprocess `one-way` → `one_way`; `hourly` → 422 before the union; `hours` rejected in §0 | Strict union 400s `one-way` as `untrusted_input` | F5 | `/api/quote` Zod |
+| D69 | Coupon release column | `coupon_redemptions.released_at`; count `is null`; SET not DELETE | DELETE abandonments; Phase 9 "will decide" with no column | FC-07; unique stays; partial refund does not release | QUOTE-06, Phase 9 |
+| D70 | Intent gates | `pax >= 1`, chosen class `eligible`, `estimated_duration_minutes = round(duration_s/60) > 0`; no 30-min floor | Rely on widget CTA; silent 30-min range | FC-02, FC-11, F7 | Intent, exclusion |
+| D71 | Mapbox breaker on every geo call | Increment `QUOTE_ABUSE` on suggest/retrieve/reverse/Directions; engineering sentinel trips (U54); `kind: "coords"` needs seen session | Log-only sentinel; breaker off geo | AM-03 | QUOTE-09, U37 |
+| D72 | Seed `return_trip` | Tenth surcharge, `kind=percent`, `applies_to=booking`, `percent NULL`, predicate `always` | Synthesise the line with no row | F8; publish gate needs the row | U16 |
+| D73 | Shown alternatives + one snapshot | Per-class `{fixed_route, effective_max_pax, max_bags, lines}`; class change = one intent POST | Totals-only board; second unbound snapshot on class change | FC-06; D42 no unbound web rows | Dispute, LIFE-07 |
+| D74 | Flight on the lock | `flight_no` + `landing_source` on `QuoteLockPayload.legs[]`; intent 400s a disagreeing body | Quote-time ignore; lock drops it | FC-10; LIFE-06 | Intent INSERT |
+| D75 | One error → one i18n key, four locales | Dedicated `same_place`, `place_out_of_box`, `pick_one`, class `unavailable`/`no_rate`/`route_off`; ICU extras; de/fr/ar in §14 | Reuse `quote.error`; English-only synthesis | FC-09, I-01–I-10 | Phase 5 widget |
 
 ---
 
@@ -796,24 +891,24 @@ Phase 2 items this phase must **not** silently close:
 |---|---|---|---|
 | U8 | Sub-rappen per-km rates | Read the CHF matrix. Widen to `per_km_millirappen` only if a rate would truncate. Line amount stays integer rappen. | `distance_rates` column type — safe to defer |
 | U16 | Round-trip discount percentage | Owner, with the matrix. **Do not seed a number, not even in a fixture.** Line shape exists; `percent` NULL; publish gate refuses an active unpriced `return_trip`. | Return-trip line amount |
-| U20 | Who mints `bookings.idempotency_key` and its lifetime | **Phase 7** checkout POST contract. Unique partial index already ships. Do not invent a quote-scoped key here. | Double-charge protection |
+| U20 | Who mints `bookings.idempotency_key` and its lifetime | **Phase 7** checkout POST contract. Unique partial index already ships. Do not invent a quote-scoped key here. **Do not derive it from `quote_id`.** Phase 4 now **requires** the field on intent (browser-minted per attempt), persist `{quote_id, stripe_pi}` before the Stripe call (or key the PI on that header), and on `bookings_quote` unique-violation SELECT and return the existing client secret. Waypoint reprice records `supersedes_quote_id`. The sequence is satisfiable; lifetime/mint remains Phase 7 (FC-03). | Double-charge protection |
 | U9 | Display currency copy | Half-settled: `money()` is a mark swap. Remaining: one line of checkout copy that the charge is CHF, four languages. | Phase 7 |
 | U5 | Manage-link validity days | Owner. Issuance refuses rather than pick. | Phase 7, not quote |
-| U22 | Duration for a phone booking | **Phase 8** assign dialog. Web funnel always has Directions seconds. | OPS-03/04 |
+| U22 | Phone booking pricing **and** duration with no Mapbox | **Phase 8** implements `POST /api/ops/quote` specified in §7: zone-or-text, skip-Directions on a live `fixed_routes` pair, dispatcher-entered duration (`source: "ops_phone"`), asymmetric returns, unbound `ops_phone` snapshots. Web funnel always has Directions seconds and D70. Do not let the web funnel invent a duration. | OPS-03/04 |
 
 New in this phase (U33+). These ids do not overlap Phase 3's U23–U32.
 
 | # | Item | Why uncertain | The check that settles it | Blocks |
 |---|---|---|---|---|
-| **U33** | Mapbox Order covering stored Directions distance/duration/geometry and per-booking coordinates | Self-serve terms (PDF 21 July 2026) §2.10.1 / §2.7.2–3 bar the GSD-LAUNCH cache **and** the Phase 2 snapshot/leg columns | Before Mapbox sign-up: email sales with the one-sentence use case. Get an Order clause or a written refusal. Until then: live Mapbox, no KV cache of Mapbox, pin-in-lock is a named legal risk | Planning of any Mapbox cache; production fill of `distance_km` / `estimated_duration_minutes` |
+| **U33** | Mapbox Order covering stored Directions distance/duration/geometry and per-booking coordinates | Self-serve terms (PDF 21 July 2026) §2.10.1 / §2.7.2–3 bar the GSD-LAUNCH cache **and** the Phase 2 snapshot/leg columns | Before Mapbox sign-up: email sales with the one-sentence use case. Get an Order clause or a written refusal. Until then: live Mapbox, **no KV cache of Mapbox**, pin-in-lock is a named legal risk. D70 still **requires** `estimated_duration_minutes > 0` from the lock on the web path (Phase 8 exclusion cannot use a silent 30-min floor). Production fill remains this Order. Do not plan the cache. | Planning of any Mapbox cache; production fill of `distance_km` / `estimated_duration_minutes` |
 | **U34** | Search Box `permanent` parameter | Terms define Permanent Geocode for Geocoding v5/v6; Search Box docs list no `permanent` | Read live Search Box retrieve params at sign-up. If absent, checkout-time Geocoding v6 `permanent=true` is required | Checkout address persist |
 | **U35** | Mapbox Directions / Search Box unit prices | Pricing page has no dated URL; numbers in the geo lane are an August 2026 fetch | Re-fetch `mapbox.com/pricing` at sign-up | Cost model, U37 |
 | **U36** | Cloudflare zone plan for custom Rate Limiting + OWASP CRS | Presumed Free; Pro is recommended; not in GSD-LAUNCH budget | Owner sign-off on Pro as a new cost line. Fallback: the one Free RL rule + Worker binding + Turnstile still ship | CRS; second RL slot |
-| **U37** | `DAILY_MAPBOX_QUOTE_BUDGET` | Depends on the Mapbox plan, which does not exist | Set at ~70 % of monthly-tolerable ceiling / 30 once the account exists. Until then the breaker is wired with a logging-only sentinel, not a guessed commercial limit | Circuit-breaker threshold |
+| **U37** | `DAILY_MAPBOX_QUOTE_BUDGET` | Depends on the Mapbox plan, which does not exist | Set at ~70 % of monthly-tolerable ceiling / 30 once the account exists. Until then D71 trips U54's **engineering unit sentinel** (not log-only, not a guessed CHF figure) | Circuit-breaker commercial threshold |
 | **U38** | Night window and airport-zone predicate | Seeded into **draft** from the mock (`22:00–06:00`); owner must confirm before publish | Owner, with the matrix. Publish gate refuses empty predicates | `draft → live` |
 | **U39** | Van capacity 7 vs 8 | Widget 7, ops seed 8, vehicles seed 7. `LEAST` → 7 | Owner confirms fleet fact | Copy on the Van card |
 | **U40** | Extras duplication on return legs | Inferred from a booking-level checkbox, not an owner decision | Ask whether a child seat / oversize is assumed both ways. Per-leg UI is later | Refund of a single return leg's extras |
-| **U41** | Extra-stop detour km at the same per-km rate | Assumed same rate; nowhere specified | Ask with the matrix. A different stop-detour rate needs a column | Fare for a stop-heavy route |
+| **U41** | Extra-stop detour km at the same per-km rate | Assumed same rate; nowhere specified. Checkout mock is a **count**, no stop addresses | D67: quantity-only until Phase 5 stop PlaceInputs exist. Ask with the matrix whether detour km uses the same per-km rate | Fare for a stop-heavy route; do not 422 a count-only payload |
 | **U42** | `checkout_abandon_release_minutes` | Column does not exist; coupon reservation release needs a number | Phase 5/7, same "how long do we wait for Stripe" decision as U19. Until then the sweep does not run | Dead coupon-reservation release |
 | **U43** | Child seat / oversize as count > 1 | REQUIREMENTS singular; mock is a checkbox | Owner: do Business/Van families need 2+ seats priced separately? Until then count = 1 | Checkout extras UI |
 | **U44** | AeroDataBox per-endpoint unit cost | Marketplace page is client-rendered; not confirmed against a paid dashboard | Open RapidAPI pricing while logged in; size the tier from daily lookups × units × 30 | Flight-API tier |
@@ -826,6 +921,11 @@ New in this phase (U33+). These ids do not overlap Phase 3's U23–U32.
 | **U51** | `extra_stop` / `child_seat` `applies_to='leg'` vs engine-core's booking-level extras loop | Phase 2 seed says `leg`; engine-core sketched `applies_to='booking'` | Follow Phase 2 seed (`leg`) + D51 duplication rules. Do not change `applies_to` without an owner extras-UI decision (U40) | Line `leg_seq` |
 | **U52** | Security-definer charge-gate vs column-whitelist trigger interaction | Lock lane A | pgTAP `charge_gate.test.sql` as `authenticated` and `vamos_guest` on a local Supabase | D58 landing |
 | **U53** | Smart Placement vs Mapbox RTT | ADR-007 unresolved; no measured Frankfurt→Mapbox number | Measure once both accounts exist. Do not assert the < 800 ms warm target before then | Latency claim, not the design |
+| **U54** | `MAPBOX_DAILY_UNIT_SENTINEL` | Engineering tripwire until U37 lands a plan. A unit count, **not** a CHF figure | Owner sets a low four-digit wrangler var at Mapbox sign-up, or accepts the plan-time default documented as engineering. Replace with U37 when the account exists | Breaker actually trips (AM-03) |
+| **U55** | Extra-stop closed / seasonal road | `mapbox/driving` often still returns a geometry. Live closures on the travel day are unknowable at quote time | Named residual. Dispatcher-visible summary = named via + duration band, never GeoJSON (U33). No `driving-traffic`. No metre override | Ops cannot inspect Licensed Map Content |
+| **U56** | Customer note + locale on the ops surface | Quote chrome is four-language. Free-text "Notes for the driver" is not a quote field | **Phase 7** persist `bookings.locale` + `bookings.note`. **Phase 8** OpsDetail: customer note with `dir` from `locale`, locale badge, dispatch-only field on a different column. Do not auto-translate | OR-04 |
+| **U57** | Flight term-search | Mock `FLIGHT_API.search` / `GET /flights/search/term` is not in Phase 4 | Named drop next to the 45 s poll. Lookup-only. Phase 5 widget does not autocomplete flights | F4 |
+| **U58** | HMAC lock-secret rotation runbook | Wait one lock TTL vs force requote | Ops runbook when rotating `QUOTE_LOCK_SECRET`. Not a product number | D65 |
 
 ---
 

@@ -20,5 +20,10 @@ and a `FINDINGS:` integer. If the counts differ, the verdict is
 `ZERO FINDINGS IS NOT A CLEAN VERDICT — treat as unreviewed`. Harden does not run
 until the set is complete.
 
+**Returned 2026-08-22:** 8/8 `STATUS: returned`. Findings 12+11+4 (Phase 3) and
+4+11+8+10+4 (Phase 4) = 64. Not a silent empty pass. Ledgers:
+`03-HARDEN.md` (25 apply / 0 reject / 2 defer / 0 dropped),
+`04-HARDEN.md` (28 apply / 0 reject / 9 defer / 0 dropped).
+
 Harden then: every finding applied, rejected with a written rebuttal, or deferred
 with an owning phase named. Never silently dropped.

@@ -3,15 +3,22 @@
 **Date:** 2026-08-22.
 **Requirements:** DATA-05, DATA-06.
 **Builds on (does not re-litigate):** D1–D24 in `02-RESEARCH.md`. If this document
-contradicts one of those, it names the id and records why. It does not.
+contradicts one of those, it names the id and records why. The 8-lens harden
+pass names two contradictions of later-phase text, not of D1–D24: Phase 4
+D60 (cached rate book) is refused by D3/D79; `isolation-proof.md` fixture SQL
+and NC1/NC4/NC5 constructions are superseded here (D78, D81, D38).
 **Sources:** `research/hyperdrive-wiring.md` (the collapsed Wave A lanes
 `hyperdrive-bindings`, `pg-client-lifecycle`, `with-identity-wrapper`,
 `latency-instrumentation`) and `research/isolation-proof.md` (the collapsed
 `isolation-proof` lane). Load-bearing claims cite the source section.
+**Harden pass:** `03-HARDEN.md` (27 findings, dropped 0). New decisions
+D76–D83; new uncertainties U59–U61. D25–D40 and U23–U32 keep their ids;
+several Chosen/check cells are corrected in place.
 **Cannot complete this phase:** there is no Cloudflare account and no Supabase
 project. Local work against `supabase start` is the executable slice. The
 staging p50 measurement is **DEFERRED**, not passed. A green local run is not
-the gate.
+the gate. DATA-06 is not claimed passed locally, and the deployed probe
+Worker — when it exists — proves the probe, not the OpenNext app (U31).
 
 ---
 
@@ -19,44 +26,68 @@ the gate.
 
 1. Two Hyperdrive configs bound under **both** `env.staging` and
    `env.production` in `apps/web/wrangler.jsonc`, per D3: `HYPERDRIVE_NOCACHE`
-   (cache-disabled, `vamos_edge`, identity and transactions) and `HYPERDRIVE`
-   (cacheable, `vamos_public`, public content). Credentials live inside the
-   Hyperdrive config object, never in `wrangler.jsonc` and never as a
-   `wrangler secret put`.
+   (cache-disabled, `vamos_edge`, identity, transactions, **and billing**) and
+   `HYPERDRIVE` (cacheable, `vamos_public`, public content only). Credentials
+   live inside the Hyperdrive config object, never in `wrangler.jsonc` and
+   never as a `wrangler secret put`. Identity and billing are never issued on
+   the cached binding (D3, D39, D79).
 2. Both configs pointed at Supabase's **direct** connection string
    (`db.<ref>.supabase.co:5432`), never the pooled Supavisor `:6543` string.
 3. A postgres.js client constructed **per invocation**, never at module scope,
    with `max: 1` / `fetch_types: false` / `prepare: true` / `connect_timeout: 10`
    on the identity path and `max: 5` on the public path. No `idle_timeout`. No
-   `sql.end()`.
-4. `withIdentity(connectionString, kind, claims, fn)` in `packages/db`,
-   implementing D1+D2 in full: explicit `BEGIN`, both `set_config` calls with
-   `is_local => true`, the closed `PG_ROLE` map, ROLLBACK-on-throw, and all
-   four actor variants (`anon` / `customer` / `staff` / `guest`). A caller who
-   forgets the wrapper gets SQLSTATE `42501`, never a stale row.
-5. `publicSql` on the cached binding: no identity, no transaction.
-6. OpenNext wiring: `env` arrives through `getCloudflareContext()`; every file
-   that imports an identity wrapper is a Route Handler or exports
-   `dynamic = "force-dynamic"`.
+   `sql.end()` in `apps/**` or `packages/db/src/**` (allow-list
+   `packages/db/test/local` only).
+4. One frozen door: `withIdentity` in `packages/db` (connection string first,
+   optional test-only `client` for a reserved connection) implementing D1+D2
+   in full: explicit `BEGIN`, both `set_config` calls with `is_local => true`,
+   the closed `PG_ROLE` map, ROLLBACK-on-throw, and the four actor variants
+   plus the quote/ledger path on the **same** NOCACHE binding (D79 / U59).
+   `apps/web` call sites import `asCustomer` / `asStaff` / `asGuest` / `asAnon`
+   / `asQuote` only — never `withIdentity` from `@vamos/db` (D76). A caller
+   who forgets the wrapper gets SQLSTATE `42501`, never a stale row.
+   `@vamos/db` is a real JS module (`exports`, `postgres` dependency,
+   `transpilePackages`) or OpenNext cannot import it (D80).
+5. `publicSql` on the cached binding: no identity, no transaction, branded to
+   the §14d table set only (`content_strings`, `reviews`, `vehicle_classes`,
+   `service_zones`, `settings_public`).
+6. OpenNext wiring: `env` arrives through `getCloudflareContext()` on fetch
+   / RSC; Cron and Queue handlers take `env` from the Worker argument, never
+   `getCloudflareContext()`. Every file that imports an identity wrapper is a
+   Route Handler or exports `dynamic = "force-dynamic"` (grep covers the
+   named wrappers, `@vamos/db`, and `@/lib/db/public` with a content-page
+   allow-list).
 7. Placement Hints `"placement": { "region": "aws:eu-central-1" }` under both
-   named environments — not Smart Placement.
+   named environments — not Smart Placement. Placement pins **fetch only**.
+   Queues/Cron are unplaced; their latency is out of DATA-05 (D31, D83).
 8. Workers Analytics Engine instrumentation of every `withIdentity` call, so
    DATA-05's p50 is a real percentile over real traffic, not a single-shot
    timing. The staging measurement itself is recorded as **DEFERRED** until a
    Worker exists.
 9. The DATA-06 proof, in two layers: a local connection-reuse simulator plus
    pgTAP / mutation gate that run against `supabase start` (this is the first
-   executable slice); and a deployed concurrent two-customer isolation test
-   against a staging-only probe Worker, **with negative controls that the
-   suite is shown to go red against**. The deployed half is designed here and
-   unrun until the account exists.
-10. CI greps that make a raw `postgres` import, a `sql.reserve()` in app code,
-    a module-scope client, and an identity import on a static route fail the
+   executable slice); and a deployed concurrent isolation test against a
+   staging-only probe Worker, **calling the shipped `withIdentity`** (D77),
+   **with mutants that the suite is shown to go red against** and hazards
+   that are not allowed to look green by construction (D38, D78). The
+   deployed half is designed here and unrun until the account exists. A
+   green local run is not DATA-06. The probe Worker — when it exists —
+   proves the probe, not `/api/account/bookings` (U31 / ISOL-08).
+10. CI greps that make a raw `postgres` import, a `sql.reserve()` in app
+    code, a module-scope client, an identity import on a static route,
+    `set_config(..., false)`, plain `SET ROLE`/`SET SESSION`, and
+    `sql.unsafe(` outside the allow-listed identity/probe mutants fail the
     build — the runtime `42501` is the safety net, not the only gate.
 
 Phase 2 must be executed before any of this connects to a real schema. No
-migration exists today. U1 is still the first statement of the first Phase 2
-migration; if it fails, `PG_ROLE.customer` changes and this phase follows.
+migration exists today. **U1 is a hard gate on Phase 2 P1**, not a rewrite
+Phase 3 runs after `0002` has shipped: do not merge the roles migration
+until the managed grant has been run on the real project, or land
+`vamos_customer` as the designed role from the first file (FC-08). If U1's
+fallback fires, `PG_ROLE.customer` changes and every `TO authenticated`
+policy is rewritten **in that same Phase 2 file**, with a pgTAP enumerator
+that fails if `PG_ROLE.customer` and `pg_policies.roles` disagree. Phase 3
+does not retarget policies after Phase 4 has copied the role name.
 
 ### Review pass — what the two harvested lanes changed
 
@@ -74,6 +105,26 @@ disagreed on four things this synthesis resolves without touching D1–D24:
 
 No D1–D24 decision is reopened. Phase 2's sketch path
 `apps/web/lib/db/identity.ts` was a file-location, not a decision id.
+
+### Review pass — 8-lens harden (lenses-returned 8, Phase 3's 3)
+
+27 findings in `03-HARDEN.md`. Applied 26, deferred 1 (ISOL-08 → Phase 5 /
+U31), rejected 0, dropped 0. The synthesis was wrong on eight load-bearing
+constructions; those are corrected here, not left as comments in the
+harvested lanes.
+
+| Finding cluster | Was | Now | Why |
+|---|---|---|---|
+| DATA-06 calls a copy of the SQL (ISOL-01) | Probe `runCorrect` and the simulator inline `set_config` | Shipped `withIdentity` only; test-only `opts.client` for `sql.reserve()` (D77) | "If it lives in `apps/web`, the probe tests a copy, and the proof is worthless" was already the isolation lane's own rule |
+| Three signatures (FC-01) | Phase 2 union, wiring `{kind,claims}`, D28 `connectionString` first | One: core `withIdentity(cs, kind, claims, fn, opts?)`; apps/web named wrappers only (D76) | Phase 4 `quote-lock-expiry.md` cannot type-check against three shapes |
+| NC1 is RESET-maskable (ISOL-02) | Session `SET` **outside** a transaction | `impl=session_in_txn`: `is_local=false` **inside** `BEGIN`/`COMMIT` (D78). No-txn session SET is U27's measurement, not the D1 mutant | PG 17 SET: session `SET` inside a committed txn persists; Hyperdrive RESET between queries masks the no-txn variant |
+| D38 vs NC4/NC5 (ISOL-03/04/05) | "Job fails if a control passes" for NC1–NC6 as a set | **Mutants** fail the job if green; **hazards** fail if unobserved or if a leak follows a confirmed dirty origin (D38) | NC4/NC5 expected green-looking outcomes; implementing D38 as written inverts them |
+| Fixtures / mode 15 (F1–F3) | `pickup_at`, `status='quoted'`, `customers.id = auth uid` | `02-SCHEMA-DRAFT`: `scheduled_at` on `booking_legs`, `status='quote'`, `customers.user_id`, policy `c.user_id = app.uid()` (D81) | Verbatim copies of `isolation-proof.md` abort on the first `supabase start` |
+| Billing on cached HYPERDRIVE (FC-02) | Two doors; Phase 4 D60 loads the rate book via `HYPERDRIVE` | Third path `asQuote` on **NOCACHE** (D79). No grant of pricing tables to `vamos_public` | D3 forbids billing on the cached binding; a grant "fix" is survival path 13 |
+| `@vamos/db` is not a module (FC-03) | `"main": "index.ts"`, no `exports`, no `postgres` | `exports` + `postgres` + `workspace:*` + `transpilePackages` (D80) | Every sample `from "@vamos/db/identity"` fails `next build` |
+| U1 after Phase 2 ships (FC-08) | "rewrite every `TO authenticated`" in Phase 3 | Hard gate on Phase 2 P1; Phase 3 does not retarget policies | Roadmap is 2 → 3 → 4; a post-hoc rewrite leaves quote SQL on the wrong role |
+| U2 conflated with U1 (ISOL-12) | Deferred to hosted project; fallback is `unsafe` + `+` concat | Four-line check runs on `supabase start` in P1; fallback is a closed-map switch, not concat | `set_config('role')` is Postgres behaviour; local Superuser is U1's question, not U2's |
+| DATA-06 as product proof (ISOL-08) | Implied by the probe | Probe Worker only. Confirming run on `/api/account/bookings` is Phase 5 (U31) | Mode 14 is not SQL; the probe is not OpenNext |
 
 ---
 
@@ -179,13 +230,23 @@ feature work against `supabase start`.
 
 `supabase start` listens on **127.0.0.1:54322**, not 5432
 (`02-RESEARCH.md` Lane 6). Connecting as the `postgres` superuser locally
-carries `BYPASSRLS` and would make D2's `42501` untestable. After Phase 2's
-roles migration exists:
+carries `BYPASSRLS` and would make D2's `42501` untestable. D34 is the
+**only** local connection string this phase documents. The wiring lane's
+`postgres://postgres:postgres@localhost:5432/postgres` "is correct"
+(`hyperdrive-wiring.md` §1.4) is **struck**: it is a pre-roles boot
+placeholder, not an identity login, and an implementer who copies it
+cannot test D2 (ISOL-09). After Phase 2's roles migration exists — and
+in the committed wrangler `localConnectionString` the moment those roles
+exist:
 
 | Binding | `localConnectionString` |
 |---|---|
 | `HYPERDRIVE_NOCACHE` | `postgres://vamos_edge:<local pw>@127.0.0.1:54322/postgres` |
 | `HYPERDRIVE` | `postgres://vamos_public:<local pw>@127.0.0.1:54322/postgres` |
+
+Until Phase 2 P1 lands, P1 of this phase compiles the TypeScript against
+the decided contract and mocks `sql.begin`. It does **not** commit a
+superuser string for later copy-paste.
 
 An env var named
 `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_<BINDING_NAME>` overrides the
@@ -211,7 +272,20 @@ The isolation-probe Worker uses a **dedicated** cache-disabled config on the
 same `vamos_edge` credentials, capped at the documented Hyperdrive minimum
 of **5** origin connections, so 64-way concurrency makes backend reuse a
 pigeonhole certainty (`isolation-proof.md` §5.1). That config is
-staging-only.
+staging-only. Pin the probe vs app Hyperdrive **ids** in a checked-in
+allowlist test so the probe's 5-origin config cannot be bound as
+`apps/web` `HYPERDRIVE_NOCACHE` (FC-09). Size the 25+15 split with
+unplaced Cron/Queue sweeps in mind (U32, D83) — 25 is a fetch-shaped
+budget until those jobs exist, not a promise that a 03:00 no-show sweep
+fits.
+
+`HYPERDRIVE` (`vamos_public`) is public content only. Rate book,
+coupons, snapshots, bookings, customers — anything identity or billing
+— goes through `HYPERDRIVE_NOCACHE` (D3, D79). Phase 4 D60's "load the
+rate book via `HYPERDRIVE`" is a named contradiction of D3 and is
+refused here. Do not grant `rate_versions` / `distance_rates` /
+`fixed_routes` / `surcharges` / `coupons` / `price_snapshots` to
+`vamos_public` to make D60 look like D39.
 
 ---
 
@@ -259,7 +333,7 @@ deployed run against a warm Worker doubles as the regression test for this.
 | `fetch_types` | `false` | `false` | Must be off. A per-request client that is never reused would otherwise pay a `pg_catalog` round trip on every construction (`hyperdrive-wiring.md` §2.2) |
 | `connect_timeout` | `10` (seconds) | `10` | Slightly under Hyperdrive's own 15 s initial-connection ceiling, so a stuck origin fails our error path first. Not load-bearing |
 | `idle_timeout` | **do not set** | **do not set** | Governs when postgres.js closes an idle pooled connection *it* is holding. A per-request client has no idle period. Setting it implies a lifecycle that does not exist here |
-| `sql.end()` | **do not call** | **do not call** | *"Workers-to-Hyperdrive connections are automatically cleaned up when the request or invocation ends"* (`hyperdrive-wiring.md` §2.2). This **corrects** `.planning/research/STACK.md:138`, which still recommends `ctx.waitUntil(client.end())` — same correction Phase 2 already recorded |
+| `sql.end()` | **do not call** in `apps/**` or `packages/db/src/**` | same | *"Workers-to-Hyperdrive connections are automatically cleaned up when the request or invocation ends"* (`hyperdrive-wiring.md` §2.2). This **corrects** `.planning/research/STACK.md:138`, which still recommends `ctx.waitUntil(client.end())`. The correction is not real until P3 edits that line (FC-06). Allow-list `packages/db/test/local` only — the isolation simulator's `finally { await sql.end() }` is Node test process teardown of a reserved conn, not a Worker lifecycle |
 
 ### What breaks under `@opennextjs/cloudflare` specifically
 
@@ -276,16 +350,46 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   const { env } = getCloudflareContext();
   const claims = await requireCustomer(request, env);
+  // Trip time lives on booking_legs.scheduled_at (D11). bookings has no
+  // pickup_at — that GSD-LAUNCH column is rejected. Order the commercial
+  // record by created_at; join legs when the list must be "soonest pickup".
   const bookings = await asCustomer(env, claims, (tx) =>
-    tx`select reference, status from public.bookings order by pickup_at desc`
+    tx`select reference, status from public.bookings order by created_at desc`
   );
   return Response.json(bookings);
 }
 ```
 
 Types come from `npx wrangler types --env-interface CloudflareEnv`.
-Regenerate whenever a binding is added, or `HYPERDRIVE_NOCACHE` type-checks
-as missing.
+That generated file is the **single** source for `CloudflareEnv` (FC-07):
+replace the hand `apps/web/lib/env.d.ts` Hyperdrive member with required
+`HYPERDRIVE` **and** `HYPERDRIVE_NOCACHE` (and `DB_LATENCY`). CI: `git
+diff --exit-code` on generated types plus a check that `CloudflareEnv`
+names both bindings. A handler that compiles against today's optional
+`HYPERDRIVE?: Hyperdrive` will read `env.HYPERDRIVE.connectionString` for
+identity and coupons — the FC-02 footgun.
+
+**Cron / Queue handlers do not have `getCloudflareContext()`.**
+`apps/web/worker.ts` currently stubs `scheduled(controller, _env, _ctx)`
+and `queue(batch, _env, _ctx)` as no-ops that drop `env`. Phase 7 Stripe
+fan-out and Phase 9 LIFE-05 / no-show copy that stub and get an empty
+binding. P3 replaces `_env` with `env: CloudflareEnv` and documents:
+
+```ts
+export async function scheduled(
+  controller: ScheduledController,
+  env: CloudflareEnv,
+  ctx: ExecutionContext,
+) {
+  // Placement Hints do not apply to scheduled/queue (D31, D83).
+  // New client, new BEGIN. Never getCloudflareContext(). Never waitUntil(sql.end()).
+  ctx.waitUntil(asStaff(env, staffClaims, (tx) => tx`select …`));
+}
+```
+
+If post-response work is required from a fetch handler:
+`ctx.waitUntil(asCustomer(env, claims, fn))` — new client, new BEGIN,
+never a captured `tx` (ISOL-04).
 
 **Build-time trap.** `getCloudflareContext()` during `next build`'s static
 generation returns **local/dev** binding values, because there is no request
@@ -294,17 +398,30 @@ path is structurally safe if it is only ever reached from dynamic Route
 Handlers and from Server Components that opt out of static rendering (every
 RLS-gated page must, because it needs a live cookie/JWT). Concrete rule:
 **any file that imports `withIdentity` / `asCustomer` / `asStaff` /
-`asGuest` / `asAnon` must also export `export const dynamic = "force-dynamic"`**
-(or be a Route Handler that reads `request`). CI grep:
+`asGuest` / `asAnon` / `asQuote` must also export
+`export const dynamic = "force-dynamic"`** (or be a Route Handler that
+reads `request`). `publicSql` on a known static content page is the one
+cached path that *should* be static — the grep must tell them apart
+(FC-11). CI grep:
 
 ```bash
-grep -rl "from ['\"]@/lib/db/identity['\"]" apps/web/app --include="*.tsx" --include="*.ts" \
+# Identity wrappers, core helper, and any re-export. Allow-list route.ts
+# (dynamic by default) and a named list of publicSql content pages.
+grep -rlE "from ['\"]@/lib/db/identity['\"]|from ['\"]@vamos/db" \
+  apps/web --include="*.tsx" --include="*.ts" \
   | xargs grep -L "force-dynamic" && echo "FAIL: identity import in a non-dynamic route"
+
+# P3 session-SET / reserve / unsafe fence (rls-hyperdrive.md §5 P3).
+# Allow-list packages/db/src/identity.ts for set_config(..., true) only,
+# and the probe's deliberate mutants.
+grep -rE "set_config\([^)]*,\s*false\s*\)|\bsql\.unsafe\(|\breserve\(|SET\s+(?!LOCAL)(ROLE|SESSION)" \
+  packages/db apps/web --include="*.ts" --include="*.tsx"
 ```
 
-Route Handlers that read `request` are dynamic by default; the grep can
-allow-list `route.ts`. U24 is whether `getCloudflareContext()`'s "async
-mode" changes anything — smoke-test one RLS-gated route through
+A lib file under `apps/web/lib/**` that imports the identity wrappers
+forces `force-dynamic` on every importer — treat that as a fail unless
+each importer is allow-listed. U24 is whether `getCloudflareContext()`'s
+"async mode" changes anything — smoke-test one RLS-gated route through
 `opennextjs-cloudflare build && preview`, not only `next dev`.
 
 **Node.js runtime, never `export const runtime = 'edge'`.** Already a Phase 2
@@ -313,7 +430,17 @@ constraint (`02-RESEARCH.md` Lane 3). postgres.js needs `nodejs_compat`.
 
 **`sql.reserve()` is banned in application code** and required in the local
 simulator (`isolation-proof.md` §2 mode 12, §4.2). Reserving recreates
-session-scoped semantics. CI grep on `apps/**`.
+session-scoped semantics. CI grep on `apps/**`; allow-list
+`packages/db/test/local`. The simulator passes the reserved client **into
+the shipped `withIdentity`** (D77); it does not inline `set_config`.
+
+**`fn` may not return `TransactionSql`.** Returning `tx` (or anything
+closing over it) is a lint error, not a comment (ISOL-07). ESLint
+`no-restricted-syntax` on `ReturnStatement` of `tx`; TypeScript: `fn`
+returns `Promise<T>` where `T` does not extend `TransactionSql`. Local
+NC: begin, bind, `.execute()` a SELECT without await, commit, then a
+second identity on the reserved conn — the suite must go red if that
+SELECT can still run as A.
 
 ---
 
@@ -330,8 +457,13 @@ app import **the same function**. If it lives in `apps/web`, the probe tests
 a copy and the proof is worthless (`isolation-proof.md` §6). `packages/db`
 must not take `CloudflareEnv`.
 
-Canonical signature — Wave A's `kind, claims, fn`, plus a connection string
-the probe can vary across bindings:
+**One frozen signature** (D76). Three incompatible shapes were in force at
+once (Phase 2 `withIdentity(env, identity, run)` union object; wiring
+lane `withIdentity(env, { kind, claims }, fn)`; D28 core
+`withIdentity(connectionString, kind, claims, fn)`). Phase 4
+`quote-lock-expiry.md` still does `withIdentity(env, identity, tx => …)`
+and reads `identity.customerId`. Against D28 that is a type error. Freeze
+before P1 lands:
 
 ```ts
 withIdentity<K extends IdentityKind, T>(
@@ -339,20 +471,39 @@ withIdentity<K extends IdentityKind, T>(
   kind: K,
   claims: ClaimsFor<K>,
   fn: (tx: postgres.TransactionSql) => Promise<T>,
-  opts?: { probe?: boolean },
+  opts?: { probe?: boolean; client?: postgres.Sql },
 ): Promise<T>
 ```
 
-`opts.probe` is the only addition the isolation lane requires of the shipped
-function: when true, the first statement inside `BEGIN` is the residue
-probe (`current_user`, `current_setting('request.jwt.claims', true)`,
-`pg_backend_pid()`, `clock_timestamp()`) executed *before* any binding
-(`isolation-proof.md` §3, §6). Production never passes it. The probe Worker
-always does. Same function, one flag — not a copy of the SQL sequence.
+- Core lives in `packages/db`. First argument is a connection string.
+  `packages/db` must not depend on OpenNext `env`.
+- `apps/web` call sites import **named wrappers only**:
+  `asCustomer(env, claims, fn)` / `asStaff` / `asGuest(env, manageTokenHashHex, fn)`
+  / `asAnon(env, fn)` / `asQuote(env, fn)`. CI fails
+  `from ['"]@vamos/db` (or `@vamos/db/identity`) under `apps/web/app` and
+  `apps/web/lib` except the wrapper file itself (D76).
+- `VamosClaims.sub` is `auth.users.id`. `customers.id` is a **join**, not a
+  bound field: `customer_id in (select c.id from public.customers c where
+  c.user_id = (select app.uid()))`. Do not add `customerId` onto the GUC.
+  Phase 4 quote-lock-expiry must join, not invent a wrapper field.
+- Strike the Phase 2 union and `hyperdrive-wiring.md` §2.3a samples; this
+  document is the call-site source.
+- `opts.client` is **test-only** (D77): the local simulator passes a
+  `sql.reserve()`d client so the shipped function runs on a pinned
+  backend. Production omits it and constructs per-invocation. Probe
+  `impl=correct` calls this function with `opts.probe`. There is no
+  `runCorrect` inlined SQL.
+- `opts.probe` is behind a compile-time guard (`import.meta` /
+  `DEPLOY_ENV === "staging"` / `VAMOS_ISOLATION_PROBE === "1"`), not a
+  caller flag that a production import of `@vamos/db` can set (FC-09,
+  D82). Production sequential-await is the shape the probe proves; the
+  residue statements are sequential `await` inside the same function, not
+  a pipelined array copy.
 
-Named wrappers in `apps/web/lib/db/identity.ts` extract the connection
-string, call through, and write the WAE data point (Lane 5). Call sites in
-the app never see `connectionString`.
+Named wrappers in `apps/web/lib/db/identity.ts` extract
+`env.HYPERDRIVE_NOCACHE.connectionString`, call through, and write the
+WAE data point (Lane 5). Call sites in the app never see
+`connectionString`.
 
 ### Closed `PG_ROLE` map
 
@@ -374,8 +525,11 @@ rather than trusted not to be read — it is user-writable via the client SDK
 
 If U1's fallback fires (`vamos_customer` instead of `authenticated`),
 `PG_ROLE.customer` becomes `"vamos_customer"` and every `TO authenticated`
-in the RLS migration is rewritten. Nothing else in this wrapper moves
-(`isolation-proof.md` §15 U-I5).
+in the RLS migration is rewritten **in Phase 2's roles file**, not here.
+Nothing else in this wrapper moves (`isolation-proof.md` §15 U-I5).
+Phase 3 does not search-replace policies after `0002` has merged
+(FC-08). A pgTAP enumerator, owned by Phase 2 and re-run in Phase 3 P5,
+fails if `PG_ROLE.customer` and `pg_policies.roles` disagree.
 
 ### Behaviour on throw
 
@@ -390,19 +544,21 @@ lost BEGIN); `23505` is unique_violation (booking reference); `23P01` is
 exclusion_violation (Phase 8).
 
 `fn` must return **data**. Returning `tx` (or anything closing over it) is a
-lint error: a query executed on `tx` after COMMIT is failure mode #9
-(`isolation-proof.md` §6).
+lint error (ESLint `no-restricted-syntax` + a type that excludes
+`TransactionSql`): a query executed on `tx` after COMMIT is failure mode
+#9 (`isolation-proof.md` §6; ISOL-07).
 
-Do not call `sql.end()`.
+Do not call `sql.end()` in `apps/**` or `packages/db/src/**`.
 
 ### The four actor variants
 
 | Wrapper | `kind` | `set_config('role', …)` | Second GUC | Claims required |
 |---|---|---|---|---|
 | `asAnon` | `"anon"` | `anon` | none | none |
-| `asCustomer` | `"customer"` | `authenticated` | `request.jwt.claims` (stripped JSON) | `VamosClaims` |
+| `asCustomer` | `"customer"` | `authenticated` | `request.jwt.claims` (stripped JSON) | `VamosClaims` (`sub` = `auth.users.id`) |
 | `asStaff` | `"staff"` | `vamos_staff` | `request.jwt.claims` (stripped JSON) | `VamosClaims` (`aal` must be `aal2` for ops policies; the wrapper still binds whatever the verified token carries — SQL refuses aal1) |
 | `asGuest` | `"guest"` | `vamos_guest` | `request.vamos.manage_token_hash` | `{ manageTokenHashHex }` hashed in the Worker **before** it reaches SQL (D14) |
+| `asQuote` | `"quote"` (U59) | see D79 | none on the book-load path; customer/anon GUC bound when executing a definer RPC on behalf of a caller | none / caller claims |
 
 `kind === "anon"`: no claim to set; RLS policies for `anon` see an empty
 `app.jwt()` and rely on grants alone — `anon` has none on any customer/ops
@@ -414,6 +570,32 @@ Guest mutations do not use this wrapper's `fn` for the write itself: D15
 puts mutations in `SECURITY DEFINER` RPCs executed *inside* `asGuest`, so
 the GUC is bound and `EXECUTE` is granted only to `vamos_guest`. Reads stay
 in RLS.
+
+**Quote / ledger path (D79).** Phase 4 `/api/quote` and `/api/checkout/intent`
+cannot use `publicSql` (no grant on `rate_versions` / `coupons` /
+`price_snapshots` — §14c) and must not gain that grant (that would put
+billing on a 60 s cache, which D3 forbade). They also cannot raw-INSERT
+`bookings` as `asAnon` (no grant; `asGuest` cannot run until D14 mints a
+manage token **after** the row exists). Third named path, same
+`HYPERDRIVE_NOCACHE` binding, never a third Hyperdrive config:
+
+- **Preferred:** `SECURITY DEFINER` RPCs (`evaluate_coupon`, snapshot
+  insert, `app.checkout_intent(...)`) executed **inside**
+  `asAnon`/`asCustomer` so the GUC is bound and `EXECUTE` is granted.
+  Guest checkout's writer is Phase 7's to land (FC-04 inherit); Phase 3
+  documents the door so quote-lock-expiry does not ship `anon` as a table
+  writer.
+- **Fallback (U59):** a closed `vamos_quote` nologin role SET via a fifth
+  `IdentityKind`, holding SELECT on frozen rate-book tables and INSERT on
+  snapshots, never granted to `vamos_public`. Adding a role is a named
+  addition to Phase 2's set, not a silent one.
+
+Do **not** grant pricing tables to `vamos_public` to make Phase 4 D60 look
+like D39. D60 is a named contradiction of D3 and is refused.
+
+`asQuote` is untested under the pool until a sibling DATA-06 run (or P4
+staff/quote pair) exists; residue SQL must still assert the quote role
+reverts to `vamos_edge`.
 
 ### What a forgotten wrapper gets
 
@@ -431,13 +613,37 @@ the phase stops.
 `no-restricted-imports` / CI grep from `rls-hyperdrive.md` §5 P3 is the
 compile-time half of this claim; `42501` is the runtime half.
 
-U2 fallback, pre-wired and unused until the check runs: if
-`set_config('role', $1, true)` is not `SET LOCAL ROLE`, swap the first
-statement for `await tx.unsafe('set local role ' + PG_ROLE[kind])` —
-injection-free because `PG_ROLE` is a closed map (`isolation-proof.md` §6;
-`02-RESEARCH.md` U2). Run the four-line check on staging **before** Phase 2
-writes `0002`, because the fallback changes this function, which the probe
-also imports.
+U2 is **Postgres behaviour**, testable on `supabase start`. It is not U1
+(managed `GRANT … INHERIT FALSE`). The four-line check runs in P1 against
+local PG (`02-RESEARCH.md` U2, exact check unchanged):
+
+```sql
+begin; select set_config('role','authenticated',true); select current_user; commit; select current_user;
+```
+
+Expect `authenticated` then `vamos_edge`. Do not leave `unsafe` + `+`
+concat in the source "unused until staging" (ISOL-12): that is the only
+string-concatenated SQL in the identity path, the option D1 rejected as
+"no bind parameters." If the check fails, ship `SET LOCAL ROLE` via a
+**closed-map switch**, not `+`:
+
+```ts
+const ROLE_SQL = {
+  authenticated: "select set_config('role', 'authenticated', true)",
+  anon: "select set_config('role', 'anon', true)",
+  vamos_staff: "select set_config('role', 'vamos_staff', true)",
+  vamos_guest: "select set_config('role', 'vamos_guest', true)",
+} as const;
+const stmt = ROLE_SQL[PG_ROLE[kind]];
+await tx.unsafe(stmt);
+```
+
+If U2 requires a literal `SET LOCAL ROLE` (no `set_config`), the map
+values become `'set local role authenticated'` etc. — still a closed
+object, never `+ PG_ROLE[kind]`. A2 (`userBound === 'authenticated'`)
+must run in the local simulator **against the shipped function**
+(ISOL-01), not only on the deployed probe. U2 stays **open** until the
+check has been run; the fallback shape is decided now.
 
 ---
 
@@ -468,23 +674,25 @@ exists; the others are structurally closed by D1/D2.
 
 | # | Path | Structurally prevented by D1/D2? | Caught only by a test? |
 |---|---|---|---|
-| 1 | Plain `SET` / `set_config(k, v, false)` | **No.** D1 mandates `is_local => true` but nothing stops a developer writing `false`. Grants (D2) catch the forgotten-wrapper case, not this one | **Yes** — NC1 (`impl=session`) plus the CI grep |
-| 2 | Transaction left open by early `return` before `withIdentity` settles | Partly: the isolate's I/O is torn down at request end without `waitUntil`, closing the client→Hyperdrive socket. What Endpoint then does with the origin connection is undocumented | **Yes** — NC4 (`impl=abandon`). U28 |
-| 3 | Throw inside the transaction callback | **Yes.** postgres.js ROLLBACK; `SET LOCAL` reverts on ROLLBACK | No |
-| 4 | A `BEGIN` that never happens (`sql` used instead of `tx`) | **Yes, doubly.** `SET LOCAL` outside a transaction "emits a warning and otherwise has no effect"; then `vamos_edge`'s zero grants raise `42501` | Confirmed by NC2 (`impl=nobegin`) and pgTAP |
+| 1 | Plain `SET` / `set_config(k, v, false)` **inside `BEGIN`/`COMMIT`** | **No.** D1 mandates `is_local => true` but nothing stops a developer writing `false`. PG 17 SET: once the surrounding transaction is committed, the effects persist until the end of the session. Grants (D2) catch the forgotten-wrapper case, not this one | **Yes** — NC1 (`impl=session_in_txn`) plus the CI grep plus a local `withIdentity` `is_local=false` mutant. Session SET *with no transaction* is U27, not this mutant (ISOL-02) |
+| 2 | Transaction left open by early `return` before `withIdentity` settles | Partly: the isolate's I/O is torn down at request end without `waitUntil`, closing the client→Hyperdrive socket. What Endpoint then does with the origin connection is undocumented | **Yes** — NC4 (`impl=abandon`), which must `waitUntil` the open txn so BEGIN reaches the origin, then abort. U28 |
+| 3 | Throw inside the transaction callback | **Yes.** postgres.js ROLLBACK; `SET LOCAL` reverts on ROLLBACK | No — provided the shipped function is the one that runs (D77) |
+| 4 | A `BEGIN` that never happens (`sql` used instead of `tx`) | **Yes, doubly.** `SET LOCAL` outside a transaction "emits a warning and otherwise has no effect"; then `vamos_edge`'s zero grants raise `42501` | Confirmed by deployed NC2 (`impl=nobegin`) and a **Vitest autocommit** no-BEGIN file. pgTAP cannot do this (it runs inside a transaction; the savepoint body is mode 3, not mode 4 — ISOL-10). Drop the local pgTAP claim |
 | 5 | Connection returned mid-transaction (abort, 30 s `waitUntil` ceiling, isolate kill, 60 s query ceiling) | Partly. Docs say "the connection is `RESET`"; `RESET ALL` is not `DISCARD ALL` and cannot run inside a failed transaction block | **Yes** — NC4. U28 |
-| 6 | Prepared-statement plan reuse carrying another role's RLS rewrite | **Yes.** Hyperdrive re-prepends `Parse` per connection; `plancache.c` invalidates on `rewriteRoleId != GetUserId()`. Keep `prepare: true` | No — assert `prepare` is not disabled |
-| 7 | postgres.js pipelining reordering `set_config` after the read | **Yes.** Extended-protocol messages execute in order on one backend; the array is inside the same `BEGIN`/`COMMIT` | No |
-| 8 | A pipelined batch *outside* a transaction | No — same class as #1 | **Yes** — NC1 |
-| 9 | Unawaited query promise resolving after COMMIT on `tx` | Partly: queries execute when awaited. A dropped `.execute()` is not covered | **Yes**, fenced by never letting `tx` escape the callback |
-| 10 | `ctx.waitUntil` work after the response on a client created during the request | No. The request context stays alive up to 30 s, so a captured `tx` is still usable | **Yes** — NC5. Fence: `waitUntil` work must call `withIdentity` itself |
+| 6 | Prepared-statement plan reuse carrying another role's RLS rewrite | **Yes.** Hyperdrive re-prepends `Parse` per connection; `plancache.c` invalidates on `rewriteRoleId != GetUserId()`. Keep `prepare: true` | No — assert `prepare` is not disabled. Simulator reuse on a reserved conn is accidental coverage unless it calls `withIdentity` |
+| 7 | postgres.js pipelining reordering `set_config` after the read | **Yes, if the array is inside one `BEGIN`.** Production `withIdentity` is sequential `await`; the probe must not prove a different shape (ISOL-01) | No |
+| 8 | A pipelined batch *outside* a transaction | No — same class as no-txn session SET | **Yes** — U27 companion (`impl=session`), not NC1 |
+| 9 | Unawaited query promise resolving after COMMIT on `tx` | Partly: queries execute when awaited. A dropped `.execute()` is not covered by a comment | **Yes** — typed wrapper + ESLint + local NC (ISOL-07) |
+| 10 | `ctx.waitUntil` work after the response on a **captured `tx`** created during the request | No. The request context stays alive up to 30 s, so a captured `tx` is still usable | **Yes** — NC5 must SELECT on that same `tx` after the response and go **red**. A second test may assert the fenced pattern (new `withIdentity` inside waitUntil) is clean — that is a positive test, not NC5 (ISOL-04) |
 | 11 | Client cached in module scope | **Yes.** Hard runtime error (`Cannot perform I/O on behalf of a different request`) | No — still regression-tested by the warm-Worker run |
-| 12 | `sql.reserve()` pinning a connection across non-transactional queries | No — reserving recreates session-scoped semantics | **Yes**; banned in `apps/**`; **required** in the local simulator |
-| 13 | Identity query issued on the cached `HYPERDRIVE` binding | **Yes.** `vamos_public` has no grant on `bookings` → `42501`. Belt: identity queries are in transactions, and `cacheStatus` enumerates `transaction` as non-cached | NC6 + `cacheStatus` never `hit` |
-| 14 | Next.js / React memoisation of a result set across requests in the same isolate | **No.** Not a Postgres leak | **Yes.** Phase 5 obligation (U31): no customer-scoped read is memoised outside request scope; CI grep for module-scope `Map`/`Set` named `/cache\|memo\|store/i` |
-| 15 | Claim for A satisfying a policy written for B | **Yes.** `customer_id = (select app.uid())` plus the RESTRICTIVE `bookings_require_identity` policy | pgTAP cross-claim matrix + mutant M2 |
+| 12 | `sql.reserve()` pinning a connection across non-transactional queries | No — reserving recreates session-scoped semantics | **Yes**; banned in `apps/**`; **required** in the local simulator, which feeds the reserved client to shipped `withIdentity` |
+| 13 | Identity **or billing** query issued on the cached `HYPERDRIVE` binding | **Yes.** `vamos_public` has no grant on `bookings` / pricing tables → `42501`. Belt: identity queries are in transactions, and `cacheStatus` enumerates `transaction` as non-cached | NC6 + branded `publicSql` allowlist (FC-05) + `cacheStatus` never `hit`. NC6 cannot populate Hyperdrive's query cache even if grants were wrong (it uses a transaction); the allowlist is the compile-time half |
+| 14 | Next.js / React memoisation of a result set across requests in the same isolate | **No.** Not a Postgres leak | **Yes.** Phase 5 obligation (U31): re-point the harness at `/api/account/bookings`. Phase 3 P5 already greps `unstable_cache`, `React.cache`, `'use cache'`, and any module-scope collection — not a name regex. Until that confirming run, DATA-06 is proven for the **probe Worker only** (ISOL-08) |
+| 15 | Claim for A satisfying a policy written for B | **Yes.** `02-SCHEMA-DRAFT.md` §14a: `customer_id in (select c.id from public.customers c where c.user_id = (select app.uid()))` plus the RESTRICTIVE `bookings_require_identity` policy. `app.uid()` returns JWT `sub` (`auth.users.id`), **not** `customers.id` | pgTAP cross-claim matrix + mutant M2 (weaken `user_id = app.uid()`, not `customer_id = app.uid()`) |
 
-Modes **1, 2, 5, 8, 9, 10, 12, 14** are test-only.
+Modes **1, 2, 5, 8, 9, 10, 12, 14** are test-only. A control that can pass
+while the bug is present is a blocker; NC1/NC4/NC5 as previously designed
+could. The constructions below replace them.
 
 ### The residue probe and the adjacency set
 
@@ -495,12 +703,19 @@ residue (`isolation-proof.md` §3):
 select current_user                                                  as user_at_entry,
        coalesce(nullif(current_setting('request.jwt.claims', true), ''), 'EMPTY')
                                                                      as claims_at_entry,
+       coalesce(nullif(current_setting('request.vamos.manage_token_hash', true), ''), 'EMPTY')
+                                                                     as guest_at_entry,
        pg_backend_pid()                                              as pid,
        clock_timestamp()                                             as t0;
 ```
 
 - `user_at_entry` must be `vamos_edge` on 100 % of probes.
 - `claims_at_entry` must be `'EMPTY'` on 100 % of probes.
+- `guest_at_entry` must be `'EMPTY'` on 100 % of probes. Guest identity is
+  `request.vamos.manage_token_hash` (D14/D15, `asGuest`). A surviving
+  guest GUC reports `claims_at_entry === 'EMPTY'` and
+  `user_at_entry === 'vamos_edge'` — A3/A4 would pass without this
+  column (ISOL-06).
 - `pid` is the coverage instrument: two probes reporting the same `pid`
   demonstrably ran on the same physical connection. `pg_backend_pid()` is
   not cacheable by Hyperdrive.
@@ -511,7 +726,8 @@ The assertion is not "no probe saw residue". It is:
 > For every pair of probes *(p, q)* such that `p.pid === q.pid`, `q.t0 > p.t1`,
 > no other probe on that pid falls between them, and `p.customer !== q.customer`
 > — assert `q.user_at_entry === 'vamos_edge'` and `q.claims_at_entry === 'EMPTY'`
-> and `q.rows` contains exactly `q.customer`'s references.
+> and `q.guest_at_entry === 'EMPTY'` and `q.rows` contains exactly
+> `q.customer`'s references.
 
 That set of pairs is the **adjacency set**, size `S`. `S` is the real sample
 size. `N` (number of requests) is not. A run whose `S` falls below the floor
@@ -527,10 +743,42 @@ JWT would be rejected (HS256 refused, issuer and audience checked)
 API, password-grant minted **once per run** (Auth is rate-limited 1800/hour,
 bursts of 30 — signing in per request would throttle the harness before the
 pool saturates). Each customer owns ≥ 3 bookings with disjoint
-`VT-YY-####` references. **No amounts.** `pricing_live` is false by
-construction (no live `rate_versions` row); every price column is NULL;
-every surface renders `CHF 000`. Never seed a price
-(`isolation-proof.md` §7.2).
+`VT-YY-####` references. **No amounts.** There is no live
+`rate_versions` row with `status='live'` (D9 — there is no
+`pricing_live` boolean to flip, in probe env or fixtures). Every price
+column is NULL; every surface renders `CHF 000`. Never seed a price
+(`isolation-proof.md` §7.2; F4).
+
+Fixture SQL must match `02-SCHEMA-DRAFT.md` (F2, D81). Do **not** land
+`isolation-proof.md` §7.2 / §10 verbatim:
+
+```sql
+-- customers.id is NOT auth.users.id. user_id is the FK. full_name is NOT NULL.
+insert into public.customers (user_id, full_name, email)
+values (${authUserId}, ${fullName}, ${email});
+
+-- booking_status has 'quote', not 'quoted'.
+-- contact_name / contact_email are NOT NULL. customer_id = customers.id.
+insert into public.bookings (reference, customer_id, status, contact_name, contact_email)
+values (public.next_booking_reference(), ${customerRow.id}, 'quote', ${fullName}, ${email});
+```
+
+JWT `sub` in a cross-claim is the **auth user**, not `bookings.customer_id`.
+Do not insert legs unless the test needs them; trip time, when needed, is
+`booking_legs.scheduled_at` (D11), never `bookings.pickup_at` (F1).
+
+Teardown must not `DELETE FROM public.bookings` (D19: trigger +
+`REVOKE DELETE` + RLS-with-no-policy + `FORCE RLS`; `afterAll` will
+throw or no-op). Unique email per run; A1 asserts
+`expect(refs).toEqual(expect.arrayContaining(mine.references))` **and**
+`not.toEqual(expect.arrayContaining(other.references))` (ISOL-11).
+
+Two customers remain the primary DATA-06 pair. **Also** a guest-pair and
+a staff-pair (or a sibling gate in P2/P4): residue must see the
+manage-token GUC empty, and Phase 8 `asStaff` / Phase 9 `asGuest` inherit
+a path that has been in `S` (FC-04, U61). Guest checkout's table writer
+is Phase 7 (`SECURITY DEFINER` `app.checkout_intent(...)` inside
+`asAnon`/`asCustomer`, not a raw INSERT).
 
 The fixture refuses to run unless `SUPABASE_URL` contains
 `SUPABASE_STAGING_REF`.
@@ -571,17 +819,25 @@ local is a Postgres-side proof, and that is most of the mechanism:
 | Provable locally against `supabase start` | How |
 |---|---|
 | Fail-closed grants (`42501` with no wrapper) | pgTAP `fail_closed.test.sql` |
-| Lost `BEGIN` fails closed | pgTAP `set_local_without_begin.test.sql` |
-| Claim for A never satisfies policy for B | pgTAP `cross_claim.test.sql` |
-| Residue on a genuinely re-used connection | Connection-reuse simulator (`sql.reserve()`, `isolation-proof.md` §4.2) — *deterministically stronger than the Hyperdrive test* |
-| Migration mutants (grant layer removed, policy predicate weakened) | `packages/db/scripts/mutation-gate.mjs` — the suite **must** go red |
+| Lost `BEGIN` fails closed | **Vitest against `vamos_edge`, one statement at a time, autocommit** (`packages/db/test/local/no-begin.test.ts`). Not pgTAP: pgTAP runs inside a transaction, and the savepoint body in `set_local_without_begin.test.sql` is mode 3, not mode 4 (ISOL-10). Keep that file only as a ROLLBACK-reverts assertion, not as the no-BEGIN claim |
+| Claim for A never satisfies policy for B | pgTAP `cross_claim.test.sql` against the §14a predicate (`c.user_id = app.uid()`) |
+| Residue on a genuinely re-used connection | Connection-reuse simulator (`sql.reserve()` **passed into shipped `withIdentity`**, D77) — *deterministically stronger than the Hyperdrive test* |
+| Session `SET` / `is_local=false` **inside** `BEGIN`/`COMMIT` survives on a pinned conn | Local NC on the reserved conn (the red Hyperdrive NC1 may never show if RESET works — ISOL-02, ISOL-11) |
+| U2 `set_config('role')` ≡ `SET LOCAL ROLE` | Four-line check in P1 (local PG). A2 against the shipped function |
+| Migration mutants (grant layer removed, policy predicate weakened, `is_local=false` in `withIdentity`) | `packages/db/scripts/mutation-gate.mjs` — the suite **must** go red |
 
 The simulator pins **one** physical backend and replays A then B then a
-bare probe. Because the connection is pinned, a residue bug fails 100 % of
-the time — on Hyperdrive it would fail only when the pool happened to
-reuse. This test is banned in application code and mandatory here. **It
-should exist before Phase 3 opens**, alongside Phase 2's pgTAP suite. It
-needs neither Cloudflare nor a hosted Supabase project.
+bare probe **through shipped `withIdentity`**, passing the reserved
+client as `opts.client`. Because the connection is pinned, a residue bug
+fails 100 % of the time — on Hyperdrive it would fail only when the pool
+happened to reuse. A second pass on the same reserved conn issues
+`set_config(..., false)` inside `BEGIN`/`COMMIT` (or a `withIdentity`
+mutant with `is_local=false`) and asserts the next entry probe sees
+residue — the one place local can catch ISOL-02 at 100 %. This test is
+banned in application code and mandatory here. **It should exist before
+Phase 3 opens**, alongside Phase 2's pgTAP suite. It needs neither
+Cloudflare nor a hosted Supabase project. It does not call `sql.end()`
+except in the Node process `finally` of the test file.
 
 Playwright is the wrong runner: `pnpm test:visual` is four viewport
 projects, which would quadruple the database load and make `N`
@@ -610,36 +866,72 @@ config is what makes the pigeonhole run a certainty.
 
 The honest gap: the probe does not exercise Next.js/OpenNext's request
 lifecycle. **Phase 5 obligation (U31):** once `/api/account/bookings`
-exists, re-point the harness at it for one confirming run.
+exists, re-point the harness at it for one confirming run. Until then
+the phase summary must say DATA-06 is proven for the **probe Worker
+only**. Do not record DATA-06 as proven for the product on a local run
+or on the deployed probe gate. Phase 3 P5 still lands the isolate-memo
+grep (`unstable_cache`, `React.cache`, `'use cache'`, any module-scope
+collection) so Phase 5 does not invent it under time pressure (FC-11).
 
 `impl` is a closed union:
-`correct | session | nobegin | nowrapper | waituntil | abandon | cached`.
+`correct | session_in_txn | session | nobegin | nowrapper | waituntil_captured | waituntil_fenced | abandon | cached`.
 
-### Negative controls — the suite must be able to go red
+`impl=correct` **calls shipped `withIdentity(..., { probe: true })`**.
+Delete `runCorrect`'s inlined SQL (ISOL-01). Production sequential-await
+is the shape under test.
 
-A test suite that has never been shown to fail proves nothing. Every
-control is executed in CI, and **the job fails if a control passes**
-(`isolation-proof.md` §9). The primary negative control the Wave A
-checklist asked for is NC1; the others close the rest of the test-only
-modes.
+Production-hard (D82): `opts.probe` is compile-time-stripped unless the
+probe build defines `VAMOS_ISOLATION_PROBE`. Add the three
+`isolation-proof.md` §13 steps to the **real**
+`.github/workflows/deploy-production.yml` in P4 (`test ! -d
+apps/isolation-probe/dist`, grep `isolation-probe` in `apps/web` **and**
+`packages/db`, `wrangler secret list` has no `PROBE_SECRET`). Name the
+probe package so `pnpm --filter web` cannot match it; `"private": true`,
+no `deploy` script. `pnpm-workspace.yaml` `apps/*` will otherwise pick
+it up the moment P4 creates it.
+
+### Negative controls — mutants vs hazards
+
+A test suite that has never been shown to fail proves nothing. D38 as
+previously written applied "the job **fails if a control passes**" to
+NC1–NC6 as a set. NC1/NC2/NC3/NC6 are mutants that must go red.
+NC4/NC5 were hazard tests whose *expected* signal was green-looking
+("no residue", "rows are the waitUntil-caller's own"). Implementing D38
+as written fails the pipeline when abandon/waitUntil are handled
+correctly; implementing NC4/NC5 as written violates D38 (ISOL-03).
+Split:
+
+**Mutants** — job **fails if a mutant is green**:
 
 | Id | Variant | Bug present | Expected red signal |
 |---|---|---|---|
-| **NC1** | `impl=session`: `set_config(..., false)`, **no transaction** | Failure mode #1/#8 | At least one of: residue on a later probe (`claims_at_entry !== 'EMPTY'`); `42501` because the SET and the SELECT landed on different backends; a foreign row. **Zero evidence is escalated as U27**, not accepted — it would mean Hyperdrive's undocumented `RESET` is masking the bug, which is not a security boundary |
-| **NC2** | `impl=nobegin`: `is_local => true` but no `BEGIN` | Failure mode #4 | `42501`, no rows. `SET LOCAL` outside a transaction does nothing; grants bite |
+| **NC1** | `impl=session_in_txn`: `sql.begin` + `set_config(..., false)` + COMMIT, then a follow-up `opts.probe` on the same `pid` | Failure mode #1 (D1's actual footgun) | `S_session` ≥ a floor **and** a later entry sees non-`EMPTY` claims **or** `current_user ≠ vamos_edge` **or** a foreign row. If residue is 0, record U27 **and still fail NC1 as a control** — RESET is not the tenant boundary (P2 / D1). Run NC3 on that same dirty backend so leftover `SET ROLE` cannot void the grant wall |
+| **NC2** | `impl=nobegin`: `is_local => true` but no `BEGIN` | Failure mode #4 | `42501`, no rows. Deployed. Local half is Vitest autocommit, not pgTAP |
 | **NC3** | `impl=nowrapper`: `select count(*) from public.bookings` as `vamos_edge` | D2's load-bearing claim | `42501`. **If this ever returns a number, the entire design is void** |
-| **NC4** | `impl=abandon`: open a transaction, bind identity, return without COMMIT and without `waitUntil` | Failure modes #2/#5 | Follow-up `correct` probes show no residue, no `25P02`, pool not starved. Settles U28 |
-| **NC5** | `impl=waituntil`: response returns first; DB work runs after, **inside its own `withIdentity`** | Failure mode #10, correctly fenced | Residue empty; rows are the waitUntil-caller's own |
-| **NC6** | `impl=cached`: same sequence against `HYPERDRIVE` / `vamos_public` | Failure mode #13 | `42501` — the cached binding cannot serve identity data at all |
+| **NC6** | `impl=cached`: same sequence against `HYPERDRIVE` / `vamos_public` | Failure mode #13 | `42501` — the cached binding cannot serve identity **or billing** data at all |
+| **M1** | `M1_grant_layer_removed.sql`: `vamos_edge` inherits and holds a direct `SELECT` on `bookings` | Grant layer | `fail_closed.test.sql` **and** the Vitest no-BEGIN file go red |
+| **M2** | `M2_policy_predicate_weakened.sql`: weaken `user_id = app.uid()` (not `customer_id = app.uid()`) | §14a predicate | `cross_claim.test.sql` / `bookings_customer_rls.test.sql` go red |
+| **M3** | `withIdentity` mutant with `is_local => false` | D1 inside the shipped function | Local simulator on the reserved conn goes red |
 
-Two **migration mutants** against a scratch local database
-(`isolation-proof.md` §9.6). The gate fails if pgTAP stays green:
+**Hazards** — job **fails if the hazard is not observed** (INCONCLUSIVE, not
+green) **or** if residue / starvation / `25P02` / a foreign row appears on
+a later `correct` probe after a confirmed dirty origin:
 
-- **M1** (`M1_grant_layer_removed.sql`): `vamos_edge` inherits and holds a
-  direct `SELECT` on `bookings`. Expected: `fail_closed.test.sql` and
-  `set_local_without_begin.test.sql` go red.
-- **M2** (`M2_policy_predicate_weakened.sql`): customer policy becomes
-  `using (true)`. Expected: `bookings_customer_rls.test.sql` goes red.
+| Id | Variant | Hazard | Construction / fail rule |
+|---|---|---|---|
+| **NC4** | `impl=abandon` | Failure modes #2/#5 | `waitUntil` the open transaction (so BEGIN is sent), bind identity, then abort (Worker `throw`, 60 s Hyperdrive query ceiling, or `pg_terminate_backend` from the owner role). Follow-up adjacency on **that `pid`**. Fail INCONCLUSIVE if no abandon is observed to have held an origin (`pg_stat_activity` / origin-connection-limit saturation). Do **not** treat "400 later probes were clean" as evidence (ISOL-05). Settles U28 |
+| **NC5** | `impl=waituntil_captured` | Failure mode #10 | Hold `sql.begin`, bind identity, return the HTTP response, then inside `waitUntil` run a SELECT **on that same `tx`** (and a second request as the other customer). The suite **goes red** (foreign row, or query-after-COMMIT, or held origin). CI grep: no `waitUntil` closure over `tx` / `sql` from `withIdentity` (ISOL-04) |
+| **NC5+** | `impl=waituntil_fenced` | Mode 10, correctly fenced | Positive test, not a mutant: new `withIdentity` inside `waitUntil`. Residue empty; rows are the waitUntil-caller's own. Does not satisfy D38's "fails if a control passes" |
+
+**U27 companion, not NC1:** `impl=session` (session `SET`, **no
+transaction**) measures whether Hyperdrive RESET between queries masks
+the no-txn variant. Orphaned `42501` from connection-split is evidence
+of pooling, not of D1. Zero residue here is recorded as U27 and is
+**not** a pass of NC1.
+
+A5 (`cacheStatus` never `hit`) stays a validity gate on the identity
+config. It does not prove an app `publicSql` read of identity data —
+that is the branded-client allowlist (FC-05).
 
 ### Validity gates on the deployed run
 
@@ -654,12 +946,15 @@ If any of these fail, the run is INCONCLUSIVE, not green
   Two empty result sets satisfy a naive equality check.
 - V4 — connections were actually shared (`S ≥` floor, `distinctPids ≤
   concurrency / 2`).
-- A1 — no customer ever receives the other's row (contains-mine **and**
-  contains-none-of-theirs).
-- A2 — `userBound === 'authenticated'` inside every transaction (otherwise
-  a no-op `set_config` plus an over-granted `vamos_edge` looks identical to
-  success — this is the U2 tripwire).
-- A3 — no probe found residue on entry.
+- A1 — no customer ever receives the other's row
+  (`arrayContaining(mine)` **and** not `arrayContaining(other)` — leftover
+  rows from prior runs must not make this flake; do not DELETE against D19).
+- A2 — `userBound === 'authenticated'` inside every customer transaction
+  (otherwise a no-op `set_config` plus an over-granted `vamos_edge` looks
+  identical to success — this is the U2 tripwire). Runs locally against
+  the shipped function, not only deployed.
+- A3 — no probe found residue on entry (`claims_at_entry` **and**
+  `guest_at_entry` EMPTY, `user_at_entry === 'vamos_edge'`).
 - A4 — on every shared-backend adjacent pair, the follower saw a clean
   session.
 - A5 — Hyperdrive GraphQL `cacheStatus` for the identity config ∈
@@ -725,10 +1020,21 @@ the resolution of `02-RESEARCH.md` Lane 1's open placement item.
 
 Placement *"only affects the execution of fetch event handlers"*
 (`isolation-proof.md` §5.1, §15 U-I7). Queues consumers and Cron handlers
-are **not** placed. Their DB access still goes through `withIdentity`;
-their latency is **not** covered by DATA-05. Record that in the phase
-summary regardless of plan-tier availability — it is also a correction to
-ADR-007's framing. Availability of the hint on the chosen plan is U30.
+are **not** placed. Their DB access still goes through `withIdentity`
+(`asStaff` / `asQuote`); their latency is **not** covered by DATA-05
+(D83). The 5-RTT `withIdentity` shape from a distant PoP is the
+100–150 ms miss Lane 5 already calculated, multiplied across a sweep,
+holding `vamos_edge` backends against the 25 budget. Size U32 with
+unplaced sweeps in mind. Record that in the phase summary regardless of
+plan-tier availability — it is also a correction to ADR-007's framing.
+Availability of the hint on the chosen plan is U30.
+
+Do not let Phase 9 believe `wrangler.jsonc` `placement.region` covers
+`0 3 * * *`. If counsel needs EU execution for reminder PII, that is
+Regional Services / a dedicated placed fetch Worker that the cron
+**enqueues** (U13), not a Placement Hint on `scheduled`. Cron/Queue
+handlers take `env` from the Worker argument; `getCloudflareContext()` is
+an OpenNext fetch/RSC API (FC-10).
 
 Whether `placement.host` / `placement.hostname` L4/L7 probes are needed
 for Hyperdrive, or the `region` shorthand is enough, is U25. Confirm the
@@ -795,9 +1101,10 @@ deploy. If the measured number is well under 5×RTT, the array-return
 micro-optimisation is unnecessary complexity at every call site. If it is
 close, standardise hot read paths on the array-return form
 (`hyperdrive-wiring.md` §4.4). Until then, production `withIdentity` uses
-sequential await (matches D1's readable shape); the probe's residue
-sequence uses the pipelined array form because it issues six statements
-and wants one flush (`isolation-proof.md` §5.2).
+sequential await (matches D1's readable shape). The probe's residue
+sequence is the **same sequential await inside the shipped function**
+(ISOL-01). A pipelined array copy in `runCorrect` is deleted — it proved
+a different shape.
 
 ---
 
@@ -820,9 +1127,17 @@ D1–D24 remain settled. New decisions start at D25.
 | D35 | Origin pool sizes | App: 25 (RLS) + 15 (public) against Micro's 60. Probe: dedicated cache-disabled config capped at 5 | One pool for everything; probe sharing the app's 25 | 40/60 leaves headroom for Studio, migrations, Auth/Realtime. Probe at 5 makes reuse a pigeonhole (`hyperdrive-wiring.md` §1.5; `isolation-proof.md` §5.1). Re-verify against real `max_connections` (U32) | Staging deploy (deferred) |
 | D36 | OpenNext identity path | `getCloudflareContext().env`; `export const dynamic = "force-dynamic"` (or a `request`-reading Route Handler) on every identity import; Node.js runtime, never `edge` | Ambient `env`; calling `withIdentity` from an SSG page; `runtime = 'edge'` | OpenNext does not pass `env` as a handler argument; SSG sees local bindings; postgres.js needs `nodejs_compat` (`hyperdrive-wiring.md` §2.3) | Every RLS-gated route |
 | D37 | Residue probe in the shipped function | Optional `opts.probe`. Production never sets it. The probe Worker always does. Same function, not a copied SQL sequence | Always-on residue probe in production (extra RTT on every call); a probe-only fork of `withIdentity` | DATA-06 must test the shipped function (`isolation-proof.md` §6). Production must not pay a probe it does not read | Isolation probe `impl=correct` |
-| D38 | Negative-control discipline | CI runs NC1–NC6 **before** the isolation gate; the job **fails if a control passes**. Mutation gate fails if a mutant leaves pgTAP green | Shipping the happy-path test alone; treating NC1-with-zero-evidence as a pass | Without a demonstrated red, the suite proves nothing (`isolation-proof.md` §9) | DATA-06 |
+| D38 | Negative-control discipline | **Mutants** (NC1 session-in-txn, NC2, NC3, NC6, M1, M2, `is_local=false`) — job fails if a mutant is green. **Hazards** (abandon, waitUntil-captured-tx) — job fails if the hazard is unobserved or if residue follows a confirmed dirty origin | One "fails if a control passes" rule for NC1–NC6 as a set | NC4/NC5 expected green-looking outcomes; implementing the old rule inverts them (ISOL-03) | DATA-06 |
 | D39 | Public cached path | `publicSql(env)` on `HYPERDRIVE`, `vamos_public`, no transaction, `max: 5`. Identity data never issued on this binding | Putting public reads through `asAnon` (opens a transaction, uncacheable); reading `bookings` on `HYPERDRIVE` | D3. NC6 proves the cached binding cannot serve identity data (`hyperdrive-wiring.md` §3; `isolation-proof.md` §9 NC6) | Phase 5 content reads; Phase 6 `content_strings` |
 | D40 | Isolation fixtures carry no money | Seed bookings with NULL price columns. No live `rate_versions` row. Surfaces render `CHF 000` by data | Inventing a CHF figure in a fixture, a probe response, or this document | Law 4. `isolation-proof.md` §7.2, §14 | DATA-06 fixture; QUOTE-10 remains intact |
+| D76 | Frozen call-site signature | Core `withIdentity(cs, kind, claims, fn, opts?)`. `apps/web` imports named wrappers only (`asCustomer` / `asStaff` / `asGuest` / `asAnon` / `asQuote`). Ban `@vamos/db` under `apps/web/app` and `apps/web/lib` except the wrapper file | Three signatures in force (Phase 2 union, wiring `{kind,claims}`, D28) | FC-01; quote-lock-expiry cannot type-check | Every later caller |
+| D77 | Tests call the shipped function | `opts.client` test-only for `sql.reserve()`. Probe `impl=correct` calls `withIdentity`. No inlined `runCorrect` SQL | Probe/simulator copy of `set_config` | ISOL-01; a production `is_local=>false` would not turn the suite red | DATA-06 |
+| D78 | NC1 is session-SET **inside** BEGIN/COMMIT | `impl=session_in_txn`. No-txn session SET is U27's measurement, not the D1 mutant | Session SET with no transaction (Hyperdrive RESET-maskable) | ISOL-02; PG 17 SET persists `is_local=false` across COMMIT | DATA-06 mutants |
+| D79 | Quote/ledger path on NOCACHE | `asQuote` / definer RPCs on `HYPERDRIVE_NOCACHE`. Never grant pricing tables to `vamos_public`. Phase 4 D60 cached rate-book is refused | `publicSql` on the rate book; billing on a 60 s cache | FC-02; D3 | `/api/quote`, checkout intent |
+| D80 | `@vamos/db` is a real module | `exports` (`./identity`, `./public`, `./database.types`), `postgres` dependency, `workspace:*`, `transpilePackages` | `"main": "index.ts"` pointing at a missing file | FC-03; OpenNext cannot import the helper | P1 |
+| D81 | Isolation fixtures match the draft | `customers (user_id, full_name, email)`; `bookings` `status='quote'` + contact NOT NULLs; policy `c.user_id = app.uid()`; order by `created_at` / `booking_legs.scheduled_at` never `pickup_at` | `isolation-proof.md` verbatim (`'quoted'`, uid as `customers.id`, `pickup_at`) | F1–F3; first `supabase start` aborts | P2/P4 fixtures |
+| D82 | Probe flag is compile-time | `opts.probe` stripped unless `DEPLOY_ENV==="staging"` / `VAMOS_ISOLATION_PROBE`. Real `deploy-production.yml` gains the three production gates | Caller `{ probe: true }` in the production bundle | FC-09 | Production |
+| D83 | Queues/Cron are unplaced | Placement Hints pin fetch only. Handlers take `env` from the Worker argument, never `getCloudflareContext()`. DATA-05 does not cover them | Believing `placement.region` covers `scheduled` / `queue` | FC-10; LIFE-05 | Phase 7/9 |
 
 ---
 
@@ -834,7 +1149,7 @@ start at U23. U4–U22 stay Phase 2's; they are not re-listed.
 | # | Item | Why uncertain | The check that settles it | Blocks |
 |---|---|---|---|---|
 | U1 | Can managed Supabase's `postgres` role run `grant authenticated to vamos_edge with inherit false, set true`? | PG16+ grant options exist and Supabase is on PG17, but the managed role's own privileges are not documented | Run exactly that statement in the staging SQL editor as the first migration step. If refused, fall back to `create role vamos_customer nologin` mirroring `authenticated`'s grants and use `TO vamos_customer` in policies — no other change. `PG_ROLE.customer` becomes `"vamos_customer"`; `fail_closed.test.sql` assertion 2 enumerates the fallback role too | The roles migration (Phase 2 first file) **and** `withIdentity`'s map |
-| U2 | `set_config('role', $1, true)` ≡ `SET LOCAL ROLE $1` | `role` is a GUC so this is near-certain, but it is not stated in PG's parameter table | `begin; select set_config('role','authenticated',true); select current_user; commit; select current_user;` — expect `authenticated` then `vamos_edge`. Fallback: `tx.unsafe('set local role ' + PG_ROLE[kind])`, injection-free because `PG_ROLE` is a closed map. Run on staging **before** Phase 2 authors `0002` | Phase 3 `withIdentity` (this is the check Phase 2 already named) |
+| U2 | `set_config('role', $1, true)` ≡ `SET LOCAL ROLE $1` | `role` is a GUC so this is near-certain, but it is not stated in PG's parameter table | Four-line check on `supabase start` in P1 (ISOL-12): `begin; select set_config('role','authenticated',true); select current_user; commit; select current_user;` — expect `authenticated` then `vamos_edge`. Fallback is a **closed-map switch** (`const stmt = { authenticated: 'set local role authenticated', … }[PG_ROLE[kind]]`), never `unsafe` + `+` concat | Phase 3 `withIdentity` |
 | U3 | Does `supabase db push --include-seed` re-run the seed on every push or only once? | The CLI reference documents the flag but not the re-run semantics; a June 2026 community note says remote projects do not pick up seed files without it | `supabase db push --include-seed --dry-run` against a scratch project, then a real second push and diff row counts | The `deploy-staging.yml` migration step; makes `ON CONFLICT` load-bearing rather than optional |
 | U23 | Does `wrangler hyperdrive update` accept `--caching-disabled`, or is it create-time only? | Docs show the flag only on `create` (`hyperdrive-wiring.md` §1.3, U-DATA05-1) | `npx wrangler hyperdrive update <id> --caching-disabled --help` against a real config. If unsupported, the runbook is delete + recreate + re-point the binding id | Wrong-cache-mode recovery; not the happy-path create |
 | U24 | Does `getCloudflareContext()` "async mode" change this usage? | Mentioned in passing in OpenNext docs, not fully specified (`hyperdrive-wiring.md` §2.3b, U-DATA05-2) | Smoke-test one RLS-gated route through `opennextjs-cloudflare build && preview`, not only `next dev` | Identity path on a real OpenNext request context |
@@ -846,6 +1161,8 @@ start at U23. U4–U22 stay Phase 2's; they are not re-listed.
 | U30 | Are Placement Hints available on the chosen plan? (Queues/Cron are not placed regardless.) | No account. Placement "only affects fetch event handlers" (`isolation-proof.md` §15 U-I7) | `wrangler deploy` accepts or rejects `"placement": { "region": "aws:eu-central-1" }`. Record the Queues/Cron exclusion in the phase summary either way | DATA-05; ADR-007 revision (residency, not latency) |
 | U31 | Isolate-level memoisation of customer-scoped reads once Phase 5 adds real routes | Those routes do not exist (`isolation-proof.md` §15 U-I8; §2 mode 14) | Phase 5: re-point the isolation harness at `/api/account/bookings`; CI grep for module-scope `Map`/`Set`/`cache`/`memo`/`store` under `apps/web/app` and `apps/web/lib` | Phase 5, not Phase 3 |
 | U32 | Actual `max_connections` on the provisioned Micro, and how many Auth/Realtime/PostgREST already hold | 40/60 assumes they do not compete meaningfully (`hyperdrive-wiring.md` §1.5) | `show max_connections;` plus `select count(*) from pg_stat_activity;` on staging before the first `hyperdrive create` | `--origin-connection-limit` values; not the local slice |
+| U59 | `vamos_quote` nologin role as D79 fallback | Preferred path is definer RPCs inside `asAnon`/`asCustomer`. A fifth IdentityKind is a Phase 2 role-set addition | Owner/Phase 2: add the role in `0002` or keep definer-only. Do not grant pricing tables to `vamos_public` either way | D79 door if definer RPCs are not ready |
+| U61 | Guest and staff in the DATA-06 adjacency set | Gate currently mints two customers; residue SQL omitted `request.vamos.manage_token_hash` | P2/P4: guest-pair + staff-pair; ENTRY_PROBE asserts the manage-token GUC is EMPTY on entry (FC-04, ISOL-06) | DATA-03/AUTH-05 under the pool |
 
 ---
 

@@ -1,14 +1,39 @@
 # Phase 4 API contract — Quote, geo, flight, reprice
 
-**Written:** 2026-08-22. Companion to `04-RESEARCH.md`.
+**Written:** 2026-08-22. Companion to `04-RESEARCH.md`. Hardened the same day
+(`04-HARDEN.md`, D61–D75). Where a snippet below still shows the pre-harden
+shape, this addendum and `04-RESEARCH.md` win.
 **Audience:** the implementer of the Worker routes and the booking-widget fetch client.
-**Does not replace:** Phase 7's checkout/payment contract. This file specifies what checkout **must re-check** and what it **must not accept**. Idempotency of `bookings.idempotency_key` is **U20**, owned by Phase 7 — pointed at, not settled.
+**Does not replace:** Phase 7's checkout/payment contract. This file specifies what checkout **must re-check** and what it **must not accept**. Idempotency of `bookings.idempotency_key` is **U20**, owned by Phase 7 — the field is **required** on intent (browser-minted per attempt, never derived from `quote_id`); mint/lifetime stay Phase 7.
 
 Base path is the public origin (`https://vamostaxi.eu` / staging). Locale prefix (`/de`, `/fr`, `/ar`) does **not** apply to `/api/*`. `Accept-Language` and the body's `locale` are hints for Mapbox `language=` and for which copy the **client** will render; the API returns i18n **keys**, never translated prose.
 
 Anonymous access is the default. A signed-in customer cookie, if present, is ignored for pricing (the engine is not identity-scoped). It is read at **checkout** for coupon per-user caps and `bookings.customer_id`.
 
 Every amount the API returns is `number | null` (integer rappen). `null` renders `CHF 000` (or the `display_currency` mark plus `000`) by data. This file contains no invented CHF figure.
+
+**Client bidi rule (I-07):** wrap Mapbox `name`/`address`, `coupon.code`, formatted money, flight numbers, `VT-YY-####`, and class names in `.vt-dir-keep`. Do not translate those literals.
+
+### Harden corrections (D61–D75) — binding on the snippets below
+
+| # | Contract change |
+|---|---|
+| D61 | Persist `quote_lock_expires_at` from the verified HMAC `exp`. Raise inside the snapshot-write transaction if `exp <= now()`. Charge gate refuses a past quote-lock clock even when the payment-window `expires_at` is in the future. Worker `Date` stays decorative. |
+| D62 | A lock against a now-`retired` rate version is still honourable. Flag `rate_version_is_live` is `status in ('live','retired')`. Draft still cannot charge. |
+| D63 | `vamos_qs` is HMAC-signed. Unverifiable or missing → 4/60 bare-IP bucket, never a fresh 8/60. Turnstile “3rd request” keys on IP or the verified cookie. |
+| D64 | `QuoteLockPayload` includes `extras` and `coupon`. Reprice always re-signs `class_totals`. Coupon/extras-only keeps `quote_id`/`exp`. Checkout 400s a body that disagrees with the pin. |
+| D65 | Token `kid.payload.mac`. Dual-verify `QUOTE_LOCK_SECRET` / `QUOTE_LOCK_SECRET_PREVIOUS` for one lock TTL (U58). |
+| D67 | `extra_stops` 0–3 is legal **without** `waypoints[]`. Quantity-only surcharge. Detour km is U41, later, when stop PlaceInputs exist. Do not 422 a mock count-only payload. |
+| D68 | Preprocess widget `one-way` → `one_way` before the Zod union. `hourly` → 422 `mode_not_offered`, not 400. `hours` is rejected (`untrusted_input`) with D57. |
+| D70 | Intent, before Stripe: `lock.pax >= 1`, chosen class `eligible === true`, `estimated_duration_minutes = round(duration_s/60) > 0`. No silent 30-minute floor. |
+| D71 | `QUOTE_ABUSE` increments on suggest/retrieve/reverse/**and** Directions. Zone rule covers `/api/quote*`, `/api/quote/reprice`, `/api/geo/*`. Until U37, trip U54's engineering unit sentinel (not log-only, not a CHF figure). |
+| D74 | `flight_no` and `landing_source` on `QuoteLockPayload.legs[]`. Intent 400s a body that disagrees. Bind `GET /api/flight` `date` to the pickup civil date when WhenPicker has one. |
+| D75 | `same_place` → `quote.error.same_place`. `place_out_of_box` → `quote.error.place_out_of_box` (not the service-area string). Flight overnight `action: "disambiguate"` carries `quote.flight.pick_one`. Class `ineligible_reason` `unavailable`/`no_rate`/`route_off` have keys. |
+| D79 (Phase 3) | Quote/ledger SQL is `asQuote` on `HYPERDRIVE_NOCACHE`. Cached `HYPERDRIVE` is content-only. Original D60 cache of the rate book is refused. |
+
+`idempotency_key` is **required** on `POST /api/checkout/intent` (U20). Persist `{quote_id, stripe_pi}` before the Stripe call, or key the PI on that header. On `bookings.quote_id` unique-violation, SELECT and return the existing client secret. Waypoint reprice records `supersedes_quote_id`.
+
+Retrieve forwards `language={locale}` to Search Box (I-05). Flight examples use `locale={en\|de\|fr\|ar}`, never a hard-coded `en`.
 
 ---
 
@@ -18,9 +43,9 @@ Cross-checked against `docs/build/SPEC-home-booking-widget.md` and `app/home/hom
 
 | Widget field | Where | Accepted on | Notes |
 |---|---|---|---|
-| Mode: one-way / return / hourly | Home tabs | `POST /api/quote` `mode` | `hourly` → `422 mode_not_offered` (D57). Default `one_way`. |
-| Flight number | Home | **Not** on `/api/quote`. `GET /api/flight/:no` | Lookup fills pickup time in the widget; the quote then carries `scheduled_local` like any other time. `flight_no` is stored at booking, not required to price. |
-| Flight date (today / tomorrow) | Home | Query on `/api/flight` | Europe/Zurich civil date. |
+| Mode: one-way / return / hourly | Home tabs | `POST /api/quote` `mode` | D68: preprocess `one-way` → `one_way`. `hourly` → `422 mode_not_offered` (D57), not 400. Default `one_way`. `hours` rejected. |
+| Flight number | Home | `GET /api/flight/:no` then `legs[].flight_no` on quote | Lookup fills pickup time. D74: the number is pinned on the lock and written at booking from the lock, not from a later client field. |
+| Flight date | Home | Query on `/api/flight` | Bind `date` to `legs[0].scheduled_local`'s Zurich civil date when WhenPicker has one. Today/tomorrow chips only when it does not (OR-F-03). |
 | Pickup text + suggestion pick | Home combobox | `pickup` Place | `mapbox_id` from `/retrieve`, or pin coordinates, or (fallback) free text **with** coordinates. Text alone cannot be priced. |
 | Dropoff, same | Home | `dropoff` Place | Required for `one_way` and `return`. Absent for rejected hourly. |
 | Swap ends | Home | Client swaps `pickup`/`dropoff` and re-POSTs | No dedicated route. |
@@ -33,7 +58,7 @@ Cross-checked against `docs/build/SPEC-home-booking-widget.md` and `app/home/hom
 | Language | Header | `locale` | `en\|de\|fr\|ar`. Mapbox `language=`. |
 | Display currency | Header | `display_currency` | Mark only (ADR-004). Never a conversion. Default `CHF`. |
 | Child seat | Checkout extras | `POST /api/quote/reprice` `extras.child_seats` | Not on the home quote. 0 or 1 in Phase 4 (U43). |
-| Additional stops (0–3) | Checkout | `reprice` `extras.extra_stops` + `waypoints[]` | Stops change routed metres — reprice **re-runs Directions live** (no Mapbox KV) using lock pickup/dropoff + new waypoints, then prices. The lock's original `distance_m` is replaced only if the HMAC is over a **new** pin (reprice returns a new lock). See §3. |
+| Additional stops (0–3) | Checkout | `reprice` `extras.extra_stops` | D67: count is a legal payload **without** `waypoints[]` (quantity-only surcharge). Detour km + live Directions waypoints are U41, once stop PlaceInputs exist. Do not 422 the mock Counter. |
 | Oversized luggage | **Not in the mock** | `reprice` `extras.oversized_luggage` | QUOTE-11. Widget port adds the control. Boolean. |
 | Coupon code | Checkout | `reprice` `coupon` | Informational `evaluate_coupon`. Not consumed. |
 | Contact name / email / phone | Checkout Details | **Not** a quote field | Booking insert (Phase 7). Required before coupon per-user cap can use email. |
@@ -238,7 +263,9 @@ interface QuoteLockPayload {
 }
 ```
 
-HMAC-SHA256 over the UTF-8 canonical JSON (sorted keys, no whitespace) with `QUOTE_LOCK_SECRET`. Token format: `base64url(payload) + "." + base64url(mac)`.
+HMAC-SHA256 over the UTF-8 canonical JSON (sorted keys, no whitespace) with `QUOTE_LOCK_SECRET`. Token format: `kid + "." + base64url(payload) + "." + base64url(mac)` (D65). Dual-verify current and previous secret for one lock TTL.
+
+Payload **must** include `extras` and `coupon` (D64) and each leg's `flight_no` / `landing_source` (D74). Reprice re-signs `class_totals` whenever extras or coupon change.
 
 Pinning `distance_m` / `duration_s` for 30 minutes is storing a Navigation API result. That is U33. QUOTE-04 cannot hold a price without it.
 
@@ -273,7 +300,7 @@ interface RepriceRequest {
 
 `pax`, `bags`, places, times are **not** accepted here. They come from the lock. Sending them is `400 untrusted_input`. To change them the widget goes back to `/api/quote`.
 
-`extra_stops > 3` or `waypoints.length !== extra_stops` → `422 extras_max_stops`.
+`extra_stops > 3` → `422 extras_max_stops`. `waypoints` is optional in Phase 4 (D67). If present, `waypoints.length` must equal `extra_stops` or 422. A count-only body is valid and does not re-run Directions.
 
 ### Coupon informational result
 
@@ -435,8 +462,8 @@ When `pricing_live` is false this route is a 409 at step 4 for every caller, inc
 | `malformed` | 400 | `quote.flight.malformed` | Flight number shape | — |
 | `mode_not_offered` | 422 | `quote.error.mode_not_offered` | `hourly` | — |
 | `place_unresolved` | 422 | `quote.geo.no_results` | Retrieve/reverse produced no coords | — |
-| `same_place` | 422 | `quote.error` | Pickup and dropoff are the same point | — |
-| `place_out_of_box` | 422 | `quote.error.out_of_service_area` | Coords outside CH+neighbours box (pre-Mapbox) | — |
+| `same_place` | 422 | `quote.error.same_place` | Pickup and dropoff are the same point | — |
+| `place_out_of_box` | 422 | `quote.error.place_out_of_box` | Coords outside CH+neighbours box (pre-Mapbox). **Not** the service-area message. | — |
 | `out_of_service_area` | 422 | `quote.error.out_of_service_area` | QUOTE-07 path 2, both ends not in polygon and not a named pair | — |
 | `service_area_undefined` | 422 | `quote.error.service_area_undefined` | Polygon NULL and not a named pair. Render as TBC pill, not "we don't serve you." | — |
 | `min_advance` | 422 | `quote.error.min_advance` | Inside `settings_versions.min_advance_minutes`. `params.minutes` is the setting, never a constant. This code is **not emitted** while the setting is NULL. | — |
@@ -476,19 +503,19 @@ Ineligible classes are not errors (200, `eligible: false`). `no_eligible_class: 
 
 ## 8. Rate limit and Turnstile (QUOTE-09)
 
-Applied to `POST /api/quote`, `POST /api/quote/reprice`, `POST /api/checkout/intent`. Geo suggest is Layer 1 + Worker limit only (no Turnstile). Flight is Worker limit only.
+Applied to `POST /api/quote`, `POST /api/quote/reprice`, `POST /api/checkout/intent`, and **every** `/api/geo/*` Mapbox call (D71). Turnstile stays off type-ahead. Flight is Worker limit only.
 
 | Layer | Where | Key | Threshold | Action |
 |---|---|---|---|---|
-| 1 | Zone WAF | `ip.src` | 30 / 60 s | `managed_challenge` (HTML/JS, not JSON 429) |
-| 2a | Worker binding | `ip + vamos_qs` | 8 / 60 s | JSON `429 rate_limited` |
-| 2b | Worker binding | `ip` (no cookie) | 4 / 60 s | JSON `429 rate_limited` |
-| 3 | Worker + siteverify | same as 2a | 1st–2nd: log; 3rd+: require success | JSON `403 turnstile_required` |
-| 4 | `QUOTE_ABUSE` KV | `quote:mapbox-budget:YYYY-MM-DD` | U37, sentinel until a Mapbox plan exists | JSON `503 temporarily_unavailable` |
+| 1 | Zone WAF | `ip.src` | 30 / 60 s on `/api/quote*`, `/api/geo/*` | `managed_challenge` (HTML/JS, not JSON 429) |
+| 2a | Worker binding | `ip + verified vamos_qs` | 8 / 60 s | JSON `429 rate_limited` |
+| 2b | Worker binding | `ip` (no cookie **or unverifiable cookie**) | 4 / 60 s | JSON `429 rate_limited` |
+| 3 | Worker + siteverify | IP, or verified cookie — never an unsigned UUID | 1st–2nd: log; 3rd+: require success | JSON `403 turnstile_required` |
+| 4 | `QUOTE_ABUSE` KV | `quote:mapbox-budget:YYYY-MM-DD` | U54 engineering unit sentinel until U37 | JSON `503 temporarily_unavailable` |
 
 Turnstile down: below threshold fail-open; at/above, Layer 1 is the remaining gate. Siteverify timeout budget 2 s, one retry with the same Turnstile `idempotency_key`.
 
-`vamos_qs`: `HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=86400`. Set on the first document response if absent. Not a customer identifier; not written to logs in raw form (hash if needed).
+`vamos_qs`: HMAC-signed (D63), `HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=86400`. Set on the first document response if absent. An attacker-supplied unsigned UUID is treated as missing (bucket 2b), never as a new 8/60 identity. Not a customer identifier; not written to logs in raw form (hash if needed).
 
 ---
 
