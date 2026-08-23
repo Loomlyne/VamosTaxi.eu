@@ -285,9 +285,12 @@ max_frequency = "5s"
 # uri = "pg-functions://postgres/auth/before-user-created-hook"
 
 # This hook runs before a token is issued and allows you to add additional claims based on the authentication method used.
-# [auth.hook.custom_access_token]
-# enabled = true
-# uri = "pg-functions://<database>/<schema>/<hook_name>"
+# AUTH-05/D-04: derives app_metadata.vamos_role from public.staff on every mint (F-19 strips
+# any inbound claim first). Local half of D-33; the hosted equivalent is a dashboard setting
+# (Authentication -> Hooks) confirmed against the live project in Plan 02-10.
+[auth.hook.custom_access_token]
+enabled = true
+uri = "pg-functions://postgres/public/custom_access_token_hook"
 
 # Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
 [auth.sms.twilio]
@@ -303,9 +306,12 @@ auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
 max_enrolled_factors = 10
 
 # Control MFA via App Authenticator (TOTP)
+# AUTH-05/D-05: second factor is aal2 in SQL (app.is_staff()/app.is_admin()); this makes TOTP
+# enrollable/verifiable locally so that check can be exercised end to end. Local half of D-33;
+# the hosted equivalent is a dashboard setting confirmed in Plan 02-10.
 [auth.mfa.totp]
-enroll_enabled = false
-verify_enabled = false
+enroll_enabled = true
+verify_enabled = true
 
 # Configure MFA via Phone Messaging
 [auth.mfa.phone]
