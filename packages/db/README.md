@@ -49,7 +49,7 @@ each later plan's migration numbers slot into the gaps this table already reserv
 | # | File | Contents |
 |---|---|---|
 | 01 | `20260823000001_extensions` | `pgcrypto`, `btree_gist`, `citext`, `pgtap` into `extensions`; database `search_path` |
-| 02 | `20260823000002_roles_and_helpers` | `vamos_edge`, `vamos_public`, `vamos_guest`, `vamos_staff`; `app` schema; `app.jwt/uid/manage_token_hash/is_staff/is_admin` |
+| 02 | `20260823000002_roles_and_helpers` | `vamos_edge`, `vamos_public`, `vamos_guest`, `vamos_staff`; `app` schema; `app.jwt/uid/manage_token_hash` (`app.is_staff/is_admin` land in 06 with the `staff` table) |
 | 03 | `20260823000003_types` | every enum type; the `rappen` domain |
 | 04 | `20260823000004_settings` | `settings`, `settings_versions` |
 | 05 | `20260823000005_fleet` | `vehicle_classes`, `vehicles`, `chauffeurs` |
