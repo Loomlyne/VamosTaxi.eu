@@ -1534,6 +1534,49 @@
     "refunded": "Refunded",
     "no-show": "No-show"
   },
+  "price": {
+    "line": {
+      "transfer": "Transfer, {vehicleClass}",
+      "fixed_route": "Fixed route",
+      "coupon": "Coupon {code}",
+      "round_trip_discount": "Round-trip discount, {percent} %",
+      "total": "Total"
+    },
+    "surcharge": {
+      "airport_pickup": {
+        "label": "Airport pickup",
+        "rule": "Applied when pickup is inside an airport zone"
+      },
+      "night": {
+        "label": "Night surcharge",
+        "rule": "Applied between {start} and {end}, Zurich time"
+      },
+      "waiting_airport": {
+        "label": "Waiting, airport",
+        "rule": "First {minutes} minutes included, then per {step} minutes"
+      },
+      "waiting_city": {
+        "label": "Waiting, city",
+        "rule": "First {minutes} minutes included, then per {step} minutes"
+      },
+      "extra_stop": {
+        "label": "Additional stop",
+        "rule": "Per stop, inside the route corridor"
+      },
+      "child_seat": {
+        "label": "Child seat",
+        "rule": "Per seat, per journey"
+      },
+      "meet_greet": {
+        "label": "Meet and greet, arrivals",
+        "rule": "Included in every airport pickup"
+      },
+      "ski_rack": {
+        "label": "Ski or board rack",
+        "rule": "Fitted on request, ski season"
+      }
+    }
+  },
   "$meta": {
     "pendingValueKeys": [
       "cookies.necessary-duration",

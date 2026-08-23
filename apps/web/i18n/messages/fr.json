@@ -1534,6 +1534,49 @@
     "refunded": "Remboursé",
     "no-show": "Non-présentation"
   },
+  "price": {
+    "line": {
+      "transfer": "Transfert, {vehicleClass}",
+      "fixed_route": "Trajet à prix fixe",
+      "coupon": "Code promo {code}",
+      "round_trip_discount": "Remise aller-retour, {percent} %",
+      "total": "Total"
+    },
+    "surcharge": {
+      "airport_pickup": {
+        "label": "Prise en charge à l'aéroport",
+        "rule": "Appliqué lorsque la prise en charge a lieu dans une zone aéroportuaire"
+      },
+      "night": {
+        "label": "Supplément de nuit",
+        "rule": "Appliqué entre {start} et {end}, heure de Zurich"
+      },
+      "waiting_airport": {
+        "label": "Attente, aéroport",
+        "rule": "Les {minutes} premières minutes sont incluses, puis facturé par tranche de {step} minutes"
+      },
+      "waiting_city": {
+        "label": "Attente, ville",
+        "rule": "Les {minutes} premières minutes sont incluses, puis facturé par tranche de {step} minutes"
+      },
+      "extra_stop": {
+        "label": "Arrêt supplémentaire",
+        "rule": "Par arrêt, à l'intérieur du corridor de l'itinéraire"
+      },
+      "child_seat": {
+        "label": "Siège enfant",
+        "rule": "Par siège, par trajet"
+      },
+      "meet_greet": {
+        "label": "Accueil personnalisé, arrivées",
+        "rule": "Inclus dans chaque prise en charge à l'aéroport"
+      },
+      "ski_rack": {
+        "label": "Porte-skis ou porte-snowboard",
+        "rule": "Installé sur demande, pendant la saison de ski"
+      }
+    }
+  },
   "$meta": {
     "pendingValueKeys": [
       "cookies.necessary-duration",

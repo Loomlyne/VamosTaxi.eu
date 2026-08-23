@@ -1534,6 +1534,49 @@
     "refunded": "مسترَد",
     "no-show": "عدم الحضور"
   },
+  "price": {
+    "line": {
+      "transfer": "نقل، {vehicleClass}",
+      "fixed_route": "مسار بسعر ثابت",
+      "coupon": "قسيمة {code}",
+      "round_trip_discount": "خصم الذهاب والإياب، {percent}%",
+      "total": "الإجمالي"
+    },
+    "surcharge": {
+      "airport_pickup": {
+        "label": "استلام من المطار",
+        "rule": "يُطبّق عند الاستلام من داخل منطقة المطار"
+      },
+      "night": {
+        "label": "رسوم الليل",
+        "rule": "يُطبّق بين الساعة {start} و {end}، بتوقيت زيورخ"
+      },
+      "waiting_airport": {
+        "label": "الانتظار، المطار",
+        "rule": "أول {minutes} دقيقة مشمولة، ثم تُحتسب كل {step} دقيقة"
+      },
+      "waiting_city": {
+        "label": "الانتظار، المدينة",
+        "rule": "أول {minutes} دقيقة مشمولة، ثم تُحتسب كل {step} دقيقة"
+      },
+      "extra_stop": {
+        "label": "توقف إضافي",
+        "rule": "لكل توقف، ضمن مسار الرحلة"
+      },
+      "child_seat": {
+        "label": "مقعد أطفال",
+        "rule": "لكل مقعد، لكل رحلة"
+      },
+      "meet_greet": {
+        "label": "الاستقبال الشخصي، الوصول",
+        "rule": "مشمول في كل استلام من المطار"
+      },
+      "ski_rack": {
+        "label": "حامل التزلج أو الألواح",
+        "rule": "يُركَّب عند الطلب، خلال موسم التزلج"
+      }
+    }
+  },
   "$meta": {
     "pendingValueKeys": [
       "cookies.necessary-duration",

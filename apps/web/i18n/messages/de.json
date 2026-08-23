@@ -1534,6 +1534,49 @@
     "refunded": "Rückerstattet",
     "no-show": "Nichterscheinen"
   },
+  "price": {
+    "line": {
+      "transfer": "Transfer, {vehicleClass}",
+      "fixed_route": "Festpreisroute",
+      "coupon": "Gutschein {code}",
+      "round_trip_discount": "Rabatt für Hin- und Rückfahrt, {percent} %",
+      "total": "Total"
+    },
+    "surcharge": {
+      "airport_pickup": {
+        "label": "Flughafenabholung",
+        "rule": "Gilt, wenn die Abholung innerhalb einer Flughafenzone liegt"
+      },
+      "night": {
+        "label": "Nachtzuschlag",
+        "rule": "Gilt zwischen {start} und {end} Uhr, Zürcher Zeit"
+      },
+      "waiting_airport": {
+        "label": "Wartezeit, Flughafen",
+        "rule": "Die ersten {minutes} Minuten sind inbegriffen, danach pro {step} Minuten"
+      },
+      "waiting_city": {
+        "label": "Wartezeit, Stadt",
+        "rule": "Die ersten {minutes} Minuten sind inbegriffen, danach pro {step} Minuten"
+      },
+      "extra_stop": {
+        "label": "Zusätzlicher Halt",
+        "rule": "Pro Halt, innerhalb des Streckenkorridors"
+      },
+      "child_seat": {
+        "label": "Kindersitz",
+        "rule": "Pro Sitz, pro Fahrt"
+      },
+      "meet_greet": {
+        "label": "Meet & Greet, Ankunft",
+        "rule": "Inbegriffen bei jeder Flughafenabholung"
+      },
+      "ski_rack": {
+        "label": "Ski- oder Boardträger",
+        "rule": "Auf Anfrage montiert, während der Skisaison"
+      }
+    }
+  },
   "$meta": {
     "pendingValueKeys": [
       "cookies.necessary-duration",
