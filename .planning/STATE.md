@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Completed 02-03-PLAN.md (Task 1: settings/fleet migrations; Task 2: customers/staff/hook + config.toml; Task 3: content/reviews + reference pgTAP)"
-last_updated: "2026-08-23T23:26:24.037Z"
+stopped_at: Completed 02-04-PLAN.md
+last_updated: "2026-08-23T23:45:24.289Z"
 last_activity: 2026-08-23
 progress:
   total_phases: 11
   completed_phases: 1
-  total_plans: 24
-  completed_plans: 17
+  total_plans: 28
+  completed_plans: 18
   percent: 9
 ---
 
@@ -28,11 +28,11 @@ confirmation — must.
 ## Current Position
 
 Phase: 2 of 11 (Data Schema, RLS & Staff Auth Foundations) — planned, not started
-Plan: 3 of 10 in current phase
+Plan: 4 of 10 in current phase
 Status: Ready to execute
 Last activity: 2026-08-23
 
-Progress: [███████░░░] 71%
+Progress: [██████░░░░] 64%
 
 ## Performance Metrics
 
@@ -72,6 +72,7 @@ Progress: [███████░░░] 71%
 | Phase 02 P01 | ~20min | 3 tasks | 14 files |
 | Phase 02 P02 | ~20min | 2 tasks | 6 files |
 | Phase 02 P03 | ~25min | 3 tasks | 7 files |
+| Phase 02 P04 | 6min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -121,6 +122,8 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-03: custom_access_token_hook hardened per F-19 — strips any inbound app_metadata.vamos_role unconditionally before conditionally re-adding it from an active staff row
 - [Phase 02]: 02-03: a newly created function in schema public/app does not inherit the 02_roles_and_helpers.sql default-privilege REVOKE at CREATE time on this Postgres image — every later plan's new functions must carry their own explicit revoke from public
 - [Phase 02]: 02-03: requirements-completed left empty for DATA-04/AUTH-05 despite plan frontmatter — DATA-04 needs RLS (later wave), AUTH-05 is proven here only on its SQL half per the plan's own objective
+- [Phase 02-04]: A search_path='' trigger function must schema-qualify enum types, not just tables/functions — tg_pricing_row_frozen's unqualified enum declare failed 42704 until qualified as public.rate_version_status
+- [Phase 02-04]: tg_pricing_row_frozen's carve-out now excludes live/available/active uniformly — the schema draft only excluded live/available, wrongly freezing surcharges.active on a published version
 
 ### Pending Todos
 
@@ -156,6 +159,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-23T23:26:24.031Z
-Stopped at: Completed 02-03-PLAN.md (Task 1: settings/fleet migrations; Task 2: customers/staff/hook + config.toml; Task 3: content/reviews + reference pgTAP)
+Last session: 2026-08-23T23:45:24.283Z
+Stopped at: Completed 02-04-PLAN.md
 Resume file: None
