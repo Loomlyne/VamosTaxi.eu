@@ -1,7 +1,8 @@
 ---
 phase: 4
 slug: quote-pricing-engine
-status: draft
+status: approved
+reviewed_at: 2026-08-24
 shadcn_initialized: false
 preset: none
 created: 2026-08-24
@@ -150,7 +151,7 @@ Ported directly from `checkout.dc.html`'s already-reviewed layout: `Input` + gho
 
 | State | Binding | Copy source |
 |---|---|---|
-| Idle | `Input icon="ticket" label={coupon label} placeholder="WELCOME10"` + `Button variant="ghost"` | English text ported from the mock (`coupon`: "Coupon or voucher code", `apply`: "Apply"). **`checkout.dc.html` ships only `en`/`de` blocks — confirmed by direct read, no `fr`/`ar` block exists in that file at all.** The `fr`/`ar` strings for this row are therefore **original drafts for this phase's plan**, not ports of existing translated copy — flag for the standard translation pass, not assumed pre-approved. |
+| Idle | `Input icon="ticket" label={coupon label} placeholder="WELCOME10"` + `Button variant="ghost"` | English text ported from the mock (`coupon`: "Coupon or voucher code", `apply`: "Apply" → tightened to **"Apply code"** so the button has a self-sufficient accessible name independent of the adjacent `Input` label; de/fr/ar drafts follow the same noun-bearing form). **`checkout.dc.html` ships only `en`/`de` blocks — confirmed by direct read, no `fr`/`ar` block exists in that file at all.** The `fr`/`ar` strings for this row are therefore **original drafts for this phase's plan**, not ports of existing translated copy — flag for the standard translation pass, not assumed pre-approved. |
 | Applying | `Button` `disabled`, `Input` `disabled` until the reprice response returns | `Button` has no `loading` prop in the ported source (Phase 1 finding, "a busy CTA composes `Button` + `ProgressIndicator`, not a Button loading variant") — given `/api/quote/reprice`'s short round trip, disabling both controls for the request duration is sufficient; no spinner composition is required. |
 | Applied | `Input` clears; `Tag icon="ticket" onRemove={...}>{code}</Tag>` renders, `.vt-dir-keep` on the code itself (I-08); `PriceSummary` gains a `credit:true` row | `price.line.coupon` — "Coupon {code}" (ICU, `{code}` literal, **not** a `patterns` regex — D-75/I-08 explicitly supersedes the earlier regex sketch) |
 | Removed | `Tag.onRemove` clears the applied code, triggers reprice, the credit row disappears | — |
@@ -277,6 +278,8 @@ No new type role. One clarification specific to this phase: the countdown figure
 **body-sm (14px, Poppins, 400)**, not the Figures scale (38/26/19px Qurova) that `PriceSummary`'s
 total and `VehicleCard`'s price already use — a countdown is an ambient signal beside the total, not
 a second hero number, and must never visually compete with `CHF 000`.
+
+**Primary visual anchor:** the sticky `PriceSummary` total (`CHF 000` in Figures) is the single focal point of the quote surface; the countdown row, the class board cards and the coupon row are all secondary to it.
 
 | Role | Size | Weight | Line Height | Used by |
 |------|------|--------|-------------|---------|
@@ -421,11 +424,11 @@ final.
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
 **Approval:** pending

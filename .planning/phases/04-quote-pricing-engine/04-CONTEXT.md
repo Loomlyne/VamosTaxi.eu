@@ -195,8 +195,8 @@ staging until the owner types `UPDATE rate_versions SET status='live'`.
   origin_zone_id, dest_zone_id, waypoints[], flight_no, landing_source}`, `extras`, `coupon`,
   `class_totals[]`. Token format `kid + "." + base64url(payload) + "." + base64url(mac)`,
   HMAC-SHA256 over canonical JSON (sorted keys, no whitespace).
-- **Lock TTL:** `settings.quote_lock_minutes integer not null default 30` — an engine
-  parameter on the mutable `settings` singleton, not on `settings_versions`. `exp` is minted
+- **Lock TTL:** `settings_versions.quote_lock_minutes integer check (> 0)` — ALREADY APPLIED by Phase 2 migration `20260823000004_settings.sql:80` on the immutable `settings_versions` row (not the `settings` singleton; the research predates that split) — seeded 30 by Phase 2 P9 — an engine
+  parameter the quote reads from the live `settings_versions` row. `exp` is minted
   from a Postgres `select now() + quote_lock_minutes`.
 - **KV key shapes, exact:** flight — `flight:{NUMBER}:{YYYY-MM-DD}` (TTL 90 s same-day /
   30 min next-day / 6 h beyond; KV refuses TTL < 60 s); daily breaker —
@@ -214,7 +214,7 @@ staging until the owner types `UPDATE rate_versions SET status='live'`.
   - `packages/db/supabase/migrations/<ts>_service_zone_types.sql` — `service_zones.zone_type`, `service_zones.tags` (D-10).
   - `packages/db/supabase/migrations/<ts>_snapshot_alternatives.sql` — `price_snapshots.shown_alternatives`, `price_snapshots.quote_lock_expires_at`, extended `price_snapshots_policy_shape` CHECK, lines-reconcile trigger (D-22, D-25).
   - `packages/db/supabase/migrations/<ts>_coupon_release.sql` — `coupon_redemptions.released_at`, `evaluate_coupon()`, `booking_payments_reserve_coupon` (D-30, D-31).
-  - `packages/db/supabase/migrations/<ts>_quote_gates.sql` — `tg_payment_matches_snapshot` as `SECURITY DEFINER`, `tg_snapshot_rate_version_flag` to `status in ('live','retired')`, `settings.quote_lock_minutes`, `settings_versions.service_area_geojson` (D-26, D-32).
+  - `packages/db/supabase/migrations/<ts>_quote_gates.sql` — `tg_payment_matches_snapshot` as `SECURITY DEFINER`, `tg_snapshot_rate_version_flag` to `status in ('live','retired')`, `settings_versions.service_area_geojson` (`quote_lock_minutes` and `checkout_window_minutes` already exist on `settings_versions` from Phase 2 — read them, do not re-add) (D-26, D-32).
   - `packages/db/supabase/migrations/<ts>_flight_provenance.sql` — `booking_legs.flight_checked_at`, `booking_legs.flight_time_source`, event kind `flight.autofilled` (D-20).
 - **Test commands the plan is built around:**
   - **Vitest is not installed** — `grep -rn vitest package.json apps/web/package.json packages/*/package.json` returns nothing. **Wave 0 installs it** (`pnpm add -D --filter web vitest fast-check`) plus `apps/web/vitest.config.ts`. Kernel property tests for `round.ts` / `eligibility.ts` run as `pnpm --filter web exec vitest run lib/pricing`.
