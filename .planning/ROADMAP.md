@@ -98,7 +98,48 @@ exclusion constraint (needed by Phase 8) are designed into the schema here, not 
   4. Seeding a fresh environment loads vehicle classes, settings, content strings and the existing reviews.
   5. A staff account can only be created by invitation and must complete a second factor before reaching ops data.
 
-**Plans**: TBD
+**Plans**: 10 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 02-01-PLAN.md — Wave 0: move supabase/ into packages/db, pin the CLI (legitimacy checkpoint), package scripts, D-37 docs
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 02-02-PLAN.md — Foundation migrations: extensions, four roles, app.* identity helpers, enums + rappen domain
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 02-03-PLAN.md — Reference data + staff auth: settings split (D-35 columns), fleet, customers/staff, token hook, content/reviews
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 02-04-PLAN.md — Pricing: rate_versions one-live gate, zones/rates/routes/surcharges, coupons, price i18n keys
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 02-05-PLAN.md — Booking core: VT-YY-#### generator, bookings, legs + dispatch exclusions, manage-token surface
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 02-06-PLAN.md — Money: price snapshots, payments + charge gate, refunds/stripe_events/notifications, coupon_redemptions
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 02-07-PLAN.md — Evidence: booking_events, audit_log triggers, consent_log + record_consent, four-layer append-only
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [ ] 02-08-PLAN.md — RLS hard gate: enable everywhere, revoke-all baseline, per-actor policies, seven RLS proofs
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
+- [ ] 02-09-PLAN.md — Seed generator + seed.sql, database.types.ts, CI gate, [BLOCKING] apply-from-zero proof
+
+**Wave 10** *(blocked on Wave 9 completion)*
+
+- [ ] 02-10-PLAN.md — Hosted probes (U1/U3/U15) + first remote push — owner-gated, autonomous: false
 
 ### Phase 3: Hyperdrive Data Access Wiring
 

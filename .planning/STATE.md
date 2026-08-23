@@ -4,15 +4,16 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 2
 current_phase_name: Data Schema, RLS & Staff Auth Foundations
-status: phase-complete
-stopped_at: "Phase 1 complete — 14/14 plans, verified PASS_WITH_GAPS (see 01-VERIFICATION.md). Phase 2 not yet planned."
-last_updated: "2026-08-22T13:00:00.000Z"
-last_activity: 2026-08-22
+status: planned
+stopped_at: "Phase 2 planned — 10 plans, checker PASS (0 blockers, 3 warnings). Not yet executed."
+last_updated: "2026-08-23T13:22:10.822Z"
+last_activity: 2026-08-23 -- Phase 2 planning complete
 progress:
-  total_phases: 2
+  total_phases: 11
   completed_phases: 1
-  total_plans: 14
+  total_plans: 24
   completed_plans: 14
+  percent: 9
 ---
 
 # Project State
@@ -28,12 +29,12 @@ confirmation — must.
 
 ## Current Position
 
-Phase: 2 of 11 (Data Schema, RLS & Staff Auth Foundations) — Phase 1 complete
-Plan: 11 of 14 in current phase
-Status: Phase 1 verified PASS_WITH_GAPS; Phase 2 awaiting plan
-Last activity: 2026-08-22
+Phase: 2 of 11 (Data Schema, RLS & Staff Auth Foundations) — planned, not started
+Plan: 0 of 10 in current phase
+Status: Ready to execute
+Last activity: 2026-08-23 -- Phase 2 planning complete
 
-Progress: [████████░░] 79%
+Progress: [█░░░░░░░░░] 9%
 
 ## Performance Metrics
 
