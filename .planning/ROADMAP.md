@@ -111,7 +111,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 02-03-PLAN.md — Reference data + staff auth: settings split (D-35 columns), fleet, customers/staff, token hook, content/reviews
+- [x] 02-03-PLAN.md — Reference data + staff auth: settings split (D-35 columns), fleet, customers/staff, token hook, content/reviews
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -306,7 +306,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Platform Foundation, Design System Port & i18n Runtime | 11/14 | In Progress|  |
-| 2. Data Schema, RLS & Staff Auth Foundations | 2/10 | In Progress|  |
+| 2. Data Schema, RLS & Staff Auth Foundations | 3/10 | In Progress|  |
 | 3. Hyperdrive Data Access Wiring | 0/TBD | Not started | - |
 | 4. Quote & Pricing Engine | 0/TBD | Not started | - |
 | 5. Public Surfaces & Customer Accounts | 0/TBD | Not started | - |

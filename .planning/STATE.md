@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Completed 02-02-PLAN.md (Task 1: foundation migrations; Task 2: pgTAP proof)"
-last_updated: "2026-08-23T22:57:57.496Z"
+stopped_at: "Completed 02-03-PLAN.md (Task 1: settings/fleet migrations; Task 2: customers/staff/hook + config.toml; Task 3: content/reviews + reference pgTAP)"
+last_updated: "2026-08-23T23:26:24.037Z"
 last_activity: 2026-08-23
 progress:
   total_phases: 11
   completed_phases: 1
   total_plans: 24
-  completed_plans: 16
+  completed_plans: 17
   percent: 9
 ---
 
@@ -28,11 +28,11 @@ confirmation — must.
 ## Current Position
 
 Phase: 2 of 11 (Data Schema, RLS & Staff Auth Foundations) — planned, not started
-Plan: 2 of 10 in current phase
+Plan: 3 of 10 in current phase
 Status: Ready to execute
 Last activity: 2026-08-23
 
-Progress: [███████░░░] 67%
+Progress: [███████░░░] 71%
 
 ## Performance Metrics
 
@@ -71,6 +71,7 @@ Progress: [███████░░░] 67%
 | Phase 01 P10 | ~90min (Task 3 this session) | 3 tasks | 25 files |
 | Phase 02 P01 | ~20min | 3 tasks | 14 files |
 | Phase 02 P02 | ~20min | 2 tasks | 6 files |
+| Phase 02 P03 | ~25min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -116,6 +117,10 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-02: F-13 closed with four default-privilege statements beyond the schema draft's three — REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC in both public and app, REVOKE ALL ON TABLES in app, REVOKE CREATE ON SCHEMA public — because a named-role REVOKE never removes PUBLIC's own default EXECUTE grant on a new function
 - [Phase 02]: 02-02: F-17 rappen domain carries check (value >= 0) on the domain itself, not per-column, so a future money column cannot omit the check the way bookings.price_total_rappen does in the draft
 - [Phase 02]: 02-02: requirements-completed left empty for DATA-01..04 despite appearing in the plan frontmatter — the plan's own objective states DATA-02/03/04 are proved later by RLS and are only structural here (no table exists yet); marking them complete now would overstate what this plan proves
+- [Phase 02]: 02-03: settings/settings_versions split with the six D-35 (ADR-014 §5) policy columns on settings_versions only, none seeded — values land in Plan 02-09
+- [Phase 02]: 02-03: custom_access_token_hook hardened per F-19 — strips any inbound app_metadata.vamos_role unconditionally before conditionally re-adding it from an active staff row
+- [Phase 02]: 02-03: a newly created function in schema public/app does not inherit the 02_roles_and_helpers.sql default-privilege REVOKE at CREATE time on this Postgres image — every later plan's new functions must carry their own explicit revoke from public
+- [Phase 02]: 02-03: requirements-completed left empty for DATA-04/AUTH-05 despite plan frontmatter — DATA-04 needs RLS (later wave), AUTH-05 is proven here only on its SQL half per the plan's own objective
 
 ### Pending Todos
 
@@ -151,6 +156,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-23T22:57:57.490Z
-Stopped at: Completed 02-02-PLAN.md (Task 1: foundation migrations; Task 2: pgTAP proof)
+Last session: 2026-08-23T23:26:24.031Z
+Stopped at: Completed 02-03-PLAN.md (Task 1: settings/fleet migrations; Task 2: customers/staff/hook + config.toml; Task 3: content/reviews + reference pgTAP)
 Resume file: None
