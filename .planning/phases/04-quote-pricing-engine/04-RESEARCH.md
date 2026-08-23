@@ -1289,3 +1289,76 @@ export function assembleTotals(lines: Line[]) {
 - **U-items opened here:** U33–U53 (plus carried U5, U8, U9, U16, U20, U22)
 - **Contradictions named:** U6 vs Phase 2; U7 vs Phase 2 KV reservation; lock-as-snapshot vs D42; Mapbox KV vs terms; four GSD-LAUNCH vs Phase 2 schema conflicts (unresolved owner rulings)
 - **Amounts in this file:** `CHF 000` and `amount_rappen: null` only
+
+---
+
+## Validation Architecture
+
+### Test Framework
+| Property | Value |
+|----------|-------|
+| Framework | **Vitest** for the pure pricing kernel and the route contract tests (**not installed** — `grep -rn vitest package.json apps/web/package.json packages/*/package.json` returns nothing; Wave 0 adds it with `fast-check`), **pgTAP** via `supabase test db` for the additive migrations and their triggers (Supabase CLI 2.109.1, local Postgres 17.6), **Playwright 1.62.1** for the widget (already installed at `apps/web`, specs under `apps/web/tests/`) |
+| Config file | `apps/web/vitest.config.ts` — does not exist, created in Wave 0. `packages/db/supabase/config.toml` — Phase 2 Wave 0. `apps/web/playwright.config.ts` — **exists** |
+| Quick run command | `pnpm --filter web exec vitest run lib/pricing` (kernel only). For SQL: `supabase test db <file-or-dir>` — the CLI accepts file/directory arguments, so a single `.test.sql` can be run alone |
+| Full suite command | `pnpm --filter web exec vitest run && pnpm --filter @vamos/db run test:db && pnpm test:visual` |
+| Estimated runtime | Kernel ~2–5 s (pure integers, no I/O); pgTAP ~30–60 s including `supabase db reset`; Playwright minutes. No measured baseline — nothing in this phase is built yet |
+
+### Phase Requirements → Test Map
+| Req ID | Behavior | Test Type | Automated Command | File Exists? |
+|--------|----------|-----------|-------------------|-------------|
+| QUOTE-01 | Pickup/destination by search or dropped pin, route geometry returned for the widget to draw; Directions failure is `422 route_unavailable`, never invented metres | contract (mocked Mapbox) | `pnpm --filter web exec vitest run tests/unit/api-geo.test.ts` | ❌ Wave 0 |
+| QUOTE-02 | Pax/bags clamp per class via `LEAST`; no eligible class is 200 with a labelled board, not 422; `mode: "hourly"` is 422 | unit | `pnpm --filter web exec vitest run lib/pricing/eligibility.test.ts` | ❌ Wave 0 |
+| QUOTE-03 | Fixed-route (bidirectional) else per-km then min-fare, then predicated surcharges; pipeline order and percent-basis commutativity | unit + property | `pnpm --filter web exec vitest run lib/pricing/priceQuote.test.ts` | ❌ Wave 0 |
+| QUOTE-04 | An expired lock is refused **server-side**: `curl` of a past `exp` 409s with the Worker `if` deleted, and a snapshot with a past `quote_lock_expires_at` raises even when the payment-window `expires_at` is future (D61) | contract + pgTAP | `pnpm --filter web exec vitest run tests/unit/quote-lock.test.ts` · `supabase test db tests/quote_lock_clock.test.sql` | ❌ Wave 0 |
+| QUOTE-05 | Two `priceQuote` runs against the same frozen book at `computedAt` instants years apart are `JSON.stringify`-equal (whole document, not just totals); a snapshot whose total ≠ Σ lines raises | unit + pgTAP | `pnpm --filter web exec vitest run lib/pricing/determinism.test.ts` · `supabase test db tests/snapshot_lines_reconcile.test.sql` | ❌ Wave 0 |
+| QUOTE-06 | Seven named coupon refusals; two parallel intents on `global_limit = 1` yield one 200, one 409, one `coupon_redemptions` row; `released_at` SET not DELETE | pgTAP | `supabase test db tests/coupon_race.test.sql` | ❌ Wave 0 |
+| QUOTE-07 | Three distinct reason codes — outside polygon → `out_of_service_area`; inside but too soon → `min_advance` with `{minutes}`; NULL polygon and not a named pair → `service_area_undefined` (fail-closed) | unit | `pnpm --filter web exec vitest run lib/pricing/serviceArea.test.ts` | ❌ Wave 0 |
+| QUOTE-08 | Landing time `actual › estimated › scheduled`, no invented buffer, no poll; malformed 400 / not-found 404 / provider-down 503 all leave the pickup time editable | contract (mocked provider) | `pnpm --filter web exec vitest run tests/unit/api-flight.test.ts` | ❌ Wave 0 |
+| QUOTE-09 | Bare-IP 4/60 vs verified-cookie 8/60; an unsigned `vamos_qs` never buys a new bucket; Turnstile logged on 1st–2nd, enforced from the 3rd; breaker increments on every Mapbox call | contract | `pnpm --filter web exec vitest run tests/unit/abuse.test.ts` | ❌ Wave 0 |
+| QUOTE-10 | With zero live versions: quote 200 with every `total_rappen` null, intent 409 `pricing_not_live`, direct `INSERT booking_payments` raises, rendered amount reads `CHF 000` | pgTAP + Playwright | `supabase test db tests/charge_gate.test.sql tests/rate_version_publish.test.sql` · `pnpm test:visual` | ❌ Wave 0 |
+| QUOTE-11 | Child seat, extra stop and oversized luggage each produce their own line; a return duplicates child seat / oversize onto both `leg_seq`s; a single-leg cancellation reconstructs its amounts from the row alone | unit | `pnpm --filter web exec vitest run lib/pricing/extras.test.ts` | ❌ Wave 0 |
+
+### Sampling Rate
+- **Per task commit:** `pnpm --filter web exec vitest run lib/pricing` for kernel work; `supabase test db <the touched file>` for a migration task
+- **Per wave merge:** `pnpm --filter web exec vitest run && pnpm --filter @vamos/db run test:db`
+- **Phase gate:** Full suite green before `/gsd:verify-work`, plus `pnpm test:visual` and the Phase 2 `pr.yml` CI job (`db reset` → `test db` → `gen types` + drift-check) green on the phase's final PR
+
+### Wave 0 Gaps
+- [ ] Framework install: `pnpm add -D --filter web vitest fast-check` (pinned exact) + `apps/web/vitest.config.ts` + a `test` script in `apps/web/package.json` and a `test` passthrough at the root
+- [ ] `apps/web/lib/pricing/{round,eligibility,priceQuote,determinism,serviceArea,extras}.test.ts` — QUOTE-02/03/05/07/11
+- [ ] `apps/web/tests/unit/{api-geo,api-flight,quote-lock,abuse}.test.ts` — QUOTE-01/04/08/09 contract tests against mocked Mapbox / AeroDataBox / Turnstile
+- [ ] `tests/quote_lock_clock.test.sql` — D61, QUOTE-04
+- [ ] `tests/snapshot_lines_reconcile.test.sql` — D43/D73, QUOTE-05
+- [ ] `tests/coupon_race.test.sql` — D50/D69, QUOTE-06
+- [ ] `tests/charge_gate.test.sql` (extend Phase 2's for D58/D62), `tests/rate_version_publish.test.sql` (extend for D46's empty-predicate refusal) — QUOTE-10
+- [ ] Playwright spec asserting `CHF 000` and a disabled CTA on the unpriced board — QUOTE-10
+- [ ] Manual/owner-gated, no local test: **U33** (Mapbox Order), **U34** (Search Box `permanent`), **U35/U44** (unit prices), **U36** (zone plan for the second RL rule and CRS), **U37/U54** (breaker ceiling), **U45** (`dateLocalRole` against a live key), **U46** (`now()` freeze across `sql.begin` awaits — a two-line psql probe, not a suite test)
+
+## Security Domain
+
+### Applicable ASVS Categories
+| ASVS Category | Applies | Standard Control |
+|---------------|---------|-----------------|
+| V2 Authentication | no | `/api/quote` is anonymous by design (QUOTE-03/09). Staff auth is Phase 2 AUTH-05; the staff-token bypass belongs to Phase 8's `/api/ops/quote` |
+| V3 Session Management | yes | Two non-identity tokens only: HMAC-signed `vamos_qs` rate-limit cookie (D63) and the Mapbox Search Box session token (D53). Neither authenticates anyone |
+| V4 Access Control | yes | The signed quote lock is a capability, not a credential: it authorises exactly one pinned set of inputs, and Postgres `now()` plus `tg_payment_matches_snapshot` are the enforcement (D48, D61, D58) |
+| V5 Input Validation | yes | `zod` at the Worker boundary with unknown fields rejected (D56); `percentToHundredths` digit regex instead of `parseFloat` (D43); `predicate jsonb` validated by the publish gate rather than trusted at read (D46) |
+| V6 Cryptography | yes | Web Crypto HMAC-SHA256 over canonical JSON, `kid` + previous-secret dual verify for one lock TTL (D48, D65). Never hand-rolled; no secret leaves the Worker |
+
+### Known Threat Patterns for Next.js on Cloudflare Workers + Mapbox/AeroDataBox + Postgres via Hyperdrive
+
+| Pattern | STRIDE | Standard Mitigation |
+|---------|--------|---------------------|
+| Client-supplied price, total or distance accepted as truth | Tampering | Server-authoritative snapshot: zod schema-rejects `total_rappen` / `distance_m` / class prices, and checkout **recomputes** the engine against the pinned inputs and asserts equality — never copies a body number (D48, Pattern 2) |
+| Quote-lock replay or extension past 30 minutes | Tampering | HMAC pin with a Postgres-authored `exp`, re-checked with `now()` **inside** the snapshot-write transaction, persisted as `quote_lock_expires_at` and read by the charge gate; the snapshot is append-only so there is no extend path (D47, D61, D19) |
+| Lock-secret rotation used to forge a lock, or as an expiry oracle | Spoofing | `kid.payload.mac` with dual-verify of current then previous secret for one TTL; every public HMAC failure returns the same `404 quote_not_found` (D65) |
+| Coupon brute force, or two customers racing the last use | Tampering | `evaluate_coupon()` returns one refusal key per rule with no timing or shape oracle; consumption is `SELECT … FOR UPDATE` on the `coupons` row at PaymentIntent creation, and trigger name order puts the charge gate first so a bad snapshot fails with zero coupon side effect (D50) |
+| Abandoned checkout permanently burning a scarce coupon | Denial of Service | `coupon_redemptions.released_at` is SET, never DELETE, keeping the unique key and the evidence; the sweep does not run at all until U42 lands a number (D69) |
+| Geocode / Directions abuse and cost amplification | Denial of Service | Layered: zone `managed_challenge` 30/60 over `/api/quote*` **and** `/api/geo/*`, Workers `ratelimits` 8/60 verified · 4/60 bare, invisible Turnstile enforced from the 3rd request, and a daily `QUOTE_ABUSE` KV breaker incremented on **every** Mapbox call (D56, D71) |
+| Cookie rotation to reset the challenge counter | Spoofing | `vamos_qs` is HMAC-signed; missing or unverifiable falls into the bare-IP bucket and never mints a new 8/60 identity, and the Turnstile counter keys on IP or the verified cookie (D63) |
+| `/api/geo/retrieve` used as a coordinate oracle without ever calling `/suggest` | Information Disclosure | The session token must have been seen on a prior `/suggest` in the same bucket; `kind: "coords"` on `/api/quote` likewise requires a seen session (D53, D71) |
+| Mapbox or AeroDataBox key exposed to the browser | Information Disclosure | `MAPBOX_TOKEN` and `FLIGHT_API_KEY` are wrangler secrets and every call is server-proxied through `/api/geo/*` and `/api/flight/:no`; no unrestricted browser token, and coordinates are never rendered as literal digits (D53, D55) |
+| Stale `pricing_live` served from the cached Hyperdrive binding | Tampering | Rate-book resolution, coupon validation and snapshot writes all go through `asQuote` on **`HYPERDRIVE_NOCACHE`**; the cached `HYPERDRIVE` binding stays content-only, because a ~75 s lag on a publish flip is not an acceptable billing read (D60, Phase 3 D79) |
+| Charging against a draft, unpriced or since-retired rate version | Tampering | `is_chargeable` STORED generated plus a `SECURITY DEFINER` charge gate with `search_path = ''` and explicit `IF NOT FOUND`; `rate_version_is_live` is trigger-derived from `status`, never from the caller, and `PRICING_PREVIEW` is absent in production (D58, D59, D62) |
+| PII written into a KV key | Information Disclosure | Only `flight:{NUMBER}:{YYYY-MM-DD}` and `quote:mapbox-budget:YYYY-MM-DD` exist; never an email, customer id or booking id, and a future coupon reservation must key `(coupon_id, quote_id)` (§11, §12) |
+| OWASP CRS blocking a legitimate multilingual booking | Denial of Service | Deploy at Sensitivity Low / Action Log first and promote to Block only after staging traffic with real de/fr/ar names and apostrophes is clean (§12) |
