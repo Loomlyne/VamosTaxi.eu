@@ -230,6 +230,13 @@ Alongside that Cloudflare pair, the deploy workflows also need three Supabase CI
 owner-held; see `docs/build/SUPABASE-RESOURCES.md` for what each one gates and the probe
 checklist that must run before the first hosted push.
 
+The `vamos_edge` and `vamos_public` Postgres role passwords (set out-of-band per environment,
+never committed — see `packages/db/README.md` "Role passwords" for the rotation procedure)
+belong in the same secrets tier as `SUPABASE_SERVICE_ROLE` above, not a lower one: `vamos_edge`
+holds membership in `vamos_staff` `WITH INHERIT FALSE, SET TRUE` and reads the unauthenticated
+`request.jwt.claims` GUC, so holding that password permits `SET ROLE vamos_staff` plus a forged
+claims payload — full staff impersonation (F-21, `packages/db/supabase/migrations/20260823000002_roles_and_helpers.sql`).
+
 **Automated gates proving this matrix stays honest (D-35, Phase 1):**
 - `gitleaks` — a credential-pattern scan, wired twice from the same `.gitleaks.toml`: at
   pre-commit (`.husky/pre-commit`, staged diff) and as the first job in
