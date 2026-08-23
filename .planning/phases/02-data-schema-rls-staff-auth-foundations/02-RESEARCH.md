@@ -620,3 +620,82 @@ Three things are not:
 The `supabase_auth_admin` hook policy (**P2**) is a fourth, softer case: pgTAP can call the hook
 function directly and assert the claim comes back, but that the *auth server* actually invokes it
 is a dashboard setting (U15) confirmed on staging, not in the local suite.
+
+---
+
+## Validation Architecture
+
+### Test Framework
+| Property | Value |
+|----------|-------|
+| Framework | pgTAP, run via `supabase test db` (Supabase CLI — pinned in Wave 0 as `pnpm add -D -w supabase`, exact version, no `^`; mirrored in CI by `supabase/setup-cli@v1`) |
+| Config file | `packages/db/supabase/config.toml` — does not exist yet, created in Wave 0 by `supabase init` |
+| Quick run command | No confirmed per-file flag for `supabase test db` in the research (only the CLI reference for the whole-suite behaviour was checked). Treat the quick command as the same full run: `supabase test db` |
+| Full suite command | `supabase db reset && supabase test db` |
+| Estimated runtime | ~30–60s (local Postgres reset + migration replay + pgTAP pass) — no measured baseline; small schema, no seed-scale data yet |
+
+### Phase Requirements → Test Map
+| Req ID | Behavior | Test Type | Automated Command | File Exists? |
+|--------|----------|-----------|-------------------|-------------|
+| DATA-01 | The schema mirrors the `VamosOps` contract: bookings, booking events, customers, chauffeurs, vehicles, vehicle classes, coupons, fixed routes, distance rates, surcharges, reviews, content strings and settings | CI job | `supabase db reset` (apply-from-zero, PR gate) | ❌ Wave 0 |
+| DATA-02 | Row-level security is on for every customer and operational table, and a customer can read only their own bookings | pgTAP | `supabase test db` → `tests/bookings_customer_rls.test.sql` | ❌ Wave 0 |
+| DATA-03 | A guest can open their booking with a valid manage token and nothing else | pgTAP | `supabase test db` → `tests/bookings_manage_token_rls.test.sql` | ❌ Wave 0 |
+| DATA-04 | Staff reach ops data through a role claim; customers never can | pgTAP | `supabase test db` → `tests/ops_role_rls.test.sql`, `tests/ops_write_denied.test.sql` | ❌ Wave 0 |
+| DATA-07 | Seed data loads vehicle classes, settings, content strings and the existing reviews into a fresh environment | pgTAP + CI job | `supabase db reset` then `supabase test db` → `tests/seed_idempotent.test.sql` | ❌ Wave 0 |
+| AUTH-05 | Staff sign in by invitation only and must pass a second factor | pgTAP (SQL half only) | `supabase test db` → `tests/staff_hook_claim.test.sql` — `aal2` gate is SQL-provable; hook enablement itself is manual/staging (U15) | ❌ Wave 0 |
+| OPS-03 *(forward-designed, Phase 8)* | A dispatcher assigns a chauffeur and a vehicle, and the same driver cannot be double-booked for overlapping trips | pgTAP | `supabase test db` → `tests/exclusion.test.sql` | ❌ Wave 0 |
+| QUOTE-10 *(forward-designed, Phase 4)* | Until the CHF matrix is loaded and approved, the engine runs behind `pricing_live=false` and no charge can post against a non-live rate version | pgTAP | `supabase test db` → `tests/charge_gate.test.sql`, `tests/rate_version_publish.test.sql` | ❌ Wave 0 |
+| DATA-08 *(forward-designed foundation, Phase 8)* | Every booking, price, payment and assignment change writes an append-only event that ops can read as a timeline | pgTAP | `supabase test db` → `tests/append_only.test.sql` | ❌ Wave 0 |
+| Seed idempotency (twice, same counts) | A second `supabase db reset` (or `--include-seed` push) produces identical row counts, never duplicates | pgTAP | `supabase db reset` run twice, diff counts → `tests/seed_idempotent.test.sql` | ❌ Wave 0 |
+
+### Sampling Rate
+- **Per task commit:** `supabase test db` (full pgTAP pass — no narrower command confirmed)
+- **Per wave merge:** `supabase db reset && supabase test db`
+- **Phase gate:** Full suite green before `/gsd:verify-work`, plus the `pr.yml` CI job (`db reset` → `test db` → `gen types` + `git diff --exit-code`) green on the phase's final PR
+
+### Wave 0 Gaps
+- [ ] Framework install: `pnpm add -D -w supabase` (pinned exact) + `supabase/setup-cli@v1` in CI — `packages/db/supabase/` does not exist yet
+- [ ] `packages/db/supabase/config.toml` — created by `supabase init`
+- [ ] `tests/extensions.test.sql` — P1, `citext`/`pgcrypto`/`btree_gist`/`pgtap` bootstrap
+- [ ] `tests/staff_hook_claim.test.sql` — P2, AUTH-05
+- [ ] `tests/rate_version_publish.test.sql` — P3, QUOTE-10 publish gate
+- [ ] `tests/exclusion.test.sql` — P4, OPS-03
+- [ ] `tests/reference_format.test.sql` — P4, `VT-YY-####` reference generator
+- [ ] `tests/charge_gate.test.sql` — P5, QUOTE-10 charge-gate trigger
+- [ ] `tests/append_only.test.sql` — P5, DATA-08 foundation
+- [ ] `tests/consent_write.test.sql` — P5, `consent_log` append-only write
+- [ ] `tests/bookings_customer_rls.test.sql` — P6, DATA-02
+- [ ] `tests/bookings_manage_token_rls.test.sql` — P6, DATA-03
+- [ ] `tests/ops_role_rls.test.sql` — P6, DATA-04
+- [ ] `tests/ops_write_denied.test.sql` — P6, DATA-04
+- [ ] `tests/customer_columns.test.sql` — P6, DATA-02 column-level exposure
+- [ ] `tests/settings_public.test.sql` — P6, DATA-04 public settings read
+- [ ] `tests/fail_closed.test.sql` — P6, D2 fail-closed grants
+- [ ] `tests/seed_idempotent.test.sql` — P7, DATA-07
+- [ ] Manual/staging only, no local test: **U1** (`grant authenticated to vamos_edge …` probe in the staging SQL editor before P1 is written), **U3** (`supabase db push --include-seed --dry-run` re-run semantics against a real project), **U15** (Custom Access Token Hook dashboard enablement, confirmed on staging)
+
+## Security Domain
+
+### Applicable ASVS Categories
+| ASVS Category | Applies | Standard Control |
+|---------------|---------|-----------------|
+| V2 Authentication | yes | Supabase Auth, invite-only (`auth.admin.inviteUserByEmail`), no public staff sign-up |
+| V3 Session Management | yes | `aal = 'aal2'` checked in SQL and in middleware, and gated at invite-claim (D5) |
+| V4 Access Control | yes | RLS enabled on every table, privilege-less `vamos_edge` login role, `revoke all` fail-closed baseline (D2/D15) |
+| V5 Input Validation | yes | Native enums / `CHECK` / `create domain rappen as integer` at the schema layer (D13, D6); zod at the Worker layer is Phase 3's job |
+| V6 Cryptography | yes | `pgcrypto` for `gen_random_bytes`, SHA-256 manage-token hashing done in the Worker before storage (D14); never hand-rolled |
+
+### Known Threat Patterns for Postgres + Supabase + Hyperdrive pooling + Stripe
+
+| Pattern | STRIDE | Standard Mitigation |
+|---------|--------|---------------------|
+| Identity leak across a pooled Hyperdrive connection | Information Disclosure | `set_config('role'/'request.jwt.claims', …, is_local => true)` inside one explicit transaction (D1) |
+| Forgotten RLS wrapper on a query path | Elevation of Privilege | Privilege-less `vamos_edge` role + fail-closed `revoke all` baseline, so a miss raises `42501` (D2) |
+| User-writable role claim via `user_metadata` | Spoofing | `app_metadata.vamos_role` written server-side by the Custom Access Token Hook, never client-settable (D4) |
+| Enrolled-but-unverified MFA factor treated as authenticated | Spoofing | `aal2` gate checked in SQL and middleware, not "has a factor enrolled" (D5) |
+| Single-use manage token burned by a mail client's link-prefetch | Denial of Service | Reusable, SHA-256-hashed opaque token in a separate `booking_access_tokens` table (D14) |
+| Double-charge on a retried checkout submission | Tampering | Partial unique index on `bookings.idempotency_key` |
+| Charging against a non-live or since-edited rate version | Tampering | `tg_payment_matches_snapshot` charge-gate trigger over the frozen `rate_versions` snapshot (D9) |
+| Audit rows mutated or deleted by `service_role` (carries BYPASSRLS) | Repudiation | Trigger-written table + `revoke update, delete` + RLS-with-no-policy + `force row level security` (D19) |
+| Driver or vehicle double-booked for overlapping trips | Tampering | GiST `EXCLUDE USING gist` partial constraints on `booking_legs` (D16) |
+| Erasure request cascading away the 10-year statutory financial record | Repudiation | Redact-in-place, `erased_at` set, row never deleted (D20) |
