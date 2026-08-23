@@ -2084,3 +2084,100 @@ cannot leak between requests sharing a pooled connection.*
 
 ROADMAP.md Phase 3 success criteria map 1:1 onto DATA-05 and DATA-06.
 Neither is claimed passed by this document.
+
+---
+
+## Validation Architecture
+
+### Test Framework
+| Property | Value |
+|----------|-------|
+| Framework | Three, by layer. **Vitest** (`environment: node`) for `packages/db` unit tests, the connection-reuse simulator and the deployed isolation harness — **not a dependency anywhere in this repo today** (`grep -rn vitest package.json apps/web/package.json packages/*/package.json` returns nothing), so it is a Wave 0 install. **pgTAP** via the Supabase CLI (2.109.1 locally, local Postgres 17.6) for the SQL-provable half. **Playwright** 1.62.1, already in `apps/web` devDependencies, for web-facing checks only — never the DATA-06 vehicle (`isolation-proof.md` §7.1) |
+| Config file | `packages/db/vitest.config.ts` — does not exist. `packages/db/supabase/config.toml` — created by Phase 2 Wave 0 at `packages/db/supabase/` (Phase 2 D-38), not by this phase. `apps/web/playwright.config.ts` — exists |
+| Quick run command | `pnpm --filter @vamos/db exec vitest run test/local/connection-reuse.test.ts` for the simulator; `pnpm --filter @vamos/db exec supabase test db supabase/tests/fail_closed.test.sql` for one pgTAP file — `supabase test db` accepts file and directory arguments, so a single file is a real quick run |
+| Full suite command | `pnpm --filter @vamos/db exec supabase db reset && pnpm --filter @vamos/db exec supabase test db && pnpm --filter @vamos/db exec vitest run test/local && pnpm --filter @vamos/db run mutation-gate` |
+| Estimated runtime | Local: ~1–3 min (reset + migration replay + pgTAP + the simulator's pinned-backend iterations + two mutant apply/rollback cycles). Deployed: not measurable until P6 |
+
+### Phase Requirements → Test Map
+| Req ID | Behavior | Test Type | Automated Command | File Exists? |
+|--------|----------|-----------|-------------------|-------------|
+| DATA-05 | Queries reach Postgres through Hyperdrive on the **direct** string — `origin.port === 5432`, never 6543, and both configs point at the same database | config assertion | `pnpm --filter @vamos/db exec vitest run test/deployed/config-preconditions.test.ts` | ❌ Wave 0 |
+| DATA-05 | p50 round-trip under 30 ms from the staging Worker | WAE percentile query | `quantileExactWeighted(0.5)(double1, _sample_interval)` over `vamos_db_latency` via the Analytics Engine SQL API (D32) | ❌ Wave 0 — **DEFERRED**, needs a deployed Worker (P6) |
+| DATA-06 | Request-scoped identity cannot survive onto the next request on the same backend — deterministic residue check on a pinned (`sql.reserve()`d) connection through the **shipped** `withIdentity` (D77) | integration (local) | `pnpm --filter @vamos/db exec vitest run test/local/connection-reuse.test.ts` | ❌ Wave 0 |
+| DATA-06 | Two concurrent requests as two different customers over the pooled Hyperdrive connection never see each other's row, with an asserted cross-customer adjacency floor `S` | integration (deployed) | `pnpm --filter @vamos/db exec vitest run test/deployed/data-06-isolation.test.ts` | ❌ Wave 0 — **DEFERRED** to P6 |
+| DATA-06 | The suite goes **red** against every mutant (NC1 `session_in_txn`, NC2, NC3, NC6, M1 grant layer removed, M2 policy predicate weakened, `is_local=false`) and never leaves a hazard unobserved (D38) | mutation gate + negative controls | `pnpm --filter @vamos/db run mutation-gate` (local M1/M2); `… vitest run test/deployed/negative-controls.test.ts` (NC1–NC6, deferred) | ❌ Wave 0 |
+| DATA-02/03/04 *(carried from Phase 2, must stay true under this wiring)* | A forgotten wrapper raises SQLSTATE `42501` and returns no row; a lost `BEGIN` fails to set identity rather than leaking it | pgTAP | `pnpm --filter @vamos/db exec supabase test db supabase/tests/fail_closed.test.sql supabase/tests/cross_claim.test.sql supabase/tests/set_local_without_begin.test.sql` | ❌ Wave 0 |
+| DATA-03 / AUTH-05 *(U61)* | Guest and staff pairs appear in the adjacency set, and the entry probe asserts `request.vamos.manage_token_hash` is EMPTY on entry | integration (deployed) | `… vitest run test/deployed/data-06-isolation.test.ts` (ENTRY_PROBE assertions) | ❌ Wave 0 — DEFERRED to P6 |
+| *(forward check, no req id)* | No identity import on a statically-rendered route; no module-scope client; no `sql.reserve()` / `sql.end()` / `set_config(…, false)` / bare `SET ROLE` in app code; no raw `postgres` import outside the two `packages/db` modules | CI grep + ESLint | the grep block in `## What Phase 3 must produce` item 10, wired into `pr.yml`; `pnpm typecheck` | ❌ Wave 0 |
+| *(forward check, D82)* | The probe Worker, its `dist`, and `PROBE_SECRET` are absent from any production build | CI grep | the three `deploy-production.yml` gates in `isolation-proof.md` §13 | ❌ Wave 0 |
+| *(forward check, U31 → Phase 5)* | Isolate-level memoisation of customer-scoped reads once real routes exist | integration + CI grep | Phase 5: re-point the harness at `/api/account/bookings`; grep module-scope `Map`/`Set`/`cache`/`memo`/`store` under `apps/web` | ❌ Not this phase |
+
+### Sampling Rate
+- **Per task commit:** the relevant quick run — one Vitest file, or one pgTAP file via
+  `supabase test db <path>`
+- **Per wave merge:** `supabase db reset && supabase test db && vitest run test/local && pnpm
+  run mutation-gate` (all from `packages/db`), plus `pnpm typecheck` and the CI grep block
+- **Phase gate:** the full local suite green in `pr.yml` before `/gsd:verify-work` — and P6's
+  deployed jobs (config preconditions → negative controls → isolation gate) green, **or** the
+  phase summary carrying the literal line `DATA-05 p50 = DEFERRED (no staging Worker)` and P6
+  left unmarked. A green local run is not the ROADMAP gate.
+
+### Wave 0 Gaps
+`packages/db` currently contains exactly two files — `package.json` (`"main": "index.ts"`,
+pointing at a file that does not exist) and `README.md`. There is **no test infrastructure of
+any kind** in that package. Phase 2's Wave 0 installs the Supabase CLI and bootstraps pgTAP at
+`packages/db/supabase/`; Phase 3's Wave 0 must install Vitest, which is absent from every
+manifest in the repo.
+
+- [ ] Framework install: `pnpm add -D --filter @vamos/db vitest` (pinned exact, no `^`) — plus
+      `postgres` as a real dependency and the `exports` map, per D80, or nothing imports
+- [ ] `packages/db/vitest.config.ts` — `environment: "node"`, `include: ["test/**/*.test.ts"]`,
+      no Playwright, no `vitest-pool-workers` (D33)
+- [ ] `packages/db/package.json` scripts — `test`, `test:local`, `mutation-gate`, and the
+      `supabase` CLI wrappers so every call runs from one working directory (Phase 2 D-38)
+- [ ] `packages/db/test/local/connection-reuse.test.ts` — DATA-06 local half
+- [ ] `packages/db/test/fixtures/two-customers.ts` — schema-legal per D81
+- [ ] `packages/db/test/support/drive.ts`, `test/support/hyperdrive-metrics.ts`
+- [ ] `packages/db/test/deployed/config-preconditions.test.ts` — DATA-05 direct-string assertion
+- [ ] `packages/db/test/deployed/negative-controls.test.ts` — NC1–NC6, mutants vs hazards (D38)
+- [ ] `packages/db/test/deployed/data-06-isolation.test.ts` — skipped unless `PROBE_BASE_URL`
+- [ ] `packages/db/supabase/tests/fail_closed.test.sql` — `42501` on a forgotten wrapper
+- [ ] `packages/db/supabase/tests/cross_claim.test.sql` — DATA-06 SQL half
+- [ ] `packages/db/supabase/tests/set_local_without_begin.test.sql` — lost-`BEGIN` behaviour
+- [ ] `packages/db/mutants/M1_grant_layer_removed.sql`, `M2_policy_predicate_weakened.sql`
+- [ ] `packages/db/scripts/mutation-gate.mjs` — applies each mutant, asserts red, rolls back
+- [ ] `pr.yml` local jobs (`supabase start` → `supabase test db` → `vitest run test/local` →
+      `mutation-gate`) appended to the existing single `gate` job
+- [ ] Manual / staging only, no local test: **U1** and **U3** (Phase 2's managed-project probes),
+      **U23** (`hyperdrive update --caching-disabled`), **U25** (region hint sufficiency),
+      **U27/U28** (Hyperdrive `RESET` and abandoned-transaction behaviour, measured by NC1/NC4),
+      **U29** (Auth `createUser` addresses), **U30** (Placement Hints on the Free plan), **U32**
+      (`show max_connections;` before the first `hyperdrive create`)
+
+## Security Domain
+
+### Applicable ASVS Categories
+| ASVS Category | Applies | Standard Control |
+|---------------|---------|-----------------|
+| V2 Authentication | yes | Tokens are verified in the Worker before `claimsForSql`; the wrapper binds only what a verified token carried. `withIdentity` never authenticates — it transports a decided identity (D28, D29) |
+| V3 Session Management | yes | Identity is bound with `is_local => true` inside one explicit `BEGIN`/`COMMIT`; Postgres reverts it at commit or rollback. No session-scoped `SET`, no `sql.reserve()` in app code (D1, D27, D30) |
+| V4 Access Control | yes | The grant on the privilege-less `vamos_edge` login role is the boundary, not the discipline of setting the claim. A miss raises `42501`, never a stale row (D2, D30) |
+| V5 Input Validation | yes | The closed `PG_ROLE` map and the `IdentityKind` union are the validation — the role name can never come from a token field. `user_metadata` is stripped, not trusted. Parameterised tagged templates everywhere; `sql.unsafe(` is CI-fenced (D29, item 10) |
+| V6 Cryptography | yes | The manage-token SHA-256 hash is computed in the Worker before it reaches SQL and arrives as a hex GUC (Phase 2 D14/D15). Nothing in this phase hand-rolls crypto |
+
+### Known Threat Patterns for Hyperdrive pooling + postgres.js + OpenNext Workers
+
+| Pattern | STRIDE | Standard Mitigation |
+|---------|--------|---------------------|
+| Identity leak across a pooled Hyperdrive connection (request B inherits A's `role` / `request.jwt.claims`) | Information Disclosure | `set_config(…, is_local => true)` inside one explicit transaction; Postgres reverts at COMMIT/ROLLBACK. The pool's `RESET` is measured (U27), never relied on (D1, D27) |
+| Cached auth or session data served from the wrong binding — an identity read answered from a 60 s query cache | Information Disclosure | Two bindings, two login roles: identity and billing only on `HYPERDRIVE_NOCACHE` (`--caching-disabled`); `publicSql` branded to the §14d content tables. NC6 proves the cached binding cannot serve identity data (D3, D25, D39, D79) |
+| Pooler-on-pooler: Hyperdrive in front of Supavisor `:6543`, so transaction state and prepared statements land on an unpredictable backend | Tampering | Direct string on port 5432 only, asserted in `config-preconditions.test.ts` as `origin.port === 5432` (D26) |
+| Secret exposure via `wrangler.jsonc` `vars` or a committed connection string | Information Disclosure | The credential lives inside the Hyperdrive config object, addressed by opaque id; `wrangler secret put` is explicitly the wrong tool here; `localConnectionString` carries a local-only password (D25, D34) |
+| Prepared-statement name collision across pooled sessions | Denial of Service | `prepare: true` with Hyperdrive's named-prepared-statement support, `max: 1` on the identity path, `fetch_types: false`; a per-invocation client so no statement cache outlives the request (D27) |
+| Forgotten wrapper on a new query path, or a lost `BEGIN` | Elevation of Privilege | Privilege-less `vamos_edge` + fail-closed grants → `42501`; ESLint `no-restricted-imports` and CI greps as the compile-time half; named wrappers are the only import `apps/web` may use (D2, D30, D76) |
+| Role name taken from a token payload (`role: "vamos_staff"` in a forged JWT) | Spoofing | Closed `PG_ROLE` map keyed by a server-decided discriminant; `user_metadata` stripped in `claimsForSql` (D29) |
+| `tx` captured past COMMIT — returned from `fn`, or held in `ctx.waitUntil` | Tampering | `fn` must return data: ESLint `no-restricted-syntax` on a `ReturnStatement` of `tx`, plus a type that excludes `TransactionSql`; post-response work opens a new client and a new `BEGIN` (ISOL-04, ISOL-07) |
+| Module-scope postgres.js client shared across isolates and requests | Information Disclosure | Per-invocation construction; CI grep for a module-scope client; the failure is silent on the first request, so the grep is the real gate (D27, Pitfall 1) |
+| The isolation probe reachable in production, or its 5-origin config bound as the app's | Elevation of Privilege | `opts.probe` stripped at compile time unless `DEPLOY_ENV === "staging"`; three `deploy-production.yml` gates; a checked-in probe/app config-id allowlist test (D82, FC-09) |
+| A green isolation run that proves nothing (no shared backend, no red control) | Repudiation | Asserted cross-customer adjacency floor `S`, a run below it reported INCONCLUSIVE, and mutants that the suite is demonstrated to go red against (D33, D38) |
+| A price figure invented to make a fixture look complete | Tampering | Fixtures seed NULL price columns and no live `rate_versions` row; surfaces render the placeholder by data (D40, Law 04) |
