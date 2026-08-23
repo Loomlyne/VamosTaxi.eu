@@ -49,148 +49,148 @@ Every bullet below cites the originating research decision (`research Dn`) or un
 (`research Un`) in parentheses for traceability back to `02-RESEARCH.md`.
 
 ### Identity & roles, Hyperdrive topology
-- **D-01** (research D1): Identity reaches SQL via `set_config('role', …, true)` +
+- **D-01:** (research D1) Identity reaches SQL via `set_config('role', …, true)` +
   `set_config('request.jwt.claims' | 'request.vamos.manage_token_hash', …, true)`, both
   `is_local => true`, inside one explicit `BEGIN`/`COMMIT`. Postgres reverts at commit/rollback;
   a lost `BEGIN` fails to set identity rather than leaking it. — Phase 3 (DATA-06).
-- **D-02** (research D2): The security boundary is the grant on a privilege-less `vamos_edge`
+- **D-02:** (research D2) The security boundary is the grant on a privilege-less `vamos_edge`
   login role (`NOINHERIT`, holds every app role `WITH INHERIT FALSE, SET TRUE`) — never the
   discipline of setting the claim. A forgotten wrapper raises `42501`. — Phase 3, DATA-02/03/04.
-- **D-03** (research D3): Two Hyperdrive configs on the direct connection string:
+- **D-03:** (research D3) Two Hyperdrive configs on the direct connection string:
   `HYPERDRIVE_NOCACHE` (`--caching-disabled`, `vamos_edge`, identity-scoped transactions) and
   `HYPERDRIVE` (`vamos_public`, four public-content tables, cacheable). Auth, session and
   `pricing_live` reads must never sit behind a 60 s cache. — Phase 3, Phase 4.
 
 ### Staff auth (AUTH-05)
-- **D-04** (research D4): Staff role claim is `app_metadata.vamos_role`, written by a Custom
+- **D-04:** (research D4) Staff role claim is `app_metadata.vamos_role`, written by a Custom
   Access Token Hook reading the app-owned `staff` table on every mint — never `user_metadata`
   (user-writable) and never the top-level `role` claim (schema-constrained to
   `anon`/`authenticated`). Revoking staff takes effect on next mint. — AUTH-05, Phase 6.
-- **D-05** (research D5): Second factor is checked by reading the `aal` claim (`aal2`
+- **D-05:** (research D5) Second factor is checked by reading the `aal` claim (`aal2`
   required), never "has a factor enrolled". Three independent layers: SQL (`app.is_staff()`
   requires `aal2` + an active `staff` row), middleware (`getUser()`, never `getSession()`), and
   the invite/claim flow (no active `staff` row until enrolment completes). Ops policies are
   `AS RESTRICTIVE`. — AUTH-05, Phase 6.
 
 ### Money & snapshots
-- **D-06** (research D6): Money storage is `create domain rappen as integer` — CHF minor units,
+- **D-06:** (research D6) Money storage is `create domain rappen as integer` — CHF minor units,
   one CHF amount everywhere. The stored number *is* Stripe's `amount`; ADR-004's schema half
   (no per-currency price columns) still stands. — Phase 4, 7, 9.
-- **D-07** (research D7): Price durability is three objects: versioned `rate_versions` +
+- **D-07:** (research D7) Price durability is three objects: versioned `rate_versions` +
   insert-only `price_snapshots` (typed totals + jsonb `lines`/`policy`) + `price_snapshot_legs`.
   Rejected: `bookings.price_json` (mutated by dispatch); FK'd normalised lines (a live FK
   resolves to today's label); SCD-2 recompute (reproduces inputs, not the decision). Supersedes
   GSD-LAUNCH's `bookings.price_chf numeric` (Q1). — QUOTE-05, LIFE-03, Phase 4/7/9.
-- **D-08** (research D8): Snapshot line labels are an i18n key + numeric params, never rendered
+- **D-08:** (research D8) Snapshot line labels are an i18n key + numeric params, never rendered
   English prose — the mock's `label:'Airport pickup'` pattern is not ported, or every German
   confirmation freezes an English price line into an immutable row. — Phase 4, `packages/emails`.
-- **D-09** (research D9): `pricing_live` is not a boolean. Exactly one `rate_versions` row may
+- **D-09:** (research D9) `pricing_live` is not a boolean. Exactly one `rate_versions` row may
   hold `status='live'` (partial unique index); a `BEFORE INSERT` trigger on `booking_payments`
   refuses any charge whose snapshot is not chargeable, expired, or mismatched. No off switch.
   — QUOTE-10, Phase 7, 11.
-- **D-10** (research D10): Policy durability splits immutable `settings_versions` (fields a
+- **D-10:** (research D10) Policy durability splits immutable `settings_versions` (fields a
   refund/cancellation depends on) from a mutable `settings` singleton (contacts, toggles).
   Supersedes GSD-LAUNCH's one-mutable-settings sketch (Q4). — LIFE-03, Phase 9.
-- **D-11** (research D11): Return trips are one `bookings` row + `booking_legs`, **one** shared
+- **D-11:** (research D11) Return trips are one `bookings` row + `booking_legs`, **one** shared
   `price_snapshot` with per-leg `price_snapshot_legs` subtotals (ADR-006) — never two
   snapshots, never a `return_at` column, never two bookings. — Phase 4, 8, 9.
-- **D-12** (research D12): Booking reference is `VT-YY-####` from a per-year sequence table,
+- **D-12:** (research D12) Booking reference is `VT-YY-####` from a per-year sequence table,
   uniqueness by index (ADR-003) — not the mock's collision-prone random 4-digit generator.
   — Phase 4, emails, ops search.
 
 ### Bookings & legs — the dispatch exclusion
-- **D-13** (research D16): Two independent partial `EXCLUDE USING gist` constraints on
+- **D-13:** (research D16) Two independent partial `EXCLUDE USING gist` constraints on
   `booking_legs` (chauffeur, vehicle) over a **`STORED`** generated `tstzrange` column, never one
   combined constraint (only blocks the exact pair recurring) and never a live `settings` join (a
   generated column can't subquery). Supersedes GSD-LAUNCH's `bookings.assigned_chauffeur_id`
   (Q3, ADR-006). `DEFERRABLE INITIALLY IMMEDIATE`; violation is `23P01`, caught on
   `err.code`/`err.constraint_name`, never message text, returned as 409. — OPS-03, Phase 8.
-- **D-14** (research D17): `settings.chauffeur_turnaround_minutes` seeds **30**, not NULL —
+- **D-14:** (research D17) `settings.chauffeur_turnaround_minutes` seeds **30**, not NULL —
   departs from ADR-002's NULL discipline because this is an internal dispatch parameter that
   never renders publicly, and NULL would coalesce to a zero buffer (under-blocking, the
   dangerous direction). Snapshotted onto the leg at assignment with a `greatest(buffer,1)` floor.
   — Phase 8.
 
 ### Manage token (DATA-03)
-- **D-15** (research D14): Token is opaque 32-byte base64url, SHA-256 hashed **in the Worker**
+- **D-15:** (research D14) Token is opaque 32-byte base64url, SHA-256 hashed **in the Worker**
   before it reaches SQL, stored `bytea` in a **separate** `booking_access_tokens` table,
   **reusable, not single-use** (mail-gateway link scanners would burn a single-use token before
   the customer clicks). Supersedes GSD-LAUNCH's `bookings.manage_token uuid` (Q2). — DATA-03,
   AUTH-06 (Phase 8).
-- **D-16** (research D15): Enforcement splits by operation — RLS for **reads** (`vamos_guest`),
+- **D-16:** (research D15) Enforcement splits by operation — RLS for **reads** (`vamos_guest`),
   `SECURITY DEFINER` RPC for **mutations** (`set search_path = ''`, `EXECUTE` only to
   `vamos_guest`). Mutations need one atomic `FOR UPDATE` check-and-act (token + state-machine +
   write + `booking_events` row) in one transaction, not a check-then-act round trip. — DATA-03,
   Phase 9.
 
 ### Audit & append-only
-- **D-17** (research D18): Two audit tables — `booking_events` (app-written inside the
+- **D-17:** (research D18) Two audit tables — `booking_events` (app-written inside the
   state-change transaction using the service-role key, never a trigger, because a trigger can't
   express *why* or see an actor for a webhook/cron) and `audit_log` (generic, trigger-written,
   for plain-CRUD admin tables). — DATA-08, Phase 8.
-- **D-18** (research D19): Append-only is four layers together — trigger (raises on
+- **D-18:** (research D19) Append-only is four layers together — trigger (raises on
   `UPDATE`/`DELETE`) + `REVOKE UPDATE, DELETE` + RLS-with-no-policy + `FORCE ROW LEVEL SECURITY`.
   `service_role`/superusers bypass layers 2–4; only the trigger catches a `postgres`-role
   session. `booking_payments` gets a column whitelist instead (Stripe legitimately moves status).
   — DATA-08, Phase 7.
-- **D-19** (research D20): Erasure is redact-in-place (+`erased_at`), row never deleted, never
+- **D-19:** (research D20) Erasure is redact-in-place (+`erased_at`), row never deleted, never
   `ON DELETE CASCADE` — Swiss CO Art. 958f's 10-year accounting-record duty. — Phase 10.
 
 ### Migrations, seed, types
-- **D-20** (research D13): Enum convention — native Postgres `ENUM` for closed/stable/
+- **D-20:** (research D13) Enum convention — native Postgres `ENUM` for closed/stable/
   cross-table domains, `CHECK (x in …)` for churn-prone taxonomies (event kinds, actor kinds).
   Enums become TS unions in `gen types`; what churns most stays CHECK. — Phase 3 types, all later
   phases.
-- **D-21** (research D21): Tooling is the Supabase CLI, hand-written timestamped SQL, pinned
+- **D-21:** (research D21) Tooling is the Supabase CLI, hand-written timestamped SQL, pinned
   exact devDependency, always `supabase migration new` (never a hand-typed timestamp) — not
   declarative schemas + `db diff`, not a hand-rolled runner. Rollback is forward-only, no
   `down.sql` convention. — all later phases.
-- **D-22** (research D22): Seed is generated: `packages/db/seed/generate-seed.mjs` writes a
+- **D-22:** (research D22) Seed is generated: `packages/db/seed/generate-seed.mjs` writes a
   committed `seed.sql` from `apps/web/i18n/messages/{en,de,fr,ar}.json` (not the superseded
   `app/vamos-i18n-dict.js`) and `app/vamos-reviews.js`'s `SEED` array. Every INSERT uses
   `ON CONFLICT … DO UPDATE` on a natural key — the only thing making a second
   `--include-seed` push safe. — DATA-07.
-- **D-23** (research D23): Types are `supabase gen types typescript --local`, committed, CI
+- **D-23:** (research D23) Types are `supabase gen types typescript --local`, committed, CI
   drift-checked (`git diff --exit-code`). No query-typing library. — Phase 3.
 
 ### Residency
-- **D-24** (research D24): R2 buckets are created with `jurisdiction: "eu"` on the **first**
+- **D-24:** (research D24) R2 buckets are created with `jurisdiction: "eu"` on the **first**
   creation call — irreversible after creation; the "location hint" alternative is documented
   as best-effort only, not a guarantee. — Phase 6, Phase 10.
 
 ### Execution-time checks the plan must run (research UNCERTAIN items, with fallback)
-- **D-25** (U1): Before writing the first migration, run
+- **D-25:** (U1) Before writing the first migration, run
   `grant authenticated to vamos_edge with inherit false, set true;` in the staging SQL editor.
   If refused, fall back to `create role vamos_customer nologin` mirroring `authenticated`'s
   grants and use `TO vamos_customer` everywhere a policy would say `TO authenticated`. — Blocks
   the roles migration.
-- **D-26** (U2): Confirm `set_config('role', $1, true)` ≡ `SET LOCAL ROLE $1` with
+- **D-26:** (U2) Confirm `set_config('role', $1, true)` ≡ `SET LOCAL ROLE $1` with
   `begin; select set_config('role','authenticated',true); select current_user; commit; select
   current_user;` (expect `authenticated` then `vamos_edge`). Fallback:
   `tx.unsafe('set local role ' + PG_ROLE[kind])` — safe because `PG_ROLE` is a closed map.
   — Blocks Phase 3's `withIdentity`.
-- **D-27** (U3): Confirm whether `supabase db push --include-seed` re-runs the seed every push
+- **D-27:** (U3) Confirm whether `supabase db push --include-seed` re-runs the seed every push
   (`--dry-run` against a scratch project, then a real second push, diff row counts). Assume
   **load-bearing** either way — every generated `INSERT` keeps `ON CONFLICT` regardless of the
   answer. — Blocks the `deploy-staging.yml` migration step.
-- **D-28** (U4): Run `select version();` on staging before the snapshot migration. Write
+- **D-28:** (U4) Run `select version();` on staging before the snapshot migration. Write
   `stored` explicitly on every generated column regardless (correct on both PG17 and PG18) — a
   confirmation, not a blocker.
-- **D-29** (U7): Coupon consumption timing — confirmed by ADR-014 §6: an abandoned quote does
+- **D-29:** (U7) Coupon consumption timing — confirmed by ADR-014 §6: an abandoned quote does
   **not** burn a coupon use. `coupon_redemptions` consumes at **payment**, FKing a
   `booking_payments` row, not a snapshot. A soft KV reservation for the checkout window is
   Phase 7 work. — The `coupon_redemptions` migration.
-- **D-30** (U8): Sub-rappen per-km rates — if the CHF matrix quotes a fractional-rappen per-km
+- **D-30:** (U8) Sub-rappen per-km rates — if the CHF matrix quotes a fractional-rappen per-km
   figure, `per_km_rappen integer` truncates. Read the matrix when it lands; fix is
   `per_km_millirappen integer` if needed. The line **amount** stays integer rappen regardless.
   Safe to defer.
-- **D-31** (U9): `display_currency` stays on the snapshot. ADR-014 §1 confirms the customer
+- **D-31:** (U9) `display_currency` stays on the snapshot. ADR-014 §1 confirms the customer
   does see an amount converted to their chosen display currency (not "only ever CHF"), so the
   column is needed, not merely harmless — exact display copy is Phase 7's job.
-- **D-32** (U10): `consent_log.ip_truncated` ships nullable now; counsel decides the retention
+- **D-32:** (U10) `consent_log.ip_truncated` ships nullable now; counsel decides the retention
   ceiling and collection policy for consent rows not tied to a booking before Phase 10 turns
   the banner live.
-- **D-33** (U15): Confirm the Custom Access Token Hook's production dashboard path
+- **D-33:** (U15) Confirm the Custom Access Token Hook's production dashboard path
   ("Authentication → Hooks (Beta)") against the **live dashboard** when wiring it, not from
   docs alone — Beta labelling implies drift. pgTAP proves the hook function itself; that the
   auth server invokes it is a dashboard setting. — AUTH-05 execution.
@@ -201,8 +201,8 @@ Every bullet below cites the originating research decision (`research Dn`) or un
   `bookings.price_total_rappen`) stays nullable and seeds NULL until it lands; the seed inserts
   **no** `rate_versions` row with `status='live'` (reinforces D-09). Never invent a CHF price
   anywhere — not in a migration, the seed, a fixture, or a screenshot.
-- **D-35 — corrects 02-RESEARCH.md, which was written to ADR-002's original NULL-seed
-  discipline for these fields.** ADR-014 (2026-08-22, explicitly binding on Phase 2 migrations)
+- **D-35:** Corrects 02-RESEARCH.md, which was written to ADR-002's original NULL-seed
+  discipline for these fields. ADR-014 (2026-08-22, explicitly binding on Phase 2 migrations)
   closes them with confirmed numbers, seeded in **one dated `settings_versions` row**:
   `free_cancel_hours=24` + the 100%/75%/0% cancellation tiers (owner-confirmed, ADR-005-driven),
   `airport_waiting_minutes=60`, `city_waiting_minutes=15`, `min_advance_minutes=180`,
