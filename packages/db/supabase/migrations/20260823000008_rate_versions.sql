@@ -242,9 +242,12 @@ begin
 
   if v_status is distinct from 'draft' then
     if tg_op = 'UPDATE' then
-      -- Compare every column except the availability flag for this table.
-      v_old := to_jsonb(old) - 'live' - 'available';
-      v_new := to_jsonb(new) - 'live' - 'available';
+      -- Compare every column except the availability flag for this table. The three tables
+      -- share this function but spell their flag differently — 'available' (distance_rates),
+      -- 'live' (fixed_routes), 'active' (surcharges) — so all three are excluded on every
+      -- call; subtracting a jsonb key a given table doesn't have is a harmless no-op.
+      v_old := to_jsonb(old) - 'live' - 'available' - 'active';
+      v_new := to_jsonb(new) - 'live' - 'available' - 'active';
       if v_old = v_new then
         return new;   -- availability-only change: allowed, and audited by tg_audit_row
       end if;
@@ -252,7 +255,7 @@ begin
     raise exception 'pricing rows are immutable once their rate_version leaves draft (%.% id=%)',
       tg_table_schema, tg_table_name, coalesce(new.id, old.id)
       using errcode = 'restrict_violation',
-            hint = 'Publish a new rate_version instead of editing a live one. Only `live` / `available` may still be toggled.';
+            hint = 'Publish a new rate_version instead of editing a live one. Only `live` / `available` / `active` may still be toggled.';
   end if;
   return coalesce(new, old);
 end $$;
