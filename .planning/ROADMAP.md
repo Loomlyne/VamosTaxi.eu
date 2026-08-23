@@ -107,7 +107,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 02-02-PLAN.md — Foundation migrations: extensions, four roles, app.* identity helpers, enums + rappen domain
+- [x] 02-02-PLAN.md — Foundation migrations: extensions, four roles, app.* identity helpers, enums + rappen domain
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -306,7 +306,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Platform Foundation, Design System Port & i18n Runtime | 11/14 | In Progress|  |
-| 2. Data Schema, RLS & Staff Auth Foundations | 1/10 | In Progress|  |
+| 2. Data Schema, RLS & Staff Auth Foundations | 2/10 | In Progress|  |
 | 3. Hyperdrive Data Access Wiring | 0/TBD | Not started | - |
 | 4. Quote & Pricing Engine | 0/TBD | Not started | - |
 | 5. Public Surfaces & Customer Accounts | 0/TBD | Not started | - |

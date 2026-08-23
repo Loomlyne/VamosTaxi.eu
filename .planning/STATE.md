@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Completed 02-01-PLAN.md (Task 2: move Supabase project, pin CLI; Task 3: record hosted project, correct Frankfurt assumption)"
-last_updated: "2026-08-23T22:39:23.636Z"
+stopped_at: "Completed 02-02-PLAN.md (Task 1: foundation migrations; Task 2: pgTAP proof)"
+last_updated: "2026-08-23T22:57:57.496Z"
 last_activity: 2026-08-23
 progress:
   total_phases: 11
   completed_phases: 1
   total_plans: 24
-  completed_plans: 15
+  completed_plans: 16
   percent: 9
 ---
 
@@ -28,11 +28,11 @@ confirmation — must.
 ## Current Position
 
 Phase: 2 of 11 (Data Schema, RLS & Staff Auth Foundations) — planned, not started
-Plan: 1 of 10 in current phase
+Plan: 2 of 10 in current phase
 Status: Ready to execute
 Last activity: 2026-08-23
 
-Progress: [██████░░░░] 63%
+Progress: [███████░░░] 67%
 
 ## Performance Metrics
 
@@ -70,6 +70,7 @@ Progress: [██████░░░░] 63%
 | Phase 01 P11 | ~3h (Task 3 this session) | 3 tasks | 116 files |
 | Phase 01 P10 | ~90min (Task 3 this session) | 3 tasks | 25 files |
 | Phase 02 P01 | ~20min | 3 tasks | 14 files |
+| Phase 02 P02 | ~20min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -111,6 +112,10 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-01: supabase@2.115.0 pinned exact after T-02-SC human legitimacy checkpoint (publisher supabase org, repo github.com/supabase/cli, latest dist-tag, 3.5M weekly downloads)
 - [Phase 02]: 02-01: 24-file migration numbering table fixed in packages/db/README.md (D-21) — content_and_reviews moved to 07, coupon_redemptions moved to 15 after payments_refunds (D-29)
 - [Phase 02]: 02-01: D-37 recorded — hosted Supabase project yaumjzvylngfjhtuffqs is in Central Europe (Zurich), not Frankfurt; docs/build/SUPABASE-RESOURCES.md created as the register, PROJECT.md/ADR-007/GSD-LAUNCH.md amended in place
+- [Phase 02]: 02-02: vamos_edge/vamos_public/vamos_guest/vamos_staff created inside idempotent pg_roles-guarded DO blocks (not a bare CREATE ROLE) so a second supabase db reset succeeds — roles are cluster-level and survive the database drop
+- [Phase 02]: 02-02: F-13 closed with four default-privilege statements beyond the schema draft's three — REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC in both public and app, REVOKE ALL ON TABLES in app, REVOKE CREATE ON SCHEMA public — because a named-role REVOKE never removes PUBLIC's own default EXECUTE grant on a new function
+- [Phase 02]: 02-02: F-17 rappen domain carries check (value >= 0) on the domain itself, not per-column, so a future money column cannot omit the check the way bookings.price_total_rappen does in the draft
+- [Phase 02]: 02-02: requirements-completed left empty for DATA-01..04 despite appearing in the plan frontmatter — the plan's own objective states DATA-02/03/04 are proved later by RLS and are only structural here (no table exists yet); marking them complete now would overstate what this plan proves
 
 ### Pending Todos
 
@@ -146,6 +151,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-23T22:39:23.628Z
-Stopped at: Completed 02-01-PLAN.md (Task 2: move Supabase project, pin CLI; Task 3: record hosted project, correct Frankfurt assumption)
+Last session: 2026-08-23T22:57:57.490Z
+Stopped at: Completed 02-02-PLAN.md (Task 1: foundation migrations; Task 2: pgTAP proof)
 Resume file: None

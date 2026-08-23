@@ -216,3 +216,8 @@ top-level `<verification>` block.
 ---
 *Phase: 02-data-schema-rls-staff-auth-foundations*
 *Completed: 2026-08-23*
+
+## Self-Check: PASSED
+
+All 7 created/modified files verified present on disk; all 3 commits (`b713e25`, `408ee2f`,
+`a3c2f7d`) verified present in `git log --oneline --all`.
