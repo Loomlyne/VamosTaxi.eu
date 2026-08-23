@@ -216,6 +216,24 @@ Every bullet below cites the originating research decision (`research Dn`) or un
   JS/JSON source exists): **Economy 3 pax/3 bags, Business 3/3, Van 8/8** (ADR-014 §6). `first`
   does not ship in V1 and must not be seeded as a class.
 
+### Environment facts settled 2026-08-23 (after the research was written)
+- **D-37:** The hosted Supabase project now exists: ref `yaumjzvylngfjhtuffqs`, region **Central
+  Europe (Zurich)** — not the Frankfurt `eu-central` that 02-RESEARCH.md, PROJECT.md and ADR-007
+  assume. Zurich is the launch market, so this is strictly better for residency. The plan records
+  the ref and region in the build docs (`docs/build/`) and adds a one-line amendment to ADR-007 and
+  PROJECT.md rather than leaving Frankfurt on paper. The staging-only probes (D-25/U1 grant,
+  D-27/U3 `--include-seed`, D-33/U15 hook enablement) are now runnable against this project but
+  stay `autonomous: false` because the database password and dashboard are owner-held; their local
+  fallbacks remain encoded in the migrations.
+- **D-38:** `supabase init` and `supabase link` were run at the **repo root** on 2026-08-23, leaving
+  an untracked `supabase/` (config.toml `project_id = "VamosTaxi.eu"`, `major_version = 17`, and two
+  empty `*_baseline_schema.sql` migrations). Wave 0 moves that directory to `packages/db/supabase/`
+  (Phase 1 D-01 monorepo layout; research D21), deletes both empty baseline migrations, sets a
+  non-dotted `project_id` (`vamos-taxi`), re-links from `packages/db`, and wraps every CLI call in
+  `packages/db/package.json` scripts so executors and CI run from one working directory. The local
+  `major_version = 17` answers D-28 locally (PG17 → write `STORED` explicitly); the remote version is
+  still confirmed with `select version()`.
+
 ### Claude's Discretion
 - Exact migration file numbering beyond the research's proposed `0001…0023` sequence — those
   are illustrative file names, not a contractual list; gaps, merges or an extra file like
