@@ -121,7 +121,7 @@ and every amount on screen reads `CHF 000`.
 - **Responsive**: every surface built desktop → tablet → mobile in the same pass, checked at 1440/1024/768/390. Nothing scrolls sideways at 390 px. Touch targets ≥ 44 px, 54 px for booking fields and primary CTAs
 - **Timeline**: public site live in 2–3 weeks, ops console deepening after go-live. `GSD-LAUNCH.md` sizes the full Phases 0–9 at ~4 weeks, so the roadmap front-loads the booking funnel and ships ops at "enough to run the day"
 - **Team**: solo, owner-built with AI assistance
-- **Data residency**: Supabase pinned to eu-central (Frankfurt), closest to Zurich. Workers execute at the edge — whether booking routes need pinning near Frankfurt is still open with counsel
+- **Data residency**: Supabase pinned to eu-central (Frankfurt), closest to Zurich. Workers execute at the edge — whether booking routes need pinning near Frankfurt is still open with counsel — amended 2026-08-23 (D-37): the hosted project `yaumjzvylngfjhtuffqs` was created in Central Europe (Zurich), not Frankfurt.
 - **Security**: RLS on every customer or operational table, server-authoritative quotes, Stripe webhook signature verification, idempotent payment and booking creation, TOTP MFA for staff, no secrets in the repo, audit trail on booking/price/payment/assignment changes
 - **Legal**: Swiss nFADP and GDPR — consent logged server-side, not cookie-only, because a browser cookie cannot prove consent to a regulator
 

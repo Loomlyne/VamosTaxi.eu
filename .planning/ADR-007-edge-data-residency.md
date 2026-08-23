@@ -1,5 +1,10 @@
 # ADR-007 — Proposal: pin data-touching routes near Frankfurt, leave marketing routes at the edge
 
+**Amended 2026-08-23 (D-37):** Supabase project `yaumjzvylngfjhtuffqs` is in Central Europe
+(Zurich); every "Frankfurt" below reads "Zurich". Lane 7 of 02-RESEARCH.md also records that
+Smart Placement is a latency optimiser, not a residency control — the revision itself is Phase
+10 work.
+
 **Status:** Proposed, pending counsel, 2026-08-19
 **Phase:** 8 (ops hardening), noting that `.planning/STATE.md` requires this resolved before
 Phase 10

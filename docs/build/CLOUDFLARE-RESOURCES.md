@@ -27,6 +27,21 @@ environment marker, not a secret; every real credential (Stripe, Supabase, Resen
 AeroDataBox, Turnstile, Sentry) reaches the Worker via `wrangler secret put`, per PLAT-06 and
 threat T-01-01, and is never written to `wrangler.jsonc`.
 
+## Jurisdiction note (D-24)
+
+The `PHOTOS` buckets above were created with `--location eu`, which Cloudflare documents as a
+**best-effort hint**, not a binding guarantee — it influences where a bucket is likely to be
+provisioned but does not enforce a jurisdiction. D-24 requires the stronger
+`jurisdiction: "eu"` setting, and that setting can only be applied at bucket **creation** —
+it cannot be changed on an existing bucket afterwards.
+
+Before Phase 6's first upload, run `wrangler r2 bucket info vamos-photos-staging` and
+`wrangler r2 bucket info vamos-photos-production`. If `jurisdiction` does not read `eu` for
+either bucket, delete the (still-empty) bucket and recreate it with
+`wrangler r2 bucket create <name> --location eu --jurisdiction eu` before anything is ever
+written to it — recreating after the first upload means the objects themselves would need to
+be migrated to the new bucket, not just a setting flipped on the existing one.
+
 ## Cloudflare Access — deferred by explicit owner decision
 
 D-37 calls for staging to sit behind Cloudflare Access. This plan's Task 3 was **not**

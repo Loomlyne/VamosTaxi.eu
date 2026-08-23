@@ -22,7 +22,8 @@ Goal: every external account exists, EU-hosted, with billing on.
 1. Cloudflare account + the `vamostaxi.eu` zone (transfer DNS from current host; keep the
    old CMS live until Phase 9 cutover).
 2. Supabase org → 2 projects (`vamos-staging`, `vamos-prod`), **region eu-central (Frankfurt)**
-   — closest to Zurich. Pro plan ($25/project).
+   — closest to Zurich. Pro plan ($25/project). — **amended 2026-08-23 (D-37): the created project
+   is in Central Europe (Zurich)**
 3. Stripe account (CH entity, CHF default). Activate TWINT via Stripe payment methods.
 4. Resend account + domain `vamostaxi.eu` verified (SPF/DKIM/DMARC records in Cloudflare DNS).
 5. Mapbox account (Geocoding + Directions APIs).
@@ -223,6 +224,11 @@ thing to size.
 CI/deploy also needs `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` as GitHub Actions
 repository secrets (`.github/workflows/deploy-staging.yml` and `deploy-production.yml`) —
 not yet configured; no Cloudflare account exists as of Phase 1 (see 01-01-SUMMARY.md).
+
+Alongside that Cloudflare pair, the deploy workflows also need three Supabase CI secrets —
+`SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD` and `SUPABASE_PROJECT_ID` — not yet configured,
+owner-held; see `docs/build/SUPABASE-RESOURCES.md` for what each one gates and the probe
+checklist that must run before the first hosted push.
 
 **Automated gates proving this matrix stays honest (D-35, Phase 1):**
 - `gitleaks` — a credential-pattern scan, wired twice from the same `.gitleaks.toml`: at
