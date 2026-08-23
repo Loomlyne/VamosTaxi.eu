@@ -38,13 +38,13 @@ and are final — "matches the mock" is a real acceptance criterion, not a hand-
 
 ### Data and access (DATA)
 
-- [ ] **DATA-01**: The schema mirrors the `VamosOps` contract: bookings, booking events, customers, chauffeurs, vehicles, vehicle classes, coupons, fixed routes, distance rates, surcharges, reviews, content strings and settings
+- [x] **DATA-01**: The schema mirrors the `VamosOps` contract: bookings, booking events, customers, chauffeurs, vehicles, vehicle classes, coupons, fixed routes, distance rates, surcharges, reviews, content strings and settings
 - [ ] **DATA-02**: Row-level security is on for every customer and operational table, and a customer can read only their own bookings
 - [ ] **DATA-03**: A guest can open their booking with a valid manage token and nothing else
 - [ ] **DATA-04**: Staff reach ops data through a role claim; customers never can
 - [ ] **DATA-05**: Application queries reach Postgres through Hyperdrive on the direct connection string, with p50 round-trip under 30 ms from the staging Worker
 - [ ] **DATA-06**: Request-scoped auth context cannot leak between requests sharing a pooled connection
-- [ ] **DATA-07**: Seed data loads vehicle classes, settings, content strings and the existing reviews into a fresh environment
+- [x] **DATA-07**: Seed data loads vehicle classes, settings, content strings and the existing reviews into a fresh environment
 - [ ] **DATA-08**: Every booking, price, payment and assignment change writes an append-only event that ops can read as a timeline
 
 ### Accounts (AUTH)
@@ -195,13 +195,13 @@ Populated during roadmap creation. Full phase goals and success criteria: `.plan
 | I18N-06 | Phase 1 | Complete |
 | I18N-07 | Phase 6 | Pending |
 | I18N-08 | Phase 5 | Pending |
-| DATA-01 | Phase 2 | Pending |
+| DATA-01 | Phase 2 | Complete |
 | DATA-02 | Phase 2 | Pending |
 | DATA-03 | Phase 2 | Pending |
 | DATA-04 | Phase 2 | Pending |
 | DATA-05 | Phase 3 | Pending |
 | DATA-06 | Phase 3 | Pending |
-| DATA-07 | Phase 2 | Pending |
+| DATA-07 | Phase 2 | Complete |
 | DATA-08 | Phase 8 | Pending |
 | AUTH-01 | Phase 5 | Pending |
 | AUTH-02 | Phase 5 | Pending |

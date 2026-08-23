@@ -2,17 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 2
-current_phase_name: Data Schema, RLS & Staff Auth Foundations
-status: planned
-stopped_at: "Phase 2 planned — 10 plans, checker PASS (0 blockers, 3 warnings). Not yet executed."
-last_updated: "2026-08-23T13:22:10.822Z"
-last_activity: 2026-08-23 -- Phase 2 planning complete
+status: executing
+stopped_at: "Completed 02-01-PLAN.md (Task 2: move Supabase project, pin CLI; Task 3: record hosted project, correct Frankfurt assumption)"
+last_updated: "2026-08-23T22:39:23.636Z"
+last_activity: 2026-08-23
 progress:
   total_phases: 11
   completed_phases: 1
   total_plans: 24
-  completed_plans: 14
+  completed_plans: 15
   percent: 9
 ---
 
@@ -30,11 +28,11 @@ confirmation — must.
 ## Current Position
 
 Phase: 2 of 11 (Data Schema, RLS & Staff Auth Foundations) — planned, not started
-Plan: 0 of 10 in current phase
+Plan: 1 of 10 in current phase
 Status: Ready to execute
-Last activity: 2026-08-23 -- Phase 2 planning complete
+Last activity: 2026-08-23
 
-Progress: [█░░░░░░░░░] 9%
+Progress: [██████░░░░] 63%
 
 ## Performance Metrics
 
@@ -71,6 +69,7 @@ Progress: [█░░░░░░░░░] 9%
 | Phase 01 P04 | 45min | 3 tasks | 8 files |
 | Phase 01 P11 | ~3h (Task 3 this session) | 3 tasks | 116 files |
 | Phase 01 P10 | ~90min (Task 3 this session) | 3 tasks | 25 files |
+| Phase 02 P01 | ~20min | 3 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -109,6 +108,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 01-11: PriceSummary's bundle-vs-port screenshot diff uses two intentionally different prop shapes per side (bundle: pre-formatted value/total strings; port: amount:number|null routed through formatAmount) since the compiled bundle does no currency formatting of its own at all
 - [Phase ?]: 01-10: Tooltip's port-side 'shown' state has no automated screenshot coverage (mountPort serves static, non-hydrated markup with no live event handlers) — verified via the bundle-side screenshot and the gallery's real-focus AutoShowTooltip fixture instead, recorded in WINDOWS.md entry 5
 - [Phase ?]: 01-10: A flex item's default min-inline-size:auto silently defeats maxInlineSize for a white-space:nowrap child (StepIndicator's step flow) — fixed with explicit minInlineSize:0 plus an inner overflow-x:auto wrapper, not a wider box, to avoid forcing the whole page to scroll sideways at 390px
+- [Phase 02]: 02-01: supabase@2.115.0 pinned exact after T-02-SC human legitimacy checkpoint (publisher supabase org, repo github.com/supabase/cli, latest dist-tag, 3.5M weekly downloads)
+- [Phase 02]: 02-01: 24-file migration numbering table fixed in packages/db/README.md (D-21) — content_and_reviews moved to 07, coupon_redemptions moved to 15 after payments_refunds (D-29)
+- [Phase 02]: 02-01: D-37 recorded — hosted Supabase project yaumjzvylngfjhtuffqs is in Central Europe (Zurich), not Frankfurt; docs/build/SUPABASE-RESOURCES.md created as the register, PROJECT.md/ADR-007/GSD-LAUNCH.md amended in place
 
 ### Pending Todos
 
@@ -144,6 +146,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-21T19:00:03.222Z
-Stopped at: Completed 01-10-PLAN.md (Task 3: navigation/feedback galleries, baselines, feedback behaviour spec)
+Last session: 2026-08-23T22:39:23.628Z
+Stopped at: Completed 02-01-PLAN.md (Task 2: move Supabase project, pin CLI; Task 3: record hosted project, correct Frankfurt assumption)
 Resume file: None

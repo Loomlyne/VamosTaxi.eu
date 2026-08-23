@@ -103,7 +103,7 @@ exclusion constraint (needed by Phase 8) are designed into the schema here, not 
 Plans:
 **Wave 1**
 
-- [ ] 02-01-PLAN.md — Wave 0: move supabase/ into packages/db, pin the CLI (legitimacy checkpoint), package scripts, D-37 docs
+- [x] 02-01-PLAN.md — Wave 0: move supabase/ into packages/db, pin the CLI (legitimacy checkpoint), package scripts, D-37 docs
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -306,7 +306,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Platform Foundation, Design System Port & i18n Runtime | 11/14 | In Progress|  |
-| 2. Data Schema, RLS & Staff Auth Foundations | 0/TBD | Not started | - |
+| 2. Data Schema, RLS & Staff Auth Foundations | 1/10 | In Progress|  |
 | 3. Hyperdrive Data Access Wiring | 0/TBD | Not started | - |
 | 4. Quote & Pricing Engine | 0/TBD | Not started | - |
 | 5. Public Surfaces & Customer Accounts | 0/TBD | Not started | - |
