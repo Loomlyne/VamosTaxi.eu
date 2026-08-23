@@ -2,6 +2,18 @@
   "name": "@vamos/db",
   "private": true,
   "version": "0.0.0",
+  "type": "module",
   "description": "Supabase (Postgres) migrations and SQL access helpers for Vamos Taxi.",
-  "main": "index.ts"
+  "scripts": {
+    "start": "supabase start",
+    "stop": "supabase stop",
+    "reset": "supabase db reset",
+    "test:db": "supabase test db",
+    "types": "supabase gen types typescript --local --schema public > database.types.ts",
+    "types:check": "supabase gen types typescript --local --schema public | diff -q - database.types.ts",
+    "seed:gen": "node seed/generate-seed.mjs",
+    "seed:check": "node seed/generate-seed.mjs --check",
+    "push": "supabase db push --include-seed",
+    "link": "supabase link --project-ref yaumjzvylngfjhtuffqs"
+  }
 }

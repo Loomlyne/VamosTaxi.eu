@@ -12,10 +12,23 @@
     "lint:css": "pnpm --filter web run lint:css",
     "i18n:check": "node scripts/check-i18n-coverage.mjs",
     "test:visual": "pnpm --filter web exec playwright test",
-    "check:public-env": "node scripts/check-next-public-allowlist.mjs"
+    "check:public-env": "node scripts/check-next-public-allowlist.mjs",
+    "db:start": "pnpm --filter @vamos/db run start",
+    "db:stop": "pnpm --filter @vamos/db run stop",
+    "db:reset": "pnpm --filter @vamos/db run reset",
+    "db:test": "pnpm --filter @vamos/db run test:db",
+    "db:types": "pnpm --filter @vamos/db run types",
+    "db:types:check": "pnpm --filter @vamos/db run types:check",
+    "db:seed:gen": "pnpm --filter @vamos/db run seed:gen",
+    "db:seed:check": "pnpm --filter @vamos/db run seed:check",
+    "db:push": "pnpm --filter @vamos/db run push",
+    "db:link": "pnpm --filter @vamos/db run link"
   },
   "engines": {
     "node": ">=22"
   },
-  "packageManager": "pnpm@11.7.0"
+  "packageManager": "pnpm@11.7.0",
+  "devDependencies": {
+    "supabase": "2.115.0"
+  }
 }
