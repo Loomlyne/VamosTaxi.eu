@@ -254,3 +254,134 @@ pair.
 
 All created/modified files confirmed present on disk; all three task commits (`fd1e67d`,
 `9b72300`, `61275d5`) confirmed in `git log`.
+
+## Post-execution fix (2026-08-24): `db push --include-seed` failed against the hosted project
+
+**Trigger:** pushing Phase 2 to the hosted Supabase project (`yaumjzvylngfjhtuffqs`) with
+`supabase db push --include-seed` applied all 24/24 migrations cleanly, then failed seeding
+with `ERROR: function public.__seed_apply() does not exist (SQLSTATE 42883)` — despite
+`supabase db reset` (local) applying the identical `seed.sql` without error. This directly
+contradicted the D-27/U3 assumption that the seed's `ON CONFLICT` idempotency alone was
+sufficient for both paths; it wasn't a data problem, it was a delivery problem.
+
+### Root cause (confirmed empirically, not hypothesised)
+
+`supabase db push --include-seed` sends a seed file's top-level SQL statements as one `pgx`
+`SendBatch` pipeline — every statement's `Parse`/`Bind`/`Execute` queued back-to-back, with a
+single `Sync` flushed at the end (the CLI's own error text, `failed to send batch: ...`, is
+`pgx`'s literal wording for this operation). That pipeline is silently truncated by **Supabase's
+Supavisor connection pooler running in transaction-pool mode** — the exact endpoint any
+`--linked` connection (and therefore every production/staging database URL) always resolves to.
+Only the **last** statement in the batch reaches Postgres; everything before it — in the old
+`seed.sql`, that was `begin;`, `create or replace function public.__seed_apply() ... $f$ ...
+$f$;`, and `revoke all on function public.__seed_apply() from public;` — never leaves the
+client. `--debug` wire-level tracing (`supabase db push --include-seed --debug`) confirmed this
+directly: of the file's five top-level statements, only `select public.__seed_apply()` was ever
+sent (`grep -c '"Type":"Parse"'` on the debug log showed one seed-related `Parse`, and
+`grep -n "create or replace"` on the same log returned zero matches) — the function it tried to
+call had genuinely never been created on that connection.
+
+Isolation performed to rule out alternative causes, all locally, all disposable (no writes to
+the hosted project during isolation):
+- **Not local-vs-remote per se.** Enabling `packages/db/supabase/config.toml`'s
+  `[db.pooler] enabled = true` (Supavisor, transaction mode, matching the hosted project's
+  topology) and restarting the local stack reproduced the *identical* `42883` failure on
+  `supabase db reset` — a purely local run, no network egress. Disabling the pooler again made
+  `db reset` succeed, confirming the pooler (not "local" vs. "remote") is the actual variable.
+- **Not the explicit `begin;`/`commit;` wrapper.** Removing it (three bare top-level statements:
+  `create function`, `revoke`, `select`, no transaction control) still failed identically over
+  the pooled connection — ruling out the task's leading hypothesis as the *sole* cause. The
+  defect is the multi-statement batch itself, not specifically the transaction-control
+  statements within it.
+- **Not `pnpm exec supabase` version drift.** The very first reproduction attempt used the
+  globally-installed Homebrew CLI (2.109.1), which is *not* what `pnpm db:*` scripts invoke —
+  the project pins `supabase@2.115.0` as a `pnpm` devDependency (matching CI's pinned
+  `supabase/setup-cli@...` version). All authoritative reproduction and fix-verification runs in
+  this section used the pinned 2.115.0 via `pnpm exec supabase` / `pnpm db:*`.
+- The one-off `Warning: failed to cache migrations catalog: ... Failed to read certificate file
+  '.../pgdelta-target-ca.crt'` noted in the task brief did not recur on any subsequent run in
+  this session — `supabase/.temp/pgdelta/` now holds a valid, non-empty `pgdelta-target-ca.crt`
+  and multi-megabyte catalog cache files with fresh timestamps from every push performed here.
+  It was a transient first-run artifact (the cert file not yet written at the moment caching was
+  attempted), unrelated to the seed failure, and requires no fix.
+
+### Fix
+
+`packages/db/seed/generate-seed.mjs` now emits `seed.sql` as a **single top-level statement**: a
+`do $do$ ... $do$;` anonymous block containing the `create or replace function
+public.__seed_apply()`, the `revoke all on function public.__seed_apply() from public`, and a
+`perform public.__seed_apply();` call, in that order — replacing the old `begin; create
+function...; revoke...; select...; commit;` five-statement sequence. `CREATE FUNCTION` and
+`REVOKE` run directly inside a `DO` block without needing dynamic `EXECUTE` (confirmed locally —
+they are ordinary DDL/ACL statements passed through via SPI, not plpgsql control structures that
+require a special form), and a `DO` block is atomic on its own, so the explicit
+`begin;`/`commit;` wrapper is no longer needed. Because the CLI's batch now carries exactly one
+top-level statement, the Supavisor pipeline-truncation defect never triggers — `pgx` has nothing
+left to silently drop. `public.__seed_apply()` still ends up as a normal, persistent, callable
+function afterward (confirmed via `\df public.__f` locally and `select proname, prosecdef from
+pg_proc where proname = '__seed_apply'` on the hosted project, both showing a real
+`security definer` function object) — `seed_idempotent.test.sql`'s second, independent `select
+public.__seed_apply();` call is unaffected by the restructuring.
+
+`seed.sql` was regenerated via `pnpm db:seed:gen`, never hand-edited, per D-22.
+
+### Evidence
+
+**Local (`packages/db`):**
+- `pnpm db:reset` — green, both with the local pooler disabled (default committed config) and,
+  during isolation testing, with it temporarily enabled (`config.toml` reverted to its original
+  `[db.pooler] enabled = false` before committing; `git diff` on `config.toml` is clean).
+- `pnpm db:test` — `Files=23, Tests=484, All tests successful.` (unchanged assertion count),
+  including `seed_idempotent.test.sql`'s 37 assertions, run against both pooler states.
+- `pnpm db:seed:check` — `generate-seed --check: no drift.`
+- `pnpm db:types:check` — clean diff (no output), `database.types.ts` unaffected (the fix changes
+  SQL delivery structure only, not any table/column shape).
+
+**Remote (hosted project `yaumjzvylngfjhtuffqs`, via `pnpm exec supabase db push
+--include-seed` from `packages/db`, and `supabase db query --linked` for read-only checks — no
+reset/drop/truncate run against it at any point):**
+- First push after the fix: `{"upToDate":false,"seeds":["supabase/seed.sql"],"message":"Finished
+  supabase db push."}` — no error.
+- `supabase inspect db table-stats --linked` and targeted `db query --linked` counts:
+  `vehicle_classes=3`, `service_zones=8`, `settings=1`, `settings_versions=1`, `rate_versions=1`,
+  `distance_rates=3`, `surcharges=8`, `content_strings=1516`, `reviews=5` — exact match to the
+  local counts and the plan's committed `seed.sql` header.
+- Law 04 checks, live on the hosted project: `vehicle_classes` = exactly `economy 3/3`,
+  `business 3/3`, `van 8/8` (no `first`); zero `distance_rates`/`surcharges` rows with a non-null
+  `*_rappen`/`percent` column; `select count(*) from rate_versions where status='live'` = `0`;
+  `settings_versions` (`launch-baseline`) carries the confirmed ADR-014 values
+  (`free_cancel_hours=24`, `round_trip_discount_percent=10.00`, `quote_lock_minutes=30`,
+  `checkout_window_minutes=30`).
+- i18n spot-check: `content_strings` key `price.surcharge.night.rule` has non-null `de`/`fr`/`ar`
+  on the hosted project, matching the local `seed_idempotent.test.sql` assertion.
+- `public.__seed_apply()` confirmed present as a standalone function on the hosted project
+  (`security definer`, `provolatile='v'`), not just callable transiently during seeding.
+
+### U3 answered definitively
+
+**Does `supabase db push --include-seed` re-run the seed on a second push? No.** Row counts
+captured before a second push, the second push run
+(`{"upToDate":true,"seeds":[],"message":"Remote database is up to date."}` — an explicitly
+*empty* `seeds` array, versus the first push's `["supabase/seed.sql"]`), and row counts captured
+after are byte-identical. The CLI tracks each seed file's content hash in
+`supabase_migrations.seed_files` (visible locally too: a fresh `db reset` populates a
+`(path, hash)` row there, and a `db push` with an unchanged file/hash is a no-op) and skips
+re-application once the hash matches. This resolves D-27/U3, carried open since Phase 2
+research (`research/local-toolchain-probe.md`, `02-CONTEXT.md`): the seed's `ON CONFLICT`
+idempotency is not exercised on every push by default — it is a defense-in-depth guarantee for
+the cases where it *does* re-run (a changed `seed.sql` content hash, or a manual `db reset`),
+not a mechanism relied on for routine repeated pushes.
+
+### Files changed
+
+- `packages/db/seed/generate-seed.mjs` — generator now emits a single `do $do$ ... $do$;` block
+  instead of `begin;`/`create function`/`revoke`/`select`/`commit;`
+- `packages/db/supabase/seed.sql` — regenerated (never hand-edited)
+- `.github/workflows/deploy-staging.yml`, `.github/workflows/deploy-production.yml` —
+  comment-only: recorded the resolved D-27/U3 answer and the pooler-batch root cause next to the
+  existing `pnpm db:link && pnpm db:push` step; the invocation itself did not change
+
+### Commits
+
+- `92a1108` — `fix(02-09): collapse seed.sql into a single top-level DO block for db push --include-seed`
+- `f0489ff` — `docs(02-09): record resolved D-27/U3 answer and pooler root cause in deploy workflow comments`
