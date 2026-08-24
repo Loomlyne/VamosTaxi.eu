@@ -53,6 +53,25 @@ begin
   end if;
 end $$;
 
+-- BINDING NOTE (Plan 02-06, amended before its Task 1): `CREATE ROLE` above implicitly makes
+-- the executing role (recorded as grantor `supabase_admin` on this image, whichever role
+-- actually runs `supabase db reset`'s migrations) a member of each new role with
+-- `admin_option=true` but `set_option=false` — unlike `postgres`'s pre-existing membership in
+-- `anon`/`authenticated`, which already carries `set_option=true`. Without SET, `set local role
+-- vamos_edge|vamos_public|vamos_guest|vamos_staff` is refused with "permission denied to set
+-- role" for every pgTAP test in this and later plans that needs to impersonate an app role
+-- (this plan's charge-gate fixtures, Wave 8's seven RLS proofs). GRANT re-issued by the same
+-- grantor merges into the existing membership row (verified empirically: admin_option is
+-- preserved, only the unspecified/changed options move), so this is safe to leave unguarded
+-- and re-run on every migration replay. Confirmed with
+-- `select roleid::regrole, set_option from pg_auth_members where member='postgres'::regrole`
+-- showing `set_option=t` for all four below, and a `set local role vamos_staff; select
+-- current_user;` smoke inside a rolled-back transaction.
+grant vamos_edge   to postgres with inherit false, set true;
+grant vamos_public to postgres with inherit false, set true;
+grant vamos_guest  to postgres with inherit false, set true;
+grant vamos_staff  to postgres with inherit false, set true;
+
 -- Memberships. INHERIT FALSE means vamos_edge does not automatically pick up these roles'
 -- privileges just by holding membership; SET TRUE means it can still `SET ROLE` into each one
 -- explicitly, inside the transaction the identity GUCs are set in (D-01).
