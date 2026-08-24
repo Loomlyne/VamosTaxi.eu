@@ -44,8 +44,8 @@ export type IdentityKind = "anon" | "customer" | "staff" | "guest" | "quote";
  * D-44a. The anonymous quote path. Phase 2 plan 02-08's
  * `...21_rls_customer.sql` revokes everything from every role and re-grants only the four
  * content tables to `anon`/`vamos_public`, and plan 02-06's `...13_price_snapshots.sql` grants
- * INSERT on `price_snapshots` to nobody — so **no quote write path exists yet**. Today
- * `QUOTE_PG_ROLE` resolves to `"anon"`, and Phase 4's first migration must add exactly one of:
+ * INSERT on `price_snapshots` to nobody — so **no quote write path exists yet**. This constant
+ * resolves to the anonymous role today, and Phase 4's first migration must add exactly one of:
  *   (a) `public.create_quote_snapshot(...)` declared `security definer set search_path = ''`,
  *       inserting the snapshot and its legs and reading the live `rate_versions` row, with
  *       `grant execute … to anon, authenticated` and no other new grant — D-44's preferred

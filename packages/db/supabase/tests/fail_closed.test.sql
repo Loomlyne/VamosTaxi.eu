@@ -8,8 +8,16 @@
 -- the literal DATA-06 fail-closed statement (a forgotten identity wrapper raises 42501, not an
 -- empty result). Runs against the FULL migration set (...20-...24) -- this file is the
 -- regression test that would have caught F-01/F-05/F-08/F-11 the moment each one landed.
+--
+-- Extended by Phase 3 plan 03-02 (D-10): assertions (44)-(46) repeat the literal DATA-06
+-- fail-closed statement -- (32)'s throws_ok on `bookings` -- against `public.customers` and a
+-- pricing table (`public.rate_versions`), seeded rows and all, so a hypothetical bug that
+-- silently returns zero rows instead of raising 42501 has a row to fail to hide on every table
+-- this proof covers, not only bookings. (46) closes the SECURITY DEFINER escape hatch:
+-- `vamos_edge` also holds zero EXECUTE on `next_booking_reference()`, so a query cannot route
+-- around the missing table grant through the function either.
 begin;
-select plan(43);
+select plan(46);
 
 -- Fixtures ------------------------------------------------------------------------------------
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
@@ -185,6 +193,32 @@ select throws_ok(
   '(43) vamos_guest cannot select bookings.note (F-01, grant layer)'
 );
 reset role;
+
+-- Phase 3 plan 03-02 (D-10): the literal fail-closed statement repeated on customers and a
+-- pricing table, seeded, as actual throws_ok -- not just the has_table_privilege catalog
+-- check above -- so a bug that silently returned zero rows instead of raising 42501 would
+-- have a row to fail to hide.
+set local role vamos_edge;
+select throws_ok(
+  $$ select count(*) from public.customers $$,
+  '42501', null,
+  '(44) vamos_edge selecting customers with no identity bound raises 42501 (fail-closed, not empty)'
+);
+select throws_ok(
+  $$ select count(*) from public.rate_versions $$,
+  '42501', null,
+  '(45) vamos_edge selecting rate_versions with no identity bound raises 42501 (fail-closed, not empty)'
+);
+reset role;
+
+-- (46) the SECURITY DEFINER escape hatch is closed too -- vamos_edge holds zero EXECUTE on
+-- next_booking_reference(), so a query cannot route around the missing table grant through
+-- the function either.
+select function_privs_are(
+  'public', 'next_booking_reference', array[]::name[],
+  'vamos_edge', array[]::name[],
+  '(46) vamos_edge holds zero privileges on next_booking_reference() (grant-layer, D-10)'
+);
 
 select * from finish();
 rollback;
