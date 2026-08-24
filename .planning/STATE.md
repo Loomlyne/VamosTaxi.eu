@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-05-PLAN.md
-last_updated: "2026-08-24T08:42:01.060Z"
+stopped_at: Completed 02-06-PLAN.md
+last_updated: "2026-08-24T13:51:10.182Z"
 last_activity: 2026-08-24
 progress:
   total_phases: 11
   completed_phases: 1
-  total_plans: 31
-  completed_plans: 19
+  total_plans: 33
+  completed_plans: 20
   percent: 9
 ---
 
@@ -28,7 +28,7 @@ confirmation — must.
 ## Current Position
 
 Phase: 2 of 11 (Data Schema, RLS & Staff Auth Foundations) — planned, not started
-Plan: 5 of 10 in current phase
+Plan: 6 of 10 in current phase
 Status: Ready to execute
 Last activity: 2026-08-24
 
@@ -74,6 +74,7 @@ Progress: [██████░░░░] 61%
 | Phase 02 P03 | ~25min | 3 tasks | 7 files |
 | Phase 02 P04 | 6min | 3 tasks | 8 files |
 | Phase 02 P05 | 30min | 3 tasks | 6 files |
+| Phase 02 P06 | 75min (two sessions) | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -127,6 +128,9 @@ Recent decisions affecting current work:
 - [Phase 02-04]: tg_pricing_row_frozen's carve-out now excludes live/available/active uniformly — the schema draft only excluded live/available, wrongly freezing surcharges.active on a published version
 - [Phase 02]: F-16: next_booking_reference() EXECUTE granted to service_role AND vamos_staff (not service_role alone) so Plan 02-08's vamos_staff INSERT on bookings works — a column DEFAULT evaluates as the INSERTING role
 - [Phase 02]: scheduled_range generated column rewritten via timezone('UTC', ts) round-trips instead of ts + interval — timestamptz + interval is STABLE not IMMUTABLE on this Postgres, so the draft's literal expression fails 42P17 on a STORED generated column
+- [Phase 02]: 02-06: F-06 closed by binding the charge gate to bookings.price_snapshot_id instead of a one-snapshot-per-booking unique index -- supersedes_id/source='modification' make multiple bound snapshots per booking the deliberate Phase 9 modification shape
+- [Phase 02]: 02-06: postgres's SET membership in the four vamos_* roles amended in migration 002 before Task 1 -- CREATE ROLE's implicit auto-membership carried admin_option=true/set_option=false, refusing 'set local role vamos_*' impersonation this and later plans' pgTAP need
+- [Phase 02]: 02-06: price_snapshots_all_or_nothing rewritten with num_nonnulls(...) in (0,4) in place of four is/is-not-null clauses -- functionally identical, reduces collision with the D-34 rappen-not-null acceptance grep
 
 ### Pending Todos
 
@@ -162,6 +166,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-24T08:42:01.054Z
-Stopped at: Completed 02-05-PLAN.md
+Last session: 2026-08-24T13:51:10.175Z
+Stopped at: Completed 02-06-PLAN.md
 Resume file: None
