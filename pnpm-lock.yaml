@@ -12,6 +12,28 @@ importers:
         specifier: 2.115.0
         version: 2.115.0
 
+  apps/isolation-probe:
+    dependencies:
+      '@vamos/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      postgres:
+        specifier: 3.4.9
+        version: 3.4.9
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: 5.20260820.1
+        version: 5.20260820.1
+      '@types/node':
+        specifier: 26.2.0
+        version: 26.2.0
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+      wrangler:
+        specifier: 4.124.0
+        version: 4.124.0(@cloudflare/workers-types@5.20260820.1)
+
   apps/web:
     dependencies:
       '@vamos/db':
