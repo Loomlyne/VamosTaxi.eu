@@ -122,8 +122,8 @@ encoded fallback) lives in `docs/build/SUPABASE-RESOURCES.md`'s probe table; sum
 
 | Probe | Question | Statement | Fallback if it fails |
 |---|---|---|---|
-| D-25 (U1) | Can `vamos_edge` be granted the built-in `authenticated` role? | `grant authenticated to vamos_edge with inherit false, set true;` | Create `vamos_customer nologin` mirroring `authenticated`'s grants; use `TO vamos_customer` everywhere a policy would say `TO authenticated` |
-| D-27 (U3) | Does `supabase db push --include-seed` re-run the seed on every push? | `--dry-run` against a scratch project, then a real second push, diff row counts | Assumed load-bearing either way — every generated `INSERT` already carries `ON CONFLICT`, so a re-run is a no-op regardless of the answer |
+| ~~D-25 (U1)~~ **RESOLVED 2026-08-24 — permitted** | Can `vamos_edge` be granted the built-in `authenticated` role? Yes: migration 002 applied unmodified to the hosted project (24/24 synced). The fallback below was never needed. | `grant authenticated to vamos_edge with inherit false, set true;` | Create `vamos_customer nologin` mirroring `authenticated`'s grants; use `TO vamos_customer` everywhere a policy would say `TO authenticated` |
+| ~~D-27 (U3)~~ **RESOLVED 2026-08-24 — does NOT re-run** | Does `supabase db push --include-seed` re-run the seed on every push? No: the CLI hashes each seed file in `supabase_migrations.seed_files`; a second push returns an empty `seeds` array. `ON CONFLICT` is defence-in-depth, not routine. | `--dry-run` against a scratch project, then a real second push, diff row counts | Assumed load-bearing either way — every generated `INSERT` already carries `ON CONFLICT`, so a re-run is a no-op regardless of the answer |
 | D-33 (U15) | Is the Custom Access Token Hook wired the same way the docs describe? | Check "Authentication → Hooks (Beta)" on the **live dashboard**, not from docs alone | pgTAP proves the hook function itself works; if the dashboard path differs, only the *invocation* wiring changes, not the function |
 
 ## Local project facts
