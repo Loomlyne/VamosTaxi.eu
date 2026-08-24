@@ -33,4 +33,5 @@ create table public.coupons (
   ),
   constraint coupons_window check (valid_until is null or valid_from is null or valid_until > valid_from)
 );
-comment on table public.coupons is 'Discount codes with a window and usage caps (QUOTE-06). The mock stored value as a string; here it is percent or rappen by kind. D-29: redemptions consume at payment, in coupon_redemptions (Plan 02-06).';
+comment on table public.coupons is 'Discount codes with a window and usage caps (QUOTE-06). The mock stored value as a string; here it is percent or rappen by kind.
+D-29: redemptions consume at payment, in coupon_redemptions (Plan 02-06).';

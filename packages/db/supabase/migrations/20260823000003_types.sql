@@ -59,6 +59,7 @@ create type display_currency as enum ('CHF','EUR','USD','AED');
  * positive number that is subtracted at the point of use, never a negative line — and one
  * money column already misses a hand-written check in the draft (bookings.price_total_rappen,
  * Plan 02-05). Carrying the check on the domain means the next money column cannot miss it
- * either, because it has nothing to remember: `(-1)::rappen` raises `23514` unconditionally.
+ * either, because it has nothing to remember: `(-1)::rappen` always raises the same
+ * SQLSTATE, unconditionally: `23514`.
  */
 create domain rappen as integer check (value >= 0);

@@ -161,7 +161,8 @@ create table public.distance_rates (
   available        boolean not null default true,
   unique (rate_version_id, vehicle_class_id)
 );
-comment on table public.distance_rates is 'Per-class distance pricing for one rate version. All amounts NULL until the owner CHF matrix lands (D-34).';
+comment on table public.distance_rates is 'Per-class distance pricing for one rate version. All amounts NULL until the owner CHF matrix
+lands (D-34).';
 
 -- VamosOps `routes`: fixed point-to-point prices, one CHF amount per class.
 create table public.fixed_routes (
@@ -175,7 +176,8 @@ create table public.fixed_routes (
   unique (rate_version_id, origin_zone_id, dest_zone_id, vehicle_class_id),
   constraint fixed_routes_distinct_zones check (origin_zone_id <> dest_zone_id)
 );
-comment on table public.fixed_routes is 'Fixed-price routes for one rate version. The mock stored four currencies per class; ADR-004 collapses that to one CHF amount.';
+comment on table public.fixed_routes is 'Fixed-price routes for one rate version. The mock stored four currencies per class;
+ADR-004 collapses that to one CHF amount.';
 
 create table public.surcharges (
   id              bigint generated always as identity primary key,

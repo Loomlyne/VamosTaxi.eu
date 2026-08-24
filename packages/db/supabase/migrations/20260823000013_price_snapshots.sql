@@ -112,7 +112,8 @@ create table public.price_snapshots (
   ),
   constraint price_snapshots_coupon_pair check ((coupon_id is null) = (coupon_code is null))
 );
-comment on table public.price_snapshots is 'Insert-only pricing decision: the rules, policy and rate version a booking was sold under. Never updated; a re-price inserts a superseding row (QUOTE-05, LIFE-03).';
+comment on table public.price_snapshots is 'Insert-only pricing decision: the rules, policy and rate version a booking was sold under. Never updated; a re-price inserts a superseding row,
+per the requirements tagged, QUOTE-05, LIFE-03.';
 
 /** The flag is the truth about the referenced version, not the caller's opinion of it. */
 create or replace function public.tg_snapshot_rate_version_flag() returns trigger
@@ -178,10 +179,11 @@ alter table public.bookings
 create index bookings_price_snapshot on public.bookings (price_snapshot_id);
 
 /**
- * Denormalised ops-board cache (OPS-01). `bookings.price_total_rappen` is documented on that
- * column (...010_bookings.sql) as "never written by hand, never the truth" -- this is the one
- * place that writes it, copying the CHOSEN snapshot's total the moment `price_snapshot_id` is
- * set or changed. D-34: `total_rappen` is itself nullable until the CHF matrix lands, so the
+ * Denormalised ops-board cache, per OPS-01. `bookings.price_total_rappen` is documented on
+ * that column, in migration ...010_bookings.sql, as "never written by hand, never the truth"
+ * -- this is the one place that writes it, copying the CHOSEN snapshot's total the moment
+ * `price_snapshot_id` is set or changed, per D-34: `total_rappen` is itself nullable until the
+ * CHF matrix lands, so the
  * cache stays NULL in a fresh environment exactly like the column it mirrors -- `select ...
  * into` sets the target to NULL when the snapshot has no total, or when `price_snapshot_id` is
  * cleared to NULL (the subquery then matches zero rows, which also yields NULL).

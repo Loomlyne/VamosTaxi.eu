@@ -113,8 +113,9 @@ create unique index booking_payments_one_success on public.booking_payments (boo
 
 /**
  * The UPDATE-column whitelist §10 promises. Without it, the only gate on this table is INSERT-only,
- * so a staff session (or a stolen staff JWT) can `update booking_payments set charged_rappen=100,
- * status='succeeded'` and the amount/snapshot reconciliation the design advertises never runs on
+ * so a staff session (or a stolen staff JWT) can `update booking_payments set
+ * charged_rappen = <attacker-chosen figure>, status='succeeded'` and the amount/snapshot
+ * reconciliation the design advertises never runs on
  * the mutated row -- day revenue and Stripe dispute evidence then disagree with Stripe itself.
  *
  * F-20: this function also declares an empty search_path -- no unqualified name appears in its body, but the declaration

@@ -60,7 +60,8 @@ grant execute on function app.booking_has_manage_token(uuid) to vamos_guest;
 /**
  * p_leg_seq NULL cancels the whole booking; p_leg_seq = 1|2 cancels one leg. ADR-006 requires
  * the second form -- a customer may cancel the return while the outbound has already run -- and
- * price_snapshot_legs.leg_subtotal_rappen (...013) exists for it. Without the argument,
+ * price_snapshot_legs.leg_subtotal_rappen (the migration numbered
+ * ...013) exists for it. Without the argument,
  * cancelling a return would flip a completed, fully-earned outbound trip to 'cancelled' on the
  * ops board and leave the refund basis ambiguous.
  *
@@ -80,8 +81,8 @@ grant execute on function app.booking_has_manage_token(uuid) to vamos_guest;
  * F-09 (b): the refund basis is read from the booking's OWN pinned price_snapshots.policy --
  * the copy taken from the settings_versions row the snapshot cites at quote time -- never the
  * live settings_versions table (LIFE-03: a re-price after booking must never change what a
- * cancellation now costs). public.price_snapshots does not exist until
- * ...013_price_snapshots.sql (Plan 02-06); this is a plpgsql body, and unlike a `language sql`
+ * cancellation now costs). public.price_snapshots does not exist until the migration numbered
+ * ...013 (Plan 02-06); this is a plpgsql body, and unlike a `language sql`
  * function, a plpgsql body is compiled lazily -- Postgres parses it syntactically at CREATE
  * time but does not resolve table/column references in its SQL statements until first
  * execution, so creating this function now, ahead of that table, is safe. The read is exercised

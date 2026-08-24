@@ -46,6 +46,7 @@ create table public.booking_events (
   constraint booking_events_status_pair check (
     kind <> 'booking.status_changed' or (from_status is not null and to_status is not null))
 );
-comment on table public.booking_events is 'Append-only booking timeline: who, what, when. References a snapshot for price events; never contains money (DATA-08, D-17). Application-written inside the state-change transaction -- no trigger, no client write policy.';
+comment on table public.booking_events is 'Append-only booking timeline: who, what, when. References a snapshot for price events; never contains money
+(DATA-08, D-17). Application-written inside the state-change transaction -- no trigger, no client write policy.';
 
 create index booking_events_timeline on public.booking_events (booking_id, at desc);
