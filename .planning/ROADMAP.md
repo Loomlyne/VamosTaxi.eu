@@ -165,7 +165,7 @@ Plans:
 
 - [x] 03-02-PLAN.md — Local isolation proof: pgTAP fail-closed/cross-claim/quote-identity, connection-reuse simulator, mutants + mutation gate
 - [x] 03-03-PLAN.md — apps/web wiring: two Hyperdrive bindings, Placement Hints at `aws:eu-central-2`, five named wrappers + WAE, region corrections
-- [ ] 03-04-PLAN.md — Isolation probe Worker + token verify + schema-legal fixtures (source only), three production gates
+- [x] 03-04-PLAN.md — Isolation probe Worker + token verify + schema-legal fixtures (source only), three production gates
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -330,7 +330,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 
 |-------|----------------|--------|-----------|
 | 1. Platform Foundation, Design System Port & i18n Runtime | 11/14 | In Progress|  |
 | 2. Data Schema, RLS & Staff Auth Foundations | 9/10 | In Progress|  |
-| 3. Hyperdrive Data Access Wiring | 3/7 | In Progress|  |
+| 3. Hyperdrive Data Access Wiring | 4/7 | In Progress|  |
 | 4. Quote & Pricing Engine | 0/TBD | Not started | - |
 | 5. Public Surfaces & Customer Accounts | 0/TBD | Not started | - |
 | 6. Ops Reference Data & Content Console | 0/TBD | Not started | - |

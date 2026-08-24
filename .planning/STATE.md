@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-03-PLAN.md
-last_updated: "2026-08-24T20:40:13.284Z"
+stopped_at: Completed 03-04-PLAN.md
+last_updated: "2026-08-24T21:00:36.437Z"
 last_activity: 2026-08-24
 progress:
   total_phases: 11
   completed_phases: 1
-  total_plans: 33
-  completed_plans: 26
+  total_plans: 43
+  completed_plans: 27
   percent: 9
 ---
 
@@ -28,11 +28,11 @@ confirmation — must.
 ## Current Position
 
 Phase: 3 of 11 (Hyperdrive Data Access Wiring) — in progress
-Plan: 3 of 7 in current phase complete (03-01 done, 03-02 next)
+Plan: 4 of 7 in current phase complete (03-01 done, 03-02 next)
 Status: Ready to execute
 Last activity: 2026-08-24
 
-Progress: [████████░░] 79%
+Progress: [██████░░░░] 63%
 
 ## Performance Metrics
 
@@ -81,6 +81,7 @@ Progress: [████████░░] 79%
 | Phase 03 P01 | 11min | 3 tasks | 10 files |
 | Phase 03 P02 | ~46min | 3 tasks | 11 files |
 | Phase 03 P03 | ~12min | 3 tasks | 15 files |
+| Phase 03 P04 | 55min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -159,6 +160,9 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-03: packages/db/src/identity.ts's ./claims.js import changed to extensionless ./claims -- valid under tsc bundler resolution but unresolvable by Next.js's webpack bundler even with transpilePackages, first exposed by this plan's smoke route
 - [Phase 03]: 03-03: shared QueryFn<T> type alias added to apps/web/lib/db/identity.ts, re-applying @vamos/db/identity's anti-transaction-return conditional at the wrapper parameter position -- required for a pass-through generic wrapper layer to typecheck against the core's conditionally-constrained callback
 - [Phase 03]: 03-03: DATA-05 p50 = DEFERRED (no staging Worker) -- WAE instrumentation and Zurich Placement Hints land in this plan; the measurement itself is plan 03-07's, once a staging Worker exists
+- [Phase 03]: 03-04: impl and kind are two independent query params on the probe endpoint (not combined) -- the same failure-mode construction runs against customer/staff (verified bearer claims) or guest (manageTokenHash hex, independent of the bearer token)
+- [Phase 03]: 03-04: guest FixtureIdentity carries exactly one reachable reference -- booking_access_tokens.token_hash is UNIQUE, so one manage-token claim can legally open only one booking (DATA-03's real semantics), not the bookingsEach default
+- [Phase 03]: 03-04: staff fixture pair minted without completing TOTP enrollment -- aal2 is a genuine Auth-server fact verifyAccessToken reads from the real token, not something a fixture can forge; recorded as a plan 03-07 gap, not assumed away
 
 ### Pending Todos
 
@@ -194,6 +198,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-24T20:40:13.278Z
-Stopped at: Completed 03-03-PLAN.md
+Last session: 2026-08-24T21:00:36.428Z
+Stopped at: Completed 03-04-PLAN.md
 Resume file: None
