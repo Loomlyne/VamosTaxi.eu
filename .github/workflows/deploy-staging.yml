@@ -92,11 +92,18 @@ jobs:
         with:
           version: 2.115.0
 
-      # `--include-seed` re-run semantics are D-27/U3 — every seed INSERT is ON CONFLICT so
-      # either answer is safe; these secrets are not yet configured (owner-held, see
-      # SUPABASE-RESOURCES.md), so this step fails closed until they exist — the Worker deploy
-      # was already blocked on the Cloudflare secrets (01-VERIFICATION.md). One hosted project
-      # exists today (D-37), so staging and production currently point at the same ref.
+      # `--include-seed` re-run semantics are D-27/U3, RESOLVED (02-09-SUMMARY.md post-execution
+      # fix): a second push does NOT re-run seed.sql once its content hash is recorded in
+      # supabase_migrations.seed_files -- every seed INSERT is ON CONFLICT regardless, so a
+      # changed seed file re-applying is safe either way. seed.sql also had to be restructured
+      # into a single top-level `do $do$ … $do$;` block -- Supabase's Supavisor pooler
+      # (transaction mode, what this linked connection resolves to) silently truncates a
+      # multi-statement pgx batch to its last statement, which broke `create or replace function
+      # public.__seed_apply()` + `revoke` + `select` as three separate top-level statements.
+      # These secrets are not yet configured (owner-held, see SUPABASE-RESOURCES.md), so this
+      # step fails closed until they exist — the Worker deploy was already blocked on the
+      # Cloudflare secrets (01-VERIFICATION.md). One hosted project exists today (D-37), so
+      # staging and production currently point at the same ref.
       - name: Apply migrations + seed to staging (D-21, D-27)
         run: pnpm db:link && pnpm db:push
         env:
