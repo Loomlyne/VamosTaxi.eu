@@ -22,7 +22,10 @@
     "db:seed:gen": "pnpm --filter @vamos/db run seed:gen",
     "db:seed:check": "pnpm --filter @vamos/db run seed:check",
     "db:push": "pnpm --filter @vamos/db run push",
-    "db:link": "pnpm --filter @vamos/db run link"
+    "db:link": "pnpm --filter @vamos/db run link",
+    "db:local-roles": "pnpm --filter @vamos/db run local-roles",
+    "db:test:local": "pnpm --filter @vamos/db run test:local",
+    "db:mutation-gate": "pnpm --filter @vamos/db run mutation-gate"
   },
   "engines": {
     "node": ">=22"

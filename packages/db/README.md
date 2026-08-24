@@ -112,6 +112,25 @@ staging/production: the Supabase SQL editor or `psql` over the direct connection
 migration file. This is D-21's "no secret literal in the repo" intent applied to the two login
 roles this schema introduces.
 
+### Local role passwords
+
+`packages/db/scripts/local-role-passwords.mjs` (`pnpm db:local-roles`) automates the two
+`ALTER ROLE … PASSWORD …` statements above for the **local** stack only — run it once after
+every fresh `pnpm db:start`. It sets `vamos_edge`/`vamos_public` to fixed, committed local
+development passwords (`vamos_edge` / `vamos_public`) that match the `localConnectionString`
+values `apps/web/wrangler.jsonc` carries (plan 03-03); these are not secrets, only ever reach a
+Docker container bound to `127.0.0.1:54322`, and the script refuses to run against anything
+else.
+
+`pnpm db:reset` alone does **not** need this to be re-run: Postgres roles are cluster-level
+objects and survive a database drop, so the password set here survives a reset. It does **not**
+survive a `db:stop`/`db:start` cycle, which tears down the Postgres container itself — run
+`pnpm db:local-roles` again after every restart.
+
+Hosted passwords (staging, production) stay owner-held and out-of-band, set once per
+environment against the Supabase SQL editor or `psql` over the direct connection string
+(plan 03-07) — never by this script, which is hardcoded to the local host and port.
+
 ## Before the first hosted push
 
 Three staging-only probes from `02-CONTEXT.md` must run against the hosted project
