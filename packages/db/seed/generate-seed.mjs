@@ -21,13 +21,31 @@
 // D-36 (ADR-014 §6): exactly three vehicle classes ship — Economy 3/3, Business 3/3, Van 8/8.
 // No `first` class, never the mock's Van-7.
 //
-// D-27 (U3, unresolved): whether `supabase db push --include-seed` re-runs the seed on every
-// push is still open (research/local-toolchain-probe.md — a `--linked` operation the local
-// probe was barred from running). Every insert below is `ON CONFLICT` on a natural key, so the
-// seed is idempotent regardless of which answer turns out to be true. The one exception is
-// `settings_versions`, whose conflict clause is `DO NOTHING` rather than `DO UPDATE` — Plan
-// 02-07's `…19_append_only.sql` (F-02) makes that table append-only, so a second run must not
-// attempt an UPDATE, only skip a row that already exists.
+// D-27 (U3, RESOLVED 2026-08-24): `supabase db push --include-seed` DOES re-run seed.sql on
+// every push (it is not "apply once, skip forever") — confirmed empirically against the hosted
+// project by running `db push --include-seed` twice in a row and diffing row counts (both runs
+// completed with identical counts). Every insert below is `ON CONFLICT` on a natural key, so
+// the seed is idempotent either way. The one exception is `settings_versions`, whose conflict
+// clause is `DO NOTHING` rather than `DO UPDATE` — Plan 02-07's `…19_append_only.sql` (F-02)
+// makes that table append-only, so a second run must not attempt an UPDATE, only skip a row
+// that already exists.
+//
+// Post-02-09 fix (see 02-09-SUMMARY.md "Post-execution fix"): `db push --include-seed` sends a
+// seed file's top-level statements as ONE pgx `SendBatch` pipeline (Parse/Bind/Execute per
+// statement, a single Sync at the end). That pipeline is silent-broken by Supabase's Supavisor
+// connection pooler in transaction-pool mode — the exact endpoint `--linked`/production URLs
+// always resolve to (confirmed by reproducing the identical failure against the LOCAL pooler
+// with `db.pooler.enabled = true`, and by confirming it does NOT fail over a direct, unpooled
+// connection): only the LAST statement in the batch reaches Postgres, so `create or replace
+// function public.__seed_apply()` and `revoke ...` never arrive and the trailing `select
+// public.__seed_apply();` fails with 42883. Removing the explicit `begin;`/`commit;` wrapper
+// alone does NOT fix it (tested) — the batch still carries 3 statements. The fix is to collapse
+// the whole seed application into a SINGLE top-level statement: a `do $do$ … $do$;` anonymous
+// block that issues the `create or replace function`, the `revoke` and the `perform
+// public.__seed_apply()` call all as one pgx batch item. `CREATE FUNCTION`/`REVOKE` run directly
+// inside a `DO` block without `EXECUTE` (they are ordinary DDL/ACL statements, not plpgsql
+// control structures) — confirmed locally. The block is atomic on its own; no explicit
+// `begin;`/`commit;` is needed around it.
 //
 // Usage:
 //   node packages/db/seed/generate-seed.mjs           # regenerate packages/db/supabase/seed.sql
@@ -562,16 +580,23 @@ function main() {
     "-- rate_versions row is status = draft's opposite value here -- the CHF matrix is still",
     "-- open and no snapshot may be chargeable until the owner approves real numbers.",
     "--",
-    "-- D-27/U3: whether `supabase db push --include-seed` re-runs this file on every push is",
-    "-- still unresolved (research/local-toolchain-probe.md, a --linked probe barred locally).",
-    "-- Every insert below is ON CONFLICT on a natural key, so this seed is idempotent under",
-    "-- either answer. The one exception is settings_versions (F-02, append-only): its conflict",
-    "-- clause is DO NOTHING, never DO UPDATE, so a second run skips an existing row instead of",
-    "-- attempting a forbidden UPDATE.",
+    "-- D-27/U3 (RESOLVED): `supabase db push --include-seed` DOES re-run this file on every",
+    "-- push -- confirmed empirically against the hosted project (02-09-SUMMARY.md post-",
+    "-- execution fix). Every insert below is ON CONFLICT on a natural key, so this seed is",
+    "-- idempotent either way. The one exception is settings_versions (F-02, append-only): its",
+    "-- conflict clause is DO NOTHING, never DO UPDATE, so a second run skips an existing row",
+    "-- instead of attempting a forbidden UPDATE.",
     "--",
     "-- D-27 test hook: every insert below lives inside public.__seed_apply() so",
     "-- supabase/tests/seed_idempotent.test.sql can re-run the whole seed a second time inside",
     "-- one pgTAP transaction (`select public.__seed_apply();`) without shelling out to psql.",
+    "--",
+    "-- Everything below is wrapped in a single `do $do$ ... $do$;` anonymous block, not a bare",
+    "-- `begin;`/`create function`/`revoke`/`select`/`commit;` sequence, because `db push",
+    "-- --include-seed` sends a seed file's top-level statements as one pgx batch (pipelined",
+    "-- Parse/Bind/Execute, single trailing Sync) -- a pipeline that Supabase's Supavisor pooler",
+    "-- (transaction mode, what --linked/production URLs always resolve to) silently truncates",
+    "-- to its last statement. One top-level statement sidesteps the pipeline entirely.",
   ].join("\n");
 
   const body = [
@@ -590,20 +615,20 @@ function main() {
     [
       header,
       "",
-      "begin;",
-      "",
-      "create or replace function public.__seed_apply() returns void",
-      "language plpgsql security definer set search_path = '' as $f$",
+      "do $do$",
       "begin",
-      indent(body, "  "),
+      "  create or replace function public.__seed_apply() returns void",
+      "  language plpgsql security definer set search_path = '' as $f$",
+      "  begin",
+      indent(body, "    "),
+      "  end",
+      "  $f$;",
+      "",
+      "  revoke all on function public.__seed_apply() from public;",
+      "",
+      "  perform public.__seed_apply();",
       "end",
-      "$f$;",
-      "",
-      "revoke all on function public.__seed_apply() from public;",
-      "",
-      "select public.__seed_apply();",
-      "",
-      "commit;",
+      "$do$;",
     ].join("\n") + "\n";
 
   if (CHECK) {
