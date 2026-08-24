@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-06-PLAN.md
-last_updated: "2026-08-24T13:51:10.182Z"
+stopped_at: Completed 02-07-PLAN.md
+last_updated: "2026-08-24T14:26:52.137Z"
 last_activity: 2026-08-24
 progress:
   total_phases: 11
   completed_phases: 1
   total_plans: 33
-  completed_plans: 20
+  completed_plans: 21
   percent: 9
 ---
 
@@ -28,11 +28,11 @@ confirmation — must.
 ## Current Position
 
 Phase: 2 of 11 (Data Schema, RLS & Staff Auth Foundations) — planned, not started
-Plan: 6 of 10 in current phase
+Plan: 7 of 10 in current phase
 Status: Ready to execute
 Last activity: 2026-08-24
 
-Progress: [██████░░░░] 61%
+Progress: [██████░░░░] 64%
 
 ## Performance Metrics
 
@@ -75,6 +75,7 @@ Progress: [██████░░░░] 61%
 | Phase 02 P04 | 6min | 3 tasks | 8 files |
 | Phase 02 P05 | 30min | 3 tasks | 6 files |
 | Phase 02 P06 | 75min (two sessions) | 2 tasks | 6 files |
+| Phase 02 P07 | ~50min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -131,6 +132,11 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-06: F-06 closed by binding the charge gate to bookings.price_snapshot_id instead of a one-snapshot-per-booking unique index -- supersedes_id/source='modification' make multiple bound snapshots per booking the deliberate Phase 9 modification shape
 - [Phase 02]: 02-06: postgres's SET membership in the four vamos_* roles amended in migration 002 before Task 1 -- CREATE ROLE's implicit auto-membership carried admin_option=true/set_option=false, refusing 'set local role vamos_*' impersonation this and later plans' pgTAP need
 - [Phase 02]: 02-06: price_snapshots_all_or_nothing rewritten with num_nonnulls(...) in (0,4) in place of four is/is-not-null clauses -- functionally identical, reduces collision with the D-34 rappen-not-null acceptance grep
+- [Phase 02]: 02-07: D-17/D-18 audit split realised exactly -- booking_events app-written with no trigger, audit_log trigger-written over 15 tables including customers (D-19 evidence)
+- [Phase 02]: 02-07: F-02 settings_versions joins the seven-table append-only set now; the dispatcher-vs-admin grant/policy half is deferred to Plan 02-08
+- [Phase 02]: 02-07: F-03 TRUNCATE closed everywhere including service_role via nine BEFORE TRUNCATE statement triggers, since a row trigger never fires on TRUNCATE and RLS/FORCE RLS does not filter it
+- [Phase 02]: 02-07: F-10 only the consent_log.customer_id carve-out lands now (D-19 erasure path made reachable); audit_log's pre-redaction-PII half stays explicitly deferred to Phase 10 pending counsel
+- [Phase 02]: 02-07: F-22 the postgres BYPASSRLS/superuser dependency for definer writes under FORCE RLS is asserted in pgTAP rather than papered over with a policy
 
 ### Pending Todos
 
@@ -166,6 +172,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-24T13:51:10.175Z
-Stopped at: Completed 02-06-PLAN.md
+Last session: 2026-08-24T14:26:52.132Z
+Stopped at: Completed 02-07-PLAN.md
 Resume file: None
