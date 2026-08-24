@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-08-PLAN.md
-last_updated: "2026-08-24T14:57:12.153Z"
+stopped_at: Completed 02-09-PLAN.md
+last_updated: "2026-08-24T15:43:28.994Z"
 last_activity: 2026-08-24
 progress:
   total_phases: 11
   completed_phases: 1
   total_plans: 33
-  completed_plans: 22
+  completed_plans: 23
   percent: 9
 ---
 
@@ -28,11 +28,11 @@ confirmation — must.
 ## Current Position
 
 Phase: 2 of 11 (Data Schema, RLS & Staff Auth Foundations) — planned, not started
-Plan: 8 of 10 in current phase
+Plan: 9 of 10 in current phase
 Status: Ready to execute
 Last activity: 2026-08-24
 
-Progress: [███████░░░] 67%
+Progress: [███████░░░] 70%
 
 ## Performance Metrics
 
@@ -77,6 +77,7 @@ Progress: [███████░░░] 67%
 | Phase 02 P06 | 75min (two sessions) | 2 tasks | 6 files |
 | Phase 02 P07 | ~50min | 3 tasks | 9 files |
 | Phase 02 P08 | ~90min | 3 tasks | 12 files |
+| Phase 02 P09 | 90min | 3 tasks | 32 files |
 
 ## Accumulated Context
 
@@ -141,6 +142,10 @@ Recent decisions affecting current work:
 - [Phase ?]: 02-08: F-18's app.rate_version_published body written as coalesce(bool_or(...), false) instead of the plan's literal inline EXISTS sketch -- avoids tripping the plan's own acceptance grep banning that exact broken-pattern substring anywhere in ...23
 - [Phase ?]: 02-08: settings_public granted to authenticated too (not just anon/vamos_public/vamos_staff), per the schema draft's literal grant list -- widens the authenticated grant surface to ten tables/views, not the plan's stated nine
 - [Phase ?]: 02-08: F-05's regression test unions information_schema.column_privileges with role_table_grants -- the naive role_table_grants-only query (Task 1's literal acceptance text) cannot see the three column-scoped grants F-01 requires and prints 7, not 9, regardless of correctness
+- [Phase ?]: 02-09: content_strings measured at 1,516 leaf keys per locale (not the plan's estimated 1,577/1,573) -- all four locale files already identical post-Phase-1-migration; generator uses the measured count
+- [Phase ?]: 02-09: seed generator wraps every insert in a security-definer public.__seed_apply() function so pgTAP can re-invoke the whole seed a second time inside one transaction, proving D-27 idempotency without shelling out to psql
+- [Phase ?]: 02-09: settings_versions is the one seed target using ON CONFLICT DO NOTHING (F-02 append-only); vehicle_classes' never-seeded 'first' slug is now the cross-suite pgTAP fixture value since economy/business/van are real seeded rows
+- [Phase ?]: 02-09: tg_audit_row's coalesce chain extended to resolve content_strings' PK (key, not id/user_id) -- the seed's first content_strings insert was the first write ever to trip this gap
 
 ### Pending Todos
 
@@ -176,6 +181,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-24T14:57:12.146Z
-Stopped at: Completed 02-08-PLAN.md
+Last session: 2026-08-24T15:43:28.989Z
+Stopped at: Completed 02-09-PLAN.md
 Resume file: None
