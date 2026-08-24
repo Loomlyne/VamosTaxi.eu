@@ -107,6 +107,7 @@ declare
   v_tiers jsonb;
   v_settings_version bigint;
   v_hours_before numeric;
+  v_leg_id uuid;
 begin
   select b.* into v
     from public.bookings b
@@ -135,10 +136,19 @@ begin
     raise exception 'not_cancellable' using errcode = 'P0001';
   end if;
 
-  update public.booking_legs set status = 'cancelled'
-   where booking_id = v.id
-     and status not in ('completed','no_show','cancelled')
-     and (p_leg_seq is null or leg_seq = p_leg_seq);
+  -- DEVIATION (Rule 1, bug fix, found while writing Plan 02-07's manage_booking_mutation.test.sql
+  -- -- this function's first end-to-end invocation): both statements below qualify `booking_id`
+  -- with the `bl` table alias. Unqualified, `booking_id` raised `42702 column reference
+  -- "booking_id" is ambiguous` -- not against another table (both statements are single-table),
+  -- but against this FUNCTION'S OWN OUT parameter (`returns table (booking_id uuid, ...)`),
+  -- which PL/pgSQL also makes visible as a bare name inside the function body. The draft's
+  -- unqualified form only ever compiled successfully because nothing had called this function
+  -- yet in this migration set; qualifying the column reference resolves the ambiguity in favour
+  -- of the table column, which is what every surrounding comment already assumes it means.
+  update public.booking_legs bl set status = 'cancelled'
+   where bl.booking_id = v.id
+     and bl.status not in ('completed','no_show','cancelled')
+     and (p_leg_seq is null or bl.leg_seq = p_leg_seq);
   get diagnostics v_cut = row_count;
   if v_cut = 0 then
     raise exception 'not_cancellable' using errcode = 'P0001';
@@ -146,15 +156,25 @@ begin
 
   -- Roll the booking status up from its legs (the vocabulary/rule in ...003_types.sql, U21).
   -- Never a blanket 'cancelled'.
-  select count(*) filter (where status not in ('cancelled','completed','no_show')),
-         count(*) filter (where status in ('completed','no_show'))
+  select count(*) filter (where bl.status not in ('cancelled','completed','no_show')),
+         count(*) filter (where bl.status in ('completed','no_show'))
     into v_live, v_done
-    from public.booking_legs where booking_id = v.id;
+    from public.booking_legs bl where bl.booking_id = v.id;
 
-  update public.bookings set status = case
+  -- DEVIATION (Rule 1, bug fix, found while writing Plan 02-07's manage_booking_mutation.test.sql
+  -- -- this function's first end-to-end invocation): a bare CASE expression whose branches are
+  -- all string literals resolves to `text` with no further context, and Postgres does not
+  -- implicitly cast a computed `text` expression to an enum-typed column on UPDATE (only a
+  -- direct, unparenthesised literal gets that treatment) -- raising `42804 column "status" is of
+  -- type public.booking_status but expression is of type text`. The cast itself then needs the
+  -- schema qualifier (binding note 2): this function runs `set search_path = ''`, and unlike the
+  -- always-searched `pg_catalog` built-ins (`numeric`, `text`, `uuid`, ...), a project-defined
+  -- enum type is only found via `public.booking_status` -- bare `booking_status` raised
+  -- `42704 type "booking_status" does not exist` even after the cast itself was added.
+  update public.bookings set status = (case
       when v_live = 0 and v_done = 0 then 'cancelled'
       when v_live = 0 and v_done > 0 then 'partially_completed'
-      else 'partially_cancelled' end
+      else 'partially_cancelled' end)::public.booking_status
    where id = v.id;
 
   update public.booking_access_tokens
@@ -174,9 +194,23 @@ begin
     from public.booking_legs l
    where l.booking_id = v.id and (p_leg_seq is null or l.leg_seq = p_leg_seq);
 
+  -- DEVIATION (Rule 1, bug fix, found while writing Plan 02-07's manage_booking_mutation.test.sql
+  -- -- the first place this function is actually invoked end-to-end): the schema draft's own
+  -- `booking_leg_id uuid ... -- null = whole booking` comment (...013_price_snapshots.sql's
+  -- sibling table carries the identical convention) makes NULL mean "this event is about the
+  -- whole booking" -- but a p_leg_seq-scoped cancel is about ONE leg, and hard-coding the
+  -- inserted booking_leg_id to NULL regardless of p_leg_seq recorded every single-leg
+  -- cancellation as if it were a whole-booking event, discarding exactly the fact
+  -- booking_events.booking_leg_id exists to carry. Resolved to the cancelled leg's id when one
+  -- was targeted, and left NULL only for a whole-booking cancel.
+  if p_leg_seq is not null then
+    select l.id into v_leg_id from public.booking_legs l
+     where l.booking_id = v.id and l.leg_seq = p_leg_seq;
+  end if;
+
   insert into public.booking_events (booking_id, booking_leg_id, kind, actor_kind, actor_label,
                                       from_status, to_status, payload)
-  values (v.id, null, 'booking.status_changed', 'guest', 'manage link',
+  values (v.id, v_leg_id, 'booking.status_changed', 'guest', 'manage link',
           v.status, (select status from public.bookings where id = v.id),
           jsonb_build_object('via', 'manage_link', 'leg_seq', p_leg_seq,
                               'free_cancel_hours', v_free_cancel_hours,
