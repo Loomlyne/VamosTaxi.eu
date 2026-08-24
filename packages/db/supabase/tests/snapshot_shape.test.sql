@@ -9,7 +9,7 @@
 -- Snapshot half only in this pass — Task 2 appends the payments/coupon_redemptions
 -- assertions and raises the plan() count.
 begin;
-select plan(15);
+select plan(19);
 
 -- Fixtures --------------------------------------------------------------------------------
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
@@ -170,6 +170,13 @@ select is(
   null::rappen,
   'tg_booking_price_cache copied the (NULL) snapshot total, never invented a number (D-34)'
 );
+
+-- (11)-(14) appended by Plan 02-06's Task 2: coupon_redemptions is consumed at PAYMENT, never
+-- at a snapshot (D-29 / ADR-014 §6) -- ...015_coupon_redemptions.sql. -----------------------------
+select has_column('public', 'coupon_redemptions', 'payment_id', 'coupon_redemptions has payment_id (D-29)');
+select col_not_null('public', 'coupon_redemptions', 'payment_id', 'coupon_redemptions.payment_id is NOT NULL -- a redemption without a payment cannot exist');
+select fk_ok('public','coupon_redemptions','payment_id','public','booking_payments','id', 'coupon_redemptions.payment_id FKs booking_payments (D-29)');
+select hasnt_column('public', 'coupon_redemptions', 'snapshot_id', 'coupon_redemptions has no snapshot_id column -- consumption is a payment fact, never a quote fact');
 
 select * from finish();
 rollback;
