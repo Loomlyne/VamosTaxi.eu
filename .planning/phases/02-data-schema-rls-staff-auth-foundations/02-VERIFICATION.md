@@ -1,10 +1,17 @@
 ---
 phase: 02-data-schema-rls-staff-auth-foundations
 verified: 2026-08-24T16:55:32Z
-status: human_needed
-score: 5/5 success criteria verified at the schema/pgTAP layer; 6/6 requirements satisfied at the SQL/local layer (AUTH-05 carries an open hosted-activation item, see below)
+status: passed
+score: 5/5 success criteria; 6/6 requirements (AUTH-05 hosted hook activation owner-attested 2026-08-24, functional proof lands in Phase 6)
 overrides_applied: 0
-human_verification:
+owner_attested:
+  - item: "U15 — Custom Access Token Hook enabled on the hosted dashboard (project yaumjzvylngfjhtuffqs), 2026-08-24"
+    attested_by: owner
+    dashboard_path: "Authentication -> Hooks -> 'Customize Access Token (JWT) Claims hook' (the dashboard's name for the Custom Access Token Hook) -> Postgres function public.custom_access_token_hook"
+    machine_verified: "The hook FUNCTION and its `grant execute ... to supabase_auth_admin` are confirmed live on the hosted project (migration 20260823000006 among 24/24 synced). The dashboard toggle itself has no read-only CLI or SQL surface: `supabase config` exposes only `push`, which would overwrite remote auth settings with local dev values, and the alternative proof would require creating a real auth user + staff row on the hosted project. Neither was run."
+    residual_proof_point: "The first hosted staff sign-in in Phase 6 is the true functional proof that a minted JWT carries app_metadata.vamos_role. If that claim is absent there, re-check this toggle first."
+    note: "MFA Verification Attempt / Password Verification Attempt hooks require a Team or Enterprise plan and are NOT used by this design — D-05 enforces aal2 in SQL policies, middleware and at invite-claim, so no paid hook is required."
+superseded_human_verification:
   - test: "Enable the Custom Access Token Hook on the hosted Supabase dashboard (project yaumjzvylngfjhtuffqs) and confirm TOTP MFA is enabled for the project (D-33/U15)"
     expected: "Authentication -> Hooks (path may differ from docs -- Beta label implies drift) shows the Custom Access Token Hook enabled and pointed at public.custom_access_token_hook; a staff member who completes TOTP actually receives app_metadata.vamos_role in their minted JWT"
     why_human: "Owner-held dashboard and database credentials; no CLI/SQL surface can toggle this Beta dashboard setting. Plan 02-10 (the plan that owns this step) is autonomous:false and has not been executed -- no 02-10-SUMMARY.md exists and its ROADMAP checkbox is unticked."

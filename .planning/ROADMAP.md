@@ -31,7 +31,7 @@ cleanup. Deviations from `GSD-LAUNCH.md`'s phase numbering are noted per phase b
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Platform Foundation, Design System Port & i18n Runtime** - Worker deploys to a real staging domain with the ported design system and an SSR-safe i18n runtime
-- [ ] **Phase 2: Data Schema, RLS & Staff Auth Foundations** - Postgres mirrors the VamosOps contract with RLS everywhere and invited, MFA-gated staff auth
+- [x] **Phase 2: Data Schema, RLS & Staff Auth Foundations** - Postgres mirrors the VamosOps contract with RLS everywhere and invited, MFA-gated staff auth
 - [ ] **Phase 3: Hyperdrive Data Access Wiring** - The Worker reaches Postgres through Hyperdrive, fast and safely isolated per request
 - [ ] **Phase 4: Quote & Pricing Engine** - The booking widget returns a real, locked, server-priced quote for any eligible route
 - [ ] **Phase 5: Public Surfaces & Customer Accounts** - Every public mock is a live route on real data, and customers can create and access accounts
