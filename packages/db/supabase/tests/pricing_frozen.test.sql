@@ -10,8 +10,10 @@ select plan(12);
 
 -- Fixtures --------------------------------------------------------------------------------
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
-values ('economy', 3, 3);
-insert into public.service_zones (slug, iata) values ('zrh-airport', 'ZRH'), ('zurich-city', null);
+values ('first', 3, 3);
+-- DEVIATION (Rule 1, bug fix -- Plan 02-09 seeds real service_zones rows): 'zrh-airport' and
+-- 'zurich-city' now collide with the seed (D-36's zone list); test-scoped slugs avoid it.
+insert into public.service_zones (slug, iata) values ('pf-zone-a', 'ZRH'), ('pf-zone-b', null);
 
 -- === A live version, fully priced then published ==========================================
 insert into public.rate_versions (slug, label) values ('live-frozen', 'Live frozen fixture');
@@ -20,7 +22,7 @@ insert into public.rate_versions (slug, label) values ('live-frozen', 'Live froz
 insert into public.distance_rates (rate_version_id, vehicle_class_id, max_pax, base_fare_rappen, per_km_rappen, min_fare_rappen)
 select rv.id, vc.id, 3, 1, 2, 3
   from public.rate_versions rv, public.vehicle_classes vc
- where rv.slug = 'live-frozen' and vc.slug = 'economy';
+ where rv.slug = 'live-frozen' and vc.slug = 'first';
 
 insert into public.surcharges (rate_version_id, code, kind, percent)
 select rv.id, 'night', 'percent', 10.00
@@ -29,7 +31,7 @@ select rv.id, 'night', 'percent', 10.00
 insert into public.fixed_routes (rate_version_id, origin_zone_id, dest_zone_id, vehicle_class_id, price_rappen, live)
 select rv.id, z1.id, z2.id, vc.id, 1, false
   from public.rate_versions rv, public.service_zones z1, public.service_zones z2, public.vehicle_classes vc
- where rv.slug = 'live-frozen' and z1.slug = 'zrh-airport' and z2.slug = 'zurich-city' and vc.slug = 'economy';
+ where rv.slug = 'live-frozen' and z1.slug = 'pf-zone-a' and z2.slug = 'pf-zone-b' and vc.slug = 'first';
 
 update public.rate_versions set status = 'live' where slug = 'live-frozen';
 
@@ -87,7 +89,7 @@ insert into public.rate_versions (slug, label) values ('draft-control', 'Draft c
 insert into public.distance_rates (rate_version_id, vehicle_class_id, max_pax, base_fare_rappen, per_km_rappen, min_fare_rappen)
 select rv.id, vc.id, 3, 1, 2, 3
   from public.rate_versions rv, public.vehicle_classes vc
- where rv.slug = 'draft-control' and vc.slug = 'economy';
+ where rv.slug = 'draft-control' and vc.slug = 'first';
 
 -- Two rows: one for the delete test, one for the active-toggle test (a deleted row cannot
 -- also be updated afterwards).
@@ -101,7 +103,7 @@ select rv.id, 'waiting_city', 'percent', 5.00
 insert into public.fixed_routes (rate_version_id, origin_zone_id, dest_zone_id, vehicle_class_id, price_rappen, live)
 select rv.id, z1.id, z2.id, vc.id, 1, false
   from public.rate_versions rv, public.service_zones z1, public.service_zones z2, public.vehicle_classes vc
- where rv.slug = 'draft-control' and z1.slug = 'zrh-airport' and z2.slug = 'zurich-city' and vc.slug = 'economy';
+ where rv.slug = 'draft-control' and z1.slug = 'pf-zone-a' and z2.slug = 'pf-zone-b' and vc.slug = 'first';
 
 select lives_ok(
   $$ update public.distance_rates set per_km_rappen = 4

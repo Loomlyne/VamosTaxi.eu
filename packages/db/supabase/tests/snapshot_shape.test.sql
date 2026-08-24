@@ -13,7 +13,7 @@ select plan(19);
 
 -- Fixtures --------------------------------------------------------------------------------
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
-values ('economy', 3, 3);
+values ('first', 3, 3);
 
 -- Stays draft on purpose: proves the flag trigger overwrites a caller-forged
 -- rate_version_is_live => true (assertion 4 below) rather than trusting it.
@@ -27,7 +27,7 @@ create temporary table fx as
 select vc.id as vehicle_class_id, rv.id as rate_version_id, sv.id as settings_version_id,
        b.id as booking_id
   from public.vehicle_classes vc, public.rate_versions rv, public.settings_versions sv, public.bookings b
- where vc.slug = 'economy' and rv.slug = 'snap-shape-draft' and sv.slug = 'test-policy'
+ where vc.slug = 'first' and rv.slug = 'snap-shape-draft' and sv.slug = 'test-policy'
    and b.contact_email = 'shape@example.test';
 
 create temporary table snap_fixture as select gen_random_uuid() as quote_id;

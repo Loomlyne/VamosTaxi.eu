@@ -40,11 +40,19 @@ begin
   -- deliberate choice. Left as written, before_value/after_value would be NULL on every row
   -- unconditionally, defeating the entire point of a diff log and the D-19 redaction-evidence
   -- claim this trigger exists to satisfy. Fixed by comparing to TG_OP's actual uppercase form.
+  -- DEVIATION (Rule 1, bug fix -- found seeding content_strings in Plan 02-09): the same
+  -- "not every attached table's PK is named id" problem the comment above already solves for
+  -- staff.user_id recurs for content_strings, whose PK is `key` (text), not `id`/`user_id`.
+  -- Left as written, the coalesce chain resolved to NULL for every content_strings row and
+  -- `audit_log.record_id not null` rejected the whole seed transaction (23502) the first time
+  -- this trigger ever fired against that table -- no earlier migration or pgTAP fixture had
+  -- inserted into content_strings before Plan 02-09's seed. Adding the `key` candidate makes
+  -- the same function body work unmodified across every attached table's PK shape.
   insert into public.audit_log (table_name, record_id, action, actor_kind, actor_id,
                                 before_value, after_value)
   values (tg_table_name,
-          coalesce(to_jsonb(new) ->> 'id', to_jsonb(new) ->> 'user_id',
-                    to_jsonb(old) ->> 'id', to_jsonb(old) ->> 'user_id'),
+          coalesce(to_jsonb(new) ->> 'id', to_jsonb(new) ->> 'user_id', to_jsonb(new) ->> 'key',
+                    to_jsonb(old) ->> 'id', to_jsonb(old) ->> 'user_id', to_jsonb(old) ->> 'key'),
           lower(tg_op),
           case when app.uid() is null then 'system' else 'staff' end,
           app.uid(),

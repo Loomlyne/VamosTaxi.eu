@@ -13,7 +13,7 @@ select plan(43);
 
 -- Fixtures ------------------------------------------------------------------------------------
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
-values ('economy', 3, 3);
+values ('first', 3, 3);
 insert into public.rate_versions (slug, label) values ('fc-rv', 'fail_closed fixture');
 insert into public.settings_versions (slug, label) values ('fc-policy', 'fail_closed fixture');
 

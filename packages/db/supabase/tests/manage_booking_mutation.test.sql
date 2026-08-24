@@ -12,7 +12,7 @@ select plan(29);
 
 -- Fixtures ------------------------------------------------------------------------------------
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
-values ('economy', 3, 3);
+values ('first', 3, 3);
 
 insert into public.rate_versions (slug, label) values ('mbm-rv', 'Manage-booking fixture rate version');
 
@@ -31,13 +31,13 @@ insert into public.booking_legs (booking_id, leg_seq, direction, pickup_text, dr
 select b.id, 1, 'outbound', 'ZRH Airport', 'Zurich HB', now() + interval '3 days',
        to_char(now() + interval '3 days', 'YYYY-MM-DD"T"HH24:MI'), vc.id, 'confirmed'
   from public.bookings b, public.vehicle_classes vc
- where b.contact_email = 'mbm-fixture@vamostaxi.eu' and vc.slug = 'economy';
+ where b.contact_email = 'mbm-fixture@vamostaxi.eu' and vc.slug = 'first';
 insert into public.booking_legs (booking_id, leg_seq, direction, pickup_text, dropoff_text,
                                   scheduled_at, scheduled_local, vehicle_class_id, status)
 select b.id, 2, 'return', 'Zurich HB', 'ZRH Airport', now() + interval '5 days',
        to_char(now() + interval '5 days', 'YYYY-MM-DD"T"HH24:MI'), vc.id, 'confirmed'
   from public.bookings b, public.vehicle_classes vc
- where b.contact_email = 'mbm-fixture@vamostaxi.eu' and vc.slug = 'economy';
+ where b.contact_email = 'mbm-fixture@vamostaxi.eu' and vc.slug = 'first';
 
 -- B1's own pinned snapshot -- the LIFE-03 basis (6c) is read from THIS row, never a live
 -- settings_versions read.
@@ -54,7 +54,7 @@ select gen_random_uuid(), vc.id, rv.id, false, sv.id, 'quote-engine@mbm-b1', 1, 
        b.id, now() + interval '30 minutes'
   from public.vehicle_classes vc, public.rate_versions rv, public.settings_versions sv,
        public.bookings b
- where vc.slug = 'economy' and rv.slug = 'mbm-rv' and sv.slug = 'mbm-policy'
+ where vc.slug = 'first' and rv.slug = 'mbm-rv' and sv.slug = 'mbm-policy'
    and b.contact_email = 'mbm-fixture@vamostaxi.eu';
 
 update public.bookings set price_snapshot_id =
@@ -80,13 +80,13 @@ insert into public.booking_legs (booking_id, leg_seq, direction, pickup_text, dr
 select b.id, 1, 'outbound', 'ZRH Airport', 'Zurich HB', now() - interval '10 minutes',
        to_char(now() - interval '10 minutes', 'YYYY-MM-DD"T"HH24:MI'), vc.id, 'confirmed'
   from public.bookings b, public.vehicle_classes vc
- where b.contact_email = 'mbm-past-fixture@vamostaxi.eu' and vc.slug = 'economy';
+ where b.contact_email = 'mbm-past-fixture@vamostaxi.eu' and vc.slug = 'first';
 insert into public.booking_legs (booking_id, leg_seq, direction, pickup_text, dropoff_text,
                                   scheduled_at, scheduled_local, vehicle_class_id, status)
 select b.id, 2, 'return', 'Zurich HB', 'ZRH Airport', now() + interval '4 days',
        to_char(now() + interval '4 days', 'YYYY-MM-DD"T"HH24:MI'), vc.id, 'confirmed'
   from public.bookings b, public.vehicle_classes vc
- where b.contact_email = 'mbm-past-fixture@vamostaxi.eu' and vc.slug = 'economy';
+ where b.contact_email = 'mbm-past-fixture@vamostaxi.eu' and vc.slug = 'first';
 insert into public.booking_access_tokens (booking_id, token_hash, expires_at)
 select b.id, extensions.digest('mbm-token-p', 'sha256'), now() + interval '1 day'
   from public.bookings b where b.contact_email = 'mbm-past-fixture@vamostaxi.eu';

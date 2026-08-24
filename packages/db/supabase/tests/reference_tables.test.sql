@@ -56,9 +56,13 @@ select throws_ok(
   null,
   'vehicle_classes rejects a slug outside the CHECK list'
 );
+-- DEVIATION (Rule 1, bug fix -- Plan 02-09 seeds a real 'van' row): inserting a second 'van'
+-- now collides with vehicle_classes_slug_key. 'first' is the one CHECK-list slug the seed
+-- never occupies (D-36), so it proves the same thing -- the CHECK's capacity range accepts an
+-- 8/8 row -- without depending on which slug carries it.
 select lives_ok(
-  $$ insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity) values ('van', 8, 8) $$,
-  'vehicle_classes accepts van 8/8 (D-36 confirmed capacity)'
+  $$ insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity) values ('first', 8, 8) $$,
+  'vehicle_classes accepts an 8/8-capacity row (D-36 confirmed capacity range)'
 );
 
 -- settings singleton CHECK: only id = 1 may ever exist.

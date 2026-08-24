@@ -13,7 +13,7 @@ select plan(29);
 
 -- Fixtures --------------------------------------------------------------------------------------
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
-values ('economy', 3, 3);
+values ('first', 3, 3);
 
 insert into auth.users (id, email, aud, role, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -39,7 +39,7 @@ insert into public.rate_versions (slug, label) values ('orr-rv-draft', 'ops_role
 insert into public.distance_rates (rate_version_id, vehicle_class_id, max_pax, available)
 select rv.id, vc.id, 3, true
   from public.rate_versions rv, public.vehicle_classes vc
- where rv.slug = 'orr-rv-draft' and vc.slug = 'economy';
+ where rv.slug = 'orr-rv-draft' and vc.slug = 'first';
 
 -- rv_live: fully priced (synthetic figures, rolled back at the end of this file -- never a real
 -- CHF amount, D-34), published as postgres before any role switch below.
@@ -48,13 +48,13 @@ insert into public.distance_rates (rate_version_id, vehicle_class_id, max_pax, a
                                     base_fare_rappen, per_km_rappen, min_fare_rappen)
 select rv.id, vc.id, 3, true, 1, 2, 3
   from public.rate_versions rv, public.vehicle_classes vc
- where rv.slug = 'orr-rv-live' and vc.slug = 'economy';
+ where rv.slug = 'orr-rv-live' and vc.slug = 'first';
 insert into public.service_zones (slug) values ('orr-zone-a'), ('orr-zone-b');
 insert into public.fixed_routes (rate_version_id, origin_zone_id, dest_zone_id, vehicle_class_id,
                                   price_rappen, live)
 select rv.id, za.id, zb.id, vc.id, 5, false
   from public.rate_versions rv, public.service_zones za, public.service_zones zb, public.vehicle_classes vc
- where rv.slug = 'orr-rv-live' and za.slug = 'orr-zone-a' and zb.slug = 'orr-zone-b' and vc.slug = 'economy';
+ where rv.slug = 'orr-rv-live' and za.slug = 'orr-zone-a' and zb.slug = 'orr-zone-b' and vc.slug = 'first';
 update public.rate_versions set status = 'live' where slug = 'orr-rv-live';
 
 insert into public.bookings (contact_name, contact_email) values ('ORR Booking', 'orr-booking@example.test');

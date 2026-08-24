@@ -17,19 +17,21 @@ select plan(44);
 
 -- Fixtures ------------------------------------------------------------------------------------
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
-values ('economy', 3, 3);                                    -- also produces the audit_log row
+values ('first', 3, 3);                                    -- also produces the audit_log row
 
 insert into public.rate_versions (slug, label) values ('ao-rv', 'Append-only fixture rate version');
 insert into public.distance_rates (rate_version_id, vehicle_class_id, max_pax, base_fare_rappen, per_km_rappen, min_fare_rappen)
 select rv.id, vc.id, 3, 1, 2, 3
   from public.rate_versions rv, public.vehicle_classes vc
- where rv.slug = 'ao-rv' and vc.slug = 'economy';
+ where rv.slug = 'ao-rv' and vc.slug = 'first';
 update public.rate_versions set status = 'live' where slug = 'ao-rv';   -- fully priced, passes
 
 insert into public.settings_versions (slug, label) values ('ao-price-policy', 'Append-only price policy fixture');
 insert into public.settings_versions (slug, label) values ('ao-immutable', 'Append-only immutability fixture');
 
-insert into public.settings (id) values (1);   -- singleton row, needed for the F-22 UPDATE below
+-- DEVIATION (Rule 1, bug fix -- Plan 02-09 seeds the settings singleton): the id=1 row already
+-- exists from supabase/seed.sql, so this insert is no longer needed for the F-22 UPDATE below
+-- (and would collide on settings_pkey if left in).
 
 insert into public.customers (full_name, email) values ('Append Only Customer', 'ao-customer@example.test');
 insert into public.customers (full_name, email) values ('Append Only Other Customer', 'ao-other-customer@example.test');
@@ -51,14 +53,14 @@ insert into public.booking_legs (booking_id, leg_seq, direction, pickup_text, dr
 select b.id, 1, 'outbound', 'ZRH', 'Zurich HB', now() + interval '3 days',
        to_char(now() + interval '3 days', 'YYYY-MM-DD"T"HH24:MI'), vc.id
   from public.bookings b, public.vehicle_classes vc
- where b.contact_email = 'ao-booking@example.test' and vc.slug = 'economy';
+ where b.contact_email = 'ao-booking@example.test' and vc.slug = 'first';
 
 create temporary table fx as
 select vc.id as vehicle_class_id, rv.id as rate_version_id, sv.id as settings_version_id,
        b.id as booking_id, b2.id as other_booking_id, l.id as leg_id
   from public.vehicle_classes vc, public.rate_versions rv, public.settings_versions sv,
        public.bookings b, public.bookings b2, public.booking_legs l
- where vc.slug = 'economy' and rv.slug = 'ao-rv' and sv.slug = 'ao-price-policy'
+ where vc.slug = 'first' and rv.slug = 'ao-rv' and sv.slug = 'ao-price-policy'
    and b.contact_email = 'ao-booking@example.test'
    and b2.contact_email = 'ao-other-booking@example.test'
    and l.booking_id = b.id;

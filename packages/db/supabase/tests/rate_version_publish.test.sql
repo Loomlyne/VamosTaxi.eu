@@ -24,9 +24,11 @@ insert into public.staff (user_id, role, active)
 values ('b0000000-0000-0000-0000-000000000001', 'admin', true);
 
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
-values ('economy', 3, 3);
+values ('first', 3, 3);
 
-insert into public.service_zones (slug, iata) values ('zrh-airport', 'ZRH'), ('zurich-city', null);
+-- DEVIATION (Rule 1, bug fix -- Plan 02-09 seeds real service_zones rows): 'zrh-airport' and
+-- 'zurich-city' now collide with the seed (D-36's zone list); test-scoped slugs avoid it.
+insert into public.service_zones (slug, iata) values ('rvp-zone-a', 'ZRH'), ('rvp-zone-b', null);
 
 -- Born draft (F-04's insert trigger nulls attribution, which is null already here).
 insert into public.rate_versions (slug, label) values ('test-matrix', 'Test matrix');
@@ -34,7 +36,7 @@ insert into public.rate_versions (slug, label) values ('test-matrix', 'Test matr
 insert into public.distance_rates (rate_version_id, vehicle_class_id, max_pax)
 select rv.id, vc.id, 3
   from public.rate_versions rv, public.vehicle_classes vc
- where rv.slug = 'test-matrix' and vc.slug = 'economy';
+ where rv.slug = 'test-matrix' and vc.slug = 'first';
 
 insert into public.surcharges (rate_version_id, code, kind)
 select rv.id, 'night', 'percent'
@@ -99,7 +101,7 @@ select throws_ok(
     insert into public.fixed_routes (rate_version_id, origin_zone_id, dest_zone_id, vehicle_class_id, price_rappen, live)
     select rv.id, z1.id, z2.id, vc.id, 1, true
       from public.rate_versions rv, public.service_zones z1, public.service_zones z2, public.vehicle_classes vc
-     where rv.slug = 'test-matrix' and z1.slug = 'zrh-airport' and z2.slug = 'zurich-city' and vc.slug = 'economy'
+     where rv.slug = 'test-matrix' and z1.slug = 'rvp-zone-a' and z2.slug = 'rvp-zone-b' and vc.slug = 'first'
   $$,
   '23001',
   null,
@@ -110,7 +112,7 @@ select lives_ok(
     insert into public.fixed_routes (rate_version_id, origin_zone_id, dest_zone_id, vehicle_class_id, price_rappen, live)
     select rv.id, z1.id, z2.id, vc.id, 1, true
       from public.rate_versions rv, public.service_zones z1, public.service_zones z2, public.vehicle_classes vc
-     where rv.slug = 'test-matrix-draft2' and z1.slug = 'zrh-airport' and z2.slug = 'zurich-city' and vc.slug = 'economy'
+     where rv.slug = 'test-matrix-draft2' and z1.slug = 'rvp-zone-a' and z2.slug = 'rvp-zone-b' and vc.slug = 'first'
   $$,
   'the same INSERT against a draft rate_version succeeds'
 );
@@ -119,7 +121,7 @@ select throws_ok(
     insert into public.distance_rates (rate_version_id, vehicle_class_id, max_pax)
     select rv.id, vc.id, 3
       from public.rate_versions rv, public.vehicle_classes vc
-     where rv.slug = 'test-matrix' and vc.slug = 'economy'
+     where rv.slug = 'test-matrix' and vc.slug = 'first'
   $$,
   '23001',
   null,

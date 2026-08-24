@@ -16,15 +16,17 @@ begin;
 select plan(12);
 
 -- Fixtures -----------------------------------------------------------------------------------
-insert into public.settings (id) values (1);   -- chauffeur_turnaround_minutes defaults to 30
+-- DEVIATION (Rule 1, bug fix -- Plan 02-09 seeds the settings singleton): the id=1 row already
+-- exists from supabase/seed.sql with chauffeur_turnaround_minutes=30 (D-14), so this insert
+-- would collide on settings_pkey and is no longer needed.
 
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
-values ('economy', 3, 3);
+values ('first', 3, 3);
 
 insert into public.vehicles (vehicle_class_id, model, plate)
-select vc.id, 'Mercedes E-Class', 'ZH-1 EXCL' from public.vehicle_classes vc where vc.slug = 'economy';
+select vc.id, 'Mercedes E-Class', 'ZH-1 EXCL' from public.vehicle_classes vc where vc.slug = 'first';
 insert into public.vehicles (vehicle_class_id, model, plate)
-select vc.id, 'Mercedes E-Class', 'ZH-2 EXCL' from public.vehicle_classes vc where vc.slug = 'economy';
+select vc.id, 'Mercedes E-Class', 'ZH-2 EXCL' from public.vehicle_classes vc where vc.slug = 'first';
 
 insert into public.chauffeurs (full_name, phone, licence_number) values ('Chauffeur A', '+41 79 000 00 01', 'LIC-A');
 insert into public.chauffeurs (full_name, phone, licence_number) values ('Chauffeur C', '+41 79 000 00 03', 'LIC-C');
@@ -41,7 +43,7 @@ select b.id, 1, 'outbound', 'ZRH Airport', 'Zurich HB',
        '2027-06-01 10:00:00+02'::timestamptz, '2027-06-01T10:00',
        vc.id, 60, c.id
   from public.bookings b, public.vehicle_classes vc, public.chauffeurs c
- where b.contact_email = 'excl-1@vamostaxi.eu' and vc.slug = 'economy' and c.full_name = 'Chauffeur A';
+ where b.contact_email = 'excl-1@vamostaxi.eu' and vc.slug = 'first' and c.full_name = 'Chauffeur A';
 
 select throws_ok(
   $$
@@ -57,7 +59,7 @@ select throws_ok(
            '2027-06-01 10:30:00+02'::timestamptz, '2027-06-01T10:30',
            vc.id, 60, c.id
       from nb, public.vehicle_classes vc, public.chauffeurs c
-     where vc.slug = 'economy' and c.full_name = 'Chauffeur A'
+     where vc.slug = 'first' and c.full_name = 'Chauffeur A'
   $$,
   '23P01',
   null,
@@ -77,7 +79,7 @@ select throws_like(
            '2027-06-01 10:30:00+02'::timestamptz, '2027-06-01T10:30',
            vc.id, 60, c.id
       from nb, public.vehicle_classes vc, public.chauffeurs c
-     where vc.slug = 'economy' and c.full_name = 'Chauffeur A'
+     where vc.slug = 'first' and c.full_name = 'Chauffeur A'
   $$,
   '%booking_legs_chauffeur_no_overlap%',
   'the 23P01 violation names booking_legs_chauffeur_no_overlap in its message'
@@ -102,7 +104,7 @@ select lives_ok(
            '2027-06-01 10:30:00+02'::timestamptz, '2027-06-01T10:30',
            vc.id, 60, c.id
       from nb, public.vehicle_classes vc, public.chauffeurs c
-     where vc.slug = 'economy' and c.full_name = 'Chauffeur A'
+     where vc.slug = 'first' and c.full_name = 'Chauffeur A'
   $$,
   'a cancelled leg does not block: the same overlapping assignment now succeeds'
 );
@@ -118,7 +120,7 @@ select b.id, 1, 'outbound', 'Zurich HB', 'Zermatt',
        '2027-06-02 10:00:00+02'::timestamptz, '2027-06-02T10:00',
        vc.id, 180, c.id
   from public.bookings b, public.vehicle_classes vc, public.chauffeurs c
- where b.contact_email = 'excl-4@vamostaxi.eu' and vc.slug = 'economy' and c.full_name = 'Chauffeur C';
+ where b.contact_email = 'excl-4@vamostaxi.eu' and vc.slug = 'first' and c.full_name = 'Chauffeur C';
 
 select throws_ok(
   $$
@@ -134,7 +136,7 @@ select throws_ok(
            '2027-06-02 10:40:00+02'::timestamptz, '2027-06-02T10:40',
            vc.id, 60, c.id
       from nb, public.vehicle_classes vc, public.chauffeurs c
-     where vc.slug = 'economy' and c.full_name = 'Chauffeur C'
+     where vc.slug = 'first' and c.full_name = 'Chauffeur C'
   $$,
   '23P01',
   null,
@@ -154,7 +156,7 @@ select lives_ok(
            '2027-06-02 13:40:00+02'::timestamptz, '2027-06-02T13:40',
            vc.id, 60, c.id
       from nb, public.vehicle_classes vc, public.chauffeurs c
-     where vc.slug = 'economy' and c.full_name = 'Chauffeur C'
+     where vc.slug = 'first' and c.full_name = 'Chauffeur C'
   $$,
   'the same 3-hour leg does NOT block a second assignment starting 13:40 (outside the range)'
 );
@@ -174,7 +176,7 @@ select throws_ok(
            '2027-06-03 09:00:00+02'::timestamptz, '2027-06-03T09:00',
            vc.id, c.id
       from nb, public.vehicle_classes vc, public.chauffeurs c
-     where vc.slug = 'economy' and c.full_name = 'Chauffeur A'
+     where vc.slug = 'first' and c.full_name = 'Chauffeur A'
   $$,
   '23514',
   null,
@@ -191,7 +193,7 @@ select b.id, 1, 'outbound', 'ZRH Airport', 'Zurich HB',
        '2027-06-04 10:00:00+02'::timestamptz, '2027-06-04T10:00',
        vc.id, 60, v.id
   from public.bookings b, public.vehicle_classes vc, public.vehicles v
- where b.contact_email = 'excl-8@vamostaxi.eu' and vc.slug = 'economy' and v.plate = 'ZH-1 EXCL';
+ where b.contact_email = 'excl-8@vamostaxi.eu' and vc.slug = 'first' and v.plate = 'ZH-1 EXCL';
 
 select throws_ok(
   $$
@@ -207,7 +209,7 @@ select throws_ok(
            '2027-06-04 10:30:00+02'::timestamptz, '2027-06-04T10:30',
            vc.id, 60, v.id
       from nb, public.vehicle_classes vc, public.vehicles v
-     where vc.slug = 'economy' and v.plate = 'ZH-1 EXCL'
+     where vc.slug = 'first' and v.plate = 'ZH-1 EXCL'
   $$,
   '23P01',
   null,
@@ -227,7 +229,7 @@ select throws_like(
            '2027-06-04 10:30:00+02'::timestamptz, '2027-06-04T10:30',
            vc.id, 60, v.id
       from nb, public.vehicle_classes vc, public.vehicles v
-     where vc.slug = 'economy' and v.plate = 'ZH-1 EXCL'
+     where vc.slug = 'first' and v.plate = 'ZH-1 EXCL'
   $$,
   '%booking_legs_vehicle_no_overlap%',
   'the 23P01 violation names booking_legs_vehicle_no_overlap in its message'
@@ -243,7 +245,7 @@ select b.id, 1, 'outbound', 'Buffer Snapshot Fixture', 'Zurich HB',
        '2027-06-05 09:00:00+02'::timestamptz, '2027-06-05T09:00',
        vc.id, 60, c.id
   from public.bookings b, public.vehicle_classes vc, public.chauffeurs c
- where b.contact_email = 'excl-10@vamostaxi.eu' and vc.slug = 'economy' and c.full_name = 'Chauffeur X';
+ where b.contact_email = 'excl-10@vamostaxi.eu' and vc.slug = 'first' and c.full_name = 'Chauffeur X';
 
 select is(
   (select turnaround_buffer_minutes from public.booking_legs where pickup_text = 'Buffer Snapshot Fixture'),
@@ -270,7 +272,7 @@ select b.id, 1, 'outbound', 'Swap Leg P', 'Zurich HB',
        '2027-06-06 10:00:00+02'::timestamptz, '2027-06-06T10:00',
        vc.id, 60, c.id
   from public.bookings b, public.vehicle_classes vc, public.chauffeurs c
- where b.contact_email = 'excl-11@vamostaxi.eu' and vc.slug = 'economy' and c.full_name = 'Chauffeur X';
+ where b.contact_email = 'excl-11@vamostaxi.eu' and vc.slug = 'first' and c.full_name = 'Chauffeur X';
 
 insert into public.bookings (reference, contact_name, contact_email)
 values (public.next_booking_reference(), 'Exclusion Fixture 12', 'excl-12@vamostaxi.eu');
@@ -281,7 +283,7 @@ select b.id, 1, 'outbound', 'Swap Leg Q', 'Zurich HB',
        '2027-06-06 10:00:00+02'::timestamptz, '2027-06-06T10:00',
        vc.id, 60, c.id
   from public.bookings b, public.vehicle_classes vc, public.chauffeurs c
- where b.contact_email = 'excl-12@vamostaxi.eu' and vc.slug = 'economy' and c.full_name = 'Chauffeur Y';
+ where b.contact_email = 'excl-12@vamostaxi.eu' and vc.slug = 'first' and c.full_name = 'Chauffeur Y';
 
 select lives_ok(
   $$

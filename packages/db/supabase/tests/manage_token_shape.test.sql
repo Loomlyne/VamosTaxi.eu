@@ -14,7 +14,7 @@ select plan(12);
 
 -- Fixtures -----------------------------------------------------------------------------------
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
-values ('economy', 3, 3);
+values ('first', 3, 3);
 
 insert into public.bookings (reference, contact_name, contact_email)
 values (public.next_booking_reference(), 'Manage Token Fixture', 'manage-token-fixture@vamostaxi.eu');
@@ -24,7 +24,7 @@ insert into public.booking_legs (booking_id, leg_seq, direction, pickup_text, dr
 select b.id, 1, 'outbound', 'ZRH Airport', 'Zurich HB',
        '2027-06-10 09:00:00+02'::timestamptz, '2027-06-10T09:00', vc.id
   from public.bookings b, public.vehicle_classes vc
- where b.contact_email = 'manage-token-fixture@vamostaxi.eu' and vc.slug = 'economy';
+ where b.contact_email = 'manage-token-fixture@vamostaxi.eu' and vc.slug = 'first';
 
 insert into public.booking_access_tokens (booking_id, token_hash, expires_at)
 select b.id, extensions.digest('token-a', 'sha256'), now() + interval '1 day'

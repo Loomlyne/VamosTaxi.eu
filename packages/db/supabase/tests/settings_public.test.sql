@@ -7,15 +7,22 @@
 begin;
 select plan(10);
 
--- Fixture: the settings singleton (never seeded outside a test -- Plan 02-09 owns the real seed).
-insert into public.settings (id, phone) values (1, '+41 44 000 00 00');
+-- Fixture: the settings singleton. Plan 02-09's seed already inserts the id=1 row (phone ''),
+-- so this test UPDATEs the seeded row's phone instead of inserting a colliding duplicate.
+update public.settings set phone = '+41 44 000 00 00' where id = 1;
 
 insert into public.reviews (external_ref, source, author_name, body, rating, published)
 values ('sp-published', 'manual', 'Published Reviewer', 'Great ride', 5, true),
        ('sp-unpublished', 'manual', 'Unpublished Reviewer', 'Draft review', 4, false);
 
+-- DEVIATION (Rule 1, bug fix -- Plan 02-09 seeds real vehicle_classes rows): the CHECK
+-- constraint on vehicle_classes.slug only tolerates economy/business/first/van, and Plan
+-- 02-09's seed now occupies economy/business/van (D-36) -- so `first` is the one slug this
+-- fixture can still insert without colliding. The seeded `economy` row is itself already
+-- active=true with capacity 3/3, so it stands in for this test's former "active" fixture row
+-- without a duplicate insert; only the "inactive" row still needs inserting.
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity, active)
-values ('economy', 3, 3, true), ('first', 1, 1, false);
+values ('first', 1, 1, false);
 
 -- (1)-(2) anon reads settings_public, never raw settings. ----------------------------------------
 set local role anon;
@@ -50,10 +57,14 @@ select throws_ok(
 reset role;
 
 -- (6) anon sees only published reviews. -----------------------------------------------------------
+-- DEVIATION (Rule 1, bug fix -- Plan 02-09 seeds 5 real published reviews): a blanket
+-- `count(*) from public.reviews` no longer isolates this test's own two fixtures from the
+-- seeded rows. Scoping to this test's own external_refs keeps the assertion's original intent
+-- (published-only filtering) without depending on the total row count staying zero.
 set local role anon;
 select is(
-  (select count(*) from public.reviews)::int, 1,
-  '(6) anon selecting reviews returns only the published one'
+  (select count(*) from public.reviews where external_ref in ('sp-published', 'sp-unpublished'))::int, 1,
+  '(6) anon selecting this test''s own reviews returns only the published one'
 );
 
 -- (7) anon sees only active vehicle_classes. --------------------------------------------------------

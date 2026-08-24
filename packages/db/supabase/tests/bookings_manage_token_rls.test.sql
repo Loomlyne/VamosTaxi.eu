@@ -10,7 +10,7 @@ select plan(13);
 
 -- Fixtures ------------------------------------------------------------------------------------
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
-values ('economy', 3, 3);
+values ('first', 3, 3);
 insert into public.rate_versions (slug, label) values ('bmtr-rv', 'bookings_manage_token_rls fixture');
 insert into public.settings_versions (slug, label) values ('bmtr-policy', 'bookings_manage_token_rls fixture');
 
@@ -22,13 +22,13 @@ insert into public.booking_legs (booking_id, leg_seq, direction, pickup_text, dr
 select b.id, 1, 'outbound', 'ZRH', 'Zurich HB', now() + interval '3 days',
        to_char(now() + interval '3 days', 'YYYY-MM-DD"T"HH24:MI'), vc.id
   from public.bookings b, public.vehicle_classes vc
- where b.contact_email = 'bmtr-booking-a@example.test' and vc.slug = 'economy';
+ where b.contact_email = 'bmtr-booking-a@example.test' and vc.slug = 'first';
 insert into public.booking_legs (booking_id, leg_seq, direction, pickup_text, dropoff_text,
                                   scheduled_at, scheduled_local, vehicle_class_id)
 select b.id, 1, 'outbound', 'ZRH', 'Zurich HB', now() + interval '3 days',
        to_char(now() + interval '3 days', 'YYYY-MM-DD"T"HH24:MI'), vc.id
   from public.bookings b, public.vehicle_classes vc
- where b.contact_email = 'bmtr-booking-b@example.test' and vc.slug = 'economy';
+ where b.contact_email = 'bmtr-booking-b@example.test' and vc.slug = 'first';
 
 create temporary table pol as
 select jsonb_build_object('cancellation_tiers', '[]'::jsonb, 'free_cancel_hours', 24,
@@ -43,7 +43,7 @@ select gen_random_uuid(), vc.id, rv.id, false, sv.id, 'quote-engine@bmtr-a', 1, 
        pol.policy, b.id, now() + interval '30 minutes'
   from public.vehicle_classes vc, public.rate_versions rv, public.settings_versions sv,
        public.bookings b, pol
- where vc.slug = 'economy' and rv.slug = 'bmtr-rv' and sv.slug = 'bmtr-policy'
+ where vc.slug = 'first' and rv.slug = 'bmtr-rv' and sv.slug = 'bmtr-policy'
    and b.contact_email = 'bmtr-booking-a@example.test';
 insert into public.price_snapshots (
   quote_id, vehicle_class_id, rate_version_id, rate_version_is_live, settings_version_id,
@@ -53,7 +53,7 @@ select gen_random_uuid(), vc.id, rv.id, false, sv.id, 'quote-engine@bmtr-b', 1, 
        pol.policy, b.id, now() + interval '30 minutes'
   from public.vehicle_classes vc, public.rate_versions rv, public.settings_versions sv,
        public.bookings b, pol
- where vc.slug = 'economy' and rv.slug = 'bmtr-rv' and sv.slug = 'bmtr-policy'
+ where vc.slug = 'first' and rv.slug = 'bmtr-rv' and sv.slug = 'bmtr-policy'
    and b.contact_email = 'bmtr-booking-b@example.test';
 
 insert into public.price_snapshot_legs (snapshot_id, leg_seq, booking_leg_id)

@@ -13,7 +13,7 @@ select plan(23);
 
 -- Fixtures --------------------------------------------------------------------------------
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
-values ('economy', 3, 3);
+values ('first', 3, 3);
 
 insert into public.rate_versions (slug, label) values ('charge-gate-rv', 'Charge gate fixture');
 
@@ -21,7 +21,7 @@ insert into public.rate_versions (slug, label) values ('charge-gate-rv', 'Charge
 insert into public.distance_rates (rate_version_id, vehicle_class_id, max_pax, base_fare_rappen, per_km_rappen, min_fare_rappen)
 select rv.id, vc.id, 3, 1, 2, 3
   from public.rate_versions rv, public.vehicle_classes vc
- where rv.slug = 'charge-gate-rv' and vc.slug = 'economy';
+ where rv.slug = 'charge-gate-rv' and vc.slug = 'first';
 
 insert into public.surcharges (rate_version_id, code, kind, percent)
 select rv.id, 'night', 'percent', 10.00
@@ -40,14 +40,14 @@ insert into public.booking_legs (booking_id, leg_seq, direction, pickup_text, dr
 select b.id, 1, 'outbound', 'ZRH', 'Zurich HB', now() + interval '3 days',
        to_char(now() + interval '3 days', 'YYYY-MM-DD"T"HH24:MI'), vc.id
   from public.bookings b, public.vehicle_classes vc
- where b.contact_email = 'cg-booking@example.test' and vc.slug = 'economy';
+ where b.contact_email = 'cg-booking@example.test' and vc.slug = 'first';
 
 create temporary table fx as
 select vc.id as vehicle_class_id, rv.id as rate_version_id, sv.id as settings_version_id,
        b.id as booking_id
   from public.vehicle_classes vc, public.rate_versions rv, public.settings_versions sv,
        public.bookings b
- where vc.slug = 'economy' and rv.slug = 'charge-gate-rv' and sv.slug = 'charge-gate-policy'
+ where vc.slug = 'first' and rv.slug = 'charge-gate-rv' and sv.slug = 'charge-gate-policy'
    and b.contact_email = 'cg-booking@example.test';
 
 create temporary table pol as
