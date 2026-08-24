@@ -103,11 +103,18 @@ select is(
   '(13) record_id on a staff audit row equals staff.user_id (the PK adjustment works)'
 );
 
--- (14): exactly 15 audit_% triggers attached (one per drafted table). ---------------------------
+-- (14): exactly 15 triggers call tg_audit_row (one per drafted table). --------------------------
+-- DEVIATION (Rule 1, bug fix, found while writing Task 2's ...19_append_only.sql): a
+-- `tgname like 'audit\_%'` count collides with the table LITERALLY named `audit_log`, which
+-- carries its own `audit_log_append_only` / `audit_log_no_truncate` triggers (F-03/D-18) --
+-- both names legitimately start with "audit_" too, since the append-only naming convention is
+-- `<table>_append_only`/`<table>_no_truncate`. A name-prefix match cannot tell "attached to
+-- tg_audit_row" apart from "the table happens to be named audit_log"; filtering by the
+-- trigger's OWN function (tgfoid) proves the intended claim regardless of table naming.
 select is(
-  (select count(*) from pg_trigger where tgname like 'audit\_%' and not tgisinternal)::int,
+  (select count(*) from pg_trigger where tgfoid = 'public.tg_audit_row()'::regprocedure and not tgisinternal)::int,
   15,
-  '(14) exactly 15 audit_<table> triggers exist'
+  '(14) exactly 15 triggers call tg_audit_row (one per drafted table)'
 );
 
 select * from finish();
