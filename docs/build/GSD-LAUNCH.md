@@ -226,9 +226,23 @@ repository secrets (`.github/workflows/deploy-staging.yml` and `deploy-productio
 not yet configured; no Cloudflare account exists as of Phase 1 (see 01-01-SUMMARY.md).
 
 Alongside that Cloudflare pair, the deploy workflows also need three Supabase CI secrets —
-`SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD` and `SUPABASE_PROJECT_ID` — not yet configured,
-owner-held; see `docs/build/SUPABASE-RESOURCES.md` for what each one gates and the probe
-checklist that must run before the first hosted push.
+not yet configured, owner-held; see `docs/build/SUPABASE-RESOURCES.md` for the probe checklist
+that must run before the first hosted push. Each is consumed as step-level `env:` on the
+`Apply migrations + seed to <env>` step in `deploy-staging.yml` and `deploy-production.yml`
+(Plan 02-09, D-21):
+
+- `SUPABASE_ACCESS_TOKEN` — Supabase dashboard → Account → Access Tokens (a personal access
+  token scoped to the project, used by `supabase link`/`supabase db push`).
+- `SUPABASE_DB_PASSWORD` — the hosted project's Database settings page (Settings → Database →
+  Connection string's password), never the dashboard login password.
+- `SUPABASE_PROJECT_ID` — `yaumjzvylngfjhtuffqs` (Central Europe/Zurich, D-37; recorded in
+  `docs/build/SUPABASE-RESOURCES.md`).
+
+`packages/db/package.json`'s `link` script reads `SUPABASE_PROJECT_ID` with a fallback to the
+same ref (`supabase link --project-ref ${SUPABASE_PROJECT_ID:-yaumjzvylngfjhtuffqs}`), so the
+one script serves both local development (no env var set, default ref) and CI (the per-env
+secret). The `pr.yml` `database` job needs none of these three — it only ever runs against the
+local, unlinked stack (`pnpm db:start` / `db:reset` / `db:test`).
 
 The `vamos_edge` and `vamos_public` Postgres role passwords (set out-of-band per environment,
 never committed — see `packages/db/README.md` "Role passwords" for the rotation procedure)

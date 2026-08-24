@@ -87,6 +87,23 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@ab058987d8d6c725971f6cf9d0b5c98467e30bd1 # v1.7.1
+        with:
+          version: 2.115.0
+
+      # `--include-seed` re-run semantics are D-27/U3 — every seed INSERT is ON CONFLICT so
+      # either answer is safe; these secrets are not yet configured (owner-held, see
+      # SUPABASE-RESOURCES.md), so this step fails closed until they exist — the Worker deploy
+      # was already blocked on the Cloudflare secrets (01-VERIFICATION.md). One hosted project
+      # exists today (D-37), so staging and production currently point at the same ref.
+      - name: Apply migrations + seed to staging (D-21, D-27)
+        run: pnpm db:link && pnpm db:push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+
       # `pnpm --filter web deploy` runs `opennextjs-cloudflare build && opennextjs-cloudflare
       # deploy`, which wraps `wrangler deploy`; `--env staging` selects the `staging`
       # environment declared in apps/web/wrangler.jsonc (custom domain staging.vamostaxi.eu).

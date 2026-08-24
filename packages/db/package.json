@@ -14,6 +14,6 @@
     "seed:gen": "node seed/generate-seed.mjs",
     "seed:check": "node seed/generate-seed.mjs --check",
     "push": "supabase db push --include-seed",
-    "link": "supabase link --project-ref yaumjzvylngfjhtuffqs"
+    "link": "supabase link --project-ref ${SUPABASE_PROJECT_ID:-yaumjzvylngfjhtuffqs}"
   }
 }
