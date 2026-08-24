@@ -15,11 +15,18 @@ import { withRequestContext } from "./lib/logger";
 export default {
   fetch: handler.fetch,
 
-  async scheduled(controller, _env, _ctx) {
+  async scheduled(controller, env, _ctx) {
     // Phase 1: proven no-op — emits one structured line and exercises the trigger once in
     // staging (D-36, PLAT-02). Phase 4 (quote expiry) and Phase 9 (reminders / no-show
     // sweep) attach real cases here. No locale concept applies to a cron trigger, so it is
     // explicitly `null` rather than omitted.
+    //
+    // `env` (D-06/D-24, Phase 3): Cron takes its Cloudflare bindings from THIS handler
+    // argument, never from the fetch/RSC-only context helper — Placement Hints do not pin
+    // this handler either, so its latency sits outside DATA-05 by design. A future case
+    // that needs identity-scoped data reads it past the response boundary as
+    // `ctx.waitUntil(asCustomer(env, claims, fn))` — a fresh client and a fresh transaction
+    // every time, never a handle captured from an earlier call.
     const emit = withRequestContext({
       requestId: crypto.randomUUID(),
       route: `scheduled:${controller.cron}`,
@@ -31,10 +38,15 @@ export default {
     });
   },
 
-  async queue(batch, _env, _ctx) {
+  async queue(batch, env, _ctx) {
     // Phase 1: proven no-op. Phase 5 (Stripe webhook fan-out) attaches a real consumer
     // here. Every message is acknowledged so nothing sits unretried against an empty
     // handler; the outcome of that acknowledgement is itself part of the structured line.
+    //
+    // `env` (D-06/D-24, Phase 3): same handler-argument rule as `scheduled` above — Queue
+    // consumers take their bindings here, never from the fetch/RSC-only context helper, and
+    // Placement Hints do not pin this handler either. A future consumer opens an identity
+    // door the same way: `ctx.waitUntil(asStaff(env, claims, fn))`, never a captured `tx`.
     for (const message of batch.messages) {
       const emit = withRequestContext({
         requestId: message.id,

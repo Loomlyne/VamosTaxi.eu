@@ -70,6 +70,14 @@ const nextConfig: NextConfig = {
       { source: "/:locale/dev/:path*", headers: noindex },
     ];
   },
+
+  // D-13: `@vamos/db`'s `exports` map (`packages/db/package.json`) points straight at
+  // TypeScript source (`./src/identity.ts`, not a compiled `dist/`) — without transpiling
+  // it, `next build` treats it as a pre-built dependency and every import of a named
+  // wrapper's core (`@vamos/db/identity`, `@vamos/db/public`) fails to compile. This is the
+  // OpenNext-importable half of D-13; the workspace dependency in `package.json` above is
+  // the other half.
+  transpilePackages: ["@vamos/db"],
 };
 
 // Lets `next dev` read Cloudflare bindings (KV/R2/Queues/Hyperdrive) locally
