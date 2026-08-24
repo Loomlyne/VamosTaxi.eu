@@ -43,14 +43,36 @@ interface CloudflareEnv {
   STRIPE_EVENTS: Queue;
 
   /**
-   * Supabase direct-connection pool via Cloudflare Hyperdrive. Declared only under
-   * `env.production` in `wrangler.jsonc`, with a placeholder id — Phase 3 owns the real
-   * connection string (T-01-12: never guessed here). Optional because `env.staging` has no
-   * matching `hyperdrive` block until Phase 3 provisions one; a Phase 3-7 consumer that reads
-   * `env.HYPERDRIVE` without a null check gets a compile error under `strict`, which is the
-   * point — this binding must never be assumed present before Phase 3 lands it everywhere.
+   * Supabase direct-connection pool via Cloudflare Hyperdrive — the cacheable, public-content
+   * path (`apps/web/wrangler.jsonc` `env.production.hyperdrive`, `env.staging`'s twin stays
+   * commented until plan 03-07 supplies a real config id). `lib/db/public.ts`'s `publicSql`
+   * is the only consumer (D-11): `vamos_public`, branded to the five §14d public tables,
+   * never identity or billing data. Required, not optional (D-13/FC-07) — Phase 3 wires both
+   * bindings everywhere `wrangler.jsonc` declares them, so a Phase 3-7 consumer that mistypes
+   * or forgets to declare it gets a compile error, not a runtime `undefined`.
    */
-  HYPERDRIVE?: Hyperdrive;
+  HYPERDRIVE: Hyperdrive;
+
+  /**
+   * Supabase direct-connection pool via Cloudflare Hyperdrive — the cache-disabled,
+   * identity-and-billing path (`apps/web/wrangler.jsonc` `env.production.hyperdrive`,
+   * `env.staging`'s twin stays commented until plan 03-07 supplies a real config id).
+   * `lib/db/identity.ts`'s five named wrappers (`asAnon`/`asCustomer`/`asStaff`/`asGuest`/
+   * `asQuote`) are the only consumer (D-08/D-12) — anything carrying identity, auth,
+   * permissions or the `pricing_live` flag reads this binding, never the cacheable
+   * `HYPERDRIVE` above. Required, not optional, matching `HYPERDRIVE`'s reasoning.
+   */
+  HYPERDRIVE_NOCACHE: Hyperdrive;
+
+  /**
+   * Workers Analytics Engine binding for DATA-05's latency instrument (`apps/web/wrangler.jsonc`
+   * `env.staging`/`env.production` `analytics_engine_datasets`, dataset `vamos_db_latency`).
+   * `lib/db/identity.ts` writes one data point per `withIdentity` call, on both the success
+   * and the error branch (D-23); the p50 itself is queried later with
+   * `quantileExactWeighted(0.5)` from a deployed staging Worker (plan 03-07) — this binding's
+   * existence is necessary but not sufficient for that number to exist.
+   */
+  DB_LATENCY: AnalyticsEngineDataset;
 
   /**
    * Plain, non-secret deploy-environment marker (`apps/web/wrangler.jsonc` `env.staging`

@@ -54,11 +54,45 @@
       },
       "triggers": {
         "crons": ["0 3 * * *"]
-      }
-      // hyperdrive omitted here: unlike the other bindings, wrangler deploy
-      // validates the id against the API as a real UUID — a placeholder
-      // fails the deploy outright. Phase 3 adds it back once
-      // `wrangler hyperdrive create` runs against a real Supabase Postgres.
+      },
+      // Placement Hints (D-22), not Smart Placement — one single-homed database, so Smart
+      // Placement's learn-over-traffic model solves the wrong problem and takes up to 15
+      // minutes to warm up; a Placement Hint is deterministic from the first deploy. The
+      // region below is Zurich — the AWS region backing Supabase project
+      // `yaumjzvylngfjhtuffqs` (Phase 2 D-37) — superseding `03-RESEARCH.md`'s stale
+      // Frankfurt-region hint (D-25). This pins **fetch handlers only** (D-24): the
+      // `triggers.crons` above and the `queues.consumers` above are unplaced, and their
+      // latency is explicitly outside DATA-05.
+      "placement": { "region": "aws:eu-central-2" },
+      // DATA-05's instrument (D-23): every `withIdentity` call from
+      // `apps/web/lib/db/identity.ts` writes one Workers Analytics Engine data point here,
+      // on both the success and the error branch. The dataset exists from this plan
+      // forward; the p50 percentile itself stays literally DEFERRED (`DATA-05 p50 =
+      // DEFERRED (no staging Worker)`) until plan 03-07 deploys a staging Worker that has
+      // actually written points — a local timing is not the criterion (D-27).
+      "analytics_engine_datasets": [
+        { "binding": "DB_LATENCY", "dataset": "vamos_db_latency" }
+      ]
+      // hyperdrive stays commented out here: unlike the other bindings, wrangler deploy
+      // validates the id against the API as a real UUID — a placeholder fails the deploy
+      // outright, and the Cloudflare API token / account id this needs are still
+      // owner-held (D-29). The block below is the exact two-config shape plan 03-07
+      // uncommments once `wrangler hyperdrive create` (run twice — `--caching-disabled`
+      // on the identity config) returns real config ids. TODO(03-07): uncomment and
+      // replace both `id` placeholders with the real config ids.
+      //
+      // "hyperdrive": [
+      //   {
+      //     "binding": "HYPERDRIVE",
+      //     "id": "<public/cacheable config id — plan 03-07, wrangler hyperdrive create>",
+      //     "localConnectionString": "postgres://vamos_public:vamos_public@127.0.0.1:54322/postgres"
+      //   },
+      //   {
+      //     "binding": "HYPERDRIVE_NOCACHE",
+      //     "id": "<cache-disabled config id — plan 03-07, wrangler hyperdrive create --caching-disabled>",
+      //     "localConnectionString": "postgres://vamos_edge:vamos_edge@127.0.0.1:54322/postgres"
+      //   }
+      // ]
     },
     "production": {
       "name": "vamos-web-production",
@@ -85,16 +119,46 @@
       "triggers": {
         "crons": ["0 3 * * *"]
       },
+      // Placement Hints (D-22), not Smart Placement — see env.staging's comment above for
+      // the full reasoning; identical here. The region below is Zurich (D-25),
+      // superseding `03-RESEARCH.md`'s stale Frankfurt-region hint. Pins fetch handlers
+      // only (D-24) — the Queues/Cron blocks above are unplaced.
+      "placement": { "region": "aws:eu-central-2" },
+      // DATA-05's instrument (D-23) — see env.staging's comment above. The p50 stays
+      // DEFERRED until plan 03-07 measures it from a deployed staging Worker; production
+      // is not the measurement environment (not deployed until Phase 11 per D-33 above).
+      "analytics_engine_datasets": [
+        { "binding": "DB_LATENCY", "dataset": "vamos_db_latency" }
+      ],
+      // Two Hyperdrive configs (D-01/D-03), never one: `HYPERDRIVE` is the cacheable,
+      // public-content path (`vamos_public`, origin-connection-limit 15 at create time);
+      // `HYPERDRIVE_NOCACHE` is cache-disabled for anything carrying identity, auth,
+      // permissions or the `pricing_live` flag (`vamos_edge`, origin-connection-limit 25).
+      // Both point at Supabase's DIRECT connection string on port 5432 — never Supavisor's
+      // pooled port (D-02); Hyperdrive *is* the pooler, and double-pooling only surfaces
+      // under real concurrency. The credential for each config lives inside the
+      // Hyperdrive config object addressed by the opaque `id` below — never in this file,
+      // never `wrangler secret put` (D-01). Both `id`s stay descriptive placeholders until
+      // plan 03-07 runs `wrangler hyperdrive create` against the real Supabase project and
+      // points these bindings at the real configs; origin connection limits are set at
+      // that same create time, not here.
       "hyperdrive": [
         {
           "binding": "HYPERDRIVE",
-          "id": "<created in Phase 3, points at Supabase's direct connection string, never the pooled 6543 Supavisor string>",
-          // Not a secret — a placeholder pointing at localhost, required so
-          // `wrangler dev`/`preview` can boot the platform proxy locally
-          // before any code queries this binding (D-04, Pitfall 4). Phase 3
-          // wires a real Hyperdrive config; nothing in Phase 1 connects to
-          // this binding yet, and production never deploys before then.
-          "localConnectionString": "postgres://postgres:postgres@localhost:5432/postgres"
+          "id": "<public/cacheable config id — created by plan 03-07 via `wrangler hyperdrive create`, points at Supabase's direct connection string as vamos_public, never the pooled 6543 Supavisor string>",
+          // Not a secret — a placeholder pointing at local Supabase (D-04): port 54322,
+          // not 5432, logging in as `vamos_public` — not the pre-roles `postgres`
+          // superuser this string replaces, which carried BYPASSRLS and made the `42501`
+          // fail-closed boundary untestable. Required so `wrangler dev`/`preview` can
+          // boot the platform proxy locally before any code queries this binding.
+          "localConnectionString": "postgres://vamos_public:vamos_public@127.0.0.1:54322/postgres"
+        },
+        {
+          "binding": "HYPERDRIVE_NOCACHE",
+          "id": "<cache-disabled config id — created by plan 03-07 via `wrangler hyperdrive create --caching-disabled`, points at Supabase's direct connection string as vamos_edge, never the pooled 6543 Supavisor string>",
+          // Local Supabase, port 54322, `vamos_edge` — same reasoning as the sibling
+          // entry's comment above, different login role.
+          "localConnectionString": "postgres://vamos_edge:vamos_edge@127.0.0.1:54322/postgres"
         }
       ]
     }
