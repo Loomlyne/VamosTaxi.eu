@@ -159,7 +159,7 @@ under concurrency, not just smoke-tested.
 Plans:
 **Wave 1**
 
-- [ ] 03-01-PLAN.md — Wave 0 + hard gate: `@vamos/db` as a real module, `withIdentity` at the frozen signature, database-free contract test
+- [x] 03-01-PLAN.md — Wave 0 + hard gate: `@vamos/db` as a real module, `withIdentity` at the frozen signature, database-free contract test
 
 **Wave 2** *(blocked on Wave 1 completion; 03-02 owns the local Docker stack, 03-03 and 03-04 are database-free)*
 
@@ -330,7 +330,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 
 |-------|----------------|--------|-----------|
 | 1. Platform Foundation, Design System Port & i18n Runtime | 11/14 | In Progress|  |
 | 2. Data Schema, RLS & Staff Auth Foundations | 9/10 | In Progress|  |
-| 3. Hyperdrive Data Access Wiring | 0/TBD | Not started | - |
+| 3. Hyperdrive Data Access Wiring | 1/7 | In Progress|  |
 | 4. Quote & Pricing Engine | 0/TBD | Not started | - |
 | 5. Public Surfaces & Customer Accounts | 0/TBD | Not started | - |
 | 6. Ops Reference Data & Content Console | 0/TBD | Not started | - |

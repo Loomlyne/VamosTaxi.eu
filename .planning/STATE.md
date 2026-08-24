@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-09-PLAN.md
-last_updated: "2026-08-24T15:43:28.994Z"
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-08-24T19:24:55.748Z"
 last_activity: 2026-08-24
 progress:
   total_phases: 11
   completed_phases: 1
   total_plans: 33
-  completed_plans: 23
+  completed_plans: 24
   percent: 9
 ---
 
@@ -23,16 +23,16 @@ See: .planning/PROJECT.md (updated 2026-08-17)
 **Core value:** A customer can book a fixed-price transfer in under a minute and trust that
 the driver will be there. If nothing else works, the booking funnel — quote, pay,
 confirmation — must.
-**Current focus:** Phase 2 — Data Schema, RLS & Staff Auth Foundations
+**Current focus:** Phase 3 — Hyperdrive Data Access Wiring
 
 ## Current Position
 
-Phase: 2 of 11 (Data Schema, RLS & Staff Auth Foundations) — planned, not started
-Plan: 9 of 10 in current phase
-Status: Ready to execute
+Phase: 3 of 11 (Hyperdrive Data Access Wiring) — in progress
+Plan: 1 of 7 in current phase complete (03-01 done, 03-02 next)
+Status: In progress
 Last activity: 2026-08-24
 
-Progress: [███████░░░] 70%
+Progress: [███████░░░] 73%
 
 ## Performance Metrics
 
@@ -78,6 +78,7 @@ Progress: [███████░░░] 70%
 | Phase 02 P07 | ~50min | 3 tasks | 9 files |
 | Phase 02 P08 | ~90min | 3 tasks | 12 files |
 | Phase 02 P09 | 90min | 3 tasks | 32 files |
+| Phase 03 P01 | 11min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -146,6 +147,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 02-09: seed generator wraps every insert in a security-definer public.__seed_apply() function so pgTAP can re-invoke the whole seed a second time inside one transaction, proving D-27 idempotency without shelling out to psql
 - [Phase ?]: 02-09: settings_versions is the one seed target using ON CONFLICT DO NOTHING (F-02 append-only); vehicle_classes' never-seeded 'first' slug is now the cross-suite pgTAP fixture value since economy/business/van are real seeded rows
 - [Phase ?]: 02-09: tg_audit_row's coalesce chain extended to resolve content_strings' PK (key, not id/user_id) -- the seed's first content_strings insert was the first write ever to trip this gap
+- [Phase 03-01]: QUOTE_PG_ROLE implemented as "anon" per the frozen interfaces/D-44a, not the plan's own Task-3 acceptance-grep line that implied "authenticated" -- interfaces block treated as authoritative over a stale acceptance-criteria line
+- [Phase 03-01]: fn-cannot-return-tx (D-08) implemented as a conditional applied to the callback parameter's return type, verified empirically -- removing the test's @ts-expect-error produced a real TS2345 at the return tx line
 
 ### Pending Todos
 
@@ -181,6 +184,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-24T15:43:28.989Z
-Stopped at: Completed 02-09-PLAN.md
+Last session: 2026-08-24T19:24:48.818Z
+Stopped at: Completed 03-01-PLAN.md
 Resume file: None
