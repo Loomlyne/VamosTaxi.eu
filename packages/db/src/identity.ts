@@ -96,6 +96,15 @@ export const ENTRY_PROBE = `select current_user as user_at_entry,
        pg_backend_pid() as pid,
        clock_timestamp() as t0`;
 
+/** The shape one row of `ENTRY_PROBE` resolves to. */
+export interface EntryProbeRow {
+  user_at_entry: string;
+  claims_at_entry: string;
+  guest_at_entry: string;
+  pid: number;
+  t0: Date;
+}
+
 // Per-invocation client, never module scope (invariant 5 above). A pool size of exactly one —
 // this connection exists for exactly one request's identity-scoped work. `fetch_types: false`
 // keeps startup light; the prepared-statement option below is load-bearing — Hyperdrive's own
@@ -123,7 +132,10 @@ function client(connectionString: string): postgres.Sql {
  *
  * `opts.probe` makes `ENTRY_PROBE` the first statement inside the transaction — the only place
  * residue from a previous request is observable. Production never sets it; the probe Worker
- * always does (D-15).
+ * always does (D-15). `fn` runs AFTER the identity is bound (steps 1-2 below), so it can never
+ * see the pre-bind row itself — `opts.onProbe`, invoked with that one row before binding
+ * proceeds, is the only way a caller observes it. Both are test-only, matching `opts.client`;
+ * production sets neither.
  */
 export async function withIdentity<K extends IdentityKind, T>(
   connectionString: string,
@@ -132,7 +144,7 @@ export async function withIdentity<K extends IdentityKind, T>(
   fn: (
     tx: postgres.TransactionSql,
   ) => Promise<T extends postgres.TransactionSql | postgres.Sql ? never : T>,
-  opts?: { probe?: boolean; client?: postgres.Sql },
+  opts?: { probe?: boolean; client?: postgres.Sql; onProbe?: (row: EntryProbeRow) => void },
 ): Promise<T> {
   const sql = opts?.client ?? client(connectionString);
 
@@ -140,7 +152,10 @@ export async function withIdentity<K extends IdentityKind, T>(
     if (opts?.probe) {
       // The one allow-listed raw-SQL call in the identity path (plan 03-06's CI fence keys on
       // this comment) — ENTRY_PROBE interpolates nothing, it is a fixed module constant.
-      await tx.unsafe(ENTRY_PROBE);
+      const probeRows = await tx.unsafe(ENTRY_PROBE);
+      if (opts.onProbe && probeRows[0]) {
+        opts.onProbe(probeRows[0] as unknown as EntryProbeRow);
+      }
     }
 
     // 1. Drop to the least-privileged role. Bound parameter, extended protocol — never string
