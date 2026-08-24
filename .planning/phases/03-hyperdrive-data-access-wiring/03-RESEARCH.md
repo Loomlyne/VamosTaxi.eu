@@ -1,5 +1,16 @@
 # Phase 3 Research — Hyperdrive Data Access Wiring
 
+> **SUPERSESSION NOTICE (2026-08-23, plan 03-03, `03-CONTEXT.md` D-25/D-26/D-27):** The
+> Placement Hint region throughout this document is corrected in place to `aws:eu-central-2`
+> — Central Europe (Zurich), the AWS region Supabase's own regions table records for project
+> `yaumjzvylngfjhtuffqs` (Phase 2 D-37). Every prior Frankfurt-region value below has been
+> replaced with this one. Separately, and left unchanged in substance: **every latency figure
+> below was derived from that stale Frankfurt placement assumption and is an expectation to be
+> re-measured, not a carried-over baseline** — nothing in the design changes, but no number in
+> this document may be cited as a measurement. DATA-05's staging p50 stays literally
+> **DEFERRED** until plan 03-07 measures it from a deployed staging Worker via Workers
+> Analytics Engine.
+
 **Date:** 2026-08-22.
 **Requirements:** DATA-05, DATA-06.
 **Builds on (does not re-litigate):** D1–D24 in `02-RESEARCH.md`. If this document
@@ -57,7 +68,7 @@ Worker — when it exists — proves the probe, not the OpenNext app (U31).
    Route Handler or exports `dynamic = "force-dynamic"` (grep covers the
    named wrappers, `@vamos/db`, and `@/lib/db/public` with a content-page
    allow-list).
-7. Placement Hints `"placement": { "region": "aws:eu-central-1" }` under both
+7. Placement Hints `"placement": { "region": "aws:eu-central-2" }` under both
    named environments — not Smart Placement. Placement pins **fetch only**.
    Queues/Cron are unplaced; their latency is out of DATA-05 (D31, D83).
 8. Workers Analytics Engine instrumentation of every `withIdentity` call, so
@@ -972,7 +983,7 @@ source.
 ## Lane 5 — Latency instrumentation (DATA-05)
 
 **Verdict:** p50 < 30 ms measures one identity-scoped `withIdentity` call
-from a Worker placed next to Frankfurt, not page TTFB. Instrument with
+from a Worker placed next to Zurich, not page TTFB. Instrument with
 Workers Analytics Engine. Placement Hints, not Smart Placement. The number
 **cannot be asserted** until a staging Worker exists. Record it as
 **DEFERRED**.
@@ -997,7 +1008,7 @@ role, `set_config` claims, the query, COMMIT) unless pipelined
 *"1–3 ms when placed nearby"* per round trip → 5–15 ms, under the 30 ms
 bar. *"20–30 ms from a distant region"* → 100–150 ms, a 3–5× miss.
 **The entire margin between passing and failing is Worker placement, not
-query optimisation.** Placement near Frankfurt is a hard requirement of
+query optimisation.** Placement near Zurich is a hard requirement of
 this design, not an optimisation — the same conclusion Phase 2 already
 drew, independent of ADR-007's residency framing.
 
@@ -1005,10 +1016,10 @@ drew, independent of ADR-007's residency framing.
 
 | | Smart Placement | Placement Hints |
 |---|---|---|
-| Config | `"placement": { "mode": "smart" }` | `"placement": { "region": "aws:eu-central-1" }` |
+| Config | `"placement": { "mode": "smart" }` | `"placement": { "region": "aws:eu-central-2" }` |
 | Mechanism | Learns over traffic which PoP is significantly faster than running near the requester | Deterministic: runs in the Cloudflare data centre with lowest latency to the named cloud region, from the first deploy |
 | Warm-up | Needs consistent multi-location traffic; up to 15 minutes to activate | Immediate |
-| Fit here | Poor — one back end (Supabase Frankfurt); no ambiguity for the learner to resolve | **Correct** — Cloudflare's own guidance for a single-homed database |
+| Fit here | Poor — one back end (Supabase Zurich); no ambiguity for the learner to resolve | **Correct** — Cloudflare's own guidance for a single-homed database |
 
 (`hyperdrive-wiring.md` §4.2, citing Smart Placement docs and the
 2026-01-22 Placement Hints changelog.)
@@ -1037,9 +1048,10 @@ handlers take `env` from the Worker argument; `getCloudflareContext()` is
 an OpenNext fetch/RSC API (FC-10).
 
 Whether `placement.host` / `placement.hostname` L4/L7 probes are needed
-for Hyperdrive, or the `region` shorthand is enough, is U25. Confirm the
-provisioned Supabase project's region is actually `eu-central-1` (Frankfurt)
-before treating `aws:eu-central-1` as the right value.
+for Hyperdrive, or the `region` shorthand is enough, is U25. The
+provisioned Supabase project's region is confirmed `eu-central-2` (Zurich,
+Phase 2 D-37) — `aws:eu-central-2` is the right value; what remains open in
+U25 is only whether the `region` shorthand alone suffices for Hyperdrive.
 
 ### Instrumenting without paid APM
 
@@ -1076,14 +1088,14 @@ plus a `console.log` of `{ event: "db_latency", kind, ms }` is a debugging
 tool (`wrangler tail`). It has no built-in percentile aggregation. It is
 not the thing that answers "what's our p50."
 
-### Realistic eu-central figures
+### Realistic eu-central-2 figures
 
-With Placement Hints pinning the Worker near `eu-central-1` and Supabase in
-Frankfurt: expect the 5-RTT `withIdentity` shape in the **single-digit to
+With Placement Hints pinning the Worker near `eu-central-2` and Supabase in
+Zurich: expect the 5-RTT `withIdentity` shape in the **single-digit to
 low-teens milliseconds** for a single-row read, based on Cloudflare's
 1–3 ms/RTT-when-nearby figure, with index-seek execution itself
 sub-millisecond on `bookings.customer_id` (`hyperdrive-wiring.md` §4.4).
-From a US or APAC PoP against Frankfurt: **100–150 ms**, a miss.
+From a US or APAC PoP against Zurich: **100–150 ms**, a miss.
 
 **This cannot be asserted with a precise figure before real infrastructure
 exists.** Do not accept "should be fine" from this document or from
@@ -1120,7 +1132,7 @@ D1–D24 remain settled. New decisions start at D25.
 | D28 | `withIdentity` location and signature | `packages/db/src/identity.ts`: `withIdentity(connectionString, kind, claims, fn, opts?)`. Named wrappers `asCustomer` / `asStaff` / `asGuest` / `asAnon` in `apps/web/lib/db/identity.ts` take `env`, extract the string, write WAE | File in `apps/web` only (Phase 2 sketch); `env` as first arg of the core function; union-object identity | Probe and app must import the same function (`isolation-proof.md` §6). `packages/db` must not depend on OpenNext `env`. Wave A asked for `kind, claims, fn` (`hyperdrive-wiring.md` §3) | DATA-06 proof; every identity-scoped query |
 | D29 | Closed role map | `PG_ROLE = { anon: "anon", customer: "authenticated", staff: "vamos_staff", guest: "vamos_guest" }`. Claims JSON strips `user_metadata` | Reading the role name from the JWT; passing `user_metadata` through | D2's grant boundary made syntactically impossible to bypass from the caller. `user_metadata` is user-writable (D4) | U1 fallback changes only `PG_ROLE.customer` |
 | D30 | Forgotten wrapper | SQLSTATE `42501`. `postgres` importable only from the two `packages/db` modules (+ staging probe). ESLint / CI grep is the compile-time half | Relying on Hyperdrive `RESET`; returning zero rows as "safe enough" | D2. If `nowrapper` ever returns a number, the design is void (`isolation-proof.md` §9 NC3) | DATA-02/03/04 remaining true under concurrency |
-| D31 | Worker placement | Placement Hints `"placement": { "region": "aws:eu-central-1" }` inside each `env.*` block | Smart Placement (`mode: "smart"`); no placement; a top-level `placement` key | Nearby RTT is the whole DATA-05 margin. Smart Placement learns slowly and solves the wrong problem (one back end, known region). Named envs drop top-level keys (`hyperdrive-wiring.md` §4.2) | DATA-05; does **not** place Queues/Cron |
+| D31 | Worker placement | Placement Hints `"placement": { "region": "aws:eu-central-2" }` inside each `env.*` block | Smart Placement (`mode: "smart"`); no placement; a top-level `placement` key | Nearby RTT is the whole DATA-05 margin. Smart Placement learns slowly and solves the wrong problem (one back end, known region). Named envs drop top-level keys (`hyperdrive-wiring.md` §4.2) | DATA-05; does **not** place Queues/Cron |
 | D32 | Latency instrumentation | WAE dataset `vamos_db_latency`, written from the apps/web wrappers, queried with `quantileExactWeighted(0.5)`. Staging p50 **DEFERRED** until a Worker exists | Paid APM; asserting Cloudflare's 1–3 ms figure; treating a local timing as the gate; Workers Logs as the percentile source | Free, built-in, actual percentile over traffic (`hyperdrive-wiring.md` §4.3–4.4). A local number is laptop-to-localhost | DATA-05 success criterion |
 | D33 | Isolation-proof architecture | Staging-only `apps/isolation-probe` importing `@vamos/db`; Vitest `node` (not Playwright, not vitest-pool-workers); adjacency/`S` coverage; residue probe as first statement when `opts.probe`; six deployed negative controls + two local mutants | Probe routes in `apps/web`; Playwright; Miniflare; "200 requests returned the right rows" without `S` | Without shared-backend coverage and a red negative control the gate is theatre (`isolation-proof.md` §0, §5, §7, §9) | DATA-06 |
 | D34 | Local connection string | Port **54322**; identity binding logs in as `vamos_edge`; public binding as `vamos_public` | Port 5432; `postgres:postgres` as the Worker login once roles exist | `supabase start` listens on 54322 (`02-RESEARCH.md` Lane 6). Superuser `BYPASSRLS` would make D2 untestable locally (`isolation-proof.md` §5.1). Until Phase 2 roles land, `wrangler dev` may keep the current postgres placeholder so the platform boots | Local P1–P5; not a DATA-06 vehicle |
@@ -1153,12 +1165,12 @@ start at U23. U4–U22 stay Phase 2's; they are not re-listed.
 | U3 | Does `supabase db push --include-seed` re-run the seed on every push or only once? | The CLI reference documents the flag but not the re-run semantics; a June 2026 community note says remote projects do not pick up seed files without it | `supabase db push --include-seed --dry-run` against a scratch project, then a real second push and diff row counts | The `deploy-staging.yml` migration step; makes `ON CONFLICT` load-bearing rather than optional |
 | U23 | Does `wrangler hyperdrive update` accept `--caching-disabled`, or is it create-time only? | Docs show the flag only on `create` (`hyperdrive-wiring.md` §1.3, U-DATA05-1) | `npx wrangler hyperdrive update <id> --caching-disabled --help` against a real config. If unsupported, the runbook is delete + recreate + re-point the binding id | Wrong-cache-mode recovery; not the happy-path create |
 | U24 | Does `getCloudflareContext()` "async mode" change this usage? | Mentioned in passing in OpenNext docs, not fully specified (`hyperdrive-wiring.md` §2.3b, U-DATA05-2) | Smoke-test one RLS-gated route through `opennextjs-cloudflare build && preview`, not only `next dev` | Identity path on a real OpenNext request context |
-| U25 | Is `placement.region` enough for Hyperdrive, or do `host` / `hostname` L4/L7 probes need adding? | Docs describe host probes for infrastructure *not* on a named cloud provider. Supabase `db.<ref>.supabase.co` likely resolves to AWS in `eu-central-1`, but that is an assumption (`hyperdrive-wiring.md` §4.2, U-DATA05-3) | Confirm the provisioned project's region setting. Measure p50 with the region hint alone; add host probes only if it misses | DATA-05 measurement (deferred) |
+| U25 | Is `placement.region` enough for Hyperdrive, or do `host` / `hostname` L4/L7 probes need adding? | Docs describe host probes for infrastructure *not* on a named cloud provider. Supabase's region confirms AWS `eu-central-2` (Phase 2 D-37) — the region half is closed; the probe-vs-shorthand half is not (`hyperdrive-wiring.md` §4.2, U-DATA05-3) | Measure p50 with the region hint alone; add host probes only if it misses | DATA-05 measurement (deferred) |
 | U26 | Sequential `await tx\`...\`` inside `sql.begin`: 5 flushes, or pipelined? | postgres.js may coalesce even the non-array form (`hyperdrive-wiring.md` §4.4, U-DATA05-4) | `log_statement=all` + `log_line_prefix='%m '` on local Supabase, count flushes; compare to WAE p50 on staging. If well under 5×RTT, do not carry the array-return micro-opt into every call site | Hot-path shape of `withIdentity`; not correctness |
 | U27 | Does Hyperdrive's documented `RESET` on pool return actually clear `role` and `request.jwt.claims`? | Docs say "the connection is `RESET`" and nothing more; `RESET ALL` ≠ `DISCARD ALL` (`isolation-proof.md` §15 U-I2) | NC1's `residue` count. If it is 0, Hyperdrive *is* clearing them — record the finding, and record explicitly that the design does **not** depend on it (D1/D2 do the work) | Nothing — D1/D2 do not rely on this. NC1-with-zero-evidence is an escalation, not a pass |
 | U28 | Origin connection whose client dies mid-transaction: rolled back, discarded, or returned dirty? | `RESET ALL` cannot run inside a failed transaction block (`isolation-proof.md` §15 U-I3) | NC4. Watch for `25P02`, residue, and `Failed to acquire a connection from the pool` in the 400 follow-up probes | Abandoned-request safety; not the happy path |
 | U29 | Does Supabase Admin `createUser` accept `@example.com` addresses when email confirmations are on? | Project-config dependent (`isolation-proof.md` §15 U-I6) | First fixture run. Fallback: a dedicated verified test domain, or `email_confirm: true` with a project-level allowlist | Deployed DATA-06 fixture (deferred). Local simulator uses Phase 2's pgTAP ids, not Auth |
-| U30 | Are Placement Hints available on the chosen plan? (Queues/Cron are not placed regardless.) | No account. Placement "only affects fetch event handlers" (`isolation-proof.md` §15 U-I7) | `wrangler deploy` accepts or rejects `"placement": { "region": "aws:eu-central-1" }`. Record the Queues/Cron exclusion in the phase summary either way | DATA-05; ADR-007 revision (residency, not latency) |
+| U30 | Are Placement Hints available on the chosen plan? (Queues/Cron are not placed regardless.) | No account. Placement "only affects fetch event handlers" (`isolation-proof.md` §15 U-I7) | `wrangler deploy` accepts or rejects `"placement": { "region": "aws:eu-central-2" }`. Record the Queues/Cron exclusion in the phase summary either way | DATA-05; ADR-007 revision (residency, not latency) |
 | U31 | Isolate-level memoisation of customer-scoped reads once Phase 5 adds real routes | Those routes do not exist (`isolation-proof.md` §15 U-I8; §2 mode 14) | Phase 5: re-point the isolation harness at `/api/account/bookings`; CI grep for module-scope `Map`/`Set`/`cache`/`memo`/`store` under `apps/web/app` and `apps/web/lib` | Phase 5, not Phase 3 |
 | U32 | Actual `max_connections` on the provisioned Micro, and how many Auth/Realtime/PostgREST already hold | 40/60 assumes they do not compete meaningfully (`hyperdrive-wiring.md` §1.5) | `show max_connections;` plus `select count(*) from pg_stat_activity;` on staging before the first `hyperdrive create` | `--origin-connection-limit` values; not the local slice |
 | U59 | `vamos_quote` nologin role as D79 fallback | Preferred path is definer RPCs inside `asAnon`/`asCustomer`. A fifth IdentityKind is a Phase 2 role-set addition | Owner/Phase 2: add the role in `0002` or keep definer-only. Do not grant pricing tables to `vamos_public` either way | D79 door if definer RPCs are not ready |
@@ -1399,7 +1411,7 @@ a second SQL client.
 Browser / Route Handler / Server Component / Queue consumer / Cron
       │
       ▼
-OpenNext Worker  (placement.region = aws:eu-central-1, fetch handlers only)
+OpenNext Worker  (placement.region = aws:eu-central-2, fetch handlers only)
  │
  │  getCloudflareContext().env
  │
@@ -1430,7 +1442,7 @@ OpenNext Worker  (placement.region = aws:eu-central-1, fetch handlers only)
                            not the security boundary)
            │
            ▼
-     Supabase Postgres  eu-central-1  :5432  (never :6543)
+     Supabase Postgres  eu-central-2  :5432  (never :6543)
            login: vamos_edge NOINHERIT, zero table grants
            SET LOCAL ROLE → anon | authenticated | vamos_staff | vamos_guest
            RLS policies read app.uid() / app.jwt() / app.manage_token_hash()
@@ -1516,7 +1528,7 @@ an identity query on the cached binding (NC6).
 - `wrangler secret put` for the database password.
 - Port 6543, anywhere.
 - Local Worker login as `postgres` once roles exist (`BYPASSRLS`).
-- Smart Placement for a single Frankfurt database.
+- Smart Placement for a single Zurich database.
 - Probe routes in `apps/web`.
 - Playwright for the isolation suite.
 - Asserting DATA-05 from Cloudflare's marketing RTT.
@@ -1601,7 +1613,7 @@ from a statically generated route.
 ### Pitfall 6: Treating a local timing as DATA-05
 **What goes wrong:** `Date.now()` around `withIdentity` against
 `127.0.0.1:54322` prints 3 ms; the phase is marked done; the first US-PoP
-hit against Frankfurt is 120 ms.
+hit against Zurich is 120 ms.
 **Why it happens:** the whole margin is placement (`hyperdrive-wiring.md`
 §4.1).
 **How to avoid:** D32. Staging p50 is **DEFERRED** until measured from the
@@ -1911,7 +1923,7 @@ so deploy does not fail UUID validation.
       "name": "vamos-web-staging",
       "workers_dev": true,
       "vars": { "DEPLOY_ENV": "staging" },
-      "placement": { "region": "aws:eu-central-1" },
+      "placement": { "region": "aws:eu-central-2" },
       "analytics_engine_datasets": [
         { "binding": "DB_LATENCY", "dataset": "vamos_db_latency" }
       ],
@@ -1930,7 +1942,7 @@ so deploy does not fail UUID validation.
     },
     "production": {
       "name": "vamos-web-production",
-      "placement": { "region": "aws:eu-central-1" },
+      "placement": { "region": "aws:eu-central-2" },
       "analytics_engine_datasets": [
         { "binding": "DB_LATENCY", "dataset": "vamos_db_latency" }
       ],
@@ -1975,7 +1987,7 @@ From `isolation-proof.md` §5.1. No production environment.
   "compatibility_date": "2026-08-20",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
-  "placement": { "region": "aws:eu-central-1" },
+  "placement": { "region": "aws:eu-central-2" },
   "vars": { "DEPLOY_ENV": "staging" },
   "hyperdrive": [
     {

@@ -29,7 +29,7 @@
 //     silent on the first request.
 
 import postgres from "postgres";
-import { claimsForSql, type VamosClaims } from "./claims.js";
+import { claimsForSql, type VamosClaims } from "./claims";
 
 /**
  * The five identities `withIdentity` can drop into. The fifth, `"quote"`, is D-44a's

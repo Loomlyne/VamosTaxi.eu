@@ -5,6 +5,33 @@
 Smart Placement is a latency optimiser, not a residency control — the revision itself is Phase
 10 work.
 
+**Amended 2026-08-25 (Phase 3 D-22/D-24, plan 03-03):** Two further corrections to this
+proposal's mechanism, not to the region (already amended above) and not a second pass at the
+Frankfurt→Zurich fix, which Phase 2 D-37 already landed here and in `PROJECT.md`:
+
+- **Placement Hints, not Smart Placement.** This ADR's "Decision" section below proposes Smart
+  Placement (`"placement": { "mode": "smart" }`) for the data-touching routes. Phase 3 chooses
+  **Placement Hints** instead — `"placement": { "region": "aws:eu-central-2" }` inside each
+  named `env.*` block in `apps/web/wrangler.jsonc` — because Smart Placement learns over
+  traffic which of *several* candidate backends is fastest, and this platform has exactly
+  **one** single-homed database: there is no ambiguity for the learner to resolve, and Smart
+  Placement's up-to-15-minute warm-up buys nothing a deterministic hint does not already give
+  from the first deploy. This corrects the "Decision" section's mechanism; the underlying
+  recommendation (pin the data-touching routes, leave marketing routes at the edge) is
+  unaffected.
+- **Placement pins fetch handlers only.** Neither Smart Placement nor a Placement Hint places
+  `scheduled` (Cron) or `queue` (Queues consumer) handlers — Cloudflare's own placement
+  documentation states the mechanism "only affects fetch event handlers." Phase 9's reminder
+  emails and no-show sweep, and Phase 7's Stripe webhook fan-out, are `scheduled`/`queue` on
+  the same Worker and are **not** pinned by anything this ADR can configure. This narrows what
+  this ADR can promise about where passenger data is processed: the pinning proposal below
+  covers fetch-triggered booking/account/ops routes, not the Cron/Queue paths that also touch
+  identity-scoped data via `withIdentity`. Whether those paths need a separate Cloudflare
+  Regional Services answer is carried forward as open, not resolved here.
+
+The counsel question below — whether transient processing at a Cloudflare point of presence is
+a "transfer" under nFADP/GDPR — is untouched by either correction and stays open.
+
 **Status:** Proposed, pending counsel, 2026-08-19
 **Phase:** 8 (ops hardening), noting that `.planning/STATE.md` requires this resolved before
 Phase 10
