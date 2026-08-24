@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-07-PLAN.md
-last_updated: "2026-08-24T14:26:52.137Z"
+stopped_at: Completed 02-08-PLAN.md
+last_updated: "2026-08-24T14:57:12.153Z"
 last_activity: 2026-08-24
 progress:
   total_phases: 11
   completed_phases: 1
   total_plans: 33
-  completed_plans: 21
+  completed_plans: 22
   percent: 9
 ---
 
@@ -28,11 +28,11 @@ confirmation — must.
 ## Current Position
 
 Phase: 2 of 11 (Data Schema, RLS & Staff Auth Foundations) — planned, not started
-Plan: 7 of 10 in current phase
+Plan: 8 of 10 in current phase
 Status: Ready to execute
 Last activity: 2026-08-24
 
-Progress: [██████░░░░] 64%
+Progress: [███████░░░] 67%
 
 ## Performance Metrics
 
@@ -76,6 +76,7 @@ Progress: [██████░░░░] 64%
 | Phase 02 P05 | 30min | 3 tasks | 6 files |
 | Phase 02 P06 | 75min (two sessions) | 2 tasks | 6 files |
 | Phase 02 P07 | ~50min | 3 tasks | 9 files |
+| Phase 02 P08 | ~90min | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -137,6 +138,9 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-07: F-03 TRUNCATE closed everywhere including service_role via nine BEFORE TRUNCATE statement triggers, since a row trigger never fires on TRUNCATE and RLS/FORCE RLS does not filter it
 - [Phase 02]: 02-07: F-10 only the consent_log.customer_id carve-out lands now (D-19 erasure path made reachable); audit_log's pre-redaction-PII half stays explicitly deferred to Phase 10 pending counsel
 - [Phase 02]: 02-07: F-22 the postgres BYPASSRLS/superuser dependency for definer writes under FORCE RLS is asserted in pgTAP rather than papered over with a policy
+- [Phase ?]: 02-08: F-18's app.rate_version_published body written as coalesce(bool_or(...), false) instead of the plan's literal inline EXISTS sketch -- avoids tripping the plan's own acceptance grep banning that exact broken-pattern substring anywhere in ...23
+- [Phase ?]: 02-08: settings_public granted to authenticated too (not just anon/vamos_public/vamos_staff), per the schema draft's literal grant list -- widens the authenticated grant surface to ten tables/views, not the plan's stated nine
+- [Phase ?]: 02-08: F-05's regression test unions information_schema.column_privileges with role_table_grants -- the naive role_table_grants-only query (Task 1's literal acceptance text) cannot see the three column-scoped grants F-01 requires and prints 7, not 9, regardless of correctness
 
 ### Pending Todos
 
@@ -172,6 +176,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-24T14:26:52.132Z
-Stopped at: Completed 02-07-PLAN.md
+Last session: 2026-08-24T14:57:12.146Z
+Stopped at: Completed 02-08-PLAN.md
 Resume file: None

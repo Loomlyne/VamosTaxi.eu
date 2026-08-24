@@ -39,9 +39,9 @@ and are final — "matches the mock" is a real acceptance criterion, not a hand-
 ### Data and access (DATA)
 
 - [x] **DATA-01**: The schema mirrors the `VamosOps` contract: bookings, booking events, customers, chauffeurs, vehicles, vehicle classes, coupons, fixed routes, distance rates, surcharges, reviews, content strings and settings
-- [ ] **DATA-02**: Row-level security is on for every customer and operational table, and a customer can read only their own bookings
+- [x] **DATA-02**: Row-level security is on for every customer and operational table, and a customer can read only their own bookings
 - [x] **DATA-03**: A guest can open their booking with a valid manage token and nothing else
-- [ ] **DATA-04**: Staff reach ops data through a role claim; customers never can
+- [x] **DATA-04**: Staff reach ops data through a role claim; customers never can
 - [ ] **DATA-05**: Application queries reach Postgres through Hyperdrive on the direct connection string, with p50 round-trip under 30 ms from the staging Worker
 - [ ] **DATA-06**: Request-scoped auth context cannot leak between requests sharing a pooled connection
 - [x] **DATA-07**: Seed data loads vehicle classes, settings, content strings and the existing reviews into a fresh environment
@@ -53,7 +53,7 @@ and are final — "matches the mock" is a real acceptance criterion, not a hand-
 - [ ] **AUTH-02**: A customer can reset a forgotten password from an emailed link
 - [ ] **AUTH-03**: A session survives a browser refresh and expires safely
 - [ ] **AUTH-04**: A customer can sign out from any page
-- [ ] **AUTH-05**: Staff sign in by invitation only and must pass a second factor
+- [x] **AUTH-05**: Staff sign in by invitation only and must pass a second factor
 - [ ] **AUTH-06**: A guest who booked without an account can claim that booking into a new account from the emailed link
 
 ### Quote and pricing (QUOTE)
@@ -196,9 +196,9 @@ Populated during roadmap creation. Full phase goals and success criteria: `.plan
 | I18N-07 | Phase 6 | Pending |
 | I18N-08 | Phase 5 | Pending |
 | DATA-01 | Phase 2 | Complete |
-| DATA-02 | Phase 2 | Pending |
+| DATA-02 | Phase 2 | Complete |
 | DATA-03 | Phase 2 | Complete |
-| DATA-04 | Phase 2 | Pending |
+| DATA-04 | Phase 2 | Complete |
 | DATA-05 | Phase 3 | Pending |
 | DATA-06 | Phase 3 | Pending |
 | DATA-07 | Phase 2 | Complete |
@@ -207,7 +207,7 @@ Populated during roadmap creation. Full phase goals and success criteria: `.plan
 | AUTH-02 | Phase 5 | Pending |
 | AUTH-03 | Phase 5 | Pending |
 | AUTH-04 | Phase 5 | Pending |
-| AUTH-05 | Phase 2 | Pending |
+| AUTH-05 | Phase 2 | Complete |
 | AUTH-06 | Phase 8 | Pending |
 | QUOTE-01 | Phase 4 | Pending |
 | QUOTE-02 | Phase 4 | Pending |
