@@ -793,6 +793,69 @@ triggers, or test fixtures exist yet in any executed or planned migration.)*
 | A dispatcher's session bypassing the `aal2` gate via a newly-added route that forgets the middleware guard or the RPC's own `app.is_staff()` check | Elevation of Privilege | D-17 — every new route/RPC this phase adds re-checks the gate; RLS remains the actual boundary regardless of what the route layer does or forgets |
 | Refund amount tampering (a manipulated client request claiming a higher refund than the booking's own snapshot policy allows) | Tampering | `ops_issue_refund`'s computed amount is server-derived from `price_snapshots.policy`/`booking_payments.charged_rappen`, never accepted as a client-supplied number; the `booking_refunds_not_more_than_basis` CHECK (already designed in Phase 2 §9) provides a second, DB-level floor |
 
+## Proposed Phase 8 plan split
+
+| # | Plan | Goal (one line) | File scope | Depends on | Parallel with |
+|---|---|---|---|---|---|
+| **P1** | **Assignment RPC (`ops_assign_leg`)** | `ops_assign_leg` with the idempotent no-op short-circuit (D-04) plus a distinct deferred-constraint driver-swap sibling (D-03); pgTAP proving the named `23P01` conflict (D-02), the idempotent re-assign, and that a cancelled/no-show leg never blocks — resolves U17 for both the immediate and the deferred path | `packages/db/supabase/migrations/<ts>_ops_assign_leg.sql`, `packages/db/supabase/tests/ops_assign_leg.test.sql` | Phase 2 Wave 5 (executed: `booking_legs`, the two exclusion constraints, migration `20260823000011`); Phase 2 `02-07`'s `booking_events` table landing before the pgTAP file can run for real (authoring proceeds now against the planned shape) | P2, P3, P4, P7 |
+| **P2** | **Phone/manual booking RPC (`ops_create_phone_booking`)** | `ops_create_phone_booking` binding an existing `source='ops_phone'` `price_snapshots` row and copying `estimated_duration_minutes` straight from `price_snapshot_legs.duration_min` — resolves U22: the dispatcher never types a duration, a manual-override number input is a fallback only for the rare NULL case | `packages/db/supabase/migrations/<ts>_ops_phone_booking.sql`, `packages/db/supabase/tests/ops_phone_booking.test.sql` | Phase 2 Wave 5 (`bookings`, `price_snapshots`); D-15's already-confirmed `vamos_staff` grant on `next_booking_reference()` | P1, P3, P4, P7 |
+| **P3** | **Booking-lifecycle RPCs + shared refund-tier function** | `ops_confirm_booking`, `ops_cancel_booking` (U-02's staff-only state machine, including a transition out of `quote` a guest never reaches), `ops_issue_refund` (two-phase compute-then-record, D-09); the single shared `app.calculate_refund_tier(policy, hours_before)` (D-08) that Phase 9's own `manage_booking_cancel` rewrite is expected to call rather than re-deriving | `packages/db/supabase/migrations/<ts>_ops_booking_lifecycle.sql`, `packages/db/supabase/tests/ops_booking_lifecycle.test.sql`, `packages/db/supabase/tests/ops_issue_refund.test.sql` | Phase 2 Wave 6 landing (`02-06`/`02-07` — `booking_payments`, `booking_refunds`, `booking_events`, not yet executed; the same external-coordination note Phase 9's own P2 carries for the identical tables); mirrors P1's RPC shape as a peer, not a code dependency | P1, P2, P4, P7 |
+| **P4** | **Live board Realtime (OPS-01)** | `tg_ops_board_broadcast()` on `bookings`/`booking_legs` (Pattern 1, confirmed against live docs); `lib/realtime/ops-board-channel.ts` (`channel('ops:board', {config:{private:true}})`); `OpsBoardClient.tsx` treating every payload as a refetch cue only (D-12), plus the `visibilitychange`/`online` forced-refetch safety net (Pitfall 3) | `packages/db/supabase/migrations/<ts>_ops_board_broadcast.sql`, `apps/web/lib/realtime/ops-board-channel.ts`, `apps/web/app/[locale]/(ops)/ops/bookings/page.tsx`, `apps/web/app/[locale]/(ops)/ops/_components/OpsBoardClient.tsx` | Phase 2 `02-08`'s `realtime.messages` RLS policy (§14f, planned) for a real subscribe to authorize against; Phase 6 (ops shell, `aal2` gate) as the hard precondition for the route to render at all — the trigger SQL and channel factory are authorable now | P1, P2, P3, P7 |
+| **P5** | **OpsDetail + assignment UI (OPS-02, OPS-03)** | `AssignDialog.tsx` — chauffeur/vehicle pickers filtered by vehicle-class capacity (pax/bags) calling `ops_assign_leg`; the 409 conflict surface parsing `assignment_conflict:<constraint>:<leg_id>` into U-01's named-conflict copy; `OpsDetail`'s Details/History tabs using the event-kind→timeline mapping (Code Examples) against the FULL unfiltered `booking_events` vocabulary (ops-only — D-13's customer-curation rule does not apply here) | `apps/web/app/[locale]/(ops)/ops/bookings/[id]/page.tsx`, `apps/web/app/[locale]/(ops)/ops/_components/AssignDialog.tsx` | P1 (the RPC it calls), P4 (shares `ops-board-channel.ts` and sits in the same route tree, so a live push also refetches an open detail view) | P6, P7, P8 |
+| **P6** | **Phone-booking screen (OPS-04 UI)** | `/ops/bookings/new` calling `ops_create_phone_booking` — **no-mock, Owner blocker #4**: the requirement text itself demands a reviewed design pass before implementation, not Claude-invented UI | `apps/web/app/[locale]/(ops)/ops/bookings/new/page.tsx` | P2 (the RPC); a `checkpoint:human-verify`/`/gsd:ui-phase 8` design pass (Owner blocker #4) BEFORE coding; Phase 4's pricing engine as an external hard precondition for a genuinely new pickup/dropoff pair (U-04) | P5, P7, P8 |
+| **P7** | **Customer account surfaces (SITE-03)** | `/account`, `/account/bookings`, `/account/bookings/[ref]` Server Components reading via `asCustomer`/`bookings_select_own`; the curated customer-facing timeline (Pattern 3, D-13 — allowlisted `kind IN (...)`, never a raw `booking_events` render) | `apps/web/app/[locale]/(account)/account/page.tsx`, `apps/web/app/[locale]/(account)/account/bookings/page.tsx`, `apps/web/app/[locale]/(account)/account/bookings/[ref]/page.tsx` | Phase 5 (session plumbing, `@supabase/ssr`) as a hard precondition; Phase 2 `02-08`'s `bookings_select_own` RLS policy (planned) | P1, P2, P3, P4 |
+| **P8** | **AUTH-06 guest-booking claim** | `claim_guest_bookings(p_customer_id)` — verified-email-only match (D-07), explicit customer confirmation rather than a silent auto-claim (U-07's recommended default), same-transaction `booking_access_tokens` revocation; `/account/claim` — **no-mock, Owner blocker #3**, needs a design pass before implementation | `packages/db/supabase/migrations/<ts>_claim_guest_bookings.sql`, `packages/db/supabase/tests/claim_guest_bookings.test.sql`, `apps/web/app/[locale]/(account)/account/claim/page.tsx` | P7 (the account shell it slots into); a design pass (Owner blocker #3) BEFORE coding; Phase 5 | P5, P6 |
+| **P9** | **E2E proof + phase gate** | The full Wave 0 test list (Validation Architecture, above): the two-context Realtime assertion (OPS-01), timeline order/icons (OPS-02), named-409 + idempotent-reassign (OPS-03), account-bookings-RLS with two seeded customers (SITE-03), the AUTH-06 claim flow; `VamosLocale.coverage(root)` empty on every new route (Law 03); full pgTAP suite green, including Phase 2's own already-executed `exclusion.test.sql` | `apps/web/tests/integration/{ops-board-realtime,ops-detail-timeline,ops-assign-conflict,account-bookings-rls,auth06-claim}.spec.ts`, the full `packages/db/supabase/tests/` suite | P1–P8 | Nothing (phase gate) |
+
+**Notes on scope not captured as its own plan above:**
+- **`OpsDash` (the KPI dashboard) is deliberately excluded from this split**, consistent with Open
+  Question 1's recommendation and Owner Blocker #1: no `REQUIREMENTS.md` ID maps to it anywhere,
+  and its Money section (Income/Expenses/Net/Average fare) has no data source in any executed or
+  planned migration. If the owner later confirms it ships in V1, the honestly-derivable Operation
+  section (bookings/pickups-today/unassigned counts, chauffeurs-on-shift/vehicles-in-service from
+  Phase 6's fleet tables) would be a small, additive P10 reading only P1–P4/P7's own tables; the
+  Money section would render `data-tok` TBC pills (Law 04) rather than `CHF 000` — `CHF 000`
+  claims a real, known zero, where `data-tok` says the underlying feature doesn't exist yet (U-09).
+- **i18n is not a separate plan.** Per `CLAUDE.md`'s Law 03 ("every page, every section... in the
+  same pass"), each of P4–P8 ships its own en/de/fr/ar strings — including U-01's two 409 conflict
+  messages — in the same commit that introduces the surface, not as a trailing localisation pass.
+  P9's `VamosLocale.coverage(root)` check is the gate that catches anything missed; it is not the
+  mechanism that adds the strings.
+- **`app.calculate_refund_tier()` (P3) is a forward dependency for Phase 9, not the other way
+  round.** `ROADMAP.md` has Phase 9 depend on Phase 8, so Phase 8 executes first; `09-RESEARCH.md`
+  Pattern 1 extracts `manage_booking_cancel`'s current inline status-transition case expression
+  into a shared `app.recompute_booking_status()` at Phase 9's own P1, not this phase's. P3's
+  `ops_confirm_booking`/`ops_cancel_booking` therefore write `bookings.status` inline, the same
+  way `manage_booking_cancel` does today, on purpose — Phase 9's roll-up work is expected to
+  retrofit both calls once it lands, per its own Pattern 1 ("every place a `booking_legs.status`
+  changes"), and that retrofit is Phase 9's job, not something Phase 8 should pre-empt.
+
+```
+P1 ──┬── P5 ──┐
+P4 ──┘        │
+P2 ────── P6 ─┼── P9
+P3 ────────────┤
+P7 ────── P8 ─┘
+```
+
+Wave 1: **P1**, **P2**, **P3**, **P4**, **P7** in parallel — five plans, file-disjoint, every one
+of them DB/lib-authorable against Phase 2's own schema and the already-designed §14f/RLS
+contracts without Phase 3, 5 or 6 executing (the same "buildable and testable against Phase 2
+alone" fallback the Environment Availability table already states for this phase's
+schema-and-mutation-logic half). P3 carries the one external coordination flag worth restating
+here: its pgTAP cannot run for real until Phase 2's `02-06`/`02-07` money/ledger migrations land —
+the identical caveat Phase 9's own P2 states for the same tables.
+
+Wave 2: **P5** (needs P1+P4), **P6** (needs P2, plus Owner Blocker #4's design pass), **P8**
+(needs P7, plus Owner Blocker #3's design pass) in parallel — three UI plans, file-disjoint
+across the ops board/detail lane, the ops phone-booking lane, and the account-claim lane. P6 and
+P8 are each gated behind an explicit design review before code is written, not merely behind
+their respective RPC dependency landing.
+
+Wave 3: **P9** alone — the phase gate, blocked on every plan above. Must also re-confirm Phase
+2's own already-executed `exclusion.test.sql` stays green, since none of this phase's new RPCs
+may weaken the existing constraint proofs it already established.
+
 ## Sources
 
 ### Primary (HIGH confidence)
