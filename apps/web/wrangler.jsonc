@@ -72,27 +72,32 @@
       // actually written points — a local timing is not the criterion (D-27).
       "analytics_engine_datasets": [
         { "binding": "DB_LATENCY", "dataset": "vamos_db_latency" }
+      ],
+      // Rule 2 addition (plan 03-06, D-36): uncommented from the placeholder block plan
+      // 03-03 left here — D-36 requires the OpenNext runtime path smoke-tested through a
+      // real `opennextjs-cloudflare preview --env staging` (never `--env production`: the
+      // `/api/dev/db-smoke` route's own `DEPLOY_ENV === "staging"` gate 404s any other
+      // environment, per its own header comment), and `preview`/`wrangler dev` never
+      // reached the platform proxy at all while this binding was fully commented out.
+      // Confirmed empirically this session that `wrangler dev`'s LOCAL mode uses only
+      // `localConnectionString` and never validates `id` as a real UUID (that validation
+      // is `wrangler deploy`-only, per the `id` placeholder's own original comment,
+      // preserved on the `id` lines below) — so this is safe to enable now without
+      // `wrangler hyperdrive create` or any owner-held credential (D-29). TODO(03-07):
+      // replace both `id` placeholders with the real config ids; the shape does not
+      // otherwise change.
+      "hyperdrive": [
+        {
+          "binding": "HYPERDRIVE",
+          "id": "<public/cacheable config id — plan 03-07, wrangler hyperdrive create>",
+          "localConnectionString": "postgres://vamos_public:vamos_public@127.0.0.1:54322/postgres"
+        },
+        {
+          "binding": "HYPERDRIVE_NOCACHE",
+          "id": "<cache-disabled config id — plan 03-07, wrangler hyperdrive create --caching-disabled>",
+          "localConnectionString": "postgres://vamos_edge:vamos_edge@127.0.0.1:54322/postgres"
+        }
       ]
-      // hyperdrive stays commented out here: unlike the other bindings, wrangler deploy
-      // validates the id against the API as a real UUID — a placeholder fails the deploy
-      // outright, and the Cloudflare API token / account id this needs are still
-      // owner-held (D-29). The block below is the exact two-config shape plan 03-07
-      // uncommments once `wrangler hyperdrive create` (run twice — `--caching-disabled`
-      // on the identity config) returns real config ids. TODO(03-07): uncomment and
-      // replace both `id` placeholders with the real config ids.
-      //
-      // "hyperdrive": [
-      //   {
-      //     "binding": "HYPERDRIVE",
-      //     "id": "<public/cacheable config id — plan 03-07, wrangler hyperdrive create>",
-      //     "localConnectionString": "postgres://vamos_public:vamos_public@127.0.0.1:54322/postgres"
-      //   },
-      //   {
-      //     "binding": "HYPERDRIVE_NOCACHE",
-      //     "id": "<cache-disabled config id — plan 03-07, wrangler hyperdrive create --caching-disabled>",
-      //     "localConnectionString": "postgres://vamos_edge:vamos_edge@127.0.0.1:54322/postgres"
-      //   }
-      // ]
     },
     "production": {
       "name": "vamos-web-production",

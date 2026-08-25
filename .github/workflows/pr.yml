@@ -60,6 +60,12 @@ jobs:
       - name: CSS law + RTL logical-property lint (D-21, D-32)
         run: pnpm lint:css
 
+      # Runs eslint.config.mjs (plan 03-06) — needs no database, so it sits here next to
+      # lint:css rather than in the `database` job below (D-08, D-10's two import fences
+      # plus the `return tx` syntax fence).
+      - name: Import and return-type fences (D-08, D-10)
+        run: pnpm lint
+
       - name: i18n key-coverage check (D-17)
         run: pnpm i18n:check
 
@@ -128,6 +134,38 @@ jobs:
 
       - name: Generated types drift (D-23)
         run: pnpm db:types:check
+
+      # Plan 03-06 (DATA-06's compile-time half + the full local Phase 3 gate) appends from
+      # here. Ordering note: `pnpm db:local-roles` runs AFTER the pgTAP suite above, never
+      # before — `extensions.test.sql` (Phase 2, plan 02-08) asserts `vamos_edge has no
+      # password` (T-02-19), and Postgres roles are cluster-level objects that survive
+      # `supabase db reset`, so setting the password earlier in this job would make that
+      # pre-existing assertion fail. 03-05-SUMMARY.md's own deviation #4 hit this exact
+      # ordering issue and recorded the same fix.
+      - name: Local role passwords (D-04)
+        env:
+          # Scoped to this one step only, never job-wide (T-03-23) — local-role-passwords.mjs
+          # refuses to run under a bare `CI=true` without this explicit opt-in.
+          ALLOW_LOCAL_ROLE_PASSWORDS: "1"
+        run: pnpm db:local-roles
+
+      - name: DATA-06 local half — connection reuse, lost BEGIN (D-16, D-39)
+        run: pnpm --filter @vamos/db exec vitest run test/local
+
+      # Self-contained (D-18): resets to a password-free baseline, confirms the pgTAP suite,
+      # re-sets local role passwords, confirms the local Vitest suite, then applies and
+      # rolls back each packages/db/mutants/*.sql mutant in turn — one `supabase db reset`
+      # per mutant, ending on a clean, password-free, freshly-reset database.
+      - name: Mutation gate — the suite must go red against each mutant (D-18)
+        env:
+          ALLOW_LOCAL_ROLE_PASSWORDS: "1"
+        run: pnpm db:mutation-gate
+
+      # scripts/check-db-access-fences.mjs (plan 03-06) — a static walk+regex+allowlist scan,
+      # needs no live database, but stays in this job (not `gate` above) to match the local
+      # Phase 3 suite's own step grouping.
+      - name: Data-access fences (D-05, D-06, D-08, D-10)
+        run: pnpm check:db-fences
 
       - name: Stop local stack
         if: always()
