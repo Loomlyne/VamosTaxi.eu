@@ -196,7 +196,48 @@ start rather than added once checkout exists.
   4. A coupon reduces the price when valid and is refused outside its window or usage cap; a booking inside the minimum advance time or outside the service area is refused with a message saying which; a flight number fills in the landing time; a customer can add a child seat, an extra stop or oversized luggage as its own priced line.
   5. The quote endpoint is rate-limited and challenges repeated anonymous requests, and every amount reads `CHF 000` behind `pricing_live=false` until the real matrix is loaded and approved.
 
-**Plans**: TBD
+**Plans**: 16 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 04-01-PLAN.md — Wave 0 for the whole phase: install the two test tools this repository does not have, wire them
+- [ ] 04-04-PLAN.md — Make surcharge applicability **data**. Today "22:00–06:00" and "pickup is an airport zone" woul
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 04-02-PLAN.md — The two pure decision modules the pipeline sits on: which classes a party can travel in, and
+- [ ] 04-05-PLAN.md — The database half of QUOTE-04 and QUOTE-05: a second clock the trigger can see, a board the dis
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 04-03-PLAN.md — The pipeline itself: turn a frozen rate book plus a pinned journey into the exact `lines[]` arr
+- [ ] 04-06-PLAN.md — Open the anonymous quote identity's READ door, and finish the coupon ledger.
+- [ ] 04-07-PLAN.md — Two signed artefacts and one primitive.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 04-08-PLAN.md — The boundary and the vocabulary.
+- [ ] 04-15-PLAN.md — Open the write door Phase 3 reserved and could not build.
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 04-09-PLAN.md — Connect the pure kernel to the frozen book — through the one door that exists, on the one bindi
+- [ ] 04-10-PLAN.md — Everything between an address the customer typed and a pair of metres the kernel can price —
+- [ ] 04-12-PLAN.md — One lookup, three honest failures, and two columns so Phase 9 has something to shift.
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 04-11-PLAN.md — The two public endpoints the whole phase has been building toward, and the ordered list of
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 04-13-PLAN.md — The layer that decides how much a stranger is allowed to cost us, and the one place a signature
+- [ ] 04-16-PLAN.md — Settle the Phase 4 / Phase 5 seam, and prove the engine's answers can be rendered before anyone
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [ ] 04-14-PLAN.md — The rules Phase 7's handler must obey, and the ledger that keeps this phase's open questions
 **UI hint**: yes
 
 ### Phase 5: Public Surfaces & Customer Accounts
