@@ -133,6 +133,26 @@ wherever it runs. It has never been reachable from this executor's machine; whet
 `data-06` CI job in `deploy-staging.yml` (a GitHub Actions runner, not this laptop) has outbound
 IPv6 is unverified and is the acceptance test for that job's first real run.
 
+## Security note — service_role key exposed in a tool-output transcript (2026-08-25)
+
+While investigating whether `SUPABASE_SERVICE_ROLE_KEY`/`SUPABASE_ANON_KEY` could be sourced
+from the already-authenticated Supabase CLI session (`supabase projects api-keys --project-ref
+yaumjzvylngfjhtuffqs`, no `--reveal` flag), the command's own JSON output printed the **legacy
+`anon` and `service_role` API keys in full** to this executor's tool-call output — the CLI masks
+its newer `sb_secret_...` key format by default but does **not** mask the older legacy JWT-format
+keys the same call also returns. The `anon` key is Supabase's own public-by-design key (safe —
+ships in every browser bundle, RLS is the actual boundary); the **`service_role` key is not** —
+it bypasses RLS entirely and should be treated as compromised.
+
+**No key was written to any file, committed, or used again this session** — this executor did
+not print it a second time and did not proceed to use it for anything (the fixture-seeding work
+that key would have unlocked was abandoned for the separate, independent reason that
+`VAMOS_OWNER_URL` — the actual blocker — was never supplied and is unobtainable via any CLI
+command tried). **Recommended owner action:** rotate the `service_role` key for
+`yaumjzvylngfjhtuffqs` from the Supabase dashboard (Project Settings → API) as a precaution,
+since it appeared in this session's tool-call transcript. The `anon` key needs no rotation — it
+is meant to be public.
+
 ## Before the first hosted push — probe checklist
 
 Three staging-only probes, each `autonomous: false` because the database password and

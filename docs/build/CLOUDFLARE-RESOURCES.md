@@ -63,6 +63,76 @@ headroom (not comfortable), so all three Hyperdrive origin-connection limits wer
 proportionally — identity **20** (was 25), public **12** (was 15), probe held at Cloudflare's
 own floor of **5** (unchanged) — for a total of 37 and a 10-connection headroom.
 
+## Plan 03-07 Task 3 — deployment status (2026-08-25, IN PROGRESS, not complete)
+
+**`apps/isolation-probe` deployed successfully.** `vamos-isolation-probe-staging` —
+`https://vamos-isolation-probe-staging.koussayzayeni.workers.dev`. `PROBE_SECRET` set via
+`wrangler secret put` (freshly generated, never written to any file or log). Gate verified:
+a request with no `x-vamos-probe` header and a request with a wrong secret both return an
+opaque `404` with byte-identical bodies.
+
+**D-42 (U30) — Placement Hints on the Free plan, PARTIALLY confirmed.** Queried
+`GET /accounts/{account}/workers/scripts/vamos-isolation-probe-staging/settings` after deploy:
+`"placement": { "mode": "targeted", "target": [40] }` — Placement Hints ARE accepted on this
+Free-plan account for the probe Worker (`mode: "targeted"` is Cloudflare's internal name for an
+explicit Placement Hint, as opposed to `"smart"` for Smart Placement; `target: [40]` is a
+Cloudflare colo/region code, presumably Zurich). **`apps/web`'s own confirmation is still
+pending** — see the Analytics Engine blocker below, which stopped its deploy before Cloudflare
+ever evaluated its `placement` block. D-24's exclusion is recorded regardless of that outcome:
+Placement Hints pin fetch handlers only — `apps/web/wrangler.jsonc`'s `env.staging.triggers.crons`
+and `env.staging.queues.consumers` are unplaced, and their latency is explicitly outside DATA-05.
+
+**`apps/web` deploy to staging BLOCKED — Workers Analytics Engine is not enabled on this
+Cloudflare account.** `pnpm --filter web run deploy -- --env staging` built successfully
+(OpenNext build, asset upload) and failed only at the final `wrangler` API call, on the
+`DB_LATENCY` → `vamos_db_latency` `analytics_engine_datasets` binding:
+
+```
+✘ [ERROR] A request to the Cloudflare API (/accounts/e64b47deef83692806ab23279d53633e/workers/scripts/vamos-web-staging/versions) failed.
+  You need to enable Analytics Engine. Head to the Cloudflare Dashboard to enable:
+  https://dash.cloudflare.com/e64b47deef83692806ab23279d53633e/workers/analytics-engine [code: 10089]
+```
+
+Checked for an API/CLI path around this (account settings endpoint, `wrangler` flags) — none
+found; Cloudflare's own error message names the dashboard as the only route, and this executor's
+Cloudflare API token has no scope that substitutes for the one-time account-level opt-in a human
+must click. **This is a genuine `checkpoint:human-action` gate, not a bug and not something to
+work around by removing the WAE binding** — DATA-05's entire instrument is that binding (D-23).
+
+**Rule 1 fix, in the same file:** the `deploy` job's existing "Deploy Worker (staging
+environment)" step read `pnpm --filter web deploy --env staging` — confirmed empirically this
+session that bare `pnpm --filter web deploy` (no `run`) invokes **pnpm's own built-in `deploy`
+command** (https://pnpm.io/cli/deploy), not this package's `deploy` script, so it fails on
+`Unknown option: 'env'` before `wrangler` ever runs. Fixed to
+`pnpm --filter web run deploy -- --env staging`, the same invocation that got this session past
+argument parsing and to the real Analytics Engine blocker above.
+
+**What is still needed to finish this plan (owner action required):**
+1. Visit https://dash.cloudflare.com/e64b47deef83692806ab23279d53633e/workers/analytics-engine
+   and enable Workers Analytics Engine (one-time, account-level).
+2. Re-run `pnpm --filter web run deploy -- --env staging` — should then succeed and settle
+   D-42 for `apps/web` itself.
+3. Generate `/api/dev/db-smoke` traffic against the deployed staging Worker and query
+   `quantileExactWeighted(0.5)` over `vamos_db_latency` (`p50Latency` in
+   `packages/db/test/support/hyperdrive-metrics.ts`) to produce DATA-05's real number.
+4. Supply `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_ANON_KEY` and `VAMOS_OWNER_URL` (the hosted
+   project's Postgres superuser password, direct-string form) as environment variables — these
+   were never part of the five credentials this executor received (`CLOUDFLARE_API_TOKEN`,
+   `CLOUDFLARE_ACCOUNT_ID`, `VAMOS_EDGE_PW`, `VAMOS_PUBLIC_PW`), and `packages/db/test/fixtures/
+   two-customers.ts`'s `seedFixtures()` needs all three to mint real Auth users and seed
+   isolation fixtures. Note: `ownerSql()` in that same file opens a DIRECT Postgres socket to
+   `VAMOS_OWNER_URL` — unreachable from this executor's own laptop (IPv6-only origin, see
+   `docs/build/SUPABASE-RESOURCES.md` § "IPv6-only origin"). Whether the GitHub Actions runner
+   this plan's new `data-06` CI job runs on has outbound IPv6 is unverified.
+5. Once (1)-(4) hold, run `negative-controls.test.ts` and `data-06-isolation.test.ts` for real
+   and record `S`/`distinctPids`/`peakInFlight` per pairing.
+
+**What already ran for real, this session, against live infrastructure:**
+`config-preconditions.test.ts` — 6/6 passed against the three real Hyperdrive configs above
+(port 5432 confirmed on all five allowlist entries with a filled id, login roles confirmed,
+caching modes confirmed, `origin_connection_limit` 20/12/5 confirmed, probe/app id distinctness
+confirmed, `prepare: true` confirmed in `packages/db/src/identity.ts`).
+
 ## Jurisdiction note (D-24)
 
 The `PHOTOS` buckets above were created with `--location eu`, which Cloudflare documents as a
