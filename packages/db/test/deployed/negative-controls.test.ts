@@ -108,7 +108,7 @@ describe.skipIf(!process.env.PROBE_BASE_URL)("negative controls (D-18 mutant/haz
     for (const r of nc3Followup.results) {
       expect(
         r.n,
-        "vamos_edge returned a row count on a backend NC1 just left dirty -- a leftover SET ROLE bypassed the grant wall.",
+        "vamos_edge returned a row count on a backend NC1 just left dirty -- a leftover privileged role assignment bypassed the grant wall.",
       ).toBeUndefined();
       expect(r.sqlstate).toBe("42501");
     }

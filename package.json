@@ -9,10 +9,12 @@
     "preview": "pnpm --filter web run preview",
     "deploy": "pnpm --filter web run deploy",
     "typecheck": "pnpm -r --if-present run typecheck",
+    "lint": "eslint .",
     "lint:css": "pnpm --filter web run lint:css",
     "i18n:check": "node scripts/check-i18n-coverage.mjs",
     "test:visual": "pnpm --filter web exec playwright test",
     "check:public-env": "node scripts/check-next-public-allowlist.mjs",
+    "check:db-fences": "node scripts/check-db-access-fences.mjs",
     "db:start": "pnpm --filter @vamos/db run start",
     "db:stop": "pnpm --filter @vamos/db run stop",
     "db:reset": "pnpm --filter @vamos/db run reset",
@@ -32,6 +34,8 @@
   },
   "packageManager": "pnpm@11.7.0",
   "devDependencies": {
-    "supabase": "2.115.0"
+    "eslint": "10.9.1",
+    "supabase": "2.115.0",
+    "typescript-eslint": "8.68.0"
   }
 }

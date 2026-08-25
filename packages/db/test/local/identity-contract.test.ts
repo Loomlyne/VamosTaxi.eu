@@ -198,6 +198,11 @@ describe("identity-contract (D-16, database-free)", () => {
 function typeOnlyProof_fnCannotReturnTx() {
   const { client } = makeRecordingClient();
   // @ts-expect-error - fn must not return the transaction handle (D-08)
+  //
+  // This IS the deliberate violation the @ts-expect-error line above proves the type system
+  // catches; plan 03-06's syntax fence would otherwise also flag it, which is correct
+  // everywhere except this one proof.
+  // eslint-disable-next-line no-restricted-syntax
   return withIdentity(CS, "anon", undefined, async (tx) => tx, { client });
 }
 void typeOnlyProof_fnCannotReturnTx;

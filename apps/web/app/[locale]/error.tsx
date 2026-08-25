@@ -59,8 +59,10 @@ export default function ErrorBoundary({
     });
     // Only re-run if the caught error instance itself changes — `locale` is read for
     // the log line's context field, not a re-trigger for a fresh log of the same
-    // already-reported error.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // already-reported error. (No `react-hooks` ESLint plugin is installed in this repo
+    // — plan 03-06's eslint.config.mjs is deliberately minimal, two rules only — so there
+    // is no rule here to disable; kept as plain prose for the same reviewer who would
+    // otherwise ask why `locale` is missing from the dependency array.)
   }, [error]);
 
   const home = locale === routing.defaultLocale ? "/" : `/${locale}`;
