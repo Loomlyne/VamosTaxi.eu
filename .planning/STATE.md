@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-04-PLAN.md
-last_updated: "2026-08-24T21:00:36.437Z"
-last_activity: 2026-08-24
+stopped_at: Completed 03-05-PLAN.md
+last_updated: "2026-08-25T05:23:55.749Z"
+last_activity: 2026-08-25
 progress:
   total_phases: 11
   completed_phases: 1
-  total_plans: 43
-  completed_plans: 27
+  total_plans: 59
+  completed_plans: 28
   percent: 9
 ---
 
@@ -28,11 +28,11 @@ confirmation — must.
 ## Current Position
 
 Phase: 3 of 11 (Hyperdrive Data Access Wiring) — in progress
-Plan: 4 of 7 in current phase complete (03-01 done, 03-02 next)
+Plan: 5 of 7 in current phase complete (03-01 done, 03-02 next)
 Status: Ready to execute
-Last activity: 2026-08-24
+Last activity: 2026-08-25
 
-Progress: [██████░░░░] 63%
+Progress: [█████░░░░░] 48%
 
 ## Performance Metrics
 
@@ -82,6 +82,7 @@ Progress: [██████░░░░] 63%
 | Phase 03 P02 | ~46min | 3 tasks | 11 files |
 | Phase 03 P03 | ~12min | 3 tasks | 15 files |
 | Phase 03 P04 | 55min | 3 tasks | 8 files |
+| Phase 03 P05 | ~35min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -163,6 +164,9 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-04: impl and kind are two independent query params on the probe endpoint (not combined) -- the same failure-mode construction runs against customer/staff (verified bearer claims) or guest (manageTokenHash hex, independent of the bearer token)
 - [Phase 03]: 03-04: guest FixtureIdentity carries exactly one reachable reference -- booking_access_tokens.token_hash is UNIQUE, so one manage-token claim can legally open only one booking (DATA-03's real semantics), not the bookingsEach default
 - [Phase 03]: 03-04: staff fixture pair minted without completing TOTP enrollment -- aal2 is a genuine Auth-server fact verifyAccessToken reads from the real token, not something a fixture can forge; recorded as a plan 03-07 gap, not assumed away
+- [Phase 03]: 03-05: undici's own fetch export used throughout drive.ts, never globalThis.fetch -- Node 26's built-in fetch and the undici npm package are separate module instances, confirmed empirically before adding the exact-pinned devDependency
+- [Phase 03]: 03-05: config-preconditions.test.ts uses CLOUDFLARE_API_TOKEN/CLOUDFLARE_ACCOUNT_ID for the Hyperdrive Configs REST API; hyperdrive-metrics.ts uses CF_ACCOUNT_ID/CF_ANALYTICS_TOKEN for the Analytics Engine SQL and GraphQL Analytics APIs -- two different Cloudflare API surfaces, two different scoped credentials
+- [Phase 03]: 03-05: data-06-isolation.test.ts's A1 assertion drops the 'excludes the other identity' half for the staff/staff pairing only -- dispatcher staff visibility is not customer-scoped by design, so asserting exclusivity there would fail correctly-functioning code
 
 ### Pending Todos
 
@@ -198,6 +202,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-24T21:00:36.428Z
-Stopped at: Completed 03-04-PLAN.md
+Last session: 2026-08-25T05:23:55.743Z
+Stopped at: Completed 03-05-PLAN.md
 Resume file: None
