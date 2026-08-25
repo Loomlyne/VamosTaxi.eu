@@ -1,12 +1,12 @@
 {
-  "_comment": "D-03's checked-in pinning. Ids stay null and provisioned stays false until plan 03-07 runs `wrangler hyperdrive create` and fills them in. This file is the compile-time half of the pigeonhole guarantee: the probe's dedicated 5-origin config must never be bound as apps/web's own HYPERDRIVE_NOCACHE identity binding, and vice versa -- either collision would starve production or quietly weaken every later S.",
-  "provisioned": false,
+  "_comment": "D-03's checked-in pinning. Filled by plan 03-07 (2026-08-25) with the three real config ids created against yaumjzvylngfjhtuffqs's direct connection string. This file is the compile-time half of the pigeonhole guarantee: the probe's dedicated 5-origin config must never be bound as apps/web's own HYPERDRIVE_NOCACHE identity binding, and vice versa -- either collision would starve production or quietly weaken every later S. connection_limit expectations are D-43-derived (measured max_connections=60, see docs/build/CLOUDFLARE-RESOURCES.md 'D-43 (U32)'), not the research's original 25/15 -- probe held at Cloudflare's own documented floor of 5, unchanged. app_identity_production/app_public_production stay null on purpose: env.production is not deployed until Phase 11 (D-33), so no production Hyperdrive config exists yet.",
+  "provisioned": true,
   "app_identity": {
-    "id": null,
+    "id": "71523abbbb7542fdbff01f66d9a858ed",
     "expected_origin_user": "vamos_edge",
     "expected_origin_port": 5432,
     "expected_caching_disabled": true,
-    "expected_origin_connection_limit": 25
+    "expected_origin_connection_limit": 20
   },
   "app_identity_production": {
     "id": null,
@@ -16,11 +16,11 @@
     "expected_origin_connection_limit": 25
   },
   "app_public": {
-    "id": null,
+    "id": "b53693800b7e4c1c94205774baa73420",
     "expected_origin_user": "vamos_public",
     "expected_origin_port": 5432,
     "expected_caching_disabled": false,
-    "expected_origin_connection_limit": 15
+    "expected_origin_connection_limit": 12
   },
   "app_public_production": {
     "id": null,
@@ -30,7 +30,7 @@
     "expected_origin_connection_limit": 15
   },
   "probe_identity": {
-    "id": null,
+    "id": "49fcf0baedbe44b29b7bc78f81d3421d",
     "expected_origin_user": "vamos_edge",
     "expected_origin_port": 5432,
     "expected_caching_disabled": true,

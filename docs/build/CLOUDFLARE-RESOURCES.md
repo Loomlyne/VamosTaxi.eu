@@ -18,7 +18,9 @@ from any other account on this machine. No resource below was reused from anothe
 | `PHOTOS` | R2 bucket (eu jurisdiction) | `vamos-photos-staging` | `vamos-photos-production` | `wrangler r2 bucket create vamos-photos-staging --location eu` / `wrangler r2 bucket create vamos-photos-production --location eu` | Phase 5/6 (chauffeur/vehicle photos) |
 | `STRIPE_EVENTS` | Queue (producer + consumer, same queue) | `vamos-stripe-events-staging` | `vamos-stripe-events-production` | `wrangler queues create vamos-stripe-events-staging` / `wrangler queues create vamos-stripe-events-production` | Phase 5/7 (Stripe webhook fan-out) — Phase 1's `worker.ts` `queue()` handler is a proven no-op against it (D-36) |
 | — (cron trigger, no binding name) | Scheduled Trigger | `0 3 * * *` (registered directly in `wrangler.jsonc` `env.staging.triggers.crons` — no separate provisioning command; a trigger is config, not an account resource) | `0 3 * * *` (`env.production.triggers.crons`) | n/a — declared in `wrangler.jsonc` | Phase 4 (quote expiry) / Phase 9 (reminders, no-show sweep) — Phase 1's `worker.ts` `scheduled()` handler is a proven no-op against it (D-36) |
-| `HYPERDRIVE` | Hyperdrive config (pools Supabase's **direct** connection string, never the pooled 6543 Supavisor string — T-01-12) | **not declared.** Omitted deliberately: `wrangler deploy` validates a Hyperdrive `id` against the live API as a real UUID, so a placeholder here fails the deploy outright (unlike KV/R2/Queues, which tolerate a not-yet-real id in config). Phase 3 adds this block once `wrangler hyperdrive create` runs against a real staging Supabase Postgres. | Declared with a placeholder id and a `localConnectionString` for local `wrangler dev` only (`apps/web/wrangler.jsonc` `env.production.hyperdrive`) — Phase 3 owns the real value; nothing in Phase 1 connects to this binding, and production never deploys before Phase 3 lands it. | `wrangler hyperdrive create <name> --connection-string=<supabase-direct-string>` (Phase 3) | Phase 3 (data access from Workers) |
+| `HYPERDRIVE_NOCACHE` | Hyperdrive config, identity/billing (pools Supabase's **direct** connection string, never the pooled 6543 Supavisor string — T-01-12) | `vamos-rls-staging` — id `71523abbbb7542fdbff01f66d9a858ed`, `vamos_edge`, `db.yaumjzvylngfjhtuffqs.supabase.co:5432`, caching **disabled**, `origin_connection_limit=20` (D-43-derived; research figure was 25) | **not declared.** `env.production` is not deployed until Phase 11 (D-33) — creating a production config now would draw on the same `max_connections` ceiling D-43 just measured for no consumer. | `wrangler hyperdrive create vamos-rls-staging --connection-string=<direct string, vamos_edge> --caching-disabled --origin-connection-limit=20` (plan 03-07, 2026-08-25) | Phase 3 (identity/billing data access), `apps/web/lib/db/identity.ts`'s five wrappers |
+| `HYPERDRIVE` | Hyperdrive config, public/cacheable content (same direct-string rule) | `vamos-public-staging` — id `b53693800b7e4c1c94205774baa73420`, `vamos_public`, `db.yaumjzvylngfjhtuffqs.supabase.co:5432`, caching **enabled** (default), `origin_connection_limit=12` (D-43-derived; research figure was 15) | **not declared** (same reasoning as `HYPERDRIVE_NOCACHE` production above) | `wrangler hyperdrive create vamos-public-staging --connection-string=<direct string, vamos_public> --origin-connection-limit=12` (plan 03-07, 2026-08-25) | Phase 3 (public content data access), `apps/web/lib/db/public.ts` |
+| — (not an `apps/web` binding) | Hyperdrive config, dedicated isolation-probe origin (D-03) | `vamos-probe-staging` — id `49fcf0baedbe44b29b7bc78f81d3421d`, `vamos_edge`, same direct string, caching **disabled**, `origin_connection_limit=5` (Cloudflare's documented floor — unchanged by D-43) | n/a — staging-only, never has a production twin (D-20) | `wrangler hyperdrive create vamos-probe-staging --connection-string=<direct string, vamos_edge> --caching-disabled --origin-connection-limit=5` (plan 03-07, 2026-08-25) | `apps/isolation-probe`'s `HYPERDRIVE_NOCACHE` binding only — pinned distinct from the app's own `HYPERDRIVE_NOCACHE` id by `packages/db/test/support/config-allowlist.json` (T-03-10) |
 | `DEPLOY_ENV` | Plaintext `vars` entry (never a secret — see below) | `"staging"` (`env.staging.vars.DEPLOY_ENV`) | undefined (no `vars` block under `env.production`) | n/a — declared in `wrangler.jsonc` | Phase 1 (`apps/web/middleware.ts` reads it to scope the `X-Robots-Tag: noindex` header to staging only, D-37) |
 | — (not a binding) | Turnstile site-key pair | delivered as a secret (`TURNSTILE_SECRET` via `wrangler secret put`) plus a public site key, not a `wrangler.jsonc` binding shape at all | same mechanism | `wrangler secret put TURNSTILE_SECRET --env <env>` (Phase 4) | Phase 4 (public quote form bot protection) |
 
@@ -26,6 +28,40 @@ from any other account on this machine. No resource below was reused from anothe
 environment marker, not a secret; every real credential (Stripe, Supabase, Resend, Mapbox,
 AeroDataBox, Turnstile, Sentry) reaches the Worker via `wrangler secret put`, per PLAT-06 and
 threat T-01-01, and is never written to `wrangler.jsonc`.
+
+## D-35 (U23) — `--caching-disabled` on `wrangler hyperdrive update`
+
+**Resolved 2026-08-25, plan 03-07, checked against a real config, not only `--help` text.**
+`wrangler hyperdrive update <id> --caching-disabled --help` lists the flag under "Caching
+Options" on `update`, identically to `create`. Confirmed empirically, not just from the help
+text: `wrangler hyperdrive update 49fcf0baedbe44b29b7bc78f81d3421d --caching-disabled` against
+the live `vamos-probe-staging` config returned `200` with `caching.disabled: true` and an
+updated `modified_on` timestamp — the API call genuinely executed, not a client-side no-op.
+
+**Consequence: the wrong-cache-mode recovery runbook is a patch, not delete-recreate-repoint.**
+The research's fallback ("Docs show the flag only on `create`... recovery is delete + recreate +
+re-point the binding id") does not apply. If a config is ever created with the wrong cache mode,
+the fix is a single in-place command that touches no binding id anywhere:
+
+```
+wrangler hyperdrive update <id> --caching-disabled       # enforce cache-disabled
+wrangler hyperdrive update <id> --caching-disabled=false # re-enable caching (untested this session — inferred from yargs boolean-flag negation, not empirically confirmed)
+```
+
+Neither `apps/web/wrangler.jsonc`, `apps/isolation-probe/wrangler.jsonc`, nor
+`packages/db/test/support/config-allowlist.json` need editing for this class of fix — the
+config `id` never changes, only its cache setting.
+
+## D-43 (U32) — connection headroom
+
+**Resolved 2026-08-25, plan 03-07.** Full measurement, arithmetic and derived pool sizes live in
+`docs/build/SUPABASE-RESOURCES.md` § "D-43 (U32) — connection headroom, measured before the
+first `wrangler hyperdrive create`" (cross-referenced here rather than duplicated, matching this
+file's own "R2 jurisdiction note" precedent below). Summary: `max_connections=60`,
+`pg_stat_activity` baseline `=13`; the research's 25+15+5=45 split left only 2 connections of
+headroom (not comfortable), so all three Hyperdrive origin-connection limits were lowered
+proportionally — identity **20** (was 25), public **12** (was 15), probe held at Cloudflare's
+own floor of **5** (unchanged) — for a total of 37 and a 10-connection headroom.
 
 ## Jurisdiction note (D-24)
 

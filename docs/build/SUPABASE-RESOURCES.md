@@ -63,6 +63,76 @@ See `packages/db/README.md` § Role-password procedure — `vamos_edge` and `vam
 created with no password in the migrations; `ALTER ROLE … PASSWORD '…'` is run out-of-band per
 environment, never committed.
 
+## D-43 (U32) — connection headroom, measured before the first `wrangler hyperdrive create`
+
+**Measured 2026-08-25, plan 03-07, before any Hyperdrive config existed on this project** (list
+was empty — `wrangler hyperdrive list` confirmed zero configs immediately beforehand). The
+direct connection string is unreachable from the executor's own machine (see "IPv6-only origin"
+below), so this ran through `supabase db query --linked`, which queries via the Management API
+rather than opening a raw Postgres socket — sidesteps the reachability gap entirely, at the cost
+of measuring at the moment the CLI call executes rather than continuously:
+
+```sql
+select current_setting('max_connections') as max_connections,
+       (select count(*) from pg_stat_activity) as active_connections;
+```
+
+| Field | Value |
+|---|---|
+| `max_connections` | **60** (Supabase Micro compute, matches `03-RESEARCH.md`'s assumption) |
+| `pg_stat_activity` count at measurement time | **13** (Auth, Realtime, PostgREST, Studio/dashboard sessions, and this measurement's own transient connection — no Hyperdrive config existed yet, so none of the 13 is a Hyperdrive origin) |
+
+**The research's original 25 + 15 + 5 = 45 split does not leave comfortable headroom.**
+`60 − 13 − 45 = 2` connections of spare capacity — not comfortable, given three compounding
+factors: (a) 13 is a single point-in-time snapshot that will grow under real Auth/Realtime/
+PostgREST traffic, not a floor; (b) D-24's unplaced Cron and Queues consumers draw on the same
+`max_connections` ceiling even though their latency sits outside DATA-05's scope; (c) Cloudflare
+Hyperdrive's own documented origin-connection-limit floor is 5 (`03-RESEARCH.md` "Sizing the two
+pools"), which bounds how far the probe pool specifically can be lowered.
+
+**Decision: lower all three limits proportionally (D-43's fallback), holding the probe at
+Cloudflare's own floor.** Target: leave at least a 10-connection buffer above baseline + pools
+(`60 − 13 − X ≥ 10` ⇒ `X ≤ 37`). The probe pool stays at the Cloudflare-documented floor of 5
+(cannot go lower); the remaining 32-connection budget splits at the original 25:15 (5:3) ratio
+between the identity and public configs:
+
+- Probe (`vamos-probe-staging`): held at the floor, **5** (unchanged from the research's number).
+- Remaining budget: `37 − 5 = 32`, split 5:3 → identity `32 × 5⁄8 = 20`, public `32 × 3⁄8 = 12`.
+
+| Config | Research figure | **Derived figure (applied)** |
+|---|---|---|
+| `vamos-rls-staging` (`HYPERDRIVE_NOCACHE`, identity, `vamos_edge`) | 25 | **20** |
+| `vamos-public-staging` (`HYPERDRIVE`, public, `vamos_public`) | 15 | **12** |
+| `vamos-probe-staging` (dedicated 5-origin probe) | 5 | **5** (Cloudflare floor, unchanged) |
+| **Total** | 45 | **37** |
+| **Headroom (`60 − 13 − total`)** | 2 (not comfortable) | **10** |
+
+Because the probe pool's own limit did not change (still 5, the value `test/support/drive.ts`'s
+`ITERATION_DEFAULTS` and `PROBE_MIN_ADJACENCY=200` were already sized against), the isolation
+harness's committed `PROBE_REQUESTS=400` / `PROBE_CONCURRENCY=32` / `PROBE_MIN_ADJACENCY=200`
+starting values are **re-confirmed, not re-derived**: `E[S] ≈ (N − L) · 0.5` with `N=400`,
+`L=5` gives `≈197`, already inside the committed 200 floor's own margin of error. Only the
+identity and public app-side pools were resized; nothing about the probe's own connection
+budget or the adjacency-floor arithmetic changes.
+
+## IPv6-only origin — a laptop limitation, not a design defect
+
+`db.yaumjzvylngfjhtuffqs.supabase.co` carries an `AAAA` record only (`2a05:d019:cf3:6a00:…`) —
+**no `A` record at all.** Confirmed 2026-08-25: `dig A` returns empty, `dig AAAA` resolves.
+Cloudflare Hyperdrive reaches it without issue (the three configs below were created against
+this exact host on port 5432 and immediately read back over the Cloudflare API). The executor's
+own machine has no IPv6 route to it (`curl -6` to an external IPv6-only echo service round-trips
+through what is evidently a NAT64/DNS64 path, not a native route — a raw `psql`/`postgres.js`
+connection from this laptop to the direct string times out / `ENOTFOUND`s). This is the
+laptop's own network limitation, not a reason to switch the design to Supavisor's pooled port —
+D-01/D-02/D-03's direct-connection design stands. Every precondition this plan needed against
+the hosted project ran through `supabase db query --linked` (Management API, not a raw socket)
+instead. **`packages/db/test/fixtures/two-customers.ts`'s `ownerSql()` opens a genuine direct
+Postgres socket to `VAMOS_OWNER_URL`** — that function inherits the same unreachability from
+wherever it runs. It has never been reachable from this executor's machine; whether the
+`data-06` CI job in `deploy-staging.yml` (a GitHub Actions runner, not this laptop) has outbound
+IPv6 is unverified and is the acceptance test for that job's first real run.
+
 ## Before the first hosted push — probe checklist
 
 Three staging-only probes, each `autonomous: false` because the database password and

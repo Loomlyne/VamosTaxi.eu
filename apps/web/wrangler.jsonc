@@ -83,18 +83,20 @@
       // `localConnectionString` and never validates `id` as a real UUID (that validation
       // is `wrangler deploy`-only, per the `id` placeholder's own original comment,
       // preserved on the `id` lines below) — so this is safe to enable now without
-      // `wrangler hyperdrive create` or any owner-held credential (D-29). TODO(03-07):
-      // replace both `id` placeholders with the real config ids; the shape does not
-      // otherwise change.
+      // `wrangler hyperdrive create` or any owner-held credential (D-29). Plan 03-07
+      // (2026-08-25) filled both ids with real Hyperdrive configs against
+      // `yaumjzvylngfjhtuffqs`'s direct connection string — origin-connection-limit
+      // 20/12, D-43-derived from measured `max_connections=60` (see
+      // docs/build/CLOUDFLARE-RESOURCES.md § "D-43 (U32)"), not the research's 25/15.
       "hyperdrive": [
         {
           "binding": "HYPERDRIVE",
-          "id": "<public/cacheable config id — plan 03-07, wrangler hyperdrive create>",
+          "id": "b53693800b7e4c1c94205774baa73420",
           "localConnectionString": "postgres://vamos_public:vamos_public@127.0.0.1:54322/postgres"
         },
         {
           "binding": "HYPERDRIVE_NOCACHE",
-          "id": "<cache-disabled config id — plan 03-07, wrangler hyperdrive create --caching-disabled>",
+          "id": "71523abbbb7542fdbff01f66d9a858ed",
           "localConnectionString": "postgres://vamos_edge:vamos_edge@127.0.0.1:54322/postgres"
         }
       ]
@@ -136,17 +138,23 @@
         { "binding": "DB_LATENCY", "dataset": "vamos_db_latency" }
       ],
       // Two Hyperdrive configs (D-01/D-03), never one: `HYPERDRIVE` is the cacheable,
-      // public-content path (`vamos_public`, origin-connection-limit 15 at create time);
-      // `HYPERDRIVE_NOCACHE` is cache-disabled for anything carrying identity, auth,
-      // permissions or the `pricing_live` flag (`vamos_edge`, origin-connection-limit 25).
-      // Both point at Supabase's DIRECT connection string on port 5432 — never Supavisor's
-      // pooled port (D-02); Hyperdrive *is* the pooler, and double-pooling only surfaces
-      // under real concurrency. The credential for each config lives inside the
-      // Hyperdrive config object addressed by the opaque `id` below — never in this file,
-      // never `wrangler secret put` (D-01). Both `id`s stay descriptive placeholders until
-      // plan 03-07 runs `wrangler hyperdrive create` against the real Supabase project and
-      // points these bindings at the real configs; origin connection limits are set at
-      // that same create time, not here.
+      // public-content path (`vamos_public`); `HYPERDRIVE_NOCACHE` is cache-disabled for
+      // anything carrying identity, auth, permissions or the `pricing_live` flag
+      // (`vamos_edge`). Both point at Supabase's DIRECT connection string on port 5432 —
+      // never Supavisor's pooled port (D-02); Hyperdrive *is* the pooler, and
+      // double-pooling only surfaces under real concurrency. The credential for each
+      // config lives inside the Hyperdrive config object addressed by the opaque `id`
+      // below — never in this file, never `wrangler secret put` (D-01).
+      //
+      // Deliberately still placeholders (plan 03-07, 2026-08-25): `env.staging`'s
+      // twin bindings above ARE real (ids `71523abbbb7542fdbff01f66d9a858ed` /
+      // `b53693800b7e4c1c94205774baa73420`, origin-connection-limit 20/12, D-43-derived).
+      // `env.production` stays a placeholder on purpose — production is not deployed
+      // until Phase 11 (D-33), and creating two more Hyperdrive configs now would draw
+      // two more idle origin-connection slots against the same `max_connections=60`
+      // ceiling D-43 just measured (staging's own 37-connection budget already leaves
+      // only 10 of headroom — see docs/build/CLOUDFLARE-RESOURCES.md § "D-43 (U32)").
+      // Phase 11 creates these for real, sized against whatever headroom exists then.
       "hyperdrive": [
         {
           "binding": "HYPERDRIVE",

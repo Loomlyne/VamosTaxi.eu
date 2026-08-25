@@ -32,27 +32,31 @@
 
   "hyperdrive": [
     {
-      // The dedicated probe config (D-03): cache-disabled, origin-connection-limit=5, so
-      // 32-way-or-higher concurrency makes backend reuse a pigeonhole certainty rather than
-      // luck. Plan 03-07 creates it with `wrangler hyperdrive create ... --caching-disabled`
-      // then `wrangler hyperdrive update <id> --origin-connection-limit=5`.
+      // The dedicated probe config (D-03): cache-disabled, origin-connection-limit=5 (D-43
+      // held this at Cloudflare's own documented floor — see docs/build/CLOUDFLARE-RESOURCES.md
+      // § "D-43 (U32)"), so 32-way-or-higher concurrency makes backend reuse a pigeonhole
+      // certainty rather than luck. Created by plan 03-07 (2026-08-25) as `vamos-probe-staging`.
       "binding": "HYPERDRIVE_NOCACHE",
-      "id": "<probe cache-disabled config id, origin-connection-limit=5 — created by plan 03-07>",
+      "id": "49fcf0baedbe44b29b7bc78f81d3421d",
       "localConnectionString": "postgres://vamos_edge:vamos_edge@127.0.0.1:54322/postgres"
     },
     {
       // The app's own cache-disabled identity config, for the confirming run at the real pool
-      // size (D-03). Never the same id as `HYPERDRIVE_NOCACHE` above — plan 03-05's checked-in
-      // allowlist test fails the run if the two ever collide.
+      // size (D-03) — origin-connection-limit=20 (D-43-derived, not the research's 25). The
+      // SAME id as `apps/web/wrangler.jsonc`'s own `HYPERDRIVE_NOCACHE` — never the same id as
+      // `HYPERDRIVE_NOCACHE` above (the probe's own dedicated config); plan 03-05's checked-in
+      // allowlist test fails the run if the two ever collide. Created by plan 03-07 as
+      // `vamos-rls-staging`.
       "binding": "HYPERDRIVE_APP",
-      "id": "<app cache-disabled identity config id — the same id apps/web's own hyperdrive binding of that role points at, filled by plan 03-07>",
+      "id": "71523abbbb7542fdbff01f66d9a858ed",
       "localConnectionString": "postgres://vamos_edge:vamos_edge@127.0.0.1:54322/postgres"
     },
     {
       // The app's cached, `vamos_public` config — probed only to prove NC6 (D-18): the cached
-      // binding cannot serve identity or billing data at all, ever.
+      // binding cannot serve identity or billing data at all, ever. origin-connection-limit=12
+      // (D-43-derived, not the research's 15). Created by plan 03-07 as `vamos-public-staging`.
       "binding": "HYPERDRIVE_CACHED",
-      "id": "<app cached public config id — the same id apps/web's own cacheable hyperdrive binding points at, filled by plan 03-07>",
+      "id": "b53693800b7e4c1c94205774baa73420",
       "localConnectionString": "postgres://vamos_public:vamos_public@127.0.0.1:54322/postgres"
     }
   ],
