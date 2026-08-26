@@ -31,20 +31,20 @@ and are final — "matches the mock" is a real acceptance criterion, not a hand-
 - [ ] **I18N-02**: Changing language relabels the page in place without a reload, and the choice survives navigation and a return visit
 - [x] **I18N-03**: The chosen language is correct in the server-rendered HTML — no English flash and no direction flip on hydration
 - [x] **I18N-04**: Arabic renders right-to-left with correct layout, because every surface uses logical properties rather than left/right
-- [ ] **I18N-05**: Changing currency swaps the mark and never the number, and the charge is always CHF
+- [x] **I18N-05**: Changing currency swaps the mark and never the number, and the charge is always CHF
 - [x] **I18N-06**: Strings the code builds from parts are translated too, never left English because they contain a number
 - [ ] **I18N-07**: Editable content strings live in the database and are editable from the ops Content screen
 - [ ] **I18N-08**: A legal page that exists in fewer languages than four says so, rather than pretending to be translated
 
 ### Data and access (DATA)
 
-- [ ] **DATA-01**: The schema mirrors the `VamosOps` contract: bookings, booking events, customers, chauffeurs, vehicles, vehicle classes, coupons, fixed routes, distance rates, surcharges, reviews, content strings and settings
-- [ ] **DATA-02**: Row-level security is on for every customer and operational table, and a customer can read only their own bookings
-- [ ] **DATA-03**: A guest can open their booking with a valid manage token and nothing else
-- [ ] **DATA-04**: Staff reach ops data through a role claim; customers never can
+- [x] **DATA-01**: The schema mirrors the `VamosOps` contract: bookings, booking events, customers, chauffeurs, vehicles, vehicle classes, coupons, fixed routes, distance rates, surcharges, reviews, content strings and settings
+- [x] **DATA-02**: Row-level security is on for every customer and operational table, and a customer can read only their own bookings
+- [x] **DATA-03**: A guest can open their booking with a valid manage token and nothing else
+- [x] **DATA-04**: Staff reach ops data through a role claim; customers never can
 - [ ] **DATA-05**: Application queries reach Postgres through Hyperdrive on the direct connection string, with p50 round-trip under 30 ms from the staging Worker
 - [ ] **DATA-06**: Request-scoped auth context cannot leak between requests sharing a pooled connection
-- [ ] **DATA-07**: Seed data loads vehicle classes, settings, content strings and the existing reviews into a fresh environment
+- [x] **DATA-07**: Seed data loads vehicle classes, settings, content strings and the existing reviews into a fresh environment
 - [ ] **DATA-08**: Every booking, price, payment and assignment change writes an append-only event that ops can read as a timeline
 
 ### Accounts (AUTH)
@@ -53,7 +53,7 @@ and are final — "matches the mock" is a real acceptance criterion, not a hand-
 - [ ] **AUTH-02**: A customer can reset a forgotten password from an emailed link
 - [ ] **AUTH-03**: A session survives a browser refresh and expires safely
 - [ ] **AUTH-04**: A customer can sign out from any page
-- [ ] **AUTH-05**: Staff sign in by invitation only and must pass a second factor
+- [x] **AUTH-05**: Staff sign in by invitation only and must pass a second factor
 - [ ] **AUTH-06**: A guest who booked without an account can claim that booking into a new account from the emailed link
 
 ### Quote and pricing (QUOTE)
@@ -191,23 +191,23 @@ Populated during roadmap creation. Full phase goals and success criteria: `.plan
 | I18N-02 | Phase 1 | Pending |
 | I18N-03 | Phase 1 | Complete |
 | I18N-04 | Phase 1 | Complete |
-| I18N-05 | Phase 1 | Pending |
+| I18N-05 | Phase 1 | Complete |
 | I18N-06 | Phase 1 | Complete |
 | I18N-07 | Phase 6 | Pending |
 | I18N-08 | Phase 5 | Pending |
-| DATA-01 | Phase 2 | Pending |
-| DATA-02 | Phase 2 | Pending |
-| DATA-03 | Phase 2 | Pending |
-| DATA-04 | Phase 2 | Pending |
+| DATA-01 | Phase 2 | Complete |
+| DATA-02 | Phase 2 | Complete |
+| DATA-03 | Phase 2 | Complete |
+| DATA-04 | Phase 2 | Complete |
 | DATA-05 | Phase 3 | Pending |
 | DATA-06 | Phase 3 | Pending |
-| DATA-07 | Phase 2 | Pending |
+| DATA-07 | Phase 2 | Complete |
 | DATA-08 | Phase 8 | Pending |
 | AUTH-01 | Phase 5 | Pending |
 | AUTH-02 | Phase 5 | Pending |
 | AUTH-03 | Phase 5 | Pending |
 | AUTH-04 | Phase 5 | Pending |
-| AUTH-05 | Phase 2 | Pending |
+| AUTH-05 | Phase 2 | Complete |
 | AUTH-06 | Phase 8 | Pending |
 | QUOTE-01 | Phase 4 | Pending |
 | QUOTE-02 | Phase 4 | Pending |

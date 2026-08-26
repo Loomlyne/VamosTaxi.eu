@@ -1,0 +1,44 @@
+{
+  "_comment": "Plan 03-06 / D-05, D-06, D-08, D-10, D-31 -- the named exceptions scripts/check-db-access-fences.mjs loads, never inlines. Every entry here is a deliberate, reviewed exception naming one file (or, for a directory, one already-reviewed local-simulation area) -- when a check fires on correct code, this list gets a new named entry, the check's own regex never gets loosened.",
+
+  "_allowed_postgres_importers_comment": "Files permitted to `import postgres from \"postgres\"` (or `require`/re-export it) directly (interfaces ban #1, D-10). The two packages/db core modules and the staging probe are the shipped door; packages/db/test/local's four files and one fixture file construct raw postgres.js clients only to drive the SAME shipped `withIdentity` through a pinned/simulated connection for the DATA-06 local proof (D-16) -- there is no second, inlined copy of the identity SQL anywhere in this list.",
+  "allowed_postgres_importers": [
+    "packages/db/src/identity.ts",
+    "packages/db/src/public.ts",
+    "apps/isolation-probe/src/index.ts",
+    "packages/db/test/local/connection-reuse.test.ts",
+    "packages/db/test/local/local-fixtures.ts",
+    "packages/db/test/local/no-begin.test.ts",
+    "packages/db/test/fixtures/two-customers.ts"
+  ],
+
+  "_allowed_reserve_comment": "Files permitted to call `.reserve()` (interfaces ban #3, Pitfall 9). `sql.reserve()` pins one physical backend so a residue bug fails 100% of the time locally instead of only when Hyperdrive happens to reuse a backend (D-16) -- banned everywhere in apps/** on purpose.",
+  "allowed_reserve": [
+    "packages/db/test/local/connection-reuse.test.ts"
+  ],
+
+  "_allowed_end_comment": "Files permitted to call `sql.end()` (interfaces ban #4, D-05). Every entry is a local test file's own teardown of a connection IT constructed for the local simulation -- never `packages/db/src/**` or `apps/**` application code, where `sql.end()` racing OpenNext's per-invocation connection cleanup is the exact bug D-05 exists to prevent.",
+  "allowed_end": [
+    "packages/db/test/local/connection-reuse.test.ts",
+    "packages/db/test/local/no-begin.test.ts",
+    "packages/db/test/local/local-fixtures.ts",
+    "packages/db/test/fixtures/two-customers.ts"
+  ],
+
+  "_allowed_unsafe_comment": "Files permitted to call `.unsafe(` (interfaces ban #7). packages/db/src/identity.ts's one call is the allow-listed ENTRY_PROBE the D-15 residue probe reads; apps/isolation-probe/src/index.ts's six calls are the probe's own deliberate mutant/hazard/positive-control constructions (D-14) that must issue a sequence `withIdentity` itself never produces; the two packages/db/test/local files construct the same ENTRY_PROBE locally (no-begin.test.ts) or polyfill `.begin()` on a reserved connection via raw BEGIN/COMMIT/ROLLBACK/RESET (connection-reuse.test.ts, Rule 3 deviation from plan 03-02).",
+  "allowed_unsafe": [
+    "packages/db/src/identity.ts",
+    "apps/isolation-probe/src/index.ts",
+    "packages/db/test/local/no-begin.test.ts",
+    "packages/db/test/local/connection-reuse.test.ts"
+  ],
+
+  "_allowed_session_set_comment": "Files permitted a `set_config(..., false)` call or a bare `SET ROLE`/`SET SESSION` (interfaces ban #6). apps/isolation-probe/src/index.ts's `bindIdentity()` helper deliberately reproduces the session-scoped (non-transaction-local) SET for NC1/NC2/`session` (D-17); connection-reuse.test.ts's one occurrence is the same negative-control shape reproduced locally. Neither is application code -- both are the negative-control constructions D-18 requires to exist and to be provably able to fail.",
+  "allowed_session_set": [
+    "apps/isolation-probe/src/index.ts",
+    "packages/db/test/local/connection-reuse.test.ts"
+  ],
+
+  "_force_dynamic_exempt_comment": "D-06's named allow-list for a file that imports an identity wrapper (or `publicSql`) without carrying `force-dynamic` itself or being a Route Handler -- reserved for a future statically-rendered `publicSql` content page that is deliberately exempted from the dynamic-rendering requirement because it never reads a live cookie/JWT. Empty today: apps/web/app/api/dev/db-smoke/route.ts is the only file in this repo importing an identity wrapper, and it is a Route Handler carrying `export const dynamic = \"force-dynamic\"` itself, so it needs no entry here. Phase 5 adds entries one at a time, by name, never a wildcard or a whole-directory exemption.",
+  "force_dynamic_exempt": []
+}

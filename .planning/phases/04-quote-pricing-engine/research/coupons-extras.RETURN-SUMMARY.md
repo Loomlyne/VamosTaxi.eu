@@ -1,0 +1,15 @@
+I've written the complete research brief for the coupons-extras lane to `/Users/koss/Developer/VamosTaxi.eu/.planning/phases/04-quote-pricing-engine/research/coupons-extras.md`.
+
+**Summary of the recommendation delivered (one decision, not a menu):**
+
+1. **Extras catalogue (QUOTE-11)** — no new table; extras are `surcharges` rows. Added a ninth seeded code `oversized_luggage` (`kind='amount'`, `applies_to='leg'`, amount NULL per Law 04) alongside the existing `child_seat`/`extra_stop`. Gave full `content_strings` rows in en/de/fr/ar.
+
+2. **U7 settled concretely**: coupon consumption happens at **PaymentIntent-creation time**, not webhook time, by piggybacking on the exact transactional moment Phase 2 already built for `tg_payment_matches_snapshot` (`booking_payments` BEFORE INSERT). A new sibling trigger `tg_reserve_coupon_redemption`, ordered alphabetically to run after the charge-gate trigger, does `SELECT … FOR UPDATE` on `coupons` to serialize concurrent redeemers, re-validates via a shared `evaluate_coupon()` SQL function, and inserts `coupon_redemptions` with `ON CONFLICT DO NOTHING` for retried PaymentIntents. **Rejected the pending KV-reservation idea** from Phase 2's `price-snapshot.md` — reasoned that the coupon field doesn't exist before checkout in this product's actual flow, so the race a KV reservation would guard against cannot occur, and `coupon_redemptions.booking_id NOT NULL` structurally confirms this. Gave the release-on-abandonment sweep too (`coupon_redemptions` has no append-only trigger, so it's a plain DELETE).
+
+3. **Seven distinct refusal rules** for QUOTE-06 (not found, inactive, not-yet-valid, expired, unpriced, global cap, per-user cap), each with its own i18n key in the project's existing "Check the …" instruction voice, in en/de/fr/ar. Solved per-user cap enforcement for guest checkouts (no `customer_id`) by matching on `bookings.contact_email` — no schema change needed.
+
+4. **Interaction ordering**: coupon/round-trip discounts apply against `subtotal_rappen + surcharges_rappen` (extras included), matching GSD-LAUNCH's stated formula and the existing `price_snapshots_total_sums` CHECK. Additional stops feed into the routed distance (geo-routing's waypoints) *before* the base fare line is computed, while the `extra_stop` surcharge line prices the stop itself — documented explicitly to prevent double-counting kilometres.
+
+5. Full worked CHF 000 arithmetic table, real trigger/function SQL, and a 5-item UNCERTAIN table (return-trip extras duplication, stop-detour rate, missing `settings.checkout_abandon_release_minutes` column, extras quantity >1, and the ops-phone-booking write-path gap) each with the check that settles it.
+
+Verified the two load-bearing Postgres claims (trigger firing order is alphabetical by name; `SELECT … FOR UPDATE` locking) against current docs.

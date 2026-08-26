@@ -38,7 +38,7 @@ import { createServer, type Server, type ServerResponse } from "node:http";
 import { readFileSync, existsSync, statSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
-import { extname, join, dirname, basename } from "node:path";
+import { extname, join, dirname, basename, relative } from "node:path";
 import ts from "typescript";
 import * as ReactDOMServer from "react-dom/server";
 import ReactActual from "react";
@@ -51,6 +51,9 @@ import type { Page } from "@playwright/test";
 const here = __dirname;
 // apps/web/tests/support -> repo root is three levels up.
 const REPO_ROOT = join(here, "..", "..", "..", "..");
+// apps/web's own root — the `baseUrl` `apps/web/tsconfig.json`'s `"@/*": ["./*"]` alias
+// resolves against (Plan 13 addition, see localRequire's own comment).
+const WEB_ROOT = join(here, "..", "..");
 // Resolves bare specifiers ("react", etc.) the way apps/web itself would, so mountPort
 // renders with the exact same React/ReactDOM the ported app ships.
 const webRequire = createRequire(join(here, "..", "..", "package.json"));
@@ -331,6 +334,57 @@ export async function waitForMockReady(page: Page): Promise<void> {
 
 const tsModuleCache = new Map<string, Record<string, unknown>>();
 
+/** Plan 13 addition (Rule 3 — blocking issue, not a package install): `SiteHeader.tsx`
+ *  and `SiteFooter.tsx` are the first ported components to call
+ *  `createNavigation(routing)` from `"next-intl/navigation"` (`apps/web/lib/
+ *  locale-shim.ts` does too, transitively). That package's `"./navigation"` export map
+ *  ships ESM only (confirmed by reading `next-intl`'s own `package.json`: no `require`
+ *  condition), and Node's `require()` of an ES module resolves it under strict-ESM
+ *  rules — its own compiled `navigation/react-client/createNavigation.js` does
+ *  `import ... from "next/navigation"` with no extension, which is valid under Next's
+ *  bundler resolution (what `next build`/`next dev` actually use, confirmed: Task 1/2's
+ *  `pnpm build` already passes with this exact import) but is rejected outright by
+ *  Node's own ESM resolver, which requires an explicit extension. Reproduced directly,
+ *  independent of this harness's own module loader: a plain `createRequire(...)
+ *  ("next-intl/navigation")` in a bare Node script throws the identical
+ *  `ERR_MODULE_NOT_FOUND` / "Did you mean to import next/navigation.js" error. This is
+ *  an upstream package-resolution gap, not a defect in `SiteHeader`/`SiteFooter`
+ *  themselves (@next-intl/next-intl needs to ship a `require` condition or the
+ *  extension internally) — patching `node_modules` is not an option (unversioned, lost
+ *  on reinstall), so this is a substitute for the ONE named export both files
+ *  destructure (`const { Link } = createNavigation(routing)`), scoped to this bare
+ *  specifier only.
+ *
+ *  next-intl's real `Link` statically renders to a plain `<a href="…">` during SSR —
+ *  the locale-aware prefixing and client-side prefetch/transition are additive
+ *  behaviour on top of that anchor, invisible to a screenshot diff of the *initial*
+ *  render this harness produces (no hydration). This stand-in renders exactly that
+ *  anchor, so the pixel output stays faithful; the two hooks are stubbed as no-ops
+ *  because neither `SiteHeader`'s controlled-mode render path nor `SiteFooter`'s own
+ *  markup calls them outside a click handler (never invoked during a static render). */
+function navigationShim(): {
+  createNavigation: () => {
+    Link: (props: Record<string, unknown>) => unknown;
+    useRouter: () => { push: () => void; replace: () => void };
+    usePathname: () => string;
+    redirect: () => void;
+  };
+} {
+  return {
+    createNavigation: () => ({
+      Link: ({ href, children, ...rest }: Record<string, unknown>) =>
+        ReactActual.createElement(
+          "a",
+          { href: typeof href === "string" ? href : "#", ...rest },
+          children as never,
+        ),
+      useRouter: () => ({ push: () => {}, replace: () => {} }),
+      usePathname: () => "/",
+      redirect: () => {},
+    }),
+  };
+}
+
 /** Transpiles and executes one `.tsx`/`.ts` component module with the TypeScript compiler
  *  API's single-file transpile (`typescript` is already a devDependency — no new package
  *  for this), classic JSX (`React.createElement`, `React` supplied as an explicit
@@ -362,6 +416,16 @@ function loadTsModule(absPath: string): Record<string, unknown> {
   const localRequire = (spec: string): unknown => {
     if (spec.endsWith(".css")) return {};
     if (spec.startsWith(".")) return loadTsModule(resolveLocal(dirname(absPath), spec));
+    // Plan 13 addition: `SiteHeader.tsx`/`SiteFooter.tsx` are the first ported
+    // components to use the `"@/*"` path alias (`apps/web/tsconfig.json`'s own
+    // `paths` map, `"@/*": ["./*"]` — bare `@/lib/locale-shim`, `@/i18n/routing`,
+    // `@/components/core`) rather than a relative import. Node's plain `require()`
+    // has no concept of tsconfig path aliases (those are a TypeScript/bundler-only
+    // resolution feature) — resolved here the same way `resolveLocal`'s own
+    // directory-import fallback works, rooted at `apps/web/` (the alias's `baseUrl`)
+    // instead of the importing file's own directory.
+    if (spec.startsWith("@/")) return loadTsModule(resolveLocal(WEB_ROOT, `./${spec.slice(2)}`));
+    if (spec === "next-intl/navigation") return navigationShim();
     return webRequire(spec);
   };
 
@@ -404,6 +468,57 @@ function resolveLocal(fromDir: string, spec: string): string {
     }
   }
   throw new Error(`mock-harness: cannot resolve local import "${spec}" from ${fromDir}`);
+}
+
+/** Plan 11 addition (generalizable, same class of gap as the directory-import
+ *  fallback above): the first components in this port that COMPOSE a sibling
+ *  category's component rather than only importing its type/value (`StatusBadge`
+ *  and `VehicleCard` both render a real `<Badge>` from `../core`, not just import
+ *  `BadgeTone`'s type) exposed a real bug here — `mountPort` previously linked only
+ *  the ONE stylesheet matching the top-level component's own basename
+ *  (`StatusBadge.css`), never the CSS of any component it composes internally
+ *  (`Badge.css`). The composed child rendered with no styling at all (a plain-text
+ *  "Popular" instead of a yellow pill — confirmed by direct visual inspection of the
+ *  bundle-vs-port diff this fix was found from), a real, silent Fidelity Contract
+ *  gap, not a flaky screenshot. This walks the component's own import graph via
+ *  static source-text scanning (not execution — cheap, and avoids threading extra
+ *  state through `loadTsModule`'s memoized `localRequire`) and links every local
+ *  `.css` file transitively reachable from it, not just its own. Every later port
+ *  batch whose components compose across `components/{core,forms,navigation,
+ *  feedback,transfer,data}/` relies on this same fix — done once, here. */
+function collectLocalCssLinks(absPath: string, visited: Set<string> = new Set()): string[] {
+  if (visited.has(absPath) || !existsSync(absPath)) return [];
+  visited.add(absPath);
+
+  const source = readFileSync(absPath, "utf8");
+  const specs = new Set<string>();
+  // Matches both `import ... from "./X"` / `import "./X.css"` and `require("./X")` —
+  // covers every import shape this codebase's components actually use.
+  const importRe = /(?:from\s+["']([^"']+)["'])|(?:import\s+["']([^"']+)["'])|(?:require\(\s*["']([^"']+)["']\s*\))/g;
+  let m: RegExpExecArray | null;
+  while ((m = importRe.exec(source))) {
+    const spec = m[1] ?? m[2] ?? m[3];
+    if (spec && spec.startsWith(".")) specs.add(spec);
+  }
+
+  const links: string[] = [];
+  for (const spec of specs) {
+    if (spec.endsWith(".css")) {
+      const cssAbs = join(dirname(absPath), spec);
+      if (existsSync(cssAbs)) links.push(cssAbs);
+      continue;
+    }
+    try {
+      const resolved = resolveLocal(dirname(absPath), spec);
+      links.push(...collectLocalCssLinks(resolved, visited));
+    } catch {
+      // Not a resolvable local module (e.g. a type-only import already erased by
+      // the time this file is read, or a bare package specifier accidentally
+      // starting with "." in some edge case) — nothing to link, skip rather than
+      // fail the whole render over a decorative import.
+    }
+  }
+  return links;
 }
 
 /** Renders the React port of one component with one prop set, statically (no hydration
@@ -463,10 +578,14 @@ export async function mountPort(
   const markup = ReactDOMServer.renderToStaticMarkup(element);
 
   // The CSS-extraction recipe (D-24 amended) always places a component's stylesheet
-  // beside it under the same basename.
-  const cssRelPath = componentRelPath.replace(/\.tsx?$/, ".css");
-  const cssAbs = join(REPO_ROOT, cssRelPath);
-  const extraLinks = existsSync(cssAbs) ? [`/${cssRelPath}`] : [];
+  // beside it under the same basename — plus (Plan 11 addition, see
+  // collectLocalCssLinks's own comment) every stylesheet belonging to a component
+  // this one composes internally, transitively, so a composed child (StatusBadge's
+  // and VehicleCard's own `<Badge>`) renders styled here exactly as it does in the
+  // real app rather than as unstyled plain text.
+  const extraLinks = Array.from(new Set(collectLocalCssLinks(abs))).map(
+    (cssAbs) => `/${relative(REPO_ROOT, cssAbs)}`,
+  );
 
   const html = wrapHtml({
     title: `mountPort: ${componentRelPath}`,

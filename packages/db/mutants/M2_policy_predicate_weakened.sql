@@ -1,0 +1,16 @@
+-- M2_policy_predicate_weakened.sql
+--
+-- Mutant (D-18): weakens the §14a customer-visibility predicate without depending on the
+-- policy's name -- `bookings_select_own` is owned by Phase 2 plan 02-08 and may be renamed.
+-- Instead this adds a second PERMISSIVE policy granting `authenticated` visibility into every
+-- row, unconditionally. Permissive policies OR together, so this widens customer visibility to
+-- every OTHER customer's bookings while leaving any RESTRICTIVE identity-requiring policy
+-- (`bookings_require_identity`) in force -- exactly "predicate weakened, identity still
+-- required", the shape D-19/F3's cross-claim proof exists to catch.
+--
+-- TARGET: pgtap:supabase/tests/cross_claim.test.sql
+--
+-- The target above must go red when this mutant is applied. Never part of the migration
+-- sequence (D-31) -- applied and restored only by `scripts/mutation-gate.mjs`, via
+-- `supabase db reset`.
+create policy m2_weakened on public.bookings for select to authenticated using (true);

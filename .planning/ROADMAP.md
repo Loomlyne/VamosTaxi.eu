@@ -30,8 +30,8 @@ cleanup. Deviations from `GSD-LAUNCH.md`'s phase numbering are noted per phase b
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Platform Foundation, Design System Port & i18n Runtime** - Worker deploys to a real staging domain with the ported design system and an SSR-safe i18n runtime
-- [ ] **Phase 2: Data Schema, RLS & Staff Auth Foundations** - Postgres mirrors the VamosOps contract with RLS everywhere and invited, MFA-gated staff auth
+- [x] **Phase 1: Platform Foundation, Design System Port & i18n Runtime** - Worker deploys to a real staging domain with the ported design system and an SSR-safe i18n runtime
+- [x] **Phase 2: Data Schema, RLS & Staff Auth Foundations** - Postgres mirrors the VamosOps contract with RLS everywhere and invited, MFA-gated staff auth
 - [ ] **Phase 3: Hyperdrive Data Access Wiring** - The Worker reaches Postgres through Hyperdrive, fast and safely isolated per request
 - [ ] **Phase 4: Quote & Pricing Engine** - The booking widget returns a real, locked, server-priced quote for any eligible route
 - [ ] **Phase 5: Public Surfaces & Customer Accounts** - Every public mock is a live route on real data, and customers can create and access accounts
@@ -61,24 +61,24 @@ where the `VamosLocale` DOM-walking runtime is replaced with an SSR-safe mechani
   4. Switching language on a rendered page relabels every string (including placeholders, `aria-label`, `title`, `alt`) in place without a reload, is correct in the server-rendered HTML with no English flash, and Arabic renders right-to-left with logical-property layout.
   5. Switching currency changes only the mark, never the number, and strings the code builds from parts translate too.
 
-**Plans**: 8/14 plans executed
+**Plans**: 14/14 plans executed
 
 Plans:
 
 - [x] 01-01-PLAN.md — Tracer: pnpm monorepo, Next 15 + OpenNext Worker (fetch/scheduled/queue), `[locale]` routing, first ported component, deployed to staging.vamostaxi.eu
 - [x] 01-02-PLAN.md — CI pipeline (PR/main/tag) and the two blocking secret gates
 - [x] 01-03-PLAN.md — Quality gate toolchain: stylelint law + logical-property rules, i18n key coverage, offline screenshot-diff harness
-- [ ] 01-04-PLAN.md — Cloudflare bindings provisioned, scheduled/queue proven in staging, Access + noindex, structured logging to Logpush
+- [x] 01-04-PLAN.md — Cloudflare bindings provisioned, scheduled/queue proven in staging, Access + noindex, structured logging to Logpush
 - [x] 01-05-PLAN.md — Brand layer vendored into the app, self-hosted Arabic face replacing the CDN hotlink, image delivery verified
 - [x] 01-06-PLAN.md — Design-system port batch 1: nine core primitives, dev gallery, first German and Arabic passes
 - [x] 01-07-PLAN.md — Dictionary migration to per-locale JSON with dotted keys and ICU messages, plus the runtime fallback
 - [x] 01-08-PLAN.md — Lenis smooth scroll as a single provider, with navigation resync and automated proof
 - [x] 01-09-PLAN.md — Design-system port batch 2: eight form controls
-- [ ] 01-10-PLAN.md — Design-system port batch 3: three navigation and five feedback components, plus focus and scroll behaviour specs
-- [ ] 01-11-PLAN.md — Design-system port batch 4: four data and four transfer composites
-- [ ] 01-12-PLAN.md — i18n runtime: locale shim, currency store, booking draft persistence and the ADR-001 acceptance test, alternates and sitemap
-- [ ] 01-13-PLAN.md — Shared header and footer ported and composed around every page
-- [ ] 01-14-PLAN.md — Localised 404 and error pages, gallery production exclusion, baseline review and the phase-wide language passes
+- [x] 01-10-PLAN.md — Design-system port batch 3: three navigation and five feedback components, plus focus and scroll behaviour specs
+- [x] 01-11-PLAN.md — Design-system port batch 4: four data and four transfer composites
+- [x] 01-12-PLAN.md — i18n runtime: locale shim, currency store, booking draft persistence and the ADR-001 acceptance test, alternates and sitemap
+- [x] 01-13-PLAN.md — Shared header and footer ported and composed around every page
+- [x] 01-14-PLAN.md — Localised 404 and error pages, gallery production exclusion, baseline review and the phase-wide language passes
 
 **UI hint**: yes
 
@@ -98,7 +98,48 @@ exclusion constraint (needed by Phase 8) are designed into the schema here, not 
   4. Seeding a fresh environment loads vehicle classes, settings, content strings and the existing reviews.
   5. A staff account can only be created by invitation and must complete a second factor before reaching ops data.
 
-**Plans**: TBD
+**Plans**: 10 plans
+
+Plans:
+**Wave 1**
+
+- [x] 02-01-PLAN.md — Wave 0: move supabase/ into packages/db, pin the CLI (legitimacy checkpoint), package scripts, D-37 docs
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 02-02-PLAN.md — Foundation migrations: extensions, four roles, app.* identity helpers, enums + rappen domain
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 02-03-PLAN.md — Reference data + staff auth: settings split (D-35 columns), fleet, customers/staff, token hook, content/reviews
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 02-04-PLAN.md — Pricing: rate_versions one-live gate, zones/rates/routes/surcharges, coupons, price i18n keys
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 02-05-PLAN.md — Booking core: VT-YY-#### generator, bookings, legs + dispatch exclusions, manage-token surface
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [x] 02-06-PLAN.md — Money: price snapshots, payments + charge gate, refunds/stripe_events/notifications, coupon_redemptions
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [x] 02-07-PLAN.md — Evidence: booking_events, audit_log triggers, consent_log + record_consent, four-layer append-only
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [x] 02-08-PLAN.md — RLS hard gate: enable everywhere, revoke-all baseline, per-actor policies, seven RLS proofs
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
+- [x] 02-09-PLAN.md — Seed generator + seed.sql, database.types.ts, CI gate, [BLOCKING] apply-from-zero proof
+
+**Wave 10** *(blocked on Wave 9 completion)*
+
+- [ ] 02-10-PLAN.md — Hosted probes (U1/U3/U15) + first remote push — owner-gated, autonomous: false
 
 ### Phase 3: Hyperdrive Data Access Wiring
 
@@ -113,7 +154,30 @@ under concurrency, not just smoke-tested.
   1. A representative query from the staging Worker completes with p50 round-trip under 30 ms.
   2. Two concurrent requests as two different customers, run against the pooled connection, never see each other's row — proven by a concurrent two-customer isolation integration test, not a single manual query.
 
-**Plans**: TBD
+**Plans**: 7 plans
+
+Plans:
+**Wave 1**
+
+- [x] 03-01-PLAN.md — Wave 0 + hard gate: `@vamos/db` as a real module, `withIdentity` at the frozen signature, database-free contract test
+
+**Wave 2** *(blocked on Wave 1 completion; 03-02 owns the local Docker stack, 03-03 and 03-04 are database-free)*
+
+- [x] 03-02-PLAN.md — Local isolation proof: pgTAP fail-closed/cross-claim/quote-identity, connection-reuse simulator, mutants + mutation gate
+- [x] 03-03-PLAN.md — apps/web wiring: two Hyperdrive bindings, Placement Hints at `aws:eu-central-2`, five named wrappers + WAE, region corrections
+- [x] 03-04-PLAN.md — Isolation probe Worker + token verify + schema-legal fixtures (source only), three production gates
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 03-05-PLAN.md — Deployed harness: concurrency driver, adjacency set, config preconditions, negative controls, DATA-06 isolation gate
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 03-06-PLAN.md — The local gate: ESLint + CI fences, `pr.yml` wiring, full local suite, OpenNext preview smoke — `autonomous: false` (package legitimacy checkpoint)
+
+**Wave 5** *(blocked on Wave 4 completion; owner-gated — deferred if unprovisioned)*
+
+- [ ] 03-07-PLAN.md — Staging Hyperdrive configs, deploy, deployed DATA-06 proof and DATA-05 p50 measurement — `autonomous: false` (owner-held credentials)
 
 ### Phase 4: Quote & Pricing Engine
 
@@ -132,7 +196,48 @@ start rather than added once checkout exists.
   4. A coupon reduces the price when valid and is refused outside its window or usage cap; a booking inside the minimum advance time or outside the service area is refused with a message saying which; a flight number fills in the landing time; a customer can add a child seat, an extra stop or oversized luggage as its own priced line.
   5. The quote endpoint is rate-limited and challenges repeated anonymous requests, and every amount reads `CHF 000` behind `pricing_live=false` until the real matrix is loaded and approved.
 
-**Plans**: TBD
+**Plans**: 16 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 04-01-PLAN.md — Wave 0 for the whole phase: install the two test tools this repository does not have, wire them
+- [ ] 04-04-PLAN.md — Make surcharge applicability **data**. Today "22:00–06:00" and "pickup is an airport zone" woul
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 04-02-PLAN.md — The two pure decision modules the pipeline sits on: which classes a party can travel in, and
+- [ ] 04-05-PLAN.md — The database half of QUOTE-04 and QUOTE-05: a second clock the trigger can see, a board the dis
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 04-03-PLAN.md — The pipeline itself: turn a frozen rate book plus a pinned journey into the exact `lines[]` arr
+- [ ] 04-06-PLAN.md — Open the anonymous quote identity's READ door, and finish the coupon ledger.
+- [ ] 04-07-PLAN.md — Two signed artefacts and one primitive.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 04-08-PLAN.md — The boundary and the vocabulary.
+- [ ] 04-15-PLAN.md — Open the write door Phase 3 reserved and could not build.
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 04-09-PLAN.md — Connect the pure kernel to the frozen book — through the one door that exists, on the one bindi
+- [ ] 04-10-PLAN.md — Everything between an address the customer typed and a pair of metres the kernel can price —
+- [ ] 04-12-PLAN.md — One lookup, three honest failures, and two columns so Phase 9 has something to shift.
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 04-11-PLAN.md — The two public endpoints the whole phase has been building toward, and the ordered list of
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 04-13-PLAN.md — The layer that decides how much a stranger is allowed to cost us, and the one place a signature
+- [ ] 04-16-PLAN.md — Settle the Phase 4 / Phase 5 seam, and prove the engine's answers can be rendered before anyone
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [ ] 04-14-PLAN.md — The rules Phase 7's handler must obey, and the ledger that keeps this phase's open questions
 **UI hint**: yes
 
 ### Phase 5: Public Surfaces & Customer Accounts
@@ -264,9 +369,9 @@ Phases execute in numeric order: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Platform Foundation, Design System Port & i18n Runtime | 8/14 | In Progress|  |
-| 2. Data Schema, RLS & Staff Auth Foundations | 0/TBD | Not started | - |
-| 3. Hyperdrive Data Access Wiring | 0/TBD | Not started | - |
+| 1. Platform Foundation, Design System Port & i18n Runtime | 11/14 | In Progress|  |
+| 2. Data Schema, RLS & Staff Auth Foundations | 9/10 | In Progress|  |
+| 3. Hyperdrive Data Access Wiring | 6/7 | In Progress|  |
 | 4. Quote & Pricing Engine | 0/TBD | Not started | - |
 | 5. Public Surfaces & Customer Accounts | 0/TBD | Not started | - |
 | 6. Ops Reference Data & Content Console | 0/TBD | Not started | - |

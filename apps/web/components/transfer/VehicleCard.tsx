@@ -82,9 +82,10 @@ export function VehicleCard({
     >
       <span className="vt-veh__shot">
         {image ? (
-          // eslint-disable-next-line @next/next/no-img-element -- decorative fleet
-          // photo, not an optimisable content image; matches the source's own plain
-          // <img>.
+          // Decorative fleet photo, not an optimisable content image; matches the
+          // source's own plain <img>. (No `@next/eslint-plugin-next` is installed in
+          // this repo — plan 03-06's eslint.config.mjs is deliberately minimal, two
+          // rules only — so there is no `no-img-element` rule here to disable.)
           <img src={image} alt={imageAlt ?? ""} />
         ) : (
           <Icon name={icon} size={34} color="var(--vt-grey-400)" />

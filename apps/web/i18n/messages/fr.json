@@ -360,8 +360,10 @@
     "your-driver-calls-this-number-on-arrival-so-it-h": "Votre chauffeur appelle ce numéro à l’arrivée : il doit donc être joignable. Nous le vérifions une fois par code SMS."
   },
   "booking": {
+    "date": "Date",
     "next-month": "Mois suivant",
-    "previous-month": "Mois précédent"
+    "previous-month": "Mois précédent",
+    "time": "Heure"
   },
   "checkout": {
     "60-min-airport-waiting": "60 min d’attente à l’aéroport",
@@ -789,6 +791,16 @@
     "you-choose-what-we-measure": "Vous choisissez ce que nous mesurons",
     "your-choice-is-stored-for-store-consent-months-m": "Votre choix est conservé {STORE_CONSENT_MONTHS} mois et peut être modifié à tout moment."
   },
+  "errors": {
+    "notFoundTitle": "Nous ne trouvons pas cette page.",
+    "notFoundBody": "Le lien est peut-être ancien ou mal saisi. Retournez à la page d'accueil, ou contactez le support si vous pensez qu'il s'agit d'une erreur.",
+    "notFoundHomeCta": "Aller à la page d'accueil",
+    "notFoundContactCta": "Contacter le support",
+    "errorTitle": "Un problème est survenu.",
+    "errorBody": "C'est de notre côté. Réessayez, ou retournez à la page d'accueil.",
+    "errorRetryCta": "Réessayer",
+    "errorHomeCta": "Aller à la page d'accueil"
+  },
   "faq": {
     "answers": "Réponses",
     "before-pickup-ask-us-and-we-will-send-them-soone": "avant la prise en charge. Demandez-le et nous les envoyons plus tôt.",
@@ -852,6 +864,11 @@
     "copyright": "© {year} Vamos Taxi. Tous droits réservés.",
     "get-in-touch": "Nous joindre",
     "marks-awaiting-confirmed-stripe-provider-config": "Marques en attente de la configuration Stripe confirmée — n’afficher que les méthodes activées.",
+    "nav-label": "Pied de page",
+    "payment-apple-pay": "Apple Pay",
+    "payment-mastercard": "Mastercard",
+    "payment-twint": "TWINT",
+    "payment-visa": "Visa",
     "vamos-taxi-on-facebook": "Vamos Taxi sur Facebook",
     "vamos-taxi-on-instagram": "Vamos Taxi sur Instagram"
   },
@@ -1516,6 +1533,49 @@
     "cancelled": "Annulé",
     "refunded": "Remboursé",
     "no-show": "Non-présentation"
+  },
+  "price": {
+    "line": {
+      "transfer": "Transfert, {vehicleClass}",
+      "fixed_route": "Trajet à prix fixe",
+      "coupon": "Code promo {code}",
+      "round_trip_discount": "Remise aller-retour, {percent} %",
+      "total": "Total"
+    },
+    "surcharge": {
+      "airport_pickup": {
+        "label": "Prise en charge à l'aéroport",
+        "rule": "Appliqué lorsque la prise en charge a lieu dans une zone aéroportuaire"
+      },
+      "night": {
+        "label": "Supplément de nuit",
+        "rule": "Appliqué entre {start} et {end}, heure de Zurich"
+      },
+      "waiting_airport": {
+        "label": "Attente, aéroport",
+        "rule": "Les {minutes} premières minutes sont incluses, puis facturé par tranche de {step} minutes"
+      },
+      "waiting_city": {
+        "label": "Attente, ville",
+        "rule": "Les {minutes} premières minutes sont incluses, puis facturé par tranche de {step} minutes"
+      },
+      "extra_stop": {
+        "label": "Arrêt supplémentaire",
+        "rule": "Par arrêt, à l'intérieur du corridor de l'itinéraire"
+      },
+      "child_seat": {
+        "label": "Siège enfant",
+        "rule": "Par siège, par trajet"
+      },
+      "meet_greet": {
+        "label": "Accueil personnalisé, arrivées",
+        "rule": "Inclus dans chaque prise en charge à l'aéroport"
+      },
+      "ski_rack": {
+        "label": "Porte-skis ou porte-snowboard",
+        "rule": "Installé sur demande, pendant la saison de ski"
+      }
+    }
   },
   "$meta": {
     "pendingValueKeys": [

@@ -360,8 +360,10 @@
     "your-driver-calls-this-number-on-arrival-so-it-h": "يتصل بك السائق على هذا الرقم عند الوصول، لذا يجب أن تردّ عليه. ونؤكّده مرة واحدة برمز عبر رسالة نصية."
   },
   "booking": {
+    "date": "التاريخ",
     "next-month": "الشهر التالي",
-    "previous-month": "الشهر السابق"
+    "previous-month": "الشهر السابق",
+    "time": "الوقت"
   },
   "checkout": {
     "60-min-airport-waiting": "60 دقيقة انتظار في المطار",
@@ -789,6 +791,16 @@
     "you-choose-what-we-measure": "أنت تختار ما نقيسه",
     "your-choice-is-stored-for-store-consent-months-m": "يُحفظ اختيارك مدة {STORE_CONSENT_MONTHS} شهرًا ويمكن تغييره في أي وقت."
   },
+  "errors": {
+    "notFoundTitle": "لم نتمكن من العثور على هذه الصفحة.",
+    "notFoundBody": "قد يكون الرابط قديمًا أو غير صحيح. عد إلى الصفحة الرئيسية، أو تواصل مع الدعم إذا كنت تعتقد أن هذا خطأ.",
+    "notFoundHomeCta": "الذهاب إلى الصفحة الرئيسية",
+    "notFoundContactCta": "التواصل مع الدعم",
+    "errorTitle": "حدث خطأ ما.",
+    "errorBody": "هذا خطأ من جانبنا. حاول مرة أخرى، أو عد إلى الصفحة الرئيسية.",
+    "errorRetryCta": "حاول مرة أخرى",
+    "errorHomeCta": "الذهاب إلى الصفحة الرئيسية"
+  },
   "faq": {
     "answers": "إجابات",
     "before-pickup-ask-us-and-we-will-send-them-soone": "قبل موعد الاستقبال. واطلب منّا إرسالها قبل ذلك إن شئت.",
@@ -852,6 +864,11 @@
     "copyright": "© {year} فاموس تاكسي. جميع الحقوق محفوظة.",
     "get-in-touch": "تواصل معنا",
     "marks-awaiting-confirmed-stripe-provider-config": "الشعارات بانتظار تأكيد إعدادات Stripe — أظهر وسائل الدفع المفعّلة فقط.",
+    "nav-label": "تذييل الصفحة",
+    "payment-apple-pay": "Apple Pay",
+    "payment-mastercard": "Mastercard",
+    "payment-twint": "TWINT",
+    "payment-visa": "Visa",
     "vamos-taxi-on-facebook": "فاموس تاكسي على فيسبوك",
     "vamos-taxi-on-instagram": "فاموس تاكسي على إنستغرام"
   },
@@ -1516,6 +1533,49 @@
     "cancelled": "مُلغى",
     "refunded": "مسترَد",
     "no-show": "عدم الحضور"
+  },
+  "price": {
+    "line": {
+      "transfer": "نقل، {vehicleClass}",
+      "fixed_route": "مسار بسعر ثابت",
+      "coupon": "قسيمة {code}",
+      "round_trip_discount": "خصم الذهاب والإياب، {percent}%",
+      "total": "الإجمالي"
+    },
+    "surcharge": {
+      "airport_pickup": {
+        "label": "استلام من المطار",
+        "rule": "يُطبّق عند الاستلام من داخل منطقة المطار"
+      },
+      "night": {
+        "label": "رسوم الليل",
+        "rule": "يُطبّق بين الساعة {start} و {end}، بتوقيت زيورخ"
+      },
+      "waiting_airport": {
+        "label": "الانتظار، المطار",
+        "rule": "أول {minutes} دقيقة مشمولة، ثم تُحتسب كل {step} دقيقة"
+      },
+      "waiting_city": {
+        "label": "الانتظار، المدينة",
+        "rule": "أول {minutes} دقيقة مشمولة، ثم تُحتسب كل {step} دقيقة"
+      },
+      "extra_stop": {
+        "label": "توقف إضافي",
+        "rule": "لكل توقف، ضمن مسار الرحلة"
+      },
+      "child_seat": {
+        "label": "مقعد أطفال",
+        "rule": "لكل مقعد، لكل رحلة"
+      },
+      "meet_greet": {
+        "label": "الاستقبال الشخصي، الوصول",
+        "rule": "مشمول في كل استلام من المطار"
+      },
+      "ski_rack": {
+        "label": "حامل التزلج أو الألواح",
+        "rule": "يُركَّب عند الطلب، خلال موسم التزلج"
+      }
+    }
   },
   "$meta": {
     "pendingValueKeys": [

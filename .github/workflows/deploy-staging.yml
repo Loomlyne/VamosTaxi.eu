@@ -59,15 +59,37 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Install Playwright browsers
-        run: pnpm --filter web exec playwright install --with-deps chromium
+  # See pr.yml — darwin baselines cannot pass on ubuntu-latest.
+  visual:
+    name: Visual + integration tests (D-25)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        with:
+          version: 11.7.0
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm --filter web exec playwright install chromium
 
       - name: Visual + integration tests (screenshot diffs, D-25)
         run: pnpm test:visual
 
   deploy:
     name: Deploy to staging
-    needs: gate
+    needs: [gate, visual]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -87,11 +109,41 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # `pnpm --filter web deploy` runs `opennextjs-cloudflare build && opennextjs-cloudflare
-      # deploy`, which wraps `wrangler deploy`; `--env staging` selects the `staging`
-      # environment declared in apps/web/wrangler.jsonc (custom domain staging.vamostaxi.eu).
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@ab058987d8d6c725971f6cf9d0b5c98467e30bd1 # v1.7.1
+        with:
+          version: 2.115.0
+
+      # `--include-seed` re-run semantics are D-27/U3, RESOLVED (02-09-SUMMARY.md post-execution
+      # fix): a second push does NOT re-run seed.sql once its content hash is recorded in
+      # supabase_migrations.seed_files -- every seed INSERT is ON CONFLICT regardless, so a
+      # changed seed file re-applying is safe either way. seed.sql also had to be restructured
+      # into a single top-level `do $do$ … $do$;` block -- Supabase's Supavisor pooler
+      # (transaction mode, what this linked connection resolves to) silently truncates a
+      # multi-statement pgx batch to its last statement, which broke `create or replace function
+      # public.__seed_apply()` + `revoke` + `select` as three separate top-level statements.
+      # These secrets are not yet configured (owner-held, see SUPABASE-RESOURCES.md), so this
+      # step fails closed until they exist — the Worker deploy was already blocked on the
+      # Cloudflare secrets (01-VERIFICATION.md). One hosted project exists today (D-37), so
+      # staging and production currently point at the same ref.
+      - name: Apply migrations + seed to staging (D-21, D-27)
+        run: pnpm db:link && pnpm db:push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+
+      # `pnpm --filter web run deploy -- --env staging` runs `opennextjs-cloudflare build &&
+      # opennextjs-cloudflare deploy -- --env staging`, which wraps `wrangler deploy`; `--env
+      # staging` selects the `staging` environment declared in apps/web/wrangler.jsonc (custom
+      # domain staging.vamostaxi.eu). Rule 1 fix (plan 03-07): `pnpm --filter web deploy` alone
+      # (no `run`) invokes PNPM'S OWN built-in `deploy` command (https://pnpm.io/cli/deploy,
+      # for packing a workspace project) rather than this package's `deploy` script, so it
+      # swallows `--env staging` as an unrecognised pnpm flag and fails with `Unknown option:
+      # 'env'` before `wrangler` ever runs — confirmed empirically this session, the exact
+      # failure this job would have hit on its next real run. `run` disambiguates the two.
       - name: Deploy Worker (staging environment)
-        run: pnpm --filter web deploy --env staging
+        run: pnpm --filter web run deploy -- --env staging
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -106,3 +158,96 @@ jobs:
 
       - name: Smoke test — Arabic path renders right-to-left
         run: curl -sf https://staging.vamostaxi.eu/ar | grep -q 'dir="rtl"'
+
+  data-06:
+    name: DATA-06 · deployed isolation proof (D-14, plan 03-07)
+    needs: deploy
+    runs-on: ubuntu-latest
+    # The experiment owns the staging database for its duration (real fixture rows, no
+    # teardown, D-19) — two runs at once would each see the other's rows and both results
+    # would be meaningless, matching 03-RESEARCH.md §13's own group.
+    concurrency:
+      group: data-06-staging
+      cancel-in-progress: false
+    env:
+      PROBE_BASE_URL: ${{ vars.PROBE_BASE_URL }}
+      PROBE_SECRET: ${{ secrets.PROBE_SECRET }}
+      # Named in 03-07-PLAN.md's <interfaces> block; not read by any file this phase ships
+      # (data-06-isolation.test.ts reads the probe's own config id from the checked-in
+      # packages/db/test/support/config-allowlist.json instead) — carried here anyway so a
+      # future consumer does not have to add it to this job later.
+      PROBE_HYPERDRIVE_CONFIG_ID: ${{ vars.PROBE_HYPERDRIVE_CONFIG_ID }}
+      SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+      SUPABASE_STAGING_REF: ${{ vars.SUPABASE_STAGING_REF }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      # The project's Postgres superuser on the DIRECT connection string (plan 03-07's
+      # fixtures/two-customers.ts ownerSql()) — owner-held, never committed. Whether this
+      # GitHub-hosted runner has outbound IPv6 to db.<ref>.supabase.co (AAAA-only, no A
+      # record — docs/build/SUPABASE-RESOURCES.md § "IPv6-only origin") is this job's own
+      # first-run acceptance test; the executor's laptop does not have that route, so it
+      # could not be confirmed ahead of time.
+      VAMOS_OWNER_URL: ${{ secrets.VAMOS_OWNER_URL }}
+      # Reuses the SAME token as the `deploy` job's CLOUDFLARE_API_TOKEN above (plan 03-07
+      # Task 1 requested Hyperdrive Edit + Workers Scripts Edit + Account Analytics: Read on
+      # one token) rather than asking for a second, separately-scoped Cloudflare credential.
+      # The REST config preconditions use these canonical names directly; the analytics helpers
+      # below retain their distinct CF_* names because they target a different API surface.
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CF_ANALYTICS_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      # PR-smoke figures (03-RESEARCH.md's "PR smoke" row) unless raised via repository
+      # variables for a nightly/deeper run — no code change needed either way (D-43 held the
+      # probe's own pool at Cloudflare's floor of 5, so these three did not need re-deriving,
+      # see docs/build/SUPABASE-RESOURCES.md § "D-43 (U32)").
+      PROBE_REQUESTS: ${{ vars.PROBE_REQUESTS || '400' }}
+      PROBE_CONCURRENCY: ${{ vars.PROBE_CONCURRENCY || '32' }}
+      PROBE_MIN_ADJACENCY: ${{ vars.PROBE_MIN_ADJACENCY || '200' }}
+      # `--include-seed` re-run semantics (D-27/U3) are RESOLVED (does NOT re-run once a seed
+      # file's hash is recorded) — see the `deploy` job's own migration step comment above. A
+      # migration step ever added ahead of THIS job must account for that resolved answer;
+      # nothing here changes it.
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        with:
+          version: 11.7.0
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Deployed fresh for every push so the probe under test is always the same commit as
+      # the app just deployed above (D-15: a stale probe binary would prove nothing about the
+      # code that just shipped).
+      - name: Deploy the isolation-probe Worker
+        run: pnpm --filter @vamos/isolation-probe exec wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      # Config preconditions (D-02/D-03 as FACTS, not measurements) — fails the run before
+      # any leakage assertion if an origin is on 6543, a login role is wrong, an identity
+      # config is cacheable, a pool size is wrong, or the probe/app config ids collide.
+      - name: Config preconditions
+        run: pnpm --filter @vamos/db exec vitest run test/deployed/config-preconditions.test.ts
+
+      # Mutants (NC1/NC2/NC3/NC6) MUST go red; hazards (NC4/NC5) MUST be observed; NC5+ is a
+      # labelled positive control (D-18). A green mutant here fails the job on purpose.
+      - name: Negative controls (mutants must go red, hazards must be observed)
+        run: pnpm --filter @vamos/db exec vitest run test/deployed/negative-controls.test.ts
+
+      # The DATA-06 gate itself: V1-V5 validity gates, then A1-A4 leakage assertions, across
+      # the customer/guest/staff pairings (D-45). An S below the re-derived floor is
+      # INCONCLUSIVE and fails — never reported as a pass with a caveat.
+      - name: DATA-06 isolation gate (adjacency set, all three pairings)
+        run: pnpm --filter @vamos/db exec vitest run test/deployed/data-06-isolation.test.ts

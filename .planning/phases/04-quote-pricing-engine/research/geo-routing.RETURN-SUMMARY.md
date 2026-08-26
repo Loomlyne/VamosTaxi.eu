@@ -1,0 +1,14 @@
+The research brief is written to `/Users/koss/Developer/VamosTaxi.eu/.planning/phases/04-quote-pricing-engine/research/geo-routing.md`.
+
+## Summary
+
+**Recommendation:** Geocode/route Mapbox-first (Search Box API for autocomplete, Geocoding v6 `/reverse` for pin-drops, Directions API v5 `mapbox/driving` for distance/duration/geometry), but treat every Mapbox response as request-scoped, non-cacheable, and get that overturned in writing by Mapbox sales before relying on the KV-cache design the project docs currently describe.
+
+**The load-bearing finding:** I read Mapbox's actual Product Terms PDF (2025-10-01) rather than relying on training data, and found:
+- §2.10.1 bars exporting, downloading, caching, or storing **any** result from a Navigation API request, with no permanent-mode exception — which directly contradicts `GSD-LAUNCH.md`/`CLOUDFLARE-RESOURCES.md`'s committed design of a 24h KV cache of Mapbox Directions output keyed by place-id pair.
+- §2.7.2/§2.7.3 restrict caching/reusing Geocoding results across customers except under a paid "Permanent Geocode" tier, itself conditioned on a fresh request "for each End User account."
+- More seriously: Phase 2's **already-committed schema** (`price_snapshots.distance_km/duration_min`, `booking_legs.pickup_lat/lng`, `estimated_duration_minutes`) stores exactly the kind of Mapbox-derived data these default terms forbid storing. This is a real cross-phase risk, not something this lane can resolve alone — it's flagged with the exact settling action: a five-minute email to Mapbox sales before sign-up, since Enterprise Orders routinely cover this for logistics/transport customers.
+
+Also covered: Directions (not Matrix, since QUOTE-01 needs route geometry) with `mapbox/driving` not `driving-traffic` (traffic-aware duration is wrong for a pre-booked future pickup, and Phase 2 already treats `estimated_duration_minutes` as an immutable snapshot); a two-path QUOTE-07 service-area design (`fixed_routes` named-zone allowlist + a new `settings_versions.service_area_geojson` polygon checked via a dependency-free point-in-polygon function, since PostGIS isn't installed); a NULL-handling asymmetry between `min_advance_minutes` (skip when NULL, per existing TBC convention) and the new service-area column (fail-closed when NULL, justified explicitly); the abuse-layer ordering (Cloudflare Rate Limiting Rule → Turnstile → Search Box session-token validation) before Mapbox is ever called; and graceful-degradation rules where a failed Directions call fails the quote outright rather than inventing a price.
+
+Five UNCERTAIN items are carried forward with exact settling checks (G1–G5), the most important being G1 (the Mapbox ToS question) and G2 (whether Search Box API has a `permanent` parameter at all, distinct from Geocoding v6's).
