@@ -16,6 +16,7 @@ Thumbs.db
 .env.*
 !.env.example
 node_modules/
+.pnpm-store/
 .next/
 .open-next/
 .wrangler/
