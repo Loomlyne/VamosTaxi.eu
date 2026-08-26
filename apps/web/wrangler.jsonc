@@ -12,37 +12,10 @@
     "enabled": true
   },
 
-  // Declared now per D-34 — every resource below must be genuinely
-  // provisioned via its own `wrangler <resource> create` command before
-  // `wrangler deploy` is run against it (01-RESEARCH.md Pitfall 4); no
-  // Phase 1 code references any of these bindings yet. Phases 3-7 attach
-  // code to plumbing that already exists.
-  "kv_namespaces": [
-    { "binding": "GEO_CACHE", "id": "<created via wrangler kv namespace create geo-cache>" }
-  ],
-  "r2_buckets": [
-    { "binding": "PHOTOS", "bucket_name": "vamos-photos" }
-  ],
-  "queues": {
-    "producers": [
-      { "binding": "STRIPE_EVENTS", "queue": "vamos-stripe-events" }
-    ],
-    "consumers": [
-      { "queue": "vamos-stripe-events" }
-    ]
-  },
-  "hyperdrive": [
-    {
-      "binding": "HYPERDRIVE",
-      "id": "<created in Phase 3, points at Supabase's direct connection string, never the pooled 6543 Supavisor string>",
-      // Not a secret — a placeholder pointing at localhost, required so
-      // `wrangler dev`/`preview` can boot the platform proxy locally before
-      // any code queries this binding (D-04, Pitfall 4). Phase 2/3 wires a
-      // real local Postgres via `supabase start`; nothing in Phase 1
-      // connects to this binding yet.
-      "localConnectionString": "postgres://postgres:postgres@localhost:5432/postgres"
-    }
-  ],
+  // Top-level bindings are unused — named environments below do not inherit
+  // them (wrangler warns and drops them silently otherwise), so every real
+  // binding lives under env.staging / env.production, each pointed at its
+  // own resource per D-34's staging/production split.
 
   // No `vars` block ever carries a credential — `vars` is plaintext in this
   // committed file. Every secret (Stripe, Supabase, Resend, Mapbox,
@@ -54,8 +27,78 @@
   "env": {
     "staging": {
       "name": "vamos-web-staging",
-      "routes": [
-        { "pattern": "staging.vamostaxi.eu", "custom_domain": true }
+      // No zone for vamostaxi.eu on this account yet (owner decision:
+      // stay off any real domain until Phase 11 cutover) — deploys to
+      // the account's *.workers.dev subdomain instead of a custom route.
+      "workers_dev": true,
+      // Plain, non-secret marker (never a credential — see the top-level
+      // `vars` comment above) — apps/web/middleware.ts reads this to scope
+      // the X-Robots-Tag: noindex header to staging only (D-37). Absent
+      // under env.production, which is what keeps the header off production.
+      "vars": {
+        "DEPLOY_ENV": "staging"
+      },
+      "kv_namespaces": [
+        { "binding": "GEO_CACHE", "id": "48cd800d63e44c03aa1f49be83d39d7a" }
+      ],
+      "r2_buckets": [
+        { "binding": "PHOTOS", "bucket_name": "vamos-photos-staging" }
+      ],
+      "queues": {
+        "producers": [
+          { "binding": "STRIPE_EVENTS", "queue": "vamos-stripe-events-staging" }
+        ],
+        "consumers": [
+          { "queue": "vamos-stripe-events-staging" }
+        ]
+      },
+      "triggers": {
+        "crons": ["0 3 * * *"]
+      },
+      // Placement Hints (D-22), not Smart Placement — one single-homed database, so Smart
+      // Placement's learn-over-traffic model solves the wrong problem and takes up to 15
+      // minutes to warm up; a Placement Hint is deterministic from the first deploy. The
+      // region below is Zurich — the AWS region backing Supabase project
+      // `yaumjzvylngfjhtuffqs` (Phase 2 D-37) — superseding `03-RESEARCH.md`'s stale
+      // Frankfurt-region hint (D-25). This pins **fetch handlers only** (D-24): the
+      // `triggers.crons` above and the `queues.consumers` above are unplaced, and their
+      // latency is explicitly outside DATA-05.
+      "placement": { "region": "aws:eu-central-2" },
+      // DATA-05's instrument (D-23): every `withIdentity` call from
+      // `apps/web/lib/db/identity.ts` writes one Workers Analytics Engine data point here,
+      // on both the success and the error branch. The dataset exists from this plan
+      // forward; the p50 percentile itself stays literally DEFERRED (`DATA-05 p50 =
+      // DEFERRED (no staging Worker)`) until plan 03-07 deploys a staging Worker that has
+      // actually written points — a local timing is not the criterion (D-27).
+      "analytics_engine_datasets": [
+        { "binding": "DB_LATENCY", "dataset": "vamos_db_latency" }
+      ],
+      // Rule 2 addition (plan 03-06, D-36): uncommented from the placeholder block plan
+      // 03-03 left here — D-36 requires the OpenNext runtime path smoke-tested through a
+      // real `opennextjs-cloudflare preview --env staging` (never `--env production`: the
+      // `/api/dev/db-smoke` route's own `DEPLOY_ENV === "staging"` gate 404s any other
+      // environment, per its own header comment), and `preview`/`wrangler dev` never
+      // reached the platform proxy at all while this binding was fully commented out.
+      // Confirmed empirically this session that `wrangler dev`'s LOCAL mode uses only
+      // `localConnectionString` and never validates `id` as a real UUID (that validation
+      // is `wrangler deploy`-only, per the `id` placeholder's own original comment,
+      // preserved on the `id` lines below) — so this is safe to enable now without
+      // `wrangler hyperdrive create` or any owner-held credential (D-29). Plan 03-07
+      // (2026-08-25) filled both ids with real Hyperdrive configs against
+      // `yaumjzvylngfjhtuffqs`'s direct connection string — origin-connection-limit
+      // 20/12, D-43-derived from measured `max_connections=60` (see
+      // docs/build/CLOUDFLARE-RESOURCES.md § "D-43 (U32)"), not the research's 25/15.
+      "hyperdrive": [
+        {
+          "binding": "HYPERDRIVE",
+          "id": "b53693800b7e4c1c94205774baa73420",
+          "localConnectionString": "postgres://vamos_public:vamos_public@127.0.0.1:54322/postgres"
+        },
+        {
+          "binding": "HYPERDRIVE_NOCACHE",
+          "id": "71523abbbb7542fdbff01f66d9a858ed",
+          "localConnectionString": "postgres://vamos_edge:vamos_edge@127.0.0.1:54322/postgres"
+        }
       ]
     },
     "production": {
@@ -65,6 +108,71 @@
       // until then. Declared now so the environment shape exists.
       "routes": [
         { "pattern": "vamostaxi.eu", "custom_domain": true }
+      ],
+      "kv_namespaces": [
+        { "binding": "GEO_CACHE", "id": "a11bc8c7d13d4eeb9c2dad091e978dcb" }
+      ],
+      "r2_buckets": [
+        { "binding": "PHOTOS", "bucket_name": "vamos-photos-production" }
+      ],
+      "queues": {
+        "producers": [
+          { "binding": "STRIPE_EVENTS", "queue": "vamos-stripe-events-production" }
+        ],
+        "consumers": [
+          { "queue": "vamos-stripe-events-production" }
+        ]
+      },
+      "triggers": {
+        "crons": ["0 3 * * *"]
+      },
+      // Placement Hints (D-22), not Smart Placement — see env.staging's comment above for
+      // the full reasoning; identical here. The region below is Zurich (D-25),
+      // superseding `03-RESEARCH.md`'s stale Frankfurt-region hint. Pins fetch handlers
+      // only (D-24) — the Queues/Cron blocks above are unplaced.
+      "placement": { "region": "aws:eu-central-2" },
+      // DATA-05's instrument (D-23) — see env.staging's comment above. The p50 stays
+      // DEFERRED until plan 03-07 measures it from a deployed staging Worker; production
+      // is not the measurement environment (not deployed until Phase 11 per D-33 above).
+      "analytics_engine_datasets": [
+        { "binding": "DB_LATENCY", "dataset": "vamos_db_latency" }
+      ],
+      // Two Hyperdrive configs (D-01/D-03), never one: `HYPERDRIVE` is the cacheable,
+      // public-content path (`vamos_public`); `HYPERDRIVE_NOCACHE` is cache-disabled for
+      // anything carrying identity, auth, permissions or the `pricing_live` flag
+      // (`vamos_edge`). Both point at Supabase's DIRECT connection string on port 5432 —
+      // never Supavisor's pooled port (D-02); Hyperdrive *is* the pooler, and
+      // double-pooling only surfaces under real concurrency. The credential for each
+      // config lives inside the Hyperdrive config object addressed by the opaque `id`
+      // below — never in this file, never `wrangler secret put` (D-01).
+      //
+      // Deliberately still placeholders (plan 03-07, 2026-08-25): `env.staging`'s
+      // twin bindings above ARE real (ids `71523abbbb7542fdbff01f66d9a858ed` /
+      // `b53693800b7e4c1c94205774baa73420`, origin-connection-limit 20/12, D-43-derived).
+      // `env.production` stays a placeholder on purpose — production is not deployed
+      // until Phase 11 (D-33), and creating two more Hyperdrive configs now would draw
+      // two more idle origin-connection slots against the same `max_connections=60`
+      // ceiling D-43 just measured (staging's own 37-connection budget already leaves
+      // only 10 of headroom — see docs/build/CLOUDFLARE-RESOURCES.md § "D-43 (U32)").
+      // Phase 11 creates these for real, sized against whatever headroom exists then.
+      "hyperdrive": [
+        {
+          "binding": "HYPERDRIVE",
+          "id": "<public/cacheable config id — created by plan 03-07 via `wrangler hyperdrive create`, points at Supabase's direct connection string as vamos_public, never the pooled 6543 Supavisor string>",
+          // Not a secret — a placeholder pointing at local Supabase (D-04): port 54322,
+          // not 5432, logging in as `vamos_public` — not the pre-roles `postgres`
+          // superuser this string replaces, which carried BYPASSRLS and made the `42501`
+          // fail-closed boundary untestable. Required so `wrangler dev`/`preview` can
+          // boot the platform proxy locally before any code queries this binding.
+          "localConnectionString": "postgres://vamos_public:vamos_public@127.0.0.1:54322/postgres"
+        },
+        {
+          "binding": "HYPERDRIVE_NOCACHE",
+          "id": "<cache-disabled config id — created by plan 03-07 via `wrangler hyperdrive create --caching-disabled`, points at Supabase's direct connection string as vamos_edge, never the pooled 6543 Supavisor string>",
+          // Local Supabase, port 54322, `vamos_edge` — same reasoning as the sibling
+          // entry's comment above, different login role.
+          "localConnectionString": "postgres://vamos_edge:vamos_edge@127.0.0.1:54322/postgres"
+        }
       ]
     }
   }

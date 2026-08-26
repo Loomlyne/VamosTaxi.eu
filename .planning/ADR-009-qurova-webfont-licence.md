@@ -1,6 +1,6 @@
 # ADR-009 — Buy the Prioritype Web Font licence for Qurova; hold the Phase 1 font-copy gate until it happens
 
-**Status:** Proposed, pending the owner's purchase, 2026-08-19
+**Status:** Accepted 2026-08-22 (owner authorised the ~$69 Web Font purchase in ADR-014 §7). **Remains open until the purchase lands** — owner confirmed keep it open; do not pick a fallback. Still pending the Prioritype checkout and the two foundry questions (pageview cap, perpetual vs annual). Production redistribution of Qurova waits.
 **Phase:** 1 (Platform Foundation, Design System Port), because Phase 1 is where the vendored
 font files get copied into `apps/web/public/brand/` — the moment redistribution begins.
 

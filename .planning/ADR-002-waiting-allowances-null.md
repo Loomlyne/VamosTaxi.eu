@@ -1,7 +1,8 @@
 # ADR-002 — Seeding waiting allowances NULL, not 60/15
 
-**Status:** Accepted, 2026-08-19
+**Status:** Superseded 2026-08-22 by ADR-014 §5. Owner confirmed airport **60** / city **15**. Seed those numbers. The NULL discipline remains the rule for any policy the owner has **not** confirmed.
 **Phase:** 2 (the schema seed)
+**Superseded by:** `.planning/ADR-014-owner-sitting-2026-08-22.md`
 
 ## Context
 

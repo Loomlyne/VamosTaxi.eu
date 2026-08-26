@@ -22,7 +22,8 @@ Goal: every external account exists, EU-hosted, with billing on.
 1. Cloudflare account + the `vamostaxi.eu` zone (transfer DNS from current host; keep the
    old CMS live until Phase 9 cutover).
 2. Supabase org → 2 projects (`vamos-staging`, `vamos-prod`), **region eu-central (Frankfurt)**
-   — closest to Zurich. Pro plan ($25/project).
+   — closest to Zurich. Pro plan ($25/project). — **amended 2026-08-23 (D-37): the created project
+   is in Central Europe (Zurich)**
 3. Stripe account (CH entity, CHF default). Activate TWINT via Stripe payment methods.
 4. Resend account + domain `vamostaxi.eu` verified (SPF/DKIM/DMARC records in Cloudflare DNS).
 5. Mapbox account (Geocoding + Directions APIs).
@@ -223,6 +224,32 @@ thing to size.
 CI/deploy also needs `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` as GitHub Actions
 repository secrets (`.github/workflows/deploy-staging.yml` and `deploy-production.yml`) —
 not yet configured; no Cloudflare account exists as of Phase 1 (see 01-01-SUMMARY.md).
+
+Alongside that Cloudflare pair, the deploy workflows also need three Supabase CI secrets —
+not yet configured, owner-held; see `docs/build/SUPABASE-RESOURCES.md` for the probe checklist
+that must run before the first hosted push. Each is consumed as step-level `env:` on the
+`Apply migrations + seed to <env>` step in `deploy-staging.yml` and `deploy-production.yml`
+(Plan 02-09, D-21):
+
+- `SUPABASE_ACCESS_TOKEN` — Supabase dashboard → Account → Access Tokens (a personal access
+  token scoped to the project, used by `supabase link`/`supabase db push`).
+- `SUPABASE_DB_PASSWORD` — the hosted project's Database settings page (Settings → Database →
+  Connection string's password), never the dashboard login password.
+- `SUPABASE_PROJECT_ID` — `yaumjzvylngfjhtuffqs` (Central Europe/Zurich, D-37; recorded in
+  `docs/build/SUPABASE-RESOURCES.md`).
+
+`packages/db/package.json`'s `link` script reads `SUPABASE_PROJECT_ID` with a fallback to the
+same ref (`supabase link --project-ref ${SUPABASE_PROJECT_ID:-yaumjzvylngfjhtuffqs}`), so the
+one script serves both local development (no env var set, default ref) and CI (the per-env
+secret). The `pr.yml` `database` job needs none of these three — it only ever runs against the
+local, unlinked stack (`pnpm db:start` / `db:reset` / `db:test`).
+
+The `vamos_edge` and `vamos_public` Postgres role passwords (set out-of-band per environment,
+never committed — see `packages/db/README.md` "Role passwords" for the rotation procedure)
+belong in the same secrets tier as `SUPABASE_SERVICE_ROLE` above, not a lower one: `vamos_edge`
+holds membership in `vamos_staff` `WITH INHERIT FALSE, SET TRUE` and reads the unauthenticated
+`request.jwt.claims` GUC, so holding that password permits `SET ROLE vamos_staff` plus a forged
+claims payload — full staff impersonation (F-21, `packages/db/supabase/migrations/20260823000002_roles_and_helpers.sql`).
 
 **Automated gates proving this matrix stays honest (D-35, Phase 1):**
 - `gitleaks` — a credential-pattern scan, wired twice from the same `.gitleaks.toml`: at

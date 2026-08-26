@@ -24,6 +24,8 @@ export default function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isDefaultLocalePrefixed = pathname === "/en" || pathname.startsWith("/en/");
 
+  let finalResponse = response;
+
   if (isDefaultLocalePrefixed && response.status === 307) {
     const location = response.headers.get("location");
     if (location) {
@@ -33,11 +35,25 @@ export default function middleware(request: NextRequest) {
           permanent.headers.set(key, value);
         }
       });
-      return permanent;
+      finalResponse = permanent;
     }
   }
 
-  return response;
+  // D-37/T-01-04: staging carries a noindex header so nothing half-built competes with the
+  // live site's search ranking; production must never carry it. `DEPLOY_ENV` is a plain,
+  // non-secret `vars` entry set only under `apps/web/wrangler.jsonc`'s `env.staging` (typed
+  // in `apps/web/lib/env.d.ts`) — undefined under `env.production`, so this branch is a
+  // structural no-op there rather than something a forgotten flag flip could leak.
+  //
+  // Cloudflare Access — the other half of D-37's "staging is gated and unindexed" — is
+  // deferred by explicit owner decision; see docs/build/CLOUDFLARE-RESOURCES.md. This
+  // header alone does not stop a human or scraper from reaching the URL, only from it
+  // ranking if they do.
+  if (process.env.DEPLOY_ENV === "staging") {
+    finalResponse.headers.set("X-Robots-Tag", "noindex");
+  }
+
+  return finalResponse;
 }
 
 export const config = {

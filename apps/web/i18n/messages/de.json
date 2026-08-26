@@ -360,8 +360,10 @@
     "your-driver-calls-this-number-on-arrival-so-it-h": "Ihr Fahrer ruft diese Nummer bei der Ankunft an — sie muss also erreichbar sein. Wir bestätigen sie einmalig mit einem Code per SMS."
   },
   "booking": {
+    "date": "Datum",
     "next-month": "Nächster Monat",
-    "previous-month": "Vorheriger Monat"
+    "previous-month": "Vorheriger Monat",
+    "time": "Zeit"
   },
   "checkout": {
     "60-min-airport-waiting": "60 Min. Wartezeit am Flughafen",
@@ -789,6 +791,16 @@
     "you-choose-what-we-measure": "Sie entscheiden, was wir messen",
     "your-choice-is-stored-for-store-consent-months-m": "Ihre Auswahl wird {STORE_CONSENT_MONTHS} Monate gespeichert und kann jederzeit geändert werden."
   },
+  "errors": {
+    "notFoundTitle": "Diese Seite finden wir nicht.",
+    "notFoundBody": "Der Link ist vielleicht veraltet oder falsch eingegeben. Gehen Sie zurück zur Startseite, oder wenden Sie sich an den Support, wenn Sie das für einen Fehler halten.",
+    "notFoundHomeCta": "Zur Startseite",
+    "notFoundContactCta": "Support kontaktieren",
+    "errorTitle": "Etwas ist schiefgelaufen.",
+    "errorBody": "Das liegt an uns. Versuchen Sie es erneut, oder gehen Sie zurück zur Startseite.",
+    "errorRetryCta": "Erneut versuchen",
+    "errorHomeCta": "Zur Startseite"
+  },
   "faq": {
     "answers": "Antworten",
     "before-pickup-ask-us-and-we-will-send-them-soone": "vor der Abholung. Auf Wunsch senden wir sie früher.",
@@ -852,6 +864,11 @@
     "copyright": "© {year} Vamos Taxi. Alle Rechte vorbehalten.",
     "get-in-touch": "Kontakt aufnehmen",
     "marks-awaiting-confirmed-stripe-provider-config": "Marken warten auf die bestätigte Stripe-Konfiguration — nur freigeschaltete Zahlungsarten anzeigen.",
+    "nav-label": "Fusszeile",
+    "payment-apple-pay": "Apple Pay",
+    "payment-mastercard": "Mastercard",
+    "payment-twint": "TWINT",
+    "payment-visa": "Visa",
     "vamos-taxi-on-facebook": "Vamos Taxi auf Facebook",
     "vamos-taxi-on-instagram": "Vamos Taxi auf Instagram"
   },
@@ -1516,6 +1533,49 @@
     "cancelled": "Storniert",
     "refunded": "Rückerstattet",
     "no-show": "Nichterscheinen"
+  },
+  "price": {
+    "line": {
+      "transfer": "Transfer, {vehicleClass}",
+      "fixed_route": "Festpreisroute",
+      "coupon": "Gutschein {code}",
+      "round_trip_discount": "Rabatt für Hin- und Rückfahrt, {percent} %",
+      "total": "Total"
+    },
+    "surcharge": {
+      "airport_pickup": {
+        "label": "Flughafenabholung",
+        "rule": "Gilt, wenn die Abholung innerhalb einer Flughafenzone liegt"
+      },
+      "night": {
+        "label": "Nachtzuschlag",
+        "rule": "Gilt zwischen {start} und {end} Uhr, Zürcher Zeit"
+      },
+      "waiting_airport": {
+        "label": "Wartezeit, Flughafen",
+        "rule": "Die ersten {minutes} Minuten sind inbegriffen, danach pro {step} Minuten"
+      },
+      "waiting_city": {
+        "label": "Wartezeit, Stadt",
+        "rule": "Die ersten {minutes} Minuten sind inbegriffen, danach pro {step} Minuten"
+      },
+      "extra_stop": {
+        "label": "Zusätzlicher Halt",
+        "rule": "Pro Halt, innerhalb des Streckenkorridors"
+      },
+      "child_seat": {
+        "label": "Kindersitz",
+        "rule": "Pro Sitz, pro Fahrt"
+      },
+      "meet_greet": {
+        "label": "Meet & Greet, Ankunft",
+        "rule": "Inbegriffen bei jeder Flughafenabholung"
+      },
+      "ski_rack": {
+        "label": "Ski- oder Boardträger",
+        "rule": "Auf Anfrage montiert, während der Skisaison"
+      }
+    }
   },
   "$meta": {
     "pendingValueKeys": [

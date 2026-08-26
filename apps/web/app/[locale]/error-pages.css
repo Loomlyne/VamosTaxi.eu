@@ -1,0 +1,55 @@
+/* D-20: the two surfaces a visitor reaches when something is wrong — a wrong URL, a
+   server-side failure. No mock exists for either (checked: no 404.dc.html/not-found.dc.html/
+   error.dc.html in app/pages/ or app/home/), so this is written directly from the tokens
+   rather than extracted from one, per 01-UI-SPEC.md's Copywriting Contract. A single
+   centred block inside the standard container the rest of the product uses (the header's
+   [data-hd-row] max-inline-size, `.claude/CLAUDE.md` § Responsive Design), checked at all
+   four viewports.
+
+   Shared by app/[locale]/not-found.tsx, app/[locale]/error.tsx and the root
+   app/not-found.tsx (the last one imports it directly, since it renders outside the
+   [locale] layout's own globals.css import). */
+
+[data-error-page] {
+  display: flex;
+  justify-content: center;
+  max-inline-size: 1200px;
+  margin-inline: auto;
+  padding-inline: clamp(20px, 5vw, 56px);
+  padding-block: clamp(64px, 14vw, 140px);
+}
+
+[data-error-block] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--vt-space-4);
+  max-inline-size: 46ch;
+  text-align: center;
+}
+
+[data-error-title] {
+  margin: 0;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-heading-2);
+  font-weight: var(--vt-weight-semibold);
+  letter-spacing: var(--vt-heading-tracking);
+  line-height: var(--vt-heading-leading);
+  color: var(--vt-text-primary);
+}
+
+[data-error-body] {
+  margin: 0;
+  font-family: var(--vt-font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--vt-text-secondary);
+}
+
+[data-error-actions] {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--vt-space-3);
+  margin-block-start: var(--vt-space-2);
+}

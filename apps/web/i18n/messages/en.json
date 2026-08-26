@@ -360,8 +360,10 @@
     "your-driver-calls-this-number-on-arrival-so-it-h": "Your driver calls this number on arrival, so it has to be one you will answer. We verify it once with a code by text."
   },
   "booking": {
+    "date": "Date",
     "next-month": "Next month",
-    "previous-month": "Previous month"
+    "previous-month": "Previous month",
+    "time": "Time"
   },
   "checkout": {
     "60-min-airport-waiting": "60 min airport waiting",
@@ -789,6 +791,16 @@
     "you-choose-what-we-measure": "You choose what we measure",
     "your-choice-is-stored-for-store-consent-months-m": "Your choice is stored for {STORE_CONSENT_MONTHS} months and can be changed any time."
   },
+  "errors": {
+    "notFoundTitle": "We can't find that page.",
+    "notFoundBody": "The link may be old or mistyped. Head back to the homepage, or contact support if you think this is wrong.",
+    "notFoundHomeCta": "Go to the homepage",
+    "notFoundContactCta": "Contact support",
+    "errorTitle": "Something went wrong.",
+    "errorBody": "This one is on us. Try again, or head back to the homepage.",
+    "errorRetryCta": "Try again",
+    "errorHomeCta": "Go to the homepage"
+  },
   "faq": {
     "answers": "Answers",
     "before-pickup-ask-us-and-we-will-send-them-soone": "before pickup. Ask us and we will send them sooner.",
@@ -852,6 +864,11 @@
     "copyright": "© {year} Vamos Taxi. All rights reserved.",
     "get-in-touch": "Get in touch",
     "marks-awaiting-confirmed-stripe-provider-config": "Marks awaiting confirmed Stripe provider config — show only enabled methods.",
+    "nav-label": "Footer",
+    "payment-apple-pay": "Apple Pay",
+    "payment-mastercard": "Mastercard",
+    "payment-twint": "TWINT",
+    "payment-visa": "Visa",
     "vamos-taxi-on-facebook": "Vamos Taxi on Facebook",
     "vamos-taxi-on-instagram": "Vamos Taxi on Instagram"
   },
@@ -1517,6 +1534,49 @@
     "refunded": "Refunded",
     "no-show": "No-show"
   },
+  "price": {
+    "line": {
+      "transfer": "Transfer, {vehicleClass}",
+      "fixed_route": "Fixed route",
+      "coupon": "Coupon {code}",
+      "round_trip_discount": "Round-trip discount, {percent} %",
+      "total": "Total"
+    },
+    "surcharge": {
+      "airport_pickup": {
+        "label": "Airport pickup",
+        "rule": "Applied when pickup is inside an airport zone"
+      },
+      "night": {
+        "label": "Night surcharge",
+        "rule": "Applied between {start} and {end}, Zurich time"
+      },
+      "waiting_airport": {
+        "label": "Waiting, airport",
+        "rule": "First {minutes} minutes included, then per {step} minutes"
+      },
+      "waiting_city": {
+        "label": "Waiting, city",
+        "rule": "First {minutes} minutes included, then per {step} minutes"
+      },
+      "extra_stop": {
+        "label": "Additional stop",
+        "rule": "Per stop, inside the route corridor"
+      },
+      "child_seat": {
+        "label": "Child seat",
+        "rule": "Per seat, per journey"
+      },
+      "meet_greet": {
+        "label": "Meet and greet, arrivals",
+        "rule": "Included in every airport pickup"
+      },
+      "ski_rack": {
+        "label": "Ski or board rack",
+        "rule": "Fitted on request, ski season"
+      }
+    }
+  },
   "$meta": {
     "pendingValueKeys": [
       "cookies.necessary-duration",
@@ -1544,7 +1604,11 @@
       "common.brandName",
       "common.vehicleClassEconomy",
       "common.vehicleClassBusiness",
-      "common.vehicleClassVan"
+      "common.vehicleClassVan",
+      "footer.payment-visa",
+      "footer.payment-mastercard",
+      "footer.payment-twint",
+      "footer.payment-apple-pay"
     ],
     "noParamKeys": {
       "partner.mercedes-v-class-7-seats": "fixed vehicle-class specification copy, not a live count",

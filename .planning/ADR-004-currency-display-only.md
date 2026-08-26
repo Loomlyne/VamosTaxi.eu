@@ -1,7 +1,10 @@
 # ADR-004 — Currency is display-only; CHF is the one priced currency
 
-**Status:** Accepted, 2026-08-19
+**Status:** Partially superseded 2026-08-22 by ADR-014 §1.
+**Still binding:** one CHF amount in the schema — no per-currency price lists.
+**Superseded:** “the switch changes the mark, never the number” and “Stripe always settles CHF”. The owner chose Stripe FX conversion on the hero and checkout, and the **charge currency is the customer’s choice** (changeable again on Stripe Checkout).
 **Phase:** 4 (pricing engine)
+**Superseded by:** `.planning/ADR-014-owner-sitting-2026-08-22.md`
 
 ## Context
 

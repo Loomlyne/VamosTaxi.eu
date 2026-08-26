@@ -107,8 +107,7 @@ The one number that has been settled and re-opened twice.
 Never supplied — it is the one class carrying `{VEHICLE_CLASS_n_MAX_PAX}` /
 `{VEHICLE_CLASS_n_MAX_BAGS}` tokens. Passengers and bags?
 
-**Answer:** *(still open — asked again 2026-08-13 under About page, left blank.)* The
-`data-tok` pills stay on the Business card until this lands.
+**Answer:** *(2026-08-22, ADR-014)* **3 passengers / 3 bags.** Same as Economy. `data-tok` on the Business card comes off.
 
 ### Q8 · Waiting allowances — seed NULL or seed 60/15
 `app/vamos-ops-data.js` seeds `airportWait: '60'` and `cityWait: '15'`.
@@ -116,12 +115,7 @@ Never supplied — it is the one class carrying `{VEHICLE_CLASS_n_MAX_PAX}` /
 ("marketing claim, never confirmed"). The proposed `settings` table has them NULL, which is
 what renders the `data-tok` TBC pill. Confirm NULL, or confirm 60 and 15 as real numbers.
 
-**Answer:** *(2026-08-19, engineering decision)* **Seed NULL, not 60/15** — see `.planning/ADR-002-waiting-allowances-null.md`. An unconfirmed
-archive figure seeded as the default silently becomes the answer, which is how the archive's
-claims became live consumer promises in the first place; NULL renders the `data-tok` TBC pill,
-which is Law 04 working as designed. The setting alone does not close conflict C19: plain prose
-across eleven sites still asserts 60 minutes regardless of what the setting holds, and that has
-to be fixed in the same pass.
+**Answer:** *(2026-08-22, ADR-014 — supersedes the 2026-08-19 NULL seed)* **Airport 60 / city 15**, owner-confirmed. Seed those on `settings_versions`. ADR-002's NULL rule still applies to any policy **not** confirmed. C19 copy sites must read the setting, not a hardcoded 60.
 
 ### Q9 · Booking reference format
 `VT-####` runs out at 9999. Keep four digits and let it grow to five, or move to
@@ -166,11 +160,7 @@ mark and never the number — and Stripe charges CHF.
 The proposed schema assumes CHF is the one priced currency and the others are display marks
 only. If dispatch really maintains four price lists, the pricing tables change shape.
 
-**Answer:** *(2026-08-19, engineering decision)* Display-only — see `.planning/ADR-004-currency-display-only.md`. CHF is the one priced
-currency in the schema; one CHF amount per rate, route and surcharge, no per-currency columns.
-`CLAUDE.md` already mandates this behaviour and Stripe settles CHF regardless of the currency
-shown, so the other marks are presentational. Checkout must state the charge currency
-explicitly once a non-CHF mark is shown — flagged as a requirement, not decided here.
+**Answer:** *(2026-08-22, ADR-014 — supersedes ADR-004 display/charge)* Schema stays **one CHF amount**. Display **converts via Stripe FX** (CHF/EUR/USD/AED) on the hero switch and at checkout. **The card is charged in the currency the customer chose**, changeable again on Stripe Checkout. Four-language copy. The CHF rappen total is what the quote lock holds; FX is re-read when the Checkout session is created.
 
 ### Q13 · Refund shares and cancellation window (A2)
 Free-cancel window, full-refund share, partial-refund share, no-show share, driver-no-show

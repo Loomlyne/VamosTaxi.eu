@@ -1,0 +1,615 @@
+{
+  "collections": [
+    {
+      "name": "vehicles",
+      "idShape": "v-<timestamp36>-<random3>",
+      "fields": [
+        {
+          "field": "id",
+          "mockType": "str",
+          "defaultOrConstraint": "generated via id('v')"
+        },
+        {
+          "field": "klass",
+          "mockType": "enum",
+          "defaultOrConstraint": "Economy|Business|First|Van → defaults to Economy"
+        },
+        {
+          "field": "model",
+          "mockType": "str",
+          "defaultOrConstraint": "no default"
+        },
+        {
+          "field": "plate",
+          "mockType": "str",
+          "defaultOrConstraint": "no default"
+        },
+        {
+          "field": "year",
+          "mockType": "str",
+          "defaultOrConstraint": "no default"
+        },
+        {
+          "field": "seats",
+          "mockType": "num",
+          "defaultOrConstraint": "3"
+        },
+        {
+          "field": "bags",
+          "mockType": "num",
+          "defaultOrConstraint": "3"
+        },
+        {
+          "field": "status",
+          "mockType": "enum",
+          "defaultOrConstraint": "service|idle|workshop → defaults to service"
+        },
+        {
+          "field": "note",
+          "mockType": "str",
+          "defaultOrConstraint": "empty string"
+        }
+      ]
+    },
+    {
+      "name": "chauffeurs",
+      "idShape": "c-<timestamp36>-<random3>",
+      "fields": [
+        {
+          "field": "id",
+          "mockType": "str",
+          "defaultOrConstraint": "generated via id('c')"
+        },
+        {
+          "field": "name",
+          "mockType": "str",
+          "defaultOrConstraint": "no default"
+        },
+        {
+          "field": "phone",
+          "mockType": "str",
+          "defaultOrConstraint": "no default"
+        },
+        {
+          "field": "email",
+          "mockType": "str",
+          "defaultOrConstraint": "empty string"
+        },
+        {
+          "field": "vehicle",
+          "mockType": "str (FK ref)",
+          "defaultOrConstraint": "vehicle.id or empty"
+        },
+        {
+          "field": "licence",
+          "mockType": "str",
+          "defaultOrConstraint": "no default"
+        },
+        {
+          "field": "languages",
+          "mockType": "str",
+          "defaultOrConstraint": "no default"
+        },
+        {
+          "field": "status",
+          "mockType": "enum",
+          "defaultOrConstraint": "shift|off|leave → defaults to off"
+        },
+        {
+          "field": "note",
+          "mockType": "str",
+          "defaultOrConstraint": "empty string"
+        }
+      ]
+    },
+    {
+      "name": "bookings",
+      "idShape": "VT-<random4digits>",
+      "fields": [
+        {
+          "field": "id",
+          "mockType": "str",
+          "defaultOrConstraint": "VT-<4-digit random>"
+        },
+        {
+          "field": "time",
+          "mockType": "str",
+          "defaultOrConstraint": "no default"
+        },
+        {
+          "field": "date",
+          "mockType": "str",
+          "defaultOrConstraint": "no default"
+        },
+        {
+          "field": "customer",
+          "mockType": "str (name, not FK)",
+          "defaultOrConstraint": "no default"
+        },
+        {
+          "field": "pickup",
+          "mockType": "str",
+          "defaultOrConstraint": "no default"
+        },
+        {
+          "field": "dropoff",
+          "mockType": "str",
+          "defaultOrConstraint": "no default"
+        },
+        {
+          "field": "klass",
+          "mockType": "enum",
+          "defaultOrConstraint": "Economy|Business|First|Van → defaults to Economy"
+        },
+        {
+          "field": "pax",
+          "mockType": "num",
+          "defaultOrConstraint": "1"
+        },
+        {
+          "field": "bags",
+          "mockType": "num",
+          "defaultOrConstraint": "1"
+        },
+        {
+          "field": "status",
+          "mockType": "enum",
+          "defaultOrConstraint": "quote|pending|paid|confirmed|assigned|completed|cancelled|refunded|no-show → defaults to pending"
+        },
+        {
+          "field": "chauffeur",
+          "mockType": "str (FK ref)",
+          "defaultOrConstraint": "chauffeur.id or empty"
+        },
+        {
+          "field": "flight",
+          "mockType": "str",
+          "defaultOrConstraint": "empty string"
+        },
+        {
+          "field": "note",
+          "mockType": "str",
+          "defaultOrConstraint": "empty string"
+        }
+      ]
+    },
+    {
+      "name": "customers",
+      "idShape": "cu-<timestamp36>-<random3>",
+      "fields": [
+        {
+          "field": "id",
+          "mockType": "str",
+          "defaultOrConstraint": "generated via id('cu')"
+        },
+        {
+          "field": "name",
+          "mockType": "str",
+          "defaultOrConstraint": "no default"
+        },
+        {
+          "field": "email",
+          "mockType": "str",
+          "defaultOrConstraint": "no default"
+        },
+        {
+          "field": "phone",
+          "mockType": "str",
+          "defaultOrConstraint": "no default"
+        },
+        {
+          "field": "type",
+          "mockType": "enum",
+          "defaultOrConstraint": "private|corporate → defaults to private"
+        },
+        {
+          "field": "company",
+          "mockType": "str",
+          "defaultOrConstraint": "empty string"
+        },
+        {
+          "field": "trips",
+          "mockType": "num",
+          "defaultOrConstraint": "0"
+        },
+        {
+          "field": "since",
+          "mockType": "str",
+          "defaultOrConstraint": "empty string"
+        },
+        {
+          "field": "note",
+          "mockType": "str",
+          "defaultOrConstraint": "empty string"
+        }
+      ]
+    },
+    {
+      "name": "coupons",
+      "idShape": "cp-<timestamp36>-<random3>",
+      "fields": [
+        {
+          "field": "id",
+          "mockType": "str",
+          "defaultOrConstraint": "generated via id('cp')"
+        },
+        {
+          "field": "code",
+          "mockType": "str",
+          "defaultOrConstraint": "uppercase, no default"
+        },
+        {
+          "field": "kind",
+          "mockType": "enum",
+          "defaultOrConstraint": "percent|amount → defaults to percent"
+        },
+        {
+          "field": "value",
+          "mockType": "money-string",
+          "defaultOrConstraint": "placeholder (e.g., '00')"
+        },
+        {
+          "field": "uses",
+          "mockType": "num",
+          "defaultOrConstraint": "0"
+        },
+        {
+          "field": "limit",
+          "mockType": "num",
+          "defaultOrConstraint": "0"
+        },
+        {
+          "field": "expires",
+          "mockType": "str",
+          "defaultOrConstraint": "empty string or YYYY-MM-DD"
+        },
+        {
+          "field": "active",
+          "mockType": "bool",
+          "defaultOrConstraint": "true"
+        },
+        {
+          "field": "note",
+          "mockType": "str",
+          "defaultOrConstraint": "empty string"
+        }
+      ]
+    },
+    {
+      "name": "routes",
+      "idShape": "FR-<timestamp36>-<random3>",
+      "fields": [
+        {
+          "field": "id",
+          "mockType": "str",
+          "defaultOrConstraint": "generated via id('FR')"
+        },
+        {
+          "field": "from",
+          "mockType": "str",
+          "defaultOrConstraint": "no default"
+        },
+        {
+          "field": "to",
+          "mockType": "str",
+          "defaultOrConstraint": "no default"
+        },
+        {
+          "field": "economy",
+          "mockType": "money-set",
+          "defaultOrConstraint": "{CHF: '', EUR: '', USD: '', AED: ''} or placeholders"
+        },
+        {
+          "field": "business",
+          "mockType": "money-set",
+          "defaultOrConstraint": "{CHF: '', EUR: '', USD: '', AED: ''} or placeholders"
+        },
+        {
+          "field": "van",
+          "mockType": "money-set",
+          "defaultOrConstraint": "{CHF: '', EUR: '', USD: '', AED: ''} or placeholders"
+        },
+        {
+          "field": "live",
+          "mockType": "bool",
+          "defaultOrConstraint": "false"
+        }
+      ]
+    },
+    {
+      "name": "rates",
+      "idShape": "klass value (Economy|Business|First|Van)",
+      "fields": [
+        {
+          "field": "id",
+          "mockType": "str",
+          "defaultOrConstraint": "klass name, no generation needed"
+        },
+        {
+          "field": "klass",
+          "mockType": "enum",
+          "defaultOrConstraint": "Economy|Business|First|Van → defaults to Economy"
+        },
+        {
+          "field": "baseFare",
+          "mockType": "money-set",
+          "defaultOrConstraint": "{CHF: '000', EUR: '000', USD: '000', AED: '000'}"
+        },
+        {
+          "field": "perKm",
+          "mockType": "money-set",
+          "defaultOrConstraint": "{CHF: '0.00', EUR: '0.00', USD: '0.00', AED: '0.00'}"
+        },
+        {
+          "field": "minFare",
+          "mockType": "money-set",
+          "defaultOrConstraint": "{CHF: '000', EUR: '000', USD: '000', AED: '000'}"
+        },
+        {
+          "field": "maxPax",
+          "mockType": "num",
+          "defaultOrConstraint": "RATE_DEFAULT_PAX[klass] (3 or 8)"
+        },
+        {
+          "field": "available",
+          "mockType": "bool",
+          "defaultOrConstraint": "true"
+        }
+      ]
+    },
+    {
+      "name": "surcharges",
+      "idShape": "S-<timestamp36>-<random3>",
+      "fields": [
+        {
+          "field": "id",
+          "mockType": "str",
+          "defaultOrConstraint": "generated via id('S')"
+        },
+        {
+          "field": "label",
+          "mockType": "str",
+          "defaultOrConstraint": "no default"
+        },
+        {
+          "field": "rule",
+          "mockType": "str",
+          "defaultOrConstraint": "no default"
+        },
+        {
+          "field": "kind",
+          "mockType": "enum",
+          "defaultOrConstraint": "amount|percent|included → defaults to amount"
+        },
+        {
+          "field": "amounts",
+          "mockType": "money-set",
+          "defaultOrConstraint": "{CHF: '00', EUR: '00', USD: '00', AED: '00'} or fallback"
+        },
+        {
+          "field": "pct",
+          "mockType": "money-string",
+          "defaultOrConstraint": "'00' or empty based on kind"
+        }
+      ]
+    },
+    {
+      "name": "reviews",
+      "idShape": "rv-<timestamp>-<index>",
+      "fields": [
+        {
+          "field": "id",
+          "mockType": "str",
+          "defaultOrConstraint": "rv-<timestamp>-<index> or existing id"
+        },
+        {
+          "field": "source",
+          "mockType": "enum",
+          "defaultOrConstraint": "google|tripadvisor|trustpilot|manual → defaults to manual"
+        },
+        {
+          "field": "name",
+          "mockType": "str",
+          "defaultOrConstraint": "empty string"
+        },
+        {
+          "field": "role",
+          "mockType": "str",
+          "defaultOrConstraint": "empty string"
+        },
+        {
+          "field": "text",
+          "mockType": "str",
+          "defaultOrConstraint": "empty string"
+        },
+        {
+          "field": "rating",
+          "mockType": "num",
+          "defaultOrConstraint": "0-5 clamped, defaults to 0"
+        },
+        {
+          "field": "route",
+          "mockType": "str",
+          "defaultOrConstraint": "empty string"
+        },
+        {
+          "field": "vehicleClass",
+          "mockType": "str",
+          "defaultOrConstraint": "empty string"
+        },
+        {
+          "field": "avatar",
+          "mockType": "str",
+          "defaultOrConstraint": "empty string"
+        },
+        {
+          "field": "url",
+          "mockType": "str",
+          "defaultOrConstraint": "empty string"
+        },
+        {
+          "field": "verified",
+          "mockType": "bool",
+          "defaultOrConstraint": "false"
+        },
+        {
+          "field": "published",
+          "mockType": "bool",
+          "defaultOrConstraint": "true"
+        },
+        {
+          "field": "locked",
+          "mockType": "bool",
+          "defaultOrConstraint": "computed from isImported(source)"
+        }
+      ]
+    }
+  ],
+  "singletons": [
+    {
+      "name": "settings",
+      "keys": [
+        "company",
+        "address",
+        "uid",
+        "phone",
+        "email",
+        "defaultLang",
+        "defaultCur",
+        "minAdvance",
+        "cancelWindow",
+        "airportWait",
+        "cityWait",
+        "cash",
+        "card",
+        "twint",
+        "invoice",
+        "emailConfirm",
+        "emailReminder",
+        "smsReminder",
+        "opsAlerts"
+      ]
+    },
+    {
+      "name": "profile",
+      "keys": [
+        "name",
+        "role",
+        "email",
+        "phone",
+        "lang",
+        "avatar",
+        "twoFactor",
+        "digest",
+        "passkey"
+      ]
+    }
+  ],
+  "enums": [
+    {
+      "name": "VEHICLE_CLASSES",
+      "values": [
+        "Economy",
+        "Business",
+        "First",
+        "Van"
+      ]
+    },
+    {
+      "name": "VEHICLE_STATUS",
+      "values": [
+        "service",
+        "idle",
+        "workshop"
+      ]
+    },
+    {
+      "name": "CHAUFFEUR_STATUS",
+      "values": [
+        "shift",
+        "off",
+        "leave"
+      ]
+    },
+    {
+      "name": "BOOKING_STATUS",
+      "values": [
+        "quote",
+        "pending",
+        "paid",
+        "confirmed",
+        "assigned",
+        "completed",
+        "cancelled",
+        "refunded",
+        "no-show"
+      ]
+    },
+    {
+      "name": "CUSTOMER_TYPES",
+      "values": [
+        "private",
+        "corporate"
+      ]
+    },
+    {
+      "name": "COUPON_KINDS",
+      "values": [
+        "percent",
+        "amount"
+      ]
+    },
+    {
+      "name": "SURCHARGE_KINDS",
+      "values": [
+        "amount",
+        "percent",
+        "included"
+      ]
+    },
+    {
+      "name": "CURRENCIES",
+      "values": [
+        "CHF",
+        "EUR",
+        "USD",
+        "AED"
+      ]
+    },
+    {
+      "name": "LOCATIONS",
+      "values": [
+        "Zurich Airport (ZRH)",
+        "Geneva Airport (GVA)",
+        "Zurich city",
+        "Dietikon",
+        "Zermatt",
+        "St. Moritz",
+        "Chamonix",
+        "Verbier"
+      ]
+    },
+    {
+      "name": "REVIEW_SOURCES",
+      "values": [
+        "google",
+        "tripadvisor",
+        "trustpilot",
+        "manual"
+      ]
+    }
+  ],
+  "notes": [
+    "booking.customer is stored as a human name string, not a foreign key to customer.id — production schema needs FK + join",
+    "booking.chauffeur stores chauffeur.id as a string (empty when unassigned)",
+    "chauffeur.vehicle stores vehicle.id as a string (empty when no assignment)",
+    "review.vehicleClass stored as string, not FK — consider denormalization vs consistency",
+    "all money values (coupons.value, surcharges.amounts, surcharges.pct, routes.economy/business/van, rates.baseFare/perKm/minFare) stored as strings with design-system placeholders (e.g., '000', '00', '0.00') — production must convert to numeric or decimal types",
+    "settings.minAdvance and settings.cancelWindow are data-tok placeholders (empty strings in mock) — these are labelled TBC gaps awaiting real values",
+    "profile.role stored as label string ('Admin role'), not enum — consider defining role enum",
+    "review.locked is a computed boolean derived from whether the source is imported (google|tripadvisor|trustpilot = true, manual = false)",
+    "id generation uses Base36 timestamps for pseudo-UUIDs except bookings (which use VT-<4-digit random>) and rates (which use klass name directly)",
+    "RATE_DEFAULT_PAX hard-coded map: Economy/Business/First = 3 pax, Van = 8 pax",
+    "surcharges.kind determines which field is active: amount-type uses .amounts, percent-type uses .pct, included-type uses neither"
+  ]
+}
