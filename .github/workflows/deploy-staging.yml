@@ -169,6 +169,10 @@ jobs:
       # Reuses the SAME token as the `deploy` job's CLOUDFLARE_API_TOKEN above (plan 03-07
       # Task 1 requested Hyperdrive Edit + Workers Scripts Edit + Account Analytics: Read on
       # one token) rather than asking for a second, separately-scoped Cloudflare credential.
+      # The REST config preconditions use these canonical names directly; the analytics helpers
+      # below retain their distinct CF_* names because they target a different API surface.
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CF_ANALYTICS_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       # PR-smoke figures (03-RESEARCH.md's "PR smoke" row) unless raised via repository
