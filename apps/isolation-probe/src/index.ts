@@ -38,6 +38,7 @@ import { claimsForSql, type VamosClaims } from "@vamos/db/claims";
 import {
   ENTRY_PROBE,
   PG_ROLE,
+  resetPooledSession,
   withIdentity,
   type EntryProbeRow,
   type IdentityKind,
@@ -262,17 +263,25 @@ async function handleSessionInTxn(pc: ProbeContext): Promise<Response> {
   const sql = client(pc.env.HYPERDRIVE_NOCACHE.connectionString);
   const [entry] = (await sql.unsafe(ENTRY_PROBE)) as unknown as EntryProbeRow[];
   try {
-    await sql.begin(async (tx) => {
-      await bindIdentity(tx, pc.kind, pc.claims, false);
-    });
-  } catch (e) {
-    return Response.json(errorBody("session_in_txn", entry, e, { phase: "begin" }));
-  }
-  try {
-    const rows = await readReferences(sql);
-    return Response.json(buildBody("session_in_txn", entry, { rows }));
-  } catch (e) {
-    return Response.json(errorBody("session_in_txn", entry, e, { phase: "read" }));
+    try {
+      await sql.begin(async (tx) => {
+        await bindIdentity(tx, pc.kind, pc.claims, false);
+      });
+    } catch (e) {
+      return Response.json(errorBody("session_in_txn", entry, e, { phase: "begin" }));
+    }
+    try {
+      const rows = await readReferences(sql);
+      return Response.json(buildBody("session_in_txn", entry, { rows }));
+    } catch (e) {
+      return Response.json(errorBody("session_in_txn", entry, e, { phase: "read" }));
+    }
+  } finally {
+    try {
+      await resetPooledSession(sql);
+    } catch {
+      // Connection may already be dead; checkout sanitizer is best-effort here.
+    }
   }
 }
 
@@ -287,12 +296,20 @@ async function handleSessionInTxn(pc: ProbeContext): Promise<Response> {
 async function handleSession(pc: ProbeContext): Promise<Response> {
   const sql = client(pc.env.HYPERDRIVE_NOCACHE.connectionString);
   const [entry] = (await sql.unsafe(ENTRY_PROBE)) as unknown as EntryProbeRow[];
-  await bindIdentity(sql, pc.kind, pc.claims, false);
   try {
-    const rows = await readReferences(sql);
-    return Response.json(buildBody("session", entry, { rows, note: "U27 companion, not NC1" }));
-  } catch (e) {
-    return Response.json(errorBody("session", entry, e, { note: "U27 companion, not NC1" }));
+    await bindIdentity(sql, pc.kind, pc.claims, false);
+    try {
+      const rows = await readReferences(sql);
+      return Response.json(buildBody("session", entry, { rows, note: "U27 companion, not NC1" }));
+    } catch (e) {
+      return Response.json(errorBody("session", entry, e, { note: "U27 companion, not NC1" }));
+    }
+  } finally {
+    try {
+      await resetPooledSession(sql);
+    } catch {
+      // Connection may already be dead; checkout sanitizer is best-effort here.
+    }
   }
 }
 
@@ -300,6 +317,7 @@ async function handleSession(pc: ProbeContext): Promise<Response> {
 /** NC2: `is_local => true` bound on the plain `sql` handle, no `sql.begin` at all, then the read. */
 async function handleNoBegin(pc: ProbeContext): Promise<Response> {
   const sql = client(pc.env.HYPERDRIVE_NOCACHE.connectionString);
+  await resetPooledSession(sql);
   const [entry] = (await sql.unsafe(ENTRY_PROBE)) as unknown as EntryProbeRow[];
   await bindIdentity(sql, pc.kind, pc.claims, true);
   try {
@@ -314,6 +332,7 @@ async function handleNoBegin(pc: ProbeContext): Promise<Response> {
 /** NC3 — D2's load-bearing claim. If this ever returns a number, the whole design is void. */
 async function handleNoWrapper(pc: ProbeContext): Promise<Response> {
   const sql = client(pc.env.HYPERDRIVE_NOCACHE.connectionString);
+  await resetPooledSession(sql);
   const [entry] = (await sql.unsafe(ENTRY_PROBE)) as unknown as EntryProbeRow[];
   try {
     const rows = (await sql`select count(*)::int as n from public.bookings`) as unknown as Array<{
@@ -357,6 +376,36 @@ async function handleCached(pc: ProbeContext): Promise<Response> {
  */
 const waitUntilResults = new Map<string, ProbeResponseBody>();
 
+function drainCacheRequest(nonce: string): Request {
+  return new Request(`https://vamos-isolation-probe.internal/drain/${nonce}`, { method: "GET" });
+}
+
+async function putDrainResult(nonce: string, body: ProbeResponseBody): Promise<void> {
+  waitUntilResults.set(nonce, body);
+  try {
+    const cache = await caches.open("vamos-probe-drain");
+    await cache.put(
+      drainCacheRequest(nonce),
+      new Response(JSON.stringify(body), { headers: { "cache-control": "max-age=120" } }),
+    );
+  } catch {
+    // Cache API is best-effort; same-isolate Map still covers a drain that lands here.
+  }
+}
+
+async function getDrainResult(nonce: string): Promise<ProbeResponseBody | undefined> {
+  const mem = waitUntilResults.get(nonce);
+  if (mem) return mem;
+  try {
+    const cache = await caches.open("vamos-probe-drain");
+    const cached = await cache.match(drainCacheRequest(nonce));
+    if (!cached) return undefined;
+    return (await cached.json()) as ProbeResponseBody;
+  } catch {
+    return undefined;
+  }
+}
+
 async function handleWaitUntilCaptured(pc: ProbeContext): Promise<Response> {
   const nonce = crypto.randomUUID();
   const sql = client(pc.env.HYPERDRIVE_NOCACHE.connectionString);
@@ -385,9 +434,9 @@ async function handleWaitUntilCaptured(pc: ProbeContext): Promise<Response> {
       release?.();
       try {
         const rows = await txPromise;
-        waitUntilResults.set(nonce, buildBody("waituntil_captured", captured.entry, { rows }));
+        await putDrainResult(nonce, buildBody("waituntil_captured", captured.entry, { rows }));
       } catch (e) {
-        waitUntilResults.set(nonce, errorBody("waituntil_captured", captured.entry, e));
+        await putDrainResult(nonce, errorBody("waituntil_captured", captured.entry, e));
       }
     })(),
   );
@@ -416,12 +465,12 @@ async function handleWaitUntilFenced(pc: ProbeContext): Promise<Response> {
           async (tx) => readReferences(tx),
           { probe: __VAMOS_ISOLATION_PROBE__, onProbe: (row) => { captured.entry = row; } },
         );
-        waitUntilResults.set(
+        await putDrainResult(
           nonce,
           buildBody("waituntil_fenced", captured.entry, { rows, positiveControl: true }),
         );
       } catch (e) {
-        waitUntilResults.set(
+        await putDrainResult(
           nonce,
           errorBody("waituntil_fenced", captured.entry, e, { positiveControl: true }),
         );
@@ -451,10 +500,15 @@ async function handleAbandon(pc: ProbeContext): Promise<Response> {
         await bindIdentity(tx, pc.kind, pc.claims, true);
         throw new Error("vamos-isolation-probe: deliberate abandon (NC4)");
       })
-      .catch(() => {
+      .catch(async () => {
         // Expected — the abort IS the point. postgres.js issues ROLLBACK and rejects; nothing
         // here observes or reports that rejection because the abandon is not awaited by the
         // response path at all (that is the entire failure mode under test).
+        try {
+          await resetPooledSession(sql);
+        } catch {
+          // Connection may already be dead after the abandon.
+        }
       }),
   );
 
@@ -511,7 +565,7 @@ export default {
     // secret already produced, keyed by an unguessable nonce.
     const drainNonce = url.searchParams.get("drain");
     if (drainNonce) {
-      const found = waitUntilResults.get(drainNonce);
+      const found = await getDrainResult(drainNonce);
       if (!found) return Response.json({ ready: false }, { status: 202 });
       return Response.json(found);
     }
