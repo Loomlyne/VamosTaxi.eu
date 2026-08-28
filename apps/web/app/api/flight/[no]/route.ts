@@ -9,6 +9,7 @@
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { z } from "zod";
+import { wireRateLimitGuard } from "@/lib/abuse/guards";
 import {
   lookupFlight,
   normaliseFlightNumber,
@@ -94,10 +95,6 @@ function withDir(flight: FlightRecord): FlightRecord & { dir: FlightDir } {
   };
 }
 
-async function enforceWorkerRateLimit(): Promise<void> {
-  return;
-}
-
 export async function GET(
   request: Request,
   context: { params: Promise<{ no: string }> },
@@ -120,7 +117,10 @@ export async function GET(
     locale: locale ?? null,
   });
 
-  await enforceWorkerRateLimit(); // TODO(04-13)
+  // Worker-limit only. Invisible challenge stays off (§8).
+  // No Mapbox breaker — this path spends no Mapbox unit.
+  const limited = await wireRateLimitGuard(env, request)();
+  if (!limited.ok) return quoteErrorResponse(limited.code);
 
   const now = new Date();
   const civilDate = date ?? zurichCivilDate(now);

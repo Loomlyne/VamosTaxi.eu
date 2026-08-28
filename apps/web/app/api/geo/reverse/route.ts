@@ -1,8 +1,8 @@
 // apps/web/app/api/geo/reverse/route.ts
 //
-// Dropped-pin proxy — Geocoding v6, no session (D-15, D-47). Plan 04-13 wraps
-// this route with rate-limit, breaker and Turnstile — add none of those here.
-// Geo stays Turnstile-off; the breaker still counts these calls (D-37).
+// Dropped-pin proxy — Geocoding v6, no session (D-15, D-47).
+// Invisible challenge stays off type-ahead (§8). The breaker still counts
+// these calls (D-37).
 //
 // A Mapbox error body can echo the query string back, which is the
 // customer's home address — never return statusText, err.message, or an
@@ -10,6 +10,8 @@
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { z } from "zod";
+import { countMapboxUnit } from "@/lib/abuse/breaker";
+import { wireBreakerGuard, wireRateLimitGuard } from "@/lib/abuse/guards";
 import { withRequestContext } from "@/lib/logger";
 import { quoteErrorResponse } from "@/lib/quote/errors";
 import { reverse } from "@/lib/geo/mapbox";
@@ -54,7 +56,15 @@ export async function GET(request: Request) {
     return quoteErrorResponse("untrusted_input");
   }
 
+  const limited = await wireRateLimitGuard(env, request)();
+  if (!limited.ok) return quoteErrorResponse(limited.code);
+  const broken = await wireBreakerGuard(env)();
+  if (!broken.ok) return quoteErrorResponse(broken.code);
+
   try {
+    // D-37: the breaker counts calls, not endpoints, and three of the four
+    // billable shapes are geo. This is Geocoding v6 /reverse.
+    await countMapboxUnit(env);
     const result = await reverse(
       {
         lng: parsed.data.lng,

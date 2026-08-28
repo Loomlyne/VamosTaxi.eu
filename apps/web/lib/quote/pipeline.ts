@@ -15,6 +15,8 @@
 
 import { ENGINE_VERSION } from "../version";
 import type { CurrencyCode } from "../currency";
+import { countMapboxUnit } from "../abuse/breaker";
+import { hasSeenSession } from "../geo/session";
 import {
   checkMinAdvance as defaultCheckMinAdvance,
   checkServiceArea as defaultCheckServiceArea,
@@ -168,6 +170,9 @@ export type QuotePipelineDeps = {
   engineVersion?: string;
   retrieve?: typeof defaultRetrieve;
   reverse?: typeof defaultReverse;
+  /** Verified vamos_qs subject, or null. Coords (AM-03) need this or a seen session. */
+  qsSubject?: string | null;
+  geoSession?: { token: string; bucket: string } | null;
 };
 
 type StepFail = PipelineRefusal;
@@ -229,6 +234,16 @@ function waypointsChanged(
   });
 }
 
+async function coordsAllowed(deps: QuotePipelineDeps): Promise<boolean> {
+  if (typeof deps.qsSubject === "string" && deps.qsSubject.length > 0) {
+    return true;
+  }
+  if (deps.geoSession) {
+    return hasSeenSession(deps.env, deps.geoSession.token, deps.geoSession.bucket);
+  }
+  return false;
+}
+
 async function defaultResolvePlace(
   place: PlaceInput,
   locale: GeoLanguage,
@@ -246,6 +261,8 @@ async function defaultResolvePlace(
     const reverse = deps.reverse ?? defaultReverse;
     let text = place.text ?? "";
     try {
+      // D-37: Geocoding v6 /reverse on the quote path.
+      await countMapboxUnit(deps.env, deps.nowMs);
       const got = await reverse(
         { lng: place.lng, lat: place.lat, language: locale },
         deps.env,
@@ -257,6 +274,8 @@ async function defaultResolvePlace(
     return { lng: place.lng, lat: place.lat, text };
   }
   const retrieve = deps.retrieve ?? defaultRetrieve;
+  // D-37: Search Box /retrieve on the quote path.
+  await countMapboxUnit(deps.env, deps.nowMs);
   const got = await retrieve(
     {
       mapboxId: place.mapbox_id,
@@ -437,6 +456,14 @@ async function runStep(
     }
     case "resolve_coordinates": {
       const request = state.request!;
+      // AM-03: without a suggest session or a verified vamos_qs, kind: "coords"
+      // is a /retrieve bypass for a caller who never paid for a session.
+      const coordsPlaces = [request.pickup, request.dropoff].some(
+        (p) => p.kind === "coords",
+      );
+      if (coordsPlaces && !(await coordsAllowed(deps))) {
+        return { ok: false, code: "retrieve_without_suggest" };
+      }
       const locale = request.locale as GeoLanguage;
       const resolve = deps.resolvePlace
         ? deps.resolvePlace
@@ -533,6 +560,9 @@ async function runStep(
               },
             ]
           : [outbound];
+      // D-37: the breaker counts calls, not endpoints, and three of the four
+      // billable shapes are geo. This is Directions v5 driving.
+      await countMapboxUnit(deps.env, deps.nowMs);
       const routed = await deps.routeLegs(inputs);
       if (!routed.ok) return { ok: false, code: routed.code };
       state.routed = routed.legs;

@@ -35,6 +35,28 @@ export type AttemptStore = {
   increment(key: string): Promise<number>;
 };
 
+/**
+ * KV-backed attempt counter. Missing or throwing KV never climbs — Layer 3
+ * fails open rather than locking customers out of an unopened account (D-47).
+ */
+export function kvAttemptStore(kv: KVNamespace | undefined): AttemptStore {
+  return {
+    async increment(key: string): Promise<number> {
+      if (!kv) return 1;
+      try {
+        const kvKey = "quote:turnstile:" + key;
+        const stored = await kv.get(kvKey);
+        const current = stored ? Number.parseInt(stored, 10) : 0;
+        const next = (Number.isFinite(current) ? current : 0) + 1;
+        await kv.put(kvKey, String(next), { expirationTtl: 60 });
+        return next;
+      } catch {
+        return 1;
+      }
+    },
+  };
+}
+
 export type ChallengeDecision = {
   enforce: boolean;
   passed?: boolean;

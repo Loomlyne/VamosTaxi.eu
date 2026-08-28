@@ -9,6 +9,7 @@
 // preview flag — this file names none of those bindings.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { wireQuoteAbuse } from "@/lib/abuse/guards";
 import { withRequestContext } from "@/lib/logger";
 import { buildQuotePipelineDeps } from "@/lib/quote/deps";
 import { preprocessWidgetTokens } from "@/lib/quote/preprocess";
@@ -19,8 +20,6 @@ import {
 import { errorResponse, quoteResponse } from "@/lib/quote/respond";
 
 export const dynamic = "force-dynamic";
-
-export { preprocessWidgetTokens };
 
 function refuse(result: PipelineRefusal) {
   if (result.code === "min_advance" && result.params) {
@@ -62,12 +61,14 @@ export async function POST(request: Request) {
   }
 
   const deps = buildQuotePipelineDeps(env);
-  // TODO(04-13): QUOTE_RATE_LIMITER / TURNSTILE_SECRET / daily Mapbox breaker
-  deps.rateLimit = async () => ({ ok: true });
-  deps.turnstile = async () => ({ ok: true });
-  deps.mapboxBreaker = async () => ({ ok: true });
 
   try {
+    const abuse = await wireQuoteAbuse(env, request);
+    deps.rateLimit = abuse.rateLimit;
+    deps.turnstile = abuse.turnstile;
+    deps.mapboxBreaker = abuse.mapboxBreaker;
+    deps.qsSubject = abuse.qsSubject;
+    deps.geoSession = abuse.geoSession;
     const result = await runQuotePipeline(pre.body, deps);
     if (!result.ok) {
       emit("info", "quote", { ok: 0 });

@@ -135,7 +135,7 @@ interface CloudflareEnv {
    * Dedicated abuse / daily-breaker KV namespace (D-37) — never GEO_CACHE.
    * TTL semantics differ; mixing a daily counter with a cache is how one evicts the other.
    * REQUIRED. First consumer: plan 04-13 `quote:mapbox-budget:YYYY-MM-DD` breaker.
-   * Binding declared in wrangler.jsonc `kv_namespaces` (both envs); real ids TODO(04-13).
+   * Binding declared in wrangler.jsonc `kv_namespaces` (both envs); real ids TODO(08-deploy).
    */
   QUOTE_ABUSE: KVNamespace;
 

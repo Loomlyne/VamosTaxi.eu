@@ -1,6 +1,8 @@
 {
-  "_comment": "The named allowlist D-35 requires: every NEXT_PUBLIC_* identifier this app is deliberately allowed to expose to the browser. Adding an entry here is a deliberate act with a reviewer — anything listed is readable by every visitor. Starts empty on purpose: no client-exposed variable has been approved yet.",
-  "allowed": [],
+  "_comment": "The named allowlist D-35 requires: every NEXT_PUBLIC_* identifier this app is deliberately allowed to expose to the browser. Adding an entry here is a deliberate act with a reviewer — anything listed is readable by every visitor. A Turnstile SITE key is public by design and is not a credential; the SECRET stays a wrangler secret and never appears in any NEXT_PUBLIC_ name.",
+  "allowed": [
+    "NEXT_PUBLIC_TURNSTILE_SITE_KEY"
+  ],
   "_forbidden_substrings_comment": "Credential names from docs/build/GSD-LAUNCH.md § Secrets and its Cloudflare CI entries. None of these may ever appear in the built client bundle (.open-next/assets/**) — every one reaches the Worker via `wrangler secret put`, never a client-exposed variable.",
   "forbidden_substrings": [
     "HYPERDRIVE",
