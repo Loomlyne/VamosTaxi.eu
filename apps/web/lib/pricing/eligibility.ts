@@ -141,9 +141,9 @@ function unlabeledEntry(fields: BoardShell): ClassBoardEntry {
 }
 
 /**
- * Evaluate every class in rate-book order into a labelled board.
- * Pax/bags are booking-level (loader already collapses max-over-legs into
- * input.pax / input.bags). Never raises (D-02).
+ * Evaluate every class into a labelled board.
+ * Board order is pure of class sort_order then slug (T5) — not input array order.
+ * Pax/bags are booking-level. Never raises (D-02).
  */
 export function evaluateEligibility(
   rateBook: RateBook,
@@ -154,9 +154,16 @@ export function evaluateEligibility(
   const pax = input.pax;
   const bags = input.bags;
 
+  const orderedClasses = [...rateBook.classes].sort((a, b) => {
+    if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
+    if (a.slug < b.slug) return -1;
+    if (a.slug > b.slug) return 1;
+    return 0;
+  });
+
   const classes: ClassBoardEntry[] = [];
 
-  for (const cls of rateBook.classes) {
+  for (const cls of orderedClasses) {
     const rate = distanceRateFor(rateBook, cls.id);
     const fixedMatches = fixedRoutesForJourney(rateBook, cls.id, input);
     const ineligible_reason = reasonForClass(
