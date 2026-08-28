@@ -20,8 +20,6 @@ import { errorResponse, quoteResponse } from "@/lib/quote/respond";
 
 export const dynamic = "force-dynamic";
 
-export { preprocessWidgetTokens };
-
 function refuse(result: PipelineRefusal) {
   if (result.code === "min_advance" && result.params) {
     return errorResponse("min_advance", result.params);
