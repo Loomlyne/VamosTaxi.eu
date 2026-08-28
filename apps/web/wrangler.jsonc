@@ -35,11 +35,29 @@
       // `vars` comment above) — apps/web/middleware.ts reads this to scope
       // the X-Robots-Tag: noindex header to staging only (D-37). Absent
       // under env.production, which is what keeps the header off production.
+      //
+      // PRICING_PREVIEW (D-33): staging ONLY. Every read is
+      // env.PRICING_PREVIEW === "true". Lets quote/reprice resolve the newest
+      // draft for display; checkout intent still refuses (rate_version_is_live
+      // is trigger-derived from status, not this var).
       "vars": {
-        "DEPLOY_ENV": "staging"
+        "DEPLOY_ENV": "staging",
+        "PRICING_PREVIEW": "true",
+        // D-54 / U37: engineering UNIT COUNT sentinel for the daily Mapbox
+        // breaker — not a budget, not a franc figure. Trips rather than logs.
+        // No Mapbox plan exists yet, so no ceiling in francs can be honest.
+        "MAPBOX_DAILY_UNIT_SENTINEL": "5000"
       },
       "kv_namespaces": [
-        { "binding": "GEO_CACHE", "id": "48cd800d63e44c03aa1f49be83d39d7a" }
+        { "binding": "GEO_CACHE", "id": "48cd800d63e44c03aa1f49be83d39d7a" },
+        // D-37: dedicated namespace for quote abuse / daily breaker counters —
+        // never GEO_CACHE. TTL semantics differ; mixing a daily counter with a
+        // cache is how one evicts the other.
+        // TODO(04-13): replace with the id from `wrangler kv namespace create`
+        {
+          "binding": "QUOTE_ABUSE",
+          "id": "<quote-abuse staging kv id — created by plan 04-13 via wrangler kv namespace create>"
+        }
       ],
       "r2_buckets": [
         { "binding": "PHOTOS", "bucket_name": "vamos-photos-staging" }
@@ -66,7 +84,25 @@
       // DEFERRED (no staging Worker)`) until plan 03-07 deploys a staging Worker that has
       // actually written points — a local timing is not the criterion (D-27).
       "analytics_engine_datasets": [
-        { "binding": "DB_LATENCY", "dataset": "vamos_db_latency" }
+        { "binding": "DB_LATENCY", "dataset": "vamos_db_latency" },
+        // QUOTE-09 abuse / Mapbox trip metrics (plan 04-07 declares; 04-13 writes).
+        { "binding": "QUOTE_ABUSE_METRICS", "dataset": "vamos_quote_abuse" }
+      ],
+      // Two rate-limit bindings, not one (D-36): the binding's limit is fixed per
+      // binding. 8/60 verified-cookie bucket and 4/60 bare-IP bucket are the two
+      // halves — an unverifiable cookie must fall into the SMALLER bucket, never
+      // into a fresh copy of the larger one.
+      "ratelimits": [
+        {
+          "name": "QUOTE_RATE_LIMITER",
+          "namespace_id": "1001",
+          "simple": { "limit": 8, "period": 60 }
+        },
+        {
+          "name": "QUOTE_RATE_LIMITER_BARE",
+          "namespace_id": "1002",
+          "simple": { "limit": 4, "period": 60 }
+        }
       ],
       // Rule 2 addition (plan 03-06, D-36): uncommented from the placeholder block plan
       // 03-03 left here — D-36 requires the OpenNext runtime path smoke-tested through a
@@ -87,12 +123,12 @@
         {
           "binding": "HYPERDRIVE",
           "id": "b53693800b7e4c1c94205774baa73420",
-          "localConnectionString": "postgres://vamos_public:vamos_public@127.0.0.1:54322/postgres"
+          "localConnectionString": "postgres://vamos_public:***@127.0.0.1:54322/postgres"
         },
         {
           "binding": "HYPERDRIVE_NOCACHE",
           "id": "71523abbbb7542fdbff01f66d9a858ed",
-          "localConnectionString": "postgres://vamos_edge:vamos_edge@127.0.0.1:54322/postgres"
+          "localConnectionString": "postgres://vamos_edge:***@127.0.0.1:54322/postgres"
         }
       ]
     },
@@ -104,8 +140,23 @@
       "routes": [
         { "pattern": "vamostaxi.eu", "custom_domain": true }
       ],
+      // No PRICING_PREVIEW assignment here (D-33). Its ABSENCE is the control.
+      // Setting that var to the string false under production would be a bug,
+      // not belt-and-braces — every read is === "true", so a missing binding
+      // is already falsy.
+      "vars": {
+        // D-54 / U37: engineering UNIT COUNT sentinel — same shape as staging.
+        // Not a budget; not a franc figure.
+        "MAPBOX_DAILY_UNIT_SENTINEL": "5000"
+      },
       "kv_namespaces": [
-        { "binding": "GEO_CACHE", "id": "a11bc8c7d13d4eeb9c2dad091e978dcb" }
+        { "binding": "GEO_CACHE", "id": "a11bc8c7d13d4eeb9c2dad091e978dcb" },
+        // D-37: dedicated QUOTE_ABUSE namespace — never GEO_CACHE.
+        // TODO(04-13): replace with the id from `wrangler kv namespace create`
+        {
+          "binding": "QUOTE_ABUSE",
+          "id": "<quote-abuse production kv id — created by plan 04-13 via wrangler kv namespace create>"
+        }
       ],
       "r2_buckets": [
         { "binding": "PHOTOS", "bucket_name": "vamos-photos-production" }
@@ -130,7 +181,21 @@
       // DEFERRED until plan 03-07 measures it from a deployed staging Worker; production
       // is not the measurement environment (not deployed until Phase 11 per D-33 above).
       "analytics_engine_datasets": [
-        { "binding": "DB_LATENCY", "dataset": "vamos_db_latency" }
+        { "binding": "DB_LATENCY", "dataset": "vamos_db_latency" },
+        { "binding": "QUOTE_ABUSE_METRICS", "dataset": "vamos_quote_abuse" }
+      ],
+      // D-36: two rate-limit bindings — 8/60 verified cookie, 4/60 bare IP.
+      "ratelimits": [
+        {
+          "name": "QUOTE_RATE_LIMITER",
+          "namespace_id": "1001",
+          "simple": { "limit": 8, "period": 60 }
+        },
+        {
+          "name": "QUOTE_RATE_LIMITER_BARE",
+          "namespace_id": "1002",
+          "simple": { "limit": 4, "period": 60 }
+        }
       ],
       // Two Hyperdrive configs (D-01/D-03), never one: `HYPERDRIVE` is the cacheable,
       // public-content path (`vamos_public`); `HYPERDRIVE_NOCACHE` is cache-disabled for
@@ -159,14 +224,14 @@
           // superuser this string replaces, which carried BYPASSRLS and made the `42501`
           // fail-closed boundary untestable. Required so `wrangler dev`/`preview` can
           // boot the platform proxy locally before any code queries this binding.
-          "localConnectionString": "postgres://vamos_public:vamos_public@127.0.0.1:54322/postgres"
+          "localConnectionString": "postgres://vamos_public:***@127.0.0.1:54322/postgres"
         },
         {
           "binding": "HYPERDRIVE_NOCACHE",
           "id": "<cache-disabled config id — created by plan 03-07 via `wrangler hyperdrive create --caching-disabled`, points at Supabase's direct connection string as vamos_edge, never the pooled 6543 Supavisor string>",
           // Local Supabase, port 54322, `vamos_edge` — same reasoning as the sibling
           // entry's comment above, different login role.
-          "localConnectionString": "postgres://vamos_edge:vamos_edge@127.0.0.1:54322/postgres"
+          "localConnectionString": "postgres://vamos_edge:***@127.0.0.1:54322/postgres"
         }
       ]
     }
