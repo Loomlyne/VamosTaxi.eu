@@ -357,7 +357,13 @@
     "welcome-we-found-2-bookings-under-this-email-and": "مرحبًا — وجدنا حجزين بهذا البريد وأضفناهما إلى حسابك",
     "you-are-signed-in-on-this-device-use-the-new-pas": "أنت مُسجّل الدخول على هذا الجهاز. استخدم كلمة المرور الجديدة عند الدخول من مكان آخر.",
     "you-never-need-an-account-to-book-guest-checkout": "لا تحتاج حسابًا للحجز أبدًا. الحجز كضيف يمضي بك مباشرة — والحساب يجمع رحلاتك وقسائمك وإيصالاتك فقط.",
-    "your-driver-calls-this-number-on-arrival-so-it-h": "يتصل بك السائق على هذا الرقم عند الوصول، لذا يجب أن تردّ عليه. ونؤكّده مرة واحدة برمز عبر رسالة نصية."
+    "your-driver-calls-this-number-on-arrival-so-it-h": "يتصل بك السائق على هذا الرقم عند الوصول، لذا يجب أن تردّ عليه. ونؤكّده مرة واحدة برمز عبر رسالة نصية.",
+    "email-signup-subject": "أكد حسابك في Vamos Taxi",
+    "email-signup-body": "مرحباً {name}. أكد بريدك عبر هذا الرابط: {link}. أو أدخل هذا الرمز: {code}.",
+    "email-recovery-subject": "أعد تعيين كلمة مرور Vamos Taxi",
+    "email-recovery-body": "مرحباً {name}. أعد تعيين كلمة المرور عبر هذا الرابط: {link}. أو أدخل هذا الرمز: {code}.",
+    "email-otp-subject": "رمز الدخول إلى Vamos Taxi",
+    "email-otp-body": "مرحباً {name}. رمز الدخول هو {code}. أو استخدم هذا الرابط: {link}."
   },
   "booking": {
     "date": "التاريخ",
@@ -709,7 +715,9 @@
     "zurich": "زيورخ",
     "zurich-and-geneva-with-meet-greet-in-arrivals-an": "زيورخ وجنيف، مع استقبال في صالة الوصول وتتبّع للرحلة في كل حجز يحمل رقم رحلة.",
     "zurich-city": "مدينة زيورخ",
-    "zurich-geneva": "زيورخ · جنيف"
+    "zurich-geneva": "زيورخ · جنيف",
+    "form-submit-failed": "حدث خطأ. حاول مرة أخرى، أو اتصل بنا إن استمر.",
+    "form-challenge-failed": "لم يكتمل التحقق. حاول مرة أخرى."
   },
   "contact": {
     "8953-dietikon-zh-switzerland-post-only-this-is-n": "8953 ديتيكون، زيورخ، سويسرا. للبريد فقط — وليست مكتبًا لاستقبال الركاب.",
@@ -879,7 +887,11 @@
     "us-dollars": "دولار أمريكي",
     "vamos-taxi-home": "فاموس تاكسي — الرئيسية",
     "verify-your-email": "أكّد بريدك الإلكتروني",
-    "your-bookings": "حجوزاتك"
+    "your-bookings": "حجوزاتك",
+    "account-menu": "الحساب",
+    "account-bookings": "رحلاتي",
+    "account-sign-out": "تسجيل الخروج",
+    "account-confirm-email": "أكد بريدك الإلكتروني"
   },
   "home": {
     "a-black-mercedes-v-class-in-vamos-taxi-livery-pa": "مرسيدس فئة V سوداء بشعار فاموس تاكسي متوقفة في شارع بالمدينة.",
@@ -1242,7 +1254,14 @@
     "your-data": "بياناتك",
     "your-message-and-the-channel-it-came-in-on-kept": "رسالتك والقناة التي وصلت عبرها، محفوظة مع الحجز الذي تخصّه.",
     "your-obligations": "التزاماتك",
-    "your-rights": "حقوقك"
+    "your-rights": "حقوقك",
+    "language-coverage-heading": "هذه الصفحة ليست بلغتك",
+    "language-coverage-body": "هذه الصفحة منشورة بـ {languages}.",
+    "language-coverage-switch": "افتح لغة منشورة",
+    "lang-en": "الإنجليزية",
+    "lang-de": "الألمانية",
+    "lang-fr": "الفرنسية",
+    "lang-ar": "العربية"
   },
   "ops": {
     "add-a-note-visible-to-dispatch-only": "أضف ملاحظة يراها قسم التشغيل وحده…",

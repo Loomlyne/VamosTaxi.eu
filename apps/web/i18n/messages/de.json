@@ -357,7 +357,13 @@
     "welcome-we-found-2-bookings-under-this-email-and": "Willkommen — wir haben 2 Buchungen unter dieser E-Mail gefunden und Ihrem Konto hinzugefügt",
     "you-are-signed-in-on-this-device-use-the-new-pas": "Auf diesem Gerät sind Sie angemeldet. Verwenden Sie das neue Passwort beim nächsten Anmelden anderswo.",
     "you-never-need-an-account-to-book-guest-checkout": "Für eine Buchung brauchen Sie nie ein Konto. Die Gastbuchung führt Sie direkt durch — ein Konto hält lediglich Transfers, Gutscheine und Belege an einem Ort.",
-    "your-driver-calls-this-number-on-arrival-so-it-h": "Ihr Fahrer ruft diese Nummer bei der Ankunft an — sie muss also erreichbar sein. Wir bestätigen sie einmalig mit einem Code per SMS."
+    "your-driver-calls-this-number-on-arrival-so-it-h": "Ihr Fahrer ruft diese Nummer bei der Ankunft an — sie muss also erreichbar sein. Wir bestätigen sie einmalig mit einem Code per SMS.",
+    "email-signup-subject": "Bestätigen Sie Ihr Vamos Taxi-Konto",
+    "email-signup-body": "Hallo {name}. Bestätigen Sie Ihre E-Mail mit diesem Link: {link}. Oder geben Sie diesen Code ein: {code}.",
+    "email-recovery-subject": "Setzen Sie Ihr Vamos Taxi-Passwort zurück",
+    "email-recovery-body": "Hallo {name}. Setzen Sie Ihr Passwort mit diesem Link zurück: {link}. Oder geben Sie diesen Code ein: {code}.",
+    "email-otp-subject": "Ihr Vamos Taxi-Anmeldecode",
+    "email-otp-body": "Hallo {name}. Ihr Anmeldecode lautet {code}. Oder nutzen Sie diesen Link: {link}."
   },
   "booking": {
     "date": "Datum",
@@ -709,7 +715,9 @@
     "zurich": "Zürich",
     "zurich-and-geneva-with-meet-greet-in-arrivals-an": "Zürich und Genf, mit Empfang in der Ankunft und Flugverfolgung bei jeder Buchung mit Flugnummer.",
     "zurich-city": "Stadt Zürich",
-    "zurich-geneva": "Zürich · Genf"
+    "zurich-geneva": "Zürich · Genf",
+    "form-submit-failed": "Etwas ist schiefgelaufen. Versuchen Sie es erneut, oder rufen Sie uns an, wenn es bleibt.",
+    "form-challenge-failed": "Die Prüfung ist nicht durchgegangen. Versuchen Sie es erneut."
   },
   "contact": {
     "8953-dietikon-zh-switzerland-post-only-this-is-n": "8953 Dietikon ZH, Schweiz. Nur Post — dies ist kein Kundenschalter.",
@@ -879,7 +887,11 @@
     "us-dollars": "US-Dollar",
     "vamos-taxi-home": "Vamos Taxi — Startseite",
     "verify-your-email": "Bestätigen Sie Ihre E-Mail-Adresse",
-    "your-bookings": "Ihre Buchungen"
+    "your-bookings": "Ihre Buchungen",
+    "account-menu": "Konto",
+    "account-bookings": "Meine Fahrten",
+    "account-sign-out": "Abmelden",
+    "account-confirm-email": "Bestätigen Sie Ihre E-Mail"
   },
   "home": {
     "a-black-mercedes-v-class-in-vamos-taxi-livery-pa": "Eine schwarze Mercedes V-Klasse in Vamos-Taxi-Beschriftung, geparkt an einer Stadtstrasse.",
@@ -1242,7 +1254,14 @@
     "your-data": "Ihre Daten",
     "your-message-and-the-channel-it-came-in-on-kept": "Ihre Nachricht und der Kanal, über den sie kam, abgelegt bei der betreffenden Buchung.",
     "your-obligations": "Ihre Pflichten",
-    "your-rights": "Ihre Rechte"
+    "your-rights": "Ihre Rechte",
+    "language-coverage-heading": "Diese Seite gibt es nicht in Ihrer Sprache",
+    "language-coverage-body": "Diese Seite ist veröffentlicht auf {languages}.",
+    "language-coverage-switch": "Eine veröffentlichte Sprache öffnen",
+    "lang-en": "Englisch",
+    "lang-de": "Deutsch",
+    "lang-fr": "Französisch",
+    "lang-ar": "Arabisch"
   },
   "ops": {
     "add-a-note-visible-to-dispatch-only": "Notiz hinzufügen, nur für die Disposition sichtbar…",

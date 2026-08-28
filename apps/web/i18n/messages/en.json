@@ -357,7 +357,13 @@
     "welcome-we-found-2-bookings-under-this-email-and": "Welcome — we found 2 bookings under this email and added them to your account",
     "you-are-signed-in-on-this-device-use-the-new-pas": "You are signed in on this device. Use the new password next time you sign in anywhere else.",
     "you-never-need-an-account-to-book-guest-checkout": "You never need an account to book. Guest checkout takes you straight through — an account just keeps your transfers, vouchers and receipts in one place.",
-    "your-driver-calls-this-number-on-arrival-so-it-h": "Your driver calls this number on arrival, so it has to be one you will answer. We verify it once with a code by text."
+    "your-driver-calls-this-number-on-arrival-so-it-h": "Your driver calls this number on arrival, so it has to be one you will answer. We verify it once with a code by text.",
+    "email-signup-subject": "Confirm your Vamos Taxi account",
+    "email-signup-body": "Hello {name}. Confirm your email with this link: {link}. Or enter this code: {code}.",
+    "email-recovery-subject": "Reset your Vamos Taxi password",
+    "email-recovery-body": "Hello {name}. Reset your password with this link: {link}. Or enter this code: {code}.",
+    "email-otp-subject": "Your Vamos Taxi sign-in code",
+    "email-otp-body": "Hello {name}. Your sign-in code is {code}. Or use this link: {link}."
   },
   "booking": {
     "date": "Date",
@@ -709,7 +715,9 @@
     "zurich": "Zurich",
     "zurich-and-geneva-with-meet-greet-in-arrivals-an": "Zurich and Geneva, with meet & greet in arrivals and flight tracking on every booking that carries a flight number.",
     "zurich-city": "Zurich city",
-    "zurich-geneva": "Zurich · Geneva"
+    "zurich-geneva": "Zurich · Geneva",
+    "form-submit-failed": "Something went wrong. Try again, or call us if it keeps happening.",
+    "form-challenge-failed": "The check did not go through. Try again."
   },
   "contact": {
     "8953-dietikon-zh-switzerland-post-only-this-is-n": "8953 Dietikon ZH, Switzerland. Post only — this is not a passenger office.",
@@ -879,7 +887,11 @@
     "us-dollars": "US dollars",
     "vamos-taxi-home": "Vamos Taxi — home",
     "verify-your-email": "Verify your email",
-    "your-bookings": "Your bookings"
+    "your-bookings": "Your bookings",
+    "account-menu": "Account",
+    "account-bookings": "My bookings",
+    "account-sign-out": "Sign out",
+    "account-confirm-email": "Confirm your email"
   },
   "home": {
     "a-black-mercedes-v-class-in-vamos-taxi-livery-pa": "A black Mercedes V-Class in Vamos Taxi livery parked on a city street.",
@@ -1242,7 +1254,14 @@
     "your-data": "Your data",
     "your-message-and-the-channel-it-came-in-on-kept": "Your message and the channel it came in on, kept with the booking it refers to.",
     "your-obligations": "Your obligations",
-    "your-rights": "Your rights"
+    "your-rights": "Your rights",
+    "language-coverage-heading": "This page is not in your language",
+    "language-coverage-body": "This page is published in {languages}.",
+    "language-coverage-switch": "Open a published language",
+    "lang-en": "English",
+    "lang-de": "German",
+    "lang-fr": "French",
+    "lang-ar": "Arabic"
   },
   "ops": {
     "add-a-note-visible-to-dispatch-only": "Add a note visible to dispatch only…",
