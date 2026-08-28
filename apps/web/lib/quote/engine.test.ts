@@ -6,7 +6,7 @@
 
 import { describe, expect, it } from "vitest";
 import { loadAndPrice, type QuoteLoaders } from "./engine";
-import type { QuoteInput } from "../pricing/types";
+import type { DistanceRateRow, QuoteInput } from "../pricing/types";
 
 const economy = {
   id: "vc-economy",
@@ -50,7 +50,7 @@ const zoneB = {
   tags: [],
 };
 
-function nullRates() {
+function nullRates(): DistanceRateRow[] {
   return [
     {
       id: 10,
@@ -305,7 +305,7 @@ describe("loadAndPrice", () => {
         max_pax: 8,
         available: true,
       },
-    ];
+    ] as DistanceRateRow[];
     const result = await loadAndPrice(
       fakeEnv(),
       input(),
