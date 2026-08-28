@@ -63,12 +63,12 @@ test.beforeEach(async ({}, testInfo) => {
 test.describe("Auth session middleware @auth-session", () => {
   test.describe.configure({ mode: "serial" });
 
-  test("GET /en/ answers 308 to the unprefixed path", async () => {
-    const res = await fetch(`${baseURL}/en/`, { redirect: "manual" });
+  test("GET /en answers 308 to the unprefixed path", async () => {
+    const res = await fetch(`${baseURL}/en`, { redirect: "manual" });
     expect(res.status).toBe(308);
     const location = res.headers.get("location") ?? "";
-    expect(location).toMatch(/\/$/);
-    expect(location).not.toMatch(/\/en(\/|$)/);
+    const path = location.replace(/^https?:\/\/[^/]+/, "");
+    expect(path === "/" || path === "").toBe(true);
   });
 
   test("GET /de/ answers 200", async () => {
