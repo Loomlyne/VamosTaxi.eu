@@ -18,7 +18,8 @@
     "next": "15.5.23",
     "next-intl": "4.13.7",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "zod": "4.4.3"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "5.20260820.1",

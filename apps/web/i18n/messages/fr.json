@@ -1574,6 +1574,10 @@
       "ski_rack": {
         "label": "Porte-skis ou porte-snowboard",
         "rule": "Installé sur demande, pendant la saison de ski"
+      },
+      "oversized_luggage": {
+        "label": "Bagage volumineux",
+        "rule": "Par article déclaré"
       }
     }
   },
@@ -1660,7 +1664,99 @@
       "partner.van-or-minibus-up-to-8-seats": true,
       "partner.minibus-9-seats-or-more": true,
       "legal.bleicherstrasse-16-8953-dietikon-zh": true,
-      "legal.vamos-taxi-gmbh-bleicherstrasse-16-8953-dietikon-3": true
+      "legal.vamos-taxi-gmbh-bleicherstrasse-16-8953-dietikon-3": true,
+      "quote.flight.placeholder": "fixed example flight-number formats for the input placeholder, not a live count"
+    }
+  },
+  "quote": {
+    "class": {
+      "up_to_pax": "Jusqu'à {n, plural, one {# passager} other {# passagers}}",
+      "up_to_bags": "Jusqu'à {n, plural, one {# bagage} other {# bagages}}",
+      "na_pax": "Indisponible pour {n, plural, one {# passager} other {# passagers}}",
+      "na_bags": "Indisponible pour {n, plural, one {# bagage} other {# bagages}}",
+      "unavailable": "Cette classe n'est pas encore proposée sur cet itinéraire",
+      "no_rate": "Pas encore de grille tarifaire pour cette classe",
+      "route_off": "Cette classe n'est pas en vente sur cet itinéraire",
+      "price_note": "Total, toutes taxes comprises",
+      "fixed_route_badge": "PRIX FIXE",
+      "select_hint": "Choisissez une classe pour continuer — détails & options ensuite"
+    },
+    "none_fit": "Aucune classe ne convient encore à cette taille de groupe.",
+    "moved_to": "Déplacé vers {v} — {from} convient jusqu'à {cap}.",
+    "error": "Tarif indisponible — réessayez",
+    "error.min_advance": "Cette prise en charge est trop tôt — il nous faut {minutes, plural, one {# minute} other {# minutes}} de préavis",
+    "error.out_of_service_area": "Cet itinéraire est hors de notre zone de desserte",
+    "error.place_out_of_box": "Ces points sont hors de la zone que nous pouvons tarifer",
+    "error.same_place": "Le départ et la destination sont le même lieu — choisissez-en deux",
+    "error.route_unavailable": "Impossible de calculer cet itinéraire pour le moment — réessayez dans un instant",
+    "error.expired": "Ce devis a expiré — obtenez un nouveau prix",
+    "error.price_changed": "La grille tarifaire a changé — obtenez un nouveau prix",
+    "error.engine_changed": "Obtenez un nouveau prix pour continuer",
+    "error.pricing_not_live": "Le paiement n'est pas encore ouvert",
+    "error.coupon_no_longer_valid": "Ce code ne peut plus être utilisé — obtenez un nouveau prix",
+    "error.rate_limited": "Trop de tarifs en peu de temps — patientez un instant et réessayez",
+    "error.turnstile_required": "Confirmez cette demande et réessayez",
+    "error.temporarily_unavailable": "Impossible de tarifer pour le moment — réessayez sous peu",
+    "error.mode_not_offered": "La formule à l'heure n'est pas encore disponible — réservez un transfert",
+    "pricing_pending": "Les prix s'affichent une fois la grille tarifaire approuvée",
+    "loading": "Calcul de votre prix fixe…",
+    "empty": {
+      "title": "Planifiez votre transfert",
+      "subtitle": "Renseignez votre trajet pour voir les prix",
+      "meta": "Départ, destination, date & heure"
+    },
+    "lock": {
+      "countdown": "Prix bloqué · {time}",
+      "expiring_soon": "Ce prix expire bientôt — payez maintenant ou demandez-en un nouveau"
+    },
+    "coupon": {
+      "label": "Code promo",
+      "placeholder": "Code promo ou bon",
+      "apply": "Appliquer",
+      "error": {
+        "not_found": "Vérifiez le code du coupon",
+        "inactive": "Ce code n'est plus actif",
+        "not_yet_valid": "Ce code n'est pas encore actif",
+        "expired": "Ce code a expiré",
+        "usage_cap": "Ce code a atteint sa limite",
+        "per_user_cap": "Vous avez déjà utilisé ce code",
+        "unpriced": "Ce code n'est pas encore prêt"
+      }
+    },
+    "extras": {
+      "error": {
+        "max_stops": "Vérifiez le nombre d'arrêts",
+        "max_child_seats": "Vérifiez le nombre de sièges enfant"
+      }
+    },
+    "flight": {
+      "label": "Vol (facultatif)",
+      "placeholder": "EK 87 · LX 318",
+      "checking": "Recherche du vol…",
+      "unavailable": "Impossible de vérifier les vols pour le moment — indiquez votre heure de prise en charge.",
+      "recheck": "Vérifier à nouveau",
+      "malformed": "Vérifiez le numéro de vol",
+      "not_found": "Aucun vol sous ce numéro aujourd'hui",
+      "pick_one": "Quel vol voulez-vous dire ?",
+      "today": "aujourd'hui",
+      "tomorrow": "demain",
+      "candidate": {
+        "depart": "Départ {time} {day}",
+        "arrive": "Arrivée {time} {day}"
+      },
+      "effect": {
+        "to_airport": "Départ {ap} à {t} — nous vous y conduisons.",
+        "from_airport": "Arrivée {ap} à {t} — nous vous y accueillons."
+      },
+      "note": {
+        "cancelled": "Ce vol est annulé, rien n'a été prérempli. Revenez avec le nouveau numéro.",
+        "departed": "Ce vol a déjà quitté {ap}, il n'y a rien à préremplir.",
+        "off": "Nous desservons Zurich, Genève et Bâle — ce vol n'en touche aucun. Indiquez le départ vous-même."
+      }
+    },
+    "geo": {
+      "no_results": "Aucun lieu correspondant — essayez une adresse plus complète",
+      "suggest_unavailable": "La recherche de lieux est indisponible — saisissez l'adresse ou déposez une épingle"
     }
   }
 }
