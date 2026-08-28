@@ -155,14 +155,30 @@ is meant to be public.
 
 ## Before the first hosted push — probe checklist
 
-Three staging-only probes, each `autonomous: false` because the database password and
-dashboard are owner-held. Owned by Plan 02-10. Full context: `02-CONTEXT.md` D-25/D-27/D-33.
+Owned by Plan 02-10. Full context: `02-CONTEXT.md` D-25/D-27/D-28/D-33.
+U2 (`set_config('role', $1, true)` ≡ `SET LOCAL ROLE`) and U4 (local PG 17.6, `STORED`
+generated columns required) were **settled locally** per
+`research/local-toolchain-probe.md` — remote check not required.
 
-| Probe | Decision ID | Question | Exact statement / command | Expected result | Encoded fallback |
-|---|---|---|---|---|---|
-| Role grant | ~~D-25 (U1)~~ **RESOLVED 2026-08-24 — permitted; no fallback needed** | Can `vamos_edge` be granted the built-in `authenticated` role so a policy can say `TO authenticated`? | `grant authenticated to vamos_edge with inherit false, set true;` run against the hosted project | Grant succeeds with no error | Create `vamos_customer nologin` mirroring `authenticated`'s grants; use `TO vamos_customer` everywhere a policy would otherwise say `TO authenticated` |
-| Seed re-run semantics | ~~D-27 (U3)~~ **RESOLVED 2026-08-24 — does NOT re-run (CLI hashes seed files)** | Does `supabase db push --include-seed` re-run `seed.sql` on every push, or only on first apply? | `supabase db push --include-seed --dry-run` against a scratch project, then a real second push, diffing row counts | Either behaviour is acceptable | Assumed load-bearing either way — every generated `INSERT` in `seed.sql` already carries `ON CONFLICT … DO UPDATE` (D-22), so a re-run is a no-op regardless of the answer |
-| Custom Access Token Hook wiring | D-33 (U15) | Does the production dashboard path match the docs ("Authentication → Hooks (Beta)")? | Check the **live dashboard** directly, not from docs alone — Beta labelling implies drift | Path matches, hook can be enabled from the UI | pgTAP (Plan 02-02) already proves the hook function itself is correct; if the dashboard path differs, only the *invocation* wiring changes, not the function body |
+Ready-to-paste commands (SQL editor unless noted) and **observed** results against
+`yaumjzvylngfjhtuffqs`. The `vamos_customer` fallback was never applied.
+
+| Probe | Decision ID | Exact statement / command | Expected | Observed |
+|---|---|---|---|---|
+| Role grant | D-25 (U1) | SQL editor: `begin; create role _probe_edge login noinherit; grant authenticated to _probe_edge with inherit false, set true; select inherit_option, set_option from pg_auth_members where member = '_probe_edge'::regrole; rollback;` — a failure at migration `…02`'s grant **is** the U1 answer. Live confirmation (no leftover role): `select r.rolname as member, g.rolname as granted, m.inherit_option, m.set_option from pg_auth_members m join pg_roles r on r.oid = m.member join pg_roles g on g.oid = m.roleid where r.rolname = 'vamos_edge' and g.rolname = 'authenticated';` | `inherit_option=f`, `set_option=t` | **permitted** (observed 2026-08-27): `vamos_edge → authenticated`, `inherit_option=false`, `set_option=true`. Four `vamos_*` roles only — no `vamos_customer`. First permitted 2026-08-24 when `…002` applied unmodified (24/24). Fallback not used. |
+| First push | D-37 | Terminal: `SUPABASE_ACCESS_TOKEN=… SUPABASE_DB_PASSWORD=… pnpm db:link && pnpm db:push` | 24 migrations + seed | **observed 2026-08-24** (02-09 post-execution fix): all 24/24 applied; seed collapsed to a single `DO` block after Supavisor truncated the original multi-statement file. **Re-listed 2026-08-27:** `20260823000001`…`20260823000024` present (`extensions` … `rls_public`). |
+| Seed re-run | D-27 (U3) | After first successful push: `pnpm --filter @vamos/db exec supabase db push --include-seed --dry-run`, then a real second push, then `select 'vehicle_classes', count(*) from vehicle_classes union all select 'settings', count(*) from settings union all select 'settings_versions', count(*) from settings_versions union all select 'content_strings', count(*) from content_strings union all select 'reviews', count(*) from reviews union all select 'service_zones', count(*) from service_zones union all select 'rate_versions', count(*) from rate_versions union all select 'distance_rates', count(*) from distance_rates union all select 'surcharges', count(*) from surcharges;` | Counts identical before/after | **does not re-run** (observed 2026-08-24): second push `{"upToDate":true,"seeds":[]}` — CLI hashes `supabase_migrations.seed_files`. **Reconfirmed 2026-08-27:** `seed_files` has `supabase/seed.sql` (hash present). Hosted counts: vehicle_classes=3, settings=1, settings_versions=1, content_strings=1516, reviews=5, service_zones=8, rate_versions=1, distance_rates=3, surcharges=8. |
+| Custom Access Token Hook | D-33 (U15) | Dashboard: Authentication → Hooks → enable Custom Access Token hook → `public.custom_access_token_hook`. Record the menu path as actually observed. | Hook enabled | **enabled** (owner-attested 2026-08-24): observed menu path **Authentication → Hooks → "Customize Access Token (JWT) Claims hook" → Postgres function `public.custom_access_token_hook`**. **Reconfirmed 2026-08-27:** function `public.custom_access_token_hook(event jsonb)` exists; `EXECUTE` granted to `supabase_auth_admin`. Dashboard toggle has no read-only SQL surface. Residual: first hosted staff JWT with `app_metadata.vamos_role` is Phase 6. |
+| Postgres version | D-28 | SQL editor: `select version();` | PostgreSQL 17.x | **observed 2026-08-27:** `PostgreSQL 17.6 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit`. Matches `.temp/postgres-version` `17.6.1.155`. |
+
+### Hosted migration list (2026-08-27)
+
+`01_extensions` `02_roles_and_helpers` `03_types` `04_settings` `05_fleet`
+`06_customers_and_staff` `07_content_and_reviews` `08_rate_versions` `09_coupons`
+`10_bookings` `11_booking_legs` `12_booking_access_tokens` `13_price_snapshots`
+`14_payments_refunds` `15_coupon_redemptions` `16_booking_events` `17_audit_log`
+`18_consent_log` `19_append_only` `20_rls_enable` `21_rls_customer` `22_rls_guest`
+`23_rls_staff` `24_rls_public` — all version `202608230000NN`.
 
 ## R2 jurisdiction note (D-24, cross-reference)
 

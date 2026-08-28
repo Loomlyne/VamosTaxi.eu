@@ -14,7 +14,7 @@ owner_attested:
 superseded_human_verification:
   - test: "Enable the Custom Access Token Hook on the hosted Supabase dashboard (project yaumjzvylngfjhtuffqs) and confirm TOTP MFA is enabled for the project (D-33/U15)"
     expected: "Authentication -> Hooks (path may differ from docs -- Beta label implies drift) shows the Custom Access Token Hook enabled and pointed at public.custom_access_token_hook; a staff member who completes TOTP actually receives app_metadata.vamos_role in their minted JWT"
-    why_human: "Owner-held dashboard and database credentials; no CLI/SQL surface can toggle this Beta dashboard setting. Plan 02-10 (the plan that owns this step) is autonomous:false and has not been executed -- no 02-10-SUMMARY.md exists and its ROADMAP checkbox is unticked."
+    why_human: "Owner-held dashboard. Closed in Plan 02-10 (2026-08-27 SUMMARY): owner-attested 2026-08-24 path Authentication -> Hooks -> Customize Access Token (JWT) Claims hook -> public.custom_access_token_hook; function + supabase_auth_admin EXECUTE reconfirmed live. Residual JWT claim proof is Phase 6."
 ---
 
 # Phase 2: Data Schema, RLS & Staff Auth Foundations Verification Report
@@ -23,8 +23,8 @@ superseded_human_verification:
 enforced on every table, and staff can only reach it through an invited, MFA-verified session.
 The versioned price/policy snapshot shape (Phase 4/9) and the driver double-booking exclusion
 constraint (Phase 8) are designed into the schema here, not retrofitted.
-**Verified:** 2026-08-24T16:55:32Z
-**Status:** human_needed
+**Verified:** 2026-08-27T15:30:00Z (02-10 close)
+**Status:** passed
 **Re-verification:** No — initial verification
 
 ## Method
@@ -138,8 +138,8 @@ was honored rather than dropped.
 |---|---|---|---|
 | U1 (D-25) | Can managed Supabase's `postgres` grant `authenticated` to `vamos_edge`? | **RESOLVED — permitted.** | Migration `...002_roles_and_helpers.sql` runs `grant authenticated to vamos_edge with inherit false, set true;` unconditionally (no fallback branch taken). 02-09-SUMMARY.md's post-execution fix documents all 24/24 migrations, including `...002`, applying cleanly to the hosted project `yaumjzvylngfjhtuffqs` via `supabase db push --include-seed` — a refusal at `...002` would have failed the push outright (the plan's own D-25 text: "a failure at ...02's grant IS the U1 answer"). No `vamos_customer` role exists locally (`select rolname from pg_roles where rolname like 'vamos%'` returns only the four designed roles); the fallback code path was never triggered. Only documentary comments referencing the fallback remain in `...002:81-82` and `...021:6-7` — correctly inert, not dead code that executes. |
 | U3 (D-27) | Does `supabase db push --include-seed` re-run the seed on every push? | **RESOLVED — no, it does not re-run.** | 02-09-SUMMARY.md's post-execution fix section documents a real second push (`{"upToDate":true,"seeds":[],...}` — empty `seeds` array vs. the first push's `["supabase/seed.sql"]`) with byte-identical row counts before/after, and identifies the mechanism (`supabase_migrations.seed_files` content-hash tracking). This was discovered while fixing a genuine production incident: the original 5-statement `seed.sql` (wrapped in `begin;`/`commit;`) was silently truncated by Supabase's Supavisor transaction-pool connection pooler mid-batch, causing `ERROR: function public.__seed_apply() does not exist` on the very first hosted push. The fix (collapsing to a single top-level `DO $do$ ... $do$;` block) is present in the current `generate-seed.mjs`/`seed.sql` and is what this session's local `pnpm db:reset`/`pnpm db:test` runs exercised. |
-| U15 (D-33) | Is the Custom Access Token Hook actually invoked by the hosted GoTrue auth server? | **OPEN.** | Local `config.toml` has the hook enabled (`[auth.hook.custom_access_token] enabled = true`) and pgTAP proves the function's own logic (`staff_hook_claim.test.sql`, 18/18) — the SQL half is fully proven. No evidence anywhere in the repo (docs, SUMMARYs, or `SUPABASE-RESOURCES.md`'s probe table) that the hosted dashboard toggle has been enabled. Plan 02-10 Task 2 — the checkpoint that would produce this evidence — is `type="checkpoint:human-action"`, `autonomous: false`, and has not run (no `02-10-SUMMARY.md`; ROADMAP.md's Plan 02-10 checkbox is `[ ]`). |
-| U28 (documentation drift) | Do the phase's own designated hosted-facts documents reflect the U1/U3 resolutions above? | **NOT SYNCED — WARNING, not a blocker.** | `docs/build/SUPABASE-RESOURCES.md`'s probe table still reads "owned by Plan 02-10" with no "observed"/"refused"/"permitted" text anywhere in the file; `packages/db/README.md`'s "Before the first hosted push" checklist still says "Plan 02-10 is where a human runs them." Both are stale relative to 02-09-SUMMARY.md's post-execution fix, which resolved U1 and U3 empirically against the hosted project during an unplanned incident-response detour, not through Plan 02-10's formal Task 1/3 flow. The underlying engineering fact is sound and independently verified in this session; only the phase's own bookkeeping artifacts have not caught up. |
+| U15 (D-33) | Is the Custom Access Token Hook actually invoked by the hosted GoTrue auth server? | **RESOLVED — enabled.** | Owner-attested 2026-08-24: dashboard path Authentication → Hooks → "Customize Access Token (JWT) Claims hook" → `public.custom_access_token_hook`. Plan 02-10 SUMMARY 2026-08-27 reconfirmed the function and `EXECUTE` grant to `supabase_auth_admin`. Residual: first hosted staff JWT with `app_metadata.vamos_role` is Phase 6. |
+| U28 (documentation drift) | Do the phase's own designated hosted-facts documents reflect the U1/U3 resolutions above? | **SYNCED 2026-08-27.** | Plan 02-10 wrote observed results into `docs/build/SUPABASE-RESOURCES.md` and ticked `packages/db/README.md`. |
 
 ## Requirements Coverage
 
@@ -220,8 +220,8 @@ otherwise 5/5.
 
 | Item | Owning phase / plan | Note |
 |---|---|---|
-| Hosted Custom Access Token Hook enablement (U15) | **Phase 2 itself, Plan 02-10** (not a later phase — owner-gated, `autonomous: false`, unexecuted) | Blocks AUTH-05's full production guarantee until closed; local/SQL mechanism is proven |
-| `SUPABASE-RESOURCES.md`/`README.md` probe-table sync for U1/U3 | **Phase 2 itself, Plan 02-10** (Tasks 1/3, or a standalone doc fix) | Documentation-only; the underlying facts are already correct and independently verified in this session |
+| Hosted Custom Access Token Hook enablement (U15) | **Closed in Plan 02-10 (2026-08-27)** | Owner-attested dashboard path + live function/grant. Residual JWT claim proof: Phase 6 |
+| `SUPABASE-RESOURCES.md`/`README.md` probe-table sync for U1/U3 | **Closed in Plan 02-10 (2026-08-27)** | Observed results written |
 | DATA-06 (no identity leak across a pooled Hyperdrive connection) | **Phase 3** | Explicitly out of Phase 2's scope per ROADMAP.md/REQUIREMENTS.md; Phase 2 only makes the proof possible (privilege-less `vamos_edge`, D-02 revoke-all baseline) |
 | F-14 (`charged_currency='CHF'` vs. ADR-014 §1 multi-currency) | **Phase 7** | Deliberately deferred, disputed-not-disagreed in the triage; `07-CONTEXT.md` already records the resolution path (additive FX columns via Stripe Checkout Session) |
 | CHF price matrix (every priced column NULL, no `rate_versions` row live) | **Owner blocker, no phase** | By design — D-34; not a Phase 2 defect. Confirmed: zero non-null rows across all 17 rappen/percent columns, zero `status='live'` rate_versions rows |
