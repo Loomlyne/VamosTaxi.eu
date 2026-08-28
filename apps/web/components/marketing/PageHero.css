@@ -1,0 +1,75 @@
+/* Marketing hero. Law 01: --vt-shadow-accent none. */
+:root {
+  --vt-shadow-accent: none;
+}
+.vt-input--focus {
+  box-shadow: none;
+}
+
+[data-mh-hero] {
+  background: var(--vt-bg-inverse);
+  color: var(--vt-text-inverse);
+  position: relative;
+  overflow: hidden;
+}
+.vt-mh-hero-inner {
+  position: relative;
+  max-inline-size: 1200px;
+  margin-inline: auto;
+  padding-block: 44px 40px;
+  padding-inline: clamp(20px, 5vw, 56px);
+}
+.vt-mh-checker {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  pointer-events: none;
+}
+.vt-mh-crumb {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--vt-body-xs);
+  color: var(--vt-text-inverse-muted);
+  margin-block-end: 26px;
+}
+.vt-mh-crumb a {
+  color: inherit;
+  text-decoration: none;
+}
+.vt-mh-kicker {
+  margin: 0;
+  margin-block-end: 12px;
+  font-size: var(--vt-label-sm);
+  letter-spacing: var(--vt-label-tracking);
+  text-transform: uppercase;
+  font-weight: var(--vt-label-weight);
+  color: var(--vt-accent);
+}
+[data-mh-hero] h1 {
+  margin: 0;
+  margin-block-end: 18px;
+  max-inline-size: 22ch;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-display-2);
+  line-height: var(--vt-display-leading);
+  letter-spacing: var(--vt-display-tracking);
+  font-weight: var(--vt-weight-semibold);
+  color: var(--vt-text-inverse);
+  text-wrap: pretty;
+}
+.vt-mh-standfirst {
+  margin: 0;
+  max-inline-size: 58ch;
+  font-size: var(--vt-body-lg);
+  line-height: var(--vt-body-leading);
+  color: rgb(255 255 255 / 0.84);
+}
+.vt-mh-photo {
+  position: relative;
+  block-size: clamp(220px, 34vw, 400px);
+  inline-size: 100%;
+}
+.vt-mh-photo img {
+  object-fit: cover;
+}
