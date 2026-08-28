@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: shipping
-stopped_at: Phase 3 UAT passed; shipping PR
-last_updated: "2026-08-28T11:00:00.000Z"
+status: executing
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-08-28T07:46:31.588Z"
 last_activity: 2026-08-28
 progress:
   total_phases: 11
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 98
-  completed_plans: 30
-  percent: 31
+  completed_plans: 32
+  percent: 27
 ---
 
 # Project State
@@ -23,16 +23,16 @@ See: .planning/PROJECT.md (updated 2026-08-17)
 **Core value:** A customer can book a fixed-price transfer in under a minute and trust that
 the driver will be there. If nothing else works, the booking funnel — quote, pay,
 confirmation — must.
-**Current focus:** Phase 3 UAT / ship, then Phase 4 Quote & Pricing Engine
+**Current focus:** Phase 04 — quote-pricing-engine
 
 ## Current Position
 
-Phase: 3 of 11 (Hyperdrive Data Access Wiring) — measured, awaiting UAT
-Plan: 7 of 7 in current phase complete (03-07 SUMMARY written)
-Status: Ready for UAT
+Phase: 04 (quote-pricing-engine) — EXECUTING
+Plan: 2 of 16
+Status: Ready to execute
 Last activity: 2026-08-28
 
-Progress: [██████░░░░] 30/98 plans (31%)
+Progress: [███░░░░░░░] 33%
 
 ## Performance Metrics
 
@@ -84,6 +84,7 @@ Progress: [██████░░░░] 30/98 plans (31%)
 | Phase 03 P04 | 55min | 3 tasks | 8 files |
 | Phase 03 P05 | ~35min | 3 tasks | 8 files |
 | Phase 03 P06 | ~55min | 3 tasks | 12 files |
+| Phase 04 P01 | 13 min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -172,6 +173,8 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-06: pr.yml's local Phase 3 gate joined to the EXISTING database job (added by Phase 2 plan 02-09) instead of duplicating steps into the older single gate job this plan's own research docs described
 - [Phase 03]: 03-06: corrected step order db:reset -> db:test -> db:local-roles (plan's own literal text had local-roles first, which 03-05-SUMMARY.md's deviation #4 already proved breaks the vamos_edge-has-no-password pgTAP assertion)
 - [Phase 03]: 03-06: apps/web/wrangler.jsonc's env.staging hyperdrive block enabled with placeholder id + real localConnectionString (Rule 2) -- D-36's smoke test is structurally unrunnable without it; wrangler dev's local mode never validates id as a UUID, so no owner-held credential was needed
+- [Phase 04]: fast-check 4.9.0 approved by owner Koss (ndubien/dubzzz, MIT, ~36.6M weekly, no postinstall) — T-04-SC legitimacy checkpoint before install; vitest already approved via packages/db 4.1.11
+- [Phase 04]: packages/db default test script is identity-contract only; deployed/DATA-06 stay out of test:unit — Plan must_haves require no Docker/network; protects Hyperdrive free quota
 
 ### Pending Todos
 
@@ -207,6 +210,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-28T11:00:00.000Z
-Stopped at: Phase 3 UAT passed; shipping PR
+Last session: 2026-08-28T07:46:18.144Z
+Stopped at: Completed 04-01-PLAN.md
 Resume file: None

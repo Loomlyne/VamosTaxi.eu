@@ -201,7 +201,7 @@ start rather than added once checkout exists.
 Plans:
 **Wave 1**
 
-- [ ] 04-01-PLAN.md — Wave 0 for the whole phase: install the two test tools this repository does not have, wire them
+- [x] 04-01-PLAN.md — Wave 0 for the whole phase: install the two test tools this repository does not have, wire them
 - [ ] 04-04-PLAN.md — Make surcharge applicability **data**. Today "22:00–06:00" and "pickup is an airport zone" woul
 
 **Wave 2** *(blocked on Wave 1 completion)*
@@ -372,7 +372,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 
 | 1. Platform Foundation, Design System Port & i18n Runtime | 14/14 | Complete | 2026-08-22 |
 | 2. Data Schema, RLS & Staff Auth Foundations | 10/10 | Complete | 2026-08-27 |
 | 3. Hyperdrive Data Access Wiring | 7/7 | Complete | 2026-08-28 |
-| 4. Quote & Pricing Engine | 0/TBD | Not started | - |
+| 4. Quote & Pricing Engine | 1/16 | In Progress|  |
 | 5. Public Surfaces & Customer Accounts | 0/TBD | Not started | - |
 | 6. Ops Reference Data & Content Console | 0/TBD | Not started | - |
 | 7. Checkout & Payment | 0/TBD | Not started | - |
