@@ -73,6 +73,22 @@ each later plan's migration numbers slot into the gaps this table already reserv
 | 23 | `20260823000023_rls_staff` | DATA-04 / AUTH-05 grants + policies, ledger tables SELECT-only, `realtime.messages` board authorization |
 | 24 | `20260823000024_rls_public` | anon/`vamos_public` content grants, `settings_public` view (definer), `record_consent()` grant |
 
+### Phase 4 reserved ordinals (quote / pricing engine)
+
+Cross-plan ordering is fixed before any file is written — the same reason Phase 2's table
+exists — so no two plans in this phase can produce the same prefix. Day stamp `20260825`.
+
+| # | File | Owning plan | Contents |
+|---|---|---|---|
+| 01 | `20260825000001_surcharge_predicate` | **04-04 (landed)** | `surcharges.predicate`, `quantity_source`, empty-predicate publish gate |
+| 02 | `20260825000002_service_zone_types` | **04-04 (landed)** | `service_zones.zone_type`, `service_zones.tags` |
+| 03 | `20260825000003_snapshot_alternatives` | 04-05 | `price_snapshots.shown_alternatives` (+ related) |
+| 04 | `20260825000004_quote_gates` | 04-05 | quote gate triggers / service_area_geojson |
+| 05 | `20260825000005_quote_read_rpc` | 04-06 | quote read RPC |
+| 06 | `20260825000006_coupon_release` | 04-06 | coupon release / evaluate_coupon |
+| 07 | `20260825000007_quote_snapshot_rpc` | 04-15 | quote snapshot RPC |
+| 08 | `20260825000008_flight_provenance` | 04-12 | flight provenance |
+
 Three reorderings versus `02-SCHEMA-DRAFT.md` §16's illustrative sequence, each load-bearing:
 
 - **`content_and_reviews` moved to 07** (immediately after `customers_and_staff`), ahead of
