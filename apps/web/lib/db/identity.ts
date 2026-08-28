@@ -55,6 +55,19 @@ type QueryFn<T> = (
  * `wrangler dev` session may not have it bound, and instrumentation must never be the thing
  * that fails a query that would otherwise have succeeded.
  */
+function writeLatency(env: CloudflareEnv, kind: IdentityKind, status: string, ms: number): void {
+  try {
+    env.DB_LATENCY?.writeDataPoint({
+      blobs: [kind, status],
+      doubles: [ms],
+      indexes: [kind],
+    });
+  } catch {
+    // Instrumentation must never fail the query (D-23). WAE quota/misconfig is a
+    // measurement miss, not a product 500.
+  }
+}
+
 async function withIdentity<K extends IdentityKind, T>(
   env: CloudflareEnv,
   kind: K,
@@ -64,18 +77,10 @@ async function withIdentity<K extends IdentityKind, T>(
   const t0 = Date.now();
   try {
     const result = await withIdentityCore(env.HYPERDRIVE_NOCACHE.connectionString, kind, claims, fn);
-    env.DB_LATENCY?.writeDataPoint({
-      blobs: [kind, "ok"],
-      doubles: [Date.now() - t0],
-      indexes: [kind],
-    });
+    writeLatency(env, kind, "ok", Date.now() - t0);
     return result;
   } catch (err) {
-    env.DB_LATENCY?.writeDataPoint({
-      blobs: [kind, (err as { code?: string })?.code ?? "unknown"],
-      doubles: [Date.now() - t0],
-      indexes: [kind],
-    });
+    writeLatency(env, kind, (err as { code?: string })?.code ?? "unknown", Date.now() - t0);
     throw err;
   }
 }

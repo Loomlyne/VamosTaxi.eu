@@ -55,14 +55,9 @@
       "triggers": {
         "crons": ["0 3 * * *"]
       },
-      // Placement Hints (D-22), not Smart Placement — one single-homed database, so Smart
-      // Placement's learn-over-traffic model solves the wrong problem and takes up to 15
-      // minutes to warm up; a Placement Hint is deterministic from the first deploy. The
-      // region below is Zurich — the AWS region backing Supabase project
-      // `yaumjzvylngfjhtuffqs` (Phase 2 D-37) — superseding `03-RESEARCH.md`'s stale
-      // Frankfurt-region hint (D-25). This pins **fetch handlers only** (D-24): the
-      // `triggers.crons` above and the `queues.consumers` above are unplaced, and their
-      // latency is explicitly outside DATA-05.
+      // Placement Hints (D-22). Host probe (`db.<ref>:5432`) placed FRA and DATA-05
+      // p50 went 34 → 47 ms. Region `aws:eu-central-2` (Zurich) is the better
+      // measured number. Pins fetch handlers only (D-24).
       "placement": { "region": "aws:eu-central-2" },
       // DATA-05's instrument (D-23): every `withIdentity` call from
       // `apps/web/lib/db/identity.ts` writes one Workers Analytics Engine data point here,

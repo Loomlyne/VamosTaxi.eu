@@ -127,9 +127,11 @@ function client(connectionString: string): postgres.Sql {
  * on a test-pinned `opts.client`.
  */
 export async function resetPooledSession(sql: postgres.Sql): Promise<void> {
-  await sql.unsafe("reset role");
+  // One round trip: restore the login role and clear identity GUCs. Equivalent to
+  // `RESET ROLE` plus the two session-scoped clears (session_user is the Hyperdrive
+  // login, vamos_edge / vamos_public).
   await sql.unsafe(
-    "select set_config('request.jwt.claims', '', false), set_config('request.vamos.manage_token_hash', '', false)",
+    "select set_config('role', session_user, false), set_config('request.jwt.claims', '', false), set_config('request.vamos.manage_token_hash', '', false)",
   );
 }
 
