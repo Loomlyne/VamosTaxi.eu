@@ -82,8 +82,8 @@ exists — so no two plans in this phase can produce the same prefix. Day stamp 
 |---|---|---|---|
 | 01 | `20260825000001_surcharge_predicate` | **04-04 (landed)** | `surcharges.predicate`, `quantity_source`, empty-predicate publish gate |
 | 02 | `20260825000002_service_zone_types` | **04-04 (landed)** | `service_zones.zone_type`, `service_zones.tags` |
-| 03 | `20260825000003_snapshot_alternatives` | 04-05 | `price_snapshots.shown_alternatives` (+ related) |
-| 04 | `20260825000004_quote_gates` | 04-05 | quote gate triggers / service_area_geojson |
+| 03 | `20260825000003_snapshot_alternatives` | **04-05 (landed)** | `price_snapshots.shown_alternatives`, `quote_lock_expires_at`, lines reconcile |
+| 04 | `20260825000004_quote_gates` | **04-05 (landed)** | charge gate definer+lock, was-published flag, `service_area_geojson` |
 | 05 | `20260825000005_quote_read_rpc` | 04-06 | quote read RPC |
 | 06 | `20260825000006_coupon_release` | 04-06 | coupon release / evaluate_coupon |
 | 07 | `20260825000007_quote_snapshot_rpc` | 04-15 | quote snapshot RPC |
