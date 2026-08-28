@@ -7,6 +7,7 @@ import {
   VAMOS_QS_COOKIE,
   verifyVamosQs,
 } from "./lib/abuse/vamos-qs";
+import { updateSession } from "./lib/supabase/middleware";
 
 const handleI18nRouting = createMiddleware(routing);
 
@@ -48,6 +49,17 @@ export default async function middleware(request: NextRequest) {
       });
       finalResponse = permanent;
     }
+  }
+
+  // Auth cookie refresh only on the page path. A 3xx never reaches a Server
+  // Component, so skip updateSession — and never construct a new response on
+  // the session-refresh path (D-02).
+  const isRedirect =
+    finalResponse.status >= 300 &&
+    finalResponse.status < 400 &&
+    Boolean(finalResponse.headers.get("location"));
+  if (!isRedirect) {
+    finalResponse = await updateSession(request, finalResponse);
   }
 
   // D-37/T-01-04: staging carries a noindex header so nothing half-built competes with the
