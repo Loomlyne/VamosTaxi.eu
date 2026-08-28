@@ -130,7 +130,11 @@
           "id": "71523abbbb7542fdbff01f66d9a858ed",
           "localConnectionString": "postgres://vamos_edge:***@127.0.0.1:54322/postgres"
         }
-      ]
+      ],
+      // D-13: without this binding `/_next/image` answers 200 with the original,
+      // unresized file (Phase 1 finding). Named envs do not inherit top-level
+      // bindings — declare IMAGES here and under env.production.
+      "images": { "binding": "IMAGES" }
     },
     "production": {
       "name": "vamos-web-production",
@@ -233,7 +237,11 @@
           // entry's comment above, different login role.
           "localConnectionString": "postgres://vamos_edge:***@127.0.0.1:54322/postgres"
         }
-      ]
+      ],
+      // D-13: without this binding `/_next/image` answers 200 with the original,
+      // unresized file (Phase 1 finding). Named envs do not inherit top-level
+      // bindings — declare IMAGES here and under env.staging.
+      "images": { "binding": "IMAGES" }
     }
   }
 }

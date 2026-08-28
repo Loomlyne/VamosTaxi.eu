@@ -179,6 +179,55 @@ interface CloudflareEnv {
    * First consumer: plan 04-09 / 04-11 quote path.
    */
   PRICING_PREVIEW?: string;
+
+  // ── Phase 5 auth / public-surface bindings (plan 05-01) ──
+
+  /**
+   * Cloudflare Images binding (`apps/web/wrangler.jsonc` `env.staging`/`env.production`
+   * `images.binding`). D-13 — first consumed by plan 05-06's hero. Without this,
+   * `/_next/image` answers 200 with the original, unresized file.
+   */
+  IMAGES: ImagesBinding;
+
+  /**
+   * Supabase Auth URL (server-only). Required — local `supabase start` supplies it
+   * from the first commit. Never a browser-exposed env name;
+   * `scripts/public-env-allowlist.json` forbids `SUPABASE_URL` in the client bundle.
+   * `wrangler secret put` in staging/prod.
+   */
+  SUPABASE_URL: string;
+
+  /**
+   * Supabase anon/publishable key (server-only). Required. Never a browser-exposed
+   * env name; `scripts/public-env-allowlist.json` forbids `SUPABASE_ANON_KEY` in the
+   * client bundle. `wrangler secret put` in staging/prod.
+   */
+  SUPABASE_ANON_KEY: string;
+
+  /**
+   * Supabase Auth Send Email Hook signing secret (plan 05-12). OPTIONAL — owner-gated
+   * (05-CONTEXT deferred). `wrangler secret put`. Never in wrangler.jsonc `vars`.
+   */
+  SEND_EMAIL_HOOK_SECRET?: string;
+
+  /**
+   * Resend API key (plans 05-12, 05-13). OPTIONAL — owner-gated. `wrangler secret put`.
+   * Never in wrangler.jsonc `vars`. Distinct from the forbidden client-bundle substring.
+   */
+  RESEND_API_KEY?: string;
+
+  /**
+   * Cloudflare Turnstile site key (plan 05-13). OPTIONAL — owner-gated. Read server-side
+   * and passed to the widget as a prop, so it needs no browser-prefixed identifier.
+   * Distinct from Phase 4's `TURNSTILE_SECRET` (quote-abuse siteverify).
+   */
+  TURNSTILE_SITE_KEY?: string;
+
+  /**
+   * Cloudflare Turnstile secret for Phase 5 forms (plan 05-13). OPTIONAL — owner-gated.
+   * Distinct from Phase 4's `TURNSTILE_SECRET` quote-abuse binding; both may be present.
+   */
+  TURNSTILE_SECRET_KEY?: string;
 }
 
 /**
