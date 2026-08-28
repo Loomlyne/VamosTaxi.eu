@@ -1,7 +1,7 @@
 // apps/web/lib/pricing/eligibility.test.ts
 //
 // Class eligibility board proofs (D-01, D-02, D-38). Fixtures carry null
-// amounts only (D-46) — seats and bags are physical facts, not CHF.
+// amounts only (D-46) — seats and bags are physical facts, not money.
 
 import { describe, expect, it } from "vitest";
 import * as fc from "fast-check";
@@ -121,7 +121,7 @@ function input(partial: Partial<QuoteInput> = {}): QuoteInput {
     mode: "one_way",
     pax: partial.pax ?? 2,
     bags: partial.bags ?? 2,
-    display_currency: "CHF",
+    display_currency: "XXX",
     computed_at: "2026-09-04T12:00:00Z",
     legs: partial.legs ?? [
       {
