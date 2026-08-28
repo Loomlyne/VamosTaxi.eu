@@ -12,9 +12,12 @@ values
   ('c0000000-0000-0000-0000-00000000000a', 'cc-a@example.test', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now()),
   ('c0000000-0000-0000-0000-00000000000b', 'cc-b@example.test', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now());
 
-insert into public.customers (user_id, full_name, email, phone, note)
-values ('c0000000-0000-0000-0000-00000000000a', 'Customer A', 'cc-cust-a@example.test', '+41 00 000 00 01', 'Invoiced monthly'),
-       ('c0000000-0000-0000-0000-00000000000b', 'Customer B', 'cc-cust-b@example.test', '+41 00 000 00 02', 'Nothing special');
+update public.customers
+   set full_name = 'Customer A', email = 'cc-cust-a@example.test', phone = '+41 00 000 00 01', note = 'Invoiced monthly'
+ where user_id = 'c0000000-0000-0000-0000-00000000000a';
+update public.customers
+   set full_name = 'Customer B', email = 'cc-cust-b@example.test', phone = '+41 00 000 00 02', note = 'Nothing special'
+ where user_id = 'c0000000-0000-0000-0000-00000000000b';
 
 create temporary table fx as
 select (select id from public.customers where email = 'cc-cust-a@example.test') as cust_a,

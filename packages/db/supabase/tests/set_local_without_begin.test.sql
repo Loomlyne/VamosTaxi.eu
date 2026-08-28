@@ -15,8 +15,9 @@ select plan(4);
 -- Fixtures ------------------------------------------------------------------------------------
 insert into auth.users (id, email, aud, role, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values ('e0000000-0000-0000-0000-00000000000a', 'slwb-a@example.test', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now());
-insert into public.customers (user_id, full_name, email)
-values ('e0000000-0000-0000-0000-00000000000a', 'Set Local Without Begin', 'slwb-cust-a@example.test');
+update public.customers
+   set full_name = 'Set Local Without Begin', email = 'slwb-cust-a@example.test'
+ where user_id = 'e0000000-0000-0000-0000-00000000000a';
 
 -- Bind a transaction-local identity inside a savepoint. ----------------------------------------
 savepoint identity_local;

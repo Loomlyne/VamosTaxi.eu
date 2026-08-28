@@ -30,9 +30,12 @@ values
   ('c0000000-0000-0000-0000-00000000000a', 'cc-a@example.test', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now()),
   ('c0000000-0000-0000-0000-00000000000b', 'cc-b@example.test', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now());
 
-insert into public.customers (user_id, full_name, email)
-values ('c0000000-0000-0000-0000-00000000000a', 'Cross Claim A', 'cc-cust-a@example.test'),
-       ('c0000000-0000-0000-0000-00000000000b', 'Cross Claim B', 'cc-cust-b@example.test');
+update public.customers
+   set full_name = 'Cross Claim A', email = 'cc-cust-a@example.test'
+ where user_id = 'c0000000-0000-0000-0000-00000000000a';
+update public.customers
+   set full_name = 'Cross Claim B', email = 'cc-cust-b@example.test'
+ where user_id = 'c0000000-0000-0000-0000-00000000000b';
 
 -- Three bookings each, disjoint VT-YY-#### references allocated by the real
 -- public.next_booking_reference() (this file runs as `postgres`, which owns that function and

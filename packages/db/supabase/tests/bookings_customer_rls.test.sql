@@ -19,9 +19,12 @@ values
   ('b0000000-0000-0000-0000-00000000000a', 'bcr-a@example.test', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now()),
   ('b0000000-0000-0000-0000-00000000000b', 'bcr-b@example.test', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now());
 
-insert into public.customers (user_id, full_name, email)
-values ('b0000000-0000-0000-0000-00000000000a', 'Customer A', 'bcr-cust-a@example.test'),
-       ('b0000000-0000-0000-0000-00000000000b', 'Customer B', 'bcr-cust-b@example.test');
+update public.customers
+   set full_name = 'Customer A', email = 'bcr-cust-a@example.test'
+ where user_id = 'b0000000-0000-0000-0000-00000000000a';
+update public.customers
+   set full_name = 'Customer B', email = 'bcr-cust-b@example.test'
+ where user_id = 'b0000000-0000-0000-0000-00000000000b';
 
 insert into public.bookings (contact_name, contact_email, customer_id)
 select 'Booking A', 'bcr-booking-a@example.test', c.id from public.customers c where c.email = 'bcr-cust-a@example.test';

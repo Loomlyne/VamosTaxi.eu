@@ -39,8 +39,11 @@ insert into public.customers (full_name, email) values ('Append Only Other Custo
 insert into auth.users (id, email, aud, role, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values ('f0000000-0000-0000-0000-000000000001', 'ao-consent-fixture@vamostaxi.eu', 'authenticated',
         'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now());
-insert into public.customers (user_id, full_name, email)
-values ('f0000000-0000-0000-0000-000000000001', 'Append Only Consent Customer', 'ao-consent-customer@example.test');
+-- AUTH-01 trigger already inserted customers for this user_id; retarget the fixture email.
+update public.customers
+   set full_name = 'Append Only Consent Customer',
+       email = 'ao-consent-customer@example.test'
+ where user_id = 'f0000000-0000-0000-0000-000000000001';
 
 insert into public.bookings (contact_name, contact_email, customer_id)
 select 'Append Only Booking', 'ao-booking@example.test', c.id

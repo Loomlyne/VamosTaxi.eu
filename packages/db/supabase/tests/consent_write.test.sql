@@ -13,8 +13,10 @@ select plan(12);
 insert into auth.users (id, email, aud, role, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values ('c0000000-0000-0000-0000-000000000001', 'consent-fixture@vamostaxi.eu', 'authenticated',
         'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now());
-insert into public.customers (user_id, full_name, email)
-values ('c0000000-0000-0000-0000-000000000001', 'Consent Fixture Customer', 'consent-fixture-customer@example.test');
+update public.customers
+   set full_name = 'Consent Fixture Customer',
+       email = 'consent-fixture-customer@example.test'
+ where user_id = 'c0000000-0000-0000-0000-000000000001';
 
 -- (1) anon cannot INSERT into consent_log directly. -------------------------------------------
 set local role anon;
