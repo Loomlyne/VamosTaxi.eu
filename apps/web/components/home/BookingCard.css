@@ -1,0 +1,290 @@
+/* Law 01 / Law 02 */
+:root {
+  --vt-shadow-accent: none;
+}
+.vt-input--focus {
+  box-shadow: none;
+}
+
+[data-home-book] {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+[data-bookcard] {
+  padding: 12px;
+  background: var(--vt-bg-surface);
+  border-radius: var(--vt-radius-xl);
+  box-shadow: var(--vt-shadow-xl);
+  scroll-margin-top: 24px;
+  color: var(--vt-text-primary);
+}
+
+[data-fields] {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "flight"
+    "pickup"
+    "swap"
+    "dest"
+    "when"
+    "party";
+}
+
+[data-fields] > [data-f] {
+  position: relative;
+  min-inline-size: 0;
+}
+
+[data-f="pickup"] {
+  grid-area: pickup;
+}
+[data-f="swap"] {
+  grid-area: swap;
+}
+[data-f="dest"] {
+  grid-area: dest;
+}
+[data-f="when"] {
+  grid-area: when;
+}
+[data-f="party"] {
+  grid-area: party;
+}
+[data-f="flight"] {
+  grid-area: flight;
+}
+
+[data-party] {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+[data-f] .vt-input,
+[data-f] .vt-dp__field,
+[data-f] .vt-counter,
+[data-bookcard] .vt-btn--lg {
+  min-block-size: 54px;
+}
+
+[data-swap] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.vt-bc-rule {
+  flex: 1 1 auto;
+  block-size: 1px;
+  background: var(--vt-border-subtle);
+}
+
+[data-swaprot] {
+  display: inline-flex;
+}
+
+[data-bc-summary] {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  inline-size: 100%;
+  min-block-size: 60px;
+  padding-block: 8px;
+  padding-inline: 14px 8px;
+  border-radius: var(--vt-radius-field);
+  border: 1px solid var(--vt-grey-300);
+  background: var(--vt-grey-50);
+  cursor: pointer;
+  text-align: start;
+}
+
+.vt-bc-summary-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.vt-bc-summary-route {
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-body-sm);
+  font-weight: var(--vt-weight-semibold);
+  color: var(--vt-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vt-bc-summary-meta {
+  font-size: var(--vt-body-xs);
+  color: var(--vt-text-muted);
+}
+
+.vt-bc-summary-go {
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: 999px;
+  background: var(--vt-yellow);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+[data-sheetbody] {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+[data-sheetonly] {
+  display: none;
+}
+
+.vt-bc-handle {
+  inline-size: 44px;
+  block-size: 4px;
+  border-radius: 999px;
+  background: var(--vt-grey-300);
+  align-self: center;
+}
+
+.vt-bc-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-block-size: 44px;
+}
+
+.vt-bc-sr-date {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+[data-strip-head] {
+  display: flex;
+  align-items: baseline;
+  column-gap: 10px;
+  row-gap: 4px;
+  flex-wrap: wrap;
+  min-block-size: 1.2em;
+  color: var(--vt-text-inverse-muted);
+  font-size: var(--vt-body-xs);
+}
+
+.vt-bc-wide-cta {
+  margin-block-start: 10px;
+}
+
+@media (max-width: 1079px) {
+  [data-swaprot] {
+    transform: rotate(90deg);
+  }
+
+  [data-shell][data-open="0"] {
+    display: none;
+  }
+
+  [data-only-wide] {
+    display: none !important;
+  }
+
+  [data-shell][data-open="1"] {
+    position: fixed;
+    inset: 0;
+    z-index: 400;
+    background: var(--vt-bg-scrim);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  [data-shell][data-open="1"] [data-sheetbody] {
+    inline-size: 100%;
+    max-inline-size: 640px;
+    max-block-size: 92svh;
+    overflow-y: auto;
+    background: var(--vt-bg-surface);
+    border-radius: var(--vt-radius-xl) var(--vt-radius-xl) 0 0;
+    box-shadow: var(--vt-shadow-xl);
+    padding-block: 14px 22px;
+    padding-inline: 22px;
+    gap: 13px;
+  }
+
+  [data-shell][data-open="1"] [data-sheetonly="1"] {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  [data-shell][data-open="1"] [data-sheetonly="cta"] {
+    display: block;
+    position: sticky;
+    inset-block-end: 0;
+    background: var(--vt-bg-surface);
+    padding-block-start: 10px;
+  }
+}
+
+@media (min-width: 620px) {
+  [data-fields] {
+    grid-template-columns: minmax(0, 1fr) 44px minmax(0, 1fr);
+    grid-template-areas:
+      "flight flight flight"
+      "pickup swap dest"
+      "when when when"
+      "party party party";
+  }
+
+  [data-swap] {
+    padding-block-start: 28px;
+    align-items: flex-start;
+  }
+}
+
+@media (min-width: 1080px) {
+  [data-upto-wide] {
+    display: none !important;
+  }
+
+  [data-bookcard] {
+    padding-block: 16px 14px;
+    padding-inline: clamp(12px, 3vw, 18px);
+  }
+
+  [data-fields] {
+    grid-template-columns: 152px minmax(0, 1.1fr) 44px minmax(0, 1.1fr) minmax(0, 1.15fr) auto;
+    grid-template-areas: "flight pickup swap dest when party";
+  }
+
+  [data-party] {
+    grid-template-columns: repeat(2, 108px);
+  }
+
+  [data-swaprot] {
+    transform: none;
+  }
+
+  [data-sheetonly] {
+    display: none !important;
+  }
+}
+
+@media (max-width: 619px) {
+  [data-swaprot] {
+    transform: rotate(90deg);
+  }
+}

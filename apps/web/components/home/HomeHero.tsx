@@ -1,0 +1,35 @@
+import type { ReactNode } from "react";
+import Image from "next/image";
+import { getTranslations } from "next-intl/server";
+import "./HomeHero.css";
+
+export async function HomeHero({ children }: { children?: ReactNode }) {
+  const t = await getTranslations("home");
+
+  return (
+    <section data-hero="1">
+      {/* Photograph is decorative: the headline states the same thing in text. */}
+      <div className="vt-hh-photo" aria-hidden="true">
+        <Image
+          src="/brand/photography/hero-arrivals.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+        />
+      </div>
+      <div className="vt-hh-checker-wrap" aria-hidden="true">
+        <div className="vt-hh-checker" />
+      </div>
+      <div className="vt-hh-scrim" aria-hidden="true" />
+      <div data-hero-inner="1">
+        <div className="vt-hh-copy">
+          <p className="vt-hh-kicker">{t("scheduled-not-on-demand")}</p>
+          <h1>{t("one-minute-of-yours-the-rest-is-ours")}</h1>
+          <p className="vt-hh-standfirst">{t("booked-ahead-priced-up-front-driver-waiting")}</p>
+        </div>
+        <div className="vt-hh-card-slot">{children}</div>
+      </div>
+    </section>
+  );
+}
