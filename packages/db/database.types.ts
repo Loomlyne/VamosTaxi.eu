@@ -777,6 +777,8 @@ export type Database = {
           id: number
           payment_id: number
           redeemed_at: string
+          released_at: string | null
+          released_reason: string | null
         }
         Insert: {
           booking_id: string
@@ -785,6 +787,8 @@ export type Database = {
           id?: never
           payment_id: number
           redeemed_at?: string
+          released_at?: string | null
+          released_reason?: string | null
         }
         Update: {
           booking_id?: string
@@ -793,6 +797,8 @@ export type Database = {
           id?: never
           payment_id?: number
           redeemed_at?: string
+          released_at?: string | null
+          released_reason?: string | null
         }
         Relationships: [
           {
@@ -1722,6 +1728,14 @@ export type Database = {
     Functions: {
       __seed_apply: { Args: never; Returns: undefined }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      evaluate_coupon: {
+        Args: {
+          p_code: string
+          p_contact_email?: string
+          p_customer_id?: string
+        }
+        Returns: Json
+      }
       manage_booking_cancel: {
         Args: { p_leg_seq?: number; p_token_hash: string }
         Returns: {
@@ -1730,6 +1744,12 @@ export type Database = {
         }[]
       }
       next_booking_reference: { Args: never; Returns: string }
+      quote_lock_deadline: {
+        Args: { p_settings_version_id: number }
+        Returns: string
+      }
+      quote_rate_book: { Args: { p_prefer_draft?: boolean }; Returns: Json }
+      quote_settings_version: { Args: { p_as_of: string }; Returns: Json }
       record_consent: {
         Args: {
           p_analytics: boolean
