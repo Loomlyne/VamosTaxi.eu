@@ -43,15 +43,18 @@ select b.id, 2, 'return', 'Zurich HB', 'ZRH Airport', now() + interval '5 days',
 -- settings_versions read.
 insert into public.price_snapshots (
   quote_id, vehicle_class_id, rate_version_id, rate_version_is_live, settings_version_id,
-  engine_version, pax, bags, lines, policy, booking_id, expires_at
+  engine_version, pax, bags, lines, policy, booking_id, expires_at, quote_lock_expires_at
 )
 select gen_random_uuid(), vc.id, rv.id, false, sv.id, 'quote-engine@mbm-b1', 1, 0, '[]'::jsonb,
        jsonb_build_object('cancellation_tiers', sv.cancellation_tiers,
                            'free_cancel_hours', sv.free_cancel_hours,
                            'airport_waiting_minutes', sv.airport_waiting_minutes,
                            'city_waiting_minutes', sv.city_waiting_minutes,
-                           'settings_version_id', sv.id),
-       b.id, now() + interval '30 minutes'
+                           'settings_version_id', sv.id,
+                           'modification_deadline_hours', coalesce(sv.modification_deadline_hours, 24),
+                           'min_advance_minutes', coalesce(sv.min_advance_minutes, 180),
+                           'policy_doc', 'mbm'),
+       b.id, now() + interval '30 minutes', now() + interval '30 minutes'
   from public.vehicle_classes vc, public.rate_versions rv, public.settings_versions sv,
        public.bookings b
  where vc.slug = 'first' and rv.slug = 'mbm-rv' and sv.slug = 'mbm-policy'

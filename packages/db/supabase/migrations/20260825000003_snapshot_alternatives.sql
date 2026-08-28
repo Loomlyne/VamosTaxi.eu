@@ -117,6 +117,11 @@ declare
   v_sum       public.rappen := 0;
   v_any_amt   pg_catalog.bool := false;
 begin
+  -- Let price_snapshots_lines_array CHECK refuse non-arrays (BEFORE triggers run first).
+  if pg_catalog.jsonb_typeof(new.lines) is distinct from 'array' then
+    return new;
+  end if;
+
   for v_line in
     select value from pg_catalog.jsonb_array_elements(new.lines)
   loop

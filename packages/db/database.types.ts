@@ -1085,9 +1085,11 @@ export type Database = {
           pax: number
           policy: Json
           quote_id: string
+          quote_lock_expires_at: string
           rate_version_id: number
           rate_version_is_live: boolean
           settings_version_id: number
+          shown_alternatives: Json
           source: string
           subtotal_rappen: number | null
           supersedes_id: number | null
@@ -1115,9 +1117,11 @@ export type Database = {
           pax: number
           policy: Json
           quote_id: string
+          quote_lock_expires_at: string
           rate_version_id: number
           rate_version_is_live: boolean
           settings_version_id: number
+          shown_alternatives?: Json
           source?: string
           subtotal_rappen?: number | null
           supersedes_id?: number | null
@@ -1145,9 +1149,11 @@ export type Database = {
           pax?: number
           policy?: Json
           quote_id?: string
+          quote_lock_expires_at?: string
           rate_version_id?: number
           rate_version_is_live?: boolean
           settings_version_id?: number
+          shown_alternatives?: Json
           source?: string
           subtotal_rappen?: number | null
           supersedes_id?: number | null
@@ -1415,6 +1421,7 @@ export type Database = {
           policy_doc_version: string | null
           quote_lock_minutes: number | null
           round_trip_discount_percent: number | null
+          service_area_geojson: Json | null
           slug: string
         }
         Insert: {
@@ -1437,6 +1444,7 @@ export type Database = {
           policy_doc_version?: string | null
           quote_lock_minutes?: number | null
           round_trip_discount_percent?: number | null
+          service_area_geojson?: Json | null
           slug: string
         }
         Update: {
@@ -1459,6 +1467,7 @@ export type Database = {
           policy_doc_version?: string | null
           quote_lock_minutes?: number | null
           round_trip_discount_percent?: number | null
+          service_area_geojson?: Json | null
           slug?: string
         }
         Relationships: []
