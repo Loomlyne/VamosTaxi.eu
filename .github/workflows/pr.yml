@@ -72,6 +72,9 @@ jobs:
       - name: i18n key-coverage check (D-17)
         run: pnpm i18n:check
 
+      - name: Law 04 invented-numbers gate (D-40, D-46)
+        run: pnpm check:numbers
+
       - name: Build
         run: pnpm build
 
