@@ -58,8 +58,8 @@ create policy partner_applications_staff_select
 
 revoke all on table public.contact_submissions from public, vamos_public, vamos_edge, vamos_guest, anon;
 revoke all on table public.partner_applications from public, vamos_public, vamos_edge, vamos_guest, anon;
-grant select on table public.contact_submissions to vamos_staff, authenticated;
-grant select on table public.partner_applications to vamos_staff, authenticated;
+grant select on table public.contact_submissions to vamos_staff;
+grant select on table public.partner_applications to vamos_staff;
 
 create or replace function public.submit_contact_message(
   p_idempotency_key text,

@@ -736,6 +736,45 @@ export type Database = {
           },
         ]
       }
+      contact_submissions: {
+        Row: {
+          booking_ref: string
+          created_at: string
+          email: string
+          handled_at: string | null
+          id: string
+          idempotency_key: string
+          locale: string
+          message: string
+          name: string
+          phone: string
+        }
+        Insert: {
+          booking_ref?: string
+          created_at?: string
+          email: string
+          handled_at?: string | null
+          id?: string
+          idempotency_key: string
+          locale?: string
+          message: string
+          name: string
+          phone?: string
+        }
+        Update: {
+          booking_ref?: string
+          created_at?: string
+          email?: string
+          handled_at?: string | null
+          id?: string
+          idempotency_key?: string
+          locale?: string
+          message?: string
+          name?: string
+          phone?: string
+        }
+        Relationships: []
+      }
       content_strings: {
         Row: {
           ar: string | null
@@ -1033,6 +1072,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      partner_applications: {
+        Row: {
+          accepted_privacy: boolean
+          accepted_terms: boolean
+          city: string
+          created_at: string
+          email: string
+          handled_at: string | null
+          id: string
+          idempotency_key: string
+          locale: string
+          name: string
+          permit: string
+          phone: string
+          vehicle: string
+        }
+        Insert: {
+          accepted_privacy: boolean
+          accepted_terms: boolean
+          city?: string
+          created_at?: string
+          email: string
+          handled_at?: string | null
+          id?: string
+          idempotency_key: string
+          locale?: string
+          name: string
+          permit?: string
+          phone?: string
+          vehicle?: string
+        }
+        Update: {
+          accepted_privacy?: boolean
+          accepted_terms?: boolean
+          city?: string
+          created_at?: string
+          email?: string
+          handled_at?: string | null
+          id?: string
+          idempotency_key?: string
+          locale?: string
+          name?: string
+          permit?: string
+          phone?: string
+          vehicle?: string
+        }
+        Relationships: []
       }
       price_snapshot_legs: {
         Row: {
@@ -1798,6 +1885,37 @@ export type Database = {
           p_user_agent?: string
         }
         Returns: undefined
+      }
+      submit_contact_message: {
+        Args: {
+          p_booking_ref: string
+          p_email: string
+          p_idempotency_key: string
+          p_locale: string
+          p_message: string
+          p_name: string
+          p_phone: string
+        }
+        Returns: {
+          created: boolean
+          id: string
+        }[]
+      }
+      submit_partner_application: {
+        Args: {
+          p_city: string
+          p_email: string
+          p_idempotency_key: string
+          p_locale: string
+          p_name: string
+          p_permit: string
+          p_phone: string
+          p_vehicle: string
+        }
+        Returns: {
+          created: boolean
+          id: string
+        }[]
       }
     }
     Enums: {
