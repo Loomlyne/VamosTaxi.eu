@@ -187,16 +187,23 @@ describe.skipIf(!process.env.PROBE_BASE_URL)("negative controls (D-18 mutant/haz
     const nonce = captured.nonce as string;
     expect(nonce, "waituntil_captured did not return a drain nonce").toBeTruthy();
 
-    // While the transaction is held (the probe's own ~250ms release delay), issue a request as
-    // the OTHER customer -- the concurrent probe most likely to observe whatever the held
-    // transaction's origin connection is doing.
-    const otherDuringHold = await fetchProbe({ impl: "correct", kind: "customer" }, customer[1].accessToken);
+    // While the transaction is held (the probe's own ~250ms release delay), issue several
+    // requests as the OTHER customer — a 5-origin probe pool makes a single concurrent
+    // request miss the held backend most of the time; the hazard is still "same pid /
+    // foreign row / query-after-COMMIT", just sampled denser.
+    const othersDuringHold = await Promise.all(
+      Array.from({ length: 16 }, () =>
+        fetchProbe({ impl: "correct", kind: "customer" }, customer[1].accessToken),
+      ),
+    );
 
     const drained = await drainProbe(nonce);
     const drainedRows = (drained.rows as Array<{ reference: string }> | undefined) ?? [];
     const foreignRow = drainedRows.some((row) => customer[1].references.includes(row.reference));
     const queryAfterCommitAnomaly = drained.sqlstate !== undefined && drained.sqlstate !== null;
-    const heldOrigin = typeof drained.pid === "number" && drained.pid === otherDuringHold.pid;
+    const heldOrigin = othersDuringHold.some(
+      (other) => typeof drained.pid === "number" && drained.pid === other.pid,
+    );
 
     expect(
       { foreignRow, queryAfterCommitAnomaly, heldOrigin },

@@ -102,9 +102,9 @@ export interface DriveResult {
  * independently-typed copy of the defaults.
  */
 export const ITERATION_DEFAULTS = {
-  requests: Number(process.env.PROBE_REQUESTS ?? 400),
-  concurrency: Number(process.env.PROBE_CONCURRENCY ?? 32),
-  minAdjacency: Number(process.env.PROBE_MIN_ADJACENCY ?? 200),
+  requests: Number(process.env.PROBE_REQUESTS || 400),
+  concurrency: Number(process.env.PROBE_CONCURRENCY || 32),
+  minAdjacency: Number(process.env.PROBE_MIN_ADJACENCY || 200),
 };
 
 /**
@@ -175,13 +175,37 @@ export async function drive(opts: DriveOptions): Promise<DriveResult> {
           "x-vamos-probe": opts.secret,
           authorization: `Bearer ${identity.accessToken}`,
         },
+        signal: AbortSignal.timeout(20_000),
       });
-      const body = (await res.json()) as Record<string, unknown>;
+      const text = await res.text();
+      let body: Record<string, unknown> = {};
+      if (text) {
+        try {
+          body = JSON.parse(text) as Record<string, unknown>;
+        } catch {
+          body = { sqlstate: "PARSE", note: `non-json status ${res.status}` };
+        }
+      } else {
+        body = { sqlstate: "EMPTY", note: `empty body status ${res.status}` };
+      }
       results[index] = {
         ...(body as Omit<ProbeResult, "customer" | "cfRay">),
         customer: label,
         cfRay: res.headers.get("cf-ray") ?? undefined,
+        pid: typeof body.pid === "number" && Number.isInteger(body.pid) ? (body.pid as number) : -1,
       } as ProbeResult;
+    } catch (err) {
+      results[index] = {
+        impl: opts.impl,
+        customer: label,
+        userAtEntry: "UNKNOWN",
+        claimsAtEntry: "UNKNOWN",
+        guestAtEntry: "UNKNOWN",
+        pid: -1,
+        t0: new Date(0).toISOString(),
+        sqlstate: "FETCH",
+        note: err instanceof Error ? err.name : "fetch_failed",
+      };
     } finally {
       inFlight -= 1;
     }

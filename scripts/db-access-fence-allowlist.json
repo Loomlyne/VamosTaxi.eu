@@ -33,10 +33,11 @@
     "packages/db/test/local/connection-reuse.test.ts"
   ],
 
-  "_allowed_session_set_comment": "Files permitted a `set_config(..., false)` call or a bare `SET ROLE`/`SET SESSION` (interfaces ban #6). apps/isolation-probe/src/index.ts's `bindIdentity()` helper deliberately reproduces the session-scoped (non-transaction-local) SET for NC1/NC2/`session` (D-17); connection-reuse.test.ts's one occurrence is the same negative-control shape reproduced locally. Neither is application code -- both are the negative-control constructions D-18 requires to exist and to be provably able to fail.",
+  "_allowed_session_set_comment": "Files permitted a `set_config(..., false)` call or a bare `SET ROLE`/`SET SESSION` (interfaces ban #6). apps/isolation-probe/src/index.ts's `bindIdentity()` helper deliberately reproduces the session-scoped (non-transaction-local) SET for NC1/NC2/`session` (D-17); connection-reuse.test.ts's one occurrence is the same negative-control shape reproduced locally. packages/db/src/identity.ts's `resetPooledSession` is the D-01 checkout sanitizer (Hyperdrive RESET is not trusted) -- session-scoped clears of leftover identity GUCs, not a request identity bind.",
   "allowed_session_set": [
     "apps/isolation-probe/src/index.ts",
-    "packages/db/test/local/connection-reuse.test.ts"
+    "packages/db/test/local/connection-reuse.test.ts",
+    "packages/db/src/identity.ts"
   ],
 
   "_force_dynamic_exempt_comment": "D-06's named allow-list for a file that imports an identity wrapper (or `publicSql`) without carrying `force-dynamic` itself or being a Route Handler -- reserved for a future statically-rendered `publicSql` content page that is deliberately exempted from the dynamic-rendering requirement because it never reads a live cookie/JWT. Empty today: apps/web/app/api/dev/db-smoke/route.ts is the only file in this repo importing an identity wrapper, and it is a Route Handler carrying `export const dynamic = \"force-dynamic\"` itself, so it needs no entry here. Phase 5 adds entries one at a time, by name, never a wildcard or a whole-directory exemption.",

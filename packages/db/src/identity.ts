@@ -121,6 +121,21 @@ function client(connectionString: string): postgres.Sql {
 }
 
 /**
+ * D-01: Hyperdrive origin checkout is not trusted to RESET. Restore the login role and
+ * clear identity GUCs at session scope so a leftover `SET ROLE` cannot serve the next
+ * request. Not used when `opts.probe` must observe residue (`ENTRY_PROBE`), and not used
+ * on a test-pinned `opts.client`.
+ */
+export async function resetPooledSession(sql: postgres.Sql): Promise<void> {
+  // One round trip: restore the login role and clear identity GUCs. Equivalent to
+  // `RESET ROLE` plus the two session-scoped clears (session_user is the Hyperdrive
+  // login, vamos_edge / vamos_public).
+  await sql.unsafe(
+    "select set_config('role', session_user, false), set_config('request.jwt.claims', '', false), set_config('request.vamos.manage_token_hash', '', false)",
+  );
+}
+
+/**
  * The single door into identity-scoped data. Opens one explicit transaction, drops to the
  * least-privileged role for `kind`, binds the identity GUCs the RLS policies read, runs `fn`,
  * commits. `fn` must return data — the return type below resolves to `never` when it would
@@ -147,6 +162,11 @@ export async function withIdentity<K extends IdentityKind, T>(
   opts?: { probe?: boolean; client?: postgres.Sql; onProbe?: (row: EntryProbeRow) => void },
 ): Promise<T> {
   const sql = opts?.client ?? client(connectionString);
+  // Production checkout: do not rely on Hyperdrive RESET (D-01). The probe path skips
+  // this so ENTRY_PROBE can still observe residue from a previous pooled backend.
+  if (!opts?.client && !opts?.probe) {
+    await resetPooledSession(sql);
+  }
 
   return sql.begin(async (tx) => {
     if (opts?.probe) {
