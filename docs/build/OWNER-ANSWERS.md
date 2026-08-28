@@ -121,3 +121,36 @@ required · whether phone, email or both are mandatory on the form.
 
 **Site-wide**
 Effective date to print on the legal pages · Qurova webfont licence (blocker 5).
+
+---
+
+## Phase 4 quote engine — recorded 2026-08-28
+
+Policy numbers live on **rows**, never in TypeScript. Cite ADR-014 §5.
+
+### Answered
+
+| Decision | Value | Row |
+|---|---|---|
+| D-40 round-trip discount (U16) | 10 % | `settings_versions.round_trip_discount_percent` |
+| D-41 `min_advance_minutes` | 180 | `settings_versions.min_advance_minutes` |
+| D-44 manage-link validity (U5) | 30 days after last leg | `settings_versions.manage_link_validity_days` |
+| D-42 waiting | 60 airport / 15 city | `settings_versions.airport_waiting_minutes` / `city_waiting_minutes` |
+| D-43 quote lock / payment window | 30 / 30 minutes | `settings_versions.quote_lock_minutes` / `checkout_window_minutes` |
+| D-39 night window | 20:00–06:00 Europe/Zurich | `settings_versions.night_window_start` / `night_window_end` / `night_window_tz` |
+
+### Still open
+
+| Item | Blocks |
+|---|---|
+| D-46 CHF matrix | launch flip (`draft → live`) |
+| U38 five surcharge predicates | `draft → live` publish gate |
+| U33 Mapbox Order | named legal risk accepted meanwhile; no response cache |
+| U37 Mapbox budget | D-54 unit sentinel stands in until a real ceiling |
+| U36 Cloudflare zone plan | Layer 1 WAF rule slot (Free vs Pro) |
+| U42 `checkout_abandon_release_minutes` (D-55) | release sweep must not run rather than invent a wait |
+| U41 extra-stop detour rate | matrix question |
+| U50 hourly-hire model | out of V1 |
+| U48 retention of unbound `ops_phone` snapshots | Phase 8/ops |
+
+U20 (`idempotency_key` lifetime) is **Phase 7**. Dispatch exclusion duration is **Phase 8**.

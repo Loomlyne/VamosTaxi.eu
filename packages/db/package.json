@@ -28,7 +28,8 @@
     "test:local": "vitest run test/local",
     "test:deployed": "vitest run test/deployed",
     "mutation-gate": "node scripts/mutation-gate.mjs",
-    "local-roles": "node scripts/local-role-passwords.mjs"
+    "local-roles": "node scripts/local-role-passwords.mjs",
+    "probe:now": "node scripts/probe-now-frozen.mjs"
   },
   "dependencies": {
     "jose": "6.2.10",
