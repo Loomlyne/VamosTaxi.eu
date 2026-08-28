@@ -12,6 +12,7 @@
     "lint": "eslint .",
     "lint:css": "pnpm --filter web run lint:css",
     "i18n:check": "node scripts/check-i18n-coverage.mjs",
+    "check:numbers": "node scripts/check-no-invented-numbers.mjs",
     "test:unit": "pnpm -r --if-present run test",
     "test:visual": "pnpm --filter web exec playwright test",
     "check:public-env": "node scripts/check-next-public-allowlist.mjs",
@@ -28,7 +29,8 @@
     "db:link": "pnpm --filter @vamos/db run link",
     "db:local-roles": "pnpm --filter @vamos/db run local-roles",
     "db:test:local": "pnpm --filter @vamos/db run test:local",
-    "db:mutation-gate": "pnpm --filter @vamos/db run mutation-gate"
+    "db:mutation-gate": "pnpm --filter @vamos/db run mutation-gate",
+    "db:probe:now": "pnpm --filter @vamos/db run probe:now"
   },
   "engines": {
     "node": ">=22"
