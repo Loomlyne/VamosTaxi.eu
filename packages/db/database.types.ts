@@ -1310,18 +1310,24 @@ export type Database = {
           iata: string | null
           id: string
           slug: string
+          tags: string[]
+          zone_type: string
         }
         Insert: {
           active?: boolean
           iata?: string | null
           id?: string
           slug: string
+          tags?: string[]
+          zone_type?: string
         }
         Update: {
           active?: boolean
           iata?: string | null
           id?: string
           slug?: string
+          tags?: string[]
+          zone_type?: string
         }
         Relationships: []
       }
@@ -1547,6 +1553,8 @@ export type Database = {
           id: number
           kind: Database["public"]["Enums"]["surcharge_kind"]
           percent: number | null
+          predicate: Json
+          quantity_source: string | null
           rate_version_id: number
         }
         Insert: {
@@ -1557,6 +1565,8 @@ export type Database = {
           id?: never
           kind?: Database["public"]["Enums"]["surcharge_kind"]
           percent?: number | null
+          predicate?: Json
+          quantity_source?: string | null
           rate_version_id: number
         }
         Update: {
@@ -1567,6 +1577,8 @@ export type Database = {
           id?: never
           kind?: Database["public"]["Enums"]["surcharge_kind"]
           percent?: number | null
+          predicate?: Json
+          quantity_source?: string | null
           rate_version_id?: number
         }
         Relationships: [

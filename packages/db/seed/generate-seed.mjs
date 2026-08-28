@@ -95,6 +95,14 @@ function qint(value) {
   if (!Number.isInteger(value)) throw new Error(`Expected an integer, got ${value}`);
   return String(value);
 }
+// D-39 / ADR-014 §5: single source for night window — settings_versions columns AND the
+// night surcharge predicate must agree; two literals that can drift is the hole plan 04-02
+// closes in predicates.ts. Never retype these strings elsewhere in this file.
+const NIGHT_WINDOW = {
+  start: "20:00",
+  end: "06:00",
+  tz: "Europe/Zurich",
+};
 function qjsonb(value) {
   let s = JSON.stringify(value);
   if (s.includes("$vt$")) throw new Error("jsonb value contains the $vt$ delimiter");
@@ -199,23 +207,32 @@ function emitVehicleClasses() {
 }
 
 function emitServiceZones() {
+  // D-10: zone_type answers pickup_zone_type; tags answers dest_zone_tag. Both are set on
+  // alpine zones deliberately — a future non-ski zone that still carries the ski surcharge
+  // would carry the tag without zone_type='ski'.
   const zones = [
-    ["zrh-airport", "ZRH"],
-    ["gva-airport", "GVA"],
-    ["zurich-city", null],
-    ["dietikon", null],
-    ["zermatt", null],
-    ["st-moritz", null],
-    ["chamonix", null],
-    ["verbier", null],
+    ["zrh-airport", "ZRH", "airport", []],
+    ["gva-airport", "GVA", "airport", []],
+    ["zurich-city", null, "city", []],
+    ["dietikon", null, "city", []],
+    ["zermatt", null, "ski", ["ski"]],
+    ["st-moritz", null, "ski", ["ski"]],
+    ["chamonix", null, "ski", ["ski"]],
+    ["verbier", null, "ski", ["ski"]],
   ];
-  const rows = zones.map(([slug, iata]) => [q(slug), q(iata), qb(true)]);
+  const rows = zones.map(([slug, iata, zoneType, tags]) => [
+    q(slug),
+    q(iata),
+    qb(true),
+    q(zoneType),
+    tags.length === 0 ? `'{}'::text[]` : `'${"{"}${tags.join(",")}${"}"}'::text[]`,
+  ]);
   return emitInsert({
     table: "service_zones",
-    columns: ["slug", "iata", "active"],
+    columns: ["slug", "iata", "active", "zone_type", "tags"],
     rows,
     conflictCols: ["slug"],
-    updateCols: ["iata", "active"],
+    updateCols: ["iata", "active", "zone_type", "tags"],
   });
 }
 
@@ -304,9 +321,9 @@ function emitSettingsVersions() {
     qint(15), // city_waiting_minutes
     qint(30), // manage_link_validity_days
     qint(10), // round_trip_discount_percent
-    q("20:00"), // night_window_start
-    q("06:00"), // night_window_end
-    q("Europe/Zurich"), // night_window_tz
+    q(NIGHT_WINDOW.start), // night_window_start — shared with night surcharge predicate (D-39)
+    q(NIGHT_WINDOW.end), // night_window_end
+    q(NIGHT_WINDOW.tz), // night_window_tz
     qint(30), // quote_lock_minutes
     qint(30), // checkout_window_minutes
     qjsonb(cancellationTiers),
@@ -386,33 +403,60 @@ function emitDistanceRates() {
 
 function emitSurcharges() {
   const rateVersionSub = `(select id from public.rate_versions where slug = ${q("seed-placeholder")})`;
-  // Codes and kinds per 02-09-PLAN.md's <interfaces> table. Labels/rules live in
+  // Ten codes (D-11 oversized_luggage, D-12 return_trip). Labels/rules live in
   // content_strings (price.surcharge.<code>.label/.rule), never stored prose here (D-08).
+  // amount_rappen/percent stay null on every row including the two new ones (D-46).
+  //
+  // U38: airport_pickup, waiting_airport, waiting_city, meet_greet, ski_rack keep
+  // predicate = {} — the airport-zone and ski-tag rules the owner has not confirmed.
+  // The publish gate refuses draft→live because of them; that is the intended state.
+  // A guessed predicate here would be exactly the unversioned rule D-09 exists to prevent.
+  const nightPredicate = {
+    kind: "local_time_window",
+    tz: NIGHT_WINDOW.tz,
+    from: NIGHT_WINDOW.start,
+    to: NIGHT_WINDOW.end,
+  };
   const surcharges = [
-    ["airport_pickup", "amount"],
-    ["night", "percent"],
-    ["waiting_airport", "amount"],
-    ["waiting_city", "amount"],
-    ["extra_stop", "amount"],
-    ["child_seat", "amount"],
-    ["meet_greet", "included"],
-    ["ski_rack", "amount"],
+    // code, kind, applies_to, quantity_source, predicate
+    ["airport_pickup", "amount", "leg", null, {}], // U38 — owner must confirm airport-zone rule
+    ["night", "percent", "leg", null, nightPredicate], // D-39: 20:00–06:00 Europe/Zurich from NIGHT_WINDOW
+    ["waiting_airport", "amount", "leg", null, {}], // U38
+    ["waiting_city", "amount", "leg", null, {}], // U38
+    ["extra_stop", "amount", "leg", "extra_stops", { kind: "quantity" }],
+    ["child_seat", "amount", "leg", "child_seats", { kind: "quantity" }],
+    ["meet_greet", "included", "leg", null, {}], // U38 — included still needs a rule
+    ["ski_rack", "amount", "leg", null, {}], // U38
+    ["oversized_luggage", "amount", "leg", "oversize_bags", { kind: "quantity" }], // D-11 / QUOTE-11
+    ["return_trip", "percent", "booking", null, { kind: "always" }], // D-12 — percent lives on settings_versions.round_trip_discount_percent, not here
   ];
-  const rows = surcharges.map(([code, kind]) => [
+  const rows = surcharges.map(([code, kind, appliesTo, quantitySource, predicate]) => [
     rateVersionSub,
     q(code),
     q(kind),
-    qNullOnly(null), // amount_rappen
-    qNullOnly(null), // percent
-    q("leg"), // applies_to — no booking-level surcharge in V1
+    qNullOnly(null), // amount_rappen — D-46
+    qNullOnly(null), // percent — D-46; return_trip's 10% is on settings_versions
+    q(appliesTo),
     qb(true), // active
+    qjsonb(predicate),
+    quantitySource === null ? "null" : q(quantitySource),
   ]);
   return emitInsert({
     table: "surcharges",
-    columns: ["rate_version_id", "code", "kind", "amount_rappen", "percent", "applies_to", "active"],
+    columns: [
+      "rate_version_id",
+      "code",
+      "kind",
+      "amount_rappen",
+      "percent",
+      "applies_to",
+      "active",
+      "predicate",
+      "quantity_source",
+    ],
     rows,
     conflictCols: ["rate_version_id", "code"],
-    updateCols: ["kind", "amount_rappen", "percent", "applies_to", "active"],
+    updateCols: ["kind", "amount_rappen", "percent", "applies_to", "active", "predicate", "quantity_source"],
   });
 }
 
@@ -561,7 +605,7 @@ function main() {
     settings_versions: 1,
     rate_versions: 1,
     distance_rates: 3,
-    surcharges: 8,
+    surcharges: 10,
     content_strings: contentRows.length,
     reviews: reviewRows.length,
   };
