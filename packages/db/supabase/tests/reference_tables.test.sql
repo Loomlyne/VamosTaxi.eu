@@ -6,7 +6,7 @@
 -- tolerant vehicle_classes CHECK, the D-19 erasure guard, and the D-22 content_strings $meta
 -- facts.
 begin;
-select plan(40);
+select plan(41);
 
 -- DATA-01: every reference table this plan and its predecessors create.
 select has_table('public', 'settings', 'public.settings exists');
@@ -112,6 +112,7 @@ select has_column('public', 'settings_versions', 'service_area_geojson', 'settin
 select has_column('public', 'coupon_redemptions', 'released_at', 'coupon_redemptions has released_at (D-31)');
 select has_column('public', 'coupon_redemptions', 'released_reason', 'coupon_redemptions has released_reason (D-31)');
 select has_function('public', 'evaluate_coupon', 'evaluate_coupon exists (D-30)');
+select has_function('public', 'create_quote_snapshot', 'create_quote_snapshot exists (D-44a)');
 
 select * from finish();
 rollback;

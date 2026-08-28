@@ -1727,6 +1727,34 @@ export type Database = {
     }
     Functions: {
       __seed_apply: { Args: never; Returns: undefined }
+      create_quote_snapshot: {
+        Args: {
+          p_bags: number
+          p_booking_id?: string
+          p_coupon_code?: string
+          p_coupon_id?: number
+          p_discount_rappen?: unknown
+          p_display_currency?: Database["public"]["Enums"]["display_currency"]
+          p_distance_km?: number
+          p_duration_min?: number
+          p_engine_version: string
+          p_legs: Json
+          p_lines: Json
+          p_lock_exp: string
+          p_pax: number
+          p_policy: Json
+          p_quote_id: string
+          p_rate_version_id: number
+          p_settings_version_id: number
+          p_shown_alternatives: Json
+          p_source?: string
+          p_subtotal_rappen?: unknown
+          p_surcharges_rappen?: unknown
+          p_total_rappen?: unknown
+          p_vehicle_class_id: string
+        }
+        Returns: number
+      }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
       evaluate_coupon: {
         Args: {
