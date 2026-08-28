@@ -1,10 +1,7 @@
 # @vamos/emails
 
-Empty scaffold created in Phase 1 (D-01) so later email work lands in a package that
-already exists on the workspace graph.
+Auth transactional renderers for Vamos Taxi. Four languages in the same pass.
 
-**Filled by:** Phase 5 (booking confirmation, payment receipt) and Phase 7 (checkout/payment
-lifecycle emails). Templates are React/JSX, sent via Resend, and ship in all four
-languages (English, German, French, Arabic) per `CLAUDE.md`'s four-languages-same-pass rule.
+**No React Email toolchain in Phase 5.** `renderAuthEmail(type, locale, data)` is escaped template strings plus a table layout. Phase 7 can re-implement that function without changing callers.
 
-Nothing in this package is implemented yet — do not import from it until Phase 5 lands.
+Shared copy lives in `apps/web/i18n/messages/{en,de,fr,ar}.json` (`auth.email-*` keys). Do not duplicate strings here.
