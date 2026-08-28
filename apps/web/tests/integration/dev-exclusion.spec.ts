@@ -82,7 +82,7 @@ test.describe("Dev gallery production exclusion @dev-exclusion", () => {
     });
   });
 
-  test("a genuine production deploy (no DEPLOY_ENV) returns not-found for the gallery, with the noindex header still present", async ({}, testInfo) => {
+  test("a genuine production deploy (no DEPLOY_ENV) returns not-found for /dev/components and /dev/quote, with the noindex header still present", async ({}, testInfo) => {
     testInfo.setTimeout(60_000);
     const port = 4200 + testInfo.workerIndex;
     const baseURL = `http://localhost:${port}`;
@@ -102,12 +102,15 @@ test.describe("Dev gallery production exclusion @dev-exclusion", () => {
       const res = await fetch(`${baseURL}/dev/components/core`);
       expect(res.status).toBe(404);
       expect(res.headers.get("x-robots-tag")).toMatch(/noindex/i);
+      const quoteRes = await fetch(`${baseURL}/dev/quote`);
+      expect(quoteRes.status).toBe(404);
+      expect(quoteRes.headers.get("x-robots-tag")).toMatch(/noindex/i);
     } finally {
       killServer(server);
     }
   });
 
-  test("staging (DEPLOY_ENV=staging) resolves the gallery normally, with the noindex header present", async ({}, testInfo) => {
+  test("staging (DEPLOY_ENV=staging) resolves the gallery and /dev/quote normally, with the noindex header present", async ({}, testInfo) => {
     testInfo.setTimeout(60_000);
     const port = 4300 + testInfo.workerIndex;
     const baseURL = `http://localhost:${port}`;
@@ -127,6 +130,12 @@ test.describe("Dev gallery production exclusion @dev-exclusion", () => {
         expect(res.status, `category "${category}" should resolve on staging`).toBe(200);
         expect(res.headers.get("x-robots-tag")).toMatch(/noindex/i);
       }
+      const quoteRes = await fetch(`${baseURL}/dev/quote`);
+      expect(quoteRes.status, "/dev/quote should resolve on staging").toBe(200);
+      expect(quoteRes.headers.get("x-robots-tag")).toMatch(/noindex/i);
+      const quoteDeRes = await fetch(`${baseURL}/de/dev/quote`);
+      expect(quoteDeRes.status).toBe(200);
+      expect(quoteDeRes.headers.get("x-robots-tag")).toMatch(/noindex/i);
       const indexRes = await fetch(`${baseURL}/dev/components`);
       expect(indexRes.status).toBe(200);
       expect(indexRes.headers.get("x-robots-tag")).toMatch(/noindex/i);

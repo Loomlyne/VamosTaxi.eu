@@ -321,11 +321,13 @@ function Countdown({ remainingS }: { remainingS: number }) {
 }
 
 export function QuoteFlowGallery() {
+  const locale = useLocale();
   const label = useLabel();
   const selected = eligibleBoard.classes[0]!;
+  const dir = locale === "ar" ? "rtl" : "ltr";
 
   return (
-    <main data-quote-gallery style={{ padding: "32px", fontFamily: "var(--vt-font-body)" }}>
+    <main data-quote-gallery dir={dir} style={{ padding: "32px", fontFamily: "var(--vt-font-body)" }}>
       <h1 dir="ltr">Quote flow contract</h1>
       <p dir="ltr" style={{ color: "var(--vt-text-secondary)", maxWidth: "640px" }}>
         Every state is reached by feeding a fixture through Phase 1&apos;s ported
