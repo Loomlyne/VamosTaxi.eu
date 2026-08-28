@@ -119,9 +119,9 @@ test("PriceSummary empty, note and error produce three DIFFERENT baselines @comp
     note.screenshot(),
     error.screenshot(),
   ]);
-  expect(emptyBuf.equals(noteBuf)).toBe(false);
-  expect(noteBuf.equals(errorBuf)).toBe(false);
-  expect(emptyBuf.equals(errorBuf)).toBe(false);
+  expect(Buffer.compare(emptyBuf, noteBuf) !== 0).toBe(true);
+  expect(Buffer.compare(noteBuf, errorBuf) !== 0).toBe(true);
+  expect(Buffer.compare(emptyBuf, errorBuf) !== 0).toBe(true);
 });
 
 test("countdown below LOCK_DANGER_THRESHOLD_S differs by colour and border only — no coloured box-shadow @component", async ({
