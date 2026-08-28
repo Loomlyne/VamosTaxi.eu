@@ -82,4 +82,111 @@ interface CloudflareEnv {
    * under `env.production`, which is exactly what keeps the header off production.
    */
   DEPLOY_ENV?: string;
+
+  // ── Phase 4 quote / pricing bindings (plan 04-07 owns the full surface) ──
+
+  /**
+   * HMAC secret for the QUOTE-04 lock token (`wrangler secret put QUOTE_LOCK_SECRET`).
+   * REQUIRED — a missing secret must be a boot failure, not a silently unsigned token.
+   * First consumer: plan 04-07 `lib/quote/lock.ts` (mintLock / verifyLock).
+   * Never appears in wrangler.jsonc `vars`.
+   */
+  QUOTE_LOCK_SECRET: string;
+
+  /**
+   * Previous lock secret during a rotation window only (D-28).
+   * OPTIONAL — absence is the normal state. Present only for one lock TTL after
+   * rotation so in-flight checkouts dual-verify. First consumer: plan 04-07 verifyLock.
+   * Never appears in wrangler.jsonc `vars`.
+   */
+  QUOTE_LOCK_SECRET_PREVIOUS?: string;
+
+  /**
+   * HMAC secret for the QUOTE-09 `vamos_qs` visitor cookie (`wrangler secret put VAMOS_QS_SECRET`).
+   * REQUIRED. A DIFFERENT value from QUOTE_LOCK_SECRET — one secret must never sign two
+   * token kinds. First consumer: plan 04-07 `lib/abuse/vamos-qs.ts`.
+   * Never appears in wrangler.jsonc `vars`.
+   */
+  VAMOS_QS_SECRET: string;
+
+  /**
+   * Mapbox access token (D-47 owner-gated). OPTIONAL — feature degrades when absent
+   * rather than blocking Worker boot before the owner has an account.
+   * First consumer: plan 04-10 `/api/geo/*` and quote Directions.
+   * Never appears in wrangler.jsonc `vars`.
+   */
+  MAPBOX_TOKEN?: string;
+
+  /**
+   * Cloudflare Turnstile siteverify secret (D-47 owner-gated). OPTIONAL — degrades
+   * rather than blocks boot. First consumer: plan 04-13 Turnstile gate.
+   * Never appears in wrangler.jsonc `vars`.
+   */
+  TURNSTILE_SECRET?: string;
+
+  /**
+   * AeroDataBox (or successor) flight API key (D-47 / ADR-014 §4 deferred). OPTIONAL —
+   * may never arrive at all. First consumer: plan 04-12 `/api/flight`.
+   * Never appears in wrangler.jsonc `vars`.
+   */
+  FLIGHT_API_KEY?: string;
+
+  /**
+   * Dedicated abuse / daily-breaker KV namespace (D-37) — never GEO_CACHE.
+   * TTL semantics differ; mixing a daily counter with a cache is how one evicts the other.
+   * REQUIRED. First consumer: plan 04-13 `quote:mapbox-budget:YYYY-MM-DD` breaker.
+   * Binding declared in wrangler.jsonc `kv_namespaces` (both envs); real ids TODO(04-13).
+   */
+  QUOTE_ABUSE: KVNamespace;
+
+  /**
+   * Workers Analytics Engine dataset for quote abuse / Mapbox trip metrics.
+   * REQUIRED. wrangler.jsonc `analytics_engine_datasets` → dataset `vamos_quote_abuse`.
+   * First consumer: plan 04-13.
+   */
+  QUOTE_ABUSE_METRICS: AnalyticsEngineDataset;
+
+  /**
+   * Rate-limit binding for the verified-cookie 8/60 bucket (D-36 layer 2a).
+   * REQUIRED. Limit is fixed per binding — see QUOTE_RATE_LIMITER_BARE for the bare-IP half.
+   * First consumer: plan 04-13.
+   */
+  QUOTE_RATE_LIMITER: RateLimit;
+
+  /**
+   * Rate-limit binding for the bare-IP / unverifiable-cookie 4/60 bucket (D-36 layer 2b).
+   * REQUIRED and SEPARATE from QUOTE_RATE_LIMITER: an unverifiable cookie must fall into
+   * the SMALLER bucket, never into a fresh copy of the larger one.
+   * First consumer: plan 04-13.
+   */
+  QUOTE_RATE_LIMITER_BARE: RateLimit;
+
+  /**
+   * Engineering unit-count sentinel for the daily Mapbox breaker (D-54 / U37).
+   * OPTIONAL string parsed with `Number.parseInt` — a UNIT COUNT, never a franc figure.
+   * No Mapbox plan exists yet, so no ceiling in francs can be honest. Trips rather than logs.
+   * First consumer: plan 04-13. Declared in wrangler.jsonc `vars` (both envs).
+   */
+  MAPBOX_DAILY_UNIT_SENTINEL?: string;
+
+  /**
+   * Staging-only draft-pricing preview flag (D-33).
+   * OPTIONAL. ABSENT from production by design — its absence is the control.
+   * Every read is `env.PRICING_PREVIEW === "true"`. Both traps are closed by that one
+   * comparison: a missing binding is falsy, and the string `"false"` is also falsy,
+   * where a bare `if (env.PRICING_PREVIEW)` would treat `"false"` as true.
+   * Setting `"false"` under production would be a bug, not belt-and-braces.
+   * First consumer: plan 04-09 / 04-11 quote path.
+   */
+  PRICING_PREVIEW?: string;
+}
+
+/**
+ * Cloudflare Workers Rate Limiting binding shape.
+ * `@cloudflare/workers-types` does not yet export this interface at the pinned
+ * version; declared ambiently so QUOTE_RATE_LIMITER / QUOTE_RATE_LIMITER_BARE
+ * type-check. Method surface matches the platform Rate Limiting API.
+ */
+interface RateLimit {
+  limit(options: { key: string }): Promise<{ success: boolean }>;
 }
