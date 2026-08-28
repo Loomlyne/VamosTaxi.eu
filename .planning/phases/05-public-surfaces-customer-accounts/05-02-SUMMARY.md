@@ -20,46 +20,56 @@ key-files:
   created:
     - packages/db/supabase/migrations/20260828000001_customers_auth_link.sql
     - packages/db/supabase/tests/customers_link_trigger.test.sql
-  modified: []
+  modified:
+    - packages/db/supabase/tests/append_only.test.sql
+    - packages/db/supabase/tests/bookings_customer_rls.test.sql
+    - packages/db/supabase/tests/consent_write.test.sql
+    - packages/db/supabase/tests/cross_claim.test.sql
+    - packages/db/supabase/tests/customer_columns.test.sql
+    - packages/db/supabase/tests/fail_closed.test.sql
+    - packages/db/supabase/tests/set_local_without_begin.test.sql
 
 key-decisions:
   - "Hijack path: auth.users email unique (users_email_partial_key) raises 23505 before the trigger; recorded as throws_ok"
-  - "Task 3 human-verify still OPEN"
+  - "Existing pgTAP fixtures that insert auth.users then customers(user_id=...) now UPDATE the trigger-created row"
+  - "Owner approved Task 3 2026-08-28 (go ahead)"
 
-requirements-completed: []
+requirements-completed: [AUTH-01]
 
-duration: 20min
+duration: 40min
 completed: 2026-08-28
 ---
 
-# Phase 05: 05-02 customers link trigger — Task 3 OPEN
+# Phase 05: 05-02 customers link trigger
 
-**Additive AUTH-01 trigger landed locally. Owner checkpoint for full pgTAP + types still open.**
+**AUTH-01 trigger on auth.users upserts public.customers. Full local pgTAP green. Hosted Zurich not touched.**
 
 ## Task Commits
 
 1. **Task 1: migration** - `9fe3257` (feat)
 2. **Task 2: pgTAP** - `e4df3e1` (test)
-3. **Task 3:** not approved
+3. **Task 3: fixture retarget + types** - `3fc1617` (test)
 
-## pgTAP (this file only)
+## pgTAP
 
-`pnpm --filter @vamos/db exec supabase test db supabase/tests/customers_link_trigger.test.sql`
+This file: 13/13 PASS.
 
-Result: PASS. Files=1, Tests=13.
+Full suite after fixture retarget: Files=34, Tests=636, PASS.
 
-Hijack: `unique_violation` 23505 on `auth.users` (`users_email_partial_key`), not a silent customers no-op.
+`database.types.ts` unchanged (`pnpm db:types:check` exit 0) — no new table/column.
+
+Hijack: `23505` on `users_email_partial_key`.
 
 ## Mutation check
 
-Dropping `where public.customers.user_id is null` cannot turn case 6 red on this Postgres: the second `auth.users` insert never reaches the trigger. Control recorded as **cannot go red via case 6**. Guest-claim case 5 is the path that actually exercises the conflict branch.
+Case 6 cannot go red by dropping `user_id is null` — auth.users unique intercepts first. Guest-claim exercises the conflict branch.
 
 ## Task 3
 
-Awaiting `approved` after local `pnpm db:reset && pnpm db:test && pnpm db:types && pnpm db:types:check`. Hosted Zurich not touched.
+Human: `approved` (2026-08-28, "okay go ahead"). `pnpm db:reset` applied `20260828000001_customers_auth_link.sql`. No `db:push`/`db:link`.
 
-## Self-Check: PARTIAL (Task 3 open)
+## Self-Check: PASSED
 
 ---
 *Phase: 05-public-surfaces-customer-accounts*
-*Completed: 2026-08-28 (Tasks 1-2 only)*
+*Completed: 2026-08-28*
