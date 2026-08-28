@@ -23,8 +23,8 @@ select rv.id, vc.id, 3, 1, 2, 3
   from public.rate_versions rv, public.vehicle_classes vc
  where rv.slug = 'charge-gate-rv' and vc.slug = 'first';
 
-insert into public.surcharges (rate_version_id, code, kind, percent)
-select rv.id, 'night', 'percent', 10.00
+insert into public.surcharges (rate_version_id, code, kind, percent, predicate)
+select rv.id, 'night', 'percent', 10.00, '{"kind":"always"}'::jsonb
   from public.rate_versions rv where rv.slug = 'charge-gate-rv';
 
 insert into public.settings_versions (slug, label) values ('charge-gate-policy', 'Charge gate policy fixture');
