@@ -133,17 +133,15 @@ environment against the Supabase SQL editor or `psql` over the direct connection
 
 ## Before the first hosted push
 
-Three staging-only probes from `02-CONTEXT.md` must run against the hosted project
-(`yaumjzvylngfjhtuffqs`, see `docs/build/SUPABASE-RESOURCES.md`) before `pnpm db:push` is used
-for real. All three stay `autonomous: false` — the database password and dashboard are
-owner-held — so Plan 02-10 is where a human runs them. Full detail (statement, expected result,
-encoded fallback) lives in `docs/build/SUPABASE-RESOURCES.md`'s probe table; summarised here:
+All three probes plus D-28 are closed. Full commands and observed results:
+`docs/build/SUPABASE-RESOURCES.md` § probe checklist (Plan 02-10, 2026-08-27).
 
-| Probe | Question | Statement | Fallback if it fails |
-|---|---|---|---|
-| ~~D-25 (U1)~~ **RESOLVED 2026-08-24 — permitted** | Can `vamos_edge` be granted the built-in `authenticated` role? Yes: migration 002 applied unmodified to the hosted project (24/24 synced). The fallback below was never needed. | `grant authenticated to vamos_edge with inherit false, set true;` | Create `vamos_customer nologin` mirroring `authenticated`'s grants; use `TO vamos_customer` everywhere a policy would say `TO authenticated` |
-| ~~D-27 (U3)~~ **RESOLVED 2026-08-24 — does NOT re-run** | Does `supabase db push --include-seed` re-run the seed on every push? No: the CLI hashes each seed file in `supabase_migrations.seed_files`; a second push returns an empty `seeds` array. `ON CONFLICT` is defence-in-depth, not routine. | `--dry-run` against a scratch project, then a real second push, diff row counts | Assumed load-bearing either way — every generated `INSERT` already carries `ON CONFLICT`, so a re-run is a no-op regardless of the answer |
-| D-33 (U15) | Is the Custom Access Token Hook wired the same way the docs describe? | Check "Authentication → Hooks (Beta)" on the **live dashboard**, not from docs alone | pgTAP proves the hook function itself works; if the dashboard path differs, only the *invocation* wiring changes, not the function |
+| Probe | Outcome |
+|---|---|
+| ~~D-25 (U1)~~ **permitted 2026-08-24; reconfirmed 2026-08-27** | `vamos_edge` → `authenticated` with `inherit_option=false`, `set_option=true`. No `vamos_customer` fallback. |
+| ~~D-27 (U3)~~ **does not re-run 2026-08-24; reconfirmed 2026-08-27** | CLI hashes `supabase_migrations.seed_files`; second push `seeds: []`. Hosted row counts unchanged. |
+| ~~D-33 (U15)~~ **enabled 2026-08-24; function reconfirmed 2026-08-27** | Observed dashboard path: Authentication → Hooks → "Customize Access Token (JWT) Claims hook" → `public.custom_access_token_hook`. `EXECUTE` granted to `supabase_auth_admin`. |
+| ~~D-28~~ **PostgreSQL 17.6 observed 2026-08-27** | Matches local `.temp/postgres-version` `17.6.1.155`. |
 
 ## Local project facts
 

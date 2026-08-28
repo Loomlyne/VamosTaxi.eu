@@ -139,7 +139,7 @@ Plans:
 
 **Wave 10** *(blocked on Wave 9 completion)*
 
-- [ ] 02-10-PLAN.md — Hosted probes (U1/U3/U15) + first remote push — owner-gated, autonomous: false
+- [x] 02-10-PLAN.md — Hosted probes (U1/U3/U15) + first remote push — owner-gated, autonomous: false
 
 ### Phase 3: Hyperdrive Data Access Wiring
 
@@ -369,9 +369,9 @@ Phases execute in numeric order: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Platform Foundation, Design System Port & i18n Runtime | 11/14 | In Progress|  |
-| 2. Data Schema, RLS & Staff Auth Foundations | 9/10 | In Progress|  |
-| 3. Hyperdrive Data Access Wiring | 6/7 | In Progress|  |
+| 1. Platform Foundation, Design System Port & i18n Runtime | 14/14 | Complete | 2026-08-22 |
+| 2. Data Schema, RLS & Staff Auth Foundations | 10/10 | Complete | 2026-08-27 |
+| 3. Hyperdrive Data Access Wiring | 6/7 | In Progress |  |
 | 4. Quote & Pricing Engine | 0/TBD | Not started | - |
 | 5. Public Surfaces & Customer Accounts | 0/TBD | Not started | - |
 | 6. Ops Reference Data & Content Console | 0/TBD | Not started | - |
