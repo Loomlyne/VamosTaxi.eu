@@ -1574,6 +1574,10 @@
       "ski_rack": {
         "label": "Ski or board rack",
         "rule": "Fitted on request, ski season"
+      },
+      "oversized_luggage": {
+        "label": "Oversized luggage",
+        "rule": "Per declared item"
       }
     }
   },
@@ -1598,7 +1602,8 @@
       "faq.meet-greet-airports",
       "about.business-pax",
       "about.business-bags",
-      "about.driver-languages"
+      "about.driver-languages",
+      "quote.error.service_area_undefined"
     ],
     "nonTranslatableKeys": [
       "common.brandName",
@@ -1664,7 +1669,100 @@
       "partner.van-or-minibus-up-to-8-seats": "fixed vehicle-class specification copy, not a live count",
       "partner.minibus-9-seats-or-more": "fixed vehicle-class specification copy, not a live count",
       "legal.bleicherstrasse-16-8953-dietikon-zh": "postal address, not a live count",
-      "legal.vamos-taxi-gmbh-bleicherstrasse-16-8953-dietikon-3": "postal address, not a live count"
+      "legal.vamos-taxi-gmbh-bleicherstrasse-16-8953-dietikon-3": "postal address, not a live count",
+      "quote.flight.placeholder": "fixed example flight-number formats for the input placeholder, not a live count"
+    }
+  },
+  "quote": {
+    "class": {
+      "up_to_pax": "Up to {n, plural, one {# passenger} other {# passengers}}",
+      "up_to_bags": "Up to {n, plural, one {# bag} other {# bags}}",
+      "na_pax": "Not available for {n, plural, one {# passenger} other {# passengers}}",
+      "na_bags": "Not available for {n, plural, one {# bag} other {# bags}}",
+      "unavailable": "This class isn't offered on this route yet",
+      "no_rate": "No fare table for this class yet",
+      "route_off": "This class is off sale on this route",
+      "price_note": "Total, all taxes included",
+      "fixed_route_badge": "FIXED PRICE",
+      "select_hint": "Select a class to continue — details & extras next"
+    },
+    "none_fit": "No class fits this party size yet.",
+    "moved_to": "Moved to {v} — {from} fits up to {cap}.",
+    "error": "Couldn't price this — try again",
+    "error.min_advance": "This pickup is too soon — we need {minutes, plural, one {# minute} other {# minutes}} notice",
+    "error.out_of_service_area": "This route is outside our service area",
+    "error.place_out_of_box": "These points are outside the area we can quote",
+    "error.same_place": "Pickup and drop-off are the same place — pick two",
+    "error.service_area_undefined": "Service area",
+    "error.route_unavailable": "We can't calculate this route right now — try again in a moment",
+    "error.expired": "This quote has expired — get a new price",
+    "error.price_changed": "The fare table changed — get a new price",
+    "error.engine_changed": "Get a new price to continue",
+    "error.pricing_not_live": "Checkout isn't open yet",
+    "error.coupon_no_longer_valid": "This code can't be used — get a new price",
+    "error.rate_limited": "Too many prices in a short time — wait a moment and try again",
+    "error.turnstile_required": "Confirm this request and try again",
+    "error.temporarily_unavailable": "We can't price this right now — try again shortly",
+    "error.mode_not_offered": "Hourly hire isn't available yet — book a transfer instead",
+    "pricing_pending": "Prices come once the fare table is approved",
+    "loading": "Getting your fixed price…",
+    "empty": {
+      "title": "Plan your transfer",
+      "subtitle": "Add your trip to see prices",
+      "meta": "Pickup, destination, date & time"
+    },
+    "lock": {
+      "countdown": "Price locked · {time}",
+      "expiring_soon": "This price expires soon — pay now or get a new one"
+    },
+    "coupon": {
+      "label": "Coupon",
+      "placeholder": "Coupon or voucher code",
+      "apply": "Apply",
+      "error": {
+        "not_found": "Check the coupon code",
+        "inactive": "This code is no longer active",
+        "not_yet_valid": "This code isn't active yet",
+        "expired": "This code has expired",
+        "usage_cap": "This code has reached its limit",
+        "per_user_cap": "You've already used this code",
+        "unpriced": "This code isn't ready yet"
+      }
+    },
+    "extras": {
+      "error": {
+        "max_stops": "Check the number of stops",
+        "max_child_seats": "Check the number of child seats"
+      }
+    },
+    "flight": {
+      "label": "Flight (optional)",
+      "placeholder": "EK 87 · LX 318",
+      "checking": "Looking up the flight…",
+      "unavailable": "We can't check flights right now — enter your pickup time.",
+      "recheck": "Check again",
+      "malformed": "Check the flight number",
+      "not_found": "No flight on that number today",
+      "pick_one": "Pick which flight you mean",
+      "today": "today",
+      "tomorrow": "tomorrow",
+      "candidate": {
+        "depart": "Departs {time} {day}",
+        "arrive": "Arrives {time} {day}"
+      },
+      "effect": {
+        "to_airport": "Departs {ap} at {t} — we take you there.",
+        "from_airport": "Arriving at {ap} at {t} — we'll meet you there."
+      },
+      "note": {
+        "cancelled": "This flight is cancelled, so nothing was filled in. Come back with the new number.",
+        "departed": "This flight has already left {ap}, so there is nothing to fill in.",
+        "off": "We drive Zurich, Geneva and Basel — this flight touches none of them. Set the pickup yourself."
+      }
+    },
+    "geo": {
+      "no_results": "No matching places — try a fuller address",
+      "suggest_unavailable": "Place search is down — type the address, or drop a pin"
     }
   }
 }

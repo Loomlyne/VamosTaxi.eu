@@ -114,17 +114,6 @@ describe("QUOTE_ERRORS table", () => {
 
   it("every i18n_key exists in en.json (reads the file, not a hand list)", () => {
     const keys = loadEnKeys();
-    // service_area_undefined and other quote.* keys land in task 3; until then
-    // assert keys that already exist OR will be registered under quote.*
-    // After task 3 this is the load-bearing gate. We require the key path to be
-    // present once en.json carries the quote tree — skip only if quote.error
-    // itself is still missing (task 3 not yet applied).
-    const hasQuoteError = keys.has("quote.error");
-    if (!hasQuoteError) {
-      // Task 2 may land before task 3 in the same plan; soft-check structure.
-      expect(QUOTE_ERRORS.quote_expired.i18n_key).toBe("quote.error.expired");
-      return;
-    }
     for (const [code, entry] of Object.entries(QUOTE_ERRORS)) {
       expect(
         keys.has(entry.i18n_key),

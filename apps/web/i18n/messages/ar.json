@@ -1574,6 +1574,10 @@
       "ski_rack": {
         "label": "حامل التزلج أو الألواح",
         "rule": "يُركَّب عند الطلب، خلال موسم التزلج"
+      },
+      "oversized_luggage": {
+        "label": "أمتعة كبيرة الحجم",
+        "rule": "لكل قطعة معلنة"
       }
     }
   },
@@ -1660,7 +1664,99 @@
       "partner.van-or-minibus-up-to-8-seats": true,
       "partner.minibus-9-seats-or-more": true,
       "legal.bleicherstrasse-16-8953-dietikon-zh": true,
-      "legal.vamos-taxi-gmbh-bleicherstrasse-16-8953-dietikon-3": true
+      "legal.vamos-taxi-gmbh-bleicherstrasse-16-8953-dietikon-3": true,
+      "quote.flight.placeholder": "fixed example flight-number formats for the input placeholder, not a live count"
+    }
+  },
+  "quote": {
+    "class": {
+      "up_to_pax": "حتى {n, plural, zero {# راكب} one {راكب واحد} two {راكبين} few {# ركاب} many {# راكبًا} other {# راكب}}",
+      "up_to_bags": "حتى {n, plural, zero {# حقيبة} one {حقيبة واحدة} two {حقيبتين} few {# حقائب} many {# حقيبة} other {# حقيبة}}",
+      "na_pax": "غير متاحة لـ {n, plural, zero {# راكب} one {راكب واحد} two {راكبين} few {# ركاب} many {# راكبًا} other {# راكب}}",
+      "na_bags": "غير متاحة لـ {n, plural, zero {# حقيبة} one {حقيبة واحدة} two {حقيبتين} few {# حقائب} many {# حقيبة} other {# حقيبة}}",
+      "unavailable": "هذه الفئة غير متاحة على هذا المسار بعد",
+      "no_rate": "لا توجد تعرفة لهذه الفئة بعد",
+      "route_off": "هذه الفئة غير معروضة للبيع على هذا المسار",
+      "price_note": "الإجمالي، شامل جميع الضرائب",
+      "fixed_route_badge": "سعر ثابت",
+      "select_hint": "اختر فئة للمتابعة — التفاصيل والإضافات تاليًا"
+    },
+    "none_fit": "لا فئة تناسب حجم هذه المجموعة بعد.",
+    "moved_to": "نُقل إلى {v} — {from} تتسع حتى {cap}.",
+    "error": "تعذّر التسعير — حاول مجددًا",
+    "error.min_advance": "هذا الانطلاق مبكر جدًا — نحتاج إشعارًا قبل {minutes, plural, zero {# دقيقة} one {دقيقة واحدة} two {دقيقتين} few {# دقائق} many {# دقيقة} other {# دقيقة}}",
+    "error.out_of_service_area": "هذا المسار خارج منطقة خدمتنا",
+    "error.place_out_of_box": "هذه النقاط خارج المنطقة التي يمكننا تسعيرها",
+    "error.same_place": "نقطة الانطلاق والوجهة المكان نفسه — اختر اثنين",
+    "error.route_unavailable": "يتعذّر حساب هذا المسار حاليًا — حاول بعد لحظات",
+    "error.expired": "انتهت صلاحية هذا السعر — احصل على سعر جديد",
+    "error.price_changed": "تغيّر جدول الأجرة — احصل على سعر جديد",
+    "error.engine_changed": "احصل على سعر جديد للمتابعة",
+    "error.pricing_not_live": "الدفع غير مفتوح بعد",
+    "error.coupon_no_longer_valid": "لا يمكن استخدام هذا الرمز — احصل على سعر جديد",
+    "error.rate_limited": "طلبات أسعار كثيرة في وقت قصير — انتظر لحظة ثم حاول مجددًا",
+    "error.turnstile_required": "أكّد هذا الطلب ثم حاول مجددًا",
+    "error.temporarily_unavailable": "يتعذّر التسعير الآن — حاول بعد قليل",
+    "error.mode_not_offered": "الحجز بالساعة غير متاح بعد — احجز نقلًا بدلًا منه",
+    "pricing_pending": "تظهر الأسعار بعد اعتماد جدول الأجرة",
+    "loading": "جارٍ حساب سعرك الثابت…",
+    "empty": {
+      "title": "خطّط رحلتك",
+      "subtitle": "أضف تفاصيل رحلتك لعرض الأسعار",
+      "meta": "الانطلاق، الوجهة، التاريخ والوقت"
+    },
+    "lock": {
+      "countdown": "السعر مُثبَّت · {time}",
+      "expiring_soon": "ينتهي هذا السعر قريبًا — ادفع الآن أو احصل على سعر جديد"
+    },
+    "coupon": {
+      "label": "قسيمة",
+      "placeholder": "رمز قسيمة أو خصم",
+      "apply": "تطبيق",
+      "error": {
+        "not_found": "تحقّق من رمز القسيمة",
+        "inactive": "لم يعد هذا الرمز نشطًا",
+        "not_yet_valid": "هذا الرمز غير نشط بعد",
+        "expired": "انتهت صلاحية هذا الرمز",
+        "usage_cap": "بلغ هذا الرمز حده الأقصى",
+        "per_user_cap": "لقد استخدمت هذا الرمز من قبل",
+        "unpriced": "هذا الرمز غير جاهز بعد"
+      }
+    },
+    "extras": {
+      "error": {
+        "max_stops": "تحقّق من عدد التوقفات",
+        "max_child_seats": "تحقّق من عدد مقاعد الأطفال"
+      }
+    },
+    "flight": {
+      "label": "رقم الرحلة (اختياري)",
+      "placeholder": "EK 87 · LX 318",
+      "checking": "جارٍ البحث عن الرحلة…",
+      "unavailable": "يتعذّر علينا التحقق من الرحلات حاليًا — أدخل وقت الاستلام بنفسك.",
+      "recheck": "إعادة التحقق",
+      "malformed": "تحقق من رقم الرحلة",
+      "not_found": "لا رحلة بهذا الرقم اليوم",
+      "pick_one": "أي رحلة تقصد؟",
+      "today": "اليوم",
+      "tomorrow": "غدًا",
+      "candidate": {
+        "depart": "المغادرة {time} {day}",
+        "arrive": "الوصول {time} {day}"
+      },
+      "effect": {
+        "to_airport": "المغادرة من {ap} في {t} — نوصلك إلى هناك.",
+        "from_airport": "الوصول إلى {ap} في {t} — نستقبلك هناك."
+      },
+      "note": {
+        "cancelled": "هذه الرحلة ملغاة، لم يُعبّأ أي حقل. عد برقم الرحلة الجديد.",
+        "departed": "أقلعت هذه الرحلة من {ap} بالفعل، لا يوجد ما يُعبّأ.",
+        "off": "نخدم زيورخ وجنيف وبازل — هذه الرحلة لا تمر بأي منها. حدّد الانطلاق بنفسك."
+      }
+    },
+    "geo": {
+      "no_results": "لا أماكن مطابقة — جرّب عنوانًا أوضح",
+      "suggest_unavailable": "البحث عن الأماكن متوقف — اكتب العنوان أو أسقط دبوسًا"
     }
   }
 }
