@@ -83,9 +83,11 @@ describe("siteverify", () => {
 
   it("first-attempt timeout retries exactly once with the same idempotency_key", async () => {
     const timeoutSpy = vi.spyOn(AbortSignal, "timeout");
-    const fetchFn = vi.fn(async () => {
+    const bodies: Record<string, unknown>[] = [];
+    const fetchFn: typeof fetch = async (_input, init) => {
+      bodies.push(parseBody(init));
       throw new DOMException("The operation was aborted due to timeout", "TimeoutError");
-    });
+    };
     const result = await siteverify({
       secret: FAKE_TURNSTILE_SECRET,
       response: TOKEN,
@@ -94,9 +96,9 @@ describe("siteverify", () => {
       fetch: fetchFn,
     });
     expect(result).toEqual({ configured: true, success: false, degraded: true });
-    expect(fetchFn).toHaveBeenCalledTimes(2);
-    const first = parseBody(fetchFn.mock.calls[0]?.[1] as RequestInit);
-    const second = parseBody(fetchFn.mock.calls[1]?.[1] as RequestInit);
+    expect(bodies).toHaveLength(2);
+    const first = bodies[0] ?? {};
+    const second = bodies[1] ?? {};
     expect(first.idempotency_key).toBe(IDEMPOTENCY);
     expect(second.idempotency_key).toBe(IDEMPOTENCY);
     expect(first.idempotency_key).toBe(second.idempotency_key);
@@ -114,7 +116,7 @@ describe("siteverify", () => {
       idempotencyKey: IDEMPOTENCY,
       fetch: fetchFn,
     });
-    expect(result.degraded).toBe(true);
+    expect(result).toEqual({ configured: true, success: false, degraded: true });
     expect(fetchFn).toHaveBeenCalledTimes(2);
   });
 });
