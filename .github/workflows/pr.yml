@@ -57,6 +57,9 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      - name: Unit tests (kernel + route contracts)
+        run: pnpm test:unit
+
       - name: CSS law + RTL logical-property lint (D-21, D-32)
         run: pnpm lint:css
 

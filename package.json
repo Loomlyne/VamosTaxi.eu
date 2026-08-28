@@ -12,6 +12,7 @@
     "lint": "eslint .",
     "lint:css": "pnpm --filter web run lint:css",
     "i18n:check": "node scripts/check-i18n-coverage.mjs",
+    "test:unit": "pnpm -r --if-present run test",
     "test:visual": "pnpm --filter web exec playwright test",
     "check:public-env": "node scripts/check-next-public-allowlist.mjs",
     "check:db-fences": "node scripts/check-db-access-fences.mjs",
