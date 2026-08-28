@@ -53,7 +53,7 @@
         // D-37: dedicated namespace for quote abuse / daily breaker counters —
         // never GEO_CACHE. TTL semantics differ; mixing a daily counter with a
         // cache is how one evicts the other.
-        // TODO(04-13): replace with the id from `wrangler kv namespace create`
+        // TODO(08-deploy): replace with the id from `wrangler kv namespace create`
         {
           "binding": "QUOTE_ABUSE",
           "id": "<quote-abuse staging kv id — created by plan 04-13 via wrangler kv namespace create>"
@@ -152,7 +152,7 @@
       "kv_namespaces": [
         { "binding": "GEO_CACHE", "id": "a11bc8c7d13d4eeb9c2dad091e978dcb" },
         // D-37: dedicated QUOTE_ABUSE namespace — never GEO_CACHE.
-        // TODO(04-13): replace with the id from `wrangler kv namespace create`
+        // TODO(08-deploy): replace with the id from `wrangler kv namespace create`
         {
           "binding": "QUOTE_ABUSE",
           "id": "<quote-abuse production kv id — created by plan 04-13 via wrangler kv namespace create>"

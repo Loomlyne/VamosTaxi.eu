@@ -17,7 +17,7 @@ from any other account on this machine. No resource below was reused from anothe
 | `GEO_CACHE` | KV namespace | `geo-cache-staging` — id `48cd800d63e44c03aa1f49be83d39d7a` | `geo-cache-production` — id `a11bc8c7d13d4eeb9c2dad091e978dcb` | `wrangler kv namespace create geo-cache-staging` / `wrangler kv namespace create geo-cache-production` | Phase 4 (geocoding + quote cache) |
 | `PHOTOS` | R2 bucket (eu jurisdiction) | `vamos-photos-staging` | `vamos-photos-production` | `wrangler r2 bucket create vamos-photos-staging --location eu` / `wrangler r2 bucket create vamos-photos-production --location eu` | Phase 5/6 (chauffeur/vehicle photos) |
 | `STRIPE_EVENTS` | Queue (producer + consumer, same queue) | `vamos-stripe-events-staging` | `vamos-stripe-events-production` | `wrangler queues create vamos-stripe-events-staging` / `wrangler queues create vamos-stripe-events-production` | Phase 5/7 (Stripe webhook fan-out) — Phase 1's `worker.ts` `queue()` handler is a proven no-op against it (D-36) |
-| — (cron trigger, no binding name) | Scheduled Trigger | `0 3 * * *` (registered directly in `wrangler.jsonc` `env.staging.triggers.crons` — no separate provisioning command; a trigger is config, not an account resource) | `0 3 * * *` (`env.production.triggers.crons`) | n/a — declared in `wrangler.jsonc` | Phase 4 (quote expiry) / Phase 9 (reminders, no-show sweep) — Phase 1's `worker.ts` `scheduled()` handler is a proven no-op against it (D-36) |
+| — (cron trigger, no binding name) | Scheduled Trigger | `0 3 * * *` (registered directly in `wrangler.jsonc` `env.staging.triggers.crons` — no separate provisioning command; a trigger is config, not an account resource) | `0 3 * * *` (`env.production.triggers.crons`) | n/a — declared in `wrangler.jsonc` | Phase 1 no-op (`worker.ts` `scheduled()`). **D-29: this Cron does not write `price_snapshots`.** `expires_at <= now() AND booking_id IS NULL` already IS an expired quote; a sweep that rewrites rows would add a mutation path to an append-only table for no new information. Phase 9 (reminders, no-show sweep) may attach later — still not quote expiry. |
 | `HYPERDRIVE_NOCACHE` | Hyperdrive config, identity/billing (pools Supabase's **direct** connection string, never the pooled 6543 Supavisor string — T-01-12) | `vamos-rls-staging` — id `71523abbbb7542fdbff01f66d9a858ed`, `vamos_edge`, `db.yaumjzvylngfjhtuffqs.supabase.co:5432`, caching **disabled**, `origin_connection_limit=20` (D-43-derived; research figure was 25) | **not declared.** `env.production` is not deployed until Phase 11 (D-33) — creating a production config now would draw on the same `max_connections` ceiling D-43 just measured for no consumer. | `wrangler hyperdrive create vamos-rls-staging --connection-string=<direct string, vamos_edge> --caching-disabled --origin-connection-limit=20` (plan 03-07, 2026-08-25) | Phase 3 (identity/billing data access), `apps/web/lib/db/identity.ts`'s five wrappers |
 | `HYPERDRIVE` | Hyperdrive config, public/cacheable content (same direct-string rule) | `vamos-public-staging` — id `b53693800b7e4c1c94205774baa73420`, `vamos_public`, `db.yaumjzvylngfjhtuffqs.supabase.co:5432`, caching **enabled** (default), `origin_connection_limit=12` (D-43-derived; research figure was 15) | **not declared** (same reasoning as `HYPERDRIVE_NOCACHE` production above) | `wrangler hyperdrive create vamos-public-staging --connection-string=<direct string, vamos_public> --origin-connection-limit=12` (plan 03-07, 2026-08-25) | Phase 3 (public content data access), `apps/web/lib/db/public.ts` |
 | — (not an `apps/web` binding) | Hyperdrive config, dedicated isolation-probe origin (D-03) | `vamos-probe-staging` — id `49fcf0baedbe44b29b7bc78f81d3421d`, `vamos_edge`, same direct string, caching **disabled**, `origin_connection_limit=5` (Cloudflare's documented floor — unchanged by D-43) | n/a — staging-only, never has a production twin (D-20) | `wrangler hyperdrive create vamos-probe-staging --connection-string=<direct string, vamos_edge> --caching-disabled --origin-connection-limit=5` (plan 03-07, 2026-08-25) | `apps/isolation-probe`'s `HYPERDRIVE_NOCACHE` binding only — pinned distinct from the app's own `HYPERDRIVE_NOCACHE` id by `packages/db/test/support/config-allowlist.json` (T-03-10) |
@@ -190,3 +190,45 @@ a durable, queryable destination for the same stream.
 The original unsuffixed shared resources (`geo-cache`, `vamos-photos`,
 `vamos-stripe-events`) were deleted once the per-environment split above replaced them — do
 not recreate them under the old names.
+
+## QUOTE-09 Layer 1 — zone Rate Limiting Rule (dashboard, not source)
+
+Configuration a human applies in the Cloudflare dashboard. Layers 2 and 3 ship in Worker
+source either way. Do **not** apply this rule from this plan; record it here so the person
+who applies it has the expression and the cost line in one place.
+
+**One Rate Limiting Rule** (research AM-03 — the drafted expression covered only
+`POST /api/quote`; cover quote **and** geo in the single Free-plan slot):
+
+- Characteristic: `ip.src`
+- Rate: 30 requests / 60 seconds
+- Action: `managed_challenge` (not `block`)
+- Expression covering `/api/quote*` **AND** `/api/geo/*` in one rule:
+
+```
+(http.request.uri.path matches "^/api/quote" or http.request.uri.path matches "^/api/geo/")
+```
+
+**U36 — zone plan cost line (owner decision, not assumed):** Cloudflare Free ships **one**
+rate-limiting rule and no OWASP CRS. Pro adds a second rule slot and CRS and is a new
+monthly cost the owner signs off. Layers 2 and 3 (Workers `ratelimits` bindings + Turnstile)
+ship on Free. Do **not** recommend Business for `cf.unique_visitor_id` — CGNAT is solved at
+the Worker layer (`vamos_qs`).
+
+**If CRS is ever enabled:** Sensitivity **Low**, Action **Log** first. A JSON POST carrying
+`O'Brien`, `LX318` and German, French or Arabic names will false-positive on apostrophes and
+SQL-shaped substrings. Blocking before a clean staging week means refusing real customers by
+name. Promote to Block only after staging traffic with real multilingual names is clean.
+
+**Non-JSON caveat for the widget:** an edge `managed_challenge` returns HTML, not JSON. A
+response that is not the quote shape means "challenged — reload and retry once", not a parse
+error. That action is not in `QUOTE_ERRORS` because the edge never produces JSON.
+
+## D-29 — no Cron mutates `price_snapshots`
+
+Asserted against `apps/web/worker.ts` `scheduled` (Phase 1 no-op: emits one structured log
+line, writes nothing). The existing `triggers.crons` entry `0 3 * * *` stays what Phase 1
+shipped — add no Cron and remove none. GSD-LAUNCH's "Cron expire stale quotes" is a holdover
+from a mutable status column. `expires_at <= now() AND booking_id IS NULL` already IS an
+expired quote.
+

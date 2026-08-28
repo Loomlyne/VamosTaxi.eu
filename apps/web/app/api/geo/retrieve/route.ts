@@ -1,8 +1,10 @@
 // apps/web/app/api/geo/retrieve/route.ts
 //
 // Pick proxy (D-15, D-47, D-51). Temporary Geocodes only — coordinates exist
-// so the widget can drop a pin; they are not persisted here. Plan 04-13 wraps
-// this route with rate-limit, breaker and Turnstile — add none of those here.
+// so the widget can drop a pin; they are not persisted here.
+// Invisible challenge stays off type-ahead (§8) — a challenge on this field
+// is how "book in under a minute" stops being true. Rate-limit and breaker
+// still run.
 //
 // hasSeenSession gates this handler BEFORE the Mapbox call (AM-03): without
 // it, /retrieve is an unmetered geocoder for anyone who can guess a
@@ -14,6 +16,8 @@
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { z } from "zod";
+import { countMapboxUnit } from "@/lib/abuse/breaker";
+import { wireBreakerGuard, wireRateLimitGuard } from "@/lib/abuse/guards";
 import { withRequestContext } from "@/lib/logger";
 import { quoteErrorResponse } from "@/lib/quote/errors";
 import { retrieve } from "@/lib/geo/mapbox";
@@ -52,6 +56,11 @@ export async function GET(request: Request) {
     return quoteErrorResponse("untrusted_input");
   }
 
+  const limited = await wireRateLimitGuard(env, request)();
+  if (!limited.ok) return quoteErrorResponse(limited.code);
+  const broken = await wireBreakerGuard(env)();
+  if (!broken.ok) return quoteErrorResponse(broken.code);
+
   const seen = await hasSeenSession(
     env,
     parsed.data.session_token,
@@ -63,6 +72,9 @@ export async function GET(request: Request) {
   }
 
   try {
+    // D-37: the breaker counts calls, not endpoints, and three of the four
+    // billable shapes are geo. This is Search Box /retrieve.
+    await countMapboxUnit(env);
     const result = await retrieve(
       {
         mapboxId: parsed.data.mapbox_id,

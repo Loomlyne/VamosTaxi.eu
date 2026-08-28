@@ -1,10 +1,21 @@
 import createMiddleware from "next-intl/middleware";
 import { NextResponse, type NextRequest } from "next/server";
 import { routing } from "./i18n/routing";
+import {
+  mintVamosQs,
+  VAMOS_QS_ATTRS,
+  VAMOS_QS_COOKIE,
+  verifyVamosQs,
+} from "./lib/abuse/vamos-qs";
 
 const handleI18nRouting = createMiddleware(routing);
 
-export default function middleware(request: NextRequest) {
+function qsSecret(): string {
+  const value = process.env.VAMOS_QS_SECRET;
+  return typeof value === "string" ? value : "";
+}
+
+export default async function middleware(request: NextRequest) {
   const response = handleI18nRouting(request);
 
   // Checkpoint (D-11/D-12, resolved 2026-08-20, option-a): a request whose
@@ -51,6 +62,22 @@ export default function middleware(request: NextRequest) {
   // ranking if they do.
   if (process.env.DEPLOY_ENV === "staging") {
     finalResponse.headers.set("X-Robots-Tag", "noindex");
+  }
+
+  // vamos_qs is minted here, not in a route handler: the cookie must exist
+  // before the first /api/quote, and the first thing a visitor requests is a
+  // page. Matcher carves /api/* out, so this is the first document response.
+  const secret = qsSecret();
+  if (secret.length > 0) {
+    const existing = request.cookies.get(VAMOS_QS_COOKIE)?.value;
+    const subject = await verifyVamosQs(secret, existing);
+    if (!subject) {
+      const token = await mintVamosQs(secret, crypto.randomUUID());
+      finalResponse.headers.append(
+        "Set-Cookie",
+        `${VAMOS_QS_COOKIE}=${token}; ${VAMOS_QS_ATTRS}`,
+      );
+    }
   }
 
   return finalResponse;

@@ -1,8 +1,10 @@
 // apps/web/app/api/geo/suggest/route.ts
 //
 // Type-ahead proxy (D-15, D-47). MAPBOX_TOKEN never leaves the Worker.
-// No coordinates in the response body. Plan 04-13 wraps this route with
-// rate-limit, breaker and Turnstile — add none of those here.
+// No coordinates in the response body.
+// Invisible challenge stays off type-ahead (§8) — a challenge on this field
+// is how "book in under a minute" stops being true. Rate-limit and breaker
+// still run.
 //
 // A Mapbox error body can echo the query string back, which is the
 // customer's home address — never return statusText, err.message, or an
@@ -10,6 +12,8 @@
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { z } from "zod";
+import { countMapboxUnit } from "@/lib/abuse/breaker";
+import { wireBreakerGuard, wireRateLimitGuard } from "@/lib/abuse/guards";
 import { withRequestContext } from "@/lib/logger";
 import { quoteErrorResponse } from "@/lib/quote/errors";
 import { suggest } from "@/lib/geo/mapbox";
@@ -64,6 +68,11 @@ export async function GET(request: Request) {
     return quoteErrorResponse("untrusted_input");
   }
 
+  const limited = await wireRateLimitGuard(env, request)();
+  if (!limited.ok) return quoteErrorResponse(limited.code);
+  const broken = await wireBreakerGuard(env)();
+  if (!broken.ok) return quoteErrorResponse(broken.code);
+
   // A type-ahead that 400s on the second keystroke is a broken field, not a
   // validated one — short q is an empty list, not an error. Do not
   // rememberSession here: a two-character 200 must not unlock /retrieve
@@ -78,6 +87,9 @@ export async function GET(request: Request) {
   }
 
   try {
+    // D-37: the breaker counts calls, not endpoints, and three of the four
+    // billable shapes are geo. This is Search Box /suggest.
+    await countMapboxUnit(env);
     const result = await suggest(
       {
         q: parsed.data.q,
