@@ -15,7 +15,8 @@ select plan(5);
 -- Fixtures for the (currently unreachable) positive half -- cheap to seed, harmless if unused.
 -- `vehicle_classes` already carries a seeded 'economy' row (D-36); no insert needed here.
 insert into public.rate_versions (slug, label) values ('qi-rv', 'quote_identity fixture');
-insert into public.settings_versions (slug, label) values ('qi-policy', 'quote_identity fixture');
+insert into public.settings_versions (slug, label, checkout_window_minutes)
+values ('qi-policy', 'quote_identity fixture', 30);
 
 -- Negative half, UNCONDITIONAL (D-44a): the quote identity is a pricing identity and must
 -- never reach a customer-scoped table, whether or not Phase 4 has opened a write path yet.
@@ -73,10 +74,29 @@ begin
 
     set local role anon;
 
+    -- Plan 04-15: the seam is now LIVE. The v_fn_exists if is retained
+    -- deliberately so this file keeps documenting the contract rather than
+    -- assuming the RPC exists.
     if v_fn_exists then
       return query select lives_ok(
-        format($sql$ select public.create_quote_snapshot(%L::uuid, %L::uuid) $sql$,
-          v_quote_id, v_vehicle_class_id),
+        format(
+          $sql$
+            select public.create_quote_snapshot(
+              p_quote_id := %L::uuid,
+              p_vehicle_class_id := %L::uuid,
+              p_rate_version_id := %s::bigint,
+              p_settings_version_id := %s::bigint,
+              p_engine_version := 'quote-engine@quote_identity_test'::text,
+              p_lock_exp := now() + interval '15 minutes',
+              p_pax := 1::smallint,
+              p_bags := 0::smallint,
+              p_lines := '[{"seq":1,"code":"distance_fare","kind":"fare","i18n_key":"price.line.distance"}]'::jsonb,
+              p_policy := '{"cancellation_tiers":[],"free_cancel_hours":24,"airport_waiting_minutes":60,"city_waiting_minutes":15,"settings_version_id":1,"modification_deadline_hours":24,"min_advance_minutes":180,"policy_doc":"qi"}'::jsonb,
+              p_shown_alternatives := '[]'::jsonb,
+              p_legs := '[{"leg_seq":1,"distance_km":null,"duration_min":null,"leg_subtotal_rappen":null,"booking_leg_id":null}]'::jsonb
+            )
+          $sql$,
+          v_quote_id, v_vehicle_class_id, v_rate_version_id, v_settings_version_id),
         'quote identity (anon) can create a snapshot via public.create_quote_snapshot(...) (D-44a live)'
       );
     else
