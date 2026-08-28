@@ -87,7 +87,7 @@ exists — so no two plans in this phase can produce the same prefix. Day stamp 
 | 05 | `20260825000005_quote_read_rpc` | **04-06 (landed)** | quote read RPC |
 | 06 | `20260825000006_coupon_release` | **04-06 (landed)** | coupon release / evaluate_coupon |
 || 07 | `20260825000007_quote_snapshot_rpc` | **04-15 (landed)** | quote snapshot RPC |
-| 08 | `20260825000008_flight_provenance` | 04-12 | flight provenance |
+| 08 | `20260825000008_flight_provenance` | **04-12 (landed)** | flight provenance |
 
 Three reorderings versus `02-SCHEMA-DRAFT.md` §16's illustrative sequence, each load-bearing:
 

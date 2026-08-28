@@ -6,7 +6,7 @@
 -- tolerant vehicle_classes CHECK, the D-19 erasure guard, and the D-22 content_strings $meta
 -- facts.
 begin;
-select plan(41);
+select plan(43);
 
 -- DATA-01: every reference table this plan and its predecessors create.
 select has_table('public', 'settings', 'public.settings exists');
@@ -113,6 +113,10 @@ select has_column('public', 'coupon_redemptions', 'released_at', 'coupon_redempt
 select has_column('public', 'coupon_redemptions', 'released_reason', 'coupon_redemptions has released_reason (D-31)');
 select has_function('public', 'evaluate_coupon', 'evaluate_coupon exists (D-30)');
 select has_function('public', 'create_quote_snapshot', 'create_quote_snapshot exists (D-44a)');
+
+-- Plan 04-12: flight provenance columns Phase 9 reads.
+select has_column('public', 'booking_legs', 'flight_checked_at', 'booking_legs has flight_checked_at (D-20)');
+select has_column('public', 'booking_legs', 'flight_time_source', 'booking_legs has flight_time_source (D-20)');
 
 select * from finish();
 rollback;

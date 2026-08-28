@@ -190,7 +190,9 @@ export type Database = {
           dropoff_place_id: string | null
           dropoff_text: string
           estimated_duration_minutes: number | null
+          flight_checked_at: string | null
           flight_no: string | null
+          flight_time_source: string | null
           id: string
           leg_seq: number
           note: string
@@ -221,7 +223,9 @@ export type Database = {
           dropoff_place_id?: string | null
           dropoff_text: string
           estimated_duration_minutes?: number | null
+          flight_checked_at?: string | null
           flight_no?: string | null
+          flight_time_source?: string | null
           id?: string
           leg_seq: number
           note?: string
@@ -252,7 +256,9 @@ export type Database = {
           dropoff_place_id?: string | null
           dropoff_text?: string
           estimated_duration_minutes?: number | null
+          flight_checked_at?: string | null
           flight_no?: string | null
+          flight_time_source?: string | null
           id?: string
           leg_seq?: number
           note?: string
