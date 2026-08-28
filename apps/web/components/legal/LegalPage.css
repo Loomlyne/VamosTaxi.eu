@@ -1,0 +1,410 @@
+/* Ported from app/pages/terms.dc.html helmet. Law 01 / Law 02 substitutions noted. */
+:root {
+  --vt-shadow-accent: none;
+}
+.vt-input--focus {
+  box-shadow: none;
+}
+
+[data-lg-grid] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+[data-lg-prose] {
+  max-inline-size: 68ch;
+  font-size: var(--vt-body-md);
+  line-height: var(--vt-body-leading);
+  color: var(--vt-text-secondary);
+}
+[data-lg-prose] section {
+  padding-block: 36px;
+  padding-inline: 0;
+  border-block-start: 1px solid var(--vt-grey-200);
+}
+[data-lg-prose] section:first-of-type {
+  border-block-start: 0;
+  padding-block-start: 4px;
+}
+[data-lg-prose] h2 {
+  margin-block-end: 16px;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-heading-1);
+  line-height: var(--vt-heading-leading);
+  letter-spacing: var(--vt-heading-tracking);
+  font-weight: var(--vt-weight-semibold);
+  color: var(--vt-text-primary);
+  scroll-margin-block-start: 108px;
+  text-wrap: pretty;
+}
+[data-lg-prose] h3 {
+  margin-block: 28px 10px;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-heading-3);
+  line-height: 1.28;
+  letter-spacing: var(--vt-heading-tracking);
+  font-weight: var(--vt-weight-semibold);
+  color: var(--vt-text-primary);
+  text-wrap: pretty;
+}
+[data-lg-prose] h4 {
+  margin-block: 22px 8px;
+  font-size: var(--vt-body-xs);
+  letter-spacing: var(--vt-label-tracking);
+  text-transform: uppercase;
+  font-weight: var(--vt-label-weight);
+  color: var(--vt-text-muted);
+}
+[data-lg-prose] p {
+  margin-block-end: 14px;
+  text-wrap: pretty;
+}
+[data-lg-prose] ul {
+  margin-block-end: 16px;
+  padding-inline-start: 20px;
+}
+[data-lg-prose] li {
+  margin-block-end: 9px;
+  padding-inline-start: 4px;
+}
+[data-lg-prose] p:last-child,
+[data-lg-prose] ul:last-child {
+  margin-block-end: 0;
+}
+[data-lg-prose] a {
+  color: var(--vt-charcoal-900);
+  text-decoration: underline;
+  text-decoration-color: var(--vt-grey-300);
+  text-underline-offset: 3px;
+}
+/* Law 02: mock used --vt-yellow-700 on hover. Charcoal + currentColor underline. */
+[data-lg-prose] a:hover {
+  color: var(--vt-charcoal-900);
+  text-decoration-color: currentColor;
+}
+[data-lg-n] {
+  display: block;
+  margin-block-end: 9px;
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-body-xs);
+  letter-spacing: var(--vt-label-tracking);
+  font-weight: var(--vt-label-weight);
+  color: var(--vt-charcoal-600);
+}
+[data-slot] {
+  margin-block-end: 16px;
+  border: 1px dashed var(--vt-grey-300);
+  background: var(--vt-grey-50);
+  border-radius: var(--vt-radius-md);
+  padding-block: 16px; padding-inline: 18px;
+}
+[data-slot-k] {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-block-end: 6px;
+  font-size: var(--vt-label-sm);
+  letter-spacing: var(--vt-label-tracking);
+  text-transform: uppercase;
+  font-weight: var(--vt-label-weight);
+  color: var(--vt-text-muted);
+}
+[data-slot] p {
+  margin: 0;
+  font-size: var(--vt-body-sm);
+  color: var(--vt-text-secondary);
+}
+[data-flag] {
+  margin-block-end: 16px;
+  border: 1px solid var(--vt-charcoal-900);
+  border-radius: var(--vt-radius-lg);
+  background: var(--vt-bg-surface);
+  padding-block: 18px; padding-inline: 20px;
+}
+[data-flag-k] {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-block-end: 8px;
+  font-size: var(--vt-label-sm);
+  letter-spacing: var(--vt-label-tracking);
+  text-transform: uppercase;
+  font-weight: var(--vt-label-weight);
+  color: var(--vt-charcoal-900);
+}
+[data-flag] p {
+  margin-block-end: 10px;
+  font-size: var(--vt-body-sm);
+  color: var(--vt-text-secondary);
+}
+[data-flag] p:last-child {
+  margin-block-end: 0;
+}
+[data-lg-railcard] {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+}
+[data-lg-eyebrow] {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-block-end: 10px;
+  padding-inline: 6px;
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-label-sm);
+  letter-spacing: var(--vt-label-tracking);
+  text-transform: uppercase;
+  font-weight: var(--vt-label-weight);
+  color: var(--vt-text-muted);
+}
+[data-lg-eyebrow]::before {
+  content: "";
+  inline-size: 14px;
+  block-size: 14px;
+  flex: 0 0 auto;
+  background: url("/brand/patterns/checker-mark.png") center / contain no-repeat;
+}
+[data-lg-tl] {
+  position: relative;
+  display: flex;
+  gap: 9px;
+  align-items: baseline;
+  padding-block: 6px;
+  padding-inline: 24px 8px;
+  border-radius: var(--vt-radius-sm);
+  color: var(--vt-text-secondary);
+  font-size: var(--vt-body-sm);
+  line-height: 1.35;
+  text-decoration: none;
+}
+[data-lg-tl]::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 6px;
+  inset-block-start: 9px;
+  inline-size: 11px;
+  block-size: 11px;
+  background: url("/brand/patterns/checker-mark.png") center / contain no-repeat;
+  opacity: 0;
+}
+[data-lg-tl]:hover {
+  background: var(--vt-grey-50);
+  color: var(--vt-text-primary);
+}
+[data-lg-tl][data-on] {
+  color: var(--vt-charcoal-900);
+  font-weight: var(--vt-weight-semibold);
+}
+[data-lg-tl][data-on]::before {
+  opacity: 1;
+}
+[data-lg-tl] i {
+  flex: 0 0 20px;
+  font-style: normal;
+  font-family: var(--vt-font-display);
+  font-size: 11px;
+  font-weight: var(--vt-weight-semibold);
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--vt-grey-500);
+}
+[data-lg-tl][data-on] i {
+  color: var(--vt-charcoal-900);
+}
+[data-lg-toc] {
+  display: none;
+}
+[data-lg-toc][data-open] {
+  display: block;
+}
+[data-lg-tocbtn] {
+  inline-size: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-block-size: 44px;
+  padding-inline: 18px;
+  margin-block-end: 14px;
+  border-radius: var(--vt-radius-pill);
+  border: 1px solid var(--vt-border-subtle);
+  background: var(--vt-bg-surface);
+  font-family: inherit;
+  font-size: var(--vt-body-sm);
+  font-weight: var(--vt-weight-medium);
+  color: var(--vt-text-primary);
+  cursor: pointer;
+}
+[data-lg-tocbtn]:hover {
+  border-color: var(--vt-charcoal-900);
+}
+[data-lg-tocbtn]:focus-visible,
+[data-lg-tl]:focus-visible,
+.vt-legal-print:focus-visible {
+  outline: none;
+  box-shadow: var(--vt-ring);
+}
+
+[data-lg-hero] {
+  background: var(--vt-bg-inverse);
+  color: var(--vt-text-inverse);
+  position: relative;
+  overflow: hidden;
+}
+.vt-legal-hero-pattern {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  inline-size: 120px;
+  block-size: 120px;
+  background: url("/brand/patterns/checker-mark.png") 100% 0 / 56px auto no-repeat;
+  opacity: 0.9;
+}
+.vt-legal-hero-inner {
+  max-inline-size: 1200px;
+  margin-inline: auto;
+  padding: 44px clamp(20px, 5vw, 56px) 40px;
+}
+.vt-legal-crumb {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--vt-body-xs);
+  color: var(--vt-text-inverse-muted);
+  margin-block-end: 26px;
+}
+.vt-legal-crumb a {
+  color: inherit;
+  text-decoration: none;
+}
+.vt-legal-kicker {
+  margin-block-end: 12px;
+  font-size: var(--vt-label-sm);
+  letter-spacing: var(--vt-label-tracking);
+  text-transform: uppercase;
+  font-weight: var(--vt-label-weight);
+  color: var(--vt-accent);
+}
+[data-lg-hero] h1 {
+  margin-block-end: 18px;
+  max-inline-size: 20ch;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-display-2);
+  line-height: var(--vt-display-leading);
+  letter-spacing: var(--vt-display-tracking);
+  font-weight: var(--vt-weight-semibold);
+  color: var(--vt-text-inverse);
+  text-wrap: pretty;
+}
+.vt-legal-standfirst {
+  margin: 0;
+  max-inline-size: 58ch;
+  font-size: var(--vt-body-lg);
+  line-height: var(--vt-body-leading);
+  color: rgb(255 255 255 / 0.84);
+}
+.vt-legal-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 28px;
+  margin-block-start: 32px;
+  padding-block-start: 24px;
+  border-block-start: 1px solid var(--vt-border-inverse);
+}
+.vt-legal-meta > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: var(--vt-body-sm);
+  color: var(--vt-text-inverse);
+}
+.vt-legal-meta > div > span:first-child {
+  font-size: var(--vt-label-sm);
+  letter-spacing: var(--vt-label-tracking);
+  text-transform: uppercase;
+  color: var(--vt-text-inverse-muted);
+}
+.vt-legal-print {
+  margin-inline-start: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-block-size: 44px;
+  block-size: 44px;
+  padding-inline: 20px;
+  border-radius: var(--vt-radius-pill);
+  border: 1px solid var(--vt-border-inverse);
+  background: none;
+  color: var(--vt-text-inverse);
+  font-family: inherit;
+  font-size: var(--vt-body-sm);
+  cursor: pointer;
+}
+.vt-legal-body {
+  max-inline-size: 1200px;
+  margin-inline: auto;
+  padding: 44px clamp(20px, 5vw, 56px) 72px;
+}
+.vt-legal-toc-list {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-inline-size: 900px) {
+  [data-lg-grid] {
+    grid-template-columns: 264px minmax(0, 1fr);
+    gap: clamp(40px, 5vw, 80px);
+  }
+  [data-lg-rail] {
+    position: sticky;
+    inset-block-start: 96px;
+    align-self: start;
+    padding-block-end: 8px;
+  }
+  [data-lg-toc] {
+    display: block;
+  }
+  [data-lg-tocbtn] {
+    display: none !important;
+  }
+}
+
+@media print {
+  [data-lg-noprint] {
+    display: none !important;
+  }
+  [data-lg-grid] {
+    display: block;
+  }
+  [data-lg-prose] {
+    max-inline-size: none;
+    font-size: 10.5pt;
+    color: #000;
+  }
+  [data-lg-hero] {
+    background: #fff !important;
+    color: #000 !important;
+    border-block-end: 1px solid #000;
+  }
+  [data-lg-hero] * {
+    color: #000 !important;
+  }
+  [data-tok] {
+    background: #fff !important;
+    border-color: #000 !important;
+    color: #000 !important;
+  }
+  [data-lg-prose] h2 {
+    break-after: avoid;
+  }
+  [data-slot],
+  [data-flag] {
+    break-inside: avoid;
+  }
+  @page {
+    margin: 18mm;
+  }
+}
