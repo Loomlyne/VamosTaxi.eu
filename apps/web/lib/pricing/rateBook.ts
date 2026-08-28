@@ -212,7 +212,9 @@ export function mapSettingsSnapshot(
       null) as number | string | null,
     night_window_start: (doc.night_window_start ?? null) as string | null,
     night_window_end: (doc.night_window_end ?? null) as string | null,
-    night_window_tz: (doc.night_window_tz ?? null) as string | null,
+    night_window_tz: (typeof doc.night_window_tz === "string"
+      ? doc.night_window_tz
+      : "") as string,
     quote_lock_minutes: (doc.quote_lock_minutes ?? null) as number | null,
     checkout_window_minutes: (doc.checkout_window_minutes ??
       null) as number | null,

@@ -1,6 +1,19 @@
+import { execFileSync } from "node:child_process";
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
+import { resolveEngineVersion } from "./lib/version";
+
+function gitShortSha(): string | undefined {
+  try {
+    const sha = execFileSync("git", ["rev-parse", "--short", "HEAD"], {
+      encoding: "utf8",
+    }).trim();
+    return sha.length > 0 ? sha : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 // Points the plugin at the loader seam (D-14) rather than the default
 // `./i18n/request.ts` guess, so the path stays explicit as later plans add
@@ -8,6 +21,20 @@ import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const nextConfig: NextConfig = {
+  // Build-time pin for ENGINE_VERSION (plan 04-11). Read at request time
+  // from process.env.QUOTE_ENGINE_VERSION; never recomputed per request.
+  // CF_PAGES_COMMIT_SHA, then GITHUB_SHA, then git rev-parse --short HEAD.
+  // The `dev-` prefix on the fallback is what makes an unversioned deploy
+  // visible in a lock payload rather than indistinguishable from a real one.
+  env: {
+    QUOTE_ENGINE_VERSION: resolveEngineVersion({
+      cfPagesCommitSha: process.env.CF_PAGES_COMMIT_SHA,
+      githubSha: process.env.GITHUB_SHA,
+      gitSha: gitShortSha(),
+      buildTimeIso: new Date().toISOString(),
+    }),
+  },
+
   // Never optimise via a remote loader — no third-party CDN origin (D-31).
   // T-01-15: an empty remotePatterns means /_next/image can only ever
   // resolve a path under this origin's own public/ tree — it cannot be
