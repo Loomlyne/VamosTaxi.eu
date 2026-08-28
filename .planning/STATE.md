@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-08-28T13:37:09.140Z"
-last_activity: 2026-08-28 -- Phase 04 execution started
+last_updated: "2026-08-28T15:23:59.643Z"
+last_activity: 2026-08-28 -- Phase 5 execution started
 progress:
   total_phases: 11
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 98
-  completed_plans: 39
-  percent: 27
+  completed_plans: 47
+  percent: 36
 ---
 
 # Project State
@@ -23,14 +23,14 @@ See: .planning/PROJECT.md (updated 2026-08-17)
 **Core value:** A customer can book a fixed-price transfer in under a minute and trust that
 the driver will be there. If nothing else works, the booking funnel — quote, pay,
 confirmation — must.
-**Current focus:** Phase 04 — quote-pricing-engine
+**Current focus:** Phase 5 — public-surfaces-customer-accounts
 
 ## Current Position
 
-Phase: 04 (quote-pricing-engine) — EXECUTING
-Plan: 1 of 16
-Status: Executing Phase 04
-Last activity: 2026-08-28 -- Phase 04 execution started
+Phase: 5 (public-surfaces-customer-accounts) — EXECUTING
+Plan: 1 of 24
+Status: Executing Phase 5
+Last activity: 2026-08-28 -- Phase 5 execution started
 
 Progress: [████░░░░░░] 40%
 
