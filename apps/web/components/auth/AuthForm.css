@@ -1,0 +1,46 @@
+:root {
+  --vt-shadow-accent: none;
+}
+.vt-input--focus {
+  box-shadow: none;
+}
+
+[data-af] {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-inline-size: 420px;
+}
+
+[data-af] h1 {
+  margin: 0;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-heading-1);
+  color: var(--vt-text-primary);
+}
+
+[data-af] p {
+  margin: 0;
+  color: var(--vt-text-secondary);
+  font-size: var(--vt-body-md);
+}
+
+.vt-af-link {
+  all: unset;
+  box-sizing: border-box;
+  min-block-size: 44px;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  color: var(--vt-charcoal-900);
+  text-decoration: underline;
+  font-size: var(--vt-body-sm);
+}
+
+.sr-only {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}

@@ -1,0 +1,27 @@
+:root {
+  --vt-shadow-accent: none;
+}
+.vt-input--focus {
+  box-shadow: none;
+}
+
+[data-rf] {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-inline-size: 420px;
+}
+
+[data-rf] h1 {
+  margin: 0;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-heading-1);
+}
+
+.sr-only {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
