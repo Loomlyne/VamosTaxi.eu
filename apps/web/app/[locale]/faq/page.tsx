@@ -1,14 +1,14 @@
+import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { createNavigation } from "next-intl/navigation";
 import { routing } from "@/i18n/routing";
-import { CheckerMark } from "@/components/core";
+import { Button, CheckerMark } from "@/components/core";
 import { FaqGrid, ProseSection, type FaqItem } from "@/components/marketing";
 import { buildAlternates } from "@/lib/metadata";
 import "@/components/marketing/PageHero.css";
-import "@/components/marketing/FaqCard.css";
 
-const { Link } = createNavigation(routing);
+const { getPathname } = createNavigation(routing);
 
 const BOOKING_ITEMS: FaqItem[] = [
   {
@@ -76,17 +76,29 @@ const SERVICE_ITEMS: FaqItem[] = [
 
 const FAQ_ITEMS: FaqItem[] = [...BOOKING_ITEMS, ...PRICING_ITEMS, ...SERVICE_ITEMS];
 
-const headingStyle = {
+const wrapStyle: CSSProperties = {
+  maxInlineSize: 1200,
+  marginInline: "auto",
+  paddingBlock: "36px 8px",
+  paddingInline: "clamp(20px, 5vw, 56px)",
+};
+
+const headingStyle: CSSProperties = {
   margin: 0,
   marginBlockEnd: 8,
   fontFamily: "var(--vt-font-display)",
   fontSize: "var(--vt-heading-1)",
-  fontWeight: "var(--vt-weight-semibold)" as const,
+  fontWeight: "var(--vt-weight-semibold)",
   color: "var(--vt-text-primary)",
 };
 
-export async function generateMetadata(): Promise<Metadata> {
-  const tFaq = await getTranslations("faq");
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const tFaq = await getTranslations({ locale, namespace: "faq" });
   return {
     title: tFaq("frequently-asked-questions"),
     description: tFaq("the-things-travellers-ask-us-most-anything-with"),
@@ -103,6 +115,8 @@ export default async function FaqPage({
   setRequestLocale(locale);
   const tFaq = await getTranslations("faq");
   const tCommon = await getTranslations("common");
+  const contactHref = getPathname({ href: "/contact", locale });
+  const manageHref = getPathname({ href: "/manage-booking", locale });
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -119,17 +133,14 @@ export default async function FaqPage({
 
   return (
     <main>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       <header data-mh-hero="1">
         <div className="vt-mh-hero-inner">
           <div className="vt-mh-checker" aria-hidden="true">
             <CheckerMark size={56} opacity={0.9} />
           </div>
           <nav aria-label={tCommon("breadcrumb")} className="vt-mh-crumb">
-            <Link href="/">{tCommon("home")}</Link>
+            <a href={getPathname({ href: "/", locale })}>{tCommon("home")}</a>
             <span aria-hidden="true">/</span>
             <span>{tCommon("faq")}</span>
           </nav>
@@ -139,14 +150,7 @@ export default async function FaqPage({
         </div>
       </header>
 
-      <div
-        style={{
-          maxInlineSize: 1200,
-          marginInline: "auto",
-          paddingBlock: "36px 8px",
-          paddingInline: "clamp(20px, 5vw, 56px)",
-        }}
-      >
+      <div style={wrapStyle}>
         <ProseSection id="booking" labelledBy="booking-h">
           <h2 id="booking-h" style={headingStyle}>
             {tCommon("booking-reservations")}
@@ -219,8 +223,12 @@ export default async function FaqPage({
             </p>
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-            <Link href="/bookings">{tCommon("manage-a-booking")}</Link>
-            <Link href="/contact">{tCommon("contact-us")}</Link>
+            <Button size="md" variant="secondary" href={manageHref} iconEnd="arrow-right">
+              {tCommon("manage-a-booking")}
+            </Button>
+            <Button size="md" variant="ghost" href={contactHref}>
+              {tCommon("contact-us")}
+            </Button>
           </div>
         </div>
       </section>
