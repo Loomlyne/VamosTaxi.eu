@@ -27,7 +27,6 @@ export const LEGAL_LANGUAGES: Record<LegalPageId, readonly Locale[]> = {
  * Phase 5 public-surface inventory (D-01). `/sign-up` is listed here before
  * `PUBLIC_ROUTES` grows it in plan 05-16. `/coming-soon` maps to no requirement
  * id — flagged for the owner in plan 05-24, not silently built.
- * Become-a-partner stays in the inventory string; V1 does not port that page.
  */
 export const PHASE_5_ROUTES: readonly {
   path: PublicRoute | "/sign-up";
@@ -35,7 +34,6 @@ export const PHASE_5_ROUTES: readonly {
 }[] = [
   { path: "/", phase: 5 },
   { path: "/about", phase: 5 },
-  { path: "/become-a-partner", phase: 5 },
   { path: "/cancellation", phase: 5 },
   { path: "/contact", phase: 5 },
   { path: "/cookies", phase: 5 },

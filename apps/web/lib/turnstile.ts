@@ -17,7 +17,7 @@ const ALWAYS_PASS_SECRET = "1x0000000000000000000000000000AA";
 /** Cloudflare documented always-fail test secret — no account required. */
 const ALWAYS_FAIL_SECRET = "2x0000000000000000000000000000AA";
 
-export type TurnstileAction = "contact" | "partner-application";
+export type TurnstileAction = "contact";
 
 export type TurnstileResult = { ok: true } | { ok: false; codes: string[] };
 

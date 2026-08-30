@@ -33,7 +33,6 @@ export const PUBLIC_ROUTES = [
   "/",
   "/about",
   "/account",
-  "/become-a-partner",
   "/bookings",
   "/cancellation",
   "/checkout",

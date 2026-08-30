@@ -1,9 +1,9 @@
 // apps/web/lib/forms/schemas.ts
 //
-// SITE-04 zod contracts for POST /api/contact and /api/partner-application.
+// SITE-04 zod contract for POST /api/contact.
 // Every string `max()` matches a column check in
 // `packages/db/supabase/migrations/20260828000002_contact_forms.sql`.
-// Pages (05-17 / 05-19) reuse these so client and server cannot disagree.
+// The contact page (05-17) reuses this so client and server cannot disagree.
 
 import { z } from "zod";
 import { routing } from "@/i18n/routing";
@@ -23,19 +23,4 @@ export const contactSchema = z.object({
   idempotencyKey,
 });
 
-export const partnerApplicationSchema = z.object({
-  name: z.string().min(1).max(200),
-  city: z.string().min(1).max(200),
-  phone: z.string().min(1).max(40),
-  email: z.string().email(),
-  vehicle: z.string().min(1).max(200),
-  permit: z.string().min(1).max(200),
-  acceptedTerms: z.literal(true),
-  acceptedPrivacy: z.literal(true),
-  locale: localeSchema,
-  turnstileToken,
-  idempotencyKey,
-});
-
 export type ContactInput = z.infer<typeof contactSchema>;
-export type PartnerInput = z.infer<typeof partnerApplicationSchema>;

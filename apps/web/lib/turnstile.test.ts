@@ -65,7 +65,7 @@ describe("verifyTurnstile", () => {
       vi.fn(async () => jsonResponse({ success: true }, 502)),
     );
     const result = await verifyTurnstile(SECRET, TOKEN, {
-      action: "partner-application",
+      action: "contact",
       idempotencyKey: IDEMPOTENCY,
     });
     expect(result).toEqual({ ok: false, codes: ["unavailable"] });

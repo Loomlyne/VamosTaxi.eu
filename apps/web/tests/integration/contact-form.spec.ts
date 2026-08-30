@@ -1,4 +1,4 @@
-// SITE-04 contact + partner-application routes against a real next dev
+// SITE-04 contact route against a real next dev
 // and local Postgres. Fail loudly if the stack is down — never skip.
 // Queries go through a child process so this file never imports `postgres`
 // (D-10 / apps/web restricted-imports).
@@ -72,15 +72,6 @@ function contactRows(key: string): number {
   return Number(out);
 }
 
-function partnerRows(key: string): number {
-  const out = ownerQuery(
-    `const key = ${JSON.stringify(key)};
-     const rows = await sql\`select count(*)::text as n from public.partner_applications where idempotency_key = \${key}\`;
-     console.log(rows[0].n);`,
-  );
-  return Number(out);
-}
-
 function spawnDev(port: number, secret: string): ChildProcess {
   const env = { ...process.env };
   delete env.RESEND_API_KEY;
@@ -104,23 +95,6 @@ function contactPayload(overrides: Record<string, unknown> = {}) {
     phone: "+41000000000",
     bookingRef: "VT-26-0001",
     message: "Please call about a Zurich pickup.",
-    locale: "en",
-    turnstileToken: DUMMY_TOKEN,
-    idempotencyKey: crypto.randomUUID(),
-    ...overrides,
-  };
-}
-
-function partnerPayload(overrides: Record<string, unknown> = {}) {
-  return {
-    name: "Ada Partner",
-    city: "Zurich",
-    phone: "+41000000000",
-    email: "ada.partner@example.test",
-    vehicle: "Mercedes V-Class",
-    permit: "ZH-123",
-    acceptedTerms: true,
-    acceptedPrivacy: true,
     locale: "en",
     turnstileToken: DUMMY_TOKEN,
     idempotencyKey: crypto.randomUUID(),
@@ -224,24 +198,6 @@ test.describe("SITE-04 contact form API", () => {
     expect(body).toEqual({ ok: false, code: "invalid_input" });
     expect(JSON.stringify(body)).not.toMatch(/issues|flatten|fieldErrors/);
     expect(contactRows(payload.idempotencyKey as string)).toBe(0);
-    assertHygiene(text, payload.email as string);
-  });
-
-  test("partner application with acceptedPrivacy false is 400 and writes no row", async ({}, testInfo) => {
-    if (testInfo.project.name !== RUN_PROJECT) return;
-    const payload = partnerPayload({
-      email: `ada.${crypto.randomUUID()}@example.test`,
-      acceptedPrivacy: false,
-    });
-    const res = await fetch(`${passURL}/api/partner-application`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const text = await res.text();
-    expect(res.status).toBe(400);
-    expect(JSON.parse(text)).toEqual({ ok: false, code: "invalid_input" });
-    expect(partnerRows(payload.idempotencyKey as string)).toBe(0);
     assertHygiene(text, payload.email as string);
   });
 });

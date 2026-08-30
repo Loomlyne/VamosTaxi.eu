@@ -83,7 +83,6 @@ export default async function AboutPage({
           </ProseSection>
           <ProseSection id="close-h" labelledBy="close-h-title">
             <h2 id="close-h-title">{t("talk-to-us")}</h2>
-            <p>{t("drive-professionally-in-the-zurich-area-and-want")}</p>
             <p>
               <Link href="/">{tCommon("book-a-transfer")}</Link>
             </p>
