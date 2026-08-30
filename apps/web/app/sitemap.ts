@@ -8,6 +8,8 @@
 // Dev-only gallery routes (`app/[locale]/dev/components/**`) are never listed in
 // `PUBLIC_ROUTES`, so they are structurally absent here — not filtered out after the
 // fact, which would be one more place a future addition could forget the exclusion.
+// `/sign-up` is a distinct canonical URL in that array, not a `?mode=` parameter, so
+// it receives the same four language alternates as `/sign-in`.
 
 import type { MetadataRoute } from "next";
 import { routing } from "@/i18n/routing";
