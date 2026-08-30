@@ -93,6 +93,7 @@ export default async function CancellationPage({
           {tLegal("measured-from-the-pickup-time-in-your-confirmati")}{" "}
           <PendingSlot label="24 hours before pickup" />
         </p>
+        <div style={{ maxInlineSize: "100%", overflowInline: "auto" }}>
         <Table
           columns={columns}
           rowKey="slug"
@@ -117,6 +118,7 @@ export default async function CancellationPage({
             },
           ]}
         />
+        </div>
         <p>
           {tLegal("refunded-to-the-card-you-paid-with-or-take-the-f")}{" "}
           <a href="#vouchers">09</a>.
