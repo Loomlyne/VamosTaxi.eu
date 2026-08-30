@@ -54,7 +54,7 @@ export async function LegalPage({
   }
 
   return (
-    <main data-vt-legal={langs.join(" ")}>
+    <main>
       <header data-lg-hero="1">
         <div className="vt-legal-hero-pattern" aria-hidden="true" />
         <div className="vt-legal-hero-inner">

@@ -36,7 +36,7 @@ function localeHome(locale: string): string {
  * `PUBLIC_ROUTES`. Anything else (off-site, unknown, protocol-relative) falls
  * back to the locale home.
  */
-export function validateAuthRedirectTarget(
+function validateAuthRedirectTarget(
   raw: string | null,
   fallbackLocale: string,
 ): string {

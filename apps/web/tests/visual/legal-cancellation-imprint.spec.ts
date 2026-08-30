@@ -189,15 +189,13 @@ test.describe("Cancellation and imprint pages @component", () => {
   });
 
   test("data-vt-legal false four-language claim absent @component", async ({ page }) => {
-    await page.goto(baseURL + "/en/imprint", { waitUntil: "domcontentloaded", timeout: 60_000 });
-    await expect(page.locator("main")).toBeVisible({ timeout: 60_000 });
-    await expect(page.locator("main")).toHaveAttribute("data-vt-legal", "en de");
-    await page.goto(baseURL + "/fr/imprint", { waitUntil: "domcontentloaded", timeout: 60_000 });
-    await expect(page.locator("main")).toBeVisible({ timeout: 60_000 });
-    await expect(page.locator("main")).toHaveAttribute("data-vt-legal", "en de");
-    await page.goto(baseURL + "/en/cancellation", { waitUntil: "domcontentloaded", timeout: 60_000 });
-    await expect(page.locator("main")).toBeVisible({ timeout: 60_000 });
-    await expect(page.locator("main")).not.toHaveAttribute("data-vt-legal", "en de");
+    // 05-23: the mock `data-vt-legal` attribute is retired. I18N-08 is
+    // `pnpm check:legal-claims` on LEGAL_LANGUAGES, not an HTML attribute.
+    for (const path of ["/imprint", "/fr/imprint", "/cancellation"]) {
+      await page.goto(baseURL + path, { waitUntil: "domcontentloaded", timeout: 60_000 });
+      await expect(page.locator("main")).toBeVisible({ timeout: 60_000 });
+      await expect(page.locator("main")).not.toHaveAttribute("data-vt-legal");
+    }
   });
 
   test("rtl and English data-tok @component", async ({ page }) => {
