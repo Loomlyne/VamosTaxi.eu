@@ -1,0 +1,197 @@
+/* Shared FAQ disclosure card + grid.
+   Page mock (faq.dc.html) min-block-size 170px; home mock 190px.
+   Difference is --faq-card-min-block-size (default 170px), not a fork.
+   Column steps are the page mock's 760px / 1160px (SITE-06). */
+
+[data-faq-grid] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: 40px;
+  row-gap: 44px;
+  align-items: start;
+}
+
+[data-faq-card] {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-block-size: var(--faq-card-min-block-size, 170px);
+  padding: 31px 31px 34px;
+  border: 1px solid var(--vt-grey-300);
+  border-radius: 20px;
+  background: var(--vt-white);
+  transition: border-color var(--vt-dur-base) var(--vt-ease-standard);
+}
+
+[data-faq-card] h3 {
+  margin: 0;
+}
+
+[data-faq-card][data-open="0"]:hover {
+  border-color: var(--vt-charcoal-900);
+}
+
+/* Law 02: mock used --vt-yellow-600 (brown) on the open circle hover.
+   Circle stays full-strength --vt-yellow; hover affordance is the charcoal
+   border step the closed card already uses. No raw hex fallback. */
+[data-faq-card][data-open="1"]:hover {
+  border-color: var(--vt-charcoal-900);
+}
+
+[data-faq-toggle] {
+  all: unset;
+  box-sizing: border-box;
+  display: block;
+  inline-size: 100%;
+  min-block-size: 44px;
+  cursor: pointer;
+  font-family: var(--vt-font-display);
+  font-size: 24px;
+  font-weight: var(--vt-weight-semibold);
+  letter-spacing: -0.03em;
+  line-height: 1.35;
+  color: var(--vt-text-primary);
+  text-align: start;
+  text-wrap: pretty;
+}
+
+[data-faq-toggle]:focus-visible {
+  outline: none;
+  border-radius: 10px;
+  box-shadow: var(--vt-ring);
+}
+
+[data-faq-circle] {
+  position: absolute;
+  inset-inline-end: 30px;
+  inset-block-end: -25px;
+  inline-size: 50px;
+  block-size: 50px;
+  border-radius: 999px;
+  background: var(--vt-charcoal-900);
+  color: var(--vt-white);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background-color var(--vt-dur-fast) var(--vt-ease-standard),
+    transform var(--vt-dur-instant) var(--vt-ease-standard);
+}
+
+[data-faq-toggle]:hover [data-faq-circle] {
+  background: var(--vt-charcoal-800);
+}
+
+[data-faq-card][data-open="1"] [data-faq-circle] {
+  background: var(--vt-yellow);
+  color: var(--vt-charcoal-950);
+}
+
+[data-faq-card][data-open="1"] [data-faq-toggle]:hover [data-faq-circle] {
+  background: var(--vt-yellow);
+  color: var(--vt-charcoal-950);
+}
+
+[data-faq-toggle]:active [data-faq-circle] {
+  transform: translateY(1px);
+}
+
+[data-faq-chev] {
+  display: inline-flex;
+  transition: transform var(--vt-dur-base) var(--vt-ease-standard);
+}
+
+[data-faq-card][data-open="1"] [data-faq-chev] {
+  transform: rotate(180deg);
+}
+
+[data-faq-panel] {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition:
+    grid-template-rows var(--vt-dur-base) var(--vt-ease-standard),
+    visibility 0s linear var(--vt-dur-base);
+}
+
+[data-faq-card][data-open="1"] [data-faq-panel] {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition:
+    grid-template-rows var(--vt-dur-base) var(--vt-ease-standard),
+    visibility 0s;
+}
+
+[data-faq-inner] {
+  overflow: hidden;
+  min-block-size: 0;
+  padding-block-start: 26px;
+  opacity: 0;
+  transition: opacity var(--vt-dur-base) var(--vt-ease-standard);
+}
+
+[data-faq-card][data-open="1"] [data-faq-inner] {
+  opacity: 1;
+}
+
+[data-faq-a] {
+  margin: 0;
+  margin-block-end: 14px;
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-body-md);
+  line-height: 1.6;
+  color: var(--vt-text-secondary);
+  text-wrap: pretty;
+}
+
+[data-faq-a]:last-child {
+  margin-block-end: 0;
+}
+
+[data-faq-skel] {
+  border-radius: 8px;
+  background: var(--vt-grey-200);
+}
+
+[data-faq-skel="title"] {
+  block-size: 28px;
+  inline-size: 70%;
+  margin-block-end: 16px;
+}
+
+[data-faq-skel="line"] {
+  block-size: 14px;
+  inline-size: 100%;
+  margin-block-end: 10px;
+}
+
+[data-faq-empty] {
+  margin: 0;
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--vt-text-muted);
+  font-size: var(--vt-body-sm);
+}
+
+@media (min-width: 760px) {
+  [data-faq-grid] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1160px) {
+  [data-faq-grid] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-faq-card],
+  [data-faq-circle],
+  [data-faq-chev],
+  [data-faq-panel],
+  [data-faq-inner] {
+    transition: none;
+  }
+}
