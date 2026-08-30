@@ -10,6 +10,8 @@ import { PHONE_DISPLAY, PHONE_HREF } from "@/lib/contact-channels";
 import { Icon, Logo } from "../core";
 import { BrandSelect } from "./BrandSelect";
 import type { BrandSelectOption } from "./BrandSelect";
+import { SiteHeaderAccount } from "./SiteHeaderAccount";
+import type { SessionSnapshot } from "./SiteHeaderAccount";
 
 // Ported from `app/pages/SiteHeader.dc.html` (the full file). CLAUDE.md makes this
 // component mandatory on every public page and forbids hand-rolling a header anywhere;
@@ -28,14 +30,12 @@ import type { BrandSelectOption } from "./BrandSelect";
 // action. `cta={false}` drops the CTA on a page that already shows the booking card;
 // `hideAccount` drops the account control.
 //
-// NOT ported: the mock's signed-in branch (the avatar disc, its account menu, and the
-// notification bell with its per-notice read/handled state). All of it reads the browser
-// storage keys `vamosAuth` / `vamosNotices` directly — a mechanism this plan explicitly
-// prohibits under `components/shell/` and which Phase 2's Supabase Auth session replaces
-// wholesale. Porting it against a storage key that will not exist would
-// have been inventing a session, not porting one. Recorded in 01-13-SUMMARY.md's Known
-// Stubs and in `.planning/WINDOWS.md`; the signed-out control row below is what every
-// page in this phase actually renders.
+// Signed-in branch (avatar disc, account menu, Server-Action sign-out) shipped in
+// Phase 5 plan 05-20 via SiteHeaderAccount. The notification bell did not: every
+// notice in the mock is booking-attached and no booking or notification table exists
+// before Phase 7 (raised in plan 05-24). The verify-email notice shipped because
+// getUser() already carries that fact. The layout never reads the session, so public
+// pages keep static rendering; the signed-out control is the SSR default.
 
 const { Link } = createNavigation(routing);
 
@@ -78,6 +78,9 @@ export interface SiteHeaderProps {
   cur?: CurrencyCode;
   onLang?: (v: Locale) => void;
   onCur?: (v: CurrencyCode) => void;
+  /** Dev gallery / tests: stub the header account snapshot (no session fetch). */
+  accountSnapshot?: SessionSnapshot;
+  accountMenuOpen?: boolean;
 }
 
 /**
@@ -137,6 +140,8 @@ function SiteHeaderView({
   cur,
   onLang,
   onCur,
+  accountSnapshot,
+  accountMenuOpen,
 }: SiteHeaderViewProps) {
   const t = useTranslations("common");
   const tHeader = useTranslations("header");
@@ -274,10 +279,12 @@ function SiteHeaderView({
               i18nSkip
             />
             {showAccount ? (
-              <Link data-hd-acct="pill" href="/sign-in">
-                <Icon name="user" size={16} color="currentColor" />
-                <span>{accountLabel}</span>
-              </Link>
+              <SiteHeaderAccount
+                variant={variant}
+                signInLabel={accountLabel}
+                snapshot={accountSnapshot}
+                defaultMenuOpen={accountMenuOpen}
+              />
             ) : null}
             {showCta ? (
               <Link data-hd-cta="1" href="/#book">
@@ -319,10 +326,13 @@ function SiteHeaderView({
                 ) : null}
 
                 {showAccount ? (
-                  <Link data-hd-menuacct="1" href="/sign-in" role="menuitem">
-                    <Icon name="user" size={18} color="currentColor" />
-                    <span>{accountLabel}</span>
-                  </Link>
+                  <SiteHeaderAccount
+                    variant={variant}
+                    compact
+                    signInLabel={accountLabel}
+                    snapshot={accountSnapshot}
+                    defaultMenuOpen={accountMenuOpen}
+                  />
                 ) : null}
 
                 <div data-hd-mgroup="1">
