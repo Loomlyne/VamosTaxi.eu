@@ -1,0 +1,20 @@
+/* Page-level rhythm only. Sections own their internal layout. */
+
+[data-home] {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  overflow-x: clip;
+}
+
+[data-home] > [data-hero] {
+  flex: 0 0 auto;
+}
+
+[data-home] > [data-hiw],
+[data-home] > [data-svc-sec],
+[data-home] > [data-why],
+[data-home] > [data-rv],
+[data-home] > [data-home-faq] {
+  flex: 0 0 auto;
+}

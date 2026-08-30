@@ -106,10 +106,11 @@ export async function getContentStrings(
   keys: readonly string[],
 ): Promise<ContentStringRow[]> {
   const sql = publicSql(env);
+  const list = [...keys];
   const rows = await sql<ContentStringQueryRow[]>`
     select key, en, de, fr, ar, pending_value, non_translatable
       from public.content_strings
-     where key = any(${keys as string[]})
+     where key in ${sql(list)}
   `;
   return rows.map(mapContentString);
 }

@@ -2,6 +2,7 @@
 
 import "./SiteHeader.css";
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { createNavigation } from "next-intl/navigation";
 import { routing } from "@/i18n/routing";
@@ -153,28 +154,42 @@ function SiteHeaderView({
   const [floating, setFloating] = useState(false);
   const menuRootRef = useRef<HTMLDivElement | null>(null);
 
-  const variant: SiteHeaderVariant = variantProp === "overlay" ? "overlay" : "inverse";
+  const pathname = usePathname() ?? "";
+  const rest = pathname.replace(/^\/(de|fr|ar)(?=\/|$)/, "");
+  const isHome = rest === "" || rest === "/";
+  const variant: SiteHeaderVariant =
+    isHome || variantProp === "overlay" ? "overlay" : "inverse";
 
   // Only the overlay bar floats — the charcoal one is already sticky and solid.
+  // The booking card lives in the page body, below this header, so the observer
+  // waits until `[data-bookcard]` is in the document. Floating starts once that
+  // card leaves the viewport (the mock: the bar carries Book after you scroll
+  // past the widget).
   useEffect(() => {
     if (variant !== "overlay") {
       setFloating(false);
       return;
     }
-    let frame = 0;
-    const onScroll = () => {
-      if (frame) return;
-      frame = requestAnimationFrame(() => {
-        frame = 0;
-        const y = window.scrollY || document.documentElement.scrollTop || 0;
-        setFloating(y > 120);
-      });
+    let io: IntersectionObserver | null = null;
+    const mo = new MutationObserver(() => bind());
+    const bind = () => {
+      if (io) return;
+      const card = document.querySelector("[data-bookcard]");
+      if (!card || typeof IntersectionObserver === "undefined") return;
+      io = new IntersectionObserver(
+        ([entry]) => {
+          if (entry) setFloating(!entry.isIntersecting);
+        },
+        { threshold: 0 },
+      );
+      io.observe(card);
+      mo.disconnect();
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
+    bind();
+    if (!io) mo.observe(document.body, { childList: true, subtree: true });
     return () => {
-      if (frame) cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", onScroll);
+      mo.disconnect();
+      io?.disconnect();
     };
   }, [variant]);
 
@@ -204,7 +219,7 @@ function SiteHeaderView({
   // The mock's own rule, ported verbatim: home drops the CTA while its booking card is
   // on screen, and the floating overlay bar carries it again once you have scrolled past
   // that card, so the way to book is never off the page.
-  const showCta = ((cta ?? variant !== "overlay") !== false) || floating;
+  const showCta = ((cta ?? (isHome ? false : variant !== "overlay")) !== false) || floating;
   const showAccount = !hideAccount;
   const accountLabel = signInLabel || t("sign-in");
   const bookLabel = t("book-a-transfer");

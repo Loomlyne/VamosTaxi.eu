@@ -1,7 +1,7 @@
 "use client";
 
+import { type ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
 
 /**
  * The composition seam `apps/web/app/[locale]/layout.tsx` renders. It exists for exactly
