@@ -1,0 +1,86 @@
+/* Imprint definition list — mock [data-dl-*], logical properties (csstools/use-logical). */
+[data-dl] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin-block: 2px 18px;
+  margin-inline: 0;
+  border-block-start: 1px solid var(--vt-grey-200);
+}
+
+[data-dl-r] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px 24px;
+  padding-block: 14px;
+  padding-inline: 0;
+  border-block-end: 1px solid var(--vt-grey-200);
+}
+
+[data-dl-k] {
+  margin: 0;
+  font-size: var(--vt-body-sm);
+  font-weight: var(--vt-weight-semibold);
+  color: var(--vt-text-primary);
+}
+
+[data-dl-v] {
+  margin: 0;
+  min-inline-size: 0;
+  font-size: var(--vt-body-sm);
+  line-height: var(--vt-body-leading);
+  color: var(--vt-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+[data-dl-v] [data-tok] {
+  white-space: normal;
+}
+
+/* Mock: @media (min-width: 620px). Viewport width, not container inline-size. */
+@media (min-width: 620px) {
+  [data-dl-r] {
+    grid-template-columns: 230px minmax(0, 1fr);
+  }
+}
+
+.vt-imprint-cta {
+  margin-block-start: 24px;
+  background: var(--vt-bg-surface);
+  border: 1px solid var(--vt-border-subtle);
+  border-radius: var(--vt-radius-lg);
+  box-shadow: var(--vt-shadow-sm);
+  padding: clamp(24px, 3vw, 36px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 24px 40px;
+}
+
+.vt-imprint-cta h2 {
+  margin-block: 0 8px;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-heading-2);
+  line-height: var(--vt-heading-leading);
+  letter-spacing: var(--vt-heading-tracking);
+  font-weight: var(--vt-weight-semibold);
+  color: var(--vt-text-primary);
+}
+
+.vt-imprint-cta p {
+  margin: 0;
+  font-size: var(--vt-body-md);
+  line-height: var(--vt-body-leading);
+  color: var(--vt-text-secondary);
+  max-inline-size: 52ch;
+}
+
+.vt-imprint-cta__copy {
+  flex: 1 1 320px;
+  min-inline-size: 0;
+}
+
+.vt-imprint-cta__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
