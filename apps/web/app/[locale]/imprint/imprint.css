@@ -25,12 +25,19 @@
 
 [data-dl-v] {
   margin: 0;
+  min-inline-size: 0;
   font-size: var(--vt-body-sm);
   line-height: var(--vt-body-leading);
   color: var(--vt-text-secondary);
+  overflow-wrap: anywhere;
 }
 
-@media (min-inline-size: 620px) {
+[data-dl-v] [data-tok] {
+  white-space: normal;
+}
+
+/* Mock: @media (min-width: 620px). Viewport width, not container inline-size. */
+@media (min-width: 620px) {
   [data-dl-r] {
     grid-template-columns: 230px minmax(0, 1fr);
   }
