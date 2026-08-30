@@ -9,6 +9,7 @@ import { join } from "node:path";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 import deMessages from "../../i18n/messages/de.json";
 
+const RUN_PROJECT = "component-1440";
 const MAIL_URL = "http://127.0.0.1:54324";
 const PORT = 4250;
 const PASSWORD = "password1";
@@ -37,15 +38,21 @@ function ownerQuery(sqlJs: string): string {
            await sql.end({ timeout: 2 });
          }`,
       ],
-      { encoding: "utf8", cwd: DB_ROOT },
-    ).trim();
+      {
+        encoding: "utf8",
+        cwd: DB_ROOT,
+        env: { ...process.env, FORCE_COLOR: "0", NO_COLOR: "1", NODE_DISABLE_COLORS: "1" },
+      },
+    )
+      .replace(/\u001b\[[0-9;]*m/g, "")
+      .trim();
   } catch {
     throw new Error(STACK_DOWN);
   }
 }
 
 function requireLocalDb(): void {
-  const out = ownerQuery(`const rows = await sql\`select 1 as ok\`; console.log(rows[0].ok);`);
+  const out = ownerQuery(`const rows = await sql\`select 1 as ok\`; console.log(String(rows[0].ok));`);
   if (out !== "1") {
     throw new Error(STACK_DOWN);
   }
@@ -166,6 +173,7 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
   test.describe.configure({ mode: "serial" });
 
   test.beforeAll(async ({}, testInfo) => {
+    if (testInfo.project.name !== RUN_PROJECT) return;
     testInfo.setTimeout(180_000);
     const stack = requireLocalStack();
     supabaseUrl = stack.apiUrl;
@@ -182,6 +190,10 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
       },
     });
     await waitForNextServer(baseURL);
+  });
+
+  test.beforeEach(({}, testInfo) => {
+    test.skip(testInfo.project.name !== RUN_PROJECT);
   });
 
   test.afterAll(() => {

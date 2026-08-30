@@ -10,7 +10,7 @@ import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness
 const RUN_PROJECT = "component-1440";
 const LIVE_PORT = 4260;
 const DEAD_PORT = 4261;
-const OWNER_CS = "postgres://postgres:***@127.0.0.1:54322/postgres";
+const OWNER_CS = "postgres://postgres:postgres@127.0.0.1:54322/postgres";
 const DEAD_CS = "postgres://vamos_public:***@127.0.0.1:1/postgres";
 const MAIN_NEXT = join("/Users/koss/Developer/VamosTaxi.eu/apps/web/node_modules/.bin/next");
 const NEXT = existsSync(NEXT_BIN) ? NEXT_BIN : MAIN_NEXT;
@@ -50,15 +50,21 @@ function ownerQuery(sqlJs: string): string {
            await sql.end({ timeout: 2 });
          }`,
       ],
-      { encoding: "utf8", cwd: DB_ROOT },
-    ).trim();
+      {
+        encoding: "utf8",
+        cwd: DB_ROOT,
+        env: { ...process.env, FORCE_COLOR: "0", NO_COLOR: "1", NODE_DISABLE_COLORS: "1" },
+      },
+    )
+      .replace(/\u001b\[[0-9;]*m/g, "")
+      .trim();
   } catch {
     throw new Error("Local stack is not running. Run `pnpm db:start && pnpm db:reset`.");
   }
 }
 
 function requireLocalDb(): void {
-  const out = ownerQuery(`const rows = await sql\`select 1 as ok\`; console.log(rows[0].ok);`);
+  const out = ownerQuery(`const rows = await sql\`select 1 as ok\`; console.log(String(rows[0].ok));`);
   if (out !== "1") {
     throw new Error("Local stack is not running. Run `pnpm db:start && pnpm db:reset`.");
   }
@@ -88,11 +94,7 @@ test.describe("home content SITE-01", () => {
     liveURL = `http://localhost:${LIVE_PORT}`;
     deadURL = `http://localhost:${DEAD_PORT}`;
     liveServer = spawnDev(LIVE_PORT);
-    deadServer = spawnDev(DEAD_PORT, {
-      WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE: DEAD_CS,
-    });
     await waitForNextServer(liveURL, 180_000);
-    await waitForNextServer(deadURL, 180_000);
   });
 
   test.afterAll(() => {
@@ -112,9 +114,10 @@ test.describe("home content SITE-01", () => {
   test("unpublished review does not render", async ({ page }, testInfo) => {
     if (testInfo.project.name !== RUN_PROJECT) return;
     ownerQuery(`
+      const name = ${JSON.stringify(UNPUBLISHED_NAME)};
       await sql\`
         insert into public.reviews (external_ref, source, author_name, author_role, body, rating, route_label, published, sort_order)
-        values ('rv-unpublished-05-18', 'manual', ${JSON.stringify(UNPUBLISHED_NAME)}, 'test', 'should not render', 1, 'nowhere', false, 99)
+        values ('rv-unpublished-05-18', 'manual', \${name}, 'test', 'should not render', 1, 'nowhere', false, 99)
         on conflict (external_ref) do update set published = false, author_name = excluded.author_name
       \`;
     `);
@@ -173,6 +176,13 @@ test.describe("home content SITE-01", () => {
 
   test("unreachable database yields 200 and designed error state", async ({ page }, testInfo) => {
     if (testInfo.project.name !== RUN_PROJECT) return;
+    testInfo.setTimeout(240_000);
+    killServer(liveServer);
+    liveServer = null;
+    deadServer = spawnDev(DEAD_PORT, {
+      WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE: DEAD_CS,
+    });
+    await waitForNextServer(deadURL, 180_000);
     const res = await page.goto(`${deadURL}/dev/home/reviews?live=1`, { timeout: 60_000 });
     expect(res?.status()).toBe(200);
     await expect(page.locator("[data-chrome='1']")).toBeVisible();
