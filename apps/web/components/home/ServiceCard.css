@@ -1,7 +1,7 @@
 /* Law 01: the mock's shine is a WebGL2 specular edge that bleeds 20px past
-   the media block (a coloured glow). Substituted here as a pointer-tracked
-   radial fill + border step. No coloured box-shadow, no filter:blur, no
-   halo outside the border box. --vt-shadow-accent stays none. */
+ * the media block (a coloured glow). Substituted here as a pointer-tracked
+ * radial fill + border step. No coloured box-shadow, no blur filter, no
+ * halo outside the border box. --vt-shadow-accent stays none. */
 :root {
   --vt-shadow-accent: none;
 }

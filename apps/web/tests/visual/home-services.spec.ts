@@ -64,6 +64,10 @@ test.describe("Home services @component", () => {
       cwd: WEB_ROOT,
       stdio: "ignore",
       detached: true,
+      env: {
+        ...process.env,
+        TEST_DIST_DIR: `.next-home-services-${port}`,
+      },
     });
     await waitForNextServer(baseURL);
   });

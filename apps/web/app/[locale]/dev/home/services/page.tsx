@@ -1,5 +1,9 @@
-import { setRequestLocale } from "next-intl/server";
-import { ServiceCard, type ServiceCardPreview, type ServiceCardState } from "@/components/home/ServiceCard";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import {
+  ServiceCard,
+  type ServiceCardPreview,
+  type ServiceCardState,
+} from "@/components/home/ServiceCard";
 import { Services } from "@/components/home/Services";
 
 const CARD_STATES: ServiceCardState[] = ["default", "selected", "disabled", "loading"];
@@ -13,6 +17,8 @@ export default async function HomeServicesGalleryPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const tServices = await getTranslations("services");
+  const copy = tServices("fixed-price-rides-to-and-from-the-airport-timed");
 
   return (
     <main>
@@ -32,7 +38,7 @@ export default async function HomeServicesGalleryPage({
               state={state}
               accent={state === "selected"}
             >
-              Fixed-price rides to and from the airport, timed to your flight.
+              {copy}
             </ServiceCard>
           </section>
         )),
@@ -52,7 +58,7 @@ export default async function HomeServicesGalleryPage({
               tone={tone}
               preview={preview}
             >
-              Fixed-price rides to and from the airport, timed to your flight.
+              {copy}
             </ServiceCard>
           </section>
         )),
