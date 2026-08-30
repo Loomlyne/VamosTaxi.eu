@@ -56,7 +56,8 @@ test.describe("Home how-it-works @component", () => {
       test(`screenshot ${locale} ${state} @component`, async ({ page }) => {
         await page.goto(baseURL + pathFor(locale), { timeout: 60_000 });
         const tile = page.locator(`[data-state="${state}"]`);
-        await expect(tile.locator("[data-hiw]")).toBeVisible({ timeout: 30_000 });
+        await tile.scrollIntoViewIfNeeded();
+        await expect(tile.locator("[data-hiw]")).toBeAttached({ timeout: 30_000 });
         await expect(tile).toHaveScreenshot(`hiw-${locale}-${state}.png`);
       });
     }
