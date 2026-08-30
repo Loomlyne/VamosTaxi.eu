@@ -190,7 +190,9 @@ export type Database = {
           dropoff_place_id: string | null
           dropoff_text: string
           estimated_duration_minutes: number | null
+          flight_checked_at: string | null
           flight_no: string | null
+          flight_time_source: string | null
           id: string
           leg_seq: number
           note: string
@@ -221,7 +223,9 @@ export type Database = {
           dropoff_place_id?: string | null
           dropoff_text: string
           estimated_duration_minutes?: number | null
+          flight_checked_at?: string | null
           flight_no?: string | null
+          flight_time_source?: string | null
           id?: string
           leg_seq: number
           note?: string
@@ -252,7 +256,9 @@ export type Database = {
           dropoff_place_id?: string | null
           dropoff_text?: string
           estimated_duration_minutes?: number | null
+          flight_checked_at?: string | null
           flight_no?: string | null
+          flight_time_source?: string | null
           id?: string
           leg_seq?: number
           note?: string
@@ -730,6 +736,45 @@ export type Database = {
           },
         ]
       }
+      contact_submissions: {
+        Row: {
+          booking_ref: string
+          created_at: string
+          email: string
+          handled_at: string | null
+          id: string
+          idempotency_key: string
+          locale: string
+          message: string
+          name: string
+          phone: string
+        }
+        Insert: {
+          booking_ref?: string
+          created_at?: string
+          email: string
+          handled_at?: string | null
+          id?: string
+          idempotency_key: string
+          locale?: string
+          message: string
+          name: string
+          phone?: string
+        }
+        Update: {
+          booking_ref?: string
+          created_at?: string
+          email?: string
+          handled_at?: string | null
+          id?: string
+          idempotency_key?: string
+          locale?: string
+          message?: string
+          name?: string
+          phone?: string
+        }
+        Relationships: []
+      }
       content_strings: {
         Row: {
           ar: string | null
@@ -777,6 +822,8 @@ export type Database = {
           id: number
           payment_id: number
           redeemed_at: string
+          released_at: string | null
+          released_reason: string | null
         }
         Insert: {
           booking_id: string
@@ -785,6 +832,8 @@ export type Database = {
           id?: never
           payment_id: number
           redeemed_at?: string
+          released_at?: string | null
+          released_reason?: string | null
         }
         Update: {
           booking_id?: string
@@ -793,6 +842,8 @@ export type Database = {
           id?: never
           payment_id?: number
           redeemed_at?: string
+          released_at?: string | null
+          released_reason?: string | null
         }
         Relationships: [
           {
@@ -1022,6 +1073,54 @@ export type Database = {
           },
         ]
       }
+      partner_applications: {
+        Row: {
+          accepted_privacy: boolean
+          accepted_terms: boolean
+          city: string
+          created_at: string
+          email: string
+          handled_at: string | null
+          id: string
+          idempotency_key: string
+          locale: string
+          name: string
+          permit: string
+          phone: string
+          vehicle: string
+        }
+        Insert: {
+          accepted_privacy: boolean
+          accepted_terms: boolean
+          city?: string
+          created_at?: string
+          email: string
+          handled_at?: string | null
+          id?: string
+          idempotency_key: string
+          locale?: string
+          name: string
+          permit?: string
+          phone?: string
+          vehicle?: string
+        }
+        Update: {
+          accepted_privacy?: boolean
+          accepted_terms?: boolean
+          city?: string
+          created_at?: string
+          email?: string
+          handled_at?: string | null
+          id?: string
+          idempotency_key?: string
+          locale?: string
+          name?: string
+          permit?: string
+          phone?: string
+          vehicle?: string
+        }
+        Relationships: []
+      }
       price_snapshot_legs: {
         Row: {
           booking_leg_id: string | null
@@ -1085,9 +1184,11 @@ export type Database = {
           pax: number
           policy: Json
           quote_id: string
+          quote_lock_expires_at: string
           rate_version_id: number
           rate_version_is_live: boolean
           settings_version_id: number
+          shown_alternatives: Json
           source: string
           subtotal_rappen: number | null
           supersedes_id: number | null
@@ -1115,9 +1216,11 @@ export type Database = {
           pax: number
           policy: Json
           quote_id: string
+          quote_lock_expires_at: string
           rate_version_id: number
           rate_version_is_live: boolean
           settings_version_id: number
+          shown_alternatives?: Json
           source?: string
           subtotal_rappen?: number | null
           supersedes_id?: number | null
@@ -1145,9 +1248,11 @@ export type Database = {
           pax?: number
           policy?: Json
           quote_id?: string
+          quote_lock_expires_at?: string
           rate_version_id?: number
           rate_version_is_live?: boolean
           settings_version_id?: number
+          shown_alternatives?: Json
           source?: string
           subtotal_rappen?: number | null
           supersedes_id?: number | null
@@ -1310,18 +1415,24 @@ export type Database = {
           iata: string | null
           id: string
           slug: string
+          tags: string[]
+          zone_type: string
         }
         Insert: {
           active?: boolean
           iata?: string | null
           id?: string
           slug: string
+          tags?: string[]
+          zone_type?: string
         }
         Update: {
           active?: boolean
           iata?: string | null
           id?: string
           slug?: string
+          tags?: string[]
+          zone_type?: string
         }
         Relationships: []
       }
@@ -1409,6 +1520,7 @@ export type Database = {
           policy_doc_version: string | null
           quote_lock_minutes: number | null
           round_trip_discount_percent: number | null
+          service_area_geojson: Json | null
           slug: string
         }
         Insert: {
@@ -1431,6 +1543,7 @@ export type Database = {
           policy_doc_version?: string | null
           quote_lock_minutes?: number | null
           round_trip_discount_percent?: number | null
+          service_area_geojson?: Json | null
           slug: string
         }
         Update: {
@@ -1453,6 +1566,7 @@ export type Database = {
           policy_doc_version?: string | null
           quote_lock_minutes?: number | null
           round_trip_discount_percent?: number | null
+          service_area_geojson?: Json | null
           slug?: string
         }
         Relationships: []
@@ -1547,6 +1661,8 @@ export type Database = {
           id: number
           kind: Database["public"]["Enums"]["surcharge_kind"]
           percent: number | null
+          predicate: Json
+          quantity_source: string | null
           rate_version_id: number
         }
         Insert: {
@@ -1557,6 +1673,8 @@ export type Database = {
           id?: never
           kind?: Database["public"]["Enums"]["surcharge_kind"]
           percent?: number | null
+          predicate?: Json
+          quantity_source?: string | null
           rate_version_id: number
         }
         Update: {
@@ -1567,6 +1685,8 @@ export type Database = {
           id?: never
           kind?: Database["public"]["Enums"]["surcharge_kind"]
           percent?: number | null
+          predicate?: Json
+          quantity_source?: string | null
           rate_version_id?: number
         }
         Relationships: [
@@ -1700,7 +1820,43 @@ export type Database = {
     }
     Functions: {
       __seed_apply: { Args: never; Returns: undefined }
+      create_quote_snapshot: {
+        Args: {
+          p_bags: number
+          p_booking_id?: string
+          p_coupon_code?: string
+          p_coupon_id?: number
+          p_discount_rappen?: unknown
+          p_display_currency?: Database["public"]["Enums"]["display_currency"]
+          p_distance_km?: number
+          p_duration_min?: number
+          p_engine_version: string
+          p_legs: Json
+          p_lines: Json
+          p_lock_exp: string
+          p_pax: number
+          p_policy: Json
+          p_quote_id: string
+          p_rate_version_id: number
+          p_settings_version_id: number
+          p_shown_alternatives: Json
+          p_source?: string
+          p_subtotal_rappen?: unknown
+          p_surcharges_rappen?: unknown
+          p_total_rappen?: unknown
+          p_vehicle_class_id: string
+        }
+        Returns: number
+      }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      evaluate_coupon: {
+        Args: {
+          p_code: string
+          p_contact_email?: string
+          p_customer_id?: string
+        }
+        Returns: Json
+      }
       manage_booking_cancel: {
         Args: { p_leg_seq?: number; p_token_hash: string }
         Returns: {
@@ -1709,6 +1865,12 @@ export type Database = {
         }[]
       }
       next_booking_reference: { Args: never; Returns: string }
+      quote_lock_deadline: {
+        Args: { p_settings_version_id: number }
+        Returns: string
+      }
+      quote_rate_book: { Args: { p_prefer_draft?: boolean }; Returns: Json }
+      quote_settings_version: { Args: { p_as_of: string }; Returns: Json }
       record_consent: {
         Args: {
           p_analytics: boolean
@@ -1723,6 +1885,37 @@ export type Database = {
           p_user_agent?: string
         }
         Returns: undefined
+      }
+      submit_contact_message: {
+        Args: {
+          p_booking_ref: string
+          p_email: string
+          p_idempotency_key: string
+          p_locale: string
+          p_message: string
+          p_name: string
+          p_phone: string
+        }
+        Returns: {
+          created: boolean
+          id: string
+        }[]
+      }
+      submit_partner_application: {
+        Args: {
+          p_city: string
+          p_email: string
+          p_idempotency_key: string
+          p_locale: string
+          p_name: string
+          p_permit: string
+          p_phone: string
+          p_vehicle: string
+        }
+        Returns: {
+          created: boolean
+          id: string
+        }[]
       }
     }
     Enums: {

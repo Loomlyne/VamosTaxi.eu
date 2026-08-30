@@ -9,12 +9,14 @@
 --   F-12 / T-02-44 — a priced row cannot be inserted straight into a non-draft version, out
 --     of band from any version transition (tg_pricing_row_frozen on BEFORE INSERT, case i).
 --
+-- Plan 04-04 extended the assertion count by two: empty-predicate draft→live refusal + restore path.
+--
 -- Run as `postgres` (the admin-only RLS restriction on this UPDATE — `rate_versions_
 -- admin_write` — is Plan 02-08's job; this file proves the trigger itself fires regardless of
 -- caller, per the review pass's T-02-14 finding). `request.jwt.claims.sub` is set to a real
 -- staff/admin uuid throughout so `app.uid()` stamps a real `published_by`.
 begin;
-select plan(16);
+select plan(18);
 
 -- Fixtures ------------------------------------------------------------------------------
 insert into auth.users (id, email, aud, role, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -74,10 +76,34 @@ update public.surcharges set percent = 10.00
  where rate_version_id = (select id from public.rate_versions where slug = 'test-matrix')
    and code = 'night';
 
--- (c) Fully priced: draft->live succeeds and stamps attribution. -------------------------
+-- Plan 04-04 (D-09 fourth gate): fixture surcharges need a non-empty predicate before
+-- case (c), or the new clause refuses the transition this test exists to prove.
+update public.surcharges
+   set predicate = '{"kind":"always"}'::jsonb
+ where rate_version_id = (select id from public.rate_versions where slug = 'test-matrix');
+
+-- (c−) Empty predicate refuses draft→live even when every amount is priced (04-04).
+update public.surcharges
+   set predicate = '{}'::jsonb
+ where rate_version_id = (select id from public.rate_versions where slug = 'test-matrix')
+   and code = 'night';
+select throws_ok(
+  $$ update public.rate_versions set status = 'live' where slug = 'test-matrix' $$,
+  '23001',
+  null,
+  'draft->live refused while an active surcharge has empty predicate (04-04 D-09 gate)'
+);
+
+-- Restore predicate so case (c) can publish.
+update public.surcharges
+   set predicate = '{"kind":"always"}'::jsonb
+ where rate_version_id = (select id from public.rate_versions where slug = 'test-matrix')
+   and code = 'night';
+
+-- (c) Fully priced with predicate: draft->live succeeds and stamps attribution. ----------
 select lives_ok(
   $$ update public.rate_versions set status = 'live' where slug = 'test-matrix' $$,
-  'draft->live succeeds once every priced row is complete'
+  'draft->live succeeds once every priced row is complete (and predicates are set)'
 );
 select isnt(
   (select published_at from public.rate_versions where slug = 'test-matrix'),
@@ -88,6 +114,14 @@ select is(
   (select published_by from public.rate_versions where slug = 'test-matrix'),
   'b0000000-0000-0000-0000-000000000001'::uuid,
   'published_by is stamped from app.uid(), matching the admin session'
+);
+
+-- (c+) 04-04 second new assertion: status is live after the empty-predicate refuse path
+-- was restored and case (c) published — pairs with the throws_ok above without a second publish.
+select is(
+  (select status::text from public.rate_versions where slug = 'test-matrix'),
+  'live',
+  'draft->live succeeded again once the empty predicate was restored (04-04)'
 );
 
 -- (i) F-12 — a priced row cannot be INSERTed straight into a version that is already live. --
@@ -129,8 +163,8 @@ select throws_ok(
 );
 select throws_ok(
   $$
-    insert into public.surcharges (rate_version_id, code, kind)
-    select rv.id, 'airport_pickup', 'included'
+    insert into public.surcharges (rate_version_id, code, kind, predicate)
+    select rv.id, 'airport_pickup', 'included', '{"kind":"always"}'::jsonb
       from public.rate_versions rv where rv.slug = 'test-matrix'
   $$,
   '23001',

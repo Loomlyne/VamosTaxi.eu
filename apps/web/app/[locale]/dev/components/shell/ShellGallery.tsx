@@ -2,6 +2,7 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import { SiteFooter, SiteHeader } from "@/components/shell";
+import type { SessionSnapshot } from "@/components/shell/SiteHeaderAccount";
 
 // The shell-category states gallery (D-28). Renders both `SiteHeader` variants, the two
 // prop-driven header states (`cta={false}`, `hideAccount`), and `SiteFooter` — with its
@@ -52,9 +53,17 @@ const tileStyle: CSSProperties = {
   borderRadius: "8px",
 };
 
-function Tile({ caption, children }: { caption: string; children: ReactNode }) {
+function Tile({
+  caption,
+  tile,
+  children,
+}: {
+  caption: string;
+  tile?: string;
+  children: ReactNode;
+}) {
   return (
-    <section style={sectionStyle}>
+    <section style={sectionStyle} data-shell-tile={tile}>
       <p style={captionStyle} dir="ltr">
         {caption}
       </p>
@@ -77,6 +86,18 @@ function Filler({ ground }: { ground?: boolean }) {
     />
   );
 }
+
+const SIGNED_IN: SessionSnapshot = {
+  signedIn: true,
+  displayName: "Ada Lovelace",
+  emailConfirmed: true,
+};
+
+const UNCONFIRMED: SessionSnapshot = {
+  signedIn: true,
+  displayName: "Ada Lovelace",
+  emailConfirmed: false,
+};
 
 export function ShellGallery() {
   return (
@@ -113,6 +134,54 @@ export function ShellGallery() {
       <Tile caption="SiteHeader — controlled (lang/cur/onLang/onCur supplied): reports a choice instead of changing the page. Fixed here to French / EUR.">
         <SiteHeader lang="fr" cur="EUR" onLang={() => {}} onCur={() => {}} />
         <Filler />
+      </Tile>
+
+      <Tile
+        tile="signed-in-inverse-closed"
+        caption="SiteHeader — signed in, email confirmed, inverse, menu closed (stubbed snapshot)."
+      >
+        <SiteHeader accountSnapshot={SIGNED_IN} />
+        <Filler />
+      </Tile>
+
+      <Tile
+        tile="signed-in-inverse-open"
+        caption="SiteHeader — signed in, email confirmed, inverse, account menu open."
+      >
+        <SiteHeader accountSnapshot={SIGNED_IN} accountMenuOpen defaultNarrowOpen />
+        <Filler />
+      </Tile>
+
+      <Tile
+        tile="signed-in-inverse-unconfirmed"
+        caption="SiteHeader — signed in, email unconfirmed, inverse, verify notice visible."
+      >
+        <SiteHeader accountSnapshot={UNCONFIRMED} accountMenuOpen defaultNarrowOpen />
+        <Filler />
+      </Tile>
+
+      <Tile
+        tile="signed-in-overlay-closed"
+        caption="SiteHeader — signed in, email confirmed, overlay, menu closed."
+      >
+        <SiteHeader variant="overlay" accountSnapshot={SIGNED_IN} />
+        <Filler ground />
+      </Tile>
+
+      <Tile
+        tile="signed-in-overlay-open"
+        caption="SiteHeader — signed in, email confirmed, overlay, account menu open."
+      >
+        <SiteHeader variant="overlay" accountSnapshot={SIGNED_IN} accountMenuOpen defaultNarrowOpen />
+        <Filler ground />
+      </Tile>
+
+      <Tile
+        tile="signed-in-overlay-unconfirmed"
+        caption="SiteHeader — signed in, email unconfirmed, overlay, verify notice visible."
+      >
+        <SiteHeader variant="overlay" accountSnapshot={UNCONFIRMED} accountMenuOpen defaultNarrowOpen />
+        <Filler ground />
       </Tile>
 
       <section style={sectionStyle}>

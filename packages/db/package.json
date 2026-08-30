@@ -24,11 +24,12 @@
     "push": "supabase db push --include-seed",
     "link": "supabase link --project-ref ${SUPABASE_PROJECT_ID:-yaumjzvylngfjhtuffqs}",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "node -e \"console.log('@vamos/db unit')\" && vitest run test/local/identity-contract.test.ts",
     "test:local": "vitest run test/local",
     "test:deployed": "vitest run test/deployed",
     "mutation-gate": "node scripts/mutation-gate.mjs",
-    "local-roles": "node scripts/local-role-passwords.mjs"
+    "local-roles": "node scripts/local-role-passwords.mjs",
+    "probe:now": "node scripts/probe-now-frozen.mjs"
   },
   "dependencies": {
     "jose": "6.2.10",

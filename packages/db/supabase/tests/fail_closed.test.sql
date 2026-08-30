@@ -27,8 +27,9 @@ insert into public.settings_versions (slug, label) values ('fc-policy', 'fail_cl
 
 insert into auth.users (id, email, aud, role, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values ('d0000000-0000-0000-0000-00000000000a', 'fc-a@example.test', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now());
-insert into public.customers (user_id, full_name, email)
-values ('d0000000-0000-0000-0000-00000000000a', 'Customer FC', 'fc-cust-a@example.test');
+update public.customers
+   set full_name = 'Customer FC', email = 'fc-cust-a@example.test'
+ where user_id = 'd0000000-0000-0000-0000-00000000000a';
 
 insert into public.bookings (contact_name, contact_email, customer_id, note)
 select 'Booking FC', 'fc-booking-a@example.test', c.id, 'Dispatcher eyes only'

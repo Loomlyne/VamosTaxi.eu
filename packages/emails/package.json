@@ -2,6 +2,19 @@
   "name": "@vamos/emails",
   "private": true,
   "version": "0.0.0",
-  "description": "Resend transactional email templates for Vamos Taxi, four languages.",
-  "main": "index.ts"
+  "type": "module",
+  "description": "Transactional email renderers for Vamos Taxi, four languages.",
+  "exports": {
+    ".": "./index.ts",
+    "./auth": "./src/auth.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "26.2.0",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
+  }
 }

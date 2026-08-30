@@ -19,9 +19,12 @@ values
   ('b0000000-0000-0000-0000-00000000000a', 'bcr-a@example.test', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now()),
   ('b0000000-0000-0000-0000-00000000000b', 'bcr-b@example.test', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now());
 
-insert into public.customers (user_id, full_name, email)
-values ('b0000000-0000-0000-0000-00000000000a', 'Customer A', 'bcr-cust-a@example.test'),
-       ('b0000000-0000-0000-0000-00000000000b', 'Customer B', 'bcr-cust-b@example.test');
+update public.customers
+   set full_name = 'Customer A', email = 'bcr-cust-a@example.test'
+ where user_id = 'b0000000-0000-0000-0000-00000000000a';
+update public.customers
+   set full_name = 'Customer B', email = 'bcr-cust-b@example.test'
+ where user_id = 'b0000000-0000-0000-0000-00000000000b';
 
 insert into public.bookings (contact_name, contact_email, customer_id)
 select 'Booking A', 'bcr-booking-a@example.test', c.id from public.customers c where c.email = 'bcr-cust-a@example.test';
@@ -44,24 +47,27 @@ select b.id, 1, 'outbound', 'ZRH', 'Zurich HB', now() + interval '3 days',
 create temporary table pol as
 select jsonb_build_object('cancellation_tiers', '[]'::jsonb, 'free_cancel_hours', 24,
                            'airport_waiting_minutes', 60, 'city_waiting_minutes', 15,
-                           'settings_version_id', 1) as policy;
+                           'settings_version_id', 1,
+                           'modification_deadline_hours', 24,
+                           'min_advance_minutes', 180,
+                           'policy_doc', 'test') as policy;
 
 insert into public.price_snapshots (
   quote_id, vehicle_class_id, rate_version_id, rate_version_is_live, settings_version_id,
-  engine_version, pax, bags, lines, policy, booking_id, expires_at
+  engine_version, pax, bags, lines, policy, booking_id, expires_at, quote_lock_expires_at
 )
 select gen_random_uuid(), vc.id, rv.id, false, sv.id, 'quote-engine@bcr-a', 1, 0, '[]'::jsonb,
-       pol.policy, b.id, now() + interval '30 minutes'
+       pol.policy, b.id, now() + interval '30 minutes', now() + interval '30 minutes'
   from public.vehicle_classes vc, public.rate_versions rv, public.settings_versions sv,
        public.bookings b, pol
  where vc.slug = 'first' and rv.slug = 'bcr-rv' and sv.slug = 'bcr-policy'
    and b.contact_email = 'bcr-booking-a@example.test';
 insert into public.price_snapshots (
   quote_id, vehicle_class_id, rate_version_id, rate_version_is_live, settings_version_id,
-  engine_version, pax, bags, lines, policy, booking_id, expires_at
+  engine_version, pax, bags, lines, policy, booking_id, expires_at, quote_lock_expires_at
 )
 select gen_random_uuid(), vc.id, rv.id, false, sv.id, 'quote-engine@bcr-b', 1, 0, '[]'::jsonb,
-       pol.policy, b.id, now() + interval '30 minutes'
+       pol.policy, b.id, now() + interval '30 minutes', now() + interval '30 minutes'
   from public.vehicle_classes vc, public.rate_versions rv, public.settings_versions sv,
        public.bookings b, pol
  where vc.slug = 'first' and rv.slug = 'bcr-rv' and sv.slug = 'bcr-policy'

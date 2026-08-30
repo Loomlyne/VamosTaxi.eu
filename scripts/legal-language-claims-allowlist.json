@@ -1,0 +1,9 @@
+{
+  "_comment": "Plan 05-23 / I18N-08 — named exceptions and the over-claim threshold that scripts/check-legal-language-claims.mjs loads, never inlines. When check 3 fires on a reviewed page, this file gets a named overclaim_exempt entry with a reason. The threshold itself is not loosened to paper over an untranslated claim.",
+
+  "identical_to_en_max_ratio": 0.4,
+  "_identical_to_en_max_ratio_comment": "Maximum share of a page's derived keys (after $meta.pendingValueKeys and $meta.nonTranslatableKeys) that may be character-identical to English in a claimed language. Above this, the page is wearing a language claim it has not translated. Rationale: a handful of short labels (and ADR-012 product names, already excluded) can legitimately match English; an all-identical 'translation' cannot.",
+
+  "_overclaim_exempt_comment": "Pages allowed to exceed identical_to_en_max_ratio in a claimed language. Each entry names one page (and optionally one locale) with a mandatory reason. Never a wildcard, never a loosened threshold.",
+  "overclaim_exempt": []
+}

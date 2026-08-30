@@ -1,0 +1,17 @@
+# Credential-free template for local `wrangler dev` / `next dev`.
+# Copy to `.dev.vars` (git-ignored). Staging/production values reach the Worker
+# only via `wrangler secret put` — never a committed `vars` block.
+
+# Local `supabase status` → API URL / anon key. Hosted: Dashboard → Settings → API.
+SUPABASE_URL=
+SUPABASE_ANON_KEY=
+
+# Plan 05-12 Send Email Hook (owner-gated; leave empty until that gate).
+SEND_EMAIL_HOOK_SECRET=
+
+# Plans 05-12 / 05-13 Resend (owner-gated).
+RESEND_API_KEY=
+
+# Plan 05-13 Turnstile widget (site key is public-by-design but still server-passed).
+TURNSTILE_SITE_KEY=
+TURNSTILE_SECRET_KEY=

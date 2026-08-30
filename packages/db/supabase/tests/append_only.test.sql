@@ -39,8 +39,11 @@ insert into public.customers (full_name, email) values ('Append Only Other Custo
 insert into auth.users (id, email, aud, role, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values ('f0000000-0000-0000-0000-000000000001', 'ao-consent-fixture@vamostaxi.eu', 'authenticated',
         'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now());
-insert into public.customers (user_id, full_name, email)
-values ('f0000000-0000-0000-0000-000000000001', 'Append Only Consent Customer', 'ao-consent-customer@example.test');
+-- AUTH-01 trigger already inserted customers for this user_id; retarget the fixture email.
+update public.customers
+   set full_name = 'Append Only Consent Customer',
+       email = 'ao-consent-customer@example.test'
+ where user_id = 'f0000000-0000-0000-0000-000000000001';
 
 insert into public.bookings (contact_name, contact_email, customer_id)
 select 'Append Only Booking', 'ao-booking@example.test', c.id
@@ -68,28 +71,38 @@ select vc.id as vehicle_class_id, rv.id as rate_version_id, sv.id as settings_ve
 create temporary table pol as
 select jsonb_build_object('cancellation_tiers', '[]'::jsonb, 'free_cancel_hours', 24,
                            'airport_waiting_minutes', 60, 'city_waiting_minutes', 15,
-                           'settings_version_id', fx.settings_version_id) as policy
+                           'settings_version_id', fx.settings_version_id,
+                           'modification_deadline_hours', 24,
+                           'min_advance_minutes', 180,
+                           'policy_doc', 'test') as policy
   from fx;
 
 -- S1: an UNBOUND quote snapshot -- "a snapshot with booking_id NULL" and carve-out 1's target.
 insert into public.price_snapshots (
   quote_id, vehicle_class_id, rate_version_id, rate_version_is_live, settings_version_id,
   engine_version, pax, bags, lines, policy, subtotal_rappen, surcharges_rappen,
-  discount_rappen, total_rappen, expires_at
+  discount_rappen, total_rappen, expires_at, quote_lock_expires_at
 )
 select gen_random_uuid(), fx.vehicle_class_id, fx.rate_version_id, false, fx.settings_version_id,
-       'quote-engine@ao-s1', 1, 0, '[]'::jsonb, pol.policy, 6, 0, 0, 6, now() + interval '30 minutes'
+       'quote-engine@ao-s1', 1, 0, jsonb_build_array(jsonb_build_object(
+         'seq', 1, 'code', 'distance_fare', 'kind', 'fare',
+         'i18n_key', 'price.line.distance', 'amount_rappen', 6
+       )), pol.policy, 6, 0, 0, 6,
+       now() + interval '30 minutes', now() + interval '30 minutes'
   from fx, pol;
 
 -- S2: BOUND at insert -- the chosen snapshot the payment/refund chain settles against.
 insert into public.price_snapshots (
   quote_id, vehicle_class_id, rate_version_id, rate_version_is_live, settings_version_id,
   engine_version, pax, bags, lines, policy, booking_id, subtotal_rappen, surcharges_rappen,
-  discount_rappen, total_rappen, expires_at
+  discount_rappen, total_rappen, expires_at, quote_lock_expires_at
 )
 select gen_random_uuid(), fx.vehicle_class_id, fx.rate_version_id, false, fx.settings_version_id,
-       'quote-engine@ao-s2', 1, 0, '[]'::jsonb, pol.policy, fx.booking_id, 6, 0, 0, 6,
-       now() + interval '30 minutes'
+       'quote-engine@ao-s2', 1, 0, jsonb_build_array(jsonb_build_object(
+         'seq', 1, 'code', 'distance_fare', 'kind', 'fare',
+         'i18n_key', 'price.line.distance', 'amount_rappen', 6
+       )), pol.policy, fx.booking_id, 6, 0, 0, 6,
+       now() + interval '30 minutes', now() + interval '30 minutes'
   from fx, pol;
 
 update public.bookings set price_snapshot_id =

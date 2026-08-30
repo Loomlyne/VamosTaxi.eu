@@ -357,7 +357,13 @@
     "welcome-we-found-2-bookings-under-this-email-and": "Welcome — we found 2 bookings under this email and added them to your account",
     "you-are-signed-in-on-this-device-use-the-new-pas": "You are signed in on this device. Use the new password next time you sign in anywhere else.",
     "you-never-need-an-account-to-book-guest-checkout": "You never need an account to book. Guest checkout takes you straight through — an account just keeps your transfers, vouchers and receipts in one place.",
-    "your-driver-calls-this-number-on-arrival-so-it-h": "Your driver calls this number on arrival, so it has to be one you will answer. We verify it once with a code by text."
+    "your-driver-calls-this-number-on-arrival-so-it-h": "Your driver calls this number on arrival, so it has to be one you will answer. We verify it once with a code by text.",
+    "email-signup-subject": "Confirm your Vamos Taxi account",
+    "email-signup-body": "Hello {name}. Confirm your email with this link: {link}. Or enter this code: {code}.",
+    "email-recovery-subject": "Reset your Vamos Taxi password",
+    "email-recovery-body": "Hello {name}. Reset your password with this link: {link}. Or enter this code: {code}.",
+    "email-otp-subject": "Your Vamos Taxi sign-in code",
+    "email-otp-body": "Hello {name}. Your sign-in code is {code}. Or use this link: {link}."
   },
   "booking": {
     "date": "Date",
@@ -709,7 +715,9 @@
     "zurich": "Zurich",
     "zurich-and-geneva-with-meet-greet-in-arrivals-an": "Zurich and Geneva, with meet & greet in arrivals and flight tracking on every booking that carries a flight number.",
     "zurich-city": "Zurich city",
-    "zurich-geneva": "Zurich · Geneva"
+    "zurich-geneva": "Zurich · Geneva",
+    "form-submit-failed": "Something went wrong. Try again, or call us if it keeps happening.",
+    "form-challenge-failed": "The check did not go through. Try again."
   },
   "contact": {
     "8953-dietikon-zh-switzerland-post-only-this-is-n": "8953 Dietikon ZH, Switzerland. Post only — this is not a passenger office.",
@@ -813,6 +821,7 @@
     "card-payment-processed-by-stripe-every-method-av": "Card payment, processed by Stripe. Every method available for your booking is shown at checkout before you pay.",
     "categories": "Categories",
     "collapse-all": "Collapse all",
+    "could-not-load-questions": "Could not load questions",
     "do-i-need-an-account-to-book": "Do I need an account to book?",
     "do-i-need-to-tip-the-chauffeur": "Do I need to tip the chauffeur?",
     "every-transfer-is-booked-ahead-and-assigned-to-a": "Every transfer is booked ahead and assigned to a named driver. You are not waiting for a car to be found — at the agreed time it is already there.",
@@ -838,6 +847,7 @@
     "placeholder-the-minimum-notice-before-a-pickup-h": "Placeholder — the minimum notice before a pickup has not been set yet, so no cut-off is stated here. The rule goes into this answer once the client confirms it.",
     "questions-answered": "Questions, answered",
     "questionsCount": "{n, plural, one {# question} other {# questions}}",
+    "see-all-questions": "See all questions",
     "single-source-of-truth": "Single source of truth",
     "still-not-answered": "Still not answered?",
     "swiss-law-decides-which-seat-a-child-needs-and-t": "Swiss law decides which seat a child needs, and the driver will not set off without it. Tell us the children's ages at booking and we will get it right.",
@@ -879,7 +889,11 @@
     "us-dollars": "US dollars",
     "vamos-taxi-home": "Vamos Taxi — home",
     "verify-your-email": "Verify your email",
-    "your-bookings": "Your bookings"
+    "your-bookings": "Your bookings",
+    "account-menu": "Account",
+    "account-bookings": "My bookings",
+    "account-sign-out": "Sign out",
+    "account-confirm-email": "Confirm your email"
   },
   "home": {
     "a-black-mercedes-v-class-in-vamos-taxi-livery-pa": "A black Mercedes V-Class in Vamos Taxi livery parked on a city street.",
@@ -1242,7 +1256,14 @@
     "your-data": "Your data",
     "your-message-and-the-channel-it-came-in-on-kept": "Your message and the channel it came in on, kept with the booking it refers to.",
     "your-obligations": "Your obligations",
-    "your-rights": "Your rights"
+    "your-rights": "Your rights",
+    "language-coverage-heading": "This page is not in your language",
+    "language-coverage-body": "This page is published in {languages}.",
+    "language-coverage-switch": "Open a published language",
+    "lang-en": "English",
+    "lang-de": "German",
+    "lang-fr": "French",
+    "lang-ar": "Arabic"
   },
   "ops": {
     "add-a-note-visible-to-dispatch-only": "Add a note visible to dispatch only…",
@@ -1506,11 +1527,15 @@
   "reviews": {
     "autoplay-advances-every-1-5-s-as-specified-with": "Autoplay advances every 1.5 s, as specified, with a 360 ms cross-slide. It pauses on hover or focus and stops for good once either arrow is used.",
     "client-reviews": "Client reviews",
+    "could-not-load-reviews": "Could not load reviews",
     "next-review": "Next review",
     "no-name-quote-or-count-on-this-page-is-real-each": "No name, quote or count on this page is real. Each quote is a placeholder describing its own slot — real reviews are fetched server-side and shown verbatim, trimmed only at the end.",
+    "no-reviews-are-published-yet": "No reviews are published yet",
     "platform-names-are-set-in-type-as-stand-ins-conf": "Platform names are set in type as stand-ins. Confirm which of Google, Tripadvisor and Trustpilot has a live Vamos profile before any mark ships: a logo with no account behind it is a false claim.",
     "previous-review": "Previous review",
+    "rating-label": "Rated {n} of {max}",
     "reviewPosition": "Review {n} of {total}",
+    "reviews-appear-here-as-soon-as-they-are-published": "Reviews appear here as soon as they are published in the dispatch console. Nothing is shown in the meantime.",
     "what-clients-say-about-us": "What clients say about us"
   },
   "services": {
@@ -1574,6 +1599,10 @@
       "ski_rack": {
         "label": "Ski or board rack",
         "rule": "Fitted on request, ski season"
+      },
+      "oversized_luggage": {
+        "label": "Oversized luggage",
+        "rule": "Per declared item"
       }
     }
   },
@@ -1598,7 +1627,8 @@
       "faq.meet-greet-airports",
       "about.business-pax",
       "about.business-bags",
-      "about.driver-languages"
+      "about.driver-languages",
+      "quote.error.service_area_undefined"
     ],
     "nonTranslatableKeys": [
       "common.brandName",
@@ -1664,7 +1694,100 @@
       "partner.van-or-minibus-up-to-8-seats": "fixed vehicle-class specification copy, not a live count",
       "partner.minibus-9-seats-or-more": "fixed vehicle-class specification copy, not a live count",
       "legal.bleicherstrasse-16-8953-dietikon-zh": "postal address, not a live count",
-      "legal.vamos-taxi-gmbh-bleicherstrasse-16-8953-dietikon-3": "postal address, not a live count"
+      "legal.vamos-taxi-gmbh-bleicherstrasse-16-8953-dietikon-3": "postal address, not a live count",
+      "quote.flight.placeholder": "fixed example flight-number formats for the input placeholder, not a live count"
+    }
+  },
+  "quote": {
+    "class": {
+      "up_to_pax": "Up to {n, plural, one {# passenger} other {# passengers}}",
+      "up_to_bags": "Up to {n, plural, one {# bag} other {# bags}}",
+      "na_pax": "Not available for {n, plural, one {# passenger} other {# passengers}}",
+      "na_bags": "Not available for {n, plural, one {# bag} other {# bags}}",
+      "unavailable": "This class isn't offered on this route yet",
+      "no_rate": "No fare table for this class yet",
+      "route_off": "This class is off sale on this route",
+      "price_note": "Total, all taxes included",
+      "fixed_route_badge": "FIXED PRICE",
+      "select_hint": "Select a class to continue — details & extras next"
+    },
+    "none_fit": "No class fits this party size yet.",
+    "moved_to": "Moved to {v} — {from} fits up to {cap}.",
+    "error": "Couldn't price this — try again",
+    "error.min_advance": "This pickup is too soon — we need {minutes, plural, one {# minute} other {# minutes}} notice",
+    "error.out_of_service_area": "This route is outside our service area",
+    "error.place_out_of_box": "These points are outside the area we can quote",
+    "error.same_place": "Pickup and drop-off are the same place — pick two",
+    "error.service_area_undefined": "Service area",
+    "error.route_unavailable": "We can't calculate this route right now — try again in a moment",
+    "error.expired": "This quote has expired — get a new price",
+    "error.price_changed": "The fare table changed — get a new price",
+    "error.engine_changed": "Get a new price to continue",
+    "error.pricing_not_live": "Checkout isn't open yet",
+    "error.coupon_no_longer_valid": "This code can't be used — get a new price",
+    "error.rate_limited": "Too many prices in a short time — wait a moment and try again",
+    "error.turnstile_required": "Confirm this request and try again",
+    "error.temporarily_unavailable": "We can't price this right now — try again shortly",
+    "error.mode_not_offered": "Hourly hire isn't available yet — book a transfer instead",
+    "pricing_pending": "Prices come once the fare table is approved",
+    "loading": "Getting your fixed price…",
+    "empty": {
+      "title": "Plan your transfer",
+      "subtitle": "Add your trip to see prices",
+      "meta": "Pickup, destination, date & time"
+    },
+    "lock": {
+      "countdown": "Price locked · {time}",
+      "expiring_soon": "This price expires soon — pay now or get a new one"
+    },
+    "coupon": {
+      "label": "Coupon",
+      "placeholder": "Coupon or voucher code",
+      "apply": "Apply",
+      "error": {
+        "not_found": "Check the coupon code",
+        "inactive": "This code is no longer active",
+        "not_yet_valid": "This code isn't active yet",
+        "expired": "This code has expired",
+        "usage_cap": "This code has reached its limit",
+        "per_user_cap": "You've already used this code",
+        "unpriced": "This code isn't ready yet"
+      }
+    },
+    "extras": {
+      "error": {
+        "max_stops": "Check the number of stops",
+        "max_child_seats": "Check the number of child seats"
+      }
+    },
+    "flight": {
+      "label": "Flight (optional)",
+      "placeholder": "EK 87 · LX 318",
+      "checking": "Looking up the flight…",
+      "unavailable": "We can't check flights right now — enter your pickup time.",
+      "recheck": "Check again",
+      "malformed": "Check the flight number",
+      "not_found": "No flight on that number today",
+      "pick_one": "Pick which flight you mean",
+      "today": "today",
+      "tomorrow": "tomorrow",
+      "candidate": {
+        "depart": "Departs {time} {day}",
+        "arrive": "Arrives {time} {day}"
+      },
+      "effect": {
+        "to_airport": "Departs {ap} at {t} — we take you there.",
+        "from_airport": "Arriving at {ap} at {t} — we'll meet you there."
+      },
+      "note": {
+        "cancelled": "This flight is cancelled, so nothing was filled in. Come back with the new number.",
+        "departed": "This flight has already left {ap}, so there is nothing to fill in.",
+        "off": "We drive Zurich, Geneva and Basel — this flight touches none of them. Set the pickup yourself."
+      }
+    },
+    "geo": {
+      "no_results": "No matching places — try a fuller address",
+      "suggest_unavailable": "Place search is down — type the address, or drop a pin"
     }
   }
 }

@@ -1,0 +1,210 @@
+/* Contact page. Law 01: no glow. Law 02: no tinted yellow (no yellow-50/600/700). */
+:root {
+  --vt-shadow-accent: none;
+}
+.vt-input--focus {
+  box-shadow: none;
+}
+
+.vt-contact-wrap {
+  max-inline-size: 1200px;
+  margin-inline: auto;
+  padding-block-start: clamp(36px, 4vw, 52px);
+  padding-inline: clamp(20px, 5vw, 56px);
+  padding-block-end: 0;
+}
+
+.vt-contact-banner {
+  background: var(--vt-bg-inverse);
+  color: var(--vt-text-inverse);
+  border-radius: var(--vt-radius-xl);
+  padding: clamp(22px, 2.6vw, 30px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px 32px;
+  margin-block-end: clamp(32px, 4vw, 48px);
+}
+
+.vt-contact-banner__icon {
+  flex: 0 0 auto;
+  inline-size: 48px;
+  block-size: 48px;
+  border-radius: var(--vt-radius-pill);
+  background: var(--vt-accent);
+  display: grid;
+  place-items: center;
+}
+
+.vt-contact-banner__copy {
+  flex: 1 1 300px;
+  min-inline-size: 0;
+}
+
+.vt-contact-banner__copy h2 {
+  margin: 0;
+  margin-block-end: 6px;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-heading-2);
+  line-height: var(--vt-heading-leading);
+  letter-spacing: var(--vt-heading-tracking);
+  font-weight: var(--vt-weight-semibold);
+  color: var(--vt-text-inverse);
+}
+
+.vt-contact-banner__copy p {
+  margin: 0;
+  max-inline-size: 56ch;
+  font-size: var(--vt-body-md);
+  line-height: var(--vt-body-leading);
+  color: rgb(255 255 255 / 0.84);
+}
+
+.vt-contact-banner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.vt-contact-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(32px, 4vw, 56px);
+  align-items: start;
+}
+
+@media (min-width: 980px) {
+  .vt-contact-grid {
+    grid-template-columns: minmax(0, 1.32fr) minmax(0, 1fr);
+  }
+}
+
+.vt-contact-col h2 {
+  margin: 0;
+  margin-block-end: 8px;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-heading-1);
+  line-height: var(--vt-heading-leading);
+  letter-spacing: var(--vt-heading-tracking);
+  font-weight: var(--vt-weight-semibold);
+  color: var(--vt-text-primary);
+}
+
+.vt-contact-col__lead {
+  margin: 0;
+  margin-block-end: 26px;
+  max-inline-size: 56ch;
+  font-size: var(--vt-body-md);
+  line-height: var(--vt-body-leading);
+  color: var(--vt-text-secondary);
+}
+
+.vt-contact-aside .vt-contact-col__lead {
+  max-inline-size: 46ch;
+  margin-block-end: 22px;
+}
+
+.vt-contact-channels {
+  background: var(--vt-bg-surface);
+  border: 1px solid var(--vt-border-subtle);
+  border-radius: var(--vt-radius-lg);
+  box-shadow: var(--vt-shadow-sm);
+  padding-block: 6px 10px;
+  padding-inline: 22px;
+}
+
+.vt-contact-ch {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding-block: 18px;
+  padding-inline: 0;
+  border-block-end: 1px solid var(--vt-grey-200);
+  text-decoration: none;
+  color: inherit;
+  min-block-size: 44px;
+}
+
+.vt-contact-ch:last-child {
+  border-block-end: 0;
+}
+
+.vt-contact-ch__icon {
+  flex: 0 0 auto;
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: var(--vt-radius-pill);
+  background: var(--vt-grey-50);
+  display: grid;
+  place-items: center;
+  transition: background 140ms var(--vt-ease-standard);
+}
+
+a.vt-contact-ch:hover .vt-contact-ch__icon {
+  background: var(--vt-accent);
+}
+
+.vt-contact-ch__kicker {
+  display: block;
+  margin-block-end: 3px;
+  font-size: var(--vt-label-sm);
+  letter-spacing: var(--vt-label-tracking);
+  text-transform: uppercase;
+  font-weight: var(--vt-label-weight);
+  color: var(--vt-text-muted);
+}
+
+.vt-contact-ch__value {
+  display: block;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-heading-4);
+  font-weight: var(--vt-weight-semibold);
+  line-height: 1.3;
+  color: var(--vt-text-primary);
+}
+
+a.vt-contact-ch:hover .vt-contact-ch__value {
+  color: var(--vt-charcoal-900);
+}
+
+.vt-contact-ch__sub {
+  display: block;
+  margin-block-start: 3px;
+  font-size: var(--vt-body-sm);
+  line-height: 1.5;
+  color: var(--vt-text-secondary);
+}
+
+.vt-contact-chat {
+  margin-block-start: 20px;
+  background: var(--vt-bg-surface);
+  border: 1px solid var(--vt-border-subtle);
+  border-radius: var(--vt-radius-lg);
+  box-shadow: var(--vt-shadow-sm);
+  padding: 22px;
+}
+
+.vt-contact-chat__kicker {
+  margin: 0;
+  margin-block-end: 10px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: var(--vt-label-sm);
+  letter-spacing: var(--vt-label-tracking);
+  text-transform: uppercase;
+  font-weight: var(--vt-label-weight);
+  color: var(--vt-text-muted);
+}
+
+.vt-contact-chat p {
+  margin: 0;
+  margin-block-end: 16px;
+  font-size: var(--vt-body-sm);
+  line-height: var(--vt-body-leading);
+  color: var(--vt-text-secondary);
+}
+
+.vt-contact-foot {
+  block-size: clamp(40px, 4vw, 56px);
+}

@@ -1,0 +1,27 @@
+[data-sec] {
+  max-inline-size: 1200px;
+  margin-inline: auto;
+  padding-block-start: clamp(48px, 6vw, 86px);
+  padding-inline: clamp(20px, 5vw, 56px);
+  padding-block-end: 72px;
+  min-inline-size: 0;
+}
+[data-shot] {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--vt-radius-xl);
+  background: var(--vt-charcoal-800);
+  margin-block-end: 16px;
+}
+[data-shot] img {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  object-fit: cover;
+}
+[data-shot-cap] {
+  padding-block: 12px;
+  padding-inline: 22px;
+  font-size: var(--vt-body-xs);
+  color: var(--vt-text-secondary);
+}

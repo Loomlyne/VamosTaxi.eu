@@ -64,6 +64,9 @@
 [data-hd-acct]:hover{border-color:rgb(30 31 31/.28)}
 [data-hd-acct="pill"]{block-size:36px;padding:0 16px;gap:8px;font-size:13px;font-weight:600}
 [data-hd-acct="pill"]:hover{background:var(--vt-white);border-color:var(--vt-white);color:var(--vt-charcoal-900)}
+[data-hd-acct="disc"]{inline-size:36px;block-size:36px}
+[data-hd-acct="disc"][aria-expanded="true"]{border-color:var(--vt-charcoal-900)}
+[data-hd-acct="disc"]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
 
 /* ── the primary call to action ──────────────────────────────────────────────────── */
 /* Full-strength yellow on the charcoal bar — the one accent in the row. The stored

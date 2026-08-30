@@ -12,6 +12,10 @@ begin;
 select plan(23);
 
 -- Fixtures --------------------------------------------------------------------------------
+-- Plan 04-05: every price_snapshots insert now supplies quote_lock_expires_at (NOT NULL) and
+-- an eight-key policy jsonb (extended price_snapshots_policy_shape). Priced fixtures carry a
+-- single line summing to total_rappen so tg_snapshot_lines_reconcile accepts them.
+
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
 values ('first', 3, 3);
 
@@ -23,8 +27,8 @@ select rv.id, vc.id, 3, 1, 2, 3
   from public.rate_versions rv, public.vehicle_classes vc
  where rv.slug = 'charge-gate-rv' and vc.slug = 'first';
 
-insert into public.surcharges (rate_version_id, code, kind, percent)
-select rv.id, 'night', 'percent', 10.00
+insert into public.surcharges (rate_version_id, code, kind, percent, predicate)
+select rv.id, 'night', 'percent', 10.00, '{"kind":"always"}'::jsonb
   from public.rate_versions rv where rv.slug = 'charge-gate-rv';
 
 insert into public.settings_versions (slug, label) values ('charge-gate-policy', 'Charge gate policy fixture');
@@ -53,18 +57,24 @@ select vc.id as vehicle_class_id, rv.id as rate_version_id, sv.id as settings_ve
 create temporary table pol as
 select jsonb_build_object('cancellation_tiers', '[]'::jsonb, 'free_cancel_hours', 24,
                            'airport_waiting_minutes', 60, 'city_waiting_minutes', 15,
-                           'settings_version_id', 1) as policy;
+                           'settings_version_id', 1,
+                           'modification_deadline_hours', 24,
+                           'min_advance_minutes', 180,
+                           'policy_doc', 'test') as policy;
 
 -- S1: inserted while charge-gate-rv is still 'draft'. rate_version_is_live is frozen false on
 -- this row by tg_snapshot_rate_version_flag REGARDLESS of what the version does later (case 6).
 insert into public.price_snapshots (
   quote_id, vehicle_class_id, rate_version_id, rate_version_is_live, settings_version_id,
   engine_version, pax, bags, lines, policy, booking_id,
-  subtotal_rappen, surcharges_rappen, discount_rappen, total_rappen, expires_at
+  subtotal_rappen, surcharges_rappen, discount_rappen, total_rappen, expires_at, quote_lock_expires_at
 )
 select gen_random_uuid(), fx.vehicle_class_id, fx.rate_version_id, false, fx.settings_version_id,
-       'quote-engine@s1', 1, 0, '[]'::jsonb, pol.policy, fx.booking_id, 6, 0, 0, 6,
-       now() + interval '30 minutes'
+       'quote-engine@s1', 1, 0, jsonb_build_array(jsonb_build_object(
+         'seq', 1, 'code', 'distance_fare', 'kind', 'fare',
+         'i18n_key', 'price.line.distance', 'amount_rappen', 6
+       )), pol.policy, fx.booking_id, 6, 0, 0, 6,
+       now() + interval '30 minutes', now() + interval '30 minutes'
   from fx, pol;
 
 -- (1) Payment against S1 while charge-gate-rv is draft: refused, not chargeable. --------------
@@ -85,11 +95,14 @@ update public.rate_versions set status = 'live' where slug = 'charge-gate-rv';
 insert into public.price_snapshots (
   quote_id, vehicle_class_id, rate_version_id, rate_version_is_live, settings_version_id,
   engine_version, pax, bags, lines, policy, booking_id,
-  subtotal_rappen, surcharges_rappen, discount_rappen, total_rappen, expires_at
+  subtotal_rappen, surcharges_rappen, discount_rappen, total_rappen, expires_at, quote_lock_expires_at
 )
 select gen_random_uuid(), fx.vehicle_class_id, fx.rate_version_id, false, fx.settings_version_id,
-       'quote-engine@s2', 1, 0, '[]'::jsonb, pol.policy, fx.booking_id, 6, 0, 0, 6,
-       now() + interval '30 minutes'
+       'quote-engine@s2', 1, 0, jsonb_build_array(jsonb_build_object(
+         'seq', 1, 'code', 'distance_fare', 'kind', 'fare',
+         'i18n_key', 'price.line.distance', 'amount_rappen', 6
+       )), pol.policy, fx.booking_id, 6, 0, 0, 6,
+       now() + interval '30 minutes', now() + interval '30 minutes'
   from fx, pol;
 
 -- (2) S2 is chargeable: total is set and the version it cites is now live. --------------------
@@ -127,11 +140,14 @@ select lives_ok(
 insert into public.price_snapshots (
   quote_id, vehicle_class_id, rate_version_id, rate_version_is_live, settings_version_id,
   engine_version, pax, bags, lines, policy, booking_id,
-  subtotal_rappen, surcharges_rappen, discount_rappen, total_rappen, expires_at
+  subtotal_rappen, surcharges_rappen, discount_rappen, total_rappen, expires_at, quote_lock_expires_at
 )
 select gen_random_uuid(), fx.vehicle_class_id, fx.rate_version_id, true, fx.settings_version_id,
-       'quote-engine@s3', 1, 0, '[]'::jsonb, pol.policy, fx.booking_id, 6, 0, 0, 6,
-       now() - interval '1 second'
+       'quote-engine@s3', 1, 0, jsonb_build_array(jsonb_build_object(
+         'seq', 1, 'code', 'distance_fare', 'kind', 'fare',
+         'i18n_key', 'price.line.distance', 'amount_rappen', 6
+       )), pol.policy, fx.booking_id, 6, 0, 0, 6,
+       now() - interval '1 second', now() - interval '1 second'
   from fx, pol;
 
 -- (5) A payment against an already-expired snapshot is refused. --------------------------------
@@ -214,11 +230,14 @@ select throws_ok(
 insert into public.price_snapshots (
   quote_id, vehicle_class_id, rate_version_id, rate_version_is_live, settings_version_id,
   engine_version, pax, bags, lines, policy, booking_id,
-  subtotal_rappen, surcharges_rappen, discount_rappen, total_rappen, expires_at
+  subtotal_rappen, surcharges_rappen, discount_rappen, total_rappen, expires_at, quote_lock_expires_at
 )
 select gen_random_uuid(), fx.vehicle_class_id, fx.rate_version_id, true, fx.settings_version_id,
-       'quote-engine@s4', 1, 0, '[]'::jsonb, pol.policy, fx.booking_id, 6, 0, 0, 6,
-       now() + interval '30 minutes'
+       'quote-engine@s4', 1, 0, jsonb_build_array(jsonb_build_object(
+         'seq', 1, 'code', 'distance_fare', 'kind', 'fare',
+         'i18n_key', 'price.line.distance', 'amount_rappen', 6
+       )), pol.policy, fx.booking_id, 6, 0, 0, 6,
+       now() + interval '30 minutes', now() + interval '30 minutes'
   from fx, pol;
 
 -- (12) F-06: a payment citing S4 is refused even though S4 is itself perfectly valid, chargeable
@@ -264,11 +283,14 @@ begin
   insert into public.price_snapshots (
     quote_id, vehicle_class_id, rate_version_id, rate_version_is_live, settings_version_id,
     engine_version, pax, bags, lines, policy, booking_id,
-    subtotal_rappen, surcharges_rappen, discount_rappen, total_rappen, expires_at
+    subtotal_rappen, surcharges_rappen, discount_rappen, total_rappen, expires_at, quote_lock_expires_at
   )
   select gen_random_uuid(), fx.vehicle_class_id, fx.rate_version_id, true, fx.settings_version_id,
-         'quote-engine@' || p_label, 1, 0, '[]'::jsonb, pol.policy, v_booking_id, 6, 0, 0, 6,
-         now() + interval '30 minutes'
+         'quote-engine@' || p_label, 1, 0, jsonb_build_array(jsonb_build_object(
+         'seq', 1, 'code', 'distance_fare', 'kind', 'fare',
+         'i18n_key', 'price.line.distance', 'amount_rappen', 6
+       )), pol.policy, v_booking_id, 6, 0, 0, 6,
+         now() + interval '30 minutes', now() + interval '30 minutes'
     from fx, pol
   returning id into v_snapshot_id;
 

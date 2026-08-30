@@ -38,9 +38,9 @@ create temporary table snap_fixture as select gen_random_uuid() as quote_id;
 select throws_ok(
   $$ insert into public.price_snapshots
        (quote_id, vehicle_class_id, rate_version_id, rate_version_is_live, settings_version_id,
-        engine_version, pax, bags, lines, policy, expires_at)
+        engine_version, pax, bags, lines, policy, expires_at, quote_lock_expires_at)
      select gen_random_uuid(), fx.vehicle_class_id, fx.rate_version_id, false, fx.settings_version_id,
-            'quote-engine@test', 1, 0, '[]'::jsonb, '{}'::jsonb, now() + interval '30 minutes'
+            'quote-engine@test', 1, 0, '[]'::jsonb, '{}'::jsonb, now() + interval '30 minutes', now() + interval '30 minutes'
        from fx $$,
   '23514',
   null,
@@ -51,13 +51,16 @@ select throws_ok(
 select throws_ok(
   $$ insert into public.price_snapshots
        (quote_id, vehicle_class_id, rate_version_id, rate_version_is_live, settings_version_id,
-        engine_version, pax, bags, lines, policy, expires_at)
+        engine_version, pax, bags, lines, policy, expires_at, quote_lock_expires_at)
      select gen_random_uuid(), fx.vehicle_class_id, fx.rate_version_id, false, fx.settings_version_id,
             'quote-engine@test', 1, 0, '{}'::jsonb,
             jsonb_build_object('cancellation_tiers', '[]'::jsonb, 'free_cancel_hours', 24,
                                 'airport_waiting_minutes', 60, 'city_waiting_minutes', 15,
-                                'settings_version_id', 1),
-            now() + interval '30 minutes'
+                                'settings_version_id', 1,
+                                'modification_deadline_hours', 24,
+                                'min_advance_minutes', 180,
+                                'policy_doc', 'test'),
+            now() + interval '30 minutes', now() + interval '30 minutes'
        from fx $$,
   '23514',
   null,
@@ -70,13 +73,16 @@ select throws_ok(
 select throws_ok(
   $$ insert into public.price_snapshots
        (quote_id, vehicle_class_id, rate_version_id, rate_version_is_live, settings_version_id,
-        engine_version, pax, bags, lines, policy, total_rappen, expires_at)
+        engine_version, pax, bags, lines, policy, total_rappen, expires_at, quote_lock_expires_at)
      select gen_random_uuid(), fx.vehicle_class_id, fx.rate_version_id, false, fx.settings_version_id,
             'quote-engine@test', 1, 0, '[]'::jsonb,
             jsonb_build_object('cancellation_tiers', '[]'::jsonb, 'free_cancel_hours', 24,
                                 'airport_waiting_minutes', 60, 'city_waiting_minutes', 15,
-                                'settings_version_id', 1),
-            0, now() + interval '30 minutes'
+                                'settings_version_id', 1,
+                                'modification_deadline_hours', 24,
+                                'min_advance_minutes', 180,
+                                'policy_doc', 'test'),
+            0, now() + interval '30 minutes', now() + interval '30 minutes'
        from fx $$,
   '23514',
   null,
@@ -90,14 +96,17 @@ select throws_ok(
 select lives_ok(
   $$ insert into public.price_snapshots
        (quote_id, vehicle_class_id, rate_version_id, rate_version_is_live, settings_version_id,
-        engine_version, pax, bags, lines, policy, expires_at)
+        engine_version, pax, bags, lines, policy, expires_at, quote_lock_expires_at)
      select sf.quote_id, fx.vehicle_class_id, fx.rate_version_id,
             true,   -- FORGED: the caller claims the draft version is live
             fx.settings_version_id, 'quote-engine@test', 1, 0, '[]'::jsonb,
             jsonb_build_object('cancellation_tiers', '[]'::jsonb, 'free_cancel_hours', 24,
                                 'airport_waiting_minutes', 60, 'city_waiting_minutes', 15,
-                                'settings_version_id', 1),
-            now() + interval '30 minutes'
+                                'settings_version_id', 1,
+                                'modification_deadline_hours', 24,
+                                'min_advance_minutes', 180,
+                                'policy_doc', 'test'),
+            now() + interval '30 minutes', now() + interval '30 minutes'
        from fx, snap_fixture sf $$,
   'a valid all-NULL-amount snapshot with a forged rate_version_is_live inserts'
 );

@@ -1,0 +1,145 @@
+/* Law 01 / Law 02 */
+:root {
+  --vt-shadow-accent: none;
+}
+.vt-input--focus {
+  box-shadow: none;
+}
+
+[data-hero] {
+  position: relative;
+  overflow: hidden;
+  min-block-size: 100vh;
+  min-block-size: 100svh;
+  background: var(--vt-bg-inverse);
+  color: var(--vt-text-inverse);
+}
+
+.vt-hh-photo {
+  position: absolute;
+  inset: 0;
+}
+.vt-hh-photo img {
+  object-fit: cover;
+}
+
+.vt-hh-checker-wrap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.vt-hh-checker {
+  position: absolute;
+  inset-block-start: -40px;
+  inset-inline-end: -40px;
+  inline-size: clamp(240px, 62vw, 620px);
+  block-size: clamp(240px, 62vw, 620px);
+  background-image: conic-gradient(
+    from 90deg at 50% 50%,
+    var(--vt-yellow) 0 25%,
+    transparent 0 50%,
+    var(--vt-yellow) 0 75%,
+    transparent 0
+  );
+  background-size: clamp(46px, 9.6vw, 96px) clamp(46px, 9.6vw, 96px);
+  opacity: 0.16;
+  -webkit-mask-image: radial-gradient(
+    72% 72% at 100% 0%,
+    rgb(0 0 0) 0%,
+    rgb(0 0 0 / 0.35) 46%,
+    transparent 74%
+  );
+  mask-image: radial-gradient(
+    72% 72% at 100% 0%,
+    rgb(0 0 0) 0%,
+    rgb(0 0 0 / 0.35) 46%,
+    transparent 74%
+  );
+}
+
+[dir="rtl"] .vt-hh-checker {
+  -webkit-mask-image: radial-gradient(
+    72% 72% at 0% 0%,
+    rgb(0 0 0) 0%,
+    rgb(0 0 0 / 0.35) 46%,
+    transparent 74%
+  );
+  mask-image: radial-gradient(
+    72% 72% at 0% 0%,
+    rgb(0 0 0) 0%,
+    rgb(0 0 0 / 0.35) 46%,
+    transparent 74%
+  );
+}
+
+.vt-hh-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgb(20 21 21 / 0.34) 0%,
+    rgb(20 21 21 / 0.12) 24%,
+    rgb(20 21 21 / 0.82) 100%
+  );
+}
+
+[data-hero-inner] {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-block-size: 100vh;
+  min-block-size: 100svh;
+  max-inline-size: 1440px;
+  margin-inline: auto;
+  padding-block-end: clamp(26px, 4.5vw, 40px);
+  padding-inline: clamp(16px, 4.5vw, 40px);
+}
+
+.vt-hh-copy {
+  margin-block-start: clamp(28px, 6vw, 52px);
+  margin-block-end: auto;
+  max-inline-size: 820px;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(10px, 2vw, 16px);
+}
+
+.vt-hh-kicker {
+  margin: 0;
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-label-sm);
+  letter-spacing: var(--vt-label-tracking);
+  text-transform: uppercase;
+  font-weight: var(--vt-label-weight);
+  color: var(--vt-accent);
+}
+
+[data-hero] h1 {
+  margin: 0;
+  max-inline-size: 16ch;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-display-2);
+  font-weight: var(--vt-weight-semibold);
+  letter-spacing: var(--vt-display-tracking);
+  line-height: var(--vt-display-leading);
+  color: var(--vt-white);
+  text-wrap: balance;
+}
+
+.vt-hh-standfirst {
+  margin: 0;
+  max-inline-size: 52ch;
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-body-lg);
+  line-height: 1.6;
+  color: var(--vt-text-inverse-muted);
+  text-wrap: pretty;
+}
+
+.vt-hh-card-slot {
+  margin-block-start: clamp(20px, 4vw, 34px);
+}

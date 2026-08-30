@@ -57,6 +57,9 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      - name: Unit tests (kernel + route contracts)
+        run: pnpm test:unit
+
       - name: CSS law + RTL logical-property lint (D-21, D-32)
         run: pnpm lint:css
 
@@ -68,6 +71,12 @@ jobs:
 
       - name: i18n key-coverage check (D-17)
         run: pnpm i18n:check
+
+      - name: Legal language claims (I18N-08)
+        run: pnpm check:legal-claims
+
+      - name: Law 04 invented-numbers gate (D-40, D-46)
+        run: pnpm check:numbers
 
       - name: Build
         run: pnpm build

@@ -357,7 +357,13 @@
     "welcome-we-found-2-bookings-under-this-email-and": "Willkommen — wir haben 2 Buchungen unter dieser E-Mail gefunden und Ihrem Konto hinzugefügt",
     "you-are-signed-in-on-this-device-use-the-new-pas": "Auf diesem Gerät sind Sie angemeldet. Verwenden Sie das neue Passwort beim nächsten Anmelden anderswo.",
     "you-never-need-an-account-to-book-guest-checkout": "Für eine Buchung brauchen Sie nie ein Konto. Die Gastbuchung führt Sie direkt durch — ein Konto hält lediglich Transfers, Gutscheine und Belege an einem Ort.",
-    "your-driver-calls-this-number-on-arrival-so-it-h": "Ihr Fahrer ruft diese Nummer bei der Ankunft an — sie muss also erreichbar sein. Wir bestätigen sie einmalig mit einem Code per SMS."
+    "your-driver-calls-this-number-on-arrival-so-it-h": "Ihr Fahrer ruft diese Nummer bei der Ankunft an — sie muss also erreichbar sein. Wir bestätigen sie einmalig mit einem Code per SMS.",
+    "email-signup-subject": "Bestätigen Sie Ihr Vamos Taxi-Konto",
+    "email-signup-body": "Hallo {name}. Bestätigen Sie Ihre E-Mail mit diesem Link: {link}. Oder geben Sie diesen Code ein: {code}.",
+    "email-recovery-subject": "Setzen Sie Ihr Vamos Taxi-Passwort zurück",
+    "email-recovery-body": "Hallo {name}. Setzen Sie Ihr Passwort mit diesem Link zurück: {link}. Oder geben Sie diesen Code ein: {code}.",
+    "email-otp-subject": "Ihr Vamos Taxi-Anmeldecode",
+    "email-otp-body": "Hallo {name}. Ihr Anmeldecode lautet {code}. Oder nutzen Sie diesen Link: {link}."
   },
   "booking": {
     "date": "Datum",
@@ -709,7 +715,9 @@
     "zurich": "Zürich",
     "zurich-and-geneva-with-meet-greet-in-arrivals-an": "Zürich und Genf, mit Empfang in der Ankunft und Flugverfolgung bei jeder Buchung mit Flugnummer.",
     "zurich-city": "Stadt Zürich",
-    "zurich-geneva": "Zürich · Genf"
+    "zurich-geneva": "Zürich · Genf",
+    "form-submit-failed": "Etwas ist schiefgelaufen. Versuchen Sie es erneut, oder rufen Sie uns an, wenn es bleibt.",
+    "form-challenge-failed": "Die Prüfung ist nicht durchgegangen. Versuchen Sie es erneut."
   },
   "contact": {
     "8953-dietikon-zh-switzerland-post-only-this-is-n": "8953 Dietikon ZH, Schweiz. Nur Post — dies ist kein Kundenschalter.",
@@ -813,6 +821,7 @@
     "card-payment-processed-by-stripe-every-method-av": "Kartenzahlung, abgewickelt über Stripe. Alle für Ihre Buchung verfügbaren Zahlungsarten werden vor der Zahlung an der Kasse angezeigt.",
     "categories": "Kategorien",
     "collapse-all": "Alle schliessen",
+    "could-not-load-questions": "Fragen konnten nicht geladen werden",
     "do-i-need-an-account-to-book": "Brauche ich für die Buchung ein Konto?",
     "do-i-need-to-tip-the-chauffeur": "Muss ich dem Chauffeur Trinkgeld geben?",
     "every-transfer-is-booked-ahead-and-assigned-to-a": "Jeder Transfer wird im Voraus gebucht und einem namentlichen Fahrer zugeteilt. Sie warten nicht darauf, dass ein Auto gefunden wird — zur vereinbarten Zeit steht es bereits da.",
@@ -838,6 +847,7 @@
     "placeholder-the-minimum-notice-before-a-pickup-h": "Platzhalter — die Mindestvorlaufzeit vor einer Abholung ist noch nicht festgelegt, deshalb steht hier keine Frist. Die Regel kommt in diese Antwort, sobald der Kunde sie bestätigt.",
     "questions-answered": "Fragen, beantwortet",
     "questionsCount": "{n, plural, one {# Frage} other {# Fragen}}",
+    "see-all-questions": "Alle Fragen ansehen",
     "single-source-of-truth": "Eine einzige verbindliche Quelle",
     "still-not-answered": "Noch keine Antwort gefunden?",
     "swiss-law-decides-which-seat-a-child-needs-and-t": "Das Schweizer Recht bestimmt, welchen Sitz ein Kind braucht, und der Fahrer fährt ohne ihn nicht los. Nennen Sie uns bei der Buchung das Alter der Kinder, dann stimmt es.",
@@ -879,7 +889,11 @@
     "us-dollars": "US-Dollar",
     "vamos-taxi-home": "Vamos Taxi — Startseite",
     "verify-your-email": "Bestätigen Sie Ihre E-Mail-Adresse",
-    "your-bookings": "Ihre Buchungen"
+    "your-bookings": "Ihre Buchungen",
+    "account-menu": "Konto",
+    "account-bookings": "Meine Fahrten",
+    "account-sign-out": "Abmelden",
+    "account-confirm-email": "Bestätigen Sie Ihre E-Mail"
   },
   "home": {
     "a-black-mercedes-v-class-in-vamos-taxi-livery-pa": "Eine schwarze Mercedes V-Klasse in Vamos-Taxi-Beschriftung, geparkt an einer Stadtstrasse.",
@@ -1242,7 +1256,14 @@
     "your-data": "Ihre Daten",
     "your-message-and-the-channel-it-came-in-on-kept": "Ihre Nachricht und der Kanal, über den sie kam, abgelegt bei der betreffenden Buchung.",
     "your-obligations": "Ihre Pflichten",
-    "your-rights": "Ihre Rechte"
+    "your-rights": "Ihre Rechte",
+    "language-coverage-heading": "Diese Seite gibt es nicht in Ihrer Sprache",
+    "language-coverage-body": "Diese Seite ist veröffentlicht auf {languages}.",
+    "language-coverage-switch": "Eine veröffentlichte Sprache öffnen",
+    "lang-en": "Englisch",
+    "lang-de": "Deutsch",
+    "lang-fr": "Französisch",
+    "lang-ar": "Arabisch"
   },
   "ops": {
     "add-a-note-visible-to-dispatch-only": "Notiz hinzufügen, nur für die Disposition sichtbar…",
@@ -1506,11 +1527,15 @@
   "reviews": {
     "autoplay-advances-every-1-5-s-as-specified-with": "Die automatische Wiedergabe wechselt alle 1,5 s, wie festgelegt, mit 360 ms Überblendung. Sie pausiert bei Hover oder Fokus und stoppt endgültig, sobald ein Pfeil benutzt wird.",
     "client-reviews": "Kundenbewertungen",
+    "could-not-load-reviews": "Bewertungen konnten nicht geladen werden",
     "next-review": "Nächste Bewertung",
     "no-name-quote-or-count-on-this-page-is-real-each": "Kein Name, Zitat oder Zähler auf dieser Seite ist echt. Jedes Zitat ist ein Platzhalter, der seinen eigenen Platz beschreibt — echte Bewertungen werden serverseitig geholt und wörtlich gezeigt, nur am Ende gekürzt.",
+    "no-reviews-are-published-yet": "Noch keine Bewertungen veröffentlicht",
     "platform-names-are-set-in-type-as-stand-ins-conf": "Die Plattformnamen stehen als Platzhalter im Satz. Klären Sie, welche von Google, Tripadvisor und Trustpilot ein aktives Vamos-Profil hat, bevor ein Zeichen ausgeliefert wird: ein Logo ohne Konto dahinter ist eine falsche Aussage.",
     "previous-review": "Vorherige Bewertung",
+    "rating-label": "Bewertet mit {n} von {max}",
     "reviewPosition": "Bewertung {n} von {total}",
+    "reviews-appear-here-as-soon-as-they-are-published": "Bewertungen erscheinen hier, sobald sie in der Dispatch-Konsole veröffentlicht sind. Bis dahin wird nichts angezeigt.",
     "what-clients-say-about-us": "Was Kundinnen und Kunden über uns sagen"
   },
   "services": {
@@ -1574,6 +1599,10 @@
       "ski_rack": {
         "label": "Ski- oder Boardträger",
         "rule": "Auf Anfrage montiert, während der Skisaison"
+      },
+      "oversized_luggage": {
+        "label": "Übergrosses Gepäck",
+        "rule": "Pro angegebenes Stück"
       }
     }
   },
@@ -1660,7 +1689,99 @@
       "partner.van-or-minibus-up-to-8-seats": true,
       "partner.minibus-9-seats-or-more": true,
       "legal.bleicherstrasse-16-8953-dietikon-zh": true,
-      "legal.vamos-taxi-gmbh-bleicherstrasse-16-8953-dietikon-3": true
+      "legal.vamos-taxi-gmbh-bleicherstrasse-16-8953-dietikon-3": true,
+      "quote.flight.placeholder": "fixed example flight-number formats for the input placeholder, not a live count"
+    }
+  },
+  "quote": {
+    "class": {
+      "up_to_pax": "Bis zu {n, plural, one {# Passagier} other {# Passagiere}}",
+      "up_to_bags": "Bis zu {n, plural, one {# Gepäckstück} other {# Gepäckstücke}}",
+      "na_pax": "Nicht verfügbar für {n, plural, one {# Passagier} other {# Passagiere}}",
+      "na_bags": "Nicht verfügbar für {n, plural, one {# Gepäckstück} other {# Gepäckstücke}}",
+      "unavailable": "Diese Klasse wird auf dieser Strecke noch nicht angeboten",
+      "no_rate": "Für diese Klasse gibt es noch keine Preistabelle",
+      "route_off": "Diese Klasse ist auf dieser Strecke nicht im Verkauf",
+      "price_note": "Total, alle Steuern inklusive",
+      "fixed_route_badge": "FESTPREIS",
+      "select_hint": "Klasse wählen und weiter — Angaben & Extras folgen"
+    },
+    "none_fit": "Keine Klasse passt bisher zu dieser Gruppengrösse.",
+    "moved_to": "Zu {v} gewechselt — {from} bietet Platz für bis zu {cap}.",
+    "error": "Preis nicht verfügbar — erneut versuchen",
+    "error.min_advance": "Diese Abholung ist zu früh — wir brauchen {minutes, plural, one {# Minute} other {# Minuten}} Vorlauf",
+    "error.out_of_service_area": "Diese Strecke liegt ausserhalb unseres Einzugsgebiets",
+    "error.place_out_of_box": "Diese Punkte liegen ausserhalb des Gebiets, das wir berechnen können",
+    "error.same_place": "Abholung und Ziel sind derselbe Ort — wählen Sie zwei",
+    "error.route_unavailable": "Diese Strecke können wir gerade nicht berechnen — versuchen Sie es gleich noch einmal",
+    "error.expired": "Dieses Angebot ist abgelaufen — holen Sie einen neuen Preis",
+    "error.price_changed": "Die Preistabelle hat sich geändert — holen Sie einen neuen Preis",
+    "error.engine_changed": "Holen Sie einen neuen Preis, um fortzufahren",
+    "error.pricing_not_live": "Die Kasse ist noch nicht geöffnet",
+    "error.coupon_no_longer_valid": "Dieser Code kann nicht verwendet werden — holen Sie einen neuen Preis",
+    "error.rate_limited": "Zu viele Preise in kurzer Zeit — warten Sie einen Moment und versuchen Sie es erneut",
+    "error.turnstile_required": "Bestätigen Sie diese Anfrage und versuchen Sie es erneut",
+    "error.temporarily_unavailable": "Wir können gerade keinen Preis berechnen — versuchen Sie es gleich noch einmal",
+    "error.mode_not_offered": "Stundenweise ist noch nicht verfügbar — buchen Sie stattdessen einen Transfer",
+    "pricing_pending": "Die Preise erscheinen, sobald die Preistabelle freigegeben ist",
+    "loading": "Ihr Festpreis wird berechnet…",
+    "empty": {
+      "title": "Transfer planen",
+      "subtitle": "Fahrt angeben, um Preise zu sehen",
+      "meta": "Abholort, Ziel, Datum & Zeit"
+    },
+    "lock": {
+      "countdown": "Preis gesperrt · {time}",
+      "expiring_soon": "Dieser Preis läuft bald ab — jetzt zahlen oder neu anfragen"
+    },
+    "coupon": {
+      "label": "Gutschein",
+      "placeholder": "Gutschein- oder Rabattcode",
+      "apply": "Anwenden",
+      "error": {
+        "not_found": "Prüfen Sie den Gutscheincode",
+        "inactive": "Dieser Code ist nicht mehr aktiv",
+        "not_yet_valid": "Dieser Code ist noch nicht aktiv",
+        "expired": "Dieser Code ist abgelaufen",
+        "usage_cap": "Dieser Code hat sein Limit erreicht",
+        "per_user_cap": "Sie haben diesen Code bereits verwendet",
+        "unpriced": "Dieser Code ist noch nicht bereit"
+      }
+    },
+    "extras": {
+      "error": {
+        "max_stops": "Prüfen Sie die Anzahl der Stopps",
+        "max_child_seats": "Prüfen Sie die Anzahl der Kindersitze"
+      }
+    },
+    "flight": {
+      "label": "Flug (optional)",
+      "placeholder": "EK 87 · LX 318",
+      "checking": "Flug wird gesucht…",
+      "unavailable": "Wir können Flüge gerade nicht prüfen — geben Sie Ihre Abholzeit ein.",
+      "recheck": "Erneut prüfen",
+      "malformed": "Prüfen Sie die Flugnummer",
+      "not_found": "Zu dieser Nummer liegt heute kein Flug vor",
+      "pick_one": "Welche dieser Flüge meinen Sie?",
+      "today": "heute",
+      "tomorrow": "morgen",
+      "candidate": {
+        "depart": "Abflug {time} {day}",
+        "arrive": "Ankunft {time} {day}"
+      },
+      "effect": {
+        "to_airport": "Abflug {ap} um {t} — wir bringen Sie dorthin.",
+        "from_airport": "Ankunft {ap} um {t} — wir holen Sie dort ab."
+      },
+      "note": {
+        "cancelled": "Dieser Flug ist annulliert, es wurde nichts ausgefüllt. Kommen Sie mit der neuen Nummer zurück.",
+        "departed": "Dieser Flug hat {ap} bereits verlassen, es gibt nichts auszufüllen.",
+        "off": "Wir fahren Zürich, Genf und Basel — dieser Flug berührt keinen davon. Setzen Sie den Abholort selbst."
+      }
+    },
+    "geo": {
+      "no_results": "Keine passenden Orte — versuchen Sie eine vollständigere Adresse",
+      "suggest_unavailable": "Die Ortssuche ist ausgefallen — tippen Sie die Adresse oder setzen Sie eine Stecknadel"
     }
   }
 }

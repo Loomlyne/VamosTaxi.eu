@@ -6,7 +6,7 @@
 -- tolerant vehicle_classes CHECK, the D-19 erasure guard, and the D-22 content_strings $meta
 -- facts.
 begin;
-select plan(34);
+select plan(43);
 
 -- DATA-01: every reference table this plan and its predecessors create.
 select has_table('public', 'settings', 'public.settings exists');
@@ -102,6 +102,21 @@ select throws_ok(
 select has_column('public', 'content_strings', 'pending_value', 'content_strings has pending_value (Law 04 data-tok, ADR-011)');
 select has_column('public', 'content_strings', 'non_translatable', 'content_strings has non_translatable (ADR-012)');
 select has_column('public', 'content_strings', 'no_param_reason', 'content_strings has no_param_reason (I18N-06)');
+
+-- Plan 04-05: snapshot board, second clock, service-area polygon column.
+select has_column('public', 'price_snapshots', 'shown_alternatives', 'price_snapshots has shown_alternatives (D-22)');
+select has_column('public', 'price_snapshots', 'quote_lock_expires_at', 'price_snapshots has quote_lock_expires_at (D-25)');
+select has_column('public', 'settings_versions', 'service_area_geojson', 'settings_versions has service_area_geojson (D-17)');
+
+-- Plan 04-06: coupon release ledger + evaluate_coupon.
+select has_column('public', 'coupon_redemptions', 'released_at', 'coupon_redemptions has released_at (D-31)');
+select has_column('public', 'coupon_redemptions', 'released_reason', 'coupon_redemptions has released_reason (D-31)');
+select has_function('public', 'evaluate_coupon', 'evaluate_coupon exists (D-30)');
+select has_function('public', 'create_quote_snapshot', 'create_quote_snapshot exists (D-44a)');
+
+-- Plan 04-12: flight provenance columns Phase 9 reads.
+select has_column('public', 'booking_legs', 'flight_checked_at', 'booking_legs has flight_checked_at (D-20)');
+select has_column('public', 'booking_legs', 'flight_time_source', 'booking_legs has flight_time_source (D-20)');
 
 select * from finish();
 rollback;

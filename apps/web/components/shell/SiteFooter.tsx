@@ -171,13 +171,6 @@ export function SiteFooter({
           <li>
             <FooterLink href={route("/about")} label={t("about")} rtl={rtl} />
           </li>
-          <li>
-            <FooterLink
-              href={route("/become-a-partner")}
-              label={t("drive-with-us")}
-              rtl={rtl}
-            />
-          </li>
         </>
       ),
     },

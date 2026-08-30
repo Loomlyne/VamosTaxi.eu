@@ -357,7 +357,13 @@
     "welcome-we-found-2-bookings-under-this-email-and": "مرحبًا — وجدنا حجزين بهذا البريد وأضفناهما إلى حسابك",
     "you-are-signed-in-on-this-device-use-the-new-pas": "أنت مُسجّل الدخول على هذا الجهاز. استخدم كلمة المرور الجديدة عند الدخول من مكان آخر.",
     "you-never-need-an-account-to-book-guest-checkout": "لا تحتاج حسابًا للحجز أبدًا. الحجز كضيف يمضي بك مباشرة — والحساب يجمع رحلاتك وقسائمك وإيصالاتك فقط.",
-    "your-driver-calls-this-number-on-arrival-so-it-h": "يتصل بك السائق على هذا الرقم عند الوصول، لذا يجب أن تردّ عليه. ونؤكّده مرة واحدة برمز عبر رسالة نصية."
+    "your-driver-calls-this-number-on-arrival-so-it-h": "يتصل بك السائق على هذا الرقم عند الوصول، لذا يجب أن تردّ عليه. ونؤكّده مرة واحدة برمز عبر رسالة نصية.",
+    "email-signup-subject": "أكد حسابك في Vamos Taxi",
+    "email-signup-body": "مرحباً {name}. أكد بريدك عبر هذا الرابط: {link}. أو أدخل هذا الرمز: {code}.",
+    "email-recovery-subject": "أعد تعيين كلمة مرور Vamos Taxi",
+    "email-recovery-body": "مرحباً {name}. أعد تعيين كلمة المرور عبر هذا الرابط: {link}. أو أدخل هذا الرمز: {code}.",
+    "email-otp-subject": "رمز الدخول إلى Vamos Taxi",
+    "email-otp-body": "مرحباً {name}. رمز الدخول هو {code}. أو استخدم هذا الرابط: {link}."
   },
   "booking": {
     "date": "التاريخ",
@@ -709,7 +715,9 @@
     "zurich": "زيورخ",
     "zurich-and-geneva-with-meet-greet-in-arrivals-an": "زيورخ وجنيف، مع استقبال في صالة الوصول وتتبّع للرحلة في كل حجز يحمل رقم رحلة.",
     "zurich-city": "مدينة زيورخ",
-    "zurich-geneva": "زيورخ · جنيف"
+    "zurich-geneva": "زيورخ · جنيف",
+    "form-submit-failed": "حدث خطأ. حاول مرة أخرى، أو اتصل بنا إن استمر.",
+    "form-challenge-failed": "لم يكتمل التحقق. حاول مرة أخرى."
   },
   "contact": {
     "8953-dietikon-zh-switzerland-post-only-this-is-n": "8953 ديتيكون، زيورخ، سويسرا. للبريد فقط — وليست مكتبًا لاستقبال الركاب.",
@@ -813,6 +821,7 @@
     "card-payment-processed-by-stripe-every-method-av": "الدفع بالبطاقة عبر Stripe. وتظهر كل الوسائل المتاحة لحجزك عند الدفع قبل إتمامه.",
     "categories": "الفئات",
     "collapse-all": "اطوِ الكل",
+    "could-not-load-questions": "تعذّر تحميل الأسئلة",
     "do-i-need-an-account-to-book": "هل أحتاج حسابًا للحجز؟",
     "do-i-need-to-tip-the-chauffeur": "هل عليّ إعطاء السائق إكرامية؟",
     "every-transfer-is-booked-ahead-and-assigned-to-a": "كل رحلة تُحجز مسبقًا وتُسند إلى سائق بالاسم. لست في انتظار إيجاد سيارة — ففي الموعد المتفق عليه تكون موجودة.",
@@ -838,6 +847,7 @@
     "placeholder-the-minimum-notice-before-a-pickup-h": "نص مؤقت — لم تُحدّد بعد أقل مدة إشعار قبل الاستقبال، لذا لا يُذكر هنا أي حدّ زمني. وستُدرج القاعدة في هذه الإجابة بعد تأكيد العميل.",
     "questions-answered": "أسئلة وإجابات",
     "questionsCount": "{n, plural, zero {لا أسئلة} one {سؤال واحد} two {سؤالان} few {# أسئلة} many {# سؤالًا} other {# سؤال}}",
+    "see-all-questions": "عرض كل الأسئلة",
     "single-source-of-truth": "مرجع واحد موثوق",
     "still-not-answered": "لم تجد إجابتك؟",
     "swiss-law-decides-which-seat-a-child-needs-and-t": "القانون السويسري يحدّد المقعد الذي يحتاجه الطفل، ولن ينطلق السائق بدونه. أخبرنا بأعمار الأطفال عند الحجز ليكون الاختيار صحيحًا.",
@@ -879,7 +889,11 @@
     "us-dollars": "دولار أمريكي",
     "vamos-taxi-home": "فاموس تاكسي — الرئيسية",
     "verify-your-email": "أكّد بريدك الإلكتروني",
-    "your-bookings": "حجوزاتك"
+    "your-bookings": "حجوزاتك",
+    "account-menu": "الحساب",
+    "account-bookings": "رحلاتي",
+    "account-sign-out": "تسجيل الخروج",
+    "account-confirm-email": "أكد بريدك الإلكتروني"
   },
   "home": {
     "a-black-mercedes-v-class-in-vamos-taxi-livery-pa": "مرسيدس فئة V سوداء بشعار فاموس تاكسي متوقفة في شارع بالمدينة.",
@@ -1242,7 +1256,14 @@
     "your-data": "بياناتك",
     "your-message-and-the-channel-it-came-in-on-kept": "رسالتك والقناة التي وصلت عبرها، محفوظة مع الحجز الذي تخصّه.",
     "your-obligations": "التزاماتك",
-    "your-rights": "حقوقك"
+    "your-rights": "حقوقك",
+    "language-coverage-heading": "هذه الصفحة ليست بلغتك",
+    "language-coverage-body": "هذه الصفحة منشورة بـ {languages}.",
+    "language-coverage-switch": "افتح لغة منشورة",
+    "lang-en": "الإنجليزية",
+    "lang-de": "الألمانية",
+    "lang-fr": "الفرنسية",
+    "lang-ar": "العربية"
   },
   "ops": {
     "add-a-note-visible-to-dispatch-only": "أضف ملاحظة يراها قسم التشغيل وحده…",
@@ -1506,11 +1527,15 @@
   "reviews": {
     "autoplay-advances-every-1-5-s-as-specified-with": "يتقدّم العرض التلقائي كل 1.5 ثانية كما هو محدّد، مع انتقال مدته 360 ملّي ثانية. ويتوقف مؤقتًا عند المرور أو التركيز، ويتوقف نهائيًا بمجرد استخدام أحد السهمين.",
     "client-reviews": "تقييمات العملاء",
+    "could-not-load-reviews": "تعذّر تحميل التقييمات",
     "next-review": "التقييم التالي",
     "no-name-quote-or-count-on-this-page-is-real-each": "لا اسم ولا اقتباس ولا رقم في هذه الصفحة حقيقي. فكل اقتباس نص مؤقت يصف موضعه — أما التقييمات الحقيقية فتُجلب من المخدّم وتُعرض حرفيًا، وتُقتطع من آخرها فقط.",
+    "no-reviews-are-published-yet": "لا تقييمات منشورة بعد",
     "platform-names-are-set-in-type-as-stand-ins-conf": "أسماء المنصات مكتوبة نصًا كبدائل مؤقتة. أكّد أيّ من Google وTripadvisor وTrustpilot لديه ملف فاموس فعّال قبل نشر أي شعار: فالشعار دون حساب خلفه ادّعاء كاذب.",
     "previous-review": "التقييم السابق",
+    "rating-label": "التقييم {n} من {max}",
     "reviewPosition": "تقييم {n} من {total}",
+    "reviews-appear-here-as-soon-as-they-are-published": "تظهر التقييمات هنا فور نشرها في لوحة التوزيع. لا يُعرض شيء في الأثناء.",
     "what-clients-say-about-us": "ما يقوله عملاؤنا عنا"
   },
   "services": {
@@ -1574,6 +1599,10 @@
       "ski_rack": {
         "label": "حامل التزلج أو الألواح",
         "rule": "يُركَّب عند الطلب، خلال موسم التزلج"
+      },
+      "oversized_luggage": {
+        "label": "أمتعة كبيرة الحجم",
+        "rule": "لكل قطعة معلنة"
       }
     }
   },
@@ -1660,7 +1689,99 @@
       "partner.van-or-minibus-up-to-8-seats": true,
       "partner.minibus-9-seats-or-more": true,
       "legal.bleicherstrasse-16-8953-dietikon-zh": true,
-      "legal.vamos-taxi-gmbh-bleicherstrasse-16-8953-dietikon-3": true
+      "legal.vamos-taxi-gmbh-bleicherstrasse-16-8953-dietikon-3": true,
+      "quote.flight.placeholder": "fixed example flight-number formats for the input placeholder, not a live count"
+    }
+  },
+  "quote": {
+    "class": {
+      "up_to_pax": "حتى {n, plural, zero {# راكب} one {راكب واحد} two {راكبين} few {# ركاب} many {# راكبًا} other {# راكب}}",
+      "up_to_bags": "حتى {n, plural, zero {# حقيبة} one {حقيبة واحدة} two {حقيبتين} few {# حقائب} many {# حقيبة} other {# حقيبة}}",
+      "na_pax": "غير متاحة لـ {n, plural, zero {# راكب} one {راكب واحد} two {راكبين} few {# ركاب} many {# راكبًا} other {# راكب}}",
+      "na_bags": "غير متاحة لـ {n, plural, zero {# حقيبة} one {حقيبة واحدة} two {حقيبتين} few {# حقائب} many {# حقيبة} other {# حقيبة}}",
+      "unavailable": "هذه الفئة غير متاحة على هذا المسار بعد",
+      "no_rate": "لا توجد تعرفة لهذه الفئة بعد",
+      "route_off": "هذه الفئة غير معروضة للبيع على هذا المسار",
+      "price_note": "الإجمالي، شامل جميع الضرائب",
+      "fixed_route_badge": "سعر ثابت",
+      "select_hint": "اختر فئة للمتابعة — التفاصيل والإضافات تاليًا"
+    },
+    "none_fit": "لا فئة تناسب حجم هذه المجموعة بعد.",
+    "moved_to": "نُقل إلى {v} — {from} تتسع حتى {cap}.",
+    "error": "تعذّر التسعير — حاول مجددًا",
+    "error.min_advance": "هذا الانطلاق مبكر جدًا — نحتاج إشعارًا قبل {minutes, plural, zero {# دقيقة} one {دقيقة واحدة} two {دقيقتين} few {# دقائق} many {# دقيقة} other {# دقيقة}}",
+    "error.out_of_service_area": "هذا المسار خارج منطقة خدمتنا",
+    "error.place_out_of_box": "هذه النقاط خارج المنطقة التي يمكننا تسعيرها",
+    "error.same_place": "نقطة الانطلاق والوجهة المكان نفسه — اختر اثنين",
+    "error.route_unavailable": "يتعذّر حساب هذا المسار حاليًا — حاول بعد لحظات",
+    "error.expired": "انتهت صلاحية هذا السعر — احصل على سعر جديد",
+    "error.price_changed": "تغيّر جدول الأجرة — احصل على سعر جديد",
+    "error.engine_changed": "احصل على سعر جديد للمتابعة",
+    "error.pricing_not_live": "الدفع غير مفتوح بعد",
+    "error.coupon_no_longer_valid": "لا يمكن استخدام هذا الرمز — احصل على سعر جديد",
+    "error.rate_limited": "طلبات أسعار كثيرة في وقت قصير — انتظر لحظة ثم حاول مجددًا",
+    "error.turnstile_required": "أكّد هذا الطلب ثم حاول مجددًا",
+    "error.temporarily_unavailable": "يتعذّر التسعير الآن — حاول بعد قليل",
+    "error.mode_not_offered": "الحجز بالساعة غير متاح بعد — احجز نقلًا بدلًا منه",
+    "pricing_pending": "تظهر الأسعار بعد اعتماد جدول الأجرة",
+    "loading": "جارٍ حساب سعرك الثابت…",
+    "empty": {
+      "title": "خطّط رحلتك",
+      "subtitle": "أضف تفاصيل رحلتك لعرض الأسعار",
+      "meta": "الانطلاق، الوجهة، التاريخ والوقت"
+    },
+    "lock": {
+      "countdown": "السعر مُثبَّت · {time}",
+      "expiring_soon": "ينتهي هذا السعر قريبًا — ادفع الآن أو احصل على سعر جديد"
+    },
+    "coupon": {
+      "label": "قسيمة",
+      "placeholder": "رمز قسيمة أو خصم",
+      "apply": "تطبيق",
+      "error": {
+        "not_found": "تحقّق من رمز القسيمة",
+        "inactive": "لم يعد هذا الرمز نشطًا",
+        "not_yet_valid": "هذا الرمز غير نشط بعد",
+        "expired": "انتهت صلاحية هذا الرمز",
+        "usage_cap": "بلغ هذا الرمز حده الأقصى",
+        "per_user_cap": "لقد استخدمت هذا الرمز من قبل",
+        "unpriced": "هذا الرمز غير جاهز بعد"
+      }
+    },
+    "extras": {
+      "error": {
+        "max_stops": "تحقّق من عدد التوقفات",
+        "max_child_seats": "تحقّق من عدد مقاعد الأطفال"
+      }
+    },
+    "flight": {
+      "label": "رقم الرحلة (اختياري)",
+      "placeholder": "EK 87 · LX 318",
+      "checking": "جارٍ البحث عن الرحلة…",
+      "unavailable": "يتعذّر علينا التحقق من الرحلات حاليًا — أدخل وقت الاستلام بنفسك.",
+      "recheck": "إعادة التحقق",
+      "malformed": "تحقق من رقم الرحلة",
+      "not_found": "لا رحلة بهذا الرقم اليوم",
+      "pick_one": "أي رحلة تقصد؟",
+      "today": "اليوم",
+      "tomorrow": "غدًا",
+      "candidate": {
+        "depart": "المغادرة {time} {day}",
+        "arrive": "الوصول {time} {day}"
+      },
+      "effect": {
+        "to_airport": "المغادرة من {ap} في {t} — نوصلك إلى هناك.",
+        "from_airport": "الوصول إلى {ap} في {t} — نستقبلك هناك."
+      },
+      "note": {
+        "cancelled": "هذه الرحلة ملغاة، لم يُعبّأ أي حقل. عد برقم الرحلة الجديد.",
+        "departed": "أقلعت هذه الرحلة من {ap} بالفعل، لا يوجد ما يُعبّأ.",
+        "off": "نخدم زيورخ وجنيف وبازل — هذه الرحلة لا تمر بأي منها. حدّد الانطلاق بنفسك."
+      }
+    },
+    "geo": {
+      "no_results": "لا أماكن مطابقة — جرّب عنوانًا أوضح",
+      "suggest_unavailable": "البحث عن الأماكن متوقف — اكتب العنوان أو أسقط دبوسًا"
     }
   }
 }

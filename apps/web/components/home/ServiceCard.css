@@ -1,0 +1,201 @@
+/* Law 01: the mock's shine is a WebGL2 specular edge that bleeds 20px past
+ * the media block (a coloured glow). Substituted here as a pointer-tracked
+ * radial fill + border step. No coloured box-shadow, no blur filter, no
+ * halo outside the border box. --vt-shadow-accent stays none. */
+:root {
+  --vt-shadow-accent: none;
+}
+
+.vt-svc {
+  --card-px: 50%;
+  --card-py: 50%;
+  --card-shine: var(--vt-yellow);
+  --card-shine-i: 1.25;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  block-size: 100%;
+  min-block-size: 280px;
+  text-decoration: none;
+  color: var(--vt-text-primary);
+}
+
+.vt-svc-hit {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-block-size: 280px;
+  block-size: 100%;
+}
+
+.vt-svc:hover,
+.vt-svc:focus,
+.vt-svc:active,
+.vt-svc:visited {
+  color: var(--vt-text-primary);
+}
+
+.vt-svc:focus-visible,
+.vt-svc.vt-svc--preview-focus {
+  outline: none;
+  box-shadow: var(--vt-ring);
+}
+
+.vt-svc:active:not(.vt-svc--disabled):not(.vt-svc--loading),
+.vt-svc.vt-svc--preview-press {
+  transform: translateY(1px);
+}
+
+[data-svc-media] {
+  position: relative;
+  flex: 1 1 auto;
+  min-block-size: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--vt-grey-100);
+  background-image: radial-gradient(
+    140px circle at var(--card-px) var(--card-py),
+    color-mix(in srgb, var(--card-shine) calc(var(--card-shine-i) * 18%), transparent),
+    transparent 72%
+  );
+  background-repeat: no-repeat;
+  border: var(--vt-border-w) solid transparent;
+  border-radius: var(--vt-radius-lg);
+  margin-block-end: clamp(16px, 1.7vw, 24px);
+  overflow: hidden;
+}
+
+.vt-svc--inverse [data-svc-media] {
+  background-color: var(--vt-charcoal-900);
+}
+
+.vt-svc:hover [data-svc-media],
+.vt-svc.vt-svc--preview-hover [data-svc-media],
+.vt-svc:focus-visible [data-svc-media],
+.vt-svc.vt-svc--preview-focus [data-svc-media] {
+  border-color: var(--vt-charcoal-900);
+}
+
+.vt-svc--inverse:hover [data-svc-media],
+.vt-svc--inverse.vt-svc--preview-hover [data-svc-media] {
+  border-color: var(--vt-grey-100);
+}
+
+[data-svc-glyph] {
+  position: relative;
+  z-index: 1;
+  display: block;
+  color: var(--vt-charcoal-600);
+  opacity: 0.34;
+}
+
+.vt-svc--inverse [data-svc-glyph] {
+  color: var(--vt-grey-100);
+  opacity: 0.42;
+}
+
+[data-svc-foot] {
+  position: relative;
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 20px;
+  align-items: start;
+}
+
+[data-svc-title] {
+  grid-column: 1;
+  grid-row: 1;
+  margin: 0;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-heading-3);
+  font-weight: var(--vt-weight-semibold);
+  letter-spacing: var(--vt-heading-tracking);
+  line-height: 1.14;
+  color: var(--vt-text-primary);
+  text-wrap: balance;
+  min-inline-size: 0;
+}
+
+[data-svc-desc] {
+  grid-column: 1;
+  grid-row: 2;
+  display: block;
+  margin-block-start: 10px;
+  font-size: var(--vt-body-sm);
+  line-height: 1.55;
+  color: var(--vt-text-secondary);
+  max-inline-size: 44ch;
+  text-wrap: pretty;
+  min-inline-size: 0;
+}
+
+[data-svc-circ] {
+  grid-column: 2;
+  grid-row: 1;
+  flex: 0 0 auto;
+  inline-size: 46px;
+  block-size: 46px;
+  min-inline-size: 46px;
+  min-block-size: 46px;
+  border-radius: 999px;
+  border: 1px solid var(--vt-grey-300);
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--vt-charcoal-900);
+  transition:
+    background-color var(--vt-dur-fast) var(--vt-ease-standard),
+    border-color var(--vt-dur-fast) var(--vt-ease-standard);
+}
+
+.vt-svc--accent [data-svc-circ],
+.vt-svc:hover [data-svc-circ],
+.vt-svc.vt-svc--preview-hover [data-svc-circ],
+.vt-svc:focus-visible [data-svc-circ],
+.vt-svc.vt-svc--preview-focus [data-svc-circ] {
+  background: var(--vt-yellow);
+  border-color: var(--vt-yellow);
+  color: var(--vt-charcoal-900);
+}
+
+.vt-svc:active [data-svc-circ],
+.vt-svc.vt-svc--preview-press [data-svc-circ] {
+  transform: translateY(1px);
+}
+
+.vt-svc--disabled,
+.vt-svc--loading {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.vt-svc-skel {
+  display: block;
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: var(--vt-radius-md, 8px);
+  background: var(--vt-grey-200);
+}
+
+.vt-svc-skel--line {
+  inline-size: 70%;
+  block-size: 1.1em;
+  margin-block: 0.2em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-svc-media] {
+    background-image: none;
+  }
+  .vt-svc:active,
+  .vt-svc.vt-svc--preview-press,
+  .vt-svc:active [data-svc-circ],
+  .vt-svc.vt-svc--preview-press [data-svc-circ] {
+    transform: none;
+  }
+}

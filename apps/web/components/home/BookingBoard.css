@@ -1,0 +1,31 @@
+[data-bc-board-list] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--vt-space-4);
+  align-items: stretch;
+}
+
+[data-bc-price-stack] {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--vt-space-3);
+  position: sticky;
+  inset-block-start: 96px;
+}
+
+.vt-bb-countdown {
+  display: flex;
+  align-items: center;
+  gap: var(--vt-space-1);
+  color: var(--vt-text-muted);
+  border: 1px solid var(--vt-border-subtle);
+  padding-inline: var(--vt-space-2);
+  padding-block: var(--vt-space-1);
+  font-size: var(--vt-body-sm);
+}
+
+.vt-bb-countdown[data-lock-state="danger"] {
+  color: var(--vt-danger);
+  border-color: var(--vt-danger);
+}

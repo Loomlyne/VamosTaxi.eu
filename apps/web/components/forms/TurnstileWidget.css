@@ -1,0 +1,14 @@
+/* Explicit-render Turnstile host. Reserved block-size so the form does not jump
+   when the challenge resolves. Law 01: no glow. */
+.vt-turnstile {
+  min-block-size: 65px;
+  min-inline-size: 300px;
+}
+
+.vt-turnstile__note {
+  margin: 0;
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-body-xs);
+  line-height: 1.45;
+  color: var(--vt-text-muted);
+}

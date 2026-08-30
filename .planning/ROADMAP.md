@@ -201,30 +201,30 @@ start rather than added once checkout exists.
 Plans:
 **Wave 1**
 
-- [ ] 04-01-PLAN.md — Wave 0 for the whole phase: install the two test tools this repository does not have, wire them
-- [ ] 04-04-PLAN.md — Make surcharge applicability **data**. Today "22:00–06:00" and "pickup is an airport zone" woul
+- [x] 04-01-PLAN.md — Wave 0 for the whole phase: install the two test tools this repository does not have, wire them
+- [x] 04-04-PLAN.md — Make surcharge applicability **data**. Today "22:00–06:00" and "pickup is an airport zone" woul
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 04-02-PLAN.md — The two pure decision modules the pipeline sits on: which classes a party can travel in, and
-- [ ] 04-05-PLAN.md — The database half of QUOTE-04 and QUOTE-05: a second clock the trigger can see, a board the dis
+- [x] 04-02-PLAN.md — The two pure decision modules the pipeline sits on: which classes a party can travel in, and
+- [x] 04-05-PLAN.md — The database half of QUOTE-04 and QUOTE-05: a second clock the trigger can see, a board the dis
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 04-03-PLAN.md — The pipeline itself: turn a frozen rate book plus a pinned journey into the exact `lines[]` arr
-- [ ] 04-06-PLAN.md — Open the anonymous quote identity's READ door, and finish the coupon ledger.
-- [ ] 04-07-PLAN.md — Two signed artefacts and one primitive.
+- [x] 04-03-PLAN.md — The pipeline itself: turn a frozen rate book plus a pinned journey into the exact `lines[]` arr
+- [x] 04-06-PLAN.md — Open the anonymous quote identity's READ door, and finish the coupon ledger.
+- [x] 04-07-PLAN.md — Two signed artefacts and one primitive.
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 04-08-PLAN.md — The boundary and the vocabulary.
-- [ ] 04-15-PLAN.md — Open the write door Phase 3 reserved and could not build.
+- [x] 04-08-PLAN.md — The boundary and the vocabulary.
+- [x] 04-15-PLAN.md — Open the write door Phase 3 reserved and could not build.
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 04-09-PLAN.md — Connect the pure kernel to the frozen book — through the one door that exists, on the one bindi
-- [ ] 04-10-PLAN.md — Everything between an address the customer typed and a pair of metres the kernel can price —
-- [ ] 04-12-PLAN.md — One lookup, three honest failures, and two columns so Phase 9 has something to shift.
+- [x] 04-09-PLAN.md — Connect the pure kernel to the frozen book — through the one door that exists, on the one bindi
+- [x] 04-10-PLAN.md — Everything between an address the customer typed and a pair of metres the kernel can price —
+- [x] 04-12-PLAN.md — One lookup, three honest failures, and two columns so Phase 9 has something to shift.
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
@@ -372,8 +372,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 
 | 1. Platform Foundation, Design System Port & i18n Runtime | 14/14 | Complete | 2026-08-22 |
 | 2. Data Schema, RLS & Staff Auth Foundations | 10/10 | Complete | 2026-08-27 |
 | 3. Hyperdrive Data Access Wiring | 7/7 | Complete | 2026-08-28 |
-| 4. Quote & Pricing Engine | 0/TBD | Not started | - |
-| 5. Public Surfaces & Customer Accounts | 0/TBD | Not started | - |
+| 4. Quote & Pricing Engine | 12/16 | In Progress|  |
+| 5. Public Surfaces & Customer Accounts | 19/24 | In Progress|  |
 | 6. Ops Reference Data & Content Console | 0/TBD | Not started | - |
 | 7. Checkout & Payment | 0/TBD | Not started | - |
 | 8. Ops Dispatch — Live Board, Assignment & Account Surfaces | 0/TBD | Not started | - |

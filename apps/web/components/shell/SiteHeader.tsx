@@ -2,13 +2,17 @@
 
 import "./SiteHeader.css";
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { createNavigation } from "next-intl/navigation";
 import { routing } from "@/i18n/routing";
 import { useVamosLocale, type CurrencyCode, type Locale } from "@/lib/locale-shim";
+import { PHONE_DISPLAY, PHONE_HREF } from "@/lib/contact-channels";
 import { Icon, Logo } from "../core";
 import { BrandSelect } from "./BrandSelect";
 import type { BrandSelectOption } from "./BrandSelect";
+import { SiteHeaderAccount } from "./SiteHeaderAccount";
+import type { SessionSnapshot } from "./SiteHeaderAccount";
 
 // Ported from `app/pages/SiteHeader.dc.html` (the full file). CLAUDE.md makes this
 // component mandatory on every public page and forbids hand-rolling a header anywhere;
@@ -27,22 +31,14 @@ import type { BrandSelectOption } from "./BrandSelect";
 // action. `cta={false}` drops the CTA on a page that already shows the booking card;
 // `hideAccount` drops the account control.
 //
-// NOT ported: the mock's signed-in branch (the avatar disc, its account menu, and the
-// notification bell with its per-notice read/handled state). All of it reads the browser
-// storage keys `vamosAuth` / `vamosNotices` directly — a mechanism this plan explicitly
-// prohibits under `components/shell/` and which Phase 2's Supabase Auth session replaces
-// wholesale. Porting it against a storage key that will not exist would
-// have been inventing a session, not porting one. Recorded in 01-13-SUMMARY.md's Known
-// Stubs and in `.planning/WINDOWS.md`; the signed-out control row below is what every
-// page in this phase actually renders.
+// Signed-in branch (avatar disc, account menu, Server-Action sign-out) shipped in
+// Phase 5 plan 05-20 via SiteHeaderAccount. The notification bell did not: every
+// notice in the mock is booking-attached and no booking or notification table exists
+// before Phase 7 (raised in plan 05-24). The verify-email notice shipped because
+// getUser() already carries that fact. The layout never reads the session, so public
+// pages keep static rendering; the signed-out control is the SSR default.
 
 const { Link } = createNavigation(routing);
-
-/** The published business number. An address, not copy — it stays as typed in every
- *  language, and `.vt-dir-keep` (tokens/laws.css) keeps it reading left-to-right inside
- *  an Arabic document instead of being bidi-reordered into nonsense. */
-const PHONE_DISPLAY = "+41 79 626 70 82";
-const PHONE_HREF = "tel:+41796267082";
 
 /** The four locales, labelled in their own language. This is the one switcher CLAUDE.md
  *  names as legitimately opting out of translation — "Deutsch" is what a German speaker
@@ -83,6 +79,11 @@ export interface SiteHeaderProps {
   cur?: CurrencyCode;
   onLang?: (v: Locale) => void;
   onCur?: (v: CurrencyCode) => void;
+  /** Dev gallery / tests: stub the header account snapshot (no session fetch). */
+  accountSnapshot?: SessionSnapshot;
+  accountMenuOpen?: boolean;
+  /** Dev gallery: start with the narrow hamburger open. */
+  defaultNarrowOpen?: boolean;
 }
 
 /**
@@ -142,36 +143,53 @@ function SiteHeaderView({
   cur,
   onLang,
   onCur,
+  accountSnapshot,
+  accountMenuOpen,
+  defaultNarrowOpen = false,
 }: SiteHeaderViewProps) {
   const t = useTranslations("common");
   const tHeader = useTranslations("header");
 
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(defaultNarrowOpen);
   const [floating, setFloating] = useState(false);
   const menuRootRef = useRef<HTMLDivElement | null>(null);
 
-  const variant: SiteHeaderVariant = variantProp === "overlay" ? "overlay" : "inverse";
+  const pathname = usePathname() ?? "";
+  const rest = pathname.replace(/^\/(de|fr|ar)(?=\/|$)/, "");
+  const isHome = rest === "" || rest === "/";
+  const variant: SiteHeaderVariant =
+    isHome || variantProp === "overlay" ? "overlay" : "inverse";
 
   // Only the overlay bar floats — the charcoal one is already sticky and solid.
+  // The booking card lives in the page body, below this header, so the observer
+  // waits until `[data-bookcard]` is in the document. Floating starts once that
+  // card leaves the viewport (the mock: the bar carries Book after you scroll
+  // past the widget).
   useEffect(() => {
     if (variant !== "overlay") {
       setFloating(false);
       return;
     }
-    let frame = 0;
-    const onScroll = () => {
-      if (frame) return;
-      frame = requestAnimationFrame(() => {
-        frame = 0;
-        const y = window.scrollY || document.documentElement.scrollTop || 0;
-        setFloating(y > 120);
-      });
+    let io: IntersectionObserver | null = null;
+    const mo = new MutationObserver(() => bind());
+    const bind = () => {
+      if (io) return;
+      const card = document.querySelector("[data-bookcard]");
+      if (!card || typeof IntersectionObserver === "undefined") return;
+      io = new IntersectionObserver(
+        ([entry]) => {
+          if (entry) setFloating(!entry.isIntersecting);
+        },
+        { threshold: 0 },
+      );
+      io.observe(card);
+      mo.disconnect();
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
+    bind();
+    if (!io) mo.observe(document.body, { childList: true, subtree: true });
     return () => {
-      if (frame) cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", onScroll);
+      mo.disconnect();
+      io?.disconnect();
     };
   }, [variant]);
 
@@ -201,7 +219,7 @@ function SiteHeaderView({
   // The mock's own rule, ported verbatim: home drops the CTA while its booking card is
   // on screen, and the floating overlay bar carries it again once you have scrolled past
   // that card, so the way to book is never off the page.
-  const showCta = ((cta ?? variant !== "overlay") !== false) || floating;
+  const showCta = ((cta ?? (isHome ? false : variant !== "overlay")) !== false) || floating;
   const showAccount = !hideAccount;
   const accountLabel = signInLabel || t("sign-in");
   const bookLabel = t("book-a-transfer");
@@ -279,10 +297,12 @@ function SiteHeaderView({
               i18nSkip
             />
             {showAccount ? (
-              <Link data-hd-acct="pill" href="/sign-in">
-                <Icon name="user" size={16} color="currentColor" />
-                <span>{accountLabel}</span>
-              </Link>
+              <SiteHeaderAccount
+                variant={variant}
+                signInLabel={accountLabel}
+                snapshot={accountSnapshot}
+                defaultMenuOpen={accountMenuOpen}
+              />
             ) : null}
             {showCta ? (
               <Link data-hd-cta="1" href="/#book">
@@ -324,10 +344,13 @@ function SiteHeaderView({
                 ) : null}
 
                 {showAccount ? (
-                  <Link data-hd-menuacct="1" href="/sign-in" role="menuitem">
-                    <Icon name="user" size={18} color="currentColor" />
-                    <span>{accountLabel}</span>
-                  </Link>
+                  <SiteHeaderAccount
+                    variant={variant}
+                    compact
+                    signInLabel={accountLabel}
+                    snapshot={accountSnapshot}
+                    defaultMenuOpen={accountMenuOpen}
+                  />
                 ) : null}
 
                 <div data-hd-mgroup="1">
