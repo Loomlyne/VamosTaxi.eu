@@ -73,6 +73,7 @@ function loadAllowlist() {
   for (const key of [
     "allowed_postgres_importers", "allowed_reserve", "allowed_end",
     "allowed_unsafe", "allowed_session_set", "force_dynamic_exempt",
+    "isolate_memoisation_exempt",
   ]) {
     if (!Array.isArray(raw[key])) {
       console.error(`${relative(repoRoot, allowlistPath)} must declare a "${key}" array.`);
@@ -293,35 +294,47 @@ function checkForceDynamic(allowlist) {
   );
 }
 
-// ── D-20 forward greps: the isolate-memoisation obligation Phase 5 owns in full ───────────
-// `unstable_cache`, `React.cache`, `'use cache'`, and a module-scope Map/Set/cache-shaped
-// collection are reported here as a WARNING with a non-zero exit ONLY when they appear in a
-// file that ALSO imports an identity wrapper — Phase 5 (U31/ISOL-08) owns the full ban; a
-// blanket repo-wide ban today would fail on unrelated, legitimate caching (e.g. this repo's
-// own Playwright spec files using `new Set(...)` for viewport project names).
+// ── Isolate memoisation (U31/ISOL-08 CI-grep half — closed in plan 05-23) ──────────────────
+// Phase 5 plan 05-23 closed the D-20 forward-grep half of U31/ISOL-08: a full blocking ban
+// on `unstable_cache`, `React.cache`, `'use cache'`, and a module-scope Map/Set/WeakMap/WeakSet
+// under `apps/web/app` and `apps/web/lib` only — no longer conditioned on a wrapper import.
+// Test files (`*.test.*` / `*.spec.*` and `**/tests/**`) are excluded structurally, not by
+// allowlist, because a whole test tree is not a named exception. A module-scope object
+// literal used as a lookup table is not banned: this repo writes those as frozen config
+// (`NATIVE_LANG`, `QUOTE_ERRORS`), not as request-scoped stores, and loosening-by-omission
+// beats a regex that cannot tell a store from a table. The harness half is NOT closed here.
 const CACHE_PATTERNS = [/\bunstable_cache\b/, /\bReact\.cache\b/, /(['"])use cache\1/];
-const MODULE_SCOPE_COLLECTION_RE = /^(export\s+)?(const|let)\s+\S+\s*=\s*new\s+(Map|Set)\(/;
+const MODULE_SCOPE_COLLECTION_RE =
+  /^(export\s+)?(const|let)\s+\S+\s*=\s*new\s+(Map|Set|WeakMap|WeakSet)\(/;
 
-function checkIsolateMemoisationForward() {
+function isTestFile(rel) {
+  return /(^|\/)tests\//.test(rel) || /\.(test|spec)\.[cm]?[jt]sx?$/.test(rel);
+}
+
+function checkIsolateMemoisation(allowlist) {
   const files = [];
-  walk(join(repoRoot, "apps/web"), files);
-  const warnings = [];
+  walk(join(repoRoot, "apps/web/app"), files);
+  walk(join(repoRoot, "apps/web/lib"), files);
+  const exempt = new Set(allowlist.isolate_memoisation_exempt);
+  const violations = [];
   for (const file of files.filter((f) => f.endsWith(".ts") || f.endsWith(".tsx"))) {
     const rel = relPath(file);
-    const content = readFileSync(file, "utf8");
-    if (!WRAPPER_IMPORT_RE.test(content)) continue; // only in-scope when paired with a wrapper import
-    const lines = stripComments(content);
+    if (isTestFile(rel) || exempt.has(rel)) continue;
+    const lines = stripComments(readFileSync(file, "utf8"));
     lines.forEach((line, i) => {
       const hit =
         CACHE_PATTERNS.some((re) => re.test(line)) || MODULE_SCOPE_COLLECTION_RE.test(line);
       if (hit) {
-        warnings.push(
-          `${rel}:${i + 1} (isolate-memoisation pattern in a file importing an identity wrapper — full ban is Phase 5's U31/ISOL-08)`,
+        violations.push(
+          `${rel}:${i + 1} (isolate-memoisation pattern — module-scope Map/Set/WeakMap/WeakSet, unstable_cache, React.cache, or 'use cache')`,
         );
       }
     });
   }
-  return reportCheck("D-20 forward greps — isolate memoisation paired with an identity wrapper", warnings);
+  return reportCheck(
+    "no isolate-level memoisation under apps/web/app and apps/web/lib (U31/ISOL-08 CI-grep)",
+    violations,
+  );
 }
 
 // ── Run every check, aggregate the exit code ───────────────────────────────────────────────
@@ -336,7 +349,7 @@ const results = [
   checkUnsafe(files, allowlist),
   checkSessionSet(files, allowlist),
   checkForceDynamic(allowlist),
-  checkIsolateMemoisationForward(),
+  checkIsolateMemoisation(allowlist),
 ];
 
 const allOk = results.every(Boolean);
