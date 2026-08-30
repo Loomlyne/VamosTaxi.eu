@@ -81,6 +81,8 @@ export interface SiteHeaderProps {
   /** Dev gallery / tests: stub the header account snapshot (no session fetch). */
   accountSnapshot?: SessionSnapshot;
   accountMenuOpen?: boolean;
+  /** Dev gallery: start with the narrow hamburger open. */
+  defaultNarrowOpen?: boolean;
 }
 
 /**
@@ -142,11 +144,12 @@ function SiteHeaderView({
   onCur,
   accountSnapshot,
   accountMenuOpen,
+  defaultNarrowOpen = false,
 }: SiteHeaderViewProps) {
   const t = useTranslations("common");
   const tHeader = useTranslations("header");
 
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(defaultNarrowOpen);
   const [floating, setFloating] = useState(false);
   const menuRootRef = useRef<HTMLDivElement | null>(null);
 
