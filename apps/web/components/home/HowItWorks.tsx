@@ -29,9 +29,12 @@ type Step = {
 function fitSpine(board: HTMLElement, spine: HTMLElement) {
   const meds = board.querySelectorAll<HTMLElement>("[data-hiw-med]");
   if (meds.length < 2) return;
+  const first = meds[0];
+  const last = meds[meds.length - 1];
+  if (!first || !last) return;
   const base = board.getBoundingClientRect();
-  const a = meds[0].getBoundingClientRect();
-  const b = meds[meds.length - 1].getBoundingClientRect();
+  const a = first.getBoundingClientRect();
+  const b = last.getBoundingClientRect();
   const top = a.top + a.height / 2 - base.top;
   const h = b.top + b.height / 2 - base.top - top;
   if (h <= 0) return;

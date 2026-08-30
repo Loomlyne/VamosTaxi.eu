@@ -129,8 +129,10 @@ export function WhyVamos({
     const bars = root.querySelectorAll<HTMLElement>("[data-why-prog]");
     let active = 0;
     for (let k = 1; k < layers.length; k++) {
+      const layer = layers[k];
+      if (!layer) continue;
       const t = ease(Math.min(1, Math.max(0, (raw - (k - WIN)) / WIN)));
-      layers[k].style.clipPath = `inset(${((1 - t) * 100).toFixed(3)}% 0 0 0)`;
+      layer.style.clipPath = `inset(${((1 - t) * 100).toFixed(3)}% 0 0 0)`;
       if (t >= 0.5) active = k;
     }
     if (layers[0]) layers[0].style.clipPath = "inset(0 0 0 0)";
