@@ -139,11 +139,5 @@ export function TurnstileWidget({
     );
   }
 
-  return (
-    <div
-      className="vt-turnstile"
-      ref={hostRef}
-      aria-label={labelKey ? tCommon(labelKey) : undefined}
-    />
-  );
+  return <div className="vt-turnstile" ref={hostRef} />;
 }
