@@ -821,6 +821,7 @@
     "card-payment-processed-by-stripe-every-method-av": "الدفع بالبطاقة عبر Stripe. وتظهر كل الوسائل المتاحة لحجزك عند الدفع قبل إتمامه.",
     "categories": "الفئات",
     "collapse-all": "اطوِ الكل",
+    "could-not-load-questions": "تعذّر تحميل الأسئلة",
     "do-i-need-an-account-to-book": "هل أحتاج حسابًا للحجز؟",
     "do-i-need-to-tip-the-chauffeur": "هل عليّ إعطاء السائق إكرامية؟",
     "every-transfer-is-booked-ahead-and-assigned-to-a": "كل رحلة تُحجز مسبقًا وتُسند إلى سائق بالاسم. لست في انتظار إيجاد سيارة — ففي الموعد المتفق عليه تكون موجودة.",
@@ -846,6 +847,7 @@
     "placeholder-the-minimum-notice-before-a-pickup-h": "نص مؤقت — لم تُحدّد بعد أقل مدة إشعار قبل الاستقبال، لذا لا يُذكر هنا أي حدّ زمني. وستُدرج القاعدة في هذه الإجابة بعد تأكيد العميل.",
     "questions-answered": "أسئلة وإجابات",
     "questionsCount": "{n, plural, zero {لا أسئلة} one {سؤال واحد} two {سؤالان} few {# أسئلة} many {# سؤالًا} other {# سؤال}}",
+    "see-all-questions": "عرض كل الأسئلة",
     "single-source-of-truth": "مرجع واحد موثوق",
     "still-not-answered": "لم تجد إجابتك؟",
     "swiss-law-decides-which-seat-a-child-needs-and-t": "القانون السويسري يحدّد المقعد الذي يحتاجه الطفل، ولن ينطلق السائق بدونه. أخبرنا بأعمار الأطفال عند الحجز ليكون الاختيار صحيحًا.",
@@ -1525,11 +1527,15 @@
   "reviews": {
     "autoplay-advances-every-1-5-s-as-specified-with": "يتقدّم العرض التلقائي كل 1.5 ثانية كما هو محدّد، مع انتقال مدته 360 ملّي ثانية. ويتوقف مؤقتًا عند المرور أو التركيز، ويتوقف نهائيًا بمجرد استخدام أحد السهمين.",
     "client-reviews": "تقييمات العملاء",
+    "could-not-load-reviews": "تعذّر تحميل التقييمات",
     "next-review": "التقييم التالي",
     "no-name-quote-or-count-on-this-page-is-real-each": "لا اسم ولا اقتباس ولا رقم في هذه الصفحة حقيقي. فكل اقتباس نص مؤقت يصف موضعه — أما التقييمات الحقيقية فتُجلب من المخدّم وتُعرض حرفيًا، وتُقتطع من آخرها فقط.",
+    "no-reviews-are-published-yet": "لا تقييمات منشورة بعد",
     "platform-names-are-set-in-type-as-stand-ins-conf": "أسماء المنصات مكتوبة نصًا كبدائل مؤقتة. أكّد أيّ من Google وTripadvisor وTrustpilot لديه ملف فاموس فعّال قبل نشر أي شعار: فالشعار دون حساب خلفه ادّعاء كاذب.",
     "previous-review": "التقييم السابق",
+    "rating-label": "التقييم {n} من {max}",
     "reviewPosition": "تقييم {n} من {total}",
+    "reviews-appear-here-as-soon-as-they-are-published": "تظهر التقييمات هنا فور نشرها في لوحة التوزيع. لا يُعرض شيء في الأثناء.",
     "what-clients-say-about-us": "ما يقوله عملاؤنا عنا"
   },
   "services": {

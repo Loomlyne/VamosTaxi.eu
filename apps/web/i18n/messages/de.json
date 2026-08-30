@@ -821,6 +821,7 @@
     "card-payment-processed-by-stripe-every-method-av": "Kartenzahlung, abgewickelt über Stripe. Alle für Ihre Buchung verfügbaren Zahlungsarten werden vor der Zahlung an der Kasse angezeigt.",
     "categories": "Kategorien",
     "collapse-all": "Alle schliessen",
+    "could-not-load-questions": "Fragen konnten nicht geladen werden",
     "do-i-need-an-account-to-book": "Brauche ich für die Buchung ein Konto?",
     "do-i-need-to-tip-the-chauffeur": "Muss ich dem Chauffeur Trinkgeld geben?",
     "every-transfer-is-booked-ahead-and-assigned-to-a": "Jeder Transfer wird im Voraus gebucht und einem namentlichen Fahrer zugeteilt. Sie warten nicht darauf, dass ein Auto gefunden wird — zur vereinbarten Zeit steht es bereits da.",
@@ -846,6 +847,7 @@
     "placeholder-the-minimum-notice-before-a-pickup-h": "Platzhalter — die Mindestvorlaufzeit vor einer Abholung ist noch nicht festgelegt, deshalb steht hier keine Frist. Die Regel kommt in diese Antwort, sobald der Kunde sie bestätigt.",
     "questions-answered": "Fragen, beantwortet",
     "questionsCount": "{n, plural, one {# Frage} other {# Fragen}}",
+    "see-all-questions": "Alle Fragen ansehen",
     "single-source-of-truth": "Eine einzige verbindliche Quelle",
     "still-not-answered": "Noch keine Antwort gefunden?",
     "swiss-law-decides-which-seat-a-child-needs-and-t": "Das Schweizer Recht bestimmt, welchen Sitz ein Kind braucht, und der Fahrer fährt ohne ihn nicht los. Nennen Sie uns bei der Buchung das Alter der Kinder, dann stimmt es.",
@@ -1525,11 +1527,15 @@
   "reviews": {
     "autoplay-advances-every-1-5-s-as-specified-with": "Die automatische Wiedergabe wechselt alle 1,5 s, wie festgelegt, mit 360 ms Überblendung. Sie pausiert bei Hover oder Fokus und stoppt endgültig, sobald ein Pfeil benutzt wird.",
     "client-reviews": "Kundenbewertungen",
+    "could-not-load-reviews": "Bewertungen konnten nicht geladen werden",
     "next-review": "Nächste Bewertung",
     "no-name-quote-or-count-on-this-page-is-real-each": "Kein Name, Zitat oder Zähler auf dieser Seite ist echt. Jedes Zitat ist ein Platzhalter, der seinen eigenen Platz beschreibt — echte Bewertungen werden serverseitig geholt und wörtlich gezeigt, nur am Ende gekürzt.",
+    "no-reviews-are-published-yet": "Noch keine Bewertungen veröffentlicht",
     "platform-names-are-set-in-type-as-stand-ins-conf": "Die Plattformnamen stehen als Platzhalter im Satz. Klären Sie, welche von Google, Tripadvisor und Trustpilot ein aktives Vamos-Profil hat, bevor ein Zeichen ausgeliefert wird: ein Logo ohne Konto dahinter ist eine falsche Aussage.",
     "previous-review": "Vorherige Bewertung",
+    "rating-label": "Bewertet mit {n} von {max}",
     "reviewPosition": "Bewertung {n} von {total}",
+    "reviews-appear-here-as-soon-as-they-are-published": "Bewertungen erscheinen hier, sobald sie in der Dispatch-Konsole veröffentlicht sind. Bis dahin wird nichts angezeigt.",
     "what-clients-say-about-us": "Was Kundinnen und Kunden über uns sagen"
   },
   "services": {
