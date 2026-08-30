@@ -821,6 +821,7 @@
     "card-payment-processed-by-stripe-every-method-av": "Card payment, processed by Stripe. Every method available for your booking is shown at checkout before you pay.",
     "categories": "Categories",
     "collapse-all": "Collapse all",
+    "could-not-load-questions": "Could not load questions",
     "do-i-need-an-account-to-book": "Do I need an account to book?",
     "do-i-need-to-tip-the-chauffeur": "Do I need to tip the chauffeur?",
     "every-transfer-is-booked-ahead-and-assigned-to-a": "Every transfer is booked ahead and assigned to a named driver. You are not waiting for a car to be found — at the agreed time it is already there.",
@@ -846,6 +847,7 @@
     "placeholder-the-minimum-notice-before-a-pickup-h": "Placeholder — the minimum notice before a pickup has not been set yet, so no cut-off is stated here. The rule goes into this answer once the client confirms it.",
     "questions-answered": "Questions, answered",
     "questionsCount": "{n, plural, one {# question} other {# questions}}",
+    "see-all-questions": "See all questions",
     "single-source-of-truth": "Single source of truth",
     "still-not-answered": "Still not answered?",
     "swiss-law-decides-which-seat-a-child-needs-and-t": "Swiss law decides which seat a child needs, and the driver will not set off without it. Tell us the children's ages at booking and we will get it right.",
@@ -1525,11 +1527,15 @@
   "reviews": {
     "autoplay-advances-every-1-5-s-as-specified-with": "Autoplay advances every 1.5 s, as specified, with a 360 ms cross-slide. It pauses on hover or focus and stops for good once either arrow is used.",
     "client-reviews": "Client reviews",
+    "could-not-load-reviews": "Could not load reviews",
     "next-review": "Next review",
     "no-name-quote-or-count-on-this-page-is-real-each": "No name, quote or count on this page is real. Each quote is a placeholder describing its own slot — real reviews are fetched server-side and shown verbatim, trimmed only at the end.",
+    "no-reviews-are-published-yet": "No reviews are published yet",
     "platform-names-are-set-in-type-as-stand-ins-conf": "Platform names are set in type as stand-ins. Confirm which of Google, Tripadvisor and Trustpilot has a live Vamos profile before any mark ships: a logo with no account behind it is a false claim.",
     "previous-review": "Previous review",
+    "rating-label": "Rated {n} of {max}",
     "reviewPosition": "Review {n} of {total}",
+    "reviews-appear-here-as-soon-as-they-are-published": "Reviews appear here as soon as they are published in the dispatch console. Nothing is shown in the meantime.",
     "what-clients-say-about-us": "What clients say about us"
   },
   "services": {

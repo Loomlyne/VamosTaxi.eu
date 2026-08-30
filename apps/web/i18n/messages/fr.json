@@ -821,6 +821,7 @@
     "card-payment-processed-by-stripe-every-method-av": "Paiement par carte, traité par Stripe. Tous les moyens disponibles pour votre réservation s’affichent au paiement, avant le débit.",
     "categories": "Catégories",
     "collapse-all": "Tout replier",
+    "could-not-load-questions": "Impossible de charger les questions",
     "do-i-need-an-account-to-book": "Faut-il un compte pour réserver ?",
     "do-i-need-to-tip-the-chauffeur": "Dois-je donner un pourboire au chauffeur ?",
     "every-transfer-is-booked-ahead-and-assigned-to-a": "Chaque transfert est réservé à l’avance et confié à un chauffeur nommé. Vous n’attendez pas qu’une voiture soit trouvée — à l’heure convenue elle est déjà là.",
@@ -846,6 +847,7 @@
     "placeholder-the-minimum-notice-before-a-pickup-h": "Espace réservé — le délai minimum avant une prise en charge n’est pas encore fixé, donc aucune limite n’est indiquée ici. La règle entrera dans cette réponse dès que le client la confirmera.",
     "questions-answered": "Vos questions, nos réponses",
     "questionsCount": "{n, plural, one {# question} other {# questions}}",
+    "see-all-questions": "Voir toutes les questions",
     "single-source-of-truth": "Une seule source de vérité",
     "still-not-answered": "Toujours sans réponse ?",
     "swiss-law-decides-which-seat-a-child-needs-and-t": "La loi suisse détermine le siège nécessaire à un enfant, et le chauffeur ne partira pas sans lui. Donnez-nous l’âge des enfants à la réservation et ce sera juste.",
@@ -1525,11 +1527,15 @@
   "reviews": {
     "autoplay-advances-every-1-5-s-as-specified-with": "La lecture automatique avance toutes les 1,5 s, comme spécifié, avec un fondu de 360 ms. Elle se met en pause au survol ou au focus et s’arrête définitivement dès qu’une flèche est utilisée.",
     "client-reviews": "Avis clients",
+    "could-not-load-reviews": "Impossible de charger les avis",
     "next-review": "Avis suivant",
     "no-name-quote-or-count-on-this-page-is-real-each": "Aucun nom, citation ni compteur de cette page n’est réel. Chaque citation décrit son propre emplacement — les vrais avis sont récupérés côté serveur et affichés mot pour mot, coupés seulement à la fin.",
+    "no-reviews-are-published-yet": "Aucun avis n’est encore publié",
     "platform-names-are-set-in-type-as-stand-ins-conf": "Les noms de plateformes sont composés en typographie, en attente. Confirmez laquelle de Google, Tripadvisor et Trustpilot a un profil Vamos actif avant de publier une marque : un logo sans compte derrière est une fausse affirmation.",
     "previous-review": "Avis précédent",
+    "rating-label": "Note {n} sur {max}",
     "reviewPosition": "Avis {n} sur {total}",
+    "reviews-appear-here-as-soon-as-they-are-published": "Les avis apparaissent ici dès qu’ils sont publiés dans la console. Rien n’est affiché en attendant.",
     "what-clients-say-about-us": "Ce que nos clients disent de nous"
   },
   "services": {

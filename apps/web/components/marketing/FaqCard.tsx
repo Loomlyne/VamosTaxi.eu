@@ -9,6 +9,9 @@ export type FaqItem = {
   id: string;
   questionKey: string;
   answerKeys: string[];
+  /** Resolved copy from content_strings (home). When set, the JSON catalogue is not used. */
+  question?: string;
+  answers?: string[];
 };
 
 export function FaqCard({
@@ -48,7 +51,7 @@ export function FaqCard({
           aria-controls={panelId}
           onClick={() => onToggle(item.id)}
         >
-          {tFaq(item.questionKey)}
+          {item.question ?? tFaq(item.questionKey)}
           <span data-faq-circle="1" aria-hidden="true">
             <span data-faq-chev="1">
               <Icon name="chevron-down" size={22} color="currentColor" />
@@ -58,9 +61,9 @@ export function FaqCard({
       </h3>
       <div data-faq-panel="1" id={panelId} role="region" aria-labelledby={toggleId}>
         <div data-faq-inner="1">
-          {item.answerKeys.map((key) => (
-            <p key={key} data-faq-a="1">
-              {tFaq(key)}
+          {(item.answers ?? item.answerKeys).map((keyOrText, i) => (
+            <p key={item.answerKeys[i] ?? `a-${i}`} data-faq-a="1">
+              {item.answers ? keyOrText : tFaq(keyOrText)}
             </p>
           ))}
         </div>
