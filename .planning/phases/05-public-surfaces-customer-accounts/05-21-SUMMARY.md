@@ -11,7 +11,7 @@ requires:
     provides: buildAlternates, SiteShell, ADR-001 booking draft
 provides:
   - Composed `/[locale]` home page (six sections, force-dynamic, publicSql reviews+FAQ)
-  - Home overlay header via SiteShell cloneElement (variant=overlay, cta=false)
+  - Home overlay header via SiteHeader pathname (variant=overlay, cta=false at rest)
   - ADR-001 lang-switch against the real BookingCard
 affects: [05-22-booking-widget]
 
@@ -19,7 +19,7 @@ tech-stack:
   added: []
   patterns:
     - Home is the only Phase 5 force-dynamic public page (D-11 / ban #5)
-    - Overlay/CTA for home resolved in client SiteShell from usePathname; layout stays route-blind and session-blind
+    - Overlay/CTA for home resolved in client SiteHeader from usePathname; layout stays route-blind and session-blind
 
 key-files:
   created:
@@ -66,7 +66,7 @@ completed: 2026-08-30
 
 ## Overlay / `cta={false}` mechanism
 
-05-06 SUMMARY recorded none. `apps/web/components/shell/SiteShell.tsx` already reads `usePathname()`. After stripping `/de|/fr|/ar`, if the remainder is `/` or empty it `cloneElement`s the layout header with `{ variant: "overlay", cta: false }`. Layout still does not read the route or the session. `SiteHeader` restores the CTA once the overlay bar floats (`scrollY > 120`).
+05-06 SUMMARY recorded none. `SiteHeader` reads `usePathname()`, strips `/de|/fr|/ar`, and on `/` renders overlay with the booking CTA dropped. Layout still does not read the route or the session. Floating CTA restore after scroll is SiteHeader's existing `data-hd-float` path — not proven in Playwright against `next dev`.
 
 ## `BookingCardMount` slots for 05-22
 
@@ -92,35 +92,38 @@ This page renders `<BookingCard />` with no `board` / `price` / `status` props. 
 - `apps/web/app/[locale]/page.tsx` — composed home; `export const dynamic = "force-dynamic"`
 - `apps/web/app/[locale]/home.css` — `[data-home]` column + overflow clip; no new class names
 - `apps/web/components/home/index.ts` — section barrel
-- `apps/web/components/shell/SiteShell.tsx` — home overlay clone
+- `apps/web/components/shell/SiteHeader.tsx` — home overlay from pathname
+- `apps/web/components/shell/SiteShell.tsx` — no cloneElement; layout header unchanged
+- `apps/web/lib/db/content.ts` — `getContentStrings` uses `IN` list (vamos_public cannot `any()`)
 - `apps/web/tests/integration/lang-switch.spec.ts` — real BookingCard fields
 - `apps/web/tests/visual/home.spec.ts` — 16-locale×viewport page spec; fail-loud on reviews/FAQ error
+- `apps/web/tests/visual/home.spec.ts-snapshots/` — 16 baselines
 
 ## Decisions Made
 
-- Overlay lives in `SiteShell`, not the RSC layout.
+- Overlay lives in `SiteHeader` from pathname, not the RSC layout.
 - Hourly service card off: `Services showChauffeurByHour={false}`.
 - Visual spec throws `Local stack is not running. Run \`pnpm db:start && pnpm db:reset\`.` when `[data-rv]` or `[data-home-faq]` `data-state="error"` — no `skip()`.
 
 ## Deviations from Plan
 
-None - plan executed as written. Task 3 verify did not go green (see Issues).
+- Overlay after-scroll CTA restore not asserted: Playwright `next dev` never sets `data-hd-float`. Rest-state overlay + CTA off is green.
+- `getContentStrings` `IN` list (inherited `any()` broke FAQ under `vamos_public`).
 
 ## Issues Encountered
 
-- `tests/visual/home.spec.ts --workers=1` (ports 4280–4283) **failed loud**: the composed page rendered, but Reviews and HomeFaq were `data-state="error"` (Hyperdrive/`publicSql` against `127.0.0.1:54322`). Direct `postgres://postgres:***@127.0.0.1:54322` also failed password auth — this is not the Vamos local stack. Per contract, did not run `pnpm start` / `supabase start` / Docker. No `home.spec.ts-snapshots` written (count 0, need ≥16 once the owner stack is up).
+- Orchestrator re-ran `home.spec.ts` against local Postgres (`54322`). **16** snapshots. Overlay at rest green. Float-after-scroll not proven.
 - Did **not** re-run full `pnpm test:visual` (same as 05-04).
-- Worktree has no `apps/web/node_modules`; Playwright/Next used the main checkout binaries with `cwd` = worktree `apps/web`. Restored `next-env.d.ts` and `tsconfig.json` after each run.
 
 ## User Setup Required
 
-Visual green needs the owner local stack: `pnpm db:start && pnpm db:reset`, then `playwright test tests/visual/home.spec.ts --workers=1 --update-snapshots` once, then without `--update-snapshots`.
+None.
 
 ## Next Phase Readiness
 
 - 05-22 can fill `BookingCardMount` board / price / status.
 - Home composition and ADR-001 against the real widget are in place.
-- Whole-page baselines blocked on local Postgres.
+- Whole-page baselines: 16.
 
 ---
 *Phase: 05-public-surfaces-customer-accounts*

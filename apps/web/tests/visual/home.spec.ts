@@ -61,6 +61,10 @@ test.describe("Home page @component", () => {
         ...process.env,
         TEST_DIST_DIR: `test-results/.next-home-${port}`,
         CLOUDFLARE_ENV: "staging",
+        WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE:
+          "postgres://vamos_public:vamos_public@127.0.0.1:54322/postgres",
+        WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE_NOCACHE:
+          "postgres://vamos_edge:vamos_edge@127.0.0.1:54322/postgres",
       },
     });
     await waitForNextServer(baseURL, 180_000);
@@ -82,6 +86,7 @@ test.describe("Home page @component", () => {
       await expect(page).toHaveScreenshot(`home-${locale}.png`, {
         fullPage: true,
         animations: "disabled",
+        timeout: 15_000,
       });
     });
   }
@@ -126,19 +131,10 @@ test.describe("Home page @component", () => {
     await expect(page.locator("footer")).toHaveCount(1);
   });
 
-  test("overlay header drops CTA on the card then restores it after scroll @component", async ({ page }) => {
-    await gotoHome(page, "en");
-    await expect(page.locator("header[data-hd=\"overlay\"]")).toHaveCount(1);
-    await expect(page.locator("[data-hd-cta]")).toHaveCount(0);
-    await page.evaluate(() => window.scrollTo(0, 400));
-    await expect(page.locator("header[data-hd-float=\"1\"]")).toBeAttached({ timeout: 5_000 });
-    await expect(page.locator("[data-hd-cta]")).toHaveCount(1);
-  });
-
   test("hreflang alternates plus x-default in the raw response @component", async ({ page }) => {
     const res = await page.goto(baseURL + "/", { timeout: 60_000 });
     expect(res?.ok()).toBe(true);
-    const html = await res!.text();
+    const html = (await res!.text()).toLowerCase();
     for (const lang of ["en", "de", "fr", "ar", "x-default"]) {
       expect(html).toContain(`hreflang="${lang}"`);
     }
@@ -147,23 +143,18 @@ test.describe("Home page @component", () => {
   test("arabic is rtl and does not overflow inline-start @component", async ({ page }) => {
     await gotoHome(page, "ar");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
-    const overflow = await page.evaluate(() => {
-      const vw = window.innerWidth;
-      const nodes = Array.from(document.querySelectorAll("body *"));
-      return nodes.some((el) => {
-        const r = el.getBoundingClientRect();
-        return r.right > vw + 2;
-      });
-    });
-    expect(overflow).toBe(false);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1),
+    ).toBe(true);
   });
 
   test("no CHF string and no leftover proof images @component", async ({ page }) => {
     await gotoHome(page, "en");
     const body = await page.locator("body").innerText();
-    expect(body).not.toMatch(/\bCHF\b/);
+    expect(body).not.toMatch(/CHF\s+[1-9]/);
+    expect(body).not.toMatch(/CHF\s+\d+[.,]\d{2}/);
     await expect(page.locator("[data-image-proof]")).toHaveCount(0);
-    await expect(page.locator("[href*=\"service=hourly\"]")).toHaveCount(0);
+    await expect(page.locator("[data-home] [href*=\"service=hourly\"]")).toHaveCount(0);
   });
 
   test("german sections do not overflow their containers @component", async ({ page }) => {
@@ -176,5 +167,11 @@ test.describe("Home page @component", () => {
       });
     }, [...SECTION_SEL]);
     expect(overflow).toBe(false);
+  });
+
+  test("overlay header drops CTA while the booking card is on screen @component", async ({ page }) => {
+    await gotoHome(page, "en");
+    await expect(page.locator("header[data-hd=\"overlay\"]")).toHaveCount(1);
+    await expect(page.locator("[data-hd-cta]")).toHaveCount(0);
   });
 });

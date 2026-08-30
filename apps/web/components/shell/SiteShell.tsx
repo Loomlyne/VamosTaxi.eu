@@ -1,6 +1,6 @@
 "use client";
 
-import { cloneElement, isValidElement, type ReactElement, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 
 /**
@@ -42,23 +42,9 @@ export function SiteShell({
 
   if (isDevScaffold) return <>{children}</>;
 
-  // Home is the one public route whose photographic hero needs the overlay bar
-  // with the booking CTA dropped while the card is on screen (SITE-02 / mock).
-  // Resolved here from the pathname this client shell already reads — the layout
-  // stays route-blind and session-blind.
-  const rest = pathname.replace(/^\/(de|fr|ar)(?=\/|$)/, "");
-  const isHome = rest === "" || rest === "/";
-  const homeHeader =
-    isHome && isValidElement(header)
-      ? cloneElement(header as ReactElement<{ variant?: string; cta?: boolean }>, {
-          variant: "overlay",
-          cta: false,
-        })
-      : header;
-
   return (
     <>
-      {homeHeader}
+      {header}
       {children}
       {footer}
     </>
