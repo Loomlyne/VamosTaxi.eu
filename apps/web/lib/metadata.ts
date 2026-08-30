@@ -47,6 +47,10 @@ export const PUBLIC_ROUTES = [
   "/privacy",
   "/reset-password",
   "/sign-in",
+  // `/sign-up` is its own canonical URL (not `/sign-in?mode=signup`). One path
+  // per page is what `buildAlternates` and `app/sitemap.ts` both walk, and what
+  // next-intl `localePrefix: "as-needed"` publishes as a single hreflang set.
+  "/sign-up",
   "/terms",
 ] as const;
 
