@@ -39,14 +39,3 @@ export const partnerApplicationSchema = z.object({
 
 export type ContactInput = z.infer<typeof contactSchema>;
 export type PartnerInput = z.infer<typeof partnerApplicationSchema>;
-
-/** Machine-readable codes 05-17 / 05-19 map to catalogue messages. Never an English body. */
-export type FormFailureCode = "challenge_failed" | "invalid_input" | "unavailable";
-
-export function formFailure(code: FormFailureCode, status: 400 | 403 | 503): Response {
-  return Response.json({ ok: false, code }, { status });
-}
-
-export function formSuccess(created: boolean): Response {
-  return Response.json({ ok: true, created });
-}

@@ -4,45 +4,13 @@
 // V1 has no public become-a-partner page; the API is in scope for SITE-04.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { Resend } from "resend";
-import { escapeHtml } from "@vamos/emails";
-import { layoutHtml, layoutText } from "../../../../../packages/emails/src/layout";
 import { asAnon } from "@/lib/db/identity";
 import { log } from "@/lib/logger";
-import { formFailure, formSuccess, partnerApplicationSchema } from "@/lib/forms/schemas";
+import { partnerApplicationSchema } from "@/lib/forms/schemas";
+import { formFailure, formSuccess, renderOwnerNotice, sendOwnerNotice } from "@/lib/forms/notify";
 import { verifyTurnstile } from "@/lib/turnstile";
 
 export const dynamic = "force-dynamic";
-
-const FROM = "Vamos Taxi <noreply@vamostaxi.eu>";
-const TO = "Vamos Taxi <noreply@vamostaxi.eu>";
-
-function ownerPartnerEmail(input: {
-  name: string;
-  city: string;
-  phone: string;
-  email: string;
-  vehicle: string;
-  permit: string;
-  locale: string;
-}): { subject: string; html: string; text: string } {
-  const subject = `Partner application (${input.locale})`;
-  const lines = [
-    `Submitter locale: ${input.locale}`,
-    `Name: ${input.name}`,
-    `City: ${input.city}`,
-    `Phone: ${input.phone}`,
-    `Email: ${input.email}`,
-    `Vehicle: ${input.vehicle}`,
-    `Permit: ${input.permit}`,
-  ];
-  const inner = lines.map((line) => `<p>${escapeHtml(line)}</p>`).join("");
-  return {
-    subject,
-    html: layoutHtml("en", inner),
-    text: layoutText(lines.join("\n")),
-  };
-}
 
 export async function POST(request: Request) {
   const { env } = getCloudflareContext();
@@ -114,23 +82,20 @@ export async function POST(request: Request) {
   }
 
   if (created) {
-    const rendered = ownerPartnerEmail(input);
-    const apiKey = env.RESEND_API_KEY ?? process.env.RESEND_API_KEY;
-    if (apiKey) {
-      try {
-        await new Resend(apiKey).emails.send({
-          from: FROM,
-          to: TO,
-          subject: rendered.subject,
-          html: rendered.html,
-          text: rendered.text,
-        });
-      } catch {
-        log("error", "partner-application", ctx, { notify: 0 });
-      }
-    } else {
-      log("info", "partner-application", ctx, { subject: rendered.subject, notify: 0 });
-    }
+    await sendOwnerNotice(
+      env.RESEND_API_KEY ?? process.env.RESEND_API_KEY,
+      renderOwnerNotice(`Partner application (${input.locale})`, [
+        `Submitter locale: ${input.locale}`,
+        `Name: ${input.name}`,
+        `City: ${input.city}`,
+        `Phone: ${input.phone}`,
+        `Email: ${input.email}`,
+        `Vehicle: ${input.vehicle}`,
+        `Permit: ${input.permit}`,
+      ]),
+      ctx,
+      "partner-application",
+    );
   }
 
   return formSuccess(created);

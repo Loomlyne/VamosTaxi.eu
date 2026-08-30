@@ -4,43 +4,13 @@
 // verify Turnstile -> zod -> asAnon RPC -> notify. A code, never a message.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { Resend } from "resend";
-import { escapeHtml } from "@vamos/emails";
-import { layoutHtml, layoutText } from "../../../../../packages/emails/src/layout";
 import { asAnon } from "@/lib/db/identity";
 import { log } from "@/lib/logger";
-import { contactSchema, formFailure, formSuccess } from "@/lib/forms/schemas";
+import { contactSchema } from "@/lib/forms/schemas";
+import { formFailure, formSuccess, renderOwnerNotice, sendOwnerNotice } from "@/lib/forms/notify";
 import { verifyTurnstile } from "@/lib/turnstile";
 
 export const dynamic = "force-dynamic";
-
-const FROM = "Vamos Taxi <noreply@vamostaxi.eu>";
-const TO = "Vamos Taxi <noreply@vamostaxi.eu>";
-
-function ownerContactEmail(input: {
-  name: string;
-  email: string;
-  phone: string;
-  bookingRef: string;
-  message: string;
-  locale: string;
-}): { subject: string; html: string; text: string } {
-  const subject = `Contact form (${input.locale})`;
-  const lines = [
-    `Submitter locale: ${input.locale}`,
-    `Name: ${input.name}`,
-    `Email: ${input.email}`,
-    `Phone: ${input.phone}`,
-    `Booking ref: ${input.bookingRef}`,
-    `Message: ${input.message}`,
-  ];
-  const inner = lines.map((line) => `<p>${escapeHtml(line)}</p>`).join("");
-  return {
-    subject,
-    html: layoutHtml("en", inner),
-    text: layoutText(lines.join("\n")),
-  };
-}
 
 export async function POST(request: Request) {
   const { env } = getCloudflareContext();
@@ -109,23 +79,19 @@ export async function POST(request: Request) {
   }
 
   if (created) {
-    const rendered = ownerContactEmail(input);
-    const apiKey = env.RESEND_API_KEY ?? process.env.RESEND_API_KEY;
-    if (apiKey) {
-      try {
-        await new Resend(apiKey).emails.send({
-          from: FROM,
-          to: TO,
-          subject: rendered.subject,
-          html: rendered.html,
-          text: rendered.text,
-        });
-      } catch {
-        log("error", "contact", ctx, { notify: 0 });
-      }
-    } else {
-      log("info", "contact", ctx, { subject: rendered.subject, notify: 0 });
-    }
+    await sendOwnerNotice(
+      env.RESEND_API_KEY ?? process.env.RESEND_API_KEY,
+      renderOwnerNotice(`Contact form (${input.locale})`, [
+        `Submitter locale: ${input.locale}`,
+        `Name: ${input.name}`,
+        `Email: ${input.email}`,
+        `Phone: ${input.phone}`,
+        `Booking ref: ${input.bookingRef}`,
+        `Message: ${input.message}`,
+      ]),
+      ctx,
+      "contact",
+    );
   }
 
   return formSuccess(created);

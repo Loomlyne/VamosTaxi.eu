@@ -12,6 +12,10 @@ import { log } from "./logger";
 
 const SITEVERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 const SITEVERIFY_TIMEOUT_MS = 2_000;
+/** Cloudflare documented always-pass test secret — no account required. */
+const ALWAYS_PASS_SECRET = "1x0000000000000000000000000000AA";
+/** Cloudflare documented always-fail test secret — no account required. */
+const ALWAYS_FAIL_SECRET = "2x0000000000000000000000000000AA";
 
 export type TurnstileAction = "contact" | "partner-application";
 
@@ -39,6 +43,13 @@ export async function verifyTurnstile(
   if (typeof secret !== "string" || secret.length === 0) {
     log("error", "turnstile", MISSING_SECRET_CONTEXT, { reason: "missing-secret" });
     return fail(["missing-secret"]);
+  }
+
+  if (secret === ALWAYS_PASS_SECRET) {
+    return { ok: true };
+  }
+  if (secret === ALWAYS_FAIL_SECRET) {
+    return fail(["invalid-input-response"]);
   }
 
   const params = new URLSearchParams();
