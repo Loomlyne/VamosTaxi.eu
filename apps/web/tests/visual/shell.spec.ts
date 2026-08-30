@@ -82,6 +82,9 @@
 import { test, expect, type Page } from "@playwright/test";
 import { mountPort, serveMock, waitForMockReady } from "../support/mock-harness";
 import enMessages from "../../i18n/messages/en.json";
+import deMessages from "../../i18n/messages/de.json";
+import frMessages from "../../i18n/messages/fr.json";
+import arMessages from "../../i18n/messages/ar.json";
 
 const FULL_VIEWPORT_MARK = "[4vp]";
 
@@ -340,5 +343,172 @@ test.describe("SiteFooter @component", () => {
     await page.goto(portUrl);
     await waitForMockReady(page);
     await settleAndScreenshot(page, page.locator("#root footer[data-ft]"), "sitefooter-minimal.png");
+  });
+});
+
+const MESSAGES = { en: enMessages, de: deMessages, fr: frMessages, ar: arMessages } as const;
+const LOCALES = ["en", "de", "fr", "ar"] as const;
+
+const CONFIRMED = { signedIn: true, displayName: "Ada Lovelace", emailConfirmed: true };
+const UNCONFIRMED = { signedIn: true, displayName: "Ada Lovelace", emailConfirmed: false };
+
+const SIGNED_IN_TILES = [
+  { id: "inverse-closed", variant: "inverse" as const, snapshot: CONFIRMED, open: false },
+  { id: "inverse-open", variant: "inverse" as const, snapshot: CONFIRMED, open: true },
+  { id: "inverse-unconfirmed", variant: "inverse" as const, snapshot: UNCONFIRMED, open: true },
+  { id: "overlay-closed", variant: "overlay" as const, snapshot: CONFIRMED, open: false },
+  { id: "overlay-open", variant: "overlay" as const, snapshot: CONFIRMED, open: true },
+  { id: "overlay-unconfirmed", variant: "overlay" as const, snapshot: UNCONFIRMED, open: true },
+];
+
+function colouredShadows(value: string): boolean {
+  if (!value || value === "none") return false;
+  return /rgb\(\s*253\s*,\s*194|rgb\(\s*255\s*,\s*1[89][0-9]|hsl\(|yellow/i.test(value);
+}
+
+test.describe("SiteHeader signed-in @component", () => {
+  for (const locale of LOCALES) {
+    for (const tile of SIGNED_IN_TILES) {
+      test(`${tile.id} ${locale} @component [4vp]`, async ({ page }) => {
+        const portUrl = await mountPort(
+          portPath("SiteHeader"),
+          {
+            variant: tile.variant,
+            lang: locale,
+            cur: "CHF",
+            onLang: () => {},
+            onCur: () => {},
+            accountSnapshot: tile.snapshot,
+            accountMenuOpen: tile.open,
+            defaultNarrowOpen: tile.open,
+          },
+          { locale, messages: MESSAGES[locale] },
+        );
+        await page.goto(portUrl);
+        if (locale === "ar") {
+          await page.evaluate(() => document.documentElement.setAttribute("dir", "rtl"));
+        }
+        await waitForMockReady(page);
+        await settleAndScreenshot(
+          page,
+          page.locator("#root header[data-hd]"),
+          `siteheader-signed-in-${tile.id}-${locale}.png`,
+        );
+      });
+    }
+  }
+
+  test("account menu keyboard and 44px items @component [4vp]", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "component-1440", "disc trigger is wide-row only");
+    const portUrl = await mountPort(
+      portPath("SiteHeader"),
+      {
+        lang: "en",
+        cur: "CHF",
+        onLang: () => {},
+        onCur: () => {},
+        accountSnapshot: CONFIRMED,
+        accountMenuOpen: true,
+      },
+      { locale: "en", messages: enMessages },
+    );
+    await page.goto(portUrl);
+    await waitForMockReady(page);
+    const trigger = page.locator('#root [data-hd-acct="disc"]');
+    await expect(trigger).toHaveAttribute("aria-expanded", "true");
+    const items = page.locator("#root [data-hd-mi], #root [data-hd-verify]");
+    const count = await items.count();
+    expect(count).toBeGreaterThan(0);
+    for (let i = 0; i < count; i++) {
+      const box = await items.nth(i).boundingBox();
+      expect(box, `item ${i} box`).toBeTruthy();
+      expect(box!.height, `item ${i} >= 44px`).toBeGreaterThanOrEqual(44);
+    }
+  });
+
+  test("ar dir=rtl menu stays in viewport at 390 @component [4vp]", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "component-390", "390");
+    const portUrl = await mountPort(
+      portPath("SiteHeader"),
+      {
+        lang: "ar",
+        cur: "CHF",
+        onLang: () => {},
+        onCur: () => {},
+        accountSnapshot: CONFIRMED,
+        accountMenuOpen: true,
+        defaultNarrowOpen: true,
+      },
+      { locale: "ar", messages: arMessages },
+    );
+    await page.goto(portUrl);
+    await page.evaluate(() => document.documentElement.setAttribute("dir", "rtl"));
+    await waitForMockReady(page);
+    const menu = page.locator("#root [data-hd-narrow] [data-hd-menu]");
+    await expect(menu).toBeVisible();
+    const box = await menu.boundingBox();
+    expect(box).toBeTruthy();
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(390 + 1);
+  });
+
+  test("en and de menu labels differ @component [4vp]", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "component-1440", "once");
+    const enUrl = await mountPort(
+      portPath("SiteHeader"),
+      {
+        lang: "en",
+        cur: "CHF",
+        onLang: () => {},
+        onCur: () => {},
+        accountSnapshot: UNCONFIRMED,
+        accountMenuOpen: true,
+      },
+      { locale: "en", messages: enMessages },
+    );
+    await page.goto(enUrl);
+    await waitForMockReady(page);
+    const enText = (await page.locator("#root [data-hd-acctmenu]").innerText()).trim();
+    const deUrl = await mountPort(
+      portPath("SiteHeader"),
+      {
+        lang: "de",
+        cur: "CHF",
+        onLang: () => {},
+        onCur: () => {},
+        accountSnapshot: UNCONFIRMED,
+        accountMenuOpen: true,
+      },
+      { locale: "de", messages: deMessages },
+    );
+    await page.goto(deUrl);
+    await waitForMockReady(page);
+    const deText = (await page.locator("#root [data-hd-acctmenu]").innerText()).trim();
+    expect(enText.length).toBeGreaterThan(0);
+    expect(deText).not.toBe(enText);
+    expect(enText).toMatch(/Your account|Your bookings|Sign out|Verify your email/i);
+    expect(deText).toMatch(/Konto|Buchungen|Abmelden|E-Mail/i);
+  });
+
+  test("no coloured box-shadow on signed-in header @component [4vp]", async ({ page }) => {
+    const portUrl = await mountPort(
+      portPath("SiteHeader"),
+      {
+        lang: "en",
+        cur: "CHF",
+        onLang: () => {},
+        onCur: () => {},
+        accountSnapshot: UNCONFIRMED,
+        accountMenuOpen: true,
+        defaultNarrowOpen: true,
+      },
+      { locale: "en", messages: enMessages },
+    );
+    await page.goto(portUrl);
+    await waitForMockReady(page);
+    const shadows = await page.locator("#root header[data-hd], #root header[data-hd] *").evaluateAll((els) =>
+      els.map((el) => getComputedStyle(el).boxShadow),
+    );
+    expect(shadows.filter(colouredShadows)).toEqual([]);
   });
 });

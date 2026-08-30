@@ -1,0 +1,26 @@
+/* Signed-in account menu. Disc size sits with the existing [data-hd-acct] family in
+   SiteHeader.css so the signed-out pill slot does not move. Physical -> logical only.
+   The notification bell and its notice list are not ported (Phase 7). */
+
+[data-hd-acctwrap]{position:relative;display:inline-flex;flex:0 0 auto}
+[data-hd-acctcompact]{display:flex;flex-direction:column;gap:2px}
+
+[data-hd-acctmenu]{position:absolute;inset-block-start:calc(100% + 12px);inset-inline-end:0;z-index:130;box-sizing:border-box;inline-size:272px;padding:6px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-xl);display:flex;flex-direction:column;gap:2px;animation:vt-hd-in 180ms cubic-bezier(.16,1,.3,1)}
+@media (prefers-reduced-motion:reduce){[data-hd-acctmenu]{animation:none}}
+
+[data-hd-acctid]{display:flex;align-items:center;gap:11px;min-inline-size:0;margin-block-end:5px;padding:8px 10px 12px;border-block-end:1px solid var(--vt-border-subtle)}
+[data-hd-acctmeta]{display:flex;flex-direction:column;gap:2px;min-inline-size:0}
+[data-hd-acctname]{display:block;font-size:14px;font-weight:600;color:var(--vt-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+[data-hd-mi]{box-sizing:border-box;display:flex;align-items:center;gap:11px;inline-size:100%;min-block-size:44px;padding:0 10px;border:0;border-radius:10px;background:transparent;box-shadow:none;font-family:var(--vt-font-body);font-size:14px;font-weight:500;letter-spacing:.01em;color:var(--vt-text-primary);text-align:start;text-decoration:none;cursor:pointer;transition:var(--vt-transition-control)}
+[data-hd-mi]:hover{background:var(--vt-grey-100)}
+[data-hd-mi]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
+
+[data-hd-mifoot]{margin-block-start:5px;padding-block-start:5px;border-block-start:1px solid var(--vt-border-subtle)}
+[data-hd-mifoot] form{margin:0}
+[data-hd-mifoot] [data-hd-mi]{color:var(--vt-text-secondary)}
+
+/* Unverified is a charcoal strip inside the menu, not a tinted alert on the page. */
+[data-hd-verify]{box-sizing:border-box;display:flex;align-items:center;gap:9px;min-block-size:44px;margin-block-end:5px;padding:0 12px;border-radius:10px;background:var(--vt-charcoal-900);color:var(--vt-white);font-size:13px;font-weight:600;letter-spacing:.01em;text-decoration:none;transition:var(--vt-transition-control)}
+[data-hd-verify]:hover{background:var(--vt-charcoal-800);color:var(--vt-white)}
+[data-hd-verify]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
