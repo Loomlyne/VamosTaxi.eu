@@ -89,7 +89,10 @@ export default async function CancellationPage({
           <span data-lg-n="1">01</span>
           {tLegal("what-you-get-back")}
         </h2>
-        <p>{tLegal("measured-from-the-pickup-time-in-your-confirmati")}</p>
+        <p>
+          {tLegal("measured-from-the-pickup-time-in-your-confirmati")}{" "}
+          <PendingSlot label="24 hours before pickup" />
+        </p>
         <Table
           columns={columns}
           rowKey="slug"
