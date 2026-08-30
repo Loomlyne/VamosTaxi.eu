@@ -22,12 +22,20 @@ import { routing } from "@/i18n/routing";
 export const SITE_URL = "https://vamostaxi.eu";
 
 /**
- * The 18-page public route contract (D-19's own count), derived from the mock inventory
+ * The public route contract (D-19's own count), derived from the mock inventory
  * under `app/pages/` plus home. Every entry here is a static, non-parameterised path —
  * `booking-detail.dc.html` (a `[ref]`-scoped page per PROJECT.md's route table) is
  * deliberately excluded: this helper only knows how to alternate a fixed path today,
  * and a phase that builds a dynamic-segment page extends `buildAlternates` (or calls it
  * per-instance with a resolved path) rather than listing an unresolvable pattern here.
+ *
+ * Phase ownership for routes this phase does not build (D-01 / PHASE_5_ROUTES):
+ *   /checkout, /confirmation → Phase 7
+ *   /account, /bookings → Phase 8
+ *   /manage-booking → Phase 9
+ * `/coming-soon` maps to no requirement id — unowned, flagged for the owner in
+ * plan 05-24. Kept in PUBLIC_ROUTES so the published sitemap does not silently
+ * drop it. Do not delete this entry to "fix" a 404.
  */
 export const PUBLIC_ROUTES = [
   "/",
