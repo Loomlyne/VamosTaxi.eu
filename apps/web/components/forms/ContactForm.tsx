@@ -280,7 +280,7 @@ export function ContactForm({ siteKey, locale, previewState }: ContactFormProps)
       data-contact-state={ui === "unavailable" ? "service-unavailable" : ui}
     >
       {ui === "invalid" ? (
-        <div ref={alertRef} tabIndex={-1} role="alert">
+        <div ref={alertRef} tabIndex={-1} role="alert" data-contact-code="invalid_input">
           <Alert
             tone="danger"
             title={
