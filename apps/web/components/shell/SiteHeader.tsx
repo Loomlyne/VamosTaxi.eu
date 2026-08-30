@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { createNavigation } from "next-intl/navigation";
 import { routing } from "@/i18n/routing";
 import { useVamosLocale, type CurrencyCode, type Locale } from "@/lib/locale-shim";
+import { PHONE_DISPLAY, PHONE_HREF } from "@/lib/contact-channels";
 import { Icon, Logo } from "../core";
 import { BrandSelect } from "./BrandSelect";
 import type { BrandSelectOption } from "./BrandSelect";
@@ -37,12 +38,6 @@ import type { BrandSelectOption } from "./BrandSelect";
 // page in this phase actually renders.
 
 const { Link } = createNavigation(routing);
-
-/** The published business number. An address, not copy — it stays as typed in every
- *  language, and `.vt-dir-keep` (tokens/laws.css) keeps it reading left-to-right inside
- *  an Arabic document instead of being bidi-reordered into nonsense. */
-const PHONE_DISPLAY = "+41 79 626 70 82";
-const PHONE_HREF = "tel:+41796267082";
 
 /** The four locales, labelled in their own language. This is the one switcher CLAUDE.md
  *  names as legitimately opting out of translation — "Deutsch" is what a German speaker
