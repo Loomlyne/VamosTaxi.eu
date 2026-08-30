@@ -8,7 +8,7 @@ import type {
   AuthMode,
   AuthStage,
   AuthSubmitPayload,
-} from "@/components/auth/types";
+} from "@/components/auth";
 import {
   requestOtpAction,
   requestPasswordResetAction,
@@ -30,8 +30,8 @@ export function SignInClient({
   const [method, setMethod] = useState<AuthMethod>("password");
   const [stage, setStage] = useState<AuthStage>("form");
   const [banner, setBanner] = useState<AuthBanner>(initialBanner);
-  const [pending, startTransition] = useTransition();
   const [lastPayload, setLastPayload] = useState<AuthSubmitPayload | null>(null);
+  const [pending, startTransition] = useTransition();
 
   function applyResult(result: AuthActionResult): void {
     if ("ok" in result) return;
@@ -44,16 +44,16 @@ export function SignInClient({
     setBanner(result.banner);
   }
 
-  function submit(payload: AuthSubmitPayload): void {
+  function run(payload: AuthSubmitPayload): void {
     setLastPayload(payload);
     startTransition(async () => {
       let result: AuthActionResult;
       if (payload.mode === "forgot") {
         result = await requestPasswordResetAction(payload.email, locale);
-      } else if (payload.mode === "signup" && payload.method === "password") {
-        result = await signUpAction(payload, locale);
       } else if (payload.method === "magic") {
         result = await requestOtpAction(payload, locale);
+      } else if (payload.mode === "signup") {
+        result = await signUpAction(payload, locale);
       } else {
         result = await signInAction(payload, locale);
       }
@@ -74,9 +74,9 @@ export function SignInClient({
         setBanner(null);
       }}
       onMethodChange={setMethod}
-      onSubmit={submit}
+      onSubmit={run}
       onResend={() => {
-        if (lastPayload) submit(lastPayload);
+        if (lastPayload) run(lastPayload);
       }}
     />
   );

@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import { PageHero } from "@/components/marketing";
+import { createNavigation } from "next-intl/navigation";
+import { routing } from "@/i18n/routing";
 import { buildAlternates } from "@/lib/metadata";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { AuthSplit } from "../sign-in/AuthSplit";
 import { SignInClient } from "../sign-in/SignInClient";
+
+const { redirect } = createNavigation(routing);
 
 export const dynamic = "force-dynamic";
 
@@ -29,17 +34,17 @@ export default async function SignUpPage({
   const { locale } = await params;
   setRequestLocale(locale);
 
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) {
+    redirect({ href: "/", locale });
+  }
+
   return (
-    <main>
-      <PageHero
-        kickerKey="who-we-are"
-        titleKey="about-vamos-taxi"
-        standfirstKey="a-zurich-operator-not-a-marketplace"
-        crumbCurrentKey="about-vamos-taxi"
-        photo="/brand/photography/hero-arrivals.jpg"
-        altKey="arrivals-hall-at-zurich-airport"
-      />
+    <AuthSplit guestNote>
       <SignInClient locale={locale} initialMode="signup" />
-    </main>
+    </AuthSplit>
   );
 }

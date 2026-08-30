@@ -2,14 +2,15 @@ import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { createNavigation } from "next-intl/navigation";
 import { routing } from "@/i18n/routing";
-import { PageHero } from "@/components/marketing";
 import { buildAlternates } from "@/lib/metadata";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { AuthSplit } from "./AuthSplit";
 import { SignInClient } from "./SignInClient";
 
 const { redirect } = createNavigation(routing);
 
-// getUser() is a per-request session read, so this route cannot be static.
+// getUser() on this route is a per-request session read, so the page cannot
+// be statically generated. A signed-in visitor is redirected home.
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
@@ -49,16 +50,8 @@ export default async function SignInPage({
   const initialBanner = query.error ? "credentials" : null;
 
   return (
-    <main>
-      <PageHero
-        kickerKey="who-we-are"
-        titleKey="about-vamos-taxi"
-        standfirstKey="a-zurich-operator-not-a-marketplace"
-        crumbCurrentKey="about-vamos-taxi"
-        photo="/brand/photography/hero-arrivals.jpg"
-        altKey="arrivals-hall-at-zurich-airport"
-      />
+    <AuthSplit guestNote>
       <SignInClient locale={locale} initialBanner={initialBanner} />
-    </main>
+    </AuthSplit>
   );
 }
