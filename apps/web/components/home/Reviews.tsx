@@ -311,7 +311,7 @@ export function Reviews({
             </div>
 
             <div data-rv-nav="1">
-              <button type="button" data-rv-arrow="1" aria-label={tReviews("previous-review")} onClick={() => step(-1, true)}>
+              <button type="button" data-rv-arrow="1" aria-label={tReviews("previous-review")} onClick={() => step((readingDir() === 1 ? -1 : 1) as 1 | -1, true)}>
                 <Icon name="chevron-left" size={20} color="currentColor" />
               </button>
               <div data-rv-dots="1" aria-hidden="true">
@@ -319,7 +319,7 @@ export function Reviews({
                   <span key={review.id} data-rv-dot="1" data-i={String(i + 1)} data-on={i === index ? "1" : "0"} />
                 ))}
               </div>
-              <button type="button" data-rv-arrow="1" aria-label={tReviews("next-review")} onClick={() => step(1, true)}>
+              <button type="button" data-rv-arrow="1" aria-label={tReviews("next-review")} onClick={() => step(readingDir(), true)}>
                 <Icon name="chevron-right" size={20} color="currentColor" />
               </button>
             </div>
