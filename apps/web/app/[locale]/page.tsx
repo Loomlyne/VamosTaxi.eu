@@ -11,6 +11,7 @@ import {
   Reviews,
   HomeFaq,
 } from "@/components/home";
+import { BookingBoard } from "@/components/home/BookingBoard";
 import type { ReviewsItem, ReviewsState } from "@/components/home";
 import type { HomeFaqState, HomeFaqString } from "@/components/home";
 import { getPublishedReviews, getContentStrings } from "@/lib/db/content";
@@ -102,8 +103,9 @@ export default async function HomePage({
   return (
     <main data-home="1">
       <HomeHero>
-        {/* BookingCardMount slots (board / price / status) stay unfilled until 05-22. */}
-        <BookingCard />
+        <BookingCard>
+          <BookingBoard />
+        </BookingCard>
       </HomeHero>
       <HowItWorks />
       <Services showChauffeurByHour={false} />
