@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Icon, IconButton } from "@/components/core";
 import { Input, Counter, DatePicker } from "@/components/forms";
@@ -13,6 +13,7 @@ import "./BookingCard.css";
 export type BookingCardProps = BookingCardMountProps & {
   lockedDraft?: BookingDraft;
   defaultOpen?: boolean;
+  children?: ReactNode;
 };
 
 export function BookingCard({
@@ -21,6 +22,7 @@ export function BookingCard({
   status,
   lockedDraft,
   defaultOpen = false,
+  children,
 }: BookingCardProps) {
   const tHome = useTranslations("home");
   const tCommon = useTranslations("common");
@@ -280,15 +282,17 @@ export function BookingCard({
         </div>
       </div>
 
-      <BookingCardMount
-        board={board}
-        price={
-          price ?? (
-            <PriceSummary empty emptyMessage={tCommon("empty")} totalLabel={tCommon("empty")} />
-          )
-        }
-        status={status}
-      />
+      {children ?? (
+        <BookingCardMount
+          board={board}
+          price={
+            price ?? (
+              <PriceSummary empty emptyMessage={tCommon("empty")} totalLabel={tCommon("empty")} />
+            )
+          }
+          status={status}
+        />
+      )}
     </div>
   );
 }
