@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { createNavigation } from "next-intl/navigation";
 import { routing } from "@/i18n/routing";
+import { Button } from "@/components/core";
 import { LanguageCoverageNotice, LegalPage, PendingSlot, type LegalSection } from "@/components/legal";
 import { buildAlternates } from "@/lib/metadata";
+import "./imprint.css";
 
 const { Link } = createNavigation(routing);
 
@@ -14,10 +17,19 @@ const IMPRINT_SECTIONS: LegalSection[] = [
   { id: "mwst", number: "04", titleKey: "legal.vat" },
   { id: "aufsicht", number: "05", titleKey: "legal.supervisory-authority-and-licence" },
   { id: "dispute", number: "06", titleKey: "legal.dispute-resolution" },
-  { id: "haftung", number: "07", titleKey: "legal.liability" },
+  { id: "haftung", number: "07", titleKey: "home.disclaimer" },
   { id: "urheberrecht", number: "08", titleKey: "legal.copyright" },
   { id: "credits", number: "09", titleKey: "legal.design-and-build" },
 ];
+
+function DlRow({ term, children }: { term: ReactNode; children: ReactNode }) {
+  return (
+    <div data-dl-r="1">
+      <dt data-dl-k="1">{term}</dt>
+      <dd data-dl-v="1">{children}</dd>
+    </div>
+  );
+}
 
 export async function generateMetadata({
   params,
@@ -43,9 +55,17 @@ export default async function ImprintPage({
   setRequestLocale(locale);
   const tLegal = await getTranslations("legal");
   const tCommon = await getTranslations("common");
+  const tContact = await getTranslations("contact");
   const tOps = await getTranslations("ops");
   const tAbout = await getTranslations("about");
-  const tContact = await getTranslations("contact");
+  const tHome = await getTranslations("home");
+
+  // The mock's DE/EN/both CSS toggle is not ported. Under SSR the active
+  // language is the [locale] segment; a page-local second switch would make
+  // one URL render content that contradicts its lang attribute and its
+  // hreflang alternates. German+English together is the header language
+  // switcher; LanguageCoverageNotice tells a French or Arabic reader where
+  // they stand. LEGAL_LANGUAGES.imprint stays ['en','de'] (plan 05-03).
 
   return (
     <LegalPage
@@ -59,49 +79,6 @@ export default async function ImprintPage({
     >
       {/* LegalPage PendingSlot: Imprint effective date */}
       {/* LegalPage PendingSlot: Imprint version */}
-      {/*
-        The mock's page-local language toggle (de / en / both) is not ported.
-        Under SSR the active language is the [locale] segment, and a second
-        switch on this page would make one URL render content that contradicts
-        its lang attribute and its hreflang alternates. German and English
-        together are available through the header language switcher; the
-        coverage notice is what tells a French or Arabic reader where they stand.
-      */}
-      <style>{`
-        [data-dl] {
-          display: grid;
-          grid-template-columns: minmax(0, 1fr);
-          margin-block: 2px 18px;
-          margin-inline: 0;
-          border-block-start: 1px solid var(--vt-grey-200);
-        }
-        [data-dl-r] {
-          display: grid;
-          grid-template-columns: minmax(0, 1fr);
-          gap: 2px 24px;
-          padding-block: 14px;
-          padding-inline: 0;
-          border-block-end: 1px solid var(--vt-grey-200);
-        }
-        [data-dl-k] {
-          font-family: var(--vt-font-body);
-          font-size: var(--vt-body-sm);
-          font-weight: var(--vt-weight-semibold);
-          color: var(--vt-text-primary);
-        }
-        [data-dl-v] {
-          font-family: var(--vt-font-body);
-          font-size: var(--vt-body-sm);
-          line-height: var(--vt-body-leading);
-          color: var(--vt-text-secondary);
-        }
-        @media (min-width: 620px) {
-          [data-dl-r] {
-            grid-template-columns: 230px minmax(0, 1fr);
-          }
-        }
-      `}</style>
-
       <LanguageCoverageNotice page="imprint" />
 
       <section id="register">
@@ -110,35 +87,20 @@ export default async function ImprintPage({
           {tLegal("register-details")}
         </h2>
         <dl data-dl="1">
-          <div data-dl-r="1">
-            <dt data-dl-k="1">{tLegal("registered-firm-name")}</dt>
-            <dd data-dl-v="1">
-              <span data-i18n-skip>Vamos Taxi</span> {tLegal("the-register-entry-carries-the-name-without-gmbh")}
-            </dd>
-          </div>
-          <div data-dl-r="1">
-            <dt data-dl-k="1">{tLegal("legal-form")}</dt>
-            <dd data-dl-v="1">
-              <span data-i18n-skip>GmbH</span> {tLegal("swiss-limited-liability-company")}
-            </dd>
-          </div>
-          <div data-dl-r="1">
-            <dt data-dl-k="1">{tLegal("company-number")}</dt>
-            <dd data-dl-v="1">
-              <span data-i18n-skip>CH-020.4.077.792-7</span>
-            </dd>
-          </div>
-          <div data-dl-r="1">
-            <dt data-dl-k="1">{tLegal("register-office")}</dt>
-            <dd data-dl-v="1">{tAbout("canton-of-zurich")}</dd>
-          </div>
-          <div data-dl-r="1">
-            <dt data-dl-k="1">{tContact("registered-office")}</dt>
-            <dd data-dl-v="1">
-              <PendingSlot label="Imprint street" />{" "}
-              <PendingSlot label="Imprint postcode" />
-            </dd>
-          </div>
+          <DlRow term={tLegal("registered-firm-name")}>
+            <span data-i18n-skip>Vamos Taxi</span> {tLegal("the-register-entry-carries-the-name-without-gmbh")}
+          </DlRow>
+          <DlRow term={tLegal("legal-form")}>
+            <span data-i18n-skip>GmbH</span> {tLegal("swiss-limited-liability-company")}
+          </DlRow>
+          <DlRow term={tLegal("company-number")}>
+            <span data-i18n-skip>CH-020.4.077.792-7</span>
+          </DlRow>
+          <DlRow term={tLegal("register-office")}>{tAbout("canton-of-zurich")}</DlRow>
+          <DlRow term={tContact("registered-office")}>
+            <PendingSlot label="Imprint street" />, <PendingSlot label="Imprint postcode" />
+            {tContact("switzerland")}
+          </DlRow>
         </dl>
       </section>
 
@@ -148,40 +110,23 @@ export default async function ImprintPage({
           {tCommon("contact")}
         </h2>
         <dl data-dl="1">
-          <div data-dl-r="1">
-            <dt data-dl-k="1">{tCommon("email")}</dt>
-            <dd data-dl-v="1">
-              <a href="mailto:info@vamostaxi.eu">info@vamostaxi.eu</a>
-            </dd>
-          </div>
-          <div data-dl-r="1">
-            <dt data-dl-k="1">{tContact("telephone")}</dt>
-            <dd data-dl-v="1">
-              <a href="tel:+41796267082">+41 79 626 70 82</a>
-            </dd>
-          </div>
-          <div data-dl-r="1">
-            <dt data-dl-k="1">
-              <span data-i18n-skip>WhatsApp</span>
-            </dt>
-            <dd data-dl-v="1">
-              <a href="https://wa.me/41796267082" target="_blank" rel="noreferrer noopener">
-                +41 79 626 70 82
-              </a>
-            </dd>
-          </div>
-          <div data-dl-r="1">
-            <dt data-dl-k="1">{tOps("website")}</dt>
-            <dd data-dl-v="1">
-              <span data-i18n-skip>vamostaxi.eu</span>
-            </dd>
-          </div>
-          <div data-dl-r="1">
-            <dt data-dl-k="1">{tLegal("postal-address")}</dt>
-            <dd data-dl-v="1">
-              <span data-i18n-skip>Vamos Taxi GmbH</span>
-            </dd>
-          </div>
+          <DlRow term={tCommon("email")}>
+            <a href="mailto:info@vamostaxi.eu">info@vamostaxi.eu</a>
+          </DlRow>
+          <DlRow term={tContact("telephone")}>
+            <a href="tel:+41796267082">+41 79 626 70 82</a>
+          </DlRow>
+          <DlRow term={<span data-i18n-skip>WhatsApp</span>}>
+            <a href="https://wa.me/41796267082" target="_blank" rel="noreferrer noopener">
+              +41 79 626 70 82
+            </a>
+          </DlRow>
+          <DlRow term={tOps("website")}>
+            <span data-i18n-skip>vamostaxi.eu</span>
+          </DlRow>
+          <DlRow term={tLegal("postal-address")}>
+            <span data-i18n-skip>Vamos Taxi GmbH</span>, <PendingSlot label="Imprint postal address" />
+          </DlRow>
         </dl>
         <p>{tLegal("the-same-address-answers-questions-about-an-exis")}</p>
       </section>
@@ -192,22 +137,13 @@ export default async function ImprintPage({
           {tLegal("authorised-representative")}
         </h2>
         <dl data-dl="1">
-          <div data-dl-r="1">
-            <dt data-dl-k="1">{tCommon("name")}</dt>
-            <dd data-dl-v="1">
-              <span data-i18n-skip>Ben Othman Houssein</span>
-            </dd>
-          </div>
-          <div data-dl-r="1">
-            <dt data-dl-k="1">{tCommon("role")}</dt>
-            <dd data-dl-v="1">{tLegal("owner-and-managing-director")}</dd>
-          </div>
-          <div data-dl-r="1">
-            <dt data-dl-k="1">{tLegal("responsible-for-content")}</dt>
-            <dd data-dl-v="1">
-              <span data-i18n-skip>Ben Othman Houssein</span>
-            </dd>
-          </div>
+          <DlRow term={tCommon("name")}>
+            <span data-i18n-skip>Ben Othman Houssein</span>
+          </DlRow>
+          <DlRow term={tCommon("role")}>{tLegal("owner-and-managing-director")}</DlRow>
+          <DlRow term={tLegal("responsible-for-content")}>
+            <span data-i18n-skip>Ben Othman Houssein</span>
+          </DlRow>
         </dl>
       </section>
 
@@ -217,12 +153,9 @@ export default async function ImprintPage({
           {tLegal("vat")}
         </h2>
         <dl data-dl="1">
-          <div data-dl-r="1">
-            <dt data-dl-k="1">{tLegal("uid-vat-number")}</dt>
-            <dd data-dl-v="1">
-              <PendingSlot label="Uid number" />
-            </dd>
-          </div>
+          <DlRow term={tLegal("uid-vat-number")}>
+            <PendingSlot label="Uid number" />
+          </DlRow>
         </dl>
         <div data-slot="1" data-i18n-skip>
           <p data-slot-k="1">Client input · UID</p>
@@ -239,14 +172,6 @@ export default async function ImprintPage({
           <span data-lg-n="1">05</span>
           {tLegal("supervisory-authority-and-licence")}
         </h2>
-        <dl data-dl="1">
-          <div data-dl-r="1">
-            <dt data-dl-k="1">{tLegal("supervisory-authority")}</dt>
-            <dd data-dl-v="1">
-              <PendingSlot label="Licence number" />
-            </dd>
-          </div>
-        </dl>
         <div data-slot="1" data-i18n-skip>
           <p data-slot-k="1">Client input · licence</p>
           <p>
@@ -264,7 +189,7 @@ export default async function ImprintPage({
         </h2>
         <p>
           {tLegal("we-take-complaints-directly-the-route-is-in-the")}{" "}
-          <Link href="/terms">{tCommon("terms-conditions")}</Link>.
+          <Link href="/terms#complaints">{tCommon("terms-conditions")}</Link>.
         </p>
         <div data-slot="1" data-i18n-skip>
           <p data-slot-k="1">Client input · dispute body</p>
@@ -279,7 +204,7 @@ export default async function ImprintPage({
       <section id="haftung">
         <h2>
           <span data-lg-n="1">07</span>
-          {tLegal("liability")}
+          {tHome("disclaimer")}
         </h2>
         <div data-slot="1" data-i18n-skip>
           <p data-slot-k="1">Client input · content and links</p>
@@ -298,12 +223,9 @@ export default async function ImprintPage({
         </h2>
         <p>{tLegal("text-images-the-brand-and-the-design-of-this-sit")}</p>
         <dl data-dl="1">
-          <div data-dl-r="1">
-            <dt data-dl-k="1">{tLegal("image-credits")}</dt>
-            <dd data-dl-v="1">
-              <PendingSlot label="Photography credit" />
-            </dd>
-          </div>
+          <DlRow term={tLegal("image-credits")}>
+            <PendingSlot label="Photography credit" />
+          </DlRow>
         </dl>
       </section>
 
@@ -313,21 +235,30 @@ export default async function ImprintPage({
           {tLegal("design-and-build")}
         </h2>
         <dl data-dl="1">
-          <div data-dl-r="1">
-            <dt data-dl-k="1">{tLegal("brand-and-design")}</dt>
-            <dd data-dl-v="1">
-              <PendingSlot label="Brand agency credit" />
-            </dd>
-          </div>
-          <div data-dl-r="1">
-            <dt data-dl-k="1">{tOps("website")}</dt>
-            <dd data-dl-v="1">
-              <PendingSlot label="Build agency credit" />
-            </dd>
-          </div>
+          <DlRow term={tLegal("brand-and-design")}>
+            <PendingSlot label="Brand agency credit" />
+          </DlRow>
+          <DlRow term={tOps("website")}>
+            <PendingSlot label="Build agency credit" />
+          </DlRow>
         </dl>
         <p>{tLegal("credit-only-where-the-agencies-agree-otherwise-t")}</p>
       </section>
+
+      <div className="vt-imprint-cta" data-lg-noprint="1">
+        <div className="vt-imprint-cta__copy">
+          <h2>{tContact("reach-us-directly")}</h2>
+          <p>{tLegal("one-number-one-address-one-person-who-answers")}</p>
+        </div>
+        <div className="vt-imprint-cta__actions">
+          <Button variant="secondary" size="md" icon="phone" href="tel:+41796267082">
+            +41 79 626 70 82
+          </Button>
+          <Button variant="ghost" size="md" href="mailto:info@vamostaxi.eu">
+            info@vamostaxi.eu
+          </Button>
+        </div>
+      </div>
     </LegalPage>
   );
 }

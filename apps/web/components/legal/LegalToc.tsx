@@ -10,6 +10,7 @@ export function LegalToc({ sections }: { sections: LegalSection[] }) {
   const tCommon = useTranslations("common");
   const tOps = useTranslations("ops");
   const tCookies = useTranslations("cookies");
+  const tHome = useTranslations("home");
   const panelId = useId();
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(sections[0]?.id ?? "");
@@ -47,6 +48,7 @@ export function LegalToc({ sections }: { sections: LegalSection[] }) {
     if (key.startsWith("ops.")) return tOps(key.slice(4));
     if (key.startsWith("legal.")) return tLegal(key.slice(6));
     if (key.startsWith("cookies.")) return tCookies(key.slice(8));
+    if (key.startsWith("home.")) return tHome(key.slice(5));
     return tLegal(key);
   }
 
