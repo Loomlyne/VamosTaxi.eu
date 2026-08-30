@@ -373,7 +373,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 
 | 2. Data Schema, RLS & Staff Auth Foundations | 10/10 | Complete | 2026-08-27 |
 | 3. Hyperdrive Data Access Wiring | 7/7 | Complete | 2026-08-28 |
 | 4. Quote & Pricing Engine | 12/16 | In Progress|  |
-| 5. Public Surfaces & Customer Accounts | 12/24 | In Progress|  |
+| 5. Public Surfaces & Customer Accounts | 13/24 | In Progress|  |
 | 6. Ops Reference Data & Content Console | 0/TBD | Not started | - |
 | 7. Checkout & Payment | 0/TBD | Not started | - |
 | 8. Ops Dispatch — Live Board, Assignment & Account Surfaces | 0/TBD | Not started | - |
