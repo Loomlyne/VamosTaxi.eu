@@ -10,7 +10,8 @@ import { Table, type TableColumn } from "@/components/data/Table";
 import { Dialog } from "@/components/feedback/Dialog";
 import { Tabs } from "@/components/navigation/Tabs";
 import { photoUrl } from "@/lib/ops/photos";
-import { vehicleClassLabelKey, type VehicleClassRow, type VehicleRow, type VehicleStatus } from "@/lib/ops/fleet";
+import { vehicleClassLabelKey } from "@/lib/ops/vehicle-class-label";
+import type { VehicleClassRow, VehicleRow, VehicleStatus } from "@/lib/ops/fleet";
 import { VehicleForm } from "./VehicleForm";
 import "./VehicleTable.css";
 

@@ -22,7 +22,7 @@ import type {
   ServiceZoneRow,
   VehicleClassOption,
 } from "@/lib/ops/rate-book";
-import { vehicleClassLabelKey } from "@/lib/ops/rate-book";
+import { vehicleClassLabelKey } from "@/lib/ops/vehicle-class-label";
 
 type TableRow = FixedRouteRow & Record<string, unknown>;
 

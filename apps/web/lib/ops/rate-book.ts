@@ -14,18 +14,8 @@ import type { RateVersionStatus } from "./pricing";
 
 export type { RateVersionStatus };
 
-export const SURCHARGE_CODES = [
-  "airport_pickup",
-  "night",
-  "waiting_airport",
-  "waiting_city",
-  "extra_stop",
-  "child_seat",
-  "meet_greet",
-  "ski_rack",
-] as const;
-
-export type SurchargeCode = (typeof SURCHARGE_CODES)[number];
+export { SURCHARGE_CODES, type SurchargeCode } from "./surcharge-codes";
+import { SURCHARGE_CODES, type SurchargeCode } from "./surcharge-codes";
 export type SurchargeKind = "amount" | "percent" | "included";
 export type SurchargeAppliesTo = "leg" | "booking";
 
@@ -504,15 +494,4 @@ export async function loadVehicleClassOptions(
   });
 }
 
-/**
- * ADR-012 dictionary key for the three shipped class slugs. Explicit map, not a
- * template: `common.vehicleClassFirst` does not exist and would render empty.
- * Null means the caller must show a labelled gap. 06-12 owns this helper; this
- * copy matches that contract because 06-12 is not on this branch.
- */
-export function vehicleClassLabelKey(slug: string): string | null {
-  if (slug === "economy") return "common.vehicleClassEconomy";
-  if (slug === "business") return "common.vehicleClassBusiness";
-  if (slug === "van") return "common.vehicleClassVan";
-  return null;
-}
+export { vehicleClassLabelKey } from "./vehicle-class-label";

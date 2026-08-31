@@ -7,10 +7,13 @@ import { setStaffActive, setStaffRole } from "@/app/[locale]/(ops)/ops/staff/act
 import { Avatar, Button } from "@/components/core";
 import { Table, type TableColumn } from "@/components/data/Table";
 import { Dialog } from "@/components/feedback/Dialog";
-import { ACCESS_TOKEN_TTL_SECONDS, type StaffRole, type StaffRow } from "@/lib/ops/staff";
+import type { StaffRole, StaffRow } from "@/lib/ops/staff";
 import { photoUrl } from "@/lib/ops/photos";
 import { StaffInviteDialog } from "./StaffInviteDialog";
 import "./StaffTable.css";
+
+/** packages/db/supabase/config.toml [auth] jwt_expiry — residual deactivation window. */
+const ACCESS_TOKEN_TTL_SECONDS = 3600;
 
 type TableRow = StaffRow & Record<string, unknown>;
 

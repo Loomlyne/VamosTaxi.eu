@@ -14,7 +14,7 @@ import { Select } from "@/components/forms/Select";
 import { Textarea } from "@/components/forms/Textarea";
 import { LanguageChips } from "@/components/ops/LanguageChips";
 import { OpsPhotoField } from "@/components/ops/OpsPhotoField";
-import type { ChauffeurDetail, ChauffeurInput, ChauffeurStatus } from "@/lib/ops/chauffeurs";
+import type { ChauffeurDetail, ChauffeurInput, ChauffeurStatus } from "@/lib/ops/chauffeurs-model";
 import type { VehicleOption } from "@/lib/ops/fleet";
 
 const FIELD_KEYS = new Set([

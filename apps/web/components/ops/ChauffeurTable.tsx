@@ -18,7 +18,7 @@ import {
   type ChauffeurRow,
   type ChauffeurStatus,
   type LicenceState,
-} from "@/lib/ops/chauffeurs";
+} from "@/lib/ops/chauffeurs-model";
 import type { VehicleOption } from "@/lib/ops/fleet";
 import { photoUrl } from "@/lib/ops/photos";
 import { ChauffeurForm } from "./ChauffeurForm";

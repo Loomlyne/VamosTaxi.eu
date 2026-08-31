@@ -20,7 +20,7 @@ import type {
   VehicleRow,
   VehicleStatus,
 } from "@/lib/ops/fleet";
-import { vehicleClassLabelKey } from "@/lib/ops/fleet";
+import { vehicleClassLabelKey } from "@/lib/ops/vehicle-class-label";
 
 const FIELD_KEYS = new Set([
   "fleet-failure-class-required",

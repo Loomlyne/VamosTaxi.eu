@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Checkbox } from "@/components/forms/Checkbox";
-import { SPOKEN_LANGUAGES } from "@/lib/ops/chauffeurs";
+import { SPOKEN_LANGUAGES } from "@/lib/ops/chauffeurs-model";
 
 export function LanguageChips({
   value,

@@ -18,7 +18,7 @@ import { Select } from "@/components/forms/Select";
 import { Switch } from "@/components/forms/Switch";
 import { formatAmount } from "@/lib/currency";
 import type { DistanceRateRow, RateVersionStatus, VehicleClassOption } from "@/lib/ops/rate-book";
-import { vehicleClassLabelKey } from "@/lib/ops/rate-book";
+import { vehicleClassLabelKey } from "@/lib/ops/vehicle-class-label";
 
 type TableRow = DistanceRateRow & Record<string, unknown>;
 

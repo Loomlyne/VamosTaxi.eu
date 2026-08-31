@@ -16,13 +16,12 @@ import { Input } from "@/components/forms/Input";
 import { Select } from "@/components/forms/Select";
 import { Switch } from "@/components/forms/Switch";
 import { formatAmount } from "@/lib/currency";
-import {
-  SURCHARGE_CODES,
-  type RateVersionStatus,
-  type SurchargeAppliesTo,
-  type SurchargeCode,
-  type SurchargeKind,
-  type SurchargeRow,
+import { SURCHARGE_CODES, type SurchargeCode } from "@/lib/ops/surcharge-codes";
+import type {
+  RateVersionStatus,
+  SurchargeAppliesTo,
+  SurchargeKind,
+  SurchargeRow,
 } from "@/lib/ops/rate-book";
 
 const RULE_GAPS = { start: "—", end: "—", minutes: "—", step: "—" };

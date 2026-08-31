@@ -106,26 +106,7 @@ export class VehicleClassInputError extends Error {
 
 const VEHICLE_STATUSES: readonly VehicleStatus[] = ["service", "idle", "workshop"];
 
-const CLASS_LABEL_KEYS = {
-  economy: "common.vehicleClassEconomy",
-  business: "common.vehicleClassBusiness",
-  van: "common.vehicleClassVan",
-} as const;
-
-/**
- * ADR-012 product names are marked non-translatable, not stored on
- * vehicle_classes. Explicit three-entry map — a template would silently
- * produce a key for the unshipped slug, which does not exist; next-intl's
- * getMessageFallback would then render an empty string, a nameless class
- * row that looks like a rendering bug. Returning null lets the caller
- * render a labelled gap instead.
- */
-export function vehicleClassLabelKey(slug: string): string | null {
-  if (slug === "economy") return CLASS_LABEL_KEYS.economy;
-  if (slug === "business") return CLASS_LABEL_KEYS.business;
-  if (slug === "van") return CLASS_LABEL_KEYS.van;
-  return null;
-}
+export { vehicleClassLabelKey } from "./vehicle-class-label";
 
 function isVehicleStatus(value: string): value is VehicleStatus {
   return (VEHICLE_STATUSES as readonly string[]).includes(value);

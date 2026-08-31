@@ -7,7 +7,8 @@ import { updateVehicleClass } from "@/app/[locale]/(ops)/ops/vehicles/actions";
 import { Button } from "@/components/core";
 import { Counter } from "@/components/forms/Counter";
 import { Switch } from "@/components/forms/Switch";
-import { vehicleClassLabelKey, type VehicleClassRow } from "@/lib/ops/fleet";
+import { vehicleClassLabelKey } from "@/lib/ops/vehicle-class-label";
+import type { VehicleClassRow } from "@/lib/ops/fleet";
 
 function classLabel(
   slug: string,
