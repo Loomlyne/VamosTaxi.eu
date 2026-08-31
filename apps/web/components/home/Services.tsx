@@ -41,7 +41,13 @@ export async function Services({
         <SectionHeader
           id="svc-head"
           eyebrow={tCommon("services")}
-          title={<span id="svc-title">{tServices("four-services-one-fixed-price-each")}</span>}
+          title={
+            <span id="svc-title">
+              {hourly
+                ? tServices("four-services-one-fixed-price-each")
+                : tServices("three-services-one-fixed-price-each")}
+            </span>
+          }
           subtitle={tServices("every-one-is-booked-ahead-priced-up-front-and-as")}
           tone={mediaTone === "inverse" ? "inverse" : "default"}
         />

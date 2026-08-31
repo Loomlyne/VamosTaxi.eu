@@ -366,9 +366,19 @@
     "email-otp-body": "Hallo {name}. Ihr Anmeldecode lautet {code}. Oder nutzen Sie diesen Link: {link}."
   },
   "booking": {
+    "afternoon": "Nachmittag",
+    "clear": "Löschen",
     "date": "Datum",
+    "evening": "Abend",
+    "morning": "Morgen",
     "next-month": "Nächster Monat",
+    "pickup-time": "Abholzeit",
     "previous-month": "Vorheriger Monat",
+    "return": "Rückfahrt",
+    "return-time": "Rückfahrtzeit",
+    "save": "Speichern",
+    "saved": "Gespeichert",
+    "select-date-and-time": "Datum und Uhrzeit wählen",
     "time": "Zeit"
   },
   "checkout": {
@@ -918,6 +928,7 @@
     "how-it-works": "So funktioniert es",
     "invoiced-transfers-corporate-accounts-and-schedu": "Transfers auf Rechnung, Firmenkonten und eine Planung, um die sich eine Woche organisieren lässt.",
     "jan": "Jan",
+    "land-in-zurich-your-driver-is-waiting": "Landen Sie in Zürich. Ihr Fahrer wartet bereits.",
     "local-swiss-operator": "Lokaler Schweizer Anbieter",
     "minivan-or-similar": "Minivan oder ähnlich",
     "name-board-in-hand-at-the-exact-pickup-time-sixt": "Mit Namensschild in der Hand, genau zur vereinbarten Zeit. Sechzig Minuten Wartezeit am Flughafen sind inbegriffen.",
@@ -926,7 +937,9 @@
     "one-minute-of-yours-the-rest-is-ours": "Eine Minute von Ihnen. Den Rest übernehmen wir.",
     "one-way": "Einfach",
     "pickups": "Abholungen",
+    "pre-booked-transfers-zurich": "Vorausgebuchte Transfers · Zürich",
     "professional-drivers": "Professionelle Fahrer",
+    "reliable-fixed-price-airport-and-corporate-rides": "Zuverlässige Flughafen- und Geschäftsfahrten zum Festpreis — gebucht in unter einer Minute.",
     "route-or-flight-number": "Route oder Flugnummer",
     "s-class-or-similar": "S-Klasse oder ähnlich",
     "scheduled-not-on-demand": "Geplant, nicht auf Abruf",
@@ -1546,7 +1559,8 @@
     "four-services-one-fixed-price-each": "Vier Leistungen. Je ein Fixpreis.",
     "private": "Privat",
     "private-transfers-between-swiss-cities-scheduled": "Private Transfers zwischen Schweizer Städten, auf eine genaue Zeit geplant.",
-    "reliable-invoiced-transfers-for-business-travel": "Zuverlässige Transfers auf Rechnung für Geschäftsreisen und Anlässe."
+    "reliable-invoiced-transfers-for-business-travel": "Zuverlässige Transfers auf Rechnung für Geschäftsreisen und Anlässe.",
+    "three-services-one-fixed-price-each": "Drei Leistungen. Je ein Fixpreis."
   },
   "statusBadge": {
     "quote": "Angebot",

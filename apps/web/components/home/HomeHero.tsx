@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
+import { SiteHeader } from "@/components/shell";
 import "./HomeHero.css";
 
 export async function HomeHero({ children }: { children?: ReactNode }) {
@@ -22,11 +23,12 @@ export async function HomeHero({ children }: { children?: ReactNode }) {
         <div className="vt-hh-checker" />
       </div>
       <div className="vt-hh-scrim" aria-hidden="true" />
+      <SiteHeader variant="overlay" cta={false} />
       <div data-hero-inner="1">
         <div className="vt-hh-copy">
-          <p className="vt-hh-kicker">{t("scheduled-not-on-demand")}</p>
-          <h1>{t("one-minute-of-yours-the-rest-is-ours")}</h1>
-          <p className="vt-hh-standfirst">{t("booked-ahead-priced-up-front-driver-waiting")}</p>
+          <p className="vt-hh-kicker">{t("pre-booked-transfers-zurich")}</p>
+          <h1>{t("land-in-zurich-your-driver-is-waiting")}</h1>
+          <p className="vt-hh-standfirst">{t("reliable-fixed-price-airport-and-corporate-rides")}</p>
         </div>
         <div className="vt-hh-card-slot">{children}</div>
       </div>

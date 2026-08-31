@@ -366,9 +366,19 @@
     "email-otp-body": "Hello {name}. Your sign-in code is {code}. Or use this link: {link}."
   },
   "booking": {
+    "afternoon": "Afternoon",
+    "clear": "Clear",
     "date": "Date",
+    "evening": "Evening",
+    "morning": "Morning",
     "next-month": "Next month",
+    "pickup-time": "Pickup time",
     "previous-month": "Previous month",
+    "return": "Return",
+    "return-time": "Return time",
+    "save": "Save",
+    "saved": "Saved",
+    "select-date-and-time": "Select date & time",
     "time": "Time"
   },
   "checkout": {
@@ -918,6 +928,7 @@
     "how-it-works": "How it works",
     "invoiced-transfers-corporate-accounts-and-schedu": "Invoiced transfers, corporate accounts and scheduling you can plan a week around.",
     "jan": "Jan",
+    "land-in-zurich-your-driver-is-waiting": "Land in Zurich. Your driver is waiting.",
     "local-swiss-operator": "Local Swiss operator",
     "minivan-or-similar": "Minivan or similar",
     "name-board-in-hand-at-the-exact-pickup-time-sixt": "Name board in hand, at the exact pickup time. Sixty minutes of airport waiting are included.",
@@ -926,7 +937,9 @@
     "one-minute-of-yours-the-rest-is-ours": "One minute of yours. The rest is ours.",
     "one-way": "One way",
     "pickups": "Pickups",
+    "pre-booked-transfers-zurich": "Pre-booked transfers · Zurich",
     "professional-drivers": "Professional drivers",
+    "reliable-fixed-price-airport-and-corporate-rides": "Reliable, fixed-price airport and corporate rides booked in under one minute.",
     "route-or-flight-number": "Route or flight number",
     "s-class-or-similar": "S-Class or similar",
     "scheduled-not-on-demand": "Scheduled, not on-demand",
@@ -1546,7 +1559,8 @@
     "four-services-one-fixed-price-each": "Four services. One fixed price each.",
     "private": "Private",
     "private-transfers-between-swiss-cities-scheduled": "Private transfers between Swiss cities, scheduled for one exact time.",
-    "reliable-invoiced-transfers-for-business-travel": "Reliable, invoiced transfers for business travel and events."
+    "reliable-invoiced-transfers-for-business-travel": "Reliable, invoiced transfers for business travel and events.",
+    "three-services-one-fixed-price-each": "Three services. One fixed price each."
   },
   "statusBadge": {
     "quote": "Quote",
@@ -1638,7 +1652,10 @@
       "footer.payment-visa",
       "footer.payment-mastercard",
       "footer.payment-twint",
-      "footer.payment-apple-pay"
+      "footer.payment-apple-pay",
+      "fleet.mercedes-e-class",
+      "fleet.mercedes-v-class",
+      "fleet.tesla-model-y"
     ],
     "noParamKeys": {
       "partner.mercedes-v-class-7-seats": "fixed vehicle-class specification copy, not a live count",
