@@ -1,0 +1,8 @@
+You're invited
+
+Create your Vamos Taxi account with the button below.
+
+{{ .ConfirmationURL }}
+
+This link works once and expires after 1 hour.
+Vamos Taxi · +41 79 626 70 82

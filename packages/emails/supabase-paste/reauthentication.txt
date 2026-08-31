@@ -1,0 +1,10 @@
+Confirm it's you
+
+Enter the code below to continue. It expires after 1 hour.
+
+{{ .ConfirmationURL }}
+
+Code: {{ .Token }}
+
+This link works once and expires after 1 hour.
+Vamos Taxi · +41 79 626 70 82

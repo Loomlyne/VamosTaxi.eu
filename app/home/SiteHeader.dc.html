@@ -447,6 +447,25 @@ class Component extends DCLogic {
     document.addEventListener('keydown', this._esc);
     document.addEventListener('mousedown', this._away);
     window.addEventListener('resize', this._resize);
+    fetch('/api/auth/session', { credentials: 'same-origin' })
+      .then((r) => r.json())
+      .then((s) => {
+        if (!s || !s.signedIn) {
+          try { localStorage.removeItem('vamosAuth'); } catch (e) {}
+          if (this.state.auth) this.setState({ auth: null });
+          return;
+        }
+        const auth = {
+          email: s.displayName || '',
+          firstName: (s.displayName || '').split(' ')[0] || '',
+          lastName: (s.displayName || '').split(' ').slice(1).join(' '),
+          emailVerified: !!s.emailConfirmed,
+          at: Date.now(),
+        };
+        try { localStorage.setItem('vamosAuth', JSON.stringify(auth)); } catch (e) {}
+        this.setState({ auth });
+      })
+      .catch(() => {});
   }
   componentWillUnmount() {
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
@@ -537,7 +556,7 @@ class Component extends DCLogic {
       acctOpen: this.state.acctOpen,
       acctExpanded: this.state.acctOpen ? 'true' : 'false',
       toggleAcct: this.toggleAcct, acctRootRef: this._acctRoot,
-      acctHref: this.state.auth ? '../pages/account.dc.html' : '../pages/sign-in.dc.html',
+      acctHref: this.state.auth ? '/account' : '/sign-in',
       tAcct: this.state.auth ? (this.state.auth.firstName || t.account) : (this.props.signInLabel || t.signIn),
       signedIn: !!this.state.auth, signedOut: !this.state.auth, tSignOut: t.signOut,
       showAccountLink: !this.props.hideAccount,
@@ -552,8 +571,15 @@ class Component extends DCLogic {
       /* An address, not copy — it stays as typed in every language. */
       acctTitle: (this.state.auth && this.state.auth.email) || '',
       signOut: () => {
-        try { localStorage.removeItem('vamosAuth'); } catch (e) {}
-        location.href = 'home.dc.html';
+        fetch('/api/auth', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ action: 'signout' }),
+        }).finally(() => {
+          try { localStorage.removeItem('vamosAuth'); } catch (e) {}
+          location.href = '/';
+        });
       },
       tBook: t.book, tCall: t.call, tLangLabel: t.langLabel, tCurLabel: t.curLabel,
       menuOpen: this.state.menuOpen,

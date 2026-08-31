@@ -26,19 +26,19 @@ const DC_PAGES: Record<string, string> = {
   "/cancellation": "/app/pages/cancellation.html",
   "/imprint": "/app/pages/imprint.html",
   "/sign-in": "/app/pages/sign-in.html",
+  "/sign-up": "/app/pages/sign-in.html",
   "/reset-password": "/app/pages/reset-password.html",
   "/checkout": "/app/pages/checkout.html",
   "/confirmation": "/app/pages/confirmation.html",
   "/manage-booking": "/app/pages/manage-booking.html",
   "/account": "/app/pages/account.html",
   "/bookings": "/app/pages/bookings.html",
-  "/become-a-partner": "/app/pages/become-a-partner.html",
   "/coming-soon": "/app/pages/coming-soon.html",
 };
 
 const OPS_EXEMPT = new Set(["/ops/sign-in", "/ops/mfa-challenge", "/ops/accept-invite"]);
 
-function dcMockPath(pathname: string): string | null {
+function stripLocalePath(pathname: string): string {
   let path = pathname;
   const locale = path.match(/^\/(en|de|fr|ar)(?=\/|$)/);
   if (locale) {
@@ -47,7 +47,19 @@ function dcMockPath(pathname: string): string | null {
   if (path.length > 1 && path.endsWith("/")) {
     path = path.slice(0, -1);
   }
-  return DC_PAGES[path] ?? null;
+  return path;
+}
+
+function dcMockPath(pathname: string): string | null {
+  return DC_PAGES[stripLocalePath(pathname)] ?? null;
+}
+
+async function serveDcHtml(request: NextRequest, mock: string): Promise<NextResponse> {
+  const asset = new URL(mock, request.url);
+  const res = await fetch(asset);
+  const headers = new Headers(res.headers);
+  headers.set("content-type", "text/html; charset=utf-8");
+  return new NextResponse(res.body, { status: res.status, headers });
 }
 
 function qsSecret(): string {
@@ -172,10 +184,15 @@ export default async function middleware(request: NextRequest) {
   }
 
   // Dashboard host is the console, not the public mock gallery.
-  if (!isDashboardHost(request)) {
+  if (isDashboardHost(request)) {
+    if (!isOpsRequest(pathname)) {
+      return applyStagingNoindex(NextResponse.redirect(opsRedirectUrl(request, "/ops")));
+    }
+  } else {
     const mock = dcMockPath(pathname);
     if (mock) {
-      return NextResponse.rewrite(new URL(mock, request.url));
+      const html = await serveDcHtml(request, mock);
+      return applyStagingNoindex(await updateSession(request, html));
     }
   }
 

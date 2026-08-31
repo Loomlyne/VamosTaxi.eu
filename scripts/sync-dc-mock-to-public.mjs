@@ -23,7 +23,6 @@ const PAGE_FILES = [
   "app/home/home.dc.html",
   "app/pages/about.dc.html",
   "app/pages/account.dc.html",
-  "app/pages/become-a-partner.dc.html",
   "app/pages/booking-detail.dc.html",
   "app/pages/bookings.dc.html",
   "app/pages/cancellation.dc.html",
@@ -39,6 +38,8 @@ const PAGE_FILES = [
   "app/pages/reset-password.dc.html",
   "app/pages/sign-in.dc.html",
   "app/pages/terms.dc.html",
+  "app/ops/ops.dc.html",
+  "app/ops/ops-login.dc.html",
 ];
 
 function copy(from, to) {
@@ -82,7 +83,11 @@ const redirectLines = [];
 for (const rel of PAGE_FILES) {
   const dc = resolve(pub, rel);
   if (!existsSync(dc)) continue;
-  const base = rel.startsWith("app/home/") ? "/app/home/" : "/app/pages/";
+  const base = rel.startsWith("app/home/")
+    ? "/app/home/"
+    : rel.startsWith("app/ops/")
+      ? "/app/ops/"
+      : "/app/pages/";
   injectBase(dc, base);
   const htmlRel = rel.replace(/\.dc\.html$/, ".html");
   cpSync(dc, resolve(pub, htmlRel));

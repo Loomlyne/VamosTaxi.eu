@@ -1,7 +1,7 @@
 "use client";
 
 // Presentation only. No @/lib/supabase. Plan 05-16 owns Server Actions.
-// Not ported: startPasskey / verifying (no WebAuthn in V1).
+// Staging /sign-in is the DC mock (passkey lives there). This React form is password + magic.
 // Not ported: surface="ops" (Phase 6). AuthFormProps has no surface prop.
 
 import { useId, useState } from "react";

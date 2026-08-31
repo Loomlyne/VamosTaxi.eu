@@ -212,6 +212,20 @@ interface CloudflareEnv {
   SUPABASE_SERVICE_ROLE_KEY?: string;
 
   /**
+   * Cloudflare Email Sending binding (`wrangler.jsonc` `send_email`). Staging
+   * only. From-address domain is vamostaxi.site.
+   */
+  EMAIL?: {
+    send(message: {
+      to: string | string[];
+      from: { email: string; name?: string } | string;
+      subject: string;
+      html?: string;
+      text?: string;
+    }): Promise<{ messageId?: string }>;
+  };
+
+  /**
    * Supabase Auth Send Email Hook signing secret (plan 05-12). OPTIONAL — owner-gated
    * (05-CONTEXT deferred). `wrangler secret put`. Never in wrangler.jsonc `vars`.
    */

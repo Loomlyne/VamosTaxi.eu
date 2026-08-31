@@ -33,7 +33,8 @@
       "workers_dev": true,
       "routes": [
         { "pattern": "vamostaxi.site", "custom_domain": true },
-        { "pattern": "www.vamostaxi.site", "custom_domain": true }
+        { "pattern": "www.vamostaxi.site", "custom_domain": true },
+        { "pattern": "dashboard.vamostaxi.site", "custom_domain": true }
       ],
       // Plain, non-secret marker (never a credential — see the top-level
       // `vars` comment above) — apps/web/middleware.ts reads this to scope
@@ -138,7 +139,10 @@
       // D-13: without this binding `/_next/image` answers 200 with the original,
       // unresized file (Phase 1 finding). Named envs do not inherit top-level
       // bindings — declare IMAGES here and under env.production.
-      "images": { "binding": "IMAGES" }
+      "images": { "binding": "IMAGES" },
+      // Auth transactional mail (magic / confirm / reset). Domain onboarded
+      // 2026-08-31 via `wrangler email sending enable vamostaxi.site`.
+      "send_email": [{ "name": "EMAIL" }]
     },
     "production": {
       "name": "vamos-web-production",

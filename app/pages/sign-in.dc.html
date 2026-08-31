@@ -68,6 +68,7 @@ body{margin:0;background:var(--vt-bg-page)}a{color:var(--vt-text-link);border-bo
 @media (min-width:960px){[data-auth]{grid-template-columns:640fr 800fr;min-height:720px}
 [data-auth-col]{padding:96px clamp(24px,9.7vw,140px)}
 [data-auth-panel]{display:block}}
+[data-jump]{display:none!important}
 @media print{[data-jump]{display:none!important}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}</style>
 </helmet>
@@ -78,7 +79,7 @@ body{margin:0;background:var(--vt-bg-page)}a{color:var(--vt-text-link);border-bo
 <div style="width:100%;max-width:360px">
 <dc-import name="AuthForm" mode="{{ mode }}" method="{{ method }}" stage="{{ stage }}" banner="{{ banner }}" email="{{ seedEmail }}" nonce="{{ nonce }}" on-state="{{ onState }}" hint-size="100%,520px"></dc-import>
 <sc-if value="{{ showGuest }}" hint-placeholder-val="{{ true }}">
-<p data-auth-guest="1">You never need an account to book. Guest checkout takes you straight through — an account just keeps your transfers, vouchers and receipts in one place. <a href="../home/home.dc.html">Book a transfer</a></p>
+<p data-auth-guest="1">You never need an account to book. Guest checkout takes you straight through — an account just keeps your transfers, vouchers and receipts in one place. <a href="/">Book a transfer</a></p>
 </sc-if>
 </div>
 </div>
@@ -134,7 +135,8 @@ class Component extends DCLogic {
   componentDidMount() {
     /* ?state=forgot lands here from the expired-reset-link page */
     try {
-      const s = new URLSearchParams(location.search).get('state');
+      const path = (location.pathname || '').replace(/\/$/, '');
+      const s = new URLSearchParams(location.search).get('state') || (path.endsWith('/sign-up') ? 'e' : '');
       const hit = STATES.filter((x) => x.key === s || x.mode === s)[0];
       if (hit) this.jump(hit);
     } catch (e) {}
@@ -158,7 +160,7 @@ class Component extends DCLogic {
       onState: this.onState,
       isPhoto: panel === 'photo', isCharcoal: panel !== 'photo',
       showGuest: this.props.showGuestNote !== false,
-      showJumper: this.props.showStateJumper !== false,
+      showJumper: false,
       collapsedAttr: open ? null : '1',
       caret: open ? '—' : '+',
       toggleJumper: () => this.setState({ open: !open }),
