@@ -35,3 +35,6 @@ export async function createServerSupabaseClient() {
     },
   });
 }
+
+/** Plan 06-02 name. Same factory — Phase 5 landed `createServerSupabaseClient`. */
+export const createSupabaseServerClient = createServerSupabaseClient;
