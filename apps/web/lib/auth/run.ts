@@ -1,0 +1,152 @@
+// apps/web/lib/auth/run.ts
+//
+// Supabase Auth calls shared by Server Actions and POST /api/auth.
+// Never distinguishes "user exists" on signup/otp/reset (enumeration).
+
+import type { AuthBanner } from "../../components/auth/types";
+import { AUTH_LOCALE_METADATA_KEY } from "../supabase/constants";
+
+export type AuthRunResult =
+  | { stage: "form"; banner: AuthBanner }
+  | { stage: "sent" }
+  | { ok: true };
+
+export type AuthError = { code?: string; message?: string } | null;
+
+export type AuthClient = {
+  auth: {
+    signInWithPassword(args: {
+      email: string;
+      password: string;
+    }): Promise<{ error: AuthError }>;
+    signUp(args: {
+      email: string;
+      password: string;
+      options?: {
+        emailRedirectTo?: string;
+        data?: Record<string, string>;
+      };
+    }): Promise<{ error: AuthError }>;
+    signInWithOtp(args: {
+      email: string;
+      options?: {
+        shouldCreateUser?: boolean;
+        emailRedirectTo?: string;
+        data?: Record<string, string>;
+      };
+    }): Promise<{ error: AuthError }>;
+    resetPasswordForEmail(
+      email: string,
+      options: { redirectTo: string },
+    ): Promise<{ error: AuthError }>;
+    signOut(): Promise<{ error: AuthError }>;
+    getUser(): Promise<{ data: { user: unknown | null }; error: AuthError }>;
+    updateUser(args: { password: string }): Promise<{ error: AuthError }>;
+  };
+};
+
+export const FORM_CREDENTIALS: AuthRunResult = { stage: "form", banner: "credentials" };
+export const SENT: AuthRunResult = { stage: "sent" };
+
+export function callbackUrl(origin: string, next: string): string {
+  const url = new URL("/api/auth/callback", origin);
+  url.searchParams.set("next", next);
+  return url.toString();
+}
+
+export function fullName(firstName: string, lastName: string): string {
+  return `${firstName} ${lastName}`.trim();
+}
+
+export async function runSignInPassword(
+  supabase: AuthClient,
+  input: { email: string; password: string },
+): Promise<{ result: AuthRunResult; reason: string | null }> {
+  const { error } = await supabase.auth.signInWithPassword({
+    email: input.email,
+    password: input.password,
+  });
+  if (error) return { result: FORM_CREDENTIALS, reason: error.code ?? "auth-failed" };
+  return { result: { ok: true }, reason: null };
+}
+
+export async function runSignUpPassword(
+  supabase: AuthClient,
+  input: { email: string; password: string; firstName: string; lastName: string; locale: string },
+  origin: string,
+  home: string,
+): Promise<{ result: AuthRunResult; reason: string | null }> {
+  const { error } = await supabase.auth.signUp({
+    email: input.email,
+    password: input.password,
+    options: {
+      emailRedirectTo: callbackUrl(origin, home),
+      data: {
+        full_name: fullName(input.firstName, input.lastName),
+        [AUTH_LOCALE_METADATA_KEY]: input.locale,
+      },
+    },
+  });
+  return { result: SENT, reason: error ? (error.code ?? "auth-failed") : null };
+}
+
+export async function runOtp(
+  supabase: AuthClient,
+  input: {
+    mode: "signin" | "signup";
+    email: string;
+    locale: string;
+    firstName?: string;
+    lastName?: string;
+  },
+  origin: string,
+  home: string,
+): Promise<{ result: AuthRunResult; reason: string | null }> {
+  const data: Record<string, string> = { [AUTH_LOCALE_METADATA_KEY]: input.locale };
+  if (input.mode === "signup") {
+    data.full_name = fullName(input.firstName ?? "", input.lastName ?? "");
+  }
+  const { error } = await supabase.auth.signInWithOtp({
+    email: input.email,
+    options: {
+      shouldCreateUser: true,
+      emailRedirectTo: callbackUrl(origin, home),
+      data,
+    },
+  });
+  return { result: SENT, reason: error ? (error.code ?? "auth-failed") : null };
+}
+
+export async function runPasswordReset(
+  supabase: AuthClient,
+  email: string,
+  origin: string,
+  resetPath: string,
+): Promise<{ result: AuthRunResult; reason: string | null }> {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: callbackUrl(origin, resetPath),
+  });
+  return { result: SENT, reason: error ? (error.code ?? "auth-failed") : null };
+}
+
+export async function runSignOut(supabase: AuthClient): Promise<AuthRunResult> {
+  await supabase.auth.getUser();
+  await supabase.auth.signOut();
+  return { ok: true };
+}
+
+export async function runUpdatePassword(
+  supabase: AuthClient,
+  password: string,
+): Promise<{ result: AuthRunResult; reason: string | null }> {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError || !user) {
+    return { result: FORM_CREDENTIALS, reason: userError?.code ?? "no-user" };
+  }
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) return { result: FORM_CREDENTIALS, reason: error.code ?? "auth-failed" };
+  return { result: { ok: true }, reason: null };
+}

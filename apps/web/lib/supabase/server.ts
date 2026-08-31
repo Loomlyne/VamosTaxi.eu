@@ -18,6 +18,7 @@ export async function createServerSupabaseClient() {
   const cookieStore = await cookies();
 
   return createServerClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
+    auth: { experimental: { passkey: true } },
     cookies: {
       getAll() {
         return cookieStore.getAll();

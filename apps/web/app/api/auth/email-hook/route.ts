@@ -12,6 +12,9 @@ import { log } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
 
+const FROM_EMAIL = "noreply@vamostaxi.site";
+const FROM_NAME = "Vamos Taxi";
+
 const Body = z.object({
   user: z.object({
     email: z.string().email(),
@@ -29,19 +32,71 @@ const Body = z.object({
       "email_change",
       "email_otp",
       "invite",
+      "reauthentication",
     ]),
   }),
 });
 
 function mapType(action: string): AuthEmailType | null {
   if (action === "signup") return "signup";
+  if (action === "invite") return "invite";
   if (action === "recovery") return "recovery";
   if (action === "magiclink" || action === "email_otp") return "otp";
+  if (action === "email_change") return "email_change";
+  if (action === "reauthentication") return "reauthentication";
   return null;
 }
 
+function verifyLink(supabaseUrl: string, emailData: {
+  site_url: string;
+  token_hash: string;
+  email_action_type: string;
+  redirect_to: string;
+}): string {
+  const raw = (supabaseUrl || emailData.site_url).replace(/\/$/, "");
+  const origin = raw.replace(/\/auth\/v1$/i, "");
+  const redirect = encodeURIComponent(emailData.redirect_to);
+  return `${origin}/auth/v1/verify?token=${emailData.token_hash}&type=${emailData.email_action_type}&redirect_to=${redirect}`;
+}
+
+function hookVerifySecret(raw: string): string {
+  return raw.startsWith("v1,whsec_") ? raw.slice("v1,whsec_".length) : raw.replace(/^v1,/, "");
+}
+
+async function sendBranded(
+  env: CloudflareEnv,
+  to: string,
+  rendered: { subject: string; html: string; text: string },
+): Promise<void> {
+  if (env.EMAIL?.send) {
+    await env.EMAIL.send({
+      to,
+      from: { email: FROM_EMAIL, name: FROM_NAME },
+      subject: rendered.subject,
+      html: rendered.html,
+      text: rendered.text,
+    });
+    return;
+  }
+  const key = env.RESEND_API_KEY;
+  if (!key) throw new Error("no-sender");
+  const { error } = await new Resend(key).emails.send({
+    from: `${FROM_NAME} <${FROM_EMAIL}>`,
+    to,
+    subject: rendered.subject,
+    html: rendered.html,
+    text: rendered.text,
+  });
+  if (error) throw error;
+}
+
 export async function POST(request: Request) {
-  const { env } = getCloudflareContext();
+  let env: CloudflareEnv;
+  try {
+    env = getCloudflareContext().env;
+  } catch {
+    return new Response(null, { status: 500 });
+  }
   const secret = env.SEND_EMAIL_HOOK_SECRET ?? process.env.SEND_EMAIL_HOOK_SECRET;
   const ctx = { requestId: crypto.randomUUID(), route: "/api/auth/email-hook", locale: null as string | null };
 
@@ -58,7 +113,7 @@ export async function POST(request: Request) {
   };
 
   try {
-    new Webhook(secret).verify(payload, headers);
+    new Webhook(hookVerifySecret(secret)).verify(payload, headers);
   } catch {
     return new Response(null, { status: 401 });
   }
@@ -84,8 +139,7 @@ export async function POST(request: Request) {
     return new Response(null, { status: 200 });
   }
 
-  const site = parsed.email_data.site_url.replace(/\/$/, "");
-  const link = `${site}/auth/v1/verify?token=${parsed.email_data.token_hash}&type=${parsed.email_data.email_action_type}&redirect_to=${encodeURIComponent(parsed.email_data.redirect_to)}`;
+  const link = verifyLink(env.SUPABASE_URL, parsed.email_data);
   const name =
     typeof parsed.user.user_metadata?.full_name === "string"
       ? parsed.user.user_metadata.full_name
@@ -96,21 +150,10 @@ export async function POST(request: Request) {
     name,
   });
 
-  const key = env.RESEND_API_KEY;
-  if (key) {
-    try {
-      await new Resend(key).emails.send({
-        from: "Vamos Taxi <noreply@vamostaxi.eu>",
-        to: parsed.user.email,
-        subject: rendered.subject,
-        html: rendered.html,
-        text: rendered.text,
-      });
-    } catch {
-      return new Response(null, { status: 502 });
-    }
-  } else {
-    log("info", "email-hook", { ...ctx, locale }, { subject: rendered.subject, body: "[redacted]" });
+  try {
+    await sendBranded(env, parsed.user.email, rendered);
+  } catch {
+    return new Response(null, { status: 502 });
   }
 
   return new Response(null, { status: 200 });

@@ -1,0 +1,8 @@
+A verification method was removed
+
+Sign-in verification method {{ .FactorType }} was removed from your account.
+
+Open account: https://vamostaxi.site/account
+
+If you did not make this change, contact us immediately.
+Vamos Taxi · +41 79 626 70 82

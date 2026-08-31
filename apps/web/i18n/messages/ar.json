@@ -363,7 +363,9 @@
     "email-recovery-subject": "أعد تعيين كلمة مرور Vamos Taxi",
     "email-recovery-body": "مرحباً {name}. أعد تعيين كلمة المرور عبر هذا الرابط: {link}. أو أدخل هذا الرمز: {code}.",
     "email-otp-subject": "رمز الدخول إلى Vamos Taxi",
-    "email-otp-body": "مرحباً {name}. رمز الدخول هو {code}. أو استخدم هذا الرابط: {link}."
+    "email-otp-body": "مرحباً {name}. رمز الدخول هو {code}. أو استخدم هذا الرابط: {link}.",
+    "email-change-subject": "أكد بريدك الجديد في Vamos Taxi",
+    "email-change-body": "مرحباً {name}. أكد هذا البريد عبر هذا الرابط: {link}. أو أدخل هذا الرمز: {code}."
   },
   "booking": {
     "afternoon": "بعد الظهر",

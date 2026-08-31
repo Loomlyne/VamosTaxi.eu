@@ -363,7 +363,9 @@
     "email-recovery-subject": "Réinitialisez votre mot de passe Vamos Taxi",
     "email-recovery-body": "Bonjour {name}. Réinitialisez votre mot de passe avec ce lien : {link}. Ou saisissez ce code : {code}.",
     "email-otp-subject": "Votre code de connexion Vamos Taxi",
-    "email-otp-body": "Bonjour {name}. Votre code de connexion est {code}. Ou utilisez ce lien : {link}."
+    "email-otp-body": "Bonjour {name}. Votre code de connexion est {code}. Ou utilisez ce lien : {link}.",
+    "email-change-subject": "Confirmez votre nouvel e-mail Vamos Taxi",
+    "email-change-body": "Bonjour {name}. Confirmez cet e-mail avec ce lien : {link}. Ou saisissez ce code : {code}."
   },
   "booking": {
     "afternoon": "Après-midi",

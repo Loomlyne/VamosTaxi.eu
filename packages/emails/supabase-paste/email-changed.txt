@@ -1,0 +1,8 @@
+Your email was changed
+
+The email on your account was changed from {{ .OldEmail }} to {{ .Email }}.
+
+Open account: https://vamostaxi.site/account
+
+If you did not make this change, contact us immediately.
+Vamos Taxi · +41 79 626 70 82

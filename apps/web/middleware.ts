@@ -12,6 +12,10 @@ import { updateSession } from "./lib/supabase/middleware";
 const handleI18nRouting = createMiddleware(routing);
 
 const DC_HOME = "/app/home/home.html";
+const DC_OPS = "/app/ops/ops.html";
+const DC_OPS_LOGIN = "/app/ops/ops-login.html";
+const DASHBOARD_HOSTS = new Set(["dashboard.vamostaxi.site"]);
+
 const DC_PAGES: Record<string, string> = {
   "/": DC_HOME,
   "/about": "/app/pages/about.html",
@@ -23,17 +27,17 @@ const DC_PAGES: Record<string, string> = {
   "/cancellation": "/app/pages/cancellation.html",
   "/imprint": "/app/pages/imprint.html",
   "/sign-in": "/app/pages/sign-in.html",
+  "/sign-up": "/app/pages/sign-in.html",
   "/reset-password": "/app/pages/reset-password.html",
   "/checkout": "/app/pages/checkout.html",
   "/confirmation": "/app/pages/confirmation.html",
   "/manage-booking": "/app/pages/manage-booking.html",
   "/account": "/app/pages/account.html",
   "/bookings": "/app/pages/bookings.html",
-  "/become-a-partner": "/app/pages/become-a-partner.html",
   "/coming-soon": "/app/pages/coming-soon.html",
 };
 
-function dcMockPath(pathname: string): string | null {
+function stripLocalePath(pathname: string): string {
   let path = pathname;
   const locale = path.match(/^\/(en|de|fr|ar)(?=\/|$)/);
   if (locale) {
@@ -42,7 +46,30 @@ function dcMockPath(pathname: string): string | null {
   if (path.length > 1 && path.endsWith("/")) {
     path = path.slice(0, -1);
   }
-  return DC_PAGES[path] ?? null;
+  return path;
+}
+
+function requestHost(request: NextRequest): string {
+  return (request.headers.get("host") ?? "").split(":")[0]?.toLowerCase() ?? "";
+}
+
+function dcMockPath(pathname: string): string | null {
+  return DC_PAGES[stripLocalePath(pathname)] ?? null;
+}
+
+function dashboardMockPath(request: NextRequest): string | null {
+  if (!DASHBOARD_HOSTS.has(requestHost(request))) return null;
+  const path = stripLocalePath(request.nextUrl.pathname);
+  if (path === "/ops-login" || path === "/login") return DC_OPS_LOGIN;
+  return DC_OPS;
+}
+
+async function serveDcHtml(request: NextRequest, mock: string): Promise<NextResponse> {
+  const asset = new URL(mock, request.url);
+  const res = await fetch(asset);
+  const headers = new Headers(res.headers);
+  headers.set("content-type", "text/html; charset=utf-8");
+  return new NextResponse(res.body, { status: res.status, headers });
 }
 
 function qsSecret(): string {
@@ -51,13 +78,14 @@ function qsSecret(): string {
 }
 
 export default async function middleware(request: NextRequest) {
+  const dashboard = dashboardMockPath(request);
+  if (dashboard) {
+    return serveDcHtml(request, dashboard);
+  }
+
   const mock = dcMockPath(request.nextUrl.pathname);
   if (mock) {
-    const asset = new URL(mock, request.url);
-    const res = await fetch(asset);
-    const headers = new Headers(res.headers);
-    headers.set("content-type", "text/html; charset=utf-8");
-    return new NextResponse(res.body, { status: res.status, headers });
+    return serveDcHtml(request, mock);
   }
 
   const response = handleI18nRouting(request);

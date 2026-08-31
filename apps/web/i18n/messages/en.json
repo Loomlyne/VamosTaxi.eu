@@ -363,7 +363,9 @@
     "email-recovery-subject": "Reset your Vamos Taxi password",
     "email-recovery-body": "Hello {name}. Reset your password with this link: {link}. Or enter this code: {code}.",
     "email-otp-subject": "Your Vamos Taxi sign-in code",
-    "email-otp-body": "Hello {name}. Your sign-in code is {code}. Or use this link: {link}."
+    "email-otp-body": "Hello {name}. Your sign-in code is {code}. Or use this link: {link}.",
+    "email-change-subject": "Confirm your new Vamos Taxi email",
+    "email-change-body": "Hello {name}. Confirm this email with this link: {link}. Or enter this code: {code}."
   },
   "booking": {
     "afternoon": "Afternoon",
