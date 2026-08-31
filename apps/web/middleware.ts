@@ -62,7 +62,8 @@ function hostnameOf(request: NextRequest): string {
 function localeStrippedPath(pathname: string): { localePrefix: string | null; path: string } {
   const match = pathname.match(/^\/(en|de|fr|ar)(?=\/|$)/);
   if (match) {
-    return { localePrefix: match[1], path: pathname.slice(match[0].length) || "/" };
+    const prefix = match[1] ?? null;
+    return { localePrefix: prefix, path: pathname.slice(match[0].length) || "/" };
   }
   return { localePrefix: null, path: pathname };
 }

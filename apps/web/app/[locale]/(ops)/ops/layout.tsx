@@ -6,7 +6,7 @@ import { getLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { asStaff } from "@/lib/db/identity";
 import { buildOpsNav } from "@/lib/ops/nav";
-import { OpsAuthError, requireStaffClaims } from "@/lib/ops/session";
+import { OpsAuthError, requireStaffClaims, type StaffAuthClient } from "@/lib/ops/session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { OpsShell } from "@/components/ops";
 
@@ -37,7 +37,7 @@ export default async function OpsLayout({ children }: { children: ReactNode }) {
     return <>{children}</>;
   }
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = (await createServerSupabaseClient()) as StaffAuthClient;
   let claims;
   try {
     claims = await requireStaffClaims(supabase);

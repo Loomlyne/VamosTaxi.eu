@@ -25,7 +25,7 @@ export class OpsAuthError extends Error {
 type StaffAuthUser = {
   id: string;
   email?: string | null;
-  app_metadata?: { vamos_role?: unknown };
+  app_metadata?: Record<string, unknown>;
 };
 
 export type StaffAuthClient = {
@@ -57,9 +57,10 @@ function staffRole(value: unknown): "dispatcher" | "admin" | undefined {
  */
 function sessionIdFromAccessToken(accessToken: string): string | undefined {
   const parts = accessToken.split(".");
-  if (parts.length < 2) return undefined;
+  const payloadB64 = parts[1];
+  if (!payloadB64) return undefined;
   try {
-    const b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const b64 = payloadB64.replace(/-/g, "+").replace(/_/g, "/");
     const pad = b64.length % 4 === 0 ? "" : "=".repeat(4 - (b64.length % 4));
     const json = atob(b64 + pad);
     const payload = JSON.parse(json) as { session_id?: unknown };
