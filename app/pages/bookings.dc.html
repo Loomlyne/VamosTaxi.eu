@@ -223,7 +223,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <span style="width:44px;height:44px;border-radius:var(--vt-radius-pill);background:var(--vt-grey-100);display:grid;place-items:center"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="calendar" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></span>
 <h3 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold);letter-spacing:-.01em;color:var(--vt-text-primary)">{{ tabEmptyTitle }}</h3>
 <p style="margin:0;max-width:52ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">{{ tabEmptyBody }}</p>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" href="../home/home.dc.html" iconEnd="arrow-right" hint-size="200px,44px">Book a transfer</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" href="/" iconEnd="arrow-right" hint-size="200px,44px">Book a transfer</x-import>
 </div>
 </sc-if>
 
@@ -302,7 +302,7 @@ const STEP = 6;
 class Component extends DCLogic {
   state = (() => {
     const p = this.props || {};
-    return { view: p.listState || 'populated', tab: p.openTab || 'upcoming', shown: STEP, auth: null, q: '', viewMode: 'list' };
+    return { view: 'empty', tab: p.openTab || 'upcoming', shown: STEP, auth: null, q: '', viewMode: 'list' };
   })();
   setViewList = () => this.setState({ viewMode: 'list' });
   setViewGrid = () => this.setState({ viewMode: 'grid' });
@@ -347,9 +347,26 @@ class Component extends DCLogic {
 
   componentDidMount() {
     this._offLocale = window.VamosLocale && window.VamosLocale.onChange(() => this.forceUpdate());
-    let auth = null;
-    try { const raw = localStorage.getItem('vamosAuth'); if (raw) auth = JSON.parse(raw); } catch (e) {}
-    if (auth) this.setState({ auth });
+    fetch('/api/auth/session', { credentials: 'same-origin' })
+      .then((r) => r.json())
+      .then((s) => {
+        let stored = null;
+        try { const raw = localStorage.getItem('vamosAuth'); if (raw) stored = JSON.parse(raw); } catch (e) {}
+        if (!s || !s.signedIn) {
+          if (stored) this.setState({ auth: stored });
+          return;
+        }
+        const full = (s.displayName || '').trim();
+        const parts = full.split(' ').filter(Boolean);
+        this.setState({
+          auth: {
+            email: (stored && stored.email) || '',
+            firstName: parts[0] || (stored && stored.firstName) || '',
+            lastName: parts.slice(1).join(' ') || (stored && stored.lastName) || '',
+          },
+        });
+      })
+      .catch(() => {});
     /* The loading state is a real wait, not a permanent screenshot: it resolves into the
        list so a reviewer sees the transition the customer gets. */
     if (this.state.view === 'loading') this._t = setTimeout(() => this.setState({ view: 'populated' }), 1600);

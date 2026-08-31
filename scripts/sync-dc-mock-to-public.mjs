@@ -13,6 +13,7 @@ import {
 } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { assertHeadBase, injectBaseInto } from "./dc-page-base.mjs";
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const pub = resolve(repo, "apps/web/public");
@@ -23,6 +24,7 @@ const PAGE_FILES = [
   "app/home/home.dc.html",
   "app/pages/about.dc.html",
   "app/pages/account.dc.html",
+  "app/pages/become-a-partner.dc.html",
   "app/pages/booking-detail.dc.html",
   "app/pages/bookings.dc.html",
   "app/pages/cancellation.dc.html",
@@ -38,8 +40,6 @@ const PAGE_FILES = [
   "app/pages/reset-password.dc.html",
   "app/pages/sign-in.dc.html",
   "app/pages/terms.dc.html",
-  "app/ops/ops.dc.html",
-  "app/ops/ops-login.dc.html",
 ];
 
 function copy(from, to) {
@@ -73,9 +73,8 @@ for (const name of [
 }
 
 function injectBase(file, href) {
-  let html = readFileSync(file, "utf8");
-  if (html.includes("<base ")) return;
-  html = html.replace(/<head>/i, `<head>\n<base href="${href}">`);
+  const html = injectBaseInto(readFileSync(file, "utf8"), href);
+  assertHeadBase(html, href, file);
   writeFileSync(file, html);
 }
 
@@ -83,11 +82,7 @@ const redirectLines = [];
 for (const rel of PAGE_FILES) {
   const dc = resolve(pub, rel);
   if (!existsSync(dc)) continue;
-  const base = rel.startsWith("app/home/")
-    ? "/app/home/"
-    : rel.startsWith("app/ops/")
-      ? "/app/ops/"
-      : "/app/pages/";
+  const base = rel.startsWith("app/home/") ? "/app/home/" : "/app/pages/";
   injectBase(dc, base);
   const htmlRel = rel.replace(/\.dc\.html$/, ".html");
   cpSync(dc, resolve(pub, htmlRel));
