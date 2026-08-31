@@ -27,8 +27,8 @@ function fail(err: unknown): CouponActionResult {
   if (err instanceof CouponInputError) return { ok: false, key: err.key };
   if (err instanceof OpsAuthError) return { ok: false, key: "coupons-error" };
   const mapped = mapSqlState(err);
-  if (mapped === "unique_violation") return { ok: false, key: "coupons-duplicate" };
-  if (mapped === "check_violation") return { ok: false, key: "coupons-constraint" };
+  if (mapped.kind === "unique") return { ok: false, key: "coupons-duplicate" };
+  if (mapped.kind === "check") return { ok: false, key: "coupons-constraint" };
   return { ok: false, key: "coupons-error" };
 }
 
