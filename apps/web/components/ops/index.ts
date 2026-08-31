@@ -38,3 +38,6 @@ export { ProfilePanes } from "./ProfilePanes";
 export type { ProfilePane } from "./ProfilePanes";
 export { ProfileSecurityPane } from "./ProfileSecurityPane";
 export type { EnrolledFactor } from "./ProfileSecurityPane";
+export { VehicleTable, VehicleFleetTabs } from "./VehicleTable";
+export { VehicleForm } from "./VehicleForm";
+export { VehicleClassPanel } from "./VehicleClassPanel";
