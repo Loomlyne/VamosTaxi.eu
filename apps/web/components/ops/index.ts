@@ -14,3 +14,5 @@ export { PricingCompleteness } from "./PricingCompleteness";
 export type { PricingCompletenessProps } from "./PricingCompleteness";
 export { PricingPublishDialog } from "./PricingPublishDialog";
 export type { PricingPublishDialogProps } from "./PricingPublishDialog";
+export { CouponTable } from "./CouponTable";
+export { CouponForm } from "./CouponForm";
