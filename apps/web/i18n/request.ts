@@ -1,19 +1,20 @@
 import { notFound } from "next/navigation";
 import { getRequestConfig } from "next-intl/server";
+import { loadMessagesFromDb as loadRawFromContent } from "../lib/content/messages";
 import { routing, type Locale } from "./routing";
 
 type Messages = Record<string, unknown>;
 
 /**
- * The loader seam D-14 names: Phase 1's implementation reads the matching
- * JSON file below; Phase 6 swaps this function's body for a
- * `content_strings` query and no call site elsewhere has to move. The
- * `onError`/`getMessageFallback` behaviour further down this file lives in
- * this same module rather than at any call site, so it survives that swap
- * untouched too.
+ * The loader seam D-14 names: Phase 6 has swapped this function's body for
+ * a `content_strings` query. No call site elsewhere had to move. The JSON
+ * kill switch (default until proven) lives in `lib/content/messages.ts`,
+ * not here. The `onError`/`getMessageFallback` behaviour further down this
+ * file lives in this same module rather than at any call site, so it
+ * survives that swap untouched too.
  */
 async function loadRawMessages(locale: Locale): Promise<Messages> {
-  return (await import(`./messages/${locale}.json`)).default as Messages;
+  return loadRawFromContent(locale);
 }
 
 /**

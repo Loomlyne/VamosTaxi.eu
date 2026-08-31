@@ -12,6 +12,7 @@
     "lint": "eslint .",
     "lint:css": "pnpm --filter web run lint:css",
     "i18n:check": "node scripts/check-i18n-coverage.mjs",
+    "i18n:pull": "node scripts/pull-content-strings.mjs",
     "check:legal-claims": "node scripts/check-legal-language-claims.mjs",
     "check:numbers": "node scripts/check-no-invented-numbers.mjs",
     "test:unit": "pnpm -r --if-present run test",
