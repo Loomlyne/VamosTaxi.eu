@@ -27,10 +27,14 @@
   "env": {
     "staging": {
       "name": "vamos-web-staging",
-      // No zone for vamostaxi.eu on this account yet (owner decision:
-      // stay off any real domain until Phase 11 cutover) — deploys to
-      // the account's *.workers.dev subdomain instead of a custom route.
+      // Public hostname is vamostaxi.site (zone f0119383…). vamostaxi.eu
+      // is abandoned — no access, never bind it. workers.dev stays on so
+      // staging probes still work. Do not deploy env.production.
       "workers_dev": true,
+      "routes": [
+        { "pattern": "vamostaxi.site", "custom_domain": true },
+        { "pattern": "www.vamostaxi.site", "custom_domain": true }
+      ],
       // Plain, non-secret marker (never a credential — see the top-level
       // `vars` comment above) — apps/web/middleware.ts reads this to scope
       // the X-Robots-Tag: noindex header to staging only (D-37). Absent
@@ -56,7 +60,7 @@
         // TODO(08-deploy): replace with the id from `wrangler kv namespace create`
         {
           "binding": "QUOTE_ABUSE",
-          "id": "<quote-abuse staging kv id — created by plan 04-13 via wrangler kv namespace create>"
+          "id": "5080f3d518c24eaeb7b0590c922349c2"
         }
       ],
       "r2_buckets": [
@@ -138,12 +142,8 @@
     },
     "production": {
       "name": "vamos-web-production",
-      // Not deployed until Phase 11 (Launch Cutover) — D-33 is explicit
-      // that the live Freshpage site keeps serving vamostaxi.eu's apex
-      // until then. Declared now so the environment shape exists.
-      "routes": [
-        { "pattern": "vamostaxi.eu", "custom_domain": true }
-      ],
+      // Not deployed. Public traffic is vamostaxi.site on
+      // vamos-web-staging. vamostaxi.eu is abandoned — no zone, no bind.
       // No PRICING_PREVIEW assignment here (D-33). Its ABSENCE is the control.
       // Setting that var to the string false under production would be a bug,
       // not belt-and-braces — every read is === "true", so a missing binding

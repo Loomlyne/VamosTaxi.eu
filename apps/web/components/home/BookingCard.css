@@ -66,6 +66,8 @@
 
 [data-f] .vt-input,
 [data-f] .vt-dp__field,
+[data-f] .vt-when__field,
+[data-f] [data-vtcombo],
 [data-f] .vt-counter,
 [data-bookcard] .vt-btn--lg {
   min-block-size: 54px;
@@ -287,4 +289,91 @@
   [data-swaprot] {
     transform: rotate(90deg);
   }
+}
+
+.vt-bc-lbl {
+  display: block;
+  margin-block-end: 6px;
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-label-md);
+  font-weight: var(--vt-label-weight);
+  letter-spacing: 0.02em;
+  color: var(--vt-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+[data-vtcombo] {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  block-size: var(--vt-control-h-md);
+  padding: 0 7px 0 8px;
+  box-sizing: border-box;
+  background: var(--vt-bg-surface);
+  border: var(--vt-border-w) solid var(--vt-border-subtle);
+  border-radius: var(--vt-radius-field);
+  transition: border-color 0.16s cubic-bezier(0.2, 0, 0.2, 1),
+    background 0.16s cubic-bezier(0.2, 0, 0.2, 1);
+}
+
+[data-vtcombo]:hover {
+  border-color: var(--vt-grey-300);
+}
+
+[data-vtcombo][data-on="1"] {
+  border-color: var(--vt-charcoal-900);
+  background: var(--vt-white);
+}
+
+[data-vtcombo] input:focus,
+[data-vtcombo] input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+[data-vtcombo] input {
+  all: unset;
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-body-md);
+  color: var(--vt-text-primary);
+  line-height: 1.4;
+}
+
+[data-vtcombo] input::placeholder {
+  color: var(--vt-grey-400);
+}
+
+[data-combo-tile] {
+  inline-size: 30px;
+  block-size: 30px;
+  flex: 0 0 auto;
+  border-radius: 9px;
+  background: var(--vt-grey-100);
+  color: var(--vt-charcoal-900);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+[data-combo-x] {
+  all: unset;
+  box-sizing: border-box;
+  inline-size: 28px;
+  block-size: 28px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--vt-text-muted);
+}
+
+[data-combo-x]:hover {
+  background: var(--vt-grey-100);
+  color: var(--vt-charcoal-900);
 }

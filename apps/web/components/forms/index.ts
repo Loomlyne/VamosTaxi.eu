@@ -23,3 +23,6 @@ export type { CounterProps, CounterSize } from "./Counter";
 
 export { DatePicker } from "./DatePicker";
 export type { DatePickerProps, DatePickerSize } from "./DatePicker";
+
+export { WhenPicker } from "./WhenPicker";
+export type { WhenPickerProps } from "./WhenPicker";

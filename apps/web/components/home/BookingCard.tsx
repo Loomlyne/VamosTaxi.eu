@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { useTranslations } from "next-intl";
-import { Button, Icon, IconButton } from "@/components/core";
-import { Input, Counter, DatePicker } from "@/components/forms";
+import { useTranslations, useLocale } from "next-intl";
+import { Button, Icon, IconButton, type IconName } from "@/components/core";
+import { Input, Counter, WhenPicker } from "@/components/forms";
 import { Tabs } from "@/components/navigation";
 import { PriceSummary } from "@/components/transfer";
 import { useBookingDraft, type BookingDraft } from "@/lib/booking-draft";
@@ -15,6 +15,61 @@ export type BookingCardProps = BookingCardMountProps & {
   defaultOpen?: boolean;
   children?: ReactNode;
 };
+
+function PlaceCombo({
+  label,
+  value,
+  placeholder,
+  icon,
+  clearLabel,
+  testField,
+  onChange,
+  onClear,
+}: {
+  label: string;
+  value: string;
+  placeholder: string;
+  icon: IconName;
+  clearLabel: string;
+  testField: string;
+  onChange: (value: string) => void;
+  onClear: () => void;
+}) {
+  return (
+    <>
+      <span className="vt-bc-lbl">{label}</span>
+      <div data-vtcombo="1" data-on={value.trim() ? "1" : "0"}>
+        <span data-combo-tile="1" aria-hidden="true">
+          <Icon name={icon} size={16} color="currentColor" />
+        </span>
+        <input
+          type="text"
+          role="combobox"
+          aria-expanded="false"
+          aria-autocomplete="list"
+          aria-label={label}
+          autoComplete="off"
+          spellCheck={false}
+          value={value}
+          placeholder={placeholder}
+          data-test-field={testField}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        {value ? (
+          <button
+            data-combo-x="1"
+            type="button"
+            aria-label={clearLabel}
+            title={clearLabel}
+            onClick={onClear}
+          >
+            <Icon name="x" size={16} color="currentColor" />
+          </button>
+        ) : null}
+      </div>
+    </>
+  );
+}
 
 export function BookingCard({
   board,
@@ -28,6 +83,7 @@ export function BookingCard({
   const tCommon = useTranslations("common");
   const tBooking = useTranslations("booking");
   const tAccount = useTranslations("account");
+  const locale = useLocale();
   const tAbout = useTranslations("about");
 
   const [storeDraft, updateStore] = useBookingDraft();
@@ -107,12 +163,15 @@ export function BookingCard({
         />
       </div>
       <div data-f="pickup">
-        <Input
+        <PlaceCombo
           label={tCommon("pickup")}
           value={draft.pickup}
-          onChange={(e) => updateDraft({ pickup: e.target.value })}
           placeholder={tHome("airport-address-or-hotel")}
-          data-test-field="pickup"
+          icon="map-pin"
+          clearLabel={tCommon("clear")}
+          testField="pickup"
+          onChange={(v) => updateDraft({ pickup: v })}
+          onClear={() => updateDraft({ pickup: "" })}
         />
       </div>
       <div data-f="swap" data-swap="1">
@@ -131,45 +190,47 @@ export function BookingCard({
         <span data-only-narrow="1" aria-hidden="true" className="vt-bc-rule" />
       </div>
       <div data-f="dest">
-        <Input
+        <PlaceCombo
           label={tCommon("destination")}
           value={draft.destination}
-          onChange={(e) => updateDraft({ destination: e.target.value })}
           placeholder={tHome("airport-address-or-hotel")}
-          data-test-field="destination"
+          icon="map-pin"
+          clearLabel={tCommon("clear")}
+          testField="destination"
+          onChange={(v) => updateDraft({ destination: v })}
+          onClear={() => updateDraft({ destination: "" })}
         />
       </div>
       <div data-f="when">
-        <DatePicker
-          label={tBooking("date")}
-          value={draft.date}
+        <WhenPicker
+          label={tAccount("pickup-date-and-time")}
+          placeholder={tBooking("select-date-and-time")}
+          date={draft.date}
           time={draft.time}
-          placeholder={tBooking("date")}
+          date2={draft.returnDate}
+          time2={draft.returnTime}
+          range={mode === "return"}
+          locale={locale}
+          groups={[
+            tBooking("morning"),
+            tBooking("afternoon"),
+            tBooking("evening"),
+          ]}
+          legLabels={[tCommon("pickup"), tCommon("return")]}
+          timeTitle={tCommon("pickup-time")}
+          timeTitle2={tBooking("return-time")}
+          savedLabel={tCommon("saved")}
+          clearLabel={tCommon("clear")}
+          saveLabel={tCommon("save")}
           prevMonthLabel={tBooking("previous-month")}
           nextMonthLabel={tBooking("next-month")}
-          onChange={(day) => {
-            const now = new Date();
-            const mm = String(now.getMonth() + 1).padStart(2, "0");
-            updateDraft({
-              date: `${now.getFullYear()}-${mm}-${String(day).padStart(2, "0")}`,
-            });
-          }}
+          onDateChange={(iso) => updateDraft({ date: iso })}
           onTimeChange={(t) => updateDraft({ time: t })}
-        />
-        <Input
-          type="time"
-          label={tBooking("time")}
-          value={draft.time}
-          onChange={(e) => updateDraft({ time: e.target.value })}
-          data-test-field="time"
-        />
-        <Input
-          type="date"
-          label={tBooking("date")}
-          value={draft.date}
-          onChange={(e) => updateDraft({ date: e.target.value })}
-          data-test-field="date"
-          className="vt-bc-sr-date"
+          onDate2Change={(iso) => updateDraft({ returnDate: iso })}
+          onTime2Change={(t) => updateDraft({ returnTime: t })}
+          onClear={() =>
+            updateDraft({ date: "", time: "", returnDate: "", returnTime: "" })
+          }
         />
       </div>
       <div data-f="party" data-party="1">

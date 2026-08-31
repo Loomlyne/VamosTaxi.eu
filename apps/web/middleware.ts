@@ -11,12 +11,55 @@ import { updateSession } from "./lib/supabase/middleware";
 
 const handleI18nRouting = createMiddleware(routing);
 
+const DC_HOME = "/app/home/home.html";
+const DC_PAGES: Record<string, string> = {
+  "/": DC_HOME,
+  "/about": "/app/pages/about.html",
+  "/faq": "/app/pages/faq.html",
+  "/contact": "/app/pages/contact.html",
+  "/terms": "/app/pages/terms.html",
+  "/privacy": "/app/pages/privacy.html",
+  "/cookies": "/app/pages/cookies.html",
+  "/cancellation": "/app/pages/cancellation.html",
+  "/imprint": "/app/pages/imprint.html",
+  "/sign-in": "/app/pages/sign-in.html",
+  "/reset-password": "/app/pages/reset-password.html",
+  "/checkout": "/app/pages/checkout.html",
+  "/confirmation": "/app/pages/confirmation.html",
+  "/manage-booking": "/app/pages/manage-booking.html",
+  "/account": "/app/pages/account.html",
+  "/bookings": "/app/pages/bookings.html",
+  "/become-a-partner": "/app/pages/become-a-partner.html",
+  "/coming-soon": "/app/pages/coming-soon.html",
+};
+
+function dcMockPath(pathname: string): string | null {
+  let path = pathname;
+  const locale = path.match(/^\/(en|de|fr|ar)(?=\/|$)/);
+  if (locale) {
+    path = path.slice(locale[0].length) || "/";
+  }
+  if (path.length > 1 && path.endsWith("/")) {
+    path = path.slice(0, -1);
+  }
+  return DC_PAGES[path] ?? null;
+}
+
 function qsSecret(): string {
   const value = process.env.VAMOS_QS_SECRET;
   return typeof value === "string" ? value : "";
 }
 
 export default async function middleware(request: NextRequest) {
+  const mock = dcMockPath(request.nextUrl.pathname);
+  if (mock) {
+    const asset = new URL(mock, request.url);
+    const res = await fetch(asset);
+    const headers = new Headers(res.headers);
+    headers.set("content-type", "text/html; charset=utf-8");
+    return new NextResponse(res.body, { status: res.status, headers });
+  }
+
   const response = handleI18nRouting(request);
 
   // Checkpoint (D-11/D-12, resolved 2026-08-20, option-a): a request whose

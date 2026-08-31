@@ -366,9 +366,19 @@
     "email-otp-body": "مرحباً {name}. رمز الدخول هو {code}. أو استخدم هذا الرابط: {link}."
   },
   "booking": {
+    "afternoon": "بعد الظهر",
+    "clear": "مسح",
     "date": "التاريخ",
+    "evening": "مساء",
+    "morning": "صباح",
     "next-month": "الشهر التالي",
+    "pickup-time": "وقت الاستلام",
     "previous-month": "الشهر السابق",
+    "return": "العودة",
+    "return-time": "وقت العودة",
+    "save": "حفظ",
+    "saved": "تم الحفظ",
+    "select-date-and-time": "اختر التاريخ والوقت",
     "time": "الوقت"
   },
   "checkout": {
@@ -918,6 +928,7 @@
     "how-it-works": "كيف تعمل الخدمة",
     "invoiced-transfers-corporate-accounts-and-schedu": "رحلات بفاتورة وحسابات للشركات وجدولة تبني عليها أسبوعك.",
     "jan": "يناير",
+    "land-in-zurich-your-driver-is-waiting": "تهبط في زيورخ وسائقك في انتظارك.",
     "local-swiss-operator": "مشغّل سويسري محلي",
     "minivan-or-similar": "ميني فان أو ما شابه",
     "name-board-in-hand-at-the-exact-pickup-time-sixt": "يحمل لافتة باسمك في الموعد المتفق عليه تمامًا. وتشمل الرحلة ستين دقيقة انتظار في المطار.",
@@ -926,7 +937,9 @@
     "one-minute-of-yours-the-rest-is-ours": "دقيقة واحدة منك، والباقي علينا.",
     "one-way": "ذهاب فقط",
     "pickups": "الاستقبالات",
+    "pre-booked-transfers-zurich": "نقل محجوز مسبقًا · زيورخ",
     "professional-drivers": "سائقون محترفون",
+    "reliable-fixed-price-airport-and-corporate-rides": "مشاوير مطار وشركات موثوقة بسعر ثابت — تُحجز في أقل من دقيقة.",
     "route-or-flight-number": "المسار أو رقم الرحلة",
     "s-class-or-similar": "إس-كلاس أو ما شابه",
     "scheduled-not-on-demand": "مجدول لا عند الطلب",
@@ -1546,7 +1559,8 @@
     "four-services-one-fixed-price-each": "أربع خدمات، لكل منها سعر ثابت.",
     "private": "خاص",
     "private-transfers-between-swiss-cities-scheduled": "رحلات خاصة بين المدن السويسرية، مجدولة في وقت محدد.",
-    "reliable-invoiced-transfers-for-business-travel": "رحلات موثوقة بفاتورة لسفر الأعمال والفعاليات."
+    "reliable-invoiced-transfers-for-business-travel": "رحلات موثوقة بفاتورة لسفر الأعمال والفعاليات.",
+    "three-services-one-fixed-price-each": "ثلاث خدمات، لكل منها سعر ثابت."
   },
   "statusBadge": {
     "quote": "عرض سعر",

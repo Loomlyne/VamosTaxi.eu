@@ -124,6 +124,20 @@ describe("suggest", () => {
     expect(lastQueryKeys(calls[0]!.url).at(-1)).toBe("access_token");
   });
 
+  it("does not send country= — search is worldwide, quote serviceArea is the gate", async () => {
+    const { fetchFn, calls } = captureFetch(() => jsonResponse(FIXTURE_SUGGEST_OK));
+    await suggest(
+      { q: "dubai airport", sessionToken: SESSION, language: "en" },
+      TOKEN_ENV,
+      { fetch: fetchFn },
+    );
+    expect(calls).toHaveLength(1);
+    const params = new URL(calls[0]!.url).searchParams;
+    expect(params.has("country")).toBe(false);
+    expect(params.get("q")).toBe("dubai airport");
+    expect(params.get("proximity")).toBeTruthy();
+  });
+
   it("returns the degraded shape on a 500, not a throw", async () => {
     const { fetchFn } = captureFetch(() => jsonResponse(FIXTURE_UPSTREAM_500, 500));
     const result = await suggest(

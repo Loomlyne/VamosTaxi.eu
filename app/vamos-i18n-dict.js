@@ -1424,7 +1424,6 @@
       'Booking database and sign-in ·': { de: 'Buchungsdatenbank und Anmeldung ·', fr: 'Base de réservations et connexion ·', ar: 'قاعدة بيانات الحجوزات وتسجيل الدخول ·' },
       'Website hosting and delivery ·': { de: 'Website-Hosting und Auslieferung ·', fr: 'Hébergement et diffusion du site ·', ar: 'استضافة الموقع وتسليمه ·' },
       'Address lookup and route distance · United States': { de: 'Adresssuche und Routendistanz · Vereinigte Staaten', fr: 'Recherche d’adresse et distance d’itinéraire · États-Unis', ar: 'البحث عن العناوين ومسافة المسار · الولايات المتحدة' },
-      'Flight number and arrival time ·': { de: 'Flugnummer und Ankunftszeit ·', fr: 'Numéro de vol et heure d’arrivée ·', ar: 'رقم الرحلة الجوية ووقت الوصول ·' },
       'Confirmation and driver-detail emails ·': { de: 'Bestätigungs- und Fahrerdaten-E-Mails ·', fr: 'E-mails de confirmation et coordonnées du chauffeur ·', ar: 'رسائل التأكيد وبيانات السائق ·' },
       'Error diagnostics ·': { de: 'Fehlerdiagnose ·', fr: 'Diagnostic des erreurs ·', ar: 'تشخيص الأعطال ·' },
       'Site analytics, only with your consent ·': { de: 'Website-Analyse, nur mit Ihrer Einwilligung ·', fr: 'Analyse du site, uniquement avec votre consentement ·', ar: 'تحليلات الموقع، بموافقتك فقط ·' },

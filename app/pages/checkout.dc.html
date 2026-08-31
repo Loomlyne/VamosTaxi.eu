@@ -16,17 +16,17 @@
 <div id="vt-boot-cover" aria-hidden="true"></div>
 <x-dc>
 <helmet>
-<link rel="stylesheet" href="../../design-system/tokens/fonts.css">
-<link rel="stylesheet" href="../../design-system/tokens/colors.css">
-<link rel="stylesheet" href="../../design-system/tokens/typography.css">
-<link rel="stylesheet" href="../../design-system/tokens/spacing.css">
-<link rel="stylesheet" href="../../design-system/tokens/elevation.css">
-<link rel="stylesheet" href="../../design-system/tokens/motion.css">
-<link rel="stylesheet" href="../../design-system/tokens/base.css">
-<link rel="stylesheet" href="../../design-system/components/mobile/fig-tokens.css">
-<link rel="stylesheet" href="../../design-system/components/mobile/fig-assets.css">
-<link rel="stylesheet" href="../../design-system/styles.css">
-<script src="../../design-system/_ds_bundle.js"></script>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-tokens.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-assets.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
 <link rel="stylesheet" href="../../assets/lenis.css">
 <script src="../../assets/lenis.js"></script>
 <script src="../../assets/lenis-boot.js"></script>
@@ -145,12 +145,22 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <script type="text/x-dc" data-dc-script>
 function readTrip() {
   const DEFAULT_TRIP = { mode:'one-way', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'Zurich, Bahnhofstrasse 1', date:'Fri 14 Aug', time:'08:15', pax:2, bags:2, vehicle:'economy' };
-  try { return Object.assign({}, DEFAULT_TRIP, JSON.parse(localStorage.getItem('vamosTrip') || '{}')); }
-  catch (e) { return Object.assign({}, DEFAULT_TRIP); }
+  try {
+    const t = Object.assign({}, DEFAULT_TRIP, JSON.parse(localStorage.getItem('vamosTrip') || '{}'));
+    try {
+      const lock = sessionStorage.getItem('vamosQuoteLock');
+      if (lock && !t.lock) t.lock = lock;
+    } catch (e2) {}
+    return t;
+  } catch (e) { return Object.assign({}, DEFAULT_TRIP); }
 }
 function saveTrip(patch) {
   const t = Object.assign({}, readTrip(), patch);
   localStorage.setItem('vamosTrip', JSON.stringify(t));
+  try {
+    if (t.lock) sessionStorage.setItem('vamosQuoteLock', t.lock);
+    else sessionStorage.removeItem('vamosQuoteLock');
+  } catch (e) {}
   return t;
 }
 const VEHICLE_NAME = { economy:'Economy', van:'Van' };

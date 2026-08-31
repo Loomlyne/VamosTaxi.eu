@@ -70,3 +70,11 @@ com[1-9]
 com[1-9].*
 lpt[1-9]
 lpt[1-9].*
+
+# DC mock served as-is — copied at build from app/ + design-system + assets
+apps/web/public/app/
+apps/web/public/_ds/
+apps/web/public/assets/
+apps/web/public/hero-arrivals.jpg
+apps/web/public/rectangle-*.png
+apps/web/public/_redirects

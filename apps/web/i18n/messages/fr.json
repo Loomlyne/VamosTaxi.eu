@@ -366,9 +366,19 @@
     "email-otp-body": "Bonjour {name}. Votre code de connexion est {code}. Ou utilisez ce lien : {link}."
   },
   "booking": {
+    "afternoon": "Après-midi",
+    "clear": "Effacer",
     "date": "Date",
+    "evening": "Soir",
+    "morning": "Matin",
     "next-month": "Mois suivant",
+    "pickup-time": "Heure de prise en charge",
     "previous-month": "Mois précédent",
+    "return": "Retour",
+    "return-time": "Heure de retour",
+    "save": "Enregistrer",
+    "saved": "Enregistré",
+    "select-date-and-time": "Choisir date et heure",
     "time": "Heure"
   },
   "checkout": {
@@ -918,6 +928,7 @@
     "how-it-works": "Comment ça marche",
     "invoiced-transfers-corporate-accounts-and-schedu": "Transferts facturés, comptes entreprise et une planification autour de laquelle organiser sa semaine.",
     "jan": "janv",
+    "land-in-zurich-your-driver-is-waiting": "Vous atterrissez à Zurich. Votre chauffeur vous attend.",
     "local-swiss-operator": "Opérateur suisse local",
     "minivan-or-similar": "Monospace ou similaire",
     "name-board-in-hand-at-the-exact-pickup-time-sixt": "Pancarte à la main, à l’heure exacte convenue. Soixante minutes d’attente à l’aéroport sont incluses.",
@@ -926,7 +937,9 @@
     "one-minute-of-yours-the-rest-is-ours": "Une minute de votre temps. Le reste nous revient.",
     "one-way": "Aller simple",
     "pickups": "Prises en charge",
+    "pre-booked-transfers-zurich": "Transferts réservés à l’avance · Zurich",
     "professional-drivers": "Chauffeurs professionnels",
+    "reliable-fixed-price-airport-and-corporate-rides": "Trajets aéroport et affaires fiables, à prix fixe — réservés en moins d’une minute.",
     "route-or-flight-number": "Trajet ou numéro de vol",
     "s-class-or-similar": "Classe S ou similaire",
     "scheduled-not-on-demand": "Programmé, pas à la demande",
@@ -1546,7 +1559,8 @@
     "four-services-one-fixed-price-each": "Quatre services. Un prix fixe chacun.",
     "private": "Particulier",
     "private-transfers-between-swiss-cities-scheduled": "Transferts privés entre villes suisses, programmés à une heure précise.",
-    "reliable-invoiced-transfers-for-business-travel": "Transferts fiables et facturés pour les voyages d’affaires et les événements."
+    "reliable-invoiced-transfers-for-business-travel": "Transferts fiables et facturés pour les voyages d’affaires et les événements.",
+    "three-services-one-fixed-price-each": "Trois services. Un prix fixe chacun."
   },
   "statusBadge": {
     "quote": "Devis",

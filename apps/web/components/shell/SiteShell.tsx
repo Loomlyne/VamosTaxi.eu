@@ -40,11 +40,15 @@ export function SiteShell({
   // path rather than only at its start.
   const isDevScaffold = pathname === "/dev" || /(^|\/)dev(\/|$)/.test(pathname);
 
+  const rest = pathname.replace(/^\/(de|fr|ar)(?=\/|$)/, "");
+  const isHome = rest === "" || rest === "/";
+
   if (isDevScaffold) return <>{children}</>;
 
   return (
     <>
-      {header}
+      {/* Home overlay header is composed inside the photographic hero. */}
+      {isHome ? null : header}
       {children}
       {footer}
     </>

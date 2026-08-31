@@ -242,12 +242,13 @@ export async function suggest(
   params.set("q", input.q);
   params.set("session_token", input.sessionToken);
   params.set("language", input.language);
-  // country=CH and proximity are BIAS, not a gate — serviceArea.ts is the
-  // actual gate. Tightening this into a filter would silently drop Zermatt.
-  params.set("country", "CH");
+  // Search is worldwide. proximity is rank bias only (Zurich HB default).
+  // country= is a Mapbox FILTER, not a bias — it dropped Dubai / anywhere
+  // outside CH. Operating countries are a later owner gate on the quote
+  // service area, not on typeahead.
   params.set("proximity", proximityParam(input.proximity));
   params.set("types", "address,poi,street,place");
-  params.set("limit", "6");
+  params.set("limit", "8");
   params.set("access_token", access);
   const result = await upstreamGet(fetchImpl, url, emit, "suggest");
   if (result.body === null) {

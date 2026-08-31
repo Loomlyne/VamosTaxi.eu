@@ -23,6 +23,8 @@ export interface BookingDraft {
   destination: string;
   date: string;
   time: string;
+  returnDate: string;
+  returnTime: string;
   passengers: number;
   luggage: number;
   flightNumber: string;
@@ -33,6 +35,8 @@ export const EMPTY_DRAFT: BookingDraft = {
   destination: "",
   date: "",
   time: "",
+  returnDate: "",
+  returnTime: "",
   passengers: 1,
   luggage: 0,
   flightNumber: "",
@@ -68,7 +72,14 @@ function hydrate(): void {
     const raw = window.sessionStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed: unknown = JSON.parse(raw);
-      if (isBookingDraft(parsed)) current = parsed;
+      if (isBookingDraft(parsed)) {
+        current = {
+          ...EMPTY_DRAFT,
+          ...parsed,
+          returnDate: typeof (parsed as BookingDraft).returnDate === "string" ? (parsed as BookingDraft).returnDate : "",
+          returnTime: typeof (parsed as BookingDraft).returnTime === "string" ? (parsed as BookingDraft).returnTime : "",
+        };
+      }
     }
   } catch {
     // Malformed or inaccessible storage — an empty draft is the safe default; never

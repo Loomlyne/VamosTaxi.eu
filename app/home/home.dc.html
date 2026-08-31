@@ -83,8 +83,8 @@
 <helmet>
 <!-- styles.css @imports tokens/fonts,colors,typography,spacing,elevation,motion,base then the
      mobile fig-tokens; linking the tokens separately as well would inline every font twice. -->
-<link rel="stylesheet" href="../../design-system/styles.css">
-<script src="../../design-system/_ds_bundle.js"></script>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
 <link rel="stylesheet" href="../../assets/lenis.css">
 <script src="../../assets/lenis.js"></script>
 <script src="../../assets/lenis-boot.js"></script>
@@ -333,7 +333,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <span data-sug-spin="1"><i data-spin="1" aria-hidden="true"></i>{{ s.name }}</span>
 </sc-if>
 <sc-if value="{{ s.row }}" hint-placeholder-val="{{ true }}">
-<div data-sug-row="1" data-tone="{{ s.tone }}" role="option" id="{{ s.id }}" aria-selected="{{ s.sel }}" onMouseDown="{{ s.pick }}" style="{{ s.css }}">
+<div data-sug-row="1" data-idx="{{ s.idx }}" data-tone="{{ s.tone }}" role="option" id="{{ s.id }}" aria-selected="{{ s.sel }}" onMouseDown="{{ s.pick }}" onClick="{{ s.pick }}" style="{{ s.css }}">
 <span data-sug-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ s.icon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
 <span style="display:flex;flex-direction:column;min-width:0;flex:1 1 auto"><span style="font-size:var(--vt-body-sm);font-weight:600;color:var(--vt-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.name }}</span><span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.sub }}</span></span>
 <span data-sug-go="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import></span>
@@ -375,7 +375,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <span data-sug-spin="1"><i data-spin="1" aria-hidden="true"></i>{{ s.name }}</span>
 </sc-if>
 <sc-if value="{{ s.row }}" hint-placeholder-val="{{ true }}">
-<div data-sug-row="1" data-tone="{{ s.tone }}" role="option" id="{{ s.id }}" aria-selected="{{ s.sel }}" onMouseDown="{{ s.pick }}" style="{{ s.css }}">
+<div data-sug-row="1" data-idx="{{ s.idx }}" data-tone="{{ s.tone }}" role="option" id="{{ s.id }}" aria-selected="{{ s.sel }}" onMouseDown="{{ s.pick }}" onClick="{{ s.pick }}" style="{{ s.css }}">
 <span data-sug-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ s.icon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
 <span style="display:flex;flex-direction:column;min-width:0;flex:1 1 auto"><span style="font-size:var(--vt-body-sm);font-weight:600;color:var(--vt-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.name }}</span><span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.sub }}</span></span>
 <span data-sug-go="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import></span>
@@ -394,7 +394,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </sc-if>
 </div>
 <div data-f="when" style="min-width:0">
-<dc-import name="WhenPicker" label="{{ tWhenLbl }}" placeholder="{{ tWhenPh }}" value="{{ date }}" time="{{ time }}" day="{{ day }}" range="{{ isReturn }}" value2="{{ returnDate }}" time2="{{ returnTime }}" day2="{{ returnDay }}" times="{{ timeSlots }}" baseMonth="2026-08" locale="{{ lang }}" groups="{{ tGroups }}" legLabels="{{ tLegs }}" timeTitle="{{ tPickupTime }}" timeTitle2="{{ tReturnTime }}" savedLabel="{{ tSaved }}" clearLabel="{{ tClear }}" saveLabel="{{ tSave }}" onClear="{{ whenClear }}" onDay="{{ setDay }}" onTime="{{ setTime }}" onDay2="{{ setReturnDay }}" onTime2="{{ setReturnTime }}" onOpenChange="{{ whenOpenChange }}" hint-size="230px,66px"></dc-import>
+<dc-import name="WhenPicker" label="{{ tWhenLbl }}" placeholder="{{ tWhenPh }}" value="{{ date }}" time="{{ time }}" day="{{ day }}" range="{{ isReturn }}" value2="{{ returnDate }}" time2="{{ returnTime }}" day2="{{ returnDay }}" times="{{ timeSlots }}" baseMonth="{{ baseMonth }}" locale="{{ lang }}" groups="{{ tGroups }}" legLabels="{{ tLegs }}" timeTitle="{{ tPickupTime }}" timeTitle2="{{ tReturnTime }}" savedLabel="{{ tSaved }}" clearLabel="{{ tClear }}" saveLabel="{{ tSave }}" onClear="{{ whenClear }}" onDay="{{ setDay }}" onTime="{{ setTime }}" onDay2="{{ setReturnDay }}" onTime2="{{ setReturnTime }}" onOpenChange="{{ whenOpenChange }}" hint-size="230px,66px"></dc-import>
 <sc-if value="{{ whenRevertShow }}" hint-placeholder-val="{{ false }}">
 <button type="button" onClick="{{ whenRevert }}" style="all:unset;box-sizing:border-box;margin-top:4px;font-size:11.5px;color:var(--vt-text-muted);cursor:pointer;text-decoration:underline">{{ tRevertTo }} {{ whenRevertVal }}</button>
 </sc-if>
@@ -423,7 +423,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <div role="{{ v.role }}" tabindex="{{ v.tab }}" aria-disabled="{{ v.dis }}" data-fleet-card="1" data-locked="{{ v.locked }}" data-picked="{{ v.picked }}" data-dim="{{ v.dim }}" data-unavail="{{ v.unavail }}" onClick="{{ v.select }}" onKeyDown="{{ v.key }}" title="{{ v.title }}" style="position:relative;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);padding:8px 10px;min-height:84px;display:flex;flex-direction:column;gap:6px;cursor:pointer;transition:var(--vt-transition-control);view-transition-name:{{ v.vtName }}" style-hover="box-shadow:var(--vt-shadow-md);border-color:var(--vt-grey-300)" style-active="transform:translateY(1px)">
 <div style="display:flex;align-items:flex-start;gap:6px;flex-direction:column">
 <div data-fleet-img="1" style="width:100%;height:100px;border-radius:8px;background:var(--vt-grey-100);overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;flex:0 0 auto">
-<sc-if value="{{ v.noImage }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ v.icon }}" size="{{ n24 }}" color="var(--vt-grey-500)" hint-size="24px,24px"></x-import></sc-if>
+<sc-if value="{{ v.noImage }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ v.icon }}" size="{{ n24 }}" color="var(--vt-grey-500)" hint-size="24px,24px"></x-import></sc-if>
+<sc-if value="{{ v.hasImage }}" hint-placeholder-val="{{ true }}"><img src="{{ v.image }}" alt="" style="width:100%;height:100%;object-fit:cover;display:block"></sc-if>
 <sc-if value="{{ v.hasBadge }}" hint-placeholder-val="{{ false }}">
 <span style="position:absolute;top:6px;inset-inline-start:6px;display:inline-flex;align-items:center;height:18px;padding:0 8px;border-radius:999px;background:var(--vt-yellow);border:1px solid var(--vt-charcoal-900);color:var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap">{{ v.badge }}</span>
 </sc-if>
@@ -526,8 +527,77 @@ const LOCS = [
   { id:'verbier', n:'Verbier, Place Centrale', s:'Valais', icon:'snowflake', lat:46.0963, lon:7.2270 },
   { id:'chamonix', n:'Chamonix, Place Balmat', s:'Cross-border · France', icon:'snowflake', lat:45.9237, lon:6.8694 },
 ];
-/** Live place search — Photon (OpenStreetMap), no key required. Falls back to LOCS offline. */
+/** Live place search — /api/geo (Mapbox). Falls back to LOCS when the proxy degrades. */
 const GEO_LANGS = { en:'en', de:'de', fr:'fr', ar:'en' };
+function geoSession() {
+  try {
+    let t = sessionStorage.getItem('vamosGeoSession');
+    if (t && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(t)) return t;
+    t = (crypto.randomUUID && crypto.randomUUID()) || ('xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    }));
+    sessionStorage.setItem('vamosGeoSession', t);
+    return t;
+  } catch (e) {
+    return (crypto.randomUUID && crypto.randomUUID()) || '00000000-0000-4000-8000-000000000001';
+  }
+}
+function zurichYm() {
+  const z = zurichNow();
+  return z.y + '-' + String(z.m + 1).padStart(2, '0');
+}
+function zurichNow() {
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Zurich', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date());
+  const g = (t) => +((parts.find((p) => p.type === t) || {}).value || 0);
+  return { y: g('year') || 2026, m: (g('month') || 1) - 1, d: g('day') || 1, h: g('hour'), min: g('minute') };
+}
+function pad2(n) { return String(Math.max(0, Number(n) || 0)).padStart(2, '0'); }
+function minStamp() {
+  const z = zurichNow();
+  let total = z.h * 60 + z.min + 180;
+  total = Math.ceil(total / 5) * 5;
+  const dayAdd = Math.floor(total / (24 * 60));
+  total = total % (24 * 60);
+  const nd = new Date(z.y, z.m, z.d + dayAdd);
+  const h = Math.floor(total / 60), m = total % 60;
+  return { y: nd.getFullYear(), m: nd.getMonth(), d: nd.getDate(), hm: pad2(h) + ':' + pad2(m) };
+}
+function geoHitIcon(name, extra) {
+  const s = String(name || '') + ' ' + String(extra || '');
+  if (/airport|flughafen|a[eé]roport|\b(zrh|gva|bsl)\b/i.test(s)) return 'plane-landing';
+  return 'map-pin';
+}
+function scheduledLocal(y, m, day, time) {
+  if (y == null || m == null || day == null) return '';
+  const dd = String(day).padStart(2, '0');
+  const mm = String(Number(m) + 1).padStart(2, '0');
+  const tm = /^\d{2}:\d{2}$/.test(time) ? time : '00:00';
+  return y + '-' + mm + '-' + dd + 'T' + tm;
+}
+function placeInput(loc, text) {
+  if (!loc) return null;
+  const t = String(text || loc.n || 'pin').slice(0, 200);
+  if (t.length < 2) return null;
+  if (loc.mapbox_id && loc.session_token) {
+    return { kind: 'retrieve', mapbox_id: String(loc.mapbox_id).slice(0, 256), session_token: String(loc.session_token).slice(0, 128), text: t };
+  }
+  if (loc.lat != null && loc.lon != null && isFinite(Number(loc.lat)) && isFinite(Number(loc.lon))) {
+    return { kind: 'pin', lng: Number(loc.lon), lat: Number(loc.lat), text: t };
+  }
+  return null;
+}
+function apiFlightToWidget(f) {
+  if (!f) return null;
+  const landing = String(f.landing_local || f.landing_at || '');
+  const time = landing.length >= 16 ? landing.slice(11, 16) : null;
+  const date = f.date || (landing.length >= 10 ? landing.slice(0, 10) : null);
+  return {
+    num: String(f.number || '').toUpperCase().replace(/[^A-Z0-9]/g, ''),
+    airline: null, aircraft: null, status: f.status || 'Unknown',
+    dep: { iata: f.origin_iata || '', name: null, city: null, terminal: null, gate: null, belt: null, date: date, sched: null, est: null, act: null },
+    arr: { iata: f.dest_iata || '', name: null, city: null, terminal: f.terminal || null, gate: f.gate || null, belt: f.baggage_belt || null, date: date, sched: time, est: f.landing_source === 'estimated' ? time : null, act: f.landing_source === 'actual' ? time : null },
+  };
+}
 function geoLabel(p) {
   if (p.housenumber && p.street) return [p.street + ' ' + p.housenumber, p.city].filter(Boolean).join(', ');
   if (p.street && !p.name) return [p.street, p.city].filter(Boolean).join(', ');
@@ -555,13 +625,10 @@ function haversine(a, b) {
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 /** ── Flight feed ────────────────────────────────────────────────────────────
- *  Records are normalised AeroDataBox "flight status (single day)" objects, so
- *  going live is one switch: put a RapidAPI key behind a server proxy, hand it
- *  to FLIGHT_API.key, and the same fields flow through untouched. Times stay
- *  local to their own airport; precedence is actual › estimated › scheduled.
+ *  Records are normalised AeroDataBox flight-status objects from GET /api/flight.
+ *  Times stay local to their own airport; precedence is actual › estimated › scheduled.
  *  A field the feed has no value for stays null and renders as nothing — no
- *  terminal, gate or belt is ever invented. Until the key exists these fixtures
- *  stand in and the widget says so on the face of it. */
+ *  terminal, gate or belt is ever invented. Fixtures stand in when the feed is off. */
 const TODAY = (() => { const d = new Date(); return (d.getFullYear() === 2026 && d.getMonth() === 7) ? d.getDate() : 4; })();
 const AIRPORTS = {
   ZRH:{ n:'Zurich Airport', c:'Zurich' }, GVA:{ n:'Geneva Airport', c:'Geneva' }, BSL:{ n:'Basel EuroAirport', c:'Basel' },
@@ -709,32 +776,27 @@ function adbNormalize(f) {
   return { num: String(f.number || '').toUpperCase().replace(/[^A-Z0-9]/g, ''), airline: (f.airline || {}).name || null,
     aircraft: (f.aircraft || {}).model || null, status: f.status || 'Unknown', dep: adbLeg(f.departure), arr: adbLeg(f.arrival) };
 }
-/** The one seam to wire: give `key` a RapidAPI key (through a server proxy —
- *  never ship it in the page) and both calls hit AeroDataBox for real. */
+/** Flight lookup: GET /api/flight. Typeahead stays fixtures. */
 const FLIGHT_API = {
-  /** Paste a RapidAPI key once: localStorage.setItem('vamosAdbKey', '…') and reload.
-   *  Kept out of the source on purpose — a key in the page is a key anyone can copy. */
-  get key() { try { return localStorage.getItem('vamosAdbKey') || null; } catch (e) { return null; } },
-  host: 'aerodatabox.p.rapidapi.com',
-  live() { return !!this.key; },
-  headers() { return { 'X-RapidAPI-Key': this.key, 'X-RapidAPI-Host': this.host }; },
-  /** GET /flights/search/term?q= — autocomplete while the traveller types. */
+  /** Flight status goes through GET /api/flight. Autocomplete stays fixtures. */
+  get key() { return null; },
+  host: '',
+  live() { return false; },
+  headers() { return {}; },
+  /** Autocomplete has no public proxy yet — fixtures only. */
   search(term, here) {
-    if (!this.live()) return Promise.resolve(fixtureSearch(term, here));
-    return fetch('https://' + this.host + '/flights/search/term?q=' + encodeURIComponent(term) + '&limit=6', { headers: this.headers() })
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('http ' + r.status))))
-      .then((j) => (j.items || j || []).map((it) => ({
-        num: String((it && (it.number || it)) || '').toUpperCase().replace(/[^A-Z0-9]/g, ''),
-        airline: null, aircraft: null, status: 'Unknown', thin: true,
-        dep: { iata: '', terminal: null, gate: null, sched: null }, arr: { iata: '', terminal: null, gate: null, belt: null, sched: null },
-      })).filter((f) => f.num.length > 2));
+    return Promise.resolve(fixtureSearch(term, here));
   },
-  /** GET /flights/number/{number}/{date} — full status for one day. */
+  /** GET /api/flight/:no — server proxy. Fixtures if the feed is off. */
   status(num, date, advance) {
-    if (!this.live()) return Promise.resolve(fixtureStatus(num, advance));
-    return fetch('https://' + this.host + '/flights/number/' + encodeURIComponent(num) + '/' + date + '?withAircraftImage=false&withLocation=false', { headers: this.headers() })
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('http ' + r.status))))
-      .then((j) => { const raw = Array.isArray(j) ? j[0] : (j.flights || [])[0]; return raw ? adbNormalize(raw) : null; });
+    const locale = (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en';
+    return fetch('/api/flight/' + encodeURIComponent(num) + '?date=' + encodeURIComponent(date) + '&locale=' + encodeURIComponent(locale))
+      .then((r) => r.json())
+      .then((j) => {
+        if (j && j.ok && j.flight) return apiFlightToWidget(j.flight);
+        return fixtureStatus(num, advance);
+      })
+      .catch(() => fixtureStatus(num, advance));
   },
 };
 
@@ -742,10 +804,10 @@ const FLIGHT_API = {
  *  Tokens: {VEHICLE_CLASS_n_NAME} {VEHICLE_CLASS_n_MAX_PAX} {VEHICLE_CLASS_n_MAX_BAGS} {VEHICLE_CLASS_n_EXAMPLE}.
  *  Four classes is the demo ladder; the grid and capacity logic hold 2-5 rows with no relayout. */
 const VEHICLE_CLASSES = [
-  { id:'economy', name:'Economy', icon:'car-front', cap:3, bags:3 },
-  { id:'business', name:'Business', icon:'car', cap:3, bags:3, badge:true },
-  { id:'first', name:'First', icon:'car', cap:3, bags:2 },
-  { id:'van', name:'Van', icon:'bus', cap:7, bags:8 }, // photography pending (INPUTS-NEEDED 2) — icon tile fallback
+  { id:'economy', name:'Economy', icon:'car-front', cap:3, bags:3, image:'../../assets/photography/class-economy.jpg' },
+  { id:'business', name:'Business', icon:'car', cap:3, bags:3, badge:true, image:'../../assets/photography/class-business.jpg' },
+  { id:'first', name:'First', icon:'car', cap:3, bags:2, image:'../../assets/photography/class-first.jpg' },
+  { id:'van', name:'Van', icon:'bus', cap:7, bags:8, image:'../../assets/photography/class-van.jpg' },
 ];
 const T = {
   en: {
@@ -1054,6 +1116,10 @@ function readTrip() {
 function saveTrip(patch) {
   const t = Object.assign({}, readTrip(), patch);
   localStorage.setItem('vamosTrip', JSON.stringify(t));
+  try {
+    if (t.lock) sessionStorage.setItem('vamosQuoteLock', t.lock);
+    else sessionStorage.removeItem('vamosQuoteLock');
+  } catch (e) {}
   return t;
 }
 const NEAR_IDS = ['hb', 'bahnhof', 'baur'];
@@ -1075,7 +1141,7 @@ class Component extends DCLogic {
       lang: LANGS.includes(lang) ? lang : 'en',
       cur: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosCurrency')) || 'CHF',
       mode: 'one-way', pickupText: '', pickupLoc: null, dropText: '', dropLoc: null,
-      day: null, time: '', returnDay: null, returnTime: '', dayLabel: null, returnLabel: null,
+      day: null, time: '', returnDay: null, returnTime: '', dayLabel: null, returnLabel: null, dayY: null, dayM: null, returnY: null, returnM: null,
       pax: 0, bags: 0, hours: 0, geo: 'idle',
       flight: '', flightState: 'idle', flightData: null, flightPlan: null, flightSince: '', flightNote: '', changes: [], kept: [],
       touched: { pickup: false, dest: false, when: false }, here: null, hereLoc: null,
@@ -1151,11 +1217,28 @@ class Component extends DCLogic {
     }
     this._away = (e) => {
       const cl = (sel) => !!(e.target.closest && e.target.closest(sel));
-      if (this.state.sug.open && !cl('[data-sugroot]')) this.setState({ sug: CLOSED, sugIdx: -1 });
+      if (cl('[data-sug-row]')) return;
+      if (this.state.sug.open && !cl('[data-sugroot]')) {
+        this.commitTypedPlace();
+        this.setState({ sug: CLOSED, sugIdx: -1 });
+      }
       if (this.state.fsug.open && !cl('[data-f="flight"]')) this.setState({ fsug: { open: false, items: [] }, fsugIdx: -1 });
       if (this.state.menuOpen && !cl('[data-menuroot]')) this.setState({ menuOpen: false });
     };
+    this._sugPick = (e) => {
+      const row = e.target && e.target.closest && e.target.closest('[data-sug-row]');
+      if (!row || !this.state.sug.open) return;
+      const i = +row.getAttribute('data-idx');
+      if (!isFinite(i) || i < 0) return;
+      const rows = this.sugRowsList().filter((r) => r.row);
+      const r = rows[i];
+      if (!r || !r.pick) return;
+      e.preventDefault();
+      e.stopPropagation();
+      r.pick(e);
+    };
     document.addEventListener('mousedown', this._away);
+    document.addEventListener('pointerdown', this._sugPick, true);
     this._esc = (e) => { if (e.key !== 'Escape') return; if (this.state.sheetOpen) this.closeSheet(); else if (this.state.menuOpen) this.setState({ menuOpen: false }); };
     document.addEventListener('keydown', this._esc);
     this._onResize = () => {
@@ -1171,7 +1254,7 @@ class Component extends DCLogic {
     document.fonts && document.fonts.ready ? document.fonts.ready.then(() => this.q()) : this.q();
   }
   componentWillUnmount() {
-    if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale); document.removeEventListener('mousedown', this._away); document.removeEventListener('keydown', this._esc); window.removeEventListener('resize', this._onResize); (this._mqs || []).forEach((m) => { m.removeEventListener ? m.removeEventListener('change', this._onResize) : m.removeListener(this._onResize); }); Object.values(this.dusts).forEach((d) => d.destroy()); this.lockScroll(false); this.stopPoll(); clearTimeout(this._deb); clearTimeout(this._ft); clearTimeout(this._geoT); this._geoSeq++; if (this._ac) { try { this._ac.abort(); } catch (e) {} } this.clearFill(); }
+    if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale); document.removeEventListener('mousedown', this._away); document.removeEventListener('pointerdown', this._sugPick, true); document.removeEventListener('keydown', this._esc); window.removeEventListener('resize', this._onResize); (this._mqs || []).forEach((m) => { m.removeEventListener ? m.removeEventListener('change', this._onResize) : m.removeListener(this._onResize); }); Object.values(this.dusts).forEach((d) => d.destroy()); this.lockScroll(false); this.stopPoll(); clearTimeout(this._deb); clearTimeout(this._ft); clearTimeout(this._geoT); this._geoSeq++; if (this._ac) { try { this._ac.abort(); } catch (e) {} } this.clearFill(); }
   t() { return Object.assign({}, T.en, T[this.state.lang]); }
   /** Fares are a pending client input: every amount reads 000 (design system §2). */
   fmt() {
@@ -1180,17 +1263,17 @@ class Component extends DCLogic {
   }
   fmtDate(day) { const t = this.t(); const dow = t.dowRef.split(','); return dow[(day - 1) % 7] + ' ' + day + ' ' + t.mon; }
   resolveLoc(text, loc) { if (loc) return loc; const s = (text || '').trim(); return s.length >= 4 ? Object.assign({ custom: true, n: s }, hashXY(s)) : null; }
-  /** A trip only prices once the traveller has answered every question. */
+  /** A trip only prices once pickup, destination, when, and party are real answers. */
   routeInfo() {
     const s = this.state;
     const when = !!s.day && !!s.time && (s.mode !== 'return' || (!!s.returnDay && !!s.returnTime));
-    const a = this.resolveLoc(s.pickupText, s.pickupLoc);
+    const a = s.pickupLoc;
     const complete = when && s.pax >= 1;
     if (s.mode === 'hourly') return (a && complete && s.hours >= 1) ? { ok: true, hourly: true, a } : { ok: false, a };
-    const b = this.resolveLoc(s.dropText, s.dropLoc);
+    const b = s.dropLoc;
     if (!a || !b) return { ok: false, a, b };
-    const km = this.distKm(a, b);
-    const info = { km, min: Math.round(km / (km > 60 ? 78 : 44) * 60 + 8), a, b };
+    const km = (a.lat != null && b.lat != null) ? this.distKm(a, b) : 0;
+    const info = { km, min: km ? Math.round(km / (km > 60 ? 78 : 44) * 60 + 8) : 0, a, b };
     return complete ? Object.assign({ ok: true }, info) : Object.assign({ ok: false }, info);
   }
   distKm(a, b) {
@@ -1201,7 +1284,7 @@ class Component extends DCLogic {
     const q = this.state.quote; const t = this.t();
     if (q.status !== 'live' || !q.results) return { text: this.fmt(), small: false };
     const r = q.results[id];
-    if (r.kind === 'price') return { text: this.fmt(), small: false };
+    if (!r || r.kind === 'price' || r.kind === 'hold') return { text: this.fmt(), small: false };
     if (r.kind === 'na') {
       const v = VEHICLE_CLASSES.find((x) => x.id === id);
       const cap = v ? (r.sub === 'bags' ? v.bags : v.cap) : r.n;
@@ -1224,24 +1307,20 @@ class Component extends DCLogic {
   relabelAll() { Object.entries(this.dusts).forEach(([k, d]) => { if (d.mode === 'idle' || d.mode === 'dim') { const lb = this.labelFor(k); d.setText(lb.text, lb.small); } }); }
   q = () => { clearTimeout(this._deb); this._deb = setTimeout(this.fireQuote, 300); };
   fireQuote = () => {
-    const r = this.routeInfo(); const id = ++this.reqSeq; const wasLive = this.state.quote.status === 'live';
+    const r = this.routeInfo(); const id = ++this.reqSeq;
     if (!r.ok) { this.setState({ quote: { status: 'empty', results: null, inflight: false } }); this.relabelAll(); return; }
     if (this.state.quote.status === 'live') { this.disperseAll(); this.setState({ quote: Object.assign({}, this.state.quote, { inflight: true }) }); }
     else this.setState({ quote: { status: 'skeleton', results: null, inflight: true } });
-    const base = +(this.props.quoteLatencyMs ?? 1200);
-    const wait = Math.min(1600, base * (0.6 + Math.random() * 0.5));
-    setTimeout(() => {
+    const s = this.state;
+    const failAll = () => {
       if (id !== this.reqSeq) return;
-      const qaErrors = typeof location !== 'undefined' && /(?:^|[?&])qa=errors\b/.test(location.search);
-      const fail = qaErrors && Math.random() < (+(this.props.errorRatePct ?? 0)) / 100;
       const res = {};
-      VEHICLE_CLASSES.forEach((v) => {
-        if (this.state.pax > v.cap) res[v.id] = { kind: 'na', sub: 'pax', n: this.state.pax };
-        else if (this.state.bags > v.bags) res[v.id] = { kind: 'na', sub: 'bags', n: this.state.bags };
-        else if (fail) res[v.id] = { kind: 'err' };
-        else res[v.id] = { kind: 'price' };
-      });
-      this.setState({ quote: { status: 'live', results: res, inflight: false } }, () => {
+      VEHICLE_CLASSES.forEach((v) => { res[v.id] = { kind: 'err' }; });
+      this.setState({ quote: { status: 'live', results: res, inflight: false } }, () => this.revealAll());
+    };
+    const applyLive = (res, extra) => {
+      if (id !== this.reqSeq) return;
+      this.setState({ quote: Object.assign({ status: 'live', results: res, inflight: false }, extra || {}) }, () => {
         this.revealAll();
         const t = this.t(); const names = { economy: t.economy, business: t.business, first: t.first, van: t.van };
         if (this.state.picked && res[this.state.picked] && res[this.state.picked].kind === 'na') {
@@ -1254,7 +1333,38 @@ class Component extends DCLogic {
         const routeStr = r.hourly ? (r.a.n + ' · ' + this.state.hours + ' h') : ((r.a.n.split(',')[0]) + ' → ' + (r.b.n.split(',')[0]));
         this.setState({ announce: routeStr + ': ' + parts });
       });
-    }, wait);
+    };
+    if (s.mode === 'hourly') {
+      fetch('/api/quote', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mode: 'hourly', locale: s.lang || 'en' }) })
+        .then(() => failAll())
+        .catch(failAll);
+      return;
+    }
+    const pickup = placeInput(s.pickupLoc, s.pickupText);
+    const dropoff = placeInput(s.dropLoc, s.dropText);
+    if (!pickup || !dropoff) { failAll(); return; }
+    const locale = (LANGS.indexOf(s.lang) > -1 ? s.lang : 'en');
+    const cur = s.cur || 'CHF';
+    const legs = [{ leg_seq: 1, scheduled_local: scheduledLocal(s.dayY, s.dayM, s.day, s.time), flight_no: (s.flightData && s.flightData.num) ? String(s.flightData.num).slice(0, 16) : null }];
+    if (s.mode === 'return') legs.push({ leg_seq: 2, scheduled_local: scheduledLocal(s.returnY, s.returnM, s.returnDay, s.returnTime), flight_no: null });
+    const body = { locale: locale, display_currency: cur, mode: s.mode === 'return' ? 'return' : 'one_way', pickup: pickup, dropoff: dropoff, legs: legs, pax: s.pax, bags: s.bags };
+    fetch('/api/quote', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
+      .then((res) => res.json())
+      .then((j) => {
+        if (id !== this.reqSeq) return;
+        if (!j || j.ok !== true) { failAll(); return; }
+        const bySlug = {};
+        (j.classes || []).forEach((c) => { bySlug[c.slug] = c; });
+        const res = {};
+        VEHICLE_CLASSES.forEach((v) => {
+          const c = bySlug[v.id];
+          if (!c) { res[v.id] = { kind: 'hold' }; return; }
+          if (!c.eligible) { res[v.id] = { kind: 'na', sub: c.ineligible_reason === 'bags' ? 'bags' : 'pax', n: c.ineligible_reason === 'bags' ? s.bags : s.pax }; return; }
+          res[v.id] = { kind: 'price' };
+        });
+        applyLive(res, { lock: j.lock, quote_id: j.quote_id, expires_at: j.expires_at });
+      })
+      .catch(failAll);
   };
   snapToFit = (v) => { if (this.state.pax > v.cap) this.setPax(v.cap); if (this.state.bags > v.bags) this.setBags(v.bags); this.setState({ capacityMoveNote: null }); };
   pickLang = (v) => { if (window.VamosLocale) window.VamosLocale.setLang(v); else localStorage.setItem('vamosLang', v); this.setState({ lang: v }, () => this.relabelAll()); };
@@ -1482,25 +1592,33 @@ class Component extends DCLogic {
     const ac = (typeof AbortController !== 'undefined') ? new AbortController() : null;
     this._ac = ac;
     this.setState({ geo: 'loading' });
-    const lang = GEO_LANGS[this.state.lang] || 'en';
-    fetch('https://photon.komoot.io/api?limit=7&lang=' + lang + '&q=' + encodeURIComponent(q), ac ? { signal: ac.signal } : undefined)
+    const lang = this.state.lang || 'en';
+    const token = geoSession();
+    let url = '/api/geo/suggest?q=' + encodeURIComponent(q) + '&session_token=' + encodeURIComponent(token) + '&locale=' + encodeURIComponent(lang);
+    if (this.state.here && isFinite(this.state.here.lat) && isFinite(this.state.here.lon)) {
+      url += '&proximity=' + encodeURIComponent(this.state.here.lon + ',' + this.state.here.lat);
+    }
+    fetch(url, ac ? { signal: ac.signal } : undefined)
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error('http ' + r.status))))
       .then((j) => {
         if (seq !== this._geoSeq) return;
-        const found = (j.features || []).map((f) => {
-          const p = f.properties || {}; const label = geoLabel(p);
-          const ic = geoIcon(p);
-          return { id: 'g' + (p.osm_id || label), n: label, s: geoSub(p, label), icon: ic, air: ic === 'plane-landing',
-            lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0], geoHit: true };
-        }).filter((x) => x.n);
+        if (j && j.degraded) { this.setState({ geo: 'err' }); return; }
+        const found = (j.suggestions || []).map((hit) => ({
+          id: hit.mapbox_id, n: hit.name, s: hit.address || hit.context || '',
+          icon: geoHitIcon(hit.name, hit.address || hit.context),
+          air: /airport|flughafen|a[eé]roport/i.test(String(hit.name || '') + ' ' + String(hit.address || '')),
+          mapbox_id: hit.mapbox_id, session_token: token, geoHit: true,
+        })).filter((x) => x.n && x.mapbox_id);
         const uniq = []; const keys = {};
         found.forEach((x) => { const k = (x.n + '|' + x.s).toLowerCase(); if (!keys[k]) { keys[k] = 1; uniq.push(x); } });
         this.setState((st) => {
           if (!st.sug.open || st.sug.field !== field) return { geo: 'ok' };
           const saved = st.sug.saved || [];
           const seen = saved.map((l) => l.n.toLowerCase());
-          const merged = saved.concat(uniq.filter((x) => seen.indexOf(x.n.toLowerCase()) < 0)).slice(0, 8);
-          return { geo: 'ok', sug: Object.assign({}, st.sug, { items: merged, geoCount: merged.length - saved.length, custom: !merged.length, typed: true }) };
+          const extra = uniq.filter((x) => seen.indexOf(x.n.toLowerCase()) < 0);
+          const merged = extra.concat(saved).slice(0, 8);
+          this._geoItems = merged;
+          return { geo: 'ok', sug: Object.assign({}, st.sug, { items: merged, geoCount: extra.length, custom: false, typed: true }) };
         });
       })
       .catch((e) => { if (seq !== this._geoSeq || (e && e.name === 'AbortError')) return; this.setState({ geo: 'err' }); });
@@ -1509,17 +1627,25 @@ class Component extends DCLogic {
     return (e) => {
       const txt = e.target.value; const ql = txt.trim().toLowerCase();
       let items = ql.length >= 1 ? LOCS.filter((l) => (l.n + ' ' + (l.s || '')).toLowerCase().includes(ql)).slice(0, 4) : [];
-      const custom = !items.length && ql.length >= 4;
-      const patch = { sugFlip: this.flipFor(e), sugIdx: -1, sug: { open: true, field, at, items, saved: items, geoCount: 0, custom, text: txt, typed: true } };
+      const patch = { sugFlip: this.flipFor(e), sugIdx: -1, sug: { open: true, field, at, items, saved: items, geoCount: 0, custom: false, text: txt, typed: true } };
       clearTimeout(this._geoT);
-      if (ql.length >= 3) this._geoT = setTimeout(() => this.geoSearch(field, txt.trim()), 320);
+      if (ql.length >= 3) this._geoT = setTimeout(() => this.geoSearch(field, txt.trim()), 180);
       else { this._geoSeq = (this._geoSeq || 0) + 1; patch.geo = 'idle'; }
       const touch = field === 'pickup' ? 'pickup' : 'dest';
       patch.touched = Object.assign({}, this.state.touched, { [touch]: true });
       const prevVal = field === 'pickup' ? this.state.pickupText : this.state.dropText;
       const hadAF = field === 'pickup' ? this.state.autofill.pickup : this.state.autofill.dest;
-      if (field === 'pickup') { patch.pickupText = txt; patch.pickupLoc = null; patch.autofill = Object.assign({}, this.state.autofill, { pickup: null }); }
-      else { patch.dropText = txt; patch.dropLoc = null; patch.autofill = Object.assign({}, this.state.autofill, { dest: null }); }
+      if (field === 'pickup') {
+        patch.pickupText = txt;
+        const loc = this.state.pickupLoc;
+        if (!loc || (loc.n || '') !== txt) patch.pickupLoc = null;
+        patch.autofill = Object.assign({}, this.state.autofill, { pickup: null });
+      } else {
+        patch.dropText = txt;
+        const loc = this.state.dropLoc;
+        if (!loc || (loc.n || '') !== txt) patch.dropLoc = null;
+        patch.autofill = Object.assign({}, this.state.autofill, { dest: null });
+      }
       this.setState(patch); this.q();
       if (hadAF && prevVal && prevVal !== txt) this.armRevert(touch, prevVal);
     };
@@ -1539,11 +1665,36 @@ class Component extends DCLogic {
     else { patch.dropText = val; patch.dropLoc = null; patch.autofill = Object.assign({}, this.state.autofill, { dest: code }); patch.touched = Object.assign({}, this.state.touched, { dest: false }); }
     this.setState(patch, this.q);
   };
+  pickSug = (e, loc) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (e && e.stopPropagation) e.stopPropagation();
+    if (loc && loc.hereBtn) { this.detectLoc(); return; }
+    this.choose(loc);
+  };
+  commitTypedPlace(field) {
+    const s = this.state;
+    const f = field || (s.sug && s.sug.field);
+    const isPickup = f === 'pickup';
+    if (isPickup ? s.pickupLoc : s.dropLoc) return;
+    const q = ((isPickup ? s.pickupText : s.dropText) || '').trim().toLowerCase();
+    if (q.length < 3) return;
+    const items = (s.sug && s.sug.items) || this._geoItems || [];
+    const hit = items.find((l) => l && (l.n || '').toLowerCase() === q);
+    if (!hit) return;
+    const prev = s.sug.field;
+    if (prev !== f) this.state.sug = Object.assign({}, s.sug, { field: f });
+    this.choose(hit);
+  }
   choose = (loc) => {
-    const f = this.state.sug.field; const patch = { sug: CLOSED, sugIdx: -1 };
-    const name = loc.custom ? this.state.sug.text : loc.n;
-    if (f === 'pickup') { patch.pickupText = name; patch.pickupLoc = loc.custom ? null : loc; }
-    else { patch.dropText = name; patch.dropLoc = loc.custom ? null : loc; }
+    if (!loc || loc.custom) return;
+    this._geoSeq = (this._geoSeq || 0) + 1;
+    clearTimeout(this._geoT);
+    const f = this.state.sug.field; const patch = { sug: CLOSED, sugIdx: -1, geo: 'idle' };
+    const name = loc.n;
+    const touch = f === 'pickup' ? 'pickup' : 'dest';
+    patch.touched = Object.assign({}, this.state.touched, { [touch]: true });
+    if (f === 'pickup') { patch.pickupText = name; patch.pickupLoc = loc; }
+    else { patch.dropText = name; patch.dropLoc = loc; }
     this.setState(patch); this.q();
   };
   lockScroll(on) { try { document.body.style.overflow = on ? 'hidden' : ''; } catch (e) {} }
@@ -1569,10 +1720,26 @@ class Component extends DCLogic {
       return below < 320 && r.top > below;
     } catch (err) { return false; }
   }
-  focusPickupA = (e) => this.setState((s) => ({ sugFlip: this.flipFor(e), sugIdx: -1, focused: Object.assign({}, s.focused, { pickup: true }), sug: { open: true, field: 'pickup', at: 'a', items: [], custom: false, text: '' } }));
-  focusDropA = (e) => this.setState((s) => ({ sugFlip: this.flipFor(e), sugIdx: -1, focused: Object.assign({}, s.focused, { dest: true }), sug: { open: true, field: 'dropoff', at: 'a', items: [], custom: false, text: '' } }));
-  blurPickupA = () => this.setState((s) => ({ focused: Object.assign({}, s.focused, { pickup: false }) }));
-  blurDropA = () => this.setState((s) => ({ focused: Object.assign({}, s.focused, { dest: false }) }));
+  openPlaceSug(field, at, e) {
+    const isPickup = field === 'pickup';
+    const txt = isPickup ? (this.state.pickupText || '') : (this.state.dropText || '');
+    const ql = txt.trim();
+    const items = ql.length >= 1 ? LOCS.filter((l) => (l.n + ' ' + (l.s || '')).toLowerCase().includes(ql.toLowerCase())).slice(0, 4) : [];
+    const patch = {
+      sugFlip: this.flipFor(e), sugIdx: -1,
+      focused: Object.assign({}, this.state.focused, isPickup ? { pickup: true } : { dest: true }),
+      sug: { open: true, field, at, items, saved: items, geoCount: 0, custom: false, text: txt, typed: ql.length >= 1 },
+    };
+    this.setState(patch);
+    if (ql.length >= 3) {
+      clearTimeout(this._geoT);
+      this._geoT = setTimeout(() => this.geoSearch(field, ql), 0);
+    }
+  }
+  focusPickupA = (e) => this.openPlaceSug('pickup', 'a', e);
+  focusDropA = (e) => this.openPlaceSug('dropoff', 'a', e);
+  blurPickupA = () => { this.commitTypedPlace('pickup'); this.setState((s) => ({ focused: Object.assign({}, s.focused, { pickup: false }) })); };
+  blurDropA = () => { this.commitTypedPlace('dropoff'); this.setState((s) => ({ focused: Object.assign({}, s.focused, { dest: false }) })); };
   /** Step 1 of the flight logic: know where the traveller is. Read silently when
    *  permission is already granted, otherwise wait for the explicit tap below —
    *  a cold permission prompt on load is a worse product than asking for one. */
@@ -1593,10 +1760,10 @@ class Component extends DCLogic {
     };
     this.setState({ here: here });
     if (typeof fetch === 'undefined') { take(this.t().hereLabel, coords); return; }
-    fetch('https://photon.komoot.io/reverse?limit=1&lang=' + (GEO_LANGS[this.state.lang] || 'en') + '&lat=' + here.lat + '&lon=' + here.lon)
+    fetch('/api/geo/reverse?lng=' + encodeURIComponent(here.lon) + '&lat=' + encodeURIComponent(here.lat) + '&locale=' + encodeURIComponent(this.state.lang || 'en'))
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error('http'))))
-      .then((j) => { const f = (j.features || [])[0]; if (!f) throw new Error('empty');
-        const label = geoLabel(f.properties || {}); take(label || this.t().hereLabel, geoSub(f.properties || {}, label) || coords); })
+      .then((j) => { const p = j && j.place; if (!p) throw new Error('empty');
+        const label = p.name || this.t().hereLabel; take(label, p.address || coords); })
       .catch(() => take(this.t().hereLabel, coords));
   }
   detectLoc = () => {
@@ -1610,15 +1777,28 @@ class Component extends DCLogic {
   };
   swap = () => this.setState((s) => ({ pickupText: s.dropText, pickupLoc: s.dropLoc, dropText: s.pickupText, dropLoc: s.pickupLoc,
     touched: Object.assign({}, s.touched, { pickup: true, dest: true }), autofill: { pickup: null, when: s.autofill.when } }), this.q);
-  setDay = (d, label) => {
+  clampWhen(y, m, d, tm) {
+    const min = minStamp();
+    let yy = y, mm = m, dd = d, time = tm;
+    if (yy == null || mm == null || dd == null) return { y: min.y, m: min.m, d: min.d, time: min.hm };
+    if (yy < min.y || (yy === min.y && mm < min.m) || (yy === min.y && mm === min.m && dd < min.d)) {
+      yy = min.y; mm = min.m; dd = min.d; time = min.hm;
+    } else if (yy === min.y && mm === min.m && dd === min.d && (!time || time < min.hm)) {
+      time = min.hm;
+    }
+    return { y: yy, m: mm, d: dd, time: time || min.hm };
+  }
+  setDay = (d, label, y, m) => {
     const hadAF = this.state.autofill.when; const prevDay = this.state.day; const prevLabel = this.state.dayLabel; const prevTime = this.state.time;
-    this.setState((s) => ({ day: d, dayLabel: label || null, touched: Object.assign({}, s.touched, { when: true }), autofill: Object.assign({}, s.autofill, { when: null }), pendingTimeUpdate: null }));
+    const c = this.clampWhen(y, m, d, this.state.time);
+    this.setState((s) => ({ day: c.d, dayLabel: label || null, dayY: c.y, dayM: c.m, time: c.time, touched: Object.assign({}, s.touched, { when: true }), autofill: Object.assign({}, s.autofill, { when: null }), pendingTimeUpdate: null }));
     this.q();
     if (hadAF) this.armRevertWhen(prevDay, prevLabel, prevTime);
   };
   setTime = (tm) => {
     const hadAF = this.state.autofill.when; const prevDay = this.state.day; const prevLabel = this.state.dayLabel; const prevTime = this.state.time;
-    this.setState((s) => ({ time: tm, touched: Object.assign({}, s.touched, { when: true }), autofill: Object.assign({}, s.autofill, { when: null }), pendingTimeUpdate: null }));
+    const c = this.clampWhen(this.state.dayY, this.state.dayM, this.state.day, tm);
+    this.setState((s) => ({ time: c.time, day: c.d, dayY: c.y, dayM: c.m, touched: Object.assign({}, s.touched, { when: true }), autofill: Object.assign({}, s.autofill, { when: null }), pendingTimeUpdate: null }));
     this.q();
     if (hadAF) this.armRevertWhen(prevDay, prevLabel, prevTime);
   };
@@ -1636,36 +1816,46 @@ class Component extends DCLogic {
       autofill: Object.assign({}, s.autofill, { when: code }), revert: Object.assign({}, s.revert, { when: null }) }), this.q);
   };
   whenOpenChange = (open) => this.setState((s) => ({ focused: Object.assign({}, s.focused, { when: open }) }));
-  setReturnDay = (d, label) => { this.setState({ returnDay: d, returnLabel: label || null }); this.q(); };
-  setReturnTime = (tm) => { this.setState({ returnTime: tm }); this.q(); };
+  setReturnDay = (d, label, y, m) => {
+    const c = this.clampWhen(y, m, d, this.state.returnTime);
+    this.setState({ returnDay: c.d, returnLabel: label || null, returnY: c.y, returnM: c.m, returnTime: c.time }); this.q();
+  };
+  setReturnTime = (tm) => {
+    const c = this.clampWhen(this.state.returnY, this.state.returnM, this.state.returnDay, tm);
+    this.setState({ returnTime: c.time, returnDay: c.d, returnY: c.y, returnM: c.m }); this.q();
+  };
   setPax = (n) => { this.setState((s) => ({ pax: n, autofill: Object.assign({}, s.autofill, { party: null }) })); this.q(); };
   setBags = (n) => { this.setState((s) => ({ bags: n, autofill: Object.assign({}, s.autofill, { party: null }) })); this.q(); };
   setHours = (n) => { this.setState({ hours: n }); this.q(); };
   whenClear = () => {
     this.setState((s) => ({ day: null, dayLabel: null, time: '', returnDay: null, returnLabel: null, returnTime: '',
+      dayY: null, dayM: null, returnY: null, returnM: null,
       touched: Object.assign({}, s.touched, { when: true }), autofill: Object.assign({}, s.autofill, { when: null }), pendingTimeUpdate: null }));
     this.q();
   };
   /** Rows of the address list. Also the keyboard model — see sugKey. */
   sugRowsList() {
     const s = this.state; const t = this.t(); const sg = s.sug; const rows = []; const isPickup = sg.field === 'pickup';
-    if (isPickup) rows.push({ row: true, tone: 'geo', icon: 'navigation', name: t.useLoc, sub: t.useLocSub, pick: this.detectLoc });
+    if (isPickup) rows.push({ row: true, tone: 'geo', icon: 'navigation', name: t.useLoc, sub: t.useLocSub, pick: (e) => this.pickSug(e, { hereBtn: true }) });
     const items = sg.items || [];
     const q = (sg.text || '').trim();
     const untouched = !sg.typed || !q;
     if (untouched) {
       rows.push({ head: true, name: isPickup ? t.nearYou : t.popular });
-      (isPickup ? NEAR_IDS : DEST_IDS).forEach((id) => { const l = LOCS.find((x) => x.id === id); if (l) rows.push({ row: true, tone: '', icon: l.icon, name: l.n, sub: l.s || '', pick: () => this.choose(l) }); });
+      (isPickup ? NEAR_IDS : DEST_IDS).forEach((id) => { const l = LOCS.find((x) => x.id === id); if (l) rows.push({ row: true, tone: '', icon: l.icon, name: l.n, sub: l.s || '', pick: (e) => this.pickSug(e, l) }); });
     } else {
-      const savedN = (sg.saved || []).length;
-      items.forEach((l, i) => {
-        if (i === 0 && savedN) rows.push({ head: true, name: t.savedPlaces });
-        if (i === savedN && sg.geoCount) rows.push({ head: true, name: t.results });
-        rows.push({ row: true, tone: '', icon: l.icon, name: l.n, sub: l.s || '', pick: () => this.choose(l) });
-      });
+      const geoItems = items.filter((l) => l.geoHit);
+      const savedItems = items.filter((l) => !l.geoHit);
+      if (geoItems.length) {
+        rows.push({ head: true, name: t.results });
+        geoItems.forEach((l) => rows.push({ row: true, tone: '', icon: l.icon, name: l.n, sub: l.s || '', pick: (e) => this.pickSug(e, l) }));
+      }
+      if (savedItems.length) {
+        rows.push({ head: true, name: t.savedPlaces });
+        savedItems.forEach((l) => rows.push({ row: true, tone: '', icon: l.icon, name: l.n, sub: l.s || '', pick: (e) => this.pickSug(e, l) }));
+      }
       if (s.geo === 'loading') rows.push({ spin: true, name: t.searching });
       else if (s.geo === 'err') rows.push({ head: true, name: t.geoErr });
-      if (sg.custom && s.geo !== 'loading') rows.push({ row: true, tone: 'pin', icon: 'map-pin', name: '“' + sg.text + '”', sub: t.customPin, pick: () => this.choose({ custom: true }) });
     }
     let i = -1;
     rows.forEach((r) => {
@@ -1716,11 +1906,11 @@ class Component extends DCLogic {
     if (!r || !r[id] || r[id].kind !== 'price') { if (!this.state.picked) this.setState({ announce: this.t().needTrip }); return; }
     if (this.state.picked) return;
     const s = this.state;
-    const trip = { mode: s.mode, pickup: s.pickupText, dropoff: s.mode === 'hourly' ? (s.hours + ' h — ' + this.t().hourly) : s.dropText, date: s.dayLabel || (s.day ? this.fmtDate(s.day) : ''), selectedDay: s.day, time: s.time, pax: s.pax, bags: s.bags, vehicle: id, vehicleName: (VEHICLE_CLASSES.find((v) => v.id === id) || {}).name || id };
+    const trip = { mode: s.mode, pickup: s.pickupText, dropoff: s.mode === 'hourly' ? (s.hours + ' h — ' + this.t().hourly) : s.dropText, date: s.dayLabel || (s.day ? this.fmtDate(s.day) : ''), selectedDay: s.day, time: s.time, pax: s.pax, bags: s.bags, vehicle: id, vehicleName: (VEHICLE_CLASSES.find((v) => v.id === id) || {}).name || id, quote_id: s.quote.quote_id || null, lock: s.quote.lock || null };
     if (s.mode === 'return') { trip.returnDate = s.returnLabel || (s.returnDay ? this.fmtDate(s.returnDay) : ''); trip.returnDay = s.returnDay; trip.returnTime = s.returnTime; }
     saveTrip(trip);
     this.setState({ picked: id, announce: this.t().savedGo, sug: CLOSED });
-    setTimeout(() => { location.href = '../pages/checkout.dc.html'; }, REDUCED ? 120 : 420);
+    setTimeout(() => { location.href = '/checkout'; }, REDUCED ? 120 : 420);
   }
   badgeEl(code, glyph) {
     if (!code) return undefined;
@@ -1895,7 +2085,7 @@ class Component extends DCLogic {
       tMenu: t.menu, tClose: t.close, tSheetTitle: t.planTitle, tShowPrices: t.showPrices, tCall: t.call, tCallNote: t.callNote,
       tLangLabel: t.langLabel, tCurLabel: t.curLabel,
       swap: this.swap, tSwap: t.swap,
-      date: dateStr, day: s.day, setDay: this.setDay, time: s.time, setTime: this.setTime, timeSlots: slots, tWhenPh: t.whenPh,
+      date: dateStr, day: s.day, setDay: this.setDay, time: s.time, setTime: this.setTime, timeSlots: slots, tWhenPh: t.whenPh, baseMonth: zurichYm(),
       returnDate: s.returnLabel || (s.returnDay ? this.fmtDate(s.returnDay) : ''), returnDay: s.returnDay, setReturnDay: this.setReturnDay, returnTime: s.returnTime, setReturnTime: this.setReturnTime,
       tGroups: [t.morning, t.afternoon, t.evening], tPickupTime: t.pickupTime, tReturnTime: t.returnTimeLbl,
       tWhenLbl: s.mode === 'return' ? t.whenBoth : t.when, tLegs: [t.pickup, t.return_], tSaved: t.saved,
