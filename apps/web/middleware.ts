@@ -11,26 +11,26 @@ import { updateSession } from "./lib/supabase/middleware";
 
 const handleI18nRouting = createMiddleware(routing);
 
-const DC_HOME = "/app/home/home";
+const DC_HOME = "/app/home/home.html";
 const DC_PAGES: Record<string, string> = {
   "/": DC_HOME,
-  "/about": "/app/pages/about",
-  "/faq": "/app/pages/faq",
-  "/contact": "/app/pages/contact",
-  "/terms": "/app/pages/terms",
-  "/privacy": "/app/pages/privacy",
-  "/cookies": "/app/pages/cookies",
-  "/cancellation": "/app/pages/cancellation",
-  "/imprint": "/app/pages/imprint",
-  "/sign-in": "/app/pages/sign-in",
-  "/reset-password": "/app/pages/reset-password",
-  "/checkout": "/app/pages/checkout",
-  "/confirmation": "/app/pages/confirmation",
-  "/manage-booking": "/app/pages/manage-booking",
-  "/account": "/app/pages/account",
-  "/bookings": "/app/pages/bookings",
-  "/become-a-partner": "/app/pages/become-a-partner",
-  "/coming-soon": "/app/pages/coming-soon",
+  "/about": "/app/pages/about.html",
+  "/faq": "/app/pages/faq.html",
+  "/contact": "/app/pages/contact.html",
+  "/terms": "/app/pages/terms.html",
+  "/privacy": "/app/pages/privacy.html",
+  "/cookies": "/app/pages/cookies.html",
+  "/cancellation": "/app/pages/cancellation.html",
+  "/imprint": "/app/pages/imprint.html",
+  "/sign-in": "/app/pages/sign-in.html",
+  "/reset-password": "/app/pages/reset-password.html",
+  "/checkout": "/app/pages/checkout.html",
+  "/confirmation": "/app/pages/confirmation.html",
+  "/manage-booking": "/app/pages/manage-booking.html",
+  "/account": "/app/pages/account.html",
+  "/bookings": "/app/pages/bookings.html",
+  "/become-a-partner": "/app/pages/become-a-partner.html",
+  "/coming-soon": "/app/pages/coming-soon.html",
 };
 
 function dcMockPath(pathname: string): string | null {
@@ -53,9 +53,11 @@ function qsSecret(): string {
 export default async function middleware(request: NextRequest) {
   const mock = dcMockPath(request.nextUrl.pathname);
   if (mock) {
-    const url = request.nextUrl.clone();
-    url.pathname = mock;
-    return NextResponse.rewrite(url);
+    const asset = new URL(mock, request.url);
+    const res = await fetch(asset);
+    const headers = new Headers(res.headers);
+    headers.set("content-type", "text/html; charset=utf-8");
+    return new NextResponse(res.body, { status: res.status, headers });
   }
 
   const response = handleI18nRouting(request);
