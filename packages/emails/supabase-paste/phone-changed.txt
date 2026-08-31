@@ -1,0 +1,8 @@
+Your phone number was changed
+
+The phone number on your account was changed from {{ .OldPhone }} to {{ .Phone }}.
+
+Open account: https://vamostaxi.site/account
+
+If you did not make this change, contact us immediately.
+Vamos Taxi · +41 79 626 70 82

@@ -1,11 +1,70 @@
 import type { EmailLocale } from "./messages";
 
+const LOGO = "https://vamostaxi.site/brand/logo/wordmark-email.png";
+const YELLOW = "#FDC20B";
+const CHARCOAL = "#1E1F1F";
+const GREY = "#DEDEDE";
+const MUTED = "#545756";
+const WHITE = "#FFFFFF";
+
 export function layoutHtml(locale: EmailLocale, inner: string): string {
-  const dir = locale === "ar" ? "rtl" : "ltr"; // dir="rtl"
-  // --vt-charcoal #1E1F1F, --vt-yellow #FDC20B, --vt-grey #DEDEDE (design-system/tokens/colors.css)
-  return `<!doctype html><html lang="${locale}" dir="${dir}"><body style="margin:0;background:#DEDEDE;color:#1E1F1F;font-family:Arial,sans-serif"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:24px"><table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;padding:24px"><tr><td style="font-weight:700;font-size:18px;color:#1E1F1F">Vamos Taxi</td></tr><tr><td style="padding-top:16px;border-top:4px solid #FDC20B">${inner}</td></tr></table></td></tr></table></body></html>`;
+  const dir = locale === "ar" ? "rtl" : "ltr";
+  return `<!doctype html>
+<html lang="${locale}" dir="${dir}">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width"/>
+<meta name="color-scheme" content="light only"/>
+<meta name="supported-color-schemes" content="light"/>
+<title>Vamos Taxi</title>
+</head>
+<body style="margin:0;padding:0;background:${GREY};color:${CHARCOAL};font-family:Arial,Helvetica,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="${GREY}" style="background:${GREY};">
+  <tr>
+    <td align="center" style="padding:32px 16px;">
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" bgcolor="${WHITE}" style="background:${WHITE};max-width:560px;width:100%;">
+        <tr>
+          <td style="padding:28px 32px 20px 32px;">
+            <img src="${LOGO}" width="180" alt="Vamos Taxi" style="display:block;width:180px;height:auto;border:0;"/>
+          </td>
+        </tr>
+        <tr>
+          <td style="height:4px;line-height:4px;font-size:0;background:${YELLOW};">&nbsp;</td>
+        </tr>
+        <tr>
+          <td style="padding:28px 32px 8px 32px;font-size:16px;line-height:24px;color:${CHARCOAL};">
+            ${inner}
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:8px 32px 32px 32px;font-size:12px;line-height:18px;color:${MUTED};">
+            This link works once and expires after 1 hour.<br/>
+            Vamos Taxi · +41 79 626 70 82
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>`;
 }
 
 export function layoutText(inner: string): string {
-  return `Vamos Taxi\n\n${inner}`;
+  return `Vamos Taxi\n\n${inner}\n\nThis link works once and expires after 1 hour.\n+41 79 626 70 82`;
+}
+
+export function ctaButton(href: string, label: string): string {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 8px 0;">
+  <tr>
+    <td bgcolor="${YELLOW}" style="background:${YELLOW};">
+      <a href="${href}" style="display:inline-block;padding:14px 28px;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;line-height:20px;color:${CHARCOAL};text-decoration:none;">${label}</a>
+    </td>
+  </tr>
+</table>`;
+}
+
+export function codeBlock(code: string): string {
+  return `<p style="margin:20px 0 0 0;font-size:13px;color:${MUTED};">Or enter this code</p>
+<p style="margin:8px 0 0 0;font-size:28px;line-height:36px;letter-spacing:6px;font-weight:700;color:${CHARCOAL};font-family:Arial,Helvetica,sans-serif;">${code}</p>`;
 }

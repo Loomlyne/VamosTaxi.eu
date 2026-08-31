@@ -1,0 +1,8 @@
+A sign-in method was removed
+
+Your {{ .Provider }} sign-in was removed from {{ .Email }}.
+
+Open account: https://vamostaxi.site/account
+
+If you did not make this change, contact us immediately.
+Vamos Taxi · +41 79 626 70 82

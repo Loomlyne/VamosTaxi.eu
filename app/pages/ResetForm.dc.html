@@ -105,16 +105,11 @@ Both entries match
 </div>
 </div>
 
-<div data-note="1">
-<span data-note-k="1">Awaiting client input</span>
-<p data-note-b="1">Minimum length and complexity rules are <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Password policy</span>. Eight characters is the floor used in these screens.</p>
-</div>
-
 <div style="display:flex;flex-direction:column;gap:18px;align-items:flex-start">
 <div data-rf-cta="1" style="width:100%">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" onClick="{{ save }}" hint-size="240px,54px">Save new password</x-import>
 </div>
-<a href="sign-in.dc.html" data-rf-link="1">Back to sign in</a>
+<a href="/sign-in" data-rf-link="1">Back to sign in</a>
 </div>
 </div>
 </sc-if>
@@ -133,7 +128,7 @@ Both entries match
 <span data-rf-dest-v="1">{{ emailEcho }}</span>
 </div>
 <div data-rf-cta="1" style="width:100%">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" href="account.dc.html?attached=0" iconEnd="arrow-right" hint-size="230px,54px">Go to your account</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" href="/account" iconEnd="arrow-right" hint-size="230px,54px">Go to your account</x-import>
 </div>
 </div>
 </sc-if>
@@ -146,13 +141,9 @@ Both entries match
 </div>
 <h1 data-rf-h1="1">This link has expired</h1>
 </div>
-<p data-rf-sub="1">Reset links work once, and only for a short while. Ask for a new one and it arrives in the same inbox.</p>
-<div data-note="1" style="align-self:stretch">
-<span data-note-k="1">Awaiting client input</span>
-<p data-note-b="1">Links expire after <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Link expiry</span>.</p>
-</div>
+<p data-rf-sub="1">Reset links work once, and expire after 1 hour. Ask for a new one and it arrives in the same inbox.</p>
 <div data-rf-cta="1" style="width:100%">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" href="sign-in.dc.html?state=forgot" icon="mail" hint-size="230px,54px">Send a new link</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" href="/sign-in?state=forgot" icon="mail" hint-size="230px,54px">Send a new link</x-import>
 </div>
 </div>
 </sc-if>
@@ -160,13 +151,19 @@ Both entries match
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:640},&quot;stage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;form&quot;,&quot;saved&quot;,&quot;expired&quot;],&quot;default&quot;:&quot;form&quot;,&quot;tsType&quot;:&quot;'form'|'saved'|'expired'&quot;},&quot;email&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;anna.keller@example.com&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onState&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(stage: string) =&gt; void&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:640},&quot;stage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;form&quot;,&quot;saved&quot;,&quot;expired&quot;],&quot;default&quot;:&quot;form&quot;,&quot;tsType&quot;:&quot;'form'|'saved'|'expired'&quot;},&quot;email&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onState&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(stage: string) =&gt; void&quot;}}">
 class Component extends DCLogic {
   state = { stage: this.props.stage || 'form', pw: '', confirm: '', errors: {} };
   componentDidUpdate(prev) {
     if (prev.stage !== this.props.stage || prev.nonce !== this.props.nonce) {
       this.setState({ stage: this.props.stage || 'form', pw: '', confirm: '', errors: {} });
     }
+  }
+  locale() {
+    try {
+      if (window.VamosLocale && window.VamosLocale.lang) return window.VamosLocale.lang;
+      return localStorage.getItem('vamosLang') || 'en';
+    } catch (e) { return 'en'; }
   }
   save = () => {
     const { pw, confirm } = this.state;
@@ -176,12 +173,18 @@ class Component extends DCLogic {
     if (!confirm) errors.confirm = 'Type the password again';
     else if (pw && confirm !== pw) errors.confirm = 'The two entries are different';
     if (Object.keys(errors).length) { this.setState({ errors }); return; }
-    /* the copy says you are signed in on this device — so make that true site-wide */
-    try {
-      const email = (this.props.email || '').trim();
-      if (email) localStorage.setItem('vamosAuth', JSON.stringify({ email: email, at: Date.now() }));
-    } catch (e) {}
-    this.setState({ stage: 'saved', errors: {} }, () => { if (this.props.onState) this.props.onState('saved'); });
+    fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ action: 'update-password', locale: this.locale(), password: pw }),
+    }).then((r) => r.json()).catch(() => null).then((result) => {
+      if (result && result.ok) {
+        this.setState({ stage: 'saved', errors: {} }, () => { if (this.props.onState) this.props.onState('saved'); });
+        return;
+      }
+      this.setState({ stage: 'expired', errors: {} }, () => { if (this.props.onState) this.props.onState('expired'); });
+    });
   };
   renderVals() {
     const { stage, pw, confirm, errors } = this.state;

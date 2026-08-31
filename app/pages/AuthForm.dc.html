@@ -188,10 +188,7 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 </div>
 </div>
 
-<div data-note="1">
-<span data-note-k="1">Awaiting client input</span>
-<p data-note-b="1">The link works once and expires after <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Link expiry</span>. Nothing there? Check spam, then send another.</p>
-</div>
+<p data-note-b="1">The link works once and expires after 1 hour. Nothing there? Check spam, then send another.</p>
 
 <div style="display:flex;flex-direction:column;gap:14px;align-items:stretch">
 <sc-if value="{{ resent }}"><p style="margin:0;display:flex;align-items:center;gap:8px;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n16 }}" color="var(--vt-success)" hint-size="16px,16px"></x-import>Sent again just now.</p></sc-if>
@@ -233,6 +230,69 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:640},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;signin&quot;,&quot;signup&quot;,&quot;forgot&quot;],&quot;default&quot;:&quot;signin&quot;,&quot;tsType&quot;:&quot;'signin'|'signup'|'forgot'&quot;},&quot;method&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;password&quot;,&quot;magic&quot;],&quot;default&quot;:&quot;password&quot;,&quot;tsType&quot;:&quot;'password'|'magic'&quot;},&quot;stage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;form&quot;,&quot;sent&quot;,&quot;verifying&quot;,&quot;returning&quot;],&quot;default&quot;:&quot;form&quot;,&quot;tsType&quot;:&quot;'form'|'sent'|'verifying'|'returning'&quot;},&quot;banner&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;&quot;,&quot;credentials&quot;,&quot;registered&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;'credentials'|'registered'|null&quot;},&quot;email&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;firstName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;lastName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;frozen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;onState&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(s: {mode:string;method:string;stage:string;banner:string|null}) =&gt; void&quot;}}">
 const REGISTERED = ['taken@vamostaxi.eu'];
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
+function b64urlToBuf(s) {
+  const pad = '='.repeat((4 - (s.length % 4)) % 4);
+  const bin = atob((s + pad).replace(/-/g, '+').replace(/_/g, '/'));
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out.buffer;
+}
+function bufToB64url(buf) {
+  const bytes = new Uint8Array(buf);
+  let s = '';
+  for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function decodeRequest(options) {
+  const o = Object.assign({}, options);
+  o.challenge = b64urlToBuf(options.challenge);
+  if (options.allowCredentials) {
+    o.allowCredentials = options.allowCredentials.map((c) => Object.assign({}, c, { id: typeof c.id === 'string' ? b64urlToBuf(c.id) : c.id }));
+  }
+  return o;
+}
+function decodeCreate(options) {
+  const o = Object.assign({}, options);
+  o.challenge = b64urlToBuf(options.challenge);
+  if (options.user && typeof options.user.id === 'string') {
+    o.user = Object.assign({}, options.user, { id: b64urlToBuf(options.user.id) });
+  }
+  if (options.excludeCredentials) {
+    o.excludeCredentials = options.excludeCredentials.map((c) => Object.assign({}, c, { id: typeof c.id === 'string' ? b64urlToBuf(c.id) : c.id }));
+  }
+  return o;
+}
+function serializeGet(cred) {
+  if (cred.toJSON) return cred.toJSON();
+  const r = cred.response;
+  return {
+    id: cred.id,
+    rawId: bufToB64url(cred.rawId),
+    type: cred.type,
+    response: {
+      clientDataJSON: bufToB64url(r.clientDataJSON),
+      authenticatorData: bufToB64url(r.authenticatorData),
+      signature: bufToB64url(r.signature),
+      userHandle: r.userHandle ? bufToB64url(r.userHandle) : null,
+    },
+    clientExtensionResults: cred.getClientExtensionResults ? cred.getClientExtensionResults() : {},
+  };
+}
+function serializeCreate(cred) {
+  if (cred.toJSON) return cred.toJSON();
+  const r = cred.response;
+  return {
+    id: cred.id,
+    rawId: bufToB64url(cred.rawId),
+    type: cred.type,
+    response: {
+      clientDataJSON: bufToB64url(r.clientDataJSON),
+      attestationObject: bufToB64url(r.attestationObject),
+      transports: r.getTransports ? r.getTransports() : [],
+    },
+    clientExtensionResults: cred.getClientExtensionResults ? cred.getClientExtensionResults() : {},
+  };
+}
 /* Demo rules so every state is reachable by interacting, not just by the jumper:
    password "wrong" fails sign-in · taken@vamostaxi.eu is already registered. */
 class Component extends DCLogic {
@@ -250,7 +310,7 @@ class Component extends DCLogic {
   };
   componentDidMount() {
     if (this.state.stage === 'returning') this.armExit();
-    if (this.state.stage === 'verifying') this.armPasskey();
+    if (this.state.stage === 'verifying' && (this.props.frozen || this.props.surface === 'ops')) this.armPasskey();
   }
   componentDidUpdate(prev) {
     const keys = ['mode', 'method', 'stage', 'banner', 'email', 'nonce'];
@@ -267,7 +327,7 @@ class Component extends DCLogic {
         errors: {}, resent: false,
       }, () => {
         if (this.state.stage === 'returning') this.armExit();
-        if (this.state.stage === 'verifying') this.armPasskey();
+        if (this.state.stage === 'verifying' && (this.props.frozen || this.props.surface === 'ops')) this.armPasskey();
       });
     }
   }
@@ -275,15 +335,14 @@ class Component extends DCLogic {
   armExit() {
     clearTimeout(this.exitTimer);
     if (this.props.frozen) return;
-    const to = this.props.surface === 'ops' ? '../ops/ops.dc.html' : 'checkout.dc.html';
+    const to = this.props.surface === 'ops' ? '../ops/ops.dc.html' : '/account';
     this.exitTimer = setTimeout(() => { location.href = to; }, 2400);
   }
-  /* the OS passkey sheet is system UI — this stands in for the wait, then lands on the same
-     return-to-booking transition a password sign-in uses */
+  /* Gallery / ops still fake the OS sheet. Live pages run WebAuthn. */
   armPasskey() {
     clearTimeout(this.pkTimer);
-    if (this.props.frozen) return;
-    this.pkTimer = setTimeout(() => { this.saveSession(); this.go({ stage: 'returning' }); }, 1900);
+    if (!(this.props.frozen || this.props.surface === 'ops')) return;
+    this.pkTimer = setTimeout(() => { this.go({ stage: 'form', method: 'password', banner: null }); }, 1900);
   }
   /* One session key, read by SiteHeader on every page — so signing in here changes the
      whole site's header, not just this screen. */
@@ -303,14 +362,44 @@ class Component extends DCLogic {
       }));
     } catch (e) {}
   }
-  startPasskey = () => this.go({ stage: 'verifying', banner: null });
+  startPasskey = () => {
+    this.go({ stage: 'verifying', banner: null });
+    if (this.props.frozen || this.props.surface === 'ops') return;
+    this.runPasskeySignIn();
+  };
+  runPasskeySignIn() {
+    this.liveAuth({ action: 'passkey-start' }).then((start) => {
+      if (!start || !start.options) return this.go({ stage: 'form', banner: 'credentials' });
+      return navigator.credentials.get({ publicKey: decodeRequest(start.options) }).then((cred) => {
+        if (!cred) return this.go({ stage: 'form', banner: 'credentials' });
+        return this.liveAuth({
+          action: 'passkey-verify',
+          challengeId: start.challenge_id,
+          credential: serializeGet(cred),
+        }).then((result) => this.applyLive(result, 'signin', 'password', true));
+      });
+    }).catch(() => this.go({ stage: 'form', banner: 'credentials' }));
+  }
+  enrollPasskey() {
+    return this.liveAuth({ action: 'passkey-register-start' }).then((start) => {
+      if (!start || !start.options) return;
+      return navigator.credentials.create({ publicKey: decodeCreate(start.options) }).then((cred) => {
+        if (!cred) return;
+        return this.liveAuth({
+          action: 'passkey-register-verify',
+          challengeId: start.challenge_id,
+          credential: serializeCreate(cred),
+        });
+      });
+    }).catch(() => {});
+  }
   cancelPasskey = () => { clearTimeout(this.pkTimer); this.go({ stage: 'form', method: 'password', banner: null }); };
   go(patch) {
     this.setState(Object.assign({ errors: {}, resent: false }, patch), () => {
       const s = this.state;
       if (this.props.onState) this.props.onState({ mode: s.mode, method: s.method, stage: s.stage, banner: s.banner });
       if (s.stage === 'returning') this.armExit();
-      if (s.stage === 'verifying') this.armPasskey();
+      if (s.stage === 'verifying' && (this.props.frozen || this.props.surface === 'ops')) this.armPasskey();
     });
   }
   setMode = (v) => this.go({ mode: v, stage: 'form', banner: null, password: '' });
@@ -319,7 +408,55 @@ class Component extends DCLogic {
   goForgot = () => this.go({ mode: 'forgot', method: 'password', stage: 'form', banner: null, password: '' });
   backToSignIn = () => this.go({ mode: 'signin', method: 'password', stage: 'form', banner: null });
   signInInstead = () => this.go({ mode: 'signin', method: 'password', stage: 'form', banner: null, password: '' });
-  resend = () => this.setState({ resent: true });
+  locale() {
+    try {
+      if (window.VamosLocale && window.VamosLocale.lang) return window.VamosLocale.lang;
+      return localStorage.getItem('vamosLang') || 'en';
+    } catch (e) { return 'en'; }
+  }
+  liveAuth(body) {
+    return fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify(Object.assign({ locale: this.locale() }, body)),
+    }).then((r) => r.json()).catch(() => null);
+  }
+  applyLive(result, mode, method, skipEnroll) {
+    if (!result) {
+      if (mode === 'signin' && method === 'password') return this.go({ banner: 'credentials' });
+      return this.go({ stage: 'sent' });
+    }
+    if (result.ok) {
+      this.saveSession();
+      const enroll = !skipEnroll && this.state.method === 'password' && this.state.mode === 'signin'
+        ? this.enrollPasskey()
+        : Promise.resolve();
+      return enroll.finally(() => this.go({ stage: 'returning', banner: null }));
+    }
+    if (result.stage === 'sent') return this.go({ stage: 'sent' });
+    if (result.banner === 'registered') return this.go({ banner: 'registered' });
+    if (result.banner === 'credentials') return this.go({ banner: 'credentials' });
+    return this.go({ stage: 'form', banner: null });
+  }
+  payload() {
+    const { mode, method, email, password, firstName, lastName } = this.state;
+    const addr = email.trim();
+    if (mode === 'forgot') return { mode: 'forgot', email: addr };
+    if (method === 'magic') {
+      if (mode === 'signup') return { mode: 'signup', method: 'magic', email: addr, firstName: firstName.trim(), lastName: lastName.trim() };
+      return { mode: 'signin', method: 'magic', email: addr };
+    }
+    if (mode === 'signup') {
+      return { mode: 'signup', method: 'password', email: addr, password, firstName: firstName.trim(), lastName: lastName.trim() };
+    }
+    return { mode: 'signin', method: 'password', email: addr, password };
+  }
+  resend = () => {
+    this.setState({ resent: true });
+    if (this.props.frozen || this.props.surface === 'ops') return;
+    this.liveAuth(this.payload());
+  };
   submit = () => {
     const { mode, method, email, password, firstName, lastName } = this.state;
     const addr = email.trim().toLowerCase();
@@ -332,16 +469,22 @@ class Component extends DCLogic {
     if (mode !== 'forgot' && method === 'password' && !password) errors.password = mode === 'signup' ? 'Choose a password' : 'Enter your password';
     else if (mode === 'signup' && method === 'password' && password.length < 8) errors.password = 'Use at least 8 characters';
     if (Object.keys(errors).length) { this.setState({ errors, banner: null }); return; }
-    if (mode === 'forgot' || method === 'magic') return this.go({ stage: 'sent' });
-    if (mode === 'signin') {
-      if (password.toLowerCase() === 'wrong') return this.go({ banner: 'credentials' });
+    /* Gallery / ops stay on the demo rules so every jumper state is reachable. */
+    if (this.props.frozen || this.props.surface === 'ops') {
+      if (mode === 'forgot' || method === 'magic') return this.go({ stage: 'sent' });
+      if (mode === 'signin') {
+        if (password.toLowerCase() === 'wrong') return this.go({ banner: 'credentials' });
+        this.saveSession();
+        return this.go({ stage: 'returning', banner: null });
+      }
+      if (REGISTERED.indexOf(addr) !== -1) return this.go({ banner: 'registered' });
       this.saveSession();
-      return this.go({ stage: 'returning', banner: null });
+      this.go({ stage: 'form', banner: null });
+      return;
     }
-    if (REGISTERED.indexOf(addr) !== -1) return this.go({ banner: 'registered' });
-    this.saveSession();
-    if (!this.props.frozen) { location.href = 'account.dc.html?attached=2'; return; }
-    this.go({ stage: 'form', banner: null });
+    if (this._busy) return;
+    this._busy = true;
+    this.liveAuth(this.payload()).then((result) => this.applyLive(result, mode, method)).finally(() => { this._busy = false; });
   };
   renderVals() {
     const { mode, method, stage, banner, email, password, firstName, lastName, errors, resent } = this.state;
@@ -358,7 +501,7 @@ class Component extends DCLogic {
       tabItems: [{ value: 'signin', label: 'Sign in' }, { value: 'signup', label: 'Sign up' }],
       mode, showTabs: isForm && mode !== 'forgot' && !isOps,
       isForm, isSent, isReturning: stage === 'returning', isVerifying: stage === 'verifying',
-      showPasskey: isForm && mode === 'signin',
+      showPasskey: !isOps && isForm && mode === 'signin',
       startPasskey: this.startPasskey, cancelPasskey: this.cancelPasskey,
       hSignIn: isForm && mode === 'signin' && !isOps, hSignUp: isForm && mode === 'signup', hForgot: isForm && mode === 'forgot',
       sSignInPw: isForm && mode === 'signin' && !isMagic && !isOps,

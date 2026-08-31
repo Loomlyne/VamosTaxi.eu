@@ -391,9 +391,14 @@ export type Database = {
           charged_currency: string
           charged_rappen: number
           created_at: string
+          fx_quoted_at: string | null
+          fx_rate: number | null
+          fx_source: string | null
           id: number
+          presentment_amount_minor: number | null
           snapshot_id: number
           status: string
+          stripe_checkout_session_id: string | null
           stripe_payment_intent_id: string
         }
         Insert: {
@@ -402,9 +407,14 @@ export type Database = {
           charged_currency?: string
           charged_rappen: number
           created_at?: string
+          fx_quoted_at?: string | null
+          fx_rate?: number | null
+          fx_source?: string | null
           id?: never
+          presentment_amount_minor?: number | null
           snapshot_id: number
           status: string
+          stripe_checkout_session_id?: string | null
           stripe_payment_intent_id: string
         }
         Update: {
@@ -413,9 +423,14 @@ export type Database = {
           charged_currency?: string
           charged_rappen?: number
           created_at?: string
+          fx_quoted_at?: string | null
+          fx_rate?: number | null
+          fx_source?: string | null
           id?: never
+          presentment_amount_minor?: number | null
           snapshot_id?: number
           status?: string
+          stripe_checkout_session_id?: string | null
           stripe_payment_intent_id?: string
         }
         Relationships: [

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { renderAuthEmail } from "./auth";
 
-const TYPES = ["signup", "recovery", "otp"] as const;
+const TYPES = ["signup", "recovery", "otp", "email_change", "invite", "reauthentication"] as const;
 const LOCALES = ["en", "de", "fr", "ar"] as const;
 
 describe("renderAuthEmail", () => {
@@ -11,15 +11,15 @@ describe("renderAuthEmail", () => {
         const out = renderAuthEmail(type, locale, {
           name: "Anna",
           code: "123456",
-          link: "https://vamostaxi.eu/x",
+          link: "https://vamostaxi.site/x",
         });
         expect(out.subject.length).toBeGreaterThan(0);
-        expect(out.html.includes("123456") || out.html.includes("https://vamostaxi.eu/x")).toBe(true);
+        expect(out.html.includes("123456") || out.html.includes("https://vamostaxi.site/x")).toBe(true);
         if (locale !== "en") {
           const en = renderAuthEmail(type, "en", {
             name: "Anna",
             code: "123456",
-            link: "https://vamostaxi.eu/x",
+            link: "https://vamostaxi.site/x",
           });
           expect(out.subject).not.toBe(en.subject);
         }
@@ -31,7 +31,7 @@ describe("renderAuthEmail", () => {
     const out = renderAuthEmail("signup", "ar", {
       name: "Anna",
       code: "123456",
-      link: "https://vamostaxi.eu/x",
+      link: "https://vamostaxi.site/x",
     });
     expect(out.html).toContain('lang="ar"');
     expect(out.html).toContain('dir="rtl"');
@@ -41,7 +41,7 @@ describe("renderAuthEmail", () => {
     const out = renderAuthEmail("signup", "en", {
       name: "<script>alert(1)</script>",
       code: "123456",
-      link: "https://vamostaxi.eu/x",
+      link: "https://vamostaxi.site/x",
     });
     expect(out.html).toContain("&lt;script&gt;");
     expect(out.html).not.toContain("<script>");

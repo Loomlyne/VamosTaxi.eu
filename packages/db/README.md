@@ -89,6 +89,20 @@ exists — so no two plans in this phase can produce the same prefix. Day stamp 
 || 07 | `20260825000007_quote_snapshot_rpc` | **04-15 (landed)** | quote snapshot RPC |
 | 08 | `20260825000008_flight_provenance` | **04-12 (landed)** | flight provenance |
 
+### Phase 7 reserved ordinals (checkout / payment)
+
+Phase 7 hand-assigns `20260827000001`+ rather than using `supabase migration new`, because
+Phases 4, 6 and 7 were planned in parallel and reserve `20260825…`, `20260826…` and
+`20260827…` respectively so that file order follows phase order. The CLI-clock rule
+still applies to any phase planned alone.
+
+| # | File | Owning plan | Contents |
+|---|---|---|---|
+| 01 | `20260827000001_payment_fx` | **07-01** | FX + presentment columns on `booking_payments`, currency CHECK relaxation, extended UPDATE whitelist. Charge gate untouched. |
+| 02 | `20260827000002_checkout_roles` | **07-01** | `vamos_checkout` / `vamos_system` nologin roles, SET-able from `vamos_edge`, zero table privileges. |
+| 03 | `20260827000003_checkout_rpc` | **07-02** | `checkout_create_booking` RPC (owned by plan 07-02). |
+| 04 | `20260827000004_settlement_rpcs` | **07-03** | Settlement / notification RPCs (owned by plan 07-03). |
+
 Three reorderings versus `02-SCHEMA-DRAFT.md` §16's illustrative sequence, each load-bearing:
 
 - **`content_and_reviews` moved to 07** (immediately after `customers_and_staff`), ahead of
