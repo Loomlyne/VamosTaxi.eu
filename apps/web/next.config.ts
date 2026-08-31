@@ -95,6 +95,12 @@ const nextConfig: NextConfig = {
     return [
       { source: "/dev/:path*", headers: noindex },
       { source: "/:locale/dev/:path*", headers: noindex },
+      {
+        source: "/app/:path*.dc.html",
+        headers: [
+          { key: "Content-Type", value: "text/html; charset=utf-8" },
+        ],
+      },
     ];
   },
 

@@ -4,13 +4,15 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "next dev",
+    "predev": "node ../../scripts/sync-dc-mock-to-public.mjs",
+    "prebuild": "node ../../scripts/sync-dc-mock-to-public.mjs",
     "build": "next build",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint:css": "stylelint \"**/*.css\" --ignore-path .gitignore --ignore-path .stylelintignore",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy"
+    "preview": "node ../../scripts/sync-dc-mock-to-public.mjs && opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "node ../../scripts/sync-dc-mock-to-public.mjs && opennextjs-cloudflare build && opennextjs-cloudflare deploy"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.5",
