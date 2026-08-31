@@ -3,7 +3,14 @@
  * Copy the Claude Design export (app/ + design-system + assets + hero)
  * into apps/web/public so staging serves the mock as-is.
  */
-import { cpSync, existsSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -41,7 +48,10 @@ function copy(from, to) {
   mkdirSync(dirname(to), { recursive: true });
   cpSync(from, to, {
     recursive: true,
-    filter: (src) => !src.split(/[/\\]/).includes("standalone"),
+    filter: (src) => {
+      const parts = src.split(/[/\\]/);
+      return !parts.includes("standalone") && !parts.includes(".DS_Store");
+    },
   });
 }
 
@@ -61,10 +71,19 @@ for (const name of [
   }
 }
 
+function injectBase(file, href) {
+  let html = readFileSync(file, "utf8");
+  if (html.includes("<base ")) return;
+  html = html.replace(/<head>/i, `<head>\n<base href="${href}">`);
+  writeFileSync(file, html);
+}
+
 const redirectLines = [];
 for (const rel of PAGE_FILES) {
   const dc = resolve(pub, rel);
   if (!existsSync(dc)) continue;
+  const base = rel.startsWith("app/home/") ? "/app/home/" : "/app/pages/";
+  injectBase(dc, base);
   const htmlRel = rel.replace(/\.dc\.html$/, ".html");
   cpSync(dc, resolve(pub, htmlRel));
   redirectLines.push(`/${rel} /${htmlRel} 200`);
