@@ -16,3 +16,6 @@ export { PricingPublishDialog } from "./PricingPublishDialog";
 export type { PricingPublishDialogProps } from "./PricingPublishDialog";
 export { CouponTable } from "./CouponTable";
 export { CouponForm } from "./CouponForm";
+export { CustomerTable } from "./CustomerTable";
+export { CustomerDetail } from "./CustomerDetail";
+export { BookingHistoryList } from "./BookingHistoryList";
