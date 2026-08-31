@@ -232,3 +232,22 @@ shipped — add no Cron and remove none. GSD-LAUNCH's "Cron expire stale quotes"
 from a mutable status column. `expires_at <= now() AND booking_id IS NULL` already IS an
 expired quote.
 
+## Plan 06-06 — PHOTOS buckets and IMAGES (D-20 / D-21)
+
+Checked 2026-09-01 during 06-06 execute. `apps/web/wrangler.jsonc` already binds:
+
+| Env | Binding | Bucket / resource | Notes |
+|---|---|---|---|
+| staging | `PHOTOS` | `vamos-photos-staging` | Already declared. Not recreated. |
+| production | `PHOTOS` | `vamos-photos-production` | Already declared. **Not created this sitting** (production bucket is Phase 11). |
+| staging | `IMAGES` | `"images": { "binding": "IMAGES" }` | Present. D-21: photo display uses `next/image`. |
+| production | `IMAGES` | `"images": { "binding": "IMAGES" }` | Present. Same branch. |
+
+Jurisdiction: D-20 / D-24 require `--jurisdiction=eu` at **creation**. This sitting did not
+run `wrangler r2 bucket create` (irreversible flag; production bucket out of scope). If
+`vamos-photos-staging` already exists from an earlier provision, it is reused. A bucket
+that exists **without** `eu` cannot be fixed in place — that is a rename + `wrangler.jsonc`
+edit, not a patch.
+
+`wrangler.jsonc` ids and `localConnectionString` placeholders were left unchanged.
+

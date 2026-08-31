@@ -1541,7 +1541,22 @@
     "email": "E-mail",
     "credential-failed": "Connexion impossible. Vérifiez l’e-mail et le mot de passe.",
     "mfa-failed": "Ce code n’a pas fonctionné. Réessayez.",
-    "internal-tool-note": "Outil interne. Accès dispatcher et admin uniquement."
+    "internal-tool-note": "Outil interne. Accès dispatcher et admin uniquement.",
+    "photo": {
+      "add": "Ajouter une photo",
+      "replace": "Remplacer la photo",
+      "remove": "Retirer la photo",
+      "uploading": "Téléversement",
+      "empty": "Pas encore de photo",
+      "error-type": "Ce type de fichier n’est pas autorisé",
+      "error-size": "Cette photo est trop lourde",
+      "error-mismatch": "Le fichier ne correspond pas à son type",
+      "error-generic": "Échec du téléversement",
+      "alt-vehicle": "Photo du véhicule",
+      "alt-chauffeur": "Photo du chauffeur",
+      "alt-review": "Photo de l’avis",
+      "alt-staff": "Photo du personnel"
+    }
   },
   "partner": {
     "a-background-check-on-you-and-an-inspection-of-y": "Une vérification vous concernant et une inspection de votre véhicule. Ni l’une ni l’autre ici — si votre candidature avance, nous organisons les deux avec vous et demandons alors les documents.",

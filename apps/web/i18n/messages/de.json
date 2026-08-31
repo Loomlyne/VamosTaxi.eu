@@ -1541,7 +1541,22 @@
     "email": "E-Mail",
     "credential-failed": "Anmeldung fehlgeschlagen. E-Mail und Passwort prüfen.",
     "mfa-failed": "Dieser Code hat nicht funktioniert. Nochmals versuchen.",
-    "internal-tool-note": "Internes Werkzeug. Nur für Dispatcher und Admins."
+    "internal-tool-note": "Internes Werkzeug. Nur für Dispatcher und Admins.",
+    "photo": {
+      "add": "Foto hinzufügen",
+      "replace": "Foto ersetzen",
+      "remove": "Foto entfernen",
+      "uploading": "Wird hochgeladen",
+      "empty": "Noch kein Foto",
+      "error-type": "Dieser Dateityp ist nicht erlaubt",
+      "error-size": "Dieses Foto ist zu groß",
+      "error-mismatch": "Die Datei entspricht nicht ihrem Typ",
+      "error-generic": "Upload fehlgeschlagen",
+      "alt-vehicle": "Fahrzeugfoto",
+      "alt-chauffeur": "Chauffeurfoto",
+      "alt-review": "Foto der bewertenden Person",
+      "alt-staff": "Mitarbeiterfoto"
+    }
   },
   "partner": {
     "a-background-check-on-you-and-an-inspection-of-y": "Eine Hintergrundprüfung zu Ihrer Person und eine Kontrolle Ihres Fahrzeugs. Beides passiert nicht hier — geht Ihre Bewerbung weiter, vereinbaren wir beides mit Ihnen und verlangen dann die Dokumente.",
