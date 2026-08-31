@@ -30,7 +30,7 @@ key-files:
 key-decisions:
   - "Did not widen staff_admin_write. Dispatcher still reads zero rows from public.staff; these three functions are the only self-row path."
   - "Did not use service_role for profile/accept writes — that would audit as actor_kind='system'."
-  - "Task 3 hosted db:push was not applied (owner-gated; executor instructed not to run it)."
+  - "Task 3 hosted apply: MCP apply_migration on yaumjzvylngfjhtuffqs succeeded. Hosted version name is 20260831184907_staff_self_service (MCP timestamp), local file remains 20260826000001. Functions app.staff_self, public.staff_update_self, public.staff_claim_invite verified present. Phase 4 (20260825*) already on hosted — not a pending Phase 4 push."
 
 patterns-established:
   - "Phase 6 migrations use the 20260826* prefix."
