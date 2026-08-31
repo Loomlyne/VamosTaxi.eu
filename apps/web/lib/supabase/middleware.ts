@@ -5,7 +5,7 @@
 // is the instance handleI18nRouting() already produced.
 
 import { createServerClient } from "@supabase/ssr";
-import type { NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 function supabaseAuthEnv(): { url: string; anonKey: string } {
   const url = process.env.SUPABASE_URL;
@@ -37,4 +37,42 @@ export async function updateSession(
 
   await supabase.auth.getUser();
   return response;
+}
+
+/**
+ * Cookie-setting factory for callers that do not already have a response
+ * (invite/sign-in redirects). Staff sessions are the most likely to chunk
+ * because their JWT carries role + aal + amr. Writes must land on a
+ * NextResponse.next({ request }) clone — constructing a response with a body
+ * in a cookie-setting path triggers the Set-Cookie folding bug
+ * (opennextjs/opennextjs-cloudflare#501). `updateSession` above stays the
+ * Phase 5 path: it never constructs a response at all.
+ */
+export function createSupabaseMiddlewareClient(request: NextRequest) {
+  const box: { response: NextResponse } = {
+    response: NextResponse.next({ request }),
+  };
+  const { url, anonKey } = supabaseAuthEnv();
+  const supabase = createServerClient(url, anonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) => {
+          request.cookies.set(name, value);
+        });
+        box.response = NextResponse.next({ request });
+        cookiesToSet.forEach(({ name, value, options }) => {
+          box.response.cookies.set(name, value, options);
+        });
+      },
+    },
+  });
+  return {
+    supabase,
+    get response() {
+      return box.response;
+    },
+  };
 }

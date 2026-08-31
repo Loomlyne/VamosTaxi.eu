@@ -205,6 +205,13 @@ interface CloudflareEnv {
   SUPABASE_ANON_KEY: string;
 
   /**
+   * Supabase service-role key (server-only). First consumer: plan 06-05 invite route.
+   * Optional until that route lands. Never a browser-prefixed name.
+   * `wrangler secret put` in staging/prod.
+   */
+  SUPABASE_SERVICE_ROLE_KEY?: string;
+
+  /**
    * Supabase Auth Send Email Hook signing secret (plan 05-12). OPTIONAL — owner-gated
    * (05-CONTEXT deferred). `wrangler secret put`. Never in wrangler.jsonc `vars`.
    */
