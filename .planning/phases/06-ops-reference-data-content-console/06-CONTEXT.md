@@ -1,9 +1,40 @@
 # Phase 6: Ops Reference Data & Content Console - Context
 
 **Gathered:** 2026-08-24
-**Status:** Ready for planning
+**Updated:** 2026-08-31 (owner sitting — keep phase as written; dedicated dashboard host)
+**Status:** Ready for plan review / execute
 **Source:** Research express path (06-RESEARCH.md, Phase 2 CONTEXT/SCHEMA-DRAFT, Phase 3 CONTEXT,
-Phase 5 RESEARCH, ADR-005/011/012/014)
+Phase 5 RESEARCH, ADR-005/011/012/014) + owner sitting 2026-08-31
+
+## Sitting 2026-08-31 (supersedes stale bits below)
+
+Owner chose **keep Phase 6 as written**. Dashboard / Bookings / Calendar wait for Phase 8.
+Assign, refund, phone booking, Realtime live board stay Phase 8. Checkout stays Phase 7 (paused
+after 07-01).
+
+- **D-01a:** Dedicated host `dashboard.vamostaxi.site` on worker `vamos-web-staging` (same app,
+  host-based gate). Public `vamostaxi.site` does **not** grow `/ops`. Locale prefixes still apply
+  on the dashboard host (`/de`, `/fr`, `/ar`). This amends research D-01's "same origin `/ops/*`
+  on the public site" — the route group may still be `app/[locale]/(ops)/ops/**` internally, but
+  the public URL is the dashboard hostname, not `vamostaxi.site/ops`.
+- **D-34:** Phase 6 **end state is not the DC mock**. `dashboard.vamostaxi.site` currently serves
+  `app/ops/*.dc.html` (localStorage throwaway `koss@vamostaxi.site` / `vamos`). When this phase
+  is done that HTML is gone: staff session is real (`aal2`), every in-scope screen reads/writes
+  Postgres, empty tables are empty (not seeded fake bookings or fake CHF). Throwaway mock login
+  dies when AUTH-05 (06-02/06-04) lands — not kept in parallel.
+- **D-35:** No fake data, no invented CHF. Rate book stays `CHF 000` / NULL until the owner
+  matrix. Reviews/fleet photos: zero-photo fallback is the expected state (D-22).
+- **D-33 (amended):** Phase 3 Hyperdrive + `asStaff`/`publicSql` **have landed**. Phase 2 schema
+  this phase reads has landed. Phase 5 public surfaces are in flight (DC mocks on
+  `vamostaxi.site`); `lib/supabase/*` may already exist — 06-02 checks before recreating (D-04).
+  Execution can start. Do not wait on Phase 7.
+
+**In scope (unchanged):** Fleet, Pricing & routes (draft→publish), Coupons, Customers (read-only),
+Content editor, Reviews, Settings, staff roster, own profile, MFA/invite, `content_strings` loader
+swap.
+
+**Out of scope (owner-confirmed 2026-08-31):** Dashboard (live board), Bookings, Calendar, assign,
+refund, confirm, phone booking, Realtime.
 
 <domain>
 ## Phase Boundary
@@ -84,12 +115,12 @@ Every bullet cites the originating research decision (`research D-n`) or uncerta
 (`research Un`) in parentheses for traceability back to `06-RESEARCH.md`.
 
 ### Route architecture, shared client module, data-access invariants
-- **D-01:** (research D-01, resolves U1) `/ops/*` nests under `app/[locale]/(ops)/ops/**` —
-  canonical `/ops/*` unprefixed for English, `/de/ops/*` etc. — not an unprefixed route group
-  outside `[locale]`. The ops mocks call `VamosLocale` throughout and Law 03 is platform-wide;
-  `HANDOFF-CLAUDE-CODE.md`'s older "locale in a cookie" language predates and is superseded by
-  Phase 1's actual `[locale]`-segment decision (D-11/D-12). One-way and costly to reverse once
-  invite-email links are published — locked now rather than left open into Wave 1.
+- **D-01:** (research D-01, resolves U1; **amended 2026-08-31 sitting D-01a**) Console routes nest
+  under `app/[locale]/(ops)/ops/**`. Public URL is **`dashboard.vamostaxi.site`** (and `/de` `/fr`
+  `/ar` on that host), not `vamostaxi.site/ops`. English unprefixed on the dashboard host.
+  Middleware keys off the dashboard hostname first; the public site never serves ops. Law 03
+  still applies. Invite-email `redirectTo` is pinned to `https://dashboard.vamostaxi.site` (staging)
+  — never derived from request input (D-06).
 - **D-02:** (research D-03) Every ops write goes through `asStaff(env, claims, fn)` on
   `HYPERDRIVE_NOCACHE`, imported only via the named wrapper — never a raw `postgres` import
   (Phase 3 D-08/D-10, CI-enforced; a forgotten wrapper is SQLSTATE `42501`).
@@ -419,6 +450,10 @@ or a later phase's execution, not a Phase 6 migration or component. None of thes
   in-scope staff-management list.
 - **Booking mutation** (assign, cancel, refund, confirm) and the **live board** — both Phase 8
   (OPS-01…05). This phase's customer/booking views are read-only by design (D-26).
+- **Dashboard / Bookings / Calendar screens** — Phase 8 (owner sitting 2026-08-31). Do not port
+  `OpsDash` / `OpsBoard` / `OpsCalendar` / `OpsDetail` in this phase. Today's DC mock may keep
+  those nav items as disabled or omit them — planner discretion, but they must not become fake
+  live boards.
 - **Realtime ops-board reactivity** — Phase 8 (OPS-01). This phase's screens use Server Action +
   revalidation only (D-29).
 - **Cloudflare Regional Services / ADR-007's counsel question** — Phase 10's territory; unrelated

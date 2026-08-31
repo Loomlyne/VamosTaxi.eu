@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-20-PLAN.md; 05-19 still open
-last_updated: "2026-08-30T16:29:26Z"
-last_activity: 2026-08-30 -- session resumed after 05-20
+stopped_at: Session resumed after 05-20; awaiting next action (05-21 or 05-19)
+last_updated: "2026-08-31T18:37:40.210Z"
+last_activity: 2026-08-31 -- Phase 6 execution started
 progress:
   total_phases: 11
   completed_phases: 4
   total_plans: 98
-  completed_plans: 56
+  completed_plans: 69
   percent: 36
 ---
 
@@ -23,14 +23,14 @@ See: .planning/PROJECT.md (updated 2026-08-17)
 **Core value:** A customer can book a fixed-price transfer in under a minute and trust that
 the driver will be there. If nothing else works, the booking funnel — quote, pay,
 confirmation — must.
-**Current focus:** Phase 05 — public-surfaces-customer-accounts
+**Current focus:** Phase 6
 
 ## Current Position
 
-Phase: 05 (public-surfaces-customer-accounts) — EXECUTING
-Plan: 21 of 24 next (05-19 still open; 05-20 complete)
-Status: Executing Phase 05
-Last activity: 2026-08-30 -- session resumed after 05-20
+Phase: 6 — EXECUTING
+Plan: 1 of ?
+Status: Executing Phase 6
+Last activity: 2026-08-31 -- Phase 6 execution started
 
 Progress: [████░░░░░░] 40%
 
