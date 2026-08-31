@@ -27,18 +27,18 @@ export type SpokenLanguage = {
  * and is never translated; `key` is the dictionary path for the name.
  */
 export const SPOKEN_LANGUAGES: readonly SpokenLanguage[] = [
-  { code: "en", key: "ops.language.en" },
-  { code: "de", key: "ops.language.de" },
-  { code: "fr", key: "ops.language.fr" },
-  { code: "ar", key: "ops.language.ar" },
-  { code: "it", key: "ops.language.it" },
-  { code: "es", key: "ops.language.es" },
-  { code: "pt", key: "ops.language.pt" },
-  { code: "ru", key: "ops.language.ru" },
-  { code: "tr", key: "ops.language.tr" },
-  { code: "sq", key: "ops.language.sq" },
-  { code: "hr", key: "ops.language.hr" },
-  { code: "pl", key: "ops.language.pl" },
+  { code: "en", key: "ops.spoken.en" },
+  { code: "de", key: "ops.spoken.de" },
+  { code: "fr", key: "ops.spoken.fr" },
+  { code: "ar", key: "ops.spoken.ar" },
+  { code: "it", key: "ops.spoken.it" },
+  { code: "es", key: "ops.spoken.es" },
+  { code: "pt", key: "ops.spoken.pt" },
+  { code: "ru", key: "ops.spoken.ru" },
+  { code: "tr", key: "ops.spoken.tr" },
+  { code: "sq", key: "ops.spoken.sq" },
+  { code: "hr", key: "ops.spoken.hr" },
+  { code: "pl", key: "ops.spoken.pl" },
 ];
 
 const SPOKEN_CODES: readonly string[] = SPOKEN_LANGUAGES.map((entry) => entry.code);
