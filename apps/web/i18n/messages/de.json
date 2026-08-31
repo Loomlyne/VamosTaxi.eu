@@ -1554,6 +1554,21 @@
       "claim-incomplete": "Sie sind angemeldet. Die Profil-Einrichtung kann später fertiggestellt werden.",
       "completed": "abgeschlossen",
       "invite-delivery-unconfigured": "Invite delivery is not configured yet"
+    },
+    "photo": {
+      "add": "Foto hinzufügen",
+      "replace": "Foto ersetzen",
+      "remove": "Foto entfernen",
+      "uploading": "Wird hochgeladen",
+      "empty": "Noch kein Foto",
+      "error-type": "Dieser Dateityp ist nicht erlaubt",
+      "error-size": "Dieses Foto ist zu groß",
+      "error-mismatch": "Die Datei entspricht nicht ihrem Typ",
+      "error-generic": "Upload fehlgeschlagen",
+      "alt-vehicle": "Fahrzeugfoto",
+      "alt-chauffeur": "Chauffeurfoto",
+      "alt-review": "Foto der bewertenden Person",
+      "alt-staff": "Mitarbeiterfoto"
     }
   },
   "partner": {

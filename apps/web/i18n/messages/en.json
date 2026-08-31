@@ -1554,6 +1554,21 @@
       "claim-incomplete": "You are signed in. Profile setup can finish later.",
       "completed": "completed",
       "invite-delivery-unconfigured": "Invite delivery is not configured yet"
+    },
+    "photo": {
+      "add": "Add photo",
+      "replace": "Replace photo",
+      "remove": "Remove photo",
+      "uploading": "Uploading",
+      "empty": "No photo yet",
+      "error-type": "That file type is not allowed",
+      "error-size": "That photo is too large",
+      "error-mismatch": "That file does not match its type",
+      "error-generic": "Upload failed",
+      "alt-vehicle": "Vehicle photo",
+      "alt-chauffeur": "Chauffeur photo",
+      "alt-review": "Reviewer photo",
+      "alt-staff": "Staff photo"
     }
   },
   "partner": {

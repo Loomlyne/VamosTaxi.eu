@@ -6,3 +6,5 @@ export { OpsSignInForm } from "./OpsSignInForm";
 export { OpsMfaChallengeForm } from "./OpsMfaChallengeForm";
 export { OpsAcceptInvite } from "./OpsAcceptInvite";
 export { OpsTotpEnrol } from "./OpsTotpEnrol";
+export { OpsPhotoField } from "./OpsPhotoField";
+export type { OpsPhotoFieldProps } from "./OpsPhotoField";

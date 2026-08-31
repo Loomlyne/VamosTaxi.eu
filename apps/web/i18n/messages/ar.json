@@ -1554,6 +1554,21 @@
       "claim-incomplete": "أنت مسجّل الدخول. يمكن إكمال إعداد الملف لاحقًا.",
       "completed": "مكتمل",
       "invite-delivery-unconfigured": "Invite delivery is not configured yet"
+    },
+    "photo": {
+      "add": "إضافة صورة",
+      "replace": "استبدال الصورة",
+      "remove": "إزالة الصورة",
+      "uploading": "جارٍ الرفع",
+      "empty": "لا توجد صورة بعد",
+      "error-type": "هذا النوع من الملفات غير مسموح",
+      "error-size": "هذه الصورة أكبر من الحد المسموح",
+      "error-mismatch": "الملف لا يطابق نوعه",
+      "error-generic": "فشل الرفع",
+      "alt-vehicle": "صورة المركبة",
+      "alt-chauffeur": "صورة السائق",
+      "alt-review": "صورة صاحب التقييم",
+      "alt-staff": "صورة الموظف"
     }
   },
   "partner": {
