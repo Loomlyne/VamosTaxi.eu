@@ -333,7 +333,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <span data-sug-spin="1"><i data-spin="1" aria-hidden="true"></i>{{ s.name }}</span>
 </sc-if>
 <sc-if value="{{ s.row }}" hint-placeholder-val="{{ true }}">
-<div data-sug-row="1" data-tone="{{ s.tone }}" role="option" id="{{ s.id }}" aria-selected="{{ s.sel }}" onMouseDown="{{ s.pick }}" style="{{ s.css }}">
+<div data-sug-row="1" data-idx="{{ s.idx }}" data-tone="{{ s.tone }}" role="option" id="{{ s.id }}" aria-selected="{{ s.sel }}" onMouseDown="{{ s.pick }}" onClick="{{ s.pick }}" style="{{ s.css }}">
 <span data-sug-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ s.icon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
 <span style="display:flex;flex-direction:column;min-width:0;flex:1 1 auto"><span style="font-size:var(--vt-body-sm);font-weight:600;color:var(--vt-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.name }}</span><span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.sub }}</span></span>
 <span data-sug-go="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import></span>
@@ -375,7 +375,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <span data-sug-spin="1"><i data-spin="1" aria-hidden="true"></i>{{ s.name }}</span>
 </sc-if>
 <sc-if value="{{ s.row }}" hint-placeholder-val="{{ true }}">
-<div data-sug-row="1" data-tone="{{ s.tone }}" role="option" id="{{ s.id }}" aria-selected="{{ s.sel }}" onMouseDown="{{ s.pick }}" style="{{ s.css }}">
+<div data-sug-row="1" data-idx="{{ s.idx }}" data-tone="{{ s.tone }}" role="option" id="{{ s.id }}" aria-selected="{{ s.sel }}" onMouseDown="{{ s.pick }}" onClick="{{ s.pick }}" style="{{ s.css }}">
 <span data-sug-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ s.icon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
 <span style="display:flex;flex-direction:column;min-width:0;flex:1 1 auto"><span style="font-size:var(--vt-body-sm);font-weight:600;color:var(--vt-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.name }}</span><span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.sub }}</span></span>
 <span data-sug-go="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import></span>
@@ -394,7 +394,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </sc-if>
 </div>
 <div data-f="when" style="min-width:0">
-<dc-import name="WhenPicker" label="{{ tWhenLbl }}" placeholder="{{ tWhenPh }}" value="{{ date }}" time="{{ time }}" day="{{ day }}" range="{{ isReturn }}" value2="{{ returnDate }}" time2="{{ returnTime }}" day2="{{ returnDay }}" times="{{ timeSlots }}" baseMonth="2026-08" locale="{{ lang }}" groups="{{ tGroups }}" legLabels="{{ tLegs }}" timeTitle="{{ tPickupTime }}" timeTitle2="{{ tReturnTime }}" savedLabel="{{ tSaved }}" clearLabel="{{ tClear }}" saveLabel="{{ tSave }}" onClear="{{ whenClear }}" onDay="{{ setDay }}" onTime="{{ setTime }}" onDay2="{{ setReturnDay }}" onTime2="{{ setReturnTime }}" onOpenChange="{{ whenOpenChange }}" hint-size="230px,66px"></dc-import>
+<dc-import name="WhenPicker" label="{{ tWhenLbl }}" placeholder="{{ tWhenPh }}" value="{{ date }}" time="{{ time }}" day="{{ day }}" range="{{ isReturn }}" value2="{{ returnDate }}" time2="{{ returnTime }}" day2="{{ returnDay }}" times="{{ timeSlots }}" baseMonth="{{ baseMonth }}" locale="{{ lang }}" groups="{{ tGroups }}" legLabels="{{ tLegs }}" timeTitle="{{ tPickupTime }}" timeTitle2="{{ tReturnTime }}" savedLabel="{{ tSaved }}" clearLabel="{{ tClear }}" saveLabel="{{ tSave }}" onClear="{{ whenClear }}" onDay="{{ setDay }}" onTime="{{ setTime }}" onDay2="{{ setReturnDay }}" onTime2="{{ setReturnTime }}" onOpenChange="{{ whenOpenChange }}" hint-size="230px,66px"></dc-import>
 <sc-if value="{{ whenRevertShow }}" hint-placeholder-val="{{ false }}">
 <button type="button" onClick="{{ whenRevert }}" style="all:unset;box-sizing:border-box;margin-top:4px;font-size:11.5px;color:var(--vt-text-muted);cursor:pointer;text-decoration:underline">{{ tRevertTo }} {{ whenRevertVal }}</button>
 </sc-if>
@@ -423,7 +423,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <div role="{{ v.role }}" tabindex="{{ v.tab }}" aria-disabled="{{ v.dis }}" data-fleet-card="1" data-locked="{{ v.locked }}" data-picked="{{ v.picked }}" data-dim="{{ v.dim }}" data-unavail="{{ v.unavail }}" onClick="{{ v.select }}" onKeyDown="{{ v.key }}" title="{{ v.title }}" style="position:relative;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);padding:8px 10px;min-height:84px;display:flex;flex-direction:column;gap:6px;cursor:pointer;transition:var(--vt-transition-control);view-transition-name:{{ v.vtName }}" style-hover="box-shadow:var(--vt-shadow-md);border-color:var(--vt-grey-300)" style-active="transform:translateY(1px)">
 <div style="display:flex;align-items:flex-start;gap:6px;flex-direction:column">
 <div data-fleet-img="1" style="width:100%;height:100px;border-radius:8px;background:var(--vt-grey-100);overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;flex:0 0 auto">
-<sc-if value="{{ v.noImage }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ v.icon }}" size="{{ n24 }}" color="var(--vt-grey-500)" hint-size="24px,24px"></x-import></sc-if>
+<sc-if value="{{ v.noImage }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ v.icon }}" size="{{ n24 }}" color="var(--vt-grey-500)" hint-size="24px,24px"></x-import></sc-if>
+<sc-if value="{{ v.hasImage }}" hint-placeholder-val="{{ true }}"><img src="{{ v.image }}" alt="" style="width:100%;height:100%;object-fit:cover;display:block"></sc-if>
 <sc-if value="{{ v.hasBadge }}" hint-placeholder-val="{{ false }}">
 <span style="position:absolute;top:6px;inset-inline-start:6px;display:inline-flex;align-items:center;height:18px;padding:0 8px;border-radius:999px;background:var(--vt-yellow);border:1px solid var(--vt-charcoal-900);color:var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap">{{ v.badge }}</span>
 </sc-if>
@@ -541,10 +542,37 @@ function geoSession() {
     return (crypto.randomUUID && crypto.randomUUID()) || '00000000-0000-4000-8000-000000000001';
   }
 }
-function scheduledLocal(day, time) {
-  const d = String(day || '').padStart(2, '0');
+function zurichYm() {
+  const z = zurichNow();
+  return z.y + '-' + String(z.m + 1).padStart(2, '0');
+}
+function zurichNow() {
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Zurich', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date());
+  const g = (t) => +((parts.find((p) => p.type === t) || {}).value || 0);
+  return { y: g('year') || 2026, m: (g('month') || 1) - 1, d: g('day') || 1, h: g('hour'), min: g('minute') };
+}
+function pad2(n) { return String(Math.max(0, Number(n) || 0)).padStart(2, '0'); }
+function minStamp() {
+  const z = zurichNow();
+  let total = z.h * 60 + z.min + 180;
+  total = Math.ceil(total / 5) * 5;
+  const dayAdd = Math.floor(total / (24 * 60));
+  total = total % (24 * 60);
+  const nd = new Date(z.y, z.m, z.d + dayAdd);
+  const h = Math.floor(total / 60), m = total % 60;
+  return { y: nd.getFullYear(), m: nd.getMonth(), d: nd.getDate(), hm: pad2(h) + ':' + pad2(m) };
+}
+function geoHitIcon(name, extra) {
+  const s = String(name || '') + ' ' + String(extra || '');
+  if (/airport|flughafen|a[eé]roport|\b(zrh|gva|bsl)\b/i.test(s)) return 'plane-landing';
+  return 'map-pin';
+}
+function scheduledLocal(y, m, day, time) {
+  if (y == null || m == null || day == null) return '';
+  const dd = String(day).padStart(2, '0');
+  const mm = String(Number(m) + 1).padStart(2, '0');
   const tm = /^\d{2}:\d{2}$/.test(time) ? time : '00:00';
-  return '2026-08-' + d + 'T' + tm;
+  return y + '-' + mm + '-' + dd + 'T' + tm;
 }
 function placeInput(loc, text) {
   if (!loc) return null;
@@ -597,13 +625,10 @@ function haversine(a, b) {
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 /** ── Flight feed ────────────────────────────────────────────────────────────
- *  Records are normalised AeroDataBox "flight status (single day)" objects, so
- *  going live is one switch: put a RapidAPI key behind a server proxy, hand it
- *  to FLIGHT_API.key, and the same fields flow through untouched. Times stay
- *  local to their own airport; precedence is actual › estimated › scheduled.
+ *  Records are normalised AeroDataBox flight-status objects from GET /api/flight.
+ *  Times stay local to their own airport; precedence is actual › estimated › scheduled.
  *  A field the feed has no value for stays null and renders as nothing — no
- *  terminal, gate or belt is ever invented. Until the key exists these fixtures
- *  stand in and the widget says so on the face of it. */
+ *  terminal, gate or belt is ever invented. Fixtures stand in when the feed is off. */
 const TODAY = (() => { const d = new Date(); return (d.getFullYear() === 2026 && d.getMonth() === 7) ? d.getDate() : 4; })();
 const AIRPORTS = {
   ZRH:{ n:'Zurich Airport', c:'Zurich' }, GVA:{ n:'Geneva Airport', c:'Geneva' }, BSL:{ n:'Basel EuroAirport', c:'Basel' },
@@ -751,15 +776,13 @@ function adbNormalize(f) {
   return { num: String(f.number || '').toUpperCase().replace(/[^A-Z0-9]/g, ''), airline: (f.airline || {}).name || null,
     aircraft: (f.aircraft || {}).model || null, status: f.status || 'Unknown', dep: adbLeg(f.departure), arr: adbLeg(f.arrival) };
 }
-/** The one seam to wire: give `key` a RapidAPI key (through a server proxy —
- *  never ship it in the page) and both calls hit AeroDataBox for real. */
+/** Flight lookup: GET /api/flight. Typeahead stays fixtures. */
 const FLIGHT_API = {
-  /** Paste a RapidAPI key once: localStorage.setItem('vamosAdbKey', '…') and reload.
-   *  Kept out of the source on purpose — a key in the page is a key anyone can copy. */
-  get key() { try { return localStorage.getItem('vamosAdbKey') || null; } catch (e) { return null; } },
-  host: 'aerodatabox.p.rapidapi.com',
-  live() { return !!this.key; },
-  headers() { return { 'X-RapidAPI-Key': this.key, 'X-RapidAPI-Host': this.host }; },
+  /** Flight status goes through GET /api/flight. Autocomplete stays fixtures. */
+  get key() { return null; },
+  host: '',
+  live() { return false; },
+  headers() { return {}; },
   /** Autocomplete has no public proxy yet — fixtures only. */
   search(term, here) {
     return Promise.resolve(fixtureSearch(term, here));
@@ -781,10 +804,10 @@ const FLIGHT_API = {
  *  Tokens: {VEHICLE_CLASS_n_NAME} {VEHICLE_CLASS_n_MAX_PAX} {VEHICLE_CLASS_n_MAX_BAGS} {VEHICLE_CLASS_n_EXAMPLE}.
  *  Four classes is the demo ladder; the grid and capacity logic hold 2-5 rows with no relayout. */
 const VEHICLE_CLASSES = [
-  { id:'economy', name:'Economy', icon:'car-front', cap:3, bags:3 },
-  { id:'business', name:'Business', icon:'car', cap:3, bags:3, badge:true },
-  { id:'first', name:'First', icon:'car', cap:3, bags:2 },
-  { id:'van', name:'Van', icon:'bus', cap:7, bags:8 }, // photography pending (INPUTS-NEEDED 2) — icon tile fallback
+  { id:'economy', name:'Economy', icon:'car-front', cap:3, bags:3, image:'../../assets/photography/class-economy.jpg' },
+  { id:'business', name:'Business', icon:'car', cap:3, bags:3, badge:true, image:'../../assets/photography/class-business.jpg' },
+  { id:'first', name:'First', icon:'car', cap:3, bags:2, image:'../../assets/photography/class-first.jpg' },
+  { id:'van', name:'Van', icon:'bus', cap:7, bags:8, image:'../../assets/photography/class-van.jpg' },
 ];
 const T = {
   en: {
@@ -1093,6 +1116,10 @@ function readTrip() {
 function saveTrip(patch) {
   const t = Object.assign({}, readTrip(), patch);
   localStorage.setItem('vamosTrip', JSON.stringify(t));
+  try {
+    if (t.lock) sessionStorage.setItem('vamosQuoteLock', t.lock);
+    else sessionStorage.removeItem('vamosQuoteLock');
+  } catch (e) {}
   return t;
 }
 const NEAR_IDS = ['hb', 'bahnhof', 'baur'];
@@ -1114,7 +1141,7 @@ class Component extends DCLogic {
       lang: LANGS.includes(lang) ? lang : 'en',
       cur: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosCurrency')) || 'CHF',
       mode: 'one-way', pickupText: '', pickupLoc: null, dropText: '', dropLoc: null,
-      day: null, time: '', returnDay: null, returnTime: '', dayLabel: null, returnLabel: null,
+      day: null, time: '', returnDay: null, returnTime: '', dayLabel: null, returnLabel: null, dayY: null, dayM: null, returnY: null, returnM: null,
       pax: 0, bags: 0, hours: 0, geo: 'idle',
       flight: '', flightState: 'idle', flightData: null, flightPlan: null, flightSince: '', flightNote: '', changes: [], kept: [],
       touched: { pickup: false, dest: false, when: false }, here: null, hereLoc: null,
@@ -1190,11 +1217,28 @@ class Component extends DCLogic {
     }
     this._away = (e) => {
       const cl = (sel) => !!(e.target.closest && e.target.closest(sel));
-      if (this.state.sug.open && !cl('[data-sugroot]')) this.setState({ sug: CLOSED, sugIdx: -1 });
+      if (cl('[data-sug-row]')) return;
+      if (this.state.sug.open && !cl('[data-sugroot]')) {
+        this.commitTypedPlace();
+        this.setState({ sug: CLOSED, sugIdx: -1 });
+      }
       if (this.state.fsug.open && !cl('[data-f="flight"]')) this.setState({ fsug: { open: false, items: [] }, fsugIdx: -1 });
       if (this.state.menuOpen && !cl('[data-menuroot]')) this.setState({ menuOpen: false });
     };
+    this._sugPick = (e) => {
+      const row = e.target && e.target.closest && e.target.closest('[data-sug-row]');
+      if (!row || !this.state.sug.open) return;
+      const i = +row.getAttribute('data-idx');
+      if (!isFinite(i) || i < 0) return;
+      const rows = this.sugRowsList().filter((r) => r.row);
+      const r = rows[i];
+      if (!r || !r.pick) return;
+      e.preventDefault();
+      e.stopPropagation();
+      r.pick(e);
+    };
     document.addEventListener('mousedown', this._away);
+    document.addEventListener('pointerdown', this._sugPick, true);
     this._esc = (e) => { if (e.key !== 'Escape') return; if (this.state.sheetOpen) this.closeSheet(); else if (this.state.menuOpen) this.setState({ menuOpen: false }); };
     document.addEventListener('keydown', this._esc);
     this._onResize = () => {
@@ -1210,7 +1254,7 @@ class Component extends DCLogic {
     document.fonts && document.fonts.ready ? document.fonts.ready.then(() => this.q()) : this.q();
   }
   componentWillUnmount() {
-    if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale); document.removeEventListener('mousedown', this._away); document.removeEventListener('keydown', this._esc); window.removeEventListener('resize', this._onResize); (this._mqs || []).forEach((m) => { m.removeEventListener ? m.removeEventListener('change', this._onResize) : m.removeListener(this._onResize); }); Object.values(this.dusts).forEach((d) => d.destroy()); this.lockScroll(false); this.stopPoll(); clearTimeout(this._deb); clearTimeout(this._ft); clearTimeout(this._geoT); this._geoSeq++; if (this._ac) { try { this._ac.abort(); } catch (e) {} } this.clearFill(); }
+    if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale); document.removeEventListener('mousedown', this._away); document.removeEventListener('pointerdown', this._sugPick, true); document.removeEventListener('keydown', this._esc); window.removeEventListener('resize', this._onResize); (this._mqs || []).forEach((m) => { m.removeEventListener ? m.removeEventListener('change', this._onResize) : m.removeListener(this._onResize); }); Object.values(this.dusts).forEach((d) => d.destroy()); this.lockScroll(false); this.stopPoll(); clearTimeout(this._deb); clearTimeout(this._ft); clearTimeout(this._geoT); this._geoSeq++; if (this._ac) { try { this._ac.abort(); } catch (e) {} } this.clearFill(); }
   t() { return Object.assign({}, T.en, T[this.state.lang]); }
   /** Fares are a pending client input: every amount reads 000 (design system §2). */
   fmt() {
@@ -1240,7 +1284,7 @@ class Component extends DCLogic {
     const q = this.state.quote; const t = this.t();
     if (q.status !== 'live' || !q.results) return { text: this.fmt(), small: false };
     const r = q.results[id];
-    if (r.kind === 'price') return { text: this.fmt(), small: false };
+    if (!r || r.kind === 'price' || r.kind === 'hold') return { text: this.fmt(), small: false };
     if (r.kind === 'na') {
       const v = VEHICLE_CLASSES.find((x) => x.id === id);
       const cap = v ? (r.sub === 'bags' ? v.bags : v.cap) : r.n;
@@ -1301,8 +1345,8 @@ class Component extends DCLogic {
     if (!pickup || !dropoff) { failAll(); return; }
     const locale = (LANGS.indexOf(s.lang) > -1 ? s.lang : 'en');
     const cur = s.cur || 'CHF';
-    const legs = [{ leg_seq: 1, scheduled_local: scheduledLocal(s.day, s.time), flight_no: (s.flightData && s.flightData.num) ? String(s.flightData.num).slice(0, 16) : null }];
-    if (s.mode === 'return') legs.push({ leg_seq: 2, scheduled_local: scheduledLocal(s.returnDay, s.returnTime), flight_no: null });
+    const legs = [{ leg_seq: 1, scheduled_local: scheduledLocal(s.dayY, s.dayM, s.day, s.time), flight_no: (s.flightData && s.flightData.num) ? String(s.flightData.num).slice(0, 16) : null }];
+    if (s.mode === 'return') legs.push({ leg_seq: 2, scheduled_local: scheduledLocal(s.returnY, s.returnM, s.returnDay, s.returnTime), flight_no: null });
     const body = { locale: locale, display_currency: cur, mode: s.mode === 'return' ? 'return' : 'one_way', pickup: pickup, dropoff: dropoff, legs: legs, pax: s.pax, bags: s.bags };
     fetch('/api/quote', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
       .then((res) => res.json())
@@ -1314,7 +1358,7 @@ class Component extends DCLogic {
         const res = {};
         VEHICLE_CLASSES.forEach((v) => {
           const c = bySlug[v.id];
-          if (!c) { res[v.id] = { kind: 'err' }; return; }
+          if (!c) { res[v.id] = { kind: 'hold' }; return; }
           if (!c.eligible) { res[v.id] = { kind: 'na', sub: c.ineligible_reason === 'bags' ? 'bags' : 'pax', n: c.ineligible_reason === 'bags' ? s.bags : s.pax }; return; }
           res[v.id] = { kind: 'price' };
         });
@@ -1560,18 +1604,21 @@ class Component extends DCLogic {
         if (seq !== this._geoSeq) return;
         if (j && j.degraded) { this.setState({ geo: 'err' }); return; }
         const found = (j.suggestions || []).map((hit) => ({
-          id: hit.mapbox_id, n: hit.name, s: hit.address || hit.context || '', icon: 'map-pin',
-          air: /airport|flughafen|aéroport/i.test(hit.name || ''),
+          id: hit.mapbox_id, n: hit.name, s: hit.address || hit.context || '',
+          icon: geoHitIcon(hit.name, hit.address || hit.context),
+          air: /airport|flughafen|a[eé]roport/i.test(String(hit.name || '') + ' ' + String(hit.address || '')),
           mapbox_id: hit.mapbox_id, session_token: token, geoHit: true,
-        })).filter((x) => x.n);
+        })).filter((x) => x.n && x.mapbox_id);
         const uniq = []; const keys = {};
         found.forEach((x) => { const k = (x.n + '|' + x.s).toLowerCase(); if (!keys[k]) { keys[k] = 1; uniq.push(x); } });
         this.setState((st) => {
           if (!st.sug.open || st.sug.field !== field) return { geo: 'ok' };
           const saved = st.sug.saved || [];
           const seen = saved.map((l) => l.n.toLowerCase());
-          const merged = saved.concat(uniq.filter((x) => seen.indexOf(x.n.toLowerCase()) < 0)).slice(0, 8);
-          return { geo: 'ok', sug: Object.assign({}, st.sug, { items: merged, geoCount: merged.length - saved.length, custom: !merged.length, typed: true }) };
+          const extra = uniq.filter((x) => seen.indexOf(x.n.toLowerCase()) < 0);
+          const merged = extra.concat(saved).slice(0, 8);
+          this._geoItems = merged;
+          return { geo: 'ok', sug: Object.assign({}, st.sug, { items: merged, geoCount: extra.length, custom: false, typed: true }) };
         });
       })
       .catch((e) => { if (seq !== this._geoSeq || (e && e.name === 'AbortError')) return; this.setState({ geo: 'err' }); });
@@ -1580,17 +1627,25 @@ class Component extends DCLogic {
     return (e) => {
       const txt = e.target.value; const ql = txt.trim().toLowerCase();
       let items = ql.length >= 1 ? LOCS.filter((l) => (l.n + ' ' + (l.s || '')).toLowerCase().includes(ql)).slice(0, 4) : [];
-      const custom = !items.length && ql.length >= 4;
-      const patch = { sugFlip: this.flipFor(e), sugIdx: -1, sug: { open: true, field, at, items, saved: items, geoCount: 0, custom, text: txt, typed: true } };
+      const patch = { sugFlip: this.flipFor(e), sugIdx: -1, sug: { open: true, field, at, items, saved: items, geoCount: 0, custom: false, text: txt, typed: true } };
       clearTimeout(this._geoT);
-      if (ql.length >= 3) this._geoT = setTimeout(() => this.geoSearch(field, txt.trim()), 320);
+      if (ql.length >= 3) this._geoT = setTimeout(() => this.geoSearch(field, txt.trim()), 180);
       else { this._geoSeq = (this._geoSeq || 0) + 1; patch.geo = 'idle'; }
       const touch = field === 'pickup' ? 'pickup' : 'dest';
       patch.touched = Object.assign({}, this.state.touched, { [touch]: true });
       const prevVal = field === 'pickup' ? this.state.pickupText : this.state.dropText;
       const hadAF = field === 'pickup' ? this.state.autofill.pickup : this.state.autofill.dest;
-      if (field === 'pickup') { patch.pickupText = txt; patch.pickupLoc = null; patch.autofill = Object.assign({}, this.state.autofill, { pickup: null }); }
-      else { patch.dropText = txt; patch.dropLoc = null; patch.autofill = Object.assign({}, this.state.autofill, { dest: null }); }
+      if (field === 'pickup') {
+        patch.pickupText = txt;
+        const loc = this.state.pickupLoc;
+        if (!loc || (loc.n || '') !== txt) patch.pickupLoc = null;
+        patch.autofill = Object.assign({}, this.state.autofill, { pickup: null });
+      } else {
+        patch.dropText = txt;
+        const loc = this.state.dropLoc;
+        if (!loc || (loc.n || '') !== txt) patch.dropLoc = null;
+        patch.autofill = Object.assign({}, this.state.autofill, { dest: null });
+      }
       this.setState(patch); this.q();
       if (hadAF && prevVal && prevVal !== txt) this.armRevert(touch, prevVal);
     };
@@ -1610,11 +1665,36 @@ class Component extends DCLogic {
     else { patch.dropText = val; patch.dropLoc = null; patch.autofill = Object.assign({}, this.state.autofill, { dest: code }); patch.touched = Object.assign({}, this.state.touched, { dest: false }); }
     this.setState(patch, this.q);
   };
+  pickSug = (e, loc) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (e && e.stopPropagation) e.stopPropagation();
+    if (loc && loc.hereBtn) { this.detectLoc(); return; }
+    this.choose(loc);
+  };
+  commitTypedPlace(field) {
+    const s = this.state;
+    const f = field || (s.sug && s.sug.field);
+    const isPickup = f === 'pickup';
+    if (isPickup ? s.pickupLoc : s.dropLoc) return;
+    const q = ((isPickup ? s.pickupText : s.dropText) || '').trim().toLowerCase();
+    if (q.length < 3) return;
+    const items = (s.sug && s.sug.items) || this._geoItems || [];
+    const hit = items.find((l) => l && (l.n || '').toLowerCase() === q);
+    if (!hit) return;
+    const prev = s.sug.field;
+    if (prev !== f) this.state.sug = Object.assign({}, s.sug, { field: f });
+    this.choose(hit);
+  }
   choose = (loc) => {
-    const f = this.state.sug.field; const patch = { sug: CLOSED, sugIdx: -1 };
-    const name = loc.custom ? this.state.sug.text : loc.n;
-    if (f === 'pickup') { patch.pickupText = name; patch.pickupLoc = loc.custom ? null : loc; }
-    else { patch.dropText = name; patch.dropLoc = loc.custom ? null : loc; }
+    if (!loc || loc.custom) return;
+    this._geoSeq = (this._geoSeq || 0) + 1;
+    clearTimeout(this._geoT);
+    const f = this.state.sug.field; const patch = { sug: CLOSED, sugIdx: -1, geo: 'idle' };
+    const name = loc.n;
+    const touch = f === 'pickup' ? 'pickup' : 'dest';
+    patch.touched = Object.assign({}, this.state.touched, { [touch]: true });
+    if (f === 'pickup') { patch.pickupText = name; patch.pickupLoc = loc; }
+    else { patch.dropText = name; patch.dropLoc = loc; }
     this.setState(patch); this.q();
   };
   lockScroll(on) { try { document.body.style.overflow = on ? 'hidden' : ''; } catch (e) {} }
@@ -1640,10 +1720,26 @@ class Component extends DCLogic {
       return below < 320 && r.top > below;
     } catch (err) { return false; }
   }
-  focusPickupA = (e) => this.setState((s) => ({ sugFlip: this.flipFor(e), sugIdx: -1, focused: Object.assign({}, s.focused, { pickup: true }), sug: { open: true, field: 'pickup', at: 'a', items: [], custom: false, text: '' } }));
-  focusDropA = (e) => this.setState((s) => ({ sugFlip: this.flipFor(e), sugIdx: -1, focused: Object.assign({}, s.focused, { dest: true }), sug: { open: true, field: 'dropoff', at: 'a', items: [], custom: false, text: '' } }));
-  blurPickupA = () => this.setState((s) => ({ focused: Object.assign({}, s.focused, { pickup: false }) }));
-  blurDropA = () => this.setState((s) => ({ focused: Object.assign({}, s.focused, { dest: false }) }));
+  openPlaceSug(field, at, e) {
+    const isPickup = field === 'pickup';
+    const txt = isPickup ? (this.state.pickupText || '') : (this.state.dropText || '');
+    const ql = txt.trim();
+    const items = ql.length >= 1 ? LOCS.filter((l) => (l.n + ' ' + (l.s || '')).toLowerCase().includes(ql.toLowerCase())).slice(0, 4) : [];
+    const patch = {
+      sugFlip: this.flipFor(e), sugIdx: -1,
+      focused: Object.assign({}, this.state.focused, isPickup ? { pickup: true } : { dest: true }),
+      sug: { open: true, field, at, items, saved: items, geoCount: 0, custom: false, text: txt, typed: ql.length >= 1 },
+    };
+    this.setState(patch);
+    if (ql.length >= 3) {
+      clearTimeout(this._geoT);
+      this._geoT = setTimeout(() => this.geoSearch(field, ql), 0);
+    }
+  }
+  focusPickupA = (e) => this.openPlaceSug('pickup', 'a', e);
+  focusDropA = (e) => this.openPlaceSug('dropoff', 'a', e);
+  blurPickupA = () => { this.commitTypedPlace('pickup'); this.setState((s) => ({ focused: Object.assign({}, s.focused, { pickup: false }) })); };
+  blurDropA = () => { this.commitTypedPlace('dropoff'); this.setState((s) => ({ focused: Object.assign({}, s.focused, { dest: false }) })); };
   /** Step 1 of the flight logic: know where the traveller is. Read silently when
    *  permission is already granted, otherwise wait for the explicit tap below —
    *  a cold permission prompt on load is a worse product than asking for one. */
@@ -1681,15 +1777,28 @@ class Component extends DCLogic {
   };
   swap = () => this.setState((s) => ({ pickupText: s.dropText, pickupLoc: s.dropLoc, dropText: s.pickupText, dropLoc: s.pickupLoc,
     touched: Object.assign({}, s.touched, { pickup: true, dest: true }), autofill: { pickup: null, when: s.autofill.when } }), this.q);
-  setDay = (d, label) => {
+  clampWhen(y, m, d, tm) {
+    const min = minStamp();
+    let yy = y, mm = m, dd = d, time = tm;
+    if (yy == null || mm == null || dd == null) return { y: min.y, m: min.m, d: min.d, time: min.hm };
+    if (yy < min.y || (yy === min.y && mm < min.m) || (yy === min.y && mm === min.m && dd < min.d)) {
+      yy = min.y; mm = min.m; dd = min.d; time = min.hm;
+    } else if (yy === min.y && mm === min.m && dd === min.d && (!time || time < min.hm)) {
+      time = min.hm;
+    }
+    return { y: yy, m: mm, d: dd, time: time || min.hm };
+  }
+  setDay = (d, label, y, m) => {
     const hadAF = this.state.autofill.when; const prevDay = this.state.day; const prevLabel = this.state.dayLabel; const prevTime = this.state.time;
-    this.setState((s) => ({ day: d, dayLabel: label || null, touched: Object.assign({}, s.touched, { when: true }), autofill: Object.assign({}, s.autofill, { when: null }), pendingTimeUpdate: null }));
+    const c = this.clampWhen(y, m, d, this.state.time);
+    this.setState((s) => ({ day: c.d, dayLabel: label || null, dayY: c.y, dayM: c.m, time: c.time, touched: Object.assign({}, s.touched, { when: true }), autofill: Object.assign({}, s.autofill, { when: null }), pendingTimeUpdate: null }));
     this.q();
     if (hadAF) this.armRevertWhen(prevDay, prevLabel, prevTime);
   };
   setTime = (tm) => {
     const hadAF = this.state.autofill.when; const prevDay = this.state.day; const prevLabel = this.state.dayLabel; const prevTime = this.state.time;
-    this.setState((s) => ({ time: tm, touched: Object.assign({}, s.touched, { when: true }), autofill: Object.assign({}, s.autofill, { when: null }), pendingTimeUpdate: null }));
+    const c = this.clampWhen(this.state.dayY, this.state.dayM, this.state.day, tm);
+    this.setState((s) => ({ time: c.time, day: c.d, dayY: c.y, dayM: c.m, touched: Object.assign({}, s.touched, { when: true }), autofill: Object.assign({}, s.autofill, { when: null }), pendingTimeUpdate: null }));
     this.q();
     if (hadAF) this.armRevertWhen(prevDay, prevLabel, prevTime);
   };
@@ -1707,36 +1816,46 @@ class Component extends DCLogic {
       autofill: Object.assign({}, s.autofill, { when: code }), revert: Object.assign({}, s.revert, { when: null }) }), this.q);
   };
   whenOpenChange = (open) => this.setState((s) => ({ focused: Object.assign({}, s.focused, { when: open }) }));
-  setReturnDay = (d, label) => { this.setState({ returnDay: d, returnLabel: label || null }); this.q(); };
-  setReturnTime = (tm) => { this.setState({ returnTime: tm }); this.q(); };
+  setReturnDay = (d, label, y, m) => {
+    const c = this.clampWhen(y, m, d, this.state.returnTime);
+    this.setState({ returnDay: c.d, returnLabel: label || null, returnY: c.y, returnM: c.m, returnTime: c.time }); this.q();
+  };
+  setReturnTime = (tm) => {
+    const c = this.clampWhen(this.state.returnY, this.state.returnM, this.state.returnDay, tm);
+    this.setState({ returnTime: c.time, returnDay: c.d, returnY: c.y, returnM: c.m }); this.q();
+  };
   setPax = (n) => { this.setState((s) => ({ pax: n, autofill: Object.assign({}, s.autofill, { party: null }) })); this.q(); };
   setBags = (n) => { this.setState((s) => ({ bags: n, autofill: Object.assign({}, s.autofill, { party: null }) })); this.q(); };
   setHours = (n) => { this.setState({ hours: n }); this.q(); };
   whenClear = () => {
     this.setState((s) => ({ day: null, dayLabel: null, time: '', returnDay: null, returnLabel: null, returnTime: '',
+      dayY: null, dayM: null, returnY: null, returnM: null,
       touched: Object.assign({}, s.touched, { when: true }), autofill: Object.assign({}, s.autofill, { when: null }), pendingTimeUpdate: null }));
     this.q();
   };
   /** Rows of the address list. Also the keyboard model — see sugKey. */
   sugRowsList() {
     const s = this.state; const t = this.t(); const sg = s.sug; const rows = []; const isPickup = sg.field === 'pickup';
-    if (isPickup) rows.push({ row: true, tone: 'geo', icon: 'navigation', name: t.useLoc, sub: t.useLocSub, pick: this.detectLoc });
+    if (isPickup) rows.push({ row: true, tone: 'geo', icon: 'navigation', name: t.useLoc, sub: t.useLocSub, pick: (e) => this.pickSug(e, { hereBtn: true }) });
     const items = sg.items || [];
     const q = (sg.text || '').trim();
     const untouched = !sg.typed || !q;
     if (untouched) {
       rows.push({ head: true, name: isPickup ? t.nearYou : t.popular });
-      (isPickup ? NEAR_IDS : DEST_IDS).forEach((id) => { const l = LOCS.find((x) => x.id === id); if (l) rows.push({ row: true, tone: '', icon: l.icon, name: l.n, sub: l.s || '', pick: () => this.choose(l) }); });
+      (isPickup ? NEAR_IDS : DEST_IDS).forEach((id) => { const l = LOCS.find((x) => x.id === id); if (l) rows.push({ row: true, tone: '', icon: l.icon, name: l.n, sub: l.s || '', pick: (e) => this.pickSug(e, l) }); });
     } else {
-      const savedN = (sg.saved || []).length;
-      items.forEach((l, i) => {
-        if (i === 0 && savedN) rows.push({ head: true, name: t.savedPlaces });
-        if (i === savedN && sg.geoCount) rows.push({ head: true, name: t.results });
-        rows.push({ row: true, tone: '', icon: l.icon, name: l.n, sub: l.s || '', pick: () => this.choose(l) });
-      });
+      const geoItems = items.filter((l) => l.geoHit);
+      const savedItems = items.filter((l) => !l.geoHit);
+      if (geoItems.length) {
+        rows.push({ head: true, name: t.results });
+        geoItems.forEach((l) => rows.push({ row: true, tone: '', icon: l.icon, name: l.n, sub: l.s || '', pick: (e) => this.pickSug(e, l) }));
+      }
+      if (savedItems.length) {
+        rows.push({ head: true, name: t.savedPlaces });
+        savedItems.forEach((l) => rows.push({ row: true, tone: '', icon: l.icon, name: l.n, sub: l.s || '', pick: (e) => this.pickSug(e, l) }));
+      }
       if (s.geo === 'loading') rows.push({ spin: true, name: t.searching });
       else if (s.geo === 'err') rows.push({ head: true, name: t.geoErr });
-      if (sg.custom && s.geo !== 'loading') rows.push({ row: true, tone: 'pin', icon: 'map-pin', name: '“' + sg.text + '”', sub: t.customPin, pick: () => this.choose({ custom: true }) });
     }
     let i = -1;
     rows.forEach((r) => {
@@ -1966,7 +2085,7 @@ class Component extends DCLogic {
       tMenu: t.menu, tClose: t.close, tSheetTitle: t.planTitle, tShowPrices: t.showPrices, tCall: t.call, tCallNote: t.callNote,
       tLangLabel: t.langLabel, tCurLabel: t.curLabel,
       swap: this.swap, tSwap: t.swap,
-      date: dateStr, day: s.day, setDay: this.setDay, time: s.time, setTime: this.setTime, timeSlots: slots, tWhenPh: t.whenPh,
+      date: dateStr, day: s.day, setDay: this.setDay, time: s.time, setTime: this.setTime, timeSlots: slots, tWhenPh: t.whenPh, baseMonth: zurichYm(),
       returnDate: s.returnLabel || (s.returnDay ? this.fmtDate(s.returnDay) : ''), returnDay: s.returnDay, setReturnDay: this.setReturnDay, returnTime: s.returnTime, setReturnTime: this.setReturnTime,
       tGroups: [t.morning, t.afternoon, t.evening], tPickupTime: t.pickupTime, tReturnTime: t.returnTimeLbl,
       tWhenLbl: s.mode === 'return' ? t.whenBoth : t.when, tLegs: [t.pickup, t.return_], tSaved: t.saved,

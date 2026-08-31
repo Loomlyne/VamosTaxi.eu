@@ -124,29 +124,29 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <div data-svc-track="1" ref="{{ trackRef }}">
 
-<dc-import name="ServiceCard" href="home.dc.html?service=airport#book" title-id="svc-t1" icon="plane-landing" tone="{{ tone }}" hint-size="100%,100%">
+<dc-import name="ServiceCard" href="/?service=airport#book" title-id="svc-t1" icon="plane-landing" tone="{{ tone }}" hint-size="100%,100%">
 <h3 data-svc-title="1" id="svc-t1">Airport transfers</h3>
 <span data-svc-desc="1">Fixed-price rides to and from the airport, timed to your flight.</span>
 </dc-import>
 
-<dc-import name="ServiceCard" href="home.dc.html?service=city#book" title-id="svc-t2" icon="navigation" tone="{{ tone }}" hint-size="100%,100%">
+<dc-import name="ServiceCard" href="/?service=city#book" title-id="svc-t2" icon="navigation" tone="{{ tone }}" hint-size="100%,100%">
 <h3 data-svc-title="1" id="svc-t2">City to city</h3>
 <span data-svc-desc="1">Private transfers between Swiss cities, scheduled for one exact time.</span>
 </dc-import>
 
-<dc-import name="ServiceCard" href="home.dc.html?service=corporate#book" title-id="svc-t3" icon="briefcase" tone="{{ tone }}" hint-size="100%,100%">
+<dc-import name="ServiceCard" href="/?service=corporate#book" title-id="svc-t3" icon="briefcase" tone="{{ tone }}" hint-size="100%,100%">
 <h3 data-svc-title="1" id="svc-t3">Corporate transfers</h3>
 <span data-svc-desc="1">Reliable, invoiced transfers for business travel and events.</span>
 </dc-import>
 
 <sc-if value="{{ showHourly }}" hint-placeholder-val="{{ true }}">
-<dc-import name="ServiceCard" href="home.dc.html?service=hourly#book" title-id="svc-t4" icon="clock" tone="{{ tone }}" hint-size="100%,100%">
+<dc-import name="ServiceCard" href="/?service=hourly#book" title-id="svc-t4" icon="clock" tone="{{ tone }}" hint-size="100%,100%">
 <h3 data-svc-title="1" id="svc-t4">Chauffeur by the hour</h3>
 <span data-svc-desc="1">Book a driver and vehicle for multiple stops across the day.</span>
 </dc-import>
 </sc-if>
 
-<a data-svc-cta="1" href="home.dc.html#book">
+<a data-svc-cta="1" href="/#book">
 <span>
 <span data-svc-cta-kicker="1">Any route</span>
 <span data-svc-cta-title="1">Tell us where you are going and we price it now.</span>
