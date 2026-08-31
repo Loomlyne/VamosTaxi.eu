@@ -24,3 +24,6 @@ export { ContentStringRow } from "./ContentStringRow";
 export { ContentFlagControls } from "./ContentFlagControls";
 export { ContentCoverage } from "./ContentCoverage";
 export type { ContentCoverageDoc } from "./ContentCoverage";
+export { SettingsPanes } from "./SettingsPanes";
+export type { SettingsPane } from "./SettingsPanes";
+export { PolicyVersionCard } from "./PolicyVersionCard";
