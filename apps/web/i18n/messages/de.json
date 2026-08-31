@@ -1537,7 +1537,11 @@
     "unique-constraint": "Dieser Name ist bereits vergeben",
     "check-constraint": "Dieser Wert ist nicht zulässig",
     "foreign-key": "Dieser Datensatz wird noch verwendet",
-    "insufficient-privilege": "Das ist nicht erlaubt"
+    "insufficient-privilege": "Das ist nicht erlaubt",
+    "email": "E-Mail",
+    "credential-failed": "Anmeldung fehlgeschlagen. E-Mail und Passwort prüfen.",
+    "mfa-failed": "Dieser Code hat nicht funktioniert. Nochmals versuchen.",
+    "internal-tool-note": "Internes Werkzeug. Nur für Dispatcher und Admins."
   },
   "partner": {
     "a-background-check-on-you-and-an-inspection-of-y": "Eine Hintergrundprüfung zu Ihrer Person und eine Kontrolle Ihres Fahrzeugs. Beides passiert nicht hier — geht Ihre Bewerbung weiter, vereinbaren wir beides mit Ihnen und verlangen dann die Dokumente.",

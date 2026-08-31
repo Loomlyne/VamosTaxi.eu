@@ -1537,7 +1537,11 @@
     "unique-constraint": "Ce nom est déjà utilisé",
     "check-constraint": "Cette valeur n’est pas autorisée",
     "foreign-key": "Cet enregistrement est encore utilisé",
-    "insufficient-privilege": "Vous ne pouvez pas faire cela"
+    "insufficient-privilege": "Vous ne pouvez pas faire cela",
+    "email": "E-mail",
+    "credential-failed": "Connexion impossible. Vérifiez l’e-mail et le mot de passe.",
+    "mfa-failed": "Ce code n’a pas fonctionné. Réessayez.",
+    "internal-tool-note": "Outil interne. Accès dispatcher et admin uniquement."
   },
   "partner": {
     "a-background-check-on-you-and-an-inspection-of-y": "Une vérification vous concernant et une inspection de votre véhicule. Ni l’une ni l’autre ici — si votre candidature avance, nous organisons les deux avec vous et demandons alors les documents.",

@@ -457,7 +457,7 @@
   "Edit": "ops.edit",
   "Edit booking": "ops.edit-booking",
   "Eight questions, three categories — that is the real content": "common.eight-questions-three-categories-that-is-the-rea",
-  "Email": "common.email",
+  "Email": "ops.email",
   "Email address": "account.email-address",
   "Email it to me": "account.email-it-to-me",
   "Email me a link": "ops.email-me-a-link",
@@ -1556,5 +1556,8 @@
   "That name is already in use": "ops.unique-constraint",
   "That value is not allowed": "ops.check-constraint",
   "That record is still in use": "ops.foreign-key",
-  "You cannot do that": "ops.insufficient-privilege"
+  "You cannot do that": "ops.insufficient-privilege",
+  "Sign-in failed. Check the email and password.": "ops.credential-failed",
+  "That code did not work. Try again.": "ops.mfa-failed",
+  "Internal tool. Dispatcher and admin access only.": "ops.internal-tool-note"
 }

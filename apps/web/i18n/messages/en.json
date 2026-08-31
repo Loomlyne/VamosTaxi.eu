@@ -1537,7 +1537,11 @@
     "unique-constraint": "That name is already in use",
     "check-constraint": "That value is not allowed",
     "foreign-key": "That record is still in use",
-    "insufficient-privilege": "You cannot do that"
+    "insufficient-privilege": "You cannot do that",
+    "email": "Email",
+    "credential-failed": "Sign-in failed. Check the email and password.",
+    "mfa-failed": "That code did not work. Try again.",
+    "internal-tool-note": "Internal tool. Dispatcher and admin access only."
   },
   "partner": {
     "a-background-check-on-you-and-an-inspection-of-y": "A background check on you and an inspection of your vehicle. Neither happens here — if your application goes forward we arrange both with you, and ask for documents then.",

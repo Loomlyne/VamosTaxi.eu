@@ -1537,7 +1537,11 @@
     "unique-constraint": "هذا الاسم مستخدم بالفعل",
     "check-constraint": "هذه القيمة غير مسموحة",
     "foreign-key": "هذا السجل ما زال قيد الاستخدام",
-    "insufficient-privilege": "لا يمكنك القيام بذلك"
+    "insufficient-privilege": "لا يمكنك القيام بذلك",
+    "email": "البريد الإلكتروني",
+    "credential-failed": "فشل تسجيل الدخول. تحقق من البريد وكلمة المرور.",
+    "mfa-failed": "هذا الرمز لم يعمل. حاول مرة أخرى.",
+    "internal-tool-note": "أداة داخلية. للموزّعين والمديرين فقط."
   },
   "partner": {
     "a-background-check-on-you-and-an-inspection-of-y": "فحص خلفيتك وفحص سيارتك. لا يحدث أيٌّ منهما هنا — وإن تقدّم طلبك، نرتّب كليهما معك ونطلب المستندات عندئذٍ.",
