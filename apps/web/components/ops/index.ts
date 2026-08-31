@@ -31,3 +31,4 @@ export { RateBookTabs } from "./RateBookTabs";
 export { DistanceRateTable } from "./DistanceRateTable";
 export { FixedRouteTable } from "./FixedRouteTable";
 export { SurchargeTable } from "./SurchargeTable";
+export { ServiceZonePanel } from "./ServiceZonePanel";
