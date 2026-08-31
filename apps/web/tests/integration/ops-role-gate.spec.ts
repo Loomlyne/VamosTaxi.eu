@@ -97,7 +97,12 @@ test.describe("ops role gate @ops-role-gate", () => {
     expect(new URL(location, baseURL).pathname).toBe("/");
   });
 
-  test("admin reaches /ops/pricing — un-fixme in 06-07 when the page ships", async () => {
-    test.fixme(true, "06-07 ships /ops/pricing; assert 200 for an admin session then");
+  test("admin reaches /ops/pricing", async ({ page }) => {
+    const fixture = await createStaffFixture({ role: "admin", enrolTotp: true });
+    if (!fixture.factorSecret) throw new Error("expected factor secret");
+    await signInAndClearMfa(page, fixture.email, fixture.password, fixture.factorSecret);
+    const res = await page.goto(`${baseURL}/ops/pricing`);
+    expect(res?.status()).toBe(200);
+    await expect(page.locator("[data-ops-pricing]")).toBeVisible();
   });
 });
