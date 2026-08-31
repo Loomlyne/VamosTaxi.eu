@@ -1541,7 +1541,20 @@
     "email": "البريد الإلكتروني",
     "credential-failed": "فشل تسجيل الدخول. تحقق من البريد وكلمة المرور.",
     "mfa-failed": "هذا الرمز لم يعمل. حاول مرة أخرى.",
-    "internal-tool-note": "أداة داخلية. للموزّعين والمديرين فقط."
+    "internal-tool-note": "أداة داخلية. للموزّعين والمديرين فقط.",
+    "auth": {
+      "step-password": "تعيين كلمة المرور",
+      "step-scan": "مسح رمز QR",
+      "step-confirm": "تأكيد الرمز",
+      "confirm-password": "تأكيد كلمة المرور",
+      "passwords-must-match": "يجب أن تتطابق كلمتا المرور",
+      "qr-alt": "رمز QR لتطبيق المصادقة",
+      "secret-label": "تعذر المسح؟ أدخل هذا المفتاح في تطبيق المصادقة.",
+      "enrol-failed": "تعذر بدء إعداد تطبيق المصادقة. حاول مرة أخرى.",
+      "claim-incomplete": "أنت مسجّل الدخول. يمكن إكمال إعداد الملف لاحقًا.",
+      "completed": "مكتمل",
+      "invite-delivery-unconfigured": "Invite delivery is not configured yet"
+    }
   },
   "partner": {
     "a-background-check-on-you-and-an-inspection-of-y": "فحص خلفيتك وفحص سيارتك. لا يحدث أيٌّ منهما هنا — وإن تقدّم طلبك، نرتّب كليهما معك ونطلب المستندات عندئذٍ.",

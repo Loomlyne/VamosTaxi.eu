@@ -1541,7 +1541,20 @@
     "email": "E-mail",
     "credential-failed": "Connexion impossible. Vérifiez l’e-mail et le mot de passe.",
     "mfa-failed": "Ce code n’a pas fonctionné. Réessayez.",
-    "internal-tool-note": "Outil interne. Accès dispatcher et admin uniquement."
+    "internal-tool-note": "Outil interne. Accès dispatcher et admin uniquement.",
+    "auth": {
+      "step-password": "Définir le mot de passe",
+      "step-scan": "Scanner le QR",
+      "step-confirm": "Confirmer le code",
+      "confirm-password": "Confirmer le mot de passe",
+      "passwords-must-match": "Les mots de passe doivent correspondre",
+      "qr-alt": "QR code de l’application d’authentification",
+      "secret-label": "Impossible de scanner ? Saisissez cette clé dans votre application d’authentification.",
+      "enrol-failed": "Impossible de démarrer la configuration de l’authenticator. Réessayez.",
+      "claim-incomplete": "Vous êtes connecté. La configuration du profil pourra se terminer plus tard.",
+      "completed": "terminé",
+      "invite-delivery-unconfigured": "Invite delivery is not configured yet"
+    }
   },
   "partner": {
     "a-background-check-on-you-and-an-inspection-of-y": "Une vérification vous concernant et une inspection de votre véhicule. Ni l’une ni l’autre ici — si votre candidature avance, nous organisons les deux avec vous et demandons alors les documents.",
