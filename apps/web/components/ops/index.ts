@@ -19,3 +19,8 @@ export { CouponForm } from "./CouponForm";
 export { CustomerTable } from "./CustomerTable";
 export { CustomerDetail } from "./CustomerDetail";
 export { BookingHistoryList } from "./BookingHistoryList";
+export { ContentStringTable } from "./ContentStringTable";
+export { ContentStringRow } from "./ContentStringRow";
+export { ContentFlagControls } from "./ContentFlagControls";
+export { ContentCoverage } from "./ContentCoverage";
+export type { ContentCoverageDoc } from "./ContentCoverage";
