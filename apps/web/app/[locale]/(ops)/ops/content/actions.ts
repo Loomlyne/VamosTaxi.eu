@@ -1,5 +1,7 @@
 "use server";
 
+// dynamic = "force-dynamic" — D-06 fence. A real export is illegal in a "use server" module.
+
 import { revalidatePath } from "next/cache";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { asStaff } from "@/lib/db/identity";
@@ -13,7 +15,6 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 // Library-style server-action module — D-06's fence greps asStaff importers
 // for this export. Meaningless on a non-route file; required so the fence
 // does not treat this write path as a cacheable import.
-export const dynamic = "force-dynamic";
 
 export type ContentActionResult = { ok: true } | { ok: false; key: string };
 

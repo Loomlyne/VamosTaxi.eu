@@ -152,7 +152,7 @@ function toCivilDate(value: string | Date): string | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
   const match = /^(\d{4}-\d{2}-\d{2})/.exec(trimmed);
-  return match ? match[1] : null;
+  return match?.[1] ?? null;
 }
 
 function zurichCivilDate(now: Date): string {
@@ -165,7 +165,11 @@ function zurichCivilDate(now: Date): string {
 }
 
 function addCivilDays(iso: string, days: number): string {
-  const [y, m, d] = iso.split("-").map(Number);
+  const parts = iso.split("-").map(Number);
+  const y = parts[0];
+  const m = parts[1];
+  const d = parts[2];
+  if (y === undefined || m === undefined || d === undefined) return iso;
   const dt = new Date(Date.UTC(y, m - 1, d + days));
   const yy = dt.getUTCFullYear();
   const mm = String(dt.getUTCMonth() + 1).padStart(2, "0");

@@ -67,14 +67,16 @@ test.describe("ops photo upload @ops-photo", () => {
         size: PHOTO_MAX_BYTES + 1,
         bytes: jpegBytes(),
       });
-      expect.unreachable();
+      throw new Error("unreachable");
     } catch (err) {
+      if (err instanceof Error && err.message === "unreachable") throw err;
       expect((err as PhotoUploadError).code).toBe("too_large");
     }
     try {
       assertPhotoUpload({ type: "image/jpeg", size: 32, bytes: pngBytes() });
-      expect.unreachable();
+      throw new Error("unreachable");
     } catch (err) {
+      if (err instanceof Error && err.message === "unreachable") throw err;
       expect((err as PhotoUploadError).code).toBe("type_mismatch");
     }
   });
@@ -127,8 +129,9 @@ test.describe("ops photo upload @ops-photo", () => {
     };
     try {
       assertPhotoUpload({ type: "image/gif", size: 8, bytes: new Uint8Array(8) });
-      expect.unreachable();
+      throw new Error("unreachable");
     } catch (err) {
+      if (err instanceof Error && err.message === "unreachable") throw err;
       expect((err as PhotoUploadError).code).toBe("type_not_allowed");
       onChange(value);
     }

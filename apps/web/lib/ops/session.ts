@@ -6,7 +6,10 @@
 // trace. Fields are enumerated by name (mirroring claimsForSql); the user
 // object is never spread.
 
-import type { VamosClaims } from "@vamos/db/claims";
+import type { VamosClaims } from "@/lib/db/identity";
+
+// Library module — D-06 greps asStaff/identity importers for this export.
+export const dynamic = "force-dynamic";
 
 export type StaffSession = VamosClaims;
 

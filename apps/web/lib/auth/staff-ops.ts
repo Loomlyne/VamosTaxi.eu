@@ -1,5 +1,7 @@
 "use server";
 
+// dynamic = "force-dynamic" — D-06 fence. A real export is illegal in a "use server" module.
+
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { emailSchema, passwordSchema } from "@/lib/auth/schemas";
 import { asStaff } from "@/lib/db/identity";

@@ -40,7 +40,7 @@ function mockClient(opts: {
   user: {
     id: string;
     email?: string | null;
-    app_metadata?: { vamos_role?: unknown };
+    app_metadata?: { vamos_role?: unknown; extra?: unknown };
   } | null;
   aal?: string | null;
   sessionId?: string;

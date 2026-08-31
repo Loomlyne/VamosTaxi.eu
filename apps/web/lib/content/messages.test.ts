@@ -159,8 +159,9 @@ describe("loadMessagesFromDb", () => {
 
     expect(messages).toEqual(en);
     expect(log).toHaveBeenCalledTimes(1);
-    expect(log.mock.calls[0][0]).toBe("error");
-    expect(log.mock.calls[0][3]).toMatchObject({
+    const first = log.mock.calls[0];
+    expect(first?.[0]).toBe("error");
+    expect(first?.[3]).toMatchObject({
       scope: "i18n",
       event: "content_strings_fallback",
       cause: "query_failed",
@@ -179,7 +180,7 @@ describe("loadMessagesFromDb", () => {
 
     expect(messages).toEqual((await import("../../i18n/messages/fr.json")).default);
     expect(log).toHaveBeenCalledTimes(1);
-    expect(log.mock.calls[0][3]).toMatchObject({
+    expect(log.mock.calls[0]?.[3]).toMatchObject({
       scope: "i18n",
       event: "content_strings_fallback",
       cause: "empty_result",

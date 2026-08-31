@@ -104,14 +104,20 @@ describe("runOtp", () => {
       "https://example.test",
       "/",
     );
-    expect(signInWithOtp.mock.calls[0]?.[0].options.shouldCreateUser).toBe(true);
+    const first = signInWithOtp.mock.calls[0] as
+      | [{ options?: { shouldCreateUser?: boolean } }]
+      | undefined;
+    expect(first?.[0]?.options?.shouldCreateUser).toBe(true);
     await runOtp(
       sb,
       { mode: "signup", email: "a@b.co", locale: "fr", firstName: "A", lastName: "B" },
       "https://example.test",
       "/",
     );
-    expect(signInWithOtp.mock.calls[1]?.[0].options.shouldCreateUser).toBe(true);
+    const second = signInWithOtp.mock.calls[1] as
+      | [{ options?: { shouldCreateUser?: boolean } }]
+      | undefined;
+    expect(second?.[0]?.options?.shouldCreateUser).toBe(true);
   });
 });
 

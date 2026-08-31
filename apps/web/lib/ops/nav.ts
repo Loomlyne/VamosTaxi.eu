@@ -16,9 +16,8 @@ export type OpsNavGroup = {
   items: OpsNavItem[];
 };
 
-const ADMIN_ONLY = new Set(["pricing", "staff"]);
-
-const PHASE_8 = new Set(["dashboard", "bookings", "calendar", "board"]);
+const ADMIN_ONLY = ["pricing", "staff"] as const;
+const PHASE_8 = ["dashboard", "bookings", "calendar", "board"] as const;
 
 function item(
   key: string,
@@ -27,19 +26,15 @@ function item(
   labelKey: string,
   role: "dispatcher" | "admin",
 ): OpsNavItem | null {
-  if (ADMIN_ONLY.has(key)) {
-    if (role === "admin") {
-      /* allow-list */
-    } else {
-      return null;
-    }
+  if ((ADMIN_ONLY as readonly string[]).includes(key) && role !== "admin") {
+    return null;
   }
   return {
     key,
     href,
     icon,
     labelKey,
-    enabled: !PHASE_8.has(key),
+    enabled: !(PHASE_8 as readonly string[]).includes(key),
   };
 }
 

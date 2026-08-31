@@ -1,5 +1,7 @@
 "use server";
 
+// dynamic = "force-dynamic" — D-06 fence. A real export is illegal in a "use server" module.
+
 import { revalidatePath } from "next/cache";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { asStaff } from "@/lib/db/identity";
@@ -12,7 +14,6 @@ import {
 import { OpsAuthError, requireStaffClaims, type StaffAuthClient } from "@/lib/ops/session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-export const dynamic = "force-dynamic";
 
 const PROFILE_PATH = "/ops/profile";
 

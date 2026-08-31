@@ -4,7 +4,7 @@
 // the empty-seed reader. No Hyperdrive, no Docker.
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { VamosClaims } from "@vamos/db/claims";
+import type { VamosClaims } from "@/lib/db/identity";
 
 const asStaff = vi.fn();
 

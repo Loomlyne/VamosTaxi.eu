@@ -7,6 +7,8 @@
 
 import { asStaff, type VamosClaims } from "@/lib/db/identity";
 
+export const dynamic = "force-dynamic";
+
 export type CustomerType = "private" | "corporate";
 
 export type CustomerRow = {

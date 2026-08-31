@@ -83,16 +83,18 @@ export function unflattenKeys(flat: Record<string, string>): RawMessages {
     }
     let cursor: Record<string, unknown> = root;
     for (let i = 0; i < segments.length; i++) {
+      const segment = segments[i];
+      if (segment === undefined) throw new KeyPrefixCollisionError(dotted);
       const last = i === segments.length - 1;
       if (last) {
-        const existing = cursor[segments[i]];
+        const existing = cursor[segment];
         if (existing !== undefined && typeof existing === "object" && existing !== null) {
           throw new KeyPrefixCollisionError(dotted);
         }
-        cursor[segments[i]] = value;
+        cursor[segment] = value;
         break;
       }
-      const existing = cursor[segments[i]];
+      const existing = cursor[segment];
       if (typeof existing === "string") {
         const remainder = segments.slice(i).join(".");
         const clash = cursor[remainder];
@@ -103,9 +105,9 @@ export function unflattenKeys(flat: Record<string, string>): RawMessages {
         break;
       }
       if (existing === undefined || existing === null || typeof existing !== "object") {
-        cursor[segments[i]] = {};
+        cursor[segment] = {};
       }
-      cursor = cursor[segments[i]] as Record<string, unknown>;
+      cursor = cursor[segment] as Record<string, unknown>;
     }
   }
   return root;

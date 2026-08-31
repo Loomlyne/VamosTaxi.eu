@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 
 const { redirect } = createNavigation(routing);
 
-const OPS_EXEMPT = new Set(["/ops/sign-in", "/ops/mfa-challenge", "/ops/accept-invite"]);
+const OPS_EXEMPT = ["/ops/sign-in", "/ops/mfa-challenge", "/ops/accept-invite"] as const;
 
 function opsPathFromHeaders(headerList: Headers): string {
   return headerList.get("x-vamos-ops-path") ?? "";
@@ -33,7 +33,7 @@ export default async function OpsLayout({ children }: { children: ReactNode }) {
   const opsPath = opsPathFromHeaders(headerList);
   const locale = await getLocale();
 
-  if (OPS_EXEMPT.has(opsPath)) {
+  if ((OPS_EXEMPT as readonly string[]).includes(opsPath)) {
     return <>{children}</>;
   }
 

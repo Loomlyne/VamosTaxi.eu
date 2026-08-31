@@ -1,5 +1,7 @@
 "use server";
 
+// dynamic = "force-dynamic" — D-06 fence. A real export is illegal in a "use server" module.
+
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { getLocale } from "next-intl/server";
@@ -17,7 +19,6 @@ import {
 import { OpsAuthError, requireAdminClaims, type StaffAuthClient } from "@/lib/ops/session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-export const dynamic = "force-dynamic";
 
 const STAFF_PATH = "/ops/staff";
 
