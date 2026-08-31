@@ -4,3 +4,5 @@ export { OpsShell } from "./OpsShell";
 export { OpsAuthCard } from "./OpsAuthCard";
 export { OpsSignInForm } from "./OpsSignInForm";
 export { OpsMfaChallengeForm } from "./OpsMfaChallengeForm";
+export { OpsAcceptInvite } from "./OpsAcceptInvite";
+export { OpsTotpEnrol } from "./OpsTotpEnrol";

@@ -1541,7 +1541,20 @@
     "email": "Email",
     "credential-failed": "Sign-in failed. Check the email and password.",
     "mfa-failed": "That code did not work. Try again.",
-    "internal-tool-note": "Internal tool. Dispatcher and admin access only."
+    "internal-tool-note": "Internal tool. Dispatcher and admin access only.",
+    "auth": {
+      "step-password": "Set password",
+      "step-scan": "Scan QR",
+      "step-confirm": "Confirm code",
+      "confirm-password": "Confirm password",
+      "passwords-must-match": "Passwords must match",
+      "qr-alt": "Authenticator QR code",
+      "secret-label": "Can't scan? Enter this key in your authenticator app.",
+      "enrol-failed": "Could not start authenticator setup. Try again.",
+      "claim-incomplete": "You are signed in. Profile setup can finish later.",
+      "completed": "completed",
+      "invite-delivery-unconfigured": "Invite delivery is not configured yet"
+    }
   },
   "partner": {
     "a-background-check-on-you-and-an-inspection-of-y": "A background check on you and an inspection of your vehicle. Neither happens here — if your application goes forward we arrange both with you, and ask for documents then.",

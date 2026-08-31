@@ -1541,7 +1541,20 @@
     "email": "E-Mail",
     "credential-failed": "Anmeldung fehlgeschlagen. E-Mail und Passwort prüfen.",
     "mfa-failed": "Dieser Code hat nicht funktioniert. Nochmals versuchen.",
-    "internal-tool-note": "Internes Werkzeug. Nur für Dispatcher und Admins."
+    "internal-tool-note": "Internes Werkzeug. Nur für Dispatcher und Admins.",
+    "auth": {
+      "step-password": "Passwort festlegen",
+      "step-scan": "QR scannen",
+      "step-confirm": "Code bestätigen",
+      "confirm-password": "Passwort bestätigen",
+      "passwords-must-match": "Passwörter müssen übereinstimmen",
+      "qr-alt": "QR-Code der Authenticator-App",
+      "secret-label": "Scannen nicht möglich? Diesen Schlüssel in der Authenticator-App eingeben.",
+      "enrol-failed": "Authenticator-Einrichtung konnte nicht starten. Erneut versuchen.",
+      "claim-incomplete": "Sie sind angemeldet. Die Profil-Einrichtung kann später fertiggestellt werden.",
+      "completed": "abgeschlossen",
+      "invite-delivery-unconfigured": "Invite delivery is not configured yet"
+    }
   },
   "partner": {
     "a-background-check-on-you-and-an-inspection-of-y": "Eine Hintergrundprüfung zu Ihrer Person und eine Kontrolle Ihres Fahrzeugs. Beides passiert nicht hier — geht Ihre Bewerbung weiter, vereinbaren wir beides mit Ihnen und verlangen dann die Dokumente.",
