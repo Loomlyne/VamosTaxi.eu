@@ -56,7 +56,7 @@
         // TODO(08-deploy): replace with the id from `wrangler kv namespace create`
         {
           "binding": "QUOTE_ABUSE",
-          "id": "<quote-abuse staging kv id — created by plan 04-13 via wrangler kv namespace create>"
+          "id": "5080f3d518c24eaeb7b0590c922349c2"
         }
       ],
       "r2_buckets": [
