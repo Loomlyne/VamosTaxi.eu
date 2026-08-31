@@ -27,3 +27,6 @@ export type { ContentCoverageDoc } from "./ContentCoverage";
 export { SettingsPanes } from "./SettingsPanes";
 export type { SettingsPane } from "./SettingsPanes";
 export { PolicyVersionCard } from "./PolicyVersionCard";
+export { ReviewTable } from "./ReviewTable";
+export { ReviewForm } from "./ReviewForm";
+export { ReviewOrderControls } from "./ReviewOrderControls";
