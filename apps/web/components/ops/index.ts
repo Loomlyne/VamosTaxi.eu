@@ -27,3 +27,7 @@ export type { ContentCoverageDoc } from "./ContentCoverage";
 export { SettingsPanes } from "./SettingsPanes";
 export type { SettingsPane } from "./SettingsPanes";
 export { PolicyVersionCard } from "./PolicyVersionCard";
+export { RateBookTabs } from "./RateBookTabs";
+export { DistanceRateTable } from "./DistanceRateTable";
+export { FixedRouteTable } from "./FixedRouteTable";
+export { SurchargeTable } from "./SurchargeTable";
