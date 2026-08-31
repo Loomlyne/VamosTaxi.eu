@@ -526,8 +526,50 @@ const LOCS = [
   { id:'verbier', n:'Verbier, Place Centrale', s:'Valais', icon:'snowflake', lat:46.0963, lon:7.2270 },
   { id:'chamonix', n:'Chamonix, Place Balmat', s:'Cross-border · France', icon:'snowflake', lat:45.9237, lon:6.8694 },
 ];
-/** Live place search — Photon (OpenStreetMap), no key required. Falls back to LOCS offline. */
+/** Live place search — /api/geo (Mapbox). Falls back to LOCS when the proxy degrades. */
 const GEO_LANGS = { en:'en', de:'de', fr:'fr', ar:'en' };
+function geoSession() {
+  try {
+    let t = sessionStorage.getItem('vamosGeoSession');
+    if (t && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(t)) return t;
+    t = (crypto.randomUUID && crypto.randomUUID()) || ('xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    }));
+    sessionStorage.setItem('vamosGeoSession', t);
+    return t;
+  } catch (e) {
+    return (crypto.randomUUID && crypto.randomUUID()) || '00000000-0000-4000-8000-000000000001';
+  }
+}
+function scheduledLocal(day, time) {
+  const d = String(day || '').padStart(2, '0');
+  const tm = /^\d{2}:\d{2}$/.test(time) ? time : '00:00';
+  return '2026-08-' + d + 'T' + tm;
+}
+function placeInput(loc, text) {
+  if (!loc) return null;
+  const t = String(text || loc.n || 'pin').slice(0, 200);
+  if (t.length < 2) return null;
+  if (loc.mapbox_id && loc.session_token) {
+    return { kind: 'retrieve', mapbox_id: String(loc.mapbox_id).slice(0, 256), session_token: String(loc.session_token).slice(0, 128), text: t };
+  }
+  if (loc.lat != null && loc.lon != null && isFinite(Number(loc.lat)) && isFinite(Number(loc.lon))) {
+    return { kind: 'pin', lng: Number(loc.lon), lat: Number(loc.lat), text: t };
+  }
+  return null;
+}
+function apiFlightToWidget(f) {
+  if (!f) return null;
+  const landing = String(f.landing_local || f.landing_at || '');
+  const time = landing.length >= 16 ? landing.slice(11, 16) : null;
+  const date = f.date || (landing.length >= 10 ? landing.slice(0, 10) : null);
+  return {
+    num: String(f.number || '').toUpperCase().replace(/[^A-Z0-9]/g, ''),
+    airline: null, aircraft: null, status: f.status || 'Unknown',
+    dep: { iata: f.origin_iata || '', name: null, city: null, terminal: null, gate: null, belt: null, date: date, sched: null, est: null, act: null },
+    arr: { iata: f.dest_iata || '', name: null, city: null, terminal: f.terminal || null, gate: f.gate || null, belt: f.baggage_belt || null, date: date, sched: time, est: f.landing_source === 'estimated' ? time : null, act: f.landing_source === 'actual' ? time : null },
+  };
+}
 function geoLabel(p) {
   if (p.housenumber && p.street) return [p.street + ' ' + p.housenumber, p.city].filter(Boolean).join(', ');
   if (p.street && !p.name) return [p.street, p.city].filter(Boolean).join(', ');
@@ -718,23 +760,20 @@ const FLIGHT_API = {
   host: 'aerodatabox.p.rapidapi.com',
   live() { return !!this.key; },
   headers() { return { 'X-RapidAPI-Key': this.key, 'X-RapidAPI-Host': this.host }; },
-  /** GET /flights/search/term?q= — autocomplete while the traveller types. */
+  /** Autocomplete has no public proxy yet — fixtures only. */
   search(term, here) {
-    if (!this.live()) return Promise.resolve(fixtureSearch(term, here));
-    return fetch('https://' + this.host + '/flights/search/term?q=' + encodeURIComponent(term) + '&limit=6', { headers: this.headers() })
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('http ' + r.status))))
-      .then((j) => (j.items || j || []).map((it) => ({
-        num: String((it && (it.number || it)) || '').toUpperCase().replace(/[^A-Z0-9]/g, ''),
-        airline: null, aircraft: null, status: 'Unknown', thin: true,
-        dep: { iata: '', terminal: null, gate: null, sched: null }, arr: { iata: '', terminal: null, gate: null, belt: null, sched: null },
-      })).filter((f) => f.num.length > 2));
+    return Promise.resolve(fixtureSearch(term, here));
   },
-  /** GET /flights/number/{number}/{date} — full status for one day. */
+  /** GET /api/flight/:no — server proxy. Fixtures if the feed is off. */
   status(num, date, advance) {
-    if (!this.live()) return Promise.resolve(fixtureStatus(num, advance));
-    return fetch('https://' + this.host + '/flights/number/' + encodeURIComponent(num) + '/' + date + '?withAircraftImage=false&withLocation=false', { headers: this.headers() })
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('http ' + r.status))))
-      .then((j) => { const raw = Array.isArray(j) ? j[0] : (j.flights || [])[0]; return raw ? adbNormalize(raw) : null; });
+    const locale = (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en';
+    return fetch('/api/flight/' + encodeURIComponent(num) + '?date=' + encodeURIComponent(date) + '&locale=' + encodeURIComponent(locale))
+      .then((r) => r.json())
+      .then((j) => {
+        if (j && j.ok && j.flight) return apiFlightToWidget(j.flight);
+        return fixtureStatus(num, advance);
+      })
+      .catch(() => fixtureStatus(num, advance));
   },
 };
 
@@ -1180,17 +1219,17 @@ class Component extends DCLogic {
   }
   fmtDate(day) { const t = this.t(); const dow = t.dowRef.split(','); return dow[(day - 1) % 7] + ' ' + day + ' ' + t.mon; }
   resolveLoc(text, loc) { if (loc) return loc; const s = (text || '').trim(); return s.length >= 4 ? Object.assign({ custom: true, n: s }, hashXY(s)) : null; }
-  /** A trip only prices once the traveller has answered every question. */
+  /** A trip only prices once pickup, destination, when, and party are real answers. */
   routeInfo() {
     const s = this.state;
     const when = !!s.day && !!s.time && (s.mode !== 'return' || (!!s.returnDay && !!s.returnTime));
-    const a = this.resolveLoc(s.pickupText, s.pickupLoc);
+    const a = s.pickupLoc;
     const complete = when && s.pax >= 1;
     if (s.mode === 'hourly') return (a && complete && s.hours >= 1) ? { ok: true, hourly: true, a } : { ok: false, a };
-    const b = this.resolveLoc(s.dropText, s.dropLoc);
+    const b = s.dropLoc;
     if (!a || !b) return { ok: false, a, b };
-    const km = this.distKm(a, b);
-    const info = { km, min: Math.round(km / (km > 60 ? 78 : 44) * 60 + 8), a, b };
+    const km = (a.lat != null && b.lat != null) ? this.distKm(a, b) : 0;
+    const info = { km, min: km ? Math.round(km / (km > 60 ? 78 : 44) * 60 + 8) : 0, a, b };
     return complete ? Object.assign({ ok: true }, info) : Object.assign({ ok: false }, info);
   }
   distKm(a, b) {
@@ -1224,24 +1263,20 @@ class Component extends DCLogic {
   relabelAll() { Object.entries(this.dusts).forEach(([k, d]) => { if (d.mode === 'idle' || d.mode === 'dim') { const lb = this.labelFor(k); d.setText(lb.text, lb.small); } }); }
   q = () => { clearTimeout(this._deb); this._deb = setTimeout(this.fireQuote, 300); };
   fireQuote = () => {
-    const r = this.routeInfo(); const id = ++this.reqSeq; const wasLive = this.state.quote.status === 'live';
+    const r = this.routeInfo(); const id = ++this.reqSeq;
     if (!r.ok) { this.setState({ quote: { status: 'empty', results: null, inflight: false } }); this.relabelAll(); return; }
     if (this.state.quote.status === 'live') { this.disperseAll(); this.setState({ quote: Object.assign({}, this.state.quote, { inflight: true }) }); }
     else this.setState({ quote: { status: 'skeleton', results: null, inflight: true } });
-    const base = +(this.props.quoteLatencyMs ?? 1200);
-    const wait = Math.min(1600, base * (0.6 + Math.random() * 0.5));
-    setTimeout(() => {
+    const s = this.state;
+    const failAll = () => {
       if (id !== this.reqSeq) return;
-      const qaErrors = typeof location !== 'undefined' && /(?:^|[?&])qa=errors\b/.test(location.search);
-      const fail = qaErrors && Math.random() < (+(this.props.errorRatePct ?? 0)) / 100;
       const res = {};
-      VEHICLE_CLASSES.forEach((v) => {
-        if (this.state.pax > v.cap) res[v.id] = { kind: 'na', sub: 'pax', n: this.state.pax };
-        else if (this.state.bags > v.bags) res[v.id] = { kind: 'na', sub: 'bags', n: this.state.bags };
-        else if (fail) res[v.id] = { kind: 'err' };
-        else res[v.id] = { kind: 'price' };
-      });
-      this.setState({ quote: { status: 'live', results: res, inflight: false } }, () => {
+      VEHICLE_CLASSES.forEach((v) => { res[v.id] = { kind: 'err' }; });
+      this.setState({ quote: { status: 'live', results: res, inflight: false } }, () => this.revealAll());
+    };
+    const applyLive = (res, extra) => {
+      if (id !== this.reqSeq) return;
+      this.setState({ quote: Object.assign({ status: 'live', results: res, inflight: false }, extra || {}) }, () => {
         this.revealAll();
         const t = this.t(); const names = { economy: t.economy, business: t.business, first: t.first, van: t.van };
         if (this.state.picked && res[this.state.picked] && res[this.state.picked].kind === 'na') {
@@ -1254,7 +1289,38 @@ class Component extends DCLogic {
         const routeStr = r.hourly ? (r.a.n + ' · ' + this.state.hours + ' h') : ((r.a.n.split(',')[0]) + ' → ' + (r.b.n.split(',')[0]));
         this.setState({ announce: routeStr + ': ' + parts });
       });
-    }, wait);
+    };
+    if (s.mode === 'hourly') {
+      fetch('/api/quote', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mode: 'hourly', locale: s.lang || 'en' }) })
+        .then(() => failAll())
+        .catch(failAll);
+      return;
+    }
+    const pickup = placeInput(s.pickupLoc, s.pickupText);
+    const dropoff = placeInput(s.dropLoc, s.dropText);
+    if (!pickup || !dropoff) { failAll(); return; }
+    const locale = (LANGS.indexOf(s.lang) > -1 ? s.lang : 'en');
+    const cur = s.cur || 'CHF';
+    const legs = [{ leg_seq: 1, scheduled_local: scheduledLocal(s.day, s.time), flight_no: (s.flightData && s.flightData.num) ? String(s.flightData.num).slice(0, 16) : null }];
+    if (s.mode === 'return') legs.push({ leg_seq: 2, scheduled_local: scheduledLocal(s.returnDay, s.returnTime), flight_no: null });
+    const body = { locale: locale, display_currency: cur, mode: s.mode === 'return' ? 'return' : 'one_way', pickup: pickup, dropoff: dropoff, legs: legs, pax: s.pax, bags: s.bags };
+    fetch('/api/quote', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
+      .then((res) => res.json())
+      .then((j) => {
+        if (id !== this.reqSeq) return;
+        if (!j || j.ok !== true) { failAll(); return; }
+        const bySlug = {};
+        (j.classes || []).forEach((c) => { bySlug[c.slug] = c; });
+        const res = {};
+        VEHICLE_CLASSES.forEach((v) => {
+          const c = bySlug[v.id];
+          if (!c) { res[v.id] = { kind: 'err' }; return; }
+          if (!c.eligible) { res[v.id] = { kind: 'na', sub: c.ineligible_reason === 'bags' ? 'bags' : 'pax', n: c.ineligible_reason === 'bags' ? s.bags : s.pax }; return; }
+          res[v.id] = { kind: 'price' };
+        });
+        applyLive(res, { lock: j.lock, quote_id: j.quote_id, expires_at: j.expires_at });
+      })
+      .catch(failAll);
   };
   snapToFit = (v) => { if (this.state.pax > v.cap) this.setPax(v.cap); if (this.state.bags > v.bags) this.setBags(v.bags); this.setState({ capacityMoveNote: null }); };
   pickLang = (v) => { if (window.VamosLocale) window.VamosLocale.setLang(v); else localStorage.setItem('vamosLang', v); this.setState({ lang: v }, () => this.relabelAll()); };
@@ -1482,17 +1548,22 @@ class Component extends DCLogic {
     const ac = (typeof AbortController !== 'undefined') ? new AbortController() : null;
     this._ac = ac;
     this.setState({ geo: 'loading' });
-    const lang = GEO_LANGS[this.state.lang] || 'en';
-    fetch('https://photon.komoot.io/api?limit=7&lang=' + lang + '&q=' + encodeURIComponent(q), ac ? { signal: ac.signal } : undefined)
+    const lang = this.state.lang || 'en';
+    const token = geoSession();
+    let url = '/api/geo/suggest?q=' + encodeURIComponent(q) + '&session_token=' + encodeURIComponent(token) + '&locale=' + encodeURIComponent(lang);
+    if (this.state.here && isFinite(this.state.here.lat) && isFinite(this.state.here.lon)) {
+      url += '&proximity=' + encodeURIComponent(this.state.here.lon + ',' + this.state.here.lat);
+    }
+    fetch(url, ac ? { signal: ac.signal } : undefined)
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error('http ' + r.status))))
       .then((j) => {
         if (seq !== this._geoSeq) return;
-        const found = (j.features || []).map((f) => {
-          const p = f.properties || {}; const label = geoLabel(p);
-          const ic = geoIcon(p);
-          return { id: 'g' + (p.osm_id || label), n: label, s: geoSub(p, label), icon: ic, air: ic === 'plane-landing',
-            lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0], geoHit: true };
-        }).filter((x) => x.n);
+        if (j && j.degraded) { this.setState({ geo: 'err' }); return; }
+        const found = (j.suggestions || []).map((hit) => ({
+          id: hit.mapbox_id, n: hit.name, s: hit.address || hit.context || '', icon: 'map-pin',
+          air: /airport|flughafen|aéroport/i.test(hit.name || ''),
+          mapbox_id: hit.mapbox_id, session_token: token, geoHit: true,
+        })).filter((x) => x.n);
         const uniq = []; const keys = {};
         found.forEach((x) => { const k = (x.n + '|' + x.s).toLowerCase(); if (!keys[k]) { keys[k] = 1; uniq.push(x); } });
         this.setState((st) => {
@@ -1593,10 +1664,10 @@ class Component extends DCLogic {
     };
     this.setState({ here: here });
     if (typeof fetch === 'undefined') { take(this.t().hereLabel, coords); return; }
-    fetch('https://photon.komoot.io/reverse?limit=1&lang=' + (GEO_LANGS[this.state.lang] || 'en') + '&lat=' + here.lat + '&lon=' + here.lon)
+    fetch('/api/geo/reverse?lng=' + encodeURIComponent(here.lon) + '&lat=' + encodeURIComponent(here.lat) + '&locale=' + encodeURIComponent(this.state.lang || 'en'))
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error('http'))))
-      .then((j) => { const f = (j.features || [])[0]; if (!f) throw new Error('empty');
-        const label = geoLabel(f.properties || {}); take(label || this.t().hereLabel, geoSub(f.properties || {}, label) || coords); })
+      .then((j) => { const p = j && j.place; if (!p) throw new Error('empty');
+        const label = p.name || this.t().hereLabel; take(label, p.address || coords); })
       .catch(() => take(this.t().hereLabel, coords));
   }
   detectLoc = () => {
@@ -1716,11 +1787,11 @@ class Component extends DCLogic {
     if (!r || !r[id] || r[id].kind !== 'price') { if (!this.state.picked) this.setState({ announce: this.t().needTrip }); return; }
     if (this.state.picked) return;
     const s = this.state;
-    const trip = { mode: s.mode, pickup: s.pickupText, dropoff: s.mode === 'hourly' ? (s.hours + ' h — ' + this.t().hourly) : s.dropText, date: s.dayLabel || (s.day ? this.fmtDate(s.day) : ''), selectedDay: s.day, time: s.time, pax: s.pax, bags: s.bags, vehicle: id, vehicleName: (VEHICLE_CLASSES.find((v) => v.id === id) || {}).name || id };
+    const trip = { mode: s.mode, pickup: s.pickupText, dropoff: s.mode === 'hourly' ? (s.hours + ' h — ' + this.t().hourly) : s.dropText, date: s.dayLabel || (s.day ? this.fmtDate(s.day) : ''), selectedDay: s.day, time: s.time, pax: s.pax, bags: s.bags, vehicle: id, vehicleName: (VEHICLE_CLASSES.find((v) => v.id === id) || {}).name || id, quote_id: s.quote.quote_id || null, lock: s.quote.lock || null };
     if (s.mode === 'return') { trip.returnDate = s.returnLabel || (s.returnDay ? this.fmtDate(s.returnDay) : ''); trip.returnDay = s.returnDay; trip.returnTime = s.returnTime; }
     saveTrip(trip);
     this.setState({ picked: id, announce: this.t().savedGo, sug: CLOSED });
-    setTimeout(() => { location.href = '../pages/checkout.dc.html'; }, REDUCED ? 120 : 420);
+    setTimeout(() => { location.href = '/checkout'; }, REDUCED ? 120 : 420);
   }
   badgeEl(code, glyph) {
     if (!code) return undefined;
