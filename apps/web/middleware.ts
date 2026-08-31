@@ -7,7 +7,10 @@ import {
   VAMOS_QS_COOKIE,
   verifyVamosQs,
 } from "./lib/abuse/vamos-qs";
-import { updateSession } from "./lib/supabase/middleware";
+import {
+  createSupabaseMiddlewareClient,
+  updateSession,
+} from "./lib/supabase/middleware";
 
 const handleI18nRouting = createMiddleware(routing);
 
@@ -33,6 +36,8 @@ const DC_PAGES: Record<string, string> = {
   "/coming-soon": "/app/pages/coming-soon.html",
 };
 
+const OPS_EXEMPT = new Set(["/ops/sign-in", "/ops/mfa-challenge", "/ops/accept-invite"]);
+
 function dcMockPath(pathname: string): string | null {
   let path = pathname;
   const locale = path.match(/^\/(en|de|fr|ar)(?=\/|$)/);
@@ -50,14 +55,127 @@ function qsSecret(): string {
   return typeof value === "string" ? value : "";
 }
 
+function hostnameOf(request: NextRequest): string {
+  return (request.headers.get("host") ?? "").split(":")[0]?.toLowerCase() ?? "";
+}
+
+function localeStrippedPath(pathname: string): { localePrefix: string | null; path: string } {
+  const match = pathname.match(/^\/(en|de|fr|ar)(?=\/|$)/);
+  if (match) {
+    return { localePrefix: match[1], path: pathname.slice(match[0].length) || "/" };
+  }
+  return { localePrefix: null, path: pathname };
+}
+
+function isOpsRequest(pathname: string): boolean {
+  const { path } = localeStrippedPath(pathname);
+  return path === "/ops" || path.startsWith("/ops/");
+}
+
+function isOpsExempt(pathname: string): boolean {
+  const { path } = localeStrippedPath(pathname);
+  return OPS_EXEMPT.has(path);
+}
+
+/**
+ * D-01a: the staff console lives on dashboard.vamostaxi.site.
+ * vamostaxi.site never enters the ops branch. Local next-dev treats
+ * `/ops/*` as the dashboard so the gate can be exercised without a
+ * hosts-file entry. Do not bind vamostaxi.eu.
+ */
+function isDashboardHost(request: NextRequest): boolean {
+  const host = hostnameOf(request);
+  if (host === "dashboard.vamostaxi.site" || host === "dashboard.localhost") return true;
+  if ((host === "localhost" || host === "127.0.0.1") && isOpsRequest(request.nextUrl.pathname)) {
+    return true;
+  }
+  return false;
+}
+
+function opsRedirectUrl(request: NextRequest, targetPath: string): URL {
+  const { localePrefix } = localeStrippedPath(request.nextUrl.pathname);
+  const href =
+    localePrefix && localePrefix !== "en" ? `/${localePrefix}${targetPath}` : targetPath;
+  return new URL(href, request.url);
+}
+
+function copyCookies(from: NextResponse, to: NextResponse): NextResponse {
+  from.cookies.getAll().forEach((cookie) => {
+    to.cookies.set(cookie);
+  });
+  return to;
+}
+
+function applyStagingNoindex(response: NextResponse): NextResponse {
+  if (process.env.DEPLOY_ENV === "staging") {
+    response.headers.set("X-Robots-Tag", "noindex");
+  }
+  return response;
+}
+
+function withOpsPathHeader(request: NextRequest, base: NextResponse): NextResponse {
+  const { path } = localeStrippedPath(request.nextUrl.pathname);
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-vamos-ops-path", path);
+  const next = NextResponse.next({ request: { headers: requestHeaders } });
+  copyCookies(base, next);
+  base.headers.forEach((value, key) => {
+    if (key.toLowerCase() === "set-cookie" || key.toLowerCase() === "location") return;
+    next.headers.set(key, value);
+  });
+  return next;
+}
+
+async function opsStaffGate(request: NextRequest, i18nResponse: NextResponse): Promise<NextResponse> {
+  const client = createSupabaseMiddlewareClient(request);
+  const {
+    data: { user },
+  } = await client.supabase.auth.getUser();
+
+  const { pathname } = request.nextUrl;
+
+  if (!isOpsExempt(pathname)) {
+    if (!user) {
+      return applyStagingNoindex(
+        copyCookies(client.response, NextResponse.redirect(opsRedirectUrl(request, "/ops/sign-in"))),
+      );
+    }
+    const role = user.app_metadata?.vamos_role;
+    if (typeof role !== "string" || role.length === 0) {
+      return applyStagingNoindex(
+        copyCookies(client.response, NextResponse.redirect(opsRedirectUrl(request, "/"))),
+      );
+    }
+    const { data: aal } = await client.supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aal?.currentLevel !== "aal2") {
+      return applyStagingNoindex(
+        copyCookies(client.response, NextResponse.redirect(opsRedirectUrl(request, "/ops/mfa-challenge"))),
+      );
+    }
+  }
+
+  i18nResponse.headers.forEach((value, key) => {
+    const lower = key.toLowerCase();
+    if (lower === "set-cookie" || lower === "location") return;
+    client.response.headers.set(key, value);
+  });
+  return applyStagingNoindex(withOpsPathHeader(request, client.response));
+}
+
 export default async function middleware(request: NextRequest) {
-  const mock = dcMockPath(request.nextUrl.pathname);
-  if (mock) {
-    const asset = new URL(mock, request.url);
-    const res = await fetch(asset);
-    const headers = new Headers(res.headers);
-    headers.set("content-type", "text/html; charset=utf-8");
-    return new NextResponse(res.body, { status: res.status, headers });
+  const { pathname } = request.nextUrl;
+
+  // Public host never serves the console (D-01a).
+  if (!isDashboardHost(request) && isOpsRequest(pathname)) {
+    return applyStagingNoindex(NextResponse.redirect(new URL("/", request.url)));
+  }
+
+  // Dashboard host is the console, not the public mock gallery.
+  if (!isDashboardHost(request)) {
+    const mock = dcMockPath(pathname);
+    if (mock) {
+      return NextResponse.rewrite(new URL(mock, request.url));
+    }
   }
 
   const response = handleI18nRouting(request);
@@ -76,7 +194,6 @@ export default async function middleware(request: NextRequest) {
   // preference-based redirect, not a canonical-URL fact, and must stay a
   // 307 so it is never permanently cached by a client whose preference
   // later changes.
-  const { pathname } = request.nextUrl;
   const isDefaultLocalePrefixed = pathname === "/en" || pathname.startsWith("/en/");
 
   let finalResponse = response;
@@ -94,13 +211,20 @@ export default async function middleware(request: NextRequest) {
     }
   }
 
-  // Auth cookie refresh only on the page path. A 3xx never reaches a Server
-  // Component, so skip updateSession — and never construct a new response on
-  // the session-refresh path (D-02).
   const isRedirect =
     finalResponse.status >= 300 &&
     finalResponse.status < 400 &&
     Boolean(finalResponse.headers.get("location"));
+
+  // D-01a: staff gate only on the dashboard host (and local `/ops/*`).
+  // vamostaxi.site never enters this branch.
+  if (!isRedirect && isDashboardHost(request) && isOpsRequest(pathname)) {
+    return opsStaffGate(request, finalResponse);
+  }
+
+  // Auth cookie refresh only on the page path. A 3xx never reaches a Server
+  // Component, so skip updateSession — and never construct a new response on
+  // the session-refresh path (D-02).
   if (!isRedirect) {
     finalResponse = await updateSession(request, finalResponse);
   }
@@ -142,5 +266,9 @@ export const config = {
   // Match every path except Next internals, the dev-only gallery's static
   // assets, and files that carry an extension (fonts/icons/images served
   // from public/brand/ per D-10).
+  //
+  // Unchanged for 06-03: `/ops/*` (and `/de/ops` etc.) already match this
+  // pattern — the negative lookahead only excludes `api`, `_next`, `_vercel`,
+  // and dotted filenames.
   matcher: ["/((?!api|_next|_vercel|.*\\..*).*)"],
 };
