@@ -293,7 +293,7 @@ does not need to wait for checkout.
 - [x] 06-10-PLAN.md — `content_strings` editor in OpsContent.dc.html
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 06-11-PLAN.md — I18N-07 loader last; `CONTENT_SOURCE` default json
+- [x] 06-11-PLAN.md — I18N-07 loader last; `CONTENT_SOURCE` default json
 
 **UI hint**: yes
 
@@ -394,7 +394,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 
 | 3. Hyperdrive Data Access Wiring | 7/7 | Complete | 2026-08-28 |
 | 4. Quote & Pricing Engine | 12/16 | In Progress|  |
 | 5. Public Surfaces & Customer Accounts | 19/24 | In Progress|  |
-| 6. Ops Reference Data & Content Console | 7/11 | In Progress|  |
+| 6. Ops Reference Data & Content Console | 8/11 | In Progress|  |
 | 7. Checkout & Payment | 0/TBD | Not started | - |
 | 8. Ops Dispatch — Live Board, Assignment & Account Surfaces | 0/TBD | Not started | - |
 | 9. Booking Lifecycle & Customer Self-Service | 0/TBD | Not started | - |
