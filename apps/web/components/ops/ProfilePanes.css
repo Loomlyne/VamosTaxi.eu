@@ -1,0 +1,150 @@
+/* apps/web/components/ops/ProfilePanes.css
+ *
+ * Profile pane chrome, ported from the settings rail. Logical properties only.
+ */
+
+.ops-profile {
+  display: flex;
+  flex-direction: column;
+}
+
+.ops-profile__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 22px;
+  padding-block-end: 18px;
+  border-block-end: 1px solid var(--vt-border-subtle);
+}
+
+.ops-profile__head-copy {
+  min-inline-size: 0;
+}
+
+.ops-profile__head h1 {
+  margin: 0;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-heading-2);
+  font-weight: var(--vt-weight-semibold);
+  letter-spacing: var(--vt-heading-tracking);
+}
+
+.ops-profile__head p {
+  margin-block: 4px 0;
+  margin-inline: 0;
+  font-size: var(--vt-body-xs);
+  color: var(--vt-text-muted);
+}
+
+.ops-profile__actions {
+  margin-inline-start: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.ops-profile__saved {
+  font-size: var(--vt-body-xs);
+  color: var(--vt-text-muted);
+}
+
+.ops-profile__grid {
+  display: grid;
+  grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);
+  gap: 22px;
+  padding-block: 26px 48px;
+}
+
+.ops-profile__rail {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-inline-size: 0;
+}
+
+.ops-profile__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-block: 10px;
+  padding-inline: 12px;
+  border: 1px solid transparent;
+  border-radius: var(--vt-radius-md);
+  background: transparent;
+  color: var(--vt-text-secondary);
+  text-align: start;
+  inline-size: 100%;
+  min-block-size: 44px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.ops-profile__item[data-on="1"] {
+  background: var(--vt-bg-surface);
+  border-color: var(--vt-border-subtle);
+  color: var(--vt-text-primary);
+}
+
+.ops-profile__item-copy {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.ops-profile__item-label {
+  display: block;
+  font-weight: 500;
+}
+
+.ops-profile__item-hint {
+  display: block;
+  font-size: var(--vt-body-xs);
+  color: var(--vt-text-muted);
+}
+
+.ops-profile__card {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-block: 24px;
+  padding-inline: 26px;
+  background: var(--vt-bg-surface);
+  border: 1px solid var(--vt-border-subtle);
+  border-radius: var(--vt-radius-lg);
+  min-inline-size: 0;
+}
+
+.ops-profile__card-title {
+  margin: 0;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-heading-4, var(--vt-heading-3));
+  font-weight: var(--vt-weight-semibold);
+}
+
+.ops-profile__card-sub,
+.ops-profile__hint {
+  margin-block: 4px 0;
+  margin-inline: 0;
+  font-size: var(--vt-body-xs);
+  line-height: 1.55;
+  color: var(--vt-text-muted);
+}
+
+.ops-profile__factors,
+.ops-profile__refusals {
+  margin: 0;
+  padding-inline-start: 1.2em;
+  font-size: var(--vt-body-sm);
+  line-height: 1.6;
+}
+
+.ops-profile__refusals {
+  color: var(--vt-text-muted);
+}
+
+@media (max-inline-size: 720px) {
+  .ops-profile__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -353,10 +353,12 @@ class Component extends DCLogic {
       /* Clicking an emailed link, or signing in to an existing account, already proves the
          address. Only a brand-new password sign-up still needs that proof. */
       const verified = this.state.mode === 'signin' || this.state.method === 'magic';
+      let prev = {};
+      try { prev = JSON.parse(localStorage.getItem('vamosAuth') || 'null') || {}; } catch (e) {}
       localStorage.setItem('vamosAuth', JSON.stringify({
-        email: this.state.email.trim(),
-        firstName: this.state.firstName.trim(),
-        lastName: this.state.lastName.trim(),
+        email: this.state.email.trim() || prev.email || '',
+        firstName: this.state.firstName.trim() || prev.firstName || '',
+        lastName: this.state.lastName.trim() || prev.lastName || '',
         emailVerified: verified,
         at: Date.now(),
       }));
@@ -429,10 +431,7 @@ class Component extends DCLogic {
     }
     if (result.ok) {
       this.saveSession();
-      const enroll = !skipEnroll && this.state.method === 'password' && this.state.mode === 'signin'
-        ? this.enrollPasskey()
-        : Promise.resolve();
-      return enroll.finally(() => this.go({ stage: 'returning', banner: null }));
+      return this.go({ stage: 'returning', banner: null });
     }
     if (result.stage === 'sent') return this.go({ stage: 'sent' });
     if (result.banner === 'registered') return this.go({ banner: 'registered' });

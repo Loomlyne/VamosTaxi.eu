@@ -56,7 +56,7 @@ body{margin:0}a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt
 [data-pv-row]{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:end}
 [data-pv-link]{appearance:none;background:none;border:0;padding:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-secondary);text-decoration:underline;text-decoration-color:var(--vt-grey-400);text-underline-offset:3px;cursor:pointer}
 [data-pv-link]:hover{color:var(--vt-charcoal-900);text-decoration-color:currentColor}
-[data-note]{display:flex;flex-direction:column;gap:6px;padding:13px 15px;border-radius:var(--vt-radius-md);border:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface);box-shadow:var(--vt-shadow-xs)}
+[data-note],[data-tok]{display:none!important}
 [data-note-k]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
 [data-note-b]{margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);text-wrap:pretty}
 [data-tok]{display:inline-flex;align-items:baseline;gap:5px;font-family:var(--vt-font-body);font-weight:var(--vt-weight-medium);font-size:.97em;background:var(--vt-grey-100);border:1px solid var(--vt-grey-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 7px;white-space:nowrap}
@@ -78,9 +78,9 @@ body{margin:0}a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt
 <sc-if value="{{ notDone }}" hint-placeholder-val="{{ true }}"><h2 data-pv-h2="1">Add your mobile number</h2></sc-if>
 <sc-if value="{{ isVerified }}"><h2 data-pv-h2="1">Mobile number</h2></sc-if>
 <sc-if value="{{ notDone }}"><span data-pv-pill="1">Action needed</span></sc-if>
-<sc-if value="{{ isVerified }}"><span data-pv-done="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-check" size="{{ n15 }}" color="var(--vt-success)" hint-size="15px,15px"></x-import>Verified</span></sc-if>
+<sc-if value="{{ isVerified }}"><span data-pv-done="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-check" size="{{ n15 }}" color="var(--vt-success)" hint-size="15px,15px"></x-import>Saved</span></sc-if>
 </div>
-<p data-pv-b="1">Your driver calls this number on arrival, so it has to be one you will answer. We verify it once with a code by text.</p>
+<p data-pv-b="1">Your driver calls this number on arrival, so it has to be one you will answer.</p>
 </div>
 </div>
 
@@ -88,26 +88,7 @@ body{margin:0}a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt
 <div data-pv-view="add" style="display:flex;flex-direction:column;gap:16px">
 <div data-pv-row="1">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="Mobile number" type="tel" icon="phone" size="md" autoComplete="tel" placeholder="+41 79 000 00 00" value="{{ phone }}" onChange="{{ setPhone }}" error="{{ errPhone }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ sendCode }}" hint-size="150px,44px">Send code</x-import>
-</div>
-</div>
-</sc-if>
-
-<sc-if value="{{ isCode }}">
-<div data-pv-view="code" style="display:flex;flex-direction:column;gap:16px">
-<p data-pv-b="1" style="color:var(--vt-text-primary)">We sent a six-digit code to <strong style="font-weight:var(--vt-weight-semibold)">{{ phoneEcho }}</strong>.</p>
-<div data-pv-row="1">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="Verification code" type="text" inputMode="numeric" maxLength="{{ n6 }}" size="md" autoComplete="one-time-code" placeholder="000000" value="{{ code }}" onChange="{{ setCode }}" error="{{ errCode }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ verify }}" hint-size="170px,44px">Verify number</x-import>
-</div>
-<div style="display:flex;flex-wrap:wrap;gap:10px 20px;align-items:center">
-<button type="button" data-pv-link="1" onClick="{{ resend }}">Send a new code</button>
-<button type="button" data-pv-link="1" onClick="{{ changeNumber }}">Change number</button>
-<sc-if value="{{ resent }}"><span style="display:inline-flex;align-items:center;gap:7px;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n15 }}" color="var(--vt-success)" hint-size="15px,15px"></x-import>Sent again just now.</span></sc-if>
-</div>
-<div data-note="1">
-<span data-note-k="1">Awaiting client input</span>
-<p data-note-b="1">The code expires after <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Code expiry</span>, and we allow <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Code attempts</span> before the number locks.</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ sendCode }}" hint-size="150px,44px">Save number</x-import>
 </div>
 </div>
 </sc-if>
@@ -124,31 +105,60 @@ body{margin:0}a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt
 
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:720,&quot;height&quot;:300},&quot;stage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;add&quot;,&quot;code&quot;,&quot;verified&quot;],&quot;default&quot;:&quot;add&quot;,&quot;tsType&quot;:&quot;'add'|'code'|'verified'&quot;},&quot;phone&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
-/* Demo rules: any six digits verify, except 111111 which fails. */
+/* Number lives on the signed-in user. No SMS in V1. */
+const PHONE_KEY = 'vamosPhone';
+const readSaved = () => {
+  try {
+    const p = JSON.parse(localStorage.getItem(PHONE_KEY) || 'null');
+    return p && p.phone ? p.phone : '';
+  } catch (e) { return ''; }
+};
+const postProfile = (body) => fetch('/api/auth', {
+  method: 'POST',
+  headers: { 'content-type': 'application/json' },
+  credentials: 'same-origin',
+  body: JSON.stringify(Object.assign({ action: 'update-profile' }, body)),
+}).then((r) => r.json());
 class Component extends DCLogic {
-  state = {
-    stage: this.props.stage || 'add',
-    phone: this.props.phone || '',
-    code: '', errors: {}, resent: false,
-  };
+  state = (() => {
+    const saved = readSaved();
+    return {
+      stage: saved ? 'verified' : (this.props.stage || 'add'),
+      phone: saved || this.props.phone || '',
+      code: '', errors: {}, resent: false,
+    };
+  })();
   componentDidUpdate(prev) {
     if (prev.stage !== this.props.stage || prev.phone !== this.props.phone || prev.nonce !== this.props.nonce) {
-      this.setState({ stage: this.props.stage || 'add', phone: this.props.phone || '', code: '', errors: {}, resent: false });
+      const saved = readSaved();
+      this.setState({
+        stage: saved ? 'verified' : (this.props.stage || 'add'),
+        phone: saved || this.props.phone || '',
+        code: '', errors: {}, resent: false,
+      });
     }
   }
   sendCode = () => {
     const digits = this.state.phone.replace(/[^\d]/g, '');
     if (digits.length < 9) { this.setState({ errors: { phone: 'Check the mobile number, including the country code' } }); return; }
-    this.setState({ stage: 'code', errors: {}, resent: false });
+    const phone = this.state.phone.trim();
+    postProfile({ phone })
+      .then((res) => {
+        if (!res || !res.ok) {
+          this.setState({ errors: { phone: 'Could not save. Try again.' } });
+          return;
+        }
+        try { localStorage.setItem(PHONE_KEY, JSON.stringify({ phone, at: Date.now() })); } catch (e) {}
+        this.setState({ stage: 'verified', errors: {}, resent: false });
+      })
+      .catch(() => this.setState({ errors: { phone: 'Could not save. Try again.' } }));
   };
-  verify = () => {
-    const code = this.state.code.replace(/[^\d]/g, '');
-    if (code.length !== 6) { this.setState({ errors: { code: 'The code is six digits' } }); return; }
-    if (code === '111111') { this.setState({ errors: { code: "That code doesn't match. Send a new one." } }); return; }
-    this.setState({ stage: 'verified', errors: {}, resent: false });
-  };
+  verify = () => this.sendCode();
   resend = () => this.setState({ resent: true, code: '', errors: {} });
-  changeNumber = () => this.setState({ stage: 'add', code: '', errors: {}, resent: false });
+  changeNumber = () => {
+    try { localStorage.removeItem(PHONE_KEY); } catch (e) {}
+    this.setState({ stage: 'add', code: '', errors: {}, resent: false });
+  };
   renderVals() {
     const { stage, phone, code, errors, resent } = this.state;
     return {

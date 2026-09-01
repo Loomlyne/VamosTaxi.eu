@@ -204,6 +204,10 @@
   function eligible(a) {
     if (!a || a.target === '_blank' || a.hasAttribute('download') || a.hasAttribute('data-no-transition')) return false;
     if (a.getAttribute('rel') === 'external') return false;
+    var hrefAttr = a.getAttribute('href') || '';
+    // Hash-only hrefs stay on this document. A document base URL would otherwise
+    // resolve them onto another pathname and play the overlay as a page change.
+    if (hrefAttr.charAt(0) === '#') return false;
     var u;
     try { u = new URL(a.href, location.href); } catch (err) { return false; }
     if (u.origin !== location.origin) return false;

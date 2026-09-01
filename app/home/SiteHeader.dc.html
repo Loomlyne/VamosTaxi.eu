@@ -133,7 +133,7 @@ body{margin:0}
 <header data-hd="{{ variant }}" data-hd-float="{{ floatAttr }}" data-screen-label="Header">
 <div data-hd-row="1">
 
-<a href="home.dc.html" aria-label="Vamos Taxi — home" style="display:inline-flex;align-items:center;flex:0 0 auto;border:0;text-decoration:none">
+<a href="/" aria-label="Vamos Taxi — home" style="display:inline-flex;align-items:center;flex:0 0 auto;border:0;text-decoration:none">
 <span data-hd-wide="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" form="wordmark" height="{{ n24 }}" hint-size="112px,24px"></x-import></span>
 <span data-hd-narrow="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" form="mark" height="{{ n30 }}" hint-size="30px,30px"></x-import></span>
 </a>
@@ -202,17 +202,17 @@ body{margin:0}
 </span>
 </div>
 <sc-if value="{{ showUnverified }}">
-<a data-hd-verify="1" href="../pages/account.dc.html#details" role="menuitem">
+<a data-hd-verify="1" href="/account#details" role="menuitem">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="mail" size="{{ n16 }}" color="var(--vt-yellow)" hint-size="16px,16px"></x-import>
 <span>{{ tVerify }}</span></a>
 </sc-if>
-<a data-hd-mi="1" href="../pages/account.dc.html" role="menuitem">
+<a data-hd-mi="1" href="/account" role="menuitem">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="user" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
 <span>{{ tAcctPage }}</span></a>
-<a data-hd-mi="1" href="../pages/bookings.dc.html" role="menuitem">
+<a data-hd-mi="1" href="/bookings" role="menuitem">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="calendar-days" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
 <span>{{ tBookings }}</span></a>
-<a data-hd-mi="1" href="../pages/manage-booking.dc.html" role="menuitem">
+<a data-hd-mi="1" href="/manage-booking" role="menuitem">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="settings" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
 <span>{{ tManage }}</span></a>
 <div data-hd-mifoot="1">
@@ -226,7 +226,7 @@ body{margin:0}
 </sc-if>
 </sc-if>
 <sc-if value="{{ showCta }}" hint-placeholder-val="{{ true }}">
-<a href="home.dc.html#book" style="height:36px;padding:0 18px;border-radius:999px;background:var(--vt-yellow);border:1px solid var(--vt-charcoal-900);color:var(--vt-charcoal-900);font-size:13px;font-weight:700;letter-spacing:.01em;display:inline-flex;align-items:center;gap:8px;text-decoration:none;white-space:nowrap;transition:var(--vt-transition-control)" style-hover="background:var(--vt-charcoal-900);color:var(--vt-yellow)">
+<a href="/#book" style="height:36px;padding:0 18px;border-radius:999px;background:var(--vt-yellow);border:1px solid var(--vt-charcoal-900);color:var(--vt-charcoal-900);font-size:13px;font-weight:700;letter-spacing:.01em;display:inline-flex;align-items:center;gap:8px;text-decoration:none;white-space:nowrap;transition:var(--vt-transition-control)" style-hover="background:var(--vt-charcoal-900);color:var(--vt-yellow)">
 <span>{{ tBook }}</span><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n15 }}" color="currentColor" hint-size="15px,15px"></x-import></a>
 </sc-if>
 </div>
@@ -244,7 +244,7 @@ body{margin:0}
 <div role="menu" aria-label="{{ menuLabel }}" style="position:absolute;top:calc(100% + 10px);inset-inline-end:0;width:min(300px,calc(100vw - 32px));box-sizing:border-box;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-xl);padding:8px;display:flex;flex-direction:column;gap:2px;z-index:130;animation:vt-hd-in 180ms cubic-bezier(.16,1,.3,1)">
 
 <sc-if value="{{ showCta }}" hint-placeholder-val="{{ true }}">
-<a href="home.dc.html#book" role="menuitem" style="display:flex;align-items:center;justify-content:center;gap:9px;min-height:44px;margin:2px 2px 4px;padding:0 16px;border:1px solid var(--vt-charcoal-900);border-radius:999px;background:var(--vt-yellow);text-decoration:none;color:var(--vt-charcoal-900);font-size:14px;font-weight:700">
+<a href="/#book" role="menuitem" style="display:flex;align-items:center;justify-content:center;gap:9px;min-height:44px;margin:2px 2px 4px;padding:0 16px;border:1px solid var(--vt-charcoal-900);border-radius:999px;background:var(--vt-yellow);text-decoration:none;color:var(--vt-charcoal-900);font-size:14px;font-weight:700">
 <span>{{ tBook }}</span><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></a>
 </sc-if>
 
@@ -398,10 +398,9 @@ class Component extends DCLogic {
       lang = localStorage.getItem('vamosLang') || 'en';
       cur = localStorage.getItem('vamosCurrency') || 'CHF';
     } catch (e) {}
-    /* The one thing a signed-in traveller is told without asking: guest bookings we
-       matched to their email, and an address still waiting on proof. */
-    let attached = 2;
-    try { const q = new URLSearchParams(location.search).get('attached'); if (q !== null) attached = parseInt(q, 10) || 0; } catch (e) {}
+    /* Live never paints gallery guest-booking notices. Sign-out or clearing
+       the browser is what ends a session — not a refresh. */
+    const attached = 0;
     return { lang: LANGS.indexOf(lang) > -1 ? lang : 'en', cur, menuOpen: false, acctOpen: false, bellOpen: false, floating: false, attached, auth: readAuth(), noteSt: readNotes() };
   })();
   _ids = [];
@@ -447,18 +446,19 @@ class Component extends DCLogic {
     document.addEventListener('keydown', this._esc);
     document.addEventListener('mousedown', this._away);
     window.addEventListener('resize', this._resize);
+    this._onAuth = () => this.setState({ auth: readAuth() });
+    window.addEventListener('vamos:auth', this._onAuth);
     fetch('/api/auth/session', { credentials: 'same-origin' })
       .then((r) => r.json())
       .then((s) => {
-        if (!s || !s.signedIn) {
-          try { localStorage.removeItem('vamosAuth'); } catch (e) {}
-          if (this.state.auth) this.setState({ auth: null });
-          return;
-        }
+        if (!s || !s.signedIn) return;
+        const prev = readAuth();
+        const full = (s.displayName || '').trim();
+        const parts = full.split(' ').filter(Boolean);
         const auth = {
-          email: s.displayName || '',
-          firstName: (s.displayName || '').split(' ')[0] || '',
-          lastName: (s.displayName || '').split(' ').slice(1).join(' '),
+          email: (prev && prev.email) || '',
+          firstName: parts[0] || (prev && prev.firstName) || '',
+          lastName: parts.slice(1).join(' ') || (prev && prev.lastName) || '',
           emailVerified: !!s.emailConfirmed,
           at: Date.now(),
         };
@@ -469,6 +469,7 @@ class Component extends DCLogic {
   }
   componentWillUnmount() {
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
+    if (this._onAuth) window.removeEventListener('vamos:auth', this._onAuth);
     if (this._raf) cancelAnimationFrame(this._raf);
     window.removeEventListener('scroll', this._onScroll);
     document.removeEventListener('keydown', this._esc);
@@ -506,11 +507,11 @@ class Component extends DCLogic {
     const unverified = !!auth && auth.emailVerified === false;
     const raw = [];
     if (this.state.attached > 0) raw.push({
-      id: 'attached', icon: 'ticket', href: '../pages/account.dc.html#transfers',
+      id: 'attached', icon: 'ticket', href: '/account#transfers',
       title: t.attachedT(this.state.attached), body: t.attachedB,
     });
     if (unverified) raw.push({
-      id: 'verify', icon: 'mail', href: '../pages/account.dc.html#details', title: t.verify, body: t.verifyB,
+      id: 'verify', icon: 'mail', href: '/account#details', title: t.verify, body: t.verifyB,
     });
     this._ids = raw.map((n) => n.id);
     const st = this.state.noteSt || {};
@@ -578,7 +579,8 @@ class Component extends DCLogic {
           body: JSON.stringify({ action: 'signout' }),
         }).finally(() => {
           try { localStorage.removeItem('vamosAuth'); } catch (e) {}
-          location.href = '/';
+          try { localStorage.removeItem('vamosPhone'); } catch (e) {}
+          location.href = '/sign-in';
         });
       },
       tBook: t.book, tCall: t.call, tLangLabel: t.langLabel, tCurLabel: t.curLabel,
@@ -590,7 +592,7 @@ class Component extends DCLogic {
       menuLangs: LANGS.map((v) => ({ label: v.toUpperCase(), note: LANG_NOTE[v], css: chip(v === lang), pick: () => this.setLang(v) })),
       menuCurs: Object.keys(CUR_NOTE).map((v) => ({ label: v, note: CUR_NOTE[v], css: chip(v === cur), pick: () => this.setCur(v) })),
       showLinks: showCta,
-      links: [{ href: '../pages/faq.dc.html', label: t.faq }, { href: '../pages/contact.dc.html', label: t.contact }],
+      links: [{ href: '/faq', label: t.faq }, { href: '/contact', label: t.contact }],
     };
   }
 }

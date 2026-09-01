@@ -205,6 +205,13 @@ interface CloudflareEnv {
   SUPABASE_ANON_KEY: string;
 
   /**
+   * Supabase service-role key (server-only). First consumer: plan 06-05 invite route.
+   * Optional until that route lands. Never a browser-prefixed name.
+   * `wrangler secret put` in staging/prod.
+   */
+  SUPABASE_SERVICE_ROLE_KEY?: string;
+
+  /**
    * Cloudflare Email Sending binding (`wrangler.jsonc` `send_email`). Staging
    * only. From-address domain is vamostaxi.site.
    */
@@ -242,6 +249,17 @@ interface CloudflareEnv {
    * Distinct from Phase 4's `TURNSTILE_SECRET` quote-abuse binding; both may be present.
    */
   TURNSTILE_SECRET_KEY?: string;
+
+  /**
+   * Runtime dictionary source kill switch (plan 06-16, I18N-07).
+   * OPTIONAL. Absence and any value other than `"db"` serve the repository JSON
+   * files via the Phase 1 import. `"db"` reads `content_strings` through
+   * `publicSql` on the cacheable HYPERDRIVE binding. Defaults to json until the
+   * swap is proven in the environment being deployed to. Never a credential;
+   * safe to set from a plaintext `vars` block. A kill switch that has to be
+   * added under pressure is not a kill switch.
+   */
+  CONTENT_SOURCE?: string;
 }
 
 /**

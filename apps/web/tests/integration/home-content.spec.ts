@@ -70,7 +70,7 @@ function requireLocalDb(): void {
   }
 }
 
-function spawnDev(port: number, extraEnv: NodeJS.ProcessEnv = {}): ChildProcess {
+function spawnDev(port: number, extraEnv: Record<string, string | undefined> = {}): ChildProcess {
   return spawn(NEXT, ["dev", "-p", String(port)], {
     cwd: WEB_ROOT,
     stdio: "ignore",

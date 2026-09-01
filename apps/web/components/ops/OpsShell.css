@@ -1,0 +1,107 @@
+.ops-shell {
+  display: flex;
+  min-block-size: 100dvh;
+  background: var(--vt-bg);
+  color: var(--vt-text-primary);
+}
+
+.ops-shell__rail {
+  flex: 0 0 auto;
+  block-size: 100dvh;
+  position: sticky;
+  inset-block-start: 0;
+}
+
+.ops-shell__main {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  padding-block: 28px;
+  padding-inline: 32px;
+}
+
+.ops-shell__bar {
+  display: none;
+}
+
+.ops-shell__drawer {
+  display: none;
+}
+
+@media (max-width: 1080px) {
+  .ops-shell__rail :is(.ops-sidebar) {
+    inline-size: 76px;
+  }
+
+  .ops-shell__rail :is(.ops-sidebar__kicker, .ops-sidebar__label, .ops-sidebar__meta) {
+    display: none;
+  }
+
+  .ops-shell__rail :is(.ops-sidebar__row, .ops-sidebar__toggle, .ops-sidebar__profile) {
+    justify-content: center;
+    padding-inline: 0;
+  }
+
+  .ops-shell__rail :is(.ops-sidebar__children) {
+    display: none;
+  }
+}
+
+@media (max-width: 680px) {
+  .ops-shell {
+    flex-direction: column;
+  }
+
+  .ops-shell__rail {
+    display: none;
+  }
+
+  .ops-shell__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-block: 12px;
+    padding-inline: 16px;
+    background: var(--vt-bg-inverse);
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 6;
+  }
+
+  .ops-shell__menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 40px;
+    block-size: 40px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--vt-text-inverse);
+    cursor: pointer;
+  }
+
+  .ops-shell__menu-btn:focus-visible {
+    outline: none;
+    box-shadow: var(--vt-ring);
+  }
+
+  .ops-shell__main {
+    padding-block: 20px;
+    padding-inline: 16px;
+  }
+
+  .ops-shell[data-drawer="1"] .ops-shell__drawer {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 7;
+    background: oklch(0 0 0 / 0.4);
+  }
+
+  .ops-shell[data-drawer="1"] .ops-shell__drawer-rail {
+    block-size: 100%;
+    inline-size: min(236px, 86vw);
+    background: var(--vt-bg-inverse);
+  }
+}

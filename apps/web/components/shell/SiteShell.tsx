@@ -39,11 +39,12 @@ export function SiteShell({
   // segment (`/ar/dev/components/shell`), so the segment is matched anywhere in the
   // path rather than only at its start.
   const isDevScaffold = pathname === "/dev" || /(^|\/)dev(\/|$)/.test(pathname);
+  const isOps = pathname === "/ops" || /(^|\/)ops(\/|$)/.test(pathname);
 
   const rest = pathname.replace(/^\/(de|fr|ar)(?=\/|$)/, "");
   const isHome = rest === "" || rest === "/";
 
-  if (isDevScaffold) return <>{children}</>;
+  if (isDevScaffold || isOps) return <>{children}</>;
 
   return (
     <>

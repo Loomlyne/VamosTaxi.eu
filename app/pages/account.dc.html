@@ -83,8 +83,8 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-ac-navnum]{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:var(--vt-radius-pill);background:var(--vt-grey-100);font-size:12px;font-weight:var(--vt-weight-semibold);font-variant-numeric:tabular-nums;color:var(--vt-text-secondary)}
 [data-ac-navitem][aria-current="page"] [data-ac-navnum]{background:rgb(255 255 255 / .16);color:var(--vt-text-inverse)}
 [data-ac-navdot]{flex:0 0 auto;width:8px;height:8px;border-radius:var(--vt-radius-pill);background:var(--vt-accent)}
-[data-ac-signout]{appearance:none;box-sizing:border-box;display:none;align-items:center;gap:10px;width:100%;min-height:44px;margin-top:4px;padding:0 14px;border:0;border-top:1px solid var(--vt-border-subtle);border-radius:0;background:transparent;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-secondary);cursor:pointer;text-align:start;transition:color 140ms var(--vt-ease-standard)}
-[data-ac-signout]:hover{color:var(--vt-charcoal-900)}
+[data-ac-signout]{appearance:none;box-sizing:border-box;display:none;align-items:center;gap:10px;width:100%;min-height:44px;margin-top:4px;padding:0 16px;border:0;border-top:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:transparent;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-secondary);cursor:pointer;text-align:start;transition:background 140ms var(--vt-ease-standard),color 140ms var(--vt-ease-standard)}
+[data-ac-signout]:hover,[data-ac-signout]:focus-visible{background:var(--vt-grey-100);color:var(--vt-charcoal-900)}
 [data-ac-extras]{order:2;display:flex;flex-direction:column;gap:20px;min-width:0}
 [data-ac-row]{display:grid;grid-template-columns:minmax(0,1fr);gap:6px 20px;padding:16px 0;border-top:1px solid var(--vt-border-subtle)}
 [data-ac-k]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
@@ -119,7 +119,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-ac-close] [data-ac-safe] .vt-btn--ghost:hover:not([disabled]){background:var(--vt-grey-50);border-color:var(--vt-charcoal-900);color:var(--vt-text-primary)}
 [data-tok]{display:inline-flex;align-items:baseline;gap:5px;font-family:var(--vt-font-body);font-weight:var(--vt-weight-medium);font-size:.97em;background:var(--vt-grey-100);border:1px solid var(--vt-grey-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 7px;white-space:nowrap}
 [data-tok]::after{content:"TBC";font-family:var(--vt-font-body);font-size:.66em;font-weight:700;letter-spacing:.1em;color:var(--vt-text-muted)}
-[data-note]{display:flex;flex-direction:column;gap:6px;max-width:780px;padding:16px 18px;border-radius:var(--vt-radius-md);border:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface);box-shadow:var(--vt-shadow-xs)}
+[data-note],[data-tok]{display:none!important}
 [data-note-k]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
 [data-note-b]{margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);text-wrap:pretty}
 :focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}
@@ -163,7 +163,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div aria-hidden="true" style="position:absolute;top:0;inset-inline-end:0;width:120px;height:120px;background:url(../../assets/patterns/checker-mark.png) top right / 56px auto no-repeat;opacity:.9"></div>
 <div style="max-width:1200px;margin:0 auto;padding:40px clamp(20px,5vw,56px) 36px">
 <nav aria-label="Breadcrumb" style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted);margin-bottom:26px">
-<a href="../home/home.dc.html" style="color:inherit;text-decoration:none;white-space:nowrap">Home</a><span aria-hidden="true">/</span><span style="color:var(--vt-text-inverse);white-space:nowrap">Your account</span>
+<a href="/" style="color:inherit;text-decoration:none;white-space:nowrap">Home</a><span aria-hidden="true">/</span><span style="color:var(--vt-text-inverse);white-space:nowrap">Your account</span>
 </nav>
 
 <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:24px 32px">
@@ -192,7 +192,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </div>
 </div>
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" href="../home/home.dc.html" iconEnd="arrow-right" hint-size="220px,54px">Book a transfer</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" href="/" iconEnd="arrow-right" hint-size="220px,54px">Book a transfer</x-import>
 </div>
 </div>
 
@@ -215,30 +215,30 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <aside data-ac-side="1">
 <div data-ac-rail="1" data-lenis-prevent="1">
 <nav data-ac-nav="1" aria-label="Account sections" onClick="{{ jump }}">
-<a data-ac-navitem="1" href="#transfers" aria-current="{{ acTransfers }}">
+<a data-ac-navitem="1" data-no-transition="1" href="#transfers" aria-current="{{ acTransfers }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="calendar-days" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
 <span data-ac-navlabel="1">Upcoming transfers</span>
 <span data-ac-navnum="1">{{ bookingCount }}</span>
 </a>
-<a data-ac-navitem="1" href="#details" aria-current="{{ acDetails }}">
+<a data-ac-navitem="1" data-no-transition="1" href="#details" aria-current="{{ acDetails }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="user" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
 <span data-ac-navlabel="1">Your details</span>
 <sc-if value="{{ showUnverified }}" hint-placeholder-val="{{ false }}"><span data-ac-navdot="1" aria-hidden="true"></span></sc-if>
 </a>
-<a data-ac-navitem="1" href="#mobile" aria-current="{{ acMobile }}">
+<a data-ac-navitem="1" data-no-transition="1" href="#mobile" aria-current="{{ acMobile }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="phone" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
 <span data-ac-navlabel="1">Mobile number</span>
 <sc-if value="{{ phoneTodo }}" hint-placeholder-val="{{ true }}"><span data-ac-navdot="1" aria-hidden="true"></span></sc-if>
 </a>
-<a data-ac-navitem="1" href="#preferences" aria-current="{{ acPrefs }}">
+<a data-ac-navitem="1" data-no-transition="1" href="#preferences" aria-current="{{ acPrefs }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="settings" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
 <span data-ac-navlabel="1">Preferences</span>
 </a>
-<a data-ac-navitem="1" href="#security" aria-current="{{ acSecurity }}">
+<a data-ac-navitem="1" data-no-transition="1" href="#security" aria-current="{{ acSecurity }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="shield-check" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
 <span data-ac-navlabel="1">Sign-in and security</span>
 </a>
-<a data-ac-navitem="1" href="#close" aria-current="{{ acClose }}">
+<a data-ac-navitem="1" data-no-transition="1" href="#close" aria-current="{{ acClose }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
 <span data-ac-navlabel="1">Close account</span>
 </a>
@@ -254,12 +254,12 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <h2 data-ac-h2="1" style="color:var(--vt-white);font-size:var(--vt-heading-4);line-height:1.2">Book your next transfer</h2>
 <p style="margin:0;font-size:var(--vt-body-sm);line-height:1.5;color:var(--vt-text-inverse-muted);text-wrap:pretty">Fixed price before you pay, and 60 minutes of airport waiting included.</p>
 <div style="margin-top:4px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="primary" size="md" block="{{ yes }}" href="../home/home.dc.html" iconEnd="arrow-right" hint-size="100%,44px">Book a transfer</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="primary" size="md" block="{{ yes }}" href="/" iconEnd="arrow-right" hint-size="100%,44px">Book a transfer</x-import>
 </div>
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px;margin-top:14px;padding-top:14px;border-top:1px solid var(--vt-border-inverse)">
 <a href="tel:+41796267082" style="display:inline-flex;align-items:center;gap:8px;min-height:36px;font-family:var(--vt-font-display);font-size:var(--vt-body-lg);font-weight:var(--vt-weight-semibold);letter-spacing:-.01em;white-space:nowrap;color:var(--vt-white);text-decoration:none" style-hover="color:var(--vt-accent)">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="phone" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>+41 79 626 70 82</a>
-<a href="contact.dc.html" style="min-height:36px;display:inline-flex;align-items:center;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:rgb(255 255 255 / .82)" style-hover="color:var(--vt-white)">Contact us</a>
+<a href="/contact" style="min-height:36px;display:inline-flex;align-items:center;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:rgb(255 255 255 / .82)" style-hover="color:var(--vt-white)">Contact us</a>
 </div>
 </div>
 </x-import>
@@ -282,7 +282,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <p data-ac-sub="1" style="padding:18px 0;border-top:1px solid var(--vt-border-subtle)">No transfers yet. Your next booking appears here the moment it is paid.</p>
 </sc-if>
 </div>
-<a data-ac-more="1" href="bookings.dc.html">
+<a data-ac-more="1" href="/bookings">
 <span>See all your bookings</span>
 <span data-ac-more-go="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
 </a>
@@ -343,7 +343,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </section>
 
 <section id="mobile" data-ac-sec="1">
-<dc-import name="PhoneVerify" stage="{{ phoneStage }}" hint-size="100%,280px"></dc-import>
+<dc-import name="PhoneVerify" stage="{{ phoneStage }}" phone="{{ savedPhone }}" hint-size="100%,280px"></dc-import>
 </section>
 
 <section id="preferences" data-ac-sec="1">
@@ -392,7 +392,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-ac-row="1">
 <span data-ac-k="1">Password</span>
 <span data-ac-hint="1">We email you a link and you set a new one on the page it opens. There is nothing to remember in between.</span>
-<span data-ac-act="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" href="reset-password.dc.html" hint-size="180px,38px">Change password</x-import></span>
+<span data-ac-act="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" href="/reset-password" hint-size="180px,38px">Change password</x-import></span>
 </div>
 
 <div data-ac-row="1">
@@ -421,7 +421,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <p data-ac-kick="1">Permanent</p>
 <h2 data-ac-h2="1">Close your account</h2>
 <sc-if value="{{ notClosing }}" hint-placeholder-val="{{ true }}">
-<p data-ac-sub="1" style="max-width:60ch">We delete your profile and preferences. Booking records we are required to keep stay with us for <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Record retention</span>, and nothing else survives.</p>
+<p data-ac-sub="1" style="max-width:60ch">We delete your profile and preferences. Booking records we are required to keep stay with us, and nothing else survives.</p>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ startClose }}" hint-size="170px,44px">Close account</x-import>
 </sc-if>
 <sc-if value="{{ closing }}" hint-placeholder-val="{{ false }}">
@@ -449,25 +449,33 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;attached&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:2,&quot;min&quot;:0,&quot;max&quot;:2,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Guest bookings found&quot;},&quot;emailState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;verified&quot;,&quot;unverified&quot;],&quot;default&quot;:&quot;auto&quot;,&quot;tsType&quot;:&quot;'auto'|'verified'|'unverified'&quot;,&quot;section&quot;:&quot;State&quot;},&quot;phoneState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;add&quot;,&quot;verified&quot;],&quot;default&quot;:&quot;add&quot;,&quot;tsType&quot;:&quot;'add'|'verified'&quot;,&quot;section&quot;:&quot;State&quot;}}">
-/* Sample transfers use the project's established routes and 000 amounts — the price
-   matrix is still owed, so no figure here is invented. */
-const SAMPLE = [
-  { ref: 'VT-4821', route: 'Zurich Airport (ZRH), Terminal 2 \u2192 Zurich, Bahnhofstrasse 1', date: 'Thu 6 Aug', time: '08:15', status: 'assigned' },
-  { ref: 'VT-4907', route: 'Zurich, Bahnhofstrasse 1 \u2192 Zermatt, Bahnhofstrasse 5', date: 'Fri 14 Aug', time: '06:45', status: 'confirmed' },
-];
+<script type="text/x-dc" data-dc-script data-props="{&quot;attached&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:0,&quot;min&quot;:0,&quot;max&quot;:2,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Guest bookings found&quot;},&quot;emailState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;verified&quot;,&quot;unverified&quot;],&quot;default&quot;:&quot;auto&quot;,&quot;tsType&quot;:&quot;'auto'|'verified'|'unverified'&quot;,&quot;section&quot;:&quot;State&quot;},&quot;phoneState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;add&quot;,&quot;verified&quot;],&quot;default&quot;:&quot;add&quot;,&quot;tsType&quot;:&quot;'add'|'verified'&quot;,&quot;section&quot;:&quot;State&quot;}}">
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
-/* Opened without a session — a review still needs a person on the page, so the same
-   sample customer the rest of the project uses stands in. Nothing is written back. */
-const DEMO = { firstName: 'Anna', lastName: 'Keller', email: 'anna.keller@example.com', emailVerified: true };
+const EMPTY_AUTH = { firstName: '', lastName: '', email: '', emailVerified: false };
+const PHONE_KEY = 'vamosPhone';
+const readPhone = () => {
+  try {
+    const p = JSON.parse(localStorage.getItem(PHONE_KEY) || 'null');
+    return p && p.phone ? p.phone : '';
+  } catch (e) { return ''; }
+};
 const LANGS = ['en', 'de', 'fr', 'ar'];
 const LANG_NOTE = { en: 'English', de: 'Deutsch', fr: 'Français', ar: 'العربية' };
 const CUR_NOTE = { CHF: 'Swiss francs', EUR: 'Euro', USD: 'US dollars', AED: 'UAE dirham' };
 const SECTIONS = ['transfers', 'details', 'mobile', 'preferences', 'security', 'close'];
 
-/* A preference the traveller sets has to still be set when they come back —
-   these live on the device until the account API exists. Language and currency
-   already go through VamosLocale, which is the platform-wide store. */
+const postProfile = (body) => fetch('/api/auth', {
+  method: 'POST',
+  headers: { 'content-type': 'application/json' },
+  credentials: 'same-origin',
+  body: JSON.stringify(Object.assign({ action: 'update-profile' }, body)),
+}).then((r) => r.json());
+const writeAuth = (auth) => {
+  try { localStorage.setItem('vamosAuth', JSON.stringify(auth)); } catch (e) {}
+  try { window.dispatchEvent(new CustomEvent('vamos:auth')); } catch (e) {}
+};
+/* Language and currency already go through VamosLocale. Name and mobile
+   write through /api/auth onto the signed-in user. */
 const PREF_KEY = 'vamosPrefs', PHOTO_KEY = 'vamosPhoto';
 const PREFS = () => {
   try { const p = JSON.parse(localStorage.getItem(PREF_KEY) || '{}') || {}; return { receipts: p.receipts !== false, offers: p.offers === true }; }
@@ -478,7 +486,7 @@ const PHOTO = () => { try { return localStorage.getItem(PHOTO_KEY) || ''; } catc
 
 class Component extends DCLogic {
   state = {
-    dismissed: false, attached: null, auth: null, verifyResent: false,
+    dismissed: false, attached: 0, auth: null, verifyResent: false,
     edit: null, first: '', last: '', mail: '', errors: {},
     receipts: PREFS().receipts, offers: PREFS().offers, prefSaved: false,
     photo: PHOTO(), photoTooBig: false,
@@ -491,11 +499,38 @@ class Component extends DCLogic {
   };
 
   componentDidMount() {
-    let n = 2, auth = null;
-    try { const q = new URLSearchParams(location.search).get('attached'); if (q !== null) n = parseInt(q, 10) || 0; } catch (e) {}
-    try { const raw = localStorage.getItem('vamosAuth'); if (raw) auth = JSON.parse(raw); } catch (e) {}
     const v = window.VamosLocale;
-    this.setState({ attached: n, auth: auth, lang: (v && v.lang) || 'en', cur: (v && v.cur) || 'CHF' });
+    fetch('/api/auth/session', { credentials: 'same-origin' })
+      .then((r) => r.json())
+      .then((snap) => {
+        let stored = null;
+        try { const raw = localStorage.getItem('vamosAuth'); if (raw) stored = JSON.parse(raw); } catch (e) {}
+        if (!snap || !snap.signedIn) {
+          if (stored && stored.email) { this.setState({ auth: stored }); return; }
+          location.replace('/sign-in');
+          return;
+        }
+        const full = (snap.displayName || '').trim();
+        const parts = full.split(' ').filter(Boolean);
+        if (snap.phone) {
+          try { localStorage.setItem(PHONE_KEY, JSON.stringify({ phone: snap.phone, at: Date.now() })); } catch (e) {}
+        }
+        const auth = {
+          firstName: parts[0] || (stored && stored.firstName) || '',
+          lastName: parts.slice(1).join(' ') || (stored && stored.lastName) || '',
+          email: (stored && stored.email) || '',
+          emailVerified: snap.emailConfirmed === true || (stored && stored.emailVerified === true),
+        };
+        writeAuth(auth);
+        this.setState({ auth });
+      })
+      .catch(() => {
+        let stored = null;
+        try { const raw = localStorage.getItem('vamosAuth'); if (raw) stored = JSON.parse(raw); } catch (e) {}
+        if (stored && stored.email) this.setState({ auth: stored });
+        else location.replace('/sign-in');
+      });
+    this.setState({ lang: (v && v.lang) || 'en', cur: (v && v.cur) || 'CHF' });
     /* One store, one broadcast: a choice made here or anywhere else relabels this page. */
     if (v) this._offLocale = v.onChange((d) => this.setState({ lang: d.lang, cur: d.cur }));
     /* Read the scroll position rather than watch for intersections: with a sticky
@@ -538,31 +573,45 @@ class Component extends DCLogic {
     if (window.innerHeight + window.scrollY >= d.scrollHeight - 4) next = live[live.length - 1];
     if (next !== this.state.active) this.setState({ active: next });
   };
-  /* One delegated handler: the anchor does the scrolling, this just marks it read. */
+  /* Stay on /account. Hash hrefs plus the pages base URL would otherwise
+     leave this page (and fire the page-transition overlay). */
   jump = (e) => {
     const a = e.target && e.target.closest ? e.target.closest('a[href^="#"]') : null;
-    if (a) this.setState({ active: a.getAttribute('href').slice(1) });
+    if (!a) return;
+    e.preventDefault();
+    const id = (a.getAttribute('href') || '').slice(1);
+    if (!id) return;
+    this.setState({ active: id });
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    try { history.replaceState(null, '', location.pathname + location.search + '#' + id); } catch (err) {}
   };
 
   /* The session is what the header reads, so an edit here has to write it back. */
   patchAuth(patch) {
-    const auth = Object.assign({}, this.state.auth || DEMO, patch);
+    const auth = Object.assign({}, this.state.auth || EMPTY_AUTH, patch);
     this.setState({ auth, edit: null, errors: {} });
-    try { localStorage.setItem('vamosAuth', JSON.stringify(auth)); } catch (e) {}
+    writeAuth(auth);
   }
 
   signOut = () => {
     try { localStorage.removeItem('vamosAuth'); } catch (e) {}
-    location.href = '../home/home.dc.html';
+    try { localStorage.removeItem(PHONE_KEY); } catch (e) {}
+    fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ action: 'signout' }),
+    }).finally(() => { location.href = '/sign-in'; });
   };
   resendVerify = () => this.setState({ verifyResent: true });
   dismiss = () => this.setState({ dismissed: true });
 
   editName = () => {
-    const a = this.state.auth || DEMO;
+    const a = this.state.auth || EMPTY_AUTH;
     this.setState({ edit: 'name', first: a.firstName || '', last: a.lastName || '', errors: {} });
   };
-  editMail = () => this.setState({ edit: 'mail', mail: (this.state.auth || DEMO).email || '', errors: {} });
+  editMail = () => this.setState({ edit: 'mail', mail: (this.state.auth || EMPTY_AUTH).email || '', errors: {} });
   cancelEdit = () => this.setState({ edit: null, errors: {} });
   saveName = () => {
     const first = this.state.first.trim(), last = this.state.last.trim();
@@ -570,7 +619,15 @@ class Component extends DCLogic {
     if (!first) errors.first = 'Enter your first name';
     if (!last) errors.last = 'Enter your last name';
     if (Object.keys(errors).length) { this.setState({ errors }); return; }
-    this.patchAuth({ firstName: first, lastName: last });
+    postProfile({ firstName: first, lastName: last })
+      .then((res) => {
+        if (!res || !res.ok) {
+          this.setState({ errors: { first: 'Could not save. Try again.' } });
+          return;
+        }
+        this.patchAuth({ firstName: first, lastName: last });
+      })
+      .catch(() => this.setState({ errors: { first: 'Could not save. Try again.' } }));
   };
   saveMail = () => {
     const mail = this.state.mail.trim();
@@ -626,19 +683,14 @@ class Component extends DCLogic {
   setCur = (v) => { if (window.VamosLocale) window.VamosLocale.setCur(v); this.setState({ cur: v }); this.flashSaved(); };
 
   renderVals() {
-    const s = this.state, p = this.props || {};
-    const auth = s.auth || DEMO;
-    const n = s.attached === null ? (p.attached ?? 2) : s.attached;
-    const money = window.VamosLocale ? window.VamosLocale.money('000.00') : 'CHF 000.00';
-    const bookings = SAMPLE.slice(0, Math.max(0, Math.min(n === 0 ? 2 : n, SAMPLE.length)))
-      .map((b) => Object.assign({ href: 'booking-detail.dc.html?ref=' + b.ref + '&s=' + b.status, price: money }, b));
+    const s = this.state;
+    const auth = s.auth || EMPTY_AUTH;
+    const bookings = [];
 
     const email = auth.email || '';
     const full = [auth.firstName, auth.lastName].filter(Boolean).join(' ').trim();
-    /* The tweak wins when it is set, so a reviewer can hold either state open. */
-    const forced = p.emailState;
-    const unverified = forced === 'unverified' || (forced !== 'verified' && !!email && auth.emailVerified === false);
-    const phoneStage = p.phoneState === 'verified' ? 'verified' : 'add';
+    const unverified = !!email && auth.emailVerified === false;
+    const phoneStage = readPhone() ? 'verified' : 'add';
     const on = (id) => (s.active === id ? 'page' : null);
 
     return {
@@ -656,6 +708,7 @@ class Component extends DCLogic {
       acPrefs: on('preferences'), acSecurity: on('security'), acClose: on('close'),
       bookingCount: bookings.length,
       phoneTodo: phoneStage !== 'verified',
+      savedPhone: readPhone(),
 
       bookings, noBookings: bookings.length === 0,
 

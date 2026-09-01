@@ -101,10 +101,10 @@ function uniqueEmail(tag: string): string {
 }
 
 function setCookieEntries(res: Response): string[] {
-  return res
-    .headersArray()
-    .filter((h) => h.name.toLowerCase() === "set-cookie")
-    .map((h) => h.value);
+  const raw = (
+    res as unknown as { headersArray: () => Array<{ name: string; value: string }> }
+  ).headersArray();
+  return raw.filter((h) => h.name.toLowerCase() === "set-cookie").map((h) => h.value);
 }
 
 async function signIn(page: Page, email: string, password: string): Promise<void> {

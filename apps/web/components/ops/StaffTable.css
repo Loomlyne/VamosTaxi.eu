@@ -1,0 +1,107 @@
+/* apps/web/components/ops/StaffTable.css
+ *
+ * Roster chrome. Logical properties only. Charcoal / hairline / danger — never yellow.
+ */
+
+.ops-staff {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-inline-size: 0;
+}
+
+.ops-staff__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 22px;
+  padding-block-end: 18px;
+  border-block-end: 1px solid var(--vt-border-subtle);
+}
+
+.ops-staff__head-copy {
+  min-inline-size: 0;
+}
+
+.ops-staff__head h1 {
+  margin: 0;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-heading-2);
+  font-weight: var(--vt-weight-semibold);
+  letter-spacing: var(--vt-heading-tracking);
+}
+
+.ops-staff__head p {
+  margin-block: 4px 0;
+  margin-inline: 0;
+  font-size: var(--vt-body-xs);
+  color: var(--vt-text-muted);
+}
+
+.ops-staff__head-actions {
+  margin-inline-start: auto;
+}
+
+.ops-staff__enrol-note {
+  margin: 0;
+  max-inline-size: 78ch;
+  font-size: var(--vt-body-xs);
+  line-height: 1.6;
+  color: var(--vt-text-muted);
+}
+
+.ops-staff__person {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-inline-size: 0;
+}
+
+.ops-staff__chip {
+  display: inline-flex;
+  align-items: center;
+  padding-block: 2px;
+  padding-inline: 8px;
+  border-radius: 999px;
+  font-size: var(--vt-label-sm);
+  letter-spacing: var(--vt-label-tracking);
+  font-weight: var(--vt-weight-semibold);
+}
+
+.ops-staff__chip--admin {
+  background: var(--vt-text-primary);
+  color: var(--vt-bg-page);
+}
+
+.ops-staff__chip--dispatcher {
+  background: transparent;
+  color: var(--vt-text-primary);
+  border: 1px solid var(--vt-border);
+}
+
+.ops-staff__muted {
+  color: var(--vt-text-muted);
+}
+
+.ops-staff__danger {
+  color: var(--vt-danger);
+}
+
+.ops-staff__actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ops-staff__dialog-body {
+  margin: 0;
+  font-size: var(--vt-body-sm);
+  line-height: 1.6;
+}
+
+.ops-staff__error {
+  margin-block: 12px 0;
+  margin-inline: 0;
+  color: var(--vt-danger);
+  font-size: var(--vt-body-sm);
+}

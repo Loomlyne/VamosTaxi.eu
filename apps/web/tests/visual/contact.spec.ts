@@ -175,7 +175,7 @@ test.describe("Contact page and form @component", () => {
 
   test("failure codes map to translated messages not raw codes @component", async ({ page }) => {
     const codes = ["challenge_failed", "invalid_input", "unavailable"] as const;
-    const messages: Record<string, { en: string; de: string }> = {
+    const messages = {
       challenge_failed: { en: "", de: "" },
       invalid_input: { en: "", de: "" },
       unavailable: { en: "", de: "" },
