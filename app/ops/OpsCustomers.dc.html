@@ -31,7 +31,7 @@
 </sc-for>
 </div>
 
-<dc-import name="OpsTable" rows="{{ rows }}" columns="{{ columns }}" fields="{{ fields }}" blank="{{ blank }}" onSave="{{ onSave }}" onDelete="{{ onDelete }}" noun="{{ tNoun }}" noun-plural="{{ tNounPlural }}" add-title="{{ tAdd }}" edit-title="{{ tEditTitle }}" delete-title="{{ tDeleteTitle }}" label-key="name" add-label="{{ tAdd }}" search-placeholder="{{ tSearch }}" search-keys="{{ searchKeys }}" empty-title="{{ tEmptyTitle }}" empty-body="{{ tEmptyBody }}" delete-body="{{ tDeleteBody }}" history-label="{{ tHistoryLabel }}" history-rows="{{ historyRows }}" history-empty-label="{{ tHistoryEmpty }}" hint-size="100%,460px"></dc-import>
+<dc-import name="OpsTable" rows="{{ rows }}" columns="{{ columns }}" fields="{{ fields }}" noun="{{ tNoun }}" noun-plural="{{ tNounPlural }}" edit-title="{{ tEditTitle }}" label-key="name" search-placeholder="{{ tSearch }}" search-keys="{{ searchKeys }}" empty-title="{{ tEmptyTitle }}" empty-body="{{ tEmptyBody }}" history-label="{{ tHistoryLabel }}" history-rows="{{ historyRows }}" history-empty-label="{{ tHistoryEmpty }}" hint-size="100%,460px"></dc-import>
 
 <p style="margin:0;max-width:78ch;font-size:var(--vt-body-xs);line-height:1.6;color:var(--vt-text-muted);text-wrap:pretty">{{ tNote }}</p>
 
@@ -39,8 +39,12 @@
 </main>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900}}">
-/* Customers — the people and companies who book. A corporate account is the same
-   record with a company name and an invoice arrangement, not a second table. */
+/* Customers — read-only staff view (OPS-07 / D-26). List hydrates from
+   GET /api/staff/customers via VamosOps.customers. Opening a row loads
+   GET /api/staff/customers/:id for booking history. Table write callbacks
+   are omitted so restCollection upsert/remove never run. Dispatch writes
+   stay Phase 8. Empty list stays empty (D-35); this file does not seed
+   fake travellers. */
 const TYPES = {
   private: { tone:'neutral', label:'Private' },
   corporate: { tone:'inverse', label:'Corporate' },
@@ -50,58 +54,67 @@ const T = {
     colName:'Customer', colPhone:'Phone', colType:'Type', colCompany:'Company', colTrips:'Trips',
     cntAll:'Customers', cntCorporate:'Corporate accounts', cntTrips:'Trips booked',
     footAll:'On the books', footCorporate:'Invoiced, not card-paid', footTrips:'Across every customer',
-    add:'Add a customer', search:'Name, email, phone or company',
-    noun:'customer', nounPlural:'customers', editTitle:'Edit customer', deleteTitle:'Delete this customer?',
-    emptyTitle:'No customers yet', emptyBody:'Every booking creates one — or add a corporate account by hand before their first trip.',
-    deleteBody:'The customer leaves the console. Their past bookings stay on the board.',
+    search:'Name, email, phone or company',
+    noun:'customer', nounPlural:'customers', editTitle:'Customer',
+    emptyTitle:'No customers yet', emptyBody:'Every booking creates one. This list stays empty until a real customer exists.',
     fName:'Name', fEmail:'Email', fPhone:'Phone', fType:'Type', fCompany:'Company', fTrips:'Trips booked', fSince:'Customer since', fNote:'Note',
     hCompany:'Only for a corporate account.', hNote:'Anything a dispatcher should know before the call.',
     historyLabel:'Booking history', historyEmpty:'No trips on the board yet.',
-    note:'A customer record is what the booking form fills in and what the invoice is addressed to. Trip counts come from the bookings board once the platform API is connected.',
+    note:'A customer record is what the booking form fills in and what the invoice is addressed to. History is display-only. Dispatch writes stay Phase 8.',
   },
   de: { title:'Kunden', subtitle:'Alle, die gebucht haben, und wie man sie erreicht',
     colName:'Kunde', colPhone:'Telefon', colType:'Typ', colCompany:'Firma', colTrips:'Fahrten',
     cntAll:'Kunden', cntCorporate:'Firmenkonten', cntTrips:'Gebuchte Fahrten',
     footAll:'Im Bestand', footCorporate:'Auf Rechnung, nicht per Karte', footTrips:'Über alle Kunden',
-    add:'Kunde hinzufügen', search:'Name, E-Mail, Telefon oder Firma',
-    noun:'Kunde', nounPlural:'Kunden', editTitle:'Kunde bearbeiten', deleteTitle:'Diesen Kunden löschen?',
-    emptyTitle:'Noch keine Kunden', emptyBody:'Jede Buchung legt einen an — oder ein Firmenkonto vor der ersten Fahrt von Hand erfassen.',
-    deleteBody:'Der Kunde verlässt die Konsole. Frühere Buchungen bleiben auf dem Board.',
+    search:'Name, E-Mail, Telefon oder Firma',
+    noun:'Kunde', nounPlural:'Kunden', editTitle:'Kunde',
+    emptyTitle:'Noch keine Kunden', emptyBody:'Jede Buchung legt einen an. Die Liste bleibt leer, bis ein echter Kunde existiert.',
     fName:'Name', fEmail:'E-Mail', fPhone:'Telefon', fType:'Typ', fCompany:'Firma', fTrips:'Gebuchte Fahrten', fSince:'Kunde seit', fNote:'Notiz',
     hCompany:'Nur für ein Firmenkonto.', hNote:'Was ein Disponent vor dem Anruf wissen sollte.',
     historyLabel:'Buchungsverlauf', historyEmpty:'Noch keine Fahrten auf dem Board.',
-    note:'Der Kundendatensatz ist das, was das Buchungsformular ausfüllt und worauf die Rechnung lautet. Die Fahrtenzahlen kommen vom Buchungsboard, sobald die Plattform-API verbunden ist.',
+    note:'Der Kundendatensatz ist das, was das Buchungsformular ausfüllt und worauf die Rechnung lautet. Der Verlauf ist nur Anzeige — Zuweisung, Rückerstattung und Bestätigung gehören zu Phase 8.',
   },
   fr: { title:'Clients', subtitle:'Tous ceux qui ont réservé, et comment les joindre',
     colName:'Client', colPhone:'Téléphone', colType:'Type', colCompany:'Société', colTrips:'Courses',
     cntAll:'Clients', cntCorporate:'Comptes entreprises', cntTrips:'Courses réservées',
     footAll:'Au registre', footCorporate:'Facturés, pas payés par carte', footTrips:'Tous clients confondus',
-    add:'Ajouter un client', search:'Nom, e-mail, téléphone ou société',
-    noun:'client', nounPlural:'clients', editTitle:'Modifier le client', deleteTitle:'Supprimer ce client ?',
-    emptyTitle:'Aucun client', emptyBody:'Chaque réservation en crée un — ou ajoutez un compte entreprise avant sa première course.',
-    deleteBody:'Le client quitte la console. Ses réservations passées restent au tableau.',
+    search:'Nom, e-mail, téléphone ou société',
+    noun:'client', nounPlural:'clients', editTitle:'Client',
+    emptyTitle:'Aucun client', emptyBody:'Chaque réservation en crée un. La liste reste vide tant qu’aucun client réel n’existe.',
     fName:'Nom', fEmail:'E-mail', fPhone:'Téléphone', fType:'Type', fCompany:'Société', fTrips:'Courses réservées', fSince:'Client depuis', fNote:'Note',
     hCompany:'Uniquement pour un compte entreprise.', hNote:'Ce qu’un régulateur doit savoir avant l’appel.',
     historyLabel:'Historique des réservations', historyEmpty:'Aucune course sur le tableau pour l’instant.',
-    note:'La fiche client est ce que le formulaire de réservation remplit et ce à quoi la facture est adressée. Les compteurs de courses viendront du tableau des réservations une fois l’API connectée.',
+    note:'La fiche client est ce que le formulaire de réservation remplit et ce à quoi la facture est adressée. L’historique est en lecture seule — assignation, remboursement et confirmation relèvent de la phase 8.',
   },
   ar: { title:'العملاء', subtitle:'كل من حجز، وكيفية الوصول إليه',
     colName:'العميل', colPhone:'الهاتف', colType:'النوع', colCompany:'الشركة', colTrips:'الرحلات',
     cntAll:'العملاء', cntCorporate:'حسابات الشركات', cntTrips:'الرحلات المحجوزة',
     footAll:'في السجل', footCorporate:'بفاتورة لا ببطاقة', footTrips:'عبر كل العملاء',
-    add:'إضافة عميل', search:'الاسم أو البريد أو الهاتف أو الشركة',
-    noun:'عميل', nounPlural:'عملاء', editTitle:'تعديل العميل', deleteTitle:'حذف هذا العميل؟',
-    emptyTitle:'لا يوجد عملاء بعد', emptyBody:'كل حجز يُنشئ عميلًا — أو أضف حساب شركة يدويًا قبل رحلته الأولى.',
-    deleteBody:'يخرج العميل من لوحة التحكم، وتبقى حجوزاته السابقة على اللوحة.',
+    search:'الاسم أو البريد أو الهاتف أو الشركة',
+    noun:'عميل', nounPlural:'عملاء', editTitle:'العميل',
+    emptyTitle:'لا يوجد عملاء بعد', emptyBody:'كل حجز يُنشئ عميلًا. تبقى القائمة فارغة حتى يوجد عميل حقيقي.',
     fName:'الاسم', fEmail:'البريد الإلكتروني', fPhone:'الهاتف', fType:'النوع', fCompany:'الشركة', fTrips:'الرحلات المحجوزة', fSince:'عميل منذ', fNote:'ملاحظة',
     hCompany:'لحسابات الشركات فقط.', hNote:'ما ينبغي أن يعرفه الموزّع قبل الاتصال.',
     historyLabel:'سجل الحجوزات', historyEmpty:'لا رحلات على اللوحة بعد.',
-    note:'سجل العميل هو ما يملؤه نموذج الحجز وما تُوجَّه إليه الفاتورة. تأتي أعداد الرحلات من لوحة الحجوزات بعد ربط واجهة المنصّة.',
+    note:'سجل العميل هو ما يملؤه نموذج الحجز وما تُوجَّه إليه الفاتورة. السجل للعرض فقط — التعيين والاسترداد والتأكيد في المرحلة 8.',
   },
 };
 
+function historyCards(bookings) {
+  const list = Array.isArray(bookings) ? bookings : [];
+  return list.map((b) => {
+    const legs = Array.isArray(b.legs) ? b.legs : [];
+    const first = legs[0] || {};
+    const pickup = first.pickupText || '';
+    const dropoff = first.dropoffText || '';
+    const route = pickup && dropoff ? pickup + ' → ' + dropoff : (pickup || dropoff);
+    const when = first.scheduledLocal || first.scheduledAt || b.createdAt || '';
+    return { ref: b.reference || b.id || '', route, when, status: b.status || '' };
+  });
+}
+
 class Component extends DCLogic {
-  state = { lang: 'en' };
+  state = { lang: 'en', historyById: {} };
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
     this._off = window.VamosOps.customers.onChange(() => this.forceUpdate());
@@ -118,6 +131,27 @@ class Component extends DCLogic {
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     clearTimeout(this._retry);
   }
+  ensureHistory(row) {
+    const id = row && row.id;
+    if (!id) return;
+    this._histPending = this._histPending || {};
+    if (this._histPending[id]) return;
+    const cached = (this.state.historyById || {})[id];
+    if (cached) return;
+    const api = window.VamosOpsApi;
+    if (!api || typeof api.request !== 'function') return;
+    this._histPending[id] = true;
+    api.request('GET', '/api/staff/customers/' + encodeURIComponent(id)).then((json) => {
+      const bookings = json && json.ok && json.data && Array.isArray(json.data.bookings)
+        ? json.data.bookings
+        : [];
+      const historyById = {};
+      const cur = this.state.historyById || {};
+      for (const k in cur) historyById[k] = cur[k];
+      historyById[id] = historyCards(bookings);
+      this.setState({ historyById });
+    });
+  }
   renderVals() {
     const t = T[this.state.lang] || T.en;
     const ops = window.VamosOps;
@@ -125,16 +159,18 @@ class Component extends DCLogic {
     const corporate = rows.filter((r) => r.type === 'corporate').length;
     const trips = rows.reduce((n, r) => n + (r.trips || 0), 0);
     const typeOptions = (ops ? ops.CUSTOMER_TYPES : []).map((v) => ({ value: v, label: TYPES[v].label }));
+    const self = this;
     return {
       n18: 18,
-      tTitle: t.title, tSubtitle: t.subtitle, tAdd: t.add, tSearch: t.search,
-      tNoun: t.noun, tNounPlural: t.nounPlural, tEditTitle: t.editTitle, tDeleteTitle: t.deleteTitle,
-      tEmptyTitle: t.emptyTitle, tEmptyBody: t.emptyBody, tDeleteBody: t.deleteBody, tNote: t.note,
+      tTitle: t.title, tSubtitle: t.subtitle, tSearch: t.search,
+      tNoun: t.noun, tNounPlural: t.nounPlural, tEditTitle: t.editTitle,
+      tEmptyTitle: t.emptyTitle, tEmptyBody: t.emptyBody, tNote: t.note,
       tHistoryLabel: t.historyLabel, tHistoryEmpty: t.historyEmpty,
-      historyRows: (row) => (ops ? ops.bookings.all() : [])
-        .filter((b) => b.customer && row.name && b.customer.toLowerCase() === row.name.toLowerCase())
-        .sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time))
-        .map((b) => ({ ref: b.id, route: (b.pickup || '') + ' → ' + (b.dropoff || ''), when: b.time + ' · ' + b.date, status: b.status })),
+      historyRows: (row) => {
+        self.ensureHistory(row);
+        const id = row && row.id;
+        return (self.state.historyById && id && self.state.historyById[id]) || [];
+      },
       counts: [
         { label:t.cntAll, value:String(rows.length), icon:'user', foot:t.footAll },
         { label:t.cntCorporate, value:String(corporate), icon:'briefcase', foot:t.footCorporate },
@@ -159,9 +195,6 @@ class Component extends DCLogic {
         { key:'note', label:t.fNote, editor:'area', hint:t.hNote },
       ],
       searchKeys: ['name','email','phone','company'],
-      blank: () => (ops ? ops.customers.blank() : {}),
-      onSave: (rec) => { if (ops) ops.customers.upsert(rec); },
-      onDelete: (id) => { if (ops) ops.customers.remove(id); },
     };
   }
 }
