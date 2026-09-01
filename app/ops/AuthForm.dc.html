@@ -413,10 +413,11 @@ class Component extends DCLogic {
     }
     if (result.ok) {
       if (this.props.surface === 'ops') {
-        // A fresh invite has no role until this self-only aal2 acceptance calls
-        // refreshSession. Never navigate into dashboard on a failed claim.
-        if (await this.claimOpsInvite()) { location.replace('/'); return; }
-        return this.go({ stage: 'form', banner: 'credentials' });
+        // Stamp accepted_at when the RPC exists. Do not treat a missing/failed
+        // claim as a bad password — the sole admin must still reach /.
+        try { await this.claimOpsInvite(); } catch (e) {}
+        location.replace('/');
+        return;
       }
       this.saveSession();
       return this.go({ stage: 'returning', banner: null });

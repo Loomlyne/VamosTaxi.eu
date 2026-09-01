@@ -88,3 +88,10 @@ comment on function public.staff_claim_invite() is
 
 revoke all on function public.staff_claim_invite() from public;
 grant execute on function public.staff_claim_invite() to authenticated, vamos_staff;
+
+-- Existing active staff (the sole admin) must keep console access after this
+-- gate lands. Stamp accepted_at without inventing extra accounts.
+update public.staff
+   set accepted_at = coalesce(accepted_at, now())
+ where active
+   and accepted_at is null;

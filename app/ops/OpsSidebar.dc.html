@@ -120,7 +120,7 @@
 </aside>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:236,&quot;height&quot;:860},&quot;active&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dashboard&quot;,&quot;options&quot;:[&quot;dashboard&quot;,&quot;bookings&quot;,&quot;calendar&quot;,&quot;vehicles&quot;,&quot;chauffeurs&quot;,&quot;pricing&quot;,&quot;customers&quot;,&quot;coupons&quot;,&quot;pages&quot;,&quot;legal&quot;,&quot;reviews&quot;,&quot;settings&quot;,&quot;profile&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:236,&quot;height&quot;:860},&quot;active&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dashboard&quot;,&quot;options&quot;:[&quot;dashboard&quot;,&quot;bookings&quot;,&quot;calendar&quot;,&quot;vehicles&quot;,&quot;chauffeurs&quot;,&quot;pricing&quot;,&quot;customers&quot;,&quot;coupons&quot;,&quot;pages&quot;,&quot;legal&quot;,&quot;reviews&quot;,&quot;settings&quot;,&quot;staff&quot;,&quot;profile&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
 /* One rail for the whole console. The bottom row collapses it to icons and remembers
    that choice; Fleet and Content are groups; the profile row is a menu, not a link. */
 const NAV_TOP = [
@@ -139,7 +139,7 @@ const NAV_BOTTOM = [
 /* D-12: these hashes are omitted from the DOM for role=dispatcher — never painted disabled. */
 const NAV_ADMIN = [
   { key:'pricing', href:'#pricing', icon:'banknote', en:'Pricing & routes', de:'Preise & Routen', fr:'Tarifs & trajets', ar:'الأسعار والمسارات' },
-  { key:'staff-roster', href:'#settings', icon:'users', en:'Staff', de:'Team', fr:'Équipe', ar:'الفريق' },
+  { key:'staff', href:'#staff', icon:'users', en:'Staff', de:'Team', fr:'Équipe', ar:'الفريق' },
 ];
 /* Content — what the public site shows, edited here. */
 const CONTENT = [
@@ -250,7 +250,7 @@ class Component extends DCLogic {
     const me = this.state.me || {};
     const role = me.role || profile.role || '';
     const isAdmin = role === 'admin';
-    /* Until GET /api/staff/me resolves, omit #pricing and staff-roster so a
+    /* Until GET /api/staff/me resolves, omit #pricing and #staff so a
        dispatcher never sees them as a disabled item (D-12). */
     const navBottomSrc = isAdmin
       ? [NAV_ADMIN[0]].concat(NAV_BOTTOM).concat([NAV_ADMIN[1]])

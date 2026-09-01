@@ -12,6 +12,8 @@
 [data-rate-grid]{display:grid;grid-template-columns:1fr;gap:16px}
 @media (min-width:760px){[data-rate-grid]{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (min-width:1000px){[data-price-rail]{position:sticky;top:24px}}
+[data-set-grid]{display:grid;grid-template-columns:1fr;gap:20px}
+@media (min-width:960px){[data-set-grid]{grid-template-columns:280px minmax(0,1fr);align-items:start}}
 </style>
 </helmet>
 <main style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
@@ -77,29 +79,7 @@
 </sc-if>
 
 <sc-if value="{{ isDistance }}" hint-placeholder-val="{{ false }}">
-<div data-rate-grid="1" style="min-width:0">
-<sc-for list="{{ classes }}" as="c" hint-placeholder-count="4">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" hint-size="100%,440px">
-<div style="display:flex;flex-direction:column;gap:16px;min-width:0">
-<div style="display:flex;align-items:center;gap:10px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ c.icon }}" size="{{ n18 }}" color="var(--vt-charcoal-900)" hint-size="18px,18px"></x-import>
-<h3 data-vt-no-i18n="1" style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold)">{{ c.name }}</h3>
-</div>
-<div style="display:flex;flex-direction:column;gap:12px;min-width:0">
-<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ c.pricingLabel }}</span>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tBaseFare }}" icon="banknote" suffix="{{ cur }}" value="{{ c.baseFare }}" onChange="{{ c.setBase }}" placeholder="000" size="md" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tPerKm }}" icon="navigation" suffix="{{ cur }}" value="{{ c.perKm }}" onChange="{{ c.setPerKm }}" placeholder="0.00" size="md" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tMinFare }}" icon="banknote" suffix="{{ cur }}" value="{{ c.minFare }}" onChange="{{ c.setMinFare }}" placeholder="000" size="md" hint-size="100%,76px"></x-import>
-</div>
-<div style="display:flex;flex-direction:column;gap:12px;padding-top:14px;border-top:1px solid var(--vt-border-subtle);min-width:0">
-<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ tCapacityLabel }}</span>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tMaxPax }}" icon="users" type="number" min="{{ n1 }}" value="{{ c.maxPax }}" onChange="{{ c.setMaxPax }}" size="md" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" label="{{ tAvailable }}" checked="{{ c.available }}" onChange="{{ c.toggleAvailable }}" hint-size="200px,24px"></x-import>
-</div>
-</div>
-</x-import>
-</sc-for>
-</div>
+<dc-import name="OpsTable" rows="{{ distanceRows }}" columns="{{ distanceColumns }}" fields="{{ distanceFields }}" blank="{{ distanceBlank }}" onSave="{{ saveDistance }}" onDelete="{{ deleteDistance }}" noun="{{ tNounDistance }}" noun-plural="{{ tNounDistances }}" add-title="{{ tAddDistance }}" edit-title="{{ tEditDistance }}" delete-title="{{ tDeleteDistanceTitle }}" label-key="klass" add-label="{{ tAddDistance }}" search-placeholder="{{ tSearchDistance }}" search-keys="{{ distanceSearchKeys }}" empty-title="{{ tEmptyDistanceTitle }}" empty-body="{{ tEmptyDistanceBody }}" delete-body="{{ tDeleteDistanceBody }}" hint-size="100%,420px"></dc-import>
 </sc-if>
 
 <sc-if value="{{ isSurcharges }}" hint-placeholder-val="{{ false }}">
@@ -113,7 +93,18 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 const RATE_ICON = { Economy:'car-front', Business:'car', First:'star', Van:'bus' };
-const CLASS_KEYS = ['economy', 'business', 'van'];
+const CLASS_KEYS = ['economy', 'business', 'first', 'van'];
+const SURCHARGE_CODES = [
+  { value: 'night', k: 'ruleNight' },
+  { value: 'weekend', k: 'ruleWeekend' },
+  { value: 'holiday', k: 'ruleHoliday' },
+  { value: 'waiting', k: 'ruleWaiting' },
+  { value: 'extra_stop', k: 'ruleExtraStop' },
+  { value: 'meet_greet', k: 'ruleMeet' },
+  { value: 'child_seat', k: 'ruleChild' },
+  { value: 'ski', k: 'ruleSki' },
+  { value: 'pet', k: 'rulePet' },
+];
 const PANES = [
   { key:'routes', icon:'navigation' },
   { key:'distance', icon:'arrow-left-right' },
@@ -157,6 +148,17 @@ const T = {
     publishDisabledNoDraft:'Publish stays off until a draft exists.',
     publishError:'Publish did not succeed.',
     gapListTitle:'Still unpriced',
+    colFirst:'First', colClass:'Class',
+    hRule:'Pick the extra. The quote uses this code — not a sentence.',
+    hApplies:'This transfer = one leg. Whole booking = every leg on the booking.',
+    applyLeg:'This transfer', applyBooking:'Whole booking',
+    ruleNight:'Night (22:00–06:00)', ruleWeekend:'Weekend (Saturday–Sunday)', ruleHoliday:'Public holiday',
+    ruleWaiting:'Waiting time', ruleExtraStop:'Extra stop', ruleMeet:'Meet and greet',
+    ruleChild:'Child seat', ruleSki:'Ski / snowboard', rulePet:'Pet',
+    addDistance:'Add distance rule', editDistance:'Edit distance rule',
+    deleteDistanceTitle:'Delete this distance rule?', deleteDistanceBody:'The class rate is removed from this draft.',
+    emptyDistanceTitle:'No distance rules yet', emptyDistanceBody:'Four classes are listed. Fill a row and save — amounts stay CHF 000 until you type them.',
+    searchDistance:'Class', nounDistance:'distance rule', nounDistances:'distance rules',
   },
   de: { title:'Preise & Routen', subtitle:'Feste Routen, Distanzregeln und Zuschläge',
     alertTitle:'Jeder Wert hier ist ein Platzhalter', alertBody:'Grundpreise, Kilometersätze, Zuschläge und das Streckenangebot sind noch offene Kundendaten. Nichts auf diesem Bildschirm ist ein echter Vamos-Taxi-Preis.',
@@ -186,6 +188,17 @@ const T = {
     publishDisabledNoDraft:'Veröffentlichen bleibt aus, bis ein Entwurf existiert.',
     publishError:'Veröffentlichen ist fehlgeschlagen.',
     gapListTitle:'Noch ohne Preis',
+    colFirst:'First', colClass:'Klasse',
+    hRule:'Die Extra-Art wählen. Die Offerte nutzt diesen Code — keinen Satz.',
+    hApplies:'Diese Fahrt = eine Teilstrecke. Ganze Buchung = jede Teilstrecke.',
+    applyLeg:'Diese Fahrt', applyBooking:'Ganze Buchung',
+    ruleNight:'Nacht (22:00–06:00)', ruleWeekend:'Wochenende (Sa–So)', ruleHoliday:'Feiertag',
+    ruleWaiting:'Wartezeit', ruleExtraStop:'Zusätzlicher Halt', ruleMeet:'Meet and greet',
+    ruleChild:'Kindersitz', ruleSki:'Ski / Snowboard', rulePet:'Haustier',
+    addDistance:'Distanzregel hinzufügen', editDistance:'Distanzregel bearbeiten',
+    deleteDistanceTitle:'Diese Distanzregel löschen?', deleteDistanceBody:'Der Klassensatz wird aus diesem Entwurf entfernt.',
+    emptyDistanceTitle:'Noch keine Distanzregeln', emptyDistanceBody:'Vier Klassen sind gelistet. Zeile füllen und speichern — Beträge bleiben CHF 000, bis sie eingegeben werden.',
+    searchDistance:'Klasse', nounDistance:'Distanzregel', nounDistances:'Distanzregeln',
   },
   fr: { title:'Tarifs & trajets', subtitle:'Trajets fixes, règles de distance et suppléments',
     alertTitle:'Chaque montant ici est un espace réservé', alertBody:'Les tarifs de base, les prix au kilomètre, les suppléments et la liste des trajets fixes sont des données client en attente. Aucun montant de cet écran n\u2019est un vrai prix Vamos Taxi.',
@@ -215,6 +228,17 @@ const T = {
     publishDisabledNoDraft:'Publier reste inactif tant qu’un brouillon n’existe pas.',
     publishError:'La publication a échoué.',
     gapListTitle:'Toujours sans tarif',
+    colFirst:'First', colClass:'Classe',
+    hRule:'Choisissez le type. Le devis utilise ce code — pas une phrase.',
+    hApplies:'Ce transfert = une étape. Toute la réservation = chaque étape.',
+    applyLeg:'Ce transfert', applyBooking:'Toute la réservation',
+    ruleNight:'Nuit (22:00–06:00)', ruleWeekend:'Week-end (sam.–dim.)', ruleHoliday:'Jour férié',
+    ruleWaiting:'Temps d’attente', ruleExtraStop:'Arrêt supplémentaire', ruleMeet:'Accueil nominatif',
+    ruleChild:'Siège enfant', ruleSki:'Ski / snowboard', rulePet:'Animal',
+    addDistance:'Ajouter une règle de distance', editDistance:'Modifier la règle de distance',
+    deleteDistanceTitle:'Supprimer cette règle de distance ?', deleteDistanceBody:'Le tarif de classe est retiré de ce brouillon.',
+    emptyDistanceTitle:'Aucune règle de distance', emptyDistanceBody:'Quatre classes sont listées. Remplissez une ligne — les montants restent CHF 000 jusqu’à saisie.',
+    searchDistance:'Classe', nounDistance:'règle de distance', nounDistances:'règles de distance',
   },
   ar: { title:'الأسعار والمسارات', subtitle:'مسارات ثابتة وقواعد المسافة والرسوم الإضافية',
     alertTitle:'كل رقم هنا مؤقت', alertBody:'الأسعار الأساسية وأسعار الكيلومتر والرسوم الإضافية وقائمة المسارات الثابتة بيانات ينتظرها المشروع من العميل. لا شيء في هذه الشاشة سعر حقيقي لفاموس تاكسي.',
@@ -244,6 +268,17 @@ const T = {
     publishDisabledNoDraft:'يبقى النشر متوقفًا حتى توجد مسودة.',
     publishError:'لم ينجح النشر.',
     gapListTitle:'ما زال بلا سعر',
+    colFirst:'First', colClass:'الفئة',
+    hRule:'اختر الإضافة. العرض يستخدم هذا الرمز — وليس جملة.',
+    hApplies:'هذا النقل = مرحلة واحدة. الحجز كاملًا = كل مرحلة.',
+    applyLeg:'هذا النقل', applyBooking:'الحجز كاملًا',
+    ruleNight:'ليل (22:00–06:00)', ruleWeekend:'عطلة الأسبوع (سبت–أحد)', ruleHoliday:'عطلة رسمية',
+    ruleWaiting:'وقت الانتظار', ruleExtraStop:'محطة إضافية', ruleMeet:'استقبال بالاسم',
+    ruleChild:'مقعد طفل', ruleSki:'تزلج', rulePet:'حيوان أليف',
+    addDistance:'إضافة قاعدة مسافة', editDistance:'تعديل قاعدة المسافة',
+    deleteDistanceTitle:'حذف قاعدة المسافة؟', deleteDistanceBody:'يُحذف سعر الفئة من هذه المسودة.',
+    emptyDistanceTitle:'لا توجد قواعد مسافة بعد', emptyDistanceBody:'أربع فئات مدرجة. املأ صفًا واحفظ — المبالغ تبقى CHF 000 حتى تكتبها.',
+    searchDistance:'الفئة', nounDistance:'قاعدة مسافة', nounDistances:'قواعد مسافة',
   },
 };
 
@@ -372,14 +407,16 @@ class Component extends DCLogic {
         routeLabel: r.from + ' \u2192 ' + r.to,
         economy: (r.economy && r.economy[cur]) || '',
         business: (r.business && r.business[cur]) || '',
+        first: (r.first && r.first[cur]) || '',
         van: (r.van && r.van[cur]) || '',
       })),
       routeColumns: [
         { key:'id', header: t.colId, width:'88px', kind:'mono' },
         { key:'from', header: t.colFrom }, { key:'to', header: t.colTo },
-        { key:'economy', header: t.colEconomy, align:'right', width:'104px', lookup:(r) => money(r.economy) },
-        { key:'business', header: t.colBusiness, align:'right', width:'104px', lookup:(r) => money(r.business) },
-        { key:'van', header: t.colVan, align:'right', width:'96px', lookup:(r) => money(r.van) },
+        { key:'economy', header: t.colEconomy, align:'right', width:'96px', lookup:(r) => money(r.economy) },
+        { key:'business', header: t.colBusiness, align:'right', width:'96px', lookup:(r) => money(r.business) },
+        { key:'first', header: t.colFirst, align:'right', width:'88px', lookup:(r) => money(r.first) },
+        { key:'van', header: t.colVan, align:'right', width:'88px', lookup:(r) => money(r.van) },
         { key:'live', header: t.colLive, width:'92px', kind:'bool', onLabel:t.live, offLabel:t.draft },
       ],
       routeFields: [
@@ -388,12 +425,13 @@ class Component extends DCLogic {
         { key:'currency', label:t.currencyLabel, editor:'select', options:currencyOptions, value:cur, onSelect:setCur, half:true, icon:'banknote', hint:t.hCurrencyField },
         { key:'economy', label:t.colEconomy, half:true, placeholder:'000', hint:t.hRoutePrice, icon:'banknote', suffix:cur },
         { key:'business', label:t.colBusiness, half:true, placeholder:'000', icon:'banknote', suffix:cur },
+        { key:'first', label:t.colFirst, half:true, placeholder:'000', icon:'banknote', suffix:cur },
         { key:'van', label:t.colVan, half:true, placeholder:'000', icon:'banknote', suffix:cur },
         { key:'live', label:t.fLive, editor:'switch', half:true, hint:t.hLive },
       ],
       routeBlank: () => {
-        const blank = ops ? ops.routes.blank() : { economy:{}, business:{}, van:{} };
-        return Object.assign({}, blank, { economy:'', business:'', van:'' });
+        const blank = ops ? ops.routes.blank() : { economy:{}, business:{}, first:{}, van:{} };
+        return Object.assign({}, blank, { economy:'', business:'', first:'', van:'' });
       },
       saveRoute: (rec) => {
         if (!ops) return;
@@ -426,17 +464,79 @@ class Component extends DCLogic {
       tBaseFare: t.baseFare, tPerKm: t.perKm, tMinFare: t.minFare, tMaxPax: t.maxPax, tAvailable: t.available,
       tCapacityLabel: t.capacitySection,
 
+      distanceRows: ((ops && ops.VEHICLE_CLASSES) || ['Economy', 'Business', 'First', 'Van']).map((klass) => {
+        const r = rates.filter((x) => x.klass === klass)[0] || (ops ? ops.rates.blank({ id: klass, klass }) : { id: klass, klass, baseFare: {}, perKm: {}, minFare: {}, maxPax: 3, available: true });
+        return {
+          id: r.id || klass,
+          klass,
+          baseFare: (r.baseFare && r.baseFare[cur]) || '',
+          perKm: (r.perKm && r.perKm[cur]) || '',
+          minFare: (r.minFare && r.minFare[cur]) || '',
+          maxPax: r.maxPax || 3,
+          available: r.available !== false,
+        };
+      }),
+      distanceColumns: [
+        { key:'klass', header: t.colClass, width:'120px' },
+        { key:'baseFare', header: t.baseFare, align:'right', width:'110px', lookup:(r) => money(r.baseFare) },
+        { key:'perKm', header: t.perKm, align:'right', width:'110px', lookup:(r) => money(r.perKm) },
+        { key:'minFare', header: t.minFare, align:'right', width:'110px', lookup:(r) => money(r.minFare) },
+        { key:'maxPax', header: t.maxPax, width:'90px' },
+        { key:'available', header: t.available, width:'110px', kind:'bool', onLabel:t.live, offLabel:t.draft },
+      ],
+      distanceFields: [
+        { key:'klass', label:t.colClass, editor:'select', options:((ops && ops.VEHICLE_CLASSES) || ['Economy', 'Business', 'First', 'Van']).map((c) => ({ value:c, label:c })), required:true, icon:'car', half:true },
+        { key:'currency', label:t.currencyLabel, editor:'select', options:currencyOptions, value:cur, onSelect:setCur, half:true, icon:'banknote', hint:t.hCurrencyField },
+        { key:'baseFare', label:t.baseFare, half:true, placeholder:'000', icon:'banknote', suffix:cur },
+        { key:'perKm', label:t.perKm, half:true, placeholder:'0.00', icon:'navigation', suffix:cur },
+        { key:'minFare', label:t.minFare, half:true, placeholder:'000', icon:'banknote', suffix:cur },
+        { key:'maxPax', label:t.maxPax, editor:'number', min:1, half:true, icon:'users' },
+        { key:'available', label:t.available, editor:'switch', half:true },
+      ],
+      distanceBlank: () => {
+        const blank = ops ? ops.rates.blank() : { klass:'', baseFare:{}, perKm:{}, minFare:{}, maxPax:3, available:true };
+        return Object.assign({}, blank, { baseFare:'', perKm:'', minFare:'' });
+      },
+      saveDistance: (rec) => {
+        if (!ops) return;
+        const existing = rec.id ? ops.rates.get(rec.id) : (ops.rates.all().filter((x) => x.klass === rec.klass)[0] || null);
+        const id = (existing && existing.id) || rec.id || rec.klass;
+        ops.rates.upsert({
+          id,
+          klass: rec.klass,
+          maxPax: rec.maxPax,
+          available: rec.available,
+          baseFare: Object.assign({}, (existing && existing.baseFare) || {}, { [cur]: rec.baseFare }),
+          perKm: Object.assign({}, (existing && existing.perKm) || {}, { [cur]: rec.perKm }),
+          minFare: Object.assign({}, (existing && existing.minFare) || {}, { [cur]: rec.minFare }),
+        });
+      },
+      deleteDistance: (id) => { if (ops) ops.rates.remove(id); },
+      tNounDistance: t.nounDistance, tNounDistances: t.nounDistances,
+      tAddDistance: t.addDistance, tEditDistance: t.editDistance,
+      tDeleteDistanceTitle: t.deleteDistanceTitle, tDeleteDistanceBody: t.deleteDistanceBody,
+      tSearchDistance: t.searchDistance, distanceSearchKeys: ['klass'],
+      tEmptyDistanceTitle: t.emptyDistanceTitle, tEmptyDistanceBody: t.emptyDistanceBody,
+
       surcharges: surchargesRaw.map((r) => Object.assign({}, r, {
         value: r.kind === 'percent' ? r.pct : r.kind === 'amount' ? ((r.amounts && r.amounts[cur]) || '') : '',
       })),
       surchargeColumns: [
-        { key:'label', header: t.colRule }, { key:'rule', header: t.colAppliesWhen },
+        { key:'label', header: t.colRule, lookup:(r) => {
+          const hit = SURCHARGE_CODES.filter((c) => c.value === r.label)[0];
+          return hit ? t[hit.k] : r.label;
+        } },
+        { key:'rule', header: t.colAppliesWhen, lookup:(r) => (r.rule === 'booking' ? t.applyBooking : t.applyLeg) },
         { key:'value', header: t.colAmount, align:'right', width:'150px',
           lookup:(r) => (r.kind === 'included' ? t.included : r.kind === 'percent' ? '+ ' + (r.value || '00') + '%' : money(r.value)) },
       ],
       surchargeFields: [
-        { key:'label', label:t.colRule, required:true },
-        { key:'rule', label:t.colAppliesWhen, required:true },
+        { key:'label', label:t.colRule, editor:'select', required:true, icon:'banknote',
+          options: SURCHARGE_CODES.map((c) => ({ value: c.value, label: t[c.k] })),
+          hint: t.hRule },
+        { key:'rule', label:t.colAppliesWhen, editor:'select', required:true, icon:'clock',
+          options: [{ value:'leg', label:t.applyLeg }, { value:'booking', label:t.applyBooking }],
+          hint: t.hApplies },
         { key:'kind', label:t.fUnit, editor:'select', icon:'banknote', half:true,
           options:[{ value:'amount', label:t.unitAmount }, { value:'percent', label:t.unitPct }, { value:'included', label:t.unitIncluded }] },
         { key:'currency', label:t.currencyLabel, editor:'select', options:currencyOptions, value:cur, onSelect:setCur, half:true, icon:'banknote', hint:t.hCurrencyField },
@@ -444,7 +544,7 @@ class Component extends DCLogic {
       ],
       surchargeBlank: () => {
         const blank = ops ? ops.surcharges.blank() : { kind:'amount', amounts:{}, pct:'' };
-        return Object.assign({}, blank, { value:'' });
+        return Object.assign({}, blank, { value:'', label: blank.label || 'night', rule: blank.rule || 'leg' });
       },
       saveSurcharge: (rec) => {
         if (!ops) return;

@@ -75,13 +75,15 @@ describe("06-09 DC mocks", () => {
     expect(sidebar).toMatch(/\/api\/auth/);
   });
 
-  it("D-12: dispatcher omits #pricing and staff-roster from the painted nav", () => {
+  it("D-12: dispatcher omits #pricing and #staff from the painted nav", () => {
     const sidebar = read("app/ops/OpsSidebar.dc.html");
     expect(sidebar).toMatch(/const NAV_ADMIN = \[/);
     expect(sidebar).toMatch(/href:'#pricing'/);
-    expect(sidebar).toMatch(/key:'staff-roster'/);
+    expect(sidebar).toMatch(/key:'staff'/);
+    expect(sidebar).toMatch(/href:'#staff'/);
+    expect(sidebar).not.toMatch(/key:'staff-roster'/);
     const bottom = sidebar.match(/const NAV_BOTTOM = \[[\s\S]*?\];/);
-    expect(bottom?.[0] ?? "").not.toMatch(/#pricing|staff-roster/);
+    expect(bottom?.[0] ?? "").not.toMatch(/#pricing|#staff/);
     expect(sidebar).toMatch(/role === 'admin'/);
     expect(sidebar).toMatch(/navBottomSrc\.map\(paint\)/);
     expect(sidebar).not.toMatch(/aria-disabled/);

@@ -36,7 +36,7 @@
 </sc-for>
 </div>
 
-<dc-import name="OpsTable" rows="{{ rows }}" columns="{{ columns }}" fields="{{ fields }}" blank="{{ blank }}" onSave="{{ onSave }}" onDelete="{{ onDelete }}" noun="{{ noun }}" noun-plural="{{ nounPlural }}" add-title="{{ addTitle }}" edit-title="{{ editTitle }}" delete-title="{{ deleteTitle }}" label-key="{{ labelKey }}" add-label="{{ addLabel }}" search-placeholder="{{ searchPlaceholder }}" search-keys="{{ searchKeys }}" empty-title="{{ emptyTitle }}" empty-body="{{ emptyBody }}" delete-body="{{ deleteBody }}" hint-size="100%,460px"></dc-import>
+<dc-import name="OpsTable" rows="{{ rows }}" columns="{{ columns }}" fields="{{ fields }}" blank="{{ blank }}" onSave="{{ onSave }}" onDelete="{{ onDelete }}" noun="{{ noun }}" noun-plural="{{ nounPlural }}" add-title="{{ addTitle }}" edit-title="{{ editTitle }}" delete-title="{{ deleteTitle }}" label-key="{{ labelKey }}" add-label="{{ addLabel }}" search-placeholder="{{ searchPlaceholder }}" search-keys="{{ searchKeys }}" empty-title="{{ emptyTitle }}" empty-body="{{ emptyBody }}" delete-body="{{ deleteBody }}" nested-title="{{ nestedTitle }}" nested-fields="{{ nestedFields }}" nested-blank="{{ nestedBlank }}" nested-save-label="{{ nestedSaveLabel }}" nested-target-key="{{ nestedTargetKey }}" on-nested-save="{{ onNestedSave }}" hint-size="100%,460px"></dc-import>
 
 <p style="margin:0;max-width:78ch;font-size:var(--vt-body-xs);line-height:1.6;color:var(--vt-text-muted);text-wrap:pretty">{{ note }}</p>
 
@@ -83,9 +83,11 @@ const T = {
     delCBody:'The chauffeur leaves the console. Their vehicle stays in the fleet.',
     fClass:'Class', fModel:'Model', fPlate:'Plate', fSeats:'Seats', fBags:'Bags', fYear:'Year', fStatus:'Status', fNote:'Note',
     fName:'Name', fPhone:'Phone', fEmail:'Email', fLicence:'Licence number', fLanguages:'Languages', fVehicle:'Vehicle',
-    fPhoto:'Photo', clearPhoto:'Remove photo',
+    fPhoto:'Photo', clearPhoto:'Remove photo', choosePhoto:'Choose photo',
+    fChauffeurs:'Associated with chauffeur',
     hClass:'Sets the price — a class is priced once, on the Pricing screen.',
     hPlate:'As it reads on the plate.', hVehicle:'The vehicle this chauffeur drives.',
+    hChauffeurs:'One or more chauffeurs for this vehicle. Add a chauffeur if the list is empty.',
     hPhoto:'Leave empty when there is no photograph yet. The file is stored as a key, never in the page.',
     hLanguages:'Shown to the traveller. Pick every language this chauffeur speaks.',
     none:'No vehicle',
@@ -113,9 +115,11 @@ const T = {
     delCBody:'Der Chauffeur verlässt die Konsole. Sein Fahrzeug bleibt in der Flotte.',
     fClass:'Klasse', fModel:'Modell', fPlate:'Kennzeichen', fSeats:'Plätze', fBags:'Gepäck', fYear:'Jahr', fStatus:'Status', fNote:'Notiz',
     fName:'Name', fPhone:'Telefon', fEmail:'E-Mail', fLicence:'Ausweisnummer', fLanguages:'Sprachen', fVehicle:'Fahrzeug',
-    fPhoto:'Foto', clearPhoto:'Foto entfernen',
+    fPhoto:'Foto', clearPhoto:'Foto entfernen', choosePhoto:'Foto wählen',
+    fChauffeurs:'Zugeordnete Chauffeure',
     hClass:'Bestimmt den Preis — eine Klasse wird einmal auf dem Preis-Bildschirm bepreist.',
     hPlate:'So, wie es auf dem Kennzeichen steht.', hVehicle:'Das Fahrzeug, das dieser Chauffeur fährt.',
+    hChauffeurs:'Ein oder mehrere Chauffeure für dieses Fahrzeug. Chauffeur hinzufügen, wenn die Liste leer ist.',
     hPhoto:'Leer lassen, wenn noch kein Foto da ist. Die Datei wird als Schlüssel gespeichert, nicht in der Seite.',
     hLanguages:'Für den Reisenden sichtbar. Alle Sprachen wählen, die dieser Chauffeur spricht.',
     none:'Kein Fahrzeug',
@@ -143,9 +147,11 @@ const T = {
     delCBody:'Le chauffeur quitte la console. Son véhicule reste dans la flotte.',
     fClass:'Classe', fModel:'Modèle', fPlate:'Plaque', fSeats:'Places', fBags:'Bagages', fYear:'Année', fStatus:'Statut', fNote:'Note',
     fName:'Nom', fPhone:'Téléphone', fEmail:'E-mail', fLicence:'Numéro de permis', fLanguages:'Langues', fVehicle:'Véhicule',
-    fPhoto:'Photo', clearPhoto:'Retirer la photo',
+    fPhoto:'Photo', clearPhoto:'Retirer la photo', choosePhoto:'Choisir une photo',
+    fChauffeurs:'Associé au chauffeur',
     hClass:'Détermine le tarif — une classe est tarifée une fois, sur l’écran Tarifs.',
     hPlate:'Tel qu’il figure sur la plaque.', hVehicle:'Le véhicule que ce chauffeur conduit.',
+    hChauffeurs:'Un ou plusieurs chauffeurs pour ce véhicule. Ajoutez un chauffeur si la liste est vide.',
     hPhoto:'Laissez vide s’il n’y a pas encore de photographie. Le fichier est stocké comme clé, jamais dans la page.',
     hLanguages:'Visibles par le voyageur. Choisissez toutes les langues parlées par ce chauffeur.',
     none:'Aucun véhicule',
@@ -173,9 +179,11 @@ const T = {
     delCBody:'يخرج السائق من لوحة التحكم، وتبقى مركبته في الأسطول.',
     fClass:'الفئة', fModel:'الطراز', fPlate:'اللوحة', fSeats:'المقاعد', fBags:'الحقائب', fYear:'السنة', fStatus:'الحالة', fNote:'ملاحظة',
     fName:'الاسم', fPhone:'الهاتف', fEmail:'البريد الإلكتروني', fLicence:'رقم الرخصة', fLanguages:'اللغات', fVehicle:'المركبة',
-    fPhoto:'الصورة', clearPhoto:'إزالة الصورة',
+    fPhoto:'الصورة', clearPhoto:'إزالة الصورة', choosePhoto:'اختيار صورة',
+    fChauffeurs:'مرتبط بالسائق',
     hClass:'تحدّد السعر — تُسعَّر الفئة مرة واحدة في شاشة الأسعار.',
     hPlate:'كما هو مكتوب على اللوحة.', hVehicle:'المركبة التي يقودها هذا السائق.',
+    hChauffeurs:'سائق واحد أو أكثر لهذه المركبة. أضف سائقًا إن كانت القائمة فارغة.',
     hPhoto:'اتركها فارغة إن لم توجد صورة بعد. يُحفظ الملف كمفتاح، وليس داخل الصفحة.',
     hLanguages:'تظهر للمسافر. اختر كل اللغات التي يتحدثها هذا السائق.',
     none:'بلا مركبة',
@@ -221,10 +229,11 @@ class Component extends DCLogic {
     const largest = vehicles.reduce((n, v) => Math.max(n, v.seats), 0);
 
     const vehicleLabel = (v) => v.klass + ' · ' + (v.plate || v.id);
-    const classOptions = (ops ? ops.VEHICLE_CLASSES : []).map((c) => ({ value: c, label: c }));
+    const classOptions = ((ops && ops.VEHICLE_CLASSES) || ['Economy', 'Business', 'First', 'Van']).map((c) => ({ value: c, label: c }));
     const vStatusOptions = (ops ? ops.VEHICLE_STATUS : []).map((s) => ({ value: s, label: VSTATUS[s].label }));
     const cStatusOptions = (ops ? ops.CHAUFFEUR_STATUS : []).map((s) => ({ value: s, label: CSTATUS[s].label }));
     const vehicleOptions = [{ value:'', label: t.none }].concat(vehicles.map((v) => ({ value: v.id, label: vehicleLabel(v) })));
+    const chauffeurOptions = chauffeurs.map((c) => ({ value: c.id, label: c.name || c.id }));
 
     const vehicleColumns = [
       { key:'klass', header:t.colVehicle, kind:'stack', subKey:'model' },
@@ -232,7 +241,7 @@ class Component extends DCLogic {
       { key:'cap', header:t.colCapacity, width:'128px', lookup:(r) => r.seats + ' / ' + r.bags },
       { key:'base', header:t.colBase, width:'108px', align:'right', kind:'money' },
       { key:'chauffeur', header:t.colChauffeur, width:'150px', kind:'need', emptyLabel:t.unassigned,
-        lookup:(r) => (chauffeurByVehicle[r.id] ? chauffeurByVehicle[r.id].name : '') },
+        lookup:(r) => chauffeurs.filter((c) => c.vehicle === r.id).map((c) => c.name).filter(Boolean).join(', ') },
       { key:'status', header:t.colStatus, width:'150px', kind:'badge', tones:VSTATUS },
     ];
     const chauffeurColumns = [
@@ -246,12 +255,13 @@ class Component extends DCLogic {
     const vehicleFields = [
       { key:'klass', label:t.fClass, editor:'select', options:classOptions, icon:'car', half:true, hint:t.hClass, required:true },
       { key:'model', label:t.fModel, half:true, placeholder:'Sedan or similar' },
+      { key:'chauffeurIds', label:t.fChauffeurs, editor:'select', multi:true, options:chauffeurOptions, icon:'users', addLabel:t.addChauffeur, emptyLabel:t.unassigned, hint:t.hChauffeurs },
       { key:'plate', label:t.fPlate, half:true, placeholder:'ZH 000 000', hint:t.hPlate, required:true },
       { key:'year', label:t.fYear, half:true, placeholder:'0000' },
       { key:'seats', label:t.fSeats, editor:'number', min:1, half:true },
       { key:'bags', label:t.fBags, editor:'number', min:0, half:true },
       { key:'status', label:t.fStatus, editor:'select', options:vStatusOptions, icon:'settings', half:true },
-      { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'vehicle', upload:'/api/photos/upload', fallback:'VT', clearLabel:t.clearPhoto, hint:t.hPhoto },
+      { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'vehicle', upload:'/api/photos/upload', clearLabel:t.clearPhoto, chooseLabel:t.choosePhoto, hint:t.hPhoto },
       { key:'note', label:t.fNote, editor:'area', placeholder:'' },
     ];
     const chauffeurFields = [
@@ -262,7 +272,7 @@ class Component extends DCLogic {
       { key:'vehicle', label:t.fVehicle, editor:'select', options:vehicleOptions, icon:'car', half:true, hint:t.hVehicle },
       { key:'status', label:t.fStatus, editor:'select', options:cStatusOptions, icon:'user', half:true },
       { key:'languages', label:t.fLanguages, editor:'select', multi:true, options:LANGUAGE_OPTIONS, icon:'globe', hint:t.hLanguages },
-      { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'chauffeur', upload:'/api/photos/upload', fallback:'CH', clearLabel:t.clearPhoto, hint:t.hPhoto },
+      { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'chauffeur', upload:'/api/photos/upload', clearLabel:t.clearPhoto, chooseLabel:t.choosePhoto, hint:t.hPhoto },
       { key:'note', label:t.fNote, editor:'area', placeholder:'' },
     ];
 
@@ -286,11 +296,27 @@ class Component extends DCLogic {
         { label:t.cntInService, value:String(inService), of:'/ ' + vehicles.length, icon:'circle-check', foot:t.footVehicles },
         { label:t.cntSeats, value:String(largest), of:t.seats, icon:'users', foot:t.footSeats },
       ],
-      rows: isChauffeurs ? chauffeurs : vehicles,
+      rows: isChauffeurs ? chauffeurs : vehicles.map((v) => Object.assign({}, v, {
+        chauffeurIds: chauffeurs.filter((c) => c.vehicle === v.id).map((c) => c.id).join(', '),
+      })),
       columns: isChauffeurs ? chauffeurColumns : vehicleColumns,
       fields: isChauffeurs ? chauffeurFields : vehicleFields,
       blank: () => (store ? store.blank() : {}),
-      onSave: (rec) => { if (store) store.upsert(rec); },
+      onSave: (rec) => {
+        if (!store) return;
+        store.upsert(rec);
+        if (isChauffeurs || !ops) return;
+        const ids = String(rec.chauffeurIds || '').split(',').map((s) => s.trim()).filter(Boolean);
+        chauffeurs.forEach((c) => {
+          if (c.vehicle === rec.id && ids.indexOf(c.id) === -1) {
+            ops.chauffeurs.upsert(Object.assign({}, c, { vehicle: '' }));
+          }
+        });
+        ids.forEach((id) => {
+          const c = ops.chauffeurs.get(id);
+          if (c && c.vehicle !== rec.id) ops.chauffeurs.upsert(Object.assign({}, c, { vehicle: rec.id }));
+        });
+      },
       onDelete: (id) => { if (store) store.remove(id); },
       noun: isChauffeurs ? t.nounC : t.nounV,
       nounPlural: isChauffeurs ? t.nounCs : t.nounVs,
@@ -304,6 +330,16 @@ class Component extends DCLogic {
       emptyTitle: isChauffeurs ? t.emptyCTitle : t.emptyVTitle,
       emptyBody: isChauffeurs ? t.emptyCBody : t.emptyVBody,
       deleteBody: isChauffeurs ? t.delCBody : t.delVBody,
+      nestedTitle: t.addChauffeur,
+      nestedSaveLabel: t.addChauffeur,
+      nestedTargetKey: 'chauffeurIds',
+      nestedFields: isChauffeurs ? [] : chauffeurFields.filter((f) => f.key !== 'vehicle' && f.key !== 'photo'),
+      nestedBlank: () => (ops ? ops.chauffeurs.blank() : {}),
+      onNestedSave: (rec, vehicle) => {
+        if (!ops) return;
+        if (vehicle && vehicle.id) rec.vehicle = vehicle.id;
+        ops.chauffeurs.upsert(rec);
+      },
     };
   }
 }

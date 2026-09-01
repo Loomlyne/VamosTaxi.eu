@@ -303,7 +303,7 @@ const T = {
     done: 'تم', close: 'إغلاق', notStated: 'غير محدد', starsOf: 'إعطاء %n من 5'
   }
 };
-const CLASSES = ['Economy', 'Business', 'Van'];
+const CLASSES = ['Economy', 'Business', 'First', 'Van'];
 function splitRoute(route) {
   const parts = String(route || '').split('→').map((s) => s.trim());
   return { pickup: parts[0] || '', dropoff: parts[1] || '' };

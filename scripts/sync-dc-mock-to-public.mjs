@@ -97,6 +97,14 @@ for (const rel of PAGE_FILES) {
 
 writeFileSync(join(pub, "_redirects"), redirectLines.join("\n") + "\n");
 
+const opsPub = resolve(pub, "app/ops");
+if (existsSync(opsPub)) {
+  for (const name of readdirSync(opsPub)) {
+    if (!name.endsWith(".dc.html")) continue;
+    cpSync(resolve(opsPub, name), resolve(opsPub, name.slice(0, -5)));
+  }
+}
+
 console.log(
   `synced DC mock → apps/web/public (${PAGE_FILES.length} pages, ${readdirSync(resolve(pub, "app")).length} app entries)`,
 );

@@ -28,7 +28,7 @@ import { jsonErr, jsonOk, withAdmin, withStaff } from "@/lib/ops/staff-json";
 
 export const dynamic = "force-dynamic";
 
-const CLASS_KEYS = ["economy", "business", "van"] as const;
+const CLASS_KEYS = ["economy", "business", "first", "van"] as const;
 type ClassKey = (typeof CLASS_KEYS)[number];
 
 function rec(body: unknown): Record<string, unknown> | null {
@@ -101,13 +101,14 @@ function percentFromUnknown(value: unknown): number | null {
 
 function klassSlug(value: unknown): ClassKey | "" {
   const raw = typeof value === "string" ? value.trim().toLowerCase() : "";
-  if (raw === "economy" || raw === "business" || raw === "van") return raw;
+  if (raw === "economy" || raw === "business" || raw === "first" || raw === "van") return raw;
   return "";
 }
 
 function klassLabel(slug: string): string {
   if (slug === "economy") return "Economy";
   if (slug === "business") return "Business";
+  if (slug === "first") return "First";
   if (slug === "van") return "Van";
   return slug;
 }
@@ -158,6 +159,7 @@ function mockRoutes(book: RateBook, zones: ServiceZoneRow[]): Record<string, unk
       destZoneId: first.destZoneId,
       economy: moneyFromRappen(byClass.get("economy")?.priceRappen ?? null),
       business: moneyFromRappen(byClass.get("business")?.priceRappen ?? null),
+      first: moneyFromRappen(byClass.get("first")?.priceRappen ?? null),
       van: moneyFromRappen(byClass.get("van")?.priceRappen ?? null),
       live: rows.some((r) => r.live),
     });

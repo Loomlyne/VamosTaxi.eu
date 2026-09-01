@@ -165,7 +165,7 @@ class Component extends DCLogic {
           options:[{ value:'percent', label:t.kPercent }, { value:'amount', label:t.kAmount }] },
         { key:'value', label:t.fValue, half:true, placeholder:'00', hint:t.hValue },
         { key:'limit', label:t.fLimit, editor:'number', min:0, half:true, hint:t.hLimit },
-        { key:'expires', label:t.fExpires, half:true, placeholder:'0000-00-00', hint:t.hExpires },
+        { key:'expires', label:t.fExpires, editor:'date', half:true, icon:'calendar', hint:t.hExpires },
         { key:'active', label:t.fActive, editor:'switch', half:true, hint:t.hActive },
         { key:'note', label:t.fNote, editor:'area' },
       ],

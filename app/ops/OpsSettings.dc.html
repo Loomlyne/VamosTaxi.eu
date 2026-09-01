@@ -20,7 +20,7 @@
 <h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tTitle }}</h1>
 <p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSubtitle }}</p>
 </div>
-<div style="margin-inline-start:auto;display:flex;flex-wrap:wrap;align-items:center;gap:10px">
+<div style="margin-inline-start:auto;display:{{ actionsShow }};flex-wrap:wrap;align-items:center;gap:10px">
 <span style="display:{{ savedShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSaved }}</span>
 <span style="display:{{ dirtyShow }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" onClick="{{ discard }}" hint-size="110px,44px">{{ tDiscard }}</x-import>
@@ -480,7 +480,7 @@ function signOutNow() {
   api('POST', '/api/auth', { action: 'signout' }).then(done, done);
 }
 class Component extends DCLogic {
-  state = { lang:'en', draft:null, saved:false, pane:'company', secEmail:'', pw1:'', pw2:'', pwMsg:'', pwSaved:false, emailSaved:false, passkeyAdded:false, passkeyMsg:'', passkeyError:false, showPw1:false, showPw2:false, me:null, roster:[], inviteEmail:'', inviteRole:'dispatcher', inviteMsg:'' };
+  state = { lang:'en', draft:null, saved:false, pane:(typeof location !== 'undefined' && (location.hash || '').replace(/^#\/?/, '') === 'staff') ? 'staff' : 'company', secEmail:'', pw1:'', pw2:'', pwMsg:'', pwSaved:false, emailSaved:false, passkeyAdded:false, passkeyMsg:'', passkeyError:false, showPw1:false, showPw2:false, me:null, roster:[], inviteEmail:'', inviteRole:'dispatcher', inviteMsg:'' };
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
     if (this._offSettings) this._offSettings();
@@ -513,9 +513,16 @@ class Component extends DCLogic {
     this.bind();
     this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
     window.addEventListener('vamos:locale', this._onLocale);
+    this._onHash = () => {
+      const raw = (location.hash || '').replace(/^#\/?/, '');
+      if (raw === 'staff') this.setState({ pane: 'staff' });
+    };
+    window.addEventListener('hashchange', this._onHash);
+    this._onHash();
     if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() });
   }
   componentWillUnmount() {
+    if (this._onHash) window.removeEventListener('hashchange', this._onHash);
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     if (this._offSettings) this._offSettings();
 
@@ -644,7 +651,9 @@ class Component extends DCLogic {
     const visiblePanes = PANES.filter((p) => !p.admin || isAdmin);
     return {
       n18: 18,
-      tTitle: t.title, tSubtitle: t.subtitle, tSave: t.save, tDiscard: t.discard, tSaved: t.saved,
+      tTitle: pane === 'staff' ? t.staff : t.title,
+      tSubtitle: pane === 'staff' ? t.staffSub : t.subtitle,
+      tSave: t.save, tDiscard: t.discard, tSaved: t.saved,
       tUnsaved: t.unsaved,
       tCompany: t.company, tCompanySub: t.companySub, tCompanyNote: t.companyNote,
       tLegalName: t.legalName, tAddress: t.address, tUid: t.uid, tPhone: t.phone, tEmail: t.email,
@@ -691,10 +700,18 @@ class Component extends DCLogic {
         hint: RAIL[p.key][1],
         on: pane === p.key ? '1' : '0',
         dotShow: p.keys.some(changed) ? 'block' : 'none',
-        pick: () => this.setState({ pane: p.key }),
+        pick: () => {
+          this.setState({ pane: p.key });
+          if (p.key === 'staff') {
+            if ((location.hash || '') !== '#staff') location.hash = '#staff';
+          } else if ((location.hash || '').replace(/^#\/?/, '') === 'staff') {
+            location.hash = '#settings';
+          }
+        },
       })),
       isCompany: pane === 'company', isPolicy: pane === 'policy', isLocale: pane === 'locale',
       isPayments: pane === 'payments', isNotify: pane === 'notify', isStaff: pane === 'staff' && isAdmin,
+      actionsShow: pane === 'staff' ? 'none' : 'flex',
       dirtyShow: dirty ? 'inline-flex' : 'none',
       savedShow: this.state.saved && !dirty ? 'inline' : 'none',
       notDirty: !dirty,
