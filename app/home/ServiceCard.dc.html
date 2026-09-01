@@ -50,7 +50,10 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-svc-card]{position:relative;display:flex;flex-direction:column;box-sizing:border-box;height:100%;min-height:280px;text-decoration:none;color:var(--vt-text-primary)}
 [data-svc-card]:hover,[data-svc-card]:focus,[data-svc-card]:active,[data-svc-card]:visited{color:var(--vt-text-primary)}
 [data-svc-card]:focus-visible{outline:3px solid rgb(253 194 11/.45);outline-offset:10px}
-[data-svc-media]{position:relative;flex:1 1 auto;min-height:120px;display:flex;align-items:center;justify-content:center;background:var(--vt-grey-100);border-radius:var(--vt-radius-lg);margin-bottom:clamp(16px,1.7vw,24px)}
+[data-svc-media]{position:relative;flex:1 1 auto;min-height:120px;display:flex;align-items:center;justify-content:center;background:var(--vt-grey-100);overflow:hidden;border-radius:var(--vt-radius-lg);margin-bottom:clamp(16px,1.7vw,24px)}
+[data-svc-photo]{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;z-index:0}
+[data-svc-fx]{z-index:1}
+[data-svc-card][data-has-image="1"] [data-svc-glyph]{display:none}
 [data-svc-card][data-tone="charcoal"] [data-svc-media]{background:var(--vt-charcoal-900)}
 [data-svc-glyph]{position:relative;z-index:1;display:block;color:var(--vt-charcoal-600);opacity:.34}
 [data-svc-card][data-tone="charcoal"] [data-svc-glyph]{color:var(--vt-grey-100);opacity:.42}
@@ -63,15 +66,16 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-svc-card][data-accent="1"] [data-svc-circ],[data-svc-card]:hover [data-svc-circ],[data-svc-card]:focus-visible [data-svc-circ]{background:var(--vt-yellow);border-color:var(--vt-yellow);color:var(--vt-charcoal-900)}
 [data-svc-card]:active [data-svc-circ]{transform:translateY(1px)}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
 </helmet>
-<a data-svc-card="1" data-accent="{{ accentAttr }}" data-tone="{{ toneAttr }}" href="{{ href }}" aria-labelledby="{{ titleId }}">
+<a data-svc-card="1" data-accent="{{ accentAttr }}" data-tone="{{ toneAttr }}" data-has-image="{{ hasImageAttr }}" href="{{ href }}" aria-labelledby="{{ titleId }}">
 <span data-svc-media="1" ref="{{ mediaRef }}">
 <span data-svc-fx="1" aria-hidden="true" ref="{{ fxRef }}"></span>
+<sc-if value="{{ hasImage }}" hint-placeholder-val="{{ false }}"><img data-svc-photo="1" src="{{ image }}" alt=""></sc-if>
 <span data-svc-glyph="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ glyph }}" size="{{ n44 }}" hint-size="44px,44px"></x-import></span>
 </span>
 <span data-svc-foot="1">{{ children }}<span data-svc-circ="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n20 }}" hint-size="20px,20px"></x-import></span></span>
 </a>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:460,&quot;height&quot;:400},&quot;href&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;#&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;titleId&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;icon&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;plane-landing&quot;,&quot;navigation&quot;,&quot;briefcase&quot;,&quot;clock&quot;,&quot;car-front&quot;,&quot;map-pin&quot;,&quot;snowflake&quot;,&quot;users&quot;],&quot;default&quot;:&quot;car-front&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;tone&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;grey&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;grey&quot;,&quot;tsType&quot;:&quot;'grey'|'charcoal'&quot;,&quot;section&quot;:&quot;Media block&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;shineColor&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#FDC20B&quot;,&quot;options&quot;:[&quot;#FDC20B&quot;,&quot;#1E1F1F&quot;,&quot;#A67B05&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Specular edge&quot;},&quot;shineIntensity&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:0,&quot;max&quot;:2.5,&quot;step&quot;:0.05,&quot;default&quot;:1.25,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Specular edge&quot;},&quot;proximity&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:80,&quot;max&quot;:600,&quot;step&quot;:20,&quot;unit&quot;:&quot;px&quot;,&quot;default&quot;:280,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Specular edge&quot;},&quot;children&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;ReactNode&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:460,&quot;height&quot;:400},&quot;href&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;#&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;titleId&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;icon&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;plane-landing&quot;,&quot;navigation&quot;,&quot;briefcase&quot;,&quot;clock&quot;,&quot;car-front&quot;,&quot;map-pin&quot;,&quot;snowflake&quot;,&quot;users&quot;],&quot;default&quot;:&quot;car-front&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;tone&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;grey&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;grey&quot;,&quot;tsType&quot;:&quot;'grey'|'charcoal'&quot;,&quot;section&quot;:&quot;Media block&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;shineColor&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#FDC20B&quot;,&quot;options&quot;:[&quot;#FDC20B&quot;,&quot;#1E1F1F&quot;,&quot;#A67B05&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Specular edge&quot;},&quot;shineIntensity&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:0,&quot;max&quot;:2.5,&quot;step&quot;:0.05,&quot;default&quot;:1.25,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Specular edge&quot;},&quot;proximity&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:80,&quot;max&quot;:600,&quot;step&quot;:20,&quot;unit&quot;:&quot;px&quot;,&quot;default&quot;:280,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Specular edge&quot;},&quot;image&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Media block&quot;},&quot;children&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;ReactNode&quot;}}">
 /**
  * Specular edge highlight (after React Bits' SpecularButton, ported off `ogl` to raw
  * WebGL2 — no npm here). A rounded-rect SDF is lit by a streak that points at the cursor
@@ -252,12 +256,16 @@ class Component extends DCLogic {
     this.gl = null;
   }
   renderVals() {
+    const image = (this.props.image || '').trim();
     return {
       n20: 20,
       n44: 44,
       glyph: this.props.icon || 'car-front',
       accentAttr: this.props.accent ? '1' : '0',
       toneAttr: this.props.tone === 'charcoal' ? 'charcoal' : 'grey',
+      hasImage: !!image,
+      hasImageAttr: image ? '1' : '0',
+      image,
       mediaRef: this.mediaRef,
       fxRef: this.fxRef,
     };

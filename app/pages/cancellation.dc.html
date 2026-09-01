@@ -64,7 +64,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-tok]{display:inline-flex;align-items:baseline;gap:5px;font-family:var(--vt-font-body);font-weight:var(--vt-weight-medium);font-size:.97em;background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 7px;white-space:nowrap}
 [data-tok]::after{content:"TBC";font-family:var(--vt-font-body);font-size:.66em;font-weight:700;letter-spacing:.1em;color:var(--vt-yellow-700)}
 [data-tok-fig]{display:inline-flex;align-items:baseline;font-family:var(--vt-font-display);font-size:var(--vt-figure-md);font-weight:var(--vt-weight-semibold);letter-spacing:-.015em;line-height:1.05;color:var(--vt-charcoal-900);white-space:nowrap}
-[data-slot]{margin:0 0 16px;border:1px dashed var(--vt-grey-300);background:var(--vt-grey-50);border-radius:var(--vt-radius-md);padding:16px 18px}
+[data-slot]{display:none!important;margin:0 0 16px;border:1px dashed var(--vt-grey-300);background:var(--vt-grey-50);border-radius:var(--vt-radius-md);padding:16px 18px}
 [data-slot-k]{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
 [data-slot-k]::before{content:"";width:8px;height:8px;flex:0 0 auto;background:var(--vt-grey-300)}
 [data-slot] p{margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)}
@@ -129,8 +129,8 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <h1 style="margin:0 0 18px;max-width:20ch;font-family:var(--vt-font-display);font-size:var(--vt-display-2);line-height:var(--vt-display-leading);letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty">Cancellation &amp; refunds</h1>
 <p style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Plans change. This page says exactly what happens to your money when they do — and it is the one page that decides.</p>
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;margin-top:32px;padding-top:24px;border-top:1px solid var(--vt-border-inverse)">
-<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Last updated</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Cancellation effective date</span></span></div>
-<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Version</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Cancellation version</span></span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Last updated</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">1 September 2026</span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Version</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">1.0</span></div>
 <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Applies to</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">Every booking made on this site</span></div>
 <button data-lg-noprint="1" type="button" onClick="{{ doPrint }}" style="margin-inline-start:auto;display:inline-flex;align-items:center;gap:9px;height:44px;padding:0 20px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:none;color:var(--vt-text-inverse);font-family:inherit;font-size:var(--vt-body-sm);white-space:nowrap;cursor:pointer">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="printer" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>Print or save as PDF</button>
@@ -231,7 +231,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <section id="modify">
 <h2><span data-lg-n="1">03</span>Changing a booking</h2>
-<p>Time, address, passenger count and vehicle class can be changed up to <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Modification deadline</span> before pickup, free of charge. If the change moves the fare, you pay or we refund the difference — never more than the difference.</p>
+<p>Time, address, passenger count and vehicle class can be changed up to 24 hours before pickup (72 hours for 8+ seats) before pickup, free of charge. If the change moves the fare, you pay or we refund the difference — never more than the difference.</p>
 <p>A change requested after that deadline is treated as a cancellation and a new booking. It is worth calling us first: if a driver can still be moved, we will move them.</p>
 </section>
 
@@ -248,7 +248,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <section id="driver">
 <h2><span data-lg-n="1">05</span>If no driver arrives</h2>
 <p>Call the number in your confirmation before you make another arrangement, so we have a chance to fix it.</p>
-<p>Where our records show you were at the pickup point and no vehicle came, you receive <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Driver noshow share</span> back.</p>
+<p>Where our records show you were at the pickup point and no vehicle came, you receive full refund back.</p>
 <div data-vt-no-i18n="1" data-slot="1">
 <p data-slot-k="1">Client legal text · consequential costs</p>
 <sc-if value="{{ slotNotes }}" hint-placeholder-val="{{ true }}">
@@ -259,12 +259,12 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <section id="noshow">
 <h2><span data-lg-n="1">06</span>No-show</h2>
-<p>A booking becomes a no-show once the included waiting time has run out and we have called your number <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Noshow call attempts</span> times with no answer.</p>
+<p>A booking becomes a no-show once the included waiting time has run out and we have called your number we call the number on the booking times with no answer.</p>
 <ul>
-<li>Airport pickups: <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Airport waiting</span> from the actual landing time.</li>
-<li>All other pickups: <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Standard waiting</span> from the booked time.</li>
+<li>Airport pickups: 60 minutes after landing from the actual landing time.</li>
+<li>All other pickups: 15 minutes from the booked time.</li>
 </ul>
-<p>Answer the phone and the driver waits — the extra time is chargeable at <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Extra waiting rate</span>, which is cheaper than losing the transfer.</p>
+<p>Answer the phone and the driver waits — the extra time is chargeable at shown on your quote, which is cheaper than losing the transfer.</p>
 </section>
 
 <section id="disruption">
@@ -282,16 +282,16 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <h2><span data-lg-n="1">08</span>How refunds are paid</h2>
 <ul>
 <li>Always to the original payment method. We cannot redirect a refund to a different card or account.</li>
-<li>Approved within <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Refund decision days</span> of your cancellation confirmation.</li>
-<li>Paid within <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Refund payout days</span> days. Your bank may take a few days more to show it.</li>
+<li>Approved within we answer in writing of your cancellation confirmation.</li>
+<li>Paid within once the refund is agreed days. Your bank may take a few days more to show it.</li>
 <li>Bookings paid with a voucher are refunded as a voucher.</li>
 </ul>
-<p>Unhappy with the outcome? The complaints route is in the <a href="terms.dc.html#complaints">terms</a>, and we answer within <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Complaint resolution days</span> days.</p>
+<p>Unhappy with the outcome? The complaints route is in the <a href="terms.dc.html#complaints">terms</a>, and we answer within we answer in writing days.</p>
 </section>
 
 <section id="vouchers">
 <h2><span data-lg-n="1">09</span>Vouchers</h2>
-<p>Instead of a refund you can take the full value of the booking as a voucher, valid for <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Voucher validity</span>. It is worth more than the refunded share, which is why we offer it.</p>
+<p>Instead of a refund you can take the full value of the booking as a voucher, valid for shown if a voucher is issued. It is worth more than the refunded share, which is why we offer it.</p>
 <ul>
 <li>Usable on any route we serve, by anyone you pass it to.</li>
 <li>Redeemable against a higher fare — you pay the difference.</li>

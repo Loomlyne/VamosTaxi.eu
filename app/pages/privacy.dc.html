@@ -63,7 +63,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-lg-n]{display:block;margin-bottom:9px;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);letter-spacing:var(--vt-label-tracking);font-weight:var(--vt-label-weight);color:var(--vt-charcoal-600)}
 [data-tok]{display:inline-flex;align-items:baseline;gap:5px;font-family:var(--vt-font-body);font-weight:var(--vt-weight-medium);font-size:.97em;background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 7px;white-space:nowrap}
 [data-tok]::after{content:"TBC";font-family:var(--vt-font-body);font-size:.66em;font-weight:700;letter-spacing:.1em;color:var(--vt-yellow-700)}
-[data-slot]{margin:0 0 16px;border:1px dashed var(--vt-grey-300);background:var(--vt-grey-50);border-radius:var(--vt-radius-md);padding:16px 18px}
+[data-slot]{display:none!important;margin:0 0 16px;border:1px dashed var(--vt-grey-300);background:var(--vt-grey-50);border-radius:var(--vt-radius-md);padding:16px 18px}
 [data-slot-k]{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
 [data-slot-k]::before{content:"";width:8px;height:8px;flex:0 0 auto;background:var(--vt-grey-300)}
 [data-slot] p{margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)}
@@ -126,8 +126,8 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <h1 style="margin:0 0 18px;max-width:20ch;font-family:var(--vt-font-display);font-size:var(--vt-display-2);line-height:var(--vt-display-leading);letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty">Privacy policy</h1>
 <p style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">A transfer needs your name, two addresses, a time and a way to reach you. This is what happens to that information, who else touches it, and how long it stays.</p>
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;margin-top:32px;padding-top:24px;border-top:1px solid var(--vt-border-inverse)">
-<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Last updated</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Privacy effective date</span></span></div>
-<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Version</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Privacy version</span></span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Last updated</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">1 September 2026</span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Version</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">1.0</span></div>
 <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Applies to</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">revFADP · GDPR</span></div>
 <button data-lg-noprint="1" type="button" onClick="{{ doPrint }}" style="margin-inline-start:auto;display:inline-flex;align-items:center;gap:9px;height:44px;padding:0 20px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:none;color:var(--vt-text-inverse);font-family:inherit;font-size:var(--vt-body-sm);white-space:nowrap;cursor:pointer">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="printer" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>Print or save as PDF</button>
@@ -180,8 +180,8 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-dl="1">
 <div data-dl-r="1"><span data-dl-k="1">Controller</span><span data-dl-v="1">Vamos Taxi GmbH, Bleicherstrasse 16, 8953 Dietikon ZH, Switzerland</span></div>
 <div data-dl-r="1"><span data-dl-k="1">Contact for data</span><span data-dl-v="1"><a href="mailto:info@vamostaxi.eu">info@vamostaxi.eu</a> · +41 79 626 70 82</span></div>
-<div data-dl-r="1"><span data-dl-k="1">Data protection officer</span><span data-dl-v="1"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Dpo or not required</span></span></div>
-<div data-dl-r="1"><span data-dl-k="1">Representative in the EU</span><span data-dl-v="1"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Eu representative</span></span></div>
+<div data-dl-r="1"><span data-dl-k="1">Data protection officer</span><span data-dl-v="1">no DPO appointed</span></div>
+<div data-dl-r="1"><span data-dl-k="1">Representative in the EU</span><span data-dl-v="1">none appointed</span></div>
 </div>
 
 </section>
@@ -229,12 +229,12 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <h3>The platform we are building</h3>
 <div data-dl="1">
 <div data-dl-r="1"><span data-dl-k="1">Stripe Payments Europe Ltd</span><span data-dl-v="1">Card payments · Dublin, Ireland</span></div>
-<div data-dl-r="1"><span data-dl-k="1">Supabase</span><span data-dl-v="1">Booking database and sign-in · <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Supabase region</span></span></div>
-<div data-dl-r="1"><span data-dl-k="1">Vercel</span><span data-dl-v="1">Website hosting and delivery · <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Vercel region</span></span></div>
+<div data-dl-r="1"><span data-dl-k="1">Supabase</span><span data-dl-v="1">Booking database and sign-in · Zurich</span></div>
+<div data-dl-r="1"><span data-dl-k="1">Vercel</span><span data-dl-v="1">Website hosting and delivery · Cloudflare Workers (global edge)</span></div>
 <div data-dl-r="1"><span data-dl-k="1">Mapbox</span><span data-dl-v="1">Address lookup and route distance · United States</span></div>
-<div data-dl-r="1"><span data-dl-k="1">Resend</span><span data-dl-v="1">Confirmation and driver-detail emails · <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Resend region</span></span></div>
-<div data-dl-r="1"><span data-dl-k="1">Sentry</span><span data-dl-v="1">Error diagnostics · <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Sentry region</span></span></div>
-<div data-dl-r="1"><span data-dl-k="1"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Analytics provider</span></span><span data-dl-v="1">Site analytics, only with your consent · <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Analytics region</span></span></div>
+<div data-dl-r="1"><span data-dl-k="1">Resend</span><span data-dl-v="1">Confirmation and driver-detail emails · used when transactional mail is on</span></div>
+<div data-dl-r="1"><span data-dl-k="1">Sentry</span><span data-dl-v="1">Error diagnostics · not in use</span></div>
+<div data-dl-r="1"><span data-dl-k="1">Cloudflare Web Analytics (cookieless)</span><span data-dl-v="1">Site analytics, only with your consent · Cloudflare</span></div>
 <div data-dl-r="1"><span data-dl-k="1">Partner carriers</span><span data-dl-v="1">The driver assigned to your journey receives your name, mobile number, pickup and drop-off address and the time. Nothing else.</span></div>
 </div>
 
@@ -254,11 +254,11 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <section id="retention">
 <h2><span data-lg-n="1">06</span>How long we keep it</h2>
 <div data-dl="1">
-<div data-dl-r="1"><span data-dl-k="1">Trip records</span><span data-dl-v="1">Lead passenger name, passenger count, email, start and destination — <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Archiving years</span> years, because Swiss archiving law requires it.</span></div>
-<div data-dl-r="1"><span data-dl-k="1">Payment records</span><span data-dl-v="1"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Finance retention</span> for accounting and tax.</span></div>
+<div data-dl-r="1"><span data-dl-k="1">Trip records</span><span data-dl-v="1">Lead passenger name, passenger count, email, start and destination — 10 years years, because Swiss archiving law requires it.</span></div>
+<div data-dl-r="1"><span data-dl-k="1">Payment records</span><span data-dl-v="1">10 years (Swiss books) for accounting and tax.</span></div>
 <div data-dl-r="1"><span data-dl-k="1">Account and marketing preferences</span><span data-dl-v="1">Until you close the account or withdraw consent.</span></div>
-<div data-dl-r="1"><span data-dl-k="1">Server logs</span><span data-dl-v="1"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Log retention</span></span></div>
-<div data-dl-r="1"><span data-dl-k="1">Consent record</span><span data-dl-v="1"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Consent log retention</span> — proof of what you chose, and when.</span></div>
+<div data-dl-r="1"><span data-dl-k="1">Server logs</span><span data-dl-v="1">as long as needed to run the service</span></div>
+<div data-dl-r="1"><span data-dl-k="1">Consent record</span><span data-dl-v="1">as long as needed to show consent — proof of what you chose, and when.</span></div>
 </div>
 </section>
 
@@ -280,7 +280,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);border-radius:var(--vt-radius-lg);padding:22px">
 <p style="margin:0 0 14px;display:flex;align-items:center;gap:8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">We have to keep</p>
 <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading-tight);color:rgb(255 255 255 / .84)">
-<li>Trip records for <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Archiving years</span> years</li>
+<li>Trip records for 10 years years</li>
 <li>Payment and tax records</li>
 <li>The record of your cookie choice</li>
 <li>Evidence relating to an open claim</li>
@@ -299,7 +299,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <section id="requests">
 <h2><span data-lg-n="1">09</span>Making a request</h2>
-<p>Email <a href="mailto:info@vamostaxi.eu">info@vamostaxi.eu</a> with the booking reference if there is one. We answer within <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Dsr response days</span> days.</p>
+<p>Email <a href="mailto:info@vamostaxi.eu">info@vamostaxi.eu</a> with the booking reference if there is one. We answer within 30 days days.</p>
 <p>We may ask you to confirm who you are before we send data anywhere — for your protection, not as an obstacle.</p>
 
 </section>

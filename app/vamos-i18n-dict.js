@@ -183,7 +183,7 @@
       'Now': { de: 'Jetzt', fr: 'Maintenant', ar: 'الآن' },
 
       /* ── Services section ─────────────────────────────────────────────── */
-      'Four services. One fixed price each.': { de: 'Vier Leistungen. Je ein Fixpreis.', fr: 'Quatre services. Un prix fixe chacun.', ar: 'أربع خدمات، لكل منها سعر ثابت.' },
+      'Three services. One fixed price each.': { de: 'Drei Leistungen. Je ein Fixpreis.', fr: 'Trois services. Un prix fixe chacun.', ar: 'ثلاث خدمات، لكل منها سعر ثابت.' },
       'Every one is booked ahead, priced up front and assigned to a driver before you travel.': { de: 'Jede wird im Voraus gebucht, im Voraus bepreist und vor der Fahrt einem Fahrer zugeteilt.', fr: 'Chacun est réservé à l’avance, chiffré d’avance et attribué à un chauffeur avant votre départ.', ar: 'كل خدمة تُحجز مسبقًا ويُحدَّد سعرها مسبقًا ويُعيَّن لها سائق قبل سفرك.' },
       'Fixed-price rides to and from the airport, timed to your flight.': { de: 'Fahrten zum und vom Flughafen zum Fixpreis, abgestimmt auf Ihren Flug.', fr: 'Trajets à prix fixe depuis et vers l’aéroport, calés sur votre vol.', ar: 'رحلات بسعر ثابت من المطار وإليه، موقوتة مع رحلتك الجوية.' },
       'Private transfers between Swiss cities, scheduled for one exact time.': { de: 'Private Transfers zwischen Schweizer Städten, auf eine genaue Zeit geplant.', fr: 'Transferts privés entre villes suisses, programmés à une heure précise.', ar: 'رحلات خاصة بين المدن السويسرية، مجدولة في وقت محدد.' },
@@ -1358,6 +1358,7 @@
       'says what happens to the money.': { de: 'regelt, was mit dem Geld geschieht.', fr: 'précise ce qu’il advient de l’argent.', ar: 'تبيّن ما يحدث للمبلغ.' },
       'What we collect, why, who processes it and how long we keep it is in the': { de: 'Was wir erheben, warum, wer es bearbeitet und wie lange wir es aufbewahren, steht in der', fr: 'Ce que nous collectons, pourquoi, qui le traite et combien de temps nous le conservons figure dans la', ar: 'ما نجمعه ولماذا ومَن يعالجه وكم نحتفظ به موضّح في' },
       '. Cookies and consent are in the': { de: '. Cookies und Einwilligung stehen in der', fr: '. Les cookies et le consentement figurent dans la', ar: '. أما ملفات تعريف الارتباط والموافقة ففي' },
+      'Swiss law applies. The exclusive place of jurisdiction is the courts at the company\'s registered seat in Dietikon ZH.': { de: 'Es gilt Schweizer Recht. Ausschliesslicher Gerichtsstand sind die Gerichte am Sitz der Gesellschaft in Dietikon ZH.', fr: 'Le droit suisse s’applique. Le for exclusif est celui des tribunaux du siège de la société à Dietikon ZH.', ar: 'يسري القانون السويسري. الاختصاص الحصري لمحاكم مقر الشركة في ديتيكون زيورخ.' },
       'Swiss law applies.': { de: 'Es gilt Schweizer Recht.', fr: 'Le droit suisse s’applique.', ar: 'يسري القانون السويسري.' },
       'Should any part of these terms be unenforceable, the rest continues to apply.': { de: 'Sollte ein Teil dieser AGB nicht durchsetzbar sein, gilt der Rest weiter.', fr: 'Si une partie de ces conditions est inapplicable, le reste demeure en vigueur.', ar: 'إذا تعذّر إنفاذ جزء من هذه الشروط، يبقى الباقي ساريًا.' },
 

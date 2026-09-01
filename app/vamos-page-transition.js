@@ -50,6 +50,32 @@
   // The second sheet matches THIS PAGE's ground, not the OS colour scheme:
   // every page sets body{background:var(--vt-bg-page)}, so read it back and
   // let the browser normalise whatever notation the token uses.
+
+  function logicalPath(p) {
+    p = (p || '/').replace(/\/+$/, '') || '/';
+    p = p.replace(/\.dc\.html$/, '').replace(/\.html$/, '');
+    if (p === '/app/home/home' || p === '/app/home' || p === '/en' || p === '/de' || p === '/fr' || p === '/ar') return '/';
+    return p;
+  }
+  function samePage(u) {
+    return logicalPath(u.pathname) === logicalPath(location.pathname);
+  }
+  function vtScrollHash(tries) {
+    tries = tries || 0;
+    var id = (location.hash || '').replace(/^#/, '');
+    if (!id) return;
+    var el = document.getElementById(id);
+    if (!el) {
+      if (tries < 40) setTimeout(function () { vtScrollHash(tries + 1); }, 80);
+      return;
+    }
+    if (window.vtScrollTo) window.vtScrollTo(el, -88);
+    else {
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var top = el.getBoundingClientRect().top + window.pageYOffset - 88;
+      window.scrollTo({ top: top, behavior: reduce ? 'auto' : 'smooth' });
+    }
+  }
   function schemeColor() {
     var bg = document.body ? getComputedStyle(document.body).backgroundColor : '';
     if (!bg || /,\s*0\s*\)$/.test(bg) || bg === 'transparent') {
@@ -199,6 +225,7 @@
     setTimeout(function () { whenReady(startedAt); }, 60);
   }
   whenReady(arrivedAt);
+  addEventListener('load', function () { setTimeout(vtScrollHash, 80); });
   addEventListener('pageshow', function (e) { if (e.persisted) { animating = false; leaving = false; park(); } });
 
   function eligible(a) {
@@ -211,7 +238,7 @@
     var u;
     try { u = new URL(a.href, location.href); } catch (err) { return false; }
     if (u.origin !== location.origin) return false;
-    if (u.pathname === location.pathname && u.search === location.search && u.hash) return false;
+    if (samePage(u) && u.search === location.search && u.hash) return false;
     return true;
   }
 

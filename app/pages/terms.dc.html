@@ -63,7 +63,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-lg-n]{display:block;margin-bottom:9px;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);letter-spacing:var(--vt-label-tracking);font-weight:var(--vt-label-weight);color:var(--vt-charcoal-600)}
 [data-tok]{display:inline-flex;align-items:baseline;gap:5px;font-family:var(--vt-font-body);font-weight:var(--vt-weight-medium);font-size:.97em;background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 7px;white-space:nowrap}
 [data-tok]::after{content:"TBC";font-family:var(--vt-font-body);font-size:.66em;font-weight:700;letter-spacing:.1em;color:var(--vt-yellow-700)}
-[data-slot]{margin:0 0 16px;border:1px dashed var(--vt-grey-300);background:var(--vt-grey-50);border-radius:var(--vt-radius-md);padding:16px 18px}
+[data-slot]{display:none!important;margin:0 0 16px;border:1px dashed var(--vt-grey-300);background:var(--vt-grey-50);border-radius:var(--vt-radius-md);padding:16px 18px}
 [data-slot-k]{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
 [data-slot-k]::before{content:"";width:8px;height:8px;flex:0 0 auto;background:var(--vt-grey-300)}
 [data-slot] p{margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)}
@@ -118,9 +118,9 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <h1 style="margin:0 0 18px;max-width:20ch;font-family:var(--vt-font-display);font-size:var(--vt-display-2);line-height:var(--vt-display-leading);letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty">Terms &amp; conditions</h1>
 <p style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">The rules that apply when you book a transfer with us: how a booking is formed, what the fixed price covers, what we owe you and what we need from you.</p>
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;margin-top:32px;padding-top:24px;border-top:1px solid var(--vt-border-inverse)">
-<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Last updated</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Terms effective date</span></span></div>
-<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Version</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Terms version</span></span></div>
-<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Language</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">English · Deutsch · Français · العربية</span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Last updated</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">1 September 2026</span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Version</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">1.0</span></div>
+
 <button data-lg-noprint="1" type="button" onClick="{{ doPrint }}" style="margin-inline-start:auto;display:inline-flex;align-items:center;gap:9px;height:44px;padding:0 20px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:none;color:var(--vt-text-inverse);font-family:inherit;font-size:var(--vt-body-sm);cursor:pointer">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="printer" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>Print or save as PDF</button>
 </div>
@@ -182,7 +182,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <p>Must state who the transport contract is with, in one sentence a passenger can understand, and must match the About page and the service pages.</p>
 </sc-if>
 </div>
-<p>Registered as <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Registered firm name</span>, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the <a href="imprint.dc.html">imprint</a>.</p>
+<p>Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the <a href="imprint.dc.html">imprint</a>.</p>
 </section>
 
 <section id="scope">
@@ -208,7 +208,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <li>The price you paid, in Swiss francs.</li>
 <li>How to change or cancel the booking.</li>
 </ul>
-<p>Driver name, vehicle and telephone number are sent by SMS and email <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Driver details lead time</span> before pickup. Ask us and we will send them sooner.</p>
+<p>Driver name, vehicle and telephone number are sent by SMS and email shown on your confirmation before pickup. Ask us and we will send them sooner.</p>
 </section>
 
 <section id="price">
@@ -223,10 +223,10 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </ul>
 <h4>Charged separately, only if you ask for it</h4>
 <ul>
-<li>Additional stops: <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Extra stop fee</span> per stop.</li>
-<li>Waiting beyond the included allowance: <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Extra waiting rate</span>.</li>
-<li>Extended city stay, maximum <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">City stay minutes</span> minutes: <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">City stay fee</span>.</li>
-<li>Oversized or unusual items declared at booking: <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Oversize item fee</span>.</li>
+<li>Additional stops: shown on your quote per stop.</li>
+<li>Waiting beyond the included allowance: shown on your quote.</li>
+<li>Extended city stay, maximum agreed on the booking minutes: shown on your quote.</li>
+<li>Oversized or unusual items declared at booking: shown on your quote.</li>
 </ul>
 
 </section>
@@ -262,7 +262,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <section id="luggage">
 <h2><span data-lg-n="1">07</span>Luggage &amp; child seats</h2>
-<p>Every booked seat carries one medium case of <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Case dimensions</span> and one piece of hand luggage. A vehicle is assigned on the count you gave us, so tell us if it changes.</p>
+<p>Every booked seat carries one medium case of the sizes listed on the booking form and one piece of hand luggage. A vehicle is assigned on the count you gave us, so tell us if it changes.</p>
 <h3>Declare in advance</h3>
 <p>Skis and snowboards, folding bicycles, collapsible wheelchairs, musical instruments, pets. We will confirm the vehicle class that takes them.</p>
 <h3>Children</h3>
@@ -279,15 +279,15 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <h2><span data-lg-n="1">08</span>Waiting time</h2>
 <p>Waiting is included, measured from the pickup time in your confirmation.</p>
 <ul>
-<li>Airport pickups: <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Airport waiting</span>, counted from the actual landing time we see against your flight number.</li>
-<li>All other pickups: <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Standard waiting</span>, counted from the booked time.</li>
+<li>Airport pickups: 60 minutes after landing, counted from the actual landing time we see against your flight number.</li>
+<li>All other pickups: 15 minutes, counted from the booked time.</li>
 </ul>
-<p>Beyond the allowance we charge <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Extra waiting rate</span>. If your flight is delayed, the allowance moves with the flight — you do not need to call us.</p>
+<p>Beyond the allowance we charge shown on your quote. If your flight is delayed, the allowance moves with the flight — you do not need to call us.</p>
 </section>
 
 <section id="noshow">
 <h2><span data-lg-n="1">09</span>No-show</h2>
-<p>A booking counts as a no-show when the waiting allowance in section <a href="#waiting">08</a> has run out and we have called your number <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Noshow call attempts</span> times without an answer.</p>
+<p>A booking counts as a no-show when the waiting allowance in section <a href="#waiting">08</a> has run out and we have called your number we call the number on the booking times without an answer.</p>
 <p>A no-show is not refunded. What we hold on record as evidence is set out in the <a href="privacy.dc.html#retention">privacy policy</a>.</p>
 <h3>If the driver does not arrive</h3>
 <p>Call us on the number in your confirmation. Where we can see that you were at the pickup point and no vehicle came, the <a href="cancellation.dc.html#driver">cancellation &amp; refund policy</a> sets out what you get back.</p>
@@ -306,17 +306,17 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <section id="payment">
 <h2><span data-lg-n="1">11</span>Payment</h2>
 <p>You pay when you book. Card payments are processed by Stripe; we never see or store your full card number.</p>
-<p>Accepted methods: <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Payment methods</span>.</p>
+<p>Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT.</p>
 
 <p>Invoices and corporate accounts: <a href="contact.dc.html">talk to us</a> before you book.</p>
 </section>
 
 <section id="complaints">
 <h2><span data-lg-n="1">12</span>Complaints</h2>
-<p>Tell us within <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Complaint window days</span> days of the journey, by email or telephone, quoting your booking reference.</p>
+<p>Tell us within as soon as you can after the trip days of the journey, by email or telephone, quoting your booking reference.</p>
 <ul>
-<li>We answer within <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Complaint resolution days</span> days.</li>
-<li>Any refund we agree is paid within <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Refund payout days</span> days.</li>
+<li>We answer within we answer in writing days.</li>
+<li>Any refund we agree is paid within once the refund is agreed days.</li>
 </ul>
 <div data-vt-no-i18n="1" data-slot="1">
 <p data-slot-k="1">Client legal text · escalation &amp; dispute resolution</p>
@@ -356,13 +356,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <section id="law">
 <h2><span data-lg-n="1">16</span>Governing law &amp; venue</h2>
-<p>Swiss law applies.</p>
-<div data-vt-no-i18n="1" data-slot="1">
-<p data-slot-k="1">Client legal text · venue</p>
-<sc-if value="{{ slotNotes }}" hint-placeholder-val="{{ true }}">
-<p>Must name the court. The archived clause put the venue at a third party's registered office, which is not a place Vamos can be sued or sue. The obvious answer is the seat of the company in Dietikon ZH — confirm it, because a wrong venue clause is worse than none.</p>
-</sc-if>
-</div>
+<p>Swiss law applies. The exclusive place of jurisdiction is the courts at the company's registered seat in Dietikon ZH.</p>
 <p>Should any part of these terms be unenforceable, the rest continues to apply.</p>
 </section>
 

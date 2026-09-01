@@ -62,7 +62,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-lg-n]{display:block;margin-bottom:9px;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);letter-spacing:var(--vt-label-tracking);font-weight:var(--vt-label-weight);color:var(--vt-charcoal-600)}
 [data-tok]{display:inline-flex;align-items:baseline;gap:5px;font-family:var(--vt-font-body);font-weight:var(--vt-weight-medium);font-size:.97em;background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 7px;white-space:nowrap}
 [data-tok]::after{content:"TBC";font-family:var(--vt-font-body);font-size:.66em;font-weight:700;letter-spacing:.1em;color:var(--vt-yellow-700)}
-[data-slot]{margin:0 0 16px;border:1px dashed var(--vt-grey-300);background:var(--vt-grey-50);border-radius:var(--vt-radius-md);padding:16px 18px}
+[data-slot]{display:none!important;margin:0 0 16px;border:1px dashed var(--vt-grey-300);background:var(--vt-grey-50);border-radius:var(--vt-radius-md);padding:16px 18px}
 [data-slot-k]{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
 [data-slot-k]::before{content:"";width:8px;height:8px;flex:0 0 auto;background:var(--vt-grey-300)}
 [data-slot] p{margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)}
@@ -133,8 +133,8 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <h1 style="margin:0 0 18px;max-width:22ch;font-family:var(--vt-font-display);font-size:var(--vt-display-2);line-height:var(--vt-display-leading);letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty"><span lang="de" data-vt-no-i18n="1">Impressum</span><span lang="en">Imprint</span></h1>
 <p data-hero-sub="1" style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)"><span lang="de" data-vt-no-i18n="1">Wer hinter dieser Website steht, wo das Unternehmen eingetragen ist und wie Sie uns erreichen. Deutsch ist die verbindliche Fassung.</span><span lang="en">Who stands behind this site, where the company is registered and how to reach us. The German version is the binding one.</span></p>
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px 28px;margin-top:32px;padding-top:24px;border-top:1px solid var(--vt-border-inverse)">
-<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)"><span lang="de" data-vt-no-i18n="1">Letzte Aktualisierung</span><span lang="en">Last updated</span></span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Imprint effective date</span></span></div>
-<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)"><span lang="de" data-vt-no-i18n="1">Fassung</span><span lang="en">Version</span></span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Imprint version</span></span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)"><span lang="de" data-vt-no-i18n="1">Letzte Aktualisierung</span><span lang="en">Last updated</span></span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">1 September 2026</span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)"><span lang="de" data-vt-no-i18n="1">Fassung</span><span lang="en">Version</span></span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">1.0</span></div>
 <div data-lg-noprint="1" style="margin-inline-start:auto;display:flex;flex-wrap:wrap;align-items:center;gap:12px">
 <button type="button" onClick="{{ doPrint }}" aria-label="Print" style="width:44px;height:44px;display:grid;place-items:center;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:none;cursor:pointer">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="printer" size="{{ n18 }}" color="var(--vt-accent)" hint-size="18px,18px"></x-import>
@@ -218,7 +218,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <section id="mwst">
 <h2><span data-lg-n="1">04</span><span lang="de" data-vt-no-i18n="1">Mehrwertsteuer</span><span lang="en">VAT</span></h2>
 <div data-dl="1">
-<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">UID / MWST-Nummer</span><span lang="en">UID / VAT number</span></span><span data-dl-v="1"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Uid number</span></span></div>
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">UID / MWST-Nummer</span><span lang="en">UID / VAT number</span></span><span data-dl-v="1">CHE-296.035.710</span></div>
 </div>
 <div data-vt-no-i18n="1" data-slot="1">
 <p data-slot-k="1"><span lang="de" data-vt-no-i18n="1">Kundeneingabe · UID</span><span lang="en">Client input · UID</span></p>
@@ -263,15 +263,15 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <h2><span data-lg-n="1">08</span><span lang="de" data-vt-no-i18n="1">Urheberrecht</span><span lang="en">Copyright</span></h2>
 <p><span lang="de" data-vt-no-i18n="1">Texte, Bilder, Marke und Gestaltung dieser Website gehören Vamos Taxi GmbH oder den jeweiligen Rechteinhabern. Weiterverwendung nur mit schriftlicher Zustimmung.</span><span lang="en">Text, images, the brand and the design of this site belong to Vamos Taxi GmbH or to the respective rights holders. Reuse only with written permission.</span></p>
 <div data-dl="1">
-<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Bildnachweis</span><span lang="en">Image credits</span></span><span data-dl-v="1"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Photography credit</span></span></div>
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Bildnachweis</span><span lang="en">Image credits</span></span><span data-dl-v="1">Vamos Taxi / Loomlyne</span></div>
 </div>
 </section>
 
 <section id="credits">
 <h2><span data-lg-n="1">09</span><span lang="de" data-vt-no-i18n="1">Gestaltung und Umsetzung</span><span lang="en">Design and build</span></h2>
 <div data-dl="1">
-<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Marke und Gestaltung</span><span lang="en">Brand and design</span></span><span data-dl-v="1"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Brand agency credit</span></span></div>
-<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Website</span><span lang="en">Website</span></span><span data-dl-v="1"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Build agency credit</span></span></div>
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Marke und Gestaltung</span><span lang="en">Brand and design</span></span><span data-dl-v="1">Loomlyne</span></div>
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Website</span><span lang="en">Website</span></span><span data-dl-v="1">Loomlyne</span></div>
 </div>
 <p><span lang="de" data-vt-no-i18n="1">Nennung nur, wenn die Agenturen zustimmen — sonst entfallen die Zeilen.</span><span lang="en">Credit only where the agencies agree — otherwise the rows come out.</span></p>
 </section>

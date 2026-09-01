@@ -503,7 +503,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;hourlyEnabled&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Scope flags — pending approval&quot;},&quot;flightTrackingEnabled&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Scope flags — pending approval&quot;},&quot;flightRefreshMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:15000,&quot;max&quot;:180000,&quot;step&quot;:15000,&quot;unit&quot;:&quot;ms&quot;,&quot;default&quot;:45000,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Flight feed&quot;},&quot;simulateLiveUpdates&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Flight feed&quot;},&quot;quoteLatencyMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:300,&quot;max&quot;:2000,&quot;step&quot;:100,&quot;unit&quot;:&quot;ms&quot;,&quot;default&quot;:1200,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Quote engine&quot;},&quot;errorRatePct&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:0,&quot;max&quot;:30,&quot;step&quot;:2,&quot;unit&quot;:&quot;%&quot;,&quot;default&quot;:0,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Quote engine — only fires with ?qa=errors in the URL&quot;},&quot;dustParticles&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:120,&quot;max&quot;:600,&quot;step&quot;:20,&quot;default&quot;:340,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Price animation&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;hourlyEnabled&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Scope flags — pending approval&quot;},&quot;flightTrackingEnabled&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Scope flags — pending approval&quot;},&quot;flightRefreshMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:15000,&quot;max&quot;:180000,&quot;step&quot;:15000,&quot;unit&quot;:&quot;ms&quot;,&quot;default&quot;:45000,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Flight feed&quot;},&quot;simulateLiveUpdates&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Flight feed&quot;},&quot;quoteLatencyMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:300,&quot;max&quot;:2000,&quot;step&quot;:100,&quot;unit&quot;:&quot;ms&quot;,&quot;default&quot;:1200,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Quote engine&quot;},&quot;errorRatePct&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:0,&quot;max&quot;:30,&quot;step&quot;:2,&quot;unit&quot;:&quot;%&quot;,&quot;default&quot;:0,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Quote engine — only fires with ?qa=errors in the URL&quot;},&quot;dustParticles&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:120,&quot;max&quot;:600,&quot;step&quot;:20,&quot;default&quot;:340,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Price animation&quot;}}">
 const LANGS = ['en','de','fr','ar'];
 const CURS = { CHF:{s:'CHF '}, EUR:{s:'€ '}, USD:{s:'$'}, AED:{s:'AED '} };
 /** Saved Vamos places — real coordinates, so distance is measured, not guessed. */
@@ -1176,7 +1176,7 @@ class Component extends DCLogic {
   componentDidMount() {
     this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur }, () => this.relabelAll());
     window.addEventListener('vamos:locale', this._onLocale);
-    if (!(this.props.hourlyEnabled ?? true) && this.state.mode === 'hourly') this.setState({ mode: 'one-way' });
+    if (!(this.props.hourlyEnabled ?? false) && this.state.mode === 'hourly') this.setState({ mode: 'one-way' });
     if (typeof location !== 'undefined' && location.hash === '#fleet') {
       const saved = readTrip();
       if (saved && saved.vehicle && (saved.pickup || saved.dropoff)) {
@@ -1207,7 +1207,7 @@ class Component extends DCLogic {
       let svc = null;
       try { if (location.search) svc = new URLSearchParams(location.search).get('service'); } catch (err) {}
       if (svc && SVC.indexOf(svc) > -1) {
-        const hourlyOn = (this.props.hourlyEnabled ?? true);
+        const hourlyOn = (this.props.hourlyEnabled ?? false);
         this.setState({ service: svc, mode: svc === 'hourly' && hourlyOn ? 'hourly' : 'one-way' }, () => land('book', -24));
       } else if (location.hash && location.hash.length > 1) {
         /* The hash arrives before React has mounted the section it names, so the
@@ -1957,7 +1957,7 @@ class Component extends DCLogic {
     const phone = s.tier === 0, sheetOpen = s.sheetOpen;
     const chip = (sel) => sel ? 'background:var(--vt-charcoal-900);color:var(--vt-white);border:1px solid var(--vt-charcoal-900)' : 'background:var(--vt-white);color:var(--vt-text-primary);border:1px solid var(--vt-border-subtle)';
     const head = (v) => String(v || '').split(',')[0].trim();
-    const hourlyOn = this.props.hourlyEnabled ?? true;
+    const hourlyOn = this.props.hourlyEnabled ?? false;
     const trackFlights = this.props.flightTrackingEnabled ?? true;
     const modesList = [{ id: 'one-way', label: t.oneWay }, { id: 'return', label: t.return_ }].concat(hourlyOn ? [{ id: 'hourly', label: t.hourly }] : []);
     const modeIdx = Math.max(0, modesList.findIndex((m) => m.id === s.mode));
