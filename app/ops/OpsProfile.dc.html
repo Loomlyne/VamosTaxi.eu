@@ -247,6 +247,12 @@ const T = {
     displayFont:'العناوين', bodyFont:'النص وواجهة الاستخدام' },
 };
 
+function avatarUrl(avatar) {
+  const value = String(avatar || '');
+  if (!value) return '';
+  return value.charAt(0) === '/' ? value : '/photos/' + value;
+}
+
 class Component extends DCLogic {
   state = { lang:'en', draft:null, saved:false, pane:'personal', copiedHex:'' };
   bind = () => {
@@ -291,7 +297,7 @@ class Component extends DCLogic {
       d.role = profile.role || d.role || '';
       d.email = profile.email || d.email || '';
       d.phone = profile.phone || '';
-      d.avatar = profile.avatarPath || '';
+      if (Object.prototype.hasOwnProperty.call(profile, 'avatarPath')) d.avatar = profile.avatarPath || '';
       d.lang = profile.lang || d.lang || 'en';
       d.digest = profile.digestEmail === true;
       if (window.VamosOps) window.VamosOps.profile.update({ name:d.name, phone:d.phone, avatar:d.avatar, lang:d.lang, digest:d.digest });
@@ -394,7 +400,7 @@ class Component extends DCLogic {
       savedShow: this.state.saved && !dirty ? 'inline' : 'none',
       notDirty: !dirty,
       initials,
-      photo: d.avatar ? (String(d.avatar).charAt(0) === '/' ? d.avatar : '/photos/' + d.avatar) : '',
+      photo:avatarUrl(d.avatar),
       hasPhoto: !!d.avatar,
       noPhoto: !d.avatar,
       photoClearShow: d.avatar ? 'flex' : 'none',

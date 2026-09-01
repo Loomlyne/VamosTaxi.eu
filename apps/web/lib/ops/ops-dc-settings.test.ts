@@ -134,16 +134,21 @@ describe("06-09 DC mocks", () => {
     const profile = read("app/ops/OpsProfile.dc.html");
 
     expect(transition).toMatch(/p === '\/app\/ops' \|\| p === '\/app\/ops\/ops'/);
-    expect(transition).toMatch(/samePage\(u\) && u\.search === location\.search && u\.hash/);
-    expect(sidebar).toMatch(/<svg aria-hidden="true" viewBox="0 0 42 100"/);
-    expect(sidebar).toMatch(/Q21 94 39 94/);
+    expect(transition).toMatch(/function runDashboardHashTransition\(\)/);
+    expect(transition).toMatch(/addEventListener\('hashchange', runDashboardHashTransition\)/);
+    expect(transition).toMatch(/vt-ops-hash-switch/);
+    expect(transition).not.toMatch(/play\(\[\[lead.*hashchange/s);
+    expect(sidebar).toMatch(/border-inline-start:1px solid var\(--vt-border-inverse\)/);
+    expect(sidebar).not.toMatch(/<svg aria-hidden="true" viewBox="0 0 42 100"/);
+    expect(sidebar).not.toMatch(/Q21 94 39 94/);
     expect(settings).toMatch(/publishedLangs: \[/);
+    expect(settings).toMatch(/<dc-import name="BrandSelect" size="field" icon="banknote"[^>]*style="width:100%;min-width:0"/);
     const locale = read("app/vamos-locale.js");
     expect(locale).toMatch(/function isDashboardHost\(\)/);
     expect(locale).toMatch(/isDashboardHost\(\) \? 'CHF'/);
     expect(settings).toMatch(/Stripe-hosted online checkout/);
     expect(settings).not.toMatch(/Cash to the chauffeur|TWINT|Corporate accounts only/);
-    expect(settings).not.toMatch(/tSecDangerLabel|openDelete|deleteOpen/);
+    expect(`${settings}\n${profile}`).not.toMatch(/delete-profile|delete profile|account deletion|suppression du compte|حذف الحساب/i);
     expect(profile).toMatch(/body\.append\('kind', 'staff'\)/);
     expect(profile).toMatch(/fetch\('\/api\/photos\/upload', \{ method:'POST', credentials:'include', body \}\)/);
     expect(profile).toMatch(/this\.persist\(\{ avatar:json\.key \}\)/);

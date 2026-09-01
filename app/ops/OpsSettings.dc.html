@@ -93,7 +93,7 @@
 <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
 <span data-fld-l="1">{{ tDefaultCur }}</span>
 <span data-vt-no-i18n="1" style="display:flex;width:100%;min-width:0">
-<dc-import name="BrandSelect" size="field" icon="banknote" value="{{ vCur }}" options="{{ curOptions }}" onSelect="{{ pickCur }}" a11y-label="{{ tDefaultCur }}" hint-size="100%,44px"></dc-import>
+<dc-import name="BrandSelect" size="field" icon="banknote" value="{{ vCur }}" options="{{ curOptions }}" onSelect="{{ pickCur }}" a11y-label="{{ tDefaultCur }}" hint-size="100%,44px" style="width:100%;min-width:0"></dc-import>
 </span>
 </div>
 </div>
@@ -284,7 +284,7 @@ const T = {
     opsAlerts:'Dispatch alerts', opsAlertsHint:'A new or cancelled booking wakes the console',
     langEn:'English', langDe:'German', langFr:'French', langAr:'Arabic',
     railSecurity:'Security', railSecurityHint:'Email, password, passkeys',
-    security:'Security', securitySub:'Sign-in email, password, passkeys and account deletion',
+    security:'Security', securitySub:'Sign-in email, password and passkeys',
     secEmailLabel:'Sign-in email', secEmailHint:'Used to sign in and for account recovery.', secEmailBtn:'Update email',
     secPasswordLabel:'Password', secPasswordSub:'Change the password used to sign in to this console.',
     secNewPw:'New password', secConfirmPw:'Confirm password', secPasswordBtn:'Change password', secPasswordMismatch:'Passwords don’t match.',
@@ -372,7 +372,7 @@ const T = {
     opsAlerts:'Alertes dispatch', opsAlertsHint:'Une réservation nouvelle ou annulée réveille la console',
     langEn:'Anglais', langDe:'Allemand', langFr:'Français', langAr:'Arabe',
     railSecurity:'Sécurité', railSecurityHint:'E-mail, mot de passe, clés d’accès',
-    security:'Sécurité', securitySub:'E-mail de connexion, mot de passe, clés d’accès et suppression du compte',
+    security:'Sécurité', securitySub:'E-mail de connexion, mot de passe et clés d’accès',
     secEmailLabel:'E-mail de connexion', secEmailHint:'Utilisé pour la connexion et la récupération du compte.', secEmailBtn:'Mettre à jour l’e-mail',
     secPasswordLabel:'Mot de passe', secPasswordSub:'Modifie le mot de passe utilisé pour se connecter à cette console.',
     secNewPw:'Nouveau mot de passe', secConfirmPw:'Confirmer le mot de passe', secPasswordBtn:'Changer le mot de passe', secPasswordMismatch:'Les mots de passe ne correspondent pas.',
@@ -416,7 +416,7 @@ const T = {
     opsAlerts:'تنبيهات التوزيع', opsAlertsHint:'الحجز الجديد أو الملغى يُنبّه لوحة التحكم',
     langEn:'الإنجليزية', langDe:'الألمانية', langFr:'الفرنسية', langAr:'العربية',
     railSecurity:'الأمان', railSecurityHint:'البريد وكلمة المرور ومفاتيح المرور',
-    security:'الأمان', securitySub:'بريد الدخول وكلمة المرور ومفاتيح المرور وحذف الحساب',
+    security:'الأمان', securitySub:'بريد الدخول وكلمة المرور ومفاتيح المرور',
     secEmailLabel:'بريد تسجيل الدخول', secEmailHint:'يُستخدم لتسجيل الدخول واسترداد الحساب.', secEmailBtn:'تحديث البريد الإلكتروني',
     secPasswordLabel:'كلمة المرور', secPasswordSub:'يغيّر كلمة المرور المستخدمة لتسجيل الدخول إلى لوحة التحكم هذه.',
     secNewPw:'كلمة مرور جديدة', secConfirmPw:'تأكيد كلمة المرور', secPasswordBtn:'تغيير كلمة المرور', secPasswordMismatch:'كلمتا المرور غير متطابقتين.',

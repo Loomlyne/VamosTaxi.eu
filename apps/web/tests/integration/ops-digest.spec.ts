@@ -70,6 +70,34 @@ test.describe("Zurich scheduled staff digest @ops-digest", () => {
     expect(text).toContain("No booking legs are scheduled");
   });
 
+  test("renders a guest booking once in a branded, escaped operational digest", async () => {
+    const calls: Call[] = [];
+    const deps = dependencies(calls);
+    deps.legs = async () => [{
+      reference: "VT-<guest>",
+      scheduledLocal: "2026-10-25T08:30",
+      pickupText: "<Airport>",
+      dropoffText: "Zermatt & valley",
+      status: "confirmed",
+      guest: true,
+    }];
+    let rendered = { subject: "", html: "", text: "" };
+    deps.send = async (_recipient, digest) => {
+      calls.push("send");
+      rendered = digest;
+    };
+
+    const result = await runStaffDigest(new Date("2026-10-25T05:00:00.000Z"), deps);
+    expect(result.sent).toBe(1);
+    expect(calls).toEqual(["claim", "send", "sent"]);
+    expect(rendered.subject).toContain("Vamos Taxi");
+    expect(rendered.html).toContain("Vamos Taxi");
+    expect(rendered.html).toContain("Guest booking");
+    expect(rendered.html).toContain("&lt;Airport&gt;");
+    expect(rendered.html).not.toContain("<Airport>");
+    expect(rendered.text).toContain("Guest booking");
+  });
+
   test("does not send when an existing successful ledger row cannot be claimed", async () => {
     const calls: Call[] = [];
     const result = await runStaffDigest(

@@ -43,6 +43,7 @@ test.describe("GET /api/staff/me @ops-staff-me", () => {
       "utf8",
     );
     const profile = readFileSync(join(repoRoot, "app/ops/OpsProfile.dc.html"), "utf8");
+    const sidebar = readFileSync(join(repoRoot, "app/ops/OpsSidebar.dc.html"), "utf8");
 
     expect(route).toMatch(/phone:\s*profile\?\.phone\s*\?\?\s*["']{2}/);
     expect(route).toMatch(/avatarPath:\s*profile\?\.avatarPath\s*\?\?\s*null/);
@@ -54,5 +55,11 @@ test.describe("GET /api/staff/me @ops-staff-me", () => {
     expect(profile).toMatch(/d\.phone\s*=\s*profile\.phone/);
     expect(profile).toMatch(/d\.avatar\s*=\s*profile\.avatarPath/);
     expect(profile).toMatch(/d\.digest\s*=\s*profile\.digestEmail\s*===\s*true/);
+    expect(profile).toMatch(/function avatarUrl\(avatar\)/);
+    expect(profile).toMatch(/return value\.charAt\(0\) === '\/' \? value : '\/photos\/' \+ value/);
+    expect(profile).toMatch(/Object\.prototype\.hasOwnProperty\.call\(profile, 'avatarPath'\)/);
+    expect(profile).toMatch(/photo:avatarUrl\(d\.avatar\)/);
+    expect(sidebar).toMatch(/function avatarUrl\(avatar\)/);
+    expect(sidebar).toMatch(/profilePhoto:avatarUrl\(profile\.avatar\)/);
   });
 });

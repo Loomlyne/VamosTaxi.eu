@@ -36,10 +36,9 @@
 </button>
 
 <sc-if value="{{ fleetOpen }}" hint-placeholder-val="{{ false }}">
-<div style="position:relative;display:flex;flex-direction:column;gap:2px;padding:2px 0 6px;margin-inline-start:21px">
-<svg aria-hidden="true" viewBox="0 0 42 100" preserveAspectRatio="none" style="position:absolute;inset-inline-start:0;top:2px;width:42px;height:calc(100% - 10px);overflow:visible;pointer-events:none"><path d="M21 0V78Q21 94 39 94" fill="none" stroke="var(--vt-border-inverse)" stroke-width="1" vector-effect="non-scaling-stroke"/></svg>
+<div style="display:flex;flex-direction:column;gap:2px;padding:2px 0 6px;margin-inline-start:21px;border-inline-start:1px solid var(--vt-border-inverse)">
 <sc-for list="{{ fleetItems }}" as="c" hint-placeholder-count="2">
-<a href="{{ c.href }}" title="{{ c.label }}" style="position:relative;text-decoration:none;box-sizing:border-box;display:flex;align-items:center;gap:10px;height:40px;margin-inline-start:8px;padding:0 12px;border-radius:999px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:{{ c.weight }};color:{{ c.color }};background:{{ c.bg }}">
+<a href="{{ c.href }}" title="{{ c.label }}" style="text-decoration:none;box-sizing:border-box;display:flex;align-items:center;gap:10px;height:40px;margin-inline-start:8px;padding:0 12px;border-radius:999px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:{{ c.weight }};color:{{ c.color }};background:{{ c.bg }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ c.icon }}" size="{{ n16 }}" color="{{ c.color }}" hint-size="16px,16px"></x-import><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.label }}</span>
 </a>
 </sc-for>
@@ -147,6 +146,11 @@ const CONTENT = [
   { key:'legal', href:'#legal', icon:'shield-check', en:'Legal', de:'Rechtliches', fr:'Mentions légales', ar:'المستندات القانونية' },
   { key:'reviews', href:'#reviews', icon:'star', en:'Reviews', de:'Bewertungen', fr:'Avis', ar:'التقييمات' },
 ];
+function avatarUrl(avatar) {
+  const value = String(avatar || '');
+  if (!value) return '';
+  return value.charAt(0) === '/' ? value : '/photos/' + value;
+}
 const COPY = {
   en: { dispatch:'Dispatch', adminRole:'Admin role', signOut:'Sign out', site:'Vamos Taxi site', content:'Content', fleet:'Fleet', collapse:'Collapse sidebar', expand:'Expand sidebar', profile:'Profile', settings:'Settings' },
   de: { dispatch:'Dispatch', adminRole:'Admin-Rolle', signOut:'Abmelden', site:'Vamos Taxi Website', content:'Inhalte', fleet:'Flotte', collapse:'Seitenleiste einklappen', expand:'Seitenleiste ausklappen', profile:'Profil', settings:'Einstellungen' },
@@ -306,7 +310,7 @@ class Component extends DCLogic {
       profileName: me.fullName || profile.name || '',
       profileRole: role || '',
       profileTitle: t.profile,
-      profilePhoto: profile.avatar ? (String(profile.avatar).charAt(0) === '/' ? profile.avatar : '/photos/' + profile.avatar) : '',
+      profilePhoto:avatarUrl(profile.avatar),
       hasPhoto: !!profile.avatar,
       noPhoto: !profile.avatar,
       profileAvatarBg: active === 'profile' ? 'var(--vt-accent)' : 'var(--vt-charcoal-800)',
