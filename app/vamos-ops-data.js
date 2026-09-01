@@ -285,6 +285,7 @@
       model: str(v.model), plate: str(v.plate), year: str(v.year),
       seats: num(v.seats, 3), bags: num(v.bags, 3),
       status: VEHICLE_STATUS.indexOf(v.status) === -1 ? "service" : v.status,
+      photo: (str(v.photo || v.photoPath).indexOf("data:") === 0) ? "" : str(v.photo || v.photoPath),
       note: str(v.note)
     };
   }
@@ -297,6 +298,7 @@
       name: str(c.name), phone: str(c.phone), email: str(c.email),
       vehicle: str(c.vehicle), licence: str(c.licence), languages: str(c.languages),
       status: CHAUFFEUR_STATUS.indexOf(c.status) === -1 ? "off" : c.status,
+      photo: (str(c.photo || c.photoPath).indexOf("data:") === 0) ? "" : str(c.photo || c.photoPath),
       note: str(c.note)
     };
   }

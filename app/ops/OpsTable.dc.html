@@ -110,6 +110,21 @@
 </div>
 </sc-if>
 
+<sc-if value="{{ f.isPhoto }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+<span data-fld-l="1">{{ f.label }}</span>
+<div style="display:flex;align-items:center;gap:12px;min-width:0">
+<span style="position:relative;inline-size:64px;block-size:64px;flex:0 0 auto;border-radius:var(--vt-radius-md);overflow:hidden;background:var(--vt-grey-100);color:var(--vt-text-muted);display:{{ f.fallbackShow }};align-items:center;justify-content:center;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold)">{{ f.fallback }}</span>
+<img src="{{ f.photoSrc }}" alt="" style="inline-size:64px;block-size:64px;object-fit:cover;border-radius:var(--vt-radius-md);display:{{ f.photoShow }}">
+<div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+<input type="file" accept="image/jpeg,image/png,image/webp" onChange="{{ f.pickFile }}" aria-label="{{ f.label }}">
+<button type="button" data-linkbtn="1" onClick="{{ f.clearPhoto }}">{{ f.clearLabel }}</button>
+</div>
+</div>
+<span style="display:{{ f.hintShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ f.hint }}</span>
+</div>
+</sc-if>
+
 </div>
 </sc-for>
 </div>
@@ -172,7 +187,7 @@
    columns: [{ key, header, width, align, kind, subKey, tones, emptyLabel, prefix }]
      kind  'text' | 'stack' | 'mono' | 'badge' | 'money' | 'need' | 'bool'
    fields:  [{ key, label, editor, options, placeholder, hint, required, half, icon }]
-     editor 'text' | 'number' | 'select' | 'switch' | 'area'                        */
+     editor 'text' | 'number' | 'select' | 'switch' | 'area' | 'photo'               */
 /* A leading icon is what makes a console field read like the client-facing ones on the
    booking widget, so the schema's key picks the same glyph the front page uses. */
 const FIELD_ICONS = {
@@ -406,11 +421,43 @@ class Component extends DCLogic {
         isSelect: f.editor === 'select',
         isSwitch: f.editor === 'switch',
         isArea: f.editor === 'area',
+        isPhoto: f.editor === 'photo',
         value: String(val),
         checked: !!raw,
+        photoKey: String(val).indexOf('data:') === 0 ? '' : String(val),
+        photoSrc: (val && String(val).indexOf('data:') !== 0) ? ('/photos/' + val) : '',
+        photoShow: (val && String(val).indexOf('data:') !== 0) ? 'block' : 'none',
+        fallbackShow: (val && String(val).indexOf('data:') !== 0) ? 'none' : 'flex',
+        fallback: f.fallback || '',
         set: (e) => this.setField(f.key, f.editor === 'number' ? parseInt(e.target.value, 10) || 0 : e.target.value),
         pick: (v) => { this.setField(f.key, v); if (f.onSelect) f.onSelect(v); },
         toggle: (e) => this.setField(f.key, e.target.checked),
+        clearPhoto: () => this.setField(f.key, ''),
+        pickFile: (e) => {
+          const file = e.target && e.target.files && e.target.files[0];
+          if (!file) return;
+          const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+          let recId = d.id ? String(d.id) : '';
+          if (!uuidRe.test(recId)) {
+            recId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : recId;
+            if (uuidRe.test(recId)) this.setField('id', recId);
+          }
+          const kind = f.photoKind || 'vehicle';
+          const upload = f.upload || '/api/photos/upload';
+          const fd = new FormData();
+          fd.append('kind', kind);
+          fd.append('recordId', recId);
+          fd.append('file', file);
+          fetch(upload, { method: 'POST', credentials: 'include', body: fd })
+            .then((res) => res.json())
+            .then((json) => {
+              if (json && typeof json.key === 'string' && json.key.indexOf('data:') !== 0) {
+                this.setField(f.key, json.key);
+              }
+            })
+            .catch(() => {});
+          e.target.value = '';
+        },
       };
     });
 

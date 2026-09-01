@@ -205,6 +205,36 @@ function mapDetailRow(row: DetailSqlRow): ChauffeurDetail {
 // List projection omits the licence number on purpose: no component change
 // and no accidental column spread can put it into a table, a CSV export or
 // a client payload. loadChauffeur is the only reader that selects it.
+export async function loadChauffeurDetailsList(
+  env: CloudflareEnv,
+  claims: VamosClaims,
+): Promise<ChauffeurDetail[]> {
+  return asStaff(env, claims, async (sql) => {
+    const rows = await sql<DetailSqlRow[]>`
+      select
+        c.id,
+        c.full_name,
+        c.phone,
+        c.email,
+        c.default_vehicle_id,
+        v.plate as default_vehicle_plate,
+        c.licence_number,
+        c.licence_expires_on,
+        c.languages,
+        c.status,
+        c.photo_path,
+        c.note,
+        c.active,
+        c.created_at,
+        c.updated_at
+      from public.chauffeurs c
+      left join public.vehicles v on v.id = c.default_vehicle_id
+      order by c.active desc, c.licence_expires_on asc nulls last, c.full_name asc
+    `;
+    return rows.map(mapDetailRow);
+  });
+}
+
 export async function loadChauffeurs(
   env: CloudflareEnv,
   claims: VamosClaims,
