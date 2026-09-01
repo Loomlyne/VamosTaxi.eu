@@ -1,40 +1,61 @@
 # Phase 6: Ops Reference Data & Content Console - Context
 
 **Gathered:** 2026-08-24
-**Updated:** 2026-08-31 (owner sitting — keep phase as written; dedicated dashboard host)
-**Status:** Ready for plan review / execute
-**Source:** Research express path (06-RESEARCH.md, Phase 2 CONTEXT/SCHEMA-DRAFT, Phase 3 CONTEXT,
-Phase 5 RESEARCH, ADR-005/011/012/014) + owner sitting 2026-08-31
+**Updated:** 2026-09-01 (owner sitting — DC mock is the product; delete React ops; replan all waves)
+**Status:** Ready for planning
+**Source:** Research express path + owner sittings 2026-08-31 and 2026-09-01
 
-## Sitting 2026-08-31 (supersedes stale bits below)
+## Sitting 2026-09-01 (supersedes D-34 and the React console)
 
-Owner chose **keep Phase 6 as written**. Dashboard / Bookings / Calendar wait for Phase 8.
-Assign, refund, phone booking, Realtime live board stay Phase 8. Checkout stays Phase 7 (paused
-after 07-01).
+Owner: the Claude Design ops mock is the production UI. The Phase 6 React ops console is wrong.
+Delete it. Wire the mock to real data. Replan every Phase 6 wave from this CONTEXT.
 
-- **D-01a:** Dedicated host `dashboard.vamostaxi.site` on worker `vamos-web-staging` (same app,
-  host-based gate). Public `vamostaxi.site` does **not** grow `/ops`. Locale prefixes still apply
-  on the dashboard host (`/de`, `/fr`, `/ar`). This amends research D-01's "same origin `/ops/*`
-  on the public site" — the route group may still be `app/[locale]/(ops)/ops/**` internally, but
-  the public URL is the dashboard hostname, not `vamostaxi.site/ops`.
-- **D-34:** Phase 6 **end state is not the DC mock**. `dashboard.vamostaxi.site` currently serves
-  `app/ops/*.dc.html` (localStorage throwaway `koss@vamostaxi.site` / `vamos`). When this phase
-  is done that HTML is gone: staff session is real (`aal2`), every in-scope screen reads/writes
-  Postgres, empty tables are empty (not seeded fake bookings or fake CHF). Throwaway mock login
-  dies when AUTH-05 (06-02/06-04) lands — not kept in parallel.
+- **D-34 (reversed):** Phase 6 **end state is the DC mock**. Serve `app/ops/*.dc.html` as-is on
+  `dashboard.vamostaxi.site`. Do **not** React-port ops. Do **not** keep a second UI.
+- **D-36:** **Delete** the Phase 6 React ops surface: `apps/web/app/[locale]/(ops)/ops/**` pages,
+  React `OpsSignIn` / Coming soon, and any Next rewrite of dashboard `/` or `/login` onto those
+  routes. Keep staff APIs, `asStaff`/`publicSql`, schema, R2, JWT `vamos_role` — planner maps mock
+  JS onto those. Do not rebuild a React twin.
+- **D-01a (amended):** Host `dashboard.vamostaxi.site` on `vamos-web-staging`. Logged-out `/`
+  308s to `/login` (DC `ops-login.dc.html`, **Dispatch sign in**, `POST /api/auth`). Logged-in `/`
+  is DC `ops.dc.html` (hash routes `#dashboard` `#pricing` …). No `/ops` in the address bar.
+  Customer sign-in stays `https://vamostaxi.site/sign-in`.
+- **D-37:** Throwaway `koss@vamostaxi.site` is dead. Sole admin `koussayzayeni@gmail.com`. MFA /
+  `aal2` **paused** until the owner asks. Password eye stays on the DC login (`data-af-eye`).
+- **D-35:** No fake data, no invented CHF. Empty tables render empty. Rate book `CHF 000` / NULL
+  until the owner matrix.
+- **D-38:** Replan **all** Phase 6 waves against this CONTEXT. Existing 06-01…06-17 PLAN/SUMMARY
+  files describe the React console — they are not the execution source after this sitting.
+
+**In scope:** Same reference-data screens as before (fleet, pricing draft→publish, coupons,
+customers read-only, content, reviews, settings, staff roster, own profile, `content_strings`),
+implemented **inside the DC mock**, not as Next pages.
+
+**Out of scope:** Booking mutation, live paid board, assign, refund, phone booking, Realtime
+(Phase 8). Checkout (Phase 7). Those hash routes may stay painted in the mock with empty/CHF 000
+state — they must not become a fake live board or a React app.
+
+## Sitting 2026-08-31 (host + no-fake-data; D-34 below is void)
+
+Owner kept Phase 6 **scope** (reference data, not dispatch). Dashboard / Bookings / Calendar
+**data** wait for Phase 8. Assign, refund, phone booking, Realtime stay Phase 8. Checkout stays
+Phase 7 (paused after 07-01).
+
+- **D-01a (original):** Dedicated host `dashboard.vamostaxi.site` on worker `vamos-web-staging`.
+  Public `vamostaxi.site` does **not** grow `/ops`.
+- **D-34 (VOID — reversed 2026-09-01):** Previously said the DC mock dies and React wins. Owner
+  rejected that on 2026-09-01. See D-34 reversed / D-36 above.
 - **D-35:** No fake data, no invented CHF. Rate book stays `CHF 000` / NULL until the owner
   matrix. Reviews/fleet photos: zero-photo fallback is the expected state (D-22).
 - **D-33 (amended):** Phase 3 Hyperdrive + `asStaff`/`publicSql` **have landed**. Phase 2 schema
-  this phase reads has landed. Phase 5 public surfaces are in flight (DC mocks on
-  `vamostaxi.site`); `lib/supabase/*` may already exist — 06-02 checks before recreating (D-04).
-  Execution can start. Do not wait on Phase 7.
+  this phase reads has landed. Do not wait on Phase 7.
 
-**In scope (unchanged):** Fleet, Pricing & routes (draft→publish), Coupons, Customers (read-only),
-Content editor, Reviews, Settings, staff roster, own profile, MFA/invite, `content_strings` loader
-swap.
+**In scope (data, unchanged):** Fleet, Pricing & routes (draft→publish), Coupons, Customers
+(read-only), Content editor, Reviews, Settings, staff roster, own profile, `content_strings`
+loader swap.
 
-**Out of scope (owner-confirmed 2026-08-31):** Dashboard (live board), Bookings, Calendar, assign,
-refund, confirm, phone booking, Realtime.
+**Out of scope (data, unchanged 2026-08-31):** Live board mutations, assign, refund, confirm,
+phone booking, Realtime.
 
 <domain>
 ## Phase Boundary
