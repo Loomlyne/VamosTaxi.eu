@@ -264,15 +264,7 @@ class Component extends DCLogic {
     client.request('GET', '/api/staff/me').then((json) => {
       if (!json || !json.ok || !json.data) return;
       const me = json.data;
-      this.setState((s) => {
-        const d = {}; for (const k in (s.draft || {})) d[k] = s.draft[k];
-        d.name = me.fullName || d.name || '';
-        d.role = me.role || d.role || '';
-        d.email = me.email || d.email || '';
-        d.phone = me.phone || d.phone || '';
-        d.lang = me.lang || d.lang || '';
-        return { draft: d, me: me };
-      });
+      this.setState({ me: me }, () => this.applyPersisted(me));
     });
   };
   componentDidMount() {
@@ -296,6 +288,8 @@ class Component extends DCLogic {
     this.setState((s) => {
       const d = {}; for (const k in s.draft) d[k] = s.draft[k];
       d.name = profile.fullName || d.name || '';
+      d.role = profile.role || d.role || '';
+      d.email = profile.email || d.email || '';
       d.phone = profile.phone || '';
       d.avatar = profile.avatarPath || '';
       d.lang = profile.lang || d.lang || 'en';
