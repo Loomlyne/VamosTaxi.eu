@@ -28,6 +28,7 @@
 <link rel="stylesheet" href="../../assets/lenis.css">
 <script src="../../assets/lenis.js"></script>
 <script src="../../assets/lenis-boot.js"></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js"></script>
 <script src="../vamos-page-transition.js"></script>
@@ -140,7 +141,7 @@ a[data-ch]:hover [data-ch-v]{color:var(--vt-yellow-700)}
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-check" size="{{ n24 }}" color="var(--vt-success)" hint-size="24px,24px"></x-import>
 </div>
 <h3 style="margin:0 0 10px;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Message received</h3>
-<p style="margin:0 0 8px;max-width:52ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">A copy is on its way to <strong style="color:var(--vt-text-primary);font-weight:var(--vt-weight-semibold)">{{ sentTo }}</strong>. Your reference for this conversation is <strong style="font-family:var(--vt-font-display);color:var(--vt-text-primary)">{{ caseRef }}</strong>.</p>
+<p style="margin:0 0 8px;max-width:52ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Your message has been accepted for delivery. Our team will review it.</p>
 <p style="margin:0 0 22px;max-width:52ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">We answer within <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Response time</span>. If your travel is sooner than that, call us on the number opposite.</p>
 <div style="display:flex;flex-wrap:wrap;gap:12px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" onClick="{{ reset }}" hint-size="200px,44px">Send another message</x-import>
@@ -202,6 +203,7 @@ a[data-ch]:hover [data-ch-v]{color:var(--vt-yellow-700)}
 </sc-if>
 </div>
 
+<div id="ct-turnstile" data-vt-no-i18n="1"></div>
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px 20px;padding-top:4px">
 <sc-if value="{{ isSending }}" hint-placeholder-val="{{ false }}">
 <span style="display:inline-flex;align-items:center;gap:10px;height:54px;padding:0 28px;border-radius:var(--vt-radius-pill);background:var(--vt-accent);color:var(--vt-text-on-accent);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;opacity:.42;cursor:not-allowed">
@@ -276,9 +278,19 @@ class Component extends DCLogic {
   state = {
     phase: 'default', // default | invalid | sending | sent | failed
     name: '', email: '', phone: '', ref: '', msg: '',
-    bad: {}, caseRef: '', sentTo: '',
+    bad: {}, token: '', idempotencyKey: crypto.randomUUID(),
   };
   errRef = React.createRef();
+  componentDidMount() {
+    const siteKey = document.querySelector('meta[name="vt-turnstile-site-key"]')?.getAttribute('content');
+    if (!siteKey || !window.turnstile) return;
+    window.turnstile.render('#ct-turnstile', {
+      sitekey: siteKey, action: 'contact',
+      callback: (token) => this.setState({ token }),
+      'expired-callback': () => this.setState({ token: '' }),
+      'error-callback': () => this.setState({ token: '' }),
+    });
+  }
 
   set(k) { return (e) => {
     const v = e.target.value;
@@ -305,35 +317,31 @@ class Component extends DCLogic {
     return bad;
   }
 
-  submit = (e) => {
+  submit = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     const bad = this.validate();
     if (Object.keys(bad).length) {
-      this.setState({ phase: 'invalid', bad }, () => {
-        const el = this.errRef.current; if (el) el.focus();
-      });
+      this.setState({ phase: 'invalid', bad }, () => { const el = this.errRef.current; if (el) el.focus(); });
       return;
     }
+    if (!this.state.token) { this.setState({ phase: 'failed', bad: {} }); return; }
     this.setState({ phase: 'sending', bad: {} });
-    clearTimeout(this._t);
-    this._t = setTimeout(() => {
-      this.setState({
-        phase: 'sent',
-        sentTo: this.state.email.trim(),
-        caseRef: 'VT-C' + String(Math.floor(Math.random() * 9000) + 1000),
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ name: this.state.name.trim(), email: this.state.email.trim(), phone: this.state.phone, bookingRef: this.state.ref, message: this.state.msg.trim(), locale: window.VamosLocale?.current?.() || 'en', turnstileToken: this.state.token, idempotencyKey: this.state.idempotencyKey }),
       });
-    }, 1400);
+      const result = await response.json();
+      this.setState(result && result.ok === true ? { phase: 'sent', token: '', idempotencyKey: crypto.randomUUID() } : { phase: 'failed', token: '' });
+    } catch { this.setState({ phase: 'failed', token: '' }); }
   };
 
   reset = () => {
-    clearTimeout(this._t);
-    this.setState({ phase: 'default', name: '', email: '', phone: '', ref: '', msg: '', bad: {} });
+    this.setState({ phase: 'default', name: '', email: '', phone: '', ref: '', msg: '', bad: {}, token: '', idempotencyKey: crypto.randomUUID() });
   };
-  componentWillUnmount() { clearTimeout(this._t); }
 
   // Review switcher: fills plausible content so a state is legible on its own.
   go(phase) {
-    clearTimeout(this._t);
     if (phase === 'default') { this.reset(); return; }
     const filled = {
       name: 'Ben Othman', email: 'ben@example.com', phone: '+41 79 000 00 00', ref: 'VT-0000',
@@ -344,10 +352,7 @@ class Component extends DCLogic {
         filled, { name: '', email: 'ben@example', msg: 'Delayed' }));
       return;
     }
-    if (phase === 'sent') {
-      this.setState(Object.assign({ phase: 'sent', bad: {}, sentTo: filled.email, caseRef: 'VT-C4821' }, filled));
-      return;
-    }
+    if (phase === 'sent') return;
     this.setState(Object.assign({ phase, bad: {} }, filled));
   }
 
@@ -377,7 +382,6 @@ class Component extends DCLogic {
       badName: !!bad.name, badEmail: !!bad.email, badMsg: !!bad.msg,
       aName: bad.name ? 'true' : 'false', aEmail: bad.email ? 'true' : 'false', aMsg: bad.msg ? 'true' : 'false',
       emailErr, msgErr,
-      sentTo: this.state.sentTo, caseRef: this.state.caseRef,
       submit: this.submit, reset: this.reset, errRef: this.errRef,
       // Slots — every one is a client input, so they resolve to '#' until supplied.
       hFacebook: this.props.facebookUrl || '#', hInstagram: this.props.instagramUrl || '#',

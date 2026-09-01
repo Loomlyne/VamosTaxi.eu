@@ -7,8 +7,11 @@ const GREY = "#DEDEDE";
 const MUTED = "#545756";
 const WHITE = "#FFFFFF";
 
-export function layoutHtml(locale: EmailLocale, inner: string): string {
+export type EmailLayoutOptions = { footer?: string };
+
+export function layoutHtml(locale: EmailLocale, inner: string, options: EmailLayoutOptions = {}): string {
   const dir = locale === "ar" ? "rtl" : "ltr";
+  const footer = options.footer ?? "This link works once and expires after 1 hour.<br/>\n            Vamos Taxi · +41 79 626 70 82";
   return `<!doctype html>
 <html lang="${locale}" dir="${dir}">
 <head>
@@ -38,8 +41,7 @@ export function layoutHtml(locale: EmailLocale, inner: string): string {
         </tr>
         <tr>
           <td style="padding:8px 32px 32px 32px;font-size:12px;line-height:18px;color:${MUTED};">
-            This link works once and expires after 1 hour.<br/>
-            Vamos Taxi · +41 79 626 70 82
+            ${footer}
           </td>
         </tr>
       </table>
@@ -50,8 +52,9 @@ export function layoutHtml(locale: EmailLocale, inner: string): string {
 </html>`;
 }
 
-export function layoutText(inner: string): string {
-  return `Vamos Taxi\n\n${inner}\n\nThis link works once and expires after 1 hour.\n+41 79 626 70 82`;
+export function layoutText(inner: string, options: EmailLayoutOptions = {}): string {
+  const footer = options.footer ?? "This link works once and expires after 1 hour.\n+41 79 626 70 82";
+  return `Vamos Taxi\n\n${inner}\n\n${footer}`;
 }
 
 export function ctaButton(href: string, label: string): string {

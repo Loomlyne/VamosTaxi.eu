@@ -1,55 +1,32 @@
-// Shared owner-notification + JSON envelope for SITE-04 form routes.
-// The five-step order (challenge → zod → write → notify) stays in each
-// route so verifyTurnstile / safeParse / asAnon remain greppable there.
-
 import { Resend } from "resend";
-import { escapeHtml, layoutHtml, layoutText } from "@vamos/emails";
-import { log, type RequestContext } from "@/lib/logger";
-
-const FROM = "Vamos Taxi <noreply@vamostaxi.eu>";
-const TO = "Vamos Taxi <noreply@vamostaxi.eu>";
-
 export type FormFailureCode = "challenge_failed" | "invalid_input" | "unavailable";
 
 export function formFailure(code: FormFailureCode, status: 400 | 403 | 503): Response {
   return Response.json({ ok: false, code }, { status });
 }
 
-export function formSuccess(created: boolean): Response {
-  return Response.json({ ok: true, created });
+export function formSuccess(): Response {
+  return Response.json({ ok: true });
 }
 
-export function renderOwnerNotice(
-  subject: string,
-  lines: string[],
-): { subject: string; html: string; text: string } {
-  const inner = lines.map((line) => `<p>${escapeHtml(line)}</p>`).join("");
-  return {
-    subject,
-    html: layoutHtml("en", inner),
-    text: layoutText(lines.join("\n")),
-  };
-}
-
-export async function sendOwnerNotice(
+export async function sendContactMessage(
   apiKey: string | undefined,
+  from: string | undefined,
+  to: string | undefined,
+  idempotencyKey: string,
   rendered: { subject: string; html: string; text: string },
-  ctx: RequestContext,
-  type: string,
-): Promise<void> {
-  if (!apiKey) {
-    log("info", type, ctx, { subject: rendered.subject, notify: 0 });
-    return;
-  }
+): Promise<{ accepted: boolean; providerSuffix: string | null }> {
+  if (!apiKey || !from || !to) return { accepted: false, providerSuffix: null };
   try {
-    await new Resend(apiKey).emails.send({
-      from: FROM,
-      to: TO,
-      subject: rendered.subject,
-      html: rendered.html,
-      text: rendered.text,
-    });
+    const result = await new Resend(apiKey).emails.send(
+      { from, to, subject: rendered.subject, html: rendered.html, text: rendered.text },
+      { idempotencyKey },
+    );
+    const id = result.data?.id;
+    return typeof id === "string" && id.length > 0
+      ? { accepted: true, providerSuffix: id.slice(-12) }
+      : { accepted: false, providerSuffix: null };
   } catch {
-    log("error", type, ctx, { notify: 0 });
+    return { accepted: false, providerSuffix: null };
   }
 }
