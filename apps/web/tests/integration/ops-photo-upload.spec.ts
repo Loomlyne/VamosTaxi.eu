@@ -1,14 +1,10 @@
 // apps/web/tests/integration/ops-photo-upload.spec.ts
 //
-// Photo pipeline (06-06): key contract, MIME/size sniff, read-path allow-list,
-// and OpsPhotoField empty/error/preview assertions. Tagged @ops-photo.
-// component-1440 only. No R2, no live Next server.
+// Photo pipeline (06-06): key contract, MIME/size sniff, read-path allow-list.
+// Tagged @ops-photo. component-1440 only. No R2, no live Next server.
+// OpsPhotoField React chrome is gone (06-01); DC mock will call POST /api/photos/upload.
 
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { test, expect } from "@playwright/test";
-import { mountPort, waitForMockReady } from "../support/mock-harness";
-import enMessages from "../../i18n/messages/en.json";
 import {
   PHOTO_MAX_BYTES,
   PHOTO_PREFIXES,
@@ -22,7 +18,6 @@ import {
 
 const RUN_PROJECT = "component-1440";
 const RECORD_ID = "11111111-1111-4111-8111-111111111111";
-const WEB_ROOT = join(__dirname, "..", "..");
 
 test.beforeEach(async ({}, testInfo) => {
   test.skip(
@@ -102,27 +97,7 @@ test.describe("ops photo upload @ops-photo", () => {
     expect(photoUrl(key)).toBe(`/photos/${key}`);
   });
 
-  test("empty state renders the fallback and no img with an empty src", async ({ page }) => {
-    const portUrl = await mountPort(
-      "apps/web/components/ops/OpsPhotoField.tsx",
-      {
-        kind: "vehicle",
-        recordId: RECORD_ID,
-        value: null,
-        onChange: () => {},
-      },
-      { locale: "en", messages: enMessages },
-    );
-    await page.goto(portUrl);
-    await waitForMockReady(page);
-    const root = page.locator("[data-ops-photo]");
-    await expect(root).toHaveAttribute("data-state", "empty");
-    await expect(root.locator("img[src='']")).toHaveCount(0);
-    await expect(root.locator("img")).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Add photo" })).toBeVisible();
-  });
-
-  test("rejected MIME type surfaces an Alert mapping and leaves value unchanged", () => {
+  test("rejected MIME type leaves value unchanged", () => {
     let value: string | null = "vehicles/keep.jpg";
     const onChange = (next: string | null) => {
       value = next;
@@ -136,12 +111,6 @@ test.describe("ops photo upload @ops-photo", () => {
       onChange(value);
     }
     expect(value).toBe("vehicles/keep.jpg");
-    const source = readFileSync(join(WEB_ROOT, "components/ops/OpsPhotoField.tsx"), "utf8");
-    expect(source).toContain("Alert");
-    expect(source).toContain("error-type");
-    expect(source).toContain("photoUrl");
-    expect(source).toMatch(/onError/);
-    expect(source).not.toMatch(/readAsDataURL|data:image/);
   });
 
   test("a successful upload key is rendered from /photos/<key>", () => {
