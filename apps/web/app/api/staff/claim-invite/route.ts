@@ -1,8 +1,8 @@
 // POST /api/staff/claim-invite
 //
-// The one self-only bridge for an active aal2 invitee before the custom access
-// token hook can mint a vamos_role. The SQL function scopes the write to
-// app.uid(), verifies aal2, and stamps acceptance once.
+// The one self-only bridge for an active invitee before the custom access-token
+// hook can mint a vamos_role. The SQL function scopes the write to app.uid() and
+// stamps acceptance once. MFA is paused for V1.
 
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 

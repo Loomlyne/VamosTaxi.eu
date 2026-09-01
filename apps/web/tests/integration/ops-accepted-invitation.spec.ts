@@ -24,12 +24,14 @@ const claimRouteReexport = readFileSync(
 const authForm = readFileSync(join(repoRoot, "app/ops/AuthForm.dc.html"), "utf8");
 
 test.describe("accepted staff invitations @ops-accepted-invite", () => {
-  test("only active accepted staff receive a console role; an aal2 invitee can claim their own invite once", () => {
+  test("only active accepted staff receive a console role; an invitee can claim their own invite once", () => {
     expect(migration).toMatch(/s\.active\s+and\s+s\.accepted_at\s+is\s+not\s+null/i);
     expect(migration).toMatch(/create\s+or\s+replace\s+function\s+public\.staff_claim_invite/i);
     expect(migration).toMatch(/app\.uid\(\)/i);
     expect(migration).toMatch(/accepted_at\s*=\s*coalesce\(accepted_at,\s*now\(\)\)/i);
     expect(migration).toMatch(/grant\s+execute\s+on\s+function\s+public\.staff_claim_invite\(\)\s+to\s+authenticated/i);
+    expect(migration).not.toMatch(/staff_claim_invite requires an active aal2/i);
+    expect(migration).not.toMatch(/mfa_enrolled\s*=\s*true/i);
   });
 
   test("the live dashboard login claims before redirecting and exposes a real passkey ceremony", () => {

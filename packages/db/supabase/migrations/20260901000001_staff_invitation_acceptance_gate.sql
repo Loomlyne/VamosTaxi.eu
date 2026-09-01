@@ -1,13 +1,14 @@
 -- 20260901000001_staff_invitation_acceptance_gate.sql
 --
 -- An invited row is not console authorization. A staff role is minted only after
--- the invitee has completed their own aal2 acceptance. The claim RPC deliberately
--- does not call app.is_staff(): before acceptance there is no staff claim yet.
+-- the invitee has completed their own acceptance. MFA is paused for V1, so this
+-- gate cannot require aal2 or it would lock out the existing password-only admin.
+-- The claim RPC deliberately does not call app.is_staff(): before acceptance there
+-- is no staff claim yet.
 
 create or replace function app.is_staff() returns boolean
   language sql stable security definer set search_path = '' as $$
   select coalesce(app.jwt() -> 'app_metadata' ->> 'vamos_role', '') in ('dispatcher','admin')
-     and coalesce(app.jwt() ->> 'aal', 'aal1') = 'aal2'
      and exists (
        select 1
          from public.staff s
@@ -20,7 +21,6 @@ $$;
 create or replace function app.is_admin() returns boolean
   language sql stable security definer set search_path = '' as $$
   select coalesce(app.jwt() -> 'app_metadata' ->> 'vamos_role', '') = 'admin'
-     and coalesce(app.jwt() ->> 'aal', 'aal1') = 'aal2'
      and exists (
        select 1
          from public.staff s
@@ -57,7 +57,7 @@ begin
 end; $$;
 
 -- This is the only pre-acceptance bridge. It can update only app.uid()'s own
--- active row, requires aal2 itself, and preserves the first acceptance time.
+-- active `staff` row and preserves the first acceptance time.
 create or replace function public.staff_claim_invite()
 returns void
 language plpgsql
@@ -66,27 +66,25 @@ security definer
 set search_path = ''
 as $$
 begin
-  if coalesce(app.jwt() ->> 'aal', 'aal1') <> 'aal2'
-     or not exists (
+  if not exists (
        select 1
          from public.staff s
         where s.user_id = app.uid()
           and s.active
      ) then
-    raise exception 'staff_claim_invite requires an active aal2 invited session'
+    raise exception 'staff_claim_invite requires an active invited session'
       using errcode = 'insufficient_privilege';
   end if;
 
   update public.staff
-     set accepted_at  = coalesce(accepted_at, now()),
-         mfa_enrolled = true
+     set accepted_at = coalesce(accepted_at, now())
    where user_id = app.uid()
      and active;
 end;
 $$;
 
 comment on function public.staff_claim_invite() is
-  'Self-only acceptance bridge: active aal2 invitees may stamp accepted_at once before the token hook grants a staff role.';
+  'Self-only acceptance bridge: active invitees may stamp accepted_at once before the token hook grants a staff role. MFA remains paused for V1.';
 
 revoke all on function public.staff_claim_invite() from public;
 grant execute on function public.staff_claim_invite() to authenticated, vamos_staff;
