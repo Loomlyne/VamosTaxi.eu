@@ -10,7 +10,7 @@ status: checkpoint
 
 - `f64f7ec68bf0dce725efa279a729cda5f26a475b` — `feat(contact): add durable delivery and DC submission`
 - `27bcd3a5b7caa9a120bf1d2d38382337feef9be7` — `fix(footer): remove unverified address and add TikTok`
-- Current correction checkpoint — `fix(contact): fence stale outbox leases`
+- Final correction checkpoint — removes the residual unverified response-time/TBC placeholder from the DC contact copy.
 
 ## Delivered
 
@@ -29,7 +29,8 @@ status: checkpoint
 - The DC contact form preserves its idempotency key after server/network delivery failure, clears the consumed token, and resets the existing Turnstile widget (or renders it when no widget exists) for a fresh retry challenge. No gallery/sample sent-state control was reintroduced.
 - The DC contact source now exposes only telephone, WhatsApp, and the confirmed visible `info@vamostaxi.eu` email in its direct-contact card. It removes the unverified office, unsupported live chat, and default social-slot block; official footer social links remain unchanged.
 - Removed dead review-switcher methods and their sample customer details, plus the named form/reference sample placeholders. Cookie-banner review state remains independent.
-- Added a database-free static-source regression test that fails if the removed unsupported strings, placeholder social URLs/state, or sample review data return; it also requires each known working direct-contact destination.
+- Removed the residual `Response time`/`data-tok` TBC UI from both the form introduction and delivered-message state. Both now direct time-sensitive requests to the confirmed public telephone without claiming a response interval.
+- Added a database-free static-source regression test that fails if the removed unsupported strings, placeholder social URLs/state, sample review data, or response-time/TBC placeholder returns; it also requires each known working direct-contact destination.
 
 ## Test evidence
 
@@ -43,6 +44,9 @@ status: checkpoint
 - Follow-up RED: `/Users/koss/Developer/VamosTaxi.eu/apps/web/node_modules/.bin/vitest run lib/contact-source.test.ts` — 1 of 2 tests failed because the source did not render the confirmed visible email address.
 - Follow-up GREEN: `/Users/koss/Developer/VamosTaxi.eu/apps/web/node_modules/.bin/vitest run lib/contact-source.test.ts lib/footer-source.test.ts` — 2 files, 3 tests passed.
 - Follow-up generated-output check: after `node scripts/sync-dc-mock-to-public.mjs`, static assertions verified both `public/app/pages/contact.dc.html` and `public/app/pages/contact.html` contain 4 confirmed direct-contact values and none of 22 forbidden address, chat, social-slot, placeholder, or sample-review values.
+- Response-time TBC RED: `/Users/koss/Developer/VamosTaxi.eu/apps/web/node_modules/.bin/vitest run lib/contact-source.test.ts` — 1 of 3 tests failed because the canonical contact source still contained `Response time`.
+- Response-time TBC GREEN: the same command — 1 file, 3 tests passed after the minimal canonical copy/CSS removal.
+- Response-time generated-output check: `node scripts/sync-dc-mock-to-public.mjs` completed; static assertions verified both generated public contact outputs contain neither `Response time` nor `data-tok`, and retain the time-sensitive call direction.
 - Lease remediation RED: `/Users/koss/Developer/VamosTaxi.eu/apps/web/node_modules/.bin/vitest run lib/forms/contact-delivery.test.ts` from the 05-26 worktree — 5/5 tests failed before implementation because the old delivery gateway had neither structured lease claims nor fenced finalize arguments.
 - Lease remediation GREEN: the same main-checkout Vitest binary — 1 file, 5 tests passed. It covers recovery before provider send and provider-accepted-before-finalize, verifies the renewed fence token is passed to finalization, and verifies retries preserve `contact:<submission>:<channel>:v1`.
 - `git diff --check` passed. Focused web TypeScript checking has no lease-related error; the command remains blocked by three inherited read-only `process.env.NODE_ENV` test mutations in `lib/ops/invite.test.ts` (TS2704/TS2540), outside this plan's scope.

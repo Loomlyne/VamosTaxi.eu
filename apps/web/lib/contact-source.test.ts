@@ -21,6 +21,11 @@ describe("DC contact source", () => {
     );
   });
 
+  it("does not expose an unverified response-time placeholder", () => {
+    expect(contactSource).not.toContain("Response time");
+    expect(contactSource).not.toContain("data-tok");
+  });
+
   it("contains only confirmed direct-contact destinations and no simulated contact content", () => {
     expect(contactSource).toContain('href="mailto:info@vamostaxi.eu"');
     expect(contactSource).toContain(">info@vamostaxi.eu<");
