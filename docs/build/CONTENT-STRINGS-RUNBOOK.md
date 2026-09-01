@@ -3,6 +3,16 @@
 Operational notes for `content_strings`. Host: `dashboard.vamostaxi.site`. No CHF
 values live in this table's seed; do not invent any here.
 
+## Editor
+
+The editor is the DC mock `OpsContent` on `dashboard.vamostaxi.site`, hash-routed
+as `#pages` (string rows) and `#legal` (legal coverage). Those hashes are the
+product. There is no Next `/ops/content` page.
+
+Staff writes go through `PATCH /api/staff/content/:key` (language values) and
+`PATCH /api/staff/content/:key/flags` (three independent `$meta` flags). The
+public site does **not** read those writes until `CONTENT_SOURCE=db`.
+
 ## Which direction is authoritative
 
 The JSON files (`apps/web/i18n/messages/{en,de,fr,ar}.json`) are the **build-time**
@@ -10,10 +20,11 @@ authority. `pnpm i18n:check` reads them and blocks a PR on a missing key.
 
 The database table `public.content_strings` is the **runtime** source once
 `CONTENT_SOURCE` is `db`. Until that env is flipped, the loader serves the JSON
-import.
+import. Code default is `json`. Do not set `CONTENT_SOURCE=db` on
+`vamos-web-staging` until the owner says so.
 
 Neither is authoritative for both. Editing JSON without regenerating the seed
-leaves the table behind. Editing the Content screen without `pnpm i18n:pull`
+leaves the table behind. Editing `#pages` / `#legal` without `pnpm i18n:pull`
 leaves the repository behind.
 
 ## The release-order rule
@@ -22,7 +33,7 @@ leaves the repository behind.
 `on conflict (key) do update set` (packages/db/supabase/seed.sql:2511) overwrites
 every column of every matching row.
 
-On any environment where the Content screen has been used, **run `pnpm i18n:pull`
+On any environment where `#pages` / `#legal` has been used, **run `pnpm i18n:pull`
 and commit the result before `pnpm db:push`**, or the push reverts the console's
 edits.
 

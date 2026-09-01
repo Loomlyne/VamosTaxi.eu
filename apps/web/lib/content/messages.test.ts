@@ -125,6 +125,26 @@ describe("loadMessagesFromDb", () => {
     );
   });
 
+  it("projects a PATCH-updated content_strings row into nested messages when CONTENT_SOURCE is db", async () => {
+    process.env.CONTENT_SOURCE = "db";
+    getCloudflareContext.mockReturnValue({
+      env: { CONTENT_SOURCE: "db", HYPERDRIVE: { connectionString: "postgres://unused" } },
+    });
+    const sql = vi.fn().mockResolvedValue([
+      { key: "a.b", en: "Edited after PATCH", de: null, fr: null, ar: null },
+    ]);
+    publicSql.mockReturnValue(sql);
+
+    const messages = await loadMessagesFromDb("en");
+
+    expect(publicSql).toHaveBeenCalledTimes(1);
+    expect(publicSql.mock.calls[0]?.[0]).toMatchObject({
+      CONTENT_SOURCE: "db",
+      HYPERDRIVE: { connectionString: "postgres://unused" },
+    });
+    expect(messages).toEqual({ a: { b: "Edited after PATCH" } });
+  });
+
   it("omits keys whose locale column is NULL and never emits null or empty string", async () => {
     process.env.CONTENT_SOURCE = "db";
     getCloudflareContext.mockReturnValue({
