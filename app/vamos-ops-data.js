@@ -2,343 +2,399 @@
 
    Every ops screen reads and writes here: vehicles, chauffeurs, bookings,
    customers, coupons, fixed routes, per-class distance rates, surcharges, plus
-   the settings and profile singletons. Persisted to localStorage until the
-   platform API exists; the shapes below are the contract that API has to return.
+   the settings and profile singletons.
 
-   Nothing in the seed is real data. Plates, phone numbers and every CHF amount are
-   placeholders in the house pattern (design system §2 — never invent a price).
-
-   VamosOps.vehicles.all() / .get(id) / .add(rec) / .update(id, patch)
-                   .remove(id) / .save(rows) / .onChange(fn) / .reset()
-   VamosOps.settings.get() / .update(patch) / .onChange(fn)                       */
+   In-scope collections hydrate from /api/staff JSON and start empty (D-35).
+   404/network stays []. Bookings stay empty with no write route (Phase 8).
+   Rate-book collections bind GET/PUT /api/staff/rate-book, never
+   /api/staff/<name> aliases. */
 (function () {
-  var VERSION = 2;
   var subs = [];
 
   function emit(name) {
     subs.slice().forEach(function (s) { if (!s.name || s.name === name) { try { s.fn(name); } catch (e) {} } });
-    try { window.dispatchEvent(new CustomEvent('vamos:ops', { detail: { collection: name } })); } catch (e) {}
+    try { window.dispatchEvent(new CustomEvent("vamos:ops", { detail: { collection: name } })); } catch (e) {}
   }
 
-  function collection(name, key, seed, clean) {
-    var list = null;
-    function read() {
-      if (list) return list;
-      var raw = null;
-      try { raw = localStorage.getItem(key); } catch (e) {}
-      var parsed = null;
-      if (raw) { try { parsed = JSON.parse(raw); } catch (e) { parsed = null; } }
-      var rows = parsed && parsed.v === VERSION && parsed.rows ? parsed.rows : seed;
-      list = rows.map(clean);
-      return list;
+  function api(method, path, body) {
+    var client = window.VamosOpsApi;
+    if (!client || typeof client.request !== "function") {
+      return Promise.resolve({ ok: false, code: "network" });
     }
-    function write(rows) {
-      list = rows.map(clean);
-      try { localStorage.setItem(key, JSON.stringify({ v: VERSION, rows: list })); } catch (e) {}
+    return client.request(method, path, body);
+  }
+
+  function pickRows(json, name) {
+    if (!json || json.ok === false) return [];
+    var data = json.data;
+    if (Array.isArray(data)) return data;
+    if (data && Array.isArray(data[name])) return data[name];
+    if (data && Array.isArray(data.rows)) return data.rows;
+    return [];
+  }
+
+  function subscribe(name, fn) {
+    var s = { name: name, fn: fn };
+    subs.push(s);
+    return function () { subs = subs.filter(function (x) { return x !== s; }); };
+  }
+
+  function restCollection(name, clean) {
+    var list = [];
+    var pending = false;
+    var loaded = false;
+    var base = "/api/staff/" + name;
+
+    function hydrate() {
+      if (pending || loaded) return;
+      pending = true;
+      api("GET", base).then(function (json) {
+        pending = false;
+        loaded = true;
+        list = pickRows(json, name).map(clean);
+        emit(name);
+      });
+    }
+
+    function afterWrite(json, previous, nextList) {
+      if (json && json.ok) {
+        var rows = pickRows(json, name);
+        list = rows.length ? rows.map(clean) : nextList;
+      } else {
+        list = previous;
+      }
       emit(name);
-      return list;
     }
-    window.addEventListener('storage', function (e) { if (e.key === key) { list = null; emit(name); } });
+
     return {
       name: name,
-      all: function () { return read().slice(); },
+      all: function () { hydrate(); return list.slice(); },
       get: function (id) {
-        var rows = read();
-        for (var i = 0; i < rows.length; i++) if (rows[i].id === id) return rows[i];
+        hydrate();
+        for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
         return null;
       },
       blank: function (over) { return clean(over || {}); },
-      save: function (rows) { return write(rows); },
+      save: function () { emit(name); return list.slice(); },
       add: function (rec) {
-        var rows = read().slice();
-        rows.push(clean(rec || {}));
-        return write(rows);
+        var previous = list.slice();
+        var row = clean(rec || {});
+        api("POST", base, row).then(function (json) {
+          var created = json && json.data && typeof json.data === "object" && !Array.isArray(json.data)
+            ? clean(json.data)
+            : row;
+          afterWrite(json, previous, previous.concat([created]));
+        });
+        return previous.slice();
       },
       update: function (id, patch) {
-        return write(read().map(function (r) {
-          if (r.id !== id) return r;
-          var next = {}; for (var k in r) next[k] = r[k];
-          for (var p in patch) next[p] = patch[p];
-          return next;
-        }));
+        var previous = list.slice();
+        api("PATCH", base + "/" + encodeURIComponent(id), patch).then(function (json) {
+          var next = previous.map(function (r) {
+            if (r.id !== id) return r;
+            var merged = {};
+            var k;
+            for (k in r) merged[k] = r[k];
+            for (k in patch) merged[k] = patch[k];
+            return clean(merged);
+          });
+          afterWrite(json, previous, next);
+        });
+        return previous.slice();
       },
-      /* One call for both, so a screen's save handler never has to branch. */
       upsert: function (rec) {
-        var rows = read();
-        for (var i = 0; i < rows.length; i++) if (rows[i].id === rec.id) return this.update(rec.id, rec);
-        return this.add(rec);
+        var row = clean(rec || {});
+        var i;
+        for (i = 0; i < list.length; i++) if (list[i].id === row.id) return this.update(row.id, row);
+        return this.add(row);
       },
-      remove: function (id) { return write(read().filter(function (r) { return r.id !== id; })); },
-      reset: function () { list = null; try { localStorage.removeItem(key); } catch (e) {} emit(name); return read(); },
-      onChange: function (fn) {
-        var s = { name: name, fn: fn };
-        subs.push(s);
-        return function () { subs = subs.filter(function (x) { return x !== s; }); };
-      }
+      remove: function (id) {
+        var previous = list.slice();
+        api("DELETE", base + "/" + encodeURIComponent(id)).then(function (json) {
+          afterWrite(json, previous, previous.filter(function (r) { return r.id !== id; }));
+        });
+        return previous.slice();
+      },
+      reset: function () { list = []; loaded = false; pending = false; emit(name); hydrate(); return list.slice(); },
+      onChange: function (fn) { return subscribe(name, fn); }
     };
   }
 
-  function singleton(name, key, seed) {
-    var val = null;
-    function read() {
-      if (val) return val;
-      var raw = null;
-      try { raw = localStorage.getItem(key); } catch (e) {}
-      var parsed = null;
-      if (raw) { try { parsed = JSON.parse(raw); } catch (e) { parsed = null; } }
-      var base = parsed && parsed.v === VERSION && parsed.row ? parsed.row : {};
-      val = {}; for (var k in seed) val[k] = base[k] === undefined ? seed[k] : base[k];
-      return val;
+  function rateBookCollection(name, kind, clean) {
+    var list = [];
+    var pending = false;
+    var loaded = false;
+    var getPath = "/api/staff/rate-book?versionId=";
+    var putPath = "/api/staff/rate-book";
+
+    function hydrate() {
+      if (pending || loaded) return;
+      pending = true;
+      api("GET", getPath).then(function (json) {
+        pending = false;
+        loaded = true;
+        list = pickRows(json, name).map(clean);
+        emit(name);
+      });
     }
-    window.addEventListener('storage', function (e) { if (e.key === key) { val = null; emit(name); } });
+
+    function upsert(rec) {
+      var previous = list.slice();
+      var row = clean(rec || {});
+      var body = {};
+      var k;
+      for (k in row) body[k] = row[k];
+      body.kind = kind;
+      api("PUT", putPath, body).then(function (json) {
+        if (json && json.ok) {
+          var saved = json.data && typeof json.data === "object" && !Array.isArray(json.data)
+            ? clean(json.data)
+            : row;
+          var next = previous.slice();
+          var found = false;
+          var i;
+          for (i = 0; i < next.length; i++) {
+            if (next[i].id === saved.id) { next[i] = saved; found = true; break; }
+          }
+          if (!found) next.push(saved);
+          list = next;
+        } else {
+          list = previous;
+        }
+        emit(name);
+      });
+      return previous.slice();
+    }
+
     return {
       name: name,
-      get: function () { var o = read(), c = {}; for (var k in o) c[k] = o[k]; return c; },
-      update: function (patch) {
-        var o = read();
-        for (var p in patch) o[p] = patch[p];
-        try { localStorage.setItem(key, JSON.stringify({ v: VERSION, row: o })); } catch (e) {}
-        emit(name);
-        return this.get();
+      all: function () { hydrate(); return list.slice(); },
+      get: function (id) {
+        hydrate();
+        for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
+        return null;
       },
-      reset: function () { val = null; try { localStorage.removeItem(key); } catch (e) {} emit(name); return this.get(); },
-      onChange: function (fn) {
-        var s = { name: name, fn: fn };
-        subs.push(s);
-        return function () { subs = subs.filter(function (x) { return x !== s; }); };
-      }
+      blank: function (over) { return clean(over || {}); },
+      save: function () { emit(name); return list.slice(); },
+      add: function (rec) { return upsert(rec); },
+      update: function (id, patch) {
+        var current = null;
+        var i;
+        for (i = 0; i < list.length; i++) if (list[i].id === id) current = list[i];
+        var merged = {};
+        var k;
+        if (current) for (k in current) merged[k] = current[k];
+        for (k in patch) merged[k] = patch[k];
+        merged.id = id;
+        return upsert(merged);
+      },
+      upsert: function (rec) { return upsert(rec); },
+      remove: function () { emit(name); return list.slice(); },
+      reset: function () { list = []; loaded = false; pending = false; emit(name); hydrate(); return list.slice(); },
+      onChange: function (fn) { return subscribe(name, fn); }
     };
   }
 
-  function id(prefix) { return prefix + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
-  function str(v) { return v === undefined || v === null ? '' : String(v); }
+  function emptyBookings(clean) {
+    return {
+      name: "bookings",
+      all: function () { return []; },
+      get: function () { return null; },
+      blank: function (over) { return clean(over || {}); },
+      save: function () { return []; },
+      add: function () { return []; },
+      update: function () { return []; },
+      upsert: function () { return []; },
+      remove: function () { return []; },
+      reset: function () { emit("bookings"); return []; },
+      onChange: function (fn) { return subscribe("bookings", fn); }
+    };
+  }
+
+  function remoteSingleton(name, path, fromPayload) {
+    var val = {};
+    var pending = false;
+    var loaded = false;
+
+    function copy() {
+      var c = {};
+      var k;
+      for (k in val) c[k] = val[k];
+      return c;
+    }
+
+    function hydrate() {
+      if (pending || loaded) return;
+      pending = true;
+      api("GET", path).then(function (json) {
+        pending = false;
+        loaded = true;
+        if (json && json.ok && json.data && typeof json.data === "object" && !Array.isArray(json.data)) {
+          val = fromPayload(json.data) || {};
+        } else {
+          val = {};
+        }
+        emit(name);
+      });
+    }
+
+    return {
+      name: name,
+      get: function () { hydrate(); return copy(); },
+      update: function (patch) {
+        var previous = copy();
+        api("PUT", path, patch).then(function (json) {
+          if (json && json.ok && json.data && typeof json.data === "object" && !Array.isArray(json.data)) {
+            val = fromPayload(json.data) || {};
+          } else {
+            val = previous;
+          }
+          emit(name);
+        });
+        return previous;
+      },
+      reset: function () { val = {}; loaded = false; pending = false; emit(name); hydrate(); return copy(); },
+      onChange: function (fn) { return subscribe(name, fn); }
+    };
+  }
+
+  function id(prefix) { return prefix + "-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
+  function str(v) { return v === undefined || v === null ? "" : String(v); }
   function num(v, d) { var n = parseInt(v, 10); return isNaN(n) ? (d || 0) : n; }
 
-  /* ── Currencies ────────────────────────────────────────────────────────── */
-  /* Pricing surfaces store one figure per currency rather than one figure that
-     the display layer relabels (contrast VamosLocale.money(), which only swaps
-     the mark) — dispatch can genuinely price a route differently in EUR than
-     in CHF. Every figure is still a placeholder (design system §2). */
-  var CURRENCIES = ['CHF', 'EUR', 'USD', 'AED'];
+  var CURRENCIES = ["CHF", "EUR", "USD", "AED"];
   function cleanMoneySet(v, fallback) {
     v = v || {};
     var out = {};
-    CURRENCIES.forEach(function (c) { out[c] = str(v[c]) || fallback || ''; });
+    CURRENCIES.forEach(function (c) { out[c] = str(v[c]) || fallback || ""; });
     return out;
   }
-  function moneySet(v) { var o = {}; CURRENCIES.forEach(function (c) { o[c] = v; }); return o; }
 
-  /* ── Locations ─────────────────────────────────────────────────────────── */
-  /* The fixed set of pickup/drop-off names fixed routes are built from — a
-     picker over known places, the same idea as the booking widget's location
-     field, sized to what dispatch actually runs today. */
   var LOCATIONS = [
-    'Zurich Airport (ZRH)', 'Geneva Airport (GVA)', 'Zurich city', 'Dietikon',
-    'Zermatt', 'St. Moritz', 'Chamonix', 'Verbier'
+    "Zurich Airport (ZRH)", "Geneva Airport (GVA)", "Zurich city", "Dietikon",
+    "Zermatt", "St. Moritz", "Chamonix", "Verbier"
   ];
 
-  /* ── Vehicles ──────────────────────────────────────────────────────────── */
-  var VEHICLE_CLASSES = ['Economy', 'Business', 'First', 'Van'];
-  var VEHICLE_STATUS = ['service', 'idle', 'workshop'];
-  var VEHICLES = [
-    { id:'v1', klass:'Economy', model:'Sedan or similar', plate:'ZH 000 001', seats:3, bags:3, year:'0000', status:'service' },
-    { id:'v2', klass:'Economy', model:'Sedan or similar', plate:'ZH 000 002', seats:3, bags:3, year:'0000', status:'service' },
-    { id:'v3', klass:'Business', model:'Executive sedan', plate:'ZH 000 003', seats:3, bags:3, year:'0000', status:'service' },
-    { id:'v4', klass:'Business', model:'Executive sedan', plate:'ZH 000 004', seats:3, bags:3, year:'0000', status:'idle' },
-    { id:'v5', klass:'First', model:'S-Class or similar', plate:'ZH 000 005', seats:3, bags:2, year:'0000', status:'workshop' },
-    { id:'v6', klass:'Van', model:'Minivan or similar', plate:'ZH 000 006', seats:7, bags:8, year:'0000', status:'service' }
-  ];
+  var VEHICLE_CLASSES = ["Economy", "Business", "Van"];
+  var VEHICLE_STATUS = ["service", "idle", "workshop"];
   function cleanVehicle(v) {
     v = v || {};
     return {
-      id: str(v.id) || id('v'),
-      klass: VEHICLE_CLASSES.indexOf(v.klass) === -1 ? 'Economy' : v.klass,
+      id: str(v.id) || id("v"),
+      klass: VEHICLE_CLASSES.indexOf(v.klass) === -1 ? "Economy" : v.klass,
       model: str(v.model), plate: str(v.plate), year: str(v.year),
       seats: num(v.seats, 3), bags: num(v.bags, 3),
-      status: VEHICLE_STATUS.indexOf(v.status) === -1 ? 'service' : v.status,
+      status: VEHICLE_STATUS.indexOf(v.status) === -1 ? "service" : v.status,
       note: str(v.note)
     };
   }
 
-  /* ── Chauffeurs ────────────────────────────────────────────────────────── */
-  var CHAUFFEUR_STATUS = ['shift', 'off', 'leave'];
-  var CHAUFFEURS = [
-    { id:'c1', name:'Chauffeur 1', phone:'+41 00 000 00 00', email:'', vehicle:'v1', licence:'CH 000 000', languages:'German, English', status:'shift' },
-    { id:'c2', name:'Chauffeur 2', phone:'+41 00 000 00 00', email:'', vehicle:'v2', licence:'CH 000 000', languages:'German, English', status:'shift' },
-    { id:'c3', name:'Chauffeur 3', phone:'+41 00 000 00 00', email:'', vehicle:'v3', licence:'CH 000 000', languages:'French, English', status:'shift' },
-    { id:'c4', name:'Chauffeur 4', phone:'+41 00 000 00 00', email:'', vehicle:'v6', licence:'CH 000 000', languages:'Arabic, English', status:'off' },
-    { id:'c5', name:'Chauffeur 5', phone:'+41 00 000 00 00', email:'', vehicle:'', licence:'CH 000 000', languages:'German', status:'off' }
-  ];
+  var CHAUFFEUR_STATUS = ["shift", "off", "leave"];
   function cleanChauffeur(c) {
     c = c || {};
     return {
-      id: str(c.id) || id('c'),
+      id: str(c.id) || id("c"),
       name: str(c.name), phone: str(c.phone), email: str(c.email),
       vehicle: str(c.vehicle), licence: str(c.licence), languages: str(c.languages),
-      status: CHAUFFEUR_STATUS.indexOf(c.status) === -1 ? 'off' : c.status,
+      status: CHAUFFEUR_STATUS.indexOf(c.status) === -1 ? "off" : c.status,
       note: str(c.note)
     };
   }
 
-  /* ── Bookings ──────────────────────────────────────────────────────────── */
-  var BOOKING_STATUS = ['quote', 'pending', 'paid', 'confirmed', 'assigned', 'completed', 'cancelled', 'refunded', 'no-show'];
-  var BOOKINGS = [
-    { id:'VT-4821', time:'08:15', date:'Fri 14 Aug', customer:'Traveller 1', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'Bleicherstrasse 16, 8953 Dietikon', klass:'Business', pax:2, bags:2, status:'assigned', chauffeur:'c2' },
-    { id:'VT-4822', time:'09:40', date:'Fri 14 Aug', customer:'Traveller 2', pickup:'Zurich HB, Bahnhofplatz', dropoff:'Zurich Airport (ZRH), Terminal 1', klass:'Economy', pax:1, bags:1, status:'paid', chauffeur:'' },
-    { id:'VT-4823', time:'11:05', date:'Fri 14 Aug', customer:'Traveller 3', pickup:'Dietikon, Bahnhofstrasse', dropoff:'Zermatt, Bahnhofplatz', klass:'Van', pax:6, bags:8, status:'pending', chauffeur:'' },
-    { id:'VT-4824', time:'14:30', date:'Fri 14 Aug', customer:'Traveller 4', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'St. Moritz, Via Serlas', klass:'Business', pax:2, bags:3, status:'confirmed', chauffeur:'' },
-    { id:'VT-4825', time:'17:50', date:'Fri 14 Aug', customer:'Traveller 5', pickup:'Baden, Kurplatz', dropoff:'Zurich Airport (ZRH), Terminal 1', klass:'Economy', pax:3, bags:3, status:'paid', chauffeur:'c1' },
-    { id:'VT-4829', time:'21:00', date:'Fri 14 Aug', customer:'Traveller 6', pickup:'Zurich, City', dropoff:'Zurich Airport (ZRH), Terminal 1', klass:'Economy', pax:1, bags:1, status:'assigned', chauffeur:'c1' },
-    { id:'VT-4818', time:'06:20', date:'Fri 14 Aug', customer:'Traveller 7', pickup:'Uster, Zürichstrasse', dropoff:'Zurich Airport (ZRH), Terminal 2', klass:'Business', pax:1, bags:2, status:'completed', chauffeur:'c3' },
-    { id:'VT-4826', time:'07:30', date:'Sat 15 Aug', customer:'Traveller 8', pickup:'Zurich Airport (ZRH), Terminal 1', dropoff:'Baden, Kurplatz', klass:'Economy', pax:2, bags:2, status:'confirmed', chauffeur:'' },
-    { id:'VT-4827', time:'10:00', date:'Sat 15 Aug', customer:'Traveller 9', pickup:'Zurich, City', dropoff:'Zurich Airport (ZRH), Terminal 2', klass:'Business', pax:2, bags:2, status:'paid', chauffeur:'c3' },
-    { id:'VT-4828', time:'13:20', date:'Sat 15 Aug', customer:'Traveller 10', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'Verbier, Place Centrale', klass:'Van', pax:5, bags:6, status:'pending', chauffeur:'' },
-    { id:'VT-4830', time:'08:00', date:'Thu 13 Aug', customer:'Traveller 11', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'Zurich, City', klass:'Business', pax:2, bags:2, status:'completed', chauffeur:'c2' },
-    { id:'VT-4812', time:'19:15', date:'Thu 13 Aug', customer:'Traveller 12', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'Verbier, Place Centrale', klass:'Van', pax:5, bags:6, status:'cancelled', chauffeur:'' }
-  ];
+  var BOOKING_STATUS = ["quote", "pending", "paid", "confirmed", "assigned", "completed", "cancelled", "refunded", "no-show"];
   function cleanBooking(b) {
     b = b || {};
     return {
-      id: str(b.id) || 'VT-' + Math.floor(1000 + Math.random() * 8999),
+      id: str(b.id),
       time: str(b.time), date: str(b.date), customer: str(b.customer),
       pickup: str(b.pickup), dropoff: str(b.dropoff),
-      klass: VEHICLE_CLASSES.indexOf(b.klass) === -1 ? 'Economy' : b.klass,
+      klass: VEHICLE_CLASSES.indexOf(b.klass) === -1 ? "Economy" : b.klass,
       pax: num(b.pax, 1), bags: num(b.bags, 1),
-      status: BOOKING_STATUS.indexOf(b.status) === -1 ? 'pending' : b.status,
+      status: BOOKING_STATUS.indexOf(b.status) === -1 ? "pending" : b.status,
       chauffeur: str(b.chauffeur), flight: str(b.flight), note: str(b.note)
     };
   }
 
-  /* ── Customers ─────────────────────────────────────────────────────────── */
-  var CUSTOMER_TYPES = ['private', 'corporate'];
-  var CUSTOMERS = [
-    { id:'cu1', name:'Traveller 1', email:'traveller1@example.com', phone:'+41 00 000 00 00', type:'private', company:'', trips:4, since:'0000', note:'' },
-    { id:'cu2', name:'Traveller 2', email:'traveller2@example.com', phone:'+41 00 000 00 00', type:'private', company:'', trips:1, since:'0000', note:'' },
-    { id:'cu3', name:'Traveller 3', email:'accounts@example.com', phone:'+41 00 000 00 00', type:'corporate', company:'Corporate account 1', trips:22, since:'0000', note:'Invoiced monthly' },
-    { id:'cu4', name:'Traveller 4', email:'traveller4@example.com', phone:'+41 00 000 00 00', type:'private', company:'', trips:2, since:'0000', note:'' },
-    { id:'cu5', name:'Traveller 5', email:'travel@example.com', phone:'+41 00 000 00 00', type:'corporate', company:'Corporate account 2', trips:9, since:'0000', note:'' }
-  ];
+  var CUSTOMER_TYPES = ["private", "corporate"];
   function cleanCustomer(c) {
     c = c || {};
     return {
-      id: str(c.id) || id('cu'),
+      id: str(c.id) || id("cu"),
       name: str(c.name), email: str(c.email), phone: str(c.phone),
-      type: CUSTOMER_TYPES.indexOf(c.type) === -1 ? 'private' : c.type,
+      type: CUSTOMER_TYPES.indexOf(c.type) === -1 ? "private" : c.type,
       company: str(c.company), trips: num(c.trips, 0), since: str(c.since), note: str(c.note)
     };
   }
 
-  /* ── Coupons ───────────────────────────────────────────────────────────── */
-  var COUPON_KINDS = ['percent', 'amount'];
-  var COUPONS = [
-    { id:'cp1', code:'WELCOME', kind:'percent', value:'00', uses:0, limit:100, expires:'0000-00-00', active:true, note:'First booking only' },
-    { id:'cp2', code:'CORPORATE', kind:'percent', value:'00', uses:0, limit:0, expires:'', active:true, note:'Corporate accounts' },
-    { id:'cp3', code:'SKI', kind:'amount', value:'00', uses:0, limit:50, expires:'0000-00-00', active:false, note:'Ski season routes' }
-  ];
+  var COUPON_KINDS = ["percent", "amount"];
   function cleanCoupon(c) {
     c = c || {};
     return {
-      id: str(c.id) || id('cp'),
+      id: str(c.id) || id("cp"),
       code: str(c.code).toUpperCase(),
-      kind: COUPON_KINDS.indexOf(c.kind) === -1 ? 'percent' : c.kind,
+      kind: COUPON_KINDS.indexOf(c.kind) === -1 ? "percent" : c.kind,
       value: str(c.value), uses: num(c.uses, 0), limit: num(c.limit, 0),
       expires: str(c.expires), active: c.active === false ? false : true, note: str(c.note)
     };
   }
 
-  /* ── Fixed routes ──────────────────────────────────────────────────────── */
-  /* economy/business/van are a value per currency (cleanMoneySet), not one value
-     the display layer relabels — a class that isn't offered on a route reads
-     empty in every currency, offered reads '000' as a placeholder in every
-     currency, and dispatch fills each currency in on its own from there. */
-  function priceSet(offered) { return moneySet(offered ? '000' : ''); }
-  var ROUTES = [
-    { id:'FR-01', from:'Zurich Airport (ZRH)', to:'Zurich city', economy:priceSet(true), business:priceSet(true), van:priceSet(true), live:true },
-    { id:'FR-02', from:'Zurich Airport (ZRH)', to:'Dietikon', economy:priceSet(true), business:priceSet(true), van:priceSet(true), live:true },
-    { id:'FR-03', from:'Zurich Airport (ZRH)', to:'Zermatt', economy:priceSet(false), business:priceSet(true), van:priceSet(true), live:false },
-    { id:'FR-04', from:'Zurich Airport (ZRH)', to:'St. Moritz', economy:priceSet(false), business:priceSet(true), van:priceSet(true), live:false },
-    { id:'FR-05', from:'Geneva Airport (GVA)', to:'Chamonix', economy:priceSet(false), business:priceSet(true), van:priceSet(true), live:false },
-    { id:'FR-06', from:'Zurich Airport (ZRH)', to:'Verbier', economy:priceSet(false), business:priceSet(true), van:priceSet(true), live:false }
-  ];
   function cleanRoute(r) {
     r = r || {};
     return {
-      id: str(r.id) || id('FR'),
+      id: str(r.id) || id("FR"),
       from: str(r.from), to: str(r.to),
       economy: cleanMoneySet(r.economy), business: cleanMoneySet(r.business), van: cleanMoneySet(r.van),
       live: !!r.live
     };
   }
 
-  /* ── Class rates (distance rules) ─────────────────────────────────────── */
-  var RATE_DEFAULT_PAX = { Economy: 3, Business: 3, First: 3, Van: 8 };
-  var RATES = VEHICLE_CLASSES.map(function (k) {
-    return { id: k, klass: k, baseFare: moneySet('000'), perKm: moneySet('0.00'), minFare: moneySet('000'), maxPax: RATE_DEFAULT_PAX[k] || 3, available: true };
-  });
+  var RATE_DEFAULT_PAX = { Economy: 3, Business: 3, Van: 8 };
   function cleanRate(r) {
     r = r || {};
-    var klass = VEHICLE_CLASSES.indexOf(r.klass) === -1 ? 'Economy' : r.klass;
+    var klass = VEHICLE_CLASSES.indexOf(r.klass) === -1 ? "Economy" : r.klass;
     return {
       id: str(r.id) || klass,
       klass: klass,
-      baseFare: cleanMoneySet(r.baseFare, '000'), perKm: cleanMoneySet(r.perKm, '0.00'), minFare: cleanMoneySet(r.minFare, '000'),
+      baseFare: cleanMoneySet(r.baseFare), perKm: cleanMoneySet(r.perKm), minFare: cleanMoneySet(r.minFare),
       maxPax: num(r.maxPax, RATE_DEFAULT_PAX[klass] || 3),
       available: r.available === false ? false : true
     };
   }
 
-  /* ── Surcharges ────────────────────────────────────────────────────────── */
-  /* kind decides which of the other two fields is live: 'amount' reads amounts
-     (one figure per currency), 'percent' reads pct (currency-agnostic — a
-     percentage of the fare needs no mark of its own), 'included' reads neither. */
-  var SURCHARGE_KINDS = ['amount', 'percent', 'included'];
-  var SURCHARGES = [
-    { id:'S1', label:'Airport pickup', rule:'Applied when pickup is inside an airport zone', kind:'amount', amounts:moneySet('00'), pct:'00' },
-    { id:'S2', label:'Night surcharge', rule:'22:00 – 06:00', kind:'percent', amounts:moneySet('00'), pct:'00' },
-    { id:'S3', label:'Waiting, airport', rule:'First 60 minutes included, then per 15 min', kind:'amount', amounts:moneySet('00'), pct:'00' },
-    { id:'S4', label:'Waiting, city', rule:'First 15 minutes included, then per 15 min', kind:'amount', amounts:moneySet('00'), pct:'00' },
-    { id:'S5', label:'Additional stop', rule:'Per stop, inside route corridor', kind:'amount', amounts:moneySet('00'), pct:'00' },
-    { id:'S6', label:'Child seat', rule:'Per seat, per journey', kind:'amount', amounts:moneySet('00'), pct:'00' },
-    { id:'S7', label:'Meet and greet, arrivals', rule:'Included in every airport pickup', kind:'included', amounts:moneySet(''), pct:'' },
-    { id:'S8', label:'Ski or board rack', rule:'Fitted on request, ski season', kind:'amount', amounts:moneySet('00'), pct:'00' }
-  ];
+  var SURCHARGE_KINDS = ["amount", "percent", "included"];
   function cleanSurcharge(s) {
     s = s || {};
     return {
-      id: str(s.id) || id('S'),
+      id: str(s.id) || id("S"),
       label: str(s.label), rule: str(s.rule),
-      kind: SURCHARGE_KINDS.indexOf(s.kind) === -1 ? 'amount' : s.kind,
-      amounts: cleanMoneySet(s.amounts, '00'), pct: str(s.pct) || '00'
+      kind: SURCHARGE_KINDS.indexOf(s.kind) === -1 ? "amount" : s.kind,
+      amounts: cleanMoneySet(s.amounts), pct: str(s.pct)
     };
   }
 
-  /* ── Singletons ────────────────────────────────────────────────────────── */
-  var SETTINGS = {
-    company: 'Vamos Taxi GmbH',
-    address: 'Bleicherstrasse 16, 8953 Dietikon ZH',
-    uid: 'CH-020.4.077.792-7',
-    phone: '+41 79 626 70 82',
-    email: 'info@vamostaxi.eu',
-    defaultLang: 'en',
-    defaultCur: 'CHF',
-    minAdvance: '',
-    cancelWindow: '',
-    airportWait: '60',
-    cityWait: '15',
-    cash: true, card: true, twint: true, invoice: true,
-    emailConfirm: true, emailReminder: true, smsReminder: false, opsAlerts: true
-  };
-  var PROFILE = {
-    name: 'Dispatch',
-    role: 'Admin role',
-    email: 'dispatch@vamostaxi.eu',
-    phone: '+41 00 000 00 00',
-    lang: 'en',
-    avatar: '',
-    twoFactor: false,
-    digest: true,
-    passkey: false
-  };
+  function settingsFromPayload(data) {
+    var out = {};
+    var k;
+    for (k in data) {
+      if (Object.prototype.hasOwnProperty.call(data, k)) out[k] = data[k];
+    }
+    return out;
+  }
+
+  function profileFromMe(data) {
+    return {
+      name: str(data.fullName || data.name),
+      role: str(data.role),
+      email: str(data.email),
+      phone: str(data.phone),
+      lang: str(data.lang),
+      avatar: str(data.avatarPath || data.avatar),
+      twoFactor: !!data.twoFactor,
+      digest: !!data.digest,
+      passkey: !!data.passkey,
+      userId: str(data.userId)
+    };
+  }
 
   window.VamosOps = {
     VEHICLE_CLASSES: VEHICLE_CLASSES,
@@ -350,24 +406,19 @@
     SURCHARGE_KINDS: SURCHARGE_KINDS,
     CURRENCIES: CURRENCIES,
     LOCATIONS: LOCATIONS,
-    vehicles: collection('vehicles', 'vamosOpsVehicles', VEHICLES, cleanVehicle),
-    chauffeurs: collection('chauffeurs', 'vamosOpsChauffeurs', CHAUFFEURS, cleanChauffeur),
-    bookings: collection('bookings', 'vamosOpsBookings', BOOKINGS, cleanBooking),
-    customers: collection('customers', 'vamosOpsCustomers', CUSTOMERS, cleanCustomer),
-    coupons: collection('coupons', 'vamosOpsCoupons', COUPONS, cleanCoupon),
-    routes: collection('routes', 'vamosOpsRoutes', ROUTES, cleanRoute),
-    rates: collection('rates', 'vamosOpsRates', RATES, cleanRate),
-    surcharges: collection('surcharges', 'vamosOpsSurcharges', SURCHARGES, cleanSurcharge),
-    settings: singleton('settings', 'vamosOpsSettings', SETTINGS),
-    profile: singleton('profile', 'vamosOpsProfile', PROFILE),
-    /* Any collection or singleton changing wakes every screen that asks for it. */
-    onAny: function (fn) {
-      var s = { name: null, fn: fn };
-      subs.push(s);
-      return function () { subs = subs.filter(function (x) { return x !== s; }); };
-    },
+    vehicles: restCollection("vehicles", cleanVehicle),
+    chauffeurs: restCollection("chauffeurs", cleanChauffeur),
+    bookings: emptyBookings(cleanBooking),
+    customers: restCollection("customers", cleanCustomer),
+    coupons: restCollection("coupons", cleanCoupon),
+    routes: rateBookCollection("routes", "route", cleanRoute),
+    rates: rateBookCollection("rates", "distance", cleanRate),
+    surcharges: rateBookCollection("surcharges", "surcharge", cleanSurcharge),
+    settings: remoteSingleton("settings", "/api/staff/settings", settingsFromPayload),
+    profile: remoteSingleton("profile", "/api/staff/me", profileFromMe),
+    onAny: function (fn) { return subscribe(null, fn); },
     resetAll: function () {
-      ['vehicles', 'chauffeurs', 'bookings', 'customers', 'coupons', 'routes', 'rates', 'surcharges', 'settings', 'profile']
+      ["vehicles", "chauffeurs", "bookings", "customers", "coupons", "routes", "rates", "surcharges", "settings", "profile"]
         .forEach(function (k) { window.VamosOps[k].reset(); });
     }
   };
