@@ -64,9 +64,9 @@
 </div>
 
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tName }}" value="{{ vName }}" onChange="{{ setName }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tRole }}" value="{{ vRole }}" onChange="{{ setRole }}" hint="{{ tRoleHint }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tRole }}" value="{{ vRole }}" readOnly="{{ yes }}" hint="{{ tRoleHint }}" hint-size="100%,76px"></x-import>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tEmail }}" value="{{ vEmail }}" onChange="{{ setEmail }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tEmail }}" value="{{ vEmail }}" readOnly="{{ yes }}" hint-size="100%,76px"></x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tPhone }}" value="{{ vPhone }}" onChange="{{ setPhone }}" hint-size="100%,76px"></x-import>
 </div>
 </section>
@@ -247,6 +247,12 @@ const T = {
     displayFont:'العناوين', bodyFont:'النص وواجهة الاستخدام' },
 };
 
+function avatarUrl(avatar) {
+  const value = String(avatar || '');
+  if (!value) return '';
+  return value.charAt(0) === '/' ? value : '/photos/' + value;
+}
+
 class Component extends DCLogic {
   state = { lang:'en', draft:null, saved:false, pane:'personal', copiedHex:'' };
   bind = () => {
@@ -264,15 +270,7 @@ class Component extends DCLogic {
     client.request('GET', '/api/staff/me').then((json) => {
       if (!json || !json.ok || !json.data) return;
       const me = json.data;
-      this.setState((s) => {
-        const d = {}; for (const k in (s.draft || {})) d[k] = s.draft[k];
-        d.name = me.fullName || d.name || '';
-        d.role = me.role || d.role || '';
-        d.email = me.email || d.email || '';
-        d.phone = me.phone || d.phone || '';
-        d.lang = me.lang || d.lang || '';
-        return { draft: d };
-      });
+      this.setState({ me: me }, () => this.applyPersisted(me));
     });
   };
   componentDidMount() {
@@ -291,13 +289,29 @@ class Component extends DCLogic {
     d[key] = value;
     return { draft: d, saved: false };
   });
-  setPhoto = (value) => {
-    if (window.VamosOps) window.VamosOps.profile.update({ avatar: value });
+  applyPersisted = (profile) => {
+    if (!profile || typeof profile !== 'object') return;
     this.setState((s) => {
       const d = {}; for (const k in s.draft) d[k] = s.draft[k];
-      d.avatar = value;
+      d.name = profile.fullName || d.name || '';
+      d.role = profile.role || d.role || '';
+      d.email = profile.email || d.email || '';
+      d.phone = profile.phone || '';
+      if (Object.prototype.hasOwnProperty.call(profile, 'avatarPath')) d.avatar = profile.avatarPath || '';
+      d.lang = profile.lang || d.lang || 'en';
+      d.digest = profile.digestEmail === true;
+      if (window.VamosOps) window.VamosOps.profile.update({ name:d.name, phone:d.phone, avatar:d.avatar, lang:d.lang, digest:d.digest });
       return { draft: d };
     });
+  };
+  persist = (patch) => {
+    const d = Object.assign({}, this.state.draft || {}, patch);
+    const client = window.VamosOpsApi;
+    if (!client || typeof client.request !== 'function') return;
+    client.request('PATCH', '/api/staff/profile', {
+      fullName: d.name || '', phone: d.phone || '', lang: d.lang || 'en',
+      digestEmail: !!d.digest, avatarPath: d.avatar || null,
+    }).then((json) => { if (json && json.ok) this.applyPersisted(json.data); });
   };
   pickPhoto = () => {
     const input = document.createElement('input');
@@ -306,13 +320,19 @@ class Component extends DCLogic {
     input.onchange = () => {
       const file = input.files && input.files[0];
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => this.setPhoto(String(reader.result));
-      reader.readAsDataURL(file);
+      const me = this.state.me || {};
+      if (!me.userId) return;
+      const body = new FormData();
+      body.append('kind', 'staff');
+      body.append('recordId', me.userId);
+      body.append('file', file);
+      fetch('/api/photos/upload', { method:'POST', credentials:'include', body })
+        .then((res) => res.json())
+        .then((json) => { if (json && json.key) this.persist({ avatar:json.key }); });
     };
     input.click();
   };
-  clearPhoto = () => this.setPhoto('');
+  clearPhoto = () => this.persist({ avatar:'' });
   save = () => {
     if (!this.state.draft) return;
     const d = this.state.draft;
@@ -323,10 +343,10 @@ class Component extends DCLogic {
       phone: d.phone,
       lang: d.lang,
       digestEmail: !!d.digest,
-      email: d.email,
-      avatarPath: d.avatar && String(d.avatar).indexOf('data:') !== 0 ? d.avatar : null,
+      avatarPath: d.avatar || null,
     }).then((json) => {
       if (json && json.ok) {
+        this.applyPersisted(json.data);
         this.setState({ saved: true });
         clearTimeout(this._savedT);
         this._savedT = setTimeout(() => this.setState({ saved: false }), 2400);
@@ -380,14 +400,15 @@ class Component extends DCLogic {
       savedShow: this.state.saved && !dirty ? 'inline' : 'none',
       notDirty: !dirty,
       initials,
-      photo: d.avatar || '',
+      photo:avatarUrl(d.avatar),
       hasPhoto: !!d.avatar,
       noPhoto: !d.avatar,
       photoClearShow: d.avatar ? 'flex' : 'none',
       pickPhoto: this.pickPhoto, clearPhoto: this.clearPhoto,
       vName: d.name || '', setName: txt('name'),
-      vRole: d.role || '', setRole: () => {},
-      vEmail: d.email || '', setEmail: txt('email'),
+      yes: true,
+      vRole: d.role || '',
+      vEmail: d.email || '',
       vPhone: d.phone || '', setPhone: txt('phone'),
       toggles: [
         sw('digest', t.digest, t.digestHint),

@@ -275,7 +275,7 @@
     "Zermatt", "St. Moritz", "Chamonix", "Verbier"
   ];
 
-  var VEHICLE_CLASSES = ["Economy", "Business", "Van"];
+  var VEHICLE_CLASSES = ["Economy", "Business", "First", "Van"];
   var VEHICLE_STATUS = ["service", "idle", "workshop"];
   function cleanVehicle(v) {
     v = v || {};
@@ -345,12 +345,12 @@
     return {
       id: str(r.id) || id("FR"),
       from: str(r.from), to: str(r.to),
-      economy: cleanMoneySet(r.economy), business: cleanMoneySet(r.business), van: cleanMoneySet(r.van),
+      economy: cleanMoneySet(r.economy), business: cleanMoneySet(r.business), first: cleanMoneySet(r.first), van: cleanMoneySet(r.van),
       live: !!r.live
     };
   }
 
-  var RATE_DEFAULT_PAX = { Economy: 3, Business: 3, Van: 8 };
+  var RATE_DEFAULT_PAX = { Economy: 3, Business: 3, First: 3, Van: 8 };
   function cleanRate(r) {
     r = r || {};
     var klass = VEHICLE_CLASSES.indexOf(r.klass) === -1 ? "Economy" : r.klass;

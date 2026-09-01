@@ -55,11 +55,31 @@
     p = (p || '/').replace(/\/+$/, '') || '/';
     p = p.replace(/\.dc\.html$/, '').replace(/\.html$/, '');
     if (p === '/app/home/home' || p === '/app/home' || p === '/en' || p === '/de' || p === '/fr' || p === '/ar') return '/';
+    // The ops shell is served as ops.dc.html, while DC's base URL resolves its
+    // hash links to /app/ops/. Both are the current dashboard document.
+    if (p === '/app/ops' || p === '/app/ops/ops') return '/app/ops';
     return p;
   }
   function samePage(u) {
     return logicalPath(u.pathname) === logicalPath(location.pathname);
   }
+  function isDashboardPage() {
+    return logicalPath(location.pathname) === '/app/ops' || location.hostname === 'dashboard.vamostaxi.site';
+  }
+  function runDashboardHashTransition() {
+    if (!isDashboardPage() || reduced) return;
+    var host = document.getElementById('dc-root');
+    if (!host) return;
+    host.classList.remove('vt-ops-hash-switch');
+    // Force only the local shell animation to restart. The document-transition
+    // sheets stay parked above the viewport for every dashboard view switch.
+    void host.offsetWidth;
+    host.classList.add('vt-ops-hash-switch');
+  }
+  var opsHashStyle = document.createElement('style');
+  opsHashStyle.textContent = '@keyframes vtOpsHashSwitch{from{opacity:.985;transform:translateY(2px)}to{opacity:1;transform:translateY(0)}}.vt-ops-hash-switch{animation:vtOpsHashSwitch 150ms ease-out both}';
+  (document.head || document.documentElement).appendChild(opsHashStyle);
+  addEventListener('hashchange', runDashboardHashTransition);
   function vtScrollHash(tries) {
     tries = tries || 0;
     var id = (location.hash || '').replace(/^#/, '');
@@ -238,6 +258,8 @@
     var u;
     try { u = new URL(a.href, location.href); } catch (err) { return false; }
     if (u.origin !== location.origin) return false;
+    // Keep dashboard hash navigation in-document: the yellow overlay is only
+    // for a document navigation, never a view switch inside the ops shell.
     if (samePage(u) && u.search === location.search && u.hash) return false;
     return true;
   }

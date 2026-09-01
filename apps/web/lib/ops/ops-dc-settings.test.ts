@@ -75,13 +75,15 @@ describe("06-09 DC mocks", () => {
     expect(sidebar).toMatch(/\/api\/auth/);
   });
 
-  it("D-12: dispatcher omits #pricing and staff-roster from the painted nav", () => {
+  it("D-12: dispatcher omits #pricing and #staff from the painted nav", () => {
     const sidebar = read("app/ops/OpsSidebar.dc.html");
     expect(sidebar).toMatch(/const NAV_ADMIN = \[/);
     expect(sidebar).toMatch(/href:'#pricing'/);
-    expect(sidebar).toMatch(/key:'staff-roster'/);
+    expect(sidebar).toMatch(/key:'staff'/);
+    expect(sidebar).toMatch(/href:'#staff'/);
+    expect(sidebar).not.toMatch(/key:'staff-roster'/);
     const bottom = sidebar.match(/const NAV_BOTTOM = \[[\s\S]*?\];/);
-    expect(bottom?.[0] ?? "").not.toMatch(/#pricing|staff-roster/);
+    expect(bottom?.[0] ?? "").not.toMatch(/#pricing|#staff/);
     expect(sidebar).toMatch(/role === 'admin'/);
     expect(sidebar).toMatch(/navBottomSrc\.map\(paint\)/);
     expect(sidebar).not.toMatch(/aria-disabled/);
@@ -97,6 +99,21 @@ describe("06-09 DC mocks", () => {
     }
   });
 
+  it("enrols a passkey with Supabase's create and verify ceremony without promising removal", () => {
+    const settings = read("app/ops/OpsSettings.dc.html");
+    expect(settings).toMatch(/action:\s*'passkey-register-start'/);
+    expect(settings).toMatch(/navigator\.credentials\.create\(\{ publicKey: decodeCreate\(start\.options\) \}\)/);
+    expect(settings).toMatch(/action:\s*'passkey-register-verify'/);
+    expect(settings).toMatch(/credential:\s*serializeCreate\(credential\)/);
+    expect(settings).toMatch(/function serializeCreate\(cred\)/);
+    expect(settings).toMatch(/attestationObject:\s*bufToB64url\(r\.attestationObject\)/);
+    expect(settings).toMatch(/passkeyAdded:\s*this\.state\.passkeyAdded/);
+    expect(settings).toMatch(/passkeyMsg/);
+    expect(settings).toMatch(/PublicKeyCredential/);
+    expect(settings).not.toMatch(/removePasskey\s*=/);
+    expect(settings).not.toMatch(/tSecPasskeyRemove/);
+  });
+
   it("does not hard-code GmbH / Bleicherstrasse or dispatch@ fallbacks, and has no TOTP QR", () => {
     const settings = read("app/ops/OpsSettings.dc.html");
     const profile = read("app/ops/OpsProfile.dc.html");
@@ -108,5 +125,35 @@ describe("06-09 DC mocks", () => {
       expect(src).not.toMatch(/TOTP|otpauth:\/\/|qrcode/i);
     }
     expect(settings).toMatch(/data-af-eye/);
+  });
+
+  it("keeps dashboard hash navigation local and uses the narrow ops UI conventions", () => {
+    const transition = read("app/vamos-page-transition.js");
+    const sidebar = read("app/ops/OpsSidebar.dc.html");
+    const settings = read("app/ops/OpsSettings.dc.html");
+    const profile = read("app/ops/OpsProfile.dc.html");
+
+    expect(transition).toMatch(/p === '\/app\/ops' \|\| p === '\/app\/ops\/ops'/);
+    expect(transition).toMatch(/function runDashboardHashTransition\(\)/);
+    expect(transition).toMatch(/addEventListener\('hashchange', runDashboardHashTransition\)/);
+    expect(transition).toMatch(/vt-ops-hash-switch/);
+    expect(transition).not.toMatch(/play\(\[\[lead.*hashchange/s);
+    expect(sidebar).toMatch(/border-inline-start:1px solid var\(--vt-border-inverse\)/);
+    expect(sidebar).not.toMatch(/<svg aria-hidden="true" viewBox="0 0 42 100"/);
+    expect(sidebar).not.toMatch(/Q21 94 39 94/);
+    expect(settings).toMatch(/publishedLangs: \[/);
+    expect(settings).toMatch(/<dc-import name="BrandSelect" size="field" icon="banknote"[^>]*style="width:100%;min-width:0"/);
+    const locale = read("app/vamos-locale.js");
+    expect(locale).toMatch(/function isDashboardHost\(\)/);
+    expect(locale).toMatch(/isDashboardHost\(\) \? 'CHF'/);
+    expect(settings).toMatch(/Stripe-hosted online checkout/);
+    expect(settings).not.toMatch(/Cash to the chauffeur|TWINT|Corporate accounts only/);
+    expect(`${settings}\n${profile}`).not.toMatch(/delete-profile|delete profile|account deletion|suppression du compte|حذف الحساب/i);
+    expect(profile).toMatch(/body\.append\('kind', 'staff'\)/);
+    expect(profile).toMatch(/fetch\('\/api\/photos\/upload', \{ method:'POST', credentials:'include', body \}\)/);
+    expect(profile).toMatch(/this\.persist\(\{ avatar:json\.key \}\)/);
+    expect(profile).toMatch(/this\.applyPersisted\(json\.data\)/);
+    expect(profile).not.toMatch(/readAsDataURL|FileReader/);
+    expect(profile).toMatch(/readOnly="\{\{ yes \}\}"/);
   });
 });

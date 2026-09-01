@@ -20,7 +20,7 @@
 <h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tTitle }}</h1>
 <p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSubtitle }}</p>
 </div>
-<div style="margin-inline-start:auto;display:flex;flex-wrap:wrap;align-items:center;gap:10px">
+<div style="margin-inline-start:auto;display:{{ actionsShow }};flex-wrap:wrap;align-items:center;gap:10px">
 <span style="display:{{ savedShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSaved }}</span>
 <span style="display:{{ dirtyShow }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" onClick="{{ discard }}" hint-size="110px,44px">{{ tDiscard }}</x-import>
@@ -92,16 +92,16 @@
 </div>
 <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
 <span data-fld-l="1">{{ tDefaultCur }}</span>
-<span data-vt-no-i18n="1" style="display:flex;min-width:0">
-<dc-import name="BrandSelect" size="field" icon="banknote" value="{{ vCur }}" options="{{ curOptions }}" onSelect="{{ pickCur }}" a11y-label="{{ tDefaultCur }}" hint-size="100%,44px"></dc-import>
+<span data-vt-no-i18n="1" style="display:flex;width:100%;min-width:0">
+<dc-import name="BrandSelect" size="field" icon="banknote" value="{{ vCur }}" options="{{ curOptions }}" onSelect="{{ pickCur }}" a11y-label="{{ tDefaultCur }}" hint-size="100%,44px" style="width:100%;min-width:0"></dc-import>
 </span>
 </div>
 </div>
-<div style="display:flex;flex-direction:column;gap:8px;padding-top:16px;border-top:1px solid var(--vt-grey-200)">
+<div style="display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid var(--vt-grey-200)">
 <span data-fld-l="1">{{ tPublished }}</span>
-<span data-vt-no-i18n="1" style="display:flex;flex-wrap:wrap;gap:6px">
-<sc-for list="{{ langs }}" as="l" hint-placeholder-count="4">
-<span data-chip="1">{{ l }}</span>
+<span data-vt-no-i18n="1" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px">
+<sc-for list="{{ publishedLangs }}" as="l" hint-placeholder-count="4">
+<span style="box-sizing:border-box;display:flex;align-items:center;gap:9px;min-width:0;padding:9px 10px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-grey-50)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n18 }}" color="var(--vt-charcoal-700)" hint-size="18px,18px"></x-import><strong style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);color:var(--vt-text-primary)">{{ l.code }}</strong><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ l.label }}</span></span>
 </sc-for>
 </span>
 <p data-hint="1">{{ tPublishedHint }}</p>
@@ -115,15 +115,10 @@
 <h2 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tPayments }}</h2>
 <p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tPaymentsSub }}</p>
 </div>
-<sc-for list="{{ payments }}" as="p" hint-placeholder-count="4">
-<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--vt-grey-200)">
-<span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px">
-<span style="font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ p.label }}</span>
-<span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ p.hint }}</span>
-</span>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" checked="{{ p.on }}" onChange="{{ p.toggle }}" aria-label="{{ p.label }}" hint-size="46px,26px"></x-import>
+<div style="display:flex;align-items:flex-start;gap:12px;padding:14px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-grey-50)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="credit-card" size="{{ n18 }}" color="var(--vt-charcoal-700)" hint-size="18px,18px"></x-import>
+<span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:3px"><strong style="font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ tStripeCheckout }}</strong><span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tStripeCheckoutHint }}</span></span>
 </div>
-</sc-for>
 <p data-hint="1">{{ tPaymentsNote }}</p>
 </section>
 </sc-if>
@@ -229,33 +224,15 @@
 </div>
 </sc-if>
 <sc-if value="{{ passkeyAdded }}" hint-placeholder-val="{{ false }}">
-<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--vt-grey-200)">
+<div style="display:flex;align-items:center;gap:12px;padding:11px 0">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="shield-check" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
-<span style="flex:1 1 auto;min-width:0;font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ tSecPasskeyName }}</span>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ removePasskey }}" hint-size="100px,36px">{{ tSecPasskeyRemove }}</x-import>
+<span style="flex:1 1 auto;min-width:0;font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ tSecPasskeyRegistered }}</span>
 </div>
 </sc-if>
-</div>
-
-<div style="display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid var(--vt-grey-200)">
-<span data-panel-k="1">{{ tSecDangerLabel }}</span>
-<p style="margin:0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSecDangerSub }}</p>
-<div>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="danger" icon="trash-2" onClick="{{ openDelete }}" hint-size="180px,44px">{{ tSecDeleteBtn }}</x-import>
-</div>
+<span role="status" style="display:{{ passkeyMsgShow }};font-size:var(--vt-body-xs);color:{{ passkeyMsgColor }}">{{ passkeyMsg }}</span>
 </div>
 
 </section>
-</sc-if>
-
-<sc-if value="{{ deleteOpen }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="sm" title="{{ tSecDeleteConfirmTitle }}" onClose="{{ closeDelete }}" hint-size="420px,240px">
-<p style="margin:0;font-size:var(--vt-body-sm);line-height:1.6;color:var(--vt-text-secondary);text-wrap:pretty">{{ tSecDeleteConfirmBody }}</p>
-<div style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;margin-top:20px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" onClick="{{ closeDelete }}" hint-size="130px,44px">{{ tSecKeepAccount }}</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="danger" onClick="{{ confirmDelete }}" hint-size="160px,44px">{{ tSecDeleteConfirmBtn }}</x-import>
-</div>
-</x-import>
 </sc-if>
 
 </div>
@@ -272,7 +249,7 @@ const PANES = [
   { key:'company', icon:'briefcase', keys:['company', 'address', 'uid', 'phone', 'email'] },
   { key:'policy', icon:'clock', keys:['minAdvance', 'cancelWindow', 'airportWait', 'cityWait'] },
   { key:'locale', icon:'globe', keys:['defaultLang', 'defaultCur'] },
-  { key:'payments', icon:'credit-card', keys:['cash', 'card', 'twint', 'invoice'] },
+  { key:'payments', icon:'credit-card', keys:[] },
   { key:'notify', icon:'bell', keys:['emailConfirm', 'emailReminder', 'smsReminder', 'opsAlerts'] },
   { key:'staff', icon:'users', keys:[], admin:true },
   { key:'security', icon:'shield-check', keys:[] },
@@ -296,12 +273,9 @@ const T = {
     locale:'Localisation', localeSub:'What a first-time visitor lands on before they choose',
     defaultLang:'Default language', defaultCur:'Default currency',
     published:'Published languages', publishedHint:'Every page, email and document ships in all four. The currency switch changes the mark, never the number.',
-    payments:'Payment methods', paymentsSub:'What a traveller can choose at checkout',
-    paymentsNote:'Switching a method off hides it at checkout straight away; bookings already paid with it are untouched.',
-    cash:'Cash to the chauffeur', cashHint:'Paid in the vehicle, on arrival',
-    card:'Card', cardHint:'Visa and Mastercard through Stripe',
-    twint:'TWINT', twintHint:'Swiss mobile payment',
-    invoice:'Invoice', invoiceHint:'Corporate accounts only',
+    payments:'Online checkout', paymentsSub:'The hosted checkout capability for travellers',
+    paymentsNote:'Availability is configured in Stripe. This screen does not claim that checkout is live.',
+    stripeCheckout:'Stripe-hosted online checkout', stripeCheckoutHint:'Card payment is handled on Stripe’s hosted checkout page when it is enabled.',
     notifications:'Notifications', notificationsSub:'What leaves the platform automatically',
     notificationsNote:'Confirmations are the only message a traveller cannot switch off.',
     emailConfirm:'Booking confirmation', emailConfirmHint:'Sent the moment a booking is paid',
@@ -310,16 +284,14 @@ const T = {
     opsAlerts:'Dispatch alerts', opsAlertsHint:'A new or cancelled booking wakes the console',
     langEn:'English', langDe:'German', langFr:'French', langAr:'Arabic',
     railSecurity:'Security', railSecurityHint:'Email, password, passkeys',
-    security:'Security', securitySub:'Sign-in email, password, passkeys and account deletion',
+    security:'Security', securitySub:'Sign-in email, password and passkeys',
     secEmailLabel:'Sign-in email', secEmailHint:'Used to sign in and for account recovery.', secEmailBtn:'Update email',
     secPasswordLabel:'Password', secPasswordSub:'Change the password used to sign in to this console.',
     secNewPw:'New password', secConfirmPw:'Confirm password', secPasswordBtn:'Change password', secPasswordMismatch:'Passwords don’t match.',
     secUpdated:'Updated',
     secPasskeyLabel:'Passkeys', secPasskeySub:'Sign in with Face ID, Touch ID or a security key instead of a password.',
-    secPasskeyEmpty:'No passkey added yet.', secPasskeyAdd:'Add a passkey', secPasskeyName:'Passkey · this device', secPasskeyRemove:'Remove',
-    secDangerLabel:'Delete this profile', secDangerSub:'Permanently removes your sign-in from this console. Bookings and records you touched are not deleted.',
-    secDeleteBtn:'Delete my profile', secDeleteConfirmTitle:'Delete your profile?', secDeleteConfirmBody:'You will be signed out and your name, photo and preferences are removed from this browser. This cannot be undone.',
-    secDeleteConfirmBtn:'Delete permanently', secKeepAccount:'Keep my profile',
+    secPasskeyEmpty:'No passkey added yet.', secPasskeyAdd:'Add a passkey', secPasskeyRegistered:'Passkey registered for this account.', secPasskeySuccess:'Passkey added. You can use it to sign in.', secPasskeyUnsupported:'This browser does not support passkeys.', secPasskeyFailed:'Could not add a passkey. Try again.',
+
     staff:'Staff', staffSub:'Invite, role and active. Admin only.',
     inviteEmail:'Email', inviteRole:'Role', inviteSend:'Send invite',
     inviteNote:'The first real invite (not @example) needs Resend as Auth SMTP. This form posts to /api/staff/invite either way.',
@@ -345,12 +317,9 @@ const T = {
     locale:'Lokalisierung', localeSub:'Womit ein neuer Besucher startet, bevor er wählt',
     defaultLang:'Standardsprache', defaultCur:'Standardwährung',
     published:'Veröffentlichte Sprachen', publishedHint:'Jede Seite, E-Mail und jedes Dokument erscheint in allen vier. Die Währungsumschaltung ändert das Zeichen, nie die Zahl.',
-    payments:'Zahlungsmittel', paymentsSub:'Was ein Reisender an der Kasse wählen kann',
-    paymentsNote:'Ein abgeschaltetes Zahlungsmittel verschwindet sofort aus der Kasse; bereits damit bezahlte Buchungen bleiben unberührt.',
-    cash:'Bar an den Chauffeur', cashHint:'Im Fahrzeug bei Ankunft bezahlt',
-    card:'Karte', cardHint:'Visa und Mastercard über Stripe',
-    twint:'TWINT', twintHint:'Schweizer Mobile-Payment',
-    invoice:'Rechnung', invoiceHint:'Nur Firmenkonten',
+    payments:'Online-Checkout', paymentsSub:'Die gehostete Checkout-Funktion für Reisende',
+    paymentsNote:'Die Verfügbarkeit wird in Stripe eingerichtet. Dieser Bildschirm behauptet nicht, dass der Checkout live ist.',
+    stripeCheckout:'Stripe-gehosteter Online-Checkout', stripeCheckoutHint:'Kartenzahlungen werden auf Stripes gehosteter Checkout-Seite abgewickelt, sobald sie aktiviert ist.',
     notifications:'Benachrichtigungen', notificationsSub:'Was die Plattform automatisch verschickt',
     notificationsNote:'Die Bestätigung ist die einzige Nachricht, die ein Reisender nicht abschalten kann.',
     emailConfirm:'Buchungsbestätigung', emailConfirmHint:'Sofort nach bezahlter Buchung',
@@ -365,10 +334,8 @@ const T = {
     secNewPw:'Neues Passwort', secConfirmPw:'Passwort bestätigen', secPasswordBtn:'Passwort ändern', secPasswordMismatch:'Die Passwörter stimmen nicht überein.',
     secUpdated:'Aktualisiert',
     secPasskeyLabel:'Passkeys', secPasskeySub:'Anmelden mit Face ID, Touch ID oder einem Sicherheitsschlüssel statt einem Passwort.',
-    secPasskeyEmpty:'Noch kein Passkey hinzugefügt.', secPasskeyAdd:'Passkey hinzufügen', secPasskeyName:'Passkey · dieses Gerät', secPasskeyRemove:'Entfernen',
-    secDangerLabel:'Dieses Profil löschen', secDangerSub:'Entfernt Ihre Anmeldung dauerhaft von dieser Konsole. Buchungen und Datensätze, die Sie bearbeitet haben, werden nicht gelöscht.',
-    secDeleteBtn:'Mein Profil löschen', secDeleteConfirmTitle:'Profil löschen?', secDeleteConfirmBody:'Sie werden abgemeldet, und Name, Foto und Einstellungen werden aus diesem Browser entfernt. Dies kann nicht rückgängig gemacht werden.',
-    secDeleteConfirmBtn:'Endgültig löschen', secKeepAccount:'Profil behalten',
+    secPasskeyEmpty:'Noch kein Passkey hinzugefügt.', secPasskeyAdd:'Passkey hinzufügen', secPasskeyRegistered:'Passkey für dieses Konto registriert.', secPasskeySuccess:'Passkey hinzugefügt. Sie können ihn zum Anmelden verwenden.', secPasskeyUnsupported:'Dieser Browser unterstützt keine Passkeys.', secPasskeyFailed:'Passkey konnte nicht hinzugefügt werden. Bitte erneut versuchen.',
+
     staff:'Team', staffSub:'Einladen, Rolle und aktiv. Nur Admin.',
     inviteEmail:'E-Mail', inviteRole:'Rolle', inviteSend:'Einladen',
     inviteNote:'Die erste echte Einladung (nicht @example) braucht Resend als Auth-SMTP. Das Formular postet trotzdem an /api/staff/invite.',
@@ -394,12 +361,9 @@ const T = {
     locale:'Localisation', localeSub:'Ce que voit un nouveau visiteur avant de choisir',
     defaultLang:'Langue par défaut', defaultCur:'Devise par défaut',
     published:'Langues publiées', publishedHint:'Chaque page, e-mail et document existe dans les quatre. Le changement de devise change le symbole, jamais le nombre.',
-    payments:'Moyens de paiement', paymentsSub:'Ce qu’un voyageur peut choisir au paiement',
-    paymentsNote:'Un moyen désactivé disparaît aussitôt du paiement ; les réservations déjà payées ainsi ne changent pas.',
-    cash:'Espèces au chauffeur', cashHint:'Payé dans le véhicule, à l’arrivée',
-    card:'Carte', cardHint:'Visa et Mastercard via Stripe',
-    twint:'TWINT', twintHint:'Paiement mobile suisse',
-    invoice:'Facture', invoiceHint:'Comptes entreprises uniquement',
+    payments:'Paiement en ligne', paymentsSub:'La capacité de paiement hébergé pour les voyageurs',
+    paymentsNote:'La disponibilité se règle dans Stripe. Cet écran ne prétend pas que le paiement est en ligne.',
+    stripeCheckout:'Paiement en ligne hébergé par Stripe', stripeCheckoutHint:'Le paiement par carte est traité sur la page de paiement hébergée par Stripe lorsqu’elle est activée.',
     notifications:'Notifications', notificationsSub:'Ce que la plateforme envoie automatiquement',
     notificationsNote:'La confirmation est le seul message qu’un voyageur ne peut pas désactiver.',
     emailConfirm:'Confirmation de réservation', emailConfirmHint:'Envoyée dès qu’une réservation est payée',
@@ -408,16 +372,14 @@ const T = {
     opsAlerts:'Alertes dispatch', opsAlertsHint:'Une réservation nouvelle ou annulée réveille la console',
     langEn:'Anglais', langDe:'Allemand', langFr:'Français', langAr:'Arabe',
     railSecurity:'Sécurité', railSecurityHint:'E-mail, mot de passe, clés d’accès',
-    security:'Sécurité', securitySub:'E-mail de connexion, mot de passe, clés d’accès et suppression du compte',
+    security:'Sécurité', securitySub:'E-mail de connexion, mot de passe et clés d’accès',
     secEmailLabel:'E-mail de connexion', secEmailHint:'Utilisé pour la connexion et la récupération du compte.', secEmailBtn:'Mettre à jour l’e-mail',
     secPasswordLabel:'Mot de passe', secPasswordSub:'Modifie le mot de passe utilisé pour se connecter à cette console.',
     secNewPw:'Nouveau mot de passe', secConfirmPw:'Confirmer le mot de passe', secPasswordBtn:'Changer le mot de passe', secPasswordMismatch:'Les mots de passe ne correspondent pas.',
     secUpdated:'Mis à jour',
     secPasskeyLabel:'Clés d’accès', secPasskeySub:'Se connecter avec Face ID, Touch ID ou une clé de sécurité plutôt qu’un mot de passe.',
-    secPasskeyEmpty:'Aucune clé d’accès ajoutée.', secPasskeyAdd:'Ajouter une clé d’accès', secPasskeyName:'Clé d’accès · cet appareil', secPasskeyRemove:'Retirer',
-    secDangerLabel:'Supprimer ce profil', secDangerSub:'Retire définitivement votre connexion de cette console. Les réservations et fiches que vous avez traitées ne sont pas supprimées.',
-    secDeleteBtn:'Supprimer mon profil', secDeleteConfirmTitle:'Supprimer votre profil ?', secDeleteConfirmBody:'Vous serez déconnecté et votre nom, photo et préférences seront retirés de ce navigateur. Cette action est irréversible.',
-    secDeleteConfirmBtn:'Supprimer définitivement', secKeepAccount:'Garder mon profil',
+    secPasskeyEmpty:'Aucune clé d’accès ajoutée.', secPasskeyAdd:'Ajouter une clé d’accès', secPasskeyRegistered:'Clé d’accès enregistrée pour ce compte.', secPasskeySuccess:'Clé d’accès ajoutée. Vous pouvez l’utiliser pour vous connecter.', secPasskeyUnsupported:'Ce navigateur ne prend pas en charge les clés d’accès.', secPasskeyFailed:'Impossible d’ajouter une clé d’accès. Réessayez.',
+
     staff:'Équipe', staffSub:'Invitation, rôle et actif. Admin seulement.',
     inviteEmail:'E-mail', inviteRole:'Rôle', inviteSend:'Inviter',
     inviteNote:'La première vraie invitation (pas @example) exige Resend comme SMTP Auth. Le formulaire poste quand même vers /api/staff/invite.',
@@ -443,12 +405,9 @@ const T = {
     locale:'التوطين', localeSub:'ما يبدأ به الزائر الجديد قبل أن يختار',
     defaultLang:'اللغة الافتراضية', defaultCur:'العملة الافتراضية',
     published:'اللغات المنشورة', publishedHint:'كل صفحة ورسالة ومستند متوفّرة باللغات الأربع. وتبديل العملة يغيّر الرمز، لا الرقم.',
-    payments:'وسائل الدفع', paymentsSub:'ما يمكن للمسافر اختياره عند الدفع',
-    paymentsNote:'إيقاف وسيلة دفع يخفيها من صفحة الدفع فورًا، ولا يمسّ الحجوزات المدفوعة بها.',
-    cash:'نقدًا للسائق', cashHint:'يُدفع في المركبة عند الوصول',
-    card:'بطاقة', cardHint:'فيزا وماستركارد عبر Stripe',
-    twint:'TWINT', twintHint:'الدفع عبر الهاتف في سويسرا',
-    invoice:'فاتورة', invoiceHint:'لحسابات الشركات فقط',
+    payments:'الدفع عبر الإنترنت', paymentsSub:'إمكانية الدفع المستضاف للمسافرين',
+    paymentsNote:'يُضبط التوفر في Stripe. لا تدّعي هذه الشاشة أن صفحة الدفع تعمل مباشرة.',
+    stripeCheckout:'دفع عبر الإنترنت مستضاف من Stripe', stripeCheckoutHint:'تُعالج البطاقة في صفحة الدفع المستضافة من Stripe عند تفعيلها.',
     notifications:'الإشعارات', notificationsSub:'ما ترسله المنصّة تلقائيًا',
     notificationsNote:'تأكيد الحجز هو الرسالة الوحيدة التي لا يستطيع المسافر إيقافها.',
     emailConfirm:'تأكيد الحجز', emailConfirmHint:'يُرسل فور دفع الحجز',
@@ -457,16 +416,14 @@ const T = {
     opsAlerts:'تنبيهات التوزيع', opsAlertsHint:'الحجز الجديد أو الملغى يُنبّه لوحة التحكم',
     langEn:'الإنجليزية', langDe:'الألمانية', langFr:'الفرنسية', langAr:'العربية',
     railSecurity:'الأمان', railSecurityHint:'البريد وكلمة المرور ومفاتيح المرور',
-    security:'الأمان', securitySub:'بريد الدخول وكلمة المرور ومفاتيح المرور وحذف الحساب',
+    security:'الأمان', securitySub:'بريد الدخول وكلمة المرور ومفاتيح المرور',
     secEmailLabel:'بريد تسجيل الدخول', secEmailHint:'يُستخدم لتسجيل الدخول واسترداد الحساب.', secEmailBtn:'تحديث البريد الإلكتروني',
     secPasswordLabel:'كلمة المرور', secPasswordSub:'يغيّر كلمة المرور المستخدمة لتسجيل الدخول إلى لوحة التحكم هذه.',
     secNewPw:'كلمة مرور جديدة', secConfirmPw:'تأكيد كلمة المرور', secPasswordBtn:'تغيير كلمة المرور', secPasswordMismatch:'كلمتا المرور غير متطابقتين.',
     secUpdated:'تم التحديث',
     secPasskeyLabel:'مفاتيح المرور', secPasskeySub:'سجّل الدخول باستخدام Face ID أو Touch ID أو مفتاح أمان بدلاً من كلمة المرور.',
-    secPasskeyEmpty:'لم تتم إضافة أي مفتاح مرور بعد.', secPasskeyAdd:'إضافة مفتاح مرور', secPasskeyName:'مفتاح مرور · هذا الجهاز', secPasskeyRemove:'إزالة',
-    secDangerLabel:'حذف هذا الملف الشخصي', secDangerSub:'يُزيل تسجيل دخولك نهائيًا من هذه اللوحة. لا تُحذف الحجوزات والسجلات التي تعاملت معها.',
-    secDeleteBtn:'حذف ملفي الشخصي', secDeleteConfirmTitle:'حذف ملفك الشخصي؟', secDeleteConfirmBody:'سيتم تسجيل خروجك، وسيُزال اسمك وصورتك وتفضيلاتك من هذا المتصفح. لا يمكن التراجع عن هذا.',
-    secDeleteConfirmBtn:'حذف نهائيًا', secKeepAccount:'الاحتفاظ بملفي',
+    secPasskeyEmpty:'لم تتم إضافة أي مفتاح مرور بعد.', secPasskeyAdd:'إضافة مفتاح مرور', secPasskeyRegistered:'تم تسجيل مفتاح مرور لهذا الحساب.', secPasskeySuccess:'تمت إضافة مفتاح المرور. يمكنك استخدامه لتسجيل الدخول.', secPasskeyUnsupported:'لا يدعم هذا المتصفح مفاتيح المرور.', secPasskeyFailed:'تعذرت إضافة مفتاح المرور. حاول مرة أخرى.',
+
     staff:'الفريق', staffSub:'دعوة ودور وحالة. للمسؤول فقط.',
     inviteEmail:'البريد الإلكتروني', inviteRole:'الدور', inviteSend:'إرسال الدعوة',
     inviteNote:'أول دعوة حقيقية (ليست @example) تحتاج Resend كـ SMTP للمصادقة. النموذج يرسل إلى /api/staff/invite على أي حال.',
@@ -477,6 +434,41 @@ const T = {
 };
 
 const POLICY_KEYS = { minAdvance:1, cancelWindow:1, airportWait:1, cityWait:1, policySlug:1, policyLabel:1, policyEffectiveFrom:1 };
+function b64urlToBuf(s) {
+  const pad = '='.repeat((4 - (s.length % 4)) % 4);
+  const bin = atob((s + pad).replace(/-/g, '+').replace(/_/g, '/'));
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out.buffer;
+}
+function bufToB64url(buf) {
+  const bytes = new Uint8Array(buf);
+  let s = '';
+  for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function decodeCreate(options) {
+  const o = Object.assign({}, options);
+  o.challenge = b64urlToBuf(options.challenge);
+  if (options.user && typeof options.user.id === 'string') o.user = Object.assign({}, options.user, { id: b64urlToBuf(options.user.id) });
+  if (options.excludeCredentials) o.excludeCredentials = options.excludeCredentials.map((c) => Object.assign({}, c, { id: typeof c.id === 'string' ? b64urlToBuf(c.id) : c.id }));
+  return o;
+}
+function serializeCreate(cred) {
+  if (cred.toJSON) return cred.toJSON();
+  const r = cred.response;
+  return {
+    id: cred.id,
+    rawId: bufToB64url(cred.rawId),
+    type: cred.type,
+    response: {
+      clientDataJSON: bufToB64url(r.clientDataJSON),
+      attestationObject: bufToB64url(r.attestationObject),
+      transports: r.getTransports ? r.getTransports() : [],
+    },
+    clientExtensionResults: cred.getClientExtensionResults ? cred.getClientExtensionResults() : {},
+  };
+}
 function api(method, path, body) {
   const client = window.VamosOpsApi;
   if (!client || typeof client.request !== 'function') return Promise.resolve({ ok: false, code: 'network' });
@@ -487,9 +479,8 @@ function signOutNow() {
   const done = () => { location.replace('/login'); };
   api('POST', '/api/auth', { action: 'signout' }).then(done, done);
 }
-
 class Component extends DCLogic {
-  state = { lang:'en', draft:null, saved:false, pane:'company', secEmail:'', pw1:'', pw2:'', pwMsg:'', pwSaved:false, emailSaved:false, passkeyAdded:false, deleteOpen:false, showPw1:false, showPw2:false, me:null, roster:[], inviteEmail:'', inviteRole:'dispatcher', inviteMsg:'' };
+  state = { lang:'en', draft:null, saved:false, pane:(typeof location !== 'undefined' && (location.hash || '').replace(/^#\/?/, '') === 'staff') ? 'staff' : 'company', secEmail:'', pw1:'', pw2:'', pwMsg:'', pwSaved:false, emailSaved:false, passkeyAdded:false, passkeyMsg:'', passkeyError:false, showPw1:false, showPw2:false, me:null, roster:[], inviteEmail:'', inviteRole:'dispatcher', inviteMsg:'' };
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
     if (this._offSettings) this._offSettings();
@@ -522,12 +513,19 @@ class Component extends DCLogic {
     this.bind();
     this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
     window.addEventListener('vamos:locale', this._onLocale);
+    this._onHash = () => {
+      const raw = (location.hash || '').replace(/^#\/?/, '');
+      if (raw === 'staff') this.setState({ pane: 'staff' });
+    };
+    window.addEventListener('hashchange', this._onHash);
+    this._onHash();
     if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() });
   }
   componentWillUnmount() {
+    if (this._onHash) window.removeEventListener('hashchange', this._onHash);
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     if (this._offSettings) this._offSettings();
-    if (this.state.deleteOpen) { try { document.body.style.overflow = ''; } catch (e) {} }
+
     clearTimeout(this._retry); clearTimeout(this._savedT); clearTimeout(this._emailT); clearTimeout(this._pwT);
   }
   saveEmail = () => {
@@ -552,14 +550,34 @@ class Component extends DCLogic {
       }
     });
   };
-  addPasskey = () => {};
-  removePasskey = () => {};
-  openDelete = () => { try { document.body.style.overflow = 'hidden'; } catch (e) {} this.setState({ deleteOpen: true }); };
-  closeDelete = () => { try { document.body.style.overflow = ''; } catch (e) {} this.setState({ deleteOpen: false }); };
-  confirmDelete = () => {
-    try { document.body.style.overflow = ''; } catch (e) {}
-    signOutNow();
+  addPasskey = async () => {
+    const t = T[this.state.lang] || T.en;
+    if (this._passkeyBusy) return;
+    if (!window.PublicKeyCredential || !navigator.credentials || !navigator.credentials.create) {
+      this.setState({ passkeyMsg: t.secPasskeyUnsupported, passkeyError: true });
+      return;
+    }
+    this._passkeyBusy = true;
+    this.setState({ passkeyMsg: '', passkeyError: false });
+    try {
+      const start = await api('POST', '/api/auth', { action: 'passkey-register-start' });
+      if (!start || !start.options || !start.challenge_id) throw new Error('passkey-register-start');
+      const credential = await navigator.credentials.create({ publicKey: decodeCreate(start.options) });
+      if (!credential) throw new Error('passkey-cancelled');
+      const result = await api('POST', '/api/auth', {
+        action: 'passkey-register-verify',
+        challengeId: start.challenge_id,
+        credential: serializeCreate(credential),
+      });
+      if (!result || !result.ok) throw new Error('passkey-register-verify');
+      this.setState({ passkeyAdded: true, passkeyMsg: t.secPasskeySuccess, passkeyError: false });
+    } catch (e) {
+      this.setState({ passkeyMsg: t.secPasskeyFailed, passkeyError: true });
+    } finally {
+      this._passkeyBusy = false;
+    }
   };
+
   set = (key, value) => {
     if (POLICY_KEYS[key]) return;
     this.setState((s) => {
@@ -574,7 +592,7 @@ class Component extends DCLogic {
     api('PATCH', '/api/staff/settings', {
       company: d.company, address: d.address, uid: d.uid, phone: d.phone, email: d.email,
       defaultLang: d.defaultLang, defaultCur: d.defaultCur,
-      cash: d.cash, card: d.card, twint: d.twint, invoice: d.invoice,
+
       emailConfirm: d.emailConfirm, emailReminder: d.emailReminder, smsReminder: d.smsReminder, opsAlerts: d.opsAlerts,
     }).then((json) => {
       if (json && json.ok && json.data) {
@@ -633,7 +651,9 @@ class Component extends DCLogic {
     const visiblePanes = PANES.filter((p) => !p.admin || isAdmin);
     return {
       n18: 18,
-      tTitle: t.title, tSubtitle: t.subtitle, tSave: t.save, tDiscard: t.discard, tSaved: t.saved,
+      tTitle: pane === 'staff' ? t.staff : t.title,
+      tSubtitle: pane === 'staff' ? t.staffSub : t.subtitle,
+      tSave: t.save, tDiscard: t.discard, tSaved: t.saved,
       tUnsaved: t.unsaved,
       tCompany: t.company, tCompanySub: t.companySub, tCompanyNote: t.companyNote,
       tLegalName: t.legalName, tAddress: t.address, tUid: t.uid, tPhone: t.phone, tEmail: t.email,
@@ -650,10 +670,8 @@ class Component extends DCLogic {
       tSecPasswordLabel: t.secPasswordLabel, tSecPasswordSub: t.secPasswordSub,
       tSecNewPw: t.secNewPw, tSecConfirmPw: t.secConfirmPw, tSecPasswordBtn: t.secPasswordBtn, tSecUpdated: t.secUpdated,
       tSecPasskeyLabel: t.secPasskeyLabel, tSecPasskeySub: t.secPasskeySub, tSecPasskeyEmpty: t.secPasskeyEmpty,
-      tSecPasskeyAdd: t.secPasskeyAdd, tSecPasskeyName: t.secPasskeyName, tSecPasskeyRemove: t.secPasskeyRemove,
-      tSecDangerLabel: t.secDangerLabel, tSecDangerSub: t.secDangerSub, tSecDeleteBtn: t.secDeleteBtn,
-      tSecDeleteConfirmTitle: t.secDeleteConfirmTitle, tSecDeleteConfirmBody: t.secDeleteConfirmBody,
-      tSecDeleteConfirmBtn: t.secDeleteConfirmBtn, tSecKeepAccount: t.secKeepAccount,
+      tSecPasskeyAdd: t.secPasskeyAdd, tSecPasskeyRegistered: t.secPasskeyRegistered,
+
       isSecurity: pane === 'security', yes: true,
       secEmail: this.state.secEmail, setSecEmail: (e) => this.setState({ secEmail: e.target.value }),
       saveEmail: this.saveEmail, emailSavedShow: this.state.emailSaved ? 'inline' : 'none',
@@ -667,20 +685,33 @@ class Component extends DCLogic {
       eye2Label: this.state.showPw2 ? t.eyeHide : t.eyeShow,
       togglePw1: () => this.setState((s) => ({ showPw1: !s.showPw1 })),
       togglePw2: () => this.setState((s) => ({ showPw2: !s.showPw2 })),
-      passkeyAdded: false, noPasskey: true,
-      addPasskey: this.addPasskey, removePasskey: this.removePasskey,
-      deleteOpen: this.state.deleteOpen, openDelete: this.openDelete, closeDelete: this.closeDelete, confirmDelete: this.confirmDelete,
-      langs: ['EN', 'DE', 'FR', 'AR'],
+      passkeyAdded: this.state.passkeyAdded, noPasskey: !this.state.passkeyAdded,
+      passkeyMsg: this.state.passkeyMsg, passkeyMsgShow: this.state.passkeyMsg ? 'block' : 'none',
+      passkeyMsgColor: this.state.passkeyError ? 'var(--vt-danger)' : 'var(--vt-text-primary)',
+      addPasskey: this.addPasskey,
+
+      publishedLangs: [
+        { code:'EN', label:t.langEn }, { code:'DE', label:t.langDe },
+        { code:'FR', label:t.langFr }, { code:'AR', label:t.langAr },
+      ],
       panes: visiblePanes.map((p) => ({
         icon: p.icon,
         label: RAIL[p.key][0],
         hint: RAIL[p.key][1],
         on: pane === p.key ? '1' : '0',
         dotShow: p.keys.some(changed) ? 'block' : 'none',
-        pick: () => this.setState({ pane: p.key }),
+        pick: () => {
+          this.setState({ pane: p.key });
+          if (p.key === 'staff') {
+            if ((location.hash || '') !== '#staff') location.hash = '#staff';
+          } else if ((location.hash || '').replace(/^#\/?/, '') === 'staff') {
+            location.hash = '#settings';
+          }
+        },
       })),
       isCompany: pane === 'company', isPolicy: pane === 'policy', isLocale: pane === 'locale',
       isPayments: pane === 'payments', isNotify: pane === 'notify', isStaff: pane === 'staff' && isAdmin,
+      actionsShow: pane === 'staff' ? 'none' : 'flex',
       dirtyShow: dirty ? 'inline-flex' : 'none',
       savedShow: this.state.saved && !dirty ? 'inline' : 'none',
       notDirty: !dirty,
@@ -701,10 +732,7 @@ class Component extends DCLogic {
         { value:'fr', label:'FR', note:t.langFr }, { value:'ar', label:'AR', note:t.langAr },
       ],
       curOptions: curCodes.map((c) => ({ value: c, label: c })),
-      payments: [
-        sw('cash', t.cash, t.cashHint), sw('card', t.card, t.cardHint),
-        sw('twint', t.twint, t.twintHint), sw('invoice', t.invoice, t.invoiceHint),
-      ],
+      tStripeCheckout: t.stripeCheckout, tStripeCheckoutHint: t.stripeCheckoutHint,
       notifications: [
         sw('emailConfirm', t.emailConfirm, t.emailConfirmHint),
         sw('emailReminder', t.emailReminder, t.emailReminderHint),

@@ -190,7 +190,7 @@ class Component extends DCLogic {
         { key:'phone', label:t.fPhone, half:true, placeholder:'+41 00 000 00 00' },
         { key:'type', label:t.fType, editor:'select', options:typeOptions, icon:'user', half:true },
         { key:'company', label:t.fCompany, half:true, hint:t.hCompany },
-        { key:'since', label:t.fSince, half:true, placeholder:'0000' },
+        { key:'since', label:t.fSince, editor:'date', half:true, icon:'calendar' },
         { key:'trips', label:t.fTrips, editor:'number', min:0, half:true },
         { key:'note', label:t.fNote, editor:'area', hint:t.hNote },
       ],

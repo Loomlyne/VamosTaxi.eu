@@ -19,6 +19,9 @@ export const GET = withStaff(async (claims) => {
     email: claims.email ?? "",
     role,
     fullName: profile?.fullName ?? "",
+    phone: profile?.phone ?? "",
     lang: profile?.lang ?? "",
+    avatarPath: profile?.avatarPath ?? null,
+    digestEmail: profile?.digestEmail ?? false,
   });
 });

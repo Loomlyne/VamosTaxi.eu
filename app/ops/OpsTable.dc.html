@@ -7,6 +7,20 @@
 </head>
 <body>
 <x-dc>
+<helmet>
+<style>
+[data-vt-photo-ui=solo]{display:flex;align-items:center;gap:16px;min-width:0}
+[data-vt-photo-sq]{box-sizing:border-box;inline-size:96px;block-size:96px;flex:0 0 auto;border-radius:var(--vt-radius-lg);border:1px dashed var(--vt-grey-300);overflow:hidden;background:var(--vt-grey-50);color:var(--vt-text-muted);display:flex;align-items:center;justify-content:center}
+[data-vt-photo-sq] img{inline-size:100%;block-size:100%;object-fit:cover;display:block}
+[data-vt-photo-pick]{position:relative;display:inline-flex;align-items:center;cursor:pointer}
+[data-vt-photo-pick] input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);border:0;white-space:nowrap}
+[data-vt-date]{display:flex;flex-direction:column;gap:6px;min-width:0}
+[data-vt-date-wrap]{position:relative;min-width:0}
+[data-vt-date-wrap] > span{position:absolute;inset-inline-start:14px;top:50%;transform:translateY(-50%);pointer-events:none;display:inline-flex}
+[data-vt-date-wrap] input[type=date]{box-sizing:border-box;width:100%;height:44px;padding:0 14px 0 42px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-pill);background:var(--vt-white);color:var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium)}
+[data-vt-date-wrap] input[type=date]:focus{outline:none;border-color:var(--vt-charcoal-900)}
+</style>
+</helmet>
 <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
 
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;min-width:0">
@@ -91,10 +105,26 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" icon="{{ f.inputIcon }}" type="number" min="{{ f.min }}" label="{{ f.label }}" value="{{ f.value }}" onChange="{{ f.set }}" placeholder="{{ f.placeholder }}" hint="{{ f.hint }}" error="{{ f.error }}" suffix="{{ f.suffix }}" hint-size="100%,76px"></x-import>
 </sc-if>
 
+<sc-if value="{{ f.isDate }}" hint-placeholder-val="{{ false }}">
+<div data-vt-date="1">
+<span data-fld-l="1">{{ f.label }}</span>
+<div data-vt-date-wrap="1">
+<span><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="calendar" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import></span>
+<input type="date" value="{{ f.dateValue }}" onChange="{{ f.setDate }}" onInput="{{ f.dateInput }}" aria-label="{{ f.label }}" required="{{ f.required }}">
+</div>
+<span style="display:{{ f.hintShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ f.hint }}</span>
+</div>
+</sc-if>
+
 <sc-if value="{{ f.isSelect }}" hint-placeholder-val="{{ false }}">
 <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
 <span data-fld-l="1">{{ f.label }}</span>
-<dc-import name="BrandSelect" size="field" icon="{{ f.icon }}" value="{{ f.value }}" options="{{ f.options }}" multi="{{ f.multi }}" onSelect="{{ f.pick }}" a11y-label="{{ f.label }}" hint-size="100%,44px"></dc-import>
+<sc-if value="{{ f.hasAdd }}" hint-placeholder-val="{{ false }}">
+<span style="display:inline-flex">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" icon="plus" onClick="{{ f.startNested }}" hint-size="160px,36px">{{ f.addLabel }}</x-import>
+</span>
+</sc-if>
+<dc-import name="BrandSelect" size="field" icon="{{ f.icon }}" value="{{ f.value }}" options="{{ f.options }}" multi="{{ f.multi }}" placeholder="{{ f.emptyLabel }}" onSelect="{{ f.pick }}" a11y-label="{{ f.label }}" hint-size="100%,44px"></dc-import>
 <span style="display:{{ f.hintShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ f.hint }}</span>
 </div>
 </sc-if>
@@ -113,12 +143,19 @@
 <sc-if value="{{ f.isPhoto }}" hint-placeholder-val="{{ false }}">
 <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
 <span data-fld-l="1">{{ f.label }}</span>
-<div style="display:flex;align-items:center;gap:12px;min-width:0">
-<span style="position:relative;inline-size:64px;block-size:64px;flex:0 0 auto;border-radius:var(--vt-radius-md);overflow:hidden;background:var(--vt-grey-100);color:var(--vt-text-muted);display:{{ f.fallbackShow }};align-items:center;justify-content:center;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold)">{{ f.fallback }}</span>
-<img src="{{ f.photoSrc }}" alt="" style="inline-size:64px;block-size:64px;object-fit:cover;border-radius:var(--vt-radius-md);display:{{ f.photoShow }}">
-<div style="display:flex;flex-direction:column;gap:6px;min-width:0">
-<input type="file" accept="image/jpeg,image/png,image/webp" onChange="{{ f.pickFile }}" aria-label="{{ f.label }}">
-<button type="button" data-linkbtn="1" onClick="{{ f.clearPhoto }}">{{ f.clearLabel }}</button>
+<div data-vt-photo-ui="solo">
+<span data-vt-photo-sq="1">
+<sc-if value="{{ f.hasPhoto }}" hint-placeholder-val="{{ false }}"><img src="{{ f.photoSrc }}" alt=""></sc-if>
+<sc-if value="{{ f.noPhoto }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="image" size="{{ n22 }}" color="var(--vt-text-muted)" hint-size="22px,22px"></x-import>
+</sc-if>
+</span>
+<div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+<label data-vt-photo-pick="1">
+<input type="file" accept="image/jpeg,image/png,image/webp" onChange="{{ f.pickFile }}" aria-label="{{ f.chooseLabel }}">
+<span data-vt-photo-cta="1" style="display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-pill);background:var(--vt-white);font-family:var(--vt-font-body);font-size:13px;font-weight:600;color:var(--vt-charcoal-900);cursor:pointer">{{ f.chooseLabel }}</span>
+</label>
+<button type="button" data-linkbtn="1" onClick="{{ f.clearPhoto }}" style="display:{{ f.clearShow }}">{{ f.clearLabel }}</button>
 </div>
 </div>
 <span style="display:{{ f.hintShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ f.hint }}</span>
@@ -131,10 +168,7 @@
 
 <sc-if value="{{ hasHistory }}" hint-placeholder-val="{{ false }}">
 <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--vt-border-subtle)">
-<button type="button" onClick="{{ toggleHistory }}" style="all:unset;box-sizing:border-box;display:flex;align-items:center;gap:8px;cursor:pointer;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ historyChevron }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>{{ historyLabel }}
-</button>
-<sc-if value="{{ historyOpen }}" hint-placeholder-val="{{ false }}">
+<span style="display:block;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ historyLabel }}</span>
 <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;max-height:260px;overflow-y:auto">
 <sc-for list="{{ historyList }}" as="h" hint-placeholder-count="3">
 <div style="box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-grey-50)">
@@ -150,7 +184,6 @@
 <span style="font-size:12px;color:var(--vt-text-muted)">{{ historyEmptyLabel }}</span>
 </sc-if>
 </div>
-</sc-if>
 </div>
 </sc-if>
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:20px;padding-top:18px;border-top:1px solid var(--vt-border-subtle)">
@@ -161,6 +194,33 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" onClick="{{ requestClose }}" hint-size="110px,44px">Cancel</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ save }}" hint-size="130px,44px">{{ saveLabel }}</x-import>
 </span>
+</div>
+</x-import>
+</sc-if>
+
+<sc-if value="{{ nestedOpen }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="md" title="{{ nestedTitle }}" onClose="{{ closeNested }}" hint-size="520px,480px">
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px">
+<sc-for list="{{ nestedFormFields }}" as="f" hint-placeholder-count="4">
+<div style="grid-column:{{ f.span }};min-width:0">
+<sc-if value="{{ f.isText }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" icon="{{ f.inputIcon }}" label="{{ f.label }}" value="{{ f.value }}" onChange="{{ f.set }}" placeholder="{{ f.placeholder }}" hint="{{ f.hint }}" error="{{ f.error }}" required="{{ f.required }}" hint-size="100%,76px"></x-import>
+</sc-if>
+<sc-if value="{{ f.isSelect }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+<span data-fld-l="1">{{ f.label }}</span>
+<dc-import name="BrandSelect" size="field" icon="{{ f.icon }}" value="{{ f.value }}" options="{{ f.options }}" multi="{{ f.multi }}" onSelect="{{ f.pick }}" a11y-label="{{ f.label }}" hint-size="100%,44px"></dc-import>
+</div>
+</sc-if>
+<sc-if value="{{ f.isArea }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ f.label }}" rows="{{ n3 }}" value="{{ f.value }}" onChange="{{ f.set }}" placeholder="{{ f.placeholder }}" hint="{{ f.hint }}" hint-size="100%,120px"></x-import>
+</sc-if>
+</div>
+</sc-for>
+</div>
+<div style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:18px;border-top:1px solid var(--vt-border-subtle)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" onClick="{{ closeNested }}" hint-size="110px,44px">Cancel</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ saveNested }}" hint-size="150px,44px">{{ nestedSaveLabel }}</x-import>
 </div>
 </x-import>
 </sc-if>
@@ -204,7 +264,7 @@ const FIELD_ICONS = {
 };
 
 class Component extends DCLogic {
-  state = { q: '', draft: null, isNew: false, errors: {}, confirm: null, filters: {}, filterCol: null, closeAttempted: false, historyOpen: false };
+  state = { q: '', draft: null, isNew: false, errors: {}, confirm: null, filters: {}, filterCol: null, closeAttempted: false, historyOpen: false, nested: null, nestedErrors: {} };
   lockScroll = () => { try { document.body.style.overflow = 'hidden'; } catch (e) {} };
   unlockScroll = () => { try { document.body.style.overflow = ''; } catch (e) {} };
   componentWillUnmount() {
@@ -309,6 +369,43 @@ class Component extends DCLogic {
     if (row && this.props.onDelete) this.props.onDelete(row.id);
     this.unlockScroll();
     this.setState({ confirm: null });
+  };
+  isoDate = (raw) => {
+    const s = String(raw || '');
+    const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    return m ? m[1] + '-' + m[2] + '-' + m[3] : '';
+  };
+  startNested = () => {
+    const blank = this.props.nestedBlank ? this.props.nestedBlank() : {};
+    this.setState({ nested: blank, nestedErrors: {} });
+  };
+  closeNested = () => this.setState({ nested: null, nestedErrors: {} });
+  setNestedField = (key, value) => this.setState((s) => {
+    const d = {}; for (const k in (s.nested || {})) d[k] = s.nested[k];
+    d[key] = value;
+    const errors = {}; for (const k in s.nestedErrors) if (k !== key) errors[k] = s.nestedErrors[k];
+    return { nested: d, nestedErrors: errors };
+  });
+  saveNested = () => {
+    const fields = this.props.nestedFields || [];
+    const rec = this.state.nested || {};
+    const errors = {};
+    fields.forEach((f) => {
+      if (!f.required) return;
+      const v = rec[f.key];
+      if (v === undefined || v === null || String(v).trim() === '') errors[f.key] = this.props.requiredMessage || 'Needed';
+    });
+    if (Object.keys(errors).length) return this.setState({ nestedErrors: errors });
+    if (this.props.onNestedSave) this.props.onNestedSave(rec, this.state.draft);
+    const target = this.props.nestedTargetKey || 'chauffeurIds';
+    const id = rec.id ? String(rec.id) : '';
+    if (id) {
+      const cur = String((this.state.draft || {})[target] || '');
+      const ids = cur.split(',').map((s) => s.trim()).filter(Boolean);
+      if (ids.indexOf(id) === -1) ids.push(id);
+      this.setField(target, ids.join(', '));
+    }
+    this.setState({ nested: null, nestedErrors: {} });
   };
 
   label(row) {
@@ -418,18 +515,31 @@ class Component extends DCLogic {
         inputIcon: f.icon || FIELD_ICONS[f.key] || '',
         isText: f.editor === undefined || f.editor === 'text',
         isNumber: f.editor === 'number',
+        isDate: f.editor === 'date',
         isSelect: f.editor === 'select',
         isSwitch: f.editor === 'switch',
         isArea: f.editor === 'area',
         isPhoto: f.editor === 'photo',
         value: String(val),
+        dateValue: this.isoDate(val),
         checked: !!raw,
+        hasAdd: !!f.addLabel,
+        addLabel: f.addLabel || '',
+        emptyLabel: f.emptyLabel || f.placeholder || '—',
+        startNested: this.startNested,
+        chooseLabel: f.chooseLabel || 'Choose photo',
         photoKey: String(val).indexOf('data:') === 0 ? '' : String(val),
         photoSrc: (val && String(val).indexOf('data:') !== 0) ? ('/photos/' + val) : '',
-        photoShow: (val && String(val).indexOf('data:') !== 0) ? 'block' : 'none',
-        fallbackShow: (val && String(val).indexOf('data:') !== 0) ? 'none' : 'flex',
-        fallback: f.fallback || '',
+        hasPhoto: !!(val && String(val).indexOf('data:') !== 0),
+        noPhoto: !(val && String(val).indexOf('data:') !== 0),
+        clearShow: (val && String(val).indexOf('data:') !== 0) ? 'inline' : 'none',
+        clearLabel: f.clearLabel || 'Remove',
         set: (e) => this.setField(f.key, f.editor === 'number' ? parseInt(e.target.value, 10) || 0 : e.target.value),
+        setDate: (e) => this.setField(f.key, this.isoDate(e.target.value)),
+        dateInput: (e) => {
+          const next = String(e.target.value || '').replace(/[^\d-]/g, '');
+          if (next !== e.target.value) e.target.value = next;
+        },
         pick: (v) => { this.setField(f.key, v); if (f.onSelect) f.onSelect(v); },
         toggle: (e) => this.setField(f.key, e.target.checked),
         clearPhoto: () => this.setField(f.key, ''),
@@ -467,8 +577,30 @@ class Component extends DCLogic {
       ? visible.length + ' / ' + rows.length
       : rows.length + ' ' + (rows.length === 1 ? noun : (this.props.nounPlural || noun));
 
+    const nd = this.state.nested || {};
+    const nestedFormFields = (this.props.nestedFields || []).map((f) => {
+      const raw = nd[f.key] !== undefined ? nd[f.key] : f.value;
+      const val = raw === undefined || raw === null ? '' : raw;
+      const err = this.state.nestedErrors[f.key] || '';
+      return {
+        label: f.label, hint: f.hint || '', hintShow: f.hint ? 'block' : 'none',
+        placeholder: f.placeholder || '', error: err, required: !!f.required,
+        span: f.half ? 'span 1' : 'span 2',
+        icon: f.icon || 'settings',
+        options: f.options || [],
+        multi: !!f.multi,
+        inputIcon: f.icon || FIELD_ICONS[f.key] || '',
+        isText: f.editor === undefined || f.editor === 'text',
+        isSelect: f.editor === 'select',
+        isArea: f.editor === 'area',
+        value: String(val),
+        set: (e) => this.setNestedField(f.key, e.target.value),
+        pick: (v) => this.setNestedField(f.key, v),
+      };
+    });
+
     return {
-      n3: 3, n16: 16, yes: true,
+      n3: 3, n16: 16, n18: 18, n22: 22, yes: true,
       filterPanelOpen: !!openCol,
       filterPanelTitle: openCol ? openCol.header : '',
       filterOptions,
@@ -510,6 +642,12 @@ class Component extends DCLogic {
       historyLabel: (this.props.historyLabel || 'History') + (histCount ? ' (' + histCount + ')' : ''),
       historyList: histRows, historyEmpty: histRows.length === 0,
       historyEmptyLabel: this.props.historyEmptyLabel || 'Nothing yet',
+      nestedOpen: !!this.state.nested,
+      nestedTitle: this.props.nestedTitle || 'Add',
+      nestedSaveLabel: this.props.nestedSaveLabel || 'Add',
+      nestedFormFields,
+      closeNested: this.closeNested,
+      saveNested: this.saveNested,
       askDeleteCurrent: this.askDeleteCurrent,
       confirmOpen: !!this.state.confirm,
       confirmTitle: this.props.deleteTitle || 'Delete this?',

@@ -30,12 +30,13 @@
 [data-vs-opt]:hover{background:var(--vt-grey-50)}
 </style>
 </helmet>
-<div data-vs-root="{{ sizeAttr }}" ref="{{ rootRef }}">
-<button type="button" data-vs-btn="1" ref="{{ btnRef }}" aria-haspopup="listbox" aria-expanded="{{ expanded }}" aria-label="{{ a11yLabel }}" onClick="{{ toggle }}">
+<div data-vs-root="{{ sizeAttr }}" ref="{{ rootRef }}" style="display:{{ rootDisplay }};width:{{ rootWidth }};min-width:0">
+<button type="button" data-vs-btn="1" ref="{{ btnRef }}" aria-haspopup="listbox" aria-expanded="{{ expanded }}" aria-label="{{ a11yLabel }}" onClick="{{ toggle }}" style="width:{{ btnWidth }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ icon }}" size="{{ n18 }}" color="var(--vt-charcoal-900)" hint-size="18px,18px"></x-import>
 <span data-vs-txt="1">
 <sc-if value="{{ hasSelColor }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="display:inline-block;flex:0 0 auto;width:9px;height:9px;border-radius:999px;background:{{ selColor }};box-shadow:inset 0 0 0 1px rgb(0 0 0/.14)"></span></sc-if>
-<span data-vs-main="1">{{ mainLabel }}</span>
+<sc-if value="{{ hasMainLock }}" hint-placeholder-val="{{ false }}"><span data-vs-main="1" data-vt-no-i18n="1">{{ mainLabel }}</span></sc-if>
+<sc-if value="{{ noMainLock }}" hint-placeholder-val="{{ true }}"><span data-vs-main="1">{{ mainLabel }}</span></sc-if>
 <sc-if value="{{ showNote }}" hint-placeholder-val="{{ false }}"><span data-vs-mark="1" data-vt-no-i18n="1">{{ markLabel }}</span></sc-if>
 </span>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n16 }}" color="var(--vt-grey-500)" hint-size="16px,16px"></x-import>
@@ -53,7 +54,8 @@
 </span>
 </sc-if>
 <span style="display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto">
-<span style="font-size:13px;font-weight:600;color:var(--vt-text-primary);text-align:start">{{ o.label }}</span>
+<span data-vt-no-i18n="1" style="display:{{ o.lockShow }};font-size:13px;font-weight:600;color:var(--vt-text-primary);text-align:start">{{ o.label }}</span>
+<span style="display:{{ o.freeShow }};font-size:13px;font-weight:600;color:var(--vt-text-primary);text-align:start">{{ o.label }}</span>
 <span style="display:{{ o.noteShow }};font-size:11px;color:var(--vt-text-muted);text-align:start">{{ o.note }}</span>
 </span>
 <sc-if value="{{ o.singleSel }}" hint-placeholder-val="{{ false }}">
@@ -106,8 +108,9 @@ class Component extends DCLogic {
     const opts = (this.props.options && this.props.options.length) ? this.props.options : [];
     const val = this.props.value;
     const selectedSet = multi ? String(val || '').split(',').map((s) => s.trim()).filter(Boolean) : [];
-    const sel = multi ? null : (opts.filter((o) => o.value === val)[0] || opts[0] || null);
+    const sel = multi ? null : (opts.filter((o) => o.value === val)[0] || null);
     const selectedLabels = multi ? opts.filter((o) => selectedSet.indexOf(o.value) !== -1).map((o) => o.label) : [];
+    const isoCur = (s) => /^(CHF|EUR|USD|AED)$/.test(String(s || ''));
     /* In a field the full name leads and the code becomes a mark; in the bar the
        code is the whole label, because the row has no space for a word. */
     const field = this.props.size === 'field';
@@ -125,9 +128,15 @@ class Component extends DCLogic {
       icon: this.props.icon || 'globe',
       a11yLabel: this.props.a11yLabel || 'Select',
       sizeAttr: field ? 'field' : 'compact',
+      rootDisplay: field ? 'block' : 'inline-flex',
+      rootWidth: field ? '100%' : 'auto',
+      btnWidth: field ? '100%' : 'auto',
       mainLabel: multi
-        ? (selectedLabels.length ? selectedLabels.join(', ') : '—')
-        : (sel ? (field ? (sel.note || sel.label) : sel.label) : ''),
+        ? (selectedLabels.length ? selectedLabels.join(', ') : (this.props.placeholder || '—'))
+        : (sel ? (field ? (sel.note || sel.label) : sel.label) : (this.props.placeholder || '—')),
+      mainLock: isoCur(sel ? sel.label : '') ? '1' : undefined,
+      hasMainLock: isoCur(sel ? sel.label : ''),
+      noMainLock: !isoCur(sel ? sel.label : ''),
       markLabel: sel ? sel.label : '',
       hasSelColor: !!(sel && sel.color), selColor: (sel && sel.color) || '',
       showNote: !multi && field && !!sel && !!sel.note,
@@ -140,6 +149,8 @@ class Component extends DCLogic {
         const checked = multi ? selectedSet.indexOf(o.value) !== -1 : o.value === val;
         return {
           label: o.label, note: o.note || '', noteShow: o.note ? 'block' : 'none',
+          lockShow: isoCur(o.label) ? 'block' : 'none',
+          freeShow: isoCur(o.label) ? 'none' : 'block',
           color: o.color || '', hasColor: !!o.color,
           multi, sel: checked, selStr: checked ? 'true' : 'false', singleSel: !multi && checked,
           boxBg: checked ? 'var(--vt-charcoal-900)' : 'var(--vt-white)',
