@@ -205,11 +205,11 @@ interface CloudflareEnv {
   SUPABASE_ANON_KEY: string;
 
   /**
-   * Supabase service-role key (server-only). First consumer: plan 06-05 invite route.
-   * Optional until that route lands. Never a browser-prefixed name.
+   * Supabase service-role key (server-only). Used only by the Worker scheduled digest through
+   * `lib/supabase/service.ts`; fetch/RSC code must use identity-scoped doors instead.
    * `wrangler secret put` in staging/prod.
    */
-  SUPABASE_SERVICE_ROLE_KEY?: string;
+  SUPABASE_SERVICE_ROLE_KEY: string;
 
   /**
    * Cloudflare Email Sending binding (`wrangler.jsonc` `send_email`). Staging

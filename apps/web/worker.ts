@@ -11,6 +11,8 @@
 // `opennextjs-cloudflare build` and does not exist in source control.
 import { default as handler } from "./.open-next/worker.js";
 import { withRequestContext } from "./lib/logger";
+import { isZurichDigestTime, runStaffDigest } from "./lib/ops/digest";
+import { createDigestDependencies } from "./lib/supabase/service";
 
 export default {
   fetch: handler.fetch,
@@ -32,10 +34,23 @@ export default {
       route: `scheduled:${controller.cron}`,
       locale: null,
     });
+    const scheduledAt = new Date(controller.scheduledTime);
     emit("info", "scheduled", {
       cron: controller.cron,
-      scheduledTime: new Date(controller.scheduledTime).toISOString(),
+      scheduledTime: scheduledAt.toISOString(),
     });
+
+    // Cloudflare cron expressions have no IANA timezone. Run hourly and select the exact
+    // Europe/Zurich wall-clock instant here, which remains 06:00 through DST changes.
+    if (!isZurichDigestTime(scheduledAt)) return;
+
+    try {
+      const result = await runStaffDigest(scheduledAt, createDigestDependencies(env));
+      emit("info", "staff_digest", result);
+    } catch {
+      // No recipient address, booking detail, provider response, or secret reaches logs.
+      emit("error", "staff_digest", { outcome: "failed" });
+    }
   },
 
   async queue(batch, env, _ctx) {
