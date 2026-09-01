@@ -251,7 +251,29 @@ class Component extends DCLogic {
   state = { lang:'en', draft:null, saved:false, pane:'personal', copiedHex:'' };
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
+    if (this._offProfile) this._offProfile();
+    this._offProfile = window.VamosOps.profile.onChange(() => {
+      this.setState({ draft: window.VamosOps.profile.get() });
+    });
     this.setState({ draft: window.VamosOps.profile.get() });
+    this.loadMe();
+  };
+  loadMe = () => {
+    const client = window.VamosOpsApi;
+    if (!client || typeof client.request !== 'function') return;
+    client.request('GET', '/api/staff/me').then((json) => {
+      if (!json || !json.ok || !json.data) return;
+      const me = json.data;
+      this.setState((s) => {
+        const d = {}; for (const k in (s.draft || {})) d[k] = s.draft[k];
+        d.name = me.fullName || d.name || '';
+        d.role = me.role || d.role || '';
+        d.email = me.email || d.email || '';
+        d.phone = me.phone || d.phone || '';
+        d.lang = me.lang || d.lang || '';
+        return { draft: d };
+      });
+    });
   };
   componentDidMount() {
     this.bind();
@@ -261,6 +283,7 @@ class Component extends DCLogic {
   }
   componentWillUnmount() {
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
+    if (this._offProfile) this._offProfile();
     clearTimeout(this._retry); clearTimeout(this._savedT); clearTimeout(this._copyT);
   }
   set = (key, value) => this.setState((s) => {
@@ -291,14 +314,40 @@ class Component extends DCLogic {
   };
   clearPhoto = () => this.setPhoto('');
   save = () => {
-    if (!window.VamosOps || !this.state.draft) return;
-    window.VamosOps.profile.update(this.state.draft);
-    this.setState({ saved: true });
-    clearTimeout(this._savedT);
-    this._savedT = setTimeout(() => this.setState({ saved: false }), 2400);
+    if (!this.state.draft) return;
+    const d = this.state.draft;
+    const client = window.VamosOpsApi;
+    if (!client || typeof client.request !== 'function') return;
+    client.request('PATCH', '/api/staff/profile', {
+      fullName: d.name,
+      phone: d.phone,
+      lang: d.lang,
+      digestEmail: !!d.digest,
+      email: d.email,
+      avatarPath: d.avatar && String(d.avatar).indexOf('data:') !== 0 ? d.avatar : null,
+    }).then((json) => {
+      if (json && json.ok) {
+        this.setState({ saved: true });
+        clearTimeout(this._savedT);
+        this._savedT = setTimeout(() => this.setState({ saved: false }), 2400);
+      }
+    });
   };
   discard = () => { if (window.VamosOps) this.setState({ draft: window.VamosOps.profile.get(), saved: false }); };
-  signOut = () => { localStorage.removeItem('vamosOpsAuth'); location.href = './ops-login.dc.html'; };
+  signOut = () => {
+    try { localStorage.removeItem('vamosOpsAuth'); } catch (e) {}
+    const done = () => { location.replace('/login'); };
+    const client = window.VamosOpsApi;
+    if (client && typeof client.request === 'function') {
+      client.request('POST', '/api/auth', { action: 'signout' }).then(done, done);
+      return;
+    }
+    fetch('/api/auth', {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'signout' }),
+    }).then(done, done);
+  };
   pickPane = (key) => this.setState({ pane: key });
   copyHex = (hex) => {
     try { navigator.clipboard.writeText(hex); } catch (e) {}
@@ -337,11 +386,10 @@ class Component extends DCLogic {
       photoClearShow: d.avatar ? 'flex' : 'none',
       pickPhoto: this.pickPhoto, clearPhoto: this.clearPhoto,
       vName: d.name || '', setName: txt('name'),
-      vRole: d.role || '', setRole: txt('role'),
+      vRole: d.role || '', setRole: () => {},
       vEmail: d.email || '', setEmail: txt('email'),
       vPhone: d.phone || '', setPhone: txt('phone'),
       toggles: [
-        sw('twoFactor', t.twoFactor, t.twoFactorHint),
         sw('digest', t.digest, t.digestHint),
       ],
       save: this.save, discard: this.discard, signOut: this.signOut,
