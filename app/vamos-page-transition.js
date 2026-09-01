@@ -55,6 +55,9 @@
     p = (p || '/').replace(/\/+$/, '') || '/';
     p = p.replace(/\.dc\.html$/, '').replace(/\.html$/, '');
     if (p === '/app/home/home' || p === '/app/home' || p === '/en' || p === '/de' || p === '/fr' || p === '/ar') return '/';
+    // The ops shell is served as ops.dc.html, while DC's base URL resolves its
+    // hash links to /app/ops/. Both are the current dashboard document.
+    if (p === '/app/ops' || p === '/app/ops/ops') return '/app/ops';
     return p;
   }
   function samePage(u) {
@@ -238,6 +241,8 @@
     var u;
     try { u = new URL(a.href, location.href); } catch (err) { return false; }
     if (u.origin !== location.origin) return false;
+    // Keep dashboard hash navigation in-document: the yellow overlay is only
+    // for a document navigation, never a view switch inside the ops shell.
     if (samePage(u) && u.search === location.search && u.hash) return false;
     return true;
   }

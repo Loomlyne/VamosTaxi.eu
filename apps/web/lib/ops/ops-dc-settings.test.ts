@@ -109,4 +109,26 @@ describe("06-09 DC mocks", () => {
     }
     expect(settings).toMatch(/data-af-eye/);
   });
+
+  it("keeps dashboard hash navigation local and uses the narrow ops UI conventions", () => {
+    const transition = read("app/vamos-page-transition.js");
+    const sidebar = read("app/ops/OpsSidebar.dc.html");
+    const settings = read("app/ops/OpsSettings.dc.html");
+    const profile = read("app/ops/OpsProfile.dc.html");
+
+    expect(transition).toMatch(/p === '\/app\/ops' \|\| p === '\/app\/ops\/ops'/);
+    expect(transition).toMatch(/samePage\(u\) && u\.search === location\.search && u\.hash/);
+    expect(sidebar).toMatch(/<svg aria-hidden="true" viewBox="0 0 42 100"/);
+    expect(sidebar).toMatch(/Q21 94 39 94/);
+    expect(settings).toMatch(/publishedLangs: \[/);
+    expect(settings).toMatch(/Stripe-hosted online checkout/);
+    expect(settings).not.toMatch(/Cash to the chauffeur|TWINT|Corporate accounts only/);
+    expect(settings).not.toMatch(/tSecDangerLabel|openDelete|deleteOpen/);
+    expect(profile).toMatch(/body\.append\('kind', 'staff'\)/);
+    expect(profile).toMatch(/fetch\('\/api\/photos\/upload', \{ method:'POST', credentials:'include', body \}\)/);
+    expect(profile).toMatch(/this\.persist\(\{ avatar:json\.key \}\)/);
+    expect(profile).toMatch(/this\.applyPersisted\(json\.data\)/);
+    expect(profile).not.toMatch(/readAsDataURL|FileReader/);
+    expect(profile).toMatch(/readOnly="\{\{ yes \}\}"/);
+  });
 });
