@@ -185,7 +185,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 
 
 
-<div dir="{{ dir }}" data-hero="1" data-screen-label="Hero" style="position: relative; background: url(&quot;../../hero-arrivals.jpg&quot;) center / cover no-repeat; box-shadow: var(--vt-shadow-xl)" data-om-label="Hero section">
+<div dir="{{ dir }}" data-hero="1" data-screen-label="Hero" style="position: relative; background: url(&quot;/photos/site/hero-arrivals.jpg&quot;) center / cover no-repeat; box-shadow: var(--vt-shadow-xl)" data-om-label="Hero section">
 
 <div aria-hidden="true" style="position:absolute;inset:0;overflow:hidden;pointer-events:none"><div aria-hidden="true" style="position:absolute;top:-40px;inset-inline-end:-40px;width:clamp(240px,62vw,620px);height:clamp(240px,62vw,620px);background-image:conic-gradient(from 90deg at 50% 50%, var(--vt-yellow) 0 25%, transparent 0 50%, var(--vt-yellow) 0 75%, transparent 0);background-size:clamp(46px,9.6vw,96px) clamp(46px,9.6vw,96px);opacity:.16;-webkit-mask-image:radial-gradient(72% 72% at 100% 0%, #000 0%, rgb(0 0 0/.35) 46%, transparent 74%);mask-image:radial-gradient(72% 72% at 100% 0%, #000 0%, rgb(0 0 0/.35) 46%, transparent 74%)" data-om-label="Element"></div></div>
 <div aria-hidden="true" style="position:absolute;inset:0;background:linear-gradient(to bottom, rgb(20 21 21/.34) 0%, rgb(20 21 21/.12) 24%, rgb(20 21 21/.82) 100%)"></div>
@@ -804,10 +804,10 @@ const FLIGHT_API = {
  *  Tokens: {VEHICLE_CLASS_n_NAME} {VEHICLE_CLASS_n_MAX_PAX} {VEHICLE_CLASS_n_MAX_BAGS} {VEHICLE_CLASS_n_EXAMPLE}.
  *  Four classes is the demo ladder; the grid and capacity logic hold 2-5 rows with no relayout. */
 const VEHICLE_CLASSES = [
-  { id:'economy', name:'Economy', icon:'car-front', cap:3, bags:3, image:'../../assets/photography/class-economy.jpg' },
-  { id:'business', name:'Business', icon:'car', cap:3, bags:3, badge:true, image:'../../assets/photography/class-business.jpg' },
-  { id:'first', name:'First', icon:'car', cap:3, bags:2, image:'../../assets/photography/class-first.jpg' },
-  { id:'van', name:'Van', icon:'bus', cap:7, bags:8, image:'../../assets/photography/class-van.jpg' },
+  { id:'economy', name:'Economy', icon:'car-front', cap:3, bags:3, image:'/photos/site/class-economy.jpg' },
+  { id:'business', name:'Business', icon:'car', cap:3, bags:3, badge:true, image:'/photos/site/class-business.jpg' },
+  { id:'first', name:'First', icon:'car', cap:3, bags:2, image:'/photos/site/class-first.jpg' },
+  { id:'van', name:'Van', icon:'bus', cap:7, bags:8, image:'/photos/site/class-van.jpg' },
 ];
 const T = {
   en: {

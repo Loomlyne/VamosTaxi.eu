@@ -4,7 +4,7 @@
 // Keys are generated here; the browser never holds an R2 credential (D-19).
 // Reads go through /photos/<key> (D-23). Zero photos is the shipping state (D-22).
 
-export const PHOTO_PREFIXES = ["vehicles/", "chauffeurs/", "reviews/", "staff/"] as const;
+export const PHOTO_PREFIXES = ["vehicles/", "chauffeurs/", "reviews/", "staff/", "site/"] as const;
 
 export type PhotoPrefix = (typeof PHOTO_PREFIXES)[number];
 export type PhotoKind = "vehicle" | "chauffeur" | "review" | "staff";

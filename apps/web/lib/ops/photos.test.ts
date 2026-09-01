@@ -39,7 +39,7 @@ const RECORD_ID = "11111111-1111-4111-8111-111111111111";
 
 describe("PHOTO_PREFIXES", () => {
   it("is the closed set of kind prefixes", () => {
-    expect([...PHOTO_PREFIXES]).toEqual(["vehicles/", "chauffeurs/", "reviews/", "staff/"]);
+    expect([...PHOTO_PREFIXES]).toEqual(["vehicles/", "chauffeurs/", "reviews/", "staff/", "site/"]);
   });
 });
 
@@ -142,6 +142,7 @@ describe("isReadablePhotoKey / readPhotoKeyFromPathname", () => {
     expect(isReadablePhotoKey(`chauffeurs/${RECORD_ID}/a.png`)).toBe(true);
     expect(isReadablePhotoKey(`reviews/${RECORD_ID}/a.webp`)).toBe(true);
     expect(isReadablePhotoKey(`staff/${RECORD_ID}/a.jpg`)).toBe(true);
+    expect(isReadablePhotoKey("site/svc-airport.jpg")).toBe(true);
   });
 
   it("returns 404-shape false for a key that does not start with an allow-listed prefix", () => {
