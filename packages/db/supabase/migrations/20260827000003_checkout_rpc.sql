@@ -59,6 +59,7 @@ language plpgsql
 security definer
 set search_path = ''
 as $$
+#variable_conflict use_column
 declare
   v_existing public.bookings%rowtype;
   v_existing_payment_id pg_catalog.int8;
