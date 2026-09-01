@@ -35,7 +35,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Hyperdrive Data Access Wiring** - The Worker reaches Postgres through Hyperdrive, fast and safely isolated per request
 - [ ] **Phase 4: Quote & Pricing Engine** - The booking widget returns a real, locked, server-priced quote for any eligible route
 - [ ] **Phase 5: Public Surfaces & Customer Accounts** - Every public mock is a live route on real data, and customers can create and access accounts
-- [ ] **Phase 6: Ops Reference Data & Content Console** - Staff manage the reference data and content that power the public site (replanned 2026-09-01 — DC mock is the product)
+- [x] **Phase 6: Ops Reference Data & Content Console** - Staff manage the reference data and content that power the public site (replanned 2026-09-01 — DC mock is the product) (completed 2026-09-01)
 - [ ] **Phase 7: Checkout & Payment** - A customer pays for a locked quote and receives a webhook-confirmed booking
 - [ ] **Phase 8: Ops Dispatch — Live Board, Assignment & Account Surfaces** - Staff run the live board, assign real bookings, and customers see their own history
 - [ ] **Phase 9: Booking Lifecycle & Customer Self-Service** - A booking lives its full lifecycle — reminders, delay handling, cancellation, review
@@ -288,7 +288,7 @@ does not need to wait for checkout.
 - [x] 06-05-PLAN.md — Pricing draft→publish (`PUT /api/staff/rate-book`)
 - [x] 06-06-PLAN.md — Coupons
 - [x] 06-07-PLAN.md — Customers read-only
-- [ ] 06-08-PLAN.md — Reviews publish/hide/reorder + photo upload
+- [x] 06-08-PLAN.md — Reviews publish/hide/reorder + photo upload
 - [x] 06-09-PLAN.md — Settings / roster / profile + D-12 nav hide
 - [x] 06-10-PLAN.md — `content_strings` editor in OpsContent.dc.html
 
@@ -394,7 +394,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 
 | 3. Hyperdrive Data Access Wiring | 7/7 | Complete | 2026-08-28 |
 | 4. Quote & Pricing Engine | 12/16 | In Progress|  |
 | 5. Public Surfaces & Customer Accounts | 19/24 | In Progress|  |
-| 6. Ops Reference Data & Content Console | 10/11 | In Progress|  |
+| 6. Ops Reference Data & Content Console | 11/11 | Complete   | 2026-09-01 |
 | 7. Checkout & Payment | 0/TBD | Not started | - |
 | 8. Ops Dispatch — Live Board, Assignment & Account Surfaces | 0/TBD | Not started | - |
 | 9. Booking Lifecycle & Customer Self-Service | 0/TBD | Not started | - |
