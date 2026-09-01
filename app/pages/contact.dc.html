@@ -281,15 +281,27 @@ class Component extends DCLogic {
     bad: {}, token: '', idempotencyKey: crypto.randomUUID(),
   };
   errRef = React.createRef();
+  turnstileWidget = null;
   componentDidMount() {
+    this.renderTurnstile();
+  }
+  renderTurnstile = () => {
     const siteKey = document.querySelector('meta[name="vt-turnstile-site-key"]')?.getAttribute('content');
     if (!siteKey || !window.turnstile) return;
-    window.turnstile.render('#ct-turnstile', {
+    this.turnstileWidget = window.turnstile.render('#ct-turnstile', {
       sitekey: siteKey, action: 'contact',
       callback: (token) => this.setState({ token }),
       'expired-callback': () => this.setState({ token: '' }),
       'error-callback': () => this.setState({ token: '' }),
     });
+  };
+  retryTurnstile = () => {
+    if (!window.turnstile) return;
+    if (this.turnstileWidget !== null) {
+      window.turnstile.reset(this.turnstileWidget);
+      return;
+    }
+    this.renderTurnstile();
   }
 
   set(k) { return (e) => {
@@ -324,7 +336,7 @@ class Component extends DCLogic {
       this.setState({ phase: 'invalid', bad }, () => { const el = this.errRef.current; if (el) el.focus(); });
       return;
     }
-    if (!this.state.token) { this.setState({ phase: 'failed', bad: {} }); return; }
+    if (!this.state.token) { this.setState({ phase: 'failed', bad: {} }, this.retryTurnstile); return; }
     this.setState({ phase: 'sending', bad: {} });
     try {
       const response = await fetch('/api/contact', {
@@ -332,8 +344,8 @@ class Component extends DCLogic {
         body: JSON.stringify({ name: this.state.name.trim(), email: this.state.email.trim(), phone: this.state.phone, bookingRef: this.state.ref, message: this.state.msg.trim(), locale: window.VamosLocale?.current?.() || 'en', turnstileToken: this.state.token, idempotencyKey: this.state.idempotencyKey }),
       });
       const result = await response.json();
-      this.setState(result && result.ok === true ? { phase: 'sent', token: '', idempotencyKey: crypto.randomUUID() } : { phase: 'failed', token: '' });
-    } catch { this.setState({ phase: 'failed', token: '' }); }
+      this.setState(result && result.ok === true ? { phase: 'sent', token: '', idempotencyKey: crypto.randomUUID() } : { phase: 'failed', token: '' }, result && result.ok === true ? undefined : this.retryTurnstile);
+    } catch { this.setState({ phase: 'failed', token: '' }, this.retryTurnstile); }
   };
 
   reset = () => {
