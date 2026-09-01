@@ -1,5 +1,5 @@
 import createMiddleware from "next-intl/middleware";
-import { NextResponse, type NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { routing } from "./i18n/routing";
 import {
   mintVamosQs,
@@ -7,6 +7,11 @@ import {
   VAMOS_QS_COOKIE,
   verifyVamosQs,
 } from "./lib/abuse/vamos-qs";
+import {
+  internalDashboardPath,
+  OPS_AUTH_INTERNAL,
+  publicDashboardPath,
+} from "./lib/ops/paths";
 import {
   createSupabaseMiddlewareClient,
   updateSession,
@@ -96,13 +101,93 @@ function isOpsExempt(pathname: string): boolean {
  * `/ops/*` as the dashboard so the gate can be exercised without a
  * hosts-file entry. Do not bind vamostaxi.eu.
  */
-function isDashboardHost(request: NextRequest): boolean {
+function isNamedDashboardHost(request: NextRequest): boolean {
   const host = hostnameOf(request);
-  if (host === "dashboard.vamostaxi.site" || host === "dashboard.localhost") return true;
+  return host === "dashboard.vamostaxi.site" || host === "dashboard.localhost";
+}
+
+function isDashboardHost(request: NextRequest): boolean {
+  if (isNamedDashboardHost(request)) return true;
+  const host = hostnameOf(request);
   if ((host === "localhost" || host === "127.0.0.1") && isOpsRequest(request.nextUrl.pathname)) {
     return true;
   }
   return false;
+}
+
+function dashboardAbs(request: NextRequest, targetPath: string): URL {
+  const { localePrefix } = localeStrippedPath(request.nextUrl.pathname);
+  const href =
+    localePrefix && localePrefix !== "en"
+      ? `/${localePrefix}${targetPath === "/" ? "" : targetPath}`
+      : targetPath;
+  return new URL(href || "/", request.url);
+}
+
+async function dashboardHostMiddleware(request: NextRequest): Promise<NextResponse> {
+  const { localePrefix, path } = localeStrippedPath(request.nextUrl.pathname);
+
+  if (path === "/login" || path === "/ops-login") {
+    return applyStagingNoindex(NextResponse.redirect(dashboardAbs(request, "/"), 308));
+  }
+  if (path === "/ops" || path.startsWith("/ops/")) {
+    return applyStagingNoindex(
+      NextResponse.redirect(dashboardAbs(request, publicDashboardPath(path)), 308),
+    );
+  }
+
+  let internal = internalDashboardPath(path);
+  const client = createSupabaseMiddlewareClient(request);
+  const {
+    data: { user },
+  } = await client.supabase.auth.getUser();
+
+  if (!OPS_AUTH_INTERNAL.has(internal)) {
+    if (!user) {
+      if (internal === "/ops") {
+        internal = "/ops/sign-in";
+      } else {
+        return applyStagingNoindex(
+          copyCookies(client.response, NextResponse.redirect(dashboardAbs(request, "/"), 307)),
+        );
+      }
+    } else {
+      const role = user.app_metadata?.vamos_role;
+      if (typeof role !== "string" || role.length === 0) {
+        if (internal === "/ops") {
+          internal = "/ops/sign-in";
+        } else {
+          return applyStagingNoindex(
+            copyCookies(client.response, NextResponse.redirect(dashboardAbs(request, "/"), 307)),
+          );
+        }
+      }
+    }
+  }
+
+  const internUrl = request.nextUrl.clone();
+  internUrl.pathname =
+    localePrefix && localePrefix !== "en" ? `/${localePrefix}${internal}` : internal;
+  const internReq = new NextRequest(internUrl, request);
+  const i18nResponse = handleI18nRouting(internReq);
+
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-vamos-ops-path", internal);
+  const intlLocale = i18nResponse.headers.get("x-next-intl-locale");
+  if (intlLocale) requestHeaders.set("x-next-intl-locale", intlLocale);
+
+  const mwRewrite = i18nResponse.headers.get("x-middleware-rewrite");
+  const destination = mwRewrite
+    ? new URL(mwRewrite)
+    : new URL(
+        `${localePrefix && localePrefix !== "en" ? `/${localePrefix}` : "/en"}${internal}${internUrl.search}`,
+        request.url,
+      );
+  const rewritten = NextResponse.rewrite(destination, { request: { headers: requestHeaders } });
+  copyCookies(client.response, rewritten);
+  copyCookies(i18nResponse, rewritten);
+  rewritten.cookies.set("vamos_dash", "1", { path: "/", sameSite: "lax", secure: true });
+  return applyStagingNoindex(await updateSession(request, rewritten));
 }
 
 function opsRedirectUrl(request: NextRequest, targetPath: string): URL {
@@ -181,6 +266,11 @@ export default async function middleware(request: NextRequest) {
   // Public host never serves the console (D-01a).
   if (!isDashboardHost(request) && isOpsRequest(pathname)) {
     return applyStagingNoindex(NextResponse.redirect(new URL("/", request.url)));
+  }
+
+  // Named dashboard host: public URLs have no /ops prefix.
+  if (isNamedDashboardHost(request)) {
+    return dashboardHostMiddleware(request);
   }
 
   // Dashboard host is the console, not the public mock gallery.

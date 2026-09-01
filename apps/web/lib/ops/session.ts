@@ -102,7 +102,7 @@ export async function requireStaffClaims(supabase: StaffAuthClient): Promise<Sta
   if (!claims) throw new OpsAuthError("no-session");
   const role = staffRole(claims.app_metadata?.vamos_role);
   if (!role) throw new OpsAuthError("not-staff");
-  if (claims.aal !== "aal2") throw new OpsAuthError("needs-mfa");
+  // MFA paused: only the admin uses the dashboard (Koss 2026-09-01).
   return claims;
 }
 

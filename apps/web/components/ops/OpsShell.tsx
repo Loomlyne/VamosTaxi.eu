@@ -26,7 +26,7 @@ export function OpsShell({
   return (
     <div className="ops-shell" data-drawer={drawer ? "1" : undefined}>
       <div className="ops-shell__bar">
-        <Logo variant="reversed" form="mark" height={26} href="/ops" />
+        <Logo variant="reversed" form="mark" height={26} href="/" />
         <button
           type="button"
           className="ops-shell__menu-btn"

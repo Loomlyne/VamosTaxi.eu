@@ -39,7 +39,12 @@ export function SiteShell({
   // segment (`/ar/dev/components/shell`), so the segment is matched anywhere in the
   // path rather than only at its start.
   const isDevScaffold = pathname === "/dev" || /(^|\/)dev(\/|$)/.test(pathname);
-  const isOps = pathname === "/ops" || /(^|\/)ops(\/|$)/.test(pathname);
+  const host = typeof window !== "undefined" ? window.location.hostname : "";
+  const dashCookie =
+    typeof document !== "undefined" && /(?:^|;\s*)vamos_dash=1(?:;|$)/.test(document.cookie);
+  const isDashboard =
+    dashCookie || host === "dashboard.vamostaxi.site" || host === "dashboard.localhost";
+  const isOps = isDashboard || pathname === "/ops" || /(^|\/)ops(\/|$)/.test(pathname);
 
   const rest = pathname.replace(/^\/(de|fr|ar)(?=\/|$)/, "");
   const isHome = rest === "" || rest === "/";

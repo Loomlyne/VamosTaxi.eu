@@ -71,6 +71,11 @@ body{margin:0}a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt
 :focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}
 button,.vt-btn{box-shadow:none}
 [data-rf-cta] .vt-btn,[data-rf-cta] button,[data-rf-cta] a{width:100%}
+[data-rf-pw]{position:relative}
+[data-rf-pw] .vt-input{padding-right:44px}
+[data-rf-eye]{appearance:none;-webkit-appearance:none;position:absolute;z-index:2;inset-inline-end:6px;top:calc(var(--vt-label-md) + 6px);width:42px;height:var(--vt-control-h-lg);margin:0;padding:0;display:inline-flex;align-items:center;justify-content:center;border:0;background:transparent;color:var(--vt-charcoal-700);cursor:pointer;box-shadow:none}
+[data-rf-eye]:hover{color:var(--vt-charcoal-900)}
+[data-rf-eye]:focus-visible{outline:3px solid rgb(253 194 11/.45);outline-offset:2px;border-radius:var(--vt-radius-xs)}
 @media (prefers-reduced-motion:reduce){[data-rf-view]{animation:none}}</style>
 </helmet>
 <div style="width:100%;display:flex;flex-direction:column;gap:30px;font-family:var(--vt-font-body);color:var(--vt-text-primary)">
@@ -88,8 +93,20 @@ button,.vt-btn{box-shadow:none}
 </div>
 
 <div style="display:flex;flex-direction:column;gap:20px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="New password" type="password" size="lg" autoComplete="new-password" placeholder="••••••••" value="{{ pw }}" onChange="{{ setPw }}" error="{{ errPw }}" hint-size="100%,84px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="Confirm new password" type="password" size="lg" autoComplete="new-password" placeholder="••••••••" value="{{ confirm }}" onChange="{{ setConfirm }}" error="{{ errConfirm }}" hint-size="100%,84px"></x-import>
+<div data-rf-pw="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="New password" type="{{ pwType }}" size="lg" autoComplete="new-password" placeholder="••••••••" value="{{ pw }}" onChange="{{ setPw }}" error="{{ errPw }}" hint-size="100%,84px"></x-import>
+<button type="button" data-rf-eye="1" aria-label="{{ eyePwLabel }}" aria-pressed="{{ showPw }}" onClick="{{ togglePw }}">
+<sc-if value="{{ showPw }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="eye-off" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></sc-if>
+<sc-if value="{{ hidePw }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="eye" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></sc-if>
+</button>
+</div>
+<div data-rf-pw="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="Confirm new password" type="{{ confirmType }}" size="lg" autoComplete="new-password" placeholder="••••••••" value="{{ confirm }}" onChange="{{ setConfirm }}" error="{{ errConfirm }}" hint-size="100%,84px"></x-import>
+<button type="button" data-rf-eye="1" aria-label="{{ eyeConfirmLabel }}" aria-pressed="{{ showConfirm }}" onClick="{{ toggleConfirm }}">
+<sc-if value="{{ showConfirm }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="eye-off" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></sc-if>
+<sc-if value="{{ hideConfirm }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="eye" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></sc-if>
+</button>
+</div>
 </div>
 
 <div style="display:flex;flex-direction:column;gap:11px">
@@ -153,7 +170,7 @@ Both entries match
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:640},&quot;stage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;form&quot;,&quot;saved&quot;,&quot;expired&quot;],&quot;default&quot;:&quot;form&quot;,&quot;tsType&quot;:&quot;'form'|'saved'|'expired'&quot;},&quot;email&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onState&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(stage: string) =&gt; void&quot;}}">
 class Component extends DCLogic {
-  state = { stage: this.props.stage || 'form', pw: '', confirm: '', errors: {} };
+  state = { stage: this.props.stage || 'form', pw: '', confirm: '', errors: {}, showPw: false, showConfirm: false };
   componentDidUpdate(prev) {
     if (prev.stage !== this.props.stage || prev.nonce !== this.props.nonce) {
       this.setState({ stage: this.props.stage || 'form', pw: '', confirm: '', errors: {} });
@@ -165,6 +182,8 @@ class Component extends DCLogic {
       return localStorage.getItem('vamosLang') || 'en';
     } catch (e) { return 'en'; }
   }
+  togglePw = () => this.setState({ showPw: !this.state.showPw });
+  toggleConfirm = () => this.setState({ showConfirm: !this.state.showConfirm });
   save = () => {
     const { pw, confirm } = this.state;
     const errors = {};
@@ -189,12 +208,19 @@ class Component extends DCLogic {
   renderVals() {
     const { stage, pw, confirm, errors } = this.state;
     return {
-      n16: 16, n22: 22,
+      n16: 16, n18: 18, n22: 22,
       isForm: stage === 'form', isSaved: stage === 'saved', isExpired: stage === 'expired',
       emailEcho: (this.props.email || '').trim() || 'the email you booked with',
       pw, confirm, errPw: errors.pw, errConfirm: errors.confirm,
       metLength: pw.length >= 8 ? '1' : null,
       metMatch: pw.length > 0 && pw === confirm ? '1' : null,
+      showPw: this.state.showPw, hidePw: !this.state.showPw,
+      showConfirm: this.state.showConfirm, hideConfirm: !this.state.showConfirm,
+      pwType: this.state.showPw ? 'text' : 'password',
+      confirmType: this.state.showConfirm ? 'text' : 'password',
+      eyePwLabel: this.state.showPw ? 'Hide password' : 'Show password',
+      eyeConfirmLabel: this.state.showConfirm ? 'Hide password' : 'Show password',
+      togglePw: this.togglePw, toggleConfirm: this.toggleConfirm,
       setPw: (e) => this.setState({ pw: e.target.value }),
       setConfirm: (e) => this.setState({ confirm: e.target.value }),
       save: this.save,

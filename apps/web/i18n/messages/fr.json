@@ -1679,7 +1679,7 @@
     "invite-expired": "Cette invitation a expiré",
     "enter-the-code-from-your-app": "Saisissez le code de votre application d’authentification",
     "authenticator-app": "Application d’authentification",
-    "staff-sign-in": "Connexion du personnel",
+    "staff-sign-in": "Connexion",
     "continue": "Continuer",
     "add-photo": "Ajouter une photo",
     "replace-photo": "Remplacer la photo",
@@ -1709,7 +1709,7 @@
     "email": "E-mail",
     "credential-failed": "Connexion impossible. Vérifiez l’e-mail et le mot de passe.",
     "mfa-failed": "Ce code n’a pas fonctionné. Réessayez.",
-    "internal-tool-note": "Outil interne. Accès dispatcher et admin uniquement.",
+    "internal-tool-note": "Outil interne.",
     "auth": {
       "step-password": "Définir le mot de passe",
       "step-scan": "Scanner le QR",

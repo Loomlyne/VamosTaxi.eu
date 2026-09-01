@@ -1679,7 +1679,7 @@
     "invite-expired": "This invite has expired",
     "enter-the-code-from-your-app": "Enter the code from your authenticator app",
     "authenticator-app": "Authenticator app",
-    "staff-sign-in": "Staff sign in",
+    "staff-sign-in": "Sign in",
     "continue": "Continue",
     "add-photo": "Add photo",
     "replace-photo": "Replace photo",
@@ -1709,7 +1709,7 @@
     "email": "Email",
     "credential-failed": "Sign-in failed. Check the email and password.",
     "mfa-failed": "That code did not work. Try again.",
-    "internal-tool-note": "Internal tool. Dispatcher and admin access only.",
+    "internal-tool-note": "Internal tool.",
     "auth": {
       "step-password": "Set password",
       "step-scan": "Scan QR",

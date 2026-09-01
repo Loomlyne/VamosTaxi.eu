@@ -1679,7 +1679,7 @@
     "invite-expired": "Diese Einladung ist abgelaufen",
     "enter-the-code-from-your-app": "Code aus der Authenticator-App eingeben",
     "authenticator-app": "Authenticator-App",
-    "staff-sign-in": "Anmeldung fürs Personal",
+    "staff-sign-in": "Anmelden",
     "continue": "Weiter",
     "add-photo": "Foto hinzufügen",
     "replace-photo": "Foto ersetzen",
@@ -1709,7 +1709,7 @@
     "email": "E-Mail",
     "credential-failed": "Anmeldung fehlgeschlagen. E-Mail und Passwort prüfen.",
     "mfa-failed": "Dieser Code hat nicht funktioniert. Nochmals versuchen.",
-    "internal-tool-note": "Internes Werkzeug. Nur für Dispatcher und Admins.",
+    "internal-tool-note": "Internes Werkzeug.",
     "auth": {
       "step-password": "Passwort festlegen",
       "step-scan": "QR scannen",

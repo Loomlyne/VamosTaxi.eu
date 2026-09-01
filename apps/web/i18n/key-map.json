@@ -1531,7 +1531,7 @@
   "This invite has expired": "ops.invite-expired",
   "Enter the code from your authenticator app": "ops.enter-the-code-from-your-app",
   "Authenticator app": "ops.authenticator-app",
-  "Staff sign in": "ops.staff-sign-in",
+  "Sign in": "ops.staff-sign-in",
   "Continue": "ops.continue",
   "Add photo": "ops.add-photo",
   "Replace photo": "ops.replace-photo",

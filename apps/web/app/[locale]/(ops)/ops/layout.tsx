@@ -25,7 +25,7 @@ async function signOut() {
   const locale = await getLocale();
   const supabase = await createServerSupabaseClient();
   await supabase.auth.signOut();
-  redirect({ href: "/ops/sign-in", locale });
+  redirect({ href: "/", locale });
 }
 
 export default async function OpsLayout({ children }: { children: ReactNode }) {
@@ -43,9 +43,9 @@ export default async function OpsLayout({ children }: { children: ReactNode }) {
     claims = await requireStaffClaims(supabase);
   } catch (error) {
     if (error instanceof OpsAuthError) {
-      if (error.reason === "no-session") redirect({ href: "/ops/sign-in", locale });
+      if (error.reason === "no-session") redirect({ href: "/", locale });
       if (error.reason === "not-staff") redirect({ href: "/", locale });
-      if (error.reason === "needs-mfa") redirect({ href: "/ops/mfa-challenge", locale });
+      if (error.reason === "needs-mfa") redirect({ href: "/", locale });
     }
     throw error;
   }

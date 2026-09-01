@@ -1679,7 +1679,7 @@
     "invite-expired": "انتهت صلاحية هذه الدعوة",
     "enter-the-code-from-your-app": "أدخل الرمز من تطبيق المصادقة",
     "authenticator-app": "تطبيق المصادقة",
-    "staff-sign-in": "تسجيل دخول الموظفين",
+    "staff-sign-in": "تسجيل الدخول",
     "continue": "متابعة",
     "add-photo": "إضافة صورة",
     "replace-photo": "استبدال الصورة",
@@ -1709,7 +1709,7 @@
     "email": "البريد الإلكتروني",
     "credential-failed": "فشل تسجيل الدخول. تحقق من البريد وكلمة المرور.",
     "mfa-failed": "هذا الرمز لم يعمل. حاول مرة أخرى.",
-    "internal-tool-note": "أداة داخلية. للموزّعين والمديرين فقط.",
+    "internal-tool-note": "أداة داخلية.",
     "auth": {
       "step-password": "تعيين كلمة المرور",
       "step-scan": "مسح رمز QR",

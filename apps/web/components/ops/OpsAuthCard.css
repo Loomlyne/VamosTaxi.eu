@@ -1,3 +1,10 @@
+body:has(.ops-auth) footer,
+body:has(.ops-auth) [role="contentinfo"],
+body:has(.ops-shell) footer,
+body:has(.ops-shell) [role="contentinfo"] {
+  display: none;
+}
+
 .ops-auth {
   --vt-shadow-accent: none;
   position: relative;
@@ -24,12 +31,17 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.05;
-  background-image: repeating-conic-gradient(
-    var(--vt-charcoal-800) 0% 25%,
-    transparent 0% 50%
-  );
-  background-size: 112px 112px;
+  background-color: var(--vt-bg-inverse);
+  background-image: url("/assets/photography/ops-login-bg.jpg");
+  background-size: cover;
+  background-position: center;
+}
+
+.ops-auth__check::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgb(30 31 31 / 0.58);
 }
 
 .ops-auth__inner {

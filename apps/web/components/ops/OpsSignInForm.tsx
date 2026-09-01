@@ -1,16 +1,14 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Alert } from "@/components/feedback/Alert";
 import { Input } from "@/components/forms/Input";
 import { Button } from "@/components/core";
-import { staffSignInAction } from "@/lib/auth/staff-ops";
 
 export function OpsSignInForm() {
   const t = useTranslations("ops");
-  const router = useRouter();
+  const locale = useLocale();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);
@@ -28,13 +26,31 @@ export function OpsSignInForm() {
     if (nextEmailError || nextPasswordError) return;
 
     setBusy(true);
-    const result = await staffSignInAction({ email: email.trim(), password });
-    setBusy(false);
-    if (!result.ok) {
+    try {
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({
+          locale,
+          mode: "signin",
+          method: "password",
+          email: email.trim(),
+          password,
+        }),
+      });
+      const data: unknown = await res.json().catch(() => null);
+      const ok = Boolean(data && typeof data === "object" && "ok" in data && data.ok === true);
+      if (!ok) {
+        setFailed(true);
+        return;
+      }
+      window.location.replace("/");
+    } catch {
       setFailed(true);
-      return;
+    } finally {
+      setBusy(false);
     }
-    router.replace("/ops");
   }
 
   return (
