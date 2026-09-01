@@ -3,6 +3,7 @@
 import "./Input.css";
 import { useId, useState } from "react";
 import type { FocusEvent, InputHTMLAttributes, ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { Icon } from "../core";
 import type { IconName } from "../core";
 
@@ -42,6 +43,7 @@ export function Input({
   className = "",
   onFocus,
   onBlur,
+  type = "text",
   ...rest
 }: InputProps) {
   // Law 01's stated exception: focus is tracked in local state to drive
@@ -50,8 +52,12 @@ export function Input({
   // directly (see Input.css's header comment for why). Do not swap this for the
   // button/card focus ring.
   const [focus, setFocus] = useState(false);
+  const [reveal, setReveal] = useState(false);
+  const t = useTranslations("common");
   const generatedId = useId();
   const fid = id || generatedId;
+  const isPassword = type === "password";
+  const inputType = isPassword && reveal ? "text" : type;
 
   const box = [
     "vt-input",
@@ -98,8 +104,21 @@ export function Input({
           onFocus={handleFocus}
           onBlur={handleBlur}
           {...rest}
+          type={inputType}
         />
         {suffix ? <span className="vt-input__affix">{suffix}</span> : null}
+        {isPassword ? (
+          <button
+            type="button"
+            className="vt-input__reveal"
+            aria-label={reveal ? t("hide-password") : t("show-password")}
+            aria-pressed={reveal}
+            disabled={disabled}
+            onClick={() => setReveal((open) => !open)}
+          >
+            <Icon name={reveal ? "eye-off" : "eye"} size={18} color="currentColor" />
+          </button>
+        ) : null}
       </div>
       {error ? (
         <span className="vt-field__err">

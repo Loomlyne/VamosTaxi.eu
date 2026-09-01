@@ -618,6 +618,8 @@
     "passengers-2": "راكب",
     "passkey": "مفتاح المرور",
     "password": "كلمة المرور",
+    "hide-password": "إخفاء كلمة المرور",
+    "show-password": "إظهار كلمة المرور",
     "payment": "الدفع",
     "payments-luxembourg-only-if-paypal-is-switched-o": "المدفوعات · لوكسمبورغ — فقط إن كان PayPal مفعّلًا",
     "payments-zurich-only-if-twint-is-switched-on": "المدفوعات · زيورخ — فقط إن كان TWINT مفعّلًا",

@@ -34,6 +34,10 @@
 .vt-input input,.vt-input select,.vt-input textarea{all:unset;flex:1 1 auto;min-inline-size:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);color:var(--vt-text-primary);line-height:1.4}
 .vt-input input::placeholder,.vt-input textarea::placeholder{color:var(--vt-grey-400)}
 .vt-input__affix{font-size:var(--vt-body-sm);color:var(--vt-text-muted);white-space:nowrap}
+.vt-input__reveal{appearance:none;-webkit-appearance:none;flex:0 0 auto;inline-size:28px;block-size:28px;margin:0;margin-inline-end:-6px;padding:0;display:inline-flex;align-items:center;justify-content:center;border:0;background:transparent;color:var(--vt-text-muted);cursor:pointer;box-shadow:none}
+.vt-input__reveal:hover{color:var(--vt-charcoal-900)}
+.vt-input__reveal:focus-visible{outline:none;color:var(--vt-charcoal-900)}
+.vt-input__reveal:disabled{cursor:not-allowed}
 .vt-input--area{block-size:auto;padding:12px 14px;align-items:flex-start}
 .vt-input--area textarea{resize:vertical;min-block-size:76px;line-height:var(--vt-body-leading)}
 .vt-select select{appearance:none;cursor:pointer;padding-inline-end:4px} /* padding-right -> padding-inline-end (logical property conversion, the one permitted extraction edit) */

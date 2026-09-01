@@ -618,6 +618,8 @@
     "passengers-2": "passagers",
     "passkey": "Clé d’accès",
     "password": "Mot de passe",
+    "hide-password": "Masquer le mot de passe",
+    "show-password": "Afficher le mot de passe",
     "payment": "Paiement",
     "payments-luxembourg-only-if-paypal-is-switched-o": "Paiements · Luxembourg — seulement si PayPal est activé",
     "payments-zurich-only-if-twint-is-switched-on": "Paiements · Zurich — seulement si TWINT est activé",
