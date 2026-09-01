@@ -35,9 +35,12 @@ describe("Phase 6 finalize — four classes and staff hash", () => {
   it("Staff rail goes to #staff and hides company save on that pane", () => {
     const sidebar = read("app/ops/OpsSidebar.dc.html");
     const settings = read("app/ops/OpsSettings.dc.html");
+    const shell = read("app/ops/ops.dc.html");
     expect(sidebar).toMatch(/href:'#staff'/);
     expect(settings).toMatch(/location\.hash = '#staff'/);
     expect(settings).toMatch(/actionsShow: pane === 'staff' \? 'none' : 'flex'/);
+    expect(shell).toMatch(/'staff'/);
+    expect(shell).toMatch(/isSettings: r === 'settings' \|\| r === 'staff'/);
   });
 
   it("fleet photo is a chooser, chauffeur association, nested add-chauffeur", () => {

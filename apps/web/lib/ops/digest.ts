@@ -13,6 +13,42 @@ export type DigestLeg = {
   status: string;
 };
 
+export function mapDigestRecipient(row: {
+  user_id?: string | null;
+  userId?: string | null;
+  email?: string | null;
+  full_name?: string | null;
+  fullName?: string | null;
+  lang?: string | null;
+  language?: string | null;
+}): DigestRecipient {
+  return {
+    userId: String(row.userId ?? row.user_id ?? ""),
+    email: String(row.email ?? ""),
+    fullName: String(row.fullName ?? row.full_name ?? ""),
+    language: String(row.language ?? row.lang ?? "en"),
+  };
+}
+
+export function mapDigestLeg(row: {
+  reference?: string | null;
+  scheduled_local?: string | null;
+  scheduledLocal?: string | null;
+  pickup_text?: string | null;
+  pickupText?: string | null;
+  dropoff_text?: string | null;
+  dropoffText?: string | null;
+  status?: string | null;
+}): DigestLeg {
+  return {
+    reference: String(row.reference ?? ""),
+    scheduledLocal: String(row.scheduledLocal ?? row.scheduled_local ?? ""),
+    pickupText: String(row.pickupText ?? row.pickup_text ?? ""),
+    dropoffText: String(row.dropoffText ?? row.dropoff_text ?? ""),
+    status: String(row.status ?? ""),
+  };
+}
+
 export type RenderedDigest = { subject: string; html: string; text: string };
 
 export type DigestDependencies = {

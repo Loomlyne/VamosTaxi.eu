@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   isZurichDigestTime,
+  mapDigestLeg,
+  mapDigestRecipient,
   runStaffDigest,
   type DigestDependencies,
 } from "./digest";
@@ -89,5 +91,41 @@ describe("Zurich scheduled staff digest", () => {
     const result = await runStaffDigest(new Date("2026-10-25T05:00:00.000Z"), deps);
     expect(result.failed).toBe(1);
     expect(calls).toEqual(["claim", "send", "failed"]);
+  });
+});
+
+describe("digest RPC row mapping", () => {
+  it("maps staff_digest_recipients snake_case columns onto DigestRecipient", () => {
+    expect(
+      mapDigestRecipient({
+        user_id: "staff-1",
+        email: "dispatch@example.test",
+        full_name: "Dispatch",
+        lang: "de",
+      }),
+    ).toEqual({
+      userId: "staff-1",
+      email: "dispatch@example.test",
+      fullName: "Dispatch",
+      language: "de",
+    });
+  });
+
+  it("maps staff_digest_legs snake_case columns onto DigestLeg", () => {
+    expect(
+      mapDigestLeg({
+        reference: "VT-26-0001",
+        scheduled_local: "2026-10-25T08:30",
+        pickup_text: "Zurich Airport",
+        dropoff_text: "Zermatt",
+        status: "confirmed",
+      }),
+    ).toEqual({
+      reference: "VT-26-0001",
+      scheduledLocal: "2026-10-25T08:30",
+      pickupText: "Zurich Airport",
+      dropoffText: "Zermatt",
+      status: "confirmed",
+    });
   });
 });

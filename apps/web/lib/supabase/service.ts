@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
-import type { DigestDependencies, DigestLeg, DigestRecipient } from "../ops/digest";
+import { mapDigestLeg, mapDigestRecipient, type DigestDependencies, type DigestLeg, type DigestRecipient } from "../ops/digest";
 
 function requireData<T>(result: { data: T | null; error: { message: string } | null }): T {
   if (result.error) throw new Error(result.error.message);
@@ -29,9 +29,14 @@ export function createDigestDependencies(env: CloudflareEnv): DigestDependencies
   const client = createServiceClient(env);
 
   return {
-    recipients: async (): Promise<DigestRecipient[]> =>
-      requireData(await client.rpc("staff_digest_recipients")),
-    legs: async (date): Promise<DigestLeg[]> => requireData(await client.rpc("staff_digest_legs", { p_digest_date: date })),
+    recipients: async (): Promise<DigestRecipient[]> => {
+      const rows = requireData(await client.rpc("staff_digest_recipients"));
+      return (Array.isArray(rows) ? rows : []).map(mapDigestRecipient);
+    },
+    legs: async (date): Promise<DigestLeg[]> => {
+      const rows = requireData(await client.rpc("staff_digest_legs", { p_digest_date: date }));
+      return (Array.isArray(rows) ? rows : []).map(mapDigestLeg);
+    },
     claim: async (staffUserId, date): Promise<boolean> =>
       requireData(await client.rpc("staff_digest_claim", { p_staff_user_id: staffUserId, p_digest_date: date })),
     markSent: async (staffUserId, date): Promise<void> => {
