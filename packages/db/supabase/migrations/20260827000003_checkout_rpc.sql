@@ -53,7 +53,7 @@ returns table (
   reference pg_catalog.text,
   snapshot_id pg_catalog.int8,
   payment_id pg_catalog.int8,
-  replayed pg_catalog.boolean
+  replayed pg_catalog.bool
 )
 language plpgsql
 security definer
@@ -69,7 +69,7 @@ declare
   v_payment_id pg_catalog.int8;
   v_actor_kind pg_catalog.text;
   v_actor_user_id pg_catalog.uuid;
-  v_is_return pg_catalog.boolean;
+  v_is_return pg_catalog.bool;
   v_leg record;
 begin
   -- 1. Idempotent replay first (U20 / Phase 4 D-57).
