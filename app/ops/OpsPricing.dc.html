@@ -50,6 +50,20 @@
 <span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">{{ tAlertTitle }}</span>
 <p style="margin:0;font-size:var(--vt-body-xs);line-height:1.55;color:var(--vt-text-inverse-muted);text-wrap:pretty">{{ tAlertBody }}</p>
 </aside>
+
+<sc-if value="{{ showPublish }}" hint-placeholder-val="{{ true }}">
+<aside data-pricing-publish="1" role="region" aria-label="{{ tCompletenessTitle }}" style="box-sizing:border-box;display:flex;flex-direction:column;gap:10px;padding:16px 18px;background:var(--vt-bg-surface);border:1px solid var(--vt-charcoal-900);border-radius:var(--vt-radius-lg);min-width:0">
+<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)">{{ tCompletenessTitle }}</span>
+<p style="margin:0;font-size:var(--vt-body-xs);line-height:1.55;color:var(--vt-text-muted);text-wrap:pretty">{{ tCompletenessBody }}</p>
+<ul data-gap-list="1" style="display:{{ gapListDisplay }};margin:0;padding:0;padding-inline-start:1.1em;font-size:var(--vt-body-xs);color:var(--vt-danger)">
+<sc-for list="{{ gaps }}" as="g" hint-placeholder-count="3">
+<li data-vt-no-i18n="1">{{ g.label }}</li>
+</sc-for>
+</ul>
+<p data-publish-error="1" style="display:{{ publishErrorDisplay }};margin:0;font-size:var(--vt-body-xs);color:var(--vt-danger)">{{ tPublishError }}</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" onClick="{{ publish }}" disabled="{{ publishDisabled }}" hint-size="160px,36px">{{ tPublish }}</x-import>
+</aside>
+</sc-if>
 </div>
 
 <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
@@ -132,8 +146,17 @@ const T = {
     addSurcharge:'Add surcharge', editSurcharge:'Edit surcharge', deleteSurchargeTitle:'Delete this surcharge?', deleteSurchargeBody:'It stops applying to new fares immediately.',
     emptySurchargesTitle:'No surcharges yet', emptySurchargesBody:'Add a rule and it applies to every fare it matches.',
     searchSurcharges:'Rule or note', nounSurcharge:'surcharge', nounSurcharges:'surcharges',
-    fUnit:'Unit', hSurchargeValue:(cur) => 'The amount in ' + cur + ', or the percentage \u2014 ignored when the unit is Included.',
+    fUnit:'Unit', hSurchargeValue:(cur) => 'The amount in ' + cur + ', or the percentage \\u2014 ignored when the unit is Included.',
     unitAmount:'Fixed amount, in the selected currency', unitPct:'% of the fare', unitIncluded:'Included, no charge', included:'Included',
+    publish:'Publish', completenessTitle:'Draft completeness',
+    completenessReady:'Every priced field is filled. Publish writes the live rate version.',
+    completenessGaps:(n) => n === 1 ? '1 gap before publish' : n + ' gaps before publish',
+    completenessEmpty:'No draft rate version.',
+    gapDistance:'Distance rate', gapSurcharge:'Surcharge', gapRoute:'Fixed route',
+    publishDisabledGaps:'Publish stays off until the gaps are priced.',
+    publishDisabledNoDraft:'Publish stays off until a draft exists.',
+    publishError:'Publish did not succeed.',
+    gapListTitle:'Still unpriced',
   },
   de: { title:'Preise & Routen', subtitle:'Feste Routen, Distanzregeln und Zuschläge',
     alertTitle:'Jeder Wert hier ist ein Platzhalter', alertBody:'Grundpreise, Kilometersätze, Zuschläge und das Streckenangebot sind noch offene Kundendaten. Nichts auf diesem Bildschirm ist ein echter Vamos-Taxi-Preis.',
@@ -154,6 +177,15 @@ const T = {
     searchSurcharges:'Regel oder Notiz', nounSurcharge:'Zuschlag', nounSurcharges:'Zuschläge',
     fUnit:'Einheit', hSurchargeValue:(cur) => 'Der Betrag in ' + cur + ', oder der Prozentsatz — wird bei „Inklusive“ ignoriert.',
     unitAmount:'Fester Betrag, in der gewählten Währung', unitPct:'% des Fahrpreises', unitIncluded:'Inklusive, ohne Aufpreis', included:'Inklusive',
+    publish:'Veröffentlichen', completenessTitle:'Entwurfsvollständigkeit',
+    completenessReady:'Jedes Preisfeld ist gefüllt. Veröffentlichen schreibt die live Tarifversion.',
+    completenessGaps:(n) => n === 1 ? '1 Lücke vor dem Veröffentlichen' : n + ' Lücken vor dem Veröffentlichen',
+    completenessEmpty:'Keine Entwurfs-Tarifversion.',
+    gapDistance:'Distanzregel', gapSurcharge:'Zuschlag', gapRoute:'Feste Route',
+    publishDisabledGaps:'Veröffentlichen bleibt aus, bis die Lücken bepreist sind.',
+    publishDisabledNoDraft:'Veröffentlichen bleibt aus, bis ein Entwurf existiert.',
+    publishError:'Veröffentlichen ist fehlgeschlagen.',
+    gapListTitle:'Noch ohne Preis',
   },
   fr: { title:'Tarifs & trajets', subtitle:'Trajets fixes, règles de distance et suppléments',
     alertTitle:'Chaque montant ici est un espace réservé', alertBody:'Les tarifs de base, les prix au kilomètre, les suppléments et la liste des trajets fixes sont des données client en attente. Aucun montant de cet écran n\u2019est un vrai prix Vamos Taxi.',
@@ -172,8 +204,17 @@ const T = {
     addSurcharge:'Ajouter un supplément', editSurcharge:'Modifier le supplément', deleteSurchargeTitle:'Supprimer ce supplément ?', deleteSurchargeBody:'Il ne s\u2019applique plus aux nouveaux tarifs, immédiatement.',
     emptySurchargesTitle:'Aucun supplément', emptySurchargesBody:'Ajoutez une règle : elle s\u2019applique à chaque tarif concerné.',
     searchSurcharges:'Règle ou note', nounSurcharge:'supplément', nounSurcharges:'suppléments',
-    fUnit:'Unité', hSurchargeValue:(cur) => 'Le montant en ' + cur + ', ou le pourcentage — ignoré quand l\u2019unité est Inclus.',
+    fUnit:'Unité', hSurchargeValue:(cur) => 'Le montant en ' + cur + ', ou le pourcentage — ignoré quand l\\u2019unité est Inclus.',
     unitAmount:'Montant fixe, dans la devise choisie', unitPct:'% du tarif', unitIncluded:'Inclus, sans supplément', included:'Inclus',
+    publish:'Publier', completenessTitle:'Complétude du brouillon',
+    completenessReady:'Chaque champ tarifé est rempli. Publier écrit la version tarifaire en ligne.',
+    completenessGaps:(n) => n === 1 ? '1 écart avant publication' : n + ' écarts avant publication',
+    completenessEmpty:'Aucune version tarifaire en brouillon.',
+    gapDistance:'Règle de distance', gapSurcharge:'Supplément', gapRoute:'Trajet fixe',
+    publishDisabledGaps:'Publier reste inactif tant que les écarts ne sont pas tarifés.',
+    publishDisabledNoDraft:'Publier reste inactif tant qu’un brouillon n’existe pas.',
+    publishError:'La publication a échoué.',
+    gapListTitle:'Toujours sans tarif',
   },
   ar: { title:'الأسعار والمسارات', subtitle:'مسارات ثابتة وقواعد المسافة والرسوم الإضافية',
     alertTitle:'كل رقم هنا مؤقت', alertBody:'الأسعار الأساسية وأسعار الكيلومتر والرسوم الإضافية وقائمة المسارات الثابتة بيانات ينتظرها المشروع من العميل. لا شيء في هذه الشاشة سعر حقيقي لفاموس تاكسي.',
@@ -194,6 +235,15 @@ const T = {
     searchSurcharges:'القاعدة أو الملاحظة', nounSurcharge:'رسم إضافي', nounSurcharges:'رسوم إضافية',
     fUnit:'الوحدة', hSurchargeValue:(cur) => 'المبلغ بعملة ' + cur + '، أو النسبة المئوية — تُتجاهل عندما تكون الوحدة "مشمول".',
     unitAmount:'مبلغ ثابت، بالعملة المحددة', unitPct:'% من الأجرة', unitIncluded:'مشمول، بلا رسوم', included:'مشمول',
+    publish:'نشر', completenessTitle:'اكتمال المسودة',
+    completenessReady:'كل حقل مسعّر مكتمل. النشر يكتب إصدار التعرفة المنشور.',
+    completenessGaps:(n) => n === 1 ? 'فجوة واحدة قبل النشر' : n + ' فجوات قبل النشر',
+    completenessEmpty:'لا توجد مسودة لإصدار التعرفة.',
+    gapDistance:'قاعدة المسافة', gapSurcharge:'رسم إضافي', gapRoute:'مسار ثابت',
+    publishDisabledGaps:'يبقى النشر متوقفًا حتى تُسعَّر الفجوات.',
+    publishDisabledNoDraft:'يبقى النشر متوقفًا حتى توجد مسودة.',
+    publishError:'لم ينجح النشر.',
+    gapListTitle:'ما زال بلا سعر',
   },
 };
 
@@ -202,10 +252,14 @@ class Component extends DCLogic {
     lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en',
     cur: (typeof window !== 'undefined' && window.VamosLocale) ? window.VamosLocale.cur() : 'CHF',
     pane: 'routes',
+    draftId: null,
+    gaps: [],
+    publishCode: '',
   };
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
     this._off = window.VamosOps.onAny(() => this.forceUpdate());
+    this.loadDraft();
     this.forceUpdate();
   };
   componentDidMount() {
@@ -220,6 +274,37 @@ class Component extends DCLogic {
     clearTimeout(this._retry);
   }
   updateRate(id, patch) { if (window.VamosOps) window.VamosOps.rates.update(id, patch); }
+  /* Row saves: VamosOps.routes/rates/surcharges → PUT /api/staff/rate-book (06-02). */
+  loadDraft() {
+    const api = window.VamosOpsApi;
+    if (!api || typeof api.request !== 'function') return;
+    api.request('GET', '/api/staff/rate-versions').then((json) => {
+      const versions = json && json.ok && json.data && Array.isArray(json.data.versions) ? json.data.versions : [];
+      const draft = versions.find((v) => v.status === 'draft') || null;
+      const draftId = draft ? draft.id : null;
+      this.setState({ draftId });
+      if (!draftId) { this.setState({ gaps: [] }); return; }
+      api.request('GET', '/api/staff/rate-versions/' + draftId).then((j2) => {
+        const gaps = j2 && j2.ok && j2.data && Array.isArray(j2.data.gaps) ? j2.data.gaps : [];
+        this.setState({ gaps });
+      });
+    });
+  }
+  publish = () => {
+    const api = window.VamosOpsApi;
+    const id = this.state.draftId;
+    if (!api || !id || (this.state.gaps && this.state.gaps.length)) return;
+    api.request('POST', '/api/staff/rate-versions/' + id + '/publish').then((json) => {
+      if (json && json.ok) {
+        this.setState({ publishCode: '', gaps: [] });
+        this.loadDraft();
+        return;
+      }
+      const gaps = (json && Array.isArray(json.gaps)) ? json.gaps : this.state.gaps;
+      this.setState({ publishCode: (json && json.code) || 'unknown', gaps });
+      this.loadDraft();
+    });
+  };
 
   renderVals() {
     const t = T[this.state.lang] || T.en;
@@ -234,7 +319,25 @@ class Component extends DCLogic {
     const surchargesRaw = ops ? ops.surcharges.all() : [];
     const rates = ops ? ops.rates.all() : [];
     const liveCount = routesRaw.filter((r) => r.live).length;
-    const money = (v) => (v ? (window.VamosLocale ? window.VamosLocale.money(v) : cur + ' ' + v) : '—');
+    const money = (v) => {
+      if (v === 0 || v === '0') return window.VamosLocale ? window.VamosLocale.money(v) : cur + ' ' + v;
+      if (v === null || v === undefined || v === '') return cur + ' 000';
+      return window.VamosLocale ? window.VamosLocale.money(v) : cur + ' ' + v;
+    };
+    const profile = ops && ops.profile ? ops.profile.get() : {};
+    const role = profile.role || '';
+    const rawGaps = this.state.gaps || [];
+    const gapKind = (kind) => {
+      if (kind === 'distance_rate') return t.gapDistance;
+      if (kind === 'surcharge') return t.gapSurcharge;
+      return t.gapRoute;
+    };
+    const gaps = rawGaps.map((g) => ({
+      label: gapKind(g.kind) + ': ' + (g.name || g.id || ''),
+    }));
+    const hasDraft = this.state.draftId != null;
+    const hasGaps = rawGaps.length > 0;
+    const completenessBody = !hasDraft ? t.completenessEmpty : hasGaps ? t.completenessGaps(rawGaps.length) : t.completenessReady;
     const locationOptions = ((ops && ops.LOCATIONS) || []).map((l) => ({ value: l, label: l }));
     const currencyOptions = ((ops && ops.CURRENCIES) || ['CHF', 'EUR', 'USD']).map((c) => ({ value: c, label: c }));
     const setCur = (v) => { if (window.VamosLocale) window.VamosLocale.setCur(v); };
@@ -253,6 +356,16 @@ class Component extends DCLogic {
         pick: () => this.setState({ pane: p.key }),
       })),
       isRoutes: pane === 'routes', isDistance: pane === 'distance', isSurcharges: pane === 'surcharges',
+      showPublish: role === 'admin',
+      tCompletenessTitle: t.completenessTitle,
+      tCompletenessBody: completenessBody,
+      tPublish: t.publish,
+      tPublishError: t.publishError,
+      gaps,
+      gapListDisplay: hasGaps ? 'block' : 'none',
+      publishErrorDisplay: this.state.publishCode ? 'block' : 'none',
+      publishDisabled: !hasDraft || hasGaps,
+      publish: this.publish,
 
       tRoutesConfigured: t.routesConfigured(routesRaw.length), tNotLive: t.notLive(routesRaw.length - liveCount),
       routes: routesRaw.map((r) => Object.assign({}, r, {
