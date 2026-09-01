@@ -286,7 +286,7 @@ does not need to wait for checkout.
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 06-04-PLAN.md — Fleet / chauffeurs JSON + R2 photos
 - [ ] 06-05-PLAN.md — Pricing draft→publish (`PUT /api/staff/rate-book`)
-- [ ] 06-06-PLAN.md — Coupons
+- [x] 06-06-PLAN.md — Coupons
 - [ ] 06-07-PLAN.md — Customers read-only
 - [ ] 06-08-PLAN.md — Reviews publish/hide/reorder + photo upload
 - [ ] 06-09-PLAN.md — Settings / roster / profile + D-12 nav hide
@@ -394,7 +394,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 
 | 3. Hyperdrive Data Access Wiring | 7/7 | Complete | 2026-08-28 |
 | 4. Quote & Pricing Engine | 12/16 | In Progress|  |
 | 5. Public Surfaces & Customer Accounts | 19/24 | In Progress|  |
-| 6. Ops Reference Data & Content Console | 3/11 | In Progress|  |
+| 6. Ops Reference Data & Content Console | 4/11 | In Progress|  |
 | 7. Checkout & Payment | 0/TBD | Not started | - |
 | 8. Ops Dispatch — Live Board, Assignment & Account Surfaces | 0/TBD | Not started | - |
 | 9. Booking Lifecycle & Customer Self-Service | 0/TBD | Not started | - |
