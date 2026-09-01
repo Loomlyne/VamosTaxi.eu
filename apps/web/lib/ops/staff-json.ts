@@ -1,0 +1,62 @@
+// apps/web/lib/ops/staff-json.ts
+//
+// Envelope + staff/admin wrappers every later /api/staff/* route uses.
+// Auth goes through requireStaffClaims / requireAdminClaims then the
+// handler; data access stays in the handler via asStaff (D-02). MFA is
+// paused (D-37) — this file does not redirect.
+
+import {
+  OpsAuthError,
+  requireAdminClaims,
+  requireStaffClaims,
+  type OpsAuthReason,
+  type StaffAuthClient,
+  type StaffSession,
+} from "./session";
+import { createSupabaseServerClient } from "../supabase/server";
+
+export type StaffJsonHandler = (
+  claims: StaffSession,
+  request: Request,
+) => Promise<Response> | Response;
+
+export function jsonOk(data: unknown, status = 200): Response {
+  return Response.json({ ok: true, data }, { status });
+}
+
+export function jsonErr(code: string, status: number): Response {
+  return Response.json({ ok: false, code }, { status });
+}
+
+export function staffStatus(reason: OpsAuthReason): { code: string; status: number } {
+  if (reason === "no-session") return { code: "no-session", status: 401 };
+  if (reason === "not-admin") return { code: "not-admin", status: 403 };
+  return { code: "not-staff", status: 403 };
+}
+
+async function staffResponse(
+  request: Request,
+  requireClaims: (supabase: StaffAuthClient) => Promise<StaffSession>,
+  handler: StaffJsonHandler,
+): Promise<Response> {
+  const supabase = (await createSupabaseServerClient()) as StaffAuthClient;
+  let claims: StaffSession;
+  try {
+    claims = await requireClaims(supabase);
+  } catch (error) {
+    if (error instanceof OpsAuthError) {
+      const mapped = staffStatus(error.reason);
+      return jsonErr(mapped.code, mapped.status);
+    }
+    throw error;
+  }
+  return handler(claims, request);
+}
+
+export function withStaff(handler: StaffJsonHandler): (request: Request) => Promise<Response> {
+  return (request) => staffResponse(request, requireStaffClaims, handler);
+}
+
+export function withAdmin(handler: StaffJsonHandler): (request: Request) => Promise<Response> {
+  return (request) => staffResponse(request, requireAdminClaims, handler);
+}
