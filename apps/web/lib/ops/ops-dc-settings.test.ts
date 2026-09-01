@@ -97,6 +97,21 @@ describe("06-09 DC mocks", () => {
     }
   });
 
+  it("enrols a passkey with Supabase's create and verify ceremony without promising removal", () => {
+    const settings = read("app/ops/OpsSettings.dc.html");
+    expect(settings).toMatch(/action:\s*'passkey-register-start'/);
+    expect(settings).toMatch(/navigator\.credentials\.create\(\{ publicKey: decodeCreate\(start\.options\) \}\)/);
+    expect(settings).toMatch(/action:\s*'passkey-register-verify'/);
+    expect(settings).toMatch(/credential:\s*serializeCreate\(credential\)/);
+    expect(settings).toMatch(/function serializeCreate\(cred\)/);
+    expect(settings).toMatch(/attestationObject:\s*bufToB64url\(r\.attestationObject\)/);
+    expect(settings).toMatch(/passkeyAdded:\s*this\.state\.passkeyAdded/);
+    expect(settings).toMatch(/passkeyMsg/);
+    expect(settings).toMatch(/PublicKeyCredential/);
+    expect(settings).not.toMatch(/removePasskey\s*=/);
+    expect(settings).not.toMatch(/tSecPasskeyRemove/);
+  });
+
   it("does not hard-code GmbH / Bleicherstrasse or dispatch@ fallbacks, and has no TOTP QR", () => {
     const settings = read("app/ops/OpsSettings.dc.html");
     const profile = read("app/ops/OpsProfile.dc.html");

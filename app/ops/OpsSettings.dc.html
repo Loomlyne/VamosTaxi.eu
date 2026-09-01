@@ -224,12 +224,12 @@
 </div>
 </sc-if>
 <sc-if value="{{ passkeyAdded }}" hint-placeholder-val="{{ false }}">
-<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--vt-grey-200)">
+<div style="display:flex;align-items:center;gap:12px;padding:11px 0">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="shield-check" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
-<span style="flex:1 1 auto;min-width:0;font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ tSecPasskeyName }}</span>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ removePasskey }}" hint-size="100px,36px">{{ tSecPasskeyRemove }}</x-import>
+<span style="flex:1 1 auto;min-width:0;font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ tSecPasskeyRegistered }}</span>
 </div>
 </sc-if>
+<span role="status" style="display:{{ passkeyMsgShow }};font-size:var(--vt-body-xs);color:{{ passkeyMsgColor }}">{{ passkeyMsg }}</span>
 </div>
 
 </section>
@@ -290,7 +290,7 @@ const T = {
     secNewPw:'New password', secConfirmPw:'Confirm password', secPasswordBtn:'Change password', secPasswordMismatch:'Passwords don’t match.',
     secUpdated:'Updated',
     secPasskeyLabel:'Passkeys', secPasskeySub:'Sign in with Face ID, Touch ID or a security key instead of a password.',
-    secPasskeyEmpty:'No passkey added yet.', secPasskeyAdd:'Add a passkey', secPasskeyName:'Passkey · this device', secPasskeyRemove:'Remove',
+    secPasskeyEmpty:'No passkey added yet.', secPasskeyAdd:'Add a passkey', secPasskeyRegistered:'Passkey registered for this account.', secPasskeySuccess:'Passkey added. You can use it to sign in.', secPasskeyUnsupported:'This browser does not support passkeys.', secPasskeyFailed:'Could not add a passkey. Try again.',
 
     staff:'Staff', staffSub:'Invite, role and active. Admin only.',
     inviteEmail:'Email', inviteRole:'Role', inviteSend:'Send invite',
@@ -334,7 +334,7 @@ const T = {
     secNewPw:'Neues Passwort', secConfirmPw:'Passwort bestätigen', secPasswordBtn:'Passwort ändern', secPasswordMismatch:'Die Passwörter stimmen nicht überein.',
     secUpdated:'Aktualisiert',
     secPasskeyLabel:'Passkeys', secPasskeySub:'Anmelden mit Face ID, Touch ID oder einem Sicherheitsschlüssel statt einem Passwort.',
-    secPasskeyEmpty:'Noch kein Passkey hinzugefügt.', secPasskeyAdd:'Passkey hinzufügen', secPasskeyName:'Passkey · dieses Gerät', secPasskeyRemove:'Entfernen',
+    secPasskeyEmpty:'Noch kein Passkey hinzugefügt.', secPasskeyAdd:'Passkey hinzufügen', secPasskeyRegistered:'Passkey für dieses Konto registriert.', secPasskeySuccess:'Passkey hinzugefügt. Sie können ihn zum Anmelden verwenden.', secPasskeyUnsupported:'Dieser Browser unterstützt keine Passkeys.', secPasskeyFailed:'Passkey konnte nicht hinzugefügt werden. Bitte erneut versuchen.',
 
     staff:'Team', staffSub:'Einladen, Rolle und aktiv. Nur Admin.',
     inviteEmail:'E-Mail', inviteRole:'Rolle', inviteSend:'Einladen',
@@ -378,7 +378,7 @@ const T = {
     secNewPw:'Nouveau mot de passe', secConfirmPw:'Confirmer le mot de passe', secPasswordBtn:'Changer le mot de passe', secPasswordMismatch:'Les mots de passe ne correspondent pas.',
     secUpdated:'Mis à jour',
     secPasskeyLabel:'Clés d’accès', secPasskeySub:'Se connecter avec Face ID, Touch ID ou une clé de sécurité plutôt qu’un mot de passe.',
-    secPasskeyEmpty:'Aucune clé d’accès ajoutée.', secPasskeyAdd:'Ajouter une clé d’accès', secPasskeyName:'Clé d’accès · cet appareil', secPasskeyRemove:'Retirer',
+    secPasskeyEmpty:'Aucune clé d’accès ajoutée.', secPasskeyAdd:'Ajouter une clé d’accès', secPasskeyRegistered:'Clé d’accès enregistrée pour ce compte.', secPasskeySuccess:'Clé d’accès ajoutée. Vous pouvez l’utiliser pour vous connecter.', secPasskeyUnsupported:'Ce navigateur ne prend pas en charge les clés d’accès.', secPasskeyFailed:'Impossible d’ajouter une clé d’accès. Réessayez.',
 
     staff:'Équipe', staffSub:'Invitation, rôle et actif. Admin seulement.',
     inviteEmail:'E-mail', inviteRole:'Rôle', inviteSend:'Inviter',
@@ -422,7 +422,7 @@ const T = {
     secNewPw:'كلمة مرور جديدة', secConfirmPw:'تأكيد كلمة المرور', secPasswordBtn:'تغيير كلمة المرور', secPasswordMismatch:'كلمتا المرور غير متطابقتين.',
     secUpdated:'تم التحديث',
     secPasskeyLabel:'مفاتيح المرور', secPasskeySub:'سجّل الدخول باستخدام Face ID أو Touch ID أو مفتاح أمان بدلاً من كلمة المرور.',
-    secPasskeyEmpty:'لم تتم إضافة أي مفتاح مرور بعد.', secPasskeyAdd:'إضافة مفتاح مرور', secPasskeyName:'مفتاح مرور · هذا الجهاز', secPasskeyRemove:'إزالة',
+    secPasskeyEmpty:'لم تتم إضافة أي مفتاح مرور بعد.', secPasskeyAdd:'إضافة مفتاح مرور', secPasskeyRegistered:'تم تسجيل مفتاح مرور لهذا الحساب.', secPasskeySuccess:'تمت إضافة مفتاح المرور. يمكنك استخدامه لتسجيل الدخول.', secPasskeyUnsupported:'لا يدعم هذا المتصفح مفاتيح المرور.', secPasskeyFailed:'تعذرت إضافة مفتاح المرور. حاول مرة أخرى.',
 
     staff:'الفريق', staffSub:'دعوة ودور وحالة. للمسؤول فقط.',
     inviteEmail:'البريد الإلكتروني', inviteRole:'الدور', inviteSend:'إرسال الدعوة',
@@ -434,6 +434,41 @@ const T = {
 };
 
 const POLICY_KEYS = { minAdvance:1, cancelWindow:1, airportWait:1, cityWait:1, policySlug:1, policyLabel:1, policyEffectiveFrom:1 };
+function b64urlToBuf(s) {
+  const pad = '='.repeat((4 - (s.length % 4)) % 4);
+  const bin = atob((s + pad).replace(/-/g, '+').replace(/_/g, '/'));
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out.buffer;
+}
+function bufToB64url(buf) {
+  const bytes = new Uint8Array(buf);
+  let s = '';
+  for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function decodeCreate(options) {
+  const o = Object.assign({}, options);
+  o.challenge = b64urlToBuf(options.challenge);
+  if (options.user && typeof options.user.id === 'string') o.user = Object.assign({}, options.user, { id: b64urlToBuf(options.user.id) });
+  if (options.excludeCredentials) o.excludeCredentials = options.excludeCredentials.map((c) => Object.assign({}, c, { id: typeof c.id === 'string' ? b64urlToBuf(c.id) : c.id }));
+  return o;
+}
+function serializeCreate(cred) {
+  if (cred.toJSON) return cred.toJSON();
+  const r = cred.response;
+  return {
+    id: cred.id,
+    rawId: bufToB64url(cred.rawId),
+    type: cred.type,
+    response: {
+      clientDataJSON: bufToB64url(r.clientDataJSON),
+      attestationObject: bufToB64url(r.attestationObject),
+      transports: r.getTransports ? r.getTransports() : [],
+    },
+    clientExtensionResults: cred.getClientExtensionResults ? cred.getClientExtensionResults() : {},
+  };
+}
 function api(method, path, body) {
   const client = window.VamosOpsApi;
   if (!client || typeof client.request !== 'function') return Promise.resolve({ ok: false, code: 'network' });
@@ -445,7 +480,7 @@ function signOutNow() {
   api('POST', '/api/auth', { action: 'signout' }).then(done, done);
 }
 class Component extends DCLogic {
-  state = { lang:'en', draft:null, saved:false, pane:'company', secEmail:'', pw1:'', pw2:'', pwMsg:'', pwSaved:false, emailSaved:false, passkeyAdded:false, showPw1:false, showPw2:false, me:null, roster:[], inviteEmail:'', inviteRole:'dispatcher', inviteMsg:'' };
+  state = { lang:'en', draft:null, saved:false, pane:'company', secEmail:'', pw1:'', pw2:'', pwMsg:'', pwSaved:false, emailSaved:false, passkeyAdded:false, passkeyMsg:'', passkeyError:false, showPw1:false, showPw2:false, me:null, roster:[], inviteEmail:'', inviteRole:'dispatcher', inviteMsg:'' };
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
     if (this._offSettings) this._offSettings();
@@ -508,8 +543,33 @@ class Component extends DCLogic {
       }
     });
   };
-  addPasskey = () => {};
-  removePasskey = () => {};
+  addPasskey = async () => {
+    const t = T[this.state.lang] || T.en;
+    if (this._passkeyBusy) return;
+    if (!window.PublicKeyCredential || !navigator.credentials || !navigator.credentials.create) {
+      this.setState({ passkeyMsg: t.secPasskeyUnsupported, passkeyError: true });
+      return;
+    }
+    this._passkeyBusy = true;
+    this.setState({ passkeyMsg: '', passkeyError: false });
+    try {
+      const start = await api('POST', '/api/auth', { action: 'passkey-register-start' });
+      if (!start || !start.options || !start.challenge_id) throw new Error('passkey-register-start');
+      const credential = await navigator.credentials.create({ publicKey: decodeCreate(start.options) });
+      if (!credential) throw new Error('passkey-cancelled');
+      const result = await api('POST', '/api/auth', {
+        action: 'passkey-register-verify',
+        challengeId: start.challenge_id,
+        credential: serializeCreate(credential),
+      });
+      if (!result || !result.ok) throw new Error('passkey-register-verify');
+      this.setState({ passkeyAdded: true, passkeyMsg: t.secPasskeySuccess, passkeyError: false });
+    } catch (e) {
+      this.setState({ passkeyMsg: t.secPasskeyFailed, passkeyError: true });
+    } finally {
+      this._passkeyBusy = false;
+    }
+  };
 
   set = (key, value) => {
     if (POLICY_KEYS[key]) return;
@@ -601,7 +661,7 @@ class Component extends DCLogic {
       tSecPasswordLabel: t.secPasswordLabel, tSecPasswordSub: t.secPasswordSub,
       tSecNewPw: t.secNewPw, tSecConfirmPw: t.secConfirmPw, tSecPasswordBtn: t.secPasswordBtn, tSecUpdated: t.secUpdated,
       tSecPasskeyLabel: t.secPasskeyLabel, tSecPasskeySub: t.secPasskeySub, tSecPasskeyEmpty: t.secPasskeyEmpty,
-      tSecPasskeyAdd: t.secPasskeyAdd, tSecPasskeyName: t.secPasskeyName, tSecPasskeyRemove: t.secPasskeyRemove,
+      tSecPasskeyAdd: t.secPasskeyAdd, tSecPasskeyRegistered: t.secPasskeyRegistered,
 
       isSecurity: pane === 'security', yes: true,
       secEmail: this.state.secEmail, setSecEmail: (e) => this.setState({ secEmail: e.target.value }),
@@ -616,8 +676,10 @@ class Component extends DCLogic {
       eye2Label: this.state.showPw2 ? t.eyeHide : t.eyeShow,
       togglePw1: () => this.setState((s) => ({ showPw1: !s.showPw1 })),
       togglePw2: () => this.setState((s) => ({ showPw2: !s.showPw2 })),
-      passkeyAdded: false, noPasskey: true,
-      addPasskey: this.addPasskey, removePasskey: this.removePasskey,
+      passkeyAdded: this.state.passkeyAdded, noPasskey: !this.state.passkeyAdded,
+      passkeyMsg: this.state.passkeyMsg, passkeyMsgShow: this.state.passkeyMsg ? 'block' : 'none',
+      passkeyMsgColor: this.state.passkeyError ? 'var(--vt-danger)' : 'var(--vt-text-primary)',
+      addPasskey: this.addPasskey,
 
       publishedLangs: [
         { code:'EN', label:t.langEn }, { code:'DE', label:t.langDe },
