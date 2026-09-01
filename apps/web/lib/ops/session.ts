@@ -54,23 +54,42 @@ function staffRole(value: unknown): "dispatcher" | "admin" | undefined {
 }
 
 /**
- * `session_id` is a JWT payload field `getUser()` does not return. Authenticity
- * was already decided by `getUser()` above; this decode is transport-format
- * parsing of `getSession()`'s `access_token`, not trust. No JWT library.
+ * `session_id` / hook claims live on the JWT. `getUser()` returns DB
+ * `raw_app_meta_data` (vamos_role is NULL there — the access-token hook
+ * injects it at mint and does not persist it). Authenticity was already
+ * decided by `getUser()`; this decode is transport-format parsing, not trust.
+ * No JWT library.
  */
-function sessionIdFromAccessToken(accessToken: string): string | undefined {
+function jwtPayload(accessToken: string): Record<string, unknown> | null {
   const parts = accessToken.split(".");
   const payloadB64 = parts[1];
-  if (!payloadB64) return undefined;
+  if (!payloadB64) return null;
   try {
     const b64 = payloadB64.replace(/-/g, "+").replace(/_/g, "/");
     const pad = b64.length % 4 === 0 ? "" : "=".repeat(4 - (b64.length % 4));
     const json = atob(b64 + pad);
-    const payload = JSON.parse(json) as { session_id?: unknown };
-    return typeof payload.session_id === "string" ? payload.session_id : undefined;
+    const payload = JSON.parse(json) as unknown;
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) return null;
+    return payload as Record<string, unknown>;
   } catch {
-    return undefined;
+    return null;
   }
+}
+
+function sessionIdFromAccessToken(accessToken: string): string | undefined {
+  const payload = jwtPayload(accessToken);
+  return typeof payload?.session_id === "string" ? payload.session_id : undefined;
+}
+
+/** Hook-minted `app_metadata.vamos_role` from the access token. */
+export function vamosRoleFromAccessToken(
+  accessToken: string | undefined,
+): "dispatcher" | "admin" | undefined {
+  if (!accessToken) return undefined;
+  const payload = jwtPayload(accessToken);
+  const meta = payload?.app_metadata;
+  if (!meta || typeof meta !== "object" || Array.isArray(meta)) return undefined;
+  return staffRole((meta as Record<string, unknown>).vamos_role);
 }
 
 export async function getStaffClaims(supabase: StaffAuthClient): Promise<StaffSession | null> {
@@ -92,7 +111,8 @@ export async function getStaffClaims(supabase: StaffAuthClient): Promise<StaffSe
   if (aal) claims.aal = aal;
   if (typeof user.email === "string" && user.email.length > 0) claims.email = user.email;
   if (sessionId) claims.session_id = sessionId;
-  const vamosRole = staffRole(user.app_metadata?.vamos_role);
+  const vamosRole =
+    staffRole(user.app_metadata?.vamos_role) ?? vamosRoleFromAccessToken(accessToken);
   if (vamosRole) claims.app_metadata = { vamos_role: vamosRole };
   return claims;
 }

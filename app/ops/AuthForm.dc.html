@@ -80,6 +80,11 @@ body{margin:0}a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt
 button,.vt-btn,.vt-iconbtn{box-shadow:none}
 [data-af-cta] .vt-btn,[data-af-links]{width:100%}
 [data-af-links]{justify-content:space-between}
+[data-af-pw]{position:relative}
+[data-af-pw] .vt-input{padding-right:44px}
+[data-af-eye]{appearance:none;-webkit-appearance:none;position:absolute;z-index:2;inset-inline-end:6px;top:calc((var(--vt-label-md) * var(--vt-body-leading)) + 6px);width:42px;height:var(--vt-control-h-lg);margin:0;padding:0;display:inline-flex;align-items:center;justify-content:center;border:0;background:transparent;color:var(--vt-charcoal-700);cursor:pointer;box-shadow:none}
+[data-af-eye]:hover{color:var(--vt-charcoal-900)}
+[data-af-eye]:focus-visible{outline:3px solid rgb(253 194 11/.45);outline-offset:2px;border-radius:var(--vt-radius-xs)}
 [data-af-opt]{display:flex;align-items:center;gap:12px;width:100%;appearance:none;-webkit-appearance:none;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);padding:11px 13px;text-align:start;cursor:pointer;box-shadow:none;transition:border-color 140ms var(--vt-ease-standard),background 140ms var(--vt-ease-standard)}
 [data-af-opt]:hover{border-color:var(--vt-charcoal-900);background:var(--vt-grey-50)}
 [data-af-opt]:active{transform:translateY(1px)}
@@ -130,7 +135,13 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 </sc-if>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="Email" type="email" icon="mail" size="lg" autoComplete="email" placeholder="you@example.com" value="{{ email }}" onChange="{{ setEmail }}" error="{{ errEmail }}" hint-size="100%,84px"></x-import>
 <sc-if value="{{ needPassword }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="Password" type="password" size="lg" autoComplete="{{ pwAutoComplete }}" placeholder="••••••••" hint="{{ pwHint }}" value="{{ password }}" onChange="{{ setPassword }}" error="{{ errPassword }}" hint-size="100%,84px"></x-import>
+<div data-af-pw="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="Password" type="{{ pwType }}" size="lg" autoComplete="{{ pwAutoComplete }}" placeholder="••••••••" hint="{{ pwHint }}" value="{{ password }}" onChange="{{ setPassword }}" error="{{ errPassword }}" hint-size="100%,84px"></x-import>
+<button type="button" data-af-eye="1" aria-label="{{ eyeLabel }}" aria-pressed="{{ showPw }}" onClick="{{ togglePw }}">
+<sc-if value="{{ showPw }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="eye-off" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></sc-if>
+<sc-if value="{{ hidePw }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="eye" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></sc-if>
+</button>
+</div>
 </sc-if>
 </div>
 
@@ -233,11 +244,6 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:640},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;signin&quot;,&quot;signup&quot;,&quot;forgot&quot;],&quot;default&quot;:&quot;signin&quot;,&quot;tsType&quot;:&quot;'signin'|'signup'|'forgot'&quot;},&quot;method&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;password&quot;,&quot;magic&quot;],&quot;default&quot;:&quot;password&quot;,&quot;tsType&quot;:&quot;'password'|'magic'&quot;},&quot;stage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;form&quot;,&quot;sent&quot;,&quot;verifying&quot;,&quot;returning&quot;],&quot;default&quot;:&quot;form&quot;,&quot;tsType&quot;:&quot;'form'|'sent'|'verifying'|'returning'&quot;},&quot;banner&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;&quot;,&quot;credentials&quot;,&quot;registered&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;'credentials'|'registered'|null&quot;},&quot;email&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;firstName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;lastName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;frozen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;onState&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(s: {mode:string;method:string;stage:string;banner:string|null}) =&gt; void&quot;}}">
 const REGISTERED = ['taken@vamostaxi.eu'];
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
-const OPS_EMAIL = 'koss@vamostaxi.site';
-const OPS_PASSWORD = 'vamos';
-/* Demo rules so every state is reachable by interacting, not just by the jumper:
-   password "wrong" fails sign-in · taken@vamostaxi.eu is already registered.
-   Ops throwaway (delete later): koss@vamostaxi.site / vamos */
 class Component extends DCLogic {
   state = {
     mode: this.props.mode || 'signin',
@@ -250,6 +256,7 @@ class Component extends DCLogic {
     lastName: this.props.lastName || '',
     errors: {},
     resent: false,
+    showPw: false,
   };
   componentDidMount() {
     if (this.state.stage === 'returning') this.armExit();
@@ -278,8 +285,8 @@ class Component extends DCLogic {
   armExit() {
     clearTimeout(this.exitTimer);
     if (this.props.frozen) return;
-    const to = this.props.surface === 'ops' ? './ops.dc.html' : '../pages/checkout.dc.html';
-    this.exitTimer = setTimeout(() => { location.href = to; }, 2400);
+    const to = this.props.surface === 'ops' ? '/' : '../pages/checkout.dc.html';
+    this.exitTimer = setTimeout(() => { location.replace(to); }, 2400);
   }
   /* the OS passkey sheet is system UI — this stands in for the wait, then lands on the same
      return-to-booking transition a password sign-in uses */
@@ -322,7 +329,54 @@ class Component extends DCLogic {
   goForgot = () => this.go({ mode: 'forgot', method: 'password', stage: 'form', banner: null, password: '' });
   backToSignIn = () => this.go({ mode: 'signin', method: 'password', stage: 'form', banner: null });
   signInInstead = () => this.go({ mode: 'signin', method: 'password', stage: 'form', banner: null, password: '' });
-  resend = () => this.setState({ resent: true });
+  togglePw = () => this.setState({ showPw: !this.state.showPw });
+  locale() {
+    try {
+      if (window.VamosLocale && window.VamosLocale.lang) return window.VamosLocale.lang;
+      return localStorage.getItem('vamosLang') || 'en';
+    } catch (e) { return 'en'; }
+  }
+  liveAuth(body) {
+    return fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify(Object.assign({ locale: this.locale() }, body)),
+    }).then((r) => r.json()).catch(() => null);
+  }
+  payload() {
+    const { mode, method, email, password, firstName, lastName } = this.state;
+    const addr = email.trim();
+    if (mode === 'forgot') return { mode: 'forgot', email: addr };
+    if (method === 'magic') {
+      if (mode === 'signup') return { mode: 'signup', method: 'magic', email: addr, firstName: firstName.trim(), lastName: lastName.trim() };
+      return { mode: 'signin', method: 'magic', email: addr };
+    }
+    if (mode === 'signup') {
+      return { mode: 'signup', method: 'password', email: addr, password, firstName: firstName.trim(), lastName: lastName.trim() };
+    }
+    return { mode: 'signin', method: 'password', email: addr, password };
+  }
+  applyLive(result, mode, method) {
+    if (!result) {
+      if (mode === 'signin' && method === 'password') return this.go({ banner: 'credentials' });
+      return this.go({ stage: 'sent' });
+    }
+    if (result.ok) {
+      this.saveSession();
+      if (this.props.surface === 'ops') { location.replace('/'); return; }
+      return this.go({ stage: 'returning', banner: null });
+    }
+    if (result.stage === 'sent') return this.go({ stage: 'sent' });
+    if (result.banner === 'registered') return this.go({ banner: 'registered' });
+    if (result.banner === 'credentials') return this.go({ banner: 'credentials' });
+    return this.go({ stage: 'form', banner: null });
+  }
+  resend = () => {
+    this.setState({ resent: true });
+    if (this.props.frozen) return;
+    this.liveAuth(this.payload());
+  };
   submit = () => {
     const { mode, method, email, password, firstName, lastName } = this.state;
     const addr = email.trim().toLowerCase();
@@ -335,21 +389,21 @@ class Component extends DCLogic {
     if (mode !== 'forgot' && method === 'password' && !password) errors.password = mode === 'signup' ? 'Choose a password' : 'Enter your password';
     else if (mode === 'signup' && method === 'password' && password.length < 8) errors.password = 'Use at least 8 characters';
     if (Object.keys(errors).length) { this.setState({ errors, banner: null }); return; }
-    if (mode === 'forgot' || method === 'magic') return this.go({ stage: 'sent' });
-    if (mode === 'signin') {
-      if (this.props.surface === 'ops') {
-        if (addr !== OPS_EMAIL || password !== OPS_PASSWORD) return this.go({ banner: 'credentials' });
+    if (this.props.frozen) {
+      if (mode === 'forgot' || method === 'magic') return this.go({ stage: 'sent' });
+      if (mode === 'signin') {
+        if (password.toLowerCase() === 'wrong') return this.go({ banner: 'credentials' });
         this.saveSession();
         return this.go({ stage: 'returning', banner: null });
       }
-      if (password.toLowerCase() === 'wrong') return this.go({ banner: 'credentials' });
+      if (REGISTERED.indexOf(addr) !== -1) return this.go({ banner: 'registered' });
       this.saveSession();
-      return this.go({ stage: 'returning', banner: null });
+      this.go({ stage: 'form', banner: null });
+      return;
     }
-    if (REGISTERED.indexOf(addr) !== -1) return this.go({ banner: 'registered' });
-    this.saveSession();
-    if (!this.props.frozen) { location.href = '../pages/account.dc.html?attached=2'; return; }
-    this.go({ stage: 'form', banner: null });
+    if (this._busy) return;
+    this._busy = true;
+    this.liveAuth(this.payload()).then((result) => this.applyLive(result, mode, method)).finally(() => { this._busy = false; });
   };
   renderVals() {
     const { mode, method, stage, banner, email, password, firstName, lastName, errors, resent } = this.state;
@@ -377,6 +431,10 @@ class Component extends DCLogic {
       needPassword: mode !== 'forgot' && !isMagic,
       pwAutoComplete: mode === 'signup' ? 'new-password' : 'current-password',
       pwHint: mode === 'signup' ? 'At least 8 characters.' : undefined,
+      showPw: this.state.showPw, hidePw: !this.state.showPw,
+      pwType: this.state.showPw ? 'text' : 'password',
+      eyeLabel: this.state.showPw ? 'Hide password' : 'Show password',
+      togglePw: this.togglePw,
       bannerCred: isForm && banner === 'credentials', bannerTaken: isForm && banner === 'registered',
       ctaSignIn: isForm && mode === 'signin' && !isMagic,
       ctaSignUp: isForm && mode === 'signup' && !isMagic,

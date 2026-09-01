@@ -194,8 +194,9 @@ function readHash() {
 class Component extends DCLogic {
   state = Object.assign({ navOpen: false, lang: 'en' }, readHash());
   componentDidMount() {
+    if (location.pathname.indexOf('/app/') === 0) { location.replace('/'); return; }
     const gate = this.props.requireSignIn !== false;
-    if (gate && typeof localStorage !== 'undefined' && localStorage.getItem('vamosOpsAuth') !== '1') { location.replace('./ops-login.dc.html'); return; }
+    if (gate && typeof localStorage !== 'undefined' && localStorage.getItem('vamosOpsAuth') !== '1') { location.replace('/login'); return; }
     if (!location.hash) location.replace('#' + (this.props.start || 'dashboard'));
     this._onHash = () => this.setState(Object.assign({ navOpen: false }, readHash()));
     window.addEventListener('hashchange', this._onHash);

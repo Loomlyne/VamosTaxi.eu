@@ -61,8 +61,8 @@ body{margin:0;background:var(--vt-bg-inverse)}a{color:var(--vt-text-link);border
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" hint-size="100%,420px">
 <dc-import name="AuthForm" surface="ops" mode="signin" method="password" stage="form" hint-size="100%,420px"></dc-import>
 </x-import>
-<p data-ol-note="1">Internal tool — dispatcher and admin access only. Customer accounts sign in at <a href="../pages/sign-in.dc.html" style="color:var(--vt-yellow)">the site sign-in</a>.</p>
-<a href="../home/home.dc.html" data-ol-back="1">
+<p data-ol-note="1">Internal tool — dispatcher and admin access only. Customer accounts sign in at <a href="https://vamostaxi.site/sign-in" style="color:var(--vt-yellow)">the site sign-in</a>.</p>
+<a href="https://vamostaxi.site/" data-ol-back="1">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-left" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>Vamos Taxi site
 </a>
 </div>
@@ -71,6 +71,9 @@ body{margin:0;background:var(--vt-bg-inverse)}a{color:var(--vt-text-link);border
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
+  componentDidMount() {
+    if (location.pathname.indexOf('/app/') === 0) location.replace('/login');
+  }
   renderVals() { return { n14: 14, n28: 28 }; }
 }
 

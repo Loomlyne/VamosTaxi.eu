@@ -7,11 +7,8 @@ import {
   VAMOS_QS_COOKIE,
   verifyVamosQs,
 } from "./lib/abuse/vamos-qs";
-import {
-  internalDashboardPath,
-  OPS_AUTH_INTERNAL,
-  publicDashboardPath,
-} from "./lib/ops/paths";
+import { publicDashboardPath } from "./lib/ops/paths";
+import { vamosRoleFromAccessToken } from "./lib/ops/session";
 import {
   createSupabaseMiddlewareClient,
   updateSession,
@@ -65,6 +62,29 @@ async function serveDcHtml(request: NextRequest, mock: string): Promise<NextResp
   const headers = new Headers(res.headers);
   headers.set("content-type", "text/html; charset=utf-8");
   return new NextResponse(res.body, { status: res.status, headers });
+}
+
+async function serveOpsDc(
+  request: NextRequest,
+  cookieSource: NextResponse,
+  file: "ops.dc.html" | "ops-login.dc.html",
+  injectAuth: boolean,
+): Promise<NextResponse> {
+  const asset = new URL(`/app/ops/${file}`, request.url);
+  const res = await fetch(asset);
+  let html = await res.text();
+  const boot = [
+    html.includes('href="/app/ops/"') ? "" : '<base href="/app/ops/">',
+    injectAuth ? '<script>try{localStorage.setItem("vamosOpsAuth","1")}catch(e){}</script>' : "",
+  ].join("");
+  html = html.replace(/<head([^>]*)>/i, `<head$1>${boot}`);
+  const headers = new Headers();
+  headers.set("content-type", "text/html; charset=utf-8");
+  headers.set("Cache-Control", "private, no-store");
+  const out = new NextResponse(html, { status: res.status, headers });
+  copyCookies(cookieSource, out);
+  out.cookies.set("vamos_dash", "1", { path: "/", sameSite: "lax", secure: true });
+  return applyStagingNoindex(await updateSession(request, out));
 }
 
 function qsSecret(): string {
@@ -125,69 +145,40 @@ function dashboardAbs(request: NextRequest, targetPath: string): URL {
 }
 
 async function dashboardHostMiddleware(request: NextRequest): Promise<NextResponse> {
-  const { localePrefix, path } = localeStrippedPath(request.nextUrl.pathname);
+  const { path } = localeStrippedPath(request.nextUrl.pathname);
 
-  if (path === "/login" || path === "/ops-login") {
-    return applyStagingNoindex(NextResponse.redirect(dashboardAbs(request, "/"), 308));
-  }
   if (path === "/ops" || path.startsWith("/ops/")) {
-    return applyStagingNoindex(
-      NextResponse.redirect(dashboardAbs(request, publicDashboardPath(path)), 308),
-    );
+    const pub = publicDashboardPath(path);
+    const dest = pub === "/" || pub === "" ? "/" : "/login";
+    return applyStagingNoindex(NextResponse.redirect(dashboardAbs(request, dest), 308));
   }
 
-  let internal = internalDashboardPath(path);
   const client = createSupabaseMiddlewareClient(request);
   const {
     data: { user },
   } = await client.supabase.auth.getUser();
+  const { data: sessionData } = await client.supabase.auth.getSession();
+  const role = user
+    ? (vamosRoleFromAccessToken(sessionData.session?.access_token) ??
+        (typeof user.app_metadata?.vamos_role === "string" ? user.app_metadata.vamos_role : ""))
+    : "";
+  const inConsole = role === "admin" || role === "dispatcher";
 
-  if (!OPS_AUTH_INTERNAL.has(internal)) {
-    if (!user) {
-      if (internal === "/ops") {
-        internal = "/ops/sign-in";
-      } else {
-        return applyStagingNoindex(
-          copyCookies(client.response, NextResponse.redirect(dashboardAbs(request, "/"), 307)),
-        );
-      }
-    } else {
-      const role = user.app_metadata?.vamos_role;
-      if (typeof role !== "string" || role.length === 0) {
-        if (internal === "/ops") {
-          internal = "/ops/sign-in";
-        } else {
-          return applyStagingNoindex(
-            copyCookies(client.response, NextResponse.redirect(dashboardAbs(request, "/"), 307)),
-          );
-        }
-      }
+  if (inConsole) {
+    if (path !== "/") {
+      return applyStagingNoindex(
+        copyCookies(client.response, NextResponse.redirect(dashboardAbs(request, "/"), 307)),
+      );
     }
+    return serveOpsDc(request, client.response, "ops.dc.html", true);
   }
 
-  const internUrl = request.nextUrl.clone();
-  internUrl.pathname =
-    localePrefix && localePrefix !== "en" ? `/${localePrefix}${internal}` : internal;
-  const internReq = new NextRequest(internUrl, request);
-  const i18nResponse = handleI18nRouting(internReq);
-
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-vamos-ops-path", internal);
-  const intlLocale = i18nResponse.headers.get("x-next-intl-locale");
-  if (intlLocale) requestHeaders.set("x-next-intl-locale", intlLocale);
-
-  const mwRewrite = i18nResponse.headers.get("x-middleware-rewrite");
-  const destination = mwRewrite
-    ? new URL(mwRewrite)
-    : new URL(
-        `${localePrefix && localePrefix !== "en" ? `/${localePrefix}` : "/en"}${internal}${internUrl.search}`,
-        request.url,
-      );
-  const rewritten = NextResponse.rewrite(destination, { request: { headers: requestHeaders } });
-  copyCookies(client.response, rewritten);
-  copyCookies(i18nResponse, rewritten);
-  rewritten.cookies.set("vamos_dash", "1", { path: "/", sameSite: "lax", secure: true });
-  return applyStagingNoindex(await updateSession(request, rewritten));
+  if (path === "/login") {
+    return serveOpsDc(request, client.response, "ops-login.dc.html", false);
+  }
+  return applyStagingNoindex(
+    copyCookies(client.response, NextResponse.redirect(dashboardAbs(request, "/login"), 308)),
+  );
 }
 
 function opsRedirectUrl(request: NextRequest, targetPath: string): URL {
