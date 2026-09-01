@@ -10,10 +10,10 @@ import {
   signInPasswordSchema,
   signUpPasswordSchema,
   updatePasswordSchema,
-  updateProfileSchema,
 } from "@/lib/auth/schemas";
 import {
   FORM_CREDENTIALS,
+  parseProfileFields,
   runOtp,
   runPasswordReset,
   runSignInPassword,
@@ -23,12 +23,13 @@ import {
   runUpdateProfile,
   SENT,
   type AuthRunResult,
+  type ProfileRunResult,
 } from "@/lib/auth/run";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-function json(result: AuthRunResult, status = 200): Response {
+function json(result: AuthRunResult | ProfileRunResult, status = 200): Response {
   return Response.json(result, {
     status,
     headers: { "Cache-Control": "private, no-store" },
@@ -88,11 +89,16 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   if (action === "update-profile") {
-    const parsed = updateProfileSchema.safeParse(fields);
-    if (!parsed.success) return json(FORM_CREDENTIALS);
-    const { result, reason } = await runUpdateProfile(supabase, parsed.data);
-    if (reason) log("error", "auth", ctx, { reason, action: "update-profile" });
-    return json(result);
+    const parsed = parseProfileFields(fields);
+    if (!parsed) return json({ ok: false, reason: "invalid" });
+    try {
+      const { result, reason } = await runUpdateProfile(supabase, parsed);
+      if (reason) log("error", "auth", ctx, { reason, action: "update-profile" });
+      return json(result);
+    } catch {
+      log("error", "auth", ctx, { reason: "throw", action: "update-profile" });
+      return json({ ok: false, reason: "throw" });
+    }
   }
 
   if (action === "passkey-start") {

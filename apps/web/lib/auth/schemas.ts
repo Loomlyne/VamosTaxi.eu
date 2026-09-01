@@ -72,28 +72,6 @@ export const updatePasswordSchema = z
   })
   .strict();
 
-const phoneSchema = z
-  .string()
-  .trim()
-  .min(1)
-  .max(32)
-  .refine((value) => value.replace(/\D/g, "").length >= 9);
-
-export const updateProfileNameSchema = z
-  .object({
-    firstName: nameSchema,
-    lastName: nameSchema,
-  })
-  .strict();
-
-export const updateProfilePhoneSchema = z
-  .object({
-    phone: phoneSchema,
-  })
-  .strict();
-
-export const updateProfileSchema = z.union([updateProfileNameSchema, updateProfilePhoneSchema]);
-
 export const otpRequestSchema = z.discriminatedUnion("mode", [
   signInMagicSchema,
   signUpMagicSchema,

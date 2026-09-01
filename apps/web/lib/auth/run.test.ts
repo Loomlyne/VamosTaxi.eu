@@ -8,6 +8,7 @@ import {
   runSignInPassword,
   runSignOut,
   runSignUpPassword,
+  parseProfileFields,
   runUpdatePassword,
   runUpdateProfile,
   SENT,
@@ -159,13 +160,25 @@ describe("runUpdatePassword", () => {
   });
 });
 
+describe("parseProfileFields", () => {
+  it("picks names even when extra keys are present", () => {
+    expect(
+      parseProfileFields({ firstName: " koussay ", lastName: "zayani", locale: "en", action: "x" }),
+    ).toEqual({ firstName: "koussay", lastName: "zayani" });
+  });
+
+  it("rejects empty names", () => {
+    expect(parseProfileFields({ firstName: "koussay", lastName: "  " })).toBeNull();
+  });
+});
+
 describe("runUpdateProfile", () => {
-  it("returns credentials when there is no session", async () => {
+  it("returns no-user when there is no session", async () => {
     const sb = client({
       getUser: vi.fn(async () => ({ data: { user: null }, error: null })),
     });
     const out = await runUpdateProfile(sb, { firstName: "koussay", lastName: "zayani" });
-    expect(out.result).toEqual(FORM_CREDENTIALS);
+    expect(out.result).toEqual({ ok: false, reason: "no-user" });
     expect(out.reason).toBe("no-user");
   });
 
@@ -201,7 +214,7 @@ describe("runUpdateProfile", () => {
       updateUser: vi.fn(async () => ({ error: { code: "unexpected_failure" } })),
     });
     const out = await runUpdateProfile(sb, { firstName: "A", lastName: "B" });
-    expect(out.result).toEqual(FORM_CREDENTIALS);
+    expect(out.result).toEqual({ ok: false, reason: "auth-failed" });
     expect(out.reason).toBe("unexpected_failure");
   });
 });

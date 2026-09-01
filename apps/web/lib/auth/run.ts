@@ -11,6 +11,8 @@ export type AuthRunResult =
   | { stage: "sent" }
   | { ok: true };
 
+export type ProfileRunResult = { ok: true } | { ok: false; reason: string };
+
 export type AuthError = { code?: string; message?: string } | null;
 
 export type AuthClient = {
@@ -154,26 +156,48 @@ export async function runUpdatePassword(
   return { result: { ok: true }, reason: null };
 }
 
+export function parseProfileFields(
+  fields: Record<string, unknown>,
+): { firstName: string; lastName: string } | { phone: string } | null {
+  const firstName = typeof fields.firstName === "string" ? fields.firstName.trim() : "";
+  const lastName = typeof fields.lastName === "string" ? fields.lastName.trim() : "";
+  const phone = typeof fields.phone === "string" ? fields.phone.trim() : "";
+  if (firstName && lastName && firstName.length <= 80 && lastName.length <= 80) {
+    return { firstName, lastName };
+  }
+  const digits = phone.replace(/\D/g, "");
+  if (phone && phone.length <= 32 && digits.length >= 9) {
+    return { phone };
+  }
+  return null;
+}
+
 export async function runUpdateProfile(
   supabase: AuthClient,
   input: { firstName: string; lastName: string } | { phone: string },
-): Promise<{ result: AuthRunResult; reason: string | null }> {
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-  if (userError || !user) {
-    return { result: FORM_CREDENTIALS, reason: userError?.code ?? "no-user" };
+): Promise<{ result: ProfileRunResult; reason: string | null }> {
+  try {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+    if (userError || !user) {
+      return { result: { ok: false, reason: "no-user" }, reason: userError?.code ?? "no-user" };
+    }
+    const data: Record<string, string> =
+      "phone" in input
+        ? { phone: input.phone }
+        : {
+            first_name: input.firstName,
+            last_name: input.lastName,
+            full_name: fullName(input.firstName, input.lastName),
+          };
+    const { error } = await supabase.auth.updateUser({ data });
+    if (error) {
+      return { result: { ok: false, reason: "auth-failed" }, reason: error.code ?? "auth-failed" };
+    }
+    return { result: { ok: true }, reason: null };
+  } catch {
+    return { result: { ok: false, reason: "throw" }, reason: "throw" };
   }
-  const data: Record<string, string> =
-    "phone" in input
-      ? { phone: input.phone }
-      : {
-          first_name: input.firstName,
-          last_name: input.lastName,
-          full_name: fullName(input.firstName, input.lastName),
-        };
-  const { error } = await supabase.auth.updateUser({ data });
-  if (error) return { result: FORM_CREDENTIALS, reason: error.code ?? "auth-failed" };
-  return { result: { ok: true }, reason: null };
 }
