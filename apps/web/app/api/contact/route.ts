@@ -8,7 +8,7 @@ import { verifyTurnstile } from "@/lib/turnstile";
 
 export const dynamic = "force-dynamic";
 
-type ClaimRow = { claim_state?: string };
+type ClaimRow = { claim_state?: string; lease_token?: string };
 type SubmitRow = { id?: string };
 
 export async function POST(request: Request) {
@@ -63,35 +63,38 @@ export async function POST(request: Request) {
     claim: async (message) => {
       try {
         const rows = await asAnon(env, (tx) => tx`select * from public.claim_contact_delivery(${submissionId}, ${message})`);
-        const state = (rows[0] as ClaimRow | undefined)?.claim_state;
-        return state === "claimed" || state === "accepted" ? state : "unavailable";
+        const claim = rows[0] as ClaimRow | undefined;
+        if (claim?.claim_state === "claimed" && typeof claim.lease_token === "string" && claim.lease_token.length > 0) {
+          return { state: "claimed", leaseToken: claim.lease_token };
+        }
+        return claim?.claim_state === "accepted" ? { state: "accepted" } : { state: "unavailable" };
       } catch {
-        return "unavailable";
+        return { state: "unavailable" };
       }
     },
-    send: (message) => sendContactMessage(
+    send: (message, providerIdempotencyKey) => sendContactMessage(
       apiKey,
       from,
       message === "customer" ? input.email : supportRecipient,
-      `contact:${submissionId}:${message}:v1`,
+      providerIdempotencyKey,
       rendered[message],
     ),
-    finalize: async (message, providerSuffix) => {
+    finalize: async (message, leaseToken, providerSuffix) => {
       try {
-        const rows = await asAnon(env, (tx) => tx`select public.finalize_contact_delivery(${submissionId}, ${message}, true, ${providerSuffix ?? ""}) as state`);
+        const rows = await asAnon(env, (tx) => tx`select public.finalize_contact_delivery(${submissionId}, ${message}, ${leaseToken}, true, ${providerSuffix ?? ""}) as state`);
         return (rows[0] as { state?: string } | undefined)?.state === "accepted" ? "accepted" : "unavailable";
       } catch {
         return "unavailable";
       }
     },
-    fail: async (message) => {
+    fail: async (message, leaseToken) => {
       try {
-        await asAnon(env, (tx) => tx`select public.finalize_contact_delivery(${submissionId}, ${message}, false, null)`);
+        await asAnon(env, (tx) => tx`select public.finalize_contact_delivery(${submissionId}, ${message}, ${leaseToken}, false, null)`);
       } catch {
         // The route remains fail-closed; no details are logged from a contact request.
       }
     },
-  });
+  }, submissionId);
 
   return delivery.accepted ? formSuccess() : formFailure("unavailable", 503);
 }
