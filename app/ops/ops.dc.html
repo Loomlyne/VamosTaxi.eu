@@ -186,7 +186,7 @@ const CONTENT = ['pages', 'legal'];
 const ROUTES = ['dashboard', 'bookings', 'calendar', 'pricing', 'customers', 'coupons', 'settings', 'profile', 'reviews', 'detail'].concat(FLEET).concat(CONTENT);
 const MENU = { en:'Open navigation', de:'Navigation öffnen', fr:'Ouvrir la navigation', ar:'فتح التنقل' };
 /* One console, one URL. Every section is a hash route on this page: #bookings,
-   #pricing, #reviews, #calendar…, plus #detail/VT-4821 for a single booking. */
+   #pricing, #reviews, #calendar…, plus #detail/<id> for a single booking. */
 function readHash() {
   const raw = (location.hash || '').replace(/^#\/?/, '');
   const [key, id] = raw.split('/');
@@ -217,7 +217,7 @@ class Component extends DCLogic {
     return {
       n20: 20,
       route: r === 'detail' ? 'bookings' : r,
-      detailId: this.state.detailId || 'VT-4821',
+      detailId: this.state.detailId || '',
       fleetSection: r === 'chauffeurs' ? 'chauffeurs' : 'vehicles',
       contentSection: r === 'legal' ? 'legal' : 'pages',
       isContent: CONTENT.indexOf(r) !== -1,

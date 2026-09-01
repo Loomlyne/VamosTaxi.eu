@@ -113,22 +113,16 @@
 </sc-if>
 </main>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900},&quot;id&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;VT-4821&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
-const BOOKINGS = [
-  { id:'VT-4821', time:'08:15', date:'Fri 14 Aug', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'Bleicherstrasse 16, 8953 Dietikon', vehicle:'Business', pax:2, bags:2, status:'assigned', total:'CHF 000', driver:'Driver 2', customer:'A. Lehmann', email:'a.lehmann@example.com', phone:'+41 79 000 00 00', flight:'LX317', pay:'Card · Stripe', channel:'Website', km:'18.4 km · 24 min' },
-  { id:'VT-4822', time:'09:40', date:'Fri 14 Aug', pickup:'Zurich HB, Bahnhofplatz', dropoff:'Zurich Airport (ZRH), Terminal 1', vehicle:'Economy', pax:1, bags:1, status:'paid', total:'CHF 000', driver:null, customer:'M. Rey', email:'m.rey@example.com', phone:'+41 78 000 00 00', flight:'—', pay:'TWINT · Stripe', channel:'Website', km:'11.2 km · 19 min' },
-  { id:'VT-4823', time:'11:05', date:'Fri 14 Aug', pickup:'Dietikon, Bahnhofstrasse', dropoff:'Zermatt, Bahnhofplatz', vehicle:'Van', pax:6, bags:8, status:'pending', total:'CHF 000', driver:null, customer:'K. Brunner', email:'k.brunner@example.com', phone:'+41 76 000 00 00', flight:'—', pay:'Awaiting card', channel:'Phone', km:'243 km · 3 h 05' },
-  { id:'VT-4824', time:'14:30', date:'Fri 14 Aug', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'St. Moritz, Via Serlas', vehicle:'Business', pax:2, bags:3, status:'confirmed', total:'CHF 000', driver:null, customer:'S. Frei', email:'s.frei@example.com', phone:'+41 79 000 00 01', flight:'LX1071', pay:'Card · Stripe', channel:'Website', km:'204 km · 2 h 40' },
-  { id:'VT-4825', time:'17:50', date:'Fri 14 Aug', pickup:'Baden, Kurplatz', dropoff:'Zurich Airport (ZRH), Terminal 1', vehicle:'Economy', pax:3, bags:3, status:'paid', total:'CHF 000', driver:'Driver 1', customer:'T. Wyss', email:'t.wyss@example.com', phone:'+41 79 000 00 02', flight:'—', pay:'Cash to driver', channel:'Phone', km:'27.6 km · 31 min' },
-  { id:'VT-4829', time:'21:00', date:'Fri 14 Aug', pickup:'Zurich, City', dropoff:'Zurich Airport (ZRH), Terminal 1', vehicle:'Economy', pax:1, bags:1, status:'assigned', total:'CHF 000', driver:'Driver 1', customer:'N. Keller', email:'n.keller@example.com', phone:'+41 79 000 00 05', flight:'LX346', pay:'Card · Stripe', channel:'Website', km:'12.8 km · 20 min' },
-  { id:'VT-4818', time:'06:20', date:'Fri 14 Aug', pickup:'Uster, Zürichstrasse', dropoff:'Zurich Airport (ZRH), Terminal 2', vehicle:'Business', pax:1, bags:2, status:'completed', total:'CHF 000', driver:'Driver 3', customer:'R. Iten', email:'r.iten@example.com', phone:'+41 79 000 00 03', flight:'—', pay:'Card · Stripe', channel:'Website', km:'23.1 km · 27 min' },
-  { id:'VT-4826', time:'07:30', date:'Sat 15 Aug', pickup:'Zurich Airport (ZRH), Terminal 1', dropoff:'Baden, Kurplatz', vehicle:'Economy', pax:2, bags:2, status:'confirmed', total:'CHF 000', driver:null, customer:'J. Steiner', email:'j.steiner@example.com', phone:'+41 78 000 00 06', flight:'LX1830', pay:'Card · Stripe', channel:'Website', km:'29.4 km · 33 min' },
-  { id:'VT-4827', time:'10:00', date:'Sat 15 Aug', pickup:'Zurich, City', dropoff:'Zurich Airport (ZRH), Terminal 2', vehicle:'Business', pax:2, bags:2, status:'paid', total:'CHF 000', driver:'Driver 3', customer:'P. Huber', email:'p.huber@example.com', phone:'+41 79 000 00 07', flight:'LX1274', pay:'Card · Stripe', channel:'Website', km:'11.9 km · 20 min' },
-  { id:'VT-4828', time:'13:20', date:'Sat 15 Aug', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'Verbier, Place Centrale', vehicle:'Van', pax:5, bags:6, status:'pending', total:'CHF 000', driver:null, customer:'C. Roth', email:'c.roth@example.com', phone:'+41 76 000 00 08', flight:'LX2098', pay:'Awaiting card', channel:'Website', km:'297 km · 3 h 30' },
-  { id:'VT-4830', time:'08:00', date:'Thu 13 Aug', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'Zurich, City', vehicle:'Business', pax:2, bags:2, status:'completed', total:'CHF 000', driver:'Driver 2', customer:'E. Bachmann', email:'e.bachmann@example.com', phone:'+41 79 000 00 09', flight:'LX348', pay:'Card · Stripe', channel:'Website', km:'18.4 km · 24 min' },
-  { id:'VT-4812', time:'19:15', date:'Thu 13 Aug', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'Verbier, Place Centrale', vehicle:'Van', pax:5, bags:6, status:'cancelled', total:'CHF 000', driver:null, customer:'L. Michel', email:'l.michel@example.com', phone:'+41 78 000 00 04', flight:'LX2814', pay:'Refund due', channel:'Website', km:'297 km · 3 h 30' },
-];
-const DRIVERS = ['Driver 1', 'Driver 2', 'Driver 3', 'Partner carrier'];
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900},&quot;id&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+const EMPTY_BOOKING = { id:'', time:'', date:'', pickup:'', dropoff:'', vehicle:'', pax:0, bags:0, status:'', total:'CHF 000', driver:null, customer:'', email:'', phone:'', flight:'', pay:'', channel:'', km:'' };
+function listBookings() {
+  return window.VamosOps ? window.VamosOps.bookings.all() : [];
+}
+function chauffeurNames() {
+  const ops = window.VamosOps;
+  if (!ops) return [];
+  return ops.chauffeurs.all().map((c) => c.name).filter(Boolean);
+}
 const T = {
   en: { backToBookings:'Back to bookings', bookedBy:'booked by', moreActions:'More actions', details:'Details', history:'History',
     assignment:'Assignment', assign:'Assign driver', reassign:'Reassign', onShift:'On shift', noDriver:'No driver assigned', noDriverSub:'Assign before the pickup reminder goes out',
@@ -171,24 +165,20 @@ class Component extends DCLogic {
     window.addEventListener('vamos:locale', this._onLocale);
   }
   getBooking() {
-    const params = new URLSearchParams('?id=' + encodeURIComponent((this.props && this.props.id) || ''));
-    const id = params.get('id');
-    return BOOKINGS.find((b) => b.id === id) || BOOKINGS[0];
+    const id = (this.props && this.props.id) || '';
+    const found = listBookings().find((b) => b.id === id);
+    return found || EMPTY_BOOKING;
   }
   notify = (msg) => { this.setState({ toastMsg: msg, showToast: true }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ showToast: false }), 3600); };
   renderVals() {
     const t = T[this.state.lang] || T.en;
     const booking = this.getBooking();
+    const drivers = chauffeurNames();
     const assignedDriver = this.state.assigned[booking.id] || booking.driver;
-    const isAirport = /airport|zrh/i.test(booking.pickup + ' ' + booking.dropoff);
-    const fareLines = [{ label: t.lineTransfer + booking.vehicle, value: 'CHF 000.00' }];
+    const isAirport = /airport|zrh/i.test((booking.pickup || '') + ' ' + (booking.dropoff || ''));
+    const fareLines = [{ label: t.lineTransfer + (booking.vehicle || ''), value: 'CHF 000.00' }];
     if (isAirport) fareLines.push({ label: t.lineAirportFee, value: 'CHF 00.00' });
-    const EVENTS = [
-      { icon:'receipt', label: t.evQuote, when:'Wed 12 Aug · 18:04', who: t.website },
-      { icon:'credit-card', label: t.evPayment, when:'Wed 12 Aug · 18:06', who: t.stripeWebhook },
-      { icon:'mail', label: t.evVoucher, when:'Wed 12 Aug · 18:06', who: t.resend },
-      { icon:'user', label: t.evAssigned, when:'Thu 13 Aug · 09:12', who: t.dispatch },
-    ];
+    const EVENTS = [];
     return {
       n2:2, n15:15, n16:16, yes:true,
       tBackToBookings: t.backToBookings, tMoreActions: t.moreActions, tBookedBy: t.bookedBy,
@@ -199,7 +189,7 @@ class Component extends DCLogic {
       tAssignment: t.assignment,
       assignVariant: assignedDriver ? 'ghost' : 'primary',
       assignLabel: assignedDriver ? t.reassign : t.assign,
-      openAssignDialog: () => this.setState({ dialogOpen: true, pickDriver: assignedDriver || DRIVERS[1] }),
+      openAssignDialog: () => this.setState({ dialogOpen: true, pickDriver: assignedDriver || drivers[0] || '' }),
       hasDriver: !!assignedDriver, noDriver: !assignedDriver,
       driverName: assignedDriver || '', driverSubtitle: booking.vehicle + ' · ' + t.onShift, tOnShift: t.onShift,
       tNoDriver: t.noDriver, tNoDriverSub: t.noDriverSub,
@@ -214,7 +204,7 @@ class Component extends DCLogic {
       events: EVENTS,
       dialogOpen: this.state.dialogOpen, tAssignDriver: t.assign, dialogSubtitle: booking.id + ' · ' + booking.time + ' · ' + booking.vehicle,
       closeDialog: () => this.setState({ dialogOpen: false }),
-      tDriver: t.driver, driverOptions: DRIVERS, pickDriver: this.state.pickDriver, setPickDriver: (e) => this.setState({ pickDriver: e.target.value }),
+      tDriver: t.driver, driverOptions: drivers, pickDriver: this.state.pickDriver, setPickDriver: (e) => this.setState({ pickDriver: e.target.value }),
       tManualNote: t.manualNote, tCancel: t.cancel, tAssign: t.assign,
       confirmAssign: () => {
         const chosen = this.state.pickDriver;

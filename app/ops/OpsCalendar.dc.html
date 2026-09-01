@@ -138,9 +138,16 @@ function labelFor(y, m, d) {
   return WD_EN[dow] + ' ' + d + ' ' + MON_EN[m];
 }
 
+function zurichYmd() {
+  const p = {};
+  new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Zurich', year: 'numeric', month: 'numeric', day: 'numeric' })
+    .formatToParts(new Date()).forEach((x) => { p[x.type] = x.value; });
+  return { y: parseInt(p.year, 10), m: parseInt(p.month, 10) - 1, sel: parseInt(p.day, 10) };
+}
+
 class Component extends DCLogic {
-  /* The seed data lives in August 2026, so that is where the console opens. */
-  state = { lang:'en', y: 2026, m: 7, sel: 14 };
+  /* Open on today in Europe/Zurich. Empty until bookings exist. */
+  state = Object.assign({ lang:'en' }, zurichYmd());
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
     this._off = window.VamosOps.bookings.onChange(() => this.forceUpdate());
@@ -205,7 +212,7 @@ class Component extends DCLogic {
       weekdays: t.weekdays.map((label) => ({ label })),
       prevMonth: () => this.step(-1),
       nextMonth: () => this.step(1),
-      goToday: () => this.setState({ y: 2026, m: 7, sel: 14 }),
+      goToday: () => this.setState(zurichYmd()),
       cells: cells.map((c) => {
         if (c.blank) return { day:'', chips:[], countShow:'none', moreShow:'none', more:'', count:'',
           bg:'var(--vt-grey-50)', numBg:'transparent', numColor:'transparent', pressed:'false', select: () => {} };

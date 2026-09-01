@@ -68,20 +68,15 @@
 </main>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900}}">
-const BOOKINGS = [
-  { id:'VT-4821', time:'08:15', date:'Fri 14 Aug', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'Bleicherstrasse 16, 8953 Dietikon', vehicle:'Business', pax:2, bags:2, status:'assigned', driver:'Driver 2' },
-  { id:'VT-4822', time:'09:40', date:'Fri 14 Aug', pickup:'Zurich HB, Bahnhofplatz', dropoff:'Zurich Airport (ZRH), Terminal 1', vehicle:'Economy', pax:1, bags:1, status:'paid', driver:null },
-  { id:'VT-4823', time:'11:05', date:'Fri 14 Aug', pickup:'Dietikon, Bahnhofstrasse', dropoff:'Zermatt, Bahnhofplatz', vehicle:'Van', pax:6, bags:8, status:'pending', driver:null },
-  { id:'VT-4824', time:'14:30', date:'Fri 14 Aug', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'St. Moritz, Via Serlas', vehicle:'Business', pax:2, bags:3, status:'confirmed', driver:null },
-  { id:'VT-4825', time:'17:50', date:'Fri 14 Aug', pickup:'Baden, Kurplatz', dropoff:'Zurich Airport (ZRH), Terminal 1', vehicle:'Economy', pax:3, bags:3, status:'paid', driver:'Driver 1' },
-  { id:'VT-4829', time:'21:00', date:'Fri 14 Aug', pickup:'Zurich, City', dropoff:'Zurich Airport (ZRH), Terminal 1', vehicle:'Economy', pax:1, bags:1, status:'assigned', driver:'Driver 1' },
-  { id:'VT-4818', time:'06:20', date:'Fri 14 Aug', pickup:'Uster, Zürichstrasse', dropoff:'Zurich Airport (ZRH), Terminal 2', vehicle:'Business', pax:1, bags:2, status:'completed', driver:'Driver 3' },
-  { id:'VT-4826', time:'07:30', date:'Sat 15 Aug', pickup:'Zurich Airport (ZRH), Terminal 1', dropoff:'Baden, Kurplatz', vehicle:'Economy', pax:2, bags:2, status:'confirmed', driver:null },
-  { id:'VT-4827', time:'10:00', date:'Sat 15 Aug', pickup:'Zurich, City', dropoff:'Zurich Airport (ZRH), Terminal 2', vehicle:'Business', pax:2, bags:2, status:'paid', driver:'Driver 3' },
-  { id:'VT-4828', time:'13:20', date:'Sat 15 Aug', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'Verbier, Place Centrale', vehicle:'Van', pax:5, bags:6, status:'pending', driver:null },
-  { id:'VT-4830', time:'08:00', date:'Thu 13 Aug', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'Zurich, City', vehicle:'Business', pax:2, bags:2, status:'completed', driver:'Driver 2' },
-  { id:'VT-4812', time:'19:15', date:'Thu 13 Aug', pickup:'Zurich Airport (ZRH), Terminal 2', dropoff:'Verbier, Place Centrale', vehicle:'Van', pax:5, bags:6, status:'cancelled', driver:null },
-];
+function boardDate(d) {
+  const p = {};
+  new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Zurich', weekday: 'short', day: 'numeric', month: 'short' })
+    .formatToParts(d).forEach((x) => { p[x.type] = x.value; });
+  return p.weekday + ' ' + p.day + ' ' + p.month;
+}
+function listBookings() {
+  return window.VamosOps ? window.VamosOps.bookings.all() : [];
+}
 const T = {
   en: { bookings:'Bookings', ordered:'Ordered by pickup time', searchPh:'Reference, name, phone or address', newBooking:'New booking',
     pickupsToday:'Pickups today', pickupsFoot:'Ordered by pickup time', awaitingPayment:'Awaiting payment', awaitingFoot:'Needs a payment or cash confirmation',
@@ -100,17 +95,30 @@ const T = {
 };
 class Component extends DCLogic {
   state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', filter: 'Today', page: 0 };
-  componentWillUnmount() { if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale); }
+  bind = () => {
+    if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
+    this._off = window.VamosOps.bookings.onChange(() => this.forceUpdate());
+    this.forceUpdate();
+  };
+  componentWillUnmount() {
+    if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
+    if (this._off) this._off();
+    clearTimeout(this._retry);
+  }
   componentDidMount() {
+    this.bind();
     this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
     window.addEventListener('vamos:locale', this._onLocale);
   }
   openRow = (row) => { location.hash = '#detail/' + encodeURIComponent(row.id); };
   renderVals() {
     const t = T[this.state.lang] || T.en;
+    const today = boardDate(new Date());
+    const tomorrow = boardDate(new Date(Date.now() + 86400000));
+    const BOOKINGS = listBookings();
     const FILTERS = [
-      { key:'Today', label: t.filterToday, test:(b) => b.date === 'Fri 14 Aug' },
-      { key:'Tomorrow', label: t.filterTomorrow, test:(b) => b.date === 'Sat 15 Aug' },
+      { key:'Today', label: t.filterToday, test:(b) => b.date === today },
+      { key:'Tomorrow', label: t.filterTomorrow, test:(b) => b.date === tomorrow },
       { key:'Unassigned', label: t.filterUnassigned, test:(b) => !b.driver && b.status !== 'cancelled' && b.status !== 'completed' },
       { key:'Awaiting payment', label: t.filterAwaiting, test:(b) => b.status === 'pending' },
       { key:'Cancelled', label: t.filterCancelled, test:(b) => b.status === 'cancelled' },
@@ -124,7 +132,7 @@ class Component extends DCLogic {
     const pageRows = visibleRows.slice(pageStart, pageStart + PAGE_SIZE);
     const showingFrom = visibleRows.length ? pageStart + 1 : 0;
     const showingTo = Math.min(visibleRows.length, pageStart + PAGE_SIZE);
-    const pickupsToday = BOOKINGS.filter((b) => b.date === 'Fri 14 Aug').length;
+    const pickupsToday = BOOKINGS.filter((b) => b.date === today).length;
     const awaitingPayment = BOOKINGS.filter((b) => b.status === 'pending').length;
     const unassigned = BOOKINGS.filter((b) => !b.driver && b.status !== 'cancelled' && b.status !== 'completed').length;
     const DS = window.VamosTaxiDesignSystem_245af1 || {};
