@@ -281,7 +281,7 @@ does not need to wait for checkout.
 - [x] 06-02-PLAN.md — Staff JSON door + empty VamosOps remote store (rate-book path map)
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 06-03-PLAN.md — Dashboard host `/login` DC, invite → `/login`, password eye, MFA paused
+- [x] 06-03-PLAN.md — Dashboard host `/login` DC, invite → `/login`, password eye, MFA paused
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 06-04-PLAN.md — Fleet / chauffeurs JSON + R2 photos
@@ -394,7 +394,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 
 | 3. Hyperdrive Data Access Wiring | 7/7 | Complete | 2026-08-28 |
 | 4. Quote & Pricing Engine | 12/16 | In Progress|  |
 | 5. Public Surfaces & Customer Accounts | 19/24 | In Progress|  |
-| 6. Ops Reference Data & Content Console | 2/11 | In Progress|  |
+| 6. Ops Reference Data & Content Console | 3/11 | In Progress|  |
 | 7. Checkout & Payment | 0/TBD | Not started | - |
 | 8. Ops Dispatch — Live Board, Assignment & Account Surfaces | 0/TBD | Not started | - |
 | 9. Booking Lifecycle & Customer Self-Service | 0/TBD | Not started | - |
