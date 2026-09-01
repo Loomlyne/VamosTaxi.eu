@@ -25,7 +25,9 @@ status: checkpoint
 
 - Both canonical DC footers now force static email/phone/TikTok link hover and social-glyph hover to `var(--vt-accent)` with `!important`, which is required to override their inline colours. No Maps destination or address was added.
 - The DC contact form preserves its idempotency key after server/network delivery failure, clears the consumed token, and resets the existing Turnstile widget (or renders it when no widget exists) for a fresh retry challenge. No gallery/sample sent-state control was reintroduced.
-- Added database-free static-source regression tests for both footer authorities and for contact retry/idempotency flow. The sync output was checked for both generated footer copies.
+- The DC contact source now exposes only telephone, WhatsApp, and the confirmed visible `info@vamostaxi.eu` email in its direct-contact card. It removes the unverified office, unsupported live chat, and default social-slot block; official footer social links remain unchanged.
+- Removed dead review-switcher methods and their sample customer details, plus the named form/reference sample placeholders. Cookie-banner review state remains independent.
+- Added a database-free static-source regression test that fails if the removed unsupported strings, placeholder social URLs/state, or sample review data return; it also requires each known working direct-contact destination.
 
 ## Test evidence
 
@@ -36,6 +38,9 @@ status: checkpoint
 - Focused regression: `/Users/koss/Developer/VamosTaxi.eu/apps/web/node_modules/.bin/vitest run lib/forms/contact-delivery.test.ts ../../packages/emails/src/contact.test.ts lib/footer-source.test.ts lib/contact-source.test.ts` — 3 files, 5 tests passed (the web Vitest config intentionally excludes package email tests).
 - `pnpm --filter @vamos/emails test` — 2 files, 34 tests passed.
 - `node scripts/sync-dc-mock-to-public.mjs` completed; generated `public/app/home/SiteFooter.dc.html` and `public/app/pages/SiteFooter.dc.html` each contain both forced-hover rules.
+- Follow-up RED: `/Users/koss/Developer/VamosTaxi.eu/apps/web/node_modules/.bin/vitest run lib/contact-source.test.ts` — 1 of 2 tests failed because the source did not render the confirmed visible email address.
+- Follow-up GREEN: `/Users/koss/Developer/VamosTaxi.eu/apps/web/node_modules/.bin/vitest run lib/contact-source.test.ts lib/footer-source.test.ts` — 2 files, 3 tests passed.
+- Follow-up generated-output check: after `node scripts/sync-dc-mock-to-public.mjs`, static assertions verified both `public/app/pages/contact.dc.html` and `public/app/pages/contact.html` contain 4 confirmed direct-contact values and none of 22 forbidden address, chat, social-slot, placeholder, or sample-review values.
 - Full web Vitest was attempted with the main checkout binary from this isolated worktree: 37 files / 373 tests passed; it could not complete because the worktree deliberately has no dependency tree, leaving `fast-check` and `@vamos/db/identity` unresolved. Its two resolved-test failures are inherited: `lib/ops/chauffeurs.test.ts` expects `ops.language.*` but data uses `ops.spoken.*`, and `lib/pricing/rateBook.test.ts` expects null `night_window_tz` but receives the established `Europe/Zurich` fallback. Neither path was modified.
 
 ## Deviations / open gates

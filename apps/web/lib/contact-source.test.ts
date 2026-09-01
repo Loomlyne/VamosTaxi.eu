@@ -20,4 +20,38 @@ describe("DC contact source", () => {
       "phase: 'failed', token: '', idempotencyKey: crypto.randomUUID()",
     );
   });
+
+  it("contains only confirmed direct-contact destinations and no simulated contact content", () => {
+    expect(contactSource).toContain('href="mailto:info@vamostaxi.eu"');
+    expect(contactSource).toContain(">info@vamostaxi.eu<");
+    expect(contactSource).toContain('href="tel:+41796267082"');
+    expect(contactSource).toContain('href="https://wa.me/41796267082"');
+
+    for (const forbidden of [
+      "Bleicherstrasse 16",
+      "8953 Dietikon ZH",
+      "Registered office",
+      "Live chat",
+      "Chat hours",
+      "Start a chat",
+      "Support email",
+      "facebookUrl",
+      "instagramUrl",
+      "youtubeUrl",
+      "trustpilotUrl",
+      "hFacebook",
+      "hInstagram",
+      "hYoutube",
+      "hTrustpilot",
+      "|| '#'",
+      "Ben Othman",
+      "ben@example.com",
+      "ben@example",
+      "VT-0000",
+      "Review switcher",
+      "setDefault = () => this.go('default')",
+    ]) {
+      expect(contactSource).not.toContain(forbidden);
+    }
+  });
 });

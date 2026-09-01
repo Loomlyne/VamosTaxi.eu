@@ -168,7 +168,7 @@ a[data-ch]:hover [data-ch-v]{color:var(--vt-yellow-700)}
 <div data-row2="1">
 <div data-fld="1" data-bad="{{ badName }}">
 <label for="ct-name">Your name</label>
-<input id="ct-name" name="name" type="text" autocomplete="name" placeholder="Ben Othman" value="{{ vName }}" onInput="{{ onName }}" disabled="{{ isSending }}" aria-invalid="{{ aName }}" aria-describedby="ct-name-e">
+<input id="ct-name" name="name" type="text" autocomplete="name" placeholder="Your name" value="{{ vName }}" onInput="{{ onName }}" disabled="{{ isSending }}" aria-invalid="{{ aName }}" aria-describedby="ct-name-e">
 <sc-if value="{{ badName }}" hint-placeholder-val="{{ false }}">
 <p id="ct-name-e" data-err="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>Tell us what to call you</p>
 </sc-if>
@@ -190,7 +190,7 @@ a[data-ch]:hover [data-ch-v]{color:var(--vt-yellow-700)}
 </div>
 <div data-fld="1">
 <label for="ct-ref">Booking reference <span style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--vt-text-muted)">— if you have one</span></label>
-<input id="ct-ref" name="ref" type="text" placeholder="VT-0000" value="{{ vRef }}" onInput="{{ onRef }}" disabled="{{ isSending }}" aria-describedby="ct-ref-h">
+<input id="ct-ref" name="ref" type="text" placeholder="Booking reference" value="{{ vRef }}" onInput="{{ onRef }}" disabled="{{ isSending }}" aria-describedby="ct-ref-h">
 <p id="ct-ref-h" data-hint="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>Top of your confirmation email. It puts your message straight on the right booking.</p>
 </div>
 </div>
@@ -221,7 +221,7 @@ a[data-ch]:hover [data-ch-v]{color:var(--vt-yellow-700)}
 
 <aside aria-labelledby="direct-h">
 <h2 id="direct-h" style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Reach us directly</h2>
-<p style="margin:0 0 22px;max-width:46ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Support runs <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Support hours</span> in <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Support languages</span>.</p>
+<p style="margin:0 0 22px;max-width:46ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Call, message, or email the team directly.</p>
 
 <div style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);padding:6px 22px 10px">
 <a data-ch="1" href="tel:+41796267082">
@@ -234,31 +234,8 @@ a[data-ch]:hover [data-ch-v]{color:var(--vt-yellow-700)}
 </a>
 <a data-ch="1" href="mailto:info@vamostaxi.eu">
 <span data-ch-i="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="mail" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></span>
-<span><span data-ch-k="1">Email</span><span data-ch-v="1"><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Support email</span></span><span data-ch-s="1">Everything that is not urgent.</span></span>
+<span><span data-ch-k="1">Email</span><span data-ch-v="1">info@vamostaxi.eu</span><span data-ch-s="1">Everything that is not urgent.</span></span>
 </a>
-<div data-ch="1">
-<span data-ch-i="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></span>
-<span><span data-ch-k="1">Registered office</span><span data-ch-v="1">Bleicherstrasse 16</span><span data-ch-s="1">8953 Dietikon ZH, Switzerland. Post only — this is not a passenger office.</span></span>
-</div>
-</div>
-
-<sc-if value="{{ showChat }}" hint-placeholder-val="{{ true }}">
-<div style="margin-top:20px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);padding:22px">
-<p style="margin:0 0 10px;display:flex;align-items:center;gap:9px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="message-circle" size="{{ n16 }}" color="var(--vt-yellow-700)" hint-size="16px,16px"></x-import>Live chat</p>
-<p style="margin:0 0 16px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Open <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Chat hours</span>. Outside those hours leave a message and we reply by email.</p>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" block="{{ yes }}" hint-size="100%,44px">Start a chat</x-import>
-</div>
-</sc-if>
-
-<div style="margin-top:20px;background:var(--vt-bg-inverse);color:var(--vt-text-inverse);border-radius:var(--vt-radius-lg);padding:22px">
-<p style="margin:0 0 14px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">Follow</p>
-<div style="display:flex;flex-wrap:wrap;gap:10px">
-<a data-soc="1" href="{{ hFacebook }}" aria-label="Facebook" target="_blank" rel="noreferrer noopener"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="facebook" size="{{ n18 }}" color="var(--vt-white)" hint-size="18px,18px"></x-import></a>
-<a data-soc="1" href="{{ hInstagram }}" aria-label="Instagram" target="_blank" rel="noreferrer noopener"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="instagram" size="{{ n18 }}" color="var(--vt-white)" hint-size="18px,18px"></x-import></a>
-<a data-soc="1" href="{{ hYoutube }}" aria-label="YouTube" target="_blank" rel="noreferrer noopener"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="youtube" size="{{ n18 }}" color="var(--vt-white)" hint-size="18px,18px"></x-import></a>
-<a data-soc="1" href="{{ hTrustpilot }}" aria-label="Trustpilot" target="_blank" rel="noreferrer noopener"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n18 }}" color="var(--vt-white)" hint-size="18px,18px"></x-import></a>
-</div>
-<p data-vt-no-i18n="1" style="margin:14px 0 0;font-size:var(--vt-body-xs);line-height:1.5;color:var(--vt-text-inverse-muted)">Four slots, no confirmed URLs. Each one drops out cleanly if the account does not exist.</p>
 </div>
 </aside>
 
@@ -273,7 +250,7 @@ a[data-ch]:hover [data-ch-v]{color:var(--vt-yellow-700)}
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;showLiveChat&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Scope&quot;},&quot;cookieState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;auto&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;banner&quot;,&quot;prefs&quot;,&quot;hidden&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Review&quot;},&quot;facebookUrl&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Social slots&quot;},&quot;instagramUrl&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Social slots&quot;},&quot;youtubeUrl&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Social slots&quot;},&quot;trustpilotUrl&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Social slots&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;cookieState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;auto&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;banner&quot;,&quot;prefs&quot;,&quot;hidden&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Review&quot;}}">
 class Component extends DCLogic {
   state = {
     phase: 'default', // default | invalid | sending | sent | failed
@@ -352,27 +329,6 @@ class Component extends DCLogic {
     this.setState({ phase: 'default', name: '', email: '', phone: '', ref: '', msg: '', bad: {}, token: '', idempotencyKey: crypto.randomUUID() });
   };
 
-  // Review switcher: fills plausible content so a state is legible on its own.
-  go(phase) {
-    if (phase === 'default') { this.reset(); return; }
-    const filled = {
-      name: 'Ben Othman', email: 'ben@example.com', phone: '+41 79 000 00 00', ref: 'VT-0000',
-      msg: 'My flight lands two hours later than booked. Does the pickup move automatically?',
-    };
-    if (phase === 'invalid') {
-      this.setState(Object.assign({ phase: 'invalid', bad: { name: 'missing', email: 'format', msg: 'short' } },
-        filled, { name: '', email: 'ben@example', msg: 'Delayed' }));
-      return;
-    }
-    if (phase === 'sent') return;
-    this.setState(Object.assign({ phase, bad: {} }, filled));
-  }
-
-  setDefault = () => this.go('default');
-  setInvalid = () => this.go('invalid');
-  setSending = () => this.go('sending');
-  setSent = () => this.go('sent');
-  setFailed = () => this.go('failed');
 
   renderVals() {
     const p = this.state.phase, bad = this.state.bad;
@@ -395,10 +351,6 @@ class Component extends DCLogic {
       aName: bad.name ? 'true' : 'false', aEmail: bad.email ? 'true' : 'false', aMsg: bad.msg ? 'true' : 'false',
       emailErr, msgErr,
       submit: this.submit, reset: this.reset, errRef: this.errRef,
-      // Slots — every one is a client input, so they resolve to '#' until supplied.
-      hFacebook: this.props.facebookUrl || '#', hInstagram: this.props.instagramUrl || '#',
-      hYoutube: this.props.youtubeUrl || '#', hTrustpilot: this.props.trustpilotUrl || '#',
-      showChat: (this.props.showLiveChat ?? true) !== false,
       cookieState: this.props.cookieState || 'auto',
     };
   }
