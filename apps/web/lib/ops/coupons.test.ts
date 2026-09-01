@@ -12,7 +12,14 @@ vi.mock("../db/identity", () => ({
   asStaff: (...args: unknown[]) => asStaff(...args),
 }));
 
-import { assertCouponInput, CouponInputError, loadCoupons } from "./coupons";
+import {
+  assertCouponInput,
+  couponIdFromRequest,
+  couponInputFromDc,
+  CouponInputError,
+  loadCoupons,
+  toDcCoupon,
+} from "./coupons";
 
 const claims: VamosClaims = {
   sub: "11111111-1111-4111-8111-111111111111",
@@ -92,5 +99,77 @@ describe("loadCoupons", () => {
     const rows = await loadCoupons(env, claims);
     expect(rows[0]?.amountRappen).toBeNull();
     expect(rows[0]?.percent).toBe(10);
+  });
+});
+
+describe("toDcCoupon", () => {
+  it("ships amount value as 00 even when rappen is set", () => {
+    const dc = toDcCoupon({
+      id: 3,
+      code: "TEST",
+      kind: "amount",
+      percent: null,
+      amountRappen: 5000,
+      validFrom: null,
+      validUntil: null,
+      globalLimit: null,
+      perUserLimit: null,
+      active: true,
+      note: "",
+      createdAt: "2026-08-01T00:00:00.000Z",
+    });
+    expect(dc.value).toBe("00");
+    expect(dc.uses).toBe(0);
+    expect(dc.limit).toBe(0);
+  });
+
+  it("ships NULL percent as 00", () => {
+    const dc = toDcCoupon({
+      id: 4,
+      code: "OPEN",
+      kind: "percent",
+      percent: null,
+      amountRappen: null,
+      validFrom: null,
+      validUntil: "2026-12-31T00:00:00.000Z",
+      globalLimit: 10,
+      perUserLimit: null,
+      active: false,
+      note: "",
+      createdAt: "2026-08-01T00:00:00.000Z",
+    });
+    expect(dc.value).toBe("00");
+    expect(dc.expires).toBe("2026-12-31");
+    expect(dc.limit).toBe(10);
+    expect(dc.active).toBe(false);
+  });
+});
+
+describe("couponInputFromDc", () => {
+  it("never writes amount rappen from the mock value field", () => {
+    const input = couponInputFromDc({
+      code: "TEST",
+      kind: "amount",
+      value: "2500",
+      limit: 0,
+      expires: "",
+      active: true,
+      note: "",
+    });
+    expect(input.amountRappen).toBeNull();
+    expect(input.percent).toBeNull();
+    expect(input.globalLimit).toBeNull();
+  });
+
+  it("treats 00 / NULL as unpriced percent", () => {
+    expect(couponInputFromDc({ code: "OPEN", kind: "percent", value: "00" }).percent).toBeNull();
+    expect(couponInputFromDc({ code: "OPEN", kind: "percent", value: "NULL" }).percent).toBeNull();
+  });
+});
+
+describe("couponIdFromRequest", () => {
+  it("reads the last path segment", () => {
+    expect(couponIdFromRequest(new Request("http://vamos.test/api/staff/coupons/12"))).toBe(12);
+    expect(couponIdFromRequest(new Request("http://vamos.test/api/staff/coupons/cp-x"))).toBeNull();
   });
 });
