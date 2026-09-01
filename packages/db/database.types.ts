@@ -1631,6 +1631,50 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_daily_digests: {
+        Row: {
+          attempt_count: number
+          claimed_at: string
+          created_at: string
+          digest_date: string
+          failed_at: string | null
+          sent_at: string | null
+          staff_user_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          claimed_at?: string
+          created_at?: string
+          digest_date: string
+          failed_at?: string | null
+          sent_at?: string | null
+          staff_user_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          claimed_at?: string
+          created_at?: string
+          digest_date?: string
+          failed_at?: string | null
+          sent_at?: string | null
+          staff_user_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_daily_digests_staff_user_id_fkey"
+            columns: ["staff_user_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       stripe_events: {
         Row: {
           attempts: number
@@ -1835,6 +1879,32 @@ export type Database = {
     }
     Functions: {
       __seed_apply: { Args: never; Returns: undefined }
+      checkout_create_booking: {
+        Args: {
+          p_actor_customer_id: string
+          p_charged_rappen: unknown
+          p_contact: Json
+          p_coupon_code: string
+          p_coupon_id: number
+          p_display_currency: string
+          p_idempotency_key: string
+          p_legs: Json
+          p_locale: string
+          p_manage_token_expires_at: string
+          p_manage_token_hash: string
+          p_quote_id: string
+          p_snapshot: Json
+          p_stripe_checkout_session_id: string
+          p_stripe_payment_intent_id: string
+        }
+        Returns: {
+          booking_id: string
+          payment_id: number
+          reference: string
+          replayed: boolean
+          snapshot_id: number
+        }[]
+      }
       create_quote_snapshot: {
         Args: {
           p_bags: number
@@ -1898,6 +1968,48 @@ export type Database = {
           p_necessary: boolean
           p_policy_version: string
           p_user_agent?: string
+        }
+        Returns: undefined
+      }
+      staff_claim_invite: { Args: never; Returns: undefined }
+      staff_digest_claim: {
+        Args: { p_digest_date: string; p_staff_user_id: string }
+        Returns: boolean
+      }
+      staff_digest_legs: {
+        Args: { p_digest_date: string }
+        Returns: {
+          dropoff_text: string
+          pickup_text: string
+          reference: string
+          scheduled_local: string
+          status: string
+        }[]
+      }
+      staff_digest_mark_failed: {
+        Args: { p_digest_date: string; p_staff_user_id: string }
+        Returns: undefined
+      }
+      staff_digest_mark_sent: {
+        Args: { p_digest_date: string; p_staff_user_id: string }
+        Returns: undefined
+      }
+      staff_digest_recipients: {
+        Args: never
+        Returns: {
+          email: string
+          full_name: string
+          lang: string
+          user_id: string
+        }[]
+      }
+      staff_update_self: {
+        Args: {
+          p_avatar_path: string
+          p_digest_email: boolean
+          p_full_name: string
+          p_lang: string
+          p_phone: string
         }
         Returns: undefined
       }
