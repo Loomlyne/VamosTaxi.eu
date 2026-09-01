@@ -136,30 +136,21 @@ Every bullet cites the originating research decision (`research D-n`) or uncerta
 (`research Un`) in parentheses for traceability back to `06-RESEARCH.md`.
 
 ### Route architecture, shared client module, data-access invariants
-- **D-01:** (research D-01, resolves U1; **amended 2026-08-31 sitting D-01a**) Console routes nest
-  under `app/[locale]/(ops)/ops/**`. Public URL is **`dashboard.vamostaxi.site`** (and `/de` `/fr`
-  `/ar` on that host), not `vamostaxi.site/ops`. English unprefixed on the dashboard host.
-  Middleware keys off the dashboard hostname first; the public site never serves ops. Law 03
-  still applies. Invite-email `redirectTo` is pinned to `https://dashboard.vamostaxi.site` (staging)
-  — never derived from request input (D-06).
+- **D-01:** `[informational]` (research D-01; **superseded 2026-09-01 by D-01a / D-36**) React
+  console routes under `app/[locale]/(ops)/ops/**` are not the product. Dashboard host serves DC
+  `ops-login.dc.html` / `ops.dc.html` at `/login` and `/`. Track D-01a, not this bullet.
 - **D-02:** (research D-03) Every ops write goes through `asStaff(env, claims, fn)` on
   `HYPERDRIVE_NOCACHE`, imported only via the named wrapper — never a raw `postgres` import
   (Phase 3 D-08/D-10, CI-enforced; a forgotten wrapper is SQLSTATE `42501`).
 - **D-03:** (research D-02) Public read of `content_strings` goes through `publicSql(env)` on the
   cacheable `HYPERDRIVE` binding; the swap point is exactly `apps/web/i18n/request.ts`'s
   `loadRawMessages()` (Phase 1's seam, Phase 3 D-11's branding) — nothing else in that file moves.
-- **D-04:** (research U4) `apps/web/lib/supabase/{server,middleware,client}.ts` is shared with
-  Phase 5, which needs the same `@supabase/supabase-js` + `@supabase/ssr` client factories.
-  Whichever phase's Wave 1 plan lands first creates the module; the other phase's plan imports it
-  rather than assuming greenfield — noted explicitly in both phases' plan files so the
-  second-landing planner checks before recreating it.
+- **D-04:** `[informational]` (research U4) Shared `apps/web/lib/supabase/{server,middleware,client}.ts`
+  already exists (Phase 5 landed). Do not recreate it. Not a Phase 6 plan task.
 
 ### AUTH-05 UI — three screens with no mock (finding d)
-- **D-05:** (research D-06) TOTP enrolment, MFA challenge, and invite-accept are net-new screens
-  built from existing Vamos primitives (`Card`, `Input`, `Button`, `Alert`, a step indicator) —
-  no mock exists to port. Flag each for an owner/design look at its first-draft checkpoint
-  (`checkpoint:human-verify`), the same pattern the project already uses for other no-mock
-  screens (Phase 8's phone-booking screen).
+- **D-05:** `[informational]` (research D-06; **paused D-37**) TOTP enrolment / MFA challenge
+  screens are out until the owner asks. Invite-accept is dashboard `/login`, not a React page.
 - **D-06:** (research D-11, code example) The staff invite Route Handler is service-role only,
   gated behind the caller's own `aal2` admin session, calls `inviteUserByEmail` with `redirectTo`
   pinned to a known staging/production origin (never derived from request input), and writes the
@@ -177,9 +168,8 @@ Every bullet cites the originating research decision (`research D-n`) or uncerta
   this repo's pinned `1.20.2`. Regardless of the finding, use `NextResponse.next({ request })` in
   every cookie-setting path in ops middleware, never a freshly constructed `NextResponse(body)` —
   Supabase's own documented pattern, independent of whether the specific bug is fixed.
-- **D-10:** (research U7) `packages/db/src/claims.ts`'s `ClaimsFor<'staff'>` shape is re-read once
-  Phase 3 actually lands (it is designed, not executed, as of this research) before any Server
-  Action in this phase calls `asStaff`. Blocks every Server Action this phase writes.
+- **D-10:** `[informational]` (research U7; Phase 3 landed) `asStaff` / `ClaimsFor<'staff'>` exist.
+  This replan writes JSON `/api/staff/*` wrappers, not React Server Actions.
 
 ### Pricing — redesigned around draft/publish, never a live toggle (finding b)
 - **D-11:** (research D-04, Pattern 2) The Pricing screen is redesigned around `rate_versions`'
@@ -270,10 +260,8 @@ Every bullet cites the originating research decision (`research D-n`) or uncerta
 - **D-28:** (research U8) Reset-MFA for a staff member defaults to **deferred** —
   `docs/build/MISSING-FEATURES.md` marks it the sole 🟡 (launch-window) item in an otherwise 🔴
   staff-management list; invite, role-change and deactivate stay in this phase's scope.
-- **D-29:** (research U11) Every CRUD screen in this phase uses a Server Action plus
-  `router.refresh()`/revalidation for reactivity, not Realtime — no screen here has a genuine
-  multi-staff-concurrent-edit scenario in practice (one dispatcher edits at a time). Realtime
-  stays Phase 8's territory (OPS-01, the live board).
+- **D-29:** `[informational]` (research U11; **amended 2026-09-01**) React `router.refresh()` is
+  gone with the React twin. DC mock hydrates JSON `/api/staff/*`. Realtime stays Phase 8.
 
 ### Console chrome, i18n, and the platform laws
 - **D-30:** (research D-15) The ops console's own chrome (nav labels, buttons, hints, empty
@@ -289,16 +277,9 @@ Every bullet cites the originating research decision (`research D-n`) or uncerta
   D-14).
 
 ### Cross-phase sequencing — the hard precondition
-- **D-33:** Phase 6 can be **planned** now against frozen upstream contracts, but three upstream
-  phases gate **execution** differently: Phase 2 is mid-flight (schema/RLS this phase reads land
-  incrementally, not all merged as of this research); Phase 3 is planned but not executed
-  (`packages/db`'s actual module is absent from disk; its own P6 — staging Hyperdrive wiring — is
-  owner-gated on Cloudflare credentials per Phase 3 D-29); Phase 5 has no plan yet, only research,
-  and is the phase most likely to race Phase 6 for the shared `lib/supabase/*` module (D-04).
-  What is locally buildable regardless of all three: the route/middleware skeleton, the
-  TOTP/MFA/invite screen markup, and every screen's static chrome, against a local
-  `supabase start` or mocked data. What cannot start until Phase 3 actually lands on disk is any
-  Server Action that calls `asStaff`/`publicSql` for real.
+- **D-33:** `[informational]` (**amended 2026-08-31 sitting**) Phase 2 schema, Phase 3 Hyperdrive
+  + `asStaff`/`publicSql`, and Phase 5 `lib/supabase/*` have landed. Do not wait on Phase 7.
+  Historical research sequencing is not a plan task.
 
 ### Claude's Discretion
 - Exact plan-to-file mapping beyond the research's proposed P1–P7 split — merging plans (e.g.

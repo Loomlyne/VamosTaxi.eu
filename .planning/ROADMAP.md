@@ -35,7 +35,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Hyperdrive Data Access Wiring** - The Worker reaches Postgres through Hyperdrive, fast and safely isolated per request
 - [ ] **Phase 4: Quote & Pricing Engine** - The booking widget returns a real, locked, server-priced quote for any eligible route
 - [ ] **Phase 5: Public Surfaces & Customer Accounts** - Every public mock is a live route on real data, and customers can create and access accounts
-- [x] **Phase 6: Ops Reference Data & Content Console** - Staff manage the reference data and content that power the public site (completed 2026-08-31)
+- [ ] **Phase 6: Ops Reference Data & Content Console** - Staff manage the reference data and content that power the public site (replanned 2026-09-01 — DC mock is the product)
 - [ ] **Phase 7: Checkout & Payment** - A customer pays for a locked quote and receives a webhook-confirmed booking
 - [ ] **Phase 8: Ops Dispatch — Live Board, Assignment & Account Surfaces** - Staff run the live board, assign real bookings, and customers see their own history
 - [ ] **Phase 9: Booking Lifecycle & Customer Self-Service** - A booking lives its full lifecycle — reminders, delay handling, cancellation, review
@@ -269,12 +269,32 @@ does not need to wait for checkout.
 **Requirements**: OPS-06, OPS-07, OPS-08, OPS-09, OPS-10, I18N-07
 **Success Criteria** (what must be TRUE):
 
-  1. The ops console is reachable only by staff, in its own role-gated route group of the same application.
+  1. The ops console is reachable only by staff on `dashboard.vamostaxi.site` (`/login` → `/`), serving the DC ops mock wired to real staff APIs — not a React twin.
   2. Staff can manage vehicle classes, vehicles, chauffeurs, fixed routes, distance rates, surcharges and coupons.
   3. Staff can see customers and their booking history, and can publish, hide and reorder the reviews shown on the home page.
   4. Staff can edit business settings and the content strings behind the site copy, and every string it manages is stored in the database rather than the static dictionary file — the ~600-string legal-page dictionary migrates here as professional translations arrive, tracked as ongoing work within this phase rather than a separate late i18n phase.
 
-**Plans**: TBD
+**Plans**:
+
+**Wave 1**
+- [ ] 06-01-PLAN.md — Delete the React ops twin; keep staff APIs
+- [ ] 06-02-PLAN.md — Staff JSON door + empty VamosOps remote store (rate-book path map)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 06-03-PLAN.md — Dashboard host `/login` DC, invite → `/login`, password eye, MFA paused
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 06-04-PLAN.md — Fleet / chauffeurs JSON + R2 photos
+- [ ] 06-05-PLAN.md — Pricing draft→publish (`PUT /api/staff/rate-book`)
+- [ ] 06-06-PLAN.md — Coupons
+- [ ] 06-07-PLAN.md — Customers read-only
+- [ ] 06-08-PLAN.md — Reviews publish/hide/reorder + photo upload
+- [ ] 06-09-PLAN.md — Settings / roster / profile + D-12 nav hide
+- [ ] 06-10-PLAN.md — `content_strings` editor in OpsContent.dc.html
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 06-11-PLAN.md — I18N-07 loader last; `CONTENT_SOURCE` default json
+
 **UI hint**: yes
 
 ### Phase 7: Checkout & Payment
