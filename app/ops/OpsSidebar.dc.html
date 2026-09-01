@@ -132,9 +132,13 @@ const FLEET = [
   { key:'chauffeurs', href:'#chauffeurs', icon:'users', en:'Chauffeurs', de:'Chauffeure', fr:'Chauffeurs', ar:'السائقون' },
 ];
 const NAV_BOTTOM = [
-  { key:'pricing', href:'#pricing', icon:'banknote', en:'Pricing & routes', de:'Preise & Routen', fr:'Tarifs & trajets', ar:'الأسعار والمسارات' },
   { key:'customers', href:'#customers', icon:'user', en:'Customers', de:'Kunden', fr:'Clients', ar:'العملاء' },
   { key:'coupons', href:'#coupons', icon:'ticket', en:'Coupons', de:'Gutscheine', fr:'Codes promo', ar:'القسائم' },
+];
+/* D-12: these hashes are omitted from the DOM for role=dispatcher — never painted disabled. */
+const NAV_ADMIN = [
+  { key:'pricing', href:'#pricing', icon:'banknote', en:'Pricing & routes', de:'Preise & Routen', fr:'Tarifs & trajets', ar:'الأسعار والمسارات' },
+  { key:'staff-roster', href:'#settings', icon:'users', en:'Staff', de:'Team', fr:'Équipe', ar:'الفريق' },
 ];
 /* Content — what the public site shows, edited here. */
 const CONTENT = [
@@ -156,10 +160,21 @@ class Component extends DCLogic {
     collapsed: (typeof localStorage !== 'undefined' && localStorage.getItem(KEY) === '1'),
     open: {},
     menuOpen: false,
+    me: null,
+  };
+  loadMe = () => {
+    const api = window.VamosOpsApi;
+    if (!api || typeof api.request !== 'function') return;
+    api.request('GET', '/api/staff/me').then((json) => {
+      if (json && json.ok && json.data && typeof json.data === 'object') {
+        this.setState({ me: json.data });
+      }
+    });
   };
   bindOps = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bindOps, 120); return; }
     this._offOps = window.VamosOps.profile.onChange(() => this.forceUpdate());
+    this.loadMe();
     this.forceUpdate();
   };
   componentDidMount() {
@@ -210,7 +225,20 @@ class Component extends DCLogic {
     this.setState((s) => ({ menuOpen: !s.menuOpen }));
   };
   closeMenu = () => this.setState({ menuOpen: false });
-  signOut = () => { localStorage.removeItem('vamosOpsAuth'); location.href = './ops-login.dc.html'; };
+  signOut = () => {
+    try { localStorage.removeItem('vamosOpsAuth'); } catch (e) {}
+    const done = () => { location.replace('/login'); };
+    const api = window.VamosOpsApi;
+    if (api && typeof api.request === 'function') {
+      api.request('POST', '/api/auth', { action: 'signout' }).then(done, done);
+      return;
+    }
+    fetch('/api/auth', {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'signout' }),
+    }).then(done, done);
+  };
 
   renderVals() {
     const active = this.props.active || 'dashboard';
@@ -218,6 +246,14 @@ class Component extends DCLogic {
     const col = this.state.collapsed;
     const t = COPY[lang] || COPY.en;
     const profile = window.VamosOps ? window.VamosOps.profile.get() : {};
+    const me = this.state.me || {};
+    const role = me.role || profile.role || '';
+    const isAdmin = role === 'admin';
+    /* Until GET /api/staff/me resolves, omit #pricing and staff-roster so a
+       dispatcher never sees them as a disabled item (D-12). */
+    const navBottomSrc = isAdmin
+      ? [NAV_ADMIN[0]].concat(NAV_BOTTOM).concat([NAV_ADMIN[1]])
+      : NAV_BOTTOM.slice();
     const paint = (n) => {
       const on = n.key === active;
       return {
@@ -266,15 +302,15 @@ class Component extends DCLogic {
       menuOpen: this.state.menuOpen,
       menuExpanded: this.state.menuOpen ? 'true' : 'false',
       menuChevron: this.state.menuOpen ? 'chevron-down' : 'chevron-up',
-      profileName: profile.name || t.dispatch,
-      profileRole: profile.role || t.adminRole,
+      profileName: me.fullName || profile.name || '',
+      profileRole: role || '',
       profileTitle: t.profile,
       profilePhoto: profile.avatar || '',
       hasPhoto: !!profile.avatar,
       noPhoto: !profile.avatar,
       profileAvatarBg: active === 'profile' ? 'var(--vt-accent)' : 'var(--vt-charcoal-800)',
       navTop: NAV_TOP.map(paint),
-      navBottom: NAV_BOTTOM.map(paint),
+      navBottom: navBottomSrc.map(paint),
     };
   }
 }

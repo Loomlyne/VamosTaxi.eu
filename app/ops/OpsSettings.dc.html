@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="./support.js"></script>
+<style>
+[data-af-pw]{position:relative}
+[data-af-eye]{appearance:none;-webkit-appearance:none;position:absolute;z-index:2;inset-inline-end:6px;top:calc((var(--vt-label-md) * var(--vt-body-leading)) + 6px);width:42px;height:var(--vt-control-h-md);margin:0;padding:0;display:inline-flex;align-items:center;justify-content:center;border:0;background:transparent;color:var(--vt-charcoal-700);cursor:pointer;box-shadow:none}
+[data-af-eye]:hover{color:var(--vt-charcoal-900)}
+[data-af-eye]:focus-visible{outline:3px solid rgb(253 194 11/.45);outline-offset:2px;border-radius:var(--vt-radius-xs)}
+</style>
 </head>
 <body>
 <x-dc>
@@ -141,6 +147,35 @@
 </section>
 </sc-if>
 
+<sc-if value="{{ isStaff }}" hint-placeholder-val="{{ false }}">
+<section style="box-sizing:border-box;display:flex;flex-direction:column;gap:16px;padding:24px 26px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);min-width:0">
+<div>
+<h2 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tStaff }}</h2>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tStaffSub }}</p>
+</div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) 160px auto;gap:10px;align-items:end">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tInviteEmail }}" value="{{ inviteEmail }}" onChange="{{ setInviteEmail }}" hint-size="100%,76px"></x-import>
+<div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+<span data-fld-l="1">{{ tInviteRole }}</span>
+<dc-import name="BrandSelect" size="field" value="{{ inviteRole }}" options="{{ inviteRoleOptions }}" onSelect="{{ pickInviteRole }}" a11y-label="{{ tInviteRole }}" hint-size="100%,44px"></dc-import>
+</div>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ sendInvite }}" hint-size="140px,44px">{{ tInviteSend }}</x-import>
+</div>
+<p data-hint="1">{{ tInviteNote }}</p>
+<span style="display:{{ inviteMsgShow }};font-size:var(--vt-body-xs);color:var(--vt-text-primary);font-weight:500">{{ inviteMsg }}</span>
+<div style="display:flex;flex-direction:column;gap:0;padding-top:8px;border-top:1px solid var(--vt-grey-200)">
+<sc-for list="{{ rosterRows }}" as="r" hint-placeholder-count="2">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--vt-grey-200)">
+<span style="flex:1 1 160px;min-width:0;font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ r.name }}</span>
+<span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ r.email }}</span>
+<dc-import name="BrandSelect" size="field" value="{{ r.role }}" options="{{ inviteRoleOptions }}" onSelect="{{ r.setRole }}" a11y-label="{{ tInviteRole }}" hint-size="140px,44px"></dc-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" onClick="{{ r.toggleActive }}" hint-size="120px,36px">{{ r.activeLabel }}</x-import>
+</div>
+</sc-for>
+</div>
+</section>
+</sc-if>
+
 <sc-if value="{{ isSecurity }}" hint-placeholder-val="{{ false }}">
 <section style="box-sizing:border-box;display:flex;flex-direction:column;gap:16px;padding:24px 26px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);min-width:0">
 <div>
@@ -162,8 +197,20 @@
 <span data-panel-k="1">{{ tSecPasswordLabel }}</span>
 <p style="margin:0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSecPasswordSub }}</p>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" type="password" size="md" label="{{ tSecNewPw }}" value="{{ pw1 }}" onChange="{{ setPw1 }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" type="password" size="md" label="{{ tSecConfirmPw }}" value="{{ pw2 }}" onChange="{{ setPw2 }}" hint-size="100%,76px"></x-import>
+<div data-af-pw="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" type="{{ pw1Type }}" size="md" label="{{ tSecNewPw }}" value="{{ pw1 }}" onChange="{{ setPw1 }}" hint-size="100%,76px"></x-import>
+<button type="button" data-af-eye="1" aria-label="{{ eye1Label }}" aria-pressed="{{ showPw1 }}" onClick="{{ togglePw1 }}">
+<sc-if value="{{ showPw1 }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="eye-off" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></sc-if>
+<sc-if value="{{ hidePw1 }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="eye" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></sc-if>
+</button>
+</div>
+<div data-af-pw="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" type="{{ pw2Type }}" size="md" label="{{ tSecConfirmPw }}" value="{{ pw2 }}" onChange="{{ setPw2 }}" hint-size="100%,76px"></x-import>
+<button type="button" data-af-eye="1" aria-label="{{ eye2Label }}" aria-pressed="{{ showPw2 }}" onClick="{{ togglePw2 }}">
+<sc-if value="{{ showPw2 }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="eye-off" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></sc-if>
+<sc-if value="{{ hidePw2 }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="eye" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></sc-if>
+</button>
+</div>
 </div>
 <span style="display:{{ pwMsgShow }};font-size:var(--vt-body-xs);color:var(--vt-danger)">{{ pwMsg }}</span>
 <div style="display:flex;align-items:center;gap:12px">
@@ -227,6 +274,7 @@ const PANES = [
   { key:'locale', icon:'globe', keys:['defaultLang', 'defaultCur'] },
   { key:'payments', icon:'credit-card', keys:['cash', 'card', 'twint', 'invoice'] },
   { key:'notify', icon:'bell', keys:['emailConfirm', 'emailReminder', 'smsReminder', 'opsAlerts'] },
+  { key:'staff', icon:'users', keys:[], admin:true },
   { key:'security', icon:'shield-check', keys:[] },
 ];
 const T = {
@@ -237,6 +285,7 @@ const T = {
     railLocale:'Localisation', railLocaleHint:'Language and currency',
     railPayments:'Payments', railPaymentsHint:'What checkout offers',
     railNotify:'Notifications', railNotifyHint:'Emails, SMS, alerts',
+    railStaff:'Staff', railStaffHint:'Invite and roles',
     company:'Company', companySub:'What appears on invoices, the footer and the imprint',
     companyNote:'Changing these changes every invoice, email footer and the imprint page.',
     legalName:'Legal name', address:'Address', uid:'UID', phone:'Phone', email:'Email',
@@ -271,6 +320,12 @@ const T = {
     secDangerLabel:'Delete this profile', secDangerSub:'Permanently removes your sign-in from this console. Bookings and records you touched are not deleted.',
     secDeleteBtn:'Delete my profile', secDeleteConfirmTitle:'Delete your profile?', secDeleteConfirmBody:'You will be signed out and your name, photo and preferences are removed from this browser. This cannot be undone.',
     secDeleteConfirmBtn:'Delete permanently', secKeepAccount:'Keep my profile',
+    staff:'Staff', staffSub:'Invite, role and active. Admin only.',
+    inviteEmail:'Email', inviteRole:'Role', inviteSend:'Send invite',
+    inviteNote:'The first real invite (not @example) needs Resend as Auth SMTP. This form posts to /api/staff/invite either way.',
+    inviteRoleAdmin:'Admin', inviteRoleDispatcher:'Dispatcher',
+    staffActive:'Deactivate', staffInactive:'Reactivate',
+    eyeShow:'Show password', eyeHide:'Hide password',
   },
   de: { title:'Einstellungen', subtitle:'Firmendaten, Buchungsregeln, Zahlung und Benachrichtigungen',
     save:'Änderungen speichern', discard:'Verwerfen', saved:'Gespeichert', unsaved:'Ungespeicherte Änderungen',
@@ -279,6 +334,7 @@ const T = {
     railLocale:'Lokalisierung', railLocaleHint:'Sprache und Währung',
     railPayments:'Zahlung', railPaymentsHint:'Was die Kasse anbietet',
     railNotify:'Benachrichtigungen', railNotifyHint:'E-Mails, SMS, Alarme',
+    railStaff:'Team', railStaffHint:'Einladen und Rollen',
     company:'Firma', companySub:'Was auf Rechnungen, im Footer und im Impressum steht',
     companyNote:'Eine Änderung hier ändert jede Rechnung, jeden E-Mail-Footer und das Impressum.',
     legalName:'Firmenname', address:'Adresse', uid:'UID', phone:'Telefon', email:'E-Mail',
@@ -313,6 +369,12 @@ const T = {
     secDangerLabel:'Dieses Profil löschen', secDangerSub:'Entfernt Ihre Anmeldung dauerhaft von dieser Konsole. Buchungen und Datensätze, die Sie bearbeitet haben, werden nicht gelöscht.',
     secDeleteBtn:'Mein Profil löschen', secDeleteConfirmTitle:'Profil löschen?', secDeleteConfirmBody:'Sie werden abgemeldet, und Name, Foto und Einstellungen werden aus diesem Browser entfernt. Dies kann nicht rückgängig gemacht werden.',
     secDeleteConfirmBtn:'Endgültig löschen', secKeepAccount:'Profil behalten',
+    staff:'Team', staffSub:'Einladen, Rolle und aktiv. Nur Admin.',
+    inviteEmail:'E-Mail', inviteRole:'Rolle', inviteSend:'Einladen',
+    inviteNote:'Die erste echte Einladung (nicht @example) braucht Resend als Auth-SMTP. Das Formular postet trotzdem an /api/staff/invite.',
+    inviteRoleAdmin:'Admin', inviteRoleDispatcher:'Dispatcher',
+    staffActive:'Deaktivieren', staffInactive:'Reaktivieren',
+    eyeShow:'Passwort anzeigen', eyeHide:'Passwort verbergen',
   },
   fr: { title:'Réglages', subtitle:'Coordonnées, règles de réservation, paiement et notifications',
     save:'Enregistrer', discard:'Annuler', saved:'Enregistré', unsaved:'Modifications non enregistrées',
@@ -321,6 +383,7 @@ const T = {
     railLocale:'Localisation', railLocaleHint:'Langue et devise',
     railPayments:'Paiement', railPaymentsHint:'Ce que propose le paiement',
     railNotify:'Notifications', railNotifyHint:'E-mails, SMS, alertes',
+    railStaff:'Équipe', railStaffHint:'Invitation et rôles',
     company:'Société', companySub:'Ce qui figure sur les factures, le pied de page et les mentions légales',
     companyNote:'Une modification ici change chaque facture, chaque pied d’e-mail et les mentions légales.',
     legalName:'Raison sociale', address:'Adresse', uid:'IDE', phone:'Téléphone', email:'E-mail',
@@ -355,6 +418,12 @@ const T = {
     secDangerLabel:'Supprimer ce profil', secDangerSub:'Retire définitivement votre connexion de cette console. Les réservations et fiches que vous avez traitées ne sont pas supprimées.',
     secDeleteBtn:'Supprimer mon profil', secDeleteConfirmTitle:'Supprimer votre profil ?', secDeleteConfirmBody:'Vous serez déconnecté et votre nom, photo et préférences seront retirés de ce navigateur. Cette action est irréversible.',
     secDeleteConfirmBtn:'Supprimer définitivement', secKeepAccount:'Garder mon profil',
+    staff:'Équipe', staffSub:'Invitation, rôle et actif. Admin seulement.',
+    inviteEmail:'E-mail', inviteRole:'Rôle', inviteSend:'Inviter',
+    inviteNote:'La première vraie invitation (pas @example) exige Resend comme SMTP Auth. Le formulaire poste quand même vers /api/staff/invite.',
+    inviteRoleAdmin:'Admin', inviteRoleDispatcher:'Régulateur',
+    staffActive:'Désactiver', staffInactive:'Réactiver',
+    eyeShow:'Afficher le mot de passe', eyeHide:'Masquer le mot de passe',
   },
   ar: { title:'الإعدادات', subtitle:'بيانات الشركة وقواعد الحجز والدفع والإشعارات',
     save:'حفظ التغييرات', discard:'تجاهل', saved:'تم الحفظ', unsaved:'تغييرات غير محفوظة',
@@ -363,6 +432,7 @@ const T = {
     railLocale:'التوطين', railLocaleHint:'اللغة والعملة',
     railPayments:'الدفع', railPaymentsHint:'ما يعرضه الدفع',
     railNotify:'الإشعارات', railNotifyHint:'رسائل ونصوص وتنبيهات',
+    railStaff:'الفريق', railStaffHint:'دعوة وأدوار',
     company:'الشركة', companySub:'ما يظهر على الفواتير وفي التذييل والبيانات القانونية',
     companyNote:'أي تغيير هنا يغيّر كل فاتورة وكل تذييل بريد وصفحة البيانات القانونية.',
     legalName:'الاسم القانوني', address:'العنوان', uid:'الرقم الضريبي', phone:'الهاتف', email:'البريد الإلكتروني',
@@ -397,24 +467,56 @@ const T = {
     secDangerLabel:'حذف هذا الملف الشخصي', secDangerSub:'يُزيل تسجيل دخولك نهائيًا من هذه اللوحة. لا تُحذف الحجوزات والسجلات التي تعاملت معها.',
     secDeleteBtn:'حذف ملفي الشخصي', secDeleteConfirmTitle:'حذف ملفك الشخصي؟', secDeleteConfirmBody:'سيتم تسجيل خروجك، وسيُزال اسمك وصورتك وتفضيلاتك من هذا المتصفح. لا يمكن التراجع عن هذا.',
     secDeleteConfirmBtn:'حذف نهائيًا', secKeepAccount:'الاحتفاظ بملفي',
+    staff:'الفريق', staffSub:'دعوة ودور وحالة. للمسؤول فقط.',
+    inviteEmail:'البريد الإلكتروني', inviteRole:'الدور', inviteSend:'إرسال الدعوة',
+    inviteNote:'أول دعوة حقيقية (ليست @example) تحتاج Resend كـ SMTP للمصادقة. النموذج يرسل إلى /api/staff/invite على أي حال.',
+    inviteRoleAdmin:'مسؤول', inviteRoleDispatcher:'موزّع',
+    staffActive:'إيقاف', staffInactive:'إعادة تفعيل',
+    eyeShow:'إظهار كلمة المرور', eyeHide:'إخفاء كلمة المرور',
   },
 };
 
+const POLICY_KEYS = { minAdvance:1, cancelWindow:1, airportWait:1, cityWait:1, policySlug:1, policyLabel:1, policyEffectiveFrom:1 };
+function api(method, path, body) {
+  const client = window.VamosOpsApi;
+  if (!client || typeof client.request !== 'function') return Promise.resolve({ ok: false, code: 'network' });
+  return client.request(method, path, body);
+}
+function signOutNow() {
+  try { localStorage.removeItem('vamosOpsAuth'); } catch (e) {}
+  const done = () => { location.replace('/login'); };
+  api('POST', '/api/auth', { action: 'signout' }).then(done, done);
+}
+
 class Component extends DCLogic {
-  state = { lang:'en', draft:null, saved:false, pane:'company', secEmail:'', pw1:'', pw2:'', pwMsg:'', pwSaved:false, emailSaved:false, passkeyAdded:false, deleteOpen:false };
+  state = { lang:'en', draft:null, saved:false, pane:'company', secEmail:'', pw1:'', pw2:'', pwMsg:'', pwSaved:false, emailSaved:false, passkeyAdded:false, deleteOpen:false, showPw1:false, showPw2:false, me:null, roster:[], inviteEmail:'', inviteRole:'dispatcher', inviteMsg:'' };
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
-    /* The runtime is what the operator can actually see, so it wins on mount —
-       written through the store so the screen does not boot claiming edits. */
-    if (window.VamosLocale) {
-      const live = { defaultCur: window.VamosLocale.cur(), defaultLang: window.VamosLocale.lang() };
-      const stored = window.VamosOps.settings.get();
-      if (stored.defaultCur !== live.defaultCur || stored.defaultLang !== live.defaultLang) {
-        window.VamosOps.settings.update(live);
-      }
-    }
+    if (this._offSettings) this._offSettings();
+    this._offSettings = window.VamosOps.settings.onChange(() => {
+      this.setState({ draft: window.VamosOps.settings.get(), saved: false });
+    });
     const profile = window.VamosOps.profile.get();
-    this.setState({ draft: window.VamosOps.settings.get(), secEmail: profile.email || '', passkeyAdded: !!profile.passkey });
+    this.setState({ draft: window.VamosOps.settings.get(), secEmail: profile.email || '' });
+    this.loadMe();
+  };
+  loadMe = () => {
+    api('GET', '/api/staff/me').then((json) => {
+      if (!json || !json.ok || !json.data) return;
+      const me = json.data;
+      this.setState({ me: me, secEmail: me.email || this.state.secEmail });
+      if (me.role === 'admin') this.loadRoster();
+    });
+  };
+  loadRoster = () => {
+    api('GET', '/api/staff/roster').then((json) => {
+      const data = json && json.ok ? json.data : null;
+      if (!data || data.access !== 'ok' || !Array.isArray(data.rows)) {
+        this.setState({ roster: [] });
+        return;
+      }
+      this.setState({ roster: data.rows });
+    });
   };
   componentDidMount() {
     this.bind();
@@ -424,60 +526,94 @@ class Component extends DCLogic {
   }
   componentWillUnmount() {
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
+    if (this._offSettings) this._offSettings();
     if (this.state.deleteOpen) { try { document.body.style.overflow = ''; } catch (e) {} }
     clearTimeout(this._retry); clearTimeout(this._savedT); clearTimeout(this._emailT); clearTimeout(this._pwT);
   }
   saveEmail = () => {
-    if (window.VamosOps) window.VamosOps.profile.update({ email: this.state.secEmail });
-    this.setState({ emailSaved: true });
-    clearTimeout(this._emailT);
-    this._emailT = setTimeout(() => this.setState({ emailSaved: false }), 2400);
+    api('PATCH', '/api/staff/profile', { email: this.state.secEmail }).then((json) => {
+      if (json && json.ok) {
+        this.setState({ emailSaved: true });
+        clearTimeout(this._emailT);
+        this._emailT = setTimeout(() => this.setState({ emailSaved: false }), 2400);
+      }
+    });
   };
   changePassword = () => {
     const t = T[this.state.lang] || T.en;
     if (!this.state.pw1 || this.state.pw1 !== this.state.pw2) { this.setState({ pwMsg: t.secPasswordMismatch, pwSaved: false }); return; }
-    this.setState({ pw1: '', pw2: '', pwMsg: '', pwSaved: true });
-    clearTimeout(this._pwT);
-    this._pwT = setTimeout(() => this.setState({ pwSaved: false }), 2400);
+    api('PATCH', '/api/staff/profile', { password: this.state.pw1 }).then((json) => {
+      if (json && json.ok) {
+        this.setState({ pw1: '', pw2: '', pwMsg: '', pwSaved: true });
+        clearTimeout(this._pwT);
+        this._pwT = setTimeout(() => this.setState({ pwSaved: false }), 2400);
+      } else {
+        this.setState({ pwMsg: (json && json.code) || t.secPasswordMismatch, pwSaved: false });
+      }
+    });
   };
-  addPasskey = () => { if (window.VamosOps) window.VamosOps.profile.update({ passkey: true }); this.setState({ passkeyAdded: true }); };
-  removePasskey = () => { if (window.VamosOps) window.VamosOps.profile.update({ passkey: false }); this.setState({ passkeyAdded: false }); };
+  addPasskey = () => {};
+  removePasskey = () => {};
   openDelete = () => { try { document.body.style.overflow = 'hidden'; } catch (e) {} this.setState({ deleteOpen: true }); };
   closeDelete = () => { try { document.body.style.overflow = ''; } catch (e) {} this.setState({ deleteOpen: false }); };
   confirmDelete = () => {
     try { document.body.style.overflow = ''; } catch (e) {}
-    if (window.VamosOps) window.VamosOps.profile.reset();
-    try { localStorage.removeItem('vamosOpsAuth'); } catch (e) {}
-    location.href = './ops-login.dc.html';
+    signOutNow();
   };
-  set = (key, value) => this.setState((s) => {
-    const d = {}; for (const k in s.draft) d[k] = s.draft[k];
-    d[key] = value;
-    return { draft: d, saved: false };
-  });
+  set = (key, value) => {
+    if (POLICY_KEYS[key]) return;
+    this.setState((s) => {
+      const d = {}; for (const k in s.draft) d[k] = s.draft[k];
+      d[key] = value;
+      return { draft: d, saved: false };
+    });
+  };
   save = () => {
-    if (!window.VamosOps || !this.state.draft) return;
-    window.VamosOps.settings.update(this.state.draft);
-    if (window.VamosLocale) {
-      if (this.state.draft.defaultCur) window.VamosLocale.setCur(this.state.draft.defaultCur);
-      if (this.state.draft.defaultLang) window.VamosLocale.setLang(this.state.draft.defaultLang);
-    }
-    this.setState({ saved: true });
-    clearTimeout(this._savedT);
-    this._savedT = setTimeout(() => this.setState({ saved: false }), 2400);
+    if (!this.state.draft) return;
+    const d = this.state.draft;
+    api('PATCH', '/api/staff/settings', {
+      company: d.company, address: d.address, uid: d.uid, phone: d.phone, email: d.email,
+      defaultLang: d.defaultLang, defaultCur: d.defaultCur,
+      cash: d.cash, card: d.card, twint: d.twint, invoice: d.invoice,
+      emailConfirm: d.emailConfirm, emailReminder: d.emailReminder, smsReminder: d.smsReminder, opsAlerts: d.opsAlerts,
+    }).then((json) => {
+      if (json && json.ok && json.data) {
+        if (window.VamosLocale) {
+          if (json.data.defaultCur) window.VamosLocale.setCur(json.data.defaultCur);
+          if (json.data.defaultLang) window.VamosLocale.setLang(json.data.defaultLang);
+        }
+        this.setState({ draft: json.data, saved: true });
+        clearTimeout(this._savedT);
+        this._savedT = setTimeout(() => this.setState({ saved: false }), 2400);
+      }
+    });
   };
   discard = () => { if (window.VamosOps) this.setState({ draft: window.VamosOps.settings.get(), saved: false }); };
+  sendInvite = () => {
+    const email = (this.state.inviteEmail || '').trim();
+    const role = this.state.inviteRole === 'admin' ? 'admin' : 'dispatcher';
+    if (!email) return;
+    api('POST', '/api/staff/invite', { email: email, role: role }).then((json) => {
+      this.setState({ inviteMsg: json && json.ok ? 'ok' : (json && json.code) || 'error', inviteEmail: json && json.ok ? '' : this.state.inviteEmail });
+      if (json && json.ok) this.loadRoster();
+    });
+  };
+  patchRoster = (userId, patch) => {
+    api('PATCH', '/api/staff/roster', Object.assign({ userId: userId }, patch)).then((json) => {
+      const data = json && json.ok ? json.data : null;
+      if (data && data.access === 'ok' && Array.isArray(data.rows)) this.setState({ roster: data.rows });
+    });
+  };
 
   renderVals() {
     const t = T[this.state.lang] || T.en;
     const ops = window.VamosOps;
     const d = this.state.draft || {};
     const saved = ops ? ops.settings.get() : {};
-    const changed = (k) => String(d[k]) !== String(saved[k]);
+    const changed = (k) => !POLICY_KEYS[k] && String(d[k]) !== String(saved[k]);
     const dirty = Object.keys(d).some(changed);
     const pane = this.state.pane;
-    /* Offer every currency the runtime knows, so the console can always name the
-       one it is currently showing. */
+    const isAdmin = this.state.me && this.state.me.role === 'admin';
     const curCodes = window.VamosLocale && window.VamosLocale.CURRENCIES
       ? Object.keys(window.VamosLocale.CURRENCIES) : ['CHF', 'EUR', 'USD'];
     const sw = (key, label, hint) => ({
@@ -487,8 +623,14 @@ class Component extends DCLogic {
     const RAIL = {
       company: [t.railCompany, t.railCompanyHint], policy: [t.railPolicy, t.railPolicyHint],
       locale: [t.railLocale, t.railLocaleHint], payments: [t.railPayments, t.railPaymentsHint],
-      notify: [t.railNotify, t.railNotifyHint], security: [t.railSecurity, t.railSecurityHint],
+      notify: [t.railNotify, t.railNotifyHint], staff: [t.railStaff, t.railStaffHint],
+      security: [t.railSecurity, t.railSecurityHint],
     };
+    const inviteRoleOptions = [
+      { value:'dispatcher', label: t.inviteRoleDispatcher },
+      { value:'admin', label: t.inviteRoleAdmin },
+    ];
+    const visiblePanes = PANES.filter((p) => !p.admin || isAdmin);
     return {
       n18: 18,
       tTitle: t.title, tSubtitle: t.subtitle, tSave: t.save, tDiscard: t.discard, tSaved: t.saved,
@@ -502,6 +644,7 @@ class Component extends DCLogic {
       tPublished: t.published, tPublishedHint: t.publishedHint,
       tPayments: t.payments, tPaymentsSub: t.paymentsSub, tPaymentsNote: t.paymentsNote,
       tNotifications: t.notifications, tNotificationsSub: t.notificationsSub, tNotificationsNote: t.notificationsNote,
+      tStaff: t.staff, tStaffSub: t.staffSub, tInviteEmail: t.inviteEmail, tInviteRole: t.inviteRole, tInviteSend: t.inviteSend, tInviteNote: t.inviteNote,
       tSecurity: t.security, tSecuritySub: t.securitySub,
       tSecEmailLabel: t.secEmailLabel, tSecEmailHint: t.secEmailHint, tSecEmailBtn: t.secEmailBtn,
       tSecPasswordLabel: t.secPasswordLabel, tSecPasswordSub: t.secPasswordSub,
@@ -518,11 +661,17 @@ class Component extends DCLogic {
       pw2: this.state.pw2, setPw2: (e) => this.setState({ pw2: e.target.value, pwMsg: '' }),
       changePassword: this.changePassword, pwMsg: this.state.pwMsg, pwMsgShow: this.state.pwMsg ? 'block' : 'none',
       pwSavedShow: this.state.pwSaved ? 'inline' : 'none',
-      passkeyAdded: this.state.passkeyAdded, noPasskey: !this.state.passkeyAdded,
+      showPw1: this.state.showPw1, hidePw1: !this.state.showPw1, pw1Type: this.state.showPw1 ? 'text' : 'password',
+      showPw2: this.state.showPw2, hidePw2: !this.state.showPw2, pw2Type: this.state.showPw2 ? 'text' : 'password',
+      eye1Label: this.state.showPw1 ? t.eyeHide : t.eyeShow,
+      eye2Label: this.state.showPw2 ? t.eyeHide : t.eyeShow,
+      togglePw1: () => this.setState((s) => ({ showPw1: !s.showPw1 })),
+      togglePw2: () => this.setState((s) => ({ showPw2: !s.showPw2 })),
+      passkeyAdded: false, noPasskey: true,
       addPasskey: this.addPasskey, removePasskey: this.removePasskey,
       deleteOpen: this.state.deleteOpen, openDelete: this.openDelete, closeDelete: this.closeDelete, confirmDelete: this.confirmDelete,
       langs: ['EN', 'DE', 'FR', 'AR'],
-      panes: PANES.map((p) => ({
+      panes: visiblePanes.map((p) => ({
         icon: p.icon,
         label: RAIL[p.key][0],
         hint: RAIL[p.key][1],
@@ -531,7 +680,7 @@ class Component extends DCLogic {
         pick: () => this.setState({ pane: p.key }),
       })),
       isCompany: pane === 'company', isPolicy: pane === 'policy', isLocale: pane === 'locale',
-      isPayments: pane === 'payments', isNotify: pane === 'notify',
+      isPayments: pane === 'payments', isNotify: pane === 'notify', isStaff: pane === 'staff' && isAdmin,
       dirtyShow: dirty ? 'inline-flex' : 'none',
       savedShow: this.state.saved && !dirty ? 'inline' : 'none',
       notDirty: !dirty,
@@ -540,10 +689,11 @@ class Component extends DCLogic {
       vUid: d.uid || '', setUid: txt('uid'),
       vPhone: d.phone || '', setPhone: txt('phone'),
       vEmail: d.email || '', setEmail: txt('email'),
-      vMinAdvance: d.minAdvance || '', setMinAdvance: txt('minAdvance'),
-      vCancelWindow: d.cancelWindow || '', setCancelWindow: txt('cancelWindow'),
-      vAirportWait: d.airportWait || '', setAirportWait: txt('airportWait'),
-      vCityWait: d.cityWait || '', setCityWait: txt('cityWait'),
+      vMinAdvance: d.minAdvance === undefined || d.minAdvance === null ? '' : String(d.minAdvance),
+      vCancelWindow: d.cancelWindow === undefined || d.cancelWindow === null ? '' : String(d.cancelWindow),
+      vAirportWait: d.airportWait === undefined || d.airportWait === null ? '' : String(d.airportWait),
+      vCityWait: d.cityWait === undefined || d.cityWait === null ? '' : String(d.cityWait),
+      setMinAdvance: () => {}, setCancelWindow: () => {}, setAirportWait: () => {}, setCityWait: () => {},
       vLang: d.defaultLang || 'en', pickLang: (v) => this.set('defaultLang', v),
       vCur: d.defaultCur || 'CHF', pickCur: (v) => this.set('defaultCur', v),
       langOptions: [
@@ -561,6 +711,18 @@ class Component extends DCLogic {
         sw('smsReminder', t.smsReminder, t.smsReminderHint),
         sw('opsAlerts', t.opsAlerts, t.opsAlertsHint),
       ],
+      inviteEmail: this.state.inviteEmail, setInviteEmail: (e) => this.setState({ inviteEmail: e.target.value }),
+      inviteRole: this.state.inviteRole, pickInviteRole: (v) => this.setState({ inviteRole: v }),
+      inviteRoleOptions, sendInvite: this.sendInvite,
+      inviteMsg: this.state.inviteMsg, inviteMsgShow: this.state.inviteMsg ? 'inline' : 'none',
+      rosterRows: (this.state.roster || []).map((row) => ({
+        name: row.fullName || '',
+        email: row.userId || '',
+        role: row.role,
+        activeLabel: row.active ? t.staffActive : t.staffInactive,
+        setRole: (v) => this.patchRoster(row.userId, { role: v }),
+        toggleActive: () => this.patchRoster(row.userId, { active: !row.active }),
+      })),
       save: this.save, discard: this.discard,
     };
   }
