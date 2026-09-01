@@ -55,13 +55,14 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-ft-link],[data-ft-quiet]{transition:color var(--vt-dur-fast,140ms) var(--vt-ease-standard,cubic-bezier(.2,0,.2,1))}
 [data-ft-link]:hover,[data-ft-quiet]:hover{color:var(--vt-accent)}
 [data-ft-link][data-split]:hover{color:rgb(255 255 255 / .84)}
+[data-ft-link]:not([data-split]):hover{color:var(--vt-accent)!important}
 .ft-w{display:inline-block;white-space:nowrap;vertical-align:top}
 .ft-c{display:inline-block;overflow:hidden;vertical-align:top;line-height:1.4}
 .ft-c>i{display:block;position:relative;font-style:normal;transition:transform 320ms var(--vt-ease-standard,cubic-bezier(.2,0,.2,1))}
 .ft-c>i>b{position:absolute;left:0;top:100%;font-weight:inherit;color:var(--vt-accent);user-select:none;pointer-events:none}
 [data-ft-link][data-split]:hover .ft-c>i,[data-ft-link][data-split]:focus-visible .ft-c>i{transform:translateY(-100%)}
 @media (prefers-reduced-motion:reduce){.ft-c>i{transition:none}}
-[data-ft-soc]:hover [data-ft-glyph]{background:var(--vt-accent)}
+[data-ft-soc]:hover [data-ft-glyph]{background:var(--vt-accent)!important}
 [data-ft-soc]:focus-visible{outline:3px solid rgb(253 194 11 / .45);outline-offset:4px;border-radius:4px}
 [data-ft-grid]>div{min-width:0}
 @media (min-width:768px) and (max-width:1023px){[data-ft-grid]>div:last-child{grid-column:1/-1}}
