@@ -31,6 +31,7 @@ status: checkpoint
 - Removed dead review-switcher methods and their sample customer details, plus the named form/reference sample placeholders. Cookie-banner review state remains independent.
 - Removed the residual `Response time`/`data-tok` TBC UI from both the form introduction and delivered-message state. Both now direct time-sensitive requests to the confirmed public telephone without claiming a response interval.
 - Added a database-free static-source regression test that fails if the removed unsupported strings, placeholder social URLs/state, sample review data, or response-time/TBC placeholder returns; it also requires each known working direct-contact destination.
+- Corrected the public telephone `tel:` target on the DC contact page plus both DC and React footer surfaces, and added a regression test that rejects masked/non-callable footer destinations.
 
 ## Test evidence
 
@@ -49,6 +50,7 @@ status: checkpoint
 - Response-time generated-output check: `node scripts/sync-dc-mock-to-public.mjs` completed; static assertions verified both generated public contact outputs contain neither `Response time` nor `data-tok`, and retain the time-sensitive call direction.
 - Lease remediation RED: `/Users/koss/Developer/VamosTaxi.eu/apps/web/node_modules/.bin/vitest run lib/forms/contact-delivery.test.ts` from the 05-26 worktree — 5/5 tests failed before implementation because the old delivery gateway had neither structured lease claims nor fenced finalize arguments.
 - Lease remediation GREEN: the same main-checkout Vitest binary — 1 file, 5 tests passed. It covers recovery before provider send and provider-accepted-before-finalize, verifies the renewed fence token is passed to finalization, and verifies retries preserve `contact:<submission>:<channel>:v1`.
+- Callable-phone RED/GREEN: `apps/web/lib/footer-source.test.ts` first failed against the masked `tel:` destination, then `./node_modules/.bin/vitest run lib/footer-source.test.ts lib/contact-source.test.ts` passed 2 files / 5 tests after all public surfaces used the confirmed callable target.
 - `git diff --check` passed. Focused web TypeScript checking has no lease-related error; the command remains blocked by three inherited read-only `process.env.NODE_ENV` test mutations in `lib/ops/invite.test.ts` (TS2704/TS2540), outside this plan's scope.
 - Full web Vitest was attempted with the main checkout binary from this isolated worktree: 37 files / 373 tests passed; it could not complete because the worktree deliberately has no dependency tree, leaving `fast-check` and `@vamos/db/identity` unresolved. Its two resolved-test failures are inherited: `lib/ops/chauffeurs.test.ts` expects `ops.language.*` but data uses `ops.spoken.*`, and `lib/pricing/rateBook.test.ts` expects null `night_window_tz` but receives the established `Europe/Zurich` fallback. Neither path was modified.
 

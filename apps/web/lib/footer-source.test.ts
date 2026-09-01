@@ -9,6 +9,7 @@ const footers = [
   "app/pages/SiteFooter.dc.html",
   "app/home/SiteFooter.dc.html",
 ] as const;
+const reactFooterPath = "apps/web/components/shell/SiteFooter.tsx";
 
 function footerSource(path: (typeof footers)[number]): string {
   return readFileSync(join(repoRoot, path), "utf8");
@@ -28,5 +29,16 @@ describe("DC footer source", () => {
         "[data-ft-soc]:hover [data-ft-glyph]{background:var(--vt-accent)!important}",
       );
     }
+  });
+
+  it("uses the confirmed public number as a callable phone destination on every footer surface", () => {
+    for (const path of footers) {
+      expect(footerSource(path)).toContain('href="tel:+41796267082"');
+      expect(footerSource(path)).not.toContain('tel:+417****7082');
+    }
+
+    const reactFooter = readFileSync(join(repoRoot, reactFooterPath), "utf8");
+    expect(reactFooter).toContain('const PHONE_HREF = "tel:+41796267082";');
+    expect(reactFooter).not.toContain("tel:+417****7082");
   });
 });

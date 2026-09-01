@@ -45,7 +45,7 @@ function serviceHref(service: string): string {
  *  the same block), so it carries no dictionary key and is marked as opting out. */
 const EMAIL = "info@vamostaxi.eu";
 const PHONE_DISPLAY = "+41 79 626 70 82";
-const PHONE_HREF = "tel:+417****7082";
+const PHONE_HREF = "tel:+41796267082";
 const WHATSAPP = "https://wa.me/41796267082";
 
 const INSTAGRAM = "https://www.instagram.com/vamos.taxi/";
