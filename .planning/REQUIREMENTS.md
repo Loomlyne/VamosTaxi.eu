@@ -110,11 +110,11 @@ and are final — "matches the mock" is a real acceptance criterion, not a hand-
 - [ ] **OPS-03**: A dispatcher assigns a chauffeur and a vehicle, and the same driver cannot be double-booked for overlapping trips
 - [ ] **OPS-04**: A dispatcher can take a booking by phone and enter it into the system, on a screen designed and reviewed as a mock first
 - [ ] **OPS-05**: Staff can confirm, modify and cancel a booking, and issue a refund
-- [ ] **OPS-06**: Staff can manage vehicle classes, vehicles, chauffeurs, fixed routes, distance rates, surcharges and coupons
-- [ ] **OPS-07**: Staff can see customers and their booking history
-- [ ] **OPS-08**: Staff can publish, hide and order the reviews that appear on the home page
-- [ ] **OPS-09**: Staff can edit business settings and the content strings behind the site copy
-- [ ] **OPS-10**: The ops console is a role-gated area of the same application, reachable only by staff
+- [x] **OPS-06**: Staff can manage vehicle classes, vehicles, chauffeurs, fixed routes, distance rates, surcharges and coupons
+- [x] **OPS-07**: Staff can see customers and their booking history
+- [x] **OPS-08**: Staff can publish, hide and order the reviews that appear on the home page
+- [x] **OPS-09**: Staff can edit business settings and the content strings behind the site copy
+- [x] **OPS-10**: The ops console is a role-gated area of the same application, reachable only by staff
 
 ### Launch readiness (LAUNCH)
 
@@ -249,11 +249,11 @@ Populated during roadmap creation. Full phase goals and success criteria: `.plan
 | OPS-03 | Phase 8 | Pending |
 | OPS-04 | Phase 8 | Pending |
 | OPS-05 | Phase 8 | Pending |
-| OPS-06 | Phase 6 | Pending |
-| OPS-07 | Phase 6 | Pending |
-| OPS-08 | Phase 6 | Pending |
-| OPS-09 | Phase 6 | Pending |
-| OPS-10 | Phase 6 | Pending |
+| OPS-06 | Phase 6 | Complete |
+| OPS-07 | Phase 6 | Complete |
+| OPS-08 | Phase 6 | Complete |
+| OPS-09 | Phase 6 | Complete |
+| OPS-10 | Phase 6 | Complete |
 | LAUNCH-01 | Phase 10 | Pending |
 | LAUNCH-02 | Phase 10 | Pending |
 | LAUNCH-03 | Phase 10 | Pending |

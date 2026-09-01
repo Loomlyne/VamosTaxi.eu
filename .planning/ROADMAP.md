@@ -295,6 +295,12 @@ does not need to wait for checkout.
 **Wave 4** *(blocked on Wave 3 completion)*
 - [x] 06-11-PLAN.md — I18N-07 loader last; `CONTENT_SOURCE` default json
 
+**Wave 5** *(blocked on Wave 4 completion)*
+- [x] 06-12-PLAN.md — Dashboard comment pack: `#staff`, passkeys, Zurich digest, four classes
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [x] 06-13-PLAN.md — UAT regressions: in-place hash fade, Fleet hierarchy, avatar, branded digest
+
 **UI hint**: yes
 
 ### Phase 7: Checkout & Payment
@@ -394,7 +400,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 
 | 3. Hyperdrive Data Access Wiring | 7/7 | Complete | 2026-08-28 |
 | 4. Quote & Pricing Engine | 12/16 | In Progress|  |
 | 5. Public Surfaces & Customer Accounts | 19/24 | In Progress|  |
-| 6. Ops Reference Data & Content Console | 11/11 | Complete   | 2026-09-01 |
+| 6. Ops Reference Data & Content Console | 13/13 | Complete   | 2026-09-01 |
 | 7. Checkout & Payment | 0/TBD | Not started | - |
 | 8. Ops Dispatch — Live Board, Assignment & Account Surfaces | 0/TBD | Not started | - |
 | 9. Booking Lifecycle & Customer Self-Service | 0/TBD | Not started | - |
