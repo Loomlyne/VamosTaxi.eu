@@ -2,7 +2,7 @@
 //
 // Pinned invite redirect + role narrowing. Nothing here may read a request,
 // a header, or a body field — redirectTo is a compile-time origin chosen by
-// DEPLOY_ENV, then `/ops/accept-invite` (D-06 / T-06-26).
+// DEPLOY_ENV, then `/login` on the dashboard host (D-06). Never derived from request input.
 
 export type InviteRole = "dispatcher" | "admin";
 
@@ -33,7 +33,7 @@ export function opsInviteRedirectUrl(): string {
       : deployEnv === "production" || process.env.NODE_ENV === "production"
         ? PRODUCTION_ORIGIN
         : LOCAL_ORIGIN;
-  return `${origin}/ops/accept-invite`;
+  return `${origin}/login`;
 }
 
 export function assertInviteRole(value: unknown): InviteRole {
