@@ -136,6 +136,9 @@ describe("06-09 DC mocks", () => {
     expect(sidebar).toMatch(/<svg aria-hidden="true" viewBox="0 0 42 100"/);
     expect(sidebar).toMatch(/Q21 94 39 94/);
     expect(settings).toMatch(/publishedLangs: \[/);
+    const locale = read("app/vamos-locale.js");
+    expect(locale).toMatch(/function isDashboardHost\(\)/);
+    expect(locale).toMatch(/isDashboardHost\(\) \? 'CHF'/);
     expect(settings).toMatch(/Stripe-hosted online checkout/);
     expect(settings).not.toMatch(/Cash to the chauffeur|TWINT|Corporate accounts only/);
     expect(settings).not.toMatch(/tSecDangerLabel|openDelete|deleteOpen/);

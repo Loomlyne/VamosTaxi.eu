@@ -85,6 +85,10 @@
     return reverse;
   }
 
+  function isDashboardHost() {
+    return location.hostname === 'dashboard.vamostaxi.site';
+  }
+
   function read() {
     var lang = 'en', cur = 'CHF';
     try {
@@ -93,7 +97,9 @@
     } catch (e) {}
     return {
       lang: LANGS.indexOf(lang) > -1 ? lang : 'en',
-      cur: CURS[cur] ? cur : 'CHF',
+      /* Ops is Swiss-only: a previously saved public currency must never turn
+         dashboard placeholders into AED/EUR/USD. */
+      cur: isDashboardHost() ? 'CHF' : (CURS[cur] ? cur : 'CHF'),
     };
   }
 
@@ -402,6 +408,7 @@
   function set(next, quiet) {
     var changed = false;
     if (next.lang && LANGS.indexOf(next.lang) > -1 && next.lang !== state.lang) { state.lang = next.lang; changed = true; }
+    if (isDashboardHost() && next.cur && next.cur !== 'CHF') next.cur = 'CHF';
     if (next.cur && CURS[next.cur] && next.cur !== state.cur) { state.cur = next.cur; changed = true; }
     if (!changed) return;
     resetMemo();
