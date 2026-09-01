@@ -41,7 +41,10 @@ export type AuthClient = {
     ): Promise<{ error: AuthError }>;
     signOut(): Promise<{ error: AuthError }>;
     getUser(): Promise<{ data: { user: unknown | null }; error: AuthError }>;
-    updateUser(args: { password: string }): Promise<{ error: AuthError }>;
+    updateUser(args: {
+      password?: string;
+      data?: Record<string, string>;
+    }): Promise<{ error: AuthError }>;
   };
 };
 
@@ -147,6 +150,30 @@ export async function runUpdatePassword(
     return { result: FORM_CREDENTIALS, reason: userError?.code ?? "no-user" };
   }
   const { error } = await supabase.auth.updateUser({ password });
+  if (error) return { result: FORM_CREDENTIALS, reason: error.code ?? "auth-failed" };
+  return { result: { ok: true }, reason: null };
+}
+
+export async function runUpdateProfile(
+  supabase: AuthClient,
+  input: { firstName: string; lastName: string } | { phone: string },
+): Promise<{ result: AuthRunResult; reason: string | null }> {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError || !user) {
+    return { result: FORM_CREDENTIALS, reason: userError?.code ?? "no-user" };
+  }
+  const data: Record<string, string> =
+    "phone" in input
+      ? { phone: input.phone }
+      : {
+          first_name: input.firstName,
+          last_name: input.lastName,
+          full_name: fullName(input.firstName, input.lastName),
+        };
+  const { error } = await supabase.auth.updateUser({ data });
   if (error) return { result: FORM_CREDENTIALS, reason: error.code ?? "auth-failed" };
   return { result: { ok: true }, reason: null };
 }

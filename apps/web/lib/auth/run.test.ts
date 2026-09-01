@@ -9,6 +9,7 @@ import {
   runSignOut,
   runSignUpPassword,
   runUpdatePassword,
+  runUpdateProfile,
   SENT,
   type AuthClient,
 } from "./run";
@@ -155,5 +156,52 @@ describe("runUpdatePassword", () => {
   it("returns ok when supabase accepts", async () => {
     const out = await runUpdatePassword(client(), "password1");
     expect(out).toEqual({ result: { ok: true }, reason: null });
+  });
+});
+
+describe("runUpdateProfile", () => {
+  it("returns credentials when there is no session", async () => {
+    const sb = client({
+      getUser: vi.fn(async () => ({ data: { user: null }, error: null })),
+    });
+    const out = await runUpdateProfile(sb, { firstName: "koussay", lastName: "zayani" });
+    expect(out.result).toEqual(FORM_CREDENTIALS);
+    expect(out.reason).toBe("no-user");
+  });
+
+  it("writes full_name onto user_metadata", async () => {
+    const updateUser = vi.fn(async () => ({ error: null }));
+    const out = await runUpdateProfile(client({ updateUser }), {
+      firstName: "koussay",
+      lastName: "zayani",
+    });
+    expect(out).toEqual({ result: { ok: true }, reason: null });
+    expect(updateUser).toHaveBeenCalledWith({
+      data: {
+        first_name: "koussay",
+        last_name: "zayani",
+        full_name: "koussay zayani",
+      },
+    });
+  });
+
+  it("writes phone onto user_metadata without touching auth.phone", async () => {
+    const updateUser = vi.fn(async () => ({ error: null }));
+    const out = await runUpdateProfile(client({ updateUser }), {
+      phone: "+41 79 626 70 82",
+    });
+    expect(out).toEqual({ result: { ok: true }, reason: null });
+    expect(updateUser).toHaveBeenCalledWith({
+      data: { phone: "+41 79 626 70 82" },
+    });
+  });
+
+  it("maps supabase failures to credentials", async () => {
+    const sb = client({
+      updateUser: vi.fn(async () => ({ error: { code: "unexpected_failure" } })),
+    });
+    const out = await runUpdateProfile(sb, { firstName: "A", lastName: "B" });
+    expect(out.result).toEqual(FORM_CREDENTIALS);
+    expect(out.reason).toBe("unexpected_failure");
   });
 });

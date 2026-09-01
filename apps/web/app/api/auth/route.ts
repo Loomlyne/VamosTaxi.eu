@@ -10,6 +10,7 @@ import {
   signInPasswordSchema,
   signUpPasswordSchema,
   updatePasswordSchema,
+  updateProfileSchema,
 } from "@/lib/auth/schemas";
 import {
   FORM_CREDENTIALS,
@@ -19,6 +20,7 @@ import {
   runSignOut,
   runSignUpPassword,
   runUpdatePassword,
+  runUpdateProfile,
   SENT,
   type AuthRunResult,
 } from "@/lib/auth/run";
@@ -82,6 +84,14 @@ export async function POST(request: Request): Promise<Response> {
     if (!parsed.success) return json(FORM_CREDENTIALS);
     const { result, reason } = await runUpdatePassword(supabase, parsed.data.password);
     if (reason) log("error", "auth", ctx, { reason, action: "update-password" });
+    return json(result);
+  }
+
+  if (action === "update-profile") {
+    const parsed = updateProfileSchema.safeParse(fields);
+    if (!parsed.success) return json(FORM_CREDENTIALS);
+    const { result, reason } = await runUpdateProfile(supabase, parsed.data);
+    if (reason) log("error", "auth", ctx, { reason, action: "update-profile" });
     return json(result);
   }
 
