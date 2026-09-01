@@ -164,7 +164,7 @@ begin
     p_locale,
     p_display_currency::public.display_currency
   )
-  returning id, reference
+  returning public.bookings.id, public.bookings.reference
     into v_booking_id, v_reference;
 
   -- 4. Legs. estimated_duration_minutes is required on the web path (04-API-CONTRACT §10).
