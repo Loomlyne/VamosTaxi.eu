@@ -73,6 +73,9 @@
 <button type="button" data-ico-btn="1" onClick="{{ r.up }}" disabled="{{ r.isFirst }}" aria-label="{{ tMoveUp }}" title="{{ tMoveUp }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-up" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
 </button>
+<button type="button" data-ico-btn="1" onClick="{{ r.down }}" disabled="{{ r.isLast }}" aria-label="{{ tMoveDown }}" title="{{ tMoveDown }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-down" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+</button>
 <button type="button" data-ico-btn="1" onClick="{{ r.togglePublish }}" aria-label="{{ r.publishLabel }}" title="{{ r.publishLabel }}" aria-pressed="{{ r.publishedAria }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ r.publishIcon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
 </button>
@@ -216,12 +219,12 @@ const T = {
     viewOnSite: 'View on site', add: 'Add a review',
     lockTitle: 'Imported reviews cannot be reworded',
     lockBody: 'Rows pulled from Google, Tripadvisor or Trustpilot carry the customer’s own words. Hide them, reorder them or add the trip details around them — only reviews you collected yourself can be rewritten.',
-    orderNote: 'The site shows published reviews in this order. Drag a row, or move it with the up arrow.',
+    orderNote: 'The site shows published reviews in this order. Move a row with the arrows.',
     published: 'published', hidden: 'hidden', hiddenTag: 'Hidden', imported: 'Imported',
-    reorder: 'Drag to reorder', moveUp: 'Move up', edit: 'Edit', remove: 'Remove', confirmRemove: 'Remove — click again',
+    reorder: 'Reorder', moveUp: 'Move up', moveDown: 'Move down', edit: 'Edit', remove: 'Remove', confirmRemove: 'Remove — click again',
     publish: 'Publish', unpublish: 'Hide from the site',
     emptyTitle: 'No reviews yet', emptyBody: 'Add one by hand, or connect a platform and import what is already written about you.',
-    storageNote: 'Saved in this browser until the reviews API exists. Order, wording and photos travel with it.',
+    storageNote: '',
     panelKicker: 'Editor', idleTitle: 'Pick a review to edit', idleBody: 'Or add one. Everything you type is saved as you go — there is no separate save step.',
     editingKicker: 'Editing', editingNew: 'New review',
     name: 'Name', role: 'Role or trip', rolePh: 'Airport transfer, Zurich',
@@ -238,12 +241,12 @@ const T = {
     viewOnSite: 'Auf der Website', add: 'Bewertung hinzufügen',
     lockTitle: 'Importierte Bewertungen lassen sich nicht umschreiben',
     lockBody: 'Zeilen von Google, Tripadvisor oder Trustpilot enthalten die Worte der Kundin oder des Kunden. Sie können sie ausblenden, neu ordnen oder die Fahrtdaten ergänzen — umschreiben lässt sich nur, was Sie selbst gesammelt haben.',
-    orderNote: 'Die Website zeigt veröffentlichte Bewertungen in dieser Reihenfolge. Ziehen Sie eine Zeile oder verschieben Sie sie mit dem Pfeil nach oben.',
+    orderNote: 'Die Website zeigt veröffentlichte Bewertungen in dieser Reihenfolge. Verschieben Sie eine Zeile mit den Pfeilen.',
     published: 'veröffentlicht', hidden: 'ausgeblendet', hiddenTag: 'Ausgeblendet', imported: 'Importiert',
-    reorder: 'Zum Umsortieren ziehen', moveUp: 'Nach oben', edit: 'Bearbeiten', remove: 'Entfernen', confirmRemove: 'Entfernen — nochmals klicken',
+    reorder: 'Umsortieren', moveUp: 'Nach oben', moveDown: 'Nach unten', edit: 'Bearbeiten', remove: 'Entfernen', confirmRemove: 'Entfernen — nochmals klicken',
     publish: 'Veröffentlichen', unpublish: 'Auf der Website ausblenden',
     emptyTitle: 'Noch keine Bewertungen', emptyBody: 'Fügen Sie eine von Hand hinzu oder verbinden Sie eine Plattform und importieren Sie, was bereits über Sie geschrieben wurde.',
-    storageNote: 'Bis zur Bewertungs-API in diesem Browser gespeichert. Reihenfolge, Text und Fotos inklusive.',
+    storageNote: '',
     panelKicker: 'Editor', idleTitle: 'Wählen Sie eine Bewertung', idleBody: 'Oder fügen Sie eine hinzu. Alles wird beim Tippen gespeichert — es gibt keinen separaten Speicherschritt.',
     editingKicker: 'Bearbeiten', editingNew: 'Neue Bewertung',
     name: 'Name', role: 'Rolle oder Fahrt', rolePh: 'Flughafentransfer, Zürich',
@@ -260,12 +263,12 @@ const T = {
     viewOnSite: 'Voir sur le site', add: 'Ajouter un avis',
     lockTitle: 'Les avis importés ne peuvent pas être réécrits',
     lockBody: 'Les lignes venant de Google, Tripadvisor ou Trustpilot contiennent les mots du client. Vous pouvez les masquer, les réordonner ou ajouter les détails du trajet — seuls les avis que vous avez recueillis peuvent être réécrits.',
-    orderNote: 'Le site affiche les avis publiés dans cet ordre. Faites glisser une ligne ou déplacez-la avec la flèche.',
+    orderNote: 'Le site affiche les avis publiés dans cet ordre. Déplacez une ligne avec les flèches.',
     published: 'publiés', hidden: 'masqués', hiddenTag: 'Masqué', imported: 'Importé',
-    reorder: 'Glisser pour réordonner', moveUp: 'Monter', edit: 'Modifier', remove: 'Supprimer', confirmRemove: 'Supprimer — cliquez à nouveau',
+    reorder: 'Réordonner', moveUp: 'Monter', moveDown: 'Descendre', edit: 'Modifier', remove: 'Supprimer', confirmRemove: 'Supprimer — cliquez à nouveau',
     publish: 'Publier', unpublish: 'Masquer sur le site',
     emptyTitle: 'Aucun avis pour l’instant', emptyBody: 'Ajoutez-en un à la main, ou connectez une plateforme et importez ce qui est déjà écrit sur vous.',
-    storageNote: 'Enregistré dans ce navigateur jusqu’à l’API des avis. L’ordre, le texte et les photos suivent.',
+    storageNote: '',
     panelKicker: 'Éditeur', idleTitle: 'Choisissez un avis à modifier', idleBody: 'Ou ajoutez-en un. Tout est enregistré au fur et à mesure — pas d’étape de sauvegarde.',
     editingKicker: 'Modification', editingNew: 'Nouvel avis',
     name: 'Nom', role: 'Rôle ou trajet', rolePh: 'Transfert aéroport, Zurich',
@@ -282,12 +285,12 @@ const T = {
     viewOnSite: 'عرض في الموقع', add: 'إضافة تقييم',
     lockTitle: 'لا يمكن إعادة صياغة التقييمات المستوردة',
     lockBody: 'الصفوف الواردة من Google أو Tripadvisor أو Trustpilot تحمل كلمات العميل نفسه. يمكنك إخفاؤها أو إعادة ترتيبها أو إضافة تفاصيل الرحلة — أما إعادة الصياغة فتقتصر على التقييمات التي جمعتموها بأنفسكم.',
-    orderNote: 'يعرض الموقع التقييمات المنشورة بهذا الترتيب. اسحب الصف أو حرّكه بالسهم لأعلى.',
+    orderNote: 'يعرض الموقع التقييمات المنشورة بهذا الترتيب. حرّك الصف بالأسهم.',
     published: 'منشورة', hidden: 'مخفية', hiddenTag: 'مخفي', imported: 'مستورد',
-    reorder: 'اسحب لإعادة الترتيب', moveUp: 'تحريك لأعلى', edit: 'تحرير', remove: 'حذف', confirmRemove: 'حذف — انقر مرة أخرى',
+    reorder: 'إعادة الترتيب', moveUp: 'تحريك لأعلى', moveDown: 'تحريك لأسفل', edit: 'تحرير', remove: 'حذف', confirmRemove: 'حذف — انقر مرة أخرى',
     publish: 'نشر', unpublish: 'إخفاء من الموقع',
     emptyTitle: 'لا توجد تقييمات بعد', emptyBody: 'أضف واحدًا يدويًا، أو اربط منصة واستورد ما كُتب عنكم بالفعل.',
-    storageNote: 'محفوظ في هذا المتصفح إلى أن تتوفر واجهة التقييمات. الترتيب والنص والصور تُحفظ معه.',
+    storageNote: '',
     panelKicker: 'المحرر', idleTitle: 'اختر تقييمًا للتحرير', idleBody: 'أو أضف واحدًا. يُحفظ كل شيء أثناء الكتابة — لا توجد خطوة حفظ منفصلة.',
     editingKicker: 'تحرير', editingNew: 'تقييم جديد',
     name: 'الاسم', role: 'الصفة أو الرحلة', rolePh: 'نقل من المطار، زيورخ',
@@ -325,10 +328,25 @@ class Component extends DCLogic {
 
   /* The store and the locale runtime arrive with the page's own scripts, which can
      land after this screen mounts — so wait for them rather than assuming. */
+  photoCss(avatar) {
+    const key = String(avatar || '');
+    if (!key || key.indexOf('data:') === 0) return 'none';
+    if (key.indexOf('/') === 0 || key.indexOf('http') === 0) return 'url(' + key + ')';
+    return 'url(/photos/' + key + ')';
+  }
   bindStore = () => {
     const store = window.VamosReviews;
     if (!store) { this._retry = setTimeout(this.bindStore, 120); return; }
-    this._off = store.onChange(() => this.forceUpdate());
+    this._off = store.onChange(() => {
+      if (this._newKnown) {
+        const added = store.all().filter((r) => !this._newKnown[r.id])[0];
+        this._newKnown = null;
+        if (added) this.setState({ selected: added.id, isNew: true });
+        else this.forceUpdate();
+        return;
+      }
+      this.forceUpdate();
+    });
     this.forceUpdate();
   };
   componentDidMount() {
@@ -348,6 +366,7 @@ class Component extends DCLogic {
   }
 
   copy() { return T[this.state.lang] || T.en; }
+  /* Writes go through VamosReviews → GET/POST/PATCH/DELETE /api/staff/reviews. */
   store() { return window.VamosReviews; }
   current() {
     const id = this.state.selected;
@@ -368,19 +387,26 @@ class Component extends DCLogic {
   addNew = () => {
     const store = this.store();
     if (!store) return;
-    const blank = store.blank();
-    this.after(() => store.add(blank));
-    this.setState({ selected: blank.id, isNew: true, confirmId: null });
+    const known = {};
+    this.rows().forEach((r) => { known[r.id] = true; });
+    this._newKnown = known;
+    this.after(() => store.add(store.blank()));
+    this.setState({ isNew: true, confirmId: null });
   };
   closePanel = () => this.setState({ selected: null, isNew: false });
   pickPhoto = () => { if (this.fileRef.current) this.fileRef.current.click(); };
   onPhoto = (e) => {
     const file = e.target && e.target.files && e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => this.patch({ avatar: String(reader.result || '') });
-    reader.readAsDataURL(file);
     e.target.value = '';
+    const cur = this.current();
+    if (!file || !cur || !cur.id) return;
+    const body = new FormData();
+    body.append('kind', 'review');
+    body.append('recordId', cur.id);
+    body.append('file', file);
+    fetch('/api/photos/upload', { method: 'POST', credentials: 'include', body })
+      .then((res) => res.json())
+      .then((json) => { if (json && json.key) this.patch({ avatar: json.key }); });
   };
   clearPhoto = () => this.patch({ avatar: '' });
 
@@ -441,7 +467,7 @@ class Component extends DCLogic {
       tOrderNote: t.orderNote,
       tPublishedCount: pub + ' ' + t.published,
       tHiddenCount: (rows.length - pub) + ' ' + t.hidden,
-      tHidden: t.hiddenTag, tReorder: t.reorder, tMoveUp: t.moveUp, tEdit: t.edit,
+      tHidden: t.hiddenTag, tReorder: t.reorder, tMoveUp: t.moveUp, tMoveDown: t.moveDown, tEdit: t.edit,
       tEmptyTitle: t.emptyTitle, tEmptyBody: t.emptyBody, tStorageNote: t.storageNote,
       tPanelKicker: t.panelKicker, tIdleTitle: t.idleTitle, tIdleBody: t.idleBody,
       tClose: t.close, tDone: t.done, tRemove: t.remove,
@@ -469,7 +495,7 @@ class Component extends DCLogic {
           sourceLabel: store ? store.sourceLabel(r.source) : r.source,
           initials: r.avatar ? '' : this.initials(r.name),
           initialsColor: r.avatar ? 'transparent' : 'var(--vt-text-inverse)',
-          photo: r.avatar ? 'url(' + r.avatar + ')' : 'none',
+          photo: this.photoCss(r.avatar),
           starsShow: r.rating > 0 ? 'flex' : 'none',
           ratingLabel: String(r.rating) + '/5',
           meta: meta, metaShow: meta ? 'inline' : 'none',
@@ -479,15 +505,17 @@ class Component extends DCLogic {
           dragging: this.state.dragId === r.id ? '1' : '0',
           over: this.state.overId === r.id ? '1' : '0',
           isFirst: i === 0,
+          isLast: i === rows.length - 1,
           publishIcon: r.published ? 'eye' : 'eye-off',
           publishLabel: r.published ? t.unpublish : t.publish,
           publishedAria: r.published ? 'true' : 'false',
           removeIcon: armed ? 'circle-alert' : 'trash-2',
           removeLabel: armed ? t.confirmRemove : t.remove,
           edit: () => this.setState({ selected: r.id, isNew: false, confirmId: null }),
-          togglePublish: () => this.after(() => store.update(r.id, { published: !store.get(r.id).published })),
+          togglePublish: () => this.after(() => store.update(r.id, { published: !r.published })),
           remove: () => this.removeRow(r.id),
           up: () => this.after(() => store.move(r.id, -1)),
+          down: () => this.after(() => store.move(r.id, 1)),
           dragStart: (e) => {
             this.setState({ dragId: r.id });
             if (e.dataTransfer) { e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', r.id); } catch (err) {} }
@@ -516,7 +544,7 @@ class Component extends DCLogic {
       draftClass: cur && cur.vehicleClass ? cur.vehicleClass : '',
       draftVerified: !!(cur && cur.verified),
       draftPublished: !!(cur && cur.published),
-      draftPhoto: cur && cur.avatar ? 'url(' + cur.avatar + ')' : 'none',
+      draftPhoto: cur ? this.photoCss(cur.avatar) : 'none',
       draftInitials: cur && !cur.avatar ? this.initials(cur.name) : '',
       draftInitialsColor: cur && cur.avatar ? 'transparent' : 'var(--vt-text-inverse)',
       photoClearShow: cur && cur.avatar ? 'inline-flex' : 'none',
