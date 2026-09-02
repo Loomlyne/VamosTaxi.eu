@@ -16,15 +16,18 @@ const baseURL = `http://localhost:${PORT}`;
 type TurnstileHarness = {
   renders: number;
   executes: number;
+  executeTarget: string;
   removes: number;
   resets: number;
   callbackType?: string;
+  liveWidget: string;
   solve: (id: string) => void;
+  solveStale: (id: string) => void;
 };
 
 type TestTurnstileApi = {
   render: (element: string, options: { callback?: (token: string) => void }) => string;
-  execute: (id: string) => void;
+  execute: (target: string) => void;
   remove: (id: string) => void;
   reset: (id: string) => void;
 };
@@ -54,9 +57,12 @@ async function turnstileState(page: Page): Promise<TurnstileHarness | undefined>
 }
 
 async function solveTurnstile(page: Page) {
-  await page.evaluate(() => (
-    window as Window & typeof globalThis & { __vtTurnstileTest?: TurnstileHarness }
-  ).__vtTurnstileTest?.solve("w1"));
+  await page.evaluate(() => {
+    const harness = (
+      window as Window & typeof globalThis & { __vtTurnstileTest?: TurnstileHarness }
+    ).__vtTurnstileTest;
+    harness?.solve(harness.liveWidget || "w1");
+  });
 }
 
 test.describe("Contact lifecycle @integration", () => {
@@ -92,23 +98,27 @@ test.describe("Contact lifecycle @integration", () => {
 
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
-      const callbacks: Record<string, ((token: string) => void) | undefined> = {};
+      const live: Record<string, ((token: string) => void) | undefined> = {};
+      const retained: Record<string, ((token: string) => void) | undefined> = {};
       let next = 0;
       const harness = {
-        renders: 0, executes: 0, removes: 0, resets: 0, callbackType: "",
-        solve(id: string) { callbacks[id]?.(`XXXX.DUMMY.TOKEN.${id}`); },
+        renders: 0, executes: 0, executeTarget: "", removes: 0, resets: 0, callbackType: "", liveWidget: "",
+        solve(id: string) { live[id]?.(`XXXX.DUMMY.TOKEN.${id}`); },
+        solveStale(id: string) { retained[id]?.(`XXXX.DUMMY.TOKEN.${id}`); },
       };
       (window as Window & typeof globalThis & { __vtTurnstileTest?: TurnstileHarness }).__vtTurnstileTest = harness;
       (window as unknown as { turnstile: TestTurnstileApi }).turnstile = {
         render(_element: string, options: { callback?: (token: string) => void }) {
           const id = `w${++next}`;
-          callbacks[id] = options?.callback;
-          harness.callbackType = typeof callbacks[id];
+          live[id] = options?.callback;
+          retained[id] = options?.callback;
+          harness.liveWidget = id;
+          harness.callbackType = typeof live[id];
           harness.renders += 1;
           return id;
         },
-        execute(_id: string) { harness.executes += 1; },
-        remove(id: string) { delete callbacks[id]; harness.removes += 1; },
+        execute(target: string) { harness.executes += 1; harness.executeTarget = target; },
+        remove(id: string) { delete live[id]; if (harness.liveWidget === id) harness.liveWidget = ""; harness.removes += 1; },
         reset(_id: string) { harness.resets += 1; },
       };
     });
@@ -133,7 +143,7 @@ test.describe("Contact lifecycle @integration", () => {
       await gotoContact(page, locale);
       await fillValidContact(page);
       await page.locator('form button[type="submit"]').click();
-      await expect.poll(() => turnstileState(page)).toMatchObject({ executes: 1 });
+      await expect.poll(() => turnstileState(page)).toMatchObject({ executes: 1, executeTarget: "#ct-turnstile" });
       expect(failedBodies).toHaveLength(0);
       await expect.poll(() => turnstileState(page)).toMatchObject({ callbackType: "function" });
       await solveTurnstile(page);
@@ -156,7 +166,7 @@ test.describe("Contact lifecycle @integration", () => {
       await gotoContact(page, locale);
       await fillValidContact(page);
       await page.locator('form button[type="submit"]').click();
-      await expect.poll(() => turnstileState(page)).toMatchObject({ executes: 1 });
+      await expect.poll(() => turnstileState(page)).toMatchObject({ executes: 1, executeTarget: "#ct-turnstile" });
       expect(acceptedBodies).toHaveLength(0);
       await solveTurnstile(page);
       const accepted = page.getByRole("status");
@@ -183,7 +193,7 @@ test.describe("Contact lifecycle @integration", () => {
     await gotoContact(page, "en");
     await fillValidContact(page);
     await page.locator('form button[type="submit"]').click();
-    await expect.poll(() => turnstileState(page)).toMatchObject({ executes: 1 });
+    await expect.poll(() => turnstileState(page)).toMatchObject({ executes: 1, executeTarget: "#ct-turnstile" });
     await solveTurnstile(page);
     const accepted = page.getByRole("status");
     await expect(accepted).toBeVisible({ timeout: 10_000 });
@@ -193,5 +203,91 @@ test.describe("Contact lifecycle @integration", () => {
     await accepted.locator("button").first().click();
     await expect(page.locator("#ct-turnstile")).toBeAttached({ timeout: 10_000 });
     await expect.poll(() => turnstileState(page)).toMatchObject({ removes: 1 });
+  });
+
+  test("a second submit while sending does not execute or send again", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "component-1440", "run lifecycle once");
+
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const bodies: Array<Record<string, unknown>> = [];
+    await page.route("**/api/contact", async (route) => {
+      bodies.push(route.request().postDataJSON() as Record<string, unknown>);
+      await gate;
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true }),
+      });
+    });
+    await gotoContact(page, "en");
+    await fillValidContact(page);
+    await page.locator('form button[type="submit"]').click();
+    await expect.poll(() => turnstileState(page)).toMatchObject({ executes: 1, executeTarget: "#ct-turnstile" });
+    await page.locator('form button[type="submit"]').click();
+    await expect.poll(() => turnstileState(page)).toMatchObject({ executes: 1 });
+    await solveTurnstile(page);
+    await expect.poll(() => bodies.length).toBe(1);
+    await page.locator("form").evaluate((form) => (form as HTMLFormElement).requestSubmit());
+    await expect.poll(() => turnstileState(page)).toMatchObject({ executes: 1 });
+    expect(bodies).toHaveLength(1);
+    release();
+    await expect(page.getByRole("status")).toBeVisible({ timeout: 10_000 });
+    expect(bodies).toHaveLength(1);
+  });
+
+  test("a duplicate Turnstile success callback sends only one request", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "component-1440", "run lifecycle once");
+
+    const bodies: Array<Record<string, unknown>> = [];
+    await page.route("**/api/contact", async (route) => {
+      bodies.push(route.request().postDataJSON() as Record<string, unknown>);
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true }),
+      });
+    });
+    await gotoContact(page, "en");
+    await fillValidContact(page);
+    await page.locator('form button[type="submit"]').click();
+    await expect.poll(() => turnstileState(page)).toMatchObject({ executes: 1, executeTarget: "#ct-turnstile" });
+    await solveTurnstile(page);
+    await solveTurnstile(page);
+    await expect(page.getByRole("status")).toBeVisible({ timeout: 10_000 });
+    expect(bodies).toHaveLength(1);
+    await expect(page.getByRole("status")).toBeVisible();
+  });
+
+  test("a stale callback from a removed widget does not send or mutate the next challenge", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "component-1440", "run lifecycle once");
+
+    const bodies: Array<Record<string, unknown>> = [];
+    await page.route("**/api/contact", async (route) => {
+      bodies.push(route.request().postDataJSON() as Record<string, unknown>);
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true }),
+      });
+    });
+    await gotoContact(page, "en");
+    await fillValidContact(page);
+    await page.locator('form button[type="submit"]').click();
+    await expect.poll(() => turnstileState(page)).toMatchObject({ executes: 1, executeTarget: "#ct-turnstile" });
+    await solveTurnstile(page);
+    const accepted = page.getByRole("status");
+    await expect(accepted).toBeVisible({ timeout: 10_000 });
+    expect(bodies).toHaveLength(1);
+    const staleId = (await turnstileState(page))?.liveWidget ?? "w1";
+    await accepted.locator("button").first().click();
+    await expect(page.locator("#ct-turnstile")).toBeAttached({ timeout: 10_000 });
+    await expect.poll(() => turnstileState(page)).toMatchObject({ removes: 1 });
+    await page.evaluate((id) => (
+      window as Window & typeof globalThis & { __vtTurnstileTest?: TurnstileHarness }
+    ).__vtTurnstileTest?.solveStale(id), staleId);
+    expect(bodies).toHaveLength(1);
+    await expect(page.getByRole("status")).toHaveCount(0);
+    await expect.poll(() => turnstileState(page)).toMatchObject({ executes: 1 });
   });
 });

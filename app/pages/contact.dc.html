@@ -263,6 +263,9 @@ class Component extends DCLogic {
   errRef = React.createRef();
   turnstileWidget = null;
   turnstileSubmitting = false;
+  turnstileGeneration = 0;
+  turnstileInFlightGeneration = 0;
+  turnstileSendGeneration = 0;
   turnstileReadyTimer = null;
   turnstileReadyAttempts = 0;
   TURNSTILE_READY_MAX_ATTEMPTS = 40;
@@ -272,6 +275,10 @@ class Component extends DCLogic {
   componentWillUnmount() {
     this.clearTurnstile();
   }
+  bumpTurnstileGeneration = () => {
+    this.turnstileGeneration += 1;
+    return this.turnstileGeneration;
+  };
   waitForTurnstile = () => {
     this.turnstileReadyTimer = null;
     if (this.turnstileWidget !== null) return;
@@ -288,6 +295,9 @@ class Component extends DCLogic {
   };
   clearTurnstile = () => {
     this.turnstileSubmitting = false;
+    this.turnstileInFlightGeneration = 0;
+    this.turnstileSendGeneration = 0;
+    this.bumpTurnstileGeneration();
     if (this.turnstileReadyTimer !== null) {
       window.clearTimeout(this.turnstileReadyTimer);
       this.turnstileReadyTimer = null;
@@ -304,21 +314,34 @@ class Component extends DCLogic {
     const siteKey = document.querySelector('meta[name="vt-turnstile-site-key"]')?.getAttribute('content');
     const container = document.querySelector('#ct-turnstile');
     if (!siteKey || !container || this.turnstileWidget !== null || !window.turnstile || typeof window.turnstile.render !== 'function') return;
-    this.turnstileWidget = window.turnstile.render('#ct-turnstile', {
+    let widgetId = null;
+    widgetId = window.turnstile.render('#ct-turnstile', {
       sitekey: siteKey, action: 'contact', appearance: 'interaction-only', execution: 'execute',
-      callback: this.beginContactSubmit,
+      callback: (token) => {
+        if (this.turnstileWidget !== widgetId) return;
+        this.beginContactSubmit(token);
+      },
       'expired-callback': () => {
+        if (this.turnstileWidget !== widgetId) return;
         this.turnstileSubmitting = false;
+        this.turnstileInFlightGeneration = 0;
+        this.bumpTurnstileGeneration();
         this.setState({ token: '' });
       },
       'error-callback': () => {
+        if (this.turnstileWidget !== widgetId) return;
         this.turnstileSubmitting = false;
+        this.turnstileInFlightGeneration = 0;
         this.setState({ phase: 'failed', token: '' }, this.retryTurnstile);
       },
     });
+    this.turnstileWidget = widgetId;
   };
   retryTurnstile = () => {
     this.turnstileSubmitting = false;
+    this.turnstileInFlightGeneration = 0;
+    this.turnstileSendGeneration = 0;
+    this.bumpTurnstileGeneration();
     if (this.turnstileWidget !== null && window.turnstile && typeof window.turnstile.reset === 'function') {
       window.turnstile.reset(this.turnstileWidget);
       return;
@@ -358,29 +381,34 @@ class Component extends DCLogic {
       this.setState({ phase: 'invalid', bad }, () => { const el = this.errRef.current; if (el) el.focus(); });
       return;
     }
-    if (this.turnstileSubmitting) return;
+    if (this.turnstileSubmitting || this.state.phase === 'sending') return;
     if (this.turnstileWidget === null || !window.turnstile || typeof window.turnstile.execute !== 'function') {
       this.setState({ phase: 'failed', bad: {}, token: '' }, this.retryTurnstile);
       return;
     }
+    const generation = this.bumpTurnstileGeneration();
     this.turnstileSubmitting = true;
-    this.setState({ phase: 'default', bad: {}, token: '' }, () => {
-      if (this.turnstileSubmitting && this.turnstileWidget !== null && window.turnstile && typeof window.turnstile.execute === 'function') {
-        window.turnstile.execute(this.turnstileWidget);
-      }
-    });
+    this.turnstileInFlightGeneration = generation;
+    this.setState({ phase: 'default', bad: {}, token: '' });
+    if (!this.turnstileSubmitting || this.turnstileInFlightGeneration !== generation) return;
+    try { window.turnstile.execute('#ct-turnstile'); }
+    catch (err) {
+      this.turnstileSubmitting = false;
+      this.turnstileInFlightGeneration = 0;
+      this.setState({ phase: 'failed', bad: {}, token: '' }, this.retryTurnstile);
+    }
   };
 
   beginContactSubmit = (token) => {
-    if (!this.turnstileSubmitting || !token) {
-      this.setState({ token: token || '' });
-      return;
-    }
-    this.turnstileSubmitting = false;
-    this.setState({ token }, () => this.sendContact(token));
+    const generation = this.turnstileInFlightGeneration;
+    if (!this.turnstileSubmitting || !token || !generation || generation !== this.turnstileGeneration) return;
+    this.turnstileInFlightGeneration = 0;
+    this.turnstileSendGeneration = generation;
+    this.setState({ token }, () => this.sendContact(token, generation));
   };
 
-  sendContact = async (token) => {
+  sendContact = async (token, generation) => {
+    if (this.turnstileSendGeneration !== generation) return;
     this.setState({ phase: 'sending', bad: {} });
     try {
       const response = await fetch('/api/contact', {
@@ -389,8 +417,16 @@ class Component extends DCLogic {
       });
       const result = await response.json();
       const accepted = response.status === 200 && result && result.ok === true;
+      if (this.turnstileSendGeneration !== generation) return;
+      this.turnstileSubmitting = false;
+      this.turnstileSendGeneration = 0;
       this.setState(accepted ? { phase: 'sent', token: '', idempotencyKey: crypto.randomUUID() } : { phase: 'failed', token: '' }, accepted ? undefined : this.retryTurnstile);
-    } catch { this.setState({ phase: 'failed', token: '' }, this.retryTurnstile); }
+    } catch {
+      if (this.turnstileSendGeneration !== generation) return;
+      this.turnstileSubmitting = false;
+      this.turnstileSendGeneration = 0;
+      this.setState({ phase: 'failed', token: '' }, this.retryTurnstile);
+    }
   };
 
   reset = () => {

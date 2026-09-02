@@ -72,16 +72,25 @@ test.describe("Contact page and form @component", () => {
   });
 
   test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      let cb: ((token: string) => void) | null = null;
+      (window as Window & { turnstile?: {
+        render: (el: unknown, opts: { callback?: (token: string) => void }) => string;
+        execute: () => void;
+        remove: () => void;
+        reset: () => void;
+      } }).turnstile = {
+        render(_el, opts) { cb = opts.callback ?? null; return "w"; },
+        execute() {
+          const fn = cb;
+          setTimeout(() => { if (fn) fn("XXXX.DUMMY.TOKEN.XXXX"); }, 0);
+        },
+        remove() {},
+        reset() {},
+      };
+    });
     await page.route("https://challenges.cloudflare.com/**", async (route) => {
-      const url = route.request().url();
-      if (url.includes("api.js")) {
-        await route.fulfill({
-          contentType: "application/javascript",
-          body: `window.turnstile={render(el,opts){if(opts&&opts.callback)opts.callback("XXXX.DUMMY.TOKEN.XXXX");return "w";},remove(){},reset(){}};`,
-        });
-        return;
-      }
-      await route.abort();
+      await route.fulfill({ contentType: "application/javascript", body: "void 0;" });
     });
   });
 
