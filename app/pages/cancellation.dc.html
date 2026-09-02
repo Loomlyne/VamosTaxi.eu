@@ -34,7 +34,7 @@
 <style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
 .vt-input--focus{box-shadow:none}
 /* Button hover/press — colour step only, no shadow, no glow */
-.vt-btn{transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
+.vt-btn{text-decoration:none;transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
 .vt-btn:hover,.vt-btn:active{box-shadow:none!important}
 .vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
 .vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
@@ -217,12 +217,12 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);padding:22px">
 <p style="margin:0 0 12px;display:flex;align-items:center;gap:9px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="ticket" size="{{ n16 }}" color="var(--vt-yellow-700)" hint-size="16px,16px"></x-import>Booked as a guest</p>
 <p style="margin:0 0 14px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Use the manage-booking link in your confirmation email. It opens your booking without a password and works for one booking only.</p>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" href="manage-booking.dc.html" iconEnd="arrow-right" hint-size="190px,44px">Manage a booking</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" href="manage-booking.dc.html" iconEnd="arrow-right" hint-size="190px,44px">Manage a booking</x-import>
 </div>
 <div style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);padding:22px">
 <p style="margin:0 0 12px;display:flex;align-items:center;gap:9px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="user" size="{{ n16 }}" color="var(--vt-yellow-700)" hint-size="16px,16px"></x-import>You have an account</p>
 <p style="margin:0 0 14px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Sign in and open the booking under your reservations. Past journeys stay listed for your records.</p>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" href="../ops/ops-login.dc.html" iconEnd="arrow-right" hint-size="150px,44px">Sign in</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" href="sign-in.dc.html" iconEnd="arrow-right" hint-size="150px,44px">Sign in</x-import>
 </div>
 </div>
 <p>Cannot reach either? Call <a href="tel:+41796267082">+41 79 626 70 82</a> and quote your reference. We will do it for you and send the confirmation.</p>

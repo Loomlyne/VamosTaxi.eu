@@ -259,6 +259,16 @@ create, access and sign out of an account.
 **Plans**: TBD
 **UI hint**: yes
 
+### Phase 05.1: CSS CI cleanup (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 5
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 05.1 to break down)
+
 ### Phase 6: Ops Reference Data & Content Console
 
 **Goal**: Staff run the operational reference data and site content that power the public
