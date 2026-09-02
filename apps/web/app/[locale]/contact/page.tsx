@@ -5,11 +5,11 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { routing, type Locale } from "@/i18n/routing";
 import { Button, CheckerMark, Icon } from "@/components/core";
 import { ContactForm } from "@/components/forms/ContactForm";
-import { PendingSlot } from "@/components/legal";
 import { buildAlternates } from "@/lib/metadata";
 import {
   PHONE_DISPLAY,
   PHONE_HREF,
+  SUPPORT_EMAIL,
   SUPPORT_EMAIL_HREF,
   WHATSAPP_HREF,
 } from "@/lib/contact-channels";
@@ -55,7 +55,6 @@ export default async function ContactPage({
   const locale = localeParam as Locale;
   const tContact = await getTranslations("contact");
   const tCommon = await getTranslations("common");
-  const tAbout = await getTranslations("about");
   const siteKey = turnstileSiteKey();
   const manageHref = getPathname({ href: "/manage-booking", locale });
   const faqHref = getPathname({ href: "/faq", locale });
@@ -91,7 +90,7 @@ export default async function ContactPage({
             <Button size="md" href={manageHref} iconEnd="arrow-right">
               {tCommon("manage-a-booking")}
             </Button>
-            <Button size="md" variant="ghost" href={faqHref}>
+            <Button size="md" variant="light" href={faqHref}>
               {tContact("read-the-faq")}
             </Button>
           </div>
@@ -101,18 +100,14 @@ export default async function ContactPage({
           <section className="vt-contact-col" aria-labelledby="form-h" data-contact-form-col="1">
             <h2 id="form-h">{tContact("send-us-a-message")}</h2>
             <p className="vt-contact-col__lead">
-              {tContact("we-answer-within")} <PendingSlot label={tContact("response-time")} />
-              {tContact("for-anything-happening-in-the-next-few-hours-cal")}
+              {tContact("reply-within-12-24-hours")} {tContact("for-anything-happening-in-the-next-few-hours-cal")}
             </p>
             <ContactForm siteKey={siteKey} locale={locale} />
           </section>
 
           <aside className="vt-contact-col vt-contact-aside" aria-labelledby="direct-h">
             <h2 id="direct-h">{tContact("reach-us-directly")}</h2>
-            <p className="vt-contact-col__lead">
-              {tAbout("support-runs")} <PendingSlot label={tContact("support-hours")} />{" "}
-              {tAbout("support-runs-in")} <PendingSlot label={tAbout("support-languages")} />.
-            </p>
+            <p className="vt-contact-col__lead">{tContact("support-availability")}</p>
 
             <div className="vt-contact-channels">
               <a
@@ -165,34 +160,19 @@ export default async function ContactPage({
                 <span>
                   <span className="vt-contact-ch__kicker">{tCommon("email")}</span>
                   <span className="vt-contact-ch__value">
-                    <PendingSlot label={tContact("support-email")} />
+                    <span className="vt-dir-keep">{SUPPORT_EMAIL}</span>
                   </span>
                   <span className="vt-contact-ch__sub">{tContact("everything-that-is-not-urgent")}</span>
                 </span>
               </a>
-              <div className="vt-contact-ch" data-ch="address">
-                <span className="vt-contact-ch__icon">
-                  <Icon name="map-pin" size={20} color="var(--vt-charcoal-900)" />
-                </span>
-                <span>
-                  <span className="vt-contact-ch__kicker">{tContact("registered-office")}</span>
-                  <span className="vt-contact-ch__value vt-dir-keep">Bleicherstrasse 16</span>
-                  <span className="vt-contact-ch__sub">
-                    {tContact("8953-dietikon-zh-switzerland-post-only-this-is-n")}
-                  </span>
-                </span>
-              </div>
             </div>
 
             <div className="vt-contact-chat">
               <p className="vt-contact-chat__kicker">
                 <Icon name="message-circle" size={16} color="var(--vt-text-muted)" />
-                {tContact("live-chat")}
+                WhatsApp
               </p>
-              <p>
-                {tAbout("support-runs")} <PendingSlot label={tContact("chat-hours")} />
-                {tContact("outside-those-hours-leave-a-message-and-we-reply")}
-              </p>
+              <p>{tContact("whatsapp-available-24-7")}</p>
               <Button
                 size="md"
                 variant="secondary"
@@ -201,7 +181,7 @@ export default async function ContactPage({
                 target="_blank"
                 rel="noreferrer noopener"
               >
-                {tContact("start-a-chat")}
+                {tContact("open-whatsapp")}
               </Button>
             </div>
           </aside>
