@@ -31,6 +31,23 @@ describe("DC footer source", () => {
     }
   });
 
+  it("publishes exactly the four owner-confirmed social destinations", () => {
+    const socials = [
+      "https://www.facebook.com/VAMOSTAXISWITZERLAND",
+      "https://www.instagram.com/vamos.taxi?utm_source=qr",
+      "https://www.youtube.com/@vamostaxi",
+      "https://www.tiktok.com/@vamos.taxi",
+    ];
+
+    for (const path of footers) {
+      const source = footerSource(path);
+      expect(source).toContain('href="mailto:info@vamostaxi.site"');
+      expect(source).toContain(">info@vamostaxi.site<");
+      for (const social of socials) expect(source).toContain(social);
+      expect(source).not.toContain('href="#"');
+    }
+  });
+
   it("uses the confirmed public number as a callable phone destination on every footer surface", () => {
     for (const path of footers) {
       expect(footerSource(path)).toContain('href="tel:+41796267082"');

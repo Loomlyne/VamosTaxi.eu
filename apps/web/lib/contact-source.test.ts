@@ -27,10 +27,16 @@ describe("DC contact source", () => {
   });
 
   it("contains only confirmed direct-contact destinations and no simulated contact content", () => {
-    expect(contactSource).toContain('href="mailto:info@vamostaxi.eu"');
-    expect(contactSource).toContain(">info@vamostaxi.eu<");
+    expect(contactSource).toContain('href="mailto:info@vamostaxi.site"');
+    expect(contactSource).toContain(">info@vamostaxi.site<");
     expect(contactSource).toContain('href="tel:+41796267082"');
     expect(contactSource).toContain('href="https://wa.me/41796267082"');
+    expect(contactSource).toContain("We reply within 12–24 hours.");
+    expect(contactSource).toContain("Available 24/7 on WhatsApp.");
+    expect(contactSource).toContain(
+      "We can help in any language, primarily English, Swiss German, French and Arabic.",
+    );
+    expect(contactSource).toContain('variant="light" href="faq.dc.html"');
 
     for (const forbidden of [
       "Bleicherstrasse 16",
@@ -40,6 +46,11 @@ describe("DC contact source", () => {
       "Chat hours",
       "Start a chat",
       "Support email",
+      "Support hours",
+      "Support languages",
+      "Response time",
+      "Chat hours",
+      "A copy is on its way",
       "facebookUrl",
       "instagramUrl",
       "youtubeUrl",
