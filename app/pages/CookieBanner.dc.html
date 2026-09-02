@@ -102,7 +102,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div style="flex:1 1 auto;min-width:0">
 <h3 style="margin:0 0 6px;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);line-height:1.3;font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Strictly necessary</h3>
 <p style="margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Holds your booking while you fill it in, processes the payment, blocks fraud and records this consent. The site does not work without them.</p>
-<div data-ck-meta="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)"><span>Vamos Taxi · Stripe · Supabase · Vercel</span><span>Session to <span data-tok="1" style="display:inline-block;font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 5px" title="Awaiting a confirmed value from Vamos Taxi">Necessary duration</span></span></div>
+<div data-ck-meta="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)"><span>Vamos Taxi · Stripe · Supabase · Cloudflare</span><span>session / refresh as issued by Supabase Auth</span></div>
 </div>
 <div style="flex:0 0 auto;display:flex;align-items:center;gap:10px;min-height:44px">
 <span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Always on</span>
@@ -114,7 +114,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div style="flex:1 1 auto;min-width:0">
 <h3 style="margin:0 0 6px;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);line-height:1.3;font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Functional</h3>
 <p style="margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Remembers your language and your last pickup address so you do not type them twice.</p>
-<div data-ck-meta="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)"><span>Vamos Taxi</span><span><span data-tok="1" style="display:inline-block;font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 5px" title="Awaiting a confirmed value from Vamos Taxi">Functional duration</span></span></div>
+<div data-ck-meta="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)"><span>Vamos Taxi</span><span>until you change language or clear recent places</span></div>
 </div>
 <div style="flex:0 0 auto;display:flex;align-items:center;min-height:44px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" checked="{{ pFunctional }}" onChange="{{ toggleFunctional }}" aria-label="Functional cookies" hint-size="44px,26px"></x-import>
@@ -125,7 +125,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div style="flex:1 1 auto;min-width:0">
 <h3 style="margin:0 0 6px;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);line-height:1.3;font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Analytics</h3>
 <p style="margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Tells us which step of a booking people abandon, and reports errors so we can fix them.</p>
-<div data-ck-meta="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)"><span><span data-tok="1" style="display:inline-block;font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 5px" title="Awaiting a confirmed value from Vamos Taxi">Analytics provider</span> · Sentry</span><span><span data-tok="1" style="display:inline-block;font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 5px" title="Awaiting a confirmed value from Vamos Taxi">Analytics duration</span></span></div>
+<div data-ck-meta="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)"><span>Cloudflare Web Analytics (cookieless) · Sentry</span><span>not used</span></div>
 </div>
 <div style="flex:0 0 auto;display:flex;align-items:center;min-height:44px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" checked="{{ pAnalytics }}" onChange="{{ toggleAnalytics }}" aria-label="Analytics cookies" hint-size="44px,26px"></x-import>
@@ -136,7 +136,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div style="flex:1 1 auto;min-width:0">
 <h3 style="margin:0 0 6px;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);line-height:1.3;font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Marketing</h3>
 <p style="margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Measures which advert brought you here. Nothing in this category is running today.</p>
-<div data-ck-meta="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)"><span><span data-tok="1" style="display:inline-block;font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 5px" title="Awaiting a confirmed value from Vamos Taxi">Marketing providers</span></span><span><span data-tok="1" style="display:inline-block;font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 5px" title="Awaiting a confirmed value from Vamos Taxi">Marketing duration</span></span></div>
+<div data-ck-meta="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)"><span>none</span><span>not used</span></div>
 </div>
 <div style="flex:0 0 auto;display:flex;align-items:center;min-height:44px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" checked="{{ pMarketing }}" onChange="{{ toggleMarketing }}" aria-label="Marketing cookies" hint-size="44px,26px"></x-import>
@@ -148,7 +148,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:20px 26px;border-top:1px solid var(--vt-border-subtle);background:var(--vt-grey-50)">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ savePrefs }}" hint-size="150px,44px">Save choices</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ acceptAll }}" hint-size="128px,44px">Accept all</x-import>
-<p style="margin:0;margin-left:auto;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">Your choice is stored for {STORE_CONSENT_MONTHS} months and can be changed any time.</p>
+<p style="margin:0;margin-left:auto;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">Your choice is stored in this browser until you change it.</p>
 </div>
 
 </div>

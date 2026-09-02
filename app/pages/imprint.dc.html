@@ -135,11 +135,8 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px 28px;margin-top:32px;padding-top:24px;border-top:1px solid var(--vt-border-inverse)">
 <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)"><span lang="de" data-vt-no-i18n="1">Letzte Aktualisierung</span><span lang="en">Last updated</span></span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">1 September 2026</span></div>
 <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)"><span lang="de" data-vt-no-i18n="1">Fassung</span><span lang="en">Version</span></span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">1.0</span></div>
-<div data-lg-noprint="1" style="margin-inline-start:auto;display:flex;flex-wrap:wrap;align-items:center;gap:12px">
-<button type="button" onClick="{{ doPrint }}" aria-label="Print" style="width:44px;height:44px;display:grid;place-items:center;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:none;cursor:pointer">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="printer" size="{{ n18 }}" color="var(--vt-accent)" hint-size="18px,18px"></x-import>
-</button>
-</div>
+<button data-lg-noprint="1" type="button" onClick="{{ doPrint }}" style="margin-inline-start:auto;display:inline-flex;align-items:center;gap:9px;height:44px;padding:0 20px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:none;color:var(--vt-text-inverse);font-family:inherit;font-size:var(--vt-body-sm);cursor:pointer">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="printer" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>Print or save as PDF</button>
 </div>
 </div>
 </header>
