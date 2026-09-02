@@ -309,6 +309,21 @@ Wave 3: **P8** alone — deliberately last and not parallelised, mirroring Phase
 reasoning: a cross-cutting pass over every route needs every route to exist first, or it
 either misses a page or has to be re-run.
 
+### 2026-09-02 account-auth repair addendum
+- **D-29:** The password-reset page must not discard values typed before its asynchronous
+  `/api/auth/session` bootstrap completes. `reset-password.dc.html` increments the child's
+  `nonce` when the signed-in session resolves, and `ResetForm.dc.html` currently clears both
+  fields for a nonce-only update even when the stage remains `form`. Keep field reset tied to a
+  genuine stage change only; preserve form state for the same-stage session bootstrap update.
+  The existing AUTH-02 browser flow is the red regression seam and must prove the full recovery
+  link → password update → password sign-in path.
+- **D-30:** Keep the `opsInviteRedirectUrl` behavior tests, but replace direct mutation of
+  readonly `process.env.NODE_ENV` with Vitest's supported environment stubbing and cleanup.
+  The typecheck failure is test-harness-only; no production environment logic changes.
+- **D-31:** This repair stays limited to reset-form state retention, its real browser proof, and
+  the invite test's environment setup. It does not alter hosted Supabase Auth configuration,
+  hosted redirects, account-save semantics, price/legal content, or Phase 7.
+
 </decisions>
 
 <specifics>

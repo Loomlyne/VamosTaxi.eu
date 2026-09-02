@@ -474,6 +474,10 @@ const writeAuth = (auth) => {
   try { localStorage.setItem('vamosAuth', JSON.stringify(auth)); } catch (e) {}
   try { window.dispatchEvent(new CustomEvent('vamos:auth')); } catch (e) {}
 };
+const clearAuth = () => {
+  try { localStorage.removeItem('vamosAuth'); } catch (e) {}
+  try { window.dispatchEvent(new CustomEvent('vamos:auth')); } catch (e) {}
+};
 /* Language and currency already go through VamosLocale. Name and mobile
    write through /api/auth onto the signed-in user. */
 const PREF_KEY = 'vamosPrefs', PHOTO_KEY = 'vamosPhoto';
@@ -506,7 +510,7 @@ class Component extends DCLogic {
         let stored = null;
         try { const raw = localStorage.getItem('vamosAuth'); if (raw) stored = JSON.parse(raw); } catch (e) {}
         if (!snap || !snap.signedIn) {
-          if (stored && stored.email) { this.setState({ auth: stored }); return; }
+          clearAuth();
           location.replace('/sign-in');
           return;
         }
@@ -516,19 +520,17 @@ class Component extends DCLogic {
           try { localStorage.setItem(PHONE_KEY, JSON.stringify({ phone: snap.phone, at: Date.now() })); } catch (e) {}
         }
         const auth = {
-          firstName: parts[0] || (stored && stored.firstName) || '',
-          lastName: parts.slice(1).join(' ') || (stored && stored.lastName) || '',
-          email: (stored && stored.email) || '',
-          emailVerified: snap.emailConfirmed === true || (stored && stored.emailVerified === true),
+          firstName: parts[0] || '',
+          lastName: parts.slice(1).join(' ') || '',
+          email: typeof snap.email === 'string' ? snap.email : '',
+          emailVerified: snap.emailConfirmed === true,
         };
         writeAuth(auth);
         this.setState({ auth });
       })
       .catch(() => {
-        let stored = null;
-        try { const raw = localStorage.getItem('vamosAuth'); if (raw) stored = JSON.parse(raw); } catch (e) {}
-        if (stored && stored.email) this.setState({ auth: stored });
-        else location.replace('/sign-in');
+        clearAuth();
+        location.replace('/sign-in');
       });
     this.setState({ lang: (v && v.lang) || 'en', cur: (v && v.cur) || 'CHF' });
     /* One store, one broadcast: a choice made here or anywhere else relabels this page. */
@@ -622,6 +624,11 @@ class Component extends DCLogic {
     postProfile({ firstName: first, lastName: last })
       .then((res) => {
         if (!res || !res.ok) {
+          if (res && res.reason === 'no-user') {
+            clearAuth();
+            location.replace('/sign-in');
+            return;
+          }
           this.setState({ errors: { first: 'Could not save. Try again.' } });
           return;
         }

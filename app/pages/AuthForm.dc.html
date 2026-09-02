@@ -425,7 +425,8 @@ class Component extends DCLogic {
   signInInstead = () => this.go({ mode: 'signin', method: 'password', stage: 'form', banner: null, password: '' });
   locale() {
     try {
-      if (window.VamosLocale && window.VamosLocale.lang) return window.VamosLocale.lang;
+      if (window.VamosLocale && typeof window.VamosLocale.lang === 'function') return window.VamosLocale.lang();
+      if (window.VamosLocale && typeof window.VamosLocale.lang === 'string') return window.VamosLocale.lang;
       return localStorage.getItem('vamosLang') || 'en';
     } catch (e) { return 'en'; }
   }
