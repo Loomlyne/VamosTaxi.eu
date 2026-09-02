@@ -1,6 +1,9 @@
 packages:
   - "apps/*"
   - "packages/*"
+overrides:
+  postcss: 8.5.26
+  sharp: 0.35.4
 allowBuilds:
   '@parcel/watcher': true
   '@swc/core': true

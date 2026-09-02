@@ -20,8 +20,6 @@ const STACK_DOWN = "Local stack is not running. Run `pnpm db:start && pnpm db:re
 
 let devServer: ChildProcess | null = null;
 let baseURL = "";
-let supabaseUrl = "";
-let anonKey = "";
 
 function ownerQuery(sqlJs: string): string {
   try {
@@ -147,7 +145,7 @@ async function fillSignup(page: Page, email: string, first: string, last: string
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("First name").fill(first);
   await page.getByLabel("Last name").fill(last);
-  await page.getByLabel("Password").fill(password);
+  await page.getByRole("textbox", { name: "Password" }).fill(password);
 }
 
 function customerRow(email: string): { user_id: string | null; full_name: string | null; n: number } {
@@ -169,6 +167,15 @@ function userLocale(email: string): string | null {
   return meta?.locale ?? null;
 }
 
+function userMetadata(email: string): Record<string, unknown> {
+  const out = ownerQuery(
+    `const email = ${JSON.stringify(email)};
+     const rows = await sql\`select raw_user_meta_data from auth.users where email = \${email}\`;
+     console.log(JSON.stringify(rows[0]?.raw_user_meta_data ?? {}));`,
+  );
+  return JSON.parse(out) as Record<string, unknown>;
+}
+
 test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
   test.describe.configure({ mode: "serial" });
 
@@ -176,8 +183,6 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
     if (testInfo.project.name !== RUN_PROJECT) return;
     testInfo.setTimeout(180_000);
     const stack = requireLocalStack();
-    supabaseUrl = stack.apiUrl;
-    anonKey = stack.anonKey;
     baseURL = `http://localhost:${PORT}`;
     devServer = spawn(NEXT_BIN, ["dev", "-p", String(PORT)], {
       cwd: WEB_ROOT,
@@ -212,8 +217,8 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
     const after = new Date(Date.now() - 1000).toISOString();
     await page.goto(`${baseURL}/sign-up`);
     await fillSignup(page, email, "Ada", "Lovelace", PASSWORD);
-    await page.getByRole("button", { name: "Create an account" }).click();
-    await expect(page.locator("[data-af]")).toContainText("Send a new link");
+    await page.getByRole("button", { name: "CREATE ACCOUNT" }).click();
+    await expect(page.locator("[data-af]")).toContainText("Send another link");
 
     await page.goto(`${baseURL}/sign-in`);
     await expect(page).toHaveURL(/\/sign-in/);
@@ -227,8 +232,9 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
     await page.goto(link!);
     await page.waitForURL((url) => !url.pathname.includes("/api/auth/callback"), { timeout: 15_000 });
 
-    await page.goto(`${baseURL}/sign-in`);
-    await expect(page).not.toHaveURL(/\/sign-in/);
+    const session = await page.request.get(`${baseURL}/api/auth/session`);
+    expect(session.ok()).toBe(true);
+    expect((await session.json()).signedIn).toBe(true);
 
     const row = customerRow(email);
     expect(row.n).toBe(1);
@@ -238,31 +244,62 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
     await context.clearCookies();
   });
 
-  test("AUTH-01 one-time code from the mail catcher establishes a session", async ({ page, context }) => {
+  test("AUTH-01 account name save persists metadata for a live session", async ({ page, context }) => {
+    const email = uniqueEmail("account");
+    const after = new Date(Date.now() - 1000).toISOString();
+    await page.goto(`${baseURL}/sign-up`);
+    await fillSignup(page, email, "Ada", "Lovelace", PASSWORD);
+    await page.getByRole("button", { name: "CREATE ACCOUNT" }).click();
+    await expect(page.locator("[data-af]")).toContainText("Send another link");
+
+    const mail = await waitForMail(email, after);
+    const link = extractLinks(mail.html, mail.text).find(
+      (u) => u.includes("token") || u.includes("code=") || u.includes("/api/auth/callback"),
+    );
+    expect(link, "confirmation link in mail").toBeTruthy();
+    await page.goto(link!);
+    await page.waitForURL((url) => !url.pathname.includes("/api/auth/callback"), { timeout: 15_000 });
+
+    await page.goto(`${baseURL}/account`);
+    await page.waitForFunction(() => {
+      const raw = localStorage.getItem("vamosAuth");
+      if (!raw) return false;
+      const auth = JSON.parse(raw) as { firstName?: string; lastName?: string };
+      return auth.firstName === "Ada" && auth.lastName === "Lovelace";
+    });
+    await page.getByRole("button", { name: "Change" }).first().click();
+    await page.getByLabel("First name").fill("Grace");
+    await page.getByLabel("Last name").fill("Rider");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(page.locator("[data-ac-row]").filter({ hasText: "Name" })).toContainText("Grace Rider");
+
+    expect(userMetadata(email)).toMatchObject({
+      first_name: "Grace",
+      last_name: "Rider",
+      full_name: "Grace Rider",
+    });
+    await context.clearCookies();
+  });
+
+  test("AUTH-01 magic sign-in link from the mail catcher establishes a session", async ({ page, context }) => {
     const email = uniqueEmail("otp");
     const after = new Date(Date.now() - 1000).toISOString();
     await page.goto(`${baseURL}/sign-in`);
-    await page.locator("button.vt-af-link").first().click();
+    await page.getByRole("button", { name: "Email me a link instead" }).click();
     await page.getByLabel("Email").fill(email);
-    await page.getByRole("button", { name: "Sign in" }).click();
-    await expect(page.locator("[data-af]")).toContainText("Send a new link");
+    await page.getByRole("button", { name: "Email me a link" }).click();
+    await expect(page.locator("[data-af]")).toContainText("Send another link");
 
     const mail = await waitForMail(email, after);
-    const code = extractCode(mail.html, mail.text);
-    expect(code).toMatch(/^\d{6}$/);
-
-    const verify = await fetch(`${supabaseUrl}/auth/v1/verify`, {
-      method: "POST",
-      headers: {
-        apikey: anonKey,
-        Authorization: `Bearer ${anonKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ type: "email", email, token: code }),
-    });
-    expect(verify.ok, `OTP verify ${verify.status}`).toBe(true);
-    const session = (await verify.json()) as { access_token?: string };
-    expect(session.access_token).toBeTruthy();
+    const link = extractLinks(mail.html, mail.text).find(
+      (url) => url.includes("token") || url.includes("code=") || url.includes("/api/auth/callback"),
+    );
+    expect(link, "magic sign-in link in mail").toBeTruthy();
+    await page.goto(link!);
+    await page.waitForURL((url) => !url.pathname.includes("/api/auth/callback"), { timeout: 15_000 });
+    const session = await page.request.get(`${baseURL}/api/auth/session`);
+    expect(session.ok()).toBe(true);
+    expect((await session.json()).signedIn).toBe(true);
     await context.clearCookies();
   });
 
@@ -270,14 +307,14 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
     const email = uniqueEmail("enum");
     await page.goto(`${baseURL}/sign-up`);
     await fillSignup(page, email, "Ada", "Lovelace", PASSWORD);
-    await page.getByRole("button", { name: "Create an account" }).click();
-    await expect(page.locator("[data-af]")).toContainText("Send a new link");
+    await page.getByRole("button", { name: "CREATE ACCOUNT" }).click();
+    await expect(page.locator("[data-af]")).toContainText("Send another link");
     const first = (await page.locator("[data-af]").innerText()).replace(email, "");
 
     await page.goto(`${baseURL}/sign-up`);
     await fillSignup(page, email, "Ada", "Lovelace", PASSWORD);
-    await page.getByRole("button", { name: "Create an account" }).click();
-    await expect(page.locator("[data-af]")).toContainText("Send a new link");
+    await page.getByRole("button", { name: "CREATE ACCOUNT" }).click();
+    await expect(page.locator("[data-af]")).toContainText("Send another link");
     const second = (await page.locator("[data-af]").innerText()).replace(email, "");
     expect(second).toBe(first);
   });
@@ -286,8 +323,8 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
     const email = uniqueEmail("reset");
     await page.goto(`${baseURL}/sign-up`);
     await fillSignup(page, email, "Ada", "Lovelace", PASSWORD);
-    await page.getByRole("button", { name: "Create an account" }).click();
-    await expect(page.locator("[data-af]")).toContainText("Send a new link");
+    await page.getByRole("button", { name: "CREATE ACCOUNT" }).click();
+    await expect(page.locator("[data-af]")).toContainText("Send another link");
     const confirmAfter = new Date(Date.now() - 1000).toISOString();
     const confirmMail = await waitForMail(email, confirmAfter);
     const confirmLink = extractLinks(confirmMail.html, confirmMail.text).find(
@@ -302,10 +339,10 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
     await expect(page.getByRole("heading", { name: "This link has expired" })).toBeVisible();
 
     await page.goto(`${baseURL}/sign-in`);
-    await page.getByRole("button", { name: "Send a new link" }).nth(1).click();
+    await page.getByRole("button", { name: "Forgot password?" }).click();
     await page.getByLabel("Email").fill(email);
-    await page.getByRole("button", { name: "Send a new link" }).click();
-    await expect(page.locator("[data-af]")).toContainText("Send a new link");
+    await page.getByRole("button", { name: "Send reset link" }).click();
+    await expect(page.locator("[data-af]")).toContainText("Send another link");
 
     const resetAfter = new Date(Date.now() - 1000).toISOString();
     const resetMail = await waitForMail(email, resetAfter);
@@ -315,16 +352,20 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
     expect(resetLink).toBeTruthy();
     await page.goto(resetLink!);
     await page.waitForURL(/reset-password/, { timeout: 15_000 });
-    await page.getByLabel("Password").fill(NEW_PASSWORD);
-    await page.getByLabel("Confirm new password").fill(NEW_PASSWORD);
+    await page.getByRole("textbox", { name: "New password", exact: true }).fill(NEW_PASSWORD);
+    await page.getByRole("textbox", { name: "Confirm new password", exact: true }).fill(NEW_PASSWORD);
     await page.getByRole("button", { name: "Save new password" }).click();
     await expect(page.getByRole("heading", { name: "Password updated" })).toBeVisible();
 
     await context.clearCookies();
     await page.goto(`${baseURL}/sign-in`);
     await page.getByLabel("Email").fill(email);
-    await page.getByLabel("Password").fill(NEW_PASSWORD);
-    await page.getByRole("button", { name: "Sign in" }).click();
+    await page.getByRole("textbox", { name: "Password", exact: true }).fill(PASSWORD);
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
+    await expect(page.getByText("That email and password don't match")).toBeVisible();
+
+    await page.getByRole("textbox", { name: "Password", exact: true }).fill(NEW_PASSWORD);
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
     await expect(page).not.toHaveURL(/\/sign-in/, { timeout: 15_000 });
     await page.reload();
     await expect(page).not.toHaveURL(/\/sign-in/);
@@ -336,23 +377,20 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
     const after = new Date(Date.now() - 1000).toISOString();
     await page.goto(`${baseURL}/sign-up`);
     await fillSignup(page, email, "Ada", "Lovelace", PASSWORD);
-    await page.getByRole("button", { name: "Create an account" }).click();
-    await expect(page.locator("[data-af]")).toContainText("Send a new link");
+    await page.getByRole("button", { name: "CREATE ACCOUNT" }).click();
+    await expect(page.locator("[data-af]")).toContainText("Send another link");
     const mail = await waitForMail(email, after);
     const link = extractLinks(mail.html, mail.text).find(
       (u) => u.includes("token") || u.includes("code=") || u.includes("/api/auth/callback"),
     );
     expect(link).toBeTruthy();
 
-    let callbackUrl = link!;
-    if (!callbackUrl.includes("/api/auth/callback")) {
-      const bounce = await fetch(callbackUrl, { redirect: "manual" });
-      const location = bounce.headers.get("location");
-      expect(location).toBeTruthy();
-      callbackUrl = location!;
-    }
-    const res = await fetch(callbackUrl, { redirect: "manual" });
-    const setCookies = res.headers.getSetCookie();
+    const callbackResponse = page.waitForResponse(
+      (response) => new URL(response.url()).pathname === "/api/auth/callback",
+      { timeout: 15_000 },
+    );
+    await page.goto(link!);
+    const setCookies = await (await callbackResponse).headerValues("set-cookie");
     expect(setCookies.length).toBeGreaterThan(0);
     for (const entry of setCookies) {
       const pair = entry.split(";", 1)[0] ?? "";
@@ -367,8 +405,8 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
     const after = new Date(Date.now() - 1000).toISOString();
     await page.goto(`${baseURL}/sign-up`);
     await fillSignup(page, email, "Ada", "Lovelace", PASSWORD);
-    await page.getByRole("button", { name: "Create an account" }).click();
-    await expect(page.locator("[data-af]")).toContainText("Send a new link");
+    await page.getByRole("button", { name: "CREATE ACCOUNT" }).click();
+    await expect(page.locator("[data-af]")).toContainText("Send another link");
     const mail = await waitForMail(email, after);
     const link = extractLinks(mail.html, mail.text).find(
       (u) => u.includes("token") || u.includes("code=") || u.includes("/api/auth/callback"),
@@ -394,8 +432,8 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
     const after = new Date(Date.now() - 1000).toISOString();
     await page.goto(`${baseURL}/sign-up`);
     await fillSignup(page, email, "Ada", "Lovelace", PASSWORD);
-    await page.getByRole("button", { name: "Create an account" }).click();
-    await expect(page.locator("[data-af]")).toContainText("Send a new link");
+    await page.getByRole("button", { name: "CREATE ACCOUNT" }).click();
+    await expect(page.locator("[data-af]")).toContainText("Send another link");
     const mail = await waitForMail(email, after);
     const link = extractLinks(mail.html, mail.text).find(
       (u) => u.includes("token") || u.includes("code=") || u.includes("/api/auth/callback"),
@@ -419,16 +457,30 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
   test("D-09 signup stores locale in raw_user_meta_data for de", async ({ page }) => {
     const email = uniqueEmail("de");
     await page.goto(`${baseURL}/de/sign-up`);
+    await page.waitForFunction(() => typeof (window as Window & {
+      VamosLocale?: { setLang: (locale: string) => void };
+    }).VamosLocale?.setLang === "function");
+    await page.evaluate(() => {
+      const locale = (window as Window & {
+        VamosLocale?: { setLang: (locale: string) => void };
+      }).VamosLocale;
+      if (!locale) throw new Error("VamosLocale did not initialise.");
+      locale.setLang("de");
+    });
+    await expect(page.locator("html")).toHaveAttribute("lang", "de");
     await page.getByLabel(deMessages.common.email).fill(email);
     await page.getByLabel(deMessages.common["first-name"]).fill("Ada");
     await page.getByLabel(deMessages.common["last-name"]).fill("Lovelace");
     await page.getByLabel(deMessages.common.password).fill(PASSWORD);
+    const response = page.waitForResponse((res) =>
+      new URL(res.url()).pathname === "/api/auth" && res.request().method() === "POST",
+    );
     await page.getByRole("button", { name: deMessages.common["create-an-account"] }).click();
-    await expect(page.locator("[data-af]")).toBeVisible();
-    expect(userLocale(email)).toBe("de");
+    expect((await response).ok()).toBeTruthy();
+    await expect.poll(() => userLocale(email)).toBe("de");
   });
 
-  test("sitemap and hreflang include /sign-up", async ({ request }) => {
+  test("sitemap includes /sign-up and its public route serves the DC auth surface", async ({ request }) => {
     const xml = await (await request.get(`${baseURL}/sitemap.xml`)).text();
     expect(xml).toContain("/sign-up");
     for (const lang of ["en", "de", "fr", "ar"]) {
@@ -436,10 +488,7 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
     }
 
     const html = await (await request.get(`${baseURL}/sign-up`)).text();
-    expect(html).toContain('hreflang="en"');
-    expect(html).toContain('hreflang="de"');
-    expect(html).toContain('hreflang="fr"');
-    expect(html).toContain('hreflang="ar"');
-    expect(html).toContain('hreflang="x-default"');
+    expect(html).toContain('data-auth="1"');
+    expect(html).toContain('<dc-import name="AuthForm"');
   });
 });

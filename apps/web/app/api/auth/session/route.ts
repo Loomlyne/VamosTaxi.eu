@@ -1,9 +1,9 @@
 // apps/web/app/api/auth/session/route.ts
 //
 // Minimal session snapshot for the header's client control. Any script on the
-// page can read this response, so it carries only what SiteHeaderAccount needs
-// to choose a control: signedIn, displayName, emailConfirmed. It never includes
-// an email address, user id, token, role claim, or timestamp.
+// page can read this response, so it carries only the signed-in customer's own
+// account display fields: signedIn, displayName, email, emailConfirmed. It never
+// includes a user id, token, role claim, or timestamp.
 //
 // D-03: getUser() only — never the cookie-only session helper. Middleware matcher excludes /api,
 // so this handler builds its own server client. Missing or invalid session is
@@ -24,12 +24,14 @@ const DISPLAY_NAME_MAX = 80;
 export type SessionSnapshot = {
   signedIn: boolean;
   displayName: string | null;
+  email: string | null;
   emailConfirmed: boolean;
 };
 
 const SIGNED_OUT: SessionSnapshot = {
   signedIn: false,
   displayName: null,
+  email: null,
   emailConfirmed: false,
 };
 
@@ -58,6 +60,7 @@ export async function GET() {
     return snapshotResponse({
       signedIn: true,
       displayName: metadata ? displayNameFromMetadata(metadata) : null,
+      email: user.email ?? null,
       emailConfirmed: Boolean(user.email_confirmed_at),
     });
   } catch {

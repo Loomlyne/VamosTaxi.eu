@@ -172,7 +172,7 @@ Both entries match
 class Component extends DCLogic {
   state = { stage: this.props.stage || 'form', pw: '', confirm: '', errors: {}, showPw: false, showConfirm: false };
   componentDidUpdate(prev) {
-    if (prev.stage !== this.props.stage || prev.nonce !== this.props.nonce) {
+    if (prev.stage !== this.props.stage) {
       this.setState({ stage: this.props.stage || 'form', pw: '', confirm: '', errors: {} });
     }
   }

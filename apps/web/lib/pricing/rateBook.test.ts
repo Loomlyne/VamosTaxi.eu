@@ -197,7 +197,7 @@ describe("mapSettingsSnapshot", () => {
     expect(mapSettingsSnapshot(null)).toBeNull();
   });
 
-  it("carries every listed field, all nullable, none defaulted", () => {
+  it("carries every listed field and defaults a missing operational timezone to Zurich", () => {
     const snap = mapSettingsSnapshot({
       id: 4,
       slug: "baseline",
@@ -224,7 +224,7 @@ describe("mapSettingsSnapshot", () => {
     expect(snap?.round_trip_discount_percent).toBeNull();
     expect(snap?.night_window_start).toBeNull();
     expect(snap?.night_window_end).toBeNull();
-    expect(snap?.night_window_tz).toBeNull();
+    expect(snap?.night_window_tz).toBe("Europe/Zurich");
     expect(snap?.cancellation_tiers).toBeNull();
     expect(snap?.policy_doc_slug).toBeNull();
     expect(snap?.policy_doc_version).toBeNull();

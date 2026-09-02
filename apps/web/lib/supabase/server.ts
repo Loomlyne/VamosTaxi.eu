@@ -16,8 +16,14 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 export async function createServerSupabaseClient() {
   const { env } = getCloudflareContext();
   const cookieStore = await cookies();
+  const supabaseUrl = env.SUPABASE_URL ?? process.env.SUPABASE_URL;
+  const supabaseAnonKey = env.SUPABASE_ANON_KEY ?? process.env.SUPABASE_ANON_KEY;
 
-  return createServerClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error("Supabase server credentials are not configured.");
+  }
+
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
     auth: { experimental: { passkey: true } },
     cookies: {
       getAll() {

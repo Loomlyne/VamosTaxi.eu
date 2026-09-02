@@ -66,7 +66,7 @@ describe("SPOKEN_LANGUAGES", () => {
       "pl",
     ]);
     for (const entry of SPOKEN_LANGUAGES) {
-      expect(entry.key).toBe(`ops.language.${entry.code}`);
+      expect(entry.key).toBe(`ops.spoken.${entry.code}`);
     }
   });
 });

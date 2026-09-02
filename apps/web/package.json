@@ -20,7 +20,7 @@
     "@vamos/db": "workspace:*",
     "@vamos/emails": "workspace:*",
     "lenis": "1.3.26",
-    "next": "15.5.23",
+    "next": "15.5.25",
     "next-intl": "4.13.7",
     "react": "19.2.8",
     "react-dom": "19.2.8",
