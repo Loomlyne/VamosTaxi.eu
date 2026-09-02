@@ -275,9 +275,11 @@ class Component extends DCLogic {
     this.turnstileReadyTimer = null;
     if (this.turnstileWidget !== null) return;
     if (window.turnstile && typeof window.turnstile.render === 'function') {
-      this.turnstileReadyAttempts = 0;
       this.renderTurnstile();
-      return;
+      if (this.turnstileWidget !== null) {
+        this.turnstileReadyAttempts = 0;
+        return;
+      }
     }
     if (this.turnstileReadyAttempts >= this.TURNSTILE_READY_MAX_ATTEMPTS) return;
     this.turnstileReadyAttempts += 1;
@@ -355,13 +357,21 @@ class Component extends DCLogic {
         body: JSON.stringify({ name: this.state.name.trim(), email: this.state.email.trim(), phone: this.state.phone, bookingRef: this.state.ref, message: this.state.msg.trim(), locale: window.VamosLocale.lang(), turnstileToken: this.state.token, idempotencyKey: this.state.idempotencyKey }),
       });
       const result = await response.json();
-      this.setState(result && result.ok === true ? { phase: 'sent', token: '', idempotencyKey: crypto.randomUUID() } : { phase: 'failed', token: '' }, result && result.ok === true ? undefined : this.retryTurnstile);
+      const accepted = response.status === 200 && result && result.ok === true;
+      this.setState(accepted ? { phase: 'sent', token: '', idempotencyKey: crypto.randomUUID() } : { phase: 'failed', token: '' }, accepted ? undefined : this.retryTurnstile);
     } catch { this.setState({ phase: 'failed', token: '' }, this.retryTurnstile); }
   };
 
   reset = () => {
     this.clearTurnstile();
-    this.setState({ phase: 'default', name: '', email: '', phone: '', ref: '', msg: '', bad: {}, token: '', idempotencyKey: crypto.randomUUID() }, this.waitForTurnstile);
+    this.setState({ phase: 'default', name: '', email: '', phone: '', ref: '', msg: '', bad: {}, token: '', idempotencyKey: crypto.randomUUID() }, () => {
+      this.turnstileReadyAttempts = 0;
+      this.turnstileReadyTimer = window.setTimeout(() => {
+        this.turnstileReadyTimer = null;
+        this.renderTurnstile();
+        if (this.turnstileWidget === null) this.waitForTurnstile();
+      }, 50);
+    });
   };
 
 

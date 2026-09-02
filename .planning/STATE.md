@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 6 GSD-closed
-last_updated: "2026-09-01T20:38:39Z"
-last_activity: 2026-09-01 -- Phase 06 GSD-closed (UAT+verification; staging 014aa629)
+stopped_at: Phase 05-27 executed; awaiting owner UAT
+last_updated: "2026-09-02T00:00:00Z"
+last_activity: 2026-09-02 -- Phase 05-27 contact delivery remediation executed locally; staging UAT gate remains open
 progress:
   total_phases: 11
   completed_phases: 4
@@ -23,14 +23,14 @@ See: .planning/PROJECT.md (updated 2026-08-17)
 **Core value:** A customer can book a fixed-price transfer in under a minute and trust that
 the driver will be there. If nothing else works, the booking funnel — quote, pay,
 confirmation — must.
-**Current focus:** leftover Phase 4 / Phase 5, then Phase 7 checkout
+**Current focus:** Phase 05-27 staging contact-delivery UAT; then remaining Phase 4 / Phase 5 and Phase 7 checkout
 
 ## Current Position
 
-Phase: 06 (ops-reference-data-content-console) — COMPLETE
-Plan: 13 of 13
-Status: Phase 06 GSD-closed (UAT + verification). Staging worker 014aa629.
-Last activity: 2026-09-01 -- Phase 06 GSD-closed
+Phase: 05 (public-surfaces-customer-accounts) — remediation execution complete
+Plan: 05-27
+Status: local verification complete; staging UAT, review and ship gates remain open.
+Last activity: 2026-09-02 -- strict Turnstile/outbox remediation plus served-route coverage completed
 
 Progress: [████░░░░░░] 40%
 
@@ -182,6 +182,8 @@ None yet.
 
 ### Blockers/Concerns
 
+- Phase 05-27 release gate: configure a non-empty staging `CONTACT_TURNSTILE_ALLOWED_HOSTNAMES` allowlist; verify Resend sender/domain and monitored recipient/reply-to; then collect genuine inbox delivery and consumed-token/idempotency replay proof. No merge or production deployment before renewed clean review/CI and this UAT evidence.
+- `pnpm run typecheck` remains red only in untouched `apps/web/lib/ops/invite.test.ts` (readonly `process.env.NODE_ENV` mutation, TS2704/TS2540); do not broaden this contact remediation to fix it.
 - Five owner blockers remain unanswered (CHF price matrix, remaining policy numbers, vehicle/destination photography, payment/social brand marks, Qurova webfont licence). The build proceeds behind `pricing_live=false` and `data-tok` TBC pills — no phase should block waiting on these.
 - Hyperdrive must bind to Supabase's **direct** connection string, never the pooled Supavisor (6543) string — double-pooling only surfaces under real concurrency (Phase 3).
 - Data residency / Worker region-pinning is still open with counsel per PROJECT.md — must resolve before Phase 10 (hardening), since Sentry/monitoring must not ship ahead of a working `consent_log`.
@@ -210,6 +212,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-01T20:38:39Z
-Stopped at: Phase 6 GSD-closed
+Last session: 2026-09-02T00:00:00Z
+Stopped at: Phase 05-27 executed; awaiting owner staging UAT approval
 Resume file: .planning/ROADMAP.md

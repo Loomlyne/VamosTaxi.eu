@@ -32,11 +32,16 @@ describe("DC contact source", () => {
     expect(contactSource).toContain("'error-callback': () => this.setState({ phase: 'failed', token: '' }, this.retryTurnstile)");
     expect(contactSource).toContain("window.turnstile.reset(this.turnstileWidget);");
     expect(contactSource).toContain("this.clearTurnstile();\n    this.setState({ phase: 'default'");
-    expect(contactSource).toContain("}, this.waitForTurnstile);");
+    expect(contactSource).toContain("this.turnstileReadyTimer = window.setTimeout(() => {");
+    expect(contactSource).toContain("this.renderTurnstile();\n        if (this.turnstileWidget === null) this.waitForTurnstile();");
     expect(contactSource).toContain("idempotencyKey: this.state.idempotencyKey");
     expect(contactSource).not.toContain(
       "phase: 'failed', token: '', idempotencyKey: crypto.randomUUID()",
     );
+  });
+
+  it("shows the accepted state only for an explicit HTTP 200 contact acceptance", () => {
+    expect(contactSource).toContain("response.status === 200 && result && result.ok === true");
   });
 
   it("posts the selected public locale through VamosLocale.lang, including Arabic RTL", () => {

@@ -9,9 +9,9 @@ import { join } from "node:path";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
 const RUN_PROJECT = "component-1440";
-const ALWAYS_PASS_SECRET = "1x0000000000000000000000000000AA";
-const ALWAYS_FAIL_SECRET = "2x0000000000000000000000000000AA";
-const DUMMY_TOKEN = "XXXX.DUMMY.TOKEN";
+const ALWAYS_PASS_SECRET = "1x0000000000000000000000000000000AA";
+const ALWAYS_FAIL_SECRET = "2x0000000000000000000000000000000AA";
+const DUMMY_TOKEN = "XXXX.DUMMY.TOKEN.XXXX";
 const EDGE_CS = "postgres://vamos_edge:vamos_edge@127.0.0.1:54322/postgres";
 const NEXT = process.env.NEXT_BIN ?? NEXT_BIN;
 const DB_ROOT = join(WEB_ROOT, "..", "..", "packages", "db");
@@ -163,7 +163,7 @@ test.afterAll(() => {
 test.describe("SITE-04 contact form API", () => {
   test.describe.configure({ mode: "serial" });
 
-  test("verified submission persists once but returns unavailable when delivery configuration is absent", async ({}, testInfo) => {
+  test("test Siteverify response lacking the contact action rejects before any submission write", async ({}, testInfo) => {
     if (testInfo.project.name !== RUN_PROJECT) return;
     const payload = contactPayload({ email: `ada.${crypto.randomUUID()}@example.test` });
     const res = await fetch(`${passURL}/api/contact`, {
@@ -172,13 +172,13 @@ test.describe("SITE-04 contact form API", () => {
       body: JSON.stringify(payload),
     });
     const text = await res.text();
-    expect(res.status).toBe(503);
-    expect(JSON.parse(text)).toEqual({ ok: false, code: "unavailable" });
-    expect(contactRows(payload.idempotencyKey as string)).toBe(1);
+    expect(res.status).toBe(403);
+    expect(JSON.parse(text)).toEqual({ ok: false, code: "challenge_failed" });
+    expect(contactRows(payload.idempotencyKey as string)).toBe(0);
     assertHygiene(text, payload.email as string);
   });
 
-  test("repeat idempotencyKey retries unfinished delivery without inserting a second row", async ({}, testInfo) => {
+  test("repeat idempotencyKey with an unbound test challenge writes no rows", async ({}, testInfo) => {
     if (testInfo.project.name !== RUN_PROJECT) return;
     const payload = contactPayload({ email: `ada.${crypto.randomUUID()}@example.test` });
     const post = () =>
@@ -188,17 +188,17 @@ test.describe("SITE-04 contact form API", () => {
         body: JSON.stringify(payload),
       });
     const first = await post();
-    expect(first.status).toBe(503);
-    expect(await first.json()).toEqual({ ok: false, code: "unavailable" });
+    expect(first.status).toBe(403);
+    expect(await first.json()).toEqual({ ok: false, code: "challenge_failed" });
     const second = await post();
     const text = await second.text();
-    expect(second.status).toBe(503);
-    expect(JSON.parse(text)).toEqual({ ok: false, code: "unavailable" });
-    expect(contactRows(payload.idempotencyKey as string)).toBe(1);
+    expect(second.status).toBe(403);
+    expect(JSON.parse(text)).toEqual({ ok: false, code: "challenge_failed" });
+    expect(contactRows(payload.idempotencyKey as string)).toBe(0);
     assertHygiene(text, payload.email as string);
   });
 
-  test("over-long message is invalid_input with no field detail and no row", async ({}, testInfo) => {
+  test("turnstile rejection precedes invalid payload inspection and writes no row", async ({}, testInfo) => {
     if (testInfo.project.name !== RUN_PROJECT) return;
     const payload = contactPayload({
       email: `ada.${crypto.randomUUID()}@example.test`,
@@ -210,9 +210,9 @@ test.describe("SITE-04 contact form API", () => {
       body: JSON.stringify(payload),
     });
     const text = await res.text();
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(403);
     const body = JSON.parse(text) as Record<string, unknown>;
-    expect(body).toEqual({ ok: false, code: "invalid_input" });
+    expect(body).toEqual({ ok: false, code: "challenge_failed" });
     expect(JSON.stringify(body)).not.toMatch(/issues|flatten|fieldErrors/);
     expect(contactRows(payload.idempotencyKey as string)).toBe(0);
     assertHygiene(text, payload.email as string);
