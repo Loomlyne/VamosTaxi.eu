@@ -52,11 +52,17 @@ describe("DC contact source", () => {
     );
   });
 
-  it("keeps the message field fixed-size without removing its invalid styling", () => {
+  it("keeps the message field fixed-size, marks required labels, and does not paint error borders", () => {
     expect(contactSource).toContain(
       "[data-fld] textarea{min-height:132px;padding:15px 20px;border-radius:var(--vt-radius-lg);resize:none;line-height:var(--vt-body-leading)}",
     );
-    expect(contactSource).toContain("[data-fld][data-bad] input,[data-fld][data-bad] textarea{border-color:var(--vt-danger);border-width:2px}");
+    expect(contactSource).toContain(
+      '[data-fld][data-req] label::after{content:"*";color:var(--vt-danger);margin-inline-start:.35em;font-weight:var(--vt-weight-semibold)}',
+    );
+    expect(contactSource).toContain('data-req="1"');
+    expect(contactSource).not.toContain(
+      "[data-fld][data-bad] input,[data-fld][data-bad] textarea{border-color:var(--vt-danger);border-width:2px}",
+    );
   });
 
   it("shows the accepted state only for an explicit HTTP 200 contact acceptance", () => {
