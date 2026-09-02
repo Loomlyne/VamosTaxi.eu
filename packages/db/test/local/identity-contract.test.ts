@@ -66,16 +66,17 @@ const STAFF_CLAIMS: VamosClaims = {
 const GUEST_CLAIMS = { manageTokenHashHex: "deadbeef00112233" };
 
 describe("identity-contract (D-16, database-free)", () => {
-  it("claim 1 — PG_ROLE equals exactly the applied-migration contract, all five kinds", () => {
+  it("claim 1 — PG_ROLE equals exactly the applied-migration contract, including Worker-only system", () => {
     expect(PG_ROLE).toEqual({
       anon: "anon",
       customer: "authenticated",
       staff: "vamos_staff",
       guest: "vamos_guest",
       quote: QUOTE_PG_ROLE,
+      system: "vamos_system",
     });
     expect(Object.keys(PG_ROLE).sort()).toEqual(
-      ["anon", "customer", "guest", "quote", "staff"].sort(),
+      ["anon", "customer", "guest", "quote", "staff", "system"].sort(),
     );
   });
 
@@ -86,6 +87,7 @@ describe("identity-contract (D-16, database-free)", () => {
       ["staff", STAFF_CLAIMS],
       ["guest", GUEST_CLAIMS],
       ["quote", undefined],
+      ["system", undefined],
     ];
 
     for (const [kind, claims] of cases) {
@@ -107,7 +109,7 @@ describe("identity-contract (D-16, database-free)", () => {
     expect(recorded[0]!.values[0]).toBe(QUOTE_PG_ROLE);
   });
 
-  it("claim 3 — customer/staff bind request.jwt.claims, guest binds request.vamos.manage_token_hash, anon/quote bind nothing extra", async () => {
+  it("claim 3 — customer/staff bind request.jwt.claims, guest binds request.vamos.manage_token_hash, anon/quote/system bind nothing extra", async () => {
     for (const kind of ["customer", "staff"] as const) {
       const { client, recorded } = makeRecordingClient();
       const claims = kind === "customer" ? CUSTOMER_CLAIMS : STAFF_CLAIMS;
@@ -125,7 +127,7 @@ describe("identity-contract (D-16, database-free)", () => {
       expect(recorded[1]!.values[0]).toBe(GUEST_CLAIMS.manageTokenHashHex);
     }
 
-    for (const kind of ["anon", "quote"] as const) {
+    for (const kind of ["anon", "quote", "system"] as const) {
       const { client, recorded } = makeRecordingClient();
       await withIdentity(CS, kind, undefined, async () => "ok", { client });
       expect(recorded, `kind=${kind} — no claim to bind`).toHaveLength(1);

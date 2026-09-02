@@ -112,6 +112,8 @@ function spawnDev(port: number, secret: string): ChildProcess {
       CLOUDFLARE_ENV: "staging",
       TEST_DIST_DIR: `test-results/.next-contact-${port}`,
       TURNSTILE_SECRET_KEY: secret,
+      // Cloudflare's documented test Siteverify record binds its test token to example.com.
+      CONTACT_TURNSTILE_ALLOWED_HOSTNAMES: "example.com",
       WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE_NOCACHE: EDGE_CS,
       RESEND_API_KEY: "",
     },

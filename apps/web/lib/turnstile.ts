@@ -12,10 +12,6 @@ import { log } from "./logger";
 
 const SITEVERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 const SITEVERIFY_TIMEOUT_MS = 2_000;
-/** Cloudflare documented always-pass test secret — no account required. */
-const ALWAYS_PASS_SECRET = "1x0000000000000000000000000000AA";
-/** Cloudflare documented always-fail test secret — no account required. */
-const ALWAYS_FAIL_SECRET = "2x0000000000000000000000000000AA";
 
 export type TurnstileAction = "contact";
 
@@ -32,25 +28,52 @@ function fail(codes: string[]): TurnstileResult {
 }
 
 /**
+ * Deployment-owned hostnames only: comma-separated DNS host labels, never URLs,
+ * paths, ports, IPs, or wildcards. A malformed member invalidates the whole
+ * configuration so an operator typo cannot quietly widen or empty the binding.
+ */
+function normalizeHostname(value: string): string | null {
+  const hostname = value.trim().toLowerCase();
+  if (
+    hostname.length === 0
+    || hostname.length > 253
+    || hostname.includes(".") && hostname.split(".").some((label) => !/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(label))
+    || !hostname.includes(".") && !/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(hostname)
+  ) {
+    return null;
+  }
+  return hostname;
+}
+
+function allowedHostnameSet(raw: string | undefined): Set<string> | null {
+  if (typeof raw !== "string" || raw.trim().length === 0) return null;
+  const entries = raw.split(",");
+  const normalized = entries.map(normalizeHostname);
+  if (normalized.some((hostname) => hostname === null)) return null;
+  return new Set(normalized as string[]);
+}
+
+/**
  * POST form-encoded siteverify. Never throws — a transport or parse failure is
  * `{ ok: false, codes: ["unavailable"] }`.
  */
 export async function verifyTurnstile(
   secret: string | undefined,
   token: string,
-  opts: { action: TurnstileAction; idempotencyKey: string; remoteip?: string },
+  opts: {
+    action: TurnstileAction;
+    idempotencyKey: string;
+    allowedHostnames: string | undefined;
+    remoteip?: string;
+  },
 ): Promise<TurnstileResult> {
   if (typeof secret !== "string" || secret.length === 0) {
     log("error", "turnstile", MISSING_SECRET_CONTEXT, { reason: "missing-secret" });
     return fail(["missing-secret"]);
   }
 
-  if (secret === ALWAYS_PASS_SECRET) {
-    return { ok: true };
-  }
-  if (secret === ALWAYS_FAIL_SECRET) {
-    return fail(["invalid-input-response"]);
-  }
+  const allowedHostnames = allowedHostnameSet(opts.allowedHostnames);
+  if (!allowedHostnames || allowedHostnames.size === 0) return fail(["invalid-hostname-config"]);
 
   const params = new URLSearchParams();
   params.set("secret", secret);
@@ -88,9 +111,11 @@ export async function verifyTurnstile(
     return fail(["unavailable"]);
   }
 
-  const record = body as { success?: unknown; "error-codes"?: unknown };
+  const record = body as { success?: unknown; action?: unknown; hostname?: unknown; "error-codes"?: unknown };
   if (record.success === true) {
-    return { ok: true };
+    const hostname = typeof record.hostname === "string" ? normalizeHostname(record.hostname) : null;
+    if (record.action === opts.action && hostname && allowedHostnames.has(hostname)) return { ok: true };
+    return fail(["invalid-input-response"]);
   }
 
   const raw = record["error-codes"];
