@@ -10,6 +10,7 @@ const footers = [
   "app/home/SiteFooter.dc.html",
 ] as const;
 const reactFooterPath = "apps/web/components/shell/SiteFooter.tsx";
+const contactChannelsPath = "apps/web/lib/contact-channels.ts";
 
 function footerSource(path: (typeof footers)[number]): string {
   return readFileSync(join(repoRoot, path), "utf8");
@@ -55,7 +56,9 @@ describe("DC footer source", () => {
     }
 
     const reactFooter = readFileSync(join(repoRoot, reactFooterPath), "utf8");
-    expect(reactFooter).toContain('const PHONE_HREF = "tel:+41796267082";');
-    expect(reactFooter).not.toContain("tel:+417****7082");
+    const contactChannels = readFileSync(join(repoRoot, contactChannelsPath), "utf8");
+    expect(reactFooter).toContain("PHONE_HREF,");
+    expect(contactChannels).toContain('export const PHONE_HREF = "tel:+41796267082";');
+    expect(contactChannels).not.toContain("tel:+417****7082");
   });
 });
