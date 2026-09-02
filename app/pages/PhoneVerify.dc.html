@@ -145,6 +145,10 @@ class Component extends DCLogic {
     postProfile({ phone })
       .then((res) => {
         if (!res || !res.ok) {
+          if (res && res.reason === 'no-user') {
+            location.replace('/sign-in');
+            return;
+          }
           this.setState({ errors: { phone: 'Could not save. Try again.' } });
           return;
         }

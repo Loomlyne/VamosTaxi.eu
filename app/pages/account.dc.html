@@ -640,9 +640,23 @@ class Component extends DCLogic {
     const mail = this.state.mail.trim();
     if (!mail) { this.setState({ errors: { mail: 'Enter your email address' } }); return; }
     if (!EMAIL_RE.test(mail)) { this.setState({ errors: { mail: 'Check the email address' } }); return; }
-    /* A new address is unproven, so it goes back to unverified and the notice returns. */
-    this.patchAuth({ email: mail, emailVerified: false });
-    this.setState({ verifyResent: false });
+    const current = ((this.state.auth || EMPTY_AUTH).email || '').trim();
+    if (mail === current) { this.setState({ edit: null, errors: {} }); return; }
+    postProfile({ email: mail })
+      .then((res) => {
+        if (!res || !res.ok) {
+          if (res && res.reason === 'no-user') {
+            clearAuth();
+            location.replace('/sign-in');
+            return;
+          }
+          this.setState({ errors: { mail: 'Could not save. Try again.' } });
+          return;
+        }
+        this.patchAuth({ email: mail, emailVerified: false });
+        this.setState({ verifyResent: false });
+      })
+      .catch(() => this.setState({ errors: { mail: 'Could not save. Try again.' } }));
   };
 
   addPasskey = () => this.setState({ passkey: true });

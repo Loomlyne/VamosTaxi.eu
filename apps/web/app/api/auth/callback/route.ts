@@ -93,7 +93,7 @@ export async function GET(request: Request): Promise<NextResponse> {
   const fail = (): NextResponse =>
     NextResponse.redirect(new URL(signInErrorPath(locale), origin), 302);
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient(request);
   let error: { message?: string; code?: string } | null = null;
 
   if (code) {

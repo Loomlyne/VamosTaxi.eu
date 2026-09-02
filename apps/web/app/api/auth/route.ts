@@ -73,7 +73,7 @@ export async function POST(request: Request): Promise<Response> {
   ctx.locale = locale;
 
   const origin = requestOrigin(request);
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient(request);
 
   if (action === "signout") {
     await runSignOut(supabase);

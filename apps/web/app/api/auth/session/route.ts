@@ -2,7 +2,7 @@
 //
 // Minimal session snapshot for the header's client control. Any script on the
 // page can read this response, so it carries only the signed-in customer's own
-// account display fields: signedIn, displayName, email, emailConfirmed. It never
+// account display fields: signedIn, displayName, email, emailConfirmed, phone. It never
 // includes a user id, token, role claim, or timestamp.
 //
 // D-03: getUser() only — never the cookie-only session helper. Middleware matcher excludes /api,
@@ -26,6 +26,7 @@ export type SessionSnapshot = {
   displayName: string | null;
   email: string | null;
   emailConfirmed: boolean;
+  phone: string | null;
 };
 
 const SIGNED_OUT: SessionSnapshot = {
@@ -33,6 +34,7 @@ const SIGNED_OUT: SessionSnapshot = {
   displayName: null,
   email: null,
   emailConfirmed: false,
+  phone: null,
 };
 
 function displayNameFromMetadata(metadata: Record<string, unknown>): string | null {
@@ -43,15 +45,23 @@ function displayNameFromMetadata(metadata: Record<string, unknown>): string | nu
   return trimmed.length > DISPLAY_NAME_MAX ? trimmed.slice(0, DISPLAY_NAME_MAX) : trimmed;
 }
 
+function phoneFromMetadata(metadata: Record<string, unknown>): string | null {
+  const raw = metadata.phone;
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  if (!trimmed || trimmed.length > 32) return null;
+  return trimmed;
+}
+
 function snapshotResponse(body: SessionSnapshot): Response {
   return Response.json(body, {
     headers: { "Cache-Control": "private, no-store" },
   });
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient(request);
     const { data, error } = await supabase.auth.getUser();
     const user = error ? null : data.user;
     if (!user) return snapshotResponse(SIGNED_OUT);
@@ -62,6 +72,7 @@ export async function GET() {
       displayName: metadata ? displayNameFromMetadata(metadata) : null,
       email: user.email ?? null,
       emailConfirmed: Boolean(user.email_confirmed_at),
+      phone: metadata ? phoneFromMetadata(metadata) : null,
     });
   } catch {
     log(

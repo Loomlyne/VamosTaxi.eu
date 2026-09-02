@@ -10,10 +10,11 @@
 // client, getSession().
 
 import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { authCookiesFrom } from "./cookies";
 
-export async function createServerSupabaseClient() {
+export async function createServerSupabaseClient(request?: Request) {
   const { env } = getCloudflareContext();
   const cookieStore = await cookies();
   const supabaseUrl = env.SUPABASE_URL ?? process.env.SUPABASE_URL;
@@ -23,11 +24,20 @@ export async function createServerSupabaseClient() {
     throw new Error("Supabase server credentials are not configured.");
   }
 
+  let cookieHeader: string | null = request?.headers.get("cookie") ?? null;
+  if (!cookieHeader) {
+    try {
+      cookieHeader = (await headers()).get("cookie");
+    } catch {
+      cookieHeader = null;
+    }
+  }
+
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     auth: { experimental: { passkey: true } },
     cookies: {
       getAll() {
-        return cookieStore.getAll();
+        return authCookiesFrom(cookieStore.getAll(), cookieHeader);
       },
       setAll(cookiesToSet) {
         try {
