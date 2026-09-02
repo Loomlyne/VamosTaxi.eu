@@ -8,7 +8,6 @@ import { routing, type Locale } from "@/i18n/routing";
 import { Button, Icon } from "@/components/core";
 import { Input, Textarea } from "@/components/forms";
 import { Alert } from "@/components/feedback";
-import { PendingSlot } from "@/components/legal";
 import { contactSchema } from "@/lib/forms/schemas";
 import { TurnstileWidget } from "./TurnstileWidget";
 
@@ -252,13 +251,9 @@ export function ContactForm({ siteKey, locale, previewState }: ContactFormProps)
           <Icon name="circle-check" size={24} color="var(--vt-success)" />
         </div>
         <h3>{tContact("message-received")}</h3>
+        <p>{tContact("accepted-for-delivery-and-will-be-reviewed")}</p>
         <p>
-          {tContact("a-copy-is-on-its-way-to")}{" "}
-          <strong className="vt-contact-success__email">{email}</strong>
-        </p>
-        <p>
-          {tContact("we-answer-within")} <PendingSlot label={tContact("response-time")} />
-          {tContact("if-your-travel-is-sooner-than-that-call-us-on-th")}
+          {tContact("reply-within-12-24-hours")} {tContact("if-your-travel-is-sooner-than-that-call-us-on-th")}
         </p>
         <div className="vt-contact-success__actions">
           <Button size="md" variant="secondary" type="button" onClick={resetForm}>
