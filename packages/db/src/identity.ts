@@ -38,7 +38,7 @@ import { claimsForSql, type VamosClaims } from "./claims";
  * list, and in every later `pg_stat_statements` line — and retrofitting it after Phase 4 has
  * shipped would mean renaming an identity that has already written rows.
  */
-export type IdentityKind = "anon" | "customer" | "staff" | "guest" | "quote";
+export type IdentityKind = "anon" | "customer" | "staff" | "guest" | "quote" | "system";
 
 /**
  * D-44a. The anonymous quote path. Phase 2 plan 02-08's
@@ -75,6 +75,9 @@ export const PG_ROLE = {
   staff: "vamos_staff",
   guest: "vamos_guest",
   quote: QUOTE_PG_ROLE,
+  // `vamos_system` is a nologin role SET-able only by the Worker login
+  // (`vamos_edge`); it is never a browser or service-role identity.
+  system: "vamos_system",
 } as const satisfies Record<IdentityKind, string>;
 
 /** The claims shape `withIdentity` requires for each identity kind. */
@@ -201,8 +204,8 @@ export async function withIdentity<K extends IdentityKind, T>(
     } else if (kind === "guest") {
       await tx`select set_config('request.vamos.manage_token_hash', ${(claims as { manageTokenHashHex: string }).manageTokenHashHex}, true)`;
     }
-    // kind === "anon" | "quote": no claim to bind — the quote path's authority is the grant or
-    // the definer RPC (D-44a), never a claim.
+    // kind === "anon" | "quote" | "system": no claim to bind — the quote path's authority is
+    // the grant or definer RPC (D-44a); system authority is its Worker-only SET ROLE path.
 
     return fn(tx);
   }) as Promise<T>;
