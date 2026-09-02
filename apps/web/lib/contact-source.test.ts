@@ -6,19 +6,74 @@ import { describe, expect, it } from "vitest";
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, "../../..");
 const contactSource = readFileSync(join(repoRoot, "app/pages/contact.dc.html"), "utf8");
+const localeSource = readFileSync(join(repoRoot, "app/vamos-locale.js"), "utf8");
+const middlewareSource = readFileSync(join(repoRoot, "apps/web/middleware.ts"), "utf8");
+const legalAssets = [
+  "app/pages/privacy.dc.html",
+  "app/pages/imprint.dc.html",
+  "apps/web/public/app/pages/privacy.dc.html",
+  "apps/web/public/app/pages/privacy.html",
+  "apps/web/public/app/pages/imprint.dc.html",
+  "apps/web/public/app/pages/imprint.html",
+] as const;
 
 describe("DC contact source", () => {
-  it("refreshes the challenge after delivery failure without replacing the idempotency key", () => {
-    expect(contactSource).toContain("retryTurnstile = () => {");
-    expect(contactSource).toContain("window.turnstile.reset(this.turnstileWidget)");
-    expect(contactSource).toContain("this.renderTurnstile();");
-    expect(contactSource).toContain(
-      "this.setState({ phase: 'failed', token: '' }, this.retryTurnstile);",
-    );
+  it("waits a bounded time for an explicit Turnstile script, retries provider failures, and clears the stale widget before another message", () => {
+    expect(contactSource).toContain("turnstileReadyTimer = null;");
+    expect(contactSource).toContain("turnstileReadyAttempts = 0;");
+    expect(contactSource).toContain("TURNSTILE_READY_MAX_ATTEMPTS = 40;");
+    expect(contactSource).toContain("waitForTurnstile = () => {");
+    expect(contactSource).toContain("if (this.turnstileReadyAttempts >= this.TURNSTILE_READY_MAX_ATTEMPTS) return;");
+    expect(contactSource).toContain("this.turnstileReadyTimer = window.setTimeout(this.waitForTurnstile, 50);");
+    expect(contactSource).toContain("if (this.turnstileWidget !== null) return;");
+    expect(contactSource).toContain("document.querySelector('#ct-turnstile')");
+    expect(contactSource).toContain("clearTurnstile = () => {");
+    expect(contactSource).toContain("window.turnstile.remove(widget);");
+    expect(contactSource).toContain("'error-callback': () => this.setState({ phase: 'failed', token: '' }, this.retryTurnstile)");
+    expect(contactSource).toContain("window.turnstile.reset(this.turnstileWidget);");
+    expect(contactSource).toContain("this.clearTurnstile();\n    this.setState({ phase: 'default'");
+    expect(contactSource).toContain("}, this.waitForTurnstile);");
     expect(contactSource).toContain("idempotencyKey: this.state.idempotencyKey");
     expect(contactSource).not.toContain(
       "phase: 'failed', token: '', idempotencyKey: crypto.randomUUID()",
     );
+  });
+
+  it("posts the selected public locale through VamosLocale.lang, including Arabic RTL", () => {
+    expect(contactSource).toContain("locale: window.VamosLocale.lang()");
+    expect(contactSource).not.toContain("VamosLocale?.current");
+    expect(localeSource).toContain("var LANGS = ['en', 'de', 'fr', 'ar'];");
+    expect(localeSource).toContain("var RTL = { ar: true };");
+    expect(localeSource).toContain("lang: function () { return state.lang; }");
+    expect(localeSource).toContain("h.setAttribute('dir', RTL[state.lang] ? 'rtl' : 'ltr');");
+  });
+
+  it("drops stale representation metadata before serving an injected contact response", () => {
+    const serveDcHtml = middlewareSource.slice(
+      middlewareSource.indexOf("async function serveDcHtml"),
+      middlewareSource.indexOf("async function serveOpsDc"),
+    );
+    for (const header of [
+      "content-length",
+      "content-encoding",
+      "etag",
+      "last-modified",
+      "accept-ranges",
+      "content-range",
+    ]) {
+      expect(serveDcHtml).toContain(`\"${header}\"`);
+    }
+    expect(serveDcHtml).toContain("headers.delete(header)");
+    expect(serveDcHtml).toContain('headers.set("content-type", "text/html; charset=utf-8")');
+  });
+
+  it("keeps the public legal mailboxes aligned in canonical and generated artifacts", () => {
+    for (const path of legalAssets) {
+      const source = readFileSync(join(repoRoot, path), "utf8");
+      expect(source).toContain("mailto:info@vamostaxi.site");
+      expect(source).toContain("info@vamostaxi.site");
+      expect(source).not.toContain("info@vamostaxi.eu");
+    }
   });
 
   it("does not expose an unverified response-time placeholder", () => {

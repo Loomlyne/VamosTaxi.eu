@@ -28,7 +28,7 @@
 <link rel="stylesheet" href="../../assets/lenis.css">
 <script src="../../assets/lenis.js"></script>
 <script src="../../assets/lenis-boot.js"></script>
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+<script id="ct-turnstile-api" src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js"></script>
 <script src="../vamos-page-transition.js"></script>
@@ -262,27 +262,58 @@ class Component extends DCLogic {
   };
   errRef = React.createRef();
   turnstileWidget = null;
+  turnstileReadyTimer = null;
+  turnstileReadyAttempts = 0;
+  TURNSTILE_READY_MAX_ATTEMPTS = 40;
   componentDidMount() {
-    this.renderTurnstile();
+    this.waitForTurnstile();
   }
+  componentWillUnmount() {
+    this.clearTurnstile();
+  }
+  waitForTurnstile = () => {
+    this.turnstileReadyTimer = null;
+    if (this.turnstileWidget !== null) return;
+    if (window.turnstile && typeof window.turnstile.render === 'function') {
+      this.turnstileReadyAttempts = 0;
+      this.renderTurnstile();
+      return;
+    }
+    if (this.turnstileReadyAttempts >= this.TURNSTILE_READY_MAX_ATTEMPTS) return;
+    this.turnstileReadyAttempts += 1;
+    this.turnstileReadyTimer = window.setTimeout(this.waitForTurnstile, 50);
+  };
+  clearTurnstile = () => {
+    if (this.turnstileReadyTimer !== null) {
+      window.clearTimeout(this.turnstileReadyTimer);
+      this.turnstileReadyTimer = null;
+    }
+    const widget = this.turnstileWidget;
+    this.turnstileWidget = null;
+    if (widget !== null && window.turnstile && typeof window.turnstile.remove === 'function') {
+      window.turnstile.remove(widget);
+    }
+    const container = document.querySelector('#ct-turnstile');
+    if (container) container.replaceChildren();
+  };
   renderTurnstile = () => {
     const siteKey = document.querySelector('meta[name="vt-turnstile-site-key"]')?.getAttribute('content');
-    if (!siteKey || !window.turnstile) return;
+    const container = document.querySelector('#ct-turnstile');
+    if (!siteKey || !container || this.turnstileWidget !== null || !window.turnstile || typeof window.turnstile.render !== 'function') return;
     this.turnstileWidget = window.turnstile.render('#ct-turnstile', {
       sitekey: siteKey, action: 'contact',
       callback: (token) => this.setState({ token }),
       'expired-callback': () => this.setState({ token: '' }),
-      'error-callback': () => this.setState({ token: '' }),
+      'error-callback': () => this.setState({ phase: 'failed', token: '' }, this.retryTurnstile),
     });
   };
   retryTurnstile = () => {
-    if (!window.turnstile) return;
-    if (this.turnstileWidget !== null) {
+    if (this.turnstileWidget !== null && window.turnstile && typeof window.turnstile.reset === 'function') {
       window.turnstile.reset(this.turnstileWidget);
       return;
     }
-    this.renderTurnstile();
-  }
+    this.waitForTurnstile();
+  };
 
   set(k) { return (e) => {
     const v = e.target.value;
@@ -321,7 +352,7 @@ class Component extends DCLogic {
     try {
       const response = await fetch('/api/contact', {
         method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ name: this.state.name.trim(), email: this.state.email.trim(), phone: this.state.phone, bookingRef: this.state.ref, message: this.state.msg.trim(), locale: window.VamosLocale?.current?.() || 'en', turnstileToken: this.state.token, idempotencyKey: this.state.idempotencyKey }),
+        body: JSON.stringify({ name: this.state.name.trim(), email: this.state.email.trim(), phone: this.state.phone, bookingRef: this.state.ref, message: this.state.msg.trim(), locale: window.VamosLocale.lang(), turnstileToken: this.state.token, idempotencyKey: this.state.idempotencyKey }),
       });
       const result = await response.json();
       this.setState(result && result.ok === true ? { phase: 'sent', token: '', idempotencyKey: crypto.randomUUID() } : { phase: 'failed', token: '' }, result && result.ok === true ? undefined : this.retryTurnstile);
@@ -329,7 +360,8 @@ class Component extends DCLogic {
   };
 
   reset = () => {
-    this.setState({ phase: 'default', name: '', email: '', phone: '', ref: '', msg: '', bad: {}, token: '', idempotencyKey: crypto.randomUUID() });
+    this.clearTurnstile();
+    this.setState({ phase: 'default', name: '', email: '', phone: '', ref: '', msg: '', bad: {}, token: '', idempotencyKey: crypto.randomUUID() }, this.waitForTurnstile);
   };
 
 

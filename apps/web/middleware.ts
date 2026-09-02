@@ -65,6 +65,16 @@ async function serveDcHtml(request: NextRequest, mock: string): Promise<NextResp
     html = html.replace(/<head([^>]*)>/i, `<head$1><meta name="vt-turnstile-site-key" content="${siteKey.replace(/&/g, "&amp;").replace(/\"/g, "&quot;")}">`);
   }
   const headers = new Headers(res.headers);
+  for (const header of [
+    "content-length",
+    "content-encoding",
+    "etag",
+    "last-modified",
+    "accept-ranges",
+    "content-range",
+  ]) {
+    headers.delete(header);
+  }
   headers.set("content-type", "text/html; charset=utf-8");
   return new NextResponse(html, { status: res.status, headers });
 }
