@@ -49,6 +49,18 @@ describe("DC footer source", () => {
     }
   });
 
+  it("uses the same 26px masked glyph treatment for every owner-confirmed social destination", () => {
+    for (const path of footers) {
+      const source = footerSource(path);
+      expect(source.match(/data-ft-glyph=\"1\"/g)).toHaveLength(4);
+      expect(source.match(/width:26px;height:26px/g)).toHaveLength(4);
+      expect(source).toContain('aria-label="Vamos Taxi on YouTube"');
+      expect(source).toContain('aria-label="Vamos Taxi on TikTok"');
+      expect(source).not.toContain('data-ft-soc-text="1"');
+      expect(source).not.toContain('>TikTok</a>');
+    }
+  });
+
   it("uses the confirmed public number as a callable phone destination on every footer surface", () => {
     for (const path of footers) {
       expect(footerSource(path)).toContain('href="tel:+41796267082"');

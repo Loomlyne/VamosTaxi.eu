@@ -62,7 +62,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-fld] label{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-primary)}
 [data-fld] input,[data-fld] textarea{box-sizing:border-box;width:100%;font-family:var(--vt-font-body);font-size:var(--vt-body-md);color:var(--vt-text-primary);background:var(--vt-bg-surface);border:1px solid var(--vt-grey-300);transition:border-color 140ms var(--vt-ease-standard),box-shadow 140ms var(--vt-ease-standard)}
 [data-fld] input{height:54px;padding:0 20px;border-radius:var(--vt-radius-field,999px)}
-[data-fld] textarea{min-height:132px;padding:15px 20px;border-radius:var(--vt-radius-lg);resize:vertical;line-height:var(--vt-body-leading)}
+[data-fld] textarea{min-height:132px;padding:15px 20px;border-radius:var(--vt-radius-lg);resize:none;line-height:var(--vt-body-leading)}
 [data-fld] input::placeholder,[data-fld] textarea::placeholder{color:var(--vt-text-muted)}
 [data-fld] input:hover,[data-fld] textarea:hover{border-color:var(--vt-grey-400)}
 [data-fld] input:focus,[data-fld] textarea:focus{outline:none;border-color:var(--vt-charcoal-900);box-shadow:var(--vt-ring)}
@@ -262,6 +262,7 @@ class Component extends DCLogic {
   };
   errRef = React.createRef();
   turnstileWidget = null;
+  turnstileSubmitting = false;
   turnstileReadyTimer = null;
   turnstileReadyAttempts = 0;
   TURNSTILE_READY_MAX_ATTEMPTS = 40;
@@ -286,6 +287,7 @@ class Component extends DCLogic {
     this.turnstileReadyTimer = window.setTimeout(this.waitForTurnstile, 50);
   };
   clearTurnstile = () => {
+    this.turnstileSubmitting = false;
     if (this.turnstileReadyTimer !== null) {
       window.clearTimeout(this.turnstileReadyTimer);
       this.turnstileReadyTimer = null;
@@ -303,13 +305,20 @@ class Component extends DCLogic {
     const container = document.querySelector('#ct-turnstile');
     if (!siteKey || !container || this.turnstileWidget !== null || !window.turnstile || typeof window.turnstile.render !== 'function') return;
     this.turnstileWidget = window.turnstile.render('#ct-turnstile', {
-      sitekey: siteKey, action: 'contact',
-      callback: (token) => this.setState({ token }),
-      'expired-callback': () => this.setState({ token: '' }),
-      'error-callback': () => this.setState({ phase: 'failed', token: '' }, this.retryTurnstile),
+      sitekey: siteKey, action: 'contact', appearance: 'interaction-only', execution: 'execute',
+      callback: this.beginContactSubmit,
+      'expired-callback': () => {
+        this.turnstileSubmitting = false;
+        this.setState({ token: '' });
+      },
+      'error-callback': () => {
+        this.turnstileSubmitting = false;
+        this.setState({ phase: 'failed', token: '' }, this.retryTurnstile);
+      },
     });
   };
   retryTurnstile = () => {
+    this.turnstileSubmitting = false;
     if (this.turnstileWidget !== null && window.turnstile && typeof window.turnstile.reset === 'function') {
       window.turnstile.reset(this.turnstileWidget);
       return;
@@ -349,12 +358,34 @@ class Component extends DCLogic {
       this.setState({ phase: 'invalid', bad }, () => { const el = this.errRef.current; if (el) el.focus(); });
       return;
     }
-    if (!this.state.token) { this.setState({ phase: 'failed', bad: {} }, this.retryTurnstile); return; }
+    if (this.turnstileSubmitting) return;
+    if (this.turnstileWidget === null || !window.turnstile || typeof window.turnstile.execute !== 'function') {
+      this.setState({ phase: 'failed', bad: {}, token: '' }, this.retryTurnstile);
+      return;
+    }
+    this.turnstileSubmitting = true;
+    this.setState({ phase: 'default', bad: {}, token: '' }, () => {
+      if (this.turnstileSubmitting && this.turnstileWidget !== null && window.turnstile && typeof window.turnstile.execute === 'function') {
+        window.turnstile.execute(this.turnstileWidget);
+      }
+    });
+  };
+
+  beginContactSubmit = (token) => {
+    if (!this.turnstileSubmitting || !token) {
+      this.setState({ token: token || '' });
+      return;
+    }
+    this.turnstileSubmitting = false;
+    this.setState({ token }, () => this.sendContact(token));
+  };
+
+  sendContact = async (token) => {
     this.setState({ phase: 'sending', bad: {} });
     try {
       const response = await fetch('/api/contact', {
         method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ name: this.state.name.trim(), email: this.state.email.trim(), phone: this.state.phone, bookingRef: this.state.ref, message: this.state.msg.trim(), locale: window.VamosLocale.lang(), turnstileToken: this.state.token, idempotencyKey: this.state.idempotencyKey }),
+        body: JSON.stringify({ name: this.state.name.trim(), email: this.state.email.trim(), phone: this.state.phone, bookingRef: this.state.ref, message: this.state.msg.trim(), locale: window.VamosLocale.lang(), turnstileToken: token, idempotencyKey: this.state.idempotencyKey }),
       });
       const result = await response.json();
       const accepted = response.status === 200 && result && result.ok === true;

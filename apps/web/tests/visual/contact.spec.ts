@@ -167,6 +167,18 @@ test.describe("Contact page and form @component", () => {
     await expect(input).toHaveCSS("box-shadow", "none");
   });
 
+  test("contact textarea has no native resize affordance and footer social glyphs share a 26px footprint @component", async ({ page }) => {
+    await gotoLocale(page, "en", "/contact");
+    await expect(page.locator("#ct-msg")).toHaveCSS("resize", "none");
+    const glyphs = page.locator("#dc-root [data-ft-soc] [data-ft-glyph]");
+    await expect(glyphs).toHaveCount(4);
+    for (let index = 0; index < 4; index += 1) {
+      await expect(glyphs.nth(index)).toHaveCSS("width", "26px");
+      await expect(glyphs.nth(index)).toHaveCSS("height", "26px");
+    }
+    await expect(page.locator('[data-ft-soc][aria-label="Vamos Taxi on TikTok"]')).toHaveText("");
+  });
+
   test("placeholders and labels differ between en and de @component", async ({ page }) => {
     await gotoLocale(page, "en", "/contact");
     const en = await page.evaluate(() => {

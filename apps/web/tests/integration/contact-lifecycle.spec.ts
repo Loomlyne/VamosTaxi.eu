@@ -15,9 +15,18 @@ const baseURL = `http://localhost:${PORT}`;
 
 type TurnstileHarness = {
   renders: number;
+  executes: number;
   removes: number;
   resets: number;
+  callbackType?: string;
   solve: (id: string) => void;
+};
+
+type TestTurnstileApi = {
+  render: (element: string, options: { callback?: (token: string) => void }) => string;
+  execute: (id: string) => void;
+  remove: (id: string) => void;
+  reset: (id: string) => void;
 };
 
 async function gotoContact(page: Page, locale: (typeof LOCALES)[number]) {
@@ -42,6 +51,12 @@ async function turnstileState(page: Page): Promise<TurnstileHarness | undefined>
   return page.evaluate(() => (
     window as Window & typeof globalThis & { __vtTurnstileTest?: TurnstileHarness }
   ).__vtTurnstileTest);
+}
+
+async function solveTurnstile(page: Page) {
+  await page.evaluate(() => (
+    window as Window & typeof globalThis & { __vtTurnstileTest?: TurnstileHarness }
+  ).__vtTurnstileTest?.solve("w1"));
 }
 
 test.describe("Contact lifecycle @integration", () => {
@@ -76,15 +91,29 @@ test.describe("Contact lifecycle @integration", () => {
   });
 
   test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      const callbacks: Record<string, ((token: string) => void) | undefined> = {};
+      let next = 0;
+      const harness = {
+        renders: 0, executes: 0, removes: 0, resets: 0, callbackType: "",
+        solve(id: string) { callbacks[id]?.(`XXXX.DUMMY.TOKEN.${id}`); },
+      };
+      (window as Window & typeof globalThis & { __vtTurnstileTest?: TurnstileHarness }).__vtTurnstileTest = harness;
+      (window as unknown as { turnstile: TestTurnstileApi }).turnstile = {
+        render(_element: string, options: { callback?: (token: string) => void }) {
+          const id = `w${++next}`;
+          callbacks[id] = options?.callback;
+          harness.callbackType = typeof callbacks[id];
+          harness.renders += 1;
+          return id;
+        },
+        execute(_id: string) { harness.executes += 1; },
+        remove(id: string) { delete callbacks[id]; harness.removes += 1; },
+        reset(_id: string) { harness.resets += 1; },
+      };
+    });
     await page.route("https://challenges.cloudflare.com/**", async (route) => {
-      if (!route.request().url().includes("api.js")) {
-        await route.abort();
-        return;
-      }
-      await route.fulfill({
-        contentType: "application/javascript",
-        body: `(()=>{const callbacks={};let next=0;window.__vtTurnstileTest={renders:0,removes:0,resets:0,solve(id){callbacks[id]?.("XXXX.DUMMY.TOKEN."+id);}};window.turnstile={render(el,opts){const id="w"+(++next);callbacks[id]=opts?.callback;window.__vtTurnstileTest.renders++;window.__vtTurnstileTest.solve(id);return id;},remove(id){delete callbacks[id];window.__vtTurnstileTest.removes++;},reset(){window.__vtTurnstileTest.resets++;}};})();`,
-      });
+      await route.fulfill({ contentType: "application/javascript", body: "void 0;" });
     });
   });
 
@@ -104,6 +133,10 @@ test.describe("Contact lifecycle @integration", () => {
       await gotoContact(page, locale);
       await fillValidContact(page);
       await page.locator('form button[type="submit"]').click();
+      await expect.poll(() => turnstileState(page)).toMatchObject({ executes: 1 });
+      expect(failedBodies).toHaveLength(0);
+      await expect.poll(() => turnstileState(page)).toMatchObject({ callbackType: "function" });
+      await solveTurnstile(page);
       await expect(page.getByRole("alert").last()).toBeVisible({ timeout: 10_000 });
       await expect(page.getByRole("status")).toHaveCount(0);
       await expect.poll(() => turnstileState(page)).toMatchObject({ resets: 1 });
@@ -123,6 +156,9 @@ test.describe("Contact lifecycle @integration", () => {
       await gotoContact(page, locale);
       await fillValidContact(page);
       await page.locator('form button[type="submit"]').click();
+      await expect.poll(() => turnstileState(page)).toMatchObject({ executes: 1 });
+      expect(acceptedBodies).toHaveLength(0);
+      await solveTurnstile(page);
       const accepted = page.getByRole("status");
       await expect(accepted).toBeVisible({ timeout: 10_000 });
       expect(acceptedBodies).toHaveLength(1);
@@ -147,6 +183,8 @@ test.describe("Contact lifecycle @integration", () => {
     await gotoContact(page, "en");
     await fillValidContact(page);
     await page.locator('form button[type="submit"]').click();
+    await expect.poll(() => turnstileState(page)).toMatchObject({ executes: 1 });
+    await solveTurnstile(page);
     const accepted = page.getByRole("status");
     await expect(accepted).toBeVisible({ timeout: 10_000 });
     expect(bodies).toHaveLength(1);

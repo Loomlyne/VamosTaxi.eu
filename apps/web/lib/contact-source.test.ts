@@ -18,7 +18,7 @@ const legalAssets = [
 ] as const;
 
 describe("DC contact source", () => {
-  it("waits a bounded time for an explicit Turnstile script, retries provider failures, and clears the stale widget before another message", () => {
+  it("waits a bounded time for an explicit Turnstile script, executes only after valid input, retries provider failures, and clears the stale widget before another message", () => {
     expect(contactSource).toContain("turnstileReadyTimer = null;");
     expect(contactSource).toContain("turnstileReadyAttempts = 0;");
     expect(contactSource).toContain("TURNSTILE_READY_MAX_ATTEMPTS = 40;");
@@ -29,7 +29,12 @@ describe("DC contact source", () => {
     expect(contactSource).toContain("document.querySelector('#ct-turnstile')");
     expect(contactSource).toContain("clearTurnstile = () => {");
     expect(contactSource).toContain("window.turnstile.remove(widget);");
-    expect(contactSource).toContain("'error-callback': () => this.setState({ phase: 'failed', token: '' }, this.retryTurnstile)");
+    expect(contactSource).toContain("appearance: 'interaction-only', execution: 'execute'");
+    expect(contactSource).toContain("window.turnstile.execute(this.turnstileWidget);");
+    expect(contactSource).toContain("beginContactSubmit = (token) => {");
+    expect(contactSource).toContain("this.turnstileSubmitting = true;");
+    expect(contactSource).toContain("'error-callback': () => {");
+    expect(contactSource).toContain("this.turnstileSubmitting = false;\n        this.setState({ phase: 'failed', token: '' }, this.retryTurnstile);");
     expect(contactSource).toContain("window.turnstile.reset(this.turnstileWidget);");
     expect(contactSource).toContain("this.clearTurnstile();\n    this.setState({ phase: 'default'");
     expect(contactSource).toContain("this.turnstileReadyTimer = window.setTimeout(() => {");
@@ -38,6 +43,13 @@ describe("DC contact source", () => {
     expect(contactSource).not.toContain(
       "phase: 'failed', token: '', idempotencyKey: crypto.randomUUID()",
     );
+  });
+
+  it("keeps the message field fixed-size without removing its invalid styling", () => {
+    expect(contactSource).toContain(
+      "[data-fld] textarea{min-height:132px;padding:15px 20px;border-radius:var(--vt-radius-lg);resize:none;line-height:var(--vt-body-leading)}",
+    );
+    expect(contactSource).toContain("[data-fld][data-bad] input,[data-fld][data-bad] textarea{border-color:var(--vt-danger);border-width:2px}");
   });
 
   it("shows the accepted state only for an explicit HTTP 200 contact acceptance", () => {
