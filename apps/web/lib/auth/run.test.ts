@@ -170,6 +170,16 @@ describe("parseProfileFields", () => {
   it("rejects empty names", () => {
     expect(parseProfileFields({ firstName: "koussay", lastName: "  " })).toBeNull();
   });
+
+  it("picks email when names are absent", () => {
+    expect(parseProfileFields({ email: " koussayzayeni@gmail.com " })).toEqual({
+      email: "koussayzayeni@gmail.com",
+    });
+  });
+
+  it("rejects a malformed email", () => {
+    expect(parseProfileFields({ email: "not-an-email" })).toBeNull();
+  });
 });
 
 describe("runUpdateProfile", () => {
@@ -207,6 +217,15 @@ describe("runUpdateProfile", () => {
     expect(updateUser).toHaveBeenCalledWith({
       data: { phone: "+41 79 626 70 82" },
     });
+  });
+
+  it("writes email as an auth attribute, not metadata", async () => {
+    const updateUser = vi.fn(async () => ({ error: null }));
+    const out = await runUpdateProfile(client({ updateUser }), {
+      email: "koussayzayeni@gmail.com",
+    });
+    expect(out).toEqual({ result: { ok: true }, reason: null });
+    expect(updateUser).toHaveBeenCalledWith({ email: "koussayzayeni@gmail.com" });
   });
 
   it("maps supabase failures to credentials", async () => {

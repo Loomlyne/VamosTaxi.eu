@@ -45,6 +45,7 @@ export type AuthClient = {
     getUser(): Promise<{ data: { user: unknown | null }; error: AuthError }>;
     updateUser(args: {
       password?: string;
+      email?: string;
       data?: Record<string, string>;
     }): Promise<{ error: AuthError }>;
   };
@@ -156,14 +157,21 @@ export async function runUpdatePassword(
   return { result: { ok: true }, reason: null };
 }
 
-export function parseProfileFields(
-  fields: Record<string, unknown>,
-): { firstName: string; lastName: string } | { phone: string } | null {
+export type ProfileFields =
+  | { firstName: string; lastName: string }
+  | { phone: string }
+  | { email: string };
+
+export function parseProfileFields(fields: Record<string, unknown>): ProfileFields | null {
   const firstName = typeof fields.firstName === "string" ? fields.firstName.trim() : "";
   const lastName = typeof fields.lastName === "string" ? fields.lastName.trim() : "";
   const phone = typeof fields.phone === "string" ? fields.phone.trim() : "";
+  const emailRaw = typeof fields.email === "string" ? fields.email.trim() : "";
   if (firstName && lastName && firstName.length <= 80 && lastName.length <= 80) {
     return { firstName, lastName };
+  }
+  if (emailRaw && emailRaw.length <= 254 && /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(emailRaw)) {
+    return { email: emailRaw };
   }
   const digits = phone.replace(/\D/g, "");
   if (phone && phone.length <= 32 && digits.length >= 9) {
@@ -174,7 +182,7 @@ export function parseProfileFields(
 
 export async function runUpdateProfile(
   supabase: AuthClient,
-  input: { firstName: string; lastName: string } | { phone: string },
+  input: ProfileFields,
 ): Promise<{ result: ProfileRunResult; reason: string | null }> {
   try {
     const {
@@ -183,6 +191,13 @@ export async function runUpdateProfile(
     } = await supabase.auth.getUser();
     if (userError || !user) {
       return { result: { ok: false, reason: "no-user" }, reason: userError?.code ?? "no-user" };
+    }
+    if ("email" in input) {
+      const { error } = await supabase.auth.updateUser({ email: input.email });
+      if (error) {
+        return { result: { ok: false, reason: "auth-failed" }, reason: error.code ?? "auth-failed" };
+      }
+      return { result: { ok: true }, reason: null };
     }
     const data: Record<string, string> =
       "phone" in input
