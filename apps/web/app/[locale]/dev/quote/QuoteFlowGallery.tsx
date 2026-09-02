@@ -33,8 +33,7 @@ import type { BadgeTone } from "@/components/core";
 import { Alert, Toast } from "@/components/feedback";
 import type { AlertTone } from "@/components/feedback";
 import { Counter, DatePicker, Input } from "@/components/forms";
-import { Tabs } from "@/components/navigation";
-import { PriceSummary, RouteSummary, VehicleCard } from "@/components/transfer";
+import { PriceSummary, VehicleCard } from "@/components/transfer";
 import type { PriceLine } from "@/components/transfer";
 import { formatAmount } from "@/lib/currency";
 import {
@@ -51,7 +50,6 @@ import {
   eligibleBoard,
   ineligibleReasonBoard,
   noEligibleClassBoard,
-  returnJourney,
 } from "@/lib/quote/client-fixtures";
 import type { ClassBoardEntry } from "@/lib/pricing/types";
 
@@ -61,8 +59,6 @@ const CLASS_NAMES = {
   van: "Van",
 } as const;
 
-const SYNTHETIC_PICKUP = "12 Exampleweg, 8000 Musterstadt";
-const SYNTHETIC_DROPOFF = "9 Demoquai, 1200 Musterdorf";
 const SYNTHETIC_FLIGHT = "XX 000";
 
 const rowStyle: CSSProperties = {
@@ -404,52 +400,6 @@ export function QuoteFlowGallery() {
         </Tile>
       </Section>
 
-      <Section title="§D — return-leg presentation" section="d-return">
-        {/* Assumption 2: ADR-006 fixes one booking / two legs / one snapshot
-            but not whether the return pair is literally swapped. */}
-        <Tile caption="outbound from the two-leg fixture" wide>
-          <RouteSummary
-            pickup={SYNTHETIC_PICKUP}
-            dropoff={SYNTHETIC_DROPOFF}
-            meta={[
-              { icon: "calendar", label: <span className="vt-dir-keep">01.01</span> },
-              { icon: "clock", label: <span className="vt-dir-keep">08:15</span> },
-            ]}
-          />
-        </Tile>
-        <Tile caption="return — pickup/dropoff swapped (Assumption 2)" wide>
-          <div
-            style={{
-              borderBlockStart: "1px solid var(--vt-border-subtle)",
-              paddingBlockStart: "var(--vt-space-4)",
-            }}
-          >
-            <p
-              style={{
-                fontSize: "11px",
-                fontWeight: 600,
-                letterSpacing: "0.09em",
-                textTransform: "uppercase",
-                marginBlockEnd: "var(--vt-space-2)",
-              }}
-            >
-              {label("common.return")}
-            </p>
-            <RouteSummary
-              pickup={SYNTHETIC_DROPOFF}
-              dropoff={SYNTHETIC_PICKUP}
-              meta={[
-                { icon: "calendar", label: <span className="vt-dir-keep">03.01</span> },
-                { icon: "clock", label: <span className="vt-dir-keep">18:00</span> },
-              ]}
-            />
-          </div>
-        </Tile>
-        <Tile caption={`legs in fixture: ${returnJourney.route.legs.length}`}>
-          <span className="vt-dir-keep">{returnJourney.route.legs.length}</span>
-        </Tile>
-      </Section>
-
       <Section title="§E — coupon field" section="e-coupon">
         <Tile caption="default">
           <div data-coupon-state="default">
@@ -540,15 +490,6 @@ export function QuoteFlowGallery() {
       </Section>
 
       <Section title="§G — mode, party size, when-picker" section="g-mode">
-        <Tile caption="Tabs — one_way / return, no hourly (D-03)" wide>
-          <Tabs
-            items={[
-              { value: "one_way", label: label("home.one-way") },
-              { value: "return", label: label("common.return") },
-            ]}
-            value="one_way"
-          />
-        </Tile>
         <Tile caption="Counter — extras_max_child_seats" wide>
           <Counter
             label={label("common.passengers")}
