@@ -303,6 +303,17 @@ does not need to wait for checkout.
 
 **UI hint**: yes
 
+### Phase 06.1: Dashboard instant sidebar navigation (INSERTED)
+
+**Goal:** Sidebar hash changes on the operations dashboard switch the existing view immediately, with no overlay, fade, or page-like transition.
+**Depends on:** Phase 6
+**Plans:** 1 plan
+
+Plans:
+- [x] 06.1-01-PLAN.md — Remove dashboard hash-switch motion; keep public document transitions
+
+**UI hint**: yes
+
 ### Phase 7: Checkout & Payment
 
 **Goal**: A customer can pay for a locked quote and receive a webhook-confirmed booking —
@@ -400,8 +411,9 @@ Phases execute in numeric order: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 
 | 3. Hyperdrive Data Access Wiring | 7/7 | Complete | 2026-08-28 |
 | 4. Quote & Pricing Engine | 12/16 | In Progress|  |
 | 5. Public Surfaces & Customer Accounts | 19/24 | In Progress|  |
-| 6. Ops Reference Data & Content Console | 13/13 | Complete   | 2026-09-01 |
-| 7. Checkout & Payment | 0/TBD | Not started | - |
+|| 6. Ops Reference Data & Content Console | 13/13 | Complete   | 2026-09-01 |
+|| 06.1 Dashboard instant sidebar navigation | 1/1 | Executed, UAT pending |  |
+|| 7. Checkout & Payment | 0/TBD | Not started | - |
 | 8. Ops Dispatch — Live Board, Assignment & Account Surfaces | 0/TBD | Not started | - |
 | 9. Booking Lifecycle & Customer Self-Service | 0/TBD | Not started | - |
 | 10. Hardening — Performance, Security & Compliance | 0/TBD | Not started | - |
