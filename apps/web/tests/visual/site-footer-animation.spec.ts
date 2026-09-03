@@ -39,7 +39,10 @@ test.describe("SiteFooter letter roll @component", () => {
     await page.goto(url);
     await waitForMockReady(page);
 
-    await page.evaluate(() => window.VamosLocale.setLang("ar"));
+    await page.evaluate(() =>
+      (window as Window & typeof globalThis & { VamosLocale?: { setLang: (value: string) => void } })
+        .VamosLocale?.setLang("ar"),
+    );
     const about = page.getByRole("link", { name: "من نحن", exact: true });
     await expect(about).toHaveText("من نحن");
     await expect(about).not.toHaveAttribute("data-split", "1");
