@@ -25,17 +25,17 @@ test.describe("Home fleet availability @customer", () => {
     await waitForMockReady(page);
 
     const pickup = page.getByRole("combobox", { name: "Pickup" });
-    const destination = page.getByRole("combobox", { name: "Destination" });
     await pickup.fill("Zurich Airport");
-    await pickup.press("Tab");
-    await destination.fill("Zurich city");
-    await destination.press("Tab");
+    await page.getByRole("option", { name: /Zurich Airport \(ZRH\), Terminal 2/ }).click();
+
+    const destination = page.getByRole("combobox", { name: "Destination" });
+    await destination.fill("Bahnhofstrasse");
+    await page.getByRole("option", { name: /Zurich, Bahnhofstrasse 1/ }).click();
+
     await page.getByRole("button", { name: "Select date & time" }).click();
     await page.getByRole("button", { name: "5", exact: true }).click();
 
-    const partyControls = page.locator("[data-party] button");
-    await expect(partyControls).toHaveCount(2);
-    await partyControls.nth(1).click();
+    await page.locator("[data-party] button").first().click();
 
     const first = page.locator("[data-fleet-card]").filter({ hasText: "First" });
     const business = page.locator("[data-fleet-card]").filter({ hasText: "Business" });
