@@ -27,15 +27,15 @@ third-party origin.
 
 ## How the swap works
 
-`app/support.js`'s runtime already has the hook this harness needs, with no changes to the
-mock tree (D-03): `cdnScriptFor(url, sri)` checks `window.__resources[url]` first and, if it
-finds a string there, uses it as the script `src` with **no** `integrity` attribute — bypassing
-the CDN entirely. `mock-harness.ts`'s `serveMock()` injects a small
-`<script>window.__resources = { "<unpkg URL>": "<local vendored URL>", ... }</script>` as the
-first child of `<head>`, before `<script src="./support.js">` runs, for the three URLs above.
-Both `loadReactUmd()` (React/ReactDOM) and `ensureBabel()` (Babel, loaded lazily on first
-`x-import`) read the same map, so a mock page served through the harness never makes a
-network request to `unpkg.com`.
+Do **not** set `window.__resources` on a served mock. That flag makes `support.js` skip
+`parseDcText()`, which is the only path that keeps camelCase `dc-import` attributes
+(`onDay` / `onDay2`). The visual harness must follow the production parse path.
+
+Instead, `mock-harness.ts` rewrites the three unpkg constants (`REACT_URL`, `REACT_DOM_URL`,
+`BABEL_URL`) **on read** when it serves any `support.js` copy, pointing them at the vendored
+files above. The runtime SRI hashes stay, so `cdnScriptFor()` still attaches `integrity`.
+The file on disk is never written (D-03). Both `loadReactUmd()` and `ensureBabel()` then
+load localhost copies, and a mock page served through the harness never requests `unpkg.com`.
 
 ## Updating a pinned version
 

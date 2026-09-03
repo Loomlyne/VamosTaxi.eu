@@ -4,7 +4,6 @@ import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Button, Icon, IconButton, type IconName } from "@/components/core";
 import { Input, Counter, WhenPicker } from "@/components/forms";
-import { Tabs } from "@/components/navigation";
 import { PriceSummary } from "@/components/transfer";
 import { useBookingDraft, type BookingDraft } from "@/lib/booking-draft";
 import { BookingCardMount, type BookingCardMountProps } from "./BookingCardMount";
@@ -97,7 +96,6 @@ export function BookingCard({
     updateStore(patch);
   };
 
-  const [mode, setMode] = useState("one-way");
   const [open, setOpen] = useState(defaultOpen);
   const sheetRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -207,18 +205,13 @@ export function BookingCard({
           placeholder={tBooking("select-date-and-time")}
           date={draft.date}
           time={draft.time}
-          date2={draft.returnDate}
-          time2={draft.returnTime}
-          range={mode === "return"}
           locale={locale}
           groups={[
             tBooking("morning"),
             tBooking("afternoon"),
             tBooking("evening"),
           ]}
-          legLabels={[tCommon("pickup"), tCommon("return")]}
           timeTitle={tCommon("pickup-time")}
-          timeTitle2={tBooking("return-time")}
           savedLabel={tCommon("saved")}
           clearLabel={tCommon("clear")}
           saveLabel={tCommon("save")}
@@ -226,11 +219,7 @@ export function BookingCard({
           nextMonthLabel={tBooking("next-month")}
           onDateChange={(iso) => updateDraft({ date: iso })}
           onTimeChange={(t) => updateDraft({ time: t })}
-          onDate2Change={(iso) => updateDraft({ returnDate: iso })}
-          onTime2Change={(t) => updateDraft({ returnTime: t })}
-          onClear={() =>
-            updateDraft({ date: "", time: "", returnDate: "", returnTime: "" })
-          }
+          onClear={() => updateDraft({ date: "", time: "" })}
         />
       </div>
       <div data-f="party" data-party="1">
@@ -258,19 +247,6 @@ export function BookingCard({
         />
       </div>
     </div>
-  );
-
-  const tabs = (
-    <Tabs
-      variant="segmented"
-      aria-label={tHome("one-way")}
-      value={mode}
-      onChange={setMode}
-      items={[
-        { value: "one-way", label: tHome("one-way") },
-        { value: "return", label: tCommon("return") },
-      ]}
-    />
   );
 
   const cta = (
@@ -332,7 +308,6 @@ export function BookingCard({
                 />
               </div>
             </div>
-            {tabs}
             {fields}
             <div data-sheetonly="cta">{cta}</div>
           </div>

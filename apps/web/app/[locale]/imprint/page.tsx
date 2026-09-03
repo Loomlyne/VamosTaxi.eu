@@ -6,6 +6,7 @@ import { routing } from "@/i18n/routing";
 import { Button } from "@/components/core";
 import { LanguageCoverageNotice, LegalPage, PendingSlot, type LegalSection } from "@/components/legal";
 import { buildAlternates } from "@/lib/metadata";
+import { SUPPORT_EMAIL, SUPPORT_EMAIL_HREF } from "@/lib/contact-channels";
 import "./imprint.css";
 
 const { Link } = createNavigation(routing);
@@ -111,7 +112,7 @@ export default async function ImprintPage({
         </h2>
         <dl data-dl="1">
           <DlRow term={tCommon("email")}>
-            <a href="mailto:info@vamostaxi.eu">info@vamostaxi.eu</a>
+            <a href={SUPPORT_EMAIL_HREF}>{SUPPORT_EMAIL}</a>
           </DlRow>
           <DlRow term={tContact("telephone")}>
             <a href="tel:+41796267082">+41 79 626 70 82</a>
@@ -122,7 +123,7 @@ export default async function ImprintPage({
             </a>
           </DlRow>
           <DlRow term={tOps("website")}>
-            <span data-i18n-skip>vamostaxi.eu</span>
+            <span data-i18n-skip>vamostaxi.site</span>
           </DlRow>
           <DlRow term={tLegal("postal-address")}>
             <span data-i18n-skip>Vamos Taxi GmbH</span>, <PendingSlot label="Imprint postal address" />
@@ -254,8 +255,8 @@ export default async function ImprintPage({
           <Button variant="secondary" size="md" icon="phone" href="tel:+41796267082">
             +41 79 626 70 82
           </Button>
-          <Button variant="ghost" size="md" href="mailto:info@vamostaxi.eu">
-            info@vamostaxi.eu
+          <Button variant="ghost" size="md" href={SUPPORT_EMAIL_HREF}>
+            {SUPPORT_EMAIL}
           </Button>
         </div>
       </div>

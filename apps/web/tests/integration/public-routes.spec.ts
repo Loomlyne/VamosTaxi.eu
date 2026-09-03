@@ -16,7 +16,7 @@ import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness
 
 const RUN_PROJECT = "component-1440";
 const LOCALES = ["en", "de", "fr", "ar"] as const;
-const SITE_URL = "https://vamostaxi.eu";
+const SITE_URL = "https://vamostaxi.site";
 const UNOWNED = "/coming-soon";
 const PORT = 4410;
 

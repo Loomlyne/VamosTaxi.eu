@@ -19,7 +19,7 @@ import { routing } from "@/i18n/routing";
  *  own host with `X-Robots-Tag: noindex` (middleware.ts) — the canonical URLs declared
  *  here describe the production site's own shape, not whichever host is currently
  *  serving the request. */
-export const SITE_URL = "https://vamostaxi.eu";
+export const SITE_URL = "https://vamostaxi.site";
 
 /**
  * The public route contract (D-19's own count), derived from the mock inventory

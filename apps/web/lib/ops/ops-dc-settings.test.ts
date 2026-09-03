@@ -129,14 +129,23 @@ describe("06-09 DC mocks", () => {
 
   it("keeps dashboard hash navigation local and uses the narrow ops UI conventions", () => {
     const transition = read("app/vamos-page-transition.js");
+    const ops = read("app/ops/ops.dc.html");
     const sidebar = read("app/ops/OpsSidebar.dc.html");
     const settings = read("app/ops/OpsSettings.dc.html");
     const profile = read("app/ops/OpsProfile.dc.html");
 
+    expect(ops).toMatch(/window\.addEventListener\('hashchange', this\._onHash\)/);
+    expect(ops).toMatch(/Object\.assign\(\{ navOpen: false \}, readHash\(\)\)/);
     expect(transition).toMatch(/p === '\/app\/ops' \|\| p === '\/app\/ops\/ops'/);
-    expect(transition).toMatch(/function runDashboardHashTransition\(\)/);
-    expect(transition).toMatch(/addEventListener\('hashchange', runDashboardHashTransition\)/);
-    expect(transition).toMatch(/vt-ops-hash-switch/);
+    expect(transition).toMatch(/function eligible\(a\) \{/);
+    expect(transition).toMatch(/if \(hrefAttr\.charAt\(0\) === '#'\) return false;/);
+    expect(transition).toMatch(/if \(samePage\(u\) && u\.search === location\.search && u\.hash\) return false;/);
+    expect(transition).toMatch(/document\.addEventListener\('click', function \(e\) \{/);
+    expect(transition).not.toMatch(/function isDashboardPage\(/);
+    expect(transition).not.toMatch(/function runDashboardHashTransition\(/);
+    expect(transition).not.toMatch(/addEventListener\('hashchange', runDashboardHashTransition\)/);
+    expect(transition).not.toMatch(/vt-ops-hash-switch/);
+    expect(transition).not.toMatch(/vtOpsHashSwitch/);
     expect(transition).not.toMatch(/play\(\[\[lead.*hashchange/s);
     expect(sidebar).toMatch(/border-inline-start:1px solid var\(--vt-border-inverse\)/);
     expect(sidebar).not.toMatch(/<svg aria-hidden="true" viewBox="0 0 42 100"/);

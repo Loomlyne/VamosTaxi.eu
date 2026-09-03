@@ -247,11 +247,11 @@
 
 .vt-when__day--tween {
   color: var(--vt-charcoal-900);
-  background: var(--vt-yellow-50);
+  background: var(--vt-bg-inset);
 }
 
 .vt-when__day--tween:hover {
-  background: var(--vt-yellow-100);
+  background: var(--vt-grey-200);
 }
 
 .vt-when__day--sel {

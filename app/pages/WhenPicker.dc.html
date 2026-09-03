@@ -108,7 +108,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <button type="button" onClick="{{ c.pick }}" style="all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:center;height:34px;border-radius:10px;cursor:pointer;font-size:13px;color:var(--vt-text-primary);font-variant-numeric:tabular-nums;transition:background var(--vt-dur-fast) var(--vt-ease-out)" style-hover="background:var(--vt-grey-100)">{{ c.d }}</button>
 </sc-if>
 <sc-if value="{{ c.tween }}" hint-placeholder-val="{{ false }}">
-<button type="button" onClick="{{ c.pick }}" style="all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:center;height:34px;border-radius:10px;cursor:pointer;font-size:13px;color:var(--vt-charcoal-900);background:var(--vt-yellow-50);font-variant-numeric:tabular-nums" style-hover="background:var(--vt-yellow-100)">{{ c.d }}</button>
+<button type="button" onClick="{{ c.pick }}" style="all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:center;height:34px;border-radius:10px;cursor:pointer;font-size:13px;color:var(--vt-charcoal-900);background:var(--vt-bg-inset);font-variant-numeric:tabular-nums" style-hover="background:var(--vt-grey-200)">{{ c.d }}</button>
 </sc-if>
 <sc-if value="{{ c.sel }}" hint-placeholder-val="{{ false }}">
 <button type="button" aria-pressed="true" onClick="{{ c.pick }}" style="all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:center;height:34px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:var(--vt-weight-semibold);background:var(--vt-accent);color:var(--vt-charcoal-900);font-variant-numeric:tabular-nums">{{ c.d }}</button>

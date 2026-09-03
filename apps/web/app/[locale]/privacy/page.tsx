@@ -6,6 +6,7 @@ import { Button, Card } from "@/components/core";
 import { List, ListRow } from "@/components/data";
 import { LanguageCoverageNotice, LegalPage, PendingSlot, type LegalSection } from "@/components/legal";
 import { buildAlternates } from "@/lib/metadata";
+import { SUPPORT_EMAIL, SUPPORT_EMAIL_HREF } from "@/lib/contact-channels";
 
 const { Link, getPathname } = createNavigation(routing);
 
@@ -78,7 +79,7 @@ export default async function PrivacyPage({
             title={t("contact-for-data")}
             subtitle={
               <>
-                <a href="mailto:info@vamostaxi.eu">info@vamostaxi.eu</a>
+                <a href={SUPPORT_EMAIL_HREF}>{SUPPORT_EMAIL}</a>
                 {" · "}
                 <a href="tel:+41796267082">+41 79 626 70 82</a>
               </>
@@ -368,7 +369,7 @@ export default async function PrivacyPage({
           {t("making-a-request")}
         </h2>
         <p>
-          {tCommon("email")} <a href="mailto:info@vamostaxi.eu">info@vamostaxi.eu</a>{" "}
+          {tCommon("email")} <a href={SUPPORT_EMAIL_HREF}>{SUPPORT_EMAIL}</a>{" "}
           {t("with-the-booking-reference-if-there-is-one-we-an")}{" "}
           <PendingSlot label="Dsr response days" /> {tCommon("days")}
         </p>

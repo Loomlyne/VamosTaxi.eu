@@ -7,6 +7,13 @@ import { createNavigation } from "next-intl/navigation";
 import { routing, type Locale } from "@/i18n/routing";
 import { PUBLIC_ROUTES, type PublicRoute } from "@/lib/metadata";
 import { useVamosScroll } from "@/lib/lenis-provider";
+import {
+  PHONE_DISPLAY,
+  PHONE_HREF,
+  SUPPORT_EMAIL,
+  SUPPORT_EMAIL_HREF,
+  WHATSAPP_HREF,
+} from "@/lib/contact-channels";
 import { Button, Icon } from "../core";
 
 // Ported from `app/pages/SiteFooter.dc.html`. CLAUDE.md makes this mandatory on every
@@ -41,15 +48,10 @@ function serviceHref(service: string): string {
   return `${route("/")}?service=${service}#book`;
 }
 
-/** An address, not copy — it stays as typed in every language (the mock's own rule for
- *  the same block), so it carries no dictionary key and is marked as opting out. */
-const ADDRESS_LINES = ["Vamos Taxi GmbH", "Bleicherstrasse 16", "8953 Dietikon ZH"];
-const EMAIL = "info@vamostaxi.eu";
-const PHONE_DISPLAY = "+41 79 626 70 82";
-const PHONE_HREF = "tel:+41796267082";
-
-const INSTAGRAM = "https://www.instagram.com/vamos.taxi/";
 const FACEBOOK = "https://www.facebook.com/VAMOSTAXISWITZERLAND";
+const INSTAGRAM = "https://www.instagram.com/vamos.taxi?utm_source=qr";
+const YOUTUBE = "https://www.youtube.com/@vamostaxi";
+const TIKTOK = "https://www.tiktok.com/@vamos.taxi";
 
 /** Derived from the mock's own `data-props` declaration block (D-29): `wordmark`,
  *  `showChauffeurByHour`, `showPaymentMarks`, all boolean, all defaulting to on. */
@@ -192,15 +194,6 @@ export function SiteFooter({
               rtl={rtl}
             />
           </li>
-          {showChauffeurByHour ? (
-            <li>
-              <FooterLink
-                href={serviceHref("hourly")}
-                label={t("chauffeur-by-the-hour")}
-                rtl={rtl}
-              />
-            </li>
-          ) : null}
         </>
       ),
     },
@@ -287,21 +280,16 @@ export function SiteFooter({
       heading: tFooter("get-in-touch"),
       items: (
         <>
-          <li data-ft-addr="1" data-i18n-skip="">
-            {ADDRESS_LINES.map((line, i) => (
-              <span key={line}>
-                {line}
-                {i < ADDRESS_LINES.length - 1 ? <br /> : null}
-              </span>
-            ))}
-          </li>
           <li>
-            <FooterLink href={`mailto:${EMAIL}`} label={EMAIL} plain rtl={rtl} />
+            <FooterLink href={SUPPORT_EMAIL_HREF} label={SUPPORT_EMAIL} plain rtl={rtl} />
           </li>
           <li>
             <a data-ft-link="1" href={PHONE_HREF} aria-label={PHONE_DISPLAY}>
               <span className="vt-dir-keep">{PHONE_DISPLAY}</span>
             </a>
+          </li>
+          <li>
+            <FooterLink href={WHATSAPP_HREF} label="WhatsApp" plain rtl={rtl} />
           </li>
         </>
       ),
@@ -338,6 +326,15 @@ export function SiteFooter({
                 <div data-ft-socrow="1">
                   <a
                     data-ft-soc="1"
+                    href={FACEBOOK}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    aria-label={tFooter("vamos-taxi-on-facebook")}
+                  >
+                    <Icon name="facebook" size={26} color="var(--vt-ft-soc)" />
+                  </a>
+                  <a
+                    data-ft-soc="1"
                     href={INSTAGRAM}
                     target="_blank"
                     rel="noreferrer noopener"
@@ -347,12 +344,21 @@ export function SiteFooter({
                   </a>
                   <a
                     data-ft-soc="1"
-                    href={FACEBOOK}
+                    href={YOUTUBE}
                     target="_blank"
                     rel="noreferrer noopener"
-                    aria-label={tFooter("vamos-taxi-on-facebook")}
+                    aria-label="Vamos Taxi on YouTube"
                   >
-                    <Icon name="facebook" size={26} color="var(--vt-ft-soc)" />
+                    <Icon name="youtube" size={26} color="var(--vt-ft-soc)" />
+                  </a>
+                  <a
+                    data-ft-soc="1"
+                    href={TIKTOK}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    aria-label="Vamos Taxi on TikTok"
+                  >
+                    <span aria-hidden="true">TikTok</span>
                   </a>
                 </div>
               ) : null}
@@ -385,7 +391,10 @@ export function SiteFooter({
           <button
             type="button"
             data-ft-quiet="1"
-            onClick={() => scrollTo(0, { offset: 0 })}
+            onClick={() => {
+              const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+              window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+            }}
           >
             {tFooter("back-to-top")}
             <Icon name="arrow-up" size={16} color="currentColor" />
