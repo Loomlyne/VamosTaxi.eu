@@ -60,6 +60,12 @@ describe("DC contact source", () => {
       '[data-fld][data-req] label::after{content:"*";color:var(--vt-danger);margin-inline-start:.35em;font-weight:var(--vt-weight-semibold)}',
     );
     expect(contactSource).toContain('data-req="1"');
+    expect(contactSource).toContain(
+      "[data-fld] input:focus,[data-fld] textarea:focus{outline:none;border-color:var(--vt-charcoal-900);box-shadow:none}",
+    );
+    expect(contactSource).not.toContain(
+      "[data-fld] input:focus,[data-fld] textarea:focus{outline:none;border-color:var(--vt-charcoal-900);box-shadow:var(--vt-ring)}",
+    );
     expect(contactSource).not.toContain(
       "[data-fld][data-bad] input,[data-fld][data-bad] textarea{border-color:var(--vt-danger);border-width:2px}",
     );

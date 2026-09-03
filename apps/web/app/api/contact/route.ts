@@ -83,6 +83,7 @@ export async function POST(request: Request) {
       message === "customer" ? input.email : supportRecipient,
       providerIdempotencyKey,
       rendered[message],
+      env.EMAIL,
     ),
     finalize: async (message, leaseToken, providerSuffix) => {
       try {
