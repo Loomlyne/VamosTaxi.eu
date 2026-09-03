@@ -235,12 +235,14 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </div>
 </sc-if>
 <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+<sc-if value="{{ showModes }}" hint-placeholder-val="{{ false }}">
 <div role="tablist" aria-label="{{ tTripType }}" style="position:relative;display:flex;height:44px;padding:3px;border-radius:999px;background:var(--vt-grey-100);{{ tabsWrapCss }}">
 <span aria-hidden="true" style="position:absolute;top:3px;bottom:3px;left:{{ pillLeft }};width:{{ pillWidth }};border-radius:999px;background:var(--vt-charcoal-900);transition:{{ pillTransition }}"></span>
 <sc-for list="{{ modes }}" as="m" hint-placeholder-count="3">
 <button type="button" role="tab" aria-selected="{{ m.sel }}" onClick="{{ m.pick }}" style="all:unset;box-sizing:border-box;position:relative;flex:1 1 0;display:flex;align-items:center;justify-content:center;font-family:var(--vt-font-body);font-size:13px;font-weight:600;letter-spacing:.01em;cursor:pointer;white-space:nowrap;z-index:1;color:{{ m.color }};transition:color .18s ease">{{ m.label }}</button>
 </sc-for>
 </div>
+</sc-if>
 <span ref="{{ modeNoteRef }}" style="display:flex;align-items:center;gap:7px;flex:1 1 240px;min-width:0;font-family:var(--vt-font-body);font-size:12.5px;line-height:1.35;color:var(--vt-text-secondary);text-wrap:pretty">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ modeIcon }}" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
 <span>{{ modeNote }}</span></span>
@@ -394,7 +396,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </sc-if>
 </div>
 <div data-f="when" style="min-width:0">
-<dc-import name="WhenPicker" label="{{ tWhenLbl }}" placeholder="{{ tWhenPh }}" value="{{ date }}" time="{{ time }}" day="{{ day }}" range="{{ isReturn }}" value2="{{ returnDate }}" time2="{{ returnTime }}" day2="{{ returnDay }}" times="{{ timeSlots }}" baseMonth="{{ baseMonth }}" locale="{{ lang }}" groups="{{ tGroups }}" legLabels="{{ tLegs }}" timeTitle="{{ tPickupTime }}" timeTitle2="{{ tReturnTime }}" savedLabel="{{ tSaved }}" clearLabel="{{ tClear }}" saveLabel="{{ tSave }}" onClear="{{ whenClear }}" onDay="{{ setDay }}" onTime="{{ setTime }}" onDay2="{{ setReturnDay }}" onTime2="{{ setReturnTime }}" onOpenChange="{{ whenOpenChange }}" hint-size="230px,66px"></dc-import>
+<dc-import name="WhenPicker" label="{{ tWhenLbl }}" placeholder="{{ tWhenPh }}" value="{{ date }}" time="{{ time }}" day="{{ day }}" times="{{ timeSlots }}" baseMonth="{{ baseMonth }}" locale="{{ lang }}" groups="{{ tGroups }}" timeTitle="{{ tPickupTime }}" savedLabel="{{ tSaved }}" clearLabel="{{ tClear }}" saveLabel="{{ tSave }}" onClear="{{ whenClear }}" onDay="{{ setDay }}" onTime="{{ setTime }}" onOpenChange="{{ whenOpenChange }}" hint-size="230px,66px"></dc-import>
 <sc-if value="{{ whenRevertShow }}" hint-placeholder-val="{{ false }}">
 <button type="button" onClick="{{ whenRevert }}" style="all:unset;box-sizing:border-box;margin-top:4px;font-size:11.5px;color:var(--vt-text-muted);cursor:pointer;text-decoration:underline">{{ tRevertTo }} {{ whenRevertVal }}</button>
 </sc-if>
@@ -454,6 +456,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <sc-if value="{{ v.isPicked }}" hint-placeholder-val="{{ false }}">
 <span aria-hidden="true" style="display:flex;align-items:center;justify-content:center;gap:7px;height:34px;border-radius:999px;background:var(--vt-charcoal-900);color:var(--vt-white);font-family:var(--vt-font-body);font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n14 }}" color="var(--vt-accent)" hint-size="14px,14px"></x-import>{{ tSelectedCta }}</span>
+</sc-if>
+<sc-if value="{{ v.unavailable }}" hint-placeholder-val="{{ false }}">
+<span aria-disabled="true" style="display:flex;align-items:center;justify-content:center;height:34px;border:1px solid var(--vt-grey-300);border-radius:999px;background:var(--vt-grey-100);color:var(--vt-text-secondary);font-family:var(--vt-font-body);font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;text-align:center">{{ v.unavailableCta }}</span>
 </sc-if>
 <sc-if value="{{ v.skeleton }}" hint-placeholder-val="{{ false }}">
 <div style="position:absolute;inset:0;border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);padding:8px 10px;display:flex;flex-direction:column;gap:6px;animation:vt-skelpulse 1.8s ease-in-out infinite">
@@ -842,7 +847,7 @@ const T = {
     useLoc:'Use my current location', useLocSub:'GPS · fastest way to set pickup', nearYou:'Near you', popular:'Popular destinations', locating:'Locating…', whenBoth:'Pickup & return', flightChip:'Add a flight number', saved:'Saved',
     modeOne:'One transfer, one fixed price for the route.', modeReturn:'Return added — set the return date and time too.', modeHourly:'Car and driver stay with you — no destination needed.',
     fillingFrom:'Filled from {code}', sampleArr:'sample arrival, no live feed yet', fillPickup:'Pickup', fillWhen:'Date & time', fillDest:'Destination', fillParty:'Passengers & luggage',
-    stepTwo:'Step 2', readyTitle:'Choose your class', readySub:'Fixed price, all inclusive — tap a class to continue.', selectCta:'Select', selectedCta:'Selected',
+    stepTwo:'Step 2', readyTitle:'Choose your class', readySub:'Fixed price, all inclusive — tap a class to continue.', selectCta:'Select', selectedCta:'Selected', unavailableCta:'Not available right now', doesNotFit:'Does not fit your party',
     noFeed:'No flight on that number today. We drive Zurich, Geneva and Basel — pick one of these, or set the pickup yourself.',
     needTrip:'Add your trip to see prices', emptyTitle:'Plan your transfer', emptyMeta:'Pickup, destination, date & time', whenPh:'Select date & time',
     searching:'Searching places…', geoErr:'Place search unavailable — saved places only', savedPlaces:'Saved places', results:'Search results', routeStat:'{km} km · about {min} min by road',
@@ -901,7 +906,7 @@ const T = {
     useLoc:'Aktuellen Standort verwenden', useLocSub:'GPS · schnellster Weg zum Abholort', nearYou:'In Ihrer Nähe', popular:'Beliebte Ziele', locating:'Standort wird ermittelt…', whenBoth:'Hin- & Rückfahrt', flightChip:'Flugnummer hinzufügen', saved:'Gespeichert',
     modeOne:'Eine Fahrt, ein Festpreis für die Route.', modeReturn:'Rückfahrt hinzugefügt — Datum und Zeit der Rückfahrt festlegen.', modeHourly:'Fahrzeug und Fahrer bleiben bei Ihnen — kein Ziel nötig.',
     fillingFrom:'Aus {code} ausgefüllt', sampleArr:'Beispielankunft, noch keine Live-Daten', fillPickup:'Abholort', fillWhen:'Datum & Zeit', fillDest:'Ziel', fillParty:'Passagiere & Gepäck',
-    stepTwo:'Schritt 2', readyTitle:'Klasse wählen', readySub:'Festpreis, alles inklusive — Klasse antippen zum Fortfahren.', selectCta:'Wählen', selectedCta:'Gewählt',
+    stepTwo:'Schritt 2', readyTitle:'Klasse wählen', readySub:'Festpreis, alles inklusive — Klasse antippen zum Fortfahren.', selectCta:'Wählen', selectedCta:'Gewählt', unavailableCta:'Derzeit nicht verfügbar', doesNotFit:'Passt nicht zu Ihrer Gruppe',
     needTrip:'Fahrt angeben, um Preise zu sehen', emptyTitle:'Transfer planen', emptyMeta:'Abholort, Ziel, Datum & Zeit', whenPh:'Datum & Zeit wählen',
     searching:'Orte werden gesucht…', geoErr:'Ortssuche nicht verfügbar — nur gespeicherte Orte', savedPlaces:'Gespeicherte Orte', results:'Suchergebnisse', routeStat:'{km} km · etwa {min} Min. Fahrt',
     savedGo:'Gespeichert — Buchung wird geöffnet…', savedSub:'{v} · Angaben und Extras folgen.',
@@ -955,7 +960,7 @@ const T = {
     useLoc:'Utiliser ma position actuelle', useLocSub:'GPS · le plus rapide pour le départ', nearYou:'À proximité', popular:'Destinations populaires', locating:'Localisation…', whenBoth:'Départ & retour', flightChip:'Ajouter un numéro de vol', saved:'Enregistré',
     modeOne:'Un trajet, un prix fixe pour l’itinéraire.', modeReturn:'Retour ajouté — indiquez aussi la date et l’heure du retour.', modeHourly:'Voiture et chauffeur restent avec vous — sans destination.',
     fillingFrom:'Prérempli depuis {code}', sampleArr:'arrivée exemple, pas encore de données en direct', fillPickup:'Départ', fillWhen:'Date & heure', fillDest:'Destination', fillParty:'Passagers & bagages',
-    stepTwo:'Étape 2', readyTitle:'Choisissez votre classe', readySub:'Prix fixe, tout compris — touchez une classe pour continuer.', selectCta:'Choisir', selectedCta:'Choisie',
+    stepTwo:'Étape 2', readyTitle:'Choisissez votre classe', readySub:'Prix fixe, tout compris — touchez une classe pour continuer.', selectCta:'Choisir', selectedCta:'Choisie', unavailableCta:'Indisponible pour le moment', doesNotFit:'Ne convient pas à votre groupe',
     needTrip:'Renseignez votre trajet pour voir les prix', emptyTitle:'Planifiez votre transfert', emptyMeta:'Départ, destination, date & heure', whenPh:'Choisir date & heure',
     searching:'Recherche de lieux…', geoErr:'Recherche indisponible — lieux enregistrés', savedPlaces:'Lieux enregistrés', results:'Résultats', routeStat:'{km} km · environ {min} min de route',
     savedGo:'Enregistré — ouverture de votre réservation…', savedSub:'{v} · détails et options ensuite.',
@@ -989,7 +994,7 @@ const T = {
     useLoc:'استخدام موقعي الحالي', useLocSub:'GPS · أسرع طريقة لتحديد الانطلاق', nearYou:'بالقرب منك', popular:'وجهات شائعة', locating:'جارٍ تحديد الموقع…', whenBoth:'الذهاب والعودة', flightChip:'إضافة رقم الرحلة', saved:'تم الحفظ',
     modeOne:'رحلة واحدة بسعر ثابت للمسار.', modeReturn:'أُضيفت العودة — حدّد تاريخ ووقت العودة أيضًا.', modeHourly:'السيارة والسائق يبقيان معك — دون وجهة.',
     fillingFrom:'مُعبّأ من {code}', sampleArr:'وصول تجريبي، لا توجد بيانات مباشرة بعد', fillPickup:'الانطلاق', fillWhen:'التاريخ والوقت', fillDest:'الوجهة', fillParty:'الركاب والأمتعة',
-    stepTwo:'الخطوة 2', readyTitle:'اختر الفئة', readySub:'سعر ثابت شامل — اختر فئة للمتابعة.', selectCta:'اختيار', selectedCta:'مختارة',
+    stepTwo:'الخطوة 2', readyTitle:'اختر الفئة', readySub:'سعر ثابت شامل — اختر فئة للمتابعة.', selectCta:'اختيار', selectedCta:'مختارة', unavailableCta:'غير متاح حاليًا', doesNotFit:'لا يناسب مجموعتك',
     needTrip:'أضف تفاصيل رحلتك لعرض الأسعار', emptyTitle:'خطّط رحلتك', emptyMeta:'الانطلاق، الوجهة، التاريخ والوقت', whenPh:'اختر التاريخ والوقت',
     searching:'جارٍ البحث عن الأماكن…', geoErr:'البحث غير متاح — الأماكن المحفوظة فقط', savedPlaces:'أماكن محفوظة', results:'نتائج البحث', routeStat:'{km} كم · نحو {min} دقيقة بالسيارة',
     savedGo:'تم الحفظ — جارٍ فتح حجزك…', savedSub:'{v} · التفاصيل والإضافات تاليًا.',
@@ -1176,17 +1181,14 @@ class Component extends DCLogic {
   componentDidMount() {
     this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur }, () => this.relabelAll());
     window.addEventListener('vamos:locale', this._onLocale);
-    if (!(this.props.hourlyEnabled ?? false) && this.state.mode === 'hourly') this.setState({ mode: 'one-way' });
+    if (this.state.mode === 'return' || (!(this.props.hourlyEnabled ?? false) && this.state.mode === 'hourly')) this.setState({ mode: 'one-way' });
     if (typeof location !== 'undefined' && location.hash === '#fleet') {
       const saved = readTrip();
       if (saved && saved.vehicle && (saved.pickup || saved.dropoff)) {
         this.setState({
-          mode: saved.mode || 'one-way',
+          mode: saved.mode === 'hourly' && (this.props.hourlyEnabled ?? false) ? 'hourly' : 'one-way',
           pickupText: saved.pickup || '', dropText: saved.mode === 'hourly' ? '' : (saved.dropoff || ''),
           day: saved.selectedDay || null, dayLabel: saved.date || null, time: saved.time || '',
-          returnDay: saved.mode === 'return' ? (saved.returnDay || null) : null,
-          returnLabel: saved.mode === 'return' ? (saved.returnDate || null) : null,
-          returnTime: saved.mode === 'return' ? (saved.returnTime || '') : '',
           pax: saved.pax || 0, bags: saved.bags || 0, hours: saved.mode === 'hourly' ? (parseInt(saved.dropoff, 10) || 0) : 0,
           picked: saved.vehicle, touched: { pickup: true, dest: true, when: true },
         }, this.q);
@@ -1266,7 +1268,7 @@ class Component extends DCLogic {
   /** A trip only prices once pickup, destination, when, and party are real answers. */
   routeInfo() {
     const s = this.state;
-    const when = !!s.day && !!s.time && (s.mode !== 'return' || (!!s.returnDay && !!s.returnTime));
+    const when = !!s.day && !!s.time;
     const a = s.pickupLoc;
     const complete = when && s.pax >= 1;
     if (s.mode === 'hourly') return (a && complete && s.hours >= 1) ? { ok: true, hourly: true, a } : { ok: false, a };
@@ -1346,8 +1348,7 @@ class Component extends DCLogic {
     const locale = (LANGS.indexOf(s.lang) > -1 ? s.lang : 'en');
     const cur = s.cur || 'CHF';
     const legs = [{ leg_seq: 1, scheduled_local: scheduledLocal(s.dayY, s.dayM, s.day, s.time), flight_no: (s.flightData && s.flightData.num) ? String(s.flightData.num).slice(0, 16) : null }];
-    if (s.mode === 'return') legs.push({ leg_seq: 2, scheduled_local: scheduledLocal(s.returnY, s.returnM, s.returnDay, s.returnTime), flight_no: null });
-    const body = { locale: locale, display_currency: cur, mode: s.mode === 'return' ? 'return' : 'one_way', pickup: pickup, dropoff: dropoff, legs: legs, pax: s.pax, bags: s.bags };
+    const body = { locale: locale, display_currency: cur, mode: 'one_way', pickup: pickup, dropoff: dropoff, legs: legs, pax: s.pax, bags: s.bags };
     fetch('/api/quote', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
       .then((res) => res.json())
       .then((j) => {
@@ -1816,14 +1817,6 @@ class Component extends DCLogic {
       autofill: Object.assign({}, s.autofill, { when: code }), revert: Object.assign({}, s.revert, { when: null }) }), this.q);
   };
   whenOpenChange = (open) => this.setState((s) => ({ focused: Object.assign({}, s.focused, { when: open }) }));
-  setReturnDay = (d, label, y, m) => {
-    const c = this.clampWhen(y, m, d, this.state.returnTime);
-    this.setState({ returnDay: c.d, returnLabel: label || null, returnY: c.y, returnM: c.m, returnTime: c.time }); this.q();
-  };
-  setReturnTime = (tm) => {
-    const c = this.clampWhen(this.state.returnY, this.state.returnM, this.state.returnDay, tm);
-    this.setState({ returnTime: c.time, returnDay: c.d, returnY: c.y, returnM: c.m }); this.q();
-  };
   setPax = (n) => { this.setState((s) => ({ pax: n, autofill: Object.assign({}, s.autofill, { party: null }) })); this.q(); };
   setBags = (n) => { this.setState((s) => ({ bags: n, autofill: Object.assign({}, s.autofill, { party: null }) })); this.q(); };
   setHours = (n) => { this.setState({ hours: n }); this.q(); };
@@ -1903,11 +1896,10 @@ class Component extends DCLogic {
   pick(id) {
     const r = this.state.quote.results;
     /** Nothing opens until the traveller has actually answered the booking flow. */
-    if (!r || !r[id] || r[id].kind !== 'price') { if (!this.state.picked) this.setState({ announce: this.t().needTrip }); return; }
+    if (!r || !r[id] || (r[id].kind !== 'price' && r[id].kind !== 'hold')) { if (!this.state.picked) this.setState({ announce: this.t().needTrip }); return; }
     if (this.state.picked) return;
     const s = this.state;
-    const trip = { mode: s.mode, pickup: s.pickupText, dropoff: s.mode === 'hourly' ? (s.hours + ' h — ' + this.t().hourly) : s.dropText, date: s.dayLabel || (s.day ? this.fmtDate(s.day) : ''), selectedDay: s.day, time: s.time, pax: s.pax, bags: s.bags, vehicle: id, vehicleName: (VEHICLE_CLASSES.find((v) => v.id === id) || {}).name || id, quote_id: s.quote.quote_id || null, lock: s.quote.lock || null };
-    if (s.mode === 'return') { trip.returnDate = s.returnLabel || (s.returnDay ? this.fmtDate(s.returnDay) : ''); trip.returnDay = s.returnDay; trip.returnTime = s.returnTime; }
+    const trip = { mode: s.mode === 'hourly' ? 'hourly' : 'one-way', pickup: s.pickupText, dropoff: s.mode === 'hourly' ? (s.hours + ' h — ' + this.t().hourly) : s.dropText, date: s.dayLabel || (s.day ? this.fmtDate(s.day) : ''), selectedDay: s.day, time: s.time, pax: s.pax, bags: s.bags, vehicle: id, vehicleName: (VEHICLE_CLASSES.find((v) => v.id === id) || {}).name || id, quote_id: s.quote.quote_id || null, lock: s.quote.lock || null };
     saveTrip(trip);
     this.setState({ picked: id, announce: this.t().savedGo, sug: CLOSED });
     setTimeout(() => { location.href = '/checkout'; }, REDUCED ? 120 : 420);
@@ -1927,7 +1919,7 @@ class Component extends DCLogic {
     return VEHICLE_CLASSES.map((v) => {
       const lb = this.labelFor(v.id);
       const r = (s.quote.status === 'live' && s.quote.results) ? s.quote.results[v.id] : null;
-      const ok = !!r && r.kind === 'price';
+      const ok = !!r && (r.kind === 'price' || r.kind === 'hold');
       const unavail = !!r && r.kind === 'na';
       return {
         name: names[v.id], examples: ex[v.id], icon: v.icon,
@@ -1937,18 +1929,20 @@ class Component extends DCLogic {
         skeleton: s.quote.status === 'skeleton',
         dustRef: this.dustRef(v.id),
         sr: names[v.id] + ': ' + lb.text,
-        title: ok ? t.selectHint : (t.needTrip || lb.text), dis: ok ? null : 'true',
-        locked: ok ? null : '1', role: 'button', tab: '0',
+        title: ok ? t.selectHint : (unavail ? (r.sub === 'pax' || r.sub === 'bags' ? t.doesNotFit : t.unavailableCta) : (t.needTrip || lb.text)),
+        dis: ok ? null : 'true', locked: ok ? null : '1', role: ok ? 'button' : 'group', tab: ok ? '0' : undefined,
         picked: s.picked === v.id ? '1' : null, isPicked: s.picked === v.id,
         ready: ok && s.picked !== v.id, dim: (s.picked && s.picked !== v.id) ? '1' : null,
         unavail: unavail ? '1' : null,
+        unavailable: unavail,
+        unavailableCta: unavail ? (r.sub === 'pax' || r.sub === 'bags' ? t.doesNotFit : t.unavailableCta) : '',
         capCss: unavail ? 'cursor:pointer;text-decoration:underline' : '',
         capRole: unavail ? 'button' : undefined, capTab: unavail ? '0' : undefined,
         snapClick: unavail ? () => this.snapToFit(v) : undefined,
         vtName: s.picked === v.id ? 'vehicle-card' : 'none',
         vtPriceName: s.picked === v.id ? 'price-block' : 'none',
-        select: () => this.pick(v.id),
-        key: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.pick(v.id); } },
+        select: ok ? () => this.pick(v.id) : undefined,
+        key: ok ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.pick(v.id); } } : undefined,
       };
     });
   }
@@ -1959,7 +1953,7 @@ class Component extends DCLogic {
     const head = (v) => String(v || '').split(',')[0].trim();
     const hourlyOn = this.props.hourlyEnabled ?? false;
     const trackFlights = this.props.flightTrackingEnabled ?? true;
-    const modesList = [{ id: 'one-way', label: t.oneWay }, { id: 'return', label: t.return_ }].concat(hourlyOn ? [{ id: 'hourly', label: t.hourly }] : []);
+    const modesList = [{ id: 'one-way', label: t.oneWay }].concat(hourlyOn ? [{ id: 'hourly', label: t.hourly }] : []);
     const modeIdx = Math.max(0, modesList.findIndex((m) => m.id === s.mode));
     const modeCount = modesList.length;
     const fc = (() => {
@@ -2022,6 +2016,7 @@ class Component extends DCLogic {
       pillLeft: 'calc(3px + (100% - 6px) * ' + modeIdx + ' / ' + modeCount + ')', pillWidth: 'calc((100% - 6px) / ' + modeCount + ')',
       pillTransition: REDUCED ? 'none' : 'left .22s cubic-bezier(.2,0,.2,1), width .22s cubic-bezier(.2,0,.2,1)',
       tTripType: t.tripType,
+      showModes: modeCount > 1,
       modes: modesList.map((m) => ({ id: m.id, label: m.label, sel: m.id === s.mode ? 'true' : 'false', color: m.id === s.mode ? 'var(--vt-white)' : 'var(--vt-text-secondary)', pick: () => this.setMode(m.id) })),
       isReturn: s.mode === 'return', isHourly: s.mode === 'hourly', notHourly: s.mode !== 'hourly',
       flight: s.flight, setFlight: this.setFlight, flightKey: this.flightKey,
@@ -2086,9 +2081,8 @@ class Component extends DCLogic {
       tLangLabel: t.langLabel, tCurLabel: t.curLabel,
       swap: this.swap, tSwap: t.swap,
       date: dateStr, day: s.day, setDay: this.setDay, time: s.time, setTime: this.setTime, timeSlots: slots, tWhenPh: t.whenPh, baseMonth: zurichYm(),
-      returnDate: s.returnLabel || (s.returnDay ? this.fmtDate(s.returnDay) : ''), returnDay: s.returnDay, setReturnDay: this.setReturnDay, returnTime: s.returnTime, setReturnTime: this.setReturnTime,
-      tGroups: [t.morning, t.afternoon, t.evening], tPickupTime: t.pickupTime, tReturnTime: t.returnTimeLbl,
-      tWhenLbl: s.mode === 'return' ? t.whenBoth : t.when, tLegs: [t.pickup, t.return_], tSaved: t.saved,
+      tGroups: [t.morning, t.afternoon, t.evening], tPickupTime: t.pickupTime,
+      tWhenLbl: t.when, tSaved: t.saved,
       pax: s.pax, setPax: this.setPax, bags: s.bags, setBags: this.setBags, hours: s.hours, setHours: this.setHours,
       tPax: t.pax, tBags: t.bags, tHours: t.hours,
       fleet: this.fleetVals(),

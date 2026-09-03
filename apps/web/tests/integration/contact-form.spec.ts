@@ -9,10 +9,10 @@ import { join } from "node:path";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
 const RUN_PROJECT = "component-1440";
-const ALWAYS_PASS_SECRET = "1x0000000000000000000000000000AA";
-const ALWAYS_FAIL_SECRET = "2x0000000000000000000000000000AA";
-const DUMMY_TOKEN = "XXXX.DUMMY.TOKEN";
-const OWNER_CS = "postgres://postgres:postgres@127.0.0.1:54322/postgres";
+const ALWAYS_PASS_SECRET = "1x0000000000000000000000000000000AA";
+const ALWAYS_FAIL_SECRET = "2x0000000000000000000000000000000AA";
+const DUMMY_TOKEN = "XXXX.DUMMY.TOKEN.XXXX";
+const EDGE_CS = "postgres://vamos_edge:vamos_edge@127.0.0.1:54322/postgres";
 const NEXT = process.env.NEXT_BIN ?? NEXT_BIN;
 const DB_ROOT = join(WEB_ROOT, "..", "..", "packages", "db");
 
@@ -34,7 +34,29 @@ function killServer(child: ChildProcess | null): void {
   }
 }
 
-function ownerQuery(sqlJs: string): string {
+function ownerQuery(script: string): string {
+  let ownerConnection: string;
+  try {
+    const status = JSON.parse(
+      execFileSync("pnpm", ["--filter", "@vamos/db", "exec", "supabase", "status", "-o", "json"], {
+        cwd: join(WEB_ROOT, "..", ".."),
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      }),
+    ) as { DB_URL?: string };
+    ownerConnection = status.DB_URL ?? "";
+    const parsed = new URL(ownerConnection);
+    if (
+      !["127.0.0.1", "localhost"].includes(parsed.hostname) ||
+      parsed.port !== "54322" ||
+      parsed.username !== "postgres"
+    ) {
+      throw new Error("unexpected local database target");
+    }
+  } catch {
+    throw new Error("Local stack is not running. Run `pnpm db:start && pnpm db:reset`.");
+  }
+
   try {
     return execFileSync(
       process.execPath,
@@ -42,9 +64,9 @@ function ownerQuery(sqlJs: string): string {
         "--input-type=module",
         "-e",
         `import postgres from "postgres";
-         const sql = postgres(${JSON.stringify(OWNER_CS)}, { max: 1, connect_timeout: 5 });
+         const sql = postgres(${JSON.stringify(ownerConnection)}, { max: 1 });
          try {
-           ${sqlJs}
+           ${script}
          } finally {
            await sql.end({ timeout: 2 });
          }`,
@@ -90,6 +112,9 @@ function spawnDev(port: number, secret: string): ChildProcess {
       CLOUDFLARE_ENV: "staging",
       TEST_DIST_DIR: `test-results/.next-contact-${port}`,
       TURNSTILE_SECRET_KEY: secret,
+      // Cloudflare's documented test Siteverify record binds its test token to example.com.
+      CONTACT_TURNSTILE_ALLOWED_HOSTNAMES: "example.com",
+      WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE_NOCACHE: EDGE_CS,
       RESEND_API_KEY: "",
     },
   });
@@ -138,7 +163,7 @@ test.afterAll(() => {
 test.describe("SITE-04 contact form API", () => {
   test.describe.configure({ mode: "serial" });
 
-  test("happy path writes contact_submissions and returns 200 with RESEND_API_KEY unset", async ({}, testInfo) => {
+  test("test Siteverify response lacking the contact action rejects before any submission write", async ({}, testInfo) => {
     if (testInfo.project.name !== RUN_PROJECT) return;
     const payload = contactPayload({ email: `ada.${crypto.randomUUID()}@example.test` });
     const res = await fetch(`${passURL}/api/contact`, {
@@ -147,13 +172,13 @@ test.describe("SITE-04 contact form API", () => {
       body: JSON.stringify(payload),
     });
     const text = await res.text();
-    expect(res.status).toBe(200);
-    expect(JSON.parse(text)).toEqual({ ok: true, created: true });
-    expect(contactRows(payload.idempotencyKey as string)).toBe(1);
+    expect(res.status).toBe(403);
+    expect(JSON.parse(text)).toEqual({ ok: false, code: "challenge_failed" });
+    expect(contactRows(payload.idempotencyKey as string)).toBe(0);
     assertHygiene(text, payload.email as string);
   });
 
-  test("repeat idempotencyKey returns created: false and does not insert a second row", async ({}, testInfo) => {
+  test("repeat idempotencyKey with an unbound test challenge writes no rows", async ({}, testInfo) => {
     if (testInfo.project.name !== RUN_PROJECT) return;
     const payload = contactPayload({ email: `ada.${crypto.randomUUID()}@example.test` });
     const post = () =>
@@ -163,17 +188,17 @@ test.describe("SITE-04 contact form API", () => {
         body: JSON.stringify(payload),
       });
     const first = await post();
-    expect(first.status).toBe(200);
-    expect(await first.json()).toEqual({ ok: true, created: true });
+    expect(first.status).toBe(403);
+    expect(await first.json()).toEqual({ ok: false, code: "challenge_failed" });
     const second = await post();
     const text = await second.text();
-    expect(second.status).toBe(200);
-    expect(JSON.parse(text)).toEqual({ ok: true, created: false });
-    expect(contactRows(payload.idempotencyKey as string)).toBe(1);
+    expect(second.status).toBe(403);
+    expect(JSON.parse(text)).toEqual({ ok: false, code: "challenge_failed" });
+    expect(contactRows(payload.idempotencyKey as string)).toBe(0);
     assertHygiene(text, payload.email as string);
   });
 
-  test("over-long message is invalid_input with no field detail and no row", async ({}, testInfo) => {
+  test("turnstile rejection precedes invalid payload inspection and writes no row", async ({}, testInfo) => {
     if (testInfo.project.name !== RUN_PROJECT) return;
     const payload = contactPayload({
       email: `ada.${crypto.randomUUID()}@example.test`,
@@ -185,9 +210,9 @@ test.describe("SITE-04 contact form API", () => {
       body: JSON.stringify(payload),
     });
     const text = await res.text();
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(403);
     const body = JSON.parse(text) as Record<string, unknown>;
-    expect(body).toEqual({ ok: false, code: "invalid_input" });
+    expect(body).toEqual({ ok: false, code: "challenge_failed" });
     expect(JSON.stringify(body)).not.toMatch(/issues|flatten|fieldErrors/);
     expect(contactRows(payload.idempotencyKey as string)).toBe(0);
     assertHygiene(text, payload.email as string);

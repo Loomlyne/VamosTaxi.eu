@@ -6,3 +6,11 @@
 # The gate still runs, and still blocks, on everything this app or its components
 # author: apps/web/app/**/*.css and apps/web/components/**/*.css.
 public/brand/**
+
+# Lenis is upstream vendored CSS plus the documented Vamos scroll-lock integration.
+public/assets/lenis.css
+
+# These copied design-system token snapshots intentionally retain historical yellow
+# declarations and physical properties; apps/web neutralises them at runtime.
+public/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css
+public/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css

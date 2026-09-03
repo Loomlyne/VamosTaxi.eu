@@ -102,7 +102,7 @@ body{margin:0;background:var(--vt-bg-page)}a{color:var(--vt-text-link);border-bo
 <button type="button" data-jump-item="1" data-on="{{ j.on }}" onClick="{{ j.go }}">{{ j.label }}</button>
 </sc-for>
 </div>
-<p data-jump-note="1">Live too: password “wrong” fails sign-in, taken@vamostaxi.eu is already registered.</p>
+<p data-jump-note="1">Live too: password “wrong” fails sign-in, taken@vamostaxi.site is already registered.</p>
 </div>
 </sc-if>
 </div>
@@ -115,7 +115,7 @@ const STATES = [
   { key: 'c', label: 'Sign in · magic link', mode: 'signin', method: 'magic', stage: 'form', banner: '' },
   { key: 'd', label: 'Sign in · link sent', mode: 'signin', method: 'magic', stage: 'sent', banner: '' },
   { key: 'e', label: 'Sign up · password', mode: 'signup', method: 'password', stage: 'form', banner: '' },
-  { key: 'f', label: 'Sign up · email already registered', mode: 'signup', method: 'password', stage: 'form', banner: 'registered', email: 'taken@vamostaxi.eu' },
+  { key: 'f', label: 'Sign up · email already registered', mode: 'signup', method: 'password', stage: 'form', banner: 'registered', email: 'taken@vamostaxi.site' },
   { key: 'g', label: 'Sign up · magic link', mode: 'signup', method: 'magic', stage: 'form', banner: '' },
   { key: 'h', label: 'Sign up · link sent', mode: 'signup', method: 'magic', stage: 'sent', banner: '' },
   { key: 'i', label: 'Forgot password · request', mode: 'forgot', method: 'password', stage: 'form', banner: '' },

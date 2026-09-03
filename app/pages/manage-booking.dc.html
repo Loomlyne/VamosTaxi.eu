@@ -155,7 +155,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </nav>
 <p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">Your trip</p>
 <h1 style="margin:0 0 16px;max-width:22ch;font-family:var(--vt-font-display);font-size:var(--vt-display-2);line-height:var(--vt-display-leading);letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty">Manage a booking</h1>
-<p style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Check the details, move the pickup time, cancel, or get your voucher again. No account needed — your booking reference is the key.</p>
+<p style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Your booking reference is in your confirmation email. Booking self-service is being connected before this page can show or change a trip.</p>
 
 </div>
 </header>
@@ -166,13 +166,15 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <div>
 <h2 id="mb-gate-h" style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Open your booking</h2>
-<p style="margin:0 0 20px;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Two details from your confirmation email. If you opened the link in that email you are taken straight to your trip instead.</p>
+<p style="margin:0 0 20px;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Keep the reference from your confirmation email ready. Online booking self-service is being connected before a trip can be shown here.</p>
 
+<sc-if value="{{ showAccountSignIn }}" hint-placeholder-val="{{ true }}">
 <a data-fork="1" href="sign-in.dc.html" style="width:100%;margin-bottom:20px">
 <span data-tile="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="user" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></span>
 <span style="min-width:0;flex:1 1 200px"><span data-fork-t="1">Booked with an account?</span><span data-fork-s="1">Sign in and every trip is listed — no reference to look up.</span></span>
 <span data-fork-cta="ghost">Sign in<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span>
 </a>
+</sc-if>
 
 <p data-grp="1" style="margin-bottom:16px">Or use your reference</p>
 
@@ -180,7 +182,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <sc-if value="{{ notFound }}" hint-placeholder-val="{{ false }}">
 <div ref="{{ errRef }}" tabindex="-1" role="alert" style="outline:none">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="We could not find that booking" hint-size="100%,92px">Check the reference and the email or last name against your confirmation email, then try again. Still nothing? Call us and we will look it up for you.</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="Online booking lookup is not available yet" hint-size="100%,92px">Keep your reference from the confirmation email, then call us and we will look up your booking.</x-import>
 </div>
 </sc-if>
 
@@ -661,7 +663,7 @@ class Component extends DCLogic {
       view: entry === 'link' ? 'booking' : 'lookup',
       entry,
       timing: null,
-      ref: '', who: '', whoBy: 'email', bad: {}, notFound: false,
+      ref: '', who: '', whoBy: 'email', bad: {}, notFound: false, signedIn: false,
       mDay: t.day, mDate: t.date, mTime: t.time,
       pickupDraft: TRIP.pickup, dropoffDraft: TRIP.dropoff,
       vehicle: TRIP.vehicleId, pax: TRIP.pax, bags: TRIP.bags,
@@ -674,6 +676,12 @@ class Component extends DCLogic {
 
   componentDidMount() {
     this._offLocale = window.VamosLocale && window.VamosLocale.onChange(() => this.forceUpdate());
+    /* Server-backed session state only. A failed or malformed response deliberately leaves
+       the card visible, so a transient error never grants an account-only experience. */
+    fetch('/api/auth/session', { credentials: 'same-origin', cache: 'no-store' })
+      .then((response) => response.ok ? response.json() : Promise.reject(new Error('session-unavailable')))
+      .then((snapshot) => { if (snapshot && snapshot.signedIn === true) this.setState({ signedIn: true }); })
+      .catch(() => {});
   }
   componentWillUnmount() {
     if (this._offLocale) this._offLocale();
@@ -735,14 +743,9 @@ class Component extends DCLogic {
     if (!ref) bad.ref = 'missing';
     if (!who) bad.who = 'missing';
     if (Object.keys(bad).length) { this.setState({ bad, notFound: false }); return; }
-    /* No backend: anything shaped like a reference opens the sample booking, and
-       anything else gets the one generic error — never which field was wrong. */
-    if (!/^vt[-\s]?\d{3,5}$/i.test(ref)) {
-      this.setState({ notFound: true, bad: {} }, () => { const el = this.errRef.current; if (el) el.focus(); });
-      return;
-    }
-    const t = this.trip();
-    this.setState({ view: 'booking', entry: 'gate', notFound: false, bad: {}, mDay: t.day, mDate: t.date, mTime: t.time });
+    /* A reference shape cannot prove a booking exists. Keep the static review fixture
+       unreachable from customer input until Phase 9 reads and authorizes real records. */
+    this.setState({ notFound: true, bad: {} }, () => { const el = this.errRef.current; if (el) el.focus(); });
   };
 
   goTo(view, timing) {
@@ -840,6 +843,7 @@ class Component extends DCLogic {
       isCancelled: v === 'cancelled',
       viaLink: v !== 'lookup' && s.entry === 'link',
       notLink: s.entry !== 'link',
+      showAccountSignIn: !s.signedIn,
 
       notFound: s.notFound, errRef: this.errRef,
       vRef: s.ref, vWho: s.who,

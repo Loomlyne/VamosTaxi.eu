@@ -4,15 +4,15 @@
 // RESEARCH's Open Question 3). One local HTTP server, rooted at the repository root,
 // serves three kinds of pages for `apps/web/tests/visual/*.spec.ts`:
 //
-//   serveMock(mockRelPath)              — a `.dc.html` mock from `app/`, with its unpkg
-//                                          React/ReactDOM/Babel <script> references
-//                                          rewritten on read (never on disk — D-03 keeps
-//                                          the mock tree untouched) to the locally
-//                                          vendored copies in `apps/web/tests/vendor/`.
-//                                          `app/support.js`'s own `window.__resources`
-//                                          hook (see `tests/vendor/README.md`) is what
-//                                          makes this a same-mechanism swap rather than a
-//                                          parallel implementation of the mock runtime.
+//   serveMock(mockRelPath)              — a `.dc.html` mock from `app/`. Served HTML is
+//                                          left alone so the production raw-source parse
+//                                          path runs (`parseDcText`, camelCase dc-import
+//                                          attrs). When a `support.js` copy is read, its
+//                                          three unpkg URL constants are rewritten on the
+//                                          wire (never on disk — D-03) to the vendored
+//                                          files in `apps/web/tests/vendor/`. SRI hashes
+//                                          stay. `window.__resources` is not injected:
+//                                          that flag skips raw-source parsing.
 //
 //   mountPort(componentRelPath, props)  — the React port of one component, statically
 //                                          rendered server-side with the real React 19
@@ -91,9 +91,9 @@ const MIME: Record<string, string> = {
 };
 const TEXT_EXT = new Set([".html", ".css", ".js", ".mjs", ".json", ".svg", ".txt"]);
 
-// The exact unpkg URLs `app/support.js`'s `src/cdn.ts` pins by SRI — the keys
-// `window.__resources` must carry for the runtime's own `cdnScriptFor()` to skip the
-// network entirely (see tests/vendor/README.md for the matching hashes).
+// The exact unpkg URLs `app/support.js`'s `src/cdn.ts` pins by SRI. `serveMock` rewrites
+// these constants inside served `support.js` copies so `cdnScriptFor()` loads vendor
+// files locally while keeping integrity hashes (see tests/vendor/README.md).
 const VENDOR_MAP: Record<string, string> = {
   "https://unpkg.com/react@18.3.1/umd/react.production.min.js":
     "apps/web/tests/vendor/react.production.min.js",
@@ -169,9 +169,16 @@ function handleRequest(url: string, res: ServerResponse) {
   // component resolves under this harness the same way it resolves in
   // `next dev`/`next build`, rather than 404ing against a path that only exists
   // once Next's dev server does the public/ -> / remap itself.
+  // Claude mocks request `/_ds/vamos-taxi-design-system-<uuid>/…`. Production
+  // sync copies `design-system/` there (`scripts/sync-dc-mock-to-public.mjs`).
+  // The visual harness has no `public/` tree, so serve the same files from
+  // repo `design-system/` without injecting `window.__resources`.
+  const DS_PREFIX = "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/";
   const relPath = pathname.startsWith("/brand/")
     ? `apps/web/public${pathname}`
-    : pathname.replace(/^\/+/, "");
+    : pathname.startsWith(DS_PREFIX)
+      ? `design-system/${pathname.slice(DS_PREFIX.length)}`
+      : pathname.replace(/^\/+/, "");
   const absPath = join(REPO_ROOT, relPath);
   if (!absPath.startsWith(REPO_ROOT) || !existsSync(absPath) || !statSync(absPath).isFile()) {
     res.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
@@ -180,10 +187,10 @@ function handleRequest(url: string, res: ServerResponse) {
   }
 
   const ext = extname(absPath).toLowerCase();
-  if (ext === ".html" && absPath.endsWith(".dc.html")) {
+  if (basename(absPath) === "support.js") {
     const raw = readFileSync(absPath, "utf8");
-    res.writeHead(200, { "content-type": MIME[".html"] });
-    res.end(rewriteMockHtml(raw));
+    res.writeHead(200, { "content-type": MIME[".js"] });
+    res.end(rewriteSupportCdnUrls(raw));
     return;
   }
 
@@ -191,20 +198,15 @@ function handleRequest(url: string, res: ServerResponse) {
   res.end(TEXT_EXT.has(ext) ? readFileSync(absPath, "utf8") : readFileSync(absPath));
 }
 
-/** Rewrites a mock's remote React/ReactDOM/Babel script references to the vendored local
- *  copies, on read — the file on disk is never touched (D-03). Injected as the first
- *  child of `<head>`, before `<script src="./support.js">` runs, so `window.__resources`
- *  exists before the runtime's `cdnScriptFor()` is ever called. */
-function rewriteMockHtml(raw: string): string {
-  const map: Record<string, string> = {};
-  for (const [url, relPath] of Object.entries(VENDOR_MAP)) map[url] = `/${relPath}`;
-  const injected = `<script>window.__resources = ${JSON.stringify(map)};</script>`;
-  if (/<head[^>]*>/i.test(raw)) {
-    return raw.replace(/<head[^>]*>/i, (m) => `${m}\n${injected}`);
+/** Rewrites the three unpkg constants in a generated `support.js` copy to the vendored
+ *  local paths. Disk is never written (D-03). SRI hashes stay so `cdnScriptFor()` still
+ *  attaches integrity. */
+function rewriteSupportCdnUrls(src: string): string {
+  let out = src;
+  for (const [url, relPath] of Object.entries(VENDOR_MAP)) {
+    out = out.split(url).join(`/${relPath}`);
   }
-  // Defensive fallback — every mock under app/ has a <head>, but this must never
-  // silently no-op if that ever stops being true.
-  return `${injected}\n${raw}`;
+  return out;
 }
 
 function hashId(input: string): string {

@@ -89,6 +89,10 @@ async function withIdentity<K extends IdentityKind, T>(
 export const asAnon = <T,>(env: CloudflareEnv, fn: QueryFn<T>) =>
   withIdentity(env, "anon", undefined, fn);
 
+/** Worker-only system work — `vamos_edge` SET ROLEs into the nologin `vamos_system` role. */
+export const asSystem = <T,>(env: CloudflareEnv, fn: QueryFn<T>) =>
+  withIdentity(env, "system", undefined, fn);
+
 /** A signed-in customer — `claims` is the JWT payload `claimsForSql` narrows before binding. */
 export const asCustomer = <T,>(
   env: CloudflareEnv,

@@ -63,23 +63,6 @@
   function samePage(u) {
     return logicalPath(u.pathname) === logicalPath(location.pathname);
   }
-  function isDashboardPage() {
-    return logicalPath(location.pathname) === '/app/ops' || location.hostname === 'dashboard.vamostaxi.site';
-  }
-  function runDashboardHashTransition() {
-    if (!isDashboardPage() || reduced) return;
-    var host = document.getElementById('dc-root');
-    if (!host) return;
-    host.classList.remove('vt-ops-hash-switch');
-    // Force only the local shell animation to restart. The document-transition
-    // sheets stay parked above the viewport for every dashboard view switch.
-    void host.offsetWidth;
-    host.classList.add('vt-ops-hash-switch');
-  }
-  var opsHashStyle = document.createElement('style');
-  opsHashStyle.textContent = '@keyframes vtOpsHashSwitch{from{opacity:.985;transform:translateY(2px)}to{opacity:1;transform:translateY(0)}}.vt-ops-hash-switch{animation:vtOpsHashSwitch 150ms ease-out both}';
-  (document.head || document.documentElement).appendChild(opsHashStyle);
-  addEventListener('hashchange', runDashboardHashTransition);
   function vtScrollHash(tries) {
     tries = tries || 0;
     var id = (location.hash || '').replace(/^#/, '');

@@ -257,6 +257,7 @@ create, access and sign out of an account.
   5. A customer can create an account with email/password or an emailed one-time code, reset a forgotten password from an emailed link, stay signed in across a browser refresh, and sign out from any page.
 
 **Plans**: TBD
+**Current remediation**: 05-27 contact-delivery security/static-route execution is complete locally; staging UAT, review and ship gates remain open.
 **UI hint**: yes
 
 ### Phase 6: Ops Reference Data & Content Console

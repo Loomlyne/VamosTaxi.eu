@@ -11,5 +11,8 @@ export const PHONE_HREF = "tel:+41796267082";
 /** WhatsApp deep link for the same number. No leading `+`, no spaces in the path. */
 export const WHATSAPP_HREF = "https://wa.me/41796267082";
 
-/** Support mailbox. Display copy is a PendingSlot until the address is confirmed. */
-export const SUPPORT_EMAIL_HREF = "mailto:info@vamostaxi.eu";
+/** Confirmed public support mailbox. */
+export const SUPPORT_EMAIL = "info@vamostaxi.site";
+
+/** `mailto:` destination for the confirmed public support mailbox. */
+export const SUPPORT_EMAIL_HREF = `mailto:${SUPPORT_EMAIL}`;
