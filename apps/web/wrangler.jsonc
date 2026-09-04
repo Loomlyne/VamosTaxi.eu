@@ -27,7 +27,7 @@
   "env": {
     // Front preview Worker. No custom domains — never bind vamostaxi.site
     // or dashboard.vamostaxi.site. workers.dev only. No cron, no queue
-    // consumer (those stay on vamos-web-staging). Same Hyperdrive/KV/R2
+    // consumer (those stay on vamos). Same Hyperdrive/KV/R2
     // as staging so the public DC site can render.
     "front": {
       "name": "vamos-front-changes",
@@ -78,7 +78,7 @@
       "send_email": [{ "name": "EMAIL" }]
     },
     "staging": {
-      "name": "vamos-web-staging",
+      "name": "vamos",
       // Public hostname is vamostaxi.site (zone f0119383…). vamostaxi.eu
       // is abandoned — no access, never bind it. workers.dev stays on so
       // staging probes still work. Do not deploy env.production.
@@ -200,7 +200,7 @@
     },
     // Isolated ops-preview Worker. Never bind vamostaxi.site /
     // dashboard.vamostaxi.site. Never deploy this env onto
-    // vamos-web-staging.
+    // vamos.
     "ops-changes": {
       "name": "vamos-ops-changes",
       "workers_dev": true,
@@ -250,7 +250,7 @@
     "production": {
       "name": "vamos-web-production",
       // Not deployed. Public traffic is vamostaxi.site on
-      // vamos-web-staging. vamostaxi.eu is abandoned — no zone, no bind.
+      // vamos. vamostaxi.eu is abandoned — no zone, no bind.
       // No PRICING_PREVIEW assignment here (D-33). Its ABSENCE is the control.
       // Setting that var to the string false under production would be a bug,
       // not belt-and-braces — every read is === "true", so a missing binding
