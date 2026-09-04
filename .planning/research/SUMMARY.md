@@ -1,167 +1,205 @@
 # Project Research Summary
 
-**Project:** Vamos Taxi V1
-**Domain:** Swiss pre-booked airport-transfer booking platform (Zurich-first) + dispatch/ops console
-**Researched:** 2026-08-17
-**Confidence:** HIGH overall
+**Project:** Vamos Taxi V1 — milestone v1.1 Ops Support
+**Domain:** Two-way email tickets in Ops (contact-form origin, Resend inbound, Worker replies)
+**Researched:** 2026-09-04
+**Confidence:** HIGH on stack, MX, and in-repo integration; decisions below reconcile STACK vs ARCHITECTURE conflicts
+
+> v1.1 only. Frozen v1.0 booking/payments/dispatch research lives in
+> `.planning/research/v1.0-archive/` and is not restated here. Do not touch that archive.
+> Quote → pay → board (Phases 7–11) stays frozen. Live `vamostaxi.eu` DNS stays Phase 11.
 
 ## Executive Summary
 
-This is a fixed-price, pre-booked airport-transfer platform — not ride-hailing — built as a single Next.js 15 application deployed as **one Cloudflare Worker** (via `@opennextjs/cloudflare`), backed by Supabase Postgres accessed exclusively through Hyperdrive, with Stripe (cards + Apple/Google Pay + TWINT) as the only payment path. The design phase is fully complete: 30+ pixel-final `.dc.html` mocks, a bound design system, 23 per-screen specs, and a written build plan (`docs/build/GSD-LAUNCH.md`). This is a production port, not a green-field design exercise — the roadmap's job is sequencing the backend/data layer underneath an already-finished frontend, not inventing new UI.
+v1.1 turns the existing one-way `/contact` pipe (`contact_submissions` + SITE-04 Gmail copy) into a conversational shared inbox inside Ops. The customer never sees a ticket UI: they submitted the form and they hit Reply in Gmail. Ops `#support` is the working inbox; Gmail `info@vamostaxi.site` remains a carbon copy. Industry shape is Help Scout / Front (conversation + status), not Zendesk (queues/SLA/tags) and not a shared mailbox.
 
-The recommended approach follows a strict early dependency chain — scaffold to Supabase schema/RLS to Hyperdrive wiring to pricing engine to checkout/payment — because every subsequent surface (confirmation, account, ops board) reads live booking state that only exists once checkout is real. After Hyperdrive lands, the roadmap should split into two genuinely parallel tracks (pricing engine vs. non-money surface porting + email templates + CRUD ops screens), which reconverge at checkout. Checkout/payment must therefore be sequenced deliberately before every surface that depends on it, not appended after "the surfaces are done" — because confirmation pages, account bookings, and the ops board are all downstream consumers of the payment state machine, not independent features that can be built ahead of it.
+**Recommended approach:** extend `contact_submissions` as the ticket header (no parallel `support_tickets` table). Hang `support_messages` + `support_inbound_events` off that row. Receive on subdomain `replies.vamostaxi.site` so apex MX stays Gmail. Staff replies and inbound use Resend; the contact ack may keep Cloudflare `env.EMAIL`. **From and Reply-To on outbound ticket mail must be the receiving address** — `noreply@` From with Reply-To-only is not enough, because some clients reply to From and then Gmail never hits the webhook.
 
-The single largest risk this research surfaces that is invisible from the finished mocks is that `VamosLocale`'s DOM-text-walking i18n runtime — the mechanism that currently makes the mocks work in four languages — does not survive Next.js SSR/RSC. This must become an explicit architecture decision in Phase 1 (convert the dictionary into a `t()`/`useT()` render-time lookup, recommended), or every subsequent phase risks silently shipping English-only Server Components or a visible translation flash. Money-correctness risk is the second major theme: price and cancellation-policy must be snapshotted immutably onto the booking row at quote/confirmation time (never re-joined to live rate/settings tables), Stripe webhook verification requires the Workers-specific async/WebCrypto code path, and Hyperdrive must point at Supabase's direct connection string, never the pooled one — three structurally cheap decisions if made in Phase 1-4, expensive to retrofit once real bookings exist.
+**Key risks:** (1) Resend receiving MX on apex `vamostaxi.site` steals `info@` from Gmail; (2) threading on Resend UUID / 12-char outbox suffix instead of RFC `Message-ID`; (3) matching inbound by spoofable `From:`; (4) copying the Supabase `standardwebhooks` verifier onto Resend's Svix headers; (5) putting `#staff` back in the rail while adding `#support`. Mitigation is the phase order below: schema first, outbound that stores real RFC ids, then inbound, then UI, then staging MX last.
+
+## Reconciled decisions (STACK vs ARCHITECTURE)
+
+These were explicit disagreements across the four research files. Roadmap and plans treat the **Decision** column as binding.
+
+| Conflict | STACK | ARCHITECTURE | Decision | Rationale |
+|----------|-------|--------------|----------|-----------|
+| Ticket root | New `support_tickets` 1:1 with `contact_submissions` + `support_ticket_messages` | Extend `contact_submissions` + `support_messages` + `support_inbound_events` | **ARCHITECTURE** | v1.1 tickets **are** `/contact` rows. Phone-typed tickets are out, so a parallel header is the same cardinality plus a join. FEATURES: do not invent a second contact store. |
+| Receiving host | `inbound.vamostaxi.site` | `replies.vamostaxi.site` | **`replies.vamostaxi.site`** | Name is not frozen DNS yet; pick one. MX stays **off apex** either way so Gmail `info@vamostaxi.site` survives. Never enable receiving on `vamostaxi.site` or live `vamostaxi.eu`. |
+| Ticket reply From | `From` + `Reply-To` on the receiving domain | `From: noreply@vamostaxi.site` + `Reply-To` receiving | **STACK / PITFALLS: From and Reply-To are receiving addresses** | Some mobile clients ignore `Reply-To` and reply to `From`. If From is `noreply@` or `info@` (Gmail MX), Reply-in-Gmail never hits Resend. Verify sending (SPF/DKIM) on `replies.` as well as receiving MX. |
+| Dual-send (providers) | Ticket replies via Resend; `env.EMAIL` stays for auth + contact | Same split; do not send replies through `EMAIL` or the intake outbox | **Contact ack may stay Cloudflare `EMAIL`. Ticket replies + inbound are Resend only.** | `EMAIL` cannot set `In-Reply-To` / `References` / plus-address Reply-To. Do not silently migrate the contact ack in the same PRs. Do not BCC/dual-send the same MIME through both providers. |
+| Plus-address | `support+{ticketId}@inbound…` (row UUID) | `ticket+{reply_token}@replies…` (opaque token, not UUID) | **ARCHITECTURE token** | UUID in the address leaks the primary key. `reply_token` is minted at insert, unique, used only in Reply-To / From plus-address. |
+| Gmail copy of **thread** mail | BCC `info@` on staff replies; `receiving.forward` inbound | Intake copy only — do not BCC every staff reply | **Intake copy required (SITE-04). Thread copies via Resend only (BCC outbound, forward inbound).** | PROJECT.md still requires Gmail to get a copy. PITFALLS UAT: a real ticket reply still arrives at `info@`. That copy is Resend BCC/forward — not a second `env.EMAIL` send. Ops remains the working inbox; answering in Gmail splits threads. |
+| Opening body | First message is the form body (not an email) on `support_tickets` | Seed `support_messages` `direction=inbound_form`; form column stays source of truth | **ARCHITECTURE** | Thread UI should not special-case the form row. Do not treat the copy as a second SoT. |
+| `handled_at` | Ticket `status` is Ops SoT; `handled_at` can stay | Leave the column; do not read it | **Leave `handled_at`; do not overload it.** | A timestamp cannot express New / Open / Replied / Closed. |
 
 ## Key Findings
 
 ### Recommended Stack
 
-Next.js 15.5.x on Cloudflare Workers via `@opennextjs/cloudflare` 1.20.x (Node.js-runtime-only inside the Worker, not Edge runtime) is the only supported non-Vercel SSR path and is GA. Supabase Postgres (Frankfurt) is accessed for all row-level app queries through Hyperdrive with `postgres.js` or `pg` (pick one) using Supabase's direct connection string — supabase-js is scoped strictly to Auth/Storage/Realtime, never app data, to avoid a second inconsistent read path. Stripe (`stripe` npm, standard CH account, CHF) requires `Stripe.createFetchHttpClient()` + `constructEventAsync()` + `Stripe.createSubtleCryptoProvider()` because Workers has no synchronous Node crypto. ISR/on-demand revalidation needs R2 (incremental cache) + D1 (tag cache) + a Durable-Object queue, and reliable on-demand purge only works on a real custom domain, not `*.workers.dev`. Cron Triggers + a Queues consumer must live in the same deployed Worker via a custom entry file re-exporting `fetch`/`scheduled`/`queue`, since the default OpenNext build only exports `fetch`.
+Full detail: [STACK.md](./STACK.md). v1.0 stack is frozen (Workers + OpenNext, Worker `vamos`, Supabase `yaumjzvylngfjhtuffqs` via Hyperdrive, `postgres@3.4.9`). v1.1 adds no new vendor, no new Worker, no Queue, no R2, no chat SDK.
+
+Bump `resend` in `apps/web` from `6.24.0` → **`6.26.0`**. Use `emails.send` (replies), `webhooks.verify` (Svix), `emails.receiving.get` (body — webhook is metadata-only), `emails.receiving.forward` (Gmail copy of inbound). Zod already in-repo validates verified payloads. `@vamos/emails` renders the staff-reply template (en/de/fr/ar); do not add `react-email`. New secret: `RESEND_WEBHOOK_SECRET` via `wrangler secret put --env staging`. `RESEND_API_KEY` already on Worker `vamos`.
 
 **Core technologies:**
-- Next.js 15.5.x + `@opennextjs/cloudflare` 1.20.x — the fixed, only supported Workers SSR path (no Vercel, per owner decision)
-- Supabase Postgres via Hyperdrive (`postgres.js`/`pg`, direct connection string) — system of record for all app data; supabase-js reserved for Auth/Storage/Realtime only
-- Stripe standard (CHF, cards + Apple/Google Pay + TWINT) — Workers-specific async webhook verification required
-- Resend + `react-email`, Mapbox (geocoding/directions, KV-cached), AeroDataBox (flight status, KV-cached, graceful degrade) — supporting integrations, all fetch-based and Workers-compatible
-- Cloudflare Queues + Cron Triggers in one custom-entry Worker — decouples Stripe webhook ACK from booking-state mutation, and runs scheduled sweeps (quote expiry, reminders/no-show)
+- `resend@6.26.0` — send ticket replies, verify inbound, fetch bodies, forward Gmail copies — already in the Worker; bump, do not add a second mail SDK
+- Resend Receiving on **`replies.vamostaxi.site`** — MX target for Reply-in-Gmail; plus-address routing without IMAP; apex MX stays Gmail
+- Resend webhook `email.received` — push inbound into `POST /api/webhooks/resend` on the public hostname; Svix headers, not `standardwebhooks`
+- Existing Postgres + Hyperdrive — ticket header on `contact_submissions`; thread + inbound-event tables; `asStaff` / `asSystem` only
 
 ### Expected Features
 
-This is not a green-field feature survey — the existing mocks and `MISSING-FEATURES.md` already define scope. Research confirms the scope matches category table stakes and flags what's genuinely absent.
+Full detail: [FEATURES.md](./FEATURES.md). Table stakes of a small-operator shared inbox, scoped to `/contact` origin. Not a help desk product.
 
-**Must have (table stakes):** fixed price shown before payment; three-class vehicle selection with real capacity; flight-number autofill + delay-aware pickup with both-sides notification; free waiting time with a stated cutoff; meet-and-greet; tiered cancellation/refund policy; self-serve cancel/manage-by-token; guest checkout; coupons; card/Apple/Google Pay/TWINT via Stripe; confirmation with ICS calendar invite; ops manual/phone booking entry (highest-risk missing screen — no mock exists yet); ops assignment with conflict checking; live bookings board; no-show handling with fee; fleet management with document-expiry alerts; versioned publishable pricing table; four-language coverage everywhere.
+**Must have (table stakes):**
+- Ops `#support` list of `contact_submissions` as tickets — one working inbox; Staff tab stays gone
+- Status New / Open / Replied / Closed — `handled_at` is too coarse
+- Ticket detail: original form fields + thread (newest last)
+- Reply from the ticket via Resend, with RFC threading headers, persisted outbound body + `Message-ID`
+- Customer Reply-in-Gmail appends to the **same** ticket (plus-token, then `In-Reply-To` / `References`)
+- SITE-04 Gmail copy of the original submission still sends
+- Signed, idempotent inbound; unmatched inbound does **not** create a ticket
+- Staff-only (existing RLS / `vamos_staff`); no new public read
 
-**Should have (differentiators):** Vamos as the actual carrier (not a broker/marketplace, unlike GetTransfer/Transfeero); named alpine/cross-border route coverage; WhatsApp deep-link contact instead of a chat widget; real driver/founder photography; deliberately small three-class lineup; minimal corporate/invoice billing (open scope decision, not yet committed).
+**Should have (competitive, cheap, do not block launch):**
+- Show existing `booking_ref` and form `locale` on the ticket (deep-link to booking is P2)
+- Native Ops inbox instead of Zendesk/Help Scout — PII stays in this Supabase project
+- WhatsApp remains the live human channel (SITE-09); `#support` does not replace it
 
-**Defer / do not build:** live GPS tracking, automatic nearest-driver dispatch, surge pricing, reverse-auction marketplace bidding, a driver-facing app, hourly/charter booking mode, loyalty points, a full self-service B2B corporate portal, true FX-converted pricing display, third-party review import. Two genuine open gaps worth a roadmap decision: (1) corporate/invoice billing has no committed scope despite being a named customer segment — needs an explicit build-or-defer call; (2) no post-trip review-solicitation flow exists anywhere in scope.
+**Defer (v1.x / v2+ / never in v1.1):**
+- Reopen-on-reply if launch ships Closed-stays-closed (ARCHITECTURE recommends auto-reopen; owner can freeze no — decide in plan)
+- Attachments, saved replies, filter/search, assignment, SLA, CSAT, macros, AI tags/replies
+- Live chat, Gmail IMAP, phone-typed tickets, catch-all inbound on `info@`, live `vamostaxi.eu` MX
+- Vendor help desk
 
 ### Architecture Approach
 
-One Cloudflare Worker serves public RSC routes, the pricing engine (`/api/quote`), checkout (`/api/checkout`), the Stripe webhook, the role-gated ops console, and — via a custom entry file — Cron Triggers and a Queues consumer, all sharing one Supabase Postgres database accessed through Hyperdrive. The repo structure is `apps/web` (the only deployable) plus `packages/db` (pure SQL/types, zero runtime deps) and `packages/emails` (pure render functions, zero I/O) — both packages must stay side-effect-free or `@opennextjs/cloudflare`'s bundler drags Node-only transitive dependencies into the Worker and risks the bundle-size ceiling.
+Full detail: [ARCHITECTURE.md](./ARCHITECTURE.md), with From/Reply-To and Gmail-thread-copy overridden by the reconciled table above.
+
+One Worker `vamos`, two hostnames. `POST /api/contact` stays intake (`asAnon` RPC + `asSystem` outbox). Staff APIs dual-mount like customers: `/api/staff/support*` with `withStaff` + `asStaff` on `HYPERDRIVE_NOCACHE`. Inbound is **not** under `/api/staff`: `POST /api/webhooks/resend` on `vamostaxi.site`, Svix, then `asSystem`. Ops stays DC mocks with a new hash — not a Next.js `/ops/support` page.
 
 **Major components:**
-1. Pricing engine (`/api/quote`) — pure function over rate/surcharge/coupon tables; writes an immutable price snapshot onto a `bookings` row (`status='quote'`), never recomputed downstream
-2. Checkout (`/api/checkout`) — re-validates quote-lock expiry server-side inside the same transaction that creates the Stripe PaymentIntent (idempotency key = booking id); the actual convergence point every money-touching surface depends on
-3. Stripe webhook + Queues consumer — webhook handler only verifies signature, dedupes (`stripe_events` insert-on-conflict), enqueues, and ACKs fast; all booking mutation + email happens in the separate, idempotent queue consumer
-4. Ops console (`/(ops)/ops/*`) — role-gated route group in the same app/deploy; Supabase Realtime (private, RLS-authorized channel) powers only the live board, nowhere else
+1. `contact_submissions` (extended) — ticket header: `ticket_status`, `reply_token`, `last_activity_at`, `closed_at`; form fields stay immutable
+2. `support_messages` — thread (`inbound_form` / `outbound_staff` / `inbound_email`); RFC `Message-ID` + Resend `email_id`
+3. `support_inbound_events` — webhook idempotency on Resend `email_id` (Stripe-events shape, not a reuse of `stripe_events`)
+4. `POST /api/staff/support/:id/reply` — insert message first, then `resend.emails.send` with idempotency key = message id; From/Reply-To on `replies.vamostaxi.site`
+5. `POST /api/webhooks/resend` — verify → dedupe → `receiving.get` → plus-token match → append → status `open` (recommend reopen if closed)
+6. Ops `#support` — `OpsSupport.dc.html` + sidebar item + `ops.dc.html` hash; mock before build
+
+**Status machine:** submit → `new`; staff open/PATCH → `open`; staff reply → `replied`; inbound (not closed) → `open`; staff PATCH → `closed`; inbound on closed → `open` (recommended). Dispatcher can PATCH any of the four. No fifth status. No auto-tags.
+
+**Match order (first hit wins):** (1) plus-token in `to` / `received_for`; (2) `In-Reply-To` / `References` against stored RFC ids; (3) no match → 200 drop, no new ticket. Never match on `From` equality.
 
 ### Critical Pitfalls
 
-1. **`VamosLocale`'s DOM-text-walking i18n does not survive SSR/RSC** — decide in Phase 1 whether to convert to a render-time `t()`/`useT()` lookup (recommended) or scope the DOM-walker to client boundaries with server-rendered locale from a cookie; RTL must be set server-side, never flipped after hydration.
-2. **Hyperdrive pointed at Supabase's pooled (Supavisor) connection string double-pools** — always use the direct/session connection string; symptoms (prepared-statement errors, RLS session leaks) only appear under real concurrency, not in early smoke tests.
-3. **RLS session context (`SET LOCAL`) must be scoped per-transaction**, not per plain `SET` — because the Worker talks to Postgres directly via Hyperdrive rather than through Supabase's Data API, there is no automatic per-request auth-context injection; a leaked session variable on a pooled connection is a cross-tenant data exposure, not just a bug.
-4. **Price and cancellation-policy must be immutable snapshots on the booking row**, never live joins to current rate/settings tables — otherwise a later rate or policy edit silently rewrites historical bookings' displayed price or refund terms.
-5. **Stripe webhook confirmation must never trust the client-side redirect**, especially for TWINT's async redirect flow — the webhook (idempotent, keyed on Stripe event id) is the only source of truth for "this booking is paid"; the return-URL page is UI-only, polling/subscribing to booking status.
+Full detail: [PITFALLS.md](./PITFALLS.md). Top risks that should shape phase must-nots:
+
+1. **Resend receiving MX on apex or on live `vamostaxi.eu`** — steals Gmail `info@` or is forbidden live DNS. Receive only on `replies.vamostaxi.site`. Phase 11 copies the proven staging pattern; it does not invent MX on the live zone.
+2. **Threading on Resend `email_id` / 12-char `provider_suffix`** — Gmail threads on RFC `Message-ID`. Persist RFC ids; set `In-Reply-To` / `References`; retrieve `message_id` after send. Outbound must land before inbound can match.
+3. **Matching inbound by `From:`** — spoofed guest mail injects into a real ticket. Require plus-token and/or `In-Reply-To` this system minted. Unmatched = drop.
+4. **Wrong webhook verifier / skipped verify / no body fetch** — Resend is Svix (`svix-*`), raw `request.text()`, then `emails.receiving.get`. Do not reuse `standardwebhooks`. Unsigned POST 4xx on **deployed** staging. Persist body from GET, not webhook metadata.
+5. **Dual-send and `noreply@` From** — ticket thread mail is Resend only, From/Reply-To on the receiving host. Contact ack may keep `env.EMAIL`. Restoring the Staff tab, inbound XSS (`dangerouslySetInnerHTML`), POST `/api/quote` as support smoke, and pushing `main` are process gates on every phase.
 
 ## Implications for Roadmap
 
-Based on combined research, the roadmap has a hard strict-dependency spine with two parallel tracks after Hyperdrive lands, converging at checkout.
+v1.1 phases are **new workstreams**, not v1.0 Phases 4–11. Do not number them as a continuation of the booking funnel. Strict spine: schema → outbound (RFC ids) → inbound → UI wire-up → staging MX. Mock `#support` before implementing the DC page (same rule as phone booking). Funnel code (`/api/quote`, checkout, board) is a must-not on every phase.
 
-### Phase 1: Foundation & scaffold
-**Rationale:** Everything else depends on the Worker actually deploying correctly, on a real custom domain, with CI gates in place from day one — retrofitting bundle-size/deploy-gap checks later (Pitfall 12) is far more expensive than catching them incrementally.
-**Delivers:** Next.js 15 on Cloudflare Workers via OpenNext, CI with a real `wrangler deploy` to staging (not just `wrangler dev`) as a hard gate, `staging.vamostaxi.eu` bound to a real Cloudflare zone (required for ISR revalidation and ISR cache purge to work at all — cannot be `*.workers.dev`), design system ported to React with identical class names, and the i18n runtime architecture decision made explicitly (Pitfall 1) — this determines the shape of every component built after it.
-**Addresses:** N/A (infrastructure)
-**Avoids:** Pitfall 1 (i18n/SSR), Pitfall 12 (dev-vs-deployed gap), the custom-domain requirement for ISR from STACK.md.
+### Phase 1: Ticket schema + `#support` mock
+**Rationale:** Header columns and child tables are the root every API hangs off. A parallel `support_tickets` table is the research conflict we already rejected. DC console has no support mock yet — mock first.
+**Delivers:** Migration: `ticket_status`, `reply_token`, `last_activity_at`, `closed_at` on `contact_submissions`; `support_messages`; `support_inbound_events`; FORCE RLS; staff SELECT/status UPDATE; `asSystem` INSERT messages/events; no anon grants; `submit_contact_message` mints token + seeds `inbound_form`. `OpsSupport.dc.html` mock + sidebar `#support` (Staff tab stays omitted) in four languages / four widths.
+**Addresses:** Ticket list/status/detail as data shape; Staff tab stays gone; PII grants (Pitfall 4)
+**Avoids:** Parallel ticket table; overloading `handled_at`; JSONB thread on the form row; PII copied onto outbox; `#staff` rail item
 
-### Phase 2: Supabase schema, RLS, and staff auth
-**Rationale:** Blocks everything that reads or writes data; the versioned-policy and exclusion-constraint patterns needed later must exist in the schema from the start, not retrofitted once bookings exist.
-**Delivers:** Full schema mirroring `VamosOps`, RLS on every table, `timestamptz` everywhere (never naive local-time strings — Pitfall 11), a `policy_version`/snapshot concept for cancellation tiers, a `driver_id` x `tstzrange` exclusion constraint (`btree_gist`) preventing double-assignment at the database level, staff TOTP MFA, custom JWT role claim via a Postgres Access Token Hook.
-**Uses:** Supabase schema/RLS patterns from STACK.md and ARCHITECTURE.md.
-**Implements:** RLS design (session-context implementation deferred to Phase 3), policy-snapshot schema shape.
+### Phase 2: Staff APIs + outbound Resend replies
+**Rationale:** Inbound matching needs RFC `Message-ID`s this system issued. Do not build the webhook before send persists those ids. Provider split is this phase — do not “clean up” contact ack.
+**Delivers:** `GET/PATCH /api/staff/support`, `POST …/reply`; `resend@6.26.0`; `renderSupportReplyEmail` in `packages/emails`; send **after** the message row exists; idempotency key = message id; From + Reply-To on `replies.vamostaxi.site`; `In-Reply-To` / `References` / `Re:` subject; persist RFC `Message-ID` via GET-after-send (not `data.id`, not 12-char suffix); BCC `info@` via Resend (not `env.EMAIL`); status → `replied`.
+**Uses:** Resend send API, existing `RESEND_API_KEY`, `@vamos/emails`, `asStaff` on `HYPERDRIVE_NOCACHE`
+**Implements:** Reply API component; dual-send split (contact ack stays `EMAIL`)
+**Avoids:** Pitfalls 2, 6, 8 (quoted HTML still `escapeHtml`); sending through `contact_delivery_outbox` or `env.EMAIL`
 
-### Phase 3: Hyperdrive data access wiring
-**Rationale:** Blocks any real query; must be load-tested (not just smoke-tested) before Phase 4 builds pricing logic on top of it, since double-pooling and RLS-session-leak bugs only surface under concurrency.
-**Delivers:** `apps/web/lib/db` Hyperdrive client (direct connection string, per-request client creation, `max: 5`), transaction-scoped `SET LOCAL` RLS identity per request, a concurrent two-customer isolation integration test, per-query Hyperdrive caching policy decisions (disabled for anything pricing-related).
-**Uses:** Hyperdrive + postgres.js/pg pattern from STACK.md.
-**Implements:** The data-access layer boundary from ARCHITECTURE.md; verifies Pitfalls 2, 3, 4.
+### Phase 3: Inbound webhook
+**Rationale:** Reply-in-Gmail is the milestone. Auth is the first task in this phase, before any append logic. Volume does not justify a Queue.
+**Delivers:** `POST /api/webhooks/resend` on public host; `RESEND_WEBHOOK_SECRET`; `resend.webhooks.verify` on raw body; `email.received` only; dedupe `email_id`; GET body; match plus-token then RFC ids; append `inbound_email`; status → `open` (reopen-if-closed — confirm with owner in plan); `receiving.forward` to `info@`; 200 on duplicate/unmatched; 401 bad sig; 5xx only when retry helps; drop own sending addresses / auto-replies; no attachments to R2.
+**Uses:** Resend receiving + Svix verify + `asSystem`
+**Implements:** Inbound webhook component
+**Avoids:** Pitfalls 3, 7, 11, 12; creating tickets from unmatched mail; dashboard-host 401s; `From:` matching
 
-### Phase 4 / Phase 6 (parallel track A + B, after Phase 3): Pricing engine + surface porting
-**Rationale:** These two tracks touch almost disjoint code (pricing owns `lib/pricing` + money tables; page-porting owns `app/(public)/*` reading content/reviews/settings) and can run concurrently once schema + Hyperdrive exist — only the home booking widget and checkout actually depend on the pricing engine being finished.
-**Delivers (Track A - pricing engine):** `/api/quote` as a pure function with fixed-route/per-km/surcharge/coupon logic, an immutable price snapshot written once onto `bookings` (never recomputed downstream — Pitfall 8), the 30-minute quote lock enforced server-side inside the payment-creation transaction (not just page-load — Pitfall 9), `pricing_live=false` synthetic staging matrix.
-**Delivers (Track B - surface porting, parallel):** every public mock as a route in all four languages/widths, `packages/emails` templates (zero dependency on the queue consumer — can start immediately post-Phase-1), and non-money ops CRUD screens (fleet, chauffeurs, content editor, pricing-table admin, reviews admin) — everything except OpsBoard and OpsDetail's assignment flow, which are gated on Phase 5.
-**Addresses:** Table-stakes pricing/quote features from FEATURES.md; the pricing-engine anti-pattern (Pitfall 4, 7, 8) is the load-bearing risk in this phase.
-**Avoids:** Pitfall 4 (stale cached prices), Pitfall 7/8 (live-rate/policy joins instead of snapshots), Pitfall 9 (quote-lock race).
+### Phase 4: Wire Ops `#support` to APIs
+**Rationale:** UI needs list/detail/reply from Phase 2. Does not need live MX. Keep DC hash console — no RSC ops page.
+**Delivers:** `ops.dc.html` route + `OpsSidebar` item + `OpsSupport.dc.html` talking to `VamosOpsApi` (`/api/staff/support…`). Status filters, thread pane, reply box. Render stored **text** (escaped), never raw inbound HTML. EN/DE/FR/AR, 1440 and 390, dispatcher and admin. No Realtime (poll on focus).
+**Addresses:** `#support` list/detail/reply UX
+**Avoids:** Pitfalls 5, 8; Next.js `/ops/support` page; Staff tab; English-only label
 
-### Phase 5: Checkout, payment, webhook/queue lifecycle — the convergence point
-**Rationale:** This is the one phase every downstream money-touching surface (confirmation, account bookings, ops board, ops detail assignment) is gated on — it must be sequenced before those surfaces are considered done, not treated as parallel or appended-after work. Getting this wrong (recomputing price at checkout, mutating booking state directly in the webhook handler, trusting the client-side redirect for TWINT) is the single most expensive class of bug to recover from post-launch.
-**Delivers:** Stripe PaymentIntent creation (CHF, `automatic_payment_methods`, idempotency key = booking id), webhook handler that only verifies + dedupes + enqueues + ACKs (never mutates state inline), a separate idempotent queue consumer doing the actual `pending->paid->confirmed` transition + `booking_events` write + Resend email, full TWINT sandbox flow exercised end to end including an abandoned session, confirmation page that polls/subscribes rather than self-confirms.
-**Uses:** Stripe-on-Workers pattern (`constructEventAsync` + `createSubtleCryptoProvider`) from STACK.md.
-**Implements:** The webhook/queue-consumer boundary and idempotent-money-movement pattern from ARCHITECTURE.md.
-
-### Phase 7: OpsBoard, OpsDetail assignment, and money-dependent account surfaces
-**Rationale:** These specifically need live `bookings` state + Realtime and the full booking lifecycle from Phase 5 — they cannot be meaningfully finished before checkout exists, even though other ops screens (fleet, pricing admin, content) were already built in the parallel track.
-**Delivers:** Live ops board (Realtime-backed), booking detail + manual assignment (with the DB exclusion constraint's error surfaced cleanly in the UI), ops manual/phone booking entry using the exact same pricing engine as the public quote (never a hand-typed price), account bookings view, self-serve cancel/refund reading the policy snapshot.
-**Addresses:** Ops table-stakes features from FEATURES.md (assignment, live board, no-show handling, manual booking).
-**Avoids:** Pitfall 10 (driver double-assignment race), Pitfall 7 (refund-policy snapshot).
-
-### Phase 8: Hardening — cache rules, rate limits, Turnstile, WAF, consent, observability
-**Rationale:** Largely orthogonal to feature build-out and can be started incrementally per-route as soon as each surface it targets exists, rather than waiting for every phase to finish — but the data-residency/consent-vs-Sentry sequencing must be forced earlier than this phase's kickoff, since it's a legal decision the code should not outrun.
-**Delivers:** ISR/Cache Rules on read-mostly public pages, rate limits + Turnstile on `/api/quote` and public forms, `consent_log` table live and gating before Sentry or any IP-capturing SDK is enabled, Worker region-pinning decision resolved with counsel, DST-boundary test fixtures (Pitfall 11) run through quote/confirmation/flight-delay logic, load test against the 10k-concurrent-browser target confirming public routes barely touch Postgres.
-**Avoids:** Pitfall 13 (consent-before-monitoring ordering), Pitfall 11 (DST corruption).
-
-### Phase 9: Launch cutover
-**Rationale:** Final gate — DNS cutover, `pricing_live=true` flip, old site parked, 301 map from Freshpage CMS.
-**Delivers:** Production go-live. Re-verify Hyperdrive caching policy and Sentry/consent ordering one final time at this boundary, since `pricing_live` flipping to true is exactly the moment Pitfall 4 (stale cached prices) becomes customer-visible.
+### Phase 5: Staging MX + end-to-end UAT
+**Rationale:** DNS last, after the webhook URL exists. Staging `vamostaxi.site` only.
+**Delivers:** Resend domain `replies.vamostaxi.site` with receiving MX (dashboard value, do not guess) + sending SPF/DKIM so From on that host is legal. Webhook URL `https://vamostaxi.site/api/webhooks/resend`. UAT: form → `#support` → reply → Gmail threads → Reply-in-Gmail → same ticket; intake + reply copies at `info@`; apex `dig MX vamostaxi.site` unchanged except the subdomain; `dig MX vamostaxi.eu` untouched; unsigned webhook 4xx on **deployed** staging; spoofed From does not append; `<script>` fixture escaped.
+**Avoids:** Pitfall 1; live zone edits; `env.production`; push `main`
 
 ### Phase Ordering Rationale
 
-- The dependency chain (scaffold to schema/RLS to Hyperdrive to pricing engine to checkout) is strict and non-negotiable because each phase's output is a hard input to the next — this is confirmed independently by STACK.md, ARCHITECTURE.md, and PITFALLS.md, not just one research angle.
-- Checkout/payment (Phase 5) is deliberately positioned as a convergence point, not a parallel track — confirmation, account bookings, and the ops board are all consumers of the payment state machine, so building them before Phase 5 completes risks building against a moving/incorrect contract.
-- Pricing engine and surface porting (Phases 4/6) are the one place real parallelism exists — both research files (ARCHITECTURE.md's "Build Order & Parallelization" section and PITFALLS.md's phase mapping) agree independently that these tracks touch disjoint code and can run concurrently once Phase 3 lands.
-- Hardening (Phase 8) is intentionally incremental rather than a single late phase, because rate limits/cache rules/Turnstile can be applied per-route as each route ships — but the consent-log-before-Sentry ordering must be forced earlier than the phase itself to avoid shipping a compliance-inverted sequence.
+- Schema before APIs — every writer needs `reply_token` and message columns; rejecting `support_tickets` here prevents a migration fork.
+- Outbound before inbound — matching requires minted RFC ids; FEATURES dependency graph is explicit.
+- Webhook on the public host, not dashboard — Resend has no staff cookie.
+- UI after APIs, mock before UI implementation — DC house rule; ARCHITECTURE forbids UI-before-list-API.
+- MX last — a receiving domain with no handler just retries; a wrong apex MX loses `info@` immediately.
+- This order avoids dual-send cleanup, Staff-tab regressions, and quote-funnel contamination (Pitfalls 6, 5, 9, 10 as every-phase must-nots).
 
 ### Research Flags
 
 Phases likely needing deeper research during planning:
-- **Phase 1:** the i18n-runtime architecture decision (DOM-walker vs. render-time `t()`) has no external documented pattern for this specific migration — needs a focused technical spike before committing.
-- **Phase 3:** Hyperdrive + RLS-over-direct-Postgres session-context scoping is a thin-documentation area (most RLS guides assume the Supabase Data API path, not direct Postgres) — needs its own research pass plus the concurrent-isolation test as verification.
-- **Phase 5:** Stripe TWINT redirect-flow + Workers webhook interaction, and the exact queue/webhook idempotency wiring, benefit from re-checking current Stripe/Cloudflare docs at build time (these move fast; STACK.md already flags Sentry-on-Workers as MEDIUM confidence for a related reason).
-- **Phase 8:** data-residency/Worker-region-pinning is explicitly an open legal question in PROJECT.md, not a resolved technical pattern — needs counsel input, not just engineering research.
+- **Phase 2 (outbound):** confirm Resend GET-after-send actually returns RFC `message_id` on this account/plan (STACK: exposed on GET/webhook; send response is UUID). Confirm sending-domain verify on the **subdomain** (SPF/DKIM list from dashboard).
+- **Phase 3 (inbound):** exact receiving MX hostname is dashboard-generated (`inbound-smtp.<region>.amazonaws.com` is typical — do not guess). Reopen-on-closed-inbound is a product call (ARCHITECTURE recommends yes).
+- **Phase 5 (MX):** live DNS cutover is **not** this milestone; only flag the staging records to copy at Phase 11.
 
 Phases with standard patterns (skip research-phase):
-- **Phase 2:** Supabase schema/RLS/migrations is a well-documented, standard Supabase CLI workflow.
-- **Phase 4/6 (surface porting, email templates, non-money ops CRUD):** these are standard Next.js/React port work against an already-finished design spec — no novel integration risk.
-- **Phase 7 (ops assignment, board):** Realtime + exclusion-constraint patterns are documented Postgres/Supabase patterns, already fully specified in ARCHITECTURE.md and PITFALLS.md.
+- **Phase 1 schema:** existing contact RLS / `vamos_staff` / `vamos_edge` / FORCE RLS / pgTAP house rules.
+- **Phase 4 DC wire-up:** same pattern as `OpsCustomers` / `OpsBoard` + `VamosOpsApi`.
+- **Staff APIs:** dual-mount + `withStaff` + `asStaff` already proven on customers/fleet.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All core claims verified against live official Cloudflare/Supabase/Stripe/OpenNext docs; only the Sentry-on-Workers integration path is flagged MEDIUM (newer, some open GitHub issues) |
-| Features | MEDIUM-HIGH | Internal scope claims (PROJECT.md, MISSING-FEATURES.md, OWNER-ANSWERS.md) are HIGH/authoritative; competitor-pattern cross-checks (Blacklane, Transfeero, Suntransfers, GetTransfer) are MEDIUM (web search, not primary booking-flow access) |
-| Architecture | HIGH | Cloudflare Queues semantics, Stripe idempotency, OpenNext monorepo behavior, and Supabase Realtime authorization are all current-docs-verified; the exact quote-lock/pricing-snapshot table shape is this document's own design decision (MEDIUM, not an externally documented pattern) |
-| Pitfalls | MEDIUM-HIGH | Cloudflare/Stripe/Supabase-sourced pitfalls (webhook verification, Hyperdrive pooling, bundle size) are HIGH; booking-domain-specific pitfalls (DST, price/policy snapshotting, i18n/SSR, RLS-over-direct-Postgres) are derived from this project's own constraints, not third-party sources — flagged MEDIUM pending in-build validation |
+| Stack | HIGH | Official Resend receiving/send/webhook docs + in-repo versions (`resend@6.24.0` → 6.26.0, Worker `vamos`, EMAIL binding). MEDIUM only on the exact MX hostname. |
+| Features | HIGH | PROJECT.md is authoritative for Vamos scope. Industry mapping (Help Scout / Zendesk statuses) is MEDIUM-HIGH and only used for vocabulary. |
+| Architecture | HIGH | In-repo contact/outbox/ops/identity patterns verified. From/Reply-To conflict resolved in this summary (receiving address). Subdomain label picked (`replies.`). |
+| Pitfalls | HIGH | MX, Svix vs Standard Webhooks, RFC vs UUID, and `env.EMAIL` split are documented from official sources + this repo. Match-key shape follows the token decision above. |
 
-**Overall confidence:** HIGH
+**Overall confidence:** HIGH — enough to roadmap. Remaining gaps are dashboard values and one product call (reopen-on-reply), not stack choice.
 
 ### Gaps to Address
 
-- **i18n runtime SSR migration approach** — no external precedent for converting `VamosLocale`'s exact DOM-walking model; must be decided and spiked in Phase 1, not assumed.
-- **Corporate/invoice billing scope** — named as a customer segment in PROJECT.md but absent from both Active scope and Out of Scope; needs an explicit roadmap decision (build minimal version or formally defer) before requirements lock, not left open into execution.
-- **Booking add-ons (child seat, extra stop, oversized luggage)** — fee policy exists in owner answers but no confirmed UI mechanism in the audited screens; flagged for confirmation against the 23 per-screen SPECs before requirements lock, not asserted as a confirmed gap.
-- **Data residency / Worker region-pinning and Sentry consent question** — explicitly still open with counsel per PROJECT.md; must be resolved before Phase 6/8 rather than treated as a documentation formality.
-- **Post-trip review-solicitation flow** — absent from all three source documents; worth a deliberate decision (rely on imported reviews only, or add a lightweight request email) rather than defaulting to silence.
+- **Exact Resend receiving MX hostname:** copy from the Resend dashboard when adding `replies.vamostaxi.site`; do not hard-code AWS regional MX in a plan.
+- **Closed + inbound:** ARCHITECTURE recommends auto-reopen to `open`; FEATURES says pick one rule and stick to it. Confirm in Phase 3 plan, do not invent a fifth status.
+- **Contact ack Reply-To:** leaving ack on `noreply@` / `EMAIL` means a customer who replies to the **ack** (before any dispatcher reply) will not land in the ticket. Accept for v1.1 (inbound requires outbound first). Do not migrate ack in the ticket PRs.
+- **No `#support` mock today:** Phase 1 includes the DC mock; do not implement the page without it.
+- **Gmail-as-copy vs Gmail-as-inbox:** document for the owner that answering in Gmail splits threads. Ops is canonical.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- `developers.cloudflare.com/hyperdrive/*` — connection string guidance, limits, transaction-mode pooling behavior
-- `opennext.js.org/cloudflare/*` — wrangler.jsonc shape, ISR/cache backends, custom-worker cron/queue pattern, image optimization
-- `developers.cloudflare.com/queues/*`, `developers.cloudflare.com/workers/runtime-apis/handlers/scheduled/` — Queues producer/consumer config, Cron Trigger UTC scheduling
-- `supabase.com/docs/guides/auth/server-side/nextjs`, `.../auth-hooks/custom-access-token-hook` — middleware cookie pattern, `getClaims()` vs `getSession()`, custom JWT claims
-- `docs.stripe.com/payment-method/twint`, Stripe's `stripe-node-cloudflare-worker-template` (GitHub), Cloudflare's Stripe-on-Workers blog post — webhook verification and TWINT patterns
-- `.planning/PROJECT.md`, `docs/build/MISSING-FEATURES.md`, `docs/build/OWNER-ANSWERS.md` — authoritative internal project scope and decisions
-- `.planning/codebase/ARCHITECTURE.md`, `.planning/codebase/CONCERNS.md`, `docs/build/GSD-LAUNCH.md` — existing codebase map and fixed phase plan this research extends
+
+- [Resend receiving introduction](https://resend.com/docs/dashboard/receiving/introduction) — support-email use case
+- [Resend custom-domain receiving](https://resend.com/docs/dashboard/receiving/custom-domains) — MX on verified domain
+- [Resend MX conflict / Gmail coexistence](https://resend.com/docs/knowledge-base/how-do-i-avoid-conflicting-with-my-mx-records) — subdomain vs apex; same-priority does not dual-deliver
+- [Resend `email.received` webhook](https://resend.com/docs/dashboard/receiving/create-receiving-webhook) — metadata-only; must GET content
+- [Resend get email content](https://resend.com/docs/dashboard/receiving/get-email-content) — `emails.receiving.get`
+- [Resend threaded replies](https://resend.com/docs/dashboard/receiving/reply-to-emails) — `In-Reply-To` / `References` / `Re:`
+- [Resend forward](https://resend.com/docs/dashboard/receiving/forward-emails) — Gmail copy of inbound
+- [Resend verify webhooks](https://resend.com/docs/webhooks/verify-webhooks-requests) — raw body, Svix headers, `webhooks.verify`
+- [Resend send email](https://resend.com/docs/api-reference/emails/send-email) — `replyTo`, `bcc`, `headers`, idempotency key
+- In-repo: `apps/web/package.json`, `app/api/contact`, `lib/forms/notify.ts`, `app/api/auth/email-hook`, `wrangler.jsonc`, `packages/db/supabase/migrations/20260828000002_contact_forms.sql` + `20260902000001_contact_delivery_outbox.sql`, `app/ops/ops.dc.html` + `OpsSidebar.dc.html`
+- `.planning/PROJECT.md` — v1.1 goal, out of scope, Gmail copy, Staff tab gone, staging DNS only
 
 ### Secondary (MEDIUM confidence)
-- `docs.sentry.io/platforms/javascript/guides/cloudflare/frameworks/nextjs/` — Sentry-on-OpenNext integration, flagged as newer with open historical GitHub issues
-- Blacklane, Transfeero, Suntransfers, GetTransfer (public marketing/help-center pages) — competitor feature-pattern cross-checks
-- `github.com/cloudflare/workers-sdk` issues #10441, #6288; `github.com/supabase/supabase` issue #39227 — real-world dev-vs-deployed gaps and double-pooling failure reports
+
+- Help Scout / Front / Missive shared-inbox model vs Zendesk ticket queues — status vocabulary mapped onto New / Open / Replied / Closed
+- npm `resend@6.26.0` (2026-09-03) vs repo `6.24.0`
 
 ### Tertiary (LOW confidence)
-- WebSearch aggregation across Cloudflare community threads / dev.to write-ups for exact custom-worker code shapes where official docs were thin
+
+- Exact Resend receiving MX hostname — dashboard-generated; validate at Phase 5
+- Whether every customer client honours `Reply-To` — assumed **no**; that is why From is on the receiving domain
 
 ---
-*Research completed: 2026-08-17*
+*Research completed: 2026-09-04*
 *Ready for roadmap: yes*
