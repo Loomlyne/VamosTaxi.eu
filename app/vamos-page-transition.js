@@ -28,6 +28,13 @@
    Escape hatches: data-no-transition on an <a> keeps native navigation.
    Honours prefers-reduced-motion: reduce — instant navigation, no overlay. */
 (function () {
+  var host = location.hostname || '';
+  var path = location.pathname || '';
+  if (host.indexOf('dashboard.') === 0 || host.indexOf('vamos-ops-changes') === 0 || path.indexOf('/app/ops') === 0) {
+    var boot = document.getElementById('vt-boot-cover');
+    if (boot && boot.parentNode) boot.parentNode.removeChild(boot);
+    return;
+  }
   if (window.__vtPageTransition) return;
   window.__vtPageTransition = true;
 

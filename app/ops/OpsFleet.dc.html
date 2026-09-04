@@ -253,26 +253,26 @@ class Component extends DCLogic {
     ];
 
     const vehicleFields = [
+      { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'vehicle', upload:'/api/photos/upload', clearLabel:t.clearPhoto, chooseLabel:t.choosePhoto, hint:t.hPhoto },
       { key:'klass', label:t.fClass, editor:'select', options:classOptions, icon:'car', half:true, hint:t.hClass, required:true },
       { key:'model', label:t.fModel, half:true, placeholder:'Sedan or similar' },
-      { key:'chauffeurIds', label:t.fChauffeurs, editor:'select', multi:true, options:chauffeurOptions, icon:'users', addLabel:t.addChauffeur, emptyLabel:t.unassigned, hint:t.hChauffeurs },
-      { key:'plate', label:t.fPlate, half:true, placeholder:'ZH 000 000', hint:t.hPlate, required:true },
-      { key:'year', label:t.fYear, half:true, placeholder:'0000' },
+      { key:'plate', label:t.fPlate, half:true, placeholder:'ZH 000 000', required:true },
+      { key:'year', label:t.fYear, editor:'year', half:true, placeholder:'0000' },
       { key:'seats', label:t.fSeats, editor:'number', min:1, half:true },
       { key:'bags', label:t.fBags, editor:'number', min:0, half:true },
+      { key:'chauffeurIds', label:t.fChauffeurs, editor:'select', multi:true, options:chauffeurOptions, icon:'users', addLabel:t.addChauffeur, emptyLabel:t.unassigned, half:true },
       { key:'status', label:t.fStatus, editor:'select', options:vStatusOptions, icon:'settings', half:true },
-      { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'vehicle', upload:'/api/photos/upload', clearLabel:t.clearPhoto, chooseLabel:t.choosePhoto, hint:t.hPhoto },
       { key:'note', label:t.fNote, editor:'area', placeholder:'' },
     ];
     const chauffeurFields = [
+      { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'chauffeur', upload:'/api/photos/upload', clearLabel:t.clearPhoto, chooseLabel:t.choosePhoto, hint:t.hPhoto },
       { key:'name', label:t.fName, half:true, required:true },
-      { key:'phone', label:t.fPhone, half:true, placeholder:'+41 00 000 00 00' },
+      { key:'phone', label:t.fPhone, editor:'phone', half:true, placeholder:'+41 00 000 00 00' },
       { key:'email', label:t.fEmail, half:true, placeholder:'name@example.com' },
       { key:'licence', label:t.fLicence, half:true, placeholder:'CH 000 000' },
-      { key:'vehicle', label:t.fVehicle, editor:'select', options:vehicleOptions, icon:'car', half:true, hint:t.hVehicle },
+      { key:'vehicle', label:t.fVehicle, editor:'select', options:vehicleOptions, icon:'car', hint:t.hVehicle, addLabel:t.addVehicle, emptyLabel:t.noVehicle },
+      { key:'languages', label:t.fLanguages, editor:'select', multi:true, options:LANGUAGE_OPTIONS, icon:'globe', half:true },
       { key:'status', label:t.fStatus, editor:'select', options:cStatusOptions, icon:'user', half:true },
-      { key:'languages', label:t.fLanguages, editor:'select', multi:true, options:LANGUAGE_OPTIONS, icon:'globe', hint:t.hLanguages },
-      { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'chauffeur', upload:'/api/photos/upload', clearLabel:t.clearPhoto, chooseLabel:t.choosePhoto, hint:t.hPhoto },
       { key:'note', label:t.fNote, editor:'area', placeholder:'' },
     ];
 
@@ -330,14 +330,20 @@ class Component extends DCLogic {
       emptyTitle: isChauffeurs ? t.emptyCTitle : t.emptyVTitle,
       emptyBody: isChauffeurs ? t.emptyCBody : t.emptyVBody,
       deleteBody: isChauffeurs ? t.delCBody : t.delVBody,
-      nestedTitle: t.addChauffeur,
-      nestedSaveLabel: t.addChauffeur,
-      nestedTargetKey: 'chauffeurIds',
-      nestedFields: isChauffeurs ? [] : chauffeurFields.filter((f) => f.key !== 'vehicle' && f.key !== 'photo'),
-      nestedBlank: () => (ops ? ops.chauffeurs.blank() : {}),
-      onNestedSave: (rec, vehicle) => {
+      nestedTitle: isChauffeurs ? t.addVehicle : t.addChauffeur,
+      nestedSaveLabel: isChauffeurs ? t.addVehicle : t.addChauffeur,
+      nestedTargetKey: isChauffeurs ? 'vehicle' : 'chauffeurIds',
+      nestedFields: isChauffeurs
+        ? vehicleFields.filter((f) => f.key !== 'chauffeurIds' && f.key !== 'photo')
+        : chauffeurFields.filter((f) => f.key !== 'vehicle' && f.key !== 'photo'),
+      nestedBlank: () => (ops ? (isChauffeurs ? ops.vehicles.blank() : ops.chauffeurs.blank()) : {}),
+      onNestedSave: (rec, parent) => {
         if (!ops) return;
-        if (vehicle && vehicle.id) rec.vehicle = vehicle.id;
+        if (isChauffeurs) {
+          ops.vehicles.upsert(rec);
+          return;
+        }
+        if (parent && parent.id) rec.vehicle = parent.id;
         ops.chauffeurs.upsert(rec);
       },
     };

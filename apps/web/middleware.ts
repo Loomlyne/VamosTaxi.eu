@@ -136,9 +136,18 @@ function isOpsExempt(pathname: string): boolean {
  * `/ops/*` as the dashboard so the gate can be exercised without a
  * hosts-file entry. Do not bind vamostaxi.eu.
  */
+function isOpsChangesPreviewHost(host: string): boolean {
+  return host === "vamos-ops-changes.koussayzayeni.workers.dev"
+    || host.endsWith("-vamos-ops-changes.koussayzayeni.workers.dev")
+    || host === "vamos-web-ops-changes.koussayzayeni.workers.dev"
+    || host.endsWith("-vamos-web-ops-changes.koussayzayeni.workers.dev");
+}
+
 function isNamedDashboardHost(request: NextRequest): boolean {
   const host = hostnameOf(request);
-  return host === "dashboard.vamostaxi.site" || host === "dashboard.localhost";
+  return host === "dashboard.vamostaxi.site"
+    || host === "dashboard.localhost"
+    || isOpsChangesPreviewHost(host);
 }
 
 function isDashboardHost(request: NextRequest): boolean {
@@ -166,6 +175,16 @@ async function dashboardHostMiddleware(request: NextRequest): Promise<NextRespon
     const pub = publicDashboardPath(path);
     const dest = pub === "/" || pub === "" ? "/" : "/login";
     return applyStagingNoindex(NextResponse.redirect(dashboardAbs(request, dest), 308));
+  }
+
+  if (process.env.DEPLOY_ENV === "ops-changes") {
+    if (path === "/login") {
+      return serveOpsDc(request, new NextResponse(), "ops-login.dc.html", false);
+    }
+    if (path !== "/") {
+      return applyStagingNoindex(NextResponse.redirect(dashboardAbs(request, "/"), 307));
+    }
+    return serveOpsDc(request, new NextResponse(), "ops.dc.html", true);
   }
 
   const client = createSupabaseMiddlewareClient(request);
@@ -211,7 +230,7 @@ function copyCookies(from: NextResponse, to: NextResponse): NextResponse {
 }
 
 function applyStagingNoindex(response: NextResponse): NextResponse {
-  if (process.env.DEPLOY_ENV === "staging") {
+  if (process.env.DEPLOY_ENV === "staging" || process.env.DEPLOY_ENV === "ops-changes") {
     response.headers.set("X-Robots-Tag", "noindex");
   }
   return response;
@@ -268,6 +287,11 @@ async function opsStaffGate(request: NextRequest, i18nResponse: NextResponse): P
 
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // This Worker is dashboard-only. Never serve the public site.
+  if (process.env.DEPLOY_ENV === "ops-changes") {
+    return dashboardHostMiddleware(request);
+  }
 
   // Public host never serves the console (D-01a).
   if (!isDashboardHost(request) && isOpsRequest(pathname)) {

@@ -28,8 +28,14 @@
 [data-vs-pop]{position:fixed;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg);padding:6px;z-index:200;display:flex;flex-direction:column;gap:2px;max-height:300px;overflow-y:auto}
 [data-vs-opt]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border-radius:10px;cursor:pointer;font-family:var(--vt-font-body)}
 [data-vs-opt]:hover{background:var(--vt-grey-50)}
+[data-vs-add]{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:36px;padding:0 12px;margin:0 0 4px;border-radius:var(--vt-radius-pill);background:var(--vt-grey-50);border:1px solid var(--vt-border-subtle);cursor:pointer;font-family:var(--vt-font-body);font-size:13px;font-weight:600;letter-spacing:.01em;color:var(--vt-charcoal-900)}
+[data-vs-add]:hover{background:var(--vt-grey-100);border-color:var(--vt-charcoal-900)}
 </style>
 </helmet>
+<style>
+[data-vs-add]{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:36px;padding:0 12px;margin:0 0 4px;border-radius:var(--vt-radius-pill);background:var(--vt-grey-50);border:1px solid var(--vt-border-subtle);cursor:pointer;font-family:var(--vt-font-body);font-size:13px;font-weight:600;letter-spacing:.01em;color:var(--vt-charcoal-900)}
+[data-vs-add]:hover{background:var(--vt-grey-100);border-color:var(--vt-charcoal-900)}
+</style>
 <div data-vs-root="{{ sizeAttr }}" ref="{{ rootRef }}" style="display:{{ rootDisplay }};width:{{ rootWidth }};min-width:0">
 <button type="button" data-vs-btn="1" ref="{{ btnRef }}" aria-haspopup="listbox" aria-expanded="{{ expanded }}" aria-label="{{ a11yLabel }}" onClick="{{ toggle }}" style="width:{{ btnWidth }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ icon }}" size="{{ n18 }}" color="var(--vt-charcoal-900)" hint-size="18px,18px"></x-import>
@@ -43,6 +49,12 @@
 </button>
 <sc-if value="{{ open }}" hint-placeholder-val="{{ false }}">
 <div data-vs-pop="1" data-lenis-prevent="1" role="listbox" aria-label="{{ a11yLabel }}" ref="{{ popRef }}" style="top:{{ popTop }};left:{{ popLeft }};width:{{ popWidth }}">
+<sc-if value="{{ hasAdd }}" hint-placeholder-val="{{ false }}">
+<button type="button" data-vs-add="1" onClick="{{ addNew }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+<span>{{ addLabel }}</span>
+</button>
+</sc-if>
 <sc-for list="{{ rows }}" as="o" hint-placeholder-count="4">
 <button type="button" data-vs-opt="1" role="option" aria-selected="{{ o.selStr }}" onClick="{{ o.pick }}">
 <sc-if value="{{ o.hasColor }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="display:inline-block;flex:0 0 auto;width:10px;height:10px;border-radius:999px;background:{{ o.color }};box-shadow:inset 0 0 0 1px rgb(0 0 0/.14)"></span></sc-if>
@@ -118,7 +130,9 @@ class Component extends DCLogic {
     const width = r ? Math.max(r.width, field ? r.width : 214) : 214;
     const belowSpace = r ? window.innerHeight - r.bottom : 0;
     const wantsUp = r && belowSpace < 240 && r.top > belowSpace;
-    const est = Math.min(300, 12 + opts.length * 44);
+    const addLabel = String(this.props.addLabel || '').trim();
+    const hasAdd = !!addLabel;
+    const est = Math.min(300, 12 + (hasAdd ? 40 : 0) + opts.length * 44);
     let left = r ? r.left : 0;
     if (r && left + width > window.innerWidth - 12) left = Math.max(12, window.innerWidth - 12 - width);
     return {
@@ -127,6 +141,11 @@ class Component extends DCLogic {
       expanded: this.state.open ? 'true' : 'false',
       icon: this.props.icon || 'globe',
       a11yLabel: this.props.a11yLabel || 'Select',
+      hasAdd, addLabel,
+      addNew: () => {
+        this.close();
+        if (this.props.onAdd) this.props.onAdd();
+      },
       sizeAttr: field ? 'field' : 'compact',
       rootDisplay: field ? 'block' : 'inline-flex',
       rootWidth: field ? '100%' : 'auto',

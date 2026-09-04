@@ -4,15 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="./support.js"></script>
-<style>
-[data-af-pw]{position:relative}
-[data-af-eye]{appearance:none;-webkit-appearance:none;position:absolute;z-index:2;inset-inline-end:6px;top:calc((var(--vt-label-md) * var(--vt-body-leading)) + 6px);width:42px;height:var(--vt-control-h-md);margin:0;padding:0;display:inline-flex;align-items:center;justify-content:center;border:0;background:transparent;color:var(--vt-charcoal-700);cursor:pointer;box-shadow:none}
-[data-af-eye]:hover{color:var(--vt-charcoal-900)}
-[data-af-eye]:focus-visible{outline:3px solid rgb(253 194 11/.45);outline-offset:2px;border-radius:var(--vt-radius-xs)}
-</style>
 </head>
 <body>
 <x-dc>
+<style>
+[data-af-pw]{position:relative}
+[data-af-pw] .vt-field__label{display:none}
+[data-af-pw] .vt-input{padding-inline-end:44px}
+[data-af-eye]{appearance:none;-webkit-appearance:none;position:absolute;z-index:2;inset-inline-end:6px;top:50%;transform:translateY(-50%);width:32px;height:32px;margin:0;padding:0;display:inline-flex;align-items:center;justify-content:center;border:0;background:transparent;color:var(--vt-charcoal-700);cursor:pointer;box-shadow:none}
+[data-af-eye]:hover{color:var(--vt-charcoal-900)}
+[data-af-eye]:focus-visible{outline:3px solid rgb(253 194 11/.45);outline-offset:2px;border-radius:var(--vt-radius-xs)}
+</style>
 <main style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
 
 <header style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle)">
@@ -101,7 +103,7 @@
 <span data-fld-l="1">{{ tPublished }}</span>
 <span data-vt-no-i18n="1" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px">
 <sc-for list="{{ publishedLangs }}" as="l" hint-placeholder-count="4">
-<span style="box-sizing:border-box;display:flex;align-items:center;gap:9px;min-width:0;padding:9px 10px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-grey-50)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n18 }}" color="var(--vt-charcoal-700)" hint-size="18px,18px"></x-import><strong style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);color:var(--vt-text-primary)">{{ l.code }}</strong><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ l.label }}</span></span>
+<span style="box-sizing:border-box;display:inline-flex;align-items:center;gap:8px;min-width:0;height:36px;padding:0 14px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);background:var(--vt-grey-50)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n18 }}" color="var(--vt-charcoal-700)" hint-size="18px,18px"></x-import><strong style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);color:var(--vt-text-primary)">{{ l.code }}</strong><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ l.label }}</span></span>
 </sc-for>
 </span>
 <p data-hint="1">{{ tPublishedHint }}</p>
@@ -142,35 +144,6 @@
 </section>
 </sc-if>
 
-<sc-if value="{{ isStaff }}" hint-placeholder-val="{{ false }}">
-<section style="box-sizing:border-box;display:flex;flex-direction:column;gap:16px;padding:24px 26px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);min-width:0">
-<div>
-<h2 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tStaff }}</h2>
-<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tStaffSub }}</p>
-</div>
-<div style="display:grid;grid-template-columns:minmax(0,1fr) 160px auto;gap:10px;align-items:end">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tInviteEmail }}" value="{{ inviteEmail }}" onChange="{{ setInviteEmail }}" hint-size="100%,76px"></x-import>
-<div style="display:flex;flex-direction:column;gap:6px;min-width:0">
-<span data-fld-l="1">{{ tInviteRole }}</span>
-<dc-import name="BrandSelect" size="field" value="{{ inviteRole }}" options="{{ inviteRoleOptions }}" onSelect="{{ pickInviteRole }}" a11y-label="{{ tInviteRole }}" hint-size="100%,44px"></dc-import>
-</div>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ sendInvite }}" hint-size="140px,44px">{{ tInviteSend }}</x-import>
-</div>
-<p data-hint="1">{{ tInviteNote }}</p>
-<span style="display:{{ inviteMsgShow }};font-size:var(--vt-body-xs);color:var(--vt-text-primary);font-weight:500">{{ inviteMsg }}</span>
-<div style="display:flex;flex-direction:column;gap:0;padding-top:8px;border-top:1px solid var(--vt-grey-200)">
-<sc-for list="{{ rosterRows }}" as="r" hint-placeholder-count="2">
-<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--vt-grey-200)">
-<span style="flex:1 1 160px;min-width:0;font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ r.name }}</span>
-<span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ r.email }}</span>
-<dc-import name="BrandSelect" size="field" value="{{ r.role }}" options="{{ inviteRoleOptions }}" onSelect="{{ r.setRole }}" a11y-label="{{ tInviteRole }}" hint-size="140px,44px"></dc-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" onClick="{{ r.toggleActive }}" hint-size="120px,36px">{{ r.activeLabel }}</x-import>
-</div>
-</sc-for>
-</div>
-</section>
-</sc-if>
-
 <sc-if value="{{ isSecurity }}" hint-placeholder-val="{{ false }}">
 <section style="box-sizing:border-box;display:flex;flex-direction:column;gap:16px;padding:24px 26px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);min-width:0">
 <div>
@@ -178,53 +151,59 @@
 <p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSecuritySub }}</p>
 </div>
 
-<div style="display:flex;flex-direction:column;gap:10px">
-<span data-panel-k="1">{{ tSecEmailLabel }}</span>
-<div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" aria-label="{{ tSecEmailLabel }}" value="{{ secEmail }}" onChange="{{ setSecEmail }}" hint-size="100%,44px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" onClick="{{ saveEmail }}" hint-size="150px,44px">{{ tSecEmailBtn }}</x-import>
-</div>
-<span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSecEmailHint }}</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" type="email" size="md" label="{{ tSecEmailLabel }}" autoComplete="email" value="{{ secEmail }}" onChange="{{ setSecEmail }}" hint="{{ tSecEmailHint }}" hint-size="100%,76px"></x-import>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ saveEmail }}" hint-size="150px,44px">{{ tSecEmailBtn }}</x-import>
 <span style="display:{{ emailSavedShow }};font-size:var(--vt-body-xs);color:var(--vt-text-primary);font-weight:500">{{ tSecUpdated }}</span>
 </div>
 
-<div style="display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid var(--vt-grey-200)">
-<span data-panel-k="1">{{ tSecPasswordLabel }}</span>
-<p style="margin:0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSecPasswordSub }}</p>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px">
+<div style="display:flex;flex-direction:column;gap:12px;padding-top:16px;border-top:1px solid var(--vt-grey-200)">
+<div>
+<span style="display:block;font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ tSecPasswordLabel }}</span>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSecPasswordSub }}</p>
+</div>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px">
+<div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+<span data-fld-l="1">{{ tSecNewPw }}</span>
 <div data-af-pw="1">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" type="{{ pw1Type }}" size="md" label="{{ tSecNewPw }}" value="{{ pw1 }}" onChange="{{ setPw1 }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" type="{{ pw1Type }}" size="md" aria-label="{{ tSecNewPw }}" autoComplete="new-password" value="{{ pw1 }}" onChange="{{ setPw1 }}" hint-size="100%,44px"></x-import>
 <button type="button" data-af-eye="1" aria-label="{{ eye1Label }}" aria-pressed="{{ showPw1 }}" onClick="{{ togglePw1 }}">
 <sc-if value="{{ showPw1 }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="eye-off" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></sc-if>
 <sc-if value="{{ hidePw1 }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="eye" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></sc-if>
 </button>
 </div>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+<span data-fld-l="1">{{ tSecConfirmPw }}</span>
 <div data-af-pw="1">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" type="{{ pw2Type }}" size="md" label="{{ tSecConfirmPw }}" value="{{ pw2 }}" onChange="{{ setPw2 }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" type="{{ pw2Type }}" size="md" aria-label="{{ tSecConfirmPw }}" autoComplete="new-password" value="{{ pw2 }}" onChange="{{ setPw2 }}" hint-size="100%,44px"></x-import>
 <button type="button" data-af-eye="1" aria-label="{{ eye2Label }}" aria-pressed="{{ showPw2 }}" onClick="{{ togglePw2 }}">
 <sc-if value="{{ showPw2 }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="eye-off" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></sc-if>
 <sc-if value="{{ hidePw2 }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="eye" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></sc-if>
 </button>
 </div>
 </div>
+</div>
 <span style="display:{{ pwMsgShow }};font-size:var(--vt-body-xs);color:var(--vt-danger)">{{ pwMsg }}</span>
 <div style="display:flex;align-items:center;gap:12px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" onClick="{{ changePassword }}" hint-size="170px,44px">{{ tSecPasswordBtn }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ changePassword }}" hint-size="170px,44px">{{ tSecPasswordBtn }}</x-import>
 <span style="display:{{ pwSavedShow }};font-size:var(--vt-body-xs);color:var(--vt-text-primary);font-weight:500">{{ tSecUpdated }}</span>
 </div>
 </div>
 
-<div style="display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid var(--vt-grey-200)">
-<span data-panel-k="1">{{ tSecPasskeyLabel }}</span>
-<p style="margin:0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSecPasskeySub }}</p>
+<div style="display:flex;flex-direction:column;gap:12px;padding-top:16px;border-top:1px solid var(--vt-grey-200)">
+<div>
+<span style="display:block;font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ tSecPasskeyLabel }}</span>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSecPasskeySub }}</p>
+</div>
 <sc-if value="{{ noPasskey }}" hint-placeholder-val="{{ true }}">
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px">
 <span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSecPasskeyEmpty }}</span>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" icon="shield-check" onClick="{{ addPasskey }}" hint-size="150px,36px">{{ tSecPasskeyAdd }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" icon="shield-check" onClick="{{ addPasskey }}" hint-size="170px,44px">{{ tSecPasskeyAdd }}</x-import>
 </div>
 </sc-if>
 <sc-if value="{{ passkeyAdded }}" hint-placeholder-val="{{ false }}">
-<div style="display:flex;align-items:center;gap:12px;padding:11px 0">
+<div style="display:flex;align-items:center;gap:12px;padding:4px 0">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="shield-check" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
 <span style="flex:1 1 auto;min-width:0;font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ tSecPasskeyRegistered }}</span>
 </div>
@@ -251,7 +230,6 @@ const PANES = [
   { key:'locale', icon:'globe', keys:['defaultLang', 'defaultCur'] },
   { key:'payments', icon:'credit-card', keys:[] },
   { key:'notify', icon:'bell', keys:['emailConfirm', 'emailReminder', 'smsReminder', 'opsAlerts'] },
-  { key:'staff', icon:'users', keys:[], admin:true },
   { key:'security', icon:'shield-check', keys:[] },
 ];
 const T = {
@@ -480,7 +458,7 @@ function signOutNow() {
   api('POST', '/api/auth', { action: 'signout' }).then(done, done);
 }
 class Component extends DCLogic {
-  state = { lang:'en', draft:null, saved:false, pane:(typeof location !== 'undefined' && (location.hash || '').replace(/^#\/?/, '') === 'staff') ? 'staff' : 'company', secEmail:'', pw1:'', pw2:'', pwMsg:'', pwSaved:false, emailSaved:false, passkeyAdded:false, passkeyMsg:'', passkeyError:false, showPw1:false, showPw2:false, me:null, roster:[], inviteEmail:'', inviteRole:'dispatcher', inviteMsg:'' };
+  state = { lang:'en', draft:null, saved:false, pane:'company', secEmail:'', pw1:'', pw2:'', pwMsg:'', pwSaved:false, emailSaved:false, passkeyAdded:false, passkeyMsg:'', passkeyError:false, showPw1:false, showPw2:false, me:null };
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
     if (this._offSettings) this._offSettings();
@@ -496,33 +474,15 @@ class Component extends DCLogic {
       if (!json || !json.ok || !json.data) return;
       const me = json.data;
       this.setState({ me: me, secEmail: me.email || this.state.secEmail });
-      if (me.role === 'admin') this.loadRoster();
-    });
-  };
-  loadRoster = () => {
-    api('GET', '/api/staff/roster').then((json) => {
-      const data = json && json.ok ? json.data : null;
-      if (!data || data.access !== 'ok' || !Array.isArray(data.rows)) {
-        this.setState({ roster: [] });
-        return;
-      }
-      this.setState({ roster: data.rows });
     });
   };
   componentDidMount() {
     this.bind();
     this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
     window.addEventListener('vamos:locale', this._onLocale);
-    this._onHash = () => {
-      const raw = (location.hash || '').replace(/^#\/?/, '');
-      if (raw === 'staff') this.setState({ pane: 'staff' });
-    };
-    window.addEventListener('hashchange', this._onHash);
-    this._onHash();
     if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() });
   }
   componentWillUnmount() {
-    if (this._onHash) window.removeEventListener('hashchange', this._onHash);
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     if (this._offSettings) this._offSettings();
 
@@ -607,21 +567,6 @@ class Component extends DCLogic {
     });
   };
   discard = () => { if (window.VamosOps) this.setState({ draft: window.VamosOps.settings.get(), saved: false }); };
-  sendInvite = () => {
-    const email = (this.state.inviteEmail || '').trim();
-    const role = this.state.inviteRole === 'admin' ? 'admin' : 'dispatcher';
-    if (!email) return;
-    api('POST', '/api/staff/invite', { email: email, role: role }).then((json) => {
-      this.setState({ inviteMsg: json && json.ok ? 'ok' : (json && json.code) || 'error', inviteEmail: json && json.ok ? '' : this.state.inviteEmail });
-      if (json && json.ok) this.loadRoster();
-    });
-  };
-  patchRoster = (userId, patch) => {
-    api('PATCH', '/api/staff/roster', Object.assign({ userId: userId }, patch)).then((json) => {
-      const data = json && json.ok ? json.data : null;
-      if (data && data.access === 'ok' && Array.isArray(data.rows)) this.setState({ roster: data.rows });
-    });
-  };
 
   renderVals() {
     const t = T[this.state.lang] || T.en;
@@ -631,7 +576,6 @@ class Component extends DCLogic {
     const changed = (k) => !POLICY_KEYS[k] && String(d[k]) !== String(saved[k]);
     const dirty = Object.keys(d).some(changed);
     const pane = this.state.pane;
-    const isAdmin = this.state.me && this.state.me.role === 'admin';
     const curCodes = window.VamosLocale && window.VamosLocale.CURRENCIES
       ? Object.keys(window.VamosLocale.CURRENCIES) : ['CHF', 'EUR', 'USD'];
     const sw = (key, label, hint) => ({
@@ -641,18 +585,13 @@ class Component extends DCLogic {
     const RAIL = {
       company: [t.railCompany, t.railCompanyHint], policy: [t.railPolicy, t.railPolicyHint],
       locale: [t.railLocale, t.railLocaleHint], payments: [t.railPayments, t.railPaymentsHint],
-      notify: [t.railNotify, t.railNotifyHint], staff: [t.railStaff, t.railStaffHint],
+      notify: [t.railNotify, t.railNotifyHint],
       security: [t.railSecurity, t.railSecurityHint],
     };
-    const inviteRoleOptions = [
-      { value:'dispatcher', label: t.inviteRoleDispatcher },
-      { value:'admin', label: t.inviteRoleAdmin },
-    ];
-    const visiblePanes = PANES.filter((p) => !p.admin || isAdmin);
     return {
       n18: 18,
-      tTitle: pane === 'staff' ? t.staff : t.title,
-      tSubtitle: pane === 'staff' ? t.staffSub : t.subtitle,
+      tTitle: t.title,
+      tSubtitle: t.subtitle,
       tSave: t.save, tDiscard: t.discard, tSaved: t.saved,
       tUnsaved: t.unsaved,
       tCompany: t.company, tCompanySub: t.companySub, tCompanyNote: t.companyNote,
@@ -664,7 +603,6 @@ class Component extends DCLogic {
       tPublished: t.published, tPublishedHint: t.publishedHint,
       tPayments: t.payments, tPaymentsSub: t.paymentsSub, tPaymentsNote: t.paymentsNote,
       tNotifications: t.notifications, tNotificationsSub: t.notificationsSub, tNotificationsNote: t.notificationsNote,
-      tStaff: t.staff, tStaffSub: t.staffSub, tInviteEmail: t.inviteEmail, tInviteRole: t.inviteRole, tInviteSend: t.inviteSend, tInviteNote: t.inviteNote,
       tSecurity: t.security, tSecuritySub: t.securitySub,
       tSecEmailLabel: t.secEmailLabel, tSecEmailHint: t.secEmailHint, tSecEmailBtn: t.secEmailBtn,
       tSecPasswordLabel: t.secPasswordLabel, tSecPasswordSub: t.secPasswordSub,
@@ -694,24 +632,17 @@ class Component extends DCLogic {
         { code:'EN', label:t.langEn }, { code:'DE', label:t.langDe },
         { code:'FR', label:t.langFr }, { code:'AR', label:t.langAr },
       ],
-      panes: visiblePanes.map((p) => ({
+      panes: PANES.map((p) => ({
         icon: p.icon,
         label: RAIL[p.key][0],
         hint: RAIL[p.key][1],
         on: pane === p.key ? '1' : '0',
         dotShow: p.keys.some(changed) ? 'block' : 'none',
-        pick: () => {
-          this.setState({ pane: p.key });
-          if (p.key === 'staff') {
-            if ((location.hash || '') !== '#staff') location.hash = '#staff';
-          } else if ((location.hash || '').replace(/^#\/?/, '') === 'staff') {
-            location.hash = '#settings';
-          }
-        },
+        pick: () => this.setState({ pane: p.key }),
       })),
       isCompany: pane === 'company', isPolicy: pane === 'policy', isLocale: pane === 'locale',
-      isPayments: pane === 'payments', isNotify: pane === 'notify', isStaff: pane === 'staff' && isAdmin,
-      actionsShow: pane === 'staff' ? 'none' : 'flex',
+      isPayments: pane === 'payments', isNotify: pane === 'notify',
+      actionsShow: 'flex',
       dirtyShow: dirty ? 'inline-flex' : 'none',
       savedShow: this.state.saved && !dirty ? 'inline' : 'none',
       notDirty: !dirty,
@@ -739,18 +670,6 @@ class Component extends DCLogic {
         sw('smsReminder', t.smsReminder, t.smsReminderHint),
         sw('opsAlerts', t.opsAlerts, t.opsAlertsHint),
       ],
-      inviteEmail: this.state.inviteEmail, setInviteEmail: (e) => this.setState({ inviteEmail: e.target.value }),
-      inviteRole: this.state.inviteRole, pickInviteRole: (v) => this.setState({ inviteRole: v }),
-      inviteRoleOptions, sendInvite: this.sendInvite,
-      inviteMsg: this.state.inviteMsg, inviteMsgShow: this.state.inviteMsg ? 'inline' : 'none',
-      rosterRows: (this.state.roster || []).map((row) => ({
-        name: row.fullName || '',
-        email: row.userId || '',
-        role: row.role,
-        activeLabel: row.active ? t.staffActive : t.staffInactive,
-        setRole: (v) => this.patchRoster(row.userId, { role: v }),
-        toggleActive: () => this.patchRoster(row.userId, { active: !row.active }),
-      })),
       save: this.save, discard: this.discard,
     };
   }

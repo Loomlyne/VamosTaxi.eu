@@ -54,7 +54,7 @@
 <h2 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ dayHeading }}</h2>
 <span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ dayCountLabel }}</span>
 </div>
-<dc-import name="OpsTable" rows="{{ dayRows }}" columns="{{ columns }}" fields="{{ fields }}" blank="{{ blank }}" onSave="{{ onSave }}" onDelete="{{ onDelete }}" noun="{{ tNoun }}" noun-plural="{{ tNounPlural }}" add-title="{{ tAdd }}" edit-title="{{ tEditTitle }}" delete-title="{{ tDeleteTitle }}" label-key="id" add-label="{{ tAdd }}" search-placeholder="{{ tSearch }}" search-keys="{{ searchKeys }}" empty-title="{{ tEmptyTitle }}" empty-body="{{ tEmptyBody }}" delete-body="{{ tDeleteBody }}" hint-size="100%,400px"></dc-import>
+<dc-import name="OpsTable" rows="{{ dayRows }}" columns="{{ columns }}" fields="{{ fields }}" blank="{{ blank }}" onSave="{{ onSave }}" onDelete="{{ onDelete }}" noun="{{ tNoun }}" noun-plural="{{ tNounPlural }}" add-title="{{ tAdd }}" edit-title="{{ tEditTitle }}" delete-title="{{ tDeleteTitle }}" label-key="id" add-label="{{ tAdd }}" search-placeholder="{{ tSearch }}" search-keys="{{ searchKeys }}" empty-title="{{ tEmptyTitle }}" empty-body="{{ tEmptyBody }}" delete-body="{{ tDeleteBody }}" nested-title="{{ nestedTitle }}" nested-fields="{{ nestedFields }}" nested-blank="{{ nestedBlank }}" nested-save-label="{{ nestedSaveLabel }}" nested-target-key="{{ nestedTargetKey }}" on-nested-save="{{ onNestedSave }}" hint-size="100%,400px"></dc-import>
 </div>
 
 </div>
@@ -79,6 +79,7 @@ const T = {
     fClass:'Vehicle class', fPax:'Passengers', fBags:'Bags', fStatus:'Status', fChauffeur:'Chauffeur', fFlight:'Flight number', fNote:'Note',
     hDate:'As it reads on the board, e.g. Fri 14 Aug.', hFlight:'Only for an airport pickup.',
     none:'No chauffeur', nBookings:'bookings', nBooking:'booking',
+    addChauffeur:'Add a chauffeur', cName:'Name', cPhone:'Phone', cLicence:'Licence',
     editTitle:'Edit booking', deleteTitle:'Delete this booking?',
   },
   de: { title:'Kalender', subtitle:'Alle Buchungen nach dem Tag ihrer Fahrt',
@@ -93,6 +94,7 @@ const T = {
     fClass:'Fahrzeugklasse', fPax:'Passagiere', fBags:'Gepäck', fStatus:'Status', fChauffeur:'Chauffeur', fFlight:'Flugnummer', fNote:'Notiz',
     hDate:'So wie auf dem Board, z. B. Fri 14 Aug.', hFlight:'Nur bei einer Flughafenabholung.',
     none:'Kein Chauffeur', nBookings:'Buchungen', nBooking:'Buchung',
+    addChauffeur:'Chauffeur hinzufügen', cName:'Name', cPhone:'Telefon', cLicence:'Ausweis',
     editTitle:'Buchung bearbeiten', deleteTitle:'Diese Buchung löschen?',
   },
   fr: { title:'Calendrier', subtitle:'Toutes les réservations selon le jour de la course',
@@ -107,6 +109,7 @@ const T = {
     fClass:'Classe de véhicule', fPax:'Passagers', fBags:'Bagages', fStatus:'Statut', fChauffeur:'Chauffeur', fFlight:'Numéro de vol', fNote:'Note',
     hDate:'Comme au tableau, p. ex. Fri 14 Aug.', hFlight:'Uniquement pour une prise en charge à l’aéroport.',
     none:'Aucun chauffeur', nBookings:'réservations', nBooking:'réservation',
+    addChauffeur:'Ajouter un chauffeur', cName:'Nom', cPhone:'Téléphone', cLicence:'Permis',
     editTitle:'Modifier la réservation', deleteTitle:'Supprimer cette réservation ?',
   },
   ar: { title:'التقويم', subtitle:'كل الحجوزات موزّعة على يوم تنفيذها',
@@ -121,11 +124,14 @@ const T = {
     fClass:'فئة المركبة', fPax:'الركاب', fBags:'الحقائب', fStatus:'الحالة', fChauffeur:'السائق', fFlight:'رقم الرحلة', fNote:'ملاحظة',
     hDate:'كما يظهر على اللوحة، مثل Fri 14 Aug.', hFlight:'لاستقبالات المطار فقط.',
     none:'بلا سائق', nBookings:'حجوزات', nBooking:'حجز',
+    addChauffeur:'إضافة سائق', cName:'الاسم', cPhone:'الهاتف', cLicence:'الرخصة',
     editTitle:'تعديل الحجز', deleteTitle:'حذف هذا الحجز؟',
   },
 };
 /* The board writes dates as "Fri 14 Aug"; the calendar has to read that back. */
 function parseDate(s, year) {
+  const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || '');
+  if (iso) return { day: parseInt(iso[3], 10), month: parseInt(iso[2], 10) - 1, year: parseInt(iso[1], 10) };
   const m = /(\d{1,2})\s+([A-Za-z]{3})/.exec(s || '');
   if (!m) return null;
   const mon = MON_EN.indexOf(m[2]);
@@ -254,15 +260,15 @@ class Component extends DCLogic {
       fields: [
         { key:'id', label:t.fRef, half:true, required:true, placeholder:'VT-0000' },
         { key:'customer', label:t.fCustomer, half:true },
-        { key:'date', label:t.fDate, half:true, hint:t.hDate, required:true },
-        { key:'time', label:t.fTime, half:true, placeholder:'00:00' },
+        { key:'date', label:t.fDate, editor:'date', half:true, required:true },
+        { key:'time', label:t.fTime, editor:'time', half:true, placeholder:'00:00' },
         { key:'pickup', label:t.fPickup },
         { key:'dropoff', label:t.fDropoff },
         { key:'klass', label:t.fClass, editor:'select', options:classOptions, icon:'car', half:true },
         { key:'status', label:t.fStatus, editor:'select', options:statusOptions, icon:'settings', half:true },
         { key:'pax', label:t.fPax, editor:'number', min:1, half:true },
         { key:'bags', label:t.fBags, editor:'number', min:0, half:true },
-        { key:'chauffeur', label:t.fChauffeur, editor:'select', options:chauffeurOptions, icon:'user', half:true },
+        { key:'chauffeur', label:t.fChauffeur, editor:'select', options:chauffeurOptions, icon:'user', half:true, addLabel:t.addChauffeur, emptyLabel:t.none },
         { key:'flight', label:t.fFlight, half:true, hint:t.hFlight },
         { key:'note', label:t.fNote, editor:'area' },
       ],
@@ -270,6 +276,17 @@ class Component extends DCLogic {
       blank: () => Object.assign(ops ? ops.bookings.blank() : {}, { date: selLabel }),
       onSave: (rec) => { if (ops) ops.bookings.upsert(rec); },
       onDelete: (id) => { if (ops) ops.bookings.remove(id); },
+      nestedTitle: t.addChauffeur,
+      nestedSaveLabel: t.addChauffeur,
+      nestedTargetKey: 'chauffeur',
+      nestedFields: [
+        { key:'name', label:t.cName, half:true, required:true },
+        { key:'phone', label:t.cPhone, half:true, placeholder:'+41 00 000 00 00' },
+        { key:'licence', label:t.cLicence, half:true },
+        { key:'status', label:t.fStatus, editor:'select', options:(ops ? ops.CHAUFFEUR_STATUS : []).map((s) => ({ value:s, label:s })), icon:'user', half:true },
+      ],
+      nestedBlank: () => (ops ? ops.chauffeurs.blank() : {}),
+      onNestedSave: (rec) => { if (ops) ops.chauffeurs.upsert(rec); },
     };
   }
 }

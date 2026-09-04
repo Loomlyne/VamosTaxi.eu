@@ -241,6 +241,15 @@
     return {
       name: name,
       get: function () { hydrate(); return copy(); },
+      apply: function (patch) {
+        if (!patch || typeof patch !== "object") return copy();
+        var k;
+        for (k in patch) {
+          if (Object.prototype.hasOwnProperty.call(patch, k)) val[k] = patch[k];
+        }
+        emit(name);
+        return copy();
+      },
       update: function (patch) {
         var previous = copy();
         api("PUT", path, patch).then(function (json) {

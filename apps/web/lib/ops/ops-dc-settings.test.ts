@@ -75,12 +75,12 @@ describe("06-09 DC mocks", () => {
     expect(sidebar).toMatch(/\/api\/auth/);
   });
 
-  it("D-12: dispatcher omits #pricing and #staff from the painted nav", () => {
+  it("D-12: dispatcher omits #pricing from the painted nav and Staff is deleted", () => {
     const sidebar = read("app/ops/OpsSidebar.dc.html");
     expect(sidebar).toMatch(/const NAV_ADMIN = \[/);
     expect(sidebar).toMatch(/href:'#pricing'/);
-    expect(sidebar).toMatch(/key:'staff'/);
-    expect(sidebar).toMatch(/href:'#staff'/);
+    expect(sidebar).not.toMatch(/key:'staff'/);
+    expect(sidebar).not.toMatch(/href:'#staff'/);
     expect(sidebar).not.toMatch(/key:'staff-roster'/);
     const bottom = sidebar.match(/const NAV_BOTTOM = \[[\s\S]*?\];/);
     expect(bottom?.[0] ?? "").not.toMatch(/#pricing|#staff/);
@@ -163,6 +163,8 @@ describe("06-09 DC mocks", () => {
     expect(profile).toMatch(/this\.persist\(\{ avatar:json\.key \}\)/);
     expect(profile).toMatch(/this\.applyPersisted\(json\.data\)/);
     expect(profile).not.toMatch(/readAsDataURL|FileReader/);
-    expect(profile).toMatch(/readOnly="\{\{ yes \}\}"/);
+    expect(profile).toMatch(/profile\.apply/);
+    expect(profile).not.toMatch(/profile\.update\(/);
+    expect(profile).not.toMatch(/readOnly=/);
   });
 });
