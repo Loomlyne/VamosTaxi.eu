@@ -94,6 +94,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 }
 @media (prefers-reduced-motion:reduce){[data-rv-slide],[data-rv-dot],[data-rv-arrow]{transition:none}}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
 </helmet>
+<sc-if value="{{ hasReviews }}" hint-placeholder-val="{{ false }}">
 <section id="reviews" data-rv="1" data-dir="1" data-screen-label="Reviews" aria-labelledby="reviews-title" ref="{{ rootRef }}" style="color:var(--vt-text-primary);font-family:var(--vt-font-body);position:relative;overflow:hidden">
 <div aria-hidden="true" style="position:absolute;inset:0;background-image:url(data:image/png;base64,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);background-size:88px 88px;background-repeat:repeat;opacity:.028;pointer-events:none;z-index:0"></div>
 <div data-rv-wrap="1" style="position:relative;z-index:1">
@@ -103,19 +104,12 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <h2 id="reviews-title" style="margin:0;font-family:var(--vt-font-display);font-size:clamp(34px,4.4vw,52px);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:1.06;max-width:24ch;text-wrap:balance">What clients say about us</h2>
 </div>
 
-<sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
-<div data-rv-empty="1">
-<strong>No reviews are published yet</strong>
-<span>Reviews appear here as soon as they are published in the dispatch console. Nothing is shown in the meantime.</span>
-</div>
-</sc-if>
-
-<div data-rv-grid="1" style="display:{{ gridShow }}" role="group" aria-roledescription="carousel" aria-label="Client reviews" onMouseEnter="{{ hoverIn }}" onMouseLeave="{{ hoverOut }}" onFocus="{{ focusIn }}" onBlur="{{ focusOut }}" onKeyDown="{{ key }}">
+<div data-rv-grid="1" role="group" aria-roledescription="carousel" aria-label="Client reviews" onMouseEnter="{{ hoverIn }}" onMouseLeave="{{ hoverOut }}" onFocus="{{ focusIn }}" onBlur="{{ focusOut }}" onKeyDown="{{ key }}">
 
 <div data-rv-card="1">
 <div data-rv-stack="1">
 
-<sc-for list="{{ slides }}" as="r" hint-placeholder-count="5">
+<sc-for list="{{ slides }}" as="r" hint-placeholder-count="0">
 <div data-rv-slide="1" data-rv-face="1" data-i="{{ r.i1 }}" data-on="{{ r.on }}">
 <span data-rv-mark="1">{{ r.sourceLabel }}</span>
 <span data-rv-av="1" aria-hidden="true" style="background-image:{{ r.photo }};background-size:cover;background-position:center;color:{{ r.initialsColor }}">{{ r.initials }}</span>
@@ -144,7 +138,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-rv-quote="1">
 <div data-rv-stack="1">
 
-<sc-for list="{{ slides }}" as="r" hint-placeholder-count="5">
+<sc-for list="{{ slides }}" as="r" hint-placeholder-count="0">
 <blockquote data-rv-slide="1" data-rv-q="1" data-i="{{ r.i1 }}" data-on="{{ r.on }}" role="group" aria-roledescription="slide" aria-label="{{ r.slideLabel }}">
 <p data-rv-text="1">{{ r.quote }}</p>
 </blockquote>
@@ -158,7 +152,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-left" size="{{ n20 }}" color="currentColor" hint-size="20px,20px"></x-import>
 </button>
 <div data-rv-dots="1" aria-hidden="true">
-<sc-for list="{{ slides }}" as="r" hint-placeholder-count="5">
+<sc-for list="{{ slides }}" as="r" hint-placeholder-count="0">
 <span data-rv-dot="1" data-i="{{ r.i1 }}" data-on="{{ r.on }}"></span>
 </sc-for>
 </div>
@@ -171,22 +165,12 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <span ref="{{ liveRef }}" aria-live="polite" style="position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap"></span>
 
-<sc-if value="{{ showNotice }}" hint-placeholder-val="{{ true }}">
-<div data-rv-note="1">
-<span data-rv-note-k="1">Pending client input</span>
-<ul>
-<li>No name, quote or count on this page is real. Each quote is a placeholder describing its own slot — real reviews are fetched server-side and shown verbatim, trimmed only at the end.</li>
-<li>Platform names are set in type as stand-ins. Confirm which of Google, Tripadvisor and Trustpilot has a live Vamos profile before any mark ships: a logo with no account behind it is a false claim.</li>
-<li>Autoplay advances every 1.5 s, as specified, with a 360 ms cross-slide. It pauses on hover or focus and stops for good once either arrow is used.</li>
-</ul>
-</div>
-</sc-if>
-
 </div>
 </section>
+</sc-if>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:780},&quot;autoplaySeconds&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:2.5,&quot;min&quot;:0,&quot;max&quot;:12,&quot;step&quot;:0.5,&quot;unit&quot;:&quot;s&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;},&quot;slideMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:480,&quot;min&quot;:200,&quot;max&quot;:900,&quot;step&quot;:20,&quot;unit&quot;:&quot;ms&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;},&quot;showPendingNotice&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Content&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:780},&quot;autoplaySeconds&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:2.5,&quot;min&quot;:0,&quot;max&quot;:12,&quot;step&quot;:0.5,&quot;unit&quot;:&quot;s&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;},&quot;slideMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:480,&quot;min&quot;:200,&quot;max&quot;:900,&quot;step&quot;:20,&quot;unit&quot;:&quot;ms&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;}}">
 /**
  * Home · Reviews — structure from Figma /Main/263 (node 315:25968): H2 over a two-up block,
  * a 360-wide rounded info card on the left and a 760-wide quote panel ruled top and bottom on
@@ -324,10 +308,8 @@ class Component extends DCLogic {
       rootRef: this.rootRef, liveRef: this.liveRef,
       prev: this.prev, next: this.next, key: this.key,
       hoverIn: this.hoverIn, hoverOut: this.hoverOut, focusIn: this.focusIn, focusOut: this.focusOut,
-      showNotice: (this.props.showPendingNotice ?? true) !== false,
       slides: slides,
-      isEmpty: slides.length === 0,
-      gridShow: slides.length === 0 ? 'none' : '',
+      hasReviews: slides.length > 0,
     };
   }
 }

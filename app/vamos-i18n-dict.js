@@ -113,7 +113,7 @@
     ],
 
     strings: {
-      /* ── Added: booking-detail, become-a-partner, cookies gaps ─────────── */
+      /* ── Added: booking-detail, cookies gaps ─────────── */
       'Assigned': { de: 'Zugewiesen', fr: 'Attribué', ar: 'مُخصَّص' },
       'Loading': { de: 'Wird geladen', fr: 'Chargement', ar: 'جارٍ التحميل' },
       'Arrivals hall — your driver waits with your name': { de: 'Ankunftshalle — Ihr Fahrer wartet mit Ihrem Namen', fr: 'Hall des arrivées — votre chauffeur vous attend avec votre nom', ar: 'صالة الوصول — سائقك بانتظارك حاملاً اسمك' },
@@ -138,7 +138,6 @@
       'About': { de: 'Über uns', fr: 'À propos', ar: 'من نحن' },
       'Contact': { de: 'Kontakt', fr: 'Contact', ar: 'اتصل بنا' },
       'Contact us': { de: 'Kontaktieren Sie uns', fr: 'Nous contacter', ar: 'تواصل معنا' },
-      'Become a partner': { de: 'Partner werden', fr: 'Devenir partenaire', ar: 'كن شريكًا' },
       'Drive with us': { de: 'Fahren Sie für uns', fr: 'Conduisez avec nous', ar: 'اعمل سائقًا معنا' },
       'Get in touch': { de: 'Kontakt aufnehmen', fr: 'Nous joindre', ar: 'تواصل معنا' },
       'One source of truth': { de: 'Eine verbindliche Quelle', fr: 'Une seule référence', ar: 'مرجع واحد لا غير' },
@@ -1623,7 +1622,7 @@
       'Open your booking from the confirmation email, or call us and quote the reference. Same outcome, same written confirmation.': { de: 'Öffnen Sie Ihre Buchung über die Bestätigungs-E-Mail oder rufen Sie uns an und nennen Sie die Referenz. Gleiches Ergebnis, gleiche schriftliche Bestätigung.', fr: 'Ouvrez votre réservation depuis l’e-mail de confirmation, ou appelez-nous en indiquant la référence. Même résultat, même confirmation écrite.', ar: 'افتح حجزك من بريد التأكيد، أو اتصل بنا واذكر الرقم المرجعي. النتيجة نفسها والتأكيد الكتابي نفسه.' },
 
       /* ══════════════════════════════════════════════════════════════════
-         SERVICES · Become a partner
+         SERVICES · partner application (page out of V1)
          Hero, the six-answer application form, its states, and what happens
          after a driver sends it.
          ══════════════════════════════════════════════════════════════════ */

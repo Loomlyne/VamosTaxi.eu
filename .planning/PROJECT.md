@@ -12,10 +12,25 @@ The design phase is finished. Every screen already exists as a working `.dc.html
 brand system is vendored, and the build plan is written. This project is the production
 build of that package — not a redesign of it.
 
+## Current Milestone: v1.1 Ops Support
+
+**Goal:** Dispatcher answers contact mail from Ops. Customer replies land in the same ticket.
+
+**Target features:**
+- Ops `#support` tab (Staff tab stays gone)
+- Tickets from `/contact` rows; statuses New / Open / Replied / Closed
+- Reply from the ticket via Resend
+- Inbound customer replies via Resend webhook, same ticket
+- Gmail `info@vamostaxi.site` still gets a copy
+- Staging DNS only (`vamostaxi.site`)
+
+**Frozen (v1.0):** quote → pay → booking → ops board (Phases 7–11). Not deleted.
+
 ## Core Value
 
 A customer can book a fixed-price transfer in under a minute and trust that the driver will
 be there. If nothing else works, the booking funnel — quote, pay, confirmation — must.
+v1.1 is a freeze of that funnel to ship the Support inbox.
 
 ## Business Context
 
@@ -62,6 +77,13 @@ Everything here is a hypothesis until it ships and takes a real booking.
 - [ ] Ops console runs the day: live board, booking detail, assignment, manual phone booking
 - [ ] Legal pages ship with real numbers where the owner has supplied them and labelled TBC pills where not
 
+**v1.1 Ops Support (active now)**
+- [ ] Dispatcher opens `#support` and sees contact tickets from `contact_submissions`
+- [ ] Dispatcher sets status New / Open / Replied / Closed
+- [ ] Dispatcher replies from the ticket; Resend delivers to the customer
+- [ ] Customer Reply-in-Gmail is captured inbound and appended to the same ticket
+- [ ] Support Gmail still receives a copy; Ops is the working inbox
+
 **Launch**
 - [ ] Site holds 10k concurrent browsers with the database barely touched
 - [ ] DNS cut over from the Freshpage CMS with a 301 map, `pricing_live=true`, old site parked
@@ -76,7 +98,10 @@ Everything here is a hypothesis until it ships and takes a real booking.
 - **PayPal** — Stripe has no Swiss-merchant PayPal support, so it would mean a second processor, webhook and refund path for one method. Revisit post-launch
 - **Book by the hour** — owner decision 15; the widget tab is removed for V1
 - **"First" vehicle class** — owner decision 13 settles the lineup at three classes
-- **A third-party chat widget or an in-house chat build** — live chat ships as a WhatsApp deep link; a vendor widget injects its own styling and cookies, an in-house build is 3–5 days against a 2–3 week deadline
+- **A third-party chat widget or an in-house chat build** — live chat ships as a WhatsApp deep link; a vendor widget injects its own styling and cookies. v1.1 is email tickets, not live chat
+- **Gmail IMAP ingest** — tickets are contact-form rows + Resend inbound webhooks, not a mailbox scrape
+- **Phone-typed tickets / auto-tags** — out of v1.1; statuses only
+- **Live `vamostaxi.eu` DNS** — still Phase 11; inbound MX is staging `vamostaxi.site` only
 - **Live flight tracking on the ops board** — flight data ships at autofill + delay-aware depth only
 - Vercel, anywhere, for anything — hosting or preview deploys
 - Medusa or any commerce framework — its product/cart/order model adds infrastructure and still needs custom booking, pricing and dispatch
@@ -137,7 +162,8 @@ and every amount on screen reads `CHF 000`.
 | Cancellation tiers 100 % / 75 % / 0 % | Owner decision 2, resolving a live contradiction between the FAQ and the archive policy | — Pending |
 | Three vehicle classes, van 8/8 | Owner decision 13; `first` cut, and the mock's 7/8 was stale | — Pending |
 | PayPal out of V1 | Stripe has no Swiss-merchant PayPal support; a second processor for one method is not worth 2–3 days against the deadline | — Pending |
-| Live chat is a WhatsApp deep link | Owner wants chat, but no chat exists in any mock; a vendor widget fights the design system and the cookie banner, an in-house build costs 3–5 days | — Pending |
+|| Live chat is a WhatsApp deep link | Owner wants chat, but no chat exists in any mock; a vendor widget fights the design system and the cookie banner, an in-house build costs 3–5 days | — Pending |
+|| v1.1 two-way Support tickets via Resend | Owner 2026-09-04: Ops `#support`, reply from ticket, inbound replies; Gmail stays a copy. Funnel frozen. | — Pending |
 | Self-serve cancel stays, human channels are additive | The button honours the tiers and refunds automatically, which keeps refunds off the owner's response time | — Pending |
 | Flight data at autofill + delay-aware depth | Owner put tracking in V1; full live tracking is the expensive tail with the least launch value | — Pending |
 | Consent logged server-side | A browser-only cookie cannot prove consent under nFADP/GDPR; adds a `consent_log` table | — Pending |
@@ -166,4 +192,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-08-17 after initialization*
+*Last updated: 2026-09-04 after /gsd-new-milestone v1.1 Ops Support*

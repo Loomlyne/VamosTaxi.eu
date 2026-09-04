@@ -1,13 +1,20 @@
 # Stack Research
 
-**Domain:** Swiss pre-booked airport-transfer booking platform — Next.js on a single Cloudflare Worker, Supabase behind Hyperdrive, Stripe payments
-**Researched:** 2026-08-17
-**Confidence:** HIGH overall (official Cloudflare/Supabase/Stripe docs verified live); MEDIUM on a few fast-moving edges called out below
+**Domain:** v1.1 Ops Support — two-way email tickets in Ops (Resend inbound + ticket replies from the existing Cloudflare Worker, Postgres thread storage)
+**Researched:** 2026-09-04
+**Confidence:** HIGH on Resend send/receive/webhook APIs and MX-conflict rules (official docs, live); HIGH on in-repo versions; MEDIUM on the exact Resend receiving MX hostname (dashboard-generated per domain)
 
-> The stack itself is fixed by the owner (`HANDOFF-CLAUDE-CODE.md` §3) and is not re-litigated
-> here. This file documents **how to use each piece correctly right now** — current package
-> versions, required config shapes, and the specific gotchas that will burn a Workers-based
-> Next.js 15 + Supabase + Stripe build if missed.
+> v1.1 only. Do **not** re-litigate the frozen v1.0 stack. v1.0 research lives in
+> `.planning/research/v1.0-archive/` and is not restated here.
+>
+> **Already in place (leave alone):** Cloudflare Workers + OpenNext (`next@15.5.25`,
+> `@opennextjs/cloudflare@1.20.2`, `wrangler@4.124.0`), Worker `vamos`, Supabase Zurich
+> `yaumjzvylngfjhtuffqs` behind Hyperdrive, `postgres@3.4.9`, Cloudflare Email Sending
+> (`env.EMAIL` / `send_email` binding) for the auth hook and contact-form primary send,
+> Resend leftover fallback (`RESEND_API_KEY` already on Worker `vamos`), Resend sending
+> domain `vamostaxi.site` already verified, `@vamos/emails` renderers, `contact_submissions`
+> + `contact_delivery_outbox`, `standardwebhooks@1.0.0` for the **Supabase** Send Email
+> Hook. No Vercel. No driver app. Staging DNS is `vamostaxi.site` only.
 
 ## Recommended Stack
 
@@ -15,290 +22,220 @@
 
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| Next.js | **15.5.x** (latest patch, e.g. `15.5.23`) | App Router framework | 15.5 is the last minor before Next 16; it shipped stable Node.js middleware and Turbopack builds (beta). Next 15 is now the "Maintenance LTS" line getting security-only patches (15.5.18/15.5.21/15.5.23 seen in the last month) — pin to the newest 15.5.x patch, not a mid-series 15.x. |
-| `@opennextjs/cloudflare` | **1.20.x** (latest, e.g. `1.20.2`) | Adapts Next.js build output to run as a Cloudflare Worker | The only supported non-Vercel path to run Next.js SSR on Workers. Reached 1.0 GA; current 1.x builds against **unmodified** Next.js 14.x/15.x output (no more patching Next internals). Actively tracks Next.js security patches. |
-| `wrangler` | **latest 4.x** | Cloudflare CLI: dev, deploy, secrets, Hyperdrive/Queues/KV/R2 config | Required peer of `@opennextjs/cloudflare`; keep it current, the adapter's generated `wrangler.jsonc` schema moves with it. |
-| Supabase (Postgres/Auth/Storage/Realtime) | Platform, Pro plan, **region eu-central (Frankfurt)** | Primary datastore | Fixed by owner. Frankfurt is the closest Supabase region to Zurich. |
-| `postgres` (postgres.js) | **latest 3.x** | SQL driver from the Worker, through Hyperdrive | Cloudflare's own Hyperdrive docs recommend postgres.js or `pg` over the supabase-js query client for anything going through Hyperdrive; postgres.js has first-class named-prepared-statement support, which Hyperdrive explicitly calls out as the best-supported case. |
-| `pg` (node-postgres) | **latest 8.x** | Alternative SQL driver | Equally supported by Hyperdrive; slightly more ceremony (`Client`/`Pool`, manual `.connect()`/`.end()`) but more familiar if the team already knows it. Pick **one**, not both. |
-| Stripe (`stripe` npm package) | **latest 22.x** (e.g. `22.5.0`) | Payments — PaymentIntents, webhooks | Standard account (not Connect), CHF, cards + Apple Pay + Google Pay + TWINT. Node SDK runs on Workers when initialized with `Stripe.createFetchHttpClient()` and verified with the async, WebCrypto-based webhook path (below) — this is officially supported, Cloudflare even blogged about native Stripe support in Workers. |
-| `@stripe/stripe-js` | **latest 9.x** | Client-side Payment Element | Loads Stripe.js in the browser for the Payment Element (Apple/Google Pay + TWINT show up automatically as payment-method-configuration-driven options, no separate SDK). |
-| `@supabase/ssr` | **0.12.x** (latest) | Cookie-based Supabase Auth in Next.js middleware/server components | Purpose-built replacement for the deprecated `@supabase/auth-helpers-nextjs`. Works fine under the Node.js runtime that OpenNext's Worker actually uses (see Q1 below) since it only needs `fetch` + cookies, no Edge-runtime-specific API. |
-| `@supabase/supabase-js` | **2.11x.x** (latest 2.x) | Auth/Storage/Realtime client | Fixed scope per the brief: **only** Auth token verification, Storage, and Realtime go through supabase-js. All row-level app queries go through Hyperdrive + SQL, never the PostgREST/query layer, to avoid double-hopping through Supavisor. |
-| Resend | latest `resend` npm package | Transactional email | Official Cloudflare-Workers-compatible fetch-based SDK; no Node-only APIs. |
-| Mapbox | Geocoding v6 + Directions v5 (`@mapbox/mapbox-sdk` or raw `fetch`) | Geocode + route distance/duration for pricing | Fixed. Cache geocode/route results in Workers KV — Mapbox usage is billed per request and pickup/dropoff pairs repeat heavily for Zurich airport traffic. |
-| AeroDataBox | via RapidAPI or api.aerodatabox.com direct plan | Flight status for autofill + delay detection | Fixed. Cache flight-number lookups in KV with a short TTL (minutes, not hours — flight status changes) and degrade to manual time entry on API failure per `GSD-LAUNCH.md` Phase 4. |
-| Sentry (`@sentry/nextjs`) | latest, Cloudflare-runtime build | Error monitoring, server + client | Sentry now ships an official **Cloudflare + Next.js (OpenNext)** setup guide (`docs.sentry.io/platforms/javascript/guides/cloudflare/frameworks/nextjs`), current as of mid-2025. It requires its own `compatibility_flags`/`compatibility_date` bump on top of OpenNext's — see Pitfalls below. Confidence: MEDIUM — this integration path is newer and has open historical GitHub issues around source-map upload and `AsyncLocalStorage` in edge contexts; smoke-test error capture in staging before relying on it. |
+| `resend` npm | **6.26.0** (latest; repo is on `6.24.0`) | Send ticket replies; verify inbound webhooks; fetch received bodies; optional Gmail copy-forward | Fetch-based SDK already in `apps/web`. `6.26.0` is current as of 2026-09-04 and exposes `emails.send`, `webhooks.verify`, `emails.receiving.get`, `emails.receiving.forward`. Bump; do not add a second mail SDK. |
+| Resend Receiving (custom domain) | Platform; enable on a **new** subdomain `inbound.vamostaxi.site` | MX target for customer Reply-in-Gmail | Official path for “support emails from users.” Any local-part at the receiving domain is accepted, which gives plus-address ticket routing (`support+{ticketId}@inbound.vamostaxi.site`) without IMAP. |
+| Resend webhook `email.received` | Platform (Svix-signed) | Push inbound mail into the Worker | Metadata-only POST; body/headers come from a follow-up `emails.receiving.get`. Designed for serverless body-size limits. Same Worker, new App Router route. |
+| Postgres (existing Supabase) | Hosted 15.x on `yaumjzvylngfjhtuffqs` | Ticket + thread system of record | Tickets are `contact_submissions` rows plus a message thread. Hyperdrive + `postgres.js` already carries staff/system writes; no new datastore. |
+| Cloudflare Worker `vamos` (unchanged host) | existing OpenNext Worker | HTTP inbound webhook + staff reply action | One deploy. New unauthenticated route next to `/api/auth/email-hook` and `/api/contact`. No second Worker. |
 
 ### Supporting Libraries
 
 | Library | Version | Purpose | When to Use |
 |---------|---------|---------|-------------|
-| Drizzle ORM (optional) | latest | Typed query layer over the Hyperdrive `postgres.js`/`pg` connection | `packages/db` in the monorepo shape the build plan specifies; not required, but keeps the 10+ tables (`bookings`, `booking_events`, `coupons`, …) typed without hand-writing every query. Works with both postgres.js and node-postgres drivers over Hyperdrive — same "reset the connection per request" caveat applies (see Pitfalls). |
-| `zod` | latest | Runtime validation for `/api/quote`, webhook payloads, form input | Server-authoritative quotes and Stripe webhook bodies both need runtime schema checks before they touch the DB — TypeScript types alone don't validate untrusted input at the edge. |
-| `react-email` + `@react-email/components` | latest | Building the Resend templates in 4 languages | Pairs naturally with Resend's official Next.js integration; keeps `packages/emails` testable/previewable outside the Worker. |
-| `@marsidev/react-turnstile` (or hand-rolled widget + `env.TURNSTILE_SECRET` siteverify call) | latest | Turnstile on public forms (`/api/quote` abuse, contact/partner forms) | Client widget renders the token; **always** verify server-side via `https://challenges.cloudflare.com/turnstile/v0/siteverify` in the Worker — never trust the client-supplied token alone. |
-| `date-fns-tz` or `Temporal` polyfill | latest | Europe/Zurich pickup-time handling, DST-safe | `bookings.pickup_at` is `timestamptz` but the UI, cron sweeps and emails all reason in Europe/Zurich local time; DST transitions (last Sunday March/October) will silently shift pickup times by an hour if this is done with naive `Date` math. |
+| `zod` | **4.4.3** (already in `apps/web`) | Validate verified webhook payload + staff reply body | After `resend.webhooks.verify` succeeds. Do not trust `event.data` shape by TypeScript alone. |
+| `@vamos/emails` | workspace | Render ticket-reply HTML/text in en/de/fr/ar | Same package as contact/auth mail. Add a support-reply renderer; do not add `react-email`. |
+| `postgres` (postgres.js) | **3.4.9** (already) | Insert/update tickets and messages through Hyperdrive | Staff reply path (`asStaff` / `vamos_staff`) and webhook path (`asSystem` / `vamos_edge`). Per-request client, same as the rest of the app. |
 
 ### Development Tools
 
 | Tool | Purpose | Notes |
 |------|---------|-------|
-| `supabase` CLI | Local Postgres, migrations, type generation | `supabase init`, versioned migrations in `packages/db`, `supabase gen types typescript` feeds both the app and Drizzle (if used). |
-| `wrangler dev` / `opennextjs-cloudflare preview` | Local Worker runtime for testing | `next dev` alone does **not** exercise the real Workers runtime (Node.js compat layer, bindings, Hyperdrive). Always smoke-test with `opennextjs-cloudflare build && wrangler dev` before trusting a change that touches bindings, auth cookies, or the webhook path. |
-| GitHub Actions | CI: typecheck, build, deploy | `wrangler versions upload` on PR gives a real preview URL on Workers infrastructure without touching prod — this replaces the Vercel-preview-deploy workflow the team doesn't have. |
-| k6 | Load testing for the 10k-concurrent target (Phase 8) | Scripts already scoped in `GSD-LAUNCH.md`; nothing stack-specific to add here beyond: hit the Worker directly, not through DNS caching, to get real p95s. |
+| Resend Dashboard → Domains | Add `inbound.vamostaxi.site`, enable Receiving, copy MX | Staging zone only (`vamostaxi.site`). Confirm receiving record shows “verified” after DNS. |
+| Resend Dashboard → Webhooks | Create endpoint, subscribe **only** to `email.received` | Signing secret → `wrangler secret put RESEND_WEBHOOK_SECRET --env staging`. Endpoint URL is the custom domain, e.g. `https://vamostaxi.site/api/webhooks/resend`. |
+| Resend Dashboard → Receiving | Manual test send to `support@inbound.vamostaxi.site` | Confirms MX before the Worker is wired. Bodies are stored in Resend even if the webhook is down. |
+| `supabase` CLI | Migration for ticket tables + pgTAP | Follow existing `packages/db/supabase/migrations/` numbering and FORCE RLS / `REVOKE EXECUTE FROM PUBLIC` house rules. |
+| `wrangler secret put` | `RESEND_WEBHOOK_SECRET` (new). `RESEND_API_KEY` already present | Never put the signing secret in `wrangler.jsonc` `vars`. |
 
 ## Installation
 
 ```bash
-# Core
-npm install next@^15.5 react@^19 react-dom@^19
-npm install -D @opennextjs/cloudflare wrangler
+# Only package change for v1.1 — bump, do not add a mail vendor
+npm install resend@6.26.0 --workspace=apps/web
 
-# Database access (pick ONE driver)
-npm install postgres            # postgres.js — recommended default
-# — or —
-npm install pg && npm install -D @types/pg
-
-# Supabase (auth/storage/realtime only — not the query layer)
-npm install @supabase/ssr @supabase/supabase-js
-
-# Payments
-npm install stripe @stripe/stripe-js @stripe/react-stripe-js
-
-# Email
-npm install resend react-email @react-email/components
-
-# Validation / dates
-npm install zod date-fns-tz
-
-# Error monitoring
-npm install @sentry/nextjs
-
-# Turnstile (client widget)
-npm install @marsidev/react-turnstile
-
-# Dev dependencies
-npm install -D typescript @types/node
+# No new packages. Do not add svix, postal-mime, mailparser, react-email,
+# googleapis, imapflow, or a chat SDK.
 ```
 
-```jsonc
-// wrangler.jsonc — minimum shape for @opennextjs/cloudflare + Next.js 15
-{
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "vamos-web",
-  "main": ".open-next/worker.js",
-  "compatibility_date": "2025-08-16",       // ≥ Sentry's floor; also satisfies OpenNext's 2024-09-23 floor
-  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
-  "assets": {
-    "directory": ".open-next/assets",
-    "binding": "ASSETS"
+```ts
+// Ticket reply (staff action on the Worker) — Resend, not env.EMAIL
+const { data, error } = await resend.emails.send(
+  {
+    from: "Vamos Taxi <support@inbound.vamostaxi.site>",
+    to: customerEmail,
+    bcc: ["info@vamostaxi.site"], // Gmail copy of the dispatcher reply
+    replyTo: `support+${ticketId}@inbound.vamostaxi.site`,
+    subject: subject.startsWith("Re:") ? subject : `Re: ${subject}`,
+    html,
+    text,
+    headers: {
+      "In-Reply-To": previousSmtpMessageId,
+      References: [...previousIds, previousSmtpMessageId].join(" "),
+    },
   },
-  "services": [
-    { "binding": "WORKER_SELF_REFERENCE", "service": "vamos-web" }
-  ],
-  "hyperdrive": [
-    { "binding": "HYPERDRIVE", "id": "<hyperdrive-config-id>" }
-  ],
-  "queues": {
-    "producers": [{ "queue": "vamos-webhooks", "binding": "PAYMENT_QUEUE" }],
-    "consumers": [{ "queue": "vamos-webhooks", "max_batch_size": 10, "max_retries": 5 }]
+  { idempotencyKey: `ticket-reply:${ticketId}:${messageId}` },
+);
+
+// Inbound webhook — raw body, then verify, then fetch content
+const payload = await request.text();
+const event = resend.webhooks.verify({
+  payload,
+  headers: {
+    id: request.headers.get("svix-id") ?? "",
+    timestamp: request.headers.get("svix-timestamp") ?? "",
+    signature: request.headers.get("svix-signature") ?? "",
   },
-  "kv_namespaces": [{ "binding": "GEO_CACHE", "id": "<kv-id>" }],
-  "r2_buckets": [{ "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "vamos-isr-cache" }],
-  "triggers": {
-    "crons": ["*/15 * * * *", "0 3 * * *"]   // quote expiry sweep, nightly reminder/no-show sweep
-  }
+  webhookSecret: env.RESEND_WEBHOOK_SECRET,
+});
+if (event.type === "email.received") {
+  const { data: email } = await resend.emails.receiving.get(event.data.email_id);
+  // persist thread row keyed on email.id (Resend receiving id) — unique
+  await resend.emails.receiving.forward({
+    emailId: event.data.email_id,
+    from: "Vamos Taxi <support@inbound.vamostaxi.site>",
+    to: "info@vamostaxi.site", // Gmail copy of the customer reply
+  });
 }
 ```
 
-## Answers to the five specific questions
+## What v1.1 actually adds
 
-### 1. `@opennextjs/cloudflare` — version, config shape, limitations
+### 1. Resend Receiving DNS (staging `vamostaxi.site` only)
 
-- **Current version:** `1.20.x` (npm), tracking Next.js `15.5.x`/`16.x` in lockstep — reached 1.0 GA and now builds against **unmodified** Next.js output rather than patching Next internals. Confidence: HIGH (npm registry + official changelog).
-- **`compatibility_date`:** must be **`2024-09-23` or later** — this is the floor for the Node.js APIs the adapter depends on. If Sentry is added, bump to **`2025-08-16` or later** (Sentry's own floor for `https.request` support) — the later date satisfies both.
-- **`compatibility_flags`:** `["nodejs_compat"]` is required. Add `"global_fetch_strictly_public"` (recommended by the adapter's generated config) to stop server-side `fetch` from reaching internal Worker services.
-- **`assets` binding:** `{ "directory": ".open-next/assets", "binding": "ASSETS" }` — do not hand-edit these paths; they're generated by the build.
-- **`main`:** `.open-next/worker.js` by default. **This must change** to a custom entry file the moment you need `scheduled()` (Cron Triggers) or a `queue()` consumer in the same Worker (see Q5) — re-export `fetch` from the generated worker and add the extra handlers alongside it; re-export `DOQueueHandler`/`DOShardedTagCache` too if using the Durable-Object-backed ISR queue/tag cache.
-- **Runtime model:** the adapter runs Next.js **exclusively on the Node.js runtime** inside the Worker (not the Edge runtime) — this is actually an advantage over some other Workers deployment paths, because it gets you the *full* set of Next.js features rather than the Edge-runtime subset.
-- **Known limitations vs Vercel/other hosts** (HIGH confidence, current as of the OpenNext docs read live):
-  - **Node.js Middleware** (the `export const runtime = "nodejs"` middleware mode introduced in Next 15.2) is **not yet supported** — stick to standard (Edge-compatible) middleware, which is exactly what `@supabase/ssr`'s middleware pattern uses, so this does not block the auth flow.
-  - **Image optimization**: `next/image` with the default loader does **not** work out of the box — you must either set `images.unoptimized = true` or wire a custom `loader: "custom"` pointing at Cloudflare's `/cdn-cgi/image/` transform endpoint (only PNG/JPEG/WEBP/AVIF/GIF/SVG supported).
-  - **ISR/revalidation** works but is *not* Vercel's managed ISR — you must explicitly choose and wire an incremental-cache backend (R2, KV, or static-assets-only) plus a tag-cache backend (D1 or Durable-Object-SQLite) plus a revalidation queue backend (Durable-Object queue, in-memory, or "direct" debug mode). **Recommendation for this project: R2 for the incremental cache + D1 for the tag cache + the Durable Object queue** — the site is read-heavy (home, marketing, legal) with infrequent revalidation (reviews, FAQ, content_strings edits from ops), which is exactly the R2+D1 profile the docs recommend for smaller deployments. Cloudflare explicitly advises **against KV** for the incremental cache because it's only eventually consistent.
-  - Cache purge / on-demand `revalidatePath`/`revalidateTag` only works reliably on **custom domains** (zone-based deployments), not on `*.workers.dev` — another reason `staging.vamostaxi.eu` needs to be a real Cloudflare-zone custom domain from Phase 1, not a `workers.dev` subdomain.
-  - **PPR** (Partial Prerendering) is supported but cache interception does not work with it and is off by default — leave PPR off unless a specific page needs it and you've tested the interaction.
-  - **Next.js 16 caveat (informational, not a launch blocker):** there is an open, actively-discussed compatibility gap between Next.js 16's new "Proxy" middleware architecture and the current OpenNext Cloudflare adapter. Since this project is pinned to **Next.js 15**, it doesn't block launch — but do not upgrade to Next 16 opportunistically mid-build without re-verifying adapter support first.
+- Add Resend domain **`inbound.vamostaxi.site`**. Enable Receiving. Add the MX Resend shows (typical shape `inbound-smtp.<region>.amazonaws.com`; use the dashboard value, do not guess).
+- Verify sending on that subdomain too (SPF/DKIM/CNAME as Resend lists) so `From: support@inbound.vamostaxi.site` is legal. Replies must originate on the **receiving** domain; if `From` is `info@vamostaxi.site` (Gmail MX), customer Reply goes to Gmail and never hits the webhook.
+- **Do not** put Resend receiving MX on apex `vamostaxi.site`. Apex MX stays Gmail so `info@vamostaxi.site` keeps working. Same-priority MX does not dual-deliver; lowest-priority Resend MX on apex would steal the mailbox.
+- Prod `vamostaxi.eu` DNS stays Phase 11. No live MX there.
 
-### 2. Hyperdrive + Supabase — connection string, driver, limits, prepared statements
+### 2. Send ticket replies from the Worker via Resend
 
-- **Always use Supabase's DIRECT connection string** (the `db.<project-ref>.supabase.co:5432` one), **never** the pooled/Supavisor transaction-mode string. Hyperdrive does its own global connection pooling near the origin database; pointing it at an already-pooled connection string double-pools and defeats prepared-statement support. This is stated explicitly in Cloudflare's own Supabase-specific Hyperdrive doc. Confidence: HIGH.
-- **Driver:** postgres.js (`postgres` package) or `pg` — both are Hyperdrive's officially recommended drivers over the Supabase JS query client for anything that isn't Auth/Storage/Realtime. Named prepared statements are best-supported by these two; other drivers "may have worse performance or may not be supported."
-- **Connection pattern in the Worker:** create a **new client per request** (do not try to persist a module-scope pool across invocations — Workers isolates don't support that the way long-lived Node processes do). Hyperdrive itself maintains the real pool to the origin, so per-request client creation is cheap. With `pg`, close the client via `ctx.waitUntil(client.end())` *after* the response is returned so cleanup doesn't add to response latency. With postgres.js, `max: 5` per Hyperdrive-bound client is the documented ceiling (Workers limits concurrent external connections per invocation) — the build plan's `max: 5` is correct and should not be raised.
-- **Max origin connections (Hyperdrive-side, not driver-side):** **~20 on Cloudflare's Free tier, ~100 on Paid** per Hyperdrive configuration. Idle-connection timeout to the origin is 10 minutes; initial connection timeout is 15 seconds; **max query duration is 60 seconds**; max cached query response size is 50 MB. Design any reporting/export queries (e.g. a future finance report) to stay well under the 60 s ceiling or move them off the request path into a Queue/cron job.
-- **Prepared statements / transaction-mode caveats:** Hyperdrive operates as a **transaction-mode pool** to the origin — a connection is held for the duration of one transaction, then returned to the pool and **reset** (any `SET` session state does not persist). Do **not** wrap multiple unrelated DB operations in one transaction just to preserve session state — it blocks pool reuse and hurts scaling. Keep transactions short and scoped to a single logical write (e.g. the booking-status transition + its `booking_events` row, not the whole checkout flow).
-- **supabase-js scope discipline:** per the fixed architecture, supabase-js talks to Supabase directly for **Auth token verification, Storage, and Realtime only**. All row-level application queries (`bookings`, `coupons`, `settings`, etc.) go through Hyperdrive + SQL. Mixing the two paths for the same table risks inconsistent read timing (Realtime/PostgREST vs. Hyperdrive's pooled connection) and is explicitly what the fixed stack is designed to avoid.
+- Staff reply action on the existing OpenNext Worker calls `resend.emails.send`. Keep `env.EMAIL` for auth + contact-form confirmation; it has no `In-Reply-To` / `References` / plus-address `replyTo` contract we need for threading.
+- `RESEND_API_KEY` is already on Worker `vamos`. Reuse it.
+- Persist the Resend send `id` and the SMTP `Message-ID` (GET email / webhook now expose it) on the outbound message row so the next reply can set `In-Reply-To` + `References`.
+- Idempotency key per outbound message so a dispatcher double-submit cannot send twice (Resend keys expire after 24 h; our DB unique on message id is the durable guard).
 
-### 3. Stripe on Workers — webhook verification, CHF, TWINT, idempotency
+### 3. Inbound customer replies via webhook
 
-- **Workers has no synchronous Node `crypto`**, so the standard `stripe.webhooks.constructEvent()` (sync, HMAC via Node's `crypto` module) will throw. The correct call is:
+- New route, e.g. `POST /api/webhooks/resend`, `dynamic = "force-dynamic"`. Unauthenticated until `webhooks.verify` succeeds — same posture as `/api/auth/email-hook`.
+- Resend signs with **Svix** headers (`svix-id`, `svix-timestamp`, `svix-signature`). That is **not** the Standard Webhooks set (`webhook-id`, …) used by the Supabase auth hook. Do not reuse `standardwebhooks` here; use `resend.webhooks.verify`.
+- Webhook body is metadata only (`email_id`, `from`, `to`, `subject`, `message_id`, attachment list). Always `emails.receiving.get(email_id)` for `html` / `text` / `headers`.
+- Match ticket: plus-address local-part first (`support+{uuid}@…`); else `In-Reply-To` / `References` against stored SMTP ids; else drop (do not auto-open a new ticket from a random inbound — v1.1 tickets come from `contact_submissions` only).
+- Dedupe on `email_id` unique. Return 200 on duplicate so Resend stops retrying. Return 5xx only when persist/fetch failed and a retry is useful. Return 401 on bad signature.
+- Ignore mail from our own sending addresses to avoid bounce/forward loops.
 
-  ```ts
-  import Stripe from "stripe";
+### 4. Gmail `info@vamostaxi.site` stays a copy
 
-  const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
-    httpClient: Stripe.createFetchHttpClient(),
-  });
-  const cryptoProvider = Stripe.createSubtleCryptoProvider();
+- New contact rows already fan out a support copy via `env.EMAIL` to `CONTACT_SUPPORT_RECIPIENT` (keep).
+- Dispatcher replies: `bcc: info@vamostaxi.site`.
+- Customer inbound: `emails.receiving.forward({ to: "info@vamostaxi.site", … })` after the row is stored. Ops is the working inbox; Gmail is not polled.
 
-  export async function verifyStripeWebhook(request: Request, env: Env) {
-    const sig = request.headers.get("stripe-signature")!;
-    const body = await request.text();               // raw body — do not JSON.parse first
-    return await stripe.webhooks.constructEventAsync(
-      body,
-      sig,
-      env.STRIPE_WEBHOOK_SECRET,
-      undefined,
-      cryptoProvider,                                  // WebCrypto-based SubtleCrypto provider
-    );
-  }
-  ```
+### 5. Postgres ticket thread storage
 
-  Both `httpClient: Stripe.createFetchHttpClient()` on the client constructor and `Stripe.createSubtleCryptoProvider()` passed into `constructEventAsync` are required for Workers — Cloudflare has native/blogged support for the Stripe SDK specifically because of this pairing. Confidence: HIGH (Stripe's own Cloudflare Workers template + Cloudflare's blog post confirm this exact pattern).
-  - Read the raw body with `.text()` **once** — a known Workers/Stripe gotcha is "Body has already been used" if the same `Request` is read twice (e.g. logging middleware that also awaits `.json()`); clone with `request.clone()` if you need the body twice.
-- **CHF PaymentIntents:** create the PaymentIntent with `currency: "chf"` and `automatic_payment_methods: { enabled: true }` (recommended over hardcoding a `payment_method_types` array) so Stripe surfaces cards, Apple Pay, Google Pay, and TWINT automatically based on the Payment Method Configuration active on the CH-entity account and the customer's device/browser — this matches the "cards + TWINT + Apple/Google Pay" requirement without per-method client logic.
-- **TWINT enablement:** activate it once in the Stripe Dashboard → **Settings → Payment methods** (filter by "Bank redirects" to find it faster). The Stripe account **must be a Swiss entity** to receive TWINT payouts — confirmed already fixed by the "Stripe standard account, CHF" decision. TWINT is a redirect-style method: mobile customers bounce to the TWINT app, desktop customers scan a QR code — the Payment Element/redirect flow (`stripe.confirmPayment` with a `return_url`) handles this automatically; no custom redirect handling needed if using the Payment Element.
-- **Idempotency:** pass an `Idempotency-Key` header (or the SDK's `{ idempotencyKey }` request option) on **every** PaymentIntent-creating request keyed to the booking/quote id, so a client retry (flaky mobile network at an airport) cannot create two charges for one booking. On the webhook side, the build plan's `stripe_events (id pk)` table with `INSERT ... ON CONFLICT (id) DO NOTHING` before enqueuing to Cloudflare Queues is the correct dedupe pattern — Stripe **can and does** redeliver the same event, and Queues can also redeliver a message on consumer failure, so dedupe needs to happen at the Stripe-event-id level, not just the queue-message level.
+Do **not** overload `contact_submissions` with a JSON thread. Add two tables in `public`, RLS on, writes only via staff/system roles (same pattern as `contact_delivery_outbox`).
 
-### 4. `@supabase/ssr` in Next middleware on a Worker + custom JWT claims
+```sql
+-- sketch, not a migration
+create type public.support_ticket_status as enum ('new', 'open', 'replied', 'closed');
 
-- **`@supabase/ssr` works unmodified** inside OpenNext's Worker because Next.js middleware there still runs on the (Edge-compatible) middleware runtime that `@supabase/ssr` targets — only the *page/route* rendering moved to Node.js runtime under OpenNext, not middleware itself. The standard pattern applies:
+create table public.support_tickets (
+  id                     uuid primary key default extensions.gen_random_uuid(),
+  contact_submission_id  uuid not null unique
+                         references public.contact_submissions(id),
+  status                 public.support_ticket_status not null default 'new',
+  customer_email         extensions.citext not null,
+  subject                text not null,
+  inbound_local_part     text not null unique, -- plus-address token
+  last_message_at        timestamptz not null default now(),
+  created_at             timestamptz not null default now(),
+  updated_at             timestamptz not null default now()
+);
 
-  ```ts
-  // middleware.ts
-  import { createServerClient } from "@supabase/ssr";
-  import { NextResponse, type NextRequest } from "next/server";
+create table public.support_ticket_messages (
+  id                 uuid primary key default extensions.gen_random_uuid(),
+  ticket_id          uuid not null references public.support_tickets(id),
+  direction          text not null check (direction in ('inbound', 'outbound')),
+  body_text          text not null,
+  body_html          text,
+  from_address       extensions.citext not null,
+  to_address         extensions.citext not null,
+  smtp_message_id    text,          -- RFC Message-ID; used for In-Reply-To
+  resend_email_id    uuid unique,   -- send id or receiving id; webhook idempotency
+  in_reply_to        text,
+  created_at         timestamptz not null default now()
+);
+```
 
-  export async function middleware(request: NextRequest) {
-    let response = NextResponse.next({ request });
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll: () => request.cookies.getAll(),
-          setAll: (cookiesToSet) => {
-            cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-            response = NextResponse.next({ request });
-            cookiesToSet.forEach(({ name, value, options }) =>
-              response.cookies.set(name, value, options),
-            );
-          },
-        },
-      },
-    );
-    await supabase.auth.getClaims();   // refreshes the session; do NOT use getSession() server-side
-    return response;
-  }
-  ```
-
-  **Use `supabase.auth.getClaims()`, never `getSession()`, on the server** — Supabase's own docs are explicit that `getSession()` server-side trusts an unverified cookie value, while `getClaims()` verifies the JWT signature against Supabase's published keys. This matters directly for the ops route group's staff-gating.
-- **Custom JWT claims (the `role: dispatcher|admin` claim the build plan needs):** implemented via a **Custom Access Token Hook** — a Postgres function (`custom_access_token_hook(event jsonb) returns jsonb`) registered under **Authentication → Hooks** in the Supabase dashboard. It receives the pending claims, and you `jsonb_set`/`jsonb_build_object` in the `role` value read from `profiles.role` before Supabase signs the token. Supabase auto-grants `supabase_auth_admin` execute permission on the function. The hook only affects the **access token JWT**, not the `auth.getUser()` response shape — read the role by decoding the JWT (or via `getClaims()`, which returns the verified claim set) rather than expecting it on the user object.
-- **Route-group gating:** `/(ops)/ops/*` middleware checks the `role` claim from `getClaims()`, redirects to `/ops/sign-in` if absent/wrong role, and — per the fixed requirement — TOTP MFA enrollment/verification (`supabase.auth.mfa.*`) gates staff sign-in before the session is considered fully authenticated for ops routes.
-
-### 5. Cloudflare Queues + Cron Triggers in the same Worker
-
-- **Queues consumer for payment webhooks:** the webhook route's only job is to verify the signature (§3), `INSERT ... ON CONFLICT DO NOTHING` the Stripe event id, `env.PAYMENT_QUEUE.send(event)`, and return `200` fast — Stripe times out and retries webhooks that don't ack quickly, and the actual state-machine work (booking `pending→paid→confirmed`, email send, `booking_events` write) belongs in the **queue consumer**, not the webhook handler, so a slow email provider or a DB hiccup can't cause Stripe to see a failed/timed-out webhook and duplicate-retry it.
-- **Wrangler config:** producers and consumers are declared separately —
-  ```jsonc
-  "queues": {
-    "producers": [{ "queue": "vamos-webhooks", "binding": "PAYMENT_QUEUE" }],
-    "consumers": [{ "queue": "vamos-webhooks", "max_batch_size": 10, "max_retries": 5 }]
-  }
-  ```
-  and the consumer is a `queue(batch, env, ctx)` export — batches default to 10 messages; process each message idempotently (re-check `stripe_events`/booking status before mutating) since Queues guarantees at-least-once delivery, not exactly-once.
-- **Combining `fetch`, `scheduled`, and `queue` in ONE Worker (required by the "one Worker" architecture decision):** the default `@opennextjs/cloudflare` build only exports a `fetch` handler from `.open-next/worker.js`. To add Cron Triggers and a Queues consumer to the *same* deployed Worker, write a thin custom entry file and point `wrangler.jsonc`'s `main` at it instead of the generated file directly:
-
-  ```ts
-  // src/worker.ts
-  import nextHandler from "../.open-next/worker.js";
-
-  export default {
-    fetch: nextHandler.fetch,
-    async scheduled(event: ScheduledController, env: Env, ctx: ExecutionContext) {
-      switch (event.cron) {
-        case "*/15 * * * *": /* expire stale 30-min quote locks */ break;
-        case "0 3 * * *":    /* T-24h reminder emails + no-show sweep */ break;
-      }
-    },
-    async queue(batch: MessageBatch, env: Env, ctx: ExecutionContext) {
-      for (const msg of batch.messages) { /* process Stripe event, then msg.ack() */ }
-    },
-  } satisfies ExportedHandler<Env>;
-
-  // Re-export only if using the DO-backed ISR queue/tag cache from Q1:
-  export { DOQueueHandler, DOShardedTagCache } from "../.open-next/worker.js";
-  ```
-- **Cron Triggers config:** declared under `triggers.crons` as an array of standard cron expressions, evaluated in **UTC** (not Europe/Zurich) — `0 3 * * *` is 03:00 UTC = 04:00 or 05:00 local depending on DST, so if the reminder sweep needs to fire at a specific *local* clock time, compute the UTC offset in code (via `date-fns-tz`) rather than hardcoding a UTC cron that silently drifts an hour twice a year. Multiple triggers share the single `scheduled()` handler; branch on `event.cron` (or `controller.cron`) to run the right job. For any sweep expected to take more than a few seconds, have `scheduled()` enqueue work onto a Queue rather than doing it inline — Cron Trigger invocations have the same CPU-time constraints as a normal Worker request.
+- Insert a `support_tickets` row (status `new`) when a `contact_submissions` row is created; first message is the form body (not an email).
+- Staff: `SELECT`/`UPDATE` tickets (status only — no auto-tags in v1.1), `SELECT` messages, `INSERT` outbound messages.
+- Webhook: `asSystem` `INSERT` inbound messages. No `anon` grants.
+- `handled_at` on `contact_submissions` can stay; ticket `status` is the Ops source of truth.
+- Attachments: store metadata only if it falls out of the webhook payload. Do not download files to R2 in v1.1 (not in scope).
 
 ## Alternatives Considered
 
 | Recommended | Alternative | When to Use Alternative |
-|-------------|-------------|--------------------------|
-| postgres.js for Hyperdrive | `pg` (node-postgres) | If the team is already fluent in `pg`'s API/error types, or needs a feature postgres.js lacks (rare); functionally both are Hyperdrive's blessed drivers — this is a team-preference choice, not a correctness one. |
-| R2 + D1 + DO queue for ISR cache | KV for incremental cache | Never for this project — Cloudflare's own docs advise against KV here because it's eventually consistent, which risks serving stale legal/pricing content after an ops edit. Keep KV for the Mapbox/AeroDataBox response cache instead, where eventual consistency is harmless. |
-| Custom Turnstile siteverify call in the Worker | A managed WAF-only bot rule | Turnstile protects specific form submissions (quote spam, contact/partner forms) with a UX the user sees; WAF/rate-limiting rules (already in the fixed stack) protect the edge broadly. Use both — they solve different layers, not either/or. |
+|-------------|-------------|-------------------------|
+| Receiving subdomain `inbound.vamostaxi.site` | Enable receiving MX on apex `vamostaxi.site` | Never while Gmail `info@` must keep working. Apex MX cannot dual-deliver. |
+| `From` + `Reply-To` on `inbound.vamostaxi.site` | `From: info@vamostaxi.site` + `Reply-To` inbound | Only if every customer client honours `Reply-To`. Gmail usually does; some mobile clients reply to `From`. Too risky for “Reply-in-Gmail lands in the ticket.” |
+| `resend.webhooks.verify` | `svix` npm or `standardwebhooks` | `svix` is a duplicate of what the Resend SDK already wraps. `standardwebhooks` is already used for **Supabase** (different header names) — keep it there, do not stretch it to Resend. |
+| `emails.receiving.get` for body | Download raw MIME + `mailparser` / `postal-mime` | Only if v1.1 needed faithful attachment/inline-image passthrough. It does not. Node `mailparser` is a poor Workers fit. |
+| Inline webhook work (verify → get → insert → forward → 200) | New Cloudflare Queue | Queue if fetch+forward regularly exceeds Worker CPU/time and Resend retries become noisy. v1.1 volume (contact form, one operator) does not justify a new queue. |
+| Ticket tables in Postgres | Store threads in Resend / Gmail labels | Resend is not the system of record (Free retention is short). Gmail is a copy. Ops reads Hyperdrive. |
 
 ## What NOT to Use
 
 | Avoid | Why | Use Instead |
-|-------|-----|--------------|
-| `stripe.webhooks.constructEvent()` (sync) in the Worker | Throws — Workers has no synchronous Node `crypto`, which sync HMAC verification needs. | `constructEventAsync()` + `Stripe.createSubtleCryptoProvider()` (§3 above). |
-| Supabase's **pooled/Supavisor** connection string as the Hyperdrive origin | Double-pools (Supavisor transaction pool → Hyperdrive pool), breaks named prepared statements, and is explicitly against Cloudflare's own Supabase guide. | The **direct** connection string only. |
-| supabase-js for row-level app queries (`bookings`, `coupons`, pricing tables, etc.) | Bypasses Hyperdrive's pooling/caching entirely and creates a second, inconsistent read path against the same tables Realtime/PostgREST also touches. | Hyperdrive + `postgres.js`/`pg` for all app SQL; supabase-js only for Auth/Storage/Realtime. |
-| `next/image`'s default loader, unconfigured, on Workers | Silently fails to optimize/serve images correctly — OpenNext doesn't proxy Vercel's image optimization API. | `images.unoptimized = true` for simple cases, or a custom loader against Cloudflare's `/cdn-cgi/image/` endpoint if real-time resizing is wanted. |
-| KV as the Next.js incremental cache backend | Eventually consistent — a content edit in ops (reviews, FAQ, `content_strings`) can serve stale for longer than acceptable. | R2 for the incremental cache, D1 (or DO-SQLite at higher scale) for the tag cache. |
-| Doing the full booking-state-machine transition inside the Stripe webhook HTTP handler | Slow downstream work (email send, DB writes) inside the handler risks Stripe seeing a timeout and retrying, which then races with the queue-based retry too. | Verify + dedupe + enqueue in the webhook handler; do the actual work in the Queues consumer. |
-| Hardcoding a UTC cron expression and assuming it maps to a fixed Europe/Zurich local time | Switzerland observes DST (CEST/CET); a `0 3 * * *` UTC cron drifts an hour relative to local wall-clock time twice a year. | Compute/adjust for the CH offset in the `scheduled()` handler logic, or schedule two crons that only act in their respective DST window. |
-| Assuming Node.js Middleware (Next 15.2's `runtime: "nodejs"` middleware mode) works under OpenNext today | Explicitly listed as **not yet supported** by the adapter. | Use standard (Edge-runtime-compatible) middleware — which is what `@supabase/ssr`'s documented pattern already uses, so this costs nothing in practice. |
+|-------|-----|-------------|
+| Gmail IMAP / Gmail API / Pub/Sub / App passwords | Product out of scope. Polling a mailbox is slow, credential-fragile, and misses the contact-form origin. | Contact-form rows + Resend `email.received`. |
+| Live chat (Intercom, Crisp, Tidio, in-house websocket) | Product out of scope. WhatsApp is already a deep link, not a ticket inbox. | Email tickets in Ops `#support`. |
+| New mail vendors (Postmark, Mailgun, SendGrid, Amazon SES direct, AgentMail) | `vamostaxi.site` is already verified on Resend; `RESEND_API_KEY` is already on the Worker. A second vendor is a second webhook, DNS, and failure mode. | Resend 6.26.0. |
+| Cloudflare Email Routing `email()` handler / `postal-mime` | `env.EMAIL` is **sending** (auth + contact). Routing inbound would fight Gmail MX the same way apex Resend MX would. | Resend Receiving on `inbound.`. |
+| `env.EMAIL.send` for ticket replies | Binding cannot set `In-Reply-To` / `References` / plus-address `replyTo` the way Resend `emails.send({ headers })` can. | `resend.emails.send`. |
+| Putting Resend receiving MX on `vamostaxi.site` | Steals or randomly splits `info@` from Gmail. | MX only on `inbound.vamostaxi.site`. |
+| `svix`, `mailparser`, `react-email` | Extra deps. SDK verify + Receiving API + `@vamos/emails` cover v1.1. | Existing packages + `resend@6.26.0`. |
+| New Worker / KV / R2 / Queue / Vercel | Hosting and data path are frozen. | Route + tables on the current Worker and Postgres. |
+| Driver app, live GPS, phone-typed tickets, auto-tags | Frozen / out of v1.1. | Statuses New / Open / Replied / Closed only. |
 
 ## Stack Patterns by Variant
 
-**If a page/section needs on-demand revalidation the moment ops edits content (reviews, FAQ, `content_strings`, `settings`):**
-- Use `revalidateTag()`/`revalidatePath()` from the ops write action, backed by the D1 tag cache.
-- Because on-demand purge is reliable only on a real custom domain (not `*.workers.dev`), make sure `staging.vamostaxi.eu` and prod are both zone-bound custom domains from Phase 1 onward.
+**If the customer hits Reply in Gmail after a dispatcher message:**
+- Mail is addressed to `support+{ticketId}@inbound.vamostaxi.site` (Reply-To / From on the receiving domain).
+- Resend fires `email.received` → Worker verifies → `receiving.get` → append inbound row → status `open` → forward copy to `info@`.
 
-**If a scheduled job (reminder emails, no-show sweep) is more than a few seconds of work:**
-- Use Cron Trigger → `env.PAYMENT_QUEUE`-style queue `.send()` → separate queue consumer, not inline work in `scheduled()`.
+**If the dispatcher sends a second reply in the same ticket:**
+- Set `In-Reply-To` to the latest SMTP id and `References` to the space-joined history. Subject stays `Re: …`. BCC Gmail again.
 
-**If Sentry error capture looks unreliable in staging (dropped server errors, source-map gaps):**
-- Treat it as an open integration risk (MEDIUM confidence area), not a project bug first — check `docs.sentry.io`'s Cloudflare/Next.js guide for the current `compatibility_date` floor and confirm `nodejs_compat` + the Sentry-required flags are both present before debugging further.
+**If an inbound message cannot be matched to a ticket:**
+- ACK 200, do not create a ticket (v1.1 origin is `contact_submissions` only). Still optional-forward to Gmail so nothing is silently dropped from the copy inbox.
+
+**If `env.EMAIL` is missing in a given Worker env:**
+- Contact/auth keep the existing Resend leftover fallback. Ticket replies still use Resend directly (required, not leftover).
 
 ## Version Compatibility
 
 | Package A | Compatible With | Notes |
-|-----------|------------------|-------|
-| `@opennextjs/cloudflare@1.20.x` | `next@15.5.x`, `next@16.2.x` | The 1.x adapter line tracks both current Next major lines; pin `next` to `15.5.x` per the fixed-stack decision and don't opportunistically jump to 16 without re-checking the adapter's Next-16-Proxy-architecture compatibility notes first. |
-| `wrangler@4.x` | `@opennextjs/cloudflare@1.20.x` | Keep both current together; the adapter's generated `wrangler.jsonc` schema assumes a recent Wrangler. |
-| `compatibility_date: "2024-09-23"` (OpenNext floor) vs `"2025-08-16"` (Sentry floor) | Both apply to the same Worker | Set `compatibility_date` to the **later** of the two dates actually required by everything installed (currently Sentry's `2025-08-16`) — a later date is always safe for an earlier floor requirement. |
-| `postgres.js`/`pg` prepared statements | Hyperdrive's transaction-mode pool | Fine for `SELECT`/simple `INSERT`/`UPDATE`; avoid multi-statement transactions relying on session-level `SET` state, since the pooled connection resets on transaction return. |
-| `@supabase/ssr@0.12.x` | Next.js middleware (Edge-compatible runtime) under OpenNext | No conflict — middleware doesn't run in OpenNext's Node.js-runtime page rendering path, so `@supabase/ssr`'s documented Next.js pattern needs no Workers-specific changes. |
+|-----------|-----------------|-------|
+| `resend@6.26.0` | OpenNext Worker (`nodejs_compat`, `compatibility_date` 2026-08-20) | Fetch SDK; `webhooks.verify` + `emails.receiving.*` run in the Node compat runtime. No SubtleCrypto special-case (unlike Stripe’s sync HMAC). |
+| `resend@6.26.0` | `RESEND_API_KEY` already on Worker `vamos` | Same key sends replies and fetches received content. Webhook **signing** secret is a different value (`RESEND_WEBHOOK_SECRET`). |
+| `resend.webhooks.verify` | Headers `svix-id` / `svix-timestamp` / `svix-signature` | Do not pass Supabase `webhook-*` headers. Keep `standardwebhooks@1.0.0` for `/api/auth/email-hook` only. |
+| `emails.receiving.get` | Webhook `data.email_id` | Body is not in the webhook. Must GET. |
+| `postgres@3.4.9` + Hyperdrive | New ticket tables | Same per-request client, `SET LOCAL` RLS, no supabase-js for row queries. |
+| `zod@4.4.3` | Verified Resend JSON | Fine; no upgrade needed. |
+| Cloudflare Email Sending `env.EMAIL` | Auth hook + contact outbox | Unchanged. Not on the ticket reply path. |
 
 ## Sources
 
-- `developers.cloudflare.com/hyperdrive/examples/connect-to-postgres/postgres-database-providers/supabase/` — direct-vs-pooled connection string guidance for Supabase specifically. HIGH.
-- `developers.cloudflare.com/hyperdrive/platform/limits/` — max connections (Free ~20 / Paid ~100), 60 s query timeout, 50 MB cache limit, 10 min idle timeout. HIGH.
-- `developers.cloudflare.com/hyperdrive/configuration/how-hyperdrive-works/` — transaction-mode pooling behavior, prepared statement support, SET-state reset caveat. HIGH.
-- `opennext.js.org/cloudflare/get-started`, `.../caching`, `.../howtos/custom-worker`, `.../howtos/image` — wrangler.jsonc shape, ISR/cache backend options, custom worker pattern for cron/queue, image optimization config. HIGH (official OpenNext docs, fetched live).
-- npm registry (`@opennextjs/cloudflare`, `@supabase/ssr`, `@supabase/supabase-js`, `stripe`) — current published versions as of research date. HIGH.
-- `docs.stripe.com/payment-method/twint`, `stripe.com/legal/twint` — TWINT enablement and CH-entity requirement. HIGH.
-- Stripe's `stripe-node-cloudflare-worker-template` (GitHub) + Cloudflare's "Stripe support in Workers" blog post — `constructEventAsync`/`createSubtleCryptoProvider`/`createFetchHttpClient` pattern. HIGH.
-- `supabase.com/docs/guides/auth/server-side/nextjs`, `.../auth/auth-hooks/custom-access-token-hook` — middleware cookie pattern, `getClaims()` vs `getSession()`, custom JWT role claims. HIGH.
-- `developers.cloudflare.com/queues/*`, `developers.cloudflare.com/workers/runtime-apis/handlers/scheduled/` — Queues producer/consumer config, Cron Trigger UTC scheduling, multi-cron `event.cron` branching. HIGH.
-- `docs.sentry.io/platforms/javascript/guides/cloudflare/frameworks/nextjs/` — Sentry-on-OpenNext-Cloudflare config requirements. MEDIUM-HIGH (official, current, but a newer integration path with some historical rough edges found in GitHub issue search).
-- WebSearch aggregation across Cloudflare community threads, dev.to write-ups on cron+queue custom workers — corroborating detail where official docs were thin (e.g. exact custom-worker code shape). MEDIUM.
+- `https://resend.com/docs/dashboard/receiving/introduction` — receiving overview, support-email use case. HIGH.
+- `https://resend.com/docs/dashboard/receiving/custom-domains` — enable receiving on a verified domain; MX required. HIGH.
+- `https://resend.com/docs/knowledge-base/how-do-i-avoid-conflicting-with-my-mx-records` — subdomain vs apex MX; same-priority does not dual-deliver; Gmail coexistence. HIGH.
+- `https://resend.com/docs/dashboard/receiving/create-receiving-webhook` — `email.received` metadata-only; must GET content. HIGH.
+- `https://resend.com/docs/dashboard/receiving/get-email-content` — `resend.emails.receiving.get`. HIGH.
+- `https://resend.com/docs/dashboard/receiving/reply-to-emails` — `In-Reply-To` / `References` / `Re:` subject. HIGH.
+- `https://resend.com/docs/dashboard/receiving/forward-emails` — `emails.receiving.forward` for the Gmail copy. HIGH.
+- `https://resend.com/docs/webhooks/verify-webhooks-requests` — raw body, Svix headers, `resend.webhooks.verify`. HIGH.
+- `https://resend.com/docs/api-reference/emails/send-email` — `replyTo`, `bcc`, `headers`, `Idempotency-Key` (24 h). HIGH.
+- npm `resend@6.26.0` (2026-09-03) vs repo `6.24.0`. HIGH.
+- In-repo: `apps/web/package.json`, `apps/web/app/api/contact/route.ts`, `apps/web/lib/forms/notify.ts`, `apps/web/app/api/auth/email-hook/route.ts`, `apps/web/wrangler.jsonc` (`send_email` / Worker `vamos`), `packages/db/supabase/migrations/20260828000002_contact_forms.sql`. HIGH.
 
 ---
-*Stack research for: Swiss pre-booked airport-transfer platform on Next.js 15 + Cloudflare Workers + Supabase*
-*Researched: 2026-08-17*
+*Stack research for: v1.1 Ops Support (Resend inbound + Worker ticket replies + Postgres threads)*
+*Researched: 2026-09-04*

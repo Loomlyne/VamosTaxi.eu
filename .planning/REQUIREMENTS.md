@@ -156,6 +156,43 @@ without a migration that rewrites history.
 
 ---
 
+## Milestone v1.1 Requirements — Ops Support
+
+**Defined:** 2026-09-04
+**Core Value:** Dispatcher answers contact mail from Ops. Customer replies land in the same ticket.
+**Funnel:** Quote → pay → board (v1 Phases 7–11) stays frozen. Do not map v1.1 work onto those phases.
+
+Tickets **are** `contact_submissions` rows plus a message thread. There is no parallel ticket table. Customer never sees a ticket UI.
+
+### Inbox (SUP)
+
+- [ ] **SUP-01**: Dispatcher opens Ops `#support` and sees every contact submission as a ticket
+- [ ] **SUP-02**: Each ticket has exactly one status: New, Open, Replied, or Closed — dispatcher can set any of the four
+- [ ] **SUP-03**: Dispatcher opens a ticket and sees the original form (name, email, phone, message, time) plus the thread, newest last
+- [ ] **SUP-04**: The ticket shows the form `booking_ref` and `locale` when they exist
+- [ ] **SUP-05**: Dispatcher can filter the list by status
+
+### Reply (RPLY)
+
+- [ ] **RPLY-01**: Dispatcher sends a reply from the ticket; the customer receives it in Gmail on the same thread
+- [ ] **RPLY-02**: `info@vamostaxi.site` receives a copy of that staff reply (BCC). Gmail is a copy; Ops is the working inbox
+
+### Inbound (INB)
+
+- [ ] **INB-01**: When the customer hits Reply in Gmail, that mail appends to the **same** ticket
+- [ ] **INB-02**: Mail that is not a reply to an existing ticket does not become a ticket. Ops ignores it. (Safety bar from PROJECT.md — inbound without this is a catch-all inbox.)
+
+Closed stays closed until a human reopens it. Customer reply on a Closed ticket does **not** auto-reopen (owner did not select reopen-on-reply).
+
+### v1.1 Future
+
+- **SUP-F01**: Reopen Closed automatically when the customer replies
+- **SUP-F02**: Attachments on inbound or outbound
+- **SUP-F03**: Search, assignment, SLA, saved replies, macros, CSAT
+- **SUP-F04**: Deep-link from `booking_ref` into Ops booking detail (column is shown in v1.1; the jump is later)
+
+---
+
 ## Out of Scope
 
 | Feature | Reason |
@@ -172,6 +209,16 @@ without a migration that rewrites history.
 | Vercel, for hosting or previews | Fixed by `HANDOFF-CLAUDE-CODE.md` §3 |
 | shadcn/ui or any second component library | The bound design system is the only source of visual truth |
 | Medusa or a commerce framework | Its product/cart/order model adds infrastructure and still needs custom booking, pricing and dispatch |
+| Live chat / Intercom / in-house chat widget | v1.1 is email tickets; WhatsApp stays the live channel (SITE-09) |
+| Gmail IMAP / Gmail API scrape | Second source of tickets, OAuth, duplicates against the form copy. Direct-to-Gmail mail stays in Gmail |
+| Phone-typed tickets | No second create path; tickets originate from `/contact` |
+| Auto-tags / AI classify / AI auto-reply | Statuses only; a wrong answer on a paid transfer is worse than slow |
+| Staff tab | Deleted. Do not restore. Support is `#support` |
+| Catch-all inbound on `info@` | Unauthenticated spam/bounces. Tickets originate from `contact_submissions` |
+| Answering in Gmail *and* Ops as two working inboxes | Splits threads. Ops is canonical; Gmail is the archive |
+| Vendor help desk (Zendesk / Help Scout / Front) | Second login, second design, PII leaves this Supabase project |
+| Resend receiving MX on apex `vamostaxi.site` or live `vamostaxi.eu` | Steals Gmail `info@`, or is Phase 11 live DNS. Receive only on `replies.vamostaxi.site` |
+| Pushing `main` / `env.production` as part of v1.1 | Branch → PR → Koss says merge |
 
 ---
 
@@ -268,6 +315,24 @@ Populated during roadmap creation. Full phase goals and success criteria: `.plan
 - Mapped to phases: 80
 - Unmapped: 0 ✓
 
+### v1.1 traceability
+
+Populated during v1.1 roadmap creation.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| SUP-01 | Phase 15 | Pending |
+| SUP-02 | Phase 12 | Pending |
+| SUP-03 | Phase 15 | Pending |
+| SUP-04 | Phase 15 | Pending |
+| SUP-05 | Phase 15 | Pending |
+| RPLY-01 | Phase 13 | Pending |
+| RPLY-02 | Phase 13 | Pending |
+| INB-01 | Phase 16 | Pending |
+| INB-02 | Phase 14 | Pending |
+
+**v1.1 coverage:** 9 requirements, 9 mapped, unmapped 0 ✓
+
 ---
 *Requirements defined: 2026-08-17*
-*Last updated: 2026-08-17 after roadmap creation*
+*Last updated: 2026-09-04 after v1.1 Ops Support roadmap (Phases 12–16)*

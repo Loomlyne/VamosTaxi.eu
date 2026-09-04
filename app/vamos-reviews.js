@@ -1,8 +1,8 @@
 /* Vamos Taxi — the one review store.
 
-   The home Reviews section reads from here and the ops Reviews screen writes to
-   it. Persistence is GET/POST/PATCH/DELETE /api/staff/reviews. all() is [] until
-   hydrate (D-35). Zero avatars is the shipping state (D-22). */
+   Public home hydrates GET /api/reviews (published only). Ops writes through
+   GET/POST/PATCH/DELETE /api/staff/reviews. all() is [] until hydrate (D-35).
+   Zero avatars is the shipping state (D-22). */
 (function () {
   var SOURCES = [
     { id: "google", label: "Google", imported: true },
@@ -16,6 +16,18 @@
   var loaded = false;
   var subs = [];
   var base = "/api/staff/reviews";
+
+  function isOpsHost() {
+    try {
+      return String(location.hostname || "").indexOf("dashboard.") === 0;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function listPath() {
+    return isOpsHost() ? "/api/staff/reviews" : "/api/reviews";
+  }
 
   function isImported(source) {
     for (var i = 0; i < SOURCES.length; i++) if (SOURCES[i].id === source) return SOURCES[i].imported;
@@ -111,7 +123,7 @@
   function hydrate() {
     if (pending || loaded) return;
     pending = true;
-    api("GET", base).then(function (json) {
+    api("GET", listPath()).then(function (json) {
       pending = false;
       loaded = true;
       list = pickRows(json).map(fromApi);

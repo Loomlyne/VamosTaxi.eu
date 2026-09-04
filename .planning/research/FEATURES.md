@@ -1,253 +1,260 @@
 # Feature Research
 
-**Domain:** Pre-booked, fixed-price airport-transfer booking platform (Zurich first) + dispatch/ops console
-**Researched:** 2026-08-17
-**Confidence:** MEDIUM-HIGH — internal scope claims are HIGH (sourced from PROJECT.md / MISSING-FEATURES.md /
-OWNER-ANSWERS.md, which are authoritative for this codebase); competitor-pattern claims are MEDIUM
-(cross-checked web search across Blacklane, Transfeero, Suntransfers, Welcome Pickups, GetTransfer — not
-Context7-grade primary docs, but the pattern is consistent across all five, which is the strongest signal
-this category gives without paying for their booking flows directly).
+**Domain:** Ops Support inbox — two-way email tickets from `/contact` (v1.1 only)
+**Researched:** 2026-09-04
+**Confidence:** HIGH on Vamos scope (PROJECT.md is authoritative); MEDIUM-HIGH on industry patterns (Help Scout / Zendesk / Front / Missive plus Resend inbound primary docs)
 
 ## How this file was built
 
-This is **not** a green-field feature survey — 30+ screens already exist as `.dc.html` mocks and
-`docs/build/MISSING-FEATURES.md` already contains a screen-by-screen gap audit. This file:
+v1.0 FEATURES.md surveyed the airport-transfer category. This file does **not** repeat that. It answers one question for milestone v1.1 Ops Support:
 
-1. Confirms which parts of that existing scope match what pre-booked-transfer competitors treat as
-   table stakes (so nothing gets cut by mistake in requirements/roadmap work).
-2. Flags the handful of category-standard features that are **not** visible anywhere in PROJECT.md,
-   MISSING-FEATURES.md, or OWNER-ANSWERS.md — see **Gaps vs Existing Scope** below. This list is
-   deliberately short; anything already tracked in MISSING-FEATURES.md (even as 🔴/🟡/⚪) is treated as
-   "already known," not a new gap.
-3. Names the anti-features this category specifically tempts a builder into, given how much of this
-   product's DNA (quote → book → assign → ride) looks like ride-hailing but explicitly isn't.
+> How do support inboxes typically work? What is table stakes vs a differentiator vs an anti-feature? How complex is each piece, and what does it depend on in the existing `contact_submissions` surface?
+
+v1.0 research is archived at `.planning/research/v1.0-archive/`. Booking-funnel features stay frozen; they are not in scope here.
+
+## How support inboxes typically work
+
+Small operators start with a shared mailbox (`info@` in Gmail/Outlook). Every inbound mail is a row in one inbox. That is cheap and familiar. It fails when: two people reply to the same thread, nobody owns a message, there is no status, and the only history is Gmail's thread view — which splits the moment someone replies from a different From address.
+
+The industry then splits into two products that look similar from the customer's side (they still get email) and very different from the agent's:
+
+| Model | Unit of work | Typical vendors | Fit for Vamos v1.1 |
+|-------|----------------|-----------------|--------------------|
+| Shared mailbox | An email | Gmail, Google Groups, Outlook shared mailbox | What exists today: SITE-04 already BCC/copies `info@vamostaxi.site` |
+| Ticketing help desk | A numbered ticket with queues, SLAs, tags | Zendesk, Freshdesk | Overbuilt for a solo dispatcher; invites Staff-tab / auto-tag / omnichannel scope |
+| Conversational shared inbox | A conversation with status, reply-from-the-thread | Help Scout, Front, Missive | The shape v1.1 actually wants: Ops `#support` is the working inbox; Gmail stays a copy |
+
+A conversation/ticket lifecycle is the same idea everywhere. Zendesk's default statuses are New / Open / Pending / Hold / Solved / Closed. Help Scout uses Active / Pending / Closed. Vamos's four statuses map cleanly:
+
+| Vamos | Industry analogue | Meaning |
+|-------|-------------------|---------|
+| New | New / Unassigned | Contact form just landed; nobody has opened it |
+| Open | Open / Active | Dispatcher is working it |
+| Replied | Pending | Dispatcher sent mail; waiting on the customer |
+| Closed | Closed / Solved | Done. Further customer mail should reopen or stay closed by explicit policy |
+
+Threading is not a UI nicety — it is the product. Email clients group on RFC 5322 `Message-ID` / `In-Reply-To` / `References`. Help desks add a fallback (plus-address `support+{id}@…` or a token in the subject) because some clients strip headers. Resend inbound is webhook-shaped, not IMAP: MX on the receiving domain, `email.received` webhook, then a follow-up fetch for body. The webhook payload is metadata; the body is a second call. That is the hard path.
+
+The customer never sees a ticket UI. They submitted `/contact` and they Reply in Gmail. Ops is the system of record. Gmail is the carbon copy.
+
+## Existing surface this milestone extends
+
+SITE-04 already ships a one-way pipe. v1.1 turns that pipe into a two-way ticket. Do not rebuild the form.
+
+**`public.contact_submissions`** (migration `20260828000002_contact_forms.sql`):
+
+- Columns: `id`, `idempotency_key` (unique), `name`, `email`, `phone`, `booking_ref`, `message`, `locale` (`en|de|fr|ar`), `handled_at`, `created_at`
+- Writes only via `public.submit_contact_message` (SECURITY DEFINER, anon/authenticated execute)
+- Staff SELECT via RLS (`contact_submissions_staff_select` / `app.is_staff()`); no public SELECT
+- `handled_at` is a binary "someone marked it done" timestamp — not New / Open / Replied / Closed
+
+**`public.contact_delivery_outbox`** (migration `20260902000001_contact_delivery_outbox.sql`):
+
+- One row per submission, two channels: `customer` (ack) and `support` (Gmail copy)
+- Claim/lease/finalize so the two Resend sends are durable and idempotent
+- Stores only a 12-char provider suffix, not a full `Message-ID`
+
+**Outbound today** (`apps/web/app/api/contact`, `lib/forms/notify.ts`):
+
+- From is `noreply@vamostaxi.site`
+- Support copy goes to `CONTACT_SUPPORT_RECIPIENT` (`info@vamostaxi.site`)
+- No `Reply-To`, no `In-Reply-To`, no `References`
+- A customer who hits Reply in Gmail on the ack cannot land in Ops — there is nowhere for that mail to go
+
+**Ops UI today** (`app/ops/OpsSidebar.dc.html`):
+
+- Nav is dashboard / bookings / calendar / fleet / customers / coupons / content. No `#support`. No Staff tab.
+- PROJECT.md: Staff tab stays gone. `#support` is the new hash.
+
+v1.1 is additive on this surface: a ticket is a `contact_submissions` row plus a thread of messages. It is not a second contact store.
 
 ## Feature Landscape
 
-### Table Stakes (Users Expect These)
+### Table Stakes (Dispatchers Expect These)
 
-| Feature | Why Expected | Complexity | Notes / Existing Scope |
-|---------|--------------|------------|-------------------------|
-| Fixed price shown before payment | The entire category's value prop over a street taxi or metered ride-hail; every competitor researched (Blacklane, Transfeero, Suntransfers) leads with "fixed price, no surprises" | MEDIUM | Already core value in PROJECT.md; pricing engine + 30-min quote lock in Active scope |
-| Vehicle-class selection at quote time (capacity shown) | Traveler needs to know a van fits luggage/pax before paying | LOW | Three classes locked by owner decision 13 (Economy 3/3, Business, Van 8/8); pax/luggage counters exist in mock |
-| Flight-number capture + autofill of landing time | Removes manual guesswork on pickup time for arrivals | MEDIUM | In Active scope (`SPEC-home-flight-autofill`); AeroDataBox is the named integration |
-| Delay-aware pickup (flight tracked, pickup shifts, both sides notified) | The #1 reason travelers pay for this over a self-driven or metered option — a late flight doesn't strand them | MEDIUM-HIGH | Owner decision 14 scoped this to "autofill + delay-aware," explicitly **not** full live ops-board tracking — matches what Transfeero/Suntransfers actually ship (delay-adjusted pickup, not a live map) |
-| Free waiting time at pickup, with a stated cutoff before it's billed or becomes a no-show | Every competitor researched publishes this number (Blacklane: 60 min airport, billed/no-show after) — travelers expect delays inside a stated window to be free | LOW (once numbers exist) | Numbers are `data-tok` TBC pills (owner left waiting-time minutes blank) — mechanism/copy exists, values pending. Not a scope gap, a content gap already tracked |
-| Meet-and-greet at the airport (driver waits airside/in arrivals with a name board) | Distinguishes a booked transfer from a taxi-rank pickup; it's the physical proof of "fixed price, driver waiting" | LOW-MEDIUM (mostly ops/comms, not UI) | FAQ topic already scoped ("which airports offer meet-and-greet" is an owner blank, not a missing feature); driver name/plate/phone-arrives-before-pickup is a tracked shared `data-tok` |
-| Free cancellation window with a clear, tiered refund policy | Prevents the #1 support-load driver in this category — "can I get my money back" | MEDIUM | Owner decision 2 locks tiers (100% >24h / 75% <24h / 0% no-show); refund automation is in Active scope |
-| Self-serve cancel/manage without calling support | Reduces support load to a small operator that can't staff a 24/7 phone line | MEDIUM | `manage-booking.dc.html` with ref+email lookup and a tokened deep link from confirmation emails — in scope |
-| Guest checkout (no forced account creation) | Airport transfers are often one-off/infrequent purchases; forcing signup is proven to cost conversions in this category | LOW-MEDIUM | Explicit in Active scope, with claim-into-account as a secondary path |
-| Manage-booking-by-token (tokened link, not password) | Lets a guest who never created a password still manage or cancel from the confirmation email | MEDIUM | Explicit in MISSING-FEATURES (`manage-booking.dc.html`) — link expiry is an owner-blank `data-tok`, mechanism is scoped |
-| Coupons/promo codes | Table stakes for direct-booking conversion (vs. OTA/marketplace channels); every mid-market transfer site has one | LOW-MEDIUM | `OpsCoupons` + checkout coupon field with server-side validation shared between the two — in scope |
-| Card + local wallet payment (cards, Apple Pay, Google Pay, TWINT) | TWINT specifically is near-table-stakes for a Swiss consumer product; Apple/Google Pay reduce checkout friction on mobile, which is most of this traffic | MEDIUM-HIGH | Stripe Payment Element, 3DS, idempotent booking creation — in Active scope. PayPal correctly dropped (no Swiss-merchant PayPal support via Stripe) |
-| Booking confirmation with receipt, reference, and calendar invite | Baseline trust/proof-of-purchase; ICS lets a traveler drop pickup time straight into their itinerary | LOW-MEDIUM | Confirmed in scope (confirmation.dc.html gaps, ICS export listed) |
-| Manual/phone booking entry for dispatch | A small operator still takes phone bookings — every dispatch console in this category needs an "enter this as if the customer booked online" path | MEDIUM | Correctly flagged 🔴 in MISSING-FEATURES ("no mock exists for this at all") **and** explicitly named in PROJECT.md Active scope under Surfaces; Key Decisions notes it gets mocked before being built. Already tracked — no new gap, but it is the single highest-risk missing screen for day-one ops |
-| Chauffeur/vehicle assignment with conflict/double-booking check | The core dispatcher action — matching a booking to a specific driver+car without accidentally double-booking either | MEDIUM-HIGH | `OpsBoard` assignment action — in scope |
-| Live/near-live bookings board with status + filters | What a dispatcher stares at all day: today's pickups, who's unassigned, what needs attention | MEDIUM | `OpsBoard`/`OpsDash` — in scope, Realtime-backed |
-| No-show handling with a fee | Mirrors the customer-side no-show tier (0% refund); ops needs the matching workflow (mark no-show, apply fee, notify) | LOW-MEDIUM | Flagged 🟡 in `OpsDetail` — in scope |
-| Fleet management (vehicles + chauffeurs) with document-expiry alerts | Swiss transfer licensing means license/insurance expiry tracking isn't optional — a lapsed document is a legal exposure, not a UX nicety | MEDIUM | `OpsFleet` — in scope |
-| Versioned, publishable pricing table | The money table; a dispatcher/owner needs to change fixed-route/per-km rates without a code deploy, with an audit trail of who changed what | MEDIUM-HIGH | `OpsPricing` — in scope, correctly called out as needing draft→publish versioning, not direct-edit |
-| Multi-language (customer-facing) | Zurich airport traffic is majority non-German-speaking; this is closer to "the site doesn't work" than a nicety if missing | HIGH | Already the strictest constraint in this codebase — EN/DE/FR/AR, same pass, RTL for Arabic |
-| Price display consistent with the merchant's actual charge currency (CHF) | A traveler must never be surprised by what they're actually charged | LOW | `VamosLocale.money()` — validated in design phase. Note: per `CLAUDE.md`, the currency switch changes display formatting/mark, not the underlying number — i.e. this is **not** live FX-converted pricing (see Differentiators note below) |
+Missing these = Ops `#support` feels like a read-only dump of the contact table, which is what `handled_at` already is.
 
-### Differentiators (Competitive Advantage for a Small Swiss Operator)
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Ticket list in Ops `#support` | A dispatcher will not live in Gmail and in the board. One working inbox. | LOW–MEDIUM | Rows are `contact_submissions`. Staff SELECT already exists. Need a nav hash and a list UI (no mock yet — mock before build, same rule as manual booking). |
+| Status New / Open / Replied / Closed | Without status the list is a firehose. This is the whole point of leaving Gmail. | LOW | `handled_at` is too coarse. Needs an explicit status column (or equivalent) on the submission. Filter chips on the list. |
+| Open a ticket and see the original form | Name, email, phone, booking ref, locale, message, created_at — that is the first message. | LOW | Already on the row. Do not duplicate into a messages table as a second source of truth for the form body. |
+| Reply from the ticket via Resend | "I can see it but I still answer in Gmail" is the failure mode this milestone exists to kill. | MEDIUM | Must send from a receiving address, not `noreply@`. Set `In-Reply-To` / `References` and `Re:` subject so Gmail threads. Persist the outbound body on the ticket. |
+| Customer Reply-in-Gmail appends to the same ticket | Table stakes of every help desk. If replies spawn a new ticket, Ops is worse than Gmail. | HIGH | Resend inbound webhook + body fetch + match. Matching is the risk. See Dependencies. |
+| Conversation history, newest last | Dispatcher must see what was already said before typing. | MEDIUM | New `ticket_messages` (name TBD) keyed to `contact_submissions.id`. Outbound + inbound. Idempotent on provider message id. |
+| Gmail still receives a copy of the original submission | Owner already watches `info@vamostaxi.site`. Removing the copy would be a silent regression of SITE-04. | LOW | Already implemented via `contact_delivery_outbox.support`. Keep it. Ops is the working inbox; Gmail is the copy. |
+| Staff-only | Contact PII. Same bar as bookings. | LOW | Existing RLS + `vamos_staff` SELECT. Mutations must be staff-gated the same way. No new public read. |
+| Inbound webhook authenticity + idempotency | A forged or replayed `email.received` would append fake customer mail onto a real ticket. | MEDIUM | Verify Resend signature. Dedupe on Resend `email_id` / `message_id`. Same discipline as Stripe webhooks (PAY-05). |
+| Closed stays closed until a human reopens — or a documented reopen-on-reply rule | Dispatchers expect Closed to mean "I am done." Surprise reopen is a product decision, not an accident. | LOW | Industry default is reopen-on-customer-reply. Pick one rule and stick to it. Do not invent a fifth status. |
+
+### Differentiators (Competitive Advantage)
+
+Not required to call it an inbox. Valuable here because Vamos is a small Swiss carrier with the booking already in the same app.
 
 | Feature | Value Proposition | Complexity | Notes |
-|---------|--------------------|------------|-------|
-| Vamos is the carrier, not a broker/marketplace | GetTransfer is explicitly a reverse-auction marketplace (customer names a price, competing local operators bid); Transfeero/Suntransfers are aggregators reselling third-party operators. Being the actual carrier — one known fleet, one liable company — is a trust signal a marketplace structurally can't offer, and it's already owner decision 1 | LOW (it's a positioning/legal fact, not a build) | Rewrites Terms 01/05/13; the archive's intermediary-style liability disclaimer must not be carried forward |
-| Alpine, ski-season, and cross-border routes as named coverage | Global aggregators default to airport↔city-center; a Zurich-based operator with real alpine-route knowledge (Verbier, St. Moritz, cross-border to French/German/Italian regions) is a defensible niche a global marketplace won't optimize for | LOW-MEDIUM | About page has an explicit blank for "full coverage list — cities, resorts, cross-border routes, and which are seasonal" — this is where the differentiator gets written down, and it's currently unfilled |
-| WhatsApp-based human contact instead of a bot/widget | Cheap to build (a deep link, not chat infra), and for a small operator with real people answering, WhatsApp *is* the differentiator — travelers get a human, not a queue | LOW | Already decided (owner decision 11); explicitly chosen over a vendor widget or in-house chat build |
-| Real driver/founder photography (name board at the curb, founder portrait) vs. stock/marketplace anonymity | A single-operator brand can credibly show "this is who picks you up," which a marketplace of contracted operators cannot | LOW (content, not code) | Currently every photography item is blank — this differentiator is unrealized until photos land |
-| Simple three-class lineup (Economy/Business/Van) | Deliberately smaller than GetTransfer's sprawling vehicle-type list; less choice paralysis, faster decision, matches a small owned fleet rather than pretending to have inventory it doesn't | LOW | Already the shape of the product (owner decision 13 cut the fourth class) |
-| Corporate/invoice billing done simply | If built minimally (a "bill my company" flag + manual ops invoicing, not a full B2B portal), this converts repeat business-travel accounts that competitors handle with heavier enterprise tooling — a lighter self-serve version can undercut Blacklane Business's onboarding friction | MEDIUM | Not yet in Active scope — see **Gaps** below; this is a genuine build/defer decision, not a confirmed feature |
+|---------|-------------------|------------|-------|
+| Native Ops inbox instead of Zendesk/Help Scout | One login, one design system, PII stays in the same Supabase project, no per-seat help-desk bill | MEDIUM | The whole milestone. Do not "just embed Intercom." |
+| `booking_ref` already on the ticket | Transfer support is "where's my driver / can I change pickup," not a generic FAQ. Linking the booking is the useful context Help Scout would need a Shopify-style app for. | LOW | Column exists. v1.1 can show it. Deep-link into Ops booking detail is a cheap enhance; do not block launch on it. |
+| Form `locale` on the ticket | Dispatcher answers in the language the customer wrote in. Four-language product; English-only replies would be a regression. | LOW | Column exists. Display it. Do not auto-translate. |
+| WhatsApp stays the live human channel; email is the written record | Owner already chose a WhatsApp deep link over a chat widget (PROJECT.md out of scope). Tickets catch the people who will not open WhatsApp. | — | Not a build. Keep SITE-09 phone/WhatsApp. `#support` does not replace them. |
+| Gmail copy as a safety net, not the system of record | If Ops is down, the owner still has the original mail. If the owner replies in Gmail, threads split — that is the trade. Document it; do not sync Gmail back. | LOW | Anti-IMAP is the other half of this differentiator. |
 
-**Currency note:** true FX-converted price display (showing a non-CHF traveler an EUR/USD *equivalent*
-alongside the CHF charge, the way Blacklane/Suntransfers do for a global audience) is not what
-`VamosLocale` does per `CLAUDE.md` ("the currency switch changes the mark, never the number"). For a
-Zurich-first, CHF-settling operator this is an acceptable and correct scope call — the alternative (real
-FX conversion) is a differentiator worth revisiting only if/when the customer base skews heavily
-non-CHF-card, not a launch requirement.
+### Anti-Features (Commonly Requested, Often Problematic)
 
-### Anti-Features (This Category Specifically Tempts Builders Into)
-
-The booking→pay→assign→ride shape of this product looks enough like ride-hailing that every one of these
-gets suggested at some point. PROJECT.md has already correctly excluded most of them — listed here so the
-*reasoning* survives into requirements/roadmap, not just the exclusion.
-
-| Anti-Feature | Why It Gets Requested | Why It's Wrong Here | Correct Alternative (already scoped) |
-|---------------|------------------------|----------------------|----------------------------------------|
-| Live GPS driver tracking / "arriving in 3 minutes" | Every rideshare app trains users to expect it; feels like an obvious add | This product sells a *fixed, pre-arranged* pickup — a live map implies on-demand dispatch and invites the wrong customer expectation (that they can watch a car approach, that timing is negotiable). It's also expensive infra (driver app, location streaming) for a product with no driver app | Flight-tracked, delay-aware pickup + driver name/plate/phone shared ahead of time. Already correctly out of scope |
-| Nearest-driver / automatic dynamic dispatch | Looks like "smarter" assignment than a human dispatcher clicking a dropdown | There's no fleet size where automatic matching beats a single dispatcher's judgment for a scheduled, low-volume operation, and it requires real-time driver location data this product deliberately doesn't collect | Manual assignment with a conflict check in `OpsBoard` — already scoped |
-| Surge/dynamic pricing | "Other platforms do it to manage demand" | Fixed price *is* the product's core value proposition (Core Value in PROJECT.md); any dynamic element breaks the trust the whole funnel is built on | Versioned but *stable* published pricing table, changed deliberately by a human, not an algorithm |
-| Reverse-auction / marketplace bidding (the GetTransfer model — customer names a price, operators compete) | It's a real, working model in this exact category, so it's an easy "but competitor X does this" argument | Vamos owns one fleet and is the carrier (owner decision 1) — there's no pool of competing operators to bid, and building auction infrastructure for a single-supplier business is pure waste | Transparent fixed quote from the one fleet that exists |
-| Driver-facing mobile app / driver dashboard | Feels incomplete without one once assignment exists | Explicitly out of scope — drivers are admin records; a driver app is a second product with its own auth, offline handling, and app-store overhead for a V1 with a handful of drivers | Ops assigns manually; driver gets a notification (SMS/email), not an app |
-| Global/multi-country supply expansion features | Transfeero/Suntransfers/GetTransfer are all global — easy to over-build for "someday" scale | Explicitly out of scope; Zurich-first with named routes is the entire differentiator (see above) — building multi-country supply tooling now is speculative infrastructure with no near-term user | Named coverage list (cities/resorts/cross-border), not a country-selector architecture |
-| Third-party or in-house live chat widget | "Every SaaS site has a chat bubble" | Already evaluated and rejected — a vendor widget fights the design system and cookie-consent model; an in-house build is 3–5 days against a 2–3 week deadline for a feature no mock ever specified | WhatsApp deep link — already decided |
-| Book-by-the-hour / hourly charter mode | Present in the current mock as a dead tab, and hourly charter is a real product in this category (chauffeur services often offer it) | Explicitly cut by owner decision 15 — it's a different pricing/booking model (time-based, not route-based) that would fork the entire quote engine for a feature with no current demand signal | Point-to-point transfers only for V1 |
-| Loyalty/rewards points | Looks like a retention lever | Airport transfers are low-frequency purchases per customer (a few times a year at most); a points program is infrastructure cost chasing a repeat-purchase frequency this product doesn't have | Quality of service + WhatsApp support drives repeat/referral, not gamification |
-| A full self-service B2B corporate portal (SSO, department budgets, API booking) | "Corporate clients" is named in PROJECT.md's Business Context, and enterprise transfer platforms (Blacklane Business) do build this | Heavy for a solo-owner-built V1 with no confirmed corporate demand yet — building the enterprise version before the simple version ships is the classic scope trap | If corporate billing ships at all for V1, it should be the minimal version noted in Differentiators — a billing flag + manual ops invoicing, not a portal |
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Live chat / Intercom / in-house widget | "Every site has a bubble" | Already rejected: fights the design system and cookie banner; no mock; 3–5 days. v1.1 is email tickets. | WhatsApp deep link (SITE-09) |
+| Gmail IMAP / Gmail API scrape | "Just read `info@` so we don't miss mail people send directly" | Auth (OAuth refresh, Google Workspace), polling vs push, duplicate detection against the form copy we already send, HTML vs MIME, and a second source of tickets that never went through Turnstile. PROJECT.md: out. | Resend inbound webhook on the receiving domain. Direct-to-Gmail mail stays in Gmail. |
+| Phone-typed tickets | Dispatcher takes a call, wants a ticket | A second create path (ops form, validation, no Turnstile, no `submit_contact_message` idempotency). No mock. Statuses-only milestone. | Take the call; if it needs a written trail, the customer uses `/contact`, or the dispatcher uses the existing phone-booking path for actual bookings. |
+| Auto-tags / AI classify | "Billing vs delay vs complaint" | Tags become a taxonomy project. Wrong tags are worse than none. Solo dispatcher can read the message. | Statuses only. |
+| Staff tab | "That's where tickets / users live in other consoles" | Staff management is invite/role/MFA (MISSING-FEATURES, OpsSettings). Mixing it with customer mail recreates a help-desk admin. PROJECT.md: stays gone. | `#support` hash on the existing rail. |
+| Catch-all inbound (any mail to `info@` becomes a ticket) | Feels like "we won't miss anything" | Unauthenticated mail: spam, bounces, vendor newsletters, the SITE-04 copy bouncing back in. Turns `#support` into Gmail. | Tickets originate from `contact_submissions`. Inbound is replies to those tickets only. Unmatched inbound is logged and dropped (Gmail still has it). |
+| Answering in Gmail *and* Ops | Owner habit | Two From addresses, split threads, double replies. The copy is read-only. | Ops is the working inbox. Gmail is the archive. |
+| Assignment, collision detection, SLA, CSAT, macros, saved replies, knowledge base | Help Scout/Zendesk table stakes for a team | Vamos is a solo/small dispatcher. Each of these is a product. Collision detection needs presence. SLA needs clocks and policy. Macros need a content UI. | One person, four statuses, type the reply. |
+| AI auto-reply | Speed | Wrong answer on a paid airport transfer (pickup time, refund tier) is worse than slow. Legal/pricing copy is owner-owned. | Human reply. |
+| Attachments as a launch requirement | Travellers forward boarding passes | Resend inbound supports them (metadata + download URL, 30-day store). Extra storage, virus, and PII surface. Not needed to prove two-way mail. | Defer. Body text is enough for v1.1. |
+| Vendor help desk (Zendesk/Help Scout/Front) | Fastest way to "have support" | Second login, second design, EU data story, per-seat cost, and `booking_ref` becomes a sidecar. Conflicts with "PII in this Supabase project" and the bound design system. | Native `#support`. |
 
 ## Feature Dependencies
 
 ```
-Server-priced quote (address/route → price)
-    └──requires──> Pricing engine (fixed-route override, per-km, surcharges) [OpsPricing feeds this]
-    └──requires──> Vehicle-class capacity data (pax/luggage limits per class)
+SITE-04 /contact form
+    └──writes──> contact_submissions
+                    └──triggers──> contact_delivery_outbox
+                                      ├──customer ack (Resend)
+                                      └──Gmail copy to info@ (Resend)  ──keep──> v1.1
 
-Checkout / payment
-    └──requires──> Quote lock (30 min) surviving into checkout
-    └──requires──> Guest OR signed-in identity (both must resolve to a bookable customer record)
+Ops #support list
+    └──requires──> contact_submissions staff SELECT (exists)
+    └──requires──> status New/Open/Replied/Closed (does not exist; handled_at is not this)
+    └──requires──> #support nav hash (does not exist; Staff tab must stay absent)
 
-Flight-delay-aware pickup
-    └──requires──> Flight-number autofill (AeroDataBox lookup)
-    └──enhances──> Meet-and-greet reliability (driver knows to wait longer without customer calling)
+Reply from ticket
+    └──requires──> receiving From / Reply-To (not noreply@)
+    └──requires──> Resend send + persisted outbound message
+    └──requires──> RFC 5322 In-Reply-To / References (+ Re: subject)
+    └──requires──> stored Message-ID per message (outbox suffix is not enough)
+    └──enhances──> status → Replied
 
-Self-serve cancel/refund
-    └──requires──> Cancellation policy tiers (owner decision 2, numbers still partially TBC)
-    └──requires──> Stripe refund capability wired to booking status
+Inbound customer reply
+    └──requires──> Reply from ticket (otherwise there is nothing to reply to)
+    └──requires──> MX for staging receiving domain (vamostaxi.site only; live eu DNS is Phase 11)
+    └──requires──> Resend inbound webhook, signature verify, body fetch
+    └──requires──> match to contact_submissions (Message-ID / plus-address / subject token)
+    └──conflicts with──> IMAP scrape of info@
+    └──conflicts with──> catch-all "any mail is a ticket"
 
-Manage-booking-by-token
-    └──requires──> Confirmation email delivery (Resend) carrying the tokened link
-    └──enhances──> Guest checkout (guests have no other way back into their booking)
-
-Ops assignment (chauffeur + vehicle)
-    └──requires──> Fleet data (OpsFleet: active vehicles/chauffeurs, license/insurance status)
-    └──requires──> Conflict check (no double-booking same driver/vehicle)
-    └──triggers──> Driver + customer notification (name/plate/phone reaches customer before pickup)
-
-Manual/phone booking (ops)
-    └──requires──> Same pricing engine as the public quote (single source of truth, not a second price path)
-    └──conflicts with──> Any design that lets ops bypass server-side pricing (must not hand-type a price)
-
-No-show handling
-    └──requires──> Cancellation tier logic (0% refund tier) shared between customer-facing policy and ops action
-
-Corporate/invoice billing (if built)
-    └──requires──> A billing-type flag on checkout ("pay by invoice" decision, currently open)
-    └──requires──> Ops-side invoice generation/tracking (currently no mock — see Gaps)
-    └──conflicts with──> Guest checkout's "pay now" assumption — needs its own approval/terms step
+Gmail copy of original
+    └──already exists──> contact_delivery_outbox.support
+    └──must not become──> a second write path into the ticket thread
 ```
 
-## Gaps vs Existing Scope
+### Dependency Notes
 
-Checked against `docs/build/MISSING-FEATURES.md` first — everything below is either genuinely absent
-from all three source documents, or present in a form that leaves it unresolved rather than tracked.
-
-1. **Corporate/invoice billing has no committed scope, despite being a named customer segment.**
-   PROJECT.md's Business Context explicitly lists "corporate clients" alongside travellers, but Active
-   scope (booking funnel, surfaces) never mentions invoicing or corporate billing, and it's absent from
-   Out of Scope too — it's in limbo. MISSING-FEATURES.md itself flags this ambiguity twice: checkout's
-   "corporate 'pay by invoice' decision" is marked 🟡 undecided, and OpsCustomers' "corporate accounts
-   with invoicing" is marked ⚪ with the note "a documented V1 target — currently no mock!" **This is not
-   a new discovery — MISSING-FEATURES already surfaces it as unresolved — but it needs an explicit
-   roadmap decision (build a minimal version, or formally move it to Out of Scope) rather than staying
-   an open question into execution.**
-
-2. **No post-trip review-solicitation flow is visible anywhere.** The cross-cutting email/SMS gap list
-   in MISSING-FEATURES.md names confirmation, reminder, driver-assignment, and password-reset as the
-   missing transactional message types — it does not include a "how was your ride, please leave a
-   review" trigger. Separately, `OpsReviews` is scoped only to *publishing/moderating* reviews (with an
-   open question about importing from Google/Trustpilot), not to *soliciting* new ones from customers
-   who actually completed a ride. In this category, in-house review collection is how a small operator
-   builds a review base a global aggregator can't route around. Worth a deliberate decision at
-   requirements time: rely entirely on imported third-party reviews, or add a lightweight post-trip
-   review-request email.
-
-3. **No visible field for airport-transfer add-ons (child seat, extra stop, oversized luggage) in the
-   booking flow, despite fee policy for them existing in scope.** OWNER-ANSWERS.md's Terms & conditions
-   blanks include "extra-stop fee," "free minutes for a city stop," "fee beyond that," and "oversized-item
-   fee" — implying the operation intends to support these — but MISSING-FEATURES.md's home booking-widget
-   gap list (address fields, flight autofill, pax/luggage counters) never mentions a UI mechanism to
-   *request* an extra stop or flag oversized luggage, and checkout's gap list ("passenger form
-   validation") doesn't mention a special-requests field either. This may already be covered in one of
-   the 23 per-screen SPEC files this pass didn't read in full — flagged for confirmation rather than
-   asserted as a confirmed gap, but worth a direct check before requirements lock, since child-seat/extra
-   stop requests are a routine table-stakes ask in this category (Suntransfers lists child seats as a
-   standard feature).
-
-No other gaps found. Everything else in the question's focus list (quote/vehicle-class selection,
-flight-number handling, meet-and-greet, waiting-time rules, cancellation/refund tiering, guest checkout,
-manage-by-token, coupons, multi-currency display, day-to-day dispatcher needs) is already tracked in
-MISSING-FEATURES.md at the correct priority, even where the underlying numbers or copy are still owner
-`data-tok` blanks.
+- **`#support` requires `contact_submissions`, not a new ticket table as the root.** The form row is the ticket. A messages table hangs off `id`. Inventing a parallel `tickets` root duplicates name/email/booking_ref and splits SITE-04 from Ops.
+- **`handled_at` is not a status.** It cannot represent New vs Open vs Replied. Keep or retire it explicitly; do not overload it.
+- **Reply requires a receiving address.** Today's `noreply@vamostaxi.site` From makes "customer Reply-in-Gmail" impossible. From and/or Reply-To must be an address Resend inbound accepts on `vamostaxi.site`.
+- **Inbound requires outbound first.** Matching needs a `Message-ID` we minted. Do not build the webhook before the send path stores that id.
+- **Matching should not rely on Gmail.** Industry fallbacks: plus-address (`support+{id}@…`), opaque subject token, then `In-Reply-To`. Pick in architecture research; FEATURES only records that a fallback is table stakes because clients strip headers.
+- **Unmatched inbound must not create tickets.** That is how catch-all and IMAP scrape sneak in.
+- **Gmail copy must not round-trip.** The SITE-04 support mail to `info@` is outbound from us. If inbound MX also receives `info@`, that copy can bounce back as a fake customer message. Receiving address and Gmail recipient must not be the same mailbox.
+- **Inbound MX is staging-only.** PROJECT.md: live `vamostaxi.eu` DNS stays Phase 11.
+- **Staff tab conflicts with `#support`.** Tickets are not staff admin. Do not revive a Staff hash to park them.
+- **No mock for `#support` yet.** OpsSidebar has no support item; OpsSoon has no support section. Same rule as phone booking: mock first, then implement.
 
 ## MVP Definition
 
-### Launch With (v1) — matches PROJECT.md's Active scope
+### Launch With (v1.1)
 
-- [x] Server-priced quote with fixed-route/per-km/surcharge/coupon logic and a 30-min lock — core value
-- [x] Three-class vehicle selection with real capacity data
-- [x] Flight-number autofill + delay-aware pickup shift with both-sides notification
-- [x] Card/Apple Pay/Google Pay/TWINT checkout via Stripe, guest or signed-in
-- [x] Self-serve cancel inside tiered policy with automatic refund
-- [x] Manage-booking-by-token from the confirmation email
-- [x] Ops live board, booking detail, manual assignment, manual/phone booking entry
-- [x] Fleet management with document-expiry visibility
-- [x] Versioned, publishable pricing table
-- [x] Four-language, four-width coverage on every public surface
+Minimum that makes Ops the working inbox.
+
+- [ ] Ops `#support` lists `contact_submissions` as tickets — otherwise dispatchers stay in Gmail
+- [ ] Status New / Open / Replied / Closed, set by the dispatcher — otherwise the list cannot be worked
+- [ ] Ticket detail shows the original form fields and the message thread
+- [ ] Dispatcher replies from the ticket; Resend delivers; Gmail threads; ticket stores the outbound body and `Message-ID`
+- [ ] Customer Reply-in-Gmail hits Resend inbound and appends to the same ticket
+- [ ] Original SITE-04 Gmail copy still sends; Staff tab stays gone
+- [ ] Unmatched inbound does not create a ticket; webhook is signed and idempotent
 
 ### Add After Validation (v1.x)
 
-- [ ] Minimal corporate/invoice billing (billing flag + manual ops invoicing) — trigger: confirmed
-      inbound demand from named corporate clients, or explicit owner decision to build it for launch
-- [ ] Post-trip review-request email — trigger: once transactional email infra (Resend) is live for
-      confirmation/reminder, this is a small marginal addition, not a new subsystem
-- [ ] Booking add-ons (child seat, extra stop, oversized luggage) as an explicit UI field — trigger:
-      once confirmed absent from the per-screen SPECs; otherwise this is already in v1
+Once two-way mail is boring.
+
+- [ ] Reopen-on-reply (if launch ships Closed-stays-closed) — trigger: first closed ticket that the customer continues
+- [ ] Deep-link `booking_ref` → Ops booking detail — trigger: dispatchers searching bookings by hand
+- [ ] Inbound attachments (boarding pass / screenshot) — trigger: real tickets arriving with images that matter
+- [ ] Saved replies for the three repeated answers (change of time, cancellation pointer, "driver details are in the SMS") — trigger: volume, not aesthetics
+- [ ] Filter/search by email / booking_ref — trigger: more than a screenful of open tickets
 
 ### Future Consideration (v2+)
 
-- [ ] True FX-converted price display for non-CHF travelers — defer until customer base data shows it's
-      needed; card-network FX already solves the actual charge-currency problem
-- [ ] Import path for third-party reviews (Google/Trustpilot) — defer until the review volume from the
-      product itself is thin enough to need supplementing
-- [ ] Per-chauffeur working-hours/absence tracking feeding assignment conflicts — defer until fleet size
-      makes manual coordination error-prone
+- [ ] Assignment / collision detection — defer until there is more than one person in `#support`
+- [ ] SLA clocks, CSAT, macros, knowledge base — defer; that is a help desk product
+- [ ] Phone-typed tickets — defer; no mock, second write path
+- [ ] IMAP / Gmail ingest of direct-to-`info@` mail — defer; stays out of scope
+- [ ] Live chat — defer; stays WhatsApp
+- [ ] Auto-tags / AI replies — defer
+- [ ] Catch-all inbound on `info@` — defer; Gmail remains the bucket for non-ticket mail
+- [ ] Live `vamostaxi.eu` MX — Phase 11, not this milestone
 
 ## Feature Prioritization Matrix
 
 | Feature | User Value | Implementation Cost | Priority |
-|---------|------------|----------------------|----------|
-| Server-priced quote + lock | HIGH | HIGH | P1 |
-| Flight autofill + delay-aware pickup | HIGH | MEDIUM | P1 |
-| Stripe checkout (card/Apple/Google/TWINT) | HIGH | HIGH | P1 |
-| Self-serve cancel + auto refund | HIGH | MEDIUM | P1 |
-| Manage-booking-by-token | HIGH | MEDIUM | P1 |
-| Ops manual/phone booking entry | HIGH | MEDIUM | P1 |
-| Ops assignment with conflict check | HIGH | MEDIUM-HIGH | P1 |
-| Versioned pricing table | HIGH (ops) | MEDIUM-HIGH | P1 |
-| Coupons | MEDIUM | LOW-MEDIUM | P2 |
-| Corporate/invoice billing (minimal) | MEDIUM (segment-specific) | MEDIUM | P2 |
-| Post-trip review request | MEDIUM | LOW | P2 |
-| Booking add-ons (child seat/extra stop) | MEDIUM | LOW-MEDIUM | P2 |
-| Live GPS tracking | LOW (wrong for this product) | HIGH | P3 — do not build |
-| Reverse-auction marketplace pricing | LOW (wrong for this product) | HIGH | P3 — do not build |
-| True FX-converted display | LOW-MEDIUM | MEDIUM | P3 |
+|---------|------------|---------------------|----------|
+| `#support` list of contact tickets | HIGH | LOW–MEDIUM | P1 |
+| Status New / Open / Replied / Closed | HIGH | LOW | P1 |
+| Ticket detail (form + thread) | HIGH | MEDIUM | P1 |
+| Reply from ticket (Resend + headers + store) | HIGH | MEDIUM | P1 |
+| Receiving From/Reply-To (leave `noreply@`) | HIGH | LOW (config) + MEDIUM (MX) | P1 |
+| Inbound webhook append-to-same-ticket | HIGH | HIGH | P1 |
+| Keep SITE-04 Gmail copy | HIGH | LOW (exists) | P1 |
+| Signed, idempotent inbound; unmatched dropped | HIGH | MEDIUM | P1 |
+| Staff tab remains absent | HIGH (scope control) | LOW | P1 |
+| Booking-ref deep-link | MEDIUM | LOW | P2 |
+| Reopen-on-reply rule | MEDIUM | LOW | P2 |
+| Attachments | MEDIUM | MEDIUM | P2 |
+| Saved replies | LOW–MEDIUM | LOW | P2 |
+| Assignment / SLA / CSAT / macros | LOW (wrong team size) | HIGH | P3 — do not build |
+| Live chat | LOW (rejected) | HIGH | P3 — do not build |
+| IMAP scrape | LOW (rejected) | HIGH | P3 — do not build |
+| Phone-typed tickets | LOW (rejected for v1.1) | MEDIUM | P3 — do not build |
+| Auto-tags | LOW (rejected) | MEDIUM | P3 — do not build |
+
+**Priority key:**
+- P1: Must have for v1.1 — without it Ops is not the working inbox
+- P2: Should have once P1 is proven on staging
+- P3: Nice to have or explicitly out of v1.1
 
 ## Competitor Feature Analysis
 
-| Feature | Blacklane | Transfeero / Suntransfers | Vamos Approach |
-|---------|-----------|------------------------------|-----------------|
-| Pricing model | Fixed price, owned + partner fleet | Fixed price, aggregator of local operators | Fixed price, **single owned fleet** — closer to Blacklane's model than the aggregators' |
-| Free waiting time | 60 min at airports/stations, billed/no-show after | 60 min free wait on delayed flights (Transfeero) | Same shape, numbers still owner TBC |
-| Flight tracking | Automatic, adjusts driver arrival | Automatic, adjusts for delay/cancellation | Same shape, explicitly scoped to autofill + delay-adjust, not live ops-board tracking |
-| Cancellation | Free up to 60 min before pickup, then full charge | Free cancellation advertised, terms vary by operator | Free >24h / 75% <24h / 0% no-show — a stricter, clearer tiered structure than Blacklane's single cutoff |
-| Supply model | Company-branded, partner-network + owned | Marketplace of independent local operators | Single carrier, owner-operated — closest to Blacklane, opposite of Transfeero/Suntransfers/GetTransfer |
-| Booking channel for phone-in customers | Concierge/corporate booking desk | N/A (self-serve web only in most markets) | Ops manual/phone booking screen (small-operator equivalent of a booking desk) |
+| Feature | Gmail shared `info@` (today) | Help Scout / Front | Zendesk / Freshdesk | Vamos v1.1 |
+|---------|------------------------------|--------------------|---------------------|------------|
+| Working surface | Mailbox | Conversation inbox | Ticket queue | Ops `#support` |
+| Origin | Anyone who emails `info@` | Email, chat, form | Email, chat, phone, social, form | `/contact` rows only |
+| Status | Read/unread, archive | Active / Pending / Closed | New / Open / Pending / Hold / Solved / Closed | New / Open / Replied / Closed |
+| Reply | In Gmail | In the conversation | In the ticket | In the ticket, via Resend |
+| Inbound threading | Gmail's own | Vendor | Vendor | Resend webhook → same `contact_submissions.id` |
+| Carbon copy | It *is* the inbox | Optional forward | Optional | Keep SITE-04 copy to `info@`; Ops is canonical |
+| Booking context | None | Integration | Integration | `booking_ref` already on the row |
+| Tags / SLA / assign | No | Yes | Yes | No |
+| Live chat | No | Optional | Optional | No — WhatsApp deep link |
+| IMAP of the mailbox | Native | Optional connect | Optional connect | No |
 
 ## Sources
 
-- `.planning/PROJECT.md` — HIGH confidence, authoritative project scope
-- `docs/build/MISSING-FEATURES.md` — HIGH confidence, authoritative existing gap audit
-- `docs/build/OWNER-ANSWERS.md` — HIGH confidence, authoritative owner decisions and open blanks
-- [Blacklane Terms and Conditions](https://www.blacklane.com/en/terms/) — MEDIUM confidence
-- [Blacklane: How should I choose the pickup time at airports?](https://help.blacklane.com/en/articles/2689440-how-should-i-choose-the-pickup-time-at-airports) — MEDIUM confidence
-- [Blacklane: What is the no-show policy?](https://partner-help.blacklane.com/en/articles/8420639-what-is-the-no-show-policy) — MEDIUM confidence
-- [Blacklane: How can I make changes to my booking?](https://help.blacklane.com/en/articles/2690381-how-can-i-make-changes-to-my-booking) — MEDIUM confidence
-- [Transfeero — Airport Transfers Worldwide](https://www.transfeero.com/en/) — MEDIUM confidence
-- [Suntransfers.com](https://www.suntransfers.com/) — MEDIUM confidence
-- [GetTransfer reviews (Trustpilot)](https://www.trustpilot.com/review/gettransfer.com) — MEDIUM confidence, used only to confirm the reverse-auction/marketplace model differs structurally from the fixed-fleet model
+- `.planning/PROJECT.md` — v1.1 goal, frozen funnel, out-of-scope (live chat, IMAP, phone-typed tickets, auto-tags, Staff tab, live eu DNS)
+- `packages/db/supabase/migrations/20260828000002_contact_forms.sql` — `contact_submissions` shape, RLS, `submit_contact_message`
+- `packages/db/supabase/migrations/20260902000001_contact_delivery_outbox.sql` — dual-channel outbox (customer ack + Gmail copy)
+- `apps/web/lib/forms/notify.ts` / `apps/web/app/api/contact` — current From `noreply@vamostaxi.site`, Resend send
+- `apps/web/lib/contact-channels.ts` — public mailbox `info@vamostaxi.site`
+- `app/ops/OpsSidebar.dc.html` — no `#support`, no Staff tab
+- `.planning/REQUIREMENTS.md` SITE-04 / SITE-09 — form reaches inbox + database; phone/WhatsApp/contact remain customer channels
+- [Resend inbound](https://resend.com/docs/dashboard/receiving/introduction) — webhook, body fetch, attachments
+- [Resend threaded replies](https://resend.com/docs/dashboard/receiving/reply-to-emails) — `In-Reply-To` / `References`
+- [Ticketing vs shared inbox (Missive)](https://missiveapp.com/blog/ticketing-system-vs-shared-inbox) — why a mailbox stops working
+- [Help Scout shared inbox](https://www.helpscout.com/help-desk-software/) — conversation statuses, collision, saved replies (team-scale extras)
+- Zendesk default statuses New / Open / Pending / Hold / Solved / Closed — industry vocabulary mapped onto Vamos's four
 
 ---
-*Feature research for: pre-booked airport-transfer platform, Zurich-first, single-operator carrier*
-*Researched: 2026-08-17*
+*Feature research for: v1.1 Ops Support (two-way tickets from contact_submissions)*
+*Researched: 2026-09-04*

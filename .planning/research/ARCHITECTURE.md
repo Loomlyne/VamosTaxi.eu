@@ -1,313 +1,363 @@
 # Architecture Research
 
-**Domain:** Booking + payments + dispatch system, single Cloudflare Worker (Next.js 15 via `@opennextjs/cloudflare`) + Supabase Postgres via Hyperdrive
-**Researched:** 2026-08-17
-**Confidence:** HIGH (Cloudflare Queues semantics, Stripe idempotency, `@opennextjs/cloudflare` monorepo behaviour, Supabase Realtime authorization are all current-docs-verified). MEDIUM on the exact quote-lock/pricing-snapshot table shape — this is a design decision this document makes explicit, not a documented external pattern.
+**Domain:** Ops Support inbox — contact-form tickets with Resend outbound replies and inbound webhooks, on the existing single Cloudflare Worker + Supabase/Hyperdrive stack
+**Researched:** 2026-09-04
+**Confidence:** HIGH on how tickets attach to the existing contact intake, staff gate, DC hash console, and Hyperdrive identity doors. MEDIUM on the exact receiving subdomain label (`replies.vamostaxi.site` is the recommended name, not a frozen DNS record) and on whether a Closed ticket auto-reopens on inbound (recommend yes; owner can freeze no).
+
+v1.0 booking/payments/dispatch architecture is archived at `.planning/research/v1.0-archive/ARCHITECTURE.md`. This file covers **v1.1 Ops Support only**. The quote → pay → board funnel is frozen, not redesigned.
 
 ## Standard Architecture
 
 ### System Overview
 
 ```
-┌───────────────────────────────────────────────────────────────────────────┐
-│                         Browser (customer / ops staff)                     │
-│   Public pages (RSC/SSR/ISR)         Ops console (SSR, role-gated route)   │
-└───────────────┬───────────────────────────────────┬─────────────────────┘
-                 │ HTTPS                              │ HTTPS + WS (Realtime)
-                 ▼                                     ▼
-┌───────────────────────────────────────────────────────────────────────────┐
-│                   ONE Cloudflare Worker (Next.js 15 App Router)            │
-│  ┌─────────────┐ ┌───────────────┐ ┌────────────────┐ ┌────────────────┐ │
-│  │ Public       │ │ /api/quote     │ │ /api/checkout   │ │ /api/stripe/    │ │
-│  │ RSC routes   │ │ (pricing engine│ │ (PaymentIntent  │ │ webhook         │ │
-│  │ (/,/about..) │ │  read-mostly)  │ │  create)        │ │ (verify+enqueue)│ │
-│  └─────────────┘ └───────────────┘ └────────────────┘ └────────────────┘ │
-│  ┌─────────────┐ ┌───────────────┐ ┌────────────────┐                     │
-│  │ Ops routes   │ │ /api/manage-   │ │ Cron triggers   │                     │
-│  │ /(ops)/ops/* │ │ booking, /flight│ │ (expire quotes, │                     │
-│  │ (staff-gated)│ │ /:no           │ │ reminders)       │                     │
-│  └─────────────┘ └───────────────┘ └────────────────┘                     │
-└──────┬───────────────┬───────────────┬──────────────┬─────────────────────┘
-       │ Hyperdrive    │ KV (cache)    │ Queue (produce)│ supabase-js
-       ▼               ▼               ▼                ▼
-┌────────────┐  ┌─────────────┐  ┌───────────────┐  ┌──────────────────────┐
-│ Supabase   │  │ Cloudflare   │  │ Cloudflare     │  │ Supabase Auth/       │
-│ Postgres   │  │ KV           │  │ Queue          │  │ Storage/Realtime      │
-│ (RLS, all  │  │ geocode 24h, │  │ stripe-events  │  │ (JWT verify, R2/     │
-│ writes go  │  │ quote KV     │  └──────┬────────┘  │ Storage buckets,     │
-│ through it)│  │ optional)    │         │           │ Realtime on bookings)│
-└────────────┘  └─────────────┘         ▼           └──────────────────────┘
-                                  ┌───────────────┐
-                                  │ Same Worker,   │
-                                  │ Queue consumer │
-                                  │ export (async)  │
-                                  │ → booking write │
-                                  │ → Resend email  │
-                                  └───────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│  Customer browser (vamostaxi.site)     Staff browser                    │
+│  /contact form                         (dashboard.vamostaxi.site)       │
+│                                        Ops DC mock · hash nav · #support│
+└──────────────┬──────────────────────────────────┬───────────────────────┘
+               │ POST /api/contact                │ cookie session
+               │ Turnstile                        │ withStaff + asStaff
+               ▼                                  ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│              ONE Worker `vamos` (same deploy, two hostnames)            │
+│  ┌──────────────────┐  ┌─────────────────────┐  ┌────────────────────┐ │
+│  │ POST /api/contact │  │ /api/staff/support* │  │ POST /api/webhooks/│ │
+│  │ submit_contact_   │  │ list / get / status │  │ resend             │ │
+│  │ message + outbox  │  │ / reply  (staff)    │  │ Svix verify,       │ │
+│  │ customer ack +    │  │ HYPERDRIVE_NOCACHE  │  │ asSystem, no cookie│ │
+│  │ Gmail copy        │  │                     │  │                    │ │
+│  └────────┬─────────┘  └──────────┬──────────┘  └─────────┬──────────┘ │
+│           │ Resend send            │ Resend send           │ GET body  │
+└───────────┼────────────────────────┼───────────────────────┼───────────┘
+            ▼                        ▼                       ▼
+     contact_submissions      support_messages         Resend Receiving
+     + contact_delivery_      (thread)                 MX on replies.
+     outbox (intake only)     ticket_status            vamostaxi.site
+                              on the submission row    (NOT apex MX)
+            │                        │
+            └──────── Hyperdrive ────┘
+                     publicSql  = cacheable HYPERDRIVE (not this milestone)
+                     asAnon     = contact insert RPC
+                     asStaff    = ticket list / reply / status
+                     asSystem   = outbox claim + inbound append
 ```
+
+Same Worker, same Supabase project `yaumjzvylngfjhtuffqs`. Public site stays `vamostaxi.site`; ops stays `dashboard.vamostaxi.site`. `public.staff` is one admin. No Staff tab. No new Worker.
 
 ### Component Responsibilities
 
 | Component | Responsibility | Typical Implementation |
 |-----------|----------------|------------------------|
-| Public RSC routes | Marketing, legal, account pages — read-mostly, cached | Next.js Server Components, ISR/edge cache, no direct Postgres hit on the hot path |
-| Pricing engine (`/api/quote`) | Compute a price for a route + class, write a `quote` row, return a `quote_id` | Route handler: Mapbox (KV-cached) → rate lookup (DB, short-TTL cache) → insert `bookings` row status=`quote` |
-| Checkout (`/api/checkout`) | Turn a live quote into a PaymentIntent | Reads the `bookings` row by `quote_id` + un-expired check, creates Stripe PaymentIntent with `booking_id` in metadata, idempotency key = `booking_id` |
-| Stripe webhook (`/api/stripe/webhook`) | Verify signature, dedupe, enqueue, ACK fast | `constructEventAsync` + Workers subtle-crypto provider; insert `stripe_events(id)` `ON CONFLICT DO NOTHING`; if inserted, `env.QUEUE.send(event)`; return 200 in all cases Stripe should not retry |
-| Queue consumer | Do the actual state transition + side effects | Same Worker's `queue()` export; idempotent by `booking_id`+event type; writes `booking_events`, sends email, never re-verifies Stripe signature (already done) |
-| Ops console (`/(ops)/ops/*`) | Staff dispatch surface: board, detail, assignment, manual booking, content, pricing admin | Same Next.js app, role-gated layout, Supabase Realtime subscription on `bookings`/`booking_events` for the live board only |
-| Supabase Postgres (via Hyperdrive) | System of record — bookings, pricing tables, customers, content strings, audit trail | `postgres.js`/`pg` over Hyperdrive, RLS on every table, short transactions |
-| Supabase Auth | Identity for customers and staff | JWT verified in Worker/middleware; custom claim `role` for staff; TOTP MFA for staff |
-| Supabase Realtime | Live push for the ops board only | Private channel + Realtime Authorization RLS on `realtime.messages`; not used by public/customer routes |
-| Cloudflare KV | Cache for expensive/slow-changing lookups | Geocode results (24h), flight lookups, optionally quote-adjacent reference data |
-| Cloudflare Queue | Decouples "Stripe told us" from "we finished processing" | `stripe-events` queue, consumer batch size 1–10, `max_retries`, DLQ configured |
-| `packages/db` | Schema migrations + generated types, shared by app and any scripts | Supabase CLI migrations, `supabase gen types typescript` output committed |
-| `packages/emails` | Transactional email templates, 4 languages | React Email (or similar) components, rendered server-side, sent via Resend from the queue consumer |
+| `POST /api/contact` | Existing intake. Creates the ticket header as a side-effect of `submit_contact_message`. Sends customer ack + Gmail copy through `contact_delivery_outbox`. | Unchanged route; default `ticket_status = 'new'`. Still `asAnon` RPC + `asSystem` claim/finalize. |
+| `contact_submissions` | Ticket **header**. One row per `/contact` submit. Immutable form fields. New status columns. | Extend the table. Do not add a parallel `support_tickets` header. |
+| `contact_delivery_outbox` | **Intake mail only** (customer ack + Gmail copy). Not the reply thread. | Leave as-is. Staff replies do not claim this outbox. |
+| `support_messages` | The thread. Opening customer message plus staff outbound plus customer inbound. | New table, FK to `contact_submissions`. |
+| `support_inbound_events` | Webhook idempotency on Resend `email_id`. | New table, Stripe-events shape, not a reuse of `stripe_events`. |
+| `GET/PATCH /api/staff/support` | Staff list, detail, status, reply. | Dual-mounted like `/api/staff/customers`. `withStaff` then `asStaff`. |
+| `POST /api/webhooks/resend` | Inbound. Signature, dedupe, fetch body, append message, bump status. | Public hostname. No cookie. `asSystem`. |
+| `packages/emails` | Render customer ack, Gmail copy, and the new staff-reply template. Pure functions. | Add `renderSupportReplyEmail`. Do not send from the package. |
+| Ops `#support` | Working inbox UI. | New `app/ops/OpsSupport.dc.html`, hash-routed from `ops.dc.html`. |
+| Resend Receiving | MX for customer Reply-in-Gmail. | Subdomain `replies.vamostaxi.site`. Apex MX stays Gmail for `info@`. |
 
 ## Recommended Project Structure
 
 ```
-vamos-platform/                  # repo root (or a subtree of this repo — see §1 below)
-├── apps/
-│   └── web/                     # the ONE Next.js app / ONE Worker
-│       ├── app/
-│       │   ├── (public)/        # /, /about, /faq, /legal/*, /checkout, /confirmation/[ref]
-│       │   ├── (account)/       # /account, /account/bookings[/[ref]], /manage-booking
-│       │   ├── (ops)/ops/       # role-gated route group — dispatch console
-│       │   └── api/
-│       │       ├── quote/route.ts
-│       │       ├── checkout/route.ts
-│       │       ├── stripe/webhook/route.ts
-│       │       ├── flight/[no]/route.ts
-│       │       └── health/route.ts
-│       ├── lib/
-│       │   ├── db/              # Hyperdrive client + query functions, imports packages/db TYPES only
-│       │   ├── pricing/         # pricing engine: fixed-route, per-km, surcharges, coupons
-│       │   ├── stripe/          # PaymentIntent + webhook verification helpers
-│       │   ├── auth/            # @supabase/ssr cookie handling, role mapping
-│       │   └── locale/          # server-side mirror of VamosLocale money()/t()
-│       ├── components/          # ported design-system React components (same class names)
-│       ├── queue-consumer.ts    # exported `queue()` handler, same Worker
-│       ├── wrangler.jsonc
-│       └── open-next.config.ts
-├── packages/
-│   ├── db/
-│   │   ├── migrations/          # supabase migrations (SQL, versioned, forward-only)
-│   │   ├── seed/                # vehicle classes, settings, FAQ/content strings
-│   │   └── types/                # `supabase gen types typescript` output — TYPES ONLY, no runtime code
-│   └── emails/
-│       ├── templates/            # confirmation, driver-assigned, refund, reminder — en/de/fr/ar
-│       └── render.ts             # pure render function, no network/DB access
-└── package.json                  # npm/pnpm workspaces root
+apps/web/
+├── app/api/contact/route.ts              # existing intake — do not grow into a thread API
+├── app/api/webhooks/resend/route.ts      # NEW inbound (public host, Svix)
+├── app/[locale]/(ops)/api/staff/support/
+│   ├── route.ts                          # GET list
+│   └── [id]/
+│       ├── route.ts                      # GET detail · PATCH status
+│       └── reply/route.ts                # POST staff reply
+├── app/api/staff/support/                # dual-mount re-export (DC <base href="/app/ops/">)
+├── lib/ops/support.ts                    # asStaff loaders + reply writer
+├── lib/support/inbound.ts                # asSystem: verify → retrieve → append
+└── wrangler.jsonc                        # unchanged Worker name `vamos`; no new queue required
+
+packages/db/supabase/migrations/
+└── YYYYMMDD_ops_support_tickets.sql      # status columns + messages + inbound_events + RLS
+
+packages/emails/src/
+├── contact.ts                            # existing intake templates — keep
+└── support-reply.ts                      # NEW staff reply render
+
+app/ops/
+├── ops.dc.html                           # ROUTES + sc-if for #support
+├── OpsSidebar.dc.html                    # NAV_TOP item; Staff tab stays omitted
+└── OpsSupport.dc.html                    # NEW list + thread + reply + status
 ```
 
 ### Structure Rationale
 
-- **`apps/web` is the only deployable.** Everything that runs inside the Worker's request lifecycle lives here. `packages/*` exist to be *imported at build time*, not to run standalone.
-- **`packages/db` ships types and SQL text, never a runtime client.** The Worker's data access layer (`postgres.js`/`pg` over Hyperdrive) lives in `apps/web/lib/db`, not in the package — a package that opens its own DB connection or imports `pg` at module scope becomes something `@opennextjs/cloudflare`'s bundler has to resolve for the Workers runtime, and Node-only packages you didn't intend to ship to the edge (a CLI's `pg-native` fallback, a Node `fs`-based migration runner) are exactly what breaks the build. `packages/db` should be pure data (SQL files) + a types module with zero dependencies.
-- **`packages/emails` is pure and side-effect-free.** Template render functions take data in, return HTML/text out. No Resend client, no DB query inside the package — the *caller* (the queue consumer) fetches data, calls `render()`, then sends. This keeps the package importable from a future admin tool, a test, or a script without dragging in a Workers-only fetch client.
-- **What breaks when a Worker imports from a package**, concretely (verified against current OpenNext/Cloudflare docs):
-  - A package with **Node.js APIs Workers doesn't implement** even under `nodejs_compat` (e.g. native modules, `worker_threads`, some `fs` calls) fails at bundle or runtime — keep `packages/*` platform-agnostic (pure functions, no filesystem, no child processes).
-  - A package published with **conditional exports** that resolve to a Node-specific entrypoint by default needs to be added to `serverExternalPackages` in `next.config.ts`, or told to use its `workerd`/`edge` export — decide this per dependency, don't assume default resolution is edge-safe.
-  - **Large packages bundled into the Worker inflate the bundle** toward Workers' size limit; keep `packages/db`'s generated-types file free of runtime code so it tree-shakes to nothing.
-  - **Anything importing `packages/db`'s migration runner or seed scripts must not be imported by `apps/web` at all** — those run via Supabase CLI in CI/local dev, never inside the deployed Worker.
-- **Where this monorepo actually lives:** per `PROJECT.md`'s key decisions, `apps/web` lands inside *this* repo (`Loomlyne/VamosTaxi.eu`), next to `app/` (the mocks), `design-system/`, `docs/` — not a separate `vamos-platform` repo. `GSD-LAUNCH.md`'s "GitHub repo `vamos-platform`" is superseded by that decision; treat the structure above as rooted at this repo, with `apps/web`, `packages/db`, `packages/emails` added alongside the existing top-level folders.
+- **`/api/contact` stays intake.** Growing it into reply/status mixes an anonymous Turnstile POST with a staff session. The existing outbox is a two-channel claim for the first two emails, not a mailbox.
+- **`/api/staff/support*` follows the ops house pattern.** Dual-mount under `app/api/staff/…` and `app/[locale]/(ops)/api/staff/…`, `withStaff` envelope, data through `asStaff` on `HYPERDRIVE_NOCACHE`. DC client is `VamosOpsApi.request` with absolute `/api/…` paths.
+- **Inbound is not under `/api/staff`.** Resend has no staff cookie. It belongs next to `/api/auth/email-hook`: unauthenticated until signature verification succeeds, then `asSystem`.
+- **`packages/emails` stays pure.** Render in, HTML/text out. The Worker sends. Same rule as v1.0 Anti-Pattern 4.
+- **Ops stays DC mocks.** v1.1 does not port the console to RSC. Add a hash route, not a Next.js `/ops/support` page.
+
+## How tickets integrate
+
+**Decision: extend `contact_submissions` as the ticket header; add `support_messages` + `support_inbound_events`. Do not create `support_tickets`.**
+
+v1.1 tickets **are** `/contact` rows. Phone-typed tickets and auto-tags are out of scope, so a 1:1 header table would be ceremony. The form row already has the customer identity (`name`, `email`, `phone`, `booking_ref`, `locale`) and the opening body (`message`). What it cannot hold is a thread, a webhook idempotency key, or a Reply-To correlation token.
+
+| Option | Verdict |
+|--------|---------|
+| New `support_tickets` 1:1 with `contact_submissions` | Reject for v1.1. Extra join, same cardinality, phone tickets explicitly out. |
+| Only extend `contact_submissions` (no messages table) | Reject. JSONB thread on the form row cannot uniquely key Resend `email_id`, cannot audit direction, and fights webhook retries. |
+| Extend header + `support_messages` + inbound-events | **Take.** Header status lives on the row the dispatcher already conceptually owns. Thread is a child. |
+| Reuse `handled_at` as the status machine | Reject. Unused by the app today; boolean-ish timestamp cannot express New / Open / Replied / Closed. Leave the column; do not read it. |
+| Reuse `contact_delivery_outbox` for replies | Reject. 1:1 two-channel claim (`customer`/`support`) for the first send. A reply is an Nth message with its own Resend id. |
+
+### Header columns to add on `contact_submissions`
+
+- `ticket_status text not null default 'new'` check in `('new','open','replied','closed')`
+- `reply_token text not null unique` — opaque, generated at insert, used in Reply-To plus-address. Not the row UUID.
+- `last_activity_at timestamptz not null default now()`
+- `closed_at timestamptz`
+
+Form fields stay immutable (trigger or column grants). Staff may UPDATE only status / activity / closed_at. `submit_contact_message` keeps writing the intake columns and now also mints `reply_token` and seeds the opening `support_messages` row (`direction = 'inbound_form'`).
+
+### `support_messages`
+
+One row per visible item in the thread:
+
+- `id`, `submission_id` FK, `direction` (`inbound_form` \| `outbound_staff` \| `inbound_email`)
+- `body_text` (required), `body_html` nullable
+- `actor_user_id` nullable (staff outbound only, `public.staff.user_id`)
+- `resend_email_id` nullable (outbound provider id **or** inbound `email_id`)
+- `rfc_message_id` nullable (for `In-Reply-To` / `References`)
+- `from_address` citext nullable (inbound)
+- `created_at`
+
+Opening form body is copied into the first message so the thread is complete without a special-case read of `contact_submissions.message` in the UI. The form column remains the source of truth for the original wording.
+
+### Status machine
+
+```
+submit_contact_message  →  new
+staff opens / PATCH     →  open          (dispatcher may also set this by hand)
+staff POST reply        →  replied
+inbound email (not closed) → open
+staff PATCH closed      →  closed
+inbound on closed       →  open          (recommend auto-reopen; do not silently drop)
+```
+
+Dispatcher can PATCH any of the four statuses. Automatic transitions must not fight a manual Closed except for the reopen-on-inbound rule.
+
+## Inbound webhook route
+
+**Yes. New unauthenticated route on the public hostname.**
+
+| | |
+|-|-|
+| Path | `POST /api/webhooks/resend` |
+| Host | `vamostaxi.site` (Worker `vamos`). Not `dashboard.vamostaxi.site` — dashboard middleware is the staff console. |
+| Auth | Resend/Svix signing secret (`svix-id` / `svix-timestamp` / `svix-signature`). Raw body. Same class of door as `/api/auth/email-hook`. |
+| DB | `asSystem` on `HYPERDRIVE_NOCACHE`. Never `asStaff`, never `publicSql`. |
+| Event | `email.received` only. Other Resend types 200-no-op. |
+
+**Payload has no body.** Resend's `email.received` webhook carries metadata (`email_id`, `from`, `to`, `received_for`, `message_id`, `subject`, attachment list). The Worker must `GET` the [Received emails API](https://resend.com/docs/api-reference/emails/retrieve-received-email) before inserting `body_text`. Attachments: store metadata only in v1.1; do not persist files to R2.
+
+**ACK policy.** Volume is a handful of mails, not Stripe. Inline retrieve + insert is acceptable. Return 5xx if retrieve or insert fails so Resend retries. After a successful insert, return 200 even on a later retry (dedupe).
+
+**Dedupe.** `INSERT support_inbound_events (email_id) … ON CONFLICT DO NOTHING`. If zero rows, skip append, still 200.
+
+**Match order (first hit wins):**
+
+1. Plus-token in `to` or `received_for`: `ticket+{reply_token}@replies.vamostaxi.site`
+2. `In-Reply-To` / `References` against stored `rfc_message_id`
+3. No match → 200 drop. Do **not** open a new ticket. Random inbound is not a contact form. Gmail IMAP ingest is out of scope.
+
+Do not require `from` to equal `contact_submissions.email` as a hard gate (assistants, plus-aliases). Log a mismatch flag on the message if it differs.
+
+### MX must not steal Gmail
+
+`info@vamostaxi.site` still receives the Gmail copy via the existing outbox `support` channel (`CONTACT_SUPPORT_RECIPIENT`). Apex MX therefore stays with Gmail. Resend receiving on the apex would either miss mail or break that inbox ([Resend custom-domain receiving](https://resend.com/docs/dashboard/receiving/custom-domains)).
+
+**Receiving host:** `replies.vamostaxi.site` (MX → Resend). Staging DNS only. Not `vamostaxi.eu`.
+
+Cloudflare `send_email` (`EMAIL` binding, `noreply@vamostaxi.site`) is send-only and is not the inbound path. Do not add an Email Worker consumer for v1.1.
+
+## Reply API — staff-gated
+
+**Yes. Every read and write of tickets is `withStaff` + `asStaff`.** Dispatcher and the one admin both pass `app.is_staff()`. Do not use `withAdmin` — support is dispatch work. Do not grant `vamos_public` / anon anything on the new tables.
+
+| Method | Path | Effect |
+|--------|------|--------|
+| GET | `/api/staff/support` | List headers: status, email, preview, `last_activity_at` |
+| GET | `/api/staff/support/:id` | Header + messages ordered by `created_at` |
+| PATCH | `/api/staff/support/:id` | `{ status }` only |
+| POST | `/api/staff/support/:id/reply` | Insert outbound message, send Resend, set `replied` |
+
+Send happens **after** the message row exists, with Resend idempotency key = `support_messages.id`. On send failure the row stays with a failed marker; the UI can retry the same id. Do not insert-on-send-success only — that loses the dispatcher's text on a 503.
+
+Outbound mail:
+
+- `from`: existing `CONTACT_EMAIL_FROM` / `noreply@vamostaxi.site`
+- `to`: `contact_submissions.email`
+- `reply_to`: `ticket+{reply_token}@replies.vamostaxi.site`
+- `headers.In-Reply-To` / `References`: prior `rfc_message_id`s so Gmail threads
+- body: `packages/emails` staff-reply template, locale of the submission
+
+Gmail still gets the **intake** copy only. Do not BCC `info@` on every staff reply (that would fork the working inbox back into Gmail). The milestone line “Gmail `info@` still gets a copy” is the existing contact outbox, not a second copy of the thread.
+
+## DC `#support` page
+
+Ops is still one DC console at one URL. `ops.dc.html` hash-routes `#dashboard`, `#bookings`, … There is **no Staff tab in the sidebar** (`NAV_ADMIN` is pricing only; `#staff` is aliased to settings and is not painted). v1.1 does not add Staff.
+
+Add `#support`:
+
+1. `OpsSupport.dc.html` — list (status filters New / Open / Replied / Closed), thread pane, reply box, status control. Compose from the design system like `OpsCustomers` / `OpsBoard`. Four languages, four widths, same pass.
+2. `ops.dc.html` — `ROUTES` includes `'support'`; `sc-if` mounts `OpsSupport`; `isSupport` next to `isCustomers`.
+3. `OpsSidebar.dc.html` — `NAV_TOP` entry `{ key:'support', href:'#support', icon:'mail' }` (or equivalent existing icon). Visible to dispatcher and admin. Not under Content. Not behind `isAdmin`.
+
+Data: `VamosOpsApi.request('GET'|'POST'|'PATCH', '/api/staff/support…')`. Absolute `/api/` paths because `serveOpsDc` injects `<base href="/app/ops/">`.
+
+Do not invent a Next.js App Router ops page for this milestone.
 
 ## Architectural Patterns
 
-### Pattern 1: Server-authoritative quote as a database row, not a signed token
+### Pattern 1: Intake row is the ticket header
 
-**What:** A quote is not computed twice (once for display, once for charge). `POST /api/quote` computes the price once and persists it as a `bookings` row with `status='quote'`. Every subsequent step (checkout, PaymentIntent, confirmation) reads *that row*, never recomputes.
-
-**When to use:** Any flow where "the price the customer saw" must be "the price they pay" even if pricing rules change between the two moments (a surcharge table edit, a coupon expiring, a fixed-route price update).
-
-**Trade-offs:** Requires a `bookings` row to exist before payment (some churn from abandoned quotes — mitigated by the 30-minute TTL and a cron sweep). In exchange, there is exactly one price computation path, one place to add audit logging, and no risk of "quote API" and "charge API" drifting apart.
+**What:** The anonymous `submit_contact_message` RPC remains the only public write door. The row it inserts **is** the ticket. Thread and inbound events hang off it.
+**When to use:** Always in v1.1. Revisit a separate tickets table only if phone-typed tickets come back into scope.
+**Trade-offs:** Couples support to the contact form (accepted). Avoids a 1:1 table that would need backfill and two staff list queries.
 
 **Example:**
+
 ```sql
--- bookings row created by /api/quote — authority lives here, not in a JWT
-insert into bookings (
-  id, status, class, route_from, route_to, distance_km,
-  price_chf, price_breakdown, pricing_source, rate_version_id,
-  quote_expires_at
-) values (
-  gen_booking_ref(), 'quote', $class, $from, $to, $distance_km,
-  $price_chf, $breakdown_jsonb, $source, $rate_version_id,
-  now() + interval '30 minutes'
-) returning id, price_chf, quote_expires_at;
+-- submit_contact_message (sketch): existing insert, plus
+insert into public.support_messages (submission_id, direction, body_text)
+values (v_id, 'inbound_form', p_message);
+-- ticket_status defaults to 'new'; reply_token default unique
 ```
 
-### Pattern 2: Immutable price snapshot (never re-join to live rate tables)
+### Pattern 2: Correlation by opaque plus-address, not UUID
 
-**What:** `price_chf` and a `price_breakdown` JSONB (base fare, per-km amount, each surcharge line, coupon applied, currency) are written onto the `bookings` row itself at quote time. `fixed_routes`, `distance_rates`, `surcharges`, `coupons` are **inputs** to the computation, never read again for an existing booking. A `rate_version_id` (or a timestamp) records *which* version of the rate tables produced the number, for audit/debugging only — it is never used to recompute.
+**What:** `Reply-To: ticket+{reply_token}@replies.vamostaxi.site`. Inbound parser reads the plus-token. UUID is never in the address.
+**When to use:** Every staff outbound. Also set `In-Reply-To` so Gmail threads; plus-token is the fallback when the customer hits Reply-All / new compose.
+**Trade-offs:** Needs a dedicated receiving subdomain. Safer than putting `contact_submissions.id` in the clear and independent of Gmail's threading quirks.
 
-**When to use:** Always, for money. This is the mechanism that satisfies "later rule changes never alter historical bookings" (`PROJECT.md` constraint).
+### Pattern 3: Webhook verifies, then fetches, then writes — staff never in that path
 
-**Trade-offs:** Denormalizes price data onto every booking row (small storage cost, worth it). Requires discipline: no code path may "refresh" a booking's price from current rates except a deliberate, audited re-quote flow (e.g. dispatcher manually repricing a phone booking — that's a *new* quote event, logged in `booking_events`, not a silent recalculation).
-
-**Example:**
-```typescript
-// pricing/engine.ts — pure function, no DB writes itself
-type PriceResult = {
-  priceChf: string;           // "000" placeholder until pricing_live=true
-  breakdown: { base: string; perKm?: string; surcharges: { code: string; amount: string }[]; coupon?: { code: string; amount: string } };
-  source: 'fixed_route' | 'per_km';
-  rateVersionId: string;
-};
-// caller (route handler) is the only place that persists the result onto bookings
-```
-
-### Pattern 3: Idempotent money movement — deterministic keys, not retries
-
-**What:** Every operation that could double-execute is keyed deterministically off the `booking_id`, not a random UUID generated per attempt:
-- Stripe PaymentIntent creation: `idempotencyKey: booking.id` (Stripe's own dedup, 24h window) — a retried checkout click never creates a second PaymentIntent for the same booking.
-- Stripe webhook dedup: `stripe_events(id primary key)`; `INSERT ... ON CONFLICT (id) DO NOTHING`; if zero rows affected, the event was already processed — skip enqueue, still return 200.
-- Queue consumer: the state transition itself is a conditional update (`UPDATE bookings SET status='paid' WHERE id=$1 AND status='pending'`), not an unconditional write — replaying the same queue message twice is a no-op the second time.
-- Booking creation from `/api/quote`: no idempotency key needed (it's not money movement — worst case is an orphaned `quote` row, cleaned up by the expiry cron), but repeated `/api/checkout` calls for the same `quote_id` must be idempotent for the same reason as PaymentIntent creation.
-
-**When to use:** Every write in the quote → lock → checkout → payment → confirmation chain that involves money or a status transition.
-
-**Trade-offs:** None real — this is strictly required for a Cloudflare Queues consumer, since Queues is **at-least-once delivery, not exactly-once** (Cloudflare's own docs are explicit that consumers must be idempotent). Skipping this is not a shortcut, it's a guaranteed double-charge or double-confirmation-email bug under retry.
-
-**Example:**
-```typescript
-// webhook handler — synchronous part, must be fast
-const event = await stripe.webhooks.constructEventAsync(body, sig, secret, undefined, cryptoProvider);
-const { rowCount } = await sql`
-  insert into stripe_events (id, type, received_at) values (${event.id}, ${event.type}, now())
-  on conflict (id) do nothing`;
-if (rowCount > 0) await env.STRIPE_QUEUE.send({ eventId: event.id, type: event.type, data: event.data });
-return new Response('ok', { status: 200 }); // ACK regardless — dedup already happened
-```
+**What:** Inbound is a public POST. Cookie/JWT must not be involved. After Svix verify, `asSystem` inserts. Staff UI only reads via `asStaff`.
+**When to use:** All Resend inbound. Same split as Stripe webhook vs ops board, at much smaller volume (no Queue required).
+**Trade-offs:** Worker must call Resend Received-emails API (extra hop). Necessary because the webhook omits the body. A Queue would be overkill at this volume.
 
 ## Data Flow
 
-### Request Flow — Quote → Lock → Checkout → Payment → Confirmation
+### Request Flow — contact form → ticket → Resend send → inbound webhook → thread
 
 ```
-Home widget                /api/quote                 bookings table
-  │  POST route+class+date   │                            │
-  ├──────────────────────────▶ geocode (Mapbox, KV 24h)    │
-  │                           │ distance/duration          │
-  │                           │ price = fixed_route ∥       │
-  │                           │   per_km*dist + surcharges  │
-  │                           │   − coupon (pure function)  │
-  │                           │ INSERT bookings              │
-  │                           │   status='quote'             │
-  │                           │   price_chf, breakdown        │
-  │                           │   quote_expires_at=now()+30m │
-  │  ◀────────── {quote_id, price_chf, expires_at} ─────────┤
-  │
-Checkout page               /api/checkout                Stripe
-  │ GET quote by quote_id ───▶ SELECT ... WHERE id=$1        │
-  │                             AND status='quote'            │
-  │                             AND quote_expires_at > now()  │  ← lock enforcement:
-  │                           (expired/consumed → 410, force  │    re-quote required
-  │                            customer back to widget)       │
-  │ passenger details ────────▶ UPDATE bookings SET            │
-  │                             status='pending', customer_*   │
-  │                           create PaymentIntent              │
-  │                             idempotencyKey=booking.id ──────▶ PaymentIntent
-  │                             metadata.booking_id=$1           │  created
-  │ ◀──────────── clientSecret ────────────────────────────────┤
-  │ Stripe.js confirms payment (card/Apple Pay/Google Pay/TWINT) directly with Stripe
-                                                                  │
-Stripe                      /api/stripe/webhook            Queue           Queue consumer
-  │ payment_intent.succeeded ▶ verify signature               │               │
-  │                            INSERT stripe_events             │               │
-  │                              ON CONFLICT DO NOTHING          │               │
-  │                            if inserted: enqueue ─────────────▶ send          │
-  │                            return 200 (always, fast)                          │
-  │                                                                              ▼
-  │                                                          UPDATE bookings SET
-  │                                                            status='paid'
-  │                                                            WHERE status='pending'
-  │                                                          INSERT booking_events
-  │                                                          render+send confirmation
-  │                                                            email (packages/emails)
-  │                                                          UPDATE status='confirmed'
-```
+Customer /contact
+    │  POST /api/contact  (Turnstile, idempotency_key)
+    ▼
+submit_contact_message          contact_submissions
+    │  INSERT header              ticket_status = new
+    │  INSERT opening message     support_messages inbound_form
+    │  TRIGGER outbox             contact_delivery_outbox
+    ▼
+asSystem claim + send
+    ├─ customer ack  → Resend / EMAIL binding → customer inbox
+    └─ Gmail copy    → CONTACT_SUPPORT_RECIPIENT (info@) — copy, not the inbox
 
-**Where authority lives, explicitly:**
-- **Price authority:** the `bookings.price_chf` + `price_breakdown` column, written once at quote time. Nothing downstream recomputes it. Checkout, the PaymentIntent amount, and the confirmation email all read this same column.
-- **Lock enforcement:** `quote_expires_at` checked at the one moment it matters — when checkout tries to move `quote → pending`. Not a separate lock table, not a client-held token; a plain `WHERE quote_expires_at > now()` on the read. 30 minutes matches `PROJECT.md`'s stated quote lock.
-- **Booking status authority:** the `bookings.status` column, mutated only via conditional `UPDATE ... WHERE status = <expected prior state>`, each transition appended to `booking_events` (the audit trail). Nothing ever reads `status` from anywhere but Postgres — not from Stripe's event, not from a cookie.
-- **Double-booking prevention:** at this product's scale (pre-booked transfers, not on-demand), double-booking risk isn't concurrent seat contention on a route — it's the *same customer* creating two PaymentIntents for the same quote (double-click, back-button-resubmit) or a webhook retry producing two "paid" transitions. Both are covered by Pattern 3 above (Stripe idempotency key + conditional status update), not by row-locking a route/time slot.
+Dispatcher dashboard.vamostaxi.site #support
+    │  GET /api/staff/support          withStaff + asStaff
+    │  GET /api/staff/support/:id      thread
+    │  POST /api/staff/support/:id/reply
+    ▼
+support_messages outbound_staff
+    │  Resend send
+    │    Reply-To: ticket+{token}@replies.vamostaxi.site
+    │    In-Reply-To / References
+    │  ticket_status = replied
+
+Customer hits Reply in Gmail
+    │  MX replies.vamostaxi.site → Resend Receiving
+    ▼
+Resend POST /api/webhooks/resend     (vamostaxi.site)
+    │  Svix verify (raw body)
+    │  INSERT support_inbound_events ON CONFLICT DO NOTHING
+    │  GET received email body
+    │  match plus-token (else In-Reply-To)
+    │  INSERT support_messages inbound_email
+    │  ticket_status = open (reopen if closed)
+    ▼
+Same #support thread. Dispatcher replies again or PATCH closed.
+```
 
 ### State Management
 
 ```
-Public/customer side                         Ops side
-┌────────────────────────┐                  ┌──────────────────────────┐
-│ Server: Postgres is the │                  │ Server: same Postgres     │
-│ single source of truth  │                  │                            │
-│ Client: React state +   │                  │ Client: Supabase Realtime │
-│ @supabase/ssr cookie for │                 │ subscription (private      │
-│ session; VamosLocale-    │                 │ channel, RLS-authorized)   │
-│ equivalent lang/cur      │                 │ on bookings + booking_     │
-│ cookie, read server-side │                 │ events — board updates     │
-│ for SSR, no client poll  │                 │ live without polling        │
-└────────────────────────┘                  └──────────────────────────┘
+Postgres (contact_submissions.ticket_status + support_messages)
+    ↑ asStaff / asSystem only
+Ops DC client
+    ← VamosOpsApi fetch on hashchange / after reply
+    no Realtime for v1.1 (one admin, poll on focus is enough)
 ```
 
-- Customer-facing state (locale, currency, booking-in-progress) stays cookie + server-rendered — no client-side Postgres reads, no Realtime subscription for the public site.
-- Ops staff state is the only place Realtime is used, scoped to a handful of concurrent staff sessions (well inside Supabase's included concurrent-connection tier).
+Do not subscribe Supabase Realtime to support tables in this milestone. The live board already owns that budget; a support inbox for one admin does not need it.
 
 ### Key Data Flows
 
-1. **Pricing computation:** input (route, class, date/time, coupon code) → pure function in `apps/web/lib/pricing` → output (price + breakdown) → persisted once onto `bookings`. Reference tables (`fixed_routes`, `distance_rates`, `surcharges`, `coupons`) are read, never written, by this path.
-2. **Payment confirmation:** Stripe is the source of truth for "did the card work"; Postgres is the source of truth for "what does the booking record say" — the webhook → queue → consumer path is the *only* bridge between the two, and it is one-directional (Stripe → Postgres, never Postgres polling Stripe).
-3. **Ops live board:** Postgres write (any INSERT/UPDATE on `bookings`) → Supabase Realtime → private, RLS-authorized channel → ops React client. No polling, no client-side fetch loop.
-4. **Public content (reviews, FAQ, legal, pricing tables for display):** Postgres → cached at the edge (ISR/Cache Rules + short-TTL Worker-side cache) → served to thousands of browsers without touching Postgres per request.
+1. **Intake → ticket:** `POST /api/contact` is the only creator. Success of the two outbox emails is independent of the ticket existing — a failed Gmail copy must not roll back the submission (today's outbox already isolates that). Ticket list shows the row even if mail failed.
+2. **Staff reply → customer Gmail:** Worker send, not Cloudflare `EMAIL` binding, so `Reply-To` / `In-Reply-To` headers are under our control. Keep `EMAIL` for auth mail.
+3. **Customer reply → same ticket:** Resend inbound webhook → plus-token match → append. Apex Gmail is a silent copy of the **form**, not a second thread.
+4. **Status:** written by staff PATCH and by the two automatic writers (reply → `replied`, inbound → `open`). List endpoint orders by `last_activity_at` desc.
 
 ## Scaling Considerations
 
 | Scale | Architecture Adjustments |
 |-------|--------------------------|
-| Pre-launch / staging | Single Supabase Micro/Small instance, Hyperdrive default pool, no KV caching needed yet — correctness over throughput |
-| Launch, 10k concurrent browsers (`PROJECT.md` target) | Public routes fully cached (ISR + Cache Rules + `stale-while-revalidate`); `/api/quote` is the only public endpoint that must hit Postgres, and even that's dominated by Mapbox latency (KV-cached 24h) not DB latency; Supabase on Small (2GB), PITR on; rate limits + Turnstile on `/api/quote` and public forms |
-| Booking volume growth (bookings/day, not browsers) | Bookings are low-frequency writes relative to browsing traffic — this axis scales by Hyperdrive connection pooling headroom and Queue throughput, not by Worker count (Workers already autoscale) |
-| Ops staff growth | Realtime concurrent connections stay small (staff headcount, not customer count) — no architecture change needed until staff count is in the hundreds, which this product will not reach |
+| v1.1 staging, one admin, contact-form volume | This design. Inline webhook retrieve. No Queue. No Realtime. DC poll. |
+| A few staff, tens of tickets/day | Still fine. Add Realtime on `support_messages` only if the list goes stale during a shift. |
+| Phone tickets / shared inbox / attachments as first-class | New header table, assignment, R2. Explicitly out. Do not pretender-build it. |
 
 ### Scaling Priorities
 
-1. **First bottleneck: Postgres connections from a serverless edge runtime.** Every Worker invocation is a fresh execution context; without Hyperdrive's connection pooling near the database, thousands of edge requests would each try to open a Postgres connection and exhaust `max_connections`. Hyperdrive is the fix already specified in the fixed stack (Phase 3) — it must be in place *before* any load test, not retrofitted after.
-2. **Second bottleneck: uncached public reads.** If home/marketing/legal pages hit Postgres per request, 10k concurrent browsers turns into 10k concurrent queries. The fix is ISR/edge caching on everything that doesn't need per-request freshness (reviews, FAQ, legal, static pricing display) — this is Phase 8 in `GSD-LAUNCH.md` and should be treated as load-bearing, not optional polish.
-3. **Third, much smaller bottleneck: Stripe webhook bursts.** A payment provider retry storm (rare, but possible during a Stripe incident) is absorbed by the Queue, not by the synchronous webhook handler — this is exactly why the webhook handler's only job is verify+dedupe+enqueue+ACK, never the actual booking mutation.
+1. **First bottleneck: MX / Gmail collision** — not throughput. Wrong apex MX loses `info@`. Fix by subdomain, not by pooling.
+2. **Second bottleneck: webhook body fetch on Workers** — Resend omitted the body on purpose (serverless payload limits). Keep retrieve in the same request; if it ever times out, then enqueue. Do not start with a Queue.
 
 ## Anti-Patterns
 
-### Anti-Pattern 1: Recomputing price at checkout or in the webhook
+### Anti-Pattern 1: Turning `contact_submissions` into a mailbox JSON document
 
-**What people do:** Re-run the pricing function when the customer reaches checkout ("just to be safe") or, worse, when the webhook fires, using whatever the rate tables say *right now*.
+**What people do:** Append replies into a `thread jsonb` column, or overload `message` / `handled_at`.
+**Why it's wrong:** Cannot uniquely dedupe `email_id`, cannot RLS-grant “staff update status but not the original body”, cannot show a stable thread under retry.
+**Do this instead:** Immutable intake columns + `support_messages` rows.
 
-**Why it's wrong:** Directly violates the constraint that later rule changes never alter historical bookings. It also reopens the exact race the quote-lock exists to prevent — a rate change between quote and payment silently changes what the customer is charged versus what they were shown.
+### Anti-Pattern 2: Staff-gating the inbound webhook, or putting it on the dashboard host
 
-**Do this instead:** Compute once, at `/api/quote`, persist the result onto the `bookings` row, and read that column everywhere downstream. If a booking's price is genuinely wrong (data entry error, dispatcher correction), that is a manual, audited re-price event — a new row in `booking_events` with an actor and a reason, never a silent recomputation.
+**What people do:** `/api/staff/webhooks/resend` behind `withStaff`, or a route that only exists on `dashboard.vamostaxi.site`.
+**Why it's wrong:** Resend cannot present a staff cookie. Dashboard middleware will 401/redirect the webhook. Mail silently never lands.
+**Do this instead:** Public `POST /api/webhooks/resend` on `vamostaxi.site`, Svix, `asSystem`.
 
-### Anti-Pattern 2: Doing the booking mutation inside the Stripe webhook handler
+### Anti-Pattern 3: Apex MX to Resend
 
-**What people do:** Verify the Stripe signature, then directly `UPDATE bookings SET status='paid'` and send the confirmation email, all inside the webhook route handler, before returning 200.
+**What people do:** Enable receiving on `vamostaxi.site` because that is the verified sending domain.
+**Why it's wrong:** Gmail `info@` stops being a real inbox, contradicting “Gmail still gets a copy.” Resend docs say do not share MX with an existing mailbox.
+**Do this instead:** `replies.vamostaxi.site` MX → Resend. Apex unchanged.
 
-**Why it's wrong:** Stripe expects a fast ACK (documented timeout expectations) and will retry on timeout or non-2xx — retries during a slow email send or a slow DB write turn into duplicate processing exactly where idempotency matters most. It also couples "did we receive the event" to "did every side effect succeed," so a transient Resend outage would cause Stripe to keep retrying a webhook whose actual booking update already succeeded.
+### Anti-Pattern 4: Sending staff replies through `contact_delivery_outbox`
 
-**Do this instead:** The webhook handler's entire job is: verify signature → insert into `stripe_events` with `ON CONFLICT DO NOTHING` → if newly inserted, enqueue to Cloudflare Queues → return 200. All booking mutation, emails, and side effects happen in the queue consumer, which can retry independently of Stripe's own retry semantics and is itself idempotent (Pattern 3).
+**What people do:** Add a third channel, or reuse `support_state`, so “all mail goes through the outbox.”
+**Why it's wrong:** Outbox is 1:1 with a submission and two named channels with leases. A conversation is N sends. Lease/claim semantics do not map.
+**Do this instead:** New message row + Resend idempotency key = message id.
 
-### Anti-Pattern 3: Reading booking state from anywhere but Postgres
+### Anti-Pattern 5: Building `#support` as a Next.js RSC page
 
-**What people do:** Trust a client-held cookie, a Stripe object's local cache, or a KV entry as the current truth for a booking's status.
+**What people do:** `app/[locale]/(ops)/ops/support/page.tsx` because “that's how apps/web works.”
+**Why it's wrong:** The console is DC mocks with hash nav. A one-off RSC island breaks the shell, i18n dict, and `VamosOpsApi` contract.
+**Do this instead:** `OpsSupport.dc.html` + hash + sidebar item, same as customers/coupons.
 
-**Why it's wrong:** Creates multiple sources of truth that can drift — a customer refreshing a stale confirmation page, an ops dashboard reading a cached value while a refund is in flight, etc. This product's core value proposition ("trust that the driver will be there") depends on the booking record being unambiguous.
+### Anti-Pattern 6: Creating tickets from unmatched inbound
 
-**Do this instead:** `bookings.status` in Postgres is the only authority. Caching (KV, ISR) is allowed for *read-mostly, non-authoritative* content (marketing pages, published reviews) — never for a specific booking's live status. The confirmation page and manage-booking page are SSR, reading fresh from Postgres on each load; they are not statically cached.
-
-### Anti-Pattern 4: Letting `packages/db` or `packages/emails` become a runtime dependency with side effects
-
-**What people do:** Put a live `pg` client, a Resend SDK call, or a filesystem read inside a shared package so "both the app and the scripts can use it."
-
-**Why it's wrong:** The moment a shared package opens its own DB connection or does I/O, `@opennextjs/cloudflare`'s bundler has to resolve every dependency of that package for the Workers runtime — including transitive Node-only dependencies never audited for edge compatibility. It also means the package can't be safely imported into a queue consumer, a script, or a test without dragging along its opinions about connection pooling or environment variables.
-
-**Do this instead:** Keep `packages/db` to SQL files + generated types (zero runtime deps). Keep `packages/emails` to pure render functions (data in, HTML out, zero deps beyond the templating library). Every actual I/O call — the Hyperdrive query, the Resend send — lives in `apps/web`, called by the route handler or queue consumer that owns that request's lifecycle.
+**What people do:** “If plus-token fails, open a ticket from the From: address so we never lose mail.”
+**Why it's wrong:** Turns the receiving domain into an open mailbox (spam). Phone-typed / unmatched mail is out of v1.1. Gmail remains the human overflow.
+**Do this instead:** 200-drop unmatched inbound. Gmail copy of the form is the safety net for intake; unmatched replies stay in the customer's Sent until they use the form again.
 
 ## Integration Points
 
@@ -315,60 +365,75 @@ Public/customer side                         Ops side
 
 | Service | Integration Pattern | Notes |
 |---------|---------------------|-------|
-| Supabase Postgres | Hyperdrive-pooled `postgres.js`/`pg`, direct connection string (not the pooled one — Hyperdrive pools) | supabase-js reserved for Auth/Storage/Realtime only, per `GSD-LAUNCH.md` Phase 3 |
-| Stripe | PaymentIntent (CHF) + webhook, `constructEventAsync` + `Stripe.createSubtleCryptoProvider()` (Workers has no sync crypto) | Idempotency key = `booking.id`; webhook route allow-listed by signature only |
-| Resend | Called from the queue consumer only, never from the webhook handler | Templates from `packages/emails`, rendered per-language |
-| Mapbox | Geocoding + Directions, called from `/api/quote` | Results cached in KV 24h by place-id pair — this is the main latency lever for quote speed |
-| AeroDataBox (flight) | `/api/flight/:no`, KV-cached | Degrades gracefully to manual time entry when the API is down — never blocks the booking flow |
-| Cloudflare Queues | `stripe-events` queue, consumer in the same Worker (`queue()` export) | At-least-once delivery — every consumer action must be idempotent; configure `max_retries` + a dead-letter queue so a permanently-failing message doesn't loop forever |
-| Cloudflare KV | Geocode cache, flight cache, optionally short-TTL reference-data cache | Not used for booking status or anything that must be immediately consistent |
-| Cloudflare R2 | Chauffeur/vehicle/review photo storage (alternative to Supabase Storage — pick one, `GSD-LAUNCH.md` recommends R2) | Public read, staff write |
+| Resend Send | `resend.emails.send` from contact outbox and from staff reply | Idempotency key = outbox correlation / message id. Do not use Cloudflare `EMAIL` for replies (headers). |
+| Resend Receiving | MX on `replies.vamostaxi.site`; webhook `email.received` | Body via Received emails API. Svix secret in Worker env. Staging only. |
+| Gmail `info@vamostaxi.site` | Existing outbox `support` recipient | Copy of the form. Not IMAP. Not the working inbox. |
+| Cloudflare `EMAIL` binding | Auth mail only (`noreply@vamostaxi.site`) | Already onboarded. Not inbound. |
+| Turnstile | Existing on `POST /api/contact` | Unchanged. Inbound webhook is not a form; no Turnstile. |
+| Hyperdrive | `asAnon` / `asStaff` / `asSystem` on `HYPERDRIVE_NOCACHE` | Support is identity-scoped. Never `publicSql` (cacheable `HYPERDRIVE`). |
+| Supabase Auth | Staff cookie, `requireStaffClaims` | One admin row in `public.staff`. aal2 as already enforced in SQL. |
 
 ### Internal Boundaries
 
 | Boundary | Communication | Notes |
 |----------|---------------|-------|
-| Public routes ↔ pricing engine | Direct function call within the same Worker (`/api/quote` route handler calls `lib/pricing`) | No network hop — pricing is a pure function, not a separate service |
-| Checkout ↔ Stripe | Server-side Stripe SDK call from the route handler | Client only ever sees a `clientSecret`, never talks to Postgres directly |
-| Stripe webhook ↔ queue consumer | Cloudflare Queue (async, same Worker, two separate exported handlers: `fetch()` and `queue()`) | This is the one deliberately decoupled boundary in the whole system — see Pattern 3 and Anti-Pattern 2 |
-| Public site ↔ ops console | Shared Postgres, shared session/auth system, disjoint route groups (`(public)`/`(account)` vs `(ops)`) | Same deploy, same Worker, enforced separation via role-gated layout + RLS, not via network boundary |
-| `apps/web` ↔ `packages/db` | Build-time import of SQL/types only | See Anti-Pattern 4 |
-| `apps/web` ↔ `packages/emails` | Build-time import of pure render functions | See Anti-Pattern 4 |
+| Contact form ↔ ticket header | Same INSERT | No extra hop. Status defaults to `new`. |
+| Ticket header ↔ thread | FK `support_messages.submission_id` | UI always loads messages by header id. |
+| Staff UI ↔ DB | `/api/staff/support*` → `withStaff` → `asStaff` | Same door as customers/fleet. |
+| Resend inbound ↔ DB | `/api/webhooks/resend` → Svix → `asSystem` | No staff identity. |
+| Intake outbox ↔ reply send | None | Different tables, different senders. |
+| Public host ↔ dashboard host | Shared Worker, disjoint middleware | Webhook on public; UI APIs on dashboard (dual-mount still works locally). |
 
-## Build Order & Parallelization
+## Build Order
 
-This section translates the boundaries above into a build sequence, cross-referencing `GSD-LAUNCH.md`'s phase numbering.
+Strict spine — do not parallelize across these arrows:
 
-**Strict dependency chain (cannot parallelize):**
-1. Scaffold (`apps/web` on Workers, CI, design tokens ported) — Phase 1
-2. Supabase schema + RLS + auth (`packages/db` migrations) — Phase 2 — blocks everything that reads/writes data
-3. Hyperdrive data access wired into `apps/web/lib/db` — Phase 3 — blocks any real query
-4. Pricing engine + `/api/quote` — Phase 4 — blocks checkout, since checkout reads a quote row
-5. Checkout + payment + webhook/queue lifecycle — Phase 5 — blocks any surface that shows real booking status (confirmation, account, ops board)
+```
+1. Schema + RLS + pgTAP
+     (ticket_status, reply_token, support_messages, support_inbound_events,
+      grants: staff SELECT/UPDATE status; system INSERT messages/events;
+      form columns still immutable; opening message seeded from submit_contact_message)
+        │
+        ├──────────────────────────────┐
+        ▼                              ▼
+2a. Staff APIs                    2b. Inbound webhook
+    /api/staff/support*               /api/webhooks/resend
+    withStaff + asStaff               Svix + asSystem + retrieve
+    (list/detail/status/reply)        (can stub retrieve in tests)
+        │                              │
+        └──────────────┬───────────────┘
+                       ▼
+3. packages/emails staff-reply template (pure; can start in parallel with 2)
+                       ▼
+4. DC #support (OpsSupport.dc.html, hash, sidebar)
+   needs 2a. Does not need live MX.
+                       ▼
+5. Staging DNS: MX replies.vamostaxi.site → Resend
+   Webhook URL https://vamostaxi.site/api/webhooks/resend
+   End-to-end: form → #support → reply → Gmail Reply → same thread
+```
 
-**Genuinely parallelizable once Phase 3 (data access) lands:**
-- **Public surface porting** (Phase 6 marketing/legal/account pages) and **pricing engine build** (Phase 4) touch almost disjoint code — the pricing engine owns `lib/pricing` + `bookings`/`fixed_routes`/`distance_rates`/`surcharges`/`coupons`; page porting owns `app/(public)/*` reading `reviews`/`content_strings`/`settings`. These can run concurrently once the schema (Phase 2) and Hyperdrive wiring (Phase 3) exist, since page-porting work for static/ISR pages doesn't depend on the pricing engine being finished — only the home booking widget and checkout do.
-- **`packages/emails` templates** (all four languages) have zero dependency on the queue consumer being wired — they're pure render functions and can be built and visually reviewed the moment the design system's React components exist (post-Phase 1), fully in parallel with Phases 2–5.
-- **Ops console screens that don't touch live money** (fleet, chauffeurs, content editor, pricing-table admin, reviews admin) depend only on Phase 2 (schema) + Phase 3 (data access) — they can be built in parallel with Phase 4/5 (pricing engine, checkout), since they're CRUD over reference tables, not participants in the payment state machine. Only **OpsBoard** (needs live `bookings` + Realtime) and **OpsDetail's assignment flow** (needs the full booking lifecycle) are gated on Phase 5.
-- **Hardening work** (Phase 8: cache rules, rate limits, Turnstile, WAF, observability) is largely orthogonal to feature build-out and can be started incrementally as soon as each surface it targets exists — it doesn't need to wait for every phase to finish, only for the specific route it's hardening.
+**Can overlap after schema:** 2a, 2b, and 3. **Cannot:** UI before list/detail APIs; MX before webhook route exists (Resend will retry a missing URL, but there is nothing to verify). **Do not touch** Phases 7–11 booking code.
 
-**Sequencing implication for the roadmap:** treat "pricing engine" and "surface porting (static/ISR pages + email templates + non-money ops screens)" as two parallel tracks after the data-access phase, converging at checkout/payment, which is the one phase every money-touching surface (confirmation, account bookings, ops board, ops detail assignment) is downstream of.
+**Leave frozen:** `contact_delivery_outbox` lease logic, Turnstile on contact, host split, `publicSql` vs `asStaff`, Staff tab omission, one-admin `public.staff`.
 
 ## Sources
 
-- [OpenNext Cloudflare — GitHub](https://github.com/opennextjs/opennextjs-cloudflare) — HIGH confidence, official adapter repo
-- [Next.js on Cloudflare Workers — Cloudflare docs](https://developers.cloudflare.com/workers/framework-guides/web-apps/nextjs/) — HIGH confidence, official docs
-- [OpenNext Cloudflare Troubleshooting](https://opennext.js.org/cloudflare/troubleshooting) — HIGH confidence, official docs (serverExternalPackages guidance)
-- [Deploying a Next.js Monorepo to Cloudflare Workers — Lewis Kori](https://lewiskori.com/blog/deploying-a-next-js-monorepo-to-cloudflare-workers/) — MEDIUM confidence, practitioner write-up, cross-checked against official docs
-- [Cloudflare Queues — Batching, Retries and Delays](https://developers.cloudflare.com/queues/configuration/batching-retries/) — HIGH confidence, official docs (at-least-once, max_retries default 3)
-- [Cloudflare Queues — Dead Letter Queues](https://developers.cloudflare.com/queues/configuration/dead-letter-queues/) — HIGH confidence, official docs
-- [Supabase Realtime — Broadcast and Presence Authorization](https://supabase.com/blog/supabase-realtime-broadcast-and-presence-authorization) — HIGH confidence, official Supabase blog
-- [Supabase Realtime Authorization docs](https://supabase.com/docs/guides/realtime/authorization) — HIGH confidence, official docs (private channels, RLS on `realtime.messages`)
-- [Supabase Postgres Changes docs](https://supabase.com/docs/guides/realtime/postgres-changes) — HIGH confidence, official docs
-- Stripe idempotency key pattern (deterministic key per operation, 24h dedup window) — HIGH confidence, well-established Stripe API behavior, cross-checked across multiple practitioner sources
-- `docs/build/GSD-LAUNCH.md` (this repo) — the fixed phase plan and proposed schema this document is grounded in
-- `.planning/codebase/ARCHITECTURE.md` (this repo) — existing mock-package structure and end-state architecture sketch this document extends
+- `.planning/PROJECT.md` — v1.1 goal, target features, out of scope (IMAP, phone tickets, live `vamostaxi.eu`)
+- `packages/db/supabase/migrations/20260828000002_contact_forms.sql` — `contact_submissions` + `submit_contact_message`
+- `packages/db/supabase/migrations/20260902000001_contact_delivery_outbox.sql` + `20260902000002_contact_delivery_authorization.sql` — intake outbox, `vamos_system` only
+- `apps/web/app/api/contact/route.ts` — Turnstile, `asAnon` submit, `asSystem` claim/finalize, Gmail copy
+- `apps/web/lib/db/identity.ts` — `asAnon` / `asStaff` / `asSystem`; cache-disabled binding
+- `apps/web/lib/ops/staff-json.ts` — `withStaff` / `withAdmin`
+- `apps/web/wrangler.jsonc` — Worker `vamos`, hosts `vamostaxi.site` + `dashboard.vamostaxi.site`, `send_email` EMAIL binding
+- `app/ops/ops.dc.html`, `OpsSidebar.dc.html` — hash nav, no Staff tab
+- `app/vamos-ops-api.js` — absolute `/api/…` client
+- [Resend Receiving](https://resend.com/docs/dashboard/receiving/introduction) — HIGH
+- [email.received payload (no body)](https://resend.com/docs/webhooks/emails/received) — HIGH
+- [Custom receiving domains / MX collision](https://resend.com/docs/dashboard/receiving/custom-domains) — HIGH
+- [Verify webhooks (Svix)](https://resend.com/docs/webhooks/verify-webhooks-requests) — HIGH
+- [Reply threading (`In-Reply-To`)](https://resend.com/docs/dashboard/receiving/reply-to-emails) — HIGH
 
 ---
-*Architecture research for: Vamos Taxi V1 — booking/payments/dispatch on Cloudflare Workers + Supabase*
-*Researched: 2026-08-17*
+*Architecture research for: v1.1 Ops Support (contact tickets + Resend inbound)*
+*Researched: 2026-09-04*

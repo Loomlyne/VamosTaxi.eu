@@ -60,7 +60,7 @@ export async function POST(request: Request) {
   const supportRecipient = bindings.CONTACT_SUPPORT_RECIPIENT ?? process.env.CONTACT_SUPPORT_RECIPIENT;
   const apiKey = bindings.RESEND_API_KEY ?? process.env.RESEND_API_KEY;
   const rendered = {
-    customer: renderContactCustomerEmail(input.locale, { name: input.name }),
+    customer: renderContactCustomerEmail(input.locale, { name: input.name, message: input.message }),
     support: renderContactSupportEmail(input.locale, input),
   } satisfies Record<ContactDeliveryMessage, { subject: string; html: string; text: string }>;
 
