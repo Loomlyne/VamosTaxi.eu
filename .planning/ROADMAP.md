@@ -21,6 +21,19 @@ lifecycle features sit downstream of (rather than one large "payments + lifecycl
 and the i18n runtime's SSR incompatibility is a Phase 1 architecture decision, not Phase 7
 cleanup. Deviations from `GSD-LAUNCH.md`'s phase numbering are noted per phase below.
 
+## v1.1 Ops Support
+
+v1.1 freezes the booking funnel (Phases 7–11) and ships a two-way Support inbox in Ops.
+Tickets **are** `contact_submissions` rows plus a message thread — no parallel
+`support_tickets` table, no customer ticket UI. Dispatcher answers from `#support`;
+customer Reply-in-Gmail lands on the same ticket via Resend inbound on
+`replies.vamostaxi.site`. Gmail `info@vamostaxi.site` stays a copy. Spine: schema + mock
+→ outbound RFC ids → inbound webhook → UI wire-up → staging MX last. Closed stays closed
+until a human reopens it (no auto-reopen).
+
+**v1.1 must-nots (every phase):** no `POST /api/quote`, no Staff tab, no live
+`vamostaxi.eu` DNS, no `env.production`, no push to `main`, funnel Phases 7–11 frozen.
+
 ## Phases
 
 **Phase Numbering:**
@@ -41,6 +54,11 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 9: Booking Lifecycle & Customer Self-Service** - A booking lives its full lifecycle — reminders, delay handling, cancellation, review
 - [ ] **Phase 10: Hardening — Performance, Security & Compliance** - The site survives a launch surge and never captures data ahead of consent
 - [ ] **Phase 11: Launch Cutover** - Vamos Taxi goes live on its real domain with real pricing
+- [ ] **Phase 12: Ticket schema + #support mock** - Contact rows become tickets (New/Open/Replied/Closed); OpsSupport mock + sidebar `#support`; Staff tab stays gone
+- [ ] **Phase 13: Staff APIs + outbound Resend replies** - Dispatcher sends a reply from the ticket; customer Gmail threads; info@ BCC; RFC Message-ID persisted
+- [ ] **Phase 14: Inbound webhook** - Signed Resend webhook appends matched replies; unmatched mail does not create a ticket
+- [ ] **Phase 15: Wire Ops #support to APIs** - Live `#support` list, thread, booking_ref+locale, status filters; EN/DE/FR/AR; escaped text
+- [ ] **Phase 16: Staging MX + end-to-end UAT** - Customer Reply-in-Gmail appends to the same ticket; MX only on replies.vamostaxi.site
 
 ## Phase Details
 
@@ -411,10 +429,95 @@ irreversible gate.
 
 **Plans**: TBD
 
+### Phase 12: Ticket schema + #support mock
+
+**Goal**: `contact_submissions` is the ticket header with New/Open/Replied/Closed;
+`OpsSupport.dc.html` + sidebar `#support` exist as a mock; Staff tab stays gone. No
+parallel `support_tickets` table.
+**Depends on**: Phase 6 (ops console + `contact_submissions`)
+**Requirements**: SUP-02
+**Success Criteria** (what must be TRUE):
+
+  1. Mock list shows four statuses: New, Open, Replied, Closed — dispatcher can set any of the four.
+  2. Ops sidebar has `#support`; there is no `#staff` rail item.
+  3. No parallel `support_tickets` table exists — tickets are `contact_submissions` plus `support_messages` / `support_inbound_events`.
+  4. Migration adds `ticket_status`, `reply_token`, `last_activity_at`, `closed_at` on `contact_submissions`; FORCE RLS; no anon grants; `submit_contact_message` mints the token and seeds `inbound_form`.
+  5. Mock is four languages / four widths. Funnel Phases 7–11 untouched. Must-nots: no `POST /api/quote`, no live DNS, no `env.production`, no push `main`.
+
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 13: Staff APIs + outbound Resend replies
+
+**Goal**: Dispatcher sends a reply from the ticket via Resend; the customer Gmail thread
+continues; `info@` gets a BCC copy; RFC `Message-ID` is persisted. Contact ack stays
+Cloudflare `EMAIL`.
+**Depends on**: Phase 12
+**Requirements**: RPLY-01, RPLY-02
+**Success Criteria** (what must be TRUE):
+
+  1. Dispatcher sends a reply from the ticket; the customer receives it in Gmail on the same thread.
+  2. `info@vamostaxi.site` receives a BCC copy of that staff reply (Resend BCC, not a second `env.EMAIL` send). Gmail is a copy; Ops is the working inbox.
+  3. RFC `Message-ID` is persisted (GET-after-send — not Resend UUID, not 12-char outbox suffix). From and Reply-To on replies are `replies.vamostaxi.site`.
+  4. Contact ack stays Cloudflare `EMAIL`. Ticket replies are Resend only.
+  5. Must-nots: no `POST /api/quote`, no Staff tab, no live DNS, no `env.production`, no push `main`, funnel Phases 7–11 frozen.
+
+**Plans**: TBD
+
+### Phase 14: Inbound webhook
+
+**Goal**: Signed Resend inbound webhook appends matched customer replies to the existing
+ticket. Unmatched mail does not become a ticket. Closed stays closed.
+**Depends on**: Phase 13
+**Requirements**: INB-02
+**Success Criteria** (what must be TRUE):
+
+  1. Mail that is not a reply to an existing ticket does not become a ticket. Ops ignores it.
+  2. Webhook is signed (Svix `svix-*` headers, raw body). Unsigned POST is 4xx on **deployed** staging.
+  3. Match order: plus-token in `to` / `received_for`, then RFC `In-Reply-To` / `References` against stored ids. Never match on `From`.
+  4. Closed stays closed — a customer reply on a Closed ticket does **not** auto-reopen (owner decision).
+  5. Must-nots: no `POST /api/quote`, no Staff tab, no live DNS, no `env.production`, no push `main`, funnel Phases 7–11 frozen.
+
+**Plans**: TBD
+
+### Phase 15: Wire Ops #support to APIs
+
+**Goal**: Live `#support` talks to staff APIs — list, thread, `booking_ref`+`locale`,
+status filters — in EN/DE/FR/AR. Staff tab stays gone. Render escaped text, not raw HTML.
+**Depends on**: Phase 12 (mock), Phase 13 (APIs). Does not need live MX.
+**Requirements**: SUP-01, SUP-03, SUP-04, SUP-05
+**Success Criteria** (what must be TRUE):
+
+  1. Dispatcher opens Ops `#support` and sees every contact submission as a live ticket list.
+  2. Opening a ticket shows the original form (name, email, phone, message, time) plus the thread, newest last; `booking_ref` and `locale` when they exist.
+  3. Dispatcher can filter the list by status.
+  4. EN/DE/FR/AR same pass; Staff tab gone; stored text is escaped, never raw inbound HTML.
+  5. Must-nots: no `POST /api/quote`, no live DNS, no `env.production`, no push `main`, funnel Phases 7–11 frozen. Keep the DC hash console — no Next.js `/ops/support` page.
+
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 16: Staging MX + end-to-end UAT
+
+**Goal**: Staging receiving MX on `replies.vamostaxi.site` only. Customer Reply-in-Gmail
+appends to the same ticket. Apex Gmail `info@` unchanged. No live `vamostaxi.eu` DNS.
+**Depends on**: Phase 14, Phase 15
+**Requirements**: INB-01
+**Success Criteria** (what must be TRUE):
+
+  1. Customer hits Reply in Gmail and that mail appends to the **same** ticket.
+  2. MX is only on `replies.vamostaxi.site`. Apex `dig MX vamostaxi.site` still delivers `info@` to Gmail.
+  3. No live `vamostaxi.eu` DNS (`dig MX vamostaxi.eu` untouched). No push to `main`. No `env.production`.
+  4. UAT also proves: intake + reply copies at `info@`; unsigned webhook 4xx on deployed staging; spoofed `From` does not append; `<script>` fixture is escaped in `#support`.
+  5. Funnel Phases 7–11 still frozen. Must-nots: no `POST /api/quote`, no Staff tab.
+
+**Plans**: TBD
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 → 9 → 10 → 11
+v1.0: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 → 9 → 10 → 11
+v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -429,8 +532,14 @@ Phases execute in numeric order: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 
 | 9. Booking Lifecycle & Customer Self-Service | 0/TBD | Not started | - |
 | 10. Hardening — Performance, Security & Compliance | 0/TBD | Not started | - |
 | 11. Launch Cutover | 0/TBD | Not started | - |
+| 12. Ticket schema + #support mock | 0/TBD | Not started | - |
+| 13. Staff APIs + outbound Resend replies | 0/TBD | Not started | - |
+| 14. Inbound webhook | 0/TBD | Not started | - |
+| 15. Wire Ops #support to APIs | 0/TBD | Not started | - |
+| 16. Staging MX + end-to-end UAT | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-08-17*
-*Granularity: fine (11 phases)*
-*Coverage: 80/80 v1 requirements mapped*
+*Granularity: fine (11 phases v1 + 5 phases v1.1)*
+*Coverage: 80/80 v1 + 9/9 v1.1*
+*v1.1 Ops Support added: 2026-09-04*

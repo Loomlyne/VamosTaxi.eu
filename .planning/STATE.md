@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Ops Support
 status: planning
-last_updated: "2026-09-04T17:23:05.920Z"
+last_updated: "2026-09-04T17:50:14.000Z"
 last_activity: 2026-09-04
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,19 +17,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-08-17)
+See: .planning/PROJECT.md (updated 2026-09-04)
 
-**Core value:** A customer can book a fixed-price transfer in under a minute and trust that
-the driver will be there. If nothing else works, the booking funnel — quote, pay,
-confirmation — must.
-**Current focus:** Phase 5–9 close bars rewritten (no mock leftovers, staging connection tables). Next: discuss-phase 5, then 05-27 staging contact UAT. Quote remaining is Phase 4. Prod DNS/Stripe stay Phase 11.
+**Core value:** Dispatcher answers contact mail from Ops. Customer replies land in the same ticket.
+**Current focus:** Phase 12 — Ticket schema + #support mock
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 12 of 16 (Ticket schema + #support mock) — v1.1 phase 1 of 5
 Plan: —
-Status: Defining requirements
-Last activity: 2026-09-04 — Milestone v1.1 started
+Status: Planning
+Last activity: 2026-09-04 — v1.1 roadmap Phases 12–16 written
 
 ## Performance Metrics
 
@@ -88,11 +86,15 @@ Last activity: 2026-09-04 — Milestone v1.1 started
 ### Roadmap Evolution
 
 - Phase 5 edited: force-edited 5/7/8/9 close bars: per-URL staging connection tables, no mock leftovers; become-a-driver removed from 5; Stripe test only until 11
+- v1.1 Ops Support: Phases 12–16 appended (continue numbering from 11). Funnel Phases 7–11 frozen. Closed stays closed (no auto-reopen).
 
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
+
+- v1.1: Closed stays closed — customer reply on a Closed ticket does not auto-reopen (owner).
+- v1.1: Tickets are `contact_submissions` (no parallel `support_tickets`); receive on `replies.vamostaxi.site`; From+Reply-To on that host; contact ack stays Cloudflare EMAIL.
 
 - Roadmap: Hyperdrive wiring is its own hard-gate phase (Phase 3), split out of schema work, because it needs a concurrency load test before Phase 4 builds on it — not just a smoke test.
 - Roadmap: Checkout/payment (Phase 7) is a convergence point, not a parallel track — ops dispatch (Phase 8) and the full booking lifecycle (Phase 9) are sequenced after it, not alongside it.
@@ -213,6 +215,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-04T16:52:34.521Z
-Stopped at: Phase 5 Wave 13 05-33 executed; 05-27 contact UAT still owner
-Resume file: .planning/phases/05-public-surfaces-customer-accounts/05-CONNECTION-TABLE.md
+Last session: 2026-09-04T17:50:14.000Z
+Stopped at: v1.1 roadmap Phases 12–16 written; next is discuss/plan Phase 12
+Resume file: None

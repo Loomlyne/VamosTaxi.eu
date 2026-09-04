@@ -321,18 +321,18 @@ Populated during v1.1 roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SUP-01 | — | Pending |
-| SUP-02 | — | Pending |
-| SUP-03 | — | Pending |
-| SUP-04 | — | Pending |
-| SUP-05 | — | Pending |
-| RPLY-01 | — | Pending |
-| RPLY-02 | — | Pending |
-| INB-01 | — | Pending |
-| INB-02 | — | Pending |
+| SUP-01 | Phase 15 | Pending |
+| SUP-02 | Phase 12 | Pending |
+| SUP-03 | Phase 15 | Pending |
+| SUP-04 | Phase 15 | Pending |
+| SUP-05 | Phase 15 | Pending |
+| RPLY-01 | Phase 13 | Pending |
+| RPLY-02 | Phase 13 | Pending |
+| INB-01 | Phase 16 | Pending |
+| INB-02 | Phase 14 | Pending |
 
-**v1.1 coverage:** 9 requirements, unmapped until roadmap.
+**v1.1 coverage:** 9 requirements, 9 mapped, unmapped 0 ✓
 
 ---
 *Requirements defined: 2026-08-17*
-*Last updated: 2026-09-04 after /gsd-new-milestone v1.1 Ops Support*
+*Last updated: 2026-09-04 after v1.1 Ops Support roadmap (Phases 12–16)*
