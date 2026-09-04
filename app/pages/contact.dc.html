@@ -90,6 +90,27 @@ a[data-ch]:hover [data-ch-v]{color:var(--vt-yellow-700)}
 :focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}
 @media (min-width:600px){[data-row2]{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (min-width:980px){[data-ct-grid]{grid-template-columns:minmax(0,1.32fr) minmax(0,1fr)}}
+[data-ct-faq]{margin-top:clamp(32px,4vw,48px)}
+[data-ct-faq-card]{background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);overflow:hidden}
+[data-ct-faq-item]{border-bottom:1px solid var(--vt-grey-200)}
+[data-ct-faq-item]:last-child{border-bottom:0}
+[data-ct-faq-toggle]{all:unset;box-sizing:border-box;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;width:100%;padding:clamp(16px,2vw,20px) clamp(18px,2.4vw,24px);cursor:pointer;text-align:start;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);line-height:1.35;letter-spacing:var(--vt-heading-tracking);color:var(--vt-text-primary);text-wrap:pretty;transition:color 140ms var(--vt-ease-standard)}
+[data-ct-faq-toggle]:hover{color:var(--vt-charcoal-800)}
+[data-ct-faq-toggle]:focus-visible{outline:none;box-shadow:inset var(--vt-ring)}
+[data-ct-faq-chev]{flex:0 0 auto;margin-top:3px;display:inline-flex;color:var(--vt-charcoal-900);transition:transform var(--ct-faq-ms,200ms) var(--vt-ease-standard)}
+[data-ct-faq-item][data-open="1"] [data-ct-faq-chev]{transform:rotate(180deg)}
+[data-ct-faq-panel]{display:grid;grid-template-rows:0fr;visibility:hidden;transition:grid-template-rows var(--ct-faq-ms,200ms) var(--vt-ease-standard),visibility 0s linear var(--ct-faq-ms,200ms)}
+[data-ct-faq-item][data-open="1"] [data-ct-faq-panel]{grid-template-rows:1fr;visibility:visible;transition:grid-template-rows var(--ct-faq-ms,200ms) var(--vt-ease-standard),visibility 0s}
+[data-ct-faq-inner]{overflow:hidden;min-height:0;padding:0 clamp(18px,2.4vw,24px);opacity:0;transition:opacity var(--ct-faq-ms,200ms) var(--vt-ease-standard)}
+[data-ct-faq-item][data-open="1"] [data-ct-faq-inner]{padding-bottom:clamp(16px,2vw,20px);opacity:1}
+[data-ct-faq-a]{margin:0 0 10px;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);text-wrap:pretty}
+[data-ct-faq-a]:last-child{margin-bottom:0}
+[data-ct-faq-a] a{color:var(--vt-charcoal-900);font-weight:var(--vt-weight-medium);text-decoration:none;border-bottom:1px solid var(--vt-grey-300)}
+[data-ct-faq-a] a:hover{color:var(--vt-charcoal-800);border-bottom-color:var(--vt-charcoal-900)}
+[data-ct-faq-foot]{margin:14px 0 0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-muted)}
+[data-ct-faq-foot] a{color:var(--vt-charcoal-900);font-weight:var(--vt-weight-medium);text-decoration:none;border-bottom:1px solid var(--vt-grey-300)}
+[data-ct-faq-foot] a:hover{color:var(--vt-charcoal-800);border-bottom-color:var(--vt-charcoal-900)}
+@media (prefers-reduced-motion:reduce){[data-ct-faq-item],[data-ct-faq-panel],[data-ct-faq-inner],[data-ct-faq-chev]{transition:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}[data-spin]{animation:none}}</style>
 </helmet>
 
@@ -243,6 +264,70 @@ a[data-ch]:hover [data-ch-v]{color:var(--vt-yellow-700)}
 </aside>
 
 </div>
+
+<section aria-labelledby="ct-faq-h" data-ct-faq="1" ref="{{ faqRef }}">
+<h2 id="ct-faq-h" style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Frequently asked questions</h2>
+<p style="margin:0 0 20px;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Quick answers before you write to us.</p>
+
+<div data-ct-faq-card="1">
+
+<div data-ct-faq-item="1" data-open="0">
+<h3 style="margin:0">
+<button type="button" data-ct-faq-toggle="1" id="ct-faq-q1" aria-expanded="false" aria-controls="ct-faq-a1">Is the price I see the final price?
+<span data-ct-faq-chev="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span>
+</button>
+</h3>
+<div data-ct-faq-panel="1" id="ct-faq-a1" role="region" aria-labelledby="ct-faq-q1">
+<div data-ct-faq-inner="1">
+<p data-ct-faq-a="1">Yes. Your fare is calculated from the route and the vehicle class before you book, confirmed in writing, and it does not change afterwards. No meter, no surge, nothing added at the airport.</p>
+</div>
+</div>
+</div>
+
+<div data-ct-faq-item="1" data-open="0">
+<h3 style="margin:0">
+<button type="button" data-ct-faq-toggle="1" id="ct-faq-q2" aria-expanded="false" aria-controls="ct-faq-a2">Do I need an account to book?
+<span data-ct-faq-chev="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span>
+</button>
+</h3>
+<div data-ct-faq-panel="1" id="ct-faq-a2" role="region" aria-labelledby="ct-faq-q2">
+<div data-ct-faq-inner="1">
+<p data-ct-faq-a="1">No. Guest checkout takes an email address and a mobile number — the address for your confirmation, the number for the driver to call on arrival. You can open an account later if you want your transfers in one place.</p>
+</div>
+</div>
+</div>
+
+<div data-ct-faq-item="1" data-open="0">
+<h3 style="margin:0">
+<button type="button" data-ct-faq-toggle="1" id="ct-faq-q3" aria-expanded="false" aria-controls="ct-faq-a3">What payment methods do you accept?
+<span data-ct-faq-chev="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span>
+</button>
+</h3>
+<div data-ct-faq-panel="1" id="ct-faq-a3" role="region" aria-labelledby="ct-faq-q3">
+<div data-ct-faq-inner="1">
+<p data-ct-faq-a="1">Card payment, processed by Stripe. Every method available for your booking is shown at checkout before you pay.</p>
+</div>
+</div>
+</div>
+
+<div data-ct-faq-item="1" data-open="0">
+<h3 style="margin:0">
+<button type="button" data-ct-faq-toggle="1" id="ct-faq-q4" aria-expanded="false" aria-controls="ct-faq-a4">Can I cancel or change my booking?
+<span data-ct-faq-chev="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span>
+</button>
+</h3>
+<div data-ct-faq-panel="1" id="ct-faq-a4" role="region" aria-labelledby="ct-faq-q4">
+<div data-ct-faq-inner="1">
+<p data-ct-faq-a="1">Change or cancel from the link in your confirmation email, or from your account if you made one. A change is effective when we confirm it in writing, not when you send it.</p>
+<p data-ct-faq-a="1"><a href="manage-booking.dc.html">Manage a booking</a> · <a href="cancellation.dc.html">Read the cancellation &amp; refund policy</a></p>
+</div>
+</div>
+</div>
+
+</div>
+
+<p data-ct-faq-foot="1"><a href="/#faq">See all questions</a></p>
+</section>
 </div>
 
 <div style="height:clamp(40px,4vw,56px)"></div>
@@ -269,11 +354,43 @@ class Component extends DCLogic {
   turnstileReadyTimer = null;
   turnstileReadyAttempts = 0;
   TURNSTILE_READY_MAX_ATTEMPTS = 40;
+  faqRef = React.createRef();
+  bootFaq() {
+    const root = this.faqRef.current;
+    if (!root || this._faqBound === root) return;
+    if (this._faqBound) this._faqBound.removeEventListener('click', this.onFaqClick);
+    root.addEventListener('click', this.onFaqClick);
+    this._faqBound = root;
+  }
+  faqItems() {
+    const root = this.faqRef.current;
+    return root ? Array.from(root.querySelectorAll('[data-ct-faq-item]')) : [];
+  }
+  setFaqItem(item, open) {
+    item.setAttribute('data-open', open ? '1' : '0');
+    const btn = item.querySelector('[data-ct-faq-toggle]');
+    if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  onFaqClick = (e) => {
+    const root = this.faqRef.current;
+    const btn = e.target.closest && e.target.closest('[data-ct-faq-toggle]');
+    if (!btn || !root || !root.contains(btn)) return;
+    const item = btn.closest('[data-ct-faq-item]');
+    if (!item) return;
+    const wasOpen = item.getAttribute('data-open') === '1';
+    this.faqItems().forEach((c) => { if (c !== item) this.setFaqItem(c, false); });
+    this.setFaqItem(item, !wasOpen);
+  };
   componentDidMount() {
     this.waitForTurnstile();
+    this.bootFaq();
+  }
+  componentDidUpdate() {
+    this.bootFaq();
   }
   componentWillUnmount() {
     this.clearTurnstile();
+    if (this._faqBound) this._faqBound.removeEventListener('click', this.onFaqClick);
   }
   bumpTurnstileGeneration = () => {
     this.turnstileGeneration += 1;
@@ -447,7 +564,7 @@ class Component extends DCLogic {
     const emailErr = bad.email === 'format' ? 'That address is missing something — check it over' : 'We need an address to reply to';
     const msgErr = bad.msg === 'short' ? 'A line or two more, so we can answer properly' : 'Tell us what you need';
     return {
-      n14: 14, n16: 16, n18: 18, n20: 20, n22: 22, n24: 24, yes: true,
+      n14: 14, n16: 16, n18: 18, n20: 20, n22: 22, n24: 24, yes: true, faqRef: this.faqRef,
       showForm: p !== 'sent',
       isInvalid: p === 'invalid',
       isSending: p === 'sending',

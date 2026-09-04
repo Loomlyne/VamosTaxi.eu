@@ -34,8 +34,14 @@
 <style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
 .vt-input--focus{box-shadow:none}
 /* Button hover/press — colour step only, no shadow, no glow */
-.vt-btn{text-decoration:none;transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
-.vt-btn:hover,.vt-btn:active{box-shadow:none!important}
+.vt-btn{text-decoration:none;border-bottom:0;transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
+.vt-btn:hover,.vt-btn:active{box-shadow:none!important;border-bottom:0}
+[data-lg-prose] a.vt-btn{text-decoration:none;border-bottom:0}
+[data-lg-prose] a.vt-btn--primary{color:var(--vt-text-on-accent)}
+[data-lg-prose] a.vt-btn--secondary{color:var(--vt-text-inverse)}
+[data-lg-prose] a.vt-btn:hover{text-decoration:none;border-bottom:0}
+[data-lg-prose] a.vt-btn--primary:hover{color:var(--vt-text-on-accent)}
+[data-lg-prose] a.vt-btn--secondary:hover{color:var(--vt-text-inverse)}
 .vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
 .vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
 .vt-btn--secondary:hover:not([disabled]){background:var(--vt-charcoal-800)}
