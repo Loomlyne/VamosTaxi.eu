@@ -87,6 +87,12 @@ test.describe("GET /api/staff/content @ops-dc-content", () => {
     expect(mock).toMatch(/loadLegalCoverage|coverage/);
   });
 
+  test("public i18n dict has no Become a partner CTA", () => {
+    const dict = readFileSync(join(repoRoot, "app/vamos-i18n-dict.js"), "utf8");
+    expect(dict).not.toMatch(/Become a partner/);
+    expect(dict).not.toMatch(/become-a-partner/);
+  });
+
   test("loadRawMessages is still the JSON default (06-11)", () => {
     const loader = readFileSync(join(webRoot, "i18n/request.ts"), "utf8");
     expect(loader).toMatch(/async function loadRawMessages/);
