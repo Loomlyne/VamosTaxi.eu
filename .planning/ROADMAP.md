@@ -242,22 +242,36 @@ Plans:
 
 ### Phase 5: Public Surfaces & Customer Accounts
 
-**Goal**: Every public mock that doesn't depend on live booking state is a live route on
-real data, pixel-faithful at all four widths in all four languages, and a customer can
-create, access and sign out of an account.
+**Goal**: Every public surface that does not depend on a paid booking is a live route on
+staging (`vamostaxi.site`) talking to the real Worker + Supabase. No fixture lists, no
+localStorage-only auth, no fake success toasts, no invented legal/CHF/photos. Pixel-faithful
+DC at all four widths in en/de/fr/ar. Become-a-driver is out of V1. Close bar is the
+per-URL connection table below — a page with any mock leftover is not done.
 **Depends on**: Phase 3 (the home page's booking widget also requires Phase 4 for live pricing, but the rest of this phase does not)
 **Parallel with**: Phase 4, Phase 6
 **Requirements**: SITE-01, SITE-02, SITE-04, SITE-05, SITE-06, SITE-07, SITE-09, AUTH-01, AUTH-02, AUTH-03, AUTH-04, I18N-08
 **Success Criteria** (what must be TRUE):
 
-  1. The home page renders with the booking widget prominent and its sections (reviews, FAQ) read from the database; every public page carries the shared header and footer, never a hand-rolled one.
-  2. About, FAQ, contact and become-a-driver pages render, their forms are challenge-protected and reach both the inbox and the database, and a customer can reach support by phone, WhatsApp and the contact form.
-  3. Terms, privacy, cookies, cancellation and imprint render with real numbers where the owner supplied them and labelled TBC pills where not, and a legal page that exists in fewer than four languages says so rather than pretending to be translated.
-  4. Every page holds its layout at 1440, 1024, 768 and 390 px with nothing scrolling sideways, and public pages are server-rendered with correct language alternates for search engines.
-  5. A customer can create an account with email/password or an emailed one-time code, reset a forgotten password from an emailed link, stay signed in across a browser refresh, and sign out from any page.
+  1. `/` — SiteHeader/SiteFooter. Booking widget calls `/api/geo/suggest` + `/api/geo/reverse` (Mapbox, no photon.komoot) and `POST /api/quote` (engine completeness is Phase 4; this phase proves the widget is wired, not a fixture price). Reviews hydrate from `public.reviews` published rows only — **hide the whole `#reviews` block if none**, never hardcoded cards or an empty carousel shell. Class/hero photos from R2 `/photos/site/*`. Hourly off. No become-a-partner. Amounts `CHF 000` until `pricing_live`. Flight: `GET /api/flight`; on `provider_unavailable` empty field + honest copy — **no local `FLIGHTS` samples**, no fake time/status.
+  2. `/about` `/faq` — live DC routes, header/footer, four languages. Copy from the i18n dict (Phase 6 `CONTENT_SOURCE=json` stays). TBC pills only where the owner has not supplied text. No fake CMS, no lorem.
+  3. `/contact` — Turnstile + `POST /api/contact`. Success only after a row in `contact_submissions` and the delivery outbox. Inbox to the real support address. Phone + WhatsApp `+41 79 626 70 82` / `wa.me/41796267082`. 05-27 staging UAT (fresh token, replay reject, genuine inbox) is the first gate. Do not submit the live form without owner permission.
+  4. `/cookies` `/privacy` `/terms` `/imprint` `/cancellation` — live routes. Owner-supplied numbers in; everything else a labelled TBC pill. Never invent legal text. No Language row. A page that exists in fewer than four languages carries `data-vt-legal` and says so. Cookie **banner UI** ships here; writing `consent_log` is Phase 10 — do not fake a consent API in this phase.
+  5. `/sign-in` `/account` `/reset-password` — `POST /api/auth` + `GET /api/auth/session`. Email/password, magic link, passkey only. No Google, Apple, LinkedIn, phone-verify. Account Save writes GoTrue (`update-profile`); session hydrates name/email/phone. Sign-out from header works. Password fields have a right-side eye. Branded auth mail via the Send Email hook, not a raw URL dump.
+  6. `/coming-soon` is the real static product page (200). Public `/login` is 404 (ops login is dashboard only). `/partner` `/become-a-partner` `/fleet` stay 404.
+  7. Every page holds 1440 / 1024 / 768 / 390 px with nothing scrolling sideways. Four languages same pass, Arabic RTL.
+  8. **Close bar — staging connection table** (Chrome-UA curl + one signed-in account pass on `https://vamostaxi.site`). Every in-scope URL: HTTP 200 (or the 404s in #6), named `/api/*` fingerprint in the served HTML where an API is required, that API not 404. Mock localStorage, fixture arrays, and fake VT-refs on these pages are a fail. Out of this phase (must 200 as DC shells today, but live data is later): `/checkout` `/confirmation` (Phase 7), `/bookings` `/manage-booking` `/booking-detail` (Phases 8–9). Do not POST `/api/quote` to “check the wire.”
 
-**Plans**: TBD
-**Current remediation**: 05-27 contact-delivery security/static-route execution is complete locally; staging UAT, review and ship gates remain open.
+**Plans**: 05-01…26 executed. 05-19 not executed (partner out). 05-24 skipped (facts in 05-32). 05-27 executed, staging UAT open. 05-28 gated on that UAT.
+
+**Wave 12** *(remaining, parallel)*
+- [ ] 05-29-PLAN.md — Public GET `/api/reviews` + hide `#reviews` when empty
+- [ ] 05-30-PLAN.md — Delete home `FLIGHTS` fixtures
+- [ ] 05-31-PLAN.md — Drop `partner_applications` + leftover copy
+- [ ] 05-32-PLAN.md — Update `05-OWNER-CHECKS.md` (no dashboard re-clicks)
+
+**Wave 13** *(blocked on Wave 12)*
+- [ ] 05-33-PLAN.md — Staging per-URL connection table (no quote POST, no contact submit)
+
 **UI hint**: yes
 
 ### Phase 6: Ops Reference Data & Content Console
@@ -306,54 +320,62 @@ does not need to wait for checkout.
 
 ### Phase 7: Checkout & Payment
 
-**Goal**: A customer can pay for a locked quote and receive a webhook-confirmed booking —
-the convergence point every subsequent money-touching surface (ops board, ops assignment,
-account bookings, lifecycle features) is downstream of. This is not a parallel track; it
-gates Phases 8 and 9.
+**Goal**: A customer pays for a locked quote on staging and gets a webhook-confirmed
+booking in Postgres — not a localStorage theatre. `/checkout` and `/confirmation` are
+production-grade on Stripe **test** mode. This gates Phases 8 and 9. Live Stripe keys and
+real charges wait for Phase 11.
 **Depends on**: Phase 4
 **Requirements**: PAY-01, PAY-02, PAY-03, PAY-04, PAY-05, PAY-06, PAY-07
 **Success Criteria** (what must be TRUE):
 
-  1. A customer reaches checkout carrying their locked quote, enters passenger and contact details, and can complete the booking as a guest without creating an account.
-  2. A customer pays by card, Apple Pay, Google Pay or TWINT, charged in CHF, and the booking is confirmed only by the verified payment webhook, never by the browser's return from the payment page.
-  3. A repeated or out-of-order webhook delivery cannot double-charge, double-confirm or double-send the confirmation email.
-  4. A paid customer receives a confirmation email in their language with the booking voucher, a manage link and a calendar invite, and sees a confirmation page showing the reference, route, time, vehicle and amount paid.
+  1. `/checkout` carries the locked quote from Phase 4 (quote id + signature). Passenger + contact fields validate server-side. Guest checkout works with email + manage link (account optional). No PayPal. No cash-to-driver. No hourly. No corporate invoice. PayPal and cash radios are **deleted** from the DC, not hidden.
+  2. Pay is Stripe test Checkout/PaymentIntent (card, Apple Pay, Google Pay, TWINT) in CHF. `pay()` must not invent `VT-5xxx`, must not only `saveTrip` to localStorage, must not `location.href = 'confirmation.dc.html'`. The browser return does not confirm the booking.
+  3. Booking is confirmed only by the verified Stripe webhook. Rows exist: `bookings` + `booking_legs` + `price_snapshots` + `booking_payments`. Reference is `next_booking_reference()`. Isolation-probe leftovers are not these rows.
+  4. Replay / out-of-order webhooks cannot double-charge, double-confirm, or double-send mail (`stripe_events.processed_at`).
+  5. `/confirmation` reads the paid booking from the Worker (auth cookie or manage token), never a mock file. Shows real reference, route, time, vehicle, amount. Confirmation email in the booking locale: voucher, manage link, calendar invite. Branded, not a raw URL dump.
+  6. Coupons apply only through the quote/checkout APIs (window + caps). Checkout still refuses when `pricing_live=false` except the already-approved `PRICING_PREVIEW` display path — do not flip live.
+  7. **Close bar — staging connection table**: `/checkout` and `/confirmation` HTML fingerprints `/api/` payment/booking routes (not `saveTrip` / fake `VT-`). Dummy card path on Stripe test only, owner-gated. `GET /confirmation` without a real booking does not paint a fake VT-ref.
 
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 8: Ops Dispatch — Live Board, Assignment & Account Surfaces
 
-**Goal**: Staff run the day from a live board and dispatch real, paid bookings, and a
-signed-in or newly-claiming customer can see their own booking history. Gated on Phase 7
-because every screen here reads live payment/booking state.
+**Goal**: Staff run the day from real paid bookings on `dashboard.vamostaxi.site`.
+`VamosOps.bookings` is a staff API, not `emptyBookings()`. Customer `/bookings` is Postgres,
+not localStorage. No fixture `VT-48xx`. No auto-dispatch. No driver app. Admin-only
+(`koussayzayeni@gmail.com`). Isolation-probe leftover bookings are not product data.
 **Depends on**: Phase 5, Phase 6, Phase 7
 **Requirements**: OPS-01, OPS-02, OPS-03, OPS-04, OPS-05, SITE-03, AUTH-06, DATA-08
 **Success Criteria** (what must be TRUE):
 
-  1. Staff see a live board of bookings that updates when a booking is paid, without a page refresh.
-  2. Staff open a booking and see its full detail and an append-only event timeline covering every booking, price, payment and assignment change.
-  3. A dispatcher assigns a chauffeur and a vehicle, and the same driver cannot be double-booked for overlapping trips — enforced at the database level, not just the UI.
-  4. A dispatcher can take a booking by phone, price it through the same pricing engine as the public quote, and enter it into the system; staff can confirm, modify and cancel a booking and issue a refund.
-  5. A customer can see their profile, booking history and any single booking in detail, and a guest who booked without an account can claim that booking into a new account from the emailed link.
+  1. Delete `emptyBookings`. `VamosOps.bookings` hydrates from `/api/staff/bookings` (and detail by id). 404/network → empty list, never fixtures. A Phase 7 paid booking appears on `#dashboard` / `#bookings` / `#calendar` without a full reload.
+  2. `#` detail (`OpsDetail`) is the paid row: contact, route, legs, snapshot, payment, append-only `booking_events`. No mock timeline.
+  3. Dispatcher assigns chauffeur + vehicle by hand. Double-booking is refused by the database exclusion, not only the UI. Unassign works. Fleet tables stay the Phase 6 APIs (empty fleet is a real empty state, not seeded fake cars).
+  4. Phone booking in ops uses the same quote engine as `/api/quote`, then the same payment/confirm path as Phase 7 (or an explicit “paid outside Stripe” staff action that still writes snapshot + payment row — no silent fake confirm). Confirm / modify / cancel / refund are staff APIs, not local `save()`.
+  5. `/bookings` (public, signed-in) lists that customer’s rows from Postgres. Opening a row uses a live detail route (shell may exist; **data** here, URL 404 for `/booking-detail` is closed in Phase 9 if still missing). Guest claim-into-account from the manage link works (AUTH-06).
+  6. `#customers` booking history is `GET /api/staff/customers/:id`, not a fixture. Zero real customers → empty, not Isolation Customer*.
+  7. **Close bar — staging connection table** (dashboard + public, signed-in admin + one test customer): `#dashboard` `#bookings` `#calendar` detail `#customers` `/bookings` each fingerprint a `/api/staff/*` or customer bookings API. `vamos-ops-data.js` still containing `emptyBookings` / `all: function () { return []; }` is a fail.
 
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 9: Booking Lifecycle & Customer Self-Service
 
-**Goal**: A booking lives its full lifecycle — reminders, flight-delay handling,
-self-serve cancellation, and a post-ride review request — without staff intervention for
-the common cases.
+**Goal**: A real booking (Phase 7 row) lives its full lifecycle on staging — manage link,
+detail route, reminders, delay handling, self-serve cancel/refund, review request — with
+no mock lookup and no 404 shells. Policy numbers the owner has not supplied stay TBC;
+do not invent cancel windows.
 **Depends on**: Phase 7, Phase 8
 **Requirements**: LIFE-01, LIFE-02, LIFE-03, LIFE-04, LIFE-05, LIFE-06, LIFE-07, LIFE-08
 **Success Criteria** (what must be TRUE):
 
-  1. A booking moves through quote, pending, paid, confirmed, assigned, completed, cancelled, refunded and no-show, and every move is recorded.
-  2. A customer can cancel and be refunded automatically against the cancellation-tier policy that applied when they booked, not whatever the policy says today.
-  3. A customer can open and manage their booking either signed in or from the tokened email link, is reminded before pickup, and receives the driver's name, vehicle and plate once assigned.
-  4. A delayed flight shifts the pickup time and notifies both the customer and ops; stale quotes expire and no-shows are swept automatically on a schedule.
-  5. A customer is asked for a review after their ride completes.
+  1. Status moves quote → pending → paid → confirmed → assigned → completed / cancelled / refunded / no-show. Every move writes `booking_events`. No client-only status.
+  2. Self-serve cancel/refund uses the snapshot’s cancellation tier (TBC pills until the owner numbers land — the path must still hit the API and refuse honestly, not pretend a window).
+  3. `/manage-booking` looks up by the hashed guest token (`booking_access_tokens`), not a mock reference field. Signed-in customers use `/bookings` + detail. `/booking-detail` is a live 200 route (today 404 is a fail). Assigned chauffeur name, vehicle, plate come from fleet rows once Phase 8 assigned them — empty until then, never fake names.
+  4. Pre-pickup reminder email/queue is a real `booking_notifications` row. Stale quotes expire server-side. No-show sweep is scheduled on the Worker. Flight delay: AeroDataBox when the owner binds it; until then the same honest `provider_unavailable` → enter time as Phase 5 — no fixture LX1234.
+  5. After completed, the customer gets a review request; submitted review lands in `public.reviews` and can be published from ops (Phase 6 APIs). Home then shows it (Phase 5 reviews-from-DB).
+  6. **Close bar — staging connection table**: `/manage-booking` `/booking-detail` `/bookings` `/confirmation` fingerprint token/booking APIs. A manage-token miss is an error state, not a demo booking. `/booking-detail` 404 is a fail.
 
 **Plans**: TBD
 **UI hint**: yes

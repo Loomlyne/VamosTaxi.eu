@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: Phase 5 context gathered
-last_updated: "2026-09-04T15:20:11.242Z"
+stopped_at: Phase 5 leftover plans ready for review
+last_updated: "2026-09-04T15:26:06.455Z"
 last_activity: 2026-09-02 -- strict Turnstile/outbox remediation plus served-route coverage completed
 progress:
   total_phases: 11
   completed_phases: 5
-  total_plans: 98
+  total_plans: 103
   completed_plans: 86
   percent: 45
 ---
@@ -216,6 +216,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-04T15:20:11.235Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-public-surfaces-customer-accounts/05-CONTEXT.md
+Last session: 2026-09-04T15:26:06.445Z
+Stopped at: Phase 5 leftover plans ready for review
+Resume file: .planning/phases/05-public-surfaces-customer-accounts/05-29-PLAN.md
