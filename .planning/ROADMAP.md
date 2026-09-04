@@ -269,8 +269,8 @@ per-URL connection table below — a page with any mock leftover is not done.
 - [x] 05-31-PLAN.md — Drop `partner_applications` + leftover copy
 - [x] 05-32-PLAN.md — Update `05-OWNER-CHECKS.md` (no dashboard re-clicks)
 
-**Wave 13** *(blocked on Wave 12)*
-- [ ] 05-33-PLAN.md — Staging per-URL connection table (no quote POST, no contact submit)
+**Wave 13** *(executed 2026-09-04)*
+- [x] 05-33-PLAN.md — Staging per-URL connection table (no quote POST, no contact submit). Table: `05-CONNECTION-TABLE.md`. Worker `vamos` `093a4976`.
 
 **UI hint**: yes
 
