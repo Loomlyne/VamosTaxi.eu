@@ -34,8 +34,14 @@
 <style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
 .vt-input--focus{box-shadow:none}
 /* Button hover/press — colour step only, no shadow, no glow */
-.vt-btn{transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
-.vt-btn:hover,.vt-btn:active{box-shadow:none!important}
+.vt-btn{text-decoration:none;border-bottom:0;transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
+.vt-btn:hover,.vt-btn:active{box-shadow:none!important;border-bottom:0}
+[data-lg-prose] a.vt-btn{text-decoration:none;border-bottom:0}
+[data-lg-prose] a.vt-btn--primary{color:var(--vt-text-on-accent)}
+[data-lg-prose] a.vt-btn--secondary{color:var(--vt-text-inverse)}
+[data-lg-prose] a.vt-btn:hover{text-decoration:none;border-bottom:0}
+[data-lg-prose] a.vt-btn--primary:hover{color:var(--vt-text-on-accent)}
+[data-lg-prose] a.vt-btn--secondary:hover{color:var(--vt-text-inverse)}
 .vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
 .vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
 .vt-btn--secondary:hover:not([disabled]){background:var(--vt-charcoal-800)}
@@ -67,10 +73,10 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-slot-k]{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
 [data-slot-k]::before{content:"";width:8px;height:8px;flex:0 0 auto;background:var(--vt-grey-300)}
 [data-slot] p{margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)}
-[data-flag]{margin:0 0 16px;border:1px solid var(--vt-charcoal-900);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);padding:18px 20px}
-[data-flag-k]{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)}
-[data-flag] p{margin:0 0 10px;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)}
-[data-flag] p:last-child{margin-bottom:0}
+#changes [data-source]{margin:20px 0 0;border:1px solid var(--vt-border-inverse);border-radius:var(--vt-radius-lg);background:var(--vt-bg-inverse);padding:clamp(20px,3vw,24px);display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+#changes [data-source-k]{display:flex;align-items:center;gap:8px;margin:0;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)}
+#changes [data-source] p{margin:0;max-width:58ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)}
+#changes [data-source-act]{margin-top:4px}
 [data-src]{display:block;margin-top:2px;font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
 [data-lg-railcard]{background:none;border:0;box-shadow:none;padding:0}
 [data-lg-eyebrow]{display:flex;align-items:center;gap:9px;margin:0 0 10px;padding:0 6px;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
@@ -97,8 +103,11 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-lg-hero]{background:#fff!important;color:#000!important;border-bottom:1px solid #000}
 [data-lg-hero] *{color:#000!important}
 [data-tok]{background:#fff!important;border-color:#000!important;color:#000!important}
+#changes [data-source]{background:#fff!important;border-color:#000!important}
+#changes [data-source] *{color:#000!important}
+#changes [data-source-act]{display:none!important}
 [data-lg-prose] h2{break-after:avoid;page-break-after:avoid}
-[data-slot],[data-flag]{break-inside:avoid;page-break-inside:avoid}
+[data-slot],#changes [data-source]{break-inside:avoid;page-break-inside:avoid}
 @page{margin:18mm}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}</style>
 </helmet>
@@ -296,10 +305,10 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <section id="changes">
 <h2><span data-lg-n="1">10</span>Changes &amp; cancellation</h2>
 <p>Change or cancel from the link in your confirmation email, or from your account if you made one. A change is effective when we confirm it in writing, not when you send it.</p>
-<div data-flag="1">
-<p data-flag-k="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import>One source of truth</p>
-<p>Windows, refund shares, modification deadlines and flight-delay handling all live in one place: the <a href="cancellation.dc.html">cancellation &amp; refund policy</a>.</p>
-<p>That document governs. This section stays short on purpose, so the two can never drift apart.</p>
+<div data-source="1">
+<p data-source-k="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n14 }}" color="var(--vt-accent)" hint-size="14px,14px"></x-import>One source of truth</p>
+<p>Windows, refund shares, modification deadlines and flight-delay handling all live in the cancellation &amp; refund policy. That document governs — this section stays short so the two never drift apart.</p>
+<div data-source-act="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" href="cancellation.dc.html" iconEnd="arrow-right" hint-size="260px,44px">Cancellation &amp; refund policy</x-import></div>
 </div>
 </section>
 

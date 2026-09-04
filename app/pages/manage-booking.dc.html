@@ -192,7 +192,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <sc-if value="{{ badRef }}" hint-placeholder-val="{{ false }}">
 <p id="mb-ref-e" data-err="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>Your reference is on the confirmation email, six characters like VT-4821</p>
 </sc-if>
-<p id="mb-ref-h" data-hint="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">It is in the subject line of your confirmation email and at the top of your voucher.</span></p>
+<p id="mb-ref-h" data-hint="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">It sits in the confirmation sentence under the green check, and on the right of the charcoal voucher header.</span></p>
 </div>
 
 <div data-fld="1" data-bad="{{ badWho }}">
@@ -219,11 +219,11 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-card="1" style="padding:22px">
 <p style="margin:0 0 14px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Where your reference is</p>
 <div data-row="1" style="padding-top:0">
-<span style="min-width:0"><span data-row-k="1">Confirmation email</span><span data-row-v="1" style="font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">Subject line, right after “Booking”.</span></span>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="mail" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
+<span style="min-width:0"><span data-row-k="1">Confirmation page</span><span data-row-v="1" style="font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">Between “Booking” and “is confirmed” in the line under the green check — your reference sits in that sentence.</span></span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-check" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
 </div>
 <div data-row="1">
-<span style="min-width:0"><span data-row-k="1">Your voucher</span><span data-row-v="1" style="font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">Top right of the charcoal panel.</span></span>
+<span style="min-width:0"><span data-row-k="1">Your voucher</span><span data-row-v="1" style="font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">Charcoal voucher header — logo and “Transfer voucher” on the left; status badge and your reference on the right.</span></span>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="ticket" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
 </div>
 </div>

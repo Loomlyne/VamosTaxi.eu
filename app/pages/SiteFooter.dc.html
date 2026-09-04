@@ -54,8 +54,12 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-ft-band]{display:flex;flex-direction:column;align-items:flex-start;gap:20px}
 [data-ft-link],[data-ft-quiet]{transition:color var(--vt-dur-fast,140ms) var(--vt-ease-standard,cubic-bezier(.2,0,.2,1))}
 [data-ft-link]:hover,[data-ft-quiet]:hover{color:var(--vt-accent)}
+[data-ft-quiet] [data-ft-quiet-arrow]{display:inline-flex;transition:transform 200ms var(--vt-ease-standard,cubic-bezier(.2,0,.2,1))}
+[data-ft-quiet]:hover [data-ft-quiet-arrow],[data-ft-quiet]:focus-visible [data-ft-quiet-arrow]{transform:translateY(-2px)}
+@media (prefers-reduced-motion:reduce){[data-ft-quiet] [data-ft-quiet-arrow]{transition:none}[data-ft-quiet]:hover [data-ft-quiet-arrow],[data-ft-quiet]:focus-visible [data-ft-quiet-arrow]{transform:none}}
 [data-ft-link][data-split]:hover{color:rgb(255 255 255 / .84)}
 [data-ft-link]:not([data-split]):hover{color:var(--vt-accent)!important}
+[data-ft-quiet]:hover,[data-ft-quiet]:focus-visible{color:var(--vt-accent)!important}
 .ft-w{display:inline-block;white-space:nowrap;vertical-align:top}
 .ft-c{display:inline-block;height:1.4em;overflow:hidden;vertical-align:top;line-height:1.4}
 .ft-c>i{display:block;position:relative;height:1.4em;line-height:1.4em;font-style:normal;transition:transform 320ms var(--vt-ease-standard,cubic-bezier(.2,0,.2,1))}
@@ -124,7 +128,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <li><a data-ft-link="1" href="privacy.dc.html" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">Privacy policy</a></li>
 <li><a data-ft-link="1" href="cookies.dc.html" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">Cookie policy</a></li>
 <li><a data-ft-link="1" href="imprint.dc.html" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">Imprint</a></li>
-<li><button type="button" onClick="{{ openCookiePrefs }}" style="appearance:none;background:none;border:0;padding:0;text-align:start;font-family:inherit;color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;cursor:pointer">Cookie preferences</button></li>
+<li><button type="button" data-ft-link="1" onClick="{{ openCookiePrefs }}" style="appearance:none;background:none;border:0;padding:0;text-align:start;font-family:inherit;color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;cursor:pointer">Cookie preferences</button></li>
 </ul>
 </div>
 
@@ -159,9 +163,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted);margin-right:6px">Payment</span>
 <span style="font-size:var(--vt-body-sm);color:rgb(255 255 255 / .84);border:1px solid var(--vt-border-inverse);border-radius:var(--vt-radius-xs);padding:6px 12px;white-space:nowrap">Visa</span>
 <span style="font-size:var(--vt-body-sm);color:rgb(255 255 255 / .84);border:1px solid var(--vt-border-inverse);border-radius:var(--vt-radius-xs);padding:6px 12px;white-space:nowrap">Mastercard</span>
-<span style="font-size:var(--vt-body-sm);color:rgb(255 255 255 / .84);border:1px solid var(--vt-border-inverse);border-radius:var(--vt-radius-xs);padding:6px 12px;white-space:nowrap">TWINT</span>
 <span style="font-size:var(--vt-body-sm);color:rgb(255 255 255 / .84);border:1px solid var(--vt-border-inverse);border-radius:var(--vt-radius-xs);padding:6px 12px;white-space:nowrap">Apple Pay</span>
-<span style="font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted)">Marks awaiting confirmed Stripe provider config — show only enabled methods.</span>
+<span style="font-size:var(--vt-body-sm);color:rgb(255 255 255 / .84);border:1px solid var(--vt-border-inverse);border-radius:var(--vt-radius-xs);padding:6px 12px;white-space:nowrap">Google Pay</span>
+<span style="font-size:var(--vt-body-sm);color:rgb(255 255 255 / .84);border:1px solid var(--vt-border-inverse);border-radius:var(--vt-radius-xs);padding:6px 12px;white-space:nowrap">TWINT</span>
 </div>
 </sc-if>
 
@@ -169,7 +173,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <p style="margin: 0; font-size: var(--vt-body-sm); color: var(--vt-text-inverse-muted); text-align: left">{{ copyright }}</p>
 <a data-ft-quiet="1" href="#top" onClick="{{ toTop }}" style="display:flex;align-items:center;gap:8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted);text-decoration:none;border:0">
 Back to top
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-up" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+<span data-ft-quiet-arrow="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-up" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
 </a>
 </div>
 
