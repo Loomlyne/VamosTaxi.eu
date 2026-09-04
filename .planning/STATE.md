@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: verifying
-stopped_at: Phase 5 Wave 13 05-33 executed; 05-27 contact UAT still owner
-last_updated: "2026-09-04T16:52:34.527Z"
-last_activity: 2026-09-02 -- strict Turnstile/outbox remediation plus served-route coverage completed
+milestone: v1.1
+milestone_name: Ops Support
+status: planning
+last_updated: "2026-09-04T17:23:05.920Z"
+last_activity: 2026-09-04
 progress:
-  total_phases: 11
-  completed_phases: 5
-  total_plans: 103
-  completed_plans: 91
-  percent: 45
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -27,12 +26,10 @@ confirmation — must.
 
 ## Current Position
 
-Phase: 05 (public-surfaces-customer-accounts) — remediation execution complete
-Plan: 05-27
-Status: local verification complete; staging UAT, review and ship gates remain open.
-Last activity: 2026-09-02 -- strict Turnstile/outbox remediation plus served-route coverage completed
-
-Progress: [████░░░░░░] 40%
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-09-04 — Milestone v1.1 started
 
 ## Performance Metrics
 
