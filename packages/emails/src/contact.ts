@@ -1,8 +1,8 @@
 import { escapeHtml } from "./escape";
-import { layoutHtml, layoutText } from "./layout";
+import { ctaButton, layoutHtml, layoutText } from "./layout";
 import type { EmailLocale } from "./messages";
 
-export type ContactCustomerEmailData = { name: string };
+export type ContactCustomerEmailData = { name: string; message: string };
 export type ContactSupportEmailData = {
   name: string;
   email: string;
@@ -11,13 +11,25 @@ export type ContactSupportEmailData = {
   message: string;
 };
 
-type Copy = { customerSubject: string; customerHeading: string; customerBody: string; supportSubject: string; supportHeading: string };
+type Copy = {
+  customerSubject: string;
+  customerHeading: string;
+  customerBody: string;
+  customerQuoteLabel: string;
+  customerCta: string;
+  supportSubject: string;
+  supportHeading: string;
+};
+
+const WHATSAPP_HREF = "https://wa.me/41796267082";
 
 const COPY: Record<EmailLocale, Copy> = {
   en: {
     customerSubject: "We received your message — Vamos Taxi",
     customerHeading: "Message received",
     customerBody: "Thank you, {name}. Our team will review your message.",
+    customerQuoteLabel: "Your message",
+    customerCta: "Continue on WhatsApp",
     supportSubject: "New contact message — Vamos Taxi",
     supportHeading: "New contact message",
   },
@@ -25,6 +37,8 @@ const COPY: Record<EmailLocale, Copy> = {
     customerSubject: "Wir haben Ihre Nachricht erhalten — Vamos Taxi",
     customerHeading: "Nachricht erhalten",
     customerBody: "Danke, {name}. Unser Team prüft Ihre Nachricht.",
+    customerQuoteLabel: "Ihre Nachricht",
+    customerCta: "Weiter auf WhatsApp",
     supportSubject: "Neue Kontaktanfrage — Vamos Taxi",
     supportHeading: "Neue Kontaktanfrage",
   },
@@ -32,6 +46,8 @@ const COPY: Record<EmailLocale, Copy> = {
     customerSubject: "Nous avons reçu votre message — Vamos Taxi",
     customerHeading: "Message reçu",
     customerBody: "Merci, {name}. Notre équipe examinera votre message.",
+    customerQuoteLabel: "Votre message",
+    customerCta: "Continuer sur WhatsApp",
     supportSubject: "Nouveau message de contact — Vamos Taxi",
     supportHeading: "Nouveau message de contact",
   },
@@ -39,6 +55,8 @@ const COPY: Record<EmailLocale, Copy> = {
     customerSubject: "تلقينا رسالتك — Vamos Taxi",
     customerHeading: "تم استلام الرسالة",
     customerBody: "شكرًا، {name}. سيقوم فريقنا بمراجعة رسالتك.",
+    customerQuoteLabel: "رسالتك",
+    customerCta: "متابعة على واتساب",
     supportSubject: "رسالة تواصل جديدة — Vamos Taxi",
     supportHeading: "رسالة تواصل جديدة",
   },
@@ -54,15 +72,22 @@ function rendered(locale: EmailLocale, subject: string, inner: string, text: str
   };
 }
 
+function quotedMessageHtml(message: string): string {
+  return escapeHtml(message).replaceAll("\n", "<br/>");
+}
+
 export function renderContactCustomerEmail(locale: EmailLocale, data: ContactCustomerEmailData) {
   const copy = COPY[locale];
   const name = data.name.trim();
   const body = copy.customerBody.replace("{name}", name);
+  const quoted = quotedMessageHtml(data.message);
+  const cta = escapeHtml(copy.customerCta);
+  const quoteLabel = escapeHtml(copy.customerQuoteLabel);
   return rendered(
     locale,
     copy.customerSubject,
-    `<p style="margin:0 0 8px;font-size:22px;line-height:28px;font-weight:700;">${escapeHtml(copy.customerHeading)}</p><p style="margin:0;">${escapeHtml(body)}</p>`,
-    `${copy.customerHeading}\n\n${body}`,
+    `<p style="margin:0 0 8px;font-size:22px;line-height:28px;font-weight:700;">${escapeHtml(copy.customerHeading)}</p><p style="margin:0 0 16px;">${escapeHtml(body)}</p><p style="margin:0 0 8px;font-size:13px;line-height:18px;font-weight:700;">${quoteLabel}</p><p style="margin:0;padding:12px 16px;border:1px solid #DEDEDE;font-size:16px;line-height:24px;">${quoted}</p>${ctaButton(WHATSAPP_HREF, cta)}`,
+    `${copy.customerHeading}\n\n${body}\n\n${copy.customerQuoteLabel}\n${data.message}\n\n${copy.customerCta}: ${WHATSAPP_HREF}`,
   );
 }
 
