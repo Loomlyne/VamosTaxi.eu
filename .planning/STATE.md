@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Phase 05-27 executed; awaiting owner UAT
-last_updated: "2026-09-02T00:00:00Z"
-last_activity: 2026-09-02 -- Phase 05-27 contact delivery remediation executed locally; staging UAT gate remains open
+status: verifying
+stopped_at: Phase 5 context gathered
+last_updated: "2026-09-04T15:20:11.242Z"
+last_activity: 2026-09-02 -- strict Turnstile/outbox remediation plus served-route coverage completed
 progress:
   total_phases: 11
-  completed_phases: 4
-  total_plans: 93
-  completed_plans: 83
-  percent: 40
+  completed_phases: 5
+  total_plans: 98
+  completed_plans: 86
+  percent: 45
 ---
 
 # Project State
@@ -23,7 +23,7 @@ See: .planning/PROJECT.md (updated 2026-08-17)
 **Core value:** A customer can book a fixed-price transfer in under a minute and trust that
 the driver will be there. If nothing else works, the booking funnel — quote, pay,
 confirmation — must.
-**Current focus:** Phase 05-27 staging contact-delivery UAT; then remaining Phase 4 / Phase 5 and Phase 7 checkout
+**Current focus:** Phase 5–9 close bars rewritten (no mock leftovers, staging connection tables). Next: discuss-phase 5, then 05-27 staging contact UAT. Quote remaining is Phase 4. Prod DNS/Stripe stay Phase 11.
 
 ## Current Position
 
@@ -87,6 +87,10 @@ Progress: [████░░░░░░] 40%
 | Phase 04 P01 | 13 min | 3 tasks | 8 files |
 
 ## Accumulated Context
+
+### Roadmap Evolution
+
+- Phase 5 edited: force-edited 5/7/8/9 close bars: per-URL staging connection tables, no mock leftovers; become-a-driver removed from 5; Stripe test only until 11
 
 ### Decisions
 
@@ -212,6 +216,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-02T00:00:00Z
-Stopped at: Phase 05-27 executed; awaiting owner staging UAT approval
-Resume file: .planning/ROADMAP.md
+Last session: 2026-09-04T15:20:11.235Z
+Stopped at: Phase 5 context gathered
+Resume file: .planning/phases/05-public-surfaces-customer-accounts/05-CONTEXT.md
