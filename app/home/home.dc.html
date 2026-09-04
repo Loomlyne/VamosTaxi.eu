@@ -498,7 +498,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 
 <dc-import name="WhyVamos" hint-size="100%,720px"></dc-import>
 
-<dc-import name="Reviews" hint-size="100%,780px" show-pending-notice="{{ false }}"></dc-import>
+<dc-import name="Reviews" hint-size="100%,780px"></dc-import>
 
 <dc-import name="FAQ" hint-size="100%,640px"></dc-import>
 
@@ -508,7 +508,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;hourlyEnabled&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Scope flags — pending approval&quot;},&quot;flightTrackingEnabled&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Scope flags — pending approval&quot;},&quot;flightRefreshMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:15000,&quot;max&quot;:180000,&quot;step&quot;:15000,&quot;unit&quot;:&quot;ms&quot;,&quot;default&quot;:45000,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Flight feed&quot;},&quot;simulateLiveUpdates&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Flight feed&quot;},&quot;quoteLatencyMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:300,&quot;max&quot;:2000,&quot;step&quot;:100,&quot;unit&quot;:&quot;ms&quot;,&quot;default&quot;:1200,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Quote engine&quot;},&quot;errorRatePct&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:0,&quot;max&quot;:30,&quot;step&quot;:2,&quot;unit&quot;:&quot;%&quot;,&quot;default&quot;:0,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Quote engine — only fires with ?qa=errors in the URL&quot;},&quot;dustParticles&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:120,&quot;max&quot;:600,&quot;step&quot;:20,&quot;default&quot;:340,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Price animation&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;hourlyEnabled&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Scope flags — pending approval&quot;},&quot;flightTrackingEnabled&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Scope flags — pending approval&quot;},&quot;flightRefreshMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:15000,&quot;max&quot;:180000,&quot;step&quot;:15000,&quot;unit&quot;:&quot;ms&quot;,&quot;default&quot;:45000,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Flight feed&quot;},&quot;simulateLiveUpdates&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Flight feed&quot;},&quot;quoteLatencyMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:300,&quot;max&quot;:2000,&quot;step&quot;:100,&quot;unit&quot;:&quot;ms&quot;,&quot;default&quot;:1200,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Quote engine&quot;},&quot;errorRatePct&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:0,&quot;max&quot;:30,&quot;step&quot;:2,&quot;unit&quot;:&quot;%&quot;,&quot;default&quot;:0,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Quote engine — only fires with ?qa=errors in the URL&quot;},&quot;dustParticles&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:120,&quot;max&quot;:600,&quot;step&quot;:20,&quot;default&quot;:340,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Price animation&quot;}}">
 const LANGS = ['en','de','fr','ar'];
 const CURS = { CHF:{s:'CHF '}, EUR:{s:'€ '}, USD:{s:'$'}, AED:{s:'AED '} };
 /** Saved Vamos places — real coordinates, so distance is measured, not guessed. */
@@ -633,7 +633,7 @@ function haversine(a, b) {
  *  Records are normalised AeroDataBox flight-status objects from GET /api/flight.
  *  Times stay local to their own airport; precedence is actual › estimated › scheduled.
  *  A field the feed has no value for stays null and renders as nothing — no
- *  terminal, gate or belt is ever invented. Fixtures stand in when the feed is off. */
+ *  terminal, gate or belt is ever invented. 503 leaves the field as typed text. */
 const TODAY = (() => { const d = new Date(); return (d.getFullYear() === 2026 && d.getMonth() === 7) ? d.getDate() : 4; })();
 const AIRPORTS = {
   ZRH:{ n:'Zurich Airport', c:'Zurich' }, GVA:{ n:'Geneva Airport', c:'Geneva' }, BSL:{ n:'Basel EuroAirport', c:'Basel' },
@@ -644,38 +644,6 @@ const AIRPORTS = {
 };
 /** The airports Vamos drives, and the saved place each terminal maps to. */
 const SERVED = { ZRH:{ t:{ '1':'zrh1', '2':'zrh2' }, def:'zrh2' }, GVA:{ def:'gva' }, BSL:{ def:'bsl' } };
-const FLIGHTS = [
-  { num:'EK87', airline:'Emirates', aircraft:'Boeing 777-300ER', status:'Scheduled',
-    dep:{ iata:'DXB', terminal:'3', gate:null, sched:'09:05' }, arr:{ iata:'ZRH', terminal:'2', gate:null, belt:null, sched:'13:20' } },
-  { num:'QR95', airline:'Qatar Airways', aircraft:'Airbus A350-900', status:'EnRoute',
-    dep:{ iata:'DOH', terminal:'1', gate:'C14', sched:'01:20', act:'01:41' }, arr:{ iata:'ZRH', terminal:'2', gate:null, belt:null, sched:'06:35', est:'06:52' } },
-  { num:'LX39', airline:'Swiss', aircraft:'Boeing 777-300ER', status:'Landed',
-    dep:{ iata:'JFK', terminal:'4', gate:'B41', sched:'22:15', act:'22:26' }, arr:{ iata:'ZRH', terminal:'2', gate:'E27', belt:'3', sched:'07:55', act:'07:48' } },
-  { num:'TK1917', airline:'Turkish Airlines', aircraft:'Airbus A321neo', status:'Delayed',
-    dep:{ iata:'IST', terminal:'1', gate:'F7', sched:'09:45', est:'10:40' }, arr:{ iata:'ZRH', terminal:'2', gate:null, belt:null, sched:'12:10', est:'13:05' } },
-  { num:'LX65', airline:'Swiss', aircraft:'Boeing 777-300ER', status:'EnRoute',
-    dep:{ iata:'LAX', terminal:'B', gate:'157', sched:'20:50', act:'21:05' }, arr:{ iata:'ZRH', terminal:'2', gate:null, belt:null, sched:'11:05', est:'11:20' } },
-  { num:'AF1114', airline:'Air France', aircraft:'Airbus A220-300', status:'Scheduled',
-    dep:{ iata:'CDG', terminal:'2F', gate:null, sched:'08:10' }, arr:{ iata:'ZRH', terminal:'1', gate:null, belt:null, sched:'09:35' } },
-  { num:'LH1206', airline:'Lufthansa', aircraft:'Airbus A320neo', status:'Landed',
-    dep:{ iata:'FRA', terminal:'1', gate:'A26', sched:'07:55', act:'08:04' }, arr:{ iata:'ZRH', terminal:'1', gate:'A64', belt:'9', sched:'09:00', act:'09:02' } },
-  { num:'EK83', airline:'Emirates', aircraft:'Boeing 777-300ER', status:'Scheduled',
-    dep:{ iata:'DXB', terminal:'3', gate:null, sched:'08:40' }, arr:{ iata:'GVA', terminal:'1', gate:null, belt:null, sched:'13:05' } },
-  { num:'BA730', airline:'British Airways', aircraft:'Airbus A320', status:'EnRoute',
-    dep:{ iata:'LHR', terminal:'5', gate:'A10', sched:'09:35', act:'09:44' }, arr:{ iata:'GVA', terminal:'1', gate:null, belt:null, sched:'12:05', est:'12:11' } },
-  { num:'U21435', airline:'easyJet', aircraft:'Airbus A320', status:'Scheduled',
-    dep:{ iata:'LGW', terminal:'N', gate:null, sched:'08:05' }, arr:{ iata:'BSL', terminal:null, gate:null, belt:null, sched:'10:40' } },
-  { num:'LX318', airline:'Swiss', aircraft:'Airbus A320neo', status:'Scheduled',
-    dep:{ iata:'ZRH', terminal:'1', gate:'A62', sched:'17:30' }, arr:{ iata:'LHR', terminal:'2', gate:null, belt:null, sched:'18:20' } },
-  { num:'EK88', airline:'Emirates', aircraft:'Boeing 777-300ER', status:'Boarding',
-    dep:{ iata:'ZRH', terminal:'2', gate:'E18', sched:'15:35' }, arr:{ iata:'DXB', terminal:'3', gate:null, belt:null, sched:'23:55' } },
-  { num:'LX22', airline:'Swiss', aircraft:'Boeing 777-300ER', status:'Delayed',
-    dep:{ iata:'ZRH', terminal:'2', gate:'E44', sched:'13:15', est:'14:05' }, arr:{ iata:'JFK', terminal:'4', gate:null, belt:null, sched:'16:20', est:'17:10' } },
-  { num:'LX2818', airline:'Swiss', aircraft:'Airbus A220-100', status:'Scheduled',
-    dep:{ iata:'GVA', terminal:'1', gate:null, sched:'18:50' }, arr:{ iata:'FRA', terminal:'1', gate:null, belt:null, sched:'20:00' } },
-  { num:'QR96', airline:'Qatar Airways', aircraft:'Boeing 787-8', status:'Cancelled',
-    dep:{ iata:'ZRH', terminal:'2', gate:null, sched:'15:05' }, arr:{ iata:'DOH', terminal:'1', gate:null, belt:null, sched:'23:30' } },
-];
 function fmtCode(c) { const s = String(c || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); return s.length > 2 ? s.slice(0, 2) + ' ' + s.slice(2) : s; }
 const tmin = (hm) => { const p = String(hm || '0:0').split(':'); return (+p[0]) * 60 + (+p[1]); };
 const shiftT = (hm, mins) => { const m = ((tmin(hm) + mins) % 1440 + 1440) % 1440; return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); };
@@ -723,49 +691,6 @@ function planFor(f) {
   if (meet) return { ph, dir: 'from-airport', ap: meet, leg: f.arr, when: bestT(f.arr), whenSrc: bestSrc(f.arr) };
   return { ph, dir: 'none', reason: leave ? 'departed' : 'offRoute', leg: leave ? f.dep : f.arr };
 }
-/** Fixture progression — stands in for the feed moving while someone books:
- *  revised times land, gates and belts get assigned, status advances. */
-const WORK = {}, SIM = {};
-const cloneF = (f) => JSON.parse(JSON.stringify(f));
-function hashOf(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); }
-function advanceSim(f) {
-  const n = (SIM[f.num] = (SIM[f.num] || 0) + 1), ph = phaseOf(f), h = hashOf(f.num);
-  if (ph === 'pre') {
-    if (n === 1) { f.dep.est = shiftT(f.dep.sched, 25); f.arr.est = shiftT(f.arr.sched, 22); f.status = 'Delayed'; }
-    else if (n === 2 && !f.dep.gate) f.dep.gate = 'ABE'[h % 3] + (10 + (h >> 3) % 60);
-    else if (n === 3) f.status = 'Boarding';
-  } else if (ph === 'airborne') {
-    if (n === 1) f.arr.est = shiftT(bestT(f.arr), 7);
-    else if (n === 2 && !f.arr.gate) f.arr.gate = 'BE'[h % 2] + (10 + (h >> 4) % 50);
-    else if (n === 3) { f.arr.act = bestT(f.arr); f.status = 'Landed'; }
-    else if (n > 3 && !f.arr.belt) f.arr.belt = String(1 + h % 11);
-  } else if (ph === 'landed' && !f.arr.belt) f.arr.belt = String(1 + h % 11);
-  return f;
-}
-function fixtureStatus(num, advance) {
-  const key = String(num || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-  const base = FLIGHTS.find((x) => x.num === key);
-  if (!base) return null;
-  if (!WORK[key]) WORK[key] = cloneF(base);
-  if (advance) advanceSim(WORK[key]);
-  return cloneF(WORK[key]);
-}
-function fixtureSearch(term, here) {
-  const q = String(term || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-  if (!q) return [];
-  const rows = FLIGHTS.filter((f) => {
-    if (f.num.indexOf(q) === 0) return true;
-    const hay = (f.num + (f.airline || '') + apLabel(f.dep) + apLabel(f.arr)).toUpperCase().replace(/[^A-Z0-9]/g, '');
-    return q.length >= 3 && hay.indexOf(q) > -1;
-  }).map((f) => fixtureStatus(f.num, false));
-  if (here) rows.sort((a, b) => nearRank(a, here) - nearRank(b, here));
-  return rows.slice(0, 6);
-}
-function nearRank(f, here) {
-  const ls = [servedLoc(f.arr), servedLoc(f.dep)].filter(Boolean);
-  return ls.length ? Math.min.apply(null, ls.map((l) => haversine(here, l))) : 99999;
-}
-/** "2026-08-04 13:20+02:00" → "13:20". Anything else → null, never a guess. */
 function adbTime(t) { const l = t && (t.local || t.utc); return l ? String(l).slice(11, 16) : null; }
 function adbDate(t) { const l = t && (t.local || t.utc); return l ? String(l).slice(0, 10) : null; }
 /** The widget's calendar shows August 2026; anything outside it falls back to today. */
@@ -781,27 +706,26 @@ function adbNormalize(f) {
   return { num: String(f.number || '').toUpperCase().replace(/[^A-Z0-9]/g, ''), airline: (f.airline || {}).name || null,
     aircraft: (f.aircraft || {}).model || null, status: f.status || 'Unknown', dep: adbLeg(f.departure), arr: adbLeg(f.arrival) };
 }
-/** Flight lookup: GET /api/flight. Typeahead stays fixtures. */
+/** Flight lookup: GET /api/flight. Typeahead is live API only; 503 returns nothing. */
 const FLIGHT_API = {
-  /** Flight status goes through GET /api/flight. Autocomplete stays fixtures. */
   get key() { return null; },
   host: '',
   live() { return false; },
   headers() { return {}; },
-  /** Autocomplete has no public proxy yet — fixtures only. */
+  /** No public typeahead proxy — empty list, never a local sample. */
   search(term, here) {
-    return Promise.resolve(fixtureSearch(term, here));
+    return Promise.resolve([]);
   },
-  /** GET /api/flight/:no — server proxy. Fixtures if the feed is off. */
+  /** GET /api/flight/:no — server proxy. Non-OK / 503 → null. Never fake a status. */
   status(num, date, advance) {
     const locale = (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en';
     return fetch('/api/flight/' + encodeURIComponent(num) + '?date=' + encodeURIComponent(date) + '&locale=' + encodeURIComponent(locale))
       .then((r) => r.json())
       .then((j) => {
         if (j && j.ok && j.flight) return apiFlightToWidget(j.flight);
-        return fixtureStatus(num, advance);
+        return null;
       })
-      .catch(() => fixtureStatus(num, advance));
+      .catch(() => null);
   },
 };
 
@@ -817,7 +741,7 @@ const VEHICLE_CLASSES = [
 const T = {
   en: {
     kicker:'Pre-booked transfers · Zurich', h1:'Land in Zurich.      Your driver is waiting.', sub:'Reliable, fixed-price airport and corporate rides booked in under one minute.',
-    oneWay:'One way', return_:'Return', hourly:'By the hour', flight:'Flight (optional)', flightPh:'EK 87 · LX 318', flightErr:'Check the flight number', flightMiss:'No flight on that number today', tapLookup:'Tap to look up this flight', checking:'Looking up the flight…', lands:'lands', departs:'departs',
+    oneWay:'One way', return_:'Return', hourly:'By the hour', flight:'Flight (optional)', flightPh:'', flightErr:'Check the flight number', flightMiss:'No flight on that number today', tapLookup:'Tap to look up this flight', checking:'Looking up the flight…', lands:'lands', departs:'departs',
     st_scheduled:'Scheduled', st_boarding:'Boarding', st_delayed:'Delayed', st_enroute:'En route', st_landed:'Landed', st_cancelled:'Cancelled',
     srcAct:'actual', srcEst:'estimated', srcSched:'scheduled', late:'{n} min late', early:'{n} min early',
     terminalLbl:'Terminal', gateLbl:'Gate', beltLbl:'Belt', aircraftLbl:'Aircraft',
@@ -830,7 +754,7 @@ const T = {
     noteHourly:'By the hour has no destination — switch to one way to be driven to the airport.',
     keptOwn:'Kept your own {f}', updatedAt:'Updated {t}', changeNote:'Flight update — {list}',
     chStatus:'status', chEta:'arrival time', chGate:'gate', chTerminal:'terminal', chBelt:'baggage belt',
-    sampleFeed:'Sample schedule · live flight feed not connected yet', liveFeed:'Live · AeroDataBox',
+    liveFeed:'Live · AeroDataBox',
     geoDenied:'Location off — type your pickup instead', hereLabel:'My current location',
     pickup:'Pickup', pickupPh:'Airport, address or hotel', dest:'Destination', destPh:'Airport, address or hotel', when:'Pickup date & time', pax:'Passengers', bags:'Luggage', hours:'Duration (hours)', swap:'Swap pickup and destination',
     trust:'Fixed price before you pay · free cancellation up to 24 h', month:'August 2026',
@@ -846,9 +770,9 @@ const T = {
     morning:'Morning', afternoon:'Afternoon', evening:'Evening', pickupTime:'Pickup time', returnTimeLbl:'Return time',
     useLoc:'Use my current location', useLocSub:'GPS · fastest way to set pickup', nearYou:'Near you', popular:'Popular destinations', locating:'Locating…', whenBoth:'Pickup & return', flightChip:'Add a flight number', saved:'Saved',
     modeOne:'One transfer, one fixed price for the route.', modeReturn:'Return added — set the return date and time too.', modeHourly:'Car and driver stay with you — no destination needed.',
-    fillingFrom:'Filled from {code}', sampleArr:'sample arrival, no live feed yet', fillPickup:'Pickup', fillWhen:'Date & time', fillDest:'Destination', fillParty:'Passengers & luggage',
+    fillingFrom:'Filled from {code}', fillPickup:'Pickup', fillWhen:'Date & time', fillDest:'Destination', fillParty:'Passengers & luggage',
     stepTwo:'Step 2', readyTitle:'Choose your class', readySub:'Fixed price, all inclusive — tap a class to continue.', selectCta:'Select', selectedCta:'Selected', unavailableCta:'Not available right now', doesNotFit:'Does not fit your party',
-    noFeed:'No flight on that number today. We drive Zurich, Geneva and Basel — pick one of these, or set the pickup yourself.',
+    noFeed:'Flight lookup is unavailable. Enter pickup and time yourself.',
     needTrip:'Add your trip to see prices', emptyTitle:'Plan your transfer', emptyMeta:'Pickup, destination, date & time', whenPh:'Select date & time',
     searching:'Searching places…', geoErr:'Place search unavailable — saved places only', savedPlaces:'Saved places', results:'Search results', routeStat:'{km} km · about {min} min by road',
     savedGo:'Saved — opening your booking…', savedSub:'{v} · details and extras next.',
@@ -875,7 +799,7 @@ const T = {
   },
   de: {
     kicker:'Vorausgebuchte Transfers · Zürich', h1:'Landen Sie in Zürich. Ihr Fahrer wartet bereits.', sub:'Zuverlässige Flughafen- und Geschäftsfahrten zum Festpreis — gebucht in unter einer Minute.',
-    oneWay:'Einfache Fahrt', return_:'Rückfahrt', hourly:'Stundenweise', flight:'Flug (optional)', flightPh:'EK 87 · LX 318', flightErr:'Prüfen Sie die Flugnummer', flightMiss:'Zu dieser Nummer liegt heute kein Flug vor', tapLookup:'Antippen, um den Flug zu prüfen', checking:'Flug wird gesucht…', lands:'landet', departs:'startet',
+    oneWay:'Einfache Fahrt', return_:'Rückfahrt', hourly:'Stundenweise', flight:'Flug (optional)', flightPh:'', flightErr:'Prüfen Sie die Flugnummer', flightMiss:'Zu dieser Nummer liegt heute kein Flug vor', tapLookup:'Antippen, um den Flug zu prüfen', checking:'Flug wird gesucht…', lands:'landet', departs:'startet',
     st_scheduled:'Planmässig', st_boarding:'Boarding', st_delayed:'Verspätet', st_enroute:'Unterwegs', st_landed:'Gelandet', st_cancelled:'Annulliert',
     srcAct:'tatsächlich', srcEst:'erwartet', srcSched:'geplant', late:'{n} Min. später', early:'{n} Min. früher',
     terminalLbl:'Terminal', gateLbl:'Gate', beltLbl:'Band', aircraftLbl:'Flugzeug',
@@ -888,9 +812,9 @@ const T = {
     noteHourly:'Stundenweise hat kein Ziel — wechseln Sie auf einfache Fahrt für die Fahrt zum Flughafen.',
     keptOwn:'Ihre Eingabe {f} beibehalten', updatedAt:'Aktualisiert {t}', changeNote:'Flug-Update — {list}',
     chStatus:'Status', chEta:'Ankunftszeit', chGate:'Gate', chTerminal:'Terminal', chBelt:'Gepäckband',
-    sampleFeed:'Beispielplan · Live-Flugdaten noch nicht verbunden', liveFeed:'Live · AeroDataBox',
+    liveFeed:'Live · AeroDataBox',
     geoDenied:'Standort aus — Abholort eintippen', hereLabel:'Mein aktueller Standort',
-    noFeed:'Zu dieser Nummer liegt heute kein Flug vor. Wir fahren Zürich, Genf und Basel — wählen Sie einen dieser Flüge oder setzen Sie den Abholort selbst.',
+    noFeed:'Flugabfrage ist nicht verfügbar. Geben Sie Abholort und Zeit selbst ein.',
     pickup:'Abholort', pickupPh:'Flughafen, Adresse oder Hotel', dest:'Ziel', destPh:'Flughafen, Adresse oder Hotel', when:'Abholdatum & -zeit', pax:'Passagiere', bags:'Gepäck', hours:'Dauer (Stunden)', swap:'Abholort und Ziel tauschen',
     trust:'Festpreis vor der Zahlung · kostenlose Stornierung bis 24 Std.', month:'August 2026',
     getting:'Ihr Festpreis wird berechnet…', selectHint:'Klasse wählen und weiter — Angaben & Extras folgen',
@@ -905,7 +829,7 @@ const T = {
     morning:'Vormittag', afternoon:'Nachmittag', evening:'Abend', pickupTime:'Abholzeit', returnTimeLbl:'Rückfahrtzeit',
     useLoc:'Aktuellen Standort verwenden', useLocSub:'GPS · schnellster Weg zum Abholort', nearYou:'In Ihrer Nähe', popular:'Beliebte Ziele', locating:'Standort wird ermittelt…', whenBoth:'Hin- & Rückfahrt', flightChip:'Flugnummer hinzufügen', saved:'Gespeichert',
     modeOne:'Eine Fahrt, ein Festpreis für die Route.', modeReturn:'Rückfahrt hinzugefügt — Datum und Zeit der Rückfahrt festlegen.', modeHourly:'Fahrzeug und Fahrer bleiben bei Ihnen — kein Ziel nötig.',
-    fillingFrom:'Aus {code} ausgefüllt', sampleArr:'Beispielankunft, noch keine Live-Daten', fillPickup:'Abholort', fillWhen:'Datum & Zeit', fillDest:'Ziel', fillParty:'Passagiere & Gepäck',
+    fillingFrom:'Aus {code} ausgefüllt', fillPickup:'Abholort', fillWhen:'Datum & Zeit', fillDest:'Ziel', fillParty:'Passagiere & Gepäck',
     stepTwo:'Schritt 2', readyTitle:'Klasse wählen', readySub:'Festpreis, alles inklusive — Klasse antippen zum Fortfahren.', selectCta:'Wählen', selectedCta:'Gewählt', unavailableCta:'Derzeit nicht verfügbar', doesNotFit:'Passt nicht zu Ihrer Gruppe',
     needTrip:'Fahrt angeben, um Preise zu sehen', emptyTitle:'Transfer planen', emptyMeta:'Abholort, Ziel, Datum & Zeit', whenPh:'Datum & Zeit wählen',
     searching:'Orte werden gesucht…', geoErr:'Ortssuche nicht verfügbar — nur gespeicherte Orte', savedPlaces:'Gespeicherte Orte', results:'Suchergebnisse', routeStat:'{km} km · etwa {min} Min. Fahrt',
@@ -933,7 +857,7 @@ const T = {
   },
   fr: {
     kicker:'Transferts réservés à l’avance · Zurich', h1:'Vous atterrissez à Zurich. Votre chauffeur vous attend.', sub:'Trajets aéroport et affaires fiables, à prix fixe — réservés en moins d’une minute.',
-    oneWay:'Aller simple', return_:'Aller-retour', hourly:'À l’heure', flight:'Vol (facultatif)', flightPh:'EK 87 · LX 318', flightErr:'Vérifiez le numéro de vol', flightMiss:'Aucun vol sous ce numéro aujourd’hui', tapLookup:'Touchez pour vérifier ce vol', checking:'Recherche du vol…', lands:'atterrit à', departs:'décolle à',
+    oneWay:'Aller simple', return_:'Aller-retour', hourly:'À l’heure', flight:'Vol (facultatif)', flightPh:'', flightErr:'Vérifiez le numéro de vol', flightMiss:'Aucun vol sous ce numéro aujourd’hui', tapLookup:'Touchez pour vérifier ce vol', checking:'Recherche du vol…', lands:'atterrit à', departs:'décolle à',
     st_scheduled:'Prévu', st_boarding:'Embarquement', st_delayed:'Retardé', st_enroute:'En vol', st_landed:'Atterri', st_cancelled:'Annulé',
     srcAct:'réel', srcEst:'estimé', srcSched:'prévu', late:'{n} min de retard', early:'{n} min d’avance',
     terminalLbl:'Terminal', gateLbl:'Porte', beltLbl:'Tapis', aircraftLbl:'Appareil',
@@ -946,9 +870,9 @@ const T = {
     noteHourly:'La formule à l’heure n’a pas de destination — passez en aller simple pour être conduit à l’aéroport.',
     keptOwn:'Votre {f} a été conservé', updatedAt:'Mis à jour à {t}', changeNote:'Mise à jour du vol — {list}',
     chStatus:'statut', chEta:'heure d’arrivée', chGate:'porte', chTerminal:'terminal', chBelt:'tapis à bagages',
-    sampleFeed:'Horaire d’exemple · flux de vols en direct pas encore connecté', liveFeed:'En direct · AeroDataBox',
+    liveFeed:'En direct · AeroDataBox',
     geoDenied:'Localisation désactivée — saisissez votre départ', hereLabel:'Ma position actuelle',
-    noFeed:'Aucun vol sous ce numéro aujourd’hui. Nous desservons Zurich, Genève et Bâle — choisissez un vol ci-dessous ou indiquez le départ vous-même.',
+    noFeed:'La recherche de vol est indisponible. Indiquez le départ et l’heure vous-même.',
     pickup:'Départ', pickupPh:'Aéroport, adresse ou hôtel', dest:'Destination', destPh:'Aéroport, adresse ou hôtel', when:'Date & heure de départ', pax:'Passagers', bags:'Bagages', hours:'Durée (heures)', swap:'Inverser départ et destination',
     trust:'Prix fixe avant paiement · annulation gratuite jusqu’à 24 h', month:'Août 2026',
     getting:'Calcul de votre prix fixe…', selectHint:'Choisissez une classe pour continuer — détails & options ensuite',
@@ -959,7 +883,7 @@ const T = {
     morning:'Matin', afternoon:'Après-midi', evening:'Soir', pickupTime:'Heure de départ', returnTimeLbl:'Heure du retour',
     useLoc:'Utiliser ma position actuelle', useLocSub:'GPS · le plus rapide pour le départ', nearYou:'À proximité', popular:'Destinations populaires', locating:'Localisation…', whenBoth:'Départ & retour', flightChip:'Ajouter un numéro de vol', saved:'Enregistré',
     modeOne:'Un trajet, un prix fixe pour l’itinéraire.', modeReturn:'Retour ajouté — indiquez aussi la date et l’heure du retour.', modeHourly:'Voiture et chauffeur restent avec vous — sans destination.',
-    fillingFrom:'Prérempli depuis {code}', sampleArr:'arrivée exemple, pas encore de données en direct', fillPickup:'Départ', fillWhen:'Date & heure', fillDest:'Destination', fillParty:'Passagers & bagages',
+    fillingFrom:'Prérempli depuis {code}', fillPickup:'Départ', fillWhen:'Date & heure', fillDest:'Destination', fillParty:'Passagers & bagages',
     stepTwo:'Étape 2', readyTitle:'Choisissez votre classe', readySub:'Prix fixe, tout compris — touchez une classe pour continuer.', selectCta:'Choisir', selectedCta:'Choisie', unavailableCta:'Indisponible pour le moment', doesNotFit:'Ne convient pas à votre groupe',
     needTrip:'Renseignez votre trajet pour voir les prix', emptyTitle:'Planifiez votre transfert', emptyMeta:'Départ, destination, date & heure', whenPh:'Choisir date & heure',
     searching:'Recherche de lieux…', geoErr:'Recherche indisponible — lieux enregistrés', savedPlaces:'Lieux enregistrés', results:'Résultats', routeStat:'{km} km · environ {min} min de route',
@@ -967,7 +891,7 @@ const T = {
   },
   ar: {
     kicker:'نقل محجوز مسبقًا · زيورخ', h1:'تهبط في زيورخ وسائقك في انتظارك.', sub:'مشاوير مطار وشركات موثوقة بسعر ثابت — تُحجز في أقل من دقيقة.',
-    oneWay:'ذهاب فقط', return_:'ذهاب وعودة', hourly:'بالساعة', flight:'رقم الرحلة (اختياري)', flightPh:'EK 87 · LX 318', flightErr:'تحقق من رقم الرحلة', flightMiss:'لا رحلة بهذا الرقم اليوم', tapLookup:'اضغط للتحقق من الرحلة', checking:'جارٍ البحث عن الرحلة…', lands:'يصل', departs:'يقلع',
+    oneWay:'ذهاب فقط', return_:'ذهاب وعودة', hourly:'بالساعة', flight:'رقم الرحلة (اختياري)', flightPh:'', flightErr:'تحقق من رقم الرحلة', flightMiss:'لا رحلة بهذا الرقم اليوم', tapLookup:'اضغط للتحقق من الرحلة', checking:'جارٍ البحث عن الرحلة…', lands:'يصل', departs:'يقلع',
     st_scheduled:'مجدولة', st_boarding:'الصعود', st_delayed:'متأخرة', st_enroute:'في الجو', st_landed:'هبطت', st_cancelled:'ملغاة',
     srcAct:'فعلي', srcEst:'متوقع', srcSched:'مجدول', late:'متأخرة {n} دقيقة', early:'مبكرة {n} دقيقة',
     terminalLbl:'المبنى', gateLbl:'البوابة', beltLbl:'الحزام', aircraftLbl:'الطائرة',
@@ -980,9 +904,9 @@ const T = {
     noteHourly:'الحجز بالساعة بلا وجهة — انتقل إلى ذهاب فقط للتوصيل إلى المطار.',
     keptOwn:'أبقينا {f} كما أدخلته', updatedAt:'تم التحديث {t}', changeNote:'تحديث الرحلة — {list}',
     chStatus:'الحالة', chEta:'وقت الوصول', chGate:'البوابة', chTerminal:'المبنى', chBelt:'حزام الأمتعة',
-    sampleFeed:'جدول تجريبي · لم يُربط تدفق الرحلات المباشر بعد', liveFeed:'مباشر · AeroDataBox',
+    liveFeed:'مباشر · AeroDataBox',
     geoDenied:'الموقع مغلق — اكتب نقطة الانطلاق', hereLabel:'موقعي الحالي',
-    noFeed:'لا رحلة بهذا الرقم اليوم. نخدم زيورخ وجنيف وبازل — اختر إحدى الرحلات أدناه أو حدّد الانطلاق بنفسك.',
+    noFeed:'البحث عن الرحلة غير متاح. أدخل مكان الانطلاق والوقت بنفسك.',
     pickup:'نقطة الانطلاق', pickupPh:'مطار أو عنوان أو فندق', dest:'الوجهة', destPh:'مطار أو عنوان أو فندق', when:'تاريخ ووقت الانطلاق', pax:'الركاب', bags:'الأمتعة', hours:'المدة (ساعات)', swap:'تبديل الانطلاق والوجهة',
     trust:'سعر ثابت قبل الدفع · إلغاء مجاني حتى 24 ساعة', month:'أغسطس 2026',
     getting:'جارٍ حساب سعرك الثابت…', selectHint:'اختر فئة للمتابعة — التفاصيل والإضافات تاليًا',
@@ -993,7 +917,7 @@ const T = {
     morning:'صباحًا', afternoon:'بعد الظهر', evening:'مساءً', pickupTime:'وقت الانطلاق', returnTimeLbl:'وقت العودة',
     useLoc:'استخدام موقعي الحالي', useLocSub:'GPS · أسرع طريقة لتحديد الانطلاق', nearYou:'بالقرب منك', popular:'وجهات شائعة', locating:'جارٍ تحديد الموقع…', whenBoth:'الذهاب والعودة', flightChip:'إضافة رقم الرحلة', saved:'تم الحفظ',
     modeOne:'رحلة واحدة بسعر ثابت للمسار.', modeReturn:'أُضيفت العودة — حدّد تاريخ ووقت العودة أيضًا.', modeHourly:'السيارة والسائق يبقيان معك — دون وجهة.',
-    fillingFrom:'مُعبّأ من {code}', sampleArr:'وصول تجريبي، لا توجد بيانات مباشرة بعد', fillPickup:'الانطلاق', fillWhen:'التاريخ والوقت', fillDest:'الوجهة', fillParty:'الركاب والأمتعة',
+    fillingFrom:'مُعبّأ من {code}', fillPickup:'الانطلاق', fillWhen:'التاريخ والوقت', fillDest:'الوجهة', fillParty:'الركاب والأمتعة',
     stepTwo:'الخطوة 2', readyTitle:'اختر الفئة', readySub:'سعر ثابت شامل — اختر فئة للمتابعة.', selectCta:'اختيار', selectedCta:'مختارة', unavailableCta:'غير متاح حاليًا', doesNotFit:'لا يناسب مجموعتك',
     needTrip:'أضف تفاصيل رحلتك لعرض الأسعار', emptyTitle:'خطّط رحلتك', emptyMeta:'الانطلاق، الوجهة، التاريخ والوقت', whenPh:'اختر التاريخ والوقت',
     searching:'جارٍ البحث عن الأماكن…', geoErr:'البحث غير متاح — الأماكن المحفوظة فقط', savedPlaces:'أماكن محفوظة', results:'نتائج البحث', routeStat:'{km} كم · نحو {min} دقيقة بالسيارة',
@@ -1464,11 +1388,7 @@ class Component extends DCLogic {
     FLIGHT_API.status(up, this.flightDate(), false).then((f) => {
       if (seq !== this._sseq || this.flightNum() !== up) return;
       if (f) { this.showCard(f); return; }
-      /** Unknown number: offer what we do fly, and never end the lookup in silence. */
-      const miss = (rows) => this.missFlight(rows);
-      FLIGHT_API.search(up.slice(0, 2), this.state.here)
-        .then((rows) => (rows && rows.length ? miss(rows) : FLIGHT_API.search(up.slice(0, 1), this.state.here).then(miss).catch(() => miss([]))))
-        .catch(() => miss([]));
+      this.missFlight([]);
     }).catch(() => this.setState({ flightState: 'idle' }));
   };
   /** Resolves a flight to a confirmable card — nothing is written to any field
@@ -1558,7 +1478,7 @@ class Component extends DCLogic {
   refreshFlight = () => {
     const f = this.state.flightData;
     if (!f || this.state.picked || ++this._ticks > 8) { this.stopPoll(); return; }
-    FLIGHT_API.status(f.num, this.flightDate(), this.props.simulateLiveUpdates !== false)
+    FLIGHT_API.status(f.num, this.flightDate(), this.props.simulateLiveUpdates === true)
       .then((next) => { if (next && this.state.flightData && this.state.flightData.num === next.num) this.mergeFlight(next); })
       .catch(() => {});
   };
