@@ -7,6 +7,12 @@
 </head>
 <body>
 <x-dc>
+<style>
+[data-vt-phone]{box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;height:44px;padding:0 14px 0 12px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-pill);background:var(--vt-white);min-width:0}
+[data-vt-phone]:focus-within{border-color:var(--vt-charcoal-900)}
+[data-vt-phone-plus]{flex:0 0 auto;font-family:var(--vt-font-display);font-size:var(--vt-body-md);font-weight:600;color:var(--vt-charcoal-900);user-select:none;pointer-events:none}
+[data-vt-phone] input{all:unset;flex:1 1 auto;min-width:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);color:var(--vt-charcoal-900);caret-color:var(--vt-charcoal-900)}
+</style>
 <main style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
 
 <header style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle)">
@@ -64,10 +70,17 @@
 </div>
 
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tName }}" value="{{ vName }}" onChange="{{ setName }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tRole }}" value="{{ vRole }}" readOnly="{{ yes }}" hint="{{ tRoleHint }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tRole }}" value="{{ vRole }}" onChange="{{ setRole }}" hint="{{ tRoleHint }}" hint-size="100%,76px"></x-import>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tEmail }}" value="{{ vEmail }}" readOnly="{{ yes }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tPhone }}" value="{{ vPhone }}" onChange="{{ setPhone }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" type="email" size="md" label="{{ tEmail }}" autoComplete="email" value="{{ vEmail }}" onChange="{{ setEmail }}" hint-size="100%,76px"></x-import>
+<div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+<span data-fld-l="1">{{ tPhone }}</span>
+<div data-vt-phone="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="phone" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
+<span data-vt-phone-plus="1" aria-hidden="true">+</span>
+<input type="tel" inputmode="numeric" autocomplete="tel" maxlength="20" placeholder="41 79 000 00 00" aria-label="{{ tPhone }}" value="{{ phoneShown }}" onChange="{{ setPhone }}">
+</div>
+</div>
 </div>
 </section>
 
@@ -168,7 +181,7 @@ const T = {
   en: { title:'Profile', subtitle:'You, on this console', save:'Save changes', discard:'Discard', saved:'Saved',
     who:'Who you are', whoSub:'Shown on bookings you touch and on the notes you leave',
     name:'Name', role:'Role', roleHint:'What the team calls this seat — dispatcher, owner, night desk.',
-    email:'Email', phone:'Phone',
+    email:'Email', phone:'Phone', phoneCc:'Country code',
     upload:'Upload a photo', removePhoto:'Remove the photo',
     photoHint:'Click the circle to upload. Square works best — it saves straight away and shows in the sidebar.',
     console:'Console', consoleSub:'How this console behaves for you',
@@ -188,7 +201,7 @@ const T = {
   de: { title:'Profil', subtitle:'Sie, auf dieser Konsole', save:'Änderungen speichern', discard:'Verwerfen', saved:'Gespeichert',
     who:'Wer Sie sind', whoSub:'Erscheint bei Buchungen, die Sie bearbeiten, und bei Ihren Notizen',
     name:'Name', role:'Rolle', roleHint:'Wie das Team diesen Platz nennt — Disponent, Inhaber, Nachtschicht.',
-    email:'E-Mail', phone:'Telefon',
+    email:'E-Mail', phone:'Telefon', phoneCc:'Ländervorwahl',
     upload:'Foto hochladen', removePhoto:'Foto entfernen',
     photoHint:'Auf den Kreis klicken, um ein Foto hochzuladen. Quadratisch passt am besten — es wird sofort gespeichert und erscheint in der Seitenleiste.',
     console:'Konsole', consoleSub:'Wie sich diese Konsole für Sie verhält',
@@ -208,7 +221,7 @@ const T = {
   fr: { title:'Profil', subtitle:'Vous, sur cette console', save:'Enregistrer', discard:'Annuler', saved:'Enregistré',
     who:'Qui vous êtes', whoSub:'Affiché sur les réservations que vous traitez et sur vos notes',
     name:'Nom', role:'Rôle', roleHint:'Le nom que l’équipe donne à ce poste — régulateur, propriétaire, poste de nuit.',
-    email:'E-mail', phone:'Téléphone',
+    email:'E-mail', phone:'Téléphone', phoneCc:'Indicatif',
     upload:'Téléverser une photo', removePhoto:'Retirer la photo',
     photoHint:'Cliquez sur le cercle pour téléverser. Le carré fonctionne le mieux — elle est enregistrée aussitôt et apparaît dans la barre latérale.',
     console:'Console', consoleSub:'Le comportement de cette console pour vous',
@@ -228,7 +241,7 @@ const T = {
   ar: { title:'الملف الشخصي', subtitle:'أنت، على لوحة التحكم هذه', save:'حفظ التغييرات', discard:'تجاهل', saved:'تم الحفظ',
     who:'من أنت', whoSub:'يظهر على الحجوزات التي تعالجها وعلى ملاحظاتك',
     name:'الاسم', role:'الدور', roleHint:'ما يسمّيه الفريق لهذا المقعد — موزّع، مالك، مناوبة ليلية.',
-    email:'البريد الإلكتروني', phone:'الهاتف',
+    email:'البريد الإلكتروني', phone:'الهاتف', phoneCc:'رمز الدولة',
     upload:'رفع صورة', removePhoto:'إزالة الصورة',
     photoHint:'انقر على الدائرة لرفع صورة. الصورة المربعة أنسب — وتُحفظ فورًا وتظهر في الشريط الجانبي.',
     console:'لوحة التحكم', consoleSub:'كيف تتصرّف هذه اللوحة معك',
@@ -253,15 +266,80 @@ function avatarUrl(avatar) {
   return value.charAt(0) === '/' ? value : '/photos/' + value;
 }
 
+function fieldValue(e) {
+  if (e == null) return '';
+  if (typeof e === 'string' || typeof e === 'number') return String(e);
+  if (e.target && e.target.value != null) return String(e.target.value);
+  return '';
+}
+
+function snapshot(src) {
+  const d = src || {};
+  return {
+    name: d.name || '',
+    role: d.role || '',
+    email: d.email || '',
+    phone: d.phone || '',
+    lang: d.lang || 'en',
+    avatar: d.avatar || '',
+    digest: !!d.digest,
+  };
+}
+
+function applyLive(patch) {
+  if (window.VamosOps && window.VamosOps.profile && typeof window.VamosOps.profile.apply === 'function') {
+    window.VamosOps.profile.apply(patch);
+  }
+}
+
+const PHONE_CCS = [
+  { value:'+41', label:'CH +41' },
+  { value:'+49', label:'DE +49' },
+  { value:'+33', label:'FR +33' },
+  { value:'+43', label:'AT +43' },
+  { value:'+39', label:'IT +39' },
+  { value:'+44', label:'GB +44' },
+  { value:'+971', label:'AE +971' },
+  { value:'+1', label:'US +1' },
+];
+
+function parsePhone(raw) {
+  const s = String(raw || '').trim();
+  const sorted = PHONE_CCS.slice().sort((a, b) => b.value.length - a.value.length);
+  for (let i = 0; i < sorted.length; i++) {
+    const cc = sorted[i].value;
+    if (s.indexOf(cc) === 0) return { cc: cc, local: s.slice(cc.length).replace(/\D/g, '') };
+  }
+  return { cc: '+41', local: s.replace(/\D/g, '') };
+}
+
+function joinPhone(cc, local) {
+  const digits = String(local || '').replace(/\D/g, '');
+  return (cc || '+41') + (digits ? (' ' + digits) : '');
+}
+
+function formatPhoneDigits(raw) {
+  const digits = String(raw || '').replace(/\D/g, '');
+  if (!digits) return '';
+  const codes = PHONE_CCS.map((c) => String(c.value).replace(/^\+/, '')).sort((a, b) => b.length - a.length);
+  for (let i = 0; i < codes.length; i++) {
+    const code = codes[i];
+    if (digits.indexOf(code) === 0) {
+      const rest = digits.slice(code.length);
+      return rest ? (code + ' ' + rest) : (code + ' ');
+    }
+  }
+  return digits;
+}
+
 class Component extends DCLogic {
-  state = { lang:'en', draft:null, saved:false, pane:'personal', copiedHex:'' };
+  state = { lang:'en', draft:null, baseline:null, saved:false, pane:'personal', copiedHex:'' };
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
     if (this._offProfile) this._offProfile();
-    this._offProfile = window.VamosOps.profile.onChange(() => {
-      this.setState({ draft: window.VamosOps.profile.get() });
-    });
-    this.setState({ draft: window.VamosOps.profile.get() });
+    this._offProfile = window.VamosOps.profile.onChange(() => this.forceUpdate());
+    const p = window.VamosOps.profile.get();
+    this.setState({ draft: p, baseline: snapshot(p) });
     this.loadMe();
   };
   loadMe = () => {
@@ -285,14 +363,17 @@ class Component extends DCLogic {
     clearTimeout(this._retry); clearTimeout(this._savedT); clearTimeout(this._copyT);
   }
   set = (key, value) => this.setState((s) => {
-    const d = {}; for (const k in s.draft) d[k] = s.draft[k];
+    const d = {}; for (const k in (s.draft || {})) d[k] = s.draft[k];
     d[key] = value;
+    const patch = {};
+    patch[key] = value;
+    applyLive(patch);
     return { draft: d, saved: false };
   });
   applyPersisted = (profile) => {
     if (!profile || typeof profile !== 'object') return;
     this.setState((s) => {
-      const d = {}; for (const k in s.draft) d[k] = s.draft[k];
+      const d = {}; for (const k in (s.draft || {})) d[k] = s.draft[k];
       d.name = profile.fullName || d.name || '';
       d.role = profile.role || d.role || '';
       d.email = profile.email || d.email || '';
@@ -300,37 +381,65 @@ class Component extends DCLogic {
       if (Object.prototype.hasOwnProperty.call(profile, 'avatarPath')) d.avatar = profile.avatarPath || '';
       d.lang = profile.lang || d.lang || 'en';
       d.digest = profile.digestEmail === true;
-      if (window.VamosOps) window.VamosOps.profile.update({ name:d.name, phone:d.phone, avatar:d.avatar, lang:d.lang, digest:d.digest });
-      return { draft: d };
+      if (profile.userId) d.userId = profile.userId;
+      applyLive({
+        name: d.name, role: d.role, email: d.email, phone: d.phone,
+        avatar: d.avatar, lang: d.lang, digest: d.digest, userId: d.userId || '',
+      });
+      return { draft: d, baseline: snapshot(d) };
     });
   };
   persist = (patch) => {
     const d = Object.assign({}, this.state.draft || {}, patch);
+    this.setState({ draft: d, saved: false });
+    if (patch.avatar !== undefined) applyLive({ avatar: d.avatar || '' });
     const client = window.VamosOpsApi;
     if (!client || typeof client.request !== 'function') return;
     client.request('PATCH', '/api/staff/profile', {
       fullName: d.name || '', phone: d.phone || '', lang: d.lang || 'en',
       digestEmail: !!d.digest, avatarPath: d.avatar || null,
+      email: d.email || '',
     }).then((json) => { if (json && json.ok) this.applyPersisted(json.data); });
+  };
+  staffUserId = () => {
+    const me = this.state.me || {};
+    const d = this.state.draft || {};
+    const store = window.VamosOps ? window.VamosOps.profile.get() : {};
+    return me.userId || d.userId || store.userId || '';
   };
   pickPhoto = () => {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'image/*';
+    input.accept = 'image/jpeg,image/png,image/webp';
     input.onchange = () => {
       const file = input.files && input.files[0];
       if (!file) return;
-      const me = this.state.me || {};
-      if (!me.userId) return;
+      this.uploadPhoto(file);
+    };
+    input.click();
+  };
+  uploadPhoto = (file) => {
+    const send = (userId) => {
+      if (!userId) return;
       const body = new FormData();
       body.append('kind', 'staff');
-      body.append('recordId', me.userId);
+      body.append('recordId', userId);
       body.append('file', file);
       fetch('/api/photos/upload', { method:'POST', credentials:'include', body })
         .then((res) => res.json())
         .then((json) => { if (json && json.key) this.persist({ avatar:json.key }); });
     };
-    input.click();
+    const userId = this.staffUserId();
+    if (userId) { send(userId); return; }
+    const client = window.VamosOpsApi;
+    if (!client || typeof client.request !== 'function') return;
+    client.request('GET', '/api/staff/me').then((json) => {
+      if (!json || !json.ok || !json.data) return;
+      this.setState({ me: json.data }, () => {
+        this.applyPersisted(json.data);
+        send(json.data.userId);
+      });
+    });
   };
   clearPhoto = () => this.persist({ avatar:'' });
   save = () => {
@@ -344,6 +453,7 @@ class Component extends DCLogic {
       lang: d.lang,
       digestEmail: !!d.digest,
       avatarPath: d.avatar || null,
+      email: d.email || '',
     }).then((json) => {
       if (json && json.ok) {
         this.applyPersisted(json.data);
@@ -353,7 +463,11 @@ class Component extends DCLogic {
       }
     });
   };
-  discard = () => { if (window.VamosOps) this.setState({ draft: window.VamosOps.profile.get(), saved: false }); };
+  discard = () => {
+    const base = this.state.baseline || snapshot(window.VamosOps ? window.VamosOps.profile.get() : {});
+    applyLive(base);
+    this.setState({ draft: Object.assign({}, this.state.draft || {}, base), saved: false });
+  };
   signOut = () => {
     try { localStorage.removeItem('vamosOpsAuth'); } catch (e) {}
     const done = () => { location.replace('/login'); };
@@ -379,20 +493,18 @@ class Component extends DCLogic {
   renderVals() {
     const t = T[this.state.lang] || T.en;
     const d = this.state.draft || {};
-    const saved = window.VamosOps ? window.VamosOps.profile.get() : {};
-    const dirty = Object.keys(d).some((k) => String(d[k]) !== String(saved[k]));
+    const dirty = JSON.stringify(snapshot(d)) !== JSON.stringify(this.state.baseline || snapshot({}));
     const initials = (d.name || '')
       .split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join('') || '—';
     const sw = (key, label, hint) => ({
       label, hint, on: !!d[key], toggle: (e) => this.set(key, e.target.checked),
     });
-    const txt = (key) => (e) => this.set(key, e.target.value);
     const pane = this.state.pane;
     return {
       n12: 12, n18: 18, n28: 28,
       tTitle: t.title, tSubtitle: t.subtitle, tSave: t.save, tDiscard: t.discard, tSaved: t.saved,
       tWho: t.who, tWhoSub: t.whoSub, tName: t.name, tRole: t.role, tRoleHint: t.roleHint,
-      tEmail: t.email, tPhone: t.phone,
+      tEmail: t.email, tPhone: t.phone, tPhoneCc: t.phoneCc,
       tUpload: t.upload, tRemovePhoto: t.removePhoto, tPhotoHint: t.photoHint,
       tConsole: t.console, tConsoleSub: t.consoleSub,
       tSession: t.session, tSessionBody: t.sessionBody, tSignOut: t.signOut,
@@ -405,11 +517,15 @@ class Component extends DCLogic {
       noPhoto: !d.avatar,
       photoClearShow: d.avatar ? 'flex' : 'none',
       pickPhoto: this.pickPhoto, clearPhoto: this.clearPhoto,
-      vName: d.name || '', setName: txt('name'),
-      yes: true,
-      vRole: d.role || '',
-      vEmail: d.email || '',
-      vPhone: d.phone || '', setPhone: txt('phone'),
+      vName: d.name || '', setName: (e) => this.set('name', fieldValue(e)),
+      vRole: d.role || '', setRole: (e) => this.set('role', fieldValue(e)),
+      vEmail: d.email || '', setEmail: (e) => this.set('email', fieldValue(e)),
+      vPhone: d.phone || '',
+      phoneShown: formatPhoneDigits(d.phone),
+      setPhone: (e) => {
+        const shown = formatPhoneDigits(e.target.value);
+        this.set('phone', shown ? ('+' + shown) : '');
+      },
       toggles: [
         sw('digest', t.digest, t.digestHint),
       ],

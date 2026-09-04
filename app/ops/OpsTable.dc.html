@@ -7,22 +7,55 @@
 </head>
 <body>
 <x-dc>
-<helmet>
 <style>
 [data-vt-photo-ui=solo]{display:flex;align-items:center;gap:16px;min-width:0}
 [data-vt-photo-sq]{box-sizing:border-box;inline-size:96px;block-size:96px;flex:0 0 auto;border-radius:var(--vt-radius-lg);border:1px dashed var(--vt-grey-300);overflow:hidden;background:var(--vt-grey-50);color:var(--vt-text-muted);display:flex;align-items:center;justify-content:center}
 [data-vt-photo-sq] img{inline-size:100%;block-size:100%;object-fit:cover;display:block}
 [data-vt-photo-pick]{position:relative;display:inline-flex;align-items:center;cursor:pointer}
 [data-vt-photo-pick] input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);border:0;white-space:nowrap}
-[data-vt-date]{display:flex;flex-direction:column;gap:6px;min-width:0}
-[data-vt-date-wrap]{position:relative;min-width:0}
-[data-vt-date-wrap] > span{position:absolute;inset-inline-start:14px;top:50%;transform:translateY(-50%);pointer-events:none;display:inline-flex}
-[data-vt-date-wrap] input[type=date]{box-sizing:border-box;width:100%;height:44px;padding:0 14px 0 42px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-pill);background:var(--vt-white);color:var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium)}
-[data-vt-date-wrap] input[type=date]:focus{outline:none;border-color:var(--vt-charcoal-900)}
+[data-vt-date],[data-vt-time],[data-vt-step],[data-vt-year],[data-vt-phone]{display:flex;flex-direction:column;gap:6px;min-width:0}
+[data-vt-step-wrap]{box-sizing:border-box;display:flex;align-items:center;height:44px;padding:4px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-pill);background:var(--vt-white)}
+[data-vt-step-wrap]:focus-within{border-color:var(--vt-charcoal-900)}
+[data-vt-step-btn]{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:999px;cursor:pointer;color:var(--vt-charcoal-900);flex:0 0 auto}
+[data-vt-step-btn]:hover{background:var(--vt-grey-50)}
+[data-vt-step-btn][disabled]{opacity:.35;cursor:default;pointer-events:none}
+[data-vt-step-val]{flex:1 1 auto;text-align:center;font-family:var(--vt-font-display);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);color:var(--vt-charcoal-900);letter-spacing:.02em}
+[data-vt-date-btn],[data-vt-time-wrap]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;height:44px;padding:0 14px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-pill);background:var(--vt-white);color:var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium)}
+[data-vt-date-btn]{cursor:pointer;overflow:hidden}
+[data-vt-time-wrap]{cursor:text}
+[data-vt-date-btn]:hover,[data-vt-time-wrap]:focus-within{border-color:var(--vt-charcoal-900)}
+[data-vt-date-btn][aria-expanded="true"]{border-color:var(--vt-charcoal-900)}
+[data-vt-date-label]{flex:1 1 auto;min-width:0;text-align:start;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[data-vt-date-label][data-vt-date-empty="1"]{color:var(--vt-text-muted);font-weight:var(--vt-weight-regular)}
+[data-vt-date-year]{all:unset;box-sizing:border-box;width:4.4em;height:28px;padding:0 8px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-pill);text-align:center;font-family:var(--vt-font-display);font-size:13px;font-weight:600;letter-spacing:.04em;color:var(--vt-charcoal-900);background:var(--vt-white)}
+[data-vt-date-year]:focus{border-color:var(--vt-charcoal-900)}
+[data-vt-unsaved]{box-sizing:border-box;display:flex;align-items:center;gap:10px;padding:8px 8px 8px 14px;margin-bottom:16px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);background:var(--vt-bg-surface)}
+[data-vt-unsaved]>span[data-vt-unsaved-msg]{flex:1 1 auto;min-width:0;font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[data-vt-unsaved-act]{display:flex;gap:6px;flex:0 0 auto}
+[data-vt-time-wrap] input{all:unset;flex:1 1 auto;min-width:0;width:100%;font:inherit;color:inherit;background:transparent;caret-color:var(--vt-charcoal-900)}
+[data-vt-date-pop]{position:fixed;z-index:220;box-sizing:border-box;width:280px;padding:12px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg)}
+[data-vt-date-nav]{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+[data-vt-date-nav] strong{flex:1 1 auto;text-align:center;font-family:var(--vt-font-display);font-size:14px;font-weight:600}
+[data-vt-date-nav] button{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:999px;cursor:pointer;color:var(--vt-charcoal-900)}
+[data-vt-date-nav] button:hover{background:var(--vt-grey-50)}
+[data-vt-date-wd]{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;margin-bottom:4px}
+[data-vt-date-wd] span{text-align:center;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--vt-text-muted);padding:4px 0}
+[data-vt-date-grid]{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}
+[data-vt-date-day]{all:unset;box-sizing:border-box;display:grid;place-items:center;height:32px;border-radius:999px;cursor:pointer;font-family:var(--vt-font-display);font-size:13px;font-weight:600;color:var(--vt-text-primary)}
+[data-vt-date-day]:hover{background:var(--vt-grey-50)}
+[data-vt-date-day][data-on="1"]{background:var(--vt-charcoal-900);color:var(--vt-accent)}
+[data-vt-date-day][data-mute="1"]{cursor:default;color:transparent;pointer-events:none}
+[data-vt-time-wrap]{cursor:text}
+[data-vt-time-wrap] input{all:unset;flex:1 1 auto;min-width:0;font:inherit;color:inherit;letter-spacing:.02em}
+[data-vt-sug]{position:fixed;z-index:400;box-sizing:border-box;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg);padding:6px;display:flex;flex-direction:column;gap:2px;max-height:260px;overflow-y:auto}
+[data-vt-sug-opt]{all:unset;box-sizing:border-box;display:flex;flex-direction:column;gap:1px;width:100%;padding:9px 10px;border-radius:10px;cursor:pointer;font-family:var(--vt-font-body)}
+[data-vt-sug-opt]:hover{background:var(--vt-grey-50)}
+[data-vt-sug-lab]{font-size:13px;font-weight:600;color:var(--vt-text-primary);text-align:start}
+[data-vt-sug-note]{font-size:11px;color:var(--vt-text-muted);text-align:start}
 </style>
-</helmet>
 <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
 
+<sc-if value="{{ showList }}" hint-placeholder-val="{{ true }}">
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;min-width:0">
 <div style="flex:1 1 240px;max-width:360px;min-width:0">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" icon="search" placeholder="{{ searchPlaceholder }}" value="{{ query }}" onChange="{{ setQuery }}" aria-label="{{ searchPlaceholder }}" hint-size="100%,44px"></x-import>
@@ -80,16 +113,17 @@
 </div>
 </div>
 </sc-if>
+</sc-if>
 
 <sc-if value="{{ editorOpen }}" hint-placeholder-val="{{ false }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="md" title="{{ editorTitle }}" subtitle="{{ editorSubtitle }}" onClose="{{ requestClose }}" hint-size="560px,520px">
 <sc-if value="{{ closeAttempted }}" hint-placeholder-val="{{ false }}">
-<div style="box-sizing:border-box;display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:14px 16px;margin-bottom:16px;border:1px solid var(--vt-charcoal-900);border-radius:var(--vt-radius-md);background:var(--vt-grey-50)">
+<div data-vt-unsaved="1">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="triangle-alert" size="{{ n16 }}" color="var(--vt-charcoal-900)" hint-size="16px,16px"></x-import>
-<span style="flex:1 1 220px;min-width:0;font-size:var(--vt-body-sm);color:var(--vt-text-primary)">Unsaved changes here.</span>
-<span style="display:flex;gap:8px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" onClick="{{ keepEditing }}" hint-size="110px,36px">Keep editing</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ discardClose }}" hint-size="110px,36px">Discard</x-import>
+<span data-vt-unsaved-msg="1">Unsaved changes</span>
+<span data-vt-unsaved-act="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" onClick="{{ keepEditing }}" hint-size="110px,36px">Keep editing</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ discardClose }}" hint-size="90px,36px">Discard</x-import>
 </span>
 </div>
 </sc-if>
@@ -102,15 +136,72 @@
 </sc-if>
 
 <sc-if value="{{ f.isNumber }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" icon="{{ f.inputIcon }}" type="number" min="{{ f.min }}" label="{{ f.label }}" value="{{ f.value }}" onChange="{{ f.set }}" placeholder="{{ f.placeholder }}" hint="{{ f.hint }}" error="{{ f.error }}" suffix="{{ f.suffix }}" hint-size="100%,76px"></x-import>
+<div data-vt-step="1">
+<span data-fld-l="1">{{ f.label }}</span>
+<div data-vt-step-wrap="1">
+<button type="button" data-vt-step-btn="1" aria-label="Decrease" onClick="{{ f.dec }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="minus" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></button>
+<span data-vt-step-val="1">{{ f.value }}</span>
+<button type="button" data-vt-step-btn="1" aria-label="Increase" onClick="{{ f.inc }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></button>
+</div>
+<span style="display:{{ f.hintShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ f.hint }}</span>
+</div>
+</sc-if>
+
+<sc-if value="{{ f.isYear }}" hint-placeholder-val="{{ false }}">
+<div data-vt-year="1">
+<span data-fld-l="1">{{ f.label }}</span>
+<div data-vt-time-wrap="1">
+<input inputmode="numeric" autocomplete="off" maxlength="4" placeholder="0000" value="{{ f.value }}" onChange="{{ f.setYearDigits }}" aria-label="{{ f.label }}">
+</div>
+<span style="display:{{ f.hintShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ f.hint }}</span>
+</div>
+</sc-if>
+
+<sc-if value="{{ f.isPhone }}" hint-placeholder-val="{{ false }}">
+<div data-vt-phone="1">
+<span data-fld-l="1">{{ f.label }}</span>
+<div data-vt-time-wrap="1">
+<input inputmode="tel" autocomplete="tel" placeholder="{{ f.placeholder }}" value="{{ f.value }}" onChange="{{ f.setPhone }}" aria-label="{{ f.label }}">
+</div>
+<span style="display:{{ f.hintShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ f.hint }}</span>
+</div>
 </sc-if>
 
 <sc-if value="{{ f.isDate }}" hint-placeholder-val="{{ false }}">
 <div data-vt-date="1">
 <span data-fld-l="1">{{ f.label }}</span>
-<div data-vt-date-wrap="1">
-<span><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="calendar" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import></span>
-<input type="date" value="{{ f.dateValue }}" onChange="{{ f.setDate }}" onInput="{{ f.dateInput }}" aria-label="{{ f.label }}" required="{{ f.required }}">
+<button type="button" data-vt-date-btn="1" aria-expanded="{{ f.dateExpanded }}" aria-label="{{ f.label }}" onClick="{{ f.toggleDate }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="calendar" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
+<span data-vt-date-label="1" data-vt-date-empty="{{ f.dateEmpty }}">{{ f.dateLabel }}</span>
+</button>
+<sc-if value="{{ f.dateOpen }}" hint-placeholder-val="{{ false }}">
+<div data-vt-date-pop="1" data-lenis-prevent="1" ref="{{ datePopRef }}" style="top:{{ f.popTop }};left:{{ f.popLeft }}">
+<div data-vt-date-nav="1">
+<button type="button" aria-label="Previous month" onClick="{{ f.prevMonth }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-left" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></button>
+<strong>{{ f.monthName }}</strong>
+<input data-vt-date-year="1" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="0000" aria-label="Year" value="{{ f.yearValue }}" onChange="{{ f.setYear }}">
+<button type="button" aria-label="Next month" onClick="{{ f.nextMonth }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-right" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></button>
+</div>
+<div data-vt-date-wd="1">
+<sc-for list="{{ f.weekdays }}" as="w" hint-placeholder-count="7"><span>{{ w.label }}</span></sc-for>
+</div>
+<div data-vt-date-grid="1">
+<sc-for list="{{ f.days }}" as="day" hint-placeholder-count="35">
+<button type="button" data-vt-date-day="1" data-on="{{ day.on }}" data-mute="{{ day.mute }}" onClick="{{ day.pick }}">{{ day.label }}</button>
+</sc-for>
+</div>
+</div>
+</sc-if>
+<span style="display:{{ f.hintShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ f.hint }}</span>
+</div>
+</sc-if>
+
+<sc-if value="{{ f.isTime }}" hint-placeholder-val="{{ false }}">
+<div data-vt-time="1">
+<span data-fld-l="1">{{ f.label }}</span>
+<div data-vt-time-wrap="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="clock" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
+<input inputmode="numeric" autocomplete="off" maxlength="5" placeholder="00:00" value="{{ f.value }}" onChange="{{ f.setTime }}" aria-label="{{ f.label }}">
 </div>
 <span style="display:{{ f.hintShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ f.hint }}</span>
 </div>
@@ -119,12 +210,7 @@
 <sc-if value="{{ f.isSelect }}" hint-placeholder-val="{{ false }}">
 <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
 <span data-fld-l="1">{{ f.label }}</span>
-<sc-if value="{{ f.hasAdd }}" hint-placeholder-val="{{ false }}">
-<span style="display:inline-flex">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" icon="plus" onClick="{{ f.startNested }}" hint-size="160px,36px">{{ f.addLabel }}</x-import>
-</span>
-</sc-if>
-<dc-import name="BrandSelect" size="field" icon="{{ f.icon }}" value="{{ f.value }}" options="{{ f.options }}" multi="{{ f.multi }}" placeholder="{{ f.emptyLabel }}" onSelect="{{ f.pick }}" a11y-label="{{ f.label }}" hint-size="100%,44px"></dc-import>
+<dc-import name="BrandSelect" size="field" icon="{{ f.icon }}" value="{{ f.value }}" options="{{ f.options }}" multi="{{ f.multi }}" placeholder="{{ f.emptyLabel }}" add-label="{{ f.addLabel }}" on-add="{{ f.startNested }}" onSelect="{{ f.pick }}" a11y-label="{{ f.label }}" hint-size="100%,44px"></dc-import>
 <span style="display:{{ f.hintShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ f.hint }}</span>
 </div>
 </sc-if>
@@ -165,6 +251,17 @@
 </div>
 </sc-for>
 </div>
+
+<sc-if value="{{ sugOpen }}" hint-placeholder-val="{{ false }}">
+<div data-vt-sug="1" role="listbox" ref="{{ sugPopRef }}" style="top:{{ sugTop }};left:{{ sugLeft }};width:{{ sugWidth }}">
+<sc-for list="{{ sugItems }}" as="s" hint-placeholder-count="3">
+<button type="button" data-vt-sug-opt="1" onMouseDown="{{ s.pick }}">
+<span data-vt-sug-lab="1">{{ s.label }}</span>
+<span data-vt-sug-note="1" style="display:{{ s.noteShow }}">{{ s.note }}</span>
+</button>
+</sc-for>
+</div>
+</sc-if>
 
 <sc-if value="{{ hasHistory }}" hint-placeholder-val="{{ false }}">
 <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--vt-border-subtle)">
@@ -247,9 +344,75 @@
    columns: [{ key, header, width, align, kind, subKey, tones, emptyLabel, prefix }]
      kind  'text' | 'stack' | 'mono' | 'badge' | 'money' | 'need' | 'bool'
    fields:  [{ key, label, editor, options, placeholder, hint, required, half, icon }]
-     editor 'text' | 'number' | 'select' | 'switch' | 'area' | 'photo'               */
+     editor 'text' | 'number' | 'year' | 'phone' | 'date' | 'time' | 'select' | 'switch' | 'area' | 'photo' */
 /* A leading icon is what makes a console field read like the client-facing ones on the
    booking widget, so the schema's key picks the same glyph the front page uses. */
+const WD_EN = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const MON_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MON_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+function pad2(n) { return (n < 10 ? '0' : '') + n; }
+function parseParts(raw) {
+  const s = String(raw || '').trim();
+  if (!s) return null;
+  const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
+  if (iso) return { y: +iso[1], m: +iso[2] - 1, d: +iso[3] };
+  const board = /(?:[A-Za-z]{3}\s+)?(\d{1,2})\s+([A-Za-z]{3})(?:\s+(\d{4}))?/.exec(s);
+  if (!board) return null;
+  const mon = MON_EN.indexOf(board[2]);
+  if (mon === -1) return null;
+  return { y: board[3] ? +board[3] : new Date().getFullYear(), m: mon, d: +board[1] };
+}
+function toIso(p) { return p ? (p.y + '-' + pad2(p.m + 1) + '-' + pad2(p.d)) : ''; }
+function boardDate(p) {
+  if (!p) return '';
+  const dt = new Date(Date.UTC(p.y, p.m, p.d));
+  const dow = (dt.getUTCDay() + 6) % 7;
+  return WD_EN[dow] + ' ' + p.d + ' ' + MON_EN[p.m] + ' ' + p.y;
+}
+function maskTime(raw) {
+  let d = String(raw || '').replace(/\D/g, '').slice(0, 4);
+  if (!d) return '';
+  if (d.length === 1) return parseInt(d, 10) > 2 ? '0' + d : d;
+  let hh = parseInt(d.slice(0, 2), 10);
+  if (hh > 23) hh = 23;
+  const h = pad2(hh);
+  if (d.length === 2) return h + ':';
+  let md = d.slice(2);
+  if (md.length === 1) return h + ':' + (parseInt(md, 10) > 5 ? '5' : md);
+  let mm = parseInt(md, 10);
+  if (mm > 59) mm = 59;
+  return h + ':' + pad2(mm);
+}
+const YEAR_MIN = 1900;
+const YEAR_MAX = 2100;
+function clampYear(n) {
+  const y = parseInt(n, 10);
+  if (isNaN(y)) return YEAR_MIN;
+  if (y < YEAR_MIN) return YEAR_MIN;
+  if (y > YEAR_MAX) return YEAR_MAX;
+  return y;
+}
+function maskYear(raw) {
+  const digits = String(raw || '').replace(/\D/g, '').slice(0, 4);
+  if (digits.length < 4) return digits;
+  return String(clampYear(digits));
+}
+function maskPhone(raw) {
+  let d = String(raw || '').replace(/\D/g, '');
+  if (!d) return '';
+  if (d.slice(0, 2) === '00') d = d.slice(2);
+  d = d.slice(0, 13);
+  const groups = [2, 2, 3, 2, 2];
+  const parts = [];
+  let i = 0;
+  for (let g = 0; g < groups.length && i < d.length; g++) {
+    parts.push(d.slice(i, i + groups[g]));
+    i += groups[g];
+  }
+  if (i < d.length) parts.push(d.slice(i));
+  return '+' + parts.join(' ');
+}
+
 const FIELD_ICONS = {
   id:'receipt', ref:'receipt', reference:'receipt', code:'ticket',
   name:'user', customer:'user', contact:'user', company:'briefcase',
@@ -264,12 +427,159 @@ const FIELD_ICONS = {
 };
 
 class Component extends DCLogic {
-  state = { q: '', draft: null, isNew: false, errors: {}, confirm: null, filters: {}, filterCol: null, closeAttempted: false, historyOpen: false, nested: null, nestedErrors: {} };
+  state = { q: '', draft: null, isNew: false, errors: {}, confirm: null, filters: {}, filterCol: null, closeAttempted: false, historyOpen: false, nested: null, nestedErrors: {}, sug: null, dateOpen: null };
   lockScroll = () => { try { document.body.style.overflow = 'hidden'; } catch (e) {} };
   unlockScroll = () => { try { document.body.style.overflow = ''; } catch (e) {} };
+  _sugPopRef = (el) => { this._sugPop = el; };
+  _datePopRef = (el) => { this._datePop = el; };
+  componentDidMount() {
+    this._sugAway = (e) => {
+      if (!this.state.sug) return;
+      const inPop = this._sugPop && this._sugPop.contains(e.target);
+      if (!inPop) this.setState({ sug: null });
+    };
+    this._sugEsc = (e) => { if (e.key === 'Escape' && this.state.sug) this.setState({ sug: null }); };
+    this._dateAway = (e) => {
+      if (!this.state.dateOpen) return;
+      const inPop = this._datePop && this._datePop.contains(e.target);
+      const inBtn = e.target && e.target.closest && e.target.closest('[data-vt-date-btn]');
+      if (!inPop && !inBtn) this.setState({ dateOpen: null });
+    };
+    this._dateEsc = (e) => { if (e.key === 'Escape' && this.state.dateOpen) this.setState({ dateOpen: null }); };
+    document.addEventListener('mousedown', this._sugAway);
+    document.addEventListener('keydown', this._sugEsc);
+    document.addEventListener('mousedown', this._dateAway);
+    document.addEventListener('keydown', this._dateEsc);
+  }
+  componentDidUpdate(prev) {
+    const tick = this.props.openTick != null ? this.props.openTick : this.props['open-tick'];
+    const was = prev ? (prev.openTick != null ? prev.openTick : prev['open-tick']) : undefined;
+    if (tick !== undefined && tick !== null && String(tick) !== '' && String(tick) !== '0' && String(tick) !== String(was)) this.startAdd();
+  }
   componentWillUnmount() {
     if (this.state.draft || this.state.confirm) this.unlockScroll();
+    if (this._sugAway) document.removeEventListener('mousedown', this._sugAway);
+    if (this._sugEsc) document.removeEventListener('keydown', this._sugEsc);
+    if (this._dateAway) document.removeEventListener('mousedown', this._dateAway);
+    if (this._dateEsc) document.removeEventListener('keydown', this._dateEsc);
+    clearTimeout(this._geoT);
+    if (this._ac) { try { this._ac.abort(); } catch (e) {} }
   }
+  suggestKind(f) {
+    if (f.key === 'id' && String(f.placeholder || '').indexOf('VT') !== -1) return 'ref';
+    if (f.key === 'customer') return 'customer';
+    if (f.key === 'pickup' || f.key === 'dropoff' || f.key === 'address') return 'address';
+    return '';
+  }
+  withVtPrefix(raw) {
+    const s = String(raw || '');
+    if (!s) return '';
+    const upper = s.toUpperCase();
+    if (upper === 'V' || upper === 'VT' || upper === 'VT-') return 'VT-';
+    if (/^VT-/.test(upper)) return 'VT-' + upper.slice(3).replace(/[^A-Z0-9]/g, '');
+    if (/^VT/.test(upper)) return 'VT-' + upper.slice(2).replace(/[^A-Z0-9]/g, '');
+    return 'VT-' + upper.replace(/[^A-Z0-9]/g, '');
+  }
+  localSuggest(kind, q) {
+    try {
+      const ql = String(q || '').trim().toLowerCase();
+      if (!ql) return [];
+      const ops = window.VamosOps;
+      const bookings = [].concat(
+        this.props.rows || [],
+        (ops && ops.bookings && ops.bookings.all) ? ops.bookings.all() : [],
+      );
+      if (kind === 'ref') {
+        const seen = {};
+        const out = [];
+        bookings.forEach((b) => {
+          const id = String(b.id || '');
+          if (!id || seen[id] || id.toLowerCase().indexOf(ql) === -1) return;
+          seen[id] = 1;
+          out.push({ value: id, label: id, note: [b.customer, b.date].filter(Boolean).join(' · ') });
+        });
+        return out.slice(0, 8);
+      }
+      if (kind === 'customer') {
+        const seen = {};
+        const out = [];
+        ((ops && ops.customers && ops.customers.all) ? ops.customers.all() : []).forEach((c) => {
+          const n = String(c.name || '').trim();
+          if (!n || seen[n.toLowerCase()]) return;
+          seen[n.toLowerCase()] = 1;
+          out.push({ value: n, label: n, note: c.phone || c.email || '' });
+        });
+        bookings.forEach((b) => {
+          const n = String(b.customer || '').trim();
+          if (!n || seen[n.toLowerCase()]) return;
+          seen[n.toLowerCase()] = 1;
+          out.push({ value: n, label: n, note: '' });
+        });
+        return out.filter((x) => x.label.toLowerCase().indexOf(ql) !== -1 || String(x.note).toLowerCase().indexOf(ql) !== -1).slice(0, 8);
+      }
+      if (kind === 'address') {
+        const seen = {};
+        const out = [];
+        bookings.forEach((b) => {
+          [b.pickup, b.dropoff].forEach((a) => {
+            const n = String(a || '').trim();
+            if (!n || seen[n.toLowerCase()] || n.toLowerCase().indexOf(ql) === -1) return;
+            seen[n.toLowerCase()] = 1;
+            out.push({ value: n, label: n, note: '' });
+          });
+        });
+        return out.slice(0, 8);
+      }
+      return [];
+    } catch (e) { return []; }
+  }
+  runSuggest(key, kind, v, el) {
+    if (!kind) { this.setState({ sug: null }); return; }
+    const box = el && (el.closest ? (el.closest('.vt-field') || el.parentElement) : el.parentElement);
+    const r = box && box.getBoundingClientRect ? box.getBoundingClientRect() : null;
+    const local = this.localSuggest(kind, v);
+    this.setState({ sug: { key, kind, items: local, local, rect: r } });
+    clearTimeout(this._geoT);
+    if (kind === 'address' && String(v || '').trim().length >= 3) {
+      this._geoT = setTimeout(() => this.geoSearch(key, String(v).trim()), 180);
+    }
+  }
+  geoSearch(key, q) {
+    if (typeof fetch === 'undefined') return;
+    this._geoSeq = (this._geoSeq || 0) + 1;
+    const seq = this._geoSeq;
+    if (this._ac) { try { this._ac.abort(); } catch (e) {} }
+    const ac = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    this._ac = ac;
+    if (!this._geoTok) this._geoTok = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : '00000000-0000-4000-8000-000000000001';
+    const rawLang = (window.VamosLocale && window.VamosLocale.lang) ? window.VamosLocale.lang() : 'en';
+    const locale = ['en', 'de', 'fr', 'ar'].indexOf(rawLang) === -1 ? 'en' : rawLang;
+    const url = '/api/geo/suggest?q=' + encodeURIComponent(q) + '&session_token=' + encodeURIComponent(this._geoTok) + '&locale=' + encodeURIComponent(locale);
+    fetch(url, ac ? { signal: ac.signal } : undefined)
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((j) => {
+        if (seq !== this._geoSeq) return;
+        const extra = ((j && j.suggestions) || []).map((hit) => {
+          const name = hit.name || '';
+          const addr = hit.address || hit.context || '';
+          return { value: addr ? (name + ', ' + addr) : name, label: name, note: addr };
+        }).filter((x) => x.label);
+        this.setState((s) => {
+          if (!s.sug || s.sug.key !== key) return null;
+          const local = s.sug.local || [];
+          const seen = {};
+          local.forEach((x) => { seen[String(x.value).toLowerCase()] = 1; });
+          const merged = local.concat(extra.filter((x) => !seen[String(x.value).toLowerCase()])).slice(0, 8);
+          return { sug: Object.assign({}, s.sug, { items: merged }) };
+        });
+      })
+      .catch((e) => { if (e && e.name === 'AbortError') return; });
+  }
+  pickSug = (value) => {
+    const key = (this.state.sug || {}).key;
+    this.setState({ sug: null });
+    if (key) this.setField(key, value);
+  };
 
   /* Clicking a column header filters on that column. Badge and yes/no columns are
      filterable by nature; anything else opts in with filter:true. */
@@ -325,15 +635,15 @@ class Component extends DCLogic {
     const blank = this.props.blank ? this.props.blank() : {};
     this._original = JSON.stringify(blank);
     this.lockScroll();
-    this.setState({ draft: blank, isNew: true, errors: {}, closeAttempted: false, historyOpen: false });
+    this.setState({ draft: blank, isNew: true, errors: {}, closeAttempted: false, historyOpen: false, sug: null });
   };
   startEdit = (row) => {
     const copy = {}; for (const k in row) copy[k] = row[k];
     this._original = JSON.stringify(copy);
     this.lockScroll();
-    this.setState({ draft: copy, isNew: false, errors: {}, closeAttempted: false, historyOpen: false });
+    this.setState({ draft: copy, isNew: false, errors: {}, closeAttempted: false, historyOpen: false, sug: null });
   };
-  closeEditor = () => { this.unlockScroll(); this.setState({ draft: null, errors: {}, closeAttempted: false }); };
+  closeEditor = () => { this.unlockScroll(); this.setState({ draft: null, errors: {}, closeAttempted: false, sug: null, dateOpen: null }); };
   isDirty = () => {
     if (!this.state.draft) return false;
     try { return JSON.stringify(this.state.draft) !== this._original; } catch (e) { return false; }
@@ -370,14 +680,59 @@ class Component extends DCLogic {
     this.unlockScroll();
     this.setState({ confirm: null });
   };
-  isoDate = (raw) => {
-    const s = String(raw || '');
-    const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    return m ? m[1] + '-' + m[2] + '-' + m[3] : '';
+  isoDate = (raw) => toIso(parseParts(raw));
+  writeDate = (raw, next) => {
+    const p = parseParts(next);
+    if (!p) return '';
+    return /^\d{4}-\d{2}-\d{2}/.test(String(raw || '').trim()) || !String(raw || '').trim()
+      ? toIso(p)
+      : boardDate(p);
+  };
+  toggleDate = (key, e) => {
+    const cur = this.state.dateOpen;
+    if (cur && cur.key === key) return this.setState({ dateOpen: null });
+    const btn = e && e.currentTarget;
+    const r = btn ? btn.getBoundingClientRect() : null;
+    const parsed = parseParts((this.state.draft || {})[key]) || (() => {
+      const n = new Date();
+      return { y: n.getFullYear(), m: n.getMonth(), d: n.getDate() };
+    })();
+    parsed.y = clampYear(parsed.y);
+    const top = r ? (r.bottom + 8) : 0;
+    let left = r ? r.left : 0;
+    if (r && left + 280 > window.innerWidth - 12) left = Math.max(12, window.innerWidth - 12 - 280);
+    this.setState({ dateOpen: { key, y: parsed.y, m: parsed.m, yDraft: String(parsed.y), top, left } });
+  };
+  setDateYear = (e) => {
+    const raw = String((e && e.target && e.target.value) || '').replace(/\D/g, '').slice(0, 4);
+    this.setState((s) => {
+      if (!s.dateOpen) return {};
+      const next = Object.assign({}, s.dateOpen, { yDraft: raw });
+      if (raw.length === 4) {
+        const y = clampYear(raw);
+        next.y = y;
+        next.yDraft = String(y);
+      }
+      return { dateOpen: next };
+    });
+  };
+  stepDateMonth = (n) => this.setState((s) => {
+    if (!s.dateOpen) return {};
+    let m = s.dateOpen.m + n, y = s.dateOpen.y;
+    if (m < 0) { m = 11; y -= 1; }
+    if (m > 11) { m = 0; y += 1; }
+    y = clampYear(y);
+    return { dateOpen: Object.assign({}, s.dateOpen, { y, m, yDraft: String(y) }) };
+  });
+  pickDate = (key, p) => {
+    const raw = (this.state.draft || {})[key];
+    const next = { y: clampYear(p.y), m: p.m, d: p.d };
+    this.setField(key, this.writeDate(raw, toIso(next)));
+    this.setState({ dateOpen: null });
   };
   startNested = () => {
     const blank = this.props.nestedBlank ? this.props.nestedBlank() : {};
-    this.setState({ nested: blank, nestedErrors: {} });
+    this.setState({ nested: blank, nestedErrors: {}, dateOpen: null });
   };
   closeNested = () => this.setState({ nested: null, nestedErrors: {} });
   setNestedField = (key, value) => this.setState((s) => {
@@ -400,10 +755,16 @@ class Component extends DCLogic {
     const target = this.props.nestedTargetKey || 'chauffeurIds';
     const id = rec.id ? String(rec.id) : '';
     if (id) {
-      const cur = String((this.state.draft || {})[target] || '');
-      const ids = cur.split(',').map((s) => s.trim()).filter(Boolean);
-      if (ids.indexOf(id) === -1) ids.push(id);
-      this.setField(target, ids.join(', '));
+      const targetField = (this.props.fields || []).filter((f) => f.key === target)[0];
+      const multi = !!(targetField && targetField.multi);
+      if (!multi) {
+        this.setField(target, id);
+      } else {
+        const cur = String((this.state.draft || {})[target] || '');
+        const ids = cur.split(',').map((s) => s.trim()).filter(Boolean);
+        if (ids.indexOf(id) === -1) ids.push(id);
+        this.setField(target, ids.join(', '));
+      }
     }
     this.setState({ nested: null, nestedErrors: {} });
   };
@@ -503,25 +864,71 @@ class Component extends DCLogic {
       const raw = d[f.key] !== undefined ? d[f.key] : f.value;
       const val = raw === undefined || raw === null ? '' : raw;
       const err = this.state.errors[f.key] || '';
+      const isDate = f.editor === 'date';
+      const isTime = f.editor === 'time';
+      const isYear = f.editor === 'year' || f.key === 'year';
+      const isPhone = f.editor === 'phone' || f.key === 'phone';
+      const minN = f.min === undefined ? 0 : f.min;
+      const num = parseInt(val, 10);
+      const nVal = isNaN(num) ? minN : num;
+      const open = this.state.dateOpen;
+      const dateOn = !!(open && open.key === f.key);
+      const parts = parseParts(val);
+      const viewY = dateOn ? open.y : (parts ? parts.y : new Date().getFullYear());
+      const viewM = dateOn ? open.m : (parts ? parts.m : new Date().getMonth());
+      const first = new Date(Date.UTC(viewY, viewM, 1));
+      const offset = (first.getUTCDay() + 6) % 7;
+      const dim = new Date(Date.UTC(viewY, viewM + 1, 0)).getUTCDate();
+      const days = [];
+      for (let i = 0; i < offset; i++) days.push({ label:'', on:'0', mute:'1', pick: () => {} });
+      for (let day = 1; day <= dim; day++) {
+        const p = { y: viewY, m: viewM, d: day };
+        const on = parts && parts.y === viewY && parts.m === viewM && parts.d === day;
+        days.push({
+          label: String(day),
+          on: on ? '1' : '0',
+          mute: '0',
+          pick: () => this.pickDate(f.key, p),
+        });
+      }
       return {
         label: f.label, hint: f.hint || '', hintShow: f.hint ? 'block' : 'none',
         placeholder: f.placeholder || '', suffix: f.suffix || '',
         error: err, required: !!f.required,
         span: f.half ? 'span 1' : 'span 2',
         icon: f.icon || 'settings',
-        min: f.min === undefined ? 0 : f.min,
+        min: minN,
         options: f.options || [],
         multi: !!f.multi,
         inputIcon: f.icon || FIELD_ICONS[f.key] || '',
-        isText: f.editor === undefined || f.editor === 'text',
+        isText: !isDate && !isTime && !isYear && !isPhone && (f.editor === undefined || f.editor === 'text'),
         isNumber: f.editor === 'number',
-        isDate: f.editor === 'date',
+        isYear, isPhone,
+        isDate, isTime,
         isSelect: f.editor === 'select',
         isSwitch: f.editor === 'switch',
         isArea: f.editor === 'area',
         isPhoto: f.editor === 'photo',
         value: String(val),
-        dateValue: this.isoDate(val),
+        dateLabel: parts ? boardDate(parts) : (f.placeholder || 'dd / mm / yyyy'),
+        dateEmpty: parts ? '0' : '1',
+        dateOpen: dateOn,
+        dateExpanded: dateOn ? 'true' : 'false',
+        monthName: MON_FULL[viewM],
+        yearValue: dateOn ? String(open.yDraft != null ? open.yDraft : open.y) : String(viewY),
+        setYear: (e) => this.setDateYear(e),
+        weekdays: WD_EN.map((label) => ({ label: label.slice(0, 2) })),
+        days,
+        popTop: (open && open.top) ? open.top + 'px' : '0px',
+        popLeft: (open && open.left) ? open.left + 'px' : '0px',
+        toggleDate: (e) => this.toggleDate(f.key, e),
+        prevMonth: () => this.stepDateMonth(-1),
+        nextMonth: () => this.stepDateMonth(1),
+        setTime: (e) => this.setField(f.key, maskTime(e.target.value)),
+        setYearDigits: (e) => this.setField(f.key, maskYear(e.target.value)),
+        setPhone: (e) => this.setField(f.key, maskPhone(e.target.value)),
+        inc: () => this.setField(f.key, Math.min(99, nVal + 1)),
+        dec: () => this.setField(f.key, Math.max(minN, nVal - 1)),
         checked: !!raw,
         hasAdd: !!f.addLabel,
         addLabel: f.addLabel || '',
@@ -534,11 +941,12 @@ class Component extends DCLogic {
         noPhoto: !(val && String(val).indexOf('data:') !== 0),
         clearShow: (val && String(val).indexOf('data:') !== 0) ? 'inline' : 'none',
         clearLabel: f.clearLabel || 'Remove',
-        set: (e) => this.setField(f.key, f.editor === 'number' ? parseInt(e.target.value, 10) || 0 : e.target.value),
-        setDate: (e) => this.setField(f.key, this.isoDate(e.target.value)),
-        dateInput: (e) => {
-          const next = String(e.target.value || '').replace(/[^\d-]/g, '');
-          if (next !== e.target.value) e.target.value = next;
+        set: (e) => {
+          const kind = this.suggestKind(f);
+          let next = f.editor === 'number' ? parseInt(e.target.value, 10) || 0 : e.target.value;
+          if (kind === 'ref') next = this.withVtPrefix(String(next));
+          this.setField(f.key, next);
+          if (kind) this.runSuggest(f.key, kind, String(next), e.target);
         },
         pick: (v) => { this.setField(f.key, v); if (f.onSelect) f.onSelect(v); },
         toggle: (e) => this.setField(f.key, e.target.checked),
@@ -601,6 +1009,8 @@ class Component extends DCLogic {
 
     return {
       n3: 3, n16: 16, n18: 18, n22: 22, yes: true,
+      showList: !(this.props.embedded === true || this.props.embedded === 'true' || this.props.embedded === '1' || this.props.embedded === 1 || this.props['embedded'] === '1'),
+      datePopRef: this._datePopRef,
       filterPanelOpen: !!openCol,
       filterPanelTitle: openCol ? openCol.header : '',
       filterOptions,
@@ -654,6 +1064,15 @@ class Component extends DCLogic {
       confirmBody: this.props.deleteBody || 'This removes it from the console for good.',
       confirmName: this.label(this.state.confirm || {}),
       cancelDelete: this.cancelDelete, confirmDelete: this.confirmDelete,
+      sugOpen: !!(this.state.sug && this.state.sug.items && this.state.sug.items.length),
+      sugPopRef: this._sugPopRef,
+      sugTop: (this.state.sug && this.state.sug.rect) ? (this.state.sug.rect.bottom + 8) + 'px' : '0px',
+      sugLeft: (this.state.sug && this.state.sug.rect) ? this.state.sug.rect.left + 'px' : '0px',
+      sugWidth: (this.state.sug && this.state.sug.rect) ? Math.max(this.state.sug.rect.width, 240) + 'px' : '240px',
+      sugItems: ((this.state.sug && this.state.sug.items) || []).map((s) => ({
+        label: s.label, note: s.note || '', noteShow: s.note ? 'block' : 'none',
+        pick: (e) => { if (e && e.preventDefault) e.preventDefault(); this.pickSug(s.value); },
+      })),
     };
   }
 }

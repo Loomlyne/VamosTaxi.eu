@@ -55,8 +55,10 @@ export const PATCH = withStaff(async (claims, request) => {
     if (!password.ok) return jsonErr(password.key, 400);
   }
 
-  if (typeof body.email === "string" && body.email.length > 0) {
-    const email = await changeOwnEmail(body.email);
+  const nextEmail = typeof body.email === "string" ? body.email.trim() : "";
+  const currentEmail = typeof claims.email === "string" ? claims.email.trim() : "";
+  if (nextEmail && nextEmail.toLowerCase() !== currentEmail.toLowerCase()) {
+    const email = await changeOwnEmail(nextEmail);
     if (!email.ok) return jsonErr(email.key, 400);
   }
 

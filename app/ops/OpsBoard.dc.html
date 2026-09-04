@@ -8,6 +8,12 @@
 </head>
 <body>
 <x-dc>
+<style>
+[data-vt-filt]{position:relative;display:inline-flex;flex:0 0 auto}
+[data-vt-filt-pop]{position:absolute;top:calc(100% + 6px);inset-inline-end:0;z-index:80;box-sizing:border-box;min-width:240px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg)}
+[data-vt-filt-lab]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-vt-filt-clear]{margin-top:4px}
+</style>
 <main style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
 <header style="display:flex;align-items:center;gap:22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle);flex-wrap:wrap">
 <div>
@@ -18,7 +24,7 @@
 <div style="width:280px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" icon="search" placeholder="{{ tSearchPh }}" hint-size="280px,44px"></x-import>
 </div>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" icon="plus" hint-size="150px,44px">{{ tNewBooking }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" icon="plus" onClick="{{ openNew }}" hint-size="150px,44px">{{ tNewBooking }}</x-import>
 </div>
 </header>
 <div style="padding:26px 32px 40px;display:flex;flex-direction:column;gap:24px;min-width:0">
@@ -49,9 +55,22 @@
 <sc-for list="{{ filters }}" as="f" hint-placeholder-count="5">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Tag" active="{{ f.active }}" onClick="{{ f.select }}" hint-size="110px,34px">{{ f.label }}</x-import>
 </sc-for>
-<div style="margin-left:auto;display:flex;gap:8px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="funnel" label="{{ tMoreFilters }}" variant="outline" size="sm" hint-size="36px,36px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="printer" label="{{ tExport }}" variant="outline" size="sm" hint-size="36px,36px"></x-import>
+<div style="margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+  <div data-vt-filt="1" ref="{{ filtRef }}">
+    <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" iconEnd="funnel" onClick="{{ toggleMore }}" hint-size="110px,36px">{{ tFilter }}</x-import>
+    <sc-if value="{{ moreOpen }}" hint-placeholder-val="{{ false }}">
+      <div data-vt-filt-pop="1" data-lenis-prevent="1">
+        <span data-vt-filt-lab="1">{{ tClassFilter }}</span>
+        <dc-import name="BrandSelect" size="field" icon="car" value="{{ classFilter }}" options="{{ classOptions }}" placeholder="{{ tClassFilter }}" onSelect="{{ setClass }}" a11y-label="{{ tClassFilter }}" hint-size="100%,44px"></dc-import>
+        <span data-vt-filt-lab="1">{{ tStatusFilter }}</span>
+        <dc-import name="BrandSelect" size="field" icon="settings" value="{{ statusFilter }}" options="{{ statusOptions }}" placeholder="{{ tStatusFilter }}" onSelect="{{ setStatus }}" a11y-label="{{ tStatusFilter }}" hint-size="100%,44px"></dc-import>
+        <span data-vt-filt-clear="1">
+          <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" block="{{ yes }}" onClick="{{ clearFilt }}" hint-size="100%,36px">{{ tClearFilt }}</x-import>
+        </span>
+      </div>
+    </sc-if>
+  </div>
+  <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" iconEnd="printer" onClick="{{ printBoard }}" hint-size="110px,36px">{{ tPrint }}</x-import>
 </div>
 </div>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Table" columns="{{ columns }}" rows="{{ pageRows }}" onRowClick="{{ openRow }}" hint-size="100%,320px"></x-import>
@@ -65,6 +84,7 @@
 </div>
 </x-import>
 </div>
+<dc-import name="OpsTable" embedded="1" open-tick="{{ addTick }}" rows="{{ editorRows }}" columns="{{ editorColumns }}" fields="{{ editorFields }}" blank="{{ editorBlank }}" onSave="{{ editorSave }}" onDelete="{{ editorDelete }}" noun="{{ tNoun }}" noun-plural="{{ tNounPlural }}" add-title="{{ tNewBooking }}" edit-title="{{ tEditBooking }}" delete-title="{{ tDeleteBooking }}" label-key="id" add-label="{{ tNewBooking }}" search-placeholder="{{ tSearchPh }}" search-keys="{{ editorSearchKeys }}" empty-title="{{ tEmptyTitle }}" empty-body="{{ tEmptyBody }}" delete-body="{{ tDeleteBody }}" nested-title="{{ tAddChauffeur }}" nested-fields="{{ nestedFields }}" nested-blank="{{ nestedBlank }}" nested-save-label="{{ tAddChauffeur }}" nested-target-key="chauffeur" on-nested-save="{{ onNestedSave }}" hint-size="100%,1px"></dc-import>
 </main>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900}}">
@@ -81,36 +101,61 @@ const T = {
   en: { bookings:'Bookings', ordered:'Ordered by pickup time', searchPh:'Reference, name, phone or address', newBooking:'New booking',
     pickupsToday:'Pickups today', pickupsFoot:'Ordered by pickup time', awaitingPayment:'Awaiting payment', awaitingFoot:'Needs a payment or cash confirmation',
     unassigned:'Unassigned', unassignedFoot:'No driver assigned yet', revenue:'Revenue, 7 days', revenueFoot:'Awaiting live Stripe data',
-    moreFilters:'More filters', export_:'Export CSV', showingRange:'Showing %a–%b of %c', showingNone:'Nothing to show',
+    moreFilters:'More filters', export_:'Export CSV', filter:'Filter', print:'Print', classFilter:'Class', allClasses:'All classes', statusFilter:'Status', allStatuses:'All statuses', clearFilt:'Clear', showingRange:'Showing %a–%b of %c', showingNone:'Nothing to show',
     prevPage:'Previous page', nextPage:'Next page', filterToday:'Today', filterTomorrow:'Tomorrow', filterUnassigned:'Unassigned', filterAwaiting:'Awaiting payment', filterCancelled:'Cancelled',
     colPickup:'Pickup', colRef:'Ref', colRoute:'Route', colVehicle:'Vehicle', colDriver:'Driver', colStatus:'Status', colTotal:'Total', unassignedCell:'Unassigned', bagsShort:'bags',
+    fRef:'Reference', fDate:'Date', fTime:'Pickup time', fCustomer:'Customer', fPickup:'Pickup address', fDropoff:'Drop-off address',
+    fClass:'Vehicle class', fPax:'Passengers', fBags:'Bags', fStatus:'Status', fChauffeur:'Chauffeur', fFlight:'Flight number', fNote:'Note',
+    none:'No chauffeur', addChauffeur:'Add a chauffeur', cName:'Name', cPhone:'Phone', cLicence:'Licence',
+    editBooking:'Edit booking', deleteBooking:'Delete this booking?', noun:'booking', nounPlural:'bookings',
+    emptyTitle:'Nothing booked', emptyBody:'Add a booking and it appears on this board.', deleteBody:'The booking is removed from the board.',
   },
   de: { bookings:'Buchungen', ordered:'Nach Abholzeit sortiert', searchPh:'Referenz, Name, Telefon oder Adresse', newBooking:'Neue Buchung',
     pickupsToday:'Abholungen heute', pickupsFoot:'Nach Abholzeit sortiert', awaitingPayment:'Zahlung ausstehend', awaitingFoot:'Benötigt Zahlungs- oder Barbestätigung',
     unassigned:'Nicht zugewiesen', unassignedFoot:'Noch kein Fahrer zugewiesen', revenue:'Umsatz, 7 Tage', revenueFoot:'Live-Stripe-Daten ausstehend',
-    moreFilters:'Weitere Filter', export_:'CSV exportieren', showingRange:'Zeigt %a–%b von %c', showingNone:'Nichts anzuzeigen',
+    moreFilters:'Weitere Filter', export_:'CSV exportieren', filter:'Filter', print:'Drucken', classFilter:'Klasse', allClasses:'Alle Klassen', statusFilter:'Status', allStatuses:'Alle Status', clearFilt:'Zurücksetzen', showingRange:'Zeigt %a–%b von %c', showingNone:'Nichts anzuzeigen',
     prevPage:'Vorherige Seite', nextPage:'Nächste Seite', filterToday:'Heute', filterTomorrow:'Morgen', filterUnassigned:'Nicht zugewiesen', filterAwaiting:'Zahlung ausstehend', filterCancelled:'Storniert',
     colPickup:'Abholung', colRef:'Ref.', colRoute:'Route', colVehicle:'Fahrzeug', colDriver:'Fahrer', colStatus:'Status', colTotal:'Total', unassignedCell:'Nicht zugewiesen', bagsShort:'Gepäck',
+    fRef:'Referenz', fDate:'Datum', fTime:'Abholzeit', fCustomer:'Kunde', fPickup:'Abholadresse', fDropoff:'Zieladresse',
+    fClass:'Fahrzeugklasse', fPax:'Passagiere', fBags:'Gepäck', fStatus:'Status', fChauffeur:'Chauffeur', fFlight:'Flugnummer', fNote:'Notiz',
+    none:'Kein Chauffeur', addChauffeur:'Chauffeur hinzufügen', cName:'Name', cPhone:'Telefon', cLicence:'Ausweis',
+    editBooking:'Buchung bearbeiten', deleteBooking:'Diese Buchung löschen?', noun:'Buchung', nounPlural:'Buchungen',
+    emptyTitle:'Nichts gebucht', emptyBody:'Buchung hinzufügen — sie erscheint auf diesem Board.', deleteBody:'Die Buchung verschwindet vom Board.',
   },
 };
 class Component extends DCLogic {
-  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', filter: 'Today', page: 0 };
+  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', filter: 'Today', page: 0, klass: '', statusMore: '', moreOpen: false, addTick: 0 };
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
     this._off = window.VamosOps.bookings.onChange(() => this.forceUpdate());
     this.forceUpdate();
   };
+  _filtRef = (el) => { this._filt = el; };
   componentWillUnmount() {
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     if (this._off) this._off();
+    if (this._filtAway) document.removeEventListener('mousedown', this._filtAway);
     clearTimeout(this._retry);
   }
   componentDidMount() {
     this.bind();
     this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
     window.addEventListener('vamos:locale', this._onLocale);
+    this._filtAway = (e) => {
+      if (!this.state.moreOpen) return;
+      if (this._filt && this._filt.contains(e.target)) return;
+      if (e.target && e.target.closest && e.target.closest('[data-vs-pop]')) return;
+      this.setState({ moreOpen: false });
+    };
+    document.addEventListener('mousedown', this._filtAway);
   }
   openRow = (row) => { location.hash = '#detail/' + encodeURIComponent(row.id); };
+  openNew = () => this.setState((s) => ({ addTick: (s.addTick || 0) + 1 }));
+  toggleMore = () => this.setState((s) => ({ moreOpen: !s.moreOpen }));
+  printBoard = () => { try { window.print(); } catch (e) {} };
+  setClass = (v) => this.setState({ klass: v || '', page: 0 });
+  setStatus = (v) => this.setState({ statusMore: v || '', page: 0 });
+  clearFilt = () => this.setState({ klass: '', statusMore: '', page: 0 });
   renderVals() {
     const t = T[this.state.lang] || T.en;
     const today = boardDate(new Date());
@@ -124,7 +169,19 @@ class Component extends DCLogic {
       { key:'Cancelled', label: t.filterCancelled, test:(b) => b.status === 'cancelled' },
     ];
     const active = FILTERS.find((f) => f.key === this.state.filter) || FILTERS[0];
-    const visibleRows = BOOKINGS.filter(active.test);
+    const klass = this.state.klass || '';
+    const statusMore = this.state.statusMore || '';
+    const visibleRows = BOOKINGS.filter(active.test).filter((b) => {
+      if (klass && b.klass !== klass) return false;
+      if (statusMore && b.status !== statusMore) return false;
+      return true;
+    });
+    const ops = window.VamosOps;
+    const classOptions = [{ value: '', label: t.allClasses }].concat(((ops && ops.VEHICLE_CLASSES) || ['Economy', 'Business', 'First', 'Van']).map((c) => ({ value: c, label: c })));
+    const statusOptions = [{ value: '', label: t.allStatuses }].concat(((ops && ops.BOOKING_STATUS) || []).map((s) => ({ value: s, label: s })));
+    const formClass = ((ops && ops.VEHICLE_CLASSES) || ['Economy', 'Business', 'First', 'Van']).map((c) => ({ value: c, label: c }));
+    const formStatus = ((ops && ops.BOOKING_STATUS) || []).map((s) => ({ value: s, label: s }));
+    const chauffeurOptions = ((ops && ops.chauffeurs && ops.chauffeurs.all) ? ops.chauffeurs.all() : []).map((c) => ({ value: c.id, label: c.name || c.id }));
     const PAGE_SIZE = 5;
     const pageCount = Math.max(1, Math.ceil(visibleRows.length / PAGE_SIZE));
     const page = Math.min(this.state.page || 0, pageCount - 1);
@@ -153,7 +210,7 @@ class Component extends DCLogic {
       };
     };
     return {
-      n18: 18,
+      n18: 18, yes: true,
       statCards: [
         card('Today', t.pickupsToday, pickupsToday, 'car-front', t.pickupsFoot),
         card('Awaiting payment', t.awaitingPayment, awaitingPayment, 'clock', t.awaitingFoot),
@@ -165,6 +222,10 @@ class Component extends DCLogic {
       tUnassigned: t.unassigned, vUnassigned: String(unassigned), tUnassignedFoot: t.unassignedFoot,
       tRevenue: t.revenue, tRevenueFoot: t.revenueFoot,
       tMoreFilters: t.moreFilters, tExport: t.export_,
+      tFilter: t.filter, tPrint: t.print, tClassFilter: t.classFilter, tStatusFilter: t.statusFilter, tClearFilt: t.clearFilt,
+      classFilter: klass, classOptions, setClass: this.setClass,
+      statusFilter: statusMore, statusOptions, setStatus: this.setStatus,
+      moreOpen: !!this.state.moreOpen, toggleMore: this.toggleMore, printBoard: this.printBoard, clearFilt: this.clearFilt,
       tShowing: visibleRows.length ? t.showingRange.replace('%a', showingFrom).replace('%b', showingTo).replace('%c', visibleRows.length) : t.showingNone,
       tPrevPage: t.prevPage, tNextPage: t.nextPage,
       pageRows,
@@ -190,6 +251,38 @@ class Component extends DCLogic {
         { key:'total', header: t.colTotal, width:'96px', align:'right', render: () => 'CHF 000' },
       ],
       visibleRows, openRow: this.openRow,
+      filtRef: this._filtRef, openNew: this.openNew, addTick: this.state.addTick || 0,
+      tNoun: t.noun, tNounPlural: t.nounPlural, tEditBooking: t.editBooking, tDeleteBooking: t.deleteBooking,
+      tEmptyTitle: t.emptyTitle, tEmptyBody: t.emptyBody, tDeleteBody: t.deleteBody, tAddChauffeur: t.addChauffeur,
+      editorRows: BOOKINGS,
+      editorColumns: [{ key:'id', header: t.colRef, width:'96px' }],
+      editorSearchKeys: ['id','customer','pickup','dropoff'],
+      editorBlank: () => (ops ? ops.bookings.blank() : {}),
+      editorSave: (rec) => { if (ops) ops.bookings.upsert(rec); },
+      editorDelete: (id) => { if (ops) ops.bookings.remove(id); },
+      editorFields: [
+        { key:'id', label:t.fRef, half:true, required:true, placeholder:'VT-0000' },
+        { key:'customer', label:t.fCustomer, half:true },
+        { key:'date', label:t.fDate, editor:'date', half:true, required:true },
+        { key:'time', label:t.fTime, editor:'time', half:true, placeholder:'00:00' },
+        { key:'pickup', label:t.fPickup },
+        { key:'dropoff', label:t.fDropoff },
+        { key:'klass', label:t.fClass, editor:'select', options:formClass, icon:'car', half:true },
+        { key:'status', label:t.fStatus, editor:'select', options:formStatus, icon:'settings', half:true },
+        { key:'pax', label:t.fPax, editor:'number', min:1, half:true },
+        { key:'bags', label:t.fBags, editor:'number', min:0, half:true },
+        { key:'chauffeur', label:t.fChauffeur, editor:'select', options:chauffeurOptions, icon:'user', half:true, addLabel:t.addChauffeur, emptyLabel:t.none },
+        { key:'flight', label:t.fFlight, half:true },
+        { key:'note', label:t.fNote, editor:'area' },
+      ],
+      nestedFields: [
+        { key:'name', label:t.cName, half:true, required:true },
+        { key:'phone', label:t.cPhone, half:true, placeholder:'+41 00 000 00 00' },
+        { key:'licence', label:t.cLicence, half:true },
+        { key:'status', label:t.fStatus, editor:'select', options:((ops && ops.CHAUFFEUR_STATUS) || []).map((s) => ({ value:s, label:s })), icon:'user', half:true },
+      ],
+      nestedBlank: () => (ops ? ops.chauffeurs.blank() : {}),
+      onNestedSave: (rec) => { if (ops) ops.chauffeurs.upsert(rec); },
     };
   }
 }

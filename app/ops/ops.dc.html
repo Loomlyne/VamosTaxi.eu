@@ -6,10 +6,9 @@
 <title>Vamos Taxi · Ops</title>
 <script>if(location.pathname.indexOf('/app/')===0)location.replace('/');</script>
 <script src="../support.js"></script>
-<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+<style>html,body{background:#F6F6F6;margin:0}</style>
 </head>
 <body>
-<div id="vt-boot-cover" aria-hidden="true"></div>
 <x-dc>
 <helmet>
 <link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
@@ -31,7 +30,6 @@
 <script src="../vamos-reviews.js"></script>
 <script src="../vamos-ops-api.js"></script>
 <script src="../vamos-ops-data.js"></script>
-<script src="../vamos-page-transition.js"></script>
 <style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
 .vt-input--focus{box-shadow:none}
 /* Button hover/press — colour step only, no shadow, no glow */
@@ -41,7 +39,7 @@
 .vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
 .vt-btn--secondary:hover:not([disabled]){background:var(--vt-charcoal-800)}
 .vt-btn--secondary:active:not([disabled]){transform:translateY(1px)}
-.vt-btn--ghost:hover:not([disabled]),.vt-btn--outline:hover:not([disabled]),.vt-btn--tertiary:hover:not([disabled]){background:var(--vt-grey-50);border-color:var(--vt-charcoal-900)}
+.vt-btn.vt-btn--ghost:hover:not([disabled]),.vt-btn.vt-btn--outline:hover:not([disabled]),.vt-btn.vt-btn--tertiary:hover:not([disabled]){background:var(--vt-grey-50);border-color:var(--vt-border-subtle)}
 .vt-btn--ghost:active:not([disabled]),.vt-btn--outline:active:not([disabled]),.vt-btn--tertiary:active:not([disabled]){transform:translateY(1px)}
 .vt-btn:focus-visible{box-shadow:var(--vt-ring)!important}
 .vt-btn[disabled],.vt-btn[aria-disabled="true"]{transform:none}.vt-select .vt-input--focus{box-shadow:none}
@@ -72,7 +70,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-act]{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:6px;flex:0 0 auto;margin-inline-start:auto;max-width:88px}
 @media (min-width:760px){[data-act]{flex-wrap:nowrap;max-width:none}}
 [data-ico-btn]{display:flex;align-items:center;justify-content:center;width:36px;height:36px;flex:0 0 auto;padding:0;border:1px solid var(--vt-border-subtle);border-radius:999px;background:var(--vt-bg-surface);color:var(--vt-text-secondary);cursor:pointer;transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1)}
-[data-ico-btn]:hover{background:var(--vt-grey-50);border-color:var(--vt-charcoal-900);color:var(--vt-charcoal-900)}
+[data-ico-btn]:hover{background:var(--vt-grey-50);border-color:var(--vt-border-subtle);color:var(--vt-charcoal-900)}
 [data-ico-btn]:active{transform:translateY(1px)}
 [data-ico-btn][disabled]{opacity:.42;cursor:not-allowed}
 [data-ico-btn][data-danger="1"]:hover{border-color:var(--vt-danger);color:var(--vt-danger)}
@@ -90,7 +88,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-thbtn]:hover,[data-thbtn][data-on="1"]{color:var(--vt-charcoal-900)}
 [data-thval]{display:inline-block;max-width:92px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;height:20px;line-height:20px;padding:0 8px;border-radius:999px;background:var(--vt-charcoal-900);color:var(--vt-accent);font-size:10px;letter-spacing:.08em}
 [data-tagbtn]{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 12px;border:1px solid var(--vt-border-subtle);border-radius:999px;background:var(--vt-white);cursor:pointer;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-secondary);transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1)}
-[data-tagbtn]:hover{border-color:var(--vt-charcoal-900);color:var(--vt-charcoal-900)}
+[data-tagbtn]:hover{border-color:var(--vt-border-subtle);color:var(--vt-charcoal-900)}
 [data-tagbtn]:active{transform:translateY(1px)}
 [data-tagbtn][data-on="1"]{background:var(--vt-charcoal-900);border-color:var(--vt-charcoal-900);color:var(--vt-text-inverse)}
 [data-tagcount]{font-size:10px;font-weight:600;color:var(--vt-text-muted)}

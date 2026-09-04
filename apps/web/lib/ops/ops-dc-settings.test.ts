@@ -163,6 +163,8 @@ describe("06-09 DC mocks", () => {
     expect(profile).toMatch(/this\.persist\(\{ avatar:json\.key \}\)/);
     expect(profile).toMatch(/this\.applyPersisted\(json\.data\)/);
     expect(profile).not.toMatch(/readAsDataURL|FileReader/);
-    expect(profile).toMatch(/readOnly="\{\{ yes \}\}"/);
+    expect(profile).toMatch(/profile\.apply/);
+    expect(profile).not.toMatch(/profile\.update\(/);
+    expect(profile).not.toMatch(/readOnly=/);
   });
 });

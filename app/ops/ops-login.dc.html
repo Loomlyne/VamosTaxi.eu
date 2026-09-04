@@ -5,16 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>if(location.pathname.indexOf('/app/')===0)location.replace('/login');</script>
 <script src="./support.js"></script>
-<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
-     injects every stylesheet and script from <helmet> only after React has loaded, so
-     without these the arriving document paints uncovered frames before
-     vamos-page-transition.js exists and can build its overlay. That script adopts
-     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
-     animation below is the fallback for when the script never runs. -->
-<style id="vt-boot">html{background:#1E1F1F}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#1E1F1F;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+<style>html,body{background:#1E1F1F;margin:0}</style>
 </head>
 <body>
-<div id="vt-boot-cover" aria-hidden="true"></div>
 <x-dc>
 <helmet>
 <link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
@@ -33,7 +26,6 @@
 <script src="../../assets/lenis-boot.js"></script>
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js"></script>
-<script src="../vamos-page-transition.js"></script>
 <style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
 .vt-input--focus{box-shadow:none}
 /* Button hover/press — colour step only, no shadow, no glow */

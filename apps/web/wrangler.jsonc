@@ -146,6 +146,55 @@
       // 2026-08-31 via `wrangler email sending enable vamostaxi.site`.
       "send_email": [{ "name": "EMAIL" }]
     },
+    // Isolated ops-preview Worker. Never bind vamostaxi.site /
+    // dashboard.vamostaxi.site. Never deploy this env onto
+    // vamos-web-staging.
+    "ops-changes": {
+      "name": "vamos-ops-changes",
+      "workers_dev": true,
+      "vars": {
+        "DEPLOY_ENV": "ops-changes",
+        "PRICING_PREVIEW": "true",
+        "MAPBOX_DAILY_UNIT_SENTINEL": "5000"
+      },
+      "kv_namespaces": [
+        { "binding": "GEO_CACHE", "id": "48cd800d63e44c03aa1f49be83d39d7a" },
+        { "binding": "QUOTE_ABUSE", "id": "5080f3d518c24eaeb7b0590c922349c2" }
+      ],
+      "r2_buckets": [
+        { "binding": "PHOTOS", "bucket_name": "vamos-photos-staging" }
+      ],
+      "placement": { "region": "aws:eu-central-2" },
+      "analytics_engine_datasets": [
+        { "binding": "DB_LATENCY", "dataset": "vamos_db_latency" },
+        { "binding": "QUOTE_ABUSE_METRICS", "dataset": "vamos_quote_abuse" }
+      ],
+      "ratelimits": [
+        {
+          "name": "QUOTE_RATE_LIMITER",
+          "namespace_id": "1003",
+          "simple": { "limit": 8, "period": 60 }
+        },
+        {
+          "name": "QUOTE_RATE_LIMITER_BARE",
+          "namespace_id": "1004",
+          "simple": { "limit": 4, "period": 60 }
+        }
+      ],
+      "hyperdrive": [
+        {
+          "binding": "HYPERDRIVE",
+          "id": "b53693800b7e4c1c94205774baa73420",
+          "localConnectionString": "postgres://vamos_public:***@127.0.0.1:54322/postgres"
+        },
+        {
+          "binding": "HYPERDRIVE_NOCACHE",
+          "id": "71523abbbb7542fdbff01f66d9a858ed",
+          "localConnectionString": "postgres://vamos_edge:***@127.0.0.1:54322/postgres"
+        }
+      ],
+      "images": { "binding": "IMAGES" }
+    },
     "production": {
       "name": "vamos-web-production",
       // Not deployed. Public traffic is vamostaxi.site on
