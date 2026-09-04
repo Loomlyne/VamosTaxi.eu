@@ -263,11 +263,11 @@ per-URL connection table below — a page with any mock leftover is not done.
 
 **Plans**: 05-01…26 executed. 05-19 not executed (partner out). 05-24 skipped (facts in 05-32). 05-27 executed, staging UAT open. 05-28 gated on that UAT.
 
-**Wave 12** *(remaining, parallel)*
-- [ ] 05-29-PLAN.md — Public GET `/api/reviews` + hide `#reviews` when empty
-- [ ] 05-30-PLAN.md — Delete home `FLIGHTS` fixtures
-- [ ] 05-31-PLAN.md — Drop `partner_applications` + leftover copy
-- [ ] 05-32-PLAN.md — Update `05-OWNER-CHECKS.md` (no dashboard re-clicks)
+**Wave 12** *(executed 2026-09-04)*
+- [x] 05-29-PLAN.md — Public GET `/api/reviews` + hide `#reviews` when empty
+- [x] 05-30-PLAN.md — Delete home `FLIGHTS` fixtures
+- [x] 05-31-PLAN.md — Drop `partner_applications` + leftover copy
+- [x] 05-32-PLAN.md — Update `05-OWNER-CHECKS.md` (no dashboard re-clicks)
 
 **Wave 13** *(blocked on Wave 12)*
 - [ ] 05-33-PLAN.md — Staging per-URL connection table (no quote POST, no contact submit)
