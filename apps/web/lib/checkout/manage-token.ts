@@ -4,7 +4,7 @@
 // Postgres stores only SHA-256 (`booking_access_tokens.token_hash`, 32 bytes).
 // No logging of any kind in this module — the omission is deliberate.
 
-import { base64urlEncode } from "../crypto/hmac";
+import { base64urlDecode, base64urlEncode } from "../crypto/hmac";
 
 export const MANAGE_COOKIE_NAME = "vt_manage";
 
@@ -34,4 +34,28 @@ export async function mintManageToken(): Promise<{ raw: string; hash: Uint8Array
  */
 export function manageTokenCookie(rawToken: string, maxAgeSeconds: number): string {
   return `${MANAGE_COOKIE_NAME}=${rawToken}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAgeSeconds}`;
+}
+
+function toHex(bytes: Uint8Array): string {
+  let out = "";
+  for (let i = 0; i < bytes.length; i++) {
+    out += bytes[i]!.toString(16).padStart(2, "0");
+  }
+  return out;
+}
+
+/**
+ * SHA-256 of the cookie's raw bytes, as 64 lowercase hex chars for
+ * `request.vamos.manage_token_hash`. Empty or undecodable input returns
+ * "" so the GUC is unset and RLS returns zero rows — never a throw.
+ */
+export async function hashManageToken(raw: string): Promise<string> {
+  if (!raw) return "";
+  try {
+    const bytes = new Uint8Array(base64urlDecode(raw));
+    const digest = await crypto.subtle.digest("SHA-256", bytes);
+    return toHex(new Uint8Array(digest));
+  } catch {
+    return "";
+  }
 }
