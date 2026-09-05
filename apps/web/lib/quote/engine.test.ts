@@ -94,6 +94,8 @@ function launchDoc(rateVersion: {
     rate_version: rateVersion,
     classes: [economy, business, van],
     distance_rates: nullRates(),
+    distance_bands: [],
+    region_premiums: [],
     fixed_routes: [],
     surcharges: [
       {

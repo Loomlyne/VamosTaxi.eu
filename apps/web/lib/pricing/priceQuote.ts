@@ -21,6 +21,7 @@ import {
   buildExtraLines,
   buildFareLine,
   buildLegSurchargeLines,
+  buildRegionPremiumLine,
   numberLines,
 } from "./lines";
 import {
@@ -193,8 +194,17 @@ function buildClassLines(
       distanceRate,
       fixedRoutes: classFixed,
       rateVersionId,
+      distanceBands: book.distance_bands,
     });
     raw.push(fare);
+
+    const region = buildRegionPremiumLine({
+      leg: journeyLeg,
+      fareLine: fare,
+      premiums: book.region_premiums,
+      rateVersionId,
+    });
+    if (region) raw.push(region);
 
     const surcharges = buildLegSurchargeLines({
       leg: journeyLeg,

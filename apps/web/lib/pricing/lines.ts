@@ -14,14 +14,17 @@
 // Min-fare is applied inside buildFareLine so no caller can surcharge a
 // below-minimum fare.
 
+import { blendedFareRappen } from "./bands";
 import { evaluatePredicate } from "./predicates";
 import { percentOf, percentToHundredths, perKm } from "./round";
 import type {
+  DistanceBandRow,
   DistanceRateRow,
   FixedRouteRow,
   Line,
   LineKind,
   QuoteLegInput,
+  RegionPremiumRow,
   SettingsSnapshot,
   SurchargeRow,
   VehicleClassRow,
@@ -126,6 +129,7 @@ export interface BuildFareLineArgs {
   distanceRate: DistanceRateRow | null;
   fixedRoutes: FixedRouteRow[];
   rateVersionId: number | null;
+  distanceBands?: DistanceBandRow[];
 }
 
 /**
@@ -134,7 +138,7 @@ export interface BuildFareLineArgs {
  * Min-fare bites inside the per_km branch only, before any surcharge can see it.
  */
 export function buildFareLine(args: BuildFareLineArgs): Line {
-  const { leg, vehicleClass, distanceRate, fixedRoutes, rateVersionId } = args;
+  const { leg, vehicleClass, distanceRate, fixedRoutes, rateVersionId, distanceBands } = args;
   const classId = vehicleClass.id;
   const slug = vehicleClass.slug as VehicleClassSlug;
   const origin = leg.origin_zone_id;
@@ -189,6 +193,38 @@ export function buildFareLine(args: BuildFareLineArgs): Line {
         ...(rateVersionId !== null ? { rate_version_id: rateVersionId } : {}),
       },
       amount_rappen: fixed.price_rappen,
+    };
+  }
+
+  const bands = distanceBands ?? [];
+  if (bands.length > 0) {
+    const minFare = distanceRate?.min_fare_rappen ?? null;
+    const distance_m = leg.distance_m;
+    const provisional = seqFor(leg.leg_seq, "fare", "distance_fare");
+    const amount = minFare === null ? null : blendedFareRappen(distance_m, minFare, bands);
+    return {
+      seq: provisional,
+      leg_seq: leg.leg_seq,
+      kind: "fare",
+      code: "distance_fare",
+      i18n_key: "price.line.transfer",
+      params: { vehicleClass: slug },
+      basis: {
+        rule: "blended_km",
+        distance_m,
+        min_fare_rappen: minFare,
+        min_fare_applied: minFare !== null && distance_m <= 20_000,
+        band_count: bands.length,
+      },
+      source_row:
+        distanceRate !== null
+          ? {
+              table: "distance_rates",
+              id: distanceRate.id,
+              ...(rateVersionId !== null ? { rate_version_id: rateVersionId } : {}),
+            }
+          : undefined,
+      amount_rappen: amount,
     };
   }
 
@@ -247,6 +283,55 @@ export function buildFareLine(args: BuildFareLineArgs): Line {
           },
         }
       : {}),
+    amount_rappen: amount,
+  };
+}
+
+export function buildRegionPremiumLine(args: {
+  leg: QuoteLegInput;
+  fareLine: Line;
+  premiums: RegionPremiumRow[];
+  rateVersionId: number | null;
+}): Line | null {
+  const { leg, fareLine, premiums, rateVersionId } = args;
+  const ids = [leg.origin_zone_id, leg.dest_zone_id].filter(
+    (id): id is string => typeof id === "string" && id.length > 0,
+  );
+  let best: RegionPremiumRow | null = null;
+  let bestHundredths = 0;
+  for (const row of premiums) {
+    if (!ids.includes(row.zone_id)) continue;
+    const asStr = percentString(row.percent);
+    if (asStr === null) continue;
+    const hundredths = percentToHundredths(asStr);
+    if (hundredths === null || hundredths <= bestHundredths) continue;
+    bestHundredths = hundredths;
+    best = row;
+  }
+  if (best === null || bestHundredths <= 0) return null;
+  const ofRappen = fareLine.amount_rappen;
+  const amount =
+    ofRappen === null ? null : percentOf(ofRappen, bestHundredths);
+  const provisional = seqFor(leg.leg_seq, "surcharge", "region_premium");
+  return {
+    seq: provisional,
+    leg_seq: leg.leg_seq,
+    kind: "surcharge",
+    code: "region_premium",
+    i18n_key: "price.surcharge.region_premium.label",
+    params: { n: 1 },
+    basis: {
+      rule: "percent",
+      of_line_seq: fareLine.seq,
+      of_rappen: ofRappen,
+      percent: best.percent,
+      why: { predicate: "either_zone", zone_id: best.zone_id },
+    },
+    source_row: {
+      table: "region_premiums",
+      id: best.id,
+      ...(rateVersionId !== null ? { rate_version_id: rateVersionId } : {}),
+    },
     amount_rappen: amount,
   };
 }

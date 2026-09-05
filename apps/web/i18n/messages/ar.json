@@ -739,7 +739,6 @@
     "accepted-for-delivery-and-will-be-reviewed": "قُبلت رسالتك للتسليم وستُراجع.",
     "already-have-a-booking": "لديك حجز بالفعل؟",
     "changes-cancellations-and-driver-details-are-all": "التعديلات والإلغاءات وبيانات السائق كلها داخل حجزك. فتحه فوري، بخلاف رسالة من هنا.",
-
     "everything-that-is-not-urgent": "كل ما ليس عاجلًا.",
     "faster-than-email-if-we-need-one-detail-from-you": "أسرع من البريد إن احتجنا تفصيلًا منك.",
     "fastest-for-anything-travelling-today": "الأسرع لأي رحلة اليوم.",
@@ -749,7 +748,6 @@
     "how-can-we-help": "كيف يمكننا المساعدة؟",
     "if-you-have-one": "— إن وُجد",
     "if-your-travel-is-sooner-than-that-call-us-on-th": ". وإن كان سفرك أقرب من ذلك، فاتصل بنا على الرقم المقابل.",
-
     "message-received": "تم استلام رسالتك",
     "my-flight-lands-two-hours-later-than-booked-does": "تهبط رحلتي بعد ساعتين من الموعد المحجوز. هل يتحرّك موعد الاستقبال تلقائيًا؟",
     "one-team-handles-bookings-changes-complaints-and": "فريق واحد يتولّى الحجوزات والتعديلات والشكاوى وكل ما عداها. أخبرنا بما تحتاجه واذكر رقم الحجز إن وُجد.",
@@ -2103,7 +2101,7 @@
         "noPasskey": "مفاتيح المرور غير معروضة. الطاقم يستخدم TOTP.",
         "noDelete": "حساب الطاقم لا يُحذف ذاتياً. المسؤول يعطّله كي يبقى أثر التدقيق محتفظاً بالفاعل."
       }
-    }    ,
+    },
     "spoken": {
       "en": "الإنجليزية",
       "de": "الألمانية",
@@ -2170,7 +2168,6 @@
     "chauffeurs-failure-photo": "مسار الصورة غير صالح",
     "chauffeurs-failure-vehicle": "هذه المركبة لم تعد في الأسطول",
     "chauffeurs-failure-error": "تعذر حفظ هذا السائق"
-
   },
   "partner": {
     "a-background-check-on-you-and-an-inspection-of-y": "فحص خلفيتك وفحص سيارتك. لا يحدث أيٌّ منهما هنا — وإن تقدّم طلبك، نرتّب كليهما معك ونطلب المستندات عندئذٍ.",
@@ -2321,6 +2318,10 @@
       "oversized_luggage": {
         "label": "أمتعة كبيرة الحجم",
         "rule": "لكل قطعة معلنة"
+      },
+      "region_premium": {
+        "label": "المنطقة",
+        "rule": "الاستلام أو التوصيل في منطقة محددة"
       }
     }
   },

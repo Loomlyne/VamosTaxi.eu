@@ -739,7 +739,6 @@
     "accepted-for-delivery-and-will-be-reviewed": "Ihre Nachricht wurde zur Zustellung angenommen und wird geprüft.",
     "already-have-a-booking": "Sie haben bereits eine Buchung?",
     "changes-cancellations-and-driver-details-are-all": "Änderungen, Stornierungen und Fahrerdaten stehen in Ihrer Buchung. Sie zu öffnen geht sofort — eine Nachricht hier nicht.",
-
     "everything-that-is-not-urgent": "Alles, was nicht dringend ist.",
     "faster-than-email-if-we-need-one-detail-from-you": "Schneller als E-Mail, wenn wir eine Angabe von Ihnen brauchen.",
     "fastest-for-anything-travelling-today": "Am schnellsten für alles, was heute unterwegs ist.",
@@ -749,7 +748,6 @@
     "how-can-we-help": "Wie können wir helfen?",
     "if-you-have-one": "— falls vorhanden",
     "if-your-travel-is-sooner-than-that-call-us-on-th": ". Reisen Sie früher, rufen Sie uns unter der Nummer gegenüber an.",
-
     "message-received": "Nachricht erhalten",
     "my-flight-lands-two-hours-later-than-booked-does": "Mein Flug landet zwei Stunden später als gebucht. Verschiebt sich die Abholung automatisch?",
     "one-team-handles-bookings-changes-complaints-and": "Ein Team bearbeitet Buchungen, Änderungen, Reklamationen und alles andere. Sagen Sie, was Sie brauchen, und nennen Sie eine Referenz, falls vorhanden.",
@@ -2103,7 +2101,7 @@
         "noPasskey": "Passkeys werden nicht angeboten. Personal nutzt TOTP.",
         "noDelete": "Ein Staff-Konto loescht man nicht selbst. Ein Admin deaktiviert es, damit der Audit-Trail den Akteur behaelt."
       }
-    }    ,
+    },
     "spoken": {
       "en": "Englisch",
       "de": "Deutsch",
@@ -2170,7 +2168,6 @@
     "chauffeurs-failure-photo": "Dieser Fotopfad ist ungültig",
     "chauffeurs-failure-vehicle": "Dieses Fahrzeug ist nicht mehr in der Flotte",
     "chauffeurs-failure-error": "Chauffeur konnte nicht gespeichert werden"
-
   },
   "partner": {
     "a-background-check-on-you-and-an-inspection-of-y": "Eine Hintergrundprüfung zu Ihrer Person und eine Kontrolle Ihres Fahrzeugs. Beides passiert nicht hier — geht Ihre Bewerbung weiter, vereinbaren wir beides mit Ihnen und verlangen dann die Dokumente.",
@@ -2321,6 +2318,10 @@
       "oversized_luggage": {
         "label": "Übergrosses Gepäck",
         "rule": "Pro angegebenes Stück"
+      },
+      "region_premium": {
+        "label": "Region",
+        "rule": "Abholung oder Ziel in einer benannten Region"
       }
     }
   },

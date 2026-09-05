@@ -111,6 +111,8 @@ function launchBook(overrides?: {
       rateRow({ vehicle_class_id: business.id, id: 11 }),
       rateRow({ vehicle_class_id: van.id, id: 12, max_pax: 8 }),
     ],
+    distance_bands: [],
+    region_premiums: [],
     fixed_routes: overrides?.fixed_routes ?? [],
     surcharges: overrides?.surcharges ?? [
       surcharge({
@@ -187,6 +189,8 @@ function pricedBook(): RateBook {
         min_fare_rappen: 1000,
       }),
     ],
+    distance_bands: [],
+    region_premiums: [],
     fixed_routes: [],
     surcharges: [
       surcharge({

@@ -59,6 +59,23 @@ export interface DistanceRateRow {
   available: boolean;
 }
 
+/** One blended km band. from_km exclusive start; to_km inclusive, null = open. */
+export interface DistanceBandRow {
+  id: number;
+  rate_version_id: number;
+  from_km: number;
+  to_km: number | null;
+  per_km_rappen: number;
+}
+
+/** Region percent when pickup or dropoff is this zone. */
+export interface RegionPremiumRow {
+  id: number;
+  rate_version_id: number;
+  zone_id: string;
+  percent: number | string;
+}
+
 /** fixed_routes row. */
 export interface FixedRouteRow {
   id: number;
@@ -110,6 +127,8 @@ export interface RateBook {
   rate_version: { id: number; slug: string } | null;
   classes: VehicleClassRow[];
   distance_rates: DistanceRateRow[];
+  distance_bands: DistanceBandRow[];
+  region_premiums: RegionPremiumRow[];
   fixed_routes: FixedRouteRow[];
   surcharges: SurchargeRow[];
   zones: ZoneRow[];

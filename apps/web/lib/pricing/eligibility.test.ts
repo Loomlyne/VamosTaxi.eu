@@ -110,6 +110,8 @@ function seededBook(overrides?: {
     rate_version: { id: 1, slug: "draft-v1" },
     classes: [economy, business, van],
     distance_rates,
+    distance_bands: [],
+    region_premiums: [],
     fixed_routes,
     surcharges: [],
     zones: [],
