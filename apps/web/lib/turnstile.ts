@@ -13,7 +13,7 @@ import { log } from "./logger";
 const SITEVERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 const SITEVERIFY_TIMEOUT_MS = 2_000;
 
-export type TurnstileAction = "contact";
+export type TurnstileAction = "contact" | "checkout";
 
 export type TurnstileResult = { ok: true } | { ok: false; codes: string[] };
 

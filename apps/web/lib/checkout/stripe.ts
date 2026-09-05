@@ -132,3 +132,38 @@ export async function createRefund(
     { idempotencyKey: input.idempotencyKey },
   );
 }
+
+/**
+ * Adaptive Pricing presentment vs CHF charge, read off the Checkout Session.
+ * `fxQuotedAt` is null here — webhook settlement writes the FX quadruple
+ * with Stripe's timestamps, not the Worker clock.
+ */
+export function fxFromSession(session: Stripe.Checkout.Session): {
+  chargedCurrency: string;
+  fxRate: number | null;
+  fxSource: string | null;
+  fxQuotedAt: string | null;
+  presentmentAmountMinor: number | null;
+} {
+  const chargedCurrency = (session.currency ?? CHARGE_CURRENCY).toUpperCase();
+  const conversion = session.currency_conversion;
+  if (!conversion) {
+    return {
+      chargedCurrency,
+      fxRate: null,
+      fxSource: null,
+      fxQuotedAt: null,
+      presentmentAmountMinor: null,
+    };
+  }
+  const rawRate = conversion.fx_rate;
+  const rate = typeof rawRate === "number" ? rawRate : rawRate ? Number(rawRate) : null;
+  return {
+    chargedCurrency,
+    fxRate: rate !== null && Number.isFinite(rate) ? rate : null,
+    fxSource: "stripe_adaptive_pricing",
+    fxQuotedAt: null,
+    presentmentAmountMinor:
+      typeof conversion.amount_total === "number" ? conversion.amount_total : null,
+  };
+}
