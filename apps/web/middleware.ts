@@ -408,5 +408,8 @@ export const config = {
   // Unchanged for 06-03: `/ops/*` (and `/de/ops` etc.) already match this
   // pattern — the negative lookahead only excludes `api`, `_next`, `_vercel`,
   // and dotted filenames.
+  //
+  // Phase 7: `/api/stripe/webhook` is under `/api/*`, so this matcher never
+  // reads the body. constructEventAsync needs the exact bytes Stripe signed.
   matcher: ["/((?!api|_next|_vercel|.*\\..*).*)"],
 };

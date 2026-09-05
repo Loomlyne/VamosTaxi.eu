@@ -232,8 +232,9 @@ interface CloudflareEnv {
   SEND_EMAIL_HOOK_SECRET?: string;
 
   /**
-   * Resend API key (plans 05-12, 05-13). OPTIONAL — owner-gated. `wrangler secret put`.
-   * Never in wrangler.jsonc `vars`. Distinct from the forbidden client-bundle substring.
+   * Resend API key. REQUIRED for confirmation send (plan 07-07 Queue consumer
+   * via `@vamos/emails`). `wrangler secret put RESEND_API_KEY`. Never in
+   * wrangler.jsonc `vars`. Never `NEXT_PUBLIC_*`.
    */
   RESEND_API_KEY?: string;
 

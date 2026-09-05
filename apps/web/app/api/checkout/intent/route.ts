@@ -4,7 +4,7 @@
 // Business rules live in lib/checkout/intent.ts. The write is createBooking.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { asQuote } from "@/lib/db/identity";
+import { asCheckout, asQuote } from "@/lib/db/identity";
 import { checkoutIntentSchema } from "@/lib/checkout/intent-schema";
 import { refuse } from "@/lib/checkout/errors";
 import { runCheckoutIntent } from "@/lib/checkout/intent";
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
     createCheckoutSession: (input) => createCheckoutSession(stripe, input),
     expireCheckoutSession: (id) => expireCheckoutSession(stripe, id).then(() => undefined),
     retrieveCheckoutSession: (id) => retrieveCheckoutSession(stripe, id),
-    createBooking: (args) => createBooking(env, null, args),
+    createBooking: (args) => asCheckout(env, null, (sql) => createBooking(sql, args)),
     publishableKey: stripePublishableKey(env),
     returnUrl: `${origin}/${body.locale}/checkout`,
     checkoutWindowMinutes: 30,
