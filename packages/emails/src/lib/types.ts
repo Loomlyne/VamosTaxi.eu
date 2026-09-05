@@ -33,7 +33,7 @@ export type BookingForEmail = {
 };
 
 /**
- * Mirrors `notification_settle`'s exactly-one-of-two contract so the consumer
+ * Mirrors the settle RPC's exactly-one-of-two contract so the consumer
  * cannot pass both a provider id and an error.
  */
 export type SendOutcome =
