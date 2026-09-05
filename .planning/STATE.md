@@ -4,8 +4,8 @@ milestone: v1.1
 milestone_name: Ops Support
 status: executing
 stopped_at: v1.1 roadmap Phases 12–16 written; next is discuss/plan Phase 12
-last_updated: "2026-09-05T22:00:00.000Z"
-last_activity: 2026-09-05 -- 07-09 confirmation poll complete; next 07-10
+last_updated: "2026-09-06T12:00:00.000Z"
+last_activity: 2026-09-06 -- 07-10 offline PAY-05 + D-27 B; live charge waits on owner matrix
 progress:
   total_phases: 16
   completed_phases: 5
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-09-04)
 
 Phase: 7 (Checkout & Payment) — EXECUTING
 Plan: 10 of 10
-Status: Executing Phase 7 — 07-01 through 07-09 done
-Last activity: 2026-09-05 -- 07-09 confirmation poll complete; next 07-10
+Status: Executing Phase 7 — 07-01 through 07-10 landed; live Stripe E2E waits on D-46 matrix
+Last activity: 2026-09-06 -- 07-10 offline PAY-05 + D-27 B; live charge waits on owner matrix
 
 ## Performance Metrics
 
