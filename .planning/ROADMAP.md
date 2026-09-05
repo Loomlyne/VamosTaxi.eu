@@ -47,6 +47,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Data Schema, RLS & Staff Auth Foundations** - Postgres mirrors the VamosOps contract with RLS everywhere and invited, MFA-gated staff auth
 - [x] **Phase 3: Hyperdrive Data Access Wiring** - The Worker reaches Postgres through Hyperdrive, fast and safely isolated per request
 - [ ] **Phase 4: Quote & Pricing Engine** - The booking widget returns a real, locked, server-priced quote for any eligible route
+- [ ] **Phase 4.3: Blended distance bands + OPS rate book (INSERTED)** - Sheet-2 km bands, class floors, region %; OPS Pricing is the editor; live only after Publish
 - [ ] **Phase 5: Public Surfaces & Customer Accounts** - Every public mock is a live route on real data, and customers can create and access accounts
 - [x] **Phase 6: Ops Reference Data & Content Console** - Staff manage the reference data and content that power the public site (replanned 2026-09-01 — DC mock is the product) (completed 2026-09-01)
 - [ ] **Phase 7: Checkout & Payment** - A customer pays for a locked quote and receives a webhook-confirmed booking
@@ -257,6 +258,22 @@ Plans:
 
 - [ ] 04-14-PLAN.md — The rules Phase 7's handler must obey, and the ledger that keeps this phase's open questions
 **UI hint**: yes
+
+### Phase 4.3: Blended distance bands + OPS rate book (INSERTED)
+
+**Goal**: The owner Switzerland matrix (blended km bands, three class floors, region %) is editable on OPS Pricing & Routes and becomes the live quote only after Publish. Stripe charges the quote snapshot. No invented fare. No live row from a migration.
+**Depends on**: Phase 4 kernel + Phase 6 OpsPricing
+**Does not steal**: Phase 7 stays paused on the live charge; Phase 12 stays v1.1 current in STATE. Do not `state.begin-phase`.
+**Success Criteria** (what must be TRUE):
+
+  1. Economy 15/40/70/120 km with no region % quotes 80 / 156 / 262 / 428 (rappen-equivalent) from the kernel.
+  2. A matching pickup or dropoff zone adds the one highest region %. Night/extra-stop/child-seat are not charged until the owner adds them in OPS.
+  3. Staff edit floors, bands, and region % on OpsPricing; Save writes draft; Publish is still `draft → live`.
+  4. No `rate_versions` row is inserted `live` by a migration. Public UI stays `CHF 000` until the owner publishes.
+
+**Plans**: 1 plan
+
+- [ ] 04.3-01-PLAN.md — schema + kernel + OPS editor + draft-only seed
 
 ### Phase 5: Public Surfaces & Customer Accounts
 
