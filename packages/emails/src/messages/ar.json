@@ -1,0 +1,18 @@
+{
+  "subject": "تم تأكيد الحجز {reference}",
+  "preheader": "تم حجز سائقك. أظهر هذا القسيمة أو أعطِ اسمك.",
+  "headline": "تم حجز سائقك",
+  "referenceLabel": "الحجز",
+  "fromLabel": "من",
+  "toLabel": "إلى",
+  "pickupDetail": "الوصول — ينتظرك السائق ومعه اسمك",
+  "timeLabel": "الاستلام",
+  "vehicleLabel": "المركبة",
+  "paxLine": "{pax} ركاب · {bags} حقائب",
+  "paidTotal": "مدفوع",
+  "manageBooking": "إدارة الحجز",
+  "calendarNote": "دعوة تقويم مرفقة بهذا البريد.",
+  "cancellationLine": "إلغاء مجاني حتى 24 ساعة قبل الاستلام عبر رابط إدارة الحجز.",
+  "dispatchPhone": "التشغيل {phone}",
+  "footer": "فاموس تاكسي · زيورخ"
+}

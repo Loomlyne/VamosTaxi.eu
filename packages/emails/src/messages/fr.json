@@ -1,0 +1,18 @@
+{
+  "subject": "Réservation {reference} confirmée",
+  "preheader": "Votre chauffeur est réservé. Montrez ce bon ou donnez votre nom.",
+  "headline": "Votre chauffeur est réservé",
+  "referenceLabel": "Réservation",
+  "fromLabel": "De",
+  "toLabel": "À",
+  "pickupDetail": "Arrivées — votre chauffeur vous attend avec votre nom",
+  "timeLabel": "Prise en charge",
+  "vehicleLabel": "Véhicule",
+  "paxLine": "{pax} passagers · {bags} bagages",
+  "paidTotal": "Payé",
+  "manageBooking": "GÉRER LA RÉSERVATION",
+  "calendarNote": "Une invitation calendrier est jointe à cet e-mail.",
+  "cancellationLine": "Annulation gratuite jusqu'à 24 heures avant la prise en charge via le lien de gestion.",
+  "dispatchPhone": "Dispatch {phone}",
+  "footer": "Vamos Taxi · Zurich"
+}

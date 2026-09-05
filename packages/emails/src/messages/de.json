@@ -1,0 +1,18 @@
+{
+  "subject": "Buchung {reference} ist bestätigt",
+  "preheader": "Ihr Fahrer ist gebucht. Zeigen Sie diesen Gutschein oder nennen Sie Ihren Namen.",
+  "headline": "Ihr Fahrer ist gebucht",
+  "referenceLabel": "Buchung",
+  "fromLabel": "Von",
+  "toLabel": "Nach",
+  "pickupDetail": "Ankunft — Ihr Fahrer wartet mit Ihrem Namen",
+  "timeLabel": "Abholung",
+  "vehicleLabel": "Fahrzeug",
+  "paxLine": "{pax} Passagiere · {bags} Gepäckstücke",
+  "paidTotal": "Bezahlt",
+  "manageBooking": "BUCHUNG VERWALTEN",
+  "calendarNote": "Eine Kalendereinladung ist dieser E-Mail beigelegt.",
+  "cancellationLine": "Kostenlose Stornierung bis 24 Stunden vor Abholung über den Link zur Buchungsverwaltung.",
+  "dispatchPhone": "Dispatch {phone}",
+  "footer": "Vamos Taxi · Zürich"
+}
