@@ -80,10 +80,27 @@ export default async function ConfirmationPage({
         bags: 0,
       };
     } else {
-      const read = await readBookingForConfirmation(env, raw, ref);
-      if (read.visible) {
-        booking = read;
-        initialPhase = isVoucherStatus(read.status) ? "confirmed" : "processing";
+      try {
+        const read = await readBookingForConfirmation(env, raw, ref);
+        if (read.visible) {
+          booking = read;
+          initialPhase = isVoucherStatus(read.status) ? "confirmed" : "processing";
+        }
+      } catch {
+        // Cookie is present; identity failed (no Hyperdrive in `next dev`).
+        // Poller still owns status. Never 500 a guest return URL.
+        initialPhase = "processing";
+        booking = {
+          visible: true,
+          reference: ref,
+          status: "pending",
+          pickupText: "",
+          dropoffText: "",
+          scheduledLocal: "",
+          vehicleClassId: "",
+          pax: 0,
+          bags: 0,
+        };
       }
     }
   }

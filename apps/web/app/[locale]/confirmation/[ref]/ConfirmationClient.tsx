@@ -29,12 +29,12 @@ export const POLL_INTERVAL_MS = 2000;
 export const POLL_BACKOFF_MAX_MS = 8000;
 
 /**
- * Give-up window. Must exceed the Queue consumer's 8 retries plus the
- * payment_not_found hold: 8 attempts at the default delay sit well
- * under four minutes. A shorter window would flash give-up while
- * settle is still in flight.
+ * Give-up window. Queue `max_retries` is 8 and settlement continues
+ * after the spinner stops; the copy tells the guest to wait for email
+ * rather than sit on a four-minute spinner. 30s covers several poll
+ * ticks plus a slow first hop.
  */
-export const POLL_GIVE_UP_MS = 4 * 60 * 1000;
+export const POLL_GIVE_UP_MS = 30_000;
 
 export type ConfirmationFacts = {
   reference: string;
@@ -75,15 +75,10 @@ export function ConfirmationClient({
     let stopped = false;
     let timeoutId = 0;
     let delay = POLL_INTERVAL_MS;
-    const started = Date.now();
 
     async function tick() {
       if (stopped) return;
       if (typeof document !== "undefined" && document.hidden) return;
-      if (Date.now() - started >= POLL_GIVE_UP_MS) {
-        setPhase("give-up");
-        return;
-      }
       try {
         const res = await fetch(`/api/checkout/status/${encodeURIComponent(reference)}`, {
           cache: "no-store",
@@ -115,9 +110,13 @@ export function ConfirmationClient({
 
     document.addEventListener("visibilitychange", onVisibility);
     timeoutId = window.setTimeout(tick, POLL_INTERVAL_MS);
+    const giveUpId = window.setTimeout(() => {
+      if (!stopped) setPhase("give-up");
+    }, POLL_GIVE_UP_MS);
     return () => {
       stopped = true;
       window.clearTimeout(timeoutId);
+      window.clearTimeout(giveUpId);
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [phase, reference]);
