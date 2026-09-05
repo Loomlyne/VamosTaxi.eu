@@ -30,7 +30,6 @@ const DC_PAGES: Record<string, string> = {
   "/sign-in": "/app/pages/sign-in.html",
   "/sign-up": "/app/pages/sign-in.html",
   "/reset-password": "/app/pages/reset-password.html",
-  "/checkout": "/app/pages/checkout.html",
   "/confirmation": "/app/pages/confirmation.html",
   "/manage-booking": "/app/pages/manage-booking.html",
   "/account": "/app/pages/account.html",

@@ -17,32 +17,43 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return { title: t("who-is-travelling") };
 }
 
+function workerEnv(): CloudflareEnv | null {
+  try {
+    return getCloudflareContext().env;
+  } catch {
+    return null;
+  }
+}
+
 export default async function CheckoutPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const { env } = getCloudflareContext();
+  // Header Book CTA stays visible — the mock sets no cta="{{ no }}" on checkout.
+  const env = workerEnv();
 
   let freeCancelHours: number | null = null;
   let checkoutWindowMinutes: number | null = null;
-  try {
-    const rows = await asQuote(env, (sql) =>
-      sql<{ free_cancel_hours: number; checkout_window_minutes: number }[]>`
-        select free_cancel_hours, checkout_window_minutes
-          from public.quote_settings_version()
-      `,
-    );
-    const row = rows[0];
-    if (row) {
-      freeCancelHours = row.free_cancel_hours;
-      checkoutWindowMinutes = row.checkout_window_minutes;
+  if (env) {
+    try {
+      const rows = await asQuote(env, (sql) =>
+        sql<{ free_cancel_hours: number; checkout_window_minutes: number }[]>`
+          select free_cancel_hours, checkout_window_minutes
+            from public.quote_settings_version()
+        `,
+      );
+      const row = rows[0];
+      if (row) {
+        freeCancelHours = row.free_cancel_hours;
+        checkoutWindowMinutes = row.checkout_window_minutes;
+      }
+    } catch {
+      // TBC pills stay TBC (D-24). Never invent hours.
     }
-  } catch {
-    // TBC pills stay TBC (D-24). Never invent hours.
   }
 
   const publishableKey =
-    env.STRIPE_PUBLISHABLE_KEY && env.STRIPE_PUBLISHABLE_KEY !== "pk_test_placeholder"
+    env?.STRIPE_PUBLISHABLE_KEY && env.STRIPE_PUBLISHABLE_KEY !== "pk_test_placeholder"
       ? env.STRIPE_PUBLISHABLE_KEY
       : "";
 
@@ -51,7 +62,7 @@ export default async function CheckoutPage({ params }: { params: Promise<{ local
       locale={locale}
       freeCancelHours={freeCancelHours}
       checkoutWindowMinutes={checkoutWindowMinutes}
-      turnstileSiteKey={env.TURNSTILE_SITE_KEY}
+      turnstileSiteKey={env?.TURNSTILE_SITE_KEY}
       publishableKey={publishableKey}
     />
   );

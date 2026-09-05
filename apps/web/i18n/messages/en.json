@@ -397,8 +397,6 @@
     "call-dispatch": "Call dispatch",
     "cancel-free-of-charge-up-to-24-hours-before-pick": "Cancel free of charge up to 24 hours before pickup, or move the time from the manage-booking link in your email.",
     "card-apple-pay-or-twint": "Card, Apple Pay or TWINT",
-    "cash-to-driver": "cash to driver",
-    "cash-to-the-driver": "Cash to the driver",
     "change-vehicle": "Change vehicle",
     "changed-plans": "Changed plans?",
     "charged-now-secured-by-stripe": "Charged now, secured by Stripe",
@@ -432,7 +430,6 @@
     "voucher-resent": "Voucher resent.",
     "we-track-the-flight-and-hold-the-driver-if-you-l": "We track the flight and hold the driver if you land late",
     "who-is-travelling": "Who is travelling",
-    "you-are-redirected-to-paypal-to-approve": "You are redirected to PayPal to approve",
     "you-can-claim-the-booking-into-an-account-later": "You can claim the booking into an account later",
     "your-confirmation-and-voucher-go-here": "Your confirmation and voucher go here",
     "airline": "Airline",
@@ -641,7 +638,6 @@
     "hide-password": "Hide password",
     "show-password": "Show password",
     "payment": "Payment",
-    "payments-luxembourg-only-if-paypal-is-switched-o": "Payments · Luxembourg — only if PayPal is switched on",
     "payments-zurich-only-if-twint-is-switched-on": "Payments · Zurich — only if TWINT is switched on",
     "per-seat-per-journey": "Per seat, per journey",
     "per-stop-inside-route-corridor": "Per stop, inside route corridor",
@@ -751,7 +747,8 @@
     "zurich-city": "Zurich city",
     "zurich-geneva": "Zurich · Geneva",
     "form-submit-failed": "Something went wrong. Try again, or call us if it keeps happening.",
-    "form-challenge-failed": "The check did not go through. Try again."
+    "form-challenge-failed": "The check did not go through. Try again.",
+    "payments-luxembourg-only-if-wallet-is-switched-on": "Payments · Luxembourg — only if that extra method is switched on"
   },
   "contact": {
     "8953-dietikon-zh-switzerland-post-only-this-is-n": "8953 Dietikon ZH, Switzerland. Post only — this is not a passenger office.",

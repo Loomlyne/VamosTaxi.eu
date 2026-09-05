@@ -397,8 +397,6 @@
     "call-dispatch": "اتصل بغرفة العمليات",
     "cancel-free-of-charge-up-to-24-hours-before-pick": "ألغِ مجانًا حتى 24 ساعة قبل الاستقبال، أو عدّل الموعد من رابط إدارة الحجز في بريدك.",
     "card-apple-pay-or-twint": "بطاقة أو Apple Pay أو TWINT",
-    "cash-to-driver": "نقدًا للسائق",
-    "cash-to-the-driver": "نقدًا للسائق",
     "change-vehicle": "تغيير المركبة",
     "changed-plans": "تغيّرت خططك؟",
     "charged-now-secured-by-stripe": "يُخصم الآن، بحماية Stripe",
@@ -432,7 +430,6 @@
     "voucher-resent": "أُعيد إرسال القسيمة.",
     "we-track-the-flight-and-hold-the-driver-if-you-l": "نتابع الرحلة ونُبقي السائق إن تأخّر هبوطك",
     "who-is-travelling": "من المسافر",
-    "you-are-redirected-to-paypal-to-approve": "يتم تحويلك إلى PayPal للموافقة",
     "you-can-claim-the-booking-into-an-account-later": "يمكنك ربط الحجز بحساب لاحقًا",
     "your-confirmation-and-voucher-go-here": "يُرسل التأكيد والقسيمة إلى هنا",
     "airline": "شركة الطيران",
@@ -641,7 +638,6 @@
     "hide-password": "إخفاء كلمة المرور",
     "show-password": "إظهار كلمة المرور",
     "payment": "الدفع",
-    "payments-luxembourg-only-if-paypal-is-switched-o": "المدفوعات · لوكسمبورغ — فقط إن كان PayPal مفعّلًا",
     "payments-zurich-only-if-twint-is-switched-on": "المدفوعات · زيورخ — فقط إن كان TWINT مفعّلًا",
     "per-seat-per-journey": "لكل مقعد ولكل رحلة",
     "per-stop-inside-route-corridor": "لكل محطة داخل ممر المسار",
@@ -751,7 +747,8 @@
     "zurich-city": "مدينة زيورخ",
     "zurich-geneva": "زيورخ · جنيف",
     "form-submit-failed": "حدث خطأ. حاول مرة أخرى، أو اتصل بنا إن استمر.",
-    "form-challenge-failed": "لم يكتمل التحقق. حاول مرة أخرى."
+    "form-challenge-failed": "لم يكتمل التحقق. حاول مرة أخرى.",
+    "payments-luxembourg-only-if-wallet-is-switched-on": "المدفوعات · لوكسمبورغ — فقط إذا كانت الطريقة الإضافية مفعّلة"
   },
   "contact": {
     "8953-dietikon-zh-switzerland-post-only-this-is-n": "8953 ديتيكون، زيورخ، سويسرا. للبريد فقط — وليست مكتبًا لاستقبال الركاب.",

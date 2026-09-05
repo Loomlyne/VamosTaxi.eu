@@ -397,8 +397,6 @@
     "call-dispatch": "Appeler la centrale",
     "cancel-free-of-charge-up-to-24-hours-before-pick": "Annulez gratuitement jusqu’à 24 heures avant la prise en charge, ou décalez l’heure depuis le lien de gestion dans votre e-mail.",
     "card-apple-pay-or-twint": "Carte, Apple Pay ou TWINT",
-    "cash-to-driver": "espèces au chauffeur",
-    "cash-to-the-driver": "Espèces au chauffeur",
     "change-vehicle": "Changer de véhicule",
     "changed-plans": "Vos plans ont changé ?",
     "charged-now-secured-by-stripe": "Débité maintenant, sécurisé par Stripe",
@@ -432,7 +430,6 @@
     "voucher-resent": "Bon renvoyé.",
     "we-track-the-flight-and-hold-the-driver-if-you-l": "Nous suivons le vol et retenons le chauffeur si vous atterrissez tard",
     "who-is-travelling": "Qui voyage",
-    "you-are-redirected-to-paypal-to-approve": "Vous êtes redirigé vers PayPal pour approuver",
     "you-can-claim-the-booking-into-an-account-later": "Vous pourrez rattacher la réservation à un compte plus tard",
     "your-confirmation-and-voucher-go-here": "Votre confirmation et votre bon arrivent ici",
     "airline": "Compagnie aérienne",
@@ -641,7 +638,6 @@
     "hide-password": "Masquer le mot de passe",
     "show-password": "Afficher le mot de passe",
     "payment": "Paiement",
-    "payments-luxembourg-only-if-paypal-is-switched-o": "Paiements · Luxembourg — seulement si PayPal est activé",
     "payments-zurich-only-if-twint-is-switched-on": "Paiements · Zurich — seulement si TWINT est activé",
     "per-seat-per-journey": "Par siège, par trajet",
     "per-stop-inside-route-corridor": "Par arrêt, dans le corridor du trajet",
@@ -751,7 +747,8 @@
     "zurich-city": "Ville de Zurich",
     "zurich-geneva": "Zurich · Genève",
     "form-submit-failed": "Un problème est survenu. Réessayez, ou appelez-nous si cela continue.",
-    "form-challenge-failed": "La vérification n'est pas passée. Réessayez."
+    "form-challenge-failed": "La vérification n'est pas passée. Réessayez.",
+    "payments-luxembourg-only-if-wallet-is-switched-on": "Paiements · Luxembourg — uniquement si le moyen supplémentaire est activé"
   },
   "contact": {
     "8953-dietikon-zh-switzerland-post-only-this-is-n": "8953 Dietikon ZH, Suisse. Courrier uniquement — ce n’est pas un guichet passagers.",

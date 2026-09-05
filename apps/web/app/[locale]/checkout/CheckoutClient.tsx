@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Alert } from "@/components/feedback/Alert";
 import { Badge, Button, Card, Icon, Tag } from "@/components/core";
@@ -60,10 +60,18 @@ export function CheckoutClient({
   const [refusal, setRefusal] = useState<string | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [publishable, setPublishable] = useState(publishableKey);
+  const [reference, setReference] = useState<string | null>(null);
+  const [confirmPay, setConfirmPay] = useState<(() => Promise<void>) | null>(null);
+
+  const onPaymentReady = useCallback((fn: () => Promise<void>) => {
+    setConfirmPay(() => fn);
+  }, []);
 
   useEffect(() => {
     if (!draft.quoteId) return;
     if (draft.idempotencyKey) return;
+    // Mint once per quote. A new idempotency_key per Pay click would raise
+    // quote_already_booked on retry (plan 07-02). Reload and card retry reuse it.
     writeDraft({ idempotencyKey: crypto.randomUUID() });
   }, [draft.quoteId, draft.idempotencyKey, writeDraft]);
 
@@ -112,6 +120,7 @@ export function CheckoutClient({
       const json = (await res.json()) as {
         client_secret?: string;
         publishable_key?: string;
+        reference?: string;
         code?: string;
       };
       if (!res.ok) {
@@ -121,6 +130,7 @@ export function CheckoutClient({
         return;
       }
       if (json.publishable_key) setPublishable(json.publishable_key);
+      if (json.reference) setReference(json.reference);
       setClientSecret(json.client_secret ?? null);
     } catch {
       setRefusal("quoteExpired");
@@ -129,10 +139,29 @@ export function CheckoutClient({
     }
   }
 
-  const requote = refusal === "quoteExpired" || refusal === "priceChanged" || refusal === "engineChanged" || refusal === "paymentWindowClosed";
+  async function onPay() {
+    if (clientSecret && confirmPay) {
+      setBusy(true);
+      try {
+        await confirmPay();
+      } catch {
+        // Panel shows the Stripe error. Booking is not confirmed here (D-16).
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
+    await startPayment();
+  }
+
+  const requote =
+    refusal === "quoteExpired" ||
+    refusal === "priceChanged" ||
+    refusal === "engineChanged" ||
+    refusal === "paymentWindowClosed";
 
   return (
-    <div className="vt-checkout">
+    <div className="vt-checkout" data-checkout>
       <div className="vt-checkout__top">
         <Button variant="ghost" size="sm" icon="chevron-left" href="/">
           {t("change-vehicle")}
@@ -217,11 +246,17 @@ export function CheckoutClient({
           </Card>
 
           <Card padding="lg">
-            {/* D-21: no Card/PayPal/Cash radios. Stripe Element owns methods. */}
+            {/* D-21: mock payment radios gone. Stripe Element owns methods. */}
             <h2>{t("payment")}</h2>
             <p>{t("charged-now-secured-by-stripe")}</p>
-            {clientSecret ? (
-              <PaymentPanel publishableKey={publishable} clientSecret={clientSecret} />
+            {busy && !clientSecret ? <div data-checkout-pay-skeleton aria-hidden="true" /> : null}
+            {clientSecret && reference ? (
+              <PaymentPanel
+                publishableKey={publishable}
+                clientSecret={clientSecret}
+                reference={reference}
+                onReady={onPaymentReady}
+              />
             ) : (
               <>
                 <div>
@@ -253,12 +288,16 @@ export function CheckoutClient({
           </Card>
         </div>
 
-        <aside className="vt-checkout__rail">
+        <aside className="vt-checkout__rail" data-checkout-rail>
           <Card padding="lg">
             <Badge tone="accent">{t("charged-now-secured-by-stripe")}</Badge>
             <RouteSummary pickup={draft.pickup} dropoff={draft.destination} />
-            <PriceSummary total={null} totalLabel={t("total")} />
-            <p className="vt-checkout__charge">{t("chargeIn", { currency: t("chargeCurrencyName") })}</p>
+            <div data-checkout-total>
+              <PriceSummary total={null} totalLabel={t("total")} />
+            </div>
+            <p className="vt-checkout__charge" data-checkout-charge>
+              {t("chargeIn", { currency: t("chargeCurrencyName") })}
+            </p>
             {freeCancelHours != null ? (
               <p>{t("freeCancelHours", { hours: freeCancelHours })}</p>
             ) : (
@@ -276,7 +315,7 @@ export function CheckoutClient({
                 ) : null}
               </Alert>
             ) : null}
-            <Button size="lg" block disabled={busy} onClick={() => void startPayment()}>
+            <Button size="lg" block disabled={busy} onClick={() => void onPay()}>
               {t("pay-and-confirm")}
             </Button>
             <p>
