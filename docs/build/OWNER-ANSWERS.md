@@ -188,8 +188,13 @@ Recorded mapping (not live, no `rate_versions` row):
 | Classes | Economy = Business Sedan floor **80**. Business = Premium Sedan / E-Class floor **100**. Van = Vito floor **150**. **V-Class out** (no fourth class). |
 | Per-km | **One band table for every class.** Floors only change short trips. |
 | Bands (sheet 2) | 0–20 floor · 21–50 **3.80**/km · 51–100 **3.40** · 101–150 **3.20** · 151–200 **3.00** · 200+ **2.80** |
-| Region % | Interlaken / Jungfrau **+10%** · Ticino / Lugano **+15%** · St. Moritz / Engadin **+20%** · Geneva / Lake Geneva long route **+20%** · Remote Alpine **+20–30% (range, not picked)** |
+| Region % | Interlaken / Jungfrau **+10%** · Ticino / Lugano **+15%** · St. Moritz / Engadin **+20%** · Geneva / Lake Geneva long route **+20%** · Remote Alpine **+25%** |
+| Band math | **Blended.** First 20 km = class floor (lump). Then 21–50 at 3.80, 51–100 at 3.40, 101–150 at 3.20, 151–200 at 3.00, 200+ at 2.80. |
+| Night / extra stop / child seat / meet-greet / ski | **Not in V1 calculation.** No surcharge lines until the owner adds them on OPS Pricing & Routes. |
+| Source of truth | OPS Pricing & Routes. A published change must flow into new quotes and into the Stripe charge (the snapshot amount). In-flight snapshots stay frozen. |
 
-Not yet answered: whether total km picks **one** band (70 × 3.40) or **blended** bands; Remote Alpine exact %; night / extra-stop / child-seat / meet-greet / ski amounts; when “Geneva long route” applies.
+Worked blended examples (Economy floor 80, no region %): 15 km → 80 · 40 km → 156 · 70 km → 262 · 120 km → 428.
 
-The live quote engine today is **one per-km per class**, not distance bands. This sheet cannot be published as `rate_versions` until that is decided (engine change vs flatten). Public UI stays `CHF 000`.
+Not yet answered: when “Geneva long route” applies (km threshold vs named zone).
+
+The live quote engine today is **one per-km per class**, not blended bands. This sheet cannot be published as `rate_versions` until bands exist in the engine + OPS rate book. Public UI stays `CHF 000`.
