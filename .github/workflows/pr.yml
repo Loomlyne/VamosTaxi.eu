@@ -125,6 +125,8 @@ jobs:
       - name: Install Playwright Chromium
         run: pnpm --filter web exec playwright install chromium
 
+      # webhook_ordering.test.sql runs in the database job (`pnpm db:test`).
+      # webhook-replay.spec.ts is in this glob (PAY-05 offline half).
       - name: Visual + integration tests (screenshot diffs, D-25)
         run: pnpm test:visual
 
