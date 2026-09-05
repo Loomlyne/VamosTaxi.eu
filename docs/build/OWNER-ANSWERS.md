@@ -154,3 +154,23 @@ Policy numbers live on **rows**, never in TypeScript. Cite ADR-014 §5.
 | U48 retention of unbound `ops_phone` snapshots | Phase 8/ops |
 
 U20 (`idempotency_key` lifetime) — **Phase 7, 2026-09-05.** The same opaque client key is stored on `bookings.idempotency_key` and forwarded verbatim as Stripe's `Idempotency-Key`. Lifetime is the checkout window (`settings_versions.checkout_window_minutes`, 30). After that window the exclusion constraint (`23P01`) refuses a new payable session (`payment_window_closed`); a same-key retry of an open session is a silent replay. Dispatch exclusion duration is **Phase 8**.
+
+---
+
+## Phase 7 checkout — D-27 recorded 2026-09-06
+
+A real Stripe **test-mode** charge needs a live `rate_versions` row. Law 04 forbids inventing a CHF fare. Offline PAY-05 (duplicate event, out-of-order pair, two PaymentIntents, second confirmation) is already green without a live matrix.
+
+| Decision | Chosen | Rejected |
+|---|---|---|
+| D-27 live test-mode charge | **B — owner's real matrix in test mode.** No invented number. Live E2E waits until the matrix exists and is published per `docs/runbooks/quote-publish.md`. | **A** (staging-only synthetic rate via script, never a migration) — would unblock E2E now but park a fake fare on staging until deleted. **C** (defer live E2E to Phase 11) — first real charge would wait for launch. |
+
+Observed this sitting (not assumed):
+
+- Stripe **test** account exists (`acct_1U65pWAJS2YBf21S`). Publishable key is in wrangler vars (front / staging / ops-changes). Secret is on the staging Worker. Production still uses the publishable placeholder. Live keys are out until Phase 11.
+- Adaptive Pricing dashboard toggle: **not confirmed** this sitting.
+- TWINT: **not available** on this account (UAE entity). Cards / Apple Pay / Google Pay / Link are on. Charge currency stays **CHF**.
+- Resend sandbox / `RESEND_API_KEY` on staging: **not confirmed** this sitting.
+- `rate_versions`: **no live row.** `pricing_live` stays false. D-46 CHF matrix remains open. No `rate_versions` INSERT from this plan until the owner supplies the matrix.
+
+Consequence: Task 3 (`scripts/stripe-e2e.mjs`) must not write a `rate_versions` row. It follows `quote-publish.md` and refuses to guess amounts. The first real test charge runs only after the owner matrix is in a draft and published.
