@@ -434,7 +434,27 @@
     "who-is-travelling": "Wer reist",
     "you-are-redirected-to-paypal-to-approve": "Sie werden zur Bestätigung zu PayPal weitergeleitet",
     "you-can-claim-the-booking-into-an-account-later": "Sie können die Buchung später einem Konto zuordnen",
-    "your-confirmation-and-voucher-go-here": "Bestätigung und Gutschein gehen hierhin"
+    "your-confirmation-and-voucher-go-here": "Bestätigung und Gutschein gehen hierhin",
+    "airline": "Fluggesellschaft",
+    "extras": "Extras",
+    "childSeat": "Kindersitz",
+    "payment": "Zahlung",
+    "chargeIn": "Die Belastung erfolgt in {currency}.",
+    "quoteExpired": "Dieses Angebot ist abgelaufen. Holen Sie einen neuen Preis.",
+    "priceChanged": "Der Preis hat sich geändert. Holen Sie ein neues Angebot.",
+    "engineChanged": "Die Preise wurden aktualisiert. Holen Sie ein neues Angebot.",
+    "pricingNotLive": "Online-Buchung ist noch nicht offen. Rufen Sie die Disposition an.",
+    "couponNoLongerValid": "Dieser Gutschein gilt nicht mehr.",
+    "quoteAlreadyBooked": "Für dieses Angebot gibt es bereits eine Buchung.",
+    "paymentWindowClosed": "Das Zahlungsfenster ist geschlossen. Holen Sie ein neues Angebot.",
+    "requote": "Neues Angebot holen",
+    "freeCancelHours": "Kostenlose Stornierung bis {hours} Stunden vor Abholung.",
+    "checkoutWindow": "Zahlen Sie innerhalb von {minutes} Minuten, um diesen Preis zu halten.",
+    "checkoutStepQuote": "Angebot",
+    "checkoutStepVehicle": "Fahrzeug",
+    "checkoutStepPay": "Zahlen",
+    "chargeCurrencyName": "Schweizer Franken",
+    "total": "Total"
   },
   "common": {
     "4-not-live": "4 nicht live",
@@ -739,7 +759,6 @@
     "accepted-for-delivery-and-will-be-reviewed": "Ihre Nachricht wurde zur Zustellung angenommen und wird geprüft.",
     "already-have-a-booking": "Sie haben bereits eine Buchung?",
     "changes-cancellations-and-driver-details-are-all": "Änderungen, Stornierungen und Fahrerdaten stehen in Ihrer Buchung. Sie zu öffnen geht sofort — eine Nachricht hier nicht.",
-
     "everything-that-is-not-urgent": "Alles, was nicht dringend ist.",
     "faster-than-email-if-we-need-one-detail-from-you": "Schneller als E-Mail, wenn wir eine Angabe von Ihnen brauchen.",
     "fastest-for-anything-travelling-today": "Am schnellsten für alles, was heute unterwegs ist.",
@@ -749,7 +768,6 @@
     "how-can-we-help": "Wie können wir helfen?",
     "if-you-have-one": "— falls vorhanden",
     "if-your-travel-is-sooner-than-that-call-us-on-th": ". Reisen Sie früher, rufen Sie uns unter der Nummer gegenüber an.",
-
     "message-received": "Nachricht erhalten",
     "my-flight-lands-two-hours-later-than-booked-does": "Mein Flug landet zwei Stunden später als gebucht. Verschiebt sich die Abholung automatisch?",
     "one-team-handles-bookings-changes-complaints-and": "Ein Team bearbeitet Buchungen, Änderungen, Reklamationen und alles andere. Sagen Sie, was Sie brauchen, und nennen Sie eine Referenz, falls vorhanden.",
@@ -2103,7 +2121,7 @@
         "noPasskey": "Passkeys werden nicht angeboten. Personal nutzt TOTP.",
         "noDelete": "Ein Staff-Konto loescht man nicht selbst. Ein Admin deaktiviert es, damit der Audit-Trail den Akteur behaelt."
       }
-    }    ,
+    },
     "spoken": {
       "en": "Englisch",
       "de": "Deutsch",
@@ -2170,7 +2188,6 @@
     "chauffeurs-failure-photo": "Dieser Fotopfad ist ungültig",
     "chauffeurs-failure-vehicle": "Dieses Fahrzeug ist nicht mehr in der Flotte",
     "chauffeurs-failure-error": "Chauffeur konnte nicht gespeichert werden"
-
   },
   "partner": {
     "a-background-check-on-you-and-an-inspection-of-y": "Eine Hintergrundprüfung zu Ihrer Person und eine Kontrolle Ihres Fahrzeugs. Beides passiert nicht hier — geht Ihre Bewerbung weiter, vereinbaren wir beides mit Ihnen und verlangen dann die Dokumente.",

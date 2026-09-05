@@ -434,7 +434,27 @@
     "who-is-travelling": "Who is travelling",
     "you-are-redirected-to-paypal-to-approve": "You are redirected to PayPal to approve",
     "you-can-claim-the-booking-into-an-account-later": "You can claim the booking into an account later",
-    "your-confirmation-and-voucher-go-here": "Your confirmation and voucher go here"
+    "your-confirmation-and-voucher-go-here": "Your confirmation and voucher go here",
+    "airline": "Airline",
+    "extras": "Extras",
+    "childSeat": "Child seat",
+    "payment": "Payment",
+    "chargeIn": "You are charged in {currency}.",
+    "quoteExpired": "This quote has expired. Get a new price.",
+    "priceChanged": "The price changed. Get a new quote.",
+    "engineChanged": "Pricing was updated. Get a new quote.",
+    "pricingNotLive": "Online booking is not open yet. Call dispatch.",
+    "couponNoLongerValid": "That coupon is no longer valid.",
+    "quoteAlreadyBooked": "This quote already has a booking.",
+    "paymentWindowClosed": "The payment window closed. Get a new quote.",
+    "requote": "Get a new quote",
+    "freeCancelHours": "Cancel free of charge up to {hours} hours before pickup.",
+    "checkoutWindow": "Pay within {minutes} minutes to keep this price.",
+    "checkoutStepQuote": "Quote",
+    "checkoutStepVehicle": "Vehicle",
+    "checkoutStepPay": "Pay",
+    "chargeCurrencyName": "Swiss francs",
+    "total": "Total"
   },
   "common": {
     "4-not-live": "4 not live",
@@ -739,7 +759,6 @@
     "accepted-for-delivery-and-will-be-reviewed": "Your message was accepted for delivery and will be reviewed.",
     "already-have-a-booking": "Already have a booking?",
     "changes-cancellations-and-driver-details-are-all": "Changes, cancellations and driver details are all in your booking. Opening it is immediate; a message here is not.",
-
     "everything-that-is-not-urgent": "Everything that is not urgent.",
     "faster-than-email-if-we-need-one-detail-from-you": "Faster than email if we need one detail from you.",
     "fastest-for-anything-travelling-today": "Fastest for anything travelling today.",
@@ -749,7 +768,6 @@
     "how-can-we-help": "How can we help?",
     "if-you-have-one": "— if you have one",
     "if-your-travel-is-sooner-than-that-call-us-on-th": ". If your travel is sooner than that, call us on the number opposite.",
-
     "message-received": "Message received",
     "my-flight-lands-two-hours-later-than-booked-does": "My flight lands two hours later than booked. Does the pickup move automatically?",
     "one-team-handles-bookings-changes-complaints-and": "One team handles bookings, changes, complaints and everything else. Say what you need and quote a reference if you have one.",
@@ -2103,7 +2121,7 @@
         "noPasskey": "Passkeys are not offered. Staff use TOTP.",
         "noDelete": "A staff account is not self-deleted. An admin deactivates it, so the audit trail keeps its actor."
       }
-    }    ,
+    },
     "spoken": {
       "en": "English",
       "de": "German",
@@ -2170,7 +2188,6 @@
     "chauffeurs-failure-photo": "That photo path is not valid",
     "chauffeurs-failure-vehicle": "That vehicle is no longer in the fleet",
     "chauffeurs-failure-error": "Couldn't save this chauffeur"
-
   },
   "partner": {
     "a-background-check-on-you-and-an-inspection-of-y": "A background check on you and an inspection of your vehicle. Neither happens here — if your application goes forward we arrange both with you, and ask for documents then.",
