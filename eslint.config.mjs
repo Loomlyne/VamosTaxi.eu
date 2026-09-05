@@ -39,8 +39,8 @@ const POSTGRES_IMPORT_MESSAGE =
 const POSTGRES_PATHS = [{ name: "postgres", message: POSTGRES_IMPORT_MESSAGE, allowTypeImports: true }];
 
 const VAMOS_DB_IMPORT_MESSAGE =
-  "D-08: apps/web may import the five named wrappers only — asAnon/asCustomer/asStaff/" +
-  "asGuest/asQuote from apps/web/lib/db/identity.ts, publicSql from apps/web/lib/db/public.ts. " +
+  "D-08: apps/web may import the seven named wrappers only — asAnon/asCustomer/asStaff/" +
+  "asGuest/asQuote/asCheckout/asSystem from apps/web/lib/db/identity.ts, publicSql from apps/web/lib/db/public.ts. " +
   "A route or lib file that reaches for @vamos/db directly skips those two files' WAE " +
   "instrumentation and request-time env plumbing, and is a build-time violation here, not a " +
   "style preference to fix later.";
