@@ -57,8 +57,8 @@ interface CloudflareEnv {
    * Supabase direct-connection pool via Cloudflare Hyperdrive — the cache-disabled,
    * identity-and-billing path (`apps/web/wrangler.jsonc` `env.production.hyperdrive`,
    * `env.staging`'s twin stays commented until plan 03-07 supplies a real config id).
-   * `lib/db/identity.ts`'s five named wrappers (`asAnon`/`asCustomer`/`asStaff`/`asGuest`/
-   * `asQuote`) are the only consumer (D-08/D-12) — anything carrying identity, auth,
+   * `lib/db/identity.ts`'s seven named wrappers (`asAnon`/`asCustomer`/`asStaff`/`asGuest`/
+   * `asQuote`/`asCheckout`/`asSystem`) are the only consumer (D-08/D-12) — anything carrying identity, auth,
    * permissions or the `pricing_live` flag reads this binding, never the cacheable
    * `HYPERDRIVE` above. Required, not optional, matching `HYPERDRIVE`'s reasoning.
    */
@@ -260,6 +260,26 @@ interface CloudflareEnv {
    * added under pressure is not a kill switch.
    */
   CONTENT_SOURCE?: string;
+
+  // ── Phase 7 checkout / Stripe bindings (plan 07-04) ──
+
+  /**
+   * Stripe secret key. REQUIRED. `wrangler secret put STRIPE_SECRET_KEY`.
+   * Never in wrangler.jsonc `vars`. Test mode (`sk_test_`) on staging until Phase 11.
+   */
+  STRIPE_SECRET_KEY: string;
+
+  /**
+   * Stripe webhook signing secret. REQUIRED. `wrangler secret put STRIPE_WEBHOOK_SECRET`.
+   * Never in wrangler.jsonc `vars`.
+   */
+  STRIPE_WEBHOOK_SECRET: string;
+
+  /**
+   * Stripe publishable key. REQUIRED. wrangler.jsonc `vars` — not a secret.
+   * `pk_test_` placeholder until the owner binds a real test key. Never `pk_live_`.
+   */
+  STRIPE_PUBLISHABLE_KEY: string;
 }
 
 /**
