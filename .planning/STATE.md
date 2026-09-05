@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Ops Support
-status: planning
-last_updated: "2026-09-04T17:50:14.000Z"
-last_activity: 2026-09-04
+status: executing
+stopped_at: v1.1 roadmap Phases 12–16 written; next is discuss/plan Phase 12
+last_updated: "2026-09-05T18:53:06.000Z"
+last_activity: 2026-09-05 -- 07-03 settlement RPCs complete; next 07-04
 progress:
-  total_phases: 5
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_phases: 16
+  completed_phases: 5
+  total_plans: 103
+  completed_plans: 92
+  percent: 31
 ---
 
 # Project State
@@ -20,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-04)
 
 **Core value:** Dispatcher answers contact mail from Ops. Customer replies land in the same ticket.
-**Current focus:** Phase 12 — Ticket schema + #support mock
+**Current focus:** Phase 7 — Checkout & Payment
 
 ## Current Position
 
-Phase: 12 of 16 (Ticket schema + #support mock) — v1.1 phase 1 of 5
-Plan: —
-Status: Planning
-Last activity: 2026-09-04 — v1.1 roadmap Phases 12–16 written
+Phase: 7 (Checkout & Payment) — EXECUTING
+Plan: 4 of 10
+Status: Executing Phase 7 — 07-01, 07-02, 07-03 done
+Last activity: 2026-09-05 -- 07-03 settlement RPCs complete; next 07-04
 
 ## Performance Metrics
 
