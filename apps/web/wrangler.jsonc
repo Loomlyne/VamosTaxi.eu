@@ -126,13 +126,27 @@
           { "binding": "STRIPE_EVENTS", "queue": "vamos-stripe-events-staging" }
         ],
         "consumers": [
-          { "queue": "vamos-stripe-events-staging" }
+          {
+            "queue": "vamos-stripe-events-staging",
+            // Small batch + short timeout: a confirmation email waiting for a
+            // full batch window is a customer staring at a processing page.
+            "max_batch_size": 1,
+            "max_batch_timeout": 1,
+            // Cover the P0002 window (intent tx committing) then exhaust rather
+            // than retry forever.
+            "max_retries": 8,
+            // Exhausted messages must be inspectable, not silently dropped.
+            "dead_letter_queue": "vamos-stripe-events-staging-dlq"
+          }
         ]
       },
       "triggers": {
-        // Cloudflare cron has no IANA timezone. worker.ts gates this hourly trigger at exact
+        // Cloudflare cron has no IANA timezone. worker.ts gates the hourly trigger at exact
         // Europe/Zurich 06:00, including both sides of the DST transition.
-        "crons": ["0 * * * *"]
+        // First Phase 7 case on this trigger list: notification_sweep over
+        // booking_notifications_pending, filtered to confirmation (D-17). Phase 9
+        // extends the kind array for reminder_24h.
+        "crons": ["0 * * * *", "0 3 * * *"]
       },
       // Placement Hints (D-22). Host probe (`db.<ref>:5432`) placed FRA and DATA-05
       // p50 went 34 → 47 ms. Region `aws:eu-central-2` (Zurich) is the better
@@ -281,13 +295,27 @@
           { "binding": "STRIPE_EVENTS", "queue": "vamos-stripe-events-production" }
         ],
         "consumers": [
-          { "queue": "vamos-stripe-events-production" }
+          {
+            "queue": "vamos-stripe-events-production",
+            // Small batch + short timeout: a confirmation email waiting for a
+            // full batch window is a customer staring at a processing page.
+            "max_batch_size": 1,
+            "max_batch_timeout": 1,
+            // Cover the P0002 window (intent tx committing) then exhaust rather
+            // than retry forever.
+            "max_retries": 8,
+            // Exhausted messages must be inspectable, not silently dropped.
+            "dead_letter_queue": "vamos-stripe-events-production-dlq"
+          }
         ]
       },
       "triggers": {
-        // Cloudflare cron has no IANA timezone. worker.ts gates this hourly trigger at exact
+        // Cloudflare cron has no IANA timezone. worker.ts gates the hourly trigger at exact
         // Europe/Zurich 06:00, including both sides of the DST transition.
-        "crons": ["0 * * * *"]
+        // First Phase 7 case on this trigger list: notification_sweep over
+        // booking_notifications_pending, filtered to confirmation (D-17). Phase 9
+        // extends the kind array for reminder_24h.
+        "crons": ["0 * * * *", "0 3 * * *"]
       },
       // Placement Hints (D-22), not Smart Placement — see env.staging's comment above for
       // the full reasoning; identical here. The region below is Zurich (D-25),
