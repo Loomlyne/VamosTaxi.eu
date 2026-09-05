@@ -1,0 +1,121 @@
+.vt-confirmation {
+  max-inline-size: 720px;
+  margin-inline: auto;
+  padding-inline: clamp(20px, 5vw, 56px);
+  padding-block: 40px 72px;
+}
+
+.vt-confirmation__hero {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-block-end: 24px;
+}
+
+.vt-confirmation__kicker {
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-body-sm);
+  color: var(--vt-text-muted);
+  margin: 0;
+}
+
+.vt-confirmation__title {
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-heading-2);
+  font-weight: var(--vt-weight-semibold);
+  margin: 0;
+}
+
+.vt-confirmation__lede {
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-body-md);
+  color: var(--vt-text-muted);
+  margin: 0;
+}
+
+.vt-confirmation__ref {
+  font-variant-numeric: tabular-nums;
+}
+
+.vt-confirmation__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.vt-confirmation__spin {
+  animation: vt-confirmation-spin 1s linear infinite;
+}
+
+@keyframes vt-confirmation-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.vt-confirmation__voucher {
+  position: relative;
+  overflow: hidden;
+}
+
+.vt-confirmation__checker {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  pointer-events: none;
+}
+
+.vt-confirmation__voucher-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-block-end: 16px;
+}
+
+.vt-confirmation__voucher-title {
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-body-sm);
+  margin: 0;
+}
+
+.vt-confirmation__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-block: 24px;
+  align-items: center;
+}
+
+.vt-confirmation__resent {
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-body-sm);
+  color: var(--vt-success);
+}
+
+.vt-confirmation__alerts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
+.vt-confirmation__footer {
+  text-align: center;
+  margin-block-start: 40px;
+}
+
+@media (max-width: 640px) {
+  .vt-confirmation__alerts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media print {
+  .vt-confirmation__actions,
+  .vt-confirmation__alerts,
+  .vt-confirmation__footer {
+    display: none;
+  }
+}

@@ -2,12 +2,13 @@ export const dynamic = "force-dynamic";
 
 import { asGuest } from "../db/identity";
 import { hashManageToken } from "./manage-token";
+import { BOOKING_REFERENCE_RE } from "./booking-status";
+
+export { BOOKING_REFERENCE_RE, isProcessingStatus, isVoucherStatus } from "./booking-status";
 
 // Guest SELECT only — columns named in 20260823000022_rls_guest.sql. Never
 // `SELECT *`. RLS is the gate: a missing or unknown token hashes to "" or a
 // 64-char hex that matches no row, and the policy returns zero rows.
-
-export const BOOKING_REFERENCE_RE = /^VT-[0-9]{2}-[0-9]{4,5}$/;
 
 export const BOOKING_COLUMNS = [
   "id",
