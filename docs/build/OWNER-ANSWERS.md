@@ -174,3 +174,22 @@ Observed this sitting (not assumed):
 - `rate_versions`: **no live row.** `pricing_live` stays false. D-46 CHF matrix remains open. No `rate_versions` INSERT from this plan until the owner supplies the matrix.
 
 Consequence: Task 3 (`scripts/stripe-e2e.mjs`) must not write a `rate_versions` row. It follows `quote-publish.md` and refuses to guess amounts. The first real test charge runs only after the owner matrix is in a draft and published.
+
+---
+
+## D-46 CHF matrix — sheet sitting 2026-09-06 (draft, not published)
+
+Owner sent two tables. **Engine = sheet 2** (“Vamos Switzerland Transfer Pricing”). Sheet 1 (airport → anywhere) is understood and **not charged**.
+
+Recorded mapping (not live, no `rate_versions` row):
+
+| Item | Answer |
+|---|---|
+| Classes | Economy = Business Sedan floor **80**. Business = Premium Sedan / E-Class floor **100**. Van = Vito floor **150**. **V-Class out** (no fourth class). |
+| Per-km | **One band table for every class.** Floors only change short trips. |
+| Bands (sheet 2) | 0–20 floor · 21–50 **3.80**/km · 51–100 **3.40** · 101–150 **3.20** · 151–200 **3.00** · 200+ **2.80** |
+| Region % | Interlaken / Jungfrau **+10%** · Ticino / Lugano **+15%** · St. Moritz / Engadin **+20%** · Geneva / Lake Geneva long route **+20%** · Remote Alpine **+20–30% (range, not picked)** |
+
+Not yet answered: whether total km picks **one** band (70 × 3.40) or **blended** bands; Remote Alpine exact %; night / extra-stop / child-seat / meet-greet / ski amounts; when “Geneva long route” applies.
+
+The live quote engine today is **one per-km per class**, not distance bands. This sheet cannot be published as `rate_versions` until that is decided (engine change vs flatten). Public UI stays `CHF 000`.
