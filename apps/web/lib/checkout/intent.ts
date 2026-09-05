@@ -42,6 +42,7 @@ export type CheckoutIntentDeps = {
     productName: string;
   }) => Promise<Stripe.Checkout.Session>;
   expireCheckoutSession: (sessionId: string) => Promise<void>;
+  retrieveCheckoutSession: (sessionId: string) => Promise<Stripe.Checkout.Session>;
   createBooking: (args: {
     quoteId: string;
     idempotencyKey: string;
@@ -208,28 +209,39 @@ export async function runCheckoutIntent(
   } catch (err) {
     await deps.expireCheckoutSession(session.id).catch(() => undefined);
     const state = sqlState(err);
-    if (state === "23505") return refuse("quote_already_booked");
+    if (state === "23505" || state === "23001") return refuse("quote_already_booked");
     if (state === "23P01") return refuse("payment_window_closed");
     if (state === "P0002" || state === "23514") return refuse("coupon_no_longer_valid");
     throw err;
   }
 
+  let payable: Stripe.Checkout.Session = session;
   if (row.replayed) {
-    await deps.expireCheckoutSession(session.id).catch(() => undefined);
+    const stored = await deps.retrieveCheckoutSession(session.id).catch(() => null);
+    if (!stored || stored.status !== "open" || !stored.client_secret) {
+      await deps.expireCheckoutSession(session.id).catch(() => undefined);
+      return refuse("payment_window_closed");
+    }
+    if (stored.id !== session.id) {
+      await deps.expireCheckoutSession(session.id).catch(() => undefined);
+    }
+    payable = stored;
   }
 
-  const clientSecret = session.client_secret;
+  const clientSecret = payable.client_secret;
   if (!clientSecret) {
     return refuse("invalid_request");
   }
 
   const response = new Response(
     JSON.stringify({
+      reference: row.reference,
+      checkout_session_id: payable.id,
       client_secret: clientSecret,
-      booking_id: row.booking_id,
-      booking_reference: row.reference,
+      expires_at: expiresAt.toISOString(),
+      currency: CHARGE_CURRENCY.toUpperCase(),
+      amount_rappen: chargedRappen,
       publishable_key: deps.publishableKey,
-      charged_currency: CHARGE_CURRENCY.toUpperCase(),
     }),
     {
       status: 200,

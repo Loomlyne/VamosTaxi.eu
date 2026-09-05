@@ -1,17 +1,19 @@
 // apps/web/app/api/checkout/intent/route.ts
 //
 // POST /api/checkout/intent. Thin: parse, wire deps, runCheckoutIntent.
-// Business rules live in lib/checkout/intent.ts.
+// Business rules live in lib/checkout/intent.ts. The write is createBooking.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { asCheckout, asQuote } from "@/lib/db/identity";
+import { asQuote } from "@/lib/db/identity";
 import { checkoutIntentSchema } from "@/lib/checkout/intent-schema";
 import { refuse } from "@/lib/checkout/errors";
 import { runCheckoutIntent } from "@/lib/checkout/intent";
+import { createBooking } from "@/lib/checkout/create-booking";
 import { mintManageToken } from "@/lib/checkout/manage-token";
 import {
   createCheckoutSession,
   expireCheckoutSession,
+  retrieveCheckoutSession,
   stripeFromEnv,
   stripePublishableKey,
 } from "@/lib/checkout/stripe";
@@ -76,41 +78,8 @@ export async function POST(request: Request) {
     manageLinkMaxAgeSeconds: 30 * 24 * 60 * 60,
     createCheckoutSession: (input) => createCheckoutSession(stripe, input),
     expireCheckoutSession: (id) => expireCheckoutSession(stripe, id).then(() => undefined),
-    createBooking: async (args) => {
-      const rows = await asCheckout(env, null, async (sql) => {
-        return sql`
-          select * from public.checkout_create_booking(
-            ${args.quoteId}::uuid,
-            ${args.idempotencyKey},
-            ${JSON.stringify({
-              contact_name: args.contact.name,
-              contact_email: args.contact.email,
-              contact_phone: args.contact.phone,
-            })}::jsonb,
-            ${args.locale},
-            ${args.displayCurrency},
-            ${JSON.stringify(args.snapshot)}::jsonb,
-            ${JSON.stringify(args.legs)}::jsonb,
-            ${args.couponId},
-            ${args.couponCode},
-            ${args.manageTokenHash},
-            ${args.manageTokenExpiresAt.toISOString()}::timestamptz,
-            ${args.stripePaymentIntentId},
-            ${args.stripeCheckoutSessionId},
-            ${args.chargedRappen},
-            ${args.actorCustomerId}
-          )
-        `;
-      });
-      const row = rows[0] as {
-        booking_id: string;
-        reference: string;
-        snapshot_id: number;
-        payment_id: number;
-        replayed: boolean;
-      };
-      return row;
-    },
+    retrieveCheckoutSession: (id) => retrieveCheckoutSession(stripe, id),
+    createBooking: (args) => createBooking(env, null, args),
     publishableKey: stripePublishableKey(env),
     returnUrl: `${origin}/${body.locale}/checkout`,
     checkoutWindowMinutes: 30,

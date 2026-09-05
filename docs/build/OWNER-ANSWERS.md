@@ -153,4 +153,4 @@ Policy numbers live on **rows**, never in TypeScript. Cite ADR-014 §5.
 | U50 hourly-hire model | out of V1 |
 | U48 retention of unbound `ops_phone` snapshots | Phase 8/ops |
 
-U20 (`idempotency_key` lifetime) is **Phase 7**. Dispatch exclusion duration is **Phase 8**.
+U20 (`idempotency_key` lifetime) — **Phase 7, 2026-09-05.** The same opaque client key is stored on `bookings.idempotency_key` and forwarded verbatim as Stripe's `Idempotency-Key`. Lifetime is the checkout window (`settings_versions.checkout_window_minutes`, 30). After that window the exclusion constraint (`23P01`) refuses a new payable session (`payment_window_closed`); a same-key retry of an open session is a silent replay. Dispatch exclusion duration is **Phase 8**.
