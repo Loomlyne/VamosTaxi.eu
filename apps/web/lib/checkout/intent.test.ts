@@ -84,6 +84,13 @@ function deps(p: QuoteLockPayload, patch: Partial<CheckoutIntentDeps> = {}): Che
     expireCheckoutSession: async () => {
       order.push("expire");
     },
+    retrieveCheckoutSession: async () =>
+      ({
+        id: "cs_test_1",
+        client_secret: "cs_test_1_secret",
+        payment_intent: "pi_test_1",
+        status: "open",
+      }) as never,
     createBooking: async () => {
       order.push("rpc");
       return {
@@ -204,20 +211,28 @@ describe("runCheckoutIntent", () => {
     expect(((await res.json()) as { code: string }).code).toBe("payment_window_closed");
   });
 
-  it("does not keep a leftover session when replayed=true", async () => {
+  it("expires an orphan session when replayed=true against a different stored session", async () => {
     const p = payload();
     const body = await bodyFor(p);
     const expire = vi.fn(async () => undefined);
     const create = vi.fn(async () => ({
-      id: "cs_test_1",
-      client_secret: "cs_test_1_secret",
-      payment_intent: "pi_test_1",
+      id: "cs_test_new",
+      client_secret: "cs_test_new_secret",
+      payment_intent: "pi_test_new",
+      status: "open",
     }));
     const res = await runCheckoutIntent(
       body,
       deps(p, {
         createCheckoutSession: create as unknown as CheckoutIntentDeps["createCheckoutSession"],
         expireCheckoutSession: expire,
+        retrieveCheckoutSession: async () =>
+          ({
+            id: "cs_test_stored",
+            client_secret: "cs_test_stored_secret",
+            payment_intent: "pi_test_stored",
+            status: "open",
+          }) as never,
         createBooking: async () => ({
           booking_id: "00000000-0000-4000-8000-000000000099",
           reference: "VT-10001",
@@ -229,18 +244,23 @@ describe("runCheckoutIntent", () => {
     );
     expect(res.status).toBe(200);
     expect(create).toHaveBeenCalledTimes(1);
-    expect(expire).toHaveBeenCalledWith("cs_test_1");
+    expect(expire).toHaveBeenCalledWith("cs_test_new");
+    expect(((await res.json()) as { checkout_session_id: string }).checkout_session_id).toBe(
+      "cs_test_stored",
+    );
   });
 
-  it("happy path returns client_secret, booking ids, publishable key, Set-Cookie", async () => {
+  it("happy path returns client_secret, reference, publishable key, Set-Cookie", async () => {
     const p = payload();
     const body = await bodyFor(p);
     const res = await runCheckoutIntent(body, deps(p));
     expect(res.status).toBe(200);
-    const json = (await res.json()) as Record<string, string>;
+    const json = (await res.json()) as Record<string, string | number>;
     expect(json.client_secret).toBe("cs_test_1_secret");
-    expect(json.booking_id).toBe("00000000-0000-4000-8000-000000000099");
-    expect(json.booking_reference).toBe("VT-10001");
+    expect(json.reference).toBe("VT-10001");
+    expect(json.checkout_session_id).toBe("cs_test_1");
+    expect(json.currency).toBe("CHF");
+    expect(json.amount_rappen).toBe(8000);
     expect(json.publishable_key).toBe("pk_test_placeholder");
     expect(res.headers.get("set-cookie")).toContain("vt_manage=raw-token");
     expect(res.headers.get("set-cookie")).toContain("HttpOnly");
