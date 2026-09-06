@@ -2353,6 +2353,10 @@
       "oversized_luggage": {
         "label": "Bagage volumineux",
         "rule": "Par article déclaré"
+      },
+      "region_premium": {
+        "label": "Région",
+        "rule": "Prise en charge ou destination dans une région nommée"
       }
     }
   },

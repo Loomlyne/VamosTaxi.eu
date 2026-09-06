@@ -205,6 +205,34 @@ describe("buildFareLine — fixed route (D-08)", () => {
   });
 });
 
+describe("buildFareLine — blended km", () => {
+  const bands = [
+    { id: 1, rate_version_id: 1, from_km: 20, to_km: 50, per_km_rappen: 380 },
+    { id: 2, rate_version_id: 1, from_km: 50, to_km: 100, per_km_rappen: 340 },
+    { id: 3, rate_version_id: 1, from_km: 100, to_km: 150, per_km_rappen: 320 },
+    { id: 4, rate_version_id: 1, from_km: 150, to_km: 200, per_km_rappen: 300 },
+    { id: 5, rate_version_id: 1, from_km: 200, to_km: null, per_km_rappen: 280 },
+  ];
+
+  it("uses the class floor plus blended extra, not base+per_km", () => {
+    const line = buildFareLine({
+      leg: leg({ distance_m: 70_000 }),
+      vehicleClass: business,
+      distanceRate: rate({
+        vehicle_class_id: business.id,
+        min_fare_rappen: 10000,
+        base_fare_rappen: 1,
+        per_km_rappen: 1,
+      }),
+      fixedRoutes: [],
+      rateVersionId: 1,
+      distanceBands: bands,
+    });
+    expect(line.basis.rule).toBe("blended_km");
+    expect(line.amount_rappen).toBe(28200);
+  });
+});
+
 describe("buildFareLine — per_km and min-fare (D-06)", () => {
   it("computes base + perKm and sets i18n transfer + vehicleClass", () => {
     const line = buildFareLine({
