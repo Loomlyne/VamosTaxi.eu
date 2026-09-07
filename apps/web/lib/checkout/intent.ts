@@ -226,7 +226,15 @@ export async function runCheckoutIntent(
         state ?? "no-sqlstate",
         err instanceof Error ? err.message : String(err),
       );
-      throw err;
+      return new Response(
+        JSON.stringify({
+          ok: false,
+          error: "checkout_rpc_failed",
+          sqlstate: state ?? null,
+          detail: err instanceof Error ? err.message : String(err),
+        }),
+        { status: 500, headers: { "content-type": "application/json" } },
+      );
     }
   }
 

@@ -27,6 +27,22 @@ import type { IntentRecompute } from "@/lib/quote/intent";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
+  try {
+    return await postIntent(request);
+  } catch (err) {
+    console.error("checkout_intent_unhandled", err instanceof Error ? err.message : String(err));
+    return new Response(
+      JSON.stringify({
+        ok: false,
+        error: "intent_unhandled",
+        detail: err instanceof Error ? err.message : String(err),
+      }),
+      { status: 500, headers: { "content-type": "application/json" } },
+    );
+  }
+}
+
+async function postIntent(request: Request) {
   const { env } = getCloudflareContext();
 
   let json: unknown;
