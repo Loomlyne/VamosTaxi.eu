@@ -1,8 +1,8 @@
 # Phase 7: Checkout & Payment - Context
 
-**Gathered:** 2026-08-24
-**Status:** Ready for planning
-**Source:** Research express path (07-RESEARCH.md, ADR-004, ADR-005, ADR-014, Phase 2/3/4 CONTEXT)
+**Gathered:** 2026-08-24; remainder 2026-09-07
+**Status:** Ready for remainder planning (07-01…10 have SUMMARYs — not closed; live pay path still mock)
+**Source:** Research express path (2026-08-24) + owner remainder discuss (2026-09-07)
 
 <domain>
 ## Phase Boundary
@@ -55,11 +55,27 @@ event), and the confirmation email template's four-language render.
   shape.
 - Ops board, dispatch, assignment — Phase 8.
 - Live flight tracking / delay shift — Phase 9.
-- The CHF price matrix. No production `rate_versions` row is ever seeded `status='live'`; every
-  amount stays `CHF 000` until the owner approves the matrix (Law 04). A staging-only synthetic
-  test rate version for the E2E proof is discussed below but not decided here.
-- The guest-booking → account claim UI/email flow (schema already supports it per Phase 2) —
-  AUTH-06, Phase 8.
+- The CHF price matrix. Do not invent CHF. Hosted live book is `rate_versions` id 4 (floors
+  Economy 80 / Business 100 / First 130 / Van 150). Public `CHF 000` only before date+time+places
+  or when pricing is not live. Staging test charges may use that live book. Phase 11 is live
+  Stripe keys + `vamostaxi.eu` DNS.
+- Full customer `/bookings` history and ops board / dispatch / `#support` — Phase 8 / 12.
+  Remainder includes only **Finish payment** on account for an unpaid checkout.
+- Invoice-on-account / pay later without Stripe — still out. Company billing + Stripe pay-link
+  is in remainder (D-36); that is not an invoice.
+
+### Remainder boundary (2026-09-07) — what is still not live
+
+07-01…07-10 have SUMMARYs. That is paper. Live `vamostaxi.site/checkout` is still the DC mock
+(PayPal + cash radios, `saveTrip`, `confirmation.dc.html`). Home already paints real class floors
+after date+time+places. Home Continue is still `saveTrip` then `/checkout`.
+
+**Remainder delivers:** Continue → Next `/checkout/trip` → `/checkout/details` → `/checkout/payment`
+with their typed trip + Stripe Element → webhook booking + real `VT-` + confirmation page +
+confirmation email. Deploy Worker **`vamos`** on `vamostaxi.site` from **this branch**, not a merge
+to `main`, only after the owner says continue. Then `/gsd:verify-work 7` (existing `07-UAT.md`).
+
+**Do not re-execute 07-01…10.** Gap/remainder plans only (07-11+). Do not discuss Phase 8 / 12 / 17.
 
 </domain>
 
@@ -243,6 +259,59 @@ assumption in parentheses for traceability back to `07-RESEARCH.md`.
   matrix, entered in test mode only. **This needs explicit owner sign-off before Phase 7's E2E
   proof plan (P8) is executed.** — Owner Blockers item 5, gates P8 only, not P1–P7.
 
+### Remainder (2026-09-07) — supersedes where it conflicts
+
+D-01…D-26 stay. D-21 (no PayPal / cash radios, Stripe Element only) stays. D-16 (webhook
+confirms, browser return does not) stays. **D-27 is resolved for remainder E2E:** hosted live
+book is `rate_versions` id 4. Do not invent CHF. Do not seed a sentinel fare.
+
+- **D-28:** Finish Phase 7 on `vamostaxi.site` via Worker **`vamos`**, branch **`phase-7`**, not
+  a merge to `main`. Nothing in the pay path stays mock. Then UAT (`07-UAT.md`). Not Phase 8.
+  Deploy only after the owner says continue. Printed Worker name must be `vamos`. Never recreate
+  `vamos-web-staging`. Never `git pull origin/phase-7`. Never push `main`.
+- **D-29:** Home Continue does the real quote lock (`POST /api/quote`), then checkout with
+  `quote_id` + lock. Checkout **also** reads `vamosTrip` so pickup, destination, date/time, class,
+  extras they already typed are not blank. Stripe charges the **lock**, never the localStorage
+  price.
+- **D-30:** Three unique URLs, four languages same pass:
+  `/checkout/trip` — dedicated trip page (places, date/time, class cars), editable, **not** home.
+  `/checkout/details` — passenger / contact; sign-in or guest (D-39).
+  `/checkout/payment` — Individual vs Company (D-36) + Stripe Element and/or pay-link (D-37).
+  StepIndicator maps to those URLs. Clicking Trip from details stays on `/checkout/trip`.
+- **D-31:** **One 24-hour rule** for card and pay-link. The price they saw is held 24 hours.
+  Same number for both. 15-minute and 30-minute checkout windows are removed for this remainder
+  (supersedes ADR-014 §5 / Phase 4 D-43 30-minute clock). Clock starts when Continue mints or
+  refreshes the quote lock. Editing trip and Continue again starts a new 24h lock. After 24h
+  unpaid: lock dead, pay-link dead, they start the booking flow from home. Email must say the
+  link dies after 24 hours.
+- **D-32:** During the 24h window, if the live book moves, they still pay the locked price and
+  see a notice that the live price changed. Never charge a price that is not on the lock.
+- **D-33:** Signed-in customer who leaves for days: account shows **Finish payment**; trip is
+  kept; if the 24h lock is dead, price is live (new lock). Guest without an unpaid `VT-` who
+  leaves for days starts over. Full `/bookings` history stays Phase 8.
+- **D-34:** Card self-pay: customer sees `VT-` **only after** webhook pay. Pay-link: `VT-` is
+  minted when the pay-link email is sent; status is unpaid (“sent by link, not paid yet”) until
+  webhook, then confirmed paid. Manage-by-reference shows that status. Rows: bookings + legs +
+  snapshots + payments. Real `VT-` from `next_booking_reference()`.
+- **D-35:** Whoever pays first wins (booker card or pay-link). One booking, one charge. The
+  second pay is refused, not a second `VT-`.
+- **D-36:** Payment step: **Individual** or **Company**. Individual: personal details, card.
+  Company: name, address, VAT required; then card **or** send pay-link. Not an invoice, not
+  PayPal, not cash. Company billing is stored on the booking and shown on the voucher.
+- **D-37:** Pay-link: extra payer email on payment, prefilled from the passenger email, they
+  can change it to finance@. We **email first** (required). Then they may copy / WhatsApp
+  (`wa.me/41796267082` is public contact, not the pay-link channel). Pay-link mail goes to
+  passenger **and** payer so both can pay. Resend allowed, same `VT-`, 24h does **not** restart.
+  Payer opens a **Vamos** page (trip summary + Stripe Element), never Stripe-hosted chrome.
+- **D-38:** After money: confirmation email to passenger + payer if different. Voucher, manage
+  link, `.ics`. Booking locale en/de/fr/ar. Arabic RTL. Replay does not send a second mail.
+- **D-39:** Guest on details fills name / email / phone like sign-up **without a password**.
+  Saved as a customer row, not an account. Later sign-up with the same email + password claims
+  those bookings. Thin AUTH-06 folded into this remainder.
+- **D-40:** Unmock `/confirmation/{ref}` in the same remainder (`middleware.ts` still maps
+  `/confirmation` → DC mock on this branch). Dummy-card E2E and confirmation email arriving are
+  in remainder. Ops board / dispatch / `#support` are not.
+
 </decisions>
 
 ### Claude's Discretion
@@ -265,6 +334,12 @@ assumption in parentheses for traceability back to `07-RESEARCH.md`.
   not a locked number).
 - Whether the FX migration (D-11) lands as its own file or folds into whoever executes Phase 2
   Wave 6's `…014_payments_refunds.sql` — a landing-order/coordination call, not a design one.
+- Deep-link to a later checkout step without earlier data: bounce to the first incomplete step.
+- Company VAT/address: store on the booking and show on the voucher. Not a Swiss QR-bill / e-invoice.
+- Exact four-language copy for the “live price changed, your locked price still holds” notice
+  and the 24h-dead pay-link email line. No invented CHF in source; format at runtime.
+- `quote_lock_deadline` / `checkout_window_minutes` become 24 hours via settings, not a
+  hardcoded Worker clock. Do not invent other policy numbers.
 
 ### Proposed plan split `[informational]`
 Reproduced from 07-RESEARCH.md's "Proposed Phase 7 plan split" — a recommendation the planner may
@@ -291,6 +366,51 @@ P1 ── P2 ── P3 ──┬── P4 ──┐
 Wave 1: **P1**. Wave 2: **P2**. Wave 3: **P3**. Wave 4: **P4** and **P5** in parallel
 (file-disjoint). Wave 5: **P6** and **P7** in parallel (file-disjoint). Wave 6: **P8**, the phase
 gate, blocked on the owner sign-off in D-27.
+
+P1–P8 landed as **07-01…07-10** (paper SUMMARYs). **Do not re-plan or re-execute them.**
+
+### Remainder plan split `[informational]` (planner may adapt; 07-11+)
+
+| # | Goal (one line) | Notes |
+|---|-----------------|-------|
+| **R1** | 24h quote lock + price-changed notice + expire → start over | Settings `checkout_window_minutes` / `quote_lock_deadline`; supersedes 30 min |
+| **R2** | Three routes `/checkout/trip` `/details` `/payment` + `vamosTrip` + lock | Pixel-faithful DC; four languages |
+| **R3** | Home Continue = real `/api/quote` lock then checkout | `app/home/home.dc.html` mock seam |
+| **R4** | Guest details without password + later email claim | D-39 |
+| **R5** | Individual vs Company billing (name/address/VAT) | D-36; not an invoice |
+| **R6** | Pay-link email + whoever-pays-first + 24h dead link | D-34 D-35 D-37; Vamos payer page |
+| **R7** | Account Finish payment for signed-in unpaid checkout | D-33; not full `/bookings` |
+| **R8** | Unmock `/confirmation/{ref}` (drop DC_PAGES map) | D-40 |
+| **R9** | Staging deploy Worker `vamos` + dummy-card E2E + confirmation email | Owner-gated deploy; then UAT |
+
+Wave order is the planner's job. R9 is last and owner-gated. File-disjoint waves may run parallel.
+
+<code_context>
+## Existing Code Insights
+
+### Reusable Assets
+- `apps/web/app/[locale]/checkout/{page.tsx,CheckoutClient.tsx,PaymentPanel.tsx,checkout.css}` — single Next checkout + StepIndicator + Stripe Payment Element. Remainder splits this into three routes. Already drops PayPal/cash. Reads `checkoutWindowMinutes` from `quote_settings_version()`.
+- `apps/web/app/[locale]/confirmation/[ref]/{page.tsx,ConfirmationClient.tsx}` — Next confirmation exists on this branch; live URL still DC because middleware maps `/confirmation`.
+- `apps/web/lib/quote/lock.ts` — HMAC quote lock. Comments still say 30-minute lock; remainder is 24h via Postgres `quote_lock_deadline()`, not a Worker wall clock.
+- `apps/web/lib/booking-draft.ts` — draft + `idempotencyKey` minted once per quote.
+- `public.checkout_create_booking(...)` — already on `phase-7` (07-02). Do not duplicate snapshot SQL.
+- Stripe test keys / `STRIPE_WEBHOOK_SECRET` already on Worker `vamos`. Do not echo secrets.
+
+### Established Patterns
+- Stripe Checkout Session `ui_mode` = `elements` (07-04). Charge CHF. Adaptive Pricing. No `payment_method_types`.
+- Webhook fast-ack + Queue consumer confirms. Browser `return_url` never confirms.
+- `asCheckout` / `asSystem` only in Route Handlers (`export const dynamic = "force-dynamic"`). Ban #5.
+- Amounts `CHF 000` in source; format at runtime. No invented fares.
+- Four languages + RTL in the same pass. Design tokens `--vt-*` only. No glow. No tinted yellow.
+
+### Integration Points
+- `apps/web/middleware.ts` — `/checkout` already removed from `DC_PAGES` on this branch; `/confirmation` still maps to `/app/pages/confirmation.html`. `origin/main` still maps `/checkout` to the DC mock (live Worker tracks `origin/main`).
+- `app/home/home.dc.html` — Continue is `saveTrip` then `location.href = '/checkout'`. Remainder must lock via `/api/quote` then go to `/checkout/trip`.
+- `app/pages/account.html` / `/bookings` — DC. Remainder adds Finish payment only, not the Phase 8 board.
+- `app/pages/manage-booking.html` — guest lookup by reference; must show unpaid pay-link vs confirmed.
+- Live host: `https://vamostaxi.site`. Ops: `https://dashboard.vamostaxi.site`. Public phone/WhatsApp `+41 79 626 70 82`.
+
+</code_context>
 
 <specifics>
 ## Specific Ideas
@@ -422,6 +542,15 @@ gate, blocked on the owner sign-off in D-27.
   creation, audit trail on booking/price/payment changes) this phase is the primary implementer
   of.
 
+### Remainder (2026-09-07) — extra refs
+- `.planning/phases/07-checkout-payment/07-01-SUMMARY.md` … `07-10-SUMMARY.md` — landed paper; do not re-execute.
+- `.planning/phases/07-checkout-payment/07-UAT.md` — `status: partial`; Test 1 blocker (live checkout is mock). Resume after staging cutover, not before.
+- `apps/web/middleware.ts` — DC_PAGES; `/confirmation` still mock.
+- `apps/web/app/[locale]/checkout/` — Next port to split into three routes.
+- `apps/web/lib/quote/lock.ts` — HMAC lock; 24h via `quote_lock_deadline()`.
+- `~/.hermes/profiles/vamos/skills/software-development/vamos-gsd-execute/references/phase-07.md` — Stripe test wiring, Worker `vamos`, no Stripe Projects.
+- Public phone/WhatsApp: `+41 79 626 70 82` (`wa.me/41796267082`).
+
 </canonical_refs>
 
 <deferred>
@@ -458,15 +587,15 @@ resolution before this phase's own E2E proof runs.
 - **The other five `booking_notifications.kind` templates** (`reminder_24h`, `assignment`,
   `review_request`, `cancellation`, `refund`, `manage_link_resend`) — Phase 8/9, same table shape
   this phase's `confirmation` template establishes the pattern for.
-- **The guest-booking → account claim UI/email flow.** Schema already supports it
-  (`booking_access_tokens`, email-anchored `customers`, Phase 2); the signup/verify flow itself is
-  AUTH-06, Phase 8.
-- **The CHF price matrix.** The one blocker that gates both a genuinely committed customer charge
-  in any environment and, per D-27, the staging E2E proof's fixture choice.
+- **The guest-booking → account claim UI/email flow.** Thin path is **in remainder** (D-39):
+  guest details without password; later signup with same email claims bookings. Full account
+  bookings list stays Phase 8 except Finish payment (D-33).
+- **The CHF price matrix.** Remainder E2E uses hosted `rate_versions` id 4. Do not invent CHF.
+  Public still `CHF 000` until a published quote paints. Phase 11 is live Stripe keys + DNS.
 
 </deferred>
 
 ---
 
 *Phase: 07-checkout-payment*
-*Context gathered: 2026-08-24 via research express path*
+*Context gathered: 2026-08-24 via research express path; remainder 2026-09-07*
