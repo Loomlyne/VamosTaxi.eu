@@ -404,6 +404,7 @@
     "confirm-booking": "تأكيد الحجز",
     "continue-as-guest": "المتابعة كضيف",
     "coupon-or-voucher-code": "رمز القسيمة أو الخصم",
+    "couponPlaceholder": "مثال CODE",
     "couponCode": "قسيمة {code}",
     "download-voucher": "تنزيل القسيمة",
     "driverWaitingAt": "سائقك في انتظارك في {location}",

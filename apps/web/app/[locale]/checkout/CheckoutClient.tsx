@@ -27,9 +27,13 @@ import {
   type CheckoutStep,
 } from "@/lib/checkout/steps";
 import {
+  peekLockClassRappen,
   placeText,
+  rappenToFrancs,
   readVamosTrip,
+  tripBags,
   tripDropoff,
+  tripPax,
   tripPickup,
   tripQuoteId,
   tripVehicle,
@@ -50,13 +54,23 @@ export type CheckoutClientProps = {
 
 const REFUSAL_KEYS: Record<string, string> = {
   quote_expired: "quoteExpired",
+  quote_not_found: "quoteExpired",
   price_changed: "priceChanged",
   engine_changed: "engineChanged",
   pricing_not_live: "pricingNotLive",
   coupon_no_longer_valid: "couponNoLongerValid",
   quote_already_booked: "quoteAlreadyBooked",
   payment_window_closed: "paymentWindowClosed",
+  turnstile_failed: "formChallengeFailed",
 };
+
+function vehicleLabel(id: string, t: (key: string) => string): string {
+  if (id === "economy") return t("classEconomy");
+  if (id === "business") return t("classBusiness");
+  if (id === "first") return t("classFirst");
+  if (id === "van") return t("classVan");
+  return t("vehicleClassFallback");
+}
 
 const CLASS_SLUGS = ["economy", "business", "first", "van"] as const;
 
@@ -99,6 +113,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const tHome = useTranslations("home");
   const tAccount = useTranslations("account");
   const tAuth = useTranslations("auth");
+  const tQuote = useTranslations("quote");
   const router = useRouter();
   const [draft, writeDraft] = useBookingDraft();
 
@@ -122,8 +137,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const [notes, setNotes] = useState("");
   const [childSeat, setChildSeat] = useState(false);
   const [oversized, setOversized] = useState(false);
-  const [skiRack, setSkiRack] = useState(false);
-  const [stops, setStops] = useState(0);
   const [coupon, setCoupon] = useState("");
   const [couponApplied, setCouponApplied] = useState<string | null>(null);
   const [turnstile, setTurnstile] = useState<string | null>(null);
@@ -177,18 +190,16 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     if (trip?.notes) setNotes(trip.notes);
     if (typeof trip?.childSeat === "boolean") setChildSeat(trip.childSeat);
     if (typeof trip?.oversizedLuggage === "boolean") setOversized(trip.oversizedLuggage);
-    if (typeof trip?.skiRack === "boolean") setSkiRack(trip.skiRack);
     if (trip?.billingKind === "company" || trip?.billingKind === "individual") {
       setBillingKind(trip.billingKind);
     }
-    if (typeof trip?.stops === "number") setStops(trip.stops);
     writeDraft({
       pickup: nextPickup,
       destination: nextDrop,
       date: nextDate,
       time: nextTime,
-      passengers: trip?.pax ?? trip?.passengers ?? 1,
-      luggage: trip?.bags ?? trip?.luggage ?? 0,
+      passengers: tripPax(trip),
+      luggage: tripBags(trip),
       flightNumber: trip?.flightNumber || trip?.flight || "",
       quoteId: tripQuoteId(trip) || undefined,
       lock: trip?.lock || undefined,
@@ -223,11 +234,22 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     const edited =
       pickup !== tripPickup(trip) ||
       destination !== tripDropoff(trip) ||
-      date !== (trip?.date ?? "") ||
-      time !== (trip?.time ?? "") ||
-      vehicle !== tripVehicle(trip);
+      date !== isoDateFromTrip(trip, trip?.date ?? "") ||
+      time !== isoTimeFromTrip(trip, trip?.time ?? "") ||
+      draft.passengers !== tripPax(trip) ||
+      draft.luggage !== tripBags(trip);
     if (hasQuoteLock(trip) && !edited) {
-      writeVamosTrip({ pickup, dropoff: destination, date, time, vehicle });
+      writeVamosTrip({
+        pickup,
+        dropoff: destination,
+        date,
+        time,
+        vehicle,
+        pax: draft.passengers,
+        bags: draft.luggage,
+        flightNumber: draft.flightNumber,
+      });
+      writeDraft({ vehicleClass: vehicle });
       router.push(checkoutStepPath("details"));
       return;
     }
@@ -256,8 +278,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           pickup: pickupPlace,
           dropoff: dropoffPlace,
           legs: [{ leg_seq: 1, scheduled_local: scheduled, flight_no: draft.flightNumber || null }],
-          pax: Math.max(1, trip?.pax ?? draft.passengers ?? 1),
-          bags: Math.max(0, trip?.bags ?? draft.luggage ?? 0),
+          pax: Math.max(1, draft.passengers),
+          bags: Math.max(0, draft.luggage),
           preferred_class: CLASS_SLUGS.includes(vehicle as (typeof CLASS_SLUGS)[number])
             ? vehicle
             : undefined,
@@ -351,9 +373,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       notes,
       childSeat,
       oversizedLuggage: oversized,
-      skiRack,
       billingKind,
-      stops,
       flightNumber: draft.flightNumber,
     });
     router.push(checkoutStepPath("payment"));
@@ -361,7 +381,12 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
 
   async function startPayment() {
     if (!validate()) return;
-    if (!draft.quoteId || !draft.lock || !draft.vehicleClass || !draft.idempotencyKey) {
+    const trip = tripSnap ?? readVamosTrip();
+    const quoteId = draft.quoteId || tripQuoteId(trip);
+    const lock = draft.lock || trip?.lock;
+    const vehicleClass = draft.vehicleClass || vehicle;
+    const idempotencyKey = draft.idempotencyKey;
+    if (!quoteId || !lock || !vehicleClass || !idempotencyKey) {
       setRefusal("quoteExpired");
       return;
     }
@@ -372,12 +397,11 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          quote_id: draft.quoteId,
-          lock: draft.lock,
-          vehicle_class: draft.vehicleClass,
+          quote_id: quoteId,
+          lock,
+          vehicle_class: vehicleClass,
           extras: {
             child_seats: childSeat ? 1 : 0,
-            extra_stops: stops,
             oversized_luggage: oversized,
           },
           coupon: couponApplied,
@@ -388,7 +412,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           },
           locale,
           display_currency: "CHF",
-          idempotency_key: draft.idempotencyKey,
+          idempotency_key: idempotencyKey,
           ...(turnstile ? { turnstile_token: turnstile } : {}),
         }),
       });
@@ -399,7 +423,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         code?: string;
       };
       if (!res.ok) {
-        const key = REFUSAL_KEYS[json.code ?? ""] ?? "quoteExpired";
+        const key = REFUSAL_KEYS[json.code ?? ""] ?? "formChallengeFailed";
         if (json.code === "coupon_no_longer_valid") setCouponApplied(null);
         setRefusal(key);
         return;
@@ -408,7 +432,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       if (json.reference) setReference(json.reference);
       setClientSecret(json.client_secret ?? null);
     } catch {
-      setRefusal("quoteExpired");
+      setRefusal("formChallengeFailed");
     } finally {
       setBusy(false);
     }
@@ -423,7 +447,12 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       setRefusal("quoteExpired");
       return;
     }
-    if (!draft.quoteId || !draft.lock || !draft.vehicleClass || !draft.idempotencyKey) {
+    const trip = tripSnap ?? readVamosTrip();
+    const quoteId = draft.quoteId || tripQuoteId(trip);
+    const lock = draft.lock || trip?.lock;
+    const vehicleClass = draft.vehicleClass || vehicle;
+    const idempotencyKey = draft.idempotencyKey;
+    if (!quoteId || !lock || !vehicleClass || !idempotencyKey) {
       setRefusal("quoteExpired");
       return;
     }
@@ -439,12 +468,11 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          quote_id: draft.quoteId,
-          lock: draft.lock,
-          vehicle_class: draft.vehicleClass,
+          quote_id: quoteId,
+          lock,
+          vehicle_class: vehicleClass,
           extras: {
             child_seats: childSeat ? 1 : 0,
-            extra_stops: stops,
             oversized_luggage: oversized,
           },
           coupon: couponApplied,
@@ -455,7 +483,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           },
           locale,
           display_currency: "CHF",
-          idempotency_key: draft.idempotencyKey,
+          idempotency_key: idempotencyKey,
           ...(turnstile ? { turnstile_token: turnstile } : {}),
           billing_kind: billingKind,
           company_name: companyName,
@@ -471,14 +499,14 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         code?: string;
       };
       if (!res.ok) {
-        const key = REFUSAL_KEYS[json.code ?? ""] ?? "quoteExpired";
+        const key = REFUSAL_KEYS[json.code ?? ""] ?? "formChallengeFailed";
         setRefusal(key);
         return;
       }
       if (json.reference) setReference(json.reference);
       if (json.pay_url) setPayUrl(json.pay_url);
     } catch {
-      setRefusal("quoteExpired");
+      setRefusal("formChallengeFailed");
     } finally {
       setBusy(false);
     }
@@ -510,6 +538,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const homeHref = localePath(locale, "/");
   const railPickup = placeText(tripSnap?.pickupPlace, pickup || draft.pickup);
   const railDrop = placeText(tripSnap?.dropoffPlace, destination || draft.destination);
+  const lockToken = tripSnap?.lock || draft.lock;
+  const totalFrancs = rappenToFrancs(peekLockClassRappen(lockToken, vehicle));
 
   if (gate !== "ok") {
     return <div className="vt-checkout" data-checkout data-checkout-step={step} data-checkout-gate />;
@@ -518,9 +548,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   return (
     <div className="vt-checkout" data-checkout data-checkout-step={step}>
       <div className="vt-checkout__top">
-        <Button variant="ghost" size="sm" icon="chevron-left" href={homeHref}>
-          {t("change-vehicle")}
-        </Button>
         <div className="vt-checkout__steps">
           <StepIndicator
             steps={[
@@ -604,6 +631,43 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                     }}
                   />
                 </div>
+                <div className="vt-checkout__flight">
+                  <Input
+                    label={tCommon("flight-number")}
+                    icon="plane"
+                    value={draft.flightNumber}
+                    placeholder={tQuote("flight.placeholder")}
+                    onChange={(e) => writeDraft({ flightNumber: e.target.value })}
+                  />
+                </div>
+                <div className="vt-checkout__party">
+                  <Counter
+                    label={tCommon("passengers")}
+                    icon="users"
+                    value={draft.passengers}
+                    min={1}
+                    max={8}
+                    onChange={(value) => {
+                      writeDraft({ passengers: value });
+                      writeVamosTrip({ pax: value });
+                    }}
+                    decrementLabel={tAccount("one-passenger-fewer")}
+                    incrementLabel={tAccount("one-passenger-more")}
+                  />
+                  <Counter
+                    label={tCommon("luggage")}
+                    icon="luggage"
+                    value={draft.luggage}
+                    min={0}
+                    max={8}
+                    onChange={(value) => {
+                      writeDraft({ luggage: value });
+                      writeVamosTrip({ bags: value });
+                    }}
+                    decrementLabel={tAccount("one-bag-fewer")}
+                    incrementLabel={tAccount("one-bag-more")}
+                  />
+                </div>
               </div>
               <CheckoutClassCards
                 classes={classList(tripSnap)}
@@ -635,6 +699,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                   label={tCommon("flight-number")}
                   icon="plane"
                   value={draft.flightNumber}
+                  placeholder={tQuote("flight.placeholder")}
                   onChange={(e) => writeDraft({ flightNumber: e.target.value })}
                 />
                 <ContactFields
@@ -693,28 +758,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                       <strong>{t("extraOversized")}</strong>
                     </span>
                   </button>
-                  <button
-                    type="button"
-                    className="vt-checkout__extra"
-                    data-on={skiRack ? "true" : undefined}
-                    aria-pressed={skiRack}
-                    onClick={() => setSkiRack((v) => !v)}
-                  >
-                    <Icon name="snowflake" size={20} />
-                    <span className="vt-checkout__extra-copy">
-                      <strong>{t("extraSki")}</strong>
-                      <span className="vt-checkout__extra-hint">{t("extraSkiHint")}</span>
-                    </span>
-                  </button>
-                  <div className="vt-checkout__stops">
-                    <Counter
-                      label={t("additional-stops")}
-                      value={stops}
-                      min={0}
-                      max={3}
-                      onChange={setStops}
-                    />
-                  </div>
                   <div className="vt-checkout__notes">
                     <Textarea
                       label={t("notes-for-the-driver")}
@@ -825,6 +868,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                           <Input
                             label={t("coupon-or-voucher-code")}
                             value={coupon}
+                            placeholder={t("couponPlaceholder")}
                             onChange={(e) => setCoupon(e.target.value)}
                           />
                           <Button
@@ -857,9 +901,10 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         <aside className="vt-checkout__rail" data-checkout-rail>
           <Card padding="lg">
             <Badge tone="accent">{t("charged-now-secured-by-stripe")}</Badge>
+            <p className="vt-checkout__picked">{vehicleLabel(vehicle, t)}</p>
             <RouteSummary pickup={railPickup} dropoff={railDrop} />
             <div data-checkout-total>
-              <PriceSummary total={null} totalLabel={t("total")} />
+              <PriceSummary total={totalFrancs} totalLabel={t("total")} />
             </div>
             <p className="vt-checkout__charge" data-checkout-charge>
               {t("chargeIn", { currency: t("chargeCurrencyName") })}
@@ -873,9 +918,11 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
             )}
             {refusal ? (
               <Alert tone={refusal === "pricingNotLive" ? "info" : "danger"}>
-                {refusal === "priceChanged" && hours != null
-                  ? t("livePriceChangedLocked", { hours })
-                  : t(refusal)}
+                {refusal === "formChallengeFailed"
+                  ? tCommon("form-challenge-failed")
+                  : refusal === "priceChanged" && hours != null
+                    ? t("livePriceChangedLocked", { hours })
+                    : t(refusal)}
                 {requote ? (
                   <Button variant="ghost" size="sm" href={homeHref}>
                     {t("requote")}

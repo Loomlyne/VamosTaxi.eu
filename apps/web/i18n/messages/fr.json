@@ -404,6 +404,7 @@
     "confirm-booking": "Confirmer la réservation",
     "continue-as-guest": "Continuer en tant qu’invité",
     "coupon-or-voucher-code": "Code promo ou bon",
+    "couponPlaceholder": "ex. CODE",
     "couponCode": "Code {code}",
     "download-voucher": "Télécharger le bon",
     "driverWaitingAt": "Votre chauffeur vous attend à {location}",

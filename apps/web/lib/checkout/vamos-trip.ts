@@ -4,6 +4,9 @@
 // Booking draft uses sessionStorage `vamosTrip` (pickup/destination/passengers).
 // Checkout reads both so the trip they typed is not blank (D-29).
 // Money is never taken from this object — Stripe charges the lock.
+// Display may peek class_totals from the lock payload (unsigned). Never invent.
+
+import { base64urlDecode } from "../crypto/hmac";
 
 export type VamosTripContact = {
   firstName: string;
@@ -130,4 +133,49 @@ export function tripVehicle(trip: VamosTrip | null | undefined): string {
 
 export function tripQuoteId(trip: VamosTrip | null | undefined): string {
   return trip?.quote_id || trip?.quoteId || "";
+}
+
+export function tripPax(trip: VamosTrip | null | undefined): number {
+  const n = trip?.pax ?? trip?.passengers;
+  return typeof n === "number" && Number.isFinite(n) && n >= 1 ? n : 1;
+}
+
+export function tripBags(trip: VamosTrip | null | undefined): number {
+  const n = trip?.bags ?? trip?.luggage;
+  return typeof n === "number" && Number.isFinite(n) && n >= 0 ? n : 0;
+}
+
+/**
+ * Display-only. Does not verify HMAC. Missing/unreadable lock → null (CHF 000).
+ * Never invent a fare.
+ */
+export function peekLockClassRappen(lock: string | undefined, slug: string): number | null {
+  if (!lock || !slug) return null;
+  const parts = lock.split(".");
+  if (parts.length !== 3 || !parts[1]) return null;
+  try {
+    const json = new TextDecoder().decode(base64urlDecode(parts[1]));
+    const payload: unknown = JSON.parse(json);
+    if (!payload || typeof payload !== "object") return null;
+    const totals = (payload as { class_totals?: unknown }).class_totals;
+    if (!Array.isArray(totals)) return null;
+    for (const row of totals) {
+      if (!row || typeof row !== "object") continue;
+      const r = row as { slug?: unknown; total_rappen?: unknown };
+      if (r.slug !== slug) continue;
+      if (typeof r.total_rappen !== "number" || !Number.isFinite(r.total_rappen) || r.total_rappen < 0) {
+        return null;
+      }
+      return r.total_rappen;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/** Lock rappen → francs for PriceSummary. Null stays the 000 mark. */
+export function rappenToFrancs(rappen: number | null): number | null {
+  if (rappen == null) return null;
+  return rappen / 100;
 }

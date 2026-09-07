@@ -87,4 +87,25 @@ describe("checkout comment pack", () => {
     expect(client).toContain("...(turnstile ? { turnstile_token: turnstile } : {})");
     expect(client).not.toMatch(/turnstile_token: turnstile,/);
   });
+
+  it("shows the locked class total, selected class, and no change-vehicle", () => {
+    expect(client).toContain("peekLockClassRappen");
+    expect(client).toContain("rappenToFrancs");
+    expect(client).toContain("PriceSummary total={totalFrancs}");
+    expect(client).not.toContain("PriceSummary total={null}");
+    expect(client).toContain("vt-checkout__picked");
+    expect(client).not.toContain("change-vehicle");
+    expect(css).toContain("padding-block: var(--vt-space-5)");
+  });
+
+  it("ports home booking fields onto trip and drops ski plus extra stops", () => {
+    expect(client).toContain("vt-checkout__party");
+    expect(client).toContain("tCommon(\"passengers\")");
+    expect(client).toContain("tQuote(\"flight.placeholder\")");
+    expect(client).toContain("couponPlaceholder");
+    expect(client).not.toContain("extraSki");
+    expect(client).not.toContain("additional-stops");
+    expect(client).toContain("turnstile_failed");
+    expect(client).toContain("formChallengeFailed");
+  });
 });

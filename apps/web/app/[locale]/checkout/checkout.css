@@ -77,8 +77,28 @@
   min-inline-size: 0;
 }
 
-.vt-checkout__when {
+.vt-checkout__when,
+.vt-checkout__flight,
+.vt-checkout__party {
   grid-column: 1 / -1;
+}
+
+.vt-checkout__party {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
+.vt-checkout .vt-route {
+  padding-block: var(--vt-space-5);
+}
+
+.vt-checkout__picked {
+  margin-block: 12px 0;
+  margin-inline: 0;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-body-sm);
+  font-weight: var(--vt-weight-semibold);
 }
 
 .vt-checkout__classes {
@@ -320,7 +340,8 @@
 @media (max-width: 640px) {
   .vt-checkout__trip,
   .vt-checkout__classes,
-  .vt-checkout__extras {
+  .vt-checkout__extras,
+  .vt-checkout__party {
     grid-template-columns: minmax(0, 1fr);
   }
 }
