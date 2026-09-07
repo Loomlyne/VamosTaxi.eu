@@ -389,7 +389,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           locale,
           display_currency: "CHF",
           idempotency_key: draft.idempotencyKey,
-          turnstile_token: turnstile,
+          ...(turnstile ? { turnstile_token: turnstile } : {}),
         }),
       });
       const json = (await res.json()) as {
@@ -456,7 +456,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           locale,
           display_currency: "CHF",
           idempotency_key: draft.idempotencyKey,
-          turnstile_token: turnstile,
+          ...(turnstile ? { turnstile_token: turnstile } : {}),
           billing_kind: billingKind,
           company_name: companyName,
           company_address: companyAddress,
