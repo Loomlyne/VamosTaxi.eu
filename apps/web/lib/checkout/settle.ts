@@ -56,6 +56,11 @@ function sqlState(err: unknown): string | undefined {
   return undefined;
 }
 
+/** Postgres `text[]` literal. A 1-element JS array binds as a scalar; `::text[]` then throws 22P02. */
+export function pgTextArrayLiteral(values: string[]): string {
+  return `{${values.map((value) => `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`).join(",")}}`;
+}
+
 function paymentIntentIdOf(session: Stripe.Checkout.Session | null): string | null {
   if (!session) return null;
   const pi = session.payment_intent;
@@ -174,7 +179,7 @@ export async function handleStripeMessage(
         return sql`
           select * from public.stripe_event_begin(
             ${eventId},
-            ${objectIds}::text[],
+            ${pgTextArrayLiteral(objectIds)}::text[],
             ${stripeCreated.toISOString()}::timestamptz
           )
         `;

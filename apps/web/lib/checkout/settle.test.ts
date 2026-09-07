@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { handleStripeMessageWithDeps, type SettleDeps } from "./settle";
+import { handleStripeMessageWithDeps, pgTextArrayLiteral, type SettleDeps } from "./settle";
 import type { StripeQueueMessage } from "./webhook";
 import type Stripe from "stripe";
 
@@ -57,6 +57,16 @@ function deps(patch: Partial<SettleDeps> = {}): SettleDeps & {
     deliverConfirmation: ReturnType<typeof vi.fn>;
   };
 }
+
+describe("pgTextArrayLiteral", () => {
+  it("quotes one id so ::text[] is not 22P02", () => {
+    expect(pgTextArrayLiteral(["cs_test_1"])).toBe('{"cs_test_1"}');
+  });
+
+  it("joins cs_ and pi_ ids", () => {
+    expect(pgTextArrayLiteral(["cs_test_1", "pi_test_1"])).toBe('{"cs_test_1","pi_test_1"}');
+  });
+});
 
 describe("handleStripeMessageWithDeps", () => {
   it("acks already_processed with no side effect", async () => {
