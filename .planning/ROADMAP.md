@@ -377,7 +377,7 @@ real charges wait for Phase 11.
 Plans:
 
 - [x] 07-01 … 07-10 — paper (SUMMARYs exist; live pay path still mock)
-- [ ] 07-11-PLAN.md — 24h lock
+- [x] 07-11-PLAN.md — 24h lock (hosted apply still gated)
 - [ ] 07-12-PLAN.md — three checkout URLs + Home Continue real quote
 - [ ] 07-13-PLAN.md — company billing + pay-link + whoever-first
 - [ ] 07-14-PLAN.md — guest no-password + Finish payment + manage status
