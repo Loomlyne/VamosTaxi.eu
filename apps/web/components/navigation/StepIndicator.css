@@ -13,6 +13,8 @@
    01-10-SUMMARY.md). */
 .vt-steps{display:flex;align-items:center;gap:0;font-family:var(--vt-font-body);inline-size:100%}
 .vt-step{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+a.vt-step{color:inherit;text-decoration:none;border-block-end:0}
+a.vt-step:hover{color:inherit}
 .vt-step__dot{inline-size:28px;block-size:28px;border-radius:var(--vt-radius-pill);display:flex;align-items:center;justify-content:center;font-size:var(--vt-body-xs);font-weight:var(--vt-weight-semibold);background:var(--vt-grey-100);color:var(--vt-text-muted);border:var(--vt-border-w-strong) solid transparent;transition:var(--vt-transition-control)}
 .vt-step__label{font-size:var(--vt-body-sm);color:var(--vt-text-muted);white-space:nowrap}
 .vt-step--done .vt-step__dot{background:var(--vt-charcoal-900);color:var(--vt-accent)}

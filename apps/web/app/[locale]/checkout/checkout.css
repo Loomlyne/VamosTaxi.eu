@@ -58,6 +58,13 @@
   flex-wrap: wrap;
 }
 
+.vt-checkout__classes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-block-start: 16px;
+}
+
 .vt-checkout__charge {
   margin-block-start: 8px;
   color: var(--vt-text-muted);
