@@ -15,4 +15,4 @@ Tasks 1–2 done. Task 3 authorized 2026-09-07 (owner: hosted, deployed, nothing
 `pnpm test lib/fx/convert.test.ts lib/fx/fetchRates.test.ts lib/checkout/currency.test.ts lib/checkout/stripe.test.ts` — 19 passed.
 
 ## Task 3
-`GET https://vamostaxi.site/api/fx` is 200 with live EUR/USD/AED (no invented rate). Charge remains CHF. Staging deploy of this sitting still required so checkout chrome + comment pack share one Worker version.
+Worker `vamos` `92995089` (2026-09-07 20:36Z). `GET https://vamostaxi.site/api/fx` 200 live EUR/USD/AED. Charge remains CHF. Hosted SQL applied (`checkout-lock-24h` 1440, `checkout_company_paylink`). Dummy-card UAT still needs a human home quote (Turnstile) + 4242.
