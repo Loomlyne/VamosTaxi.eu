@@ -72,6 +72,7 @@ export type CheckoutIntentDeps = {
   checkoutWindowMinutes: number;
   actorCustomerId: string | null;
   vehicleClassId: string;
+  snapshotPolicy: Record<string, unknown>;
 };
 
 function mapQuoteCode(code: QuoteErrorCode): CheckoutRefusalCode {
@@ -150,6 +151,9 @@ export async function runCheckoutIntent(
   if (!deps.vehicleClassId) {
     return refuse("invalid_request");
   }
+  if (!deps.snapshotPolicy) {
+    return refuse("invalid_request");
+  }
 
   const token = await deps.mintManageToken();
   const expiresAt = new Date(Date.parse(deps.workerNowIso) + deps.checkoutWindowMinutes * 60_000);
@@ -184,6 +188,7 @@ export async function runCheckoutIntent(
         body.vehicle_class,
         deps.vehicleClassId,
         chargedRappen,
+        deps.snapshotPolicy,
       ),
       legs: checkoutLegsFromLock(payload, deps.vehicleClassId),
       couponId: null,

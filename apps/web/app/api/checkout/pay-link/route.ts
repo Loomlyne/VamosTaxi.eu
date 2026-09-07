@@ -13,7 +13,7 @@ import { createBooking } from "@/lib/checkout/create-booking";
 import { attachPayment } from "@/lib/checkout/attach-payment";
 import { mintManageToken } from "@/lib/checkout/manage-token";
 import { setPayLink } from "@/lib/checkout/set-pay-link";
-import { lookupVehicleClassId } from "@/lib/checkout/lock-to-rpc";
+import { lookupVehicleClassId, snapshotPolicyFromSettings } from "@/lib/checkout/lock-to-rpc";
 import { confirmationRecipients, payLinkPath } from "@/lib/checkout/pay-link";
 import {
   createCheckoutSession,
@@ -63,9 +63,14 @@ export async function POST(request: Request) {
     return refuse("invalid_request");
   }
 
-  const policy = policyHours(await loadSettingsVersion(env, postgresNowIso));
+  const settingsDoc = await loadSettingsVersion(env, postgresNowIso);
+  const policy = policyHours(settingsDoc);
   if (policy.checkoutWindowMinutes == null) {
     return refuse("payment_window_closed");
+  }
+  const snapshotPolicy = snapshotPolicyFromSettings(settingsDoc);
+  if (!snapshotPolicy) {
+    return refuse("invalid_request");
   }
 
   const intentRes = await runCheckoutIntent(body, {
@@ -105,6 +110,7 @@ export async function POST(request: Request) {
     checkoutWindowMinutes: policy.checkoutWindowMinutes,
     actorCustomerId: null,
     vehicleClassId,
+    snapshotPolicy,
   });
 
   if (!intentRes.ok) return intentRes;

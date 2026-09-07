@@ -112,6 +112,16 @@ function deps(p: QuoteLockPayload, rec: Recorder, patch: Partial<CheckoutIntentD
     checkoutWindowMinutes: 30,
     actorCustomerId: null,
     vehicleClassId: "00000000-0000-4000-8000-0000000000aa",
+    snapshotPolicy: {
+      cancellation_tiers: [],
+      free_cancel_hours: null,
+      airport_waiting_minutes: null,
+      city_waiting_minutes: null,
+      settings_version_id: 1,
+      modification_deadline_hours: null,
+      min_advance_minutes: null,
+      policy_doc: null,
+    },
     ...patch,
   };
 }

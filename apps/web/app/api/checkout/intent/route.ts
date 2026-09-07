@@ -20,7 +20,7 @@ import {
 } from "@/lib/checkout/stripe";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { loadSettingsVersion } from "@/lib/db/quote";
-import { lookupVehicleClassId } from "@/lib/checkout/lock-to-rpc";
+import { lookupVehicleClassId, snapshotPolicyFromSettings } from "@/lib/checkout/lock-to-rpc";
 import { policyHours } from "@/lib/checkout/policy-settings";
 import type { IntentRecompute } from "@/lib/quote/intent";
 
@@ -62,9 +62,14 @@ export async function POST(request: Request) {
     return refuse("invalid_request");
   }
 
-  const policy = policyHours(await loadSettingsVersion(env, postgresNowIso));
+  const settingsDoc = await loadSettingsVersion(env, postgresNowIso);
+  const policy = policyHours(settingsDoc);
   if (policy.checkoutWindowMinutes == null) {
     return refuse("payment_window_closed");
+  }
+  const snapshotPolicy = snapshotPolicyFromSettings(settingsDoc);
+  if (!snapshotPolicy) {
+    return refuse("invalid_request");
   }
 
   return runCheckoutIntent(body, {
@@ -104,5 +109,6 @@ export async function POST(request: Request) {
     checkoutWindowMinutes: policy.checkoutWindowMinutes,
     actorCustomerId: null,
     vehicleClassId,
+    snapshotPolicy,
   });
 }

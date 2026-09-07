@@ -65,11 +65,67 @@ export function checkoutLegsFromLock(
   }));
 }
 
+const POLICY_KEYS = [
+  "cancellation_tiers",
+  "free_cancel_hours",
+  "airport_waiting_minutes",
+  "city_waiting_minutes",
+  "settings_version_id",
+  "modification_deadline_hours",
+  "min_advance_minutes",
+  "policy_doc",
+] as const;
+
+export function snapshotPolicyFromSettings(doc: unknown): Record<string, unknown> | null {
+  if (doc === null || typeof doc !== "object" || Array.isArray(doc)) return null;
+  const rec = doc as Record<string, unknown>;
+  const rawId = rec.id;
+  const id =
+    typeof rawId === "number" && Number.isFinite(rawId)
+      ? rawId
+      : typeof rawId === "string" && /^\d+$/.test(rawId)
+        ? Number(rawId)
+        : NaN;
+  if (!Number.isFinite(id)) return null;
+  const slug = rec.policy_doc_slug;
+  const version = rec.policy_doc_version;
+  const policy = {
+    settings_version_id: id,
+    free_cancel_hours: rec.free_cancel_hours ?? null,
+    modification_deadline_hours: rec.modification_deadline_hours ?? null,
+    min_advance_minutes: rec.min_advance_minutes ?? null,
+    airport_waiting_minutes: rec.airport_waiting_minutes ?? null,
+    city_waiting_minutes: rec.city_waiting_minutes ?? null,
+    cancellation_tiers: Array.isArray(rec.cancellation_tiers) ? rec.cancellation_tiers : [],
+    policy_doc:
+      typeof slug === "string" && typeof version === "string" ? { slug, version } : null,
+  };
+  for (const key of POLICY_KEYS) {
+    if (!(key in policy)) return null;
+  }
+  return policy;
+}
+
+export function snapshotFareLines(vehicleClass: string, chargedRappen: number) {
+  return [
+    {
+      seq: 1,
+      leg_seq: 1,
+      kind: "fare",
+      code: "distance_fare",
+      i18n_key: "price.line.transfer",
+      params: { vehicleClass },
+      amount_rappen: chargedRappen,
+    },
+  ];
+}
+
 export function snapshotFromLock(
   payload: QuoteLockPayload,
   vehicleClass: string,
   vehicleClassId: string,
   chargedRappen: number,
+  snapshotPolicy: Record<string, unknown>,
 ) {
   const legs = checkoutLegsFromLock(payload, vehicleClassId);
   return {
@@ -81,8 +137,8 @@ export function snapshotFromLock(
     lock_exp: payload.exp,
     pax: payload.pax,
     bags: payload.bags,
-    lines: [],
-    policy: {},
+    lines: snapshotFareLines(vehicleClass, chargedRappen),
+    policy: snapshotPolicy,
     shown_alternatives: payload.class_totals,
     legs,
     display_currency: payload.display_currency,
