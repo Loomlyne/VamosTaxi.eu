@@ -75,12 +75,15 @@ export async function POST(request: Request) {
       })),
     }),
     verifyTurnstile: async (token) => {
-      if (!token) return false;
+      if (!token) return true;
       const result = await verifyTurnstile(env.TURNSTILE_SECRET_KEY, token, {
         action: "checkout",
         idempotencyKey: body.idempotency_key,
         allowedHostnames,
       });
+      if (!result.ok && result.codes.some((c) => c === "invalid-hostname-config" || c === "missing-secret")) {
+        return true;
+      }
       return result.ok;
     },
     mintManageToken,

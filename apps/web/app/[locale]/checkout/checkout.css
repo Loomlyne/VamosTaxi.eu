@@ -66,6 +66,27 @@
   flex: 1 1 0;
 }
 
+.vt-checkout .vt-when__field,
+.vt-checkout .vt-time__field,
+.vt-checkout [data-vtcombo],
+.vt-checkout .vt-input--md,
+.vt-checkout .vt-counter__box--md {
+  block-size: var(--vt-control-h-md);
+  min-block-size: var(--vt-control-h-md);
+}
+
+.vt-checkout .vt-placecombo [data-vtcombo] {
+  padding-inline: 14px;
+  gap: 10px;
+}
+
+.vt-checkout .vt-placecombo [data-combo-tile] {
+  inline-size: 16px;
+  block-size: 16px;
+  background: transparent;
+  border-radius: 0;
+}
+
 .vt-checkout__trip {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

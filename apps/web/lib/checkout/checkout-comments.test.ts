@@ -91,9 +91,13 @@ describe("checkout comment pack", () => {
     expect(home).toContain("text: apiText");
   });
 
-  it("omits null turnstile_token so intent schema does not 400", () => {
-    expect(client).toContain("...(turnstile ? { turnstile_token: turnstile } : {})");
-    expect(client).not.toMatch(/turnstile_token: turnstile,/);
+  it("omits the checkout Turnstile widget and does not send a token", () => {
+    expect(client).not.toContain("TurnstileWidget");
+    expect(client).not.toContain("turnstile_token");
+    const intent = readFileSync(join(WEB_ROOT, "app/api/checkout/intent/route.ts"), "utf8");
+    expect(intent).toContain("if (!token) return true");
+    expect(client.indexOf("vt-checkout__payhead")).toBeLessThan(client.indexOf("vt-checkout__recap"));
+    expect(css).toContain("min-block-size: var(--vt-control-h-md)");
   });
 
   it("shows the locked class total, selected class, and no change-vehicle", () => {

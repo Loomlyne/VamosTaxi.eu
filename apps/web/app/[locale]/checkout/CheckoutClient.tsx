@@ -14,7 +14,6 @@ import {
   type ContactFieldsErrors,
   type ContactFieldsValue,
 } from "@/components/booking";
-import { TurnstileWidget } from "@/components/forms/TurnstileWidget";
 import { PlaceCombo, type PlaceRetrieve } from "@/components/forms/PlaceCombo";
 import { e164Phone, isCheckoutEmail } from "@/lib/checkout/contact-validate";
 import { useBookingDraft } from "@/lib/booking-draft";
@@ -116,7 +115,7 @@ function asDisplayCurrency(cur: string): CurrencyCode {
 }
 
 export function CheckoutClient({ step }: CheckoutClientProps) {
-  const { locale, freeCancelHours, checkoutWindowMinutes, turnstileSiteKey, publishableKey } =
+  const { locale, freeCancelHours, checkoutWindowMinutes, publishableKey } =
     useCheckoutSettings();
   const t = useTranslations("checkout");
   const tCommon = useTranslations("common");
@@ -155,7 +154,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const [oversized, setOversized] = useState(false);
   const [coupon, setCoupon] = useState("");
   const [couponApplied, setCouponApplied] = useState<string | null>(null);
-  const [turnstile, setTurnstile] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [refusal, setRefusal] = useState<string | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
@@ -446,7 +444,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           locale,
           display_currency: displayCur,
           idempotency_key: idempotencyKey,
-          ...(turnstile ? { turnstile_token: turnstile } : {}),
         }),
       });
       const json = (await res.json()) as {
@@ -517,7 +514,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           locale,
           display_currency: displayCur,
           idempotency_key: idempotencyKey,
-          ...(turnstile ? { turnstile_token: turnstile } : {}),
           billing_kind: billingKind,
           company_name: companyName,
           company_address: companyAddress,
@@ -716,7 +712,10 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                     icon="plane"
                     value={draft.flightNumber}
                     placeholder={tQuote("flight.placeholder")}
-                    onChange={(e) => writeDraft({ flightNumber: e.target.value })}
+                    onChange={(e) => {
+                      writeDraft({ flightNumber: e.target.value });
+                      writeVamosTrip({ flightNumber: e.target.value });
+                    }}
                   />
                 </div>
                 <div className="vt-checkout__party">
@@ -855,45 +854,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           {step === "payment" ? (
             <Card padding="lg">
               <div className="vt-checkout__sheet">
-                <div className="vt-checkout__recap">
-                  <div className="vt-checkout__recap-trip">
-                    <Badge tone="accent">{t("charged-now-secured-by-stripe")}</Badge>
-                    <p className="vt-checkout__picked">{vehicleLabel(vehicle, t)}</p>
-                    <RouteSummary pickup={railPickup} dropoff={railDrop} meta={railMeta} />
-                  </div>
-                  <div className="vt-checkout__recap-pay">
-                    <div data-checkout-total>
-                      <PriceSummary
-                        total={shown.major}
-                        currency={shown.currency}
-                        totalLabel={t("total")}
-                      />
-                    </div>
-                    <div className="vt-checkout__coupon" data-checkout-coupon>
-                      <Input
-                        label={t("coupon-or-voucher-code")}
-                        value={coupon}
-                        placeholder={t("couponPlaceholder")}
-                        onChange={(e) => setCoupon(e.target.value)}
-                      />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setCouponApplied(coupon.trim() || null)}
-                      >
-                        {tCommon("apply")}
-                      </Button>
-                    </div>
-                    {couponApplied ? (
-                      <Tag onRemove={() => setCouponApplied(null)}>
-                        {t("couponCode", { code: couponApplied })}
-                      </Tag>
-                    ) : null}
-                    <p className="vt-checkout__charge" data-checkout-charge>
-                      {t("chargeIn", { currency: t("chargeCurrencyName") })}
-                    </p>
-                  </div>
-                </div>
               <div className="vt-checkout__payhead">
                 <h2>{t("payment")}</h2>
                 <p>{t("card-apple-pay-or-twint")}</p>
@@ -988,15 +948,48 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                           reference={reference}
                           onReady={onPaymentReady}
                         />
-                      ) : (
-                        <TurnstileWidget
-                          siteKey={turnstileSiteKey}
-                          action="checkout"
-                          onToken={setTurnstile}
-                        />
-                      )}
+                      ) : null}
                     </>
                   )}
+                </div>
+              </div>
+              <div className="vt-checkout__recap">
+                <div className="vt-checkout__recap-trip">
+                  <Badge tone="accent">{t("charged-now-secured-by-stripe")}</Badge>
+                  <p className="vt-checkout__picked">{vehicleLabel(vehicle, t)}</p>
+                  <RouteSummary pickup={railPickup} dropoff={railDrop} meta={railMeta} />
+                </div>
+                <div className="vt-checkout__recap-pay">
+                  <div data-checkout-total>
+                    <PriceSummary
+                      total={shown.major}
+                      currency={shown.currency}
+                      totalLabel={t("total")}
+                    />
+                  </div>
+                  <div className="vt-checkout__coupon" data-checkout-coupon>
+                    <Input
+                      label={t("coupon-or-voucher-code")}
+                      value={coupon}
+                      placeholder={t("couponPlaceholder")}
+                      onChange={(e) => setCoupon(e.target.value)}
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setCouponApplied(coupon.trim() || null)}
+                    >
+                      {tCommon("apply")}
+                    </Button>
+                  </div>
+                  {couponApplied ? (
+                    <Tag onRemove={() => setCouponApplied(null)}>
+                      {t("couponCode", { code: couponApplied })}
+                    </Tag>
+                  ) : null}
+                  <p className="vt-checkout__charge" data-checkout-charge>
+                    {t("chargeIn", { currency: t("chargeCurrencyName") })}
+                  </p>
                 </div>
               </div>
               <div className="vt-checkout__payfoot">
