@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { CHARGE_CURRENCY, stripeLocale } from "./currency";
 
 describe("checkout currency", () => {
-  it("charges CHF only — no FX table", () => {
+  it("charges CHF only — display FX is separate", () => {
     expect(CHARGE_CURRENCY).toBe("chf");
   });
 

@@ -437,6 +437,9 @@
     "childSeat": "مقعد طفل",
     "payment": "الدفع",
     "chargeIn": "يتم الخصم بـ {currency}.",
+    "fxRate": "1 CHF = {rate} {code}",
+    "fxAsOf": "السعر بتاريخ {asOf}",
+    "fxUnavailable": "العرض بالفرنك السويسري — التحويل غير متاح.",
     "quoteExpired": "انتهت صلاحية هذا العرض. احصل على سعر جديد.",
     "priceChanged": "تغير السعر. احصل على عرض جديد.",
     "engineChanged": "تم تحديث الأسعار. احصل على عرض جديد.",
@@ -494,7 +497,12 @@
     "notVisibleTitle": "لا يمكننا عرض هذا الحجز هنا",
     "notVisibleBody": "تحقق من القسيمة ورابط الإدارة في بريدك.",
     "pickupAt": "الاستلام {time}",
-    "vehicleClassFallback": "المركبة"
+    "vehicleClassFallback": "المركبة",
+    "extraOversized": "أمتعة كبيرة الحجم",
+    "extraSki": "حامل تزلج أو لوح",
+    "extraSkiHint": "يُركَّب عند الطلب. بدون تكلفة إضافية.",
+    "payNow": "ادفع الآن",
+    "payLinkTab": "رابط الدفع بالبريد"
   },
   "common": {
     "4-not-live": "4 غير مفعّلة",

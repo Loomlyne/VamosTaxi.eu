@@ -30,7 +30,7 @@ key-files:
 key-decisions:
   - "Whoever pays first: attachPayment on unique quote. One success payment."
   - "pay_link_sent_at coalesce — resend does not restart 24h."
-  - "Hosted SQL not applied. Charge gate source untouched."
+  - "Hosted SQL applied 2026-09-07. Charge gate source untouched."
 
 patterns-established:
   - "Pay token purpose=pay, hashed at rest, locale path /checkout/pay/{token}."
@@ -55,11 +55,11 @@ Company billing + pay-link + whoever-first on `phase-7`.
 - `pnpm i18n:check` passed (2362 keys).
 - vitest: pay-link, steps, intent, create-booking — 32 passed.
 - emails package: 53 passed.
-- Hosted SQL **not** applied. Docker down — pgTAP file only.
+- Hosted SQL **applied** 2026-09-07 (`checkout_company_paylink`, `20260907202452`). Readback: bookings billing columns, purpose `manage|pay`, RPCs `checkout_set_pay_link` / `checkout_attach_payment` / `checkout_pay_link_by_hash`. Docker down — pgTAP file only.
 
 ## Self-Check: PASSED (with follow-up)
 - [x] Charge gate not relaxed
 - [x] No invent CHF
 - [x] No deploy
-- [ ] Hosted migration apply — owner-gated
+- [x] Hosted migration apply — 2026-09-07
 ---

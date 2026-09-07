@@ -1,0 +1,43 @@
+/* Locked leading + — same field as OpsProfile `[data-vt-phone]`. Digits only;
+   the plus is not typed, so E.164 is always readable. */
+[data-vt-phone] {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  inline-size: 100%;
+  block-size: var(--vt-control-h-md);
+  padding: 0 14px 0 12px;
+  border: var(--vt-border-w) solid var(--vt-border-subtle);
+  border-radius: var(--vt-radius-field);
+  background: var(--vt-white);
+  min-inline-size: 0;
+  transition: var(--vt-transition-control);
+}
+[data-vt-phone]:hover {
+  border-color: var(--vt-grey-300);
+}
+[data-vt-phone]:focus-within {
+  border-color: var(--vt-charcoal-900);
+}
+[data-vt-phone][data-error="true"] {
+  border-color: var(--vt-danger);
+}
+[data-vt-phone-plus] {
+  flex: 0 0 auto;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-body-md);
+  font-weight: 600;
+  color: var(--vt-charcoal-900);
+  user-select: none;
+  pointer-events: none;
+}
+[data-vt-phone] input {
+  all: unset;
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-body-md);
+  color: var(--vt-charcoal-900);
+  caret-color: var(--vt-charcoal-900);
+}

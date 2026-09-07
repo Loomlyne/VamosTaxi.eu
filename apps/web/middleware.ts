@@ -37,6 +37,24 @@ const DC_PAGES: Record<string, string> = {
   "/coming-soon": "/app/pages/coming-soon.html",
 };
 
+/** Bare `/app/pages/contact` (and home) → public `/contact`. Skip aliases that share a file. */
+const DC_FILE_ROUTE: Record<string, string> = {};
+for (const [route, file] of Object.entries(DC_PAGES)) {
+  if (route === "/sign-up" || route === "/login") continue;
+  DC_FILE_ROUTE[file.replace(/\.html$/i, "")] = route;
+}
+
+function publicPathFromDcFile(pathname: string): string | null {
+  const { localePrefix, path } = localeStrippedPath(pathname);
+  const bare = path.replace(/\.dc\.html$/i, "").replace(/\.html$/i, "").replace(/\.dc$/i, "");
+  const route = DC_FILE_ROUTE[bare];
+  if (!route) return null;
+  if (localePrefix && localePrefix !== "en") {
+    return route === "/" ? `/${localePrefix}` : `/${localePrefix}${route}`;
+  }
+  return route;
+}
+
 const OPS_EXEMPT = new Set(["/ops/sign-in", "/ops/mfa-challenge", "/ops/accept-invite"]);
 
 function stripLocalePath(pathname: string): string {
@@ -308,6 +326,12 @@ export default async function middleware(request: NextRequest) {
       return applyStagingNoindex(NextResponse.redirect(opsRedirectUrl(request, "/ops")));
     }
   } else {
+    const bounced = publicPathFromDcFile(pathname);
+    if (bounced && bounced !== pathname) {
+      const url = request.nextUrl.clone();
+      url.pathname = bounced;
+      return applyStagingNoindex(NextResponse.redirect(url, 308));
+    }
     const mock = dcMockPath(pathname);
     if (mock) {
       const html = await serveDcHtml(request, mock);

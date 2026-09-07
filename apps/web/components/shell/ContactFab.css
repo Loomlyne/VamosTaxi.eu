@@ -1,0 +1,65 @@
+/* Bottom-end contact overlay. Replaces the header tel pill (public phone lives
+   here: mailto /contact / WhatsApp). Tokens only. No glow. */
+.vt-contact-fab {
+  position: fixed;
+  inset-block-end: 24px;
+  inset-inline-end: 24px;
+  z-index: 80;
+}
+.vt-contact-fab__btn {
+  all: unset;
+  box-sizing: border-box;
+  inline-size: 56px;
+  block-size: 56px;
+  border-radius: var(--vt-radius-pill);
+  background: var(--vt-yellow);
+  border: 1px solid var(--vt-charcoal-900);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.vt-contact-fab__btn:hover {
+  background: var(--vt-charcoal-900);
+  color: var(--vt-yellow);
+}
+.vt-contact-fab__btn:focus-visible {
+  outline: none;
+  box-shadow: none;
+  border-color: var(--vt-charcoal-900);
+}
+.vt-contact-fab__panel {
+  position: absolute;
+  inset-block-end: calc(100% + 10px);
+  inset-inline-end: 0;
+  inline-size: min(260px, calc(100vw - 32px));
+  box-sizing: border-box;
+  background: var(--vt-bg-surface);
+  border: 1px solid var(--vt-border-subtle);
+  border-radius: var(--vt-radius-lg);
+  box-shadow: var(--vt-shadow-xl);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.vt-contact-fab__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-block-size: 44px;
+  padding: 0 12px;
+  border-radius: 10px;
+  color: var(--vt-text-primary);
+  font-size: 14px;
+  text-decoration: none;
+}
+.vt-contact-fab__item:hover {
+  background: var(--vt-charcoal-900);
+  color: var(--vt-white);
+}
+@media print {
+  .vt-contact-fab {
+    display: none !important;
+  }
+}

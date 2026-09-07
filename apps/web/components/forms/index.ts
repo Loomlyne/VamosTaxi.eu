@@ -26,3 +26,6 @@ export type { DatePickerProps, DatePickerSize } from "./DatePicker";
 
 export { WhenPicker } from "./WhenPicker";
 export type { WhenPickerProps } from "./WhenPicker";
+
+export { PhoneField, e164Phone } from "./PhoneField";
+export type { PhoneFieldProps } from "./PhoneField";

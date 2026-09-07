@@ -5,8 +5,7 @@ Owner action. Not a merge.
 
 ## What must be true first
 
-1. The owner's CHF matrix is seeded into a **DRAFT** `rate_versions` row. No live
-   numbers until this procedure says so.
+1. The owner's matrix is seeded into a **DRAFT** `rate_versions` row (`packages/db/scripts/seed-draft-rate-book.mjs`, local/staging only). Numbers live in `docs/build/OWNER-ANSWERS.md` D-46. No live numbers until this procedure says so.
 2. Every **active** surcharge carries a non-blank `predicate`. The five U38 rows
    (airport-zone and ski-tag) still need owner confirmation. The publish gate
    refuses `draft → live` until they land (`20260825000001_surcharge_predicate.sql`).

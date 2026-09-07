@@ -76,6 +76,9 @@ export async function createCheckoutSession(
       locale: stripeLocale(input.locale),
       expires_at: Math.floor(input.expiresAt.getTime() / 1000),
       adaptive_pricing: { enabled: true },
+      // Charge is always CHF. Stripe has no Checkout Session presentment pin
+      // for EUR/USD/AED — Adaptive Pricing may show another currency; our
+      // chrome converts with /api/fx. Do not invent a charge currency.
       // Checkout Sessions have no PaymentIntent `automatic_payment_methods`
       // field. Dashboard-configured methods + Adaptive Pricing are the gate
       // (D-09/D-10). Do not pass `payment_method_types`.

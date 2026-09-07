@@ -42,6 +42,17 @@ function parseSnapshot(body: unknown): SessionSnapshot {
   };
 }
 
+const PHOTO_KEY = "vamosPhoto";
+
+function readStoredPhoto(): string {
+  try {
+    const raw = localStorage.getItem(PHOTO_KEY) || "";
+    return raw.startsWith("data:image/") ? raw : "";
+  } catch {
+    return "";
+  }
+}
+
 export function SiteHeaderAccount({
   variant,
   compact = false,
@@ -53,8 +64,18 @@ export function SiteHeaderAccount({
   const tHeader = useTranslations("header");
   const [snapshot, setSnapshot] = useState<SessionSnapshot | null>(snapshotProp ?? null);
   const [menuOpen, setMenuOpen] = useState(defaultMenuOpen);
+  const [photoSrc, setPhotoSrc] = useState("");
   const rootRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    setPhotoSrc(readStoredPhoto());
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === PHOTO_KEY) setPhotoSrc(readStoredPhoto());
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
   useEffect(() => {
     if (snapshotProp) {
@@ -169,8 +190,9 @@ export function SiteHeaderAccount({
         onClick={() => setMenuOpen((open) => !open)}
       >
         <Avatar
+          src={photoSrc || undefined}
           name={displayName ?? undefined}
-          icon={displayName ? undefined : "user"}
+          icon={displayName || photoSrc ? undefined : "user"}
           size="sm"
         />
       </button>
@@ -178,8 +200,9 @@ export function SiteHeaderAccount({
         <div data-hd-acctmenu="1" role="menu" aria-label={menuLabel}>
           <div data-hd-acctid="1">
             <Avatar
+              src={photoSrc || undefined}
               name={displayName ?? undefined}
-              icon={displayName ? undefined : "user"}
+              icon={displayName || photoSrc ? undefined : "user"}
               size="sm"
               tone="inverse"
             />

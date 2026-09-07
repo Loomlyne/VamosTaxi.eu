@@ -58,7 +58,7 @@ i18n: `checkoutWindowHours`, `livePriceChangedLocked` in en/de/fr/ar. `pnpm i18n
 
 ## Task 2 — hosted apply
 
-**Not applied** on `yaumjzvylngfjhtuffqs`. Wait for owner **apply**.
+**Applied** 2026-09-07 on `yaumjzvylngfjhtuffqs` as `quote_lock_24h` (`20260907202413`). Readback: `settings_versions` id 3 slug `checkout-lock-24h`, `quote_lock_minutes=1440`, `checkout_window_minutes=1440`, `min_advance_minutes=180`, `service_area_geojson` present. Launch-baseline left at 30 (append-only).
 
 ## Deviations
 

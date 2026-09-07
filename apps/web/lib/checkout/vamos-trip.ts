@@ -41,6 +41,9 @@ export type VamosTrip = {
   airline?: string;
   notes?: string;
   childSeat?: boolean;
+  oversizedLuggage?: boolean;
+  skiRack?: boolean;
+  billingKind?: "individual" | "company";
   stops?: number;
   flight?: string;
   flightNumber?: string;
@@ -109,6 +112,16 @@ export function tripPickup(trip: VamosTrip | null | undefined): string {
 
 export function tripDropoff(trip: VamosTrip | null | undefined): string {
   return trip?.dropoff || trip?.destination || "";
+}
+
+export function placeText(place: unknown, fallback: string): string {
+  if (!place || typeof place !== "object") return fallback;
+  const p = place as Record<string, unknown>;
+  const text = typeof p.text === "string" ? p.text.trim() : "";
+  const sub = typeof p.s === "string" ? p.s.trim() : "";
+  if (text && sub && !text.includes(sub)) return `${text}, ${sub}`;
+  if (text) return text;
+  return fallback;
 }
 
 export function tripVehicle(trip: VamosTrip | null | undefined): string {

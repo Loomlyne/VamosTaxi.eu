@@ -15,7 +15,7 @@ export type BookingCardProps = BookingCardMountProps & {
   children?: ReactNode;
 };
 
-function PlaceCombo({
+export function PlaceCombo({
   label,
   value,
   placeholder,

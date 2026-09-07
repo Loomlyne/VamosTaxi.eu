@@ -1,7 +1,8 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { cookies } from "next/headers";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { asQuote } from "@/lib/db/identity";
+import { loadSettingsVersion } from "@/lib/db/quote";
+import { policyHours } from "@/lib/checkout/policy-settings";
 import {
   BOOKING_REFERENCE_RE,
   isVoucherStatus,
@@ -50,14 +51,7 @@ export default async function ConfirmationPage({
   let freeCancelHours: number | null = null;
   if (env) {
     try {
-      const rows = await asQuote(env, (sql) =>
-        sql<{ free_cancel_hours: number }[]>`
-          select free_cancel_hours
-            from public.quote_settings_version()
-        `,
-      );
-      const row = rows[0];
-      if (row) freeCancelHours = row.free_cancel_hours;
+      freeCancelHours = policyHours(await loadSettingsVersion(env, new Date().toISOString())).freeCancelHours;
     } catch {
       // TBC pills stay TBC. Never invent hours.
     }

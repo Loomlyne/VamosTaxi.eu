@@ -437,6 +437,9 @@
     "childSeat": "Siège enfant",
     "payment": "Paiement",
     "chargeIn": "Le débit est en {currency}.",
+    "fxRate": "1 CHF = {rate} {code}",
+    "fxAsOf": "Taux au {asOf}",
+    "fxUnavailable": "Affichage en francs suisses — conversion indisponible.",
     "quoteExpired": "Ce devis a expiré. Demandez un nouveau prix.",
     "priceChanged": "Le prix a changé. Demandez un nouveau devis.",
     "engineChanged": "Les tarifs ont été mis à jour. Demandez un nouveau devis.",
@@ -494,7 +497,12 @@
     "notVisibleTitle": "Nous ne pouvons pas afficher cette réservation ici",
     "notVisibleBody": "Consultez le bon et le lien de gestion dans votre e-mail.",
     "pickupAt": "Prise en charge {time}",
-    "vehicleClassFallback": "Véhicule"
+    "vehicleClassFallback": "Véhicule",
+    "extraOversized": "Bagage hors format",
+    "extraSki": "Porte-skis ou snowboard",
+    "extraSkiHint": "Installé sur demande. Sans supplément.",
+    "payNow": "Payer maintenant",
+    "payLinkTab": "Lien de paiement par e-mail"
   },
   "common": {
     "4-not-live": "4 non actifs",

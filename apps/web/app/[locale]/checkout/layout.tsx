@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { asQuote } from "@/lib/db/identity";
+import { loadSettingsVersion } from "@/lib/db/quote";
+import { policyHours } from "@/lib/checkout/policy-settings";
 import { CheckoutSettingsProvider } from "./CheckoutSettings";
 import "./checkout.css";
 
@@ -37,17 +38,9 @@ export default async function CheckoutLayout({
   let checkoutWindowMinutes: number | null = null;
   if (env) {
     try {
-      const rows = await asQuote(env, (sql) =>
-        sql<{ free_cancel_hours: number; checkout_window_minutes: number }[]>`
-          select free_cancel_hours, checkout_window_minutes
-            from public.quote_settings_version()
-        `,
-      );
-      const row = rows[0];
-      if (row) {
-        freeCancelHours = row.free_cancel_hours;
-        checkoutWindowMinutes = row.checkout_window_minutes;
-      }
+      const policy = policyHours(await loadSettingsVersion(env, new Date().toISOString()));
+      freeCancelHours = policy.freeCancelHours;
+      checkoutWindowMinutes = policy.checkoutWindowMinutes;
     } catch {
       // TBC pills stay TBC (D-24). Never invent hours.
     }

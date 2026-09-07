@@ -1,6 +1,8 @@
 "use client";
 
-import { Input } from "../forms";
+import { Input, PhoneField } from "../forms";
+
+export { CHECKOUT_EMAIL_RE, isCheckoutEmail } from "@/lib/checkout/contact-validate";
 
 export type ContactFieldsValue = {
   firstName: string;
@@ -49,22 +51,23 @@ export function ContactFields({
         icon="mail"
         required
         type="email"
+        inputMode="email"
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
         value={value.email}
         error={errors.email}
         hint={emailHint}
         onChange={(e) => onChange({ email: e.target.value })}
         autoComplete="email"
       />
-      <Input
+      <PhoneField
         label={labels.mobile}
-        icon="phone"
         required
-        type="tel"
         value={value.mobile}
         error={errors.mobile}
         hint={mobileHint}
-        onChange={(e) => onChange({ mobile: e.target.value })}
-        autoComplete="tel"
+        onChange={(mobile) => onChange({ mobile })}
       />
     </div>
   );

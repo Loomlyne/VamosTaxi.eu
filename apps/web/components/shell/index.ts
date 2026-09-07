@@ -8,6 +8,7 @@ export { SiteFooter } from "./SiteFooter";
 export type { SiteFooterProps } from "./SiteFooter";
 
 export { SiteShell } from "./SiteShell";
+export { ContactFab } from "./ContactFab";
 
 export { BrandSelect } from "./BrandSelect";
 export type { BrandSelectProps, BrandSelectOption, BrandSelectSize } from "./BrandSelect";

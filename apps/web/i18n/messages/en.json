@@ -437,6 +437,9 @@
     "childSeat": "Child seat",
     "payment": "Payment",
     "chargeIn": "You are charged in {currency}.",
+    "fxRate": "1 CHF = {rate} {code}",
+    "fxAsOf": "Rate as of {asOf}",
+    "fxUnavailable": "Showing Swiss francs — live conversion is unavailable.",
     "quoteExpired": "This quote has expired. Get a new price.",
     "priceChanged": "The price changed. Get a new quote.",
     "engineChanged": "Pricing was updated. Get a new quote.",
@@ -494,7 +497,12 @@
     "notVisibleTitle": "We cannot show this booking here",
     "notVisibleBody": "Check the voucher and the manage link in your email.",
     "pickupAt": "Pickup {time}",
-    "vehicleClassFallback": "Vehicle"
+    "vehicleClassFallback": "Vehicle",
+    "extraOversized": "Oversized luggage",
+    "extraSki": "Ski or board rack",
+    "extraSkiHint": "Fitted on request. No extra charge.",
+    "payNow": "Pay now",
+    "payLinkTab": "Email a pay link"
   },
   "common": {
     "4-not-live": "4 not live",

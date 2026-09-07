@@ -7,7 +7,6 @@ import { useTranslations } from "next-intl";
 import { createNavigation } from "next-intl/navigation";
 import { routing } from "@/i18n/routing";
 import { useVamosLocale, type CurrencyCode, type Locale } from "@/lib/locale-shim";
-import { PHONE_DISPLAY, PHONE_HREF } from "@/lib/contact-channels";
 import { Icon, Logo } from "../core";
 import { BrandSelect } from "./BrandSelect";
 import type { BrandSelectOption } from "./BrandSelect";
@@ -26,9 +25,11 @@ import type { SessionSnapshot } from "./SiteHeaderAccount";
 // Phase 5, but the mock defines it and it is ported now so Phase 5 does not inherit a
 // half-ported component.
 //
-// The control row is fixed and identical everywhere, in this order: logo, phone
-// affordance, language switcher, currency switcher, sign-in control, primary call to
-// action. `cta={false}` drops the CTA on a page that already shows the booking card;
+// The control row is fixed and identical everywhere, in this order: logo,
+// language switcher, currency switcher, sign-in control, primary call to
+// action. Public phone is the ContactFab overlay, not a header pill.
+// `cta={false}` drops the CTA on a page that already shows the booking card;
+// checkout hides it because the traveller is already in the funnel.
 // `hideAccount` drops the account control.
 //
 // Signed-in branch (avatar disc, account menu, Server-Action sign-out) shipped in
@@ -157,6 +158,7 @@ function SiteHeaderView({
   const pathname = usePathname() ?? "";
   const rest = pathname.replace(/^\/(de|fr|ar)(?=\/|$)/, "");
   const isHome = rest === "" || rest === "/";
+  const isCheckout = rest === "/checkout" || rest.startsWith("/checkout/");
   const variant: SiteHeaderVariant =
     isHome || variantProp === "overlay" ? "overlay" : "inverse";
 
@@ -219,7 +221,9 @@ function SiteHeaderView({
   // The mock's own rule, ported verbatim: home drops the CTA while its booking card is
   // on screen, and the floating overlay bar carries it again once you have scrolled past
   // that card, so the way to book is never off the page.
-  const showCta = ((cta ?? (isHome ? false : variant !== "overlay")) !== false) || floating;
+  const showCta =
+    !isCheckout &&
+    (((cta ?? (isHome ? false : variant !== "overlay")) !== false) || floating);
   const showAccount = !hideAccount;
   const accountLabel = signInLabel || t("sign-in");
   const bookLabel = t("book-a-transfer");
@@ -276,10 +280,6 @@ function SiteHeaderView({
 
           {/* ── the wide control row ─────────────────────────────────────────── */}
           <div data-hd-wide="1" data-hd-tail="1">
-            <a data-hd-pill="1" href={PHONE_HREF} aria-label={PHONE_DISPLAY}>
-              <Icon name="phone" size={16} color="var(--vt-charcoal-900)" />
-              <span className="vt-dir-keep">{PHONE_DISPLAY}</span>
-            </a>
             <BrandSelect
               value={lang}
               options={langOptions}
@@ -314,15 +314,6 @@ function SiteHeaderView({
 
           {/* ── the narrow control row ───────────────────────────────────────── */}
           <div data-hd-narrow="1" data-hd-tail="1" ref={menuRootRef}>
-            <a
-              data-hd-round="1"
-              data-hd-callbtn="1"
-              href={PHONE_HREF}
-              aria-label={tHeader("call-41-79-626-70-82")}
-              title={tHeader("call-41-79-626-70-82")}
-            >
-              <Icon name="phone" size={18} color="var(--vt-charcoal-900)" />
-            </a>
             <button
               type="button"
               data-hd-round="1"

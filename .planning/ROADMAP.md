@@ -377,11 +377,12 @@ real charges wait for Phase 11.
 Plans:
 
 - [x] 07-01 … 07-10 — paper (SUMMARYs exist; live pay path still mock)
-- [x] 07-11-PLAN.md — 24h lock (hosted apply still gated)
+- [x] 07-11-PLAN.md — 24h lock (hosted `checkout-lock-24h` 1440)
 - [x] 07-12-PLAN.md — three URLs + Home Continue
-- [x] 07-13-PLAN.md — company billing + pay-link + whoever-first (hosted apply still gated)
+- [x] 07-13-PLAN.md — company billing + pay-link + whoever-first
 - [x] 07-14-PLAN.md — guest no-password + Finish payment + manage status
-- [x] 07-15-PLAN.md — unmock confirmation + Worker `vamos` 8076eebc (hosted SQL still gated)
+- [x] 07-15-PLAN.md — unmock confirmation + Worker `vamos` 8076eebc
+- [x] 07-16-PLAN.md — display FX, charge CHF (`/api/fx` live; Worker deploy this sitting)
 
 **UI hint**: yes
 

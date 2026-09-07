@@ -437,6 +437,9 @@
     "childSeat": "Kindersitz",
     "payment": "Zahlung",
     "chargeIn": "Die Belastung erfolgt in {currency}.",
+    "fxRate": "1 CHF = {rate} {code}",
+    "fxAsOf": "Kurs vom {asOf}",
+    "fxUnavailable": "Anzeige in Schweizer Franken — Umrechnung ist nicht verfügbar.",
     "quoteExpired": "Dieses Angebot ist abgelaufen. Holen Sie einen neuen Preis.",
     "priceChanged": "Der Preis hat sich geändert. Holen Sie ein neues Angebot.",
     "engineChanged": "Die Preise wurden aktualisiert. Holen Sie ein neues Angebot.",
@@ -494,7 +497,12 @@
     "notVisibleTitle": "Diese Buchung können wir hier nicht anzeigen",
     "notVisibleBody": "Prüfen Sie den Gutschein und den Link „Buchung verwalten“ in Ihrer E-Mail.",
     "pickupAt": "Abholung {time}",
-    "vehicleClassFallback": "Fahrzeug"
+    "vehicleClassFallback": "Fahrzeug",
+    "extraOversized": "Übergepäck",
+    "extraSki": "Ski- oder Boardhalter",
+    "extraSkiHint": "Auf Anfrage montiert. Kein Aufpreis.",
+    "payNow": "Jetzt zahlen",
+    "payLinkTab": "Zahlungslink per E-Mail"
   },
   "common": {
     "4-not-live": "4 nicht live",

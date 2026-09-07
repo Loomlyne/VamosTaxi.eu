@@ -32,6 +32,8 @@ export interface BookingDraft {
   quoteId?: string;
   lock?: string;
   vehicleClass?: string;
+  /** CHF rappen for the selected class. Display-only; server lock is source of charge. */
+  chargedRappen?: number;
   /**
    * Minted once per quote. A fresh key per submit would raise
    * quote_already_booked on retry (plan 07-02).

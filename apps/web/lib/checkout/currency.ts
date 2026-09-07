@@ -1,7 +1,7 @@
 // apps/web/lib/checkout/currency.ts
 //
-// Charge currency and Stripe locale map for checkout. No FX arithmetic lives
-// here — Adaptive Pricing converts presentment; charged currency is always CHF.
+// Charge currency and Stripe locale map for checkout. Display FX lives in
+// lib/fx. Adaptive Pricing may convert presentment; charged currency is CHF.
 
 import type Stripe from "stripe";
 
