@@ -17,6 +17,7 @@ import {
 const handleI18nRouting = createMiddleware(routing);
 
 const DC_HOME = "/app/home/home.html";
+/** Public DC mocks. /checkout and /checkout/trip|/details|/payment are Next (07-12) — do not add them. /confirmation stays until 07-15. */
 const DC_PAGES: Record<string, string> = {
   "/": DC_HOME,
   "/about": "/app/pages/about.html",
