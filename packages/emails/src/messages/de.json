@@ -14,5 +14,16 @@
   "calendarNote": "Eine Kalendereinladung ist dieser E-Mail beigelegt.",
   "cancellationLine": "Kostenlose Stornierung bis 24 Stunden vor Abholung über den Link zur Buchungsverwaltung.",
   "dispatchPhone": "Dispatch {phone}",
-  "footer": "Vamos Taxi · Zürich"
+  "footer": "Vamos Taxi · Zürich",
+  "payLink": {
+    "subject": "Zahlung für Buchung {reference}",
+    "preheader": "Dieser Preis gilt 24 Stunden. Danach ist der Link tot.",
+    "headline": "Diese Fahrt bezahlen",
+    "referenceLabel": "Buchung",
+    "holdLine": "Dieser Preis gilt 24 Stunden. Danach ist der Link tot.",
+    "unpaid": "Noch nicht bezahlt — das Auto ist nicht bestätigt.",
+    "payCta": "JETZT ZAHLEN",
+    "amountLabel": "Betrag",
+    "footer": "Vamos Taxi · Zürich"
+  }
 }

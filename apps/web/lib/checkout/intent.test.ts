@@ -101,6 +101,10 @@ function deps(p: QuoteLockPayload, patch: Partial<CheckoutIntentDeps> = {}): Che
         replayed: false,
       };
     },
+    attachPayment: async () => {
+      const err = Object.assign(new Error("already"), { code: "23001" });
+      throw err;
+    },
     publishableKey: "pk_test_placeholder",
     returnUrl: "https://vamostaxi.site/en/checkout",
     checkoutWindowMinutes: 30,

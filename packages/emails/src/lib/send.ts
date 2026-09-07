@@ -10,9 +10,11 @@
 
 import { Resend } from "resend";
 import { ConfirmationEmail } from "../ConfirmationEmail";
+import { PayLinkEmail } from "../PayLinkEmail";
 import { buildInvite } from "./ics";
 import { renderConfirmation } from "./render";
-import type { BookingForEmail, SendOutcome } from "./types";
+import type { BookingForEmail, PayLinkForEmail, SendOutcome } from "./types";
+import { t } from "./t";
 
 /**
  * Bump the trailing serial when rendered content changes; bump the date
@@ -67,6 +69,40 @@ export async function sendConfirmation(
     return { ok: true, providerMessageId: id };
   } catch (err) {
     const message = err instanceof Error ? err.message : "sendConfirmation failed";
+    return { ok: false, error: message };
+  }
+}
+
+export async function sendPayLink(
+  env: EmailEnv,
+  link: PayLinkForEmail,
+  to: string[],
+): Promise<SendOutcome> {
+  try {
+    if (!env.RESEND_API_KEY) {
+      return { ok: false, error: "RESEND_API_KEY is not bound" };
+    }
+    const unique = [...new Set(to.map((addr) => addr.trim().toLowerCase()).filter(Boolean))];
+    if (unique.length === 0) {
+      return { ok: false, error: "no pay-link recipients" };
+    }
+    const resend = new Resend(env.RESEND_API_KEY);
+    const result = await resend.emails.send({
+      from: FROM,
+      to: unique,
+      subject: t(link.locale, "payLink.subject", { reference: link.reference }),
+      react: PayLinkEmail({ link }),
+    });
+    if (result.error) {
+      return { ok: false, error: result.error.message };
+    }
+    const id = result.data?.id;
+    if (!id) {
+      return { ok: false, error: "Resend returned no id" };
+    }
+    return { ok: true, providerMessageId: id };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "sendPayLink failed";
     return { ok: false, error: message };
   }
 }

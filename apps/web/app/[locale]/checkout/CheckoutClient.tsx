@@ -28,6 +28,7 @@ import {
   writeVamosTrip,
   type VamosTrip,
 } from "@/lib/checkout/vamos-trip";
+import { companyReady } from "@/lib/checkout/pay-link";
 import { routing } from "@/i18n/routing";
 import { useCheckoutSettings } from "./CheckoutSettings";
 import { PaymentPanel } from "./PaymentPanel";
@@ -108,6 +109,12 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [publishable, setPublishable] = useState(publishableKey);
   const [reference, setReference] = useState<string | null>(null);
+  const [payUrl, setPayUrl] = useState<string | null>(null);
+  const [billingKind, setBillingKind] = useState<"individual" | "company">("individual");
+  const [companyName, setCompanyName] = useState("");
+  const [companyAddress, setCompanyAddress] = useState("");
+  const [companyVat, setCompanyVat] = useState("");
+  const [payerEmail, setPayerEmail] = useState("");
   const [confirmPay, setConfirmPay] = useState<(() => Promise<void>) | null>(null);
   const [tripSnap, setTripSnap] = useState<VamosTrip | null>(null);
 
@@ -133,7 +140,10 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     setDate(nextDate);
     setTime(nextTime);
     setVehicle(nextVehicle);
-    if (trip?.contact) setContact(trip.contact);
+    if (trip?.contact) {
+      setContact(trip.contact);
+      setPayerEmail((email) => email || trip.contact?.email || "");
+    }
     if (typeof trip?.guest === "boolean") setGuest(trip.guest);
     if (trip?.airline) setAirline(trip.airline);
     if (trip?.notes) setNotes(trip.notes);
@@ -331,6 +341,75 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     }
   }
 
+  async function sendPayLink() {
+    if (!validate()) return;
+    if (
+      billingKind === "company" &&
+      !companyReady({ kind: "company", name: companyName, address: companyAddress, vat: companyVat })
+    ) {
+      setRefusal("quoteExpired");
+      return;
+    }
+    if (!draft.quoteId || !draft.lock || !draft.vehicleClass || !draft.idempotencyKey) {
+      setRefusal("quoteExpired");
+      return;
+    }
+    const payer = (payerEmail || contact.email).trim();
+    if (!payer) {
+      setRefusal("quoteExpired");
+      return;
+    }
+    setBusy(true);
+    setRefusal(null);
+    try {
+      const res = await fetch("/api/checkout/pay-link", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          quote_id: draft.quoteId,
+          lock: draft.lock,
+          vehicle_class: draft.vehicleClass,
+          extras: {
+            child_seats: childSeat ? 1 : 0,
+            extra_stops: stops,
+          },
+          coupon: couponApplied,
+          contact: {
+            name: `${contact.firstName.trim()} ${contact.lastName.trim()}`,
+            email: contact.email.trim(),
+            phone: contact.mobile.trim(),
+          },
+          locale,
+          display_currency: "CHF",
+          idempotency_key: draft.idempotencyKey,
+          turnstile_token: turnstile,
+          billing_kind: billingKind,
+          company_name: companyName,
+          company_address: companyAddress,
+          company_vat: companyVat,
+          payer_email: payer,
+        }),
+      });
+      const json = (await res.json()) as {
+        ok?: boolean;
+        reference?: string;
+        pay_url?: string;
+        code?: string;
+      };
+      if (!res.ok) {
+        const key = REFUSAL_KEYS[json.code ?? ""] ?? "quoteExpired";
+        setRefusal(key);
+        return;
+      }
+      if (json.reference) setReference(json.reference);
+      if (json.pay_url) setPayUrl(json.pay_url);
+    } catch {
+      setRefusal("quoteExpired");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function onPay() {
     if (clientSecret && confirmPay) {
       setBusy(true);
@@ -516,8 +595,60 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
 
           {step === "payment" ? (
             <Card padding="lg">
-              {/* D-21: mock payment radios gone. Stripe Element owns methods. */}
               <h2>{t("payment")}</h2>
+              <p>{t("charged-now-secured-by-stripe")}</p>
+              <div className="vt-checkout__radios">
+                <Radio
+                  name="billing"
+                  label={t("billingIndividual")}
+                  checked={billingKind === "individual"}
+                  onChange={() => setBillingKind("individual")}
+                />
+                <Radio
+                  name="billing"
+                  label={t("billingCompany")}
+                  checked={billingKind === "company"}
+                  onChange={() => setBillingKind("company")}
+                />
+              </div>
+              {billingKind === "company" ? (
+                <>
+                  <Input label={t("companyName")} value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
+                  <Input
+                    label={t("companyAddress")}
+                    value={companyAddress}
+                    onChange={(e) => setCompanyAddress(e.target.value)}
+                  />
+                  <Input label={t("companyVat")} value={companyVat} onChange={(e) => setCompanyVat(e.target.value)} />
+                </>
+              ) : null}
+              <Input
+                label={t("payerEmail")}
+                value={payerEmail || contact.email}
+                onChange={(e) => setPayerEmail(e.target.value)}
+              />
+              {payUrl ? (
+                <>
+                  <p>{t("payLinkSent")}</p>
+                  {reference ? <p>{t("unpaidReference", { reference })}</p> : null}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      void navigator.clipboard.writeText(payUrl);
+                    }}
+                  >
+                    {t("copyPayLink")}
+                  </Button>
+                  <Button variant="ghost" size="sm" href={`https://wa.me/?text=${encodeURIComponent(payUrl)}`}>
+                    {t("whatsappPayLink")}
+                  </Button>
+                </>
+              ) : (
+                <Button variant="ghost" size="sm" disabled={busy} onClick={() => void sendPayLink()}>
+                  {t("sendPayLink")}
+                </Button>
+              )}
               <p>{t("charged-now-secured-by-stripe")}</p>
               {busy && !clientSecret ? <div data-checkout-pay-skeleton aria-hidden="true" /> : null}
               {clientSecret && reference ? (

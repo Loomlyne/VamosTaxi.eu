@@ -59,3 +59,11 @@ export async function hashManageToken(raw: string): Promise<string> {
     return "";
   }
 }
+
+/** SHA-256 of raw token bytes for checkout_pay_link_by_hash. Empty → empty. */
+export async function hashRawToken(raw: string): Promise<Uint8Array> {
+  if (!raw) return new Uint8Array();
+  const bytes = new Uint8Array(base64urlDecode(raw));
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return new Uint8Array(digest);
+}

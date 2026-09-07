@@ -1,16 +1,19 @@
-// apps/web/app/api/checkout/intent/route.ts
+// apps/web/app/api/checkout/pay-link/route.ts
 //
-// POST /api/checkout/intent. Thin: parse, wire deps, runCheckoutIntent.
-// Business rules live in lib/checkout/intent.ts. The write is createBooking.
+// POST /api/checkout/pay-link. Mints unpaid VT-, emails passenger + payer.
+// 24h clock does not restart on resend. Charge gate unchanged.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { sendPayLink } from "@vamos/emails/confirmation";
 import { asCheckout, asQuote } from "@/lib/db/identity";
-import { checkoutIntentSchema } from "@/lib/checkout/intent-schema";
+import { checkoutPayLinkSchema } from "@/lib/checkout/intent-schema";
 import { refuse } from "@/lib/checkout/errors";
 import { runCheckoutIntent } from "@/lib/checkout/intent";
 import { createBooking } from "@/lib/checkout/create-booking";
 import { attachPayment } from "@/lib/checkout/attach-payment";
 import { mintManageToken } from "@/lib/checkout/manage-token";
+import { setPayLink } from "@/lib/checkout/set-pay-link";
+import { confirmationRecipients, payLinkPath } from "@/lib/checkout/pay-link";
 import {
   createCheckoutSession,
   expireCheckoutSession,
@@ -33,10 +36,8 @@ export async function POST(request: Request) {
     return refuse("invalid_request");
   }
 
-  const parsed = checkoutIntentSchema.safeParse(json);
-  if (!parsed.success) {
-    return refuse("invalid_request");
-  }
+  const parsed = checkoutPayLinkSchema.safeParse(json);
+  if (!parsed.success) return refuse("invalid_request");
   const body = parsed.data;
 
   const stripe = stripeFromEnv(env);
@@ -53,7 +54,7 @@ export async function POST(request: Request) {
     return value instanceof Date ? value.toISOString() : String(value);
   });
 
-  return runCheckoutIntent(body, {
+  const intentRes = await runCheckoutIntent(body, {
     lockSecrets: previous ? { current, previous } : { current },
     workerNowIso: new Date().toISOString(),
     postgresNowIso,
@@ -86,5 +87,52 @@ export async function POST(request: Request) {
     returnUrl: `${origin}${body.locale === "en" ? "" : `/${body.locale}`}/checkout/payment`,
     checkoutWindowMinutes: 30,
     actorCustomerId: null,
+  });
+
+  if (!intentRes.ok) return intentRes;
+  const payload = (await intentRes.json()) as {
+    reference: string;
+    booking_id: string;
+    amount_rappen: number | null;
+    expires_at: string;
+  };
+
+  const payToken = await mintManageToken();
+  await asCheckout(env, null, (sql) =>
+    setPayLink(sql, {
+      bookingId: payload.booking_id,
+      billingKind: body.billing_kind,
+      companyName: body.company_name ?? "",
+      companyAddress: body.company_address ?? "",
+      companyVat: body.company_vat ?? "",
+      payerEmail: body.payer_email,
+      tokenHash: payToken.hash,
+      tokenExpiresAt: new Date(payload.expires_at),
+    }),
+  );
+
+  const payUrl = `${origin}${payLinkPath(body.locale, payToken.raw)}`;
+  const to = confirmationRecipients(body.contact.email, body.payer_email);
+  const sent = await sendPayLink(
+    { RESEND_API_KEY: env.RESEND_API_KEY ?? "" },
+    {
+      reference: payload.reference,
+      locale: body.locale,
+      payUrl,
+      totalRappen: payload.amount_rappen,
+      pickupText: "",
+      dropoffText: "",
+    },
+    to,
+  );
+  if (!sent.ok) {
+    return Response.json({ error: "email_failed", code: "invalid_request" }, { status: 502 });
+  }
+
+  return Response.json({
+    ok: true,
+    reference: payload.reference,
+    pay_url: payUrl,
+    expires_at: payload.expires_at,
   });
 }

@@ -32,6 +32,16 @@ export type BookingForEmail = {
   manageUrl: string;
 };
 
+export type PayLinkForEmail = {
+  reference: string;
+  locale: EmailLocale;
+  payUrl: string;
+  /** Null until pricing_live — render as `CHF 000`. */
+  totalRappen: number | null;
+  pickupText: string;
+  dropoffText: string;
+};
+
 /**
  * Mirrors the settle RPC's exactly-one-of-two contract so the consumer
  * cannot pass both a provider id and an error.

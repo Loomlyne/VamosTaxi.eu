@@ -60,6 +60,12 @@ export type CheckoutIntentDeps = {
     chargedRappen: number;
     actorCustomerId: string | null;
   }) => Promise<CheckoutCreateBookingRow>;
+  attachPayment: (args: {
+    quoteId: string;
+    stripePaymentIntentId: string;
+    stripeCheckoutSessionId: string;
+    chargedRappen: number;
+  }) => Promise<CheckoutCreateBookingRow>;
   publishableKey: string;
   returnUrl: string;
   checkoutWindowMinutes: number;
@@ -207,12 +213,28 @@ export async function runCheckoutIntent(
       actorCustomerId: deps.actorCustomerId,
     });
   } catch (err) {
-    await deps.expireCheckoutSession(session.id).catch(() => undefined);
     const state = sqlState(err);
-    if (state === "23505" || state === "23001") return refuse("quote_already_booked");
-    if (state === "23P01") return refuse("payment_window_closed");
-    if (state === "P0002" || state === "23514") return refuse("coupon_no_longer_valid");
-    throw err;
+    if (state === "23505" || state === "23001") {
+      try {
+        row = await deps.attachPayment({
+          quoteId: body.quote_id,
+          stripePaymentIntentId: pi,
+          stripeCheckoutSessionId: session.id,
+          chargedRappen,
+        });
+      } catch (attachErr) {
+        await deps.expireCheckoutSession(session.id).catch(() => undefined);
+        const attachState = sqlState(attachErr);
+        if (attachState === "23505" || attachState === "23001") return refuse("quote_already_booked");
+        if (attachState === "23P01") return refuse("payment_window_closed");
+        throw attachErr;
+      }
+    } else {
+      await deps.expireCheckoutSession(session.id).catch(() => undefined);
+      if (state === "23P01") return refuse("payment_window_closed");
+      if (state === "P0002" || state === "23514") return refuse("coupon_no_longer_valid");
+      throw err;
+    }
   }
 
   let payable: Stripe.Checkout.Session = session;
@@ -236,6 +258,7 @@ export async function runCheckoutIntent(
   const response = new Response(
     JSON.stringify({
       reference: row.reference,
+      booking_id: row.booking_id,
       checkout_session_id: payable.id,
       client_secret: clientSecret,
       expires_at: expiresAt.toISOString(),

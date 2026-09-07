@@ -14,5 +14,16 @@
   "calendarNote": "Une invitation calendrier est jointe à cet e-mail.",
   "cancellationLine": "Annulation gratuite jusqu'à 24 heures avant la prise en charge via le lien de gestion.",
   "dispatchPhone": "Dispatch {phone}",
-  "footer": "Vamos Taxi · Zurich"
+  "footer": "Vamos Taxi · Zurich",
+  "payLink": {
+    "subject": "Payer la réservation {reference}",
+    "preheader": "Ce prix est maintenu 24 heures. Ensuite le lien meurt.",
+    "headline": "Payer ce trajet",
+    "referenceLabel": "Réservation",
+    "holdLine": "Ce prix est maintenu 24 heures. Ensuite le lien meurt.",
+    "unpaid": "Pas encore payé — la voiture n’est pas confirmée.",
+    "payCta": "PAYER",
+    "amountLabel": "Montant",
+    "footer": "Vamos Taxi · Zurich"
+  }
 }

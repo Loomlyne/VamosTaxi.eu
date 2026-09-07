@@ -73,3 +73,25 @@ export const checkoutIntentSchema = checkoutIntentObject.superRefine((value, ctx
 });
 
 export type CheckoutIntentRequest = z.infer<typeof checkoutIntentObject>;
+
+export const checkoutPayLinkSchema = checkoutIntentObject
+  .extend({
+    billing_kind: z.enum(["individual", "company"]),
+    company_name: z.string().max(200).optional().default(""),
+    company_address: z.string().max(400).optional().default(""),
+    company_vat: z.string().max(40).optional().default(""),
+    payer_email: z.string().email(),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (value.billing_kind !== "company") return;
+    if (!value.company_name.trim() || !value.company_address.trim() || !value.company_vat.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        message: "company fields required",
+        path: ["company_name"],
+      });
+    }
+  });
+
+export type CheckoutPayLinkRequest = z.infer<typeof checkoutPayLinkSchema>;
