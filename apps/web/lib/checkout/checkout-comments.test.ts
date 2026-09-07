@@ -30,6 +30,7 @@ describe("checkout comment pack", () => {
     expect(client).toContain("hideTime");
     expect(client).toContain('label={tBooking("date")}');
     expect(client).toContain("vt-checkout__when-split");
+    expect(client).toContain("TimePicker");
     expect(placeCombo).toContain("/api/geo/suggest");
     expect(placeCombo).toContain("session_token");
   });
@@ -125,5 +126,14 @@ describe("checkout comment pack", () => {
     expect(payPanel).not.toContain("CurrencySelectorElement");
     expect(fab).toContain("vt-contact-fab__kicker");
     expect(fab).toContain("t(\"whatsapp\")");
+  });
+
+  it("uses branded time spinner, equal date/time fields, and a unified payment page", () => {
+    expect(client).toContain("TimePicker");
+    expect(client).toContain("vt-checkout__cta");
+    expect(client).toContain('refusal !== "pricingNotLive"');
+    expect(css).toContain("grid-template-columns: minmax(0, 1fr) minmax(0, 1fr)");
+    expect(css).toContain('[data-checkout-step="payment"]');
+    expect(css).toContain("max-inline-size: 720px");
   });
 });

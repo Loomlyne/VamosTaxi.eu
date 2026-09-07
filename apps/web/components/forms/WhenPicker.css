@@ -162,7 +162,16 @@
 
 .vt-when[data-date-only="1"] [data-wp-cal] {
   flex: none;
-  inline-size: 264px;
+  inline-size: 100%;
+}
+
+.vt-when[data-date-only="1"] .vt-when__day {
+  block-size: 40px;
+  font-size: 14px;
+}
+
+.vt-when[data-date-only="1"] .vt-when__dow {
+  padding-block: 8px;
 }
 
 [data-wp-cal] {

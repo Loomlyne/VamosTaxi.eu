@@ -86,9 +86,23 @@
 
 .vt-checkout__when-split {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(140px, 180px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 16px;
   align-items: end;
+}
+
+.vt-checkout[data-checkout-step="payment"] .vt-checkout__grid {
+  grid-template-columns: minmax(0, 1fr);
+  max-inline-size: 720px;
+}
+
+.vt-checkout[data-checkout-step="payment"] .vt-checkout__rail {
+  position: static;
+  inset-block-start: auto;
+}
+
+.vt-checkout__cta {
+  margin-block: 20px;
 }
 
 .vt-checkout__party {

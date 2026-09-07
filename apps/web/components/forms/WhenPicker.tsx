@@ -238,15 +238,15 @@ export function WhenPicker({
         position: "absolute",
         insetInlineStart: 0,
         top: "calc(100% + 8px)",
-        width: "min(560px, calc(100vw - 40px))",
+        width: hideTime ? "min(320px, calc(100vw - 40px))" : "min(560px, calc(100vw - 40px))",
         maxHeight: "min(70svh, 540px)",
       };
     }
     const vw = window.innerWidth || 1200;
     const vh = window.innerHeight || 800;
-    const w = Math.min(560, vw - 24);
+    const w = Math.min(hideTime ? 320 : 560, vw - 24);
     const left = Math.round(Math.min(Math.max(12, rect.left), Math.max(12, vw - w - 12)));
-    const need = popH || (range ? 520 : 460);
+    const need = popH || (hideTime ? 400 : range ? 520 : 460);
     const below = vh - rect.bottom - 10;
     const above = rect.top - 10;
     const up = below < need && above > below;

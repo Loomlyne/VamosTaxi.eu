@@ -5,7 +5,7 @@ import { createNavigation } from "next-intl/navigation";
 import { useTranslations } from "next-intl";
 import { Alert } from "@/components/feedback/Alert";
 import { Badge, Button, Card, Icon, Tag } from "@/components/core";
-import { Counter, Input, Select, Textarea, WhenPicker, WHEN_PICKER_TIMES } from "@/components/forms";
+import { Counter, Input, Textarea, WhenPicker, TimePicker } from "@/components/forms";
 import { StepIndicator } from "@/components/navigation/StepIndicator";
 import { Tabs } from "@/components/navigation/Tabs";
 import { PriceSummary, RouteSummary, type RouteMetaItem } from "@/components/transfer";
@@ -567,7 +567,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     displayCur,
     fx.rates?.rates ?? null,
   );
-  const timeSlots = time && !WHEN_PICKER_TIMES.includes(time) ? [time, ...WHEN_PICKER_TIMES] : [...WHEN_PICKER_TIMES];
   const railMeta: RouteMetaItem[] = [
     ...(date
       ? [{ icon: "calendar" as const, label: <span className="vt-dir-keep">{formatRailDate(date, locale)}</span> }]
@@ -690,15 +689,12 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                       writeDraft({ date: "" });
                     }}
                   />
-                  <Select
+                  <TimePicker
                     label={tBooking("time")}
-                    icon="clock"
+                    timeTitle={tCommon("pickup-time")}
                     value={time}
                     placeholder={tBooking("time")}
-                    data-test-field="time"
-                    options={timeSlots}
-                    onChange={(e) => {
-                      const next = e.target.value;
+                    onChange={(next) => {
                       setTime(next);
                       writeDraft({ time: next });
                     }}
@@ -1000,7 +996,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                 <span data-tok>{t("cancel-free-of-charge-up-to-24-hours-before-pick")}</span>
               </p>
             )}
-            {refusal ? (
+            {refusal && refusal !== "pricingNotLive" ? (
               <Alert tone={refusal === "pricingNotLive" ? "info" : "danger"}>
                 {refusal === "formChallengeFailed"
                   ? tCommon("form-challenge-failed")
@@ -1025,9 +1021,11 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
               </Button>
             ) : null}
             {step === "payment" ? (
-              <Button size="lg" block disabled={busy} onClick={() => void onPay()}>
-                {t("pay-and-confirm")}
-              </Button>
+              <div className="vt-checkout__cta">
+                <Button size="lg" block disabled={busy} onClick={() => void onPay()}>
+                  {t("pay-and-confirm")}
+                </Button>
+              </div>
             ) : null}
             <p className="vt-checkout__terms">
               <Icon name="shield-check" size={16} /> {t("by-continuing-you-accept-the-terms-and-the-cance")}

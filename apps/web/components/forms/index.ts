@@ -27,6 +27,8 @@ export type { DatePickerProps, DatePickerSize } from "./DatePicker";
 export { WhenPicker, WHEN_PICKER_TIMES } from "./WhenPicker";
 export type { WhenPickerProps } from "./WhenPicker";
 
+export { TimePicker } from "./TimePicker";
+
 export { PlaceCombo } from "./PlaceCombo";
 export type { PlaceComboProps, PlaceRetrieve } from "./PlaceCombo";
 
