@@ -69,4 +69,17 @@ describe("checkout comment pack", () => {
     expect(account).toContain("vamosPhoto");
     expect(shell).toContain("ContactFab");
   });
+
+  it("loads checkout window from settings and does not send place subtitle s", () => {
+    const intent = readFileSync(join(WEB_ROOT, "app/api/checkout/intent/route.ts"), "utf8");
+    const payLink = readFileSync(join(WEB_ROOT, "app/api/checkout/pay-link/route.ts"), "utf8");
+    const home = readFileSync(join(WEB_ROOT, "public/app/home/home.html"), "utf8");
+    expect(intent).toContain("policyHours");
+    expect(intent).toContain("checkoutWindowMinutes: policy.checkoutWindowMinutes");
+    expect(intent).not.toMatch(/checkoutWindowMinutes:\s*30/);
+    expect(payLink).toContain("checkoutWindowMinutes: policy.checkoutWindowMinutes");
+    expect(payLink).not.toMatch(/checkoutWindowMinutes:\s*30/);
+    expect(home).not.toMatch(/s: sub \|\| undefined/);
+    expect(home).toContain("text: apiText");
+  });
 });

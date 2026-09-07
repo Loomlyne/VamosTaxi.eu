@@ -9,6 +9,7 @@ import {
   retrieveCheckoutSession,
   stripeFromEnv,
   stripePublishableKey,
+  stripeSessionExpiresAtUnix,
 } from "./stripe";
 import { CHARGE_CURRENCY } from "./currency";
 
@@ -50,7 +51,7 @@ describe("stripe module", () => {
 
   it("creates a Checkout Session charged in chf with Adaptive Pricing", async () => {
     const { client, create } = fakeStripe();
-    const expiresAt = new Date("2026-08-25T12:00:00.000Z");
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
     await createCheckoutSession(client, {
       chargedRappen: 8000,
       bookingId: "00000000-0000-4000-8000-000000000001",
@@ -75,7 +76,7 @@ describe("stripe module", () => {
     expect(lineItems[0]?.price_data.currency).toBe(CHARGE_CURRENCY);
     expect(lineItems[0]?.price_data.unit_amount).toBe(8000);
     expect(params.locale).toBe("de");
-    expect(params.expires_at).toBe(Math.floor(expiresAt.getTime() / 1000));
+    expect(params.expires_at).toBe(stripeSessionExpiresAtUnix(expiresAt));
     expect(opts).toEqual({ idempotencyKey: "idem-1" });
     expect(params).not.toHaveProperty("payment_method_types");
     expect(JSON.stringify(params)).not.toMatch(/accepts_/);
@@ -111,5 +112,18 @@ describe("stripe module", () => {
     });
     expect(params).not.toHaveProperty("charge");
     expect(opts).toEqual({ idempotencyKey: "refund-1" });
+  });
+
+  it("clamps Stripe session expiry to 30 minutes–24 hours", () => {
+    const now = Date.parse("2026-09-08T12:00:00.000Z");
+    expect(stripeSessionExpiresAtUnix(new Date(now + 1440 * 60_000), now)).toBe(
+      Math.floor(now / 1000) + 24 * 60 * 60 - 30,
+    );
+    expect(stripeSessionExpiresAtUnix(new Date(now + 10 * 60_000), now)).toBe(
+      Math.floor(now / 1000) + 30 * 60,
+    );
+    expect(stripeSessionExpiresAtUnix(new Date(now + 60 * 60_000), now)).toBe(
+      Math.floor(now / 1000) + 60 * 60,
+    );
   });
 });

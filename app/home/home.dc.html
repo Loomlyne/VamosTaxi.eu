@@ -608,15 +608,16 @@ function placeInput(loc, text) {
   if (t.length < 2) return null;
   const sub = loc.s ? String(loc.s).slice(0, 200) : '';
   const full = sub && t.indexOf(sub) === -1 ? (t + ', ' + sub).slice(0, 240) : t;
+  const apiText = full.slice(0, 200);
   if (loc.mapbox_id) {
     const token = loc.session_token || geoSession();
     if (token) {
-      return { kind: 'retrieve', mapbox_id: String(loc.mapbox_id).slice(0, 256), session_token: String(token).slice(0, 128), text: full, s: sub || undefined };
+      return { kind: 'retrieve', mapbox_id: String(loc.mapbox_id).slice(0, 256), session_token: String(token).slice(0, 128), text: apiText };
     }
   }
   const lng = loc.lon != null ? loc.lon : loc.lng;
   if (loc.lat != null && lng != null && isFinite(Number(loc.lat)) && isFinite(Number(lng))) {
-    return { kind: 'pin', lng: Number(lng), lat: Number(loc.lat), text: full, s: sub || undefined };
+    return { kind: 'pin', lng: Number(lng), lat: Number(loc.lat), text: apiText };
   }
   return null;
 }

@@ -19,6 +19,8 @@ import {
   stripePublishableKey,
 } from "@/lib/checkout/stripe";
 import { verifyTurnstile } from "@/lib/turnstile";
+import { loadSettingsVersion } from "@/lib/db/quote";
+import { policyHours } from "@/lib/checkout/policy-settings";
 import type { IntentRecompute } from "@/lib/quote/intent";
 
 export const dynamic = "force-dynamic";
@@ -53,6 +55,11 @@ export async function POST(request: Request) {
     return value instanceof Date ? value.toISOString() : String(value);
   });
 
+  const policy = policyHours(await loadSettingsVersion(env, postgresNowIso));
+  if (policy.checkoutWindowMinutes == null) {
+    return refuse("payment_window_closed");
+  }
+
   return runCheckoutIntent(body, {
     lockSecrets: previous ? { current, previous } : { current },
     workerNowIso: new Date().toISOString(),
@@ -84,7 +91,7 @@ export async function POST(request: Request) {
     attachPayment: (args) => asCheckout(env, null, (sql) => attachPayment(sql, args)),
     publishableKey: stripePublishableKey(env),
     returnUrl: `${origin}${body.locale === "en" ? "" : `/${body.locale}`}/checkout/payment`,
-    checkoutWindowMinutes: 30,
+    checkoutWindowMinutes: policy.checkoutWindowMinutes,
     actorCustomerId: null,
   });
 }

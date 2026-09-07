@@ -62,6 +62,18 @@ export interface CreateCheckoutSessionInput {
   productName: string;
 }
 
+/**
+ * Stripe Checkout Session `expires_at` must be 30 minutes–24 hours from now.
+ * The quote lock can be 1440 minutes; clamp only the Stripe clock.
+ */
+export function stripeSessionExpiresAtUnix(expiresAt: Date, nowMs = Date.now()): number {
+  const nowSec = Math.floor(nowMs / 1000);
+  const min = nowSec + 30 * 60;
+  const max = nowSec + 24 * 60 * 60 - 30;
+  const exp = Math.floor(expiresAt.getTime() / 1000);
+  return Math.min(max, Math.max(min, exp));
+}
+
 export async function createCheckoutSession(
   stripe: Stripe,
   input: CreateCheckoutSessionInput,
@@ -74,7 +86,7 @@ export async function createCheckoutSession(
       client_reference_id: input.bookingReference,
       customer_email: input.customerEmail,
       locale: stripeLocale(input.locale),
-      expires_at: Math.floor(input.expiresAt.getTime() / 1000),
+      expires_at: stripeSessionExpiresAtUnix(input.expiresAt),
       adaptive_pricing: { enabled: true },
       // Charge is always CHF. Stripe has no Checkout Session presentment pin
       // for EUR/USD/AED — Adaptive Pricing may show another currency; our
