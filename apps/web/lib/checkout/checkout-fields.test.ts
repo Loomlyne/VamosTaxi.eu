@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { e164Phone, isCheckoutEmail } from "./contact-validate";
-import { peekLockClassRappen, placeText, rappenToFrancs } from "./vamos-trip";
+import { peekLockClassRappen, placeMapboxId, placeText, rappenToFrancs, formatRailDate, geoLocale } from "./vamos-trip";
 
 describe("checkout contact + rail helpers", () => {
   it("stores phone as plus plus digits", () => {
@@ -37,5 +37,13 @@ describe("checkout contact + rail helpers", () => {
     expect(peekLockClassRappen(lock, "first")).toBeNull();
     expect(peekLockClassRappen("not-a-lock", "economy")).toBeNull();
     expect(rappenToFrancs(null)).toBeNull();
+  });
+
+  it("reads mapbox ids and formats rail dates", () => {
+    expect(placeMapboxId({ mapbox_id: "dpa.abc" })).toBe("dpa.abc");
+    expect(placeMapboxId(null)).toBe("");
+    expect(geoLocale("de")).toBe("de");
+    expect(geoLocale("xx")).toBe("en");
+    expect(formatRailDate("2026-09-23", "en")).toMatch(/23/);
   });
 });

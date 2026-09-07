@@ -77,10 +77,18 @@
   min-inline-size: 0;
 }
 
+.vt-checkout__when-split,
 .vt-checkout__when,
 .vt-checkout__flight,
 .vt-checkout__party {
   grid-column: 1 / -1;
+}
+
+.vt-checkout__when-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(140px, 180px);
+  gap: 16px;
+  align-items: end;
 }
 
 .vt-checkout__party {
@@ -305,6 +313,37 @@
   margin-block-start: 4px;
 }
 
+.vt-checkout__payhead h2 {
+  margin-block-end: 6px;
+}
+
+.vt-checkout__payhead p {
+  margin: 0 0 8px;
+  color: var(--vt-text-muted);
+  font-size: var(--vt-body-sm);
+}
+
+.vt-checkout__payblock {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-block: 16px;
+  border-block-start: 1px solid var(--vt-border-subtle);
+}
+
+.vt-checkout__payblock .vt-checkout__tabs {
+  margin-block: 0;
+}
+
+.vt-checkout__company {
+  display: grid;
+  gap: 12px;
+}
+
+.vt-checkout__rail .vt-checkout__coupon {
+  margin-block-start: 12px;
+}
+
 .vt-checkout__coupon {
   display: flex;
   gap: 8px;
@@ -341,7 +380,8 @@
   .vt-checkout__trip,
   .vt-checkout__classes,
   .vt-checkout__extras,
-  .vt-checkout__party {
+  .vt-checkout__party,
+  .vt-checkout__when-split {
     grid-template-columns: minmax(0, 1fr);
   }
 }

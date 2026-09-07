@@ -1,11 +1,11 @@
-/* Bottom-end contact overlay. Replaces the header tel pill (public phone lives
-   here: mailto /contact / WhatsApp). Tokens only. No glow. */
+/* Bottom-end contact overlay. Tokens only. No glow. */
 .vt-contact-fab {
   position: fixed;
   inset-block-end: 24px;
   inset-inline-end: 24px;
   z-index: 80;
 }
+
 .vt-contact-fab__btn {
   all: unset;
   box-sizing: border-box;
@@ -14,50 +14,125 @@
   border-radius: var(--vt-radius-pill);
   background: var(--vt-yellow);
   border: 1px solid var(--vt-charcoal-900);
+  color: var(--vt-charcoal-900);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  transition:
+    background var(--vt-dur-fast) var(--vt-ease-out),
+    color var(--vt-dur-fast) var(--vt-ease-out),
+    transform var(--vt-dur-fast) var(--vt-ease-out);
 }
+
+.vt-contact-fab[data-open="1"] .vt-contact-fab__btn {
+  background: var(--vt-charcoal-900);
+  color: var(--vt-yellow);
+  transform: rotate(90deg);
+}
+
 .vt-contact-fab__btn:hover {
   background: var(--vt-charcoal-900);
   color: var(--vt-yellow);
 }
+
 .vt-contact-fab__btn:focus-visible {
   outline: none;
   box-shadow: none;
   border-color: var(--vt-charcoal-900);
 }
+
 .vt-contact-fab__panel {
   position: absolute;
-  inset-block-end: calc(100% + 10px);
+  inset-block-end: calc(100% + 12px);
   inset-inline-end: 0;
-  inline-size: min(260px, calc(100vw - 32px));
+  inline-size: min(280px, calc(100vw - 32px));
   box-sizing: border-box;
   background: var(--vt-bg-surface);
   border: 1px solid var(--vt-border-subtle);
   border-radius: var(--vt-radius-lg);
   box-shadow: var(--vt-shadow-xl);
-  padding: 8px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+  transform-origin: bottom right;
+  animation: vt-fab-in var(--vt-dur-fast) var(--vt-ease-out);
 }
+
+[dir="rtl"] .vt-contact-fab__panel {
+  transform-origin: bottom left;
+}
+
+.vt-contact-fab__kicker {
+  margin: 0;
+  padding: 6px 12px 8px;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-label-md);
+  font-weight: var(--vt-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--vt-text-muted);
+}
+
 .vt-contact-fab__item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-block-size: 44px;
-  padding: 0 12px;
-  border-radius: 10px;
+  gap: 12px;
+  min-block-size: 52px;
+  padding: 8px 10px;
+  border-radius: 12px;
   color: var(--vt-text-primary);
-  font-size: 14px;
+  font-size: var(--vt-body-sm);
   text-decoration: none;
+  transition: background var(--vt-dur-fast) var(--vt-ease-out);
 }
+
 .vt-contact-fab__item:hover {
-  background: var(--vt-charcoal-900);
-  color: var(--vt-white);
+  background: var(--vt-grey-50);
 }
+
+.vt-contact-fab__ico {
+  inline-size: 36px;
+  block-size: 36px;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  background: var(--vt-grey-100);
+  color: var(--vt-charcoal-900);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vt-contact-fab__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-inline-size: 0;
+}
+
+.vt-contact-fab__copy strong {
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-body-sm);
+  font-weight: var(--vt-weight-semibold);
+}
+
+.vt-contact-fab__copy span {
+  font-size: var(--vt-body-xs);
+  color: var(--vt-text-muted);
+}
+
+@keyframes vt-fab-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @media print {
   .vt-contact-fab {
     display: none !important;

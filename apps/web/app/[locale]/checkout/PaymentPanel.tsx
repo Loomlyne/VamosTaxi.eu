@@ -9,7 +9,6 @@
 
 import {
   CheckoutElementsProvider as CheckoutProvider,
-  CurrencySelectorElement,
   PaymentElement,
   useCheckoutElements,
 } from "@stripe/react-stripe-js/checkout";
@@ -80,7 +79,6 @@ export function PaymentPanel({
           elementsOptions: { appearance: APPEARANCE },
         }}
       >
-        <CurrencySelectorElement />
         <PaymentElement />
         <ConfirmBinder reference={reference} onReady={onReady} />
       </CheckoutProvider>

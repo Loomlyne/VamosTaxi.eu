@@ -5,17 +5,17 @@ import { createNavigation } from "next-intl/navigation";
 import { useTranslations } from "next-intl";
 import { Alert } from "@/components/feedback/Alert";
 import { Badge, Button, Card, Icon, Tag } from "@/components/core";
-import { Counter, Input, Textarea, WhenPicker } from "@/components/forms";
+import { Counter, Input, Select, Textarea, WhenPicker, WHEN_PICKER_TIMES } from "@/components/forms";
 import { StepIndicator } from "@/components/navigation/StepIndicator";
 import { Tabs } from "@/components/navigation/Tabs";
-import { PriceSummary, RouteSummary } from "@/components/transfer";
+import { PriceSummary, RouteSummary, type RouteMetaItem } from "@/components/transfer";
 import {
   ContactFields,
   type ContactFieldsErrors,
   type ContactFieldsValue,
 } from "@/components/booking";
 import { TurnstileWidget } from "@/components/forms/TurnstileWidget";
-import { PlaceCombo } from "@/components/home/BookingCard";
+import { PlaceCombo, type PlaceRetrieve } from "@/components/forms/PlaceCombo";
 import { e164Phone, isCheckoutEmail } from "@/lib/checkout/contact-validate";
 import { useBookingDraft } from "@/lib/booking-draft";
 import {
@@ -27,9 +27,11 @@ import {
   type CheckoutStep,
 } from "@/lib/checkout/steps";
 import {
+  formatRailDate,
+  geoLocale,
   peekLockClassRappen,
+  placeMapboxId,
   placeText,
-  rappenToFrancs,
   readVamosTrip,
   tripBags,
   tripDropoff,
@@ -41,6 +43,10 @@ import {
   type VamosTrip,
 } from "@/lib/checkout/vamos-trip";
 import { companyReady } from "@/lib/checkout/pay-link";
+import { chfRappenToDisplay } from "@/lib/fx/format";
+import { useFx } from "@/lib/fx/use-fx";
+import { useVamosLocale } from "@/lib/locale-shim";
+import type { CurrencyCode } from "@/lib/currency";
 import { routing } from "@/i18n/routing";
 import { useCheckoutSettings } from "./CheckoutSettings";
 import { CheckoutClassCards } from "./CheckoutClassCards";
@@ -104,6 +110,11 @@ function classList(trip: VamosTrip | null): string[] {
   return [...CLASS_SLUGS];
 }
 
+function asDisplayCurrency(cur: string): CurrencyCode {
+  if (cur === "EUR" || cur === "USD" || cur === "AED") return cur;
+  return "CHF";
+}
+
 export function CheckoutClient({ step }: CheckoutClientProps) {
   const { locale, freeCancelHours, checkoutWindowMinutes, turnstileSiteKey, publishableKey } =
     useCheckoutSettings();
@@ -115,11 +126,16 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const tAuth = useTranslations("auth");
   const tQuote = useTranslations("quote");
   const router = useRouter();
+  const { cur } = useVamosLocale();
+  const fx = useFx();
+  const displayCur = asDisplayCurrency(cur);
   const [draft, writeDraft] = useBookingDraft();
 
   const [gate, setGate] = useState<"check" | "ok">("check");
   const [pickup, setPickup] = useState("");
   const [destination, setDestination] = useState("");
+  const [pickupPlace, setPickupPlace] = useState<unknown>(null);
+  const [dropoffPlace, setDropoffPlace] = useState<unknown>(null);
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [vehicle, setVehicle] = useState("economy");
@@ -174,6 +190,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     const nextTime = isoTimeFromTrip(trip, trip?.time ?? "");
     setPickup(nextPickup);
     setDestination(nextDrop);
+    setPickupPlace(trip?.pickupPlace ?? null);
+    setDropoffPlace(trip?.dropoffPlace ?? null);
     setDate(nextDate);
     setTime(nextTime);
     setVehicle(nextVehicle);
@@ -237,7 +255,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       date !== isoDateFromTrip(trip, trip?.date ?? "") ||
       time !== isoTimeFromTrip(trip, trip?.time ?? "") ||
       draft.passengers !== tripPax(trip) ||
-      draft.luggage !== tripBags(trip);
+      draft.luggage !== tripBags(trip) ||
+      placeMapboxId(pickupPlace) !== placeMapboxId(trip?.pickupPlace) ||
+      placeMapboxId(dropoffPlace) !== placeMapboxId(trip?.dropoffPlace);
     if (hasQuoteLock(trip) && !edited) {
       writeVamosTrip({
         pickup,
@@ -248,6 +268,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         pax: draft.passengers,
         bags: draft.luggage,
         flightNumber: draft.flightNumber,
+        pickupPlace,
+        dropoffPlace,
       });
       writeDraft({ vehicleClass: vehicle });
       router.push(checkoutStepPath("details"));
@@ -258,8 +280,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
 
   async function relockTrip() {
     const trip = readVamosTrip();
-    const pickupPlace = trip?.pickupPlace;
-    const dropoffPlace = trip?.dropoffPlace;
     const scheduled = scheduledLocalFor(trip, date, time);
     if (!pickupPlace || !dropoffPlace || !scheduled) {
       setRefusal("quoteExpired");
@@ -273,7 +293,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           locale,
-          display_currency: trip?.display_currency || "CHF",
+          display_currency: displayCur,
           mode: "one_way",
           pickup: pickupPlace,
           dropoff: dropoffPlace,
@@ -310,6 +330,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         expires_at: json.expires_at,
         scheduled_local: scheduled,
         classes: priced.length ? priced : classList(trip),
+        pickupPlace,
+        dropoffPlace,
+        display_currency: displayCur,
       });
       setTripSnap(next);
       writeDraft({
@@ -411,7 +434,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
             phone: contact.mobile.trim(),
           },
           locale,
-          display_currency: "CHF",
+          display_currency: displayCur,
           idempotency_key: idempotencyKey,
           ...(turnstile ? { turnstile_token: turnstile } : {}),
         }),
@@ -482,7 +505,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
             phone: contact.mobile.trim(),
           },
           locale,
-          display_currency: "CHF",
+          display_currency: displayCur,
           idempotency_key: idempotencyKey,
           ...(turnstile ? { turnstile_token: turnstile } : {}),
           billing_kind: billingKind,
@@ -539,7 +562,22 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const railPickup = placeText(tripSnap?.pickupPlace, pickup || draft.pickup);
   const railDrop = placeText(tripSnap?.dropoffPlace, destination || draft.destination);
   const lockToken = tripSnap?.lock || draft.lock;
-  const totalFrancs = rappenToFrancs(peekLockClassRappen(lockToken, vehicle));
+  const shown = chfRappenToDisplay(
+    peekLockClassRappen(lockToken, vehicle),
+    displayCur,
+    fx.rates?.rates ?? null,
+  );
+  const timeSlots = time && !WHEN_PICKER_TIMES.includes(time) ? [time, ...WHEN_PICKER_TIMES] : [...WHEN_PICKER_TIMES];
+  const railMeta: RouteMetaItem[] = [
+    ...(date
+      ? [{ icon: "calendar" as const, label: <span className="vt-dir-keep">{formatRailDate(date, locale)}</span> }]
+      : []),
+    ...(time
+      ? [{ icon: "clock" as const, label: <span className="vt-dir-keep">{time}</span> }]
+      : []),
+    { icon: "users", label: `${draft.passengers} ${tCommon("passengers")}` },
+    { icon: "luggage", label: `${draft.luggage} ${tCommon("luggage")}` },
+  ];
 
   if (gate !== "ok") {
     return <div className="vt-checkout" data-checkout data-checkout-step={step} data-checkout-gate />;
@@ -574,13 +612,24 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                     icon="map-pin"
                     clearLabel={tCommon("clear")}
                     testField="pickup"
+                    locale={geoLocale(locale)}
                     onChange={(v) => {
                       setPickup(v);
                       writeDraft({ pickup: v });
                     }}
+                    onPlace={(place: PlaceRetrieve | null) => {
+                      setPickupPlace(place);
+                      if (place) {
+                        setPickup(place.text.split(",")[0] ?? place.text);
+                        writeDraft({ pickup: place.text });
+                        writeVamosTrip({ pickup: place.text, pickupPlace: place });
+                      }
+                    }}
                     onClear={() => {
                       setPickup("");
+                      setPickupPlace(null);
                       writeDraft({ pickup: "" });
+                      writeVamosTrip({ pickup: "", pickupPlace: undefined });
                     }}
                   />
                 </div>
@@ -592,19 +641,31 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                     icon="map-pin"
                     clearLabel={tCommon("clear")}
                     testField="destination"
+                    locale={geoLocale(locale)}
                     onChange={(v) => {
                       setDestination(v);
                       writeDraft({ destination: v });
                     }}
+                    onPlace={(place: PlaceRetrieve | null) => {
+                      setDropoffPlace(place);
+                      if (place) {
+                        setDestination(place.text.split(",")[0] ?? place.text);
+                        writeDraft({ destination: place.text });
+                        writeVamosTrip({ dropoff: place.text, dropoffPlace: place });
+                      }
+                    }}
                     onClear={() => {
                       setDestination("");
+                      setDropoffPlace(null);
                       writeDraft({ destination: "" });
+                      writeVamosTrip({ dropoff: "", dropoffPlace: undefined });
                     }}
                   />
                 </div>
-                <div className="vt-checkout__when">
+                <div className="vt-checkout__when-split">
                   <WhenPicker
-                    label={tAccount("pickup-date-and-time")}
+                    hideTime
+                    label={tBooking("date")}
                     placeholder={tBooking("select-date-and-time")}
                     date={date}
                     time={time}
@@ -626,8 +687,20 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                     }}
                     onClear={() => {
                       setDate("");
-                      setTime("");
-                      writeDraft({ date: "", time: "" });
+                      writeDraft({ date: "" });
+                    }}
+                  />
+                  <Select
+                    label={tBooking("time")}
+                    icon="clock"
+                    value={time}
+                    placeholder={tBooking("time")}
+                    data-test-field="time"
+                    options={timeSlots}
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      setTime(next);
+                      writeDraft({ time: next });
                     }}
                   />
                 </div>
@@ -774,125 +847,110 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
 
           {step === "payment" ? (
             <Card padding="lg">
-              <h2>{t("payment")}</h2>
-              <Tabs
-                className="vt-checkout__tabs"
-                block
-                value={billingKind}
-                onChange={(value) => setBillingKind(value === "company" ? "company" : "individual")}
-                items={[
-                  { value: "individual", label: t("billingIndividual") },
-                  { value: "company", label: t("billingCompany") },
-                ]}
-              />
-              <Tabs
-                className="vt-checkout__tabs"
-                block
-                value={payMethod}
-                onChange={(value) => setPayMethod(value === "link" ? "link" : "card")}
-                items={[
-                  { value: "card", label: t("payNow") },
-                  { value: "link", label: t("payLinkTab") },
-                ]}
-              />
-              <div className="vt-checkout__paystack">
-                {payMethod === "link" ? (
-                  <>
-                    {billingKind === "company" ? (
-                      <>
-                        <Input
-                          label={t("companyName")}
-                          value={companyName}
-                          onChange={(e) => setCompanyName(e.target.value)}
-                        />
-                        <Input
-                          label={t("companyAddress")}
-                          value={companyAddress}
-                          onChange={(e) => setCompanyAddress(e.target.value)}
-                        />
-                        <Input
-                          label={t("companyVat")}
-                          value={companyVat}
-                          onChange={(e) => setCompanyVat(e.target.value)}
-                        />
-                      </>
-                    ) : null}
+              <div className="vt-checkout__payhead">
+                <h2>{t("payment")}</h2>
+                <p>{t("card-apple-pay-or-twint")}</p>
+              </div>
+              <div className="vt-checkout__payblock">
+                <Tabs
+                  className="vt-checkout__tabs"
+                  block
+                  value={billingKind}
+                  onChange={(value) => setBillingKind(value === "company" ? "company" : "individual")}
+                  items={[
+                    { value: "individual", label: t("billingIndividual") },
+                    { value: "company", label: t("billingCompany") },
+                  ]}
+                />
+                {billingKind === "company" ? (
+                  <div className="vt-checkout__company">
                     <Input
-                      label={t("payerEmail")}
-                      value={payerEmail || contact.email}
-                      onChange={(e) => setPayerEmail(e.target.value)}
+                      label={t("companyName")}
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
                     />
-                    {payUrl ? (
-                      <>
-                        <p>{t("payLinkSent")}</p>
-                        {reference ? <p>{t("unpaidReference", { reference })}</p> : null}
-                        <div className="vt-checkout__paylink">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              void navigator.clipboard.writeText(payUrl);
-                            }}
-                          >
-                            {t("copyPayLink")}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            href={`https://wa.me/?text=${encodeURIComponent(payUrl)}`}
-                          >
-                            {t("whatsappPayLink")}
-                          </Button>
-                        </div>
-                      </>
-                    ) : (
-                      <Button variant="ghost" size="sm" disabled={busy} onClick={() => void sendPayLink()}>
-                        {t("sendPayLink")}
-                      </Button>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <p>{t("charged-now-secured-by-stripe")}</p>
-                    {busy && !clientSecret ? <div data-checkout-pay-skeleton aria-hidden="true" /> : null}
-                    {clientSecret && reference ? (
-                      <PaymentPanel
-                        publishableKey={publishable}
-                        clientSecret={clientSecret}
-                        reference={reference}
-                        onReady={onPaymentReady}
+                    <Input
+                      label={t("companyAddress")}
+                      value={companyAddress}
+                      onChange={(e) => setCompanyAddress(e.target.value)}
+                    />
+                    <Input
+                      label={t("companyVat")}
+                      value={companyVat}
+                      onChange={(e) => setCompanyVat(e.target.value)}
+                    />
+                  </div>
+                ) : null}
+              </div>
+              <div className="vt-checkout__payblock">
+                <Tabs
+                  className="vt-checkout__tabs"
+                  block
+                  value={payMethod}
+                  onChange={(value) => setPayMethod(value === "link" ? "link" : "card")}
+                  items={[
+                    { value: "card", label: t("payNow") },
+                    { value: "link", label: t("payLinkTab") },
+                  ]}
+                />
+                <div className="vt-checkout__paystack">
+                  {payMethod === "link" ? (
+                    <>
+                      <Input
+                        label={t("payerEmail")}
+                        value={payerEmail || contact.email}
+                        onChange={(e) => setPayerEmail(e.target.value)}
                       />
-                    ) : (
-                      <>
-                        <div className="vt-checkout__coupon">
-                          <Input
-                            label={t("coupon-or-voucher-code")}
-                            value={coupon}
-                            placeholder={t("couponPlaceholder")}
-                            onChange={(e) => setCoupon(e.target.value)}
-                          />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setCouponApplied(coupon.trim() || null)}
-                          >
-                            {tCommon("apply")}
-                          </Button>
-                        </div>
-                        {couponApplied ? (
-                          <Tag onRemove={() => setCouponApplied(null)}>
-                            {t("couponCode", { code: couponApplied })}
-                          </Tag>
-                        ) : null}
+                      {payUrl ? (
+                        <>
+                          <p>{t("payLinkSent")}</p>
+                          {reference ? <p>{t("unpaidReference", { reference })}</p> : null}
+                          <div className="vt-checkout__paylink">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                void navigator.clipboard.writeText(payUrl);
+                              }}
+                            >
+                              {t("copyPayLink")}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              href={`https://wa.me/?text=${encodeURIComponent(payUrl)}`}
+                            >
+                              {t("whatsappPayLink")}
+                            </Button>
+                          </div>
+                        </>
+                      ) : (
+                        <Button variant="ghost" size="sm" disabled={busy} onClick={() => void sendPayLink()}>
+                          {t("sendPayLink")}
+                        </Button>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <p>{t("charged-now-secured-by-stripe")}</p>
+                      {busy && !clientSecret ? <div data-checkout-pay-skeleton aria-hidden="true" /> : null}
+                      {clientSecret && reference ? (
+                        <PaymentPanel
+                          publishableKey={publishable}
+                          clientSecret={clientSecret}
+                          reference={reference}
+                          onReady={onPaymentReady}
+                        />
+                      ) : (
                         <TurnstileWidget
                           siteKey={turnstileSiteKey}
                           action="checkout"
                           onToken={setTurnstile}
                         />
-                      </>
-                    )}
-                  </>
-                )}
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
             </Card>
           ) : null}
@@ -902,10 +960,36 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           <Card padding="lg">
             <Badge tone="accent">{t("charged-now-secured-by-stripe")}</Badge>
             <p className="vt-checkout__picked">{vehicleLabel(vehicle, t)}</p>
-            <RouteSummary pickup={railPickup} dropoff={railDrop} />
+            <RouteSummary pickup={railPickup} dropoff={railDrop} meta={railMeta} />
             <div data-checkout-total>
-              <PriceSummary total={totalFrancs} totalLabel={t("total")} />
+              <PriceSummary
+                total={shown.major}
+                currency={shown.currency}
+                totalLabel={t("total")}
+              />
             </div>
+            {step === "payment" ? (
+              <div className="vt-checkout__coupon" data-checkout-coupon>
+                <Input
+                  label={t("coupon-or-voucher-code")}
+                  value={coupon}
+                  placeholder={t("couponPlaceholder")}
+                  onChange={(e) => setCoupon(e.target.value)}
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCouponApplied(coupon.trim() || null)}
+                >
+                  {tCommon("apply")}
+                </Button>
+              </div>
+            ) : null}
+            {couponApplied ? (
+              <Tag onRemove={() => setCouponApplied(null)}>
+                {t("couponCode", { code: couponApplied })}
+              </Tag>
+            ) : null}
             <p className="vt-checkout__charge" data-checkout-charge>
               {t("chargeIn", { currency: t("chargeCurrencyName") })}
             </p>

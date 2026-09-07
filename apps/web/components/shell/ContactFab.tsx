@@ -38,16 +38,26 @@ export function ContactFab() {
   }, [open]);
 
   return (
-    <div className="vt-contact-fab" ref={rootRef} data-vt-fab="1">
+    <div className="vt-contact-fab" ref={rootRef} data-vt-fab="1" data-open={open ? "1" : undefined}>
       {open ? (
         <div className="vt-contact-fab__panel" id={panelId} role="menu">
+          <p className="vt-contact-fab__kicker">{t("contact")}</p>
           <a className="vt-contact-fab__item" href={SUPPORT_EMAIL_HREF} role="menuitem">
-            <Icon name="mail" size={16} />
-            <span className="vt-dir-keep">{SUPPORT_EMAIL}</span>
+            <span className="vt-contact-fab__ico" aria-hidden="true">
+              <Icon name="mail" size={18} />
+            </span>
+            <span className="vt-contact-fab__copy">
+              <strong>{t("email")}</strong>
+              <span className="vt-dir-keep">{SUPPORT_EMAIL}</span>
+            </span>
           </a>
           <Link className="vt-contact-fab__item" href="/contact" role="menuitem">
-            <Icon name="message-circle" size={16} />
-            {t("contact")}
+            <span className="vt-contact-fab__ico" aria-hidden="true">
+              <Icon name="message-circle" size={18} />
+            </span>
+            <span className="vt-contact-fab__copy">
+              <strong>{t("contact")}</strong>
+            </span>
           </Link>
           <a
             className="vt-contact-fab__item"
@@ -56,21 +66,26 @@ export function ContactFab() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Icon name="phone" size={16} />
-            <span className="vt-dir-keep">{PHONE_DISPLAY}</span>
+            <span className="vt-contact-fab__ico" aria-hidden="true">
+              <Icon name="phone" size={18} />
+            </span>
+            <span className="vt-contact-fab__copy">
+              <strong>{t("whatsapp")}</strong>
+              <span className="vt-dir-keep">{PHONE_DISPLAY}</span>
+            </span>
           </a>
         </div>
       ) : null}
       <button
         type="button"
         className="vt-contact-fab__btn"
-        aria-label={t("contact")}
+        aria-label={open ? t("close") : t("contact")}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
         onClick={() => setOpen((v) => !v)}
       >
-        <Logo form="mark" height={22} />
+        {open ? <Icon name="x" size={22} color="currentColor" /> : <Logo form="mark" height={22} />}
       </button>
     </div>
   );

@@ -2,8 +2,8 @@
 
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { Button, Icon, IconButton, type IconName } from "@/components/core";
-import { Input, Counter, WhenPicker } from "@/components/forms";
+import { Button, Icon, IconButton } from "@/components/core";
+import { Input, Counter, WhenPicker, PlaceCombo } from "@/components/forms";
 import { PriceSummary } from "@/components/transfer";
 import { useBookingDraft, type BookingDraft } from "@/lib/booking-draft";
 import { BookingCardMount, type BookingCardMountProps } from "./BookingCardMount";
@@ -15,60 +15,7 @@ export type BookingCardProps = BookingCardMountProps & {
   children?: ReactNode;
 };
 
-export function PlaceCombo({
-  label,
-  value,
-  placeholder,
-  icon,
-  clearLabel,
-  testField,
-  onChange,
-  onClear,
-}: {
-  label: string;
-  value: string;
-  placeholder: string;
-  icon: IconName;
-  clearLabel: string;
-  testField: string;
-  onChange: (value: string) => void;
-  onClear: () => void;
-}) {
-  return (
-    <>
-      <span className="vt-bc-lbl">{label}</span>
-      <div data-vtcombo="1" data-on={value.trim() ? "1" : "0"}>
-        <span data-combo-tile="1" aria-hidden="true">
-          <Icon name={icon} size={16} color="currentColor" />
-        </span>
-        <input
-          type="text"
-          role="combobox"
-          aria-expanded="false"
-          aria-autocomplete="list"
-          aria-label={label}
-          autoComplete="off"
-          spellCheck={false}
-          value={value}
-          placeholder={placeholder}
-          data-test-field={testField}
-          onChange={(e) => onChange(e.target.value)}
-        />
-        {value ? (
-          <button
-            data-combo-x="1"
-            type="button"
-            aria-label={clearLabel}
-            title={clearLabel}
-            onClick={onClear}
-          >
-            <Icon name="x" size={16} color="currentColor" />
-          </button>
-        ) : null}
-      </div>
-    </>
-  );
-}
+export { PlaceCombo } from "@/components/forms/PlaceCombo";
 
 export function BookingCard({
   board,

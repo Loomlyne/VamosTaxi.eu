@@ -156,6 +156,15 @@
   align-items: stretch;
 }
 
+.vt-when[data-date-only="1"] [data-wp-row] {
+  display: block;
+}
+
+.vt-when[data-date-only="1"] [data-wp-cal] {
+  flex: none;
+  inline-size: 264px;
+}
+
 [data-wp-cal] {
   flex: 0 0 264px;
   inline-size: 264px;

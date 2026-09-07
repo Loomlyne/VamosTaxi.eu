@@ -179,3 +179,30 @@ export function rappenToFrancs(rappen: number | null): number | null {
   if (rappen == null) return null;
   return rappen / 100;
 }
+
+export function geoLocale(locale: string): "en" | "de" | "fr" | "ar" {
+  if (locale === "de" || locale === "fr" || locale === "ar") return locale;
+  return "en";
+}
+
+export function placeMapboxId(place: unknown): string {
+  if (!place || typeof place !== "object") return "";
+  const id = (place as { mapbox_id?: unknown }).mapbox_id;
+  return typeof id === "string" ? id : "";
+}
+
+export function formatRailDate(iso: string, locale: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!m) return iso;
+  try {
+    return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : locale, {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+    })
+      .format(new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])))
+      .replace(/,/g, "");
+  } catch {
+    return iso;
+  }
+}

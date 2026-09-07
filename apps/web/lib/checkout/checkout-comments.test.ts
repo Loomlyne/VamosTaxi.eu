@@ -4,6 +4,9 @@ import { describe, expect, it } from "vitest";
 import { WEB_ROOT } from "../../tests/support/server-harness";
 
 const client = readFileSync(join(WEB_ROOT, "app/[locale]/checkout/CheckoutClient.tsx"), "utf8");
+const placeCombo = readFileSync(join(WEB_ROOT, "components/forms/PlaceCombo.tsx"), "utf8");
+const payPanel = readFileSync(join(WEB_ROOT, "app/[locale]/checkout/PaymentPanel.tsx"), "utf8");
+const fab = readFileSync(join(WEB_ROOT, "components/shell/ContactFab.tsx"), "utf8");
 const classes = readFileSync(join(WEB_ROOT, "app/[locale]/checkout/CheckoutClassCards.tsx"), "utf8");
 const css = readFileSync(join(WEB_ROOT, "app/[locale]/checkout/checkout.css"), "utf8");
 const layout = readFileSync(join(WEB_ROOT, "app/[locale]/checkout/layout.tsx"), "utf8");
@@ -24,7 +27,11 @@ describe("checkout comment pack", () => {
   it("reuses booking PlaceCombo and WhenPicker on trip", () => {
     expect(client).toContain("PlaceCombo");
     expect(client).toContain("WhenPicker");
-    expect(client).not.toMatch(/label=\{tBooking\(\"date\"\)\}/);
+    expect(client).toContain("hideTime");
+    expect(client).toContain('label={tBooking("date")}');
+    expect(client).toContain("vt-checkout__when-split");
+    expect(placeCombo).toContain("/api/geo/suggest");
+    expect(placeCombo).toContain("session_token");
   });
 
   it("uses the locked-plus phone field and refuses bad email", () => {
@@ -90,8 +97,9 @@ describe("checkout comment pack", () => {
 
   it("shows the locked class total, selected class, and no change-vehicle", () => {
     expect(client).toContain("peekLockClassRappen");
-    expect(client).toContain("rappenToFrancs");
-    expect(client).toContain("PriceSummary total={totalFrancs}");
+    expect(client).toContain("chfRappenToDisplay");
+    expect(client).toContain("useVamosLocale");
+    expect(client).toContain("shown.major");
     expect(client).not.toContain("PriceSummary total={null}");
     expect(client).toContain("vt-checkout__picked");
     expect(client).not.toContain("change-vehicle");
@@ -107,5 +115,15 @@ describe("checkout comment pack", () => {
     expect(client).not.toContain("additional-stops");
     expect(client).toContain("turnstile_failed");
     expect(client).toContain("formChallengeFailed");
+  });
+
+  it("moves coupon onto the rail and drops Stripe currency selector", () => {
+    expect(client).toContain("data-checkout-coupon");
+    expect(client.indexOf("data-checkout-coupon")).toBeGreaterThan(client.indexOf("data-checkout-rail"));
+    expect(client).toContain("vt-checkout__payhead");
+    expect(client).toContain("RouteSummary pickup={railPickup} dropoff={railDrop} meta={railMeta}");
+    expect(payPanel).not.toContain("CurrencySelectorElement");
+    expect(fab).toContain("vt-contact-fab__kicker");
+    expect(fab).toContain("t(\"whatsapp\")");
   });
 });
