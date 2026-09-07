@@ -42,6 +42,16 @@ const CLASS_META: Record<
   },
 };
 
+export function classFits(id: string, pax: number, bags: number): boolean {
+  if (!CLASS_SLUGS.includes(id as ClassSlug)) return false;
+  const meta = CLASS_META[id as ClassSlug];
+  return pax <= meta.pax && bags <= meta.bags;
+}
+
+export function firstFittingClass(pax: number, bags: number): ClassSlug {
+  return CLASS_SLUGS.find((id) => classFits(id, pax, bags)) ?? "van";
+}
+
 function classExample(
   id: ClassSlug,
   tCommon: ReturnType<typeof useTranslations<"common">>,
@@ -54,12 +64,14 @@ function classExample(
 }
 
 export function CheckoutClassCards({
-  classes,
   vehicle,
+  passengers,
+  luggage,
   onChange,
 }: {
-  classes: string[];
   vehicle: string;
+  passengers: number;
+  luggage: number;
   onChange: (id: string) => void;
 }) {
   const t = useTranslations("checkout");
@@ -68,26 +80,28 @@ export function CheckoutClassCards({
 
   return (
     <div className="vt-checkout__classes" data-checkout-classes>
-      {classes.map((id) => {
-        const meta = CLASS_SLUGS.includes(id as ClassSlug) ? CLASS_META[id as ClassSlug] : null;
+      {CLASS_SLUGS.map((id) => {
+        const meta = CLASS_META[id];
         const picked = vehicle === id;
-        const name = meta ? t(meta.nameKey) : t("vehicleClassFallback");
-        const example = meta ? classExample(id as ClassSlug, tCommon, tHome) : null;
+        const fit = classFits(id, passengers, luggage);
+        const name = t(meta.nameKey);
+        const example = classExample(id, tCommon, tHome);
         return (
           <button
             key={id}
             type="button"
             className="vt-checkout__class"
             data-picked={picked ? "true" : "false"}
+            data-fit={fit ? "true" : "false"}
             aria-pressed={picked}
-            onClick={() => onChange(id)}
+            aria-disabled={!fit}
+            disabled={!fit}
+            onClick={() => {
+              if (fit) onChange(id);
+            }}
           >
             <span className="vt-checkout__class-img">
-              {meta ? (
-                <img src={meta.image} alt="" />
-              ) : (
-                <Icon name="car" size={24} color="var(--vt-grey-500)" />
-              )}
+              <img src={meta.image} alt="" />
               {picked ? (
                 <span className="vt-checkout__class-check" aria-hidden="true">
                   <Icon name="check" size={16} color="var(--vt-accent)" />
@@ -96,20 +110,18 @@ export function CheckoutClassCards({
             </span>
             <span className="vt-checkout__class-copy">
               <strong className="vt-dir-keep">{name}</strong>
-              {example ? <span>{example}</span> : null}
+              <span>{example}</span>
             </span>
-            {meta ? (
-              <span className="vt-checkout__class-cap">
-                <span>
-                  <Icon name="users" size={12} color="var(--vt-text-muted)" />
-                  {t("upToPassengersCount", { n: meta.pax })}
-                </span>
-                <span>
-                  <Icon name="luggage" size={12} color="var(--vt-text-muted)" />
-                  {t("upToBagsCount", { n: meta.bags })}
-                </span>
+            <span className="vt-checkout__class-cap">
+              <span>
+                <Icon name="users" size={12} color="var(--vt-text-muted)" />
+                {t("upToPassengersCount", { n: meta.pax })}
               </span>
-            ) : null}
+              <span>
+                <Icon name="luggage" size={12} color="var(--vt-text-muted)" />
+                {t("upToBagsCount", { n: meta.bags })}
+              </span>
+            </span>
           </button>
         );
       })}

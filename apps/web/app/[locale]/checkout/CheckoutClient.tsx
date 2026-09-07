@@ -49,7 +49,7 @@ import { useVamosLocale } from "@/lib/locale-shim";
 import type { CurrencyCode } from "@/lib/currency";
 import { routing } from "@/i18n/routing";
 import { useCheckoutSettings } from "./CheckoutSettings";
-import { CheckoutClassCards } from "./CheckoutClassCards";
+import { CheckoutClassCards, classFits, firstFittingClass } from "./CheckoutClassCards";
 import { PaymentPanel } from "./PaymentPanel";
 
 const { useRouter } = createNavigation(routing);
@@ -234,6 +234,15 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     writeDraft({ idempotencyKey: crypto.randomUUID() });
   }, [draft.quoteId, draft.idempotencyKey, writeDraft]);
 
+  useEffect(() => {
+    if (classFits(vehicle, draft.passengers, draft.luggage)) return;
+    const next = firstFittingClass(draft.passengers, draft.luggage);
+    if (next === vehicle) return;
+    setVehicle(next);
+    writeDraft({ vehicleClass: next });
+    writeVamosTrip({ vehicle: next, pax: draft.passengers, bags: draft.luggage });
+  }, [draft.passengers, draft.luggage, vehicle, writeDraft]);
+
   function validate(): boolean {
     const next: ContactFieldsErrors = {};
     if (!contact.firstName.trim()) next.firstName = t("enter-a-first-name");
@@ -256,6 +265,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       time !== isoTimeFromTrip(trip, trip?.time ?? "") ||
       draft.passengers !== tripPax(trip) ||
       draft.luggage !== tripBags(trip) ||
+      vehicle !== tripVehicle(trip) ||
       placeMapboxId(pickupPlace) !== placeMapboxId(trip?.pickupPlace) ||
       placeMapboxId(dropoffPlace) !== placeMapboxId(trip?.dropoffPlace);
     if (hasQuoteLock(trip) && !edited) {
@@ -715,7 +725,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                     icon="users"
                     value={draft.passengers}
                     min={1}
-                    max={8}
+                    max={7}
                     onChange={(value) => {
                       writeDraft({ passengers: value });
                       writeVamosTrip({ pax: value });
@@ -739,8 +749,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                 </div>
               </div>
               <CheckoutClassCards
-                classes={classList(tripSnap)}
                 vehicle={vehicle}
+                passengers={draft.passengers}
+                luggage={draft.luggage}
                 onChange={(id) => {
                   setVehicle(id);
                   writeDraft({ vehicleClass: id });
@@ -843,6 +854,46 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
 
           {step === "payment" ? (
             <Card padding="lg">
+              <div className="vt-checkout__sheet">
+                <div className="vt-checkout__recap">
+                  <div className="vt-checkout__recap-trip">
+                    <Badge tone="accent">{t("charged-now-secured-by-stripe")}</Badge>
+                    <p className="vt-checkout__picked">{vehicleLabel(vehicle, t)}</p>
+                    <RouteSummary pickup={railPickup} dropoff={railDrop} meta={railMeta} />
+                  </div>
+                  <div className="vt-checkout__recap-pay">
+                    <div data-checkout-total>
+                      <PriceSummary
+                        total={shown.major}
+                        currency={shown.currency}
+                        totalLabel={t("total")}
+                      />
+                    </div>
+                    <div className="vt-checkout__coupon" data-checkout-coupon>
+                      <Input
+                        label={t("coupon-or-voucher-code")}
+                        value={coupon}
+                        placeholder={t("couponPlaceholder")}
+                        onChange={(e) => setCoupon(e.target.value)}
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setCouponApplied(coupon.trim() || null)}
+                      >
+                        {tCommon("apply")}
+                      </Button>
+                    </div>
+                    {couponApplied ? (
+                      <Tag onRemove={() => setCouponApplied(null)}>
+                        {t("couponCode", { code: couponApplied })}
+                      </Tag>
+                    ) : null}
+                    <p className="vt-checkout__charge" data-checkout-charge>
+                      {t("chargeIn", { currency: t("chargeCurrencyName") })}
+                    </p>
+                  </div>
+                </div>
               <div className="vt-checkout__payhead">
                 <h2>{t("payment")}</h2>
                 <p>{t("card-apple-pay-or-twint")}</p>
@@ -948,10 +999,48 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                   )}
                 </div>
               </div>
+              <div className="vt-checkout__payfoot">
+                {freeCancelHours != null ? (
+                  <p>{t("freeCancelHours", { hours: freeCancelHours })}</p>
+                ) : (
+                  <p>
+                    <span data-tok>{t("cancel-free-of-charge-up-to-24-hours-before-pick")}</span>
+                  </p>
+                )}
+                {refusal && refusal !== "pricingNotLive" ? (
+                  <Alert tone={refusal === "pricingNotLive" ? "info" : "danger"}>
+                    {refusal === "formChallengeFailed"
+                      ? tCommon("form-challenge-failed")
+                      : refusal === "priceChanged" && hours != null
+                        ? t("livePriceChangedLocked", { hours })
+                        : t(refusal)}
+                    {requote ? (
+                      <Button variant="ghost" size="sm" href={homeHref}>
+                        {t("requote")}
+                      </Button>
+                    ) : null}
+                  </Alert>
+                ) : null}
+                <div className="vt-checkout__cta">
+                  <Button size="lg" block disabled={busy} onClick={() => void onPay()}>
+                    {t("pay-and-confirm")}
+                  </Button>
+                </div>
+                <p className="vt-checkout__terms">
+                  <Icon name="shield-check" size={16} /> {t("by-continuing-you-accept-the-terms-and-the-cance")}
+                </p>
+                {hours != null ? (
+                  <p className="vt-checkout__charge">{t("checkoutWindowHours", { hours })}</p>
+                ) : checkoutWindowMinutes != null ? (
+                  <p className="vt-checkout__charge">{t("checkoutWindow", { minutes: checkoutWindowMinutes })}</p>
+                ) : null}
+              </div>
+              </div>
             </Card>
           ) : null}
         </div>
 
+        {step !== "payment" ? (
         <aside className="vt-checkout__rail" data-checkout-rail>
           <Card padding="lg">
             <Badge tone="accent">{t("charged-now-secured-by-stripe")}</Badge>
@@ -964,28 +1053,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                 totalLabel={t("total")}
               />
             </div>
-            {step === "payment" ? (
-              <div className="vt-checkout__coupon" data-checkout-coupon>
-                <Input
-                  label={t("coupon-or-voucher-code")}
-                  value={coupon}
-                  placeholder={t("couponPlaceholder")}
-                  onChange={(e) => setCoupon(e.target.value)}
-                />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setCouponApplied(coupon.trim() || null)}
-                >
-                  {tCommon("apply")}
-                </Button>
-              </div>
-            ) : null}
-            {couponApplied ? (
-              <Tag onRemove={() => setCouponApplied(null)}>
-                {t("couponCode", { code: couponApplied })}
-              </Tag>
-            ) : null}
             <p className="vt-checkout__charge" data-checkout-charge>
               {t("chargeIn", { currency: t("chargeCurrencyName") })}
             </p>
@@ -1020,13 +1087,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                 {t("continue")}
               </Button>
             ) : null}
-            {step === "payment" ? (
-              <div className="vt-checkout__cta">
-                <Button size="lg" block disabled={busy} onClick={() => void onPay()}>
-                  {t("pay-and-confirm")}
-                </Button>
-              </div>
-            ) : null}
             <p className="vt-checkout__terms">
               <Icon name="shield-check" size={16} /> {t("by-continuing-you-accept-the-terms-and-the-cance")}
             </p>
@@ -1037,6 +1097,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
             ) : null}
           </Card>
         </aside>
+        ) : null}
       </div>
     </div>
   );

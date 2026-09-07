@@ -120,7 +120,8 @@ describe("checkout comment pack", () => {
 
   it("moves coupon onto the rail and drops Stripe currency selector", () => {
     expect(client).toContain("data-checkout-coupon");
-    expect(client.indexOf("data-checkout-coupon")).toBeGreaterThan(client.indexOf("data-checkout-rail"));
+    expect(client).toContain("vt-checkout__sheet");
+    expect(client).toContain("vt-checkout__recap");
     expect(client).toContain("vt-checkout__payhead");
     expect(client).toContain("RouteSummary pickup={railPickup} dropoff={railDrop} meta={railMeta}");
     expect(payPanel).not.toContain("CurrencySelectorElement");
@@ -134,6 +135,14 @@ describe("checkout comment pack", () => {
     expect(client).toContain('refusal !== "pricingNotLive"');
     expect(css).toContain("grid-template-columns: minmax(0, 1fr) minmax(0, 1fr)");
     expect(css).toContain('[data-checkout-step="payment"]');
-    expect(css).toContain("max-inline-size: 720px");
+    expect(css).toContain("max-inline-size: 880px");
+  });
+
+  it("shows all four classes and dims ones that do not fit pax or bags", () => {
+    expect(client).toContain("passengers={draft.passengers}");
+    expect(client).toContain("luggage={draft.luggage}");
+    expect(client).toContain("classFits");
+    expect(client).toContain("firstFittingClass");
+    expect(client).toContain("max={7}");
   });
 });
