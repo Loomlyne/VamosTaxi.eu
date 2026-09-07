@@ -12,10 +12,10 @@
 //
 // D-01: max_bags lives only on ClassBoardEntry (from vehicle_classes.luggage_capacity).
 // DistanceRateRow has no max_bags — the column does not exist.
-// D-03 / D-38: QuoteMode is one_way | return only; VehicleClassSlug is the three V1 slugs.
+// D-03: QuoteMode is one_way | return only. Owner sheet: four classes.
 
-/** D-38: ADR-014 §6 — V1 ships three classes only. Exhaustive switches rely on that closed set. */
-export type VehicleClassSlug = "economy" | "business" | "van";
+/** Owner matrix: Economy 80 / Business 100 / First 130 / Van 150. */
+export type VehicleClassSlug = "economy" | "business" | "first" | "van";
 
 /** D-03: only one_way | return reach the kernel; other modes are refused at the HTTP boundary. */
 export type QuoteMode = "one_way" | "return";

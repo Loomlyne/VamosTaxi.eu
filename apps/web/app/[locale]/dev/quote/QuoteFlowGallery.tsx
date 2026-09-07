@@ -56,6 +56,7 @@ import type { ClassBoardEntry } from "@/lib/pricing/types";
 const CLASS_NAMES = {
   economy: "Economy",
   business: "Business",
+  first: "First",
   van: "Van",
 } as const;
 
