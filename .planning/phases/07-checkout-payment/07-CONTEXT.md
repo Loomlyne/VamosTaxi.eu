@@ -373,17 +373,13 @@ P1–P8 landed as **07-01…07-10** (paper SUMMARYs). **Do not re-plan or re-exe
 
 | # | Goal (one line) | Notes |
 |---|-----------------|-------|
-| **R1** | 24h quote lock + price-changed notice + expire → start over | Settings `checkout_window_minutes` / `quote_lock_deadline`; supersedes 30 min |
-| **R2** | Three routes `/checkout/trip` `/details` `/payment` + `vamosTrip` + lock | Pixel-faithful DC; four languages |
-| **R3** | Home Continue = real `/api/quote` lock then checkout | `app/home/home.dc.html` mock seam |
-| **R4** | Guest details without password + later email claim | D-39 |
-| **R5** | Individual vs Company billing (name/address/VAT) | D-36; not an invoice |
-| **R6** | Pay-link email + whoever-pays-first + 24h dead link | D-34 D-35 D-37; Vamos payer page |
-| **R7** | Account Finish payment for signed-in unpaid checkout | D-33; not full `/bookings` |
-| **R8** | Unmock `/confirmation/{ref}` (drop DC_PAGES map) | D-40 |
-| **R9** | Staging deploy Worker `vamos` + dummy-card E2E + confirmation email | Owner-gated deploy; then UAT |
+| **07-11** | 24h quote lock + expire → start over | Settings `quote_lock_minutes` 1440; supersedes 30 min |
+| **07-12** | Three routes + Home Continue real `/api/quote` | `/checkout/trip` `/details` `/payment`; `home.dc.html` |
+| **07-13** | Company billing + pay-link + whoever-first | Not an invoice; VT- on send; Vamos payer page |
+| **07-14** | Guest no-password + Finish payment + manage status | D-33 D-39; not full `/bookings` |
+| **07-15** | Unmock confirmation + Worker `vamos` deploy | Owner-gated; then `/gsd:verify-work 7` |
 
-Wave order is the planner's job. R9 is last and owner-gated. File-disjoint waves may run parallel.
+Wave: 07-11 → 07-12 → 07-13 → 07-14 → 07-15 last (owner-gated).
 
 <code_context>
 ## Existing Code Insights
