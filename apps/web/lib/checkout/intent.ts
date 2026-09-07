@@ -221,6 +221,11 @@ export async function runCheckoutIntent(
       await deps.expireCheckoutSession(session.id).catch(() => undefined);
       if (state === "23P01") return refuse("payment_window_closed");
       if (state === "P0002" || state === "23514") return refuse("coupon_no_longer_valid");
+      console.error(
+        "checkout_create_booking_failed",
+        state ?? "no-sqlstate",
+        err instanceof Error ? err.message : String(err),
+      );
       throw err;
     }
   }

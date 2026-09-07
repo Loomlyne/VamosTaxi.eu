@@ -32,10 +32,15 @@ export type CreateBookingArgs = {
   actorCustomerId: string | null;
 };
 
+function byteaHex(bytes: Uint8Array): string {
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 export async function createBooking(
   sql: postgres.TransactionSql,
   args: CreateBookingArgs,
 ): Promise<CheckoutRpcResult> {
+  const tokenHex = byteaHex(args.manageTokenHash);
   const rows = await sql`
     select * from public.checkout_create_booking(
       ${args.quoteId}::uuid,
@@ -51,7 +56,7 @@ export async function createBooking(
       ${JSON.stringify(args.legs)}::jsonb,
       ${args.couponId},
       ${args.couponCode},
-      ${args.manageTokenHash},
+      decode(${tokenHex}, 'hex'),
       ${args.manageTokenExpiresAt.toISOString()}::timestamptz,
       ${args.stripePaymentIntentId},
       ${args.stripeCheckoutSessionId},
