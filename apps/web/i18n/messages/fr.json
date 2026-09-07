@@ -447,6 +447,8 @@
     "requote": "Nouveau devis",
     "freeCancelHours": "Annulation gratuite jusqu'à {hours} heures avant la prise en charge.",
     "checkoutWindow": "Payez dans les {minutes} minutes pour conserver ce prix.",
+    "checkoutWindowHours": "Ce prix est maintenu {hours} heures.",
+    "livePriceChangedLocked": "Le tarif en vigueur a changé. Vous payez toujours ce prix bloqué jusqu’à la fin des {hours} heures.",
     "checkoutStepQuote": "Devis",
     "checkoutStepVehicle": "Véhicule",
     "checkoutStepPay": "Payer",

@@ -447,6 +447,8 @@
     "requote": "عرض جديد",
     "freeCancelHours": "إلغاء مجاني حتى {hours} ساعة قبل الاستلام.",
     "checkoutWindow": "ادفع خلال {minutes} دقيقة للاحتفاظ بهذا السعر.",
+    "checkoutWindowHours": "يُثبَّت هذا السعر لمدة {hours} ساعة.",
+    "livePriceChangedLocked": "تغيّر السعر الحالي. ستدفع هذا السعر المقفول حتى تنتهي مهلة {hours} ساعة.",
     "checkoutStepQuote": "عرض",
     "checkoutStepVehicle": "المركبة",
     "checkoutStepPay": "ادفع",

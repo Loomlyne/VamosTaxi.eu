@@ -447,6 +447,8 @@
     "requote": "Neues Angebot holen",
     "freeCancelHours": "Kostenlose Stornierung bis {hours} Stunden vor Abholung.",
     "checkoutWindow": "Zahlen Sie innerhalb von {minutes} Minuten, um diesen Preis zu halten.",
+    "checkoutWindowHours": "Dieser Preis gilt {hours} Stunden.",
+    "livePriceChangedLocked": "Der aktuelle Preis hat sich geändert. Sie zahlen weiterhin diesen gesperrten Preis, bis die {hours} Stunden enden.",
     "checkoutStepQuote": "Angebot",
     "checkoutStepVehicle": "Fahrzeug",
     "checkoutStepPay": "Zahlen",
