@@ -381,7 +381,7 @@ Plans:
 - [x] 07-12-PLAN.md — three URLs + Home Continue
 - [x] 07-13-PLAN.md — company billing + pay-link + whoever-first (hosted apply still gated)
 - [x] 07-14-PLAN.md — guest no-password + Finish payment + manage status
-- [ ] 07-15-PLAN.md — unmock confirmation + Worker `vamos` deploy (owner-gated)
+- [x] 07-15-PLAN.md — unmock confirmation + Worker `vamos` 8076eebc (hosted SQL still gated)
 
 **UI hint**: yes
 
