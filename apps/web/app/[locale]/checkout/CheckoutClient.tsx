@@ -553,6 +553,11 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                     onChange={() => setGuest(false)}
                   />
                 </div>
+                {guest ? (
+                  <p>{t("guestNoPassword")}</p>
+                ) : (
+                  <p>{t("accountAfterPay")}</p>
+                )}
               </Card>
 
               <Card padding="lg">

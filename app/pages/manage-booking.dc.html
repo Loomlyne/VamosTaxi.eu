@@ -259,6 +259,11 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin-bottom:20px">
 <h2 id="mb-bk-h" style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);line-height:1.1;letter-spacing:.04em;font-weight:var(--vt-weight-bold);color:var(--vt-text-primary)">{{ ref }}</h2>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StatusBadge" status="{{ status }}" hint-size="110px,26px"></x-import>
+<sc-if value="{{ unpaid }}" hint-placeholder-val="{{ false }}">
+<div data-noprint="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="warning" title="Not paid yet" hint-size="100%,84px">Sent by pay link. Not confirmed until money lands.</x-import>
+</div>
+</sc-if>
 <span style="margin-inline-start:auto;display:flex"><span data-pill="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="clock" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import>{{ countdown }}</span></span>
 </div>
 
@@ -668,7 +673,7 @@ class Component extends DCLogic {
       pickupDraft: TRIP.pickup, dropoffDraft: TRIP.dropoff,
       vehicle: TRIP.vehicleId, pax: TRIP.pax, bags: TRIP.bags,
       voucher: false, flightMode: 'idle', flightDraft: TRIP.flight, flight: TRIP.flight,
-      requested: null, status: 'confirmed',
+      requested: null, status: /[?&]unpaid=1/.test(location.search) ? 'pending' : 'confirmed',
       toast: null, toastTone: 'neutral',
     };
   })();
@@ -860,6 +865,7 @@ class Component extends DCLogic {
       lookup: this.lookup, swapWho: this.swapWho,
 
       ref: TRIP.ref, status: s.status, countdown: t.countdown,
+      unpaid: s.status === 'pending' || s.status === 'quote',
       pickup: TRIP.pickup, pickupDetail: TRIP.pickupDetail, dropoff: TRIP.dropoff,
       routeShort: 'ZRH → Bahnhofstrasse 1',
       meta, lines, total: this.money('000.00'),
