@@ -21,6 +21,9 @@ export async function generateMetadata({
 }) {
   const { locale, ref } = await params;
   const t = await getTranslations({ locale, namespace: "checkout" });
+  if (!BOOKING_REFERENCE_RE.test(ref)) {
+    return { title: t("notVisibleTitle") };
+  }
   return { title: `${t("yourDriverIsBooked")} ${ref}` };
 }
 
