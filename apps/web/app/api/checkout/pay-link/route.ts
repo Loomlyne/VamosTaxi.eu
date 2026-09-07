@@ -13,6 +13,7 @@ import { createBooking } from "@/lib/checkout/create-booking";
 import { attachPayment } from "@/lib/checkout/attach-payment";
 import { mintManageToken } from "@/lib/checkout/manage-token";
 import { setPayLink } from "@/lib/checkout/set-pay-link";
+import { lookupVehicleClassId } from "@/lib/checkout/lock-to-rpc";
 import { confirmationRecipients, payLinkPath } from "@/lib/checkout/pay-link";
 import {
   createCheckoutSession,
@@ -50,11 +51,17 @@ export async function POST(request: Request) {
     (env as CloudflareEnv & { CONTACT_TURNSTILE_ALLOWED_HOSTNAMES?: string })
       .CONTACT_TURNSTILE_ALLOWED_HOSTNAMES ?? process.env.CONTACT_TURNSTILE_ALLOWED_HOSTNAMES;
 
-  const postgresNowIso = await asQuote(env, async (sql) => {
+  const { postgresNowIso, vehicleClassId } = await asQuote(env, async (sql) => {
     const rows = await sql`select now() as now`;
     const value = rows[0]?.now;
-    return value instanceof Date ? value.toISOString() : String(value);
+    return {
+      postgresNowIso: value instanceof Date ? value.toISOString() : String(value),
+      vehicleClassId: await lookupVehicleClassId(sql, body.vehicle_class),
+    };
   });
+  if (!vehicleClassId) {
+    return refuse("invalid_request");
+  }
 
   const policy = policyHours(await loadSettingsVersion(env, postgresNowIso));
   if (policy.checkoutWindowMinutes == null) {
@@ -97,6 +104,7 @@ export async function POST(request: Request) {
     returnUrl: `${origin}${body.locale === "en" ? "" : `/${body.locale}`}/checkout/payment`,
     checkoutWindowMinutes: policy.checkoutWindowMinutes,
     actorCustomerId: null,
+    vehicleClassId,
   });
 
   if (!intentRes.ok) return intentRes;

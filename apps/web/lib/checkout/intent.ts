@@ -11,6 +11,7 @@ import type { QuoteLockPayload } from "../quote/lock";
 import type { QuoteErrorCode } from "../quote/errors";
 import { refuse, type CheckoutRefusalCode } from "./errors";
 import type { CheckoutIntentRequest } from "./intent-schema";
+import { checkoutLegsFromLock, snapshotFromLock } from "./lock-to-rpc";
 import { manageTokenCookie } from "./manage-token";
 import { CHARGE_CURRENCY } from "./currency";
 
@@ -70,6 +71,7 @@ export type CheckoutIntentDeps = {
   returnUrl: string;
   checkoutWindowMinutes: number;
   actorCustomerId: string | null;
+  vehicleClassId: string;
 };
 
 function mapQuoteCode(code: QuoteErrorCode): CheckoutRefusalCode {
@@ -101,33 +103,6 @@ function paymentIntentId(session: Stripe.Checkout.Session): string {
   if (typeof pi === "string" && pi.length > 0) return pi;
   if (pi && typeof pi === "object" && "id" in pi && typeof pi.id === "string") return pi.id;
   return session.id;
-}
-
-function snapshotFromLock(
-  payload: QuoteLockPayload,
-  body: CheckoutIntentRequest,
-  chargedRappen: number,
-): Record<string, unknown> {
-  return {
-    vehicle_class_slug: body.vehicle_class,
-    rate_version_id: payload.rate_version_id,
-    settings_version_id: payload.settings_version_id,
-    engine_version: payload.engine_version,
-    lock_exp: payload.exp,
-    pax: payload.pax,
-    bags: payload.bags,
-    lines: [],
-    policy: {},
-    shown_alternatives: payload.class_totals,
-    display_currency: body.display_currency,
-    source: "web",
-    subtotal_rappen: chargedRappen,
-    surcharges_rappen: 0,
-    discount_rappen: 0,
-    total_rappen: chargedRappen,
-    distance_km: payload.legs.reduce((sum, leg) => sum + leg.distance_m, 0) / 1000,
-    duration_min: Math.round(payload.legs.reduce((sum, leg) => sum + leg.duration_s, 0) / 60),
-  };
 }
 
 export async function runCheckoutIntent(
@@ -172,6 +147,9 @@ export async function runCheckoutIntent(
   if (chargedRappen == null) {
     return refuse("pricing_not_live");
   }
+  if (!deps.vehicleClassId) {
+    return refuse("invalid_request");
+  }
 
   const token = await deps.mintManageToken();
   const expiresAt = new Date(Date.parse(deps.workerNowIso) + deps.checkoutWindowMinutes * 60_000);
@@ -201,8 +179,13 @@ export async function runCheckoutIntent(
       contact: body.contact,
       locale: body.locale,
       displayCurrency: body.display_currency,
-      snapshot: snapshotFromLock(payload, body, chargedRappen),
-      legs: payload.legs,
+      snapshot: snapshotFromLock(
+        payload,
+        body.vehicle_class,
+        deps.vehicleClassId,
+        chargedRappen,
+      ),
+      legs: checkoutLegsFromLock(payload, deps.vehicleClassId),
       couponId: null,
       couponCode: body.coupon ?? null,
       manageTokenHash: token.hash,

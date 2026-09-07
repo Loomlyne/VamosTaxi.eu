@@ -111,6 +111,7 @@ function deps(p: QuoteLockPayload, rec: Recorder, patch: Partial<CheckoutIntentD
     returnUrl: "https://vamostaxi.site/en/checkout",
     checkoutWindowMinutes: 30,
     actorCustomerId: null,
+    vehicleClassId: "00000000-0000-4000-8000-0000000000aa",
     ...patch,
   };
 }

@@ -109,6 +109,7 @@ function deps(p: QuoteLockPayload, patch: Partial<CheckoutIntentDeps> = {}): Che
     returnUrl: "https://vamostaxi.site/en/checkout",
     checkoutWindowMinutes: 30,
     actorCustomerId: null,
+    vehicleClassId: "00000000-0000-4000-8000-0000000000aa",
     ...patch,
   };
   (base as CheckoutIntentDeps & { order: string[] }).order = order;
@@ -299,6 +300,31 @@ describe("runCheckoutIntent", () => {
       }),
     );
     expect(create).toHaveBeenCalled();
+    expect(rpc).toHaveBeenCalled();
+  });
+
+  it("sends RPC legs with pickup_text and vehicle_class_id", async () => {
+    const p = payload();
+    const body = await bodyFor(p);
+    const rpc = vi.fn(async (args: { legs: unknown; snapshot: Record<string, unknown> }) => {
+      const legs = args.legs as { pickup_text: string; vehicle_class_id: string }[];
+      expect(legs[0]?.pickup_text).toBe("ZRH");
+      expect(legs[0]?.vehicle_class_id).toBe("00000000-0000-4000-8000-0000000000aa");
+      expect(args.snapshot.vehicle_class_id).toBe("00000000-0000-4000-8000-0000000000aa");
+      return {
+        booking_id: "00000000-0000-4000-8000-000000000099",
+        reference: "VT-10001",
+        snapshot_id: 1,
+        payment_id: 1,
+        replayed: false,
+      };
+    });
+    await runCheckoutIntent(
+      body,
+      deps(p, {
+        createBooking: rpc as unknown as CheckoutIntentDeps["createBooking"],
+      }),
+    );
     expect(rpc).toHaveBeenCalled();
   });
 });
