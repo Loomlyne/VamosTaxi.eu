@@ -95,9 +95,20 @@ describe("checkout comment pack", () => {
     expect(client).not.toContain("TurnstileWidget");
     expect(client).not.toContain("turnstile_token");
     const intent = readFileSync(join(WEB_ROOT, "app/api/checkout/intent/route.ts"), "utf8");
-    expect(intent).toContain("if (!token) return true");
+    expect(intent).not.toContain("verifyTurnstile");
+    expect(client).not.toContain("turnstile_failed");
+    expect(client).not.toContain("formChallengeFailed");
     expect(client.indexOf("vt-checkout__payhead")).toBeLessThan(client.indexOf("vt-checkout__recap"));
     expect(css).toContain("min-block-size: var(--vt-control-h-md)");
+  });
+
+  it("does not mount PaymentElement until Checkout init finishes", () => {
+    const fields = payPanel.slice(payPanel.indexOf("function CheckoutFields"));
+    expect(fields).toContain('if (checkout.type === "loading")');
+    expect(fields.indexOf('if (checkout.type === "loading")')).toBeLessThan(fields.indexOf("<PaymentElement"));
+    expect(payPanel).not.toContain("ConfirmBinder");
+    expect(client).toContain("if (clientSecret && !confirmPay) return;");
+    expect(client).toContain('?? "payCouldNotStart"');
   });
 
   it("shows the locked class total, selected class, and no change-vehicle", () => {
@@ -118,8 +129,7 @@ describe("checkout comment pack", () => {
     expect(client).toContain("couponPlaceholder");
     expect(client).not.toContain("extraSki");
     expect(client).not.toContain("additional-stops");
-    expect(client).toContain("turnstile_failed");
-    expect(client).toContain("formChallengeFailed");
+    expect(client).toContain("payCouldNotStart");
   });
 
   it("moves coupon onto the rail and drops Stripe currency selector", () => {

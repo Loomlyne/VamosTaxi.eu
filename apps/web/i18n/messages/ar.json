@@ -448,6 +448,7 @@
     "couponNoLongerValid": "هذا القسيمة لم يعد صالحاً.",
     "quoteAlreadyBooked": "هذا العرض لديه حجز بالفعل.",
     "paymentWindowClosed": "أُغلق وقت الدفع. احصل على عرض جديد.",
+    "payCouldNotStart": "لم يبدأ الدفع. اضغط ادفع وأكّد مرة أخرى.",
     "requote": "عرض جديد",
     "freeCancelHours": "إلغاء مجاني حتى {hours} ساعة قبل الاستلام.",
     "checkoutWindow": "ادفع خلال {minutes} دقيقة للاحتفاظ بهذا السعر.",

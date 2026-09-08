@@ -2,7 +2,7 @@
 //
 // POST /api/checkout/intent request boundary. Quote-side fields follow
 // 04-API-CONTRACT.md §6 / lib/quote/intent.ts IntentBody. Checkout-only
-// fields (contact, locale, display_currency, turnstile_token) live here.
+// fields (contact, locale, display_currency) live here.
 
 import { z } from "zod";
 
@@ -52,7 +52,6 @@ const checkoutIntentObject = z
     display_currency: z.enum(["CHF", "EUR", "USD", "AED"]),
     // Required — Phase 4 D-57. Never .optional(). Never derived from quote_id.
     idempotency_key: z.string().min(1),
-    turnstile_token: z.string().min(1).optional(),
   })
   .strict();
 

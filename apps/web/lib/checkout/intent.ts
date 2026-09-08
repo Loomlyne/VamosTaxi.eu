@@ -28,7 +28,6 @@ export type CheckoutIntentDeps = {
   workerNowIso: string;
   postgresNowIso: string;
   reprice: (payload: QuoteLockPayload) => IntentRecompute;
-  verifyTurnstile: (token: string | undefined) => Promise<boolean>;
   mintManageToken: () => Promise<{ raw: string; hash: Uint8Array }>;
   manageLinkMaxAgeSeconds: number;
   createCheckoutSession: (input: {
@@ -110,11 +109,6 @@ export async function runCheckoutIntent(
   body: CheckoutIntentRequest,
   deps: CheckoutIntentDeps,
 ): Promise<Response> {
-  const turnstileOk = await deps.verifyTurnstile(body.turnstile_token);
-  if (!turnstileOk) {
-    return refuse("turnstile_failed");
-  }
-
   const intentBody: IntentBody = {
     quote_id: body.quote_id,
     lock: body.lock,

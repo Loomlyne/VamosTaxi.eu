@@ -6,6 +6,10 @@
 //
 // Browser: one Stripe.js object per document — module-scoped on purpose.
 // Server stripeFromEnv() is per-request. Do not "fix" either into the other.
+//
+// Do not mount <PaymentElement> while checkout.type === "loading".
+// createPaymentElement on an SDK that has not finished loadActions() leaves
+// Stripe's 3-bar loader up forever (Pay and confirm on vamostaxi.site).
 
 import {
   CheckoutElementsProvider as CheckoutProvider,
@@ -79,14 +83,13 @@ export function PaymentPanel({
           elementsOptions: { appearance: APPEARANCE },
         }}
       >
-        <PaymentElement />
-        <ConfirmBinder reference={reference} onReady={onReady} />
+        <CheckoutFields reference={reference} onReady={onReady} />
       </CheckoutProvider>
     </div>
   );
 }
 
-function ConfirmBinder({
+function CheckoutFields({
   reference,
   onReady,
 }: {
@@ -122,8 +125,10 @@ function ConfirmBinder({
   if (checkout.type === "error") {
     return <p data-checkout-pay-error>{checkout.error.message}</p>;
   }
-  if (error) {
-    return <p data-checkout-pay-error>{error}</p>;
-  }
-  return null;
+  return (
+    <>
+      <PaymentElement />
+      {error ? <p data-checkout-pay-error>{error}</p> : null}
+    </>
+  );
 }

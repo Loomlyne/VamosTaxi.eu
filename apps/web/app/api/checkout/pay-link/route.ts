@@ -22,7 +22,6 @@ import {
   stripeFromEnv,
   stripePublishableKey,
 } from "@/lib/checkout/stripe";
-import { verifyTurnstile } from "@/lib/turnstile";
 import { loadSettingsVersion } from "@/lib/db/quote";
 import { policyHours } from "@/lib/checkout/policy-settings";
 import type { IntentRecompute } from "@/lib/quote/intent";
@@ -47,9 +46,6 @@ export async function POST(request: Request) {
   const origin = new URL(request.url).origin;
   const current = env.QUOTE_LOCK_SECRET || "";
   const previous = env.QUOTE_LOCK_SECRET_PREVIOUS;
-  const allowedHostnames =
-    (env as CloudflareEnv & { CONTACT_TURNSTILE_ALLOWED_HOSTNAMES?: string })
-      .CONTACT_TURNSTILE_ALLOWED_HOSTNAMES ?? process.env.CONTACT_TURNSTILE_ALLOWED_HOSTNAMES;
 
   const { postgresNowIso, vehicleClassId } = await asQuote(env, async (sql) => {
     const rows = await sql`select now() as now`;
@@ -86,18 +82,6 @@ export async function POST(request: Request) {
         eligible: row.total_rappen != null,
       })),
     }),
-    verifyTurnstile: async (token) => {
-      if (!token) return true;
-      const result = await verifyTurnstile(env.TURNSTILE_SECRET_KEY, token, {
-        action: "checkout",
-        idempotencyKey: body.idempotency_key,
-        allowedHostnames,
-      });
-      if (!result.ok && result.codes.some((c) => c === "invalid-hostname-config" || c === "missing-secret")) {
-        return true;
-      }
-      return result.ok;
-    },
     mintManageToken,
     manageLinkMaxAgeSeconds: 30 * 24 * 60 * 60,
     createCheckoutSession: (input) => createCheckoutSession(stripe, input),

@@ -67,7 +67,6 @@ function deps(p: QuoteLockPayload, rec: Recorder, patch: Partial<CheckoutIntentD
       engine_version: p.engine_version,
       classes: [{ slug: "economy", total_rappen: 8000, eligible: true }],
     }),
-    verifyTurnstile: async () => true,
     mintManageToken: async () => ({
       raw: "raw-token",
       hash: new Uint8Array(32),
@@ -241,17 +240,6 @@ describe("POST /api/checkout/intent recorder", () => {
     expect(rec.calls.filter((c) => c.startsWith("session.expire"))).toEqual([
       "session.expire:cs_test_new",
     ]);
-  });
-
-  it("Turnstile failure is preflight:exit before Stripe", async () => {
-    const p = payload();
-    const rec: Recorder = { calls: [] };
-    const res = await runCheckoutIntent(
-      await bodyFor(p),
-      deps(p, rec, { verifyTurnstile: async () => false }),
-    );
-    expect(res.status).toBe(400);
-    expect(rec.calls).toEqual([]);
   });
 
   it("23505 maps to quote_already_booked after session.expire", async () => {

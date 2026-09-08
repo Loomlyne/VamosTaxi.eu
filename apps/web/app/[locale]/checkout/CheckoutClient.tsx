@@ -66,7 +66,7 @@ const REFUSAL_KEYS: Record<string, string> = {
   coupon_no_longer_valid: "couponNoLongerValid",
   quote_already_booked: "quoteAlreadyBooked",
   payment_window_closed: "paymentWindowClosed",
-  turnstile_failed: "formChallengeFailed",
+  invalid_request: "payCouldNotStart",
 };
 
 function vehicleLabel(id: string, t: (key: string) => string): string {
@@ -451,9 +451,10 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         publishable_key?: string;
         reference?: string;
         code?: string;
+        error?: string;
       };
       if (!res.ok) {
-        const key = REFUSAL_KEYS[json.code ?? ""] ?? "formChallengeFailed";
+        const key = REFUSAL_KEYS[json.code ?? json.error ?? ""] ?? "payCouldNotStart";
         if (json.code === "coupon_no_longer_valid") setCouponApplied(null);
         setRefusal(key);
         return;
@@ -462,7 +463,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       if (json.reference) setReference(json.reference);
       setClientSecret(json.client_secret ?? null);
     } catch {
-      setRefusal("formChallengeFailed");
+      setRefusal("payCouldNotStart");
     } finally {
       setBusy(false);
     }
@@ -526,22 +527,24 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         reference?: string;
         pay_url?: string;
         code?: string;
+        error?: string;
       };
       if (!res.ok) {
-        const key = REFUSAL_KEYS[json.code ?? ""] ?? "formChallengeFailed";
+        const key = REFUSAL_KEYS[json.code ?? json.error ?? ""] ?? "payCouldNotStart";
         setRefusal(key);
         return;
       }
       if (json.reference) setReference(json.reference);
       if (json.pay_url) setPayUrl(json.pay_url);
     } catch {
-      setRefusal("formChallengeFailed");
+      setRefusal("payCouldNotStart");
     } finally {
       setBusy(false);
     }
   }
 
   async function onPay() {
+    if (clientSecret && !confirmPay) return;
     if (clientSecret && confirmPay) {
       setBusy(true);
       try {
@@ -1002,11 +1005,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                 )}
                 {refusal && refusal !== "pricingNotLive" ? (
                   <Alert tone={refusal === "pricingNotLive" ? "info" : "danger"}>
-                    {refusal === "formChallengeFailed"
-                      ? tCommon("form-challenge-failed")
-                      : refusal === "priceChanged" && hours != null
-                        ? t("livePriceChangedLocked", { hours })
-                        : t(refusal)}
+                    {refusal === "priceChanged" && hours != null
+                      ? t("livePriceChangedLocked", { hours })
+                      : t(refusal)}
                     {requote ? (
                       <Button variant="ghost" size="sm" href={homeHref}>
                         {t("requote")}
@@ -1058,11 +1059,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
             )}
             {refusal && refusal !== "pricingNotLive" ? (
               <Alert tone={refusal === "pricingNotLive" ? "info" : "danger"}>
-                {refusal === "formChallengeFailed"
-                  ? tCommon("form-challenge-failed")
-                  : refusal === "priceChanged" && hours != null
-                    ? t("livePriceChangedLocked", { hours })
-                    : t(refusal)}
+                {refusal === "priceChanged" && hours != null
+                  ? t("livePriceChangedLocked", { hours })
+                  : t(refusal)}
                 {requote ? (
                   <Button variant="ghost" size="sm" href={homeHref}>
                     {t("requote")}

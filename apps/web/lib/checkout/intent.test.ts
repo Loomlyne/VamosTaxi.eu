@@ -66,7 +66,6 @@ function deps(p: QuoteLockPayload, patch: Partial<CheckoutIntentDeps> = {}): Che
       engine_version: p.engine_version,
       classes: [{ slug: "economy", total_rappen: 8000, eligible: true }],
     }),
-    verifyTurnstile: async () => true,
     mintManageToken: async () => ({
       raw: "raw-token",
       hash: new Uint8Array(32),
