@@ -202,7 +202,7 @@ export async function runCheckoutIntent(
     });
   } catch (err) {
     const state = sqlState(err);
-    if (state === "23505" || state === "23001") {
+    if (state === "23505") {
       try {
         row = await deps.attachPayment({
           quoteId: body.quote_id,
