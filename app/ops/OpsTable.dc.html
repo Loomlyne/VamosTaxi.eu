@@ -266,16 +266,17 @@
 <sc-if value="{{ hasHistory }}" hint-placeholder-val="{{ false }}">
 <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--vt-border-subtle)">
 <span style="display:block;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ historyLabel }}</span>
-<div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;max-height:260px;overflow-y:auto">
+<div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;max-height:360px;overflow-y:auto">
 <sc-for list="{{ historyList }}" as="h" hint-placeholder-count="3">
-<div style="box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-grey-50)">
+<button type="button" onClick="{{ h.open }}" style="box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-grey-50);width:100%;text-align:start;cursor:pointer;font:inherit;color:inherit">
 <span style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 auto">
 <span style="font-family:var(--vt-font-display);font-size:13px;font-weight:600">{{ h.ref }}</span>
 <span style="font-size:12px;color:var(--vt-text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ h.route }}</span>
+<span style="font-size:12px;color:var(--vt-text-muted);display:{{ h.extraShow }}">{{ h.extra }}</span>
 </span>
 <span style="font-size:12px;color:var(--vt-text-muted);white-space:nowrap;flex:0 0 auto">{{ h.when }}</span>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StatusBadge" status="{{ h.status }}" hint-size="auto,22px"></x-import>
-</div>
+</button>
 </sc-for>
 <sc-if value="{{ historyEmpty }}" hint-placeholder-val="{{ false }}">
 <span style="font-size:12px;color:var(--vt-text-muted)">{{ historyEmptyLabel }}</span>
@@ -1050,7 +1051,8 @@ class Component extends DCLogic {
       historyChevron: this.state.historyOpen ? 'chevron-up' : 'chevron-down',
       toggleHistory: this.toggleHistory,
       historyLabel: (this.props.historyLabel || 'History') + (histCount ? ' (' + histCount + ')' : ''),
-      historyList: histRows, historyEmpty: histRows.length === 0,
+      historyList: histRows.map((h) => Object.assign({ extra: '', extraShow: 'none', open: () => {} }, h)),
+      historyEmpty: histRows.length === 0,
       historyEmptyLabel: this.props.historyEmptyLabel || 'Nothing yet',
       nestedOpen: !!this.state.nested,
       nestedTitle: this.props.nestedTitle || 'Add',

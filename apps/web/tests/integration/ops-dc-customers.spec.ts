@@ -52,6 +52,8 @@ test.describe("GET /api/staff/customers @ops-dc-customers", () => {
     expect(list).toMatch(/loadCustomers/);
     expect(detail).toMatch(/export async function GET/);
     expect(detail).toMatch(/loadCustomerHistory/);
+    expect(detail).toMatch(/export async function PATCH/);
+    expect(detail).toMatch(/upsertCustomer/);
     expect(detail).toMatch(/export async function DELETE/);
     expect(detail).toMatch(/eraseCustomer/);
     expect(list + detail).not.toMatch(/Traveller/);
@@ -69,19 +71,20 @@ test.describe("GET /api/staff/customers @ops-dc-customers", () => {
     const publicOne = readWeb("app/api/staff/customers/[id]/route.ts");
     expect(publicList).toMatch(/export\s*\{\s*GET\s*\}/);
     expect(publicList).toMatch(/\[locale\]\/\(ops\)\/api\/staff\/customers\/route/);
-    expect(publicOne).toMatch(/export\s*\{\s*GET,\s*DELETE\s*\}/);
+    expect(publicOne).toMatch(/export\s*\{\s*GET,\s*PATCH,\s*DELETE\s*\}/);
     expect(publicOne).toMatch(/\[locale\]\/\(ops\)\/api\/staff\/customers\/\[id\]\/route/);
   });
 
-  test("OpsCustomers.dc.html deletes via customers.remove — no Traveller seed, no History tab", () => {
+  test("OpsCustomers.dc.html saves, lists History under Notes, deletes via remove", () => {
     const html = readRepo("app/ops/OpsCustomers.dc.html");
     const twin = readWeb("public/app/ops/OpsCustomers.dc.html");
     expect(html).toBe(twin);
     expect(html).not.toMatch(/Traveller/);
     expect(html).toMatch(/customers\.remove/);
-    expect(html).toMatch(/onDelete="/);
-    expect(html).not.toMatch(/history-label/);
-    expect(html).not.toMatch(/historyRows/);
+    expect(html).toMatch(/customers\.update/);
+    expect(html).toMatch(/onSave="/);
+    expect(html).toMatch(/historyRows/);
+    expect(html).toMatch(/history-label/);
     expect(html).not.toMatch(/api\.request\(['"]POST/);
   });
 

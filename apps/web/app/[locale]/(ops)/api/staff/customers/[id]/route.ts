@@ -5,7 +5,13 @@
 // app/api/staff/customers/[id].
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { eraseCustomer, loadCustomerHistory, type CustomerRow } from "@/lib/ops/customers";
+import {
+  eraseCustomer,
+  loadCustomerHistory,
+  parseCustomerWrite,
+  upsertCustomer,
+  type CustomerRow,
+} from "@/lib/ops/customers";
 import { jsonErr, jsonOk, withStaff } from "@/lib/ops/staff-json";
 
 export const dynamic = "force-dynamic";
@@ -41,6 +47,28 @@ export async function GET(
       customer: toOpsCustomer(history.customer),
       bookings: history.bookings,
     });
+  })(request);
+}
+
+export async function PATCH(
+  request: Request,
+  context: { params: Promise<{ id: string }> },
+): Promise<Response> {
+  const { id } = await context.params;
+  return withStaff(async (claims) => {
+    if (!id) return jsonErr("not-found", 404);
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return jsonErr("invalid", 400);
+    }
+    const parsed = parseCustomerWrite(body);
+    if (!parsed) return jsonErr("invalid", 400);
+    const { env } = getCloudflareContext();
+    const row = await upsertCustomer(env, claims, id, parsed);
+    if (!row) return jsonErr("not-found", 404);
+    return jsonOk(toOpsCustomer(row));
   })(request);
 }
 

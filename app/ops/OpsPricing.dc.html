@@ -23,14 +23,12 @@
 <h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tTitle }}</h1>
 <p style="margin:4px 0 0;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSubtitle }}</p>
 </div>
-<div style="margin-inline-start:auto;display:flex;flex-wrap:wrap;align-items:center;gap:10px">
-<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ tCurrencyLabel }}</span>
-<div style="display:flex;gap:6px">
-<sc-for list="{{ currencies }}" as="cu" hint-placeholder-count="3">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Tag" active="{{ cu.active }}" onClick="{{ cu.pick }}" data-vt-no-i18n="1" hint-size="60px,34px">{{ cu.code }}</x-import>
-</sc-for>
+<sc-if value="{{ showPublish }}" hint-placeholder-val="{{ true }}">
+<div data-price-head-publish="1" style="margin-inline-start:auto;display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+<p data-publish-error="1" style="display:{{ publishErrorDisplay }};margin:0;font-size:var(--vt-body-xs);color:var(--vt-danger);text-align:end">{{ tPublishError }}</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" onClick="{{ publish }}" disabled="{{ publishDisabled }}" hint-size="120px,36px">{{ tPublish }}</x-import>
 </div>
-</div>
+</sc-if>
 </header>
 
 <div data-set-grid="1" style="padding:26px 32px 44px">
@@ -62,8 +60,6 @@
 <li data-vt-no-i18n="1">{{ g.label }}</li>
 </sc-for>
 </ul>
-<p data-publish-error="1" style="display:{{ publishErrorDisplay }};margin:0;font-size:var(--vt-body-xs);color:var(--vt-danger)">{{ tPublishError }}</p>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" onClick="{{ publish }}" disabled="{{ publishDisabled }}" hint-size="160px,36px">{{ tPublish }}</x-import>
 </aside>
 </sc-if>
 </div>
@@ -149,6 +145,15 @@ const T = {
     publishDisabledGaps:'Publish stays off until the gaps are priced.',
     publishDisabledNoDraft:'Publish stays off until a draft exists.',
     publishError:'Publish did not succeed.',
+    publishByCode:{
+      incomplete:'Not published: the draft still has unpriced gaps.',
+      'not-draft':'Not published: this version is not a draft.',
+      duplicate:'Not published: a live version already occupies this book.',
+      forbidden:'Not published: only an admin can publish.',
+      fk:'Not published: a related record is missing.',
+      network:'Not published: the request did not reach the server.',
+      unknown:'Not published: the server did not accept this draft.',
+    },
     gapListTitle:'Still unpriced',
     colFirst:'First', colClass:'Class',
     hRule:'Pick the extra. The quote uses this code — not a sentence.',
@@ -197,6 +202,15 @@ const T = {
     publishDisabledGaps:'Veröffentlichen bleibt aus, bis die Lücken bepreist sind.',
     publishDisabledNoDraft:'Veröffentlichen bleibt aus, bis ein Entwurf existiert.',
     publishError:'Veröffentlichen ist fehlgeschlagen.',
+    publishByCode:{
+      incomplete:'Nicht veröffentlicht: der Entwurf hat noch unbepreiste Lücken.',
+      'not-draft':'Nicht veröffentlicht: diese Version ist kein Entwurf.',
+      duplicate:'Nicht veröffentlicht: eine live Version belegt dieses Buch bereits.',
+      forbidden:'Nicht veröffentlicht: nur ein Admin darf veröffentlichen.',
+      fk:'Nicht veröffentlicht: ein verknüpfter Datensatz fehlt.',
+      network:'Nicht veröffentlicht: die Anfrage hat den Server nicht erreicht.',
+      unknown:'Nicht veröffentlicht: der Server hat diesen Entwurf nicht angenommen.',
+    },
     gapListTitle:'Noch ohne Preis',
     colFirst:'First', colClass:'Klasse',
     hRule:'Die Extra-Art wählen. Die Offerte nutzt diesen Code — keinen Satz.',
@@ -245,6 +259,15 @@ const T = {
     publishDisabledGaps:'Publier reste inactif tant que les écarts ne sont pas tarifés.',
     publishDisabledNoDraft:'Publier reste inactif tant qu’un brouillon n’existe pas.',
     publishError:'La publication a échoué.',
+    publishByCode:{
+      incomplete:'Non publié : le brouillon a encore des écarts non tarifés.',
+      'not-draft':'Non publié : cette version n’est pas un brouillon.',
+      duplicate:'Non publié : une version en ligne occupe déjà ce livre.',
+      forbidden:'Non publié : seul un admin peut publier.',
+      fk:'Non publié : un enregistrement lié est manquant.',
+      network:'Non publié : la requête n’a pas atteint le serveur.',
+      unknown:'Non publié : le serveur n’a pas accepté ce brouillon.',
+    },
     gapListTitle:'Toujours sans tarif',
     colFirst:'First', colClass:'Classe',
     hRule:'Choisissez le type. Le devis utilise ce code — pas une phrase.',
@@ -293,6 +316,15 @@ const T = {
     publishDisabledGaps:'يبقى النشر متوقفًا حتى تُسعَّر الفجوات.',
     publishDisabledNoDraft:'يبقى النشر متوقفًا حتى توجد مسودة.',
     publishError:'لم ينجح النشر.',
+    publishByCode:{
+      incomplete:'لم يُنشر: ما زالت المسودة فيها فجوات بلا سعر.',
+      'not-draft':'لم يُنشر: هذا الإصدار ليس مسودة.',
+      duplicate:'لم يُنشر: إصدار منشور يشغل هذا الكتاب أصلًا.',
+      forbidden:'لم يُنشر: النشر للمدير فقط.',
+      fk:'لم يُنشر: سجل مرتبط ناقص.',
+      network:'لم يُنشر: الطلب لم يصل إلى الخادم.',
+      unknown:'لم يُنشر: الخادم لم يقبل هذه المسودة.',
+    },
     gapListTitle:'ما زال بلا سعر',
     colFirst:'First', colClass:'الفئة',
     hRule:'اختر الإضافة. العرض يستخدم هذا الرمز — وليس جملة.',
@@ -372,8 +404,17 @@ class Component extends DCLogic {
       const gaps = (json && Array.isArray(json.gaps)) ? json.gaps : this.state.gaps;
       this.setState({ publishCode: (json && json.code) || 'unknown', gaps });
       this.loadDraft();
+    }, () => {
+      this.setState({ publishCode: 'network' });
     });
   };
+
+  publishReason(code, t) {
+    if (!code) return '';
+    const mapped = t.publishByCode && t.publishByCode[code];
+    if (mapped) return mapped;
+    return t.publishError + ' (' + code + ')';
+  }
 
   renderVals() {
     const t = T[this.state.lang] || T.en;
@@ -414,11 +455,6 @@ class Component extends DCLogic {
     return {
       n1: 1, n18: 18,
       tTitle: t.title, tSubtitle: t.subtitle, tAlertTitle: t.alertTitle, tAlertBody: t.alertBody,
-      tCurrencyLabel: t.currencyLabel,
-      currencies: ((ops && ops.CURRENCIES) || ['CHF', 'EUR', 'USD']).map((code) => ({
-        code, active: cur === code,
-        pick: () => { if (window.VamosLocale) window.VamosLocale.setCur(code); },
-      })),
       panes: PANES.map((p) => ({
         icon: p.icon, label: RAIL[p.key][0], hint: RAIL[p.key][1],
         on: pane === p.key ? '1' : '0',
@@ -429,7 +465,7 @@ class Component extends DCLogic {
       tCompletenessTitle: t.completenessTitle,
       tCompletenessBody: completenessBody,
       tPublish: t.publish,
-      tPublishError: t.publishError,
+      tPublishError: this.publishReason(this.state.publishCode, t),
       gaps,
       gapListDisplay: hasGaps ? 'block' : 'none',
       publishErrorDisplay: this.state.publishCode ? 'block' : 'none',

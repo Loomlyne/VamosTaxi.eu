@@ -24,12 +24,23 @@ describe("ops customers board", () => {
     expect(src).toMatch(/export async function eraseCustomer/);
   });
 
+  it("saves a customer via PATCH /api/staff/customers/:id", () => {
+    const detail = readWeb("app/[locale]/(ops)/api/staff/customers/[id]/route.ts");
+    const pub = readWeb("app/api/staff/customers/[id]/route.ts");
+    const src = readWeb("lib/ops/customers.ts");
+    expect(src).toMatch(/export async function upsertCustomer/);
+    expect(src).toMatch(/on conflict \(email\) do update set/);
+    expect(detail).toMatch(/upsertCustomer/);
+    expect(detail).toMatch(/export async function PATCH/);
+    expect(pub).toMatch(/export\s*\{\s*GET,\s*PATCH,\s*DELETE\s*\}/);
+  });
+
   it("deletes a customer via DELETE /api/staff/customers/:id", () => {
     const detail = readWeb("app/[locale]/(ops)/api/staff/customers/[id]/route.ts");
     const pub = readWeb("app/api/staff/customers/[id]/route.ts");
     expect(detail).toMatch(/eraseCustomer/);
     expect(detail).toMatch(/export async function DELETE/);
-    expect(pub).toMatch(/export\s*\{\s*GET,\s*DELETE\s*\}/);
+    expect(pub).toMatch(/export\s*\{\s*GET,\s*PATCH,\s*DELETE\s*\}/);
   });
 
   it("cancels a booking via PATCH and tombstones via DELETE", () => {
@@ -41,11 +52,14 @@ describe("ops customers board", () => {
     expect(write).toMatch(/erased_at = now\(\)/);
   });
 
-  it("OpsCustomers wires remove and drops History", () => {
+  it("OpsCustomers wires save, history under Notes, and remove", () => {
     const html = readRepo("app/ops/OpsCustomers.dc.html");
     expect(html).toBe(readWeb("public/app/ops/OpsCustomers.dc.html"));
     expect(html).toMatch(/customers\.remove/);
-    expect(html).not.toMatch(/history-label/);
+    expect(html).toMatch(/customers\.update/);
+    expect(html).toMatch(/historyRows/);
+    expect(html).toMatch(/history-label/);
+    expect(html).toMatch(/#detail\//);
     expect(html).not.toMatch(/Traveller/);
   });
 
@@ -56,5 +70,15 @@ describe("ops customers board", () => {
     expect(html).toMatch(/bookings\.update/);
     expect(html).toMatch(/status: 'cancelled'/);
     expect(html).not.toMatch(/tabItems: \[t\.details, t\.history\]/);
+  });
+
+  it("OpsPricing Publish sits top-right and names the failure code", () => {
+    const html = readRepo("app/ops/OpsPricing.dc.html");
+    expect(html).toBe(readWeb("public/app/ops/OpsPricing.dc.html"));
+    expect(html).toMatch(/data-price-head-publish/);
+    expect(html).toMatch(/publishByCode/);
+    expect(html).toMatch(/publishReason/);
+    expect(html).not.toMatch(/tCurrencyLabel/);
+    expect(html).not.toMatch(/cu\.pick/);
   });
 });

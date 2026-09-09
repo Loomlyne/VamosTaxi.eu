@@ -360,6 +360,136 @@ export async function loadCustomerHistory(
   });
 }
 
+export type CustomerWrite = {
+  fullName: string;
+  email: string;
+  phone: string;
+  type: CustomerType;
+  company: string;
+  since: string;
+  note: string;
+};
+
+function asTrimmed(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function parseSinceDay(raw: string): string {
+  const iso = raw.trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(iso)) return iso.slice(0, 10);
+  const parsed = Date.parse(iso);
+  if (Number.isNaN(parsed)) return dateDay(new Date());
+  return new Date(parsed).toISOString().slice(0, 10);
+}
+
+export function parseCustomerWrite(body: unknown): CustomerWrite | null {
+  if (body == null || typeof body !== "object" || Array.isArray(body)) return null;
+  const rec = body as Record<string, unknown>;
+  const fullName = asTrimmed(rec.name) || asTrimmed(rec.fullName);
+  const email = asTrimmed(rec.email).toLowerCase();
+  if (!fullName || !email.includes("@")) return null;
+  const typeRaw = asTrimmed(rec.type);
+  const type: CustomerType = typeRaw === "corporate" ? "corporate" : "private";
+  return {
+    fullName,
+    email,
+    phone: asTrimmed(rec.phone),
+    type,
+    company: asTrimmed(rec.company),
+    since: parseSinceDay(asTrimmed(rec.since)),
+    note: asTrimmed(rec.note),
+  };
+}
+
+export async function upsertCustomer(
+  env: CloudflareEnv,
+  claims: VamosClaims,
+  id: string,
+  input: CustomerWrite,
+): Promise<CustomerRow | null> {
+  if (!UUID_RE.test(id)) return null;
+  return asStaff(env, claims, async (sql) => {
+    const seed = await sql<{ email: string | null }[]>`
+      select email::text as email from public.customers
+      where id = ${id}
+      limit 1
+    `;
+    const fromBooking = seed[0]
+      ? []
+      : await sql<{ email: string | null }[]>`
+          select contact_email::text as email
+          from public.bookings
+          where id = ${id}
+          limit 1
+        `;
+    const previousEmail = (seed[0]?.email || fromBooking[0]?.email || "").trim().toLowerCase();
+    const billingKind = input.type === "corporate" ? "company" : "individual";
+
+    const written = await sql<{ id: string }[]>`
+      insert into public.customers (full_name, email, phone, type, company, since, note, erased_at)
+      values (
+        ${input.fullName},
+        ${input.email},
+        ${input.phone},
+        ${input.type},
+        ${input.company},
+        ${input.since}::date,
+        ${input.note},
+        null
+      )
+      on conflict (email) do update set
+        full_name = excluded.full_name,
+        phone = excluded.phone,
+        type = excluded.type,
+        company = excluded.company,
+        since = excluded.since,
+        note = excluded.note,
+        erased_at = null,
+        updated_at = now()
+      returning id
+    `;
+    const customerId = written[0]?.id;
+    if (!customerId) return null;
+
+    await sql`
+      update public.bookings
+      set
+        customer_id = ${customerId},
+        contact_name = ${input.fullName},
+        contact_email = ${input.email},
+        contact_phone = ${input.phone},
+        company_name = ${input.company},
+        billing_kind = ${billingKind},
+        updated_at = now()
+      where erased_at is null
+        and (
+          customer_id = ${customerId}
+          or id = ${id}
+          or (${previousEmail} <> '' and lower(contact_email::text) = ${previousEmail})
+          or lower(contact_email::text) = ${input.email}
+        )
+    `;
+
+    const rows = await sql<SqlCustomer[]>`
+      select
+        c.id,
+        c.full_name,
+        c.type,
+        c.since,
+        c.erased_at,
+        c.email::text as email,
+        c.phone,
+        c.company,
+        c.note,
+        (select count(*)::int from public.bookings b where b.customer_id = c.id and b.erased_at is null) as trip_count
+      from public.customers c
+      where c.id = ${customerId}
+      limit 1
+    `;
+    return rows[0] ? mapCustomer(rows[0]) : null;
+  });
+}
+
 export async function eraseCustomer(
   env: CloudflareEnv,
   claims: VamosClaims,
