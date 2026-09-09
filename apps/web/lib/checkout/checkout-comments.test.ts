@@ -41,12 +41,15 @@ describe("checkout comment pack", () => {
     expect(contact).toContain("CHECKOUT_EMAIL_RE");
   });
 
-  it("uses block tabs for guest and pay method, billing only on payment", () => {
+  it("uses block tabs for guest and billing only on payment", () => {
     expect(client).toContain("continue-as-guest");
     expect(client).toContain("billingIndividual");
-    expect(client).toContain("payNow");
-    expect(client).toContain("payLinkTab");
+    expect(client).toContain("sendPayLink");
+    expect(client).toContain("pay-and-continue");
     expect(client).toContain("block");
+    expect(client).not.toContain("payNow");
+    expect(client).not.toContain("payLinkTab");
+    expect(client).not.toContain("payMethod");
     expect(client).not.toMatch(/name=["']acct["']/);
     expect(client.indexOf("billingIndividual")).toBeGreaterThan(client.indexOf('step === "payment"'));
   });
@@ -98,7 +101,8 @@ describe("checkout comment pack", () => {
     expect(intent).not.toContain("verifyTurnstile");
     expect(client).not.toContain("turnstile_failed");
     expect(client).not.toContain("formChallengeFailed");
-    expect(client.indexOf("vt-checkout__payhead")).toBeLessThan(client.indexOf("vt-checkout__recap"));
+    expect(client.indexOf("vt-checkout__recap")).toBeLessThan(client.indexOf("vt-checkout__payblock"));
+    expect(client.indexOf("vt-checkout__recap")).toBeLessThan(client.indexOf("vt-checkout__payhead"));
     expect(css).toContain("min-block-size: var(--vt-control-h-md)");
   });
 
@@ -109,6 +113,9 @@ describe("checkout comment pack", () => {
     expect(payPanel).not.toContain("ConfirmBinder");
     expect(client).toContain("if (clientSecret && !confirmPay) return;");
     expect(client).toContain('?? "payCouldNotStart"');
+    expect(client).toContain("onComplete={onPaymentComplete}");
+    expect(payPanel).toContain("onChange={(event) => onComplete(event.complete)}");
+    expect(client).not.toContain('payMethod === "link"');
   });
 
   it("shows the locked class total, selected class, and no change-vehicle", () => {

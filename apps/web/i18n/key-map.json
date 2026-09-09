@@ -896,6 +896,7 @@
   "pattern:/^We found (\\d+) bookings under this email and added them to your account\\.$/": "account.foundBookingsCount",
   "pattern:/^Your driver is waiting at (.+)$/": "checkout.driverWaitingAt",
   "Pay and confirm": "checkout.pay-and-confirm",
+  "Pay and continue": "checkout.pay-and-continue",
   "Payment": "common.payment",
   "Payment and tax records": "legal.payment-and-tax-records",
   "Payment captured": "ops.payment-captured",

@@ -147,6 +147,18 @@
 
 .vt-checkout__cta {
   margin-block: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.vt-checkout__cta .vt-btn {
+  flex: 1 1 12rem;
+  min-inline-size: 0;
+}
+
+.vt-checkout__sheet > .vt-checkout__recap + .vt-checkout__payblock {
+  border-block-start: 0;
 }
 
 .vt-checkout__party {

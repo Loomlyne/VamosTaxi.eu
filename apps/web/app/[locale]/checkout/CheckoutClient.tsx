@@ -161,16 +161,20 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const [reference, setReference] = useState<string | null>(null);
   const [payUrl, setPayUrl] = useState<string | null>(null);
   const [billingKind, setBillingKind] = useState<"individual" | "company">("individual");
-  const [payMethod, setPayMethod] = useState<"card" | "link">("card");
   const [companyName, setCompanyName] = useState("");
   const [companyAddress, setCompanyAddress] = useState("");
   const [companyVat, setCompanyVat] = useState("");
   const [payerEmail, setPayerEmail] = useState("");
   const [confirmPay, setConfirmPay] = useState<(() => Promise<void>) | null>(null);
+  const [cardComplete, setCardComplete] = useState(false);
   const [tripSnap, setTripSnap] = useState<VamosTrip | null>(null);
 
   const onPaymentReady = useCallback((fn: () => Promise<void>) => {
     setConfirmPay(() => fn);
+  }, []);
+
+  const onPaymentComplete = useCallback((complete: boolean) => {
+    setCardComplete(complete);
   }, []);
 
   useEffect(() => {
@@ -240,6 +244,14 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     writeDraft({ vehicleClass: next });
     writeVamosTrip({ vehicle: next, pax: draft.passengers, bags: draft.luggage });
   }, [draft.passengers, draft.luggage, vehicle, writeDraft]);
+
+  useEffect(() => {
+    if (step !== "payment" || gate !== "ok" || clientSecret) return;
+    if (!draft.idempotencyKey || !contact.email.trim()) return;
+    void startPayment();
+    // Start the card form as soon as payment is on screen. Pay and continue
+    // stays off until Stripe reports the fields complete.
+  }, [step, gate, clientSecret, draft.idempotencyKey, contact.email]);
 
   function validate(): boolean {
     const next: ContactFieldsErrors = {};
@@ -461,6 +473,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       }
       if (json.publishable_key) setPublishable(json.publishable_key);
       if (json.reference) setReference(json.reference);
+      setCardComplete(false);
       setClientSecret(json.client_secret ?? null);
     } catch {
       setRefusal("payCouldNotStart");
@@ -857,105 +870,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           {step === "payment" ? (
             <Card padding="lg">
               <div className="vt-checkout__sheet">
-              <div className="vt-checkout__payhead">
-                <h2>{t("payment")}</h2>
-                <p>{t("card-apple-pay-or-twint")}</p>
-              </div>
-              <div className="vt-checkout__payblock">
-                <Tabs
-                  className="vt-checkout__tabs"
-                  block
-                  value={billingKind}
-                  onChange={(value) => setBillingKind(value === "company" ? "company" : "individual")}
-                  items={[
-                    { value: "individual", label: t("billingIndividual") },
-                    { value: "company", label: t("billingCompany") },
-                  ]}
-                />
-                {billingKind === "company" ? (
-                  <div className="vt-checkout__company">
-                    <Input
-                      label={t("companyName")}
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                    />
-                    <Input
-                      label={t("companyAddress")}
-                      value={companyAddress}
-                      onChange={(e) => setCompanyAddress(e.target.value)}
-                    />
-                    <Input
-                      label={t("companyVat")}
-                      value={companyVat}
-                      onChange={(e) => setCompanyVat(e.target.value)}
-                    />
-                  </div>
-                ) : null}
-              </div>
-              <div className="vt-checkout__payblock">
-                <Tabs
-                  className="vt-checkout__tabs"
-                  block
-                  value={payMethod}
-                  onChange={(value) => setPayMethod(value === "link" ? "link" : "card")}
-                  items={[
-                    { value: "card", label: t("payNow") },
-                    { value: "link", label: t("payLinkTab") },
-                  ]}
-                />
-                <div className="vt-checkout__paystack">
-                  {payMethod === "link" ? (
-                    <>
-                      <Input
-                        label={t("payerEmail")}
-                        value={payerEmail || contact.email}
-                        onChange={(e) => setPayerEmail(e.target.value)}
-                      />
-                      {payUrl ? (
-                        <>
-                          <p>{t("payLinkSent")}</p>
-                          {reference ? <p>{t("unpaidReference", { reference })}</p> : null}
-                          <div className="vt-checkout__paylink">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                void navigator.clipboard.writeText(payUrl);
-                              }}
-                            >
-                              {t("copyPayLink")}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              href={`https://wa.me/?text=${encodeURIComponent(payUrl)}`}
-                            >
-                              {t("whatsappPayLink")}
-                            </Button>
-                          </div>
-                        </>
-                      ) : (
-                        <Button variant="ghost" size="sm" disabled={busy} onClick={() => void sendPayLink()}>
-                          {t("sendPayLink")}
-                        </Button>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <p>{t("charged-now-secured-by-stripe")}</p>
-                      {busy && !clientSecret ? <div data-checkout-pay-skeleton aria-hidden="true" /> : null}
-                      {clientSecret && reference ? (
-                        <PaymentPanel
-                          publishableKey={publishable}
-                          clientSecret={clientSecret}
-                          reference={reference}
-                          onReady={onPaymentReady}
-                        />
-                      ) : null}
-                    </>
-                  )}
-                </div>
-              </div>
               <div className="vt-checkout__recap">
                 <div className="vt-checkout__recap-trip">
                   <Badge tone="accent">{t("charged-now-secured-by-stripe")}</Badge>
@@ -995,6 +909,60 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                   </p>
                 </div>
               </div>
+              <div className="vt-checkout__payblock">
+                <Tabs
+                  className="vt-checkout__tabs"
+                  block
+                  value={billingKind}
+                  onChange={(value) => setBillingKind(value === "company" ? "company" : "individual")}
+                  items={[
+                    { value: "individual", label: t("billingIndividual") },
+                    { value: "company", label: t("billingCompany") },
+                  ]}
+                />
+                {billingKind === "company" ? (
+                  <div className="vt-checkout__company">
+                    <Input
+                      label={t("companyName")}
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                    />
+                    <Input
+                      label={t("companyAddress")}
+                      value={companyAddress}
+                      onChange={(e) => setCompanyAddress(e.target.value)}
+                    />
+                    <Input
+                      label={t("companyVat")}
+                      value={companyVat}
+                      onChange={(e) => setCompanyVat(e.target.value)}
+                    />
+                    <Input
+                      label={t("payerEmail")}
+                      value={payerEmail || contact.email}
+                      onChange={(e) => setPayerEmail(e.target.value)}
+                    />
+                  </div>
+                ) : null}
+              </div>
+              <div className="vt-checkout__payblock">
+                <div className="vt-checkout__payhead">
+                  <h2>{t("payment")}</h2>
+                  <p>{t("card-apple-pay-or-twint")}</p>
+                </div>
+                <div className="vt-checkout__paystack">
+                  {busy && !clientSecret ? <div data-checkout-pay-skeleton aria-hidden="true" /> : null}
+                  {clientSecret && reference ? (
+                    <PaymentPanel
+                      publishableKey={publishable}
+                      clientSecret={clientSecret}
+                      reference={reference}
+                      onReady={onPaymentReady}
+                      onComplete={onPaymentComplete}
+                    />
+                  ) : null}
+                </div>
+              </div>
               <div className="vt-checkout__payfoot">
                 {freeCancelHours != null ? (
                   <p>{t("freeCancelHours", { hours: freeCancelHours })}</p>
@@ -1016,10 +984,55 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                   </Alert>
                 ) : null}
                 <div className="vt-checkout__cta">
-                  <Button size="lg" block disabled={busy} onClick={() => void onPay()}>
-                    {t("pay-and-confirm")}
+                  <Button
+                    size="lg"
+                    disabled={busy || (Boolean(clientSecret) && (!cardComplete || !confirmPay))}
+                    onClick={() => void onPay()}
+                  >
+                    {t("pay-and-continue")}
                   </Button>
+                  {billingKind === "company" ? (
+                    <Button
+                      size="lg"
+                      disabled={
+                        busy ||
+                        !companyReady({
+                          kind: "company",
+                          name: companyName,
+                          address: companyAddress,
+                          vat: companyVat,
+                        })
+                      }
+                      onClick={() => void sendPayLink()}
+                    >
+                      {t("sendPayLink")}
+                    </Button>
+                  ) : null}
                 </div>
+                {payUrl ? (
+                  <>
+                    <p>{t("payLinkSent")}</p>
+                    {reference ? <p>{t("unpaidReference", { reference })}</p> : null}
+                    <div className="vt-checkout__paylink">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          void navigator.clipboard.writeText(payUrl);
+                        }}
+                      >
+                        {t("copyPayLink")}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        href={`https://wa.me/?text=${encodeURIComponent(payUrl)}`}
+                      >
+                        {t("whatsappPayLink")}
+                      </Button>
+                    </div>
+                  </>
+                ) : null}
                 <p className="vt-checkout__terms">
                   <Icon name="shield-check" size={16} /> {t("by-continuing-you-accept-the-terms-and-the-cance")}
                 </p>

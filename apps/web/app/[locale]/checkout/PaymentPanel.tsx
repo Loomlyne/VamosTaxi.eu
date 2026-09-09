@@ -61,16 +61,20 @@ const APPEARANCE: Appearance = {
   },
 };
 
+function noopComplete(_complete: boolean) {}
+
 export function PaymentPanel({
   publishableKey,
   clientSecret,
   reference,
   onReady,
+  onComplete = noopComplete,
 }: {
   publishableKey: string;
   clientSecret: string;
   reference: string;
   onReady: (confirm: () => Promise<void>) => void;
+  onComplete?: (complete: boolean) => void;
 }) {
   const promise = useMemo(() => browserStripe(publishableKey), [publishableKey]);
 
@@ -83,7 +87,7 @@ export function PaymentPanel({
           elementsOptions: { appearance: APPEARANCE },
         }}
       >
-        <CheckoutFields reference={reference} onReady={onReady} />
+        <CheckoutFields reference={reference} onReady={onReady} onComplete={onComplete} />
       </CheckoutProvider>
     </div>
   );
@@ -92,16 +96,21 @@ export function PaymentPanel({
 function CheckoutFields({
   reference,
   onReady,
+  onComplete,
 }: {
   reference: string;
   onReady: (confirm: () => Promise<void>) => void;
+  onComplete: (complete: boolean) => void;
 }) {
   const checkout = useCheckoutElements();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (checkout.type !== "success") return;
+    if (checkout.type !== "success") {
+      onComplete(false);
+      return;
+    }
     onReady(async () => {
       setError(null);
       // D-16: Stripe confirm only. This page never writes booking status.
@@ -117,7 +126,7 @@ function CheckoutFields({
       }
       router.push(`/confirmation/${reference}`);
     });
-  }, [checkout, onReady, reference, router]);
+  }, [checkout, onComplete, onReady, reference, router]);
 
   if (checkout.type === "loading") {
     return <div data-checkout-pay-skeleton aria-hidden="true" />;
@@ -127,7 +136,7 @@ function CheckoutFields({
   }
   return (
     <>
-      <PaymentElement />
+      <PaymentElement onChange={(event) => onComplete(event.complete)} />
       {error ? <p data-checkout-pay-error>{error}</p> : null}
     </>
   );
