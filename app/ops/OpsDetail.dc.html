@@ -75,7 +75,7 @@
 
 <div style="display:flex;gap:10px;flex-wrap:wrap">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="secondary" icon="mail" onClick="{{ resendVoucher }}" hint-size="170px,36px">{{ tResendVoucher }}</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="pencil" hint-size="140px,36px">{{ tEditBooking }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="pencil" onClick="{{ openEdit }}" hint-size="140px,36px">{{ tEditBooking }}</x-import>
 <sc-if value="{{ canCancel }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="danger" icon="x" onClick="{{ openCancel }}" hint-size="110px,36px">{{ tCancelBooking }}</x-import>
 </sc-if>
@@ -111,9 +111,16 @@
 </main>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900},&quot;id&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
-const EMPTY_BOOKING = { id:'', time:'', date:'', pickup:'', dropoff:'', vehicle:'', pax:0, bags:0, status:'', total:'CHF 000', driver:null, customer:'', email:'', phone:'', flight:'', pay:'', channel:'', km:'' };
+const EMPTY_BOOKING = { id:'', time:'', date:'', pickup:'', dropoff:'', vehicle:'', pax:0, bags:0, status:'', total:'CHF 000', totalRappen:0, driver:null, customer:'', email:'', phone:'', flight:'', pay:'', channel:'', km:'' };
 function listBookings() {
   return window.VamosOps ? window.VamosOps.bookings.all() : [];
+}
+function fareLabel(rappen) {
+  const n = Number(rappen);
+  if (window.VamosLocale && window.VamosLocale.fromChf && Number.isFinite(n) && n > 0) {
+    return window.VamosLocale.fromChf(n);
+  }
+  return window.VamosLocale ? window.VamosLocale.money('000') : 'CHF 000';
 }
 function chauffeurNames() {
   const ops = window.VamosOps;
@@ -130,7 +137,7 @@ const T = {
     dispatcherNote:'Dispatcher note', dispatcherNotePh:'Add a note visible to dispatch only…',
     resendVoucher:'Resend voucher', editBooking:'Edit booking', cancelBooking:'Cancel', driver:'Driver', manualNote:'Assignment is manual in V1 — there is no driver app and no automatic dispatch.', cancel:'Cancel',
     cancelTitle:'Cancel this booking?', cancelBody:'It is marked cancelled. You will still see it under Cancelled.',
-    keepBooking:'Keep it', confirmCancel:'Cancel booking', bookingCancelled:'Cancelled ',
+    keepBooking:'Keep it', confirmCancel:'Cancel booking', bookingCancelled:'Cancelled ', cancelFailed:'Could not cancel ',
     voucherResent:'Voucher re-sent to ', driverAssigned:'Driver assigned to ',
     evQuote:'Quote created', evPayment:'Payment captured', evVoucher:'Voucher sent', evAssigned:'Driver assigned',
     website:'Website', stripeWebhook:'Stripe webhook', resend:'Resend', dispatch:'Dispatch',
@@ -145,7 +152,7 @@ const T = {
     dispatcherNote:'Dispatcher-Notiz', dispatcherNotePh:'Notiz hinzufügen, nur für Dispatch sichtbar…',
     resendVoucher:'Gutschein erneut senden', editBooking:'Buchung bearbeiten', cancelBooking:'Stornieren', driver:'Fahrer', manualNote:'Die Zuweisung erfolgt in V1 manuell — es gibt keine Fahrer-App und keine automatische Vermittlung.', cancel:'Abbrechen',
     cancelTitle:'Diese Buchung stornieren?', cancelBody:'Sie wird als storniert markiert. Unter Storniert bleibt sie sichtbar.',
-    keepBooking:'Behalten', confirmCancel:'Buchung stornieren', bookingCancelled:'Storniert ',
+    keepBooking:'Behalten', confirmCancel:'Buchung stornieren', bookingCancelled:'Storniert ', cancelFailed:'Konnte nicht stornieren ',
     voucherResent:'Gutschein erneut gesendet an ', driverAssigned:'Fahrer zugewiesen zu ',
     evQuote:'Angebot erstellt', evPayment:'Zahlung erfasst', evVoucher:'Gutschein gesendet', evAssigned:'Fahrer zugewiesen',
     website:'Website', stripeWebhook:'Stripe-Webhook', resend:'Resend', dispatch:'Dispatch',
@@ -186,6 +193,7 @@ class Component extends DCLogic {
     const booking = Object.assign({}, this.getBooking());
     booking.vehicle = booking.vehicle || booking.klass || '';
     booking.driver = booking.driver || booking.chauffeur || null;
+    booking.total = fareLabel(booking.totalRappen);
     if (booking.paidByCard || booking.paid) booking.pay = 'Paid by card';
     else booking.pay = 'Not paid yet';
     booking.payLink = booking.payLinkSent ? 'Sent' : 'Not sent';
@@ -203,15 +211,15 @@ class Component extends DCLogic {
     }
     const drivers = chauffeurNames();
     const assignedDriver = this.state.assigned[booking.id] || booking.driver;
-    const isAirport = /airport|zrh/i.test((booking.pickup || '') + ' ' + (booking.dropoff || ''));
-    const fareLines = [{ label: t.lineTransfer + (booking.vehicle || ''), value: 'CHF 000.00' }];
-    if (isAirport) fareLines.push({ label: t.lineAirportFee, value: 'CHF 00.00' });
+    const fareLines = [{ label: t.lineTransfer + (booking.vehicle || ''), value: fareLabel(booking.totalRappen) }];
     const cancelled = booking.status === 'cancelled' || booking.status === 'refunded';
+    const routeMeta = [{ icon:'calendar', label: booking.date }, { icon:'clock', label: booking.time }];
+    if (booking.km) routeMeta.push({ icon:'navigation', label: booking.km });
     return {
       n2:2, n15:15, n16:16, yes:true,
       tBackToBookings: t.backToBookings, tMoreActions: t.moreActions, tBookedBy: t.bookedBy,
       booking,
-      routeMeta: [{ icon:'calendar', label: booking.date }, { icon:'clock', label: booking.time }, { icon:'navigation', label: booking.km }],
+      routeMeta,
       tAssignment: t.assignment,
       assignVariant: assignedDriver ? 'ghost' : 'primary',
       assignLabel: assignedDriver ? t.reassign : t.assign,
@@ -226,6 +234,10 @@ class Component extends DCLogic {
       tOutstandingTitle: t.outstandingTitle, tOutstandingBody: t.outstandingBody, tRefundTitle: t.refundTitle, tRefundBody: t.refundBody,
       tDispatcherNote: t.dispatcherNote, tDispatcherNotePh: t.dispatcherNotePh,
       tResendVoucher: t.resendVoucher, tEditBooking: t.editBooking, tCancelBooking: t.cancelBooking,
+      openEdit: () => {
+        try { sessionStorage.setItem('vamosOpsEdit', booking.id); } catch (e) {}
+        location.hash = '#bookings';
+      },
       canCancel: !cancelled && booking.status !== 'completed',
       openCancel: () => this.setState({ cancelOpen: true }),
       closeCancel: () => this.setState({ cancelOpen: false }),
@@ -237,10 +249,22 @@ class Component extends DCLogic {
       cancelWhen: [booking.date, booking.time].filter(Boolean).join(' · '),
       cancelPay: booking.pay || '',
       confirmCancel: () => {
+        const id = booking.id;
         const ops = window.VamosOps;
-        if (ops) ops.bookings.update(booking.id, { status: 'cancelled' });
+        const client = window.VamosOpsApi;
         this.setState({ cancelOpen: false });
-        this.notify(t.bookingCancelled + booking.id);
+        if (!client || typeof client.request !== 'function') {
+          this.notify(t.cancelFailed + id);
+          return;
+        }
+        client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { status: 'cancelled' }).then((json) => {
+          if (json && json.ok) {
+            if (ops) ops.bookings.reset();
+            this.notify(t.bookingCancelled + id);
+          } else {
+            this.notify(t.cancelFailed + id);
+          }
+        });
       },
       resendVoucher: () => this.notify(t.voucherResent + booking.email),
       dialogOpen: this.state.dialogOpen, tAssignDriver: t.assign, dialogSubtitle: booking.id + ' · ' + booking.time + ' · ' + booking.vehicle,

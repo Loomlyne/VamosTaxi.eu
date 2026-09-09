@@ -456,6 +456,14 @@ class Component extends DCLogic {
     const tick = this.props.openTick != null ? this.props.openTick : this.props['open-tick'];
     const was = prev ? (prev.openTick != null ? prev.openTick : prev['open-tick']) : undefined;
     if (tick !== undefined && tick !== null && String(tick) !== '' && String(tick) !== '0' && String(tick) !== String(was)) this.startAdd();
+    const editTick = this.props.editTick != null ? this.props.editTick : this.props['edit-tick'];
+    const editWas = prev ? (prev.editTick != null ? prev.editTick : prev['edit-tick']) : undefined;
+    if (editTick !== undefined && editTick !== null && String(editTick) !== '' && String(editTick) !== '0' && String(editTick) !== String(editWas)) {
+      const editId = this.props.editId != null ? this.props.editId : this.props['edit-id'];
+      const rows = this.props.rows || [];
+      const row = rows.filter((r) => r.id === editId || r.bookingId === editId)[0];
+      if (row) this.startEdit(row);
+    }
   }
   componentWillUnmount() {
     if (this.state.draft || this.state.confirm) this.unlockScroll();

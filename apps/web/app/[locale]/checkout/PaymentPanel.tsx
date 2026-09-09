@@ -124,10 +124,11 @@ function CheckoutWallets({ onExpress }: { onExpress: (event: ExpressConfirmEvent
   const t = useTranslations("checkout");
   const checkout = useCheckoutElements();
   const [hasWallets, setHasWallets] = useState(true);
+  const [applePay, setApplePay] = useState(false);
   if (checkout.type !== "success") return null;
   return (
     <div data-checkout-express hidden={!hasWallets}>
-      <h2 className="vt-checkout__method">{t("payWithApplePay")}</h2>
+      {applePay ? <h2 className="vt-checkout__method">{t("payWithApplePay")}</h2> : null}
       <ExpressCheckoutElement
         options={{
           buttonHeight: 48,
@@ -144,6 +145,7 @@ function CheckoutWallets({ onExpress }: { onExpress: (event: ExpressConfirmEvent
         }}
         onReady={(event) => {
           const methods = event.availablePaymentMethods;
+          setApplePay(Boolean(methods?.applePay));
           setHasWallets(Boolean(methods && (methods.applePay || methods.link)));
         }}
         onConfirm={(event) => onExpress(event)}

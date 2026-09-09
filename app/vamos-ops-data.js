@@ -67,6 +67,7 @@
     var loaded = false;
     var base = "/api/staff/" + name;
 
+    var pollTimer = null;
     function hydrate() {
       if (pending || loaded) return;
       pending = true;
@@ -75,6 +76,13 @@
         loaded = true;
         list = pickRows(json, name).map(clean);
         emit(name);
+        if (name === "bookings") {
+          clearTimeout(pollTimer);
+          pollTimer = setTimeout(function () {
+            loaded = false;
+            hydrate();
+          }, 15000);
+        }
       });
     }
 
@@ -239,6 +247,7 @@
         return list.slice();
       },
       reset: function () {
+        clearTimeout(pollTimer);
         bookFetch.loaded = false;
         bookFetch.json = null;
         list = [];
@@ -378,7 +387,8 @@
       paidByCard: !!b.paidByCard,
       payLinkSent: !!b.payLinkSent,
       cardSession: !!b.cardSession,
-      sessionExpiresAt: str(b.sessionExpiresAt)
+      sessionExpiresAt: str(b.sessionExpiresAt),
+      totalRappen: num(b.totalRappen, 0)
     };
   }
 

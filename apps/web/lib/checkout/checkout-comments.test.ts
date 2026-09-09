@@ -108,7 +108,9 @@ describe("checkout comment pack", () => {
       "utf8",
     );
     expect(payClient).not.toContain("data-checkout-pay-skeleton");
-    expect(payClient).toContain("disabled={paying || busy || !cardComplete}");
+    expect(payClient).toContain("disabled={paying || busy}");
+    expect(payClient).not.toContain("disabled={paying || busy || !cardComplete}");
+    expect(payClient).toContain("confirmPayRef");
     expect(payClient).toContain("client_secret_hex");
     expect(home).not.toMatch(/s: sub \|\| undefined/);
     expect(home).toContain("text: apiText");
@@ -149,7 +151,8 @@ describe("checkout comment pack", () => {
     expect(client).toContain("clientSecret ?? \"\"");
     expect(client).not.toContain("CheckoutPaySkeleton");
     expect(payPanel).not.toContain("CheckoutPaySkeleton");
-    expect(client).toContain("disabled={busy || !cardComplete}");
+    expect(client).toContain("disabled={busy}");
+    expect(client).not.toContain("disabled={busy || !cardComplete}");
     expect(client).not.toContain("disabled={busy || !cardComplete || !confirmPay}");
     expect(client).toContain("aria-busy={busy || undefined}");
     expect(client).not.toContain('refusal !== "payCouldNotStart"');

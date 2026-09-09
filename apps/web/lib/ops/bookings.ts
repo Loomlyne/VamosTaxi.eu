@@ -36,7 +36,8 @@ export async function loadBookings(env: CloudflareEnv, claims: VamosClaims): Pro
         p.status as payment_status,
         p.captured_at,
         p.created_at as payment_created_at,
-        p.stripe_checkout_session_id
+        p.stripe_checkout_session_id,
+        p.charged_rappen
       from public.bookings b
       left join lateral (
         select *

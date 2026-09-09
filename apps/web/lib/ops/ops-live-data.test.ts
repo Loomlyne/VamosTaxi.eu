@@ -81,6 +81,7 @@ describe("ops live data — comments 8–10", () => {
       captured_at: null,
       payment_created_at: "2026-09-09T10:00:00.000Z",
       stripe_checkout_session_id: "cs_test_1",
+      charged_rappen: null,
     });
     expect(row.id).toBe("VT-26-0707");
     expect(row.customer).toBe("Ada");
@@ -91,6 +92,48 @@ describe("ops live data — comments 8–10", () => {
     expect(row.dateIso).toBe("2026-09-24");
     expect(row.time).toBe("15:50");
     expect(row.sessionExpiresAt).toBe("2026-09-10T10:00:00.000Z");
+    expect(row.totalRappen).toBe(0);
+  });
+
+  it("maps a captured fare onto the board row", () => {
+    const row = mapBoardBooking({
+      id: "11111111-1111-1111-1111-111111111111",
+      reference: "VT-26-0716",
+      status: "pending",
+      contact_name: "Ada",
+      contact_email: "ada@example.com",
+      contact_phone: "+41 79 000 00 00",
+      company_name: null,
+      note: null,
+      pay_link_sent_at: null,
+      pickup_text: "Zurich Airport (ZRH)",
+      dropoff_text: "Zurich city",
+      scheduled_local: "2026-09-24T15:50",
+      scheduled_at: "2026-09-24T15:50:00+00",
+      flight_no: "LX123",
+      pax: 2,
+      bags: 1,
+      class_slug: "economy",
+      chauffeur_name: null,
+      payment_status: "succeeded",
+      captured_at: "2026-09-09T16:42:29.000Z",
+      payment_created_at: "2026-09-09T16:40:00.000Z",
+      stripe_checkout_session_id: "cs_test_paid",
+      charged_rappen: 10000,
+    });
+    expect(row.paidByCard).toBe(true);
+    expect(row.totalRappen).toBe(10000);
+  });
+
+  it("bookings board paints charged fare instead of a hardcoded 000", () => {
+    const board = read("app/ops/OpsBoard.dc.html");
+    const detail = read("app/ops/OpsDetail.dc.html");
+    const data = read("app/vamos-ops-data.js");
+    expect(board).toMatch(/fareLabel\(r\.totalRappen\)/);
+    expect(board).not.toMatch(/render: \(\) => 'CHF 000'/);
+    expect(detail).toMatch(/openEdit/);
+    expect(detail).toMatch(/\/api\/staff\/bookings\//);
+    expect(data).toMatch(/totalRappen/);
   });
 
   it("maps a contact submission into a Support ticket", () => {

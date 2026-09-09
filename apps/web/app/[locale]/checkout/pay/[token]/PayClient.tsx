@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Card } from "@/components/core";
 import { Alert } from "@/components/feedback/Alert";
@@ -22,6 +22,8 @@ export function PayClient({ token }: { token: string }) {
   const [billingEmail, setBillingEmail] = useState("");
   const [cardComplete, setCardComplete] = useState(false);
   const [confirmPay, setConfirmPay] = useState<(() => Promise<void>) | null>(null);
+  const confirmPayRef = useRef(confirmPay);
+  confirmPayRef.current = confirmPay;
 
   useEffect(() => {
     let cancelled = false;
@@ -68,14 +70,23 @@ export function PayClient({ token }: { token: string }) {
   }, [token]);
 
   async function onPay() {
-    if (!cardComplete || !confirmPay) {
+    if (!cardComplete) {
       setError("payCouldNotStart");
       return;
     }
     setPaying(true);
     setError(null);
     try {
-      await confirmPay();
+      const deadline = Date.now() + 25_000;
+      while (!confirmPayRef.current && Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, 80));
+      }
+      const confirm = confirmPayRef.current;
+      if (!confirm) {
+        setError("payCouldNotStart");
+        return;
+      }
+      await confirm();
     } catch {
       setError("payCouldNotStart");
     } finally {
@@ -120,7 +131,7 @@ export function PayClient({ token }: { token: string }) {
                 </div>
               </div>
               <div className="vt-checkout__cta" aria-busy={paying || undefined}>
-                <Button size="lg" disabled={paying || busy || !cardComplete} onClick={() => void onPay()}>
+                <Button size="lg" disabled={paying || busy} onClick={() => void onPay()}>
                   {t("pay-and-continue")}
                 </Button>
               </div>

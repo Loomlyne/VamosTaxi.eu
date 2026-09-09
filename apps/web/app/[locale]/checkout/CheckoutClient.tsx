@@ -786,7 +786,10 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   }
 
   async function onPay() {
-    if (!cardComplete) return;
+    if (!cardComplete) {
+      setRefusal("payCouldNotStart");
+      return;
+    }
     setBusy(true);
     setRefusal(null);
     try {
@@ -1330,7 +1333,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                 <div className="vt-checkout__cta" aria-busy={busy || undefined}>
                   <Button
                     size="lg"
-                    disabled={busy || !cardComplete}
+                    disabled={busy}
                     onClick={() => void onPay()}
                   >
                     {t("pay-and-continue")}
