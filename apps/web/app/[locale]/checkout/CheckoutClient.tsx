@@ -870,16 +870,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     fx.rates?.rates ?? null,
   );
   const recapExtraRows = recapExtras(extrasCatalog, extraOn);
-  const extraRappen = recapExtraRows.reduce((sum, row) => sum + row.amount_rappen, 0);
-  const extraLines = recapExtraRows.map((row) => {
-    const extraShown = chfRappenToDisplay(row.amount_rappen, displayCur, fx.rates?.rates ?? null);
-    return {
-      label: <span data-checkout-recap-extra={row.code}>{t(row.labelKey)}</span>,
-      amount: extraShown.major,
-    };
-  });
-  const fareRappen = netRappen == null ? null : Math.max(0, netRappen - extraRappen);
-  const fareShown = chfRappenToDisplay(fareRappen, displayCur, fx.rates?.rates ?? null);
+  const fareShown = chfRappenToDisplay(netRappen, displayCur, fx.rates?.rates ?? null);
   const couponOffRappen =
     couponApplied && wasRappen != null && chargedRappen != null && wasRappen > chargedRappen
       ? wasRappen - chargedRappen
@@ -887,10 +878,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const couponOffShown = chfRappenToDisplay(couponOffRappen, displayCur, fx.rates?.rates ?? null);
   const priceLines =
     chargedRappen == null
-      ? extraLines
+      ? []
       : [
           { label: t("fareExVat"), amount: fareShown.major },
-          ...extraLines,
           {
             label: (
               <span data-checkout-vat data-checkout-vat-amount={formatAmount(vatShown.major, vatShown.currency)}>
@@ -924,6 +914,10 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       : []),
     { icon: "users", label: `${draft.passengers} ${tCommon("passengers")}` },
     { icon: "luggage", label: `${draft.luggage} ${tCommon("luggage")}` },
+    ...recapExtraRows.map((row) => ({
+      icon: row.icon,
+      label: <span data-checkout-recap-extra={row.code}>{t(row.labelKey)}</span>,
+    })),
   ];
 
   if (gate !== "ok") {

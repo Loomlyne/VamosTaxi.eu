@@ -6,8 +6,8 @@
 // Browser: one Stripe.js object per document — module-scoped on purpose.
 // Server stripeFromEnv() is per-request. Do not "fix" either into the other.
 //
-// Do not mount card fields on a second Checkout session. CardNumberElement
-// uses a sibling Elements tree; confirm still goes through useCheckoutElements.
+// Card fields paint without waiting on Checkout Session loadActions. Wallets
+// wait on the session. Confirm still goes through useCheckoutElements.
 
 import {
   CheckoutElementsProvider as CheckoutProvider,
@@ -28,7 +28,6 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ComponentProps 
 import { useLocale, useTranslations } from "next-intl";
 import { Icon } from "@/components/core";
 import { Select } from "@/components/forms";
-import { Tabs } from "@/components/navigation/Tabs";
 import { routing } from "@/i18n/routing";
 import { VAMOS_STRIPE_APPEARANCE } from "@/lib/checkout/stripe-appearance";
 
@@ -37,8 +36,6 @@ const { useRouter } = createNavigation(routing);
 type ExpressConfirmEvent = Parameters<
   NonNullable<ComponentProps<typeof ExpressCheckoutElement>["onConfirm"]>
 >[0];
-
-type WalletTab = "applePay" | "link";
 
 const CARD_COUNTRIES = [
   "CH",
@@ -138,30 +135,22 @@ function countryOptions(locale: string): { value: string; label: string }[] {
   }));
 }
 
-function CheckoutWallets({
-  wallet,
-  onExpress,
-}: {
-  wallet: WalletTab;
-  onExpress: (event: ExpressConfirmEvent) => void;
-}) {
+function CheckoutWallets({ onExpress }: { onExpress: (event: ExpressConfirmEvent) => void }) {
   const checkout = useCheckoutElements();
-  if (checkout.type === "loading") return null;
-  if (checkout.type === "error") return null;
+  if (checkout.type !== "success") return null;
   return (
     <div data-checkout-express>
       <ExpressCheckoutElement
-        key={wallet}
         options={{
           buttonHeight: 48,
           buttonTheme: { applePay: "black", googlePay: "black", paypal: "gold" },
           buttonType: { applePay: "plain", googlePay: "pay", paypal: "paypal" },
           layout: { maxColumns: 2, maxRows: 1, overflow: "never" },
-          paymentMethodOrder: wallet === "link" ? ["link"] : ["applePay"],
+          paymentMethodOrder: ["applePay", "link"],
           paymentMethods: {
-            applePay: wallet === "applePay" ? "always" : "never",
+            applePay: "always",
             googlePay: "never",
-            link: wallet === "link" ? "auto" : "never",
+            link: "auto",
             paypal: "never",
           },
         }}
@@ -220,7 +209,7 @@ function VamosCardFields({
 
   return (
     <div className="vt-checkout__cardfields" data-checkout-card-fields>
-      <div className="vt-field">
+      <div className="vt-field" data-checkout-card-number>
         <span className="vt-field__label">{t("cardNumber")}</span>
         <div className="vt-input vt-input--md">
           <span className="vt-checkout__card-brand" data-checkout-card-brand={brand}>
@@ -266,14 +255,15 @@ function VamosCardFields({
             </div>
           </div>
         </div>
+        <Select
+          className="vt-checkout__card-country"
+          label={t("cardCountry")}
+          options={countries}
+          value={country}
+          onChange={(event) => setCountry(event.target.value)}
+          data-checkout-card-country="true"
+        />
       </div>
-      <Select
-        label={t("cardCountry")}
-        options={countries}
-        value={country}
-        onChange={(event) => setCountry(event.target.value)}
-        data-checkout-card-country="true"
-      />
     </div>
   );
 }
@@ -282,7 +272,6 @@ function CheckoutFields({
   reference,
   billingName,
   billingEmail,
-  wallet,
   stripePromise: promise,
   onReady,
   onComplete,
@@ -290,7 +279,6 @@ function CheckoutFields({
   reference: string;
   billingName: string;
   billingEmail: string;
-  wallet: WalletTab;
   stripePromise: Promise<Stripe | null>;
   onReady: (confirm: () => Promise<void>) => void;
   onComplete: (complete: boolean) => void;
@@ -305,10 +293,7 @@ function CheckoutFields({
   }, []);
 
   useEffect(() => {
-    if (checkout.type !== "success") {
-      onComplete(false);
-      return;
-    }
+    if (checkout.type !== "success") return;
     onReady(async () => {
       setError(null);
       const create = cardCreate.current;
@@ -329,7 +314,7 @@ function CheckoutFields({
       }
       if (reference) router.push(`/confirmation/${reference}`);
     });
-  }, [billingEmail, billingName, checkout, onComplete, onReady, reference, router]);
+  }, [billingEmail, billingName, checkout, onReady, reference, router]);
 
   async function onExpress(event: ExpressConfirmEvent) {
     if (checkout.type !== "success") {
@@ -356,16 +341,9 @@ function CheckoutFields({
     [],
   );
 
-  if (checkout.type === "loading") {
-    return <CheckoutPaySkeleton />;
-  }
-  if (checkout.type === "error") {
-    return <CheckoutPaySkeleton />;
-  }
-
   return (
     <>
-      <CheckoutWallets wallet={wallet} onExpress={onExpress} />
+      <CheckoutWallets onExpress={onExpress} />
       <Elements stripe={promise} options={cardOptions}>
         <VamosCardFields name={billingName} email={billingEmail} onCreate={onCardCreate} onComplete={onComplete} />
       </Elements>
@@ -394,8 +372,6 @@ export function PaymentPanel({
   onReady: (confirm: () => Promise<void>) => void;
   onComplete?: (complete: boolean) => void;
 }) {
-  const t = useTranslations("checkout");
-  const [wallet, setWallet] = useState<WalletTab>("applePay");
   const promise = useMemo(() => browserStripe(publishableKey), [publishableKey]);
   const secret = decodeClientSecret(clientSecret, clientSecretHex) ?? clientSecret;
 
@@ -405,16 +381,6 @@ export function PaymentPanel({
 
   return (
     <div className="vt-checkout__pay" data-checkout-pay>
-      <Tabs
-        block
-        className="vt-checkout__wallettabs"
-        value={wallet}
-        onChange={(value) => setWallet(value === "link" ? "link" : "applePay")}
-        items={[
-          { value: "applePay", label: t("applePay") },
-          { value: "link", label: t("stripeLink") },
-        ]}
-      />
       <CheckoutProvider
         key={secret}
         stripe={promise}
@@ -430,7 +396,6 @@ export function PaymentPanel({
           reference={reference}
           billingName={billingName}
           billingEmail={billingEmail}
-          wallet={wallet}
           stripePromise={promise}
           onReady={onReady}
           onComplete={onComplete}

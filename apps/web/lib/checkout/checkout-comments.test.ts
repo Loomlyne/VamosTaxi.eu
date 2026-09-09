@@ -114,7 +114,7 @@ describe("checkout comment pack", () => {
 
   it("does not mount PaymentElement until Checkout init finishes", () => {
     expect(payPanel).toContain("function CheckoutWallets");
-    expect(payPanel).toContain('if (checkout.type === "loading")');
+    expect(payPanel).toContain('if (checkout.type !== "success")');
     expect(payPanel).toContain("CardNumberElement");
     expect(payPanel).toContain("CardExpiryElement");
     expect(payPanel).toContain("CardCvcElement");
@@ -164,12 +164,14 @@ describe("checkout comment pack", () => {
     expect(payPanel).not.toContain("ACCT-000028");
     expect(payPanel).toContain("1234 1234 1234 1234");
     expect(payPanel).toContain('t("cardCountry")');
-    expect(payPanel).toContain('t("applePay")');
-    expect(payPanel).toContain('t("stripeLink")');
-    expect(payPanel).toContain('wallet === "applePay" ? "always"');
-    expect(payPanel).toContain("googlePay: \"never\"");
-    expect(payPanel).toContain('wallet === "link" ? "auto"');
+    expect(payPanel).toContain('applePay: "always"');
+    expect(payPanel).toContain('link: "auto"');
+    expect(payPanel).toContain('googlePay: "never"');
+    expect(payPanel).toContain("expressCheckoutConfirmEvent");
+    expect(payPanel).toContain("vt-checkout__card-country");
     expect(payPanel).toContain("address: { country }");
+    expect(payPanel).not.toContain("vt-checkout__wallettabs");
+    expect(css).toContain(".vt-checkout__card-country");
     expect(client).toContain("recapExtras");
     expect(client).toContain("data-checkout-recap-extra");
     expect(client).toContain("data-checkout-coupon-used");

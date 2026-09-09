@@ -52,9 +52,7 @@ describe("checkout extras catalog", () => {
       },
     ]);
     const lines = recapExtras(catalog, (code) => code === "child_seat");
-    expect(lines).toEqual([{ code: "child_seat", labelKey: "childSeat", amount_rappen: 2000 }]);
-    expect(recapExtras([], (code) => code === "extra_stop")).toEqual([
-      { code: "extra_stop", labelKey: "additional-stop-2", amount_rappen: 0 },
-    ]);
+    expect(lines).toEqual([{ code: "child_seat", labelKey: "childSeat", icon: "baby" }]);
+    expect(recapExtras([], (code) => code === "extra_stop")).toEqual([]);
   });
 });

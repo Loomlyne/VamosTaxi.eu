@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { e164Phone, isCheckoutEmail } from "./contact-validate";
-import { peekLockClassRappen, placeMapboxId, placeText, rappenToFrancs, formatRailDate, geoLocale } from "./vamos-trip";
+import { mergeVamosTrip, peekLockClassRappen, placeMapboxId, placeText, rappenToFrancs, formatRailDate, geoLocale } from "./vamos-trip";
 
 describe("checkout contact + rail helpers", () => {
   it("stores phone as plus plus digits", () => {
@@ -37,6 +37,26 @@ describe("checkout contact + rail helpers", () => {
     expect(peekLockClassRappen(lock, "first")).toBeNull();
     expect(peekLockClassRappen("not-a-lock", "economy")).toBeNull();
     expect(rappenToFrancs(null)).toBeNull();
+  });
+
+  it("drops the previous quote's flight when a new quote_id lands", () => {
+    const prev = mergeVamosTrip(
+      { quote_id: "quote-a", flight: "ek 200", flightNumber: "ek 200", pickup: "ZRH" },
+      { quote_id: "quote-b", pickup: "ZRH", dropoff: "HB" },
+    );
+    expect(prev.flight).toBe("");
+    expect(prev.flightNumber).toBe("");
+    expect(prev.quote_id).toBe("quote-b");
+    const typed = mergeVamosTrip(
+      { quote_id: "quote-a", flightNumber: "ek 200" },
+      { quote_id: "quote-b", flight: "LX 318", flightNumber: "LX 318" },
+    );
+    expect(typed.flightNumber).toBe("LX 318");
+    const same = mergeVamosTrip(
+      { quote_id: "quote-a", flightNumber: "ek 200" },
+      { quote_id: "quote-a", pickup: "ZRH" },
+    );
+    expect(same.flightNumber).toBe("ek 200");
   });
 
   it("reads mapbox ids and formats rail dates", () => {

@@ -31,38 +31,20 @@ export function extraUi(code: string): ExtraUi | null {
 export type RecapExtraLine = {
   code: string;
   labelKey: ExtraUi["labelKey"];
-  amount_rappen: number;
+  icon: ExtraUi["icon"];
 };
 
-const RECAP_FALLBACK: RecapExtraLine[] = [
-  { code: "child_seat", labelKey: "childSeat", amount_rappen: 0 },
-  { code: "oversized_luggage", labelKey: "extraOversized", amount_rappen: 0 },
-  { code: "extra_stop", labelKey: "additional-stop-2", amount_rappen: 0 },
-  { code: "ski", labelKey: "extraSki", amount_rappen: 0 },
-];
-
-/** Selected passenger extras for the recap rail. Amounts come from the live book only. */
+/** Selected passenger extras that exist on the live book. No invented rows or CHF. */
 export function recapExtras(
   catalog: CheckoutExtraJson[],
   on: (code: string) => boolean,
 ): RecapExtraLine[] {
-  const seen = new Set<string>();
   const out: RecapExtraLine[] = [];
   for (const row of catalog) {
     const ui = extraUi(row.code);
     if (!ui?.toggle) continue;
     if (!on(row.code)) continue;
-    seen.add(row.code);
-    out.push({
-      code: row.code,
-      labelKey: ui.labelKey,
-      amount_rappen: row.kind === "amount" && row.amount_rappen != null ? row.amount_rappen : 0,
-    });
-  }
-  for (const row of RECAP_FALLBACK) {
-    if (seen.has(row.code) || (row.code === "ski" && seen.has("ski_rack"))) continue;
-    if (!on(row.code) && !(row.code === "ski" && on("ski_rack"))) continue;
-    out.push(row);
+    out.push({ code: row.code, labelKey: ui.labelKey, icon: ui.icon });
   }
   return out;
 }

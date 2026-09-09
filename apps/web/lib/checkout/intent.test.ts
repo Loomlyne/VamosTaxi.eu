@@ -48,6 +48,7 @@ async function bodyFor(p: QuoteLockPayload): Promise<CheckoutIntentRequest> {
     quote_id: p.quote_id,
     lock,
     vehicle_class: "economy",
+    coupon: null,
     contact: { name: "Ada", email: "ada@example.test", phone: "+41790000000" },
     locale: "en",
     display_currency: "CHF",
