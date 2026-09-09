@@ -48,7 +48,23 @@ describe("PayLinkEmail", () => {
     expect(html).toContain("Ada");
     expect(html).toContain("#1E1F1F");
     expect(html).toContain("#FDC20B");
+    expect(html).toContain("#DEDEDE");
+    expect(html).not.toContain("#ECECEC");
     expect(html.indexOf("CHF 000")).toBeLessThan(html.indexOf("Zurich Airport"));
+    expect(html).toContain("wordmark-email.png");
+    expect(html).not.toContain("wordmark-email-white.png");
+    expect(html).toContain("color-scheme:light only");
+    expect(html).toContain('width="216"');
+    expect(html).not.toContain("Vamos Taxi · Zurich");
+    expect(html).not.toContain("فاموس تاكسي · زيورخ");
+    expect(html).toContain("tel:+41790000000");
+    expect(html).not.toContain("tel:+41796267082");
+    expect(html).not.toContain("+41 79 626 70 82");
+    expect(html).not.toContain("Dispatch");
+    expect(html).not.toContain("19:55 · LX123");
+    expect(html).toContain("https://wa.me/41796267082");
+    expect(html).not.toContain("2026-09-22T19:55");
+    expect(html).toContain("19:55");
   });
 
   it("plain text and subject carry the pay URL", () => {
@@ -56,5 +72,6 @@ describe("PayLinkEmail", () => {
     expect(payLinkSubject(payload)).toContain("VT-10001");
     expect(payLinkPlainText(payload)).toContain("https://vamostaxi.site/checkout/pay/tok");
     expect(payLinkPlainText(payload)).toContain("Zurich Airport (ZRH), Terminal 2");
+    expect(payLinkPlainText(payload)).not.toContain("Vamos Taxi · Zurich");
   });
 });

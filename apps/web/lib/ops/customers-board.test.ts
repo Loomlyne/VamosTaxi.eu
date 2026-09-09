@@ -67,17 +67,18 @@ describe("ops customers board", () => {
     const html = readRepo("app/ops/OpsDetail.dc.html");
     expect(html).toBe(readWeb("public/app/ops/OpsDetail.dc.html"));
     expect(html).toMatch(/openCancel/);
-    expect(html).toMatch(/bookings\.update/);
     expect(html).toMatch(/status: 'cancelled'/);
+    expect(html).toMatch(/saveEdit/);
+    expect(html).not.toMatch(/vamosOpsEdit/);
     expect(html).not.toMatch(/tabItems: \[t\.details, t\.history\]/);
   });
 
-  it("OpsPricing Publish sits top-right and names the failure code", () => {
+  it("OpsPricing edits the live rate book, not a draft publish chrome", () => {
     const html = readRepo("app/ops/OpsPricing.dc.html");
     expect(html).toBe(readWeb("public/app/ops/OpsPricing.dc.html"));
-    expect(html).toMatch(/data-price-head-publish/);
-    expect(html).toMatch(/publishByCode/);
-    expect(html).toMatch(/publishReason/);
+    expect(html).toMatch(/VamosOps\.rates/);
+    expect(html).not.toMatch(/data-price-head-publish/);
+    expect(html).not.toMatch(/data-pricing-publish/);
     expect(html).not.toMatch(/tCurrencyLabel/);
     expect(html).not.toMatch(/cu\.pick/);
   });

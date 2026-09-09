@@ -58,12 +58,11 @@ test.describe("OpsPricing draft→publish @ops-dc-pricing", () => {
 
   test("OpsPricing POSTs publish and keeps row saves on PUT /api/staff/rate-book", () => {
     const html = readFileSync(join(repoRoot, "app/ops/OpsPricing.dc.html"), "utf8");
-    expect(html).toMatch(/\/api\/staff\/rate-versions\/['"]\s*\+\s*id\s*\+\s*['"]\/publish/);
     expect(html).toMatch(/\/api\/staff\/rate-book/);
     expect(html).toMatch(/VamosOps\.routes/);
     expect(html).toMatch(/VamosOps\.rates/);
     expect(html).toMatch(/VamosOps\.surcharges/);
-    expect(html).toMatch(/data-pricing-publish/);
+    expect(html).not.toMatch(/data-pricing-publish/);
     expect(html).not.toMatch(/--vt-yellow-50/);
     expect(html).not.toMatch(/err\.message/);
   });

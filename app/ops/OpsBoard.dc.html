@@ -52,14 +52,13 @@
 
 </div>
 <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-<sc-for list="{{ filters }}" as="f" hint-placeholder-count="5">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Tag" active="{{ f.active }}" onClick="{{ f.select }}" hint-size="110px,34px">{{ f.label }}</x-import>
-</sc-for>
 <div style="margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
   <div data-vt-filt="1" ref="{{ filtRef }}">
     <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" iconEnd="funnel" onClick="{{ toggleMore }}" hint-size="110px,36px">{{ tFilter }}</x-import>
     <sc-if value="{{ moreOpen }}" hint-placeholder-val="{{ false }}">
       <div data-vt-filt-pop="1" data-lenis-prevent="1">
+        <span data-vt-filt-lab="1">{{ tBoardFilter }}</span>
+        <dc-import name="BrandSelect" size="field" icon="funnel" value="{{ boardFilter }}" options="{{ boardFilterOptions }}" placeholder="{{ tBoardFilter }}" onSelect="{{ setBoardFilter }}" a11y-label="{{ tBoardFilter }}" hint-size="100%,44px"></dc-import>
         <span data-vt-filt-lab="1">{{ tClassFilter }}</span>
         <dc-import name="BrandSelect" size="field" icon="car" value="{{ classFilter }}" options="{{ classOptions }}" placeholder="{{ tClassFilter }}" onSelect="{{ setClass }}" a11y-label="{{ tClassFilter }}" hint-size="100%,44px"></dc-import>
         <span data-vt-filt-lab="1">{{ tStatusFilter }}</span>
@@ -136,7 +135,7 @@ const T = {
   en: { bookings:'Bookings', ordered:'Ordered by pickup time', searchPh:'Reference, name, phone or address', newBooking:'New booking',
     pickupsToday:'Pickups today', pickupsFoot:'Ordered by pickup time', awaitingPayment:'Awaiting payment', awaitingFoot:'Needs a card payment or pay-link',
     unassigned:'Unassigned', unassignedFoot:'No driver assigned yet', revenue:'Revenue, 7 days', revenueFoot:'Awaiting live Stripe data',
-    moreFilters:'More filters', export_:'Export CSV', filter:'Filter', print:'Print', classFilter:'Class', allClasses:'All classes', statusFilter:'Status', allStatuses:'All statuses', clearFilt:'Clear', showingRange:'Showing %a–%b of %c', showingNone:'Nothing to show',
+    moreFilters:'More filters', export_:'Export CSV', filter:'Filter', print:'Print', boardFilter:'Show', classFilter:'Class', allClasses:'All classes', statusFilter:'Status', allStatuses:'All statuses', clearFilt:'Clear', showingRange:'Showing %a–%b of %c', showingNone:'Nothing to show',
     prevPage:'Previous page', nextPage:'Next page', filterAll:'All', filterToday:'Today', filterTomorrow:'Tomorrow', filterUnassigned:'Unassigned', filterAwaiting:'Awaiting payment', filterCancelled:'Cancelled',
     colPickup:'Pickup', colRef:'Ref', colCustomer:'Customer', colRoute:'Route', colVehicle:'Vehicle', colDriver:'Driver', colStatus:'Status', colTotal:'Total', unassignedCell:'Unassigned', bagsShort:'bags',
     fRef:'Reference', fDate:'Date', fTime:'Pickup time', fCustomer:'Customer', fPickup:'Pickup address', fDropoff:'Drop-off address',
@@ -148,7 +147,7 @@ const T = {
   de: { bookings:'Buchungen', ordered:'Nach Abholzeit sortiert', searchPh:'Referenz, Name, Telefon oder Adresse', newBooking:'Neue Buchung',
     pickupsToday:'Abholungen heute', pickupsFoot:'Nach Abholzeit sortiert', awaitingPayment:'Zahlung ausstehend', awaitingFoot:'Karte oder Zahlungslink ausstehend',
     unassigned:'Nicht zugewiesen', unassignedFoot:'Noch kein Fahrer zugewiesen', revenue:'Umsatz, 7 Tage', revenueFoot:'Live-Stripe-Daten ausstehend',
-    moreFilters:'Weitere Filter', export_:'CSV exportieren', filter:'Filter', print:'Drucken', classFilter:'Klasse', allClasses:'Alle Klassen', statusFilter:'Status', allStatuses:'Alle Status', clearFilt:'Zurücksetzen', showingRange:'Zeigt %a–%b von %c', showingNone:'Nichts anzuzeigen',
+    moreFilters:'Weitere Filter', export_:'CSV exportieren', filter:'Filter', print:'Drucken', boardFilter:'Anzeigen', classFilter:'Klasse', allClasses:'Alle Klassen', statusFilter:'Status', allStatuses:'Alle Status', clearFilt:'Zurücksetzen', showingRange:'Zeigt %a–%b von %c', showingNone:'Nichts anzuzeigen',
     prevPage:'Vorherige Seite', nextPage:'Nächste Seite', filterAll:'Alle', filterToday:'Heute', filterTomorrow:'Morgen', filterUnassigned:'Nicht zugewiesen', filterAwaiting:'Zahlung ausstehend', filterCancelled:'Storniert',
     colPickup:'Abholung', colRef:'Ref.', colCustomer:'Kunde', colRoute:'Route', colVehicle:'Fahrzeug', colDriver:'Fahrer', colStatus:'Status', colTotal:'Total', unassignedCell:'Nicht zugewiesen', bagsShort:'Gepäck',
     fRef:'Referenz', fDate:'Datum', fTime:'Abholzeit', fCustomer:'Kunde', fPickup:'Abholadresse', fDropoff:'Zieladresse',
@@ -197,7 +196,8 @@ class Component extends DCLogic {
   printBoard = () => { try { window.print(); } catch (e) {} };
   setClass = (v) => this.setState({ klass: v || '', page: 0 });
   setStatus = (v) => this.setState({ statusMore: v || '', page: 0 });
-  clearFilt = () => this.setState({ klass: '', statusMore: '', page: 0 });
+  setBoardFilter = (v) => this.setState({ filter: v || 'All', page: 0 });
+  clearFilt = () => this.setState({ klass: '', statusMore: '', filter: 'All', page: 0 });
   renderVals() {
     const t = T[this.state.lang] || T.en;
     const today = boardDate(new Date());
@@ -268,9 +268,12 @@ class Component extends DCLogic {
       tUnassigned: t.unassigned, vUnassigned: String(unassigned), tUnassignedFoot: t.unassignedFoot,
       tRevenue: t.revenue, tRevenueFoot: t.revenueFoot, revenueLabel: fareLabel(revenueRappen),
       tMoreFilters: t.moreFilters, tExport: t.export_,
-      tFilter: t.filter, tPrint: t.print, tClassFilter: t.classFilter, tStatusFilter: t.statusFilter, tClearFilt: t.clearFilt,
+      tFilter: t.filter, tPrint: t.print, tBoardFilter: t.boardFilter, tClassFilter: t.classFilter, tStatusFilter: t.statusFilter, tClearFilt: t.clearFilt,
       classFilter: klass, classOptions, setClass: this.setClass,
       statusFilter: statusMore, statusOptions, setStatus: this.setStatus,
+      boardFilter: this.state.filter || 'All',
+      boardFilterOptions: FILTERS.map((f) => ({ value: f.key, label: f.label })),
+      setBoardFilter: this.setBoardFilter,
       moreOpen: !!this.state.moreOpen, toggleMore: this.toggleMore, printBoard: this.printBoard, clearFilt: this.clearFilt,
       tShowing: visibleRows.length ? t.showingRange.replace('%a', showingFrom).replace('%b', showingTo).replace('%c', visibleRows.length) : t.showingNone,
       tPrevPage: t.prevPage, tNextPage: t.nextPage,

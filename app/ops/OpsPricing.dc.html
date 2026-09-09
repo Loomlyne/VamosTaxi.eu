@@ -23,12 +23,6 @@
 <h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tTitle }}</h1>
 <p style="margin:4px 0 0;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSubtitle }}</p>
 </div>
-<sc-if value="{{ showPublish }}" hint-placeholder-val="{{ true }}">
-<div data-price-head-publish="1" style="margin-inline-start:auto;display:flex;flex-direction:column;align-items:flex-end;gap:8px">
-<p data-publish-error="1" style="display:{{ publishErrorDisplay }};margin:0;font-size:var(--vt-body-xs);color:var(--vt-danger);text-align:end">{{ tPublishError }}</p>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" onClick="{{ publish }}" disabled="{{ publishDisabled }}" hint-size="120px,36px">{{ tPublish }}</x-import>
-</div>
-</sc-if>
 </header>
 
 <div data-set-grid="1" style="padding:26px 32px 44px">
@@ -51,17 +45,6 @@
 <p style="margin:0;font-size:var(--vt-body-xs);line-height:1.55;color:var(--vt-text-inverse-muted);text-wrap:pretty">{{ tAlertBody }}</p>
 </aside>
 
-<sc-if value="{{ showPublish }}" hint-placeholder-val="{{ true }}">
-<aside data-pricing-publish="1" role="region" aria-label="{{ tCompletenessTitle }}" style="box-sizing:border-box;display:flex;flex-direction:column;gap:10px;padding:16px 18px;background:var(--vt-bg-surface);border:1px solid var(--vt-charcoal-900);border-radius:var(--vt-radius-lg);min-width:0">
-<span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)">{{ tCompletenessTitle }}</span>
-<p style="margin:0;font-size:var(--vt-body-xs);line-height:1.55;color:var(--vt-text-muted);text-wrap:pretty">{{ tCompletenessBody }}</p>
-<ul data-gap-list="1" style="display:{{ gapListDisplay }};margin:0;padding:0;padding-inline-start:1.1em;font-size:var(--vt-body-xs);color:var(--vt-danger)">
-<sc-for list="{{ gaps }}" as="g" hint-placeholder-count="3">
-<li data-vt-no-i18n="1">{{ g.label }}</li>
-</sc-for>
-</ul>
-</aside>
-</sc-if>
 </div>
 
 <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
@@ -360,7 +343,6 @@ class Component extends DCLogic {
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
     this._off = window.VamosOps.onAny(() => this.forceUpdate());
-    this.loadDraft();
     this.forceUpdate();
   };
   componentDidMount() {
@@ -461,7 +443,7 @@ class Component extends DCLogic {
         pick: () => this.setState({ pane: p.key }),
       })),
       isRoutes: pane === 'routes', isDistance: pane === 'distance', isSurcharges: pane === 'surcharges',
-      showPublish: role === 'admin',
+      showPublish: false,
       tCompletenessTitle: t.completenessTitle,
       tCompletenessBody: completenessBody,
       tPublish: t.publish,

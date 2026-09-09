@@ -1,6 +1,6 @@
 export { ConfirmationEmail } from "./ConfirmationEmail";
 export { PayLinkEmail, payLinkPlainText, payLinkSubject } from "./PayLinkEmail";
-export { sendConfirmation, sendPayLink, CONFIRMATION_TEMPLATE_VERSION } from "./lib/send";
+export { sendConfirmation, sendPayLink, sendRefund, CONFIRMATION_TEMPLATE_VERSION } from "./lib/send";
 export type { EmailEnv } from "./lib/send";
 export { buildInvite } from "./lib/ics";
 export type {

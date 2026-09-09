@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ops · Calendar</title>
+<!-- vt-cal-c1920 -->
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<style>
+[data-kb]{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;min-width:0;overflow:auto;align-items:start}
+[data-kb-col]{box-sizing:border-box;min-width:0;padding:12px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);display:flex;flex-direction:column;gap:10px;min-block-size:280px;transition:border-color 160ms cubic-bezier(.2,0,.2,1),background 160ms cubic-bezier(.2,0,.2,1)}
+[data-kb-col][data-over="1"]{border:2px dashed var(--vt-charcoal-900);padding:11px;background:var(--vt-grey-50)}
+[data-kb-hd]{display:flex;align-items:center;justify-content:space-between;gap:8px}
+[data-kb-count]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);color:var(--vt-text-muted)}
+[data-kb-card]{box-sizing:border-box;display:flex;align-items:flex-start;gap:8px;padding:12px 12px 12px 8px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-bg-page,var(--vt-grey-50));cursor:grab;transition:transform 160ms cubic-bezier(.2,0,.2,1),opacity 160ms cubic-bezier(.2,0,.2,1),border-color 160ms cubic-bezier(.2,0,.2,1)}
+[data-kb-card]:hover{border-color:var(--vt-charcoal-900)}
+[data-kb-card][data-dragging="1"]{opacity:.45;transform:rotate(1.5deg) scale(.97);cursor:grabbing}
+[data-kb-card] [data-grip]{margin-top:2px;color:var(--vt-text-muted);cursor:grab}
+[data-kb-body]{all:unset;box-sizing:border-box;flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:8px;text-align:start;font:inherit;color:inherit}
+[data-kb-empty]{margin:0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
+[data-kb-drop]{display:none;align-items:center;justify-content:center;min-block-size:64px;padding:10px;border:1px dashed var(--vt-charcoal-900);border-radius:var(--vt-radius-md);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)}
+[data-kb-col][data-over="1"] [data-kb-drop]{display:flex}
+[data-chip]{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;border:1px solid var(--vt-border-subtle);background:var(--vt-white);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-secondary)}
+@media (prefers-reduced-motion: reduce){
+  [data-kb-col],[data-kb-card]{transition:none}
+  [data-kb-card][data-dragging="1"]{transform:none}
+}
+</style>
+<main data-vt-cal="c1920" style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
+
+<header style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle)">
+<div style="min-width:0">
+<h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tTitle }}</h1>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSubtitle }}</p>
+</div>
+<div style="margin-inline-start:auto;display:flex;flex-wrap:wrap;align-items:center;gap:8px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="chevron-left" label="{{ tPrev }}" variant="outline" size="sm" onClick="{{ prevMonth }}" hint-size="36px,36px"></x-import>
+<span style="min-width:170px;text-align:center;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold)">{{ monthLabel }}</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="chevron-right" label="{{ tNext }}" variant="outline" size="sm" onClick="{{ nextMonth }}" hint-size="36px,36px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" onClick="{{ goToday }}" hint-size="90px,36px">{{ tToday }}</x-import>
+</div>
+</header>
+
+<div style="padding:26px 32px 48px;display:flex;flex-direction:column;gap:22px;min-width:0">
+
+<div style="border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);overflow:hidden">
+<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));background:var(--vt-grey-50);border-bottom:1px solid var(--vt-border-subtle)">
+<sc-for list="{{ weekdays }}" as="w" hint-placeholder-count="7">
+<span style="padding:11px 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted);text-align:center">{{ w.label }}</span>
+</sc-for>
+</div>
+<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr))">
+<sc-for list="{{ cells }}" as="d" hint-placeholder-count="35">
+<button type="button" onClick="{{ d.select }}" aria-pressed="{{ d.pressed }}" style="all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:6px;min-height:116px;padding:9px 10px;border-inline-end:1px solid var(--vt-border-subtle);border-block-end:1px solid var(--vt-border-subtle);background:{{ d.bg }};transition:background 140ms cubic-bezier(.2,0,.2,1)" style-hover="background:var(--vt-grey-50)">
+<span style="display:flex;align-items:center;gap:6px">
+<span style="display:grid;place-items:center;min-width:24px;height:24px;padding:0 6px;border-radius:999px;font-family:var(--vt-font-display);font-size:13px;font-weight:600;background:{{ d.numBg }};color:{{ d.numColor }}">{{ d.day }}</span>
+<span style="display:{{ d.countShow }};font-size:11px;font-weight:600;color:var(--vt-text-muted)">{{ d.count }}</span>
+</span>
+<sc-for list="{{ d.chips }}" as="c" hint-placeholder-count="2">
+<span style="display:flex;align-items:center;gap:5px;width:100%;min-width:0;padding:3px 7px;border-radius:6px;background:{{ c.bg }};color:{{ c.color }};border:{{ c.border }};font-size:11px;line-height:1.35">
+<span style="font-family:var(--vt-font-display);font-weight:700;flex:0 0 auto">{{ c.time }}</span>
+<span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.who }}</span>
+</span>
+</sc-for>
+<span style="display:{{ d.moreShow }};font-size:11px;color:var(--vt-text-muted)">{{ d.more }}</span>
+<span style="display:{{ d.unpaidShow }};font-size:11px;font-weight:600;color:var(--vt-danger)">{{ d.unpaid }}</span>
+</button>
+</sc-for>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px">
+<h2 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ dayHeading }}</h2>
+<span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ dayCountLabel }}</span>
+<div style="margin-inline-start:auto;display:flex;flex-wrap:wrap;align-items:center;gap:8px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="{{ kanbanVariant }}" icon="layout-dashboard" onClick="{{ setKanban }}" hint-size="120px,36px">{{ tKanban }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="{{ tableVariant }}" icon="list" onClick="{{ setTable }}" hint-size="110px,36px">{{ tTable }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" icon="plus" onClick="{{ startKanbanAdd }}" hint-size="160px,36px">{{ tAdd }}</x-import>
+</div>
+</div>
+<sc-if value="{{ showKanban }}" hint-placeholder-val="{{ false }}">
+<p data-hint="1" style="margin:0">{{ tDragHint }}</p>
+<div data-kb="1" data-vt-cal-kb="1">
+<sc-for list="{{ kbColumns }}" as="col" hint-placeholder-count="5">
+<div data-kb-col="1" data-status="{{ col.status }}" data-over="{{ col.over }}">
+<div data-kb-hd="1">
+<strong style="font-size:var(--vt-body-sm);font-weight:600">{{ col.label }}</strong>
+<span data-kb-count="1">{{ col.count }}</span>
+</div>
+<div data-kb-drop="1">{{ tDropHere }}</div>
+<sc-for list="{{ col.cards }}" as="r" hint-placeholder-count="0">
+<div data-kb-card="1" data-id="{{ r.id }}" data-dragging="{{ r.dragging }}" draggable="true">
+<button type="button" data-grip="1" tabindex="-1" aria-hidden="true">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="grip-vertical" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+</button>
+<div data-kb-body="1">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px">
+<strong data-vt-no-i18n="1" style="font-size:var(--vt-body-md);font-weight:600">{{ r.id }}</strong>
+<span data-chip="1">{{ r.statusLabel }}</span>
+</div>
+<p data-vt-no-i18n="1" style="margin:0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ r.when }}</p>
+<p data-vt-no-i18n="1" style="margin:0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ r.who }}</p>
+<p data-vt-no-i18n="1" style="margin:0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ r.route }}</p>
+</div>
+</div>
+</sc-for>
+<p data-kb-empty="1" style="display:{{ col.emptyShow }}">{{ tColEmpty }}</p>
+</div>
+</sc-for>
+</div>
+</sc-if>
+<dc-import name="OpsTable" rows="{{ dayRows }}" columns="{{ columns }}" fields="{{ fields }}" blank="{{ blank }}" onSave="{{ onSave }}" onDelete="{{ onDelete }}" noun="{{ tNoun }}" noun-plural="{{ tNounPlural }}" add-title="{{ tAdd }}" edit-title="{{ tEditTitle }}" delete-title="{{ tDeleteTitle }}" label-key="id" add-label="{{ tAdd }}" search-placeholder="{{ tSearch }}" search-keys="{{ searchKeys }}" empty-title="{{ tEmptyTitle }}" empty-body="{{ tEmptyBody }}" delete-body="{{ tDeleteBody }}" nested-title="{{ nestedTitle }}" nested-fields="{{ nestedFields }}" nested-blank="{{ nestedBlank }}" nested-save-label="{{ nestedSaveLabel }}" nested-target-key="{{ nestedTargetKey }}" on-nested-save="{{ onNestedSave }}" embedded="{{ tableEmbedded }}" hide-add="1" open-tick="{{ openTick }}" hint-size="100%,400px"></dc-import>
+</div>
+
+</div>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900}}">
+/* Calendar — the same bookings the board holds, laid out by the day they run.
+   Picking a day filters the table underneath, and adding from there pre-fills that
+   day, so "add a booking to Thursday" is one move rather than two screens. */
+const WD_EN = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const MON_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const T = {
+  en: { title:'Calendar', subtitle:'Every booking laid out by the day it runs',
+    prev:'Previous month', next:'Next month', today:'Today',
+    weekdays:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+    months:['January','February','March','April','May','June','July','August','September','October','November','December'],
+    colTime:'Pickup', colRef:'Ref', colRoute:'Route', colCustomer:'Customer', colVehicle:'Vehicle', colChauffeur:'Chauffeur', colStatus:'Status',
+    unassigned:'Unassigned', add:'Add a booking', search:'Reference, customer or address',
+    emptyTitle:'Nothing booked on this day', emptyBody:'Add a booking and it appears on this day and on the bookings board.',
+    deleteBody:'The booking is removed from the board and from this calendar.',
+    fRef:'Reference', fDate:'Date', fTime:'Pickup time', fCustomer:'Customer', fPickup:'Pickup address', fDropoff:'Drop-off address',
+    fClass:'Vehicle class', fPax:'Passengers', fBags:'Bags', fStatus:'Status', fChauffeur:'Chauffeur', fFlight:'Flight number', fNote:'Note',
+    hDate:'As it reads on the board, e.g. Fri 14 Aug.', hFlight:'Only for an airport pickup.',
+    none:'No chauffeur', nBookings:'bookings', nBooking:'booking',
+ notPaid:'%n not paid', noDriver:'No driver',
+    addChauffeur:'Add a chauffeur', cName:'Name', cPhone:'Phone', cLicence:'Licence',
+    editTitle:'Edit booking', deleteTitle:'Delete this booking?',
+    kanban:'Kanban', table:'Table', colEmpty:'No bookings', dropHere:'Drop here',
+    dragHint:'Drag the grip to change booking status.',
+  },
+  de: { title:'Kalender', subtitle:'Alle Buchungen nach dem Tag ihrer Fahrt',
+    prev:'Vorheriger Monat', next:'Nächster Monat', today:'Heute',
+    weekdays:['Mo','Di','Mi','Do','Fr','Sa','So'],
+    months:['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],
+    colTime:'Abholung', colRef:'Ref.', colRoute:'Route', colCustomer:'Kunde', colVehicle:'Fahrzeug', colChauffeur:'Chauffeur', colStatus:'Status',
+    unassigned:'Nicht zugewiesen', add:'Buchung hinzufügen', search:'Referenz, Kunde oder Adresse',
+    emptyTitle:'An diesem Tag ist nichts gebucht', emptyBody:'Buchung hinzufügen — sie erscheint an diesem Tag und auf dem Buchungsboard.',
+    deleteBody:'Die Buchung verschwindet vom Board und aus diesem Kalender.',
+    fRef:'Referenz', fDate:'Datum', fTime:'Abholzeit', fCustomer:'Kunde', fPickup:'Abholadresse', fDropoff:'Zieladresse',
+    fClass:'Fahrzeugklasse', fPax:'Passagiere', fBags:'Gepäck', fStatus:'Status', fChauffeur:'Chauffeur', fFlight:'Flugnummer', fNote:'Notiz',
+    hDate:'So wie auf dem Board, z. B. Fri 14 Aug.', hFlight:'Nur bei einer Flughafenabholung.',
+    none:'Kein Chauffeur', nBookings:'Buchungen', nBooking:'Buchung',
+ notPaid:'%n unbezahlt', noDriver:'Kein Fahrer',
+    addChauffeur:'Chauffeur hinzufügen', cName:'Name', cPhone:'Telefon', cLicence:'Ausweis',
+    editTitle:'Buchung bearbeiten', deleteTitle:'Diese Buchung löschen?',
+    kanban:'Kanban', table:'Tabelle', colEmpty:'Keine Buchungen', dropHere:'Hier ablegen',
+    dragHint:'Am Griff ziehen, um den Buchungsstatus zu ändern.',
+  },
+  fr: { title:'Calendrier', subtitle:'Toutes les réservations selon le jour de la course',
+    prev:'Mois précédent', next:'Mois suivant', today:'Aujourd’hui',
+    weekdays:['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'],
+    months:['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'],
+    colTime:'Prise en charge', colRef:'Réf.', colRoute:'Trajet', colCustomer:'Client', colVehicle:'Véhicule', colChauffeur:'Chauffeur', colStatus:'Statut',
+    unassigned:'Non attribuée', add:'Ajouter une réservation', search:'Référence, client ou adresse',
+    emptyTitle:'Rien de réservé ce jour-là', emptyBody:'Ajoutez une réservation : elle apparaît ce jour-là et au tableau des réservations.',
+    deleteBody:'La réservation disparaît du tableau et de ce calendrier.',
+    fRef:'Référence', fDate:'Date', fTime:'Heure de prise en charge', fCustomer:'Client', fPickup:'Adresse de départ', fDropoff:'Adresse d’arrivée',
+    fClass:'Classe de véhicule', fPax:'Passagers', fBags:'Bagages', fStatus:'Statut', fChauffeur:'Chauffeur', fFlight:'Numéro de vol', fNote:'Note',
+    hDate:'Comme au tableau, p. ex. Fri 14 Aug.', hFlight:'Uniquement pour une prise en charge à l’aéroport.',
+    none:'Aucun chauffeur', nBookings:'réservations', nBooking:'réservation',
+ notPaid:'%n non payée(s)', noDriver:'Sans chauffeur',
+    addChauffeur:'Ajouter un chauffeur', cName:'Nom', cPhone:'Téléphone', cLicence:'Permis',
+    editTitle:'Modifier la réservation', deleteTitle:'Supprimer cette réservation ?',
+    kanban:'Kanban', table:'Tableau', colEmpty:'Aucune réservation', dropHere:'Déposer ici',
+    dragHint:'Glissez la poignée pour changer le statut de la réservation.',
+  },
+  ar: { title:'التقويم', subtitle:'كل الحجوزات موزّعة على يوم تنفيذها',
+    prev:'الشهر السابق', next:'الشهر التالي', today:'اليوم',
+    weekdays:['الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت','الأحد'],
+    months:['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'],
+    colTime:'الاستقبال', colRef:'المرجع', colRoute:'المسار', colCustomer:'العميل', colVehicle:'المركبة', colChauffeur:'السائق', colStatus:'الحالة',
+    unassigned:'بلا إسناد', add:'إضافة حجز', search:'المرجع أو العميل أو العنوان',
+    emptyTitle:'لا حجوزات في هذا اليوم', emptyBody:'أضف حجزًا فيظهر في هذا اليوم وعلى لوحة الحجوزات.',
+    deleteBody:'يُحذف الحجز من اللوحة ومن هذا التقويم.',
+    fRef:'المرجع', fDate:'التاريخ', fTime:'وقت الاستقبال', fCustomer:'العميل', fPickup:'عنوان الانطلاق', fDropoff:'عنوان الوصول',
+    fClass:'فئة المركبة', fPax:'الركاب', fBags:'الحقائب', fStatus:'الحالة', fChauffeur:'السائق', fFlight:'رقم الرحلة', fNote:'ملاحظة',
+    hDate:'كما يظهر على اللوحة، مثل Fri 14 Aug.', hFlight:'لاستقبالات المطار فقط.',
+    none:'بلا سائق', nBookings:'حجوزات', nBooking:'حجز',
+ notPaid:'%n غير مدفوعة', noDriver:'بلا سائق',
+    addChauffeur:'إضافة سائق', cName:'الاسم', cPhone:'الهاتف', cLicence:'الرخصة',
+    editTitle:'تعديل الحجز', deleteTitle:'حذف هذا الحجز؟',
+    kanban:'كانبان', table:'جدول', colEmpty:'لا حجوزات', dropHere:'أفلت هنا',
+    dragHint:'اسحب المقبض لتغيير حالة الحجز.',
+  },
+};
+/* The board writes dates as "Fri 14 Aug"; the calendar has to read that back. */
+function isPaidBooking(b) {
+  if (!b) return false;
+  if (b.paid || b.paidByCard) return true;
+  const status = String(b.status || '');
+  return status === 'paid' || status === 'confirmed' || status === 'assigned' || status === 'completed';
+}
+function isUnpaidBooking(b) {
+  if (!b) return false;
+  const status = String(b.status || '');
+  if (status === 'cancelled' || status === 'refunded' || status === 'completed') return false;
+  return !isPaidBooking(b);
+}
+function hasDriver(b) {
+  return !!(b && (b.chauffeur || b.driver));
+}
+function parseDate(s, year) {
+  const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || '');
+  if (iso) return { day: parseInt(iso[3], 10), month: parseInt(iso[2], 10) - 1, year: parseInt(iso[1], 10) };
+  const m = /(\d{1,2})\s+([A-Za-z]{3})/.exec(s || '');
+  if (!m) return null;
+  const mon = MON_EN.indexOf(m[2]);
+  if (mon === -1) return null;
+  return { day: parseInt(m[1], 10), month: mon, year: year };
+}
+function labelFor(y, m, d) {
+  const dt = new Date(Date.UTC(y, m, d));
+  const dow = (dt.getUTCDay() + 6) % 7;
+  return WD_EN[dow] + ' ' + d + ' ' + MON_EN[m];
+}
+
+function zurichYmd() {
+  const p = {};
+  new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Zurich', year: 'numeric', month: 'numeric', day: 'numeric' })
+    .formatToParts(new Date()).forEach((x) => { p[x.type] = x.value; });
+  return { y: parseInt(p.year, 10), m: parseInt(p.month, 10) - 1, sel: parseInt(p.day, 10) };
+}
+
+const BSTATUS = {
+  quote: 'Quote', pending: 'Pending', paid: 'Paid', confirmed: 'Confirmed',
+  assigned: 'Assigned', completed: 'Completed', cancelled: 'Cancelled',
+  refunded: 'Refunded', 'no-show': 'No-show',
+};
+
+class Component extends DCLogic {
+  /* Open on today in Europe/Zurich. Empty until bookings exist. */
+  state = Object.assign({ lang:'en', view:'kanban', openTick:0, overStatus:'', draggingId:'' }, zurichYmd());
+  bind = () => {
+    if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
+    this._off = window.VamosOps.bookings.onChange(() => this.forceUpdate());
+    this.forceUpdate();
+  };
+  componentDidMount() {
+    this.bind();
+    this._onLocale = (e) => this.setState({ lang: e.detail.lang });
+    window.addEventListener('vamos:locale', this._onLocale);
+    if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() });
+    this._onDragStart = (e) => {
+      const card = e.target.closest && e.target.closest('[data-vt-cal-kb] [data-kb-card][data-id]');
+      if (!card) return;
+      this._dragId = card.getAttribute('data-id');
+      try {
+        e.dataTransfer.setData('text/plain', this._dragId);
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setDragImage(card, 28, 20);
+      } catch (err) {}
+      this.setState({ draggingId: this._dragId || '' });
+    };
+    this._onDragOver = (e) => {
+      const col = e.target.closest && e.target.closest('[data-vt-cal-kb] [data-kb-col][data-status]');
+      if (!col) return;
+      e.preventDefault();
+      try { e.dataTransfer.dropEffect = 'move'; } catch (err) {}
+      const status = col.getAttribute('data-status');
+      if (status && status !== this.state.overStatus) this.setState({ overStatus: status });
+    };
+    this._onDrop = (e) => {
+      const col = e.target.closest && e.target.closest('[data-vt-cal-kb] [data-kb-col][data-status]');
+      if (!col) return;
+      e.preventDefault();
+      const id = this._dragId || (e.dataTransfer && e.dataTransfer.getData('text/plain'));
+      const status = col.getAttribute('data-status');
+      this._dragId = null;
+      this.setState({ overStatus: '', draggingId: '' });
+      if (id && status) this.moveBooking(id, status);
+    };
+    this._onDragEnd = () => {
+      this._dragId = null;
+      if (this.state.overStatus || this.state.draggingId) this.setState({ overStatus: '', draggingId: '' });
+    };
+    document.addEventListener('dragstart', this._onDragStart);
+    document.addEventListener('dragover', this._onDragOver);
+    document.addEventListener('drop', this._onDrop);
+    document.addEventListener('dragend', this._onDragEnd);
+  }
+  componentWillUnmount() {
+    if (this._off) this._off();
+    if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
+    document.removeEventListener('dragstart', this._onDragStart);
+    document.removeEventListener('dragover', this._onDragOver);
+    document.removeEventListener('drop', this._onDrop);
+    document.removeEventListener('dragend', this._onDragEnd);
+    clearTimeout(this._retry);
+  }
+  setKanban = () => this.setState({ view: 'kanban' });
+  setTable = () => this.setState({ view: 'table' });
+  startKanbanAdd = () => this.setState((s) => ({ openTick: (s.openTick || 0) + 1 }));
+  moveBooking = (id, status) => {
+    const ops = window.VamosOps;
+    const allowed = ops ? ops.BOOKING_STATUS : [];
+    if (!ops || allowed.indexOf(status) === -1) return;
+    const b = ops.bookings.get(id);
+    if (!b || b.status === status) return;
+    ops.bookings.upsert(Object.assign({}, b, { status: status }));
+  };
+  step = (n) => this.setState((s) => {
+    let m = s.m + n, y = s.y;
+    if (m < 0) { m = 11; y -= 1; }
+    if (m > 11) { m = 0; y += 1; }
+    return { m, y, sel: 1 };
+  });
+
+  renderVals() {
+    const t = T[this.state.lang] || T.en;
+    const ops = window.VamosOps;
+    const all = ops ? ops.bookings.all() : [];
+    const { y, m, sel } = this.state;
+
+    const byDay = {};
+    all.forEach((b) => {
+      const d = parseDate(b.date, y);
+      if (!d || d.month !== m) return;
+      (byDay[d.day] = byDay[d.day] || []).push(b);
+    });
+    Object.keys(byDay).forEach((k) => byDay[k].sort((a, b) => (a.time || '').localeCompare(b.time || '')));
+
+    const first = new Date(Date.UTC(y, m, 1));
+    const offset = (first.getUTCDay() + 6) % 7;
+    const days = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+    const cells = [];
+    for (let i = 0; i < offset; i++) cells.push({ blank: true, key: 'b' + i });
+    for (let d = 1; d <= days; d++) cells.push({ day: d, list: byDay[d] || [] });
+
+    const chauffeurs = ops ? ops.chauffeurs.all() : [];
+    const chauffeurById = {};
+    chauffeurs.forEach((c) => { chauffeurById[c.id] = c; });
+
+    const selList = byDay[sel] || [];
+    const selLabel = labelFor(y, m, sel);
+    const chauffeurOptions = [{ value:'', label:t.none }]
+      .concat(chauffeurs.map((c) => ({ value:c.id, label:c.name })));
+    const classOptions = (ops ? ops.VEHICLE_CLASSES : []).map((c) => ({ value:c, label:c }));
+    const STATUS_DOT = { quote:'var(--vt-grey-400)', pending:'var(--vt-warning)', paid:'var(--vt-success)', confirmed:'var(--vt-success)', assigned:'var(--vt-info)', completed:'var(--vt-charcoal-700)', cancelled:'var(--vt-danger)', refunded:'var(--vt-charcoal-700)', 'no-show':'var(--vt-danger)' };
+    const statusOptions = (ops ? ops.BOOKING_STATUS : []).map((s) => ({ value:s, label: BSTATUS[s] || s, color: STATUS_DOT[s] || '' }));
+    const view = this.state.view === 'table' ? 'table' : 'kanban';
+    const showKanban = view === 'kanban';
+    const bStatuses = ['quote', 'pending', 'paid', 'confirmed', 'assigned'];
+    const kbColumns = bStatuses.map((k) => {
+      const cards = selList.filter((b) => b.status === k).map((b) => ({
+        id: b.id,
+        statusLabel: BSTATUS[k] || k,
+        when: (b.time || '') + (b.klass ? ' · ' + b.klass : ''),
+        who: b.customer || t.unassigned,
+        route: [b.pickup, b.dropoff].filter(Boolean).join(' → ') || '',
+        dragging: this.state.draggingId === b.id ? '1' : '0',
+      }));
+      return {
+        status: k,
+        label: BSTATUS[k] || k,
+        count: String(cards.length),
+        cards: cards,
+        emptyShow: cards.length ? 'none' : 'block',
+        over: this.state.overStatus === k ? '1' : '0',
+      };
+    });
+
+    return {
+      n18: 18,
+      tTitle: t.title, tSubtitle: t.subtitle, tPrev: t.prev, tNext: t.next, tToday: t.today,
+      tAdd: t.add, tSearch: t.search, tEmptyTitle: t.emptyTitle, tEmptyBody: t.emptyBody, tDeleteBody: t.deleteBody,
+      tNoun: t.nBooking, tNounPlural: t.nBookings, tEditTitle: t.editTitle, tDeleteTitle: t.deleteTitle,
+      tKanban: t.kanban, tTable: t.table, tColEmpty: t.colEmpty, tDropHere: t.dropHere, tDragHint: t.dragHint,
+      showKanban: showKanban,
+      kanbanVariant: view === 'kanban' ? '' : 'outline',
+      tableVariant: view === 'table' ? '' : 'outline',
+      setKanban: this.setKanban, setTable: this.setTable, startKanbanAdd: this.startKanbanAdd,
+      tableEmbedded: showKanban ? '1' : '',
+      openTick: this.state.openTick || 0,
+      kbColumns: kbColumns,
+      monthLabel: t.months[m] + ' ' + y,
+      weekdays: t.weekdays.map((label) => ({ label })),
+      prevMonth: () => this.step(-1),
+      nextMonth: () => this.step(1),
+      goToday: () => this.setState(zurichYmd()),
+      cells: cells.map((c) => {
+        if (c.blank) return { day:'', chips:[], countShow:'none', moreShow:'none', more:'', count:'',
+          unpaidShow:'none', unpaid:'',
+          bg:'var(--vt-grey-50)', numBg:'transparent', numColor:'transparent', pressed:'false', select: () => {} };
+        const on = c.day === sel;
+        const paid = c.list.filter(isPaidBooking);
+        const unpaidN = c.list.filter(isUnpaidBooking).length;
+        const shown = paid.slice(0, 2);
+        const rest = paid.length - shown.length;
+        return {
+          day: String(c.day),
+          count: String(paid.length),
+          countShow: paid.length ? 'inline' : 'none',
+          chips: shown.map((b) => {
+            const assigned = hasDriver(b);
+            return {
+              time: b.time,
+              who: assigned ? (b.customer || b.id) : ((b.customer || b.id) + ' · ' + t.noDriver),
+              bg: assigned ? 'var(--vt-charcoal-900)' : 'var(--vt-grey-50)',
+              color: assigned ? 'var(--vt-accent)' : 'var(--vt-text-primary)',
+              border: assigned ? '1px solid transparent' : '1px dashed var(--vt-warning)',
+            };
+          }),
+          more: '+' + rest,
+          moreShow: rest > 0 ? 'inline' : 'none',
+          unpaid: t.notPaid.replace('%n', String(unpaidN)),
+          unpaidShow: unpaidN > 0 ? 'inline' : 'none',
+          bg: on ? 'var(--vt-grey-100)' : 'var(--vt-bg-surface)',
+          numBg: on ? 'var(--vt-charcoal-900)' : 'transparent',
+          numColor: on ? 'var(--vt-accent)' : 'var(--vt-text-primary)',
+          pressed: on ? 'true' : 'false',
+          select: () => this.setState({ sel: c.day }),
+        };
+      }),
+      dayHeading: selLabel,
+      dayCountLabel: selList.length + ' ' + (selList.length === 1 ? t.nBooking : t.nBookings),
+      dayRows: selList,
+      columns: [
+        { key:'time', header:t.colTime, width:'96px', kind:'mono' },
+        { key:'id', header:t.colRef, width:'104px', kind:'mono' },
+        { key:'customer', header:t.colCustomer, width:'150px' },
+        { key:'pickup', header:t.colRoute, kind:'stack', subKey:'dropoff' },
+        { key:'klass', header:t.colVehicle, width:'112px' },
+        { key:'chauffeur', header:t.colChauffeur, width:'150px', kind:'need', emptyLabel:t.unassigned,
+          lookup:(r) => (chauffeurById[r.chauffeur] ? chauffeurById[r.chauffeur].name : '') },
+        { key:'status', header:t.colStatus, width:'156px', kind:'badge', status:true },
+      ],
+      fields: [
+        { key:'id', label:t.fRef, half:true, required:true, placeholder:'VT-0000' },
+        { key:'customer', label:t.fCustomer, half:true },
+        { key:'date', label:t.fDate, editor:'date', half:true, required:true },
+        { key:'time', label:t.fTime, editor:'time', half:true, placeholder:'00:00' },
+        { key:'pickup', label:t.fPickup },
+        { key:'dropoff', label:t.fDropoff },
+        { key:'klass', label:t.fClass, editor:'select', options:classOptions, icon:'car', half:true },
+        { key:'status', label:t.fStatus, editor:'select', options:statusOptions, icon:'settings', half:true },
+        { key:'pax', label:t.fPax, editor:'number', min:1, half:true },
+        { key:'bags', label:t.fBags, editor:'number', min:0, half:true },
+        { key:'chauffeur', label:t.fChauffeur, editor:'select', options:chauffeurOptions, icon:'user', half:true, addLabel:t.addChauffeur, emptyLabel:t.none },
+        { key:'flight', label:t.fFlight, half:true, hint:t.hFlight },
+        { key:'note', label:t.fNote, editor:'area' },
+      ],
+      searchKeys: ['id','customer','pickup','dropoff'],
+      blank: () => Object.assign(ops ? ops.bookings.blank() : {}, { date: selLabel }),
+      onSave: (rec) => { if (ops) ops.bookings.upsert(rec); },
+      onDelete: (id) => { if (ops) ops.bookings.remove(id); },
+      nestedTitle: t.addChauffeur,
+      nestedSaveLabel: t.addChauffeur,
+      nestedTargetKey: 'chauffeur',
+      nestedFields: [
+        { key:'name', label:t.cName, half:true, required:true },
+        { key:'phone', label:t.cPhone, half:true, placeholder:'+41 00 000 00 00' },
+        { key:'licence', label:t.cLicence, half:true },
+        { key:'status', label:t.fStatus, editor:'select', options:(ops ? ops.CHAUFFEUR_STATUS : []).map((s) => ({ value:s, label:s })), icon:'user', half:true },
+      ],
+      nestedBlank: () => (ops ? ops.chauffeurs.blank() : {}),
+      onNestedSave: (rec) => { if (ops) ops.chauffeurs.upsert(rec); },
+    };
+  }
+}
+</script>
+</body>
+</html>

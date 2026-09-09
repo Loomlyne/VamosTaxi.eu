@@ -534,13 +534,20 @@ class Component extends DCLogic {
       requestAnimationFrame(() => this.scrollThread());
     });
   };
+  persistTicket = (id, payload) => {
+    const api = window.VamosOpsApi;
+    if (!api || typeof api.request !== 'function' || !id) return;
+    api.request('PATCH', '/api/staff/tickets/' + id, payload);
+  };
   openTicket = (id) => {
     if (this._dragMoved) { this._dragMoved = false; return; }
+    const current = this.state.tickets.find((t) => t.id === id);
     const tickets = this.state.tickets.map((t) => t.id === id && t.status === 'new' ? Object.assign({}, t, { status: 'open' }) : t);
     this.setState({ openId: id, draft: '', tickets: tickets, metaOpen: !opsHand() }, () => {
       requestAnimationFrame(() => this.scrollThread());
     });
     publishBadge(tickets);
+    if (current && current.status === 'new') this.persistTicket(id, { status: 'open' });
   };
   openRow = (row) => { if (row && row.id) this.openTicket(row.id); };
   closeOverlay = () => this.setState({ openId: null, draft: '' });
@@ -552,9 +559,13 @@ class Component extends DCLogic {
   moveTicket = (id, status) => {
     const next = STATUSES.indexOf(status) === -1 ? null : status;
     if (!next) return;
+    const current = this.state.tickets.find((t) => t.id === id);
+    if (current && current.status === 'closed' && next !== 'closed') return;
+    if (next === 'new' && current && current.status !== 'new') return;
     const tickets = this.state.tickets.map((t) => t.id === id ? Object.assign({}, t, { status: next, last: stamp() }) : t);
     this.setState({ tickets: tickets });
     publishBadge(tickets);
+    this.persistTicket(id, { status: next });
   };
   setStatus = (status) => {
     if (!this.state.openId) return;
@@ -568,6 +579,8 @@ class Component extends DCLogic {
     const body = String(this.state.draft || '').trim();
     const id = this.state.openId;
     if (!body || !id) return;
+    const current = this.state.tickets.find((t) => t.id === id);
+    if (current && current.status === 'closed') return;
     const now = stamp();
     const tickets = this.state.tickets.map((t) => {
       if (t.id !== id || t.status === 'closed') return t;
@@ -581,6 +594,7 @@ class Component extends DCLogic {
       requestAnimationFrame(() => this.scrollThread());
     });
     publishBadge(tickets);
+    this.persistTicket(id, { status: 'replied', reply: body });
   };
   renderVals() {
     const t = T[this.state.lang] || T.en;

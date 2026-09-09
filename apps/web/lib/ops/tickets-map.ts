@@ -4,6 +4,15 @@
 
 const STATUSES = new Set(["new", "open", "replied", "closed"]);
 
+export type TicketStatus = "new" | "open" | "replied" | "closed";
+
+export function nextTicketStatus(current: TicketStatus, requested: TicketStatus): TicketStatus | null {
+  if (current === requested) return current;
+  if (current === "closed") return null;
+  if (requested === "new") return null;
+  return requested;
+}
+
 export type OpsTicketMessage = {
   whoKey: "customer" | "staff" | "note";
   when: string;
@@ -77,7 +86,7 @@ export function zurichStamp(value: string | Date): string {
 function whoKey(direction: string | null): OpsTicketMessage["whoKey"] {
   const value = str(direction).toLowerCase();
   if (value === "note" || value === "staff_note") return "note";
-  if (value === "outbound" || value === "staff" || value === "reply") return "staff";
+  if (value === "outbound" || value === "outbound_staff" || value === "staff" || value === "reply") return "staff";
   return "customer";
 }
 

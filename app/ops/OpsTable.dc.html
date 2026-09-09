@@ -265,8 +265,12 @@
 
 <sc-if value="{{ hasHistory }}" hint-placeholder-val="{{ false }}">
 <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--vt-border-subtle)">
-<span style="display:block;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ historyLabel }}</span>
-<div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;max-height:360px;overflow-y:auto">
+<button type="button" onClick="{{ toggleHistory }}" aria-expanded="{{ historyOpen }}" style="all:unset;box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;cursor:pointer;font:inherit;color:inherit">
+<span style="flex:1 1 auto;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ historyLabel }}</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ historyChevron }}" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
+</button>
+<sc-if value="{{ historyOpen }}" hint-placeholder-val="{{ true }}">
+<div data-lenis-prevent="1" data-scroll-native="1" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;max-height:360px;overflow-y:auto;overscroll-behavior:contain">
 <sc-for list="{{ historyList }}" as="h" hint-placeholder-count="3">
 <button type="button" onClick="{{ h.open }}" style="box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-grey-50);width:100%;text-align:start;cursor:pointer;font:inherit;color:inherit">
 <span style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 auto">
@@ -282,6 +286,7 @@
 <span style="font-size:12px;color:var(--vt-text-muted)">{{ historyEmptyLabel }}</span>
 </sc-if>
 </div>
+</sc-if>
 </div>
 </sc-if>
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:20px;padding-top:18px;border-top:1px solid var(--vt-border-subtle)">
@@ -428,7 +433,7 @@ const FIELD_ICONS = {
 };
 
 class Component extends DCLogic {
-  state = { q: '', draft: null, isNew: false, errors: {}, confirm: null, filters: {}, filterCol: null, closeAttempted: false, historyOpen: false, nested: null, nestedErrors: {}, sug: null, dateOpen: null };
+  state = { q: '', draft: null, isNew: false, errors: {}, confirm: null, filters: {}, filterCol: null, closeAttempted: false, historyOpen: true, nested: null, nestedErrors: {}, sug: null, dateOpen: null };
   lockScroll = () => { try { document.body.style.overflow = 'hidden'; } catch (e) {} };
   unlockScroll = () => { try { document.body.style.overflow = ''; } catch (e) {} };
   _sugPopRef = (el) => { this._sugPop = el; };
@@ -644,13 +649,13 @@ class Component extends DCLogic {
     const blank = this.props.blank ? this.props.blank() : {};
     this._original = JSON.stringify(blank);
     this.lockScroll();
-    this.setState({ draft: blank, isNew: true, errors: {}, closeAttempted: false, historyOpen: false, sug: null });
+    this.setState({ draft: blank, isNew: true, errors: {}, closeAttempted: false, historyOpen: true, sug: null });
   };
   startEdit = (row) => {
     const copy = {}; for (const k in row) copy[k] = row[k];
     this._original = JSON.stringify(copy);
     this.lockScroll();
-    this.setState({ draft: copy, isNew: false, errors: {}, closeAttempted: false, historyOpen: false, sug: null });
+    this.setState({ draft: copy, isNew: false, errors: {}, closeAttempted: false, historyOpen: true, sug: null });
   };
   closeEditor = () => { this.unlockScroll(); this.setState({ draft: null, errors: {}, closeAttempted: false, sug: null, dateOpen: null }); };
   isDirty = () => {

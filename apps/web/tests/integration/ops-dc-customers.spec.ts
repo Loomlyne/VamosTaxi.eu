@@ -92,9 +92,11 @@ test.describe("GET /api/staff/customers @ops-dc-customers", () => {
     const item = readWeb("app/[locale]/(ops)/api/staff/bookings/[id]/route.ts");
     const pub = readWeb("app/api/staff/bookings/[id]/route.ts");
     const write = readWeb("lib/ops/bookings-write.ts");
-    expect(item).toMatch(/export async function PATCH/);
-    expect(item).toMatch(/export async function DELETE/);
+    expect(item).toMatch(/export const PATCH/);
+    expect(item).toMatch(/export const DELETE/);
     expect(item).toMatch(/cancelBooking/);
+    expect(item).toMatch(/markRefunded/);
+    expect(item).toMatch(/updateBooking/);
     expect(item).toMatch(/eraseBooking/);
     expect(write).toMatch(/status = 'cancelled'/);
     expect(write).toMatch(/erased_at = now\(\)/);
@@ -107,8 +109,10 @@ test.describe("GET /api/staff/customers @ops-dc-customers", () => {
     expect(html).toBe(twin);
     expect(html).toMatch(/openCancel/);
     expect(html).toMatch(/confirmCancel/);
-    expect(html).toMatch(/bookings\.update/);
     expect(html).toMatch(/status: 'cancelled'/);
+    expect(html).toMatch(/openEdit/);
+    expect(html).toMatch(/saveEdit/);
+    expect(html).not.toMatch(/vamosOpsEdit/);
     expect(html).not.toMatch(/tabItems: \[t\.details, t\.history\]/);
     expect(html).not.toMatch(/isHistory/);
   });

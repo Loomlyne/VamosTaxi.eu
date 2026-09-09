@@ -214,6 +214,8 @@ async function resolveVersionId(
   const parsed = optionalId(raw) ?? asInt(raw);
   if (parsed != null && parsed > 0) return parsed;
   const versions = await loadRateVersions(env, claims);
+  const live = versions.find((row) => row.status === "live");
+  if (live) return live.id;
   const draft = versions.find((row) => row.status === "draft");
   return draft ? draft.id : null;
 }

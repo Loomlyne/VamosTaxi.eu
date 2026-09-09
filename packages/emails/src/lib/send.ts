@@ -11,9 +11,10 @@
 import { Resend } from "resend";
 import { ConfirmationEmail } from "../ConfirmationEmail";
 import { PayLinkEmail, payLinkPlainText, payLinkSubject } from "../PayLinkEmail";
+import { renderRefundEmail, type RefundKind } from "../refund";
 import { buildInvite } from "./ics";
 import { renderConfirmation } from "./render";
-import type { BookingForEmail, PayLinkForEmail, SendOutcome } from "./types";
+import type { BookingForEmail, EmailLocale, PayLinkForEmail, SendOutcome } from "./types";
 
 /**
  * Bump the trailing serial when rendered content changes; bump the date
@@ -103,6 +104,50 @@ export async function sendPayLink(
     return { ok: true, providerMessageId: id };
   } catch (err) {
     const message = err instanceof Error ? err.message : "sendPayLink failed";
+    return { ok: false, error: message };
+  }
+}
+
+export async function sendRefund(
+  env: EmailEnv,
+  input: {
+    locale: EmailLocale;
+    kind: RefundKind;
+    to: string;
+    name: string;
+    reference: string;
+  },
+): Promise<SendOutcome> {
+  try {
+    if (!env.RESEND_API_KEY) {
+      return { ok: false, error: "RESEND_API_KEY is not bound" };
+    }
+    const to = input.to.trim().toLowerCase();
+    if (!to) {
+      return { ok: false, error: "no refund recipient" };
+    }
+    const rendered = renderRefundEmail(input.locale, input.kind, {
+      name: input.name,
+      reference: input.reference,
+    });
+    const resend = new Resend(env.RESEND_API_KEY);
+    const result = await resend.emails.send({
+      from: FROM,
+      to,
+      subject: rendered.subject,
+      html: rendered.html,
+      text: rendered.text,
+    });
+    if (result.error) {
+      return { ok: false, error: result.error.message };
+    }
+    const id = result.data?.id;
+    if (!id) {
+      return { ok: false, error: "Resend returned no id" };
+    }
+    return { ok: true, providerMessageId: id };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "sendRefund failed";
     return { ok: false, error: message };
   }
 }

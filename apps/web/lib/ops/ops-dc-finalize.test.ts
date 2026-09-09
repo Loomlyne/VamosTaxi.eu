@@ -32,15 +32,12 @@ describe("Phase 6 finalize — four classes and staff hash", () => {
     expect(fleet).toMatch(/'Economy', 'Business', 'First', 'Van'/);
   });
 
-  it("Staff rail goes to #staff and hides company save on that pane", () => {
+  it("Support rail goes to #support and Staff stays gone", () => {
     const sidebar = read("app/ops/OpsSidebar.dc.html");
-    const settings = read("app/ops/OpsSettings.dc.html");
     const shell = read("app/ops/ops.dc.html");
-    expect(sidebar).toMatch(/href:'#staff'/);
-    expect(settings).toMatch(/location\.hash = '#staff'/);
-    expect(settings).toMatch(/actionsShow: pane === 'staff' \? 'none' : 'flex'/);
-    expect(shell).toMatch(/'staff'/);
-    expect(shell).toMatch(/isSettings: r === 'settings' \|\| r === 'staff'/);
+    expect(sidebar).toMatch(/href:'#support'/);
+    expect(sidebar).not.toMatch(/href:'#staff'/);
+    expect(shell).toMatch(/isSupport: r === 'support'/);
   });
 
   it("fleet photo is a chooser, chauffeur association, nested add-chauffeur", () => {
@@ -62,7 +59,7 @@ describe("Phase 6 finalize — four classes and staff hash", () => {
     const table = read("app/ops/OpsTable.dc.html");
     const brand = read("app/ops/BrandSelect.dc.html");
     expect(table).toMatch(/f\.editor === 'date'/);
-    expect(table).toMatch(/type="date"/);
+    expect(table).toMatch(/toggleDate|dateOpen/);
     expect(brand).toMatch(/isoCur|data-vt-no-i18n/);
   });
 

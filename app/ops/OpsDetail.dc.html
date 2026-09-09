@@ -8,19 +8,18 @@
 </head>
 <body>
 <x-dc>
-<main style="flex:1 1 auto;min-width:0;padding:26px 32px 40px;display:flex;flex-direction:column;gap:16px;max-width:760px">
-<a href="#bookings" style="display:inline-flex;align-items:center;gap:6px;color:var(--vt-text-secondary);font-size:var(--vt-body-sm);text-decoration:none;border:0">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-left" size="{{ n16 }}" color="var(--vt-text-secondary)" hint-size="16px,16px"></x-import>{{ tBackToBookings }}
-</a>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" hint-size="100%,600px">
-<div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:16px">
+<main style="flex:1 1 auto;min-width:0;padding:22px 28px 48px;display:flex;flex-direction:column;gap:14px;max-width:880px">
 <div>
-<span style="font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:700;letter-spacing:.02em">{{ booking.id }}</span>
-<p style="margin:2px 0 0;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ booking.channel }} · {{ tBookedBy }} {{ booking.customer }}</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" icon="chevron-left" onClick="{{ goBack }}" hint-size="auto,36px">{{ tBackToBookings }}</x-import>
 </div>
-<div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" hint-size="100%,600px">
+<div style="display:flex;align-items:flex-start;gap:12px;padding-bottom:16px;border-bottom:1px solid var(--vt-border-subtle)">
+<div style="min-width:0">
+<span style="font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:700;letter-spacing:.02em">{{ booking.id }}</span>
+<p style="margin:4px 0 0;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tBookedBy }} {{ booking.customer }}</p>
+</div>
+<div style="margin-left:auto;display:flex;gap:6px;align-items:center;flex:0 0 auto">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StatusBadge" status="{{ booking.status }}" hint-size="110px,24px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="ellipsis" label="{{ tMoreActions }}" size="sm" hint-size="32px,32px"></x-import>
 </div>
 </div>
 
@@ -47,6 +46,22 @@
 
 <div>
 <h3 style="margin:0 0 12px;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:600;color:var(--vt-text-muted)">{{ tPassengerTrip }}</h3>
+<sc-if value="{{ editing }}" hint-placeholder-val="{{ false }}">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tCustomer }}" value="{{ edit.customer }}" onChange="{{ setEditCustomer }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tEmail }}" value="{{ edit.email }}" onChange="{{ setEditEmail }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tMobile }}" value="{{ edit.phone }}" onChange="{{ setEditPhone }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tVehicleClass }}" value="{{ edit.klass }}" onChange="{{ setEditKlass }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tPickup }}" value="{{ edit.pickup }}" onChange="{{ setEditPickup }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tDropoff }}" value="{{ edit.dropoff }}" onChange="{{ setEditDropoff }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tDate }}" value="{{ edit.dateIso }}" onChange="{{ setEditDate }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tTime }}" value="{{ edit.time }}" onChange="{{ setEditTime }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tPassengers }}" value="{{ edit.pax }}" onChange="{{ setEditPax }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tBagsLabel }}" value="{{ edit.bags }}" onChange="{{ setEditBags }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tFlight }}" value="{{ edit.flight }}" onChange="{{ setEditFlight }}" hint-size="100%,76px"></x-import>
+</div>
+</sc-if>
+<sc-if value="{{ viewing }}" hint-placeholder-val="{{ true }}">
 <div style="display:grid;grid-template-columns:132px 1fr;gap:8px 14px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm)">
 <span style="color:var(--vt-text-muted)">{{ tPassengers }}</span><span>{{ booking.pax }} · {{ booking.bags }} {{ tBags }}</span>
 <span style="color:var(--vt-text-muted)">{{ tVehicleClass }}</span><span>{{ booking.vehicle }}</span>
@@ -57,6 +72,7 @@
 <span style="color:var(--vt-text-muted)">{{ tPayLink }}</span><span>{{ booking.payLink }}</span>
 <span style="color:var(--vt-text-muted)">{{ tSession }}</span><span>{{ booking.sessionLeft }}</span>
 </div>
+</sc-if>
 </div>
 
 <div>
@@ -70,14 +86,26 @@
 <sc-if value="{{ isCancelled }}" hint-placeholder-val="{{ false }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ tRefundTitle }}" hint-size="100%,70px">{{ tRefundBody }}</x-import>
 </sc-if>
+<sc-if value="{{ isRefunded }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="success" title="{{ tRefundedTitle }}" hint-size="100%,70px">{{ tRefundedBody }}</x-import>
+</sc-if>
 
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ tDispatcherNote }}" rows="{{ n2 }}" placeholder="{{ tDispatcherNotePh }}" hint-size="100%,90px"></x-import>
 
 <div style="display:flex;gap:10px;flex-wrap:wrap">
+<sc-if value="{{ viewing }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="secondary" icon="mail" onClick="{{ resendVoucher }}" hint-size="170px,36px">{{ tResendVoucher }}</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="pencil" onClick="{{ openEdit }}" hint-size="140px,36px">{{ tEditBooking }}</x-import>
 <sc-if value="{{ canCancel }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="danger" icon="x" onClick="{{ openCancel }}" hint-size="110px,36px">{{ tCancelBooking }}</x-import>
+</sc-if>
+<sc-if value="{{ isCancelled }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ markRefund }}" hint-size="200px,36px">{{ tMarkRefund }}</x-import>
+</sc-if>
+</sc-if>
+<sc-if value="{{ editing }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ saveEdit }}" hint-size="150px,36px">{{ tSaveEdit }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ cancelEdit }}" hint-size="110px,36px">{{ tCancelEdit }}</x-import>
 </sc-if>
 </div>
 </div>
@@ -133,7 +161,8 @@ const T = {
     passengerTrip:'Passenger & trip', passengers:'Passengers', bags:'bags', vehicleClass:'Vehicle class', flight:'Flight', email:'Email', mobile:'Mobile', payment:'Payment', payLink:'Pay-link', session:'Session',
     fare:'Fare', due:'Due', paid:'Paid', fareNote:'Price snapshot taken at booking; later rule changes do not alter it.',
     outstandingTitle:'Payment outstanding', outstandingBody:'No card capture yet. Send a pay-link or wait for the checkout session to finish.',
-    refundTitle:'Refund due', refundBody:'Cancelled inside the free window — issue the refund in Stripe and record it here.',
+    refundTitle:'Refund due', refundBody:'Cancelled inside the free window. The customer is emailed that a refund will be issued to their bank account. When you mark it issued, they get a second email.',
+    refundedTitle:'Refund issued', refundedBody:'The customer has been emailed that the refund was issued to their bank account.',
     dispatcherNote:'Dispatcher note', dispatcherNotePh:'Add a note visible to dispatch only…',
     resendVoucher:'Resend voucher', editBooking:'Edit booking', cancelBooking:'Cancel', driver:'Driver', manualNote:'Assignment is manual in V1 — there is no driver app and no automatic dispatch.', cancel:'Cancel',
     cancelTitle:'Cancel this booking?', cancelBody:'It is marked cancelled. You will still see it under Cancelled.',
@@ -142,13 +171,16 @@ const T = {
     evQuote:'Quote created', evPayment:'Payment captured', evVoucher:'Voucher sent', evAssigned:'Driver assigned',
     website:'Website', stripeWebhook:'Stripe webhook', resend:'Resend', dispatch:'Dispatch',
     lineTransfer:'Transfer, ', lineAirportFee:'Airport pickup fee',
+    saveEdit:'Save changes', cancelEdit:'Cancel', markRefund:'Mark refund issued',
+    customer:'Name', pickup:'Pickup', dropoff:'Destination', date:'Date', time:'Time', bagsLabel:'Bags',
   },
   de: { backToBookings:'Zurück zu Buchungen', bookedBy:'gebucht von', moreActions:'Weitere Aktionen', details:'Details', history:'Verlauf',
     assignment:'Zuweisung', assign:'Fahrer zuweisen', reassign:'Neu zuweisen', onShift:'Im Dienst', noDriver:'Kein Fahrer zugewiesen', noDriverSub:'Vor der Abholerinnerung zuweisen',
     passengerTrip:'Passagier & Fahrt', passengers:'Passagiere', bags:'Gepäck', vehicleClass:'Fahrzeugklasse', flight:'Flug', email:'E-Mail', mobile:'Mobil', payment:'Zahlung', payLink:'Zahlungslink', session:'Session',
     fare:'Fahrpreis', due:'Offen', paid:'Bezahlt', fareNote:'Preis-Snapshot bei Buchung; spätere Regeländerungen ändern ihn nicht.',
     outstandingTitle:'Zahlung ausstehend', outstandingBody:'Keine Kartenzahlung. Zahlungslink senden oder die Checkout-Session abwarten.',
-    refundTitle:'Rückerstattung fällig', refundBody:'Innerhalb der Frist storniert — Rückerstattung in Stripe ausführen und hier vermerken.',
+    refundTitle:'Rückerstattung fällig', refundBody:'Storniert innerhalb des kostenlosen Fensters. Der Kunde erhält eine E-Mail, dass die Rückerstattung auf sein Bankkonto ausgezahlt wird. Wenn Sie sie als ausgezahlt markieren, folgt eine zweite E-Mail.',
+    refundedTitle:'Rückerstattung ausgezahlt', refundedBody:'Der Kunde wurde per E-Mail informiert, dass die Rückerstattung auf sein Bankkonto ausgezahlt wurde.',
     dispatcherNote:'Dispatcher-Notiz', dispatcherNotePh:'Notiz hinzufügen, nur für Dispatch sichtbar…',
     resendVoucher:'Gutschein erneut senden', editBooking:'Buchung bearbeiten', cancelBooking:'Stornieren', driver:'Fahrer', manualNote:'Die Zuweisung erfolgt in V1 manuell — es gibt keine Fahrer-App und keine automatische Vermittlung.', cancel:'Abbrechen',
     cancelTitle:'Diese Buchung stornieren?', cancelBody:'Sie wird als storniert markiert. Unter Storniert bleibt sie sichtbar.',
@@ -157,10 +189,12 @@ const T = {
     evQuote:'Angebot erstellt', evPayment:'Zahlung erfasst', evVoucher:'Gutschein gesendet', evAssigned:'Fahrer zugewiesen',
     website:'Website', stripeWebhook:'Stripe-Webhook', resend:'Resend', dispatch:'Dispatch',
     lineTransfer:'Transfer, ', lineAirportFee:'Flughafengebühr',
+    saveEdit:'Änderungen speichern', cancelEdit:'Abbrechen', markRefund:'Rückerstattung als ausgezahlt markieren',
+    customer:'Name', pickup:'Abholung', dropoff:'Ziel', date:'Datum', time:'Uhrzeit', bagsLabel:'Gepäck',
   },
 };
 class Component extends DCLogic {
-  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', dialogOpen:false, cancelOpen:false, pickDriver:'', assigned:{}, toastMsg:'', showToast:false };
+  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', dialogOpen:false, cancelOpen:false, pickDriver:'', assigned:{}, toastMsg:'', showToast:false, editing:false, edit:{} };
   componentDidUpdate(prevProps, prevState) {
     const overlay = !!(this.state.dialogOpen || this.state.cancelOpen);
     const was = !!(prevState.dialogOpen || prevState.cancelOpen);
@@ -188,6 +222,23 @@ class Component extends DCLogic {
     return found || EMPTY_BOOKING;
   }
   notify = (msg) => { this.setState({ toastMsg: msg, showToast: true }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ showToast: false }), 3600); };
+  setEditField = (key) => (e) => {
+    const value = e && e.target ? e.target.value : e;
+    this.setState((s) => ({ edit: Object.assign({}, s.edit, { [key]: value }) }));
+  };
+  snapshotEdit = (booking) => ({
+    customer: booking.customer || '',
+    email: booking.email || '',
+    phone: booking.phone || '',
+    klass: booking.vehicle || booking.klass || '',
+    pickup: booking.pickup || '',
+    dropoff: booking.dropoff || '',
+    dateIso: booking.dateIso || '',
+    time: booking.time || '',
+    pax: String(booking.pax ?? ''),
+    bags: String(booking.bags ?? ''),
+    flight: booking.flight || '',
+  });
   renderVals() {
     const t = T[this.state.lang] || T.en;
     const booking = Object.assign({}, this.getBooking());
@@ -218,6 +269,7 @@ class Component extends DCLogic {
     return {
       n2:2, n15:15, n16:16, yes:true,
       tBackToBookings: t.backToBookings, tMoreActions: t.moreActions, tBookedBy: t.bookedBy,
+      goBack: () => { location.hash = '#bookings'; },
       booking,
       routeMeta,
       tAssignment: t.assignment,
@@ -230,13 +282,53 @@ class Component extends DCLogic {
       tPassengerTrip: t.passengerTrip, tPassengers: t.passengers, tBags: t.bags, tVehicleClass: t.vehicleClass,
       tFlight: t.flight, tEmail: t.email, tMobile: t.mobile, tPayment: t.payment, tPayLink: t.payLink, tSession: t.session,
       tFare: t.fare, fareLines, tTotalLabel: booking.paid ? t.paid : t.due, tFareNote: t.fareNote,
-      isPending: !booking.paid && !cancelled, isCancelled: booking.status === 'cancelled',
+      isPending: !booking.paid && !cancelled, isCancelled: booking.status === 'cancelled', isRefunded: booking.status === 'refunded',
       tOutstandingTitle: t.outstandingTitle, tOutstandingBody: t.outstandingBody, tRefundTitle: t.refundTitle, tRefundBody: t.refundBody,
+      tRefundedTitle: t.refundedTitle, tRefundedBody: t.refundedBody,
       tDispatcherNote: t.dispatcherNote, tDispatcherNotePh: t.dispatcherNotePh,
       tResendVoucher: t.resendVoucher, tEditBooking: t.editBooking, tCancelBooking: t.cancelBooking,
-      openEdit: () => {
-        try { sessionStorage.setItem('vamosOpsEdit', booking.id); } catch (e) {}
-        location.hash = '#bookings';
+      tSaveEdit: t.saveEdit, tCancelEdit: t.cancelEdit, tMarkRefund: t.markRefund,
+      tCustomer: t.customer, tPickup: t.pickup, tDropoff: t.dropoff, tDate: t.date, tTime: t.time, tBagsLabel: t.bagsLabel,
+      editing: !!this.state.editing, viewing: !this.state.editing,
+      edit: this.state.edit || {},
+      setEditCustomer: this.setEditField('customer'),
+      setEditEmail: this.setEditField('email'),
+      setEditPhone: this.setEditField('phone'),
+      setEditKlass: this.setEditField('klass'),
+      setEditPickup: this.setEditField('pickup'),
+      setEditDropoff: this.setEditField('dropoff'),
+      setEditDate: this.setEditField('dateIso'),
+      setEditTime: this.setEditField('time'),
+      setEditPax: this.setEditField('pax'),
+      setEditBags: this.setEditField('bags'),
+      setEditFlight: this.setEditField('flight'),
+      openEdit: () => this.setState({ editing: true, edit: this.snapshotEdit(booking) }),
+      cancelEdit: () => this.setState({ editing: false, edit: {} }),
+      saveEdit: () => {
+        const id = booking.bookingId || booking.id;
+        const client = window.VamosOpsApi;
+        const ops = window.VamosOps;
+        const draft = this.state.edit || {};
+        if (!client || typeof client.request !== 'function') return;
+        client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), {
+          customer: draft.customer, email: draft.email, phone: draft.phone, klass: draft.klass,
+          pickup: draft.pickup, dropoff: draft.dropoff, dateIso: draft.dateIso, time: draft.time,
+          pax: Number(draft.pax), bags: Number(draft.bags), flight: draft.flight,
+        }).then((json) => {
+          if (json && json.ok) {
+            if (ops) ops.bookings.reset();
+            this.setState({ editing: false, edit: {} });
+          }
+        });
+      },
+      markRefund: () => {
+        const id = booking.bookingId || booking.id;
+        const client = window.VamosOpsApi;
+        const ops = window.VamosOps;
+        if (!client || typeof client.request !== 'function') return;
+        client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { status: 'refunded' }).then((json) => {
+          if (json && json.ok && ops) ops.bookings.reset();
+        });
       },
       canCancel: !cancelled && booking.status !== 'completed',
       openCancel: () => this.setState({ cancelOpen: true }),
