@@ -1,2 +1,2 @@
 export const dynamic = "force-dynamic";
-export { GET } from "../../../../[locale]/(ops)/api/staff/customers/[id]/route";
+export { GET, DELETE } from "../../../../[locale]/(ops)/api/staff/customers/[id]/route";

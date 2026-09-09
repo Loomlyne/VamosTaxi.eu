@@ -1,11 +1,11 @@
 // apps/web/app/[locale]/(ops)/api/staff/customers/[id]/route.ts
 //
-// GET /api/staff/customers/:id — one customer + booking history (OPS-07).
-// Dual-mounted at app/api/staff/customers/[id]. History is display-only:
-// no assign / refund / confirm fields and no PATCH (D-26, Phase 8).
+// GET /api/staff/customers/:id — one customer + booking history.
+// DELETE /api/staff/customers/:id — tombstone. Dual-mounted at
+// app/api/staff/customers/[id].
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { loadCustomerHistory, type CustomerRow } from "@/lib/ops/customers";
+import { eraseCustomer, loadCustomerHistory, type CustomerRow } from "@/lib/ops/customers";
 import { jsonErr, jsonOk, withStaff } from "@/lib/ops/staff-json";
 
 export const dynamic = "force-dynamic";
@@ -41,5 +41,19 @@ export async function GET(
       customer: toOpsCustomer(history.customer),
       bookings: history.bookings,
     });
+  })(request);
+}
+
+export async function DELETE(
+  request: Request,
+  context: { params: Promise<{ id: string }> },
+): Promise<Response> {
+  const { id } = await context.params;
+  return withStaff(async (claims) => {
+    if (!id) return jsonErr("not-found", 404);
+    const { env } = getCloudflareContext();
+    const erased = await eraseCustomer(env, claims, id);
+    if (!erased) return jsonErr("not-found", 404);
+    return jsonOk({ id });
   })(request);
 }

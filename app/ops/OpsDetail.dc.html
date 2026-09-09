@@ -23,9 +23,7 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="ellipsis" label="{{ tMoreActions }}" size="sm" hint-size="32px,32px"></x-import>
 </div>
 </div>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Tabs" variant="underline" value="{{ tab }}" onChange="{{ setTab }}" items="{{ tabItems }}" hint-size="100%,44px"></x-import>
 
-<sc-if value="{{ isDetails }}" hint-placeholder-val="{{ true }}">
 <div style="margin-top:20px;display:flex;flex-direction:column;gap:20px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.RouteSummary" pickup="{{ booking.pickup }}" dropoff="{{ booking.dropoff }}" meta="{{ routeMeta }}" hint-size="100%,140px"></x-import>
 
@@ -78,25 +76,11 @@
 <div style="display:flex;gap:10px;flex-wrap:wrap">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="secondary" icon="mail" onClick="{{ resendVoucher }}" hint-size="170px,36px">{{ tResendVoucher }}</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="pencil" hint-size="140px,36px">{{ tEditBooking }}</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="danger" icon="x" hint-size="110px,36px">{{ tCancelBooking }}</x-import>
-</div>
-</div>
+<sc-if value="{{ canCancel }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="danger" icon="x" onClick="{{ openCancel }}" hint-size="110px,36px">{{ tCancelBooking }}</x-import>
 </sc-if>
-
-<sc-if value="{{ isHistory }}" hint-placeholder-val="{{ false }}">
-<div style="margin-top:20px;display:flex;flex-direction:column;gap:16px">
-<sc-for list="{{ events }}" as="ev" hint-placeholder-count="4">
-<div style="display:grid;grid-template-columns:30px 1fr;gap:12px">
-<span style="width:30px;height:30px;border-radius:999px;background:var(--vt-yellow-50);display:flex;align-items:center;justify-content:center">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ ev.icon }}" size="{{ n15 }}" color="var(--vt-yellow-700)" hint-size="15px,15px"></x-import>
-</span>
-<span style="font-family:var(--vt-font-body);font-size:var(--vt-body-sm);line-height:1.35">
-{{ ev.label }}<span style="display:block;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ ev.when }} · {{ ev.who }}</span>
-</span>
 </div>
-</sc-for>
 </div>
-</sc-if>
 </x-import>
 
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ dialogOpen }}" title="{{ tAssignDriver }}" size="sm" subtitle="{{ dialogSubtitle }}" onClose="{{ closeDialog }}" hint-size="400px,280px">
@@ -105,6 +89,17 @@
 <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--vt-border-subtle)">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" onClick="{{ closeDialog }}" hint-size="90px,44px">{{ tCancel }}</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" onClick="{{ confirmAssign }}" hint-size="90px,44px">{{ tAssign }}</x-import>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ cancelOpen }}" title="{{ tCancelTitle }}" size="sm" subtitle="{{ cancelSubtitle }}" onClose="{{ closeCancel }}" hint-size="400px,320px">
+<p style="margin:0;font-size:var(--vt-body-sm);line-height:1.6;color:var(--vt-text-secondary);text-wrap:pretty">{{ tCancelBody }}</p>
+<p data-vt-no-i18n="1" style="margin:12px 0 0;font-family:var(--vt-font-display);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">{{ cancelWho }}</p>
+<p data-vt-no-i18n="1" style="margin:4px 0 0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">{{ cancelRoute }}</p>
+<p data-vt-no-i18n="1" style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ cancelWhen }} · {{ cancelPay }}</p>
+<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--vt-border-subtle)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="outline" onClick="{{ closeCancel }}" hint-size="110px,44px">{{ tKeepBooking }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="danger" onClick="{{ confirmCancel }}" hint-size="150px,44px">{{ tConfirmCancel }}</x-import>
 </div>
 </x-import>
 
@@ -134,6 +129,8 @@ const T = {
     refundTitle:'Refund due', refundBody:'Cancelled inside the free window — issue the refund in Stripe and record it here.',
     dispatcherNote:'Dispatcher note', dispatcherNotePh:'Add a note visible to dispatch only…',
     resendVoucher:'Resend voucher', editBooking:'Edit booking', cancelBooking:'Cancel', driver:'Driver', manualNote:'Assignment is manual in V1 — there is no driver app and no automatic dispatch.', cancel:'Cancel',
+    cancelTitle:'Cancel this booking?', cancelBody:'It is marked cancelled. You will still see it under Cancelled.',
+    keepBooking:'Keep it', confirmCancel:'Cancel booking', bookingCancelled:'Cancelled ',
     voucherResent:'Voucher re-sent to ', driverAssigned:'Driver assigned to ',
     evQuote:'Quote created', evPayment:'Payment captured', evVoucher:'Voucher sent', evAssigned:'Driver assigned',
     website:'Website', stripeWebhook:'Stripe webhook', resend:'Resend', dispatch:'Dispatch',
@@ -147,6 +144,8 @@ const T = {
     refundTitle:'Rückerstattung fällig', refundBody:'Innerhalb der Frist storniert — Rückerstattung in Stripe ausführen und hier vermerken.',
     dispatcherNote:'Dispatcher-Notiz', dispatcherNotePh:'Notiz hinzufügen, nur für Dispatch sichtbar…',
     resendVoucher:'Gutschein erneut senden', editBooking:'Buchung bearbeiten', cancelBooking:'Stornieren', driver:'Fahrer', manualNote:'Die Zuweisung erfolgt in V1 manuell — es gibt keine Fahrer-App und keine automatische Vermittlung.', cancel:'Abbrechen',
+    cancelTitle:'Diese Buchung stornieren?', cancelBody:'Sie wird als storniert markiert. Unter Storniert bleibt sie sichtbar.',
+    keepBooking:'Behalten', confirmCancel:'Buchung stornieren', bookingCancelled:'Storniert ',
     voucherResent:'Gutschein erneut gesendet an ', driverAssigned:'Fahrer zugewiesen zu ',
     evQuote:'Angebot erstellt', evPayment:'Zahlung erfasst', evVoucher:'Gutschein gesendet', evAssigned:'Fahrer zugewiesen',
     website:'Website', stripeWebhook:'Stripe-Webhook', resend:'Resend', dispatch:'Dispatch',
@@ -154,12 +153,14 @@ const T = {
   },
 };
 class Component extends DCLogic {
-  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', tab:'Details', dialogOpen:false, pickDriver:'', assigned:{}, toastMsg:'', showToast:false };
+  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', dialogOpen:false, cancelOpen:false, pickDriver:'', assigned:{}, toastMsg:'', showToast:false };
   componentDidUpdate(prevProps, prevState) {
-    if (prevState.dialogOpen !== this.state.dialogOpen) { try { document.body.style.overflow = this.state.dialogOpen ? 'hidden' : ''; } catch (e) {} }
+    const overlay = !!(this.state.dialogOpen || this.state.cancelOpen);
+    const was = !!(prevState.dialogOpen || prevState.cancelOpen);
+    if (was !== overlay) { try { document.body.style.overflow = overlay ? 'hidden' : ''; } catch (e) {} }
   }
   componentWillUnmount() {
-    try { if (this.state.dialogOpen) document.body.style.overflow = ''; } catch (e) {}
+    try { if (this.state.dialogOpen || this.state.cancelOpen) document.body.style.overflow = ''; } catch (e) {}
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     if (this._off) this._off();
     clearTimeout(this._retry);
@@ -176,7 +177,7 @@ class Component extends DCLogic {
   };
   getBooking() {
     const id = (this.props && this.props.id) || '';
-    const found = listBookings().find((b) => b.id === id);
+    const found = listBookings().find((b) => b.id === id || b.bookingId === id);
     return found || EMPTY_BOOKING;
   }
   notify = (msg) => { this.setState({ toastMsg: msg, showToast: true }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ showToast: false }), 3600); };
@@ -205,13 +206,11 @@ class Component extends DCLogic {
     const isAirport = /airport|zrh/i.test((booking.pickup || '') + ' ' + (booking.dropoff || ''));
     const fareLines = [{ label: t.lineTransfer + (booking.vehicle || ''), value: 'CHF 000.00' }];
     if (isAirport) fareLines.push({ label: t.lineAirportFee, value: 'CHF 00.00' });
-    const EVENTS = [];
+    const cancelled = booking.status === 'cancelled' || booking.status === 'refunded';
     return {
       n2:2, n15:15, n16:16, yes:true,
       tBackToBookings: t.backToBookings, tMoreActions: t.moreActions, tBookedBy: t.bookedBy,
       booking,
-      tab: this.state.tab, setTab: (v) => this.setState({ tab: v }), tabItems: [t.details, t.history],
-      isDetails: this.state.tab === t.details, isHistory: this.state.tab === t.history,
       routeMeta: [{ icon:'calendar', label: booking.date }, { icon:'clock', label: booking.time }, { icon:'navigation', label: booking.km }],
       tAssignment: t.assignment,
       assignVariant: assignedDriver ? 'ghost' : 'primary',
@@ -223,12 +222,27 @@ class Component extends DCLogic {
       tPassengerTrip: t.passengerTrip, tPassengers: t.passengers, tBags: t.bags, tVehicleClass: t.vehicleClass,
       tFlight: t.flight, tEmail: t.email, tMobile: t.mobile, tPayment: t.payment, tPayLink: t.payLink, tSession: t.session,
       tFare: t.fare, fareLines, tTotalLabel: booking.paid ? t.paid : t.due, tFareNote: t.fareNote,
-      isPending: !booking.paid && booking.status !== 'cancelled' && booking.status !== 'refunded', isCancelled: booking.status === 'cancelled',
+      isPending: !booking.paid && !cancelled, isCancelled: booking.status === 'cancelled',
       tOutstandingTitle: t.outstandingTitle, tOutstandingBody: t.outstandingBody, tRefundTitle: t.refundTitle, tRefundBody: t.refundBody,
       tDispatcherNote: t.dispatcherNote, tDispatcherNotePh: t.dispatcherNotePh,
       tResendVoucher: t.resendVoucher, tEditBooking: t.editBooking, tCancelBooking: t.cancelBooking,
+      canCancel: !cancelled && booking.status !== 'completed',
+      openCancel: () => this.setState({ cancelOpen: true }),
+      closeCancel: () => this.setState({ cancelOpen: false }),
+      cancelOpen: this.state.cancelOpen,
+      tCancelTitle: t.cancelTitle, tCancelBody: t.cancelBody, tKeepBooking: t.keepBooking, tConfirmCancel: t.confirmCancel,
+      cancelSubtitle: booking.id,
+      cancelWho: booking.customer || booking.email || booking.id,
+      cancelRoute: (booking.pickup && booking.dropoff) ? (booking.pickup + ' → ' + booking.dropoff) : (booking.pickup || booking.dropoff || ''),
+      cancelWhen: [booking.date, booking.time].filter(Boolean).join(' · '),
+      cancelPay: booking.pay || '',
+      confirmCancel: () => {
+        const ops = window.VamosOps;
+        if (ops) ops.bookings.update(booking.id, { status: 'cancelled' });
+        this.setState({ cancelOpen: false });
+        this.notify(t.bookingCancelled + booking.id);
+      },
       resendVoucher: () => this.notify(t.voucherResent + booking.email),
-      events: EVENTS,
       dialogOpen: this.state.dialogOpen, tAssignDriver: t.assign, dialogSubtitle: booking.id + ' · ' + booking.time + ' · ' + booking.vehicle,
       closeDialog: () => this.setState({ dialogOpen: false }),
       tDriver: t.driver, driverOptions: drivers, pickDriver: this.state.pickDriver, setPickDriver: (e) => this.setState({ pickDriver: e.target.value }),

@@ -1,9 +1,8 @@
 // apps/web/app/[locale]/(ops)/api/staff/customers/route.ts
 //
-// GET /api/staff/customers — staff list (OPS-07). Dual-mounted at
-// app/api/staff/customers. Read-only: no POST/PATCH/DELETE (D-26).
-// `name` / `trips` aliases exist so OpsCustomers.dc.html + cleanCustomer
-// can hydrate without editing vamos-ops-data.js (06-02 owns that file).
+// GET /api/staff/customers — staff list. Dual-mounted at
+// app/api/staff/customers. `name` / `trips` aliases exist so
+// OpsCustomers.dc.html + cleanCustomer can hydrate.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { loadCustomers, type CustomerRow } from "@/lib/ops/customers";
