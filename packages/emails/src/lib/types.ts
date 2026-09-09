@@ -32,6 +32,10 @@ export type BookingForEmail = {
   manageUrl: string;
 };
 
+export type PayLinkVehicle = "economy" | "business" | "first" | "van";
+
+export type PayLinkExtraCode = "child_seat" | "oversized_luggage" | "extra_stop";
+
 export type PayLinkForEmail = {
   reference: string;
   locale: EmailLocale;
@@ -40,6 +44,18 @@ export type PayLinkForEmail = {
   totalRappen: number | null;
   pickupText: string;
   dropoffText: string;
+  scheduledLocal: string;
+  flightNo: string | null;
+  vehicleClass: PayLinkVehicle;
+  pax: number;
+  bags: number;
+  extras: PayLinkExtraCode[];
+  coupon: string | null;
+  contactName: string;
+  contactPhone: string;
+  companyName: string;
+  companyAddress: string;
+  companyVat: string;
 };
 
 /**

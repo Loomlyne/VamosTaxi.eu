@@ -470,6 +470,8 @@
     "cardCvc": "CVC",
     "cardCountry": "Land",
     "applePay": "Apple Pay",
+    "payWithApplePay": "Mit Apple Pay bezahlen",
+    "payWithCard": "Mit Karte bezahlen",
     "stripeLink": "Link",
     "sendPayLink": "Zahllink per E-Mail senden",
     "copyPayLink": "Zahllink kopieren",

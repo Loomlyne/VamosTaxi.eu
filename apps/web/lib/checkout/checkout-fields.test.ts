@@ -59,6 +59,17 @@ describe("checkout contact + rail helpers", () => {
     expect(same.flightNumber).toBe("ek 200");
   });
 
+  it("does not carry child seat onto a new quote", () => {
+    const next = mergeVamosTrip(
+      { quote_id: "quote-a", childSeat: true, oversizedLuggage: true, skiRack: true, stops: 1 },
+      { quote_id: "quote-b", pickup: "ZRH" },
+    );
+    expect(next.childSeat).toBe(false);
+    expect(next.oversizedLuggage).toBe(false);
+    expect(next.skiRack).toBe(false);
+    expect(next.stops).toBe(0);
+  });
+
   it("reads mapbox ids and formats rail dates", () => {
     expect(placeMapboxId({ mapbox_id: "dpa.abc" })).toBe("dpa.abc");
     expect(placeMapboxId(null)).toBe("");

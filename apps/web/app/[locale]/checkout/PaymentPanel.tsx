@@ -37,6 +37,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Icon } from "@/components/core";
 import { Select } from "@/components/forms";
 import { routing } from "@/i18n/routing";
+import { decodeClientSecret } from "@/lib/checkout/client-secret";
 import { VAMOS_STRIPE_APPEARANCE } from "@/lib/checkout/stripe-appearance";
 
 const { useRouter } = createNavigation(routing);
@@ -111,22 +112,6 @@ function browserStripe(publishableKey: string): Promise<Stripe | null> {
 
 function noopComplete(_complete: boolean) {}
 
-function decodeClientSecret(secret: string | undefined, hex: string | undefined): string | null {
-  if (hex && /^[0-9a-f]+$/i.test(hex) && hex.length % 2 === 0) {
-    const bytes = new Uint8Array(hex.length / 2);
-    for (let i = 0; i < bytes.length; i += 1) {
-      bytes[i] = Number.parseInt(hex.slice(i * 2, i * 2 + 2), 16);
-    }
-    return new TextDecoder().decode(bytes);
-  }
-  if (!secret) return null;
-  try {
-    return decodeURIComponent(secret);
-  } catch {
-    return secret;
-  }
-}
-
 function countryOptions(locale: string): { value: string; label: string }[] {
   const names = new Intl.DisplayNames([locale], { type: "region" });
   return CARD_COUNTRIES.map((code) => ({
@@ -136,23 +121,30 @@ function countryOptions(locale: string): { value: string; label: string }[] {
 }
 
 function CheckoutWallets({ onExpress }: { onExpress: (event: ExpressConfirmEvent) => void }) {
+  const t = useTranslations("checkout");
   const checkout = useCheckoutElements();
+  const [hasWallets, setHasWallets] = useState(true);
   if (checkout.type !== "success") return null;
   return (
-    <div data-checkout-express>
+    <div data-checkout-express hidden={!hasWallets}>
+      <h2 className="vt-checkout__method">{t("payWithApplePay")}</h2>
       <ExpressCheckoutElement
         options={{
           buttonHeight: 48,
           buttonTheme: { applePay: "black", googlePay: "black", paypal: "gold" },
           buttonType: { applePay: "plain", googlePay: "pay", paypal: "paypal" },
-          layout: { maxColumns: 2, maxRows: 1, overflow: "never" },
-          paymentMethodOrder: ["applePay", "link"],
+          layout: { maxColumns: 2, maxRows: 1, overflow: "auto" },
+          paymentMethodOrder: ["apple_pay", "link"],
           paymentMethods: {
             applePay: "always",
             googlePay: "never",
             link: "auto",
             paypal: "never",
           },
+        }}
+        onReady={(event) => {
+          const methods = event.availablePaymentMethods;
+          setHasWallets(Boolean(methods && (methods.applePay || methods.link)));
         }}
         onConfirm={(event) => onExpress(event)}
       />
@@ -208,7 +200,9 @@ function VamosCardFields({
   }, [cvcOk, expiryOk, numberOk, onComplete]);
 
   return (
-    <div className="vt-checkout__cardfields" data-checkout-card-fields>
+    <div className="vt-checkout__cardblock">
+      <h2 className="vt-checkout__method">{t("payWithCard")}</h2>
+      <div className="vt-checkout__cardfields" data-checkout-card-fields>
       <div className="vt-field" data-checkout-card-number>
         <span className="vt-field__label">{t("cardNumber")}</span>
         <div className="vt-input vt-input--md">
@@ -232,105 +226,55 @@ function VamosCardFields({
           </div>
         </div>
       </div>
-      <div className="vt-checkout__card-row">
-        <div className="vt-field">
-          <span className="vt-field__label">{t("cardExpiry")}</span>
-          <div className="vt-input vt-input--md">
-            <div className="vt-checkout__stripe-el">
-              <CardExpiryElement
-                options={{ placeholder: "MM / YY", style: CARD_STYLE }}
-                onChange={(event) => setExpiryOk(event.complete)}
-              />
-            </div>
+      <Select
+        className="vt-checkout__card-country"
+        label={t("cardCountry")}
+        options={countries}
+        value={country}
+        onChange={(event) => setCountry(event.target.value)}
+        data-checkout-card-country="true"
+      />
+      <div className="vt-field" data-checkout-card-expiry>
+        <span className="vt-field__label">{t("cardExpiry")}</span>
+        <div className="vt-input vt-input--md">
+          <div className="vt-checkout__stripe-el">
+            <CardExpiryElement
+              options={{ placeholder: "MM / YY", style: CARD_STYLE }}
+              onChange={(event) => setExpiryOk(event.complete)}
+            />
           </div>
         </div>
-        <div className="vt-field">
-          <span className="vt-field__label">{t("cardCvc")}</span>
-          <div className="vt-input vt-input--md">
-            <div className="vt-checkout__stripe-el">
-              <CardCvcElement
-                options={{ placeholder: "CVC", style: CARD_STYLE }}
-                onChange={(event) => setCvcOk(event.complete)}
-              />
-            </div>
-          </div>
-        </div>
-        <Select
-          className="vt-checkout__card-country"
-          label={t("cardCountry")}
-          options={countries}
-          value={country}
-          onChange={(event) => setCountry(event.target.value)}
-          data-checkout-card-country="true"
-        />
       </div>
+      <div className="vt-field" data-checkout-card-cvc>
+        <span className="vt-field__label">{t("cardCvc")}</span>
+        <div className="vt-input vt-input--md">
+          <div className="vt-checkout__stripe-el">
+            <CardCvcElement
+              options={{ placeholder: "CVC", style: CARD_STYLE }}
+              onChange={(event) => setCvcOk(event.complete)}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
     </div>
   );
 }
 
+type CheckoutState = ReturnType<typeof useCheckoutElements>;
+
 function CheckoutSession({
-  reference,
-  billingName,
-  billingEmail,
-  cardCreate,
-  onReady,
+  sessionRef,
+  onExpress,
 }: {
-  reference: string;
-  billingName: string;
-  billingEmail: string;
-  cardCreate: MutableRefObject<(() => Promise<{ id: string; country: string }>) | null>;
-  onReady: (confirm: () => Promise<void>) => void;
+  sessionRef: MutableRefObject<CheckoutState | null>;
+  onExpress: (event: ExpressConfirmEvent) => void;
 }) {
   const checkout = useCheckoutElements();
-  const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
-
   useEffect(() => {
-    if (checkout.type !== "success") return;
-    onReady(async () => {
-      setError(null);
-      const create = cardCreate.current;
-      if (!create) throw new Error("payCouldNotStart");
-      const card = await create();
-      const result = await checkout.checkout.confirm({
-        paymentMethod: card.id,
-        email: billingEmail.trim() || undefined,
-        billingAddress: {
-          name: billingName.trim() || null,
-          address: { country: card.country },
-        },
-        redirect: "if_required",
-      });
-      if (result.type === "error") {
-        setError(result.error.message);
-        throw new Error(result.error.message);
-      }
-      if (reference) router.push(`/confirmation/${reference}`);
-    });
-  }, [billingEmail, billingName, cardCreate, checkout, onReady, reference, router]);
-
-  async function onExpress(event: ExpressConfirmEvent) {
-    if (checkout.type !== "success") {
-      event.paymentFailed({ reason: "fail" });
-      return;
-    }
-    const result = await checkout.checkout.confirm({
-      expressCheckoutConfirmEvent: event,
-      redirect: "if_required",
-    });
-    if (result.type === "error") {
-      event.paymentFailed({ reason: "fail" });
-      return;
-    }
-    if (reference) router.push(`/confirmation/${reference}`);
-  }
-
-  return (
-    <>
-      <CheckoutWallets onExpress={onExpress} />
-      {error ? <p data-checkout-pay-error>{error}</p> : null}
-    </>
-  );
+    sessionRef.current = checkout;
+  }, [checkout, sessionRef]);
+  return <CheckoutWallets onExpress={onExpress} />;
 }
 
 export function PaymentPanel({
@@ -353,9 +297,12 @@ export function PaymentPanel({
   onReady: (confirm: () => Promise<void>) => void;
   onComplete?: (complete: boolean) => void;
 }) {
+  const router = useRouter();
   const promise = useMemo(() => browserStripe(publishableKey), [publishableKey]);
   const secret = (decodeClientSecret(clientSecret, clientSecretHex) ?? clientSecret ?? "").trim();
   const cardCreate = useRef<(() => Promise<{ id: string; country: string }>) | null>(null);
+  const sessionRef = useRef<CheckoutState | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const onCardCreate = useCallback((create: () => Promise<{ id: string; country: string }>) => {
     cardCreate.current = create;
   }, []);
@@ -367,6 +314,67 @@ export function PaymentPanel({
     }),
     [],
   );
+
+  const waitForCheckout = useCallback(async () => {
+    const deadline = Date.now() + 25_000;
+    while (Date.now() < deadline) {
+      const state = sessionRef.current;
+      if (state?.type === "success") return state.checkout;
+      if (state?.type === "error") throw new Error(state.error.message);
+      await new Promise((resolve) => setTimeout(resolve, 80));
+    }
+    throw new Error("payCouldNotStart");
+  }, []);
+
+  useEffect(() => {
+    sessionRef.current = null;
+  }, [secret]);
+
+  useEffect(() => {
+    onReady(async () => {
+      setError(null);
+      try {
+        const create = cardCreate.current;
+        if (!create) throw new Error("payCouldNotStart");
+        const card = await create();
+        const checkout = await waitForCheckout();
+        const result = await checkout.confirm({
+          paymentMethod: card.id,
+          email: billingEmail.trim() || undefined,
+          billingAddress: {
+            name: billingName.trim() || null,
+            address: { country: card.country },
+          },
+          redirect: "if_required",
+        });
+        if (result.type === "error") {
+          throw new Error(result.error.message);
+        }
+        if (reference) router.push(`/confirmation/${reference}`);
+      } catch (err) {
+        const message = err instanceof Error && err.message ? err.message : "payCouldNotStart";
+        setError(message);
+        throw err instanceof Error ? err : new Error(message);
+      }
+    });
+  }, [billingEmail, billingName, onReady, reference, router, waitForCheckout]);
+
+  async function onExpress(event: ExpressConfirmEvent) {
+    const state = sessionRef.current;
+    if (state?.type !== "success") {
+      event.paymentFailed({ reason: "fail" });
+      return;
+    }
+    const result = await state.checkout.confirm({
+      expressCheckoutConfirmEvent: event,
+      redirect: "if_required",
+    });
+    if (result.type === "error") {
+      event.paymentFailed({ reason: "fail" });
+      return;
+    }
+    if (reference) router.push(`/confirmation/${reference}`);
+  }
 
   return (
     <div className="vt-checkout__pay" data-checkout-pay>
@@ -382,18 +390,13 @@ export function PaymentPanel({
             },
           }}
         >
-          <CheckoutSession
-            reference={reference}
-            billingName={billingName}
-            billingEmail={billingEmail}
-            cardCreate={cardCreate}
-            onReady={onReady}
-          />
+          <CheckoutSession sessionRef={sessionRef} onExpress={onExpress} />
         </CheckoutProvider>
       ) : null}
       <Elements stripe={promise} options={cardOptions}>
         <VamosCardFields name={billingName} email={billingEmail} onCreate={onCardCreate} onComplete={onComplete} />
       </Elements>
+      {error ? <p data-checkout-pay-error>{error}</p> : null}
     </div>
   );
 }

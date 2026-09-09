@@ -440,24 +440,27 @@
   font-weight: var(--vt-weight-semibold);
 }
 
-.vt-checkout__cardfields {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
+.vt-checkout__method {
+  margin: 0 0 8px;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-heading-3);
+  font-weight: var(--vt-weight-semibold);
+}
+
+.vt-checkout__cardblock {
+  display: flex;
+  flex-direction: column;
   gap: 12px;
 }
 
-.vt-checkout__cardfields > [data-checkout-card-number] {
-  grid-column: 1 / -1;
-}
-
-.vt-checkout__card-row {
+.vt-checkout__cardfields {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 12px;
 }
 
 .vt-checkout__card-country {
-  grid-column: 1 / -1;
+  min-inline-size: 0;
 }
 
 .vt-checkout__cardfields .vt-input {
@@ -487,7 +490,7 @@
   flex-direction: column;
   gap: 8px;
 }
-.vt-checkout__paystack [data-checkout-express]:empty {
+.vt-checkout__paystack [data-checkout-express][hidden] {
   display: none;
 }
 

@@ -49,6 +49,7 @@ import {
   type CheckoutExtraJson,
 } from "@/lib/checkout/extras-catalog";
 import { vatIncludedRappen } from "@/lib/checkout/vat";
+import { decodeClientSecret } from "@/lib/checkout/client-secret";
 import { chfRappenToDisplay } from "@/lib/fx/format";
 import { useFx } from "@/lib/fx/use-fx";
 import { useVamosLocale } from "@/lib/locale-shim";
@@ -149,22 +150,6 @@ function asClassSlug(raw: string): (typeof CLASS_SLUGS)[number] {
   return "economy";
 }
 
-function decodeClientSecret(secret: string | undefined, hex: string | undefined): string | null {
-  if (hex && /^[0-9a-f]+$/i.test(hex) && hex.length % 2 === 0) {
-    const bytes = new Uint8Array(hex.length / 2);
-    for (let i = 0; i < bytes.length; i += 1) {
-      bytes[i] = Number.parseInt(hex.slice(i * 2, i * 2 + 2), 16);
-    }
-    return new TextDecoder().decode(bytes);
-  }
-  if (!secret) return null;
-  try {
-    return decodeURIComponent(secret);
-  } catch {
-    return secret;
-  }
-}
-
 export function CheckoutClient({ step }: CheckoutClientProps) {
   const { locale, freeCancelHours, checkoutWindowMinutes, publishableKey } =
     useCheckoutSettings();
@@ -214,6 +199,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const [refusal, setRefusal] = useState<string | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [clientSecretHex, setClientSecretHex] = useState<string | undefined>();
+  const clientSecretRef = useRef<string | null>(null);
+  const intentGate = useRef<Promise<"ok" | "skip" | "fail"> | null>(null);
   const [publishable, setPublishable] = useState(publishableKey);
   const [reference, setReference] = useState<string | null>(null);
   const [payUrl, setPayUrl] = useState<string | null>(null);
@@ -229,7 +216,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const [intentTick, setIntentTick] = useState(0);
   const intentAttempts = useRef(0);
 
+  const confirmPayRef = useRef<(() => Promise<void>) | null>(null);
   const onPaymentReady = useCallback((fn: () => Promise<void>) => {
+    confirmPayRef.current = fn;
     setConfirmPay(() => fn);
   }, []);
 
@@ -285,7 +274,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     if (typeof trip?.guest === "boolean") setGuest(trip.guest);
     if (trip?.airline) setAirline(trip.airline);
     if (trip?.notes) setNotes(trip.notes);
-    if (typeof trip?.childSeat === "boolean") setChildSeat(trip.childSeat);
     if (typeof trip?.oversizedLuggage === "boolean") setOversized(trip.oversizedLuggage);
     if (typeof trip?.stops === "number") setExtraStop(trip.stops > 0);
     if (typeof trip?.skiRack === "boolean") setSkiRack(trip.skiRack);
@@ -298,6 +286,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     if (quoteChanged) {
       setClientSecret(null);
       setClientSecretHex(undefined);
+      clientSecretRef.current = null;
+      setChildSeat(false);
       setReference(null);
       setConfirmPay(null);
       setCardComplete(false);
@@ -545,8 +535,10 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   }
 
   async function startPayment(opts?: { silent?: boolean }): Promise<"ok" | "skip" | "fail"> {
-    if (clientSecret) return "ok";
-    if (intentStarted.current) return "skip";
+    if (clientSecretRef.current) return "ok";
+    if (intentGate.current) return intentGate.current;
+    const run = (async (): Promise<"ok" | "skip" | "fail"> => {
+    if (clientSecretRef.current) return "ok";
     const trip = tripSnap ?? readVamosTrip();
     const quoteId = draft.quoteId || tripQuoteId(trip);
     const lock = draft.lock || trip?.lock;
@@ -564,7 +556,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     }
     intentStarted.current = true;
     if (!opts?.silent) {
-      setBusy(true);
       setRefusal(null);
     }
     try {
@@ -600,25 +591,32 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         intentStarted.current = false;
         const key = REFUSAL_KEYS[json.code ?? json.error ?? ""] ?? "payCouldNotStart";
         if (json.code === "coupon_no_longer_valid") setCouponApplied(null);
-        if (!opts?.silent && key !== "payCouldNotStart") setRefusal(key);
+        if (!opts?.silent) setRefusal(key);
         return "fail";
       }
       if (json.publishable_key) setPublishable(json.publishable_key);
       if (json.reference) setReference(json.reference);
-      setCardComplete(false);
       const secret = decodeClientSecret(json.client_secret, json.client_secret_hex);
+      clientSecretRef.current = secret;
       setClientSecret(secret);
       setClientSecretHex(json.client_secret_hex);
       if (!secret) {
         intentStarted.current = false;
+        if (!opts?.silent) setRefusal("payCouldNotStart");
         return "fail";
       }
       return "ok";
     } catch {
       intentStarted.current = false;
+      if (!opts?.silent) setRefusal("payCouldNotStart");
       return "fail";
+    }
+    })();
+    intentGate.current = run;
+    try {
+      return await run;
     } finally {
-      if (!opts?.silent) setBusy(false);
+      if (intentGate.current === run) intentGate.current = null;
     }
   }
 
@@ -708,8 +706,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       setRefusal(null);
       setClientSecret(null);
       setClientSecretHex(undefined);
+      clientSecretRef.current = null;
       setConfirmPay(null);
-      setCardComplete(false);
       intentStarted.current = false;
       intentAttempts.current = 0;
       setIntentTick((n) => n + 1);
@@ -722,7 +720,10 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   }
 
   async function sendPayLink() {
-    if (!validate()) return;
+    if (!validate()) {
+      setRefusal("payCouldNotStart");
+      return;
+    }
     const trip = tripSnap ?? readVamosTrip();
     const quoteId = draft.quoteId || tripQuoteId(trip);
     const lock = draft.lock || trip?.lock;
@@ -785,19 +786,30 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   }
 
   async function onPay() {
-    if (clientSecret && !confirmPay) return;
-    if (clientSecret && confirmPay) {
-      setBusy(true);
-      try {
-        await confirmPay();
-      } catch {
-        // Panel shows the Stripe error. Booking is not confirmed here (D-16).
-      } finally {
-        setBusy(false);
+    if (!cardComplete) return;
+    setBusy(true);
+    setRefusal(null);
+    try {
+      const started = await startPayment();
+      if (started !== "ok") {
+        setRefusal((current) => current ?? "payCouldNotStart");
+        return;
       }
-      return;
+      const deadline = Date.now() + 25_000;
+      while (!confirmPayRef.current && Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, 80));
+      }
+      const confirm = confirmPayRef.current;
+      if (!confirm) {
+        setRefusal("payCouldNotStart");
+        return;
+      }
+      await confirm();
+    } catch {
+      setRefusal("payCouldNotStart");
+    } finally {
+      setBusy(false);
     }
-    await startPayment();
   }
 
   const requote =
@@ -1303,7 +1315,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                     <span data-tok>{t("cancel-free-of-charge-up-to-24-hours-before-pick")}</span>
                   </p>
                 )}
-                {refusal && refusal !== "pricingNotLive" && refusal !== "payCouldNotStart" ? (
+                {refusal && refusal !== "pricingNotLive" ? (
                   <Alert tone={refusal === "pricingNotLive" ? "info" : "danger"}>
                     {refusal === "priceChanged" && hours != null
                       ? t("livePriceChangedLocked", { hours })
@@ -1315,10 +1327,10 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                     ) : null}
                   </Alert>
                 ) : null}
-                <div className="vt-checkout__cta">
+                <div className="vt-checkout__cta" aria-busy={busy || undefined}>
                   <Button
                     size="lg"
-                    disabled={busy || !cardComplete || !confirmPay}
+                    disabled={busy || !cardComplete}
                     onClick={() => void onPay()}
                   >
                     {t("pay-and-continue")}

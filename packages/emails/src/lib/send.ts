@@ -10,11 +10,10 @@
 
 import { Resend } from "resend";
 import { ConfirmationEmail } from "../ConfirmationEmail";
-import { PayLinkEmail } from "../PayLinkEmail";
+import { PayLinkEmail, payLinkPlainText, payLinkSubject } from "../PayLinkEmail";
 import { buildInvite } from "./ics";
 import { renderConfirmation } from "./render";
 import type { BookingForEmail, PayLinkForEmail, SendOutcome } from "./types";
-import { t } from "./t";
 
 /**
  * Bump the trailing serial when rendered content changes; bump the date
@@ -90,8 +89,9 @@ export async function sendPayLink(
     const result = await resend.emails.send({
       from: FROM,
       to: unique,
-      subject: t(link.locale, "payLink.subject", { reference: link.reference }),
+      subject: payLinkSubject(link),
       react: PayLinkEmail({ link }),
+      text: payLinkPlainText(link),
     });
     if (result.error) {
       return { ok: false, error: result.error.message };

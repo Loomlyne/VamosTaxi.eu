@@ -24,6 +24,20 @@
     "unpaid": "Noch nicht bezahlt — das Auto ist nicht bestätigt.",
     "payCta": "JETZT ZAHLEN",
     "amountLabel": "Betrag",
-    "footer": "Vamos Taxi · Zürich"
+    "footer": "Vamos Taxi · Zürich",
+    "linkLabel": "Oder öffnen Sie diesen Link",
+    "passengerLabel": "Passagier",
+    "phoneLabel": "Mobil",
+    "extrasLabel": "Extras",
+    "couponLabel": "Gutschein",
+    "companyLabel": "Firma",
+    "whatsapp": "WhatsApp {phone}",
+    "extraChildSeat": "Kindersitz",
+    "extraOversized": "Sperrgepäck",
+    "extraStop": "Zwischenstopp",
+    "vehicleEconomy": "Economy",
+    "vehicleBusiness": "Business",
+    "vehicleFirst": "First",
+    "vehicleVan": "Van"
   }
 }

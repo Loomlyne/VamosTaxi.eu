@@ -97,7 +97,16 @@ export function mergeVamosTrip(current: VamosTrip, patch: Partial<VamosTrip>): V
   const curId = current.quote_id || current.quoteId;
   const quoteChanged = Boolean(nextId && curId && nextId !== curId);
   if (!quoteChanged) return { ...current, ...patch };
-  return { ...current, flight: "", flightNumber: "", ...patch };
+  return {
+    ...current,
+    flight: "",
+    flightNumber: "",
+    ...patch,
+    childSeat: false,
+    oversizedLuggage: false,
+    skiRack: false,
+    stops: 0,
+  };
 }
 
 export function writeVamosTrip(patch: Partial<VamosTrip>): VamosTrip {

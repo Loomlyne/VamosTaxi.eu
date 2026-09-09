@@ -24,6 +24,20 @@
     "unpaid": "Not paid yet — the car is not confirmed.",
     "payCta": "PAY NOW",
     "amountLabel": "Amount",
-    "footer": "Vamos Taxi · Zurich"
+    "footer": "Vamos Taxi · Zurich",
+    "linkLabel": "Or open this link",
+    "passengerLabel": "Passenger",
+    "phoneLabel": "Mobile",
+    "extrasLabel": "Extras",
+    "couponLabel": "Coupon",
+    "companyLabel": "Company",
+    "whatsapp": "WhatsApp {phone}",
+    "extraChildSeat": "Child seat",
+    "extraOversized": "Oversized luggage",
+    "extraStop": "Extra stop",
+    "vehicleEconomy": "Economy",
+    "vehicleBusiness": "Business",
+    "vehicleFirst": "First",
+    "vehicleVan": "Van"
   }
 }

@@ -14,6 +14,7 @@ import type { CheckoutIntentRequest } from "./intent-schema";
 import { checkoutLegsFromLock, snapshotFromLock } from "./lock-to-rpc";
 import { manageTokenCookie } from "./manage-token";
 import { CHARGE_CURRENCY } from "./currency";
+import { checkoutPaymentIntentId, sessionIsPayable } from "./stripe";
 
 export type CheckoutCreateBookingRow = {
   booking_id: string;
@@ -103,13 +104,6 @@ function sqlState(err: unknown): string | undefined {
   return undefined;
 }
 
-function paymentIntentId(session: Stripe.Checkout.Session): string {
-  const pi = session.payment_intent;
-  if (typeof pi === "string" && pi.length > 0) return pi;
-  if (pi && typeof pi === "object" && "id" in pi && typeof pi.id === "string") return pi.id;
-  return session.id;
-}
-
 async function sessionWithSecret(
   session: Stripe.Checkout.Session,
   retrieve: CheckoutIntentDeps["retrieveCheckoutSession"],
@@ -118,18 +112,6 @@ async function sessionWithSecret(
   const stored = await retrieve(session.id).catch(() => null);
   if (stored?.client_secret) return stored;
   return null;
-}
-
-function sessionIsPayable(
-  session: Stripe.Checkout.Session | null,
-  chargedRappen: number,
-): session is Stripe.Checkout.Session {
-  if (!session || !session.client_secret) return false;
-  if (session.status && session.status !== "open") return false;
-  if (typeof session.amount_total === "number" && session.amount_total !== chargedRappen) {
-    return false;
-  }
-  return true;
 }
 
 async function payableFromOpen(
@@ -275,7 +257,7 @@ export async function runCheckoutIntent(
     }
   }
 
-  const pi = paymentIntentId(session);
+  const pi = checkoutPaymentIntentId(session);
   let row: CheckoutCreateBookingRow;
   try {
     row = await deps.createBooking({

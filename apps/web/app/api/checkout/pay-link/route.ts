@@ -15,7 +15,8 @@ import { loadOpenPayment } from "@/lib/checkout/load-open-payment";
 import { mintManageToken } from "@/lib/checkout/manage-token";
 import { setPayLink } from "@/lib/checkout/set-pay-link";
 import { lookupVehicleClassId, snapshotPolicyFromSettings } from "@/lib/checkout/lock-to-rpc";
-import { confirmationRecipients, payLinkPath } from "@/lib/checkout/pay-link";
+import { confirmationRecipients, payLinkEmailFromLock, payLinkPath } from "@/lib/checkout/pay-link";
+import { verifyLock } from "@/lib/quote/lock";
 import {
   createCheckoutSession,
   expireCheckoutSession,
@@ -123,16 +124,33 @@ export async function POST(request: Request) {
 
   const payUrl = `${origin}${payLinkPath(body.locale, payToken.raw)}`;
   const to = confirmationRecipients(body.contact.email, body.payer_email);
+  const verified = await verifyLock(
+    previous ? { current, previous } : { current },
+    body.lock,
+    "0001-01-01T00:00:00.000Z",
+  );
+  const lockPayload = verified.ok
+    ? verified.payload
+    : "payload" in verified
+      ? verified.payload
+      : null;
   const sent = await sendPayLink(
     { RESEND_API_KEY: env.RESEND_API_KEY ?? "" },
-    {
+    payLinkEmailFromLock({
       reference: payload.reference,
       locale: body.locale,
       payUrl,
       totalRappen: payload.amount_rappen,
-      pickupText: "",
-      dropoffText: "",
-    },
+      payload: lockPayload,
+      vehicleClass: body.vehicle_class,
+      extras: body.extras,
+      coupon: body.coupon ?? null,
+      contactName: body.contact.name,
+      contactPhone: body.contact.phone,
+      companyName: body.company_name ?? "",
+      companyAddress: body.company_address ?? "",
+      companyVat: body.company_vat ?? "",
+    }),
     to,
   );
   if (!sent.ok) {

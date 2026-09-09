@@ -470,6 +470,8 @@
     "cardCvc": "CVC",
     "cardCountry": "البلد",
     "applePay": "Apple Pay",
+    "payWithApplePay": "ادفع بـ Apple Pay",
+    "payWithCard": "ادفع بالبطاقة",
     "stripeLink": "Link",
     "sendPayLink": "أرسل رابط الدفع",
     "copyPayLink": "انسخ رابط الدفع",

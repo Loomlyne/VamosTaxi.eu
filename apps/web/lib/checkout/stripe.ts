@@ -148,11 +148,27 @@ export async function createRefund(
   );
 }
 
-/**
- * Adaptive Pricing presentment vs CHF charge, read off the Checkout Session.
- * `fxQuotedAt` is null here — webhook settlement writes the FX quadruple
- * with Stripe's timestamps, not the Worker clock.
- */
+/** Elements sessions often have payment_intent=null until confirm. */
+export function checkoutPaymentIntentId(session: Stripe.Checkout.Session): string {
+  const pi = session.payment_intent;
+  if (typeof pi === "string" && pi.length > 0) return pi;
+  if (pi && typeof pi === "object" && "id" in pi && typeof pi.id === "string") return pi.id;
+  return session.id;
+}
+
+export function sessionIsPayable(
+  session: Stripe.Checkout.Session | null,
+  chargedRappen: number,
+): session is Stripe.Checkout.Session {
+  if (!session?.client_secret) return false;
+  if (session.status && session.status !== "open") return false;
+  if ((session.currency ?? "").toLowerCase() === CHARGE_CURRENCY) {
+    const amount = session.amount_subtotal ?? session.amount_total;
+    if (typeof amount === "number" && amount !== chargedRappen) return false;
+  }
+  return true;
+}
+
 export function fxFromSession(session: Stripe.Checkout.Session): {
   chargedCurrency: string;
   fxRate: number | null;

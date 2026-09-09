@@ -24,6 +24,20 @@
     "unpaid": "غير مدفوع بعد — السيارة غير مؤكدة.",
     "payCta": "ادفع الآن",
     "amountLabel": "المبلغ",
-    "footer": "فاموس تاكسي · زيورخ"
+    "footer": "فاموس تاكسي · زيورخ",
+    "linkLabel": "أو افتح هذا الرابط",
+    "passengerLabel": "الراكب",
+    "phoneLabel": "الجوال",
+    "extrasLabel": "الإضافات",
+    "couponLabel": "القسيمة",
+    "companyLabel": "الشركة",
+    "whatsapp": "واتساب {phone}",
+    "extraChildSeat": "مقعد طفل",
+    "extraOversized": "أمتعة كبيرة",
+    "extraStop": "توقف إضافي",
+    "vehicleEconomy": "Economy",
+    "vehicleBusiness": "Business",
+    "vehicleFirst": "First",
+    "vehicleVan": "Van"
   }
 }
