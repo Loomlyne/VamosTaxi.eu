@@ -180,6 +180,33 @@ export function rappenToFrancs(rappen: number | null): number | null {
   return rappen / 100;
 }
 
+export function peekLockDistanceM(lock: string | undefined): number | null {
+  if (!lock) return null;
+  const parts = lock.split(".");
+  if (parts.length !== 3 || !parts[1]) return null;
+  try {
+    const json = new TextDecoder().decode(base64urlDecode(parts[1]));
+    const payload: unknown = JSON.parse(json);
+    if (!payload || typeof payload !== "object") return null;
+    const legs = (payload as { legs?: unknown }).legs;
+    if (!Array.isArray(legs) || !legs[0] || typeof legs[0] !== "object") return null;
+    const metres = (legs[0] as { distance_m?: unknown }).distance_m;
+    if (typeof metres !== "number" || !Number.isFinite(metres) || metres <= 0) return null;
+    return Math.trunc(metres);
+  } catch {
+    return null;
+  }
+}
+
+export function formatDistanceKm(metres: number): string {
+  const km = metres / 1000;
+  if (km < 10) {
+    const one = Math.round(km * 10) / 10;
+    return Number.isInteger(one) ? String(one) : one.toFixed(1);
+  }
+  return String(Math.round(km));
+}
+
 export function geoLocale(locale: string): "en" | "de" | "fr" | "ar" {
   if (locale === "de" || locale === "fr" || locale === "ar") return locale;
   return "en";

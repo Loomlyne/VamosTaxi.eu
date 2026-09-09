@@ -120,6 +120,34 @@ async function sessionWithSecret(
   return null;
 }
 
+function sessionIsPayable(
+  session: Stripe.Checkout.Session | null,
+  chargedRappen: number,
+): session is Stripe.Checkout.Session {
+  if (!session || session.status !== "open" || !session.client_secret) return false;
+  if (typeof session.amount_total === "number" && session.amount_total !== chargedRappen) {
+    return false;
+  }
+  return true;
+}
+
+async function payableFromOpen(
+  existing: { booking_id: string; reference: string; stripe_checkout_session_id: string } | null,
+  deps: CheckoutIntentDeps,
+  chargedRappen: number,
+): Promise<{
+  row: { booking_id: string; reference: string };
+  payable: Stripe.Checkout.Session;
+} | null> {
+  if (!existing) return null;
+  const stored = await deps.retrieveCheckoutSession(existing.stripe_checkout_session_id).catch(
+    () => null,
+  );
+  const payable = stored ? await sessionWithSecret(stored, deps.retrieveCheckoutSession) : null;
+  if (!sessionIsPayable(payable, chargedRappen)) return null;
+  return { row: existing, payable };
+}
+
 function okIntentResponse(
   row: { reference: string; booking_id: string },
   payable: Stripe.Checkout.Session,
@@ -199,14 +227,9 @@ export async function runCheckoutIntent(
   );
 
   const existingOpen = await deps.loadOpenPayment(body.quote_id);
-  if (existingOpen) {
-    const stored = await deps.retrieveCheckoutSession(existingOpen.stripe_checkout_session_id).catch(
-      () => null,
-    );
-    const payable = stored ? await sessionWithSecret(stored, deps.retrieveCheckoutSession) : null;
-    if (payable?.status === "open" && payable.client_secret) {
-      return okIntentResponse(existingOpen, payable, deps, chargedRappen, expiresAt, null);
-    }
+  const reused = await payableFromOpen(existingOpen, deps, chargedRappen);
+  if (reused) {
+    return okIntentResponse(reused.row, reused.payable, deps, chargedRappen, expiresAt, null);
   }
 
   const created = await deps.createCheckoutSession({
@@ -257,38 +280,34 @@ export async function runCheckoutIntent(
     const state = sqlState(err);
     if (state === "23505" || state === "23001") {
       const existing = await deps.loadOpenPayment(body.quote_id);
-      if (existing) {
-        const stored = await deps.retrieveCheckoutSession(existing.stripe_checkout_session_id).catch(
-          () => null,
-        );
-        const payable = stored ? await sessionWithSecret(stored, deps.retrieveCheckoutSession) : null;
-        if (payable?.status === "open" && payable.client_secret) {
-          if (payable.id !== session.id) {
-            await deps.expireCheckoutSession(session.id).catch(() => undefined);
-          }
-          return okIntentResponse(existing, payable, deps, chargedRappen, expiresAt, null);
-        }
-      }
-      if (state === "23505") {
-        try {
-          row = await deps.attachPayment({
-            quoteId: body.quote_id,
-            stripePaymentIntentId: pi,
-            stripeCheckoutSessionId: session.id,
-            chargedRappen,
-          });
-        } catch (attachErr) {
+      const reused = await payableFromOpen(existing, deps, chargedRappen);
+      if (reused) {
+        if (reused.payable.id !== session.id) {
           await deps.expireCheckoutSession(session.id).catch(() => undefined);
-          const attachState = sqlState(attachErr);
-          if (attachState === "23505" || attachState === "23001") {
-            return refuse("quote_already_booked");
-          }
-          if (attachState === "23P01") return refuse("payment_window_closed");
-          throw attachErr;
         }
-      } else {
+        return okIntentResponse(reused.row, reused.payable, deps, chargedRappen, expiresAt, null);
+      }
+      try {
+        if (existing && existing.stripe_checkout_session_id !== session.id) {
+          await deps.expireCheckoutSession(existing.stripe_checkout_session_id).catch(
+            () => undefined,
+          );
+        }
+        row = await deps.attachPayment({
+          quoteId: body.quote_id,
+          stripePaymentIntentId: pi,
+          stripeCheckoutSessionId: session.id,
+          chargedRappen,
+        });
+        return okIntentResponse(row, session, deps, chargedRappen, expiresAt, null);
+      } catch (attachErr) {
         await deps.expireCheckoutSession(session.id).catch(() => undefined);
-        return refuse("quote_already_booked");
+        const attachState = sqlState(attachErr);
+        if (attachState === "23505" || attachState === "23001") {
+          return refuse("quote_already_booked");
+        }
+        if (attachState === "23P01") return refuse("payment_window_closed");
+        throw attachErr;
       }
     } else {
       await deps.expireCheckoutSession(session.id).catch(() => undefined);

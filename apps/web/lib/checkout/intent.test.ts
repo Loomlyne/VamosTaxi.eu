@@ -488,4 +488,48 @@ describe("runCheckoutIntent", () => {
     expect(json.reference).toBe("VT-26-0709");
     expect(json.client_secret).toBe("cs_test_stored_secret");
   });
+
+  it("attaches a new session when the unpaid session is expired", async () => {
+    const p = payload();
+    const body = await bodyFor(p);
+    const err = Object.assign(new Error("quote_already_booked"), { code: "23001" });
+    const attach = vi.fn(async () => ({
+      booking_id: "00000000-0000-4000-8000-000000000099",
+      reference: "VT-26-0710",
+      snapshot_id: 1,
+      payment_id: 2,
+      replayed: false,
+    }));
+    const expire = vi.fn(async () => undefined);
+    const res = await runCheckoutIntent(
+      body,
+      deps(p, {
+        expireCheckoutSession: expire,
+        createBooking: async () => {
+          throw err;
+        },
+        attachPayment: attach,
+        loadOpenPayment: async () => ({
+          booking_id: "00000000-0000-4000-8000-000000000099",
+          reference: "VT-26-0710",
+          stripe_checkout_session_id: "cs_test_expired",
+        }),
+        retrieveCheckoutSession: async (id: string) =>
+          (id === "cs_test_expired"
+            ? { id: "cs_test_expired", client_secret: null, status: "expired" }
+            : {
+                id: "cs_test_1",
+                client_secret: "cs_test_1_secret",
+                payment_intent: "pi_test_1",
+                status: "open",
+              }) as never,
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect(attach).toHaveBeenCalled();
+    expect(expire).toHaveBeenCalledWith("cs_test_expired");
+    const json = (await res.json()) as { reference: string; client_secret: string };
+    expect(json.reference).toBe("VT-26-0710");
+    expect(json.client_secret).toBe("cs_test_1_secret");
+  });
 });

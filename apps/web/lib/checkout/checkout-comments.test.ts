@@ -124,6 +124,10 @@ describe("checkout comment pack", () => {
     expect(client).toContain("disabled={busy}");
     expect(client.indexOf("vt-checkout__company")).toBeGreaterThan(client.indexOf("vt-checkout__recap"));
     expect(client.indexOf("vt-checkout__company")).toBeLessThan(client.indexOf("vt-checkout__payhead"));
+    expect(client).toContain("applyCouponCode");
+    expect(client).toContain("peekLockDistanceM");
+    expect(client).toContain("data-checkout-distance");
+    expect(css).toContain("[data-checkout-total] .vt-price__total");
     expect(css).toContain(".vt-checkout__paystack [data-checkout-pay-skeleton]");
     expect(css).toContain("[data-checkout-pay-skeleton] > span");
     expect(css).toMatch(

@@ -406,6 +406,7 @@
     "coupon-or-voucher-code": "Coupon or voucher code",
     "couponPlaceholder": "e.g. CODE",
     "couponCode": "Coupon {code}",
+    "distanceKm": "{km} km",
     "download-voucher": "Download voucher",
     "driverWaitingAt": "Your driver is waiting at {location}",
     "enter-a-first-name": "Enter a first name",

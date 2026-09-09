@@ -406,6 +406,7 @@
     "coupon-or-voucher-code": "Gutschein- oder Aktionscode",
     "couponPlaceholder": "z. B. CODE",
     "couponCode": "Gutschein {code}",
+    "distanceKm": "{km} km",
     "download-voucher": "Gutschein herunterladen",
     "driverWaitingAt": "Ihr Fahrer wartet in {location}",
     "enter-a-first-name": "Vornamen eingeben",

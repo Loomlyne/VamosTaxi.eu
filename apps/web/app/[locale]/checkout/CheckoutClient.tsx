@@ -27,8 +27,10 @@ import {
 } from "@/lib/checkout/steps";
 import {
   formatRailDate,
+  formatDistanceKm,
   geoLocale,
   peekLockClassRappen,
+  peekLockDistanceM,
   placeMapboxId,
   placeText,
   readVamosTrip,
@@ -262,6 +264,10 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     void startPayment({ silent: true }).then((result) => {
       if (result !== "fail") return;
       intentAttempts.current += 1;
+      if (intentAttempts.current >= 3) {
+        setRefusal("payCouldNotStart");
+        return;
+      }
       window.setTimeout(() => setIntentTick((n) => n + 1), 700);
     });
   }, [
@@ -504,7 +510,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         intentStarted.current = false;
         const key = REFUSAL_KEYS[json.code ?? json.error ?? ""] ?? "payCouldNotStart";
         if (json.code === "coupon_no_longer_valid") setCouponApplied(null);
-        if (!opts?.silent) setRefusal(key);
+        setRefusal(key);
         return "fail";
       }
       if (json.publishable_key) setPublishable(json.publishable_key);
@@ -514,6 +520,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       setClientSecret(secret);
       if (!secret) {
         intentStarted.current = false;
+        setRefusal("payCouldNotStart");
         return "fail";
       }
       return "ok";
@@ -523,6 +530,75 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       return "fail";
     } finally {
       if (!opts?.silent) setBusy(false);
+    }
+  }
+
+  async function applyCouponCode(code: string | null) {
+    const trip = tripSnap ?? readVamosTrip();
+    const quoteId = draft.quoteId || tripQuoteId(trip);
+    const lock = draft.lock || trip?.lock;
+    if (!quoteId || !lock) {
+      setRefusal("quoteExpired");
+      return;
+    }
+    setBusy(true);
+    try {
+      const res = await fetch("/api/quote/reprice", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          quote_id: quoteId,
+          lock,
+          locale,
+          display_currency: displayCur,
+          coupon: code,
+          contact_email: contact.email.trim() || null,
+        }),
+      });
+      const json = (await res.json()) as {
+        ok?: boolean;
+        lock?: string;
+        quote_id?: string;
+        expires_at?: string;
+        coupon?: { applied?: boolean; code?: string };
+      };
+      if (!res.ok || !json.ok || !json.lock) {
+        setCouponApplied(null);
+        setRefusal("couponNoLongerValid");
+        return;
+      }
+      if (code && !json.coupon?.applied) {
+        setCouponApplied(null);
+        setRefusal("couponNoLongerValid");
+        return;
+      }
+      const nextId = json.quote_id ?? quoteId;
+      writeDraft({ quoteId: nextId, lock: json.lock });
+      writeVamosTrip({
+        quoteId: nextId,
+        quote_id: nextId,
+        lock: json.lock,
+        expires_at: json.expires_at,
+      });
+      setTripSnap((prev) => ({
+        ...(prev ?? {}),
+        quoteId: nextId,
+        quote_id: nextId,
+        lock: json.lock,
+        expires_at: json.expires_at,
+      }));
+      setCouponApplied(code && json.coupon?.applied ? (json.coupon.code ?? code) : null);
+      setRefusal(null);
+      setClientSecret(null);
+      setConfirmPay(null);
+      setCardComplete(false);
+      intentStarted.current = false;
+      intentAttempts.current = 0;
+      setIntentTick((n) => n + 1);
+    } catch {
+      setRefusal("couponNoLongerValid");
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -626,12 +702,17 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     displayCur,
     fx.rates?.rates ?? null,
   );
+  const distanceM = peekLockDistanceM(lockToken);
+  const distanceKm = distanceM == null ? null : formatDistanceKm(distanceM);
   const railMeta: RouteMetaItem[] = [
     ...(date
       ? [{ icon: "calendar" as const, label: <span className="vt-dir-keep">{formatRailDate(date, locale)}</span> }]
       : []),
     ...(time
       ? [{ icon: "clock" as const, label: <span className="vt-dir-keep">{time}</span> }]
+      : []),
+    ...(distanceKm
+      ? [{ icon: "navigation" as const, label: <span className="vt-dir-keep">{t("distanceKm", { km: distanceKm })}</span> }]
       : []),
     { icon: "users", label: `${draft.passengers} ${tCommon("passengers")}` },
     { icon: "luggage", label: `${draft.luggage} ${tCommon("luggage")}` },
@@ -943,13 +1024,14 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setCouponApplied(coupon.trim() || null)}
+                      disabled={busy}
+                      onClick={() => void applyCouponCode(coupon.trim() || null)}
                     >
                       {tCommon("apply")}
                     </Button>
                   </div>
                   {couponApplied ? (
-                    <Tag onRemove={() => setCouponApplied(null)}>
+                    <Tag onRemove={() => void applyCouponCode(null)}>
                       {t("couponCode", { code: couponApplied })}
                     </Tag>
                   ) : null}
@@ -958,31 +1040,31 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                   </p>
                 </div>
               </div>
+              {billingKind === "company" ? (
+                <div className="vt-checkout__company">
+                  <Input
+                    label={t("companyName")}
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                  />
+                  <Input
+                    label={t("companyAddress")}
+                    value={companyAddress}
+                    onChange={(e) => setCompanyAddress(e.target.value)}
+                  />
+                  <Input
+                    label={t("companyVat")}
+                    value={companyVat}
+                    onChange={(e) => setCompanyVat(e.target.value)}
+                  />
+                  <Input
+                    label={t("payerEmail")}
+                    value={payerEmail || contact.email}
+                    onChange={(e) => setPayerEmail(e.target.value)}
+                  />
+                </div>
+              ) : null}
               <div className="vt-checkout__payblock">
-                {billingKind === "company" ? (
-                  <div className="vt-checkout__company">
-                    <Input
-                      label={t("companyName")}
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                    />
-                    <Input
-                      label={t("companyAddress")}
-                      value={companyAddress}
-                      onChange={(e) => setCompanyAddress(e.target.value)}
-                    />
-                    <Input
-                      label={t("companyVat")}
-                      value={companyVat}
-                      onChange={(e) => setCompanyVat(e.target.value)}
-                    />
-                    <Input
-                      label={t("payerEmail")}
-                      value={payerEmail || contact.email}
-                      onChange={(e) => setPayerEmail(e.target.value)}
-                    />
-                  </div>
-                ) : null}
                 <div className="vt-checkout__payhead">
                   <h2>{t("payment")}</h2>
                   <p>{t("card-apple-pay-or-twint")}</p>
@@ -1086,6 +1168,11 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                 totalLabel={t("total")}
               />
             </div>
+            {distanceKm ? (
+              <p className="vt-checkout__charge" data-checkout-distance>
+                {t("distanceKm", { km: distanceKm })}
+              </p>
+            ) : null}
             <p className="vt-checkout__charge" data-checkout-charge>
               {t("chargeIn", { currency: t("chargeCurrencyName") })}
             </p>

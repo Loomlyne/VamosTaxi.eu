@@ -478,3 +478,9 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.vt-checkout [data-checkout-total] .vt-price__total {
+  border-block-start: none;
+  padding-block-start: 0;
+  margin-block-start: 0;
+}

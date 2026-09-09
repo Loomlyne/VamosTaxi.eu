@@ -25,7 +25,7 @@ import {
   mintLockDeadline,
 } from "../db/quote";
 import { priceQuote, type PriceQuoteOutput } from "../pricing/priceQuote";
-import type { SettingsVersionRow } from "../pricing/policy";
+import type { CouponFacts, SettingsVersionRow } from "../pricing/policy";
 import * as rateBookMapper from "../pricing/rateBook";
 import type { MappedSettingsSnapshot } from "../pricing/rateBook";
 import type { QuoteInput } from "../pricing/types";
@@ -46,11 +46,18 @@ const defaultLoaders: QuoteLoaders = {
   evaluateCoupon,
 };
 
+export type LoadAndPriceCoupon = {
+  code: string;
+  applied: boolean;
+  i18n_key: string;
+};
+
 export type LoadAndPriceOk = {
   ok: true;
   quote: PriceQuoteOutput & {
     computed_at: string;
   };
+  coupon?: LoadAndPriceCoupon | null;
 };
 
 export type LoadAndPriceErr = {
@@ -93,6 +100,45 @@ function publicRateVersion(
   return { id: version.id, slug: version.slug };
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function couponFactsFromEval(typed: string, raw: unknown): {
+  coupon: LoadAndPriceCoupon;
+  facts: CouponFacts | null;
+} {
+  if (!isRecord(raw) || raw.ok !== true) {
+    const key =
+      isRecord(raw) && typeof raw.i18n_key === "string"
+        ? raw.i18n_key
+        : "quote.coupon.error.not_found";
+    return {
+      coupon: { code: typed, applied: false, i18n_key: key },
+      facts: null,
+    };
+  }
+  const kind = raw.kind === "percent" || raw.kind === "amount" ? raw.kind : null;
+  const id = typeof raw.coupon_id === "number" ? raw.coupon_id : Number(raw.coupon_id);
+  if (!kind || !Number.isFinite(id)) {
+    return {
+      coupon: { code: typed, applied: false, i18n_key: "quote.coupon.error.unpriced" },
+      facts: null,
+    };
+  }
+  return {
+    coupon: { code: typed, applied: true, i18n_key: "quote.coupon.applied" },
+    facts: {
+      id,
+      code: typed,
+      kind,
+      percent: raw.percent == null ? null : (raw.percent as number | string),
+      amount_rappen:
+        raw.amount_rappen == null ? null : Number(raw.amount_rappen),
+    },
+  };
+}
+
 export async function loadAndPrice(
   env: CloudflareEnv,
   input: QuoteInput,
@@ -118,7 +164,24 @@ export async function loadAndPrice(
     return { ok: false, code: "no_settings_version" };
   }
 
-  const priced = priceQuote(book, [toSettingsRow(settings, input.computed_at)], input);
+  let couponEval: LoadAndPriceCoupon | null = null;
+  let couponFacts: CouponFacts | null = null;
+  const typed = input.coupon?.trim() ?? "";
+  if (typed) {
+    const raw = await deps.evaluateCoupon(
+      env,
+      typed,
+      { customerId: null, contactEmail: null },
+      request,
+    );
+    const mapped = couponFactsFromEval(typed, raw);
+    couponEval = mapped.coupon;
+    couponFacts = mapped.facts;
+  }
+
+  const priced = priceQuote(book, [toSettingsRow(settings, input.computed_at)], input, {
+    coupon: couponFacts,
+  });
 
   // Catalogue / engine bug — 500. Never treat a mixed-null class as zero.
   if (priced.partially_priced_class_slugs.length > 0) {
@@ -138,5 +201,6 @@ export async function loadAndPrice(
       partially_priced_class_slugs: priced.partially_priced_class_slugs,
       computed_at: input.computed_at,
     },
+    coupon: couponEval,
   };
 }

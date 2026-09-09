@@ -12,6 +12,7 @@ import {
   type EmailLocale,
 } from "@vamos/emails/confirmation";
 import { asSystem } from "../db/identity";
+import { SUPPORT_EMAIL } from "../contact-channels";
 import { mintManageToken } from "./manage-token";
 
 type SettledBooking = {
@@ -111,14 +112,13 @@ export async function deliverConfirmation(
 
   const outcome = await sendConfirmation({ RESEND_API_KEY: key }, payload);
 
-  const payer = await asSystem(env, async (sql) => {
-    const rows = await sql`
-      select payer_email from public.bookings where id = ${settled.booking_id}::uuid
-    `;
-    return rows[0]?.payer_email ? String(rows[0].payer_email) : "";
-  });
-  if (payer && payer.toLowerCase() !== payload.contactEmail.toLowerCase()) {
-    await sendConfirmation({ RESEND_API_KEY: key }, { ...payload, contactEmail: payer });
+  const extra = new Set<string>();
+  const payer = String(booking.payer_email ?? "").trim().toLowerCase();
+  if (payer && payer !== payload.contactEmail.toLowerCase()) extra.add(payer);
+  extra.add(SUPPORT_EMAIL.toLowerCase());
+  extra.delete(payload.contactEmail.toLowerCase());
+  for (const to of extra) {
+    await sendConfirmation({ RESEND_API_KEY: key }, { ...payload, contactEmail: to });
   }
   await asSystem(env, async (sql) => {
     if (outcome.ok) {
