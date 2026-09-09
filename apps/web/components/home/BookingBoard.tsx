@@ -13,8 +13,11 @@ import type { AlertTone } from "@/components/feedback";
 import { Counter, DatePicker, Input } from "@/components/forms";
 import { PriceSummary, VehicleCard } from "@/components/transfer";
 import type { PriceLine } from "@/components/transfer";
-import { formatAmount } from "@/lib/currency";
+import type { CurrencyCode } from "@/lib/currency";
+import { useCurrency } from "@/lib/currency-store";
 import { useBookingDraft } from "@/lib/booking-draft";
+import { chfRappenToDisplay, formatChfRappen } from "@/lib/fx/format";
+import { useFx } from "@/lib/fx/use-fx";
 import type { ClassBoardEntry, VehicleClassSlug } from "@/lib/pricing/types";
 import {
   DIR_KEEP_PARAMS,
@@ -31,6 +34,7 @@ import "./BookingBoard.css";
 const CLASS_NAMES: Record<VehicleClassSlug, string> = {
   economy: "Economy",
   business: "Business",
+  first: "First",
   van: "Van",
 };
 
@@ -130,6 +134,7 @@ function ineligiblePrice(
 function linesFor(
   entry: ClassBoardEntry,
   label: (key: string, values?: Record<string, string | number>) => string,
+  display: (rappen: number | null) => { major: number | null; currency: CurrencyCode },
 ): PriceLine[] {
   return entry.lines.map((line) => {
     const params = line.params as Record<string, string | number> | undefined;
@@ -138,9 +143,10 @@ function linesFor(
           Object.entries(params).map(([key, value]) => [key, DIR_KEEP.has(key) ? String(value) : value]),
         )
       : undefined;
+    const shown = display(line.amount_rappen);
     return {
       label: label(line.i18n_key, rawParams),
-      amount: line.amount_rappen,
+      amount: shown.major,
       credit: line.kind === "discount",
       muted: line.kind === "included",
     };
@@ -227,7 +233,10 @@ function tripComplete(draft: { pickup: string; destination: string; date: string
 export function BookingBoard() {
   const locale = useLocale();
   const label = useLabel();
-  const [draft] = useBookingDraft();
+  const { currency } = useCurrency();
+  const { rates, status: fxStatus } = useFx();
+  const fxRates = rates?.rates ?? null;
+  const [draft, writeDraft] = useBookingDraft();
   const [quote, setQuote] = useState<QuoteResponse | null>(null);
   const [refusal, setRefusal] = useState<ErrorBody | null>(null);
   const [loading, setLoading] = useState(false);
@@ -357,6 +366,16 @@ export function BookingBoard() {
     return cheapestEligible(quote.classes);
   }, [quote, selected]);
 
+  useEffect(() => {
+    if (!quote || !selectedEntry) return;
+    writeDraft({
+      quoteId: quote.quote_id,
+      lock: quote.lock,
+      vehicleClass: selectedEntry.slug,
+      chargedRappen: selectedEntry.total_rappen ?? undefined,
+    });
+  }, [quote, selectedEntry, writeDraft]);
+
   const statusKind: StatusKind = (() => {
     if (quote?.no_eligible_class) return "none_fit";
     if (movedTo) return "moved_to";
@@ -428,7 +447,7 @@ export function BookingBoard() {
         ? quote.classes.map((entry) => {
             const eligible = entry.eligible;
             const price = eligible
-              ? keep(formatAmount(entry.total_rappen))
+              ? keep(formatChfRappen(entry.total_rappen, currency, fxRates))
               : ineligiblePrice(entry, label);
             return (
               <VehicleCard
@@ -466,10 +485,18 @@ export function BookingBoard() {
       ) : selectedEntry && quote && !refusal ? (
         <>
           <PriceSummary
-            lines={linesFor(selectedEntry, label)}
-            total={selectedEntry.total_rappen}
+            lines={linesFor(selectedEntry, label, (rappen) =>
+              chfRappenToDisplay(rappen, currency, fxRates),
+            )}
+            total={chfRappenToDisplay(selectedEntry.total_rappen, currency, fxRates).major}
+            currency={chfRappenToDisplay(selectedEntry.total_rappen, currency, fxRates).currency}
             totalLabel={label("price.line.total")}
-            note={pricingNote}
+            note={
+              pricingNote ??
+              (currency !== "CHF" && fxStatus === "down"
+                ? label("checkout.fxUnavailable")
+                : undefined)
+            }
           />
           {quote.expires_at ? <Countdown remainingS={remainingS} /> : null}
           {quote.coupon?.code ? keep(quote.coupon.code) : null}

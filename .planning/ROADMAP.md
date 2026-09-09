@@ -46,8 +46,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Platform Foundation, Design System Port & i18n Runtime** - Worker deploys to a real staging domain with the ported design system and an SSR-safe i18n runtime
 - [x] **Phase 2: Data Schema, RLS & Staff Auth Foundations** - Postgres mirrors the VamosOps contract with RLS everywhere and invited, MFA-gated staff auth
 - [x] **Phase 3: Hyperdrive Data Access Wiring** - The Worker reaches Postgres through Hyperdrive, fast and safely isolated per request
-- [ ] **Phase 4: Quote & Pricing Engine** - The booking widget returns a real, locked, server-priced quote for any eligible route
-- [ ] **Phase 5: Public Surfaces & Customer Accounts** - Every public mock is a live route on real data, and customers can create and access accounts
+- [x] **Phase 4: Quote & Pricing Engine** - The booking widget returns a real, locked, server-priced quote for any eligible route (completed 2026-09-06)
+- [x] **Phase 4.3: Blended distance bands + OPS rate book (INSERTED)** - Sheet-2 km bands, class floors, region %; OPS Pricing is the editor; live only after Publish (completed 2026-09-06)
+- [x] **Phase 5: Public Surfaces & Customer Accounts** - Every public mock is a live route on real data, and customers can create and access accounts (completed 2026-09-06)
 - [x] **Phase 6: Ops Reference Data & Content Console** - Staff manage the reference data and content that power the public site (replanned 2026-09-01 — DC mock is the product) (completed 2026-09-01)
 - [ ] **Phase 7: Checkout & Payment** - A customer pays for a locked quote and receives a webhook-confirmed booking
 - [ ] **Phase 8: Ops Dispatch — Live Board, Assignment & Account Surfaces** - Staff run the live board, assign real bookings, and customers see their own history
@@ -246,17 +247,33 @@ Plans:
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 04-11-PLAN.md — The two public endpoints the whole phase has been building toward, and the ordered list of
+- [x] 04-11-PLAN.md — The two public endpoints the whole phase has been building toward, and the ordered list of
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
-- [ ] 04-13-PLAN.md — The layer that decides how much a stranger is allowed to cost us, and the one place a signature
-- [ ] 04-16-PLAN.md — Settle the Phase 4 / Phase 5 seam, and prove the engine's answers can be rendered before anyone
+- [x] 04-13-PLAN.md — The layer that decides how much a stranger is allowed to cost us, and the one place a signature
+- [x] 04-16-PLAN.md — Settle the Phase 4 / Phase 5 seam, and prove the engine's answers can be rendered before anyone
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
-- [ ] 04-14-PLAN.md — The rules Phase 7's handler must obey, and the ledger that keeps this phase's open questions
+- [x] 04-14-PLAN.md — The rules Phase 7's handler must obey, and the ledger that keeps this phase's open questions
 **UI hint**: yes
+
+### Phase 4.3: Blended distance bands + OPS rate book (INSERTED)
+
+**Goal**: The owner Switzerland matrix (blended km bands, three class floors, region %) is editable on OPS Pricing & Routes and becomes the live quote only after Publish. Stripe charges the quote snapshot. No invented fare. No live row from a migration.
+**Depends on**: Phase 4 kernel + Phase 6 OpsPricing
+**Closed**: 2026-09-06 owner close of Phases 1–6. Kernel on `phase-7`. OPS editor + draft seed follow Phase 7 live charge. Do not `state.begin-phase` back onto 4.3.
+**Success Criteria** (what must be TRUE):
+
+  1. Economy 15/40/70/120 km with no region % quotes 80 / 156 / 262 / 428 (rappen-equivalent) from the kernel.
+  2. A matching pickup or dropoff zone adds the one highest region %. Night/extra-stop/child-seat are not charged until the owner adds them in OPS.
+  3. Staff edit floors, bands, and region % on OpsPricing; Save writes draft; Publish is still `draft → live`.
+  4. No `rate_versions` row is inserted `live` by a migration. Public UI stays `CHF 000` until the owner publishes.
+
+**Plans**: 1 plan
+
+- [x] 04.3-01-PLAN.md — schema + kernel + OPS editor + draft-only seed
 
 ### Phase 5: Public Surfaces & Customer Accounts
 
@@ -346,15 +363,27 @@ real charges wait for Phase 11.
 **Requirements**: PAY-01, PAY-02, PAY-03, PAY-04, PAY-05, PAY-06, PAY-07
 **Success Criteria** (what must be TRUE):
 
-  1. `/checkout` carries the locked quote from Phase 4 (quote id + signature). Passenger + contact fields validate server-side. Guest checkout works with email + manage link (account optional). No PayPal. No cash-to-driver. No hourly. No corporate invoice. PayPal and cash radios are **deleted** from the DC, not hidden.
+  1. `/checkout` carries the locked quote from Phase 4 (quote id + signature). Passenger + contact fields validate server-side. Guest checkout works with email + manage link (account optional). No PayPal. No cash-to-driver. No hourly. No invoice-on-account. Company billing (name, address, VAT) + Stripe **pay-link** (whoever pays first) is in the remainder. PayPal and cash radios are **deleted** from the DC, not hidden. Checkout URLs: `/checkout/trip`, `/checkout/details`, `/checkout/payment`. Price held 24 hours.
   2. Pay is Stripe test Checkout/PaymentIntent (card, Apple Pay, Google Pay, TWINT) in CHF. `pay()` must not invent `VT-5xxx`, must not only `saveTrip` to localStorage, must not `location.href = 'confirmation.dc.html'`. The browser return does not confirm the booking.
-  3. Booking is confirmed only by the verified Stripe webhook. Rows exist: `bookings` + `booking_legs` + `price_snapshots` + `booking_payments`. Reference is `next_booking_reference()`. Isolation-probe leftovers are not these rows.
+  3. Booking is confirmed only by the verified Stripe webhook. Rows exist: `bookings` + `booking_legs` + `price_snapshots` + `booking_payments`. Reference is `next_booking_reference()`. Isolation-probe leftovers are not these rows. Pay-link mints `VT-` when the email is sent (unpaid until webhook).
+
   4. Replay / out-of-order webhooks cannot double-charge, double-confirm, or double-send mail (`stripe_events.processed_at`).
   5. `/confirmation` reads the paid booking from the Worker (auth cookie or manage token), never a mock file. Shows real reference, route, time, vehicle, amount. Confirmation email in the booking locale: voucher, manage link, calendar invite. Branded, not a raw URL dump.
   6. Coupons apply only through the quote/checkout APIs (window + caps). Checkout still refuses when `pricing_live=false` except the already-approved `PRICING_PREVIEW` display path — do not flip live.
   7. **Close bar — staging connection table**: `/checkout` and `/confirmation` HTML fingerprints `/api/` payment/booking routes (not `saveTrip` / fake `VT-`). Dummy card path on Stripe test only, owner-gated. `GET /confirmation` without a real booking does not paint a fake VT-ref.
 
-**Plans**: TBD
+**Plans**: 07-01…07-10 paper SUMMARYs (not closed). Remainder 07-11…07-15 pending owner plan review.
+
+Plans:
+
+- [x] 07-01 … 07-10 — paper (SUMMARYs exist; live pay path still mock)
+- [x] 07-11-PLAN.md — 24h lock (hosted `checkout-lock-24h` 1440)
+- [x] 07-12-PLAN.md — three URLs + Home Continue
+- [x] 07-13-PLAN.md — company billing + pay-link + whoever-first
+- [x] 07-14-PLAN.md — guest no-password + Finish payment + manage status
+- [x] 07-15-PLAN.md — unmock confirmation + Worker `vamos` 8076eebc
+- [x] 07-16-PLAN.md — display FX, charge CHF (`/api/fx` live; Worker deploy this sitting)
+
 **UI hint**: yes
 
 ### Phase 8: Ops Dispatch — Live Board, Assignment & Account Surfaces
@@ -524,8 +553,8 @@ v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16
 | 1. Platform Foundation, Design System Port & i18n Runtime | 14/14 | Complete | 2026-08-22 |
 | 2. Data Schema, RLS & Staff Auth Foundations | 10/10 | Complete | 2026-08-27 |
 | 3. Hyperdrive Data Access Wiring | 7/7 | Complete | 2026-08-28 |
-| 4. Quote & Pricing Engine | 12/16 | In Progress|  |
-| 5. Public Surfaces & Customer Accounts | 19/24 | In Progress|  |
+| 4. Quote & Pricing Engine | 16/16 | Complete    | 2026-09-06 |
+| 5. Public Surfaces & Customer Accounts | 33/33 | Complete    | 2026-09-06 |
 | 6. Ops Reference Data & Content Console | 13/13 | Complete   | 2026-09-01 |
 | 7. Checkout & Payment | 0/TBD | Not started | - |
 | 8. Ops Dispatch — Live Board, Assignment & Account Surfaces | 0/TBD | Not started | - |

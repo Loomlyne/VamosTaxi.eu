@@ -159,8 +159,24 @@ export async function POST(req: Request) {
 
   // 2) Call Stripe OUTSIDE any DB transaction (rls-hyperdrive.md:484 — one transaction per
   //    logical unit of work, never held open across a network call).
-  const intent = await stripe.paymentIntents.create(
-    { amount: quote.total_rappen, currency: "chf", metadata: { quote_id: body.quoteId } },
+  const session = await stripe.checkout.sessions.create(
+    {
+      mode: "payment",
+      ui_mode: "elements",
+      adaptive_pricing: { enabled: true },
+      expand: ["payment_intent"],
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: "chf",
+            unit_amount: quote.total_rappen,
+            product_data: { name: "Airport transfer" },
+          },
+        },
+      ],
+      metadata: { quote_id: body.quoteId },
+    },
     { idempotencyKey: body.idempotencyKey },
   );
 
@@ -188,28 +204,30 @@ export async function POST(req: Request) {
       // is_chargeable, rate_version status and charged amount from the DB row, ignoring
       // everything the request body or step 1 claimed.
       await tx`insert into public.booking_payments
-        (booking_id, snapshot_id, stripe_payment_intent_id, charged_rappen, status)
-        values (${b.id}, ${quote.snapshot_id}, ${intent.id}, ${quote.total_rappen}, 'requires_payment')`;
+        (booking_id, snapshot_id, stripe_checkout_session_id, charged_rappen, status)
+        values (${b.id}, ${quote.snapshot_id}, ${session.id}, ${quote.total_rappen}, 'requires_payment')`;
 
       return b;
     });
-    return json(200, { reference: booking.reference, clientSecret: intent.client_secret });
+    return json(200, { reference: booking.reference, clientSecret: session.client_secret });
 
   } catch (e) {
     if (isPgError(e, "restrict_violation")) {
       // The transaction rolled back atomically: no booking row, no reference burned,
-      // no snapshot bound, no payment row. The Stripe PaymentIntent from step 2 is now
-      // orphaned but uncharged — cancel it explicitly rather than trust Stripe's own
+      // no snapshot bound, no payment row. The Stripe Checkout Session from step 2 is now
+      // orphaned but uncharged — expire it explicitly rather than trust Stripe's own
       // cleanup, which is not guaranteed on any short timer for requires_payment_method
       // (the documented 7-day auto-cancel applies to manual-capture requires_capture
-      // intents, not this flow — https://docs.stripe.com/api/payment_intents/cancel).
-      await stripe.paymentIntents.cancel(intent.id).catch(() => {});
+      // intents, not this flow — https://docs.stripe.com/api/checkout/sessions/expire).
+      await stripe.checkout.sessions.expire(session.id).catch(() => {});
       return json(409, { error: "quote_expired", action: "requote" });
     }
     throw e;
   }
 }
 ```
+
+[Note 2026-09-05: ADR-014 §1 — Checkout Session, not a bare PaymentIntent. See `.planning/ADR-014-owner-sitting-2026-08-22.md` §1 and `07-CONTEXT.md` D-04/D-07/D-08.]
 
 **Why a UI countdown is decorative, demonstrated:** step 1's `expires_at <= new Date()` check is a courtesy — it saves a wasted Stripe call and gives a fast error. **Delete it entirely** (comment it out) and nothing about correctness changes, because step 3's `insert into booking_payments` still fires `tg_payment_matches_snapshot()`, which re-reads `s.expires_at` from Postgres itself and raises `restrict_violation` regardless of what the request body, the client JS, or step 1 believed. A client can:
 
@@ -353,7 +371,7 @@ select …, now() + (s.quote_lock_minutes || ' minutes')::interval, …
 | # | Uncertainty | What settles it |
 |---|---|---|
 | **A** | Whether `security definer` on `tg_payment_matches_snapshot()` (§2.2) has any unintended interaction with the `booking_payments_column_whitelist` trigger, which is *not* proposed as `security definer`. | Add both triggers to a local Supabase instance, run `charge_gate.test.sql` end to end as `authenticated` and as `vamos_guest`, assert identical behaviour to today's invoker-rights version for every non-error path. |
-| **B** | Exact wording Stripe uses/guarantees for auto-cancellation of an unconfirmed `requires_payment_method` PaymentIntent — I could not find a documented short timer for this status (only the 7-day `requires_capture` uncaptured-intent rule, a different flow). | `docs.stripe.com/api/payment_intents/cancel` + a support/docs confirmation before relying on *anything* other than the explicit `stripe.paymentIntents.cancel()` call in §3.1's catch block. Until confirmed, treat explicit cancel as mandatory, not a nice-to-have. |
+| **B** | Exact wording Stripe uses/guarantees for auto-cancellation of an unconfirmed `requires_payment_method` PaymentIntent — I could not find a documented short timer for this status (only the 7-day `requires_capture` uncaptured-intent rule, a different flow). | `docs.stripe.com/api/checkout/sessions/expire` + a support/docs confirmation before relying on *anything* other than the explicit `stripe.checkout.sessions.expire()` call in §3.1's catch block. Until confirmed, treat explicit expire as mandatory, not a nice-to-have. |
 | **C** | Retention window for unbound `price_snapshots` rows (§5's `purge_unbought_quotes`). | Owner answer in `docs/build/OWNER-ANSWERS.md`, same channel as ADR-002/ADR-005. Do not build the purge function until answered. |
 | **D** | Whether a KV soft-reservation for scarce coupons (§7) is ever actually needed — depends on whether the owner runs capped-quantity promotional codes at a volume where the race is user-visible. | Owner/marketing input on planned coupon campaigns; not a technical unknown. |
 | **E** | `now()` semantics inside `sql.begin(async (tx) => {...})` sequential-await form (§3.1 uses this, not the pipelined array form) — confirm all statements in one `withIdentity` call share one transaction start time, not per-statement `statement_timestamp()`-like drift. | `begin; select now(); select pg_sleep(2); select now();` locally — both `now()` calls must return the identical value (transaction-start semantics), confirming §4's "one clock" claim empirically, not just from docs. |

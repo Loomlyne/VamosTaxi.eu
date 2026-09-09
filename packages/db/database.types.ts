@@ -751,6 +751,74 @@ export type Database = {
           },
         ]
       }
+      contact_delivery_outbox: {
+        Row: {
+          correlation_id: string
+          created_at: string
+          customer_accepted_at: string | null
+          customer_failed_at: string | null
+          customer_lease_expires_at: string | null
+          customer_lease_token: string | null
+          customer_provider_suffix: string | null
+          customer_state: string
+          revision: number
+          submission_id: string
+          support_accepted_at: string | null
+          support_failed_at: string | null
+          support_lease_expires_at: string | null
+          support_lease_token: string | null
+          support_provider_suffix: string | null
+          support_state: string
+          updated_at: string
+        }
+        Insert: {
+          correlation_id?: string
+          created_at?: string
+          customer_accepted_at?: string | null
+          customer_failed_at?: string | null
+          customer_lease_expires_at?: string | null
+          customer_lease_token?: string | null
+          customer_provider_suffix?: string | null
+          customer_state?: string
+          revision?: number
+          submission_id: string
+          support_accepted_at?: string | null
+          support_failed_at?: string | null
+          support_lease_expires_at?: string | null
+          support_lease_token?: string | null
+          support_provider_suffix?: string | null
+          support_state?: string
+          updated_at?: string
+        }
+        Update: {
+          correlation_id?: string
+          created_at?: string
+          customer_accepted_at?: string | null
+          customer_failed_at?: string | null
+          customer_lease_expires_at?: string | null
+          customer_lease_token?: string | null
+          customer_provider_suffix?: string | null
+          customer_state?: string
+          revision?: number
+          submission_id?: string
+          support_accepted_at?: string | null
+          support_failed_at?: string | null
+          support_lease_expires_at?: string | null
+          support_lease_token?: string | null
+          support_provider_suffix?: string | null
+          support_state?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_delivery_outbox_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: true
+            referencedRelation: "contact_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_submissions: {
         Row: {
           booking_ref: string
@@ -1087,54 +1155,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      partner_applications: {
-        Row: {
-          accepted_privacy: boolean
-          accepted_terms: boolean
-          city: string
-          created_at: string
-          email: string
-          handled_at: string | null
-          id: string
-          idempotency_key: string
-          locale: string
-          name: string
-          permit: string
-          phone: string
-          vehicle: string
-        }
-        Insert: {
-          accepted_privacy: boolean
-          accepted_terms: boolean
-          city?: string
-          created_at?: string
-          email: string
-          handled_at?: string | null
-          id?: string
-          idempotency_key: string
-          locale?: string
-          name: string
-          permit?: string
-          phone?: string
-          vehicle?: string
-        }
-        Update: {
-          accepted_privacy?: boolean
-          accepted_terms?: boolean
-          city?: string
-          created_at?: string
-          email?: string
-          handled_at?: string | null
-          id?: string
-          idempotency_key?: string
-          locale?: string
-          name?: string
-          permit?: string
-          phone?: string
-          vehicle?: string
-        }
-        Relationships: []
       }
       price_snapshot_legs: {
         Row: {
@@ -1631,6 +1651,50 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_daily_digests: {
+        Row: {
+          attempt_count: number
+          claimed_at: string
+          created_at: string
+          digest_date: string
+          failed_at: string | null
+          sent_at: string | null
+          staff_user_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          claimed_at?: string
+          created_at?: string
+          digest_date: string
+          failed_at?: string | null
+          sent_at?: string | null
+          staff_user_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          claimed_at?: string
+          created_at?: string
+          digest_date?: string
+          failed_at?: string | null
+          sent_at?: string | null
+          staff_user_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_daily_digests_staff_user_id_fkey"
+            columns: ["staff_user_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       stripe_events: {
         Row: {
           attempts: number
@@ -1835,6 +1899,62 @@ export type Database = {
     }
     Functions: {
       __seed_apply: { Args: never; Returns: undefined }
+      checkout_create_booking: {
+        Args: {
+          p_actor_customer_id: string
+          p_charged_rappen: unknown
+          p_contact: Json
+          p_coupon_code: string
+          p_coupon_id: number
+          p_display_currency: string
+          p_idempotency_key: string
+          p_legs: Json
+          p_locale: string
+          p_manage_token_expires_at: string
+          p_manage_token_hash: string
+          p_quote_id: string
+          p_snapshot: Json
+          p_stripe_checkout_session_id: string
+          p_stripe_payment_intent_id: string
+        }
+        Returns: {
+          booking_id: string
+          payment_id: number
+          reference: string
+          replayed: boolean
+          snapshot_id: number
+        }[]
+      }
+      checkout_payment_settle: {
+        Args: {
+          p_charged_currency: string
+          p_event_id: string
+          p_fx_quoted_at: string
+          p_fx_rate: number
+          p_fx_source: string
+          p_outcome: string
+          p_payment_intent_id: string
+          p_presentment_amount_minor: number
+          p_session_id: string
+        }
+        Returns: {
+          already_settled: boolean
+          booking_id: string
+          contact_email: string
+          locale: string
+          reference: string
+        }[]
+      }
+      claim_contact_delivery: {
+        Args: { p_channel: string; p_submission_id: string }
+        Returns: {
+          claim_state: string
+          correlation_id: string
+          lease_expires_at: string
+          lease_token: string
+          revision: number
+        }[]
+      }
       create_quote_snapshot: {
         Args: {
           p_bags: number
@@ -1872,6 +1992,16 @@ export type Database = {
         }
         Returns: Json
       }
+      finalize_contact_delivery: {
+        Args: {
+          p_accepted: boolean
+          p_channel: string
+          p_lease_token: string
+          p_provider_suffix: string
+          p_submission_id: string
+        }
+        Returns: string
+      }
       manage_booking_cancel: {
         Args: { p_leg_seq?: number; p_token_hash: string }
         Returns: {
@@ -1880,6 +2010,34 @@ export type Database = {
         }[]
       }
       next_booking_reference: { Args: never; Returns: string }
+      notification_claim: {
+        Args: {
+          p_booking_id: string
+          p_booking_leg_id: string
+          p_channel: string
+          p_kind: string
+          p_locale: string
+          p_template_version: string
+        }
+        Returns: number
+      }
+      notification_settle: {
+        Args: { p_error: string; p_id: number; p_provider_message_id: string }
+        Returns: undefined
+      }
+      notification_sweep: {
+        Args: { p_kinds?: string[]; p_older_than: string }
+        Returns: {
+          booking_id: string
+          booking_leg_id: string
+          channel: string
+          created_at: string
+          id: number
+          kind: string
+          locale: string
+          template_version: string
+        }[]
+      }
       quote_lock_deadline: {
         Args: { p_settings_version_id: number }
         Returns: string
@@ -1901,6 +2059,73 @@ export type Database = {
         }
         Returns: undefined
       }
+      staff_claim_invite: { Args: never; Returns: undefined }
+      staff_digest_claim: {
+        Args: { p_digest_date: string; p_staff_user_id: string }
+        Returns: boolean
+      }
+      staff_digest_legs: {
+        Args: { p_digest_date: string }
+        Returns: {
+          dropoff_text: string
+          pickup_text: string
+          reference: string
+          scheduled_local: string
+          status: string
+        }[]
+      }
+      staff_digest_mark_failed: {
+        Args: { p_digest_date: string; p_staff_user_id: string }
+        Returns: undefined
+      }
+      staff_digest_mark_sent: {
+        Args: { p_digest_date: string; p_staff_user_id: string }
+        Returns: undefined
+      }
+      staff_digest_recipients: {
+        Args: never
+        Returns: {
+          email: string
+          full_name: string
+          lang: string
+          user_id: string
+        }[]
+      }
+      staff_update_self: {
+        Args: {
+          p_avatar_path: string
+          p_digest_email: boolean
+          p_full_name: string
+          p_lang: string
+          p_phone: string
+        }
+        Returns: undefined
+      }
+      stripe_event_begin: {
+        Args: {
+          p_event_id: string
+          p_object_ids: string[]
+          p_stripe_created: string
+        }
+        Returns: {
+          reason: string
+          should_process: boolean
+        }[]
+      }
+      stripe_event_record: {
+        Args: {
+          p_id: string
+          p_object_id: string
+          p_payload: Json
+          p_stripe_created: string
+          p_type: string
+        }
+        Returns: boolean
+      }
+      stripe_event_settle: {
+        Args: { p_error: string; p_event_id: string }
+        Returns: undefined
+      }
       submit_contact_message: {
         Args: {
           p_booking_ref: string
@@ -1910,22 +2135,6 @@ export type Database = {
           p_message: string
           p_name: string
           p_phone: string
-        }
-        Returns: {
-          created: boolean
-          id: string
-        }[]
-      }
-      submit_partner_application: {
-        Args: {
-          p_city: string
-          p_email: string
-          p_idempotency_key: string
-          p_locale: string
-          p_name: string
-          p_permit: string
-          p_phone: string
-          p_vehicle: string
         }
         Returns: {
           created: boolean

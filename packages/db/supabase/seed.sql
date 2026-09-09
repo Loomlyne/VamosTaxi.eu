@@ -125,7 +125,7 @@ begin
       policy_doc_slug,
       policy_doc_version
     ) values
-      ($vt$launch-baseline$vt$, $vt$Launch baseline — ADR-014 2026-08-22$vt$, 24, null, 180, 60, 15, 30, 10, $vt$20:00$vt$, $vt$06:00$vt$, $vt$Europe/Zurich$vt$, 30, 30, $vt$[{"from_hours_before":24,"refund_percent":
+      ($vt$launch-baseline$vt$, $vt$Launch baseline — ADR-014 2026-08-22$vt$, 24, null, 180, 60, 15, 30, 10, $vt$20:00$vt$, $vt$06:00$vt$, $vt$Europe/Zurich$vt$, 1440, 1440, $vt$[{"from_hours_before":24,"refund_percent":
     100},{"from_hours_before":0,"refund_percent":
     75},{"no_show":true,"refund_percent":
     0}]$vt$::jsonb, $vt$cancellation$vt$, null)

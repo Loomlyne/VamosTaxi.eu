@@ -324,8 +324,8 @@ function emitSettingsVersions() {
     q(NIGHT_WINDOW.start), // night_window_start — shared with night surcharge predicate (D-39)
     q(NIGHT_WINDOW.end), // night_window_end
     q(NIGHT_WINDOW.tz), // night_window_tz
-    qint(30), // quote_lock_minutes
-    qint(30), // checkout_window_minutes
+    qint(1440), // quote_lock_minutes — D-31 remainder 24h (was 30)
+    qint(1440), // checkout_window_minutes — same 24h clock
     qjsonb(cancellationTiers),
     q("cancellation"), // policy_doc_slug
     "null", // policy_doc_version — unconfirmed

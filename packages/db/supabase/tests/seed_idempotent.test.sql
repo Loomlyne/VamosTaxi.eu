@@ -76,8 +76,8 @@ select is((select round_trip_discount_percent from public.settings_versions wher
 select is((select night_window_start from public.settings_versions where slug = 'launch-baseline'), '20:00'::time, 'night_window_start = 20:00 (D-35)');
 select is((select night_window_end from public.settings_versions where slug = 'launch-baseline'), '06:00'::time, 'night_window_end = 06:00 (D-35)');
 select is((select night_window_tz from public.settings_versions where slug = 'launch-baseline'), 'Europe/Zurich', 'night_window_tz = Europe/Zurich (D-35)');
-select is((select quote_lock_minutes from public.settings_versions where slug = 'launch-baseline'), 30, 'quote_lock_minutes = 30 (D-35)');
-select is((select checkout_window_minutes from public.settings_versions where slug = 'launch-baseline'), 30, 'checkout_window_minutes = 30 (D-35)');
+select is((select quote_lock_minutes from public.settings_versions where slug = 'launch-baseline'), 1440, 'quote_lock_minutes = 1440 (D-31 remainder 24h)');
+select is((select checkout_window_minutes from public.settings_versions where slug = 'launch-baseline'), 1440, 'checkout_window_minutes = 1440 (D-31 remainder 24h)');
 select is((select modification_deadline_hours from public.settings_versions where slug = 'launch-baseline'), null::integer, 'modification_deadline_hours stays NULL (ADR-002, unconfirmed)');
 
 -- ── D-14: the one internal parameter that seeds a number, not NULL ──────────────────────────

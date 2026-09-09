@@ -14,6 +14,8 @@ export interface StepIndicatorItem {
    * step"), so this is the minimal per-step flag needed to reach it — it does not
    * change how `done`/`current`/`todo` are derived. */
   error?: boolean;
+  /** Optional URL. Renders the step as a link without changing layout or colours. */
+  href?: string;
 }
 
 interface StepIndicatorOwnProps {
@@ -42,30 +44,41 @@ export function StepIndicator({
       {steps.map((step, i) => {
         const label = typeof step === "string" ? step : step.label;
         const error = typeof step === "string" ? false : (step.error ?? false);
+        const href = typeof step === "string" ? undefined : step.href;
         const state = error ? "error" : i < current ? "done" : i === current ? "current" : "todo";
         const key = `${i}-${label}`;
+        const className = `vt-step vt-step--${state}`;
+        const ariaCurrent = state === "current" ? ("step" as const) : undefined;
+        const body = (
+          <>
+            <span className="vt-step__dot">
+              {state === "done" ? (
+                <Icon name="check" size={14} />
+              ) : state === "error" ? (
+                <Icon name="triangle-alert" size={14} />
+              ) : (
+                i + 1
+              )}
+            </span>
+            <span className="vt-step__label">
+              {label}
+              {state === "done" && completedLabel ? (
+                <span className="vt-step__sr">, {completedLabel}</span>
+              ) : null}
+            </span>
+          </>
+        );
         return (
           <Fragment key={key}>
-            <div
-              className={`vt-step vt-step--${state}`}
-              aria-current={state === "current" ? "step" : undefined}
-            >
-              <span className="vt-step__dot">
-                {state === "done" ? (
-                  <Icon name="check" size={14} />
-                ) : state === "error" ? (
-                  <Icon name="triangle-alert" size={14} />
-                ) : (
-                  i + 1
-                )}
-              </span>
-              <span className="vt-step__label">
-                {label}
-                {state === "done" && completedLabel ? (
-                  <span className="vt-step__sr">, {completedLabel}</span>
-                ) : null}
-              </span>
-            </div>
+            {href ? (
+              <a className={className} href={href} aria-current={ariaCurrent}>
+                {body}
+              </a>
+            ) : (
+              <div className={className} aria-current={ariaCurrent}>
+                {body}
+              </div>
+            )}
             {i < steps.length - 1 ? (
               <span className={"vt-step__rule" + (i < current ? " vt-step__rule--done" : "")} />
             ) : null}

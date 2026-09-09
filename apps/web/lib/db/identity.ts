@@ -12,12 +12,12 @@
 //     the exact leak T-03-02 names.
 //  2. `fn` returns DATA, never a transaction handle — `@vamos/db/identity`'s own frozen
 //     signature already makes `return tx` a compile error; this file adds nothing on top,
-//     it only forwards the same constraint through five narrower call shapes.
+//     it only forwards the same constraint through seven narrower call shapes.
 //  3. Errors are rethrown unmodified on both the success and the failure path — a call site
 //     still branches on `err.code` (`42501`, `25P02`, `23505`, `23P01`) after this file's
 //     latency instrumentation runs, never on a message string.
 //  4. `env` arrives from `getCloudflareContext()` on fetch/RSC only (D-06) — this file itself
-//     takes `env` as a plain parameter and never calls that function, so the same five
+//     takes `env` as a plain parameter and never calls that function, so the same seven
 //     wrappers work unmodified from a Route Handler, from `ctx.waitUntil(...)` in a Cron/Queue
 //     handler that already has a real `env` argument, or from a future test harness.
 
@@ -44,7 +44,7 @@ type QueryFn<T> = (
 ) => Promise<T extends postgres.TransactionSql | postgres.Sql ? never : T>;
 
 /**
- * The WAE-instrumented door onto the cache-disabled binding — module-private (D-08): the five
+ * The WAE-instrumented door onto the cache-disabled binding — module-private (D-08): the seven
  * named wrappers below are the only exported shapes, so a call site can never pass an
  * arbitrary `kind` string that skips the closed set the RLS policies were written against.
  *
@@ -89,9 +89,24 @@ async function withIdentity<K extends IdentityKind, T>(
 export const asAnon = <T,>(env: CloudflareEnv, fn: QueryFn<T>) =>
   withIdentity(env, "anon", undefined, fn);
 
-/** Worker-only system work — `vamos_edge` SET ROLEs into the nologin `vamos_system` role. */
+/**
+ * Worker-only system work — SET ROLE `vamos_system`. Legitimate callers: the Stripe webhook
+ * route, the `queue()` consumer, and the notification sweep in `scheduled()`. No claims:
+ * authority is the grant.
+ */
 export const asSystem = <T,>(env: CloudflareEnv, fn: QueryFn<T>) =>
   withIdentity(env, "system", undefined, fn);
+
+/**
+ * POST `/api/checkout/intent` — SET ROLE `vamos_checkout`. Guest checkout passes `null`
+ * claims; a signed-in checkout passes the verified JWT so `p_actor_customer_id` can be bound.
+ * Stays on HYPERDRIVE_NOCACHE (invariant 1).
+ */
+export const asCheckout = <T,>(
+  env: CloudflareEnv,
+  claims: VamosClaims | null,
+  fn: QueryFn<T>,
+) => withIdentity(env, "checkout", claims, fn);
 
 /** A signed-in customer — `claims` is the JWT payload `claimsForSql` narrows before binding. */
 export const asCustomer = <T,>(
@@ -144,3 +159,10 @@ export const asGuest = <T,>(
  */
 export const asQuote = <T,>(env: CloudflareEnv, fn: QueryFn<T>) =>
   withIdentity(env, "quote", undefined, fn);
+
+// Compile-time only: asSystem's second argument is the query callback, never claims.
+type _AsSystemTakesNoClaims = Parameters<typeof asSystem>[1] extends VamosClaims
+  ? never
+  : true;
+const _asSystemTakesNoClaims: _AsSystemTakesNoClaims = true;
+void _asSystemTakesNoClaims;

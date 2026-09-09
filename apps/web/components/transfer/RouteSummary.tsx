@@ -103,7 +103,7 @@ export function RouteSummary({
         <div className="vt-route__meta">
           {meta.map((m, i) => (
             <span className="vt-route__metaitem" key={typeof m.label === "string" ? m.label : i}>
-              {m.icon ? <Icon name={m.icon} size={15} color="var(--vt-text-muted)" /> : null}
+              {m.icon ? <Icon name={m.icon} size={18} color="var(--vt-text-muted)" /> : null}
               {m.label}
             </span>
           ))}

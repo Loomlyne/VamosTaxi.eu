@@ -94,6 +94,8 @@ function launchDoc(rateVersion: {
     rate_version: rateVersion,
     classes: [economy, business, van],
     distance_rates: nullRates(),
+    distance_bands: [],
+    region_premiums: [],
     fixed_routes: [],
     surcharges: [
       {
@@ -337,5 +339,36 @@ describe("loadAndPrice", () => {
     const restA = { ...a.quote, computed_at: null };
     const restB = { ...b.quote, computed_at: null };
     expect(restA).toEqual(restB);
+  });
+
+  it("evaluates a coupon code and does not call unused loaders when coupon is absent", async () => {
+    let evaluated: string | null = null;
+    const result = await loadAndPrice(
+      fakeEnv(),
+      { ...input(), coupon: "WELCOME" },
+      {
+        ...stubLoaders({ book: launchDoc(null), settings: settingsDoc() }),
+        evaluateCoupon: async (_env, code) => {
+          evaluated = code;
+          return {
+            ok: false,
+            i18n_key: "quote.coupon.error.not_found",
+            coupon_id: null,
+            kind: null,
+            percent: null,
+            amount_rappen: null,
+            code: null,
+          };
+        },
+      },
+    );
+    expect(evaluated).toBe("WELCOME");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.coupon).toEqual({
+      code: "WELCOME",
+      applied: false,
+      i18n_key: "quote.coupon.error.not_found",
+    });
   });
 });

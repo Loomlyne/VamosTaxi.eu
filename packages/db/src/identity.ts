@@ -32,13 +32,19 @@ import postgres from "postgres";
 import { claimsForSql, type VamosClaims } from "./claims";
 
 /**
- * The five identities `withIdentity` can drop into. The fifth, `"quote"`, is D-44a's
- * Phase 3<->4 seam: Phase 4's anonymous `/api/quote` needs a reserved, greppable identity from
- * its first line of code — it will appear in the WAE `blobs[0]`, in the CI fence's wrapper
- * list, and in every later `pg_stat_statements` line — and retrofitting it after Phase 4 has
- * shipped would mean renaming an identity that has already written rows.
+ * The seven identities `withIdentity` can drop into. `"quote"` is D-44a's Phase 3<->4 seam.
+ * `"checkout"` and `"system"` are Phase 7 nologin roles from
+ * `20260827000002_checkout_roles.sql` — never Data API `anon`/`authenticated`, because a
+ * definer RPC granted to those is callable with the publishable key.
  */
-export type IdentityKind = "anon" | "customer" | "staff" | "guest" | "quote" | "system";
+export type IdentityKind =
+  | "anon"
+  | "customer"
+  | "staff"
+  | "guest"
+  | "quote"
+  | "checkout"
+  | "system";
 
 /**
  * D-44a. The anonymous quote path. Phase 2 plan 02-08's
@@ -75,8 +81,15 @@ export const PG_ROLE = {
   staff: "vamos_staff",
   guest: "vamos_guest",
   quote: QUOTE_PG_ROLE,
-  // `vamos_system` is a nologin role SET-able only by the Worker login
-  // (`vamos_edge`); it is never a browser or service-role identity.
+  // Quoted from 20260827000002_checkout_roles.sql. The Data API exposes `public` to
+  // `anon`/`authenticated`, so a definer RPC granted to either is callable with the
+  // publishable key. `checkout_create_booking` calls `next_booking_reference()`, whose
+  // EXECUTE was revoked from those roles in …010_bookings.sql (T-02-13). vamos_checkout
+  // is a nologin SET ROLE identity so the public checkout route cannot confirm a booking.
+  checkout: "vamos_checkout",
+  // Quoted from 20260827000002_checkout_roles.sql. Separate from vamos_checkout so a
+  // bug in POST /api/checkout/intent cannot reach settlement RPCs that confirm a booking.
+  // nologin, SET-able only by vamos_edge; never a browser or service-role identity.
   system: "vamos_system",
 } as const satisfies Record<IdentityKind, string>;
 
@@ -85,7 +98,9 @@ export type ClaimsFor<K extends IdentityKind> = K extends "customer" | "staff"
   ? VamosClaims
   : K extends "guest"
     ? { manageTokenHashHex: string }
-    : undefined;
+    : K extends "checkout"
+      ? VamosClaims | null
+      : undefined;
 
 /**
  * Five columns, selected with no interpolation. The third column (D-45) is the guest-token
@@ -201,11 +216,16 @@ export async function withIdentity<K extends IdentityKind, T>(
     //    borrows the same pooled backend.
     if (kind === "customer" || kind === "staff") {
       await tx`select set_config('request.jwt.claims', ${claimsForSql(claims as VamosClaims)}, true)`;
+    } else if (kind === "checkout" && claims != null) {
+      // Signed-in checkout (PAY-03): bind the verified JWT so checkout_create_booking can
+      // take p_actor_customer_id. Anonymous checkout passes null and binds nothing.
+      await tx`select set_config('request.jwt.claims', ${claimsForSql(claims as VamosClaims)}, true)`;
     } else if (kind === "guest") {
       await tx`select set_config('request.vamos.manage_token_hash', ${(claims as { manageTokenHashHex: string }).manageTokenHashHex}, true)`;
     }
-    // kind === "anon" | "quote" | "system": no claim to bind — the quote path's authority is
-    // the grant or definer RPC (D-44a); system authority is its Worker-only SET ROLE path.
+    // kind === "anon" | "quote": no claim to bind — authority is the grant or definer RPC (D-44a).
+    // kind === "checkout" with null claims: guest checkout, no JWT.
+    // kind === "system": no claim to bind — authority is the grant, never a user identity.
 
     return fn(tx);
   }) as Promise<T>;

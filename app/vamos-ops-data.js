@@ -5,8 +5,8 @@
    the settings and profile singletons.
 
    In-scope collections hydrate from /api/staff JSON and start empty (D-35).
-   404/network stays []. Bookings stay empty with no write route (Phase 8).
-   Rate-book collections bind GET/PUT /api/staff/rate-book, never
+   404/network stays []. Bookings hydrate GET /api/staff/bookings.
+   Rate-book collections bind GET/PUT/DELETE /api/staff/rate-book, never
    /api/staff/<name> aliases. */
 (function () {
   var subs = [];
@@ -31,6 +31,28 @@
     if (data && Array.isArray(data[name])) return data[name];
     if (data && Array.isArray(data.rows)) return data.rows;
     return [];
+  }
+
+  var bookFetch = { pending: false, loaded: false, json: null, waiters: [] };
+  function fetchRateBook() {
+    if (bookFetch.loaded) return Promise.resolve(bookFetch.json);
+    return new Promise(function (resolve) {
+      bookFetch.waiters.push(resolve);
+      if (bookFetch.pending) return;
+      bookFetch.pending = true;
+      api("GET", "/api/staff/rate-book").then(function (json) {
+        bookFetch.pending = false;
+        var ok = !!(json && json.ok !== false);
+        bookFetch.loaded = ok;
+        bookFetch.json = json;
+        if (ok && json.data && Array.isArray(json.data.zones)) {
+          ZONES = json.data.zones.slice();
+        }
+        var w = bookFetch.waiters.slice();
+        bookFetch.waiters = [];
+        w.forEach(function (fn) { fn(json); });
+      });
+    });
   }
 
   function subscribe(name, fn) {
@@ -124,14 +146,17 @@
     var list = [];
     var pending = false;
     var loaded = false;
-    var getPath = "/api/staff/rate-book?versionId=";
     var putPath = "/api/staff/rate-book";
 
     function hydrate() {
       if (pending || loaded) return;
       pending = true;
-      api("GET", getPath).then(function (json) {
+      fetchRateBook().then(function (json) {
         pending = false;
+        if (!json || json.ok === false) {
+          loaded = false;
+          return;
+        }
         loaded = true;
         list = pickRows(json, name).map(clean);
         emit(name);
@@ -189,25 +214,41 @@
         return upsert(merged);
       },
       upsert: function (rec) { return upsert(rec); },
-      remove: function () { emit(name); return list.slice(); },
-      reset: function () { list = []; loaded = false; pending = false; emit(name); hydrate(); return list.slice(); },
+      remove: function (id) {
+        var previous = list.slice();
+        var rec = null;
+        var i;
+        for (i = 0; i < list.length; i++) if (list[i].id === id) rec = list[i];
+        if (!rec) return previous;
+        var body = { kind: kind, id: id };
+        if (rec.from) body.from = rec.from;
+        if (rec.to) body.to = rec.to;
+        if (rec.originZoneId) body.originZoneId = rec.originZoneId;
+        if (rec.destZoneId) body.destZoneId = rec.destZoneId;
+        list = list.filter(function (row) { return row.id !== id; });
+        emit(name);
+        api("DELETE", putPath + "?kind=" + encodeURIComponent(kind) + "&id=" + encodeURIComponent(String(id)), body).then(function (json) {
+          if (!json || json.ok === false) {
+            list = previous;
+          } else {
+            var rows = pickRows(json, name);
+            if (rows.length) list = rows.map(clean);
+          }
+          emit(name);
+        });
+        return list.slice();
+      },
+      reset: function () {
+        bookFetch.loaded = false;
+        bookFetch.json = null;
+        list = [];
+        loaded = false;
+        pending = false;
+        emit(name);
+        hydrate();
+        return list.slice();
+      },
       onChange: function (fn) { return subscribe(name, fn); }
-    };
-  }
-
-  function emptyBookings(clean) {
-    return {
-      name: "bookings",
-      all: function () { return []; },
-      get: function () { return null; },
-      blank: function (over) { return clean(over || {}); },
-      save: function () { return []; },
-      add: function () { return []; },
-      update: function () { return []; },
-      upsert: function () { return []; },
-      remove: function () { return []; },
-      reset: function () { emit("bookings"); return []; },
-      onChange: function (fn) { return subscribe("bookings", fn); }
     };
   }
 
@@ -279,6 +320,7 @@
     return out;
   }
 
+  var ZONES = [];
   var LOCATIONS = [
     "Zurich Airport (ZRH)", "Geneva Airport (GVA)", "Zurich city", "Dietikon",
     "Zermatt", "St. Moritz", "Chamonix", "Verbier"
@@ -322,7 +364,21 @@
       klass: VEHICLE_CLASSES.indexOf(b.klass) === -1 ? "Economy" : b.klass,
       pax: num(b.pax, 1), bags: num(b.bags, 1),
       status: BOOKING_STATUS.indexOf(b.status) === -1 ? "pending" : b.status,
-      chauffeur: str(b.chauffeur), flight: str(b.flight), note: str(b.note)
+      chauffeur: str(b.chauffeur),
+      driver: str(b.driver || b.chauffeur),
+      vehicle: str(b.vehicle || b.klass),
+      flight: str(b.flight),
+      note: str(b.note),
+      email: str(b.email),
+      phone: str(b.phone),
+      company: str(b.company),
+      dateIso: str(b.dateIso),
+      bookingId: str(b.bookingId),
+      paid: !!b.paid,
+      paidByCard: !!b.paidByCard,
+      payLinkSent: !!b.payLinkSent,
+      cardSession: !!b.cardSession,
+      sessionExpiresAt: str(b.sessionExpiresAt)
     };
   }
 
@@ -331,9 +387,9 @@
     c = c || {};
     return {
       id: str(c.id) || id("cu"),
-      name: str(c.name), email: str(c.email), phone: str(c.phone),
+      name: str(c.name || c.fullName), email: str(c.email), phone: str(c.phone),
       type: CUSTOMER_TYPES.indexOf(c.type) === -1 ? "private" : c.type,
-      company: str(c.company), trips: num(c.trips, 0), since: str(c.since), note: str(c.note)
+      company: str(c.company), trips: num(c.trips != null ? c.trips : c.tripCount, 0), since: str(c.since), note: str(c.note)
     };
   }
 
@@ -354,12 +410,13 @@
     return {
       id: str(r.id) || id("FR"),
       from: str(r.from), to: str(r.to),
+      originZoneId: str(r.originZoneId), destZoneId: str(r.destZoneId),
       economy: cleanMoneySet(r.economy), business: cleanMoneySet(r.business), first: cleanMoneySet(r.first), van: cleanMoneySet(r.van),
       live: !!r.live
     };
   }
 
-  var RATE_DEFAULT_PAX = { Economy: 3, Business: 3, First: 3, Van: 8 };
+  var RATE_DEFAULT_PAX = { Economy: 4, Business: 4, First: 4, Van: 7 };
   function cleanRate(r) {
     r = r || {};
     var klass = VEHICLE_CLASSES.indexOf(r.klass) === -1 ? "Economy" : r.klass;
@@ -380,6 +437,26 @@
       label: str(s.label), rule: str(s.rule),
       kind: SURCHARGE_KINDS.indexOf(s.kind) === -1 ? "amount" : s.kind,
       amounts: cleanMoneySet(s.amounts), pct: str(s.pct)
+    };
+  }
+
+  function cleanBand(b) {
+    b = b || {};
+    return {
+      id: str(b.id) || id("B"),
+      fromKm: num(b.fromKm, 0),
+      toKm: b.toKm === "" || b.toKm == null ? "" : num(b.toKm, 0),
+      perKm: cleanMoneySet(b.perKm)
+    };
+  }
+
+  function cleanRegion(r) {
+    r = r || {};
+    return {
+      id: str(r.id) || id("RP"),
+      zoneId: str(r.zoneId),
+      zone: str(r.zone),
+      percent: str(r.percent)
     };
   }
 
@@ -417,19 +494,22 @@
     SURCHARGE_KINDS: SURCHARGE_KINDS,
     CURRENCIES: CURRENCIES,
     LOCATIONS: LOCATIONS,
+    get ZONES() { return ZONES.slice(); },
     vehicles: restCollection("vehicles", cleanVehicle),
     chauffeurs: restCollection("chauffeurs", cleanChauffeur),
-    bookings: emptyBookings(cleanBooking),
+    bookings: restCollection('bookings', cleanBooking),
     customers: restCollection("customers", cleanCustomer),
     coupons: restCollection("coupons", cleanCoupon),
     routes: rateBookCollection("routes", "route", cleanRoute),
     rates: rateBookCollection("rates", "distance", cleanRate),
     surcharges: rateBookCollection("surcharges", "surcharge", cleanSurcharge),
+    bands: rateBookCollection("bands", "band", cleanBand),
+    regionPremiums: rateBookCollection("regionPremiums", "region", cleanRegion),
     settings: remoteSingleton("settings", "/api/staff/settings", settingsFromPayload),
     profile: remoteSingleton("profile", "/api/staff/me", profileFromMe),
     onAny: function (fn) { return subscribe(null, fn); },
     resetAll: function () {
-      ["vehicles", "chauffeurs", "bookings", "customers", "coupons", "routes", "rates", "surcharges", "settings", "profile"]
+      ["vehicles", "chauffeurs", "bookings", "customers", "coupons", "routes", "rates", "surcharges", "bands", "regionPremiums", "settings", "profile"]
         .forEach(function (k) { window.VamosOps[k].reset(); });
     }
   };

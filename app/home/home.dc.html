@@ -89,7 +89,7 @@
 <script src="../../assets/lenis.js"></script>
 <script src="../../assets/lenis-boot.js"></script>
 <script src="../vamos-i18n-dict.js"></script>
-<script src="../vamos-locale.js"></script>
+<script src="../vamos-locale.js?v=10"></script>
 <script src="../vamos-page-transition.js"></script>
 <script>(function(){var K='VamosTaxiDesignSystem_245af1',t=0;function go(){var NS=window[K];
 if(!NS||!NS.Icon){if(++t<400)setTimeout(go,25);return;}if(NS.__resPatched)return;NS.__resPatched=1;
@@ -122,7 +122,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-f=pickup]{grid-area:pickup}[data-f=swap]{grid-area:swap}[data-f=dest]{grid-area:dest}[data-f=when]{grid-area:when}[data-f=party]{grid-area:party}[data-f=flight]{grid-area:flight}
 [data-party]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 [data-fleet-card][data-picked="1"]{border-color:var(--vt-charcoal-900)!important;box-shadow:var(--vt-shadow-lg)}
-[data-fleet-card][data-dim="1"]{opacity:.5}
+[data-fleet-card][data-dim="1"]{opacity:.48}
+[data-fleet-card][data-locked="1"]{cursor:default}
 [data-vtcombo]{display:flex;align-items:center;gap:9px;height:var(--vt-control-h-md);padding:0 7px 0 8px;box-sizing:border-box;background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:var(--vt-radius-field);transition:border-color .16s cubic-bezier(.2,0,.2,1),background .16s cubic-bezier(.2,0,.2,1)}
 [data-vtcombo]:hover{border-color:var(--vt-grey-300)}
 [data-vtcombo][data-on="1"]{border-color:var(--vt-charcoal-900);background:var(--vt-white)}
@@ -139,6 +140,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-sug-head]{position:sticky;top:-6px;z-index:2;margin:0 -6px;padding:9px 17px 5px;background:var(--vt-bg-surface);font-size:10px;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
 [data-sug-row]{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;cursor:pointer}
 [data-sug-row]:hover{background:var(--vt-grey-50)}
+[data-sug-name],[data-sug-sub]{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[data-sug-row]:hover [data-sug-name],[data-sug-row]:hover [data-sug-sub]{white-space:normal;overflow:visible;text-overflow:unset}
 [data-sug-tile]{width:28px;height:28px;flex:0 0 auto;border-radius:8px;background:var(--vt-grey-100);color:var(--vt-text-secondary);display:inline-flex;align-items:center;justify-content:center}
 [data-sug-row][data-tone=geo]{outline:1px solid var(--vt-border-subtle);outline-offset:-1px}
 [data-sug-row][data-tone=geo] [data-sug-tile],[data-sug-row][data-tone=pin] [data-sug-tile]{background:var(--vt-charcoal-900);color:var(--vt-white)}
@@ -234,6 +237,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </div>
 </div>
 </sc-if>
+<sc-if value="{{ showModeBar }}" hint-placeholder-val="{{ false }}">
 <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap">
 <sc-if value="{{ showModes }}" hint-placeholder-val="{{ false }}">
 <div role="tablist" aria-label="{{ tTripType }}" style="position:relative;display:flex;height:44px;padding:3px;border-radius:999px;background:var(--vt-grey-100);{{ tabsWrapCss }}">
@@ -243,10 +247,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </sc-for>
 </div>
 </sc-if>
+<sc-if value="{{ showModeNote }}" hint-placeholder-val="{{ false }}">
 <span ref="{{ modeNoteRef }}" style="display:flex;align-items:center;gap:7px;flex:1 1 240px;min-width:0;font-family:var(--vt-font-body);font-size:12.5px;line-height:1.35;color:var(--vt-text-secondary);text-wrap:pretty">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ modeIcon }}" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
 <span>{{ modeNote }}</span></span>
+</sc-if>
 </div>
+</sc-if>
 <div data-fields="1" ref="{{ fieldsRef }}">
 <div data-f="flight" data-sugroot="1" style="position: relative; min-width: 0; width: 100%" data-om-label="Flight">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tFlight }}" icon="plane" size="md" value="{{ flight }}" onChange="{{ setFlight }}" onFocus="{{ focusFlight }}" onKeyDown="{{ flightKey }}" placeholder="{{ tFlightPh }}" error="{{ flightError }}" hint-size="100%,66px"></x-import>
@@ -335,14 +342,16 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <span data-sug-spin="1"><i data-spin="1" aria-hidden="true"></i>{{ s.name }}</span>
 </sc-if>
 <sc-if value="{{ s.row }}" hint-placeholder-val="{{ true }}">
-<div data-sug-row="1" data-idx="{{ s.idx }}" data-tone="{{ s.tone }}" role="option" id="{{ s.id }}" aria-selected="{{ s.sel }}" onMouseDown="{{ s.pick }}" onClick="{{ s.pick }}" style="{{ s.css }}">
+<div data-sug-row="1" data-idx="{{ s.idx }}" data-tone="{{ s.tone }}" role="option" id="{{ s.id }}" aria-selected="{{ s.sel }}" title="{{ s.full }}" onMouseDown="{{ s.pick }}" onClick="{{ s.pick }}" style="{{ s.css }}">
 <span data-sug-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ s.icon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
-<span style="display:flex;flex-direction:column;min-width:0;flex:1 1 auto"><span style="font-size:var(--vt-body-sm);font-weight:600;color:var(--vt-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.name }}</span><span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.sub }}</span></span>
+<span style="display:flex;flex-direction:column;min-width:0;flex:1 1 auto"><span data-sug-name="1" style="font-size:var(--vt-body-sm);font-weight:600;color:var(--vt-text-primary)">{{ s.name }}</span><span data-sug-sub="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ s.sub }}</span></span>
 <span data-sug-go="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import></span>
 </div>
 </sc-if>
 </sc-for>
+<sc-if value="{{ sugHasHits }}" hint-placeholder-val="{{ false }}">
 <span data-sug-foot="1" aria-hidden="true"><b>↑</b><b>↓</b><b>↵</b><b>ESC</b></span>
+</sc-if>
 </div>
 </sc-if>
 <sc-if value="{{ pickupRevertShow }}" hint-placeholder-val="{{ false }}">
@@ -377,14 +386,16 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <span data-sug-spin="1"><i data-spin="1" aria-hidden="true"></i>{{ s.name }}</span>
 </sc-if>
 <sc-if value="{{ s.row }}" hint-placeholder-val="{{ true }}">
-<div data-sug-row="1" data-idx="{{ s.idx }}" data-tone="{{ s.tone }}" role="option" id="{{ s.id }}" aria-selected="{{ s.sel }}" onMouseDown="{{ s.pick }}" onClick="{{ s.pick }}" style="{{ s.css }}">
+<div data-sug-row="1" data-idx="{{ s.idx }}" data-tone="{{ s.tone }}" role="option" id="{{ s.id }}" aria-selected="{{ s.sel }}" title="{{ s.full }}" onMouseDown="{{ s.pick }}" onClick="{{ s.pick }}" style="{{ s.css }}">
 <span data-sug-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ s.icon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
-<span style="display:flex;flex-direction:column;min-width:0;flex:1 1 auto"><span style="font-size:var(--vt-body-sm);font-weight:600;color:var(--vt-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.name }}</span><span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.sub }}</span></span>
+<span style="display:flex;flex-direction:column;min-width:0;flex:1 1 auto"><span data-sug-name="1" style="font-size:var(--vt-body-sm);font-weight:600;color:var(--vt-text-primary)">{{ s.name }}</span><span data-sug-sub="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ s.sub }}</span></span>
 <span data-sug-go="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import></span>
 </div>
 </sc-if>
 </sc-for>
+<sc-if value="{{ sugHasHits }}" hint-placeholder-val="{{ false }}">
 <span data-sug-foot="1" aria-hidden="true"><b>↑</b><b>↓</b><b>↵</b><b>ESC</b></span>
+</sc-if>
 </div>
 </sc-if>
 <sc-if value="{{ destRevertShow }}" hint-placeholder-val="{{ false }}">
@@ -403,7 +414,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </div>
 <div data-f="party" data-party="1" style="display: flex; flex-wrap: wrap; justify-content: flex-start; align-items: flex-start">
 <dc-import name="StepCounter" label="{{ tPax }}" icon="users" value="{{ pax }}" min="{{ n0 }}" max="{{ n8 }}" onChange="{{ setPax }}" hint-size="112px,66px"></dc-import>
-<dc-import name="StepCounter" label="{{ tBags }}" icon="luggage" value="{{ bags }}" min="{{ n0 }}" max="{{ n8 }}" onChange="{{ setBags }}" hint-size="112px,66px"></dc-import>
+<dc-import name="StepCounter" label="{{ tBags }}" icon="luggage" value="{{ bags }}" min="{{ n0 }}" max="{{ n16 }}" onChange="{{ setBags }}" hint-size="112px,66px"></dc-import>
 </div>
 
 </div>
@@ -424,7 +435,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <sc-for list="{{ fleet }}" as="v" hint-placeholder-count="4">
 <div role="{{ v.role }}" tabindex="{{ v.tab }}" aria-disabled="{{ v.dis }}" data-fleet-card="1" data-locked="{{ v.locked }}" data-picked="{{ v.picked }}" data-dim="{{ v.dim }}" data-unavail="{{ v.unavail }}" onClick="{{ v.select }}" onKeyDown="{{ v.key }}" title="{{ v.title }}" style="position:relative;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);padding:8px 10px;min-height:84px;display:flex;flex-direction:column;gap:6px;cursor:pointer;transition:var(--vt-transition-control);view-transition-name:{{ v.vtName }}" style-hover="box-shadow:var(--vt-shadow-md);border-color:var(--vt-grey-300)" style-active="transform:translateY(1px)">
 <div style="display:flex;align-items:flex-start;gap:6px;flex-direction:column">
-<div data-fleet-img="1" style="width:100%;height:100px;border-radius:8px;background:var(--vt-grey-100);overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;flex:0 0 auto">
+<div data-fleet-img="1" style="width:100%;height:130px;border-radius:8px;background:var(--vt-grey-100);overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;flex:0 0 auto">
 <sc-if value="{{ v.noImage }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ v.icon }}" size="{{ n24 }}" color="var(--vt-grey-500)" hint-size="24px,24px"></x-import></sc-if>
 <sc-if value="{{ v.hasImage }}" hint-placeholder-val="{{ true }}"><img src="{{ v.image }}" alt="" style="width:100%;height:100%;object-fit:cover;display:block"></sc-if>
 <sc-if value="{{ v.hasBadge }}" hint-placeholder-val="{{ false }}">
@@ -457,8 +468,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <span aria-hidden="true" style="display:flex;align-items:center;justify-content:center;gap:7px;height:34px;border-radius:999px;background:var(--vt-charcoal-900);color:var(--vt-white);font-family:var(--vt-font-body);font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n14 }}" color="var(--vt-accent)" hint-size="14px,14px"></x-import>{{ tSelectedCta }}</span>
 </sc-if>
-<sc-if value="{{ v.unavailable }}" hint-placeholder-val="{{ false }}">
-<span aria-disabled="true" style="display:flex;align-items:center;justify-content:center;height:34px;border:1px solid var(--vt-grey-300);border-radius:999px;background:var(--vt-grey-100);color:var(--vt-text-secondary);font-family:var(--vt-font-body);font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;text-align:center">{{ v.unavailableCta }}</span>
+<sc-if value="{{ v.selectOff }}" hint-placeholder-val="{{ false }}">
+<span aria-disabled="true" data-select-cta="1" data-off="1" style="display:flex;align-items:center;justify-content:center;gap:7px;height:34px;border-radius:999px;background:var(--vt-grey-100);color:var(--vt-text-muted);opacity:.55;font-family:var(--vt-font-body);font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase">{{ tSelectCta }}
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import></span>
 </sc-if>
 <sc-if value="{{ v.skeleton }}" hint-placeholder-val="{{ false }}">
 <div style="position:absolute;inset:0;border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);padding:8px 10px;display:flex;flex-direction:column;gap:6px;animation:vt-skelpulse 1.8s ease-in-out infinite">
@@ -532,7 +544,18 @@ const LOCS = [
   { id:'verbier', n:'Verbier, Place Centrale', s:'Valais', icon:'snowflake', lat:46.0963, lon:7.2270 },
   { id:'chamonix', n:'Chamonix, Place Balmat', s:'Cross-border · France', icon:'snowflake', lat:45.9237, lon:6.8694 },
 ];
-/** Live place search — /api/geo (Mapbox). Falls back to LOCS when the proxy degrades. */
+function locHits(q) {
+  const ql = String(q || '').trim().toLowerCase();
+  if (!ql) return [];
+  const out = [];
+  for (let i = 0; i < LOCS.length && out.length < 5; i++) {
+    const l = LOCS[i];
+    if ((l.n + ' ' + (l.s || '')).toLowerCase().indexOf(ql) === -1) continue;
+    out.push({ id: l.id, n: l.n, s: l.s, icon: l.icon, air: l.air, lat: l.lat, lon: l.lon });
+  }
+  return out;
+}
+/** Live place search — /api/geo (Mapbox). locHits fill the list while you type. */
 const GEO_LANGS = { en:'en', de:'de', fr:'fr', ar:'en' };
 function geoSession() {
   try {
@@ -583,11 +606,18 @@ function placeInput(loc, text) {
   if (!loc) return null;
   const t = String(text || loc.n || 'pin').slice(0, 200);
   if (t.length < 2) return null;
-  if (loc.mapbox_id && loc.session_token) {
-    return { kind: 'retrieve', mapbox_id: String(loc.mapbox_id).slice(0, 256), session_token: String(loc.session_token).slice(0, 128), text: t };
+  const sub = loc.s ? String(loc.s).slice(0, 200) : '';
+  const full = sub && t.indexOf(sub) === -1 ? (t + ', ' + sub).slice(0, 240) : t;
+  const apiText = full.slice(0, 200);
+  if (loc.mapbox_id) {
+    const token = loc.session_token || geoSession();
+    if (token) {
+      return { kind: 'retrieve', mapbox_id: String(loc.mapbox_id).slice(0, 256), session_token: String(token).slice(0, 128), text: apiText };
+    }
   }
-  if (loc.lat != null && loc.lon != null && isFinite(Number(loc.lat)) && isFinite(Number(loc.lon))) {
-    return { kind: 'pin', lng: Number(loc.lon), lat: Number(loc.lat), text: t };
+  const lng = loc.lon != null ? loc.lon : loc.lng;
+  if (loc.lat != null && lng != null && isFinite(Number(loc.lat)) && isFinite(Number(lng))) {
+    return { kind: 'pin', lng: Number(lng), lat: Number(loc.lat), text: apiText };
   }
   return null;
 }
@@ -693,8 +723,12 @@ function planFor(f) {
 }
 function adbTime(t) { const l = t && (t.local || t.utc); return l ? String(l).slice(11, 16) : null; }
 function adbDate(t) { const l = t && (t.local || t.utc); return l ? String(l).slice(0, 10) : null; }
-/** The widget's calendar shows August 2026; anything outside it falls back to today. */
-function dayOf(leg) { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec((leg && leg.date) || ''); return (m && m[1] === '2026' && m[2] === '08') ? +m[3] : null; }
+/** Flight date → calendar day. Year/month come from dateOf. */
+function dateOf(leg) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec((leg && leg.date) || '');
+  return m ? { y: +m[1], m: +m[2] - 1, d: +m[3] } : null;
+}
+function dayOf(leg) { const d = dateOf(leg); return d ? d.d : null; }
 function adbLeg(l) {
   const ap = (l && l.airport) || {};
   return { iata: ap.iata || ap.icao || '', name: ap.shortName || ap.name || null, city: ap.municipalityName || null,
@@ -733,15 +767,15 @@ const FLIGHT_API = {
  *  Tokens: {VEHICLE_CLASS_n_NAME} {VEHICLE_CLASS_n_MAX_PAX} {VEHICLE_CLASS_n_MAX_BAGS} {VEHICLE_CLASS_n_EXAMPLE}.
  *  Four classes is the demo ladder; the grid and capacity logic hold 2-5 rows with no relayout. */
 const VEHICLE_CLASSES = [
-  { id:'economy', name:'Economy', icon:'car-front', cap:3, bags:3, image:'/photos/site/class-economy.jpg' },
-  { id:'business', name:'Business', icon:'car', cap:3, bags:3, badge:true, image:'/photos/site/class-business.jpg' },
-  { id:'first', name:'First', icon:'car', cap:3, bags:2, image:'/photos/site/class-first.jpg' },
+  { id:'economy', name:'Economy', icon:'car-front', cap:4, bags:3, image:'/photos/site/class-economy.jpg' },
+  { id:'business', name:'Business', icon:'car', cap:4, bags:3, badge:true, image:'/photos/site/class-business.jpg' },
+  { id:'first', name:'First', icon:'car', cap:4, bags:3, image:'/photos/site/class-first.jpg' },
   { id:'van', name:'Van', icon:'bus', cap:7, bags:8, image:'/photos/site/class-van.jpg' },
 ];
 const T = {
   en: {
     kicker:'Pre-booked transfers · Zurich', h1:'Land in Zurich.      Your driver is waiting.', sub:'Reliable, fixed-price airport and corporate rides booked in under one minute.',
-    oneWay:'One way', return_:'Return', hourly:'By the hour', flight:'Flight (optional)', flightPh:'', flightErr:'Check the flight number', flightMiss:'No flight on that number today', tapLookup:'Tap to look up this flight', checking:'Looking up the flight…', lands:'lands', departs:'departs',
+    oneWay:'One way', return_:'Return', hourly:'By the hour', flight:'Flight (optional)', flightPh:'e.g. LX 54', flightErr:'Check the flight number', flightMiss:'No flight on that number today', tapLookup:'Tap to look up this flight', checking:'Looking up the flight…', lands:'lands', departs:'departs',
     st_scheduled:'Scheduled', st_boarding:'Boarding', st_delayed:'Delayed', st_enroute:'En route', st_landed:'Landed', st_cancelled:'Cancelled',
     srcAct:'actual', srcEst:'estimated', srcSched:'scheduled', late:'{n} min late', early:'{n} min early',
     terminalLbl:'Terminal', gateLbl:'Gate', beltLbl:'Belt', aircraftLbl:'Aircraft',
@@ -799,7 +833,7 @@ const T = {
   },
   de: {
     kicker:'Vorausgebuchte Transfers · Zürich', h1:'Landen Sie in Zürich. Ihr Fahrer wartet bereits.', sub:'Zuverlässige Flughafen- und Geschäftsfahrten zum Festpreis — gebucht in unter einer Minute.',
-    oneWay:'Einfache Fahrt', return_:'Rückfahrt', hourly:'Stundenweise', flight:'Flug (optional)', flightPh:'', flightErr:'Prüfen Sie die Flugnummer', flightMiss:'Zu dieser Nummer liegt heute kein Flug vor', tapLookup:'Antippen, um den Flug zu prüfen', checking:'Flug wird gesucht…', lands:'landet', departs:'startet',
+    oneWay:'Einfache Fahrt', return_:'Rückfahrt', hourly:'Stundenweise', flight:'Flug (optional)', flightPh:'z. B. LX 54', flightErr:'Prüfen Sie die Flugnummer', flightMiss:'Zu dieser Nummer liegt heute kein Flug vor', tapLookup:'Antippen, um den Flug zu prüfen', checking:'Flug wird gesucht…', lands:'landet', departs:'startet',
     st_scheduled:'Planmässig', st_boarding:'Boarding', st_delayed:'Verspätet', st_enroute:'Unterwegs', st_landed:'Gelandet', st_cancelled:'Annulliert',
     srcAct:'tatsächlich', srcEst:'erwartet', srcSched:'geplant', late:'{n} Min. später', early:'{n} Min. früher',
     terminalLbl:'Terminal', gateLbl:'Gate', beltLbl:'Band', aircraftLbl:'Flugzeug',
@@ -857,7 +891,7 @@ const T = {
   },
   fr: {
     kicker:'Transferts réservés à l’avance · Zurich', h1:'Vous atterrissez à Zurich. Votre chauffeur vous attend.', sub:'Trajets aéroport et affaires fiables, à prix fixe — réservés en moins d’une minute.',
-    oneWay:'Aller simple', return_:'Aller-retour', hourly:'À l’heure', flight:'Vol (facultatif)', flightPh:'', flightErr:'Vérifiez le numéro de vol', flightMiss:'Aucun vol sous ce numéro aujourd’hui', tapLookup:'Touchez pour vérifier ce vol', checking:'Recherche du vol…', lands:'atterrit à', departs:'décolle à',
+    oneWay:'Aller simple', return_:'Aller-retour', hourly:'À l’heure', flight:'Vol (facultatif)', flightPh:'ex. LX 54', flightErr:'Vérifiez le numéro de vol', flightMiss:'Aucun vol sous ce numéro aujourd’hui', tapLookup:'Touchez pour vérifier ce vol', checking:'Recherche du vol…', lands:'atterrit à', departs:'décolle à',
     st_scheduled:'Prévu', st_boarding:'Embarquement', st_delayed:'Retardé', st_enroute:'En vol', st_landed:'Atterri', st_cancelled:'Annulé',
     srcAct:'réel', srcEst:'estimé', srcSched:'prévu', late:'{n} min de retard', early:'{n} min d’avance',
     terminalLbl:'Terminal', gateLbl:'Porte', beltLbl:'Tapis', aircraftLbl:'Appareil',
@@ -891,7 +925,7 @@ const T = {
   },
   ar: {
     kicker:'نقل محجوز مسبقًا · زيورخ', h1:'تهبط في زيورخ وسائقك في انتظارك.', sub:'مشاوير مطار وشركات موثوقة بسعر ثابت — تُحجز في أقل من دقيقة.',
-    oneWay:'ذهاب فقط', return_:'ذهاب وعودة', hourly:'بالساعة', flight:'رقم الرحلة (اختياري)', flightPh:'', flightErr:'تحقق من رقم الرحلة', flightMiss:'لا رحلة بهذا الرقم اليوم', tapLookup:'اضغط للتحقق من الرحلة', checking:'جارٍ البحث عن الرحلة…', lands:'يصل', departs:'يقلع',
+    oneWay:'ذهاب فقط', return_:'ذهاب وعودة', hourly:'بالساعة', flight:'رقم الرحلة (اختياري)', flightPh:'مثال LX 54', flightErr:'تحقق من رقم الرحلة', flightMiss:'لا رحلة بهذا الرقم اليوم', tapLookup:'اضغط للتحقق من الرحلة', checking:'جارٍ البحث عن الرحلة…', lands:'يصل', departs:'يقلع',
     st_scheduled:'مجدولة', st_boarding:'الصعود', st_delayed:'متأخرة', st_enroute:'في الجو', st_landed:'هبطت', st_cancelled:'ملغاة',
     srcAct:'فعلي', srcEst:'متوقع', srcSched:'مجدول', late:'متأخرة {n} دقيقة', early:'مبكرة {n} دقيقة',
     terminalLbl:'المبنى', gateLbl:'البوابة', beltLbl:'الحزام', aircraftLbl:'الطائرة',
@@ -1043,7 +1077,9 @@ function readTrip() {
   catch (e) { return Object.assign({}, DEFAULT_TRIP); }
 }
 function saveTrip(patch) {
-  const t = Object.assign({}, readTrip(), patch);
+  const prev = readTrip();
+  const quoteChanged = !!(patch.quote_id && prev.quote_id && patch.quote_id !== prev.quote_id);
+  const t = Object.assign({}, prev, quoteChanged ? { flight: '', flightNumber: '' } : {}, patch);
   localStorage.setItem('vamosTrip', JSON.stringify(t));
   try {
     if (t.lock) sessionStorage.setItem('vamosQuoteLock', t.lock);
@@ -1071,7 +1107,7 @@ class Component extends DCLogic {
       cur: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosCurrency')) || 'CHF',
       mode: 'one-way', pickupText: '', pickupLoc: null, dropText: '', dropLoc: null,
       day: null, time: '', returnDay: null, returnTime: '', dayLabel: null, returnLabel: null, dayY: null, dayM: null, returnY: null, returnM: null,
-      pax: 0, bags: 0, hours: 0, geo: 'idle',
+      pax: 1, bags: 0, hours: 0, geo: 'idle',
       flight: '', flightState: 'idle', flightData: null, flightPlan: null, flightSince: '', flightNote: '', changes: [], kept: [],
       touched: { pickup: false, dest: false, when: false }, here: null, hereLoc: null,
       autofill: { pickup: null, when: null, dest: null, party: null }, fill: null, picked: null,
@@ -1113,7 +1149,7 @@ class Component extends DCLogic {
           mode: saved.mode === 'hourly' && (this.props.hourlyEnabled ?? false) ? 'hourly' : 'one-way',
           pickupText: saved.pickup || '', dropText: saved.mode === 'hourly' ? '' : (saved.dropoff || ''),
           day: saved.selectedDay || null, dayLabel: saved.date || null, time: saved.time || '',
-          pax: saved.pax || 0, bags: saved.bags || 0, hours: saved.mode === 'hourly' ? (parseInt(saved.dropoff, 10) || 0) : 0,
+          pax: typeof saved.pax === 'number' ? saved.pax : 1, bags: saved.bags || 0, hours: saved.mode === 'hourly' ? (parseInt(saved.dropoff, 10) || 0) : 0,
           picked: saved.vehicle, touched: { pickup: true, dest: true, when: true },
         }, this.q);
       }
@@ -1182,10 +1218,21 @@ class Component extends DCLogic {
   componentWillUnmount() {
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale); document.removeEventListener('mousedown', this._away); document.removeEventListener('pointerdown', this._sugPick, true); document.removeEventListener('keydown', this._esc); window.removeEventListener('resize', this._onResize); (this._mqs || []).forEach((m) => { m.removeEventListener ? m.removeEventListener('change', this._onResize) : m.removeListener(this._onResize); }); Object.values(this.dusts).forEach((d) => d.destroy()); this.lockScroll(false); this.stopPoll(); clearTimeout(this._deb); clearTimeout(this._ft); clearTimeout(this._geoT); this._geoSeq++; if (this._ac) { try { this._ac.abort(); } catch (e) {} } this.clearFill(); }
   t() { return Object.assign({}, T.en, T[this.state.lang]); }
-  /** Fares are a pending client input: every amount reads 000 (design system §2). */
+  /** Idle / First-class hold: design-system placeholder. Live quotes use fmtAmount. */
   fmt() {
     if (window.VamosLocale) return window.VamosLocale.money('000', this.state.cur);
     const c = CURS[this.state.cur] || CURS.CHF; return c.s + '000';
+  }
+  fmtAmount(rappen) {
+    const n = Number(rappen);
+    if (!isFinite(n) || n < 0) return this.fmt();
+    if (window.VamosLocale && typeof window.VamosLocale.fromChf === 'function') {
+      return window.VamosLocale.fromChf(n, this.state.cur);
+    }
+    const francs = n / 100;
+    const amount = Math.abs(francs - Math.round(francs)) < 1e-9 ? String(Math.round(francs)) : francs.toFixed(2);
+    if (window.VamosLocale) return window.VamosLocale.money(amount, this.state.cur);
+    const c = CURS[this.state.cur] || CURS.CHF; return c.s + amount;
   }
   fmtDate(day) { const t = this.t(); const dow = t.dowRef.split(','); return dow[(day - 1) % 7] + ' ' + day + ' ' + t.mon; }
   resolveLoc(text, loc) { if (loc) return loc; const s = (text || '').trim(); return s.length >= 4 ? Object.assign({ custom: true, n: s }, hashXY(s)) : null; }
@@ -1194,7 +1241,7 @@ class Component extends DCLogic {
     const s = this.state;
     const when = !!s.day && !!s.time;
     const a = s.pickupLoc;
-    const complete = when && s.pax >= 1;
+    const complete = when;
     if (s.mode === 'hourly') return (a && complete && s.hours >= 1) ? { ok: true, hourly: true, a } : { ok: false, a };
     const b = s.dropLoc;
     if (!a || !b) return { ok: false, a, b };
@@ -1210,13 +1257,14 @@ class Component extends DCLogic {
     const q = this.state.quote; const t = this.t();
     if (q.status !== 'live' || !q.results) return { text: this.fmt(), small: false };
     const r = q.results[id];
-    if (!r || r.kind === 'price' || r.kind === 'hold') return { text: this.fmt(), small: false };
+    if (!r || r.kind === 'hold') return { text: this.fmt(), small: false };
+    if (r.kind === 'price') return { text: this.fmtAmount(r.total_rappen), small: false };
     if (r.kind === 'na') {
       const v = VEHICLE_CLASSES.find((x) => x.id === id);
       const cap = v ? (r.sub === 'bags' ? v.bags : v.cap) : r.n;
       return { text: (r.sub === 'bags' ? t.upToBags : t.upToPax).replace('{n}', String(cap)), small: true };
     }
-    return { text: t.quoteErr, small: true };
+    return { text: this.fmt(), small: false };
   }
   dustRef(id) {
     if (!this._refs[id]) this._refs[id] = (el) => {
@@ -1235,13 +1283,19 @@ class Component extends DCLogic {
   fireQuote = () => {
     const r = this.routeInfo(); const id = ++this.reqSeq;
     if (!r.ok) { this.setState({ quote: { status: 'empty', results: null, inflight: false } }); this.relabelAll(); return; }
-    if (this.state.quote.status === 'live') { this.disperseAll(); this.setState({ quote: Object.assign({}, this.state.quote, { inflight: true }) }); }
+    const prevResults = this.state.quote.results;
+    const keepLive = this.state.quote.status === 'live' && !!prevResults;
+    if (keepLive) this.setState({ quote: Object.assign({}, this.state.quote, { inflight: true }) });
     else this.setState({ quote: { status: 'skeleton', results: null, inflight: true } });
     const s = this.state;
     const failAll = () => {
       if (id !== this.reqSeq) return;
+      if (keepLive) {
+        this.setState({ quote: Object.assign({}, this.state.quote, { status: 'live', results: prevResults, inflight: false }) }, () => this.revealAll());
+        return;
+      }
       const res = {};
-      VEHICLE_CLASSES.forEach((v) => { res[v.id] = { kind: 'err' }; });
+      VEHICLE_CLASSES.forEach((v) => { res[v.id] = { kind: 'hold' }; });
       this.setState({ quote: { status: 'live', results: res, inflight: false } }, () => this.revealAll());
     };
     const applyLive = (res, extra) => {
@@ -1271,10 +1325,13 @@ class Component extends DCLogic {
     if (!pickup || !dropoff) { failAll(); return; }
     const locale = (LANGS.indexOf(s.lang) > -1 ? s.lang : 'en');
     const cur = s.cur || 'CHF';
-    const legs = [{ leg_seq: 1, scheduled_local: scheduledLocal(s.dayY, s.dayM, s.day, s.time), flight_no: (s.flightData && s.flightData.num) ? String(s.flightData.num).slice(0, 16) : null }];
-    const body = { locale: locale, display_currency: cur, mode: 'one_way', pickup: pickup, dropoff: dropoff, legs: legs, pax: s.pax, bags: s.bags };
+    const when = this.clampWhen(s.dayY, s.dayM, s.day, s.time);
+    const legs = [{ leg_seq: 1, scheduled_local: scheduledLocal(when.y, when.m, when.d, when.time), flight_no: (s.flightData && s.flightData.num) ? String(s.flightData.num).slice(0, 16) : null }];
+    const pax = Math.max(1, parseInt(s.pax, 10) || 1);
+    const bags = Math.max(0, parseInt(s.bags, 10) || 0);
+    const body = { locale: locale, display_currency: cur, mode: 'one_way', pickup: pickup, dropoff: dropoff, legs: legs, pax: pax, bags: bags };
     fetch('/api/quote', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
-      .then((res) => res.json())
+      .then((res) => res.json().catch(() => null))
       .then((j) => {
         if (id !== this.reqSeq) return;
         if (!j || j.ok !== true) { failAll(); return; }
@@ -1283,9 +1340,12 @@ class Component extends DCLogic {
         const res = {};
         VEHICLE_CLASSES.forEach((v) => {
           const c = bySlug[v.id];
-          if (!c) { res[v.id] = { kind: 'hold' }; return; }
-          if (!c.eligible) { res[v.id] = { kind: 'na', sub: c.ineligible_reason === 'bags' ? 'bags' : 'pax', n: c.ineligible_reason === 'bags' ? s.bags : s.pax }; return; }
-          res[v.id] = { kind: 'price' };
+          const caps = { paxCap: v.cap, bagsCap: v.bags };
+          if (!c) { res[v.id] = Object.assign({ kind: 'hold' }, caps); return; }
+          if (c.total_rappen != null) { res[v.id] = Object.assign({ kind: 'price', total_rappen: c.total_rappen }, caps); return; }
+          if (keepLive && prevResults[v.id] && prevResults[v.id].kind === 'price') { res[v.id] = Object.assign({}, prevResults[v.id], caps); return; }
+          if (!c.eligible) { res[v.id] = Object.assign({ kind: 'na', sub: c.ineligible_reason === 'bags' ? 'bags' : 'pax', n: c.ineligible_reason === 'bags' ? bags : pax }, caps); return; }
+          res[v.id] = Object.assign({ kind: 'hold' }, caps);
         });
         applyLive(res, { lock: j.lock, quote_id: j.quote_id, expires_at: j.expires_at });
       })
@@ -1449,9 +1509,13 @@ class Component extends DCLogic {
      *  instead of applied if the traveller currently has the when-field open. */
     if (plan.dir === 'from-airport' && plan.when && !s.touched.when) {
       this._fillTimers.push(setTimeout(() => {
-        if (this.state.focused.when) { this.setState({ pendingTimeUpdate: { day: dayOf(plan.leg) || TODAY, time: plan.when } }); return; }
+        if (this.state.focused.when) {
+          const dw = dateOf(plan.leg) || { d: TODAY };
+          this.setState({ pendingTimeUpdate: { y: dw.y, m: dw.m, d: dw.d, time: plan.when } }); return;
+        }
+        const dw = dateOf(plan.leg);
         this.setState((st) => ({
-          day: dayOf(plan.leg) || TODAY, dayLabel: null, time: plan.when,
+          day: dw ? dw.d : TODAY, dayY: dw ? dw.y : st.dayY, dayM: dw ? dw.m : st.dayM, dayLabel: null, time: plan.when,
           autofill: Object.assign({}, st.autofill, { when: code }),
         }), () => { this.pulse(['when']); this.q(); });
       }, 260));
@@ -1496,16 +1560,35 @@ class Component extends DCLogic {
     const timeChanged = plan.dir === 'from-airport' && plan.when && !this.state.touched.when && plan.when !== this.state.time;
     let applyNow = false;
     if (timeChanged) {
-      if (this.state.focused.when) { patch.pendingTimeUpdate = { day: dayOf(plan.leg) || TODAY, time: plan.when }; patch.announce = t.pendingTimeMsg.replace('{t}', plan.when); }
-      else { patch.time = plan.when; patch.day = dayOf(plan.leg) || TODAY; patch.dayLabel = null; applyNow = true; }
+      const dw = dateOf(plan.leg);
+      if (this.state.focused.when) { patch.pendingTimeUpdate = { y: dw && dw.y, m: dw && dw.m, d: (dw && dw.d) || TODAY, time: plan.when }; patch.announce = t.pendingTimeMsg.replace('{t}', plan.when); }
+      else {
+        patch.time = plan.when;
+        patch.day = dw ? dw.d : TODAY;
+        if (dw) { patch.dayY = dw.y; patch.dayM = dw.m; }
+        patch.dayLabel = null;
+        applyNow = true;
+      }
     }
     this.setState(patch, () => { if (applyNow) { this.pulse(['when']); this.q(); } });
   }
   applyPendingTime = () => {
     const p = this.state.pendingTimeUpdate; if (!p) return;
-    this.setState({ time: p.time, day: p.day, dayLabel: null, pendingTimeUpdate: null }, () => { this.pulse(['when']); this.q(); });
+    const c = this.clampWhen(p.y, p.m, p.d != null ? p.d : p.day, p.time);
+    this.setState({ time: c.time, day: c.d, dayY: c.y, dayM: c.m, dayLabel: null, pendingTimeUpdate: null }, () => { this.pulse(['when']); this.q(); });
   };
-  /** Live place lookup: saved Vamos places answer instantly, the geocoder fills in the rest. */
+  paintSug(field, q, extra) {
+    const loc = locHits(q);
+    const uniq = []; const keys = {};
+    (extra || []).concat(loc).forEach((x) => {
+      if (!x || !x.n) return;
+      const k = (x.n + '|' + (x.s || '')).toLowerCase();
+      if (keys[k]) return;
+      keys[k] = 1; uniq.push(x);
+    });
+    return uniq.slice(0, 5);
+  }
+  /** Live place lookup: Mapbox first, locHits while you type so the list is never empty. */
   geoSearch(field, q) {
     if (typeof fetch === 'undefined') return;
     const seq = ++this._geoSeq;
@@ -1515,42 +1598,56 @@ class Component extends DCLogic {
     this.setState({ geo: 'loading' });
     const lang = this.state.lang || 'en';
     const token = geoSession();
-    let url = '/api/geo/suggest?q=' + encodeURIComponent(q) + '&session_token=' + encodeURIComponent(token) + '&locale=' + encodeURIComponent(lang);
-    if (this.state.here && isFinite(this.state.here.lat) && isFinite(this.state.here.lon)) {
-      url += '&proximity=' + encodeURIComponent(this.state.here.lon + ',' + this.state.here.lat);
-    }
+    const url = '/api/geo/suggest?q=' + encodeURIComponent(q) + '&session_token=' + encodeURIComponent(token) + '&locale=' + encodeURIComponent(lang);
+    const keepList = () => {
+      this.setState((st) => {
+        if (!st.sug.open || st.sug.field !== field) return { geo: 'ok' };
+        const merged = this.paintSug(field, q, st.sug.items);
+        this._geoItems = merged;
+        return { geo: 'ok', sug: Object.assign({}, st.sug, { items: merged, geoCount: merged.length, custom: false, typed: true, saved: [] }) };
+      });
+    };
     fetch(url, ac ? { signal: ac.signal } : undefined)
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('http ' + r.status))))
+      .then((r) => {
+        if (r.status === 429) return { suggestions: [], rate_limited: true };
+        if (!r.ok) return { suggestions: [] };
+        return r.json().catch(() => ({ suggestions: [] }));
+      })
       .then((j) => {
         if (seq !== this._geoSeq) return;
-        if (j && j.degraded) { this.setState({ geo: 'err' }); return; }
+        if (!j || j.rate_limited || j.degraded) { keepList(); return; }
         const found = (j.suggestions || []).map((hit) => ({
-          id: hit.mapbox_id, n: hit.name, s: hit.address || hit.context || '',
+          id: hit.mapbox_id, n: hit.name, s: hit.address || hit.context || hit.full_address || '',
           icon: geoHitIcon(hit.name, hit.address || hit.context),
           air: /airport|flughafen|a[eé]roport/i.test(String(hit.name || '') + ' ' + String(hit.address || '')),
           mapbox_id: hit.mapbox_id, session_token: token, geoHit: true,
         })).filter((x) => x.n && x.mapbox_id);
-        const uniq = []; const keys = {};
-        found.forEach((x) => { const k = (x.n + '|' + x.s).toLowerCase(); if (!keys[k]) { keys[k] = 1; uniq.push(x); } });
+        const ql = q.toLowerCase();
+        found.sort((a, b) => {
+          const score = (l) => {
+            const n = (l.n || '').toLowerCase();
+            if (n === ql) return 0;
+            if (n.startsWith(ql)) return 1;
+            return 2;
+          };
+          return score(a) - score(b);
+        });
         this.setState((st) => {
           if (!st.sug.open || st.sug.field !== field) return { geo: 'ok' };
-          const saved = st.sug.saved || [];
-          const seen = saved.map((l) => l.n.toLowerCase());
-          const extra = uniq.filter((x) => seen.indexOf(x.n.toLowerCase()) < 0);
-          const merged = extra.concat(saved).slice(0, 8);
+          const merged = this.paintSug(field, q, found);
           this._geoItems = merged;
-          return { geo: 'ok', sug: Object.assign({}, st.sug, { items: merged, geoCount: extra.length, custom: false, typed: true }) };
+          return { geo: 'ok', sug: Object.assign({}, st.sug, { items: merged, geoCount: found.length, custom: false, typed: true, saved: [] }) };
         });
       })
-      .catch((e) => { if (seq !== this._geoSeq || (e && e.name === 'AbortError')) return; this.setState({ geo: 'err' }); });
+      .catch((e) => { if (seq !== this._geoSeq || (e && e.name === 'AbortError')) return; keepList(); });
   }
   editRoute(field, at) {
     return (e) => {
       const txt = e.target.value; const ql = txt.trim().toLowerCase();
-      let items = ql.length >= 1 ? LOCS.filter((l) => (l.n + ' ' + (l.s || '')).toLowerCase().includes(ql)).slice(0, 4) : [];
-      const patch = { sugFlip: this.flipFor(e), sugIdx: -1, sug: { open: true, field, at, items, saved: items, geoCount: 0, custom: false, text: txt, typed: true } };
+      const items = this.paintSug(field, txt, []);
+      const patch = { sugFlip: this.flipFor(e), sugIdx: -1, sug: { open: true, field, at, items, saved: [], geoCount: items.length, custom: false, text: txt, typed: true } };
       clearTimeout(this._geoT);
-      if (ql.length >= 3) this._geoT = setTimeout(() => this.geoSearch(field, txt.trim()), 180);
+      if (ql.length >= 3) this._geoT = setTimeout(() => this.geoSearch(field, txt.trim()), 160);
       else { this._geoSeq = (this._geoSeq || 0) + 1; patch.geo = 'idle'; }
       const touch = field === 'pickup' ? 'pickup' : 'dest';
       patch.touched = Object.assign({}, this.state.touched, { [touch]: true });
@@ -1645,16 +1742,16 @@ class Component extends DCLogic {
     const isPickup = field === 'pickup';
     const txt = isPickup ? (this.state.pickupText || '') : (this.state.dropText || '');
     const ql = txt.trim();
-    const items = ql.length >= 1 ? LOCS.filter((l) => (l.n + ' ' + (l.s || '')).toLowerCase().includes(ql.toLowerCase())).slice(0, 4) : [];
+    const items = this.paintSug(field, txt, []);
     const patch = {
       sugFlip: this.flipFor(e), sugIdx: -1,
       focused: Object.assign({}, this.state.focused, isPickup ? { pickup: true } : { dest: true }),
-      sug: { open: true, field, at, items, saved: items, geoCount: 0, custom: false, text: txt, typed: ql.length >= 1 },
+      sug: { open: true, field, at, items, saved: [], geoCount: items.length, custom: false, text: txt, typed: ql.length >= 1 },
     };
     this.setState(patch);
     if (ql.length >= 3) {
       clearTimeout(this._geoT);
-      this._geoT = setTimeout(() => this.geoSearch(field, ql), 0);
+      this._geoT = setTimeout(() => this.geoSearch(field, ql), 160);
     }
   }
   focusPickupA = (e) => this.openPlaceSug('pickup', 'a', e);
@@ -1666,7 +1763,7 @@ class Component extends DCLogic {
    *  a cold permission prompt on load is a worse product than asking for one. */
   askLocation() {
     if (typeof navigator === 'undefined' || !navigator.geolocation) return;
-    const go = () => navigator.geolocation.getCurrentPosition((p) => this.gotPos(p, false), () => {}, { timeout: 9000, maximumAge: 300000 });
+    const go = () => navigator.geolocation.getCurrentPosition((p) => this.gotPos(p, false), () => {}, { enableHighAccuracy: true, timeout: 9000, maximumAge: 300000 });
     if (navigator.permissions && navigator.permissions.query) {
       navigator.permissions.query({ name: 'geolocation' }).then((st) => { if (st.state === 'granted') go(); }).catch(() => {});
     }
@@ -1675,33 +1772,45 @@ class Component extends DCLogic {
     const here = { lat: p.coords.latitude, lon: p.coords.longitude };
     const coords = here.lat.toFixed(4) + ', ' + here.lon.toFixed(4);
     const take = (label, sub) => {
-      const loc = { id: 'here', n: label, s: sub, icon: 'navigation', lat: here.lat, lon: here.lon, here: true };
-      this.setState({ here: here, hereLoc: loc, geo: 'ok' });
-      if (asPickup) this.setState((st) => (st.touched.pickup && st.pickupText ? {} : { pickupText: loc.n, pickupLoc: loc }), this.q);
+      const loc = { id: 'here', n: label, s: sub, icon: 'navigation', lat: here.lat, lon: here.lon, x: here.lon, y: here.lat, here: true, src: 'gps' };
+      this.setState((st) => {
+        const next = { here: here, hereLoc: loc, geo: 'ok' };
+        if (asPickup) {
+          next.pickupText = loc.n;
+          next.pickupLoc = loc;
+          next.touched = Object.assign({}, st.touched, { pickup: true });
+          next.sug = CLOSED;
+          next.sugIdx = -1;
+        }
+        return next;
+      }, asPickup ? this.q : undefined);
     };
     this.setState({ here: here });
     if (typeof fetch === 'undefined') { take(this.t().hereLabel, coords); return; }
     fetch('/api/geo/reverse?lng=' + encodeURIComponent(here.lon) + '&lat=' + encodeURIComponent(here.lat) + '&locale=' + encodeURIComponent(this.state.lang || 'en'))
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error('http'))))
-      .then((j) => { const p = j && j.place; if (!p) throw new Error('empty');
-        const label = p.name || this.t().hereLabel; take(label, p.address || coords); })
+      .then((j) => { const pl = j && j.place; if (!pl) throw new Error('empty');
+        const label = pl.name || this.t().hereLabel; take(label, pl.address || coords); })
       .catch(() => take(this.t().hereLabel, coords));
   }
   detectLoc = () => {
     const t = this.t();
     if (typeof navigator === 'undefined' || !navigator.geolocation) { this.setState({ sug: CLOSED, geo: 'err', announce: t.geoDenied }); return; }
-    this.setState({ sug: CLOSED, sugIdx: -1, pickupText: t.locating, pickupLoc: null });
+    this.setState({ sug: CLOSED, sugIdx: -1, pickupText: t.locating, pickupLoc: null, geo: 'ask' });
     navigator.geolocation.getCurrentPosition(
       (p) => this.gotPos(p, true),
       () => this.setState({ geo: 'err', pickupText: '', announce: t.geoDenied }),
-      { timeout: 9000, maximumAge: 300000 });
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 });
   };
   swap = () => this.setState((s) => ({ pickupText: s.dropText, pickupLoc: s.dropLoc, dropText: s.pickupText, dropLoc: s.pickupLoc,
     touched: Object.assign({}, s.touched, { pickup: true, dest: true }), autofill: { pickup: null, when: s.autofill.when } }), this.q);
   clampWhen(y, m, d, tm) {
     const min = minStamp();
+    const z = zurichNow();
     let yy = y, mm = m, dd = d, time = tm;
-    if (yy == null || mm == null || dd == null) return { y: min.y, m: min.m, d: min.d, time: min.hm };
+    if (yy == null) yy = z.y;
+    if (mm == null) mm = z.m;
+    if (dd == null) return { y: min.y, m: min.m, d: min.d, time: min.hm };
     if (yy < min.y || (yy === min.y && mm < min.m) || (yy === min.y && mm === min.m && dd < min.d)) {
       yy = min.y; mm = min.m; dd = min.d; time = min.hm;
     } else if (yy === min.y && mm === min.m && dd === min.d && (!time || time < min.hm)) {
@@ -1737,8 +1846,8 @@ class Component extends DCLogic {
       autofill: Object.assign({}, s.autofill, { when: code }), revert: Object.assign({}, s.revert, { when: null }) }), this.q);
   };
   whenOpenChange = (open) => this.setState((s) => ({ focused: Object.assign({}, s.focused, { when: open }) }));
-  setPax = (n) => { this.setState((s) => ({ pax: n, autofill: Object.assign({}, s.autofill, { party: null }) })); this.q(); };
-  setBags = (n) => { this.setState((s) => ({ bags: n, autofill: Object.assign({}, s.autofill, { party: null }) })); this.q(); };
+  setPax = (n) => { const raw = parseInt(n, 10); const pax = Number.isFinite(raw) ? Math.max(0, raw) : 1; this.setState((s) => ({ pax: pax, autofill: Object.assign({}, s.autofill, { party: null }) })); this.q(); };
+  setBags = (n) => { const raw = parseInt(n, 10); const bags = Number.isFinite(raw) ? Math.max(0, raw) : 0; this.setState((s) => ({ bags: bags, autofill: Object.assign({}, s.autofill, { party: null }) })); this.q(); };
   setHours = (n) => { this.setState({ hours: n }); this.q(); };
   whenClear = () => {
     this.setState((s) => ({ day: null, dayLabel: null, time: '', returnDay: null, returnLabel: null, returnTime: '',
@@ -1748,28 +1857,16 @@ class Component extends DCLogic {
   };
   /** Rows of the address list. Also the keyboard model — see sugKey. */
   sugRowsList() {
-    const s = this.state; const t = this.t(); const sg = s.sug; const rows = []; const isPickup = sg.field === 'pickup';
-    if (isPickup) rows.push({ row: true, tone: 'geo', icon: 'navigation', name: t.useLoc, sub: t.useLocSub, pick: (e) => this.pickSug(e, { hereBtn: true }) });
-    const items = sg.items || [];
-    const q = (sg.text || '').trim();
-    const untouched = !sg.typed || !q;
-    if (untouched) {
-      rows.push({ head: true, name: isPickup ? t.nearYou : t.popular });
-      (isPickup ? NEAR_IDS : DEST_IDS).forEach((id) => { const l = LOCS.find((x) => x.id === id); if (l) rows.push({ row: true, tone: '', icon: l.icon, name: l.n, sub: l.s || '', pick: (e) => this.pickSug(e, l) }); });
-    } else {
-      const geoItems = items.filter((l) => l.geoHit);
-      const savedItems = items.filter((l) => !l.geoHit);
-      if (geoItems.length) {
-        rows.push({ head: true, name: t.results });
-        geoItems.forEach((l) => rows.push({ row: true, tone: '', icon: l.icon, name: l.n, sub: l.s || '', pick: (e) => this.pickSug(e, l) }));
-      }
-      if (savedItems.length) {
-        rows.push({ head: true, name: t.savedPlaces });
-        savedItems.forEach((l) => rows.push({ row: true, tone: '', icon: l.icon, name: l.n, sub: l.s || '', pick: (e) => this.pickSug(e, l) }));
-      }
-      if (s.geo === 'loading') rows.push({ spin: true, name: t.searching });
-      else if (s.geo === 'err') rows.push({ head: true, name: t.geoErr });
+    const s = this.state; const t = this.t(); const sg = s.sug; const rows = [];
+    const items = (sg.items || []).filter((l) => l && l.n).slice(0, 5);
+    if (items.length) {
+      rows.push({ head: true, name: t.results });
+      items.forEach((l) => {
+        const full = [l.n, l.s].filter(Boolean).join(' · ');
+        rows.push({ row: true, tone: l.geoHit ? 'geo' : '', icon: l.icon, name: l.n, sub: l.s || '', full: full, pick: (e) => this.pickSug(e, l) });
+      });
     }
+    if (s.geo === 'loading' && !items.length) rows.push({ spin: true, name: t.searching });
     let i = -1;
     rows.forEach((r) => {
       if (r.head || r.spin) return;
@@ -1814,15 +1911,25 @@ class Component extends DCLogic {
     }
   };
   pick(id) {
+    const klass = VEHICLE_CLASSES.find((v) => v.id === id);
     const r = this.state.quote.results;
+    const row = r && r[id];
+    const paxCap = klass ? klass.cap : 0;
+    const bagsCap = klass ? klass.bags : 0;
+    if (klass && (this.state.pax > paxCap || this.state.bags > bagsCap)) return;
     /** Nothing opens until the traveller has actually answered the booking flow. */
-    if (!r || !r[id] || (r[id].kind !== 'price' && r[id].kind !== 'hold')) { if (!this.state.picked) this.setState({ announce: this.t().needTrip }); return; }
+    if (!row || row.kind !== 'price') { if (!this.state.picked) this.setState({ announce: this.t().needTrip }); return; }
     if (this.state.picked) return;
     const s = this.state;
-    const trip = { mode: s.mode === 'hourly' ? 'hourly' : 'one-way', pickup: s.pickupText, dropoff: s.mode === 'hourly' ? (s.hours + ' h — ' + this.t().hourly) : s.dropText, date: s.dayLabel || (s.day ? this.fmtDate(s.day) : ''), selectedDay: s.day, time: s.time, pax: s.pax, bags: s.bags, vehicle: id, vehicleName: (VEHICLE_CLASSES.find((v) => v.id === id) || {}).name || id, quote_id: s.quote.quote_id || null, lock: s.quote.lock || null };
+    if (!s.quote.lock || !s.quote.quote_id) { if (!this.state.picked) this.setState({ announce: this.t().needTrip }); return; }
+    const priced = [];
+    VEHICLE_CLASSES.forEach((v) => { if (r && r[v.id] && r[v.id].kind === 'price') priced.push(v.id); });
+    const when = this.clampWhen(s.dayY, s.dayM, s.day, s.time);
+    const trip = { mode: s.mode === 'hourly' ? 'hourly' : 'one-way', pickup: s.pickupText, dropoff: s.mode === 'hourly' ? (s.hours + ' h — ' + this.t().hourly) : s.dropText, date: s.dayLabel || (s.day ? this.fmtDate(s.day) : ''), selectedDay: s.day, time: s.time, pax: s.pax, bags: s.bags, vehicle: id, vehicleName: (VEHICLE_CLASSES.find((v) => v.id === id) || {}).name || id, quote_id: s.quote.quote_id || null, lock: s.quote.lock || null, expires_at: s.quote.expires_at || null, pickupPlace: placeInput(s.pickupLoc, s.pickupText), dropoffPlace: placeInput(s.dropLoc, s.dropText), scheduled_local: scheduledLocal(when.y, when.m, when.d, when.time), locale: s.lang || 'en', display_currency: s.cur || 'CHF', classes: priced, flight: s.flight || '', flightNumber: s.flight || '' };
     saveTrip(trip);
     this.setState({ picked: id, announce: this.t().savedGo, sug: CLOSED });
-    setTimeout(() => { location.href = '/checkout'; }, REDUCED ? 120 : 420);
+    const prefix = (s.lang === 'de' || s.lang === 'fr' || s.lang === 'ar') ? '/' + s.lang : '';
+    setTimeout(() => { location.href = prefix + '/checkout/trip'; }, REDUCED ? 120 : 420);
   }
   badgeEl(code, glyph) {
     if (!code) return undefined;
@@ -1839,26 +1946,31 @@ class Component extends DCLogic {
     return VEHICLE_CLASSES.map((v) => {
       const lb = this.labelFor(v.id);
       const r = (s.quote.status === 'live' && s.quote.results) ? s.quote.results[v.id] : null;
-      const ok = !!r && (r.kind === 'price' || r.kind === 'hold');
-      const unavail = !!r && r.kind === 'na';
+      const paxCap = v.cap;
+      const bagsCap = v.bags;
+      const tooSmall = s.pax > paxCap || s.bags > bagsCap;
+      const ok = !!r && r.kind === 'price' && !tooSmall;
+      const unavail = tooSmall || (!!r && r.kind === 'na');
       return {
         name: names[v.id], examples: ex[v.id], icon: v.icon,
         hasImage: !!v.image, noImage: !v.image, image: v.image || '',
         hasBadge: !!v.badge, badge: t.mostBooked,
-        capText: v.cap + ' ' + t.seats, bagText: v.bags + ' ' + t.bagsWord,
+        capText: paxCap + ' ' + t.seats, bagText: bagsCap + ' ' + t.bagsWord,
         skeleton: s.quote.status === 'skeleton',
         dustRef: this.dustRef(v.id),
         sr: names[v.id] + ': ' + lb.text,
-        title: ok ? t.selectHint : (unavail ? (r.sub === 'pax' || r.sub === 'bags' ? t.doesNotFit : t.unavailableCta) : (t.needTrip || lb.text)),
+        title: ok ? t.selectHint : (tooSmall ? t.doesNotFit : (t.needTrip || lb.text)),
         dis: ok ? null : 'true', locked: ok ? null : '1', role: ok ? 'button' : 'group', tab: ok ? '0' : undefined,
         picked: s.picked === v.id ? '1' : null, isPicked: s.picked === v.id,
-        ready: ok && s.picked !== v.id, dim: (s.picked && s.picked !== v.id) ? '1' : null,
+        ready: ok && s.picked !== v.id,
+        selectOff: !ok && s.picked !== v.id,
+        dim: ((s.picked && s.picked !== v.id) || tooSmall) ? '1' : null,
         unavail: unavail ? '1' : null,
-        unavailable: unavail,
-        unavailableCta: unavail ? (r.sub === 'pax' || r.sub === 'bags' ? t.doesNotFit : t.unavailableCta) : '',
-        capCss: unavail ? 'cursor:pointer;text-decoration:underline' : '',
-        capRole: unavail ? 'button' : undefined, capTab: unavail ? '0' : undefined,
-        snapClick: unavail ? () => this.snapToFit(v) : undefined,
+        unavailable: false,
+        unavailableCta: '',
+        capCss: '',
+        capRole: undefined, capTab: undefined,
+        snapClick: undefined,
         vtName: s.picked === v.id ? 'vehicle-card' : 'none',
         vtPriceName: s.picked === v.id ? 'price-block' : 'none',
         select: ok ? () => this.pick(v.id) : undefined,
@@ -1907,7 +2019,7 @@ class Component extends DCLogic {
     })();
     const flightChipVm = (trackFlights && s.flightConfirmed && s.flightData) ? { code: fmtCode(s.flightData.num), status: t['st_' + statusKey(s.flightData)] || '' } : null;
     const dateStr = s.dayLabel || (s.day ? this.fmtDate(s.day) : '');
-    const blank = !s.pickupText && !s.dropText && !s.day && !s.pax;
+    const blank = !s.pickupText && !s.dropText && !s.day;
     const tripRoute = blank ? t.emptyTitle : s.mode === 'hourly'
       ? (head(s.pickupText) || t.pickupPh) + (s.hours ? ' · ' + s.hours + ' h' : '')
       : (head(s.pickupText) || t.pickupPh) + ' → ' + (head(s.dropText) || t.destPh);
@@ -1917,6 +2029,8 @@ class Component extends DCLogic {
     if (s.time && !slots.includes(s.time)) { slots.push(s.time); slots.sort(); }
     const priced = s.quote.status === 'live' && !!s.quote.results && VEHICLE_CLASSES.some((v) => s.quote.results[v.id] && s.quote.results[v.id].kind === 'price');
     const pickedName = s.picked ? ((VEHICLE_CLASSES.find((v) => v.id === s.picked) || {}).id || '') : '';
+    const sugRows = this.sugRowsList();
+    const sugHasHits = sugRows.some((r) => r.row);
     return {
       n0: 0, n1: 1, n2: 2, n8: 8, n12: 12, n14: 14, n15: 15, n16: 16, n18: 18, n24: 24,
       modeNoteRef: this.modeNoteRef, fieldsRef: this.fieldsRef, stripRef: this.stripRef,
@@ -1937,6 +2051,8 @@ class Component extends DCLogic {
       pillTransition: REDUCED ? 'none' : 'left .22s cubic-bezier(.2,0,.2,1), width .22s cubic-bezier(.2,0,.2,1)',
       tTripType: t.tripType,
       showModes: modeCount > 1,
+      showModeNote: s.mode !== 'one-way',
+      showModeBar: modeCount > 1 || s.mode !== 'one-way',
       modes: modesList.map((m) => ({ id: m.id, label: m.label, sel: m.id === s.mode ? 'true' : 'false', color: m.id === s.mode ? 'var(--vt-white)' : 'var(--vt-text-secondary)', pick: () => this.setMode(m.id) })),
       isReturn: s.mode === 'return', isHourly: s.mode === 'hourly', notHourly: s.mode !== 'hourly',
       flight: s.flight, setFlight: this.setFlight, flightKey: this.flightKey,
@@ -1972,9 +2088,9 @@ class Component extends DCLogic {
       editPickupA: this.editRoute('pickup', 'a'), editDropA: this.editRoute('dropoff', 'a'),
       pickupIcon: (s.pickupLoc && s.pickupLoc.air) ? 'plane-landing' : 'map-pin',
       pickupBadge: this.badgeEl(!s.focused.pickup ? s.autofill.pickup : null),
-      sugPA: s.sug.open && s.sug.field === 'pickup' && s.sug.at === 'a',
-      sugDA: s.sug.open && s.sug.field === 'dropoff' && s.sug.at === 'a',
-      sugRows: this.sugRowsList(), sugRef: this._sugRef,
+      sugPA: s.sug.open && s.sug.field === 'pickup' && s.sug.at === 'a' && (sugHasHits || s.geo === 'loading'),
+      sugDA: s.sug.open && s.sug.field === 'dropoff' && s.sug.at === 'a' && (sugHasHits || s.geo === 'loading'),
+      sugRows: sugRows, sugHasHits: sugHasHits, sugRef: this._sugRef,
       sugPAStr: (s.sug.open && s.sug.field === 'pickup') ? 'true' : 'false',
       sugDAStr: (s.sug.open && s.sug.field === 'dropoff') ? 'true' : 'false',
       pickupOn: (s.focused.pickup || (s.sug.open && s.sug.field === 'pickup')) ? '1' : '0',

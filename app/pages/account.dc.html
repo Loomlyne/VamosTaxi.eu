@@ -281,6 +281,11 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <sc-if value="{{ noBookings }}" hint-placeholder-val="{{ false }}">
 <p data-ac-sub="1" style="padding:18px 0;border-top:1px solid var(--vt-border-subtle)">No transfers yet. Your next booking appears here the moment it is paid.</p>
 </sc-if>
+<sc-if value="{{ finishPayment }}" hint-placeholder-val="{{ false }}">
+<a data-ac-more="1" href="/checkout/payment">
+<span>Finish payment</span>
+</a>
+</sc-if>
 </div>
 <a data-ac-more="1" href="/bookings">
 <span>See all your bookings</span>
@@ -707,6 +712,12 @@ class Component extends DCLogic {
     const s = this.state;
     const auth = s.auth || EMPTY_AUTH;
     const bookings = [];
+    let finishPayment = false;
+    try {
+      const raw = localStorage.getItem('vamosTrip');
+      const trip = raw ? JSON.parse(raw) : null;
+      finishPayment = !!(trip && trip.lock && (trip.quote_id || trip.quoteId));
+    } catch (e) {}
 
     const email = auth.email || '';
     const full = [auth.firstName, auth.lastName].filter(Boolean).join(' ').trim();
@@ -732,6 +743,7 @@ class Component extends DCLogic {
       savedPhone: readPhone(),
 
       bookings, noBookings: bookings.length === 0,
+      finishPayment,
 
       nameView: s.edit !== 'name', nameEdit: s.edit === 'name',
       nameValue: full || 'Not added yet',

@@ -24,6 +24,8 @@ export interface PriceLine {
 export interface PriceSummaryProps {
   lines?: PriceLine[];
   total?: number | null;
+  /** Pre-coupon total. Struck through next to `total` when it differs. */
+  was?: number | null;
   /** No built-in English fallback ("Total" in the source) — same "caller supplies, the
    * dictionary resolves at the call site" pattern 01-09-SUMMARY.md established for
    * Counter/DatePicker's hardcoded-in-source copy. */
@@ -48,6 +50,7 @@ export interface PriceSummaryProps {
 export function PriceSummary({
   lines = [],
   total,
+  was,
   totalLabel,
   currency = DEFAULT_CURRENCY,
   note,
@@ -109,7 +112,12 @@ export function PriceSummary({
       ))}
       <div className="vt-price__total">
         <span className="vt-price__totallabel">{totalLabel}</span>
-        <span className="vt-price__totalval vt-dir-keep">{formatAmount(total, currency)}</span>
+        <span className="vt-price__totalval">
+          {was != null && total != null && was !== total ? (
+            <span className="vt-price__was vt-dir-keep">{formatAmount(was, currency)}</span>
+          ) : null}
+          <span className="vt-dir-keep">{formatAmount(total, currency)}</span>
+        </span>
       </div>
       {note ? <p className="vt-price__note">{note}</p> : null}
     </div>

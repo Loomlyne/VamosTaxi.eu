@@ -47,9 +47,10 @@
      for migration, never written back — see the takeover note above. */
   var LS_LANG_DS = 'vamos.lang', LS_CUR_DS = 'vamos.cur';
 
-  /* Every amount on this platform is a placeholder (design system §2: never
-     invent a CHF price), so switching currency swaps the mark, never the number. */
+  /* Placeholders (CHF 000) swap the mark only. Live quotes are CHF rappen;
+     fromChf() converts with /api/fx. Charge currency stays CHF. */
   var MONEY_RE = /(?:CHF|AED|EUR|USD|€|\$)(\u00A0|\s)?(\d[\d'’.,]*)/g;
+  var fxRates = { CHF: 1 };
 
   var SKIP_TAGS = { SCRIPT: 1, STYLE: 1, NOSCRIPT: 1, TEXTAREA: 1, CODE: 1, PRE: 1, SVG: 1, CANVAS: 1 };
   var ATTRS = ['placeholder', 'aria-label', 'title', 'alt'];
@@ -110,10 +111,59 @@
     return c.sym + c.space + String(amount);
   }
 
+  function roundHalfUp(num, den) {
+    var rem = num % den;
+    var q = (num - rem) / den;
+    if (rem * 2 >= den) return q + 1;
+    return q;
+  }
+
+  function placeholderFigure(num) {
+    var t = String(num).replace(/[^\d]/g, '');
+    return t === '000' || t === '00' || t === '0';
+  }
+
+  function chfFigure(rappen) {
+    var chf = rappen / 100;
+    if (Math.abs(chf - Math.round(chf)) < 1e-9) return String(Math.round(chf));
+    return chf.toFixed(2);
+  }
+
+  /* rappen is always CHF. Missing FX → keep the CHF figure (do not lie). */
+  function fromChf(rappen, curCode) {
+    var cur = curCode || state.cur;
+    var n = Number(rappen);
+    if (!isFinite(n) || n < 0) return money('000', cur);
+    n = Math.round(n);
+    if (cur === 'CHF' || isDashboardHost()) return money(chfFigure(n), 'CHF');
+    var rate = fxRates[cur];
+    if (!(rate > 0)) return money(chfFigure(n), 'CHF');
+    var millionths = Math.round(rate * 1000000);
+    var minor = roundHalfUp(n * millionths, 1000000);
+    return money((minor / 100).toFixed(2), cur);
+  }
+
+  function loadFx() {
+    if (isDashboardHost()) return;
+    fetch('/api/fx', { credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (!j || !j.ok || !j.rates) return;
+        var r = j.rates;
+        if (!(r.EUR > 0 && r.USD > 0 && r.AED > 0)) return;
+        fxRates = { CHF: 1, EUR: r.EUR, USD: r.USD, AED: r.AED };
+        emit();
+      })
+      .catch(function () {});
+  }
+
   function reprice(s) {
     if (s.indexOf('CHF') < 0 && s.indexOf('AED') < 0 && s.indexOf('€') < 0 &&
         s.indexOf('$') < 0 && s.indexOf('EUR') < 0 && s.indexOf('USD') < 0) return s;
-    return s.replace(MONEY_RE, function (_m, _sp, num) { return money(num); });
+    return s.replace(MONEY_RE, function (m, _sp, num) {
+      if (!placeholderFigure(num)) return m;
+      return money(num);
+    });
   }
 
   /* ── translation ──────────────────────────────────────────────────────── */
@@ -430,7 +480,7 @@
 
   window.VamosLocale = {
     __vamosApp: true,
-    __v: 9,
+    __v: 10,
     LANGS: LANGS,
     CURRENCIES: CURS,
     lang: function () { return state.lang; },
@@ -441,6 +491,7 @@
     setCur: function (v) { set({ cur: v }); },
     set: function (o) { set(o || {}); },
     money: money,
+    fromChf: fromChf,
     reprice: reprice,
     t: function (s, lang) { return lookup(String(s), lang || state.lang) || s; },
     extend: function (more) { for (var k in more) if (Object.prototype.hasOwnProperty.call(more, k)) dict[k] = more[k]; reverse = null; resetMemo(); pass(); },
@@ -549,6 +600,7 @@
     legalNotice();
     observe();
     emit();
+    loadFx();
     setTimeout(function () { observe(); pass(); legalNotice(); }, 120);
     setTimeout(function () { observe(); pass(); legalNotice(); }, 600);
     setTimeout(function () { observe(); pass(); legalNotice(); }, 1500);

@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ops · Support</title>
+<!-- vt-support-c42 -->
+<script src="../support.js"></script>
+</head>
+<body>
+<x-dc>
+<style>
+[data-kb]{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;min-width:0;overflow:hidden;align-items:start;padding-block-end:4px}
+[data-kb-col]{box-sizing:border-box;width:auto;min-width:0;padding:12px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);display:flex;flex-direction:column;gap:10px;min-block-size:280px;transition:border-color 160ms cubic-bezier(.2,0,.2,1),background 160ms cubic-bezier(.2,0,.2,1),box-shadow 160ms cubic-bezier(.2,0,.2,1)}
+[data-kb-col][data-over="1"]{border:2px dashed var(--vt-charcoal-900);padding:11px;background:var(--vt-grey-50);box-shadow:inset 0 0 0 1px var(--vt-charcoal-900)}
+[data-kb-hd]{display:flex;align-items:center;justify-content:space-between;gap:8px}
+[data-kb-count]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);color:var(--vt-text-muted)}
+[data-kb-card]{box-sizing:border-box;display:flex;align-items:flex-start;gap:8px;padding:12px 12px 12px 8px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-bg-page,var(--vt-grey-50));cursor:grab;transition:transform 160ms cubic-bezier(.2,0,.2,1),box-shadow 160ms cubic-bezier(.2,0,.2,1),opacity 160ms cubic-bezier(.2,0,.2,1),border-color 160ms cubic-bezier(.2,0,.2,1)}
+[data-kb-card]:hover{border-color:var(--vt-charcoal-900)}
+[data-kb-card][data-sel="1"]{border-color:var(--vt-charcoal-900)}
+[data-kb-card][data-dragging="1"]{opacity:.45;transform:rotate(1.5deg) scale(.97);box-shadow:var(--vt-shadow-sm);cursor:grabbing}
+[data-kb-card] [data-grip]{margin-top:2px;color:var(--vt-text-muted);cursor:grab}
+[data-kb-card]:hover [data-grip]{color:var(--vt-charcoal-900)}
+[data-kb-body]{all:unset;box-sizing:border-box;flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:8px;cursor:pointer;text-align:start;font:inherit;color:inherit}
+[data-kb-empty]{margin:0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
+[data-kb-drop]{display:none;align-items:center;justify-content:center;min-block-size:64px;padding:10px;border:1px dashed var(--vt-charcoal-900);border-radius:var(--vt-radius-md);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)}
+[data-kb-col][data-over="1"] [data-kb-drop]{display:flex}
+[data-person]{display:grid;grid-template-columns:48px minmax(0,1fr) max-content;gap:8px 12px;align-items:start;padding:14px 16px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);box-shadow:none}
+[data-person] [data-av]{width:48px;height:48px;font-size:16px;grid-row:1 / span 2}
+[data-person-id]{min-width:0;overflow:hidden;display:flex;flex-direction:column;gap:2px}
+[data-person-name]{display:flex;flex-wrap:nowrap;align-items:center;gap:8px;min-width:0}
+[data-person-name] strong{font-size:var(--vt-body-md);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+[data-person-name] [data-chip]{flex:0 0 auto}
+[data-person-mail],[data-person-tel]{margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[data-person-tools]{grid-column:3;grid-row:1;display:flex;flex-wrap:nowrap;align-items:flex-start;justify-content:flex-end;gap:6px}
+[data-status-top]{min-width:0}
+[data-acts]{grid-column:1 / -1;display:flex;flex-wrap:nowrap;gap:4px;margin:0;padding-top:10px;border-top:1px solid var(--vt-border-subtle);min-width:0;overflow:visible}
+[data-acts] .vt-btn{flex:1 1 auto;min-width:min-content;justify-content:center;padding-inline:8px;gap:6px;white-space:nowrap;overflow:visible}
+[data-fact-pair]{grid-column:1 / -1;display:flex;flex-direction:column;gap:12px;min-width:0}
+[data-fact-pair] .vt-field,[data-fact-pair] .vt-input{min-width:0;width:100%}
+.vt-dialog.vt-dialog--lg.vt-ov-scroll,.vt-dialog:has([data-ov]){display:flex;flex-direction:column;inline-size:min(1120px,calc(100vw - 48px))!important;max-inline-size:min(1120px,calc(100vw - 48px))!important;min-block-size:min(88vh,calc(100dvh - 48px));max-block-size:min(88vh,calc(100dvh - 48px));overflow:hidden}
+.vt-dialog:has([data-ov]) .vt-dialog__body,.vt-dialog.vt-ov-scroll .vt-dialog__body{flex:1 1 auto;min-block-size:0;overflow:hidden;display:flex;flex-direction:column}
+[data-ov]{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(280px,.78fr);flex:1 1 auto;min-width:0;min-block-size:0;max-block-size:100%;overflow:hidden;gap:16px;align-items:stretch}
+[data-ov-chat]{display:flex;flex-direction:column;min-width:0;min-block-size:0;max-block-size:100%;height:100%;overflow:hidden;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-page,var(--vt-grey-50))}
+[data-ov-meta]{display:flex;flex-direction:column;gap:14px;min-width:0;min-block-size:0;overflow:auto;overscroll-behavior:contain;padding-inline:2px}
+[data-ov-meta][data-open="0"] [data-ov-extra]{display:none}
+[data-meta-toggle]{margin:0}
+[data-note-save]{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px}
+[data-note-save] .vt-field{flex:1 1 160px;min-width:0}
+[data-ov-foot]{flex:0 0 auto;display:flex;flex-direction:column;gap:12px;padding:12px 14px;border-top:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface)}
+[data-ov-actions]{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:10px}
+[data-facts]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 14px}
+[data-fact]{display:flex;flex-direction:column;gap:4px;min-width:0}
+[data-fact-tile]{padding:12px 14px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-bg-page,var(--vt-grey-50));gap:6px}
+[data-fact] [data-fld-l]{font-size:var(--vt-label-sm)}
+[data-fact-v]{font-size:var(--vt-body-sm);color:var(--vt-text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+[data-fact-wide]{grid-column:1 / -1}
+[data-thread]{flex:1 1 0%;min-block-size:0;overflow-x:hidden;overflow-y:auto!important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:12px;min-width:0;padding:10px 8px}
+[data-msg]{box-sizing:border-box;padding:12px 14px;max-width:88%}
+[data-msg][data-from="customer"]{align-self:flex-start;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:4px 16px 16px 16px}
+[data-msg][data-from="staff"]{align-self:flex-end;background:var(--vt-charcoal-900);color:var(--vt-text-inverse);border-radius:16px 4px 16px 16px}
+[data-msg][data-from="note"]{align-self:center;max-width:100%;background:transparent;border-style:dashed;border-width:1px;color:var(--vt-text-muted);font-size:var(--vt-body-xs);text-align:center}
+[data-msg][data-from="staff"] [data-chip]{background:transparent;border-color:rgb(255 255 255 / .28);color:var(--vt-text-inverse)}
+[data-msg] p{white-space:pre-wrap}
+[data-toolbar]{display:flex;flex-wrap:nowrap;align-items:center;gap:8px;min-width:0}
+[data-filters-btn]{display:block;flex:0 0 auto}
+[data-filters-tags]{display:none}
+[data-search]{flex:1 1 auto;min-width:0;max-width:none;margin-inline-start:0}
+[data-search] .vt-field,[data-search] .vt-input{width:100%;min-width:0}
+[data-icon-only] [data-vs-txt]{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+[data-vs-role]{display:none}
+@media (min-width:768px){
+  [data-icon-only] [data-vs-role],
+  [data-view-icon] [data-vs-role],
+  [data-filters-btn] [data-vs-role]{display:inline}
+  [data-meta-toggle]{display:none}
+  [data-status-top]{width:132px;max-width:132px}
+}
+[data-view-head]{display:none}
+[data-view-drop]{display:block;min-width:0;flex:0 0 auto}
+[data-vt-filt]{display:block;min-width:0;flex:0 0 auto}
+[data-tbl-scroll]{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;min-width:0}
+[data-tbl-scroll] .vt-tablewrap{min-width:640px}
+@media (max-width:767px){
+  [data-kb]{grid-template-columns:repeat(4,220px);overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+  [data-kb-col]{width:220px;min-width:220px}
+}
+@media (max-width:720px){
+  [data-search] .vt-input{min-block-size:36px}
+}
+@media (max-width:860px){
+  .vt-dialog__scrim:has(.vt-ov-scroll){padding:8px}
+  .vt-dialog.vt-dialog--lg.vt-ov-scroll,.vt-dialog:has([data-ov]){inline-size:min(100vw - 16px,1120px)!important;max-inline-size:min(100vw - 16px,1120px)!important;min-block-size:min(92vh,calc(100dvh - 16px));max-block-size:min(92vh,calc(100dvh - 16px))}
+  [data-ov]{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:10px}
+  [data-ov-meta]{order:-1;overflow:visible;gap:8px;padding-inline:0;max-block-size:none}
+  [data-ov-chat]{min-block-size:0;height:100%;max-block-size:none;align-self:stretch}
+  [data-thread]{min-block-size:240px;flex:1 1 0%}
+  [data-person]{grid-template-columns:36px minmax(0,1fr) auto;padding:10px 12px;gap:6px 10px}
+  [data-person] [data-av]{width:36px;height:36px;font-size:13px}
+  [data-person-name]{flex-wrap:wrap}
+  [data-person-name] strong{font-size:var(--vt-body-md)}
+  [data-person-tools]{flex-wrap:wrap}
+  [data-facts]{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px}
+  [data-fact-tile]{padding:8px 10px}
+  [data-fact-wide]{grid-column:1 / -1}
+  [data-fact-pair]{gap:8px;flex-direction:column}
+  [data-ov-foot]{padding:8px 10px;gap:8px}
+  [data-ov-foot] .vt-field__label{display:none}
+  [data-ov-actions] .vt-btn{min-block-size:36px}
+  [data-person-tel]{display:none!important}
+}
+@media (prefers-reduced-motion: reduce){
+  [data-kb-col],[data-kb-card]{transition:none}
+  [data-kb-card][data-dragging="1"]{transform:none}
+}
+</style>
+<main data-vt-support="c42" style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
+
+<header style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle)">
+<div style="min-width:0">
+<h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ tTitle }}</h1>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSubtitle }}</p>
+</div>
+</header>
+
+<div style="padding:26px 32px 48px;display:flex;flex-direction:column;gap:20px;min-width:0">
+
+<div data-vt-counts="1" data-n="4">
+<sc-for list="{{ counts }}" as="c" hint-placeholder-count="4">
+<div data-vt-count="1">
+<div data-vt-count-hd="1">
+<span>{{ c.label }}</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ c.icon }}" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
+</div>
+<span data-vt-count-n="1">{{ c.value }}</span>
+<span data-vt-count-f="1">{{ c.foot }}</span>
+</div>
+</sc-for>
+</div>
+
+<div data-toolbar="1">
+<div data-search="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" icon="search" placeholder="{{ tSearchPh }}" value="{{ query }}" onChange="{{ setQuery }}" aria-label="{{ tSearchPh }}" hint-size="100%,44px"></x-import>
+</div>
+<div data-view-drop="1" data-view-icon="1" data-icon-only="1">
+<dc-import name="BrandSelect" icon="layout-dashboard" value="{{ view }}" options="{{ viewOptions }}" onSelect="{{ setView }}" a11y-label="{{ tView }}" hint-size="48px,36px"></dc-import>
+</div>
+<div data-vt-filt="1" data-filters-btn="1" data-icon-only="1">
+<dc-import name="BrandSelect" icon="funnel" value="{{ filter }}" options="{{ filterOptions }}" onSelect="{{ setFilter }}" a11y-label="{{ tFilter }}" hint-size="48px,36px"></dc-import>
+</div>
+</div>
+
+<sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+<div data-empty="1">
+<strong style="font-family:var(--vt-font-display);font-size:var(--vt-heading-4)">{{ tEmptyTitle }}</strong>
+<p data-hint="1">{{ tEmptyBody }}</p>
+</div>
+</sc-if>
+
+<sc-if value="{{ showKanban }}" hint-placeholder-val="{{ true }}">
+<div data-kb="1" data-scroll-native="1">
+<sc-for list="{{ columns }}" as="col" hint-placeholder-count="4">
+<div data-kb-col="1" data-status="{{ col.status }}" data-over="{{ col.over }}">
+<div data-kb-hd="1">
+<strong style="font-size:var(--vt-body-sm);font-weight:600">{{ col.label }}</strong>
+<span data-kb-count="1">{{ col.count }}</span>
+</div>
+<div data-kb-drop="1">{{ tDropHere }}</div>
+<sc-for list="{{ col.cards }}" as="r" hint-placeholder-count="1">
+<div data-kb-card="1" data-id="{{ r.id }}" data-sel="{{ r.sel }}" data-dragging="{{ r.dragging }}" draggable="true">
+<button type="button" data-grip="1" tabindex="-1" aria-hidden="true">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="grip-vertical" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+</button>
+<button type="button" data-kb-body="1" onClick="{{ r.open }}">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px">
+<strong data-vt-no-i18n="1" style="font-size:var(--vt-body-md);font-weight:600">{{ r.name }}</strong>
+<span data-chip="1">{{ r.statusLabel }}</span>
+<span data-chip="1" data-vt-no-i18n="1" style="display:{{ r.refShow }}">{{ r.bookingRef }}</span>
+<span data-chip="1" data-vt-no-i18n="1">{{ r.locale }}</span>
+</div>
+<p data-quote="1" data-vt-no-i18n="1">{{ r.preview }}</p>
+<div data-meta="1">
+<span data-vt-no-i18n="1">{{ r.email }}</span>
+<span>{{ r.when }}</span>
+</div>
+</button>
+</div>
+</sc-for>
+<p data-kb-empty="1" style="display:{{ col.emptyShow }}">{{ tColEmpty }}</p>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ showTable }}" hint-placeholder-val="{{ false }}">
+<div data-tbl-scroll="1" data-scroll-native="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Table" columns="{{ tableColumns }}" rows="{{ tableRows }}" onRowClick="{{ openRow }}" hint-size="100%,320px"></x-import>
+</div>
+</sc-if>
+</div>
+
+<sc-if value="{{ overlayOpen }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="lg" className="vt-ov-scroll" title="{{ overlayTitle }}" subtitle="{{ overlaySub }}" onClose="{{ closeOverlay }}" hint-size="1120px,840px">
+<div data-ov="1">
+<div data-ov-chat="1" data-scroll-native="1">
+<div data-thread="1" data-scroll-native="1">
+<sc-for list="{{ thread }}" as="m" hint-placeholder-count="3">
+<div data-msg="1" data-from="{{ m.from }}">
+<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px">
+<span data-chip="1">{{ m.who }}</span>
+<span style="font-size:var(--vt-body-xs);opacity:.72">{{ m.when }}</span>
+</div>
+<p data-vt-no-i18n="1" style="margin:0;font-size:var(--vt-body-sm);line-height:1.55;text-wrap:pretty">{{ m.body }}</p>
+</div>
+</sc-for>
+</div>
+<div data-ov-foot="1">
+<sc-if value="{{ canReply }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ tReply }}" rows="{{ nReply }}" value="{{ draft }}" onChange="{{ setDraft }}" placeholder="{{ tReplyPh }}" hint-size="100%,72px"></x-import>
+</sc-if>
+<sc-if value="{{ isClosed }}" hint-placeholder-val="{{ false }}">
+<p data-hint="1" style="margin:0">{{ tClosedBody }}</p>
+</sc-if>
+<div data-ov-actions="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" onClick="{{ closeTicket }}" hint-size="160px,44px">{{ tCloseTicket }}</x-import>
+<sc-if value="{{ canReply }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" icon="mail" disabled="{{ sendOff }}" onClick="{{ sendReply }}" hint-size="120px,44px">{{ tSend }}</x-import>
+</sc-if>
+</div>
+</div>
+</div>
+<div data-ov-meta="1" data-open="{{ metaOpenAttr }}" data-scroll-native="1">
+
+<div data-person="1">
+<span data-av="1" aria-hidden="true">{{ openInitials }}</span>
+<div data-person-id="1">
+<div data-person-name="1">
+<strong data-vt-no-i18n="1">{{ overlayTitle }}</strong>
+<span data-chip="1" data-vt-no-i18n="1">{{ openLocale }}</span>
+</div>
+<p data-person-mail="1" data-vt-no-i18n="1">{{ openEmail }}</p>
+<p data-person-tel="1" data-vt-no-i18n="1" style="display:{{ openPhoneShow }}">{{ openPhone }}</p>
+</div>
+<div data-person-tools="1">
+<div data-status-top="1">
+<dc-import name="BrandSelect" icon="mail" value="{{ openStatus }}" options="{{ statusOptions }}" onSelect="{{ setStatus }}" a11y-label="{{ tStatus }}" hint-size="140px,36px"></dc-import>
+</div>
+<sc-if value="{{ showMetaToggle }}" hint-placeholder-val="{{ false }}">
+<div data-meta-toggle="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ toggleMeta }}" hint-size="96px,36px">{{ metaToggleLabel }}</x-import>
+</div>
+</sc-if>
+</div>
+<div data-acts="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" icon="mail" href="{{ mailHref }}" hint-size="110px,36px">{{ tMail }}</x-import>
+<sc-if value="{{ hasPhone }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" icon="phone" href="{{ telHref }}" hint-size="100px,36px">{{ tCall }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" icon="message-circle" href="{{ waHref }}" hint-size="140px,36px">{{ tWhatsApp }}</x-import>
+</sc-if>
+</div>
+</div>
+
+<div data-ov-extra="1">
+<div data-facts="1">
+<div data-fact="1" data-fact-tile="1">
+<span data-fld-l="1">{{ tTicket }}</span>
+<span data-fact-v="1" data-vt-no-i18n="1">{{ openTicketId }}</span>
+</div>
+<div data-fact="1" data-fact-tile="1">
+<span data-fld-l="1">{{ tChannel }}</span>
+<span data-fact-v="1">{{ tChannelForm }}</span>
+</div>
+<div data-fact="1" data-fact-tile="1">
+<span data-fld-l="1">{{ tOpened }}</span>
+<span data-fact-v="1">{{ openWhen }}</span>
+</div>
+<div data-fact="1" data-fact-tile="1">
+<span data-fld-l="1">{{ tLastAct }}</span>
+<span data-fact-v="1">{{ openLast }}</span>
+</div>
+<div data-fact-pair="1">
+<div data-fact="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" icon="phone" label="{{ tPhone }}" placeholder="{{ tPhonePh }}" value="{{ openPhone }}" onChange="{{ setPhone }}" hint-size="100%,76px"></x-import>
+</div>
+<div data-fact="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tBooking }}" placeholder="{{ tBookingPh }}" value="{{ openBooking }}" onChange="{{ setBooking }}" hint-size="100%,76px"></x-import>
+</div>
+</div>
+<div data-fact="1" data-fact-wide="1">
+<div data-note-save="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tNote }}" placeholder="{{ tNotePh }}" value="{{ openNote }}" onChange="{{ setNote }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" disabled="{{ noteOff }}" onClick="{{ saveNote }}" hint-size="120px,36px">{{ tSaveNote }}</x-import>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+</x-import>
+</sc-if>
+
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900}}">
+/* Support board hydrates from GET /api/staff/tickets. No fixture rows. */
+const STATUSES = ['new', 'open', 'replied', 'closed'];
+const T = {
+  en: { title:'Support', subtitle:'Contact messages, as tickets',
+    all:'All', new:'New', open:'Open', replied:'Replied', closed:'Closed',
+    emptyTitle:'No tickets', emptyBody:'Contact-page messages land here.', colEmpty:'No tickets',
+    status:'Status', close:'Close', closeTicket:'Close Ticket', customer:'Customer', staff:'Dispatcher', noteWho:'Note',
+    kanban:'Kanban', table:'Table', colName:'Customer', colEmail:'Email', colRef:'Ref', colWhen:'When', colLocale:'Locale',
+    reply:'Reply', replyPh:'Write a reply…', send:'Send', closedBody:'Closed, already solved. Inbound does not reopen this ticket.',
+    footNew:'Waiting on dispatch', footOpen:'In progress', footMsgs:'Across every ticket', footAll:'On the board',
+    cntMsgs:'Messages', cntAll:'Tickets', msgCount:'%n messages',
+    dragHint:'Drag the grip to move a ticket. Drop it on a column.', dropHere:'Drop here',
+    ticket:'Ticket', channel:'Channel', channelForm:'Contact form', opened:'Opened', lastAct:'Last activity',
+    booking:'Booking', bookingPh:'VT-0000', noBooking:'No booking linked', msgs:'Messages', mail:'Email', call:'Call', whatsApp:'WhatsApp',
+    phone:'Phone', phonePh:'+41 79 000 00 00', note:'Note', notePh:'Add a detail…',
+    searchPh:'Name, email, ref, or message', filter:'Filter', view:'View',
+    expand:'Expand', collapse:'Collapse', saveNote:'Save note' },
+  de: { title:'Support', subtitle:'Kontaktnachrichten als Tickets',
+    all:'Alle', new:'Neu', open:'Offen', replied:'Beantwortet', closed:'Geschlossen',
+    emptyTitle:'Keine Tickets', emptyBody:'Nichts in diesem Filter.', colEmpty:'Keine Tickets',
+    status:'Status', close:'Schliessen', closeTicket:'Ticket schliessen', customer:'Kunde', staff:'Disponent', noteWho:'Notiz',
+    kanban:'Kanban', table:'Tabelle', colName:'Kunde', colEmail:'E-Mail', colRef:'Ref.', colWhen:'Wann', colLocale:'Sprache',
+    reply:'Antwort', replyPh:'Antwort schreiben…', send:'Senden', closedBody:'Geschlossen, bereits gelöst. Eingang öffnet dieses Ticket nicht erneut.',
+    footNew:'Wartet auf Dispatch', footOpen:'In Bearbeitung', footMsgs:'Über alle Tickets', footAll:'Auf dem Board',
+    cntMsgs:'Nachrichten', cntAll:'Tickets', msgCount:'%n Nachrichten',
+    dragHint:'Am Griff ziehen und auf eine Spalte legen.', dropHere:'Hier ablegen',
+    ticket:'Ticket', channel:'Kanal', channelForm:'Kontaktformular', opened:'Geöffnet', lastAct:'Letzte Aktivität',
+    booking:'Buchung', bookingPh:'VT-0000', noBooking:'Keine Buchung verknüpft', msgs:'Nachrichten', mail:'E-Mail', call:'Anrufen', whatsApp:'WhatsApp',
+    phone:'Telefon', phonePh:'+41 79 000 00 00', note:'Notiz', notePh:'Detail hinzufügen…',
+    searchPh:'Name, E-Mail, Ref. oder Nachricht', filter:'Filter', view:'Ansicht',
+    expand:'Aufklappen', collapse:'Zuklappen', saveNote:'Notiz speichern' },
+  fr: { title:'Assistance', subtitle:'Messages de contact, en tickets',
+    all:'Tous', new:'Nouveau', open:'Ouvert', replied:'Répondu', closed:'Fermé',
+    emptyTitle:'Aucun ticket', emptyBody:'Rien dans ce filtre.', colEmpty:'Aucun ticket',
+    status:'Statut', close:'Fermer', closeTicket:'Fermer le ticket', customer:'Client', staff:'Régulateur', noteWho:'Note',
+    kanban:'Kanban', table:'Tableau', colName:'Client', colEmail:'E-mail', colRef:'Réf.', colWhen:'Quand', colLocale:'Langue',
+    reply:'Réponse', replyPh:'Écrire une réponse…', send:'Envoyer', closedBody:'Fermé, déjà résolu. Un inbound ne rouvre pas ce ticket.',
+    footNew:'En attente dispatch', footOpen:'En cours', footMsgs:'Tous tickets confondus', footAll:'Sur le tableau',
+    cntMsgs:'Messages', cntAll:'Tickets', msgCount:'%n messages',
+    dragHint:'Glissez la poignée vers une colonne.', dropHere:'Déposer ici',
+    ticket:'Ticket', channel:'Canal', channelForm:'Formulaire de contact', opened:'Ouvert le', lastAct:'Dernière activité',
+    booking:'Réservation', bookingPh:'VT-0000', noBooking:'Aucune réservation liée', msgs:'Messages', mail:'E-mail', call:'Appeler', whatsApp:'WhatsApp',
+    phone:'Téléphone', phonePh:'+41 79 000 00 00', note:'Note', notePh:'Ajouter un détail…',
+    searchPh:'Nom, e-mail, réf. ou message', filter:'Filtrer',
+    expand:'Déplier', collapse:'Replier', saveNote:'Enregistrer la note', view:'Vue' },
+  ar: { title:'الدعم', subtitle:'رسائل التواصل كتذاكر',
+    all:'الكل', new:'جديد', open:'مفتوح', replied:'تم الرد', closed:'مغلق',
+    emptyTitle:'لا تذاكر', emptyBody:'لا شيء في هذا التصفية.', colEmpty:'لا تذاكر',
+    status:'الحالة', close:'إغلاق', closeTicket:'إغلاق التذكرة', customer:'العميل', staff:'الموزّع', noteWho:'ملاحظة',
+    kanban:'كانبان', table:'جدول', colName:'العميل', colEmail:'البريد', colRef:'المرجع', colWhen:'متى', colLocale:'اللغة',
+    reply:'رد', replyPh:'اكتب رداً…', send:'إرسال', closedBody:'مغلق، تم الحل. الوارد لا يعيد فتح هذه التذكرة.',
+    footNew:'بانتظار التوزيع', footOpen:'قيد المعالجة', footMsgs:'عبر كل التذاكر', footAll:'على اللوحة',
+    cntMsgs:'رسائل', cntAll:'تذاكر', msgCount:'%n رسائل',
+    dragHint:'اسحب المقبض إلى عمود.', dropHere:'أفلت هنا',
+    ticket:'التذكرة', channel:'القناة', channelForm:'نموذج التواصل', opened:'فُتحت', lastAct:'آخر نشاط',
+    booking:'الحجز', bookingPh:'VT-0000', noBooking:'لا حجز مرتبط', msgs:'رسائل', mail:'بريد', call:'اتصال', whatsApp:'واتساب',
+    phone:'الهاتف', phonePh:'+41 79 000 00 00', note:'ملاحظة', notePh:'أضف تفصيلاً…',
+    searchPh:'الاسم أو البريد أو المرجع أو الرسالة', filter:'تصفية',
+    expand:'توسيع', collapse:'طي', saveNote:'حفظ الملاحظة', view:'عرض' },
+};
+function cloneTickets(rows) {
+  const src = Array.isArray(rows) ? rows : [];
+  return src.map((t) => ({
+    id: t.id, ticketId: t.ticketId, status: t.status, name: t.name, email: t.email, phone: t.phone,
+    bookingRef: t.bookingRef, locale: t.locale, when: t.when, last: t.last, note: t.note || '',
+    messages: (t.messages || []).map((m) => ({ whoKey: m.whoKey, when: m.when, body: m.body })),
+  }));
+}
+function stamp() {
+  const p = {};
+  new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Zurich', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
+    .formatToParts(new Date()).forEach((x) => { p[x.type] = x.value; });
+  return p.day + ' ' + p.month + ' ' + p.year + ' · ' + p.hour + ':' + p.minute;
+}
+function replyRows(draft) {
+  const text = String(draft || '');
+  if (!text) return 2;
+  const lines = text.split('\n').length;
+  const wrapped = Math.ceil(text.length / 42);
+  return Math.min(8, Math.max(2, lines, wrapped));
+}
+function initialsOf(name) {
+  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+  const a = parts[0] ? parts[0].charAt(0) : '?';
+  const b = parts[1] ? parts[1].charAt(0) : (parts[0] && parts[0].charAt(1) ? parts[0].charAt(1) : '');
+  return (a + b).toUpperCase();
+}
+function digitsOf(phone) {
+  return String(phone || '').replace(/\D/g, '');
+}
+function adminName() {
+  try {
+    const ops = window.VamosOps;
+    const p = ops && ops.profile && typeof ops.profile.get === 'function' ? ops.profile.get() : {};
+    if (p && (p.name || p.fullName)) return p.name || p.fullName;
+  } catch (err) {}
+  return 'Koussay';
+}
+function ticketHay(row) {
+  const parts = [row.ticketId, row.name, row.email, row.phone, row.bookingRef, row.locale, row.note];
+  (row.messages || []).forEach((m) => { parts.push(m.body); });
+  return parts.join(' ').toLowerCase();
+}
+function publishBadge(tickets) {
+  const n = tickets.filter((row) => row.status === 'new').length;
+  window.__vamosSupportNew = n;
+  window.dispatchEvent(new CustomEvent('vamos:support-badge', { detail: { newCount: n } }));
+}
+function cardOf(row, openId, draggingId, openTicket, labels) {
+  const last = row.messages[row.messages.length - 1];
+  return {
+    id: row.id, name: row.name, email: row.email, when: row.when, locale: row.locale,
+    preview: (last && last.body) || '',
+    bookingRef: row.bookingRef, refShow: row.bookingRef ? 'inline-flex' : 'none',
+    statusLabel: labels[row.status] || row.status,
+    sel: openId === row.id ? '1' : '0',
+    dragging: draggingId === row.id ? '1' : '0',
+    open: () => openTicket(row.id),
+  };
+}
+function opsPhone() {
+  try { return window.matchMedia('(max-width: 860px)').matches; } catch (e) { return false; }
+}
+function opsHand() {
+  try { return window.matchMedia('(max-width: 767px)').matches; } catch (e) { return false; }
+}
+class Component extends DCLogic {
+  state = { lang: 'en', filter: 'all', view: opsPhone() ? 'table' : 'kanban', query: '', tickets: [], openId: null, draft: '', overStatus: '', draggingId: '', filterOpen: false, metaOpen: true };
+  hydrate = () => {
+    const api = window.VamosOpsApi;
+    if (!api || typeof api.request !== 'function') {
+      this._retry = setTimeout(this.hydrate, 120);
+      return;
+    }
+    api.request('GET', '/api/staff/tickets').then((json) => {
+      const rows = json && json.ok && Array.isArray(json.data) ? json.data : [];
+      const tickets = cloneTickets(rows);
+      this.setState({ tickets }, () => publishBadge(tickets));
+    });
+  };
+  componentDidMount() {
+    this._onLocale = (e) => this.setState({ lang: e.detail.lang });
+    window.addEventListener('vamos:locale', this._onLocale);
+    if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() });
+    if (opsPhone() && this.state.view === 'kanban') this.setState({ view: 'table' });
+    this._onDragStart = (e) => {
+      const card = e.target.closest && e.target.closest('[data-kb-card][data-id]');
+      if (!card || !card.closest('[data-vt-support]')) return;
+      this._dragId = card.getAttribute('data-id');
+      this._dragMoved = false;
+      try {
+        e.dataTransfer.setData('text/plain', this._dragId);
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setDragImage(card, 28, 20);
+      } catch (err) {}
+      this.setState({ draggingId: this._dragId || '' });
+    };
+    this._onDragOver = (e) => {
+      const col = e.target.closest && e.target.closest('[data-kb-col][data-status]');
+      if (!col || !col.closest('[data-vt-support]')) return;
+      e.preventDefault();
+      try { e.dataTransfer.dropEffect = 'move'; } catch (err) {}
+      this._dragMoved = true;
+      const status = col.getAttribute('data-status');
+      if (status && status !== this.state.overStatus) this.setState({ overStatus: status });
+    };
+    this._onDrop = (e) => {
+      const col = e.target.closest && e.target.closest('[data-kb-col][data-status]');
+      if (!col || !col.closest('[data-vt-support]')) return;
+      e.preventDefault();
+      const id = this._dragId || (e.dataTransfer && e.dataTransfer.getData('text/plain'));
+      const status = col.getAttribute('data-status');
+      this._dragId = null;
+      this.setState({ overStatus: '', draggingId: '' });
+      if (id && status) this.moveTicket(id, status);
+    };
+    this._onDragEnd = () => {
+      this._dragId = null;
+      if (this.state.overStatus || this.state.draggingId) this.setState({ overStatus: '', draggingId: '' });
+    };
+    document.addEventListener('dragstart', this._onDragStart);
+    document.addEventListener('dragover', this._onDragOver);
+    document.addEventListener('drop', this._onDrop);
+    document.addEventListener('dragend', this._onDragEnd);
+    this.hydrate();
+    publishBadge(this.state.tickets);
+  }
+  componentWillUnmount() {
+    if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
+    document.removeEventListener('dragstart', this._onDragStart);
+    document.removeEventListener('dragover', this._onDragOver);
+    document.removeEventListener('drop', this._onDrop);
+    document.removeEventListener('dragend', this._onDragEnd);
+    clearTimeout(this._retry);
+  }
+  setFilter = (key) => this.setState({ filter: key || 'all', filterOpen: false });
+  toggleFilter = () => this.setState({ filterOpen: !this.state.filterOpen });
+  toggleMeta = () => { if (!opsHand()) return; this.setState({ metaOpen: !this.state.metaOpen }); };
+  setKanban = () => this.setState({ view: 'kanban' });
+  setTable = () => this.setState({ view: 'table' });
+  setView = (v) => this.setState({ view: v === 'table' ? 'table' : 'kanban' });
+  setQuery = (e) => this.setState({ query: e && e.target ? e.target.value : '' });
+  setDraft = (e) => this.setState({ draft: e && e.target ? e.target.value : '' });
+  patchOpen = (key, val) => {
+    const id = this.state.openId;
+    if (!id) return;
+    const tickets = this.state.tickets.map((t) => t.id === id ? Object.assign({}, t, { [key]: val }) : t);
+    this.setState({ tickets: tickets });
+  };
+  setPhone = (e) => this.patchOpen('phone', e && e.target ? e.target.value : '');
+  setBooking = (e) => this.patchOpen('bookingRef', e && e.target ? e.target.value : '');
+  setNote = (e) => this.patchOpen('note', e && e.target ? e.target.value : '');
+  saveNote = () => {
+    const id = this.state.openId;
+    if (!id) return;
+    const row = this.state.tickets.find((t) => t.id === id);
+    const body = String(row && row.note ? row.note : '').trim();
+    if (!body) return;
+    const now = stamp();
+    const tickets = this.state.tickets.map((t) => {
+      if (t.id !== id) return t;
+      return Object.assign({}, t, {
+        note: '',
+        last: now,
+        messages: t.messages.concat([{ whoKey: 'note', when: now, body: body }]),
+      });
+    });
+    this.setState({ tickets: tickets }, () => {
+      requestAnimationFrame(() => this.scrollThread());
+    });
+  };
+  openTicket = (id) => {
+    if (this._dragMoved) { this._dragMoved = false; return; }
+    const tickets = this.state.tickets.map((t) => t.id === id && t.status === 'new' ? Object.assign({}, t, { status: 'open' }) : t);
+    this.setState({ openId: id, draft: '', tickets: tickets, metaOpen: !opsHand() }, () => {
+      requestAnimationFrame(() => this.scrollThread());
+    });
+    publishBadge(tickets);
+  };
+  openRow = (row) => { if (row && row.id) this.openTicket(row.id); };
+  closeOverlay = () => this.setState({ openId: null, draft: '' });
+  scrollThread = () => {
+    const root = document.querySelector('[data-vt-support] [data-thread]');
+    if (!root) return;
+    root.scrollTop = root.scrollHeight;
+  };
+  moveTicket = (id, status) => {
+    const next = STATUSES.indexOf(status) === -1 ? null : status;
+    if (!next) return;
+    const tickets = this.state.tickets.map((t) => t.id === id ? Object.assign({}, t, { status: next, last: stamp() }) : t);
+    this.setState({ tickets: tickets });
+    publishBadge(tickets);
+  };
+  setStatus = (status) => {
+    if (!this.state.openId) return;
+    this.moveTicket(this.state.openId, status);
+  };
+  closeTicket = () => {
+    if (this.state.openId) this.moveTicket(this.state.openId, 'closed');
+    this.closeOverlay();
+  };
+  sendReply = () => {
+    const body = String(this.state.draft || '').trim();
+    const id = this.state.openId;
+    if (!body || !id) return;
+    const now = stamp();
+    const tickets = this.state.tickets.map((t) => {
+      if (t.id !== id || t.status === 'closed') return t;
+      return Object.assign({}, t, {
+        status: 'replied',
+        last: now,
+        messages: t.messages.concat([{ whoKey: 'staff', when: now, body: body }]),
+      });
+    });
+    this.setState({ tickets: tickets, draft: '' }, () => {
+      requestAnimationFrame(() => this.scrollThread());
+    });
+    publishBadge(tickets);
+  };
+  renderVals() {
+    const t = T[this.state.lang] || T.en;
+    const filter = this.state.filter || 'all';
+    const view = this.state.view === 'table' ? 'table' : 'kanban';
+    const labels = { new: t.new, open: t.open, replied: t.replied, closed: t.closed };
+    const whoStaff = adminName();
+    const whoLabel = { customer: t.customer, staff: whoStaff, note: t.noteWho };
+    const filterOptions = [{ value: 'all', label: t.all }].concat(STATUSES.map((k) => ({ value: k, label: labels[k] })));
+    const filters = filterOptions.map((f) => ({
+      label: f.label, active: f.value === filter, select: () => this.setFilter(f.value),
+    }));
+    const q = String(this.state.query || '').trim().toLowerCase();
+    const visible = this.state.tickets.filter((row) => {
+      if (filter !== 'all' && row.status !== filter) return false;
+      if (!q) return true;
+      return ticketHay(row).indexOf(q) !== -1;
+    });
+    const open = this.state.tickets.find((row) => row.id === this.state.openId) || null;
+    const nNew = this.state.tickets.filter((row) => row.status === 'new').length;
+    const nOpen = this.state.tickets.filter((row) => row.status === 'open').length;
+    const nMsgs = this.state.tickets.reduce((n, row) => n + row.messages.length, 0);
+    const columns = STATUSES.filter((k) => filter === 'all' || filter === k).map((k) => {
+      const cards = visible.filter((row) => row.status === k).map((row) => cardOf(row, this.state.openId, this.state.draggingId, this.openTicket, labels));
+      return { status: k, label: labels[k], count: String(cards.length), cards: cards, emptyShow: cards.length ? 'none' : 'block', over: this.state.overStatus === k ? '1' : '0' };
+    });
+    const phoneDigits = open ? digitsOf(open.phone) : '';
+    return {
+      yes: true, n16: 16, n18: 18, n3: 3, n6: 6, nReply: replyRows(this.state.draft),
+      tTitle: t.title, tSubtitle: t.subtitle, tEmptyTitle: t.emptyTitle, tEmptyBody: t.emptyBody,
+      tStatus: t.status, tClose: t.close, tCloseTicket: t.closeTicket, tKanban: t.kanban, tTable: t.table, tColEmpty: t.colEmpty,
+      tReply: t.reply, tReplyPh: t.replyPh, tSend: t.send, tClosedBody: t.closedBody,
+      tDragHint: t.dragHint, tDropHere: t.dropHere,
+      tTicket: t.ticket, tChannel: t.channel, tChannelForm: t.channelForm, tOpened: t.opened, tLastAct: t.lastAct,
+      tBooking: t.booking, tBookingPh: t.bookingPh, tMsgs: t.msgs, tMail: t.mail, tCall: t.call, tWhatsApp: t.whatsApp,
+      tPhone: t.phone, tPhonePh: t.phonePh, tNote: t.note, tNotePh: t.notePh, tSearchPh: t.searchPh, tFilter: t.filter,
+      tSaveNote: t.saveNote, metaOpenAttr: opsHand() ? (this.state.metaOpen ? '1' : '0') : '1',
+      showMetaToggle: opsHand(),
+      metaToggleLabel: this.state.metaOpen ? t.collapse : t.expand, toggleMeta: this.toggleMeta,
+      noteOff: !(open && String(open.note || '').trim()), saveNote: this.saveNote,
+      filter: filter, filterOptions: filterOptions, setFilter: this.setFilter,
+      query: this.state.query || '', setQuery: this.setQuery,
+      filters: filters,
+      counts: [
+        { label: t.new, value: String(nNew), icon: 'mail', foot: t.footNew },
+        { label: t.open, value: String(nOpen), icon: 'clock', foot: t.footOpen },
+        { label: t.cntMsgs, value: String(nMsgs), icon: 'message-circle', foot: t.footMsgs },
+        { label: t.cntAll, value: String(this.state.tickets.length), icon: 'users', foot: t.footAll },
+      ],
+      isEmpty: visible.length === 0,
+      showKanban: visible.length > 0 && view === 'kanban',
+      showTable: visible.length > 0 && view === 'table',
+      kanbanVariant: view === 'kanban' ? '' : 'outline',
+      tableVariant: view === 'table' ? '' : 'outline',
+      tView: t.view, view: view,
+      viewOptions: [{ value: 'table', label: t.table }, { value: 'kanban', label: t.kanban }],
+      setKanban: this.setKanban, setTable: this.setTable, setView: this.setView,
+      columns: columns,
+      tableColumns: [
+        { key:'name', header: t.colName },
+        { key:'status', header: t.status, width:'132px', kind:'status', labels: labels, options: STATUSES, onPick: this.moveTicket },
+        { key:'email', header: t.colEmail },
+        { key:'bookingRef', header: t.colRef, width:'110px' },
+        { key:'locale', header: t.colLocale, width:'72px' },
+        { key:'when', header: t.colWhen, width:'160px' },
+      ],
+      tableRows: visible.map((row) => ({
+        id: row.id, name: row.name, email: row.email, when: row.when, locale: row.locale,
+        bookingRef: row.bookingRef || '—', status: row.status, statusLabel: labels[row.status] || row.status,
+      })),
+      openRow: this.openRow,
+      overlayOpen: !!open,
+      overlayTitle: open ? open.name : t.title,
+      overlaySub: open ? (open.ticketId + ' · ' + (labels[open.status] || open.status) + ' · ' + t.msgCount.replace('%n', String(open.messages.length))) : '',
+      openInitials: open ? initialsOf(open.name) : '',
+      openEmail: open ? open.email : '',
+      openPhone: open ? open.phone : '',
+      openPhoneShow: open && open.phone ? 'block' : 'none',
+      hasPhone: !!(open && open.phone),
+      mailHref: open ? ('mailto:' + open.email) : '',
+      telHref: phoneDigits ? ('tel:+' + phoneDigits) : '',
+      waHref: phoneDigits ? ('https://wa.me/' + phoneDigits) : '',
+      openTicketId: open ? open.ticketId : '',
+      openWhen: open ? open.when : '',
+      openLast: open ? open.last : '',
+      openBooking: open ? (open.bookingRef || '') : '',
+      openNote: open ? (open.note || '') : '',
+      openLocale: open && open.locale ? String(open.locale).toUpperCase() : '',
+      openMsgCount: open ? t.msgCount.replace('%n', String(open.messages.length)) : '',
+      openStatus: open ? open.status : 'new',
+      openStatusLabel: open ? (labels[open.status] || open.status) : '',
+      statusOptions: STATUSES.map((k) => ({ value: k, label: labels[k] })),
+      setStatus: this.setStatus,
+      setPhone: this.setPhone,
+      setBooking: this.setBooking,
+      setNote: this.setNote,
+      closeOverlay: this.closeOverlay,
+      canReply: !!(open && open.status !== 'closed'),
+      isClosed: !!(open && open.status === 'closed'),
+      draft: this.state.draft || '',
+      setDraft: this.setDraft,
+      sendReply: this.sendReply,
+      sendOff: !(this.state.draft && String(this.state.draft).trim()) || !!(open && open.status === 'closed'),
+      thread: open ? open.messages.map((m) => ({
+        from: m.whoKey, who: whoLabel[m.whoKey] || m.whoKey, when: m.when, body: m.body,
+      })) : [],
+    };
+  }
+}
+</script>
+</body>
+</html>

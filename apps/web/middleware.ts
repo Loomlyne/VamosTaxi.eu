@@ -17,6 +17,7 @@ import {
 const handleI18nRouting = createMiddleware(routing);
 
 const DC_HOME = "/app/home/home.html";
+/** Public DC mocks. /checkout and /checkout/trip|/details|/payment are Next (07-12) — do not add them. /confirmation is Next (07-15). */
 const DC_PAGES: Record<string, string> = {
   "/": DC_HOME,
   "/about": "/app/pages/about.html",
@@ -30,13 +31,29 @@ const DC_PAGES: Record<string, string> = {
   "/sign-in": "/app/pages/sign-in.html",
   "/sign-up": "/app/pages/sign-in.html",
   "/reset-password": "/app/pages/reset-password.html",
-  "/checkout": "/app/pages/checkout.html",
-  "/confirmation": "/app/pages/confirmation.html",
   "/manage-booking": "/app/pages/manage-booking.html",
   "/account": "/app/pages/account.html",
   "/bookings": "/app/pages/bookings.html",
   "/coming-soon": "/app/pages/coming-soon.html",
 };
+
+/** Bare `/app/pages/contact` (and home) → public `/contact`. Skip aliases that share a file. */
+const DC_FILE_ROUTE: Record<string, string> = {};
+for (const [route, file] of Object.entries(DC_PAGES)) {
+  if (route === "/sign-up" || route === "/login") continue;
+  DC_FILE_ROUTE[file.replace(/\.html$/i, "")] = route;
+}
+
+function publicPathFromDcFile(pathname: string): string | null {
+  const { localePrefix, path } = localeStrippedPath(pathname);
+  const bare = path.replace(/\.dc\.html$/i, "").replace(/\.html$/i, "").replace(/\.dc$/i, "");
+  const route = DC_FILE_ROUTE[bare];
+  if (!route) return null;
+  if (localePrefix && localePrefix !== "en") {
+    return route === "/" ? `/${localePrefix}` : `/${localePrefix}${route}`;
+  }
+  return route;
+}
 
 const OPS_EXEMPT = new Set(["/ops/sign-in", "/ops/mfa-challenge", "/ops/accept-invite"]);
 
@@ -309,6 +326,12 @@ export default async function middleware(request: NextRequest) {
       return applyStagingNoindex(NextResponse.redirect(opsRedirectUrl(request, "/ops")));
     }
   } else {
+    const bounced = publicPathFromDcFile(pathname);
+    if (bounced && bounced !== pathname) {
+      const url = request.nextUrl.clone();
+      url.pathname = bounced;
+      return applyStagingNoindex(NextResponse.redirect(url, 308));
+    }
     const mock = dcMockPath(pathname);
     if (mock) {
       const html = await serveDcHtml(request, mock);
@@ -408,5 +431,8 @@ export const config = {
   // Unchanged for 06-03: `/ops/*` (and `/de/ops` etc.) already match this
   // pattern — the negative lookahead only excludes `api`, `_next`, `_vercel`,
   // and dotted filenames.
+  //
+  // Phase 7: `/api/stripe/webhook` is under `/api/*`, so this matcher never
+  // reads the body. constructEventAsync needs the exact bytes Stripe signed.
   matcher: ["/((?!api|_next|_vercel|.*\\..*).*)"],
 };

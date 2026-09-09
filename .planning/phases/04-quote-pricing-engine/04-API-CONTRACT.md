@@ -442,15 +442,18 @@ Order, none skippable:
 3. **Authoritative:** in the DB transaction, `lock.exp <= now()` (Postgres) → `409 quote_expired`.
 4. `pricing_live` / chosen class `total_rappen` is null → `409 pricing_not_live`. Checkout is unreachable. No Stripe. No snapshot. No reference burned.
 5. Recompute `priceQuote` against the pin + extras + coupon. Chosen class total ≠ locked class total → `409 price_changed`. `ENGINE_VERSION !== lock.engine_version` → `409 engine_changed`. Both `action: "requote"`.
-6. Create Stripe PaymentIntent **outside** the DB transaction (never hold a SQL tx across the network).
+6. Create the Stripe **Checkout Session** (Adaptive Pricing + Currency Selector,
+   `expand: ['payment_intent']`) **outside** the DB transaction (never hold a SQL tx across the network).
 7. One DB transaction: insert snapshot (chosen class, `shown_alternatives`, `expires_at = now() + payment_window` — U49), booking, legs (Permanent Geocode re-resolve of pickup/dropoff, U34), snapshot legs, bind `booking_id`, insert `booking_payments` (`requires_payment`). Charge gate + coupon `FOR UPDATE` fire here.
-8. Gate `restrict_violation` → roll back, `paymentIntents.cancel()`, `409` with the matching code (`quote_expired` / `coupon_no_longer_valid` / `pricing_not_live`).
+8. Gate `restrict_violation` → roll back, `checkout.sessions.expire(session.id)`, `409` with the matching code (`quote_expired` / `coupon_no_longer_valid` / `pricing_not_live`).
 
 Deleting step 2 does not change correctness. A `curl` of a held, expired `quote_id` still dies at step 3 or 8.
 
 When `pricing_live` is false this route is a 409 at step 4 for every caller, including ops pretending to be the widget.
 
 `app.checkout_quote` (lock-lane SECURITY DEFINER read of an unbound snapshot) is **not** used on this path: D42 means there is no unbound web snapshot to read. The lock token *is* the quote.
+
+[Note 2026-09-05: steps 6 and 8 swapped PaymentIntent → Checkout Session per ADR-014 §1 (`.planning/ADR-014-owner-sitting-2026-08-22.md`) and `07-CONTEXT.md` D-04/D-07/D-08. Adaptive Pricing is Checkout-Session-only.]
 
 ---
 

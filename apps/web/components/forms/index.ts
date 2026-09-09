@@ -24,5 +24,13 @@ export type { CounterProps, CounterSize } from "./Counter";
 export { DatePicker } from "./DatePicker";
 export type { DatePickerProps, DatePickerSize } from "./DatePicker";
 
-export { WhenPicker } from "./WhenPicker";
+export { WhenPicker, WHEN_PICKER_TIMES } from "./WhenPicker";
 export type { WhenPickerProps } from "./WhenPicker";
+
+export { TimePicker } from "./TimePicker";
+
+export { PlaceCombo } from "./PlaceCombo";
+export type { PlaceComboProps, PlaceRetrieve } from "./PlaceCombo";
+
+export { PhoneField, e164Phone } from "./PhoneField";
+export type { PhoneFieldProps } from "./PhoneField";

@@ -2,6 +2,7 @@
 
 import { type ReactNode } from "react";
 import { usePathname } from "next/navigation";
+import { ContactFab } from "./ContactFab";
 
 /**
  * The composition seam `apps/web/app/[locale]/layout.tsx` renders. It exists for exactly
@@ -57,6 +58,7 @@ export function SiteShell({
       {isHome ? null : header}
       {children}
       {footer}
+      <ContactFab />
     </>
   );
 }

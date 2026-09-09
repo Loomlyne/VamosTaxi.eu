@@ -28,6 +28,17 @@ export interface BookingDraft {
   passengers: number;
   luggage: number;
   flightNumber: string;
+  /** Checkout (plan 07-08). Optional so older drafts still hydrate. */
+  quoteId?: string;
+  lock?: string;
+  vehicleClass?: string;
+  /** CHF rappen for the selected class. Display-only; server lock is source of charge. */
+  chargedRappen?: number;
+  /**
+   * Minted once per quote. A fresh key per submit would raise
+   * quote_already_booked on retry (plan 07-02).
+   */
+  idempotencyKey?: string;
 }
 
 export const EMPTY_DRAFT: BookingDraft = {

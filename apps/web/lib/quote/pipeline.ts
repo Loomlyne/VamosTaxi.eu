@@ -34,7 +34,7 @@ import {
   type RouteLegInput,
 } from "../geo/mapbox";
 import { mintLockDeadline } from "../db/quote";
-import { loadAndPrice as defaultLoadAndPrice } from "./engine";
+import { loadAndPrice as defaultLoadAndPrice, type LoadAndPriceCoupon } from "./engine";
 import type { QuoteErrorCode } from "./errors";
 import {
   mintLock as defaultMintLock,
@@ -89,6 +89,39 @@ export type CouponInfo = {
     | "per_user_cap";
   i18n_key: string;
 };
+
+function couponRule(applied: boolean, key: string): CouponInfo["rule"] {
+  if (applied) return "ok";
+  if (key.endsWith("not_found")) return "not_found";
+  if (key.endsWith("inactive")) return "inactive";
+  if (key.endsWith("not_yet_valid")) return "not_yet_valid";
+  if (key.endsWith("expired")) return "expired";
+  if (key.endsWith("unpriced")) return "unpriced";
+  if (key.endsWith("usage_cap")) return "usage_cap";
+  if (key.endsWith("per_user_cap")) return "per_user_cap";
+  return "unpriced";
+}
+
+function couponInfoFromEval(
+  code: string | null | undefined,
+  evaled: LoadAndPriceCoupon | null | undefined,
+): CouponInfo | null {
+  if (!code) return null;
+  if (!evaled) {
+    return {
+      code: code.toUpperCase(),
+      applied: false,
+      rule: "unpriced",
+      i18n_key: "quote.coupon.error.unpriced",
+    };
+  }
+  return {
+    code: evaled.code,
+    applied: evaled.applied,
+    rule: couponRule(evaled.applied, evaled.i18n_key),
+    i18n_key: evaled.i18n_key,
+  };
+}
 
 export type QuoteRouteLeg = {
   leg_seq: 1 | 2;
@@ -676,6 +709,7 @@ export async function runQuotePipeline(
     payload,
     quote: priced.quote,
     route,
+    coupon: couponInfoFromEval(request.coupon ?? null, priced.coupon),
   });
 }
 
@@ -695,14 +729,8 @@ export async function runRepricePipeline(
   if (!parsed.ok) return { ok: false, code: parsed.code };
   const request: RepriceRequest = parsed.value;
 
-  for (const id of [
-    "worker_rate_limit",
-    "turnstile",
-    "daily_mapbox_breaker",
-  ] as const) {
-    const outcome = await runStep(id, { body }, deps);
-    if (!outcome.ok) return outcome;
-  }
+  const limited = await runStep("worker_rate_limit", { body }, deps);
+  if (!limited.ok) return limited;
 
   const verify = deps.verifyLock ?? defaultVerifyLock;
   const verified = await verify(deps.lockSecrets, request.lock, deps.nowIso);
@@ -731,6 +759,10 @@ export async function runRepricePipeline(
   let exp = lock.exp;
 
   if (changed) {
+    for (const id of ["turnstile", "daily_mapbox_breaker"] as const) {
+      const outcome = await runStep(id, { body }, deps);
+      if (!outcome.ok) return outcome;
+    }
     const outboundLeg = lock.legs[0];
     if (!outboundLeg) return { ok: false, code: "untrusted_input" };
     const outbound: RouteLegInput = {
@@ -834,15 +866,7 @@ export async function runRepricePipeline(
     }),
   };
 
-  const coupon: CouponInfo | null =
-    couponCode === null || couponCode === undefined
-      ? null
-      : {
-          code: couponCode.toUpperCase(),
-          applied: false,
-          rule: "unpriced",
-          i18n_key: "quote.coupon.error.unpriced",
-        };
+  const coupon: CouponInfo | null = couponInfoFromEval(couponCode, priced.coupon);
 
   return mintSuccess({
     deps,

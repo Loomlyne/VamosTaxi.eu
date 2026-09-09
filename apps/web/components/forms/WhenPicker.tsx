@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { Icon } from "@/components/core";
 import "./WhenPicker.css";
 
-const FALLBACK_TIMES = [
+export const WHEN_PICKER_TIMES = [
   "05:30",
   "06:45",
   "08:15",
@@ -25,6 +25,8 @@ export type WhenPickerProps = {
   date2?: string;
   time2?: string;
   range?: boolean;
+  /** Calendar only — time is a sibling field (checkout trip). */
+  hideTime?: boolean;
   times?: string[];
   locale?: string;
   groups?: [string, string, string];
@@ -85,7 +87,8 @@ export function WhenPicker({
   date2 = "",
   time2 = "",
   range = false,
-  times = FALLBACK_TIMES,
+  hideTime = false,
+  times = WHEN_PICKER_TIMES,
   locale = "en",
   groups = ["Morning", "Afternoon", "Evening"],
   legLabels = ["Pickup", "Return"],
@@ -224,8 +227,8 @@ export function WhenPicker({
   const full1 = parsed ? dayLabel(locale, parsed.y, parsed.m, parsed.d) : "";
   const full2 = parsed2 ? dayLabel(locale, parsed2.y, parsed2.m, parsed2.d) : "";
   const short = (v: string) => v.replace(/^\S+\s/, "");
-  const saved = range ? !!(full1 && time && full2 && time2) : !!(full1 && time);
-  const isEmpty = !full1 && !time;
+  const saved = range ? !!(full1 && time && full2 && time2) : hideTime ? !!full1 : !!(full1 && time);
+  const isEmpty = hideTime ? !full1 : !full1 && !time;
   const titles = [timeTitle, timeTitle2];
   const stamps = [`${full1} · ${time}`, `${full2} · ${time2}`];
 
@@ -235,15 +238,15 @@ export function WhenPicker({
         position: "absolute",
         insetInlineStart: 0,
         top: "calc(100% + 8px)",
-        width: "min(560px, calc(100vw - 40px))",
+        width: hideTime ? "min(320px, calc(100vw - 40px))" : "min(560px, calc(100vw - 40px))",
         maxHeight: "min(70svh, 540px)",
       };
     }
     const vw = window.innerWidth || 1200;
     const vh = window.innerHeight || 800;
-    const w = Math.min(560, vw - 24);
+    const w = Math.min(hideTime ? 320 : 560, vw - 24);
     const left = Math.round(Math.min(Math.max(12, rect.left), Math.max(12, vw - w - 12)));
-    const need = popH || (range ? 520 : 460);
+    const need = popH || (hideTime ? 400 : range ? 520 : 460);
     const below = vh - rect.bottom - 10;
     const above = rect.top - 10;
     const up = below < need && above > below;
@@ -258,7 +261,7 @@ export function WhenPicker({
   })();
 
   return (
-    <div ref={rootRef} className="vt-when" data-whenpicker="1">
+    <div ref={rootRef} className="vt-when" data-whenpicker="1" data-date-only={hideTime ? "1" : undefined}>
       <span className="vt-when__label" id={fid}>
         {label}
       </span>
@@ -279,7 +282,7 @@ export function WhenPicker({
             ) : (
               <>
                 <span className="vt-dir-keep">{range ? short(full1) : full1}</span>
-                {time ? <span className="vt-when__time vt-dir-keep">{time}</span> : null}
+                {!hideTime && time ? <span className="vt-when__time vt-dir-keep">{time}</span> : null}
                 {range ? (
                   <>
                     <span className="vt-when__arrow">→</span>
@@ -360,34 +363,38 @@ export function WhenPicker({
                   })}
                 </div>
               </div>
-              <div data-wp-div="" />
-              <div data-wp-time="">
-                <div className="vt-when__timehead">
-                  <Icon name="clock" size={16} color="var(--vt-text-muted)" />
-                  <span>{titles[leg]}</span>
-                </div>
-                <div className="vt-when__slots">
-                  {timeRows.map((r, i) =>
-                    r.kind === "head" ? (
-                      <span key={`h${i}`} className="vt-when__ghead">
-                        {r.label}
-                      </span>
-                    ) : (
-                      <button
-                        key={r.label}
-                        type="button"
-                        aria-pressed={r.kind === "sel" || undefined}
-                        className={
-                          r.kind === "sel" ? "vt-when__slot vt-when__slot--sel" : "vt-when__slot"
-                        }
-                        onClick={() => pickTime(r.label)}
-                      >
-                        <span className="vt-dir-keep">{r.label}</span>
-                      </button>
-                    ),
-                  )}
-                </div>
-              </div>
+              {hideTime ? null : (
+                <>
+                  <div data-wp-div="" />
+                  <div data-wp-time="">
+                    <div className="vt-when__timehead">
+                      <Icon name="clock" size={16} color="var(--vt-text-muted)" />
+                      <span>{titles[leg]}</span>
+                    </div>
+                    <div className="vt-when__slots">
+                      {timeRows.map((r, i) =>
+                        r.kind === "head" ? (
+                          <span key={`h${i}`} className="vt-when__ghead">
+                            {r.label}
+                          </span>
+                        ) : (
+                          <button
+                            key={r.label}
+                            type="button"
+                            aria-pressed={r.kind === "sel" || undefined}
+                            className={
+                              r.kind === "sel" ? "vt-when__slot vt-when__slot--sel" : "vt-when__slot"
+                            }
+                            onClick={() => pickTime(r.label)}
+                          >
+                            <span className="vt-dir-keep">{r.label}</span>
+                          </button>
+                        ),
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
             {range ? (
               <div className="vt-when__summary vt-when__summary--range">
@@ -416,7 +423,7 @@ export function WhenPicker({
               <div className="vt-when__summary">
                 <span className="vt-when__sumcopy">
                   <span>{label}</span>
-                  <strong className="vt-dir-keep">{`${full1} · ${time}`}</strong>
+                  <strong className="vt-dir-keep">{hideTime ? full1 : `${full1} · ${time}`}</strong>
                 </span>
               </div>
             )}
