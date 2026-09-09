@@ -157,7 +157,8 @@
   min-inline-size: 0;
 }
 
-.vt-checkout__sheet > .vt-checkout__recap + .vt-checkout__payblock {
+.vt-checkout__sheet > .vt-checkout__payblock:first-child {
+  padding-block-start: 0;
   border-block-start: 0;
 }
 
@@ -416,7 +417,12 @@
 
 .vt-checkout__company {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 12px;
+}
+
+.vt-checkout__paystack [data-checkout-pay-skeleton] {
+  min-block-size: 280px;
 }
 
 .vt-checkout__rail .vt-checkout__coupon {

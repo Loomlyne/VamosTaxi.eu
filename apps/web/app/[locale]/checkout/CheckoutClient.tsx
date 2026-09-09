@@ -423,7 +423,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   }
 
   async function startPayment() {
-    if (!validate()) return;
     const trip = tripSnap ?? readVamosTrip();
     const quoteId = draft.quoteId || tripQuoteId(trip);
     const lock = draft.lock || trip?.lock;
@@ -870,6 +869,42 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           {step === "payment" ? (
             <Card padding="lg">
               <div className="vt-checkout__sheet">
+              <div className="vt-checkout__payblock">
+                <Tabs
+                  className="vt-checkout__tabs"
+                  block
+                  value={billingKind}
+                  onChange={(value) => setBillingKind(value === "company" ? "company" : "individual")}
+                  items={[
+                    { value: "individual", label: t("billingIndividual") },
+                    { value: "company", label: t("billingCompany") },
+                  ]}
+                />
+                {billingKind === "company" ? (
+                  <div className="vt-checkout__company">
+                    <Input
+                      label={t("companyName")}
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                    />
+                    <Input
+                      label={t("companyAddress")}
+                      value={companyAddress}
+                      onChange={(e) => setCompanyAddress(e.target.value)}
+                    />
+                    <Input
+                      label={t("companyVat")}
+                      value={companyVat}
+                      onChange={(e) => setCompanyVat(e.target.value)}
+                    />
+                    <Input
+                      label={t("payerEmail")}
+                      value={payerEmail || contact.email}
+                      onChange={(e) => setPayerEmail(e.target.value)}
+                    />
+                  </div>
+                ) : null}
+              </div>
               <div className="vt-checkout__recap">
                 <div className="vt-checkout__recap-trip">
                   <Badge tone="accent">{t("charged-now-secured-by-stripe")}</Badge>
@@ -910,57 +945,22 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                 </div>
               </div>
               <div className="vt-checkout__payblock">
-                <Tabs
-                  className="vt-checkout__tabs"
-                  block
-                  value={billingKind}
-                  onChange={(value) => setBillingKind(value === "company" ? "company" : "individual")}
-                  items={[
-                    { value: "individual", label: t("billingIndividual") },
-                    { value: "company", label: t("billingCompany") },
-                  ]}
-                />
-                {billingKind === "company" ? (
-                  <div className="vt-checkout__company">
-                    <Input
-                      label={t("companyName")}
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                    />
-                    <Input
-                      label={t("companyAddress")}
-                      value={companyAddress}
-                      onChange={(e) => setCompanyAddress(e.target.value)}
-                    />
-                    <Input
-                      label={t("companyVat")}
-                      value={companyVat}
-                      onChange={(e) => setCompanyVat(e.target.value)}
-                    />
-                    <Input
-                      label={t("payerEmail")}
-                      value={payerEmail || contact.email}
-                      onChange={(e) => setPayerEmail(e.target.value)}
-                    />
-                  </div>
-                ) : null}
-              </div>
-              <div className="vt-checkout__payblock">
                 <div className="vt-checkout__payhead">
                   <h2>{t("payment")}</h2>
                   <p>{t("card-apple-pay-or-twint")}</p>
                 </div>
                 <div className="vt-checkout__paystack">
-                  {busy && !clientSecret ? <div data-checkout-pay-skeleton aria-hidden="true" /> : null}
-                  {clientSecret && reference ? (
+                  {clientSecret ? (
                     <PaymentPanel
                       publishableKey={publishable}
                       clientSecret={clientSecret}
-                      reference={reference}
+                      reference={reference ?? ""}
                       onReady={onPaymentReady}
                       onComplete={onPaymentComplete}
                     />
-                  ) : null}
+                  ) : (
+                    <div data-checkout-pay-skeleton aria-hidden="true" />
+                  )}
                 </div>
               </div>
               <div className="vt-checkout__payfoot">

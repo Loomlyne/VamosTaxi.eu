@@ -124,7 +124,7 @@ function CheckoutFields({
         setError(result.error.message);
         throw new Error(result.error.message);
       }
-      router.push(`/confirmation/${reference}`);
+      if (reference) router.push(`/confirmation/${reference}`);
     });
   }, [checkout, onComplete, onReady, reference, router]);
 

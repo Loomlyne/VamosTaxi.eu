@@ -101,7 +101,7 @@ describe("checkout comment pack", () => {
     expect(intent).not.toContain("verifyTurnstile");
     expect(client).not.toContain("turnstile_failed");
     expect(client).not.toContain("formChallengeFailed");
-    expect(client.indexOf("vt-checkout__recap")).toBeLessThan(client.indexOf("vt-checkout__payblock"));
+    expect(client.indexOf("billingIndividual")).toBeLessThan(client.indexOf("vt-checkout__recap"));
     expect(client.indexOf("vt-checkout__recap")).toBeLessThan(client.indexOf("vt-checkout__payhead"));
     expect(css).toContain("min-block-size: var(--vt-control-h-md)");
   });
@@ -116,6 +116,12 @@ describe("checkout comment pack", () => {
     expect(client).toContain("onComplete={onPaymentComplete}");
     expect(payPanel).toContain("onChange={(event) => onComplete(event.complete)}");
     expect(client).not.toContain('payMethod === "link"');
+    expect(client).not.toContain("busy && !clientSecret");
+    expect(client).toContain("clientSecret ? (");
+    expect(css).toContain(".vt-checkout__paystack [data-checkout-pay-skeleton]");
+    expect(css).toMatch(
+      /\.vt-checkout__company[\s\S]*grid-template-columns:\s*minmax\(0, 1fr\) minmax\(0, 1fr\)/,
+    );
   });
 
   it("shows the locked class total, selected class, and no change-vehicle", () => {
