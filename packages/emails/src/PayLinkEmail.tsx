@@ -1,7 +1,8 @@
 // packages/emails/src/PayLinkEmail.tsx
 //
-// Unpaid pay-link. Same chrome as confirmation. Hex from design-system
-// tokens — email clients cannot use var(--vt-*). Do not invent CHF.
+// Unpaid pay-link. Pay-first voucher, not a confirmation clone.
+// Hex from design-system tokens — email clients cannot use var(--vt-*).
+// Yellow is the PAY NOW fill only. Do not invent CHF.
 
 import {
   Body,
@@ -25,6 +26,12 @@ import { formatPaidTotal } from "./ConfirmationEmail";
 const CHARCOAL = "#1E1F1F";
 /** --vt-grey / --vt-grey-200 */
 const GREY = "#DEDEDE";
+/** --vt-grey-50 — page */
+const PAGE = "#F6F6F6";
+/** --vt-grey-100 — recap well */
+const INSET = "#ECECEC";
+/** --vt-grey-300 — inverse muted */
+const INVERSE_MUTED = "#C2C3C3";
 /** --vt-yellow / --vt-yellow-400 — button fill only */
 const YELLOW = "#FDC20B";
 /** --vt-white */
@@ -37,6 +44,7 @@ const BODY_FONT = 'Poppins, system-ui, -apple-system, "Segoe UI", sans-serif';
 
 const DISPATCH_PHONE = "+41 79 626 70 82";
 const WHATSAPP_HREF = "https://wa.me/41796267082";
+const LOCK_HOURS = 24;
 
 const VEHICLE_KEY: Record<PayLinkVehicle, string> = {
   economy: "payLink.vehicleEconomy",
@@ -63,85 +71,165 @@ function extraLabels(locale: EmailLocale, extras: PayLinkExtraCode[]): string[] 
   return extras.map((code) => t(locale, EXTRA_KEY[code]));
 }
 
+const labelStyle = {
+  margin: 0,
+  fontSize: "11px",
+  fontWeight: 600,
+  color: MUTED,
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.08em",
+};
+
+const valueStyle = {
+  margin: "6px 0 0",
+  fontSize: "16px",
+  lineHeight: "24px",
+  color: CHARCOAL,
+};
+
 export function PayLinkEmail({ link }: { link: PayLinkForEmail }) {
   const locale: EmailLocale = link.locale;
   const dir = locale === "ar" ? "rtl" : "ltr";
   const amount = formatPaidTotal(link.totalRappen);
   const extras = extraLabels(locale, link.extras);
   const vehicle = t(locale, VEHICLE_KEY[link.vehicleClass]);
+  const hours = { hours: LOCK_HOURS };
 
   return (
     <Html lang={locale} dir={dir}>
       <Head />
-      <Preview>{t(locale, "payLink.preheader")}</Preview>
-      <Body style={{ margin: 0, padding: 0, backgroundColor: GREY, color: CHARCOAL, fontFamily: BODY_FONT }}>
+      <Preview>{t(locale, "payLink.preheader", hours)}</Preview>
+      <Body style={{ margin: 0, padding: 0, backgroundColor: PAGE, color: CHARCOAL, fontFamily: BODY_FONT }}>
         <Container style={{ backgroundColor: WHITE, maxWidth: "560px", margin: "32px auto", padding: "0" }}>
-          <Section style={{ padding: "28px 32px 20px" }}>
-            <Text style={{ margin: 0, fontFamily: DISPLAY_FONT, fontSize: "28px", fontWeight: 600, color: CHARCOAL }}>
+          <Section style={{ backgroundColor: CHARCOAL, padding: "28px 32px 24px" }}>
+            <Text
+              style={{
+                margin: 0,
+                fontFamily: DISPLAY_FONT,
+                fontSize: "13px",
+                fontWeight: 600,
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+                color: WHITE,
+              }}
+            >
               Vamos Taxi
             </Text>
-          </Section>
-          <Section style={{ height: "4px", backgroundColor: YELLOW, fontSize: 0, lineHeight: "4px" }}>
-            &nbsp;
-          </Section>
-          <Section style={{ padding: "28px 32px 8px" }}>
-            <Text style={{ margin: 0, fontFamily: DISPLAY_FONT, fontSize: "24px", fontWeight: 600, color: CHARCOAL }}>
+            <Text
+              style={{
+                margin: "16px 0 0",
+                fontFamily: DISPLAY_FONT,
+                fontSize: "28px",
+                lineHeight: "34px",
+                fontWeight: 600,
+                color: WHITE,
+              }}
+            >
               {t(locale, "payLink.headline")}
             </Text>
-            <Text style={{ margin: "12px 0 0", fontSize: "14px", color: MUTED }}>
+            <Text style={{ margin: "10px 0 0", fontSize: "14px", color: INVERSE_MUTED }}>
               {t(locale, "payLink.referenceLabel")} {ltr(link.reference)}
             </Text>
-            <Text style={{ margin: "16px 0 0", fontSize: "14px", color: CHARCOAL }}>
+            <Text style={{ margin: "8px 0 0", fontSize: "14px", color: INVERSE_MUTED }}>
               {t(locale, "payLink.unpaid")}
             </Text>
+          </Section>
 
-            {link.pickupText ? (
-              <Row style={{ marginTop: "20px" }}>
-                <Column>
-                  <Text style={{ margin: 0, fontSize: "12px", color: MUTED, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                    {t(locale, "fromLabel")}
-                  </Text>
-                  <Text style={{ margin: "4px 0 0", fontSize: "16px", color: CHARCOAL }}>{link.pickupText}</Text>
-                </Column>
-              </Row>
-            ) : null}
-            {link.dropoffText ? (
-              <Row>
-                <Column>
-                  <Text style={{ margin: "16px 0 0", fontSize: "12px", color: MUTED, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                    {t(locale, "toLabel")}
-                  </Text>
-                  <Text style={{ margin: "4px 0 0", fontSize: "16px", color: CHARCOAL }}>{link.dropoffText}</Text>
-                </Column>
-              </Row>
-            ) : null}
-            {link.scheduledLocal ? (
-              <Text style={{ margin: "16px 0 0", fontSize: "14px", color: CHARCOAL }}>
-                {t(locale, "timeLabel")} {ltr(link.scheduledLocal)}
-                {link.flightNo ? <> · {ltr(link.flightNo)}</> : null}
-              </Text>
-            ) : null}
-            <Text style={{ margin: "8px 0 0", fontSize: "14px", color: CHARCOAL }}>
-              {t(locale, "vehicleLabel")} {vehicle}
-              {link.pax > 0 ? (
-                <>
-                  {" · "}
-                  {t(locale, "paxLine", { pax: link.pax, bags: link.bags })}
-                </>
-              ) : null}
+          <Section style={{ padding: "28px 32px 8px" }}>
+            <Text style={labelStyle}>{t(locale, "payLink.amountLabel")}</Text>
+            <Text
+              style={{
+                margin: "8px 0 0",
+                fontFamily: DISPLAY_FONT,
+                fontSize: "36px",
+                lineHeight: "40px",
+                fontWeight: 700,
+                color: CHARCOAL,
+              }}
+            >
+              {ltr(amount)}
             </Text>
-            {extras.length > 0 ? (
-              <Text style={{ margin: "8px 0 0", fontSize: "14px", color: CHARCOAL }}>
-                {t(locale, "payLink.extrasLabel")} {extras.join(" · ")}
+            <Button
+              href={link.payUrl}
+              style={{
+                backgroundColor: YELLOW,
+                color: CHARCOAL,
+                fontFamily: BODY_FONT,
+                fontSize: "16px",
+                fontWeight: 700,
+                letterSpacing: "0.04em",
+                textDecoration: "none",
+                padding: "16px 28px",
+                marginTop: "24px",
+                borderRadius: "999px",
+                display: "block",
+                width: "100%",
+                boxSizing: "border-box",
+                textAlign: "center",
+              }}
+            >
+              {t(locale, "payLink.payCta")}
+            </Button>
+            <Text style={{ margin: "16px 0 0", fontSize: "12px", color: MUTED }}>
+              {t(locale, "payLink.linkLabel")}
+            </Text>
+            <Text style={{ margin: "6px 0 0", fontSize: "13px", lineHeight: "20px", color: CHARCOAL, wordBreak: "break-all" }}>
+              <Link href={link.payUrl} style={{ color: CHARCOAL, unicodeBidi: "isolate" }}>
+                {link.payUrl}
+              </Link>
+            </Text>
+            <Text style={{ margin: "16px 0 0", fontSize: "13px", color: MUTED }}>
+              {t(locale, "payLink.holdLine", hours)}
+            </Text>
+          </Section>
+
+          <Section style={{ backgroundColor: INSET, padding: "20px 32px 12px" }}>
+              {link.pickupText || link.dropoffText ? (
+                <Row>
+                  {link.pickupText ? (
+                    <Column style={{ width: "50%", paddingRight: dir === "rtl" ? "0" : "12px", paddingLeft: dir === "rtl" ? "12px" : "0", verticalAlign: "top" }}>
+                      <Text style={labelStyle}>{t(locale, "fromLabel")}</Text>
+                      <Text style={valueStyle}>{link.pickupText}</Text>
+                    </Column>
+                  ) : null}
+                  {link.dropoffText ? (
+                    <Column style={{ width: "50%", verticalAlign: "top" }}>
+                      <Text style={labelStyle}>{t(locale, "toLabel")}</Text>
+                      <Text style={valueStyle}>{link.dropoffText}</Text>
+                    </Column>
+                  ) : null}
+                </Row>
+              ) : null}
+              {link.scheduledLocal ? (
+                <Text style={{ margin: "16px 0 0", fontSize: "14px", color: CHARCOAL }}>
+                  {t(locale, "timeLabel")} {ltr(link.scheduledLocal)}
+                  {link.flightNo ? <> · {ltr(link.flightNo)}</> : null}
+                </Text>
+              ) : null}
+              <Text style={{ margin: "8px 0 12px", fontSize: "14px", color: CHARCOAL }}>
+                {t(locale, "vehicleLabel")} {vehicle}
+                {link.pax > 0 ? (
+                  <>
+                    {" · "}
+                    {t(locale, "paxLine", { pax: link.pax, bags: link.bags })}
+                  </>
+                ) : null}
               </Text>
-            ) : null}
-            {link.coupon ? (
-              <Text style={{ margin: "8px 0 0", fontSize: "14px", color: CHARCOAL }}>
-                {t(locale, "payLink.couponLabel")} {ltr(link.coupon)}
-              </Text>
-            ) : null}
+              {extras.length > 0 ? (
+                <Text style={{ margin: "0 0 12px", fontSize: "14px", color: CHARCOAL }}>
+                  {t(locale, "payLink.extrasLabel")} {extras.join(" · ")}
+                </Text>
+              ) : null}
+              {link.coupon ? (
+                <Text style={{ margin: "0 0 12px", fontSize: "14px", color: CHARCOAL }}>
+                  {t(locale, "payLink.couponLabel")} {ltr(link.coupon)}
+                </Text>
+              ) : null}
+            </Section>
+
+          <Section style={{ padding: "8px 32px 8px" }}>
             {link.contactName ? (
-              <Text style={{ margin: "16px 0 0", fontSize: "14px", color: CHARCOAL }}>
+              <Text style={{ margin: "8px 0 0", fontSize: "14px", color: CHARCOAL }}>
                 {t(locale, "payLink.passengerLabel")} {link.contactName}
               </Text>
             ) : null}
@@ -157,43 +245,8 @@ export function PayLinkEmail({ link }: { link: PayLinkForEmail }) {
                 {link.companyVat ? ` · ${link.companyVat}` : ""}
               </Text>
             ) : null}
-
-            <Hr style={{ borderColor: GREY, margin: "24px 0" }} />
-            <Text style={{ margin: 0, fontSize: "12px", color: MUTED, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-              {t(locale, "payLink.amountLabel")}
-            </Text>
-            <Text style={{ margin: "4px 0 0", fontFamily: DISPLAY_FONT, fontSize: "22px", fontWeight: 700, color: CHARCOAL }}>
-              {ltr(amount)}
-            </Text>
-            <Button
-              href={link.payUrl}
-              style={{
-                backgroundColor: YELLOW,
-                color: CHARCOAL,
-                fontFamily: BODY_FONT,
-                fontSize: "16px",
-                fontWeight: 700,
-                textDecoration: "none",
-                padding: "14px 28px",
-                marginTop: "24px",
-                borderRadius: "999px",
-                display: "inline-block",
-              }}
-            >
-              {t(locale, "payLink.payCta")}
-            </Button>
-            <Text style={{ margin: "20px 0 0", fontSize: "13px", color: MUTED }}>
-              {t(locale, "payLink.linkLabel")}
-            </Text>
-            <Text style={{ margin: "8px 0 0", fontSize: "13px", color: CHARCOAL }}>
-              <Link href={link.payUrl} style={{ color: CHARCOAL, unicodeBidi: "isolate" }}>
-                {link.payUrl}
-              </Link>
-            </Text>
-            <Text style={{ margin: "20px 0 0", fontSize: "13px", color: MUTED }}>
-              {t(locale, "payLink.holdLine")}
-            </Text>
-            <Text style={{ margin: "8px 0 0", fontSize: "13px", color: MUTED }}>
+            <Hr style={{ borderColor: GREY, margin: "24px 0 16px" }} />
+            <Text style={{ margin: 0, fontSize: "13px", color: MUTED }}>
               {t(locale, "dispatchPhone", { phone: DISPATCH_PHONE })}
             </Text>
             <Text style={{ margin: "8px 0 0", fontSize: "13px", color: MUTED }}>
@@ -214,10 +267,15 @@ export function PayLinkEmail({ link }: { link: PayLinkForEmail }) {
 export function payLinkPlainText(link: PayLinkForEmail): string {
   const locale = link.locale;
   const extras = extraLabels(locale, link.extras);
+  const hours = { hours: LOCK_HOURS };
   const lines = [
     t(locale, "payLink.headline"),
     `${t(locale, "payLink.referenceLabel")} ${link.reference}`,
     t(locale, "payLink.unpaid"),
+    `${t(locale, "payLink.amountLabel")} ${formatPaidTotal(link.totalRappen)}`,
+    t(locale, "payLink.payCta"),
+    link.payUrl,
+    t(locale, "payLink.holdLine", hours),
   ];
   if (link.pickupText) lines.push(`${t(locale, "fromLabel")}: ${link.pickupText}`);
   if (link.dropoffText) lines.push(`${t(locale, "toLabel")}: ${link.dropoffText}`);
@@ -238,10 +296,6 @@ export function payLinkPlainText(link: PayLinkForEmail): string {
         .join(" "),
     );
   }
-  lines.push(`${t(locale, "payLink.amountLabel")} ${formatPaidTotal(link.totalRappen)}`);
-  lines.push(t(locale, "payLink.payCta"));
-  lines.push(link.payUrl);
-  lines.push(t(locale, "payLink.holdLine"));
   lines.push(t(locale, "dispatchPhone", { phone: DISPATCH_PHONE }));
   lines.push(t(locale, "payLink.whatsapp", { phone: DISPATCH_PHONE }));
   lines.push(WHATSAPP_HREF);

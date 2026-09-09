@@ -17,10 +17,10 @@
   "footer": "Vamos Taxi · Zurich",
   "payLink": {
     "subject": "Pay for booking {reference}",
-    "preheader": "This price is held 24 hours. The link dies after that.",
+    "preheader": "This price is held {hours} hours. The link dies after that.",
     "headline": "Pay for this trip",
     "referenceLabel": "Booking",
-    "holdLine": "This price is held 24 hours. After that the link is dead.",
+    "holdLine": "This price is held {hours} hours. After that the link is dead.",
     "unpaid": "Not paid yet — the car is not confirmed.",
     "payCta": "PAY NOW",
     "amountLabel": "Amount",

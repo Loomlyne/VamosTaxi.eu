@@ -17,10 +17,10 @@
   "footer": "Vamos Taxi · Zürich",
   "payLink": {
     "subject": "Zahlung für Buchung {reference}",
-    "preheader": "Dieser Preis gilt 24 Stunden. Danach ist der Link tot.",
+    "preheader": "Dieser Preis gilt {hours} Stunden. Danach ist der Link tot.",
     "headline": "Diese Fahrt bezahlen",
     "referenceLabel": "Buchung",
-    "holdLine": "Dieser Preis gilt 24 Stunden. Danach ist der Link tot.",
+    "holdLine": "Dieser Preis gilt {hours} Stunden. Danach ist der Link tot.",
     "unpaid": "Noch nicht bezahlt — das Auto ist nicht bestätigt.",
     "payCta": "JETZT ZAHLEN",
     "amountLabel": "Betrag",

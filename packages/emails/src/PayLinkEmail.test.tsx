@@ -46,6 +46,9 @@ describe("PayLinkEmail", () => {
     expect(html).toContain("https://vamostaxi.site/checkout/pay/tok");
     expect(html).toContain("LX123");
     expect(html).toContain("Ada");
+    expect(html).toContain("#1E1F1F");
+    expect(html).toContain("#FDC20B");
+    expect(html.indexOf("CHF 000")).toBeLessThan(html.indexOf("Zurich Airport"));
   });
 
   it("plain text and subject carry the pay URL", () => {

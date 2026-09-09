@@ -17,10 +17,10 @@
   "footer": "Vamos Taxi · Zurich",
   "payLink": {
     "subject": "Payer la réservation {reference}",
-    "preheader": "Ce prix est maintenu 24 heures. Ensuite le lien meurt.",
+    "preheader": "Ce prix est maintenu {hours} heures. Ensuite le lien meurt.",
     "headline": "Payer ce trajet",
     "referenceLabel": "Réservation",
-    "holdLine": "Ce prix est maintenu 24 heures. Ensuite le lien meurt.",
+    "holdLine": "Ce prix est maintenu {hours} heures. Ensuite le lien meurt.",
     "unpaid": "Pas encore payé — la voiture n’est pas confirmée.",
     "payCta": "PAYER",
     "amountLabel": "Montant",
