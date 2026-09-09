@@ -83,7 +83,13 @@ function boardParts(scheduledLocal: string | null): { date: string; time: string
   }
   const dateIso = match[1];
   const time = match[2];
-  const [year, month, day] = dateIso.split("-").map((part) => Number(part));
+  const bits = dateIso.split("-");
+  const year = Number(bits[0]);
+  const month = Number(bits[1]);
+  const day = Number(bits[2]);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+    return { date: "", time, dateIso };
+  }
   const utcNoon = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
   const parts: Record<string, string> = {};
   new Intl.DateTimeFormat("en-GB", {
