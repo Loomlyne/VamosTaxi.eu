@@ -168,6 +168,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const [cardComplete, setCardComplete] = useState(false);
   const [tripSnap, setTripSnap] = useState<VamosTrip | null>(null);
   const intentStarted = useRef(false);
+  const [intentTick, setIntentTick] = useState(0);
+  const intentAttempts = useRef(0);
 
   const onPaymentReady = useCallback((fn: () => Promise<void>) => {
     setConfirmPay(() => fn);
@@ -256,7 +258,12 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     ) {
       return;
     }
-    void startPayment({ silent: true });
+    if (intentAttempts.current >= 3) return;
+    void startPayment({ silent: true }).then((result) => {
+      if (result !== "fail") return;
+      intentAttempts.current += 1;
+      window.setTimeout(() => setIntentTick((n) => n + 1), 700);
+    });
   }, [
     step,
     gate,
@@ -266,6 +273,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     contact.lastName,
     contact.email,
     contact.mobile,
+    intentTick,
   ]);
 
   function validate(): boolean {
@@ -437,8 +445,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     router.push(checkoutStepPath("payment"));
   }
 
-  async function startPayment(opts?: { silent?: boolean }) {
-    if (clientSecret || intentStarted.current) return;
+  async function startPayment(opts?: { silent?: boolean }): Promise<"ok" | "skip" | "fail"> {
+    if (clientSecret) return "ok";
+    if (intentStarted.current) return "skip";
     const trip = tripSnap ?? readVamosTrip();
     const quoteId = draft.quoteId || tripQuoteId(trip);
     const lock = draft.lock || trip?.lock;
@@ -449,11 +458,11 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     const phone = contact.mobile.trim();
     if (!quoteId || !lock || !vehicleClass || !idempotencyKey) {
       if (!opts?.silent) setRefusal("quoteExpired");
-      return;
+      return "skip";
     }
     if (!name || !email || !phone) {
       if (!opts?.silent) setRefusal("payCouldNotStart");
-      return;
+      return "skip";
     }
     intentStarted.current = true;
     if (!opts?.silent) {
@@ -464,6 +473,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       const res = await fetch("/api/checkout/intent", {
         method: "POST",
         headers: { "content-type": "application/json" },
+        signal: AbortSignal.timeout(25_000),
         body: JSON.stringify({
           quote_id: quoteId,
           lock,
@@ -495,17 +505,22 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         const key = REFUSAL_KEYS[json.code ?? json.error ?? ""] ?? "payCouldNotStart";
         if (json.code === "coupon_no_longer_valid") setCouponApplied(null);
         if (!opts?.silent) setRefusal(key);
-        return;
+        return "fail";
       }
       if (json.publishable_key) setPublishable(json.publishable_key);
       if (json.reference) setReference(json.reference);
       setCardComplete(false);
       const secret = json.client_secret ?? null;
       setClientSecret(secret);
-      if (!secret) intentStarted.current = false;
+      if (!secret) {
+        intentStarted.current = false;
+        return "fail";
+      }
+      return "ok";
     } catch {
       intentStarted.current = false;
       if (!opts?.silent) setRefusal("payCouldNotStart");
+      return "fail";
     } finally {
       if (!opts?.silent) setBusy(false);
     }

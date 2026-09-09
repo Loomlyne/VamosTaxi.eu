@@ -16,16 +16,7 @@ export async function loadOpenPayment(
   quoteId: string,
 ): Promise<OpenPayment | null> {
   const rows = await sql`
-    select b.id as booking_id,
-           b.reference,
-           bp.stripe_checkout_session_id
-    from public.bookings b
-    inner join public.booking_payments bp on bp.booking_id = b.id
-    where b.quote_id = ${quoteId}::uuid
-      and bp.status = 'requires_payment'
-      and bp.stripe_checkout_session_id is not null
-    order by bp.created_at desc
-    limit 1
+    select * from public.checkout_open_payment(${quoteId}::uuid)
   `;
   const row = rows[0];
   if (!row?.stripe_checkout_session_id) return null;
