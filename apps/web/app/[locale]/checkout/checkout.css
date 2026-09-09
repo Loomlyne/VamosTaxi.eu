@@ -491,15 +491,29 @@
   display: none;
 }
 
-.vt-checkout__paystack [data-checkout-pay-skeleton] {
-  display: grid;
-  gap: 12px;
+.vt-checkout .vt-route__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+  margin-block-start: 14px;
+  padding-block-start: 14px;
+  background: transparent;
 }
 
-.vt-checkout__paystack [data-checkout-pay-skeleton] > span {
-  block-size: var(--vt-control-h-md);
-  border-radius: 999px;
-  background: var(--vt-bg-inset);
+.vt-checkout .vt-route__metaitem {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 7px;
+  min-inline-size: 0;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  font-size: var(--vt-body-sm);
+  font-weight: var(--vt-weight-regular);
+  color: var(--vt-text-secondary);
+  line-height: 1.35;
 }
 
 .vt-checkout__rail .vt-checkout__coupon {
@@ -515,6 +529,12 @@
 .vt-checkout__coupon .vt-field {
   flex: 1 1 auto;
   min-inline-size: 0;
+}
+
+.vt-checkout__coupon .vt-btn {
+  flex: 0 0 auto;
+  block-size: var(--vt-control-h-md);
+  min-block-size: var(--vt-control-h-md);
 }
 
 .vt-checkout__coupon[data-coupon-state="valid"] .vt-input,

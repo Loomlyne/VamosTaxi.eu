@@ -56,7 +56,7 @@ import { formatAmount, type CurrencyCode } from "@/lib/currency";
 import { routing } from "@/i18n/routing";
 import { useCheckoutSettings } from "./CheckoutSettings";
 import { CheckoutClassCards, classFits, firstFittingClass } from "./CheckoutClassCards";
-import { CheckoutPaySkeleton, PaymentPanel } from "./PaymentPanel";
+import { PaymentPanel } from "./PaymentPanel";
 
 const { useRouter } = createNavigation(routing);
 
@@ -1239,7 +1239,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                     />
                     <Button
                       variant="ghost"
-                      size="sm"
+                      size="md"
                       disabled={busy}
                       onClick={() =>
                         void applyCouponCode(couponApplied ? null : coupon.trim() || null)
@@ -1282,21 +1282,17 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                   <p>{t("card-apple-pay-or-twint")}</p>
                 </div>
                 <div className="vt-checkout__paystack">
-                  {clientSecret ? (
-                    <PaymentPanel
-                      publishableKey={publishable}
-                      clientSecret={clientSecret}
-                      clientSecretHex={clientSecretHex}
-                      reference={reference ?? ""}
-                      billingName={`${contact.firstName} ${contact.lastName}`.trim()}
-                      billingEmail={contact.email}
-                      billingPhone={contact.mobile}
-                      onReady={onPaymentReady}
-                      onComplete={onPaymentComplete}
-                    />
-                  ) : (
-                    <CheckoutPaySkeleton />
-                  )}
+                  <PaymentPanel
+                    publishableKey={publishable}
+                    clientSecret={clientSecret ?? ""}
+                    clientSecretHex={clientSecretHex}
+                    reference={reference ?? ""}
+                    billingName={`${contact.firstName} ${contact.lastName}`.trim()}
+                    billingEmail={contact.email}
+                    billingPhone={contact.mobile}
+                    onReady={onPaymentReady}
+                    onComplete={onPaymentComplete}
+                  />
                 </div>
               </div>
               <div className="vt-checkout__payfoot">

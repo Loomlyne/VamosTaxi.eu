@@ -24,7 +24,15 @@ import {
 } from "@stripe/react-stripe-js";
 import { loadStripe, type Stripe, type StripeElementsOptions } from "@stripe/stripe-js";
 import { createNavigation } from "next-intl/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState, type ComponentProps } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentProps,
+  type MutableRefObject,
+} from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Icon } from "@/components/core";
 import { Select } from "@/components/forms";
@@ -86,6 +94,8 @@ const CARD_STYLE = {
   invalid: { color: "#1e1f1f" },
 } as const;
 
+const CARD_FONTS = [{ cssSrc: "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" }];
+
 let stripePromise: Promise<Stripe | null> | null = null;
 let stripePromiseKey = "";
 
@@ -100,16 +110,6 @@ function browserStripe(publishableKey: string): Promise<Stripe | null> {
 }
 
 function noopComplete(_complete: boolean) {}
-
-export function CheckoutPaySkeleton() {
-  return (
-    <div data-checkout-pay-skeleton aria-hidden="true">
-      <span />
-      <span />
-      <span />
-    </div>
-  );
-}
 
 function decodeClientSecret(secret: string | undefined, hex: string | undefined): string | null {
   if (hex && /^[0-9a-f]+$/i.test(hex) && hex.length % 2 === 0) {
@@ -268,29 +268,22 @@ function VamosCardFields({
   );
 }
 
-function CheckoutFields({
+function CheckoutSession({
   reference,
   billingName,
   billingEmail,
-  stripePromise: promise,
+  cardCreate,
   onReady,
-  onComplete,
 }: {
   reference: string;
   billingName: string;
   billingEmail: string;
-  stripePromise: Promise<Stripe | null>;
+  cardCreate: MutableRefObject<(() => Promise<{ id: string; country: string }>) | null>;
   onReady: (confirm: () => Promise<void>) => void;
-  onComplete: (complete: boolean) => void;
 }) {
   const checkout = useCheckoutElements();
   const router = useRouter();
-  const cardCreate = useRef<(() => Promise<{ id: string; country: string }>) | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  const onCardCreate = useCallback((create: () => Promise<{ id: string; country: string }>) => {
-    cardCreate.current = create;
-  }, []);
 
   useEffect(() => {
     if (checkout.type !== "success") return;
@@ -314,7 +307,7 @@ function CheckoutFields({
       }
       if (reference) router.push(`/confirmation/${reference}`);
     });
-  }, [billingEmail, billingName, checkout, onReady, reference, router]);
+  }, [billingEmail, billingName, cardCreate, checkout, onReady, reference, router]);
 
   async function onExpress(event: ExpressConfirmEvent) {
     if (checkout.type !== "success") {
@@ -332,21 +325,9 @@ function CheckoutFields({
     if (reference) router.push(`/confirmation/${reference}`);
   }
 
-  const cardOptions = useMemo<StripeElementsOptions>(
-    () => ({
-      appearance: VAMOS_STRIPE_APPEARANCE,
-      fonts: [{ cssSrc: "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" }],
-      loader: "auto",
-    }),
-    [],
-  );
-
   return (
     <>
       <CheckoutWallets onExpress={onExpress} />
-      <Elements stripe={promise} options={cardOptions}>
-        <VamosCardFields name={billingName} email={billingEmail} onCreate={onCardCreate} onComplete={onComplete} />
-      </Elements>
       {error ? <p data-checkout-pay-error>{error}</p> : null}
     </>
   );
@@ -373,34 +354,46 @@ export function PaymentPanel({
   onComplete?: (complete: boolean) => void;
 }) {
   const promise = useMemo(() => browserStripe(publishableKey), [publishableKey]);
-  const secret = decodeClientSecret(clientSecret, clientSecretHex) ?? clientSecret;
-
-  if (!publishableKey || !secret) {
-    return <CheckoutPaySkeleton />;
-  }
+  const secret = (decodeClientSecret(clientSecret, clientSecretHex) ?? clientSecret ?? "").trim();
+  const cardCreate = useRef<(() => Promise<{ id: string; country: string }>) | null>(null);
+  const onCardCreate = useCallback((create: () => Promise<{ id: string; country: string }>) => {
+    cardCreate.current = create;
+  }, []);
+  const cardOptions = useMemo<StripeElementsOptions>(
+    () => ({
+      appearance: VAMOS_STRIPE_APPEARANCE,
+      fonts: CARD_FONTS,
+      loader: "auto",
+    }),
+    [],
+  );
 
   return (
     <div className="vt-checkout__pay" data-checkout-pay>
-      <CheckoutProvider
-        key={secret}
-        stripe={promise}
-        options={{
-          clientSecret: secret,
-          elementsOptions: {
-            appearance: VAMOS_STRIPE_APPEARANCE,
-            fonts: [{ cssSrc: "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" }],
-          },
-        }}
-      >
-        <CheckoutFields
-          reference={reference}
-          billingName={billingName}
-          billingEmail={billingEmail}
-          stripePromise={promise}
-          onReady={onReady}
-          onComplete={onComplete}
-        />
-      </CheckoutProvider>
+      {secret ? (
+        <CheckoutProvider
+          key={secret}
+          stripe={promise}
+          options={{
+            clientSecret: secret,
+            elementsOptions: {
+              appearance: VAMOS_STRIPE_APPEARANCE,
+              fonts: CARD_FONTS,
+            },
+          }}
+        >
+          <CheckoutSession
+            reference={reference}
+            billingName={billingName}
+            billingEmail={billingEmail}
+            cardCreate={cardCreate}
+            onReady={onReady}
+          />
+        </CheckoutProvider>
+      ) : null}
+      <Elements stripe={promise} options={cardOptions}>
+        <VamosCardFields name={billingName} email={billingEmail} onCreate={onCardCreate} onComplete={onComplete} />
+      </Elements>
     </div>
   );
 }

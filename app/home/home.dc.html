@@ -1077,7 +1077,9 @@ function readTrip() {
   catch (e) { return Object.assign({}, DEFAULT_TRIP); }
 }
 function saveTrip(patch) {
-  const t = Object.assign({}, readTrip(), patch);
+  const prev = readTrip();
+  const quoteChanged = !!(patch.quote_id && prev.quote_id && patch.quote_id !== prev.quote_id);
+  const t = Object.assign({}, prev, quoteChanged ? { flight: '', flightNumber: '' } : {}, patch);
   localStorage.setItem('vamosTrip', JSON.stringify(t));
   try {
     if (t.lock) sessionStorage.setItem('vamosQuoteLock', t.lock);
@@ -1923,7 +1925,7 @@ class Component extends DCLogic {
     const priced = [];
     VEHICLE_CLASSES.forEach((v) => { if (r && r[v.id] && r[v.id].kind === 'price') priced.push(v.id); });
     const when = this.clampWhen(s.dayY, s.dayM, s.day, s.time);
-    const trip = { mode: s.mode === 'hourly' ? 'hourly' : 'one-way', pickup: s.pickupText, dropoff: s.mode === 'hourly' ? (s.hours + ' h — ' + this.t().hourly) : s.dropText, date: s.dayLabel || (s.day ? this.fmtDate(s.day) : ''), selectedDay: s.day, time: s.time, pax: s.pax, bags: s.bags, vehicle: id, vehicleName: (VEHICLE_CLASSES.find((v) => v.id === id) || {}).name || id, quote_id: s.quote.quote_id || null, lock: s.quote.lock || null, expires_at: s.quote.expires_at || null, pickupPlace: placeInput(s.pickupLoc, s.pickupText), dropoffPlace: placeInput(s.dropLoc, s.dropText), scheduled_local: scheduledLocal(when.y, when.m, when.d, when.time), locale: s.lang || 'en', display_currency: s.cur || 'CHF', classes: priced };
+    const trip = { mode: s.mode === 'hourly' ? 'hourly' : 'one-way', pickup: s.pickupText, dropoff: s.mode === 'hourly' ? (s.hours + ' h — ' + this.t().hourly) : s.dropText, date: s.dayLabel || (s.day ? this.fmtDate(s.day) : ''), selectedDay: s.day, time: s.time, pax: s.pax, bags: s.bags, vehicle: id, vehicleName: (VEHICLE_CLASSES.find((v) => v.id === id) || {}).name || id, quote_id: s.quote.quote_id || null, lock: s.quote.lock || null, expires_at: s.quote.expires_at || null, pickupPlace: placeInput(s.pickupLoc, s.pickupText), dropoffPlace: placeInput(s.dropLoc, s.dropText), scheduled_local: scheduledLocal(when.y, when.m, when.d, when.time), locale: s.lang || 'en', display_currency: s.cur || 'CHF', classes: priced, flight: s.flight || '', flightNumber: s.flight || '' };
     saveTrip(trip);
     this.setState({ picked: id, announce: this.t().savedGo, sug: CLOSED });
     const prefix = (s.lang === 'de' || s.lang === 'fr' || s.lang === 'ar') ? '/' + s.lang : '';

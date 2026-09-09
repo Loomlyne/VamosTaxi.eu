@@ -126,8 +126,9 @@ describe("checkout comment pack", () => {
     expect(payPanel).toContain("onComplete(numberOk && expiryOk && cvcOk)");
     expect(client).not.toContain('payMethod === "link"');
     expect(client).not.toContain("busy && !clientSecret");
-    expect(client).toContain("clientSecret ? (");
-    expect(client).toContain("CheckoutPaySkeleton");
+    expect(client).toContain("clientSecret ?? \"\"");
+    expect(client).not.toContain("CheckoutPaySkeleton");
+    expect(payPanel).not.toContain("CheckoutPaySkeleton");
     expect(client).toContain("disabled={busy || !cardComplete || !confirmPay}");
     expect(client).not.toContain("companyReady");
     expect(client).toContain("disabled={busy || !isCheckoutEmail(payerEmail)}");
@@ -140,8 +141,9 @@ describe("checkout comment pack", () => {
     expect(client).toContain("peekLockDistanceM");
     expect(client).toContain("data-checkout-distance");
     expect(css).toContain("[data-checkout-total] .vt-price__total");
-    expect(css).toContain(".vt-checkout__paystack [data-checkout-pay-skeleton]");
-    expect(css).toContain("[data-checkout-pay-skeleton] > span");
+    expect(css).toContain(".vt-checkout .vt-route__meta");
+    expect(css).toContain(".vt-checkout__coupon .vt-btn");
+    expect(css).toContain("block-size: var(--vt-control-h-md)");
     expect(css).toMatch(
       /\.vt-checkout__company[\s\S]*grid-template-columns:\s*minmax\(0, 1fr\) minmax\(0, 1fr\)/,
     );
