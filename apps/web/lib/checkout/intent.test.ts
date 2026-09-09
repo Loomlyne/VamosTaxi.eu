@@ -399,22 +399,20 @@ describe("runCheckoutIntent", () => {
   it("reuses the unpaid session when the quote already has a booking", async () => {
     const p = payload();
     const body = await bodyFor(p);
-    const err = Object.assign(new Error("unique"), { code: "23505" });
-    const expire = vi.fn(async () => undefined);
+    const create = vi.fn(async () => ({
+      id: "cs_test_new",
+      client_secret: "cs_test_new_secret",
+      payment_intent: null,
+      status: "open",
+    }));
+    const rpc = vi.fn(async () => {
+      throw new Error("should not create");
+    });
     const res = await runCheckoutIntent(
       body,
       deps(p, {
-        createCheckoutSession: async () =>
-          ({
-            id: "cs_test_new",
-            client_secret: "cs_test_new_secret",
-            payment_intent: null,
-            status: "open",
-          }) as never,
-        expireCheckoutSession: expire,
-        createBooking: async () => {
-          throw err;
-        },
+        createCheckoutSession: create as unknown as CheckoutIntentDeps["createCheckoutSession"],
+        createBooking: rpc as unknown as CheckoutIntentDeps["createBooking"],
         loadOpenPayment: async () => ({
           booking_id: "00000000-0000-4000-8000-000000000099",
           reference: "VT-26-0708",
@@ -429,7 +427,8 @@ describe("runCheckoutIntent", () => {
       }),
     );
     expect(res.status).toBe(200);
-    expect(expire).toHaveBeenCalledWith("cs_test_new");
+    expect(create).not.toHaveBeenCalled();
+    expect(rpc).not.toHaveBeenCalled();
     const json = (await res.json()) as {
       reference: string;
       client_secret: string;
@@ -438,5 +437,55 @@ describe("runCheckoutIntent", () => {
     expect(json.reference).toBe("VT-26-0708");
     expect(json.client_secret).toBe("cs_test_stored_secret");
     expect(json.checkout_session_id).toBe("cs_test_stored");
+  });
+
+  it("reuses the unpaid session when createBooking raises 23001", async () => {
+    const p = payload();
+    const body = await bodyFor(p);
+    const err = Object.assign(new Error("quote_already_booked"), { code: "23001" });
+    const expire = vi.fn(async () => undefined);
+    let openCalls = 0;
+    const res = await runCheckoutIntent(
+      body,
+      deps(p, {
+        createCheckoutSession: async () =>
+          ({
+            id: "cs_test_new",
+            client_secret: "cs_test_new_secret",
+            payment_intent: null,
+            status: "open",
+          }) as never,
+        expireCheckoutSession: expire,
+        createBooking: async () => {
+          throw err;
+        },
+        loadOpenPayment: async () => {
+          openCalls += 1;
+          if (openCalls === 1) return null;
+          return {
+            booking_id: "00000000-0000-4000-8000-000000000099",
+            reference: "VT-26-0709",
+            stripe_checkout_session_id: "cs_test_stored",
+          };
+        },
+        retrieveCheckoutSession: async (id: string) =>
+          (id === "cs_test_stored"
+            ? {
+                id: "cs_test_stored",
+                client_secret: "cs_test_stored_secret",
+                status: "open",
+              }
+            : {
+                id: "cs_test_new",
+                client_secret: "cs_test_new_secret",
+                status: "open",
+              }) as never,
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect(expire).toHaveBeenCalledWith("cs_test_new");
+    const json = (await res.json()) as { reference: string; client_secret: string };
+    expect(json.reference).toBe("VT-26-0709");
+    expect(json.client_secret).toBe("cs_test_stored_secret");
   });
 });
