@@ -4,6 +4,9 @@
 // UPDATE/DELETE on customers, bookings and booking_legs at the database layer;
 // this screen uses none of it. Adding a write here is Phase 8 (OPS-01…05), not
 // a convenience.
+//
+// Checkout writes contact_* onto bookings and does not insert public.customers.
+// The list unions both so signed-in rows and guest checkout emails both show.
 
 import { asStaff, type VamosClaims } from "@/lib/db/identity";
 
@@ -137,6 +140,24 @@ function mapBooking(row: SqlBooking): BookingHistoryRow {
   };
 }
 
+function mergeCustomers(fromTable: SqlCustomer[], fromBookings: SqlCustomer[]): CustomerRow[] {
+  const seen = new Set(
+    fromTable
+      .map((row) => row.email?.trim().toLowerCase())
+      .filter((email): email is string => Boolean(email)),
+  );
+  const extra = fromBookings.filter((row) => {
+    const email = row.email?.trim().toLowerCase();
+    if (!email) return true;
+    if (seen.has(email)) return false;
+    seen.add(email);
+    return true;
+  });
+  return [...fromTable, ...extra]
+    .map(mapCustomer)
+    .sort((a, b) => a.fullName.localeCompare(b.fullName) || b.since.localeCompare(a.since));
+}
+
 export async function loadCustomers(
   env: CloudflareEnv,
   claims: VamosClaims,
@@ -174,11 +195,59 @@ export async function loadCustomers(
               case when c.erased_at is null then c.note end as note,
               (select count(*)::int from public.bookings b where b.customer_id = c.id) as trip_count
             from public.customers c
-            where c.full_name ilike ${likePattern(term)} escape ${"\\"}
-               or c.email::text ilike ${likePattern(term)} escape ${"\\"}
+            where c.full_name ilike ${likePattern(term)} escape ${"\\\\"}
+               or c.email::text ilike ${likePattern(term)} escape ${"\\\\"}
             order by c.full_name asc, c.created_at desc
           `;
-    return rows.map(mapCustomer);
+    const fromBookings =
+      term.length === 0
+        ? await sql<SqlCustomer[]>`
+            select
+              min(b.id) as id,
+              (array_agg(b.contact_name order by b.created_at desc))[1] as full_name,
+              case
+                when (array_agg(b.billing_kind::text order by b.created_at desc))[1] = 'company' then 'corporate'
+                else 'private'
+              end as type,
+              min(b.created_at)::date as since,
+              null::timestamptz as erased_at,
+              (array_agg(b.contact_email::text order by b.created_at desc))[1] as email,
+              (array_agg(b.contact_phone order by b.created_at desc))[1] as phone,
+              (array_agg(nullif(b.company_name, '') order by b.created_at desc))[1] as company,
+              null::text as note,
+              count(*)::int as trip_count
+            from public.bookings b
+            where b.erased_at is null
+              and b.contact_email is not null
+            group by lower(b.contact_email::text)
+          `
+        : await sql<SqlCustomer[]>`
+            select
+              min(b.id) as id,
+              (array_agg(b.contact_name order by b.created_at desc))[1] as full_name,
+              case
+                when (array_agg(b.billing_kind::text order by b.created_at desc))[1] = 'company' then 'corporate'
+                else 'private'
+              end as type,
+              min(b.created_at)::date as since,
+              null::timestamptz as erased_at,
+              (array_agg(b.contact_email::text order by b.created_at desc))[1] as email,
+              (array_agg(b.contact_phone order by b.created_at desc))[1] as phone,
+              (array_agg(nullif(b.company_name, '') order by b.created_at desc))[1] as company,
+              null::text as note,
+              count(*)::int as trip_count
+            from public.bookings b
+            where b.erased_at is null
+              and b.contact_email is not null
+              and (
+                b.contact_name ilike ${likePattern(term)} escape ${"\\\\"}
+                or b.contact_email::text ilike ${likePattern(term)} escape ${"\\\\"}
+                or coalesce(b.contact_phone, '') ilike ${likePattern(term)} escape ${"\\\\"}
+                or coalesce(b.company_name, '') ilike ${likePattern(term)} escape ${"\\\\"}
+              )
+            group by lower(b.contact_email::text)
+          `;
+    return mergeCustomers(rows, fromBookings);
   });
 }
 
@@ -204,9 +273,38 @@ export async function loadCustomerHistory(
       where c.id = ${customerId}
       limit 1
     `;
-    const row = customers[0];
+    let row = customers[0];
+    if (!row) {
+      const seeded = await sql<SqlCustomer[]>`
+        select
+          min(b.id) as id,
+          (array_agg(b.contact_name order by b.created_at desc))[1] as full_name,
+          case
+            when (array_agg(b.billing_kind::text order by b.created_at desc))[1] = 'company' then 'corporate'
+            else 'private'
+          end as type,
+          min(b.created_at)::date as since,
+          null::timestamptz as erased_at,
+          (array_agg(b.contact_email::text order by b.created_at desc))[1] as email,
+          (array_agg(b.contact_phone order by b.created_at desc))[1] as phone,
+          (array_agg(nullif(b.company_name, '') order by b.created_at desc))[1] as company,
+          null::text as note,
+          count(*)::int as trip_count
+        from public.bookings b
+        where b.erased_at is null
+          and (
+            b.id = ${customerId}
+            or lower(b.contact_email::text) = (
+              select lower(x.contact_email::text) from public.bookings x where x.id = ${customerId}
+            )
+          )
+        group by lower(b.contact_email::text)
+      `;
+      row = seeded[0];
+    }
     if (!row) return null;
 
+    const email = row.email ?? "";
     const bookings = await sql<SqlBooking[]>`
       select
         b.id,
@@ -233,6 +331,8 @@ export async function loadCustomerHistory(
       from public.bookings b
       left join public.booking_legs l on l.booking_id = b.id
       where b.customer_id = ${customerId}
+         or b.id = ${customerId}
+         or (${email} <> '' and lower(b.contact_email::text) = lower(${email}))
       group by b.id
       order by b.created_at desc
     `;

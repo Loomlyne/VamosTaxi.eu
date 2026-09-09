@@ -208,6 +208,9 @@ class Component extends DCLogic {
     const vehicles = ops ? ops.vehicles.all() : [];
     const onShift = chauffeurs.filter((c) => c.status === 'shift').length;
     const inService = vehicles.filter((v) => v.status === 'service').length;
+    const awaiting = bookings.filter((b) => !b.paid && b.status !== 'cancelled' && b.status !== 'refunded' && b.status !== 'completed').length;
+    const unassigned = bookings.filter((b) => !b.driver && b.status !== 'cancelled' && b.status !== 'completed').length;
+    const pickups = bookings.filter((b) => b.dateIso === new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Zurich' }).format(new Date())).length;
     return {
       n16: 16, n18: 18,
       money: window.VamosLocale ? window.VamosLocale.money('000') : 'CHF 000',
@@ -219,15 +222,15 @@ class Component extends DCLogic {
       })),
       counts: [
         { label:'Bookings', value:String(bookings.length), of:'', icon:'list', href:'#bookings', foot:'Taken in this period' },
-        { label:'Pickups', value:'0', of:'', icon:'car-front', href:'#bookings', foot:'Scheduled to run' },
+        { label:'Pickups', value:String(pickups), of:'', icon:'car-front', href:'#bookings', foot:'Scheduled to run' },
         { label:'Chauffeurs on shift', value:String(onShift), of:'/ ' + chauffeurs.length, icon:'users', href:'#chauffeurs', foot:'Available to assign' },
         { label:'Vehicles in service', value:String(inService), of:'/ ' + vehicles.length, icon:'car', href:'#vehicles', foot:'Rest are off the road' },
       ],
       income: INCOME.map((label) => ({ label })),
       expenses: EXPENSES.map((label) => ({ label })),
       attention: [
-        { icon:'triangle-alert', title:'Unassigned bookings', note:'No chauffeur yet', count:'0', href:'#bookings' },
-        { icon:'clock', title:'Awaiting payment', note:'Needs a payment or cash confirmation', count:'0', href:'#bookings' },
+        { icon:'triangle-alert', title:'Unassigned bookings', note:'No chauffeur yet', count:String(unassigned), href:'#bookings' },
+        { icon:'clock', title:'Awaiting payment', note:'Needs a card payment or pay-link', count:String(awaiting), href:'#bookings' },
         { icon:'banknote', title:'Refunds to issue', note:'Cancelled inside the free window', count:'0', href:'#bookings' },
       ],
       chauffeursOn: onShift + '/' + chauffeurs.length,

@@ -56,6 +56,8 @@
 <span style="color:var(--vt-text-muted)">{{ tEmail }}</span><span>{{ booking.email }}</span>
 <span style="color:var(--vt-text-muted)">{{ tMobile }}</span><span>{{ booking.phone }}</span>
 <span style="color:var(--vt-text-muted)">{{ tPayment }}</span><span>{{ booking.pay }}</span>
+<span style="color:var(--vt-text-muted)">{{ tPayLink }}</span><span>{{ booking.payLink }}</span>
+<span style="color:var(--vt-text-muted)">{{ tSession }}</span><span>{{ booking.sessionLeft }}</span>
 </div>
 </div>
 
@@ -126,9 +128,9 @@ function chauffeurNames() {
 const T = {
   en: { backToBookings:'Back to bookings', bookedBy:'booked by', moreActions:'More actions', details:'Details', history:'History',
     assignment:'Assignment', assign:'Assign driver', reassign:'Reassign', onShift:'On shift', noDriver:'No driver assigned', noDriverSub:'Assign before the pickup reminder goes out',
-    passengerTrip:'Passenger & trip', passengers:'Passengers', bags:'bags', vehicleClass:'Vehicle class', flight:'Flight', email:'Email', mobile:'Mobile', payment:'Payment',
+    passengerTrip:'Passenger & trip', passengers:'Passengers', bags:'bags', vehicleClass:'Vehicle class', flight:'Flight', email:'Email', mobile:'Mobile', payment:'Payment', payLink:'Pay-link', session:'Session',
     fare:'Fare', due:'Due', paid:'Paid', fareNote:'Price snapshot taken at booking; later rule changes do not alter it.',
-    outstandingTitle:'Payment outstanding', outstandingBody:'No capture received. Send a payment link or mark as cash before assigning a driver.',
+    outstandingTitle:'Payment outstanding', outstandingBody:'No card capture yet. Send a pay-link or wait for the checkout session to finish.',
     refundTitle:'Refund due', refundBody:'Cancelled inside the free window — issue the refund in Stripe and record it here.',
     dispatcherNote:'Dispatcher note', dispatcherNotePh:'Add a note visible to dispatch only…',
     resendVoucher:'Resend voucher', editBooking:'Edit booking', cancelBooking:'Cancel', driver:'Driver', manualNote:'Assignment is manual in V1 — there is no driver app and no automatic dispatch.', cancel:'Cancel',
@@ -139,9 +141,9 @@ const T = {
   },
   de: { backToBookings:'Zurück zu Buchungen', bookedBy:'gebucht von', moreActions:'Weitere Aktionen', details:'Details', history:'Verlauf',
     assignment:'Zuweisung', assign:'Fahrer zuweisen', reassign:'Neu zuweisen', onShift:'Im Dienst', noDriver:'Kein Fahrer zugewiesen', noDriverSub:'Vor der Abholerinnerung zuweisen',
-    passengerTrip:'Passagier & Fahrt', passengers:'Passagiere', bags:'Gepäck', vehicleClass:'Fahrzeugklasse', flight:'Flug', email:'E-Mail', mobile:'Mobil', payment:'Zahlung',
+    passengerTrip:'Passagier & Fahrt', passengers:'Passagiere', bags:'Gepäck', vehicleClass:'Fahrzeugklasse', flight:'Flug', email:'E-Mail', mobile:'Mobil', payment:'Zahlung', payLink:'Zahlungslink', session:'Session',
     fare:'Fahrpreis', due:'Offen', paid:'Bezahlt', fareNote:'Preis-Snapshot bei Buchung; spätere Regeländerungen ändern ihn nicht.',
-    outstandingTitle:'Zahlung ausstehend', outstandingBody:'Keine Zahlung erhalten. Zahlungslink senden oder als Barzahlung markieren, bevor ein Fahrer zugewiesen wird.',
+    outstandingTitle:'Zahlung ausstehend', outstandingBody:'Keine Kartenzahlung. Zahlungslink senden oder die Checkout-Session abwarten.',
     refundTitle:'Rückerstattung fällig', refundBody:'Innerhalb der Frist storniert — Rückerstattung in Stripe ausführen und hier vermerken.',
     dispatcherNote:'Dispatcher-Notiz', dispatcherNotePh:'Notiz hinzufügen, nur für Dispatch sichtbar…',
     resendVoucher:'Gutschein erneut senden', editBooking:'Buchung bearbeiten', cancelBooking:'Stornieren', driver:'Fahrer', manualNote:'Die Zuweisung erfolgt in V1 manuell — es gibt keine Fahrer-App und keine automatische Vermittlung.', cancel:'Abbrechen',
@@ -159,11 +161,19 @@ class Component extends DCLogic {
   componentWillUnmount() {
     try { if (this.state.dialogOpen) document.body.style.overflow = ''; } catch (e) {}
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
+    if (this._off) this._off();
+    clearTimeout(this._retry);
   }
   componentDidMount() {
+    this.bind();
     this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
     window.addEventListener('vamos:locale', this._onLocale);
   }
+  bind = () => {
+    if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
+    this._off = window.VamosOps.bookings.onChange(() => this.forceUpdate());
+    this.forceUpdate();
+  };
   getBooking() {
     const id = (this.props && this.props.id) || '';
     const found = listBookings().find((b) => b.id === id);
@@ -172,7 +182,24 @@ class Component extends DCLogic {
   notify = (msg) => { this.setState({ toastMsg: msg, showToast: true }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ showToast: false }), 3600); };
   renderVals() {
     const t = T[this.state.lang] || T.en;
-    const booking = this.getBooking();
+    const booking = Object.assign({}, this.getBooking());
+    booking.vehicle = booking.vehicle || booking.klass || '';
+    booking.driver = booking.driver || booking.chauffeur || null;
+    if (booking.paidByCard || booking.paid) booking.pay = 'Paid by card';
+    else booking.pay = 'Not paid yet';
+    booking.payLink = booking.payLinkSent ? 'Sent' : 'Not sent';
+    if (booking.cardSession && !booking.paid) booking.payLink += ' · card session open';
+    if (booking.sessionExpiresAt) {
+      const ms = Date.parse(booking.sessionExpiresAt) - Date.now();
+      if (!Number.isFinite(ms)) booking.sessionLeft = '';
+      else if (ms <= 0) booking.sessionLeft = 'Session ended';
+      else {
+        const m = Math.round(ms / 60000);
+        booking.sessionLeft = m < 60 ? (m + ' min left') : (Math.floor(m / 60) + 'h ' + (m % 60) + 'm left');
+      }
+    } else {
+      booking.sessionLeft = 'No open session';
+    }
     const drivers = chauffeurNames();
     const assignedDriver = this.state.assigned[booking.id] || booking.driver;
     const isAirport = /airport|zrh/i.test((booking.pickup || '') + ' ' + (booking.dropoff || ''));
@@ -194,9 +221,9 @@ class Component extends DCLogic {
       driverName: assignedDriver || '', driverSubtitle: booking.vehicle + ' · ' + t.onShift, tOnShift: t.onShift,
       tNoDriver: t.noDriver, tNoDriverSub: t.noDriverSub,
       tPassengerTrip: t.passengerTrip, tPassengers: t.passengers, tBags: t.bags, tVehicleClass: t.vehicleClass,
-      tFlight: t.flight, tEmail: t.email, tMobile: t.mobile, tPayment: t.payment,
-      tFare: t.fare, fareLines, tTotalLabel: booking.status === 'pending' ? t.due : t.paid, tFareNote: t.fareNote,
-      isPending: booking.status === 'pending', isCancelled: booking.status === 'cancelled',
+      tFlight: t.flight, tEmail: t.email, tMobile: t.mobile, tPayment: t.payment, tPayLink: t.payLink, tSession: t.session,
+      tFare: t.fare, fareLines, tTotalLabel: booking.paid ? t.paid : t.due, tFareNote: t.fareNote,
+      isPending: !booking.paid && booking.status !== 'cancelled' && booking.status !== 'refunded', isCancelled: booking.status === 'cancelled',
       tOutstandingTitle: t.outstandingTitle, tOutstandingBody: t.outstandingBody, tRefundTitle: t.refundTitle, tRefundBody: t.refundBody,
       tDispatcherNote: t.dispatcherNote, tDispatcherNotePh: t.dispatcherNotePh,
       tResendVoucher: t.resendVoucher, tEditBooking: t.editBooking, tCancelBooking: t.cancelBooking,
