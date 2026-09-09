@@ -419,6 +419,8 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 12px;
+  padding-block-end: 20px;
+  margin-block-end: 4px;
 }
 
 .vt-checkout__paystack [data-checkout-pay-skeleton] {

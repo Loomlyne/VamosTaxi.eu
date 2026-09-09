@@ -484,6 +484,7 @@
     "classVan": "Van",
     "chargeCurrencyName": "Schweizer Franken",
     "total": "Total",
+    "vatIncl": "inkl. 8,1 % MwSt.",
     "yourDriverIsBooked": "Ihr Fahrer ist gebucht",
     "bookingPrefix": "Buchung",
     "transferVoucher": "Transfer-Gutschein",

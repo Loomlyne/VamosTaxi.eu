@@ -484,6 +484,7 @@
     "classVan": "Van",
     "chargeCurrencyName": "francs suisses",
     "total": "Total",
+    "vatIncl": "TVA 8,1 % incluse",
     "yourDriverIsBooked": "Votre chauffeur est réservé",
     "bookingPrefix": "Réservation",
     "transferVoucher": "Bon de transfer",

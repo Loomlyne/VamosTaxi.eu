@@ -133,6 +133,11 @@ describe("checkout comment pack", () => {
     expect(css).toMatch(
       /\.vt-checkout__company[\s\S]*grid-template-columns:\s*minmax\(0, 1fr\) minmax\(0, 1fr\)/,
     );
+    expect(css).toContain("padding-block-end: 20px");
+    expect(client).toContain("vatIncl");
+    expect(client).toContain("client_secret_hex");
+    expect(client).toContain("applyCouponCode(couponApplied, { childSeat: next, oversized })");
+    expect(route).toContain("grid-template-columns:repeat(2,minmax(0,1fr))");
   });
 
   it("shows the locked class total, selected class, and no change-vehicle", () => {

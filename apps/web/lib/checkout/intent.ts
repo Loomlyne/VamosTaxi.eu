@@ -124,7 +124,8 @@ function sessionIsPayable(
   session: Stripe.Checkout.Session | null,
   chargedRappen: number,
 ): session is Stripe.Checkout.Session {
-  if (!session || session.status !== "open" || !session.client_secret) return false;
+  if (!session || !session.client_secret) return false;
+  if (session.status && session.status !== "open") return false;
   if (typeof session.amount_total === "number" && session.amount_total !== chargedRappen) {
     return false;
   }
@@ -148,6 +149,10 @@ async function payableFromOpen(
   return { row: existing, payable };
 }
 
+function utf8Hex(value: string): string {
+  return Array.from(new TextEncoder().encode(value), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 function okIntentResponse(
   row: { reference: string; booking_id: string },
   payable: Stripe.Checkout.Session,
@@ -166,6 +171,7 @@ function okIntentResponse(
       booking_id: row.booking_id,
       checkout_session_id: payable.id,
       client_secret: clientSecret,
+      client_secret_hex: utf8Hex(clientSecret),
       expires_at: expiresAt.toISOString(),
       currency: CHARGE_CURRENCY.toUpperCase(),
       amount_rappen: chargedRappen,
@@ -232,22 +238,41 @@ export async function runCheckoutIntent(
     return okIntentResponse(reused.row, reused.payable, deps, chargedRappen, expiresAt, null);
   }
 
+  const stripeIdempotencyKey = existingOpen
+    ? `${body.idempotency_key}:after:${existingOpen.stripe_checkout_session_id}`
+    : body.idempotency_key;
+
   const created = await deps.createCheckoutSession({
     chargedRappen,
     bookingId: body.quote_id,
     bookingReference: body.idempotency_key,
     customerEmail: body.contact.email,
     locale: body.locale,
-    idempotencyKey: body.idempotency_key,
+    idempotencyKey: stripeIdempotencyKey,
     expiresAt,
     returnUrl: deps.returnUrl,
     productName: "Airport transfer",
   });
 
-  const session = await sessionWithSecret(created, deps.retrieveCheckoutSession);
-  if (!session) {
+  let session = await sessionWithSecret(created, deps.retrieveCheckoutSession);
+  if (!sessionIsPayable(session, chargedRappen)) {
     await deps.expireCheckoutSession(created.id).catch(() => undefined);
-    return refuse("invalid_request");
+    const retry = await deps.createCheckoutSession({
+      chargedRappen,
+      bookingId: body.quote_id,
+      bookingReference: body.idempotency_key,
+      customerEmail: body.contact.email,
+      locale: body.locale,
+      idempotencyKey: `${body.idempotency_key}:open`,
+      expiresAt,
+      returnUrl: deps.returnUrl,
+      productName: "Airport transfer",
+    });
+    session = await sessionWithSecret(retry, deps.retrieveCheckoutSession);
+    if (!sessionIsPayable(session, chargedRappen)) {
+      await deps.expireCheckoutSession(retry.id).catch(() => undefined);
+      return refuse("invalid_request");
+    }
   }
 
   const pi = paymentIntentId(session);

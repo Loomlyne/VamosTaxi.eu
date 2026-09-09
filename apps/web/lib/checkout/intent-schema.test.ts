@@ -42,6 +42,15 @@ describe("checkoutIntentSchema", () => {
     expect(parsed.success).toBe(false);
   });
 
+  it("coerces empty coupon and display vehicle names", () => {
+    const empty = checkoutIntentSchema.safeParse({ ...valid, coupon: "" });
+    expect(empty.success).toBe(true);
+    if (empty.success) expect(empty.data.coupon).toBeNull();
+    const named = checkoutIntentSchema.safeParse({ ...valid, vehicle_class: "Economy Taxi" });
+    expect(named.success).toBe(true);
+    if (named.success) expect(named.data.vehicle_class).toBe("economy");
+  });
+
   it("accepts a company pay-link without name address VAT", () => {
     const parsed = checkoutPayLinkSchema.safeParse({
       ...valid,

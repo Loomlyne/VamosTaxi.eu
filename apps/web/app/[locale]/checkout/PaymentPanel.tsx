@@ -18,7 +18,6 @@ import {
 } from "@stripe/react-stripe-js/checkout";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { createNavigation } from "next-intl/navigation";
-import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import { routing } from "@/i18n/routing";
 
@@ -49,33 +48,51 @@ export function CheckoutPaySkeleton() {
   );
 }
 
+function decodeClientSecret(secret: string | undefined, hex: string | undefined): string | null {
+  if (hex && /^[0-9a-f]+$/i.test(hex) && hex.length % 2 === 0) {
+    const bytes = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < bytes.length; i += 1) {
+      bytes[i] = Number.parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+    }
+    return new TextDecoder().decode(bytes);
+  }
+  if (!secret) return null;
+  try {
+    return decodeURIComponent(secret);
+  } catch {
+    return secret;
+  }
+}
+
 export function PaymentPanel({
   publishableKey,
   clientSecret,
+  clientSecretHex,
   reference,
   onReady,
   onComplete = noopComplete,
 }: {
   publishableKey: string;
   clientSecret: string;
+  clientSecretHex?: string;
   reference: string;
   onReady: (confirm: () => Promise<void>) => void;
   onComplete?: (complete: boolean) => void;
 }) {
   const promise = useMemo(() => browserStripe(publishableKey), [publishableKey]);
+  const secret = decodeClientSecret(clientSecret, clientSecretHex) ?? clientSecret;
 
-  if (!publishableKey || !clientSecret) {
+  if (!publishableKey || !secret) {
     return <CheckoutPaySkeleton />;
   }
 
   return (
     <div className="vt-checkout__pay" data-checkout-pay>
       <CheckoutProvider
-        key={clientSecret}
+        key={secret}
         stripe={promise}
         options={{
-          clientSecret,
-          adaptivePricing: { allowed: true },
+          clientSecret: secret,
         }}
       >
         <CheckoutFields reference={reference} onReady={onReady} onComplete={onComplete} />
@@ -95,18 +112,7 @@ function CheckoutFields({
 }) {
   const checkout = useCheckoutElements();
   const router = useRouter();
-  const t = useTranslations("checkout");
   const [error, setError] = useState<string | null>(null);
-  const [stuck, setStuck] = useState(false);
-
-  useEffect(() => {
-    if (checkout.type !== "loading") {
-      setStuck(false);
-      return;
-    }
-    const id = window.setTimeout(() => setStuck(true), 8000);
-    return () => window.clearTimeout(id);
-  }, [checkout.type]);
 
   useEffect(() => {
     if (checkout.type !== "success") {
@@ -131,13 +137,10 @@ function CheckoutFields({
   }, [checkout, onComplete, onReady, reference, router]);
 
   if (checkout.type === "loading") {
-    if (stuck) {
-      return <p data-checkout-pay-error>{t("payCouldNotStart")}</p>;
-    }
     return <CheckoutPaySkeleton />;
   }
   if (checkout.type === "error") {
-    return <p data-checkout-pay-error>{checkout.error.message}</p>;
+    return <CheckoutPaySkeleton />;
   }
   return (
     <>

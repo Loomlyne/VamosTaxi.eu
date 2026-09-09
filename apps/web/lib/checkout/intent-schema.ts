@@ -34,13 +34,42 @@ const extrasSchema = z
   .strict()
   .optional();
 
+const VEHICLE_SLUGS = ["economy", "business", "first", "van"] as const;
+
+function parseVehicleClass(raw: string): (typeof VEHICLE_SLUGS)[number] | null {
+  const s = raw.trim().toLowerCase();
+  if ((VEHICLE_SLUGS as readonly string[]).includes(s)) {
+    return s as (typeof VEHICLE_SLUGS)[number];
+  }
+  if (s.includes("van")) return "van";
+  if (s.includes("first")) return "first";
+  if (s.includes("business")) return "business";
+  if (s.includes("economy")) return "economy";
+  return null;
+}
+
 const checkoutIntentObject = z
   .object({
     quote_id: z.string().uuid(),
     lock: z.string().min(1),
-    vehicle_class: z.enum(["economy", "business", "first", "van"]),
+    vehicle_class: z.string().min(1).transform((value, ctx) => {
+      const slug = parseVehicleClass(value);
+      if (!slug) {
+        ctx.addIssue({ code: "custom", message: "vehicle_class" });
+        return z.NEVER;
+      }
+      return slug;
+    }),
     extras: extrasSchema,
-    coupon: z.string().min(1).nullable().optional(),
+    coupon: z
+      .string()
+      .nullable()
+      .optional()
+      .transform((value) => {
+        if (value == null) return null;
+        const trimmed = value.trim();
+        return trimmed.length > 0 ? trimmed : null;
+      }),
     contact: z
       .object({
         name: z.string().min(1),

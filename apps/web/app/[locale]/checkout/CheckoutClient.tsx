@@ -115,6 +115,31 @@ function asDisplayCurrency(cur: string): CurrencyCode {
   return "CHF";
 }
 
+function asClassSlug(raw: string): (typeof CLASS_SLUGS)[number] {
+  const s = raw.trim().toLowerCase();
+  if ((CLASS_SLUGS as readonly string[]).includes(s)) return s as (typeof CLASS_SLUGS)[number];
+  if (s.includes("van")) return "van";
+  if (s.includes("first")) return "first";
+  if (s.includes("business")) return "business";
+  return "economy";
+}
+
+function decodeClientSecret(secret: string | undefined, hex: string | undefined): string | null {
+  if (hex && /^[0-9a-f]+$/i.test(hex) && hex.length % 2 === 0) {
+    const bytes = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < bytes.length; i += 1) {
+      bytes[i] = Number.parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+    }
+    return new TextDecoder().decode(bytes);
+  }
+  if (!secret) return null;
+  try {
+    return decodeURIComponent(secret);
+  } catch {
+    return secret;
+  }
+}
+
 export function CheckoutClient({ step }: CheckoutClientProps) {
   const { locale, freeCancelHours, checkoutWindowMinutes, publishableKey } =
     useCheckoutSettings();
@@ -191,7 +216,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     setTripSnap(trip);
     const nextPickup = tripPickup(trip);
     const nextDrop = tripDropoff(trip);
-    const nextVehicle = tripVehicle(trip);
+    const nextVehicle = asClassSlug(tripVehicle(trip));
     const nextDate = isoDateFromTrip(trip, trip?.date ?? "");
     const nextTime = isoTimeFromTrip(trip, trip?.time ?? "");
     setPickup(nextPickup);
@@ -260,14 +285,10 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     ) {
       return;
     }
-    if (intentAttempts.current >= 3) return;
+    if (intentAttempts.current >= 6) return;
     void startPayment({ silent: true }).then((result) => {
       if (result !== "fail") return;
       intentAttempts.current += 1;
-      if (intentAttempts.current >= 3) {
-        setRefusal("payCouldNotStart");
-        return;
-      }
       window.setTimeout(() => setIntentTick((n) => n + 1), 700);
     });
   }, [
@@ -457,7 +478,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     const trip = tripSnap ?? readVamosTrip();
     const quoteId = draft.quoteId || tripQuoteId(trip);
     const lock = draft.lock || trip?.lock;
-    const vehicleClass = draft.vehicleClass || vehicle;
+    const vehicleClass = asClassSlug(draft.vehicleClass || vehicle);
     const idempotencyKey = draft.idempotencyKey;
     const name = `${contact.firstName.trim()} ${contact.lastName.trim()}`.trim();
     const email = contact.email.trim();
@@ -467,7 +488,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       return "skip";
     }
     if (!name || !email || !phone) {
-      if (!opts?.silent) setRefusal("payCouldNotStart");
       return "skip";
     }
     intentStarted.current = true;
@@ -488,7 +508,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
             child_seats: childSeat ? 1 : 0,
             oversized_luggage: oversized,
           },
-          coupon: couponApplied,
+          coupon: couponApplied || null,
           contact: {
             name,
             email,
@@ -501,6 +521,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       });
       const json = (await res.json()) as {
         client_secret?: string;
+        client_secret_hex?: string;
         publishable_key?: string;
         reference?: string;
         code?: string;
@@ -510,33 +531,36 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         intentStarted.current = false;
         const key = REFUSAL_KEYS[json.code ?? json.error ?? ""] ?? "payCouldNotStart";
         if (json.code === "coupon_no_longer_valid") setCouponApplied(null);
-        setRefusal(key);
+        if (!opts?.silent && key !== "payCouldNotStart") setRefusal(key);
         return "fail";
       }
       if (json.publishable_key) setPublishable(json.publishable_key);
       if (json.reference) setReference(json.reference);
       setCardComplete(false);
-      const secret = json.client_secret ?? null;
+      const secret = decodeClientSecret(json.client_secret, json.client_secret_hex);
       setClientSecret(secret);
       if (!secret) {
         intentStarted.current = false;
-        setRefusal("payCouldNotStart");
         return "fail";
       }
       return "ok";
     } catch {
       intentStarted.current = false;
-      if (!opts?.silent) setRefusal("payCouldNotStart");
       return "fail";
     } finally {
       if (!opts?.silent) setBusy(false);
     }
   }
 
-  async function applyCouponCode(code: string | null) {
+  async function applyCouponCode(
+    code: string | null,
+    extras?: { childSeat: boolean; oversized: boolean },
+  ) {
     const trip = tripSnap ?? readVamosTrip();
     const quoteId = draft.quoteId || tripQuoteId(trip);
     const lock = draft.lock || trip?.lock;
+    const seats = extras?.childSeat ?? childSeat;
+    const bags = extras?.oversized ?? oversized;
     if (!quoteId || !lock) {
       setRefusal("quoteExpired");
       return;
@@ -552,6 +576,10 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           locale,
           display_currency: displayCur,
           coupon: code,
+          extras: {
+            child_seats: seats ? 1 : 0,
+            oversized_luggage: bags,
+          },
           contact_email: contact.email.trim() || null,
         }),
       });
@@ -952,7 +980,12 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                     className="vt-checkout__extra"
                     data-on={childSeat ? "true" : undefined}
                     aria-pressed={childSeat}
-                    onClick={() => setChildSeat((v) => !v)}
+                    onClick={() => {
+                      const next = !childSeat;
+                      setChildSeat(next);
+                      writeVamosTrip({ childSeat: next });
+                      void applyCouponCode(couponApplied, { childSeat: next, oversized });
+                    }}
                   >
                     <Icon name="baby" size={20} />
                     <span className="vt-checkout__extra-copy">
@@ -964,7 +997,12 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                     className="vt-checkout__extra"
                     data-on={oversized ? "true" : undefined}
                     aria-pressed={oversized}
-                    onClick={() => setOversized((v) => !v)}
+                    onClick={() => {
+                      const next = !oversized;
+                      setOversized(next);
+                      writeVamosTrip({ oversizedLuggage: next });
+                      void applyCouponCode(couponApplied, { childSeat, oversized: next });
+                    }}
                   >
                     <Icon name="luggage" size={20} />
                     <span className="vt-checkout__extra-copy">
@@ -1012,6 +1050,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                       total={shown.major}
                       currency={shown.currency}
                       totalLabel={t("total")}
+                      note={<span data-checkout-vat>{t("vatIncl")}</span>}
                     />
                   </div>
                   <div className="vt-checkout__coupon" data-checkout-coupon>
@@ -1091,7 +1130,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                     <span data-tok>{t("cancel-free-of-charge-up-to-24-hours-before-pick")}</span>
                   </p>
                 )}
-                {refusal && refusal !== "pricingNotLive" ? (
+                {refusal && refusal !== "pricingNotLive" && refusal !== "payCouldNotStart" ? (
                   <Alert tone={refusal === "pricingNotLive" ? "info" : "danger"}>
                     {refusal === "priceChanged" && hours != null
                       ? t("livePriceChangedLocked", { hours })
@@ -1166,6 +1205,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                 total={shown.major}
                 currency={shown.currency}
                 totalLabel={t("total")}
+                note={<span data-checkout-vat>{t("vatIncl")}</span>}
               />
             </div>
             {distanceKm ? (

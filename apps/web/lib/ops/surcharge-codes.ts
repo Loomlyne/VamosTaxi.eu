@@ -8,6 +8,7 @@ export const SURCHARGE_CODES = [
   "waiting_city",
   "extra_stop",
   "child_seat",
+  "oversized_luggage",
   "meet_greet",
   "ski_rack",
 ] as const;
