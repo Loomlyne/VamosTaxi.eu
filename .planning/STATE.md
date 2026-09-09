@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Ops Support
 status: executing
-stopped_at: v1.1 roadmap Phases 12–16 written; next is discuss/plan Phase 12
-last_updated: "2026-09-06T12:00:00.000Z"
-last_activity: 2026-09-06 -- 07-10 offline PAY-05 + D-27 B; live charge waits on owner matrix
+stopped_at: Phase 7 checkout executing on gsd/phase-7-checkout. Do not discuss/plan 8, 12, or 17.
+last_updated: "2026-09-09T08:45:43.000Z"
+last_activity: 2026-09-09 -- Phase 7 live on PR 25; UAT 2–9 + Cursor Security before ship
 progress:
   total_phases: 16
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 103
   completed_plans: 94
-  percent: 31
+  percent: 38
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-09-04)
 ## Current Position
 
 Phase: 7 (Checkout & Payment) — EXECUTING
-Plan: 10 of 10
-Status: Executing Phase 7 — 07-01 through 07-10 landed; live Stripe E2E waits on D-46 matrix
-Last activity: 2026-09-06 -- 07-10 offline PAY-05 + D-27 B; live charge waits on owner matrix
+Plan: 16 of 16 paper
+Status: Phase 7 executing — 07-01 through 07-16 paper on gsd/phase-7-checkout (PR 25). Not closed. UAT test 1 passed; tests 2–9 wait on a Stripe test dummy-card pay. Do not discuss 8/12/17.
+Last activity: 2026-09-09 -- PR 25 HEAD 3151424; Cursor Security pending; do not merge
 
 ## Performance Metrics
 
@@ -216,6 +216,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-04T17:50:14.000Z
-Stopped at: v1.1 roadmap Phases 12–16 written; next is discuss/plan Phase 12
+Last session: 2026-09-09T08:45:43.000Z
+Stopped at: Phase 7 checkout executing on gsd/phase-7-checkout. Do not discuss/plan 8, 12, or 17.
 Resume file: None
