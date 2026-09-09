@@ -120,7 +120,8 @@ describe("checkout comment pack", () => {
     expect(client).toContain("clientSecret ? (");
     expect(client).toContain("CheckoutPaySkeleton");
     expect(client).toContain("disabled={busy || !cardComplete || !confirmPay}");
-    expect(client).toContain("companyReady");
+    expect(client).not.toContain("companyReady");
+    expect(client).toContain("disabled={busy}");
     expect(client.indexOf("vt-checkout__company")).toBeGreaterThan(client.indexOf("vt-checkout__recap"));
     expect(client.indexOf("vt-checkout__company")).toBeLessThan(client.indexOf("vt-checkout__payhead"));
     expect(css).toContain(".vt-checkout__paystack [data-checkout-pay-skeleton]");
