@@ -106,6 +106,7 @@ function deps(p: QuoteLockPayload, rec: Recorder, patch: Partial<CheckoutIntentD
       const err = Object.assign(new Error("already"), { code: "23001" });
       throw err;
     },
+    loadOpenPayment: async () => null,
     publishableKey: "pk_test_placeholder",
     returnUrl: "https://vamostaxi.site/en/checkout",
     checkoutWindowMinutes: 30,

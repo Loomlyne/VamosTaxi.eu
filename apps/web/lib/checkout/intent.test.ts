@@ -104,6 +104,7 @@ function deps(p: QuoteLockPayload, patch: Partial<CheckoutIntentDeps> = {}): Che
       const err = Object.assign(new Error("already"), { code: "23001" });
       throw err;
     },
+    loadOpenPayment: async () => null,
     publishableKey: "pk_test_placeholder",
     returnUrl: "https://vamostaxi.site/en/checkout",
     checkoutWindowMinutes: 30,
@@ -335,5 +336,107 @@ describe("runCheckoutIntent", () => {
       }),
     );
     expect(rpc).toHaveBeenCalled();
+  });
+
+  it("retrieves client_secret before creating a booking", async () => {
+    const p = payload();
+    const body = await bodyFor(p);
+    const rpc = vi.fn(async () => ({
+      booking_id: "00000000-0000-4000-8000-000000000099",
+      reference: "VT-10001",
+      snapshot_id: 1,
+      payment_id: 1,
+      replayed: false,
+    }));
+    const res = await runCheckoutIntent(
+      body,
+      deps(p, {
+        createCheckoutSession: async () =>
+          ({ id: "cs_test_1", client_secret: null, payment_intent: null, status: "open" }) as never,
+        retrieveCheckoutSession: async () =>
+          ({
+            id: "cs_test_1",
+            client_secret: "cs_test_1_secret",
+            payment_intent: null,
+            status: "open",
+          }) as never,
+        createBooking: rpc as unknown as CheckoutIntentDeps["createBooking"],
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect(rpc).toHaveBeenCalled();
+    expect(((await res.json()) as { client_secret: string }).client_secret).toBe("cs_test_1_secret");
+  });
+
+  it("does not insert a booking when Stripe returns no client_secret", async () => {
+    const p = payload();
+    const body = await bodyFor(p);
+    const rpc = vi.fn(async () => ({
+      booking_id: "00000000-0000-4000-8000-000000000099",
+      reference: "VT-10001",
+      snapshot_id: 1,
+      payment_id: 1,
+      replayed: false,
+    }));
+    const expire = vi.fn(async () => undefined);
+    const res = await runCheckoutIntent(
+      body,
+      deps(p, {
+        createCheckoutSession: async () =>
+          ({ id: "cs_test_1", client_secret: null, payment_intent: null, status: "open" }) as never,
+        retrieveCheckoutSession: async () =>
+          ({ id: "cs_test_1", client_secret: null, payment_intent: null, status: "open" }) as never,
+        expireCheckoutSession: expire,
+        createBooking: rpc as unknown as CheckoutIntentDeps["createBooking"],
+      }),
+    );
+    expect(res.status).toBe(400);
+    expect(((await res.json()) as { code: string }).code).toBe("invalid_request");
+    expect(rpc).not.toHaveBeenCalled();
+    expect(expire).toHaveBeenCalledWith("cs_test_1");
+  });
+
+  it("reuses the unpaid session when the quote already has a booking", async () => {
+    const p = payload();
+    const body = await bodyFor(p);
+    const err = Object.assign(new Error("unique"), { code: "23505" });
+    const expire = vi.fn(async () => undefined);
+    const res = await runCheckoutIntent(
+      body,
+      deps(p, {
+        createCheckoutSession: async () =>
+          ({
+            id: "cs_test_new",
+            client_secret: "cs_test_new_secret",
+            payment_intent: null,
+            status: "open",
+          }) as never,
+        expireCheckoutSession: expire,
+        createBooking: async () => {
+          throw err;
+        },
+        loadOpenPayment: async () => ({
+          booking_id: "00000000-0000-4000-8000-000000000099",
+          reference: "VT-26-0708",
+          stripe_checkout_session_id: "cs_test_stored",
+        }),
+        retrieveCheckoutSession: async () =>
+          ({
+            id: "cs_test_stored",
+            client_secret: "cs_test_stored_secret",
+            status: "open",
+          }) as never,
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect(expire).toHaveBeenCalledWith("cs_test_new");
+    const json = (await res.json()) as {
+      reference: string;
+      client_secret: string;
+      checkout_session_id: string;
+    };
+    expect(json.reference).toBe("VT-26-0708");
+    expect(json.client_secret).toBe("cs_test_stored_secret");
+    expect(json.checkout_session_id).toBe("cs_test_stored");
   });
 });

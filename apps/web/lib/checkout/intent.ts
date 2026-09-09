@@ -66,6 +66,11 @@ export type CheckoutIntentDeps = {
     stripeCheckoutSessionId: string;
     chargedRappen: number;
   }) => Promise<CheckoutCreateBookingRow>;
+  loadOpenPayment: (quoteId: string) => Promise<{
+    booking_id: string;
+    reference: string;
+    stripe_checkout_session_id: string;
+  } | null>;
   publishableKey: string;
   returnUrl: string;
   checkoutWindowMinutes: number;
@@ -103,6 +108,43 @@ function paymentIntentId(session: Stripe.Checkout.Session): string {
   if (typeof pi === "string" && pi.length > 0) return pi;
   if (pi && typeof pi === "object" && "id" in pi && typeof pi.id === "string") return pi.id;
   return session.id;
+}
+
+async function sessionWithSecret(
+  session: Stripe.Checkout.Session,
+  retrieve: CheckoutIntentDeps["retrieveCheckoutSession"],
+): Promise<Stripe.Checkout.Session | null> {
+  if (session.client_secret) return session;
+  const stored = await retrieve(session.id).catch(() => null);
+  if (stored?.client_secret) return stored;
+  return null;
+}
+
+function okIntentResponse(
+  row: { reference: string; booking_id: string },
+  payable: Stripe.Checkout.Session,
+  deps: CheckoutIntentDeps,
+  chargedRappen: number,
+  expiresAt: Date,
+  cookie: string | null,
+): Response {
+  const clientSecret = payable.client_secret;
+  if (!clientSecret) return refuse("invalid_request");
+  const headers: Record<string, string> = { "content-type": "application/json" };
+  if (cookie) headers["set-cookie"] = cookie;
+  return new Response(
+    JSON.stringify({
+      reference: row.reference,
+      booking_id: row.booking_id,
+      checkout_session_id: payable.id,
+      client_secret: clientSecret,
+      expires_at: expiresAt.toISOString(),
+      currency: CHARGE_CURRENCY.toUpperCase(),
+      amount_rappen: chargedRappen,
+      publishable_key: deps.publishableKey,
+    }),
+    { status: 200, headers },
+  );
 }
 
 export async function runCheckoutIntent(
@@ -156,7 +198,7 @@ export async function runCheckoutIntent(
       deps.manageLinkMaxAgeSeconds * 1000,
   );
 
-  const session = await deps.createCheckoutSession({
+  const created = await deps.createCheckoutSession({
     chargedRappen,
     bookingId: body.quote_id,
     bookingReference: body.idempotency_key,
@@ -167,6 +209,12 @@ export async function runCheckoutIntent(
     returnUrl: deps.returnUrl,
     productName: "Airport transfer",
   });
+
+  const session = await sessionWithSecret(created, deps.retrieveCheckoutSession);
+  if (!session) {
+    await deps.expireCheckoutSession(created.id).catch(() => undefined);
+    return refuse("invalid_request");
+  }
 
   const pi = paymentIntentId(session);
   let row: CheckoutCreateBookingRow;
@@ -207,7 +255,19 @@ export async function runCheckoutIntent(
       } catch (attachErr) {
         await deps.expireCheckoutSession(session.id).catch(() => undefined);
         const attachState = sqlState(attachErr);
-        if (attachState === "23505" || attachState === "23001") return refuse("quote_already_booked");
+        if (attachState === "23505" || attachState === "23001") {
+          const existing = await deps.loadOpenPayment(body.quote_id);
+          if (existing) {
+            const stored = await deps.retrieveCheckoutSession(existing.stripe_checkout_session_id).catch(
+              () => null,
+            );
+            const payable = stored ? await sessionWithSecret(stored, deps.retrieveCheckoutSession) : null;
+            if (payable?.status === "open" && payable.client_secret) {
+              return okIntentResponse(existing, payable, deps, chargedRappen, expiresAt, null);
+            }
+          }
+          return refuse("quote_already_booked");
+        }
         if (attachState === "23P01") return refuse("payment_window_closed");
         throw attachErr;
       }
@@ -245,29 +305,12 @@ export async function runCheckoutIntent(
     payable = stored;
   }
 
-  const clientSecret = payable.client_secret;
-  if (!clientSecret) {
-    return refuse("invalid_request");
-  }
-
-  const response = new Response(
-    JSON.stringify({
-      reference: row.reference,
-      booking_id: row.booking_id,
-      checkout_session_id: payable.id,
-      client_secret: clientSecret,
-      expires_at: expiresAt.toISOString(),
-      currency: CHARGE_CURRENCY.toUpperCase(),
-      amount_rappen: chargedRappen,
-      publishable_key: deps.publishableKey,
-    }),
-    {
-      status: 200,
-      headers: {
-        "content-type": "application/json",
-        "set-cookie": manageTokenCookie(token.raw, deps.manageLinkMaxAgeSeconds),
-      },
-    },
+  return okIntentResponse(
+    row,
+    payable,
+    deps,
+    chargedRappen,
+    expiresAt,
+    manageTokenCookie(token.raw, deps.manageLinkMaxAgeSeconds),
   );
-  return response;
 }

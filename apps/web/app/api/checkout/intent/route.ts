@@ -10,6 +10,7 @@ import { refuse } from "@/lib/checkout/errors";
 import { runCheckoutIntent } from "@/lib/checkout/intent";
 import { createBooking } from "@/lib/checkout/create-booking";
 import { attachPayment } from "@/lib/checkout/attach-payment";
+import { loadOpenPayment } from "@/lib/checkout/load-open-payment";
 import { mintManageToken } from "@/lib/checkout/manage-token";
 import {
   createCheckoutSession,
@@ -104,6 +105,7 @@ async function postIntent(request: Request) {
     retrieveCheckoutSession: (id) => retrieveCheckoutSession(stripe, id),
     createBooking: (args) => asCheckout(env, null, (sql) => createBooking(sql, args)),
     attachPayment: (args) => asCheckout(env, null, (sql) => attachPayment(sql, args)),
+    loadOpenPayment: (quoteId) => asCheckout(env, null, (sql) => loadOpenPayment(sql, quoteId)),
     publishableKey: stripePublishableKey(env),
     returnUrl: `${origin}${body.locale === "en" ? "" : `/${body.locale}`}/checkout/payment`,
     checkoutWindowMinutes: policy.checkoutWindowMinutes,
