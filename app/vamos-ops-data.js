@@ -133,6 +133,9 @@
       api("GET", getPath).then(function (json) {
         pending = false;
         loaded = true;
+        if (json && json.data && Array.isArray(json.data.zones)) {
+          ZONES = json.data.zones.slice();
+        }
         list = pickRows(json, name).map(clean);
         emit(name);
       });
@@ -279,6 +282,7 @@
     return out;
   }
 
+  var ZONES = [];
   var LOCATIONS = [
     "Zurich Airport (ZRH)", "Geneva Airport (GVA)", "Zurich city", "Dietikon",
     "Zermatt", "St. Moritz", "Chamonix", "Verbier"
@@ -383,6 +387,26 @@
     };
   }
 
+  function cleanBand(b) {
+    b = b || {};
+    return {
+      id: str(b.id) || id("B"),
+      fromKm: num(b.fromKm, 0),
+      toKm: b.toKm === "" || b.toKm == null ? "" : num(b.toKm, 0),
+      perKm: cleanMoneySet(b.perKm)
+    };
+  }
+
+  function cleanRegion(r) {
+    r = r || {};
+    return {
+      id: str(r.id) || id("RP"),
+      zoneId: str(r.zoneId),
+      zone: str(r.zone),
+      percent: str(r.percent)
+    };
+  }
+
   function settingsFromPayload(data) {
     var out = {};
     var k;
@@ -417,6 +441,7 @@
     SURCHARGE_KINDS: SURCHARGE_KINDS,
     CURRENCIES: CURRENCIES,
     LOCATIONS: LOCATIONS,
+    get ZONES() { return ZONES.slice(); },
     vehicles: restCollection("vehicles", cleanVehicle),
     chauffeurs: restCollection("chauffeurs", cleanChauffeur),
     bookings: emptyBookings(cleanBooking),
@@ -425,11 +450,13 @@
     routes: rateBookCollection("routes", "route", cleanRoute),
     rates: rateBookCollection("rates", "distance", cleanRate),
     surcharges: rateBookCollection("surcharges", "surcharge", cleanSurcharge),
+    bands: rateBookCollection("bands", "band", cleanBand),
+    regionPremiums: rateBookCollection("regionPremiums", "region", cleanRegion),
     settings: remoteSingleton("settings", "/api/staff/settings", settingsFromPayload),
     profile: remoteSingleton("profile", "/api/staff/me", profileFromMe),
     onAny: function (fn) { return subscribe(null, fn); },
     resetAll: function () {
-      ["vehicles", "chauffeurs", "bookings", "customers", "coupons", "routes", "rates", "surcharges", "settings", "profile"]
+      ["vehicles", "chauffeurs", "bookings", "customers", "coupons", "routes", "rates", "surcharges", "bands", "regionPremiums", "settings", "profile"]
         .forEach(function (k) { window.VamosOps[k].reset(); });
     }
   };

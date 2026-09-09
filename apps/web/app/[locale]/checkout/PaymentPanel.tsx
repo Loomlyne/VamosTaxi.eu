@@ -63,6 +63,16 @@ const APPEARANCE: Appearance = {
 
 function noopComplete(_complete: boolean) {}
 
+export function CheckoutPaySkeleton() {
+  return (
+    <div data-checkout-pay-skeleton aria-hidden="true">
+      <span />
+      <span />
+      <span />
+    </div>
+  );
+}
+
 export function PaymentPanel({
   publishableKey,
   clientSecret,
@@ -129,7 +139,7 @@ function CheckoutFields({
   }, [checkout, onComplete, onReady, reference, router]);
 
   if (checkout.type === "loading") {
-    return <div data-checkout-pay-skeleton aria-hidden="true" />;
+    return <CheckoutPaySkeleton />;
   }
   if (checkout.type === "error") {
     return <p data-checkout-pay-error>{checkout.error.message}</p>;

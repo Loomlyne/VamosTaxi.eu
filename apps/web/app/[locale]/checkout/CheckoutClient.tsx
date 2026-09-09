@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createNavigation } from "next-intl/navigation";
 import { useTranslations } from "next-intl";
 import { Alert } from "@/components/feedback/Alert";
@@ -41,7 +41,6 @@ import {
   writeVamosTrip,
   type VamosTrip,
 } from "@/lib/checkout/vamos-trip";
-import { companyReady } from "@/lib/checkout/pay-link";
 import { chfRappenToDisplay } from "@/lib/fx/format";
 import { useFx } from "@/lib/fx/use-fx";
 import { useVamosLocale } from "@/lib/locale-shim";
@@ -49,7 +48,7 @@ import type { CurrencyCode } from "@/lib/currency";
 import { routing } from "@/i18n/routing";
 import { useCheckoutSettings } from "./CheckoutSettings";
 import { CheckoutClassCards, classFits, firstFittingClass } from "./CheckoutClassCards";
-import { PaymentPanel } from "./PaymentPanel";
+import { CheckoutPaySkeleton, PaymentPanel } from "./PaymentPanel";
 
 const { useRouter } = createNavigation(routing);
 
@@ -168,6 +167,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const [confirmPay, setConfirmPay] = useState<(() => Promise<void>) | null>(null);
   const [cardComplete, setCardComplete] = useState(false);
   const [tripSnap, setTripSnap] = useState<VamosTrip | null>(null);
+  const intentStarted = useRef(false);
 
   const onPaymentReady = useCallback((fn: () => Promise<void>) => {
     setConfirmPay(() => fn);
@@ -247,11 +247,26 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
 
   useEffect(() => {
     if (step !== "payment" || gate !== "ok" || clientSecret) return;
-    if (!draft.idempotencyKey || !contact.email.trim()) return;
-    void startPayment();
-    // Start the card form as soon as payment is on screen. Pay and continue
-    // stays off until Stripe reports the fields complete.
-  }, [step, gate, clientSecret, draft.idempotencyKey, contact.email]);
+    if (!draft.idempotencyKey) return;
+    if (
+      !contact.firstName.trim() ||
+      !contact.lastName.trim() ||
+      !contact.email.trim() ||
+      !contact.mobile.trim()
+    ) {
+      return;
+    }
+    void startPayment({ silent: true });
+  }, [
+    step,
+    gate,
+    clientSecret,
+    draft.idempotencyKey,
+    contact.firstName,
+    contact.lastName,
+    contact.email,
+    contact.mobile,
+  ]);
 
   function validate(): boolean {
     const next: ContactFieldsErrors = {};
@@ -422,18 +437,29 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     router.push(checkoutStepPath("payment"));
   }
 
-  async function startPayment() {
+  async function startPayment(opts?: { silent?: boolean }) {
+    if (clientSecret || intentStarted.current) return;
     const trip = tripSnap ?? readVamosTrip();
     const quoteId = draft.quoteId || tripQuoteId(trip);
     const lock = draft.lock || trip?.lock;
     const vehicleClass = draft.vehicleClass || vehicle;
     const idempotencyKey = draft.idempotencyKey;
+    const name = `${contact.firstName.trim()} ${contact.lastName.trim()}`.trim();
+    const email = contact.email.trim();
+    const phone = contact.mobile.trim();
     if (!quoteId || !lock || !vehicleClass || !idempotencyKey) {
-      setRefusal("quoteExpired");
+      if (!opts?.silent) setRefusal("quoteExpired");
       return;
     }
-    setBusy(true);
-    setRefusal(null);
+    if (!name || !email || !phone) {
+      if (!opts?.silent) setRefusal("payCouldNotStart");
+      return;
+    }
+    intentStarted.current = true;
+    if (!opts?.silent) {
+      setBusy(true);
+      setRefusal(null);
+    }
     try {
       const res = await fetch("/api/checkout/intent", {
         method: "POST",
@@ -448,9 +474,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           },
           coupon: couponApplied,
           contact: {
-            name: `${contact.firstName.trim()} ${contact.lastName.trim()}`,
-            email: contact.email.trim(),
-            phone: contact.mobile.trim(),
+            name,
+            email,
+            phone,
           },
           locale,
           display_currency: displayCur,
@@ -465,31 +491,28 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         error?: string;
       };
       if (!res.ok) {
+        intentStarted.current = false;
         const key = REFUSAL_KEYS[json.code ?? json.error ?? ""] ?? "payCouldNotStart";
         if (json.code === "coupon_no_longer_valid") setCouponApplied(null);
-        setRefusal(key);
+        if (!opts?.silent) setRefusal(key);
         return;
       }
       if (json.publishable_key) setPublishable(json.publishable_key);
       if (json.reference) setReference(json.reference);
       setCardComplete(false);
-      setClientSecret(json.client_secret ?? null);
+      const secret = json.client_secret ?? null;
+      setClientSecret(secret);
+      if (!secret) intentStarted.current = false;
     } catch {
-      setRefusal("payCouldNotStart");
+      intentStarted.current = false;
+      if (!opts?.silent) setRefusal("payCouldNotStart");
     } finally {
-      setBusy(false);
+      if (!opts?.silent) setBusy(false);
     }
   }
 
   async function sendPayLink() {
     if (!validate()) return;
-    if (
-      billingKind === "company" &&
-      !companyReady({ kind: "company", name: companyName, address: companyAddress, vat: companyVat })
-    ) {
-      setRefusal("quoteExpired");
-      return;
-    }
     const trip = tripSnap ?? readVamosTrip();
     const quoteId = draft.quoteId || tripQuoteId(trip);
     const lock = draft.lock || trip?.lock;
@@ -880,30 +903,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                     { value: "company", label: t("billingCompany") },
                   ]}
                 />
-                {billingKind === "company" ? (
-                  <div className="vt-checkout__company">
-                    <Input
-                      label={t("companyName")}
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                    />
-                    <Input
-                      label={t("companyAddress")}
-                      value={companyAddress}
-                      onChange={(e) => setCompanyAddress(e.target.value)}
-                    />
-                    <Input
-                      label={t("companyVat")}
-                      value={companyVat}
-                      onChange={(e) => setCompanyVat(e.target.value)}
-                    />
-                    <Input
-                      label={t("payerEmail")}
-                      value={payerEmail || contact.email}
-                      onChange={(e) => setPayerEmail(e.target.value)}
-                    />
-                  </div>
-                ) : null}
               </div>
               <div className="vt-checkout__recap">
                 <div className="vt-checkout__recap-trip">
@@ -945,6 +944,30 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                 </div>
               </div>
               <div className="vt-checkout__payblock">
+                {billingKind === "company" ? (
+                  <div className="vt-checkout__company">
+                    <Input
+                      label={t("companyName")}
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                    />
+                    <Input
+                      label={t("companyAddress")}
+                      value={companyAddress}
+                      onChange={(e) => setCompanyAddress(e.target.value)}
+                    />
+                    <Input
+                      label={t("companyVat")}
+                      value={companyVat}
+                      onChange={(e) => setCompanyVat(e.target.value)}
+                    />
+                    <Input
+                      label={t("payerEmail")}
+                      value={payerEmail || contact.email}
+                      onChange={(e) => setPayerEmail(e.target.value)}
+                    />
+                  </div>
+                ) : null}
                 <div className="vt-checkout__payhead">
                   <h2>{t("payment")}</h2>
                   <p>{t("card-apple-pay-or-twint")}</p>
@@ -959,7 +982,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                       onComplete={onPaymentComplete}
                     />
                   ) : (
-                    <div data-checkout-pay-skeleton aria-hidden="true" />
+                    <CheckoutPaySkeleton />
                   )}
                 </div>
               </div>
@@ -986,25 +1009,13 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                 <div className="vt-checkout__cta">
                   <Button
                     size="lg"
-                    disabled={busy || (Boolean(clientSecret) && (!cardComplete || !confirmPay))}
+                    disabled={busy || !cardComplete || !confirmPay}
                     onClick={() => void onPay()}
                   >
                     {t("pay-and-continue")}
                   </Button>
                   {billingKind === "company" ? (
-                    <Button
-                      size="lg"
-                      disabled={
-                        busy ||
-                        !companyReady({
-                          kind: "company",
-                          name: companyName,
-                          address: companyAddress,
-                          vat: companyVat,
-                        })
-                      }
-                      onClick={() => void sendPayLink()}
-                    >
+                    <Button size="lg" disabled={busy} onClick={() => void sendPayLink()}>
                       {t("sendPayLink")}
                     </Button>
                   ) : null}

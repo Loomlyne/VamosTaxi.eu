@@ -80,6 +80,8 @@
 
 <sc-if value="{{ isDistance }}" hint-placeholder-val="{{ false }}">
 <dc-import name="OpsTable" rows="{{ distanceRows }}" columns="{{ distanceColumns }}" fields="{{ distanceFields }}" blank="{{ distanceBlank }}" onSave="{{ saveDistance }}" onDelete="{{ deleteDistance }}" noun="{{ tNounDistance }}" noun-plural="{{ tNounDistances }}" add-title="{{ tAddDistance }}" edit-title="{{ tEditDistance }}" delete-title="{{ tDeleteDistanceTitle }}" label-key="klass" add-label="{{ tAddDistance }}" search-placeholder="{{ tSearchDistance }}" search-keys="{{ distanceSearchKeys }}" empty-title="{{ tEmptyDistanceTitle }}" empty-body="{{ tEmptyDistanceBody }}" delete-body="{{ tDeleteDistanceBody }}" hint-size="100%,420px"></dc-import>
+<dc-import name="OpsTable" rows="{{ bandRows }}" columns="{{ bandColumns }}" fields="{{ bandFields }}" blank="{{ bandBlank }}" onSave="{{ saveBand }}" onDelete="{{ deleteBand }}" noun="{{ tNounBand }}" noun-plural="{{ tNounBands }}" add-title="{{ tAddBand }}" edit-title="{{ tEditBand }}" delete-title="{{ tDeleteBandTitle }}" label-key="fromKm" add-label="{{ tAddBand }}" search-placeholder="{{ tSearchBands }}" search-keys="{{ bandSearchKeys }}" empty-title="{{ tEmptyBandsTitle }}" empty-body="{{ tEmptyBandsBody }}" delete-body="{{ tDeleteBandBody }}" hint-size="100%,280px"></dc-import>
+<dc-import name="OpsTable" rows="{{ regionRows }}" columns="{{ regionColumns }}" fields="{{ regionFields }}" blank="{{ regionBlank }}" onSave="{{ saveRegion }}" onDelete="{{ deleteRegion }}" noun="{{ tNounRegion }}" noun-plural="{{ tNounRegions }}" add-title="{{ tAddRegion }}" edit-title="{{ tEditRegion }}" delete-title="{{ tDeleteRegionTitle }}" label-key="zone" add-label="{{ tAddRegion }}" search-placeholder="{{ tSearchRegions }}" search-keys="{{ regionSearchKeys }}" empty-title="{{ tEmptyRegionsTitle }}" empty-body="{{ tEmptyRegionsBody }}" delete-body="{{ tDeleteRegionBody }}" hint-size="100%,280px"></dc-import>
 </sc-if>
 
 <sc-if value="{{ isSurcharges }}" hint-placeholder-val="{{ false }}">
@@ -123,7 +125,7 @@ const T = {
   en: { title:'Pricing & routes', subtitle:'Fixed routes, distance rules and surcharges',
     alertTitle:'Every figure here is a placeholder', alertBody:'Base fares, per-kilometre rates, surcharges and the fixed-route inventory are blocking client inputs. Nothing on this screen is a real Vamos Taxi price.',
     tabRoutes:'Fixed routes', tabDistance:'Distance rules', tabSurcharges:'Surcharges & extras',
-    hintRoutes:'Airport to resort, one price', hintDistance:'Base fare and per kilometre', hintSurcharges:'Night, waiting, extras',
+    hintRoutes:'Airport to resort, one price', hintDistance:'Class floors, km bands, region %', hintSurcharges:'Night, waiting, extras',
     routesConfigured:(n) => n + ' routes configured', notLive:(n) => n + ' not live',
     currencyLabel:'Pricing currency', hCurrencyField:'Changes the console’s currency everywhere, not just here.',
     colId:'ID', colFrom:'From', colTo:'To', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Draft',
@@ -159,11 +161,19 @@ const T = {
     deleteDistanceTitle:'Delete this distance rule?', deleteDistanceBody:'The class rate is removed from this draft.',
     emptyDistanceTitle:'No distance rules yet', emptyDistanceBody:'Four classes are listed. Fill a row and save — amounts stay CHF 000 until you type them.',
     searchDistance:'Class', nounDistance:'distance rule', nounDistances:'distance rules',
+    fromKm:'From km', toKm:'To km', openBand:'Open',
+    addBand:'Add km band', editBand:'Edit km band', deleteBandTitle:'Delete this km band?', deleteBandBody:'The band is removed from this draft.',
+    emptyBandsTitle:'No km bands yet', emptyBandsBody:'Same table for every class. First 20 km is the class floor.',
+    searchBands:'From km', nounBand:'km band', nounBands:'km bands',
+    colZone:'Zone', colPercent:'Percent',
+    addRegion:'Add region premium', editRegion:'Edit region premium', deleteRegionTitle:'Delete this region premium?', deleteRegionBody:'It stops applying to new quotes immediately.',
+    emptyRegionsTitle:'No region premiums yet', emptyRegionsBody:'Highest matching percent wins, not stacked.',
+    searchRegions:'Zone', nounRegion:'region premium', nounRegions:'region premiums',
   },
   de: { title:'Preise & Routen', subtitle:'Feste Routen, Distanzregeln und Zuschläge',
     alertTitle:'Jeder Wert hier ist ein Platzhalter', alertBody:'Grundpreise, Kilometersätze, Zuschläge und das Streckenangebot sind noch offene Kundendaten. Nichts auf diesem Bildschirm ist ein echter Vamos-Taxi-Preis.',
     tabRoutes:'Feste Routen', tabDistance:'Distanzregeln', tabSurcharges:'Zuschläge & Extras',
-    hintRoutes:'Flughafen bis Resort, ein Preis', hintDistance:'Grundpreis und pro Kilometer', hintSurcharges:'Nacht, Wartezeit, Extras',
+    hintRoutes:'Flughafen bis Resort, ein Preis', hintDistance:'Klassenmindestpreis, km-Bänder, Regionen-%', hintSurcharges:'Nacht, Wartezeit, Extras',
     routesConfigured:(n) => n + ' Routen konfiguriert', notLive:(n) => n + ' nicht live',
     currencyLabel:'Preiswährung', hCurrencyField:'Ändert die Währung für die ganze Konsole, nicht nur hier.',
     colId:'ID', colFrom:'Von', colTo:'Nach', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Entwurf',
@@ -199,11 +209,19 @@ const T = {
     deleteDistanceTitle:'Diese Distanzregel löschen?', deleteDistanceBody:'Der Klassensatz wird aus diesem Entwurf entfernt.',
     emptyDistanceTitle:'Noch keine Distanzregeln', emptyDistanceBody:'Vier Klassen sind gelistet. Zeile füllen und speichern — Beträge bleiben CHF 000, bis sie eingegeben werden.',
     searchDistance:'Klasse', nounDistance:'Distanzregel', nounDistances:'Distanzregeln',
+    fromKm:'Von km', toKm:'Bis km', openBand:'Offen',
+    addBand:'km-Band hinzufügen', editBand:'km-Band bearbeiten', deleteBandTitle:'Dieses km-Band löschen?', deleteBandBody:'Das Band wird aus diesem Entwurf entfernt.',
+    emptyBandsTitle:'Noch keine km-Bänder', emptyBandsBody:'Gleiche Tabelle für jede Klasse. Die ersten 20 km sind der Klassenmindestpreis.',
+    searchBands:'Von km', nounBand:'km-Band', nounBands:'km-Bänder',
+    colZone:'Zone', colPercent:'Prozent',
+    addRegion:'Regionszuschlag hinzufügen', editRegion:'Regionszuschlag bearbeiten', deleteRegionTitle:'Diesen Regionszuschlag löschen?', deleteRegionBody:'Er gilt sofort nicht mehr für neue Offerten.',
+    emptyRegionsTitle:'Noch keine Regionszuschläge', emptyRegionsBody:'Der höchste passende Satz gilt, nicht gestapelt.',
+    searchRegions:'Zone', nounRegion:'Regionszuschlag', nounRegions:'Regionszuschläge',
   },
   fr: { title:'Tarifs & trajets', subtitle:'Trajets fixes, règles de distance et suppléments',
     alertTitle:'Chaque montant ici est un espace réservé', alertBody:'Les tarifs de base, les prix au kilomètre, les suppléments et la liste des trajets fixes sont des données client en attente. Aucun montant de cet écran n\u2019est un vrai prix Vamos Taxi.',
     tabRoutes:'Trajets fixes', tabDistance:'Règles de distance', tabSurcharges:'Suppléments & extras',
-    hintRoutes:'Aéroport à station, un prix', hintDistance:'Tarif de base et par kilomètre', hintSurcharges:'Nuit, attente, extras',
+    hintRoutes:'Aéroport à station, un prix', hintDistance:'Plancher de classe, bandes km, % région', hintSurcharges:'Nuit, attente, extras',
     routesConfigured:(n) => n + ' trajets configurés', notLive:(n) => n + ' hors ligne',
     currencyLabel:'Devise des tarifs', hCurrencyField:'Change la devise pour toute la console, pas seulement ici.',
     colId:'ID', colFrom:'De', colTo:'À', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'En ligne', live:'En ligne', draft:'Brouillon',
@@ -239,11 +257,19 @@ const T = {
     deleteDistanceTitle:'Supprimer cette règle de distance ?', deleteDistanceBody:'Le tarif de classe est retiré de ce brouillon.',
     emptyDistanceTitle:'Aucune règle de distance', emptyDistanceBody:'Quatre classes sont listées. Remplissez une ligne — les montants restent CHF 000 jusqu’à saisie.',
     searchDistance:'Classe', nounDistance:'règle de distance', nounDistances:'règles de distance',
+    fromKm:'De km', toKm:'À km', openBand:'Ouvert',
+    addBand:'Ajouter une bande km', editBand:'Modifier la bande km', deleteBandTitle:'Supprimer cette bande km ?', deleteBandBody:'La bande est retirée de ce brouillon.',
+    emptyBandsTitle:'Aucune bande km', emptyBandsBody:'Même table pour chaque classe. Les 20 premiers km sont le plancher de classe.',
+    searchBands:'De km', nounBand:'bande km', nounBands:'bandes km',
+    colZone:'Zone', colPercent:'Pourcent',
+    addRegion:'Ajouter une prime régionale', editRegion:'Modifier la prime régionale', deleteRegionTitle:'Supprimer cette prime régionale ?', deleteRegionBody:'Elle ne s’applique plus aux nouveaux devis, immédiatement.',
+    emptyRegionsTitle:'Aucune prime régionale', emptyRegionsBody:'Le pourcentage le plus élevé gagne, sans cumul.',
+    searchRegions:'Zone', nounRegion:'prime régionale', nounRegions:'primes régionales',
   },
   ar: { title:'الأسعار والمسارات', subtitle:'مسارات ثابتة وقواعد المسافة والرسوم الإضافية',
     alertTitle:'كل رقم هنا مؤقت', alertBody:'الأسعار الأساسية وأسعار الكيلومتر والرسوم الإضافية وقائمة المسارات الثابتة بيانات ينتظرها المشروع من العميل. لا شيء في هذه الشاشة سعر حقيقي لفاموس تاكسي.',
     tabRoutes:'مسارات ثابتة', tabDistance:'قواعد المسافة', tabSurcharges:'الرسوم والإضافات',
-    hintRoutes:'من المطار إلى المنتجع بسعر واحد', hintDistance:'السعر الأساسي وسعر الكيلومتر', hintSurcharges:'الليل والانتظار والإضافات',
+    hintRoutes:'من المطار إلى المنتجع بسعر واحد', hintDistance:'حد الفئة وشرائح الكم ونسبة المنطقة', hintSurcharges:'الليل والانتظار والإضافات',
     routesConfigured:(n) => n + ' مسارات مُعدّة', notLive:(n) => n + ' غير منشورة',
     currencyLabel:'عملة التسعير', hCurrencyField:'يغيّر العملة في كل لوحة التحكم، وليس هنا فقط.',
     colId:'المعرّف', colFrom:'من', colTo:'إلى', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'منشور', live:'منشور', draft:'مسودة',
@@ -279,6 +305,14 @@ const T = {
     deleteDistanceTitle:'حذف قاعدة المسافة؟', deleteDistanceBody:'يُحذف سعر الفئة من هذه المسودة.',
     emptyDistanceTitle:'لا توجد قواعد مسافة بعد', emptyDistanceBody:'أربع فئات مدرجة. املأ صفًا واحفظ — المبالغ تبقى CHF 000 حتى تكتبها.',
     searchDistance:'الفئة', nounDistance:'قاعدة مسافة', nounDistances:'قواعد مسافة',
+    fromKm:'من كم', toKm:'إلى كم', openBand:'مفتوح',
+    addBand:'إضافة شريحة كم', editBand:'تعديل شريحة الكم', deleteBandTitle:'حذف شريحة الكم؟', deleteBandBody:'تُحذف الشريحة من هذه المسودة.',
+    emptyBandsTitle:'لا توجد شرائح كم بعد', emptyBandsBody:'جدول واحد لكل الفئات. أول 20 كم هي حد الفئة.',
+    searchBands:'من كم', nounBand:'شريحة كم', nounBands:'شرائح كم',
+    colZone:'المنطقة', colPercent:'النسبة',
+    addRegion:'إضافة نسبة منطقة', editRegion:'تعديل نسبة المنطقة', deleteRegionTitle:'حذف نسبة المنطقة؟', deleteRegionBody:'تتوقف عن الانطباق على العروض الجديدة فورًا.',
+    emptyRegionsTitle:'لا توجد نسب مناطق بعد', emptyRegionsBody:'تُعتمد أعلى نسبة مطابقة، دون تراكم.',
+    searchRegions:'المنطقة', nounRegion:'نسبة منطقة', nounRegions:'نسب مناطق',
   },
 };
 
@@ -309,7 +343,7 @@ class Component extends DCLogic {
     clearTimeout(this._retry);
   }
   updateRate(id, patch) { if (window.VamosOps) window.VamosOps.rates.update(id, patch); }
-  /* Row saves: VamosOps.routes/rates/surcharges → PUT /api/staff/rate-book (06-02). */
+  /* Row saves: VamosOps.routes, VamosOps.rates, VamosOps.surcharges, VamosOps.bands, VamosOps.regionPremiums → PUT /api/staff/rate-book (06-02). */
   loadDraft() {
     const api = window.VamosOpsApi;
     if (!api || typeof api.request !== 'function') return;
@@ -517,6 +551,75 @@ class Component extends DCLogic {
       tDeleteDistanceTitle: t.deleteDistanceTitle, tDeleteDistanceBody: t.deleteDistanceBody,
       tSearchDistance: t.searchDistance, distanceSearchKeys: ['klass'],
       tEmptyDistanceTitle: t.emptyDistanceTitle, tEmptyDistanceBody: t.emptyDistanceBody,
+
+      bandRows: (ops ? ops.bands.all() : []).map((r) => ({
+        id: r.id,
+        fromKm: r.fromKm,
+        toKm: r.toKm === '' || r.toKm == null ? '' : r.toKm,
+        perKm: (r.perKm && r.perKm[cur]) || '',
+      })),
+      bandColumns: [
+        { key:'fromKm', header: t.fromKm, width:'110px' },
+        { key:'toKm', header: t.toKm, width:'110px', lookup:(r) => (r.toKm === '' || r.toKm == null ? t.openBand : r.toKm) },
+        { key:'perKm', header: t.perKm, align:'right', width:'110px', lookup:(r) => money(r.perKm) },
+      ],
+      bandFields: [
+        { key:'fromKm', label:t.fromKm, editor:'number', min:0, half:true, icon:'navigation' },
+        { key:'toKm', label:t.toKm, editor:'number', min:0, half:true, icon:'navigation', hint:t.openBand },
+        { key:'currency', label:t.currencyLabel, editor:'select', options:currencyOptions, value:cur, onSelect:setCur, half:true, icon:'banknote', hint:t.hCurrencyField },
+        { key:'perKm', label:t.perKm, half:true, placeholder:'0.00', icon:'navigation', suffix:cur },
+      ],
+      bandBlank: () => {
+        const blank = ops ? ops.bands.blank() : { fromKm:0, toKm:'', perKm:{} };
+        return Object.assign({}, blank, { perKm:'' });
+      },
+      saveBand: (rec) => {
+        if (!ops) return;
+        const existing = rec.id ? ops.bands.get(rec.id) : null;
+        ops.bands.upsert({
+          id: rec.id,
+          fromKm: rec.fromKm,
+          toKm: rec.toKm,
+          perKm: Object.assign({}, (existing && existing.perKm) || {}, { [cur]: rec.perKm }),
+        });
+      },
+      deleteBand: (id) => { if (ops) ops.bands.remove(id); },
+      tNounBand: t.nounBand, tNounBands: t.nounBands,
+      tAddBand: t.addBand, tEditBand: t.editBand,
+      tDeleteBandTitle: t.deleteBandTitle, tDeleteBandBody: t.deleteBandBody,
+      tSearchBands: t.searchBands, bandSearchKeys: ['fromKm', 'toKm'],
+      tEmptyBandsTitle: t.emptyBandsTitle, tEmptyBandsBody: t.emptyBandsBody,
+
+      regionRows: (ops ? ops.regionPremiums.all() : []).map((r) => Object.assign({}, r, {
+        percent: r.percent || '',
+      })),
+      regionColumns: [
+        { key:'zone', header: t.colZone },
+        { key:'percent', header: t.colPercent, align:'right', width:'110px', lookup:(r) => (r.percent ? r.percent + '%' : '00%') },
+      ],
+      regionFields: [
+        { key:'zone', label:t.colZone, editor:'select', required:true, icon:'map-pin',
+          options: ((ops && ops.ZONES && ops.ZONES.length) ? ops.ZONES.map((z) => ({ value: z.label || z.slug, label: z.label || z.slug })) : locationOptions) },
+        { key:'percent', label:t.colPercent, placeholder:'00', icon:'banknote', suffix:'%' },
+      ],
+      regionBlank: () => (ops ? ops.regionPremiums.blank() : { zone:'', zoneId:'', percent:'' }),
+      saveRegion: (rec) => {
+        if (!ops) return;
+        const zones = (ops.ZONES || []).slice();
+        const hit = zones.filter((z) => (z.label || z.slug) === rec.zone || z.id === rec.zoneId)[0];
+        ops.regionPremiums.upsert({
+          id: rec.id,
+          zone: rec.zone,
+          zoneId: hit ? hit.id : rec.zoneId,
+          percent: rec.percent,
+        });
+      },
+      deleteRegion: (id) => { if (ops) ops.regionPremiums.remove(id); },
+      tNounRegion: t.nounRegion, tNounRegions: t.nounRegions,
+      tAddRegion: t.addRegion, tEditRegion: t.editRegion,
+      tDeleteRegionTitle: t.deleteRegionTitle, tDeleteRegionBody: t.deleteRegionBody,
+      tSearchRegions: t.searchRegions, regionSearchKeys: ['zone'],
+      tEmptyRegionsTitle: t.emptyRegionsTitle, tEmptyRegionsBody: t.emptyRegionsBody,
 
       surcharges: surchargesRaw.map((r) => Object.assign({}, r, {
         value: r.kind === 'percent' ? r.pct : r.kind === 'amount' ? ((r.amounts && r.amounts[cur]) || '') : '',

@@ -135,7 +135,7 @@ describe("06-09 DC mocks", () => {
     const profile = read("app/ops/OpsProfile.dc.html");
 
     expect(ops).toMatch(/window\.addEventListener\('hashchange', this\._onHash\)/);
-    expect(ops).toMatch(/Object\.assign\(\{ navOpen: false \}, readHash\(\)\)/);
+    expect(ops).toMatch(/Object\.assign\(\{ navOpen: false, menuOpen: false \}, readHash\(\)\)/);
     expect(transition).toMatch(/p === '\/app\/ops' \|\| p === '\/app\/ops\/ops'/);
     expect(transition).toMatch(/function eligible\(a\) \{/);
     expect(transition).toMatch(/if \(hrefAttr\.charAt\(0\) === '#'\) return false;/);

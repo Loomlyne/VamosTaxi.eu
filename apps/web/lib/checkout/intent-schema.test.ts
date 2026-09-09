@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { checkoutIntentSchema } from "./intent-schema";
+import { checkoutIntentSchema, checkoutPayLinkSchema } from "./intent-schema";
 import { CHECKOUT_REFUSALS, refuse, type CheckoutRefusalCode } from "./errors";
 
 const valid = {
@@ -40,6 +40,27 @@ describe("checkoutIntentSchema", () => {
   it("rejects an unknown display_currency", () => {
     const parsed = checkoutIntentSchema.safeParse({ ...valid, display_currency: "GBP" });
     expect(parsed.success).toBe(false);
+  });
+
+  it("accepts a company pay-link without name address VAT", () => {
+    const parsed = checkoutPayLinkSchema.safeParse({
+      ...valid,
+      billing_kind: "company",
+      payer_email: "ada@example.test",
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  it("accepts a company pay-link with name address VAT", () => {
+    const parsed = checkoutPayLinkSchema.safeParse({
+      ...valid,
+      billing_kind: "company",
+      company_name: "Acme AG",
+      company_address: "Bahnhofstrasse 1",
+      company_vat: "CHE-123.456.789",
+      payer_email: "ada@example.test",
+    });
+    expect(parsed.success).toBe(true);
   });
 });
 

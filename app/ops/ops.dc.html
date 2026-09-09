@@ -29,7 +29,7 @@
 <script src="../vamos-locale.js"></script>
 <script src="../vamos-reviews.js"></script>
 <script src="../vamos-ops-api.js"></script>
-<script src="../vamos-ops-data.js"></script>
+<script src="../vamos-ops-data.js?vt=12-02-c43"></script>
 <style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
 .vt-input--focus{box-shadow:none}
 /* Button hover/press — colour step only, no shadow, no glow */
@@ -102,7 +102,41 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 /* Settings and the content registries carry their own sub-rail: the section list on
    the left, one pane at a time on the right. Below 1000px it lies down as a row. */
 [data-set-grid]{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;align-items:start}
-[data-set-rail]{box-sizing:border-box;display:flex;gap:6px;padding:10px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);overflow-x:auto}
+[data-vs-role]{display:none}
+@media (min-width:768px){
+  [data-icon-only] [data-vs-role],
+  [data-view-icon] [data-vs-role],
+  [data-filters-btn] [data-vs-role]{display:inline}
+}
+[data-vt-counts]{display:flex;flex-wrap:nowrap;align-items:stretch;justify-content:flex-start;gap:8px;min-width:0;--vt-kpi:row4}
+[data-vt-count]{box-sizing:border-box;display:flex;flex-direction:column;gap:6px;flex:1 1 0;width:auto;min-width:0;min-height:0;padding:14px 16px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);text-align:start;color:inherit;text-decoration:none}
+[data-vt-count][data-tone="inv"]{background:var(--vt-bg-inverse);border-color:var(--vt-bg-inverse)}
+[data-vt-count-hd]{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+[data-vt-count-hd]>span{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[data-vt-count][data-tone="inv"] [data-vt-count-hd]>span{color:var(--vt-text-inverse-muted)}
+[data-vt-count-n]{font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-bold);line-height:1;color:var(--vt-text-primary);display:flex;align-items:baseline;gap:6px;min-width:0}
+[data-vt-count][data-tone="inv"] [data-vt-count-n]{color:var(--vt-accent)}
+[data-vt-count-of]{font-family:var(--vt-font-body);font-size:var(--vt-body-xs);font-weight:400;color:var(--vt-text-muted)}
+[data-vt-count-f]{font-size:var(--vt-body-xs);line-height:1.35;color:var(--vt-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:767px){
+[data-vt-counts]{flex-wrap:wrap;gap:6px}
+[data-vt-count]{flex:0 1 196px;width:196px;max-width:100%;padding:10px 12px;gap:4px;border-radius:var(--vt-radius-md)}
+[data-vt-count-hd]>span{font-size:10px}
+[data-vt-count-n]{font-size:var(--vt-heading-3)}
+[data-vt-count-of]{font-size:10px}
+[data-vt-count-f]{font-size:10px;line-height:1.3}
+}
+@media (max-width:479px){
+[data-vt-count]{flex:1 1 calc(50% - 6px);width:auto;min-width:min(100%,148px);padding:8px 10px;gap:2px}
+[data-vt-count-n]{font-size:var(--vt-heading-4)}
+}
+[data-vt-count][data-tone="inv"] [data-vt-count-f]{color:var(--vt-text-inverse-muted)}
+[data-vt-count][aria-pressed="true"]{background:var(--vt-bg-inverse);border-color:var(--vt-bg-inverse)}
+[data-vt-count][aria-pressed="true"] [data-vt-count-hd]>span{color:var(--vt-text-inverse-muted)}
+[data-vt-count][aria-pressed="true"] [data-vt-count-n]{color:var(--vt-accent)}
+[data-vt-count][aria-pressed="true"] [data-vt-count-f]{color:var(--vt-text-inverse-muted)}
+button[data-vt-count]{appearance:none;-webkit-appearance:none;cursor:pointer;font:inherit}
+[data-set-rail]{box-sizing:border-box;display:flex;flex-wrap:nowrap;gap:6px;padding:10px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;min-width:0}
 [data-set-item]{box-sizing:border-box;display:flex;align-items:center;gap:10px;flex:0 0 auto;min-height:48px;padding:9px 12px;border:0;border-radius:var(--vt-radius-md);background:none;color:var(--vt-text-secondary);cursor:pointer;text-align:start;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);transition:background 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1)}
 [data-set-item]:hover{background:var(--vt-grey-50);color:var(--vt-text-primary)}
 [data-set-item][data-on="1"]{background:var(--vt-charcoal-900);color:var(--vt-text-inverse)}
@@ -126,7 +160,17 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [dir="rtl"] [data-ops-nav]{transform:translateX(110%)}
 [data-ops-nav][data-open="1"],[dir="rtl"] [data-ops-nav][data-open="1"]{transform:none}
 [data-ops-scrim][data-open="1"]{display:block;position:fixed;inset:0;z-index:60;background:rgb(30 31 31/.5)}
-[data-ops-topbar]{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--vt-bg-inverse);position:sticky;top:0;z-index:40}
+[data-ops-topbar]{display:grid;grid-template-columns:40px minmax(0,1fr) auto;align-items:center;min-height:56px;padding:8px 12px;padding-top:max(8px,env(safe-area-inset-top,0px));background:var(--vt-bg-inverse);position:sticky;top:0;z-index:40;border-bottom:1px solid rgb(255 255 255 / .12)}
+[data-ops-top-start],[data-ops-top-end]{display:flex;align-items:center;justify-content:center}
+[data-ops-top-end]{justify-content:flex-end}
+[data-ops-top-logo]{display:flex;align-items:center;justify-content:center;min-width:0}
+[data-ops-prof]{position:relative}
+[data-ops-prof-btn]{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:999px;cursor:pointer;overflow:hidden;background:var(--vt-charcoal-800)}
+[data-ops-prof-btn] img{width:100%;height:100%;object-fit:cover;display:block}
+[data-ops-prof-menu]{position:absolute;inset-inline-end:0;top:calc(100% + 6px);z-index:50;display:flex;flex-direction:column;gap:2px;min-width:196px;padding:6px;background:var(--vt-charcoal-800);border:1px solid var(--vt-border-inverse);border-radius:var(--vt-radius-md);box-shadow:var(--vt-shadow-xl)}
+[data-ops-prof-menu] a,[data-ops-prof-menu] button{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;height:40px;padding:0 10px;border-radius:999px;cursor:pointer;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-inverse)}
+[data-ops-prof-menu] a:hover,[data-ops-prof-menu] button:hover{background:var(--vt-charcoal-700)}
+[data-ops-prof-out]{color:oklch(0.68 0.17 27)!important}
 }</style>
 </helmet>
 <div style="display:flex;min-height:100vh;font-family:var(--vt-font-body);color:var(--vt-text-primary)">
@@ -136,8 +180,32 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <div data-ops-scrim="1" data-open="{{ navOpenAttr }}" onClick="{{ closeNav }}"></div>
 <div data-ops-main="1">
 <div data-ops-topbar="1">
+<div data-ops-top-start="1">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="menu" label="{{ tMenu }}" variant="inverse" size="sm" onClick="{{ toggleNav }}" hint-size="36px,36px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" height="{{ n20 }}" hint-size="92px,20px"></x-import>
+</div>
+<div data-ops-top-logo="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" form="wordmark" height="{{ n22 }}" hint-size="110px,22px"></x-import>
+</div>
+<div data-ops-top-end="1">
+<div data-ops-prof="1">
+<sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeMenu }}" style="position:fixed;inset:0;z-index:4;background:transparent"></div>
+<div data-ops-prof-menu="1" role="menu">
+<a href="#profile" role="menuitem" onClick="{{ goHash }}">{{ tProfile }}</a>
+<a href="#settings" role="menuitem" onClick="{{ goHash }}">{{ tSettings }}</a>
+<button type="button" role="menuitem" data-ops-prof-out="1" onClick="{{ signOut }}">{{ tSignOut }}</button>
+</div>
+</sc-if>
+<button type="button" data-ops-prof-btn="1" onClick="{{ toggleMenu }}" title="{{ tProfile }}" aria-haspopup="menu" aria-expanded="{{ menuExpanded }}">
+<sc-if value="{{ hasPhoto }}" hint-placeholder-val="{{ false }}">
+<img src="{{ profilePhoto }}" alt="">
+</sc-if>
+<sc-if value="{{ noPhoto }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="user" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>
+</sc-if>
+</button>
+</div>
+</div>
 </div>
 <sc-if value="{{ isDash }}" hint-placeholder-val="{{ true }}">
 <dc-import name="OpsDash" hint-size="100%,900px"></dc-import>
@@ -146,7 +214,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <dc-import name="OpsBoard" hint-size="100%,900px"></dc-import>
 </sc-if>
 <sc-if value="{{ isFleet }}" hint-placeholder-val="{{ false }}">
-<dc-import name="OpsFleet" section="{{ fleetSection }}" hint-size="100%,900px"></dc-import>
+<dc-import name="OpsFleetBoard" section="{{ fleetSection }}" hint-size="100%,900px"></dc-import>
 </sc-if>
 <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
 <dc-import name="OpsDetail" id="{{ detailId }}" hint-size="100%,900px"></dc-import>
@@ -161,10 +229,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <dc-import name="OpsContent" section="{{ contentSection }}" hint-size="100%,900px"></dc-import>
 </sc-if>
 <sc-if value="{{ isCalendar }}" hint-placeholder-val="{{ false }}">
-<dc-import name="OpsCalendar" hint-size="100%,900px"></dc-import>
+<dc-import name="OpsCalendarBoard" hint-size="100%,900px"></dc-import>
 </sc-if>
 <sc-if value="{{ isCustomers }}" hint-placeholder-val="{{ false }}">
 <dc-import name="OpsCustomers" hint-size="100%,900px"></dc-import>
+</sc-if>
+<sc-if value="{{ isSupport }}" hint-placeholder-val="{{ false }}">
+<dc-import name="OpsSupportTicket" hint-size="100%,900px"></dc-import>
 </sc-if>
 <sc-if value="{{ isCoupons }}" hint-placeholder-val="{{ false }}">
 <dc-import name="OpsCoupons" hint-size="100%,900px"></dc-import>
@@ -178,11 +249,22 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;start&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dashboard&quot;,&quot;options&quot;:[&quot;dashboard&quot;,&quot;bookings&quot;,&quot;calendar&quot;,&quot;vehicles&quot;,&quot;chauffeurs&quot;,&quot;pricing&quot;,&quot;customers&quot;,&quot;coupons&quot;,&quot;reviews&quot;,&quot;settings&quot;,&quot;profile&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Console&quot;},&quot;requireSignIn&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Console&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;start&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dashboard&quot;,&quot;options&quot;:[&quot;dashboard&quot;,&quot;bookings&quot;,&quot;calendar&quot;,&quot;vehicles&quot;,&quot;chauffeurs&quot;,&quot;pricing&quot;,&quot;customers&quot;,&quot;support&quot;,&quot;coupons&quot;,&quot;reviews&quot;,&quot;settings&quot;,&quot;profile&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Console&quot;},&quot;requireSignIn&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Console&quot;}}">
 const FLEET = ['vehicles', 'chauffeurs'];
 const CONTENT = ['pages', 'legal'];
-const ROUTES = ['dashboard', 'bookings', 'calendar', 'pricing', 'customers', 'coupons', 'settings', 'staff', 'profile', 'reviews', 'detail'].concat(FLEET).concat(CONTENT);
+const ROUTES = ['dashboard', 'bookings', 'calendar', 'pricing', 'customers', 'support', 'coupons', 'settings', 'staff', 'profile', 'reviews', 'detail'].concat(FLEET).concat(CONTENT);
 const MENU = { en:'Open navigation', de:'Navigation öffnen', fr:'Ouvrir la navigation', ar:'فتح التنقل' };
+const PROF = {
+  en: { profile:'Profile', settings:'Settings', signOut:'Sign out' },
+  de: { profile:'Profil', settings:'Einstellungen', signOut:'Abmelden' },
+  fr: { profile:'Profil', settings:'Réglages', signOut:'Se déconnecter' },
+  ar: { profile:'الملف الشخصي', settings:'الإعدادات', signOut:'تسجيل الخروج' },
+};
+function avatarUrl(avatar) {
+  const value = String(avatar || '');
+  if (!value) return '';
+  return value.charAt(0) === '/' ? value : '/photos/' + value;
+}
 /* One console, one URL. Every section is a hash route on this page: #bookings,
    #pricing, #reviews, #calendar…, plus #detail/<id> for a single booking. */
 function readHash() {
@@ -192,28 +274,72 @@ function readHash() {
   return { route: key, detailId: key === 'detail' ? decodeURIComponent(id || '') : null };
 }
 class Component extends DCLogic {
-  state = Object.assign({ navOpen: false, lang: 'en' }, readHash());
+  state = Object.assign({ navOpen: false, lang: 'en', menuOpen: false, me: null }, readHash());
   componentDidMount() {
     if (location.pathname.indexOf('/app/') === 0) { location.replace('/'); return; }
     const gate = this.props.requireSignIn !== false;
     if (gate && typeof localStorage !== 'undefined' && localStorage.getItem('vamosOpsAuth') !== '1') { location.replace('/login'); return; }
     if (!location.hash) location.replace('#' + (this.props.start || 'dashboard'));
-    this._onHash = () => this.setState(Object.assign({ navOpen: false }, readHash()));
+    this._onHash = () => this.setState(Object.assign({ navOpen: false, menuOpen: false }, readHash()));
     window.addEventListener('hashchange', this._onHash);
     this._onLocale = (e) => this.setState({ lang: e.detail.lang });
     window.addEventListener('vamos:locale', this._onLocale);
     if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang || 'en' });
+    this._onKey = (e) => { if (e.key === 'Escape' && this.state.menuOpen) this.setState({ menuOpen: false }); };
+    window.addEventListener('keydown', this._onKey);
+    this.bindOps();
   }
   componentWillUnmount() {
     if (this._onHash) window.removeEventListener('hashchange', this._onHash);
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
+    if (this._onKey) window.removeEventListener('keydown', this._onKey);
+    if (this._offOps) this._offOps();
+    clearTimeout(this._retry);
   }
+  bindOps = () => {
+    if (!window.VamosOps) { this._retry = setTimeout(this.bindOps, 120); return; }
+    this._offOps = window.VamosOps.profile.onChange(() => this.forceUpdate());
+    const api = window.VamosOpsApi;
+    if (api && typeof api.request === 'function') {
+      api.request('GET', '/api/staff/me').then((json) => {
+        if (json && json.ok && json.data && typeof json.data === 'object') this.setState({ me: json.data });
+      });
+    }
+    this.forceUpdate();
+  };
   toggleNav = () => this.setState((s) => ({ navOpen: !s.navOpen }));
   closeNav = () => this.setState({ navOpen: false });
+  toggleMenu = () => this.setState((s) => ({ menuOpen: !s.menuOpen }));
+  closeMenu = () => this.setState({ menuOpen: false });
+  goHash = (e) => {
+    const a = e.currentTarget;
+    const href = (a && a.getAttribute && a.getAttribute('href')) || '';
+    if (href.charAt(0) !== '#') return;
+    e.preventDefault();
+    this.setState({ menuOpen: false, navOpen: false });
+    if (location.hash !== href) location.hash = href;
+  };
+  signOut = () => {
+    try { localStorage.removeItem('vamosOpsAuth'); } catch (e) {}
+    const done = () => { location.replace('/login'); };
+    const api = window.VamosOpsApi;
+    if (api && typeof api.request === 'function') {
+      api.request('POST', '/api/auth', { action: 'signout' }).then(done, done);
+      return;
+    }
+    fetch('/api/auth', {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'signout' }),
+    }).then(done, done);
+  };
   renderVals() {
     const r = this.state.route;
+    const t = PROF[this.state.lang] || PROF.en;
+    const profile = window.VamosOps ? window.VamosOps.profile.get() : {};
+    const me = this.state.me || {};
     return {
-      n20: 20,
+      n16: 16, n20: 20, n22: 22,
       route: r === 'detail' ? 'bookings' : r,
       detailId: this.state.detailId || '',
       fleetSection: r === 'chauffeurs' ? 'chauffeurs' : 'vehicles',
@@ -222,10 +348,17 @@ class Component extends DCLogic {
       isDash: r === 'dashboard', isFleet: FLEET.indexOf(r) !== -1,
       isBookings: r === 'bookings', isDetail: r === 'detail', isPricing: r === 'pricing',
       isReviews: r === 'reviews', isCalendar: r === 'calendar', isCustomers: r === 'customers',
-      isCoupons: r === 'coupons', isSettings: r === 'settings' || r === 'staff', isProfile: r === 'profile',
+      isCoupons: r === 'coupons', isSupport: r === 'support', isSettings: r === 'settings' || r === 'staff', isProfile: r === 'profile',
       navOpenAttr: this.state.navOpen ? '1' : '0',
       toggleNav: this.toggleNav, closeNav: this.closeNav,
+      toggleMenu: this.toggleMenu, closeMenu: this.closeMenu, goHash: this.goHash, signOut: this.signOut,
+      menuOpen: this.state.menuOpen,
+      menuExpanded: this.state.menuOpen ? 'true' : 'false',
       tMenu: MENU[this.state.lang] || MENU.en,
+      tProfile: t.profile, tSettings: t.settings, tSignOut: t.signOut,
+      profilePhoto: avatarUrl(profile.avatar || me.avatar),
+      hasPhoto: !!(profile.avatar || me.avatar),
+      noPhoto: !(profile.avatar || me.avatar),
     };
   }
 }
