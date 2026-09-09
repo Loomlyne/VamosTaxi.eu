@@ -1,27 +1,93 @@
 "use client";
 
-// D-21: mock payment radios are gone (ADR-014 §6). Stripe's Payment Element
-// is the method picker. CheckoutProvider is Stripe's CheckoutElementsProvider
-// (Dahlia / @stripe/react-stripe-js).
+// D-21: mock payment radios are gone (ADR-014 §6). Split card fields + Express
+// Checkout sit on CheckoutElementsProvider (Dahlia / @stripe/react-stripe-js).
 //
 // Browser: one Stripe.js object per document — module-scoped on purpose.
 // Server stripeFromEnv() is per-request. Do not "fix" either into the other.
 //
-// Do not mount <PaymentElement> while checkout.type === "loading".
-// createPaymentElement on an SDK that has not finished loadActions() leaves
-// Stripe's 3-bar loader up forever (Pay and confirm on vamostaxi.site).
+// Do not mount card fields on a second Checkout session. CardNumberElement
+// uses a sibling Elements tree; confirm still goes through useCheckoutElements.
 
 import {
   CheckoutElementsProvider as CheckoutProvider,
-  PaymentElement,
+  ExpressCheckoutElement,
   useCheckoutElements,
 } from "@stripe/react-stripe-js/checkout";
-import { loadStripe, type Stripe } from "@stripe/stripe-js";
+import {
+  CardCvcElement,
+  CardExpiryElement,
+  CardNumberElement,
+  Elements,
+  useElements,
+  useStripe,
+} from "@stripe/react-stripe-js";
+import { loadStripe, type Stripe, type StripeElementsOptions } from "@stripe/stripe-js";
 import { createNavigation } from "next-intl/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ComponentProps } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { Icon } from "@/components/core";
+import { Select } from "@/components/forms";
+import { Tabs } from "@/components/navigation/Tabs";
 import { routing } from "@/i18n/routing";
+import { VAMOS_STRIPE_APPEARANCE } from "@/lib/checkout/stripe-appearance";
 
 const { useRouter } = createNavigation(routing);
+
+type ExpressConfirmEvent = Parameters<
+  NonNullable<ComponentProps<typeof ExpressCheckoutElement>["onConfirm"]>
+>[0];
+
+type WalletTab = "applePay" | "link";
+
+const CARD_COUNTRIES = [
+  "CH",
+  "DE",
+  "FR",
+  "IT",
+  "AT",
+  "LI",
+  "GB",
+  "IE",
+  "US",
+  "CA",
+  "AE",
+  "SA",
+  "QA",
+  "KW",
+  "BH",
+  "OM",
+  "EG",
+  "IN",
+  "CN",
+  "JP",
+  "KR",
+  "SG",
+  "HK",
+  "AU",
+  "NZ",
+  "ES",
+  "PT",
+  "NL",
+  "BE",
+  "LU",
+  "PL",
+  "SE",
+  "NO",
+  "DK",
+  "FI",
+] as const;
+
+const CARD_STYLE = {
+  base: {
+    color: "#1e1f1f",
+    fontFamily: "Poppins, system-ui, sans-serif",
+    fontSize: "16px",
+    fontSmoothing: "antialiased",
+    "::placeholder": { color: "#8b8d8d" },
+  },
+  invalid: { color: "#1e1f1f" },
+} as const;
 
 let stripePromise: Promise<Stripe | null> | null = null;
 let stripePromiseKey = "";
@@ -64,11 +130,257 @@ function decodeClientSecret(secret: string | undefined, hex: string | undefined)
   }
 }
 
+function countryOptions(locale: string): { value: string; label: string }[] {
+  const names = new Intl.DisplayNames([locale], { type: "region" });
+  return CARD_COUNTRIES.map((code) => ({
+    value: code,
+    label: names.of(code) ?? code,
+  }));
+}
+
+function CheckoutWallets({
+  wallet,
+  onExpress,
+}: {
+  wallet: WalletTab;
+  onExpress: (event: ExpressConfirmEvent) => void;
+}) {
+  const checkout = useCheckoutElements();
+  if (checkout.type === "loading") return null;
+  if (checkout.type === "error") return null;
+  return (
+    <div data-checkout-express>
+      <ExpressCheckoutElement
+        key={wallet}
+        options={{
+          buttonHeight: 48,
+          buttonTheme: { applePay: "black", googlePay: "black", paypal: "gold" },
+          buttonType: { applePay: "plain", googlePay: "pay", paypal: "paypal" },
+          layout: { maxColumns: 2, maxRows: 1, overflow: "never" },
+          paymentMethodOrder: wallet === "link" ? ["link"] : ["applePay"],
+          paymentMethods: {
+            applePay: wallet === "applePay" ? "always" : "never",
+            googlePay: "never",
+            link: wallet === "link" ? "auto" : "never",
+            paypal: "never",
+          },
+        }}
+        onConfirm={(event) => onExpress(event)}
+      />
+    </div>
+  );
+}
+
+function VamosCardFields({
+  name,
+  email,
+  onCreate,
+  onComplete,
+}: {
+  name: string;
+  email: string;
+  onCreate: (create: () => Promise<{ id: string; country: string }>) => void;
+  onComplete: (ok: boolean) => void;
+}) {
+  const t = useTranslations("checkout");
+  const locale = useLocale();
+  const stripe = useStripe();
+  const elements = useElements();
+  const [numberOk, setNumberOk] = useState(false);
+  const [expiryOk, setExpiryOk] = useState(false);
+  const [cvcOk, setCvcOk] = useState(false);
+  const [brand, setBrand] = useState("unknown");
+  const [country, setCountry] = useState("CH");
+  const countries = useMemo(() => countryOptions(locale), [locale]);
+
+  useEffect(() => {
+    if (!stripe || !elements) return;
+    onCreate(async () => {
+      const number = elements.getElement(CardNumberElement);
+      if (!number) throw new Error("payCouldNotStart");
+      const created = await stripe.createPaymentMethod({
+        type: "card",
+        card: number,
+        billing_details: {
+          name: name.trim() || undefined,
+          email: email.trim() || undefined,
+          address: { country },
+        },
+      });
+      if (created.error || !created.paymentMethod?.id) {
+        throw new Error(created.error?.message ?? "payCouldNotStart");
+      }
+      return { id: created.paymentMethod.id, country };
+    });
+  }, [country, email, elements, name, onCreate, stripe]);
+
+  useEffect(() => {
+    onComplete(numberOk && expiryOk && cvcOk);
+  }, [cvcOk, expiryOk, numberOk, onComplete]);
+
+  return (
+    <div className="vt-checkout__cardfields" data-checkout-card-fields>
+      <div className="vt-field">
+        <span className="vt-field__label">{t("cardNumber")}</span>
+        <div className="vt-input vt-input--md">
+          <span className="vt-checkout__card-brand" data-checkout-card-brand={brand}>
+            <Icon name="credit-card" size={16} />
+          </span>
+          <div className="vt-checkout__stripe-el">
+            <CardNumberElement
+              options={{
+                disableLink: true,
+                placeholder: "1234 1234 1234 1234",
+                showIcon: false,
+                style: CARD_STYLE,
+              }}
+              onChange={(event) => {
+                setNumberOk(event.complete);
+                setBrand(event.brand || "unknown");
+              }}
+              onReady={() => undefined}
+            />
+          </div>
+        </div>
+      </div>
+      <div className="vt-checkout__card-row">
+        <div className="vt-field">
+          <span className="vt-field__label">{t("cardExpiry")}</span>
+          <div className="vt-input vt-input--md">
+            <div className="vt-checkout__stripe-el">
+              <CardExpiryElement
+                options={{ placeholder: "MM / YY", style: CARD_STYLE }}
+                onChange={(event) => setExpiryOk(event.complete)}
+              />
+            </div>
+          </div>
+        </div>
+        <div className="vt-field">
+          <span className="vt-field__label">{t("cardCvc")}</span>
+          <div className="vt-input vt-input--md">
+            <div className="vt-checkout__stripe-el">
+              <CardCvcElement
+                options={{ placeholder: "CVC", style: CARD_STYLE }}
+                onChange={(event) => setCvcOk(event.complete)}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      <Select
+        label={t("cardCountry")}
+        options={countries}
+        value={country}
+        onChange={(event) => setCountry(event.target.value)}
+        data-checkout-card-country="true"
+      />
+    </div>
+  );
+}
+
+function CheckoutFields({
+  reference,
+  billingName,
+  billingEmail,
+  wallet,
+  stripePromise: promise,
+  onReady,
+  onComplete,
+}: {
+  reference: string;
+  billingName: string;
+  billingEmail: string;
+  wallet: WalletTab;
+  stripePromise: Promise<Stripe | null>;
+  onReady: (confirm: () => Promise<void>) => void;
+  onComplete: (complete: boolean) => void;
+}) {
+  const checkout = useCheckoutElements();
+  const router = useRouter();
+  const cardCreate = useRef<(() => Promise<{ id: string; country: string }>) | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const onCardCreate = useCallback((create: () => Promise<{ id: string; country: string }>) => {
+    cardCreate.current = create;
+  }, []);
+
+  useEffect(() => {
+    if (checkout.type !== "success") {
+      onComplete(false);
+      return;
+    }
+    onReady(async () => {
+      setError(null);
+      const create = cardCreate.current;
+      if (!create) throw new Error("payCouldNotStart");
+      const card = await create();
+      const result = await checkout.checkout.confirm({
+        paymentMethod: card.id,
+        email: billingEmail.trim() || undefined,
+        billingAddress: {
+          name: billingName.trim() || null,
+          address: { country: card.country },
+        },
+        redirect: "if_required",
+      });
+      if (result.type === "error") {
+        setError(result.error.message);
+        throw new Error(result.error.message);
+      }
+      if (reference) router.push(`/confirmation/${reference}`);
+    });
+  }, [billingEmail, billingName, checkout, onComplete, onReady, reference, router]);
+
+  async function onExpress(event: ExpressConfirmEvent) {
+    if (checkout.type !== "success") {
+      event.paymentFailed({ reason: "fail" });
+      return;
+    }
+    const result = await checkout.checkout.confirm({
+      expressCheckoutConfirmEvent: event,
+      redirect: "if_required",
+    });
+    if (result.type === "error") {
+      event.paymentFailed({ reason: "fail" });
+      return;
+    }
+    if (reference) router.push(`/confirmation/${reference}`);
+  }
+
+  const cardOptions = useMemo<StripeElementsOptions>(
+    () => ({
+      appearance: VAMOS_STRIPE_APPEARANCE,
+      fonts: [{ cssSrc: "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" }],
+      loader: "auto",
+    }),
+    [],
+  );
+
+  if (checkout.type === "loading") {
+    return <CheckoutPaySkeleton />;
+  }
+  if (checkout.type === "error") {
+    return <CheckoutPaySkeleton />;
+  }
+
+  return (
+    <>
+      <CheckoutWallets wallet={wallet} onExpress={onExpress} />
+      <Elements stripe={promise} options={cardOptions}>
+        <VamosCardFields name={billingName} email={billingEmail} onCreate={onCardCreate} onComplete={onComplete} />
+      </Elements>
+      {error ? <p data-checkout-pay-error>{error}</p> : null}
+    </>
+  );
+}
+
 export function PaymentPanel({
   publishableKey,
   clientSecret,
   clientSecretHex,
   reference,
+  billingName = "",
+  billingEmail = "",
   onReady,
   onComplete = noopComplete,
 }: {
@@ -76,9 +388,14 @@ export function PaymentPanel({
   clientSecret: string;
   clientSecretHex?: string;
   reference: string;
+  billingName?: string;
+  billingEmail?: string;
+  billingPhone?: string;
   onReady: (confirm: () => Promise<void>) => void;
   onComplete?: (complete: boolean) => void;
 }) {
+  const t = useTranslations("checkout");
+  const [wallet, setWallet] = useState<WalletTab>("applePay");
   const promise = useMemo(() => browserStripe(publishableKey), [publishableKey]);
   const secret = decodeClientSecret(clientSecret, clientSecretHex) ?? clientSecret;
 
@@ -88,64 +405,37 @@ export function PaymentPanel({
 
   return (
     <div className="vt-checkout__pay" data-checkout-pay>
+      <Tabs
+        block
+        className="vt-checkout__wallettabs"
+        value={wallet}
+        onChange={(value) => setWallet(value === "link" ? "link" : "applePay")}
+        items={[
+          { value: "applePay", label: t("applePay") },
+          { value: "link", label: t("stripeLink") },
+        ]}
+      />
       <CheckoutProvider
         key={secret}
         stripe={promise}
         options={{
           clientSecret: secret,
+          elementsOptions: {
+            appearance: VAMOS_STRIPE_APPEARANCE,
+            fonts: [{ cssSrc: "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" }],
+          },
         }}
       >
-        <CheckoutFields reference={reference} onReady={onReady} onComplete={onComplete} />
+        <CheckoutFields
+          reference={reference}
+          billingName={billingName}
+          billingEmail={billingEmail}
+          wallet={wallet}
+          stripePromise={promise}
+          onReady={onReady}
+          onComplete={onComplete}
+        />
       </CheckoutProvider>
     </div>
-  );
-}
-
-function CheckoutFields({
-  reference,
-  onReady,
-  onComplete,
-}: {
-  reference: string;
-  onReady: (confirm: () => Promise<void>) => void;
-  onComplete: (complete: boolean) => void;
-}) {
-  const checkout = useCheckoutElements();
-  const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (checkout.type !== "success") {
-      onComplete(false);
-      return;
-    }
-    onReady(async () => {
-      setError(null);
-      // D-16: Stripe confirm only. This page never writes booking status.
-      // /confirmation/{reference} is processing until the webhook lands.
-      // TWINT and 3DS may never return to this tab — this handler must be
-      // safe to never resume.
-      const result = await checkout.checkout.confirm({
-        redirect: "if_required",
-      });
-      if (result.type === "error") {
-        setError(result.error.message);
-        throw new Error(result.error.message);
-      }
-      if (reference) router.push(`/confirmation/${reference}`);
-    });
-  }, [checkout, onComplete, onReady, reference, router]);
-
-  if (checkout.type === "loading") {
-    return <CheckoutPaySkeleton />;
-  }
-  if (checkout.type === "error") {
-    return <CheckoutPaySkeleton />;
-  }
-  return (
-    <>
-      <PaymentElement onChange={(event) => onComplete(event.complete)} />
-      {error ? <p data-checkout-pay-error>{error}</p> : null}
-    </>
   );
 }

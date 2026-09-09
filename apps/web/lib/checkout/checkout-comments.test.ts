@@ -41,9 +41,10 @@ describe("checkout comment pack", () => {
     expect(contact).toContain("CHECKOUT_EMAIL_RE");
   });
 
-  it("uses block tabs for guest and billing only on payment", () => {
+  it("uses block tabs for guest on details and keeps pay-link on payment", () => {
     expect(client).toContain("continue-as-guest");
-    expect(client).toContain("billingIndividual");
+    expect(client).not.toContain("billingIndividual");
+    expect(client).toContain("businessDetails");
     expect(client).toContain("sendPayLink");
     expect(client).toContain("pay-and-continue");
     expect(client).toContain("block");
@@ -51,14 +52,17 @@ describe("checkout comment pack", () => {
     expect(client).not.toContain("payLinkTab");
     expect(client).not.toContain("payMethod");
     expect(client).not.toMatch(/name=["']acct["']/);
-    expect(client.indexOf("billingIndividual")).toBeGreaterThan(client.indexOf('step === "payment"'));
+    expect(client.indexOf("continue-as-guest")).toBeGreaterThan(client.indexOf('step === "details"'));
+    expect(client.indexOf("continue-as-guest")).toBeLessThan(client.indexOf("businessDetails"));
   });
 
-  it("drops the flight card and keeps extras as tiles", () => {
+  it("drops the flight card and paints extras from the live book", () => {
     expect(client).not.toContain("flight-and-pickup-details");
     expect(client).toContain("flight-number");
     expect(client).toContain("who-is-travelling");
-    expect(client).toContain("extraOversized");
+    expect(client).toContain("/api/checkout/extras");
+    expect(client).toContain("vt-checkout__extra-price");
+    expect(client).toContain("meet_greet");
     expect(client).toContain("vt-checkout__extra");
     expect(client).not.toContain("need-something-unusual-a-bus-a-wedding-an-overni");
     expect(client).toContain("vt-checkout__terms");
@@ -92,6 +96,8 @@ describe("checkout comment pack", () => {
     expect(payLink).not.toMatch(/checkoutWindowMinutes:\s*30/);
     expect(home).not.toMatch(/s: sub \|\| undefined/);
     expect(home).toContain("text: apiText");
+    expect(home).toContain("flight: s.flight || ''");
+    expect(home).toContain("flightNumber: s.flight || ''");
   });
 
   it("omits the checkout Turnstile widget and does not send a token", () => {
@@ -101,27 +107,33 @@ describe("checkout comment pack", () => {
     expect(intent).not.toContain("verifyTurnstile");
     expect(client).not.toContain("turnstile_failed");
     expect(client).not.toContain("formChallengeFailed");
-    expect(client.indexOf("billingIndividual")).toBeLessThan(client.indexOf("vt-checkout__recap"));
+    expect(client.indexOf("vt-checkout__company")).toBeGreaterThan(client.indexOf("vt-checkout__recap"));
     expect(client.indexOf("vt-checkout__recap")).toBeLessThan(client.indexOf("vt-checkout__payhead"));
     expect(css).toContain("min-block-size: var(--vt-control-h-md)");
   });
 
   it("does not mount PaymentElement until Checkout init finishes", () => {
-    const fields = payPanel.slice(payPanel.indexOf("function CheckoutFields"));
-    expect(fields).toContain('if (checkout.type === "loading")');
-    expect(fields.indexOf('if (checkout.type === "loading")')).toBeLessThan(fields.indexOf("<PaymentElement"));
+    expect(payPanel).toContain("function CheckoutWallets");
+    expect(payPanel).toContain('if (checkout.type === "loading")');
+    expect(payPanel).toContain("CardNumberElement");
+    expect(payPanel).toContain("CardExpiryElement");
+    expect(payPanel).toContain("CardCvcElement");
+    expect(payPanel).not.toContain("<PaymentElement");
     expect(payPanel).not.toContain("ConfirmBinder");
     expect(client).toContain("if (clientSecret && !confirmPay) return;");
     expect(client).toContain('?? "payCouldNotStart"');
     expect(client).toContain("onComplete={onPaymentComplete}");
-    expect(payPanel).toContain("onChange={(event) => onComplete(event.complete)}");
+    expect(payPanel).toContain("onComplete(numberOk && expiryOk && cvcOk)");
     expect(client).not.toContain('payMethod === "link"');
     expect(client).not.toContain("busy && !clientSecret");
     expect(client).toContain("clientSecret ? (");
     expect(client).toContain("CheckoutPaySkeleton");
     expect(client).toContain("disabled={busy || !cardComplete || !confirmPay}");
     expect(client).not.toContain("companyReady");
-    expect(client).toContain("disabled={busy}");
+    expect(client).toContain("disabled={busy || !isCheckoutEmail(payerEmail)}");
+    expect(client).toContain("couponAlreadyOn");
+    expect(client).toContain("billingKindFromFields");
+    expect(client).toContain("isCheckoutEmail(payerEmail)");
     expect(client.indexOf("vt-checkout__company")).toBeGreaterThan(client.indexOf("vt-checkout__recap"));
     expect(client.indexOf("vt-checkout__company")).toBeLessThan(client.indexOf("vt-checkout__payhead"));
     expect(client).toContain("applyCouponCode");
@@ -134,10 +146,44 @@ describe("checkout comment pack", () => {
       /\.vt-checkout__company[\s\S]*grid-template-columns:\s*minmax\(0, 1fr\) minmax\(0, 1fr\)/,
     );
     expect(css).toContain("padding-block-end: 20px");
+    expect(css).toContain(".vt-checkout__company-title");
+    expect(css).toContain(".vt-checkout__cardfields");
     expect(client).toContain("vatIncl");
+    expect(client).toContain("vatIncludedRappen");
+    expect(client).toContain("data-checkout-vat-amount");
+    expect(client).toContain("fareExVat");
+    expect(client).toContain("wasRappen");
+    expect(client).toContain("priceWas");
     expect(client).toContain("client_secret_hex");
-    expect(client).toContain("applyCouponCode(couponApplied, { childSeat: next, oversized })");
-    expect(route).toContain("grid-template-columns:repeat(2,minmax(0,1fr))");
+    expect(client).toContain("clientSecretHex");
+    expect(client).toContain("applyCouponCode(couponApplied, { childSeat: next, oversized, extraStop })");
+    expect(payPanel).toContain("ExpressCheckoutElement");
+    expect(payPanel).toContain("VAMOS_STRIPE_APPEARANCE");
+    expect(payPanel).toContain("data-checkout-express");
+    expect(payPanel).toContain("data-checkout-card-fields");
+    expect(payPanel).not.toContain("ACCT-000028");
+    expect(payPanel).toContain("1234 1234 1234 1234");
+    expect(payPanel).toContain('t("cardCountry")');
+    expect(payPanel).toContain('t("applePay")');
+    expect(payPanel).toContain('t("stripeLink")');
+    expect(payPanel).toContain('wallet === "applePay" ? "always"');
+    expect(payPanel).toContain("googlePay: \"never\"");
+    expect(payPanel).toContain('wallet === "link" ? "auto"');
+    expect(payPanel).toContain("address: { country }");
+    expect(client).toContain("recapExtras");
+    expect(client).toContain("data-checkout-recap-extra");
+    expect(client).toContain("data-checkout-coupon-used");
+    expect(client).toContain("couponUsed");
+    expect(client).toContain("data-coupon-state");
+    expect(client).toContain("tCommon(\"remove\")");
+    expect(client).toContain("readOnly={Boolean(couponApplied)}");
+    expect(client).not.toContain("<Tag");
+    expect(css).toContain('[data-coupon-state="valid"]');
+    expect(css).toContain('[data-coupon-state="invalid"]');
+    expect(payPanel).not.toContain("defaultValues:");
+    expect(payPanel).not.toContain("phoneNumber:");
+    expect(route).toContain("display:flex;flex-wrap:wrap");
+    expect(route).not.toContain("grid-template-columns:repeat(2,minmax(0,1fr))");
   });
 
   it("shows the locked class total, selected class, and no change-vehicle", () => {
@@ -151,12 +197,12 @@ describe("checkout comment pack", () => {
     expect(css).toContain("padding-block: var(--vt-space-5)");
   });
 
-  it("ports home booking fields onto trip and drops ski plus extra stops", () => {
+  it("ports home booking fields onto trip and paints extras from the live book", () => {
     expect(client).toContain("vt-checkout__party");
     expect(client).toContain("tCommon(\"passengers\")");
     expect(client).toContain("tQuote(\"flight.placeholder\")");
     expect(client).toContain("couponPlaceholder");
-    expect(client).not.toContain("extraSki");
+    expect(client).toContain("/api/checkout/extras");
     expect(client).not.toContain("additional-stops");
     expect(client).toContain("payCouldNotStart");
   });

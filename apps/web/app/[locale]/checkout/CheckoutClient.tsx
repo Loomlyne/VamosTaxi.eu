@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createNavigation } from "next-intl/navigation";
 import { useTranslations } from "next-intl";
 import { Alert } from "@/components/feedback/Alert";
-import { Badge, Button, Card, Icon, Tag } from "@/components/core";
+import { Badge, Button, Card, Icon } from "@/components/core";
 import { Counter, Input, Textarea, WhenPicker, TimePicker } from "@/components/forms";
 import { StepIndicator } from "@/components/navigation/StepIndicator";
 import { Tabs } from "@/components/navigation/Tabs";
@@ -16,7 +16,7 @@ import {
 } from "@/components/booking";
 import { PlaceCombo, type PlaceRetrieve } from "@/components/forms/PlaceCombo";
 import { e164Phone, isCheckoutEmail } from "@/lib/checkout/contact-validate";
-import { useBookingDraft } from "@/lib/booking-draft";
+import { readDraft, useBookingDraft } from "@/lib/booking-draft";
 import {
   bouncePath,
   checkoutStepPath,
@@ -43,10 +43,16 @@ import {
   writeVamosTrip,
   type VamosTrip,
 } from "@/lib/checkout/vamos-trip";
+import {
+  extraUi,
+  recapExtras,
+  type CheckoutExtraJson,
+} from "@/lib/checkout/extras-catalog";
+import { vatIncludedRappen } from "@/lib/checkout/vat";
 import { chfRappenToDisplay } from "@/lib/fx/format";
 import { useFx } from "@/lib/fx/use-fx";
 import { useVamosLocale } from "@/lib/locale-shim";
-import type { CurrencyCode } from "@/lib/currency";
+import { formatAmount, type CurrencyCode } from "@/lib/currency";
 import { routing } from "@/i18n/routing";
 import { useCheckoutSettings } from "./CheckoutSettings";
 import { CheckoutClassCards, classFits, firstFittingClass } from "./CheckoutClassCards";
@@ -79,6 +85,25 @@ function vehicleLabel(id: string, t: (key: string) => string): string {
 }
 
 const CLASS_SLUGS = ["economy", "business", "first", "van"] as const;
+
+type ExtraToggles = { childSeat: boolean; oversized: boolean; extraStop: boolean };
+
+function quoteExtras(toggles: ExtraToggles) {
+  return {
+    child_seats: toggles.childSeat ? 1 : 0,
+    oversized_luggage: toggles.oversized,
+    extra_stops: toggles.extraStop ? 1 : 0,
+  };
+}
+
+function couponAlreadyOn(applied: string | null, next: string | null): boolean {
+  if (!applied || !next) return false;
+  return applied.localeCompare(next, undefined, { sensitivity: "accent" }) === 0;
+}
+
+function billingKindFromFields(name: string, address: string, vat: string): "individual" | "company" {
+  return name.trim() || address.trim() || vat.trim() ? "company" : "individual";
+}
 
 function scheduledLocalFor(trip: VamosTrip | null, date: string, time: string): string | null {
   const base = trip?.scheduled_local;
@@ -178,11 +203,17 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const [notes, setNotes] = useState("");
   const [childSeat, setChildSeat] = useState(false);
   const [oversized, setOversized] = useState(false);
+  const [extraStop, setExtraStop] = useState(false);
+  const [skiRack, setSkiRack] = useState(false);
+  const [extrasCatalog, setExtrasCatalog] = useState<CheckoutExtraJson[]>([]);
   const [coupon, setCoupon] = useState("");
   const [couponApplied, setCouponApplied] = useState<string | null>(null);
+  const [couponInvalid, setCouponInvalid] = useState(false);
+  const [wasRappen, setWasRappen] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [refusal, setRefusal] = useState<string | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [clientSecretHex, setClientSecretHex] = useState<string | undefined>();
   const [publishable, setPublishable] = useState(publishableKey);
   const [reference, setReference] = useState<string | null>(null);
   const [payUrl, setPayUrl] = useState<string | null>(null);
@@ -204,6 +235,23 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
 
   const onPaymentComplete = useCallback((complete: boolean) => {
     setCardComplete(complete);
+  }, []);
+
+  useEffect(() => {
+    let on = true;
+    fetch("/api/checkout/extras")
+      .then((res) => res.json())
+      .then((json: unknown) => {
+        if (!on || !json || typeof json !== "object") return;
+        const body = json as { ok?: boolean; extras?: CheckoutExtraJson[] };
+        if (body.ok && Array.isArray(body.extras)) {
+          setExtrasCatalog(body.extras);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      on = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -239,8 +287,22 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     if (trip?.notes) setNotes(trip.notes);
     if (typeof trip?.childSeat === "boolean") setChildSeat(trip.childSeat);
     if (typeof trip?.oversizedLuggage === "boolean") setOversized(trip.oversizedLuggage);
+    if (typeof trip?.stops === "number") setExtraStop(trip.stops > 0);
+    if (typeof trip?.skiRack === "boolean") setSkiRack(trip.skiRack);
     if (trip?.billingKind === "company" || trip?.billingKind === "individual") {
       setBillingKind(trip.billingKind);
+    }
+    const incomingQuote = tripQuoteId(trip);
+    const stored = readDraft();
+    const quoteChanged = Boolean(incomingQuote && stored.quoteId && incomingQuote !== stored.quoteId);
+    if (quoteChanged) {
+      setClientSecret(null);
+      setClientSecretHex(undefined);
+      setReference(null);
+      setConfirmPay(null);
+      setCardComplete(false);
+      intentStarted.current = false;
+      intentAttempts.current = 0;
     }
     writeDraft({
       pickup: nextPickup,
@@ -250,9 +312,15 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       passengers: tripPax(trip),
       luggage: tripBags(trip),
       flightNumber: trip?.flightNumber || trip?.flight || "",
-      quoteId: tripQuoteId(trip) || undefined,
+      quoteId: incomingQuote || undefined,
       lock: trip?.lock || undefined,
       vehicleClass: nextVehicle,
+      idempotencyKey:
+        incomingQuote && incomingQuote === stored.quoteId && stored.idempotencyKey
+          ? stored.idempotencyKey
+          : incomingQuote
+            ? crypto.randomUUID()
+            : stored.idempotencyKey,
     });
     setGate("ok");
   }, [step, router, writeDraft]);
@@ -403,6 +471,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         pickupPlace,
         dropoffPlace,
         display_currency: displayCur,
+        flightNumber: draft.flightNumber,
+        flight: draft.flightNumber,
       });
       setTripSnap(next);
       writeDraft({
@@ -466,6 +536,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       notes,
       childSeat,
       oversizedLuggage: oversized,
+      stops: extraStop ? 1 : 0,
+      skiRack,
       billingKind,
       flightNumber: draft.flightNumber,
     });
@@ -504,10 +576,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           quote_id: quoteId,
           lock,
           vehicle_class: vehicleClass,
-          extras: {
-            child_seats: childSeat ? 1 : 0,
-            oversized_luggage: oversized,
-          },
+          extras: quoteExtras({ childSeat, oversized, extraStop }),
           coupon: couponApplied || null,
           contact: {
             name,
@@ -539,6 +608,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       setCardComplete(false);
       const secret = decodeClientSecret(json.client_secret, json.client_secret_hex);
       setClientSecret(secret);
+      setClientSecretHex(json.client_secret_hex);
       if (!secret) {
         intentStarted.current = false;
         return "fail";
@@ -554,17 +624,23 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
 
   async function applyCouponCode(
     code: string | null,
-    extras?: { childSeat: boolean; oversized: boolean },
+    extras?: Partial<ExtraToggles>,
   ) {
     const trip = tripSnap ?? readVamosTrip();
     const quoteId = draft.quoteId || tripQuoteId(trip);
     const lock = draft.lock || trip?.lock;
     const seats = extras?.childSeat ?? childSeat;
     const bags = extras?.oversized ?? oversized;
+    const stopsOn = extras?.extraStop ?? extraStop;
     if (!quoteId || !lock) {
       setRefusal("quoteExpired");
       return;
     }
+    const nextCode = code == null ? null : code.trim() || null;
+    if (!extras && couponAlreadyOn(couponApplied, nextCode)) {
+      return;
+    }
+    const beforeRappen = peekLockClassRappen(lock, vehicle);
     setBusy(true);
     try {
       const res = await fetch("/api/quote/reprice", {
@@ -575,11 +651,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           lock,
           locale,
           display_currency: displayCur,
-          coupon: code,
-          extras: {
-            child_seats: seats ? 1 : 0,
-            oversized_luggage: bags,
-          },
+          coupon: nextCode,
+          extras: quoteExtras({ childSeat: seats, oversized: bags, extraStop: stopsOn }),
           contact_email: contact.email.trim() || null,
         }),
       });
@@ -591,12 +664,17 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         coupon?: { applied?: boolean; code?: string };
       };
       if (!res.ok || !json.ok || !json.lock) {
-        setCouponApplied(null);
+        if (nextCode) {
+          setCouponApplied(null);
+          setWasRappen(null);
+          setCouponInvalid(true);
+        }
         setRefusal("couponNoLongerValid");
         return;
       }
-      if (code && !json.coupon?.applied) {
-        setCouponApplied(null);
+      if (nextCode && !json.coupon?.applied) {
+        if (!couponApplied) setCouponApplied(null);
+        setCouponInvalid(true);
         setRefusal("couponNoLongerValid");
         return;
       }
@@ -607,6 +685,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         quote_id: nextId,
         lock: json.lock,
         expires_at: json.expires_at,
+        flightNumber: draft.flightNumber,
+        flight: draft.flightNumber,
       });
       setTripSnap((prev) => ({
         ...(prev ?? {}),
@@ -615,15 +695,26 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         lock: json.lock,
         expires_at: json.expires_at,
       }));
-      setCouponApplied(code && json.coupon?.applied ? (json.coupon.code ?? code) : null);
+      const applied = Boolean(nextCode && json.coupon?.applied);
+      const appliedCode = applied ? (json.coupon?.code ?? nextCode) : null;
+      setCouponApplied(appliedCode);
+      setCouponInvalid(false);
+      if (appliedCode) setCoupon(appliedCode);
+      if (applied && !couponApplied && beforeRappen != null) {
+        setWasRappen(beforeRappen);
+      } else if (!applied) {
+        setWasRappen(null);
+      }
       setRefusal(null);
       setClientSecret(null);
+      setClientSecretHex(undefined);
       setConfirmPay(null);
       setCardComplete(false);
       intentStarted.current = false;
       intentAttempts.current = 0;
       setIntentTick((n) => n + 1);
     } catch {
+      if (nextCode) setCouponInvalid(true);
       setRefusal("couponNoLongerValid");
     } finally {
       setBusy(false);
@@ -641,9 +732,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       setRefusal("quoteExpired");
       return;
     }
-    const payer = (payerEmail || contact.email).trim();
-    if (!payer) {
-      setRefusal("quoteExpired");
+    const payer = payerEmail.trim();
+    if (!isCheckoutEmail(payer)) {
       return;
     }
     setBusy(true);
@@ -656,10 +746,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           quote_id: quoteId,
           lock,
           vehicle_class: vehicleClass,
-          extras: {
-            child_seats: childSeat ? 1 : 0,
-            oversized_luggage: oversized,
-          },
+          extras: quoteExtras({ childSeat, oversized, extraStop }),
           coupon: couponApplied,
           contact: {
             name: `${contact.firstName.trim()} ${contact.lastName.trim()}`,
@@ -669,7 +756,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           locale,
           display_currency: displayCur,
           idempotency_key: idempotencyKey,
-          billing_kind: billingKind,
+          billing_kind: billingKindFromFields(companyName, companyAddress, companyVat),
           company_name: companyName,
           company_address: companyAddress,
           company_vat: companyVat,
@@ -725,11 +812,104 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const railPickup = placeText(tripSnap?.pickupPlace, pickup || draft.pickup);
   const railDrop = placeText(tripSnap?.dropoffPlace, destination || draft.destination);
   const lockToken = tripSnap?.lock || draft.lock;
-  const shown = chfRappenToDisplay(
-    peekLockClassRappen(lockToken, vehicle),
+  const chargedRappen = peekLockClassRappen(lockToken, vehicle);
+  const shown = chfRappenToDisplay(chargedRappen, displayCur, fx.rates?.rates ?? null);
+  function extraPrice(row: CheckoutExtraJson): string {
+    if (row.kind === "included") return tCommon("included-2");
+    if (row.kind === "percent" && row.percent != null && String(row.percent) !== "") {
+      return `+ ${String(row.percent)}%`;
+    }
+    if (row.kind === "amount" && row.amount_rappen != null) {
+      const money = chfRappenToDisplay(row.amount_rappen, displayCur, fx.rates?.rates ?? null);
+      return formatAmount(money.major, money.currency);
+    }
+    return "";
+  }
+  function extraOn(code: string): boolean {
+    if (code === "child_seat") return childSeat;
+    if (code === "oversized_luggage") return oversized;
+    if (code === "extra_stop") return extraStop;
+    if (code === "ski" || code === "ski_rack") return skiRack;
+    if (code === "meet_greet") return true;
+    return false;
+  }
+  function extraClick(code: string) {
+    if (code === "child_seat") {
+      const next = !childSeat;
+      setChildSeat(next);
+      writeVamosTrip({ childSeat: next });
+      void applyCouponCode(couponApplied, { childSeat: next, oversized, extraStop });
+      return;
+    }
+    if (code === "oversized_luggage") {
+      const next = !oversized;
+      setOversized(next);
+      writeVamosTrip({ oversizedLuggage: next });
+      void applyCouponCode(couponApplied, { childSeat, oversized: next, extraStop });
+      return;
+    }
+    if (code === "extra_stop") {
+      const next = !extraStop;
+      setExtraStop(next);
+      writeVamosTrip({ stops: next ? 1 : 0 });
+      void applyCouponCode(couponApplied, { extraStop: next });
+      return;
+    }
+    if (code === "ski" || code === "ski_rack") {
+      const next = !skiRack;
+      setSkiRack(next);
+      writeVamosTrip({ skiRack: next });
+    }
+  }
+  const vatRappen = chargedRappen == null ? null : vatIncludedRappen(chargedRappen);
+  const netRappen = chargedRappen == null || vatRappen == null ? null : chargedRappen - vatRappen;
+  const vatShown = chfRappenToDisplay(vatRappen, displayCur, fx.rates?.rates ?? null);
+  const wasShown = chfRappenToDisplay(
+    wasRappen != null && chargedRappen != null && wasRappen > chargedRappen ? wasRappen : null,
     displayCur,
     fx.rates?.rates ?? null,
   );
+  const recapExtraRows = recapExtras(extrasCatalog, extraOn);
+  const extraRappen = recapExtraRows.reduce((sum, row) => sum + row.amount_rappen, 0);
+  const extraLines = recapExtraRows.map((row) => {
+    const extraShown = chfRappenToDisplay(row.amount_rappen, displayCur, fx.rates?.rates ?? null);
+    return {
+      label: <span data-checkout-recap-extra={row.code}>{t(row.labelKey)}</span>,
+      amount: extraShown.major,
+    };
+  });
+  const fareRappen = netRappen == null ? null : Math.max(0, netRappen - extraRappen);
+  const fareShown = chfRappenToDisplay(fareRappen, displayCur, fx.rates?.rates ?? null);
+  const couponOffRappen =
+    couponApplied && wasRappen != null && chargedRappen != null && wasRappen > chargedRappen
+      ? wasRappen - chargedRappen
+      : null;
+  const couponOffShown = chfRappenToDisplay(couponOffRappen, displayCur, fx.rates?.rates ?? null);
+  const priceLines =
+    chargedRappen == null
+      ? extraLines
+      : [
+          { label: t("fareExVat"), amount: fareShown.major },
+          ...extraLines,
+          {
+            label: (
+              <span data-checkout-vat data-checkout-vat-amount={formatAmount(vatShown.major, vatShown.currency)}>
+                {t("vatIncl")}
+              </span>
+            ),
+            amount: vatShown.major,
+          },
+          ...(couponOffShown.major != null
+            ? [
+                {
+                  label: <span data-checkout-coupon-used>{t("couponUsed")}</span>,
+                  amount: -couponOffShown.major,
+                  credit: true as const,
+                },
+              ]
+            : []),
+        ];
+  const priceWas = wasShown.major;
   const distanceM = peekLockDistanceM(lockToken);
   const distanceKm = distanceM == null ? null : formatDistanceKm(distanceM);
   const railMeta: RouteMetaItem[] = [
@@ -975,40 +1155,44 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
               <Card padding="lg">
                 <h2>{t("extras")}</h2>
                 <div className="vt-checkout__extras">
-                  <button
-                    type="button"
-                    className="vt-checkout__extra"
-                    data-on={childSeat ? "true" : undefined}
-                    aria-pressed={childSeat}
-                    onClick={() => {
-                      const next = !childSeat;
-                      setChildSeat(next);
-                      writeVamosTrip({ childSeat: next });
-                      void applyCouponCode(couponApplied, { childSeat: next, oversized });
-                    }}
-                  >
-                    <Icon name="baby" size={20} />
-                    <span className="vt-checkout__extra-copy">
-                      <strong>{t("childSeat")}</strong>
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    className="vt-checkout__extra"
-                    data-on={oversized ? "true" : undefined}
-                    aria-pressed={oversized}
-                    onClick={() => {
-                      const next = !oversized;
-                      setOversized(next);
-                      writeVamosTrip({ oversizedLuggage: next });
-                      void applyCouponCode(couponApplied, { childSeat, oversized: next });
-                    }}
-                  >
-                    <Icon name="luggage" size={20} />
-                    <span className="vt-checkout__extra-copy">
-                      <strong>{t("extraOversized")}</strong>
-                    </span>
-                  </button>
+                  {extrasCatalog.map((extra) => {
+                    const ui = extraUi(extra.code);
+                    if (!ui) return null;
+                    const on = extraOn(extra.code);
+                    const price = extraPrice(extra);
+                    const copy = (
+                      <span className="vt-checkout__extra-copy">
+                        <strong>{t(ui.labelKey)}</strong>
+                        {price ? <span className="vt-checkout__extra-price">{price}</span> : null}
+                      </span>
+                    );
+                    if (!ui.toggle) {
+                      return (
+                        <div
+                          key={extra.code}
+                          className="vt-checkout__extra"
+                          data-on="true"
+                          data-static="true"
+                        >
+                          <Icon name={ui.icon} size={20} />
+                          {copy}
+                        </div>
+                      );
+                    }
+                    return (
+                      <button
+                        key={extra.code}
+                        type="button"
+                        className="vt-checkout__extra"
+                        data-on={on ? "true" : undefined}
+                        aria-pressed={on}
+                        onClick={() => extraClick(extra.code)}
+                      >
+                        <Icon name={ui.icon} size={20} />
+                        {copy}
+                      </button>
+                    );
+                  })}
                   <div className="vt-checkout__notes">
                     <Textarea
                       label={t("notes-for-the-driver")}
@@ -1016,7 +1200,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                       onChange={(e) => setNotes(e.target.value)}
                       hint={t("meeting-point-gate-code-ski-equipment")}
                     />
-                    <p className="vt-checkout__included">{t("arrivals-your-driver-waits-with-your-name")}</p>
+                    {extrasCatalog.some((row) => row.code === "meet_greet") ? null : (
+                      <p className="vt-checkout__included">{t("arrivals-your-driver-waits-with-your-name")}</p>
+                    )}
                   </div>
                 </div>
               </Card>
@@ -1026,18 +1212,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           {step === "payment" ? (
             <Card padding="lg">
               <div className="vt-checkout__sheet">
-              <div className="vt-checkout__payblock">
-                <Tabs
-                  className="vt-checkout__tabs"
-                  block
-                  value={billingKind}
-                  onChange={(value) => setBillingKind(value === "company" ? "company" : "individual")}
-                  items={[
-                    { value: "individual", label: t("billingIndividual") },
-                    { value: "company", label: t("billingCompany") },
-                  ]}
-                />
-              </div>
               <div className="vt-checkout__recap">
                 <div className="vt-checkout__recap-trip">
                   <Badge tone="accent">{t("charged-now-secured-by-stripe")}</Badge>
@@ -1047,62 +1221,67 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                 <div className="vt-checkout__recap-pay">
                   <div data-checkout-total>
                     <PriceSummary
+                      lines={priceLines}
                       total={shown.major}
+                      was={priceWas}
                       currency={shown.currency}
                       totalLabel={t("total")}
-                      note={<span data-checkout-vat>{t("vatIncl")}</span>}
                     />
                   </div>
-                  <div className="vt-checkout__coupon" data-checkout-coupon>
+                  <div
+                    className="vt-checkout__coupon"
+                    data-checkout-coupon
+                    data-coupon-state={couponApplied ? "valid" : couponInvalid ? "invalid" : undefined}
+                  >
                     <Input
                       label={t("coupon-or-voucher-code")}
                       value={coupon}
                       placeholder={t("couponPlaceholder")}
-                      onChange={(e) => setCoupon(e.target.value)}
+                      readOnly={Boolean(couponApplied)}
+                      onChange={(e) => {
+                        setCouponInvalid(false);
+                        setCoupon(e.target.value);
+                      }}
                     />
                     <Button
                       variant="ghost"
                       size="sm"
                       disabled={busy}
-                      onClick={() => void applyCouponCode(coupon.trim() || null)}
+                      onClick={() =>
+                        void applyCouponCode(couponApplied ? null : coupon.trim() || null)
+                      }
                     >
-                      {tCommon("apply")}
+                      {couponApplied ? tCommon("remove") : tCommon("apply")}
                     </Button>
                   </div>
-                  {couponApplied ? (
-                    <Tag onRemove={() => void applyCouponCode(null)}>
-                      {t("couponCode", { code: couponApplied })}
-                    </Tag>
-                  ) : null}
                   <p className="vt-checkout__charge" data-checkout-charge>
                     {t("chargeIn", { currency: t("chargeCurrencyName") })}
                   </p>
                 </div>
               </div>
-              {billingKind === "company" ? (
-                <div className="vt-checkout__company">
-                  <Input
-                    label={t("companyName")}
-                    value={companyName}
-                    onChange={(e) => setCompanyName(e.target.value)}
-                  />
-                  <Input
-                    label={t("companyAddress")}
-                    value={companyAddress}
-                    onChange={(e) => setCompanyAddress(e.target.value)}
-                  />
-                  <Input
-                    label={t("companyVat")}
-                    value={companyVat}
-                    onChange={(e) => setCompanyVat(e.target.value)}
-                  />
-                  <Input
-                    label={t("payerEmail")}
-                    value={payerEmail || contact.email}
-                    onChange={(e) => setPayerEmail(e.target.value)}
-                  />
-                </div>
-              ) : null}
+              <div className="vt-checkout__company">
+                <h2 className="vt-checkout__company-title">{t("businessDetails")}</h2>
+                <Input
+                  label={t("companyName")}
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                />
+                <Input
+                  label={t("companyAddress")}
+                  value={companyAddress}
+                  onChange={(e) => setCompanyAddress(e.target.value)}
+                />
+                <Input
+                  label={t("companyVat")}
+                  value={companyVat}
+                  onChange={(e) => setCompanyVat(e.target.value)}
+                />
+                <Input
+                  label={t("payerEmail")}
+                  value={payerEmail}
+                  onChange={(e) => setPayerEmail(e.target.value)}
+                />
+              </div>
               <div className="vt-checkout__payblock">
                 <div className="vt-checkout__payhead">
                   <h2>{t("payment")}</h2>
@@ -1113,7 +1292,11 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                     <PaymentPanel
                       publishableKey={publishable}
                       clientSecret={clientSecret}
+                      clientSecretHex={clientSecretHex}
                       reference={reference ?? ""}
+                      billingName={`${contact.firstName} ${contact.lastName}`.trim()}
+                      billingEmail={contact.email}
+                      billingPhone={contact.mobile}
                       onReady={onPaymentReady}
                       onComplete={onPaymentComplete}
                     />
@@ -1150,11 +1333,13 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                   >
                     {t("pay-and-continue")}
                   </Button>
-                  {billingKind === "company" ? (
-                    <Button size="lg" disabled={busy} onClick={() => void sendPayLink()}>
-                      {t("sendPayLink")}
-                    </Button>
-                  ) : null}
+                  <Button
+                    size="lg"
+                    disabled={busy || !isCheckoutEmail(payerEmail)}
+                    onClick={() => void sendPayLink()}
+                  >
+                    {t("sendPayLink")}
+                  </Button>
                 </div>
                 {payUrl ? (
                   <>
@@ -1202,10 +1387,11 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
             <RouteSummary pickup={railPickup} dropoff={railDrop} meta={railMeta} />
             <div data-checkout-total>
               <PriceSummary
+                lines={priceLines}
                 total={shown.major}
+                was={priceWas}
                 currency={shown.currency}
                 totalLabel={t("total")}
-                note={<span data-checkout-vat>{t("vatIncl")}</span>}
               />
             </div>
             {distanceKm ? (

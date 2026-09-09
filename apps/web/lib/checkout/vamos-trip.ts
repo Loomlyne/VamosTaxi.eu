@@ -91,9 +91,18 @@ export function readVamosTrip(): VamosTrip | null {
   return trip;
 }
 
+/** New quote_id = new booking flow. Do not carry the last trip's flight number. */
+export function mergeVamosTrip(current: VamosTrip, patch: Partial<VamosTrip>): VamosTrip {
+  const nextId = patch.quote_id || patch.quoteId;
+  const curId = current.quote_id || current.quoteId;
+  const quoteChanged = Boolean(nextId && curId && nextId !== curId);
+  if (!quoteChanged) return { ...current, ...patch };
+  return { ...current, flight: "", flightNumber: "", ...patch };
+}
+
 export function writeVamosTrip(patch: Partial<VamosTrip>): VamosTrip {
   const current = readVamosTrip() ?? {};
-  const next: VamosTrip = { ...current, ...patch };
+  const next: VamosTrip = mergeVamosTrip(current, patch);
   if (typeof window === "undefined") return next;
   try {
     window.localStorage.setItem(LOCAL_KEY, JSON.stringify(next));
