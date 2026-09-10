@@ -142,7 +142,7 @@ describe("POST /api/checkout/intent recorder", () => {
     expect(rec.calls.some((c) => c.startsWith("session.expire"))).toBe(false);
     const json = (await res.json()) as { reference: string; amount_rappen: number };
     expect(json.reference).toBe("VT-10001");
-    expect(json.amount_rappen).toBe(8000);
+    expect(json.amount_rappen).toBe(8648);
   });
 
   it("preflight:exit on bad HMAC never reaches Stripe or the RPC", async () => {

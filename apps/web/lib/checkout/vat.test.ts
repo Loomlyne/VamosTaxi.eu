@@ -1,9 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { vatIncludedRappen } from "./vat";
+import { payableWithVatRappen, vatIncludedRappen, vatOnTopRappen } from "./vat";
 
 describe("vatIncludedRappen", () => {
   it("takes 8.1% out of a Van floor without adding on top", () => {
-    // 150.00 → 11.24 included. Total stays 150.00.
     expect(vatIncludedRappen(15_000)).toBe(1_124);
   });
 
@@ -18,5 +17,30 @@ describe("vatIncludedRappen", () => {
     expect(vatIncludedRappen(0)).toBe(0);
     expect(vatIncludedRappen(-1)).toBe(0);
     expect(vatIncludedRappen(Number.NaN)).toBe(0);
+  });
+});
+
+describe("vatOnTopRappen", () => {
+  it("adds 8.1% on 120.00 net (fare 100 + child seat 20)", () => {
+    expect(vatOnTopRappen(12_000)).toBe(972);
+    expect(payableWithVatRappen(12_000)).toBe(12_972);
+  });
+
+  it("adds 8.1% on the four class floors", () => {
+    expect(vatOnTopRappen(8_000)).toBe(648);
+    expect(payableWithVatRappen(8_000)).toBe(8_648);
+    expect(vatOnTopRappen(10_000)).toBe(810);
+    expect(payableWithVatRappen(10_000)).toBe(10_810);
+    expect(vatOnTopRappen(13_000)).toBe(1_053);
+    expect(payableWithVatRappen(13_000)).toBe(14_053);
+    expect(vatOnTopRappen(15_000)).toBe(1_215);
+    expect(payableWithVatRappen(15_000)).toBe(16_215);
+  });
+
+  it("does not invent VAT when the net is empty", () => {
+    expect(vatOnTopRappen(0)).toBe(0);
+    expect(vatOnTopRappen(-1)).toBe(0);
+    expect(vatOnTopRappen(Number.NaN)).toBe(0);
+    expect(payableWithVatRappen(0)).toBe(0);
   });
 });

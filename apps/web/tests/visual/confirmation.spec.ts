@@ -115,8 +115,7 @@ test("en and de voucher at 1440 and 390, ar RTL at 1440 @checkout", async ({ pag
   await expect(page.locator("[data-confirmation]")).toHaveScreenshot("voucher-ar-1440.png");
 });
 
-test("de give-up at 390 @checkout", async ({ page }) => {
-  test.setTimeout(180_000);
+test("de pending at 390 still shows the transfer ticket @checkout", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 900 });
   await grantCookie(page);
   await page.route("**/api/checkout/status/**", async (route) => {
@@ -126,11 +125,12 @@ test("de give-up at 390 @checkout", async ({ page }) => {
       body: JSON.stringify({ status: "pending" }),
     });
   });
+  await page.addInitScript((seed) => {
+    sessionStorage.setItem("vamosTrip", JSON.stringify(seed));
+  }, DRAFT);
   const res = await page.goto(`${baseURL}/de/confirmation/${REF}`);
   expect(res?.ok()).toBeTruthy();
-  await expect(page.locator("[data-confirmation-state=processing]")).toBeVisible();
-  await expect(page.locator("[data-confirmation-state=give-up]")).toBeVisible({
-    timeout: 40_000,
-  });
-  await expect(page.locator("[data-confirmation]")).toHaveScreenshot("giveup-de-390.png");
+  await expect(page.locator("[data-confirmation-voucher]")).toBeVisible();
+  await expect(page.locator("[data-confirmation-wait]")).toHaveCount(0);
+  await expect(page.locator("[data-confirmation]")).toHaveScreenshot("voucher-de-390-pending.png");
 });

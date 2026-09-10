@@ -16,7 +16,7 @@ import {
   Section,
   Text,
 } from "@react-email/components";
-import type { BookingForEmail, EmailLocale } from "./lib/types";
+import type { BookingForEmail, EmailLocale, PayLinkExtraCode } from "./lib/types";
 import { t } from "./lib/t";
 
 /** --vt-charcoal / --vt-charcoal-900 */
@@ -59,11 +59,23 @@ function firstLeg(booking: BookingForEmail) {
   return booking.legs[0];
 }
 
+const EXTRA_KEY: Record<PayLinkExtraCode, string> = {
+  child_seat: "payLink.extraChildSeat",
+  oversized_luggage: "payLink.extraOversized",
+  extra_stop: "payLink.extraStop",
+};
+
+function extraLabels(locale: EmailLocale, extras: PayLinkExtraCode[] | undefined): string[] {
+  if (!extras?.length) return [];
+  return extras.map((code) => t(locale, EXTRA_KEY[code]));
+}
+
 export function ConfirmationEmail({ booking }: { booking: BookingForEmail }) {
   const locale: EmailLocale = booking.locale;
   const dir = locale === "ar" ? "rtl" : "ltr";
   const leg = firstLeg(booking);
   const amount = formatPaidTotal(booking.totalRappen);
+  const extras = extraLabels(locale, booking.extras);
 
   return (
     <Html lang={locale} dir={dir}>
@@ -116,6 +128,11 @@ export function ConfirmationEmail({ booking }: { booking: BookingForEmail }) {
                   {" · "}
                   {t(locale, "paxLine", { pax: leg.pax, bags: leg.bags })}
                 </Text>
+                {extras.length > 0 ? (
+                  <Text style={{ margin: "8px 0 0", fontSize: "14px", color: CHARCOAL }}>
+                    {t(locale, "payLink.extrasLabel")} {extras.join(" · ")}
+                  </Text>
+                ) : null}
               </>
             ) : null}
             <Hr style={{ borderColor: GREY, margin: "24px 0" }} />
@@ -176,6 +193,10 @@ export function confirmationPlainText(booking: BookingForEmail): string {
     if (leg.flightNo) lines.push(leg.flightNo);
     lines.push(`${t(locale, "vehicleLabel")} ${leg.vehicleClassLabel}`);
     lines.push(t(locale, "paxLine", { pax: leg.pax, bags: leg.bags }));
+    const extras = extraLabels(locale, booking.extras);
+    if (extras.length > 0) {
+      lines.push(`${t(locale, "payLink.extrasLabel")} ${extras.join(" · ")}`);
+    }
   }
   lines.push(`${t(locale, "paidTotal")} ${formatPaidTotal(booking.totalRappen)}`);
   lines.push(booking.manageUrl);

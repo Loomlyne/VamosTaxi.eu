@@ -2,8 +2,9 @@ export const dynamic = "force-dynamic";
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { cookies } from "next/headers";
+import { customerClaims } from "@/lib/account/session";
 import { BOOKING_REFERENCE_RE, readBookingStatus } from "@/lib/checkout/booking-read";
-import { MANAGE_COOKIE_NAME } from "@/lib/checkout/manage-token";
+import { MANAGE_COOKIE_NAME, readManageCookie } from "@/lib/checkout/manage-token";
 
 function json(body: unknown): Response {
   return new Response(JSON.stringify(body), {
@@ -18,7 +19,7 @@ function json(body: unknown): Response {
 const HIDDEN = { visible: false as const };
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ ref: string }> },
 ): Promise<Response> {
   const { ref } = await context.params;
@@ -27,7 +28,7 @@ export async function GET(
   }
 
   const jar = await cookies();
-  const raw = jar.get(MANAGE_COOKIE_NAME)?.value ?? "";
+  const raw = readManageCookie(jar.get(MANAGE_COOKIE_NAME)?.value ?? "", request.headers.get("cookie"));
 
   let env: CloudflareEnv | null = null;
   try {
@@ -39,9 +40,17 @@ export async function GET(
     return json(HIDDEN);
   }
 
-  const result = await readBookingStatus(env, raw, ref);
-  if (!result.visible) {
-    return json(HIDDEN);
+  try {
+    const claims = await customerClaims(request);
+    const result = await readBookingStatus(env, raw, ref, claims);
+    if (!result.visible) {
+      return json(HIDDEN);
+    }
+    return json({
+      status: result.status,
+      paymentStatus: result.paymentStatus,
+    });
+  } catch {
+    return json({ status: "pending", paymentStatus: null });
   }
-  return json({ status: result.status });
 }

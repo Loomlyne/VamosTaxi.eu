@@ -13,6 +13,7 @@ import {
 } from "@vamos/emails/confirmation";
 import { asSystem } from "../db/identity";
 import { SUPPORT_EMAIL } from "../contact-channels";
+import { extrasFromPolicy } from "./pay-link";
 import { mintManageToken } from "./manage-token";
 
 type SettledBooking = {
@@ -50,7 +51,7 @@ export async function deliverConfirmation(
   const locale = asEmailLocale(settled.locale);
   const manageUrl = `${PUBLIC_ORIGIN}/${locale}/manage-booking?token=${raw}`;
 
-  const booking = await asSystem(env, async (sql) => {
+  const loaded = await asSystem(env, async (sql) => {
     await sql`
       select public.checkout_issue_manage_token(
         ${settled.booking_id}::uuid,
@@ -61,10 +62,21 @@ export async function deliverConfirmation(
     const rows = await sql`
       select * from public.checkout_booking_for_email(${settled.booking_id}::uuid)
     `;
-    return rows[0];
+    const snaps = await sql`
+      select policy
+        from public.price_snapshots
+       where booking_id = ${settled.booking_id}
+       limit 1
+    `;
+    const policy =
+      snaps[0] && typeof snaps[0] === "object" && "policy" in snaps[0]
+        ? (snaps[0] as { policy: unknown }).policy
+        : null;
+    return { row: rows[0], extras: extrasFromPolicy(policy) };
   });
 
-  if (!booking) return;
+  if (!loaded?.row) return;
+  const booking = loaded.row;
 
   const claimId = await asSystem(env, async (sql) => {
     const rows = await sql`
@@ -93,6 +105,7 @@ export async function deliverConfirmation(
     totalRappen:
       booking.price_total_rappen == null ? null : Number(booking.price_total_rappen),
     manageUrl,
+    extras: loaded.extras,
     legs: [
       {
         legSeq: 1,

@@ -3,3 +3,5 @@
 export { BookingDraftFields } from "./BookingDraftFields";
 export { ContactFields, isCheckoutEmail } from "./ContactFields";
 export type { ContactFieldsValue, ContactFieldsErrors } from "./ContactFields";
+export { FlightField } from "./FlightField";
+export { formatFlightInput, normaliseFlightNumber } from "@/lib/flight/format";

@@ -19,6 +19,10 @@ export type BookingLegForEmail = {
   estimatedDurationMinutes: number | null;
 };
 
+export type PayLinkVehicle = "economy" | "business" | "first" | "van";
+
+export type PayLinkExtraCode = "child_seat" | "oversized_luggage" | "extra_stop";
+
 export type BookingForEmail = {
   reference: string;
   contactName: string;
@@ -30,11 +34,8 @@ export type BookingForEmail = {
   legs: BookingLegForEmail[];
   /** Caller already assembled this, raw manage token included. */
   manageUrl: string;
+  extras?: PayLinkExtraCode[];
 };
-
-export type PayLinkVehicle = "economy" | "business" | "first" | "van";
-
-export type PayLinkExtraCode = "child_seat" | "oversized_luggage" | "extra_stop";
 
 export type PayLinkForEmail = {
   reference: string;

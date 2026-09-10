@@ -524,20 +524,45 @@
 }
 
 .vt-checkout__coupon {
-  display: flex;
-  gap: 8px;
-  align-items: flex-end;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 8px;
+  row-gap: 6px;
+  align-items: stretch;
 }
 
 .vt-checkout__coupon .vt-field {
-  flex: 1 1 auto;
+  display: contents;
+}
+
+.vt-checkout__coupon .vt-field__label {
+  grid-column: 1 / -1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vt-checkout__coupon .vt-input {
+  grid-column: 1;
   min-inline-size: 0;
 }
 
+.vt-checkout__coupon .vt-input input {
+  text-transform: uppercase;
+}
+
 .vt-checkout__coupon .vt-btn {
-  flex: 0 0 auto;
+  grid-column: 2;
+  grid-row: 2;
+  margin-block-start: 0;
+  align-self: stretch;
   block-size: var(--vt-control-h-md);
   min-block-size: var(--vt-control-h-md);
+}
+
+.vt-checkout__coupon .vt-field__err,
+.vt-checkout__coupon .vt-field__hint {
+  grid-column: 1 / -1;
 }
 
 .vt-checkout__coupon[data-coupon-state="valid"] .vt-input,

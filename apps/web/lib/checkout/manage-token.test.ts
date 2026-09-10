@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MANAGE_COOKIE_NAME, manageTokenCookie, mintManageToken } from "./manage-token";
+import { MANAGE_COOKIE_NAME, manageTokenCookie, mintManageToken, readManageCookie } from "./manage-token";
 
 describe("mintManageToken", () => {
   it("returns 32-byte entropy hashed to 32 bytes", async () => {
@@ -25,5 +25,14 @@ describe("manageTokenCookie", () => {
     expect(cookie).toContain("SameSite=Lax");
     expect(cookie).toContain("Max-Age=1800");
     expect(cookie).toContain("Path=/");
+  });
+});
+
+describe("readManageCookie", () => {
+  it("prefers the jar and falls back to the Cookie header", () => {
+    expect(readManageCookie("from-jar", `${MANAGE_COOKIE_NAME}=from-header`)).toBe("from-jar");
+    expect(readManageCookie("", `${MANAGE_COOKIE_NAME}=from-header; other=1`)).toBe("from-header");
+    expect(readManageCookie("", "other=1")).toBe("");
+    expect(readManageCookie("", null)).toBe("");
   });
 });
