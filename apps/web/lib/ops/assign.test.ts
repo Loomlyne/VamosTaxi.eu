@@ -104,6 +104,24 @@ describe("08-04 assign file proofs", () => {
     expect(src).not.toMatch(/:6543/);
   });
 
+  it("sends chauffeur assign/unassign mail after RPC success, not before", () => {
+    const src = read("apps/web/lib/ops/assign.ts");
+    expect(src.indexOf("ops_assign_leg")).toBeGreaterThan(-1);
+    expect(src.indexOf('notifyChauffeur(env, "assign"')).toBeGreaterThan(src.indexOf("ops_assign_leg"));
+    expect(src.indexOf("ops_unassign_leg")).toBeGreaterThan(-1);
+    expect(src.indexOf('notifyChauffeur(env, "unassign"')).toBeGreaterThan(
+      src.indexOf("ops_unassign_leg"),
+    );
+    expect(src).toContain("sendChauffeurAssign");
+    expect(src).toContain("sendChauffeurUnassign");
+    expect(src).toMatch(/if \(result\.ok\)/);
+    expect(src).not.toMatch(/select public\.notification_claim/);
+    expect(src.toLowerCase()).not.toMatch(/gmail/);
+    expect(src).not.toMatch(/wa\.me/);
+    const send = read("packages/emails/src/lib/send.ts");
+    expect(send).toContain("Vamos Taxi <noreply@vamostaxi.site>");
+  });
+
   it("bookings-write no longer matches chauffeur by full_name", () => {
     const w = read("apps/web/lib/ops/bookings-write.ts");
     expect(w).not.toMatch(/full_name = \$\{chauffeur\}/);

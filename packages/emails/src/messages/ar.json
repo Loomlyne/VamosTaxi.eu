@@ -40,5 +40,15 @@
     "vehicleBusiness": "Business",
     "vehicleFirst": "First",
     "vehicleVan": "Van"
+  },
+  "chauffeurAssign": {
+    "subject": "تم إسناد الرحلة {reference}",
+    "preheader": "تفاصيل الاستلام لـ {reference}.",
+    "headline": "أُسندت إليك هذه الرحلة"
+  },
+  "chauffeurUnassign": {
+    "subject": "أُلغي إسناد الرحلة {reference}",
+    "preheader": "لم تعد {reference} مسندة إليك.",
+    "headline": "لم تعد هذه الرحلة مسندة إليك"
   }
 }

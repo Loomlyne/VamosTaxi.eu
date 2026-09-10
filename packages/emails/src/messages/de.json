@@ -40,5 +40,15 @@
     "vehicleBusiness": "Business",
     "vehicleFirst": "First",
     "vehicleVan": "Van"
+  },
+  "chauffeurAssign": {
+    "subject": "Fahrt {reference} zugewiesen",
+    "preheader": "Abholung für {reference}.",
+    "headline": "Diese Fahrt ist Ihnen zugewiesen"
+  },
+  "chauffeurUnassign": {
+    "subject": "Fahrt {reference} nicht mehr zugewiesen",
+    "preheader": "{reference} ist Ihnen nicht mehr zugewiesen.",
+    "headline": "Diese Fahrt ist Ihnen nicht mehr zugewiesen"
   }
 }

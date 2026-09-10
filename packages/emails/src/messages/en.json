@@ -40,5 +40,15 @@
     "vehicleBusiness": "Business",
     "vehicleFirst": "First",
     "vehicleVan": "Van"
+  },
+  "chauffeurAssign": {
+    "subject": "Trip {reference} assigned",
+    "preheader": "Pickup details for {reference}.",
+    "headline": "You have been assigned this trip"
+  },
+  "chauffeurUnassign": {
+    "subject": "Trip {reference} unassigned",
+    "preheader": "{reference} is no longer assigned to you.",
+    "headline": "This trip is no longer assigned to you"
   }
 }

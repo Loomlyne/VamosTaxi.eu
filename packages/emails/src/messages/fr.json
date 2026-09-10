@@ -40,5 +40,15 @@
     "vehicleBusiness": "Business",
     "vehicleFirst": "First",
     "vehicleVan": "Van"
+  },
+  "chauffeurAssign": {
+    "subject": "Course {reference} assignée",
+    "preheader": "Prise en charge pour {reference}.",
+    "headline": "Cette course vous est assignée"
+  },
+  "chauffeurUnassign": {
+    "subject": "Course {reference} n’est plus assignée",
+    "preheader": "{reference} ne vous est plus assignée.",
+    "headline": "Cette course ne vous est plus assignée"
   }
 }

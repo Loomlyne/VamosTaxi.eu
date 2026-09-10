@@ -10,11 +10,26 @@
 
 import { Resend } from "resend";
 import { ConfirmationEmail } from "../ConfirmationEmail";
+import {
+  ChauffeurAssignEmail,
+  chauffeurAssignPlainText,
+  chauffeurAssignSubject,
+  type ChauffeurDispatchForEmail,
+} from "../ChauffeurAssignEmail";
+import {
+  ChauffeurUnassignEmail,
+  chauffeurUnassignPlainText,
+  chauffeurUnassignSubject,
+} from "../ChauffeurUnassignEmail";
 import { PayLinkEmail, payLinkPlainText, payLinkSubject } from "../PayLinkEmail";
 import { renderRefundEmail, type RefundKind } from "../refund";
+import { chauffeurEmailLocale } from "./chauffeur-locale";
 import { buildInvite } from "./ics";
 import { renderConfirmation } from "./render";
 import type { BookingForEmail, EmailLocale, PayLinkForEmail, SendOutcome } from "./types";
+
+export { chauffeurEmailLocale };
+export type { ChauffeurDispatchForEmail };
 
 /**
  * Bump the trailing serial when rendered content changes; bump the date
@@ -163,4 +178,68 @@ export async function sendRefund(
     const message = err instanceof Error ? err.message : "sendRefund failed";
     return { ok: false, error: message };
   }
+}
+
+async function sendChauffeurDispatch(
+  env: EmailEnv,
+  trip: ChauffeurDispatchForEmail,
+  to: string,
+  kind: "assign" | "unassign",
+): Promise<SendOutcome> {
+  try {
+    if (!env.RESEND_API_KEY) {
+      return { ok: false, error: "RESEND_API_KEY is not bound" };
+    }
+    const recipient = to.trim().toLowerCase();
+    if (!recipient) {
+      return { ok: false, error: "no chauffeur recipient" };
+    }
+    const resend = new Resend(env.RESEND_API_KEY);
+    const result = await resend.emails.send({
+      from: FROM,
+      to: recipient,
+      subject:
+        kind === "unassign" ? chauffeurUnassignSubject(trip) : chauffeurAssignSubject(trip),
+      react:
+        kind === "unassign"
+          ? ChauffeurUnassignEmail({ trip })
+          : ChauffeurAssignEmail({ trip }),
+      text:
+        kind === "unassign"
+          ? chauffeurUnassignPlainText(trip)
+          : chauffeurAssignPlainText(trip),
+    });
+    if (result.error) {
+      return { ok: false, error: result.error.message };
+    }
+    const id = result.data?.id;
+    if (!id) {
+      return { ok: false, error: "Resend returned no id" };
+    }
+    return { ok: true, providerMessageId: id };
+  } catch (err) {
+    const message =
+      err instanceof Error
+        ? err.message
+        : kind === "unassign"
+          ? "sendChauffeurUnassign failed"
+          : "sendChauffeurAssign failed";
+    return { ok: false, error: message };
+  }
+}
+
+export async function sendChauffeurAssign(
+  env: EmailEnv,
+  trip: ChauffeurDispatchForEmail,
+  to: string,
+): Promise<SendOutcome> {
+  return sendChauffeurDispatch(env, trip, to, "assign");
+}
+
+export async function sendChauffeurUnassign(
+  env: EmailEnv,
+  trip: ChauffeurDispatchForEmail,
+  to: string,
+): Promise<SendOutcome> {
+  return sendChauffeurDispatch(env, trip, to, "unassign");
 }
