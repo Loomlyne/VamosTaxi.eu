@@ -266,6 +266,7 @@ describe("checkout comment pack", () => {
     expect(client).toContain("/api/checkout/extras");
     expect(client).not.toContain("additional-stops");
     expect(client).toContain("payCouldNotStart");
+    expect(client).toContain('setRefusal("completeCard")');
   });
 
   it("moves coupon onto the rail and drops Stripe currency selector", () => {
@@ -282,6 +283,8 @@ describe("checkout comment pack", () => {
   it("uses branded time spinner, equal date/time fields, and a unified payment page", () => {
     expect(client).toContain("TimePicker");
     expect(client).toContain("vt-checkout__cta");
+    expect(css).toContain("vt-checkout__cta");
+    expect(css).toMatch(/\.vt-checkout__payfoot[\s\S]*gap:\s*16px/);
     expect(client).toContain('refusal !== "pricingNotLive"');
     expect(css).toContain("grid-template-columns: minmax(0, 1fr) minmax(0, 1fr)");
     expect(css).toContain('[data-checkout-step="payment"]');

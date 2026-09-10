@@ -459,6 +459,7 @@
     "quoteAlreadyBooked": "This quote already has a booking.",
     "paymentWindowClosed": "The payment window closed. Get a new quote.",
     "payCouldNotStart": "Payment did not start. Try Pay and continue again.",
+    "completeCard": "Enter the card number, expiry and CVC.",
     "requote": "Get a new quote",
     "freeCancelHours": "Cancel free of charge up to {hours} hours before pickup.",
     "checkoutWindow": "Pay within {minutes} minutes to keep this price.",

@@ -904,7 +904,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
 
   async function onPay() {
     if (!cardComplete) {
-      setRefusal("payCouldNotStart");
+      setRefusal("completeCard");
       return;
     }
     setBusy(true);

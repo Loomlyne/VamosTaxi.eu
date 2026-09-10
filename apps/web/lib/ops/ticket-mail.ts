@@ -1,9 +1,19 @@
 // apps/web/lib/ops/ticket-mail.ts
 //
-// RFC threading for Support staff replies. In-Reply-To the contact ack
-// Message-ID so Gmail/Outlook keep one thread.
+// Plus-address + RFC threading for Support. Reply-To is replies.vamostaxi.site
+// so inbound never uses apex Gmail MX. Unmatched inbound is dropped.
 
+type TicketStatus = "new" | "open" | "replied" | "responded" | "closed";
+
+export const REPLY_MAILBOX_HOST = "replies.vamostaxi.site";
+export const CONTACT_FROM = "Vamos Taxi <noreply@vamostaxi.site>";
+
+const TOKEN = /^[0-9a-f]{32}$/;
 const ANGLE = /^<[^>]+>$/;
+
+export function ticketReplyAddress(token: string): string {
+  return `ticket+${token}@${REPLY_MAILBOX_HOST}`;
+}
 
 export function contactMessageId(submissionId: string): string {
   return `<c.${submissionId.replace(/-/g, "")}@vamostaxi.site>`;
@@ -19,6 +29,51 @@ export function asRfcMessageId(raw: string): string {
   return ANGLE.test(value) ? value : `<${value}>`;
 }
 
+function addressesOf(raw: string): string[] {
+  const matches = raw.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi);
+  return matches ?? [];
+}
+
+export function parseTicketReplyToken(raw: string | string[] | undefined | null): string | null {
+  const values = Array.isArray(raw) ? raw : raw ? [raw] : [];
+  for (const value of values) {
+    for (const address of addressesOf(value)) {
+      const at = address.lastIndexOf("@");
+      if (at < 0) continue;
+      const local = address.slice(0, at);
+      const host = address.slice(at + 1).toLowerCase();
+      if (host !== REPLY_MAILBOX_HOST) continue;
+      const prefix = "ticket+";
+      if (!local.toLowerCase().startsWith(prefix)) continue;
+      const token = local.slice(prefix.length).toLowerCase();
+      if (TOKEN.test(token)) return token;
+    }
+  }
+  return null;
+}
+
+export function tokenFromInboundTo(to: unknown): string | null {
+  if (typeof to === "string") return parseTicketReplyToken(to);
+  if (Array.isArray(to)) {
+    const parts = to.map((item) => {
+      if (typeof item === "string") return item;
+      if (item && typeof item === "object" && "email" in item) {
+        return String((item as { email: unknown }).email ?? "");
+      }
+      return "";
+    });
+    return parseTicketReplyToken(parts);
+  }
+  if (to && typeof to === "object" && "email" in to) {
+    return parseTicketReplyToken(String((to as { email: unknown }).email ?? ""));
+  }
+  return null;
+}
+
+export function inboundTicketStatus(_current: TicketStatus): TicketStatus {
+  return "responded";
+}
+
 export function threadHeaders(inReplyTo: string, outboundId: string): Record<string, string> {
   const parent = asRfcMessageId(inReplyTo);
   const child = staffMessageId(outboundId);
@@ -26,5 +81,59 @@ export function threadHeaders(inReplyTo: string, outboundId: string): Record<str
     "Message-ID": child,
     "In-Reply-To": parent,
     References: `${parent} ${child}`,
+  };
+}
+
+export function clipInboundBody(raw: string): string {
+  const value = raw.trim();
+  return value.length > 8000 ? value.slice(0, 8000) : value;
+}
+
+export type InboundPayload = {
+  emailId: string;
+  to: unknown;
+  from?: string;
+  text?: string;
+  html?: string;
+  subject?: string;
+};
+
+function htmlToText(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+\n/g, "\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
+export function inboundBody(payload: InboundPayload): string {
+  const text = payload.text?.trim() ?? "";
+  if (text) return clipInboundBody(text);
+  const html = payload.html?.trim() ?? "";
+  if (html) return clipInboundBody(htmlToText(html));
+  return clipInboundBody(payload.subject ?? "");
+}
+
+export function inboundFromAddress(raw: string | undefined): string {
+  const value = String(raw ?? "").trim();
+  const match = value.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+  return match ? match[0].slice(0, 320) : "";
+}
+
+export function readInboundPayload(data: unknown): InboundPayload | null {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return null;
+  const record = data as Record<string, unknown>;
+  const emailId = String(record.email_id ?? record.id ?? "").trim();
+  if (!emailId) return null;
+  return {
+    emailId,
+    to: record.to,
+    from: typeof record.from === "string" ? record.from : undefined,
+    text: typeof record.text === "string" ? record.text : undefined,
+    html: typeof record.html === "string" ? record.html : undefined,
+    subject: typeof record.subject === "string" ? record.subject : undefined,
   };
 }

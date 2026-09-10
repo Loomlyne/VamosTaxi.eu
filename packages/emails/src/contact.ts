@@ -183,7 +183,7 @@ export function renderContactCustomerEmail(locale: EmailLocale, data: ContactCus
 export function renderStaffReplyEmail(locale: EmailLocale, data: StaffReplyEmailData) {
   const copy = COPY[locale];
   return {
-    subject: copy.staffSubject,
+    subject: `Re: ${copy.customerSubject}`,
     html: voucherHtml(
       locale,
       `${headingHtml(copy.staffHeading)}${mutedHtml(copy.staffBody)}`,

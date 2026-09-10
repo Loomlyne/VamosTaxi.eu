@@ -459,6 +459,7 @@
     "quoteAlreadyBooked": "Ce devis a déjà une réservation.",
     "paymentWindowClosed": "La fenêtre de paiement est close. Demandez un nouveau devis.",
     "payCouldNotStart": "Le paiement n’a pas démarré. Touchez à nouveau Payer et continuer.",
+    "completeCard": "Saisissez le numéro de carte, la date d’expiration et le CVC.",
     "requote": "Nouveau devis",
     "freeCancelHours": "Annulation gratuite jusqu'à {hours} heures avant la prise en charge.",
     "checkoutWindow": "Payez dans les {minutes} minutes pour conserver ce prix.",

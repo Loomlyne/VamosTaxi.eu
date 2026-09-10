@@ -239,6 +239,13 @@ interface CloudflareEnv {
   RESEND_API_KEY?: string;
 
   /**
+   * Resend webhook signing secret (`whsec_…`). OPTIONAL until inbound
+   * Support replies are enabled. `wrangler secret put RESEND_WEBHOOK_SECRET`.
+   * Never in wrangler.jsonc `vars`. Never `NEXT_PUBLIC_*`.
+   */
+  RESEND_WEBHOOK_SECRET?: string;
+
+  /**
    * Cloudflare Turnstile site key (plan 05-13). OPTIONAL — owner-gated. Read server-side
    * and passed to the widget as a prop, so it needs no browser-prefixed identifier.
    * Distinct from Phase 4's `TURNSTILE_SECRET` (quote-abuse siteverify).

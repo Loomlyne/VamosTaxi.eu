@@ -4,7 +4,7 @@ import { asAnon, asSystem } from "@/lib/db/identity";
 import { deliverContactMessages, type ContactDeliveryMessage } from "@/lib/forms/contact-delivery";
 import { contactSchema } from "@/lib/forms/schemas";
 import { formFailure, formSuccess, sendContactMessage } from "@/lib/forms/notify";
-import { contactMessageId } from "@/lib/ops/ticket-mail";
+import { contactMessageId, ticketReplyAddress } from "@/lib/ops/ticket-mail";
 import { verifyTurnstile } from "@/lib/turnstile";
 
 export const dynamic = "force-dynamic";
@@ -61,6 +61,16 @@ export async function POST(request: Request) {
   const supportRecipient = bindings.CONTACT_SUPPORT_RECIPIENT ?? process.env.CONTACT_SUPPORT_RECIPIENT;
   const apiKey = bindings.RESEND_API_KEY ?? process.env.RESEND_API_KEY;
   const rfcId = contactMessageId(submissionId);
+  let replyTo: string | undefined;
+  try {
+    const meta = await asSystem(env, (tx) => tx<{ reply_token: string | null }[]>`
+      select reply_token from public.contact_submissions where id = ${submissionId}::uuid limit 1
+    `);
+    const token = String(meta[0]?.reply_token ?? "").trim();
+    if (token) replyTo = ticketReplyAddress(token);
+  } catch {
+    replyTo = undefined;
+  }
   const rendered = {
     customer: renderContactCustomerEmail(input.locale, { name: input.name, message: input.message }),
     support: renderContactSupportEmail(input.locale, input),
@@ -86,7 +96,9 @@ export async function POST(request: Request) {
       providerIdempotencyKey,
       rendered[message],
       env.EMAIL,
-      message === "customer" ? { headers: { "Message-ID": rfcId } } : undefined,
+      message === "customer"
+        ? { replyTo, headers: { "Message-ID": rfcId } }
+        : undefined,
     ),
     finalize: async (message, leaseToken, providerSuffix) => {
       try {

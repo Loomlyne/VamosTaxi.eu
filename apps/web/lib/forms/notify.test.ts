@@ -32,6 +32,21 @@ describe("sendContactMessage", () => {
     expect(send).not.toHaveBeenCalled();
   });
 
+  it("passes Reply-To and thread headers to Resend", async () => {
+    sendResend.mockResolvedValueOnce({ data: { id: "re_thread-abcdef123456" }, error: null });
+    await expect(
+      sendContactMessage("re_key", undefined, "guest@example.test", "idem-thread", rendered, undefined, {
+        replyTo: "ticket+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@replies.vamostaxi.site",
+        headers: { "Message-ID": "<c.abc@vamostaxi.site>", "In-Reply-To": "<c.abc@vamostaxi.site>" },
+      }),
+    ).resolves.toEqual({ accepted: true, providerSuffix: "abcdef123456", providerId: "re_thread-abcdef123456" });
+    expect(sendResend.mock.calls[0]?.[0]).toMatchObject({
+      from: "Vamos Taxi <noreply@vamostaxi.site>",
+      replyTo: "ticket+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@replies.vamostaxi.site",
+      headers: { "Message-ID": "<c.abc@vamostaxi.site>", "In-Reply-To": "<c.abc@vamostaxi.site>" },
+    });
+  });
+
   it("falls back to Cloudflare Email when Resend rejects", async () => {
     sendResend.mockResolvedValueOnce({ data: null, error: { message: "rejected" } });
     const send = vi.fn(async () => ({ messageId: "cf-message-abcdef123456" }));
@@ -72,17 +87,5 @@ describe("sendContactMessage", () => {
     ).resolves.toEqual({ accepted: false, providerSuffix: null, providerId: null });
     expect(sendResend).not.toHaveBeenCalled();
     expect(send).not.toHaveBeenCalled();
-  });
-
-  it("forwards RFC thread headers to Resend", async () => {
-    sendResend.mockResolvedValueOnce({ data: { id: "re_message-thread12ab" }, error: null });
-    await expect(
-      sendContactMessage("re_key", undefined, "guest@example.test", "idem-6", rendered, undefined, {
-        headers: { "Message-ID": "<c.1@vamostaxi.site>", "In-Reply-To": "<c.1@vamostaxi.site>" },
-      }),
-    ).resolves.toEqual({ accepted: true, providerSuffix: "e-thread12ab", providerId: "re_message-thread12ab" });
-    expect(sendResend.mock.calls[0]?.[0]).toMatchObject({
-      headers: { "Message-ID": "<c.1@vamostaxi.site>", "In-Reply-To": "<c.1@vamostaxi.site>" },
-    });
   });
 });

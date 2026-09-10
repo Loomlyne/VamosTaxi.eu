@@ -285,6 +285,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <a data-ac-more="1" href="/checkout/payment">
 <span>Finish payment</span>
 </a>
+<button type="button" data-ac-link="1" onClick="{{ cancelCheckout }}">Cancel</button>
 </sc-if>
 </div>
 <a data-ac-more="1" href="/bookings">
@@ -491,6 +492,15 @@ const PREFS = () => {
   catch (e) { return { receipts: true, offers: false }; }
 };
 const SAVE_PREFS = (p) => { try { localStorage.setItem(PREF_KEY, JSON.stringify(p)); } catch (e) {} };
+const pushPrefs = (p) => {
+  SAVE_PREFS(p);
+  fetch('/api/account/prefs', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    credentials: 'same-origin',
+    body: JSON.stringify({ receipts: p.receipts, offers: p.offers }),
+  }).catch(() => {});
+};
 const PHOTO = () => { try { return localStorage.getItem(PHOTO_KEY) || ''; } catch (e) { return ''; } };
 
 class Component extends DCLogic {
@@ -504,7 +514,7 @@ class Component extends DCLogic {
        Swiss francs to somebody who already chose dirhams. */
     lang: (function () { try { var l = window.VamosLocale && window.VamosLocale.lang; return (typeof l === 'function' ? l() : l) || 'en'; } catch (e) { return 'en'; } })(),
     cur: (function () { try { var c = window.VamosLocale && window.VamosLocale.cur; return (typeof c === 'function' ? c() : c) || 'CHF'; } catch (e) { return 'CHF'; } })(),
-    active: 'transfers',
+    active: 'transfers', liveBookings: null,
   };
 
   componentDidMount() {
@@ -532,6 +542,20 @@ class Component extends DCLogic {
         };
         writeAuth(auth);
         this.setState({ auth });
+        fetch('/api/account/bookings', { credentials: 'same-origin' })
+          .then((r) => r.json())
+          .then((j) => this.setState({ liveBookings: (j && Array.isArray(j.bookings)) ? j.bookings : [] }))
+          .catch(() => this.setState({ liveBookings: [] }));
+        fetch('/api/account/prefs', { credentials: 'same-origin' })
+          .then((r) => r.json())
+          .then((j) => {
+            if (!j || typeof j.receipts === 'undefined') return;
+            const receipts = j.receipts !== false;
+            const offers = j.offers === true;
+            SAVE_PREFS({ receipts, offers });
+            this.setState({ receipts, offers });
+          })
+          .catch(() => {});
       })
       .catch(() => {
         clearAuth();
@@ -674,10 +698,10 @@ class Component extends DCLogic {
     this._savedT = setTimeout(() => this.setState({ prefSaved: false }), 2600);
   };
   toggleReceipts = () => this.setState(
-    (s) => { const v = !s.receipts; SAVE_PREFS({ receipts: v, offers: s.offers }); return { receipts: v }; },
+    (s) => { const v = !s.receipts; pushPrefs({ receipts: v, offers: s.offers }); return { receipts: v }; },
     this.flashSaved);
   toggleOffers = () => this.setState(
-    (s) => { const v = !s.offers; SAVE_PREFS({ receipts: s.receipts, offers: v }); return { offers: v }; },
+    (s) => { const v = !s.offers; pushPrefs({ receipts: s.receipts, offers: v }); return { offers: v }; },
     this.flashSaved);
 
   /* The monogram is the default and stays the default. Click it and you can put
@@ -705,13 +729,32 @@ class Component extends DCLogic {
   cancelClose = () => this.setState({ closing: false });
   confirmClose = () => this.signOut();
 
+  cancelCheckout = () => {
+    try { localStorage.removeItem('vamosTrip'); } catch (e) {}
+    try { sessionStorage.removeItem('vamosTrip'); } catch (e) {}
+    try { localStorage.removeItem('vamosQuoteLock'); } catch (e) {}
+    try { sessionStorage.removeItem('vamosQuoteLock'); } catch (e) {}
+    this.forceUpdate();
+  };
+
   setLang = (v) => { if (window.VamosLocale) window.VamosLocale.setLang(v); this.setState({ lang: v }); this.flashSaved(); };
   setCur = (v) => { if (window.VamosLocale) window.VamosLocale.setCur(v); this.setState({ cur: v }); this.flashSaved(); };
 
   renderVals() {
     const s = this.state;
     const auth = s.auth || EMPTY_AUTH;
-    const bookings = [];
+    const live = Array.isArray(s.liveBookings) ? s.liveBookings : [];
+    const bookings = live.filter((b) => b.when === 'upcoming').slice(0, 2).map((b) => ({
+      status: b.status,
+      href: b.href || ('/confirmation/' + b.ref),
+      date: b.date,
+      time: b.time,
+      route: b.route,
+      ref: b.ref,
+      price: (window.VamosLocale && typeof window.VamosLocale.fromChf === 'function')
+        ? window.VamosLocale.fromChf(b.priceRappen)
+        : 'CHF 000',
+    }));
     let finishPayment = false;
     try {
       const raw = localStorage.getItem('vamosTrip');
@@ -744,6 +787,7 @@ class Component extends DCLogic {
 
       bookings, noBookings: bookings.length === 0,
       finishPayment,
+      cancelCheckout: this.cancelCheckout,
 
       nameView: s.edit !== 'name', nameEdit: s.edit === 'name',
       nameValue: full || 'Not added yet',

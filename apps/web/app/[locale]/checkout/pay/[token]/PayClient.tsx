@@ -71,7 +71,7 @@ export function PayClient({ token }: { token: string }) {
 
   async function onPay() {
     if (!cardComplete) {
-      setError("payCouldNotStart");
+      setError("completeCard");
       return;
     }
     setPaying(true);

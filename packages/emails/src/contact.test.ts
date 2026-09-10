@@ -48,6 +48,7 @@ describe("contact email renderers", () => {
       expect(rendered.html).toContain("https://wa.me/41796267082");
       expect(rendered.html).not.toContain(unsafe);
       expect(rendered.html).not.toMatch(/expires after 1 hour|works once/i);
+      expect(rendered.subject.startsWith("Re: ")).toBe(true);
       if (locale === "ar") expect(rendered.html).toContain('dir="rtl"');
     });
   }
