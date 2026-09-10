@@ -3,64 +3,24 @@
 // 08-04: staff assign/unassign via SECURITY DEFINER RPCs. withStaff on the
 // route, then asSystem here. Never asStaff INSERT into booking_events.
 
-import { asSystem, type VamosClaims } from "@/lib/db/identity";
+import { asSystem, type VamosClaims } from "../db/identity";
+import {
+  mapAssignSqlError,
+  sqlErrorCode,
+  type AssignOverlap,
+  type AssignResult,
+} from "./assign-map";
 import { OPS_SQLSTATE } from "./sqlstate";
 
 export const dynamic = "force-dynamic";
 
-export type AssignOverlap = { otherRef: string; otherLocal: string };
-
-export type AssignFail = {
-  ok: false;
-  code: string;
-  otherRef?: string;
-  otherLocal?: string;
-};
-
-export type AssignOk = {
-  ok: true;
-  bookingId: string;
-  legId: string;
-  chauffeurId?: string;
-  vehicleId?: string;
-};
-
-export type AssignResult = AssignOk | AssignFail;
-
-const NAMED = new Set(["no-email", "no-vehicle", "not-paid", "frozen", "capacity", "not-found"]);
-
-function codeOf(err: unknown): string | undefined {
-  if (typeof err !== "object" || err === null || !("code" in err)) return undefined;
-  const code = (err as { code: unknown }).code;
-  return typeof code === "string" ? code : undefined;
-}
-
-function messageOf(err: unknown): string {
-  if (typeof err !== "object" || err === null) return "";
-  if (!("message" in err)) return "";
-  const message = (err as { message: unknown }).message;
-  return typeof message === "string" ? message : "";
-}
-
-export function mapAssignSqlError(err: unknown, overlap?: AssignOverlap | null): AssignFail {
-  const code = codeOf(err);
-  if (code === OPS_SQLSTATE.exclusion) {
-    return {
-      ok: false,
-      code: "overlap",
-      otherRef: overlap?.otherRef ?? "",
-      otherLocal: overlap?.otherLocal ?? "",
-    };
-  }
-  const message = messageOf(err);
-  for (const name of NAMED) {
-    if (message === name || message.startsWith(`${name}\n`) || message.startsWith(`${name} `)) {
-      return { ok: false, code: name };
-    }
-  }
-  if (code === OPS_SQLSTATE.noData) return { ok: false, code: "not-found" };
-  return { ok: false, code: "unknown" };
-}
+export {
+  mapAssignSqlError,
+  type AssignFail,
+  type AssignOk,
+  type AssignOverlap,
+  type AssignResult,
+} from "./assign-map";
 
 async function resolveBookingId(
   sql: Parameters<Parameters<typeof asSystem>[1]>[0],
@@ -138,7 +98,7 @@ export async function assignBooking(
         vehicleId: String(row.vehicle_id),
       };
     } catch (err) {
-      if (codeOf(err) === OPS_SQLSTATE.exclusion) {
+      if (sqlErrorCode(err) === OPS_SQLSTATE.exclusion) {
         return mapAssignSqlError(err, await loadOverlap(sql, bookingId, chauffeur));
       }
       return mapAssignSqlError(err);
