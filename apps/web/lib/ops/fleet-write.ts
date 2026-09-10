@@ -5,6 +5,7 @@
 
 import { asStaff, type VamosClaims } from "../db/identity";
 import type { AssertedVehicleClassInput, AssertedVehicleInput } from "./fleet";
+import { tripsFromRows, type OpsMustFixTrip } from "./must-fix-mail";
 
 export async function insertVehicle(
   env: CloudflareEnv,
@@ -66,8 +67,14 @@ export async function updateVehicleRow(
   claims: VamosClaims,
   id: string,
   parsed: AssertedVehicleInput,
-): Promise<void> {
-  await asStaff(env, claims, async (sql) => {
+): Promise<OpsMustFixTrip[]> {
+  return asStaff(env, claims, async (sql) => {
+    const before = await sql<{ status: string }[]>`
+      select status::text as status
+        from public.vehicles
+       where id = ${id}::uuid
+    `;
+    const previous = before[0]?.status ?? "";
     await sql`
       update public.vehicles set
         vehicle_class_id = ${parsed.vehicleClassId},
@@ -82,7 +89,40 @@ export async function updateVehicleRow(
         updated_at = now()
       where id = ${id}
     `;
-    return null;
+    if (parsed.status !== "workshop" || previous === "workshop") return [];
+    const rows = await sql<
+      {
+        reference: string;
+        locale: string | null;
+        pickup_text: string | null;
+        dropoff_text: string | null;
+        scheduled_local: string | null;
+      }[]
+    >`
+      select
+        b.reference,
+        b.locale,
+        l.pickup_text,
+        l.dropoff_text,
+        l.scheduled_local
+        from public.booking_legs as l
+        join public.bookings as b on b.id = l.booking_id
+       where l.assigned_vehicle_id = ${id}::uuid
+         and l.assigned_chauffeur_id is not null
+         and l.status not in ('cancelled', 'completed', 'no_show')
+         and b.erased_at is null
+         and b.status not in (
+           'cancelled',
+           'completed',
+           'refunded',
+           'no_show',
+           'partially_cancelled',
+           'partially_completed'
+         )
+         and l.scheduled_at > now()
+       order by l.scheduled_at
+    `;
+    return tripsFromRows(rows);
   });
 }
 

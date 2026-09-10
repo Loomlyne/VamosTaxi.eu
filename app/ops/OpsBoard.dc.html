@@ -129,12 +129,21 @@ function isUnpaid(b) {
   return !b.paid && b.status !== 'cancelled' && b.status !== 'refunded' && b.status !== 'completed';
 }
 function isUnassigned(b) {
-  return !b.driver && b.status !== 'cancelled' && b.status !== 'completed';
+  return b.paid && !b.driver && b.status !== 'cancelled' && b.status !== 'completed';
+}
+function filterFromLocation() {
+  try {
+    const raw = new URLSearchParams(location.search).get('filter');
+    const allowed = ['All', 'Today', 'Tomorrow', 'Unassigned', 'Awaiting payment', 'Cancelled'];
+    return raw && allowed.indexOf(raw) !== -1 ? raw : '';
+  } catch (e) {
+    return '';
+  }
 }
 const T = {
   en: { bookings:'Bookings', ordered:'Ordered by pickup time', searchPh:'Reference, name, phone or address', newBooking:'New booking',
     pickupsToday:'Pickups today', pickupsFoot:'Ordered by pickup time', awaitingPayment:'Awaiting payment', awaitingFoot:'Needs a card payment or pay-link',
-    unassigned:'Unassigned', unassignedFoot:'No driver assigned yet', revenue:'Revenue, 7 days', revenueFoot:'Awaiting live Stripe data',
+    unassigned:'Unassigned', unassignedFoot:'No driver assigned yet', revenue:'Revenue, 7 days', revenueFoot:'Captured fares',
     moreFilters:'More filters', export_:'Export CSV', filter:'Filter', print:'Print', boardFilter:'Show', classFilter:'Class', allClasses:'All classes', statusFilter:'Status', allStatuses:'All statuses', clearFilt:'Clear', showingRange:'Showing %a–%b of %c', showingNone:'Nothing to show',
     prevPage:'Previous page', nextPage:'Next page', filterAll:'All', filterToday:'Today', filterTomorrow:'Tomorrow', filterUnassigned:'Unassigned', filterAwaiting:'Awaiting payment', filterCancelled:'Cancelled',
     colPickup:'Pickup', colRef:'Ref', colCustomer:'Customer', colRoute:'Route', colVehicle:'Vehicle', colDriver:'Driver', colStatus:'Status', colTotal:'Total', unassignedCell:'Unassigned', bagsShort:'bags',
@@ -146,7 +155,7 @@ const T = {
   },
   de: { bookings:'Buchungen', ordered:'Nach Abholzeit sortiert', searchPh:'Referenz, Name, Telefon oder Adresse', newBooking:'Neue Buchung',
     pickupsToday:'Abholungen heute', pickupsFoot:'Nach Abholzeit sortiert', awaitingPayment:'Zahlung ausstehend', awaitingFoot:'Karte oder Zahlungslink ausstehend',
-    unassigned:'Nicht zugewiesen', unassignedFoot:'Noch kein Fahrer zugewiesen', revenue:'Umsatz, 7 Tage', revenueFoot:'Live-Stripe-Daten ausstehend',
+    unassigned:'Nicht zugewiesen', unassignedFoot:'Noch kein Fahrer zugewiesen', revenue:'Umsatz, 7 Tage', revenueFoot:'Erfasste Fahrpreise',
     moreFilters:'Weitere Filter', export_:'CSV exportieren', filter:'Filter', print:'Drucken', boardFilter:'Anzeigen', classFilter:'Klasse', allClasses:'Alle Klassen', statusFilter:'Status', allStatuses:'Alle Status', clearFilt:'Zurücksetzen', showingRange:'Zeigt %a–%b von %c', showingNone:'Nichts anzuzeigen',
     prevPage:'Vorherige Seite', nextPage:'Nächste Seite', filterAll:'Alle', filterToday:'Heute', filterTomorrow:'Morgen', filterUnassigned:'Nicht zugewiesen', filterAwaiting:'Zahlung ausstehend', filterCancelled:'Storniert',
     colPickup:'Abholung', colRef:'Ref.', colCustomer:'Kunde', colRoute:'Route', colVehicle:'Fahrzeug', colDriver:'Fahrer', colStatus:'Status', colTotal:'Total', unassignedCell:'Nicht zugewiesen', bagsShort:'Gepäck',
@@ -175,6 +184,8 @@ class Component extends DCLogic {
     this.bind();
     this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
     window.addEventListener('vamos:locale', this._onLocale);
+    const fromUrl = filterFromLocation();
+    if (fromUrl) this.setState({ filter: fromUrl, page: 0 });
     this._filtAway = (e) => {
       if (!this.state.moreOpen) return;
       if (this._filt && this._filt.contains(e.target)) return;
@@ -190,8 +201,12 @@ class Component extends DCLogic {
       }
     } catch (e) {}
   }
-  openRow = (row) => { location.hash = '#detail/' + encodeURIComponent(row.id); };
-  openNew = () => this.setState((s) => ({ addTick: (s.addTick || 0) + 1 }));
+  openRow = (row) => {
+    const path = '/bookings/' + encodeURIComponent(row.id);
+    history.pushState({}, '', path);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+  openNew = () => { location.assign('/bookings/new'); };
   toggleMore = () => this.setState((s) => ({ moreOpen: !s.moreOpen }));
   printBoard = () => { try { window.print(); } catch (e) {} };
   setClass = (v) => this.setState({ klass: v || '', page: 0 });
@@ -237,7 +252,27 @@ class Component extends DCLogic {
     const pickupsToday = BOOKINGS.filter((b) => b.dateIso === todayIso || b.date === today).length;
     const awaitingPayment = BOOKINGS.filter(isUnpaid).length;
     const unassigned = BOOKINGS.filter(isUnassigned).length;
-    const revenueRappen = BOOKINGS.filter((b) => b.paidByCard || b.paid).reduce((n, b) => n + (Number(b.totalRappen) || 0), 0);
+    const weekStart = (() => {
+      const dt = new Date(Date.UTC(
+        Number(todayIso.slice(0, 4)),
+        Number(todayIso.slice(5, 7)) - 1,
+        Number(todayIso.slice(8, 10)),
+      ));
+      dt.setUTCDate(dt.getUTCDate() - 6);
+      return dt.toISOString().slice(0, 10);
+    })();
+    const capturedYmd = (b) => {
+      if (!b.capturedAt) return '';
+      const s = String(b.capturedAt);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+      const ms = Date.parse(s);
+      if (!Number.isFinite(ms)) return '';
+      return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Zurich' }).format(new Date(ms));
+    };
+    const revenueRappen = BOOKINGS.filter((b) => {
+      const ymd = capturedYmd(b);
+      return ymd && ymd >= weekStart && ymd <= todayIso;
+    }).reduce((n, b) => n + (Number(b.totalRappen) || 0), 0);
     const DS = window.VamosTaxiDesignSystem_245af1 || {};
     /* A figure and the filter that shows it are the same thing, so the cards are
        the filter: pressing one narrows the table under it. */
@@ -298,7 +333,9 @@ class Component extends DCLogic {
             React.createElement('span', { style:{ fontSize:'var(--vt-body-xs)', color:'var(--vt-text-muted)' } }, r.pax + ' pax · ' + r.bags + ' ' + t.bagsShort)) },
         { key:'driver', header: t.colDriver, width:'120px', render:(r) => r.driver
             ? React.createElement('span', null, r.driver)
-            : React.createElement('span', { style:{ color:'var(--vt-danger)', fontWeight:500 } }, t.unassignedCell) },
+            : (r.paid
+              ? React.createElement('span', { style:{ color:'var(--vt-danger)', fontWeight:500 } }, t.unassignedCell)
+              : React.createElement('span', { style:{ color:'var(--vt-text-muted)' } }, '—')) },
         { key:'status', header: t.colStatus, width:'220px', render:(r) => React.createElement('span', { style:{ display:'flex', flexDirection:'column', gap:2, lineHeight:1.3 } },
             DS.StatusBadge ? React.createElement(DS.StatusBadge, { status: r.status }) : r.status,
             React.createElement('span', { style:{ fontSize:'var(--vt-body-xs)', color:'var(--vt-text-muted)' } }, payLine(r))) },

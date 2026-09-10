@@ -30,7 +30,12 @@
     if (Array.isArray(data)) return data;
     if (data && Array.isArray(data[name])) return data[name];
     if (data && Array.isArray(data.rows)) return data.rows;
+    if (data && typeof data === "object") return [data];
     return [];
+  }
+
+  function isUuid(value) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ""));
   }
 
   var bookFetch = { pending: false, loaded: false, json: null, waiters: [] };
@@ -68,6 +73,31 @@
     var base = "/api/staff/" + name;
 
     var pollTimer = null;
+    var POLL_MS = 3000;
+    function schedulePoll() {
+      clearTimeout(pollTimer);
+      pollTimer = null;
+      if (name !== "bookings") return;
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      pollTimer = setTimeout(function () {
+        loaded = false;
+        hydrate();
+      }, POLL_MS);
+    }
+    function onVisible() {
+      if (name !== "bookings") return;
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") {
+        clearTimeout(pollTimer);
+        pollTimer = null;
+        return;
+      }
+      loaded = false;
+      hydrate();
+    }
+    if (name === "bookings" && typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", onVisible);
+      window.addEventListener("focus", onVisible);
+    }
     function hydrate() {
       if (pending || loaded) return;
       pending = true;
@@ -76,24 +106,34 @@
         loaded = true;
         list = pickRows(json, name).map(clean);
         emit(name);
-        if (name === "bookings") {
-          clearTimeout(pollTimer);
-          pollTimer = setTimeout(function () {
-            loaded = false;
-            hydrate();
-          }, 15000);
-        }
+        schedulePoll();
       });
     }
 
     function afterWrite(json, previous, nextList) {
       if (json && json.ok) {
-        var rows = pickRows(json, name);
-        list = rows.length ? rows.map(clean) : nextList;
+        var data = json.data;
+        var one = data && typeof data === "object" && !Array.isArray(data)
+          && !Array.isArray(data[name]) && !Array.isArray(data.rows);
+        if (one) {
+          var saved = clean(data);
+          var next = previous.slice();
+          var found = false;
+          var i;
+          for (i = 0; i < next.length; i++) {
+            if (next[i].id === saved.id) { next[i] = saved; found = true; break; }
+          }
+          if (!found) next.push(saved);
+          list = next;
+        } else {
+          var rows = pickRows(json, name);
+          list = rows.length ? rows.map(clean) : nextList;
+        }
       } else {
         list = previous;
       }
       emit(name);
+      return json;
     }
 
     return {
@@ -105,21 +145,30 @@
         return null;
       },
       blank: function (over) { return clean(over || {}); },
-      save: function () { emit(name); return list.slice(); },
+      save: function (rec) {
+        if (!rec) return Promise.resolve({ ok: false, code: "missing-id" });
+        return this.upsert(rec);
+      },
       add: function (rec) {
         var previous = list.slice();
         var row = clean(rec || {});
-        api("POST", base, row).then(function (json) {
+        if (row.id && !isUuid(row.id)) {
+          return Promise.resolve({ ok: false, code: "missing-id" });
+        }
+        return api("POST", base, row).then(function (json) {
           var created = json && json.data && typeof json.data === "object" && !Array.isArray(json.data)
             ? clean(json.data)
             : row;
           afterWrite(json, previous, previous.concat([created]));
+          return json;
         });
-        return previous.slice();
       },
       update: function (id, patch) {
+        if (!isUuid(id)) {
+          return Promise.resolve({ ok: false, code: "missing-id" });
+        }
         var previous = list.slice();
-        api("PATCH", base + "/" + encodeURIComponent(id), patch).then(function (json) {
+        return api("PATCH", base + "/" + encodeURIComponent(id), patch).then(function (json) {
           var next = previous.map(function (r) {
             if (r.id !== id) return r;
             var merged = {};
@@ -129,14 +178,16 @@
             return clean(merged);
           });
           afterWrite(json, previous, next);
+          return json;
         });
-        return previous.slice();
       },
       upsert: function (rec) {
         var row = clean(rec || {});
-        var i;
-        for (i = 0; i < list.length; i++) if (list[i].id === row.id) return this.update(row.id, row);
-        return this.add(row);
+        if (!row.id) return this.add(row);
+        if (!isUuid(row.id)) {
+          return Promise.resolve({ ok: false, code: "missing-id" });
+        }
+        return this.update(row.id, row);
       },
       remove: function (id) {
         var previous = list.slice();
@@ -145,7 +196,7 @@
         });
         return previous.slice();
       },
-      reset: function () { list = []; loaded = false; pending = false; emit(name); hydrate(); return list.slice(); },
+      reset: function () { clearTimeout(pollTimer); pollTimer = null; list = []; loaded = false; pending = false; emit(name); hydrate(); return list.slice(); },
       onChange: function (fn) { return subscribe(name, fn); }
     };
   }
@@ -208,7 +259,11 @@
         return null;
       },
       blank: function (over) { return clean(over || {}); },
-      save: function () { emit(name); return list.slice(); },
+      save: function (rec) {
+        if (rec) return upsert(rec);
+        emit(name);
+        return list.slice();
+      },
       add: function (rec) { return upsert(rec); },
       update: function (id, patch) {
         var current = null;
@@ -340,7 +395,7 @@
   function cleanVehicle(v) {
     v = v || {};
     return {
-      id: str(v.id) || id("v"),
+      id: str(v.id),
       klass: VEHICLE_CLASSES.indexOf(v.klass) === -1 ? "Economy" : v.klass,
       model: str(v.model), plate: str(v.plate), year: str(v.year),
       seats: num(v.seats, 3), bags: num(v.bags, 3),
@@ -353,10 +408,13 @@
   var CHAUFFEUR_STATUS = ["shift", "off", "leave"];
   function cleanChauffeur(c) {
     c = c || {};
+    var vehicleId = str(c.vehicle || c.defaultVehicleId);
     return {
-      id: str(c.id) || id("c"),
-      name: str(c.name), phone: str(c.phone), email: str(c.email),
-      vehicle: str(c.vehicle), licence: str(c.licence), languages: str(c.languages),
+      id: str(c.id),
+      name: str(c.name || c.fullName), phone: str(c.phone), email: str(c.email),
+      vehicle: vehicleId, defaultVehicleId: str(c.defaultVehicleId || c.vehicle),
+      licence: str(c.licence || c.licenceNumber),
+      languages: Array.isArray(c.languages) ? c.languages.join(", ") : str(c.languages),
       status: CHAUFFEUR_STATUS.indexOf(c.status) === -1 ? "off" : c.status,
       photo: (str(c.photo || c.photoPath).indexOf("data:") === 0) ? "" : str(c.photo || c.photoPath),
       note: str(c.note)
@@ -375,20 +433,33 @@
       status: BOOKING_STATUS.indexOf(b.status) === -1 ? "pending" : b.status,
       chauffeur: str(b.chauffeur),
       driver: str(b.driver || b.chauffeur),
-      vehicle: str(b.vehicle || b.klass),
+      chauffeurEmail: str(b.chauffeurEmail),
+      assignedChauffeurId: str(b.assignedChauffeurId),
+      assignedVehicleId: str(b.assignedVehicleId),
+      vehicle: str(b.vehicle),
       flight: str(b.flight),
       note: str(b.note),
       email: str(b.email),
       phone: str(b.phone),
       company: str(b.company),
       dateIso: str(b.dateIso),
+      pickupAt: str(b.pickupAt),
+      capturedAt: str(b.capturedAt),
       bookingId: str(b.bookingId),
       paid: !!b.paid,
       paidByCard: !!b.paidByCard,
       payLinkSent: !!b.payLinkSent,
       cardSession: !!b.cardSession,
       sessionExpiresAt: str(b.sessionExpiresAt),
-      totalRappen: num(b.totalRappen, 0)
+      totalRappen: num(b.totalRappen, 0),
+      extraRappen: num(b.extraRappen, 0),
+      pendingEditId: str(b.pendingEditId),
+      pendingEditActor: str(b.pendingEditActor),
+      pendingEditQuoteRappen: num(b.pendingEditQuoteRappen, 0),
+      pendingEditExtraSessionId: str(b.pendingEditExtraSessionId),
+      refundRappen: num(b.refundRappen, 0),
+      stripeFeeRappen: b.stripeFeeRappen == null || b.stripeFeeRappen === "" ? null : num(b.stripeFeeRappen, 0),
+      events: Array.isArray(b.events) ? b.events : []
     };
   }
 

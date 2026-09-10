@@ -95,10 +95,10 @@ test.describe("GET /api/staff/customers @ops-dc-customers", () => {
     expect(item).toMatch(/export const PATCH/);
     expect(item).toMatch(/export const DELETE/);
     expect(item).toMatch(/cancelBooking/);
-    expect(item).toMatch(/markRefunded/);
+    expect(item).not.toMatch(/markRefunded/);
     expect(item).toMatch(/updateBooking/);
     expect(item).toMatch(/eraseBooking/);
-    expect(write).toMatch(/status = 'cancelled'/);
+    expect(write).toMatch(/ops_cancel_booking/);
     expect(write).toMatch(/erased_at = now\(\)/);
     expect(pub).toMatch(/export\s*\{\s*PATCH,\s*DELETE\s*\}/);
   });

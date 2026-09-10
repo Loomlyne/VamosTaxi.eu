@@ -158,8 +158,8 @@ select lives_ok(
 );
 
 select has_index(
-  'public', 'booking_payments', 'booking_payments_one_success',
-  'booking_payments_one_success unique index still exists'
+  'public', 'booking_payments', 'booking_payments_one_success_per_snapshot',
+  'booking_payments_one_success_per_snapshot unique index exists (08-07 extra settle)'
 );
 
 -- New constraints ----------------------------------------------------------------------------

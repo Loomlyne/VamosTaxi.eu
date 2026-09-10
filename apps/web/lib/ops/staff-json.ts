@@ -24,8 +24,22 @@ export function jsonOk(data: unknown, status = 200): Response {
   return Response.json({ ok: true, data }, { status });
 }
 
-export function jsonErr(code: string, status: number): Response {
-  return Response.json({ ok: false, code }, { status });
+export function jsonErr(code: string, status: number, extra?: Record<string, unknown>): Response {
+  return Response.json({ ok: false, code, ...(extra ?? {}) }, { status });
+}
+
+const DASHBOARD_HOSTS = new Set(["dashboard.vamostaxi.site", "dashboard.localhost"]);
+
+/** CSRF (ASVS L1): if Origin is present on a mutating staff call, it must be the dashboard. */
+export function staffOriginAllowed(origin: string | null): boolean {
+  if (!origin) return true;
+  try {
+    const host = new URL(origin).hostname;
+    if (DASHBOARD_HOSTS.has(host)) return true;
+    return host.endsWith(".workers.dev") && host.includes("ops-changes");
+  } catch {
+    return false;
+  }
 }
 
 export function staffStatus(reason: OpsAuthReason): { code: string; status: number } {
@@ -49,6 +63,12 @@ async function staffResponse(
       return jsonErr(mapped.code, mapped.status);
     }
     throw error;
+  }
+  const method = request.method.toUpperCase();
+  if (method !== "GET" && method !== "HEAD") {
+    if (!staffOriginAllowed(request.headers.get("Origin"))) {
+      return jsonErr("csrf", 403);
+    }
   }
   return handler(claims, request);
 }

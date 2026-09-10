@@ -1,12 +1,5 @@
-// Customer account list. Pure mapping + the SELECT asCustomer runs.
-// Identity stays in the route (Ban #5).
-
-const CLASS_LABEL: Record<string, string> = {
-  economy: "Economy",
-  business: "Business",
-  first: "First",
-  van: "Van",
-};
+// Customer account list. Pure mapping — identity + Hyperdrive stay in the route (Ban #5).
+// vehicle is fleet plate/model or empty until assigned (D-50). Never the class slug.
 
 const TERMINAL: Record<string, true> = {
   cancelled: true,
@@ -25,7 +18,9 @@ export type AccountSqlRow = {
   scheduled_local: string | null;
   scheduled_at: string | Date | null;
   pax: number | null;
-  class_slug: string | null;
+  chauffeur_name?: string | null;
+  vehicle_plate?: string | null;
+  vehicle_model?: string | null;
 };
 
 export type AccountBooking = {
@@ -34,7 +29,10 @@ export type AccountBooking = {
   date: string;
   time: string;
   route: string;
+  pickup: string;
+  dropoff: string;
   vehicle: string;
+  chauffeur: string;
   pax: number;
   priceRappen: number;
   status: "new" | "confirmed" | "assigned" | "completed" | "cancelled";
@@ -44,13 +42,12 @@ export type AccountBooking = {
 
 function str(value: unknown): string {
   if (value === undefined || value === null) return "";
-  return String(value);
+  return String(value).trim();
 }
 
-function classLabel(slug: string | null): string {
-  if (!slug) return "Economy";
-  const key = slug.toLowerCase();
-  return CLASS_LABEL[key] ?? slug.charAt(0).toUpperCase() + slug.slice(1);
+function fleetVehicle(plate: string, model: string): string {
+  if (plate && model) return `${plate} · ${model}`;
+  return plate || model;
 }
 
 function boardParts(scheduledLocal: string | null): { date: string; time: string; dateIso: string } {
@@ -123,14 +120,16 @@ export function mapAccountBooking(row: AccountSqlRow, now = new Date()): Account
   const pickup = str(row.pickup_text);
   const dropoff = str(row.dropoff_text);
   const ref = str(row.reference);
-  const vehicle = classLabel(row.class_slug);
   return {
     ref,
     href: ref ? `/confirmation/${ref}` : "/account",
     date: when.date,
     time: when.time,
     route: pickup && dropoff ? `${pickup} → ${dropoff}` : pickup || dropoff,
-    vehicle,
+    pickup,
+    dropoff,
+    vehicle: fleetVehicle(str(row.vehicle_plate), str(row.vehicle_model)),
+    chauffeur: str(row.chauffeur_name),
     pax: Number(row.pax ?? 1) || 1,
     priceRappen: Number(row.price_total_rappen ?? 0) || 0,
     status: rowStatus(status),

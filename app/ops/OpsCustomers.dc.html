@@ -31,7 +31,7 @@
 </sc-for>
 </div>
 
-<dc-import name="OpsTable" rows="{{ rows }}" columns="{{ columns }}" fields="{{ fields }}" noun="{{ tNoun }}" noun-plural="{{ tNounPlural }}" edit-title="{{ tEditTitle }}" label-key="name" search-placeholder="{{ tSearch }}" search-keys="{{ searchKeys }}" empty-title="{{ tEmptyTitle }}" empty-body="{{ tEmptyBody }}" onSave="{{ onSave }}" onDelete="{{ onDelete }}" historyRows="{{ historyRows }}" history-label="{{ tHistory }}" history-empty-label="{{ tHistoryEmpty }}" delete-title="{{ tDeleteTitle }}" delete-body="{{ tDeleteBody }}" hint-size="100%,460px"></dc-import>
+<dc-import name="OpsTable" rows="{{ rows }}" columns="{{ columns }}" fields="{{ fields }}" noun="{{ tNoun }}" noun-plural="{{ tNounPlural }}" edit-title="{{ tEditTitle }}" label-key="name" search-placeholder="{{ tSearch }}" search-keys="{{ searchKeys }}" empty-title="{{ tEmptyTitle }}" empty-body="{{ tEmptyBody }}" onSave="{{ onSave }}" onDelete="{{ onDelete }}" onEdit="{{ onEdit }}" onCloseEdit="{{ onCloseEdit }}" edit-id="{{ editId }}" edit-tick="{{ editTick }}" historyRows="{{ historyRows }}" history-label="{{ tHistory }}" history-empty-label="{{ tHistoryEmpty }}" delete-title="{{ tDeleteTitle }}" delete-body="{{ tDeleteBody }}" hint-size="100%,460px"></dc-import>
 
 <p style="margin:0;max-width:78ch;font-size:var(--vt-body-xs);line-height:1.6;color:var(--vt-text-muted);text-wrap:pretty">{{ tNote }}</p>
 
@@ -42,8 +42,9 @@
 /* Customers — list hydrates from GET /api/staff/customers via
    VamosOps.customers. Save PATCHes /api/staff/customers/:id (name,
    email, phone, type, company, since, note) onto customers + bookings.
-   History lists that email’s bookings under Notes; a row opens
-   #detail/<id> so Cancel still lives on OpsDetail. Delete tombstones. */
+   Click opens /customers/{email}. History lists that email’s bookings
+   under Notes; a row opens /bookings/{ref} (was #detail/<id>) so Cancel
+   still lives on OpsDetail. Empty list is empty. Delete tombstones. */
 const TYPES = {
   private: { tone:'neutral', label:'Private' },
   corporate: { tone:'inverse', label:'Corporate' },
@@ -103,22 +104,51 @@ const T = {
   },
 };
 
+function customerPathEmail() {
+  const raw = String(location.pathname || '');
+  const stripped = raw.replace(/^\/(en|de|fr|ar)(?=\/|$)/, '') || '/';
+  const path = stripped.length > 1 && stripped.endsWith('/') ? stripped.slice(0, -1) : stripped;
+  if (path.indexOf('/customers/') !== 0) return '';
+  const rest = path.slice('/customers/'.length);
+  if (!rest || rest.indexOf('/') !== -1) return '';
+  try { return decodeURIComponent(rest).trim().toLowerCase(); } catch (e) { return ''; }
+}
+function goCustomers(email) {
+  const dest = email ? '/customers/' + encodeURIComponent(email) : '/customers';
+  const here = String(location.pathname || '');
+  if (here === dest || here.endsWith(dest)) return;
+  history.pushState({}, '', dest);
+}
+
 class Component extends DCLogic {
-  state = { lang: 'en' };
+  state = { lang: 'en', editId: '', editTick: 0 };
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
-    this._off = window.VamosOps.customers.onChange(() => this.forceUpdate());
-    this.forceUpdate();
+    this._off = window.VamosOps.customers.onChange(() => this.syncPathEdit());
+    this.syncPathEdit();
+  };
+  syncPathEdit = () => {
+    const ops = window.VamosOps;
+    const rows = ops ? ops.customers.all() : [];
+    const email = customerPathEmail();
+    const match = email ? rows.filter((r) => String(r.email || '').trim().toLowerCase() === email)[0] : null;
+    const id = match ? match.id : '';
+    if (id && id !== this.state.editId) this.setState({ editId: id, editTick: (this.state.editTick || 0) + 1 });
+    else if (!id && this.state.editId) this.setState({ editId: '' });
+    else this.forceUpdate();
   };
   componentDidMount() {
     this.bind();
     this._onLocale = (e) => this.setState({ lang: e.detail.lang });
+    this._onPop = () => this.syncPathEdit();
     window.addEventListener('vamos:locale', this._onLocale);
+    window.addEventListener('popstate', this._onPop);
     if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() });
   }
   componentWillUnmount() {
     if (this._off) this._off();
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
+    if (this._onPop) window.removeEventListener('popstate', this._onPop);
     clearTimeout(this._retry);
   }
   renderVals() {
@@ -135,6 +165,12 @@ class Component extends DCLogic {
       tEmptyTitle: t.emptyTitle, tEmptyBody: t.emptyBody, tNote: t.note,
       tDeleteTitle: t.deleteTitle, tDeleteBody: t.deleteBody,
       tHistory: t.history, tHistoryEmpty: t.historyEmpty,
+      editId: this.state.editId, editTick: this.state.editTick,
+      onEdit: (row) => {
+        const email = String(row && row.email || '').trim();
+        if (email) goCustomers(email);
+      },
+      onCloseEdit: () => { if (customerPathEmail()) goCustomers(''); },
       onSave: (row) => {
         if (!ops || !row || !row.id) return;
         ops.customers.update(row.id, {
@@ -160,7 +196,10 @@ class Component extends DCLogic {
             extra,
             extraShow: extra ? 'inline' : 'none',
             status: b.status,
-            open: () => { location.hash = '#detail/' + encodeURIComponent(b.id); },
+            open: () => {
+              history.pushState({}, '', '/bookings/' + encodeURIComponent(b.id));
+              window.dispatchEvent(new PopStateEvent('popstate'));
+            },
           };
         });
       },

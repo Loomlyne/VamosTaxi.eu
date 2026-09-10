@@ -302,7 +302,7 @@ const STEP = 6;
 class Component extends DCLogic {
   state = (() => {
     const p = this.props || {};
-    return { view: 'empty', tab: p.openTab || 'upcoming', shown: STEP, auth: null, q: '', viewMode: 'list' };
+    return { view: 'empty', tab: p.openTab || 'upcoming', shown: STEP, auth: null, q: '', viewMode: 'list', live: false, rows: [] };
   })();
   setViewList = () => this.setState({ viewMode: 'list' });
   setViewGrid = () => this.setState({ viewMode: 'grid' });
@@ -311,11 +311,37 @@ class Component extends DCLogic {
      the reference, a place, the class. No date range — the groups already carry the dates. */
   match(r, q) {
     if (!q) return true;
-    const hay = [r.id, r.from, r.to, r.vehicle, r.date, r.time].filter(Boolean).join(' ').toLowerCase();
+    const hay = [r.id, r.from, r.to, r.vehicle, r.chauffeur, r.date, r.time].filter(Boolean).join(' ').toLowerCase();
     return q.toLowerCase().split(/\s+/).every((w) => hay.indexOf(w) > -1);
   }
 
+  liveGroups() {
+    const tab = this.state.tab;
+    const rows = (this.state.rows || []).filter((r) => r.when === tab);
+    const order = [];
+    const map = {};
+    rows.forEach((r) => {
+      const g = r.group || '';
+      if (!map[g]) { map[g] = []; order.push(g); }
+      map[g].push({
+        id: r.ref,
+        date: r.date,
+        time: r.time,
+        from: r.pickup || '',
+        to: r.dropoff || '',
+        vehicle: r.vehicle || '',
+        chauffeur: r.chauffeur || '',
+        pax: r.pax,
+        status: r.status,
+        href: r.href,
+        priceRappen: r.priceRappen,
+      });
+    });
+    return order.map((g) => ({ g, rows: map[g] }));
+  }
+
   source() {
+    if (this.state.live) return this.liveGroups();
     const long = this.state.view === 'long';
     const upcoming = this.state.tab === 'upcoming';
     return upcoming ? (long ? [] : UP) : (long ? LONG : PAST);
@@ -345,6 +371,39 @@ class Component extends DCLogic {
   onQ = (e) => this.setState({ q: e.target.value, shown: STEP });
   clearQ = () => this.setState({ q: '', shown: STEP });
 
+  loadBookings = () => {
+    if (this._fetching) return;
+    this._fetching = true;
+    fetch('/api/account/bookings', { credentials: 'same-origin', cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : { bookings: [] }))
+      .then((data) => {
+        const rows = Array.isArray(data.bookings) ? data.bookings : [];
+        this.setState({ live: true, rows, view: rows.length ? 'populated' : 'empty' });
+      })
+      .catch(() => this.setState({ live: true, rows: [], view: 'empty' }))
+      .then(() => { this._fetching = false; });
+  };
+
+  schedulePoll = () => {
+    clearTimeout(this._poll);
+    this._poll = null;
+    if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
+    this._poll = setTimeout(() => {
+      this.loadBookings();
+      this.schedulePoll();
+    }, 3000);
+  };
+
+  onVisible = () => {
+    if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
+      clearTimeout(this._poll);
+      this._poll = null;
+      return;
+    }
+    this.loadBookings();
+    this.schedulePoll();
+  };
+
   componentDidMount() {
     this._offLocale = window.VamosLocale && window.VamosLocale.onChange(() => this.forceUpdate());
     fetch('/api/auth/session', { credentials: 'same-origin' })
@@ -367,11 +426,25 @@ class Component extends DCLogic {
         });
       })
       .catch(() => {});
+    this.loadBookings();
+    this.schedulePoll();
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', this.onVisible);
+      window.addEventListener('focus', this.onVisible);
+    }
     /* The loading state is a real wait, not a permanent screenshot: it resolves into the
        list so a reviewer sees the transition the customer gets. */
     if (this.state.view === 'loading') this._t = setTimeout(() => this.setState({ view: 'populated' }), 1600);
   }
-  componentWillUnmount() { if (this._offLocale) this._offLocale(); clearTimeout(this._t); }
+  componentWillUnmount() {
+    if (this._offLocale) this._offLocale();
+    clearTimeout(this._t);
+    clearTimeout(this._poll);
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', this.onVisible);
+      window.removeEventListener('focus', this.onVisible);
+    }
+  }
 
   money(a) { return window.VamosLocale ? window.VamosLocale.money(a) : 'CHF ' + a; }
 
@@ -380,7 +453,7 @@ class Component extends DCLogic {
 
   go(view, tab) {
     clearTimeout(this._t);
-    const next = { view, shown: STEP };
+    const next = { view, shown: STEP, live: false };
     if (tab) next.tab = tab;
     this.setState(next);
     if (view === 'loading') this._t = setTimeout(() => this.setState({ view: 'populated' }), 1600);
@@ -393,11 +466,12 @@ class Component extends DCLogic {
   row(r) {
     const hourly = !!r.hours;
     const pax = r.pax + (r.pax === 1 ? ' passenger' : ' passengers');
+    const bits = [r.chauffeur, r.vehicle, pax, r.id].filter(Boolean);
     return {
-      href: 'booking-detail.dc.html?ref=' + r.id + '&s=' + r.status,
+      href: r.href || ('booking-detail.dc.html?ref=' + r.id + '&s=' + r.status),
       date: r.date, time: r.time, rel: r.rel || '',
       route: hourly ? ('Chauffeur, ' + r.hours + ' hours from ' + r.from) : (r.from + ' → ' + r.to),
-      meta: r.vehicle + ' · ' + pax + ' · ' + r.id,
+      meta: bits.join(' · '),
       price: this.money('000.00'),
       status: r.status,
     };
@@ -421,8 +495,12 @@ class Component extends DCLogic {
       else groups.push({ label: e.g, rows: [this.row(e.r)] });
     });
 
-    const nUp = (long ? [] : UP).reduce((n, g) => n + g.rows.length, 0);
-    const nPast = past.reduce((n, g) => n + g.rows.length, 0);
+    const nUp = this.state.live
+      ? (this.state.rows || []).filter((r) => r.when === 'upcoming').length
+      : (long ? [] : UP).reduce((n, g) => n + g.rows.length, 0);
+    const nPast = this.state.live
+      ? (this.state.rows || []).filter((r) => r.when === 'past').length
+      : past.reduce((n, g) => n + g.rows.length, 0);
     const shownCount = Math.min(cap, flat.length);
     const auth = s.auth;
 

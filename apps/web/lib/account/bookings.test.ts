@@ -12,7 +12,6 @@ const base: AccountSqlRow = {
   scheduled_local: "2026-09-10T02:45",
   scheduled_at: "2026-09-10T00:45:00.000Z",
   pax: 1,
-  class_slug: "business",
 };
 
 describe("mapAccountBooking", () => {
@@ -23,12 +22,46 @@ describe("mapAccountBooking", () => {
     expect(row.date).toBe("Thu 10 Sept");
     expect(row.time).toBe("02:45");
     expect(row.route).toBe("Zurich Airport → Zurich Hauptbahnhof");
-    expect(row.vehicle).toBe("Business");
+    expect(row.vehicle).toBe("");
+    expect(row.chauffeur).toBe("");
     expect(row.pax).toBe(1);
     expect(row.priceRappen).toBe(12000);
     expect(row.status).toBe("confirmed");
     expect(row.when).toBe("past");
     expect(row.group).toBe("September 2026");
+  });
+
+  it("keeps chauffeur and vehicle empty until assigned", () => {
+    const row = mapAccountBooking(
+      {
+        ...base,
+        chauffeur_name: null,
+        vehicle_plate: null,
+        vehicle_model: null,
+      },
+      now,
+    );
+    expect(row.chauffeur).toBe("");
+    expect(row.vehicle).toBe("");
+    expect(row.vehicle).not.toBe("Business");
+    expect(row.vehicle).not.toBe("Economy");
+  });
+
+  it("joins chauffeur name and fleet plate/model after assign", () => {
+    const row = mapAccountBooking(
+      {
+        ...base,
+        status: "assigned",
+        chauffeur_name: "Lena Meier",
+        vehicle_plate: "ZH 12345",
+        vehicle_model: "V-Class",
+      },
+      now,
+    );
+    expect(row.chauffeur).toBe("Lena Meier");
+    expect(row.vehicle).toBe("ZH 12345 · V-Class");
+    expect(row.status).toBe("assigned");
+    expect(row.vehicle).not.toMatch(/Business|Economy|Van|First/);
   });
 
   it("keeps a future confirmed trip in upcoming", () => {
@@ -44,8 +77,9 @@ describe("mapAccountBooking", () => {
     expect(row.status).toBe("confirmed");
   });
 
-  it("does not invent a CHF string", () => {
+  it("does not invent a CHF string or Isolation name", () => {
     const row = mapAccountBooking(base, now);
     expect(JSON.stringify(row)).not.toMatch(/CHF/);
+    expect(JSON.stringify(row)).not.toMatch(/Isolation/);
   });
 });

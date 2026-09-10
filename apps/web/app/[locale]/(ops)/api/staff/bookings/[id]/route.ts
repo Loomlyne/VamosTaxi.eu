@@ -1,12 +1,11 @@
 // apps/web/app/[locale]/(ops)/api/staff/bookings/[id]/route.ts
 //
-// PATCH /api/staff/bookings/:id — cancel, refund, or in-place field update.
+// PATCH /api/staff/bookings/:id — cancel or in-place field update.
 // DELETE — soft-delete (erased_at). Dual-mounted at app/api/staff/bookings/[id].
+// Refund is POST /api/staff/bookings/:id/refund (Stripe first).
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { sendRefund } from "@vamos/emails/confirmation";
-import type { EmailLocale } from "@vamos/emails/confirmation";
-import { cancelBooking, eraseBooking, markRefunded, updateBooking } from "@/lib/ops/bookings-write";
+import { cancelBooking, eraseBooking, updateBooking } from "@/lib/ops/bookings-write";
 import { jsonErr, jsonOk, withStaff } from "@/lib/ops/staff-json";
 
 export const dynamic = "force-dynamic";
@@ -15,29 +14,6 @@ function bookingId(request: Request): string | null {
   const parts = new URL(request.url).pathname.split("/").filter(Boolean);
   const id = parts.at(-1) ?? "";
   return id.length > 0 ? id : null;
-}
-
-function emailLocale(raw: string): EmailLocale {
-  if (raw === "de" || raw === "fr" || raw === "ar") return raw;
-  return "en";
-}
-
-async function refundMail(
-  env: CloudflareEnv,
-  kind: "pending" | "issued",
-  row: { email: string; name: string; locale: string; reference: string },
-) {
-  if (!row.email) return;
-  await sendRefund(
-    { RESEND_API_KEY: env.RESEND_API_KEY ?? "" },
-    {
-      locale: emailLocale(row.locale),
-      kind,
-      to: row.email,
-      name: row.name || "there",
-      reference: row.reference,
-    },
-  );
 }
 
 export const PATCH = withStaff(async (claims, request) => {
@@ -57,20 +33,19 @@ export const PATCH = withStaff(async (claims, request) => {
   const status = typeof record.status === "string" ? record.status : "";
 
   if (status === "cancelled") {
-    const row = await cancelBooking(env, claims, id);
-    if (!row) return jsonErr("not-found", 404);
-    if (row.paid) await refundMail(env, "pending", row);
+    const result = await cancelBooking(env, claims, id);
+    if (!result.ok) {
+      if (result.code === "frozen") return jsonErr("frozen", 409);
+      return jsonErr("not-found", 404);
+    }
     return jsonOk({ id, status: "cancelled" });
   }
 
   if (status === "refunded") {
-    const row = await markRefunded(env, claims, id);
-    if (!row) return jsonErr("not-found", 404);
-    await refundMail(env, "issued", row);
-    return jsonOk({ id, status: "refunded" });
+    return jsonErr("use-refund", 400);
   }
 
-  const ok = await updateBooking(env, claims, id, {
+  const result = await updateBooking(env, claims, id, {
     customer: typeof record.customer === "string" ? record.customer : undefined,
     email: typeof record.email === "string" ? record.email : undefined,
     phone: typeof record.phone === "string" ? record.phone : undefined,
@@ -84,7 +59,10 @@ export const PATCH = withStaff(async (claims, request) => {
     flight: typeof record.flight === "string" ? record.flight : undefined,
     klass: typeof record.klass === "string" ? record.klass : undefined,
   });
-  if (!ok) return jsonErr("not-found", 404);
+  if (!result.ok) {
+    if (result.code === "unpaid") return jsonErr("unpaid", 409);
+    return jsonErr("not-found", 404);
+  }
   return jsonOk({ id });
 });
 
