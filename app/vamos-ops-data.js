@@ -375,20 +375,24 @@
       status: BOOKING_STATUS.indexOf(b.status) === -1 ? "pending" : b.status,
       chauffeur: str(b.chauffeur),
       driver: str(b.driver || b.chauffeur),
-      vehicle: str(b.vehicle || b.klass),
+      vehicle: str(b.vehicle),
       flight: str(b.flight),
       note: str(b.note),
       email: str(b.email),
       phone: str(b.phone),
       company: str(b.company),
       dateIso: str(b.dateIso),
+      pickupAt: str(b.pickupAt),
+      capturedAt: str(b.capturedAt),
       bookingId: str(b.bookingId),
       paid: !!b.paid,
       paidByCard: !!b.paidByCard,
       payLinkSent: !!b.payLinkSent,
       cardSession: !!b.cardSession,
       sessionExpiresAt: str(b.sessionExpiresAt),
-      totalRappen: num(b.totalRappen, 0)
+      totalRappen: num(b.totalRappen, 0),
+      refundRappen: num(b.refundRappen, 0),
+      stripeFeeRappen: b.stripeFeeRappen == null || b.stripeFeeRappen === "" ? null : num(b.stripeFeeRappen, 0)
     };
   }
 

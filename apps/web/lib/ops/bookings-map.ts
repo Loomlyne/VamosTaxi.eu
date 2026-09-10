@@ -9,15 +9,14 @@ const CLASS_LABEL: Record<string, string> = {
   van: "Van",
 };
 
-const PAID_STATUSES = new Set(["paid", "confirmed", "assigned", "completed"]);
-const CARD_PAID = new Set(["succeeded", "captured", "paid", "complete"]);
-
 export type OpsBookingRow = {
   id: string;
   bookingId: string;
   time: string;
   date: string;
   dateIso: string;
+  pickupAt: string;
+  capturedAt: string;
   customer: string;
   email: string;
   phone: string;
@@ -31,6 +30,9 @@ export type OpsBookingRow = {
   status: string;
   chauffeur: string;
   driver: string;
+  chauffeurEmail: string;
+  assignedChauffeurId: string;
+  assignedVehicleId: string;
   flight: string;
   note: string;
   paid: boolean;
@@ -39,6 +41,8 @@ export type OpsBookingRow = {
   cardSession: boolean;
   sessionExpiresAt: string;
   totalRappen: number;
+  refundRappen: number;
+  stripeFeeRappen: number | null;
 };
 
 export type SqlBoardRow = {
@@ -60,11 +64,18 @@ export type SqlBoardRow = {
   bags: number | null;
   class_slug: string | null;
   chauffeur_name: string | null;
+  chauffeur_email?: string | null;
+  assigned_chauffeur_id?: string | null;
+  assigned_vehicle_id?: string | null;
+  vehicle_plate?: string | null;
+  vehicle_model?: string | null;
   payment_status: string | null;
   captured_at: string | Date | null;
   payment_created_at: string | Date | null;
   stripe_checkout_session_id: string | null;
   charged_rappen: number | string | null;
+  refund_rappen?: number | string | null;
+  stripe_fee_rappen?: number | string | null;
 };
 
 function str(value: unknown): string {
@@ -117,10 +128,31 @@ function addHours(value: string | Date, hours: number): string {
   return new Date(ms + hours * 3600 * 1000).toISOString();
 }
 
+function iso(value: string | Date | null | undefined): string {
+  if (value === undefined || value === null) return "";
+  if (value instanceof Date) {
+    return Number.isFinite(value.getTime()) ? value.toISOString() : "";
+  }
+  const raw = String(value).trim();
+  if (!raw) return "";
+  const ms = Date.parse(raw);
+  return Number.isFinite(ms) ? new Date(ms).toISOString() : "";
+}
+
+function rappen(value: number | string | null | undefined): number {
+  const n = Number(value ?? 0);
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+function fleetVehicle(plate: string, model: string): string {
+  if (plate && model) return `${plate} · ${model}`;
+  return plate || model;
+}
+
 export function mapBoardBooking(row: SqlBoardRow): OpsBookingRow {
   const status = str(row.status) || "pending";
-  const paidByCard = row.captured_at != null || CARD_PAID.has(str(row.payment_status).toLowerCase());
-  const paid = paidByCard || PAID_STATUSES.has(status);
+  const capturedAt = iso(row.captured_at);
+  const paid = capturedAt.length > 0;
   const payLinkSent = row.pay_link_sent_at != null;
   const cardSession = str(row.stripe_checkout_session_id).length > 0;
   const sessionExpiresAt =
@@ -130,12 +162,17 @@ export function mapBoardBooking(row: SqlBoardRow): OpsBookingRow {
   const klass = classLabel(row.class_slug);
   const when = boardParts(row.scheduled_local);
   const chauffeur = str(row.chauffeur_name);
+  const feeRaw = row.stripe_fee_rappen;
+  const stripeFeeRappen =
+    feeRaw === undefined || feeRaw === null || String(feeRaw).trim() === "" ? null : rappen(feeRaw);
   return {
     id: str(row.reference) || str(row.id),
     bookingId: str(row.id),
     time: when.time,
     date: when.date,
     dateIso: when.dateIso,
+    pickupAt: iso(row.scheduled_at),
+    capturedAt,
     customer: str(row.contact_name),
     email: str(row.contact_email),
     phone: str(row.contact_phone),
@@ -143,19 +180,24 @@ export function mapBoardBooking(row: SqlBoardRow): OpsBookingRow {
     pickup: str(row.pickup_text),
     dropoff: str(row.dropoff_text),
     klass,
-    vehicle: klass,
+    vehicle: fleetVehicle(str(row.vehicle_plate), str(row.vehicle_model)),
     pax: Number(row.pax ?? 1) || 1,
     bags: Number(row.bags ?? 0) || 0,
     status,
     chauffeur,
     driver: chauffeur,
+    chauffeurEmail: str(row.chauffeur_email),
+    assignedChauffeurId: str(row.assigned_chauffeur_id),
+    assignedVehicleId: str(row.assigned_vehicle_id),
     flight: str(row.flight_no),
     note: str(row.note),
     paid,
-    paidByCard,
+    paidByCard: paid,
     payLinkSent,
     cardSession,
     sessionExpiresAt,
-    totalRappen: Number(row.charged_rappen ?? 0) || 0,
+    totalRappen: paid ? rappen(row.charged_rappen) : 0,
+    refundRappen: rappen(row.refund_rappen),
+    stripeFeeRappen,
   };
 }
