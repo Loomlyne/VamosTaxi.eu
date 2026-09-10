@@ -2,15 +2,33 @@
 //
 // Pure Support mapping. Keep Hyperdrive out of this file so vitest can import it.
 
-const STATUSES = new Set(["new", "open", "replied", "closed"]);
+const STATUSES = new Set(["new", "open", "replied", "responded", "closed"]);
 
-export type TicketStatus = "new" | "open" | "replied" | "closed";
+export type TicketStatus = "new" | "open" | "replied" | "responded" | "closed";
 
 export function nextTicketStatus(current: TicketStatus, requested: TicketStatus): TicketStatus | null {
   if (current === requested) return current;
-  if (current === "closed") return null;
   if (requested === "new") return null;
+  if (current === "closed") return requested === "open" ? "open" : null;
   return requested;
+}
+
+export function staffPatchStatus(current: TicketStatus, requested: TicketStatus): TicketStatus | null {
+  if (requested === "open") {
+    if (current === "new" || current === "closed") return "open";
+    return null;
+  }
+  if (requested === "closed") {
+    if (current === "new" || current === "open" || current === "replied" || current === "responded" || current === "closed") {
+      return "closed";
+    }
+    return null;
+  }
+  return null;
+}
+
+export function rejectStaffReply(input: object | null | undefined): boolean {
+  return Boolean(input && Object.prototype.hasOwnProperty.call(input, "reply"));
 }
 
 export type OpsTicketMessage = {
