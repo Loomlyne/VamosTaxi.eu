@@ -185,6 +185,51 @@ function dashboardAbs(request: NextRequest, targetPath: string): URL {
   return new URL(href || "/", request.url);
 }
 
+/** D-10 console paths on the dashboard host. Same ops.dc.html document. */
+const OPS_CONSOLE_EXACT = new Set([
+  "/dashboard",
+  "/bookings",
+  "/bookings/new",
+  "/calendar",
+  "/customers",
+  "/fleet",
+  "/fleet/chauffeurs",
+  "/support",
+  "/pricing",
+  "/profile",
+  "/settings",
+  "/coupons",
+  "/reviews",
+  "/pages",
+  "/legal",
+]);
+
+function normalizeDashboardPath(path: string): string {
+  if (path.length > 1 && path.endsWith("/")) return path.slice(0, -1);
+  return path;
+}
+
+function isOpsConsolePath(path: string): boolean {
+  const p = normalizeDashboardPath(path);
+  if (OPS_CONSOLE_EXACT.has(p)) return true;
+  const segments = p.split("/").filter(Boolean);
+  if (segments.length === 2 && segments[0] === "bookings") return true;
+  if (segments.length === 2 && segments[0] === "customers") return true;
+  if (segments.length === 3 && segments[0] === "fleet" && segments[1] === "chauffeurs") {
+    return true;
+  }
+  return false;
+}
+
+function opsConsoleNotFound(cookieSource: NextResponse): NextResponse {
+  const headers = new Headers();
+  headers.set("content-type", "text/plain; charset=utf-8");
+  headers.set("Cache-Control", "private, no-store");
+  const out = new NextResponse("Not Found", { status: 404, headers });
+  copyCookies(cookieSource, out);
+  return applyStagingNoindex(out);
+}
+
 async function dashboardHostMiddleware(request: NextRequest): Promise<NextResponse> {
   const { path } = localeStrippedPath(request.nextUrl.pathname);
 
@@ -198,10 +243,13 @@ async function dashboardHostMiddleware(request: NextRequest): Promise<NextRespon
     if (path === "/login") {
       return serveOpsDc(request, new NextResponse(), "ops-login.dc.html", false);
     }
-    if (path !== "/") {
-      return applyStagingNoindex(NextResponse.redirect(dashboardAbs(request, "/"), 307));
+    if (normalizeDashboardPath(path) === "/") {
+      return applyStagingNoindex(NextResponse.redirect(dashboardAbs(request, "/dashboard"), 308));
     }
-    return serveOpsDc(request, new NextResponse(), "ops.dc.html", true);
+    if (isOpsConsolePath(path)) {
+      return serveOpsDc(request, new NextResponse(), "ops.dc.html", true);
+    }
+    return opsConsoleNotFound(new NextResponse());
   }
 
   const client = createSupabaseMiddlewareClient(request);
@@ -216,12 +264,15 @@ async function dashboardHostMiddleware(request: NextRequest): Promise<NextRespon
   const inConsole = role === "admin" || role === "dispatcher";
 
   if (inConsole) {
-    if (path !== "/") {
+    if (normalizeDashboardPath(path) === "/") {
       return applyStagingNoindex(
-        copyCookies(client.response, NextResponse.redirect(dashboardAbs(request, "/"), 307)),
+        copyCookies(client.response, NextResponse.redirect(dashboardAbs(request, "/dashboard"), 308)),
       );
     }
-    return serveOpsDc(request, client.response, "ops.dc.html", true);
+    if (isOpsConsolePath(path)) {
+      return serveOpsDc(request, client.response, "ops.dc.html", true);
+    }
+    return opsConsoleNotFound(client.response);
   }
 
   if (path === "/login") {
