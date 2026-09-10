@@ -214,7 +214,7 @@ button[data-vt-count]{appearance:none;-webkit-appearance:none;cursor:pointer;fon
 <dc-import name="OpsBoard" hint-size="100%,900px"></dc-import>
 </sc-if>
 <sc-if value="{{ isFleet }}" hint-placeholder-val="{{ false }}">
-<dc-import name="OpsFleetBoard" section="{{ fleetSection }}" hint-size="100%,900px"></dc-import>
+<dc-import name="OpsFleetBoard" section="{{ fleetSection }}" chauffeur-id="{{ chauffeurId }}" hint-size="100%,900px"></dc-import>
 </sc-if>
 <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
 <dc-import name="OpsDetail" id="{{ detailId }}" hint-size="100%,900px"></dc-import>
@@ -411,6 +411,7 @@ class Component extends DCLogic {
       route: r === 'detail' ? 'bookings' : r,
       detailId: this.state.detailId || '',
       fleetSection: r === 'chauffeurs' ? 'chauffeurs' : 'vehicles',
+      chauffeurId: r === 'chauffeurs' ? (this.state.detailId || '') : '',
       contentSection: r === 'legal' ? 'legal' : 'pages',
       isContent: CONTENT.indexOf(r) !== -1,
       isDash: r === 'dashboard', isFleet: FLEET.indexOf(r) !== -1,
