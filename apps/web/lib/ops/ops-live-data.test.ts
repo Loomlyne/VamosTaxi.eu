@@ -18,6 +18,40 @@ function read(rel: string): string {
 }
 
 describe("ops live data — comments 8–10", () => {
+  it("ops console uses path routing with no hash hrefs", () => {
+    const ops = read("app/ops/ops.dc.html");
+    expect(ops).toMatch(/function readPath/);
+    expect(ops).not.toMatch(/function readHash/);
+    expect(ops).not.toMatch(/hashchange/);
+    expect(ops).not.toMatch(/vt-ops-hash-switch/);
+    const files = [
+      "app/ops/OpsSidebar.dc.html",
+      "app/ops/OpsDash.dc.html",
+      "app/ops/OpsBoard.dc.html",
+      "app/ops/OpsCalendarBoard.dc.html",
+      "app/ops/OpsDetail.dc.html",
+      "app/ops/OpsCustomers.dc.html",
+      "app/ops/OpsFleet.dc.html",
+    ];
+    for (const f of files) {
+      const t = read(f);
+      expect(t, f).not.toMatch(/href="#/);
+      expect(t, f).not.toMatch(/href:'#/);
+      expect(t, f).not.toMatch(/location\.hash/);
+    }
+    const sidebar = read("app/ops/OpsSidebar.dc.html");
+    expect(sidebar).toMatch(/href="\/dashboard"/);
+    expect(sidebar).toMatch(/href:'\/support'/);
+    expect(sidebar).not.toMatch(/#staff/);
+    const board = read("app/ops/OpsBoard.dc.html");
+    expect(board).toMatch(/\/bookings\/' \+ encodeURIComponent\(row\.id\)/);
+    expect(board).not.toMatch(/#detail\//);
+    const mw = read("apps/web/middleware.ts");
+    expect(mw).toMatch(/serveOpsDc/);
+    expect(mw).toMatch(/isOpsConsolePath/);
+    expect(mw).not.toMatch(/href="#/);
+  });
+
   it("hydrates bookings from GET /api/staff/bookings", () => {
     const data = read("app/vamos-ops-data.js");
     expect(data).toMatch(/bookings:\s*restCollection\(['"]bookings['"]/);
