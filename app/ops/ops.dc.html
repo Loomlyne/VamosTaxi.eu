@@ -191,8 +191,8 @@ button[data-vt-count]{appearance:none;-webkit-appearance:none;cursor:pointer;fon
 <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
 <div onClick="{{ closeMenu }}" style="position:fixed;inset:0;z-index:4;background:transparent"></div>
 <div data-ops-prof-menu="1" role="menu">
-<a href="#profile" role="menuitem" onClick="{{ goHash }}">{{ tProfile }}</a>
-<a href="#settings" role="menuitem" onClick="{{ goHash }}">{{ tSettings }}</a>
+<a href="/profile" role="menuitem" onClick="{{ goPath }}">{{ tProfile }}</a>
+<a href="/settings" role="menuitem" onClick="{{ goPath }}">{{ tSettings }}</a>
 <button type="button" role="menuitem" data-ops-prof-out="1" onClick="{{ signOut }}">{{ tSignOut }}</button>
 </div>
 </sc-if>
@@ -252,7 +252,13 @@ button[data-vt-count]{appearance:none;-webkit-appearance:none;cursor:pointer;fon
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;start&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dashboard&quot;,&quot;options&quot;:[&quot;dashboard&quot;,&quot;bookings&quot;,&quot;calendar&quot;,&quot;vehicles&quot;,&quot;chauffeurs&quot;,&quot;pricing&quot;,&quot;customers&quot;,&quot;support&quot;,&quot;coupons&quot;,&quot;reviews&quot;,&quot;settings&quot;,&quot;profile&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Console&quot;},&quot;requireSignIn&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Console&quot;}}">
 const FLEET = ['vehicles', 'chauffeurs'];
 const CONTENT = ['pages', 'legal'];
-const ROUTES = ['dashboard', 'bookings', 'calendar', 'pricing', 'customers', 'support', 'coupons', 'settings', 'staff', 'profile', 'reviews', 'detail'].concat(FLEET).concat(CONTENT);
+const HASH_TO_PATH = {
+  dashboard: '/dashboard', bookings: '/bookings', calendar: '/calendar',
+  customers: '/customers', vehicles: '/fleet', chauffeurs: '/fleet/chauffeurs',
+  support: '/support', pricing: '/pricing', profile: '/profile', settings: '/settings',
+  coupons: '/coupons', reviews: '/reviews', pages: '/pages', legal: '/legal',
+  staff: '/dashboard',
+};
 const MENU = { en:'Open navigation', de:'Navigation öffnen', fr:'Ouvrir la navigation', ar:'فتح التنقل' };
 const PROF = {
   en: { profile:'Profile', settings:'Settings', signOut:'Sign out' },
@@ -265,23 +271,78 @@ function avatarUrl(avatar) {
   if (!value) return '';
   return value.charAt(0) === '/' ? value : '/photos/' + value;
 }
-/* One console, one URL. Every section is a hash route on this page: #bookings,
-   #pricing, #reviews, #calendar…, plus #detail/<id> for a single booking. */
-function readHash() {
+function localeStrippedPath(pathname) {
+  const match = String(pathname || '').match(/^\/(en|de|fr|ar)(?=\/|$)/);
+  let path = match ? (pathname.slice(match[0].length) || '/') : String(pathname || '/');
+  if (path.length > 1 && path.endsWith('/')) path = path.slice(0, -1);
+  return path;
+}
+/* One console, path URLs only. Same document; history.pushState + popstate. */
+function readPath(pathname) {
+  const path = localeStrippedPath(pathname);
+  if (path === '/' || path === '/dashboard') return { route: 'dashboard', detailId: null };
+  if (path === '/bookings') return { route: 'bookings', detailId: null };
+  if (path === '/bookings/new') return { route: 'bookings', detailId: null, newTrip: true };
+  if (path.indexOf('/bookings/') === 0) {
+    const ref = path.slice('/bookings/'.length);
+    if (ref && ref.indexOf('/') === -1) return { route: 'detail', detailId: decodeURIComponent(ref) };
+  }
+  if (path === '/calendar') return { route: 'calendar', detailId: null };
+  if (path === '/customers') return { route: 'customers', detailId: null };
+  if (path.indexOf('/customers/') === 0) {
+    const email = path.slice('/customers/'.length);
+    if (email && email.indexOf('/') === -1) {
+      return { route: 'customers', detailId: null, customerEmail: decodeURIComponent(email) };
+    }
+  }
+  if (path === '/fleet') return { route: 'vehicles', detailId: null };
+  if (path === '/fleet/chauffeurs') return { route: 'chauffeurs', detailId: null };
+  if (path.indexOf('/fleet/chauffeurs/') === 0) {
+    const id = path.slice('/fleet/chauffeurs/'.length);
+    if (id && id.indexOf('/') === -1) return { route: 'chauffeurs', detailId: decodeURIComponent(id) };
+  }
+  if (path === '/support') return { route: 'support', detailId: null };
+  if (path === '/pricing') return { route: 'pricing', detailId: null };
+  if (path === '/profile') return { route: 'profile', detailId: null };
+  if (path === '/settings') return { route: 'settings', detailId: null };
+  if (path === '/coupons') return { route: 'coupons', detailId: null };
+  if (path === '/reviews') return { route: 'reviews', detailId: null };
+  if (path === '/pages') return { route: 'pages', detailId: null };
+  if (path === '/legal') return { route: 'legal', detailId: null };
+  return { route: 'dashboard', detailId: null };
+}
+function migrateHashOnce() {
   const raw = (location.hash || '').replace(/^#\/?/, '');
+  if (!raw) return;
   const [key, id] = raw.split('/');
-  if (!key || ROUTES.indexOf(key) === -1) return { route: 'dashboard', detailId: null };
-  return { route: key, detailId: key === 'detail' ? decodeURIComponent(id || '') : null };
+  let dest = null;
+  if (key === 'detail') dest = '/bookings/' + encodeURIComponent(decodeURIComponent(id || ''));
+  else if (HASH_TO_PATH[key]) dest = HASH_TO_PATH[key];
+  history.replaceState({}, '', dest || (location.pathname + location.search));
 }
 class Component extends DCLogic {
-  state = Object.assign({ navOpen: false, lang: 'en', menuOpen: false, me: null }, readHash());
+  state = Object.assign({ navOpen: false, lang: 'en', menuOpen: false, me: null }, readPath(location.pathname));
   componentDidMount() {
     if (location.pathname.indexOf('/app/') === 0) { location.replace('/'); return; }
     const gate = this.props.requireSignIn !== false;
     if (gate && typeof localStorage !== 'undefined' && localStorage.getItem('vamosOpsAuth') !== '1') { location.replace('/login'); return; }
-    if (!location.hash) location.replace('#' + (this.props.start || 'dashboard'));
-    this._onHash = () => this.setState(Object.assign({ navOpen: false, menuOpen: false }, readHash()));
-    window.addEventListener('hashchange', this._onHash);
+    migrateHashOnce();
+    this.setState(Object.assign({ navOpen: false, menuOpen: false }, readPath(location.pathname)));
+    this._onPop = () => this.setState(Object.assign({ navOpen: false, menuOpen: false }, readPath(location.pathname)));
+    window.addEventListener('popstate', this._onPop);
+    this._onClick = (e) => {
+      if (e.defaultPrevented || (e.button && e.button !== 0) || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      let el = e.target;
+      while (el && el !== document && !(el.tagName === 'A' && el.getAttribute)) el = el.parentNode;
+      if (!el || el.tagName !== 'A') return;
+      if (el.target && el.target !== '_self') return;
+      const href = el.getAttribute('href') || '';
+      if (href.charAt(0) !== '/') return;
+      if (href === '/login' || href.indexOf('/api/') === 0) return;
+      e.preventDefault();
+      this.goTo(href.split('?')[0].split('#')[0]);
+    };
+    document.addEventListener('click', this._onClick);
     this._onLocale = (e) => this.setState({ lang: e.detail.lang });
     window.addEventListener('vamos:locale', this._onLocale);
     if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang || 'en' });
@@ -290,7 +351,8 @@ class Component extends DCLogic {
     this.bindOps();
   }
   componentWillUnmount() {
-    if (this._onHash) window.removeEventListener('hashchange', this._onHash);
+    if (this._onPop) window.removeEventListener('popstate', this._onPop);
+    if (this._onClick) document.removeEventListener('click', this._onClick);
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     if (this._onKey) window.removeEventListener('keydown', this._onKey);
     if (this._offOps) this._offOps();
@@ -311,13 +373,19 @@ class Component extends DCLogic {
   closeNav = () => this.setState({ navOpen: false });
   toggleMenu = () => this.setState((s) => ({ menuOpen: !s.menuOpen }));
   closeMenu = () => this.setState({ menuOpen: false });
-  goHash = (e) => {
+  goTo = (path) => {
+    const href = String(path || '');
+    if (!href || href.charAt(0) !== '/') return;
+    this.setState({ menuOpen: false, navOpen: false });
+    if (location.pathname !== href) history.pushState({}, '', href);
+    this.setState(Object.assign({ navOpen: false, menuOpen: false }, readPath(href)));
+  };
+  goPath = (e) => {
     const a = e.currentTarget;
     const href = (a && a.getAttribute && a.getAttribute('href')) || '';
-    if (href.charAt(0) !== '#') return;
+    if (href.charAt(0) !== '/') return;
     e.preventDefault();
-    this.setState({ menuOpen: false, navOpen: false });
-    if (location.hash !== href) location.hash = href;
+    this.goTo(href.split('?')[0].split('#')[0]);
   };
   signOut = () => {
     try { localStorage.removeItem('vamosOpsAuth'); } catch (e) {}
@@ -351,7 +419,7 @@ class Component extends DCLogic {
       isCoupons: r === 'coupons', isSupport: r === 'support', isSettings: r === 'settings' || r === 'staff', isProfile: r === 'profile',
       navOpenAttr: this.state.navOpen ? '1' : '0',
       toggleNav: this.toggleNav, closeNav: this.closeNav,
-      toggleMenu: this.toggleMenu, closeMenu: this.closeMenu, goHash: this.goHash, signOut: this.signOut,
+      toggleMenu: this.toggleMenu, closeMenu: this.closeMenu, goPath: this.goPath, signOut: this.signOut,
       menuOpen: this.state.menuOpen,
       menuExpanded: this.state.menuOpen ? 'true' : 'false',
       tMenu: MENU[this.state.lang] || MENU.en,
