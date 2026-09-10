@@ -108,6 +108,19 @@ export async function sendPayLink(
   }
 }
 
+/** D-60: contact plus company payer when the address is different. */
+export function refundMailRecipients(
+  contactEmail: string,
+  payerEmail?: string | null,
+): string[] {
+  const contact = contactEmail.trim().toLowerCase();
+  const payer = (payerEmail ?? "").trim().toLowerCase();
+  const out: string[] = [];
+  if (contact) out.push(contact);
+  if (payer && payer !== contact) out.push(payer);
+  return out;
+}
+
 export async function sendRefund(
   env: EmailEnv,
   input: {
