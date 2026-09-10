@@ -656,8 +656,13 @@ class Component extends DCLogic {
     this._original = JSON.stringify(copy);
     this.lockScroll();
     this.setState({ draft: copy, isNew: false, errors: {}, closeAttempted: false, historyOpen: true, sug: null });
+    if (this.props.onEdit) this.props.onEdit(row);
   };
-  closeEditor = () => { this.unlockScroll(); this.setState({ draft: null, errors: {}, closeAttempted: false, sug: null, dateOpen: null }); };
+  closeEditor = () => {
+    this.unlockScroll();
+    this.setState({ draft: null, errors: {}, closeAttempted: false, sug: null, dateOpen: null });
+    if (this.props.onCloseEdit) this.props.onCloseEdit();
+  };
   isDirty = () => {
     if (!this.state.draft) return false;
     try { return JSON.stringify(this.state.draft) !== this._original; } catch (e) { return false; }

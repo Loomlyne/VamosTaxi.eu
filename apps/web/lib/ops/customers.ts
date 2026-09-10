@@ -287,6 +287,7 @@ export async function loadCustomerHistory(
         (select count(*)::int from public.bookings b where b.customer_id = c.id) as trip_count
       from public.customers c
       where c.id = ${customerId}
+         or lower(c.email::text) = lower(${customerId})
       limit 1
     `;
     let row = customers[0];
@@ -310,6 +311,7 @@ export async function loadCustomerHistory(
         where b.erased_at is null
           and (
             b.id = ${customerId}
+            or lower(b.contact_email::text) = lower(${customerId})
             or lower(b.contact_email::text) = (
               select lower(x.contact_email::text) from public.bookings x where x.id = ${customerId}
             )
