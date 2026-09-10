@@ -84,26 +84,19 @@ export function RouteSummary({
   return (
     <div className={cls}>
       <div className="vt-route__leg">
-        <div className="vt-route__stop">
-          <span className="vt-route__spine">
-            <span className="vt-route__pip" />
-            <span className="vt-route__line" />
-          </span>
-          <div className="vt-route__stop-body">
+        <div className="vt-route__rail" aria-hidden="true">
+          <span className="vt-route__pip" />
+          <span className="vt-route__line" />
+          <span className="vt-route__pip vt-route__pip--end" />
+        </div>
+        <div className="vt-route__stops">
+          <div className="vt-route__stop">
             <span className="vt-route__kicker">{t("pickup")}</span>
             <div className="vt-route__place">{pickup}</div>
             {pickupDetail ? <div className="vt-route__detail">{pickupDetail}</div> : null}
           </div>
-        </div>
-        <div className="vt-route__segment">
-          <span className="vt-route__line" />
           {duration ? <div className="vt-route__duration">{duration}</div> : null}
-        </div>
-        <div className="vt-route__stop vt-route__stop--last">
-          <span className="vt-route__spine">
-            <span className="vt-route__pip vt-route__pip--end" />
-          </span>
-          <div className="vt-route__stop-body">
+          <div className="vt-route__stop vt-route__stop--last">
             <span className="vt-route__kicker">{t("destination")}</span>
             <div className="vt-route__place">{dropoff}</div>
             {dropoffDetail ? <div className="vt-route__detail">{dropoffDetail}</div> : null}

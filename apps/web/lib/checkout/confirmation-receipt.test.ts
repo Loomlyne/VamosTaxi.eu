@@ -63,6 +63,8 @@ describe("confirmation receipt", () => {
       fareRappen: 10000,
       vatRappen: 810,
       extras: [],
+      couponRappen: 0,
+      couponPercent: null,
     });
   });
 
@@ -72,15 +74,17 @@ describe("confirmation receipt", () => {
     );
   });
 
-  it("splits a gross 129.72 with stored child seat 20.00 into fare + extra + VAT", () => {
+  it("splits a gross 129.72 with stored child seat 20.00 into fare + extra + VAT on 120", () => {
     expect(receiptPriceSplit({ totalRappen: 12972, extraRappen: { child_seat: 2000 } })).toEqual({
       fareRappen: 10000,
       vatRappen: 972,
       extras: [{ code: "child_seat", rappen: 2000 }],
+      couponRappen: 0,
+      couponPercent: null,
     });
   });
 
-  it("keeps fare 100.00 when a 20.00 extra is offset by a 20.00 coupon", () => {
+  it("puts 8.1% VAT on fare+extra 120, then 20% off, matching paid 108.10", () => {
     expect(
       receiptPriceSplit({
         totalRappen: 10810,
@@ -89,8 +93,10 @@ describe("confirmation receipt", () => {
       }),
     ).toEqual({
       fareRappen: 10000,
-      vatRappen: 810,
+      vatRappen: 972,
       extras: [{ code: "child_seat", rappen: 2000 }],
+      couponRappen: 2162,
+      couponPercent: 20,
     });
   });
 });

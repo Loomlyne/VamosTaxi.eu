@@ -308,17 +308,21 @@ export function ConfirmationClient({
         amount: rappenToMajor(extra.rappen),
       });
     }
-    if (coupon) {
-      lines.push({
-        label: (
-          <span data-confirmation-coupon={coupon.code}>{t("couponCode", { code: coupon.code })}</span>
-        ),
-        amount: rappenToMajor(-coupon.rappen),
-        credit: true,
-      });
-    }
     if (split.vatRappen > 0) {
       lines.push({ label: t("vatIncl"), amount: rappenToMajor(split.vatRappen) });
+    }
+    if (coupon && split.couponRappen > 0) {
+      lines.push({
+        label: (
+          <span data-confirmation-coupon={coupon.code}>
+            {split.couponPercent
+              ? t("couponPercentOff", { percent: split.couponPercent })
+              : t("couponCode", { code: coupon.code })}
+          </span>
+        ),
+        amount: rappenToMajor(-split.couponRappen),
+        credit: true,
+      });
     }
   } else {
     const fareLinesShown = fareLines.filter((line) => line.code !== "coupon" && line.code !== "discount");

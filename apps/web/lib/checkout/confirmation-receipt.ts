@@ -1,6 +1,6 @@
 import type { PayLinkExtraCode } from "@vamos/emails/confirmation";
 import type { ConfirmationFareLine } from "./booking-read";
-import { vatIncludedRappen } from "./vat";
+import { vatIncludedRappen, vatOnTopRappen } from "./vat";
 
 const EXTRA_CODES: Record<PayLinkExtraCode, true> = {
   child_seat: true,
@@ -127,12 +127,18 @@ export function extraRappenByCode(lines: ConfirmationFareLine[]): Partial<Record
   return out;
 }
 
-/** Gross charged amount → fare (ex VAT) + extra rows + VAT. Does not invent extras. */
+/** Class fare + extras, then 8.1% VAT on that basket, then coupon. Does not invent extras. */
 export function receiptPriceSplit(args: {
   totalRappen: number | null | undefined;
   extraRappen: Partial<Record<PayLinkExtraCode, number>>;
   discountRappen?: number | null;
-}): { fareRappen: number; vatRappen: number; extras: { code: PayLinkExtraCode; rappen: number }[] } | null {
+}): {
+  fareRappen: number;
+  vatRappen: number;
+  extras: { code: PayLinkExtraCode; rappen: number }[];
+  couponRappen: number;
+  couponPercent: number | null;
+} | null {
   const gross = args.totalRappen;
   if (gross == null || !Number.isFinite(gross) || gross <= 0) return null;
   const extras: { code: PayLinkExtraCode; rappen: number }[] = [];
@@ -144,9 +150,12 @@ export function receiptPriceSplit(args: {
   const extraSum = extras.reduce((sum, row) => sum + row.rappen, 0);
   const discount =
     args.discountRappen != null && Number.isFinite(args.discountRappen) ? Math.abs(args.discountRappen) : 0;
-  const vatRappen = vatIncludedRappen(gross);
-  const fareRappen = Math.max(0, gross - vatRappen - extraSum + discount);
-  return { fareRappen, vatRappen, extras };
+  const fareRappen = Math.max(0, gross - vatIncludedRappen(gross) - extraSum + discount);
+  const vatRappen = vatOnTopRappen(fareRappen + extraSum);
+  const couponRappen = Math.max(0, fareRappen + extraSum + vatRappen - gross);
+  const couponPercent =
+    discount > 0 && fareRappen > 0 ? Math.round((discount / fareRappen) * 100) : null;
+  return { fareRappen, vatRappen, extras, couponRappen, couponPercent };
 }
 
 export function mergeExtras(
