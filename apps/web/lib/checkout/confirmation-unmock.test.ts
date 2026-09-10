@@ -78,12 +78,16 @@ describe("confirmation unmock (D-40)", () => {
     const routeSrc = readFileSync(join(WEB_ROOT, "components/transfer/RouteSummary.tsx"), "utf8");
     const routeCss = readFileSync(join(WEB_ROOT, "components/transfer/RouteSummary.css"), "utf8");
     expect(routeSrc).toContain("vt-route__segment");
+    expect(routeSrc).toContain("vt-route__spine");
     expect(routeSrc).not.toContain("vt-route__rail");
     expect(routeCss).toContain(".vt-route__segment");
+    expect(routeCss).toContain("margin-block:8px");
+    expect(routeCss).toContain("rgb(255 255 255 / 0.28)");
     expect(routeCss).not.toContain("span 3");
     expect(client).toContain("fareExVat");
     expect(client).toContain("vatIncl");
     expect(client).toContain("receiptPriceSplit");
+    expect(client).toContain("data-confirmation-coupon");
     expect(client).not.toContain("vt-confirmation__voucher-title");
     expect(client).not.toContain("{t(\"transferVoucher\")}");
     expect(css).toContain(".vt-confirmation__voucher-head .vt-badge");

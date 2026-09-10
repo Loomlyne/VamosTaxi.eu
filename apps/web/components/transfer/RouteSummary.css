@@ -5,18 +5,20 @@
    states the source has no CSS for at all. No Law 02 issue here — the pip/line use
    `--vt-accent` (full-strength yellow) and `--vt-charcoal-900`, neither banned. */
 .vt-route{font-family:var(--vt-font-body);min-inline-size:0}
-/* Each stop owns its pip so the connector never runs through destination copy.
-   The line lives only in `.vt-route__segment` between the two pips. */
+/* Pickup spine carries the line down to the duration; dest pip sits at the
+   destination kicker so the connector never runs through destination copy. */
 .vt-route__leg{display:flex;flex-direction:column;min-inline-size:0}
 .vt-route__stop,.vt-route__segment{display:grid;grid-template-columns:14px minmax(0,1fr);column-gap:12px;min-inline-size:0}
-.vt-route__stop{align-items:start}
-.vt-route__pip{inline-size:10px;block-size:10px;border-radius:var(--vt-radius-pill);background:var(--vt-accent);border:2px solid var(--vt-charcoal-900);box-sizing:content-box;justify-self:center;margin-block-start:4px}
+.vt-route__stop{align-items:stretch}
+.vt-route__spine{display:flex;flex-direction:column;align-items:center;min-block-size:0}
+.vt-route__pip{inline-size:10px;block-size:10px;border-radius:var(--vt-radius-pill);background:var(--vt-accent);border:2px solid var(--vt-charcoal-900);box-sizing:content-box;flex:0 0 auto;margin-block-start:4px}
 .vt-route__pip--end{background:var(--vt-charcoal-900);border-color:var(--vt-charcoal-900)}
+.vt-route__spine .vt-route__line{flex:1 1 auto;min-block-size:8px;margin-block-start:3px}
 .vt-route__segment{align-items:stretch;min-block-size:16px}
-.vt-route__segment:has(.vt-route__duration){min-block-size:28px;padding-block:2px}
+.vt-route__segment:has(.vt-route__duration){min-block-size:40px}
 .vt-route__line{inline-size:2px;background:var(--vt-grey-200);justify-self:center;align-self:stretch;min-block-size:12px}
 .vt-route__stop-body{min-inline-size:0}
-.vt-route__duration{display:inline-flex;align-items:center;gap:6px;justify-self:start;align-self:center;max-inline-size:100%;padding:2px 8px;border-radius:var(--vt-radius-pill);font-size:var(--vt-body-sm);line-height:1.3;color:var(--vt-text-muted);background:var(--vt-grey-50);white-space:nowrap}
+.vt-route__duration{display:inline-flex;align-items:center;gap:6px;justify-self:start;align-self:center;margin-block:8px;margin-inline-start:4px;max-inline-size:100%;padding:4px 10px;border-radius:var(--vt-radius-pill);font-size:var(--vt-body-sm);line-height:1.3;color:var(--vt-text-muted);background:var(--vt-grey-50);white-space:nowrap}
 .vt-route__kicker{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted);display:block;margin-block-end:2px}
 .vt-route__place{font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium);color:var(--vt-text-primary);line-height:1.35}
 .vt-route__detail{font-size:var(--vt-body-sm);color:var(--vt-text-muted)}
@@ -24,9 +26,10 @@
 .vt-route__metaitem{display:inline-flex;align-items:center;gap:7px;min-inline-size:0;padding:0;background:transparent;border-radius:0;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-regular);color:var(--vt-text-secondary);line-height:1.35}
 .vt-route--inverse .vt-route__place{color:var(--vt-text-inverse)}
 .vt-route--inverse .vt-route__detail,.vt-route--inverse .vt-route__metaitem,.vt-route--inverse .vt-route__duration{color:var(--vt-text-inverse-muted)}
-.vt-route--inverse .vt-route__line{background:var(--vt-charcoal-700)}
-.vt-route--inverse .vt-route__duration{background:var(--vt-charcoal-700)}
+.vt-route--inverse .vt-route__line{background:rgb(255 255 255 / 0.28)}
+.vt-route--inverse .vt-route__duration{background:var(--vt-charcoal-800)}
 .vt-route--inverse .vt-route__meta{border-block-start-color:var(--vt-border-inverse)}
+.vt-route--inverse .vt-route__pip{border-color:var(--vt-bg-inverse)}
 .vt-route--inverse .vt-route__pip--end{background:var(--vt-white);border-color:var(--vt-white)}
 
 /* Rule 2 additions — same restrained spinner+label loading treatment as

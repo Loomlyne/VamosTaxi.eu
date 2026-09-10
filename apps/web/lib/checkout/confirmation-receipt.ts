@@ -131,6 +131,7 @@ export function extraRappenByCode(lines: ConfirmationFareLine[]): Partial<Record
 export function receiptPriceSplit(args: {
   totalRappen: number | null | undefined;
   extraRappen: Partial<Record<PayLinkExtraCode, number>>;
+  discountRappen?: number | null;
 }): { fareRappen: number; vatRappen: number; extras: { code: PayLinkExtraCode; rappen: number }[] } | null {
   const gross = args.totalRappen;
   if (gross == null || !Number.isFinite(gross) || gross <= 0) return null;
@@ -141,8 +142,10 @@ export function receiptPriceSplit(args: {
     extras.push({ code, rappen });
   }
   const extraSum = extras.reduce((sum, row) => sum + row.rappen, 0);
+  const discount =
+    args.discountRappen != null && Number.isFinite(args.discountRappen) ? Math.abs(args.discountRappen) : 0;
   const vatRappen = vatIncludedRappen(gross);
-  const fareRappen = Math.max(0, gross - vatRappen - extraSum);
+  const fareRappen = Math.max(0, gross - vatRappen - extraSum + discount);
   return { fareRappen, vatRappen, extras };
 }
 

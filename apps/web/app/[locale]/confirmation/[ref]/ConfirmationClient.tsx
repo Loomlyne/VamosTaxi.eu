@@ -292,7 +292,11 @@ export function ConfirmationClient({
   });
   const subtotalMajor = rappenToMajor(booking?.subtotalRappen ?? null);
   const extraRappen = extraRappenByCode(fareLines);
-  const split = receiptPriceSplit({ totalRappen, extraRappen });
+  const split = receiptPriceSplit({
+    totalRappen,
+    extraRappen,
+    discountRappen: coupon?.rappen ?? booking?.discountRappen,
+  });
   const lines: PriceLine[] = [];
   if (split) {
     lines.push({ label: t("fareExVat"), amount: rappenToMajor(split.fareRappen) });
@@ -302,6 +306,15 @@ export function ConfirmationClient({
           <span data-confirmation-extra={extra.code}>{`+ ${t(extraLabel[extra.code] ?? "childSeat")}`}</span>
         ),
         amount: rappenToMajor(extra.rappen),
+      });
+    }
+    if (coupon) {
+      lines.push({
+        label: (
+          <span data-confirmation-coupon={coupon.code}>{t("couponCode", { code: coupon.code })}</span>
+        ),
+        amount: rappenToMajor(-coupon.rappen),
+        credit: true,
       });
     }
     if (split.vatRappen > 0) {
@@ -329,13 +342,15 @@ export function ConfirmationClient({
       const cls = classLabelOf(line.vehicleClass || classSlug);
       lines.push({ label: t("transferClass", { class: cls }), amount: rappenToMajor(line.amountRappen) });
     }
-  }
-  if (coupon) {
-    lines.push({
-      label: t("couponCode", { code: coupon.code }),
-      amount: rappenToMajor(-coupon.rappen),
-      credit: true,
-    });
+    if (coupon) {
+      lines.push({
+        label: (
+          <span data-confirmation-coupon={coupon.code}>{t("couponCode", { code: coupon.code })}</span>
+        ),
+        amount: rappenToMajor(-coupon.rappen),
+        credit: true,
+      });
+    }
   }
   if (lines.length === 0) {
     lines.push({ label: t("transferClass", { class: vehicleLabel }), amount: totalMajor });

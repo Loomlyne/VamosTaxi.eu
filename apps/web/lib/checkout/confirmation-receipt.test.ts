@@ -79,4 +79,18 @@ describe("confirmation receipt", () => {
       extras: [{ code: "child_seat", rappen: 2000 }],
     });
   });
+
+  it("keeps fare 100.00 when a 20.00 extra is offset by a 20.00 coupon", () => {
+    expect(
+      receiptPriceSplit({
+        totalRappen: 10810,
+        extraRappen: { child_seat: 2000 },
+        discountRappen: 2000,
+      }),
+    ).toEqual({
+      fareRappen: 10000,
+      vatRappen: 810,
+      extras: [{ code: "child_seat", rappen: 2000 }],
+    });
+  });
 });
