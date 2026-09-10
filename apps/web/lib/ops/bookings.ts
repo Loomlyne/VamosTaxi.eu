@@ -112,13 +112,13 @@ export async function loadBookings(
           coalesce(sum(pay.charged_rappen) filter (where pay.captured_at is not null and extra.id is not null), 0) as extra_rappen
         from public.booking_payments pay
         left join public.booking_edit_requests extra
-          on extra.extra_snapshot_id = pay.price_snapshot_id
+          on extra.extra_snapshot_id = pay.snapshot_id
         where pay.booking_id = b.id
       ) cap on true
       left join lateral (
         select
           r.id as edit_request_id,
-          r.actor_kind::text as edit_actor,
+          r.actor::text as edit_actor,
           r.extra_session_id,
           qs.total_rappen as edit_quote_total
         from public.booking_edit_requests r

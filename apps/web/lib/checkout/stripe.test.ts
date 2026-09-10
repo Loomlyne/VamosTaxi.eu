@@ -114,6 +114,31 @@ describe("stripe module", () => {
     expect(opts).toEqual({ idempotencyKey: "refund-1" });
   });
 
+  it("stamps extra Checkout Session metadata kind extra", async () => {
+    const { client, create } = fakeStripe();
+    await createCheckoutSession(client, {
+      chargedRappen: 4000,
+      bookingId: "00000000-0000-4000-8000-000000000001",
+      bookingReference: "VT-26-0001",
+      customerEmail: "guest@example.test",
+      locale: "en",
+      idempotencyKey: "extra-1",
+      expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+      returnUrl: "https://vamostaxi.site/en/confirmation/VT-26-0001",
+      productName: "Fare difference",
+      extra: { extraId: "extra-9" },
+    });
+    const params = create.mock.calls[0]?.[0] as Record<string, unknown>;
+    expect(params.metadata).toEqual({
+      booking_id: "00000000-0000-4000-8000-000000000001",
+      booking_reference: "VT-26-0001",
+      kind: "extra",
+      extra_id: "extra-9",
+    });
+    expect((params.line_items as Array<{ price_data: { unit_amount: number } }>)[0]?.price_data.unit_amount).toBe(4000);
+    expect(params.ui_mode).toBe("elements");
+  });
+
   it("clamps Stripe session expiry to 30 minutes–24 hours", () => {
     const now = Date.parse("2026-09-08T12:00:00.000Z");
     expect(stripeSessionExpiresAtUnix(new Date(now + 1440 * 60_000), now)).toBe(
