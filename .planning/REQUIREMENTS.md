@@ -167,7 +167,7 @@ Tickets **are** `contact_submissions` rows plus a message thread. There is no pa
 ### Inbox (SUP)
 
 - [ ] **SUP-01**: Dispatcher opens Ops `#support` and sees every contact submission as a ticket
-- [ ] **SUP-02**: Each ticket has exactly one status: New, Open, Replied, or Closed — dispatcher can set any of the four
+- [ ] **SUP-02**: Each ticket has exactly one status: New, Open, Replied, Responded, or Closed — dispatcher Open / Close / Reopen only (not an arbitrary five-way setter). Staff reply → Replied is Phase 13. Customer mail → Responded is Phase 14.
 - [ ] **SUP-03**: Dispatcher opens a ticket and sees the original form (name, email, phone, message, time) plus the thread, newest last
 - [ ] **SUP-04**: The ticket shows the form `booking_ref` and `locale` when they exist
 - [ ] **SUP-05**: Dispatcher can filter the list by status
@@ -182,7 +182,7 @@ Tickets **are** `contact_submissions` rows plus a message thread. There is no pa
 - [ ] **INB-01**: When the customer hits Reply in Gmail, that mail appends to the **same** ticket
 - [ ] **INB-02**: Mail that is not a reply to an existing ticket does not become a ticket. Ops ignores it. (Safety bar from PROJECT.md — inbound without this is a catch-all inbox.)
 
-Closed stays closed until a human reopens it. Customer reply on a Closed ticket does **not** auto-reopen (owner did not select reopen-on-reply).
+Closed stays closed until a human Reopens it (status Open). Customer reply on a Closed ticket auto-reopens to Responded (Phase 14).
 
 ### v1.1 Future
 

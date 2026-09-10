@@ -55,7 +55,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 9: Booking Lifecycle & Customer Self-Service** - A booking lives its full lifecycle — reminders, delay handling, cancellation, review
 - [ ] **Phase 10: Hardening — Performance, Security & Compliance** - The site survives a launch surge and never captures data ahead of consent
 - [ ] **Phase 11: Launch Cutover** - Vamos Taxi goes live on its real domain with real pricing
-- [ ] **Phase 12: Ticket schema + #support mock** - Contact rows become tickets (New/Open/Replied/Closed); OpsSupport mock + sidebar `#support`; Staff tab stays gone
+- [ ] **Phase 12: Ticket schema + #support mock** - Contact rows become tickets (New/Open/Replied/Responded/Closed); OpsSupportTicket + sidebar `#support`; Staff tab stays gone
 - [ ] **Phase 13: Staff APIs + outbound Resend replies** - Dispatcher sends a reply from the ticket; customer Gmail threads; info@ BCC; RFC Message-ID persisted
 - [ ] **Phase 14: Inbound webhook** - Signed Resend webhook appends matched replies; unmatched mail does not create a ticket
 - [ ] **Phase 15: Wire Ops #support to APIs** - Live `#support` list, thread, booking_ref+locale, status filters; EN/DE/FR/AR; escaped text
@@ -460,14 +460,14 @@ irreversible gate.
 
 ### Phase 12: Ticket schema + #support mock
 
-**Goal**: `contact_submissions` is the ticket header with New/Open/Replied/Closed;
-`OpsSupport.dc.html` + sidebar `#support` exist as a mock; Staff tab stays gone. No
+**Goal**: `contact_submissions` is the ticket header with New/Open/Replied/Responded/Closed;
+`OpsSupportTicket.dc.html` + sidebar `#support` exist as a mock; Staff tab stays gone. No
 parallel `support_tickets` table.
 **Depends on**: Phase 6 (ops console + `contact_submissions`)
 **Requirements**: SUP-02
 **Success Criteria** (what must be TRUE):
 
-  1. Mock list shows four statuses: New, Open, Replied, Closed — dispatcher can set any of the four.
+  1. Board shows five statuses: New, Open, Replied, Responded, Closed — dispatcher Open / Close / Reopen only.
   2. Ops sidebar has `#support`; there is no `#staff` rail item.
   3. No parallel `support_tickets` table exists — tickets are `contact_submissions` plus `support_messages` / `support_inbound_events`.
   4. Migration adds `ticket_status`, `reply_token`, `last_activity_at`, `closed_at` on `contact_submissions`; FORCE RLS; no anon grants; `submit_contact_message` mints the token and seeds `inbound_form`.
