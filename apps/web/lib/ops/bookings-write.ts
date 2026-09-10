@@ -103,14 +103,18 @@ export async function cancelBooking(
   });
 }
 
+export type UpdateResult =
+  | { ok: true }
+  | { ok: false; code: "not-found" | "unpaid" };
+
 export async function updateBooking(
   env: CloudflareEnv,
   claims: VamosClaims,
   id: string,
   patch: BookingPatch,
-): Promise<boolean> {
+): Promise<UpdateResult> {
   const key = id.trim();
-  if (!key) return false;
+  if (!key) return { ok: false, code: "not-found" };
   return asStaff(env, claims, async (sql) => {
     const found = await sql<{ id: string }[]>`
       select id from public.bookings
@@ -118,7 +122,16 @@ export async function updateBooking(
       limit 1
     `;
     const bookingId = found[0]?.id;
-    if (!bookingId) return false;
+    if (!bookingId) return { ok: false, code: "not-found" };
+
+    const paid = await sql<{ id: number }[]>`
+      select 1 as id
+        from public.booking_payments
+       where booking_id = ${bookingId}::uuid
+         and captured_at is not null
+       limit 1
+    `;
+    if (paid.length === 0) return { ok: false, code: "unpaid" };
 
     await sql`
       update public.bookings
@@ -174,7 +187,7 @@ export async function updateBooking(
           select min(leg_seq) from public.booking_legs where booking_id = ${bookingId}::uuid
         )
     `;
-    return true;
+    return { ok: true };
   });
 }
 

@@ -155,7 +155,8 @@ export async function handleStripeMessageWithDeps(
     return { ack: true };
   }
 
-  if (outcome === "succeeded" && !row.already_settled) {
+  const extra = session?.metadata?.kind === "extra";
+  if (outcome === "succeeded" && !row.already_settled && !extra) {
     await deps.deliverConfirmation(row);
   }
 
@@ -199,7 +200,23 @@ export async function handleStripeMessage(
         fxQuotedAt: null,
         presentmentAmountMinor: null,
       };
+      const extra = input.session?.metadata?.kind === "extra";
       const rows = await asSystem(env, async (sql) => {
+        if (extra) {
+          return sql`
+            select * from public.checkout_extra_payment_settle(
+              ${input.eventId},
+              ${input.sessionId},
+              ${input.paymentIntentId},
+              ${input.outcome},
+              ${fx.chargedCurrency},
+              ${fx.fxRate},
+              ${fx.fxSource},
+              ${fx.fxQuotedAt}::timestamptz,
+              ${fx.presentmentAmountMinor}
+            )
+          `;
+        }
         return sql`
           select * from public.checkout_payment_settle(
             ${input.eventId},
@@ -215,7 +232,7 @@ export async function handleStripeMessage(
         `;
       });
       const row = rows[0];
-      if (!row) throw new Error("checkout_payment_settle returned no row");
+      if (!row) throw new Error(extra ? "checkout_extra_payment_settle returned no row" : "checkout_payment_settle returned no row");
       return {
         booking_id: String(row.booking_id),
         reference: String(row.reference),

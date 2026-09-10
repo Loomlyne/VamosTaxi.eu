@@ -45,7 +45,7 @@ export const PATCH = withStaff(async (claims, request) => {
     return jsonErr("use-refund", 400);
   }
 
-  const ok = await updateBooking(env, claims, id, {
+  const result = await updateBooking(env, claims, id, {
     customer: typeof record.customer === "string" ? record.customer : undefined,
     email: typeof record.email === "string" ? record.email : undefined,
     phone: typeof record.phone === "string" ? record.phone : undefined,
@@ -59,7 +59,10 @@ export const PATCH = withStaff(async (claims, request) => {
     flight: typeof record.flight === "string" ? record.flight : undefined,
     klass: typeof record.klass === "string" ? record.klass : undefined,
   });
-  if (!ok) return jsonErr("not-found", 404);
+  if (!result.ok) {
+    if (result.code === "unpaid") return jsonErr("unpaid", 409);
+    return jsonErr("not-found", 404);
+  }
   return jsonOk({ id });
 });
 

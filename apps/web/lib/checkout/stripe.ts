@@ -60,6 +60,8 @@ export interface CreateCheckoutSessionInput {
   /** Required for `ui_mode: elements`. */
   returnUrl: string;
   productName: string;
+  /** 08-07 extra fare-difference session. Metadata kind=extra, extra_id. */
+  extra?: { extraId: string };
 }
 
 /**
@@ -98,6 +100,9 @@ export async function createCheckoutSession(
       metadata: {
         booking_id: input.bookingId,
         booking_reference: input.bookingReference,
+        ...(input.extra
+          ? { kind: "extra", extra_id: input.extra.extraId }
+          : {}),
       },
       line_items: [
         {

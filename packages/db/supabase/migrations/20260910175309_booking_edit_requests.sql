@@ -153,11 +153,11 @@ begin
     from public.booking_legs as l
    where l.id = v_leg.id;
 
-  if v_leg.vehicle_id is not null then
+  if v_leg.assigned_vehicle_id is not null then
     select v.*
       into v_vehicle
       from public.vehicles as v
-     where v.id = v_leg.vehicle_id;
+     where v.id = v_leg.assigned_vehicle_id;
     if found and (v_vehicle.seats < v_leg.pax or v_vehicle.bags < v_leg.bags) then
       raise exception 'capacity' using errcode = 'P0001';
     end if;
@@ -305,6 +305,123 @@ revoke all on function public.booking_edit_mint_extra_snapshot(
 
 grant execute on function public.booking_edit_mint_extra_snapshot(
   pg_catalog.uuid, pg_catalog.int8, pg_catalog.int8, public.rappen
+) to vamos_system;
+
+-- Clone the bound snapshot at a new total (quote-engine amount). Same-price
+-- edits pass the original total. Never invents a CHF literal.
+
+create function public.booking_edit_clone_quote_snapshot(
+  p_booking_id pg_catalog.uuid,
+  p_total_rappen public.rappen,
+  p_quote_id pg_catalog.uuid
+)
+returns pg_catalog.int8
+language plpgsql
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+declare
+  v_src public.price_snapshots%rowtype;
+  v_id pg_catalog.int8;
+  v_until pg_catalog.timestamptz;
+begin
+  select s.*
+    into v_src
+    from public.bookings as b
+    join public.price_snapshots as s on s.id = b.price_snapshot_id
+   where b.id = p_booking_id;
+
+  if not found then
+    raise exception 'not-found' using errcode = 'P0002';
+  end if;
+
+  if p_total_rappen is null then
+    p_total_rappen := v_src.total_rappen;
+  end if;
+
+  if p_total_rappen is null or p_total_rappen < 0 then
+    raise exception 'invalid_difference' using errcode = 'check_violation';
+  end if;
+
+  if v_src.total_rappen is not distinct from p_total_rappen
+     and v_src.booking_id is not distinct from p_booking_id then
+    return v_src.id;
+  end if;
+
+  v_until := pg_catalog.now() + interval '24 hours';
+
+  insert into public.price_snapshots (
+    booking_id,
+    supersedes_id,
+    quote_id,
+    vehicle_class_id,
+    rate_version_id,
+    rate_version_is_live,
+    settings_version_id,
+    engine_version,
+    source,
+    currency,
+    display_currency,
+    subtotal_rappen,
+    surcharges_rappen,
+    discount_rappen,
+    total_rappen,
+    distance_km,
+    duration_min,
+    pax,
+    bags,
+    lines,
+    policy,
+    shown_alternatives,
+    expires_at,
+    quote_lock_expires_at
+  ) values (
+    p_booking_id,
+    v_src.id,
+    coalesce(p_quote_id, pg_catalog.gen_random_uuid()),
+    v_src.vehicle_class_id,
+    v_src.rate_version_id,
+    v_src.rate_version_is_live,
+    v_src.settings_version_id,
+    v_src.engine_version,
+    'modification',
+    v_src.currency,
+    v_src.display_currency,
+    p_total_rappen,
+    0,
+    0,
+    p_total_rappen,
+    v_src.distance_km,
+    v_src.duration_min,
+    v_src.pax,
+    v_src.bags,
+    pg_catalog.jsonb_build_array(
+      pg_catalog.jsonb_build_object(
+        'seq', 1,
+        'code', 'distance_fare',
+        'kind', 'fare',
+        'i18n_key', 'price.line.transfer',
+        'amount_rappen', p_total_rappen
+      )
+    ),
+    v_src.policy,
+    coalesce(v_src.shown_alternatives, '[]'::pg_catalog.jsonb),
+    v_until,
+    v_until
+  )
+  returning id into v_id;
+
+  return v_id;
+end;
+$$;
+
+revoke all on function public.booking_edit_clone_quote_snapshot(
+  pg_catalog.uuid, public.rappen, pg_catalog.uuid
+) from public;
+
+grant execute on function public.booking_edit_clone_quote_snapshot(
+  pg_catalog.uuid, public.rappen, pg_catalog.uuid
 ) to vamos_system;
 
 -- ---------------------------------------------------------------------------
