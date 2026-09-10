@@ -213,6 +213,10 @@ button[data-vt-count]{appearance:none;-webkit-appearance:none;cursor:pointer;fon
 <sc-if value="{{ isBookings }}" hint-placeholder-val="{{ false }}">
 <dc-import name="OpsBoard" hint-size="100%,900px"></dc-import>
 </sc-if>
+<sc-if value="{{ isNewTrip }}" hint-placeholder-val="{{ false }}">
+<!-- Save POSTs /api/checkout/intent from OpsNewTrip after POST /api/quote -->
+<dc-import name="OpsNewTrip" hint-size="100%,900px"></dc-import>
+</sc-if>
 <sc-if value="{{ isFleet }}" hint-placeholder-val="{{ false }}">
 <dc-import name="OpsFleetBoard" section="{{ fleetSection }}" chauffeur-id="{{ chauffeurId }}" hint-size="100%,900px"></dc-import>
 </sc-if>
@@ -282,7 +286,7 @@ function readPath(pathname) {
   const path = localeStrippedPath(pathname);
   if (path === '/' || path === '/dashboard') return { route: 'dashboard', detailId: null };
   if (path === '/bookings') return { route: 'bookings', detailId: null };
-  if (path === '/bookings/new') return { route: 'bookings', detailId: null, newTrip: true };
+  if (path === '/bookings/new') return { route: 'newTrip', detailId: null, newTrip: true };
   if (path.indexOf('/bookings/') === 0) {
     const ref = path.slice('/bookings/'.length);
     if (ref && ref.indexOf('/') === -1) return { route: 'detail', detailId: decodeURIComponent(ref) };
@@ -312,7 +316,7 @@ function readPath(pathname) {
   return { route: 'dashboard', detailId: null };
 }
 function migrateHashOnce() {
-  const raw = (location.hash || '').replace(/^#\/?/, '');
+  const raw = String(location.href.split('#')[1] || '').replace(/^\/?/, '');
   if (!raw) return;
   const [key, id] = raw.split('/');
   let dest = null;
@@ -408,14 +412,14 @@ class Component extends DCLogic {
     const me = this.state.me || {};
     return {
       n16: 16, n20: 20, n22: 22,
-      route: r === 'detail' ? 'bookings' : r,
+      route: r === 'detail' || r === 'newTrip' ? 'bookings' : r,
       detailId: this.state.detailId || '',
       fleetSection: r === 'chauffeurs' ? 'chauffeurs' : 'vehicles',
       chauffeurId: r === 'chauffeurs' ? (this.state.detailId || '') : '',
       contentSection: r === 'legal' ? 'legal' : 'pages',
       isContent: CONTENT.indexOf(r) !== -1,
       isDash: r === 'dashboard', isFleet: FLEET.indexOf(r) !== -1,
-      isBookings: r === 'bookings', isDetail: r === 'detail', isPricing: r === 'pricing',
+      isBookings: r === 'bookings', isNewTrip: r === 'newTrip', isDetail: r === 'detail', isPricing: r === 'pricing',
       isReviews: r === 'reviews', isCalendar: r === 'calendar', isCustomers: r === 'customers',
       isCoupons: r === 'coupons', isSupport: r === 'support', isSettings: r === 'settings' || r === 'staff', isProfile: r === 'profile',
       navOpenAttr: this.state.navOpen ? '1' : '0',

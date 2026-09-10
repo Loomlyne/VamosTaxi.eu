@@ -206,7 +206,7 @@ class Component extends DCLogic {
     history.pushState({}, '', path);
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
-  openNew = () => this.setState((s) => ({ addTick: (s.addTick || 0) + 1 }));
+  openNew = () => { location.assign('/bookings/new'); };
   toggleMore = () => this.setState((s) => ({ moreOpen: !s.moreOpen }));
   printBoard = () => { try { window.print(); } catch (e) {} };
   setClass = (v) => this.setState({ klass: v || '', page: 0 });
