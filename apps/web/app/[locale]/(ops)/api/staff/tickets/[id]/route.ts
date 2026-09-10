@@ -1,6 +1,6 @@
 // apps/web/app/[locale]/(ops)/api/staff/tickets/[id]/route.ts
 //
-// PATCH /api/staff/tickets/:id — persist Support Open / Close / Reopen only.
+// PATCH /api/staff/tickets/:id — Open / Close / Reopen, or staff reply mail.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { jsonErr, jsonOk, withStaff } from "@/lib/ops/staff-json";
@@ -36,6 +36,7 @@ export const PATCH = withStaff(async (claims, request) => {
   const result = await patchTicket(env, claims, id, input);
   if (!result.ok) {
     if (result.reason === "not-found") return jsonErr("not-found", 404);
+    if (result.reason === "send-failed") return jsonErr("send-failed", 503);
     return jsonErr(result.reason, 400);
   }
   return jsonOk({ id, status: result.status });

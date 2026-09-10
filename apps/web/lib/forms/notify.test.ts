@@ -73,4 +73,16 @@ describe("sendContactMessage", () => {
     expect(sendResend).not.toHaveBeenCalled();
     expect(send).not.toHaveBeenCalled();
   });
+
+  it("forwards RFC thread headers to Resend", async () => {
+    sendResend.mockResolvedValueOnce({ data: { id: "re_message-thread12ab" }, error: null });
+    await expect(
+      sendContactMessage("re_key", undefined, "guest@example.test", "idem-6", rendered, undefined, {
+        headers: { "Message-ID": "<c.1@vamostaxi.site>", "In-Reply-To": "<c.1@vamostaxi.site>" },
+      }),
+    ).resolves.toEqual({ accepted: true, providerSuffix: "e-thread12ab", providerId: "re_message-thread12ab" });
+    expect(sendResend.mock.calls[0]?.[0]).toMatchObject({
+      headers: { "Message-ID": "<c.1@vamostaxi.site>", "In-Reply-To": "<c.1@vamostaxi.site>" },
+    });
+  });
 });

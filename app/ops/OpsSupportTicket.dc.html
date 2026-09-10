@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ops · Support</title>
-<!-- vt-support-c44 -->
+<!-- vt-support-c45 -->
 <script src="../support.js"></script>
 </head>
 <body>
@@ -30,13 +30,13 @@
 [data-ov-err]{margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-primary)}
 [data-person]{display:grid;grid-template-columns:48px minmax(0,1fr) max-content;gap:8px 12px;align-items:start;padding:14px 16px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);box-shadow:none}
 [data-person] [data-av]{width:48px;height:48px;font-size:16px;grid-row:1 / span 2}
-[data-person-id]{min-width:0;overflow:hidden;display:flex;flex-direction:column;gap:2px}
+[data-person-id]{min-width:0;overflow:visible;display:flex;flex-direction:column;gap:2px}
 [data-person-name]{display:flex;flex-wrap:nowrap;align-items:center;gap:8px;min-width:0}
 [data-person-name] strong{font-size:var(--vt-body-md);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 [data-person-name] [data-chip]{flex:0 0 auto}
-[data-person-mail],[data-person-tel]{margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[data-person-mail]{margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary);white-space:normal;overflow:visible;overflow-wrap:anywhere;word-break:break-word}
+[data-person-tel]{margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 [data-person-tools]{grid-column:3;grid-row:1;display:flex;flex-wrap:nowrap;align-items:flex-start;justify-content:flex-end;gap:6px}
-[data-status-top]{min-width:0}
 [data-acts]{grid-column:1 / -1;display:flex;flex-wrap:nowrap;gap:4px;margin:0;padding-top:10px;border-top:1px solid var(--vt-border-subtle);min-width:0;overflow:visible}
 [data-acts] .vt-btn{flex:1 1 auto;min-width:min-content;justify-content:center;padding-inline:8px;gap:6px;white-space:nowrap;overflow:visible}
 [data-fact-pair]{grid-column:1 / -1;display:flex;flex-direction:column;gap:12px;min-width:0}
@@ -77,7 +77,6 @@
   [data-view-icon] [data-vs-role],
   [data-filters-btn] [data-vs-role]{display:inline}
   [data-meta-toggle]{display:none}
-  [data-status-top]{width:132px;max-width:132px}
 }
 [data-view-head]{display:none}
 [data-view-drop]{display:block;min-width:0;flex:0 0 auto}
@@ -112,7 +111,7 @@
   [data-kb-card]{transition:none}
 }
 </style>
-<main data-vt-support="c44" style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
+<main data-vt-support="c45" style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
 
 <header style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle)">
 <div style="min-width:0">
@@ -240,9 +239,6 @@
 <p data-person-tel="1" data-vt-no-i18n="1" style="display:{{ openPhoneShow }}">{{ openPhone }}</p>
 </div>
 <div data-person-tools="1">
-<div data-status-top="1">
-<span data-chip="1">{{ openStatusLabel }}</span>
-</div>
 <sc-if value="{{ showMetaToggle }}" hint-placeholder-val="{{ false }}">
 <div data-meta-toggle="1">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ toggleMeta }}" hint-size="96px,36px">{{ metaToggleLabel }}</x-import>
@@ -429,7 +425,7 @@ function opsHand() {
 class Component extends DCLogic {
   state = {
     lang: 'en', filter: 'all', view: opsPhone() ? 'table' : 'kanban', query: '', tickets: [],
-    openId: null, draft: '', filterOpen: false, metaOpen: true, loadError: false, overlayError: false,
+    openId: null, draft: '', sending: false, filterOpen: false, metaOpen: true, loadError: false, overlayError: false,
     sortNewest: Object.assign({}, SORT_NEWEST),
   };
   hydrate = () => {
@@ -563,7 +559,36 @@ class Component extends DCLogic {
       this.setState({ tickets: reverted, overlayError: true });
     });
   };
-  sendReply = () => {};
+  sendReply = () => {
+    const body = String(this.state.draft || '').trim();
+    const id = this.state.openId;
+    if (!body || !id || this.state.sending) return;
+    const current = this.state.tickets.find((t) => t.id === id);
+    if (current && current.status === 'closed') return;
+    const api = window.VamosOpsApi;
+    if (!api || typeof api.request !== 'function') return;
+    this.setState({ sending: true, overlayError: false });
+    api.request('PATCH', '/api/staff/tickets/' + id, { reply: body }).then((json) => {
+      if (!json || json.ok !== true) {
+        this.setState({ sending: false, overlayError: true });
+        return;
+      }
+      const now = stamp();
+      const tickets = this.state.tickets.map((t) => {
+        if (t.id !== id || t.status === 'closed') return t;
+        return Object.assign({}, t, {
+          status: 'replied',
+          last: now,
+          messages: t.messages.concat([{ whoKey: 'staff', when: now, body: body }]),
+        });
+      });
+      this.setState({ tickets: tickets, draft: '', sending: false }, () => {
+        requestAnimationFrame(() => this.scrollThread());
+      });
+      publishBadge(tickets);
+      this.hydrate();
+    }, () => this.setState({ sending: false, overlayError: true }));
+  };
   renderVals() {
     const t = T[this.state.lang] || T.en;
     const filter = this.state.filter || 'all';
@@ -670,7 +695,7 @@ class Component extends DCLogic {
       sendReply: this.sendReply,
       closeTicket: this.closeTicket,
       reopenTicket: this.reopenTicket,
-      sendOff: !(this.state.draft && String(this.state.draft).trim()) || !!(open && open.status === 'closed'),
+      sendOff: !!this.state.sending || !(this.state.draft && String(this.state.draft).trim()) || !!(open && open.status === 'closed'),
       thread: open ? open.messages.map((m) => ({
         from: m.whoKey, who: whoLabel[m.whoKey] || m.whoKey, when: m.when, body: m.body,
       })) : [],
