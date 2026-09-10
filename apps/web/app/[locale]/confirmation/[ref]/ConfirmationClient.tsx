@@ -4,10 +4,11 @@
 // TWINT and 3DS may never return to this tab — the poller is the only
 // observer, and it is read-only.
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type HTMLAttributes, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Alert } from "@/components/feedback/Alert";
-import { Button, Card, CheckerMark, Logo } from "@/components/core";
+import { Button, Card, CheckerMark, Icon, Logo } from "@/components/core";
+import type { IconName } from "@/components/core";
 import { PriceSummary, RouteSummary, StatusBadge } from "@/components/transfer";
 import type { PriceLine } from "@/components/transfer/PriceSummary";
 import { useBookingDraft } from "@/lib/booking-draft";
@@ -130,6 +131,27 @@ function FailedRoom({ reference }: { reference: string }) {
         </div>
       </Card>
     </main>
+  );
+}
+
+function ReceiptRow({
+  icon,
+  label,
+  children,
+  ...dd
+}: {
+  icon: IconName;
+  label: string;
+  children: ReactNode;
+} & HTMLAttributes<HTMLElement>) {
+  return (
+    <div className="vt-confirmation__receipt-row">
+      <dt>
+        <Icon name={icon} size={12} />
+        {label}
+      </dt>
+      <dd {...dd}>{children}</dd>
+    </div>
   );
 }
 
@@ -322,7 +344,6 @@ export function ConfirmationClient({
         </div>
         <div className="vt-confirmation__voucher-head">
           <Logo variant="white" form="wordmark" height={24} />
-          <p className="vt-confirmation__voucher-title">{t("transferVoucher")}</p>
           <StatusBadge status="confirmed" />
         </div>
         <RouteSummary
@@ -381,105 +402,70 @@ export function ConfirmationClient({
           note={totalMajor == null ? t("pricePlaceholderNote") : undefined}
         />
         <dl className="vt-confirmation__receipt" data-confirmation-receipt>
-          <div className="vt-confirmation__receipt-row">
-            <dt>{t("bookingPrefix")}</dt>
-            <dd className="vt-dir-keep">{reference}</dd>
-          </div>
-          {dateLabel ? (
-            <div className="vt-confirmation__receipt-row">
-              <dt>{t("tripDate")}</dt>
-              <dd className="vt-dir-keep">{dateLabel}</dd>
-            </div>
-          ) : null}
-          {timeLabel ? (
-            <div className="vt-confirmation__receipt-row">
-              <dt>{t("tripPickup")}</dt>
-              <dd className="vt-dir-keep">{timeLabel}</dd>
-            </div>
-          ) : null}
-          {arriveLabel ? (
-            <div className="vt-confirmation__receipt-row">
-              <dt>{t("tripArrive")}</dt>
-              <dd className="vt-dir-keep">{arriveLabel}</dd>
-            </div>
-          ) : null}
+          <ReceiptRow icon="ticket" label={t("bookingPrefix")} className="vt-dir-keep">
+            {reference}
+          </ReceiptRow>
           {durationMin != null ? (
-            <div className="vt-confirmation__receipt-row">
-              <dt>{t("tripDuration")}</dt>
-              <dd className="vt-dir-keep">{t("durationMinutes", { n: durationMin })}</dd>
-            </div>
+            <ReceiptRow icon="clock" label={t("tripDuration")} className="vt-dir-keep">
+              {t("durationMinutes", { n: durationMin })}
+            </ReceiptRow>
           ) : null}
           {distanceKm != null ? (
-            <div className="vt-confirmation__receipt-row">
-              <dt>{t("tripDistance")}</dt>
-              <dd className="vt-dir-keep">{t("distanceKm", { km: distanceKm })}</dd>
-            </div>
+            <ReceiptRow icon="navigation" label={t("tripDistance")} className="vt-dir-keep">
+              {t("distanceKm", { km: distanceKm })}
+            </ReceiptRow>
           ) : null}
-          <div className="vt-confirmation__receipt-row">
-            <dt>{t("who-is-travelling")}</dt>
-            <dd>{t("passengersCount", { n: pax })}</dd>
-          </div>
-          <div className="vt-confirmation__receipt-row">
-            <dt>{tCommon("bags-2")}</dt>
-            <dd data-confirmation-receipt-bags>{tCommon("bagsCount", { n: bags })}</dd>
-          </div>
           {extras.map((code) => {
             const rappen = extraRappen[code];
             const amount = rappenToMajor(rappen ?? null);
+            const extraIcon: IconName =
+              code === "oversized_luggage" ? "luggage" : code === "extra_stop" ? "map-pin" : "baby";
             return (
-              <div className="vt-confirmation__receipt-row" key={code}>
-                <dt>{t("extras")}</dt>
-                <dd data-confirmation-receipt-extra={code}>
-                  {t(extraLabel[code] ?? "childSeat")}
-                  {amount != null ? (
-                    <>
-                      {" "}
-                      <span className="vt-dir-keep">{formatAmount(amount)}</span>
-                    </>
-                  ) : null}
-                </dd>
-              </div>
+              <ReceiptRow
+                key={code}
+                icon={extraIcon}
+                label={t("extras")}
+                data-confirmation-receipt-extra={code}
+              >
+                {t(extraLabel[code] ?? "childSeat")}
+                {amount != null ? (
+                  <>
+                    {" "}
+                    <span className="vt-dir-keep">{formatAmount(amount)}</span>
+                  </>
+                ) : null}
+              </ReceiptRow>
             );
           })}
           {coupon ? (
-            <div className="vt-confirmation__receipt-row">
-              <dt>{t("couponUsed")}</dt>
-              <dd data-confirmation-coupon className="vt-dir-keep">
-                {coupon.code}
-              </dd>
-            </div>
+            <ReceiptRow icon="ticket" label={t("couponUsed")} data-confirmation-coupon className="vt-dir-keep">
+              {coupon.code}
+            </ReceiptRow>
           ) : null}
           {contactName ? (
-            <div className="vt-confirmation__receipt-row">
-              <dt>{t("paid-by")}</dt>
-              <dd data-confirmation-payer>{contactName}</dd>
-            </div>
+            <ReceiptRow icon="user" label={t("paid-by")} data-confirmation-payer>
+              {contactName}
+            </ReceiptRow>
           ) : null}
           {contactEmail ? (
-            <div className="vt-confirmation__receipt-row">
-              <dt>{t("payerEmail")}</dt>
-              <dd className="vt-dir-keep">{contactEmail}</dd>
-            </div>
+            <ReceiptRow icon="mail" label={t("payerEmail")} className="vt-dir-keep">
+              {contactEmail}
+            </ReceiptRow>
           ) : null}
           {contactPhone ? (
-            <div className="vt-confirmation__receipt-row">
-              <dt>{t("contactPhone")}</dt>
-              <dd className="vt-dir-keep">{contactPhone}</dd>
-            </div>
+            <ReceiptRow icon="phone" label={t("contactPhone")} className="vt-dir-keep">
+              {contactPhone}
+            </ReceiptRow>
           ) : null}
           {showCard ? (
-            <div className="vt-confirmation__receipt-row">
-              <dt>{t("payment")}</dt>
-              <dd data-confirmation-paid-with>{t("paidWithCard")}</dd>
-            </div>
+            <ReceiptRow icon="credit-card" label={t("payment")} data-confirmation-paid-with>
+              {t("paidWithCard")}
+            </ReceiptRow>
           ) : null}
           {paidAtLabel ? (
-            <div className="vt-confirmation__receipt-row">
-              <dt>{t("paidAt")}</dt>
-              <dd data-confirmation-paid-at className="vt-dir-keep">
-                {paidAtLabel}
-              </dd>
-            </div>
+            <ReceiptRow icon="calendar" label={t("paidAt")} data-confirmation-paid-at className="vt-dir-keep">
+              {paidAtLabel}
+            </ReceiptRow>
           ) : null}
         </dl>
       </Card>

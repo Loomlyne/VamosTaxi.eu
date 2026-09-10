@@ -68,6 +68,10 @@ describe("confirmation unmock (D-40)", () => {
     expect(client).toContain("data-confirmation-bags");
     expect(client).toContain("data-confirmation-arrive");
     expect(client).toContain("data-confirmation-paid-with");
+    expect(client).not.toContain("vt-confirmation__voucher-title");
+    expect(client).not.toContain("{t(\"transferVoucher\")}");
+    expect(css).toContain(".vt-confirmation__voucher-head .vt-badge");
+    expect(css).toContain("z-index: 2");
     expect(client).toContain("couponCode");
     expect(client).toContain("priceTotalRappen");
     expect(client).not.toContain("airport-pickup-fee");

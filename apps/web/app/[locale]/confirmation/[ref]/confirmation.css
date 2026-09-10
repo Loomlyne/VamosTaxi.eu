@@ -130,10 +130,13 @@
   position: absolute;
   inset-block-start: 0;
   inset-inline-end: 0;
+  z-index: 0;
   pointer-events: none;
 }
 
 .vt-confirmation__voucher-head {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -142,10 +145,9 @@
   margin-block-end: 16px;
 }
 
-.vt-confirmation__voucher-title {
-  font-family: var(--vt-font-body);
-  font-size: var(--vt-body-sm);
-  margin: 0;
+.vt-confirmation__voucher-head .vt-badge {
+  position: relative;
+  z-index: 2;
 }
 
 .vt-confirmation__receipt {
@@ -166,6 +168,9 @@
 
 .vt-confirmation__receipt-row dt {
   margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-family: var(--vt-font-body);
   font-size: var(--vt-label-sm);
   letter-spacing: var(--vt-label-tracking);
