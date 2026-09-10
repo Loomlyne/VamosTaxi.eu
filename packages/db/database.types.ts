@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
   public: {
     Tables: {
       audit_log: {
@@ -85,6 +90,80 @@ export type Database = {
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_edit_requests: {
+        Row: {
+          accepted_at: string | null
+          actor: string
+          actor_id: string | null
+          booking_id: string
+          created_at: string
+          extra_payment_id: number | null
+          extra_session_id: string | null
+          extra_snapshot_id: number | null
+          id: string
+          payload: Json
+          quote_snapshot_id: number
+          status: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          actor: string
+          actor_id?: string | null
+          booking_id: string
+          created_at?: string
+          extra_payment_id?: number | null
+          extra_session_id?: string | null
+          extra_snapshot_id?: number | null
+          id?: string
+          payload?: Json
+          quote_snapshot_id: number
+          status: string
+        }
+        Update: {
+          accepted_at?: string | null
+          actor?: string
+          actor_id?: string | null
+          booking_id?: string
+          created_at?: string
+          extra_payment_id?: number | null
+          extra_session_id?: string | null
+          extra_snapshot_id?: number | null
+          id?: string
+          payload?: Json
+          quote_snapshot_id?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_edit_requests_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_edit_requests_extra_payment_id_fkey"
+            columns: ["extra_payment_id"]
+            isOneToOne: false
+            referencedRelation: "booking_payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_edit_requests_extra_snapshot_id_fkey"
+            columns: ["extra_snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "price_snapshots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_edit_requests_quote_snapshot_id_fkey"
+            columns: ["quote_snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "price_snapshots"
             referencedColumns: ["id"]
           },
         ]
@@ -550,6 +629,10 @@ export type Database = {
       }
       bookings: {
         Row: {
+          billing_kind: string
+          company_address: string
+          company_name: string
+          company_vat: string
           contact_email: string
           contact_name: string
           contact_phone: string
@@ -562,6 +645,8 @@ export type Database = {
           is_return: boolean
           locale: string
           note: string
+          pay_link_sent_at: string | null
+          payer_email: string | null
           price_snapshot_id: number | null
           price_total_rappen: number | null
           quote_id: string | null
@@ -570,6 +655,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          billing_kind?: string
+          company_address?: string
+          company_name?: string
+          company_vat?: string
           contact_email: string
           contact_name: string
           contact_phone?: string
@@ -582,6 +671,8 @@ export type Database = {
           is_return?: boolean
           locale?: string
           note?: string
+          pay_link_sent_at?: string | null
+          payer_email?: string | null
           price_snapshot_id?: number | null
           price_total_rappen?: number | null
           quote_id?: string | null
@@ -590,6 +681,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          billing_kind?: string
+          company_address?: string
+          company_name?: string
+          company_vat?: string
           contact_email?: string
           contact_name?: string
           contact_phone?: string
@@ -602,6 +697,8 @@ export type Database = {
           is_return?: boolean
           locale?: string
           note?: string
+          pay_link_sent_at?: string | null
+          payer_email?: string | null
           price_snapshot_id?: number | null
           price_total_rappen?: number | null
           quote_id?: string | null
@@ -825,39 +922,51 @@ export type Database = {
       contact_submissions: {
         Row: {
           booking_ref: string
+          closed_at: string | null
           created_at: string
           email: string
           handled_at: string | null
           id: string
           idempotency_key: string
+          last_activity_at: string
           locale: string
           message: string
           name: string
           phone: string
+          reply_token: string
+          ticket_status: string
         }
         Insert: {
           booking_ref?: string
+          closed_at?: string | null
           created_at?: string
           email: string
           handled_at?: string | null
           id?: string
           idempotency_key: string
+          last_activity_at?: string
           locale?: string
           message: string
           name: string
           phone?: string
+          reply_token?: string
+          ticket_status?: string
         }
         Update: {
           booking_ref?: string
+          closed_at?: string | null
           created_at?: string
           email?: string
           handled_at?: string | null
           id?: string
           idempotency_key?: string
+          last_activity_at?: string
           locale?: string
           message?: string
           name?: string
           phone?: string
+          reply_token?: string
+          ticket_status?: string
         }
         Relationships: []
       }
@@ -1051,6 +1160,38 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      distance_bands: {
+        Row: {
+          from_km: number
+          id: number
+          per_km_rappen: number
+          rate_version_id: number
+          to_km: number | null
+        }
+        Insert: {
+          from_km: number
+          id?: never
+          per_km_rappen: number
+          rate_version_id: number
+          to_km?: number | null
+        }
+        Update: {
+          from_km?: number
+          id?: never
+          per_km_rappen?: number
+          rate_version_id?: number
+          to_km?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "distance_bands_rate_version_id_fkey"
+            columns: ["rate_version_id"]
+            isOneToOne: false
+            referencedRelation: "rate_versions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       distance_rates: {
         Row: {
@@ -1378,6 +1519,42 @@ export type Database = {
           status?: Database["public"]["Enums"]["rate_version_status"]
         }
         Relationships: []
+      }
+      region_premiums: {
+        Row: {
+          id: number
+          percent: number
+          rate_version_id: number
+          zone_id: string
+        }
+        Insert: {
+          id?: never
+          percent: number
+          rate_version_id: number
+          zone_id: string
+        }
+        Update: {
+          id?: never
+          percent?: number
+          rate_version_id?: number
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "region_premiums_rate_version_id_fkey"
+            columns: ["rate_version_id"]
+            isOneToOne: false
+            referencedRelation: "rate_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "region_premiums_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "service_zones"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reviews: {
         Row: {
@@ -1734,6 +1911,68 @@ export type Database = {
         }
         Relationships: []
       }
+      support_inbound_events: {
+        Row: {
+          created_at: string
+          email_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_id: string
+        }
+        Update: {
+          created_at?: string
+          email_id?: string
+        }
+        Relationships: []
+      }
+      support_messages: {
+        Row: {
+          actor_user_id: string | null
+          body_html: string | null
+          body_text: string
+          created_at: string
+          direction: string
+          from_address: string | null
+          id: string
+          resend_email_id: string | null
+          rfc_message_id: string | null
+          submission_id: string
+        }
+        Insert: {
+          actor_user_id?: string | null
+          body_html?: string | null
+          body_text: string
+          created_at?: string
+          direction: string
+          from_address?: string | null
+          id?: string
+          resend_email_id?: string | null
+          rfc_message_id?: string | null
+          submission_id: string
+        }
+        Update: {
+          actor_user_id?: string | null
+          body_html?: string | null
+          body_text?: string
+          created_at?: string
+          direction?: string
+          from_address?: string | null
+          id?: string
+          resend_email_id?: string | null
+          rfc_message_id?: string | null
+          submission_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "contact_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       surcharges: {
         Row: {
           active: boolean
@@ -1902,6 +2141,112 @@ export type Database = {
     }
     Functions: {
       __seed_apply: { Args: never; Returns: undefined }
+      booking_edit_apply_payload: {
+        Args: {
+          p_actor_id: string
+          p_actor_kind: string
+          p_actor_label: string
+          p_booking_id: string
+          p_payload: Json
+          p_quote_snapshot_id: number
+        }
+        Returns: undefined
+      }
+      booking_edit_clone_quote_snapshot: {
+        Args: {
+          p_booking_id: string
+          p_quote_id: string
+          p_total_rappen: unknown
+        }
+        Returns: number
+      }
+      booking_edit_mint_extra_snapshot: {
+        Args: {
+          p_booking_id: string
+          p_difference_rappen: unknown
+          p_original_snapshot_id: number
+          p_quote_snapshot_id: number
+        }
+        Returns: number
+      }
+      booking_edit_refund_record: {
+        Args: {
+          p_actor_id: string
+          p_refund_rappen: unknown
+          p_request_id: string
+          p_stripe_refund_id: string
+        }
+        Returns: {
+          booking_id: string
+          refund_id: number
+          request_id: string
+        }[]
+      }
+      booking_edit_request_accept: {
+        Args: { p_actor_id: string; p_request_id: string }
+        Returns: {
+          booking_id: string
+          difference_rappen: number
+          extra_session_id: string
+          extra_snapshot_id: number
+          hours_before: number
+          original_intent_id: string
+          original_payment_id: number
+          outcome: string
+          request_id: string
+        }[]
+      }
+      booking_edit_request_set_extra_session: {
+        Args: { p_extra_session_id: string; p_request_id: string }
+        Returns: undefined
+      }
+      booking_edit_request_upsert: {
+        Args: {
+          p_actor: string
+          p_actor_id: string
+          p_booking_id: string
+          p_payload: Json
+          p_quote_snapshot_id: number
+        }
+        Returns: {
+          old_extra_session_id: string
+          old_extra_snapshot_id: number
+          request_id: string
+          superseded_id: string
+        }[]
+      }
+      checkout_attach_payment: {
+        Args: {
+          p_charged_rappen: unknown
+          p_quote_id: string
+          p_stripe_checkout_session_id: string
+          p_stripe_payment_intent_id: string
+        }
+        Returns: {
+          booking_id: string
+          payment_id: number
+          reference: string
+          snapshot_id: number
+        }[]
+      }
+      checkout_booking_for_email: {
+        Args: { p_booking_id: string }
+        Returns: {
+          bags: number
+          contact_email: string
+          contact_name: string
+          dropoff_text: string
+          flight_no: string
+          locale: string
+          pax: number
+          payer_email: string
+          pickup_text: string
+          price_total_rappen: number
+          reference: string
+          scheduled_local: string
+          vehicle_class_slug: string
+        }[]
+      }
       checkout_create_booking: {
         Args: {
           p_actor_customer_id: string
@@ -1928,61 +2273,56 @@ export type Database = {
           snapshot_id: number
         }[]
       }
-      ops_assign_leg: {
+      checkout_extra_payment_settle: {
         Args: {
-          p_actor_id: string
-          p_booking_id: string
-          p_chauffeur_id: string
+          p_charged_currency: string
+          p_event_id: string
+          p_fx_quoted_at: string
+          p_fx_rate: number
+          p_fx_source: string
+          p_outcome: string
+          p_payment_intent_id: string
+          p_presentment_amount_minor: number
+          p_session_id: string
         }
         Returns: {
-          booking_id: string
-          chauffeur_id: string
-          leg_id: string
-          vehicle_id: string
-        }[]
-      }
-      ops_unassign_leg: {
-        Args: {
-          p_actor_id: string
-          p_booking_id: string
-        }
-        Returns: {
-          booking_id: string
-          leg_id: string
-        }[]
-      }
-      ops_refund_record: {
-        Args: {
-          p_actor_id: string
-          p_booking_id: string
-          p_payment_id: number
-          p_stripe_fee_rappen?: number | null
-          p_stripe_refund_id: string
-        }
-        Returns: {
+          already_settled: boolean
           booking_id: string
           contact_email: string
-          contact_name: string
           locale: string
-          payer_email: string
-          payment_id: number
           reference: string
-          refund_id: number
-          refund_rappen: number
         }[]
       }
-      ops_cancel_booking: {
+      checkout_issue_manage_token: {
         Args: {
-          p_actor_id: string
           p_booking_id: string
+          p_expires_at: string
+          p_token_hash: string
         }
+        Returns: undefined
+      }
+      checkout_open_payment: {
+        Args: { p_quote_id: string }
         Returns: {
           booking_id: string
-          email: string
-          locale: string
-          name: string
-          paid: boolean
           reference: string
+          stripe_checkout_session_id: string
+        }[]
+      }
+      checkout_pay_link_by_hash: {
+        Args: { p_token_hash: string }
+        Returns: {
+          booking_id: string
+          charged_rappen: unknown
+          contact_email: string
+          dropoff_text: string
+          locale: string
+          payer_email: string
+          pickup_text: string
+          quote_id: string
+          reference: string
+          snapshot_expires_at: string
+          status: Database["public"]["Enums"]["booking_status"]
         }[]
       }
       checkout_payment_settle: {
@@ -2004,6 +2344,19 @@ export type Database = {
           locale: string
           reference: string
         }[]
+      }
+      checkout_set_pay_link: {
+        Args: {
+          p_billing_kind: string
+          p_booking_id: string
+          p_company_address: string
+          p_company_name: string
+          p_company_vat: string
+          p_payer_email: string
+          p_token_expires_at: string
+          p_token_hash: string
+        }
+        Returns: string
       }
       claim_contact_delivery: {
         Args: { p_channel: string; p_submission_id: string }
@@ -2096,6 +2449,57 @@ export type Database = {
           kind: string
           locale: string
           template_version: string
+        }[]
+      }
+      ops_assign_leg: {
+        Args: {
+          p_actor_id: string
+          p_booking_id: string
+          p_chauffeur_id: string
+        }
+        Returns: {
+          booking_id: string
+          chauffeur_id: string
+          leg_id: string
+          vehicle_id: string
+        }[]
+      }
+      ops_cancel_booking: {
+        Args: { p_actor_id: string; p_booking_id: string }
+        Returns: {
+          booking_id: string
+          email: string
+          locale: string
+          name: string
+          paid: boolean
+          reference: string
+        }[]
+      }
+      ops_refund_record: {
+        Args: {
+          p_actor_id: string
+          p_booking_id: string
+          p_payment_id: number
+          p_stripe_fee_rappen?: unknown
+          p_stripe_refund_id: string
+        }
+        Returns: {
+          booking_id: string
+          contact_email: string
+          contact_name: string
+          locale: string
+          payer_email: string
+          payment_id: number
+          reference: string
+          refund_id: number
+          refund_rappen: number
+        }[]
+      }
+      ops_unassign_leg: {
+        Args: { p_actor_id: string; p_booking_id: string }
+        Returns: {
+          booking_id: string
+          leg_id: string
         }[]
       }
       quote_lock_deadline: {
@@ -2240,12 +2644,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2269,11 +2673,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2294,11 +2698,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2319,11 +2723,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2336,11 +2740,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2378,4 +2782,3 @@ export const Constants = {
     },
   },
 } as const
-

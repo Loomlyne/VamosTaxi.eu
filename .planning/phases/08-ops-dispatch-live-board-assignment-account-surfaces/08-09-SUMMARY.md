@@ -41,7 +41,7 @@ key-decisions:
   - "Assign/unassign mail after RPC ok in assign.ts. Best-effort. No notification_claim. No Gmail API. No WhatsApp. No driver-app CTA. No invented CHF."
   - "Off-road = vehicles.status workshop. Upcoming assigned trips emailed to SUPPORT_EMAIL (info@vamostaxi.site). Trip not auto-cancelled."
   - "D-75 overlap mail from edit-request accept must-fix and checkout_extra_payment_settle 23P01. Trip stays."
-  - "Hosted schema STILL UNPUSHED. Task 3 waits owner apply. No MCP apply_migration. No supabase db push."
+  - "Owner apply 2026-09-10: MCP apply_migration on yaumjzvylngfjhtuffqs. No supabase db push. Hosted stamps do not match git filenames."
 
 patterns-established:
   - "Chauffeur dispatch mail: load trip+email in asSystem, send after result.ok."
@@ -54,15 +54,15 @@ completed: 2026-09-10
 
 # Phase 08 Plan 09: Assign/unassign + must-fix emails Summary
 
-**Chauffeurs get assign and unassign mail in fleet language. Ops gets must-fix mail on workshop off-road and paid-edit overlap. Hosted schema is STILL UNPUSHED — waiting owner apply.**
+**Chauffeurs get assign and unassign mail in fleet language. Ops gets must-fix mail on workshop off-road and paid-edit overlap. Hosted yaumjzvylngfjhtuffqs now has assign/refund/edit RPCs.**
 
 ## Performance
 
-- **Duration:** ~20 min production (Tasks 1–2)
+- **Duration:** Tasks 1–2 ~20 min; Task 3–4 apply ~20 min
 - **Started:** 2026-09-10T18:45:00Z
-- **Completed:** 2026-09-10T19:03:58Z
-- **Tasks:** 2 of 4 (stopped before Task 3 hosted apply)
-- **Files modified:** 27
+- **Completed:** 2026-09-10T19:40:00Z
+- **Tasks:** 4 of 4
+- **Files modified:** 29
 
 ## Accomplishments
 
@@ -70,13 +70,14 @@ completed: 2026-09-10
 - Off-road (D-55): staff vehicle PATCH → `updateVehicleRow` when status becomes `workshop` and upcoming assigned trips exist → `sendOpsMustFix` to `SUPPORT_EMAIL` (`info@vamostaxi.site`). Bookings are not cancelled.
 - Paid edit overlap (D-75): extra-accept path emails ops on `must-fix` (23P01 / capacity) from `acceptPaidEdit`, and on extra settle `23P01` from `checkout_extra_payment_settle`. Trip stays.
 - Four-language templates. No legal invention.
+- Owner said **apply**. MCP `apply_migration` on `yaumjzvylngfjhtuffqs`. No `supabase db push`. `pg_catalog.extract(epoch from …)` is invalid under `search_path = ''` (parsed as a function call); hosted bodies use `date_part`. Repo migrations patched to match.
 
 ## Task Commits
 
 1. **Task 1: Chauffeur assign and unassign emails** - `6344e8c` (feat)
 2. **Task 2: Ops must-fix emails (off-road + overlap edit)** - `c9d1538` (feat)
-3. **Task 3: [BLOCKING] hosted schema apply** - not started
-4. **Task 4: Readback hosted objects; regenerate types** - not started
+3. **Task 3: [BLOCKING] hosted schema apply** - MCP apply (owner **apply**)
+4. **Task 4: Readback hosted objects; regenerate types** - hosted MCP types into `database.types.ts` (local `db:types` not run — stack not required for hosted proof)
 
 **Plan metadata:** (this commit)
 
@@ -98,7 +99,9 @@ completed: 2026-09-10
 - `apps/web/app/[locale]/(ops)/api/staff/vehicles/[id]/route.ts` — D-55 send
 - `apps/web/lib/ops/edit-request.ts` — D-75 send on must-fix
 - `apps/web/lib/checkout/settle.ts` — D-75 send on extra 23P01
-- `apps/web/lib/ops/edit-request.test.ts` / `fleet-persist.test.ts` — file proofs
+- `packages/db/database.types.ts` — regenerated from hosted MCP
+- `packages/db/supabase/migrations/20260910170935_ops_refund_record.sql` — `date_part` not `extract`
+- `packages/db/supabase/migrations/20260910175309_booking_edit_requests.sql` — `date_part` not `extract`
 
 ## Decisions Made
 
@@ -128,32 +131,53 @@ None.
 
 ## User Setup Required
 
-**Hosted schema STILL UNPUSHED.** Waiting owner **apply** / **you apply**.
+None for schema. Hosted apply done. No wrangler secret. No deploy. No dummy-card. No live DNS. Do not push `main`.
 
-Task 3 is `checkpoint:human-action`. Do not MCP `apply_migration` until owner says apply. Do not `supabase db push`. Do not wrangler secret/deploy. Do not dummy-card. Do not live DNS. Do not push `main`. Do not start 08-10.
+Owner apply verbatim: **apply**
 
-Owner apply verbatim: _(not said)_
+Hosted `schema_migrations` stamps (MCP names, not git filenames):
 
-Migration versions to apply after owner apply (08-04 / 08-05 / 08-07, timestamp order):
+- `20260910192527` `ops_assign_leg`
+- `20260910192902` `ops_refund_stripe_fee`
+- `20260910193305` `ops_refund_record_full`
+- `20260910193336` `ops_cancel_booking`
+- `20260910193424` `booking_edit_requests_table`
+- `20260910193446` `booking_edit_apply_payload`
+- `20260910193502` `booking_edit_mint_extra_snapshot`
+- `20260910193521` `booking_edit_clone_quote_snapshot`
+- `20260910193536` `booking_edit_request_upsert`
+- `20260910193558` `booking_edit_request_accept`
+- `20260910193607` `booking_edit_request_set_extra_session`
+- `20260910193629` `booking_edit_refund_record`
+- `20260910193656` `checkout_extra_payment_settle`
 
-- `20260910164004_ops_assign_leg`
-- `20260910170935_ops_refund_record`
-- `20260910175309_booking_edit_requests`
+Probe stamps (`ops_refund_record_probe` / `_select` / `_mid`) are leftover MCP versions from the extract failure; final body is `_full`. Do not re-apply.
 
-Readback after apply: `list_migrations` + `to_regclass('public.booking_edit_requests')` + `ops_assign_leg` / `ops_unassign_leg` / `ops_refund_record` in `pg_proc`.
+Readback (`execute_sql` on `yaumjzvylngfjhtuffqs`):
+
+- `to_regclass('public.booking_edit_requests')` = `booking_edit_requests`
+- RLS forced on `booking_edit_requests`
+- `booking_payments.stripe_fee_rappen` present
+- `booking_payments_one_success_per_snapshot` present; old `booking_payments_one_success` gone
+- `booking_refunds.stripe_refund_id` unique still present
+- `supabase_realtime` publication: no bookings/legs/payments/refunds/edit_requests/events
+- Functions present, `vamos_system` EXECUTE true, anon/authenticated EXECUTE false:
+  `ops_assign_leg`, `ops_unassign_leg`, `ops_refund_record`, `ops_cancel_booking`,
+  `booking_edit_apply_payload`, `booking_edit_mint_extra_snapshot`, `booking_edit_clone_quote_snapshot`,
+  `booking_edit_request_upsert`, `booking_edit_request_accept`, `booking_edit_request_set_extra_session`,
+  `booking_edit_refund_record`, `checkout_extra_payment_settle`
 
 ## Next Phase Readiness
 
-- Emails wired server-side. Templates: `ChauffeurAssignEmail.tsx`, `ChauffeurUnassignEmail.tsx`, `OpsMustFixEmail.tsx`.
-- **Blocker = Task 3 owner apply.** Phase 8 may not claim verify until hosted readback.
-- 08-10 (customer paid-edit UI) must not start before that readback.
+- Emails wired server-side. Hosted SQL for 08-04/05/07 is on `yaumjzvylngfjhtuffqs`.
+- 08-10 (customer paid-edit UI) may start. No deploy this plan.
 
 ## Self-Check: Context for Next Phase
 
 - Chauffeur assign/unassign: after RPC, Resend, fleet locale.
 - Must-fix: SUPPORT_EMAIL, workshop PATCH, extra-accept overlap, no auto-cancel.
-- Hosted SQL for 08-04/05/07 is not on `yaumjzvylngfjhtuffqs` yet.
+- Hosted SQL for 08-04/05/07 is live. Types regenerated from hosted.
 
 ---
 *Phase: 08-ops-dispatch-live-board-assignment-account-surfaces*
-*Completed: 2026-09-10 (Tasks 1–2 only)*
+*Completed: 2026-09-10*

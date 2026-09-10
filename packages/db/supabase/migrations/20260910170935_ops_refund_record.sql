@@ -193,7 +193,7 @@ begin
   select coalesce(
            pg_catalog.round(
              (
-               pg_catalog.extract(epoch from (pg_catalog.min(l.scheduled_at) - pg_catalog.now()))
+               pg_catalog.date_part('epoch', pg_catalog.min(l.scheduled_at) - pg_catalog.now())
                / 3600
              )::pg_catalog.numeric,
              2
