@@ -19,6 +19,7 @@ import {
 } from "./stripe";
 import type { StripeQueueMessage } from "./webhook";
 import { deliverConfirmation } from "./notify";
+import { deliverOverlapMustFix } from "../ops/must-fix-mail";
 
 export type HandleResult = { ack: true } | { retry: true };
 
@@ -201,10 +202,25 @@ export async function handleStripeMessage(
         presentmentAmountMinor: null,
       };
       const extra = input.session?.metadata?.kind === "extra";
-      const rows = await asSystem(env, async (sql) => {
-        if (extra) {
+      try {
+        const rows = await asSystem(env, async (sql) => {
+          if (extra) {
+            return sql`
+              select * from public.checkout_extra_payment_settle(
+                ${input.eventId},
+                ${input.sessionId},
+                ${input.paymentIntentId},
+                ${input.outcome},
+                ${fx.chargedCurrency},
+                ${fx.fxRate},
+                ${fx.fxSource},
+                ${fx.fxQuotedAt}::timestamptz,
+                ${fx.presentmentAmountMinor}
+              )
+            `;
+          }
           return sql`
-            select * from public.checkout_extra_payment_settle(
+            select * from public.checkout_payment_settle(
               ${input.eventId},
               ${input.sessionId},
               ${input.paymentIntentId},
@@ -216,30 +232,29 @@ export async function handleStripeMessage(
               ${fx.presentmentAmountMinor}
             )
           `;
+        });
+        const row = rows[0];
+        if (!row) throw new Error(extra ? "checkout_extra_payment_settle returned no row" : "checkout_payment_settle returned no row");
+        return {
+          booking_id: String(row.booking_id),
+          reference: String(row.reference),
+          locale: String(row.locale),
+          contact_email: String(row.contact_email),
+          already_settled: Boolean(row.already_settled),
+        };
+      } catch (err) {
+        if (extra && sqlState(err) === "23P01") {
+          const bookingId = String(input.session?.metadata?.booking_id ?? "");
+          if (bookingId) {
+            try {
+              await deliverOverlapMustFix(env, bookingId);
+            } catch {
+              // Extra settle rolled back. Trip is not auto-cancelled. Mail is best-effort.
+            }
+          }
         }
-        return sql`
-          select * from public.checkout_payment_settle(
-            ${input.eventId},
-            ${input.sessionId},
-            ${input.paymentIntentId},
-            ${input.outcome},
-            ${fx.chargedCurrency},
-            ${fx.fxRate},
-            ${fx.fxSource},
-            ${fx.fxQuotedAt}::timestamptz,
-            ${fx.presentmentAmountMinor}
-          )
-        `;
-      });
-      const row = rows[0];
-      if (!row) throw new Error(extra ? "checkout_extra_payment_settle returned no row" : "checkout_payment_settle returned no row");
-      return {
-        booking_id: String(row.booking_id),
-        reference: String(row.reference),
-        locale: String(row.locale),
-        contact_email: String(row.contact_email),
-        already_settled: Boolean(row.already_settled),
-      };
+        throw err;
+      }
     },
     eventSettle: async (eventId, error) => {
       await asSystem(env, async (sql) => {

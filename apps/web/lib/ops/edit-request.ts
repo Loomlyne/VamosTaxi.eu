@@ -29,6 +29,7 @@ import {
   type EditAcceptFail,
   type EditPayload,
 } from "./edit-request-map";
+import { deliverOverlapMustFix } from "./must-fix-mail";
 
 export type { AcceptOutcome, EditPayload } from "./edit-request-map";
 export { extraCheckoutMetadata, fareDifferenceRappen, mapEditSqlError, shouldExpireOldExtraSession };
@@ -197,7 +198,15 @@ export async function acceptPaidEdit(
       };
     });
   } catch (err) {
-    return mapEditSqlError(err);
+    const mapped = mapEditSqlError(err);
+    if (mapped.code === "must-fix") {
+      try {
+        await deliverOverlapMustFix(env, requestId || key);
+      } catch {
+        // Trip is not auto-cancelled. Mail is best-effort.
+      }
+    }
+    return mapped;
   }
 
   if (accepted.outcome === "applied") {

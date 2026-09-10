@@ -63,4 +63,19 @@ describe("fleet persist — 08-03", () => {
     expect(fleet).not.toMatch(/\bonAssign\b/);
     expect(fleet).not.toMatch(/>Assign</);
   });
+
+  it("off-road must-fix mail is server-side, not OpsFleet JS", () => {
+    const write = read("apps/web/lib/ops/fleet-write.ts");
+    expect(write).toMatch(/workshop/);
+    expect(write).toMatch(/MustFix/);
+    expect(write).not.toMatch(/status\s*=\s*['\"]cancelled['\"]/);
+    const route = read("apps/web/app/[locale]/(ops)/api/staff/vehicles/[id]/route.ts");
+    expect(route).toMatch(/deliverOpsMustFix/);
+    expect(route).toMatch(/off-road/);
+    expect(route).not.toMatch(/status\s*=\s*['\"]cancelled['\"]/);
+    const fleet = read("app/ops/OpsFleet.dc.html");
+    expect(fleet).not.toMatch(/sendOpsMustFix/);
+    expect(fleet).not.toMatch(/deliverOpsMustFix/);
+    expect(fleet).not.toMatch(/RESEND_API_KEY/);
+  });
 });

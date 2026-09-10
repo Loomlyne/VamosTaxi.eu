@@ -50,5 +50,12 @@
     "subject": "Course {reference} n’est plus assignée",
     "preheader": "{reference} ne vous est plus assignée.",
     "headline": "Cette course ne vous est plus assignée"
+  },
+  "opsMustFix": {
+    "subject": "Needs attention — {reference}",
+    "offRoadHeadline": "Véhicule hors service",
+    "offRoadBody": "Les courses assignées à venir restent au tableau — elles ne sont pas annulées. Corrigez-les sous Needs attention.",
+    "overlapHeadline": "Une modification payée casse le chauffeur assigné",
+    "overlapBody": "La course reste. Réassignez cette course ou la course en chevauchement sous Needs attention."
   }
 }

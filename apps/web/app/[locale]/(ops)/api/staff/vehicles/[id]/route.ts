@@ -16,6 +16,7 @@ import {
   readJsonBody,
 } from "@/lib/ops/fleet-http";
 import { deleteVehicleRow, updateVehicleRow } from "@/lib/ops/fleet-write";
+import { deliverOpsMustFix } from "@/lib/ops/must-fix-mail";
 import { jsonErr, jsonOk, withStaff } from "@/lib/ops/staff-json";
 
 export const dynamic = "force-dynamic";
@@ -41,7 +42,14 @@ export async function PATCH(
         vehicleClassId = match.id;
       }
       const input = assertVehicleInput({ ...parsed.input, vehicleClassId });
-      await updateVehicleRow(env, claims, id, input);
+      const mustFixTrips = await updateVehicleRow(env, claims, id, input);
+      if (mustFixTrips.length > 0) {
+        try {
+          await deliverOpsMustFix(env, "off-road", mustFixTrips);
+        } catch {
+          // Vehicle is already off the road. Mail is best-effort. Do not cancel.
+        }
+      }
       const rows = await loadVehicles(env, claims);
       const updated = rows.find((row) => row.id === id);
       return jsonOk(updated ? presentVehicle(updated) : { id });

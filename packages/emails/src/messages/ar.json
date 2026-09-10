@@ -50,5 +50,12 @@
     "subject": "أُلغي إسناد الرحلة {reference}",
     "preheader": "لم تعد {reference} مسندة إليك.",
     "headline": "لم تعد هذه الرحلة مسندة إليك"
+  },
+  "opsMustFix": {
+    "subject": "Needs attention — {reference}",
+    "offRoadHeadline": "المركبة خارج الخدمة",
+    "offRoadBody": "الرحلات المسندة القادمة تبقى على اللوحة — لا تُلغى. عالجها في Needs attention.",
+    "overlapHeadline": "تعديل مدفوع يكسر السائق المعيَّن",
+    "overlapBody": "الرحلة تبقى. أعد تعيين هذه الرحلة أو الرحلة المتداخلة في Needs attention."
   }
 }

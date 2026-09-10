@@ -22,6 +22,12 @@ import {
   chauffeurUnassignSubject,
 } from "../ChauffeurUnassignEmail";
 import { PayLinkEmail, payLinkPlainText, payLinkSubject } from "../PayLinkEmail";
+import {
+  OpsMustFixEmail,
+  opsMustFixPlainText,
+  opsMustFixSubject,
+  type OpsMustFixForEmail,
+} from "../OpsMustFixEmail";
 import { renderRefundEmail, type RefundKind } from "../refund";
 import { chauffeurEmailLocale } from "./chauffeur-locale";
 import { buildInvite } from "./ics";
@@ -29,7 +35,7 @@ import { renderConfirmation } from "./render";
 import type { BookingForEmail, EmailLocale, PayLinkForEmail, SendOutcome } from "./types";
 
 export { chauffeurEmailLocale };
-export type { ChauffeurDispatchForEmail };
+export type { ChauffeurDispatchForEmail, OpsMustFixForEmail };
 
 /**
  * Bump the trailing serial when rendered content changes; bump the date
@@ -242,4 +248,42 @@ export async function sendChauffeurUnassign(
   to: string,
 ): Promise<SendOutcome> {
   return sendChauffeurDispatch(env, trip, to, "unassign");
+}
+
+export async function sendOpsMustFix(
+  env: EmailEnv,
+  payload: OpsMustFixForEmail,
+  to: string,
+): Promise<SendOutcome> {
+  try {
+    if (!env.RESEND_API_KEY) {
+      return { ok: false, error: "RESEND_API_KEY is not bound" };
+    }
+    const recipient = to.trim().toLowerCase();
+    if (!recipient) {
+      return { ok: false, error: "no ops recipient" };
+    }
+    if (payload.trips.length === 0) {
+      return { ok: false, error: "no must-fix trips" };
+    }
+    const resend = new Resend(env.RESEND_API_KEY);
+    const result = await resend.emails.send({
+      from: FROM,
+      to: recipient,
+      subject: opsMustFixSubject(payload),
+      react: OpsMustFixEmail({ payload }),
+      text: opsMustFixPlainText(payload),
+    });
+    if (result.error) {
+      return { ok: false, error: result.error.message };
+    }
+    const id = result.data?.id;
+    if (!id) {
+      return { ok: false, error: "Resend returned no id" };
+    }
+    return { ok: true, providerMessageId: id };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "sendOpsMustFix failed";
+    return { ok: false, error: message };
+  }
 }

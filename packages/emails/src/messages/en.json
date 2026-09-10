@@ -50,5 +50,12 @@
     "subject": "Trip {reference} unassigned",
     "preheader": "{reference} is no longer assigned to you.",
     "headline": "This trip is no longer assigned to you"
+  },
+  "opsMustFix": {
+    "subject": "Needs attention — {reference}",
+    "offRoadHeadline": "Vehicle off the road",
+    "offRoadBody": "Upcoming assigned trips stay on the board. They are not cancelled. Fix them on Needs attention.",
+    "overlapHeadline": "Paid edit breaks the assigned chauffeur",
+    "overlapBody": "The trip stays. Reassign this trip or the overlapping trip on Needs attention."
   }
 }

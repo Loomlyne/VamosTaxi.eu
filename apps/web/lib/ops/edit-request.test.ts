@@ -63,6 +63,23 @@ describe("mapEditSqlError", () => {
   });
 });
 
+describe("08-09 must-fix mail", () => {
+  it("emails ops on extra-accept overlap and does not cancel", () => {
+    const src = read("apps/web/lib/ops/edit-request.ts");
+    expect(src).toMatch(/deliverOverlapMustFix/);
+    expect(src).toMatch(/must-fix/);
+    expect(src).not.toMatch(/status\s*=\s*['\"]cancelled['\"]/);
+    expect(src).not.toMatch(/OpsFleet/);
+    const mail = read("apps/web/lib/ops/must-fix-mail.ts");
+    expect(mail).toContain("SUPPORT_EMAIL");
+    expect(mail).toContain("sendOpsMustFix");
+    expect(mail).not.toMatch(/notification_claim/);
+    const settle = read("apps/web/lib/checkout/settle.ts");
+    expect(settle).toMatch(/deliverOverlapMustFix/);
+    expect(settle).toMatch(/kind === \"extra\"/);
+  });
+});
+
 describe("08-07 file proofs", () => {
   it("does not import route.ts, uses asSystem, extra difference session", () => {
     const src = read("apps/web/lib/ops/edit-request.ts");

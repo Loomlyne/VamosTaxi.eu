@@ -11,11 +11,18 @@ export {
   chauffeurUnassignSubject,
 } from "./ChauffeurUnassignEmail";
 export {
+  OpsMustFixEmail,
+  opsMustFixPlainText,
+  opsMustFixSubject,
+} from "./OpsMustFixEmail";
+export type { OpsMustFixForEmail, OpsMustFixKind, OpsMustFixTrip } from "./OpsMustFixEmail";
+export {
   sendConfirmation,
   sendPayLink,
   sendRefund,
   sendChauffeurAssign,
   sendChauffeurUnassign,
+  sendOpsMustFix,
   refundMailRecipients,
   chauffeurEmailLocale,
   CONFIRMATION_TEMPLATE_VERSION,
