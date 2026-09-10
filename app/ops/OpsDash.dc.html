@@ -32,7 +32,7 @@
 <span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Income</span>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="banknote" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
 </div>
-<span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-lg);font-weight:var(--vt-weight-bold);line-height:1;color:var(--vt-text-primary)">{{ money }}</span>
+<span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-lg);font-weight:var(--vt-weight-bold);line-height:1;color:var(--vt-text-primary)">{{ incomeMoney }}</span>
 <span style="margin-top:auto;font-size:var(--vt-body-xs);line-height:1.45;color:var(--vt-text-muted)">Fares captured, before costs</span>
 </div>
 
@@ -41,8 +41,8 @@
 <span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Expenses</span>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="receipt" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
 </div>
-<span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-lg);font-weight:var(--vt-weight-bold);line-height:1;color:var(--vt-text-primary)">{{ money }}</span>
-<span style="margin-top:auto;font-size:var(--vt-body-xs);line-height:1.45;color:var(--vt-text-muted)">Chauffeur pay, vehicles, fees</span>
+<span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-lg);font-weight:var(--vt-weight-bold);line-height:1;color:var(--vt-text-primary)">{{ expensesMoney }}</span>
+<span style="margin-top:auto;font-size:var(--vt-body-xs);line-height:1.45;color:var(--vt-text-muted)">None recorded</span>
 </div>
 
 <div style="box-sizing:border-box;display:flex;flex-direction:column;gap:10px;min-height:136px;padding:18px 20px;background:var(--vt-bg-inverse);border:1px solid var(--vt-bg-inverse);border-radius:var(--vt-radius-lg)">
@@ -50,8 +50,8 @@
 <span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-inverse-muted)">Net</span>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-up" size="{{ n18 }}" color="var(--vt-accent)" hint-size="18px,18px"></x-import>
 </div>
-<span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-lg);font-weight:var(--vt-weight-bold);line-height:1;color:var(--vt-accent)">{{ money }}</span>
-<span style="margin-top:auto;font-size:var(--vt-body-xs);line-height:1.45;color:var(--vt-text-inverse-muted)">Income less expenses</span>
+<span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-lg);font-weight:var(--vt-weight-bold);line-height:1;color:var(--vt-accent)">{{ netMoney }}</span>
+<span style="margin-top:auto;font-size:var(--vt-body-xs);line-height:1.45;color:var(--vt-text-inverse-muted)">Income minus fees and refunds</span>
 </div>
 
 <div style="box-sizing:border-box;display:flex;flex-direction:column;gap:10px;min-height:136px;padding:18px 20px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg)">
@@ -59,8 +59,8 @@
 <span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Average fare</span>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="credit-card" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
 </div>
-<span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-lg);font-weight:var(--vt-weight-bold);line-height:1;color:var(--vt-text-primary)">{{ money }}</span>
-<span style="margin-top:auto;font-size:var(--vt-body-xs);line-height:1.45;color:var(--vt-text-muted)">Per completed transfer</span>
+<span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-lg);font-weight:var(--vt-weight-bold);line-height:1;color:var(--vt-text-primary)">{{ avgMoney }}</span>
+<span style="margin-top:auto;font-size:var(--vt-body-xs);line-height:1.45;color:var(--vt-text-muted)">Per captured fare</span>
 </div>
 
 </div>
@@ -88,33 +88,32 @@
 <h2 style="margin:0 0 10px;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);color:var(--vt-text-primary)">Where the money goes</h2>
 
 <p style="margin:0 0 6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Money in</p>
-<sc-for list="{{ income }}" as="r" hint-placeholder-count="4">
+<sc-for list="{{ income }}" as="r" hint-placeholder-count="3">
 <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;padding:11px 0;border-bottom:1px solid var(--vt-grey-200)">
 <span style="flex:1 1 160px;min-width:0;font-size:var(--vt-body-sm);color:var(--vt-text-primary)">{{ r.label }}</span>
-<span style="font-family:var(--vt-font-display);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);font-variant-numeric:tabular-nums;color:var(--vt-text-primary)">{{ money }}</span>
+<span style="font-family:var(--vt-font-display);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);font-variant-numeric:tabular-nums;color:var(--vt-text-primary)">{{ r.amount }}</span>
 </div>
 </sc-for>
 
 <p style="margin:18px 0 6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Money out</p>
-<sc-for list="{{ expenses }}" as="r" hint-placeholder-count="5">
+<sc-for list="{{ expenses }}" as="r" hint-placeholder-count="2">
 <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;padding:11px 0;border-bottom:1px solid var(--vt-grey-200)">
 <span style="flex:1 1 160px;min-width:0;font-size:var(--vt-body-sm);color:var(--vt-text-primary)">{{ r.label }}</span>
-<span style="font-family:var(--vt-font-display);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);font-variant-numeric:tabular-nums;color:var(--vt-text-primary)">{{ money }}</span>
+<span style="font-family:var(--vt-font-display);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);font-variant-numeric:tabular-nums;color:var(--vt-text-primary)">{{ r.amount }}</span>
 </div>
 </sc-for>
 
 <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;margin-top:14px;padding:14px 16px;background:var(--vt-grey-50);border-radius:var(--vt-radius-md)">
 <span style="flex:1 1 160px;min-width:0;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-primary)">Net</span>
-<span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-sm);font-weight:var(--vt-weight-bold);font-variant-numeric:tabular-nums;color:var(--vt-text-primary)">{{ money }}</span>
+<span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-sm);font-weight:var(--vt-weight-bold);font-variant-numeric:tabular-nums;color:var(--vt-text-primary)">{{ netMoney }}</span>
 </div>
-<p style="margin:14px 0 0;font-size:var(--vt-body-xs);line-height:1.55;color:var(--vt-text-muted);text-wrap:pretty">Every amount is a placeholder until Stripe payouts and the cost sheet are connected. Counts stay 0 until real bookings and fleet rows exist.</p>
 </section>
 
 <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
 
 <section style="box-sizing:border-box;display:flex;flex-direction:column;gap:8px;padding:22px 24px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg)">
 <h2 style="margin:0 0 4px;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);color:var(--vt-text-primary)">Needs attention</h2>
-<sc-for list="{{ attention }}" as="a" hint-placeholder-count="3">
+<sc-for list="{{ attention }}" as="a" hint-placeholder-count="2">
 <a href="{{ a.href }}" style="box-sizing:border-box;display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 12px;margin:0 -12px;border-radius:var(--vt-radius-md);text-decoration:none;color:inherit;transition:background 140ms cubic-bezier(.2,0,.2,1)" style-hover="background:var(--vt-grey-50)">
 <span style="flex:0 0 auto;display:grid;place-items:center;width:36px;height:36px;border-radius:999px;background:var(--vt-charcoal-900)">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ a.icon }}" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>
@@ -154,20 +153,65 @@
 </main>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900}}">
-/* Money stays CHF 000 until Stripe. Counts come from live collections — empty is 0. */
+/* Money is captured fares in CHF. Empty is CHF 000 / 0. No expense placeholders. */
 const PERIODS = [
   { key:'today', en:'Today', de:'Heute', fr:'Aujourd’hui', ar:'اليوم' },
   { key:'week', en:'7 days', de:'7 Tage', fr:'7 jours', ar:'٧ أيام' },
   { key:'month', en:'30 days', de:'30 Tage', fr:'30 jours', ar:'٣٠ يومًا' },
 ];
-const INCOME = ['Transfers', 'Airport pickups', 'Extras and waiting time', 'Corporate accounts'];
-const EXPENSES = ['Chauffeur pay', 'Fuel and tolls', 'Vehicle leasing', 'Insurance', 'Card and platform fees'];
+const MONEY_IN_CLASSES = ['Economy', 'Business', 'Van'];
 
 function zurichParts() {
   const p = {};
   new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Zurich', weekday: 'long', day: 'numeric', month: 'long' })
     .formatToParts(new Date()).forEach((x) => { p[x.type] = x.value; });
   return p;
+}
+function zurichToday() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Zurich' }).format(new Date());
+}
+function addDaysYmd(ymd, days) {
+  const bits = String(ymd).split('-');
+  const y = Number(bits[0]);
+  const m = Number(bits[1]);
+  const d = Number(bits[2]);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + days);
+  return dt.toISOString().slice(0, 10);
+}
+function inPeriod(iso, period, today) {
+  if (!iso) return false;
+  if (period === 'today') return iso === today;
+  if (period === 'week') return iso >= addDaysYmd(today, -6) && iso <= today;
+  if (period === 'month') return iso >= addDaysYmd(today, -29) && iso <= today;
+  return false;
+}
+function zurichYmdFromIso(value) {
+  if (!value) return '';
+  const s = String(value);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const ms = Date.parse(s);
+  if (!Number.isFinite(ms)) {
+    const m = s.match(/^(\d{4}-\d{2}-\d{2})/);
+    return m ? m[1] : '';
+  }
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Zurich' }).format(new Date(ms));
+}
+function fareLabel(rappen) {
+  const n = Number(rappen);
+  if (!Number.isFinite(n) || n === 0) {
+    return window.VamosLocale ? window.VamosLocale.money('000') : 'CHF 000';
+  }
+  if (n < 0) {
+    const pos = (window.VamosLocale && window.VamosLocale.fromChf)
+      ? window.VamosLocale.fromChf(-n)
+      : ('CHF ' + ((-n) / 100).toFixed(2));
+    return '\u2212' + pos;
+  }
+  if (window.VamosLocale && window.VamosLocale.fromChf) {
+    return window.VamosLocale.fromChf(n);
+  }
+  return window.VamosLocale ? window.VamosLocale.money('000') : 'CHF 000';
 }
 
 class Component extends DCLogic {
@@ -206,14 +250,36 @@ class Component extends DCLogic {
     const bookings = ops ? ops.bookings.all() : [];
     const chauffeurs = ops ? ops.chauffeurs.all() : [];
     const vehicles = ops ? ops.vehicles.all() : [];
+    const today = zurichToday();
+    const periodKey = p.key;
+    const moneyBookings = bookings.filter((b) => b.capturedAt && inPeriod(zurichYmdFromIso(b.capturedAt), periodKey, today));
+    const periodBookings = bookings.filter((b) => inPeriod(b.dateIso, periodKey, today));
+    const incomeRappen = moneyBookings.reduce((n, b) => n + (Number(b.totalRappen) || 0), 0);
+    const refundRappen = moneyBookings.reduce((n, b) => n + (Number(b.refundRappen) || 0), 0);
+    const feeRappen = moneyBookings.reduce((n, b) => {
+      const fee = Number(b.stripeFeeRappen);
+      return Number.isFinite(fee) && fee > 0 ? n + fee : n;
+    }, 0);
+    const netRappen = incomeRappen - feeRappen - refundRappen;
+    const capturedCount = moneyBookings.length;
+    const avgRappen = capturedCount ? Math.round(incomeRappen / capturedCount) : 0;
+    const zeroMoney = fareLabel(0);
     const onShift = chauffeurs.filter((c) => c.status === 'shift').length;
     const inService = vehicles.filter((v) => v.status === 'service').length;
-    const awaiting = bookings.filter((b) => !b.paid && b.status !== 'cancelled' && b.status !== 'refunded' && b.status !== 'completed').length;
-    const unassigned = bookings.filter((b) => !b.driver && b.status !== 'cancelled' && b.status !== 'completed').length;
-    const pickups = bookings.filter((b) => b.dateIso === new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Zurich' }).format(new Date())).length;
+    const pickups = periodBookings.filter((b) => b.status !== 'cancelled' && b.status !== 'refunded').length;
+    const unassignedPaid = periodBookings.filter((b) => b.paid && !b.driver && b.status !== 'cancelled' && b.status !== 'completed').length;
+    const unpaidPending = periodBookings.filter((b) => !b.paid && b.status !== 'cancelled' && b.status !== 'refunded' && b.status !== 'completed').length;
+    const moneyOut = [];
+    if (refundRappen > 0) moneyOut.push({ label: 'Refund', amount: fareLabel(refundRappen) });
+    if (feeRappen > 0) moneyOut.push({ label: 'Stripe fee', amount: fareLabel(feeRappen) });
+    const bookingsHref = periodKey === 'today' ? '/bookings?filter=Today' : '/bookings';
+    const pickupsHref = periodKey === 'today' ? '/calendar' : '/bookings';
     return {
       n16: 16, n18: 18,
-      money: window.VamosLocale ? window.VamosLocale.money('000') : 'CHF 000',
+      incomeMoney: fareLabel(incomeRappen),
+      expensesMoney: zeroMoney,
+      netMoney: fareLabel(netRappen),
+      avgMoney: fareLabel(avgRappen),
       subtitle: subs[p.key] || todaySub,
       periods: PERIODS.map((x) => ({
         label: x[lang] || x.en,
@@ -221,17 +287,19 @@ class Component extends DCLogic {
         select: () => this.setState({ period: x.key }),
       })),
       counts: [
-        { label:'Bookings', value:String(bookings.length), of:'', icon:'list', href:'/bookings', foot:'Taken in this period' },
-        { label:'Pickups', value:String(pickups), of:'', icon:'car-front', href:'/bookings', foot:'Scheduled to run' },
+        { label:'Bookings', value:String(periodBookings.length), of:'', icon:'list', href:bookingsHref, foot:'Taken in this period' },
+        { label:'Pickups', value:String(pickups), of:'', icon:'car-front', href:pickupsHref, foot:'Scheduled to run' },
         { label:'Chauffeurs on shift', value:String(onShift), of:'/ ' + chauffeurs.length, icon:'users', href:'/fleet/chauffeurs', foot:'Available to assign' },
         { label:'Vehicles in service', value:String(inService), of:'/ ' + vehicles.length, icon:'car', href:'/fleet', foot:'Rest are off the road' },
       ],
-      income: INCOME.map((label) => ({ label })),
-      expenses: EXPENSES.map((label) => ({ label })),
+      income: (moneyBookings.some((b) => b.klass === 'First') ? MONEY_IN_CLASSES.concat(['First']) : MONEY_IN_CLASSES).map((label) => ({
+        label,
+        amount: fareLabel(moneyBookings.filter((b) => b.klass === label).reduce((n, b) => n + (Number(b.totalRappen) || 0), 0)),
+      })),
+      expenses: moneyOut,
       attention: [
-        { icon:'triangle-alert', title:'Unassigned bookings', note:'No chauffeur yet', count:String(unassigned), href:'/bookings' },
-        { icon:'clock', title:'Awaiting payment', note:'Needs a card payment or pay-link', count:String(awaiting), href:'/bookings' },
-        { icon:'banknote', title:'Refunds to issue', note:'Cancelled inside the free window', count:'0', href:'/bookings' },
+        { icon:'triangle-alert', title:'Unassigned bookings', note:'Paid, no chauffeur yet', count:String(unassignedPaid), href:'/bookings?filter=Unassigned' },
+        { icon:'clock', title:'Awaiting payment', note:'Needs a card payment or pay-link', count:String(unpaidPending), href:'/bookings?filter=Awaiting%20payment' },
       ],
       chauffeursOn: onShift + '/' + chauffeurs.length,
       chauffeursNote: 'Chauffeurs on shift',
