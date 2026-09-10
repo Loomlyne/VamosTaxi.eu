@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Ops Support
 status: executing
-stopped_at: "Phase 8 CONTEXT ready (owner authorized discuss while 7 UAT continues other session). Next: plan-phase 8 after he signs."
-last_updated: "2026-09-10T14:23:36.700Z"
-last_activity: 2026-09-09 -- PR 25 HEAD 3151424; Cursor Security pending; do not merge
+stopped_at: "Phase 8 plan 10 executed on gsd/08-10-customer-edit-request. Next: 08-UAT (owner). Do not deploy."
+last_updated: "2026-09-10T23:10:00.000Z"
+last_activity: 2026-09-11 -- 08-10 customer paid-edit POST; awaiting 08-UAT
 progress:
   total_phases: 17
   completed_phases: 6
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-04)
 
 **Core value:** Dispatcher answers contact mail from Ops. Customer replies land in the same ticket.
-**Current focus:** Phase 7 — Checkout & Payment
+**Current focus:** Phase 8 — Ops Dispatch (08-10 done, 08-UAT next)
 
 ## Current Position
 
-Phase: 7 (Checkout & Payment) — EXECUTING
-Plan: 16 of 16 paper
-Status: Phase 7 executing — 07-01 through 07-16 paper on gsd/phase-7-checkout (PR 25). Not closed. UAT test 1 passed; tests 2–9 wait on a Stripe test dummy-card pay. Do not discuss 8/12/17.
-Last activity: 2026-09-09 -- PR 25 HEAD 3151424; Cursor Security pending; do not merge
+Phase: 8 (Ops Dispatch) — 08-10 executed, UAT not signed
+Plan: 10 of 10
+Status: 08-10 customer paid-edit request on gsd/08-10-customer-edit-request. Owner signed start 8. 08-UAT next. No deploy.
+Last activity: 2026-09-11 -- 08-10 POST /api/account/bookings
 
 ## Performance Metrics
 

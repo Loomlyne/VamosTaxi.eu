@@ -117,3 +117,30 @@ describe("08-07 file proofs", () => {
     expect(dash).toMatch(/Needs attention/);
   });
 });
+
+describe("08-10 customer paid-edit request", () => {
+  it("POSTs requested via JWT or manage token, never asStaff, never mutates booking columns", () => {
+    const src = read("apps/web/lib/ops/edit-request.ts");
+    expect(src).toMatch(/requestCustomerPaidEdit/);
+    expect(src).toMatch(/'customer'/);
+    expect(src).toMatch(/asCustomer/);
+    expect(src).toMatch(/asGuest/);
+    expect(src).toMatch(/booking_edit_request_upsert/);
+    expect(src).not.toMatch(/from \"@\/lib\/db\/identity\".*asStaff/);
+    expect(src).not.toMatch(/asStaff\(/);
+    expect(src).not.toMatch(/:6543/);
+    const route = read("apps/web/app/api/account/bookings/route.ts");
+    expect(route).toMatch(/export async function POST/);
+    expect(route).toMatch(/requestCustomerPaidEdit/);
+    expect(route).toMatch(/hashManageToken/);
+    expect(route).toMatch(/customerClaims/);
+    expect(route).not.toMatch(/asStaff/);
+    expect(route).not.toMatch(/become-a-partner/);
+    const page = read("app/pages/bookings.dc.html");
+    expect(page).toMatch(/\/api\/account\/bookings/);
+    expect(page).toMatch(/method: 'POST'/);
+    expect(page).toMatch(/Request a change/);
+    expect(page).toMatch(/Change requested\. The trip stays as booked until we confirm\./);
+    expect(page).not.toMatch(/become-a-partner/);
+  });
+});
