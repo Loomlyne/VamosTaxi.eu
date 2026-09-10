@@ -41,8 +41,13 @@ export type OpsBookingRow = {
   cardSession: boolean;
   sessionExpiresAt: string;
   totalRappen: number;
+  extraRappen: number;
   refundRappen: number;
   stripeFeeRappen: number | null;
+  pendingEditId: string;
+  pendingEditActor: string;
+  pendingEditQuoteRappen: number;
+  pendingEditExtraSessionId: string;
 };
 
 export type SqlBoardRow = {
@@ -74,8 +79,13 @@ export type SqlBoardRow = {
   payment_created_at: string | Date | null;
   stripe_checkout_session_id: string | null;
   charged_rappen: number | string | null;
+  extra_rappen?: number | string | null;
   refund_rappen?: number | string | null;
   stripe_fee_rappen?: number | string | null;
+  edit_request_id?: string | null;
+  edit_actor?: string | null;
+  edit_quote_total?: number | string | null;
+  extra_session_id?: string | null;
 };
 
 function str(value: unknown): string {
@@ -197,7 +207,12 @@ export function mapBoardBooking(row: SqlBoardRow): OpsBookingRow {
     cardSession,
     sessionExpiresAt,
     totalRappen: paid ? rappen(row.charged_rappen) : 0,
+    extraRappen: rappen(row.extra_rappen),
     refundRappen: rappen(row.refund_rappen),
     stripeFeeRappen,
+    pendingEditId: str(row.edit_request_id),
+    pendingEditActor: str(row.edit_actor),
+    pendingEditQuoteRappen: rappen(row.edit_quote_total),
+    pendingEditExtraSessionId: str(row.extra_session_id),
   };
 }

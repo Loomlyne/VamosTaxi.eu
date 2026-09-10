@@ -268,7 +268,10 @@ class Component extends DCLogic {
     const inService = vehicles.filter((v) => v.status === 'service').length;
     const pickups = periodBookings.filter((b) => b.status !== 'cancelled' && b.status !== 'refunded').length;
     const unassignedPaid = periodBookings.filter((b) => b.paid && !b.driver && b.status !== 'cancelled' && b.status !== 'completed').length;
+    const extraRappen = moneyBookings.reduce((n, b) => n + (Number(b.extraRappen) || 0), 0);
     const unpaidPending = periodBookings.filter((b) => !b.paid && b.status !== 'cancelled' && b.status !== 'refunded' && b.status !== 'completed').length;
+    const pendingEdits = periodBookings.filter((b) => b.paid && b.pendingEditId).length;
+    const moneyInExtra = extraRappen > 0 ? [{ label: 'Extra', amount: fareLabel(extraRappen) }] : [];
     const moneyOut = [];
     if (refundRappen > 0) moneyOut.push({ label: 'Refund', amount: fareLabel(refundRappen) });
     if (feeRappen > 0) moneyOut.push({ label: 'Stripe fee', amount: fareLabel(feeRappen) });
@@ -295,11 +298,12 @@ class Component extends DCLogic {
       income: (moneyBookings.some((b) => b.klass === 'First') ? MONEY_IN_CLASSES.concat(['First']) : MONEY_IN_CLASSES).map((label) => ({
         label,
         amount: fareLabel(moneyBookings.filter((b) => b.klass === label).reduce((n, b) => n + (Number(b.totalRappen) || 0), 0)),
-      })),
+      })).concat(moneyInExtra),
       expenses: moneyOut,
       attention: [
         { icon:'triangle-alert', title:'Unassigned bookings', note:'Paid, no chauffeur yet', count:String(unassignedPaid), href:'/bookings?filter=Unassigned' },
         { icon:'clock', title:'Awaiting payment', note:'Needs a card payment or pay-link', count:String(unpaidPending), href:'/bookings?filter=Awaiting%20payment' },
+        { icon:'pencil', title:'Pending edits', note:'Paid trips waiting for accept', count:String(pendingEdits), href:'/bookings' },
       ],
       chauffeursOn: onShift + '/' + chauffeurs.length,
       chauffeursNote: 'Chauffeurs on shift',

@@ -80,6 +80,19 @@
 </sc-if>
 </div>
 
+<sc-if value="{{ hasPendingEdit }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" title="{{ tPendingEditTitle }}" hint-size="100%,70px">{{ pendingEditDiff }}</x-import>
+<div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ acceptPending }}" hint-size="120px,36px">{{ tAccept }}</x-import>
+</div>
+</sc-if>
+<sc-if value="{{ unpaidNoEdit }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ tUnpaidNoEditTitle }}" hint-size="100%,70px">{{ tUnpaidNoEditBody }}</x-import>
+<div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="secondary" onClick="{{ goNewTrip }}" hint-size="220px,36px">{{ tUnpaidNewTrip }}</x-import>
+</div>
+</sc-if>
+
 <div>
 <h3 style="margin:0 0 12px;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:600;color:var(--vt-text-muted)">{{ tFare }}</h3>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.PriceSummary" lines="{{ fareLines }}" total="{{ booking.total }}" totalLabel="{{ tTotalLabel }}" note="{{ tFareNote }}" hint-size="100%,120px"></x-import>
@@ -124,7 +137,9 @@
 <div style="display:flex;gap:10px;flex-wrap:wrap">
 <sc-if value="{{ viewing }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="secondary" icon="mail" onClick="{{ resendVoucher }}" hint-size="170px,36px">{{ tResendVoucher }}</x-import>
+<sc-if value="{{ canEdit }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="pencil" onClick="{{ openEdit }}" hint-size="140px,36px">{{ tEditBooking }}</x-import>
+</sc-if>
 <sc-if value="{{ canCancel }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="danger" icon="x" onClick="{{ openCancel }}" hint-size="110px,36px">{{ tCancelBooking }}</x-import>
 </sc-if>
@@ -133,7 +148,7 @@
 </sc-if>
 </sc-if>
 <sc-if value="{{ editing }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ saveEdit }}" hint-size="150px,36px">{{ tSaveEdit }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ saveEdit }}" hint-size="150px,36px">{{ tContinue }}</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ cancelEdit }}" hint-size="110px,36px">{{ tCancelEdit }}</x-import>
 </sc-if>
 </div>
@@ -248,7 +263,16 @@ const T = {
     lineTransfer:'Transfer, ', lineAirportFee:'Airport pickup fee',
     saveEdit:'Save changes', cancelEdit:'Cancel', markRefund:'Refund',
     customer:'Name', pickup:'Pickup', dropoff:'Destination', date:'Date', time:'Time', bagsLabel:'Bags',
-  },
+ continue:'Continue', accept:'Accept',
+ pendingEditTitle:'Pending edit',
+ unpaidNoEditTitle:'Unpaid trip',
+ unpaidNoEditBody:'Cancel and create a new trip.',
+ unpaidNewTrip:'Cancel and create a new trip',
+ extraWaiting:'Extra payment is open for the difference.',
+ refundClick:'Use Refund for the difference.',
+ mustFix:'Reassign the chauffeur before this change can apply.',
+ editFailed:'Could not apply edit ',
+ },
   de: { backToBookings:'Zurück zu Buchungen', bookedBy:'gebucht von', moreActions:'Weitere Aktionen', details:'Details', history:'Verlauf', historyEmpty:'Noch keine Ereignisse.',
     assignment:'Zuweisung', assign:'Fahrer zuweisen', reassign:'Neu zuweisen', unassign:'Zuweisung aufheben', onShift:'Im Dienst', noDriver:'Kein Fahrer zugewiesen', noDriverSub:'Vor der Abholerinnerung zuweisen',
     passengerTrip:'Passagier & Fahrt', passengers:'Passagiere', bags:'Gepäck', vehicleClass:'Fahrzeugklasse', flight:'Flug', email:'E-Mail', mobile:'Mobil', payment:'Zahlung', payLink:'Zahlungslink', session:'Session',
@@ -268,18 +292,45 @@ const T = {
     lineTransfer:'Transfer, ', lineAirportFee:'Flughafengebühr',
     saveEdit:'Änderungen speichern', cancelEdit:'Abbrechen', markRefund:'Rückerstatten',
     customer:'Name', pickup:'Abholung', dropoff:'Ziel', date:'Datum', time:'Uhrzeit', bagsLabel:'Gepäck',
-  },
+ continue:'Weiter', accept:'Annehmen',
+ pendingEditTitle:'Offene Änderung',
+ unpaidNoEditTitle:'Unbezahlte Fahrt',
+ unpaidNoEditBody:'Stornieren und eine neue Fahrt anlegen.',
+ unpaidNewTrip:'Stornieren und neue Fahrt anlegen',
+ extraWaiting:'Zusatzzahlung für die Differenz ist offen.',
+ refundClick:'Rückerstatten für die Differenz verwenden.',
+ mustFix:'Chauffeur neu zuweisen, bevor diese Änderung gilt.',
+ editFailed:'Änderung fehlgeschlagen für ',
+ },
   fr: {
     unassign:'Désassigner', historyEmpty:'Aucun événement.',
     overlap:'Chevauche {ref} à {time}', noEmail:'Impossible d’assigner tant que ce chauffeur n’a pas d’e-mail.', noVehicle:'Impossible d’assigner tant que ce chauffeur n’a pas de véhicule.',
     notPaid:'Les courses non payées ne peuvent pas être assignées.', frozen:'Cette course est gelée.', capacity:'Ce véhicule ne peut pas prendre les passagers et bagages de cette course.', assignFailed:'Assignation impossible pour ',
     unassignedOk:'Assignation retirée pour ', evVehicle:'Véhicule assigné', evCleared:'Assignation retirée',
+    continue:'Continuer', accept:'Accepter',
+    pendingEditTitle:'Modification en attente',
+    unpaidNoEditTitle:'Course non payée',
+    unpaidNoEditBody:'Annuler et créer une nouvelle course.',
+    unpaidNewTrip:'Annuler et créer une nouvelle course',
+    extraWaiting:'Paiement supplémentaire ouvert pour la différence.',
+    refundClick:'Utiliser Rembourser pour la différence.',
+    mustFix:'Réassigner le chauffeur avant d’appliquer ce changement.',
+    editFailed:'Modification impossible pour ',
   },
   ar: {
     unassign:'إلغاء التعيين', historyEmpty:'لا أحداث بعد.',
     overlap:'يتداخل مع {ref} عند {time}', noEmail:'لا يمكن التعيين قبل وجود بريد إلكتروني لهذا السائق.', noVehicle:'لا يمكن التعيين قبل وجود مركبة لهذا السائق.',
     notPaid:'لا يمكن تعيين الرحلات غير المدفوعة.', frozen:'هذه الرحلة مجمّدة.', capacity:'هذه المركبة لا تتسع لركاب وأمتعة هذه الرحلة.', assignFailed:'تعذّر التعيين لـ ',
     unassignedOk:'أُلغي التعيين لـ ', evVehicle:'عُيّنت المركبة', evCleared:'أُلغي التعيين',
+    continue:'متابعة', accept:'قبول',
+    pendingEditTitle:'تعديل معلّق',
+    unpaidNoEditTitle:'رحلة غير مدفوعة',
+    unpaidNoEditBody:'ألغِ وأنشئ رحلة جديدة.',
+    unpaidNewTrip:'إلغاء وإنشاء رحلة جديدة',
+    extraWaiting:'دفع إضافي مفتوح للفرق.',
+    refundClick:'استخدم استرداد للفرق.',
+    mustFix:'أعد تعيين السائق قبل تطبيق هذا التغيير.',
+    editFailed:'تعذّر تطبيق التعديل لـ ',
   },
 };
 class Component extends DCLogic {
@@ -360,6 +411,8 @@ class Component extends DCLogic {
       meta: [eventWhen(e.at || e.createdAt), e.actorLabel || e.actor_label || ''].filter(Boolean).join(' · '),
     }));
     const fareLines = [{ label: t.lineTransfer + (booking.vehicle || ''), value: fareLabel(booking.totalRappen) }];
+    if (Number(booking.extraRappen) > 0) fareLines.push({ label: 'Extra', value: fareLabel(booking.extraRappen) });
+    if (Number(booking.refundRappen) > 0) fareLines.push({ label: t.evRefund, value: fareLabel(booking.refundRappen) });
     const cancelled = booking.status === 'cancelled' || booking.status === 'refunded';
     const routeMeta = [{ icon:'calendar', label: booking.date }, { icon:'clock', label: booking.time }];
     if (booking.km) routeMeta.push({ icon:'navigation', label: booking.km });
@@ -409,9 +462,49 @@ class Component extends DCLogic {
       tSendPayLink: t.sendPayLink, tTakeCard: t.takeCard, tPayCard: t.payCard, takeCardOpen: !!this.state.takeCardOpen,
       tDispatcherNote: t.dispatcherNote, tDispatcherNotePh: t.dispatcherNotePh,
       tResendVoucher: t.resendVoucher, tEditBooking: t.editBooking, tCancelBooking: t.cancelBooking,
-      tSaveEdit: t.saveEdit, tCancelEdit: t.cancelEdit, tMarkRefund: t.markRefund,
+      tSaveEdit: t.saveEdit, tContinue: t.continue, tAccept: t.accept, tCancelEdit: t.cancelEdit, tMarkRefund: t.markRefund,
       tCustomer: t.customer, tPickup: t.pickup, tDropoff: t.dropoff, tDate: t.date, tTime: t.time, tBagsLabel: t.bagsLabel,
+      tPendingEditTitle: t.pendingEditTitle, tUnpaidNoEditTitle: t.unpaidNoEditTitle, tUnpaidNoEditBody: t.unpaidNoEditBody, tUnpaidNewTrip: t.unpaidNewTrip,
       editing: !!this.state.editing, viewing: !this.state.editing,
+      canEdit: !!booking.paid && !cancelled,
+      unpaidNoEdit: !booking.paid && !cancelled,
+      hasPendingEdit: !!booking.pendingEditId,
+      pendingEditDiff: (function () {
+        const orig = Number(booking.totalRappen) || 0;
+        const quoted = Number(booking.pendingEditQuoteRappen) || 0;
+        const delta = quoted - orig;
+        let text = fareLabel(Math.abs(delta));
+        if (delta > 0) text = text + ' extra';
+        else if (delta < 0) text = text + ' refund';
+        if (booking.pendingEditExtraSessionId) text = text + ' · ' + t.extraWaiting;
+        return text;
+      })(),
+      goNewTrip: () => {
+        history.pushState({}, '', '/bookings/new');
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      },
+      acceptPending: () => {
+        const id = booking.bookingId || booking.id;
+        const client = window.VamosOpsApi;
+        const ops = window.VamosOps;
+        if (!booking.pendingEditId || !client || typeof client.request !== 'function') return;
+        client.request('POST', '/api/staff/bookings/' + encodeURIComponent(id) + '/edit-accept', {
+          requestId: booking.pendingEditId,
+        }).then((json) => {
+          const code = json && json.code;
+          const outcome = json && json.data && json.data.outcome;
+          if (json && json.ok) {
+            if (ops) ops.bookings.reset();
+            if (outcome === 'extra_required') this.notify(t.extraWaiting);
+            else if (outcome === 'refund_click') this.notify(t.refundClick);
+            else if (outcome === 'refund_immediate') this.notify(t.evRefund + ' ' + booking.id);
+            return;
+          }
+          if (code === 'must-fix' || code === 'capacity') this.notify(t.mustFix);
+          else if (code === 'unpaid') this.notify(t.unpaidNoEditBody);
+          else this.notify(t.editFailed + booking.id);
+        });
+      },
       edit: this.state.edit || {},
       setEditCustomer: this.setEditField('customer'),
       setEditEmail: this.setEditField('email'),
@@ -432,15 +525,30 @@ class Component extends DCLogic {
         const ops = window.VamosOps;
         const draft = this.state.edit || {};
         if (!client || typeof client.request !== 'function') return;
-        client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), {
+        if (!booking.paid) {
+          this.notify(t.unpaidNoEditBody);
+          return;
+        }
+        const scheduled = (draft.dateIso && draft.time) ? (String(draft.dateIso) + 'T' + String(draft.time)) : '';
+        client.request('POST', '/api/staff/bookings/' + encodeURIComponent(id) + '/edit-accept', {
           customer: draft.customer, email: draft.email, phone: draft.phone, klass: draft.klass,
           pickup: draft.pickup, dropoff: draft.dropoff, dateIso: draft.dateIso, time: draft.time,
           pax: Number(draft.pax), bags: Number(draft.bags), flight: draft.flight,
+          scheduled_local: scheduled,
         }).then((json) => {
+          const code = json && json.code;
+          const outcome = json && json.data && json.data.outcome;
           if (json && json.ok) {
             if (ops) ops.bookings.reset();
             this.setState({ editing: false, edit: {} });
+            if (outcome === 'extra_required') this.notify(t.extraWaiting);
+            else if (outcome === 'refund_click') this.notify(t.refundClick);
+            else if (outcome === 'refund_immediate') this.notify(t.evRefund + ' ' + booking.id);
+            return;
           }
+          if (code === 'must-fix' || code === 'capacity') this.notify(t.mustFix);
+          else if (code === 'unpaid') this.notify(t.unpaidNoEditBody);
+          else this.notify(t.editFailed + booking.id);
         });
       },
       markRefund: () => {

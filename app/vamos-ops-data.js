@@ -433,6 +433,11 @@
       cardSession: !!b.cardSession,
       sessionExpiresAt: str(b.sessionExpiresAt),
       totalRappen: num(b.totalRappen, 0),
+      extraRappen: num(b.extraRappen, 0),
+      pendingEditId: str(b.pendingEditId),
+      pendingEditActor: str(b.pendingEditActor),
+      pendingEditQuoteRappen: num(b.pendingEditQuoteRappen, 0),
+      pendingEditExtraSessionId: str(b.pendingEditExtraSessionId),
       refundRappen: num(b.refundRappen, 0),
       stripeFeeRappen: b.stripeFeeRappen == null || b.stripeFeeRappen === "" ? null : num(b.stripeFeeRappen, 0),
       events: Array.isArray(b.events) ? b.events : []

@@ -77,6 +77,11 @@ export async function loadBookings(
         p.stripe_checkout_session_id,
         cap.captured_at,
         cap.charged_rappen,
+        cap.extra_rappen,
+        ed.edit_request_id,
+        ed.edit_actor,
+        ed.edit_quote_total,
+        ed.extra_session_id,
         rf.refund_rappen,
         ev.events
       from public.bookings b
@@ -102,11 +107,27 @@ export async function loadBookings(
       ) p on true
       left join lateral (
         select
-          min(pay.captured_at) as captured_at,
-          coalesce(sum(pay.charged_rappen) filter (where pay.captured_at is not null), 0) as charged_rappen
+          min(pay.captured_at) filter (where extra.id is null) as captured_at,
+          coalesce(sum(pay.charged_rappen) filter (where pay.captured_at is not null and extra.id is null), 0) as charged_rappen,
+          coalesce(sum(pay.charged_rappen) filter (where pay.captured_at is not null and extra.id is not null), 0) as extra_rappen
         from public.booking_payments pay
+        left join public.booking_edit_requests extra
+          on extra.extra_snapshot_id = pay.price_snapshot_id
         where pay.booking_id = b.id
       ) cap on true
+      left join lateral (
+        select
+          r.id as edit_request_id,
+          r.actor_kind::text as edit_actor,
+          r.extra_session_id,
+          qs.total_rappen as edit_quote_total
+        from public.booking_edit_requests r
+        join public.price_snapshots qs on qs.id = r.quote_snapshot_id
+        where r.booking_id = b.id
+          and r.status = 'requested'
+        order by r.created_at desc
+        limit 1
+      ) ed on true
       left join lateral (
         select coalesce(sum(br.refund_rappen), 0) as refund_rappen
         from public.booking_refunds br
