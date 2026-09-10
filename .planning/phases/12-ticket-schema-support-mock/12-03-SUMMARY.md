@@ -34,19 +34,19 @@ patterns-established:
 
 requirements-completed: [SUP-02, SUP-01, SUP-04, SUP-05]
 
-duration: 25min
+duration: 10min
 completed: 2026-09-10
 ---
 
-# Phase 12: #support DC (12-03) Summary
+# Phase 12 Plan 03: #support DC Summary
 
 **Five-column Support board on `#support`. Real GET rows. Open / Close / Reopen only. No drag, no fixtures.**
 
 ## Performance
 
-- **Duration:** 25 min
-- **Started:** 2026-09-10T15:51:00Z
-- **Completed:** 2026-09-10T16:00:00Z
+- **Duration:** 10 min
+- **Started:** 2026-09-10T17:32:00Z
+- **Completed:** 2026-09-10T17:33:30Z
 - **Tasks:** 2
 - **Files modified:** 2
 
@@ -57,28 +57,30 @@ completed: 2026-09-10
 - Search + one-status table with phone + status label
 - Close/Reopen hydrate; Open-on-new fail keeps overlay and reverts to New
 - T.en/de/fr/ar: Responded, Reopen, GET error; Closed copy no longer says inbound never reopens
-- Sidebar `supportNew` default 0
+- Sidebar `supportNew` default 0 (already on origin)
+- Re-execute restored the DC after mail land had put drag/preview/4 columns back on origin/main
 
 ## Task Commits
 
-1. **Task 1: Five-column board** - `e072052` (feat)
-2. **Task 2: Sidebar New badge default 0** - `2823e74` (feat)
+1. **Task 1: Five-column board** - `02b4682` (feat)
+2. **Task 2: Sidebar New badge default 0** - `2823e74` (feat, already on origin/main)
 
 **Plan metadata:** this file
 
 ## Files Created/Modified
 
 - `app/ops/OpsSupportTicket.dc.html` - five-column real-data board
-- `app/ops/OpsSidebar.dc.html` - badge default 0
+- `app/ops/OpsSidebar.dc.html` - badge default 0 (unchanged this pass)
 
 ## Decisions Made
 
 - Overlay status is a chip, not a five-way setter
 - Public `apps/web/public` copies not patched
+- STATE current phase unchanged (Phase 12 is parallel)
 
 ## Deviations from Plan
 
-None - plan executed exactly as written.
+None — plan executed as written. Send stays a no-op until Phase 13.
 
 ## Issues Encountered
 
@@ -86,13 +88,11 @@ None.
 
 ## User Setup Required
 
-None - no external service configuration required. Deploy `#support` only if owner says **deploy**.
+None. Deploy `#support` only if owner says **deploy**.
 
 ## Next Phase Readiness
 
-- Phase 13 can send staff reply (Replied)
-- Do not start Phase 8/9 from this sitting
-- STATE current phase unchanged
+Phase 12 plans 01–03 complete on `gsd/phase-12-ticket-schema-support-mock`. Ready for UAT, not ship.
 
 ## Self-Check: PASSED
 

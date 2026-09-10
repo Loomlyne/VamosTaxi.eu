@@ -1,6 +1,6 @@
 // apps/web/app/[locale]/(ops)/api/staff/tickets/[id]/route.ts
 //
-// PATCH /api/staff/tickets/:id — persist Support status (and optional staff reply).
+// PATCH /api/staff/tickets/:id — persist Support Open / Close / Reopen only.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { jsonErr, jsonOk, withStaff } from "@/lib/ops/staff-json";
@@ -27,15 +27,15 @@ export const PATCH = withStaff(async (claims, request) => {
     return jsonErr("invalid-json", 400);
   }
   const record = body as { status?: unknown; reply?: unknown };
+  const input: { status?: string; reply?: string } = {};
+  if (typeof record.status === "string") input.status = record.status;
+  if (Object.prototype.hasOwnProperty.call(record, "reply")) {
+    input.reply = typeof record.reply === "string" ? record.reply : "";
+  }
   const { env } = getCloudflareContext();
-  const result = await patchTicket(env, claims, id, {
-    status: typeof record.status === "string" ? record.status : undefined,
-    reply: typeof record.reply === "string" ? record.reply : undefined,
-  });
+  const result = await patchTicket(env, claims, id, input);
   if (!result.ok) {
     if (result.reason === "not-found") return jsonErr("not-found", 404);
-    if (result.reason === "closed") return jsonErr("closed", 409);
-    if (result.reason === "send-failed") return jsonErr("send-failed", 503);
     return jsonErr(result.reason, 400);
   }
   return jsonOk({ id, status: result.status });

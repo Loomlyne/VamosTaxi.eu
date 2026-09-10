@@ -33,38 +33,40 @@ patterns-established:
 
 requirements-completed: [SUP-02, SUP-01]
 
-duration: 15min
+duration: 12min
 completed: 2026-09-10
 ---
 
-# Phase 12: Staff GET/PATCH (12-02) Summary
+# Phase 12 Plan 02: Staff GET/PATCH Summary
 
 **Staff PATCH is Open / Close / Reopen only. Five statuses in the mapper. No fake reply insert.**
 
 ## Performance
 
-- **Duration:** 15 min
-- **Started:** 2026-09-10T15:48:00Z
-- **Completed:** 2026-09-10T15:51:00Z
+- **Duration:** 12 min
+- **Started:** 2026-09-10T17:20:00Z
+- **Completed:** 2026-09-10T17:32:45Z
 - **Tasks:** 2
 - **Files modified:** 4
 
 ## Accomplishments
 
-- `TicketStatus` includes `responded`; `staffPatchStatus` / `rejectStaffReply` exported from `tickets-map.ts`
+- `TicketStatus` includes `responded`; `staffPatchStatus` / `rejectStaffReply` stay in `tickets-map.ts`
 - `patchTicket` uses those guards; drops `support_messages` insert; clears `closed_at` on reopen
-- Dual-mount PATCH re-export unchanged
+- Route forwards a `reply` key so `rejectStaffReply` fires as 400
+- Re-execute restored the writer after mail land had mixed Phase 13 into PATCH
 
 ## Task Commits
 
-1. **Task 1 + 2: mapper guards + PATCH writer** - `b539d37` (feat)
+1. **Task 1: mapper guards** - `b539d37` (feat, already on origin/main)
+2. **Task 2: PATCH writer** - `ee12a3d` (feat)
 
 **Plan metadata:** this file
 
 ## Files Created/Modified
 
-- `apps/web/lib/ops/tickets-map.ts` - five statuses + staffPatchStatus
-- `apps/web/lib/ops/tickets-map.test.ts` - D-13 cases
+- `apps/web/lib/ops/tickets-map.ts` - five statuses + staffPatchStatus (unchanged this pass)
+- `apps/web/lib/ops/tickets-map.test.ts` - D-13 cases (unchanged this pass)
 - `apps/web/lib/ops/tickets-write.ts` - Open/Close/Reopen only
 - `apps/web/app/[locale]/(ops)/api/staff/tickets/[id]/route.ts` - reply key forwarded so rejectStaffReply fires
 
@@ -72,10 +74,11 @@ completed: 2026-09-10
 
 - Identity `closed→closed` stays ok so Close is idempotent
 - `tickets.ts` not edited (GET already lists real rows)
+- Hosted 12-01 already applied (`20260910152917`); not re-applied
 
 ## Deviations from Plan
 
-None - plan executed exactly as written.
+None — plan executed as written. Mail send stays Phase 13.
 
 ## Issues Encountered
 
@@ -83,20 +86,20 @@ None.
 
 ## User Setup Required
 
-None - no external service configuration required.
+None.
 
 ## Next Phase Readiness
 
-- 12-03 `#support` DC can PATCH `{ status: "open" | "closed" }` only
+Ready for 12-03.
 
 ## Self-Check: PASSED
 
-- STATUSES contains responded
-- nextTicketStatus("closed","open") is open; ("closed","replied") is null
-- staffPatchStatus replied/responded/open → open is null
-- vitest lib/ops/tickets-map.test.ts 6 passed
-- tickets-write.ts has no insert into support_messages
-- Route still withStaff
+- `tickets-write.ts` has no `insert into public.support_messages`
+- `tickets-write.ts` calls `staffPatchStatus`
+- requested `replied` / `responded` / `reply` key not ok
+- requested `open` from open/replied/responded not ok
+- route still uses `withStaff`
+- `pnpm exec vitest run lib/ops/tickets-map.test.ts` exit 0
 
 ---
 *Phase: 12-ticket-schema-support-mock*
