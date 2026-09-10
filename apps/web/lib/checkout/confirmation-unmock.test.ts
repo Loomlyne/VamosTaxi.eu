@@ -75,6 +75,12 @@ describe("confirmation unmock (D-40)", () => {
     expect(client).toContain('name="map-pin"');
     expect(client).toContain('name="clock"');
     expect(client).toContain("duration=");
+    const routeSrc = readFileSync(join(WEB_ROOT, "components/transfer/RouteSummary.tsx"), "utf8");
+    const routeCss = readFileSync(join(WEB_ROOT, "components/transfer/RouteSummary.css"), "utf8");
+    expect(routeSrc).toContain("vt-route__segment");
+    expect(routeSrc).not.toContain("vt-route__rail");
+    expect(routeCss).toContain(".vt-route__segment");
+    expect(routeCss).not.toContain("span 3");
     expect(client).toContain("fareExVat");
     expect(client).toContain("vatIncl");
     expect(client).toContain("receiptPriceSplit");

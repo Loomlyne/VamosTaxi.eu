@@ -406,7 +406,7 @@ export function ConfirmationClient({
           }
           duration={
             durationMin != null ? (
-              <span className="vt-dir-keep" data-confirmation-duration>
+              <span className="vt-confirmation__when vt-dir-keep" data-confirmation-duration>
                 <Icon name="clock" size={14} />
                 {t("durationMinutes", { n: durationMin })}
               </span>
