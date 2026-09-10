@@ -44,6 +44,9 @@ export type ConfirmationFacts = {
   scheduledLocal: string;
   pax: number;
   extras?: import("@vamos/emails/confirmation").PayLinkExtraCode[];
+  vehicleClassSlug?: string;
+  priceTotalRappen?: number | null;
+  fareLines?: import("@/lib/checkout/booking-read").ConfirmationFareLine[];
 };
 
 export type ConfirmationClientProps = {
@@ -169,13 +172,12 @@ export function ConfirmationClient({
     };
   }, [waiting, reference]);
 
-  const pickup = booking?.pickupText || draft.pickup;
-  const dropoff = booking?.dropoffText || draft.destination;
+  const pickup = (booking?.pickupText && booking.pickupText.trim()) || draft.pickup;
+  const dropoff = (booking?.dropoffText && booking.dropoffText.trim()) || draft.destination;
   const scheduled = booking?.scheduledLocal
     ? wallTime(booking.scheduledLocal)
     : { date: draft.date, time: draft.time };
-  const pax = booking?.pax || draft.passengers;
-  const vehicleLabel = t("vehicleClassFallback");
+  const pax = booking && booking.pax > 0 ? booking.pax : draft.passengers;
   const extras = booking?.extras ?? [];
   const extraLabel: Record<string, "childSeat" | "extraOversized" | "additional-stop-2"> = {
     child_seat: "childSeat",
@@ -201,18 +203,41 @@ export function ConfirmationClient({
   // Pay already confirms the booking. There is no coupon/voucher
   // confirmation step — paint the transfer ticket. The poller still
   // swaps to FailedRoom if payment actually failed.
-  const isAirport = /airport|zrh|gva/i.test(`${pickup} ${dropoff}`);
-  const lines = [
-    { label: t("transferClass", { class: vehicleLabel }), amount: null as number | null },
-    ...extras.map((code) => ({
-      label: (
-        <span data-confirmation-extra={code}>{`+ ${t(extraLabel[code] ?? "childSeat")}`}</span>
-      ),
-      amount: null as number | null,
-    })),
-    ...(isAirport ? [{ label: tCommon("airport-pickup-fee"), amount: null as number | null }] : []),
-    { label: t("paidBy", { method: t("card-apple-pay-or-twint") }), amount: null as number | null, muted: true },
-  ];
+  const classSlug = (booking?.vehicleClassSlug || "").trim();
+  const vehicleLabel =
+    classSlug === "economy"
+      ? tCommon("vehicleClassEconomy")
+      : classSlug === "business"
+        ? tCommon("vehicleClassBusiness")
+        : classSlug === "van"
+          ? tCommon("vehicleClassVan")
+          : classSlug
+            ? tCommon("vehicleClassOf", { class: classSlug })
+            : tCommon("vehicleClassFallback");
+  const totalRappen = booking?.priceTotalRappen;
+  const totalMajor =
+    totalRappen != null && Number.isFinite(totalRappen) ? totalRappen / 100 : null;
+  const fareLines = Array.isArray(booking?.fareLines) ? booking.fareLines : [];
+  const chargedLines = fareLines
+    .filter((line) => line.code === "distance_fare" && Number.isFinite(line.amountRappen))
+    .map((line) => {
+      const slug = (line.vehicleClass || classSlug).trim();
+      const cls =
+        slug === "economy"
+          ? tCommon("vehicleClassEconomy")
+          : slug === "business"
+            ? tCommon("vehicleClassBusiness")
+            : slug === "van"
+              ? tCommon("vehicleClassVan")
+              : slug
+                ? tCommon("vehicleClassOf", { class: slug })
+                : vehicleLabel;
+      return { label: t("transferClass", { class: cls }), amount: line.amountRappen / 100 };
+    });
+  const lines =
+    chargedLines.length > 0
+      ? chargedLines
+      : [{ label: t("transferClass", { class: vehicleLabel }), amount: totalMajor }];
 
   return (
     <main
@@ -244,7 +269,6 @@ export function ConfirmationClient({
           inverse
           pickup={pickup}
           dropoff={dropoff}
-          pickupDetail={t("arrivals-your-driver-waits-with-your-name")}
           meta={[
             { icon: "calendar", label: <span className="vt-dir-keep">{scheduled.date}</span> },
             {
@@ -272,9 +296,9 @@ export function ConfirmationClient({
         <PriceSummary
           inverse
           lines={lines}
-          total={null}
+          total={totalMajor}
           totalLabel={t("paid")}
-          note={t("pricePlaceholderNote")}
+          note={totalMajor == null ? t("pricePlaceholderNote") : undefined}
         />
       </Card>
 

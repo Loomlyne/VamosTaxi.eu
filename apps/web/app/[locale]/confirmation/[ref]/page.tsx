@@ -30,6 +30,24 @@ export async function generateMetadata({
   return { title: `${t("yourDriverIsBooked")} ${ref}` };
 }
 
+function pendingTicket(ref: string): VisibleBooking {
+  return {
+    visible: true,
+    reference: ref,
+    status: "pending",
+    pickupText: "",
+    dropoffText: "",
+    scheduledLocal: "",
+    vehicleClassId: "",
+    vehicleClassSlug: "",
+    pax: 0,
+    bags: 0,
+    extras: [],
+    priceTotalRappen: null,
+    fareLines: [],
+  };
+}
+
 function workerEnv(): CloudflareEnv | null {
   try {
     return getCloudflareContext().env;
@@ -68,18 +86,7 @@ export default async function ConfirmationPage({
       // Local next has no Hyperdrive. Cookie present → processing; the
       // poller is the source of truth for status.
       initialPhase = "processing";
-      booking = {
-        visible: true,
-        reference: ref,
-        status: "pending",
-        pickupText: "",
-        dropoffText: "",
-        scheduledLocal: "",
-        vehicleClassId: "",
-        pax: 0,
-        bags: 0,
-        extras: [],
-      };
+      booking = pendingTicket(ref);
     } else {
       try {
         const read = await readBookingForConfirmation(env, raw, ref, claims);
@@ -95,18 +102,7 @@ export default async function ConfirmationPage({
         // Cookie is present; identity failed (no Hyperdrive in `next dev`).
         // Poller still owns status. Never 500 a guest return URL.
         initialPhase = "processing";
-        booking = {
-          visible: true,
-          reference: ref,
-          status: "pending",
-          pickupText: "",
-          dropoffText: "",
-          scheduledLocal: "",
-          vehicleClassId: "",
-          pax: 0,
-          bags: 0,
-          extras: [],
-        };
+        booking = pendingTicket(ref);
       }
     }
   }

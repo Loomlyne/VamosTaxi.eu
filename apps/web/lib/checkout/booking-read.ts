@@ -66,18 +66,20 @@ export const LEG_COLUMNS = [
 export const SNAPSHOT_COLUMNS = [
   "id",
   "booking_id",
-  "quoted_at",
   "engine_version",
   "policy",
   "quote_id",
   "lines",
   "subtotal_rappen",
-  "vat_rappen",
   "total_rappen",
   "currency",
-  "valid_until",
-  "created_at",
 ] as const;
+
+export type ConfirmationFareLine = {
+  code: string;
+  vehicleClass: string;
+  amountRappen: number;
+};
 
 export type HiddenBooking = { visible: false };
 
@@ -89,9 +91,12 @@ export type VisibleBooking = {
   dropoffText: string;
   scheduledLocal: string;
   vehicleClassId: string;
+  vehicleClassSlug: string;
   pax: number;
   bags: number;
   extras: PayLinkExtraCode[];
+  priceTotalRappen: number | null;
+  fareLines: ConfirmationFareLine[];
 };
 
 export type BookingRead = HiddenBooking | VisibleBooking;
@@ -104,6 +109,13 @@ type BookingRow = {
   id: string;
   reference: string;
   status: string;
+  price_total_rappen: number | string | null;
+};
+
+type SnapshotRow = {
+  policy?: unknown;
+  lines?: unknown;
+  total_rappen?: number | string | null;
 };
 
 type LegRow = {
@@ -119,13 +131,44 @@ const HIDDEN: HiddenBooking = { visible: false };
 
 type SqlTag = Parameters<Parameters<typeof asGuest>[2]>[0];
 
+export function parseFareLines(raw: unknown): ConfirmationFareLine[] {
+  if (!Array.isArray(raw)) return [];
+  const out: ConfirmationFareLine[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const rec = item as Record<string, unknown>;
+    const amount = Number(rec.amount_rappen);
+    if (!Number.isFinite(amount)) continue;
+    const params =
+      rec.params && typeof rec.params === "object" ? (rec.params as Record<string, unknown>) : {};
+    const vehicleClass = typeof params.vehicleClass === "string" ? params.vehicleClass.trim() : "";
+    const code = typeof rec.code === "string" ? rec.code : "";
+    out.push({ code, vehicleClass, amountRappen: Math.round(amount) });
+  }
+  return out;
+}
+
+function rappenOrNull(value: unknown): number | null {
+  if (value === undefined || value === null || value === "") return null;
+  const n = Number(value);
+  if (!Number.isFinite(n)) return null;
+  return Math.round(n);
+}
+
 function asText(value: unknown): string {
   if (typeof value === "string") return value;
   if (value == null) return "";
   return String(value);
 }
 
-function firstLeg(rows: LegRow[]): Omit<VisibleBooking, "visible" | "reference" | "status" | "extras"> {
+function firstLeg(rows: LegRow[]): {
+  pickupText: string;
+  dropoffText: string;
+  scheduledLocal: string;
+  vehicleClassId: string;
+  pax: number;
+  bags: number;
+} {
   const row = rows[0];
   if (!row) {
     return {
@@ -203,21 +246,23 @@ async function selectVisibleBooking(sql: SqlTag, reference: string): Promise<Vis
     select
       id,
       booking_id,
-      quoted_at,
       engine_version,
       policy,
       quote_id,
       lines,
       subtotal_rappen,
-      vat_rappen,
       total_rappen,
-      currency,
-      valid_until,
-      created_at
+      currency
     from public.price_snapshots
     where booking_id = ${booking.id}
-  `) as unknown as { policy?: unknown }[];
+    order by computed_at desc nulls last
+    limit 1
+  `) as unknown as SnapshotRow[];
   const extras = extrasFromPolicy(snaps[0]?.policy);
+  const fareLines = parseFareLines(snaps[0]?.lines);
+  const priceTotalRappen =
+    rappenOrNull(booking.price_total_rappen) ?? rappenOrNull(snaps[0]?.total_rappen);
+  const vehicleClassSlug = fareLines[0]?.vehicleClass ?? "";
   const leg = firstLeg(legs);
   return {
     visible: true as const,
@@ -227,9 +272,12 @@ async function selectVisibleBooking(sql: SqlTag, reference: string): Promise<Vis
     dropoffText: leg.dropoffText,
     scheduledLocal: leg.scheduledLocal,
     vehicleClassId: leg.vehicleClassId,
+    vehicleClassSlug,
     pax: leg.pax,
     bags: leg.bags,
     extras,
+    priceTotalRappen,
+    fareLines,
   };
 }
 
@@ -238,8 +286,8 @@ async function loadGuestBooking(
   rawCookie: string,
   reference: string,
 ): Promise<VisibleBooking | null> {
-  if (!rawCookie || !BOOKING_REFERENCE_RE.test(reference)) return null;
-  const manageTokenHashHex = await hashManageToken(rawCookie);
+  if (!BOOKING_REFERENCE_RE.test(reference)) return null;
+  const manageTokenHashHex = rawCookie ? await hashManageToken(rawCookie) : "";
   return asGuest(env, manageTokenHashHex, async (sql) => selectVisibleBooking(sql, reference));
 }
 

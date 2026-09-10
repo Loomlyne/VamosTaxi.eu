@@ -104,6 +104,9 @@ describe("readBookingForConfirmation / readBookingStatus", () => {
     expect(bookingSql.length).toBeGreaterThan(0);
     expect(legSql.length).toBeGreaterThan(0);
     expect(snapSql.length).toBeGreaterThan(0);
+    expect(snapSql).not.toMatch(/vat_rappen/);
+    expect(snapSql).not.toMatch(/quoted_at/);
+    expect(snapSql).not.toMatch(/valid_until/);
     for (const col of BOOKING_COLUMNS) {
       expect(bookingSql).toContain(col);
     }
@@ -117,7 +120,7 @@ describe("readBookingForConfirmation / readBookingStatus", () => {
 
   it("visible booking maps the first leg", async () => {
     const { sql } = makeSql(
-      [{ id: "b1", reference: REF, status: "pending" }],
+      [{ id: "b1", reference: REF, status: "pending", price_total_rappen: 10810 }],
       [
         {
           pickup_text: "ZRH Arrivals",
@@ -128,7 +131,13 @@ describe("readBookingForConfirmation / readBookingStatus", () => {
           bags: 2,
         },
       ],
-      [{ id: "s1" }],
+      [
+        {
+          id: "s1",
+          lines: [{ code: "distance_fare", params: { vehicleClass: "business" }, amount_rappen: 10810 }],
+          total_rappen: 10810,
+        },
+      ],
     );
     asGuest.mockImplementation(async (_env: CloudflareEnv, _hex: string, fn: (s: typeof sql) => unknown) =>
       fn(sql),
@@ -142,11 +151,15 @@ describe("readBookingForConfirmation / readBookingStatus", () => {
       dropoffText: "Bahnhofstrasse 1",
       scheduledLocal: "2026-10-01T10:00",
       vehicleClassId: "vc-1",
+      vehicleClassSlug: "business",
       pax: 2,
       bags: 2,
+      extras: [],
+      priceTotalRappen: 10810,
+      fareLines: [{ code: "distance_fare", vehicleClass: "business", amountRappen: 10810 }],
     });
     const status = await readBookingStatus(ENV, "token", REF);
-    expect(status).toEqual({ visible: true, status: "pending", reference: REF });
+    expect(status).toEqual({ visible: true, status: "pending", reference: REF, paymentStatus: null });
   });
 
   it("unknown token and no cookie are byte-identical not-visible payloads", async () => {

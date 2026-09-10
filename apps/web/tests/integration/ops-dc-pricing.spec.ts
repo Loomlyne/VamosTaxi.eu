@@ -63,6 +63,7 @@ test.describe("OpsPricing draft→publish @ops-dc-pricing", () => {
     expect(html).toMatch(/VamosOps\.rates/);
     expect(html).toMatch(/VamosOps\.surcharges/);
     expect(html).not.toMatch(/data-pricing-publish/);
+    expect(html).toMatch(/data-price-head-publish/);
     expect(html).not.toMatch(/--vt-yellow-50/);
     expect(html).not.toMatch(/err\.message/);
   });

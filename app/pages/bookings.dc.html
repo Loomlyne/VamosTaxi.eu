@@ -302,7 +302,7 @@ const STEP = 6;
 class Component extends DCLogic {
   state = (() => {
     const p = this.props || {};
-    return { view: 'empty', tab: p.openTab || 'upcoming', shown: STEP, auth: null, q: '', viewMode: 'list', live: false, rows: [] };
+    return { view: 'loading', tab: p.openTab || 'upcoming', shown: STEP, auth: null, q: '', viewMode: 'list', live: false, rows: [] };
   })();
   setViewList = () => this.setState({ viewMode: 'list' });
   setViewGrid = () => this.setState({ viewMode: 'grid' });
@@ -378,9 +378,13 @@ class Component extends DCLogic {
       .then((r) => (r.ok ? r.json() : { bookings: [] }))
       .then((data) => {
         const rows = Array.isArray(data.bookings) ? data.bookings : [];
+        clearTimeout(this._t);
         this.setState({ live: true, rows, view: rows.length ? 'populated' : 'empty' });
       })
-      .catch(() => this.setState({ live: true, rows: [], view: 'empty' }))
+      .catch(() => {
+        clearTimeout(this._t);
+        this.setState({ live: true, rows: [], view: 'empty' });
+      })
       .then(() => { this._fetching = false; });
   };
 
@@ -468,11 +472,13 @@ class Component extends DCLogic {
     const pax = r.pax + (r.pax === 1 ? ' passenger' : ' passengers');
     const bits = [r.chauffeur, r.vehicle, pax, r.id].filter(Boolean);
     return {
-      href: r.href || ('booking-detail.dc.html?ref=' + r.id + '&s=' + r.status),
+      href: r.href || ('/confirmation/' + r.id),
       date: r.date, time: r.time, rel: r.rel || '',
       route: hourly ? ('Chauffeur, ' + r.hours + ' hours from ' + r.from) : (r.from + ' → ' + r.to),
       meta: bits.join(' · '),
-      price: this.money('000.00'),
+      price: (r.priceRappen > 0 && window.VamosLocale && typeof window.VamosLocale.fromChf === 'function')
+        ? window.VamosLocale.fromChf(r.priceRappen)
+        : this.money('000'),
       status: r.status,
     };
   }

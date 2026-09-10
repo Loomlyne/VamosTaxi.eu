@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { mapAccountBooking, type AccountSqlRow } from "./bookings";
 
@@ -81,5 +82,14 @@ describe("mapAccountBooking", () => {
     const row = mapAccountBooking(base, now);
     expect(JSON.stringify(row)).not.toMatch(/CHF/);
     expect(JSON.stringify(row)).not.toMatch(/Isolation/);
+  });
+});
+
+describe("GET /api/account/bookings", () => {
+  it("lists by asCustomer contact_email and never asSystem SELECT", () => {
+    const src = readFileSync(new URL("../../app/api/account/bookings/route.ts", import.meta.url), "utf8");
+    expect(src).toContain("asCustomer");
+    expect(src).toContain("contact_email");
+    expect(src).not.toContain("asSystem");
   });
 });
