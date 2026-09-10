@@ -1,9 +1,14 @@
 // apps/web/lib/ops/bookings-write.ts
 //
-// Staff cancel, refund, delete, and in-place field updates.
-// Board `id` is the public reference; bookingId is the uuid — match either.
+// Staff cancel, delete, and in-place field updates. Refund is lib/ops/refund.ts
+// (Stripe first). Board `id` is the public reference; bookingId is the uuid.
+// DATA-08: ops_cancel_booking writes booking_events (booking.status_changed) in the same tx.
 
-import { asStaff, type VamosClaims } from "@/lib/db/identity";
+import { asStaff, asSystem, type VamosClaims } from "@/lib/db/identity";
+import { mapRefundSqlError, sqlErrorCode } from "./refund-map";
+import { OPS_SQLSTATE } from "./sqlstate";
+
+export const dynamic = "force-dynamic";
 
 export type CancelledBooking = {
   id: string;
@@ -37,68 +42,64 @@ function classSlug(label: string): string | null {
   return null;
 }
 
+export type CancelResult =
+  | { ok: true; booking: CancelledBooking }
+  | { ok: false; code: "not-found" | "frozen" | "unknown" };
+
 export async function cancelBooking(
   env: CloudflareEnv,
   claims: VamosClaims,
   id: string,
-): Promise<CancelledBooking | null> {
+): Promise<CancelResult> {
   const key = id.trim();
-  if (!key) return null;
-  return asStaff(env, claims, async (sql) => {
-    const rows = await sql<
-      { id: string; reference: string; email: string; name: string; locale: string }[]
-    >`
-      update public.bookings
-      set status = 'cancelled', updated_at = now()
-      where erased_at is null
-        and (id::text = ${key} or reference = ${key})
-      returning
-        id,
-        reference,
-        contact_email::text as email,
-        contact_name as name,
-        coalesce(locale, 'en') as locale
+  if (!key) return { ok: false, code: "not-found" };
+  return asSystem(env, async (sql) => {
+    const found = await sql<{ id: string }[]>`
+      select id
+        from public.bookings
+       where erased_at is null
+         and (id::text = ${key} or reference = ${key})
+       limit 1
     `;
-    const row = rows[0];
-    if (!row) return null;
-    const paidRows = await sql<{ paid: boolean }[]>`
-      select exists(
-        select 1
-        from public.booking_payments p
-        where p.booking_id = ${row.id}::uuid
-          and (p.captured_at is not null or p.status in ('captured', 'paid', 'succeeded'))
-      ) as paid
-    `;
-    return { ...row, paid: Boolean(paidRows[0]?.paid) };
-  });
-}
-
-export async function markRefunded(
-  env: CloudflareEnv,
-  claims: VamosClaims,
-  id: string,
-): Promise<CancelledBooking | null> {
-  const key = id.trim();
-  if (!key) return null;
-  return asStaff(env, claims, async (sql) => {
-    const rows = await sql<
-      { id: string; reference: string; email: string; name: string; locale: string }[]
-    >`
-      update public.bookings
-      set status = 'refunded', updated_at = now()
-      where erased_at is null
-        and (id::text = ${key} or reference = ${key})
-        and status in ('cancelled', 'refunded')
-      returning
-        id,
-        reference,
-        contact_email::text as email,
-        contact_name as name,
-        coalesce(locale, 'en') as locale
-    `;
-    const row = rows[0];
-    if (!row) return null;
-    return { ...row, paid: true };
+    const bookingId = found[0]?.id;
+    if (!bookingId) return { ok: false, code: "not-found" };
+    try {
+      const rows = await sql<
+        {
+          booking_id: string;
+          reference: string;
+          email: string;
+          name: string;
+          locale: string;
+          paid: boolean;
+        }[]
+      >`
+        select * from public.ops_cancel_booking(
+          ${bookingId}::uuid,
+          ${claims.sub}::uuid
+        )
+      `;
+      const row = rows[0];
+      if (!row) return { ok: false, code: "unknown" };
+      return {
+        ok: true,
+        booking: {
+          id: String(row.booking_id),
+          reference: String(row.reference),
+          email: String(row.email ?? ""),
+          name: String(row.name ?? ""),
+          locale: String(row.locale ?? "en"),
+          paid: Boolean(row.paid),
+        },
+      };
+    } catch (err) {
+      if (sqlErrorCode(err) === OPS_SQLSTATE.noData) {
+        return { ok: false, code: "not-found" };
+      }
+      const mapped = mapRefundSqlError(err);
+      if (mapped.code === "frozen") return { ok: false, code: "frozen" };
+      return { ok: false, code: "unknown" };
+    }
   });
 }
 

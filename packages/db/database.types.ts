@@ -399,6 +399,7 @@ export type Database = {
           snapshot_id: number
           status: string
           stripe_checkout_session_id: string | null
+          stripe_fee_rappen: number | null
           stripe_payment_intent_id: string
         }
         Insert: {
@@ -415,6 +416,7 @@ export type Database = {
           snapshot_id: number
           status: string
           stripe_checkout_session_id?: string | null
+          stripe_fee_rappen?: number | null
           stripe_payment_intent_id: string
         }
         Update: {
@@ -431,6 +433,7 @@ export type Database = {
           snapshot_id?: number
           status?: string
           stripe_checkout_session_id?: string | null
+          stripe_fee_rappen?: number | null
           stripe_payment_intent_id?: string
         }
         Relationships: [
@@ -1946,6 +1949,40 @@ export type Database = {
         Returns: {
           booking_id: string
           leg_id: string
+        }[]
+      }
+      ops_refund_record: {
+        Args: {
+          p_actor_id: string
+          p_booking_id: string
+          p_payment_id: number
+          p_stripe_fee_rappen?: number | null
+          p_stripe_refund_id: string
+        }
+        Returns: {
+          booking_id: string
+          contact_email: string
+          contact_name: string
+          locale: string
+          payer_email: string
+          payment_id: number
+          reference: string
+          refund_id: number
+          refund_rappen: number
+        }[]
+      }
+      ops_cancel_booking: {
+        Args: {
+          p_actor_id: string
+          p_booking_id: string
+        }
+        Returns: {
+          booking_id: string
+          email: string
+          locale: string
+          name: string
+          paid: boolean
+          reference: string
         }[]
       }
       checkout_payment_settle: {
