@@ -111,6 +111,7 @@ CLI clock via `supabase migration new` (never a hand-typed timestamp). Hosted ap
 |---|---|---|
 | `20260910164004_ops_assign_leg` | **08-04** | `ops_assign_leg` / `ops_unassign_leg` SECURITY DEFINER; GiST EXCLUDE kept; EXECUTE `vamos_system` only |
 | `20260910170935_ops_refund_record` | **08-05** | `ops_refund_record` / `ops_cancel_booking` SECURITY DEFINER; nullable `booking_payments.stripe_fee_rappen`; EXECUTE `vamos_system` only. Hosted apply is 08-09. |
+| `20260910175309_booking_edit_requests` | **08-07** | `booking_edit_requests` + extra-settle DEFINER RPCs; one succeeded payment per snapshot; EXECUTE `vamos_system` only. Hosted apply is 08-09. Charge gate untouched. |
 
 Three reorderings versus `02-SCHEMA-DRAFT.md` §16's illustrative sequence, each load-bearing:
 
