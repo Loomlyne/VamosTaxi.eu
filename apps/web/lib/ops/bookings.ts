@@ -10,11 +10,44 @@ import { mapBoardBooking, type OpsBookingRow, type SqlBoardRow } from "@/lib/ops
 export type { OpsBookingRow } from "@/lib/ops/bookings-map";
 export { mapBoardBooking } from "@/lib/ops/bookings-map";
 
+export type OpsBookingEvent = {
+  id: string;
+  kind: string;
+  at: string;
+  actorKind: string;
+  actorLabel: string;
+  payload: unknown;
+};
+
+export type OpsBookingWithEvents = OpsBookingRow & { events: OpsBookingEvent[] };
+
+function parseEvents(raw: unknown): OpsBookingEvent[] {
+  const list = typeof raw === "string" ? (JSON.parse(raw) as unknown) : raw;
+  if (!Array.isArray(list)) return [];
+  const out: OpsBookingEvent[] = [];
+  for (const item of list) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    const rec = item as Record<string, unknown>;
+    out.push({
+      id: rec.id == null ? "" : String(rec.id),
+      kind: rec.kind == null ? "" : String(rec.kind),
+      at: rec.at instanceof Date ? rec.at.toISOString() : rec.at == null ? "" : String(rec.at),
+      actorKind: rec.actorKind == null ? "" : String(rec.actorKind),
+      actorLabel: rec.actorLabel == null ? "" : String(rec.actorLabel),
+      payload: rec.payload ?? {},
+    });
+  }
+  return out;
+}
+
 export const dynamic = "force-dynamic";
 
-export async function loadBookings(env: CloudflareEnv, claims: VamosClaims): Promise<OpsBookingRow[]> {
+export async function loadBookings(
+  env: CloudflareEnv,
+  claims: VamosClaims,
+): Promise<OpsBookingWithEvents[]> {
   return asStaff(env, claims, async (sql) => {
-    const rows = await sql<SqlBoardRow[]>`
+    const rows = await sql<(SqlBoardRow & { events: unknown })[]>`
       select
         b.id,
         b.reference,
@@ -44,7 +77,8 @@ export async function loadBookings(env: CloudflareEnv, claims: VamosClaims): Pro
         p.stripe_checkout_session_id,
         cap.captured_at,
         cap.charged_rappen,
-        rf.refund_rappen
+        rf.refund_rappen,
+        ev.events
       from public.bookings b
       left join lateral (
         select *
@@ -78,9 +112,30 @@ export async function loadBookings(env: CloudflareEnv, claims: VamosClaims): Pro
         from public.booking_refunds br
         where br.booking_id = b.id
       ) rf on true
+      left join lateral (
+        select coalesce(
+          json_agg(
+            json_build_object(
+              'id', e.id,
+              'kind', e.kind,
+              'at', e.at,
+              'actorKind', e.actor_kind,
+              'actorLabel', e.actor_label,
+              'payload', e.payload
+            )
+            order by e.at asc, e.id asc
+          ),
+          '[]'::json
+        ) as events
+        from public.booking_events e
+        where e.booking_id = b.id
+      ) ev on true
       where b.erased_at is null
       order by l.scheduled_at desc nulls last, b.created_at desc
     `;
-    return rows.map(mapBoardBooking);
+    return rows.map((row) => ({
+      ...mapBoardBooking(row),
+      events: parseEvents(row.events),
+    }));
   });
 }

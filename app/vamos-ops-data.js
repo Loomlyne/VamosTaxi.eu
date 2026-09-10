@@ -434,7 +434,8 @@
       sessionExpiresAt: str(b.sessionExpiresAt),
       totalRappen: num(b.totalRappen, 0),
       refundRappen: num(b.refundRappen, 0),
-      stripeFeeRappen: b.stripeFeeRappen == null || b.stripeFeeRappen === "" ? null : num(b.stripeFeeRappen, 0)
+      stripeFeeRappen: b.stripeFeeRappen == null || b.stripeFeeRappen === "" ? null : num(b.stripeFeeRappen, 0),
+      events: Array.isArray(b.events) ? b.events : []
     };
   }
 
