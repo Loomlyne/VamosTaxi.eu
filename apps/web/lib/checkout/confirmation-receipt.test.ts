@@ -71,4 +71,12 @@ describe("confirmation receipt", () => {
       [],
     );
   });
+
+  it("splits a gross 129.72 with stored child seat 20.00 into fare + extra + VAT", () => {
+    expect(receiptPriceSplit({ totalRappen: 12972, extraRappen: { child_seat: 2000 } })).toEqual({
+      fareRappen: 10000,
+      vatRappen: 972,
+      extras: [{ code: "child_seat", rappen: 2000 }],
+    });
+  });
 });

@@ -19,9 +19,11 @@ import {
   stripeFromEnv,
   stripePublishableKey,
 } from "@/lib/checkout/stripe";
-import { loadSettingsVersion } from "@/lib/db/quote";
+import { loadRateBook, loadSettingsVersion } from "@/lib/db/quote";
+import { catalogFromSurcharges } from "@/lib/checkout/extras-catalog";
 import { lookupVehicleClassId, snapshotPolicyFromSettings } from "@/lib/checkout/lock-to-rpc";
 import { policyHours } from "@/lib/checkout/policy-settings";
+import { mapRateBook } from "@/lib/pricing/rateBook";
 import type { IntentRecompute } from "@/lib/quote/intent";
 
 export const dynamic = "force-dynamic";
@@ -85,6 +87,15 @@ async function postIntent(request: Request) {
     return refuse("invalid_request");
   }
 
+  let extrasCatalog: ReturnType<typeof catalogFromSurcharges> = [];
+  try {
+    extrasCatalog = catalogFromSurcharges(
+      mapRateBook(await loadRateBook(env, { preferDraft: false })).surcharges,
+    );
+  } catch {
+    extrasCatalog = [];
+  }
+
   return runCheckoutIntent(body, {
     lockSecrets: previous ? { current, previous } : { current },
     workerNowIso: new Date().toISOString(),
@@ -112,5 +123,6 @@ async function postIntent(request: Request) {
     actorCustomerId: null,
     vehicleClassId,
     snapshotPolicy,
+    extrasCatalog,
   });
 }

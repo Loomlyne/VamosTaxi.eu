@@ -533,4 +533,49 @@ describe("runCheckoutIntent", () => {
     expect(json.reference).toBe("VT-26-0710");
     expect(json.client_secret).toBe("cs_test_1_secret");
   });
+
+  it("charges extras selected after the lock and pins them on the snapshot", async () => {
+    const p = payload();
+    const body = await bodyFor(p);
+    body.extras = { child_seats: 1 };
+    let charged = 0;
+    const seen: Array<{
+      lines?: Array<{ code: string; amount_rappen: number }>;
+      policy?: { extras?: string[] };
+    }> = [];
+    const res = await runCheckoutIntent(
+      body,
+      deps(p, {
+        extrasCatalog: [
+          { code: "child_seat", kind: "amount", amount_rappen: 2000, percent: null, toggle: true },
+        ],
+        createCheckoutSession: async (input) => {
+          charged = input.chargedRappen;
+          return {
+            id: "cs_test_1",
+            client_secret: "cs_test_1_secret",
+            payment_intent: "pi_test_1",
+            status: "open",
+          } as never;
+        },
+        createBooking: async (args) => {
+          seen.push(args.snapshot as (typeof seen)[number]);
+          return {
+            booking_id: "00000000-0000-4000-8000-000000000099",
+            reference: "VT-10001",
+            snapshot_id: 1,
+            payment_id: 1,
+            replayed: false,
+          };
+        },
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect(charged).toBe(10810);
+    expect(seen[0]?.policy?.extras).toEqual(["child_seat"]);
+    expect(seen[0]?.lines).toEqual([
+      expect.objectContaining({ code: "distance_fare", amount_rappen: 8810 }),
+      expect.objectContaining({ code: "child_seat", amount_rappen: 2000 }),
+    ]);
+  });
 });

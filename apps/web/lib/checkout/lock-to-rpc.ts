@@ -6,6 +6,7 @@
 
 import type postgres from "postgres";
 import type { QuoteLockPayload } from "../quote/lock";
+import type { SnapshotExtraFare } from "./extras-catalog";
 import { payLinkExtras } from "./pay-link";
 
 export type CheckoutRpcLeg = {
@@ -107,8 +108,25 @@ export function snapshotPolicyFromSettings(doc: unknown): Record<string, unknown
   return policy;
 }
 
-export function snapshotFareLines(vehicleClass: string, chargedRappen: number) {
-  return [
+export function snapshotFareLines(
+  vehicleClass: string,
+  chargedRappen: number,
+  extras: SnapshotExtraFare[] = [],
+) {
+  const priced = extras.filter(
+    (row) => Number.isFinite(row.amount_rappen) && row.amount_rappen > 0,
+  );
+  const extraSum = priced.reduce((sum, row) => sum + row.amount_rappen, 0);
+  const split = extraSum > 0 && extraSum < chargedRappen;
+  const lines: Array<{
+    seq: number;
+    leg_seq: number;
+    kind: string;
+    code: string;
+    i18n_key: string;
+    params: Record<string, string | number>;
+    amount_rappen: number;
+  }> = [
     {
       seq: 1,
       leg_seq: 1,
@@ -116,9 +134,24 @@ export function snapshotFareLines(vehicleClass: string, chargedRappen: number) {
       code: "distance_fare",
       i18n_key: "price.line.transfer",
       params: { vehicleClass },
-      amount_rappen: chargedRappen,
+      amount_rappen: split ? chargedRappen - extraSum : chargedRappen,
     },
   ];
+  if (!split) return lines;
+  let seq = 2;
+  for (const row of priced) {
+    lines.push({
+      seq,
+      leg_seq: 1,
+      kind: "surcharge",
+      code: row.code,
+      i18n_key: `price.surcharge.${row.code}.label`,
+      params: { n: 1 },
+      amount_rappen: row.amount_rappen,
+    });
+    seq += 1;
+  }
+  return lines;
 }
 
 export function snapshotFromLock(
@@ -127,8 +160,15 @@ export function snapshotFromLock(
   vehicleClassId: string,
   chargedRappen: number,
   snapshotPolicy: Record<string, unknown>,
+  extraFares: SnapshotExtraFare[] = [],
 ) {
   const legs = checkoutLegsFromLock(payload, vehicleClassId);
+  const extras = payLinkExtras(payload.extras);
+  for (const row of extraFares) {
+    const code = row.code;
+    if (code !== "child_seat" && code !== "oversized_luggage" && code !== "extra_stop") continue;
+    if (!extras.includes(code)) extras.push(code);
+  }
   return {
     vehicle_class_id: vehicleClassId,
     vehicle_class_slug: vehicleClass,
@@ -138,10 +178,10 @@ export function snapshotFromLock(
     lock_exp: payload.exp,
     pax: payload.pax,
     bags: payload.bags,
-    lines: snapshotFareLines(vehicleClass, chargedRappen),
+    lines: snapshotFareLines(vehicleClass, chargedRappen, extraFares),
     policy: {
       ...snapshotPolicy,
-      extras: payLinkExtras(payload.extras),
+      extras,
     },
     shown_alternatives: payload.class_totals,
     legs,

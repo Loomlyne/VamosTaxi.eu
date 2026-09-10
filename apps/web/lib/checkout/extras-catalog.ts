@@ -44,12 +44,32 @@ export type LockExtrasPeek = {
   oversized_luggage?: boolean | null;
 };
 
-function lockHasExtra(extras: LockExtrasPeek | null | undefined, code: string): boolean {
+export function lockHasExtra(extras: LockExtrasPeek | null | undefined, code: string): boolean {
   if (!extras) return false;
   if (code === "child_seat") return extras.child_seats === 1;
   if (code === "oversized_luggage") return extras.oversized_luggage === true;
   if (code === "extra_stop") return (extras.extra_stops ?? 0) > 0;
   return false;
+}
+
+export type SnapshotExtraFare = {
+  code: string;
+  amount_rappen: number;
+};
+
+/** Selected extras with a book amount — for the snapshot recap, not a live catalog paint. */
+export function extraFaresOn(
+  catalog: CheckoutExtraJson[],
+  on: (code: string) => boolean,
+): SnapshotExtraFare[] {
+  const out: SnapshotExtraFare[] = [];
+  for (const row of recapExtraFares(catalog, on)) {
+    if (row.amount_rappen == null || !Number.isFinite(row.amount_rappen) || row.amount_rappen <= 0) {
+      continue;
+    }
+    out.push({ code: row.code, amount_rappen: row.amount_rappen });
+  }
+  return out;
 }
 
 /** Selected passenger extras that exist on the live book. Amounts stay the book values. */

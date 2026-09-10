@@ -83,4 +83,28 @@ describe("snapshotFromLock", () => {
     expect(snap.lines[0]?.amount_rappen).toBe(8000);
     expect(snap.policy).toMatchObject({ settings_version_id: 3, policy_doc: null, extras: [] });
   });
+
+  it("splits child seat onto its own line so the recap can show it", () => {
+    const policy = snapshotPolicyFromSettings({
+      id: 3,
+      free_cancel_hours: null,
+      modification_deadline_hours: null,
+      min_advance_minutes: null,
+      airport_waiting_minutes: null,
+      city_waiting_minutes: null,
+      cancellation_tiers: [],
+      policy_doc_slug: null,
+      policy_doc_version: null,
+    });
+    expect(policy).not.toBeNull();
+    const snap = snapshotFromLock(payload(), "business", CLASS_ID, 12972, policy!, [
+      { code: "child_seat", amount_rappen: 2000 },
+    ]);
+    expect(snap.lines).toEqual([
+      expect.objectContaining({ code: "distance_fare", amount_rappen: 10972 }),
+      expect.objectContaining({ code: "child_seat", amount_rappen: 2000 }),
+    ]);
+    expect(snap.lines.reduce((sum, line) => sum + line.amount_rappen, 0)).toBe(12972);
+    expect(snap.policy).toMatchObject({ extras: ["child_seat"] });
+  });
 });

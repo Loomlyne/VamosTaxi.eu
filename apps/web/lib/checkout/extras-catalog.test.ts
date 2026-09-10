@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { catalogFromSurcharges, extraRappenOutsideLock, extraUi, recapExtraFares, recapExtras } from "./extras-catalog";
+import {
+  catalogFromSurcharges,
+  extraFaresOn,
+  extraRappenOutsideLock,
+  extraUi,
+  recapExtraFares,
+  recapExtras,
+} from "./extras-catalog";
 
 describe("checkout extras catalog", () => {
   it("keeps ops extras and drops night", () => {
@@ -71,5 +78,8 @@ describe("checkout extras catalog", () => {
     ]);
     expect(extraRappenOutsideLock(null, catalog, (code) => code === "child_seat")).toBe(2000);
     expect(extraRappenOutsideLock({ child_seats: 1 }, catalog, (code) => code === "child_seat")).toBe(0);
+    expect(extraFaresOn(catalog, (code) => code === "child_seat")).toEqual([
+      { code: "child_seat", amount_rappen: 2000 },
+    ]);
   });
 });

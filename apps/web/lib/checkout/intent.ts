@@ -11,6 +11,7 @@ import type { QuoteLockPayload } from "../quote/lock";
 import type { QuoteErrorCode } from "../quote/errors";
 import { refuse, type CheckoutRefusalCode } from "./errors";
 import type { CheckoutIntentRequest } from "./intent-schema";
+import { extraFaresOn, extraRappenOutsideLock, lockHasExtra, type CheckoutExtraJson } from "./extras-catalog";
 import { checkoutLegsFromLock, snapshotFromLock } from "./lock-to-rpc";
 import { manageTokenCookie } from "./manage-token";
 import { CHARGE_CURRENCY } from "./currency";
@@ -79,6 +80,7 @@ export type CheckoutIntentDeps = {
   actorCustomerId: string | null;
   vehicleClassId: string;
   snapshotPolicy: Record<string, unknown>;
+  extrasCatalog?: CheckoutExtraJson[];
 };
 
 function mapQuoteCode(code: QuoteErrorCode): CheckoutRefusalCode {
@@ -201,7 +203,12 @@ export async function runCheckoutIntent(
   if (netRappen == null) {
     return refuse("pricing_not_live");
   }
-  const chargedRappen = payableWithVatRappen(netRappen);
+  const catalog = deps.extrasCatalog ?? [];
+  const extraOn = (code: string) =>
+    lockHasExtra(payload.extras, code) || lockHasExtra(body.extras, code);
+  const extraFares = extraFaresOn(catalog, extraOn);
+  const extraAdd = extraRappenOutsideLock(payload.extras, catalog, extraOn);
+  const chargedRappen = payableWithVatRappen(netRappen + extraAdd);
   if (!deps.vehicleClassId) {
     return refuse("invalid_request");
   }
@@ -274,6 +281,7 @@ export async function runCheckoutIntent(
         deps.vehicleClassId,
         chargedRappen,
         deps.snapshotPolicy,
+        extraFares,
       ),
       legs: checkoutLegsFromLock(payload, deps.vehicleClassId),
       couponId: null,
