@@ -80,4 +80,24 @@ describe("ConfirmationEmail", () => {
     expect(confirmationPlainText(b)).toContain("VT-10001");
     expect(confirmationPlainText(b)).toContain("CHF 000");
   });
+
+  it("does not claim a driver is booked before assignment", async () => {
+    const html = await render(ConfirmationEmail({ booking: booking("en") }));
+    const text = confirmationPlainText(booking("en"));
+    expect(html).toContain("Your booking is confirmed");
+    expect(html).not.toMatch(/driver is booked/i);
+    expect(text).toContain("Your booking is confirmed");
+    expect(text).not.toMatch(/driver is booked/i);
+    expect(confirmationSubject(booking("en"))).toMatch(/is confirmed/);
+  });
+
+  it("lists extras on the voucher when they were booked", async () => {
+    const withExtras = { ...booking("en"), extras: ["child_seat" as const] };
+    const html = await render(ConfirmationEmail({ booking: withExtras }));
+    const text = confirmationPlainText(withExtras);
+    expect(html).toContain("Child seat");
+    expect(html).toContain("Extras");
+    expect(text).toContain("Child seat");
+    expect(text).toContain("Extras");
+  });
 });

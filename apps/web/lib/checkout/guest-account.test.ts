@@ -9,8 +9,25 @@ describe("07-14 guest + finish payment", () => {
   it("account Finish payment reads vamosTrip lock", () => {
     const src = readFileSync(join(REPO, "app/pages/account.dc.html"), "utf8");
     expect(src).toContain("Finish payment");
-    expect(src).toContain("href=\"/checkout/payment\"");
+    expect(src).toContain('href="/checkout/payment"');
     expect(src).toContain("vamosTrip");
+    expect(src).toContain("cancelCheckout");
+    expect(src).toContain("/api/account/bookings");
+    expect(src).toContain("/api/account/prefs");
+    expect(src).toContain("pushPrefs");
+  });
+
+  it("BookingRow colours confirmed as success, not outline", () => {
+    const src = readFileSync(join(REPO, "app/pages/BookingRow.dc.html"), "utf8");
+    expect(src).toContain("confirmed: 'success'");
+    expect(src).not.toContain("confirmed: 'outline'");
+  });
+
+  it("bookings list loads from the account API, not SAMPLE", () => {
+    const src = readFileSync(join(REPO, "app/pages/bookings.dc.html"), "utf8");
+    expect(src).toContain("/api/account/bookings");
+    expect(src).not.toContain("booking-detail.dc.html");
+    expect(src).toContain("view: 'loading'");
   });
 
   it("manage-booking unpaid copy exists", () => {

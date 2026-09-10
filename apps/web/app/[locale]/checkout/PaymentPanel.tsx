@@ -135,7 +135,7 @@ function CheckoutWallets({ onExpress }: { onExpress: (event: ExpressConfirmEvent
           buttonTheme: { applePay: "black", googlePay: "black", paypal: "gold" },
           buttonType: { applePay: "plain", googlePay: "pay", paypal: "paypal" },
           layout: { maxColumns: 2, maxRows: 1, overflow: "auto" },
-          paymentMethodOrder: ["apple_pay", "link"],
+          paymentMethodOrder: ["link", "apple_pay"],
           paymentMethods: {
             applePay: "always",
             googlePay: "never",
@@ -214,7 +214,7 @@ function VamosCardFields({
           <div className="vt-checkout__stripe-el">
             <CardNumberElement
               options={{
-                disableLink: true,
+                disableLink: false,
                 placeholder: "1234 1234 1234 1234",
                 showIcon: false,
                 style: CARD_STYLE,
@@ -340,23 +340,19 @@ export function PaymentPanel({
         if (!create) throw new Error("payCouldNotStart");
         const card = await create();
         const checkout = await waitForCheckout();
+        if (typeof checkout.updateBillingAddress === "function") {
+          await checkout.updateBillingAddress(null);
+        }
         const result = await checkout.confirm({
           paymentMethod: card.id,
-          email: billingEmail.trim() || undefined,
-          billingAddress: {
-            name: billingName.trim() || null,
-            address: { country: card.country },
-          },
           redirect: "if_required",
         });
         if (result.type === "error") {
-          throw new Error(result.error.message);
+          throw new Error("payCouldNotStart");
         }
         if (reference) router.push(`/confirmation/${reference}`);
       } catch (err) {
-        const message = err instanceof Error && err.message ? err.message : "payCouldNotStart";
-        setError(message);
-        throw err instanceof Error ? err : new Error(message);
+        throw err instanceof Error ? err : new Error("payCouldNotStart");
       }
     });
   }, [billingEmail, billingName, onReady, reference, router, waitForCheckout]);

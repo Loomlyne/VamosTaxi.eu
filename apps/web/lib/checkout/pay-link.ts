@@ -46,6 +46,27 @@ export function payLinkExtras(extras: QuoteLockExtras | null | undefined): PayLi
   return out;
 }
 
+const EXTRA_CODES: Record<PayLinkExtraCode, true> = {
+  child_seat: true,
+  oversized_luggage: true,
+  extra_stop: true,
+};
+
+/** Snapshot policy extras pinned at intent — names only, no invented CHF. */
+export function extrasFromPolicy(policy: unknown): PayLinkExtraCode[] {
+  if (!policy || typeof policy !== "object") return [];
+  const raw = (policy as { extras?: unknown }).extras;
+  if (!Array.isArray(raw)) return [];
+  const out: PayLinkExtraCode[] = [];
+  for (const item of raw) {
+    if (typeof item !== "string") continue;
+    if (!(item in EXTRA_CODES)) continue;
+    const code = item as PayLinkExtraCode;
+    if (!out.includes(code)) out.push(code);
+  }
+  return out;
+}
+
 export function payLinkEmailFromLock(args: {
   reference: string;
   locale: EmailLocale;

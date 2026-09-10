@@ -36,6 +36,29 @@ export function manageTokenCookie(rawToken: string, maxAgeSeconds: number): stri
   return `${MANAGE_COOKIE_NAME}=${rawToken}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAgeSeconds}`;
 }
 
+/**
+ * OpenNext `cookies()` can be empty on Route Handlers while the browser
+ * still sent Cookie. Prefer the jar; fall back to the raw header.
+ * Never log the value.
+ */
+export function readManageCookie(jarValue: string, cookieHeader: string | null): string {
+  if (jarValue) return jarValue;
+  if (!cookieHeader) return "";
+  const parts = cookieHeader.split(";");
+  for (const part of parts) {
+    const trimmed = part.trim();
+    const eq = trimmed.indexOf("=");
+    if (eq <= 0) continue;
+    if (trimmed.slice(0, eq) !== MANAGE_COOKIE_NAME) continue;
+    try {
+      return decodeURIComponent(trimmed.slice(eq + 1));
+    } catch {
+      return trimmed.slice(eq + 1);
+    }
+  }
+  return "";
+}
+
 function toHex(bytes: Uint8Array): string {
   let out = "";
   for (let i = 0; i < bytes.length; i++) {

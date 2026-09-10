@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   companyReady,
   confirmationRecipients,
+  extrasFromPolicy,
   payLinkEmailFromLock,
   payLinkExtras,
   payLinkPath,
@@ -99,5 +100,18 @@ describe("payLinkEmailFromLock", () => {
     expect(mail.flightNo).toBe("LX123");
     expect(mail.extras).toEqual(["child_seat"]);
     expect(mail.payUrl).toContain("/checkout/pay/");
+  });
+});
+
+describe("extrasFromPolicy", () => {
+  it("reads extras from snapshot policy and ignores junk", () => {
+    expect(extrasFromPolicy({ extras: ["child_seat", "nope", "child_seat"] })).toEqual([
+      "child_seat",
+    ]);
+    expect(extrasFromPolicy({ extras: ["oversized_luggage", "extra_stop"] })).toEqual([
+      "oversized_luggage",
+      "extra_stop",
+    ]);
+    expect(extrasFromPolicy(null)).toEqual([]);
   });
 });

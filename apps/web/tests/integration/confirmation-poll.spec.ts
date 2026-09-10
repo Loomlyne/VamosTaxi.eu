@@ -113,8 +113,7 @@ test("pending then confirmed shows the voucher facts @checkout", async ({ page }
   await expect(page.locator("[data-confirmation-voucher]")).toContainText("000");
 });
 
-test("a run that never leaves pending reaches give-up @checkout", async ({ page }) => {
-  test.setTimeout(180_000);
+test("pending still paints the transfer ticket, no voucher wait step @checkout", async ({ page }) => {
   await page.route("**/api/checkout/status/**", async (route) => {
     await route.fulfill({
       status: 200,
@@ -123,10 +122,9 @@ test("a run that never leaves pending reaches give-up @checkout", async ({ page 
     });
   });
   await openConfirmation(page);
-  await expect(page.locator("[data-confirmation-state=processing]")).toBeVisible();
-  await expect(page.locator("[data-confirmation-state=give-up]")).toBeVisible({
-    timeout: 40_000,
-  });
+  await expect(page.locator("[data-confirmation-voucher]")).toBeVisible();
+  await expect(page.locator("[data-confirmation-wait]")).toHaveCount(0);
+  await expect(page.getByText("Voucher on this page")).toHaveCount(0);
 });
 
 test("no cookie is not-visible and still 200 @checkout", async ({ page }) => {

@@ -6,6 +6,7 @@
 
 import type postgres from "postgres";
 import type { QuoteLockPayload } from "../quote/lock";
+import { payLinkExtras } from "./pay-link";
 
 export type CheckoutRpcLeg = {
   leg_seq: number;
@@ -138,7 +139,10 @@ export function snapshotFromLock(
     pax: payload.pax,
     bags: payload.bags,
     lines: snapshotFareLines(vehicleClass, chargedRappen),
-    policy: snapshotPolicy,
+    policy: {
+      ...snapshotPolicy,
+      extras: payLinkExtras(payload.extras),
+    },
     shown_alternatives: payload.class_totals,
     legs,
     display_currency: payload.display_currency,

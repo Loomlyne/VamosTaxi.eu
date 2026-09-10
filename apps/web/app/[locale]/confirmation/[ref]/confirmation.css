@@ -44,8 +44,75 @@
   align-items: flex-start;
 }
 
+.vt-confirmation__wait {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.vt-confirmation__wait-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.vt-confirmation__wait-ref {
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-body-sm);
+  color: var(--vt-text-muted);
+  margin: 0;
+}
+
+.vt-confirmation__steps {
+  list-style: none;
+  margin-block-start: 8px;
+  margin-block-end: 0;
+  margin-inline: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vt-confirmation__steps li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-body-md);
+  color: var(--vt-text-muted);
+}
+
+.vt-confirmation__steps li[data-done="1"] {
+  color: var(--vt-charcoal-900);
+}
+
+.vt-confirmation__steps li[data-active="1"] {
+  color: var(--vt-charcoal-900);
+  font-weight: var(--vt-weight-semibold);
+}
+
+.vt-confirmation__help {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-block-start: 8px;
+}
+
 .vt-confirmation__spin {
+  display: inline-flex;
+  inline-size: 28px;
+  block-size: 28px;
+  align-items: center;
+  justify-content: center;
   animation: vt-confirmation-spin 1s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vt-confirmation__spin {
+    animation: none;
+  }
 }
 
 @keyframes vt-confirmation-spin {

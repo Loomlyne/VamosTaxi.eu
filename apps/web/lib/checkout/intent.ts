@@ -15,6 +15,7 @@ import { checkoutLegsFromLock, snapshotFromLock } from "./lock-to-rpc";
 import { manageTokenCookie } from "./manage-token";
 import { CHARGE_CURRENCY } from "./currency";
 import { checkoutPaymentIntentId, sessionIsPayable } from "./stripe";
+import { payableWithVatRappen } from "./vat";
 
 export type CheckoutCreateBookingRow = {
   booking_id: string;
@@ -196,10 +197,11 @@ export async function runCheckoutIntent(
   const payload = checked.payload;
   const board = await Promise.resolve(deps.reprice(payload));
   const chosen = board.classes.find((row) => row.slug === body.vehicle_class);
-  const chargedRappen = chosen?.total_rappen;
-  if (chargedRappen == null) {
+  const netRappen = chosen?.total_rappen;
+  if (netRappen == null) {
     return refuse("pricing_not_live");
   }
+  const chargedRappen = payableWithVatRappen(netRappen);
   if (!deps.vehicleClassId) {
     return refuse("invalid_request");
   }

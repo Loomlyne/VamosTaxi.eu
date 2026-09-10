@@ -7,34 +7,35 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Alert } from "@/components/feedback/Alert";
-import { Button, Card, CheckerMark, Icon, Logo } from "@/components/core";
+import { Button, Card, CheckerMark, Logo } from "@/components/core";
 import { PriceSummary, RouteSummary, StatusBadge } from "@/components/transfer";
 import { useBookingDraft } from "@/lib/booking-draft";
-import { PHONE_DISPLAY } from "@/lib/contact-channels";
-import { isVoucherStatus } from "@/lib/checkout/booking-status";
+import { PHONE_DISPLAY, PHONE_HREF, WHATSAPP_HREF } from "@/lib/contact-channels";
+import {
+  isCapturedPayment,
+  isFailedPayment,
+  isFailedStatus,
+  isVoucherStatus,
+} from "@/lib/checkout/booking-status";
 
-export type ConfirmationPhase = "hidden" | "processing" | "confirmed" | "give-up";
-
-/**
- * First delay before the status GET. Short enough to feel live, long
- * enough not to stampede the Worker on every return.
- */
-export const POLL_INTERVAL_MS = 2000;
-
-/**
- * Cap for exponential backoff between GETs. Cloudflare Queues
- * `max_retries` for checkout-settle is 8; this cap keeps the browser
- * quieter than the consumer's retry storm without going idle.
- */
-export const POLL_BACKOFF_MAX_MS = 8000;
+export type ConfirmationPhase = "hidden" | "processing" | "confirmed" | "give-up" | "failed";
 
 /**
- * Give-up window. Queue `max_retries` is 8 and settlement continues
- * after the spinner stops; the copy tells the guest to wait for email
- * rather than sit on a four-minute spinner. 30s covers several poll
- * ticks plus a slow first hop.
+ * First status GET is immediate so a fast webhook paints the voucher
+ * without a two-second blank wait.
  */
-export const POLL_GIVE_UP_MS = 30_000;
+export const POLL_INTERVAL_MS = 1000;
+
+/**
+ * Cap kept for tests that import the name. The wait room polls on a
+ * fixed 1s beat so a late webhook still paints the voucher.
+ */
+export const POLL_BACKOFF_MAX_MS = 1000;
+
+/**
+ * Visual "still confirming" copy only. Polling does not stop here.
+ */
+export const POLL_GIVE_UP_MS = 12_000;
 
 export type ConfirmationFacts = {
   reference: string;
@@ -42,6 +43,7 @@ export type ConfirmationFacts = {
   dropoffText: string;
   scheduledLocal: string;
   pax: number;
+  extras?: import("@vamos/emails/confirmation").PayLinkExtraCode[];
 };
 
 export type ConfirmationClientProps = {
@@ -58,6 +60,52 @@ function wallTime(scheduledLocal: string): { date: string; time: string } {
   return { date: scheduledLocal, time: "" };
 }
 
+function asStringField(json: object, key: string): string {
+  if (!(key in json)) return "";
+  const value = (json as Record<string, unknown>)[key];
+  return typeof value === "string" ? value : "";
+}
+
+function pollOutcome(json: unknown): "confirmed" | "failed" | "wait" {
+  if (!json || typeof json !== "object") return "wait";
+  if ("visible" in json && (json as { visible: unknown }).visible === false) return "wait";
+  const status = asStringField(json, "status");
+  const paymentStatus = asStringField(json, "paymentStatus");
+  if (isVoucherStatus(status) || isCapturedPayment(paymentStatus)) return "confirmed";
+  if (isFailedPayment(paymentStatus) || isFailedStatus(status)) return "failed";
+  return "wait";
+}
+
+function FailedRoom({ reference }: { reference: string }) {
+  const t = useTranslations("checkout");
+  const tCommon = useTranslations("common");
+  return (
+    <main className="vt-confirmation" data-confirmation data-confirmation-state="failed">
+      <Card padding="lg" className="vt-confirmation__wait" data-confirmation-failed>
+        <div className="vt-confirmation__wait-head">
+          <StatusBadge status="cancelled" />
+        </div>
+        <h1 className="vt-confirmation__title">{t("failedTitle")}</h1>
+        <p className="vt-confirmation__lede">{t("failedBody", { reference })}</p>
+        <p className="vt-confirmation__wait-ref">
+          {t("bookingPrefix")}{" "}
+          <span className="vt-confirmation__ref vt-dir-keep" data-confirmation-ref>
+            {reference}
+          </span>
+        </p>
+        <div className="vt-confirmation__help">
+          <Button href={PHONE_HREF} icon="phone" variant="secondary" size="md">
+            <span className="vt-dir-keep">{PHONE_DISPLAY}</span>
+          </Button>
+          <Button href={WHATSAPP_HREF} icon="message-circle" variant="ghost" size="md">
+            {tCommon("whatsapp")}
+          </Button>
+        </div>
+      </Card>
+    </main>
+  );
+}
+
 export function ConfirmationClient({
   locale,
   reference,
@@ -69,34 +117,38 @@ export function ConfirmationClient({
   const tCommon = useTranslations("common");
   const [draft] = useBookingDraft();
   const [phase, setPhase] = useState<ConfirmationPhase>(initialPhase);
+  const waiting = phase === "processing" || phase === "give-up";
 
   useEffect(() => {
-    if (phase !== "processing") return;
+    if (!waiting) return;
     let stopped = false;
     let timeoutId = 0;
-    let delay = POLL_INTERVAL_MS;
 
     async function tick() {
       if (stopped) return;
-      if (typeof document !== "undefined" && document.hidden) return;
-      try {
-        const res = await fetch(`/api/checkout/status/${encodeURIComponent(reference)}`, {
-          cache: "no-store",
-        });
-        const json: unknown = await res.json();
-        const status =
-          json && typeof json === "object" && "status" in json && typeof (json as { status: unknown }).status === "string"
-            ? (json as { status: string }).status
-            : "";
-        if (isVoucherStatus(status)) {
-          setPhase("confirmed");
-          return;
+      const hidden = typeof document !== "undefined" && document.hidden;
+      if (!hidden) {
+        try {
+          const res = await fetch(`/api/checkout/status/${encodeURIComponent(reference)}`, {
+            cache: "no-store",
+            credentials: "include",
+          });
+          const json: unknown = await res.json();
+          const outcome = pollOutcome(json);
+          if (outcome === "confirmed") {
+            setPhase("confirmed");
+            return;
+          }
+          if (outcome === "failed") {
+            setPhase("failed");
+            return;
+          }
+        } catch {
+          // Network blip — keep polling until the voucher or an error lands.
         }
-      } catch {
-        // Network blip — keep polling until the window closes.
       }
-      delay = Math.min(delay * 2, POLL_BACKOFF_MAX_MS);
-      timeoutId = window.setTimeout(tick, delay);
+      if (stopped) return;
+      timeoutId = window.setTimeout(tick, POLL_INTERVAL_MS);
     }
 
     function onVisibility() {
@@ -109,17 +161,13 @@ export function ConfirmationClient({
     }
 
     document.addEventListener("visibilitychange", onVisibility);
-    timeoutId = window.setTimeout(tick, POLL_INTERVAL_MS);
-    const giveUpId = window.setTimeout(() => {
-      if (!stopped) setPhase("give-up");
-    }, POLL_GIVE_UP_MS);
+    timeoutId = window.setTimeout(tick, 0);
     return () => {
       stopped = true;
       window.clearTimeout(timeoutId);
-      window.clearTimeout(giveUpId);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [phase, reference]);
+  }, [waiting, reference]);
 
   const pickup = booking?.pickupText || draft.pickup;
   const dropoff = booking?.dropoffText || draft.destination;
@@ -128,6 +176,12 @@ export function ConfirmationClient({
     : { date: draft.date, time: draft.time };
   const pax = booking?.pax || draft.passengers;
   const vehicleLabel = t("vehicleClassFallback");
+  const extras = booking?.extras ?? [];
+  const extraLabel: Record<string, "childSeat" | "extraOversized" | "additional-stop-2"> = {
+    child_seat: "childSeat",
+    oversized_luggage: "extraOversized",
+    extra_stop: "additional-stop-2",
+  };
 
   if (phase === "hidden") {
     return (
@@ -140,38 +194,32 @@ export function ConfirmationClient({
     );
   }
 
-  if (phase === "processing") {
-    return (
-      <main className="vt-confirmation" data-confirmation data-confirmation-state="processing">
-        <div className="vt-confirmation__panel" data-confirmation-processing>
-          <Icon name="loader-circle" size={28} className="vt-confirmation__spin" />
-          <h1 className="vt-confirmation__title">{t("processingTitle")}</h1>
-          <p className="vt-confirmation__lede">{t("processingBody")}</p>
-        </div>
-      </main>
-    );
+  if (phase === "failed") {
+    return <FailedRoom reference={reference} />;
   }
 
-  if (phase === "give-up") {
-    return (
-      <main className="vt-confirmation" data-confirmation data-confirmation-state="give-up">
-        <div className="vt-confirmation__hero" data-confirmation-giveup>
-          <h1 className="vt-confirmation__title">{t("giveUpTitle")}</h1>
-          <p className="vt-confirmation__lede">{t("giveUpBody", { phone: PHONE_DISPLAY })}</p>
-        </div>
-      </main>
-    );
-  }
-
+  // Pay already confirms the booking. There is no coupon/voucher
+  // confirmation step — paint the transfer ticket. The poller still
+  // swaps to FailedRoom if payment actually failed.
   const isAirport = /airport|zrh|gva/i.test(`${pickup} ${dropoff}`);
   const lines = [
     { label: t("transferClass", { class: vehicleLabel }), amount: null as number | null },
+    ...extras.map((code) => ({
+      label: (
+        <span data-confirmation-extra={code}>{`+ ${t(extraLabel[code] ?? "childSeat")}`}</span>
+      ),
+      amount: null as number | null,
+    })),
     ...(isAirport ? [{ label: tCommon("airport-pickup-fee"), amount: null as number | null }] : []),
     { label: t("paidBy", { method: t("card-apple-pay-or-twint") }), amount: null as number | null, muted: true },
   ];
 
   return (
-    <main className="vt-confirmation" data-confirmation data-confirmation-state="confirmed">
+    <main
+      className="vt-confirmation"
+      data-confirmation
+      data-confirmation-state={waiting ? "processing" : "confirmed"}
+    >
       <div className="vt-confirmation__hero">
         <h1 className="vt-confirmation__title">{t("yourDriverIsBooked")}</h1>
         <p className="vt-confirmation__lede">
@@ -209,6 +257,16 @@ export function ConfirmationClient({
             },
             { icon: "users", label: t("passengersCount", { n: pax }) },
             { icon: "car", label: vehicleLabel },
+            ...extras.map((code) => ({
+              icon: (code === "oversized_luggage"
+                ? "luggage"
+                : code === "extra_stop"
+                  ? "map-pin"
+                  : "baby") as "baby" | "luggage" | "map-pin",
+              label: (
+                <span data-confirmation-extra={code}>{t(extraLabel[code] ?? "childSeat")}</span>
+              ),
+            })),
           ]}
         />
         <PriceSummary

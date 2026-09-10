@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { e164Phone, isCheckoutEmail } from "./contact-validate";
-import { mergeVamosTrip, peekLockClassRappen, placeMapboxId, placeText, rappenToFrancs, formatRailDate, geoLocale } from "./vamos-trip";
+import { mergeVamosTrip, peekLockClassRappen, peekLockExtras, placeMapboxId, placeText, rappenToFrancs, formatRailDate, geoLocale } from "./vamos-trip";
 
 describe("checkout contact + rail helpers", () => {
   it("stores phone as plus plus digits", () => {
@@ -37,6 +37,9 @@ describe("checkout contact + rail helpers", () => {
     expect(peekLockClassRappen(lock, "first")).toBeNull();
     expect(peekLockClassRappen("not-a-lock", "economy")).toBeNull();
     expect(rappenToFrancs(null)).toBeNull();
+    const extrasLock = `k1.${Buffer.from(JSON.stringify({ extras: { child_seats: 1 } })).toString("base64url")}.sig`;
+    expect(peekLockExtras(extrasLock)?.child_seats).toBe(1);
+    expect(peekLockExtras(lock)).toBeNull();
   });
 
   it("drops the previous quote's flight when a new quote_id lands", () => {
@@ -68,6 +71,15 @@ describe("checkout contact + rail helpers", () => {
     expect(next.oversizedLuggage).toBe(false);
     expect(next.skiRack).toBe(false);
     expect(next.stops).toBe(0);
+  });
+
+  it("keeps extras when a checkout reprice remints quote_id", () => {
+    const next = mergeVamosTrip(
+      { quote_id: "quote-a", childSeat: true, oversizedLuggage: false, skiRack: false, stops: 0 },
+      { quote_id: "quote-b", lock: "k1.abc.sig", childSeat: true, oversizedLuggage: false, skiRack: false, stops: 0 },
+    );
+    expect(next.childSeat).toBe(true);
+    expect(next.quote_id).toBe("quote-b");
   });
 
   it("reads mapbox ids and formats rail dates", () => {
