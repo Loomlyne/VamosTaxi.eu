@@ -192,9 +192,8 @@ export async function staffPayLink(
     };
   });
 
-  if (!loaded || ("ok" in loaded && loaded.ok === false)) {
-    return loaded as StaffPayLinkFail;
-  }
+  if (!loaded) return { ok: false, code: "not-found" };
+  if ("ok" in loaded) return loaded;
 
   const stripe = stripeFromEnv(env);
   const stored = await retrieveCheckoutSession(stripe, loaded.stripeCheckoutSessionId).catch(
