@@ -142,8 +142,8 @@
 </span>
 </div>
 <div style="display:flex;flex-wrap:wrap;gap:10px;padding-top:14px;border-top:1px solid var(--vt-border-inverse)">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="light" href="#vehicles" hint-size="120px,36px">Vehicles</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="light" href="#chauffeurs" hint-size="130px,36px">Chauffeurs</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="light" href="/fleet" hint-size="120px,36px">Vehicles</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="light" href="/fleet/chauffeurs" hint-size="130px,36px">Chauffeurs</x-import>
 </div>
 </section>
 
@@ -221,17 +221,17 @@ class Component extends DCLogic {
         select: () => this.setState({ period: x.key }),
       })),
       counts: [
-        { label:'Bookings', value:String(bookings.length), of:'', icon:'list', href:'#bookings', foot:'Taken in this period' },
-        { label:'Pickups', value:String(pickups), of:'', icon:'car-front', href:'#bookings', foot:'Scheduled to run' },
-        { label:'Chauffeurs on shift', value:String(onShift), of:'/ ' + chauffeurs.length, icon:'users', href:'#chauffeurs', foot:'Available to assign' },
-        { label:'Vehicles in service', value:String(inService), of:'/ ' + vehicles.length, icon:'car', href:'#vehicles', foot:'Rest are off the road' },
+        { label:'Bookings', value:String(bookings.length), of:'', icon:'list', href:'/bookings', foot:'Taken in this period' },
+        { label:'Pickups', value:String(pickups), of:'', icon:'car-front', href:'/bookings', foot:'Scheduled to run' },
+        { label:'Chauffeurs on shift', value:String(onShift), of:'/ ' + chauffeurs.length, icon:'users', href:'/fleet/chauffeurs', foot:'Available to assign' },
+        { label:'Vehicles in service', value:String(inService), of:'/ ' + vehicles.length, icon:'car', href:'/fleet', foot:'Rest are off the road' },
       ],
       income: INCOME.map((label) => ({ label })),
       expenses: EXPENSES.map((label) => ({ label })),
       attention: [
-        { icon:'triangle-alert', title:'Unassigned bookings', note:'No chauffeur yet', count:String(unassigned), href:'#bookings' },
-        { icon:'clock', title:'Awaiting payment', note:'Needs a card payment or pay-link', count:String(awaiting), href:'#bookings' },
-        { icon:'banknote', title:'Refunds to issue', note:'Cancelled inside the free window', count:'0', href:'#bookings' },
+        { icon:'triangle-alert', title:'Unassigned bookings', note:'No chauffeur yet', count:String(unassigned), href:'/bookings' },
+        { icon:'clock', title:'Awaiting payment', note:'Needs a card payment or pay-link', count:String(awaiting), href:'/bookings' },
+        { icon:'banknote', title:'Refunds to issue', note:'Cancelled inside the free window', count:'0', href:'/bookings' },
       ],
       chauffeursOn: onShift + '/' + chauffeurs.length,
       chauffeursNote: 'Chauffeurs on shift',

@@ -160,7 +160,10 @@ class Component extends DCLogic {
             extra,
             extraShow: extra ? 'inline' : 'none',
             status: b.status,
-            open: () => { location.hash = '#detail/' + encodeURIComponent(b.id); },
+            open: () => {
+              history.pushState({}, '', '/bookings/' + encodeURIComponent(b.id));
+              window.dispatchEvent(new PopStateEvent('popstate'));
+            },
           };
         });
       },

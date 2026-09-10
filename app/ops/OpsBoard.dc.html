@@ -190,7 +190,11 @@ class Component extends DCLogic {
       }
     } catch (e) {}
   }
-  openRow = (row) => { location.hash = '#detail/' + encodeURIComponent(row.id); };
+  openRow = (row) => {
+    const path = '/bookings/' + encodeURIComponent(row.id);
+    history.pushState({}, '', path);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
   openNew = () => this.setState((s) => ({ addTick: (s.addTick || 0) + 1 }));
   toggleMore = () => this.setState((s) => ({ moreOpen: !s.moreOpen }));
   printBoard = () => { try { window.print(); } catch (e) {} };

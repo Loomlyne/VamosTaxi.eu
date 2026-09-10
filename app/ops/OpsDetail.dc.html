@@ -269,7 +269,10 @@ class Component extends DCLogic {
     return {
       n2:2, n15:15, n16:16, yes:true,
       tBackToBookings: t.backToBookings, tMoreActions: t.moreActions, tBookedBy: t.bookedBy,
-      goBack: () => { location.hash = '#bookings'; },
+      goBack: () => {
+        history.pushState({}, '', '/bookings');
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      },
       booking,
       routeMeta,
       tAssignment: t.assignment,

@@ -22,10 +22,10 @@
 <aside data-lenis-prevent="1" style="background:var(--vt-bg-inverse);height:100vh;max-height:100vh;box-sizing:border-box;overflow-y:auto;padding:22px 16px;display:flex;flex-direction:column;gap:22px;width:{{ railWidth }};transition:width 200ms cubic-bezier(.2,0,.2,1)">
 
 <div style="display:flex;align-items:center;gap:8px;padding:0 2px;min-height:34px">
-<a href="#dashboard" onClick="{{ goHash }}" style="border:0;display:{{ logoWideShow }};align-items:center;flex:1 1 auto;min-width:0">
+<a href="/dashboard" onClick="{{ goPath }}" style="border:0;display:{{ logoWideShow }};align-items:center;flex:1 1 auto;min-width:0">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" form="wordmark" height="{{ n22 }}" hint-size="100px,22px"></x-import>
 </a>
-<a href="#dashboard" onClick="{{ goHash }}" style="border:0;display:{{ logoMarkShow }};align-items:center;justify-content:center;flex:1 1 auto">
+<a href="/dashboard" onClick="{{ goPath }}" style="border:0;display:{{ logoMarkShow }};align-items:center;justify-content:center;flex:1 1 auto">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" form="mark" height="{{ n26 }}" hint-size="26px,26px"></x-import>
 </a>
 </div>
@@ -33,7 +33,7 @@
 <nav style="display:flex;flex-direction:column;gap:3px">
 
 <sc-for list="{{ navTop }}" as="n" hint-placeholder-count="3">
-<a href="{{ n.href }}" title="{{ n.label }}" onClick="{{ goHash }}" style="text-decoration:none;box-sizing:border-box;display:flex;align-items:center;justify-content:{{ rowJustify }};gap:11px;height:44px;padding:{{ rowPad }};border-radius:999px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:{{ n.weight }};color:{{ n.color }};background:{{ n.bg }}">
+<a href="{{ n.href }}" title="{{ n.label }}" onClick="{{ goPath }}" style="text-decoration:none;box-sizing:border-box;display:flex;align-items:center;justify-content:{{ rowJustify }};gap:11px;height:44px;padding:{{ rowPad }};border-radius:999px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:{{ n.weight }};color:{{ n.color }};background:{{ n.bg }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ n.icon }}" size="{{ n18 }}" color="{{ n.color }}" hint-size="18px,18px"></x-import><span style="display:{{ labelShow }};min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ n.label }}</span>
 </a>
 </sc-for>
@@ -48,7 +48,7 @@
 <sc-if value="{{ fleetOpen }}" hint-placeholder-val="{{ false }}">
 <div style="display:flex;flex-direction:column;gap:2px;padding:2px 0 6px;margin-inline-start:21px;border-inline-start:1px solid var(--vt-border-inverse)">
 <sc-for list="{{ fleetItems }}" as="c" hint-placeholder-count="2">
-<a href="{{ c.href }}" title="{{ c.label }}" onClick="{{ goHash }}" style="text-decoration:none;box-sizing:border-box;display:flex;align-items:center;gap:10px;height:40px;margin-inline-start:8px;padding:0 12px;border-radius:999px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:{{ c.weight }};color:{{ c.color }};background:{{ c.bg }}">
+<a href="{{ c.href }}" title="{{ c.label }}" onClick="{{ goPath }}" style="text-decoration:none;box-sizing:border-box;display:flex;align-items:center;gap:10px;height:40px;margin-inline-start:8px;padding:0 12px;border-radius:999px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:{{ c.weight }};color:{{ c.color }};background:{{ c.bg }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ c.icon }}" size="{{ n16 }}" color="{{ c.color }}" hint-size="16px,16px"></x-import><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.label }}</span>
 </a>
 </sc-for>
@@ -56,7 +56,7 @@
 </sc-if>
 
 <sc-for list="{{ navBottom }}" as="n" hint-placeholder-count="3">
-<a href="{{ n.href }}" title="{{ n.label }}" onClick="{{ goHash }}" style="text-decoration:none;box-sizing:border-box;display:flex;align-items:center;justify-content:{{ rowJustify }};gap:11px;height:44px;padding:{{ rowPad }};border-radius:999px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:{{ n.weight }};color:{{ n.color }};background:{{ n.bg }};position:relative">
+<a href="{{ n.href }}" title="{{ n.label }}" onClick="{{ goPath }}" style="text-decoration:none;box-sizing:border-box;display:flex;align-items:center;justify-content:{{ rowJustify }};gap:11px;height:44px;padding:{{ rowPad }};border-radius:999px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:{{ n.weight }};color:{{ n.color }};background:{{ n.bg }};position:relative">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ n.icon }}" size="{{ n18 }}" color="{{ n.color }}" hint-size="18px,18px"></x-import><span style="display:{{ labelShow }};min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ n.label }}</span>
 <span data-nav-badge="1" style="display:{{ n.badgeShow }};background:{{ n.badgeBg }};color:{{ n.badgeColor }}">{{ n.badge }}</span>
 </a>
@@ -74,7 +74,7 @@
 <sc-if value="{{ contentOpen }}" hint-placeholder-val="{{ false }}">
 <div style="display:flex;flex-direction:column;gap:2px;padding:2px 0 6px;margin-inline-start:21px;border-inline-start:1px solid var(--vt-border-inverse)">
 <sc-for list="{{ contentItems }}" as="c" hint-placeholder-count="3">
-<a href="{{ c.href }}" title="{{ c.label }}" onClick="{{ goHash }}" style="text-decoration:none;box-sizing:border-box;display:flex;align-items:center;gap:10px;height:40px;margin-inline-start:8px;padding:0 12px;border-radius:999px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:{{ c.weight }};color:{{ c.color }};background:{{ c.bg }}">
+<a href="{{ c.href }}" title="{{ c.label }}" onClick="{{ goPath }}" style="text-decoration:none;box-sizing:border-box;display:flex;align-items:center;gap:10px;height:40px;margin-inline-start:8px;padding:0 12px;border-radius:999px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:{{ c.weight }};color:{{ c.color }};background:{{ c.bg }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ c.icon }}" size="{{ n16 }}" color="{{ c.color }}" hint-size="16px,16px"></x-import><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.label }}</span>
 </a>
 </sc-for>
@@ -94,10 +94,10 @@
 <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
 <div onClick="{{ closeMenu }}" style="position:fixed;inset:0;z-index:4;background:transparent"></div>
 <div role="menu" style="position:absolute;inset-inline-start:0;inset-inline-end:0;bottom:calc(100% + 4px);z-index:5;display:flex;flex-direction:column;gap:2px;padding:6px;background:var(--vt-charcoal-800);border:1px solid var(--vt-border-inverse);border-radius:var(--vt-radius-md);box-shadow:var(--vt-shadow-xl)">
-<a href="#profile" role="menuitem" onClick="{{ goHash }}" style="text-decoration:none;border:0;box-sizing:border-box;display:flex;align-items:center;gap:10px;height:40px;padding:0 10px;border-radius:999px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-inverse)" style-hover="background:var(--vt-charcoal-700);color:var(--vt-text-inverse)">
+<a href="/profile" role="menuitem" onClick="{{ goPath }}" style="text-decoration:none;border:0;box-sizing:border-box;display:flex;align-items:center;gap:10px;height:40px;padding:0 10px;border-radius:999px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-inverse)" style-hover="background:var(--vt-charcoal-700);color:var(--vt-text-inverse)">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="user" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>{{ tProfile }}
 </a>
-<a href="#settings" role="menuitem" onClick="{{ goHash }}" style="text-decoration:none;border:0;box-sizing:border-box;display:flex;align-items:center;gap:10px;height:40px;padding:0 10px;border-radius:999px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-inverse)" style-hover="background:var(--vt-charcoal-700);color:var(--vt-text-inverse)">
+<a href="/settings" role="menuitem" onClick="{{ goPath }}" style="text-decoration:none;border:0;box-sizing:border-box;display:flex;align-items:center;gap:10px;height:40px;padding:0 10px;border-radius:999px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-inverse)" style-hover="background:var(--vt-charcoal-700);color:var(--vt-text-inverse)">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="settings" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>{{ tSettings }}
 </a>
 <a href="../home/home.dc.html" role="menuitem" style="text-decoration:none;border:0;box-sizing:border-box;display:flex;align-items:center;gap:10px;height:40px;padding:0 10px;border-radius:999px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-inverse-muted)" style-hover="background:var(--vt-charcoal-700);color:var(--vt-text-inverse)">
@@ -136,28 +136,28 @@
 /* One rail for the whole console. The bottom row collapses it to icons and remembers
    that choice; Fleet and Content are groups; the profile row is a menu, not a link. */
 const NAV_TOP = [
-  { key:'dashboard', href:'#dashboard', icon:'layout-dashboard', en:'Dashboard', de:'Übersicht', fr:'Tableau de bord', ar:'لوحة المعلومات' },
-  { key:'bookings', href:'#bookings', icon:'receipt', en:'Bookings', de:'Buchungen', fr:'Réservations', ar:'الحجوزات' },
-  { key:'calendar', href:'#calendar', icon:'calendar-days', en:'Calendar', de:'Kalender', fr:'Calendrier', ar:'التقويم' },
+  { key:'dashboard', href:'/dashboard', icon:'layout-dashboard', en:'Dashboard', de:'Übersicht', fr:'Tableau de bord', ar:'لوحة المعلومات' },
+  { key:'bookings', href:'/bookings', icon:'receipt', en:'Bookings', de:'Buchungen', fr:'Réservations', ar:'الحجوزات' },
+  { key:'calendar', href:'/calendar', icon:'calendar-days', en:'Calendar', de:'Kalender', fr:'Calendrier', ar:'التقويم' },
 ];
 const FLEET = [
-  { key:'vehicles', href:'#vehicles', icon:'car', en:'Vehicles', de:'Fahrzeuge', fr:'Véhicules', ar:'المركبات' },
-  { key:'chauffeurs', href:'#chauffeurs', icon:'users', en:'Chauffeurs', de:'Chauffeure', fr:'Chauffeurs', ar:'السائقون' },
+  { key:'vehicles', href:'/fleet', icon:'car', en:'Vehicles', de:'Fahrzeuge', fr:'Véhicules', ar:'المركبات' },
+  { key:'chauffeurs', href:'/fleet/chauffeurs', icon:'users', en:'Chauffeurs', de:'Chauffeure', fr:'Chauffeurs', ar:'السائقون' },
 ];
 const NAV_BOTTOM = [
-  { key:'customers', href:'#customers', icon:'user', en:'Customers', de:'Kunden', fr:'Clients', ar:'العملاء' },
-  { key:'support', href:'#support', icon:'mail', en:'Support', de:'Support', fr:'Assistance', ar:'الدعم' },
-  { key:'coupons', href:'#coupons', icon:'ticket', en:'Coupons', de:'Gutscheine', fr:'Codes promo', ar:'القسائم' },
+  { key:'customers', href:'/customers', icon:'user', en:'Customers', de:'Kunden', fr:'Clients', ar:'العملاء' },
+  { key:'support', href:'/support', icon:'mail', en:'Support', de:'Support', fr:'Assistance', ar:'الدعم' },
+  { key:'coupons', href:'/coupons', icon:'ticket', en:'Coupons', de:'Gutscheine', fr:'Codes promo', ar:'القسائم' },
 ];
-/* D-12: these hashes are omitted from the DOM for role=dispatcher — never painted disabled. */
+/* D-12: these paths are omitted from the DOM for role=dispatcher — never painted disabled. */
 const NAV_ADMIN = [
-  { key:'pricing', href:'#pricing', icon:'banknote', en:'Pricing & routes', de:'Preise & Routen', fr:'Tarifs & trajets', ar:'الأسعار والمسارات' },
+  { key:'pricing', href:'/pricing', icon:'banknote', en:'Pricing & routes', de:'Preise & Routen', fr:'Tarifs & trajets', ar:'الأسعار والمسارات' },
 ];
 /* Content — what the public site shows, edited here. */
 const CONTENT = [
-  { key:'pages', href:'#pages', icon:'globe', en:'Pages', de:'Seiten', fr:'Pages', ar:'الصفحات' },
-  { key:'legal', href:'#legal', icon:'shield-check', en:'Legal', de:'Rechtliches', fr:'Mentions légales', ar:'المستندات القانونية' },
-  { key:'reviews', href:'#reviews', icon:'star', en:'Reviews', de:'Bewertungen', fr:'Avis', ar:'التقييمات' },
+  { key:'pages', href:'/pages', icon:'globe', en:'Pages', de:'Seiten', fr:'Pages', ar:'الصفحات' },
+  { key:'legal', href:'/legal', icon:'shield-check', en:'Legal', de:'Rechtliches', fr:'Mentions légales', ar:'المستندات القانونية' },
+  { key:'reviews', href:'/reviews', icon:'star', en:'Reviews', de:'Bewertungen', fr:'Avis', ar:'التقييمات' },
 ];
 function avatarUrl(avatar) {
   const value = String(avatar || '');
@@ -250,13 +250,16 @@ class Component extends DCLogic {
     this.setState((s) => ({ menuOpen: !s.menuOpen }));
   };
   closeMenu = () => this.setState({ menuOpen: false });
-  goHash = (e) => {
+  goPath = (e) => {
     const a = e.currentTarget;
     const href = (a && a.getAttribute && a.getAttribute('href')) || '';
-    if (href.charAt(0) !== '#') return;
+    if (href.charAt(0) !== '/') return;
     e.preventDefault();
     this.setState({ menuOpen: false });
-    if (location.hash !== href) location.hash = href;
+    if (location.pathname !== href) {
+      history.pushState({}, '', href);
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    }
   };
   signOut = () => {
     try { localStorage.removeItem('vamosOpsAuth'); } catch (e) {}
@@ -283,7 +286,7 @@ class Component extends DCLogic {
     const me = this.state.me || {};
     const role = me.role || profile.role || '';
     const isAdmin = role === 'admin';
-    /* Until GET /api/staff/me resolves, omit #pricing so a
+    /* Until GET /api/staff/me resolves, omit /pricing so a
        dispatcher never sees it as a disabled item (D-12). */
     const navBottomSrc = isAdmin
       ? NAV_ADMIN.concat(NAV_BOTTOM)
@@ -333,7 +336,7 @@ class Component extends DCLogic {
       rowJustify: col ? 'center' : 'flex-start',
       rowPad: col ? '0' : '0 12px',
       toggleRail: this.toggleRail, toggleFleet: this.toggleFleet, toggleContent: this.toggleContent,
-      toggleMenu: this.toggleMenu, closeMenu: this.closeMenu, goHash: this.goHash, signOut: this.signOut,
+      toggleMenu: this.toggleMenu, closeMenu: this.closeMenu, goPath: this.goPath, signOut: this.signOut,
       tDispatch: t.dispatch, tSignOut: t.signOut, tSiteLink: t.site,
       tContent: t.content, tFleet: t.fleet, tProfile: t.profile, tSettings: t.settings,
       fleetOpen: fleet.open, fleetExpanded: fleet.expanded, fleetChevron: fleet.chevron,
