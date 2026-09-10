@@ -19,8 +19,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ bookings: [] }, { status: 401 });
   }
   const { env } = await getCloudflareContext({ async: true });
-  const rows = await asCustomer(env, claims, async (sql) => {
-    return sql<AccountSqlRow[]>`
+  const rows = await asCustomer(env, claims, (sql) =>
+    sql<AccountSqlRow[]>`
       select
         b.reference,
         b.status::text as status,
@@ -37,10 +37,10 @@ export async function GET(request: Request) {
       where b.status::text not in ('quote', 'pending')
       order by l.scheduled_at desc nulls last, b.created_at desc
       limit 50
-    `;
-  });
-  const fleet = await asSystem(env, async (sql) => {
-    return sql<AccountFleetRow[]>`
+    `,
+  );
+  const fleet = await asSystem(env, (sql) =>
+    sql<AccountFleetRow[]>`
       select
         b.reference,
         ch.full_name as chauffeur_name,
@@ -55,8 +55,8 @@ export async function GET(request: Request) {
       where b.erased_at is null
         and b.status::text not in ('quote', 'pending')
         and lower(b.contact_email::text) = lower(${claims.email})
-    `;
-  });
+    `,
+  );
   const fleetByRef: Record<string, AccountFleetRow> = {};
   for (const row of fleet) {
     const ref = row.reference == null ? "" : String(row.reference);
