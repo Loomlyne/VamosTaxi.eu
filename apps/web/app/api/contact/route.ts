@@ -4,6 +4,7 @@ import { asAnon, asSystem } from "@/lib/db/identity";
 import { deliverContactMessages, type ContactDeliveryMessage } from "@/lib/forms/contact-delivery";
 import { contactSchema } from "@/lib/forms/schemas";
 import { formFailure, formSuccess, sendContactMessage } from "@/lib/forms/notify";
+import { contactMessageId } from "@/lib/ops/ticket-mail";
 import { verifyTurnstile } from "@/lib/turnstile";
 
 export const dynamic = "force-dynamic";
@@ -59,6 +60,7 @@ export async function POST(request: Request) {
   const from = bindings.CONTACT_EMAIL_FROM ?? process.env.CONTACT_EMAIL_FROM;
   const supportRecipient = bindings.CONTACT_SUPPORT_RECIPIENT ?? process.env.CONTACT_SUPPORT_RECIPIENT;
   const apiKey = bindings.RESEND_API_KEY ?? process.env.RESEND_API_KEY;
+  const rfcId = contactMessageId(submissionId);
   const rendered = {
     customer: renderContactCustomerEmail(input.locale, { name: input.name, message: input.message }),
     support: renderContactSupportEmail(input.locale, input),
@@ -84,6 +86,7 @@ export async function POST(request: Request) {
       providerIdempotencyKey,
       rendered[message],
       env.EMAIL,
+      message === "customer" ? { headers: { "Message-ID": rfcId } } : undefined,
     ),
     finalize: async (message, leaseToken, providerSuffix) => {
       try {
@@ -102,5 +105,19 @@ export async function POST(request: Request) {
     },
   }, submissionId);
 
-  return delivery.accepted ? formSuccess() : formFailure("unavailable", 503);
+  if (delivery.accepted) {
+    try {
+      await asSystem(env, (tx) => tx`
+        update public.support_messages
+        set rfc_message_id = ${rfcId}
+        where submission_id = ${submissionId}::uuid
+          and direction = 'inbound_form'
+          and (rfc_message_id is null or rfc_message_id = '')
+      `);
+    } catch {
+      // Ack already went out; missing RFC id only weakens threading.
+    }
+    return formSuccess();
+  }
+  return formFailure("unavailable", 503);
 }
