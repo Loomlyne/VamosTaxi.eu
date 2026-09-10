@@ -1925,6 +1925,29 @@ export type Database = {
           snapshot_id: number
         }[]
       }
+      ops_assign_leg: {
+        Args: {
+          p_actor_id: string
+          p_booking_id: string
+          p_chauffeur_id: string
+        }
+        Returns: {
+          booking_id: string
+          chauffeur_id: string
+          leg_id: string
+          vehicle_id: string
+        }[]
+      }
+      ops_unassign_leg: {
+        Args: {
+          p_actor_id: string
+          p_booking_id: string
+        }
+        Returns: {
+          booking_id: string
+          leg_id: string
+        }[]
+      }
       checkout_payment_settle: {
         Args: {
           p_charged_currency: string
