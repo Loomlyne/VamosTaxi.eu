@@ -16,13 +16,16 @@
 .vt-route__stops{min-inline-size:0}
 .vt-route__stop{padding-block-end:16px;min-inline-size:0;grid-column:2;grid-row:1}
 .vt-route__stop--last{padding-block-end:0;grid-row:2}
+.vt-route__duration{grid-column:2;grid-row:2;display:inline-flex;align-items:center;gap:6px;font-size:var(--vt-body-sm);color:var(--vt-text-muted);padding-block:4px 12px;min-inline-size:0}
+.vt-route:has(.vt-route__duration) .vt-route__line{grid-row:1 / span 3;margin-block:14px;min-block-size:28px}
+.vt-route:has(.vt-route__duration) .vt-route__pip--end,.vt-route:has(.vt-route__duration) .vt-route__stop--last{grid-row:3}
 .vt-route__kicker{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted);display:block;margin-block-end:2px}
 .vt-route__place{font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium);color:var(--vt-text-primary);line-height:1.35}
 .vt-route__detail{font-size:var(--vt-body-sm);color:var(--vt-text-muted)}
 .vt-route__meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;margin-block-start:14px;padding-block-start:14px;border-block-start:var(--vt-border-w) solid var(--vt-border-subtle)}
 .vt-route__metaitem{display:inline-flex;align-items:center;gap:7px;min-inline-size:0;padding:0;background:transparent;border-radius:0;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-regular);color:var(--vt-text-secondary);line-height:1.35}
 .vt-route--inverse .vt-route__place{color:var(--vt-text-inverse)}
-.vt-route--inverse .vt-route__detail,.vt-route--inverse .vt-route__metaitem{color:var(--vt-text-inverse-muted)}
+.vt-route--inverse .vt-route__detail,.vt-route--inverse .vt-route__metaitem,.vt-route--inverse .vt-route__duration{color:var(--vt-text-inverse-muted)}
 .vt-route--inverse .vt-route__line{background:var(--vt-charcoal-700)}
 .vt-route--inverse .vt-route__meta{border-block-start-color:var(--vt-border-inverse)}
 .vt-route--inverse .vt-route__pip--end{background:var(--vt-white);border-color:var(--vt-white)}

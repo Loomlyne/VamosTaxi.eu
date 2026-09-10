@@ -31,6 +31,8 @@ export interface RouteSummaryProps {
   dropoff?: ReactNode;
   pickupDetail?: ReactNode;
   dropoffDetail?: ReactNode;
+  /** Optional chip on the rail between the two stops (e.g. trip duration). */
+  duration?: ReactNode;
   meta?: RouteMetaItem[];
   inverse?: boolean;
   /** Rule 2 addition — the compiled source has no loading/empty concept; UI-SPEC's own
@@ -48,6 +50,7 @@ export function RouteSummary({
   dropoff,
   pickupDetail,
   dropoffDetail,
+  duration,
   meta = [],
   inverse = false,
   loading = false,
@@ -92,6 +95,7 @@ export function RouteSummary({
             <div className="vt-route__place">{pickup}</div>
             {pickupDetail ? <div className="vt-route__detail">{pickupDetail}</div> : null}
           </div>
+          {duration ? <div className="vt-route__duration">{duration}</div> : null}
           <div className="vt-route__stop vt-route__stop--last">
             <span className="vt-route__kicker">{t("destination")}</span>
             <div className="vt-route__place">{dropoff}</div>

@@ -298,7 +298,9 @@ export function ConfirmationClient({
     lines.push({ label: t("fareExVat"), amount: rappenToMajor(split.fareRappen) });
     for (const extra of split.extras) {
       lines.push({
-        label: t(extraLabel[extra.code] ?? "childSeat"),
+        label: (
+          <span data-confirmation-extra={extra.code}>{`+ ${t(extraLabel[extra.code] ?? "childSeat")}`}</span>
+        ),
         amount: rappenToMajor(extra.rappen),
       });
     }
@@ -374,19 +376,39 @@ export function ConfirmationClient({
         </div>
         <RouteSummary
           inverse
-          pickup={pickup}
-          dropoff={dropoff}
+          pickup={
+            <span className="vt-confirmation__place">
+              <Icon name="map-pin" size={16} />
+              {pickup}
+            </span>
+          }
+          dropoff={
+            <span className="vt-confirmation__place">
+              <Icon name="navigation" size={16} />
+              {dropoff}
+            </span>
+          }
           pickupDetail={
             timeLabel ? (
-              <span className="vt-dir-keep" data-confirmation-pickup-at>
+              <span className="vt-confirmation__when vt-dir-keep" data-confirmation-pickup-at>
+                <Icon name="clock" size={14} />
                 {timeLabel}
               </span>
             ) : undefined
           }
           dropoffDetail={
             arriveLabel ? (
-              <span className="vt-dir-keep" data-confirmation-arrive>
+              <span className="vt-confirmation__when vt-dir-keep" data-confirmation-arrive>
+                <Icon name="clock" size={14} />
                 {arriveLabel}
+              </span>
+            ) : undefined
+          }
+          duration={
+            durationMin != null ? (
+              <span className="vt-dir-keep" data-confirmation-duration>
+                <Icon name="clock" size={14} />
+                {t("durationMinutes", { n: durationMin })}
               </span>
             ) : undefined
           }
@@ -420,11 +442,6 @@ export function ConfirmationClient({
           {flightNo ? (
             <ReceiptRow icon="plane" label={tCommon("flight-number")} className="vt-dir-keep">
               {flightNo}
-            </ReceiptRow>
-          ) : null}
-          {durationMin != null ? (
-            <ReceiptRow icon="clock" label={t("tripDuration")} className="vt-dir-keep">
-              {t("durationMinutes", { n: durationMin })}
             </ReceiptRow>
           ) : null}
           {distanceKm != null ? (

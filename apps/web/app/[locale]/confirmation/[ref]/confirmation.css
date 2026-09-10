@@ -159,6 +159,17 @@
   gap: 8px;
 }
 
+.vt-confirmation__place,
+.vt-confirmation__when {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vt-confirmation__when {
+  gap: 6px;
+}
+
 .vt-confirmation__receipt-row {
   display: flex;
   justify-content: space-between;

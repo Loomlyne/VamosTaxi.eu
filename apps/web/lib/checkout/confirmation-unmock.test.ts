@@ -71,6 +71,10 @@ describe("confirmation unmock (D-40)", () => {
     expect(client).toContain("pickupDetail");
     expect(client).toContain("dropoffDetail");
     expect(client).toContain("data-confirmation-pickup-at");
+    expect(client).toContain("data-confirmation-duration");
+    expect(client).toContain('name="map-pin"');
+    expect(client).toContain('name="clock"');
+    expect(client).toContain("duration=");
     expect(client).toContain("fareExVat");
     expect(client).toContain("vatIncl");
     expect(client).toContain("receiptPriceSplit");
