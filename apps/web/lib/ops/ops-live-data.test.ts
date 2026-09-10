@@ -127,6 +127,10 @@ describe("ops live data — comments 8–10", () => {
     expect(row.time).toBe("15:50");
     expect(row.sessionExpiresAt).toBe("2026-09-10T10:00:00.000Z");
     expect(row.totalRappen).toBe(0);
+    expect(row.capturedAt).toBe("");
+    expect(row.vehicle).toBe("");
+    expect(row.refundRappen).toBe(0);
+    expect(row.stripeFeeRappen).toBeNull();
   });
 
   it("maps a captured fare onto the board row", () => {
@@ -156,7 +160,13 @@ describe("ops live data — comments 8–10", () => {
       charged_rappen: 10000,
     });
     expect(row.paidByCard).toBe(true);
+    expect(row.paid).toBe(true);
     expect(row.totalRappen).toBe(10000);
+    expect(row.capturedAt).toBe("2026-09-09T16:42:29.000Z");
+    expect(row.klass).toBe("Economy");
+    expect(row.vehicle).toBe("");
+    expect(row.customer).not.toMatch(/Isolation/);
+    expect(row.stripeFeeRappen).toBeNull();
   });
 
   it("bookings board paints charged fare instead of a hardcoded 000", () => {
@@ -191,5 +201,143 @@ describe("ops live data — comments 8–10", () => {
     expect(ticket.messages).toHaveLength(1);
     expect(ticket.messages[0]?.body).toBe("Need a quote");
     expect(ticket.ticketId).toMatch(/^TKT-/);
+  });
+
+  it("maps captured sums and omits a missing Stripe fee", () => {
+    const row = mapBoardBooking({
+      id: "33333333-3333-3333-3333-333333333333",
+      reference: "VT-26-0802",
+      status: "pending",
+      contact_name: "Ada",
+      contact_email: "ada@example.com",
+      contact_phone: "+41 79 000 00 00",
+      company_name: null,
+      note: null,
+      pay_link_sent_at: null,
+      pickup_text: "Zurich Airport (ZRH)",
+      dropoff_text: "Zurich city",
+      scheduled_local: "2026-09-24T15:50",
+      scheduled_at: "2026-09-24T15:50:00+00",
+      flight_no: null,
+      pax: 1,
+      bags: 0,
+      class_slug: "business",
+      chauffeur_name: null,
+      payment_status: "succeeded",
+      captured_at: "2026-09-10T08:00:00.000Z",
+      payment_created_at: "2026-09-10T07:50:00.000Z",
+      stripe_checkout_session_id: "cs_test_sum",
+      charged_rappen: 15000,
+      refund_rappen: 2000,
+    });
+    expect(row.capturedAt).toBe("2026-09-10T08:00:00.000Z");
+    expect(row.paid).toBe(true);
+    expect(row.totalRappen).toBe(15000);
+    expect(row.refundRappen).toBe(2000);
+    expect(row.klass).toBe("Business");
+    expect(row.vehicle).toBe("");
+    expect(row.stripeFeeRappen).toBeNull();
+  });
+
+  it("keeps unpaid requires_payment off income", () => {
+    const row = mapBoardBooking({
+      id: "44444444-4444-4444-4444-444444444444",
+      reference: "VT-26-0803",
+      status: "pending",
+      contact_name: "Ada",
+      contact_email: "ada@example.com",
+      contact_phone: "+41 79 000 00 00",
+      company_name: null,
+      note: null,
+      pay_link_sent_at: "2026-09-10T08:00:00.000Z",
+      pickup_text: "Zurich Airport (ZRH)",
+      dropoff_text: "Zurich city",
+      scheduled_local: "2026-09-24T15:50",
+      scheduled_at: "2026-09-24T15:50:00+00",
+      flight_no: null,
+      pax: 1,
+      bags: 0,
+      class_slug: "van",
+      chauffeur_name: null,
+      payment_status: "requires_payment",
+      captured_at: null,
+      payment_created_at: "2026-09-10T08:00:00.000Z",
+      stripe_checkout_session_id: "cs_test_open",
+      charged_rappen: 18000,
+    });
+    expect(row.paid).toBe(false);
+    expect(row.totalRappen).toBe(0);
+    expect(row.capturedAt).toBe("");
+    expect(row.klass).toBe("Van");
+    expect(row.vehicle).toBe("");
+  });
+
+  it("never emits Isolation names or VT-48 fixtures from the mapper", () => {
+    const src = read("apps/web/lib/ops/bookings-map.ts");
+    expect(src).not.toMatch(/Isolation/);
+    expect(src).not.toMatch(/VT-48/);
+    const row = mapBoardBooking({
+      id: "55555555-5555-5555-5555-555555555555",
+      reference: "VT-26-0804",
+      status: "pending",
+      contact_name: "Ada",
+      contact_email: "ada@example.com",
+      contact_phone: null,
+      company_name: null,
+      note: null,
+      pay_link_sent_at: null,
+      pickup_text: "ZRH",
+      dropoff_text: "Zurich",
+      scheduled_local: "2026-09-24T09:00",
+      scheduled_at: "2026-09-24T09:00:00+00",
+      flight_no: null,
+      pax: 1,
+      bags: 0,
+      class_slug: "economy",
+      chauffeur_name: null,
+      vehicle_plate: "ZH 12345",
+      vehicle_model: "E-Class",
+      payment_status: "succeeded",
+      captured_at: "2026-09-10T09:00:00.000Z",
+      payment_created_at: "2026-09-10T08:50:00.000Z",
+      stripe_checkout_session_id: "cs_test_plate",
+      charged_rappen: 8000,
+    });
+    expect(row.vehicle).toBe("ZH 12345 · E-Class");
+    expect(row.customer).not.toMatch(/Isolation/);
+    expect(row.id).not.toMatch(/VT-48/);
+  });
+
+  it("OpsDash has no chauffeur-pay placeholders and filters money by capturedAt", () => {
+    const dash = read("app/ops/OpsDash.dc.html");
+    expect(dash).not.toMatch(/Chauffeur pay/);
+    expect(dash).not.toMatch(/Fuel and tolls/);
+    expect(dash).not.toMatch(/Vehicle leasing/);
+    expect(dash).not.toMatch(/emptyBookings/);
+    expect(dash).not.toMatch(/VT-48/);
+    expect(dash).not.toMatch(/Isolation/);
+    expect(dash).toMatch(/capturedAt/);
+    expect(dash).toMatch(/zurichToday/);
+    expect(dash).not.toMatch(/href="#/);
+    expect(dash).not.toMatch(/href:'#/);
+    expect(dash).toMatch(/\/bookings\?filter=Unassigned/);
+    expect(dash).not.toMatch(/href=['"]\/support/);
+    expect(dash).not.toMatch(/staff\/tickets/);
+    expect(dash).toMatch(/Paid, no chauffeur yet/);
+    expect(dash).toMatch(/fareLabel/);
+  });
+
+  it("board stays empty without fixtures and reads the filter query", () => {
+    const board = read("app/ops/OpsBoard.dc.html");
+    const data = read("app/vamos-ops-data.js");
+    expect(board).not.toMatch(/emptyBookings/);
+    expect(board).not.toMatch(/VT-48/);
+    expect(board).not.toMatch(/Isolation/);
+    expect(board).not.toMatch(/cash confirmation/);
+    expect(board).toMatch(/function filterFromLocation/);
+    expect(board).toMatch(/VamosOps\.bookings\.all\(\)/);
+    expect(board).toMatch(/fareLabel\(r\.totalRappen\)/);
+    expect(data).not.toMatch(/function emptyBookings/);
+    expect(data).toMatch(/capturedAt: str\(b\.capturedAt\)/);
   });
 });
