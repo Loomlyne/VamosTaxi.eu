@@ -73,6 +73,31 @@
     var base = "/api/staff/" + name;
 
     var pollTimer = null;
+    var POLL_MS = 3000;
+    function schedulePoll() {
+      clearTimeout(pollTimer);
+      pollTimer = null;
+      if (name !== "bookings") return;
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      pollTimer = setTimeout(function () {
+        loaded = false;
+        hydrate();
+      }, POLL_MS);
+    }
+    function onVisible() {
+      if (name !== "bookings") return;
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") {
+        clearTimeout(pollTimer);
+        pollTimer = null;
+        return;
+      }
+      loaded = false;
+      hydrate();
+    }
+    if (name === "bookings" && typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", onVisible);
+      window.addEventListener("focus", onVisible);
+    }
     function hydrate() {
       if (pending || loaded) return;
       pending = true;
@@ -81,13 +106,7 @@
         loaded = true;
         list = pickRows(json, name).map(clean);
         emit(name);
-        if (name === "bookings") {
-          clearTimeout(pollTimer);
-          pollTimer = setTimeout(function () {
-            loaded = false;
-            hydrate();
-          }, 15000);
-        }
+        schedulePoll();
       });
     }
 
@@ -177,7 +196,7 @@
         });
         return previous.slice();
       },
-      reset: function () { list = []; loaded = false; pending = false; emit(name); hydrate(); return list.slice(); },
+      reset: function () { clearTimeout(pollTimer); pollTimer = null; list = []; loaded = false; pending = false; emit(name); hydrate(); return list.slice(); },
       onChange: function (fn) { return subscribe(name, fn); }
     };
   }
