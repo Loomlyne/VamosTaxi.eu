@@ -52,6 +52,8 @@ function pendingTicket(ref: string): VisibleBooking {
     subtotalRappen: null,
     priceTotalRappen: null,
     fareLines: [],
+    durationMin: null,
+    distanceKm: null,
     paidAt: null,
     paymentStatus: null,
   };

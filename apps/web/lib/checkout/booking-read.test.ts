@@ -2,11 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { hashManageToken, mintManageToken } from "./manage-token";
 
 const asGuest = vi.fn();
-const asSystem = vi.fn();
 
 vi.mock("../db/identity", () => ({
   asGuest: (...args: unknown[]) => asGuest(...args),
-  asSystem: (...args: unknown[]) => asSystem(...args),
 }));
 
 import {
@@ -27,7 +25,12 @@ function toHex(bytes: Uint8Array): string {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-function makeSql(bookings: unknown[], legs: unknown[] = [], snapshots: unknown[] = []) {
+function makeSql(
+  bookings: unknown[],
+  legs: unknown[] = [],
+  snapshots: unknown[] = [],
+  payments: unknown[] = [],
+) {
   const calls: QueryCall[] = [];
   const sql = async (strings: TemplateStringsArray, ...values: unknown[]) => {
     const text = strings.join(" ");
@@ -35,6 +38,7 @@ function makeSql(bookings: unknown[], legs: unknown[] = [], snapshots: unknown[]
     if (/from public\.bookings/i.test(text)) return bookings;
     if (/from public\.booking_legs/i.test(text)) return legs;
     if (/from public\.price_snapshots/i.test(text)) return snapshots;
+    if (/from public\.booking_payments/i.test(text)) return payments;
     return [];
   };
   return { sql, calls };
@@ -43,10 +47,6 @@ function makeSql(bookings: unknown[], legs: unknown[] = [], snapshots: unknown[]
 describe("readBookingForConfirmation / readBookingStatus", () => {
   beforeEach(() => {
     asGuest.mockReset();
-    asSystem.mockReset();
-    asSystem.mockImplementation(async () => {
-      throw new Error("no payment");
-    });
   });
 
   it("mints then hashes to the same 64-char hex GUC", async () => {
@@ -157,6 +157,8 @@ describe("readBookingForConfirmation / readBookingStatus", () => {
           discount_rappen: 0,
           subtotal_rappen: 10810,
           policy: { extras: ["child_seat"] },
+          duration_min: 16,
+          distance_km: "10.61",
         },
       ],
     );
@@ -185,6 +187,8 @@ describe("readBookingForConfirmation / readBookingStatus", () => {
       subtotalRappen: 10810,
       priceTotalRappen: 10810,
       fareLines: [{ code: "distance_fare", vehicleClass: "business", amountRappen: 10810 }],
+      durationMin: 16,
+      distanceKm: 10.61,
       paidAt: null,
       paymentStatus: null,
     });
@@ -216,23 +220,21 @@ describe("readBookingForConfirmation / readBookingStatus", () => {
           bags: 0,
         },
       ],
-      [{ id: "s1", lines: [], total_rappen: 10810 }],
+      [{ id: "s1", lines: [], total_rappen: 10810, duration_min: 16, distance_km: 10.61 }],
+      [{ status: "succeeded", captured_at: "2026-09-10T19:53:06.074Z", charged_rappen: 10810 }],
     );
     asGuest.mockImplementation(async (_env: CloudflareEnv, _hex: string, fn: (s: typeof sql) => unknown) =>
       fn(sql),
     );
-    asSystem.mockImplementation(async (_env: CloudflareEnv, fn: (s: unknown) => unknown) => {
-      const paySql = async () => [
-        { status: "succeeded", captured_at: "2026-09-10T19:53:06.074Z", charged_rappen: 10810 },
-      ];
-      return fn(paySql);
-    });
     const result = await readBookingForConfirmation(ENV, "token", REF);
     expect(result).toMatchObject({
       visible: true,
       paidAt: "2026-09-10T19:53:06.074Z",
       paymentStatus: "succeeded",
       priceTotalRappen: 10810,
+      durationMin: 16,
+      distanceKm: 10.61,
+      bags: 0,
     });
   });
 });

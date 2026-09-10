@@ -1,11 +1,41 @@
 import { describe, expect, it } from "vitest";
-import { couponOnReceipt, formatPaidAt, rappenToMajor } from "./confirmation-receipt";
+import {
+  addMinutesLocal,
+  couponOnReceipt,
+  extraRappenByCode,
+  extrasFromFareLines,
+  formatPaidAt,
+  formatTripDate,
+  formatTripTime,
+  rappenToMajor,
+} from "./confirmation-receipt";
 
 describe("confirmation receipt", () => {
   it("formats captured_at in Europe/Zurich", () => {
     const label = formatPaidAt("2026-09-10T19:53:06.074Z", "en");
     expect(label).toMatch(/2026/);
     expect(label).toMatch(/21:53/);
+  });
+
+  it("parses a postgres timestamptz with a space", () => {
+    const label = formatPaidAt("2026-09-10 19:53:06.074108+00", "en");
+    expect(label).toMatch(/21:53/);
+  });
+
+  it("formats the pickup wall clock without shifting timezone", () => {
+    expect(formatTripDate("2026-09-11T00:55", "en")).toMatch(/11/);
+    expect(formatTripDate("2026-09-11T00:55", "en")).toMatch(/Sep/);
+    expect(formatTripTime("2026-09-11T00:55")).toBe("00:55");
+    expect(addMinutesLocal("2026-09-11T00:55", 16)).toBe("01:11");
+  });
+
+  it("reads extra codes and amounts from fare lines", () => {
+    const lines = [
+      { code: "distance_fare", vehicleClass: "business", amountRappen: 10810 },
+      { code: "child_seat", vehicleClass: "", amountRappen: 2162 },
+    ];
+    expect(extrasFromFareLines(lines)).toEqual(["child_seat"]);
+    expect(extraRappenByCode(lines).child_seat).toBe(2162);
   });
 
   it("omits a coupon with no discount", () => {

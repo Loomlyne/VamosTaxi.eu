@@ -112,6 +112,10 @@ describe("extrasFromPolicy", () => {
       "oversized_luggage",
       "extra_stop",
     ]);
+    expect(extrasFromPolicy({ extras: { child_seats: 1, oversized_luggage: true } })).toEqual([
+      "child_seat",
+      "oversized_luggage",
+    ]);
     expect(extrasFromPolicy(null)).toEqual([]);
   });
 });

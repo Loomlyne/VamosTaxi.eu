@@ -13,11 +13,16 @@ import type { PriceLine } from "@/components/transfer/PriceSummary";
 import { useBookingDraft } from "@/lib/booking-draft";
 import { PHONE_DISPLAY, PHONE_HREF, WHATSAPP_HREF } from "@/lib/contact-channels";
 import {
+  addMinutesLocal,
   couponOnReceipt,
+  extraRappenByCode,
   extrasOnReceipt,
   formatPaidAt,
+  formatTripDate,
+  formatTripTime,
   rappenToMajor,
 } from "@/lib/checkout/confirmation-receipt";
+import { formatAmount } from "@/lib/currency";
 import {
   isCapturedPayment,
   isFailedPayment,
@@ -62,6 +67,8 @@ export type ConfirmationFacts = {
   subtotalRappen?: number | null;
   priceTotalRappen?: number | null;
   fareLines?: import("@/lib/checkout/booking-read").ConfirmationFareLine[];
+  durationMin?: number | null;
+  distanceKm?: number | null;
   paidAt?: string | null;
   paymentStatus?: string | null;
 };
@@ -194,8 +201,12 @@ export function ConfirmationClient({
   const scheduled = booking?.scheduledLocal
     ? wallTime(booking.scheduledLocal)
     : { date: draft.date, time: draft.time };
+  const dateLabel = booking?.scheduledLocal
+    ? formatTripDate(booking.scheduledLocal, locale)
+    : scheduled.date;
+  const timeLabel = booking?.scheduledLocal ? formatTripTime(booking.scheduledLocal) : scheduled.time;
   const pax = booking && booking.pax > 0 ? booking.pax : draft.passengers;
-  const bags = booking && booking.bags != null && booking.bags > 0 ? booking.bags : 0;
+  const bags = booking && booking.bags != null ? booking.bags : 0;
   const flightNo = (booking?.flightNo || "").trim();
   const extras = extrasOnReceipt(booking?.extras);
   const extraLabel: Record<string, "childSeat" | "extraOversized" | "extraStop"> = {
@@ -203,6 +214,13 @@ export function ConfirmationClient({
     oversized_luggage: "extraOversized",
     extra_stop: "extraStop",
   };
+  const durationMin = booking?.durationMin != null && booking.durationMin > 0 ? booking.durationMin : null;
+  const arriveLabel =
+    booking?.scheduledLocal && durationMin != null ? addMinutesLocal(booking.scheduledLocal, durationMin) : "";
+  const distanceKm =
+    booking?.distanceKm != null && Number.isFinite(booking.distanceKm)
+      ? Math.round(booking.distanceKm * 10) / 10
+      : null;
 
   if (phase === "hidden") {
     return (
@@ -275,8 +293,11 @@ export function ConfirmationClient({
   const contactName = (booking?.contactName || "").trim();
   const contactEmail = (booking?.contactEmail || "").trim();
   const contactPhone = (booking?.contactPhone || "").trim();
+  const extraRappen = extraRappenByCode(fareLines);
   const paidAtLabel = booking?.paidAt ? formatPaidAt(booking.paidAt, locale) : "";
-  const showCard = Boolean(paidAtLabel || isCapturedPayment(booking?.paymentStatus ?? ""));
+  const showCard = Boolean(
+    paidAtLabel || isCapturedPayment(booking?.paymentStatus ?? "") || !waiting,
+  );
 
   return (
     <main
@@ -309,18 +330,33 @@ export function ConfirmationClient({
           pickup={pickup}
           dropoff={dropoff}
           meta={[
-            { icon: "calendar", label: <span className="vt-dir-keep">{scheduled.date}</span> },
+            { icon: "calendar", label: <span className="vt-dir-keep">{dateLabel}</span> },
             {
               icon: "clock",
               label: (
                 <span className="vt-dir-keep">
-                  {t("pickupAt", { time: scheduled.time || scheduled.date })}
+                  {t("pickupAt", { time: timeLabel || dateLabel })}
                 </span>
               ),
             },
+            ...(arriveLabel
+              ? [
+                  {
+                    icon: "navigation" as const,
+                    label: (
+                      <span className="vt-dir-keep" data-confirmation-arrive>
+                        {t("arriveBy", { time: arriveLabel })}
+                      </span>
+                    ),
+                  },
+                ]
+              : []),
             { icon: "users", label: t("passengersCount", { n: pax }) },
+            {
+              icon: "luggage",
+              label: <span data-confirmation-bags>{tCommon("bagsCount", { n: bags })}</span>,
+            },
             { icon: "car", label: vehicleLabel },
-            ...(bags > 0 ? [{ icon: "luggage" as const, label: t("upToBagsCount", { n: bags }) }] : []),
             ...(flightNo
               ? [{ icon: "plane" as const, label: <span className="vt-dir-keep">{flightNo}</span> }]
               : []),
@@ -344,14 +380,67 @@ export function ConfirmationClient({
           totalLabel={t("paid")}
           note={totalMajor == null ? t("pricePlaceholderNote") : undefined}
         />
-        {extras.length || coupon || contactName || contactEmail || contactPhone || showCard || paidAtLabel ? (
         <dl className="vt-confirmation__receipt" data-confirmation-receipt>
-          {extras.map((code) => (
-            <div className="vt-confirmation__receipt-row" key={code}>
-              <dt>{t("extras")}</dt>
-              <dd data-confirmation-receipt-extra={code}>{t(extraLabel[code] ?? "childSeat")}</dd>
+          <div className="vt-confirmation__receipt-row">
+            <dt>{t("bookingPrefix")}</dt>
+            <dd className="vt-dir-keep">{reference}</dd>
+          </div>
+          {dateLabel ? (
+            <div className="vt-confirmation__receipt-row">
+              <dt>{t("tripDate")}</dt>
+              <dd className="vt-dir-keep">{dateLabel}</dd>
             </div>
-          ))}
+          ) : null}
+          {timeLabel ? (
+            <div className="vt-confirmation__receipt-row">
+              <dt>{t("tripPickup")}</dt>
+              <dd className="vt-dir-keep">{timeLabel}</dd>
+            </div>
+          ) : null}
+          {arriveLabel ? (
+            <div className="vt-confirmation__receipt-row">
+              <dt>{t("tripArrive")}</dt>
+              <dd className="vt-dir-keep">{arriveLabel}</dd>
+            </div>
+          ) : null}
+          {durationMin != null ? (
+            <div className="vt-confirmation__receipt-row">
+              <dt>{t("tripDuration")}</dt>
+              <dd className="vt-dir-keep">{t("durationMinutes", { n: durationMin })}</dd>
+            </div>
+          ) : null}
+          {distanceKm != null ? (
+            <div className="vt-confirmation__receipt-row">
+              <dt>{t("tripDistance")}</dt>
+              <dd className="vt-dir-keep">{t("distanceKm", { km: distanceKm })}</dd>
+            </div>
+          ) : null}
+          <div className="vt-confirmation__receipt-row">
+            <dt>{t("who-is-travelling")}</dt>
+            <dd>{t("passengersCount", { n: pax })}</dd>
+          </div>
+          <div className="vt-confirmation__receipt-row">
+            <dt>{tCommon("bags-2")}</dt>
+            <dd data-confirmation-receipt-bags>{tCommon("bagsCount", { n: bags })}</dd>
+          </div>
+          {extras.map((code) => {
+            const rappen = extraRappen[code];
+            const amount = rappenToMajor(rappen ?? null);
+            return (
+              <div className="vt-confirmation__receipt-row" key={code}>
+                <dt>{t("extras")}</dt>
+                <dd data-confirmation-receipt-extra={code}>
+                  {t(extraLabel[code] ?? "childSeat")}
+                  {amount != null ? (
+                    <>
+                      {" "}
+                      <span className="vt-dir-keep">{formatAmount(amount)}</span>
+                    </>
+                  ) : null}
+                </dd>
+              </div>
+            );
+          })}
           {coupon ? (
             <div className="vt-confirmation__receipt-row">
               <dt>{t("couponUsed")}</dt>
@@ -381,7 +470,7 @@ export function ConfirmationClient({
           {showCard ? (
             <div className="vt-confirmation__receipt-row">
               <dt>{t("payment")}</dt>
-              <dd>{t("paidWithCard")}</dd>
+              <dd data-confirmation-paid-with>{t("paidWithCard")}</dd>
             </div>
           ) : null}
           {paidAtLabel ? (
@@ -393,7 +482,6 @@ export function ConfirmationClient({
             </div>
           ) : null}
         </dl>
-        ) : null}
       </Card>
 
       <div className="vt-confirmation__actions">

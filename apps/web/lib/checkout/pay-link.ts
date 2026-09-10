@@ -56,6 +56,9 @@ const EXTRA_CODES: Record<PayLinkExtraCode, true> = {
 export function extrasFromPolicy(policy: unknown): PayLinkExtraCode[] {
   if (!policy || typeof policy !== "object") return [];
   const raw = (policy as { extras?: unknown }).extras;
+  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+    return payLinkExtras(raw as QuoteLockExtras);
+  }
   if (!Array.isArray(raw)) return [];
   const out: PayLinkExtraCode[] = [];
   for (const item of raw) {

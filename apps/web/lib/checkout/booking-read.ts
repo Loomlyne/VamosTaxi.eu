@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import type { PayLinkExtraCode } from "@vamos/emails/confirmation";
-import { asCustomer, asGuest, asSystem, type VamosClaims } from "../db/identity";
+import { asCustomer, asGuest, type VamosClaims } from "../db/identity";
 import { hashManageToken } from "./manage-token";
 import { extrasFromPolicy } from "./pay-link";
 import { BOOKING_REFERENCE_RE } from "./booking-status";
@@ -75,6 +75,8 @@ export const SNAPSHOT_COLUMNS = [
   "total_rappen",
   "currency",
   "coupon_code",
+  "duration_min",
+  "distance_km",
 ] as const;
 
 export type ConfirmationFareLine = {
@@ -106,6 +108,8 @@ export type VisibleBooking = {
   subtotalRappen: number | null;
   priceTotalRappen: number | null;
   fareLines: ConfirmationFareLine[];
+  durationMin: number | null;
+  distanceKm: number | null;
   paidAt: string | null;
   paymentStatus: string | null;
 };
@@ -133,6 +137,14 @@ type SnapshotRow = {
   subtotal_rappen?: number | string | null;
   discount_rappen?: number | string | null;
   coupon_code?: string | null;
+  duration_min?: number | string | null;
+  distance_km?: number | string | null;
+};
+
+type PaymentRow = {
+  status?: string | null;
+  captured_at?: unknown;
+  charged_rappen?: number | string | null;
 };
 
 type LegRow = {
@@ -177,6 +189,30 @@ function asText(value: unknown): string {
   if (typeof value === "string") return value;
   if (value == null) return "";
   return String(value);
+}
+
+function kmOrNull(value: unknown): number | null {
+  if (value === undefined || value === null || value === "") return null;
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < 0) return null;
+  return n;
+}
+
+function capturedAtIso(value: unknown): string | null {
+  if (value instanceof Date) return value.toISOString();
+  if (typeof value === "string" && value.trim()) return value.trim();
+  return null;
+}
+
+function mergeExtraCodes(policy: PayLinkExtraCode[], lines: ConfirmationFareLine[]): PayLinkExtraCode[] {
+  const out = [...policy];
+  for (const line of lines) {
+    if (line.code !== "child_seat" && line.code !== "oversized_luggage" && line.code !== "extra_stop") {
+      continue;
+    }
+    if (!out.includes(line.code)) out.push(line.code);
+  }
+  return out;
 }
 
 function firstLeg(rows: LegRow[]): {
@@ -275,16 +311,28 @@ async function selectVisibleBooking(sql: SqlTag, reference: string): Promise<Vis
       discount_rappen,
       total_rappen,
       currency,
-      coupon_code
+      coupon_code,
+      duration_min,
+      distance_km
     from public.price_snapshots
     where booking_id = ${booking.id}
     order by computed_at desc nulls last
     limit 1
   `) as unknown as SnapshotRow[];
-  const extras = extrasFromPolicy(snaps[0]?.policy);
+  const payments = (await sql`
+    select status, captured_at, charged_rappen
+    from public.booking_payments
+    where booking_id = ${booking.id}
+    order by captured_at desc nulls last, created_at desc
+    limit 1
+  `) as unknown as PaymentRow[];
   const fareLines = parseFareLines(snaps[0]?.lines);
+  const extras = mergeExtraCodes(extrasFromPolicy(snaps[0]?.policy), fareLines);
+  const payment = payments[0];
   const priceTotalRappen =
-    rappenOrNull(booking.price_total_rappen) ?? rappenOrNull(snaps[0]?.total_rappen);
+    rappenOrNull(booking.price_total_rappen) ??
+    rappenOrNull(snaps[0]?.total_rappen) ??
+    rappenOrNull(payment?.charged_rappen);
   const vehicleClassSlug = fareLines[0]?.vehicleClass ?? "";
   const couponCode = asText(snaps[0]?.coupon_code).trim() || null;
   const leg = firstLeg(legs);
@@ -309,8 +357,10 @@ async function selectVisibleBooking(sql: SqlTag, reference: string): Promise<Vis
     subtotalRappen: rappenOrNull(snaps[0]?.subtotal_rappen),
     priceTotalRappen,
     fareLines,
-    paidAt: null,
-    paymentStatus: null,
+    durationMin: rappenOrNull(snaps[0]?.duration_min),
+    distanceKm: kmOrNull(snaps[0]?.distance_km),
+    paidAt: capturedAtIso(payment?.captured_at),
+    paymentStatus: typeof payment?.status === "string" ? payment.status : null,
   };
 }
 
@@ -333,48 +383,6 @@ async function loadCustomerBooking(
   return asCustomer(env, claims, async (sql) => selectVisibleBooking(sql, reference));
 }
 
-async function readLatestPayment(
-  env: CloudflareEnv,
-  reference: string,
-): Promise<{ status: string | null; capturedAt: string | null; chargedRappen: number | null }> {
-  const empty = { status: null, capturedAt: null, chargedRappen: null };
-  try {
-    const rows = await asSystem(env, async (sql) => {
-      return sql`
-        select bp.status, bp.captured_at, bp.charged_rappen
-        from public.booking_payments bp
-        inner join public.bookings b on b.id = bp.booking_id
-        where b.reference = ${reference}
-        order by bp.captured_at desc nulls last, bp.created_at desc
-        limit 1
-      `;
-    });
-    const row = rows[0] && typeof rows[0] === "object" ? (rows[0] as Record<string, unknown>) : null;
-    if (!row) return empty;
-    const status = typeof row.status === "string" ? row.status : null;
-    const capturedRaw = row.captured_at;
-    const capturedAt =
-      capturedRaw instanceof Date
-        ? capturedRaw.toISOString()
-        : typeof capturedRaw === "string"
-          ? capturedRaw
-          : null;
-    return { status, capturedAt, chargedRappen: rappenOrNull(row.charged_rappen) };
-  } catch {
-    return empty;
-  }
-}
-
-async function withPayment(env: CloudflareEnv, row: VisibleBooking): Promise<VisibleBooking> {
-  const payment = await readLatestPayment(env, row.reference);
-  return {
-    ...row,
-    paidAt: payment.capturedAt,
-    paymentStatus: payment.status,
-    priceTotalRappen: row.priceTotalRappen ?? payment.chargedRappen,
-  };
-}
-
 export async function readBookingForConfirmation(
   env: CloudflareEnv,
   rawCookie: string,
@@ -382,10 +390,10 @@ export async function readBookingForConfirmation(
   claims?: VamosClaims | null,
 ): Promise<BookingRead> {
   const guest = await loadGuestBooking(env, rawCookie, reference);
-  if (guest) return withPayment(env, guest);
+  if (guest) return guest;
   if (claims) {
     const own = await loadCustomerBooking(env, claims, reference);
-    if (own) return withPayment(env, own);
+    if (own) return own;
   }
   return HIDDEN;
 }
