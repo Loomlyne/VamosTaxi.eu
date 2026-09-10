@@ -4,30 +4,27 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ops · Support</title>
-<!-- vt-support-c44 -->
+<!-- vt-support-c42 -->
 <script src="../support.js"></script>
 </head>
 <body>
 <x-dc>
 <style>
-[data-kb]{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;min-width:0;overflow:hidden;align-items:start;padding-block-end:4px}
-[data-kb-col]{box-sizing:border-box;width:auto;min-width:0;padding:12px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);display:flex;flex-direction:column;gap:10px;min-block-size:280px}
+[data-kb]{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;min-width:0;overflow:hidden;align-items:start;padding-block-end:4px}
+[data-kb-col]{box-sizing:border-box;width:auto;min-width:0;padding:12px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);display:flex;flex-direction:column;gap:10px;min-block-size:280px;transition:border-color 160ms cubic-bezier(.2,0,.2,1),background 160ms cubic-bezier(.2,0,.2,1),box-shadow 160ms cubic-bezier(.2,0,.2,1)}
+[data-kb-col][data-over="1"]{border:2px dashed var(--vt-charcoal-900);padding:11px;background:var(--vt-grey-50);box-shadow:inset 0 0 0 1px var(--vt-charcoal-900)}
 [data-kb-hd]{display:flex;align-items:center;justify-content:space-between;gap:8px}
-[data-kb-sort]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:6px;cursor:pointer;color:inherit;font:inherit}
 [data-kb-count]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);color:var(--vt-text-muted)}
-[data-kb-card]{box-sizing:border-box;display:flex;align-items:flex-start;gap:8px;padding:12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-bg-page,var(--vt-grey-50));cursor:pointer;min-width:0;overflow:hidden;transition:box-shadow 160ms cubic-bezier(.2,0,.2,1),border-color 160ms cubic-bezier(.2,0,.2,1)}
+[data-kb-card]{box-sizing:border-box;display:flex;align-items:flex-start;gap:8px;padding:12px 12px 12px 8px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-bg-page,var(--vt-grey-50));cursor:grab;transition:transform 160ms cubic-bezier(.2,0,.2,1),box-shadow 160ms cubic-bezier(.2,0,.2,1),opacity 160ms cubic-bezier(.2,0,.2,1),border-color 160ms cubic-bezier(.2,0,.2,1)}
 [data-kb-card]:hover{border-color:var(--vt-charcoal-900)}
 [data-kb-card][data-sel="1"]{border-color:var(--vt-charcoal-900)}
-[data-kb-body]{all:unset;box-sizing:border-box;flex:1 1 auto;min-width:0;max-width:100%;display:flex;flex-direction:column;gap:8px;cursor:pointer;text-align:start;font:inherit;color:inherit;overflow:hidden}
-[data-kb-head]{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;min-width:0}
-[data-kb-head] strong{font-size:var(--vt-body-md);font-weight:600;min-width:0;flex:0 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-[data-kb-head] [data-chip]{flex:0 0 auto;max-width:100%}
-[data-meta]{display:flex;flex-direction:column;gap:2px;min-width:0}
-[data-kb-mail]{min-width:0;overflow-wrap:anywhere;word-break:break-word;font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
-[data-kb-when]{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
+[data-kb-card][data-dragging="1"]{opacity:.45;transform:rotate(1.5deg) scale(.97);box-shadow:var(--vt-shadow-sm);cursor:grabbing}
+[data-kb-card] [data-grip]{margin-top:2px;color:var(--vt-text-muted);cursor:grab}
+[data-kb-card]:hover [data-grip]{color:var(--vt-charcoal-900)}
+[data-kb-body]{all:unset;box-sizing:border-box;flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:8px;cursor:pointer;text-align:start;font:inherit;color:inherit}
 [data-kb-empty]{margin:0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
-[data-load-err]{margin:0;padding:12px 14px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-bg-page,var(--vt-grey-50));font-size:var(--vt-body-sm);color:var(--vt-text-primary)}
-[data-ov-err]{margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-primary)}
+[data-kb-drop]{display:none;align-items:center;justify-content:center;min-block-size:64px;padding:10px;border:1px dashed var(--vt-charcoal-900);border-radius:var(--vt-radius-md);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)}
+[data-kb-col][data-over="1"] [data-kb-drop]{display:flex}
 [data-person]{display:grid;grid-template-columns:48px minmax(0,1fr) max-content;gap:8px 12px;align-items:start;padding:14px 16px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);box-shadow:none}
 [data-person] [data-av]{width:48px;height:48px;font-size:16px;grid-row:1 / span 2}
 [data-person-id]{min-width:0;overflow:hidden;display:flex;flex-direction:column;gap:2px}
@@ -84,6 +81,10 @@
 [data-vt-filt]{display:block;min-width:0;flex:0 0 auto}
 [data-tbl-scroll]{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;min-width:0}
 [data-tbl-scroll] .vt-tablewrap{min-width:640px}
+@media (max-width:767px){
+  [data-kb]{grid-template-columns:repeat(4,220px);overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+  [data-kb-col]{width:220px;min-width:220px}
+}
 @media (max-width:720px){
   [data-search] .vt-input{min-block-size:36px}
 }
@@ -109,10 +110,11 @@
   [data-person-tel]{display:none!important}
 }
 @media (prefers-reduced-motion: reduce){
-  [data-kb-card]{transition:none}
+  [data-kb-col],[data-kb-card]{transition:none}
+  [data-kb-card][data-dragging="1"]{transform:none}
 }
 </style>
-<main data-vt-support="c44" style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
+<main data-vt-support="c42" style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
 
 <header style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle)">
 <div style="min-width:0">
@@ -148,32 +150,38 @@
 </div>
 </div>
 
-<sc-if value="{{ loadError }}" hint-placeholder-val="{{ false }}">
-<p data-load-err="1">{{ tLoadError }}</p>
+<sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+<div data-empty="1">
+<strong style="font-family:var(--vt-font-display);font-size:var(--vt-heading-4)">{{ tEmptyTitle }}</strong>
+<p data-hint="1">{{ tEmptyBody }}</p>
+</div>
 </sc-if>
 
 <sc-if value="{{ showKanban }}" hint-placeholder-val="{{ true }}">
 <div data-kb="1" data-scroll-native="1">
-<sc-for list="{{ columns }}" as="col" hint-placeholder-count="5">
-<div data-kb-col="1" data-status="{{ col.status }}">
+<sc-for list="{{ columns }}" as="col" hint-placeholder-count="4">
+<div data-kb-col="1" data-status="{{ col.status }}" data-over="{{ col.over }}">
 <div data-kb-hd="1">
 <strong style="font-size:var(--vt-body-sm);font-weight:600">{{ col.label }}</strong>
-<button type="button" data-kb-sort="1" onClick="{{ col.sort }}">
 <span data-kb-count="1">{{ col.count }}</span>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ col.sortIcon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
-</button>
 </div>
+<div data-kb-drop="1">{{ tDropHere }}</div>
 <sc-for list="{{ col.cards }}" as="r" hint-placeholder-count="1">
-<div data-kb-card="1" data-id="{{ r.id }}" data-sel="{{ r.sel }}">
+<div data-kb-card="1" data-id="{{ r.id }}" data-sel="{{ r.sel }}" data-dragging="{{ r.dragging }}" draggable="true">
+<button type="button" data-grip="1" tabindex="-1" aria-hidden="true">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="grip-vertical" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+</button>
 <button type="button" data-kb-body="1" onClick="{{ r.open }}">
-<div data-kb-head="1">
-<strong data-vt-no-i18n="1">{{ r.name }}</strong>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px">
+<strong data-vt-no-i18n="1" style="font-size:var(--vt-body-md);font-weight:600">{{ r.name }}</strong>
+<span data-chip="1">{{ r.statusLabel }}</span>
 <span data-chip="1" data-vt-no-i18n="1" style="display:{{ r.refShow }}">{{ r.bookingRef }}</span>
-<span data-chip="1" data-vt-no-i18n="1" style="display:{{ r.localeShow }}">{{ r.locale }}</span>
+<span data-chip="1" data-vt-no-i18n="1">{{ r.locale }}</span>
 </div>
+<p data-quote="1" data-vt-no-i18n="1">{{ r.preview }}</p>
 <div data-meta="1">
-<span data-kb-mail="1" data-vt-no-i18n="1">{{ r.email }}</span>
-<span data-kb-when="1">{{ r.when }}</span>
+<span data-vt-no-i18n="1">{{ r.email }}</span>
+<span>{{ r.when }}</span>
 </div>
 </button>
 </div>
@@ -207,9 +215,6 @@
 </sc-for>
 </div>
 <div data-ov-foot="1">
-<sc-if value="{{ overlayError }}" hint-placeholder-val="{{ false }}">
-<p data-ov-err="1">{{ tLoadError }}</p>
-</sc-if>
 <sc-if value="{{ canReply }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ tReply }}" rows="{{ nReply }}" value="{{ draft }}" onChange="{{ setDraft }}" placeholder="{{ tReplyPh }}" hint-size="100%,72px"></x-import>
 </sc-if>
@@ -218,9 +223,6 @@
 </sc-if>
 <div data-ov-actions="1">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" onClick="{{ closeTicket }}" hint-size="160px,44px">{{ tCloseTicket }}</x-import>
-<sc-if value="{{ isClosed }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ reopenTicket }}" hint-size="120px,44px">{{ tReopen }}</x-import>
-</sc-if>
 <sc-if value="{{ canReply }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" icon="mail" disabled="{{ sendOff }}" onClick="{{ sendReply }}" hint-size="120px,44px">{{ tSend }}</x-import>
 </sc-if>
@@ -241,7 +243,7 @@
 </div>
 <div data-person-tools="1">
 <div data-status-top="1">
-<span data-chip="1">{{ openStatusLabel }}</span>
+<dc-import name="BrandSelect" icon="mail" value="{{ openStatus }}" options="{{ statusOptions }}" onSelect="{{ setStatus }}" a11y-label="{{ tStatus }}" hint-size="140px,36px"></dc-import>
 </div>
 <sc-if value="{{ showMetaToggle }}" hint-placeholder-val="{{ false }}">
 <div data-meta-toggle="1">
@@ -302,60 +304,59 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900}}">
 /* Support board hydrates from GET /api/staff/tickets. No fixture rows. */
-const STATUSES = ['new', 'open', 'replied', 'responded', 'closed'];
-const SORT_NEWEST = { new: true, open: true, replied: true, responded: true, closed: true };
+const STATUSES = ['new', 'open', 'replied', 'closed'];
 const T = {
   en: { title:'Support', subtitle:'Contact messages, as tickets',
-    all:'All', new:'New', open:'Open', replied:'Replied', responded:'Responded', closed:'Closed',
+    all:'All', new:'New', open:'Open', replied:'Replied', closed:'Closed',
     emptyTitle:'No tickets', emptyBody:'Contact-page messages land here.', colEmpty:'No tickets',
-    status:'Status', close:'Close', closeTicket:'Close Ticket', reopen:'Reopen', customer:'Customer', staff:'Dispatcher', noteWho:'Note',
-    kanban:'Kanban', table:'Table', colName:'Customer', colEmail:'Email', colPhone:'Phone', colRef:'Ref', colWhen:'When', colLocale:'Locale',
-    reply:'Reply', replyPh:'Write a reply…', send:'Send', closedBody:'This ticket is closed. Reopen it to keep working.',
-    loadError:'Could not load tickets. Try again.',
+    status:'Status', close:'Close', closeTicket:'Close Ticket', customer:'Customer', staff:'Dispatcher', noteWho:'Note',
+    kanban:'Kanban', table:'Table', colName:'Customer', colEmail:'Email', colRef:'Ref', colWhen:'When', colLocale:'Locale',
+    reply:'Reply', replyPh:'Write a reply…', send:'Send', closedBody:'Closed, already solved. Inbound does not reopen this ticket.',
     footNew:'Waiting on dispatch', footOpen:'In progress', footMsgs:'Across every ticket', footAll:'On the board',
     cntMsgs:'Messages', cntAll:'Tickets', msgCount:'%n messages',
+    dragHint:'Drag the grip to move a ticket. Drop it on a column.', dropHere:'Drop here',
     ticket:'Ticket', channel:'Channel', channelForm:'Contact form', opened:'Opened', lastAct:'Last activity',
     booking:'Booking', bookingPh:'VT-0000', noBooking:'No booking linked', msgs:'Messages', mail:'Email', call:'Call', whatsApp:'WhatsApp',
     phone:'Phone', phonePh:'+41 79 000 00 00', note:'Note', notePh:'Add a detail…',
     searchPh:'Name, email, ref, or message', filter:'Filter', view:'View',
     expand:'Expand', collapse:'Collapse', saveNote:'Save note' },
   de: { title:'Support', subtitle:'Kontaktnachrichten als Tickets',
-    all:'Alle', new:'Neu', open:'Offen', replied:'Beantwortet', responded:'Kundenantwort', closed:'Geschlossen',
+    all:'Alle', new:'Neu', open:'Offen', replied:'Beantwortet', closed:'Geschlossen',
     emptyTitle:'Keine Tickets', emptyBody:'Nichts in diesem Filter.', colEmpty:'Keine Tickets',
-    status:'Status', close:'Schliessen', closeTicket:'Ticket schliessen', reopen:'Wieder öffnen', customer:'Kunde', staff:'Disponent', noteWho:'Notiz',
-    kanban:'Kanban', table:'Tabelle', colName:'Kunde', colEmail:'E-Mail', colPhone:'Telefon', colRef:'Ref.', colWhen:'Wann', colLocale:'Sprache',
-    reply:'Antwort', replyPh:'Antwort schreiben…', send:'Senden', closedBody:'Dieses Ticket ist geschlossen. Öffnen Sie es erneut, um weiterzuarbeiten.',
-    loadError:'Tickets konnten nicht geladen werden. Bitte erneut versuchen.',
+    status:'Status', close:'Schliessen', closeTicket:'Ticket schliessen', customer:'Kunde', staff:'Disponent', noteWho:'Notiz',
+    kanban:'Kanban', table:'Tabelle', colName:'Kunde', colEmail:'E-Mail', colRef:'Ref.', colWhen:'Wann', colLocale:'Sprache',
+    reply:'Antwort', replyPh:'Antwort schreiben…', send:'Senden', closedBody:'Geschlossen, bereits gelöst. Eingang öffnet dieses Ticket nicht erneut.',
     footNew:'Wartet auf Dispatch', footOpen:'In Bearbeitung', footMsgs:'Über alle Tickets', footAll:'Auf dem Board',
     cntMsgs:'Nachrichten', cntAll:'Tickets', msgCount:'%n Nachrichten',
+    dragHint:'Am Griff ziehen und auf eine Spalte legen.', dropHere:'Hier ablegen',
     ticket:'Ticket', channel:'Kanal', channelForm:'Kontaktformular', opened:'Geöffnet', lastAct:'Letzte Aktivität',
     booking:'Buchung', bookingPh:'VT-0000', noBooking:'Keine Buchung verknüpft', msgs:'Nachrichten', mail:'E-Mail', call:'Anrufen', whatsApp:'WhatsApp',
     phone:'Telefon', phonePh:'+41 79 000 00 00', note:'Notiz', notePh:'Detail hinzufügen…',
     searchPh:'Name, E-Mail, Ref. oder Nachricht', filter:'Filter', view:'Ansicht',
     expand:'Aufklappen', collapse:'Zuklappen', saveNote:'Notiz speichern' },
   fr: { title:'Assistance', subtitle:'Messages de contact, en tickets',
-    all:'Tous', new:'Nouveau', open:'Ouvert', replied:'Répondu', responded:'Réponse client', closed:'Fermé',
+    all:'Tous', new:'Nouveau', open:'Ouvert', replied:'Répondu', closed:'Fermé',
     emptyTitle:'Aucun ticket', emptyBody:'Rien dans ce filtre.', colEmpty:'Aucun ticket',
-    status:'Statut', close:'Fermer', closeTicket:'Fermer le ticket', reopen:'Réouvrir', customer:'Client', staff:'Régulateur', noteWho:'Note',
-    kanban:'Kanban', table:'Tableau', colName:'Client', colEmail:'E-mail', colPhone:'Téléphone', colRef:'Réf.', colWhen:'Quand', colLocale:'Langue',
-    reply:'Réponse', replyPh:'Écrire une réponse…', send:'Envoyer', closedBody:'Ce ticket est fermé. Réouvrez-le pour continuer.',
-    loadError:'Impossible de charger les tickets. Réessayez.',
+    status:'Statut', close:'Fermer', closeTicket:'Fermer le ticket', customer:'Client', staff:'Régulateur', noteWho:'Note',
+    kanban:'Kanban', table:'Tableau', colName:'Client', colEmail:'E-mail', colRef:'Réf.', colWhen:'Quand', colLocale:'Langue',
+    reply:'Réponse', replyPh:'Écrire une réponse…', send:'Envoyer', closedBody:'Fermé, déjà résolu. Un inbound ne rouvre pas ce ticket.',
     footNew:'En attente dispatch', footOpen:'En cours', footMsgs:'Tous tickets confondus', footAll:'Sur le tableau',
     cntMsgs:'Messages', cntAll:'Tickets', msgCount:'%n messages',
+    dragHint:'Glissez la poignée vers une colonne.', dropHere:'Déposer ici',
     ticket:'Ticket', channel:'Canal', channelForm:'Formulaire de contact', opened:'Ouvert le', lastAct:'Dernière activité',
     booking:'Réservation', bookingPh:'VT-0000', noBooking:'Aucune réservation liée', msgs:'Messages', mail:'E-mail', call:'Appeler', whatsApp:'WhatsApp',
     phone:'Téléphone', phonePh:'+41 79 000 00 00', note:'Note', notePh:'Ajouter un détail…',
     searchPh:'Nom, e-mail, réf. ou message', filter:'Filtrer',
     expand:'Déplier', collapse:'Replier', saveNote:'Enregistrer la note', view:'Vue' },
   ar: { title:'الدعم', subtitle:'رسائل التواصل كتذاكر',
-    all:'الكل', new:'جديد', open:'مفتوح', replied:'تم الرد', responded:'رد العميل', closed:'مغلق',
+    all:'الكل', new:'جديد', open:'مفتوح', replied:'تم الرد', closed:'مغلق',
     emptyTitle:'لا تذاكر', emptyBody:'لا شيء في هذا التصفية.', colEmpty:'لا تذاكر',
-    status:'الحالة', close:'إغلاق', closeTicket:'إغلاق التذكرة', reopen:'إعادة الفتح', customer:'العميل', staff:'الموزّع', noteWho:'ملاحظة',
-    kanban:'كانبان', table:'جدول', colName:'العميل', colEmail:'البريد', colPhone:'الهاتف', colRef:'المرجع', colWhen:'متى', colLocale:'اللغة',
-    reply:'رد', replyPh:'اكتب رداً…', send:'إرسال', closedBody:'هذه التذكرة مغلقة. أعد فتحها للمتابعة.',
-    loadError:'تعذر تحميل التذاكر. حاول مرة أخرى.',
+    status:'الحالة', close:'إغلاق', closeTicket:'إغلاق التذكرة', customer:'العميل', staff:'الموزّع', noteWho:'ملاحظة',
+    kanban:'كانبان', table:'جدول', colName:'العميل', colEmail:'البريد', colRef:'المرجع', colWhen:'متى', colLocale:'اللغة',
+    reply:'رد', replyPh:'اكتب رداً…', send:'إرسال', closedBody:'مغلق، تم الحل. الوارد لا يعيد فتح هذه التذكرة.',
     footNew:'بانتظار التوزيع', footOpen:'قيد المعالجة', footMsgs:'عبر كل التذاكر', footAll:'على اللوحة',
     cntMsgs:'رسائل', cntAll:'تذاكر', msgCount:'%n رسائل',
+    dragHint:'اسحب المقبض إلى عمود.', dropHere:'أفلت هنا',
     ticket:'التذكرة', channel:'القناة', channelForm:'نموذج التواصل', opened:'فُتحت', lastAct:'آخر نشاط',
     booking:'الحجز', bookingPh:'VT-0000', noBooking:'لا حجز مرتبط', msgs:'رسائل', mail:'بريد', call:'اتصال', whatsApp:'واتساب',
     phone:'الهاتف', phonePh:'+41 79 000 00 00', note:'ملاحظة', notePh:'أضف تفصيلاً…',
@@ -410,13 +411,15 @@ function publishBadge(tickets) {
   window.__vamosSupportNew = n;
   window.dispatchEvent(new CustomEvent('vamos:support-badge', { detail: { newCount: n } }));
 }
-function cardOf(row, openId, openTicket) {
+function cardOf(row, openId, draggingId, openTicket, labels) {
+  const last = row.messages[row.messages.length - 1];
   return {
-    id: row.id, name: row.name, email: row.email, when: row.when,
-    locale: row.locale ? String(row.locale).toUpperCase() : '',
-    localeShow: row.locale ? 'inline-flex' : 'none',
+    id: row.id, name: row.name, email: row.email, when: row.when, locale: row.locale,
+    preview: (last && last.body) || '',
     bookingRef: row.bookingRef, refShow: row.bookingRef ? 'inline-flex' : 'none',
+    statusLabel: labels[row.status] || row.status,
     sel: openId === row.id ? '1' : '0',
+    dragging: draggingId === row.id ? '1' : '0',
     open: () => openTicket(row.id),
   };
 }
@@ -427,11 +430,7 @@ function opsHand() {
   try { return window.matchMedia('(max-width: 767px)').matches; } catch (e) { return false; }
 }
 class Component extends DCLogic {
-  state = {
-    lang: 'en', filter: 'all', view: opsPhone() ? 'table' : 'kanban', query: '', tickets: [],
-    openId: null, draft: '', filterOpen: false, metaOpen: true, loadError: false, overlayError: false,
-    sortNewest: Object.assign({}, SORT_NEWEST),
-  };
+  state = { lang: 'en', filter: 'all', view: opsPhone() ? 'table' : 'kanban', query: '', tickets: [], openId: null, draft: '', sending: false, overStatus: '', draggingId: '', filterOpen: false, metaOpen: true };
   hydrate = () => {
     const api = window.VamosOpsApi;
     if (!api || typeof api.request !== 'function') {
@@ -439,38 +438,74 @@ class Component extends DCLogic {
       return;
     }
     api.request('GET', '/api/staff/tickets').then((json) => {
-      if (!json || json.ok === false || !Array.isArray(json.data)) {
-        this.setState({ loadError: true });
-        return;
-      }
-      const tickets = cloneTickets(json.data);
-      this.setState({ tickets: tickets, loadError: false }, () => publishBadge(tickets));
-    }, () => this.setState({ loadError: true }));
+      const rows = json && json.ok && Array.isArray(json.data) ? json.data : [];
+      const tickets = cloneTickets(rows);
+      this.setState({ tickets }, () => publishBadge(tickets));
+    });
   };
   componentDidMount() {
     this._onLocale = (e) => this.setState({ lang: e.detail.lang });
     window.addEventListener('vamos:locale', this._onLocale);
     if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() });
     if (opsPhone() && this.state.view === 'kanban') this.setState({ view: 'table' });
+    this._onDragStart = (e) => {
+      const card = e.target.closest && e.target.closest('[data-kb-card][data-id]');
+      if (!card || !card.closest('[data-vt-support]')) return;
+      this._dragId = card.getAttribute('data-id');
+      this._dragMoved = false;
+      try {
+        e.dataTransfer.setData('text/plain', this._dragId);
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setDragImage(card, 28, 20);
+      } catch (err) {}
+      this.setState({ draggingId: this._dragId || '' });
+    };
+    this._onDragOver = (e) => {
+      const col = e.target.closest && e.target.closest('[data-kb-col][data-status]');
+      if (!col || !col.closest('[data-vt-support]')) return;
+      e.preventDefault();
+      try { e.dataTransfer.dropEffect = 'move'; } catch (err) {}
+      this._dragMoved = true;
+      const status = col.getAttribute('data-status');
+      if (status && status !== this.state.overStatus) this.setState({ overStatus: status });
+    };
+    this._onDrop = (e) => {
+      const col = e.target.closest && e.target.closest('[data-kb-col][data-status]');
+      if (!col || !col.closest('[data-vt-support]')) return;
+      e.preventDefault();
+      const id = this._dragId || (e.dataTransfer && e.dataTransfer.getData('text/plain'));
+      const status = col.getAttribute('data-status');
+      this._dragId = null;
+      this.setState({ overStatus: '', draggingId: '' });
+      if (id && status) this.moveTicket(id, status);
+    };
+    this._onDragEnd = () => {
+      this._dragId = null;
+      if (this.state.overStatus || this.state.draggingId) this.setState({ overStatus: '', draggingId: '' });
+    };
+    document.addEventListener('dragstart', this._onDragStart);
+    document.addEventListener('dragover', this._onDragOver);
+    document.addEventListener('drop', this._onDrop);
+    document.addEventListener('dragend', this._onDragEnd);
     this.hydrate();
     publishBadge(this.state.tickets);
   }
   componentWillUnmount() {
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
+    document.removeEventListener('dragstart', this._onDragStart);
+    document.removeEventListener('dragover', this._onDragOver);
+    document.removeEventListener('drop', this._onDrop);
+    document.removeEventListener('dragend', this._onDragEnd);
     clearTimeout(this._retry);
   }
   setFilter = (key) => this.setState({ filter: key || 'all', filterOpen: false });
+  toggleFilter = () => this.setState({ filterOpen: !this.state.filterOpen });
   toggleMeta = () => { if (!opsHand()) return; this.setState({ metaOpen: !this.state.metaOpen }); };
   setKanban = () => this.setState({ view: 'kanban' });
   setTable = () => this.setState({ view: 'table' });
   setView = (v) => this.setState({ view: v === 'table' ? 'table' : 'kanban' });
   setQuery = (e) => this.setState({ query: e && e.target ? e.target.value : '' });
   setDraft = (e) => this.setState({ draft: e && e.target ? e.target.value : '' });
-  toggleSort = (status) => {
-    const next = Object.assign({}, this.state.sortNewest);
-    next[status] = !next[status];
-    this.setState({ sortNewest: next });
-  };
   patchOpen = (key, val) => {
     const id = this.state.openId;
     if (!id) return;
@@ -499,80 +534,87 @@ class Component extends DCLogic {
       requestAnimationFrame(() => this.scrollThread());
     });
   };
-  persistTicket = (id, payload, onFail) => {
+  persistTicket = (id, payload) => {
     const api = window.VamosOpsApi;
     if (!api || typeof api.request !== 'function' || !id) return;
-    api.request('PATCH', '/api/staff/tickets/' + id, payload).then((json) => {
-      if (json && json.ok) {
-        this.setState({ overlayError: false });
-        this.hydrate();
-        return;
-      }
-      if (typeof onFail === 'function') onFail();
-      else this.setState({ overlayError: true });
-    }, () => {
-      if (typeof onFail === 'function') onFail();
-      else this.setState({ overlayError: true });
-    });
+    api.request('PATCH', '/api/staff/tickets/' + id, payload);
   };
   openTicket = (id) => {
+    if (this._dragMoved) { this._dragMoved = false; return; }
     const current = this.state.tickets.find((t) => t.id === id);
-    if (!current) return;
-    if (current.status === 'new') {
-      const tickets = this.state.tickets.map((t) => t.id === id ? Object.assign({}, t, { status: 'open' }) : t);
-      this.setState({ openId: id, draft: '', tickets: tickets, overlayError: false, metaOpen: !opsHand() }, () => {
-        publishBadge(tickets);
-        requestAnimationFrame(() => this.scrollThread());
-      });
-      this.persistTicket(id, { status: 'open' }, () => {
-        const reverted = this.state.tickets.map((t) => t.id === id ? Object.assign({}, t, { status: 'new' }) : t);
-        this.setState({ tickets: reverted, overlayError: true, openId: id });
-        publishBadge(reverted);
-      });
-      return;
-    }
-    this.setState({ openId: id, draft: '', overlayError: false, metaOpen: !opsHand() }, () => {
+    const tickets = this.state.tickets.map((t) => t.id === id && t.status === 'new' ? Object.assign({}, t, { status: 'open' }) : t);
+    this.setState({ openId: id, draft: '', tickets: tickets, metaOpen: !opsHand() }, () => {
       requestAnimationFrame(() => this.scrollThread());
     });
+    publishBadge(tickets);
+    if (current && current.status === 'new') this.persistTicket(id, { status: 'open' });
   };
   openRow = (row) => { if (row && row.id) this.openTicket(row.id); };
-  closeOverlay = () => this.setState({ openId: null, draft: '', overlayError: false });
+  closeOverlay = () => this.setState({ openId: null, draft: '' });
   scrollThread = () => {
     const root = document.querySelector('[data-vt-support] [data-thread]');
     if (!root) return;
     root.scrollTop = root.scrollHeight;
   };
-  closeTicket = () => {
-    const id = this.state.openId;
-    if (!id) return;
+  moveTicket = (id, status) => {
+    const next = STATUSES.indexOf(status) === -1 ? null : status;
+    if (!next) return;
     const current = this.state.tickets.find((t) => t.id === id);
-    if (!current || current.status === 'closed') return;
-    const tickets = this.state.tickets.map((t) => t.id === id ? Object.assign({}, t, { status: 'closed', last: stamp() }) : t);
+    if (current && current.status === 'closed' && next !== 'closed') return;
+    if (next === 'new' && current && current.status !== 'new') return;
+    const tickets = this.state.tickets.map((t) => t.id === id ? Object.assign({}, t, { status: next, last: stamp() }) : t);
     this.setState({ tickets: tickets });
-    this.persistTicket(id, { status: 'closed' }, () => this.setState({ overlayError: true }));
+    publishBadge(tickets);
+    this.persistTicket(id, { status: next });
   };
-  reopenTicket = () => {
+  setStatus = (status) => {
+    if (!this.state.openId) return;
+    this.moveTicket(this.state.openId, status);
+  };
+  closeTicket = () => {
+    if (this.state.openId) this.moveTicket(this.state.openId, 'closed');
+    this.closeOverlay();
+  };
+  sendReply = () => {
+    const body = String(this.state.draft || '').trim();
     const id = this.state.openId;
-    if (!id) return;
+    if (!body || !id || this.state.sending) return;
     const current = this.state.tickets.find((t) => t.id === id);
-    if (!current || current.status !== 'closed') return;
-    const tickets = this.state.tickets.map((t) => t.id === id ? Object.assign({}, t, { status: 'open', last: stamp() }) : t);
-    this.setState({ tickets: tickets });
-    this.persistTicket(id, { status: 'open' }, () => {
-      const reverted = this.state.tickets.map((t) => t.id === id ? Object.assign({}, t, { status: 'closed' }) : t);
-      this.setState({ tickets: reverted, overlayError: true });
+    if (current && current.status === 'closed') return;
+    const api = window.VamosOpsApi;
+    if (!api || typeof api.request !== 'function') return;
+    this.setState({ sending: true });
+    api.request('PATCH', '/api/staff/tickets/' + id, { status: 'replied', reply: body }).then((json) => {
+      if (!json || json.ok !== true) {
+        this.setState({ sending: false });
+        return;
+      }
+      const now = stamp();
+      const tickets = this.state.tickets.map((t) => {
+        if (t.id !== id || t.status === 'closed') return t;
+        return Object.assign({}, t, {
+          status: 'replied',
+          last: now,
+          messages: t.messages.concat([{ whoKey: 'staff', when: now, body: body }]),
+        });
+      });
+      this.setState({ tickets: tickets, draft: '', sending: false }, () => {
+        requestAnimationFrame(() => this.scrollThread());
+      });
+      publishBadge(tickets);
     });
   };
-  sendReply = () => {};
   renderVals() {
     const t = T[this.state.lang] || T.en;
     const filter = this.state.filter || 'all';
-    const oneStatus = filter !== 'all';
-    const view = (oneStatus || opsPhone()) ? 'table' : (this.state.view === 'table' ? 'table' : 'kanban');
-    const labels = { new: t.new, open: t.open, replied: t.replied, responded: t.responded, closed: t.closed };
+    const view = this.state.view === 'table' ? 'table' : 'kanban';
+    const labels = { new: t.new, open: t.open, replied: t.replied, closed: t.closed };
     const whoStaff = adminName();
     const whoLabel = { customer: t.customer, staff: whoStaff, note: t.noteWho };
     const filterOptions = [{ value: 'all', label: t.all }].concat(STATUSES.map((k) => ({ value: k, label: labels[k] })));
+    const filters = filterOptions.map((f) => ({
+      label: f.label, active: f.value === filter, select: () => this.setFilter(f.value),
+    }));
     const q = String(this.state.query || '').trim().toLowerCase();
     const visible = this.state.tickets.filter((row) => {
       if (filter !== 'all' && row.status !== filter) return false;
@@ -583,23 +625,17 @@ class Component extends DCLogic {
     const nNew = this.state.tickets.filter((row) => row.status === 'new').length;
     const nOpen = this.state.tickets.filter((row) => row.status === 'open').length;
     const nMsgs = this.state.tickets.reduce((n, row) => n + row.messages.length, 0);
-    const columns = STATUSES.map((k) => {
-      let rows = visible.filter((row) => row.status === k);
-      if (this.state.sortNewest[k] === false) rows = rows.slice().reverse();
-      const cards = rows.map((row) => cardOf(row, this.state.openId, this.openTicket));
-      return {
-        status: k, label: labels[k], count: String(cards.length), cards: cards,
-        emptyShow: cards.length ? 'none' : 'block',
-        sortIcon: this.state.sortNewest[k] === false ? 'arrow-up' : 'arrow-down',
-        sort: () => this.toggleSort(k),
-      };
+    const columns = STATUSES.filter((k) => filter === 'all' || filter === k).map((k) => {
+      const cards = visible.filter((row) => row.status === k).map((row) => cardOf(row, this.state.openId, this.state.draggingId, this.openTicket, labels));
+      return { status: k, label: labels[k], count: String(cards.length), cards: cards, emptyShow: cards.length ? 'none' : 'block', over: this.state.overStatus === k ? '1' : '0' };
     });
     const phoneDigits = open ? digitsOf(open.phone) : '';
     return {
       yes: true, n16: 16, n18: 18, n3: 3, n6: 6, nReply: replyRows(this.state.draft),
       tTitle: t.title, tSubtitle: t.subtitle, tEmptyTitle: t.emptyTitle, tEmptyBody: t.emptyBody,
-      tStatus: t.status, tClose: t.close, tCloseTicket: t.closeTicket, tReopen: t.reopen, tKanban: t.kanban, tTable: t.table, tColEmpty: t.colEmpty,
-      tReply: t.reply, tReplyPh: t.replyPh, tSend: t.send, tClosedBody: t.closedBody, tLoadError: t.loadError,
+      tStatus: t.status, tClose: t.close, tCloseTicket: t.closeTicket, tKanban: t.kanban, tTable: t.table, tColEmpty: t.colEmpty,
+      tReply: t.reply, tReplyPh: t.replyPh, tSend: t.send, tClosedBody: t.closedBody,
+      tDragHint: t.dragHint, tDropHere: t.dropHere,
       tTicket: t.ticket, tChannel: t.channel, tChannelForm: t.channelForm, tOpened: t.opened, tLastAct: t.lastAct,
       tBooking: t.booking, tBookingPh: t.bookingPh, tMsgs: t.msgs, tMail: t.mail, tCall: t.call, tWhatsApp: t.whatsApp,
       tPhone: t.phone, tPhonePh: t.phonePh, tNote: t.note, tNotePh: t.notePh, tSearchPh: t.searchPh, tFilter: t.filter,
@@ -609,34 +645,33 @@ class Component extends DCLogic {
       noteOff: !(open && String(open.note || '').trim()), saveNote: this.saveNote,
       filter: filter, filterOptions: filterOptions, setFilter: this.setFilter,
       query: this.state.query || '', setQuery: this.setQuery,
-      loadError: !!this.state.loadError,
-      overlayError: !!this.state.overlayError,
+      filters: filters,
       counts: [
         { label: t.new, value: String(nNew), icon: 'mail', foot: t.footNew },
         { label: t.open, value: String(nOpen), icon: 'clock', foot: t.footOpen },
         { label: t.cntMsgs, value: String(nMsgs), icon: 'message-circle', foot: t.footMsgs },
         { label: t.cntAll, value: String(this.state.tickets.length), icon: 'users', foot: t.footAll },
       ],
-      isEmpty: false,
-      showKanban: !this.state.loadError && view === 'kanban',
-      showTable: !this.state.loadError && view === 'table',
+      isEmpty: visible.length === 0,
+      showKanban: visible.length > 0 && view === 'kanban',
+      showTable: visible.length > 0 && view === 'table',
+      kanbanVariant: view === 'kanban' ? '' : 'outline',
+      tableVariant: view === 'table' ? '' : 'outline',
       tView: t.view, view: view,
       viewOptions: [{ value: 'table', label: t.table }, { value: 'kanban', label: t.kanban }],
       setKanban: this.setKanban, setTable: this.setTable, setView: this.setView,
       columns: columns,
       tableColumns: [
         { key:'name', header: t.colName },
+        { key:'status', header: t.status, width:'132px', kind:'status', labels: labels, options: STATUSES, onPick: this.moveTicket },
         { key:'email', header: t.colEmail },
-        { key:'phone', header: t.colPhone, width:'140px' },
-        { key:'status', header: t.status, width:'132px' },
         { key:'bookingRef', header: t.colRef, width:'110px' },
         { key:'locale', header: t.colLocale, width:'72px' },
         { key:'when', header: t.colWhen, width:'160px' },
       ],
       tableRows: visible.map((row) => ({
-        id: row.id, name: row.name, email: row.email, phone: row.phone || '—', when: row.when,
-        locale: row.locale || '', bookingRef: row.bookingRef || '—',
-        status: labels[row.status] || row.status,
+        id: row.id, name: row.name, email: row.email, when: row.when, locale: row.locale,
+        bookingRef: row.bookingRef || '—', status: row.status, statusLabel: labels[row.status] || row.status,
       })),
       openRow: this.openRow,
       overlayOpen: !!open,
@@ -659,6 +694,8 @@ class Component extends DCLogic {
       openMsgCount: open ? t.msgCount.replace('%n', String(open.messages.length)) : '',
       openStatus: open ? open.status : 'new',
       openStatusLabel: open ? (labels[open.status] || open.status) : '',
+      statusOptions: STATUSES.map((k) => ({ value: k, label: labels[k] })),
+      setStatus: this.setStatus,
       setPhone: this.setPhone,
       setBooking: this.setBooking,
       setNote: this.setNote,
@@ -668,9 +705,7 @@ class Component extends DCLogic {
       draft: this.state.draft || '',
       setDraft: this.setDraft,
       sendReply: this.sendReply,
-      closeTicket: this.closeTicket,
-      reopenTicket: this.reopenTicket,
-      sendOff: !(this.state.draft && String(this.state.draft).trim()) || !!(open && open.status === 'closed'),
+      sendOff: !(this.state.draft && String(this.state.draft).trim()) || !!(open && open.status === 'closed') || !!this.state.sending,
       thread: open ? open.messages.map((m) => ({
         from: m.whoKey, who: whoLabel[m.whoKey] || m.whoKey, when: m.when, body: m.body,
       })) : [],
