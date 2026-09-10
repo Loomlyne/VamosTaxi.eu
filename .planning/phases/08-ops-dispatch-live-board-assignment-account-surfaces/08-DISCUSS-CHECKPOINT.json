@@ -1,0 +1,76 @@
+{
+  "phase": "8",
+  "phase_name": "Ops Dispatch — Live Board, Assignment & Account Surfaces",
+  "timestamp": "2026-09-10T11:48:47Z",
+  "areas_completed": ["Phone booking pay", "Dashboard tiles", "Board refresh", "Assign"],
+  "areas_remaining": [],
+  "decisions": {
+    "Phone booking pay": [
+      {"question": "How does a phone booking get paid?", "answer": "Stripe like the site — quote, then card or email pay-link; webhook confirms. No mark-paid-outside-Stripe.", "options_presented": ["Stripe like the site", "Also mark paid outside Stripe", "Pay-link only"]},
+      {"question": "Who types the card?", "answer": "Both — customer on pay-link page, or dispatcher takes card in ops on the call.", "options_presented": ["Customer only", "Dispatcher in ops", "Both"]},
+      {"question": "Unpaid phone booking on the board?", "answer": "Yes — unpaid/pending, same as public checkout.", "options_presented": ["Yes unpaid/pending", "Only after webhook", "Unpaid filter"]},
+      {"question": "When does pay-link email go out?", "answer": "When dispatcher clicks Send / Email a pay link. Resend allowed, same Stripe session.", "options_presented": ["Click Send", "Auto on save", "Auto unless taking card"]},
+      {"question": "Who is the customer?", "answer": "Type name/email/phone like guest checkout. Matching account email sees it. No forced #customers row.", "options_presented": ["Guest-style contact", "Must pick #customers", "Always create #customers"]},
+      {"question": "Card in ops fails or hang up?", "answer": "Leave unpaid — Send pay-link still works.", "options_presented": ["Leave unpaid", "Kill booking", "Retry card only"]},
+      {"question": "Extras?", "answer": "Same as checkout — child seat, extra stop, oversize, ski request.", "options_presented": ["Same as checkout", "None", "Child seat only"]},
+      {"question": "Email language?", "answer": "Dispatcher picks EN/DE/FR/AR on the booking.", "options_presented": ["Dispatcher picks", "Always EN", "From account"]},
+      {"question": "Pickup/dropoff?", "answer": "Same as the site — Mapbox places, same quote engine.", "options_presented": ["Mapbox + quote engine", "Type addresses", "Airports list"]},
+      {"question": "Company billing?", "answer": "Same as checkout — optional company + VAT, whoever pays first.", "options_presented": ["Same as checkout", "No company in ops", "Public site only"]},
+      {"question": "Flight number?", "answer": "Same as the site — optional, same lookup when it works.", "options_presented": ["Same as site", "Required at airport", "Skip"]},
+      {"question": "Resend pay-link?", "answer": "Yes — same unpaid Stripe session, new email.", "options_presented": ["Same session", "Once only", "New session"]}
+    ],
+    "Dashboard tiles": [
+      {"question": "Live vs mock?", "answer": "Nothing stays mock. Every tile is live data.", "options_presented": ["Counts + income", "Counts only", "Hide expenses/net"]},
+      {"question": "Income/average set?", "answer": "Captured fares only (webhook paid). Average uses that same set.", "options_presented": ["Captured only", "Including unpaid", "Confirmed+ only"]},
+      {"question": "Period filter?", "answer": "One header Today / 7 days / 30 days. Money uses captured date. Operation/Needs attention/Fleet use Zurich pickup date.", "options_presented": ["Pickup date", "Captured date", "Split"]},
+      {"question": "Needs attention?", "answer": "Unassigned paid + unpaid/pending. No #support tickets here.", "options_presented": ["Unassigned+unpaid", "Unassigned only", "Plus support"]},
+      {"question": "Refunds?", "answer": "Income stays the capture. Refund is a Money-out line labelled Refund.", "options_presented": ["Out line", "Subtract from income", "Ignore"]},
+      {"question": "Fleet today?", "answer": "On-shift chauffeurs + in-service vehicles from Phase 6 fleet. Empty = real zeros.", "options_presented": ["Fleet tables", "Assigned in period", "Skip"]},
+      {"question": "Empty money?", "answer": "CHF 000 / 0 live zeros. Never VT-48xx.", "options_presented": ["CHF 000", "Hide section", "TBC"]},
+      {"question": "Money in lines?", "answer": "Vehicle class (Economy / Business / Van) from captured fares.", "options_presented": ["Class", "One total", "Class+extras"]},
+      {"question": "Operation tile click?", "answer": "Goes to #bookings / #calendar already filtered.", "options_presented": ["Filtered hash", "Hash no filter", "Numbers only"]},
+      {"question": "Currency?", "answer": "Always CHF. No FX switcher on dashboard.", "options_presented": ["CHF only", "Public FX mark"]},
+      {"question": "Money-out kinds?", "answer": "Real action kinds only. Refund labelled Refund. Stripe fee labelled Stripe fee. Expenses tile CHF 000 until a later cost sheet. No fake chauffeur/vehicle/fee rows.", "options_presented": ["Mock labels", "Refunds only", "Refunds+000 row"]},
+      {"question": "Stripe fee?", "answer": "Income stays gross. Stripe fee is Money-out. Net = income − fees − refunds. No double-count. Fee from Stripe on the captured charge; missing fee = no line.", "options_presented": ["Off tiles", "Out line", "Subtract from income"]}
+    ],
+    "Board refresh": [
+      {"question": "When payment/assign lands?", "answer": "Update in place — no full reload.", "options_presented": ["In place", "Until refresh", "On tab focus"]},
+      {"question": "Ping?", "answer": "Silent — numbers and rows just change.", "options_presented": ["Silent", "Sound/toast", "Highlight only"]},
+      {"question": "Other laptop?", "answer": "Updates in place too.", "options_presented": ["Other laptop too", "Only the clicker", "On hash/tab"]},
+      {"question": "Open detail?", "answer": "Update in place — same as the board.", "options_presented": ["In place", "Stale until leave", "Kick to board"]},
+      {"question": "Where live-updates apply?", "answer": "Every open Ops hash (dashboard, board, calendar, detail, customers, fleet chauffeur page) plus signed-in customer /bookings and trip detail. Confirmation wait room already waits on webhook. Home/marketing does not. No live GPS.", "options_presented": ["Ops+customer bookings", "Customer refresh-only", "Spell where"]}
+    ],
+    "Assign": [
+      {"question": "How assign?", "answer": "Pick chauffeur only. Linked vehicle comes with them. DB refuses chauffeur overlap. No vehicle = fail honestly. No typed names.", "options_presented": ["Chauffeur+vehicle pickers", "Type name", "Chauffeur only"]},
+      {"question": "Assign before paid?", "answer": "No — paid/confirmed only. Unpaid stays on the board with no chauffeur.", "options_presented": ["Paid only", "Hold on unpaid", "Soft hold"]},
+      {"question": "Unassign?", "answer": "Yes — chauffeur comes off, trip goes back to unassigned.", "options_presented": ["Yes unassign", "Reassign only", "Not after start"]},
+      {"question": "Picker list?", "answer": "Only chauffeurs whose vehicle can take this trip’s pax and bags.", "options_presented": ["Capacity filter", "Everyone", "On-shift then capacity"]},
+      {"question": "Double-book click?", "answer": "Name the other trip (ref + time) and refuse.", "options_presented": ["Name other trip", "Generic", "Force"]},
+      {"question": "Already assigned, someone else?", "answer": "Pick the new chauffeur in one step — old one comes off.", "options_presented": ["One-step reassign", "Unassign first", "Not allowed"]},
+      {"question": "Completed/cancelled/refunded?", "answer": "Frozen — no assign / unassign / swap.", "options_presented": ["Frozen", "Still editable", "Cancel can unassign"]},
+      {"question": "Customer sees chauffeur?", "answer": "Yes — fleet row name + vehicle, never fake. Empty until assigned.", "options_presented": ["Yes from fleet", "Ops only V1", "Name yes plate later"]},
+      {"question": "Notify chauffeur?", "answer": "Email the chauffeur on assign and unassign with the trip. Language from the fleet row. No driver app.", "options_presented": ["No notify", "Email", "WhatsApp"]},
+      {"question": "No email on fleet row?", "answer": "Cannot assign until an email is saved.", "options_presented": ["Assign skip mail", "Cannot assign", "Mail ops instead"]},
+      {"question": "Fleet Save?", "answer": "Must actually persist. Vehicle pairing is required for assign.", "options_presented": []},
+      {"question": "Chauffeur page?", "answer": "Click chauffeur in #fleet — page with profile + live trips. Assign/unassign from there too.", "options_presented": ["#fleet click page", "Also from trip", "Editor only"]},
+      {"question": "Vehicle off the road with upcoming assigned trips?", "answer": "Allowed. Those trips become must-fix on Needs attention. Ops email. Dispatcher assigns a new chauffeur (vehicle follows) or pairs this chauffeur with a working vehicle. Trip is not auto-cancelled.", "options_presented": ["Stay assigned", "Auto-unassign", "Block off-road"]}
+    ]
+  },
+  "deferred_ideas": [
+    "Cost sheet / expense tracking so dashboard Expenses is more than a live zero — own phase, not Phase 8"
+  ],
+  "canonical_refs": [
+    ".planning/ROADMAP.md",
+    ".planning/REQUIREMENTS.md",
+    ".planning/PROJECT.md",
+    "app/ops/OpsDash.dc.html",
+    "app/ops/OpsBoard.dc.html",
+    "app/ops/OpsDetail.dc.html",
+    "app/ops/OpsCalendar.dc.html",
+    "app/ops/OpsFleet.dc.html",
+    "app/ops/OpsCustomers.dc.html",
+    "CLAUDE.md",
+    "apps/web/app/[locale]/(ops)/api/staff/bookings/route.ts",
+    "packages/db/supabase/migrations/20260910000001_bookings_select_by_contact_email.sql"
+  ]
+}

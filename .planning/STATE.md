@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Ops Support
 status: executing
-stopped_at: Phase 7 checkout executing on gsd/phase-7-checkout. Do not discuss/plan 8, 12, or 17.
-last_updated: "2026-09-09T08:45:43.000Z"
-last_activity: 2026-09-09 -- Phase 7 live on PR 25; UAT 2–9 + Cursor Security before ship
+stopped_at: "Phase 8 CONTEXT ready (owner authorized discuss while 7 UAT continues other session). Next: plan-phase 8 after he signs."
+last_updated: "2026-09-10T14:23:36.700Z"
+last_activity: 2026-09-09 -- PR 25 HEAD 3151424; Cursor Security pending; do not merge
 progress:
-  total_phases: 16
+  total_phases: 17
   completed_phases: 6
-  total_plans: 103
-  completed_plans: 94
-  percent: 38
+  total_plans: 110
+  completed_plans: 106
+  percent: 35
 ---
 
 # Project State
@@ -216,6 +216,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-09T08:45:43.000Z
-Stopped at: Phase 7 checkout executing on gsd/phase-7-checkout. Do not discuss/plan 8, 12, or 17.
-Resume file: None
+Last session: 2026-09-10T14:23:36.690Z
+Stopped at: Phase 8 CONTEXT ready (owner authorized discuss while 7 UAT continues other session). Next: plan-phase 8 after he signs.
+Resume file: .planning/phases/08-ops-dispatch-live-board-assignment-account-surfaces/08-CONTEXT.md
