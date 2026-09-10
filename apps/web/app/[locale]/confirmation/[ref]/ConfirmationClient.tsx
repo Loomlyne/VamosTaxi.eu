@@ -22,6 +22,7 @@ import {
   formatTripDate,
   formatTripTime,
   rappenToMajor,
+  receiptPriceSplit,
 } from "@/lib/checkout/confirmation-receipt";
 import { formatAmount } from "@/lib/currency";
 import {
@@ -290,18 +291,43 @@ export function ConfirmationClient({
     fareLines,
   });
   const subtotalMajor = rappenToMajor(booking?.subtotalRappen ?? null);
-  const lines: PriceLine[] = fareLines
-    .filter((line) => line.code !== "coupon" && line.code !== "discount")
-    .map((line) => {
-      if (line.code === "child_seat") return { label: t("childSeat"), amount: rappenToMajor(line.amountRappen) };
-      if (line.code === "oversized_luggage") {
-        return { label: t("extraOversized"), amount: rappenToMajor(line.amountRappen) };
+  const extraRappen = extraRappenByCode(fareLines);
+  const split = receiptPriceSplit({ totalRappen, extraRappen });
+  const lines: PriceLine[] = [];
+  if (split) {
+    lines.push({ label: t("fareExVat"), amount: rappenToMajor(split.fareRappen) });
+    for (const extra of split.extras) {
+      lines.push({
+        label: t(extraLabel[extra.code] ?? "childSeat"),
+        amount: rappenToMajor(extra.rappen),
+      });
+    }
+    if (split.vatRappen > 0) {
+      lines.push({ label: t("vatIncl"), amount: rappenToMajor(split.vatRappen) });
+    }
+  } else {
+    const fareLinesShown = fareLines.filter((line) => line.code !== "coupon" && line.code !== "discount");
+    for (const line of fareLinesShown) {
+      if (line.code === "child_seat") {
+        lines.push({ label: t("childSeat"), amount: rappenToMajor(line.amountRappen) });
+        continue;
       }
-      if (line.code === "extra_stop") return { label: t("extraStop"), amount: rappenToMajor(line.amountRappen) };
-      if (line.code === "vat") return { label: t("vatIncl"), amount: rappenToMajor(line.amountRappen) };
+      if (line.code === "oversized_luggage") {
+        lines.push({ label: t("extraOversized"), amount: rappenToMajor(line.amountRappen) });
+        continue;
+      }
+      if (line.code === "extra_stop") {
+        lines.push({ label: t("extraStop"), amount: rappenToMajor(line.amountRappen) });
+        continue;
+      }
+      if (line.code === "vat") {
+        lines.push({ label: t("vatIncl"), amount: rappenToMajor(line.amountRappen) });
+        continue;
+      }
       const cls = classLabelOf(line.vehicleClass || classSlug);
-      return { label: t("transferClass", { class: cls }), amount: rappenToMajor(line.amountRappen) };
-    });
+      lines.push({ label: t("transferClass", { class: cls }), amount: rappenToMajor(line.amountRappen) });
+    }
+  }
   if (coupon) {
     lines.push({
       label: t("couponCode", { code: coupon.code }),
@@ -315,7 +341,7 @@ export function ConfirmationClient({
   const contactName = (booking?.contactName || "").trim();
   const contactEmail = (booking?.contactEmail || "").trim();
   const contactPhone = (booking?.contactPhone || "").trim();
-  const extraRappen = extraRappenByCode(fareLines);
+  const pricedExtra = new Set((split?.extras ?? []).map((row) => row.code));
   const paidAtLabel = booking?.paidAt ? formatPaidAt(booking.paidAt, locale) : "";
   const showCard = Boolean(
     paidAtLabel || isCapturedPayment(booking?.paymentStatus ?? "") || !waiting,
@@ -350,48 +376,20 @@ export function ConfirmationClient({
           inverse
           pickup={pickup}
           dropoff={dropoff}
-          meta={[
-            { icon: "calendar", label: <span className="vt-dir-keep">{dateLabel}</span> },
-            {
-              icon: "clock",
-              label: (
-                <span className="vt-dir-keep">
-                  {t("pickupAt", { time: timeLabel || dateLabel })}
-                </span>
-              ),
-            },
-            ...(arriveLabel
-              ? [
-                  {
-                    icon: "navigation" as const,
-                    label: (
-                      <span className="vt-dir-keep" data-confirmation-arrive>
-                        {t("arriveBy", { time: arriveLabel })}
-                      </span>
-                    ),
-                  },
-                ]
-              : []),
-            { icon: "users", label: t("passengersCount", { n: pax }) },
-            {
-              icon: "luggage",
-              label: <span data-confirmation-bags>{tCommon("bagsCount", { n: bags })}</span>,
-            },
-            { icon: "car", label: vehicleLabel },
-            ...(flightNo
-              ? [{ icon: "plane" as const, label: <span className="vt-dir-keep">{flightNo}</span> }]
-              : []),
-            ...extras.map((code) => ({
-              icon: (code === "oversized_luggage"
-                ? "luggage"
-                : code === "extra_stop"
-                  ? "map-pin"
-                  : "baby") as "baby" | "luggage" | "map-pin",
-              label: (
-                <span data-confirmation-extra={code}>{t(extraLabel[code] ?? "childSeat")}</span>
-              ),
-            })),
-          ]}
+          pickupDetail={
+            timeLabel ? (
+              <span className="vt-dir-keep" data-confirmation-pickup-at>
+                {timeLabel}
+              </span>
+            ) : undefined
+          }
+          dropoffDetail={
+            arriveLabel ? (
+              <span className="vt-dir-keep" data-confirmation-arrive>
+                {arriveLabel}
+              </span>
+            ) : undefined
+          }
         />
         <PriceSummary
           inverse
@@ -405,6 +403,25 @@ export function ConfirmationClient({
           <ReceiptRow icon="ticket" label={t("bookingPrefix")} className="vt-dir-keep">
             {reference}
           </ReceiptRow>
+          {dateLabel ? (
+            <ReceiptRow icon="calendar" label={t("tripDate")} className="vt-dir-keep">
+              {dateLabel}
+            </ReceiptRow>
+          ) : null}
+          <ReceiptRow icon="users" label={tCommon("passengers")}>
+            {t("passengersCount", { n: pax })}
+          </ReceiptRow>
+          <ReceiptRow icon="luggage" label={tCommon("bags-2")}>
+            <span data-confirmation-bags>{tCommon("bagsCount", { n: bags })}</span>
+          </ReceiptRow>
+          <ReceiptRow icon="car" label={tCommon("vehicle")}>
+            {vehicleLabel}
+          </ReceiptRow>
+          {flightNo ? (
+            <ReceiptRow icon="plane" label={tCommon("flight-number")} className="vt-dir-keep">
+              {flightNo}
+            </ReceiptRow>
+          ) : null}
           {durationMin != null ? (
             <ReceiptRow icon="clock" label={t("tripDuration")} className="vt-dir-keep">
               {t("durationMinutes", { n: durationMin })}
@@ -415,7 +432,7 @@ export function ConfirmationClient({
               {t("distanceKm", { km: distanceKm })}
             </ReceiptRow>
           ) : null}
-          {extras.map((code) => {
+          {extras.filter((code) => !pricedExtra.has(code)).map((code) => {
             const rappen = extraRappen[code];
             const amount = rappenToMajor(rappen ?? null);
             const extraIcon: IconName =
@@ -425,6 +442,7 @@ export function ConfirmationClient({
                 key={code}
                 icon={extraIcon}
                 label={t("extras")}
+                data-confirmation-extra={code}
                 data-confirmation-receipt-extra={code}
               >
                 {t(extraLabel[code] ?? "childSeat")}

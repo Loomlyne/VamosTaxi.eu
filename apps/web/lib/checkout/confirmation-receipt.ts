@@ -1,5 +1,6 @@
 import type { PayLinkExtraCode } from "@vamos/emails/confirmation";
 import type { ConfirmationFareLine } from "./booking-read";
+import { vatIncludedRappen } from "./vat";
 
 const EXTRA_CODES: Record<PayLinkExtraCode, true> = {
   child_seat: true,
@@ -124,6 +125,25 @@ export function extraRappenByCode(lines: ConfirmationFareLine[]): Partial<Record
     out[line.code as PayLinkExtraCode] = line.amountRappen;
   }
   return out;
+}
+
+/** Gross charged amount → fare (ex VAT) + extra rows + VAT. Does not invent extras. */
+export function receiptPriceSplit(args: {
+  totalRappen: number | null | undefined;
+  extraRappen: Partial<Record<PayLinkExtraCode, number>>;
+}): { fareRappen: number; vatRappen: number; extras: { code: PayLinkExtraCode; rappen: number }[] } | null {
+  const gross = args.totalRappen;
+  if (gross == null || !Number.isFinite(gross) || gross <= 0) return null;
+  const extras: { code: PayLinkExtraCode; rappen: number }[] = [];
+  for (const code of Object.keys(EXTRA_CODES) as PayLinkExtraCode[]) {
+    const rappen = args.extraRappen[code];
+    if (rappen == null || !Number.isFinite(rappen) || rappen === 0) continue;
+    extras.push({ code, rappen });
+  }
+  const extraSum = extras.reduce((sum, row) => sum + row.rappen, 0);
+  const vatRappen = vatIncludedRappen(gross);
+  const fareRappen = Math.max(0, gross - vatRappen - extraSum);
+  return { fareRappen, vatRappen, extras };
 }
 
 export function mergeExtras(

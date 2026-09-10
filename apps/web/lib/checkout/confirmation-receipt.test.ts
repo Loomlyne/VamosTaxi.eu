@@ -8,6 +8,7 @@ import {
   formatTripDate,
   formatTripTime,
   rappenToMajor,
+  receiptPriceSplit,
 } from "./confirmation-receipt";
 
 describe("confirmation receipt", () => {
@@ -55,5 +56,19 @@ describe("confirmation receipt", () => {
   it("converts rappen without inventing a figure", () => {
     expect(rappenToMajor(10810)).toBe(108.1);
     expect(rappenToMajor(null)).toBeNull();
+  });
+
+  it("splits a gross 108.10 into fare 100.00 and 8.1% VAT", () => {
+    expect(receiptPriceSplit({ totalRappen: 10810, extraRappen: {} })).toEqual({
+      fareRappen: 10000,
+      vatRappen: 810,
+      extras: [],
+    });
+  });
+
+  it("does not invent extra rows when the snapshot has none", () => {
+    expect(receiptPriceSplit({ totalRappen: 10810, extraRappen: { child_seat: undefined } })?.extras).toEqual(
+      [],
+    );
   });
 });
