@@ -5,10 +5,12 @@ import { loadSettingsVersion } from "@/lib/db/quote";
 import { policyHours } from "@/lib/checkout/policy-settings";
 import {
   BOOKING_REFERENCE_RE,
+  isFailedStatus,
   isVoucherStatus,
   readBookingForConfirmation,
   type VisibleBooking,
 } from "@/lib/checkout/booking-read";
+import { customerClaims } from "@/lib/account/session";
 import { MANAGE_COOKIE_NAME } from "@/lib/checkout/manage-token";
 import { ConfirmationClient, type ConfirmationPhase } from "./ConfirmationClient";
 import "./confirmation.css";
@@ -46,6 +48,7 @@ export default async function ConfirmationPage({
 
   const jar = await cookies();
   const raw = jar.get(MANAGE_COOKIE_NAME)?.value ?? "";
+  const claims = await customerClaims();
   const env = workerEnv();
 
   let freeCancelHours: number | null = null;
@@ -60,7 +63,7 @@ export default async function ConfirmationPage({
   let initialPhase: ConfirmationPhase = "hidden";
   let booking: VisibleBooking | null = null;
 
-  if (BOOKING_REFERENCE_RE.test(ref) && raw) {
+  if (BOOKING_REFERENCE_RE.test(ref) && (raw || claims)) {
     if (!env) {
       // Local next has no Hyperdrive. Cookie present → processing; the
       // poller is the source of truth for status.
@@ -75,13 +78,18 @@ export default async function ConfirmationPage({
         vehicleClassId: "",
         pax: 0,
         bags: 0,
+        extras: [],
       };
     } else {
       try {
-        const read = await readBookingForConfirmation(env, raw, ref);
+        const read = await readBookingForConfirmation(env, raw, ref, claims);
         if (read.visible) {
           booking = read;
-          initialPhase = isVoucherStatus(read.status) ? "confirmed" : "processing";
+          initialPhase = isVoucherStatus(read.status)
+            ? "confirmed"
+            : isFailedStatus(read.status)
+              ? "failed"
+              : "processing";
         }
       } catch {
         // Cookie is present; identity failed (no Hyperdrive in `next dev`).
@@ -97,6 +105,7 @@ export default async function ConfirmationPage({
           vehicleClassId: "",
           pax: 0,
           bags: 0,
+          extras: [],
         };
       }
     }

@@ -88,6 +88,8 @@ export type CouponInfo = {
     | "usage_cap"
     | "per_user_cap";
   i18n_key: string;
+  kind?: "percent" | "amount";
+  percent?: number | string | null;
 };
 
 function couponRule(applied: boolean, key: string): CouponInfo["rule"] {
@@ -120,6 +122,9 @@ function couponInfoFromEval(
     applied: evaled.applied,
     rule: couponRule(evaled.applied, evaled.i18n_key),
     i18n_key: evaled.i18n_key,
+    ...(evaled.applied && (evaled.kind === "percent" || evaled.kind === "amount")
+      ? { kind: evaled.kind, percent: evaled.percent ?? null }
+      : {}),
   };
 }
 

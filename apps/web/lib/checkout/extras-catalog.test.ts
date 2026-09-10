@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { catalogFromSurcharges, extraUi, recapExtras } from "./extras-catalog";
+import { catalogFromSurcharges, extraRappenOutsideLock, extraUi, recapExtraFares, recapExtras } from "./extras-catalog";
 
 describe("checkout extras catalog", () => {
   it("keeps ops extras and drops night", () => {
@@ -54,5 +54,22 @@ describe("checkout extras catalog", () => {
     const lines = recapExtras(catalog, (code) => code === "child_seat");
     expect(lines).toEqual([{ code: "child_seat", labelKey: "childSeat", icon: "baby" }]);
     expect(recapExtras([], (code) => code === "extra_stop")).toEqual([]);
+  });
+
+  it("puts selected extras on the fare with the book amount", () => {
+    const catalog = catalogFromSurcharges([
+      {
+        code: "child_seat",
+        kind: "amount",
+        amount_rappen: 2000,
+        percent: null,
+        active: true,
+      },
+    ]);
+    expect(recapExtraFares(catalog, (code) => code === "child_seat")).toEqual([
+      { code: "child_seat", labelKey: "childSeat", icon: "baby", amount_rappen: 2000 },
+    ]);
+    expect(extraRappenOutsideLock(null, catalog, (code) => code === "child_seat")).toBe(2000);
+    expect(extraRappenOutsideLock({ child_seats: 1 }, catalog, (code) => code === "child_seat")).toBe(0);
   });
 });

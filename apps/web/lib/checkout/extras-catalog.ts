@@ -34,19 +34,66 @@ export type RecapExtraLine = {
   icon: ExtraUi["icon"];
 };
 
+export type RecapExtraFare = RecapExtraLine & {
+  amount_rappen: number | null;
+};
+
+export type LockExtrasPeek = {
+  child_seats?: number | null;
+  extra_stops?: number | null;
+  oversized_luggage?: boolean | null;
+};
+
+function lockHasExtra(extras: LockExtrasPeek | null | undefined, code: string): boolean {
+  if (!extras) return false;
+  if (code === "child_seat") return extras.child_seats === 1;
+  if (code === "oversized_luggage") return extras.oversized_luggage === true;
+  if (code === "extra_stop") return (extras.extra_stops ?? 0) > 0;
+  return false;
+}
+
+/** Selected passenger extras that exist on the live book. Amounts stay the book values. */
+export function recapExtraFares(
+  catalog: CheckoutExtraJson[],
+  on: (code: string) => boolean,
+): RecapExtraFare[] {
+  const out: RecapExtraFare[] = [];
+  for (const row of catalog) {
+    const ui = extraUi(row.code);
+    if (!ui?.toggle) continue;
+    if (!on(row.code)) continue;
+    out.push({
+      code: row.code,
+      labelKey: ui.labelKey,
+      icon: ui.icon,
+      amount_rappen: row.kind === "amount" ? row.amount_rappen : null,
+    });
+  }
+  return out;
+}
+
 /** Selected passenger extras that exist on the live book. No invented rows or CHF. */
 export function recapExtras(
   catalog: CheckoutExtraJson[],
   on: (code: string) => boolean,
 ): RecapExtraLine[] {
-  const out: RecapExtraLine[] = [];
+  return recapExtraFares(catalog, on).map(({ code, labelKey, icon }) => ({ code, labelKey, icon }));
+}
+
+/** Catalog extras the lock does not already pin — never invent a CHF. */
+export function extraRappenOutsideLock(
+  extras: LockExtrasPeek | null | undefined,
+  catalog: CheckoutExtraJson[],
+  on: (code: string) => boolean,
+): number {
+  let add = 0;
   for (const row of catalog) {
-    const ui = extraUi(row.code);
-    if (!ui?.toggle) continue;
     if (!on(row.code)) continue;
-    out.push({ code: row.code, labelKey: ui.labelKey, icon: ui.icon });
+    if (row.kind !== "amount" || row.amount_rappen == null) continue;
+    if (lockHasExtra(extras, row.code)) continue;
+    add += row.amount_rappen;
   }
-  return out;
+  return add;
 }
 
 type SurchargeLike = {

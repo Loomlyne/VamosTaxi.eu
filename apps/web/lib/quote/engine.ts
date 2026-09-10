@@ -50,6 +50,8 @@ export type LoadAndPriceCoupon = {
   code: string;
   applied: boolean;
   i18n_key: string;
+  kind?: "percent" | "amount";
+  percent?: number | string | null;
 };
 
 export type LoadAndPriceOk = {
@@ -127,7 +129,13 @@ function couponFactsFromEval(typed: string, raw: unknown): {
     };
   }
   return {
-    coupon: { code: typed, applied: true, i18n_key: "quote.coupon.applied" },
+    coupon: {
+      code: typed,
+      applied: true,
+      i18n_key: "quote.coupon.applied",
+      kind,
+      percent: kind === "percent" ? (raw.percent as number | string | null) : null,
+    },
     facts: {
       id,
       code: typed,

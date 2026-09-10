@@ -81,6 +81,6 @@ describe("snapshotFromLock", () => {
     expect(snap.total_rappen).toBe(8000);
     expect(snap.legs[0]?.pickup_text).toBe("ZRH");
     expect(snap.lines[0]?.amount_rappen).toBe(8000);
-    expect(snap.policy).toMatchObject({ settings_version_id: 3, policy_doc: null });
+    expect(snap.policy).toMatchObject({ settings_version_id: 3, policy_doc: null, extras: [] });
   });
 });

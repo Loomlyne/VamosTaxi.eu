@@ -97,15 +97,19 @@ export function mergeVamosTrip(current: VamosTrip, patch: Partial<VamosTrip>): V
   const curId = current.quote_id || current.quoteId;
   const quoteChanged = Boolean(nextId && curId && nextId !== curId);
   if (!quoteChanged) return { ...current, ...patch };
+  const keepExtras =
+    "childSeat" in patch ||
+    "oversizedLuggage" in patch ||
+    "skiRack" in patch ||
+    "stops" in patch;
   return {
     ...current,
     flight: "",
     flightNumber: "",
     ...patch,
-    childSeat: false,
-    oversizedLuggage: false,
-    skiRack: false,
-    stops: 0,
+    ...(keepExtras
+      ? {}
+      : { childSeat: false, oversizedLuggage: false, skiRack: false, stops: 0 }),
   };
 }
 
@@ -196,6 +200,35 @@ export function peekLockClassRappen(lock: string | undefined, slug: string): num
 export function rappenToFrancs(rappen: number | null): number | null {
   if (rappen == null) return null;
   return rappen / 100;
+}
+
+export function peekLockExtras(lock: string | undefined): {
+  child_seats?: number | null;
+  extra_stops?: number | null;
+  oversized_luggage?: boolean | null;
+} | null {
+  if (!lock) return null;
+  const parts = lock.split(".");
+  if (parts.length !== 3 || !parts[1]) return null;
+  try {
+    const json = new TextDecoder().decode(base64urlDecode(parts[1]));
+    const payload: unknown = JSON.parse(json);
+    if (!payload || typeof payload !== "object") return null;
+    const extras = (payload as { extras?: unknown }).extras;
+    if (!extras || typeof extras !== "object") return null;
+    const row = extras as {
+      child_seats?: unknown;
+      extra_stops?: unknown;
+      oversized_luggage?: unknown;
+    };
+    return {
+      child_seats: typeof row.child_seats === "number" ? row.child_seats : null,
+      extra_stops: typeof row.extra_stops === "number" ? row.extra_stops : null,
+      oversized_luggage: typeof row.oversized_luggage === "boolean" ? row.oversized_luggage : null,
+    };
+  } catch {
+    return null;
+  }
 }
 
 export function peekLockDistanceM(lock: string | undefined): number | null {

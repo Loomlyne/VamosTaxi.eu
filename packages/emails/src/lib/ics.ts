@@ -4,12 +4,26 @@
 // assemble calendar markup by hand, fold lines, or escape commas/semicolons.
 
 import { createEvent } from "ics";
-import type { BookingForEmail } from "./types";
+import type { BookingForEmail, PayLinkExtraCode } from "./types";
+import { t } from "./t";
+
+const EXTRA_KEY: Record<PayLinkExtraCode, string> = {
+  child_seat: "payLink.extraChildSeat",
+  oversized_luggage: "payLink.extraOversized",
+  extra_stop: "payLink.extraStop",
+};
 
 const ZURICH = "Europe/Zurich";
 
 /** When `estimatedDurationMinutes` is null, the invite lasts one hour. */
 const FALLBACK_DURATION_MINUTES = 60;
+
+function inviteDescription(booking: BookingForEmail): string {
+  const extras = booking.extras ?? [];
+  if (extras.length === 0) return booking.manageUrl;
+  const labels = extras.map((code) => t(booking.locale, EXTRA_KEY[code])).join(", ");
+  return `${labels}\n${booking.manageUrl}`;
+}
 
 /**
  * `scheduled_local` is a Zurich wall-clock string (`YYYY-MM-DDTHH:MM`) with
@@ -42,7 +56,7 @@ export function buildInvite(booking: BookingForEmail): string {
   const { error, value } = createEvent({
     title: `${booking.reference} · ${leg.pickupText} → ${leg.dropoffText}`,
     location: leg.pickupText,
-    description: booking.manageUrl,
+    description: inviteDescription(booking),
     start: [
       start.getUTCFullYear(),
       start.getUTCMonth() + 1,

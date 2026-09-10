@@ -13,3 +13,15 @@ export function isVoucherStatus(status: string): boolean {
     status === "partially_cancelled"
   );
 }
+
+export function isFailedStatus(status: string): boolean {
+  return status === "cancelled" || status === "refunded" || status === "no_show";
+}
+
+export function isFailedPayment(status: string): boolean {
+  return status === "failed" || status === "canceled";
+}
+
+export function isCapturedPayment(status: string): boolean {
+  return status === "succeeded" || status === "captured";
+}

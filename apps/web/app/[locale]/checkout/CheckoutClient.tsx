@@ -11,6 +11,7 @@ import { Tabs } from "@/components/navigation/Tabs";
 import { PriceSummary, RouteSummary, type RouteMetaItem } from "@/components/transfer";
 import {
   ContactFields,
+  FlightField,
   type ContactFieldsErrors,
   type ContactFieldsValue,
 } from "@/components/booking";
@@ -31,6 +32,7 @@ import {
   geoLocale,
   peekLockClassRappen,
   peekLockDistanceM,
+  peekLockExtras,
   placeMapboxId,
   placeText,
   readVamosTrip,
@@ -44,11 +46,13 @@ import {
   type VamosTrip,
 } from "@/lib/checkout/vamos-trip";
 import {
+  extraRappenOutsideLock,
   extraUi,
+  recapExtraFares,
   recapExtras,
   type CheckoutExtraJson,
 } from "@/lib/checkout/extras-catalog";
-import { vatIncludedRappen } from "@/lib/checkout/vat";
+import { payableWithVatRappen, vatOnTopRappen } from "@/lib/checkout/vat";
 import { decodeClientSecret } from "@/lib/checkout/client-secret";
 import { chfRappenToDisplay } from "@/lib/fx/format";
 import { useFx } from "@/lib/fx/use-fx";
@@ -101,6 +105,59 @@ function couponAlreadyOn(applied: string | null, next: string | null): boolean {
   if (!applied || !next) return false;
   return applied.localeCompare(next, undefined, { sensitivity: "accent" }) === 0;
 }
+
+type CouponFieldKey = "couponNotFound" | "couponNoLongerValid" | "couponAppliedOk";
+
+type CouponEvalJson = {
+  applied?: boolean;
+  code?: string;
+  rule?: string;
+  kind?: "percent" | "amount";
+  percent?: number | string | null;
+};
+
+type CouponRuleState = { kind: "percent" | "amount"; percent: string | null };
+
+function formatCouponPercent(raw: number | string | null | undefined): string | null {
+  if (raw == null || raw === "") return null;
+  const n = typeof raw === "number" ? raw : Number(raw);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return String(Number(n.toFixed(2)));
+}
+
+function couponRuleFromEval(coupon: CouponEvalJson | undefined): CouponRuleState | null {
+  if (!coupon?.applied) return null;
+  if (coupon.kind === "percent") {
+    return { kind: "percent", percent: formatCouponPercent(coupon.percent) };
+  }
+  if (coupon.kind === "amount") return { kind: "amount", percent: null };
+  return null;
+}
+
+function couponFieldFromEval(
+  coupon: CouponEvalJson | undefined,
+  typed: boolean,
+): CouponFieldKey | null {
+  if (!typed) return null;
+  if (coupon?.applied) return "couponAppliedOk";
+  if (coupon?.rule === "not_found" || coupon?.rule == null) return "couponNotFound";
+  return "couponNoLongerValid";
+}
+
+function nameParts(displayName: string | null): { firstName: string; lastName: string } {
+  const trimmed = displayName?.trim() ?? "";
+  if (!trimmed) return { firstName: "", lastName: "" };
+  const i = trimmed.indexOf(" ");
+  if (i < 0) return { firstName: trimmed, lastName: "" };
+  return { firstName: trimmed.slice(0, i), lastName: trimmed.slice(i + 1).trim() };
+}
+
+const EMPTY_CONTACT: ContactFieldsValue = {
+  firstName: "",
+  lastName: "",
+  email: "",
+  mobile: "",
+};
 
 function billingKindFromFields(name: string, address: string, vat: string): "individual" | "company" {
   return name.trim() || address.trim() || vat.trim() ? "company" : "individual";
@@ -159,7 +216,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const tHome = useTranslations("home");
   const tAccount = useTranslations("account");
   const tAuth = useTranslations("auth");
-  const tQuote = useTranslations("quote");
   const router = useRouter();
   const { cur } = useVamosLocale();
   const fx = useFx();
@@ -182,6 +238,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   });
   const [errors, setErrors] = useState<ContactFieldsErrors>({});
   const [guest, setGuest] = useState(true);
+  const [signedIn, setSignedIn] = useState(false);
+  const [forOther, setForOther] = useState(false);
+  const [accountContact, setAccountContact] = useState<ContactFieldsValue | null>(null);
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState<string | undefined>();
   const [airline, setAirline] = useState("");
@@ -193,7 +252,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const [extrasCatalog, setExtrasCatalog] = useState<CheckoutExtraJson[]>([]);
   const [coupon, setCoupon] = useState("");
   const [couponApplied, setCouponApplied] = useState<string | null>(null);
+  const [couponRule, setCouponRule] = useState<CouponRuleState | null>(null);
   const [couponInvalid, setCouponInvalid] = useState(false);
+  const [couponField, setCouponField] = useState<CouponFieldKey | null>(null);
   const [wasRappen, setWasRappen] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [refusal, setRefusal] = useState<string | null>(null);
@@ -236,6 +297,38 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         if (body.ok && Array.isArray(body.extras)) {
           setExtrasCatalog(body.extras);
         }
+      })
+      .catch(() => {});
+    return () => {
+      on = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let on = true;
+    fetch("/api/auth/session", { credentials: "same-origin" })
+      .then((res) => res.json())
+      .then((json: unknown) => {
+        if (!on || !json || typeof json !== "object") return;
+        const body = json as {
+          signedIn?: boolean;
+          displayName?: string | null;
+          email?: string | null;
+          phone?: string | null;
+        };
+        if (!body.signedIn) return;
+        const parts = nameParts(body.displayName ?? null);
+        const next: ContactFieldsValue = {
+          firstName: parts.firstName,
+          lastName: parts.lastName,
+          email: (body.email ?? "").trim(),
+          mobile: e164Phone(body.phone ?? ""),
+        };
+        setSignedIn(true);
+        setAccountContact(next);
+        setContact(next);
+        setPayerEmail((email) => email || next.email);
+        setGuest(false);
       })
       .catch(() => {});
     return () => {
@@ -294,6 +387,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       intentStarted.current = false;
       intentAttempts.current = 0;
     }
+    if (typeof trip?.childSeat === "boolean") setChildSeat(trip.childSeat);
     writeDraft({
       pickup: nextPickup,
       destination: nextDrop,
@@ -486,7 +580,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   async function continueDetails() {
     if (!validate()) return;
     setPasswordError(undefined);
-    if (!guest) {
+    if (!guest && !signedIn) {
       if (password.length < 8) {
         setPasswordError(tAuth("password-policy"));
         return;
@@ -590,7 +684,12 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       if (!res.ok) {
         intentStarted.current = false;
         const key = REFUSAL_KEYS[json.code ?? json.error ?? ""] ?? "payCouldNotStart";
-        if (json.code === "coupon_no_longer_valid") setCouponApplied(null);
+        if (json.code === "coupon_no_longer_valid") {
+          setCouponApplied(null);
+          setCouponInvalid(true);
+          setCouponField("couponNoLongerValid");
+          return "fail";
+        }
         if (!opts?.silent) setRefusal(key);
         return "fail";
       }
@@ -634,7 +733,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       setRefusal("quoteExpired");
       return;
     }
-    const nextCode = code == null ? null : code.trim() || null;
+    const nextCode = code == null ? null : code.trim().toUpperCase() || null;
     if (!extras && couponAlreadyOn(couponApplied, nextCode)) {
       return;
     }
@@ -659,21 +758,31 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         lock?: string;
         quote_id?: string;
         expires_at?: string;
-        coupon?: { applied?: boolean; code?: string };
+        code?: string;
+        coupon?: CouponEvalJson;
       };
       if (!res.ok || !json.ok || !json.lock) {
+        const key = REFUSAL_KEYS[json.code ?? ""] ?? null;
+        if (key && key !== "couponNoLongerValid") {
+          setRefusal(key);
+          return;
+        }
         if (nextCode) {
           setCouponApplied(null);
+          setCouponRule(null);
           setWasRappen(null);
           setCouponInvalid(true);
+          setCouponField(couponFieldFromEval(json.coupon, true));
         }
-        setRefusal("couponNoLongerValid");
         return;
       }
       if (nextCode && !json.coupon?.applied) {
-        if (!couponApplied) setCouponApplied(null);
+        if (!couponApplied) {
+          setCouponApplied(null);
+          setCouponRule(null);
+        }
         setCouponInvalid(true);
-        setRefusal("couponNoLongerValid");
+        setCouponField(couponFieldFromEval(json.coupon, true));
         return;
       }
       const nextId = json.quote_id ?? quoteId;
@@ -685,6 +794,10 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         expires_at: json.expires_at,
         flightNumber: draft.flightNumber,
         flight: draft.flightNumber,
+        childSeat: seats,
+        oversizedLuggage: bags,
+        skiRack,
+        stops: stopsOn ? 1 : 0,
       });
       setTripSnap((prev) => ({
         ...(prev ?? {}),
@@ -696,7 +809,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       const applied = Boolean(nextCode && json.coupon?.applied);
       const appliedCode = applied ? (json.coupon?.code ?? nextCode) : null;
       setCouponApplied(appliedCode);
+      setCouponRule(applied ? couponRuleFromEval(json.coupon) : null);
       setCouponInvalid(false);
+      setCouponField(applied ? "couponAppliedOk" : null);
       if (appliedCode) setCoupon(appliedCode);
       if (applied && !couponApplied && beforeRappen != null) {
         setWasRappen(beforeRappen);
@@ -712,8 +827,10 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       intentAttempts.current = 0;
       setIntentTick((n) => n + 1);
     } catch {
-      if (nextCode) setCouponInvalid(true);
-      setRefusal("couponNoLongerValid");
+      if (nextCode) {
+        setCouponInvalid(true);
+        setCouponField("couponNoLongerValid");
+      }
     } finally {
       setBusy(false);
     }
@@ -827,8 +944,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const railPickup = placeText(tripSnap?.pickupPlace, pickup || draft.pickup);
   const railDrop = placeText(tripSnap?.dropoffPlace, destination || draft.destination);
   const lockToken = tripSnap?.lock || draft.lock;
-  const chargedRappen = peekLockClassRappen(lockToken, vehicle);
-  const shown = chfRappenToDisplay(chargedRappen, displayCur, fx.rates?.rates ?? null);
   function extraPrice(row: CheckoutExtraJson): string {
     if (row.kind === "included") return tCommon("included-2");
     if (row.kind === "percent" && row.percent != null && String(row.percent) !== "") {
@@ -841,9 +956,10 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     return "";
   }
   function extraOn(code: string): boolean {
-    if (code === "child_seat") return childSeat;
-    if (code === "oversized_luggage") return oversized;
-    if (code === "extra_stop") return extraStop;
+    const pinned = peekLockExtras(lockToken);
+    if (code === "child_seat") return childSeat || pinned?.child_seats === 1;
+    if (code === "oversized_luggage") return oversized || pinned?.oversized_luggage === true;
+    if (code === "extra_stop") return extraStop || (pinned?.extra_stops ?? 0) > 0;
     if (code === "ski" || code === "ski_rack") return skiRack;
     if (code === "meet_greet") return true;
     return false;
@@ -876,19 +992,32 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       writeVamosTrip({ skiRack: next });
     }
   }
-  const vatRappen = chargedRappen == null ? null : vatIncludedRappen(chargedRappen);
-  const netRappen = chargedRappen == null || vatRappen == null ? null : chargedRappen - vatRappen;
+  const recapFareRows = recapExtraFares(extrasCatalog, extraOn);
+  const extraGross = recapFareRows.reduce(
+    (sum, row) => sum + (row.amount_rappen == null ? 0 : row.amount_rappen),
+    0,
+  );
+  const classRappen = peekLockClassRappen(lockToken, vehicle);
+  const extraAdd = extraRappenOutsideLock(peekLockExtras(lockToken), extrasCatalog, extraOn);
+  const netRappen = classRappen == null ? null : classRappen + extraAdd;
+  const vatRappen = netRappen == null ? null : vatOnTopRappen(netRappen);
+  const chargedRappen =
+    netRappen == null || vatRappen == null ? null : netRappen + vatRappen;
+  const shown = chfRappenToDisplay(chargedRappen, displayCur, fx.rates?.rates ?? null);
+  const fareRappen = netRappen == null ? null : Math.max(0, netRappen - extraGross);
   const vatShown = chfRappenToDisplay(vatRappen, displayCur, fx.rates?.rates ?? null);
+  const wasNet =
+    wasRappen != null && netRappen != null && wasRappen > netRappen ? wasRappen : null;
   const wasShown = chfRappenToDisplay(
-    wasRappen != null && chargedRappen != null && wasRappen > chargedRappen ? wasRappen : null,
+    wasNet == null ? null : payableWithVatRappen(wasNet),
     displayCur,
     fx.rates?.rates ?? null,
   );
   const recapExtraRows = recapExtras(extrasCatalog, extraOn);
-  const fareShown = chfRappenToDisplay(netRappen, displayCur, fx.rates?.rates ?? null);
+  const fareShown = chfRappenToDisplay(fareRappen, displayCur, fx.rates?.rates ?? null);
   const couponOffRappen =
-    couponApplied && wasRappen != null && chargedRappen != null && wasRappen > chargedRappen
-      ? wasRappen - chargedRappen
+    couponApplied && wasNet != null && chargedRappen != null
+      ? payableWithVatRappen(wasNet) - chargedRappen
       : null;
   const couponOffShown = chfRappenToDisplay(couponOffRappen, displayCur, fx.rates?.rates ?? null);
   const priceLines =
@@ -896,6 +1025,19 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       ? []
       : [
           { label: t("fareExVat"), amount: fareShown.major },
+          ...recapFareRows
+            .filter((row) => row.amount_rappen != null)
+            .map((row) => {
+              const money = chfRappenToDisplay(row.amount_rappen, displayCur, fx.rates?.rates ?? null);
+              return {
+                label: (
+                  <span data-checkout-recap-extra={row.code}>
+                    {`+ ${t(row.labelKey)}`}
+                  </span>
+                ),
+                amount: money.major,
+              };
+            }),
           {
             label: (
               <span data-checkout-vat data-checkout-vat-amount={formatAmount(vatShown.major, vatShown.currency)}>
@@ -907,7 +1049,18 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           ...(couponOffShown.major != null
             ? [
                 {
-                  label: <span data-checkout-coupon-used>{t("couponUsed")}</span>,
+                  label: (
+                    <span
+                      data-checkout-coupon-used
+                      data-checkout-coupon-kind={couponRule?.kind}
+                    >
+                      {couponRule?.kind === "percent" && couponRule.percent
+                        ? t("couponPercentOff", { percent: couponRule.percent })
+                        : couponRule?.kind === "amount"
+                          ? t("couponFixedOff")
+                          : t("couponUsed")}
+                    </span>
+                  ),
                   amount: -couponOffShown.major,
                   credit: true as const,
                 },
@@ -1058,14 +1211,12 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                   />
                 </div>
                 <div className="vt-checkout__flight">
-                  <Input
-                    label={tCommon("flight-number")}
-                    icon="plane"
+                  <FlightField
                     value={draft.flightNumber}
-                    placeholder={tQuote("flight.placeholder")}
-                    onChange={(e) => {
-                      writeDraft({ flightNumber: e.target.value });
-                      writeVamosTrip({ flightNumber: e.target.value });
+                    date={date}
+                    onChange={(next) => {
+                      writeDraft({ flightNumber: next });
+                      writeVamosTrip({ flightNumber: next, flight: next });
                     }}
                   />
                 </div>
@@ -1115,22 +1266,46 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
             <>
               <Card padding="lg">
                 <h2>{t("who-is-travelling")}</h2>
-                <Tabs
-                  className="vt-checkout__tabs"
-                  block
-                  value={guest ? "guest" : "account"}
-                  onChange={(value) => setGuest(value === "guest")}
-                  items={[
-                    { value: "guest", label: t("continue-as-guest") },
-                    { value: "account", label: tCommon("create-an-account") },
-                  ]}
-                />
-                <Input
-                  label={tCommon("flight-number")}
-                  icon="plane"
+                {signedIn ? (
+                  <Tabs
+                    className="vt-checkout__tabs"
+                    block
+                    data-checkout-who="signed"
+                    value={forOther ? "other" : "self"}
+                    onChange={(value) => {
+                      if (value === "other") {
+                        setForOther(true);
+                        setContact(EMPTY_CONTACT);
+                      } else {
+                        setForOther(false);
+                        if (accountContact) setContact(accountContact);
+                      }
+                    }}
+                    items={[
+                      { value: "self", label: t("myDetails") },
+                      { value: "other", label: t("bookForSomeoneElse") },
+                    ]}
+                  />
+                ) : (
+                  <Tabs
+                    className="vt-checkout__tabs"
+                    block
+                    data-checkout-who="guest"
+                    value={guest ? "guest" : "account"}
+                    onChange={(value) => setGuest(value === "guest")}
+                    items={[
+                      { value: "guest", label: t("continue-as-guest") },
+                      { value: "account", label: tCommon("create-an-account") },
+                    ]}
+                  />
+                )}
+                <FlightField
                   value={draft.flightNumber}
-                  placeholder={tQuote("flight.placeholder")}
-                  onChange={(e) => writeDraft({ flightNumber: e.target.value })}
+                  date={date}
+                  onChange={(next) => {
+                    writeDraft({ flightNumber: next });
+                    writeVamosTrip({ flightNumber: next, flight: next });
+                  }}
                 />
                 <ContactFields
                   value={contact}
@@ -1145,7 +1320,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                     mobile: tCommon("mobile"),
                   }}
                 />
-                {guest ? (
+                {signedIn ? null : guest ? (
                   <p>{t("guestNoPassword")}</p>
                 ) : (
                   <Input
@@ -1246,10 +1421,26 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                       label={t("coupon-or-voucher-code")}
                       value={coupon}
                       placeholder={t("couponPlaceholder")}
+                      autoCapitalize="characters"
+                      autoCorrect="off"
+                      spellCheck={false}
                       readOnly={Boolean(couponApplied)}
+                      error={
+                        couponInvalid ? (
+                          <span data-checkout-coupon-msg>
+                            {t(couponField ?? "couponNoLongerValid")}
+                          </span>
+                        ) : undefined
+                      }
+                      hint={
+                        couponApplied && !couponInvalid ? (
+                          <span data-checkout-coupon-msg>{t("couponAppliedOk")}</span>
+                        ) : undefined
+                      }
                       onChange={(e) => {
                         setCouponInvalid(false);
-                        setCoupon(e.target.value);
+                        setCouponField(null);
+                        setCoupon(e.target.value.toUpperCase());
                       }}
                     />
                     <Button
@@ -1257,7 +1448,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                       size="md"
                       disabled={busy}
                       onClick={() =>
-                        void applyCouponCode(couponApplied ? null : coupon.trim() || null)
+                        void applyCouponCode(couponApplied ? null : coupon.trim().toUpperCase() || null)
                       }
                     >
                       {couponApplied ? tCommon("remove") : tCommon("apply")}
@@ -1318,7 +1509,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                     <span data-tok>{t("cancel-free-of-charge-up-to-24-hours-before-pick")}</span>
                   </p>
                 )}
-                {refusal && refusal !== "pricingNotLive" ? (
+                {refusal &&
+                refusal !== "pricingNotLive" &&
+                refusal !== "couponNoLongerValid" ? (
                   <Alert tone={refusal === "pricingNotLive" ? "info" : "danger"}>
                     {refusal === "priceChanged" && hours != null
                       ? t("livePriceChangedLocked", { hours })
@@ -1414,7 +1607,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                 <span data-tok>{t("cancel-free-of-charge-up-to-24-hours-before-pick")}</span>
               </p>
             )}
-            {refusal && refusal !== "pricingNotLive" ? (
+            {refusal &&
+            refusal !== "pricingNotLive" &&
+            refusal !== "couponNoLongerValid" ? (
               <Alert tone={refusal === "pricingNotLive" ? "info" : "danger"}>
                 {refusal === "priceChanged" && hours != null
                   ? t("livePriceChangedLocked", { hours })
