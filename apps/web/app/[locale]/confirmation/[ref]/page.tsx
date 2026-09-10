@@ -42,9 +42,18 @@ function pendingTicket(ref: string): VisibleBooking {
     vehicleClassSlug: "",
     pax: 0,
     bags: 0,
+    flightNo: "",
     extras: [],
+    contactName: "",
+    contactEmail: "",
+    contactPhone: "",
+    couponCode: null,
+    discountRappen: null,
+    subtotalRappen: null,
     priceTotalRappen: null,
     fareLines: [],
+    paidAt: null,
+    paymentStatus: null,
   };
 }
 

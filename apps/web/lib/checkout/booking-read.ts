@@ -71,8 +71,10 @@ export const SNAPSHOT_COLUMNS = [
   "quote_id",
   "lines",
   "subtotal_rappen",
+  "discount_rappen",
   "total_rappen",
   "currency",
+  "coupon_code",
 ] as const;
 
 export type ConfirmationFareLine = {
@@ -94,9 +96,18 @@ export type VisibleBooking = {
   vehicleClassSlug: string;
   pax: number;
   bags: number;
+  flightNo: string;
   extras: PayLinkExtraCode[];
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string;
+  couponCode: string | null;
+  discountRappen: number | null;
+  subtotalRappen: number | null;
   priceTotalRappen: number | null;
   fareLines: ConfirmationFareLine[];
+  paidAt: string | null;
+  paymentStatus: string | null;
 };
 
 export type BookingRead = HiddenBooking | VisibleBooking;
@@ -110,12 +121,18 @@ type BookingRow = {
   reference: string;
   status: string;
   price_total_rappen: number | string | null;
+  contact_name?: string | null;
+  contact_email?: string | null;
+  contact_phone?: string | null;
 };
 
 type SnapshotRow = {
   policy?: unknown;
   lines?: unknown;
   total_rappen?: number | string | null;
+  subtotal_rappen?: number | string | null;
+  discount_rappen?: number | string | null;
+  coupon_code?: string | null;
 };
 
 type LegRow = {
@@ -125,6 +142,7 @@ type LegRow = {
   vehicle_class_id: string;
   pax: number;
   bags: number;
+  flight_no?: string | null;
 };
 
 const HIDDEN: HiddenBooking = { visible: false };
@@ -168,6 +186,7 @@ function firstLeg(rows: LegRow[]): {
   vehicleClassId: string;
   pax: number;
   bags: number;
+  flightNo: string;
 } {
   const row = rows[0];
   if (!row) {
@@ -178,6 +197,7 @@ function firstLeg(rows: LegRow[]): {
       vehicleClassId: "",
       pax: 0,
       bags: 0,
+      flightNo: "",
     };
   }
   return {
@@ -187,6 +207,7 @@ function firstLeg(rows: LegRow[]): {
     vehicleClassId: asText(row.vehicle_class_id),
     pax: Number(row.pax) || 0,
     bags: Number(row.bags) || 0,
+    flightNo: asText(row.flight_no).trim(),
   };
 }
 
@@ -251,8 +272,10 @@ async function selectVisibleBooking(sql: SqlTag, reference: string): Promise<Vis
       quote_id,
       lines,
       subtotal_rappen,
+      discount_rappen,
       total_rappen,
-      currency
+      currency,
+      coupon_code
     from public.price_snapshots
     where booking_id = ${booking.id}
     order by computed_at desc nulls last
@@ -263,6 +286,7 @@ async function selectVisibleBooking(sql: SqlTag, reference: string): Promise<Vis
   const priceTotalRappen =
     rappenOrNull(booking.price_total_rappen) ?? rappenOrNull(snaps[0]?.total_rappen);
   const vehicleClassSlug = fareLines[0]?.vehicleClass ?? "";
+  const couponCode = asText(snaps[0]?.coupon_code).trim() || null;
   const leg = firstLeg(legs);
   return {
     visible: true as const,
@@ -275,9 +299,18 @@ async function selectVisibleBooking(sql: SqlTag, reference: string): Promise<Vis
     vehicleClassSlug,
     pax: leg.pax,
     bags: leg.bags,
+    flightNo: leg.flightNo,
     extras,
+    contactName: asText(booking.contact_name).trim(),
+    contactEmail: asText(booking.contact_email).trim(),
+    contactPhone: asText(booking.contact_phone).trim(),
+    couponCode,
+    discountRappen: rappenOrNull(snaps[0]?.discount_rappen),
+    subtotalRappen: rappenOrNull(snaps[0]?.subtotal_rappen),
     priceTotalRappen,
     fareLines,
+    paidAt: null,
+    paymentStatus: null,
   };
 }
 
@@ -300,6 +333,48 @@ async function loadCustomerBooking(
   return asCustomer(env, claims, async (sql) => selectVisibleBooking(sql, reference));
 }
 
+async function readLatestPayment(
+  env: CloudflareEnv,
+  reference: string,
+): Promise<{ status: string | null; capturedAt: string | null; chargedRappen: number | null }> {
+  const empty = { status: null, capturedAt: null, chargedRappen: null };
+  try {
+    const rows = await asSystem(env, async (sql) => {
+      return sql`
+        select bp.status, bp.captured_at, bp.charged_rappen
+        from public.booking_payments bp
+        inner join public.bookings b on b.id = bp.booking_id
+        where b.reference = ${reference}
+        order by bp.captured_at desc nulls last, bp.created_at desc
+        limit 1
+      `;
+    });
+    const row = rows[0] && typeof rows[0] === "object" ? (rows[0] as Record<string, unknown>) : null;
+    if (!row) return empty;
+    const status = typeof row.status === "string" ? row.status : null;
+    const capturedRaw = row.captured_at;
+    const capturedAt =
+      capturedRaw instanceof Date
+        ? capturedRaw.toISOString()
+        : typeof capturedRaw === "string"
+          ? capturedRaw
+          : null;
+    return { status, capturedAt, chargedRappen: rappenOrNull(row.charged_rappen) };
+  } catch {
+    return empty;
+  }
+}
+
+async function withPayment(env: CloudflareEnv, row: VisibleBooking): Promise<VisibleBooking> {
+  const payment = await readLatestPayment(env, row.reference);
+  return {
+    ...row,
+    paidAt: payment.capturedAt,
+    paymentStatus: payment.status,
+    priceTotalRappen: row.priceTotalRappen ?? payment.chargedRappen,
+  };
+}
+
 export async function readBookingForConfirmation(
   env: CloudflareEnv,
   rawCookie: string,
@@ -307,31 +382,12 @@ export async function readBookingForConfirmation(
   claims?: VamosClaims | null,
 ): Promise<BookingRead> {
   const guest = await loadGuestBooking(env, rawCookie, reference);
-  if (guest) return guest;
+  if (guest) return withPayment(env, guest);
   if (claims) {
     const own = await loadCustomerBooking(env, claims, reference);
-    if (own) return own;
+    if (own) return withPayment(env, own);
   }
   return HIDDEN;
-}
-
-async function readLatestPaymentStatus(env: CloudflareEnv, reference: string): Promise<string | null> {
-  try {
-    const rows = await asSystem(env, async (sql) => {
-      return sql`
-        select bp.status
-        from public.booking_payments bp
-        inner join public.bookings b on b.id = bp.booking_id
-        where b.reference = ${reference}
-        order by bp.created_at desc
-        limit 1
-      `;
-    });
-    const status = rows[0] && typeof rows[0] === "object" && "status" in rows[0] ? rows[0].status : null;
-    return typeof status === "string" ? status : null;
-  } catch {
-    return null;
-  }
 }
 
 export async function readBookingStatus(
@@ -342,6 +398,5 @@ export async function readBookingStatus(
 ): Promise<StatusRead> {
   const row = await readBookingForConfirmation(env, rawCookie, reference, claims);
   if (!row.visible) return HIDDEN;
-  const paymentStatus = await readLatestPaymentStatus(env, row.reference);
-  return { visible: true, status: row.status, reference: row.reference, paymentStatus };
+  return { visible: true, status: row.status, reference: row.reference, paymentStatus: row.paymentStatus };
 }

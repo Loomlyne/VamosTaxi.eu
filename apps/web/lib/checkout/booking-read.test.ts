@@ -2,9 +2,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { hashManageToken, mintManageToken } from "./manage-token";
 
 const asGuest = vi.fn();
+const asSystem = vi.fn();
 
 vi.mock("../db/identity", () => ({
   asGuest: (...args: unknown[]) => asGuest(...args),
+  asSystem: (...args: unknown[]) => asSystem(...args),
 }));
 
 import {
@@ -41,6 +43,10 @@ function makeSql(bookings: unknown[], legs: unknown[] = [], snapshots: unknown[]
 describe("readBookingForConfirmation / readBookingStatus", () => {
   beforeEach(() => {
     asGuest.mockReset();
+    asSystem.mockReset();
+    asSystem.mockImplementation(async () => {
+      throw new Error("no payment");
+    });
   });
 
   it("mints then hashes to the same 64-char hex GUC", async () => {
@@ -120,7 +126,17 @@ describe("readBookingForConfirmation / readBookingStatus", () => {
 
   it("visible booking maps the first leg", async () => {
     const { sql } = makeSql(
-      [{ id: "b1", reference: REF, status: "pending", price_total_rappen: 10810 }],
+      [
+        {
+          id: "b1",
+          reference: REF,
+          status: "pending",
+          price_total_rappen: 10810,
+          contact_name: "koussay zayani",
+          contact_email: "koussayzayeni@gmail.com",
+          contact_phone: "+971509758018",
+        },
+      ],
       [
         {
           pickup_text: "ZRH Arrivals",
@@ -129,6 +145,7 @@ describe("readBookingForConfirmation / readBookingStatus", () => {
           vehicle_class_id: "vc-1",
           pax: 2,
           bags: 2,
+          flight_no: "LX123",
         },
       ],
       [
@@ -136,6 +153,10 @@ describe("readBookingForConfirmation / readBookingStatus", () => {
           id: "s1",
           lines: [{ code: "distance_fare", params: { vehicleClass: "business" }, amount_rappen: 10810 }],
           total_rappen: 10810,
+          coupon_code: null,
+          discount_rappen: 0,
+          subtotal_rappen: 10810,
+          policy: { extras: ["child_seat"] },
         },
       ],
     );
@@ -154,9 +175,18 @@ describe("readBookingForConfirmation / readBookingStatus", () => {
       vehicleClassSlug: "business",
       pax: 2,
       bags: 2,
-      extras: [],
+      flightNo: "LX123",
+      extras: ["child_seat"],
+      contactName: "koussay zayani",
+      contactEmail: "koussayzayeni@gmail.com",
+      contactPhone: "+971509758018",
+      couponCode: null,
+      discountRappen: 0,
+      subtotalRappen: 10810,
       priceTotalRappen: 10810,
       fareLines: [{ code: "distance_fare", vehicleClass: "business", amountRappen: 10810 }],
+      paidAt: null,
+      paymentStatus: null,
     });
     const status = await readBookingStatus(ENV, "token", REF);
     expect(status).toEqual({ visible: true, status: "pending", reference: REF, paymentStatus: null });
@@ -171,5 +201,38 @@ describe("readBookingForConfirmation / readBookingStatus", () => {
     const unknown = await readBookingStatus(ENV, "!!!!", REF);
     expect(JSON.stringify(missing)).toBe(JSON.stringify(unknown));
     expect(missing).toEqual({ visible: false });
+  });
+
+  it("attaches captured_at from the payment row", async () => {
+    const { sql } = makeSql(
+      [{ id: "b1", reference: REF, status: "confirmed", price_total_rappen: 10810 }],
+      [
+        {
+          pickup_text: "Zurich Airport",
+          dropoff_text: "Zurich Hauptbahnhof",
+          scheduled_local: "2026-09-11T00:55",
+          vehicle_class_id: "vc-1",
+          pax: 1,
+          bags: 0,
+        },
+      ],
+      [{ id: "s1", lines: [], total_rappen: 10810 }],
+    );
+    asGuest.mockImplementation(async (_env: CloudflareEnv, _hex: string, fn: (s: typeof sql) => unknown) =>
+      fn(sql),
+    );
+    asSystem.mockImplementation(async (_env: CloudflareEnv, fn: (s: unknown) => unknown) => {
+      const paySql = async () => [
+        { status: "succeeded", captured_at: "2026-09-10T19:53:06.074Z", charged_rappen: 10810 },
+      ];
+      return fn(paySql);
+    });
+    const result = await readBookingForConfirmation(ENV, "token", REF);
+    expect(result).toMatchObject({
+      visible: true,
+      paidAt: "2026-09-10T19:53:06.074Z",
+      paymentStatus: "succeeded",
+      priceTotalRappen: 10810,
+    });
   });
 });

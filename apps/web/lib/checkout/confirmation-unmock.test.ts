@@ -63,6 +63,9 @@ describe("confirmation unmock (D-40)", () => {
     expect(client).not.toContain("processingTitle");
     expect(client).not.toContain("We're confirming your payment");
     expect(client).toContain("data-confirmation-extra");
+    expect(client).toContain("data-confirmation-receipt");
+    expect(client).toContain("data-confirmation-payer");
+    expect(client).toContain("couponCode");
     expect(client).toContain("priceTotalRappen");
     expect(client).not.toContain("airport-pickup-fee");
     expect(client).not.toContain("total={null}");

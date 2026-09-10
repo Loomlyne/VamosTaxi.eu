@@ -9,8 +9,15 @@ import { useTranslations } from "next-intl";
 import { Alert } from "@/components/feedback/Alert";
 import { Button, Card, CheckerMark, Logo } from "@/components/core";
 import { PriceSummary, RouteSummary, StatusBadge } from "@/components/transfer";
+import type { PriceLine } from "@/components/transfer/PriceSummary";
 import { useBookingDraft } from "@/lib/booking-draft";
 import { PHONE_DISPLAY, PHONE_HREF, WHATSAPP_HREF } from "@/lib/contact-channels";
+import {
+  couponOnReceipt,
+  extrasOnReceipt,
+  formatPaidAt,
+  rappenToMajor,
+} from "@/lib/checkout/confirmation-receipt";
 import {
   isCapturedPayment,
   isFailedPayment,
@@ -43,10 +50,20 @@ export type ConfirmationFacts = {
   dropoffText: string;
   scheduledLocal: string;
   pax: number;
+  bags?: number;
+  flightNo?: string;
   extras?: import("@vamos/emails/confirmation").PayLinkExtraCode[];
   vehicleClassSlug?: string;
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  couponCode?: string | null;
+  discountRappen?: number | null;
+  subtotalRappen?: number | null;
   priceTotalRappen?: number | null;
   fareLines?: import("@/lib/checkout/booking-read").ConfirmationFareLine[];
+  paidAt?: string | null;
+  paymentStatus?: string | null;
 };
 
 export type ConfirmationClientProps = {
@@ -178,11 +195,13 @@ export function ConfirmationClient({
     ? wallTime(booking.scheduledLocal)
     : { date: draft.date, time: draft.time };
   const pax = booking && booking.pax > 0 ? booking.pax : draft.passengers;
-  const extras = booking?.extras ?? [];
-  const extraLabel: Record<string, "childSeat" | "extraOversized" | "additional-stop-2"> = {
+  const bags = booking && booking.bags != null && booking.bags > 0 ? booking.bags : 0;
+  const flightNo = (booking?.flightNo || "").trim();
+  const extras = extrasOnReceipt(booking?.extras);
+  const extraLabel: Record<string, "childSeat" | "extraOversized" | "extraStop"> = {
     child_seat: "childSeat",
     oversized_luggage: "extraOversized",
-    extra_stop: "additional-stop-2",
+    extra_stop: "extraStop",
   };
 
   if (phase === "hidden") {
@@ -214,30 +233,50 @@ export function ConfirmationClient({
           : classSlug
             ? tCommon("vehicleClassOf", { class: classSlug })
             : tCommon("vehicleClassFallback");
+  const classLabelOf = (slug: string) => {
+    const value = slug.trim();
+    if (value === "economy") return tCommon("vehicleClassEconomy");
+    if (value === "business") return tCommon("vehicleClassBusiness");
+    if (value === "van") return tCommon("vehicleClassVan");
+    if (value) return tCommon("vehicleClassOf", { class: value });
+    return vehicleLabel;
+  };
   const totalRappen = booking?.priceTotalRappen;
-  const totalMajor =
-    totalRappen != null && Number.isFinite(totalRappen) ? totalRappen / 100 : null;
+  const totalMajor = rappenToMajor(totalRappen ?? null);
   const fareLines = Array.isArray(booking?.fareLines) ? booking.fareLines : [];
-  const chargedLines = fareLines
-    .filter((line) => line.code === "distance_fare" && Number.isFinite(line.amountRappen))
+  const coupon = couponOnReceipt({
+    couponCode: booking?.couponCode,
+    discountRappen: booking?.discountRappen,
+    fareLines,
+  });
+  const subtotalMajor = rappenToMajor(booking?.subtotalRappen ?? null);
+  const lines: PriceLine[] = fareLines
+    .filter((line) => line.code !== "coupon" && line.code !== "discount")
     .map((line) => {
-      const slug = (line.vehicleClass || classSlug).trim();
-      const cls =
-        slug === "economy"
-          ? tCommon("vehicleClassEconomy")
-          : slug === "business"
-            ? tCommon("vehicleClassBusiness")
-            : slug === "van"
-              ? tCommon("vehicleClassVan")
-              : slug
-                ? tCommon("vehicleClassOf", { class: slug })
-                : vehicleLabel;
-      return { label: t("transferClass", { class: cls }), amount: line.amountRappen / 100 };
+      if (line.code === "child_seat") return { label: t("childSeat"), amount: rappenToMajor(line.amountRappen) };
+      if (line.code === "oversized_luggage") {
+        return { label: t("extraOversized"), amount: rappenToMajor(line.amountRappen) };
+      }
+      if (line.code === "extra_stop") return { label: t("extraStop"), amount: rappenToMajor(line.amountRappen) };
+      if (line.code === "vat") return { label: t("vatIncl"), amount: rappenToMajor(line.amountRappen) };
+      const cls = classLabelOf(line.vehicleClass || classSlug);
+      return { label: t("transferClass", { class: cls }), amount: rappenToMajor(line.amountRappen) };
     });
-  const lines =
-    chargedLines.length > 0
-      ? chargedLines
-      : [{ label: t("transferClass", { class: vehicleLabel }), amount: totalMajor }];
+  if (coupon) {
+    lines.push({
+      label: t("couponCode", { code: coupon.code }),
+      amount: rappenToMajor(-coupon.rappen),
+      credit: true,
+    });
+  }
+  if (lines.length === 0) {
+    lines.push({ label: t("transferClass", { class: vehicleLabel }), amount: totalMajor });
+  }
+  const contactName = (booking?.contactName || "").trim();
+  const contactEmail = (booking?.contactEmail || "").trim();
+  const contactPhone = (booking?.contactPhone || "").trim();
+  const paidAtLabel = booking?.paidAt ? formatPaidAt(booking.paidAt, locale) : "";
+  const showCard = Boolean(paidAtLabel || isCapturedPayment(booking?.paymentStatus ?? ""));
 
   return (
     <main
@@ -281,6 +320,10 @@ export function ConfirmationClient({
             },
             { icon: "users", label: t("passengersCount", { n: pax }) },
             { icon: "car", label: vehicleLabel },
+            ...(bags > 0 ? [{ icon: "luggage" as const, label: t("upToBagsCount", { n: bags }) }] : []),
+            ...(flightNo
+              ? [{ icon: "plane" as const, label: <span className="vt-dir-keep">{flightNo}</span> }]
+              : []),
             ...extras.map((code) => ({
               icon: (code === "oversized_luggage"
                 ? "luggage"
@@ -297,9 +340,60 @@ export function ConfirmationClient({
           inverse
           lines={lines}
           total={totalMajor}
+          was={coupon && subtotalMajor != null && subtotalMajor !== totalMajor ? subtotalMajor : null}
           totalLabel={t("paid")}
           note={totalMajor == null ? t("pricePlaceholderNote") : undefined}
         />
+        {extras.length || coupon || contactName || contactEmail || contactPhone || showCard || paidAtLabel ? (
+        <dl className="vt-confirmation__receipt" data-confirmation-receipt>
+          {extras.map((code) => (
+            <div className="vt-confirmation__receipt-row" key={code}>
+              <dt>{t("extras")}</dt>
+              <dd data-confirmation-receipt-extra={code}>{t(extraLabel[code] ?? "childSeat")}</dd>
+            </div>
+          ))}
+          {coupon ? (
+            <div className="vt-confirmation__receipt-row">
+              <dt>{t("couponUsed")}</dt>
+              <dd data-confirmation-coupon className="vt-dir-keep">
+                {coupon.code}
+              </dd>
+            </div>
+          ) : null}
+          {contactName ? (
+            <div className="vt-confirmation__receipt-row">
+              <dt>{t("paid-by")}</dt>
+              <dd data-confirmation-payer>{contactName}</dd>
+            </div>
+          ) : null}
+          {contactEmail ? (
+            <div className="vt-confirmation__receipt-row">
+              <dt>{t("payerEmail")}</dt>
+              <dd className="vt-dir-keep">{contactEmail}</dd>
+            </div>
+          ) : null}
+          {contactPhone ? (
+            <div className="vt-confirmation__receipt-row">
+              <dt>{t("contactPhone")}</dt>
+              <dd className="vt-dir-keep">{contactPhone}</dd>
+            </div>
+          ) : null}
+          {showCard ? (
+            <div className="vt-confirmation__receipt-row">
+              <dt>{t("payment")}</dt>
+              <dd>{t("paidWithCard")}</dd>
+            </div>
+          ) : null}
+          {paidAtLabel ? (
+            <div className="vt-confirmation__receipt-row">
+              <dt>{t("paidAt")}</dt>
+              <dd data-confirmation-paid-at className="vt-dir-keep">
+                {paidAtLabel}
+              </dd>
+            </div>
+          ) : null}
+        </dl>
+        ) : null}
       </Card>
 
       <div className="vt-confirmation__actions">
