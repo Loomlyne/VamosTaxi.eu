@@ -257,6 +257,7 @@ Plans:
 **Wave 8** *(blocked on Wave 7 completion)*
 
 - [x] 04-14-PLAN.md — The rules Phase 7's handler must obey, and the ledger that keeps this phase's open questions
+
 **UI hint**: yes
 
 ### Phase 4.3: Blended distance bands + OPS rate book (INSERTED)
@@ -299,12 +300,14 @@ per-URL connection table below — a page with any mock leftover is not done.
 **Plans**: 05-01…26 executed. 05-19 not executed (partner out). 05-24 skipped (facts in 05-32). 05-27 executed, staging UAT open. 05-28 gated on that UAT.
 
 **Wave 12** *(executed 2026-09-04)*
+
 - [x] 05-29-PLAN.md — Public GET `/api/reviews` + hide `#reviews` when empty
 - [x] 05-30-PLAN.md — Delete home `FLIGHTS` fixtures
 - [x] 05-31-PLAN.md — Drop `partner_applications` + leftover copy
 - [x] 05-32-PLAN.md — Update `05-OWNER-CHECKS.md` (no dashboard re-clicks)
 
 **Wave 13** *(executed 2026-09-04)*
+
 - [x] 05-33-PLAN.md — Staging per-URL connection table (no quote POST, no contact submit). Table: `05-CONNECTION-TABLE.md`. Worker `vamos` `093a4976`.
 
 **UI hint**: yes
@@ -327,13 +330,16 @@ does not need to wait for checkout.
 **Plans**:
 
 **Wave 1**
+
 - [x] 06-01-PLAN.md — Delete the React ops twin; keep staff APIs
 - [x] 06-02-PLAN.md — Staff JSON door + empty VamosOps remote store (rate-book path map)
 
 **Wave 2** *(blocked on Wave 1 completion)*
+
 - [x] 06-03-PLAN.md — Dashboard host `/login` DC, invite → `/login`, password eye, MFA paused
 
 **Wave 3** *(blocked on Wave 2 completion)*
+
 - [x] 06-04-PLAN.md — Fleet / chauffeurs JSON + R2 photos
 - [x] 06-05-PLAN.md — Pricing draft→publish (`PUT /api/staff/rate-book`)
 - [x] 06-06-PLAN.md — Coupons
@@ -343,12 +349,15 @@ does not need to wait for checkout.
 - [x] 06-10-PLAN.md — `content_strings` editor in OpsContent.dc.html
 
 **Wave 4** *(blocked on Wave 3 completion)*
+
 - [x] 06-11-PLAN.md — I18N-07 loader last; `CONTENT_SOURCE` default json
 
 **Wave 5** *(blocked on Wave 4 completion)*
+
 - [x] 06-12-PLAN.md — Dashboard comment pack: `#staff`, passkeys, Zurich digest, four classes
 
 **Wave 6** *(blocked on Wave 5 completion)*
+
 - [x] 06-13-PLAN.md — UAT regressions: in-place hash fade, Fleet hierarchy, avatar, branded digest
 
 **UI hint**: yes
@@ -557,7 +566,7 @@ v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16
 | 5. Public Surfaces & Customer Accounts | 33/33 | Complete    | 2026-09-06 |
 | 6. Ops Reference Data & Content Console | 13/13 | Complete   | 2026-09-01 |
 | 7. Checkout & Payment | 0/TBD | Not started | - |
-| 8. Ops Dispatch — Live Board, Assignment & Account Surfaces | 0/TBD | Not started | - |
+| 8. Ops Dispatch — Live Board, Assignment & Account Surfaces | 3/10 | In Progress|  |
 | 9. Booking Lifecycle & Customer Self-Service | 0/TBD | Not started | - |
 | 10. Hardening — Performance, Security & Compliance | 0/TBD | Not started | - |
 | 11. Launch Cutover | 0/TBD | Not started | - |

@@ -20,6 +20,8 @@ export const OPS_SQLSTATE = Object.freeze({
   privilege: "42501",
   // 06-01 staff_update_self against a missing row (20260826000001_staff_self_service.sql)
   noData: "P0002",
+  // booking_legs_chauffeur_no_overlap / booking_legs_vehicle_no_overlap (GiST EXCLUDE)
+  exclusion: "23P01",
 } as const);
 
 export type OpsDbFailure =

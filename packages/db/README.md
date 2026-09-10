@@ -103,6 +103,14 @@ still applies to any phase planned alone.
 | 03 | `20260827000003_checkout_rpc` | **07-02** | `checkout_create_booking` RPC (owned by plan 07-02). |
 | 04 | `20260827000004_settlement_rpcs` | **07-03** | Settlement / notification RPCs (owned by plan 07-03). |
 
+### Phase 8 (ops dispatch)
+
+CLI clock via `supabase migration new` (never a hand-typed timestamp). Hosted apply is **08-09 Task 3**, not the plan that creates the file.
+
+| File | Owning plan | Contents |
+|---|---|---|
+| `20260910164004_ops_assign_leg` | **08-04** | `ops_assign_leg` / `ops_unassign_leg` SECURITY DEFINER; GiST EXCLUDE kept; EXECUTE `vamos_system` only |
+
 Three reorderings versus `02-SCHEMA-DRAFT.md` §16's illustrative sequence, each load-bearing:
 
 - **`content_and_reviews` moved to 07** (immediately after `customers_and_staff`), ahead of
