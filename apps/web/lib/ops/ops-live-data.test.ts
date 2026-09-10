@@ -340,4 +340,25 @@ describe("ops live data — comments 8–10", () => {
     expect(data).not.toMatch(/function emptyBookings/);
     expect(data).toMatch(/capturedAt: str\(b\.capturedAt\)/);
   });
+
+  it("customers CRM has no Isolation names", () => {
+    const html = read("app/ops/OpsCustomers.dc.html");
+    const src = read("apps/web/lib/ops/customers.ts");
+    expect(html).not.toMatch(/Isolation/);
+    expect(src).not.toMatch(/Isolation/);
+    expect(html).not.toMatch(/location\.hash/);
+  });
+
+  it("ops live board polls with visibility and never Realtime", () => {
+    const data = read("app/vamos-ops-data.js");
+    expect(data).toMatch(/visibilitychange/);
+    expect(data).toMatch(/POLL_MS = 3000/);
+    expect(data).toMatch(/document\.visibilityState/);
+    expect(data).not.toMatch(/supabase\.channel/);
+    expect(data).not.toMatch(/function emptyBookings/);
+    const page = read("app/pages/bookings.dc.html");
+    expect(page).toMatch(/visibilitychange/);
+    expect(page).toMatch(/\/api\/account\/bookings/);
+    expect(page).not.toMatch(/emptyBookings/);
+  });
 });
