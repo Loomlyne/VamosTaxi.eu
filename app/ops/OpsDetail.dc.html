@@ -13,10 +13,11 @@
 [data-ops-detail]{display:flex;flex-direction:column;gap:14px}
 [data-ops-detail-bar]{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 [data-ops-detail-col]{min-width:0;width:100%;display:flex;flex-direction:column;gap:14px}
-[data-ops-route-leg]{display:grid;grid-template-columns:14px minmax(0,1fr);grid-template-rows:auto auto auto;column-gap:12px;align-items:start}
+[data-ops-route-leg]{display:grid;grid-template-columns:14px minmax(0,1fr);grid-template-rows:auto auto auto;column-gap:12px;align-items:stretch}
 [data-ops-route-pip]{grid-column:1;grid-row:1;align-self:start;margin-top:4px;position:relative;z-index:1;inline-size:10px;block-size:10px;border-radius:var(--vt-radius-pill);background:var(--vt-accent);border:2px solid var(--vt-charcoal-900);box-sizing:content-box}
 [data-ops-route-pip-end]{grid-column:1;grid-row:3;align-self:start;margin-top:4px;position:relative;z-index:1;inline-size:10px;block-size:10px;border-radius:var(--vt-radius-pill);background:var(--vt-charcoal-900);border:2px solid var(--vt-charcoal-900);box-sizing:content-box}
-[data-ops-route-line]{grid-column:1;grid-row:1/4;justify-self:center;width:2px;margin:16px 0;background:var(--vt-grey-200)}
+[data-ops-route-line]{grid-column:1;grid-row:1/4;justify-self:center;align-self:stretch;width:2px;margin:16px 0;background:var(--vt-charcoal-900);opacity:.28;z-index:0}
+[data-ops-history-toggle]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;margin:0 0 12px;cursor:pointer;font:inherit;color:inherit}
 [data-ops-route-stop]{grid-column:2;grid-row:1;min-width:0}
 [data-ops-route-mid]{grid-column:2;grid-row:2;display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0 12px}
 [data-ops-route-chip]{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--vt-radius-pill);background:var(--vt-grey-50);font-family:var(--vt-font-body);font-size:var(--vt-body-sm);line-height:1.3;color:var(--vt-text-muted);white-space:nowrap}
@@ -80,10 +81,16 @@
 <sc-if value="{{ hasRouteMid }}" hint-placeholder-val="{{ true }}">
 <div data-ops-route-mid>
 <sc-if value="{{ hasDuration }}" hint-placeholder-val="{{ true }}">
-<span data-ops-route-chip data-vt-no-i18n="1">{{ durationChip }}</span>
+<span data-ops-route-chip>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="clock" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import>
+<span data-vt-no-i18n="1">{{ durationChip }}</span>
+</span>
 </sc-if>
 <sc-if value="{{ hasDistance }}" hint-placeholder-val="{{ true }}">
-<span data-ops-route-chip data-vt-no-i18n="1">{{ distanceChip }}</span>
+<span data-ops-route-chip>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="route" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import>
+<span data-vt-no-i18n="1">{{ distanceChip }}</span>
+</span>
 </sc-if>
 </div>
 </sc-if>
@@ -163,8 +170,12 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.PriceSummary" lines="{{ fareLines }}" total="{{ booking.total }}" totalLabel="{{ tTotalLabel }}" note="{{ tFareNote }}" hint-size="100%,120px"></x-import>
 </div>
 
-<div>
-<h3 style="margin:0 0 12px;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:600;color:var(--vt-text-muted)">{{ tHistory }}</h3>
+<div data-ops-history>
+<button type="button" data-ops-history-toggle onClick="{{ toggleHistory }}" aria-expanded="{{ historyOpen }}">
+<span style="flex:1 1 auto;margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:600;color:var(--vt-text-muted)">{{ tHistory }}</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ historyChevron }}" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
+</button>
+<sc-if value="{{ historyOpen }}" hint-placeholder-val="{{ true }}">
 <sc-if value="{{ historyEmpty }}" hint-placeholder-val="{{ true }}">
 <p style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-muted)">{{ tHistoryEmpty }}</p>
 </sc-if>
@@ -174,6 +185,7 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.ListRow" title="{{ h.title }}" subtitle="{{ h.meta }}" hint-size="100%,52px"></x-import>
 </sc-for>
 </x-import>
+</sc-if>
 </sc-if>
 </div>
 
@@ -258,9 +270,49 @@ function eventTitle(kind, t) {
   if (kind === 'assignment.vehicle_set') return t.evVehicle;
   if (kind === 'assignment.cleared') return t.evCleared;
   if (kind === 'payment.captured' || kind === 'payment.succeeded') return t.evPayment;
+  if (kind === 'payment.intent_created') return t.evPayStarted;
+  if (kind === 'price.quoted') return t.evQuoted;
+  if (kind === 'booking.created') return t.evCreated;
+  if (kind === 'booking.status_changed') return t.evStatus;
   if (kind === 'refund.issued') return t.evRefund;
   if (kind === 'voucher.sent') return t.evVoucher;
   return kind || '';
+}
+function fareLineLabel(code, klass, t) {
+  if (code === 'distance_fare' || code === 'fare' || code === 'transfer') return t.lineTransfer + (klass || '');
+  if (code === 'child_seat') return extraLabel(code);
+  if (code === 'oversized_luggage') return extraLabel(code);
+  if (code === 'extra_stop') return extraLabel(code);
+  if (code === 'meet_greet') return 'Meet and greet';
+  if (code === 'coupon') return t.coupon;
+  return String(code || '').replace(/_/g, ' ');
+}
+function fareBreakdown(booking, t) {
+  const klass = booking.klass || booking.vehicle || '';
+  const stored = Array.isArray(booking.fareLines) ? booking.fareLines : [];
+  if (stored.length) {
+    return stored.map((line) => {
+      const rappen = line.rappen == null || line.rappen === '' ? null : Number(line.rappen);
+      return {
+        label: line.label || fareLineLabel(line.code, klass, t),
+        value: Number.isFinite(rappen) ? fareLabel(rappen) : t.included,
+      };
+    });
+  }
+  const total = Number(booking.totalRappen) || 0;
+  const extra = Number(booking.extraRappen) || 0;
+  const transfer = extra > 0 && total > extra ? total - extra : total;
+  const lines = [{ label: t.lineTransfer + klass, value: fareLabel(transfer) }];
+  if (extra > 0) lines.push({ label: t.extras, value: fareLabel(extra) });
+  else {
+    (Array.isArray(booking.extras) ? booking.extras : []).forEach((code) => {
+      const name = extraLabel(code);
+      if (name) lines.push({ label: name, value: t.included });
+    });
+  }
+  if (booking.couponCode) lines.push({ label: t.coupon + ' ' + booking.couponCode, value: t.included });
+  if (Number(booking.refundRappen) > 0) lines.push({ label: t.evRefund, value: fareLabel(booking.refundRappen) });
+  return lines;
 }
 function eventWhen(at) {
   const raw = String(at || '');
@@ -294,6 +346,7 @@ function extraLabel(code) {
   if (code === 'child_seat') return 'Child seat';
   if (code === 'oversized_luggage') return 'Oversized luggage';
   if (code === 'extra_stop') return 'Extra stop';
+  if (code === 'meet_greet' || code === 'meet-and-greet') return 'Meet and greet';
   return String(code || '');
 }
 function hexToUtf8(hex) {
@@ -328,6 +381,7 @@ const T = {
     keepBooking:'Keep it', confirmCancel:'Cancel booking', bookingCancelled:'Cancelled ', cancelFailed:'Could not cancel ', refundFailed:'Could not refund ',
     voucherResent:'Voucher re-sent to ', driverAssigned:'Driver assigned to ', unassignedOk:'Assignment cleared for ',
     evPayment:'Payment captured', evRefund:'Refund issued', evVoucher:'Voucher sent', evAssigned:'Driver assigned', evVehicle:'Vehicle assigned', evCleared:'Assignment cleared',
+    evQuoted:'Quote saved', evCreated:'Booking created', evPayStarted:'Payment started', evStatus:'Status changed', included:'Included',
     overlap:'Overlaps {ref} at {time}', noEmail:'Cannot assign until this chauffeur has an email on file.', noVehicle:'Cannot assign until this chauffeur has a vehicle.',
     notPaid:'Unpaid trips cannot be assigned.', frozen:'This trip is frozen.', capacity:'This vehicle cannot take this trip’s passengers and bags.', assignFailed:'Could not assign ',
     pickChauffeur:'Pick a chauffeur first.', voucherFailed:'Could not resend voucher ',
@@ -412,7 +466,8 @@ const T = {
   },
 };
 class Component extends DCLogic {
-  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', dialogOpen:false, cancelOpen:false, pickDriver:'', toastMsg:'', showToast:false, editing:false, edit:{}, takeCardOpen:false };
+  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', dialogOpen:false, cancelOpen:false, pickDriver:'', toastMsg:'', showToast:false, editing:false, edit:{}, takeCardOpen:false, historyOpen:true };
+  toggleHistory = () => this.setState((s) => ({ historyOpen: !s.historyOpen }));
   componentDidUpdate(prevProps, prevState) {
     const overlay = !!(this.state.dialogOpen || this.state.cancelOpen);
     const was = !!(prevState.dialogOpen || prevState.cancelOpen);
@@ -499,9 +554,7 @@ class Component extends DCLogic {
       title: eventTitle(e.kind, t),
       meta: [eventWhen(e.at || e.createdAt), eventActor(e.actorLabel || e.actor_label, e.kind, t)].filter(Boolean).join(' · '),
     }));
-    const fareLines = [{ label: t.lineTransfer + (booking.klass || booking.vehicle || ''), value: fareLabel(booking.totalRappen) }];
-    if (Number(booking.extraRappen) > 0) fareLines.push({ label: 'Extra', value: fareLabel(booking.extraRappen) });
-    if (Number(booking.refundRappen) > 0) fareLines.push({ label: t.evRefund, value: fareLabel(booking.refundRappen) });
+    const fareLines = fareBreakdown(booking, t);
     const cancelled = booking.status === 'cancelled' || booking.status === 'refunded';
     const durationMin = Number(booking.durationMin) || 0;
     const pickupWhen = [booking.date, booking.time].filter(Boolean).join(' · ');
@@ -574,6 +627,7 @@ class Component extends DCLogic {
       tFlight: t.flight, tEmail: t.email, tMobile: t.mobile, tPayment: t.payment, tPayLink: t.payLink, tSession: t.session,
       tFare: t.fare, fareLines, tTotalLabel: booking.paid ? t.paid : t.due, tFareNote: t.fareNote,
       tHistory: t.history, tHistoryEmpty: t.historyEmpty, historyRows, historyEmpty: historyRows.length === 0, historyHas: historyRows.length > 0,
+      historyOpen: this.state.historyOpen !== false, historyChevron: this.state.historyOpen === false ? 'chevron-down' : 'chevron-up', toggleHistory: this.toggleHistory,
       isPending: !booking.paid && !cancelled, isCancelled: booking.status === 'cancelled', isRefunded: booking.status === 'refunded',
       tOutstandingTitle: t.outstandingTitle, tOutstandingBody: t.outstandingBody, tRefundTitle: t.refundTitle, tRefundBody: t.refundBody,
       tRefundedTitle: t.refundedTitle, tRefundedBody: t.refundedBody,

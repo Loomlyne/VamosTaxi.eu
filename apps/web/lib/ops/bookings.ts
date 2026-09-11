@@ -143,7 +143,8 @@ export async function loadBookings(
           s.duration_min,
           s.distance_km,
           s.coupon_code,
-          s.policy
+          s.policy,
+          s.lines
         from public.price_snapshots s
         where s.booking_id = b.id
         order by s.computed_at desc nulls last

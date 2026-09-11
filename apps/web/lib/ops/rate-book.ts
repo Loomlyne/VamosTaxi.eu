@@ -495,3 +495,72 @@ export async function loadVehicleClassOptions(
 }
 
 export { vehicleClassLabelKey } from "./vehicle-class-label";
+
+export async function forkLiveRateVersion(
+  env: CloudflareEnv,
+  claims: VamosClaims,
+  live: { id: number; label: string },
+): Promise<number> {
+  return asStaff(env, claims, async (tx) => {
+    const slug = `ops-draft-from-${live.id}`;
+    const existing = await tx<{ id: number | string }[]>`
+      select id from public.rate_versions
+      where slug = ${slug} and status = 'draft'
+      limit 1
+    `;
+    if (existing[0]) return asId(existing[0].id);
+
+    const created = await tx<{ id: number | string }[]>`
+      insert into public.rate_versions (slug, label, status)
+      values (${slug}, ${`${live.label} draft`}, 'draft')
+      returning id
+    `;
+    const newId = asId(created[0]!.id);
+
+    await tx`
+      insert into public.distance_rates (
+        rate_version_id, vehicle_class_id, base_fare_rappen, per_km_rappen,
+        min_fare_rappen, max_pax, available
+      )
+      select ${newId}, vehicle_class_id, base_fare_rappen, per_km_rappen,
+             min_fare_rappen, max_pax, available
+        from public.distance_rates
+       where rate_version_id = ${live.id}
+    `;
+    await tx`
+      insert into public.fixed_routes (
+        rate_version_id, origin_zone_id, dest_zone_id, vehicle_class_id, price_rappen, live
+      )
+      select ${newId}, origin_zone_id, dest_zone_id, vehicle_class_id, price_rappen, live
+        from public.fixed_routes
+       where rate_version_id = ${live.id}
+    `;
+    await tx`
+      insert into public.surcharges (
+        rate_version_id, code, kind, amount_rappen, percent, applies_to, active,
+        predicate, quantity_source
+      )
+      select ${newId}, code, kind, amount_rappen, percent, applies_to, active,
+             predicate, quantity_source
+        from public.surcharges
+       where rate_version_id = ${live.id}
+    `;
+    await tx`
+      insert into public.distance_bands (
+        rate_version_id, from_km, to_km, per_km_rappen
+      )
+      select ${newId}, from_km, to_km, per_km_rappen
+        from public.distance_bands
+       where rate_version_id = ${live.id}
+    `;
+    await tx`
+      insert into public.region_premiums (
+        rate_version_id, zone_id, percent
+      )
+      select ${newId}, zone_id, percent
+        from public.region_premiums
+       where rate_version_id = ${live.id}
+    `;
+    return newId;
+  });
+}

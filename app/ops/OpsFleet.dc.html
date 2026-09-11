@@ -353,7 +353,7 @@ class Component extends DCLogic {
       { key:'name', label:t.fName, half:true, required:true },
       { key:'phone', label:t.fPhone, editor:'phone', half:true, placeholder:'+41 00 000 00 00' },
       { key:'email', label:t.fEmail, half:true, placeholder:'name@example.com' },
-      { key:'licence', label:t.fLicence, half:true, placeholder:'CH 000 000' },
+      { key:'licence', label:t.fLicence, editor:'licence', half:true, placeholder:'CH 000 000', required:true },
       { key:'vehicle', label:t.fVehicle, editor:'select', options:vehicleOptions, icon:'car', hint:t.hVehicle, addLabel:t.addVehicle, emptyLabel:t.noVehicle },
       { key:'languages', label:t.fLanguages, editor:'select', multi:true, options:LANGUAGE_OPTIONS, icon:'globe', half:true },
       { key:'status', label:t.fStatus, editor:'select', options:cStatusOptions, icon:'user', half:true },
@@ -435,7 +435,7 @@ class Component extends DCLogic {
       fields: isChauffeurs ? chauffeurFields : vehicleFields,
       blank: () => (store ? store.blank() : {}),
       onSave: (rec) => {
-        if (!store) return Promise.resolve({ ok: false });
+        if (!store) return Promise.resolve({ ok: false, code: 'save-failed' });
         const payload = isChauffeurs
           ? Object.assign({}, rec, {
               vehicle: rec.vehicle || rec.defaultVehicleId || '',

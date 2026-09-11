@@ -2,7 +2,7 @@
    `components/data/Table.jsx`'s `const CSS` template literal (`_ds_bundle.js:43624-
    43635`), with one Law 02 fix and Rule 2 additions for the loading/error/empty states
    the source has no CSS for at all. */
-.vt-tablewrap{background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);overflow-x:auto}
+.vt-tablewrap{background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);max-inline-size:100%;min-inline-size:0;overflow-x:auto}
 .vt-table{inline-size:100%;min-inline-size:720px;border-collapse:collapse;font-family:var(--vt-font-body);font-size:var(--vt-body-sm)}
 .vt-table th{text-align:start;padding:12px 16px;background:var(--vt-grey-50);border-block-end:var(--vt-border-w) solid var(--vt-border-subtle);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted);white-space:nowrap}
 .vt-table td{padding:14px 16px;border-block-end:var(--vt-border-w) solid var(--vt-border-subtle);color:var(--vt-text-primary);vertical-align:middle}
