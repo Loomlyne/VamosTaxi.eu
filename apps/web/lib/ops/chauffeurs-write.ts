@@ -6,6 +6,11 @@
 import { asStaff, type VamosClaims } from "../db/identity";
 import type { AssertedChauffeurInput } from "./chauffeurs-model";
 
+/** Postgres `text[]` literal. A JS array can bind as a scalar and throw 22P02. */
+function pgTextArrayLiteral(values: string[]): string {
+  return `{${values.map((value) => `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`).join(",")}}`;
+}
+
 export async function insertChauffeur(
   env: CloudflareEnv,
   claims: VamosClaims,
@@ -27,7 +32,7 @@ export async function insertChauffeur(
           ${parsed.defaultVehicleId},
           ${parsed.licenceNumber},
           ${parsed.licenceExpiresOn},
-          ${parsed.languages},
+          ${pgTextArrayLiteral(parsed.languages)}::text[],
           ${parsed.status},
           ${parsed.photoPath},
           ${parsed.note},
@@ -52,7 +57,7 @@ export async function insertChauffeur(
         ${parsed.defaultVehicleId},
         ${parsed.licenceNumber},
         ${parsed.licenceExpiresOn},
-        ${parsed.languages},
+        ${pgTextArrayLiteral(parsed.languages)}::text[],
         ${parsed.status},
         ${parsed.photoPath},
         ${parsed.note},
@@ -72,9 +77,9 @@ export async function updateChauffeurRow(
   claims: VamosClaims,
   id: string,
   parsed: AssertedChauffeurInput,
-): Promise<void> {
-  await asStaff(env, claims, async (sql) => {
-    await sql`
+): Promise<boolean> {
+  return asStaff(env, claims, async (sql) => {
+    const rows = await sql<{ id: string }[]>`
       update public.chauffeurs set
         full_name = ${parsed.fullName},
         phone = ${parsed.phone},
@@ -82,14 +87,15 @@ export async function updateChauffeurRow(
         default_vehicle_id = ${parsed.defaultVehicleId},
         licence_number = ${parsed.licenceNumber},
         licence_expires_on = ${parsed.licenceExpiresOn},
-        languages = ${parsed.languages},
+        languages = ${pgTextArrayLiteral(parsed.languages)}::text[],
         status = ${parsed.status},
         photo_path = ${parsed.photoPath},
         note = ${parsed.note},
         updated_at = now()
       where id = ${id}
+      returning id
     `;
-    return null;
+    return Boolean(rows[0]);
   });
 }
 

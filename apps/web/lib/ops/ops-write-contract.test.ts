@@ -61,9 +61,17 @@ describe("ops write contract", () => {
     expect(table).toMatch(/data-vt-save-err/);
     expect(table).toMatch(/This row has no database id/);
     expect(table).toMatch(/The live rate book is locked/);
+    expect(table).toMatch(/json\.message \|\| json\.error \|\| json\.detail/);
+    expect(table).toMatch(/Licence number is required/);
+    expect(table).toMatch(/That vehicle is missing/);
+    expect(table).not.toMatch(/Check name, licence, and photo/);
     expect(table).toMatch(/function maskLicence/);
-    expect(table).toMatch(/data-vt-table-scroll/);
+    expect(table).toMatch(/data-vt-table-scroll="1" data-scroll-native="1" data-lenis-prevent="1"/);
     expect(table).toMatch(/data-vt-editor-foot/);
+    expect(table).toMatch(/\[data-vt-editor-foot\]\{[^}]*padding:18px 24px var\(--vt-space-6\)/);
+    expect(store).toMatch(/name === "customers" && a\.email && b\.email/);
+    expect(store).toMatch(/name !== "chauffeurs"/);
+    expect(store).toMatch(/if \(!findRow\(writeId\)\) return self\.add\(row\)/);
     expect(table).not.toMatch(/if \(this\.props\.onSave\) this\.props\.onSave\(d\);\s*this\.closeEditor\(\);/);
   });
 

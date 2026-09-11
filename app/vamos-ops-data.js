@@ -166,6 +166,7 @@
       if (!a || !b) return false;
       if (String(a.id) && String(a.id) === String(b.id)) return true;
       if (name === "bookings" && a.bookingId && String(a.bookingId) === String(b.bookingId || b.id)) return true;
+      if (name === "customers" && a.email && b.email && String(a.email).trim().toLowerCase() === String(b.email).trim().toLowerCase()) return true;
       return false;
     }
 
@@ -258,10 +259,15 @@
         });
       },
       upsert: function (rec) {
+        var self = this;
         var row = clean(rec || {});
         var writeId = writeIdOf(row.id, row);
         if (!writeId) return this.add(row);
-        return this.update(writeId, row);
+        if (name !== "chauffeurs") return this.update(writeId, row);
+        return hydrate().then(function () {
+          if (!findRow(writeId)) return self.add(row);
+          return self.update(writeId, row);
+        });
       },
       remove: function (id) {
         return hydrate().then(function () {

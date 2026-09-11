@@ -29,7 +29,9 @@ describe("ops customers board", () => {
     const pub = readWeb("app/api/staff/customers/[id]/route.ts");
     const src = readWeb("lib/ops/customers.ts");
     expect(src).toMatch(/export async function upsertCustomer/);
-    expect(src).toMatch(/on conflict \(email\) do update set/);
+    expect(src).toMatch(/phone: asTrimmed\(rec\.phone\)/);
+    expect(src).toMatch(/company: asTrimmed\(rec\.company\)/);
+    expect(src).toMatch(/on conflict \(email\) where erased_at is null do update set/);
     expect(detail).toMatch(/upsertCustomer/);
     expect(detail).toMatch(/export async function PATCH/);
     expect(pub).toMatch(/export\s*\{\s*GET,\s*PATCH,\s*DELETE\s*\}/);

@@ -32,8 +32,9 @@
 [data-vt-unsaved]{box-sizing:border-box;display:flex;align-items:center;gap:10px;padding:8px 8px 8px 14px;margin-bottom:16px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);background:var(--vt-bg-surface)}
 [data-vt-unsaved]>span[data-vt-unsaved-msg]{flex:1 1 auto;min-width:0;font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 [data-vt-unsaved-act]{display:flex;gap:6px;flex:0 0 auto}
-[data-vt-table-scroll]{max-width:100%;min-width:0;overflow-x:auto;-webkit-overflow-scrolling:touch}
-[data-vt-editor-foot]{position:sticky;bottom:0;z-index:3;display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:20px;margin-inline:-24px;padding:18px 24px 4px;border-top:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface)}
+[data-vt-table-scroll]{box-sizing:border-box;max-width:100%;min-width:0;width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+[data-vt-table-scroll] .vt-tablewrap{overflow:visible;max-inline-size:none;min-inline-size:720px;width:max-content;min-width:100%}
+[data-vt-editor-foot]{position:sticky;bottom:0;z-index:3;display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:20px;margin-inline:-24px;padding:18px 24px var(--vt-space-6);border-top:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface)}
 [data-vt-save-err]{box-sizing:border-box;display:flex;align-items:center;gap:10px;padding:8px 14px;margin-bottom:16px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);background:var(--vt-bg-surface);font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)}
 [data-vt-time-wrap] input{all:unset;flex:1 1 auto;min-width:0;width:100%;font:inherit;color:inherit;background:transparent;caret-color:var(--vt-charcoal-900)}
 [data-vt-date-pop]{position:fixed;z-index:220;box-sizing:border-box;width:280px;padding:12px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg)}
@@ -94,7 +95,7 @@
 </sc-if>
 
 <sc-if value="{{ hasRows }}" hint-placeholder-val="{{ true }}">
-<div data-vt-table-scroll>
+<div data-vt-table-scroll="1" data-scroll-native="1" data-lenis-prevent="1">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Table" columns="{{ tableColumns }}" rows="{{ visibleRows }}" hint-size="100%,320px"></x-import>
 </div>
 </sc-if>
@@ -707,7 +708,8 @@ class Component extends DCLogic {
   });
   writeError(json) {
     const code = json && json.code ? String(json.code) : 'save-failed';
-    if (json && json.message) return String(json.message);
+    const raw = json && (json.message || json.error || json.detail);
+    if (raw && typeof raw === 'string' && String(raw).trim()) return String(raw).trim();
     if (code === 'missing-id') return 'This row has no database id, so it cannot be saved.';
     if (code === 'method-not-allowed') return 'This table cannot create a row here.';
     if (code === 'not-found') return 'That row is gone.';
@@ -717,14 +719,23 @@ class Component extends DCLogic {
     if (code === 'network') return 'The save did not reach the server.';
     if (code === 'http') return 'The server did not accept that save.';
     if (code === 'csrf') return 'Reload the dashboard and try again.';
-    if (code === 'save-failed') return 'Save failed. Try again.';
-    if (code === 'error') return 'Save failed. Try again.';
     if (code === '23503') return 'That linked row is missing.';
     if (code === '23505') return 'That value is already on file.';
     if (code === '23514') return 'One of the fields is not a valid value.';
-    if (code.indexOf('chauffeurs-failure') === 0) return 'Check name, licence, and photo, then save again.';
+    if (code === '22P02') return 'A field is the wrong type. Check the vehicle id and languages.';
+    if (code === '42501') return 'You do not have permission to save this row.';
+    if (code === 'chauffeurs-failure-name-required') return 'Name is required.';
+    if (code === 'chauffeurs-failure-phone-required') return 'Phone is required.';
+    if (code === 'chauffeurs-failure-licence-required') return 'Licence number is required.';
+    if (code === 'chauffeurs-failure-licence-date') return 'Licence expiry must be a calendar date.';
+    if (code === 'chauffeurs-failure-languages') return 'One of the languages is not supported.';
+    if (code === 'chauffeurs-failure-photo') return 'Photo must be an uploaded file, not an embedded image.';
+    if (code === 'chauffeurs-failure-vehicle') return 'That vehicle is missing.';
+    if (code === 'chauffeurs-failure-error') return 'The chauffeur could not be saved.';
+    if (code.indexOf('chauffeurs-failure') === 0) return 'Could not save (' + code + ').';
     if (code.indexOf('customers-failure') === 0) return 'Customer details could not be saved.';
-    return code;
+    if (code && code !== 'save-failed' && code !== 'error') return 'Could not save (' + code + ').';
+    return 'Save failed. Try again.';
   }
   finishWrite = (json) => {
     if (!json || json.ok !== true) {

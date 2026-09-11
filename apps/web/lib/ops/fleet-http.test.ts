@@ -16,8 +16,10 @@ vi.mock("../supabase/server", () => ({
 }));
 
 import { VehicleInputError } from "./fleet";
+import { ChauffeurInputError } from "./chauffeurs-model";
 import { jsonErr, jsonOk, withStaff } from "./staff-json";
 import {
+  chauffeurErrorCopy,
   chauffeurJsonError,
   fleetJsonError,
   klassToSlug,
@@ -177,10 +179,60 @@ describe("fleetJsonError", () => {
 });
 
 describe("chauffeurJsonError", () => {
-  it("maps missing vehicle 23503 to JSON 409", async () => {
+  it("maps missing vehicle 23503 to JSON 409 with a sentence", async () => {
     const result = await readJson(chauffeurJsonError({ code: "23503" }));
     expect(result.status).toBe(409);
-    expect(result.body).toEqual({ ok: false, code: "23503" });
+    expect(result.body).toEqual({
+      ok: false,
+      code: "23503",
+      message: "That vehicle is missing.",
+    });
+  });
+
+  it("maps unique 23505 and check 23514 to sentences", async () => {
+    const unique = await readJson(chauffeurJsonError({ code: "23505" }));
+    expect(unique.status).toBe(409);
+    expect(unique.body).toEqual({
+      ok: false,
+      code: "23505",
+      message: "That value is already on file.",
+    });
+    const check = await readJson(chauffeurJsonError({ code: "23514" }));
+    expect(check.body).toEqual({
+      ok: false,
+      code: "23514",
+      message: "One of the fields is not a valid value.",
+    });
+  });
+
+  it("maps ChauffeurInputError keys to exact copy, never a bare code", async () => {
+    const result = await readJson(
+      chauffeurJsonError(new ChauffeurInputError("chauffeurs-failure-licence-required")),
+    );
+    expect(result.status).toBe(400);
+    expect(result.body).toEqual({
+      ok: false,
+      code: "chauffeurs-failure-licence-required",
+      message: "Licence number is required.",
+    });
+    expect(JSON.stringify(result.body)).not.toMatch(/CHF/);
+  });
+
+  it("maps unknown SQLSTATE to a sentence that includes the code", async () => {
+    const result = await readJson(chauffeurJsonError({ code: "42804" }));
+    expect(result.status).toBe(500);
+    expect(result.body).toEqual({
+      ok: false,
+      code: "42804",
+      message: "Could not save (Postgres 42804).",
+    });
+  });
+});
+
+describe("chauffeurErrorCopy", () => {
+  it("covers validation, FK, unique, and licence keys", () => {
+    expect(chauffeurErrorCopy("chauffeurs-failure-vehicle")).toBe("That vehicle is missing.");
+    expect(chauffeurErrorCopy("22P02")).toMatch(/wrong type/);
   });
 });
 

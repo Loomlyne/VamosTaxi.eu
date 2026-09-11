@@ -138,6 +138,12 @@ describe("assertChauffeurInput", () => {
     expect(parsed.defaultVehicleId).toBeNull();
   });
 
+  it("rejects a default vehicle that is not a uuid", () => {
+    expect(() => assertChauffeurInput(baseInput({ defaultVehicleId: "2098890" }))).toThrow(
+      ChauffeurInputError,
+    );
+  });
+
   it("normalises the phone to a single stored shape", () => {
     expect(assertChauffeurInput(baseInput({ phone: "+41 79 000 00 01" })).phone).toBe(
       "+41790000001",

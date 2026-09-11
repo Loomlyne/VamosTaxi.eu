@@ -37,6 +37,8 @@ describe("fleet persist — 08-03", () => {
       /defaultVehicleId:\s*asString\(rec\.defaultVehicleId \|\| rec\.vehicle\)/,
     );
     expect(src).toMatch(/function parseChauffeurBody/);
+    expect(src).toMatch(/chauffeurErrorCopy/);
+    expect(src).toMatch(/message: chauffeurErrorCopy/);
     const write = read("apps/web/lib/ops/chauffeurs-write.ts");
     expect(write).toMatch(/default_vehicle_id = \$\{parsed\.defaultVehicleId\}/);
   });

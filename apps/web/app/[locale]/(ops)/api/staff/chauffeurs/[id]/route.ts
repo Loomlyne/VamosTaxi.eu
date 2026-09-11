@@ -28,7 +28,8 @@ export async function PATCH(
       const parsed = parseChauffeurBody(await readJsonBody(request));
       const input = assertChauffeurInput(parsed.input);
       const { env } = getCloudflareContext();
-      await updateChauffeurRow(env, claims, id, input);
+      const wrote = await updateChauffeurRow(env, claims, id, input);
+      if (!wrote) return jsonErr("not-found", 404, { message: "That chauffeur is gone." });
       const updated = await loadChauffeur(env, claims, id);
       return jsonOk(updated ? presentChauffeur(updated) : { id });
     } catch (err) {
