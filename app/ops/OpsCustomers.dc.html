@@ -173,6 +173,7 @@ class Component extends DCLogic {
       onCloseEdit: () => { if (customerPathEmail()) goCustomers(''); },
       onSave: (row) => {
         if (!ops || !row) return Promise.resolve({ ok: false, code: "missing-id" });
+        if (row.id) return ops.customers.update(row.id, row);
         return ops.customers.upsert(row);
       },
       onDelete: (id) => ops ? ops.customers.remove(id) : null,

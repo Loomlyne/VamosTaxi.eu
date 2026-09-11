@@ -115,6 +115,9 @@ export function assertChauffeurInput(input: ChauffeurInput): AssertedChauffeurIn
 
   const vehicleRaw = input.defaultVehicleId == null ? "" : input.defaultVehicleId.trim();
   const defaultVehicleId = vehicleRaw === "" ? null : vehicleRaw;
+  if (defaultVehicleId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(defaultVehicleId)) {
+    throw new ChauffeurInputError("chauffeurs-failure-vehicle");
+  }
 
   const expiryRaw = input.licenceExpiresOn == null ? "" : input.licenceExpiresOn.trim();
   let licenceExpiresOn: string | null = null;

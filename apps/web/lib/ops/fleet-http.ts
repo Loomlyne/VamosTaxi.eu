@@ -21,6 +21,7 @@ import {
   type VehicleRow,
 } from "./fleet";
 import { jsonErr } from "./staff-json";
+import { mapSqlState } from "./sqlstate";
 
 export const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -279,6 +280,34 @@ function sqlCode(err: unknown): string | undefined {
   return typeof code === "string" ? code : undefined;
 }
 
+export function chauffeurErrorCopy(code: string): string | null {
+  if (code === "chauffeurs-failure-name-required") return "Name is required.";
+  if (code === "chauffeurs-failure-phone-required") return "Phone is required.";
+  if (code === "chauffeurs-failure-licence-required") return "Licence number is required.";
+  if (code === "chauffeurs-failure-licence-date") return "Licence expiry must be a calendar date.";
+  if (code === "chauffeurs-failure-languages") return "One of the languages is not supported.";
+  if (code === "chauffeurs-failure-photo") return "Photo must be an uploaded file, not an embedded image.";
+  if (code === "chauffeurs-failure-vehicle") return "That vehicle is missing.";
+  if (code === "chauffeurs-failure-error") return "The chauffeur could not be saved.";
+  if (code === "23503") return "That vehicle is missing.";
+  if (code === "23505") return "That value is already on file.";
+  if (code === "23514") return "One of the fields is not a valid value.";
+  if (code === "22P02") return "A field is the wrong type. Check the vehicle id and languages.";
+  if (code === "42501") return "You do not have permission to save this chauffeur.";
+  if (code === "not-found" || code === "P0002") return "That chauffeur is gone.";
+  return null;
+}
+
+function chauffeurConstraintCopy(err: unknown): string | null {
+  if (typeof err !== "object" || err === null || !("constraint" in err)) return null;
+  const constraint = (err as { constraint: unknown }).constraint;
+  if (constraint === "chauffeurs_default_vehicle_id_fkey") return "That vehicle is missing.";
+  if (constraint === "chauffeurs_pkey") return "That chauffeur id is already on file.";
+  if (constraint === "chauffeurs_user_id_key") return "That login is already linked to a chauffeur.";
+  if (typeof constraint === "string" && constraint) return `Could not save (${constraint}).`;
+  return null;
+}
+
 export function fleetJsonError(err: unknown): Response {
   if (err instanceof VehicleInputError) return jsonErr(err.key, 400);
   if (err instanceof VehicleClassInputError) return jsonErr(err.key, 400);
@@ -290,13 +319,37 @@ export function fleetJsonError(err: unknown): Response {
 }
 
 export function chauffeurJsonError(err: unknown): Response {
-  if (err instanceof ChauffeurInputError) return jsonErr(err.key, 400);
+  if (err instanceof ChauffeurInputError) {
+    const message = chauffeurErrorCopy(err.key) ?? `Could not save (${err.key}).`;
+    return jsonErr(err.key, 400, { message });
+  }
+  const mapped = mapSqlState(err);
+  if (sqlCode(err) === "23503") {
+    return jsonErr("23503", 409, { message: chauffeurErrorCopy("23503") ?? "That vehicle is missing." });
+  }
+  if (mapped.kind === "unique") {
+    return jsonErr("23505", 409, { message: chauffeurErrorCopy("23505") ?? "That value is already on file." });
+  }
+  if (mapped.kind === "check") {
+    return jsonErr("23514", 400, { message: chauffeurErrorCopy("23514") ?? "One of the fields is not a valid value." });
+  }
+  if (mapped.kind === "privilege") {
+    return jsonErr("42501", 403, { message: chauffeurErrorCopy("42501") ?? "You do not have permission to save this chauffeur." });
+  }
+  if (mapped.kind === "no-data") {
+    return jsonErr("not-found", 404, { message: chauffeurErrorCopy("not-found") ?? "That chauffeur is gone." });
+  }
+  const fromConstraint = chauffeurConstraintCopy(err);
   const code = sqlCode(err);
-  if (code === "23503") return jsonErr("23503", 409, { message: "That vehicle is missing." });
-  if (code === "23514") return jsonErr("23514", 400, { message: "One of the fields is not a valid value." });
-  const rec = err && typeof err === "object" ? (err as { message?: string }) : null;
-  const message = rec && rec.message ? String(rec.message) : "The chauffeur could not be saved.";
-  return jsonErr("error", 500, { message });
+  const fromCopy = code ? chauffeurErrorCopy(code) : null;
+  if (fromCopy && code) {
+    return jsonErr(code, code === "22P02" ? 400 : 500, { message: fromCopy });
+  }
+  if (fromConstraint) {
+    return jsonErr(code || "error", 409, { message: fromConstraint });
+  }
+  const message = code ? `Could not save (Postgres ${code}).` : "The chauffeur could not be saved.";
+  return jsonErr(code || "error", 500, { message });
 }
 
 export async function readJsonBody(request: Request): Promise<unknown> {

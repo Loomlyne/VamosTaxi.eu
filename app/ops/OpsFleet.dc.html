@@ -444,7 +444,8 @@ class Component extends DCLogic {
           : rec;
         return store.upsert(payload).then((json) => {
           if (!json || json.ok !== true) {
-            this.setState({ saveMsg: t.saveFailed, notice: '' });
+            const reason = (json && (json.message || json.error || json.detail)) || t.saveFailed;
+            this.setState({ saveMsg: reason, notice: '' });
             return json;
           }
           const next = { saveMsg: '', notice: (!isChauffeurs && payload.status === 'workshop') ? t.offRoadStay : '' };

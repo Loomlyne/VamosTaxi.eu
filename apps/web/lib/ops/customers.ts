@@ -439,7 +439,7 @@ export async function upsertCustomer(
         ${input.note},
         null
       )
-      on conflict (email) do update set
+      on conflict (email) where erased_at is null do update set
         full_name = excluded.full_name,
         phone = excluded.phone,
         type = excluded.type,
