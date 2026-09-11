@@ -12,14 +12,43 @@
 <style>
 [data-ops-detail]{display:flex;flex-direction:row;align-items:flex-start;gap:20px}
 [data-ops-detail-col]{flex:1 1 auto;min-width:0;max-width:880px;display:flex;flex-direction:column;gap:14px}
-[data-ops-detail-rail]{flex:0 0 220px;position:sticky;top:22px;display:flex;flex-direction:column;gap:8px;align-items:stretch}
+[data-ops-detail-rail]{flex:0 0 220px;position:sticky;top:22px;display:flex;flex-direction:column;gap:8px;align-items:stretch;order:-1}
 [data-ops-detail-rail] .vt-btn{width:100%}
+[data-ops-tags]{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+[data-ops-tag]{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:4px 10px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);background:var(--vt-bg-surface);font-family:var(--vt-font-body);font-size:var(--vt-body-xs);line-height:1.3;color:var(--vt-text-primary)}
+[data-ops-tag] b{font-weight:600;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-muted);font-size:10px}
 @media (max-width:1100px){
   [data-ops-detail]{flex-direction:column}
-  [data-ops-detail-rail]{position:static;flex:1 1 auto;width:100%;flex-direction:row;flex-wrap:wrap}
+  [data-ops-detail-rail]{position:static;flex:1 1 auto;width:100%;flex-direction:row;flex-wrap:wrap;order:0}
   [data-ops-detail-rail] .vt-btn{width:auto}
 }
 </style>
+<aside data-ops-detail-rail data-ops-detail-acts>
+<sc-if value="{{ viewing }}" hint-placeholder-val="{{ true }}">
+<sc-if value="{{ canAssign }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="{{ assignVariant }}" onClick="{{ openAssignDialog }}" hint-size="170px,36px">{{ assignLabel }}</x-import>
+</sc-if>
+<sc-if value="{{ canUnassign }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ confirmUnassign }}" hint-size="110px,36px">{{ tUnassign }}</x-import>
+</sc-if>
+<sc-if value="{{ canResend }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="secondary" icon="mail" onClick="{{ resendVoucher }}" hint-size="170px,36px">{{ tResendVoucher }}</x-import>
+</sc-if>
+<sc-if value="{{ canEdit }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="pencil" onClick="{{ openEdit }}" hint-size="140px,36px">{{ tEditBooking }}</x-import>
+</sc-if>
+<sc-if value="{{ canCancel }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="danger" icon="x" onClick="{{ openCancel }}" hint-size="110px,36px">{{ tCancelBooking }}</x-import>
+</sc-if>
+<sc-if value="{{ isCancelled }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ markRefund }}" hint-size="200px,36px">{{ tMarkRefund }}</x-import>
+</sc-if>
+</sc-if>
+<sc-if value="{{ editing }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ saveEdit }}" hint-size="150px,36px">{{ tContinue }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ cancelEdit }}" hint-size="110px,36px">{{ tCancelEdit }}</x-import>
+</sc-if>
+</aside>
 <div data-ops-detail-col>
 <div>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" icon="chevron-left" onClick="{{ goBack }}" hint-size="auto,36px">{{ tBackToBookings }}</x-import>
@@ -36,17 +65,16 @@
 </div>
 
 <div style="margin-top:20px;display:flex;flex-direction:column;gap:20px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.RouteSummary" pickup="{{ booking.pickup }}" dropoff="{{ booking.dropoff }}" meta="{{ routeMeta }}" hint-size="100%,140px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.RouteSummary" pickup="{{ booking.pickup }}" pickupDetail="{{ pickupDetail }}" dropoff="{{ booking.dropoff }}" dropoffDetail="{{ dropoffDetail }}" duration="{{ durationChip }}" meta="{{ routeMeta }}" hint-size="100%,180px"></x-import>
+<div data-ops-tags>
+<sc-for list="{{ tags }}" as="g" hint-placeholder-count="8">
+<span data-ops-tag data-vt-no-i18n="1"><b>{{ g.k }}</b>{{ g.v }}</span>
+</sc-for>
+</div>
 
 <div>
 <div style="display:flex;align-items:flex-end;gap:16px;padding-bottom:12px;border-bottom:1px solid var(--vt-border-subtle)">
 <span style="flex:1 1 auto;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:600;color:var(--vt-text-muted)">{{ tAssignment }}</span>
-<sc-if value="{{ canAssign }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="{{ assignVariant }}" onClick="{{ openAssignDialog }}" hint-size="130px,32px">{{ assignLabel }}</x-import>
-</sc-if>
-<sc-if value="{{ canUnassign }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ confirmUnassign }}" hint-size="110px,32px">{{ tUnassign }}</x-import>
-</sc-if>
 </div>
 <div style="margin-top:12px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.List" hint-size="100%,120px">
@@ -80,12 +108,8 @@
 </sc-if>
 <sc-if value="{{ viewing }}" hint-placeholder-val="{{ true }}">
 <div style="display:grid;grid-template-columns:132px 1fr;gap:8px 14px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm)">
-<span style="color:var(--vt-text-muted)">{{ tPassengers }}</span><span>{{ booking.pax }} · {{ booking.bags }} {{ tBags }}</span>
-<span style="color:var(--vt-text-muted)">{{ tVehicleClass }}</span><span>{{ booking.vehicle }}</span>
-<span style="color:var(--vt-text-muted)">{{ tFlight }}</span><span>{{ booking.flight }}</span>
-<span style="color:var(--vt-text-muted)">{{ tEmail }}</span><span>{{ booking.email }}</span>
-<span style="color:var(--vt-text-muted)">{{ tMobile }}</span><span>{{ booking.phone }}</span>
-<span style="color:var(--vt-text-muted)">{{ tPayment }}</span><span>{{ booking.pay }}</span>
+<span style="color:var(--vt-text-muted)">{{ tEmail }}</span><span data-vt-no-i18n="1">{{ booking.email }}</span>
+<span style="color:var(--vt-text-muted)">{{ tMobile }}</span><span data-vt-no-i18n="1">{{ booking.phone }}</span>
 <span style="color:var(--vt-text-muted)">{{ tPayLink }}</span><span>{{ booking.payLink }}</span>
 <span style="color:var(--vt-text-muted)">{{ tSession }}</span><span>{{ booking.sessionLeft }}</span>
 </div>
@@ -178,26 +202,6 @@
 </div>
 </sc-if>
 </div>
-<aside data-ops-detail-rail>
-<sc-if value="{{ viewing }}" hint-placeholder-val="{{ true }}">
-<sc-if value="{{ canResend }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="secondary" icon="mail" onClick="{{ resendVoucher }}" hint-size="170px,36px">{{ tResendVoucher }}</x-import>
-</sc-if>
-<sc-if value="{{ canEdit }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="pencil" onClick="{{ openEdit }}" hint-size="140px,36px">{{ tEditBooking }}</x-import>
-</sc-if>
-<sc-if value="{{ canCancel }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="danger" icon="x" onClick="{{ openCancel }}" hint-size="110px,36px">{{ tCancelBooking }}</x-import>
-</sc-if>
-<sc-if value="{{ isCancelled }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ markRefund }}" hint-size="200px,36px">{{ tMarkRefund }}</x-import>
-</sc-if>
-</sc-if>
-<sc-if value="{{ editing }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ saveEdit }}" hint-size="150px,36px">{{ tContinue }}</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ cancelEdit }}" hint-size="110px,36px">{{ tCancelEdit }}</x-import>
-</sc-if>
-</aside>
 </main>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900},&quot;id&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
@@ -232,6 +236,21 @@ function eventTitle(kind, t) {
 function eventWhen(at) {
   const raw = String(at || '');
   return raw.slice(0, 16).replace('T', ' ');
+}
+function addMinutesHhmm(time, minutes) {
+  const m = String(time || '').match(/^(\d{2}):(\d{2})/);
+  if (!m || !(Number(minutes) > 0)) return '';
+  const total = Number(m[1]) * 60 + Number(m[2]) + Math.round(Number(minutes));
+  const wrapped = ((total % 1440) + 1440) % 1440;
+  const hh = String(Math.floor(wrapped / 60)).padStart(2, '0');
+  const mm = String(wrapped % 60).padStart(2, '0');
+  return hh + ':' + mm;
+}
+function extraLabel(code) {
+  if (code === 'child_seat') return 'Child seat';
+  if (code === 'oversized_luggage') return 'Oversized luggage';
+  if (code === 'extra_stop') return 'Extra stop';
+  return String(code || '');
 }
 function hexToUtf8(hex) {
   const raw = String(hex || '');
@@ -270,6 +289,8 @@ const T = {
     pickChauffeur:'Pick a chauffeur first.', voucherFailed:'Could not resend voucher ',
     website:'Website', stripeWebhook:'Stripe webhook', resend:'Resend', dispatch:'Dispatch',
     lineTransfer:'Transfer, ', lineAirportFee:'Airport pickup fee',
+    coupon:'Coupon', extras:'Extras', noCoupon:'None', noExtras:'None', noFlight:'None', unassigned:'Unassigned', dropUnknown:'Not stored', minutes:' min',
+    vehicleAssigned:'Vehicle', when:'When',
     saveEdit:'Save changes', cancelEdit:'Cancel', markRefund:'Refund',
     customer:'Name', pickup:'Pickup', dropoff:'Destination', date:'Date', time:'Time', bagsLabel:'Bags',
  continue:'Continue', accept:'Accept',
@@ -404,7 +425,8 @@ class Component extends DCLogic {
   renderVals() {
     const t = Object.assign({}, T.en, T[this.state.lang] || {});
     const booking = Object.assign({}, this.getBooking());
-    booking.vehicle = booking.vehicle || booking.klass || '';
+    booking.klass = booking.klass || '';
+    booking.vehicle = booking.vehicle || '';
     booking.driver = booking.driver || booking.chauffeur || null;
     booking.total = fareLabel(booking.totalRappen);
     if (booking.paidByCard || booking.paid) booking.pay = 'Paid by card';
@@ -432,12 +454,34 @@ class Component extends DCLogic {
       title: eventTitle(e.kind, t),
       meta: [eventWhen(e.at || e.createdAt), e.actorLabel || e.actor_label || ''].filter(Boolean).join(' · '),
     }));
-    const fareLines = [{ label: t.lineTransfer + (booking.vehicle || ''), value: fareLabel(booking.totalRappen) }];
+    const fareLines = [{ label: t.lineTransfer + (booking.klass || booking.vehicle || ''), value: fareLabel(booking.totalRappen) }];
     if (Number(booking.extraRappen) > 0) fareLines.push({ label: 'Extra', value: fareLabel(booking.extraRappen) });
     if (Number(booking.refundRappen) > 0) fareLines.push({ label: t.evRefund, value: fareLabel(booking.refundRappen) });
     const cancelled = booking.status === 'cancelled' || booking.status === 'refunded';
-    const routeMeta = [{ icon:'calendar', label: booking.date }, { icon:'clock', label: booking.time }];
-    if (booking.km) routeMeta.push({ icon:'navigation', label: booking.km });
+    const durationMin = Number(booking.durationMin) || 0;
+    const pickupWhen = [booking.date, booking.time].filter(Boolean).join(' · ');
+    const dropTime = durationMin > 0 ? addMinutesHhmm(booking.time, durationMin) : '';
+    const pickupDetail = pickupWhen;
+    const dropoffDetail = dropTime ? [booking.date, dropTime].filter(Boolean).join(' · ') : t.dropUnknown;
+    const durationChip = durationMin > 0 ? (durationMin + t.minutes) : '';
+    const routeMeta = [];
+    if (booking.distanceKm) routeMeta.push({ icon:'navigation', label: booking.distanceKm + ' km' });
+    const extras = Array.isArray(booking.extras) ? booking.extras : [];
+    const extrasText = extras.length ? extras.map(extraLabel).filter(Boolean).join(', ') : t.noExtras;
+    const tags = [
+      { k: t.driver, v: assignedDriver || t.unassigned },
+      { k: t.when, v: pickupWhen || '—' },
+      { k: t.vehicleClass, v: booking.klass || '—' },
+      { k: t.passengers, v: String(booking.pax ?? '') },
+      { k: t.bagsLabel, v: String(booking.bags ?? '') },
+      { k: t.flight, v: booking.flight || t.noFlight },
+      { k: t.coupon, v: booking.couponCode || t.noCoupon },
+      { k: t.extras, v: extrasText },
+      { k: t.payment, v: booking.pay },
+    ];
+    if (booking.vehicle && booking.vehicle !== booking.klass) {
+      tags.splice(3, 0, { k: t.vehicleAssigned, v: booking.vehicle });
+    }
     return {
       n2:2, n15:15, n16:16, yes:true,
       tBackToBookings: t.backToBookings, tMoreActions: t.moreActions, tBookedBy: t.bookedBy,
@@ -447,6 +491,10 @@ class Component extends DCLogic {
       },
       booking,
       routeMeta,
+      pickupDetail,
+      dropoffDetail,
+      durationChip,
+      tags,
       tAssignment: t.assignment,
       assignVariant: assignedDriver ? 'ghost' : 'primary',
       assignLabel: assignedDriver ? t.reassign : t.assign,

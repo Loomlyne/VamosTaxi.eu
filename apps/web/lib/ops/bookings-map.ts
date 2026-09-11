@@ -48,6 +48,10 @@ export type OpsBookingRow = {
   pendingEditActor: string;
   pendingEditQuoteRappen: number;
   pendingEditExtraSessionId: string;
+  durationMin: number;
+  distanceKm: number | null;
+  couponCode: string;
+  extras: string[];
 };
 
 export type SqlBoardRow = {
@@ -86,6 +90,11 @@ export type SqlBoardRow = {
   edit_actor?: string | null;
   edit_quote_total?: number | string | null;
   extra_session_id?: string | null;
+  estimated_duration_minutes?: number | string | null;
+  duration_min?: number | string | null;
+  distance_km?: number | string | null;
+  coupon_code?: string | null;
+  policy?: unknown;
 };
 
 function str(value: unknown): string {
@@ -154,6 +163,42 @@ function rappen(value: number | string | null | undefined): number {
   return Number.isFinite(n) && n > 0 ? n : 0;
 }
 
+const EXTRA_CODES = ["child_seat", "oversized_luggage", "extra_stop"] as const;
+
+function minutes(primary: number | string | null | undefined, fallback: number | string | null | undefined): number {
+  const a = Number(primary);
+  if (Number.isFinite(a) && a > 0) return Math.round(a);
+  const b = Number(fallback);
+  if (Number.isFinite(b) && b > 0) return Math.round(b);
+  return 0;
+}
+
+function kmOrNull(value: number | string | null | undefined): number | null {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return Math.round(n * 10) / 10;
+}
+
+function extrasFromPolicy(policy: unknown): string[] {
+  if (!policy || typeof policy !== "object") return [];
+  const raw = (policy as { extras?: unknown }).extras;
+  const out: string[] = [];
+  const push = (code: string) => {
+    if (EXTRA_CODES.includes(code as (typeof EXTRA_CODES)[number]) && !out.includes(code)) out.push(code);
+  };
+  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+    for (const [key, val] of Object.entries(raw as Record<string, unknown>)) {
+      if (val) push(key);
+    }
+    return out;
+  }
+  if (!Array.isArray(raw)) return [];
+  for (const item of raw) {
+    if (typeof item === "string") push(item);
+  }
+  return out;
+}
+
 function fleetVehicle(plate: string, model: string): string {
   if (plate && model) return `${plate} · ${model}`;
   return plate || model;
@@ -214,5 +259,9 @@ export function mapBoardBooking(row: SqlBoardRow): OpsBookingRow {
     pendingEditActor: str(row.edit_actor),
     pendingEditQuoteRappen: rappen(row.edit_quote_total),
     pendingEditExtraSessionId: str(row.extra_session_id),
+    durationMin: minutes(row.duration_min, row.estimated_duration_minutes),
+    distanceKm: kmOrNull(row.distance_km),
+    couponCode: str(row.coupon_code).trim(),
+    extras: extrasFromPolicy(row.policy),
   };
 }

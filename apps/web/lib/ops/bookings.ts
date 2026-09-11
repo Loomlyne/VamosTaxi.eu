@@ -65,6 +65,7 @@ export async function loadBookings(
         l.flight_no,
         l.pax,
         l.bags,
+        l.estimated_duration_minutes,
         l.assigned_chauffeur_id,
         l.assigned_vehicle_id,
         vc.slug as class_slug,
@@ -83,6 +84,10 @@ export async function loadBookings(
         ed.edit_quote_total,
         ed.extra_session_id,
         rf.refund_rappen,
+        snap.duration_min,
+        snap.distance_km,
+        snap.coupon_code,
+        snap.policy,
         ev.events
       from public.bookings b
       left join lateral (
@@ -133,6 +138,17 @@ export async function loadBookings(
         from public.booking_refunds br
         where br.booking_id = b.id
       ) rf on true
+      left join lateral (
+        select
+          s.duration_min,
+          s.distance_km,
+          s.coupon_code,
+          s.policy
+        from public.price_snapshots s
+        where s.booking_id = b.id
+        order by s.computed_at desc nulls last
+        limit 1
+      ) snap on true
       left join lateral (
         select coalesce(
           json_agg(

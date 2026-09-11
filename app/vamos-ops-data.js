@@ -553,6 +553,10 @@
       pendingEditActor: str(b.pendingEditActor),
       pendingEditQuoteRappen: num(b.pendingEditQuoteRappen, 0),
       pendingEditExtraSessionId: str(b.pendingEditExtraSessionId),
+      durationMin: num(b.durationMin, 0),
+      distanceKm: b.distanceKm == null || b.distanceKm === "" ? null : num(b.distanceKm, 0),
+      couponCode: str(b.couponCode),
+      extras: Array.isArray(b.extras) ? b.extras.map(str).filter(Boolean) : [],
       refundRappen: num(b.refundRappen, 0),
       stripeFeeRappen: b.stripeFeeRappen == null || b.stripeFeeRappen === "" ? null : num(b.stripeFeeRappen, 0),
       events: Array.isArray(b.events) ? b.events : []
