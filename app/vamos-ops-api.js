@@ -20,7 +20,15 @@
           if (text) {
             try { json = JSON.parse(text); } catch (e) { json = null; }
           }
-          if (json && typeof json === "object") return json;
+          if (json && typeof json === "object") {
+            if (res.status === 405 && json.ok !== true) {
+              json.ok = false;
+              json.code = json.code && json.code !== "http" ? json.code : "method-not-allowed";
+              json.status = res.status;
+            }
+            return json;
+          }
+          if (res.status === 405) return { ok: false, code: "method-not-allowed", status: 405 };
           return { ok: false, code: "http", status: res.status };
         });
       })

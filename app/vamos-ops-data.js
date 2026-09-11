@@ -7,7 +7,12 @@
    In-scope collections hydrate from /api/staff JSON and start empty (D-35).
    404/network stays []. Bookings hydrate GET /api/staff/bookings.
    Rate-book collections bind GET/PUT/DELETE /api/staff/rate-book, never
-   /api/staff/<name> aliases. */
+   /api/staff/<name> aliases.
+
+   Write contract: never mint cu-/cp-/FR- ids. Empty id → POST. UUID or
+   numeric id → PATCH/DELETE. Bookings write bookingId (UUID), display id
+   stays VT-…. Failed writes return { ok:false, code } and the overlay
+   must stay open. */
 (function () {
   var subs = [];
 
@@ -36,6 +41,15 @@
 
   function isUuid(value) {
     return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ""));
+  }
+  function isNumericId(value) {
+    return /^\d+$/.test(String(value || "").trim());
+  }
+  function isMintedId(value) {
+    return /^(cu|cp|fr|s|b|rp)-/i.test(String(value || ""));
+  }
+  function isWriteId(value) {
+    return isUuid(value) || isNumericId(value);
   }
 
   var bookFetch = { pending: false, loaded: false, json: null, waiters: [] };
@@ -70,6 +84,7 @@
     var list = [];
     var pending = false;
     var loaded = false;
+    var readyPromise = null;
     var base = "/api/staff/" + name;
 
     var pollTimer = null;
@@ -81,6 +96,7 @@
       if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
       pollTimer = setTimeout(function () {
         loaded = false;
+        readyPromise = null;
         hydrate();
       }, POLL_MS);
     }
@@ -92,6 +108,7 @@
         return;
       }
       loaded = false;
+      readyPromise = null;
       hydrate();
     }
     if (name === "bookings" && typeof document !== "undefined") {
@@ -99,35 +116,90 @@
       window.addEventListener("focus", onVisible);
     }
     function hydrate() {
-      if (pending || loaded) return;
+      if (loaded) return Promise.resolve();
+      if (pending && readyPromise) return readyPromise;
       pending = true;
-      api("GET", base).then(function (json) {
+      readyPromise = api("GET", base).then(function (json) {
         pending = false;
         loaded = true;
         list = pickRows(json, name).map(clean);
         emit(name);
         schedulePoll();
       });
+      return readyPromise;
+    }
+
+    function findRow(id) {
+      var sid = String(id || "");
+      var i;
+      for (i = 0; i < list.length; i++) {
+        if (String(list[i].id) === sid) return list[i];
+        if (name === "bookings" && String(list[i].bookingId || "") === sid) return list[i];
+      }
+      return null;
+    }
+
+    function writeIdOf(id, rec) {
+      var row = rec || findRow(id);
+      if (name === "bookings") {
+        var bid = row && row.bookingId;
+        if (isUuid(bid)) return String(bid);
+      }
+      if (isWriteId(id)) return String(id);
+      if (row && isWriteId(row.id)) return String(row.id);
+      return "";
+    }
+
+    function persistable(rec) {
+      var row = rec || {};
+      if (!row.id || isMintedId(row.id) || !isWriteId(row.id)) {
+        var copy = {};
+        var k;
+        for (k in row) copy[k] = row[k];
+        delete copy.id;
+        return copy;
+      }
+      return row;
+    }
+
+    function sameRow(a, b) {
+      if (!a || !b) return false;
+      if (String(a.id) && String(a.id) === String(b.id)) return true;
+      if (name === "bookings" && a.bookingId && String(a.bookingId) === String(b.bookingId || b.id)) return true;
+      return false;
     }
 
     function afterWrite(json, previous, nextList) {
       if (json && json.ok) {
+        bookFetch.loaded = false;
+        bookFetch.json = null;
         var data = json.data;
         var one = data && typeof data === "object" && !Array.isArray(data)
           && !Array.isArray(data[name]) && !Array.isArray(data.rows);
-        if (one) {
+        var keys = one ? Object.keys(data) : [];
+        var stub = one && keys.every(function (k) {
+          return k === "id" || k === "erased" || k === "status";
+        });
+        if (one && !stub) {
           var saved = clean(data);
           var next = previous.slice();
           var found = false;
           var i;
           for (i = 0; i < next.length; i++) {
-            if (next[i].id === saved.id) { next[i] = saved; found = true; break; }
+            if (sameRow(next[i], saved) || (name === "bookings" && isUuid(saved.id) && String(next[i].bookingId) === String(saved.id))) {
+              next[i] = Object.assign({}, next[i], saved);
+              if (name === "bookings" && next[i].bookingId) next[i].id = previous[i] ? previous[i].id : next[i].id;
+              found = true;
+              break;
+            }
           }
           if (!found) next.push(saved);
           list = next;
-        } else {
+        } else if (!stub) {
           var rows = pickRows(json, name);
           list = rows.length ? rows.map(clean) : nextList;
+        } else {
+          list = nextList;
         }
       } else {
         list = previous;
@@ -141,8 +213,7 @@
       all: function () { hydrate(); return list.slice(); },
       get: function (id) {
         hydrate();
-        for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
-        return null;
+        return findRow(id);
       },
       blank: function (over) { return clean(over || {}); },
       save: function (rec) {
@@ -151,10 +222,7 @@
       },
       add: function (rec) {
         var previous = list.slice();
-        var row = clean(rec || {});
-        if (row.id && !isUuid(row.id)) {
-          return Promise.resolve({ ok: false, code: "missing-id" });
-        }
+        var row = persistable(clean(rec || {}));
         return api("POST", base, row).then(function (json) {
           var created = json && json.data && typeof json.data === "object" && !Array.isArray(json.data)
             ? clean(json.data)
@@ -164,39 +232,64 @@
         });
       },
       update: function (id, patch) {
-        if (!isUuid(id)) {
-          return Promise.resolve({ ok: false, code: "missing-id" });
-        }
-        var previous = list.slice();
-        return api("PATCH", base + "/" + encodeURIComponent(id), patch).then(function (json) {
-          var next = previous.map(function (r) {
-            if (r.id !== id) return r;
-            var merged = {};
-            var k;
-            for (k in r) merged[k] = r[k];
-            for (k in patch) merged[k] = patch[k];
-            return clean(merged);
+        return hydrate().then(function () {
+          var current = findRow(id) || findRow((patch && patch.bookingId) || "");
+          var writeId = writeIdOf(id, current || patch);
+          if (!writeId) {
+            return { ok: false, code: "missing-id" };
+          }
+          var previous = list.slice();
+          var mergedPatch = patch || {};
+          if (name === "bookings" && mergedPatch.date && !mergedPatch.dateIso) {
+            mergedPatch = Object.assign({}, mergedPatch, { dateIso: mergedPatch.date });
+          }
+          return api("PATCH", base + "/" + encodeURIComponent(writeId), mergedPatch).then(function (json) {
+            var next = previous.map(function (r) {
+              if (!sameRow(r, current || { id: id, bookingId: writeId }) && String(r.id) !== String(id)) return r;
+              var merged = {};
+              var k;
+              for (k in r) merged[k] = r[k];
+              for (k in mergedPatch) merged[k] = mergedPatch[k];
+              return clean(merged);
+            });
+            afterWrite(json, previous, next);
+            return json;
           });
-          afterWrite(json, previous, next);
-          return json;
         });
       },
       upsert: function (rec) {
         var row = clean(rec || {});
-        if (!row.id) return this.add(row);
-        if (!isUuid(row.id)) {
-          return Promise.resolve({ ok: false, code: "missing-id" });
-        }
-        return this.update(row.id, row);
+        var writeId = writeIdOf(row.id, row);
+        if (!writeId) return this.add(row);
+        return this.update(writeId, row);
       },
       remove: function (id) {
-        var previous = list.slice();
-        api("DELETE", base + "/" + encodeURIComponent(id)).then(function (json) {
-          afterWrite(json, previous, previous.filter(function (r) { return r.id !== id; }));
+        return hydrate().then(function () {
+          var current = findRow(id);
+          var writeId = writeIdOf(id, current);
+          if (!writeId) {
+            return { ok: false, code: "missing-id" };
+          }
+          var previous = list.slice();
+          return api("DELETE", base + "/" + encodeURIComponent(writeId)).then(function (json) {
+            afterWrite(json, previous, previous.filter(function (r) {
+              return String(r.id) !== String(id) && String(r.bookingId || "") !== String(writeId) && String(r.id) !== String(writeId);
+            }));
+            return json;
+          });
         });
-        return previous.slice();
       },
-      reset: function () { clearTimeout(pollTimer); pollTimer = null; list = []; loaded = false; pending = false; emit(name); hydrate(); return list.slice(); },
+      reset: function () {
+        clearTimeout(pollTimer);
+        pollTimer = null;
+        list = [];
+        loaded = false;
+        pending = false;
+        readyPromise = null;
+        emit(name);
+        hydrate();
+        return list.slice();
+      },
       onChange: function (fn) { return subscribe(name, fn); }
     };
   }
@@ -229,8 +322,11 @@
       var k;
       for (k in row) body[k] = row[k];
       body.kind = kind;
-      api("PUT", putPath, body).then(function (json) {
+      if (body.id && (isMintedId(body.id) || !isNumericId(body.id))) delete body.id;
+      return api("PUT", putPath, body).then(function (json) {
         if (json && json.ok) {
+          bookFetch.loaded = false;
+          bookFetch.json = null;
           var saved = json.data && typeof json.data === "object" && !Array.isArray(json.data)
             ? clean(json.data)
             : row;
@@ -246,8 +342,8 @@
           list = previous;
         }
         emit(name);
+        return json || { ok: false, code: "save-failed" };
       });
-      return previous.slice();
     }
 
     return {
@@ -255,20 +351,20 @@
       all: function () { hydrate(); return list.slice(); },
       get: function (id) {
         hydrate();
-        for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
+        for (var i = 0; i < list.length; i++) if (String(list[i].id) === String(id)) return list[i];
         return null;
       },
       blank: function (over) { return clean(over || {}); },
       save: function (rec) {
         if (rec) return upsert(rec);
         emit(name);
-        return list.slice();
+        return Promise.resolve({ ok: false, code: "missing-id" });
       },
       add: function (rec) { return upsert(rec); },
       update: function (id, patch) {
         var current = null;
         var i;
-        for (i = 0; i < list.length; i++) if (list[i].id === id) current = list[i];
+        for (i = 0; i < list.length; i++) if (String(list[i].id) === String(id)) current = list[i];
         var merged = {};
         var k;
         if (current) for (k in current) merged[k] = current[k];
@@ -281,28 +377,27 @@
         var previous = list.slice();
         var rec = null;
         var i;
-        for (i = 0; i < list.length; i++) if (list[i].id === id) rec = list[i];
-        if (!rec) return previous;
+        for (i = 0; i < list.length; i++) if (String(list[i].id) === String(id)) rec = list[i];
+        if (!rec) return Promise.resolve({ ok: false, code: "missing-id" });
         var body = { kind: kind, id: id };
         if (rec.from) body.from = rec.from;
         if (rec.to) body.to = rec.to;
         if (rec.originZoneId) body.originZoneId = rec.originZoneId;
         if (rec.destZoneId) body.destZoneId = rec.destZoneId;
-        list = list.filter(function (row) { return row.id !== id; });
-        emit(name);
-        api("DELETE", putPath + "?kind=" + encodeURIComponent(kind) + "&id=" + encodeURIComponent(String(id)), body).then(function (json) {
+        return api("DELETE", putPath + "?kind=" + encodeURIComponent(kind) + "&id=" + encodeURIComponent(String(id)), body).then(function (json) {
           if (!json || json.ok === false) {
             list = previous;
           } else {
+            bookFetch.loaded = false;
+            bookFetch.json = null;
             var rows = pickRows(json, name);
-            if (rows.length) list = rows.map(clean);
+            list = rows.length ? rows.map(clean) : previous.filter(function (row) { return String(row.id) !== String(id); });
           }
           emit(name);
+          return json || { ok: false, code: "save-failed" };
         });
-        return list.slice();
       },
       reset: function () {
-        clearTimeout(pollTimer);
         bookFetch.loaded = false;
         bookFetch.json = null;
         list = [];
@@ -320,6 +415,7 @@
     var val = {};
     var pending = false;
     var loaded = false;
+    var writePath = name === "profile" ? "/api/staff/profile" : path;
 
     function copy() {
       var c = {};
@@ -357,15 +453,15 @@
       },
       update: function (patch) {
         var previous = copy();
-        api("PUT", path, patch).then(function (json) {
+        return api("PATCH", writePath, patch).then(function (json) {
           if (json && json.ok && json.data && typeof json.data === "object" && !Array.isArray(json.data)) {
             val = fromPayload(json.data) || {};
           } else {
             val = previous;
           }
           emit(name);
+          return json || { ok: false, code: "save-failed" };
         });
-        return previous;
       },
       reset: function () { val = {}; loaded = false; pending = false; emit(name); hydrate(); return copy(); },
       onChange: function (fn) { return subscribe(name, fn); }
@@ -442,7 +538,7 @@
       email: str(b.email),
       phone: str(b.phone),
       company: str(b.company),
-      dateIso: str(b.dateIso),
+      dateIso: str(b.dateIso || b.date),
       pickupAt: str(b.pickupAt),
       capturedAt: str(b.capturedAt),
       bookingId: str(b.bookingId),
@@ -467,7 +563,7 @@
   function cleanCustomer(c) {
     c = c || {};
     return {
-      id: str(c.id) || id("cu"),
+      id: str(c.id),
       name: str(c.name || c.fullName), email: str(c.email), phone: str(c.phone),
       type: CUSTOMER_TYPES.indexOf(c.type) === -1 ? "private" : c.type,
       company: str(c.company), trips: num(c.trips != null ? c.trips : c.tripCount, 0), since: str(c.since), note: str(c.note)
@@ -478,7 +574,7 @@
   function cleanCoupon(c) {
     c = c || {};
     return {
-      id: str(c.id) || id("cp"),
+      id: str(c.id),
       code: str(c.code).toUpperCase(),
       kind: COUPON_KINDS.indexOf(c.kind) === -1 ? "percent" : c.kind,
       value: str(c.value), uses: num(c.uses, 0), limit: num(c.limit, 0),
@@ -489,7 +585,7 @@
   function cleanRoute(r) {
     r = r || {};
     return {
-      id: str(r.id) || id("FR"),
+      id: str(r.id),
       from: str(r.from), to: str(r.to),
       originZoneId: str(r.originZoneId), destZoneId: str(r.destZoneId),
       economy: cleanMoneySet(r.economy), business: cleanMoneySet(r.business), first: cleanMoneySet(r.first), van: cleanMoneySet(r.van),
@@ -514,7 +610,7 @@
   function cleanSurcharge(s) {
     s = s || {};
     return {
-      id: str(s.id) || id("S"),
+      id: str(s.id),
       label: str(s.label), rule: str(s.rule),
       kind: SURCHARGE_KINDS.indexOf(s.kind) === -1 ? "amount" : s.kind,
       amounts: cleanMoneySet(s.amounts), pct: str(s.pct)
@@ -524,7 +620,7 @@
   function cleanBand(b) {
     b = b || {};
     return {
-      id: str(b.id) || id("B"),
+      id: str(b.id),
       fromKm: num(b.fromKm, 0),
       toKm: b.toKm === "" || b.toKm == null ? "" : num(b.toKm, 0),
       perKm: cleanMoneySet(b.perKm)
@@ -534,7 +630,7 @@
   function cleanRegion(r) {
     r = r || {};
     return {
-      id: str(r.id) || id("RP"),
+      id: str(r.id),
       zoneId: str(r.zoneId),
       zone: str(r.zone),
       percent: str(r.percent)
@@ -578,7 +674,7 @@
     get ZONES() { return ZONES.slice(); },
     vehicles: restCollection("vehicles", cleanVehicle),
     chauffeurs: restCollection("chauffeurs", cleanChauffeur),
-    bookings: restCollection('bookings', cleanBooking),
+    bookings: restCollection("bookings", cleanBooking),
     customers: restCollection("customers", cleanCustomer),
     coupons: restCollection("coupons", cleanCoupon),
     routes: rateBookCollection("routes", "route", cleanRoute),

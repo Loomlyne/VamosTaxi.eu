@@ -457,8 +457,8 @@ class Component extends DCLogic {
       ],
       searchKeys: ['id','customer','pickup','dropoff'],
       blank: () => Object.assign(ops ? ops.bookings.blank() : {}, { date: selLabel }),
-      onSave: (rec) => { if (ops) ops.bookings.upsert(rec); },
-      onDelete: (id) => { if (ops) ops.bookings.remove(id); },
+      onSave: (rec) => ops ? ops.bookings.upsert(rec) : null,
+      onDelete: (id) => ops ? ops.bookings.remove(id) : null,
       nestedTitle: t.addChauffeur,
       nestedSaveLabel: t.addChauffeur,
       nestedTargetKey: 'chauffeur',
@@ -469,7 +469,7 @@ class Component extends DCLogic {
         { key:'status', label:t.fStatus, editor:'select', options:(ops ? ops.CHAUFFEUR_STATUS : []).map((s) => ({ value:s, label:s })), icon:'user', half:true },
       ],
       nestedBlank: () => (ops ? ops.chauffeurs.blank() : {}),
-      onNestedSave: (rec) => { if (ops) ops.chauffeurs.upsert(rec); },
+      onNestedSave: (rec) => ops ? ops.chauffeurs.upsert(rec) : null,
     };
   }
 }

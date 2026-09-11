@@ -349,8 +349,8 @@ class Component extends DCLogic {
       editorColumns: [{ key:'id', header: t.colRef, width:'96px' }],
       editorSearchKeys: ['id','customer','pickup','dropoff'],
       editorBlank: () => (ops ? ops.bookings.blank() : {}),
-      editorSave: (rec) => { if (ops) ops.bookings.upsert(rec); },
-      editorDelete: (id) => { if (ops) ops.bookings.remove(id); },
+      editorSave: (rec) => ops ? ops.bookings.upsert(rec) : null,
+      editorDelete: (id) => ops ? ops.bookings.remove(id) : null,
       editorFields: [
         { key:'id', label:t.fRef, half:true, required:true, placeholder:'VT-0000' },
         { key:'customer', label:t.fCustomer, half:true },
@@ -373,7 +373,7 @@ class Component extends DCLogic {
         { key:'status', label:t.fStatus, editor:'select', options:((ops && ops.CHAUFFEUR_STATUS) || []).map((s) => ({ value:s, label:s })), icon:'user', half:true },
       ],
       nestedBlank: () => (ops ? ops.chauffeurs.blank() : {}),
-      onNestedSave: (rec) => { if (ops) ops.chauffeurs.upsert(rec); },
+      onNestedSave: (rec) => ops ? ops.chauffeurs.upsert(rec) : null,
     };
   }
 }

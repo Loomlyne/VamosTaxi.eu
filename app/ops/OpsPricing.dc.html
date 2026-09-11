@@ -89,7 +89,8 @@ const SURCHARGE_CODES = [
   { value: 'extra_stop', k: 'ruleExtraStop' },
   { value: 'meet_greet', k: 'ruleMeet' },
   { value: 'child_seat', k: 'ruleChild' },
-  { value: 'ski', k: 'ruleSki' },
+  { value: 'oversized_luggage', k: 'ruleOversized' },
+  { value: 'ski_rack', k: 'ruleSki' },
   { value: 'pet', k: 'rulePet' },
 ];
 const PANES = [
@@ -150,7 +151,7 @@ const T = {
     applyLeg:'This transfer', applyBooking:'Whole booking',
     ruleNight:'Night (22:00–06:00)', ruleWeekend:'Weekend (Saturday–Sunday)', ruleHoliday:'Public holiday',
     ruleWaiting:'Waiting time', ruleExtraStop:'Extra stop', ruleMeet:'Meet and greet',
-    ruleChild:'Child seat', ruleSki:'Ski / snowboard', rulePet:'Pet',
+    ruleChild:'Child seat', ruleSki:'Ski / snowboard', rulePet:'Pet', ruleOversized:'Oversized luggage',
     addDistance:'Add distance rule', editDistance:'Edit distance rule',
     deleteDistanceTitle:'Delete this distance rule?', deleteDistanceBody:'The class rate is removed from this draft.',
     emptyDistanceTitle:'No distance rules yet', emptyDistanceBody:'Four classes are listed. Fill a row and save — amounts stay CHF 000 until you type them.',
@@ -207,7 +208,7 @@ const T = {
     applyLeg:'Diese Fahrt', applyBooking:'Ganze Buchung',
     ruleNight:'Nacht (22:00–06:00)', ruleWeekend:'Wochenende (Sa–So)', ruleHoliday:'Feiertag',
     ruleWaiting:'Wartezeit', ruleExtraStop:'Zusätzlicher Halt', ruleMeet:'Meet and greet',
-    ruleChild:'Kindersitz', ruleSki:'Ski / Snowboard', rulePet:'Haustier',
+    ruleChild:'Kindersitz', ruleSki:'Ski / Snowboard', rulePet:'Haustier', ruleOversized:'Übergepäck',
     addDistance:'Distanzregel hinzufügen', editDistance:'Distanzregel bearbeiten',
     deleteDistanceTitle:'Diese Distanzregel löschen?', deleteDistanceBody:'Der Klassensatz wird aus diesem Entwurf entfernt.',
     emptyDistanceTitle:'Noch keine Distanzregeln', emptyDistanceBody:'Vier Klassen sind gelistet. Zeile füllen und speichern — Beträge bleiben CHF 000, bis sie eingegeben werden.',
@@ -264,7 +265,7 @@ const T = {
     applyLeg:'Ce transfert', applyBooking:'Toute la réservation',
     ruleNight:'Nuit (22:00–06:00)', ruleWeekend:'Week-end (sam.–dim.)', ruleHoliday:'Jour férié',
     ruleWaiting:'Temps d’attente', ruleExtraStop:'Arrêt supplémentaire', ruleMeet:'Accueil nominatif',
-    ruleChild:'Siège enfant', ruleSki:'Ski / snowboard', rulePet:'Animal',
+    ruleChild:'Siège enfant', ruleSki:'Ski / snowboard', rulePet:'Animal', ruleOversized:'Bagage hors format',
     addDistance:'Ajouter une règle de distance', editDistance:'Modifier la règle de distance',
     deleteDistanceTitle:'Supprimer cette règle de distance ?', deleteDistanceBody:'Le tarif de classe est retiré de ce brouillon.',
     emptyDistanceTitle:'Aucune règle de distance', emptyDistanceBody:'Quatre classes sont listées. Remplissez une ligne — les montants restent CHF 000 jusqu’à saisie.',
@@ -321,7 +322,7 @@ const T = {
     applyLeg:'هذا النقل', applyBooking:'الحجز كاملًا',
     ruleNight:'ليل (22:00–06:00)', ruleWeekend:'عطلة الأسبوع (سبت–أحد)', ruleHoliday:'عطلة رسمية',
     ruleWaiting:'وقت الانتظار', ruleExtraStop:'محطة إضافية', ruleMeet:'استقبال بالاسم',
-    ruleChild:'مقعد طفل', ruleSki:'تزلج', rulePet:'حيوان أليف',
+    ruleChild:'مقعد طفل', ruleSki:'تزلج', rulePet:'حيوان أليف', ruleOversized:'أمتعة كبيرة الحجم',
     addDistance:'إضافة قاعدة مسافة', editDistance:'تعديل قاعدة المسافة',
     deleteDistanceTitle:'حذف قاعدة المسافة؟', deleteDistanceBody:'يُحذف سعر الفئة من هذه المسودة.',
     emptyDistanceTitle:'لا توجد قواعد مسافة بعد', emptyDistanceBody:'أربع فئات مدرجة. املأ صفًا واحفظ — المبالغ تبقى CHF 000 حتى تكتبها.',
@@ -493,16 +494,16 @@ class Component extends DCLogic {
         return Object.assign({}, blank, { economy:'', business:'', first:'', van:'' });
       },
       saveRoute: (rec) => {
-        if (!ops) return;
+        if (!ops) return null;
         const existing = rec.id ? ops.routes.get(rec.id) : null;
         const patch = { id: rec.id, from: rec.from, to: rec.to, live: rec.live };
         CLASS_KEYS.forEach((k) => {
           const base = (existing && existing[k]) || {};
           patch[k] = Object.assign({}, base, { [cur]: rec[k] });
         });
-        ops.routes.upsert(patch);
+        return ops.routes.upsert(patch);
       },
-      deleteRoute: (id) => { if (ops) ops.routes.remove(id); },
+      deleteRoute: (id) => ops ? ops.routes.remove(id) : null,
       tNounRoute: t.nounRoute, tNounRoutes: t.nounRoutes,
       tAddRoute: t.addRoute, tEditRoute: t.editRoute,
       tDeleteRouteTitle: t.deleteRouteTitle, tDeleteRouteBody: t.deleteRouteBody,
@@ -557,10 +558,10 @@ class Component extends DCLogic {
         return Object.assign({}, blank, { baseFare:'', perKm:'', minFare:'' });
       },
       saveDistance: (rec) => {
-        if (!ops) return;
+        if (!ops) return null;
         const existing = rec.id ? ops.rates.get(rec.id) : (ops.rates.all().filter((x) => x.klass === rec.klass)[0] || null);
         const id = (existing && existing.id) || rec.id || rec.klass;
-        ops.rates.upsert({
+        return ops.rates.upsert({
           id,
           klass: rec.klass,
           maxPax: rec.maxPax,
@@ -570,7 +571,7 @@ class Component extends DCLogic {
           minFare: Object.assign({}, (existing && existing.minFare) || {}, { [cur]: rec.minFare }),
         });
       },
-      deleteDistance: (id) => { if (ops) ops.rates.remove(id); },
+      deleteDistance: (id) => ops ? ops.rates.remove(id) : null,
       tNounDistance: t.nounDistance, tNounDistances: t.nounDistances,
       tAddDistance: t.addDistance, tEditDistance: t.editDistance,
       tDeleteDistanceTitle: t.deleteDistanceTitle, tDeleteDistanceBody: t.deleteDistanceBody,
@@ -599,16 +600,16 @@ class Component extends DCLogic {
         return Object.assign({}, blank, { perKm:'' });
       },
       saveBand: (rec) => {
-        if (!ops) return;
+        if (!ops) return null;
         const existing = rec.id ? ops.bands.get(rec.id) : null;
-        ops.bands.upsert({
+        return ops.bands.upsert({
           id: rec.id,
           fromKm: rec.fromKm,
           toKm: rec.toKm,
           perKm: Object.assign({}, (existing && existing.perKm) || {}, { [cur]: rec.perKm }),
         });
       },
-      deleteBand: (id) => { if (ops) ops.bands.remove(id); },
+      deleteBand: (id) => ops ? ops.bands.remove(id) : null,
       tNounBand: t.nounBand, tNounBands: t.nounBands,
       tAddBand: t.addBand, tEditBand: t.editBand,
       tDeleteBandTitle: t.deleteBandTitle, tDeleteBandBody: t.deleteBandBody,
@@ -629,17 +630,17 @@ class Component extends DCLogic {
       ],
       regionBlank: () => (ops ? ops.regionPremiums.blank() : { zone:'', zoneId:'', percent:'' }),
       saveRegion: (rec) => {
-        if (!ops) return;
+        if (!ops) return null;
         const zones = (ops.ZONES || []).slice();
         const hit = zones.filter((z) => (z.label || z.slug) === rec.zone || z.id === rec.zoneId)[0];
-        ops.regionPremiums.upsert({
+        return ops.regionPremiums.upsert({
           id: rec.id,
           zone: rec.zone,
           zoneId: hit ? hit.id : rec.zoneId,
           percent: rec.percent,
         });
       },
-      deleteRegion: (id) => { if (ops) ops.regionPremiums.remove(id); },
+      deleteRegion: (id) => ops ? ops.regionPremiums.remove(id) : null,
       tNounRegion: t.nounRegion, tNounRegions: t.nounRegions,
       tAddRegion: t.addRegion, tEditRegion: t.editRegion,
       tDeleteRegionTitle: t.deleteRegionTitle, tDeleteRegionBody: t.deleteRegionBody,
@@ -688,9 +689,9 @@ class Component extends DCLogic {
           patch.pct = existing ? existing.pct : undefined;
           patch.amounts = existing ? existing.amounts : undefined;
         }
-        ops.surcharges.upsert(patch);
+        return ops.surcharges.upsert(patch);
       },
-      deleteSurcharge: (id) => { if (ops) ops.surcharges.remove(id); },
+      deleteSurcharge: (id) => ops ? ops.surcharges.remove(id) : null,
       tNounSurcharge: t.nounSurcharge, tNounSurcharges: t.nounSurcharges,
       tAddSurcharge: t.addSurcharge, tEditSurcharge: t.editSurcharge,
       tDeleteSurchargeTitle: t.deleteSurchargeTitle, tDeleteSurchargeBody: t.deleteSurchargeBody,

@@ -171,8 +171,8 @@ class Component extends DCLogic {
       ],
       searchKeys: ['code','note'],
       blank: () => (ops ? ops.coupons.blank() : {}),
-      onSave: (rec) => { if (ops) ops.coupons.upsert(rec); },
-      onDelete: (id) => { if (ops) ops.coupons.remove(id); },
+      onSave: (rec) => ops ? ops.coupons.upsert(rec) : null,
+      onDelete: (id) => ops ? ops.coupons.remove(id) : null,
     };
   }
 }

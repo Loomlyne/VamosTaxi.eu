@@ -32,6 +32,7 @@
 [data-vt-unsaved]{box-sizing:border-box;display:flex;align-items:center;gap:10px;padding:8px 8px 8px 14px;margin-bottom:16px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);background:var(--vt-bg-surface)}
 [data-vt-unsaved]>span[data-vt-unsaved-msg]{flex:1 1 auto;min-width:0;font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 [data-vt-unsaved-act]{display:flex;gap:6px;flex:0 0 auto}
+[data-vt-save-err]{box-sizing:border-box;display:flex;align-items:center;gap:10px;padding:8px 14px;margin-bottom:16px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);background:var(--vt-bg-surface);font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)}
 [data-vt-time-wrap] input{all:unset;flex:1 1 auto;min-width:0;width:100%;font:inherit;color:inherit;background:transparent;caret-color:var(--vt-charcoal-900)}
 [data-vt-date-pop]{position:fixed;z-index:220;box-sizing:border-box;width:280px;padding:12px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg)}
 [data-vt-date-nav]{display:flex;align-items:center;gap:8px;margin-bottom:10px}
@@ -126,6 +127,9 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ discardClose }}" hint-size="90px,36px">Discard</x-import>
 </span>
 </div>
+</sc-if>
+<sc-if value="{{ saveFailed }}" hint-placeholder-val="{{ false }}">
+<div data-vt-save-err="1">{{ saveError }}</div>
 </sc-if>
 <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px">
 <sc-for list="{{ formFields }}" as="f" hint-placeholder-count="5">
@@ -332,6 +336,9 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="sm" title="{{ confirmTitle }}" onClose="{{ cancelDelete }}" hint-size="400px,220px">
 <p style="margin:0;font-size:var(--vt-body-sm);line-height:1.6;color:var(--vt-text-secondary);text-wrap:pretty">{{ confirmBody }}</p>
 <p data-vt-no-i18n="1" style="margin:10px 0 0;font-family:var(--vt-font-display);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">{{ confirmName }}</p>
+<sc-if value="{{ deleteFailed }}" hint-placeholder-val="{{ false }}">
+<div data-vt-save-err="1">{{ deleteError }}</div>
+</sc-if>
 <div style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;margin-top:20px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" onClick="{{ cancelDelete }}" hint-size="110px,44px">Keep it</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="danger" onClick="{{ confirmDelete }}" hint-size="130px,44px">Delete</x-import>
@@ -433,7 +440,7 @@ const FIELD_ICONS = {
 };
 
 class Component extends DCLogic {
-  state = { q: '', draft: null, isNew: false, errors: {}, confirm: null, filters: {}, filterCol: null, closeAttempted: false, historyOpen: true, nested: null, nestedErrors: {}, sug: null, dateOpen: null };
+  state = { q: '', draft: null, isNew: false, errors: {}, confirm: null, filters: {}, filterCol: null, closeAttempted: false, historyOpen: true, nested: null, nestedErrors: {}, sug: null, dateOpen: null, saveError: '', deleteError: '', saving: false };
   lockScroll = () => { try { document.body.style.overflow = 'hidden'; } catch (e) {} };
   unlockScroll = () => { try { document.body.style.overflow = ''; } catch (e) {} };
   _sugPopRef = (el) => { this._sugPop = el; };
@@ -649,18 +656,18 @@ class Component extends DCLogic {
     const blank = this.props.blank ? this.props.blank() : {};
     this._original = JSON.stringify(blank);
     this.lockScroll();
-    this.setState({ draft: blank, isNew: true, errors: {}, closeAttempted: false, historyOpen: true, sug: null });
+    this.setState({ draft: blank, isNew: true, errors: {}, closeAttempted: false, historyOpen: true, sug: null, saveError: '' });
   };
   startEdit = (row) => {
     const copy = {}; for (const k in row) copy[k] = row[k];
     this._original = JSON.stringify(copy);
     this.lockScroll();
-    this.setState({ draft: copy, isNew: false, errors: {}, closeAttempted: false, historyOpen: true, sug: null });
+    this.setState({ draft: copy, isNew: false, errors: {}, closeAttempted: false, historyOpen: true, sug: null, saveError: '' });
     if (this.props.onEdit) this.props.onEdit(row);
   };
   closeEditor = () => {
     this.unlockScroll();
-    this.setState({ draft: null, errors: {}, closeAttempted: false, sug: null, dateOpen: null });
+    this.setState({ draft: null, errors: {}, closeAttempted: false, sug: null, dateOpen: null, saveError: '', saving: false });
     if (this.props.onCloseEdit) this.props.onCloseEdit();
   };
   isDirty = () => {
@@ -677,7 +684,28 @@ class Component extends DCLogic {
     const errors = {}; for (const k in s.errors) if (k !== key) errors[k] = s.errors[k];
     return { draft: d, errors };
   });
+  writeError(json) {
+    const code = json && json.code ? String(json.code) : 'save-failed';
+    if (json && json.message) return String(json.message);
+    if (code === 'missing-id') return 'This row has no database id, so it cannot be saved.';
+    if (code === 'method-not-allowed') return 'This table cannot create a row here.';
+    if (code === 'not-found') return 'That row is gone.';
+    if (code === 'frozen') return 'The live rate book is locked. Edit a draft.';
+    if (code === 'invalid') return 'The server rejected that row.';
+    if (code === 'unpaid') return 'Unpaid bookings cannot take that edit.';
+    if (code === 'network') return 'The save did not reach the server.';
+    return code;
+  }
+  finishWrite = (json) => {
+    if (!json || json.ok !== true) {
+      this.setState({ saving: false, saveError: this.writeError(json || { code: 'save-failed' }) });
+      return;
+    }
+    this.setState({ saving: false, saveError: '' });
+    this.closeEditor();
+  };
   save = () => {
+    if (this.state.saving) return;
     const fields = this.props.fields || [];
     const d = this.state.draft || {};
     const errors = {};
@@ -686,18 +714,36 @@ class Component extends DCLogic {
       const v = d[f.key];
       if (v === undefined || v === null || String(v).trim() === '') errors[f.key] = this.props.requiredMessage || 'Needed';
     });
-    if (Object.keys(errors).length) return this.setState({ errors });
-    if (this.props.onSave) this.props.onSave(d);
-    this.closeEditor();
+    if (Object.keys(errors).length) return this.setState({ errors, saveError: '' });
+    this.setState({ saving: true, saveError: '', errors: {} });
+    const run = this.state.isNew
+      ? (this.props.onSave ? this.props.onSave(d) : null)
+      : (this.props.onUpdate ? this.props.onUpdate(d.id, d) : (this.props.onSave ? this.props.onSave(d) : null));
+    if (run && typeof run.then === 'function') {
+      run.then(this.finishWrite, () => this.finishWrite({ ok: false, code: 'network' }));
+      return;
+    }
+    this.finishWrite(run);
   };
-  askDelete = (row) => { this.lockScroll(); this.setState({ confirm: row }); };
-  askDeleteCurrent = () => { this.lockScroll(); this.setState({ confirm: this.state.draft, draft: null }); };
-  cancelDelete = () => { this.unlockScroll(); this.setState({ confirm: null }); };
+  askDelete = (row) => { this.lockScroll(); this.setState({ confirm: row, deleteError: '' }); };
+  askDeleteCurrent = () => { this.lockScroll(); this.setState({ confirm: this.state.draft, draft: null, deleteError: '' }); };
+  cancelDelete = () => { this.unlockScroll(); this.setState({ confirm: null, deleteError: '' }); };
   confirmDelete = () => {
     const row = this.state.confirm;
-    if (row && this.props.onDelete) this.props.onDelete(row.id);
-    this.unlockScroll();
-    this.setState({ confirm: null });
+    const run = (row && this.props.onDelete) ? this.props.onDelete(row.id, row) : null;
+    const done = (json) => {
+      if (!json || json.ok !== true) {
+        this.setState({ deleteError: this.writeError(json || { code: 'save-failed' }) });
+        return;
+      }
+      this.unlockScroll();
+      this.setState({ confirm: null, draft: null, isNew: false, deleteError: '', saveError: '' });
+    };
+    if (run && typeof run.then === 'function') {
+      run.then(done, () => done({ ok: false, code: 'network' }));
+      return;
+    }
+    done(run);
   };
   isoDate = (raw) => toIso(parseParts(raw));
   writeDate = (raw, next) => {
@@ -770,22 +816,33 @@ class Component extends DCLogic {
       if (v === undefined || v === null || String(v).trim() === '') errors[f.key] = this.props.requiredMessage || 'Needed';
     });
     if (Object.keys(errors).length) return this.setState({ nestedErrors: errors });
-    if (this.props.onNestedSave) this.props.onNestedSave(rec, this.state.draft);
+    const run = this.props.onNestedSave ? this.props.onNestedSave(rec, this.state.draft) : null;
     const target = this.props.nestedTargetKey || 'chauffeurIds';
-    const id = rec.id ? String(rec.id) : '';
-    if (id) {
-      const targetField = (this.props.fields || []).filter((f) => f.key === target)[0];
-      const multi = !!(targetField && targetField.multi);
-      if (!multi) {
-        this.setField(target, id);
-      } else {
-        const cur = String((this.state.draft || {})[target] || '');
-        const ids = cur.split(',').map((s) => s.trim()).filter(Boolean);
-        if (ids.indexOf(id) === -1) ids.push(id);
-        this.setField(target, ids.join(', '));
+    const applyNested = (json) => {
+      if (!json || json.ok !== true) {
+        this.setState({ nestedErrors: { name: this.writeError(json || { code: 'save-failed' }) } });
+        return;
       }
+      const id = (json && json.data && json.data.id) ? String(json.data.id) : (rec.id ? String(rec.id) : '');
+      if (id) {
+        const targetField = (this.props.fields || []).filter((f) => f.key === target)[0];
+        const multi = !!(targetField && targetField.multi);
+        if (!multi) {
+          this.setField(target, id);
+        } else {
+          const cur = String((this.state.draft || {})[target] || '');
+          const ids = cur.split(',').map((s) => s.trim()).filter(Boolean);
+          if (ids.indexOf(id) === -1) ids.push(id);
+          this.setField(target, ids.join(', '));
+        }
+      }
+      this.setState({ nested: null, nestedErrors: {} });
+    };
+    if (run && typeof run.then === 'function') {
+      run.then(applyNested, () => applyNested({ ok: false, code: 'network' }));
+      return;
     }
-    this.setState({ nested: null, nestedErrors: {} });
+    applyNested(run);
   };
 
   label(row) {
@@ -1060,6 +1117,10 @@ class Component extends DCLogic {
       editorTitle: this.state.isNew ? (this.props.addTitle || 'Add') : (this.props.editTitle || 'Edit'),
       editorSubtitle: this.state.isNew ? (this.props.editorSubtitle || '') : this.label(d),
       saveLabel: this.state.isNew ? (this.props.addSaveLabel || 'Add') : (this.props.saveLabel || 'Save changes'),
+      saveError: this.state.saveError || '',
+      saveFailed: !!(this.state.saveError),
+      deleteError: this.state.deleteError || '',
+      deleteFailed: !!(this.state.deleteError),
       deleteShow: this.state.isNew ? 'none' : 'inline-flex',
       formFields, closeEditor: this.closeEditor, save: this.save,
       requestClose: this.requestClose, keepEditing: this.keepEditing, discardClose: this.discardClose,
