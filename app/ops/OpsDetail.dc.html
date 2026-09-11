@@ -8,7 +8,19 @@
 </head>
 <body>
 <x-dc>
-<main style="flex:1 1 auto;min-width:0;padding:22px 28px 48px;display:flex;flex-direction:column;gap:14px;max-width:880px">
+<main data-ops-detail="1" style="flex:1 1 auto;min-width:0;padding:22px 28px 48px">
+<style>
+[data-ops-detail]{display:flex;flex-direction:row;align-items:flex-start;gap:20px}
+[data-ops-detail-col]{flex:1 1 auto;min-width:0;max-width:880px;display:flex;flex-direction:column;gap:14px}
+[data-ops-detail-rail]{flex:0 0 220px;position:sticky;top:22px;display:flex;flex-direction:column;gap:8px;align-items:stretch}
+[data-ops-detail-rail] .vt-btn{width:100%}
+@media (max-width:1100px){
+  [data-ops-detail]{flex-direction:column}
+  [data-ops-detail-rail]{position:static;flex:1 1 auto;width:100%;flex-direction:row;flex-wrap:wrap}
+  [data-ops-detail-rail] .vt-btn{width:auto}
+}
+</style>
+<div data-ops-detail-col>
 <div>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" icon="chevron-left" onClick="{{ goBack }}" hint-size="auto,36px">{{ tBackToBookings }}</x-import>
 </div>
@@ -22,22 +34,6 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StatusBadge" status="{{ booking.status }}" hint-size="110px,24px"></x-import>
 </div>
 </div>
-<sc-if value="{{ viewing }}" hint-placeholder-val="{{ true }}">
-<div data-ops-detail-acts="1" style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
-<sc-if value="{{ canAssign }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="{{ assignVariant }}" onClick="{{ openAssignDialog }}" hint-size="130px,32px">{{ assignLabel }}</x-import>
-</sc-if>
-<sc-if value="{{ canResend }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="secondary" icon="mail" onClick="{{ resendVoucher }}" hint-size="170px,36px">{{ tResendVoucher }}</x-import>
-</sc-if>
-<sc-if value="{{ canEdit }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="pencil" onClick="{{ openEdit }}" hint-size="140px,36px">{{ tEditBooking }}</x-import>
-</sc-if>
-<sc-if value="{{ canCancel }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="danger" icon="x" onClick="{{ openCancel }}" hint-size="110px,36px">{{ tCancelBooking }}</x-import>
-</sc-if>
-</div>
-</sc-if>
 
 <div style="margin-top:20px;display:flex;flex-direction:column;gap:20px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.RouteSummary" pickup="{{ booking.pickup }}" dropoff="{{ booking.dropoff }}" meta="{{ routeMeta }}" hint-size="100%,140px"></x-import>
@@ -149,25 +145,6 @@
 </sc-if>
 
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ tDispatcherNote }}" rows="{{ n2 }}" placeholder="{{ tDispatcherNotePh }}" hint-size="100%,90px"></x-import>
-
-<div style="display:flex;gap:10px;flex-wrap:wrap">
-<sc-if value="{{ viewing }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="secondary" icon="mail" onClick="{{ resendVoucher }}" hint-size="170px,36px">{{ tResendVoucher }}</x-import>
-<sc-if value="{{ canEdit }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="pencil" onClick="{{ openEdit }}" hint-size="140px,36px">{{ tEditBooking }}</x-import>
-</sc-if>
-<sc-if value="{{ canCancel }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="danger" icon="x" onClick="{{ openCancel }}" hint-size="110px,36px">{{ tCancelBooking }}</x-import>
-</sc-if>
-<sc-if value="{{ isCancelled }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ markRefund }}" hint-size="200px,36px">{{ tMarkRefund }}</x-import>
-</sc-if>
-</sc-if>
-<sc-if value="{{ editing }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ saveEdit }}" hint-size="150px,36px">{{ tContinue }}</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ cancelEdit }}" hint-size="110px,36px">{{ tCancelEdit }}</x-import>
-</sc-if>
-</div>
 </div>
 </x-import>
 
@@ -200,6 +177,27 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Toast" tone="success" onClose="{{ closeToast }}" hint-size="320px,50px">{{ toastMsg }}</x-import>
 </div>
 </sc-if>
+</div>
+<aside data-ops-detail-rail>
+<sc-if value="{{ viewing }}" hint-placeholder-val="{{ true }}">
+<sc-if value="{{ canResend }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="secondary" icon="mail" onClick="{{ resendVoucher }}" hint-size="170px,36px">{{ tResendVoucher }}</x-import>
+</sc-if>
+<sc-if value="{{ canEdit }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="pencil" onClick="{{ openEdit }}" hint-size="140px,36px">{{ tEditBooking }}</x-import>
+</sc-if>
+<sc-if value="{{ canCancel }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="danger" icon="x" onClick="{{ openCancel }}" hint-size="110px,36px">{{ tCancelBooking }}</x-import>
+</sc-if>
+<sc-if value="{{ isCancelled }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ markRefund }}" hint-size="200px,36px">{{ tMarkRefund }}</x-import>
+</sc-if>
+</sc-if>
+<sc-if value="{{ editing }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ saveEdit }}" hint-size="150px,36px">{{ tContinue }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ cancelEdit }}" hint-size="110px,36px">{{ tCancelEdit }}</x-import>
+</sc-if>
+</aside>
 </main>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900},&quot;id&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
