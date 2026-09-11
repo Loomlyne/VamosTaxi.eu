@@ -179,7 +179,16 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div style="display:flex;flex-direction:column;gap:12px">
 <p data-grp="1">{{ g.label }}</p>
 <sc-for list="{{ g.rows }}" as="b" hint-placeholder-count="3">
-<dc-import name="BookingRow" href="{{ b.href }}" date="{{ b.date }}" time="{{ b.time }}" rel="{{ b.rel }}" route="{{ b.route }}" meta="{{ b.meta }}" price="{{ b.price }}" status="{{ b.status }}" reference="{{ b.ref }}" onCancel="{{ cancelUnpaid }}" hint-size="100%,118px"></dc-import>
+  <div>
+  <dc-import name="BookingRow" href="{{ b.href }}" date="{{ b.date }}" time="{{ b.time }}" rel="{{ b.rel }}" route="{{ b.route }}" meta="{{ b.meta }}" price="{{ b.price }}" status="{{ b.status }}" reference="{{ b.ref }}" onCancel="{{ cancelUnpaid }}" hint-size="100%,118px"></dc-import>
+  <sc-if value="{{ b.canRequestEdit }}">
+  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:8px 0 4px">
+  <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" icon="pencil" onClick="{{ b.requestEdit }}" disabled="{{ b.editBusy }}" hint-size="190px,44px">Request a change</x-import>
+  <sc-if value="{{ b.editOk }}"><p style="margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">Change requested. The trip stays as booked until we confirm.</p></sc-if>
+  <sc-if value="{{ b.editErr }}"><p style="margin:0;font-size:var(--vt-body-sm);color:var(--vt-danger)">Could not send that request.</p></sc-if>
+  </div>
+  </sc-if>
+  </div>
 </sc-for>
 </div>
 </sc-for>
@@ -192,7 +201,16 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <p data-grp="1">{{ g.label }}</p>
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
 <sc-for list="{{ g.rows }}" as="b" hint-placeholder-count="3">
-<dc-import name="BookingRow" variant="grid" href="{{ b.href }}" date="{{ b.date }}" time="{{ b.time }}" rel="{{ b.rel }}" route="{{ b.route }}" meta="{{ b.meta }}" price="{{ b.price }}" status="{{ b.status }}" reference="{{ b.ref }}" onCancel="{{ cancelUnpaid }}" hint-size="100%,190px"></dc-import>
+  <div>
+  <dc-import name="BookingRow" variant="grid" href="{{ b.href }}" date="{{ b.date }}" time="{{ b.time }}" rel="{{ b.rel }}" route="{{ b.route }}" meta="{{ b.meta }}" price="{{ b.price }}" status="{{ b.status }}" reference="{{ b.ref }}" onCancel="{{ cancelUnpaid }}" hint-size="100%,190px"></dc-import>
+  <sc-if value="{{ b.canRequestEdit }}">
+  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:8px 0 4px">
+  <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" icon="pencil" onClick="{{ b.requestEdit }}" disabled="{{ b.editBusy }}" hint-size="190px,44px">Request a change</x-import>
+  <sc-if value="{{ b.editOk }}"><p style="margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">Change requested. The trip stays as booked until we confirm.</p></sc-if>
+  <sc-if value="{{ b.editErr }}"><p style="margin:0;font-size:var(--vt-body-sm);color:var(--vt-danger)">Could not send that request.</p></sc-if>
+  </div>
+  </sc-if>
+  </div>
 </sc-for>
 </div>
 </div>
@@ -302,7 +320,7 @@ const STEP = 6;
 class Component extends DCLogic {
   state = (() => {
     const p = this.props || {};
-    return { view: 'loading', tab: p.openTab || 'upcoming', shown: STEP, auth: null, q: '', viewMode: 'list', live: false, rows: [] };
+    return { view: 'loading', tab: p.openTab || 'upcoming', shown: STEP, auth: null, q: '', viewMode: 'list', live: false, rows: [], editByRef: {} };
   })();
   setViewList = () => this.setState({ viewMode: 'list' });
   setViewGrid = () => this.setState({ viewMode: 'grid' });
@@ -509,10 +527,42 @@ class Component extends DCLogic {
   goLoading = () => this.go('loading');
   goEmpty = () => this.go('empty');
 
+  requestEditFor(id) {
+    return () => {
+      if (!this.state.live || !id) return;
+      const current = (this.state.editByRef || {})[id];
+      if (current === 'busy' || current === 'ok') return;
+      const editByRef = Object.assign({}, this.state.editByRef, { [id]: 'busy' });
+      this.setState({ editByRef });
+      fetch('/api/account/bookings', {
+        method: 'POST',
+        credentials: 'same-origin',
+        cache: 'no-store',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ reference: id, payload: {} }),
+      })
+        .then((r) => r.json().then((j) => ({ ok: r.ok && j && j.ok === true })))
+        .then((res) => {
+          this.setState({
+            editByRef: Object.assign({}, this.state.editByRef, { [id]: res.ok ? 'ok' : 'err' }),
+          });
+        })
+        .catch(() => {
+          this.setState({
+            editByRef: Object.assign({}, this.state.editByRef, { [id]: 'err' }),
+          });
+        });
+    };
+  }
+
   row(r) {
     const hourly = !!r.hours;
     const pax = r.pax + (r.pax === 1 ? ' passenger' : ' passengers');
     const bits = [r.chauffeur, r.vehicle, pax, r.id].filter(Boolean);
+    const id = r.id;
+    const st = (this.state.editByRef || {})[id];
+    const liveUpcoming = this.state.live && this.state.tab === 'upcoming';
+    const canRequestEdit = liveUpcoming && r.status !== 'cancelled' && r.status !== 'completed';
     return {
       href: r.href || ('/confirmation/' + r.id),
       date: r.date, time: r.time, rel: r.rel || '',
@@ -523,6 +573,11 @@ class Component extends DCLogic {
         : this.money('000'),
       status: r.status,
       ref: r.id,
+      canRequestEdit,
+      requestEdit: this.requestEditFor(id),
+      editBusy: st === 'busy',
+      editOk: st === 'ok',
+      editErr: st === 'err',
     };
   }
 

@@ -1,10 +1,14 @@
 export const dynamic = "force-dynamic";
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { mapAccountBooking, type AccountSqlRow } from "@/lib/account/bookings";
-import { asCustomer } from "@/lib/db/identity";
 import { customerClaims } from "@/lib/account/session";
+import { MANAGE_COOKIE_NAME, hashManageToken, readManageCookie } from "@/lib/checkout/manage-token";
+import { asCustomer } from "@/lib/db/identity";
+import { requestCustomerPaidEdit, type CustomerEditAuth } from "@/lib/ops/edit-request";
+import { failStatus, type EditPayload } from "@/lib/ops/edit-request-map";
 
 export async function GET(request: Request) {
   const claims = await customerClaims(request);
@@ -36,4 +40,98 @@ export async function GET(request: Request) {
     `;
   });
   return NextResponse.json({ bookings: rows.map((row) => mapAccountBooking(row)) });
+}
+
+function str(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+
+function num(value: unknown): number | undefined {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim()) {
+    const n = Number(value);
+    if (Number.isFinite(n)) return n;
+  }
+  return undefined;
+}
+
+function payloadFrom(record: Record<string, unknown>): EditPayload {
+  const payloadRaw =
+    record.payload && typeof record.payload === "object" && !Array.isArray(record.payload)
+      ? (record.payload as Record<string, unknown>)
+      : record;
+  return {
+    contact_name: str(payloadRaw.contact_name) ?? str(payloadRaw.customer),
+    contact_email: str(payloadRaw.contact_email) ?? str(payloadRaw.email),
+    contact_phone: str(payloadRaw.contact_phone) ?? str(payloadRaw.phone),
+    note: str(payloadRaw.note),
+    pickup_text: str(payloadRaw.pickup_text) ?? str(payloadRaw.pickup),
+    dropoff_text: str(payloadRaw.dropoff_text) ?? str(payloadRaw.dropoff),
+    flight_no: str(payloadRaw.flight_no) ?? str(payloadRaw.flight),
+    scheduled_local: str(payloadRaw.scheduled_local),
+    pax: num(payloadRaw.pax),
+    bags: num(payloadRaw.bags),
+    vehicle_class_slug: str(payloadRaw.vehicle_class_slug) ?? str(payloadRaw.klass),
+  };
+}
+
+export async function POST(request: Request) {
+  const claims = await customerClaims(request);
+  const jar = await cookies();
+  const raw = readManageCookie(jar.get(MANAGE_COOKIE_NAME)?.value ?? "", request.headers.get("cookie"));
+  const manageTokenHashHex = raw ? await hashManageToken(raw) : "";
+
+  let auth: CustomerEditAuth | null = null;
+  if (claims?.email) {
+    auth = { kind: "customer", claims };
+  } else if (manageTokenHashHex) {
+    auth = { kind: "guest", manageTokenHashHex };
+  }
+  if (!auth) {
+    return NextResponse.json({ ok: false, code: "unauthorized" }, { status: 401 });
+  }
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    body = {};
+  }
+  const record = body && typeof body === "object" && !Array.isArray(body) ? (body as Record<string, unknown>) : {};
+  const bookingKey = str(record.reference) ?? str(record.id) ?? str(record.bookingId) ?? "";
+  if (!bookingKey) {
+    return NextResponse.json({ ok: false, code: "not-found" }, { status: 404 });
+  }
+
+  const { env } = await getCloudflareContext({ async: true });
+  let result = await requestCustomerPaidEdit(env, auth, bookingKey, {
+    quoteSnapshotId: num(record.quoteSnapshotId),
+    lock: str(record.lock),
+    vehicleClassSlug: str(record.vehicleClassSlug) ?? payloadFrom(record).vehicle_class_slug,
+    payload: payloadFrom(record),
+  });
+
+  if (!result.ok && result.code === "not-found" && auth.kind === "customer" && manageTokenHashHex) {
+    result = await requestCustomerPaidEdit(
+      env,
+      { kind: "guest", manageTokenHashHex },
+      bookingKey,
+      {
+        quoteSnapshotId: num(record.quoteSnapshotId),
+        lock: str(record.lock),
+        vehicleClassSlug: str(record.vehicleClassSlug) ?? payloadFrom(record).vehicle_class_slug,
+        payload: payloadFrom(record),
+      },
+    );
+  }
+
+  if (!result.ok) {
+    return NextResponse.json({ ok: false, code: result.code }, { status: failStatus(result.code) });
+  }
+  return NextResponse.json({
+    ok: true,
+    requestId: result.requestId,
+    bookingId: result.bookingId,
+    status: result.status,
+  });
 }

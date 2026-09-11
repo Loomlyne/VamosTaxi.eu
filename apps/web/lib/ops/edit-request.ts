@@ -9,7 +9,7 @@
 export const dynamic = "force-dynamic";
 
 import type { VamosClaims } from "@/lib/db/identity";
-import { asSystem } from "@/lib/db/identity";
+import { asCustomer, asGuest, asSystem } from "@/lib/db/identity";
 import {
   createCheckoutSession,
   createRefund,
@@ -51,6 +51,35 @@ export type AcceptPaidEditInput = {
   quoteSnapshotId?: number;
   lock?: string;
   vehicleClassSlug?: string;
+};
+
+export type CustomerEditAuth =
+  | { kind: "customer"; claims: VamosClaims }
+  | { kind: "guest"; manageTokenHashHex: string };
+
+export type RequestPaidEditInput = {
+  payload: EditPayload;
+  quoteSnapshotId?: number;
+  lock?: string;
+  vehicleClassSlug?: string;
+};
+
+export type RequestPaidEditOk = {
+  ok: true;
+  requestId: string;
+  bookingId: string;
+  status: "requested";
+};
+
+export type RequestPaidEditResult = RequestPaidEditOk | EditAcceptFail;
+
+type OwnedBooking = { id: string };
+
+type UpsertRow = {
+  request_id: string;
+  superseded_id: string | null;
+  old_extra_session_id: string | null;
+  old_extra_snapshot_id: number | null;
 };
 
 function checkoutLocale(raw: string): CheckoutLocale {
@@ -373,4 +402,115 @@ export async function acceptPaidEdit(
     differenceRappen: difference,
     extraSessionId,
   };
+}
+
+async function loadOwnedBooking(
+  env: CloudflareEnv,
+  auth: CustomerEditAuth,
+  key: string,
+): Promise<OwnedBooking | null> {
+  const query = async (
+    sql: Parameters<Parameters<typeof asSystem>[1]>[0],
+  ): Promise<OwnedBooking | null> => {
+    const rows = await sql<OwnedBooking[]>`
+      select b.id
+        from public.bookings b
+       where b.erased_at is null
+         and (b.id::text = ${key} or b.reference = ${key})
+       limit 1
+    `;
+    return rows[0] ?? null;
+  };
+  if (auth.kind === "customer") {
+    return asCustomer(env, auth.claims, query);
+  }
+  if (!auth.manageTokenHashHex) return null;
+  return asGuest(env, auth.manageTokenHashHex, query);
+}
+
+/**
+ * Customer/guest paid-edit request. Writes `booking_edit_requests` `requested`.
+ * Does not mutate booking columns. Same-price still requested (D-74).
+ * Identity is JWT email (asCustomer) or manage token (asGuest); upsert is asSystem.
+ * Never asStaff from this door.
+ */
+export async function requestCustomerPaidEdit(
+  env: CloudflareEnv,
+  auth: CustomerEditAuth,
+  bookingKey: string,
+  input: RequestPaidEditInput,
+): Promise<RequestPaidEditResult> {
+  const key = bookingKey.trim();
+  if (!key) return { ok: false, code: "not-found" };
+
+  const owned = await loadOwnedBooking(env, auth, key);
+  if (!owned) return { ok: false, code: "not-found" };
+
+  const actorId = auth.kind === "customer" ? auth.claims.sub : null;
+
+  try {
+    const upsert = await asSystem(env, async (sql) => {
+      let quoteSnapshotId = input.quoteSnapshotId ?? 0;
+      if (!Number.isFinite(quoteSnapshotId) || quoteSnapshotId <= 0) {
+        let newTotal: number | null = null;
+        let quoteId: string | null = null;
+        const lockToken = (input.lock ?? "").trim();
+        if (lockToken) {
+          const current = env.QUOTE_LOCK_SECRET || "";
+          const previous = env.QUOTE_LOCK_SECRET_PREVIOUS;
+          const verified = await verifyLock(
+            previous ? { current, previous } : { current },
+            lockToken,
+            new Date().toISOString(),
+          );
+          if (!verified.ok) throw Object.assign(new Error("not-found"), { code: "P0002" });
+          const slug = (input.vehicleClassSlug ?? input.payload.vehicle_class_slug ?? "economy")
+            .trim()
+            .toLowerCase();
+          const row = verified.payload.class_totals.find((c) => c.slug === slug);
+          if (row?.total_rappen == null) throw Object.assign(new Error("not-found"), { code: "P0002" });
+          newTotal = Number(row.total_rappen);
+          quoteId = verified.payload.quote_id;
+        }
+        const cloned = await sql<{ id: number }[]>`
+          select public.booking_edit_clone_quote_snapshot(
+            ${owned.id}::uuid,
+            ${newTotal}::rappen,
+            ${quoteId}::uuid
+          ) as id
+        `;
+        quoteSnapshotId = Number(cloned[0]?.id ?? 0);
+      }
+      if (!Number.isFinite(quoteSnapshotId) || quoteSnapshotId <= 0) {
+        throw Object.assign(new Error("not-found"), { code: "P0002" });
+      }
+
+      const rows = await sql<UpsertRow[]>`
+        select * from public.booking_edit_request_upsert(
+          ${owned.id}::uuid,
+          'customer',
+          ${actorId}::uuid,
+          ${JSON.stringify(input.payload)}::jsonb,
+          ${quoteSnapshotId}::bigint
+        )
+      `;
+      const row = rows[0];
+      if (!row) throw Object.assign(new Error("not-found"), { code: "P0002" });
+      return {
+        request_id: String(row.request_id),
+        superseded_id: row.superseded_id ? String(row.superseded_id) : null,
+        old_extra_session_id: row.old_extra_session_id ? String(row.old_extra_session_id) : null,
+        old_extra_snapshot_id:
+          row.old_extra_snapshot_id == null ? null : Number(row.old_extra_snapshot_id),
+      };
+    });
+    return {
+      ok: true,
+      requestId: upsert.request_id,
+      bookingId: owned.id,
+      status: "requested",
+    };
+  } catch (err) {
+    return mapEditSqlError(err);
+  }
 }
