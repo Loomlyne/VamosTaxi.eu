@@ -36,16 +36,24 @@ describe("confirmation unmock (D-40)", () => {
   });
 
   it("keeps polling until voucher or error, never a silent stop", () => {
-    const client = readFileSync(
+    const pageClient = readFileSync(
       join(WEB_ROOT, "app/[locale]/confirmation/[ref]/ConfirmationClient.tsx"),
       "utf8",
     );
-    const css = readFileSync(
-      join(WEB_ROOT, "app/[locale]/confirmation/[ref]/confirmation.css"),
-      "utf8",
-    );
+    const voucher = readFileSync(join(WEB_ROOT, "components/booking/BookingVoucher.tsx"), "utf8");
+    const client = `${pageClient}\n${voucher}`;
+    const css = [
+      readFileSync(join(WEB_ROOT, "app/[locale]/confirmation/[ref]/confirmation.css"), "utf8"),
+      readFileSync(join(WEB_ROOT, "components/booking/BookingVoucher.css"), "utf8"),
+    ].join("\n");
     const route = readFileSync(join(WEB_ROOT, "app/api/checkout/status/[ref]/route.ts"), "utf8");
-    expect(client).toContain("if (!waiting) return");
+    expect(pageClient).toContain("<BookingVoucher");
+    expect(pageClient).toContain('<Icon name="phone"');
+    expect(pageClient).toContain('<Icon name="message-circle"');
+    expect(pageClient).not.toContain("data-vt-icon");
+    expect(pageClient).not.toContain('icon="phone"');
+    expect(pageClient).not.toContain('icon="message-circle"');
+    expect(pageClient).toContain("if (!waiting) return");
     expect(client).toContain("data-confirmation-voucher");
     expect(client).toContain("data-confirmation-failed");
     expect(client).not.toContain("processingStepEmail");
