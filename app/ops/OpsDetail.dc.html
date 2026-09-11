@@ -22,6 +22,22 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StatusBadge" status="{{ booking.status }}" hint-size="110px,24px"></x-import>
 </div>
 </div>
+<sc-if value="{{ viewing }}" hint-placeholder-val="{{ true }}">
+<div data-ops-detail-acts="1" style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+<sc-if value="{{ canAssign }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="{{ assignVariant }}" onClick="{{ openAssignDialog }}" hint-size="130px,32px">{{ assignLabel }}</x-import>
+</sc-if>
+<sc-if value="{{ canResend }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="secondary" icon="mail" onClick="{{ resendVoucher }}" hint-size="170px,36px">{{ tResendVoucher }}</x-import>
+</sc-if>
+<sc-if value="{{ canEdit }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="pencil" onClick="{{ openEdit }}" hint-size="140px,36px">{{ tEditBooking }}</x-import>
+</sc-if>
+<sc-if value="{{ canCancel }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="danger" icon="x" onClick="{{ openCancel }}" hint-size="110px,36px">{{ tCancelBooking }}</x-import>
+</sc-if>
+</div>
+</sc-if>
 
 <div style="margin-top:20px;display:flex;flex-direction:column;gap:20px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.RouteSummary" pickup="{{ booking.pickup }}" dropoff="{{ booking.dropoff }}" meta="{{ routeMeta }}" hint-size="100%,140px"></x-import>
@@ -155,7 +171,8 @@
 </div>
 </x-import>
 
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ dialogOpen }}" title="{{ tAssignDriver }}" size="sm" subtitle="{{ dialogSubtitle }}" onClose="{{ closeDialog }}" hint-size="400px,280px">
+<sc-if value="{{ dialogOpen }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" title="{{ tAssignDriver }}" size="sm" subtitle="{{ dialogSubtitle }}" onClose="{{ closeDialog }}" hint-size="400px,280px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Select" label="{{ tDriver }}" options="{{ driverOptions }}" value="{{ pickDriver }}" onChange="{{ setPickDriver }}" hint-size="100%,78px"></x-import>
 <p style="font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted);margin:16px 0 0">{{ tManualNote }}</p>
 <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--vt-border-subtle)">
@@ -163,8 +180,10 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" onClick="{{ confirmAssign }}" hint-size="90px,44px">{{ tAssign }}</x-import>
 </div>
 </x-import>
+</sc-if>
 
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ cancelOpen }}" title="{{ tCancelTitle }}" size="sm" subtitle="{{ cancelSubtitle }}" onClose="{{ closeCancel }}" hint-size="400px,320px">
+<sc-if value="{{ cancelOpen }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" title="{{ tCancelTitle }}" size="sm" subtitle="{{ cancelSubtitle }}" onClose="{{ closeCancel }}" hint-size="400px,320px">
 <p style="margin:0;font-size:var(--vt-body-sm);line-height:1.6;color:var(--vt-text-secondary);text-wrap:pretty">{{ tCancelBody }}</p>
 <p data-vt-no-i18n="1" style="margin:12px 0 0;font-family:var(--vt-font-display);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">{{ cancelWho }}</p>
 <p data-vt-no-i18n="1" style="margin:4px 0 0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">{{ cancelRoute }}</p>
@@ -174,6 +193,7 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="danger" onClick="{{ confirmCancel }}" hint-size="150px,44px">{{ tConfirmCancel }}</x-import>
 </div>
 </x-import>
+</sc-if>
 
 <sc-if value="{{ showToast }}" hint-placeholder-val="{{ false }}">
 <div style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60">
@@ -194,23 +214,13 @@ function fareLabel(rappen) {
   }
   return window.VamosLocale ? window.VamosLocale.money('000') : 'CHF 000';
 }
-function assignableChauffeurOptions(pax, bags) {
+function assignableChauffeurOptions() {
   const ops = window.VamosOps;
-  if (!ops) return [];
-  const vehicles = {};
-  (ops.vehicles.all() || []).forEach((v) => { if (v && v.id) vehicles[v.id] = v; });
-  const needPax = Number(pax) || 0;
-  const needBags = Number(bags) || 0;
-  return (ops.chauffeurs.all() || []).filter((c) => {
-    if (!c || !c.id || !c.email) return false;
-    const vid = c.defaultVehicleId || c.vehicle;
-    if (!vid) return false;
-    const v = vehicles[vid];
-    if (!v) return false;
-    if (Number(v.seats) < needPax) return false;
-    if (Number(v.bags) < needBags) return false;
-    return true;
-  }).map((c) => ({ value: c.id, label: c.name || c.id }));
+  if (!ops || !ops.chauffeurs) return [];
+  return (ops.chauffeurs.all() || []).filter((c) => c && c.id).map((c) => ({
+    value: String(c.id),
+    label: String(c.name || c.fullName || c.email || c.id),
+  }));
 }
 function eventTitle(kind, t) {
   if (kind === 'assignment.chauffeur_set') return t.evAssigned;
@@ -259,6 +269,7 @@ const T = {
     evPayment:'Payment captured', evRefund:'Refund issued', evVoucher:'Voucher sent', evAssigned:'Driver assigned', evVehicle:'Vehicle assigned', evCleared:'Assignment cleared',
     overlap:'Overlaps {ref} at {time}', noEmail:'Cannot assign until this chauffeur has an email on file.', noVehicle:'Cannot assign until this chauffeur has a vehicle.',
     notPaid:'Unpaid trips cannot be assigned.', frozen:'This trip is frozen.', capacity:'This vehicle cannot take this trip’s passengers and bags.', assignFailed:'Could not assign ',
+    pickChauffeur:'Pick a chauffeur first.', voucherFailed:'Could not resend voucher ',
     website:'Website', stripeWebhook:'Stripe webhook', resend:'Resend', dispatch:'Dispatch',
     lineTransfer:'Transfer, ', lineAirportFee:'Airport pickup fee',
     saveEdit:'Save changes', cancelEdit:'Cancel', markRefund:'Refund',
@@ -288,6 +299,7 @@ const T = {
     evPayment:'Zahlung erfasst', evRefund:'Rückerstattung ausgezahlt', evVoucher:'Gutschein gesendet', evAssigned:'Fahrer zugewiesen', evVehicle:'Fahrzeug zugewiesen', evCleared:'Zuweisung aufgehoben',
     overlap:'Überschneidet sich mit {ref} um {time}', noEmail:'Zuweisung erst, wenn dieser Chauffeur eine E-Mail hat.', noVehicle:'Zuweisung erst, wenn dieser Chauffeur ein Fahrzeug hat.',
     notPaid:'Unbezahlte Fahrten können nicht zugewiesen werden.', frozen:'Diese Fahrt ist gesperrt.', capacity:'Dieses Fahrzeug kann Passagiere und Gepäck dieser Fahrt nicht aufnehmen.', assignFailed:'Zuweisung fehlgeschlagen für ',
+    pickChauffeur:'Zuerst einen Fahrer wählen.', voucherFailed:'Gutschein konnte nicht gesendet werden ',
     website:'Website', stripeWebhook:'Stripe-Webhook', resend:'Resend', dispatch:'Dispatch',
     lineTransfer:'Transfer, ', lineAirportFee:'Flughafengebühr',
     saveEdit:'Änderungen speichern', cancelEdit:'Abbrechen', markRefund:'Rückerstatten',
@@ -306,6 +318,7 @@ const T = {
     unassign:'Désassigner', historyEmpty:'Aucun événement.',
     overlap:'Chevauche {ref} à {time}', noEmail:'Impossible d’assigner tant que ce chauffeur n’a pas d’e-mail.', noVehicle:'Impossible d’assigner tant que ce chauffeur n’a pas de véhicule.',
     notPaid:'Les courses non payées ne peuvent pas être assignées.', frozen:'Cette course est gelée.', capacity:'Ce véhicule ne peut pas prendre les passagers et bagages de cette course.', assignFailed:'Assignation impossible pour ',
+    pickChauffeur:'Choisissez d’abord un chauffeur.', voucherFailed:'Impossible de renvoyer le bon ',
     unassignedOk:'Assignation retirée pour ', evVehicle:'Véhicule assigné', evCleared:'Assignation retirée',
     continue:'Continuer', accept:'Accepter',
     pendingEditTitle:'Modification en attente',
@@ -321,6 +334,7 @@ const T = {
     unassign:'إلغاء التعيين', historyEmpty:'لا أحداث بعد.',
     overlap:'يتداخل مع {ref} عند {time}', noEmail:'لا يمكن التعيين قبل وجود بريد إلكتروني لهذا السائق.', noVehicle:'لا يمكن التعيين قبل وجود مركبة لهذا السائق.',
     notPaid:'لا يمكن تعيين الرحلات غير المدفوعة.', frozen:'هذه الرحلة مجمّدة.', capacity:'هذه المركبة لا تتسع لركاب وأمتعة هذه الرحلة.', assignFailed:'تعذّر التعيين لـ ',
+    pickChauffeur:'اختر سائقاً أولاً.', voucherFailed:'تعذّر إعادة إرسال القسيمة ',
     unassignedOk:'أُلغي التعيين لـ ', evVehicle:'عُيّنت المركبة', evCleared:'أُلغي التعيين',
     continue:'متابعة', accept:'قبول',
     pendingEditTitle:'تعديل معلّق',
@@ -353,7 +367,17 @@ class Component extends DCLogic {
   }
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
-    this._off = window.VamosOps.bookings.onChange(() => this.forceUpdate());
+    const offs = [];
+    offs.push(window.VamosOps.bookings.onChange(() => this.forceUpdate()));
+    if (window.VamosOps.chauffeurs) {
+      offs.push(window.VamosOps.chauffeurs.onChange(() => this.forceUpdate()));
+      window.VamosOps.chauffeurs.all();
+    }
+    if (window.VamosOps.vehicles) {
+      offs.push(window.VamosOps.vehicles.onChange(() => this.forceUpdate()));
+      window.VamosOps.vehicles.all();
+    }
+    this._off = () => offs.forEach((fn) => { try { fn(); } catch (e) {} });
     this.forceUpdate();
   };
   getBooking() {
@@ -400,7 +424,7 @@ class Component extends DCLogic {
     } else {
       booking.sessionLeft = 'No open session';
     }
-    const drivers = assignableChauffeurOptions(booking.pax, booking.bags);
+    const drivers = assignableChauffeurOptions();
     const assignedDriver = booking.driver || booking.chauffeur || null;
     const frozen = ['completed','cancelled','refunded','no-show','no_show','partially_cancelled','partially_completed'].indexOf(booking.status) !== -1;
     const canAssign = !!booking.paid && !frozen;
@@ -429,6 +453,7 @@ class Component extends DCLogic {
       assignVariant: assignedDriver ? 'ghost' : 'primary',
       assignLabel: assignedDriver ? t.reassign : t.assign,
       canAssign, canUnassign, tUnassign: t.unassign,
+      canResend: !!booking.paid && !cancelled,
       openAssignDialog: () => {
         if (!canAssign) return;
         this.setState({ dialogOpen: true, pickDriver: (drivers[0] && drivers[0].value) || '' });
@@ -520,30 +545,30 @@ class Component extends DCLogic {
       openEdit: () => this.setState({ editing: true, edit: this.snapshotEdit(booking) }),
       cancelEdit: () => this.setState({ editing: false, edit: {} }),
       saveEdit: () => {
+        const draft = Object.assign({}, booking, this.state.edit);
         const id = booking.bookingId || booking.id;
         const client = window.VamosOpsApi;
         const ops = window.VamosOps;
-        const draft = this.state.edit || {};
-        if (!client || typeof client.request !== 'function') return;
-        if (!booking.paid) {
-          this.notify(t.unpaidNoEditBody);
+        if (!client || typeof client.request !== 'function') {
+          this.notify(t.editFailed + id);
           return;
         }
+        const scheduled = (draft.dateIso && draft.time) ? (String(draft.dateIso) + 'T' + String(draft.time)) : '';
         client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), {
-          customer: draft.customer, email: draft.email, phone: draft.phone, klass: draft.klass,
+          contact_name: draft.customer,
+          contact_email: draft.email,
+          contact_phone: draft.phone,
           pickup: draft.pickup, dropoff: draft.dropoff, dateIso: draft.dateIso, time: draft.time,
           pax: Number(draft.pax), bags: Number(draft.bags), flight: draft.flight,
+          scheduled_local: scheduled,
         }).then((json) => {
-          const code = json && json.code;
           if (json && json.ok) {
             if (ops) ops.bookings.reset();
             this.setState({ editing: false, edit: {} });
-            this.notify(t.saveEdit);
-            return;
+          } else {
+            this.notify(t.editFailed + id);
           }
-          if (code === 'unpaid') this.notify(t.unpaidNoEditBody);
-          else this.notify(t.editFailed + booking.id);
-        }).catch(() => this.notify(t.editFailed + booking.id));
+        });
       },
       markRefund: () => {
         const id = booking.bookingId || booking.id;
@@ -572,25 +597,38 @@ class Component extends DCLogic {
       cancelWhen: [booking.date, booking.time].filter(Boolean).join(' · '),
       cancelPay: booking.pay || '',
       confirmCancel: () => {
-        const id = booking.bookingId || booking.id;
-        const ref = booking.id;
+        const id = booking.id;
         const ops = window.VamosOps;
         const client = window.VamosOpsApi;
         this.setState({ cancelOpen: false });
         if (!client || typeof client.request !== 'function') {
-          this.notify(t.cancelFailed + ref);
+          this.notify(t.cancelFailed + id);
           return;
         }
         client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { status: 'cancelled' }).then((json) => {
           if (json && json.ok) {
             if (ops) ops.bookings.reset();
-            this.notify(t.bookingCancelled + ref);
+            this.notify(t.bookingCancelled + id);
           } else {
-            this.notify(t.cancelFailed + ref);
+            this.notify(t.cancelFailed + id);
           }
-        }).catch(() => this.notify(t.cancelFailed + ref));
+        });
       },
-      resendVoucher: () => this.notify(t.voucherResent + booking.email),
+      resendVoucher: () => {
+        const id = booking.bookingId || booking.id;
+        const client = window.VamosOpsApi;
+        if (!client || typeof client.request !== 'function') {
+          this.notify(t.voucherFailed + (booking.email || id));
+          return;
+        }
+        client.request('POST', '/api/staff/bookings/' + encodeURIComponent(id) + '/voucher', {}).then((json) => {
+          if (json && json.ok) {
+            this.notify(t.voucherResent + ((json.data && json.data.email) || booking.email || id));
+            return;
+          }
+          this.notify(t.voucherFailed + (booking.email || id));
+        });
+      },
       sendPayLink: () => {
         const id = booking.bookingId || booking.id;
         const client = window.VamosOpsApi;
@@ -665,7 +703,8 @@ class Component extends DCLogic {
         const id = booking.bookingId || booking.id;
         const client = window.VamosOpsApi;
         const ops = window.VamosOps;
-        if (!canAssign || !chosen || !client || typeof client.request !== 'function') return;
+        if (!canAssign || !client || typeof client.request !== 'function') return;
+        if (!chosen) { this.notify(t.pickChauffeur); return; }
         client.request('POST', '/api/staff/bookings/' + encodeURIComponent(id) + '/assign', { chauffeurId: chosen }).then((json) => {
           if (json && json.ok) {
             if (ops) ops.bookings.reset();
