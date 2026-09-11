@@ -218,7 +218,10 @@ describe("ops live data — comments 8–10", () => {
     expect(detail).toMatch(/\/api\/staff\/bookings\//);
     expect(detail).toMatch(/pickupDetail/);
     expect(detail).toMatch(/data-ops-tags/);
-    expect(detail).toMatch(/order:-1/);
+    expect(detail).toMatch(/data-ops-detail-bar/);
+    expect(detail).toMatch(/data-ops-route/);
+    expect(detail).toMatch(/eventActor/);
+    expect(detail).not.toMatch(/order:-1/);
     expect(data).toMatch(/totalRappen/);
   });
 
