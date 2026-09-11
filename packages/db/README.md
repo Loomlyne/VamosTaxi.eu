@@ -113,6 +113,14 @@ CLI clock via `supabase migration new` (never a hand-typed timestamp). Hosted ap
 | `20260910170935_ops_refund_record` | **08-05** | `ops_refund_record` / `ops_cancel_booking` SECURITY DEFINER; nullable `booking_payments.stripe_fee_rappen`; EXECUTE `vamos_system` only. Hosted apply is 08-09. |
 | `20260910175309_booking_edit_requests` | **08-07** | `booking_edit_requests` + extra-settle DEFINER RPCs; one succeeded payment per snapshot; EXECUTE `vamos_system` only. Hosted apply is 08-09. Charge gate untouched. |
 
+### Phase 9 (booking lifecycle)
+
+CLI clock via `supabase migration new` (never a hand-typed timestamp). Hosted apply is **09-04**, not the plan that creates the file.
+
+| File | Owning plan | Contents |
+|---|---|---|
+| `20260911234512_booking_lifecycle_rollup` | **09-02** | `booking_legs.original_scheduled_at` (D-26 freeze); `app.recompute_booking_status` + public wrapper + AFTER status trigger. Hosted apply is 09-04. Charge gate untouched. |
+
 Three reorderings versus `02-SCHEMA-DRAFT.md` §16's illustrative sequence, each load-bearing:
 
 - **`content_and_reviews` moved to 07** (immediately after `customers_and_staff`), ahead of
