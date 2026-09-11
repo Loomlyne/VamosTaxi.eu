@@ -138,9 +138,8 @@ describe("08-10 customer paid-edit request", () => {
     expect(route).not.toMatch(/become-a-partner/);
     const page = read("app/pages/bookings.dc.html");
     expect(page).toMatch(/\/api\/account\/bookings/);
-    expect(page).toMatch(/method: 'POST'/);
-    expect(page).toMatch(/Request a change/);
-    expect(page).toMatch(/Change requested\. The trip stays as booked until we confirm\./);
+    expect(page).not.toMatch(/Request a change/);
+    expect(page).not.toMatch(/requestEditFor/);
     expect(page).not.toMatch(/become-a-partner/);
   });
 });
