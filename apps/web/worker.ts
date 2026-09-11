@@ -9,15 +9,27 @@
 // @ts-expect-error `.open-next/worker.js` is generated at build time by
 // `opennextjs-cloudflare build` and does not exist in source control.
 import { default as handler } from "./.open-next/worker.js";
+import { gatePublicRequest } from "./lib/dc-mock-urls";
 import { withRequestContext } from "./lib/logger";
 import { isZurichDigestTime, runStaffDigest } from "./lib/ops/digest";
 import { createDigestDependencies } from "./lib/supabase/service";
 import { handleStripeMessage } from "./lib/checkout/settle";
 import { sweepStuckNotifications } from "./lib/checkout/notify";
+import { expireUnpaidBookings } from "./lib/checkout/expire-unpaid";
 import type { StripeQueueMessage } from "./lib/checkout/webhook";
 
 export default {
-  fetch: handler.fetch,
+  async fetch(request, env, ctx) {
+    const gated = gatePublicRequest(request);
+    if (gated === "not-found") {
+      const url = new URL(request.url);
+      url.pathname = "/__vamos_gone";
+      url.search = "";
+      return handler.fetch(new Request(url, request), env, ctx);
+    }
+    if (gated) return gated;
+    return handler.fetch(request, env, ctx);
+  },
 
   async scheduled(controller, env, _ctx) {
     // `env` (D-06/D-24, Phase 3): Cron takes its Cloudflare bindings from THIS handler
@@ -45,6 +57,13 @@ export default {
         emit("error", "notification_sweep", { outcome: "failed" });
       }
       return;
+    }
+
+    try {
+      const cancelled = await expireUnpaidBookings(env);
+      emit("info", "expire_unpaid", { cancelled });
+    } catch {
+      emit("error", "expire_unpaid", { outcome: "failed" });
     }
 
     // Cloudflare cron expressions have no IANA timezone. Run hourly and select the exact

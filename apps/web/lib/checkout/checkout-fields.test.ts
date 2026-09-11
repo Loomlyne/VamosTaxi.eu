@@ -73,6 +73,25 @@ describe("checkout contact + rail helpers", () => {
     expect(next.stops).toBe(0);
   });
 
+  it("drops leftover contact when a new home quote lands", () => {
+    const next = mergeVamosTrip(
+      {
+        quote_id: "quote-a",
+        detailsComplete: true,
+        contact: { firstName: "Ada", lastName: "Lovelace", email: "ada@example.test", mobile: "+41796267082" },
+        guest: true,
+        airline: "LX",
+        notes: "old",
+      },
+      { quote_id: "quote-b", pickup: "ZRH" },
+    );
+    expect(next.contact).toBeUndefined();
+    expect(next.detailsComplete).toBe(false);
+    expect(next.guest).toBeUndefined();
+    expect(next.airline).toBe("");
+    expect(next.notes).toBe("");
+  });
+
   it("keeps extras when a checkout reprice remints quote_id", () => {
     const next = mergeVamosTrip(
       { quote_id: "quote-a", childSeat: true, oversizedLuggage: false, skiRack: false, stops: 0 },

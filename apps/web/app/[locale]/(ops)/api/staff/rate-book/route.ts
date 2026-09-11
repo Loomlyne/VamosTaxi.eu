@@ -24,6 +24,7 @@ import {
   type SurchargeInput,
   type SurchargeKind,
 } from "@/lib/ops/rate-book";
+import { extraWriteFields, isPassengerExtra, normalizeSurchargeCode } from "@/lib/ops/surcharge-codes";
 import { jsonErr, jsonOk, withAdmin, withStaff } from "@/lib/ops/staff-json";
 
 export const dynamic = "force-dynamic";
@@ -265,12 +266,13 @@ function parseDistanceInput(body: Record<string, unknown>, classes: { id: string
 }
 
 function parseSurchargeInput(body: Record<string, unknown>): SurchargeInput {
-  const code =
+  const raw =
     typeof body.code === "string" && body.code
       ? body.code
       : typeof body.label === "string"
         ? body.label
         : "";
+  const code = raw ? normalizeSurchargeCode(raw) : "";
   const kindRaw = typeof body.kind === "string" ? body.kind : "amount";
   const kind: SurchargeKind =
     kindRaw === "percent" || kindRaw === "included" || kindRaw === "amount" ? kindRaw : "amount";
@@ -363,17 +365,44 @@ export const PUT = withAdmin(async (claims, request) => {
 
     if (kind === "surcharge") {
       const parsed = assertSurchargeInput(parseSurchargeInput(recBody));
+      const extras = isPassengerExtra(parsed.code) ? extraWriteFields(parsed.code) : null;
       await asStaff(env, claims, async (tx) => {
         if (id != null) {
+          if (extras) {
+            await tx`
+              update public.surcharges set
+                code = ${parsed.code},
+                kind = ${parsed.kind},
+                amount_rappen = ${parsed.amountRappen},
+                percent = ${parsed.percent},
+                applies_to = ${parsed.appliesTo},
+                active = ${parsed.active},
+                predicate = ${JSON.stringify(extras.predicate)}::jsonb,
+                quantity_source = ${extras.quantitySource}
+              where id = ${id} and rate_version_id = ${versionId}
+            `;
+          } else {
+            await tx`
+              update public.surcharges set
+                code = ${parsed.code},
+                kind = ${parsed.kind},
+                amount_rappen = ${parsed.amountRappen},
+                percent = ${parsed.percent},
+                applies_to = ${parsed.appliesTo},
+                active = ${parsed.active}
+              where id = ${id} and rate_version_id = ${versionId}
+            `;
+          }
+        } else if (extras) {
           await tx`
-            update public.surcharges set
-              code = ${parsed.code},
-              kind = ${parsed.kind},
-              amount_rappen = ${parsed.amountRappen},
-              percent = ${parsed.percent},
-              applies_to = ${parsed.appliesTo},
-              active = ${parsed.active}
-            where id = ${id} and rate_version_id = ${versionId}
+            insert into public.surcharges (
+              rate_version_id, code, kind, amount_rappen, percent, applies_to, active,
+              predicate, quantity_source
+            ) values (
+              ${versionId}, ${parsed.code}, ${parsed.kind}, ${parsed.amountRappen},
+              ${parsed.percent}, ${parsed.appliesTo}, ${parsed.active},
+              ${JSON.stringify(extras.predicate)}::jsonb, ${extras.quantitySource}
+            )
           `;
         } else {
           await tx`
@@ -476,6 +505,39 @@ export const PUT = withAdmin(async (claims, request) => {
       (row) => row.originZoneId === origin.id && row.destZoneId === dest.id,
     );
     return jsonOk(saved ?? payload);
+  } catch (err) {
+    return failWrite(err);
+  }
+});
+
+export const DELETE = withAdmin(async (claims, request) => {
+  const url = new URL(request.url);
+  let recBody: Record<string, unknown> | null = null;
+  try {
+    recBody = rec(await request.json());
+  } catch {
+    recBody = null;
+  }
+  const kind = recBody?.kind ?? url.searchParams.get("kind");
+  const id = optionalId(recBody?.id ?? url.searchParams.get("id"));
+  if (kind !== "surcharge" || id == null) return jsonErr("invalid", 400);
+
+  const { env } = getCloudflareContext();
+  const versionId = await resolveVersionId(env, claims, recBody?.versionId ?? url.searchParams.get("versionId"));
+  if (versionId == null) return jsonErr("not-found", 404);
+
+  try {
+    await asStaff(env, claims, async (tx) => {
+      await tx`
+        delete from public.surcharges
+        where id = ${id} and rate_version_id = ${versionId}
+      `;
+      return null;
+    });
+    const next = await loadRateBook(env, claims, versionId);
+    if (!next) return jsonErr("not-found", 404);
+    const zones = await loadServiceZones(env, claims);
+    return jsonOk(bookPayload(next, zones));
   } catch (err) {
     return failWrite(err);
   }

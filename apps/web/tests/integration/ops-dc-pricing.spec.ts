@@ -52,7 +52,7 @@ test.describe("OpsPricing draft→publish @ops-dc-pricing", () => {
     expect(publish).toMatch(/\[locale\]\/\(ops\)\/api\/staff\/rate-versions\/\[id\]\/publish\/route/);
 
     const book = readFileSync(join(webRoot, "app/api/staff/rate-book/route.ts"), "utf8");
-    expect(book).toMatch(/export\s*\{\s*GET,\s*PUT\s*\}/);
+    expect(book).toMatch(/export\s*\{\s*GET,\s*PUT,\s*DELETE\s*\}/);
     expect(book).toMatch(/\[locale\]\/\(ops\)\/api\/staff\/rate-book\/route/);
   });
 

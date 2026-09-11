@@ -12,6 +12,9 @@ describe("07-14 guest + finish payment", () => {
     expect(src).toContain('href="/checkout/payment"');
     expect(src).toContain("vamosTrip");
     expect(src).toContain("cancelCheckout");
+    expect(src).toContain("data-ac-pay");
+    expect(src).not.toContain("<a data-ac-more=\"1\" href=\"/checkout/payment\">");
+    expect(src).not.toContain('variant="inset"');
     expect(src).toContain("/api/account/bookings");
     expect(src).toContain("/api/account/prefs");
     expect(src).toContain("pushPrefs");

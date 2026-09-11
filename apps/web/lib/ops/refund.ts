@@ -3,13 +3,14 @@
 // 08-05: Stripe-first full refund. createRefund then ops_refund_record.
 // Fail returns ok:false and leaves paid. Never staff INSERT into refunds.
 
-import { asSystem, type VamosClaims } from "../db/identity";
+import { asStaff, asSystem, type VamosClaims } from "../db/identity";
 import { createRefund, stripeFromEnv } from "../checkout/stripe";
 import {
   mapRefundSqlError,
   stripeFeeRappen,
   type RefundResult,
 } from "./refund-map";
+import { resolveStaffBookingId } from "./resolve-booking-id";
 
 export const dynamic = "force-dynamic";
 
@@ -21,20 +22,6 @@ type LoadedPayment = {
   paymentIntentId: string;
   chargedRappen: number;
 };
-
-async function resolveBookingId(
-  sql: Parameters<Parameters<typeof asSystem>[1]>[0],
-  key: string,
-): Promise<string | null> {
-  const rows = await sql<{ id: string }[]>`
-    select id
-      from public.bookings
-     where erased_at is null
-       and (id::text = ${key} or reference = ${key})
-     limit 1
-  `;
-  return rows[0]?.id ?? null;
-}
 
 export async function refundBooking(
   env: CloudflareEnv,
@@ -49,9 +36,10 @@ export async function refundBooking(
     return { ok: false, code: "stripe-test-only" };
   }
 
-  const loaded = await asSystem(env, async (sql): Promise<LoadedPayment | RefundResult> => {
-    const bookingId = await resolveBookingId(sql, key);
-    if (!bookingId) return { ok: false, code: "not-found" };
+  const bookingId = await resolveStaffBookingId(env, claims, key);
+  if (!bookingId) return { ok: false, code: "not-found" };
+
+  const loaded = await asStaff(env, claims, async (sql): Promise<LoadedPayment | RefundResult> => {
     const pays = await sql<
       { id: number; stripe_payment_intent_id: string; charged_rappen: number }[]
     >`

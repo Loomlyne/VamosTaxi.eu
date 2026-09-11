@@ -7,6 +7,12 @@ import {
   VAMOS_QS_COOKIE,
   verifyVamosQs,
 } from "./lib/abuse/vamos-qs";
+import {
+  INTERNAL_ASSET_HEADER,
+  accountDcPath,
+  canonicalPublicFromLeak,
+  should404MockLeak,
+} from "./lib/dc-mock-urls";
 import { publicDashboardPath } from "./lib/ops/paths";
 import { vamosRoleFromAccessToken } from "./lib/ops/session";
 import {
@@ -35,6 +41,7 @@ const DC_PAGES: Record<string, string> = {
   "/account": "/app/pages/account.html",
   "/bookings": "/app/pages/bookings.html",
   "/coming-soon": "/app/pages/coming-soon.html",
+  "/sitemap": "/app/pages/sitemap.html",
 };
 
 /** Bare `/app/pages/contact` (and home) → public `/contact`. Skip aliases that share a file. */
@@ -70,12 +77,14 @@ function stripLocalePath(pathname: string): string {
 }
 
 function dcMockPath(pathname: string): string | null {
-  return DC_PAGES[stripLocalePath(pathname)] ?? null;
+  const path = stripLocalePath(pathname);
+  if (accountDcPath(path)) return DC_PAGES["/account"] ?? null;
+  return DC_PAGES[path] ?? null;
 }
 
 async function serveDcHtml(request: NextRequest, mock: string): Promise<NextResponse> {
   const asset = new URL(mock, request.url);
-  const res = await fetch(asset);
+  const res = await fetch(asset, { headers: { [INTERNAL_ASSET_HEADER]: "1" } });
   let html = await res.text();
   if (mock === DC_PAGES["/contact"]) {
     const siteKey = process.env.TURNSTILE_SITE_KEY ?? "";
@@ -103,7 +112,7 @@ async function serveOpsDc(
   injectAuth: boolean,
 ): Promise<NextResponse> {
   const asset = new URL(`/app/ops/${file}`, request.url);
-  const res = await fetch(asset);
+  const res = await fetch(asset, { headers: { [INTERNAL_ASSET_HEADER]: "1" } });
   let html = await res.text();
   const boot = [
     html.includes('href="/app/ops/"') ? "" : '<base href="/app/ops/">',
@@ -262,9 +271,16 @@ async function dashboardHostMiddleware(request: NextRequest): Promise<NextRespon
         (typeof user.app_metadata?.vamos_role === "string" ? user.app_metadata.vamos_role : ""))
     : "";
   const inConsole = role === "admin" || role === "dispatcher";
+  const dashPath = normalizeDashboardPath(path);
+
+  // /login is the staff sign-in document even with a leftover console session.
+  // Putting it after inConsole made signed-in /login return plain "Not Found".
+  if (dashPath === "/login") {
+    return serveOpsDc(request, client.response, "ops-login.dc.html", false);
+  }
 
   if (inConsole) {
-    if (normalizeDashboardPath(path) === "/") {
+    if (dashPath === "/") {
       return applyStagingNoindex(
         copyCookies(client.response, NextResponse.redirect(dashboardAbs(request, "/dashboard"), 308)),
       );
@@ -275,9 +291,6 @@ async function dashboardHostMiddleware(request: NextRequest): Promise<NextRespon
     return opsConsoleNotFound(client.response);
   }
 
-  if (path === "/login") {
-    return serveOpsDc(request, client.response, "ops-login.dc.html", false);
-  }
   return applyStagingNoindex(
     copyCookies(client.response, NextResponse.redirect(dashboardAbs(request, "/login"), 308)),
   );
@@ -361,9 +374,28 @@ export default async function middleware(request: NextRequest) {
     return dashboardHostMiddleware(request);
   }
 
-  // Public host never serves the console (D-01a).
+  // Languages live on the page switcher, not /de /fr /ar /en.
+  if (!isDashboardHost(request)) {
+    const { localePrefix, path } = localeStrippedPath(pathname);
+    if (localePrefix) {
+      const url = request.nextUrl.clone();
+      url.pathname = path;
+      const res = NextResponse.redirect(url, 308);
+      res.cookies.set("NEXT_LOCALE", localePrefix, {
+        path: "/",
+        sameSite: "lax",
+        maxAge: 31536000,
+      });
+      return applyStagingNoindex(res);
+    }
+  }
+
+  // Public host never serves the console (D-01a). Leftover /ops is 404.
   if (!isDashboardHost(request) && isOpsRequest(pathname)) {
-    return applyStagingNoindex(NextResponse.redirect(new URL("/", request.url)));
+    const gone = request.nextUrl.clone();
+    gone.pathname = "/__vamos_gone";
+    gone.search = "";
+    return applyStagingNoindex(NextResponse.rewrite(gone));
   }
 
   // Named dashboard host: public URLs have no /ops prefix.
@@ -377,11 +409,17 @@ export default async function middleware(request: NextRequest) {
       return applyStagingNoindex(NextResponse.redirect(opsRedirectUrl(request, "/ops")));
     }
   } else {
-    const bounced = publicPathFromDcFile(pathname);
+    const bounced = canonicalPublicFromLeak(pathname) ?? publicPathFromDcFile(pathname);
     if (bounced && bounced !== pathname) {
       const url = request.nextUrl.clone();
       url.pathname = bounced;
       return applyStagingNoindex(NextResponse.redirect(url, 308));
+    }
+    if (should404MockLeak(pathname)) {
+      const gone = request.nextUrl.clone();
+      gone.pathname = "/__vamos_gone";
+      gone.search = "";
+      return applyStagingNoindex(NextResponse.rewrite(gone));
     }
     const mock = dcMockPath(pathname);
     if (mock) {

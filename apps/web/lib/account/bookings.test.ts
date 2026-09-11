@@ -65,6 +65,35 @@ describe("mapAccountBooking", () => {
     expect(row.vehicle).not.toMatch(/Business|Economy|Van|First/);
   });
 
+  it("maps unpaid pending onto needs-payment and finish-pay href", () => {
+    const row = mapAccountBooking(
+      {
+        ...base,
+        status: "pending",
+        scheduled_local: "2026-09-12T04:15",
+        scheduled_at: "2026-09-12T02:15:00.000Z",
+      },
+      now,
+    );
+    expect(row.status).toBe("unpaid");
+    expect(row.href).toBe("/checkout/payment");
+    expect(row.when).toBe("upcoming");
+  });
+
+  it("keeps unpaid in upcoming after the pickup time", () => {
+    const row = mapAccountBooking(
+      {
+        ...base,
+        status: "pending",
+        scheduled_local: "2026-09-09T04:15",
+        scheduled_at: "2026-09-09T02:15:00.000Z",
+      },
+      now,
+    );
+    expect(row.status).toBe("unpaid");
+    expect(row.when).toBe("upcoming");
+  });
+
   it("keeps a future confirmed trip in upcoming", () => {
     const row = mapAccountBooking(
       {
@@ -91,5 +120,7 @@ describe("GET /api/account/bookings", () => {
     expect(src).toContain("asCustomer");
     expect(src).toContain("contact_email");
     expect(src).not.toContain("asSystem");
+    expect(src).toContain("<> 'quote'");
+    expect(src).not.toContain("not in ('quote', 'pending')");
   });
 });

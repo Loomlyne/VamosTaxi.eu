@@ -179,7 +179,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div style="display:flex;flex-direction:column;gap:12px">
 <p data-grp="1">{{ g.label }}</p>
 <sc-for list="{{ g.rows }}" as="b" hint-placeholder-count="3">
-<dc-import name="BookingRow" href="{{ b.href }}" date="{{ b.date }}" time="{{ b.time }}" rel="{{ b.rel }}" route="{{ b.route }}" meta="{{ b.meta }}" price="{{ b.price }}" status="{{ b.status }}" hint-size="100%,118px"></dc-import>
+<dc-import name="BookingRow" href="{{ b.href }}" date="{{ b.date }}" time="{{ b.time }}" rel="{{ b.rel }}" route="{{ b.route }}" meta="{{ b.meta }}" price="{{ b.price }}" status="{{ b.status }}" reference="{{ b.ref }}" onCancel="{{ cancelUnpaid }}" hint-size="100%,118px"></dc-import>
 </sc-for>
 </div>
 </sc-for>
@@ -192,7 +192,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <p data-grp="1">{{ g.label }}</p>
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
 <sc-for list="{{ g.rows }}" as="b" hint-placeholder-count="3">
-<dc-import name="BookingRow" variant="grid" href="{{ b.href }}" date="{{ b.date }}" time="{{ b.time }}" rel="{{ b.rel }}" route="{{ b.route }}" meta="{{ b.meta }}" price="{{ b.price }}" status="{{ b.status }}" hint-size="100%,190px"></dc-import>
+<dc-import name="BookingRow" variant="grid" href="{{ b.href }}" date="{{ b.date }}" time="{{ b.time }}" rel="{{ b.rel }}" route="{{ b.route }}" meta="{{ b.meta }}" price="{{ b.price }}" status="{{ b.status }}" reference="{{ b.ref }}" onCancel="{{ cancelUnpaid }}" hint-size="100%,190px"></dc-import>
 </sc-for>
 </div>
 </div>
@@ -317,9 +317,19 @@ class Component extends DCLogic {
 
   liveGroups() {
     const tab = this.state.tab;
-    const rows = (this.state.rows || []).filter((r) => r.when === tab);
+    const rows = (this.state.rows || []).filter((r) => r.when === tab).slice().sort((a, b) => {
+      const au = a.status === 'unpaid' ? 0 : 1;
+      const bu = b.status === 'unpaid' ? 0 : 1;
+      return au - bu;
+    });
     const order = [];
     const map = {};
+    rows.sort((a, b) => {
+      const au = a.status === 'unpaid' ? 0 : 1;
+      const bu = b.status === 'unpaid' ? 0 : 1;
+      if (au !== bu) return au - bu;
+      return 0;
+    });
     rows.forEach((r) => {
       const g = r.group || '';
       if (!map[g]) { map[g] = []; order.push(g); }
@@ -386,6 +396,38 @@ class Component extends DCLogic {
         this.setState({ live: true, rows: [], view: 'empty' });
       })
       .then(() => { this._fetching = false; });
+  };
+
+  dropTripIfRef = (ref) => {
+    if (!ref) return;
+    try {
+      const raw = localStorage.getItem('vamosTrip') || sessionStorage.getItem('vamosTrip');
+      const trip = raw ? JSON.parse(raw) : null;
+      const hit = trip && (trip.reference === ref || trip.ref === ref);
+      if (!hit) return;
+      localStorage.removeItem('vamosTrip');
+      sessionStorage.removeItem('vamosTrip');
+      localStorage.removeItem('vamosQuoteLock');
+      sessionStorage.removeItem('vamosQuoteLock');
+    } catch (e) {}
+  };
+
+  cancelUnpaid = (ref) => {
+    if (!ref || this._cancelling) return;
+    this._cancelling = true;
+    fetch('/api/account/bookings/cancel', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ ref }),
+    })
+      .then((r) => r.json().catch(() => ({})))
+      .then((j) => {
+        if (j && j.ok) this.dropTripIfRef(ref);
+        this.loadBookings();
+      })
+      .catch(() => {})
+      .then(() => { this._cancelling = false; });
   };
 
   schedulePoll = () => {
@@ -480,6 +522,7 @@ class Component extends DCLogic {
         ? window.VamosLocale.fromChf(r.priceRappen)
         : this.money('000'),
       status: r.status,
+      ref: r.id,
     };
   }
 
@@ -531,7 +574,7 @@ class Component extends DCLogic {
       exportCsv: this.exportCsv,
       tabEmptyTitle: upcoming ? 'No transfer booked yet' : 'No past transfers',
       tabEmptyBody: upcoming
-        ? 'Nothing is coming up. Book a transfer and it appears here the moment it is paid, with your voucher attached.'
+        ? 'Nothing is coming up. An unpaid booking stays here until you finish payment. A paid transfer appears here with your voucher attached.'
         : 'Once a transfer is driven or cancelled it moves here, and it stays for your records.',
 
       listHeading: upcoming ? 'Coming up' : 'Already travelled',
@@ -541,6 +584,7 @@ class Component extends DCLogic {
         { value: 'past', label: 'Past (' + nPast + ')' },
       ],
       tab: s.tab, setTab: this.setTab,
+      cancelUnpaid: this.cancelUnpaid,
       groups,
 
       canLoadMore: shownCount < flat.length,

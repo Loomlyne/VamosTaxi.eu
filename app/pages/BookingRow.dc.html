@@ -11,6 +11,7 @@
      #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
      animation below is the fallback for when the script never runs. -->
 <style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+<!-- vt-c57-ticket -->
 </head>
 <body>
 <div id="vt-boot-cover" aria-hidden="true"></div>
@@ -40,7 +41,7 @@
 [data-bk-row][data-bk-state="ready"]:hover,[data-bk-row][data-bk-state="ready"]:focus-within{border-color:var(--vt-charcoal-900)}
 [data-bk-row][data-bk-state="loading"]{pointer-events:none}
 /* One stretched link makes the whole ticket the target; the actions button sits above it. */
-[data-bk-hit]{position:absolute;inset:0;border-radius:inherit}
+[data-bk-hit]{position:absolute;inset:0;z-index:1;border-radius:inherit}
 
 [data-bk-stub]{position:relative;display:flex;align-items:center;gap:9px;padding:0 16px;min-height:38px;background:var(--vt-charcoal-900);color:var(--vt-white);border-bottom:1px dashed rgb(255 255 255 / .3)}
 [data-bk-wd],[data-bk-mo]{font-family:var(--vt-font-body);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;line-height:1;white-space:nowrap}
@@ -82,8 +83,13 @@
 [data-bk-place]{min-width:0;font-size:var(--vt-body-md);line-height:1.4;color:var(--vt-text-primary);text-wrap:pretty}
 [data-bk-meta]{font-size:var(--vt-body-sm);line-height:1.45;color:var(--vt-text-secondary)}
 [data-bk-note]{display:flex;align-items:flex-start;gap:7px;font-size:var(--vt-body-xs);line-height:1.5;color:var(--vt-text-muted)}
+[data-bk-mid]{display:flex;align-items:center;min-height:22px;padding-inline-start:20px;font-family:var(--vt-font-display);font-size:var(--vt-body-xs);font-weight:var(--vt-weight-semibold);letter-spacing:-.01em;line-height:1;font-variant-numeric:tabular-nums;color:var(--vt-text-muted)}
+[data-bk-payacts]{position:relative;z-index:4;display:flex;justify-content:flex-end;pointer-events:auto}
 
 [data-bk-trail]{display:flex;align-items:center;justify-content:space-between;gap:14px;min-width:0;padding:0 16px 14px}
+[data-bk-row][data-bk-unpaid="1"] [data-bk-trail]{flex-direction:column;align-items:flex-end;justify-content:center;gap:8px;padding:14px 16px}
+[data-bk-row][data-bk-unpaid="1"] [data-bk-body]{gap:8px}
+[data-bk-row][data-bk-unpaid="1"] [data-bk-go],[data-bk-row][data-bk-unpaid="1"] [data-bk-actions]{display:none}
 [data-bk-price]{font-family:var(--vt-font-display);font-size:var(--vt-figure-sm);font-weight:var(--vt-weight-bold);letter-spacing:-.01em;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--vt-text-primary)}
 [data-bk-actions]{display:flex;align-items:center;gap:6px}
 /* Hover fills the chevron charcoal — a fill change, never a glow. */
@@ -140,7 +146,7 @@
 </helmet>
 
 <sc-if value="{{ isReady }}" hint-placeholder-val="{{ true }}">
-<div data-bk-row="1" data-bk-variant="{{ variant }}" data-bk-tense="{{ tense }}" data-bk-state="ready" data-bk-open="{{ openFlag }}" ref="{{ rowRef }}">
+<div data-bk-row="1" data-bk-variant="{{ variant }}" data-bk-tense="{{ tense }}" data-bk-unpaid="{{ unpaidFlag }}" data-bk-state="ready" data-bk-open="{{ openFlag }}" ref="{{ rowRef }}">
 <a data-bk-hit="1" href="{{ href }}" aria-label="{{ aria }}"></a>
 <span data-bk-notch="top" aria-hidden="true"></span>
 <span data-bk-notch="bot" aria-hidden="true"></span>
@@ -152,10 +158,10 @@
 <span data-bk-mo="1">{{ mo }}</span>
 </sc-if>
 <sc-if value="{{ noStamp }}" hint-placeholder-val="{{ false }}"><span data-bk-raw="1">{{ date }}</span></sc-if>
-<sc-if value="{{ hasRef }}" hint-placeholder-val="{{ true }}"><span data-bk-ref="1">{{ refCode }}</span></sc-if>
 </span>
 
 <span data-bk-body="1">
+<sc-if value="{{ showHead }}" hint-placeholder-val="{{ true }}">
 <span data-bk-top="1">
 <span data-bk-when="1">
 <span data-bk-time="1">{{ time }}</span>
@@ -165,8 +171,12 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StatusBadge" status="{{ badge }}" tone="{{ tone }}" label="{{ badgeLabel }}" hint-size="112px,28px"></x-import>
 </span>
 </span>
+</sc-if>
 <span data-bk-legs="1">
 <span data-bk-leg="1" data-bk-end="{{ soloEnd }}"><span data-bk-pip="1"></span><span data-bk-place="1">{{ from }}</span></span>
+<sc-if value="{{ hasMid }}" hint-placeholder-val="{{ true }}">
+<span data-bk-mid="1">{{ time }}</span>
+</sc-if>
 <sc-if value="{{ hasTo }}" hint-placeholder-val="{{ true }}">
 <span data-bk-leg="1" data-bk-end="1"><span data-bk-pip="1" data-bk-pip-end="1"></span><span data-bk-place="1">{{ to }}</span></span>
 </sc-if>
@@ -178,6 +188,11 @@
 </span>
 
 <span data-bk-trail="1">
+<sc-if value="{{ isUnpaid }}">
+<span data-bk-badge="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StatusBadge" status="{{ badge }}" tone="{{ tone }}" label="{{ badgeLabel }}" hint-size="112px,28px"></x-import>
+</span>
+</sc-if>
 <span data-bk-price="1">{{ price }}</span>
 <span data-bk-actions="1">
 <span data-bk-go="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-right" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span>
@@ -194,6 +209,11 @@
 </span>
 </sc-if>
 </span>
+<sc-if value="{{ isUnpaid }}">
+<span data-bk-payacts="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ cancelUnpaid }}" aria-label="Cancel unpaid booking. Unpaid bookings cancel automatically after 24 hours." hint-size="88px,36px">Cancel</x-import>
+</span>
+</sc-if>
 </span>
 </div>
 </sc-if>
@@ -214,26 +234,26 @@
 </sc-if>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:900,&quot;height&quot;:180},&quot;state&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ready&quot;,&quot;loading&quot;],&quot;default&quot;:&quot;ready&quot;,&quot;tsType&quot;:&quot;'ready'|'loading'&quot;,&quot;section&quot;:&quot;State&quot;},&quot;status&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;new&quot;,&quot;confirmed&quot;,&quot;assigned&quot;,&quot;completed&quot;,&quot;cancelled&quot;],&quot;default&quot;:&quot;assigned&quot;,&quot;tsType&quot;:&quot;'new'|'confirmed'|'assigned'|'completed'|'cancelled'&quot;,&quot;section&quot;:&quot;State&quot;},&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;card&quot;,&quot;inset&quot;,&quot;grid&quot;],&quot;default&quot;:&quot;card&quot;,&quot;tsType&quot;:&quot;'card'|'inset'|'grid'&quot;,&quot;section&quot;:&quot;State&quot;},&quot;actions&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;State&quot;},&quot;showNote&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;State&quot;},&quot;date&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Thu 6 Aug&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;time&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;08:15&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;rel&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;In 14 hours&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;route&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Zurich Airport (ZRH), Terminal 2 → Zurich, Bahnhofstrasse 1&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;meta&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Business · 2 passengers · VT-4821&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;reference&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;price&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;CHF 000.00&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;note&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;href&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;booking-detail.dc.html&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;skRoute&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;},&quot;skMeta&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;}}">
-/* The five statuses of the booking lifecycle, and the only place this product maps them
-   to a treatment — a page cannot invent a sixth, or relabel one, by copying a row. */
-const LABEL = { new: 'New', confirmed: 'Confirmed', assigned: 'Driver assigned', completed: 'Completed', cancelled: 'Cancelled' };
-const BADGE = { new: 'pending', confirmed: 'confirmed', assigned: 'assigned', completed: 'completed', cancelled: 'cancelled' };
-/* Brand colours carry four of the five states — yellow for the one that still wants
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:900,&quot;height&quot;:180},&quot;state&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ready&quot;,&quot;loading&quot;],&quot;default&quot;:&quot;ready&quot;,&quot;tsType&quot;:&quot;'ready'|'loading'&quot;,&quot;section&quot;:&quot;State&quot;},&quot;status&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;unpaid&quot;,&quot;new&quot;,&quot;confirmed&quot;,&quot;assigned&quot;,&quot;completed&quot;,&quot;cancelled&quot;],&quot;default&quot;:&quot;assigned&quot;,&quot;tsType&quot;:&quot;'unpaid'|'new'|'confirmed'|'assigned'|'completed'|'cancelled'&quot;,&quot;section&quot;:&quot;State&quot;},&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;card&quot;,&quot;inset&quot;,&quot;grid&quot;],&quot;default&quot;:&quot;card&quot;,&quot;tsType&quot;:&quot;'card'|'inset'|'grid'&quot;,&quot;section&quot;:&quot;State&quot;},&quot;actions&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;State&quot;},&quot;showNote&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;State&quot;},&quot;date&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Thu 6 Aug&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;time&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;08:15&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;rel&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;In 14 hours&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;route&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Zurich Airport (ZRH), Terminal 2 → Zurich, Bahnhofstrasse 1&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;meta&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Business · 2 passengers · VT-4821&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;reference&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;price&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;CHF 000.00&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;note&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;href&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;booking-detail.dc.html&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;skRoute&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;},&quot;skMeta&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;}}">
+/* The statuses of the booking lifecycle, and the only place this product maps them
+   to a treatment — a page cannot invent another, or relabel one, by copying a row. */
+const LABEL = { unpaid: 'Needs payment', new: 'New', confirmed: 'Confirmed', assigned: 'Driver assigned', completed: 'Completed', cancelled: 'Cancelled' };
+const BADGE = { unpaid: 'pending', new: 'pending', confirmed: 'confirmed', assigned: 'assigned', completed: 'completed', cancelled: 'cancelled' };
+/* Brand colours carry the states — yellow for the one that still wants
    attention, charcoal for the strongest, grey for the quiet ones. Cancelled is the single
    semantic tone, because red is the only thing that reads as "this is not happening". */
-const TONE = { new: 'accent', confirmed: 'success', assigned: 'inverse', completed: 'neutral', cancelled: 'danger' };
+const TONE = { unpaid: 'accent', new: 'accent', confirmed: 'success', assigned: 'inverse', completed: 'neutral', cancelled: 'danger' };
 /* Tense drives the stub: ahead of you, behind you, or never happening. */
-const TENSE = { new: 'future', confirmed: 'future', assigned: 'future', completed: 'past', cancelled: 'void' };
+const TENSE = { unpaid: 'future', new: 'future', confirmed: 'future', assigned: 'future', completed: 'past', cancelled: 'void' };
 const NOTE = {
+  unpaid: 'Still needs payment. Finish this booking to confirm it. Unpaid bookings cancel automatically after 24 hours.',
   new: 'We are still confirming this one. You get an email as soon as the driver is set.',
   cancelled: 'Cancelled by you. The refund is with our team for review.',
 };
 /* "Thu 6 Aug" is the shape every surface passes. Anything else falls back to one line
    inside the stub rather than guessing at a format. */
 const DATE_RE = /^\s*([^\s,]+)[\s,]+(\d{1,2})\.?\s+([^\s,]+)\s*$/;
-/* The reference is printed on the stub, so it is lifted out of the meta line rather
-   than said twice. */
+/* Reference stays in the meta line. The stub already has the date. */
 const REF_RE = /^VT-\d+$/i;
 
 class Component extends DCLogic {
@@ -259,6 +279,11 @@ class Component extends DCLogic {
     if (e) { e.preventDefault(); e.stopPropagation(); }
     this.setState((s) => ({ open: !s.open }));
   };
+  cancelUnpaid = (e) => {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    const ref = this._ref;
+    if (ref && typeof this.props.onCancel === 'function') this.props.onCancel(ref);
+  };
 
   renderVals() {
     const p = this.props || {};
@@ -270,16 +295,16 @@ class Component extends DCLogic {
     const legs = String(p.route ?? '').split(' \u2192 ');
     const hasTo = legs.length > 1;
     const variant = p.variant === 'inset' ? 'inset' : (p.variant === 'grid' ? 'grid' : 'card');
-    /* On a full ticket the stub prints the reference, so it is lifted out of the meta
-       line rather than said twice. The inset row has no stub, so it keeps it. */
     const parts = String(p.meta ?? '').split(' \u00b7 ').filter(Boolean);
     const tail = parts[parts.length - 1] || '';
-    const refCode = p.reference || (variant !== 'inset' && REF_RE.test(tail) ? parts.pop() : '');
+    const refCode = p.reference || (REF_RE.test(tail) ? tail : '');
     /* Quick actions only where they mean anything: a trip that has not happened yet. */
     const actionable = status === 'new' || status === 'confirmed' || status === 'assigned';
+    const unpaid = status === 'unpaid';
+    this._ref = refCode;
     return {
       n14: 14, n16: 16, n18: 18,
-      rowRef: this.rowRef, toggle: this.toggle,
+      rowRef: this.rowRef, toggle: this.toggle, cancelUnpaid: this.cancelUnpaid,
       open: this.state.open, openAttr: this.state.open ? 'true' : 'false',
       openFlag: this.state.open ? '1' : null,
       hasActions: actionable && (p.actions ?? true) !== false && variant !== 'inset',
@@ -291,14 +316,18 @@ class Component extends DCLogic {
       date, time,
       hasStamp: !!m, noStamp: !m,
       wd: m ? m[1] : '', day: m ? String(m[2]).padStart(2, '0') : '', mo: m ? m[3] : '',
-      refCode, hasRef: !!refCode,
+      refCode, hasRef: false,
       from: legs[0] || '', to: hasTo ? legs[1] : '', hasTo,
       soloEnd: hasTo ? null : '1',
       rel: p.rel ?? '', hasRel: !!p.rel,
       meta: parts.join(' \u00b7 '), price: p.price ?? '',
       badge: BADGE[status], badgeLabel: LABEL[status], tone: TONE[status],
-      noteText: note, hasNote: !!note && (p.showNote ?? true) !== false,
-      aria: [refCode || (REF_RE.test(tail) ? tail : ''), date, time && 'at ' + time, LABEL[status]].filter(Boolean).join(', '),
+      noteText: note, hasNote: !unpaid && !!note && (p.showNote ?? true) !== false,
+      isUnpaid: unpaid,
+      unpaidFlag: unpaid ? '1' : '',
+      showHead: !unpaid,
+      hasMid: unpaid && hasTo && !!time,
+      aria: [refCode, date, time && 'at ' + time, LABEL[status]].filter(Boolean).join(', '),
       skRoute: p.skRoute || '74%', skMeta: p.skMeta || '46%',
     };
   }

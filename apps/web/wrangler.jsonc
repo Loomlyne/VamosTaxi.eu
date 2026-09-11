@@ -11,7 +11,7 @@
     "html_handling": "none",
     // Extensionless /app/pages/{slug} must not be served as a phantom asset.
     // Run the Worker first so those URLs 308/404.
-    "run_worker_first": ["/app/pages/*", "/app/home/*", "/app/ops/*", "/dev", "/dev/*"]
+    "run_worker_first": ["/app/pages/*", "/app/home/*", "/dev", "/dev/*"]
   },
   "observability": {
     "enabled": true

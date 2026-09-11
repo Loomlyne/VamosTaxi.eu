@@ -15,6 +15,7 @@ const header = readFileSync(join(WEB_ROOT, "components/shell/SiteHeader.tsx"), "
 const account = readFileSync(join(WEB_ROOT, "components/shell/SiteHeaderAccount.tsx"), "utf8");
 const shell = readFileSync(join(WEB_ROOT, "components/shell/SiteShell.tsx"), "utf8");
 const contact = readFileSync(join(WEB_ROOT, "components/booking/ContactFields.tsx"), "utf8");
+const home = readFileSync(join(WEB_ROOT, "../../app/home/home.dc.html"), "utf8");
 
 describe("checkout comment pack", () => {
   it("shows class photography on trip", () => {
@@ -61,6 +62,8 @@ describe("checkout comment pack", () => {
     expect(client).toContain("FlightField");
     expect(client).toContain("who-is-travelling");
     expect(client).toContain("/api/checkout/extras");
+    expect(client).toContain("setInterval");
+    expect(client).toContain("cache: \"no-store\"");
     expect(client).toContain("vt-checkout__extra-price");
     expect(client).toContain("meet_greet");
     expect(client).toContain("vt-checkout__extra");
@@ -264,6 +267,8 @@ describe("checkout comment pack", () => {
     expect(client).toContain("FlightField");
     expect(client).toContain("couponPlaceholder");
     expect(client).toContain("/api/checkout/extras");
+    expect(client).toContain("setInterval");
+    expect(client).toContain("cache: \"no-store\"");
     expect(client).not.toContain("additional-stops");
     expect(client).toContain("payCouldNotStart");
     expect(client).toContain('setRefusal("completeCard")');
@@ -315,7 +320,8 @@ describe("checkout comment pack", () => {
   it("keeps extras on payment recap after coupon and groups the coupon field", () => {
     expect(client.indexOf("setChildSeat(false)")).toBeLessThan(client.indexOf("setChildSeat(trip.childSeat)"));
     expect(client).toContain("childSeat: seats");
-    expect(client).toContain("pinned?.child_seats === 1");
+    expect(client).toContain("extraIsOnForStep");
+    expect(client).not.toContain("pinned?.child_seats === 1");
     expect(client).toContain("recapExtraFares");
     expect(client).toContain("data-checkout-recap-extra");
     expect(css).toContain("display: contents");
@@ -328,5 +334,24 @@ describe("checkout comment pack", () => {
     expect(css).toContain("text-transform: uppercase");
     expect(css).toContain(".vt-checkout__coupon .vt-input input");
     expect(css).toContain("grid-row: 2");
+  });
+
+  it("home SELECT starts a new booking without leftover extras", () => {
+    expect(home).toContain("homeQuote");
+    expect(home).toContain("childSeat: false");
+    expect(home).toContain("oversizedLuggage: false");
+    expect(home).toContain("skiRack: false");
+    expect(home).toContain("stops: 0");
+    expect(home).toContain("function beginHomeBooking");
+    expect(home).toContain("/api/checkout/abandon");
+    expect(home).toContain("detailsComplete: false");
+    expect(home).toContain("contact: null");
+  });
+
+  it("persists an unpaid booking only after who-is-travelling is complete", () => {
+    expect(client).toContain("shouldPersistUnpaidBooking");
+    expect(client).toContain("await startPayment({ silent: true })");
+    expect(client).toContain("shouldPersistUnpaidBooking(\"details\"");
+    expect(client).not.toContain("shouldPersistUnpaidBooking(\"trip\"");
   });
 });

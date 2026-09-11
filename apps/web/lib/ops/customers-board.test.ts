@@ -48,7 +48,8 @@ describe("ops customers board", () => {
     const write = readWeb("lib/ops/bookings-write.ts");
     expect(item).toMatch(/cancelBooking/);
     expect(item).toMatch(/eraseBooking/);
-    expect(write).toMatch(/status = 'cancelled'/);
+    expect(write).toMatch(/ops_cancel_booking/);
+    expect(write).toMatch(/resolveStaffBookingId/);
     expect(write).toMatch(/erased_at = now\(\)/);
   });
 
@@ -69,6 +70,10 @@ describe("ops customers board", () => {
     expect(html).toMatch(/openCancel/);
     expect(html).toMatch(/status: 'cancelled'/);
     expect(html).toMatch(/saveEdit/);
+    const save = html.slice(html.indexOf("saveEdit: () =>"), html.indexOf("markRefund: ()"));
+    expect(save).toMatch(/'PATCH'/);
+    expect(save).toMatch(/\/api\/staff\/bookings\/' \+ encodeURIComponent\(id\)/);
+    expect(save).not.toMatch(/edit-accept/);
     expect(html).not.toMatch(/vamosOpsEdit/);
     expect(html).not.toMatch(/tabItems: \[t\.details, t\.history\]/);
   });

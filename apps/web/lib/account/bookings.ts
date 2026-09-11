@@ -35,7 +35,7 @@ export type AccountBooking = {
   chauffeur: string;
   pax: number;
   priceRappen: number;
-  status: "new" | "confirmed" | "assigned" | "completed" | "cancelled";
+  status: "unpaid" | "new" | "confirmed" | "assigned" | "completed" | "cancelled";
   when: "upcoming" | "past";
   group: string;
 };
@@ -99,6 +99,7 @@ function groupLabel(dateIso: string): string {
 
 function rowStatus(status: string): AccountBooking["status"] {
   const s = status.toLowerCase();
+  if (s === "pending") return "unpaid";
   if (s === "cancelled" || s === "refunded" || s === "no_show") return "cancelled";
   if (s === "completed" || s === "partially_completed") return "completed";
   if (s === "assigned") return "assigned";
@@ -108,6 +109,7 @@ function rowStatus(status: string): AccountBooking["status"] {
 
 function whenFor(status: string, scheduledAt: string | Date | null, now: Date): AccountBooking["when"] {
   if (TERMINAL[status.toLowerCase()]) return "past";
+  if (status.toLowerCase() === "pending") return "upcoming";
   if (scheduledAt == null) return "upcoming";
   const ms = typeof scheduledAt === "string" ? Date.parse(scheduledAt) : scheduledAt.getTime();
   if (!Number.isFinite(ms)) return "upcoming";
@@ -120,9 +122,10 @@ export function mapAccountBooking(row: AccountSqlRow, now = new Date()): Account
   const pickup = str(row.pickup_text);
   const dropoff = str(row.dropoff_text);
   const ref = str(row.reference);
+  const uiStatus = rowStatus(status);
   return {
     ref,
-    href: ref ? `/confirmation/${ref}` : "/account",
+    href: uiStatus === "unpaid" ? "/checkout/payment" : ref ? `/confirmation/${ref}` : "/account",
     date: when.date,
     time: when.time,
     route: pickup && dropoff ? `${pickup} → ${dropoff}` : pickup || dropoff,
@@ -132,7 +135,7 @@ export function mapAccountBooking(row: AccountSqlRow, now = new Date()): Account
     chauffeur: str(row.chauffeur_name),
     pax: Number(row.pax ?? 1) || 1,
     priceRappen: Number(row.price_total_rappen ?? 0) || 0,
-    status: rowStatus(status),
+    status: uiStatus,
     when: whenFor(status, row.scheduled_at, now),
     group: groupLabel(when.dateIso),
   };

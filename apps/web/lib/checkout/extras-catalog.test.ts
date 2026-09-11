@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   catalogFromSurcharges,
   extraFaresOn,
+  extraIsOn,
+  extraIsOnForStep,
   extraRappenOutsideLock,
   extraUi,
   recapExtraFares,
@@ -32,8 +34,15 @@ describe("checkout extras catalog", () => {
         percent: "10",
         active: true,
       },
+      {
+        code: "extra_stop",
+        kind: "amount",
+        amount_rappen: 1500,
+        percent: null,
+        active: true,
+      },
     ]);
-    expect(extras.map((row) => row.code)).toEqual(["child_seat", "meet_greet"]);
+    expect(extras.map((row) => row.code)).toEqual(["child_seat", "meet_greet", "extra_stop"]);
     expect(extras[0]?.amount_rappen).toBe(2000);
     expect(extras[0]?.toggle).toBe(true);
     expect(extras[1]?.kind).toBe("included");
@@ -81,5 +90,45 @@ describe("checkout extras catalog", () => {
     expect(extraFaresOn(catalog, (code) => code === "child_seat")).toEqual([
       { code: "child_seat", amount_rappen: 2000 },
     ]);
+  });
+
+  it("recap extras follow this booking's toggles, not a leftover lock", () => {
+    const off = {
+      childSeat: false,
+      oversized: false,
+      extraStop: false,
+      skiRack: false,
+      extraCodes: [],
+    };
+    expect(extraIsOn("child_seat", off)).toBe(false);
+    expect(extraIsOn("child_seat", { ...off, childSeat: true })).toBe(true);
+    expect(
+      recapExtraFares(
+        catalogFromSurcharges([
+          {
+            code: "child_seat",
+            kind: "amount",
+            amount_rappen: 2000,
+            percent: null,
+            active: true,
+          },
+        ]),
+        (code) => extraIsOn(code, off),
+      ),
+    ).toEqual([]);
+  });
+
+  it("does not price extras on /checkout/trip", () => {
+    const on = {
+      childSeat: true,
+      oversized: true,
+      extraStop: true,
+      skiRack: true,
+      extraCodes: [],
+    };
+    expect(extraIsOnForStep("trip", "child_seat", on)).toBe(false);
+    expect(extraIsOnForStep("details", "child_seat", on)).toBe(true);
+    expect(extraIsOnForStep("payment", "child_seat", on)).toBe(true);
+    expect(extraIsOn("pet", { ...on, extraCodes: ["pet"] })).toBe(true);
   });
 });

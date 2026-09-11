@@ -107,6 +107,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-ac-more]:hover{color:var(--vt-charcoal-900)}
 [data-ac-more-go]{display:grid;place-items:center;flex:0 0 auto;width:32px;height:32px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-grey-300);transition:background 140ms var(--vt-ease-standard),border-color 140ms var(--vt-ease-standard),color 140ms var(--vt-ease-standard)}
 [data-ac-more]:hover [data-ac-more-go]{background:var(--vt-charcoal-900);border-color:var(--vt-charcoal-900);color:var(--vt-white)}
+[data-ac-pay]{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:8px;padding:14px 0 2px;border-top:1px solid var(--vt-border-subtle)}
 [dir="rtl"] [data-ac-more-go]{transform:scaleX(-1)}
 [data-ac-close]{display:flex;flex-direction:column;gap:14px;align-items:flex-start;box-sizing:border-box;padding:clamp(20px,2.4vw,26px);border:1px solid var(--vt-danger);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface)}
 [data-ac-close] [data-ac-h2]{color:var(--vt-danger)}
@@ -215,30 +216,30 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <aside data-ac-side="1">
 <div data-ac-rail="1" data-lenis-prevent="1">
 <nav data-ac-nav="1" aria-label="Account sections" onClick="{{ jump }}">
-<a data-ac-navitem="1" data-no-transition="1" href="#transfers" aria-current="{{ acTransfers }}">
+<a data-ac-navitem="1" data-no-transition="1" href="/account/transfers" aria-current="{{ acTransfers }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="calendar-days" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
 <span data-ac-navlabel="1">Upcoming transfers</span>
 <span data-ac-navnum="1">{{ bookingCount }}</span>
 </a>
-<a data-ac-navitem="1" data-no-transition="1" href="#details" aria-current="{{ acDetails }}">
+<a data-ac-navitem="1" data-no-transition="1" href="/account/details" aria-current="{{ acDetails }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="user" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
 <span data-ac-navlabel="1">Your details</span>
 <sc-if value="{{ showUnverified }}" hint-placeholder-val="{{ false }}"><span data-ac-navdot="1" aria-hidden="true"></span></sc-if>
 </a>
-<a data-ac-navitem="1" data-no-transition="1" href="#mobile" aria-current="{{ acMobile }}">
+<a data-ac-navitem="1" data-no-transition="1" href="/account/mobile" aria-current="{{ acMobile }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="phone" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
 <span data-ac-navlabel="1">Mobile number</span>
 <sc-if value="{{ phoneTodo }}" hint-placeholder-val="{{ true }}"><span data-ac-navdot="1" aria-hidden="true"></span></sc-if>
 </a>
-<a data-ac-navitem="1" data-no-transition="1" href="#preferences" aria-current="{{ acPrefs }}">
+<a data-ac-navitem="1" data-no-transition="1" href="/account/preferences" aria-current="{{ acPrefs }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="settings" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
 <span data-ac-navlabel="1">Preferences</span>
 </a>
-<a data-ac-navitem="1" data-no-transition="1" href="#security" aria-current="{{ acSecurity }}">
+<a data-ac-navitem="1" data-no-transition="1" href="/account/security" aria-current="{{ acSecurity }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="shield-check" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
 <span data-ac-navlabel="1">Sign-in and security</span>
 </a>
-<a data-ac-navitem="1" data-no-transition="1" href="#close" aria-current="{{ acClose }}">
+<a data-ac-navitem="1" data-no-transition="1" href="/account/close" aria-current="{{ acClose }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
 <span data-ac-navlabel="1">Close account</span>
 </a>
@@ -274,18 +275,18 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div style="display:flex;flex-direction:column;gap:6px">
 <h2 data-ac-h2="1">Upcoming transfers</h2>
 <p data-ac-sub="1">Everything booked under this email address.</p>
-<div style="margin-top:10px;display:flex;flex-direction:column">
+<div style="margin-top:10px;display:flex;flex-direction:column;gap:12px">
 <sc-for list="{{ bookings }}" as="b" hint-placeholder-count="2">
-<dc-import name="BookingRow" variant="inset" status="{{ b.status }}" href="{{ b.href }}" date="{{ b.date }}" time="{{ b.time }}" route="{{ b.route }}" meta="{{ b.ref }}" price="{{ b.price }}" hint-size="100%,92px"></dc-import>
+<dc-import name="BookingRow" status="{{ b.status }}" href="{{ b.href }}" date="{{ b.date }}" time="{{ b.time }}" route="{{ b.route }}" meta="{{ b.meta }}" price="{{ b.price }}" reference="{{ b.ref }}" onCancel="{{ cancelUnpaid }}" hint-size="100%,146px"></dc-import>
 </sc-for>
 <sc-if value="{{ noBookings }}" hint-placeholder-val="{{ false }}">
 <p data-ac-sub="1" style="padding:18px 0;border-top:1px solid var(--vt-border-subtle)">No transfers yet. Your next booking appears here the moment it is paid.</p>
 </sc-if>
 <sc-if value="{{ finishPayment }}" hint-placeholder-val="{{ false }}">
-<a data-ac-more="1" href="/checkout/payment">
-<span>Finish payment</span>
-</a>
-<button type="button" data-ac-link="1" onClick="{{ cancelCheckout }}">Cancel</button>
+<div data-ac-pay="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" href="/checkout/payment" hint-size="170px,44px">Finish payment</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ cancelCheckout }}" hint-size="120px,44px">Cancel</x-import>
+</div>
 </sc-if>
 </div>
 <a data-ac-more="1" href="/bookings">
@@ -576,6 +577,19 @@ class Component extends DCLogic {
     /* Sections mount as their cards stream in, so the rail re-reads twice. */
     this._t1 = setTimeout(this._pick, 400);
     this._t2 = setTimeout(this._pick, 1400);
+    const fromPath = (location.pathname.replace(/\/$/, '').split('/account/')[1] || '').split(/[?#]/)[0];
+    const fromHash = (location.hash || '').replace(/^#/, '');
+    const start = SECTIONS.indexOf(fromPath) >= 0 ? fromPath : (SECTIONS.indexOf(fromHash) >= 0 ? fromHash : 'transfers');
+    if (start !== this.state.active) this.setState({ active: start });
+    if (fromHash || location.pathname === '/account' || location.pathname === '/account/' || fromPath !== start) {
+      try { history.replaceState(null, '', '/account/' + start + location.search); } catch (err) {}
+    }
+    if (start !== 'transfers') {
+      requestAnimationFrame(() => {
+        const el = document.getElementById(start);
+        if (el) el.scrollIntoView({ behavior: 'auto', block: 'start' });
+      });
+    }
   }
   componentWillUnmount() {
     if (this._offLocale) this._offLocale();
@@ -604,18 +618,26 @@ class Component extends DCLogic {
     if (window.innerHeight + window.scrollY >= d.scrollHeight - 4) next = live[live.length - 1];
     if (next !== this.state.active) this.setState({ active: next });
   };
-  /* Stay on /account. Hash hrefs plus the pages base URL would otherwise
-     leave this page (and fire the page-transition overlay). */
+  /* Stay on /account/{section}. Old #hashes rewrite to a path. */
   jump = (e) => {
-    const a = e.target && e.target.closest ? e.target.closest('a[href^="#"]') : null;
+    const a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
     if (!a) return;
+    const href = a.getAttribute('href') || '';
+    let id = '';
+    if (href.charAt(0) === '#') id = href.slice(1);
+    else {
+      const clean = href.split('?')[0].split('#')[0].replace(/\/$/, '');
+      const marker = '/account/';
+      const at = clean.lastIndexOf(marker);
+      if (at < 0) return;
+      id = clean.slice(at + marker.length);
+    }
+    if (SECTIONS.indexOf(id) < 0) return;
     e.preventDefault();
-    const id = (a.getAttribute('href') || '').slice(1);
-    if (!id) return;
     this.setState({ active: id });
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    try { history.replaceState(null, '', location.pathname + location.search + '#' + id); } catch (err) {}
+    try { history.replaceState(null, '', '/account/' + id + location.search); } catch (err) {}
   };
 
   /* The session is what the header reads, so an edit here has to write it back. */
@@ -737,6 +759,31 @@ class Component extends DCLogic {
     this.forceUpdate();
   };
 
+  loadUpcoming = () => {
+    fetch('/api/account/bookings', { credentials: 'same-origin', cache: 'no-store' })
+      .then((r) => r.json())
+      .then((j) => this.setState({ liveBookings: (j && Array.isArray(j.bookings)) ? j.bookings : [] }))
+      .catch(() => this.setState({ liveBookings: [] }));
+  };
+
+  cancelUnpaid = (ref) => {
+    if (!ref || this._cancelling) return;
+    this._cancelling = true;
+    fetch('/api/account/bookings/cancel', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ ref }),
+    })
+      .then((r) => r.json().catch(() => ({})))
+      .then((j) => {
+        if (j && j.ok) this.cancelCheckout();
+        this.loadUpcoming();
+      })
+      .catch(() => {})
+      .then(() => { this._cancelling = false; });
+  };
+
   setLang = (v) => { if (window.VamosLocale) window.VamosLocale.setLang(v); this.setState({ lang: v }); this.flashSaved(); };
   setCur = (v) => { if (window.VamosLocale) window.VamosLocale.setCur(v); this.setState({ cur: v }); this.flashSaved(); };
 
@@ -744,22 +791,29 @@ class Component extends DCLogic {
     const s = this.state;
     const auth = s.auth || EMPTY_AUTH;
     const live = Array.isArray(s.liveBookings) ? s.liveBookings : [];
-    const bookings = live.filter((b) => b.when === 'upcoming').slice(0, 2).map((b) => ({
+    const upcoming = live.filter((b) => b.when === 'upcoming').slice().sort((a, b) => {
+      const au = a.status === 'unpaid' ? 0 : 1;
+      const bu = b.status === 'unpaid' ? 0 : 1;
+      return au - bu;
+    });
+    const bookings = upcoming.slice(0, 2).map((b) => ({
       status: b.status,
       href: b.href || ('/confirmation/' + b.ref),
       date: b.date,
       time: b.time,
       route: b.route,
       ref: b.ref,
+      meta: (b.pax === 1 ? '1 passenger' : (b.pax || 1) + ' passengers') + (b.ref ? ' · ' + b.ref : ''),
       price: (window.VamosLocale && typeof window.VamosLocale.fromChf === 'function')
         ? window.VamosLocale.fromChf(b.priceRappen)
         : 'CHF 000',
     }));
+    const hasUnpaid = upcoming.some((b) => b.status === 'unpaid');
     let finishPayment = false;
     try {
       const raw = localStorage.getItem('vamosTrip');
       const trip = raw ? JSON.parse(raw) : null;
-      finishPayment = !!(trip && trip.lock && (trip.quote_id || trip.quoteId));
+      finishPayment = !hasUnpaid && !!(trip && trip.lock && (trip.quote_id || trip.quoteId));
     } catch (e) {}
 
     const email = auth.email || '';
@@ -788,6 +842,7 @@ class Component extends DCLogic {
       bookings, noBookings: bookings.length === 0,
       finishPayment,
       cancelCheckout: this.cancelCheckout,
+      cancelUnpaid: this.cancelUnpaid,
 
       nameView: s.edit !== 'name', nameEdit: s.edit === 'name',
       nameValue: full || 'Not added yet',

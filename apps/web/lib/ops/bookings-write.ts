@@ -6,6 +6,7 @@
 
 import { asStaff, asSystem, type VamosClaims } from "@/lib/db/identity";
 import { mapRefundSqlError, sqlErrorCode } from "./refund-map";
+import { resolveStaffBookingId } from "./resolve-booking-id";
 import { OPS_SQLSTATE } from "./sqlstate";
 
 export const dynamic = "force-dynamic";
@@ -46,6 +47,9 @@ export type CancelResult =
   | { ok: true; booking: CancelledBooking }
   | { ok: false; code: "not-found" | "frozen" | "unknown" };
 
+const BOOKING_UUID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function cancelBooking(
   env: CloudflareEnv,
   claims: VamosClaims,
@@ -53,16 +57,11 @@ export async function cancelBooking(
 ): Promise<CancelResult> {
   const key = id.trim();
   if (!key) return { ok: false, code: "not-found" };
+  const bookingId = BOOKING_UUID.test(key)
+    ? key
+    : await resolveStaffBookingId(env, claims, key);
+  if (!bookingId) return { ok: false, code: "not-found" };
   return asSystem(env, async (sql) => {
-    const found = await sql<{ id: string }[]>`
-      select id
-        from public.bookings
-       where erased_at is null
-         and (id::text = ${key} or reference = ${key})
-       limit 1
-    `;
-    const bookingId = found[0]?.id;
-    if (!bookingId) return { ok: false, code: "not-found" };
     try {
       const rows = await sql<
         {

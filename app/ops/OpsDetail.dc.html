@@ -529,27 +529,21 @@ class Component extends DCLogic {
           this.notify(t.unpaidNoEditBody);
           return;
         }
-        const scheduled = (draft.dateIso && draft.time) ? (String(draft.dateIso) + 'T' + String(draft.time)) : '';
-        client.request('POST', '/api/staff/bookings/' + encodeURIComponent(id) + '/edit-accept', {
+        client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), {
           customer: draft.customer, email: draft.email, phone: draft.phone, klass: draft.klass,
           pickup: draft.pickup, dropoff: draft.dropoff, dateIso: draft.dateIso, time: draft.time,
           pax: Number(draft.pax), bags: Number(draft.bags), flight: draft.flight,
-          scheduled_local: scheduled,
         }).then((json) => {
           const code = json && json.code;
-          const outcome = json && json.data && json.data.outcome;
           if (json && json.ok) {
             if (ops) ops.bookings.reset();
             this.setState({ editing: false, edit: {} });
-            if (outcome === 'extra_required') this.notify(t.extraWaiting);
-            else if (outcome === 'refund_click') this.notify(t.refundClick);
-            else if (outcome === 'refund_immediate') this.notify(t.evRefund + ' ' + booking.id);
+            this.notify(t.saveEdit);
             return;
           }
-          if (code === 'must-fix' || code === 'capacity') this.notify(t.mustFix);
-          else if (code === 'unpaid') this.notify(t.unpaidNoEditBody);
+          if (code === 'unpaid') this.notify(t.unpaidNoEditBody);
           else this.notify(t.editFailed + booking.id);
-        });
+        }).catch(() => this.notify(t.editFailed + booking.id));
       },
       markRefund: () => {
         const id = booking.bookingId || booking.id;
@@ -578,22 +572,23 @@ class Component extends DCLogic {
       cancelWhen: [booking.date, booking.time].filter(Boolean).join(' · '),
       cancelPay: booking.pay || '',
       confirmCancel: () => {
-        const id = booking.id;
+        const id = booking.bookingId || booking.id;
+        const ref = booking.id;
         const ops = window.VamosOps;
         const client = window.VamosOpsApi;
         this.setState({ cancelOpen: false });
         if (!client || typeof client.request !== 'function') {
-          this.notify(t.cancelFailed + id);
+          this.notify(t.cancelFailed + ref);
           return;
         }
         client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { status: 'cancelled' }).then((json) => {
           if (json && json.ok) {
             if (ops) ops.bookings.reset();
-            this.notify(t.bookingCancelled + id);
+            this.notify(t.bookingCancelled + ref);
           } else {
-            this.notify(t.cancelFailed + id);
+            this.notify(t.cancelFailed + ref);
           }
-        });
+        }).catch(() => this.notify(t.cancelFailed + ref));
       },
       resendVoucher: () => this.notify(t.voucherResent + booking.email),
       sendPayLink: () => {

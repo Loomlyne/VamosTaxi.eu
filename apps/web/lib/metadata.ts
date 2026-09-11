@@ -58,15 +58,17 @@ export const PUBLIC_ROUTES = [
   // per page is what `buildAlternates` and `app/sitemap.ts` both walk, and what
   // next-intl `localePrefix: "as-needed"` publishes as a single hreflang set.
   "/sign-up",
+  "/sitemap",
   "/terms",
 ] as const;
 
 export type PublicRoute = (typeof PUBLIC_ROUTES)[number];
 
 function localizedUrl(locale: string, path: PublicRoute): string {
-  const prefix = locale === routing.defaultLocale ? "" : `/${locale}`;
+  // Languages are the on-page switcher, not /de /fr /ar URL prefixes.
+  void locale;
   const suffix = path === "/" ? "" : path;
-  return `${SITE_URL}${prefix}${suffix}` || `${SITE_URL}/`;
+  return `${SITE_URL}${suffix}` || `${SITE_URL}/`;
 }
 
 /**

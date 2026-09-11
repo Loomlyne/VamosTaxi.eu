@@ -1222,6 +1222,28 @@
       'Resend email': { de: 'E-Mail erneut senden', fr: 'Renvoyer l’e-mail', ar: 'أعد إرسال البريد' },
       'Email it to me': { de: 'Per E-Mail senden', fr: 'Me l’envoyer par e-mail', ar: 'أرسلها إليّ بالبريد' },
 
+      /* ── Sitemap page ─────────────────────────────────────────────────── */
+      'Sitemap': { de: 'Sitemap', fr: 'Plan du site', ar: 'خريطة الموقع' },
+      'Site map': { de: 'Seitenübersicht', fr: 'Plan du site', ar: 'خريطة الموقع' },
+      'Every public page on Vamos Taxi.': {
+        de: 'Jede öffentliche Seite von Vamos Taxi.',
+        fr: 'Chaque page publique de Vamos Taxi.',
+        ar: 'كل صفحة عامة على فاموس تاكسي.',
+      },
+      'Customer pages on vamostaxi.site. Dispatch on dashboard.vamostaxi.site.': {
+        de: 'Kundenseiten auf vamostaxi.site. Disposition auf dashboard.vamostaxi.site.',
+        fr: 'Pages client sur vamostaxi.site. Dispatch sur dashboard.vamostaxi.site.',
+        ar: 'صفحات العملاء على vamostaxi.site. التشغيل على dashboard.vamostaxi.site.',
+      },
+      'Quote box': { de: 'Angebotsbox', fr: 'Module de devis', ar: 'صندوق التسعير' },
+      'Home FAQ': { de: 'FAQ auf der Startseite', fr: 'FAQ d’accueil', ar: 'الأسئلة في الصفحة الرئيسية' },
+      'Pay link': { de: 'Zahlungslink', fr: 'Lien de paiement', ar: 'رابط الدفع' },
+      'Booking voucher': { de: 'Buchungsbeleg', fr: 'Bon de réservation', ar: 'قسيمة الحجز' },
+      'New booking': { de: 'Neue Buchung', fr: 'Nouvelle réservation', ar: 'حجز جديد' },
+      'Booking record': { de: 'Buchung', fr: 'Fiche réservation', ar: 'سجل الحجز' },
+      'Close account': { de: 'Konto schliessen', fr: 'Fermer le compte', ar: 'إغلاق الحساب' },
+      'Checkout': { de: 'Checkout', fr: 'Checkout', ar: 'الدفع' },
+
       /* ── Coming-soon curtain ──────────────────────────────────────────── */
       'Coming soon': { de: 'Bald verfügbar', fr: 'Bientôt disponible', ar: 'قريباً' },
       'The new Vamos Taxi is on its way.': { de: 'Das neue Vamos Taxi ist unterwegs.', fr: 'Le nouveau Vamos Taxi arrive.', ar: 'فاموس تاكسي الجديد في الطريق.' },

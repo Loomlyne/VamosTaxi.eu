@@ -36,6 +36,7 @@ export const PATCH = withStaff(async (claims, request) => {
     const result = await cancelBooking(env, claims, id);
     if (!result.ok) {
       if (result.code === "frozen") return jsonErr("frozen", 409);
+      if (result.code === "unknown") return jsonErr("unknown", 500);
       return jsonErr("not-found", 404);
     }
     return jsonOk({ id, status: "cancelled" });

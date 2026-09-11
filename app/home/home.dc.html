@@ -1076,10 +1076,47 @@ function readTrip() {
   try { return Object.assign({}, DEFAULT_TRIP, JSON.parse(localStorage.getItem('vamosTrip') || '{}')); }
   catch (e) { return Object.assign({}, DEFAULT_TRIP); }
 }
+function beginHomeBooking() {
+  var prev = null;
+  try { prev = JSON.parse(localStorage.getItem('vamosTrip') || 'null'); } catch (e) { prev = null; }
+  var quoteId = prev && (prev.quote_id || prev.quoteId);
+  try { localStorage.removeItem('vamosTrip'); } catch (e) {}
+  try {
+    sessionStorage.removeItem('vamosTrip');
+    sessionStorage.removeItem('vamosQuoteLock');
+  } catch (e) {}
+  if (quoteId) {
+    try {
+      fetch('/api/checkout/abandon', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ quote_id: String(quoteId) }),
+      }).catch(function () {});
+    } catch (e) {}
+  }
+}
 function saveTrip(patch) {
+  const homeQuote = patch.quote_id != null && patch.lock != null;
+  if (homeQuote) {
+    const t = Object.assign({
+      childSeat: false, oversizedLuggage: false, skiRack: false, stops: 0, detailsComplete: false,
+    }, patch, {
+      childSeat: false, oversizedLuggage: false, skiRack: false, stops: 0, detailsComplete: false, contact: null,
+    });
+    localStorage.setItem('vamosTrip', JSON.stringify(t));
+    try {
+      if (t.lock) sessionStorage.setItem('vamosQuoteLock', t.lock);
+      else sessionStorage.removeItem('vamosQuoteLock');
+    } catch (e) {}
+    return t;
+  }
   const prev = readTrip();
   const quoteChanged = !!(patch.quote_id && prev.quote_id && patch.quote_id !== prev.quote_id);
-  const t = Object.assign({}, prev, quoteChanged ? { flight: '', flightNumber: '' } : {}, patch);
+  const fresh = quoteChanged
+    ? { flight: '', flightNumber: '', childSeat: false, oversizedLuggage: false, skiRack: false, stops: 0, detailsComplete: false, contact: null }
+    : {};
+  const t = Object.assign({}, prev, fresh, patch);
   localStorage.setItem('vamosTrip', JSON.stringify(t));
   try {
     if (t.lock) sessionStorage.setItem('vamosQuoteLock', t.lock);
@@ -1139,6 +1176,7 @@ class Component extends DCLogic {
     try { this._note.animate([{ opacity: 1 }, { opacity: .35, offset: .4 }, { opacity: 1 }], { duration: 200, easing: 'cubic-bezier(.2,0,.2,1)' }); } catch (e) {}
   }
   componentDidMount() {
+    beginHomeBooking();
     this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur }, () => this.relabelAll());
     window.addEventListener('vamos:locale', this._onLocale);
     if (this.state.mode === 'return' || (!(this.props.hourlyEnabled ?? false) && this.state.mode === 'hourly')) this.setState({ mode: 'one-way' });

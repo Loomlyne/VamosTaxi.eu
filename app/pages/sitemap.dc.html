@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vamos Taxi — Sitemap</title>
+<link rel="icon" href="/favicon.ico">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
+     injects every stylesheet and script from <helmet> only after React has loaded, so
+     without these the arriving document paints uncovered frames before
+     vamos-page-transition.js exists and can build its overlay. That script adopts
+     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
+     animation below is the fallback for when the script never runs. -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<link rel="stylesheet" href="../../assets/lenis.css">
+<script src="../../assets/lenis.js"></script>
+<script src="../../assets/lenis-boot.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+.vt-btn{transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
+.vt-btn:hover,.vt-btn:active{box-shadow:none!important}
+.vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
+.vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
+.vt-btn--secondary:hover:not([disabled]){background:var(--vt-charcoal-800)}
+.vt-btn--secondary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn--ghost:hover:not([disabled]),.vt-btn--outline:hover:not([disabled]),.vt-btn--tertiary:hover:not([disabled]){background:var(--vt-grey-50);border-color:var(--vt-charcoal-900)}
+.vt-btn--ghost:active:not([disabled]),.vt-btn--outline:active:not([disabled]),.vt-btn--tertiary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn:focus-visible{box-shadow:var(--vt-ring)!important}
+.vt-btn[disabled],.vt-btn[aria-disabled="true"]{transform:none}.vt-select .vt-input--focus{box-shadow:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}
+body{margin:0;background:var(--vt-bg-page)}
+a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+[data-grp]{margin-top:clamp(40px,5vw,64px)}
+[data-grp]:first-of-type{margin-top:0}
+[data-grp-h]{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;margin:0 0 8px;padding-bottom:16px;border-bottom:2px solid var(--vt-charcoal-900);scroll-margin-top:104px}
+[data-grp-h] h2{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary);text-wrap:pretty}
+[data-grp-h] span{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-sm-r]{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 24px;align-items:center;min-height:44px;padding:12px 0;border-bottom:1px solid var(--vt-grey-200);text-decoration:none;color:inherit}
+[data-sm-r]:last-child{border-bottom:0}
+[data-sm-n]{font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);line-height:1.3;color:var(--vt-text-primary)}
+[data-sm-p]{font-size:var(--vt-body-sm);color:var(--vt-text-muted);direction:ltr;unicode-bidi:isolate;word-break:break-all}
+[data-sm-r]:hover [data-sm-n]{color:var(--vt-charcoal-800)}
+[data-sm-r]:focus-visible{outline:none;box-shadow:inset var(--vt-ring)}
+:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}</style>
+</helmet>
+
+<div style="font-family:var(--vt-font-body);background:var(--vt-bg-page);min-height:100vh">
+<dc-import name="SiteHeader" variant="inverse" hint-size="100%,76px"></dc-import>
+
+<main data-screen-label="Sitemap">
+
+<header style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);position:relative;overflow:hidden">
+<div aria-hidden="true" style="position:absolute;top:0;inset-inline-end:0;width:120px;height:120px;background:url(../../assets/patterns/checker-mark.png) top right / 56px auto no-repeat;opacity:.9"></div>
+<div style="max-width:1200px;margin:0 auto;padding:44px clamp(20px,5vw,56px) 40px">
+<nav aria-label="Breadcrumb" style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted);margin-bottom:26px">
+<a href="/" style="color:inherit;text-decoration:none">Home</a><span aria-hidden="true">/</span><span style="color:var(--vt-text-inverse)">Sitemap</span>
+</nav>
+<p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">Site map</p>
+<h1 style="margin:0 0 18px;max-width:16ch;font-family:var(--vt-font-display);font-size:var(--vt-display-2);line-height:var(--vt-display-leading);letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty">Sitemap</h1>
+<p style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Customer pages on vamostaxi.site. Dispatch on dashboard.vamostaxi.site.</p>
+</div>
+</header>
+
+<div style="max-width:1200px;margin:0 auto;padding:36px clamp(20px,5vw,56px) 72px">
+
+<section data-grp="1" aria-labelledby="sm-book">
+<div data-grp-h="1"><h2 id="sm-book">Book a transfer</h2><span>01</span></div>
+<a data-sm-r href="/"><span data-sm-n>Home</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/</span></a>
+<a data-sm-r href="/#book"><span data-sm-n>Quote box</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/#book</span></a>
+<a data-sm-r href="/#faq"><span data-sm-n>Home FAQ</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/#faq</span></a>
+<a data-sm-r href="/#reviews"><span data-sm-n>Reviews</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/#reviews</span></a>
+<a data-sm-r href="/checkout"><span data-sm-n>Checkout</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/checkout</span></a>
+<a data-sm-r href="/checkout/trip"><span data-sm-n>Trip</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/checkout/trip</span></a>
+<a data-sm-r href="/checkout/details"><span data-sm-n>Who is travelling</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/checkout/details</span></a>
+<a data-sm-r href="/checkout/payment"><span data-sm-n>Payment</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/checkout/payment</span></a>
+<div data-sm-r><span data-sm-n>Pay link</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/checkout/pay/{token}</span></div>
+<a data-sm-r href="/confirmation"><span data-sm-n>Confirmation</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/confirmation</span></a>
+<div data-sm-r><span data-sm-n>Booking voucher</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/confirmation/{ref}</span></div>
+</section>
+
+<section data-grp="1" aria-labelledby="sm-company">
+<div data-grp-h="1"><h2 id="sm-company">Company</h2><span>02</span></div>
+<a data-sm-r href="/about"><span data-sm-n>About</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/about</span></a>
+<a data-sm-r href="/faq"><span data-sm-n>FAQ</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/faq</span></a>
+<a data-sm-r href="/contact"><span data-sm-n>Contact</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/contact</span></a>
+<a data-sm-r href="/coming-soon"><span data-sm-n>Coming soon</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/coming-soon</span></a>
+<a data-sm-r href="/sitemap"><span data-sm-n>Sitemap</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/sitemap</span></a>
+</section>
+
+<section data-grp="1" aria-labelledby="sm-account">
+<div data-grp-h="1"><h2 id="sm-account">Account</h2><span>03</span></div>
+<a data-sm-r href="/sign-in"><span data-sm-n>Sign in</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/sign-in</span></a>
+<a data-sm-r href="/sign-up"><span data-sm-n>Create account</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/sign-up</span></a>
+<a data-sm-r href="/reset-password"><span data-sm-n>Reset your password</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/reset-password</span></a>
+<a data-sm-r href="/account"><span data-sm-n>Account</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/account</span></a>
+<a data-sm-r href="/account/transfers"><span data-sm-n>Transfers</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/account/transfers</span></a>
+<a data-sm-r href="/account/details"><span data-sm-n>Details</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/account/details</span></a>
+<a data-sm-r href="/account/mobile"><span data-sm-n>Mobile</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/account/mobile</span></a>
+<a data-sm-r href="/account/preferences"><span data-sm-n>Preferences</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/account/preferences</span></a>
+<a data-sm-r href="/account/security"><span data-sm-n>Sign-in and security</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/account/security</span></a>
+<a data-sm-r href="/account/close"><span data-sm-n>Close account</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/account/close</span></a>
+<a data-sm-r href="/bookings"><span data-sm-n>Bookings</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/bookings</span></a>
+<a data-sm-r href="/manage-booking"><span data-sm-n>Manage booking</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/manage-booking</span></a>
+</section>
+
+<section data-grp="1" aria-labelledby="sm-legal">
+<div data-grp-h="1"><h2 id="sm-legal">Legal</h2><span>04</span></div>
+<a data-sm-r href="/terms"><span data-sm-n>Terms &amp; conditions</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/terms</span></a>
+<a data-sm-r href="/privacy"><span data-sm-n>Privacy policy</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/privacy</span></a>
+<a data-sm-r href="/cookies"><span data-sm-n>Cookies</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/cookies</span></a>
+<a data-sm-r href="/cancellation"><span data-sm-n>Cancellation &amp; refunds</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/cancellation</span></a>
+<a data-sm-r href="/imprint"><span data-sm-n>Imprint</span><span data-sm-p data-vt-no-i18n="1">https://vamostaxi.site/imprint</span></a>
+</section>
+
+<section data-grp="1" aria-labelledby="sm-ops">
+<div data-grp-h="1"><h2 id="sm-ops">Dispatch</h2><span>05</span></div>
+<a data-sm-r href="https://dashboard.vamostaxi.site/login"><span data-sm-n>Dispatch sign in</span><span data-sm-p data-vt-no-i18n="1">https://dashboard.vamostaxi.site/login</span></a>
+<a data-sm-r href="https://dashboard.vamostaxi.site/dashboard"><span data-sm-n>Dashboard</span><span data-sm-p data-vt-no-i18n="1">https://dashboard.vamostaxi.site/dashboard</span></a>
+<a data-sm-r href="https://dashboard.vamostaxi.site/bookings"><span data-sm-n>Bookings</span><span data-sm-p data-vt-no-i18n="1">https://dashboard.vamostaxi.site/bookings</span></a>
+<a data-sm-r href="https://dashboard.vamostaxi.site/bookings/new"><span data-sm-n>New booking</span><span data-sm-p data-vt-no-i18n="1">https://dashboard.vamostaxi.site/bookings/new</span></a>
+<div data-sm-r><span data-sm-n>Booking record</span><span data-sm-p data-vt-no-i18n="1">https://dashboard.vamostaxi.site/bookings/{id}</span></div>
+<a data-sm-r href="https://dashboard.vamostaxi.site/calendar"><span data-sm-n>Calendar</span><span data-sm-p data-vt-no-i18n="1">https://dashboard.vamostaxi.site/calendar</span></a>
+<a data-sm-r href="https://dashboard.vamostaxi.site/fleet"><span data-sm-n>Fleet</span><span data-sm-p data-vt-no-i18n="1">https://dashboard.vamostaxi.site/fleet</span></a>
+<a data-sm-r href="https://dashboard.vamostaxi.site/fleet/chauffeurs"><span data-sm-n>Chauffeurs</span><span data-sm-p data-vt-no-i18n="1">https://dashboard.vamostaxi.site/fleet/chauffeurs</span></a>
+<div data-sm-r><span data-sm-n>Chauffeur</span><span data-sm-p data-vt-no-i18n="1">https://dashboard.vamostaxi.site/fleet/chauffeurs/{id}</span></div>
+<a data-sm-r href="https://dashboard.vamostaxi.site/customers"><span data-sm-n>Customers</span><span data-sm-p data-vt-no-i18n="1">https://dashboard.vamostaxi.site/customers</span></a>
+<div data-sm-r><span data-sm-n>Customer</span><span data-sm-p data-vt-no-i18n="1">https://dashboard.vamostaxi.site/customers/{id}</span></div>
+<a data-sm-r href="https://dashboard.vamostaxi.site/support"><span data-sm-n>Support</span><span data-sm-p data-vt-no-i18n="1">https://dashboard.vamostaxi.site/support</span></a>
+<a data-sm-r href="https://dashboard.vamostaxi.site/coupons"><span data-sm-n>Coupons</span><span data-sm-p data-vt-no-i18n="1">https://dashboard.vamostaxi.site/coupons</span></a>
+<a data-sm-r href="https://dashboard.vamostaxi.site/pricing"><span data-sm-n>Pricing</span><span data-sm-p data-vt-no-i18n="1">https://dashboard.vamostaxi.site/pricing</span></a>
+<a data-sm-r href="https://dashboard.vamostaxi.site/pages"><span data-sm-n>Pages</span><span data-sm-p data-vt-no-i18n="1">https://dashboard.vamostaxi.site/pages</span></a>
+<a data-sm-r href="https://dashboard.vamostaxi.site/legal"><span data-sm-n>Legal</span><span data-sm-p data-vt-no-i18n="1">https://dashboard.vamostaxi.site/legal</span></a>
+<a data-sm-r href="https://dashboard.vamostaxi.site/reviews"><span data-sm-n>Reviews</span><span data-sm-p data-vt-no-i18n="1">https://dashboard.vamostaxi.site/reviews</span></a>
+<a data-sm-r href="https://dashboard.vamostaxi.site/profile"><span data-sm-n>Profile</span><span data-sm-p data-vt-no-i18n="1">https://dashboard.vamostaxi.site/profile</span></a>
+<a data-sm-r href="https://dashboard.vamostaxi.site/settings"><span data-sm-n>Settings</span><span data-sm-p data-vt-no-i18n="1">https://dashboard.vamostaxi.site/settings</span></a>
+</section>
+
+<section data-grp="1" aria-labelledby="sm-off">
+<div data-grp-h="1"><h2 id="sm-off">Contact</h2><span>06</span></div>
+<a data-sm-r href="mailto:info@vamostaxi.site"><span data-sm-n>Email</span><span data-sm-p data-vt-no-i18n="1">mailto:info@vamostaxi.site</span></a>
+<a data-sm-r href="https://wa.me/41796267082"><span data-sm-n>WhatsApp</span><span data-sm-p data-vt-no-i18n="1">https://wa.me/41796267082</span></a>
+<a data-sm-r href="https://www.instagram.com/vamos.taxi?utm_source=qr" rel="noreferrer noopener"><span data-sm-n>Instagram</span><span data-sm-p data-vt-no-i18n="1">https://www.instagram.com/vamos.taxi</span></a>
+<a data-sm-r href="https://www.facebook.com/VAMOSTAXISWITZERLAND" rel="noreferrer noopener"><span data-sm-n>Facebook</span><span data-sm-p data-vt-no-i18n="1">https://www.facebook.com/VAMOSTAXISWITZERLAND</span></a>
+<a data-sm-r href="https://www.youtube.com/@vamostaxi" rel="noreferrer noopener"><span data-sm-n>YouTube</span><span data-sm-p data-vt-no-i18n="1">https://www.youtube.com/@vamostaxi</span></a>
+<a data-sm-r href="https://www.tiktok.com/@vamos.taxi" rel="noreferrer noopener"><span data-sm-n>TikTok</span><span data-sm-p data-vt-no-i18n="1">https://www.tiktok.com/@vamos.taxi</span></a>
+</section>
+
+</div>
+</main>
+
+<dc-import name="SiteFooter" hint-size="100%,520px"></dc-import>
+<dc-import name="CookieBanner" start-state="{{ cookieState }}" hint-size="0,0"></dc-import>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;cookieState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;auto&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;banner&quot;,&quot;prefs&quot;,&quot;hidden&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Review&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return { cookieState: this.props.cookieState || 'auto' };
+  }
+}
+</script>
+</body>
+</html>

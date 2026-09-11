@@ -33,6 +33,18 @@ describe("dashboard host DC login @ops-dashboard-host", () => {
     expect(middleware).not.toMatch(/\[locale\]\/ops/);
   });
 
+  it("signed-in /login serves ops-login before console 404", () => {
+    const afterRole = middleware.slice(middleware.indexOf("const inConsole = role"));
+    const loginIdx = afterRole.indexOf('dashPath === "/login"');
+    const loginHtmlIdx = afterRole.indexOf("ops-login.dc.html");
+    const notFoundIdx = afterRole.indexOf("opsConsoleNotFound");
+    expect(loginIdx).toBeGreaterThan(-1);
+    expect(loginHtmlIdx).toBeGreaterThan(-1);
+    expect(notFoundIdx).toBeGreaterThan(-1);
+    expect(loginIdx).toBeLessThan(notFoundIdx);
+    expect(loginHtmlIdx).toBeLessThan(notFoundIdx);
+  });
+
   it("cookie-setting factory uses NextResponse.next({ request }) (D-09)", () => {
     expect(supabaseMw).toContain("NextResponse.next({ request })");
     expect(supabaseMw).toMatch(/box\.response = NextResponse\.next\(\{ request \}\)/);

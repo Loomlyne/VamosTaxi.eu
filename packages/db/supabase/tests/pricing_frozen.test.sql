@@ -6,7 +6,7 @@
 -- `active`), which stays an ordinary audited UPDATE. Proven on both a `live` version and a
 -- still-`draft` control, where every one of the same statements succeeds.
 begin;
-select plan(12);
+select plan(15);
 
 -- Fixtures --------------------------------------------------------------------------------
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
@@ -81,6 +81,26 @@ select throws_ok(
   '23001',
   null,
   'fixed_routes: editing price_rappen on a live version is refused'
+);
+
+-- (7–9) Passenger extras stay a live catalog (ops checkout extras).
+select lives_ok(
+  $$ insert into public.surcharges (rate_version_id, code, kind, amount_rappen, predicate, quantity_source)
+     select rv.id, 'child_seat', 'amount', 2000, '{"kind":"quantity"}'::jsonb, 'child_seats'
+       from public.rate_versions rv where rv.slug = 'live-frozen' $$,
+  'surcharges: inserting a passenger extra on a live version succeeds'
+);
+select lives_ok(
+  $$ update public.surcharges set amount_rappen = 2500
+       where rate_version_id = (select id from public.rate_versions where slug = 'live-frozen')
+         and code = 'child_seat' $$,
+  'surcharges: editing a passenger extra amount on a live version succeeds'
+);
+select lives_ok(
+  $$ delete from public.surcharges
+       where rate_version_id = (select id from public.rate_versions where slug = 'live-frozen')
+         and code = 'child_seat' $$,
+  'surcharges: deleting a passenger extra on a live version succeeds'
 );
 
 -- === A draft control — every one of the same statements succeeds ==========================

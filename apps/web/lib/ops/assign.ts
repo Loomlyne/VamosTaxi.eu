@@ -11,14 +11,13 @@ import {
   sendChauffeurUnassign,
   type ChauffeurDispatchForEmail,
 } from "@vamos/emails/confirmation";
-import { asSystem, type VamosClaims } from "../db/identity";
+import { asStaff, asSystem, type VamosClaims } from "../db/identity";
+import { resolveStaffBookingId } from "./resolve-booking-id";
 import {
   mapAssignSqlError,
-  sqlErrorCode,
   type AssignOverlap,
   type AssignResult,
 } from "./assign-map";
-import { OPS_SQLSTATE } from "./sqlstate";
 
 export const dynamic = "force-dynamic";
 
@@ -65,22 +64,10 @@ function tripMail(row: TripMailRow | undefined): ChauffeurTripMail | null {
   };
 }
 
-async function resolveBookingId(
-  sql: Parameters<Parameters<typeof asSystem>[1]>[0],
-  key: string,
-): Promise<string | null> {
-  const rows = await sql<{ id: string }[]>`
-    select id
-      from public.bookings
-     where erased_at is null
-       and (id::text = ${key} or reference = ${key})
-     limit 1
-  `;
-  return rows[0]?.id ?? null;
-}
+type OpsSql = Parameters<Parameters<typeof asSystem>[1]>[0];
 
 async function loadChauffeurTrip(
-  sql: Parameters<Parameters<typeof asSystem>[1]>[0],
+  sql: OpsSql,
   bookingId: string,
   chauffeurId: string,
 ): Promise<ChauffeurTripMail | null> {
@@ -103,7 +90,7 @@ async function loadChauffeurTrip(
 }
 
 async function loadAssignedChauffeurTrip(
-  sql: Parameters<Parameters<typeof asSystem>[1]>[0],
+  sql: OpsSql,
   bookingId: string,
 ): Promise<ChauffeurTripMail | null> {
   const rows = await sql<TripMailRow[]>`
@@ -178,10 +165,9 @@ export async function assignBooking(
   const key = bookingKey.trim();
   const chauffeur = chauffeurId.trim();
   if (!key || !chauffeur) return { ok: false, code: "not-found" };
-  let mail: ChauffeurTripMail | null = null;
+  const bookingId = await resolveStaffBookingId(env, claims, key);
+  if (!bookingId) return { ok: false, code: "not-found" };
   const result = await asSystem(env, async (sql) => {
-    const bookingId = await resolveBookingId(sql, key);
-    if (!bookingId) return { ok: false, code: "not-found" } as const;
     try {
       const rows = await sql<
         { booking_id: string; leg_id: string; chauffeur_id: string; vehicle_id: string }[]
@@ -194,7 +180,6 @@ export async function assignBooking(
       `;
       const row = rows[0];
       if (!row) return { ok: false, code: "unknown" } as const;
-      mail = await loadChauffeurTrip(sql, String(row.booking_id), String(row.chauffeur_id));
       return {
         ok: true as const,
         bookingId: String(row.booking_id),
@@ -203,14 +188,25 @@ export async function assignBooking(
         vehicleId: String(row.vehicle_id),
       };
     } catch (err) {
-      if (sqlErrorCode(err) === OPS_SQLSTATE.exclusion) {
-        return mapAssignSqlError(err, await loadOverlap(sql, bookingId, chauffeur));
-      }
       return mapAssignSqlError(err);
     }
   });
-  if (result.ok) {
+  if (!result.ok && result.code === "overlap") {
     try {
+      const overlap = await asStaff(env, claims, (sql) =>
+        loadOverlap(sql, bookingId, chauffeur),
+      );
+      return { ...result, otherRef: overlap.otherRef, otherLocal: overlap.otherLocal };
+    } catch {
+      return result;
+    }
+  }
+  if (result.ok && result.chauffeurId) {
+    try {
+      const assignedId = result.chauffeurId;
+      const mail = await asStaff(env, claims, (sql) =>
+        loadChauffeurTrip(sql, result.bookingId, assignedId),
+      );
       await notifyChauffeur(env, "assign", mail);
     } catch {
       // Assignment already committed. Mail is best-effort.
@@ -226,11 +222,15 @@ export async function unassignBooking(
 ): Promise<AssignResult> {
   const key = bookingKey.trim();
   if (!key) return { ok: false, code: "not-found" };
+  const bookingId = await resolveStaffBookingId(env, claims, key);
+  if (!bookingId) return { ok: false, code: "not-found" };
   let mail: ChauffeurTripMail | null = null;
+  try {
+    mail = await asStaff(env, claims, (sql) => loadAssignedChauffeurTrip(sql, bookingId));
+  } catch {
+    mail = null;
+  }
   const result = await asSystem(env, async (sql) => {
-    const bookingId = await resolveBookingId(sql, key);
-    if (!bookingId) return { ok: false, code: "not-found" } as const;
-    mail = await loadAssignedChauffeurTrip(sql, bookingId);
     try {
       const rows = await sql<{ booking_id: string; leg_id: string }[]>`
         select * from public.ops_unassign_leg(

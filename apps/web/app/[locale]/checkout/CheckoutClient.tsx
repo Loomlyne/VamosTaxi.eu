@@ -17,6 +17,7 @@ import {
 } from "@/components/booking";
 import { PlaceCombo, type PlaceRetrieve } from "@/components/forms/PlaceCombo";
 import { e164Phone, isCheckoutEmail } from "@/lib/checkout/contact-validate";
+import { shouldPersistUnpaidBooking } from "@/lib/checkout/booking-lifecycle";
 import { readDraft, useBookingDraft } from "@/lib/booking-draft";
 import {
   bouncePath,
@@ -46,6 +47,7 @@ import {
   type VamosTrip,
 } from "@/lib/checkout/vamos-trip";
 import {
+  extraIsOnForStep,
   extraRappenOutsideLock,
   extraUi,
   recapExtraFares,
@@ -249,6 +251,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const [oversized, setOversized] = useState(false);
   const [extraStop, setExtraStop] = useState(false);
   const [skiRack, setSkiRack] = useState(false);
+  const [extraCodes, setExtraCodes] = useState<string[]>([]);
   const [extrasCatalog, setExtrasCatalog] = useState<CheckoutExtraJson[]>([]);
   const [coupon, setCoupon] = useState("");
   const [couponApplied, setCouponApplied] = useState<string | null>(null);
@@ -289,18 +292,23 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
 
   useEffect(() => {
     let on = true;
-    fetch("/api/checkout/extras")
-      .then((res) => res.json())
-      .then((json: unknown) => {
-        if (!on || !json || typeof json !== "object") return;
-        const body = json as { ok?: boolean; extras?: CheckoutExtraJson[] };
-        if (body.ok && Array.isArray(body.extras)) {
-          setExtrasCatalog(body.extras);
-        }
-      })
-      .catch(() => {});
+    function load() {
+      fetch("/api/checkout/extras", { cache: "no-store" })
+        .then((res) => res.json())
+        .then((json: unknown) => {
+          if (!on || !json || typeof json !== "object") return;
+          const body = json as { ok?: boolean; extras?: CheckoutExtraJson[] };
+          if (body.ok && Array.isArray(body.extras)) {
+            setExtrasCatalog(body.extras);
+          }
+        })
+        .catch(() => {});
+    }
+    load();
+    const timer = window.setInterval(load, 4000);
     return () => {
       on = false;
+      window.clearInterval(timer);
     };
   }, []);
 
@@ -367,9 +375,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     if (typeof trip?.guest === "boolean") setGuest(trip.guest);
     if (trip?.airline) setAirline(trip.airline);
     if (trip?.notes) setNotes(trip.notes);
-    if (typeof trip?.oversizedLuggage === "boolean") setOversized(trip.oversizedLuggage);
-    if (typeof trip?.stops === "number") setExtraStop(trip.stops > 0);
-    if (typeof trip?.skiRack === "boolean") setSkiRack(trip.skiRack);
     if (trip?.billingKind === "company" || trip?.billingKind === "individual") {
       setBillingKind(trip.billingKind);
     }
@@ -381,13 +386,24 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       setClientSecretHex(undefined);
       clientSecretRef.current = null;
       setChildSeat(false);
+      setOversized(false);
+      setExtraStop(false);
+      setSkiRack(false);
+      setExtraCodes([]);
       setReference(null);
       setConfirmPay(null);
       setCardComplete(false);
       intentStarted.current = false;
       intentAttempts.current = 0;
+    } else if (step !== "trip") {
+      if (typeof trip?.childSeat === "boolean") setChildSeat(trip.childSeat);
+      if (typeof trip?.oversizedLuggage === "boolean") setOversized(trip.oversizedLuggage);
+      if (typeof trip?.stops === "number") setExtraStop(trip.stops > 0);
+      if (typeof trip?.skiRack === "boolean") setSkiRack(trip.skiRack);
+      if (Array.isArray(trip?.extrasOn)) {
+        setExtraCodes(trip.extrasOn.filter((code): code is string => typeof code === "string"));
+      }
     }
-    if (typeof trip?.childSeat === "boolean") setChildSeat(trip.childSeat);
     writeDraft({
       pickup: nextPickup,
       destination: nextDrop,
@@ -625,6 +641,16 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       billingKind,
       flightNumber: draft.flightNumber,
     });
+    if (
+      shouldPersistUnpaidBooking("details", {
+        firstName: contact.firstName,
+        lastName: contact.lastName,
+        email: contact.email,
+        mobile: contact.mobile,
+      })
+    ) {
+      await startPayment({ silent: true });
+    }
     router.push(checkoutStepPath("payment"));
   }
 
@@ -956,13 +982,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     return "";
   }
   function extraOn(code: string): boolean {
-    const pinned = peekLockExtras(lockToken);
-    if (code === "child_seat") return childSeat || pinned?.child_seats === 1;
-    if (code === "oversized_luggage") return oversized || pinned?.oversized_luggage === true;
-    if (code === "extra_stop") return extraStop || (pinned?.extra_stops ?? 0) > 0;
-    if (code === "ski" || code === "ski_rack") return skiRack;
-    if (code === "meet_greet") return true;
-    return false;
+    return extraIsOnForStep(step, code, { childSeat, oversized, extraStop, skiRack, extraCodes });
   }
   function extraClick(code: string) {
     if (code === "child_seat") {
@@ -990,7 +1010,13 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       const next = !skiRack;
       setSkiRack(next);
       writeVamosTrip({ skiRack: next });
+      return;
     }
+    const next = extraCodes.includes(code)
+      ? extraCodes.filter((row) => row !== code)
+      : [...extraCodes, code];
+    setExtraCodes(next);
+    writeVamosTrip({ extrasOn: next });
   }
   const recapFareRows = recapExtraFares(extrasCatalog, extraOn);
   const extraGross = recapFareRows.reduce(
@@ -1341,16 +1367,18 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                 <div className="vt-checkout__extras">
                   {extrasCatalog.map((extra) => {
                     const ui = extraUi(extra.code);
-                    if (!ui) return null;
                     const on = extraOn(extra.code);
                     const price = extraPrice(extra);
+                    const label = ui ? t(ui.labelKey) : extra.code.replace(/_/g, " ");
+                    const icon = ui?.icon ?? "user";
+                    const toggle = ui?.toggle ?? extra.toggle;
                     const copy = (
                       <span className="vt-checkout__extra-copy">
-                        <strong>{t(ui.labelKey)}</strong>
+                        <strong>{label}</strong>
                         {price ? <span className="vt-checkout__extra-price">{price}</span> : null}
                       </span>
                     );
-                    if (!ui.toggle) {
+                    if (!toggle) {
                       return (
                         <div
                           key={extra.code}
@@ -1358,7 +1386,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                           data-on="true"
                           data-static="true"
                         >
-                          <Icon name={ui.icon} size={20} />
+                          <Icon name={icon} size={20} />
                           {copy}
                         </div>
                       );
@@ -1372,7 +1400,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                         aria-pressed={on}
                         onClick={() => extraClick(extra.code)}
                       >
-                        <Icon name={ui.icon} size={20} />
+                        <Icon name={icon} size={20} />
                         {copy}
                       </button>
                     );

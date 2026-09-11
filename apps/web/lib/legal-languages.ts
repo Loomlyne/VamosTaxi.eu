@@ -50,4 +50,5 @@ export const PHASE_5_ROUTES: readonly {
   { path: "/bookings", phase: 8 },
   { path: "/manage-booking", phase: 9 },
   { path: "/coming-soon", phase: 5 },
+  { path: "/sitemap", phase: 5 },
 ];

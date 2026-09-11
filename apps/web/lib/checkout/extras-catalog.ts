@@ -1,5 +1,7 @@
 // Checkout extras tiles follow the live rate book — the same rows ops priced.
-// Unknown codes (night, weekend, …) stay off the passenger extras card.
+// Automatic codes (night, weekend, …) stay off the passenger extras card.
+
+import { isPassengerExtra } from "@/lib/ops/surcharge-codes";
 
 export type CheckoutExtraJson = {
   code: string;
@@ -11,7 +13,7 @@ export type CheckoutExtraJson = {
 
 export type ExtraUi = {
   icon: "baby" | "user" | "luggage" | "map-pin" | "snowflake";
-  labelKey: "childSeat" | "meetGreet" | "extraOversized" | "additional-stop-2" | "extraSki";
+  labelKey: "childSeat" | "meetGreet" | "extraOversized" | "additional-stop-2" | "extraSki" | "extraPet";
   toggle: boolean;
 };
 
@@ -22,10 +24,39 @@ const EXTRA_UI: Record<string, ExtraUi> = {
   oversized_luggage: { icon: "luggage", labelKey: "extraOversized", toggle: true },
   ski: { icon: "snowflake", labelKey: "extraSki", toggle: true },
   ski_rack: { icon: "snowflake", labelKey: "extraSki", toggle: true },
+  pet: { icon: "user", labelKey: "extraPet", toggle: true },
 };
 
 export function extraUi(code: string): ExtraUi | null {
   return EXTRA_UI[code] ?? null;
+}
+
+export type ExtraToggles = {
+  childSeat: boolean;
+  oversized: boolean;
+  extraStop: boolean;
+  skiRack: boolean;
+  extraCodes: string[];
+};
+
+/** Recap and tiles follow this booking's toggles. A leftover lock must not paint extras. */
+export function extraIsOn(code: string, toggles: ExtraToggles): boolean {
+  if (code === "child_seat") return toggles.childSeat;
+  if (code === "oversized_luggage") return toggles.oversized;
+  if (code === "extra_stop") return toggles.extraStop;
+  if (code === "ski" || code === "ski_rack") return toggles.skiRack;
+  if (code === "meet_greet") return true;
+  return toggles.extraCodes.includes(code);
+}
+
+/** Extras are chosen on /checkout/details. Trip recap is class fare only. */
+export function extraIsOnForStep(
+  step: "trip" | "details" | "payment",
+  code: string,
+  toggles: ExtraToggles,
+): boolean {
+  if (step === "trip") return code === "meet_greet";
+  return extraIsOn(code, toggles);
 }
 
 export type RecapExtraLine = {
@@ -128,14 +159,14 @@ export function catalogFromSurcharges(rows: SurchargeLike[]): CheckoutExtraJson[
   const out: CheckoutExtraJson[] = [];
   for (const row of rows) {
     if (!row.active) continue;
+    if (!isPassengerExtra(row.code)) continue;
     const ui = extraUi(row.code);
-    if (!ui) continue;
     out.push({
       code: row.code,
       kind: row.kind,
       amount_rappen: row.amount_rappen,
       percent: row.percent,
-      toggle: ui.toggle,
+      toggle: ui?.toggle ?? true,
     });
   }
   return out;

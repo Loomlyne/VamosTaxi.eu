@@ -28,9 +28,10 @@ export async function GET(request: Request) {
       inner join public.booking_legs l
         on l.booking_id = b.id
        and l.leg_seq = 1
-      where b.status::text not in ('quote', 'pending')
+      where b.status::text <> 'quote'
         and lower(b.contact_email::text) = lower(${email})
-      order by l.scheduled_at desc nulls last
+      order by case when b.status::text = 'pending' then 0 else 1 end,
+               l.scheduled_at desc nulls last
       limit 50
     `;
   });

@@ -71,9 +71,10 @@ describe("08-05 refund file proofs", () => {
     expect(createAt).toBeGreaterThan(-1);
     expect(rpcAt).toBeGreaterThan(-1);
     expect(createAt).toBeLessThan(rpcAt);
+    expect(src).toMatch(/asStaff/);
     expect(src).toMatch(/asSystem/);
     expect(src).toMatch(/sk_live_/);
-    expect(src).not.toMatch(/asStaff/);
+    expect(src).not.toMatch(/asStaff[\s\S]*insert into public\.booking_refunds/i);
     expect(src).not.toMatch(/:6543/);
   });
 

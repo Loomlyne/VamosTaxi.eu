@@ -46,6 +46,7 @@ export type VamosTrip = {
   childSeat?: boolean;
   oversizedLuggage?: boolean;
   skiRack?: boolean;
+  extrasOn?: string[];
   billingKind?: "individual" | "company";
   stops?: number;
   flight?: string;
@@ -102,14 +103,24 @@ export function mergeVamosTrip(current: VamosTrip, patch: Partial<VamosTrip>): V
     "oversizedLuggage" in patch ||
     "skiRack" in patch ||
     "stops" in patch;
+  const extras = keepExtras
+    ? {
+        childSeat: Boolean(patch.childSeat),
+        oversizedLuggage: Boolean(patch.oversizedLuggage),
+        skiRack: Boolean(patch.skiRack),
+        stops: typeof patch.stops === "number" ? patch.stops : 0,
+      }
+    : { childSeat: false, oversizedLuggage: false, skiRack: false, stops: 0 };
   return {
     ...current,
     flight: "",
     flightNumber: "",
     ...patch,
+    ...extras,
+    detailsComplete: keepExtras ? Boolean(current.detailsComplete || patch.detailsComplete) : false,
     ...(keepExtras
       ? {}
-      : { childSeat: false, oversizedLuggage: false, skiRack: false, stops: 0 }),
+      : { contact: undefined, guest: undefined, airline: "", notes: "" }),
   };
 }
 

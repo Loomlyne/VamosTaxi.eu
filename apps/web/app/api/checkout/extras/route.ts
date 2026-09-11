@@ -13,7 +13,10 @@ export async function GET() {
     const { env } = getCloudflareContext();
     const raw = await loadRateBook(env, { preferDraft: false });
     const book = mapRateBook(raw);
-    return Response.json({ ok: true, extras: catalogFromSurcharges(book.surcharges) });
+    return Response.json(
+      { ok: true, extras: catalogFromSurcharges(book.surcharges) },
+      { headers: { "Cache-Control": "no-store" } },
+    );
   } catch {
     return Response.json({ ok: true, extras: [] });
   }
