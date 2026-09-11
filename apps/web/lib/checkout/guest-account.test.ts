@@ -8,11 +8,12 @@ const REPO = join(WEB_ROOT, "..", "..");
 describe("07-14 guest + finish payment", () => {
   it("account Finish payment reads vamosTrip lock", () => {
     const src = readFileSync(join(REPO, "app/pages/account.dc.html"), "utf8");
-    expect(src).toContain("Finish payment");
-    expect(src).toContain('href="/checkout/payment"');
+    const row = readFileSync(join(REPO, "app/pages/BookingRow.dc.html"), "utf8");
+    expect(row).toContain("Finish payment");
+    expect(row).toContain('href="/checkout/payment"');
     expect(src).toContain("vamosTrip");
     expect(src).toContain("cancelCheckout");
-    expect(src).toContain("data-ac-pay");
+    expect(src).not.toContain("data-ac-pay");
     expect(src).not.toContain("<a data-ac-more=\"1\" href=\"/checkout/payment\">");
     expect(src).not.toContain('variant="inset"');
     expect(src).toContain("/api/account/bookings");

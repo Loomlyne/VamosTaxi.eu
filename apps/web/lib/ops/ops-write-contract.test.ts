@@ -61,6 +61,9 @@ describe("ops write contract", () => {
     expect(table).toMatch(/data-vt-save-err/);
     expect(table).toMatch(/This row has no database id/);
     expect(table).toMatch(/The live rate book is locked/);
+    expect(table).toMatch(/function maskLicence/);
+    expect(table).toMatch(/data-vt-table-scroll/);
+    expect(table).toMatch(/data-vt-editor-foot/);
     expect(table).not.toMatch(/if \(this\.props\.onSave\) this\.props\.onSave\(d\);\s*this\.closeEditor\(\);/);
   });
 
@@ -75,5 +78,13 @@ describe("ops write contract", () => {
     expect(customers).toMatch(/return ops\.customers\.upsert\(row\)/);
     expect(pricing).toMatch(/return ops\.routes\.upsert\(patch\)/);
     expect(calendar).toMatch(/onSave: \(rec\) => ops \? ops\.bookings\.upsert\(rec\) : null/);
+  });
+
+  it("rate-book writes fork a live book instead of freezing", () => {
+    const src = readRepo("apps/web/lib/ops/rate-book.ts");
+    const route = readRepo("apps/web/app/[locale]/(ops)/api/staff/rate-book/route.ts");
+    expect(src).toMatch(/export async function forkLiveRateVersion/);
+    expect(route).toMatch(/resolveWritableVersionId/);
+    expect(route).toMatch(/forkLiveRateVersion/);
   });
 });

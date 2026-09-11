@@ -557,6 +557,7 @@
       distanceKm: b.distanceKm == null || b.distanceKm === "" ? null : num(b.distanceKm, 0),
       couponCode: str(b.couponCode),
       extras: Array.isArray(b.extras) ? b.extras.map(str).filter(Boolean) : [],
+      fareLines: Array.isArray(b.fareLines) ? b.fareLines : [],
       refundRappen: num(b.refundRappen, 0),
       stripeFeeRappen: b.stripeFeeRappen == null || b.stripeFeeRappen === "" ? null : num(b.stripeFeeRappen, 0),
       events: Array.isArray(b.events) ? b.events : []

@@ -218,7 +218,10 @@ describe("ops live data — comments 8–10", () => {
     expect(detail).toMatch(/\/api\/staff\/bookings\//);
     expect(detail).toMatch(/pickupDetail/);
     expect(detail).toMatch(/data-ops-tags/);
-    expect(detail).toMatch(/order:-1/);
+    expect(detail).toMatch(/data-ops-detail-bar/);
+    expect(detail).toMatch(/data-ops-route/);
+    expect(detail).toMatch(/eventActor/);
+    expect(detail).not.toMatch(/order:-1/);
     expect(data).toMatch(/totalRappen/);
   });
 
@@ -402,5 +405,20 @@ describe("ops live data — comments 8–10", () => {
     expect(page).toMatch(/visibilitychange/);
     expect(page).toMatch(/\/api\/account\/bookings/);
     expect(page).not.toMatch(/emptyBookings/);
+  });
+
+  it("ops detail route chips, history, and price lines", () => {
+    const html = read("app/ops/OpsDetail.dc.html");
+    expect(html).toMatch(/data-ops-route-line/);
+    expect(html).toMatch(/align-self:stretch/);
+    expect(html).toMatch(/name="clock"/);
+    expect(html).toMatch(/name="route"/);
+    expect(html).toMatch(/data-ops-history/);
+    expect(html).toMatch(/toggleHistory/);
+    expect(html).toMatch(/function fareBreakdown/);
+    expect(html).toMatch(/evQuoted:'Quote saved'/);
+    const map = read("apps/web/lib/ops/bookings-map.ts");
+    expect(map).toMatch(/function mapFareLines/);
+    expect(map).toMatch(/fareLines:/);
   });
 });

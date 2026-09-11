@@ -66,9 +66,18 @@ export async function PATCH(
     const parsed = parseCustomerWrite(body);
     if (!parsed) return jsonErr("invalid", 400);
     const { env } = getCloudflareContext();
-    const row = await upsertCustomer(env, claims, id, parsed);
-    if (!row) return jsonErr("not-found", 404);
-    return jsonOk(toOpsCustomer(row));
+    try {
+      const row = await upsertCustomer(env, claims, id, parsed);
+      if (!row) return jsonErr("not-found", 404);
+      return jsonOk(toOpsCustomer(row));
+    } catch (err) {
+      const rec = err && typeof err === "object" ? (err as { code?: string; message?: string }) : null;
+      const sql = rec && rec.code ? String(rec.code) : "";
+      if (sql === "23505") return jsonErr("23505", 409, { message: "That email is already on file." });
+      if (sql === "23514") return jsonErr("23514", 400, { message: "One of the fields is not a valid value." });
+      const message = rec && rec.message ? String(rec.message) : "Customer details could not be saved.";
+      return jsonErr("error", 500, { message });
+    }
   })(request);
 }
 
@@ -80,8 +89,14 @@ export async function DELETE(
   return withStaff(async (claims) => {
     if (!id) return jsonErr("not-found", 404);
     const { env } = getCloudflareContext();
-    const erased = await eraseCustomer(env, claims, id);
-    if (!erased) return jsonErr("not-found", 404);
-    return jsonOk({ id });
+    try {
+      const erased = await eraseCustomer(env, claims, id);
+      if (!erased) return jsonErr("not-found", 404);
+      return jsonOk({ id });
+    } catch (err) {
+      const rec = err && typeof err === "object" ? (err as { message?: string }) : null;
+      const message = rec && rec.message ? String(rec.message) : "This customer could not be removed.";
+      return jsonErr("error", 500, { message });
+    }
   })(request);
 }

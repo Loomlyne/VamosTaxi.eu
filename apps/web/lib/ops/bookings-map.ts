@@ -52,6 +52,7 @@ export type OpsBookingRow = {
   distanceKm: number | null;
   couponCode: string;
   extras: string[];
+  fareLines: { code: string; label: string; rappen: number | null }[];
 };
 
 export type SqlBoardRow = {
@@ -95,6 +96,7 @@ export type SqlBoardRow = {
   distance_km?: number | string | null;
   coupon_code?: string | null;
   policy?: unknown;
+  lines?: unknown;
 };
 
 function str(value: unknown): string {
@@ -177,6 +179,29 @@ function kmOrNull(value: number | string | null | undefined): number | null {
   const n = Number(value);
   if (!Number.isFinite(n) || n <= 0) return null;
   return Math.round(n * 10) / 10;
+}
+
+function mapFareLines(raw: unknown, klass: string): { code: string; label: string; rappen: number | null }[] {
+  if (!Array.isArray(raw)) return [];
+  const out: { code: string; label: string; rappen: number | null }[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    const rec = item as Record<string, unknown>;
+    const code = str(rec.code || rec.kind);
+    const amount = rec.amount_rappen ?? rec.amountRappen;
+    const n = amount == null || amount === "" ? NaN : Number(amount);
+    const rappenValue = Number.isFinite(n) ? n : null;
+    let label = "";
+    if (code === "distance_fare" || code === "fare" || code === "transfer") label = `Transfer, ${klass}`;
+    else if (code === "child_seat") label = "Child seat";
+    else if (code === "oversized_luggage") label = "Oversized luggage";
+    else if (code === "extra_stop") label = "Extra stop";
+    else if (code === "meet_greet") label = "Meet and greet";
+    else if (code === "coupon") label = "Coupon";
+    else label = code.replace(/_/g, " ");
+    out.push({ code, label, rappen: rappenValue });
+  }
+  return out;
 }
 
 function extrasFromPolicy(policy: unknown): string[] {
@@ -263,5 +288,6 @@ export function mapBoardBooking(row: SqlBoardRow): OpsBookingRow {
     distanceKm: kmOrNull(row.distance_km),
     couponCode: str(row.coupon_code).trim(),
     extras: extrasFromPolicy(row.policy),
+    fareLines: mapFareLines(row.lines, klass),
   };
 }

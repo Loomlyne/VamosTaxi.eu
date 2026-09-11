@@ -292,9 +292,11 @@ export function fleetJsonError(err: unknown): Response {
 export function chauffeurJsonError(err: unknown): Response {
   if (err instanceof ChauffeurInputError) return jsonErr(err.key, 400);
   const code = sqlCode(err);
-  if (code === "23503") return jsonErr("23503", 409);
-  if (code === "23514") return jsonErr("23514", 400);
-  return jsonErr("error", 500);
+  if (code === "23503") return jsonErr("23503", 409, { message: "That vehicle is missing." });
+  if (code === "23514") return jsonErr("23514", 400, { message: "One of the fields is not a valid value." });
+  const rec = err && typeof err === "object" ? (err as { message?: string }) : null;
+  const message = rec && rec.message ? String(rec.message) : "The chauffeur could not be saved.";
+  return jsonErr("error", 500, { message });
 }
 
 export async function readJsonBody(request: Request): Promise<unknown> {

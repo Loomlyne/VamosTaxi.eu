@@ -15,6 +15,7 @@ import {
   loadRateBook,
   loadServiceZones,
   RateBookInputError,
+  forkLiveRateVersion,
   type DistanceRateInput,
   type DistanceRateRow,
   type FixedRouteInput,
@@ -213,12 +214,33 @@ async function resolveVersionId(
   raw: unknown,
 ): Promise<number | null> {
   const parsed = optionalId(raw) ?? asInt(raw);
-  if (parsed != null && parsed > 0) return parsed;
   const versions = await loadRateVersions(env, claims);
-  const live = versions.find((row) => row.status === "live");
-  if (live) return live.id;
+  if (parsed != null && parsed > 0) return parsed;
   const draft = versions.find((row) => row.status === "draft");
-  return draft ? draft.id : null;
+  if (draft) return draft.id;
+  const live = versions.find((row) => row.status === "live");
+  return live ? live.id : versions[0]?.id ?? null;
+}
+
+async function resolveWritableVersionId(
+  env: CloudflareEnv,
+  claims: Parameters<typeof loadRateVersions>[1],
+  raw: unknown,
+): Promise<number | null> {
+  const parsed = optionalId(raw) ?? asInt(raw);
+  const versions = await loadRateVersions(env, claims);
+  if (parsed != null && parsed > 0) {
+    const hit = versions.find((row) => row.id === parsed);
+    if (!hit) return parsed;
+    if (hit.status === "draft") return hit.id;
+    if (hit.status === "live") return forkLiveRateVersion(env, claims, hit);
+    return hit.id;
+  }
+  const draft = versions.find((row) => row.status === "draft");
+  if (draft) return draft.id;
+  const live = versions.find((row) => row.status === "live");
+  if (live) return forkLiveRateVersion(env, claims, live);
+  return versions[0]?.id ?? null;
 }
 
 function failWrite(err: unknown): Response {
@@ -314,7 +336,7 @@ export const PUT = withAdmin(async (claims, request) => {
   }
 
   const { env } = getCloudflareContext();
-  const versionId = await resolveVersionId(env, claims, recBody.versionId);
+  const versionId = await resolveWritableVersionId(env, claims, recBody.versionId);
   if (versionId == null) return jsonErr("not-found", 404);
   const id = optionalId(recBody.id);
 

@@ -84,7 +84,7 @@
 [data-bk-meta]{font-size:var(--vt-body-sm);line-height:1.45;color:var(--vt-text-secondary)}
 [data-bk-note]{display:flex;align-items:flex-start;gap:7px;font-size:var(--vt-body-xs);line-height:1.5;color:var(--vt-text-muted)}
 [data-bk-mid]{display:flex;align-items:center;min-height:22px;padding-inline-start:20px;font-family:var(--vt-font-display);font-size:var(--vt-body-xs);font-weight:var(--vt-weight-semibold);letter-spacing:-.01em;line-height:1;font-variant-numeric:tabular-nums;color:var(--vt-text-muted)}
-[data-bk-payacts]{position:relative;z-index:4;display:flex;justify-content:flex-end;pointer-events:auto}
+[data-bk-payacts]{position:relative;z-index:4;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;pointer-events:auto}
 
 [data-bk-trail]{display:flex;align-items:center;justify-content:space-between;gap:14px;min-width:0;padding:0 16px 14px}
 [data-bk-row][data-bk-unpaid="1"] [data-bk-trail]{flex-direction:column;align-items:flex-end;justify-content:center;gap:8px;padding:14px 16px}
@@ -188,7 +188,7 @@
 </span>
 
 <span data-bk-trail="1">
-<sc-if value="{{ isUnpaid }}">
+<sc-if value="{{ showTrailBadge }}">
 <span data-bk-badge="1">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StatusBadge" status="{{ badge }}" tone="{{ tone }}" label="{{ badgeLabel }}" hint-size="112px,28px"></x-import>
 </span>
@@ -211,6 +211,7 @@
 </span>
 <sc-if value="{{ isUnpaid }}">
 <span data-bk-payacts="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" href="/checkout/payment" hint-size="140px,36px">Finish payment</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ cancelUnpaid }}" aria-label="Cancel unpaid booking. Unpaid bookings cancel automatically after 24 hours." hint-size="88px,36px">Cancel</x-import>
 </span>
 </sc-if>
@@ -282,7 +283,7 @@ class Component extends DCLogic {
   cancelUnpaid = (e) => {
     if (e) { e.preventDefault(); e.stopPropagation(); }
     const ref = this._ref;
-    if (ref && typeof this.props.onCancel === 'function') this.props.onCancel(ref);
+    if (typeof this.props.onCancel === 'function') this.props.onCancel(ref || '');
   };
 
   renderVals() {
@@ -301,6 +302,7 @@ class Component extends DCLogic {
     /* Quick actions only where they mean anything: a trip that has not happened yet. */
     const actionable = status === 'new' || status === 'confirmed' || status === 'assigned';
     const unpaid = status === 'unpaid';
+    const railTime = hasTo && !!time;
     this._ref = refCode;
     return {
       n14: 14, n16: 16, n18: 18,
@@ -325,8 +327,9 @@ class Component extends DCLogic {
       noteText: note, hasNote: !unpaid && !!note && (p.showNote ?? true) !== false,
       isUnpaid: unpaid,
       unpaidFlag: unpaid ? '1' : '',
-      showHead: !unpaid,
-      hasMid: unpaid && hasTo && !!time,
+      showHead: !railTime,
+      hasMid: railTime,
+      showTrailBadge: railTime || unpaid,
       aria: [refCode, date, time && 'at ' + time, LABEL[status]].filter(Boolean).join(', '),
       skRoute: p.skRoute || '74%', skMeta: p.skMeta || '46%',
     };
