@@ -131,6 +131,45 @@ describe("ops live data — comments 8–10", () => {
     expect(row.vehicle).toBe("");
     expect(row.refundRappen).toBe(0);
     expect(row.stripeFeeRappen).toBeNull();
+    expect(row.durationMin).toBe(0);
+    expect(row.couponCode).toBe("");
+    expect(row.extras).toEqual([]);
+  });
+
+  it("maps snapshot duration, coupon, and extras onto the board row", () => {
+    const row = mapBoardBooking({
+      id: "11111111-1111-1111-1111-111111111111",
+      reference: "VT-26-0720",
+      status: "confirmed",
+      contact_name: "Ada",
+      contact_email: "ada@example.com",
+      contact_phone: "+41 79 000 00 00",
+      company_name: null,
+      note: null,
+      pay_link_sent_at: null,
+      pickup_text: "Zurich Airport",
+      dropoff_text: "Zurich Hauptbahnhof",
+      scheduled_local: "2026-09-10T02:45",
+      scheduled_at: "2026-09-10T00:45:00+00",
+      flight_no: null,
+      pax: 1,
+      bags: 0,
+      class_slug: "business",
+      chauffeur_name: null,
+      payment_status: "succeeded",
+      captured_at: "2026-09-09T16:42:29.000Z",
+      payment_created_at: "2026-09-09T16:40:00.000Z",
+      stripe_checkout_session_id: "cs_test_paid",
+      charged_rappen: 12000,
+      duration_min: 16,
+      distance_km: 10.6,
+      coupon_code: "WELCOME",
+      policy: { extras: ["child_seat"] },
+    });
+    expect(row.durationMin).toBe(16);
+    expect(row.distanceKm).toBe(10.6);
+    expect(row.couponCode).toBe("WELCOME");
+    expect(row.extras).toEqual(["child_seat"]);
   });
 
   it("maps a captured fare onto the board row", () => {
@@ -177,6 +216,9 @@ describe("ops live data — comments 8–10", () => {
     expect(board).not.toMatch(/render: \(\) => 'CHF 000'/);
     expect(detail).toMatch(/openEdit/);
     expect(detail).toMatch(/\/api\/staff\/bookings\//);
+    expect(detail).toMatch(/pickupDetail/);
+    expect(detail).toMatch(/data-ops-tags/);
+    expect(detail).toMatch(/order:-1/);
     expect(data).toMatch(/totalRappen/);
   });
 
