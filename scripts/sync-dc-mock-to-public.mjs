@@ -2,6 +2,9 @@
 /**
  * Copy the Claude Design export (app/ + design-system + assets + hero)
  * into apps/web/public so staging serves the mock as-is.
+ *
+ * One file per mock: Name.dc.html. Cloudflare html_handling is "none",
+ * so do not write a second Name.dc — that object goes stale.
  */
 import {
   cpSync,
@@ -9,6 +12,7 @@ import {
   mkdirSync,
   readFileSync,
   readdirSync,
+  rmSync,
   writeFileSync,
 } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -24,13 +28,9 @@ const PAGE_FILES = [
   "app/home/home.dc.html",
   "app/pages/about.dc.html",
   "app/pages/account.dc.html",
-  "app/pages/become-a-partner.dc.html",
-  "app/pages/booking-detail.dc.html",
   "app/pages/bookings.dc.html",
   "app/pages/cancellation.dc.html",
-  "app/pages/checkout.dc.html",
   "app/pages/coming-soon.dc.html",
-  "app/pages/confirmation.dc.html",
   "app/pages/contact.dc.html",
   "app/pages/cookies.dc.html",
   "app/pages/faq.dc.html",
@@ -39,10 +39,23 @@ const PAGE_FILES = [
   "app/pages/privacy.dc.html",
   "app/pages/reset-password.dc.html",
   "app/pages/sign-in.dc.html",
+  "app/pages/sitemap.dc.html",
   "app/pages/terms.dc.html",
   "app/ops/ops.dc.html",
   "app/ops/ops-login.dc.html",
 ];
+
+const SKIP_PUBLIC = new Set([
+  "become-a-partner.dc.html",
+  "booking-detail.dc.html",
+  "checkout.dc.html",
+  "confirmation.dc.html",
+]);
+
+/** Real Name.dc files are banned. html_handling none serves Name.dc.html only. */
+function isDcCopy(name) {
+  return name.endsWith(".dc") && !name.endsWith(".dc.html");
+}
 
 function copy(from, to) {
   if (!existsSync(from)) {
@@ -53,14 +66,37 @@ function copy(from, to) {
     recursive: true,
     filter: (src) => {
       const parts = src.split(/[/\\]/);
-      return !parts.includes("standalone") && !parts.includes(".DS_Store");
+      const base = parts[parts.length - 1] ?? "";
+      return (
+        !parts.includes("standalone") &&
+        !parts.includes(".DS_Store") &&
+        !SKIP_PUBLIC.has(base) &&
+        !isDcCopy(base)
+      );
     },
   });
+}
+
+function stripDcCopies(dir) {
+  if (!existsSync(dir)) return;
+  for (const ent of readdirSync(dir, { withFileTypes: true })) {
+    const p = resolve(dir, ent.name);
+    if (ent.isDirectory()) stripDcCopies(p);
+    else if (isDcCopy(ent.name)) rmSync(p);
+  }
 }
 
 copy(resolve(repo, "app"), resolve(pub, "app"));
 copy(resolve(repo, "design-system"), resolve(pub, "_ds", uuid));
 copy(resolve(repo, "assets"), resolve(pub, "assets"));
+
+const pagesPub = resolve(pub, "app/pages");
+for (const name of SKIP_PUBLIC) {
+  for (const file of [name, name.replace(/\.dc\.html$/, ".html")]) {
+    const leftover = resolve(pagesPub, file);
+    if (existsSync(leftover)) rmSync(leftover);
+  }
+}
 
 for (const name of [
   "hero-arrivals.jpg",
@@ -97,13 +133,7 @@ for (const rel of PAGE_FILES) {
 
 writeFileSync(join(pub, "_redirects"), redirectLines.join("\n") + "\n");
 
-const opsPub = resolve(pub, "app/ops");
-if (existsSync(opsPub)) {
-  for (const name of readdirSync(opsPub)) {
-    if (!name.endsWith(".dc.html")) continue;
-    cpSync(resolve(opsPub, name), resolve(opsPub, name.slice(0, -5)));
-  }
-}
+stripDcCopies(resolve(pub, "app"));
 
 console.log(
   `synced DC mock → apps/web/public (${PAGE_FILES.length} pages, ${readdirSync(resolve(pub, "app")).length} app entries)`,

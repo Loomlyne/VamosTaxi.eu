@@ -72,9 +72,12 @@ describe("Phase 6 finalize — four classes and staff hash", () => {
     );
   });
 
-  it("syncs ops sibling .dc twins so Cloudflare html_handling cannot serve stale objects", () => {
+  it("does not write .dc copies; mocks are Name.dc.html only", () => {
     const sync = read("scripts/sync-dc-mock-to-public.mjs");
-    expect(sync).toMatch(/name\.endsWith\("\.dc\.html"\)/);
-    expect(sync).toMatch(/name\.slice\(0, -5\)/);
+    expect(sync).toContain("isDcCopy");
+    expect(sync).toContain("stripDcCopies");
+    expect(sync).not.toMatch(/name\.slice\(0, -5\)/);
+    const wrangler = read("apps/web/wrangler.jsonc");
+    expect(wrangler).toMatch(/"html_handling":\s*"none"/);
   });
 });
