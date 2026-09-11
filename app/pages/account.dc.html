@@ -107,7 +107,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-ac-more]:hover{color:var(--vt-charcoal-900)}
 [data-ac-more-go]{display:grid;place-items:center;flex:0 0 auto;width:32px;height:32px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-grey-300);transition:background 140ms var(--vt-ease-standard),border-color 140ms var(--vt-ease-standard),color 140ms var(--vt-ease-standard)}
 [data-ac-more]:hover [data-ac-more-go]{background:var(--vt-charcoal-900);border-color:var(--vt-charcoal-900);color:var(--vt-white)}
-[data-ac-pay]{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:8px;padding:14px 0 2px;border-top:1px solid var(--vt-border-subtle)}
 [dir="rtl"] [data-ac-more-go]{transform:scaleX(-1)}
 [data-ac-close]{display:flex;flex-direction:column;gap:14px;align-items:flex-start;box-sizing:border-box;padding:clamp(20px,2.4vw,26px);border:1px solid var(--vt-danger);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface)}
 [data-ac-close] [data-ac-h2]{color:var(--vt-danger)}
@@ -281,12 +280,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </sc-for>
 <sc-if value="{{ noBookings }}" hint-placeholder-val="{{ false }}">
 <p data-ac-sub="1" style="padding:18px 0;border-top:1px solid var(--vt-border-subtle)">No transfers yet. Your next booking appears here the moment it is paid.</p>
-</sc-if>
-<sc-if value="{{ finishPayment }}" hint-placeholder-val="{{ false }}">
-<div data-ac-pay="1">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" href="/checkout/payment" hint-size="170px,44px">Finish payment</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ cancelCheckout }}" hint-size="120px,44px">Cancel</x-import>
-</div>
 </sc-if>
 </div>
 <a data-ac-more="1" href="/bookings">
@@ -767,7 +760,8 @@ class Component extends DCLogic {
   };
 
   cancelUnpaid = (ref) => {
-    if (!ref || this._cancelling) return;
+    if (!ref) { this.cancelCheckout(); return; }
+    if (this._cancelling) return;
     this._cancelling = true;
     fetch('/api/account/bookings/cancel', {
       method: 'POST',
@@ -796,6 +790,29 @@ class Component extends DCLogic {
       const bu = b.status === 'unpaid' ? 0 : 1;
       return au - bu;
     });
+    const hasUnpaid = upcoming.some((b) => b.status === 'unpaid');
+    try {
+      const raw = localStorage.getItem('vamosTrip');
+      const trip = raw ? JSON.parse(raw) : null;
+      const locked = !!(trip && trip.lock && (trip.quote_id || trip.quoteId));
+      if (locked && !hasUnpaid) {
+        const pickup = trip.pickup || trip.pickupText || '';
+        const dropoff = trip.dropoff || trip.dropoffText || '';
+        const pax = Number(trip.pax) || 1;
+        const ref = trip.reference || trip.ref || '';
+        const rappen = Number(trip.total_rappen || trip.totalRappen || 0) || 0;
+        upcoming.unshift({
+          status: 'unpaid',
+          href: '/checkout/payment',
+          date: trip.date || '',
+          time: trip.time || '',
+          route: pickup && dropoff ? pickup + ' \u2192 ' + dropoff : (pickup || dropoff),
+          ref,
+          pax,
+          priceRappen: rappen,
+        });
+      }
+    } catch (e) {}
     const bookings = upcoming.slice(0, 2).map((b) => ({
       status: b.status,
       href: b.href || ('/confirmation/' + b.ref),
@@ -808,13 +825,6 @@ class Component extends DCLogic {
         ? window.VamosLocale.fromChf(b.priceRappen)
         : 'CHF 000',
     }));
-    const hasUnpaid = upcoming.some((b) => b.status === 'unpaid');
-    let finishPayment = false;
-    try {
-      const raw = localStorage.getItem('vamosTrip');
-      const trip = raw ? JSON.parse(raw) : null;
-      finishPayment = !hasUnpaid && !!(trip && trip.lock && (trip.quote_id || trip.quoteId));
-    } catch (e) {}
 
     const email = auth.email || '';
     const full = [auth.firstName, auth.lastName].filter(Boolean).join(' ').trim();
@@ -840,7 +850,6 @@ class Component extends DCLogic {
       savedPhone: readPhone(),
 
       bookings, noBookings: bookings.length === 0,
-      finishPayment,
       cancelCheckout: this.cancelCheckout,
       cancelUnpaid: this.cancelUnpaid,
 
