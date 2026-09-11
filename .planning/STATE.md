@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Ops Support
-status: executing
-stopped_at: "Phase 8 plan 10 executed on gsd/08-10-customer-edit-request. Next: 08-UAT (owner). Do not deploy."
-last_updated: "2026-09-10T23:10:00.000Z"
-last_activity: 2026-09-11 -- 08-10 customer paid-edit POST; awaiting 08-UAT
+milestone: v1.0
+milestone_name: Vamos Taxi V1
+status: planned
+stopped_at: "Phase 9 planned 2026-09-12. 12 plans, waves 1–9. Checker PASSED. Next: owner signs plan review, then execute-phase 9. 13–17 parked."
+last_updated: "2026-09-11T23:13:02.000Z"
+last_activity: 2026-09-12 -- plan-phase 9 VERIFICATION PASSED
 progress:
   total_phases: 17
-  completed_phases: 6
-  total_plans: 110
-  completed_plans: 106
-  percent: 35
+  completed_phases: 9
+  total_plans: 136
+  completed_plans: 119
+  percent: 47
 ---
 
 # Project State
@@ -20,21 +20,21 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-09-04)
 
-**Core value:** Dispatcher answers contact mail from Ops. Customer replies land in the same ticket.
-**Current focus:** Phase 8 — Ops Dispatch (08-10 done, 08-UAT next)
+**Core value:** quote → pay → confirmation. Lifecycle after pay is Phase 9.
+**Current focus:** Phase 9 — Booking Lifecycle & Customer Self-Service (planned, wait owner sign)
 
 ## Current Position
 
-Phase: 8 (Ops Dispatch) — 08-10 executed, UAT not signed
-Plan: 10 of 10
-Status: 08-10 customer paid-edit request on gsd/08-10-customer-edit-request. Owner signed start 8. 08-UAT next. No deploy.
-Last activity: 2026-09-11 -- 08-10 POST /api/account/bookings
+Phase: 9 (Booking lifecycle) — planned
+Plan: 12 plans (09-01 … 09-12), waves 1–9
+Status: VERIFICATION PASSED. Ready to execute after he signs. 13–17 parked.
+Last activity: 2026-09-12 -- plan-phase 9 checker pass
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 0
+- Total plans completed: 29
 - Average duration: - min
 - Total execution time: 0 hours
 
@@ -42,7 +42,9 @@ Last activity: 2026-09-11 -- 08-10 POST /api/account/bookings
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 7 | 16 | - | - |
+| 8 | 10 | - | - |
+| 12 | 3 | - | - |
 
 **Recent Trend:**
 
@@ -88,6 +90,7 @@ Last activity: 2026-09-11 -- 08-10 POST /api/account/bookings
 
 - Phase 5 edited: force-edited 5/7/8/9 close bars: per-URL staging connection tables, no mock leftovers; become-a-driver removed from 5; Stripe test only until 11
 - v1.1 Ops Support: Phases 12–16 appended (continue numbering from 11). Funnel Phases 7–11 frozen. Closed stays closed (no auto-reopen).
+- Phase 17 added: Ops chauffeur profile, shift roster, two-driver vehicles (OPS-11–14). Spine still 08-UAT then 12–16; discuss-phase 17 after that. Mock first. No driver app. No auto-dispatch.
 
 ### Decisions
 
@@ -216,6 +219,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-10T14:23:36.690Z
-Stopped at: Phase 8 CONTEXT ready (owner authorized discuss while 7 UAT continues other session). Next: plan-phase 8 after he signs.
-Resume file: .planning/phases/08-ops-dispatch-live-board-assignment-account-surfaces/08-CONTEXT.md
+Last session: 2026-09-12
+Stopped at: Phase 9 planned (12 plans, checker PASSED). Next: owner signs plan review, then execute-phase 9. 13–17 parked.
+Resume file: .planning/phases/09-booking-lifecycle-customer-self-service/09-01-PLAN.md
