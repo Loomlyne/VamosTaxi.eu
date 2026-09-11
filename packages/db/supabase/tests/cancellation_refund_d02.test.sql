@@ -99,8 +99,17 @@ select
   'quote-engine@09-01-d02-' || b.contact_email,
   2, 2,
   '[]'::jsonb,
-  '{}'::jsonb,
-  10000, 0, 2000, 10000,
+  jsonb_build_object(
+    'cancellation_tiers', '[]'::jsonb,
+    'free_cancel_hours', 24,
+    'airport_waiting_minutes', 60,
+    'city_waiting_minutes', 15,
+    'settings_version_id', sv.id,
+    'modification_deadline_hours', 24,
+    'min_advance_minutes', 180,
+    'policy_doc', 'd02'
+  ),
+  10000, 0, 0, 10000,
   now() + interval '1 day',
   now() + interval '1 day',
   b.id

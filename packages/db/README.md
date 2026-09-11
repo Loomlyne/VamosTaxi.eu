@@ -120,6 +120,7 @@ CLI clock via `supabase migration new` (never a hand-typed timestamp). Hosted ap
 | File | Owning plan | Contents |
 |---|---|---|
 | `20260911234512_booking_lifecycle_rollup` | **09-02** | `booking_legs.original_scheduled_at` (D-26 freeze); `app.recompute_booking_status` + public wrapper + AFTER status trigger. Hosted apply is 09-04. Charge gate untouched. |
+| `20260911234758_booking_lifecycle_cancel_refund` | **09-02** | D-02 compute + `manage_booking_cancel` / `customer_paid_cancel` / `manage_booking_read` / `record_booking_refund`; remaining ops refund (D-12/D-13). Hosted apply is 09-04. Charge gate untouched. |
 
 Three reorderings versus `02-SCHEMA-DRAFT.md` §16's illustrative sequence, each load-bearing:
 
