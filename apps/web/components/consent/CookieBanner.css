@@ -1,0 +1,111 @@
+/* Production cookie banner. Visual tokens/layout from CookieBanner.dc.html.
+   Two buttons only — do not port the prefs modal. Law 01: no glow. Law 03: logical props. */
+
+@keyframes vt-ck-in {
+  from {
+    transform: translateY(14px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.vt-ck-banner {
+  position: fixed;
+  inset-inline: 16px;
+  inset-block-end: 16px;
+  z-index: 70;
+  font-family: var(--vt-font-body);
+}
+
+.vt-ck-sheet {
+  background: var(--vt-bg-surface);
+  border: 1px solid var(--vt-border-subtle);
+  border-radius: var(--vt-radius-xl);
+  box-shadow: var(--vt-shadow-lg);
+  padding: 24px;
+  animation: vt-ck-in 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.vt-ck-kicker {
+  margin: 0 0 10px;
+  font-size: var(--vt-label-sm);
+  letter-spacing: var(--vt-label-tracking);
+  text-transform: uppercase;
+  font-weight: var(--vt-label-weight);
+  color: var(--vt-text-muted);
+}
+
+.vt-ck-title {
+  margin: 0 0 8px;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-heading-3);
+  line-height: var(--vt-heading-leading);
+  letter-spacing: var(--vt-heading-tracking);
+  font-weight: var(--vt-weight-semibold);
+  color: var(--vt-text-primary);
+}
+
+.vt-ck-body {
+  margin: 0 0 18px;
+  font-size: var(--vt-body-sm);
+  line-height: var(--vt-body-leading);
+  color: var(--vt-text-secondary);
+  max-inline-size: 46ch;
+}
+
+.vt-ck-link {
+  color: var(--vt-charcoal-900);
+  text-decoration: underline;
+  text-decoration-color: var(--vt-grey-300);
+  text-underline-offset: 3px;
+}
+
+.vt-ck-link:hover {
+  color: var(--vt-yellow-700);
+  text-decoration-color: currentColor;
+}
+
+.vt-ck-alert {
+  margin-block-end: 12px;
+}
+
+.vt-ck-acts {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vt-ck-turnstile .vt-turnstile {
+  min-block-size: 0;
+  min-inline-size: 0;
+}
+
+@media (min-width: 640px) {
+  .vt-ck-banner {
+    inset-inline-start: 32px;
+    inset-inline-end: auto;
+    inset-block-end: 32px;
+    inline-size: 452px;
+  }
+
+  .vt-ck-acts {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+}
+
+@media print {
+  .vt-ck-banner {
+    display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vt-ck-sheet {
+    animation: none;
+  }
+}

@@ -12,7 +12,11 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     environment: "node",
-    include: ["lib/**/*.test.ts", "tests/unit/**/*.test.ts"],
+    include: [
+      "lib/**/*.test.ts",
+      "tests/unit/**/*.test.ts",
+      "components/consent/**/*.test.ts",
+    ],
     exclude: [
       "node_modules/**",
       "tests/visual/**",

@@ -1,12 +1,30 @@
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
+import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { routing } from "@/i18n/routing";
+import { CookieBanner } from "@/components/consent/CookieBanner";
 import { SiteFooter, SiteHeader, SiteShell } from "@/components/shell";
+import { CONSENT_COOKIE, readConsentSubject } from "@/lib/consent/cookie";
 import { Providers } from "./providers";
 import "../globals.css";
+
+function turnstileSiteKey(): string | undefined {
+  try {
+    const { env } = getCloudflareContext();
+    return env.TURNSTILE_SITE_KEY ?? process.env.TURNSTILE_SITE_KEY;
+  } catch {
+    return process.env.TURNSTILE_SITE_KEY;
+  }
+}
+
+function isDashboardHost(hostHeader: string | null): boolean {
+  const host = (hostHeader ?? "").split(":")[0]?.toLowerCase() ?? "";
+  return host === "dashboard.vamostaxi.site" || host === "dashboard.localhost";
+}
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -42,6 +60,14 @@ export default async function LocaleLayout({
 
   const messages = await getMessages();
   const dir = locale === "ar" ? "rtl" : "ltr";
+  const jar = await cookies();
+  const consentValue = jar.get(CONSENT_COOKIE)?.value;
+  const hasConsent = Boolean(
+    readConsentSubject(consentValue ? `${CONSENT_COOKIE}=${consentValue}` : null),
+  );
+  const onDashboard = isDashboardHost((await headers()).get("host"));
+  const siteKey = turnstileSiteKey();
+  const showBanner = !hasConsent && !onDashboard;
 
   return (
     <html lang={locale} dir={dir}>
@@ -56,8 +82,14 @@ export default async function LocaleLayout({
               a page whose hero already carries a photograph (home, Phase 5) is the only
               case for `variant="overlay"`, and it will pass that itself once that hero
               exists. `SiteShell` keeps the dev-only gallery outside the composition —
-              see its own file for why. */}
-          <SiteShell header={<SiteHeader />} footer={<SiteFooter />}>
+              see its own file for why. HttpOnly consent_subject is read here so the
+              banner is omitted on SSR; JS cannot hide it. SiteShell still skips the
+              banner on ops/dashboard/dev. */}
+          <SiteShell
+            header={<SiteHeader />}
+            footer={<SiteFooter />}
+            banner={showBanner ? <CookieBanner siteKey={siteKey} /> : null}
+          >
             {children}
           </SiteShell>
         </Providers>
