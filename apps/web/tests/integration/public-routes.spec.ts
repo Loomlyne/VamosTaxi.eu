@@ -136,20 +136,48 @@ test.describe("Public route contract @public-routes", () => {
     }
   });
 
-  test("sitemap.xml lists every PUBLIC_ROUTES entry once with four language alternates", async () => {
+  test("sitemap.xml allowlist is D-30, not PUBLIC_ROUTES.length (D-30 D-31)", async () => {
     const routes = loadPublicRoutes();
+    const allowlist = [
+      "/",
+      "/about",
+      "/faq",
+      "/contact",
+      "/terms",
+      "/privacy",
+      "/imprint",
+      "/cookies",
+      "/cancellation",
+    ];
+    const forbidden = [
+      "/checkout",
+      "/confirmation",
+      "/bookings",
+      "/account",
+      "/sign-in",
+      "/sign-up",
+      "/manage-booking",
+      "/reset-password",
+      "/ops",
+      "/dev",
+      "/coming-soon",
+      "/sitemap",
+    ];
     const res = await fetch(baseURL + "/sitemap.xml");
     expect(res.status).toBe(200);
     const body = await res.text();
     const urlBlocks = body.match(/<url>[\s\S]*?<\/url>/g) ?? [];
-    expect(urlBlocks.length, "sitemap.xml url count vs PUBLIC_ROUTES").toBe(routes.length);
-    for (const path of routes) {
+    expect(urlBlocks.length, "sitemap.xml url count must not equal PUBLIC_ROUTES").not.toBe(
+      routes.length,
+    );
+    expect(urlBlocks.length, "sitemap.xml url count vs D-30 allowlist").toBe(allowlist.length);
+    for (const path of allowlist) {
       const locSuffix = path === "/" ? "" : path;
-      const loc = `${SITE_URL}${locSuffix}` || `${SITE_URL}/`;
+      const loc = `${SITE_URL}${locSuffix}`;
       expect(body).toContain(`<loc>${loc}</loc>`);
-      for (const locale of LOCALES) {
-        expect(body).toContain(alternateHref(locale, path));
-      }
+    }
+    for (const path of forbidden) {
+      expect(body).not.toContain(`<loc>${SITE_URL}${path}</loc>`);
     }
   });
 
