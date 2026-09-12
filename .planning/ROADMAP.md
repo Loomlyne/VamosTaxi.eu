@@ -53,7 +53,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 7: Checkout & Payment** - A customer pays for a locked quote and receives a webhook-confirmed booking (completed 2026-09-11)
 - [x] **Phase 8: Ops Dispatch — Live Board, Assignment & Account Surfaces** - Staff run the live board, assign real bookings, and customers see their own history (completed 2026-09-11)
 - [x] **Phase 9: Booking Lifecycle & Customer Self-Service** - A booking lives its full lifecycle — reminders, delay handling, cancellation, review
-- [ ] **Phase 10: Hardening — Performance, Security & Compliance** - The site survives a launch surge and never captures data ahead of consent
+- [x] **Phase 10: Hardening — Performance, Security & Compliance** - The site survives a launch surge and never captures data ahead of consent (completed 2026-09-12)
 - [ ] **Phase 11: Launch Cutover** - Vamos Taxi goes live on its real domain with real pricing
 - [x] **Phase 12: Ticket schema + #support mock** - Contact rows become tickets (New/Open/Replied/Responded/Closed); OpsSupportTicket + sidebar `#support`; Staff tab stays gone (completed 2026-09-11)
 - [ ] **Phase 13: Staff APIs + outbound Resend replies** - Dispatcher sends a reply from the ticket; customer Gmail threads; info@ BCC; RFC Message-ID persisted
@@ -485,7 +485,7 @@ sequencing is deliberate, not incidental.
   4. Errors, uptime and a health check covering database, payments and maps report to a place someone actually watches.
   5. Backups run on a schedule and a restore has actually been performed once; a runbook exists for refunds, resending an email, manual assignment and restoring the database.
 
-**Plans**: TBD
+**Plans**: 10-01 … 10-10. Restore Task 3 parked (Supabase Free). WAF skip live on vamostaxi.site.
 
 ### Phase 11: Launch Cutover
 
@@ -621,8 +621,8 @@ v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16 → 17
 | 6. Ops Reference Data & Content Console | 13/13 | Complete   | 2026-09-01 |
 | 7. Checkout & Payment | 16/16 | Complete    | 2026-09-11 |
 | 8. Ops Dispatch — Live Board, Assignment & Account Surfaces | 10/10 | Complete    | 2026-09-11 |
-| 9. Booking Lifecycle & Customer Self-Service | 0/TBD | Not started | - |
-| 10. Hardening — Performance, Security & Compliance | 0/TBD | Not started | - |
+| 9. Booking Lifecycle & Customer Self-Service | 12/12 | Complete    | 2026-09-12 |
+| 10. Hardening — Performance, Security & Compliance | 10/10 | Complete    | 2026-09-12 |
 | 11. Launch Cutover | 0/TBD | Not started | - |
 | 12. Ticket schema + #support mock | 3/3 | Complete    | 2026-09-11 |
 | 13. Staff APIs + outbound Resend replies | 0/TBD | Not started | - |
