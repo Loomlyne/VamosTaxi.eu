@@ -21,6 +21,7 @@ export type AccountSqlRow = {
   chauffeur_name?: string | null;
   vehicle_plate?: string | null;
   vehicle_model?: string | null;
+  has_review?: boolean | null;
 };
 
 export type AccountBooking = {
@@ -38,6 +39,8 @@ export type AccountBooking = {
   status: "unpaid" | "new" | "confirmed" | "assigned" | "completed" | "cancelled";
   when: "upcoming" | "past";
   group: string;
+  reviewState: "none" | "requested" | "reviewed";
+  reviewHref: string;
 };
 
 function str(value: unknown): string {
@@ -97,6 +100,22 @@ function groupLabel(dateIso: string): string {
   }).format(utcNoon);
 }
 
+function reviewOf(
+  status: string,
+  hasReview: boolean,
+  ref: string,
+): { reviewState: AccountBooking["reviewState"]; reviewHref: string } {
+  if (hasReview) return { reviewState: "reviewed", reviewHref: "/review" };
+  const s = status.toLowerCase();
+  if (s === "completed" || s === "partially_completed" || s === "no_show") {
+    return {
+      reviewState: "requested",
+      reviewHref: ref ? `/review?ref=${encodeURIComponent(ref)}` : "/review",
+    };
+  }
+  return { reviewState: "none", reviewHref: "" };
+}
+
 function rowStatus(status: string): AccountBooking["status"] {
   const s = status.toLowerCase();
   if (s === "pending") return "unpaid";
@@ -123,6 +142,7 @@ export function mapAccountBooking(row: AccountSqlRow, now = new Date()): Account
   const dropoff = str(row.dropoff_text);
   const ref = str(row.reference);
   const uiStatus = rowStatus(status);
+  const review = reviewOf(status, row.has_review === true, ref);
   return {
     ref,
     href: uiStatus === "unpaid" ? "/checkout/payment" : ref ? `/confirmation/${ref}` : "/account",
@@ -138,5 +158,7 @@ export function mapAccountBooking(row: AccountSqlRow, now = new Date()): Account
     status: uiStatus,
     when: whenFor(status, row.scheduled_at, now),
     group: groupLabel(when.dateIso),
+    reviewState: review.reviewState,
+    reviewHref: review.reviewHref,
   };
 }
