@@ -92,5 +92,28 @@
     "headline": "Ihr Fahrer wurde zugewiesen",
     "chauffeurLabel": "Chauffeur",
     "plateLabel": "Kennzeichen"
+  },
+  "timeChange": {
+    "confirmedSubject": "Abholzeit bestätigt — {reference}",
+    "confirmedPreheader": "Ihre neue Abholzeit ist bestätigt.",
+    "confirmedHeadline": "Ihre neue Abholzeit ist bestätigt",
+    "confirmedBody": "Die Abholzeit dieser Buchung ist jetzt die Zeit unten.",
+    "refusedSubject": "Abholzeit unverändert — {reference}",
+    "refusedPreheader": "Ihre Abholzeit-Anfrage wurde nicht übernommen.",
+    "refusedHeadline": "Ihre Abholzeit ist unverändert",
+    "refusedBody": "Die ursprüngliche Abholzeit bleibt."
+  },
+  "flightNumber": {
+    "subject": "Flugnummer aktualisiert — {reference}",
+    "preheader": "Die Flugnummer dieser Buchung hat sich geändert.",
+    "headline": "Flugnummer aktualisiert",
+    "flightLabel": "Flug"
+  },
+  "reviewRequest": {
+    "subject": "Wie war Ihre Fahrt — {reference}",
+    "preheader": "Sagen Sie uns, wie der Transfer war.",
+    "headline": "Wie war Ihre Fahrt?",
+    "body": "Dieser Link bleibt verfügbar. Eine Bewertung pro Buchung.",
+    "cta": "FAHRT BEWERTEN"
   }
 }

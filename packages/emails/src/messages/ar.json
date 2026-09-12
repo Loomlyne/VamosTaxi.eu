@@ -92,5 +92,28 @@
     "headline": "تم تعيين سائقك",
     "chauffeurLabel": "السائق",
     "plateLabel": "اللوحة"
+  },
+  "timeChange": {
+    "confirmedSubject": "تأكيد وقت الاستلام — {reference}",
+    "confirmedPreheader": "تم تأكيد وقت الاستلام الجديد.",
+    "confirmedHeadline": "تم تأكيد وقت الاستلام الجديد",
+    "confirmedBody": "وقت الاستلام لهذا الحجز هو الآن الوقت أدناه.",
+    "refusedSubject": "وقت الاستلام لم يتغير — {reference}",
+    "refusedPreheader": "لم يُطبَّق طلب وقت الاستلام.",
+    "refusedHeadline": "وقت الاستلام لم يتغير",
+    "refusedBody": "يبقى وقت الاستلام الأصلي."
+  },
+  "flightNumber": {
+    "subject": "تم تحديث رقم الرحلة — {reference}",
+    "preheader": "تغير رقم الرحلة على هذا الحجز.",
+    "headline": "تم تحديث رقم الرحلة",
+    "flightLabel": "الرحلة"
+  },
+  "reviewRequest": {
+    "subject": "كيف كانت رحلتك — {reference}",
+    "preheader": "أخبرنا كيف كان النقل.",
+    "headline": "كيف كانت رحلتك؟",
+    "body": "هذا الرابط يبقى متاحًا. تقييم واحد لكل حجز.",
+    "cta": "قيّم الرحلة"
   }
 }

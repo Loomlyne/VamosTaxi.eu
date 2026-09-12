@@ -53,6 +53,24 @@ import {
   assignmentCustomerSubject,
   type AssignmentCustomerForEmail,
 } from "../AssignmentCustomerEmail";
+import {
+  TimeChangeEmail,
+  timeChangePlainText,
+  timeChangeSubject,
+  type TimeChangeForEmail,
+} from "../TimeChangeEmail";
+import {
+  FlightNumberEmail,
+  flightNumberPlainText,
+  flightNumberSubject,
+  type FlightNumberForEmail,
+} from "../FlightNumberEmail";
+import {
+  ReviewRequestEmail,
+  reviewRequestPlainText,
+  reviewRequestSubject,
+  type ReviewRequestForEmail,
+} from "../ReviewRequestEmail";
 import { chauffeurEmailLocale } from "./chauffeur-locale";
 import { buildInvite } from "./ics";
 import { renderConfirmation } from "./render";
@@ -67,6 +85,9 @@ export type {
   RefundFailedForEmail,
   Reminder24hForEmail,
   AssignmentCustomerForEmail,
+  TimeChangeForEmail,
+  FlightNumberForEmail,
+  ReviewRequestForEmail,
 };
 
 /**
@@ -426,5 +447,50 @@ export async function sendAssignmentCustomer(
     AssignmentCustomerEmail({ trip }),
     assignmentCustomerPlainText(trip),
     "sendAssignmentCustomer",
+  );
+}
+
+export async function sendTimeChange(
+  env: EmailEnv,
+  trip: TimeChangeForEmail,
+  to: string | string[],
+): Promise<SendOutcome> {
+  return sendReactMail(
+    env,
+    to,
+    timeChangeSubject(trip),
+    TimeChangeEmail({ trip }),
+    timeChangePlainText(trip),
+    "sendTimeChange",
+  );
+}
+
+export async function sendFlightNumber(
+  env: EmailEnv,
+  trip: FlightNumberForEmail,
+  to: string | string[],
+): Promise<SendOutcome> {
+  return sendReactMail(
+    env,
+    to,
+    flightNumberSubject(trip),
+    FlightNumberEmail({ trip }),
+    flightNumberPlainText(trip),
+    "sendFlightNumber",
+  );
+}
+
+export async function sendReviewRequest(
+  env: EmailEnv,
+  trip: ReviewRequestForEmail,
+  to: string | string[],
+): Promise<SendOutcome> {
+  return sendReactMail(
+    env,
+    to,
+    reviewRequestSubject(trip),
+    ReviewRequestEmail({ trip }),
+    reviewRequestPlainText(trip),
+    "sendReviewRequest",
   );
 }

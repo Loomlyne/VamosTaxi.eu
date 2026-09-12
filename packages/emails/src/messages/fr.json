@@ -92,5 +92,28 @@
     "headline": "Votre chauffeur a été assigné",
     "chauffeurLabel": "Chauffeur",
     "plateLabel": "Plaque"
+  },
+  "timeChange": {
+    "confirmedSubject": "Heure de prise en charge confirmée — {reference}",
+    "confirmedPreheader": "Votre nouvelle heure de prise en charge est confirmée.",
+    "confirmedHeadline": "Votre nouvelle heure de prise en charge est confirmée",
+    "confirmedBody": "L’heure de prise en charge de cette réservation est désormais celle ci-dessous.",
+    "refusedSubject": "Heure de prise en charge inchangée — {reference}",
+    "refusedPreheader": "Votre demande d’heure n’a pas été appliquée.",
+    "refusedHeadline": "Votre heure de prise en charge est inchangée",
+    "refusedBody": "L’heure de prise en charge d’origine reste."
+  },
+  "flightNumber": {
+    "subject": "Numéro de vol mis à jour — {reference}",
+    "preheader": "Le numéro de vol de cette réservation a changé.",
+    "headline": "Numéro de vol mis à jour",
+    "flightLabel": "Vol"
+  },
+  "reviewRequest": {
+    "subject": "Comment s’est passé votre trajet — {reference}",
+    "preheader": "Dites-nous comment s’est passé le transfert.",
+    "headline": "Comment s’est passé votre trajet ?",
+    "body": "Ce lien reste disponible. Un avis par réservation.",
+    "cta": "NOTER LE TRAJET"
   }
 }

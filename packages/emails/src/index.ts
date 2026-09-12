@@ -41,6 +41,25 @@ export {
 } from "./AssignmentCustomerEmail";
 export type { AssignmentCustomerForEmail } from "./AssignmentCustomerEmail";
 export {
+  TimeChangeEmail,
+  timeChangePlainText,
+  timeChangeSubject,
+} from "./TimeChangeEmail";
+export type { TimeChangeForEmail, TimeChangeOutcome } from "./TimeChangeEmail";
+export {
+  FlightNumberEmail,
+  flightNumberPlainText,
+  flightNumberSubject,
+} from "./FlightNumberEmail";
+export type { FlightNumberForEmail } from "./FlightNumberEmail";
+export {
+  ReviewRequestEmail,
+  reviewHref,
+  reviewRequestPlainText,
+  reviewRequestSubject,
+} from "./ReviewRequestEmail";
+export type { ReviewRequestForEmail } from "./ReviewRequestEmail";
+export {
   sendConfirmation,
   sendPayLink,
   sendRefund,
@@ -51,6 +70,9 @@ export {
   sendRefundFailed,
   sendReminder24h,
   sendAssignmentCustomer,
+  sendTimeChange,
+  sendFlightNumber,
+  sendReviewRequest,
   refundMailRecipients,
   chauffeurEmailLocale,
   CONFIRMATION_TEMPLATE_VERSION,
