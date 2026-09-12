@@ -287,18 +287,26 @@ describe("loadAndPrice", () => {
     expect(draftTrue.quote.pricing_live).toBe(false);
   });
 
-  it("passes preferDraft true only when the preview binding is the string true", async () => {
-    const cases: Array<[string | undefined, boolean]> = [
-      [undefined, false],
-      ["false", false],
-      ["TRUE", false],
-      ["1", false],
-      ["true", true],
+  it("passes preferDraft true only when preview is true AND dashboardHost is true", async () => {
+    const cases: Array<{
+      preview?: string;
+      dashboardHost?: boolean;
+      expected: boolean;
+    }> = [
+      { preview: undefined, expected: false },
+      { preview: "false", expected: false },
+      { preview: "TRUE", expected: false },
+      { preview: "1", expected: false },
+      { preview: "true", expected: false },
+      { preview: "true", dashboardHost: false, expected: false },
+      { preview: "true", dashboardHost: true, expected: true },
+      { preview: "false", dashboardHost: true, expected: false },
+      { preview: undefined, dashboardHost: true, expected: false },
     ];
-    for (const [value, expected] of cases) {
+    for (const c of cases) {
       let seen: boolean | undefined;
       await loadAndPrice(
-        fakeEnv(value),
+        fakeEnv(c.preview),
         input(),
         stubLoaders({
           book: launchDoc(null),
@@ -307,8 +315,13 @@ describe("loadAndPrice", () => {
             seen = preferDraft;
           },
         }),
+        undefined,
+        { dashboardHost: c.dashboardHost },
       );
-      expect(seen, `preview=${String(value)}`).toBe(expected);
+      expect(
+        seen,
+        `preview=${String(c.preview)} dashboardHost=${String(c.dashboardHost)}`,
+      ).toBe(c.expected);
     }
   });
 

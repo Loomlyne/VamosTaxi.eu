@@ -7,12 +7,30 @@
 import { mintLockDeadline, loadSettingsVersion } from "../db/quote";
 import { routeLegs, type RouteLegInput } from "../geo/mapbox";
 import { mapSettingsSnapshot } from "../pricing/rateBook";
-import type { ClassBoardEntry, PolicySnapshot } from "../pricing/types";
+import type { ClassBoardEntry, PolicySnapshot, QuoteInput } from "../pricing/types";
 import { ENGINE_VERSION } from "../version";
 import { loadAndPrice } from "./engine";
 import type { LoadAndPriceResult } from "./engine";
 import type { QuotePipelineDeps } from "./pipeline";
-import type { QuoteInput } from "../pricing/types";
+
+function hostnameOf(hostHeader: string | null | undefined): string {
+  return (hostHeader ?? "").split(":")[0]?.toLowerCase() ?? "";
+}
+
+function isOpsChangesPreviewHost(host: string): boolean {
+  return host === "vamos-ops-changes.koussayzayeni.workers.dev"
+    || host.endsWith("-vamos-ops-changes.koussayzayeni.workers.dev")
+    || host === "vamos-web-ops-changes.koussayzayeni.workers.dev"
+    || host.endsWith("-vamos-web-ops-changes.koussayzayeni.workers.dev");
+}
+
+/** Match middleware isNamedDashboardHost. Public site hosts are false. */
+export function isNamedDashboardHost(hostHeader: string | null | undefined): boolean {
+  const host = hostnameOf(hostHeader);
+  return host === "dashboard.vamostaxi.site"
+    || host === "dashboard.localhost"
+    || isOpsChangesPreviewHost(host);
+}
 
 function stubRouteLegs(legs: RouteLegInput[]) {
   return Promise.resolve({
@@ -99,12 +117,16 @@ function stubLoadAndPrice(
   });
 }
 
-export function buildQuotePipelineDeps(env: CloudflareEnv): QuotePipelineDeps {
+export function buildQuotePipelineDeps(
+  env: CloudflareEnv,
+  opts?: { dashboardHost?: boolean },
+): QuotePipelineDeps {
   const computedAt = new Date().toISOString();
   const stubGeo = process.env.QUOTE_TEST_STUB_GEO === "1";
   const current = env.QUOTE_LOCK_SECRET || process.env.QUOTE_LOCK_SECRET || "";
   const previous =
     env.QUOTE_LOCK_SECRET_PREVIOUS || process.env.QUOTE_LOCK_SECRET_PREVIOUS;
+  const dashboardHost = opts?.dashboardHost === true;
 
   return {
     env,
@@ -116,7 +138,10 @@ export function buildQuotePipelineDeps(env: CloudflareEnv): QuotePipelineDeps {
     quoteLockDeadline: stubGeo
       ? async () => "2099-01-01T12:00:00.000Z"
       : (id) => mintLockDeadline(env, id),
-    loadAndPrice: stubGeo ? stubLoadAndPrice : loadAndPrice,
+    loadAndPrice: stubGeo
+      ? stubLoadAndPrice
+      : (e, input, loaders, request) =>
+          loadAndPrice(e, input, loaders, request, { dashboardHost }),
     loadSettings: stubGeo
       ? async () => ({
           id: 1,

@@ -150,16 +150,23 @@ function couponFactsFromEval(typed: string, raw: unknown): {
   };
 }
 
+export type LoadAndPriceOpts = {
+  /** Named dashboard host only. Omitted/false is public-safe. */
+  dashboardHost?: boolean;
+};
+
 export async function loadAndPrice(
   env: CloudflareEnv,
   input: QuoteInput,
   deps: QuoteLoaders = defaultLoaders,
   request?: RequestContext,
+  opts?: LoadAndPriceOpts,
 ): Promise<LoadAndPriceResult> {
-  // D-33: read the preview flag once. An absent binding is falsy; the string
-  // "false" is ALSO falsy here, where a bare truthiness check on the binding
-  // would treat it as true.
-  const preferDraft = env.PRICING_PREVIEW === "true";
+  // D-18/D-33: draft book only when PRICING_PREVIEW is the string true AND
+  // the request Host is a named dashboard host. Public vamostaxi.site is
+  // always live book. Omitted dashboardHost defaults false.
+  const dashboardHost = opts?.dashboardHost === true;
+  const preferDraft = dashboardHost && env.PRICING_PREVIEW === "true";
 
   const rawBook = await deps.loadRateBook(env, { preferDraft }, request);
   const book = rateBookMapper.mapRateBook(rawBook);

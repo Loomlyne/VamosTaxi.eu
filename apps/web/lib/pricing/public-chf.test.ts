@@ -62,4 +62,21 @@ describe("public pricing_live AND public_chf (D-18 D-23)", () => {
     );
     expect(engine).not.toMatch(/update[\s\S]{0,200}public_chf/);
   });
+
+  it("public host preferDraft is false; pipeline does not read PRICING_PREVIEW", () => {
+    const engine = source("lib/quote/engine.ts");
+    expect(engine).toMatch(
+      /preferDraft\s*=\s*dashboardHost\s*&&\s*env\.PRICING_PREVIEW\s*===\s*"true"/,
+    );
+    const pipeline = source("lib/quote/pipeline.ts");
+    expect(pipeline).not.toMatch(/env\.PRICING_PREVIEW/);
+    expect(pipeline).not.toMatch(/preferDraft/);
+    const deps = source("lib/quote/deps.ts");
+    expect(deps).toMatch(/dashboard\.vamostaxi\.site/);
+    expect(deps).toMatch(/dashboard\.localhost/);
+    const quoteRoute = source("app/api/quote/route.ts");
+    const repriceRoute = source("app/api/quote/reprice/route.ts");
+    expect(quoteRoute).toMatch(/isNamedDashboardHost/);
+    expect(repriceRoute).toMatch(/isNamedDashboardHost/);
+  });
 });
