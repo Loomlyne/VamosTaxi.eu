@@ -3,7 +3,7 @@
 // Wave 0 (10-01): D-03 record_consent contract. Bind helper lands in 10-02.
 // customer_id is never an RPC argument. No sk_live_. No invented CHF.
 
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -12,7 +12,9 @@ const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, "../../../..");
 
 function readRepo(rel: string): string {
-  return readFileSync(join(repoRoot, rel), "utf8");
+  const path = join(repoRoot, rel);
+  if (!existsSync(path)) return "";
+  return readFileSync(path, "utf8");
 }
 
 describe("record_consent SQL (D-03)", () => {
@@ -62,5 +64,69 @@ describe("bind helper + policy stamp (D-03, D-04)", () => {
     expect(src).toMatch(/20\d{2}-\d{2}-\d{2}/);
     expect(src).not.toMatch(/nFADP|GDPR|Bundesgesetz|Datenschutz/);
     expect(src).not.toMatch(/\bCHF\b/);
+  });
+});
+
+describe("POST /api/consent HTTP mapping (D-03, D-11, D-14)", () => {
+  it("exists as force-dynamic POST using asAnon + recordConsent", () => {
+    const src = readRepo("apps/web/app/api/consent/route.ts");
+    expect(src).toMatch(/export const dynamic = ["']force-dynamic["']/);
+    expect(src).toMatch(/export async function POST/);
+    expect(src).toMatch(/from ["']@\/lib\/db\/identity["']/);
+    expect(src).toMatch(/\basAnon\b/);
+    expect(src).toMatch(/recordConsent/);
+    expect(src).not.toMatch(/from ["']@vamos\/db["']/);
+    expect(src).not.toMatch(/from ["']@vamos\/db\//);
+    expect(src).not.toMatch(/Sentry|@sentry/);
+    expect(src).not.toMatch(/sk_live_/);
+    expect(src).not.toMatch(/\bCHF\b/);
+    expect(src).not.toMatch(/save_choices/);
+  });
+
+  it("Accept verifies Turnstile action consent; Dismiss and settings_change do not", () => {
+    const route = readRepo("apps/web/app/api/consent/route.ts");
+    const turnstile = readRepo("apps/web/lib/turnstile.ts");
+    const post = route.slice(route.indexOf("export async function POST"));
+    expect(turnstile).toMatch(/TurnstileAction = [\s\S]*consent/);
+    expect(post).toMatch(/verifyTurnstile/);
+    expect(post).toMatch(/action:\s*["']consent["']/);
+    expect(post).toMatch(/challenge_failed/);
+    expect(post).toMatch(/403/);
+    expect(route).not.toMatch(/from ["']@\/lib\/abuse\/turnstile["']/);
+    expect(post).toMatch(/accept_all/);
+    expect(post).toMatch(/reject_all/);
+    expect(post).toMatch(/settings_change/);
+    const verifyAt = post.indexOf("verifyTurnstile");
+    expect(verifyAt).toBeGreaterThan(-1);
+    const verifyBlock = post.slice(post.lastIndexOf("if", verifyAt), verifyAt);
+    expect(verifyBlock).toMatch(/accept_all/);
+  });
+
+  it("rate-limits consent:${ip} and consent:${ip}:${subject} before write", () => {
+    const src = readRepo("apps/web/app/api/consent/route.ts");
+    const post = src.slice(src.indexOf("export async function POST"));
+    expect(post).toMatch(/checkWriteRateLimit/);
+    expect(post).toMatch(/kind:\s*["']consent["']/);
+    expect(post).toMatch(/rate_limited/);
+    expect(post).toMatch(/429/);
+    const limitAt = post.indexOf("checkWriteRateLimit");
+    const writeAt = post.indexOf("recordConsent");
+    expect(limitAt).toBeGreaterThan(-1);
+    expect(writeAt).toBeGreaterThan(limitAt);
+  });
+
+  it("sets consent_subject on POST success only; truncates cf-connecting-ip", () => {
+    const src = readRepo("apps/web/app/api/consent/route.ts");
+    expect(src).toMatch(/consentSubjectSetCookie/);
+    expect(src).toMatch(/mintConsentSubject|readConsentSubject/);
+    expect(src).toMatch(/truncateClientIp/);
+    expect(src).toMatch(/cfConnectingIp|cf-connecting-ip/);
+    expect(src).toMatch(/Cache-Control["']:\s*["']private, no-store["']|["']Cache-Control["'],\s*["']private, no-store["']/);
+    if (src.includes("export async function GET") || src.includes("export function GET")) {
+      const getAt = src.search(/export (async )?function GET/);
+      const getSrc = src.slice(getAt);
+      expect(getSrc).toMatch(/405/);
+      expect(getSrc).not.toMatch(/consentSubjectSetCookie|mintConsentSubject/);
+    }
   });
 });
