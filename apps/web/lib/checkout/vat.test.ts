@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { payableWithVatRappen, vatIncludedRappen, vatOnTopRappen } from "./vat";
+import {
+  CH_VAT_RATE_BPS,
+  payableWithVatRappen,
+  vatIncludedRappen,
+  vatOnTopRappen,
+} from "./vat";
+
+type VatOnTop = (netRappen: number, bps?: number | null) => number;
+type Payable = (netRappen: number, bps?: number | null) => number;
+const vatOnTop = vatOnTopRappen as VatOnTop;
+const payable = payableWithVatRappen as Payable;
 
 describe("vatIncludedRappen", () => {
   it("takes 8.1% out of a Van floor without adding on top", () => {
@@ -42,5 +52,23 @@ describe("vatOnTopRappen", () => {
     expect(vatOnTopRappen(-1)).toBe(0);
     expect(vatOnTopRappen(Number.NaN)).toBe(0);
     expect(payableWithVatRappen(0)).toBe(0);
+  });
+});
+
+describe("injected bps / fallback 81 (D-22)", () => {
+  it("CH_VAT_RATE_BPS is 81, not 7.7", () => {
+    expect(CH_VAT_RATE_BPS).toBe(81);
+    expect(CH_VAT_RATE_BPS).not.toBe(77);
+  });
+
+  it("omitted bps falls back to 81", () => {
+    expect(vatOnTop(10_000)).toBe(810);
+    expect(payable(10_000)).toBe(10_810);
+  });
+
+  it("vatOnTopRappen(net, bps) uses the argument; omitted bps falls back to 81", () => {
+    expect(vatOnTop(10_000, 81)).toBe(810);
+    expect(payable(10_000, 81)).toBe(10_810);
+    expect(vatOnTop(10_000)).toBe(810);
   });
 });
