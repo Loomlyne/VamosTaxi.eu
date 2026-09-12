@@ -1,7 +1,9 @@
 // POST /api/auth — JSON surface for the DC mock (Server Actions stay on the React forms).
 // Cookies are set by @supabase/ssr via createServerSupabaseClient.
 
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { routing } from "@/i18n/routing";
+import { customerClaims } from "@/lib/account/session";
 import { log } from "@/lib/logger";
 import {
   localeSchema,
@@ -25,6 +27,14 @@ import {
   type AuthRunResult,
   type ProfileRunResult,
 } from "@/lib/auth/run";
+import { asCustomer } from "@/lib/db/identity";
+import {
+  recordConsent,
+  type ConsentLocale,
+  type ConsentMethod,
+} from "@/lib/consent/bind";
+import { mintConsentSubject, readConsentSubject } from "@/lib/consent/cookie";
+import { cfConnectingIp, truncateClientIp } from "@/lib/consent/ip";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -51,6 +61,40 @@ function requestOrigin(request: Request): string {
   const proto = request.headers.get("x-forwarded-proto") ?? url.protocol.replace(":", "");
   if (forwarded) return `${proto}://${forwarded}`;
   return url.origin;
+}
+
+const CONSENT_LOCALES = new Set<ConsentLocale>(["en", "de", "fr", "ar"]);
+
+async function appendSignupConsent(
+  request: Request,
+  locale: string,
+  ctx: { requestId: string; route: string; locale: string | null },
+): Promise<void> {
+  const existing = readConsentSubject(request.headers.get("cookie"));
+  const subject = existing ?? mintConsentSubject();
+  const method: ConsentMethod = existing ? "settings_change" : "reject_all";
+  const consentLocale: ConsentLocale = CONSENT_LOCALES.has(locale as ConsentLocale)
+    ? (locale as ConsentLocale)
+    : "en";
+  const claims = await customerClaims(request);
+  if (!claims) {
+    log("warn", "auth", ctx, { reason: "consent-no-session" });
+    return;
+  }
+  try {
+    const { env } = getCloudflareContext();
+    await asCustomer(env, claims, async (tx) => {
+      await recordConsent(tx, {
+        subject,
+        method,
+        locale: consentLocale,
+        userAgent: request.headers.get("user-agent"),
+        ipTruncated: truncateClientIp(cfConnectingIp(request.headers)),
+      });
+    });
+  } catch {
+    log("error", "auth", ctx, { reason: "consent-write" });
+  }
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -186,6 +230,9 @@ export async function POST(request: Request): Promise<Response> {
       localizedHome(locale),
     );
     if (reason) log("error", "auth", ctx, { reason, action: "otp" });
+    if (!reason && parsed.data.mode === "signup") {
+      await appendSignupConsent(request, locale, ctx);
+    }
     return json(result);
   }
 
@@ -199,6 +246,7 @@ export async function POST(request: Request): Promise<Response> {
       localizedHome(locale),
     );
     if (reason) log("error", "auth", ctx, { reason, action: "signup" });
+    if (!reason) await appendSignupConsent(request, locale, ctx);
     return json(result);
   }
 
