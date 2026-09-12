@@ -133,6 +133,38 @@
     });
   }
 
+  function timeChangeGuest(tok, ref, scheduledLocal) {
+    return jsonFetch("/api/manage/time-change", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ token: tok || "", ref: ref, scheduled_local: scheduledLocal }),
+    });
+  }
+
+  function timeChangeAccount(ref, scheduledLocal) {
+    return jsonFetch("/api/account/bookings/time-change", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ref: ref, scheduled_local: scheduledLocal }),
+    });
+  }
+
+  function saveFlightGuest(tok, ref, flightNo) {
+    return jsonFetch("/api/manage/flight", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ token: tok || "", ref: ref, flight_no: flightNo }),
+    });
+  }
+
+  function saveFlightAccount(ref, flightNo) {
+    return jsonFetch("/api/account/bookings/flight", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ref: ref, flight_no: flightNo }),
+    });
+  }
+
   function refundLine(booking) {
     var st = String((booking && booking.refundStatus) || "").toLowerCase();
     if (st === "pending_ops") return t("Pending Ops");
@@ -164,6 +196,10 @@
     loadAccount: loadAccount,
     cancelGuest: cancelGuest,
     cancelAccount: cancelAccount,
+    timeChangeGuest: timeChangeGuest,
+    timeChangeAccount: timeChangeAccount,
+    saveFlightGuest: saveFlightGuest,
+    saveFlightAccount: saveFlightAccount,
     refundLine: refundLine,
     refundedCopy: refundedCopy,
   };

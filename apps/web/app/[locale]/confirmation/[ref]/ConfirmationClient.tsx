@@ -145,6 +145,10 @@ export function ConfirmationClient({
   const [payoutCountry, setPayoutCountry] = useState(booking?.payoutCountry ?? null);
   const [availableOn, setAvailableOn] = useState(booking?.availableOn ?? null);
   const [reviewedStay] = useState(Boolean(booking?.reviewSubmitted));
+  const [newPickup, setNewPickup] = useState("");
+  const [flightNo, setFlightNo] = useState("");
+  const [lifeMsg, setLifeMsg] = useState("");
+  const [lifeBusy, setLifeBusy] = useState(false);
   const waiting = phase === "processing" || phase === "give-up";
 
   useEffect(() => {
@@ -295,6 +299,46 @@ export function ConfirmationClient({
     }
   }
 
+  async function requestTimeChange() {
+    if (lifeBusy || !newPickup.trim()) return;
+    setLifeBusy(true);
+    try {
+      const res = await fetch("/api/account/bookings/time-change", {
+        method: "POST",
+        credentials: "include",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ref: reference, scheduled_local: newPickup.trim() }),
+      });
+      const json: unknown = await res.json().catch(() => null);
+      const ok = json && typeof json === "object" && "ok" in json && (json as { ok: unknown }).ok === true;
+      setLifeMsg(
+        ok
+          ? t("timeChangeRequested", { original: facts?.scheduledLocal || newPickup })
+          : t("timeChangeFailed"),
+      );
+    } finally {
+      setLifeBusy(false);
+    }
+  }
+
+  async function saveFlightNumber() {
+    if (lifeBusy || !flightNo.trim()) return;
+    setLifeBusy(true);
+    try {
+      const res = await fetch("/api/account/bookings/flight", {
+        method: "POST",
+        credentials: "include",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ref: reference, flight_no: flightNo.trim() }),
+      });
+      const json: unknown = await res.json().catch(() => null);
+      const ok = json && typeof json === "object" && "ok" in json && (json as { ok: unknown }).ok === true;
+      setLifeMsg(ok ? t("flightSaved") : t("flightSaveFailed"));
+    } finally {
+      setLifeBusy(false);
+    }
+  }
+
   const title =
     badge === "cancelled" || badge === "no-show"
       ? t("bookingCancelledTitle")
@@ -359,6 +403,30 @@ export function ConfirmationClient({
           ) : null
         }
       />
+
+      {showConfirmedChrome && facts ? (
+        <div className="vt-confirmation__actions" data-time-change data-flight>
+          <label>
+            {t("requestTimeChange")}
+            <input
+              type="datetime-local"
+              value={newPickup}
+              onChange={(e) => setNewPickup(e.target.value)}
+            />
+          </label>
+          <Button size="md" onClick={() => void requestTimeChange()} disabled={lifeBusy}>
+            {t("requestTimeChange")}
+          </Button>
+          <label>
+            {t("saveFlightNumber")}
+            <input value={flightNo} onChange={(e) => setFlightNo(e.target.value.toUpperCase())} />
+          </label>
+          <Button size="md" variant="secondary" onClick={() => void saveFlightNumber()} disabled={lifeBusy}>
+            {t("saveFlightNumber")}
+          </Button>
+          {lifeMsg ? <p>{lifeMsg}</p> : null}
+        </div>
+      ) : null}
 
       <Dialog
         open={sheetOpen}

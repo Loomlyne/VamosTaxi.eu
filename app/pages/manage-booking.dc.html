@@ -958,10 +958,32 @@ class Component extends DCLogic {
   bump = (k, d, min, max) => () => this.setState((s) => ({ [k]: Math.min(max, Math.max(min, s[k] + d)) }));
 
   confirmModify = () => {
-    const list = this.diffList();
-    if (!list.length) return;
-    this.setState({ view: 'booking', requested: list });
-    this.say('Change requested. We confirm every change by email.', 'accent');
+    const helper = api();
+    const ticket = this.state.ticket || blankTicket();
+    const s = this.state;
+    const orig = (ticket.dateLabel || '') + (ticket.timeLabel ? (' · ' + ticket.timeLabel) : '');
+    let scheduledLocal = '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(String(s.mDate || '')) && s.mTime) {
+      scheduledLocal = s.mDate + 'T' + s.mTime;
+    } else if (ticket.scheduledLocal && s.mTime) {
+      scheduledLocal = String(ticket.scheduledLocal).slice(0, 10) + 'T' + s.mTime;
+    } else {
+      scheduledLocal = String(s.mDate || '') + 'T' + String(s.mTime || '');
+    }
+    const tok = helper.token ? helper.token() : '';
+    // Request time change — POST /api/manage/time-change (guest) or /api/account/bookings/time-change
+    const req = ticket.via === 'account'
+      ? helper.timeChangeAccount(ticket.reference, scheduledLocal)
+      : helper.timeChangeGuest(tok, ticket.reference, scheduledLocal);
+    req.then((result) => {
+      if (result && result.ok && result.body && result.body.ok) {
+        const msg = t('Time-change requested. Pickup stays {original} until we confirm.').replace('{original}', orig || 'the booked time');
+        this.say(msg, 'ok');
+        this.setState({ view: 'booking', requested: this.diffList() });
+        return;
+      }
+      this.say(t('Could not request this time change.'), 'danger');
+    }).catch(() => this.say(t('Could not request this time change.'), 'danger'));
   };
 
   confirmCancel = () => {
@@ -1014,8 +1036,21 @@ class Component extends DCLogic {
   saveFlight = () => {
     const v = this.state.flightDraft.trim();
     if (!v) { this.setState({ flightMode: 'idle' }); return; }
-    this.setState({ flight: v, flightMode: 'idle' });
-    this.say('Flight number saved as ' + v + '. Your driver tracks this flight.', 'success');
+    const helper = api();
+    const ticket = this.state.ticket || blankTicket();
+    const tok = helper.token ? helper.token() : '';
+    // Save flight number — POST /api/manage/flight (guest) or /api/account/bookings/flight
+    const req = ticket.via === 'account'
+      ? helper.saveFlightAccount(ticket.reference, v)
+      : helper.saveFlightGuest(tok, ticket.reference, v);
+    req.then((result) => {
+      if (result && result.ok && result.body && result.body.ok) {
+        this.setState({ flight: v, flightMode: 'idle' });
+        this.say(t('Flight number saved.'), 'success');
+        return;
+      }
+      this.say(t('Could not save this flight number.'), 'danger');
+    }).catch(() => this.say(t('Could not save this flight number.'), 'danger'));
   };
 
   renderVals() {

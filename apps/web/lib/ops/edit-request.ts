@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 import type { VamosClaims } from "@/lib/db/identity";
 import { asCustomer, asGuest, asSystem } from "@/lib/db/identity";
-import { notifyTimeChange } from "@/lib/lifecycle/notify-lifecycle";
+import { notifyFlightNumber, notifyTimeChange } from "@/lib/lifecycle/notify-lifecycle";
 import {
   createCheckoutSession,
   createRefund,
@@ -667,4 +667,101 @@ export async function notifyTimeChangeOutcome(
     chauffeurEmail: mailOpts.includeOps ? row.chauffeur_email || undefined : undefined,
     bookingLegId: row.booking_leg_id,
   });
+}
+
+export type WriteFlightResult =
+  | { ok: true; bookingId: string; flightNo: string }
+  | EditAcceptFail;
+
+/** D-27: flight number write-through. No ops confirm. Never AeroDataBox. */
+export async function writeCustomerFlightNo(
+  env: CloudflareEnv,
+  auth: CustomerEditAuth,
+  bookingKey: string,
+  flightNo: string,
+): Promise<WriteFlightResult> {
+  const key = bookingKey.trim();
+  const no = flightNo.trim().toUpperCase();
+  if (!key || !no) return { ok: false, code: "not-found" };
+  const owned = await loadOwnedBooking(env, auth, key);
+  if (!owned) return { ok: false, code: "not-found" };
+
+  type Trip = {
+    booking_id: string;
+    reference: string;
+    locale: string | null;
+    pickup_text: string | null;
+    dropoff_text: string | null;
+    scheduled_local: string | Date | null;
+    chauffeur_email: string | null;
+    booking_leg_id: string;
+  };
+
+  try {
+    const trip = await asSystem(env, async (sql) => {
+      const legs = await sql<{ id: string }[]>`
+        update public.booking_legs
+           set flight_no = ${no}
+         where booking_id = ${owned.id}::uuid
+           and leg_seq = (
+             select min(leg_seq) from public.booking_legs where booking_id = ${owned.id}::uuid
+           )
+         returning id
+      `;
+      const legId = legs[0]?.id;
+      if (!legId) throw Object.assign(new Error("not-found"), { code: "P0002" });
+      const actorKind = auth.kind === "customer" ? "customer" : "guest";
+      const actorId = auth.kind === "customer" ? auth.claims.sub : null;
+      await sql`
+        insert into public.booking_events (
+          booking_id, booking_leg_id, kind, actor_kind, actor_id, actor_label, payload
+        ) values (
+          ${owned.id}::uuid,
+          ${legId}::uuid,
+          ${"booking.modified"},
+          ${actorKind},
+          ${actorId},
+          ${actorKind},
+          ${JSON.stringify({ flight_no: no })}::jsonb
+        )
+      `;
+      const rows = await sql<Trip[]>`
+        select
+          b.id as booking_id,
+          b.reference,
+          b.locale,
+          l.pickup_text,
+          l.dropoff_text,
+          l.scheduled_local,
+          l.id::text as booking_leg_id,
+          ch.email as chauffeur_email
+        from public.bookings b
+        join public.booking_legs l
+          on l.booking_id = b.id
+         and l.leg_seq = 1
+        left join public.chauffeurs ch on ch.id = l.assigned_chauffeur_id
+        where b.id = ${owned.id}::uuid
+        limit 1
+      `;
+      return rows[0] ?? null;
+    });
+    if (!trip) return { ok: false, code: "not-found" };
+    const scheduledLocal =
+      trip.scheduled_local instanceof Date
+        ? trip.scheduled_local.toISOString()
+        : String(trip.scheduled_local ?? "");
+    await notifyFlightNumber(env, {
+      bookingId: trip.booking_id,
+      locale: checkoutLocale(trip.locale || "en"),
+      reference: trip.reference,
+      pickupText: trip.pickup_text || "",
+      dropoffText: trip.dropoff_text || "",
+      scheduledLocal,
+      flightNo: no,
+      chauffeurEmail: trip.chauffeur_email,
+    });
+    return { ok: true, bookingId: owned.id, flightNo: no };
+  } catch (err) {
+    return mapEditSqlError(err);
+  }
 }

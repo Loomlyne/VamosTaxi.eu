@@ -235,3 +235,45 @@ describe("09-10 time-change request/confirm (D-23–D-26)", () => {
     expect(request).not.toMatch(/booking_edit_request_accept/);
   });
 });
+
+describe("09-10 flight write-through (D-27)", () => {
+  it("updates booking_legs.flight_no via asSystem after ownership; no AeroDataBox", () => {
+    const lib = read("apps/web/lib/ops/edit-request.ts");
+    const write = fnBody(lib, "writeCustomerFlightNo");
+    expect(write).toMatch(/asSystem/);
+    expect(write).toMatch(/flight_no/);
+    expect(write).toMatch(/booking_events/);
+    expect(write).toMatch(/booking\.modified/);
+    expect(write).toMatch(/notifyFlightNumber/);
+    expect(write).not.toMatch(/AeroDataBox|LX1234/i);
+    expect(write).not.toMatch(/info@vamostaxi/);
+
+    const guest = read("apps/web/app/api/manage/flight/route.ts");
+    expect(guest).toMatch(/writeCustomerFlightNo/);
+    expect(guest).toMatch(/hashManageToken/);
+    expect(guest).toMatch(/kind:\s*"guest"|asGuest/);
+    expect(guest).not.toMatch(/AeroDataBox|LX1234/i);
+
+    const signed = read("apps/web/app/api/account/bookings/flight/route.ts");
+    expect(signed).toMatch(/writeCustomerFlightNo/);
+    expect(signed).toMatch(/claimsForSql/);
+    expect(signed).toMatch(/kind:\s*"customer"|asCustomer/);
+  });
+
+  it("manage-booking and confirmation post time-change and flight", () => {
+    const page = read("app/pages/manage-booking.dc.html");
+    expect(page).toMatch(/time-change/);
+    expect(page.toLowerCase()).toMatch(/flight/);
+    expect(page).toMatch(/Time-change requested/);
+    expect(page).not.toMatch(/AeroDataBox|LX1234/i);
+
+    const confirm = read("apps/web/app/[locale]/confirmation/[ref]/ConfirmationClient.tsx");
+    expect(confirm).toMatch(/time-change/);
+    expect(confirm).toMatch(/\/api\/account\/bookings\/flight/);
+    expect(confirm).not.toMatch(/AeroDataBox|LX1234/i);
+
+    const ops = read("app/ops/OpsDetail.dc.html");
+    expect(ops).toMatch(/edit-request/);
+    expect(ops).toMatch(/refuse/);
+  });
+});
