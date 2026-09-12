@@ -36,6 +36,7 @@ describe("dc mock URL gate", () => {
     expect(canonicalPublicFromLeak("/app/pages/contact")).toBe("/contact");
     expect(canonicalPublicFromLeak("/app/pages/contact.html")).toBe("/contact");
     expect(canonicalPublicFromLeak("/app/pages/sitemap")).toBe("/sitemap");
+    expect(canonicalPublicFromLeak("/app/pages/booking-detail")).toBe("/booking-detail");
     expect(canonicalPublicFromLeak("/app/home/home")).toBe("/");
   });
 
@@ -43,7 +44,8 @@ describe("dc mock URL gate", () => {
     expect(should404MockLeak("/app/pages/checkout")).toBe(true);
     expect(should404MockLeak("/app/pages/checkout.html")).toBe(true);
     expect(should404MockLeak("/app/pages/confirmation")).toBe(true);
-    expect(should404MockLeak("/app/pages/booking-detail")).toBe(true);
+    expect(should404MockLeak("/app/pages/booking-detail")).toBe(false);
+    expect(should404MockLeak("/booking-detail")).toBe(false);
     expect(should404MockLeak("/become-a-partner")).toBe(true);
     expect(should404MockLeak("/dev/components")).toBe(true);
     expect(should404MockLeak("/about")).toBe(false);
