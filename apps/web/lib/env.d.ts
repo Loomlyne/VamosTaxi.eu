@@ -288,6 +288,13 @@ interface CloudflareEnv {
    * `pk_test_` placeholder until the owner binds a real test key. Never `pk_live_`.
    */
   STRIPE_PUBLISHABLE_KEY: string;
+
+  /**
+   * Health probe secret (LAUNCH-03 / D-19). OPTIONAL — absence fail-closes
+   * GET /api/internal/health to empty 404. `wrangler secret put HEALTH_PROBE_SECRET`.
+   * Never in wrangler.jsonc `vars`. Never a placeholder value.
+   */
+  HEALTH_PROBE_SECRET?: string;
 }
 
 /**
