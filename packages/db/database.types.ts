@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
   public: {
     Tables: {
       audit_log: {
@@ -276,6 +271,7 @@ export type Database = {
           leg_seq: number
           note: string
           origin_zone_id: string | null
+          original_scheduled_at: string
           pax: number
           pickup_lat: number | null
           pickup_lng: number | null
@@ -309,6 +305,7 @@ export type Database = {
           leg_seq: number
           note?: string
           origin_zone_id?: string | null
+          original_scheduled_at: string
           pax?: number
           pickup_lat?: number | null
           pickup_lng?: number | null
@@ -342,6 +339,7 @@ export type Database = {
           leg_seq?: number
           note?: string
           origin_zone_id?: string | null
+          original_scheduled_at?: string
           pax?: number
           pickup_lat?: number | null
           pickup_lng?: number | null
@@ -549,6 +547,7 @@ export type Database = {
       }
       booking_refunds: {
         Row: {
+          available_on: string | null
           basis_rappen: number
           booking_id: string
           booking_leg_id: string | null
@@ -557,6 +556,7 @@ export type Database = {
           hours_before: number
           id: number
           payment_id: number
+          payout_country: string | null
           reason: string
           refund_percent: number
           refund_rappen: number
@@ -565,6 +565,7 @@ export type Database = {
           tier_applied: Json
         }
         Insert: {
+          available_on?: string | null
           basis_rappen: number
           booking_id: string
           booking_leg_id?: string | null
@@ -573,6 +574,7 @@ export type Database = {
           hours_before: number
           id?: never
           payment_id: number
+          payout_country?: string | null
           reason: string
           refund_percent: number
           refund_rappen: number
@@ -581,6 +583,7 @@ export type Database = {
           tier_applied: Json
         }
         Update: {
+          available_on?: string | null
           basis_rappen?: number
           booking_id?: string
           booking_leg_id?: string | null
@@ -589,6 +592,7 @@ export type Database = {
           hours_before?: number
           id?: never
           payment_id?: number
+          payout_country?: string | null
           reason?: string
           refund_percent?: number
           refund_rappen?: number
@@ -651,6 +655,9 @@ export type Database = {
           price_total_rappen: number | null
           quote_id: string | null
           reference: string
+          refund_owed_rappen: number | null
+          refund_status: string
+          refunded_rappen: number
           status: Database["public"]["Enums"]["booking_status"]
           updated_at: string
         }
@@ -677,6 +684,9 @@ export type Database = {
           price_total_rappen?: number | null
           quote_id?: string | null
           reference?: string
+          refund_owed_rappen?: number | null
+          refund_status?: string
+          refunded_rappen?: number
           status?: Database["public"]["Enums"]["booking_status"]
           updated_at?: string
         }
@@ -703,6 +713,9 @@ export type Database = {
           price_total_rappen?: number | null
           quote_id?: string | null
           reference?: string
+          refund_owed_rappen?: number | null
+          refund_status?: string
+          refunded_rappen?: number
           status?: Database["public"]["Enums"]["booking_status"]
           updated_at?: string
         }
@@ -1562,12 +1575,17 @@ export type Database = {
           author_role: string
           avatar_path: string | null
           body: string
+          booking_id: string | null
           created_at: string
           external_ref: string | null
           id: string
           locked: boolean
+          photo_path: string | null
           published: boolean
           rating: number
+          rating_chauffeur: number | null
+          rating_company: number | null
+          rating_overall: number | null
           route_label: string
           sort_order: number
           source: Database["public"]["Enums"]["review_source"]
@@ -1581,12 +1599,17 @@ export type Database = {
           author_role?: string
           avatar_path?: string | null
           body?: string
+          booking_id?: string | null
           created_at?: string
           external_ref?: string | null
           id?: string
           locked?: boolean
+          photo_path?: string | null
           published?: boolean
           rating?: number
+          rating_chauffeur?: number | null
+          rating_company?: number | null
+          rating_overall?: number | null
           route_label?: string
           sort_order?: number
           source?: Database["public"]["Enums"]["review_source"]
@@ -1600,12 +1623,17 @@ export type Database = {
           author_role?: string
           avatar_path?: string | null
           body?: string
+          booking_id?: string | null
           created_at?: string
           external_ref?: string | null
           id?: string
           locked?: boolean
+          photo_path?: string | null
           published?: boolean
           rating?: number
+          rating_chauffeur?: number | null
+          rating_company?: number | null
+          rating_overall?: number | null
           route_label?: string
           sort_order?: number
           source?: Database["public"]["Enums"]["review_source"]
@@ -1615,6 +1643,13 @@ export type Database = {
           verified?: boolean
         }
         Relationships: [
+          {
+            foreignKeyName: "reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "reviews_vehicle_class_id_fkey"
             columns: ["vehicle_class_id"]
@@ -2215,6 +2250,10 @@ export type Database = {
           superseded_id: string
         }[]
       }
+      bookings_set_refund_failed: {
+        Args: { p_booking_id: string }
+        Returns: undefined
+      }
       checkout_attach_payment: {
         Args: {
           p_charged_rappen: unknown
@@ -2247,6 +2286,13 @@ export type Database = {
           vehicle_class_slug: string
         }[]
       }
+      checkout_cancel_unpaid: {
+        Args: { p_reference: string }
+        Returns: {
+          booking_id: string
+          reference: string
+        }[]
+      }
       checkout_create_booking: {
         Args: {
           p_actor_customer_id: string
@@ -2271,6 +2317,13 @@ export type Database = {
           reference: string
           replayed: boolean
           snapshot_id: number
+        }[]
+      }
+      checkout_expire_unpaid: {
+        Args: never
+        Returns: {
+          booking_id: string
+          reference: string
         }[]
       }
       checkout_extra_payment_settle: {
@@ -2368,6 +2421,16 @@ export type Database = {
           revision: number
         }[]
       }
+      compute_cancellation_refund: {
+        Args: { p_booking_id: string }
+        Returns: {
+          basis_rappen: unknown
+          hours_before: number
+          refund_mode: string
+          refund_percent: number
+          refund_rappen: unknown
+        }[]
+      }
       create_quote_snapshot: {
         Args: {
           p_bags: number
@@ -2397,6 +2460,18 @@ export type Database = {
         Returns: number
       }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      customer_paid_cancel: {
+        Args: { p_booking_id: string }
+        Returns: {
+          basis_rappen: unknown
+          booking_id: string
+          hours_before: number
+          refund_mode: string
+          refund_percent: number
+          refund_rappen: unknown
+          stripe_payment_intent_id: string
+        }[]
+      }
       evaluate_coupon: {
         Args: {
           p_code: string
@@ -2418,8 +2493,38 @@ export type Database = {
       manage_booking_cancel: {
         Args: { p_leg_seq?: number; p_token_hash: string }
         Returns: {
+          basis_rappen: unknown
           booking_id: string
+          hours_before: number
+          refund_mode: string
           refund_percent: number
+          refund_rappen: unknown
+          stripe_payment_intent_id: string
+        }[]
+      }
+      manage_booking_read: {
+        Args: { p_token_hash: string }
+        Returns: {
+          available_on: string
+          bags: number
+          booking_id: string
+          contact_email: string
+          contact_name: string
+          contact_phone: string
+          dropoff_text: string
+          flight_no: string
+          locale: string
+          original_scheduled_at: string
+          pax: number
+          payout_country: string
+          pickup_text: string
+          reference: string
+          refund_owed_rappen: unknown
+          refund_status: string
+          refunded_rappen: unknown
+          scheduled_at: string
+          scheduled_local: string
+          status: Database["public"]["Enums"]["booking_status"]
         }[]
       }
       next_booking_reference: { Args: never; Returns: string }
@@ -2473,6 +2578,44 @@ export type Database = {
           name: string
           paid: boolean
           reference: string
+          refund_mode: string
+          refund_rappen: number
+        }[]
+      }
+      ops_mark_complete: {
+        Args: {
+          p_actor_id: string
+          p_booking_id: string
+          p_review_token_hash?: string
+        }
+        Returns: {
+          booking_id: string
+          dropoff_text: string
+          email: string
+          locale: string
+          name: string
+          paid: boolean
+          pickup_text: string
+          reference: string
+          scheduled_local: string
+        }[]
+      }
+      ops_mark_no_show: {
+        Args: {
+          p_actor_id: string
+          p_booking_id: string
+          p_review_token_hash?: string
+        }
+        Returns: {
+          booking_id: string
+          dropoff_text: string
+          email: string
+          locale: string
+          name: string
+          paid: boolean
+          pickup_text: string
+          reference: string
+          scheduled_local: string
         }[]
       }
       ops_refund_record: {
@@ -2508,6 +2651,23 @@ export type Database = {
       }
       quote_rate_book: { Args: { p_prefer_draft?: boolean }; Returns: Json }
       quote_settings_version: { Args: { p_as_of: string }; Returns: Json }
+      recompute_booking_status: {
+        Args: { p_booking_id: string }
+        Returns: undefined
+      }
+      record_booking_refund: {
+        Args: {
+          p_available_on?: string
+          p_booking_id: string
+          p_payout_country?: string
+          p_refund_rappen?: unknown
+          p_stripe_refund_id: string
+        }
+        Returns: {
+          booking_id: string
+          refund_id: number
+        }[]
+      }
       record_consent: {
         Args: {
           p_analytics: boolean
@@ -2605,6 +2765,34 @@ export type Database = {
           id: string
         }[]
       }
+      submit_review: {
+        Args: {
+          p_chauffeur: number
+          p_comment: string
+          p_company: number
+          p_overall: number
+          p_photo_path: string
+          p_token_hash: string
+        }
+        Returns: {
+          booking_id: string
+          review_id: string
+        }[]
+      }
+      submit_review_customer: {
+        Args: {
+          p_booking_id: string
+          p_chauffeur: number
+          p_comment: string
+          p_company: number
+          p_overall: number
+          p_photo_path: string
+        }
+        Returns: {
+          booking_id: string
+          review_id: string
+        }[]
+      }
     }
     Enums: {
       booking_status:
@@ -2644,12 +2832,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2673,11 +2861,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2698,11 +2886,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2723,11 +2911,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2740,11 +2928,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never) = never,
+    : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2782,3 +2970,4 @@ export const Constants = {
     },
   },
 } as const
+

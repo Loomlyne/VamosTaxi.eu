@@ -158,6 +158,7 @@ const PERIODS = [
   { key:'today', en:'Today', de:'Heute', fr:'Aujourd’hui', ar:'اليوم' },
   { key:'week', en:'7 days', de:'7 Tage', fr:'7 jours', ar:'٧ أيام' },
   { key:'month', en:'30 days', de:'30 Tage', fr:'30 jours', ar:'٣٠ يومًا' },
+  { key:'all', en:'All time', de:'Gesamt', fr:'Tout', ar:'الكل' },
 ];
 const MONEY_IN_CLASSES = ['Economy', 'Business', 'Van'];
 
@@ -180,6 +181,7 @@ function addDaysYmd(ymd, days) {
   return dt.toISOString().slice(0, 10);
 }
 function inPeriod(iso, period, today) {
+  if (period === 'all') return true;
   if (!iso) return false;
   if (period === 'today') return iso === today;
   if (period === 'week') return iso >= addDaysYmd(today, -6) && iso <= today;
@@ -215,7 +217,7 @@ function fareLabel(rappen) {
 }
 
 class Component extends DCLogic {
-  state = { lang: 'en', period: 'today' };
+  state = { lang: 'en', period: 'today', money: null };
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
     this._off = window.VamosOps.bookings.onChange(() => this.forceUpdate());
@@ -224,8 +226,19 @@ class Component extends DCLogic {
     this._offFleet = function () { fleetOffV(); fleetOffC(); };
     this.forceUpdate();
   };
+  loadMoney = () => {
+    const period = this.state.period;
+    fetch('/api/staff/dashboard?period=' + encodeURIComponent(period), { credentials: 'same-origin', cache: 'no-store' })
+      .then((r) => r.json())
+      .then((j) => {
+        const d = j && j.data ? j.data : null;
+        this.setState({ money: d && typeof d.incomeRappen === 'number' ? d : { incomeRappen: 0, refundRappen: 0, feeRappen: 0, refunds: [] } });
+      })
+      .catch(() => this.setState({ money: { incomeRappen: 0, refundRappen: 0, feeRappen: 0, refunds: [] } }));
+  };
   componentDidMount() {
     this.bind();
+    this.loadMoney();
     this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
     window.addEventListener('vamos:locale', this._onLocale);
     if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() });
@@ -245,6 +258,7 @@ class Component extends DCLogic {
       today: todaySub,
       week: 'Last seven days',
       month: 'Last thirty days',
+      all: 'All captured fares',
     };
     const ops = window.VamosOps;
     const bookings = ops ? ops.bookings.all() : [];
@@ -252,15 +266,13 @@ class Component extends DCLogic {
     const vehicles = ops ? ops.vehicles.all() : [];
     const today = zurichToday();
     const periodKey = p.key;
-    const moneyBookings = bookings.filter((b) => b.capturedAt && inPeriod(zurichYmdFromIso(b.capturedAt), periodKey, today));
-    const periodBookings = bookings.filter((b) => inPeriod(b.dateIso, periodKey, today));
-    const incomeRappen = moneyBookings.reduce((n, b) => n + (Number(b.totalRappen) || 0), 0);
-    const refundRappen = moneyBookings.reduce((n, b) => n + (Number(b.refundRappen) || 0), 0);
-    const feeRappen = moneyBookings.reduce((n, b) => {
-      const fee = Number(b.stripeFeeRappen);
-      return Number.isFinite(fee) && fee > 0 ? n + fee : n;
-    }, 0);
+    const money = this.state.money || { incomeRappen: 0, refundRappen: 0, feeRappen: 0, refunds: [] };
+    const incomeRappen = Number(money.incomeRappen) || 0;
+    const refundRappen = Number(money.refundRappen) || 0;
+    const feeRappen = Number(money.feeRappen) || 0;
     const netRappen = incomeRappen - feeRappen - refundRappen;
+    const periodBookings = bookings.filter((b) => inPeriod(b.dateIso, periodKey, today));
+    const moneyBookings = bookings.filter((b) => b.capturedAt && inPeriod(zurichYmdFromIso(b.capturedAt), periodKey, today));
     const capturedCount = moneyBookings.length;
     const avgRappen = capturedCount ? Math.round(incomeRappen / capturedCount) : 0;
     const zeroMoney = fareLabel(0);
@@ -271,23 +283,26 @@ class Component extends DCLogic {
     const extraRappen = moneyBookings.reduce((n, b) => n + (Number(b.extraRappen) || 0), 0);
     const unpaidPending = periodBookings.filter((b) => !b.paid && b.status !== 'cancelled' && b.status !== 'refunded' && b.status !== 'completed').length;
     const pendingEdits = periodBookings.filter((b) => b.paid && b.pendingEditId).length;
-    const moneyInExtra = extraRappen > 0 ? [{ label: 'Extra', amount: fareLabel(extraRappen) }] : [];
-    const moneyOut = [];
-    if (refundRappen > 0) moneyOut.push({ label: 'Refund', amount: fareLabel(refundRappen) });
+    const moneyInExtra = [];
+    const refundLines = Array.isArray(money.refunds) ? money.refunds : [];
+    const moneyOut = refundLines.map((r) => ({
+      label: [r.customer, r.booking].filter(Boolean).join(' · '),
+      amount: fareLabel(r.amountRappen),
+    }));
     if (feeRappen > 0) moneyOut.push({ label: 'Stripe fee', amount: fareLabel(feeRappen) });
     const bookingsHref = periodKey === 'today' ? '/bookings?filter=Today' : '/bookings';
     const pickupsHref = periodKey === 'today' ? '/calendar' : '/bookings';
     return {
       n16: 16, n18: 18,
       incomeMoney: fareLabel(incomeRappen),
-      expensesMoney: zeroMoney,
+      expensesMoney: fareLabel(refundRappen + feeRappen),
       netMoney: fareLabel(netRappen),
       avgMoney: fareLabel(avgRappen),
       subtitle: subs[p.key] || todaySub,
       periods: PERIODS.map((x) => ({
         label: x[lang] || x.en,
         active: x.key === this.state.period,
-        select: () => this.setState({ period: x.key }),
+        select: () => this.setState({ period: x.key }, this.loadMoney),
       })),
       counts: [
         { label:'Bookings', value:String(periodBookings.length), of:'', icon:'list', href:bookingsHref, foot:'Taken in this period' },

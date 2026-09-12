@@ -4,7 +4,7 @@
 // Dual-mounted at app/api/staff/bookings/[id]/edit-accept.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { acceptPaidEdit } from "@/lib/ops/edit-request";
+import { acceptPaidEdit, notifyTimeChangeOutcome, pendingEditHasTimeChange } from "@/lib/ops/edit-request";
 import { failStatus } from "@/lib/ops/edit-request-map";
 import { jsonErr, jsonOk, withStaff } from "@/lib/ops/staff-json";
 
@@ -46,6 +46,7 @@ export const POST = withStaff(async (claims, request) => {
       ? (record.payload as Record<string, unknown>)
       : record;
   const { env } = getCloudflareContext();
+  const timeChange = await pendingEditHasTimeChange(env, id);
   const result = await acceptPaidEdit(env, claims, id, {
     requestId: str(record.requestId),
     quoteSnapshotId: num(record.quoteSnapshotId),
@@ -66,6 +67,9 @@ export const POST = withStaff(async (claims, request) => {
     },
   });
   if (!result.ok) return jsonErr(result.code, failStatus(result.code));
+  if (timeChange && result.outcome === "applied") {
+    await notifyTimeChangeOutcome(env, result.bookingId, "confirmed");
+  }
   return jsonOk({
     id,
     bookingId: result.bookingId,

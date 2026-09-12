@@ -44,6 +44,12 @@
 <sc-if value="{{ canEdit }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="pencil" onClick="{{ openEdit }}" hint-size="140px,36px">{{ tEditBooking }}</x-import>
 </sc-if>
+<sc-if value="{{ canComplete }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="secondary" onClick="{{ markComplete }}" hint-size="120px,36px">{{ tComplete }}</x-import>
+</sc-if>
+<sc-if value="{{ canNoShow }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ markNoShow }}" hint-size="120px,36px">{{ tNoShow }}</x-import>
+</sc-if>
 <sc-if value="{{ canCancel }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="danger" icon="x" onClick="{{ openCancel }}" hint-size="110px,36px">{{ tCancelBooking }}</x-import>
 </sc-if>
@@ -156,7 +162,11 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" title="{{ tPendingEditTitle }}" hint-size="100%,70px">{{ pendingEditDiff }}</x-import>
 <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ acceptPending }}" hint-size="120px,36px">{{ tAccept }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="secondary" onClick="{{ refusePending }}" hint-size="120px,36px">{{ tRefuse }}</x-import>
 </div>
+</sc-if>
+<sc-if value="{{ hasFlightBanner }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" title="{{ tFlightBanner }}" hint-size="100%,70px">{{ booking.flight }}</x-import>
 </sc-if>
 <sc-if value="{{ unpaidNoEdit }}" hint-placeholder-val="{{ false }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ tUnpaidNoEditTitle }}" hint-size="100%,70px">{{ tUnpaidNoEditBody }}</x-import>
@@ -376,7 +386,7 @@ const T = {
     refundTitle:'Refund due', refundBody:'Cancelled inside the free window. The customer is emailed that a refund will be issued to their bank account. When you mark it issued, they get a second email.',
     refundedTitle:'Refund issued', refundedBody:'The customer has been emailed that the refund was issued to their bank account.',
     dispatcherNote:'Dispatcher note', dispatcherNotePh:'Add a note visible to dispatch only…',
-    resendVoucher:'Resend voucher', editBooking:'Edit booking', cancelBooking:'Cancel', driver:'Driver', manualNote:'Assignment is manual in V1 — there is no driver app and no automatic dispatch.', cancel:'Cancel',
+    resendVoucher:'Resend voucher', editBooking:'Edit booking', cancelBooking:'Cancel', complete:'Complete', noShow:'No-show', driver:'Driver', manualNote:'Assignment is manual in V1 — there is no driver app and no automatic dispatch.', cancel:'Cancel',
     cancelTitle:'Cancel this booking?', cancelBody:'It is marked cancelled. You will still see it under Cancelled.',
     keepBooking:'Keep it', confirmCancel:'Cancel booking', bookingCancelled:'Cancelled ', cancelFailed:'Could not cancel ', refundFailed:'Could not refund ',
     voucherResent:'Voucher re-sent to ', driverAssigned:'Driver assigned to ', unassignedOk:'Assignment cleared for ',
@@ -398,9 +408,12 @@ const T = {
  unpaidNoEditBody:'Cancel and create a new trip.',
  unpaidNewTrip:'Cancel and create a new trip',
  extraWaiting:'Extra payment is open for the difference.',
- refundClick:'Use Refund for the difference.',
- mustFix:'Reassign the chauffeur before this change can apply.',
- editFailed:'Could not apply edit ',
+    refundClick:'Use Refund for the difference.',
+    mustFix:'Reassign the chauffeur before this change can apply.',
+    editFailed:'Could not apply edit ',
+    refuse:'Refuse',
+    refuseFailed:'Could not refuse edit ',
+    flightBanner:'Flight number updated',
  },
   de: { backToBookings:'Zurück zu Buchungen', bookedBy:'gebucht von', moreActions:'Weitere Aktionen', details:'Details', history:'Verlauf', historyEmpty:'Noch keine Ereignisse.',
     assignment:'Zuweisung', assign:'Fahrer zuweisen', reassign:'Neu zuweisen', unassign:'Zuweisung aufheben', onShift:'Im Dienst', noDriver:'Kein Fahrer zugewiesen', noDriverSub:'Vor der Abholerinnerung zuweisen',
@@ -410,7 +423,7 @@ const T = {
     refundTitle:'Rückerstattung fällig', refundBody:'Storniert innerhalb des kostenlosen Fensters. Der Kunde erhält eine E-Mail, dass die Rückerstattung auf sein Bankkonto ausgezahlt wird. Wenn Sie sie als ausgezahlt markieren, folgt eine zweite E-Mail.',
     refundedTitle:'Rückerstattung ausgezahlt', refundedBody:'Der Kunde wurde per E-Mail informiert, dass die Rückerstattung auf sein Bankkonto ausgezahlt wurde.',
     dispatcherNote:'Dispatcher-Notiz', dispatcherNotePh:'Notiz hinzufügen, nur für Dispatch sichtbar…',
-    resendVoucher:'Gutschein erneut senden', editBooking:'Buchung bearbeiten', cancelBooking:'Stornieren', driver:'Fahrer', manualNote:'Die Zuweisung erfolgt in V1 manuell — es gibt keine Fahrer-App und keine automatische Vermittlung.', cancel:'Abbrechen',
+    resendVoucher:'Gutschein erneut senden', editBooking:'Buchung bearbeiten', cancelBooking:'Stornieren', complete:'Abgeschlossen', noShow:'No-show', driver:'Fahrer', manualNote:'Die Zuweisung erfolgt in V1 manuell — es gibt keine Fahrer-App und keine automatische Vermittlung.', cancel:'Abbrechen',
     cancelTitle:'Diese Buchung stornieren?', cancelBody:'Sie wird als storniert markiert. Unter Storniert bleibt sie sichtbar.',
     keepBooking:'Behalten', confirmCancel:'Buchung stornieren', bookingCancelled:'Storniert ', cancelFailed:'Konnte nicht stornieren ', refundFailed:'Konnte nicht erstatten ',
     voucherResent:'Gutschein erneut gesendet an ', driverAssigned:'Fahrer zugewiesen zu ', unassignedOk:'Zuweisung aufgehoben für ',
@@ -428,9 +441,12 @@ const T = {
  unpaidNoEditBody:'Stornieren und eine neue Fahrt anlegen.',
  unpaidNewTrip:'Stornieren und neue Fahrt anlegen',
  extraWaiting:'Zusatzzahlung für die Differenz ist offen.',
- refundClick:'Rückerstatten für die Differenz verwenden.',
- mustFix:'Chauffeur neu zuweisen, bevor diese Änderung gilt.',
- editFailed:'Änderung fehlgeschlagen für ',
+    refundClick:'Rückerstatten für die Differenz verwenden.',
+    mustFix:'Chauffeur neu zuweisen, bevor diese Änderung gilt.',
+    editFailed:'Änderung fehlgeschlagen für ',
+    refuse:'Ablehnen',
+    refuseFailed:'Änderung abgelehnt fehlgeschlagen für ',
+    flightBanner:'Flugnummer aktualisiert',
  },
   fr: {
     unassign:'Désassigner', historyEmpty:'Aucun événement.',
@@ -447,6 +463,9 @@ const T = {
     refundClick:'Utiliser Rembourser pour la différence.',
     mustFix:'Réassigner le chauffeur avant d’appliquer ce changement.',
     editFailed:'Modification impossible pour ',
+    refuse:'Refuser',
+    refuseFailed:'Impossible de refuser la modification pour ',
+    flightBanner:'Numéro de vol mis à jour',
   },
   ar: {
     unassign:'إلغاء التعيين', historyEmpty:'لا أحداث بعد.',
@@ -463,6 +482,9 @@ const T = {
     refundClick:'استخدم استرداد للفرق.',
     mustFix:'أعد تعيين السائق قبل تطبيق هذا التغيير.',
     editFailed:'تعذّر تطبيق التعديل لـ ',
+    refuse:'رفض',
+    refuseFailed:'تعذّر رفض التعديل لـ ',
+    flightBanner:'تم تحديث رقم الرحلة',
   },
 };
 class Component extends DCLogic {
@@ -634,13 +656,16 @@ class Component extends DCLogic {
       tSendPayLink: t.sendPayLink, tTakeCard: t.takeCard, tPayCard: t.payCard, takeCardOpen: !!this.state.takeCardOpen,
       tDispatcherNote: t.dispatcherNote, tDispatcherNotePh: t.dispatcherNotePh,
       tResendVoucher: t.resendVoucher, tEditBooking: t.editBooking, tCancelBooking: t.cancelBooking,
-      tSaveEdit: t.saveEdit, tContinue: t.continue, tAccept: t.accept, tCancelEdit: t.cancelEdit, tMarkRefund: t.markRefund,
+      tComplete: t.complete, tNoShow: t.noShow,
+      tSaveEdit: t.saveEdit, tContinue: t.continue, tAccept: t.accept, tRefuse: t.refuse, tCancelEdit: t.cancelEdit, tMarkRefund: t.markRefund,
       tCustomer: t.customer, tPickup: t.pickup, tDropoff: t.dropoff, tDate: t.date, tTime: t.time, tBagsLabel: t.bagsLabel,
       tPendingEditTitle: t.pendingEditTitle, tUnpaidNoEditTitle: t.unpaidNoEditTitle, tUnpaidNoEditBody: t.unpaidNoEditBody, tUnpaidNewTrip: t.unpaidNewTrip,
       editing: !!this.state.editing, viewing: !this.state.editing,
       canEdit: !!booking.paid && !cancelled,
       unpaidNoEdit: !booking.paid && !cancelled,
       hasPendingEdit: !!booking.pendingEditId,
+      hasFlightBanner: !!(booking.flight && String(booking.flight).trim()),
+      tFlightBanner: t.flightBanner,
       pendingEditDiff: (function () {
         const orig = Number(booking.totalRappen) || 0;
         const quoted = Number(booking.pendingEditQuoteRappen) || 0;
@@ -675,6 +700,22 @@ class Component extends DCLogic {
           if (code === 'must-fix' || code === 'capacity') this.notify(t.mustFix);
           else if (code === 'unpaid') this.notify(t.unpaidNoEditBody);
           else this.notify(t.editFailed + booking.id);
+        });
+      },
+      refusePending: () => {
+        const id = booking.bookingId || booking.id;
+        const client = window.VamosOpsApi;
+        const ops = window.VamosOps;
+        if (!booking.pendingEditId || !client || typeof client.request !== 'function') return;
+        client.request('POST', '/api/staff/bookings/' + encodeURIComponent(id) + '/edit-request', {
+          action: 'refuse',
+          requestId: booking.pendingEditId,
+        }).then((json) => {
+          if (json && json.ok) {
+            if (ops) ops.bookings.reset();
+            return;
+          }
+          this.notify(t.refuseFailed + booking.id);
         });
       },
       edit: this.state.edit || {},
@@ -734,6 +775,44 @@ class Component extends DCLogic {
         });
       },
       canCancel: !cancelled && booking.status !== 'completed',
+      canComplete: !frozen,
+      canNoShow: !frozen,
+      markComplete: () => {
+        const id = booking.bookingId || booking.id;
+        const client = window.VamosOpsApi;
+        const ops = window.VamosOps;
+        if (!client || typeof client.request !== 'function') {
+          this.notify(t.editFailed + id);
+          return;
+        }
+        client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { status: 'completed' }).then((json) => {
+          if (json && json.ok) {
+            if (ops) ops.bookings.reset();
+          } else if (json && json.code === 'frozen') {
+            this.notify(t.frozen);
+          } else {
+            this.notify(t.editFailed + id);
+          }
+        });
+      },
+      markNoShow: () => {
+        const id = booking.bookingId || booking.id;
+        const client = window.VamosOpsApi;
+        const ops = window.VamosOps;
+        if (!client || typeof client.request !== 'function') {
+          this.notify(t.editFailed + id);
+          return;
+        }
+        client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { status: 'no_show' }).then((json) => {
+          if (json && json.ok) {
+            if (ops) ops.bookings.reset();
+          } else if (json && json.code === 'frozen') {
+            this.notify(t.frozen);
+          } else {
+            this.notify(t.editFailed + id);
+          }
+        });
+      },
       openCancel: () => this.setState({ cancelOpen: true }),
       closeCancel: () => this.setState({ cancelOpen: false }),
       cancelOpen: this.state.cancelOpen,

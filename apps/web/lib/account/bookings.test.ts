@@ -122,5 +122,82 @@ describe("GET /api/account/bookings", () => {
     expect(src).not.toContain("asSystem");
     expect(src).toContain("<> 'quote'");
     expect(src).not.toContain("not in ('quote', 'pending')");
+    expect(src).toContain("exists (select 1 from public.reviews");
+    expect(src).toContain("has_review");
+  });
+});
+
+describe("reviewState", () => {
+  it("is none until ops marks completed or no-show", () => {
+    expect(mapAccountBooking(base, now).reviewState).toBe("none");
+    expect(mapAccountBooking(base, now).reviewHref).toBe("");
+  });
+
+  it("is requested with signed-in /review?ref= after completed", () => {
+    const row = mapAccountBooking({ ...base, status: "completed" }, now);
+    expect(row.reviewState).toBe("requested");
+    expect(row.reviewHref).toBe("/review?ref=VT-26-0720");
+    expect(row.status).toBe("completed");
+  });
+
+  it("is requested after no_show", () => {
+    const row = mapAccountBooking({ ...base, status: "no_show" }, now);
+    expect(row.reviewState).toBe("requested");
+    expect(row.reviewHref).toBe("/review?ref=VT-26-0720");
+  });
+
+  it("stays reviewed linking to /review after submit (D-21)", () => {
+    const row = mapAccountBooking({ ...base, status: "completed", has_review: true }, now);
+    expect(row.reviewState).toBe("reviewed");
+    expect(row.reviewHref).toBe("/review");
+  });
+});
+
+describe("09-11 ops complete wiring", () => {
+  it("staff PATCH completed/no_show calls mark RPCs, never a client status write", () => {
+    const src = readFileSync(
+      new URL("../../app/[locale]/(ops)/api/staff/bookings/[id]/route.ts", import.meta.url),
+      "utf8",
+    );
+    expect(src).toContain("markComplete");
+    expect(src).toContain("markNoShow");
+    expect(src).toContain('status === "completed"');
+    expect(src).toContain('status === "no_show"');
+    expect(src).toContain("notifyReviewRequest");
+    expect(src).not.toContain("set status = ${");
+  });
+
+  it("ops_mark SQL is SECURITY DEFINER, vamos_system only, no auto-refund", () => {
+    const sql = readFileSync(
+      new URL("../../../../packages/db/supabase/migrations/20260912033121_booking_lifecycle_ops_complete.sql", import.meta.url),
+      "utf8",
+    );
+    expect(sql).toContain("ops_mark_complete");
+    expect(sql).toContain("ops_mark_no_show");
+    expect(sql).toContain("security definer");
+    expect(sql).toContain("to vamos_system");
+    expect(sql).not.toContain("to anon");
+    expect(sql).not.toContain("record_booking_refund");
+    expect(sql).not.toContain("insert into public.booking_refunds");
+  });
+
+  it("account and bookings pages render Review trip / Reviewed chips", () => {
+    const account = readFileSync(new URL("../../../../app/pages/account.dc.html", import.meta.url), "utf8");
+    const bookings = readFileSync(new URL("../../../../app/pages/bookings.dc.html", import.meta.url), "utf8");
+    expect(account).toContain("Review trip");
+    expect(account).toContain("Reviewed");
+    expect(account).toContain("b.reviewHref");
+    expect(bookings).toContain("Review trip");
+    expect(bookings).toContain("Reviewed");
+    expect(bookings).toContain("b.reviewHref");
+  });
+
+  it("OpsDetail Complete/No-show PATCH status through the staff API", () => {
+    const html = readFileSync(new URL("../../../../app/ops/OpsDetail.dc.html", import.meta.url), "utf8");
+    expect(html).toContain("status: 'completed'");
+    expect(html).toContain("status: 'no_show'");
+    expect(html).toContain("/api/staff/bookings/");
+    expect(html).toContain("markComplete");
+    expect(html).toContain("markNoShow");
   });
 });

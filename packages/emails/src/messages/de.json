@@ -57,5 +57,63 @@
     "offRoadBody": "Zugewiesene kommende Fahrten bleiben auf dem Board — sie werden nicht storniert. Beheben unter Needs attention.",
     "overlapHeadline": "Bezahlte Änderung bricht den zugewiesenen Chauffeur",
     "overlapBody": "Die Fahrt bleibt. Diese Fahrt oder die überlappende Fahrt unter Needs attention neu zuweisen."
+  },
+  "cancellation": {
+    "subject": "Buchung {reference} ist storniert",
+    "subjectUrgent": "URGENT — Buchung {reference} ist storniert",
+    "preheader": "Diese Fahrt ist storniert.",
+    "headline": "Diese Fahrt ist storniert",
+    "refundLabel": "Rückerstattung",
+    "refundPendingOps": "Pending Ops.",
+    "refundFullCaptured": "Eine volle Rückerstattung des erfassten Betrags ist unterwegs. Der Zeitpunkt folgt dem Timing Ihres Kartenherausgebers.",
+    "refundNone": "Keine Rückerstattung für dieses Zeitfenster."
+  },
+  "refundFailed": {
+    "subject": "Rückerstattung fehlgeschlagen — {reference}",
+    "preheader": "Rückerstattung fehlgeschlagen. Die Fahrt bleibt storniert.",
+    "headline": "Rückerstattung fehlgeschlagen",
+    "body": "Die Fahrt bleibt storniert. Rückerstattung in Stripe erneut versuchen."
+  },
+  "reminder24h": {
+    "subject": "Abholung morgen — {reference}",
+    "preheader": "Ihr Transfer ist in 24 Stunden.",
+    "headline": "Ihr Transfer ist morgen",
+    "unassigned": "Ihre Chauffeur-Angaben folgen, sobald zugewiesen.",
+    "chauffeurLabel": "Chauffeur",
+    "plateLabel": "Kennzeichen",
+    "opsUnassignedSubject": "Nicht zugewiesene Abholung in 24 Stunden — {reference}",
+    "opsUnassignedPreheader": "Nicht zugewiesene Buchung {reference}.",
+    "opsUnassignedHeadline": "Nicht zugewiesene Buchung",
+    "opsUnassignedBody": "Diese Buchung ist 24 Stunden vor der ursprünglichen Abholung noch nicht zugewiesen."
+  },
+  "assignmentCustomer": {
+    "subject": "Ihr Fahrer wurde zugewiesen — {reference}",
+    "preheader": "Chauffeur-Angaben für {reference}.",
+    "headline": "Ihr Fahrer wurde zugewiesen",
+    "chauffeurLabel": "Chauffeur",
+    "plateLabel": "Kennzeichen"
+  },
+  "timeChange": {
+    "confirmedSubject": "Abholzeit bestätigt — {reference}",
+    "confirmedPreheader": "Ihre neue Abholzeit ist bestätigt.",
+    "confirmedHeadline": "Ihre neue Abholzeit ist bestätigt",
+    "confirmedBody": "Die Abholzeit dieser Buchung ist jetzt die Zeit unten.",
+    "refusedSubject": "Abholzeit unverändert — {reference}",
+    "refusedPreheader": "Ihre Abholzeit-Anfrage wurde nicht übernommen.",
+    "refusedHeadline": "Ihre Abholzeit ist unverändert",
+    "refusedBody": "Die ursprüngliche Abholzeit bleibt."
+  },
+  "flightNumber": {
+    "subject": "Flugnummer aktualisiert — {reference}",
+    "preheader": "Die Flugnummer dieser Buchung hat sich geändert.",
+    "headline": "Flugnummer aktualisiert",
+    "flightLabel": "Flug"
+  },
+  "reviewRequest": {
+    "subject": "Wie war Ihre Fahrt — {reference}",
+    "preheader": "Sagen Sie uns, wie der Transfer war.",
+    "headline": "Wie war Ihre Fahrt?",
+    "body": "Dieser Link bleibt verfügbar. Eine Bewertung pro Buchung.",
+    "cta": "FAHRT BEWERTEN"
   }
 }

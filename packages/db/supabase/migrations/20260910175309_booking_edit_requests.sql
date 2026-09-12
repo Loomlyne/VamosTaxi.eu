@@ -64,7 +64,7 @@ create policy booking_edit_requests_staff_read on public.booking_edit_requests
 -- Overlap (23P01) and capacity raise; the trip is not auto-cancelled (D-75).
 -- ---------------------------------------------------------------------------
 
-create function public.booking_edit_apply_payload(
+create or replace function public.booking_edit_apply_payload(
   p_booking_id pg_catalog.uuid,
   p_quote_snapshot_id pg_catalog.int8,
   p_payload pg_catalog.jsonb,

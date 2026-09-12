@@ -126,3 +126,52 @@ describe("08-05 refund file proofs", () => {
     expect(body).toMatch(/contact/);
   });
 });
+
+describe("09-05 D-12 remaining refund", () => {
+  it("already-refunded only when remaining is 0; prior row with remaining > 0 is allowed", async () => {
+    const { opsRefundAmount } = await import("./refund-map");
+    expect(opsRefundAmount({ capturedRappen: 8000, refundedRappen: 3000 })).toEqual({
+      remaining: 5000,
+      amount: 5000,
+    });
+    expect(opsRefundAmount({ capturedRappen: 8000, refundedRappen: 8000 })).toEqual({
+      remaining: 0,
+      amount: 0,
+    });
+    expect(
+      opsRefundAmount({ capturedRappen: 8000, refundedRappen: 3000, rappen: 2000 }),
+    ).toEqual({ remaining: 5000, amount: 2000 });
+    expect(
+      opsRefundAmount({ capturedRappen: 8000, refundedRappen: 0, percent: 50 }),
+    ).toEqual({ remaining: 8000, amount: 4000 });
+    expect(
+      opsRefundAmount({ capturedRappen: 8000, refundedRappen: 5000, rappen: 99999 }),
+    ).toEqual({ remaining: 3000, amount: 3000 });
+
+    const src = read("apps/web/lib/ops/refund.ts");
+    expect(src).toMatch(/opsRefundAmount/);
+    expect(src).not.toMatch(/if \(existing\[0\]\) return \{ ok: false, code: "already-refunded" \}/);
+    expect(src).toMatch(/already-refunded/);
+    expect(src).toMatch(/remaining === 0|remaining <= 0|!.*remaining/);
+  });
+
+  it("refund route forwards optional percent or rappen", () => {
+    const refund = read(
+      "apps/web/app/[locale]/(ops)/api/staff/bookings/[id]/refund/route.ts",
+    );
+    expect(refund).toMatch(/percent/);
+    expect(refund).toMatch(/rappen/);
+    expect(refund).toMatch(/refundBooking/);
+    expect(refund).not.toMatch(/status: ['\"]refunded['\"].*bookings/);
+  });
+
+  it("cancelBooking auto_full uses paid-cancel Stripe helper; pending_ops skips Stripe", () => {
+    const w = read("apps/web/lib/ops/bookings-write.ts");
+    expect(w).toMatch(/ops_cancel_booking/);
+    expect(w).toMatch(/applyStripeRefund/);
+    expect(w).toMatch(/auto_full/);
+    expect(w).toMatch(/pending_ops/);
+    expect(w).toMatch(/record_booking_refund|applyStripeRefund/);
+    expect(w).not.toMatch(/status:\s*['\"]refunded['\"]/);
+  });
+});

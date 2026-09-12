@@ -37,6 +37,7 @@ export const DC_MOCK_CANONICAL: Record<string, string> = {
   "/app/pages/sign-in": "/sign-in",
   "/app/pages/reset-password": "/reset-password",
   "/app/pages/manage-booking": "/manage-booking",
+  "/app/pages/booking-detail": "/booking-detail",
   "/app/pages/account": "/account",
   "/app/pages/bookings": "/bookings",
   "/app/pages/coming-soon": "/coming-soon",
@@ -46,7 +47,6 @@ export const DC_MOCK_CANONICAL: Record<string, string> = {
 /** Out of V1 / never a public URL. */
 const LEFTOVER_EXACT = new Set([
   "/become-a-partner",
-  "/booking-detail",
   "/login",
   "/ops",
 ]);

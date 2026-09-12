@@ -153,6 +153,13 @@ export async function createRefund(
   );
 }
 
+/** D-07: expand charge card country + balance_transaction.available_on. Never invent day counts. */
+export async function retrieveRefund(stripe: Stripe, refundId: string): Promise<Stripe.Refund> {
+  return stripe.refunds.retrieve(refundId, {
+    expand: ["charge.payment_method_details", "balance_transaction"],
+  });
+}
+
 /** Elements sessions often have payment_intent=null until confirm. */
 export function checkoutPaymentIntentId(session: Stripe.Checkout.Session): string {
   const pi = session.payment_intent;

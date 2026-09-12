@@ -45,7 +45,7 @@ and are final — "matches the mock" is a real acceptance criterion, not a hand-
 - [ ] **DATA-05**: Application queries reach Postgres through Hyperdrive on the direct connection string, with p50 round-trip under 30 ms from the staging Worker
 - [ ] **DATA-06**: Request-scoped auth context cannot leak between requests sharing a pooled connection
 - [x] **DATA-07**: Seed data loads vehicle classes, settings, content strings and the existing reviews into a fresh environment
-- [ ] **DATA-08**: Every booking, price, payment and assignment change writes an append-only event that ops can read as a timeline
+- [x] **DATA-08**: Every booking, price, payment and assignment change writes an append-only event that ops can read as a timeline
 
 ### Accounts (AUTH)
 
@@ -54,7 +54,7 @@ and are final — "matches the mock" is a real acceptance criterion, not a hand-
 - [ ] **AUTH-03**: A session survives a browser refresh and expires safely
 - [ ] **AUTH-04**: A customer can sign out from any page
 - [x] **AUTH-05**: Staff sign in by invitation only and must pass a second factor
-- [ ] **AUTH-06**: A guest who booked without an account can claim that booking into a new account from the emailed link
+- [x] **AUTH-06**: A guest who booked without an account can claim that booking into a new account from the emailed link
 
 ### Quote and pricing (QUOTE)
 
@@ -72,30 +72,30 @@ and are final — "matches the mock" is a real acceptance criterion, not a hand-
 
 ### Checkout and payment (PAY)
 
-- [ ] **PAY-01**: A customer reaches checkout carrying their locked quote and enters passenger and contact details
-- [ ] **PAY-02**: A customer can pay by card, Apple Pay, Google Pay or TWINT, charged in CHF
-- [ ] **PAY-03**: A customer can complete a booking as a guest, without creating an account
-- [ ] **PAY-04**: A booking is confirmed by the payment webhook, never by the browser returning from the payment page
-- [ ] **PAY-05**: A repeated or out-of-order webhook cannot double-charge, double-confirm or double-send an email
-- [ ] **PAY-06**: A paid customer receives a confirmation email in their language, with the booking voucher, a manage link and a calendar invite
-- [ ] **PAY-07**: The customer sees a confirmation page showing the reference, route, time, vehicle and what they paid
+- [x] **PAY-01**: A customer reaches checkout carrying their locked quote and enters passenger and contact details
+- [x] **PAY-02**: A customer can pay by card, Apple Pay, Google Pay or TWINT, charged in CHF
+- [x] **PAY-03**: A customer can complete a booking as a guest, without creating an account
+- [x] **PAY-04**: A booking is confirmed by the payment webhook, never by the browser returning from the payment page
+- [x] **PAY-05**: A repeated or out-of-order webhook cannot double-charge, double-confirm or double-send an email
+- [x] **PAY-06**: A paid customer receives a confirmation email in their language, with the booking voucher, a manage link and a calendar invite
+- [x] **PAY-07**: The customer sees a confirmation page showing the reference, route, time, vehicle and what they paid
 
 ### Booking lifecycle (LIFE)
 
-- [ ] **LIFE-01**: A booking moves through quote, pending, paid, confirmed, assigned, completed, cancelled, refunded and no-show, and every move is recorded
-- [ ] **LIFE-02**: A customer can cancel and be refunded automatically against the policy tiers — full outside 24 hours, 75 % inside 24 hours, nothing for a no-show
-- [ ] **LIFE-03**: A refund is calculated from the policy stored on the booking, not from whatever the policy says today
-- [ ] **LIFE-04**: A customer can open and manage their booking either signed in or from the tokened email link
-- [ ] **LIFE-05**: A customer is reminded before pickup, and receives the driver's name, vehicle and plate once assigned
-- [ ] **LIFE-06**: A delayed flight shifts the pickup time and notifies both the customer and ops
-- [ ] **LIFE-07**: Stale quotes expire and no-shows are swept automatically on a schedule
-- [ ] **LIFE-08**: A customer is asked for a review after the ride has completed
+- [ ] **LIFE-01**: A booking moves through quote, pending, paid, confirmed, assigned, completed, cancelled and no-show, and every move is recorded (`booking_events`). Refunds are a money line (`booking_refunds` / `refund_status`), not a `refunded` status word
+- [ ] **LIFE-02**: A customer can cancel and be refunded against the locked D-02 windows vs original Zurich pickup — automatic full Stripe refund more than 24h out; cancel immediately with refund pending ops (default 100%) between 24h and 6h; no automatic refund from 6h through pickup and after pickup until Completed; Completed/No-show hide customer Cancel. Ops may still refund anyone anytime
+- [ ] **LIFE-03**: A refund amount is the captured Stripe charge on that booking (after coupon), never live `settings_versions` and never a 75% leftover tier
+- [ ] **LIFE-04**: A customer can open and manage their booking either signed in (`/confirmation/{ref}`) or from the tokened email link (`/manage-booking?token=`)
+- [ ] **LIFE-05**: A customer is reminded 24h before original pickup, and receives the driver's name, vehicle and plate once assigned
+- [ ] **LIFE-06**: A customer or ops can request a new pickup time; it does not go live until ops confirms. Flight number is editable anytime. No AeroDataBox auto-shift in V1
+- [ ] **LIFE-07**: Stale unpaid bookings expire on the hourly Worker. No automatic no-show sweep in V1 — ops marks Completed and No-show by hand
+- [ ] **LIFE-08**: A customer is asked for a review after ops marks Completed or paid no-show; submit lands in `public.reviews`
 
 ### Public site (SITE)
 
 - [ ] **SITE-01**: The home page renders with the booking widget prominent, and its sections read from the database
 - [ ] **SITE-02**: Every public page carries the shared header and footer, never a hand-rolled one
-- [ ] **SITE-03**: A customer can see their profile, booking history and any single booking in detail
+- [x] **SITE-03**: A customer can see their profile, booking history and any single booking in detail
 - [ ] **SITE-04**: About, FAQ, contact and become-a-driver pages render, and the contact and driver-application forms are challenge-protected and reach both the inbox and the database
 - [ ] **SITE-05**: Terms, privacy, cookies, cancellation and imprint render, with real numbers where the owner supplied them and labelled TBC pills where not
 - [ ] **SITE-06**: Every page is laid out for 1440, 1024, 768 and 390 px, and nothing scrolls sideways at 390
@@ -105,16 +105,20 @@ and are final — "matches the mock" is a real acceptance criterion, not a hand-
 
 ### Ops console (OPS)
 
-- [ ] **OPS-01**: Staff see a live board of bookings that updates when a booking is paid, without a refresh
-- [ ] **OPS-02**: Staff open a booking and see its full detail and event timeline
-- [ ] **OPS-03**: A dispatcher assigns a chauffeur and a vehicle, and the same driver cannot be double-booked for overlapping trips
-- [ ] **OPS-04**: A dispatcher can take a booking by phone and enter it into the system, on a screen designed and reviewed as a mock first
-- [ ] **OPS-05**: Staff can confirm, modify and cancel a booking, and issue a refund
+- [x] **OPS-01**: Staff see a live board of bookings that updates when a booking is paid, without a refresh
+- [x] **OPS-02**: Staff open a booking and see its full detail and event timeline
+- [x] **OPS-03**: A dispatcher assigns a chauffeur and a vehicle, and the same driver cannot be double-booked for overlapping trips
+- [x] **OPS-04**: A dispatcher can take a booking by phone and enter it into the system, on a screen designed and reviewed as a mock first
+- [x] **OPS-05**: Staff can confirm, modify and cancel a booking, and issue a refund
 - [x] **OPS-06**: Staff can manage vehicle classes, vehicles, chauffeurs, fixed routes, distance rates, surcharges and coupons
 - [x] **OPS-07**: Staff can see customers and their booking history
 - [x] **OPS-08**: Staff can publish, hide and order the reviews that appear on the home page
 - [x] **OPS-09**: Staff can edit business settings and the content strings behind the site copy
 - [x] **OPS-10**: The ops console is a role-gated area of the same application, reachable only by staff
+- [ ] **OPS-11**: One Add (including a double click) creates one chauffeur row
+- [ ] **OPS-12**: Clicking a chauffeur opens a full-page profile: details, photo, bookings, leave, shift days and times
+- [ ] **OPS-13**: Each vehicle has at most two chauffeurs (morning and night); a third assign is refused with the exact reason
+- [ ] **OPS-14**: Saved shift days and times in Europe/Zurich set On shift vs Off duty; dispatcher-marked leave overrides the clock until it ends
 
 ### Launch readiness (LAUNCH)
 
@@ -167,7 +171,7 @@ Tickets **are** `contact_submissions` rows plus a message thread. There is no pa
 ### Inbox (SUP)
 
 - [ ] **SUP-01**: Dispatcher opens Ops `#support` and sees every contact submission as a ticket
-- [ ] **SUP-02**: Each ticket has exactly one status: New, Open, Replied, Responded, or Closed — dispatcher Open / Close / Reopen only (not an arbitrary five-way setter). Staff reply → Replied is Phase 13. Customer mail → Responded is Phase 14.
+- [x] **SUP-02**: Each ticket has exactly one status: New, Open, Replied, Responded, or Closed — dispatcher Open / Close / Reopen only (not an arbitrary five-way setter). Staff reply → Replied is Phase 13. Customer mail → Responded is Phase 14.
 - [ ] **SUP-03**: Dispatcher opens a ticket and sees the original form (name, email, phone, message, time) plus the thread, newest last
 - [ ] **SUP-04**: The ticket shows the form `booking_ref` and `locale` when they exist
 - [ ] **SUP-05**: Dispatcher can filter the list by status
@@ -249,13 +253,13 @@ Populated during roadmap creation. Full phase goals and success criteria: `.plan
 | DATA-05 | Phase 3 | Pending |
 | DATA-06 | Phase 3 | Pending |
 | DATA-07 | Phase 2 | Complete |
-| DATA-08 | Phase 8 | Pending |
+| DATA-08 | Phase 8 | Complete |
 | AUTH-01 | Phase 5 | Pending |
 | AUTH-02 | Phase 5 | Pending |
 | AUTH-03 | Phase 5 | Pending |
 | AUTH-04 | Phase 5 | Pending |
 | AUTH-05 | Phase 2 | Complete |
-| AUTH-06 | Phase 8 | Pending |
+| AUTH-06 | Phase 8 | Complete |
 | QUOTE-01 | Phase 4 | Pending |
 | QUOTE-02 | Phase 4 | Pending |
 | QUOTE-03 | Phase 4 | Pending |
@@ -267,13 +271,13 @@ Populated during roadmap creation. Full phase goals and success criteria: `.plan
 | QUOTE-09 | Phase 4 | Pending |
 | QUOTE-10 | Phase 4 | Pending |
 | QUOTE-11 | Phase 4 | Pending |
-| PAY-01 | Phase 7 | Pending |
-| PAY-02 | Phase 7 | Pending |
-| PAY-03 | Phase 7 | Pending |
-| PAY-04 | Phase 7 | Pending |
-| PAY-05 | Phase 7 | Pending |
-| PAY-06 | Phase 7 | Pending |
-| PAY-07 | Phase 7 | Pending |
+| PAY-01 | Phase 7 | Complete |
+| PAY-02 | Phase 7 | Complete |
+| PAY-03 | Phase 7 | Complete |
+| PAY-04 | Phase 7 | Complete |
+| PAY-05 | Phase 7 | Complete |
+| PAY-06 | Phase 7 | Complete |
+| PAY-07 | Phase 7 | Complete |
 | LIFE-01 | Phase 9 | Pending |
 | LIFE-02 | Phase 9 | Pending |
 | LIFE-03 | Phase 9 | Pending |
@@ -284,18 +288,18 @@ Populated during roadmap creation. Full phase goals and success criteria: `.plan
 | LIFE-08 | Phase 9 | Pending |
 | SITE-01 | Phase 5 | Pending |
 | SITE-02 | Phase 5 | Pending |
-| SITE-03 | Phase 8 | Pending |
+| SITE-03 | Phase 8 | Complete |
 | SITE-04 | Phase 5 | Pending |
 | SITE-05 | Phase 5 | Pending |
 | SITE-06 | Phase 5 | Pending |
 | SITE-07 | Phase 5 | Pending |
 | SITE-08 | Phase 10 | Pending |
 | SITE-09 | Phase 5 | Pending |
-| OPS-01 | Phase 8 | Pending |
-| OPS-02 | Phase 8 | Pending |
-| OPS-03 | Phase 8 | Pending |
-| OPS-04 | Phase 8 | Pending |
-| OPS-05 | Phase 8 | Pending |
+| OPS-01 | Phase 8 | Complete |
+| OPS-02 | Phase 8 | Complete |
+| OPS-03 | Phase 8 | Complete |
+| OPS-04 | Phase 8 | Complete |
+| OPS-05 | Phase 8 | Complete |
 | OPS-06 | Phase 6 | Complete |
 | OPS-07 | Phase 6 | Complete |
 | OPS-08 | Phase 6 | Complete |
@@ -322,7 +326,7 @@ Populated during v1.1 roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | SUP-01 | Phase 15 | Pending |
-| SUP-02 | Phase 12 | Pending |
+| SUP-02 | Phase 12 | Complete |
 | SUP-03 | Phase 15 | Pending |
 | SUP-04 | Phase 15 | Pending |
 | SUP-05 | Phase 15 | Pending |

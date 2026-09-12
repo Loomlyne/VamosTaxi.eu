@@ -30,6 +30,7 @@
 <script src="../../assets/lenis-boot.js"></script>
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js"></script>
+<script src="../vamos-manage-ticket.js"></script>
 <script src="../vamos-page-transition.js"></script>
 <style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
 .vt-input--focus{box-shadow:none}
@@ -155,7 +156,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </nav>
 <p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">Your trip</p>
 <h1 style="margin:0 0 16px;max-width:22ch;font-family:var(--vt-font-display);font-size:var(--vt-display-2);line-height:var(--vt-display-leading);letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty">Manage a booking</h1>
-<p style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Your booking reference is in your confirmation email. Booking self-service is being connected before this page can show or change a trip.</p>
+<p style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Check the details, move the pickup time, cancel, or get your voucher again. No account needed — your booking reference is the key.</p>
 
 </div>
 </header>
@@ -166,7 +167,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <div>
 <h2 id="mb-gate-h" style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Open your booking</h2>
-<p style="margin:0 0 20px;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Keep the reference from your confirmation email ready. Online booking self-service is being connected before a trip can be shown here.</p>
+<p style="margin:0 0 20px;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Two details from your confirmation email. If you opened the link in that email you are taken straight to your trip instead.</p>
 
 <sc-if value="{{ showAccountSignIn }}" hint-placeholder-val="{{ true }}">
 <a data-fork="1" href="sign-in.dc.html" style="width:100%;margin-bottom:20px">
@@ -182,7 +183,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <sc-if value="{{ notFound }}" hint-placeholder-val="{{ false }}">
 <div ref="{{ errRef }}" tabindex="-1" role="alert" style="outline:none">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="Online booking lookup is not available yet" hint-size="100%,92px">Keep your reference from the confirmation email, then call us and we will look up your booking.</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ errorTitle }}" hint-size="100%,92px">{{ errorBody }}</x-import>
 </div>
 </sc-if>
 
@@ -190,7 +191,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <label for="mb-ref">Booking reference</label>
 <input id="mb-ref" name="reference" type="text" autocomplete="off" spellcheck="false" placeholder="VT-0000" value="{{ vRef }}" onInput="{{ onRef }}" aria-invalid="{{ aRef }}" aria-describedby="mb-ref-e mb-ref-h">
 <sc-if value="{{ badRef }}" hint-placeholder-val="{{ false }}">
-<p id="mb-ref-e" data-err="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>Your reference is on the confirmation email, six characters like VT-4821</p>
+<p id="mb-ref-e" data-err="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>Your reference is on the confirmation email</p>
 </sc-if>
 <p id="mb-ref-h" data-hint="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">It sits in the confirmation sentence under the green check, and on the right of the charcoal voucher header.</span></p>
 </div>
@@ -259,6 +260,9 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin-bottom:20px">
 <h2 id="mb-bk-h" style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);line-height:1.1;letter-spacing:.04em;font-weight:var(--vt-weight-bold);color:var(--vt-text-primary)">{{ ref }}</h2>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StatusBadge" status="{{ status }}" hint-size="110px,26px"></x-import>
+<sc-if value="{{ isReviewed }}" hint-placeholder-val="{{ false }}">
+<span data-pill="1">Reviewed</span>
+</sc-if>
 <sc-if value="{{ unpaid }}" hint-placeholder-val="{{ false }}">
 <div data-noprint="1">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="warning" title="Not paid yet" hint-size="100%,84px">Sent by pay link. Not confirmed until money lands.</x-import>
@@ -292,7 +296,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div style="flex:1 1 100%;min-width:0;display:flex;flex-direction:column;gap:12px">
 <div data-fld="1">
 <label for="mb-flight">Flight number</label>
-<input id="mb-flight" name="flight" type="text" autocomplete="off" spellcheck="false" placeholder="LX 318" value="{{ flightDraft }}" onInput="{{ onFlight }}" aria-describedby="mb-flight-h">
+<input id="mb-flight" name="flight" type="text" autocomplete="off" spellcheck="false" placeholder="Flight number" value="{{ flightDraft }}" onInput="{{ onFlight }}" aria-describedby="mb-flight-h">
 <p id="mb-flight-h" data-hint="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plane-landing" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">Airline code and number, as printed on your boarding pass. Your driver watches this flight, so a change of flight matters more than a change of time.</span></p>
 </div>
 <div style="display:flex;flex-wrap:wrap;gap:10px">
@@ -307,6 +311,25 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <span style="min-width:0"><span data-row-k="1">Confirmation sent to</span><span data-row-v="1">{{ email }}</span></span>
 <span data-pill="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="shield-check" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import>Paid in full</span>
 </div>
+<sc-if value="{{ hasChauffeur }}" hint-placeholder-val="{{ false }}">
+<div data-row="1">
+<span style="min-width:0"><span data-row-k="1">Chauffeur</span><span data-row-v="1">{{ chauffeurName }}</span></span>
+</div>
+</sc-if>
+<sc-if value="{{ hasVehicle }}" hint-placeholder-val="{{ false }}">
+<div data-row="1">
+<span style="min-width:0"><span data-row-k="1">Vehicle</span><span data-row-v="1">{{ vehicleLabel }}</span></span>
+</div>
+</sc-if>
+<sc-if value="{{ showRefundLine }}" hint-placeholder-val="{{ false }}">
+<div data-row="1">
+<span style="min-width:0"><span data-row-k="1">Refund</span><span data-row-v="1">{{ refundLine }}</span>
+<sc-if value="{{ hasRefundedCopy }}" hint-placeholder-val="{{ false }}">
+<span data-row-v="1" style="font-size:var(--vt-body-sm);color:var(--vt-text-secondary);margin-top:2px">{{ refundedCopy }}</span>
+</sc-if>
+</span>
+</div>
+</sc-if>
 </div>
 </article>
 
@@ -321,11 +344,13 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <span style="min-width:0;flex:1 1 180px"><span data-fork-t="1">Change this booking</span><span data-fork-s="1">{{ modifySub }}</span></span>
 <span data-fork-cta="accent">Make a change<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span>
 </button>
+<sc-if value="{{ showCancel }}" hint-placeholder-val="{{ true }}">
 <button type="button" data-fork="1" onClick="{{ startCancel }}">
 <span data-tile="1" style="background:var(--vt-grey-100)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></span>
 <span style="min-width:0;flex:1 1 180px"><span data-fork-t="1">Cancel this transfer</span><span data-fork-s="1">{{ cancelSub }}</span></span>
 <span data-fork-cta="ghost">Cancel booking<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span>
 </button>
+</sc-if>
 </div>
 </div>
 
@@ -351,7 +376,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StatusBadge" status="{{ badge }}" label="{{ badgeLabel }}" hint-size="100px,24px"></x-import>
 </div>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.RouteSummary" inverse="{{ yes }}" pickup="{{ pickup }}" pickupDetail="{{ pickupTime }}" dropoff="{{ dropoff }}" hint-size="100%,170px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.PriceSummary" inverse="{{ yes }}" lines="{{ lines }}" total="{{ total }}" totalLabel="{{ totalLabel }}" note="Placeholder amounts — real fares come from the CHF price matrix." hint-size="100%,170px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.PriceSummary" inverse="{{ yes }}" lines="{{ lines }}" total="{{ total }}" totalLabel="{{ totalLabel }}" note="" hint-size="100%,170px"></x-import>
 <dl style="margin-block-start:20px;padding-block-start:16px;border-block-start:1px solid var(--vt-border-inverse);display:flex;flex-direction:column;gap:8px">
 <div style="display:flex;justify-content:space-between;gap:16px;align-items:baseline"><dt style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-inverse-muted)">Booking</dt><dd style="margin:0;text-align:end;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">{{ ref }}</dd></div>
 <div style="display:flex;justify-content:space-between;gap:16px;align-items:baseline"><dt style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-inverse-muted)">Date</dt><dd style="margin:0;text-align:end;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">{{ bookedWhen }}</dd></div>
@@ -515,28 +540,25 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-noprint="1" data-card="1" style="padding:clamp(22px,2.6vw,30px)">
 <button type="button" data-back="1" onClick="{{ backToBooking }}" style-hover="color:var(--vt-charcoal-900)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-left" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>Back to your booking</button>
 <h2 style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Cancel this transfer</h2>
-<p style="margin:0 0 22px;max-width:58ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">{{ ref }} · {{ routeShort }} · {{ bookedWhen }}. This is what you get back if you cancel now.</p>
+<p style="margin:0 0 22px;max-width:58ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">{{ ref }} · {{ routeShort }} · {{ bookedWhen }}.</p>
 
 <div data-refund="1" style="margin-bottom:20px">
-<sc-if value="{{ earlyTier }}" hint-placeholder-val="{{ true }}">
-<p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)">More than <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Free cancel window</span> before pickup</p>
-<p style="margin:0 0 6px;font-size:var(--vt-body-sm);color:var(--vt-charcoal-800)">You get back</p>
-<p style="margin:0 0 12px;display:flex;flex-wrap:wrap;align-items:baseline;gap:10px"><span data-tok-fig="1"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Full refund share</span></span><span style="font-size:var(--vt-body-md);color:var(--vt-charcoal-800)">of CHF 000.00</span></p>
-<p style="margin:0;max-width:56ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">You are cancelling far enough ahead that we can sell the slot again, so nothing is held back.</p>
+<sc-if value="{{ cancelFull }}" hint-placeholder-val="{{ true }}">
+<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">This trip will be cancelled. You get a full refund. The money goes back to the card you paid with.</p>
 </sc-if>
-<sc-if value="{{ lateTier }}" hint-placeholder-val="{{ false }}">
-<p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)">Inside <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Free cancel window</span> of pickup</p>
-<p style="margin:0 0 6px;font-size:var(--vt-body-sm);color:var(--vt-charcoal-800)">You get back</p>
-<p style="margin:0 0 12px;display:flex;flex-wrap:wrap;align-items:baseline;gap:10px"><span data-tok-fig="1"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Late cancel share</span></span><span style="font-size:var(--vt-body-md);color:var(--vt-charcoal-800)">of CHF 000.00</span></p>
-<p style="margin:0;max-width:56ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">Your pickup is {{ countdown }}. A driver is scheduled and the slot can no longer be resold, so part of the fare is retained.</p>
+<sc-if value="{{ cancelOps }}" hint-placeholder-val="{{ false }}">
+<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">This trip will be cancelled. Refund needs a person — we will email you.</p>
+</sc-if>
+<sc-if value="{{ cancelClose }}" hint-placeholder-val="{{ false }}">
+<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">Too close to cancel here. Call us.</p>
 </sc-if>
 </div>
 
 <p style="margin:0 0 18px;display:flex;align-items:flex-start;gap:9px;max-width:60ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-primary)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n18 }}" color="var(--vt-yellow-700)" hint-size="18px,18px"></x-import><span>Every refund is checked by our team before it is sent. Cancelling here stands the driver down straight away; the money follows once that check is done.</span></p>
 
-<p style="margin:0 0 22px;padding-top:18px;border-top:1px solid var(--vt-grey-200);max-width:64ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-muted)">If the pickup time passes without you cancelling, the no-show rule applies instead and <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">No-show share</span> comes back. Coaches and groups have their own window. All of it is in the <a href="cancellation.dc.html">cancellation policy</a>, which governs.</p>
+<p style="margin:0 0 22px;padding-top:18px;border-top:1px solid var(--vt-grey-200);max-width:64ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-muted)">If the pickup time passes without you cancelling, the no-show rule applies instead. Coaches and groups have their own window. All of it is in the <a href="cancellation.dc.html">cancellation policy</a>, which governs.</p>
 
-<sc-if value="{{ earlyTier }}" hint-placeholder-val="{{ true }}">
+<sc-if value="{{ cancelFull }}" hint-placeholder-val="{{ true }}">
 <p data-grp="1" style="margin-bottom:14px">Before you cancel</p>
 <button type="button" data-fork="1" onClick="{{ startModify }}" style="width:100%;margin-bottom:22px">
 <span data-tile="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="calendar-days" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></span>
@@ -546,7 +568,9 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </sc-if>
 
 <div style="display:flex;flex-wrap:wrap;gap:12px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" variant="secondary" onClick="{{ confirmCancel }}" hint-size="240px,54px">Cancel this transfer</x-import>
+<sc-if value="{{ canConfirmCancel }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" variant="danger" onClick="{{ confirmCancel }}" hint-size="240px,54px">Confirm cancellation</x-import>
+</sc-if>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" variant="ghost" onClick="{{ backToBooking }}" hint-size="180px,54px">Keep my booking</x-import>
 </div>
 </div>
@@ -567,7 +591,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StatusBadge" status="{{ badge }}" label="{{ badgeLabel }}" hint-size="100px,24px"></x-import>
 </div>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.RouteSummary" inverse="{{ yes }}" pickup="{{ pickup }}" pickupDetail="{{ pickupTime }}" dropoff="{{ dropoff }}" hint-size="100%,170px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.PriceSummary" inverse="{{ yes }}" lines="{{ lines }}" total="{{ total }}" totalLabel="{{ totalLabel }}" note="Placeholder amounts — real fares come from the CHF price matrix." hint-size="100%,170px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.PriceSummary" inverse="{{ yes }}" lines="{{ lines }}" total="{{ total }}" totalLabel="{{ totalLabel }}" note="" hint-size="100%,170px"></x-import>
 </x-import>
 <div aria-hidden="true" style="position:absolute;top:0;inset-inline-end:0;pointer-events:none">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.CheckerMark" size="{{ n96 }}" opacity="{{ pt5 }}" hint-size="96px,96px"></x-import>
@@ -577,7 +601,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-refund="1" style="margin-bottom:20px">
 <p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)">Refund · waiting on review</p>
 <p style="margin:0 0 6px;font-size:var(--vt-body-sm);color:var(--vt-charcoal-800)">You are eligible for</p>
-<p style="margin:0 0 12px;display:flex;flex-wrap:wrap;align-items:baseline;gap:10px"><span data-tok-fig="1"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">{{ shareLabel }}</span></span><span style="font-size:var(--vt-body-md);color:var(--vt-charcoal-800)">of CHF 000.00</span></p>
+<p style="margin:0 0 12px;display:flex;flex-wrap:wrap;align-items:baseline;gap:10px"><span data-tok-fig="1"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">{{ shareLabel }}</span></span><span style="font-size:var(--vt-body-md);color:var(--vt-charcoal-800)">{{ refundLine }}</span></p>
 <p style="margin:0;max-width:58ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">Our team processes this within <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Refund payout time</span>, back to the card you paid with. Nothing has been sent yet — you will get a second email when it has.</p>
 </div>
 
@@ -603,10 +627,12 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <aside data-noprint="1" style="min-width:0">
 <div data-rail="1" style="display:flex;flex-direction:column;gap:16px">
+<sc-if value="{{ hasPrice }}" hint-placeholder-val="{{ false }}">
 <div data-card="1" style="padding:22px">
 <p style="margin:0 0 14px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">What you paid</p>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.PriceSummary" lines="{{ lines }}" total="{{ total }}" totalLabel="Paid" note="Placeholder amounts — real fares come from the CHF price matrix." hint-size="100%,180px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.PriceSummary" lines="{{ lines }}" total="{{ total }}" totalLabel="Paid" note="" hint-size="100%,180px"></x-import>
 </div>
+</sc-if>
 <div style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);border-radius:var(--vt-radius-lg);padding:22px">
 <p style="margin:0 0 12px;display:flex;align-items:center;gap:9px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="phone" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>A person, if you need one</p>
 <p style="margin:0 0 14px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Dispatch answers the phone. Quote {{ ref }} and they can do anything on this page for you, including the things this page will not.</p>
@@ -632,7 +658,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <dc-import name="CookieBanner" start-state="{{ cookieState }}" hint-size="0,0"></dc-import>
 
 <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
-<div data-noprint="1" aria-live="polite" style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;align-items:center;gap:10px">
+<div data-noprint="1" aria-live="polite" style="position:fixed;inset-inline-start:50%;bottom:24px;transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;align-items:center;gap:10px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Toast" tone="{{ toastTone }}" onClose="{{ hideToast }}" hint-size="300px,48px">{{ toast }}</x-import>
 </div>
 </sc-if>
@@ -640,12 +666,9 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;entryPath&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;gate&quot;,&quot;link&quot;],&quot;default&quot;:&quot;auto&quot;,&quot;tsType&quot;:&quot;'auto'|'gate'|'link'&quot;,&quot;section&quot;:&quot;Flow&quot;},&quot;bookingTiming&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ahead&quot;,&quot;late&quot;],&quot;default&quot;:&quot;ahead&quot;,&quot;tsType&quot;:&quot;'ahead'|'late'&quot;,&quot;section&quot;:&quot;Flow&quot;},&quot;bookingType&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;airport&quot;,&quot;city&quot;],&quot;default&quot;:&quot;airport&quot;,&quot;tsType&quot;:&quot;'airport'|'city'&quot;,&quot;section&quot;:&quot;Flow&quot;},&quot;cookieState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;banner&quot;,&quot;prefs&quot;,&quot;hidden&quot;],&quot;default&quot;:&quot;auto&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Review&quot;}}">
 const TIMES = ['05:30', '06:45', '08:15', '09:30', '11:00', '12:15', '14:00', '16:30', '18:45', '21:15'];
+const MANAGE_BOOKING_API = '/api/manage/booking';
+const MANAGE_CANCEL_API = '/api/manage/cancel';
 
-/* One sample booking. `ahead` is the ordinary case; `late` is the same trip sitting
-   inside the deadline windows, which is what makes the blocked and part-refund
-   states legible. Neither carries a policy number — only how far off pickup is. */
-/* The four classes the booking widget offers, with the facts that decide whether a
-   party fits. Names and capacities are the fleet's, not this page's invention. */
 const CLASSES = [
   { id: 'economy', name: 'Economy', ex: 'Sedan or similar', seats: 3, bags: 3 },
   { id: 'business', name: 'Business', ex: 'Executive sedan', seats: 3, bags: 3 },
@@ -654,19 +677,67 @@ const CLASSES = [
 ];
 const nameOf = (id) => (CLASSES.find((c) => c.id === id) || CLASSES[0]).name;
 
-const TRIP = {
-  ref: 'VT-4821',
-  pickup: 'Zurich Airport (ZRH), Terminal 2',
-  pickupDetail: 'Arrivals — your driver waits with your name',
-  dropoff: 'Zurich, Bahnhofstrasse 1',
-  vehicle: 'Economy',
-  vehicleId: 'economy',
-  pax: 2, bags: 2,
-  flight: 'LX 318',
-  email: 'ben•••@example.com',
-  ahead: { date: 'Fri 14 Aug', day: 14, time: '08:15', countdown: 'Pickup in 9 days' },
-  late: { date: 'Thu 6 Aug', day: 6, time: '08:15', countdown: 'Pickup in 14 hours' },
-};
+const api = () => window.VamosManageTicket || {};
+const t = (en) => (api().t ? api().t(en) : en);
+
+function blankTicket() {
+  return {
+    id: '',
+    reference: '',
+    status: 'confirmed',
+    pickupText: '',
+    dropoffText: '',
+    pickupDetail: '',
+    scheduledLocal: '',
+    dateLabel: '',
+    timeLabel: '',
+    countdown: '',
+    flightNo: '',
+    pax: 1,
+    bags: 0,
+    chauffeurName: '',
+    vehicle: '',
+    plate: '',
+    refundStatus: 'none',
+    reviewSubmitted: false,
+    canCancel: false,
+    cancelWindow: 'none',
+    contactName: '',
+    contactEmail: '',
+    payoutCountryLabel: null,
+    availableOn: null,
+    priceTotalRappen: 0,
+  };
+}
+
+function formatLocal(scheduledLocal) {
+  const raw = String(scheduledLocal || '');
+  const match = raw.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);
+  if (!match) return { date: '', time: '', day: 0 };
+  const iso = match[1];
+  const time = match[2];
+  const bits = iso.split('-');
+  const year = Number(bits[0]);
+  const month = Number(bits[1]);
+  const day = Number(bits[2]);
+  const utcNoon = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+  const parts = {};
+  new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' })
+    .formatToParts(utcNoon)
+    .forEach((part) => { parts[part.type] = part.value; });
+  return {
+    date: ((parts.weekday || '') + ' ' + (parts.day || '') + ' ' + (parts.month || '')).trim(),
+    time,
+    day,
+  };
+}
+
+function francs(rappen) {
+  const n = Number(rappen);
+  if (!Number.isFinite(n) || n <= 0) return '';
+  const amount = (n / 100).toFixed(2);
+  return window.VamosLocale && window.VamosLocale.money ? window.VamosLocale.money(amount) : ('CHF ' + amount);
+}
 
 class Component extends DCLogic {
   state = (() => {
@@ -674,68 +745,148 @@ class Component extends DCLogic {
     let entry = p.entryPath || 'auto';
     if (entry === 'auto') {
       let tok = false;
-      /* A specific param only. Hosts and mailers append their own `t=`/`k=`
-         cache-busters, and matching those would skip the gate on every load. */
       try { tok = /[?&](token|mb)=[A-Za-z0-9_-]{8,}/.test(String(location.search || '')); } catch (e) {}
       entry = tok ? 'link' : 'gate';
     }
-    const t = TRIP[(p.bookingTiming === 'late') ? 'late' : 'ahead'];
+    const ticket = blankTicket();
     return {
-      view: entry === 'link' ? 'booking' : 'lookup',
+      view: 'lookup',
       entry,
       timing: null,
       ref: '', who: '', whoBy: 'email', bad: {}, notFound: false, signedIn: false,
-      mDay: t.day, mDate: t.date, mTime: t.time,
-      pickupDraft: TRIP.pickup, dropoffDraft: TRIP.dropoff,
-      vehicle: TRIP.vehicleId, pax: TRIP.pax, bags: TRIP.bags,
-      voucher: false, flightMode: 'idle', flightDraft: TRIP.flight, flight: TRIP.flight,
-      requested: null, status: /[?&]unpaid=1/.test(location.search) ? 'pending' : 'confirmed',
+      errorKind: '', errorTitle: '', errorBody: '',
+      ticket,
+      authVia: '',
+      mDay: 0, mDate: '', mTime: '',
+      pickupDraft: '', dropoffDraft: '',
+      vehicle: 'economy', pax: 1, bags: 0,
+      voucher: false, flightMode: 'idle', flightDraft: '', flight: '',
+      requested: null, status: 'confirmed',
       toast: null, toastTone: 'neutral',
+      cancelling: false,
     };
   })();
   errRef = React.createRef();
 
   componentDidMount() {
     this._offLocale = window.VamosLocale && window.VamosLocale.onChange(() => this.forceUpdate());
-    /* Server-backed session state only. A failed or malformed response deliberately leaves
-       the card visible, so a transient error never grants an account-only experience. */
+    const helper = api();
+    const tok = helper.token ? helper.token() : '';
     fetch('/api/auth/session', { credentials: 'same-origin', cache: 'no-store' })
       .then((response) => response.ok ? response.json() : Promise.reject(new Error('session-unavailable')))
-      .then((snapshot) => { if (snapshot && snapshot.signedIn === true) this.setState({ signedIn: true }); })
-      .catch(() => {});
+      .then((snapshot) => {
+        const signedIn = !!(snapshot && snapshot.signedIn === true);
+        this.setState({ signedIn }, () => {
+          if (!tok) this.loadLive();
+        });
+      })
+      .catch(() => { if (!tok) this.loadLive(); });
+    if (tok) this.loadLive();
   }
   componentWillUnmount() {
     if (this._offLocale) this._offLocale();
     clearTimeout(this._toastT);
   }
 
+  loadLive() {
+    const helper = api();
+    const tok = helper.token ? helper.token() : '';
+    const ref = helper.refQuery ? helper.refQuery() : '';
+    const detail = helper.isDetail ? helper.isDetail() : false;
+    if (tok && helper.loadGuest) {
+      helper.loadGuest(tok).then((result) => this.applyLoad(result, 'link')).catch(() => this.showError('not-found'));
+      return;
+    }
+    if (!detail) return;
+    if (this.state.signedIn && helper.loadAccount && ref) {
+      helper.loadAccount(ref).then((result) => this.applyLoad(result, 'gate')).catch(() => this.showError('not-found'));
+      return;
+    }
+    this.showError('not-found');
+  }
+
+  applyLoad(result, entry) {
+    if (!result || result.kind !== 'booking') {
+      this.showError(result && result.kind === 'gone' ? 'gone' : 'not-found', result && result.error);
+      return;
+    }
+    this.applyTicket(result.booking, entry, result.via || 'token');
+  }
+
+  showError(kind, message) {
+    const gone = kind === 'gone';
+    this.setState({
+      view: 'lookup',
+      notFound: true,
+      errorKind: gone ? 'gone' : 'not-found',
+      errorTitle: gone ? t('This booking is gone.') : t('We could not find this booking.'),
+      errorBody: gone
+        ? t('Start a new trip from home.')
+        : t('Check the link in your confirmation email.'),
+      ticket: blankTicket(),
+    }, () => { const el = this.errRef.current; if (el) el.focus(); });
+    if (message) {
+      /* keep generic copy — never echo a sample trip */
+    }
+  }
+
+  applyTicket(booking, entry, via) {
+    const local = formatLocal(booking.scheduledLocal);
+    const dateLabel = booking.dateLabel || local.date;
+    const timeLabel = booking.timeLabel || local.time;
+    const ticket = Object.assign(blankTicket(), booking, {
+      dateLabel,
+      timeLabel,
+      countdown: dateLabel && timeLabel ? (dateLabel + ' · ' + timeLabel) : '',
+    });
+    const status = String(ticket.status || 'confirmed');
+    this.setState({
+      view: 'booking',
+      entry: entry || this.state.entry,
+      authVia: via || this.state.authVia,
+      notFound: false,
+      errorKind: '',
+      ticket,
+      status,
+      ref: ticket.reference,
+      pickupDraft: ticket.pickupText,
+      dropoffDraft: ticket.dropoffText,
+      pax: ticket.pax || 1,
+      bags: ticket.bags || 0,
+      flight: ticket.flightNo || '',
+      flightDraft: ticket.flightNo || '',
+      flightMode: 'idle',
+      mDate: dateLabel,
+      mTime: timeLabel,
+      mDay: local.day,
+      requested: null,
+      voucher: false,
+    });
+  }
+
   timing() { return this.state.timing || this.props.bookingTiming || 'ahead'; }
-  trip() { return TRIP[this.timing() === 'late' ? 'late' : 'ahead']; }
   money(a) { return (window.VamosLocale ? window.VamosLocale.money(a) : 'CHF ' + a); }
 
-  /* Every editable field, back at what was actually booked. Entering the change
-     screen starts from the booking, never from a half-finished earlier attempt. */
-  drafts(timing) {
-    const t = TRIP[(timing || this.timing()) === 'late' ? 'late' : 'ahead'];
+  drafts() {
+    const ticket = this.state.ticket || blankTicket();
+    const local = formatLocal(ticket.scheduledLocal);
     return {
-      mDay: t.day, mDate: t.date, mTime: t.time,
-      pickupDraft: TRIP.pickup, dropoffDraft: TRIP.dropoff,
-      vehicle: TRIP.vehicleId, pax: TRIP.pax, bags: TRIP.bags,
+      mDay: local.day, mDate: ticket.dateLabel || local.date, mTime: ticket.timeLabel || local.time,
+      pickupDraft: ticket.pickupText, dropoffDraft: ticket.dropoffText,
+      vehicle: this.state.vehicle, pax: ticket.pax || 1, bags: ticket.bags || 0,
     };
   }
 
-  /* One list drives the summary, the request button and the pending row on the
-     booking card — so the three can never disagree about what was asked for. */
   diffList() {
-    const s = this.state, t = this.trip(), out = [];
-    const booked = t.date + ' · ' + t.time, next = s.mDate + ' · ' + s.mTime;
+    const s = this.state, ticket = s.ticket || blankTicket(), out = [];
+    const booked = (ticket.dateLabel || '') + ' · ' + (ticket.timeLabel || '');
+    const next = s.mDate + ' · ' + s.mTime;
     const pu = (s.pickupDraft || '').trim(), df = (s.dropoffDraft || '').trim();
     if (next !== booked) out.push({ k: 'Pickup time', o: booked, n: next });
-    if (pu && pu !== TRIP.pickup) out.push({ k: 'Pickup address', o: TRIP.pickup, n: pu });
-    if (df && df !== TRIP.dropoff) out.push({ k: 'Destination', o: TRIP.dropoff, n: df });
-    if (s.vehicle !== TRIP.vehicleId) out.push({ k: 'Vehicle class', o: nameOf(TRIP.vehicleId), n: nameOf(s.vehicle) });
-    if (s.pax !== TRIP.pax) out.push({ k: 'Passengers', o: String(TRIP.pax), n: String(s.pax) });
-    if (s.bags !== TRIP.bags) out.push({ k: 'Bags', o: String(TRIP.bags), n: String(s.bags) });
+    if (pu && pu !== ticket.pickupText) out.push({ k: 'Pickup address', o: ticket.pickupText, n: pu });
+    if (df && df !== ticket.dropoffText) out.push({ k: 'Destination', o: ticket.dropoffText, n: df });
+    if (s.pax !== ticket.pax) out.push({ k: 'Passengers', o: String(ticket.pax), n: String(s.pax) });
+    if (s.bags !== ticket.bags) out.push({ k: 'Bags', o: String(ticket.bags), n: String(s.bags) });
     return out;
   }
 
@@ -764,28 +915,30 @@ class Component extends DCLogic {
     if (!ref) bad.ref = 'missing';
     if (!who) bad.who = 'missing';
     if (Object.keys(bad).length) { this.setState({ bad, notFound: false }); return; }
-    /* A reference shape cannot prove a booking exists. Keep the static review fixture
-       unreachable from customer input until Phase 9 reads and authorizes real records. */
-    this.setState({ notFound: true, bad: {} }, () => { const el = this.errRef.current; if (el) el.focus(); });
+    const helper = api();
+    if (this.state.signedIn && helper.loadAccount) {
+      helper.loadAccount(ref).then((result) => this.applyLoad(result, 'gate')).catch(() => this.showError('not-found'));
+      return;
+    }
+    this.showError('not-found');
   };
 
   goTo(view, timing) {
     const next = { view, notFound: false, bad: {} };
     if (timing) next.timing = timing;
-    if (view === 'modify') Object.assign(next, this.drafts(timing));
-    if (view === 'lookup') { next.ref = ''; next.who = ''; next.entry = 'gate'; next.status = 'confirmed'; next.requested = null; next.voucher = false; }
-    if (view !== 'cancelled') next.status = 'confirmed';
+    if (view === 'modify') Object.assign(next, this.drafts());
+    if (view === 'lookup') { next.ref = ''; next.who = ''; next.entry = 'gate'; next.requested = null; next.voucher = false; }
     this.setState(next);
   }
 
   goLookup = () => this.goTo('lookup');
-  goNotFound = () => this.setState({ view: 'lookup', notFound: true, bad: {}, ref: 'VT-0000', who: 'ben@example.com' });
-  goBooking = () => { this.setState({ entry: 'gate', voucher: false, requested: null, flightMode: 'idle' }); this.goTo('booking', 'ahead'); };
-  goLink = () => { this.setState({ entry: 'link', voucher: false, requested: null, flightMode: 'idle' }); this.goTo('booking', 'ahead'); };
+  goNotFound = () => this.showError('not-found');
+  goBooking = () => { this.setState({ entry: 'gate', voucher: false, requested: null, flightMode: 'idle' }); this.goTo('booking'); };
+  goLink = () => { this.setState({ entry: 'link', voucher: false, requested: null, flightMode: 'idle' }); this.goTo('booking'); };
   goModify = () => this.goTo('modify', 'ahead');
   goBlocked = () => this.goTo('modify', 'late');
   goCancel = () => this.goTo('cancel');
-  goCancelled = () => this.setState({ view: 'cancelled', status: 'cancelled', voucher: false, notFound: false, bad: {} });
+  goCancelled = () => this.setState({ view: 'booking', status: 'cancelled', voucher: false, notFound: false, bad: {} });
 
   startModify = () => this.goTo('modify');
   startCancel = () => this.goTo('cancel');
@@ -793,7 +946,10 @@ class Component extends DCLogic {
 
   setDay = (d, label) => this.setState({ mDay: d, mDate: label });
   setTime = (t) => this.setState({ mTime: t });
-  resetWhen = () => { const t = this.trip(); this.setState({ mDay: t.day, mDate: t.date, mTime: t.time }); };
+  resetWhen = () => {
+    const ticket = this.state.ticket || blankTicket();
+    this.setState({ mDate: ticket.dateLabel, mTime: ticket.timeLabel });
+  };
   resetChanges = () => this.setState(this.drafts());
 
   onPickupDraft = (e) => this.setState({ pickupDraft: e.target.value });
@@ -802,21 +958,77 @@ class Component extends DCLogic {
   bump = (k, d, min, max) => () => this.setState((s) => ({ [k]: Math.min(max, Math.max(min, s[k] + d)) }));
 
   confirmModify = () => {
-    const list = this.diffList();
-    if (!list.length) return;
-    this.setState({ view: 'booking', requested: list });
-    this.say('Change requested. We confirm every change by email.', 'accent');
+    const helper = api();
+    const ticket = this.state.ticket || blankTicket();
+    const s = this.state;
+    const orig = (ticket.dateLabel || '') + (ticket.timeLabel ? (' · ' + ticket.timeLabel) : '');
+    let scheduledLocal = '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(String(s.mDate || '')) && s.mTime) {
+      scheduledLocal = s.mDate + 'T' + s.mTime;
+    } else if (ticket.scheduledLocal && s.mTime) {
+      scheduledLocal = String(ticket.scheduledLocal).slice(0, 10) + 'T' + s.mTime;
+    } else {
+      scheduledLocal = String(s.mDate || '') + 'T' + String(s.mTime || '');
+    }
+    const tok = helper.token ? helper.token() : '';
+    // Request time change — POST /api/manage/time-change (guest) or /api/account/bookings/time-change
+    const req = ticket.via === 'account'
+      ? helper.timeChangeAccount(ticket.reference, scheduledLocal)
+      : helper.timeChangeGuest(tok, ticket.reference, scheduledLocal);
+    req.then((result) => {
+      if (result && result.ok && result.body && result.body.ok) {
+        const msg = t('Time-change requested. Pickup stays {original} until we confirm.').replace('{original}', orig || 'the booked time');
+        this.say(msg, 'ok');
+        this.setState({ view: 'booking', requested: this.diffList() });
+        return;
+      }
+      this.say(t('Could not request this time change.'), 'danger');
+    }).catch(() => this.say(t('Could not request this time change.'), 'danger'));
   };
 
   confirmCancel = () => {
-    this.setState({ view: 'cancelled', status: 'cancelled', voucher: false, requested: null });
-    this.say('Booking cancelled. The confirmation is on its way.', 'neutral');
+    if (this.state.cancelling) return;
+    const helper = api();
+    const tok = helper.token ? helper.token() : '';
+    const ticket = this.state.ticket || blankTicket();
+    this.setState({ cancelling: true });
+    const req = tok && helper.cancelGuest
+      ? helper.cancelGuest(tok)
+      : (this.state.signedIn && helper.cancelAccount
+        ? helper.cancelAccount(ticket.reference)
+        : Promise.resolve({ ok: false, body: {} }));
+    req.then((result) => {
+      if (!result || !result.ok || !result.body || result.body.ok !== true) {
+        this.setState({ cancelling: false });
+        this.say(t('Could not cancel this booking.'), 'danger');
+        return;
+      }
+      const refundStatus = result.body.refundStatus || 'pending_ops';
+      const nextTicket = Object.assign({}, ticket, {
+        status: 'cancelled',
+        canCancel: false,
+        refundStatus,
+        payoutCountryLabel: result.body.payoutCountryLabel || ticket.payoutCountryLabel,
+        availableOn: result.body.availableOn || null,
+      });
+      this.setState({
+        cancelling: false,
+        view: 'booking',
+        status: 'cancelled',
+        ticket: nextTicket,
+        voucher: false,
+        requested: null,
+      });
+    }).catch(() => {
+      this.setState({ cancelling: false });
+      this.say(t('Could not cancel this booking.'), 'danger');
+    });
   };
 
   openVoucher = () => this.setState({ voucher: true });
   closeVoucher = () => this.setState({ voucher: false });
   printVoucher = () => window.print();
-  resend = () => this.say('Sent. Check ' + TRIP.email + ' in a minute or two.', 'success');
+  resend = () => this.say('Sent. Check ' + ((this.state.ticket && this.state.ticket.contactEmail) || '') + ' in a minute or two.', 'success');
 
   editFlight = () => this.setState((s) => ({ flightMode: 'edit', flightDraft: s.flight }));
   cancelFlight = () => this.setState((s) => ({ flightMode: 'idle', flightDraft: s.flight }));
@@ -824,18 +1036,32 @@ class Component extends DCLogic {
   saveFlight = () => {
     const v = this.state.flightDraft.trim();
     if (!v) { this.setState({ flightMode: 'idle' }); return; }
-    this.setState({ flight: v, flightMode: 'idle' });
-    this.say('Flight number saved as ' + v + '. Your driver tracks this flight.', 'success');
+    const helper = api();
+    const ticket = this.state.ticket || blankTicket();
+    const tok = helper.token ? helper.token() : '';
+    // Save flight number — POST /api/manage/flight (guest) or /api/account/bookings/flight
+    const req = ticket.via === 'account'
+      ? helper.saveFlightAccount(ticket.reference, v)
+      : helper.saveFlightGuest(tok, ticket.reference, v);
+    req.then((result) => {
+      if (result && result.ok && result.body && result.body.ok) {
+        this.setState({ flight: v, flightMode: 'idle' });
+        this.say(t('Flight number saved.'), 'success');
+        return;
+      }
+      this.say(t('Could not save this flight number.'), 'danger');
+    }).catch(() => this.say(t('Could not save this flight number.'), 'danger'));
   };
 
   renderVals() {
     const s = this.state, p = this.props;
     const v = s.view;
+    const ticket = s.ticket || blankTicket();
+    const helper = api();
     const late = this.timing() === 'late';
-    const t = this.trip();
     const airport = (p.bookingType || 'airport') !== 'city';
     const blocked = v === 'modify' && late;
-    const bookedWhen = t.date + ' · ' + t.time;
+    const bookedWhen = (ticket.dateLabel || '') + (ticket.timeLabel ? (' · ' + ticket.timeLabel) : '');
     const newWhen = s.mDate + ' · ' + s.mTime;
     const unpaid = s.status === 'pending' || s.status === 'quote';
     const badge = unpaid ? 'pending' : (s.status === 'canceled' ? 'cancelled' : s.status);
@@ -843,25 +1069,33 @@ class Component extends DCLogic {
       ? 'Needs payment'
       : badge === 'assigned'
         ? 'Driver assigned'
-        : badge === 'no-show'
+        : badge === 'no_show' || badge === 'no-show'
           ? 'No-show'
           : badge === 'paid'
             ? 'Paid'
-            : (badge.charAt(0).toUpperCase() + badge.slice(1));
+            : (badge ? badge.charAt(0).toUpperCase() + badge.slice(1).replace('_', ' ') : '');
     const totalLabel = s.status === 'refunded' ? 'Refunded' : unpaid ? 'Needs payment' : 'Paid';
-    const lines = [
-      { label: 'Fare', value: this.money('000.00') },
-      { label: '8.1% VAT', value: this.money('000.00') },
-    ];
+    const paid = francs(ticket.priceTotalRappen);
+    const lines = paid ? [{ label: 'Fare', value: paid }] : [];
+    const chauffeurName = ticket.chauffeurName || '';
+    const vehicleLabel = [ticket.plate, ticket.vehicle].filter(Boolean).join(' · ');
     const meta = [
-      { icon: 'calendar', label: t.date },
-      { icon: 'clock', label: 'Pickup ' + t.time },
-      { icon: 'users', label: TRIP.pax + ' passengers' },
-      { icon: 'car', label: TRIP.vehicle },
-    ];
-    if (airport) meta.push({ icon: 'plane-landing', label: s.flight });
+      { icon: 'calendar', label: ticket.dateLabel },
+      { icon: 'clock', label: ticket.timeLabel ? ('Pickup ' + ticket.timeLabel) : '' },
+      { icon: 'users', label: ticket.pax ? (ticket.pax + ' passengers') : '' },
+    ].filter((row) => row.label);
+    if (vehicleLabel) meta.push({ icon: 'car', label: vehicleLabel });
+    if (airport && s.flight) meta.push({ icon: 'plane-landing', label: s.flight });
     const cls = CLASSES.find((c) => c.id === s.vehicle) || CLASSES[0];
     const diffs = this.diffList();
+    const windowKind = ticket.cancelWindow || 'none';
+    const reviewed = !!ticket.reviewSubmitted;
+    const hideCancel = !ticket.canCancel || reviewed || s.status === 'completed' || s.status === 'no_show' || s.status === 'cancelled';
+    const refundLine = helper.refundLine ? helper.refundLine(ticket) : '';
+    const refundedCopy = helper.refundedCopy ? helper.refundedCopy(ticket) : '';
+    const pickupShort = ticket.pickupText || '';
+    const dropShort = ticket.dropoffText || '';
+    const routeShort = pickupShort && dropShort ? (pickupShort + ' → ' + dropShort) : (pickupShort || dropShort);
 
     return {
       n14: 14, n16: 16, n18: 18, n20: 20, n24: 24, n96: 96, yes: true, pt5: 0.5,
@@ -872,18 +1106,20 @@ class Component extends DCLogic {
       isModify: v === 'modify' && !late,
       isBlocked: blocked,
       isCancel: v === 'cancel',
-      isCancelled: v === 'cancelled',
+      isCancelled: false,
       viaLink: v !== 'lookup' && s.entry === 'link',
       notLink: s.entry !== 'link',
       showAccountSignIn: !s.signedIn,
 
       notFound: s.notFound, errRef: this.errRef,
+      errorTitle: s.errorTitle || t('We could not find this booking.'),
+      errorBody: s.errorBody || t('Check the link in your confirmation email.'),
       vRef: s.ref, vWho: s.who,
       onRef: this.set('ref'), onWho: this.set('who'),
       badRef: !!s.bad.ref, badWho: !!s.bad.who,
       aRef: s.bad.ref ? 'true' : 'false', aWho: s.bad.who ? 'true' : 'false',
       whoLabel: s.whoBy === 'email' ? 'Email address' : 'Last name',
-      whoPlaceholder: s.whoBy === 'email' ? 'you@example.com' : 'Ben Othman',
+      whoPlaceholder: s.whoBy === 'email' ? 'you@example.com' : 'Your surname',
       swapLabel: s.whoBy === 'email' ? 'Use the last name instead' : 'Use the email address instead',
       whoHint: s.whoBy === 'email'
         ? 'The address the confirmation was sent to. Either detail works — pick whichever you have to hand.'
@@ -891,26 +1127,38 @@ class Component extends DCLogic {
       whoError: s.whoBy === 'email' ? 'Add the email address the booking was made with' : 'Add the surname on the booking',
       lookup: this.lookup, swapWho: this.swapWho,
 
-      ref: TRIP.ref, status: s.status, countdown: t.countdown,
+      ref: ticket.reference, status: badge, countdown: ticket.countdown,
       unpaid,
       badge, badgeLabel, totalLabel,
-      pickup: TRIP.pickup, pickupDetail: TRIP.pickupDetail, dropoff: TRIP.dropoff,
-      pickupTime: t.time, arriveTime: '', durationChip: '',
-      routeShort: 'ZRH → Bahnhofstrasse 1',
-      meta, lines, total: this.money('000.00'),
-      email: TRIP.email, isAirport: airport,
-      vehicleName: TRIP.vehicle,
-      paxLabel: TRIP.pax + ' passengers', bagLabel: TRIP.bags + ' bags',
-      /* A cancelled booking has no driver to track a flight for, so the inline
-         row goes away with the rest of the live-booking actions. */
-      flightRow: airport && s.status !== 'cancelled',
+      pickup: ticket.pickupText, pickupDetail: ticket.pickupDetail || ticket.timeLabel, dropoff: ticket.dropoffText,
+      pickupTime: ticket.timeLabel, arriveTime: '', durationChip: '',
+      routeShort,
+      meta, lines, total: paid, hasPrice: !!paid,
+      email: ticket.contactEmail, isAirport: airport,
+      vehicleName: vehicleLabel,
+      paxLabel: ticket.pax + ' passengers', bagLabel: ticket.bags + ' bags',
+      flightRow: airport && s.status !== 'cancelled' && !!s.flight,
       bookedWhen, newWhen,
       changePending: !!(s.requested && s.requested.length), requested: s.requested || [],
+      isReviewed: reviewed,
+      showCancel: !hideCancel,
+      hasChauffeur: !!chauffeurName,
+      chauffeurName,
+      hasVehicle: !!vehicleLabel,
+      vehicleLabel,
+      showRefundLine: !!refundLine,
+      refundLine,
+      hasRefundedCopy: !!refundedCopy,
+      refundedCopy,
+      cancelFull: windowKind === 'auto_full',
+      cancelOps: windowKind === 'pending_ops',
+      cancelClose: windowKind === 'none',
+      canConfirmCancel: !hideCancel && windowKind !== 'none',
 
       modifySub: late
         ? 'Your pickup is close, so a change now needs a phone call — we will show you why.'
         : 'Time, route, vehicle or passengers. We confirm every change by email before it counts.',
-      cancelSub: late
+      cancelSub: windowKind === 'pending_ops'
         ? 'See what comes back at this notice before you decide.'
         : 'See the refund you are due before anything is confirmed.',
 
@@ -936,8 +1184,8 @@ class Component extends DCLogic {
       diffs, hasDiff: diffs.length > 0, noDiff: diffs.length === 0,
       confirmModify: this.confirmModify, resetChanges: this.resetChanges,
 
-      earlyTier: !late, lateTier: late,
-      shareLabel: late ? 'Late cancel share' : 'Full refund share',
+      earlyTier: windowKind === 'auto_full', lateTier: windowKind === 'pending_ops',
+      shareLabel: '',
       confirmCancel: this.confirmCancel,
 
       voucherOpen: s.voucher, voucherClosed: !s.voucher,

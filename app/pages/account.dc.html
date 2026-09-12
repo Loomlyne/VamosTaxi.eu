@@ -276,7 +276,12 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <p data-ac-sub="1">Everything booked under this email address.</p>
 <div style="margin-top:10px;display:flex;flex-direction:column;gap:12px">
 <sc-for list="{{ bookings }}" as="b" hint-placeholder-count="2">
+<div>
 <dc-import name="BookingRow" status="{{ b.status }}" href="{{ b.href }}" date="{{ b.date }}" time="{{ b.time }}" route="{{ b.route }}" meta="{{ b.meta }}" price="{{ b.price }}" reference="{{ b.ref }}" onCancel="{{ cancelUnpaid }}" hint-size="100%,146px"></dc-import>
+<sc-if value="{{ b.showReview }}" hint-placeholder-val="{{ false }}">
+<a href="{{ b.reviewHref }}" style="display:inline-flex;align-items:center;min-height:32px;margin:2px 0 8px;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-accent)">{{ b.reviewLabel }}</a>
+</sc-if>
+</div>
 </sc-for>
 <sc-if value="{{ noBookings }}" hint-placeholder-val="{{ false }}">
 <p data-ac-sub="1" style="padding:18px 0;border-top:1px solid var(--vt-border-subtle)">No transfers yet. Your next booking appears here the moment it is paid.</p>
@@ -813,18 +818,24 @@ class Component extends DCLogic {
         });
       }
     } catch (e) {}
-    const bookings = upcoming.slice(0, 2).map((b) => ({
-      status: b.status,
-      href: b.href || ('/confirmation/' + b.ref),
-      date: b.date,
-      time: b.time,
-      route: b.route,
-      ref: b.ref,
-      meta: (b.pax === 1 ? '1 passenger' : (b.pax || 1) + ' passengers') + (b.ref ? ' · ' + b.ref : ''),
-      price: (window.VamosLocale && typeof window.VamosLocale.fromChf === 'function')
-        ? window.VamosLocale.fromChf(b.priceRappen)
-        : 'CHF 000',
-    }));
+    const bookings = upcoming.slice(0, 2).map((b) => {
+      const reviewState = b.reviewState || 'none';
+      return {
+        status: b.status,
+        href: b.href || ('/confirmation/' + b.ref),
+        date: b.date,
+        time: b.time,
+        route: b.route,
+        ref: b.ref,
+        meta: (b.pax === 1 ? '1 passenger' : (b.pax || 1) + ' passengers') + (b.ref ? ' · ' + b.ref : ''),
+        price: (window.VamosLocale && typeof window.VamosLocale.fromChf === 'function')
+          ? window.VamosLocale.fromChf(b.priceRappen)
+          : 'CHF 000',
+        showReview: reviewState === 'requested' || reviewState === 'reviewed',
+        reviewHref: b.reviewHref || '',
+        reviewLabel: reviewState === 'reviewed' ? 'Reviewed' : 'Review trip',
+      };
+    });
 
     const email = auth.email || '';
     const full = [auth.firstName, auth.lastName].filter(Boolean).join(' ').trim();

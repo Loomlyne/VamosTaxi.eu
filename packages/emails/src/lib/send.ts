@@ -29,13 +29,66 @@ import {
   type OpsMustFixForEmail,
 } from "../OpsMustFixEmail";
 import { renderRefundEmail, type RefundKind } from "../refund";
+import {
+  CancellationEmail,
+  cancellationPlainText,
+  cancellationSubject,
+  type CancellationForEmail,
+} from "../CancellationEmail";
+import {
+  RefundFailedEmail,
+  refundFailedPlainText,
+  refundFailedSubject,
+  type RefundFailedForEmail,
+} from "../RefundFailedEmail";
+import {
+  Reminder24hEmail,
+  reminder24hPlainText,
+  reminder24hSubject,
+  type Reminder24hForEmail,
+} from "../Reminder24hEmail";
+import {
+  AssignmentCustomerEmail,
+  assignmentCustomerPlainText,
+  assignmentCustomerSubject,
+  type AssignmentCustomerForEmail,
+} from "../AssignmentCustomerEmail";
+import {
+  TimeChangeEmail,
+  timeChangePlainText,
+  timeChangeSubject,
+  type TimeChangeForEmail,
+} from "../TimeChangeEmail";
+import {
+  FlightNumberEmail,
+  flightNumberPlainText,
+  flightNumberSubject,
+  type FlightNumberForEmail,
+} from "../FlightNumberEmail";
+import {
+  ReviewRequestEmail,
+  reviewRequestPlainText,
+  reviewRequestSubject,
+  type ReviewRequestForEmail,
+} from "../ReviewRequestEmail";
 import { chauffeurEmailLocale } from "./chauffeur-locale";
 import { buildInvite } from "./ics";
 import { renderConfirmation } from "./render";
 import type { BookingForEmail, EmailLocale, PayLinkForEmail, SendOutcome } from "./types";
+import type { ReactElement } from "react";
 
 export { chauffeurEmailLocale };
-export type { ChauffeurDispatchForEmail, OpsMustFixForEmail };
+export type {
+  ChauffeurDispatchForEmail,
+  OpsMustFixForEmail,
+  CancellationForEmail,
+  RefundFailedForEmail,
+  Reminder24hForEmail,
+  AssignmentCustomerForEmail,
+  TimeChangeForEmail,
+  FlightNumberForEmail,
+  ReviewRequestForEmail,
+};
 
 /**
  * Bump the trailing serial when rendered content changes; bump the date
@@ -55,6 +108,55 @@ export type EmailEnv = {
 };
 
 const FROM = "Vamos Taxi <noreply@vamostaxi.site>";
+
+/**
+ * D-30: lifecycle ops copies (cancel / time / flight / refund-failed) go to
+ * bookings@vamostaxi.site (web BOOKINGS_OPS_EMAIL). Never info@.
+ */
+export const LIFECYCLE_OPS_EMAIL = "bookings@vamostaxi.site";
+
+function uniqueEmails(to: string | string[]): string[] {
+  const list = Array.isArray(to) ? to : [to];
+  return [...new Set(list.map((addr) => addr.trim().toLowerCase()).filter(Boolean))];
+}
+
+async function sendReactMail(
+  env: EmailEnv,
+  to: string | string[],
+  subject: string,
+  react: ReactElement,
+  text: string,
+  failLabel: string,
+): Promise<SendOutcome> {
+  try {
+    if (!env.RESEND_API_KEY) {
+      return { ok: false, error: "RESEND_API_KEY is not bound" };
+    }
+    const unique = uniqueEmails(to);
+    if (unique.length === 0) {
+      return { ok: false, error: `no ${failLabel} recipients` };
+    }
+    const resend = new Resend(env.RESEND_API_KEY);
+    const result = await resend.emails.send({
+      from: FROM,
+      to: unique,
+      subject,
+      react,
+      text,
+    });
+    if (result.error) {
+      return { ok: false, error: result.error.message };
+    }
+    const id = result.data?.id;
+    if (!id) {
+      return { ok: false, error: "Resend returned no id" };
+    }
+    return { ok: true, providerMessageId: id };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : `${failLabel} failed`;
+    return { ok: false, error: message };
+  }
+}
 
 export async function sendConfirmation(
   env: EmailEnv,
@@ -286,4 +388,109 @@ export async function sendOpsMustFix(
     const message = err instanceof Error ? err.message : "sendOpsMustFix failed";
     return { ok: false, error: message };
   }
+}
+
+export async function sendCancellation(
+  env: EmailEnv,
+  trip: CancellationForEmail,
+  to: string | string[],
+): Promise<SendOutcome> {
+  return sendReactMail(
+    env,
+    to,
+    cancellationSubject(trip),
+    CancellationEmail({ trip }),
+    cancellationPlainText(trip),
+    "sendCancellation",
+  );
+}
+
+export async function sendRefundFailed(
+  env: EmailEnv,
+  trip: RefundFailedForEmail,
+  to: string | string[] = LIFECYCLE_OPS_EMAIL,
+): Promise<SendOutcome> {
+  return sendReactMail(
+    env,
+    to,
+    refundFailedSubject(trip),
+    RefundFailedEmail({ trip }),
+    refundFailedPlainText(trip),
+    "sendRefundFailed",
+  );
+}
+
+export async function sendReminder24h(
+  env: EmailEnv,
+  trip: Reminder24hForEmail,
+  to: string | string[],
+): Promise<SendOutcome> {
+  return sendReactMail(
+    env,
+    to,
+    reminder24hSubject(trip),
+    Reminder24hEmail({ trip }),
+    reminder24hPlainText(trip),
+    "sendReminder24h",
+  );
+}
+
+export async function sendAssignmentCustomer(
+  env: EmailEnv,
+  trip: AssignmentCustomerForEmail,
+  to: string | string[],
+): Promise<SendOutcome> {
+  return sendReactMail(
+    env,
+    to,
+    assignmentCustomerSubject(trip),
+    AssignmentCustomerEmail({ trip }),
+    assignmentCustomerPlainText(trip),
+    "sendAssignmentCustomer",
+  );
+}
+
+export async function sendTimeChange(
+  env: EmailEnv,
+  trip: TimeChangeForEmail,
+  to: string | string[],
+): Promise<SendOutcome> {
+  return sendReactMail(
+    env,
+    to,
+    timeChangeSubject(trip),
+    TimeChangeEmail({ trip }),
+    timeChangePlainText(trip),
+    "sendTimeChange",
+  );
+}
+
+export async function sendFlightNumber(
+  env: EmailEnv,
+  trip: FlightNumberForEmail,
+  to: string | string[],
+): Promise<SendOutcome> {
+  return sendReactMail(
+    env,
+    to,
+    flightNumberSubject(trip),
+    FlightNumberEmail({ trip }),
+    flightNumberPlainText(trip),
+    "sendFlightNumber",
+  );
+}
+
+export async function sendReviewRequest(
+  env: EmailEnv,
+  trip: ReviewRequestForEmail,
+  to: string | string[],
+): Promise<SendOutcome> {
+  return sendReactMail(
+    env,
+    to,
+    reviewRequestSubject(trip),
+    ReviewRequestEmail({ trip }),
+    reviewRequestPlainText(trip),
+    "sendReviewRequest",
+  );
 }

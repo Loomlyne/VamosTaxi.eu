@@ -113,6 +113,17 @@ CLI clock via `supabase migration new` (never a hand-typed timestamp). Hosted ap
 | `20260910170935_ops_refund_record` | **08-05** | `ops_refund_record` / `ops_cancel_booking` SECURITY DEFINER; nullable `booking_payments.stripe_fee_rappen`; EXECUTE `vamos_system` only. Hosted apply is 08-09. |
 | `20260910175309_booking_edit_requests` | **08-07** | `booking_edit_requests` + extra-settle DEFINER RPCs; one succeeded payment per snapshot; EXECUTE `vamos_system` only. Hosted apply is 08-09. Charge gate untouched. |
 
+### Phase 9 (booking lifecycle)
+
+CLI clock via `supabase migration new` (never a hand-typed timestamp). Hosted apply is **09-04**, not the plan that creates the file.
+
+| File | Owning plan | Contents |
+|---|---|---|
+| `20260911234512_booking_lifecycle_rollup` | **09-02** | `booking_legs.original_scheduled_at` (D-26 freeze); `app.recompute_booking_status` + public wrapper + AFTER status trigger. Hosted apply is 09-04. Charge gate untouched. |
+| `20260911234758_booking_lifecycle_cancel_refund` | **09-02** | D-02 compute + `manage_booking_cancel` / `customer_paid_cancel` / `manage_booking_read` / `record_booking_refund`; remaining ops refund (D-12/D-13). Hosted apply is 09-04. Charge gate untouched. |
+| `20260912000719_booking_lifecycle_reviews` | **09-03** | `reviews.booking_id` unique nullable + star columns + `photo_path`; `submit_review` / `submit_review_customer`. Hosted apply is 09-04. Charge gate untouched. |
+| `20260912033121_booking_lifecycle_ops_complete` | **09-11** | `ops_mark_complete` / `ops_mark_no_show` SECURITY DEFINER; leg status + `recompute_booking_status` + `booking_events`; paid no-show does not auto-refund; EXECUTE `vamos_system` only. Hosted apply is 09-11 Task 3. Charge gate untouched. |
+
 Three reorderings versus `02-SCHEMA-DRAFT.md` §16's illustrative sequence, each load-bearing:
 
 - **`content_and_reviews` moved to 07** (immediately after `customers_and_staff`), ahead of

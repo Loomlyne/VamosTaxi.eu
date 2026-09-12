@@ -1,0 +1,99 @@
+/* Review page. Law 01: no glow. Law 02: no tinted yellow. */
+:root {
+  --vt-shadow-accent: none;
+}
+
+.vt-review-wrap {
+  max-inline-size: 720px;
+  margin-inline: auto;
+  padding-block-start: clamp(36px, 4vw, 52px);
+  padding-inline: clamp(20px, 5vw, 56px);
+  padding-block-end: clamp(48px, 6vw, 80px);
+}
+
+.vt-review-card {
+  background: var(--vt-bg-surface);
+  border: 1px solid var(--vt-border-subtle);
+  border-radius: var(--vt-radius-lg);
+  box-shadow: var(--vt-shadow-sm);
+  padding: clamp(22px, 3vw, 32px);
+}
+
+.vt-review-stars {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-block-end: 20px;
+}
+
+.vt-review-stars__row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vt-review-stars__label {
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-label-sm);
+  letter-spacing: var(--vt-label-tracking);
+  text-transform: uppercase;
+  font-weight: var(--vt-label-weight);
+  color: var(--vt-text-muted);
+}
+
+.vt-review-stars__btns {
+  display: flex;
+  gap: 4px;
+}
+
+.vt-review-stars__btns button {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 6px;
+  cursor: pointer;
+  line-height: 0;
+}
+
+.vt-review-stars__btns button:focus-visible {
+  outline: 3px solid rgb(253 194 11 / 0.45);
+  outline-offset: 3px;
+  border-radius: var(--vt-radius-xs);
+}
+
+.vt-review-file {
+  margin-block: 16px;
+}
+
+.vt-review-file input[type="file"] {
+  display: block;
+  margin-block-start: 8px;
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-body-sm);
+  color: var(--vt-text-secondary);
+}
+
+.vt-review-actions {
+  margin-block-start: 24px;
+}
+
+.vt-review-thanks {
+  text-align: start;
+}
+
+.vt-review-thanks h2 {
+  margin-block: 12px 8px;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-heading-1);
+  line-height: var(--vt-heading-leading);
+  font-weight: var(--vt-weight-semibold);
+  color: var(--vt-text-primary);
+}
+
+.vt-review-thanks p {
+  margin: 0;
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-body-md);
+  line-height: var(--vt-body-leading);
+  color: var(--vt-text-secondary);
+}

@@ -66,3 +66,25 @@ export function stripeFeeRappen(refund: {
   if (typeof fee === "number" && Number.isFinite(fee) && fee > 0) return fee;
   return null;
 }
+
+/** D-12: remaining = captured minus refunded. already-refunded only when remaining is 0. */
+export function opsRefundAmount(input: {
+  capturedRappen: number;
+  refundedRappen: number;
+  percent?: number;
+  rappen?: number;
+}): { remaining: number; amount: number } {
+  const captured = Number.isFinite(input.capturedRappen) ? Math.trunc(input.capturedRappen) : 0;
+  const refunded = Number.isFinite(input.refundedRappen) ? Math.trunc(input.refundedRappen) : 0;
+  const remaining = Math.max(0, captured - Math.max(0, refunded));
+  if (remaining <= 0) return { remaining: 0, amount: 0 };
+  let amount = remaining;
+  if (typeof input.rappen === "number" && Number.isFinite(input.rappen)) {
+    amount = Math.trunc(input.rappen);
+  } else if (typeof input.percent === "number" && Number.isFinite(input.percent)) {
+    amount = Math.round((captured * input.percent) / 100);
+  }
+  if (amount > remaining) amount = remaining;
+  if (amount < 0) amount = 0;
+  return { remaining, amount };
+}

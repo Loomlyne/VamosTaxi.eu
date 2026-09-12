@@ -177,3 +177,118 @@ export async function loadBookings(
     }));
   });
 }
+
+export type MoneyPeriod = "today" | "week" | "month" | "all";
+
+export type DashboardRefundLine = {
+  customer: string;
+  booking: string;
+  amountRappen: number;
+};
+
+export type DashboardMoney = {
+  period: MoneyPeriod;
+  incomeRappen: number;
+  refundRappen: number;
+  feeRappen: number;
+  refunds: DashboardRefundLine[];
+};
+
+export function parseMoneyPeriod(raw: string | null | undefined): MoneyPeriod {
+  if (raw === "week" || raw === "month" || raw === "all") return raw;
+  return "today";
+}
+
+export function zurichYmd(at = new Date()): string {
+  const parts: Record<string, string> = {};
+  new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Zurich",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })
+    .formatToParts(at)
+    .forEach((part) => {
+      parts[part.type] = part.value;
+    });
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
+export function addDaysYmd(ymd: string, days: number): string {
+  const bits = ymd.split("-");
+  const year = Number(bits[0]);
+  const month = Number(bits[1]);
+  const day = Number(bits[2]);
+  const dt = new Date(Date.UTC(year, month - 1, day));
+  dt.setUTCDate(dt.getUTCDate() + days);
+  const y = dt.getUTCFullYear();
+  const m = String(dt.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(dt.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+export function periodFromYmd(period: MoneyPeriod, todayYmd: string): string | null {
+  if (period === "all") return null;
+  if (period === "today") return todayYmd;
+  if (period === "week") return addDaysYmd(todayYmd, -6);
+  return addDaysYmd(todayYmd, -29);
+}
+
+function rappenOf(value: unknown): number {
+  const n = Number(value ?? 0);
+  return Number.isFinite(n) && n > 0 ? Math.trunc(n) : 0;
+}
+
+export async function loadDashboardMoney(
+  env: CloudflareEnv,
+  claims: VamosClaims,
+  period: MoneyPeriod,
+  now = new Date(),
+): Promise<DashboardMoney> {
+  const fromYmd = periodFromYmd(period, zurichYmd(now));
+  return asStaff(env, claims, async (sql) => {
+    const sums = await sql<{ income_rappen: number | string; fee_rappen: number | string }[]>`
+      select
+        coalesce(sum(p.charged_rappen), 0)::int as income_rappen,
+        coalesce(sum(p.stripe_fee_rappen) filter (where p.stripe_fee_rappen is not null), 0)::int as fee_rappen
+      from public.booking_payments as p
+      where p.captured_at is not null
+        and (
+          ${fromYmd}::text is null
+          or p.captured_at >= (${fromYmd}::date at time zone 'Europe/Zurich')
+        )
+    `;
+    const refundSum = await sql<{ refund_rappen: number | string }[]>`
+      select coalesce(sum(r.refund_rappen), 0)::int as refund_rappen
+      from public.booking_refunds as r
+      where
+        ${fromYmd}::text is null
+        or r.decided_at >= (${fromYmd}::date at time zone 'Europe/Zurich')
+    `;
+    const lines = await sql<
+      { customer: string | null; booking: string | null; amount_rappen: number | string }[]
+    >`
+      select
+        b.contact_name as customer,
+        b.reference as booking,
+        r.refund_rappen as amount_rappen
+      from public.booking_refunds as r
+      join public.bookings as b on b.id = r.booking_id
+      where
+        ${fromYmd}::text is null
+        or r.decided_at >= (${fromYmd}::date at time zone 'Europe/Zurich')
+      order by r.decided_at desc, r.id desc
+    `;
+    return {
+      period,
+      incomeRappen: rappenOf(sums[0]?.income_rappen),
+      refundRappen: rappenOf(refundSum[0]?.refund_rappen),
+      feeRappen: rappenOf(sums[0]?.fee_rappen),
+      refunds: lines.map((line) => ({
+        customer: String(line.customer ?? "").trim(),
+        booking: String(line.booking ?? "").trim(),
+        amountRappen: rappenOf(line.amount_rappen),
+      })),
+    };
+  });
+}

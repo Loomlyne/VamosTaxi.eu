@@ -16,3 +16,9 @@ export const SUPPORT_EMAIL = "info@vamostaxi.site";
 
 /** `mailto:` destination for the confirmed public support mailbox. */
 export const SUPPORT_EMAIL_HREF = `mailto:${SUPPORT_EMAIL}`;
+
+/**
+ * D-30 ops copies of cancel / time / flight / refund-failed.
+ * Not info@. Do not provision MX from this constant.
+ */
+export const BOOKINGS_OPS_EMAIL = "bookings@vamostaxi.site";

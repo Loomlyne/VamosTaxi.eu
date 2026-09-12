@@ -50,16 +50,17 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4.3: Blended distance bands + OPS rate book (INSERTED)** - Sheet-2 km bands, class floors, region %; OPS Pricing is the editor; live only after Publish (completed 2026-09-06)
 - [x] **Phase 5: Public Surfaces & Customer Accounts** - Every public mock is a live route on real data, and customers can create and access accounts (completed 2026-09-06)
 - [x] **Phase 6: Ops Reference Data & Content Console** - Staff manage the reference data and content that power the public site (replanned 2026-09-01 — DC mock is the product) (completed 2026-09-01)
-- [ ] **Phase 7: Checkout & Payment** - A customer pays for a locked quote and receives a webhook-confirmed booking
-- [ ] **Phase 8: Ops Dispatch — Live Board, Assignment & Account Surfaces** - Staff run the live board, assign real bookings, and customers see their own history
+- [x] **Phase 7: Checkout & Payment** - A customer pays for a locked quote and receives a webhook-confirmed booking (completed 2026-09-11)
+- [x] **Phase 8: Ops Dispatch — Live Board, Assignment & Account Surfaces** - Staff run the live board, assign real bookings, and customers see their own history (completed 2026-09-11)
 - [ ] **Phase 9: Booking Lifecycle & Customer Self-Service** - A booking lives its full lifecycle — reminders, delay handling, cancellation, review
 - [ ] **Phase 10: Hardening — Performance, Security & Compliance** - The site survives a launch surge and never captures data ahead of consent
 - [ ] **Phase 11: Launch Cutover** - Vamos Taxi goes live on its real domain with real pricing
-- [ ] **Phase 12: Ticket schema + #support mock** - Contact rows become tickets (New/Open/Replied/Responded/Closed); OpsSupportTicket + sidebar `#support`; Staff tab stays gone
+- [x] **Phase 12: Ticket schema + #support mock** - Contact rows become tickets (New/Open/Replied/Responded/Closed); OpsSupportTicket + sidebar `#support`; Staff tab stays gone (completed 2026-09-11)
 - [ ] **Phase 13: Staff APIs + outbound Resend replies** - Dispatcher sends a reply from the ticket; customer Gmail threads; info@ BCC; RFC Message-ID persisted
 - [ ] **Phase 14: Inbound webhook** - Signed Resend webhook appends matched replies; unmatched mail does not create a ticket
 - [ ] **Phase 15: Wire Ops #support to APIs** - Live `#support` list, thread, booking_ref+locale, status filters; EN/DE/FR/AR; escaped text
 - [ ] **Phase 16: Staging MX + end-to-end UAT** - Customer Reply-in-Gmail appends to the same ticket; MX only on replies.vamostaxi.site
+- [ ] **Phase 17: Ops chauffeur profile, shift roster, two-driver vehicles** - Fleet row opens a full chauffeur page; shifts auto On/Off; vehicle max 2 drivers (morning/night); Add is idempotent
 
 ## Phase Details
 
@@ -381,7 +382,7 @@ real charges wait for Phase 11.
   6. Coupons apply only through the quote/checkout APIs (window + caps). Checkout still refuses when `pricing_live=false` except the already-approved `PRICING_PREVIEW` display path — do not flip live.
   7. **Close bar — staging connection table**: `/checkout` and `/confirmation` HTML fingerprints `/api/` payment/booking routes (not `saveTrip` / fake `VT-`). Dummy card path on Stripe test only, owner-gated. `GET /confirmation` without a real booking does not paint a fake VT-ref.
 
-**Plans**: 07-01…07-10 paper SUMMARYs (not closed). Remainder 07-11…07-15 pending owner plan review.
+**Plans**: 16/16 — UAT complete 2026-09-11 (07-UAT.md). Owner ticked closed 2026-09-12.
 
 Plans:
 
@@ -419,21 +420,53 @@ not localStorage. No fixture `VT-48xx`. No auto-dispatch. No driver app. Admin-o
 ### Phase 9: Booking Lifecycle & Customer Self-Service
 
 **Goal**: A real booking (Phase 7 row) lives its full lifecycle on staging — manage link,
-detail route, reminders, delay handling, self-serve cancel/refund, review request — with
-no mock lookup and no 404 shells. Policy numbers the owner has not supplied stay TBC;
-do not invent cancel windows.
+detail route, reminders, time-change (ops confirm), self-serve cancel/refund, review request — with
+no mock lookup and no 404 shells. Cancel windows are D-02 (owner 2026-09-12). Do not invent CHF amounts.
 **Depends on**: Phase 7, Phase 8
 **Requirements**: LIFE-01, LIFE-02, LIFE-03, LIFE-04, LIFE-05, LIFE-06, LIFE-07, LIFE-08
 **Success Criteria** (what must be TRUE):
 
-  1. Status moves quote → pending → paid → confirmed → assigned → completed / cancelled / refunded / no-show. Every move writes `booking_events`. No client-only status.
-  2. Self-serve cancel/refund uses the snapshot’s cancellation tier (TBC pills until the owner numbers land — the path must still hit the API and refuse honestly, not pretend a window).
-  3. `/manage-booking` looks up by the hashed guest token (`booking_access_tokens`), not a mock reference field. Signed-in customers use `/bookings` + detail. `/booking-detail` is a live 200 route (today 404 is a fail). Assigned chauffeur name, vehicle, plate come from fleet rows once Phase 8 assigned them — empty until then, never fake names.
-  4. Pre-pickup reminder email/queue is a real `booking_notifications` row. Stale quotes expire server-side. No-show sweep is scheduled on the Worker. Flight delay: AeroDataBox when the owner binds it; until then the same honest `provider_unavailable` → enter time as Phase 5 — no fixture LX1234.
-  5. After completed, the customer gets a review request; submitted review lands in `public.reviews` and can be published from ops (Phase 6 APIs). Home then shows it (Phase 5 reviews-from-DB).
-  6. **Close bar — staging connection table**: `/manage-booking` `/booking-detail` `/bookings` `/confirmation` fingerprint token/booking APIs. A manage-token miss is an error state, not a demo booking. `/booking-detail` 404 is a fail.
+  1. Status moves quote → pending → paid → confirmed → assigned → completed / cancelled / no-show. Refunds are a money line, not status `refunded`. Every move writes `booking_events`. No client-only status.
+  2. Self-serve cancel uses D-02 vs original Zurich pickup: >24h automatic full Stripe refund of captured amount; 24h–6h cancel immediately, refund pending ops (default 100%); ≤6h and after pickup (not Completed) cancel with 0 automatic refund. Completed/No-show hide customer Cancel. Ops may still refund.
+  3. `/manage-booking` looks up by the hashed guest token (`booking_access_tokens`), not a mock reference field. Guest stays `manage-booking.dc.html` as-is (wired live). Signed-in `/confirmation/{ref}` extends `BookingVoucher`. Same fields/copy/refund line, not one React component. `/booking-detail` is a live 200 route (today 404 is a fail). Assigned chauffeur name, vehicle, plate come from fleet rows once assigned — empty until then, never fake names.
+  4. Pre-pickup 24h reminder is a real `booking_notifications` + Resend row. Stale unpaid bookings expire on the hourly Worker. **No auto no-show sweep** (ops marks Completed/No-show). Time change is customer request + ops confirm; no AeroDataBox; no fixture LX1234.
+  5. After ops marks Completed or paid no-show, the customer gets a review request; submitted review lands in `public.reviews` and can be published from ops (Phase 6 APIs). Home then shows it (Phase 5 reviews-from-DB).
+  6. **Close bar — staging connection table**: `/manage-booking` `/booking-detail` `/bookings` `/confirmation` fingerprint token/booking APIs. A manage-token miss is an error state, not a demo booking. `/booking-detail` 404 is a fail. Dummy-card paid cancel writes `booking_events` + `booking_refunds` (or honest Failed) + Resend.
 
-**Plans**: TBD
+**Plans:** 12 plans
+
+**Wave 1** — Wave 0 tests
+- [ ] 09-01-PLAN.md — Wave 0 pgTAP + Vitest (D-02/refund/review/booking-detail; LIFE-07 no-sweep green now)
+
+**Wave 2** *(blocked on Wave 1)*
+- [ ] 09-02-PLAN.md — Status roll-up + D-02 cancel/refund SQL (local only)
+
+**Wave 3** *(blocked on Wave 2)*
+- [ ] 09-03-PLAN.md — reviews.booking_id + submit_review SQL (local only)
+
+**Wave 4** *(blocked on Wave 3)* **[BLOCKING hosted SQL]**
+- [ ] 09-04-PLAN.md — [BLOCKING] Apply Phase 9 SQL on Zurich + regenerate database.types.ts
+
+**Wave 5** *(blocked on Wave 4)*
+- [ ] 09-05-PLAN.md — Guest + signed-in paid-cancel → Stripe test refund; Ops remaining refund + ops cancel money (D-13)
+- [ ] 09-06-PLAN.md — Lifecycle Resend templates + claim-then-send (bookings@)
+
+**Wave 6** *(blocked on Wave 5)*
+- [ ] 09-07-PLAN.md — Hourly 24h reminder + assignment-customer + cancel mails; no no-show sweep
+- [ ] 09-08-PLAN.md — DC manage-booking + live /booking-detail 200 wired to APIs
+
+**Wave 7** *(blocked on Wave 6)*
+- [ ] 09-09-PLAN.md — Signed-in BookingVoucher paid Cancel; unpaid list hard-delete only
+
+**Wave 8** *(blocked on Wave 5 mail + Wave 4 SQL)*
+- [ ] 09-10-PLAN.md — Time-change request/confirm + flight-number edit (no AeroDataBox)
+- [ ] 09-12-PLAN.md — Customer /review submit + photo R2 + /cancellation copy matching D-02
+
+**Wave 9** *(blocked on Wave 4 + complete RPCs)*
+- [ ] 09-11-PLAN.md — Ops complete/no-show + review-request chips + OpsDash Income/Expenses/Net
+
+**Cross-cutting constraints:** hashed guest token (never sample TRIP); Stripe test mode only (`sk_live_` refused); Hyperdrive direct never Supavisor :6543; Resend `bookings@vamostaxi.site`; no invented CHF; D-31 no auto no-show sweep.
+
 **UI hint**: yes
 
 ### Phase 10: Hardening — Performance, Security & Compliance
@@ -551,11 +584,32 @@ appends to the same ticket. Apex Gmail `info@` unchanged. No live `vamostaxi.eu`
 
 **Plans**: TBD
 
+### Phase 17: Ops chauffeur profile, shift roster, two-driver vehicles
+
+**Goal**: Ops fleet is a real chauffeur desk. Add cannot insert the same chauffeur twice
+on a double click. A row opens a full-page chauffeur profile (details, photo, bookings,
+leave, shift days/times). Each vehicle has at most two chauffeurs — morning and night.
+Zurich clock: during the saved shift the chauffeur is On shift; after it, Off duty;
+dispatcher-marked leave wins. No driver app. No auto-dispatch.
+**Depends on**: Phase 6 (fleet CRUD) and Phase 8 (assignment). Not Support MX. Spine still
+finishes 08-UAT then 12–16 before this phase is discussed.
+**Requirements**: OPS-11, OPS-12, OPS-13, OPS-14
+**Success Criteria** (what must be TRUE):
+
+  1. One Add click (or two fast clicks) creates **one** chauffeur row.
+  2. Clicking a chauffeur opens a **full page** (not the Add dialog): details, photo, bookings, leave, shift days and times.
+  3. A vehicle accepts **at most two** chauffeurs (morning / night). Third assign is refused with the exact reason.
+  4. Saved shift days + times in Europe/Zurich drive On shift vs Off duty without a manual toggle. Leave the dispatcher marks overrides the clock until it ends.
+  5. No chauffeur-profile `.dc.html` exists yet — this phase starts with a signed DC mock, then the port. Must-nots: no driver app, no auto-dispatch, no Staff tab, no live `vamostaxi.eu` DNS, no `env.production`. Funnel Phases 7–11 stay frozen until those phases run.
+
+**Plans**: TBD (blocked on `/gsd:discuss-phase 17` then signed plan)
+**UI hint**: yes — mock first, no invented dashboard
+
 ## Progress
 
 **Execution Order:**
 v1.0: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 → 9 → 10 → 11
-v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16
+v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16 → 17
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -565,19 +619,21 @@ v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16
 | 4. Quote & Pricing Engine | 16/16 | Complete    | 2026-09-06 |
 | 5. Public Surfaces & Customer Accounts | 33/33 | Complete    | 2026-09-06 |
 | 6. Ops Reference Data & Content Console | 13/13 | Complete   | 2026-09-01 |
-| 7. Checkout & Payment | 0/TBD | Not started | - |
-| 8. Ops Dispatch — Live Board, Assignment & Account Surfaces | 3/10 | In Progress|  |
+| 7. Checkout & Payment | 16/16 | Complete    | 2026-09-11 |
+| 8. Ops Dispatch — Live Board, Assignment & Account Surfaces | 10/10 | Complete    | 2026-09-11 |
 | 9. Booking Lifecycle & Customer Self-Service | 0/TBD | Not started | - |
 | 10. Hardening — Performance, Security & Compliance | 0/TBD | Not started | - |
 | 11. Launch Cutover | 0/TBD | Not started | - |
-| 12. Ticket schema + #support mock | 0/TBD | Not started | - |
+| 12. Ticket schema + #support mock | 3/3 | Complete    | 2026-09-11 |
 | 13. Staff APIs + outbound Resend replies | 0/TBD | Not started | - |
 | 14. Inbound webhook | 0/TBD | Not started | - |
 | 15. Wire Ops #support to APIs | 0/TBD | Not started | - |
 | 16. Staging MX + end-to-end UAT | 0/TBD | Not started | - |
+| 17. Ops chauffeur profile, shift roster, two-driver vehicles | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-08-17*
-*Granularity: fine (11 phases v1 + 5 phases v1.1)*
-*Coverage: 80/80 v1 + 9/9 v1.1*
+*Granularity: fine (11 phases v1 + 6 phases v1.1)*
+*Coverage: 80/80 v1 + 9/9 v1.1 + 4/4 chauffeur desk (OPS-11–14)*
 *v1.1 Ops Support added: 2026-09-04*
+*Phase 17 chauffeur desk added: 2026-09-11*

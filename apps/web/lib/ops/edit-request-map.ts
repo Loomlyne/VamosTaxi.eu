@@ -14,6 +14,7 @@ export type EditPayload = {
   dropoff_text?: string;
   flight_no?: string;
   scheduled_local?: string;
+  scheduled_at?: string;
   pax?: number;
   bags?: number;
   vehicle_class_slug?: string;

@@ -185,9 +185,10 @@ select ok(
   exists (
     select 1 from public.bookings
      where id = (select paid from fx)
-       and status = 'refunded'
+       and status = 'paid'
+       and refund_status = 'refunded'
   ),
-  'booking status refunded after Stripe id'
+  'D-10: booking status stays paid; refund_status refunded after Stripe id'
 );
 
 select ok(

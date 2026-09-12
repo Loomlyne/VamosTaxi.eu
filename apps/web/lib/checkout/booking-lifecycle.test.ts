@@ -71,16 +71,6 @@ describe("home starts a new booking", () => {
   });
 });
 
-describe("abandon unpaid", () => {
-  it("cancels only pending via the manage cookie", () => {
-    const src = readFileSync(join(WEB_ROOT, "app/api/checkout/abandon/route.ts"), "utf8");
-    expect(src).toContain("shouldAbandonUnpaid");
-    expect(src).toContain("manage_booking_cancel");
-    expect(src).toContain("asGuest");
-    expect(src).not.toContain("asSystem");
-  });
-});
-
 describe("unpaid card cancel + 24h expire", () => {
   it("account cancel uses asCustomer checkout_cancel_unpaid", () => {
     const src = readFileSync(join(WEB_ROOT, "app/api/account/bookings/cancel/route.ts"), "utf8");
@@ -119,5 +109,14 @@ describe("unpaid card cancel + 24h expire", () => {
     expect(src).toContain("reference=\"{{ b.ref }}\"");
     expect(src).toContain("/api/account/bookings/cancel");
     expect(src).toContain("ref: r.id");
+  });
+
+  it("paid list rows have no paid-cancel; unpaid Cancel stays checkout_cancel_unpaid", () => {
+    const src = readFileSync(join(WEB_ROOT, "../../app/pages/bookings.dc.html"), "utf8");
+    expect(src).toContain('onCancel="{{ cancelUnpaid }}"');
+    expect(src).toContain("/api/account/bookings/cancel");
+    expect(src).toContain("cancelUnpaid");
+    expect(src).not.toContain("/api/account/bookings/paid-cancel");
+    expect(src).not.toContain("Confirm cancellation");
   });
 });

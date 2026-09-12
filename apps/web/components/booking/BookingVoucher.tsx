@@ -3,7 +3,7 @@
 import "./BookingVoucher.css";
 import { type HTMLAttributes, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { Card, CheckerMark, Icon, Logo } from "@/components/core";
+import { Button, Card, CheckerMark, Icon, Logo } from "@/components/core";
 import type { IconName } from "@/components/core";
 import { PriceSummary, RouteSummary, StatusBadge } from "@/components/transfer";
 import type { BookingStatus } from "@/components/transfer/StatusBadge";
@@ -46,6 +46,10 @@ export type BookingVoucherFacts = {
   distanceKm?: number | null;
   paidAt?: string | null;
   paymentStatus?: string | null;
+  refundStatus?: string | null;
+  payoutCountry?: string | null;
+  availableOn?: string | null;
+  reviewSubmitted?: boolean;
 };
 
 export type BookingVoucherFallback = {
@@ -61,7 +65,26 @@ export type BookingVoucherProps = {
   reference: string;
   booking: BookingVoucherFacts | null;
   fallback?: BookingVoucherFallback;
+  cancelSlot?: ReactNode;
+  reviewHref?: string;
 };
+
+function regionName(iso: string, locale: string): string {
+  const code = iso.trim().toUpperCase();
+  if (!code) return "";
+  try {
+    const tag = locale === "ar" ? "ar" : locale === "de" ? "de" : locale === "fr" ? "fr" : "en";
+    return new Intl.DisplayNames([tag], { type: "region" }).of(code) || "";
+  } catch {
+    return "";
+  }
+}
+
+function payoutDate(iso: string): string {
+  const trimmed = iso.trim();
+  if (!trimmed) return "";
+  return trimmed.slice(0, 10);
+}
 
 function wallTime(scheduledLocal: string): { date: string; time: string } {
   const match = /^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/.exec(scheduledLocal);
@@ -90,7 +113,14 @@ function ReceiptRow({
   );
 }
 
-export function BookingVoucher({ locale, reference, booking, fallback }: BookingVoucherProps) {
+export function BookingVoucher({
+  locale,
+  reference,
+  booking,
+  fallback,
+  cancelSlot,
+  reviewHref,
+}: BookingVoucherProps) {
   const t = useTranslations("checkout");
   const tCommon = useTranslations("common");
   const tBadge = useTranslations("statusBadge");
@@ -234,6 +264,28 @@ export function BookingVoucher({ locale, reference, booking, fallback }: Booking
       : unpaid
         ? t("needsPayment")
         : t("paid");
+  const refundStatus = (booking?.refundStatus || "").trim().toLowerCase();
+  const refundLabel =
+    refundStatus === "pending_ops"
+      ? t("refundPendingOps")
+      : refundStatus === "processing"
+        ? t("refundProcessing")
+        : refundStatus === "refunded"
+          ? tBadge("refunded")
+          : refundStatus === "failed"
+            ? t("refundFailedLabel")
+            : "";
+  const country =
+    regionName(booking?.payoutCountry || "", locale) || t("switzerland");
+  const onDate = booking?.availableOn ? payoutDate(booking.availableOn) : "";
+  const refundedCopy =
+    refundStatus === "refunded"
+      ? [t("refundedToCard", { country }), onDate ? t("stripePayoutOn", { date: onDate }) : ""]
+          .filter(Boolean)
+          .join(" ")
+      : "";
+  const reviewed = Boolean(booking?.reviewSubmitted);
+  const showReview = Boolean(reviewHref) && !reviewed && badge === "completed";
 
   return (
     <Card
@@ -248,7 +300,15 @@ export function BookingVoucher({ locale, reference, booking, fallback }: Booking
       </div>
       <div className="vt-confirmation__voucher-head">
         <Logo variant="white" form="wordmark" height={24} />
-        <StatusBadge status={badge} label={badgeLabel} />
+        <span className="vt-confirmation__voucher-pills">
+          <StatusBadge status={badge} label={badgeLabel} />
+          {reviewed ? (
+            <span data-confirmation-reviewed="1" className="vt-confirmation__reviewed">
+              {t("reviewed")}
+            </span>
+          ) : null}
+          {/* Reviewed stays after submit (D-21). */}
+        </span>
       </div>
       <RouteSummary
         inverse
@@ -380,7 +440,22 @@ export function BookingVoucher({ locale, reference, booking, fallback }: Booking
             {paidAtLabel}
           </ReceiptRow>
         ) : null}
+        {refundLabel ? (
+          <ReceiptRow icon="credit-card" label={t("refund")} data-confirmation-refund>
+            {refundedCopy ? `${refundLabel}. ${refundedCopy}` : refundLabel}
+          </ReceiptRow>
+        ) : null}
       </dl>
+      {cancelSlot || showReview ? (
+        <div className="vt-confirmation__voucher-slot" data-noprint="1">
+          {showReview ? (
+            <Button href={reviewHref} variant="primary" size="md">
+              {t("reviewTrip")}
+            </Button>
+          ) : null}
+          {cancelSlot}
+        </div>
+      ) : null}
     </Card>
   );
 }

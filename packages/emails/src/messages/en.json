@@ -57,5 +57,63 @@
     "offRoadBody": "Upcoming assigned trips stay on the board. They are not cancelled. Fix them on Needs attention.",
     "overlapHeadline": "Paid edit breaks the assigned chauffeur",
     "overlapBody": "The trip stays. Reassign this trip or the overlapping trip on Needs attention."
+  },
+  "cancellation": {
+    "subject": "Booking {reference} is cancelled",
+    "subjectUrgent": "URGENT — Booking {reference} is cancelled",
+    "preheader": "This trip is cancelled.",
+    "headline": "This trip is cancelled",
+    "refundLabel": "Refund",
+    "refundPendingOps": "Pending Ops.",
+    "refundFullCaptured": "A full refund of the captured amount is on the way. Timing follows your card issuer's timing.",
+    "refundNone": "No refund for this window."
+  },
+  "refundFailed": {
+    "subject": "Refund failed — {reference}",
+    "preheader": "Refund failed. The trip stays cancelled.",
+    "headline": "Refund failed",
+    "body": "The trip stays cancelled. Retry the refund in Stripe."
+  },
+  "reminder24h": {
+    "subject": "Pickup tomorrow — {reference}",
+    "preheader": "Your transfer is in 24 hours.",
+    "headline": "Your transfer is tomorrow",
+    "unassigned": "Your chauffeur details will follow once assigned.",
+    "chauffeurLabel": "Chauffeur",
+    "plateLabel": "Plate",
+    "opsUnassignedSubject": "Unassigned pickup in 24 hours — {reference}",
+    "opsUnassignedPreheader": "Unassigned booking {reference}.",
+    "opsUnassignedHeadline": "Unassigned booking",
+    "opsUnassignedBody": "This booking is still unassigned 24 hours before original pickup."
+  },
+  "assignmentCustomer": {
+    "subject": "Your driver has been assigned — {reference}",
+    "preheader": "Chauffeur details for {reference}.",
+    "headline": "Your driver has been assigned",
+    "chauffeurLabel": "Chauffeur",
+    "plateLabel": "Plate"
+  },
+  "timeChange": {
+    "confirmedSubject": "Pickup time confirmed — {reference}",
+    "confirmedPreheader": "Your new pickup time is confirmed.",
+    "confirmedHeadline": "Your new pickup time is confirmed",
+    "confirmedBody": "The pickup time on this booking is now the time below.",
+    "refusedSubject": "Pickup time unchanged — {reference}",
+    "refusedPreheader": "Your pickup time request was not applied.",
+    "refusedHeadline": "Your pickup time is unchanged",
+    "refusedBody": "The original pickup time stays."
+  },
+  "flightNumber": {
+    "subject": "Flight number updated — {reference}",
+    "preheader": "The flight number on this booking changed.",
+    "headline": "Flight number updated",
+    "flightLabel": "Flight"
+  },
+  "reviewRequest": {
+    "subject": "How was your trip — {reference}",
+    "preheader": "Tell us how the transfer went.",
+    "headline": "How was your trip?",
+    "body": "This link stays available. One review per booking.",
+    "cta": "REVIEW TRIP"
   }
 }

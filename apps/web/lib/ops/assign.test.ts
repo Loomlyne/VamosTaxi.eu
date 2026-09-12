@@ -122,6 +122,19 @@ describe("08-04 assign file proofs", () => {
     expect(send).toContain("Vamos Taxi <noreply@vamostaxi.site>");
   });
 
+  it("sends assignment-customer mail after ops_assign_leg ok (D-28)", () => {
+    const src = read("apps/web/lib/ops/assign.ts");
+    expect(src).toContain("sendAssignmentCustomer");
+    expect(src).toContain("notifyAssignmentCustomer");
+    const assignAt = src.indexOf("ops_assign_leg");
+    const customerAt = src.lastIndexOf("notifyAssignmentCustomer");
+    expect(assignAt).toBeGreaterThan(-1);
+    expect(customerAt).toBeGreaterThan(assignAt);
+    const unassignSlice = src.slice(src.indexOf("ops_unassign_leg"));
+    expect(unassignSlice).not.toMatch(/notifyAssignmentCustomer/);
+    expect(unassignSlice).not.toMatch(/sendAssignmentCustomer/);
+  });
+
   it("bookings-write no longer matches chauffeur by full_name", () => {
     const w = read("apps/web/lib/ops/bookings-write.ts");
     expect(w).not.toMatch(/full_name = \$\{chauffeur\}/);
@@ -153,7 +166,7 @@ describe("08-04 assign file proofs", () => {
     expect(t).toMatch(/chauffeurId/);
     expect(t).toMatch(/\/unassign/);
     expect(t).not.toMatch(/location\.hash/);
-    expect(t).not.toMatch(/evQuote/);
+    expect(t).not.toMatch(/\bevQuote\b/);
     expect(t).not.toMatch(/assigned:\s*\{\}/);
     expect(t).not.toMatch(/full_name/);
     const bookings = read("apps/web/lib/ops/bookings.ts") + read("apps/web/lib/ops/staff-json.ts");

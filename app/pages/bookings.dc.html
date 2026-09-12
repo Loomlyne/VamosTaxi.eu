@@ -179,7 +179,12 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div style="display:flex;flex-direction:column;gap:12px">
 <p data-grp="1">{{ g.label }}</p>
 <sc-for list="{{ g.rows }}" as="b" hint-placeholder-count="3">
+<div>
 <dc-import name="BookingRow" href="{{ b.href }}" date="{{ b.date }}" time="{{ b.time }}" rel="{{ b.rel }}" route="{{ b.route }}" meta="{{ b.meta }}" price="{{ b.price }}" status="{{ b.status }}" reference="{{ b.ref }}" onCancel="{{ cancelUnpaid }}" hint-size="100%,118px"></dc-import>
+<sc-if value="{{ b.showReview }}" hint-placeholder-val="{{ false }}">
+<a href="{{ b.reviewHref }}" style="display:inline-flex;align-items:center;min-height:32px;margin:2px 0 8px;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-accent)">{{ b.reviewLabel }}</a>
+</sc-if>
+</div>
 </sc-for>
 </div>
 </sc-for>
@@ -192,7 +197,12 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <p data-grp="1">{{ g.label }}</p>
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
 <sc-for list="{{ g.rows }}" as="b" hint-placeholder-count="3">
+<div>
 <dc-import name="BookingRow" variant="grid" href="{{ b.href }}" date="{{ b.date }}" time="{{ b.time }}" rel="{{ b.rel }}" route="{{ b.route }}" meta="{{ b.meta }}" price="{{ b.price }}" status="{{ b.status }}" reference="{{ b.ref }}" onCancel="{{ cancelUnpaid }}" hint-size="100%,190px"></dc-import>
+<sc-if value="{{ b.showReview }}" hint-placeholder-val="{{ false }}">
+<a href="{{ b.reviewHref }}" style="display:inline-flex;align-items:center;min-height:32px;margin:2px 0 8px;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-accent)">{{ b.reviewLabel }}</a>
+</sc-if>
+</div>
 </sc-for>
 </div>
 </div>
@@ -345,6 +355,8 @@ class Component extends DCLogic {
         status: r.status,
         href: r.href,
         priceRappen: r.priceRappen,
+        reviewState: r.reviewState || 'none',
+        reviewHref: r.reviewHref || '',
       });
     });
     return order.map((g) => ({ g, rows: map[g] }));
@@ -513,6 +525,7 @@ class Component extends DCLogic {
     const hourly = !!r.hours;
     const pax = r.pax + (r.pax === 1 ? ' passenger' : ' passengers');
     const bits = [r.chauffeur, r.vehicle, pax, r.id].filter(Boolean);
+    const reviewState = r.reviewState || 'none';
     return {
       href: r.href || ('/confirmation/' + r.id),
       date: r.date, time: r.time, rel: r.rel || '',
@@ -523,6 +536,9 @@ class Component extends DCLogic {
         : this.money('000'),
       status: r.status,
       ref: r.id,
+      showReview: reviewState === 'requested' || reviewState === 'reviewed',
+      reviewHref: r.reviewHref || '',
+      reviewLabel: reviewState === 'reviewed' ? 'Reviewed' : 'Review trip',
     };
   }
 

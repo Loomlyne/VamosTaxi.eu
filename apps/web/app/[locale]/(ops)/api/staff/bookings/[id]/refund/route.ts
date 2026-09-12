@@ -32,11 +32,30 @@ function emailLocale(raw: string): EmailLocale {
   return "en";
 }
 
+function requestedAmount(body: unknown): { percent?: number; rappen?: number } {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return {};
+  const record = body as Record<string, unknown>;
+  const out: { percent?: number; rappen?: number } = {};
+  if (typeof record.percent === "number" && Number.isFinite(record.percent)) {
+    out.percent = record.percent;
+  }
+  if (typeof record.rappen === "number" && Number.isFinite(record.rappen)) {
+    out.rappen = Math.trunc(record.rappen);
+  }
+  return out;
+}
+
 export const POST = withStaff(async (claims, request) => {
   const id = bookingKey(request);
   if (!id) return jsonErr("not-found", 404);
+  let requested: { percent?: number; rappen?: number } = {};
+  try {
+    requested = requestedAmount(await request.json());
+  } catch {
+    requested = {};
+  }
   const { env } = getCloudflareContext();
-  const result = await refundBooking(env, claims, id);
+  const result = await refundBooking(env, claims, id, requested);
   if (!result.ok) return jsonErr(result.code, failStatus(result.code));
 
   const recipients = refundMailRecipients(result.contactEmail, result.payerEmail);
