@@ -7,6 +7,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Alert } from "@/components/feedback/Alert";
+import { Dialog } from "@/components/feedback/Dialog";
 import { Button, Card, Icon } from "@/components/core";
 import { StatusBadge } from "@/components/transfer";
 import { BookingVoucher, type BookingVoucherFacts } from "@/components/booking/BookingVoucher";
@@ -55,6 +56,25 @@ function asStringField(json: object, key: string): string {
   if (!(key in json)) return "";
   const value = (json as Record<string, unknown>)[key];
   return typeof value === "string" ? value : "";
+}
+
+function hoursBeforePickup(scheduledLocal: string, now: Date): number {
+  const match = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/.exec(scheduledLocal.trim());
+  if (!match) return 0;
+  const wall = `${match[1]}-${match[2]}-${match[3]}T${match[4]}:${match[5]}:00`;
+  const asUtc = Date.parse(`${wall}Z`);
+  if (!Number.isFinite(asUtc)) return 0;
+  const zurich = new Date(asUtc).toLocaleString("sv-SE", { timeZone: "Europe/Zurich" });
+  const zurichUtc = Date.parse(zurich.replace(" ", "T") + "Z");
+  if (!Number.isFinite(zurichUtc)) return (asUtc - now.getTime()) / 3_600_000;
+  const pickup = asUtc + (asUtc - zurichUtc);
+  return (pickup - now.getTime()) / 3_600_000;
+}
+
+function cancelWindowOf(hours: number): "auto_full" | "pending_ops" | "none" {
+  if (hours > 24) return "auto_full";
+  if (hours > 6) return "pending_ops";
+  return "none";
 }
 
 function pollOutcome(json: unknown): "confirmed" | "failed" | "wait" {
@@ -113,10 +133,18 @@ export function ConfirmationClient({
   freeCancelHours,
 }: ConfirmationClientProps) {
   const t = useTranslations("checkout");
+  const tCommon = useTranslations("common");
   const [draft] = useBookingDraft();
   const [phase, setPhase] = useState<ConfirmationPhase>(initialPhase);
   const [liveStatus, setLiveStatus] = useState(booking?.status ?? "");
   const [livePayment, setLivePayment] = useState(booking?.paymentStatus ?? null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [refundFailed, setRefundFailed] = useState(false);
+  const [refundStatus, setRefundStatus] = useState(booking?.refundStatus ?? null);
+  const [payoutCountry, setPayoutCountry] = useState(booking?.payoutCountry ?? null);
+  const [availableOn, setAvailableOn] = useState(booking?.availableOn ?? null);
+  const [reviewedStay] = useState(Boolean(booking?.reviewSubmitted));
   const waiting = phase === "processing" || phase === "give-up";
 
   useEffect(() => {
@@ -199,11 +227,73 @@ export function ConfirmationClient({
   // confirmation step — paint the transfer ticket. The poller still
   // swaps to FailedRoom if payment actually failed.
   const facts: ConfirmationFacts | null = booking
-    ? { ...booking, status: liveStatus || booking.status, paymentStatus: livePayment ?? booking.paymentStatus }
+    ? {
+        ...booking,
+        status: liveStatus || booking.status,
+        paymentStatus: livePayment ?? booking.paymentStatus,
+        refundStatus: refundStatus ?? booking.refundStatus,
+        payoutCountry: payoutCountry ?? booking.payoutCountry,
+        availableOn: availableOn ?? booking.availableOn,
+        reviewSubmitted: reviewedStay,
+      }
     : null;
   const badge = voucherBadgeStatus(facts?.status, facts?.paymentStatus ?? null);
   const unpaid = voucherNeedsPayment(badge);
   const pageState = waiting && badge !== "paid" && badge !== "confirmed" ? "processing" : badge;
+  const rawStatus = (facts?.status || "").toLowerCase();
+  const hideCancel =
+    unpaid ||
+    reviewedStay ||
+    badge === "completed" ||
+    badge === "no-show" ||
+    badge === "cancelled" ||
+    badge === "refunded" ||
+    badge === "pending" ||
+    badge === "quote" ||
+    rawStatus === "completed" ||
+    rawStatus === "no_show" ||
+    rawStatus === "cancelled";
+  const showCancel = Boolean(facts) && !hideCancel;
+  const windowKind = cancelWindowOf(hoursBeforePickup(facts?.scheduledLocal || "", new Date()));
+  const canConfirmCancel = showCancel && windowKind !== "none";
+  const sheetCopy =
+    windowKind === "auto_full"
+      ? t("cancelSheetFull")
+      : windowKind === "pending_ops"
+        ? t("cancelSheetOps")
+        : t("cancelSheetClose");
+  const reviewHref =
+    badge === "completed" && !reviewedStay ? `/${locale}/review` : undefined;
+
+  async function confirmPaidCancel() {
+    if (cancelling || !canConfirmCancel) return;
+    setCancelling(true);
+    try {
+      const res = await fetch("/api/account/bookings/paid-cancel", {
+        method: "POST",
+        credentials: "include",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ref: reference }),
+      });
+      const json: unknown = await res.json().catch(() => null);
+      const code =
+        json && typeof json === "object" && "code" in json && typeof (json as { code: unknown }).code === "string"
+          ? (json as { code: string }).code
+          : "";
+      const ok = json && typeof json === "object" && "ok" in json && (json as { ok: unknown }).ok === true;
+      const stripeFail = code === "stripe-failed" || code === "stripe-test-only";
+      if (!ok && !stripeFail) return;
+      const rec = json && typeof json === "object" ? (json as Record<string, unknown>) : {};
+      setLiveStatus("cancelled");
+      setRefundStatus(typeof rec.refundStatus === "string" ? rec.refundStatus : stripeFail ? "failed" : null);
+      setPayoutCountry(typeof rec.payoutCountry === "string" ? rec.payoutCountry : null);
+      setAvailableOn(typeof rec.availableOn === "string" ? rec.availableOn : null);
+      setRefundFailed(stripeFail);
+      setSheetOpen(false);
+    } finally {
+      setCancelling(false);
+    }
+  }
 
   const title =
     badge === "cancelled" || badge === "no-show"
@@ -260,7 +350,38 @@ export function ConfirmationClient({
           time: draft.time,
           passengers: draft.passengers,
         }}
+        reviewHref={reviewHref}
+        cancelSlot={
+          showCancel ? (
+            <Button variant="ghost" size="md" onClick={() => setSheetOpen(true)}>
+              {t("cancelBooking")}
+            </Button>
+          ) : null
+        }
       />
+
+      <Dialog
+        open={sheetOpen}
+        title={t("cancelThisTransfer")}
+        closeLabel={tCommon("close")}
+        onClose={() => {
+          if (!cancelling) setSheetOpen(false);
+        }}
+        footer={
+          <>
+            {canConfirmCancel ? (
+              <Button variant="danger" size="md" onClick={() => void confirmPaidCancel()} disabled={cancelling}>
+                {t("confirmCancellation")}
+              </Button>
+            ) : null}
+            <Button variant="ghost" size="md" onClick={() => setSheetOpen(false)} disabled={cancelling}>
+              {t("keepMyBooking")}
+            </Button>
+          </>
+        }
+      >
+        <p>{sheetCopy}</p>
+      </Dialog>
 
       <div className="vt-confirmation__actions">
         {unpaid ? (
@@ -288,6 +409,14 @@ export function ConfirmationClient({
       </div>
 
       <HelpRow />
+
+      {refundFailed ? (
+        <div className="vt-confirmation__alerts">
+          <Alert tone="danger" title={t("bookingCancelledTitle")}>
+            {t("refundFailedRetry")}
+          </Alert>
+        </div>
+      ) : null}
 
       {showConfirmedChrome ? (
         <div className="vt-confirmation__alerts">

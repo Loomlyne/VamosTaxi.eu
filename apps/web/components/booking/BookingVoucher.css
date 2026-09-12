@@ -27,6 +27,42 @@
   z-index: 2;
 }
 
+.vt-confirmation__voucher-pills {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.vt-confirmation__reviewed {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: var(--vt-radius-pill);
+  border: 1px solid var(--vt-border-inverse);
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-label-sm);
+  letter-spacing: var(--vt-label-tracking);
+  text-transform: uppercase;
+  font-weight: var(--vt-label-weight);
+  color: var(--vt-text-inverse-muted);
+}
+
+.vt-confirmation__voucher-slot {
+  position: relative;
+  z-index: 1;
+  margin-block-start: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+@media print {
+  .vt-confirmation__voucher-slot {
+    display: none;
+  }
+}
+
 .vt-confirmation__receipt {
   margin-block-start: 20px;
   padding-block-start: 16px;
