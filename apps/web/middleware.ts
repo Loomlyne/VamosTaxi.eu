@@ -449,6 +449,7 @@ export default async function middleware(request: NextRequest) {
       res.cookies.set("NEXT_LOCALE", localePrefix, {
         path: "/",
         sameSite: "lax",
+        secure: true,
         maxAge: 31536000,
       });
       return applyPublicCacheHeaders(request, applyStagingNoindex(res));
