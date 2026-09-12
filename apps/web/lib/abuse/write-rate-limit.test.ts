@@ -10,6 +10,11 @@ import { describe, expect, it } from "vitest";
 import { checkRateLimit } from "./rate-limit";
 
 const here = dirname(fileURLToPath(import.meta.url));
+const repoRoot = join(here, "../../../..");
+
+function readRepo(rel: string): string {
+  return readFileSync(join(repoRoot, rel), "utf8");
+}
 
 function makeLimiter(behavior: "ok" | "limited" | "throw"): RateLimit {
   return {
@@ -71,5 +76,53 @@ describe("checkWriteRateLimit fail-closed (D-11, D-13)", () => {
     expect(src).toMatch(/consent:/);
     expect(src).toMatch(/contact:/);
     expect(src).toMatch(/review:/);
+  });
+});
+
+describe("contact and review write limiter (D-13, D-16)", () => {
+  it("formFailure accepts rate_limited with status 429", () => {
+    const src = readRepo("apps/web/lib/forms/notify.ts");
+    expect(src).toMatch(/FormFailureCode[\s\S]*rate_limited/);
+    expect(src).toMatch(/status:\s*400\s*\|\s*403\s*\|\s*503\s*\|\s*429/);
+  });
+
+  it("POST /api/contact rate-limits kind contact before write and returns 429 rate_limited", () => {
+    const src = readRepo("apps/web/app/api/contact/route.ts");
+    const post = src.slice(src.indexOf("export async function POST"));
+    expect(post).toMatch(/checkWriteRateLimit/);
+    expect(post).toMatch(/kind:\s*["']contact["']/);
+    expect(post).toMatch(/QUOTE_RATE_LIMITER/);
+    expect(post).toMatch(/formFailure\(["']rate_limited["'],\s*429\)/);
+    const limitAt = post.indexOf("checkWriteRateLimit");
+    const writeAt = post.indexOf("submit_contact_message");
+    expect(limitAt).toBeGreaterThan(-1);
+    expect(writeAt).toBeGreaterThan(limitAt);
+    expect(src).toMatch(/verifyTurnstile/);
+    expect(src).toMatch(/action:\s*["']contact["']/);
+    expect(src).not.toMatch(/from ["']@vamos\/db["']/);
+    expect(src).not.toMatch(/from ["']@\/lib\/abuse\/turnstile["']/);
+    if (src.search(/export (async )?function GET/) >= 0) {
+      const getAt = src.search(/export (async )?function GET/);
+      const postAt = src.indexOf("export async function POST");
+      const getSrc = src.slice(getAt, postAt > getAt ? postAt : undefined);
+      expect(getSrc).not.toMatch(/checkWriteRateLimit/);
+    }
+  });
+
+  it("POST /api/reviews/submit rate-limits kind review before write and returns 429 rate_limited", () => {
+    const src = readRepo("apps/web/app/api/reviews/submit/route.ts");
+    const post = src.slice(src.indexOf("export async function POST"));
+    expect(post).toMatch(/checkWriteRateLimit/);
+    expect(post).toMatch(/kind:\s*["']review["']/);
+    expect(post).toMatch(/QUOTE_RATE_LIMITER/);
+    expect(post).toMatch(/jsonErr\(["']rate_limited["'],\s*429\)/);
+    const limitAt = post.indexOf("checkWriteRateLimit");
+    const writeAt = post.indexOf("submit_review");
+    expect(limitAt).toBeGreaterThan(-1);
+    expect(writeAt).toBeGreaterThan(limitAt);
+    expect(post).toMatch(/verifyTurnstile/);
+    expect(post).toMatch(/action:\s*["']contact["']/);
+    expect(src).not.toMatch(/from ["']@vamos\/db["']/);
+    expect(src).not.toMatch(/from ["']@\/lib\/abuse\/turnstile["']/);
   });
 });
