@@ -51,6 +51,7 @@ export async function POST(
     try {
       await asStaff(env, claims, async (tx) => {
         await tx`update public.rate_versions set status = 'live' where id = ${id}`;
+        await tx`update public.settings set public_chf = true where id = 1`;
         return null;
       });
     } catch (err) {
