@@ -53,8 +53,8 @@ created: 2026-09-12
 | 10-05-02 | 05 | 3 | LAUNCH-02 | T-10-10 | No Turnstile on checkout or manage-booking cancel; webhook untouched | source grep | `pnpm --filter web exec vitest run lib/health/leak-gate.test.ts` | ❌ W0 | ⬜ pending |
 | 10-06-01 | 06 | 2 | LAUNCH-01 | T-10-13 T-10-14 | CSP/HSTS/Referrer/Permissions-Policy/X-Frame-Options | vitest | `pnpm --filter web exec vitest run lib/security/headers.test.ts` | ❌ W0 | ⬜ pending |
 | 10-07-01 | 07 | 2 | LAUNCH-01 | T-10-11 T-10-12 | Marketing Cache-Control; auth `no-store`; GET never mints consent cookie | vitest | `pnpm --filter web exec vitest run lib/cache/marketing-cache.test.ts` | ❌ W0 | ⬜ pending |
-| 10-08-01 | 08 | 2 | LAUNCH-03 | T-10-15 T-10-16 | Secret-header health; missing/wrong → empty 404; body booleans only | vitest | `pnpm --filter web exec vitest run lib/health` | ❌ W0 | ⬜ pending |
-| 10-08-02 | 08 | 2 | LAUNCH-03 | T-10-17 | `/api/dev/db-smoke` stays 404; health is not under `/api/dev` | vitest | `pnpm --filter web exec vitest run lib/health/leak-gate.test.ts` | ❌ W0 | ⬜ pending |
+| 10-08-01 | 08 | 4 | LAUNCH-03 | T-10-15 T-10-16 | Secret-header health; missing/wrong → empty 404; body booleans only | vitest | `pnpm --filter web exec vitest run lib/health` | ❌ W0 | ⬜ pending |
+| 10-08-02 | 08 | 4 | LAUNCH-03 | T-10-17 | `/api/dev/db-smoke` stays 404; health is not under `/api/dev` | vitest | `pnpm --filter web exec vitest run lib/health/leak-gate.test.ts` | ❌ W0 | ⬜ pending |
 | 10-09-01 | 09 | 5 | LAUNCH-02 | T-10-19 | WAF skip `/api/stripe/webhook`; no `.eu` bind | docs | `python3 -c "from pathlib import Path; p=Path('docs/ops/waf-vamostaxi-site.md').read_text(); assert 'do not' in p.lower() and 'vamostaxi.eu' in p.lower(); assert 'custom_domain' not in p.lower()"` | ❌ W0 | ⬜ pending |
 | 10-10-01 | 10 | 5 | LAUNCH-04 LAUNCH-07 | T-10-20 | Runbook in `docs/runbook/`; restore is a **copy**; live Zurich never the target | docs grep | `test -f docs/runbook/restore-database.md` | ❌ W0 | ⬜ pending |
 
