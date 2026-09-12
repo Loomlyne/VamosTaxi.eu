@@ -2582,6 +2582,42 @@ export type Database = {
           refund_rappen: number
         }[]
       }
+      ops_mark_complete: {
+        Args: {
+          p_actor_id: string
+          p_booking_id: string
+          p_review_token_hash?: string
+        }
+        Returns: {
+          booking_id: string
+          dropoff_text: string
+          email: string
+          locale: string
+          name: string
+          paid: boolean
+          pickup_text: string
+          reference: string
+          scheduled_local: string
+        }[]
+      }
+      ops_mark_no_show: {
+        Args: {
+          p_actor_id: string
+          p_booking_id: string
+          p_review_token_hash?: string
+        }
+        Returns: {
+          booking_id: string
+          dropoff_text: string
+          email: string
+          locale: string
+          name: string
+          paid: boolean
+          pickup_text: string
+          reference: string
+          scheduled_local: string
+        }[]
+      }
       ops_refund_record: {
         Args: {
           p_actor_id: string

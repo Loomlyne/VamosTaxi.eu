@@ -14,11 +14,11 @@ requires:
   - phase: 08
     provides: withStaff + asSystem ops RPCs
 provides:
-  - ops_mark_complete / ops_mark_no_show SECURITY DEFINER (local SQL; hosted apply pending Task 3)
+  - ops_mark_complete / ops_mark_no_show SECURITY DEFINER (hosted Zurich readback)
   - Staff PATCH completed|no_show via RPCs + review-request email after paid complete/no-show
   - Account reviewState none|requested|reviewed + Review trip / Reviewed chips
   - OpsDash money from captured charged_rappen and booking_refunds (Europe/Zurich periods)
-affects: [09-11-task-3-hosted-apply]
+affects: []
 
 tech-stack:
   added: []
@@ -55,7 +55,7 @@ key-decisions:
   - "D-17: after paid completed/no_show, Worker mints manage token, RPC stores hash, notifyReviewRequest."
   - "Account reviewHref is /review?ref= when requested, /review when reviewed (D-21 stays)."
   - "D-16: GET /api/staff/dashboard sums captured charged_rappen and booking_refunds.refund_rappen. Never status=refunded."
-  - "Hosted apply of 20260912033121_booking_lifecycle_ops_complete.sql is 09-11 Task 3 — not done in this run."
+  - "Hosted apply on yaumjzvylngfjhtuffqs via MCP apply_migration. reviews_customer_own_booking is own-booking SELECT only."
 
 patterns-established:
   - "Ops terminal status writes go through named markComplete/markNoShow helpers; PATCH never SET status client-side."
@@ -69,11 +69,11 @@ completed: 2026-09-12
 
 # Phase 09 Plan 11: Ops complete/no-show + OpsDash money
 
-**Ops marks Completed/No-show through DEFINER RPCs; OpsDash income/refunds are live sums. Hosted apply is still pending (Task 3).**
+**Ops marks Completed/No-show through DEFINER RPCs; OpsDash income/refunds are live sums. Hosted Zurich RPCs read back.**
 
 ## Performance
 
-- **Tasks:** 2 of 3 (Task 3 hosted apply not run)
+- **Tasks:** 3 of 3
 - **Files modified:** 16
 
 ## Accomplishments
@@ -87,7 +87,7 @@ completed: 2026-09-12
 
 1. **Task 1: ops mark complete/no-show + review chips** - `f02d87a` (feat)
 2. **Task 2: OpsDash money** - `2f10d47` (feat)
-3. **Task 3: hosted apply** — **not done** (orchestrator applies `20260912033121_booking_lifecycle_ops_complete.sql` on `yaumjzvylngfjhtuffqs`)
+3. **Task 3: hosted apply** — MCP `apply_migration` on `yaumjzvylngfjhtuffqs` (`booking_lifecycle_ops_complete_core`, `booking_lifecycle_ops_complete_rpcs`, `booking_lifecycle_reviews_own_select_v2`). Readback: `app.ops_mark_booking_outcome`, `public.ops_mark_complete`, `public.ops_mark_no_show`, policy `reviews_customer_own_booking`.
 
 ## Verification
 
@@ -95,16 +95,16 @@ completed: 2026-09-12
 - Vitest `lib/account/bookings.test.ts` + `lib/ops/ops-live-data.test.ts`: **35/35 PASS** (2 files)
 - No `supabase db push`. No Docker start. No deploy. No no-show cron.
 
-## Hosted apply still pending
+## Hosted apply
 
-Local Postgres has the functions (psql to 54322 only). Remote project `yaumjzvylngfjhtuffqs` does **not** have this migration until Task 3 `apply_migration`.
+Zurich `yaumjzvylngfjhtuffqs` has the RPCs. EXECUTE `vamos_system` only. Never `:6543`. Never `supabase db push`.
 
 ## Self-Check: Requirement Verification
 
 | Requirement | Source | Status | Evidence |
 |---|---|---|---|
-| LIFE-01 D-31 ops complete/no-show | PLAN.md | Local met; hosted pending | RPC + staff PATCH + pgTAP 24/24 |
-| LIFE-08 D-16 OpsDash money | PLAN.md | Local met | GET dashboard + OpsDash fetch; Vitest 35/35 |
+| LIFE-01 D-31 ops complete/no-show | PLAN.md | Met | RPC + staff PATCH + pgTAP 24/24 + hosted readback |
+| LIFE-08 D-16 OpsDash money | PLAN.md | Met | GET dashboard + OpsDash fetch; Vitest 35/35 |
 
 ## Deviations from Plan
 
@@ -114,4 +114,4 @@ Local Postgres has the functions (psql to 54322 only). Remote project `yaumjzvyl
 
 ## Issues
 
-- Hosted apply blocked on purpose (Task 3).
+- None. Worker still undeployed until owner staging deploy.

@@ -272,6 +272,7 @@ comment on function public.ops_mark_no_show(
 
 -- Account list needs to see the customer's own unpublished review row (D-21 Reviewed chip).
 -- Customer identity is `authenticated` (PG_ROLE.customer), not a vamos_customer role.
+-- Own-booking only (contact_email / customers.user_id). Never all reviews with a booking_id.
 do $grant$
 begin
   if exists (
@@ -291,6 +292,20 @@ begin
           select 1
             from public.bookings as b
            where b.id = reviews.booking_id
+             and (
+               (b.customer_id in (
+                 select c.id from public.customers as c
+                  where c.user_id = (select app.uid())
+               ))
+               or (
+                 b.contact_email is not null
+                 and pg_catalog.length(pg_catalog.btrim(b.contact_email::pg_catalog.text)) > 0
+                 and pg_catalog.lower(b.contact_email::pg_catalog.text)
+                   = pg_catalog.lower(
+                       nullif((select app.jwt() ->> 'email'::pg_catalog.text), ''::pg_catalog.text)
+                     )
+               )
+             )
         )
       )
   $pol$;
