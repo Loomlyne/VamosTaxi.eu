@@ -538,7 +538,7 @@ Tests use `'2026-08'`. Production stamp is a dated constant (e.g. `2026-09-12`) 
 </sota_updates>
 
 <open_questions>
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Live zone WAF state**
    - What we know: wrangler comments name public hostname `vamostaxi.site` (zone `f0119383…`). D-28 wants managed WAF + skip webhook. This session could not read the zone (no Cloudflare WAF API call).
