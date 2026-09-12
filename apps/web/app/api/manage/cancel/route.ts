@@ -23,10 +23,21 @@ function failStatus(code: string): number {
 
 export async function POST(request: Request): Promise<Response> {
   const jar = await cookies();
-  const raw = readManageCookie(
+  let raw = readManageCookie(
     jar.get(MANAGE_COOKIE_NAME)?.value ?? "",
     request.headers.get("cookie"),
   );
+  if (!raw) {
+    try {
+      const body = await request.json();
+      if (body && typeof body === "object" && !Array.isArray(body)) {
+        const token = (body as { token?: unknown }).token;
+        if (typeof token === "string") raw = token.trim();
+      }
+    } catch {
+      raw = "";
+    }
+  }
   const tokenHashHex = raw ? await hashManageToken(raw) : "";
   if (!tokenHashHex) return json({ ok: false, code: "not-found" }, 404);
 

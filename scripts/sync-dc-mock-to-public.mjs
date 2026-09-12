@@ -36,6 +36,7 @@ const PAGE_FILES = [
   "app/pages/faq.dc.html",
   "app/pages/imprint.dc.html",
   "app/pages/manage-booking.dc.html",
+  "app/pages/booking-detail.dc.html",
   "app/pages/privacy.dc.html",
   "app/pages/reset-password.dc.html",
   "app/pages/sign-in.dc.html",
@@ -47,7 +48,6 @@ const PAGE_FILES = [
 
 const SKIP_PUBLIC = new Set([
   "become-a-partner.dc.html",
-  "booking-detail.dc.html",
   "checkout.dc.html",
   "confirmation.dc.html",
 ]);

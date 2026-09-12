@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
-import { hashManageToken } from "@/lib/checkout/manage-token";
+import { MANAGE_COOKIE_NAME, hashManageToken } from "@/lib/checkout/manage-token";
 import { asGuest, asSystem } from "@/lib/db/identity";
 
 const NOT_FOUND =
@@ -40,13 +40,24 @@ type ExtraRow = {
   vehicle: string | null;
   plate: string | null;
   review_submitted: boolean | null;
+  price_total_rappen: number | string | null;
 };
 
-function json(body: unknown, status = 200): Response {
-  return NextResponse.json(body, {
+function json(body: unknown, status = 200, rawToken = ""): Response {
+  const res = NextResponse.json(body, {
     status,
     headers: { "cache-control": "no-store" },
   });
+  if (rawToken && status === 200) {
+    res.cookies.set(MANAGE_COOKIE_NAME, rawToken, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: true,
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30,
+    });
+  }
+  return res;
 }
 
 function isNotFound(err: unknown): boolean {
@@ -133,6 +144,7 @@ export async function GET(request: Request): Promise<Response> {
           ch.full_name as chauffeur_name,
           v.model as vehicle,
           v.plate as plate,
+          b.price_total_rappen,
           exists(
             select 1 from public.reviews as r where r.booking_id = b.id
           ) as review_submitted
@@ -158,33 +170,39 @@ export async function GET(request: Request): Promise<Response> {
   const windowKind = cancelWindow(hoursBefore(row.original_scheduled_at, new Date()));
   const canCancel = !HIDE_CANCEL.has(status) && !reviewSubmitted;
 
-  return json({
-    ok: true,
-    booking: {
-      id: row.booking_id,
-      reference: str(row.reference),
-      status,
-      locale: str(row.locale) || "en",
-      contactName: str(row.contact_name),
-      pickupText: str(row.pickup_text),
-      dropoffText: str(row.dropoff_text),
-      scheduledLocal: str(row.scheduled_local),
-      originalScheduledAt: iso(row.original_scheduled_at),
-      flightNo: str(row.flight_no),
-      pax: num(row.pax) || 1,
-      bags: num(row.bags),
-      chauffeurName: str(extra?.chauffeur_name),
-      vehicle: str(extra?.vehicle),
-      plate: str(extra?.plate),
-      refundStatus,
-      refundOwedRappen: num(row.refund_owed_rappen),
-      refundedRappen: num(row.refunded_rappen),
-      payoutCountry: payoutCountry || null,
-      payoutCountryLabel: refunded ? countryLabel(payoutCountry || "CH") : null,
-      availableOn: refunded ? iso(row.available_on) : null,
-      reviewSubmitted,
-      canCancel,
-      cancelWindow: windowKind,
+  return json(
+    {
+      ok: true,
+      booking: {
+        id: row.booking_id,
+        reference: str(row.reference),
+        status,
+        locale: str(row.locale) || "en",
+        contactName: str(row.contact_name),
+        contactEmail: str(row.contact_email),
+        pickupText: str(row.pickup_text),
+        dropoffText: str(row.dropoff_text),
+        scheduledLocal: str(row.scheduled_local),
+        originalScheduledAt: iso(row.original_scheduled_at),
+        flightNo: str(row.flight_no),
+        pax: num(row.pax) || 1,
+        bags: num(row.bags),
+        chauffeurName: str(extra?.chauffeur_name),
+        vehicle: str(extra?.vehicle),
+        plate: str(extra?.plate),
+        priceTotalRappen: num(extra?.price_total_rappen),
+        refundStatus,
+        refundOwedRappen: num(row.refund_owed_rappen),
+        refundedRappen: num(row.refunded_rappen),
+        payoutCountry: payoutCountry || null,
+        payoutCountryLabel: refunded ? countryLabel(payoutCountry || "CH") : null,
+        availableOn: refunded ? iso(row.available_on) : null,
+        reviewSubmitted,
+        canCancel,
+        cancelWindow: windowKind,
+      },
     },
-  });
+    200,
+    token,
+  );
 }
