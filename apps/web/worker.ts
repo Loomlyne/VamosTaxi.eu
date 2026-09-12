@@ -16,6 +16,7 @@ import { createDigestDependencies } from "./lib/supabase/service";
 import { handleStripeMessage } from "./lib/checkout/settle";
 import { sweepStuckNotifications } from "./lib/checkout/notify";
 import { expireUnpaidBookings } from "./lib/checkout/expire-unpaid";
+import { runReminder24h } from "./lib/lifecycle/reminder";
 import type { StripeQueueMessage } from "./lib/checkout/webhook";
 
 export default {
@@ -64,6 +65,13 @@ export default {
       emit("info", "expire_unpaid", { cancelled });
     } catch {
       emit("error", "expire_unpaid", { outcome: "failed" });
+    }
+
+    try {
+      const reminder = await runReminder24h(env, scheduledAt);
+      emit("info", "reminder_24h", reminder);
+    } catch {
+      emit("error", "reminder_24h", { outcome: "failed" });
     }
 
     // Cloudflare cron expressions have no IANA timezone. Run hourly and select the exact

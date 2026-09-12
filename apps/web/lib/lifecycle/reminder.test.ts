@@ -23,18 +23,19 @@ describe("24h reminder claim-then-send (D-29)", () => {
     expect(src).toContain("notifyReminder24h");
     expect(src).toMatch(/asSystem/);
     const notify = read("apps/web/lib/lifecycle/notify-lifecycle.ts");
-    const claimAt = notify.indexOf("notification_claim");
-    const settleAt = notify.indexOf("notification_settle");
-    const resendAt = Math.max(
-      notify.indexOf("Resend"),
-      notify.indexOf("sendReminder"),
-      notify.indexOf("RESEND"),
+    const reminderFn = notify.slice(notify.indexOf("export async function notifyReminder24h"));
+    expect(reminderFn).toContain("sendReminder24h");
+    expect(reminderFn).toContain("claimThenSend");
+    const helper = notify.slice(
+      notify.indexOf("async function claimThenSend"),
+      notify.indexOf("export async function notifyCancellation"),
     );
+    const claimAt = helper.indexOf("notification_claim");
+    const sendAt = helper.indexOf("await send(");
+    const settleAt = helper.indexOf("notification_settle");
     expect(claimAt).toBeGreaterThan(-1);
-    expect(settleAt).toBeGreaterThan(-1);
-    expect(resendAt).toBeGreaterThan(-1);
-    expect(claimAt).toBeLessThan(resendAt);
-    expect(resendAt).toBeLessThan(settleAt);
+    expect(sendAt).toBeGreaterThan(claimAt);
+    expect(settleAt).toBeGreaterThan(sendAt);
   });
 
   it("skips cancelled and completed (D-29)", () => {
