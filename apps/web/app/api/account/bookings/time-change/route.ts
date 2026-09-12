@@ -2,7 +2,6 @@ export const dynamic = "force-dynamic";
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
-import { claimsForSql } from "@vamos/db/claims";
 import { customerClaims } from "@/lib/account/session";
 import { requestCustomerTimeChange } from "@/lib/ops/edit-request";
 import { failStatus } from "@/lib/ops/edit-request-map";
@@ -20,9 +19,7 @@ function str(value: unknown): string {
 
 export async function POST(request: Request): Promise<Response> {
   const claims = await customerClaims(request);
-  if (!claims?.email) return json({ ok: false, code: "unauthorized" }, 401);
-  const jwt = claimsForSql(claims);
-  if (!jwt.includes(claims.sub)) return json({ ok: false, code: "unauthorized" }, 401);
+  if (!claims?.email || !claims.sub) return json({ ok: false, code: "unauthorized" }, 401);
 
   let body: Record<string, unknown> = {};
   try {
