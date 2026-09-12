@@ -114,10 +114,11 @@ const nextConfig: NextConfig = {
       },
       {
         key: "Content-Security-Policy",
-        // D-33: if Payment Element breaks, loosen that directive only.
-        // Funnel wins. No error-tracker hosts. Do not add a report endpoint.
+        // D-33: if Payment Element or DC home breaks, loosen that directive.
+        // Funnel wins. DC support.js loads React/ReactDOM/Babel from unpkg
+        // and Babel needs eval. No error-tracker hosts. No report endpoint.
         value:
-          "default-src 'self'; script-src 'self' js.stripe.com challenges.cloudflare.com; frame-src js.stripe.com hooks.stripe.com challenges.cloudflare.com; connect-src 'self' api.stripe.com challenges.cloudflare.com api.mapbox.com events.mapbox.com; img-src 'self' data: blob: https://*.mapbox.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
+          "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' unpkg.com js.stripe.com challenges.cloudflare.com; frame-src js.stripe.com hooks.stripe.com challenges.cloudflare.com; connect-src 'self' api.stripe.com challenges.cloudflare.com api.mapbox.com events.mapbox.com; img-src 'self' data: blob: https://*.mapbox.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
       },
     ];
     return [

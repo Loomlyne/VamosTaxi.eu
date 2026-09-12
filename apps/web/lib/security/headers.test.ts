@@ -38,6 +38,11 @@ describe("security headers (D-32…D-38)", () => {
     expect(src).toMatch(/js\.stripe\.com/);
     expect(src).toMatch(/challenges\.cloudflare\.com/);
     expect(src).toMatch(/api\.mapbox\.com/);
+    // D-33: DC mocks boot React/ReactDOM/Babel from unpkg (app/support.js).
+    // Babel standalone needs eval. Funnel wins over a tight script-src.
+    expect(src).toMatch(/unpkg\.com/);
+    expect(src).toMatch(/unsafe-eval/);
+    expect(src).toMatch(/unsafe-inline/);
     expect(src).not.toMatch(/sentry\.io/);
     expect(src).not.toMatch(/vamostaxi\.eu/);
   });
