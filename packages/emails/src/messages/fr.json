@@ -57,5 +57,40 @@
     "offRoadBody": "Les courses assignées à venir restent au tableau — elles ne sont pas annulées. Corrigez-les sous Needs attention.",
     "overlapHeadline": "Une modification payée casse le chauffeur assigné",
     "overlapBody": "La course reste. Réassignez cette course ou la course en chevauchement sous Needs attention."
+  },
+  "cancellation": {
+    "subject": "Réservation {reference} annulée",
+    "subjectUrgent": "URGENT — Réservation {reference} annulée",
+    "preheader": "Ce trajet est annulé.",
+    "headline": "Ce trajet est annulé",
+    "refundLabel": "Remboursement",
+    "refundPendingOps": "Pending Ops.",
+    "refundFullCaptured": "Un remboursement intégral du montant capturé est en cours. Le délai suit le timing de votre émetteur de carte.",
+    "refundNone": "Aucun remboursement pour cette fenêtre."
+  },
+  "refundFailed": {
+    "subject": "Remboursement échoué — {reference}",
+    "preheader": "Remboursement échoué. Le trajet reste annulé.",
+    "headline": "Remboursement échoué",
+    "body": "Le trajet reste annulé. Réessayez le remboursement dans Stripe."
+  },
+  "reminder24h": {
+    "subject": "Prise en charge demain — {reference}",
+    "preheader": "Votre transfert est dans 24 heures.",
+    "headline": "Votre transfert est demain",
+    "unassigned": "Les détails de votre chauffeur suivront une fois assigné.",
+    "chauffeurLabel": "Chauffeur",
+    "plateLabel": "Plaque",
+    "opsUnassignedSubject": "Prise en charge non assignée dans 24 heures — {reference}",
+    "opsUnassignedPreheader": "Réservation non assignée {reference}.",
+    "opsUnassignedHeadline": "Réservation non assignée",
+    "opsUnassignedBody": "Cette réservation n’est toujours pas assignée 24 heures avant la prise en charge d’origine."
+  },
+  "assignmentCustomer": {
+    "subject": "Votre chauffeur a été assigné — {reference}",
+    "preheader": "Détails du chauffeur pour {reference}.",
+    "headline": "Votre chauffeur a été assigné",
+    "chauffeurLabel": "Chauffeur",
+    "plateLabel": "Plaque"
   }
 }

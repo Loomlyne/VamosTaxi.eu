@@ -57,5 +57,40 @@
     "offRoadBody": "الرحلات المسندة القادمة تبقى على اللوحة — لا تُلغى. عالجها في Needs attention.",
     "overlapHeadline": "تعديل مدفوع يكسر السائق المعيَّن",
     "overlapBody": "الرحلة تبقى. أعد تعيين هذه الرحلة أو الرحلة المتداخلة في Needs attention."
+  },
+  "cancellation": {
+    "subject": "تم إلغاء الحجز {reference}",
+    "subjectUrgent": "URGENT — تم إلغاء الحجز {reference}",
+    "preheader": "أُلغيت هذه الرحلة.",
+    "headline": "أُلغيت هذه الرحلة",
+    "refundLabel": "الاسترداد",
+    "refundPendingOps": "Pending Ops.",
+    "refundFullCaptured": "استرداد كامل للمبلغ المحتجز في الطريق. التوقيت يتبع توقيت جهة إصدار بطاقتك.",
+    "refundNone": "لا استرداد لهذه النافذة."
+  },
+  "refundFailed": {
+    "subject": "فشل الاسترداد — {reference}",
+    "preheader": "فشل الاسترداد. الرحلة تبقى ملغاة.",
+    "headline": "فشل الاسترداد",
+    "body": "الرحلة تبقى ملغاة. أعد محاولة الاسترداد في Stripe."
+  },
+  "reminder24h": {
+    "subject": "الاستلام غدًا — {reference}",
+    "preheader": "نقلك خلال 24 ساعة.",
+    "headline": "نقلك غدًا",
+    "unassigned": "تفاصيل السائق ستصل بعد التعيين.",
+    "chauffeurLabel": "السائق",
+    "plateLabel": "اللوحة",
+    "opsUnassignedSubject": "استلام غير معيَّن خلال 24 ساعة — {reference}",
+    "opsUnassignedPreheader": "حجز غير معيَّن {reference}.",
+    "opsUnassignedHeadline": "حجز غير معيَّن",
+    "opsUnassignedBody": "هذا الحجز ما زال غير معيَّن قبل 24 ساعة من الاستلام الأصلي."
+  },
+  "assignmentCustomer": {
+    "subject": "تم تعيين سائقك — {reference}",
+    "preheader": "تفاصيل السائق لـ {reference}.",
+    "headline": "تم تعيين سائقك",
+    "chauffeurLabel": "السائق",
+    "plateLabel": "اللوحة"
   }
 }
