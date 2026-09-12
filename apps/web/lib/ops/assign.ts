@@ -4,14 +4,18 @@
 // route, then asSystem here. Never asStaff INSERT into booking_events.
 // 08-09: chauffeur assign/unassign mail after RPC ok. Do not claim
 // confirmation mail. Do not send from the browser.
+// 09-07 D-28: sendAssignmentCustomer via notifyAssignmentCustomer after
+// ops_assign_leg ok. No extra 24h reminder. Unassign stays chauffeur-only.
 
 import {
   chauffeurEmailLocale,
   sendChauffeurAssign,
   sendChauffeurUnassign,
   type ChauffeurDispatchForEmail,
+  type EmailLocale,
 } from "@vamos/emails/confirmation";
 import { asStaff, asSystem, type VamosClaims } from "../db/identity";
+import { notifyAssignmentCustomer } from "../lifecycle/notify-lifecycle";
 import { resolveStaffBookingId } from "./resolve-booking-id";
 import {
   mapAssignSqlError,
@@ -65,6 +69,71 @@ function tripMail(row: TripMailRow | undefined): ChauffeurTripMail | null {
 }
 
 type OpsSql = Parameters<Parameters<typeof asSystem>[1]>[0];
+
+type CustomerAssignRow = {
+  reference: string;
+  locale: string | null;
+  contact_email: string | null;
+  pickup_text: string | null;
+  dropoff_text: string | null;
+  scheduled_local: string | null;
+  chauffeur_name: string | null;
+  vehicle: string | null;
+  plate: string | null;
+};
+
+function asEmailLocale(locale: string): EmailLocale {
+  if (locale === "de" || locale === "fr" || locale === "ar") return locale;
+  return "en";
+}
+
+async function loadCustomerAssignment(
+  sql: OpsSql,
+  bookingId: string,
+  chauffeurId: string,
+): Promise<CustomerAssignRow | null> {
+  const rows = await sql<CustomerAssignRow[]>`
+    select
+      b.reference,
+      b.locale,
+      b.contact_email::text as contact_email,
+      l.pickup_text,
+      l.dropoff_text,
+      l.scheduled_local,
+      c.full_name as chauffeur_name,
+      v.model as vehicle,
+      v.plate as plate
+      from public.bookings as b
+      join public.booking_legs as l on l.booking_id = b.id
+      join public.chauffeurs as c on c.id = ${chauffeurId}::uuid
+      left join public.vehicles as v on v.id = l.assigned_vehicle_id
+     where b.id = ${bookingId}::uuid
+     order by l.leg_seq
+     limit 1
+  `;
+  return rows[0] ?? null;
+}
+
+async function notifyCustomerAssignment(
+  env: CloudflareEnv,
+  bookingId: string,
+  row: CustomerAssignRow | null,
+): Promise<void> {
+  const customerEmail = String(row?.contact_email ?? "").trim();
+  if (!row || !customerEmail) return;
+  await notifyAssignmentCustomer(env, {
+    bookingId,
+    customerEmail,
+    reference: String(row.reference),
+    locale: asEmailLocale(String(row.locale ?? "en")),
+    pickupText: String(row.pickup_text ?? ""),
+    dropoffText: String(row.dropoff_text ?? ""),
+    scheduledLocal: String(row.scheduled_local ?? ""),
+    chauffeurName: row.chauffeur_name,
+    vehicle: row.vehicle,
+    plate: row.plate,
+  });
+}
 
 async function loadChauffeurTrip(
   sql: OpsSql,
@@ -204,10 +273,13 @@ export async function assignBooking(
   if (result.ok && result.chauffeurId) {
     try {
       const assignedId = result.chauffeurId;
-      const mail = await asStaff(env, claims, (sql) =>
-        loadChauffeurTrip(sql, result.bookingId, assignedId),
-      );
-      await notifyChauffeur(env, "assign", mail);
+      const loaded = await asStaff(env, claims, async (sql) => {
+        const mail = await loadChauffeurTrip(sql, result.bookingId, assignedId);
+        const customer = await loadCustomerAssignment(sql, result.bookingId, assignedId);
+        return { mail, customer };
+      });
+      await notifyChauffeur(env, "assign", loaded.mail);
+      await notifyCustomerAssignment(env, result.bookingId, loaded.customer);
     } catch {
       // Assignment already committed. Mail is best-effort.
     }

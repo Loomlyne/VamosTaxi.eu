@@ -247,3 +247,18 @@ describe("applyStripeRefund mocked order", () => {
     expect(createRefund).not.toHaveBeenCalled();
   });
 });
+
+describe("paid-cancel lifecycle mails (D-11/D-14)", () => {
+  it("notifies cancellation after success and refund-failed to ops", () => {
+    const src = read("apps/web/lib/lifecycle/paid-cancel.ts");
+    expect(src).toMatch(/notifyCancellation|sendCancellation/);
+    expect(src).toMatch(/notifyRefundFailed|sendRefundFailed/);
+    expect(src).toMatch(/assigned_chauffeur_id/);
+    expect(src).not.toMatch(/info@/);
+    expect(src).not.toMatch(/\bTRIP\b/);
+    expect(src).not.toMatch(/LX1234/);
+    const notify = read("apps/web/lib/lifecycle/notify-lifecycle.ts");
+    expect(notify).toContain("BOOKINGS_OPS_EMAIL");
+    expect(notify).toContain("urgent: assigned");
+  });
+});
