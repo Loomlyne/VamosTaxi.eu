@@ -52,7 +52,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: Ops Reference Data & Content Console** - Staff manage the reference data and content that power the public site (replanned 2026-09-01 — DC mock is the product) (completed 2026-09-01)
 - [x] **Phase 7: Checkout & Payment** - A customer pays for a locked quote and receives a webhook-confirmed booking (completed 2026-09-11)
 - [x] **Phase 8: Ops Dispatch — Live Board, Assignment & Account Surfaces** - Staff run the live board, assign real bookings, and customers see their own history (completed 2026-09-11)
-- [ ] **Phase 9: Booking Lifecycle & Customer Self-Service** - A booking lives its full lifecycle — reminders, delay handling, cancellation, review
+- [x] **Phase 9: Booking Lifecycle & Customer Self-Service** - A booking lives its full lifecycle — reminders, delay handling, cancellation, review
 - [ ] **Phase 10: Hardening — Performance, Security & Compliance** - The site survives a launch surge and never captures data ahead of consent
 - [ ] **Phase 11: Launch Cutover** - Vamos Taxi goes live on its real domain with real pricing
 - [x] **Phase 12: Ticket schema + #support mock** - Contact rows become tickets (New/Open/Replied/Responded/Closed); OpsSupportTicket + sidebar `#support`; Staff tab stays gone (completed 2026-09-11)
@@ -436,34 +436,34 @@ no mock lookup and no 404 shells. Cancel windows are D-02 (owner 2026-09-12). Do
 **Plans:** 12 plans
 
 **Wave 1** — Wave 0 tests
-- [ ] 09-01-PLAN.md — Wave 0 pgTAP + Vitest (D-02/refund/review/booking-detail; LIFE-07 no-sweep green now)
+- [x] 09-01-PLAN.md — Wave 0 pgTAP + Vitest (D-02/refund/review/booking-detail; LIFE-07 no-sweep green now)
 
 **Wave 2** *(blocked on Wave 1)*
-- [ ] 09-02-PLAN.md — Status roll-up + D-02 cancel/refund SQL (local only)
+- [x] 09-02-PLAN.md — Status roll-up + D-02 cancel/refund SQL (local only)
 
 **Wave 3** *(blocked on Wave 2)*
-- [ ] 09-03-PLAN.md — reviews.booking_id + submit_review SQL (local only)
+- [x] 09-03-PLAN.md — reviews.booking_id + submit_review SQL (local only)
 
 **Wave 4** *(blocked on Wave 3)* **[BLOCKING hosted SQL]**
-- [ ] 09-04-PLAN.md — [BLOCKING] Apply Phase 9 SQL on Zurich + regenerate database.types.ts
+- [x] 09-04-PLAN.md — [BLOCKING] Apply Phase 9 SQL on Zurich + regenerate database.types.ts
 
 **Wave 5** *(blocked on Wave 4)*
-- [ ] 09-05-PLAN.md — Guest + signed-in paid-cancel → Stripe test refund; Ops remaining refund + ops cancel money (D-13)
-- [ ] 09-06-PLAN.md — Lifecycle Resend templates + claim-then-send (bookings@)
+- [x] 09-05-PLAN.md — Guest + signed-in paid-cancel → Stripe test refund; Ops remaining refund + ops cancel money (D-13)
+- [x] 09-06-PLAN.md — Lifecycle Resend templates + claim-then-send (bookings@)
 
 **Wave 6** *(blocked on Wave 5)*
-- [ ] 09-07-PLAN.md — Hourly 24h reminder + assignment-customer + cancel mails; no no-show sweep
-- [ ] 09-08-PLAN.md — DC manage-booking + live /booking-detail 200 wired to APIs
+- [x] 09-07-PLAN.md — Hourly 24h reminder + assignment-customer + cancel mails; no no-show sweep
+- [x] 09-08-PLAN.md — DC manage-booking + live /booking-detail 200 wired to APIs
 
 **Wave 7** *(blocked on Wave 6)*
-- [ ] 09-09-PLAN.md — Signed-in BookingVoucher paid Cancel; unpaid list hard-delete only
+- [x] 09-09-PLAN.md — Signed-in BookingVoucher paid Cancel; unpaid list hard-delete only
 
 **Wave 8** *(blocked on Wave 5 mail + Wave 4 SQL)*
-- [ ] 09-10-PLAN.md — Time-change request/confirm + flight-number edit (no AeroDataBox)
-- [ ] 09-12-PLAN.md — Customer /review submit + photo R2 + /cancellation copy matching D-02
+- [x] 09-10-PLAN.md — Time-change request/confirm + flight-number edit (no AeroDataBox)
+- [x] 09-12-PLAN.md — Customer /review submit + photo R2 + /cancellation copy matching D-02
 
 **Wave 9** *(blocked on Wave 4 + complete RPCs)*
-- [ ] 09-11-PLAN.md — Ops complete/no-show + review-request chips + OpsDash Income/Expenses/Net
+- [x] 09-11-PLAN.md — Ops complete/no-show + review-request chips + OpsDash Income/Expenses/Net
 
 **Cross-cutting constraints:** hashed guest token (never sample TRIP); Stripe test mode only (`sk_live_` refused); Hyperdrive direct never Supavisor :6543; Resend `bookings@vamostaxi.site`; no invented CHF; D-31 no auto no-show sweep.
 
