@@ -35,8 +35,9 @@ import {
   type SendOutcome,
   type TimeChangeForEmail,
 } from "@vamos/emails/confirmation";
-import { BOOKINGS_OPS_EMAIL } from "../contact-channels";
 import { asSystem } from "../db/identity";
+
+const BOOKINGS_OPS_EMAIL = "bookings@vamostaxi.site";
 
 export type LifecycleKind =
   | "cancellation"

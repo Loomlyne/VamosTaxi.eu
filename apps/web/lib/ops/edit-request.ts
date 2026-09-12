@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 
 import type { VamosClaims } from "@/lib/db/identity";
 import { asCustomer, asGuest, asSystem } from "@/lib/db/identity";
+import { notifyTimeChange } from "@/lib/lifecycle/notify-lifecycle";
 import {
   createCheckoutSession,
   createRefund,
@@ -513,4 +514,157 @@ export async function requestCustomerPaidEdit(
   } catch (err) {
     return mapEditSqlError(err);
   }
+}
+
+/**
+ * D-23: customer time-change writes booking_edit_requests. Live scheduled_at
+ * stays until ops accept. Same-price still requested. Chauffeur is not mailed.
+ */
+export async function requestCustomerTimeChange(
+  env: CloudflareEnv,
+  auth: CustomerEditAuth,
+  bookingKey: string,
+  input: { scheduledLocal: string; scheduledAt?: string },
+): Promise<RequestPaidEditResult> {
+  const scheduledLocal = input.scheduledLocal.trim();
+  if (!scheduledLocal) return { ok: false, code: "not-found" };
+  const scheduledAt = (input.scheduledAt ?? scheduledLocal).trim();
+  return requestCustomerPaidEdit(env, auth, bookingKey, {
+    payload: {
+      scheduled_local: scheduledLocal,
+      scheduled_at: scheduledAt,
+    },
+  });
+}
+
+export type RefuseEditResult =
+  | { ok: true; bookingId: string; requestId: string }
+  | EditAcceptFail;
+
+/** D-23 refuse: supersede pending request. Pickup stays original. No apply RPC. */
+export async function refuseEditRequest(
+  env: CloudflareEnv,
+  claims: VamosClaims,
+  bookingKey: string,
+): Promise<RefuseEditResult> {
+  const key = bookingKey.trim();
+  if (!key) return { ok: false, code: "not-found" };
+  if (!claims.sub) return { ok: false, code: "not-found" };
+  try {
+    return await asSystem(env, async (sql) => {
+      const found = await sql<{ id: string }[]>`
+        select id
+          from public.bookings
+         where erased_at is null
+           and (id::text = ${key} or reference = ${key})
+         limit 1
+      `;
+      const bookingId = found[0]?.id;
+      if (!bookingId) return { ok: false, code: "not-found" };
+      const pending = await sql<{ id: string }[]>`
+        select id
+          from public.booking_edit_requests
+         where booking_id = ${bookingId}::uuid
+           and status = 'requested'
+         limit 1
+      `;
+      const requestId = pending[0]?.id;
+      if (!requestId) return { ok: false, code: "not-found" };
+      await sql`
+        update public.booking_edit_requests
+           set status = 'superseded'
+         where id = ${requestId}::uuid
+           and status = 'requested'
+      `;
+      return { ok: true, bookingId, requestId };
+    });
+  } catch (err) {
+    return mapEditSqlError(err);
+  }
+}
+
+export async function pendingEditHasTimeChange(
+  env: CloudflareEnv,
+  bookingKey: string,
+): Promise<boolean> {
+  const key = bookingKey.trim();
+  if (!key) return false;
+  try {
+    return await asSystem(env, async (sql) => {
+      const rows = await sql<{ payload: unknown }[]>`
+        select r.payload
+          from public.booking_edit_requests r
+          join public.bookings b on b.id = r.booking_id
+         where r.status = 'requested'
+           and b.erased_at is null
+           and (b.id::text = ${key} or b.reference = ${key})
+         limit 1
+      `;
+      const payload = rows[0]?.payload;
+      if (!payload || typeof payload !== "object" || Array.isArray(payload)) return false;
+      const rec = payload as Record<string, unknown>;
+      return typeof rec.scheduled_local === "string" && rec.scheduled_local.trim().length > 0;
+    });
+  } catch {
+    return false;
+  }
+}
+
+/** D-25 confirm: customer + bookings@ + chauffeur. Refuse: customer only. */
+export async function notifyTimeChangeOutcome(
+  env: CloudflareEnv,
+  bookingId: string,
+  outcome: "confirmed" | "refused",
+): Promise<void> {
+  const id = bookingId.trim();
+  if (!id) return;
+  type Row = {
+    reference: string;
+    contact_email: string | null;
+    locale: string | null;
+    pickup_text: string | null;
+    dropoff_text: string | null;
+    scheduled_local: string | Date | null;
+    chauffeur_email: string | null;
+    booking_leg_id: string | null;
+  };
+  const row = await asSystem(env, async (sql) => {
+    const rows = await sql<Row[]>`
+      select
+        b.reference,
+        b.contact_email::text as contact_email,
+        b.locale,
+        l.pickup_text,
+        l.dropoff_text,
+        l.scheduled_local,
+        l.id::text as booking_leg_id,
+        ch.email as chauffeur_email
+      from public.bookings b
+      join public.booking_legs l
+        on l.booking_id = b.id
+       and l.leg_seq = 1
+      left join public.chauffeurs ch on ch.id = l.assigned_chauffeur_id
+      where b.id = ${id}::uuid
+      limit 1
+    `;
+    return rows[0] ?? null;
+  });
+  if (!row?.contact_email) return;
+  const scheduledLocal =
+    row.scheduled_local instanceof Date
+      ? row.scheduled_local.toISOString()
+      : String(row.scheduled_local ?? "");
+  const mailOpts = { includeOps: outcome === "confirmed" };
+  await notifyTimeChange(env, {
+    bookingId: id,
+    customerEmail: row.contact_email,
+    locale: checkoutLocale(row.locale || "en"),
+    reference: row.reference,
+    pickupText: row.pickup_text || "",
+    dropoffText: row.dropoff_text || "",
+    scheduledLocal,
+    outcome,
+    chauffeurEmail: mailOpts.includeOps ? row.chauffeur_email || undefined : undefined,
+    bookingLegId: row.booking_leg_id,
+  });
 }

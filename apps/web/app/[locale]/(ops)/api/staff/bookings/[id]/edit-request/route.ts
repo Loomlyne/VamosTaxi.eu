@@ -1,10 +1,13 @@
-// apps/web/app/[locale]/(ops)/api/staff/bookings/[id]/edit-accept/route.ts
-//
-// POST /api/staff/bookings/:id/edit-accept — ops accept of a paid edit.
-// Dual-mounted at app/api/staff/bookings/[id]/edit-accept.
+// POST /api/staff/bookings/:id/edit-request — ops accept|refuse of a customer edit.
+// Dual-mounted at app/api/staff/bookings/[id]/edit-request.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { acceptPaidEdit, notifyTimeChangeOutcome, pendingEditHasTimeChange } from "@/lib/ops/edit-request";
+import {
+  acceptPaidEdit,
+  notifyTimeChangeOutcome,
+  pendingEditHasTimeChange,
+  refuseEditRequest,
+} from "@/lib/ops/edit-request";
 import { failStatus } from "@/lib/ops/edit-request-map";
 import { jsonErr, jsonOk, withStaff } from "@/lib/ops/staff-json";
 
@@ -14,7 +17,7 @@ function bookingKey(request: Request): string | null {
   const parts = new URL(request.url).pathname.split("/").filter(Boolean);
   const i = parts.lastIndexOf("bookings");
   const id = parts[i + 1] ?? "";
-  if (!id || id === "edit-accept") return null;
+  if (!id || id === "edit-request") return null;
   return id;
 }
 
@@ -41,12 +44,28 @@ export const POST = withStaff(async (claims, request) => {
     body = {};
   }
   const record = body && typeof body === "object" && !Array.isArray(body) ? (body as Record<string, unknown>) : {};
+  const action = (str(record.action) ?? "accept").toLowerCase();
+  const { env } = getCloudflareContext();
+
+  if (action === "refuse") {
+    const result = await refuseEditRequest(env, claims, id);
+    if (!result.ok) return jsonErr(result.code, failStatus(result.code));
+    await notifyTimeChangeOutcome(env, result.bookingId, "refused");
+    return jsonOk({
+      id,
+      bookingId: result.bookingId,
+      requestId: result.requestId,
+      outcome: "refused",
+    });
+  }
+
+  if (action !== "accept") return jsonErr("not-found", 400);
+
+  const timeChange = await pendingEditHasTimeChange(env, id);
   const payloadRaw =
     record.payload && typeof record.payload === "object" && !Array.isArray(record.payload)
       ? (record.payload as Record<string, unknown>)
       : record;
-  const { env } = getCloudflareContext();
-  const timeChange = await pendingEditHasTimeChange(env, id);
   const result = await acceptPaidEdit(env, claims, id, {
     requestId: str(record.requestId),
     quoteSnapshotId: num(record.quoteSnapshotId),
@@ -61,6 +80,7 @@ export const POST = withStaff(async (claims, request) => {
       dropoff_text: str(payloadRaw.dropoff_text) ?? str(payloadRaw.dropoff),
       flight_no: str(payloadRaw.flight_no) ?? str(payloadRaw.flight),
       scheduled_local: str(payloadRaw.scheduled_local),
+      scheduled_at: str(payloadRaw.scheduled_at),
       pax: num(payloadRaw.pax),
       bags: num(payloadRaw.bags),
       vehicle_class_slug: str(payloadRaw.vehicle_class_slug) ?? str(payloadRaw.klass),
