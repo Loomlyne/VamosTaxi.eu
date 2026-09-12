@@ -491,6 +491,7 @@ sequencing is deliberate, not incidental.
 
 **Goal**: Vamos Taxi goes live on its real domain with real pricing — the final, largely
 irreversible gate.
+**Note:** CONTEXT D-01…D-35: this phase host is `vamostaxi.site`. Forget `.eu` as live host. Stripe stays test. No Search Console submit. No JSON-LD.
 **Depends on**: Phase 10
 **Requirements**: LAUNCH-05, LAUNCH-06
 **Success Criteria** (what must be TRUE):
@@ -498,7 +499,21 @@ irreversible gate.
   1. `vamostaxi.eu` points at the Worker, every old Freshpage CMS URL redirects to its new home, and the sitemap is submitted.
   2. `pricing_live` is flipped to true only after the real CHF matrix is loaded and owner-approved on staging.
 
-**Plans**: TBD
+**Plans:** 12 plans
+
+Plans:
+- [ ] 11-01-PLAN.md — Wave 0 tests (VALIDATION 11-01-*)
+- [ ] 11-02-PLAN.md — Git migration public_chf + vat_rate_bps (hosted apply is 11-11 / VALIDATION 11-06-01)
+- [ ] 11-03-PLAN.md — Public pricing_live AND public_chf (VALIDATION 11-02-01)
+- [ ] 11-04-PLAN.md — Publish-as-flip SQL on the DC POST path (VALIDATION 11-02-02)
+- [ ] 11-05-PLAN.md — Host-split noindex + SITEMAP_ROUTES (VALIDATION 11-03-*)
+- [ ] 11-06-PLAN.md — BookingBoard CHF 000 until pricing_live
+- [ ] 11-07-PLAN.md — Injected VAT bps, fallback 81 (VALIDATION 11-04-01 math)
+- [ ] 11-08-PLAN.md — Staff PATCH vat_rate_bps + checkout display
+- [ ] 11-09-PLAN.md — VAT % on OpsPricing rail, dual copy (VALIDATION 11-04-01 UI)
+- [ ] 11-10-PLAN.md — Extract .eu copy into existing pages (VALIDATION 11-05-01)
+- [ ] 11-11-PLAN.md — Owner apply SQL on yaumjzvylngfjhtuffqs (VALIDATION 11-06-01)
+- [ ] 11-12-PLAN.md — Owner says pricing is right, then Publish
 
 ### Phase 12: Ticket schema + #support mock
 
