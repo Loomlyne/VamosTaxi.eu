@@ -5,6 +5,7 @@
 // DATA-08: ops_cancel_booking writes booking_events (booking.status_changed) in the same tx.
 
 import { asStaff, asSystem, type VamosClaims } from "@/lib/db/identity";
+import { applyStripeRefund } from "../lifecycle/paid-cancel";
 import { mapRefundSqlError, sqlErrorCode } from "./refund-map";
 import { resolveStaffBookingId } from "./resolve-booking-id";
 import { OPS_SQLSTATE } from "./sqlstate";
@@ -61,18 +62,21 @@ export async function cancelBooking(
     ? key
     : await resolveStaffBookingId(env, claims, key);
   if (!bookingId) return { ok: false, code: "not-found" };
-  return asSystem(env, async (sql) => {
+
+  type CancelRow = {
+    booking_id: string;
+    reference: string;
+    email: string;
+    name: string;
+    locale: string;
+    paid: boolean;
+    refund_mode: string | null;
+    refund_rappen: number | string | null;
+  };
+
+  const cancelled = await asSystem(env, async (sql): Promise<CancelResult | CancelRow> => {
     try {
-      const rows = await sql<
-        {
-          booking_id: string;
-          reference: string;
-          email: string;
-          name: string;
-          locale: string;
-          paid: boolean;
-        }[]
-      >`
+      const rows = await sql<CancelRow[]>`
         select * from public.ops_cancel_booking(
           ${bookingId}::uuid,
           ${claims.sub}::uuid
@@ -80,17 +84,7 @@ export async function cancelBooking(
       `;
       const row = rows[0];
       if (!row) return { ok: false, code: "unknown" };
-      return {
-        ok: true,
-        booking: {
-          id: String(row.booking_id),
-          reference: String(row.reference),
-          email: String(row.email ?? ""),
-          name: String(row.name ?? ""),
-          locale: String(row.locale ?? "en"),
-          paid: Boolean(row.paid),
-        },
-      };
+      return row;
     } catch (err) {
       if (sqlErrorCode(err) === OPS_SQLSTATE.noData) {
         return { ok: false, code: "not-found" };
@@ -100,6 +94,54 @@ export async function cancelBooking(
       return { ok: false, code: "unknown" };
     }
   });
+
+  if ("ok" in cancelled && cancelled.ok === false) return cancelled;
+  const row = cancelled as CancelRow;
+  const refundMode = String(row.refund_mode ?? "");
+
+  if (refundMode === "pending_ops" || refundMode === "none") {
+    // Stripe lives in the Worker, not SQL. pending_ops / none skip createRefund.
+  } else if (refundMode === "auto_full") {
+    const payment = await asSystem(env, async (sql) => {
+      const pays = await sql<
+        { id: number; stripe_payment_intent_id: string; charged_rappen: number }[]
+      >`
+        select p.id, p.stripe_payment_intent_id, p.charged_rappen
+          from public.booking_payments as p
+         where p.booking_id = ${bookingId}::uuid
+           and p.captured_at is not null
+         order by p.id
+         limit 1
+      `;
+      return pays[0] ?? null;
+    });
+    if (payment) {
+      const refundRappen = Number(row.refund_rappen ?? 0);
+      const amountRappen =
+        Number.isFinite(refundRappen) && refundRappen > 0
+          ? refundRappen
+          : Number(payment.charged_rappen);
+      await applyStripeRefund(env, {
+        bookingId,
+        paymentId: Number(payment.id),
+        paymentIntentId: String(payment.stripe_payment_intent_id),
+        amountRappen,
+        idempotencyKey: `refund:${bookingId}:${payment.id}:ops-cancel`,
+      });
+    }
+  }
+
+  return {
+    ok: true,
+    booking: {
+      id: String(row.booking_id),
+      reference: String(row.reference),
+      email: String(row.email ?? ""),
+      name: String(row.name ?? ""),
+      locale: String(row.locale ?? "en"),
+      paid: Boolean(row.paid),
+    },
+  };
 }
 
 export type UpdateResult =
