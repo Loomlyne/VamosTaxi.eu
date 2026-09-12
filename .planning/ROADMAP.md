@@ -436,33 +436,42 @@ no mock lookup and no 404 shells. Cancel windows are D-02 (owner 2026-09-12). Do
 **Plans:** 12 plans
 
 **Wave 1** — Wave 0 tests
+
 - [x] 09-01-PLAN.md — Wave 0 pgTAP + Vitest (D-02/refund/review/booking-detail; LIFE-07 no-sweep green now)
 
 **Wave 2** *(blocked on Wave 1)*
+
 - [x] 09-02-PLAN.md — Status roll-up + D-02 cancel/refund SQL (local only)
 
 **Wave 3** *(blocked on Wave 2)*
+
 - [x] 09-03-PLAN.md — reviews.booking_id + submit_review SQL (local only)
 
 **Wave 4** *(blocked on Wave 3)* **[BLOCKING hosted SQL]**
+
 - [x] 09-04-PLAN.md — [BLOCKING] Apply Phase 9 SQL on Zurich + regenerate database.types.ts
 
 **Wave 5** *(blocked on Wave 4)*
+
 - [x] 09-05-PLAN.md — Guest + signed-in paid-cancel → Stripe test refund; Ops remaining refund + ops cancel money (D-13)
 - [x] 09-06-PLAN.md — Lifecycle Resend templates + claim-then-send (bookings@)
 
 **Wave 6** *(blocked on Wave 5)*
+
 - [x] 09-07-PLAN.md — Hourly 24h reminder + assignment-customer + cancel mails; no no-show sweep
 - [x] 09-08-PLAN.md — DC manage-booking + live /booking-detail 200 wired to APIs
 
 **Wave 7** *(blocked on Wave 6)*
+
 - [x] 09-09-PLAN.md — Signed-in BookingVoucher paid Cancel; unpaid list hard-delete only
 
 **Wave 8** *(blocked on Wave 5 mail + Wave 4 SQL)*
+
 - [x] 09-10-PLAN.md — Time-change request/confirm + flight-number edit (no AeroDataBox)
 - [x] 09-12-PLAN.md — Customer /review submit + photo R2 + /cancellation copy matching D-02
 
 **Wave 9** *(blocked on Wave 4 + complete RPCs)*
+
 - [x] 09-11-PLAN.md — Ops complete/no-show + review-request chips + OpsDash Income/Expenses/Net
 
 **Cross-cutting constraints:** hashed guest token (never sample TRIP); Stripe test mode only (`sk_live_` refused); Hyperdrive direct never Supavisor :6543; Resend `bookings@vamostaxi.site`; no invented CHF; D-31 no auto no-show sweep.
@@ -499,34 +508,42 @@ irreversible gate.
   1. `vamostaxi.eu` points at the Worker, every old Freshpage CMS URL redirects to its new home, and the sitemap is submitted.
   2. `pricing_live` is flipped to true only after the real CHF matrix is loaded and owner-approved on staging.
 
-**Plans:** 12 plans
+**Plans:** 1/12 plans executed
 
 **Wave 1**
-- [ ] 11-01-PLAN.md — Wave 0 tests (VALIDATION 11-01-*)
+
+- [x] 11-01-PLAN.md — Wave 0 tests (VALIDATION 11-01-*)
 
 **Wave 2** *(blocked on Wave 1)*
+
 - [ ] 11-02-PLAN.md — Git migration public_chf + vat_rate_bps (hosted apply is 11-11)
 - [ ] 11-10-PLAN.md — Extract .eu copy into existing pages (VALIDATION 11-10-01)
 
 **Wave 3** *(blocked on Wave 2)*
+
 - [ ] 11-03-PLAN.md — Public pricing_live AND public_chf (VALIDATION 11-03-*)
 - [ ] 11-04-PLAN.md — Publish-as-flip SQL on the DC POST path (VALIDATION 11-04-01)
 
 **Wave 4** *(blocked on Wave 3)* — CHF 000 belt
+
 - [ ] 11-06-PLAN.md — BookingBoard CHF 000 until pricing_live (VALIDATION 11-06-01)
 - [ ] 11-07-PLAN.md — Injected VAT bps, fallback 81; intent JSON vat_rate_bps (VALIDATION 11-07-*)
 
 **Wave 5** *(blocked on Wave 4)* — drop noindex only after 000 belt
+
 - [ ] 11-05-PLAN.md — Host-split noindex + SITEMAP_ROUTES after 11-06 (VALIDATION 11-05-*)
 - [ ] 11-08-PLAN.md — Staff PATCH vat_rate_bps; CheckoutClient reads extras/intent vat_rate_bps (VALIDATION 11-08-01)
 
 **Wave 6** *(blocked on Wave 5)*
+
 - [ ] 11-09-PLAN.md — VAT % on OpsPricing rail, dual copy (VALIDATION 11-09-01)
 
 **Wave 7** *(blocked on Wave 6)* **[BLOCKING hosted SQL]**
+
 - [ ] 11-11-PLAN.md — Owner apply SQL on yaumjzvylngfjhtuffqs (VALIDATION 11-11-01)
 
 **Wave 8** *(blocked on Wave 7)*
+
 - [ ] 11-12-PLAN.md — Owner says pricing is right, then Publish
 
 ### Phase 12: Ticket schema + #support mock
@@ -652,7 +669,7 @@ v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16 → 17
 | 8. Ops Dispatch — Live Board, Assignment & Account Surfaces | 10/10 | Complete    | 2026-09-11 |
 | 9. Booking Lifecycle & Customer Self-Service | 12/12 | Complete    | 2026-09-12 |
 | 10. Hardening — Performance, Security & Compliance | 10/10 | Complete    | 2026-09-12 |
-| 11. Launch Cutover | 0/TBD | Not started | - |
+| 11. Launch Cutover | 1/12 | In Progress|  |
 | 12. Ticket schema + #support mock | 3/3 | Complete    | 2026-09-11 |
 | 13. Staff APIs + outbound Resend replies | 0/TBD | Not started | - |
 | 14. Inbound webhook | 0/TBD | Not started | - |
