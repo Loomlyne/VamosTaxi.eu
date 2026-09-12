@@ -1,16 +1,16 @@
 -- review_submission.test.sql
 --
--- 09-01 Wave 0: D-18 submit_review allow/deny. Function may land in 09-03.
+-- 09-03: D-18 submit_review allow/deny. D-19 stars. D-21 forever token.
 -- Refuses unpaid and cancelled (cancelled+refunded still refused).
 -- Allows captured paid/confirmed/assigned, completed, paid no-show,
 -- and completed/no_show after an ops refund.
 -- Inserts public.reviews.booking_id. Synthetic integer rappen only.
 -- Rolled back. No LX1234. No TRIP. No EXECUTE to anon.
 begin;
-select plan(15);
+select plan(26);
 
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
-values ('lc9-review', 3, 3);
+values ('first', 3, 3);
 
 insert into public.bookings (contact_name, contact_email, status)
 values
@@ -23,7 +23,11 @@ values
   ('LC9 Review Completed', 'lc9-rev-completed@vamostaxi.eu', 'completed'),
   ('LC9 Review No Show', 'lc9-rev-noshow@vamostaxi.eu', 'no_show'),
   ('LC9 Review Completed Refund', 'lc9-rev-completed-refund@vamostaxi.eu', 'completed'),
-  ('LC9 Review NoShow Refund', 'lc9-rev-noshow-refund@vamostaxi.eu', 'no_show');
+  ('LC9 Review NoShow Refund', 'lc9-rev-noshow-refund@vamostaxi.eu', 'no_show'),
+  ('LC9 Review Expired', 'lc9-rev-expired@vamostaxi.eu', 'paid'),
+  ('LC9 Review Revoked', 'lc9-rev-revoked@vamostaxi.eu', 'paid'),
+  ('LC9 Review Stars', 'lc9-rev-stars@vamostaxi.eu', 'completed'),
+  ('LC9 Review Customer', 'lc9-rev-customer@vamostaxi.eu', 'completed');
 
 insert into public.booking_legs (
   booking_id, leg_seq, direction, pickup_text, dropoff_text,
@@ -35,12 +39,24 @@ select b.id, 1, 'outbound', 'ZRH Airport', 'Zurich HB',
        vc.id, 'confirmed'
   from public.bookings b, public.vehicle_classes vc
  where b.contact_email like 'lc9-rev-%@vamostaxi.eu'
-   and vc.slug = 'lc9-review';
+   and vc.slug = 'first';
 
 insert into public.booking_access_tokens (booking_id, token_hash, expires_at)
 select b.id, extensions.digest(split_part(b.contact_email, '@', 1), 'sha256'), now() + interval '1 day'
   from public.bookings b
  where b.contact_email like 'lc9-rev-%@vamostaxi.eu';
+
+update public.booking_access_tokens t
+   set expires_at = now() - interval '30 days'
+  from public.bookings b
+ where t.booking_id = b.id
+   and b.contact_email = 'lc9-rev-expired@vamostaxi.eu';
+
+update public.booking_access_tokens t
+   set revoked_at = now()
+  from public.bookings b
+ where t.booking_id = b.id
+   and b.contact_email = 'lc9-rev-revoked@vamostaxi.eu';
 
 set local session_replication_role = replica;
 
@@ -56,16 +72,25 @@ select
   rv.id,
   false,
   sv.id,
-  'quote-engine@09-01-review-' || b.contact_email,
+  'quote-engine@09-03-review-' || b.contact_email,
   2, 2,
   '[]'::jsonb,
-  '{}'::jsonb,
+  jsonb_build_object(
+    'cancellation_tiers', '[]'::jsonb,
+    'free_cancel_hours', 24,
+    'airport_waiting_minutes', 60,
+    'city_waiting_minutes', 15,
+    'settings_version_id', sv.id,
+    'modification_deadline_hours', 24,
+    'min_advance_minutes', 180,
+    'policy_doc', 'review'
+  ),
   1, 0, 0, 1,
   now() + interval '1 day',
   now() + interval '1 day',
   b.id
 from public.bookings b
-join public.vehicle_classes vc on vc.slug = 'lc9-review'
+join public.vehicle_classes vc on vc.slug = 'first'
 cross join lateral (select id from public.rate_versions order by id limit 1) rv
 cross join lateral (select id from public.settings_versions order by id limit 1) sv
 where b.contact_email like 'lc9-rev-%@vamostaxi.eu'
@@ -75,7 +100,7 @@ update public.bookings b
    set price_snapshot_id = s.id
   from public.price_snapshots s
  where s.booking_id = b.id
-   and s.engine_version like 'quote-engine@09-01-review-%';
+   and s.engine_version like 'quote-engine@09-03-review-%';
 
 insert into public.booking_payments (
   booking_id, snapshot_id, stripe_payment_intent_id, charged_rappen, status, captured_at
@@ -115,6 +140,13 @@ select has_column(
   'reviews',
   'booking_id',
   'public.reviews.booking_id exists (D-18)'
+);
+
+select col_is_unique(
+  'public',
+  'reviews',
+  'booking_id',
+  'reviews.booking_id is unique (D-21)'
 );
 
 select function_privs_are(
@@ -230,6 +262,89 @@ select is(
     )),
   0,
   'D-18: refused states leave no reviews.booking_id row'
+);
+
+select lives_ok(
+  $$ select * from public.submit_review(
+       extensions.digest('lc9-rev-expired', 'sha256'),
+       5::smallint, 4::smallint, 5::smallint, null, null) $$,
+  'D-21: expired manage token still submits'
+);
+
+select throws_ok(
+  $$ select * from public.submit_review(
+       extensions.digest('lc9-rev-revoked', 'sha256'),
+       5::smallint, 5::smallint, 5::smallint, null, null) $$,
+  'P0002',
+  'not_found',
+  'D-21: revoked token fails generic not_found'
+);
+
+select throws_ok(
+  $$ select * from public.submit_review(
+       extensions.digest('lc9-rev-paid', 'sha256'),
+       5::smallint, 5::smallint, 5::smallint, 'second', null) $$,
+  'P0001',
+  'already_reviewed',
+  'D-21: second submit fails; no customer UPDATE'
+);
+
+select throws_ok(
+  $$ select * from public.submit_review(
+       extensions.digest('lc9-rev-stars', 'sha256'),
+       0::smallint, 5::smallint, 5::smallint, null, null) $$,
+  'P0001',
+  'invalid_rating',
+  'D-19: stars 1–5 required (0 refused)'
+);
+
+select throws_ok(
+  $$ select * from public.submit_review(
+       extensions.digest('lc9-rev-stars', 'sha256'),
+       5::smallint, 5::smallint, 6::smallint, null, null) $$,
+  'P0001',
+  'invalid_rating',
+  'D-19: stars 1–5 required (6 refused)'
+);
+
+select has_function(
+  'public',
+  'submit_review_customer',
+  'public.submit_review_customer exists'
+);
+
+select function_privs_are(
+  'public',
+  'submit_review_customer',
+  '{uuid,int2,int2,int2,text,text}'::text[],
+  'anon',
+  '{}'::text[],
+  'submit_review_customer: anon holds no EXECUTE'
+);
+
+select lives_ok(
+  $$ select * from public.submit_review_customer(
+       (select id from public.bookings where contact_email = 'lc9-rev-customer@vamostaxi.eu'),
+       4::smallint, 5::smallint, 3::smallint, 'customer jwt', null) $$,
+  'submit_review_customer allowed after Worker ownership check'
+);
+
+select is(
+  (select r.published
+     from public.reviews r
+     join public.bookings b on b.id = r.booking_id
+    where b.contact_email = 'lc9-rev-paid@vamostaxi.eu'),
+  false,
+  'D-20: customer submit published is false'
+);
+
+select is(
+  (select r.rating = r.rating_overall and r.verified and r.source = 'manual'
+     from public.reviews r
+     join public.bookings b on b.id = r.booking_id
+    where b.contact_email = 'lc9-rev-paid@vamostaxi.eu'),
+  true,
+  'D-19: rating copies overall; verified; source manual'
 );
 
 select * from finish();
