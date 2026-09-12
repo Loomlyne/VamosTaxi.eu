@@ -7,6 +7,7 @@ import {
   VAMOS_QS_COOKIE,
   verifyVamosQs,
 } from "./lib/abuse/vamos-qs";
+import { readConsentSubject } from "./lib/consent/cookie";
 import {
   INTERNAL_ASSET_HEADER,
   accountDcPath,
@@ -44,6 +45,25 @@ const DC_PAGES: Record<string, string> = {
   "/coming-soon": "/app/pages/coming-soon.html",
   "/sitemap": "/app/pages/sitemap.html",
 };
+
+/** D-24: marketing HTML only. No public /services. Contact GET may cache; POST uncached. */
+const MARKETING_CACHE_PATHS = new Set([
+  "/",
+  "/about",
+  "/faq",
+  "/contact",
+  "/terms",
+  "/privacy",
+  "/cookies",
+  "/cancellation",
+  "/imprint",
+]);
+
+/** Never CDN-cache tickets or APIs (D-24). Matcher already skips /api; keep the prefix in source. */
+const NO_STORE_PATH_PREFIXES = ["/api", "/checkout", "/confirmation", "/bookings", "/account"] as const;
+
+/** D-25: sb-yaumjzvylngfjhtuffqs-auth-token* or any sb-*-auth-token → private, no-store. */
+const AUTH_TOKEN_COOKIE_RE = /^sb-.+-auth-token(?:\..+)?$/;
 
 /** Bare `/app/pages/contact` (and home) → public `/contact`. Skip aliases that share a file. */
 const DC_FILE_ROUTE: Record<string, string> = {};
@@ -318,6 +338,50 @@ function applyStagingNoindex(response: NextResponse): NextResponse {
   return response;
 }
 
+function isNoStorePath(path: string): boolean {
+  return NO_STORE_PATH_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
+}
+
+function hasAuthTokenCookie(request: NextRequest): boolean {
+  return request.cookies.getAll().some((cookie) => AUTH_TOKEN_COOKIE_RE.test(cookie.name));
+}
+
+/**
+ * Public-host Cache-Control after locale/auth work. Worker still runs
+ * gatePublicRequest — these headers do not skip the Worker.
+ */
+function applyPublicCacheHeaders(request: NextRequest, response: NextResponse): NextResponse {
+  const path = stripLocalePath(request.nextUrl.pathname);
+  const nocache = request.nextUrl.searchParams.has("nocache");
+  const personal = isNoStorePath(path);
+  const authed = hasAuthTokenCookie(request);
+
+  if (personal || nocache || authed || isDashboardHost(request)) {
+    response.headers.set("Cache-Control", "private, no-store");
+    return response;
+  }
+
+  const marketingGet =
+    request.method === "GET" &&
+    response.status === 200 &&
+    MARKETING_CACHE_PATHS.has(path);
+
+  if (!marketingGet) {
+    response.headers.set("Cache-Control", "private, no-store");
+    return response;
+  }
+
+  // D-08 / T-10-12: banner vs no-banner. Boolean presence only — never the UUID.
+  const present = readConsentSubject(request.headers.get("cookie")) ? "1" : "0";
+  response.headers.set("X-Consent-Present", present);
+  response.headers.set("Vary", "X-Consent-Present");
+  response.headers.set(
+    "Cache-Control",
+    "public, s-maxage=300, stale-while-revalidate=3600",
+  );
+  return response;
+}
+
 function withOpsPathHeader(request: NextRequest, base: NextResponse): NextResponse {
   const { path } = localeStrippedPath(request.nextUrl.pathname);
   const requestHeaders = new Headers(request.headers);
@@ -387,7 +451,7 @@ export default async function middleware(request: NextRequest) {
         sameSite: "lax",
         maxAge: 31536000,
       });
-      return applyStagingNoindex(res);
+      return applyPublicCacheHeaders(request, applyStagingNoindex(res));
     }
   }
 
@@ -425,7 +489,10 @@ export default async function middleware(request: NextRequest) {
     const mock = dcMockPath(pathname);
     if (mock) {
       const html = await serveDcHtml(request, mock);
-      return applyStagingNoindex(await updateSession(request, html));
+      return applyPublicCacheHeaders(
+        request,
+        applyStagingNoindex(await updateSession(request, html)),
+      );
     }
   }
 
@@ -510,7 +577,7 @@ export default async function middleware(request: NextRequest) {
     }
   }
 
-  return finalResponse;
+  return applyPublicCacheHeaders(request, finalResponse);
 }
 
 export const config = {
