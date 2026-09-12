@@ -372,6 +372,32 @@ describe("ops live data — comments 8–10", () => {
     expect(dash).toMatch(/fareLabel/);
   });
 
+  it("OpsDash money is captured fares minus booking_refunds via GET /api/staff/dashboard", () => {
+    const dash = read("app/ops/OpsDash.dc.html");
+    const bookings = read("apps/web/lib/ops/bookings.ts");
+    const route = read("apps/web/app/[locale]/(ops)/api/staff/dashboard/route.ts");
+    expect(dash).toMatch(/\/api\/staff\/dashboard\?period=/);
+    expect(dash).toMatch(/key:'all'/);
+    expect(dash).toMatch(/period === 'all'/);
+    expect(dash).toMatch(/fareLabel\(refundRappen \+ feeRappen\)/);
+    expect(dash).not.toMatch(/expensesMoney: zeroMoney/);
+    expect(dash).toMatch(/r\.customer/);
+    expect(dash).toMatch(/r\.booking/);
+    expect(dash).toMatch(/fareLabel\(r\.amountRappen\)/);
+    expect(bookings).toMatch(/from public\.booking_payments/);
+    expect(bookings).toMatch(/from public\.booking_refunds/);
+    expect(bookings).toMatch(/Europe\/Zurich/);
+    expect(bookings).toMatch(/function parseMoneyPeriod/);
+    expect(bookings).toMatch(/function periodFromYmd/);
+    expect(bookings).toMatch(/period === "all"/);
+    expect(bookings).toMatch(/addDaysYmd\(todayYmd, -6\)/);
+    expect(bookings).toMatch(/addDaysYmd\(todayYmd, -29\)/);
+    expect(bookings).not.toMatch(/status = 'refunded'/);
+    expect(bookings).not.toMatch(/status::text = 'refunded'/);
+    expect(route).toMatch(/loadDashboardMoney/);
+    expect(route).toMatch(/parseMoneyPeriod/);
+  });
+
   it("board stays empty without fixtures and reads the filter query", () => {
     const board = read("app/ops/OpsBoard.dc.html");
     const data = read("app/vamos-ops-data.js");
