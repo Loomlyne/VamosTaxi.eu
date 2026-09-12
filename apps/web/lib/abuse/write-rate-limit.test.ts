@@ -126,3 +126,30 @@ describe("contact and review write limiter (D-13, D-16)", () => {
     expect(src).not.toMatch(/from ["']@\/lib\/abuse\/turnstile["']/);
   });
 });
+
+describe("no Turnstile on checkout, cancel, webhook (D-14, D-15)", () => {
+  it("checkout, manage-booking cancel, and Stripe webhook do not call verifyTurnstile", () => {
+    const intent = readRepo("apps/web/app/api/checkout/intent/route.ts");
+    const manageCancel = readRepo("apps/web/app/api/manage/cancel/route.ts");
+    const accountCancel = readRepo("apps/web/app/api/account/bookings/cancel/route.ts");
+    const webhook = readRepo("apps/web/app/api/stripe/webhook/route.ts");
+    const verify = readRepo("apps/web/lib/checkout/webhook-verify.ts");
+    expect(intent).not.toMatch(/verifyTurnstile/);
+    expect(manageCancel).not.toMatch(/verifyTurnstile/);
+    expect(accountCancel).not.toMatch(/verifyTurnstile/);
+    expect(webhook).not.toMatch(/verifyTurnstile/);
+    expect(verify).not.toMatch(/verifyTurnstile/);
+    expect(verify).toMatch(/constructEventAsync/);
+  });
+
+  it("contact and reviews still fail-closed Turnstile action contact", () => {
+    const contact = readRepo("apps/web/app/api/contact/route.ts");
+    const reviews = readRepo("apps/web/app/api/reviews/submit/route.ts");
+    expect(contact).toMatch(/verifyTurnstile/);
+    expect(reviews).toMatch(/verifyTurnstile/);
+    expect(contact).toMatch(/action:\s*["']contact["']/);
+    expect(reviews).toMatch(/action:\s*["']contact["']/);
+    expect(contact).not.toMatch(/from ["']@\/lib\/abuse\/turnstile["']/);
+    expect(reviews).not.toMatch(/from ["']@\/lib\/abuse\/turnstile["']/);
+  });
+});
