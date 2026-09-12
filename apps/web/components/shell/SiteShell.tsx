@@ -29,10 +29,12 @@ import { ContactFab } from "./ContactFab";
 export function SiteShell({
   header,
   footer,
+  banner,
   children,
 }: {
   header: ReactNode;
   footer: ReactNode;
+  banner?: ReactNode;
   children: ReactNode;
 }) {
   const pathname = usePathname() ?? "";
@@ -59,6 +61,7 @@ export function SiteShell({
       {children}
       {footer}
       <ContactFab />
+      {banner}
     </>
   );
 }

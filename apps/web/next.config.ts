@@ -92,7 +92,37 @@ const nextConfig: NextConfig = {
   // is fine — nothing about a 404 needs to be indexable either).
   async headers() {
     const noindex = [{ key: "X-Robots-Tag", value: "noindex" }];
+    // D-32…D-38. HSTS is includeSubDomains without preload. Catch-all
+    // `/:path*` covers unprefixed English and prefixed de/fr/ar
+    // (`localePrefix: "as-needed"`). Do not duplicate keys on /dev rows.
+    const securityHeaders = [
+      {
+        key: "Strict-Transport-Security",
+        value: "max-age=31536000; includeSubDomains",
+      },
+      {
+        key: "Referrer-Policy",
+        value: "strict-origin-when-cross-origin",
+      },
+      {
+        key: "X-Frame-Options",
+        value: "DENY",
+      },
+      {
+        key: "Permissions-Policy",
+        value: "camera=(), microphone=(), geolocation=()",
+      },
+      {
+        key: "Content-Security-Policy",
+        // D-33: if Payment Element or DC home breaks, loosen that directive.
+        // Funnel wins. DC support.js loads React/ReactDOM/Babel from unpkg
+        // and Babel needs eval. No error-tracker hosts. No report endpoint.
+        value:
+          "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' unpkg.com js.stripe.com challenges.cloudflare.com; frame-src js.stripe.com hooks.stripe.com challenges.cloudflare.com; connect-src 'self' api.stripe.com challenges.cloudflare.com api.mapbox.com events.mapbox.com; img-src 'self' data: blob: https://*.mapbox.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
+      },
+    ];
     return [
+      { source: "/:path*", headers: securityHeaders },
       { source: "/dev/:path*", headers: noindex },
       { source: "/:locale/dev/:path*", headers: noindex },
       {

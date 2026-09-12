@@ -120,3 +120,54 @@ export async function checkRateLimit(
     return { ok: true };
   }
 }
+
+export type WriteRateLimitKind = "consent" | "contact" | "review";
+
+export type CheckWriteRateLimitInput = {
+  limiter: RateLimit;
+  kind: WriteRateLimitKind;
+  ip: string;
+  subject?: string | null;
+  emit?: AbuseEmit;
+};
+
+/**
+ * Prefixed keys on the existing QUOTE_RATE_LIMITER / QUOTE_RATE_LIMITER_BARE
+ * family. Callers pass one of those bindings — do not add a third namespace.
+ */
+export function writeRateLimitKeys(
+  kind: WriteRateLimitKind,
+  ip: string,
+  subject?: string | null,
+): string[] {
+  if (kind === "consent") {
+    const keys = [`consent:${ip}`];
+    if (subject) keys.push(`consent:${ip}:${subject}`);
+    return keys;
+  }
+  if (kind === "contact") return [`contact:${ip}`];
+  return [`review:${ip}`];
+}
+
+/**
+ * Consent / contact / review writes fail closed. A throw or a rejected
+ * limiter result is code rate_limited — not the quote funnel fail-open.
+ */
+export async function checkWriteRateLimit(
+  input: CheckWriteRateLimitInput,
+): Promise<{ ok: true } | { ok: false; code: "rate_limited" }> {
+  const keys = writeRateLimitKeys(input.kind, input.ip, input.subject);
+  try {
+    for (const key of keys) {
+      const result = await input.limiter.limit({ key });
+      if (!result.success) {
+        return { ok: false, code: "rate_limited" };
+      }
+    }
+    return { ok: true };
+  } catch {
+    const emit = input.emit ?? fallbackEmit;
+    emit("warn", "write_rate_limit_degraded", { limiter_ok: 0 });
+    return { ok: false, code: "rate_limited" };
+  }
+}

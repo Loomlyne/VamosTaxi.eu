@@ -45,11 +45,13 @@ export async function LegalPage({
 }) {
   const tLegal = await getTranslations("legal");
   const tCommon = await getTranslations("common");
+  const tCookies = await getTranslations("cookies");
   const langs = LEGAL_LANGUAGES[page];
 
   function msg(key: string): string {
     if (key.startsWith("common.")) return tCommon(key.slice("common.".length));
     if (key.startsWith("legal.")) return tLegal(key.slice("legal.".length));
+    if (key.startsWith("cookies.")) return tCookies(key.slice("cookies.".length));
     return tLegal(key);
   }
 

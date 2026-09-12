@@ -16,6 +16,12 @@ Production rebuild of [vamostaxi.eu](https://www.vamostaxi.eu/) as a premium pre
 
 Swiss local **scheduled** transfer product (book ahead; driver waits at set time). Transfeero-level UX quality. Not on-demand Uber, not a global marketplace.
 
+## Ops runbook
+
+English numbered click-paths for live Ops (refunds, resend voucher, manual assignment) and a copy-only database restore: [`docs/runbook/`](docs/runbook/).
+
+Support: **info@vamostaxi.site** and **+41 79 626 70 82**.
+
 ## Layout
 
 This repo has three parts, kept visibly separate:

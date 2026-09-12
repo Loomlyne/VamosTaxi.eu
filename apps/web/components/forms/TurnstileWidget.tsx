@@ -68,7 +68,7 @@ function loadTurnstile(): Promise<TurnstileApi> {
 
 export type TurnstileWidgetProps = {
   siteKey: string | undefined;
-  action: "contact" | "checkout";
+  action: "contact" | "checkout" | "consent";
   onToken: (token: string | null) => void;
   labelKey?: string;
   resetNonce?: number;
@@ -133,11 +133,11 @@ export function TurnstileWidget({
 
   if (!siteKey) {
     return (
-      <div className="vt-turnstile" role="note">
+      <div className="vt-turnstile" role="note" data-action={action}>
         <p className="vt-turnstile__note">{tCommon("form-challenge-failed")}</p>
       </div>
     );
   }
 
-  return <div className="vt-turnstile" ref={hostRef} />;
+  return <div className="vt-turnstile" ref={hostRef} data-action={action} />;
 }
