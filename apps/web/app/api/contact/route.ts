@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 
   const ip = request.headers.get("cf-connecting-ip")?.trim() || "unknown";
   const limited = await checkWriteRateLimit({
-    limiter: env.QUOTE_RATE_LIMITER_BARE,
+    limiter: env.QUOTE_RATE_LIMITER,
     kind: "contact",
     ip,
   });
