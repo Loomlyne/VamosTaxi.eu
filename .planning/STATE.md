@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Vamos Taxi V1
-status: planned
-stopped_at: "Phase 9 planned 2026-09-12. 12 plans, waves 1–9. Checker PASSED. Next: owner signs plan review, then execute-phase 9. 13–17 parked."
-last_updated: "2026-09-11T23:13:02.000Z"
-last_activity: 2026-09-12 -- plan-phase 9 VERIFICATION PASSED
+status: complete
+stopped_at: "Phase 9 executed + UAT recorded 2026-09-12. On main a1d6c56. Ops Complete VT-26-0723 and Cancel VT-26-0720 live. Ops remaining refund honest Failed. Next: owner signs Phase 10 plan."
+last_updated: "2026-09-12T13:19:13.000Z"
+last_activity: 2026-09-12 -- phase 9 UAT recorded
 progress:
   total_phases: 17
   completed_phases: 9
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-04)
 
 **Core value:** quote → pay → confirmation. Lifecycle after pay is Phase 9.
-**Current focus:** Phase 9 — Booking Lifecycle & Customer Self-Service (planned, wait owner sign)
+**Current focus:** Phase 9 closed on staging. Phase 10 discuss CONTEXT exists on `gsd/phase-10-hardening` — not started.
 
 ## Current Position
 
-Phase: 9 (Booking lifecycle) — planned
-Plan: 12 plans (09-01 … 09-12), waves 1–9
-Status: VERIFICATION PASSED. Ready to execute after he signs. 13–17 parked.
-Last activity: 2026-09-12 -- plan-phase 9 checker pass
+Phase: 9 (Booking lifecycle) — complete
+Plan: 12/12 SUMMARYs. UAT 7 pass / 1 issue (ops remaining refund Failed).
+Status: On main a1d6c56. Next is Phase 10 plan when you say plan.
+Last activity: 2026-09-12 -- live Complete + Cancel + UAT file
 
 ## Performance Metrics
 
