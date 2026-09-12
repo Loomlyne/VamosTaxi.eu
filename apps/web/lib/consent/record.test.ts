@@ -124,7 +124,8 @@ describe("POST /api/consent HTTP mapping (D-03, D-11, D-14)", () => {
     expect(src).toMatch(/Cache-Control["']:\s*["']private, no-store["']|["']Cache-Control["'],\s*["']private, no-store["']/);
     if (src.includes("export async function GET") || src.includes("export function GET")) {
       const getAt = src.search(/export (async )?function GET/);
-      const getSrc = src.slice(getAt);
+      const postAt = src.indexOf("export async function POST");
+      const getSrc = src.slice(getAt, postAt > getAt ? postAt : undefined);
       expect(getSrc).toMatch(/405/);
       expect(getSrc).not.toMatch(/consentSubjectSetCookie|mintConsentSubject/);
     }
