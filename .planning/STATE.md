@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Vamos Taxi V1
 status: complete
-stopped_at: "Phase 10 UAT + verification closed 2026-09-12. PR #35. Restore Task 3 parked (Supabase Free). Next: leftover/PR/worktree hygiene, then Phase 11 when owner says."
-last_updated: "2026-09-12T22:40:00.000Z"
-last_activity: 2026-09-12 -- phase 10 ship
+stopped_at: "Phase 10 verified 2026-09-12. On main 6aa1ccd (#35). SITE-08 LAUNCH-02 LAUNCH-03 LAUNCH-07 ticked. LAUNCH-01 (10k) and LAUNCH-04 (restore) stay pending. Next: Phase 11 when owner says."
+last_updated: "2026-09-12T23:50:00.000Z"
+last_activity: 2026-09-12 -- phase 10 requirements ticked
 progress:
   total_phases: 17
   completed_phases: 10
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-04)
 
 **Core value:** quote → pay → confirmation. Lifecycle after pay is Phase 9.
-**Current focus:** Phase 10 closed. Phase 11 (live vamostaxi.eu DNS + live Stripe) stays out until PRs, leftovers, and worktrees are in control.
+**Current focus:** Phase 10 verified and ticked. Phase 11 (live vamostaxi.eu DNS + live Stripe) stays out until owner says.
 
 ## Current Position
 
-Phase: 10 (Hardening) — complete
+Phase: 10 (Hardening) — complete / verified
 Plan: 10-01 … 10-10. UAT 8 pass / restore skipped. Verification passed. Live Worker vamos 2c6d7c87.
-Status: PR #35. Restore/Pro parked. Phase 11 gated.
-Last activity: 2026-09-12 -- ship + leftover census
+Status: On main 6aa1ccd. Requirements SITE-08, LAUNCH-02, LAUNCH-03, LAUNCH-07 Complete. Restore/Pro parked.
+Last activity: 2026-09-12 -- tick Phase 10 requirements
 
 ## Performance Metrics
 
@@ -42,5 +42,5 @@ None for Phase 10. Phase 11 blocked on owner. Restore drill deferred (Free plan)
 ## Session Continuity
 
 Last session: 2026-09-12
-Stopped at: Phase 10 ship (PR #35)
-Resume: merge #35, then leftover/worktree hygiene, then Phase 11 only when owner says.
+Stopped at: Phase 10 verified + requirement ticks
+Resume: Phase 11 only when owner says.

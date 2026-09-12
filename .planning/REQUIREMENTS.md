@@ -100,7 +100,7 @@ and are final — "matches the mock" is a real acceptance criterion, not a hand-
 - [ ] **SITE-05**: Terms, privacy, cookies, cancellation and imprint render, with real numbers where the owner supplied them and labelled TBC pills where not
 - [ ] **SITE-06**: Every page is laid out for 1440, 1024, 768 and 390 px, and nothing scrolls sideways at 390
 - [ ] **SITE-07**: Public pages are server-rendered for search engines and declare their language alternates
-- [ ] **SITE-08**: The cookie banner gates what it promises to gate, and the customer's choice is recorded server-side with the policy version
+- [x] **SITE-08**: The cookie banner gates what it promises to gate, and the customer's choice is recorded server-side with the policy version
 - [ ] **SITE-09**: A customer can reach support by phone, WhatsApp and the contact form
 
 ### Ops console (OPS)
@@ -123,12 +123,12 @@ and are final — "matches the mock" is a real acceptance criterion, not a hand-
 ### Launch readiness (LAUNCH)
 
 - [ ] **LAUNCH-01**: The site serves 10 000 concurrent browsing visitors with page p95 under one second and the database barely touched
-- [ ] **LAUNCH-02**: Public API routes are rate-limited, forms are challenge-protected and the payment webhook is verified by signature
-- [ ] **LAUNCH-03**: Errors, uptime and a health check covering database, payments and maps report to a place someone watches
+- [x] **LAUNCH-02**: Public API routes are rate-limited, forms are challenge-protected and the payment webhook is verified by signature
+- [x] **LAUNCH-03**: Errors, uptime and a health check covering database, payments and maps report to a place someone watches
 - [ ] **LAUNCH-04**: Backups run and a restore has actually been performed once, before real bookings exist
 - [ ] **LAUNCH-05**: `vamostaxi.eu` points at the Worker, every old CMS URL redirects to its new home, and the sitemap is submitted
 - [ ] **LAUNCH-06**: `pricing_live=true` is flipped only after the real CHF matrix is loaded and approved on staging
-- [ ] **LAUNCH-07**: A runbook exists for refunds, resending an email, manual assignment and restoring the database
+- [x] **LAUNCH-07**: A runbook exists for refunds, resending an email, manual assignment and restoring the database
 
 ---
 
@@ -293,7 +293,7 @@ Populated during roadmap creation. Full phase goals and success criteria: `.plan
 | SITE-05 | Phase 5 | Pending |
 | SITE-06 | Phase 5 | Pending |
 | SITE-07 | Phase 5 | Pending |
-| SITE-08 | Phase 10 | Pending |
+| SITE-08 | Phase 10 | Complete |
 | SITE-09 | Phase 5 | Pending |
 | OPS-01 | Phase 8 | Complete |
 | OPS-02 | Phase 8 | Complete |
@@ -305,13 +305,13 @@ Populated during roadmap creation. Full phase goals and success criteria: `.plan
 | OPS-08 | Phase 6 | Complete |
 | OPS-09 | Phase 6 | Complete |
 | OPS-10 | Phase 6 | Complete |
-| LAUNCH-01 | Phase 10 | Pending |
-| LAUNCH-02 | Phase 10 | Pending |
-| LAUNCH-03 | Phase 10 | Pending |
-| LAUNCH-04 | Phase 10 | Pending |
+| LAUNCH-01 | Phase 10 | Pending (no 10k load test this sitting) |
+| LAUNCH-02 | Phase 10 | Complete |
+| LAUNCH-03 | Phase 10 | Complete |
+| LAUNCH-04 | Phase 10 | Pending (restore parked — Supabase Free) |
 | LAUNCH-05 | Phase 11 | Pending |
 | LAUNCH-06 | Phase 11 | Pending |
-| LAUNCH-07 | Phase 10 | Pending |
+| LAUNCH-07 | Phase 10 | Complete |
 
 **Coverage:**
 
@@ -339,4 +339,4 @@ Populated during v1.1 roadmap creation.
 
 ---
 *Requirements defined: 2026-08-17*
-*Last updated: 2026-09-04 after v1.1 Ops Support roadmap (Phases 12–16)*
+*Last updated: 2026-09-12 — Phase 10 SITE-08 / LAUNCH-02 / LAUNCH-03 / LAUNCH-07 verified. LAUNCH-01 and LAUNCH-04 stay pending.*
