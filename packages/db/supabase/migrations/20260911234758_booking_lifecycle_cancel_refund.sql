@@ -716,7 +716,6 @@ declare
   v_refund public.booking_refunds%rowtype;
   v_actor_label pg_catalog.text;
   v_hours pg_catalog.numeric(8,2);
-  v_from public.booking_status;
   v_already pg_catalog.int4;
   v_remaining public.rappen;
 begin
@@ -806,8 +805,6 @@ begin
     from public.booking_legs as l
    where l.booking_id = v_booking.id;
 
-  v_from := v_booking.status;
-
   insert into public.booking_refunds (
     booking_id,
     snapshot_id,
@@ -862,45 +859,12 @@ begin
     pg_catalog.jsonb_build_object('via', 'ops', 'stripe_refund_id', p_stripe_refund_id)
   );
 
+  -- D-10: refund is a money line. Never assign bookings.status / legs.status refunded.
   update public.bookings
-     set status = 'refunded'::public.booking_status,
-         refund_status = 'refunded',
+     set refund_status = 'refunded',
          refunded_rappen = coalesce(refunded_rappen, 0) + v_refund.refund_rappen,
          updated_at = pg_catalog.now()
    where id = v_booking.id;
-
-  update public.booking_legs
-     set status = 'refunded'::public.booking_status,
-         updated_at = pg_catalog.now()
-   where booking_id = v_booking.id
-     and status not in (
-       'completed'::public.booking_status,
-       'no_show'::public.booking_status
-     );
-
-  insert into public.booking_events (
-    booking_id,
-    kind,
-    actor_kind,
-    actor_id,
-    actor_label,
-    from_status,
-    to_status,
-    payment_id,
-    refund_id,
-    payload
-  ) values (
-    v_booking.id,
-    'booking.status_changed',
-    'staff',
-    p_actor_id,
-    v_actor_label,
-    v_from,
-    'refunded'::public.booking_status,
-    v_pay.id,
-    v_refund.id,
-    pg_catalog.jsonb_build_object('via', 'ops')
-  );
 
   return query
     select v_booking.id,
