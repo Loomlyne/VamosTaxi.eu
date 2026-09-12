@@ -89,10 +89,8 @@ export default async function CancellationPage({
           <span data-lg-n="1">01</span>
           {tLegal("what-you-get-back")}
         </h2>
-        <p>
-          {tLegal("measured-from-the-pickup-time-in-your-confirmati")}{" "}
-          <PendingSlot label="24 hours before pickup" />
-        </p>
+        {/* D-02: 24 hours full refund. 24 hours to 6 hours pending ops. 6 hours no automatic refund. */}
+        <p>{tLegal("measured-from-the-pickup-time-in-your-confirmati")}</p>
         <div style={{ maxInlineSize: "100%", overflowInline: "auto" }}>
         <Table
           columns={columns}
@@ -101,20 +99,20 @@ export default async function CancellationPage({
             {
               slug: "full",
               tier: tLegal("more-than"),
-              window: <PendingSlot label="24 hours before pickup" />,
-              outcome: <PendingSlot label="100% refunded" />,
+              window: tLegal("24-hours-before-pickup"),
+              outcome: tLegal("100-refunded"),
             },
             {
-              slug: "partial",
+              slug: "ops",
               tier: tLegal("inside"),
-              window: <PendingSlot label="24 hours before pickup" />,
-              outcome: <PendingSlot label="75% refunded" />,
+              window: tLegal("24-hours-to-6-hours-before-pickup"),
+              outcome: tLegal("refund-pending-operations-default-100-o"),
             },
             {
               slug: "none",
-              tier: tLegal("after-pickup-time"),
-              window: tLegal("no-show-or-not-cancelled"),
-              outcome: <PendingSlot label="No refund" />,
+              tier: tLegal("from-6-hours-before-pickup"),
+              window: tLegal("6-hours-through-pickup-and-after-pickup"),
+              outcome: tLegal("no-automatic-refund-operations-can-stil"),
             },
           ]}
         />
@@ -123,7 +121,8 @@ export default async function CancellationPage({
           {tLegal("refunded-to-the-card-you-paid-with-or-take-the-f")}{" "}
           <a href="#vouchers">09</a>.
         </p>
-        <p>{tLegal("a-driver-is-already-committed-to-your-journey-by")}</p>
+        <p>{tLegal("from-6-hours-before-pickup-a-driver-may")}</p>
+        <p>{tLegal("completed-or-no-show-no-customer-cancel")}</p>
         <p>
           {tLegal("the-vehicle-waited-section")} <a href="#noshow">06</a>{" "}
           {tLegal("sets-out-when-a-booking-counts-as-a-no-show")}
