@@ -131,3 +131,35 @@ describe("POST /api/consent HTTP mapping (D-03, D-11, D-14)", () => {
     }
   });
 });
+
+describe("signup consent row (D-09, T-10-07)", () => {
+  it("inserts a new row via asCustomer + recordConsent after password or magic signup", () => {
+    const src = readRepo("apps/web/app/api/auth/route.ts");
+    expect(src).toMatch(/from ["']@\/lib\/db\/identity["']/);
+    expect(src).toMatch(/\basCustomer\b/);
+    expect(src).toMatch(/recordConsent/);
+    expect(src).toMatch(/runSignUpPassword/);
+    expect(src).toMatch(/mode:\s*["']signup["']|mode === ["']signup["']/);
+    expect(src).not.toMatch(/from ["']@vamos\/db["']/);
+    expect(src).not.toMatch(/from ["']@vamos\/db\//);
+    expect(src).not.toMatch(/consent_log/);
+    expect(src).not.toMatch(/\bUPDATE\b/);
+    expect(src).not.toMatch(/save_choices/);
+    expect(src).not.toMatch(/p_customer_id|customer_id\s*:/);
+    expect(src).not.toMatch(/marketing:\s*true/);
+    expect(src).not.toMatch(/sk_live_/);
+    expect(src).not.toMatch(/Google|Apple|LinkedIn/);
+    const customerAt = src.indexOf("asCustomer");
+    const recordAt = src.indexOf("recordConsent");
+    expect(customerAt).toBeGreaterThan(-1);
+    expect(recordAt).toBeGreaterThan(customerAt);
+  });
+
+  it("reuses consent_subject cookie; never forges subject or customer_id from the JSON body", () => {
+    const src = readRepo("apps/web/app/api/auth/route.ts");
+    expect(src).toMatch(/readConsentSubject/);
+    expect(src).toMatch(/mintConsentSubject/);
+    expect(src).toMatch(/settings_change|reject_all/);
+    expect(src).not.toMatch(/body\.(subject|customerId|customer_id|consent_subject)/);
+  });
+});
