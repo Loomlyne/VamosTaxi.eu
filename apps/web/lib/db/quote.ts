@@ -123,3 +123,53 @@ export async function evaluateCoupon(
   emit(request, "evaluate_coupon", { ok });
   return result;
 }
+
+const LAUNCH_FLAGS_CLOSED = { public_chf: false, vat_rate_bps: 81 } as const;
+
+export type LaunchFlags = {
+  public_chf: boolean;
+  vat_rate_bps: number;
+};
+
+function vatRateBpsFrom(value: unknown): number {
+  if (typeof value === "number" && Number.isFinite(value) && value >= 0) {
+    return Math.trunc(value);
+  }
+  if (typeof value === "string" && value.trim() !== "") {
+    const n = Number(value);
+    if (Number.isFinite(n) && n >= 0) return Math.trunc(n);
+  }
+  return LAUNCH_FLAGS_CLOSED.vat_rate_bps;
+}
+
+/**
+ * D-18/D-22 launch flags from quote_rate_book JSON (settings id=1).
+ * Quote identity cannot SELECT public.settings. Fail closed if the 11-02
+ * RPC/columns are missing so public CHF stays 000 until 11-11 apply.
+ */
+export async function loadLaunchFlags(
+  env: CloudflareEnv,
+  request?: RequestContext,
+): Promise<LaunchFlags> {
+  const preferLive = false;
+  try {
+    const result = await asQuote(env, async (tx) => {
+      const rows = await tx`select public.quote_rate_book(${preferLive}) as result`;
+      return rows[0]?.result ?? null;
+    });
+    if (!isRecord(result) || !("public_chf" in result)) {
+      return { ...LAUNCH_FLAGS_CLOSED };
+    }
+    const flags: LaunchFlags = {
+      public_chf: result.public_chf === true,
+      vat_rate_bps: vatRateBpsFrom(result.vat_rate_bps),
+    };
+    emit(request, "launch_flags", {
+      public_chf: flags.public_chf,
+      vat_rate_bps: flags.vat_rate_bps,
+    });
+    return flags;
+  } catch {
+    return { ...LAUNCH_FLAGS_CLOSED };
+  }
+}

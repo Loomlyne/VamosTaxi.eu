@@ -20,6 +20,7 @@
 
 import {
   evaluateCoupon,
+  loadLaunchFlags,
   loadRateBook,
   loadSettingsVersion,
   mintLockDeadline,
@@ -37,6 +38,7 @@ export type QuoteLoaders = {
   loadSettingsVersion: typeof loadSettingsVersion;
   mintLockDeadline: typeof mintLockDeadline;
   evaluateCoupon: typeof evaluateCoupon;
+  loadLaunchFlags: typeof loadLaunchFlags;
 };
 
 const defaultLoaders: QuoteLoaders = {
@@ -44,6 +46,7 @@ const defaultLoaders: QuoteLoaders = {
   loadSettingsVersion,
   mintLockDeadline,
   evaluateCoupon,
+  loadLaunchFlags,
 };
 
 export type LoadAndPriceCoupon = {
@@ -160,6 +163,7 @@ export async function loadAndPrice(
 
   const rawBook = await deps.loadRateBook(env, { preferDraft }, request);
   const book = rateBookMapper.mapRateBook(rawBook);
+  const flags = await deps.loadLaunchFlags(env, request);
 
   const rawSettings = await deps.loadSettingsVersion(
     env,
@@ -204,7 +208,8 @@ export async function loadAndPrice(
       policy: priced.policy,
       rate_version: publicRateVersion(book.rate_version),
       engine_version: priced.engine_version,
-      pricing_live: rateBookMapper.derivePricingLive(book.rate_version),
+      pricing_live:
+        rateBookMapper.derivePricingLive(book.rate_version) && flags.public_chf,
       settings_version_id: priced.settings_version_id,
       partially_priced_class_slugs: priced.partially_priced_class_slugs,
       computed_at: input.computed_at,

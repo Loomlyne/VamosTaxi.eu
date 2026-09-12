@@ -170,6 +170,7 @@ function stubLoaders(opts: {
   book: unknown;
   settings: unknown;
   onLoadRateBook?: (preferDraft: boolean) => void;
+  public_chf?: boolean;
 }): QuoteLoaders {
   return {
     loadRateBook: async (_env, loadOpts) => {
@@ -179,6 +180,10 @@ function stubLoaders(opts: {
     loadSettingsVersion: async () => opts.settings,
     mintLockDeadline: async () => unused(),
     evaluateCoupon: async () => unused(),
+    loadLaunchFlags: async () => ({
+      public_chf: opts.public_chf === true,
+      vat_rate_bps: 81,
+    }),
   };
 }
 
@@ -238,6 +243,48 @@ describe("loadAndPrice", () => {
     expect(result.quote.pricing_live).toBe(false);
     expect(result.quote.rate_version).toEqual({ id: 2, slug: "retired-v1" });
     expect(result.quote.classes).toHaveLength(3);
+  });
+
+  it("keeps pricing_live false when the live row is live but public_chf is false", async () => {
+    const result = await loadAndPrice(
+      fakeEnv(),
+      input(),
+      stubLoaders({
+        book: launchDoc({ id: 5, slug: "live-v4", status: "live" }),
+        settings: settingsDoc(),
+        public_chf: false,
+      }),
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.quote.pricing_live).toBe(false);
+    expect(result.quote.rate_version).toEqual({ id: 5, slug: "live-v4" });
+  });
+
+  it("sets pricing_live true only when the live row is live AND public_chf is true", async () => {
+    const liveTrue = await loadAndPrice(
+      fakeEnv(),
+      input(),
+      stubLoaders({
+        book: launchDoc({ id: 5, slug: "live-v4", status: "live" }),
+        settings: settingsDoc(),
+        public_chf: true,
+      }),
+    );
+    const draftTrue = await loadAndPrice(
+      fakeEnv(),
+      input(),
+      stubLoaders({
+        book: launchDoc({ id: 3, slug: "draft-v1", status: "draft" }),
+        settings: settingsDoc(),
+        public_chf: true,
+      }),
+    );
+    expect(liveTrue.ok).toBe(true);
+    expect(draftTrue.ok).toBe(true);
+    if (!liveTrue.ok || !draftTrue.ok) return;
+    expect(liveTrue.quote.pricing_live).toBe(true);
+    expect(draftTrue.quote.pricing_live).toBe(false);
   });
 
   it("passes preferDraft true only when the preview binding is the string true", async () => {
