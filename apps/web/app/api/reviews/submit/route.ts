@@ -6,6 +6,7 @@
 export const dynamic = "force-dynamic";
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { checkWriteRateLimit } from "@/lib/abuse/rate-limit";
 import { customerClaims } from "@/lib/account/session";
 import { hashManageToken } from "@/lib/checkout/manage-token";
 import { asCustomer, asGuest, asSystem } from "@/lib/db/identity";
@@ -83,6 +84,15 @@ export async function POST(request: Request): Promise<Response> {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
     return jsonErr("invalid-input", 400);
   }
+
+  const ip = request.headers.get("cf-connecting-ip")?.trim() || "unknown";
+  const limited = await checkWriteRateLimit({
+    limiter: env.QUOTE_RATE_LIMITER_BARE,
+    kind: "review",
+    ip,
+  });
+  if (!limited.ok) return jsonErr("rate_limited", 429);
+
   const body = raw as Record<string, unknown>;
 
   const turnstileToken = str(body.turnstileToken);

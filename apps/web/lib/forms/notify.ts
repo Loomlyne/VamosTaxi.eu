@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 
-export type FormFailureCode = "challenge_failed" | "invalid_input" | "unavailable";
+export type FormFailureCode = "challenge_failed" | "invalid_input" | "unavailable" | "rate_limited";
 
 const CONTACT_FROM = "Vamos Taxi <noreply@vamostaxi.site>";
 const CONTACT_FROM_CF = { email: "noreply@vamostaxi.site", name: "Vamos Taxi" } as const;
@@ -10,7 +10,7 @@ export type SendContactOptions = {
   headers?: Record<string, string>;
 };
 
-export function formFailure(code: FormFailureCode, status: 400 | 403 | 503): Response {
+export function formFailure(code: FormFailureCode, status: 400 | 403 | 503 | 429): Response {
   return Response.json({ ok: false, code }, { status });
 }
 

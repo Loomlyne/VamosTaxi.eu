@@ -1,5 +1,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { renderContactCustomerEmail, renderContactSupportEmail } from "@vamos/emails";
+import { checkWriteRateLimit } from "@/lib/abuse/rate-limit";
 import { asAnon, asSystem } from "@/lib/db/identity";
 import { deliverContactMessages, type ContactDeliveryMessage } from "@/lib/forms/contact-delivery";
 import { contactSchema } from "@/lib/forms/schemas";
@@ -22,6 +23,14 @@ export async function POST(request: Request) {
     return formFailure("invalid_input", 400);
   }
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return formFailure("invalid_input", 400);
+
+  const ip = request.headers.get("cf-connecting-ip")?.trim() || "unknown";
+  const limited = await checkWriteRateLimit({
+    limiter: env.QUOTE_RATE_LIMITER_BARE,
+    kind: "contact",
+    ip,
+  });
+  if (!limited.ok) return formFailure("rate_limited", 429);
 
   // Only these untrusted raw fields are extracted before challenge verification.
   const body = raw as Record<string, unknown>;
