@@ -62,11 +62,8 @@ export default async function ImprintPage({
   const tHome = await getTranslations("home");
 
   // The mock's DE/EN/both CSS toggle is not ported. Under SSR the active
-  // language is the [locale] segment; a page-local second switch would make
-  // one URL render content that contradicts its lang attribute and its
-  // hreflang alternates. German+English together is the header language
-  // switcher; LanguageCoverageNotice tells a French or Arabic reader where
-  // they stand. LEGAL_LANGUAGES.imprint stays ['en','de'] (plan 05-03).
+  // language is the [locale] segment. Imprint coverage is LEGAL_LANGUAGES.imprint
+  // (plan 11-10 / D-27: en/de/fr/ar after extract+translate).
 
   return (
     <LegalPage
@@ -99,7 +96,7 @@ export default async function ImprintPage({
           </DlRow>
           <DlRow term={tLegal("register-office")}>{tAbout("canton-of-zurich")}</DlRow>
           <DlRow term={tContact("registered-office")}>
-            <PendingSlot label="Imprint street" />, <PendingSlot label="Imprint postcode" />
+            {tLegal("bleicherstrasse-16-8953-dietikon-zh")}
             {tContact("switzerland")}
           </DlRow>
         </dl>
@@ -126,7 +123,7 @@ export default async function ImprintPage({
             <span data-i18n-skip>vamostaxi.site</span>
           </DlRow>
           <DlRow term={tLegal("postal-address")}>
-            <span data-i18n-skip>Vamos Taxi GmbH</span>, <PendingSlot label="Imprint postal address" />
+            {tLegal("vamos-taxi-gmbh-bleicherstrasse-16-8953-dietikon-3")}
           </DlRow>
         </dl>
         <p>{tLegal("the-same-address-answers-questions-about-an-exis")}</p>

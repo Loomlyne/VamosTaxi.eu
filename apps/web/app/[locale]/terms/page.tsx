@@ -74,7 +74,7 @@ export default async function TermsPage({
           </p>
         </div>
         <p>
-          {t("registered-as")} <PendingSlot label="Registered firm name" />
+          {t("registered-as")} <span data-i18n-skip>Vamos Taxi</span>
           {t("company-number-ch-020-4-077-792-7-at-the-commerc")}{" "}
           <Link href="/imprint">{tCommon("imprint")}</Link>.
         </p>
@@ -120,7 +120,7 @@ export default async function TermsPage({
         </ul>
         <p>
           {t("driver-name-vehicle-and-telephone-number-are-sen")}{" "}
-          <PendingSlot label="Driver details lead time" /> {tCommon("before-pickup")}
+          {tCommon("driver-details-lead-time")} {tCommon("before-pickup")}
         </p>
       </section>
 
