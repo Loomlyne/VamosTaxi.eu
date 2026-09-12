@@ -187,7 +187,8 @@ describe("09-10 time-change request/confirm (D-23–D-26)", () => {
     expect(guest).toMatch(/kind:\s*"guest"|asGuest/);
     expect(guest).not.toMatch(/asStaff/);
     const signed = read("apps/web/app/api/account/bookings/time-change/route.ts");
-    expect(signed).toMatch(/claimsForSql/);
+    expect(signed).toMatch(/customerClaims/);
+    expect(signed).not.toMatch(/@vamos\/db/);
     expect(signed).toMatch(/kind:\s*"customer"|asCustomer/);
     expect(signed).not.toMatch(/asStaff/);
   });
@@ -256,7 +257,8 @@ describe("09-10 flight write-through (D-27)", () => {
 
     const signed = read("apps/web/app/api/account/bookings/flight/route.ts");
     expect(signed).toMatch(/writeCustomerFlightNo/);
-    expect(signed).toMatch(/claimsForSql/);
+    expect(signed).toMatch(/customerClaims/);
+    expect(signed).not.toMatch(/@vamos\/db/);
     expect(signed).toMatch(/kind:\s*"customer"|asCustomer/);
   });
 
