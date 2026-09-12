@@ -501,18 +501,32 @@ irreversible gate.
 
 **Plans:** 12 plans
 
-Plans:
+**Wave 1**
 - [ ] 11-01-PLAN.md — Wave 0 tests (VALIDATION 11-01-*)
-- [ ] 11-02-PLAN.md — Git migration public_chf + vat_rate_bps (hosted apply is 11-11 / VALIDATION 11-06-01)
-- [ ] 11-03-PLAN.md — Public pricing_live AND public_chf (VALIDATION 11-02-01)
-- [ ] 11-04-PLAN.md — Publish-as-flip SQL on the DC POST path (VALIDATION 11-02-02)
-- [ ] 11-05-PLAN.md — Host-split noindex + SITEMAP_ROUTES (VALIDATION 11-03-*)
-- [ ] 11-06-PLAN.md — BookingBoard CHF 000 until pricing_live
-- [ ] 11-07-PLAN.md — Injected VAT bps, fallback 81 (VALIDATION 11-04-01 math)
-- [ ] 11-08-PLAN.md — Staff PATCH vat_rate_bps + checkout display
-- [ ] 11-09-PLAN.md — VAT % on OpsPricing rail, dual copy (VALIDATION 11-04-01 UI)
-- [ ] 11-10-PLAN.md — Extract .eu copy into existing pages (VALIDATION 11-05-01)
-- [ ] 11-11-PLAN.md — Owner apply SQL on yaumjzvylngfjhtuffqs (VALIDATION 11-06-01)
+
+**Wave 2** *(blocked on Wave 1)*
+- [ ] 11-02-PLAN.md — Git migration public_chf + vat_rate_bps (hosted apply is 11-11)
+- [ ] 11-10-PLAN.md — Extract .eu copy into existing pages (VALIDATION 11-10-01)
+
+**Wave 3** *(blocked on Wave 2)*
+- [ ] 11-03-PLAN.md — Public pricing_live AND public_chf (VALIDATION 11-03-*)
+- [ ] 11-04-PLAN.md — Publish-as-flip SQL on the DC POST path (VALIDATION 11-04-01)
+
+**Wave 4** *(blocked on Wave 3)* — CHF 000 belt
+- [ ] 11-06-PLAN.md — BookingBoard CHF 000 until pricing_live (VALIDATION 11-06-01)
+- [ ] 11-07-PLAN.md — Injected VAT bps, fallback 81; intent JSON vat_rate_bps (VALIDATION 11-07-*)
+
+**Wave 5** *(blocked on Wave 4)* — drop noindex only after 000 belt
+- [ ] 11-05-PLAN.md — Host-split noindex + SITEMAP_ROUTES after 11-06 (VALIDATION 11-05-*)
+- [ ] 11-08-PLAN.md — Staff PATCH vat_rate_bps; CheckoutClient reads extras/intent vat_rate_bps (VALIDATION 11-08-01)
+
+**Wave 6** *(blocked on Wave 5)*
+- [ ] 11-09-PLAN.md — VAT % on OpsPricing rail, dual copy (VALIDATION 11-09-01)
+
+**Wave 7** *(blocked on Wave 6)* **[BLOCKING hosted SQL]**
+- [ ] 11-11-PLAN.md — Owner apply SQL on yaumjzvylngfjhtuffqs (VALIDATION 11-11-01)
+
+**Wave 8** *(blocked on Wave 7)*
 - [ ] 11-12-PLAN.md — Owner says pricing is right, then Publish
 
 ### Phase 12: Ticket schema + #support mock

@@ -39,23 +39,30 @@ created: 2026-09-13
 
 ## Per-Task Verification Map
 
-Task IDs below are the contract the planner must keep (or split with a mapping note). Threat IDs land in each PLAN.md `<threat_model>`.
+Task IDs match execute plans `11-01`…`11-12` (ROADMAP split). Old 6-plan IDs (`11-02-01` engine, `11-03-*` SEO, `11-04-01` VAT, `11-05-01` extract, `11-06-01` owner apply) are remapped below. Threat IDs land in each PLAN.md `<threat_model>`. Rows ordered by execute wave.
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
 | 11-01-01 | 01 | 1 | LAUNCH-06 D-18 D-19 D-23 | T-11-01 T-11-02 | Wave 0: `!public_chf` ⇒ public `pricing_live` false; `formatAmount(null)==="CHF 000"` | vitest files | `test -f apps/web/lib/pricing/public-chf.test.ts` | ❌ W0 | ⬜ pending |
-| 11-01-02 | 01 | 1 | LAUNCH-06 D-18 | T-11-03 | Wave 0: `publishRateVersion` sets `settings.public_chf=true` in same staff tx; `PRICING_PREVIEW` does not | vitest files | `test -f apps/web/lib/ops/publish-public-chf.test.ts` | ❌ W0 | ⬜ pending |
+| 11-01-02 | 01 | 1 | LAUNCH-06 D-18 | T-11-03 | Wave 0: both Publish paths set `settings.public_chf=true` in same staff tx; `PRICING_PREVIEW` does not | vitest files | `test -f apps/web/lib/ops/publish-public-chf.test.ts` | ❌ W0 | ⬜ pending |
 | 11-01-03 | 01 | 1 | LAUNCH-05 D-03 D-04 D-30 D-31 | T-11-04 T-11-05 | Wave 0: public host no noindex; dashboard noindex; sitemap allowlist; no `/checkout` `/sign-in` `/account` | vitest/playwright files | `test -f apps/web/lib/seo/indexing.test.ts` | ❌ W0 | ⬜ pending |
-| 11-01-04 | 01 | 1 | D-22 D-25 D-26 D-11 | T-11-06 T-11-07 | Wave 0: VAT default 81 bps; UID still TBC; no `info@vamostaxi.eu`; no `sk_live_`; wrangler does not bind `.eu` | vitest files | `test -f apps/web/lib/checkout/vat.test.ts` | ✅ extend | ⬜ pending |
-| 11-02-01 | 02 | 2 | LAUNCH-06 D-18 D-19 D-23 | T-11-01 T-11-02 | Engine ANDs live row with `settings.public_chf`; public `preferDraft` false | vitest | `pnpm --filter web exec vitest run lib/pricing lib/quote` | ❌ W0 | ⬜ pending |
-| 11-02-02 | 02 | 2 | LAUNCH-06 D-18 | T-11-03 | Publish updates `rate_versions.status='live'` **and** `settings.public_chf=true`; completeness still blocks | vitest | `pnpm --filter web exec vitest run lib/ops/publish-public-chf.test.ts` | ❌ W0 | ⬜ pending |
-| 11-03-01 | 03 | 2 | LAUNCH-05 D-03 D-04 | T-11-04 | `vamostaxi.site` / `www` have **no** `X-Robots-Tag: noindex`; dashboard always noindex; `DEPLOY_ENV=staging` stays | vitest + playwright | `pnpm --filter web exec vitest run lib/seo/indexing.test.ts` | ⚠️ rewrite `dev-exclusion.spec.ts` | ⬜ pending |
-| 11-03-02 | 03 | 2 | LAUNCH-05 D-30 D-31 | T-11-05 | `sitemap.xml` = `/` about faq contact terms privacy imprint cookies cancellation only; `PUBLIC_ROUTES` unchanged | playwright | Playwright `public-routes` sitemap count | ⚠️ rewrite | ⬜ pending |
-| 11-04-01 | 04 | 3 | LAUNCH-06 D-22 | T-11-06 | Checkout uses `settings.vat_rate_bps` with fallback 81; owner % on OPS Pricing rail | vitest | `pnpm --filter web exec vitest run lib/checkout/vat` | ✅ extend | ⬜ pending |
-| 11-05-01 | 05 | 4 | D-25 D-26 D-27 D-28 | T-11-07 | Extracted copy; UID/licence TBC; no `.eu` mailbox; no become-a-partner; en→de/fr/ar | grep + page | imprint has PendingSlot; no `info@vamostaxi.eu` | ❌ W0 | ⬜ pending |
-| 11-06-01 | 06 | 5 | LAUNCH-06 D-16 | T-11-01 | Owner apply of SQL on `yaumjzvylngfjhtuffqs` — **agent stops**; then live curl 000 until Publish | manual + grep | migration file exists; no agent apply | ❌ | ⬜ pending |
+| 11-01-04 | 01 | 1 | D-22 D-25 D-26 D-11 | T-11-06 T-11-07 | Wave 0: VAT default 81 bps; UID still TBC; no `info@vamostaxi.eu`; no `sk_live_`; wrangler does not bind `.eu`; dual OpsPricing VAT source-read exists | vitest files | `test -f apps/web/lib/checkout/vat.test.ts && test -f apps/web/lib/ops/ops-pricing-vat-field.test.ts` | ✅ extend | ⬜ pending |
+| 11-02-01 | 02 | 2 | LAUNCH-06 D-18 D-19 D-22 | T-11-09 | Git migration `public_chf` + `vat_rate_bps` + quote-read RPC; agent does not apply | file + grep | `test -f packages/db/supabase/migrations/20260913000001_launch_public_chf_vat.sql` | ❌ | ⬜ pending |
+| 11-10-01 | 10 | 2 | D-25 D-26 D-27 D-28 | T-11-07 | Extracted copy; UID/licence TBC; no `.eu` mailbox; no become-a-partner; en→de/fr/ar | vitest | `pnpm --filter web exec vitest run lib/legal/extract-no-invent.test.ts` | ❌ W0 | ⬜ pending |
+| 11-03-01 | 03 | 3 | LAUNCH-06 D-18 D-19 D-23 | T-11-01 T-11-02 | Engine ANDs live row with `settings.public_chf`; fail-closed if columns missing | vitest | `pnpm --filter web exec vitest run lib/pricing/public-chf.test.ts lib/quote/engine.test.ts` | ❌ W0 | ⬜ pending |
+| 11-03-02 | 03 | 3 | LAUNCH-06 D-18 | T-11-03 | Public host `preferDraft` false; `PRICING_PREVIEW` does not write `public_chf`; no `respond.ts` branch | vitest | `pnpm --filter web exec vitest run lib/quote/engine.test.ts lib/pricing/public-chf.test.ts` | ❌ W0 | ⬜ pending |
+| 11-04-01 | 04 | 3 | LAUNCH-06 D-18 | T-11-03 | Publish updates `rate_versions.status='live'` **and** `settings.public_chf=true`; completeness still blocks | vitest | `pnpm --filter web exec vitest run lib/ops/publish-public-chf.test.ts` | ❌ W0 | ⬜ pending |
+| 11-06-01 | 06 | 4 | LAUNCH-06 D-19 | T-11-01 T-11-02 | BookingBoard including PriceSummary passes **null** into `formatChfRappen` / `chfRappenToDisplay` when `!quote.pricing_live` | vitest source-read | `pnpm --filter web exec vitest run lib/pricing/booking-board-null.test.ts` | ❌ | ⬜ pending |
+| 11-07-01 | 07 | 4 | LAUNCH-06 D-22 | T-11-06 | Injected bps on `vatOnTopRappen`; default 81; `okIntentResponse` JSON field `vat_rate_bps` | vitest | `pnpm --filter web exec vitest run lib/checkout/vat.test.ts` | ✅ extend | ⬜ pending |
+| 11-07-02 | 07 | 4 | LAUNCH-06 D-22 | T-11-06 | Intent/receipt pass `loadLaunchFlags().vat_rate_bps`; intent JSON `vat_rate_bps` next to `amount_rappen` | vitest | `pnpm --filter web exec vitest run lib/checkout/vat.test.ts lib/quote/intent.test.ts` | ✅ | ⬜ pending |
+| 11-05-01 | 05 | 5 | LAUNCH-05 D-03 D-04 | T-11-04 | After 11-06: `vamostaxi.site` / `www` have **no** `X-Robots-Tag: noindex`; dashboard always noindex | vitest + playwright | `pnpm --filter web exec vitest run lib/seo/indexing.test.ts` | ⚠️ rewrite `dev-exclusion.spec.ts` | ⬜ pending |
+| 11-05-02 | 05 | 5 | LAUNCH-05 D-30 D-31 | T-11-05 | `sitemap.xml` = `/` about faq contact terms privacy imprint cookies cancellation only; `PUBLIC_ROUTES` unchanged | vitest | `pnpm --filter web exec vitest run lib/seo/indexing.test.ts` | ⚠️ rewrite | ⬜ pending |
+| 11-08-01 | 08 | 5 | LAUNCH-06 D-16 D-22 | T-11-03 T-11-06 | Staff PATCH persists `vat_rate_bps`; extras JSON `vat_rate_bps`; CheckoutClient reads that field (not no-arg 81) | vitest | `pnpm --filter web exec vitest run lib/checkout/vat.test.ts` | ✅ | ⬜ pending |
+| 11-09-01 | 09 | 6 | LAUNCH-06 D-16 D-22 | T-11-06 | OPS Pricing rail VAT 8.1 / `vat_rate_bps` / four-language labels / dual-copy equality | vitest `lib/**/*.test.ts` | `pnpm --filter web exec vitest run lib/ops/ops-pricing-vat-field.test.ts` | ❌ W0 | ⬜ pending |
+| 11-11-01 | 11 | 7 | LAUNCH-06 D-16 | T-11-09 | Owner apply of SQL on `yaumjzvylngfjhtuffqs` — **agent stops**; then live curl 000 until Publish | manual + grep | migration file exists; no agent apply | ❌ | ⬜ pending |
+| 11-12-01 | 12 | 8 | LAUNCH-05 LAUNCH-06 D-17 D-18 | T-11-08 | Owner says pricing is right, then Publish; Stripe stays test; no GSC; wrangler `.eu` unbound | grep + owner | wrangler no `.eu` / no `sk_live_`; owner Publish | ✅ grep | ⬜ pending |
 
-No three consecutive tasks without an automated verify. Plan 06 owner-apply is manual; it must not sit after two other manuals.
+No three consecutive tasks without an automated verify. 11-11 owner-apply is manual; 11-12 has automated wrangler/grep so it does not sit after two other manuals. Do not `vitest run tests/integration/ops-dc-pricing.spec.ts` (vitest excludes `*.spec.ts`; `passWithNoTests` fakes green).
 
 ---
 
@@ -65,6 +72,7 @@ No three consecutive tasks without an automated verify. Plan 06 owner-apply is m
 - [ ] `apps/web/lib/ops/publish-public-chf.test.ts` — Publish sets `public_chf`; preview does not
 - [ ] `apps/web/lib/seo/indexing.test.ts` — host-split noindex + sitemap allowlist vs `PUBLIC_ROUTES`
 - [ ] Extend `apps/web/lib/checkout/vat.test.ts` — injected bps; default 81
+- [ ] `apps/web/lib/ops/ops-pricing-vat-field.test.ts` — readFileSync both OpsPricing.dc.html copies: VAT 8.1 / vat_rate_bps / four-language labels / dual-copy equality
 - [ ] Rewrite `apps/web/tests/integration/dev-exclusion.spec.ts` public noindex expectations
 - [ ] Rewrite `apps/web/tests/integration/public-routes.spec.ts` sitemap ≠ full `PUBLIC_ROUTES`
 - [ ] Rewrite sitemap `/sign-up` assertion in `apps/web/tests/integration/auth-flows.spec.ts`
