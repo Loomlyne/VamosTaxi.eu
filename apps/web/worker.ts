@@ -17,6 +17,7 @@ import { handleStripeMessage } from "./lib/checkout/settle";
 import { sweepStuckNotifications } from "./lib/checkout/notify";
 import { expireUnpaidBookings } from "./lib/checkout/expire-unpaid";
 import { runReminder24h } from "./lib/lifecycle/reminder";
+import { probeHealth } from "./lib/health/probe";
 import type { StripeQueueMessage } from "./lib/checkout/webhook";
 
 export default {
@@ -72,6 +73,19 @@ export default {
       emit("info", "reminder_24h", reminder);
     } catch {
       emit("error", "reminder_24h", { outcome: "failed" });
+    }
+
+    // In-process hourly probe (LAUNCH-03). Do not HTTP-loopback to the route.
+    try {
+      const health = await probeHealth(env);
+      emit("info", "health_probe", {
+        ok: health.ok,
+        db: health.db,
+        payments: health.payments,
+        maps: health.maps,
+      });
+    } catch {
+      emit("error", "health_probe", { outcome: "failed" });
     }
 
     // Cloudflare cron expressions have no IANA timezone. Run hourly and select the exact
