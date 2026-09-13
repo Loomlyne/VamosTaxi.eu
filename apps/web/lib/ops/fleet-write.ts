@@ -155,3 +155,91 @@ export async function updateVehicleClassCapacities(
     return null;
   });
 }
+
+export async function insertVehicleClassOnDraft(
+  env: CloudflareEnv,
+  claims: VamosClaims,
+  parsed: AssertedVehicleClassInput & { slug: string },
+  draftVersionId: number,
+): Promise<string> {
+  return asStaff(env, claims, async (sql) => {
+    const rows = await sql<{ id: string }[]>`
+      insert into public.vehicle_classes (
+        slug, passenger_capacity, luggage_capacity, sort_order, active
+      ) values (
+        ${parsed.slug},
+        ${parsed.passengerCapacity},
+        ${parsed.luggageCapacity},
+        ${parsed.sortOrder},
+        ${parsed.active}
+      )
+      returning id
+    `;
+    const id = rows[0]?.id;
+    if (!id) throw new Error("insertVehicleClass");
+    await sql`
+      insert into public.distance_rates (
+        rate_version_id, vehicle_class_id, max_pax, available, hide_from_public
+      ) values (
+        ${draftVersionId}, ${id}, ${parsed.passengerCapacity}, true, false
+      )
+    `;
+    return id;
+  });
+}
+
+export async function patchDraftClass(
+  env: CloudflareEnv,
+  claims: VamosClaims,
+  id: string,
+  draftVersionId: number,
+  patch: {
+    hideFromPublic?: boolean;
+    maxPax?: number;
+    name?: string;
+  },
+): Promise<void> {
+  await asStaff(env, claims, async (sql) => {
+    if (patch.name) {
+      const slug = patch.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      if (slug) {
+        await sql`
+          update public.vehicle_classes set slug = ${slug} where id = ${id}
+        `;
+      }
+    }
+    if (patch.hideFromPublic !== undefined || patch.maxPax !== undefined) {
+      await sql`
+        update public.distance_rates set
+          hide_from_public = coalesce(${patch.hideFromPublic ?? null}, hide_from_public),
+          max_pax = coalesce(${patch.maxPax ?? null}, max_pax)
+        where vehicle_class_id = ${id} and rate_version_id = ${draftVersionId}
+      `;
+    }
+    return null;
+  });
+}
+
+export async function deleteVehicleClassIfUnreferenced(
+  env: CloudflareEnv,
+  claims: VamosClaims,
+  id: string,
+  draftVersionId: number,
+): Promise<"in-use" | "deleted"> {
+  return asStaff(env, claims, async (sql) => {
+    const snaps = await sql<{ n: number }[]>`
+      select count(*)::int as n
+        from public.price_snapshots
+       where vehicle_class_id = ${id}
+    `;
+    if ((snaps[0]?.n ?? 0) > 0) return "in-use";
+    await sql`
+      delete from public.distance_rates
+      where vehicle_class_id = ${id} and rate_version_id = ${draftVersionId}
+    `;
+    await sql`
+      delete from public.vehicle_classes where id = ${id}
+    `;
+    return "deleted";
+  });
+}

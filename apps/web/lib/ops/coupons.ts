@@ -213,7 +213,12 @@ export function toDcCoupon(row: CouponRow): DcCoupon {
     id: String(row.id),
     code: row.code,
     kind: row.kind,
-    value: row.kind === "percent" && row.percent != null ? String(row.percent) : "00",
+    value:
+      row.kind === "percent" && row.percent != null
+        ? String(row.percent)
+        : row.kind === "amount" && row.amountRappen != null
+          ? String(row.amountRappen / 100)
+          : "00",
     uses: 0,
     limit: row.globalLimit ?? 0,
     expires: dateOnly(row.validUntil),
@@ -222,7 +227,7 @@ export function toDcCoupon(row: CouponRow): DcCoupon {
   };
 }
 
-/** Map OpsCoupons / VamosOps.coupons fields onto CouponInput. Amount never becomes rappen. */
+/** Map OpsCoupons / VamosOps.coupons fields onto CouponInput. Amount-off becomes rappen (D-34). */
 export function couponInputFromDc(raw: unknown): CouponInput {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
     throw new CouponInputError("coupons-error");
@@ -233,6 +238,7 @@ export function couponInputFromDc(raw: unknown): CouponInput {
   const limitRaw = body.limit == null || body.limit === "" ? 0 : Number(body.limit);
   if (!Number.isFinite(limitRaw)) throw new CouponInputError("coupons-limit-integer");
   const expires = typeof body.expires === "string" ? body.expires : "";
+  const validFromRaw = typeof body.validFrom === "string" ? body.validFrom : typeof body.valid_from === "string" ? body.valid_from : "";
 
   let percent: number | null = null;
   if (kind === "percent" && !isPlaceholderValue(value)) {
@@ -241,15 +247,28 @@ export function couponInputFromDc(raw: unknown): CouponInput {
     percent = parsed;
   }
 
+  let amountRappen: number | null = null;
+  if (kind === "amount") {
+    if (typeof body.amountRappen === "number" && Number.isFinite(body.amountRappen)) {
+      amountRappen = Math.round(body.amountRappen);
+    } else if (typeof body.amount_rappen === "number" && Number.isFinite(body.amount_rappen)) {
+      amountRappen = Math.round(body.amount_rappen);
+    } else if (!isPlaceholderValue(value)) {
+      const parsed = Number(value);
+      if (!Number.isFinite(parsed)) throw new CouponInputError("coupons-rappen-integer");
+      amountRappen = Math.round(parsed * 100);
+    }
+  }
+
   return {
-    code: typeof body.code === "string" ? body.code : "",
+    code: typeof body.code === "string" ? body.code.trim() : "",
     kind,
     percent,
-    amountRappen: null,
-    validFrom: null,
+    amountRappen,
+    validFrom: validFromRaw ? expiresToIso(validFromRaw.slice(0, 10)) : null,
     validUntil: expiresToIso(expires),
     globalLimit: limitRaw === 0 ? null : limitRaw,
-    perUserLimit: null,
+    perUserLimit: body.perUserLimit == null || body.perUserLimit === "" ? null : Number(body.perUserLimit),
     active: body.active !== false,
     note: typeof body.note === "string" ? body.note : "",
   };
@@ -263,25 +282,31 @@ export function couponIdFromRequest(request: Request): number | null {
   return id;
 }
 
-export async function loadCoupons(env: CloudflareEnv, claims: VamosClaims): Promise<CouponRow[]> {
+export async function loadCoupons(
+  env: CloudflareEnv,
+  claims: VamosClaims,
+  rateVersionId?: number | null,
+): Promise<CouponRow[]> {
   return asStaff(env, claims, async (sql) => {
-    const rows = await sql<CouponSqlRow[]>`
-      select
-        id,
-        code,
-        kind,
-        percent,
-        amount_rappen,
-        valid_from,
-        valid_until,
-        global_limit,
-        per_user_limit,
-        active,
-        note,
-        created_at
-      from public.coupons
-      order by active desc, created_at desc
-    `;
+    const rows =
+      rateVersionId != null
+        ? await sql<CouponSqlRow[]>`
+            select
+              id, code, kind, percent, amount_rappen,
+              valid_from, valid_until, global_limit, per_user_limit,
+              active, note, created_at
+            from public.coupons
+            where rate_version_id = ${rateVersionId}
+            order by active desc, created_at desc
+          `
+        : await sql<CouponSqlRow[]>`
+            select
+              id, code, kind, percent, amount_rappen,
+              valid_from, valid_until, global_limit, per_user_limit,
+              active, note, created_at
+            from public.coupons
+            order by active desc, created_at desc
+          `;
     return rows.map(mapCouponRow);
   });
 }
@@ -290,13 +315,15 @@ export async function insertCoupon(
   env: CloudflareEnv,
   claims: VamosClaims,
   input: CouponInput,
+  rateVersionId?: number | null,
 ): Promise<CouponRow> {
   const parsed = assertCouponInput(input);
   return asStaff(env, claims, async (sql) => {
     const rows = await sql<CouponSqlRow[]>`
       insert into public.coupons (
         code, kind, percent, amount_rappen,
-        valid_from, valid_until, global_limit, per_user_limit, active, note
+        valid_from, valid_until, global_limit, per_user_limit, active, note,
+        rate_version_id
       ) values (
         ${parsed.code},
         ${parsed.kind},
@@ -307,7 +334,8 @@ export async function insertCoupon(
         ${parsed.globalLimit},
         ${parsed.perUserLimit},
         ${parsed.active},
-        ${parsed.note}
+        ${parsed.note},
+        ${rateVersionId ?? null}
       )
       returning
         id,

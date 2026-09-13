@@ -103,7 +103,7 @@ describe("loadCoupons", () => {
 });
 
 describe("toDcCoupon", () => {
-  it("ships amount value as 00 even when rappen is set", () => {
+  it("ships amount value as CHF from rappen", () => {
     const dc = toDcCoupon({
       id: 3,
       code: "TEST",
@@ -118,7 +118,7 @@ describe("toDcCoupon", () => {
       note: "",
       createdAt: "2026-08-01T00:00:00.000Z",
     });
-    expect(dc.value).toBe("00");
+    expect(dc.value).toBe("50");
     expect(dc.uses).toBe(0);
     expect(dc.limit).toBe(0);
   });
@@ -146,19 +146,35 @@ describe("toDcCoupon", () => {
 });
 
 describe("couponInputFromDc", () => {
-  it("never writes amount rappen from the mock value field", () => {
+  it("maps amount-off value to rappen (D-34)", () => {
     const input = couponInputFromDc({
       code: "TEST",
       kind: "amount",
-      value: "2500",
+      value: "25.00",
       limit: 0,
       expires: "",
       active: true,
       note: "",
     });
-    expect(input.amountRappen).toBeNull();
+    expect(input.amountRappen).toBe(2500);
     expect(input.percent).toBeNull();
     expect(input.globalLimit).toBeNull();
+  });
+
+  it("accepts amountRappen directly", () => {
+    const input = couponInputFromDc({
+      code: "save10",
+      kind: "amount",
+      amountRappen: 5000,
+    });
+    expect(input.amountRappen).toBe(5000);
+    expect(input.code).toBe("save10");
+  });
+
+  it("trims the code (D-34)", () => {
+    expect(couponInputFromDc({ code: "  save10  ", kind: "percent", value: "10" }).code).toBe(
+      "save10",
+    );
   });
 
   it("treats 00 / NULL as unpriced percent", () => {

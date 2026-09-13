@@ -14,7 +14,7 @@ import {
   toDcCoupon,
   updateCouponRecord,
 } from "@/lib/ops/coupons";
-import { jsonErr, jsonOk, withStaff } from "@/lib/ops/staff-json";
+import { jsonErr, jsonOk, withAdmin } from "@/lib/ops/staff-json";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +26,7 @@ function couponFail(err: unknown): Response {
   return jsonErr("coupons-error", 500);
 }
 
-export const PATCH = withStaff(async (claims, request) => {
+export const PATCH = withAdmin(async (claims, request) => {
   const id = couponIdFromRequest(request);
   if (id == null) return jsonErr("coupons-error", 400);
 
@@ -56,7 +56,7 @@ export const PATCH = withStaff(async (claims, request) => {
   }
 });
 
-export const DELETE = withStaff(async (claims, request) => {
+export const DELETE = withAdmin(async (claims, request) => {
   const id = couponIdFromRequest(request);
   if (id == null) return jsonErr("coupons-error", 400);
   try {

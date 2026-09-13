@@ -1,8 +1,8 @@
 // apps/web/app/[locale]/(ops)/api/staff/coupons/route.ts
 //
-// GET /api/staff/coupons — list (empty [] is the shipping table).
-// POST /api/staff/coupons — create. Duplicate code → 409 from 23505.
-// Dual-mounted at app/api/staff/coupons. Every read/write is asStaff.
+// GET /api/staff/coupons — draft-version list (empty [] is the shipping table).
+// POST /api/staff/coupons — create on the writable draft. Duplicate code → 409.
+// Dual-mounted at app/api/staff/coupons. Mutating methods are withAdmin (D-07 D-34).
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import {
@@ -13,7 +13,8 @@ import {
   mapSqlState,
   toDcCoupon,
 } from "@/lib/ops/coupons";
-import { jsonErr, jsonOk, withStaff } from "@/lib/ops/staff-json";
+import { resolveWritableDraftId } from "@/lib/ops/rate-book";
+import { jsonErr, jsonOk, withAdmin, withStaff } from "@/lib/ops/staff-json";
 
 export const dynamic = "force-dynamic";
 
@@ -27,11 +28,12 @@ function couponFail(err: unknown): Response {
 
 export const GET = withStaff(async (claims) => {
   const { env } = getCloudflareContext();
-  const rows = await loadCoupons(env, claims);
+  const versionId = await resolveWritableDraftId(env, claims);
+  const rows = await loadCoupons(env, claims, versionId);
   return jsonOk(rows.map(toDcCoupon));
 });
 
-export const POST = withStaff(async (claims, request) => {
+export const POST = withAdmin(async (claims, request) => {
   let raw: unknown;
   try {
     raw = await request.json();
@@ -40,7 +42,8 @@ export const POST = withStaff(async (claims, request) => {
   }
   try {
     const { env } = getCloudflareContext();
-    const row = await insertCoupon(env, claims, couponInputFromDc(raw));
+    const versionId = await resolveWritableDraftId(env, claims);
+    const row = await insertCoupon(env, claims, couponInputFromDc(raw), versionId);
     return jsonOk(toDcCoupon(row), 201);
   } catch (err) {
     return couponFail(err);

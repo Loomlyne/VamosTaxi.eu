@@ -13,7 +13,7 @@ import { mapSqlState } from "./sqlstate";
 export { mapSqlState };
 
 export type VehicleStatus = "service" | "idle" | "workshop";
-export type VehicleClassSlug = "economy" | "business" | "first" | "van";
+export type VehicleClassSlug = string;
 
 export type VehicleClassRow = {
   id: string;
@@ -112,8 +112,10 @@ function isVehicleStatus(value: string): value is VehicleStatus {
   return (VEHICLE_STATUSES as readonly string[]).includes(value);
 }
 
+const CLASS_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 function isClassSlug(value: string): value is VehicleClassSlug {
-  return value === "economy" || value === "business" || value === "first" || value === "van";
+  return CLASS_SLUG.test(value);
 }
 
 function toIso(value: Date | string): string {

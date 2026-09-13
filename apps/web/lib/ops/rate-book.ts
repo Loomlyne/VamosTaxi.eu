@@ -11,7 +11,7 @@
 import type postgres from "postgres";
 import { asStaff, type VamosClaims } from "../db/identity";
 import { mapSqlState } from "./sqlstate";
-import type { RateVersionStatus } from "./pricing";
+import { loadRateVersions, type RateVersionStatus } from "./pricing";
 
 type StaffTx = postgres.TransactionSql;
 
@@ -633,4 +633,17 @@ export async function forkLiveRateVersion(
 ): Promise<number> {
   if (tx) return cloneRateVersionFrom(tx, source);
   return asStaff(env, claims, (inner) => cloneRateVersionFrom(inner, source));
+}
+
+/** Overlay writes always land on a draft. Fork live first when needed (D-01). */
+export async function resolveWritableDraftId(
+  env: CloudflareEnv,
+  claims: VamosClaims,
+): Promise<number | null> {
+  const versions = await loadRateVersions(env, claims);
+  const draft = versions.find((row) => row.status === "draft");
+  if (draft) return draft.id;
+  const live = versions.find((row) => row.status === "live");
+  if (live) return forkLiveRateVersion(env, claims, live);
+  return versions[0]?.id ?? null;
 }
