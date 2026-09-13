@@ -117,6 +117,10 @@ function mapDistanceRate(item: unknown): DistanceRateRow {
     min_fare_rappen: (row.min_fare_rappen ?? null) as number | null,
     max_pax: row.max_pax as number,
     available: row.available as boolean,
+    hide_from_public:
+      typeof row.hide_from_public === "boolean"
+        ? row.hide_from_public
+        : undefined,
   };
 }
 
@@ -125,6 +129,7 @@ function mapDistanceBand(item: unknown): DistanceBandRow {
   return {
     id: row.id as number,
     rate_version_id: row.rate_version_id as number,
+    vehicle_class_id: row.vehicle_class_id as string,
     from_km: row.from_km as number,
     to_km: (row.to_km ?? null) as number | null,
     per_km_rappen: row.per_km_rappen as number,

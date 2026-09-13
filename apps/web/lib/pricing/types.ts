@@ -14,8 +14,11 @@
 // DistanceRateRow has no max_bags — the column does not exist.
 // D-03: QuoteMode is one_way | return only. Owner sheet: four classes.
 
-/** Owner matrix: Economy 80 / Business 100 / First 130 / Van 150. */
-export type VehicleClassSlug = "economy" | "business" | "first" | "van";
+/**
+ * D-19: open class lineup. Lowercase kebab slug (existing economy /
+ * business / first / van remain valid). Do not close this to four keys.
+ */
+export type VehicleClassSlug = string;
 
 /** D-03: only one_way | return reach the kernel; other modes are refused at the HTTP boundary. */
 export type QuoteMode = "one_way" | "return";
@@ -57,12 +60,18 @@ export interface DistanceRateRow {
   min_fare_rappen: number | null;
   max_pax: number;
   available: boolean;
+  /** D-19: listed on the public board, not selectable, amount null. */
+  hide_from_public?: boolean;
 }
 
-/** One blended km band. from_km exclusive start; to_km inclusive, null = open. */
+/**
+ * D-14: From inclusive / To exclusive; null to_km = open last.
+ * Band CHF is on top of class per-km, filtered by vehicle_class_id.
+ */
 export interface DistanceBandRow {
   id: number;
   rate_version_id: number;
+  vehicle_class_id: string;
   from_km: number;
   to_km: number | null;
   per_km_rappen: number;
