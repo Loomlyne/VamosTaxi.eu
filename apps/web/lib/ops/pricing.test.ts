@@ -1,7 +1,8 @@
 // apps/web/lib/ops/pricing.test.ts
 //
 // Completeness reader mirrors tg_rate_version_transition. asStaff is stubbed.
-// D-32: this file writes no CHF figure.
+// D-08: required class fields are name, start, per-km, max pax. D-32: this
+// file writes no CHF figure. Wave 0 stays red until 18-02 / 18-04.
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { VamosClaims } from "@/lib/db/identity";
@@ -77,7 +78,12 @@ describe("loadRateVersions", () => {
 });
 
 describe("loadCompleteness", () => {
-  it("runs the three trigger predicates verbatim", async () => {
+  // loadCompleteness must stay in lockstep with tg_rate_version_transition
+  // (packages/db/supabase/migrations/20260823000008_rate_versions.sql and the
+  // Phase 18 additive replacement). Changing one without the other is the
+  // known failure mode: the checklist would disagree with the publish gate.
+
+  it("D-08: required class fields are name, start, per-km, max pax — not min_fare", async () => {
     const seen: string[] = [];
     vi.mocked(asStaff).mockImplementation(async (_env, _claims, fn) => {
       const tx = async (strings: TemplateStringsArray) => {
@@ -95,14 +101,33 @@ describe("loadCompleteness", () => {
     const surcharges = seen.find((s) => s.includes("surcharges"));
     const routes = seen.find((s) => s.includes("fixed_routes"));
     expect(distance).toMatch(/available/);
-    expect(distance).toMatch(
-      /base_fare_rappen is null or r\.per_km_rappen is null or r\.min_fare_rappen is null/,
-    );
+    expect(distance).toMatch(/vehicle_classes/);
+    expect(distance).toMatch(/name/);
+    expect(distance).toMatch(/base_fare_rappen/);
+    expect(distance).toMatch(/per_km_rappen/);
+    expect(distance).toMatch(/max_pax/);
+    expect(distance).not.toMatch(/min_fare/);
     expect(surcharges).toMatch(/active and s\.kind <> 'included'/);
     expect(surcharges).toMatch(
       /coalesce\(s\.amount_rappen, \(s\.percent \* 100\)::integer\) is null/,
     );
     expect(routes).toMatch(/f\.live and f\.price_rappen is null/);
+  });
+
+  it("D-08: bands are not required when no band row was added", async () => {
+    const seen: string[] = [];
+    vi.mocked(asStaff).mockImplementation(async (_env, _claims, fn) => {
+      const tx = async (strings: TemplateStringsArray) => {
+        seen.push(sqlOf(strings).replace(/\s+/g, " ").trim());
+        return [];
+      };
+      return fn(tx as never);
+    });
+
+    const gaps = await loadCompleteness(env, adminClaims, 1);
+    expect(gaps).toEqual([]);
+    const bandGapQuery = seen.find((s) => s.includes("distance_bands"));
+    expect(bandGapQuery).toBeUndefined();
   });
 
   it("returns one gap row per unpriced distance_rate and unpriced active surcharge", async () => {
