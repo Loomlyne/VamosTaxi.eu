@@ -11,6 +11,7 @@ import {
   checkServiceArea,
   insideCountryBox,
   pointInPolygon,
+  publishedServiceAreaPolygon,
   sameCoordinate,
   type LinearRing,
   type PolygonGeometry,
@@ -272,7 +273,7 @@ describe("checkServiceArea", () => {
     expect(result).toEqual({ ok: false, code: "service_area_undefined" });
   });
 
-  it("refuses out_of_service_area when exactly one end is inside the polygon", () => {
+  it("D-39: both pins must be inside; one inside / one outside is out_of_service_area", () => {
     const originIn = checkServiceArea({
       origin: { lng: 2, lat: 2 },
       dest: { lng: 20, lat: 20 },
@@ -299,7 +300,7 @@ describe("checkServiceArea", () => {
     expect(result).toEqual({ ok: false, code: "out_of_service_area" });
   });
 
-  it("accepts both ends inside the polygon", () => {
+  it("accepts both ends inside the published snapshot polygon (D-39)", () => {
     const result = checkServiceArea({
       origin: { lng: 1, lat: 1 },
       dest: { lng: 3, lat: 3 },
@@ -307,6 +308,9 @@ describe("checkServiceArea", () => {
       fixedRoutes: [],
     });
     expect(result).toEqual({ ok: true });
+    expect(publishedServiceAreaPolygon(SQUARE)).toEqual(SQUARE);
+    expect(publishedServiceAreaPolygon(null)).toBeNull();
+    expect(publishedServiceAreaPolygon({ type: "Point" })).toBeNull();
   });
 });
 

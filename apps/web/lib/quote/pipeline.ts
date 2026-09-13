@@ -21,9 +21,9 @@ import {
   checkMinAdvance as defaultCheckMinAdvance,
   checkServiceArea as defaultCheckServiceArea,
   insideCountryBox,
+  publishedServiceAreaPolygon,
   sameCoordinate,
   type FixedRoutePair,
-  type ServiceAreaGeoJSON,
 } from "../geo/serviceArea";
 import {
   retrieve as defaultRetrieve,
@@ -223,14 +223,6 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function asPolygon(value: unknown): ServiceAreaGeoJSON | null {
-  if (!isPlainObject(value)) return null;
-  if (value.type === "Polygon" || value.type === "MultiPolygon") {
-    return value as unknown as ServiceAreaGeoJSON;
-  }
-  return null;
-}
-
 function extrasToRecord(
   extras: ExtrasInput | QuoteLockPayload["extras"] | undefined,
 ): Record<string, number> {
@@ -245,8 +237,8 @@ function extrasToRecord(
 /**
  * D-18 / D-56: a count without waypoints is a LEGAL payload the mock's own
  * checkout produces. When waypoints ARE sent, length must equal extra_stops
- * or 422 extras_max_stops. The extra_stop line is amount_rappen × extra_stops
- * and nothing else — no detour kilometre is invented while U41 is open.
+ * or 422 extras_max_stops. Extra-stop money is the D-11 distance recipe on
+ * the new path (D-37), not amount_rappen × extra_stops.
  */
 function extraStopsWaypointMismatch(body: unknown): boolean {
   if (!isPlainObject(body)) return false;
@@ -554,7 +546,7 @@ async function runStep(
           lat: state.dropoff!.lat,
           zoneId: state.dropoff!.zoneId ?? null,
         },
-        polygon: asPolygon(settings.service_area_geojson),
+        polygon: publishedServiceAreaPolygon(settings.service_area_geojson),
         fixedRoutes,
       });
       if (!result.ok) return { ok: false, code: result.code };

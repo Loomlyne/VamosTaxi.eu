@@ -56,6 +56,23 @@ export type MultiPolygonGeometry = {
 
 export type ServiceAreaGeoJSON = PolygonGeometry | MultiPolygonGeometry;
 
+/**
+ * Polygon the quote checks is the published snapshot field
+ * (`rate_versions.service_area_geojson` copied onto settings at Publish).
+ */
+export function publishedServiceAreaPolygon(
+  value: unknown,
+): ServiceAreaGeoJSON | null {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+  const rec = value as { type?: unknown };
+  if (rec.type === "Polygon" || rec.type === "MultiPolygon") {
+    return value as ServiceAreaGeoJSON;
+  }
+  return null;
+}
+
 export type FixedRoutePair = {
   origin_zone_id: string;
   dest_zone_id: string;
