@@ -508,7 +508,7 @@ irreversible gate.
   1. `vamostaxi.eu` points at the Worker, every old Freshpage CMS URL redirects to its new home, and the sitemap is submitted.
   2. `pricing_live` is flipped to true only after the real CHF matrix is loaded and owner-approved on staging.
 
-**Plans:** 5/12 plans executed
+**Plans:** 6/12 plans executed
 
 **Wave 1**
 
@@ -526,7 +526,7 @@ irreversible gate.
 
 **Wave 4** *(blocked on Wave 3)* — CHF 000 belt
 
-- [ ] 11-06-PLAN.md — BookingBoard CHF 000 until pricing_live (VALIDATION 11-06-01)
+- [x] 11-06-PLAN.md — BookingBoard CHF 000 until pricing_live (VALIDATION 11-06-01)
 - [ ] 11-07-PLAN.md — Injected VAT bps, fallback 81; intent JSON vat_rate_bps (VALIDATION 11-07-*)
 
 **Wave 5** *(blocked on Wave 4)* — drop noindex only after 000 belt
@@ -669,7 +669,7 @@ v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16 → 17
 | 8. Ops Dispatch — Live Board, Assignment & Account Surfaces | 10/10 | Complete    | 2026-09-11 |
 | 9. Booking Lifecycle & Customer Self-Service | 12/12 | Complete    | 2026-09-12 |
 | 10. Hardening — Performance, Security & Compliance | 10/10 | Complete    | 2026-09-12 |
-| 11. Launch Cutover | 5/12 | In Progress|  |
+| 11. Launch Cutover | 6/12 | In Progress|  |
 | 12. Ticket schema + #support mock | 3/3 | Complete    | 2026-09-11 |
 | 13. Staff APIs + outbound Resend replies | 0/TBD | Not started | - |
 | 14. Inbound webhook | 0/TBD | Not started | - |
