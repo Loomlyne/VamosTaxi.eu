@@ -2,7 +2,8 @@
 //
 // Completeness reader mirrors tg_rate_version_transition. asStaff is stubbed.
 // D-08: required class fields are name, start, per-km, max pax. D-32: this
-// file writes no CHF figure. Wave 0 stays red until 18-02 / 18-04.
+// file writes no CHF figure. Empty added surcharge/route/coupon/rule/band
+// rows are gaps; zero rows in those tables are not.
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { VamosClaims } from "@/lib/db/identity";
@@ -79,9 +80,9 @@ describe("loadRateVersions", () => {
 
 describe("loadCompleteness", () => {
   // loadCompleteness must stay in lockstep with tg_rate_version_transition
-  // (packages/db/supabase/migrations/20260823000008_rate_versions.sql and the
-  // Phase 18 additive replacement). Changing one without the other is the
-  // known failure mode: the checklist would disagree with the publish gate.
+  // (packages/db/supabase/migrations/20260913180000_ops_pricing_source.sql).
+  // Changing one without the other is the known failure mode: the checklist
+  // would disagree with the publish gate.
 
   it("D-08: required class fields are name, start, per-km, max pax — not min_fare", async () => {
     const seen: string[] = [];
@@ -95,7 +96,7 @@ describe("loadCompleteness", () => {
 
     const gaps = await loadCompleteness(env, adminClaims, 1);
     expect(gaps).toEqual([]);
-    expect(seen).toHaveLength(3);
+    expect(seen).toHaveLength(6);
 
     const distance = seen.find((s) => s.includes("distance_rates"));
     const surcharges = seen.find((s) => s.includes("surcharges"));
@@ -107,14 +108,14 @@ describe("loadCompleteness", () => {
     expect(distance).toMatch(/per_km_rappen/);
     expect(distance).toMatch(/max_pax/);
     expect(distance).not.toMatch(/min_fare/);
-    expect(surcharges).toMatch(/active and s\.kind <> 'included'/);
+    expect(surcharges).toMatch(/s\.kind <> 'included'/);
     expect(surcharges).toMatch(
       /coalesce\(s\.amount_rappen, \(s\.percent \* 100\)::integer\) is null/,
     );
     expect(routes).toMatch(/f\.live and f\.price_rappen is null/);
   });
 
-  it("D-08: bands are not required when no band row was added", async () => {
+  it("D-08: bands/surcharges/coupons/rules with zero rows are not gaps", async () => {
     const seen: string[] = [];
     vi.mocked(asStaff).mockImplementation(async (_env, _claims, fn) => {
       const tx = async (strings: TemplateStringsArray) => {
@@ -127,7 +128,32 @@ describe("loadCompleteness", () => {
     const gaps = await loadCompleteness(env, adminClaims, 1);
     expect(gaps).toEqual([]);
     const bandGapQuery = seen.find((s) => s.includes("distance_bands"));
-    expect(bandGapQuery).toBeUndefined();
+    const couponGapQuery = seen.find((s) => s.includes("coupons"));
+    const ruleGapQuery = seen.find((s) => s.includes("rate_version_rules"));
+    expect(bandGapQuery).toMatch(/vehicle_class_id is null/);
+    expect(couponGapQuery).toMatch(/rate_version_id/);
+    expect(ruleGapQuery).toMatch(/payload = '\{\}'::jsonb/);
+    expect(gaps.filter((g) => g.kind === "band")).toEqual([]);
+    expect(gaps.filter((g) => g.kind === "coupon")).toEqual([]);
+    expect(gaps.filter((g) => g.kind === "rule")).toEqual([]);
+  });
+
+  it("D-08: empty added band, coupon, and rule rows are gaps", async () => {
+    vi.mocked(asStaff).mockImplementation(async (_env, _claims, fn) => {
+      const tx = async (strings: TemplateStringsArray) => {
+        const sql = sqlOf(strings);
+        if (sql.includes("distance_bands")) return [{ name: "economy" }];
+        if (sql.includes("coupons")) return [{ name: "WELCOME" }];
+        if (sql.includes("rate_version_rules")) return [{ name: "night" }];
+        return [];
+      };
+      return fn(tx as never);
+    });
+
+    const gaps = await loadCompleteness(env, adminClaims, 1);
+    expect(gaps.filter((g) => g.kind === "band").map((g) => g.name)).toEqual(["economy"]);
+    expect(gaps.filter((g) => g.kind === "coupon").map((g) => g.name)).toEqual(["WELCOME"]);
+    expect(gaps.filter((g) => g.kind === "rule").map((g) => g.name)).toEqual(["night"]);
   });
 
   it("returns one gap row per unpriced distance_rate and unpriced active surcharge", async () => {

@@ -20,7 +20,13 @@ export type RateVersionRow = {
   published_by: string | null;
 };
 
-export type CompletenessKind = "distance_rate" | "surcharge" | "fixed_route";
+export type CompletenessKind =
+  | "distance_rate"
+  | "surcharge"
+  | "fixed_route"
+  | "coupon"
+  | "rule"
+  | "band";
 
 export type CompletenessGap = {
   kind: CompletenessKind;
@@ -62,9 +68,13 @@ export async function loadRateVersions(
 
 /**
  * Mirrors `tg_rate_version_transition` in
- * `packages/db/supabase/migrations/20260823000008_rate_versions.sql`.
+ * `packages/db/supabase/migrations/20260913180000_ops_pricing_source.sql`
+ * (D-08; replaces the min_fare check from 20260823000008_rate_versions.sql).
  * Changing one without the other is the known failure mode: the checklist
  * would disagree with the publish gate.
+ *
+ * Extra TS-only gaps (coupon / rule / band) catch empty admin-added rows the
+ * trigger does not yet name. Zero rows in those tables is not a gap.
  */
 export async function loadCompleteness(
   env: CloudflareEnv,
@@ -75,15 +85,24 @@ export async function loadCompleteness(
     const distance = await tx<{ name: string }[]>`
       select vc.slug as name
         from public.distance_rates r
-        join public.vehicle_classes vc on vc.id = r.vehicle_class_id
+        left join public.vehicle_classes vc on vc.id = r.vehicle_class_id
        where r.rate_version_id = ${versionId} and r.available
-         and (r.base_fare_rappen is null or r.per_km_rappen is null or r.min_fare_rappen is null)
+         and (
+              r.base_fare_rappen is null
+           or r.per_km_rappen is null
+           or r.max_pax is null
+           or vc.id is null
+           or nullif(btrim(vc.slug), '') is null
+         )
     `;
     const surcharges = await tx<{ name: string }[]>`
       select s.code as name
         from public.surcharges s
-       where s.rate_version_id = ${versionId} and s.active and s.kind <> 'included'
-         and coalesce(s.amount_rappen, (s.percent * 100)::integer) is null
+       where s.rate_version_id = ${versionId} and s.active
+         and (
+              (s.kind <> 'included' and coalesce(s.amount_rappen, (s.percent * 100)::integer) is null)
+           or s.predicate = '{}'::jsonb
+         )
     `;
     const routes = await tx<{ name: string }[]>`
       select oz.slug || '→' || dz.slug || ':' || vc.slug as name
@@ -93,10 +112,36 @@ export async function loadCompleteness(
         join public.vehicle_classes vc on vc.id = f.vehicle_class_id
        where f.rate_version_id = ${versionId} and f.live and f.price_rappen is null
     `;
+    const coupons = await tx<{ name: string }[]>`
+      select c.code as name
+        from public.coupons c
+       where c.rate_version_id = ${versionId} and c.active
+         and (
+              nullif(btrim(c.code), '') is null
+           or (c.kind = 'percent' and c.percent is null)
+           or (c.kind = 'amount' and c.amount_rappen is null)
+         )
+    `;
+    const rules = await tx<{ name: string }[]>`
+      select r.kind as name
+        from public.rate_version_rules r
+       where r.rate_version_id = ${versionId}
+         and (nullif(btrim(r.kind), '') is null or r.payload = '{}'::jsonb)
+    `;
+    const bands = await tx<{ name: string }[]>`
+      select coalesce(nullif(btrim(vc.slug), ''), 'band') as name
+        from public.distance_bands b
+        left join public.vehicle_classes vc on vc.id = b.vehicle_class_id
+       where b.rate_version_id = ${versionId}
+         and (b.vehicle_class_id is null or b.per_km_rappen is null)
+    `;
     return [
       ...distance.map((row) => ({ kind: "distance_rate" as const, name: row.name })),
       ...surcharges.map((row) => ({ kind: "surcharge" as const, name: row.name })),
       ...routes.map((row) => ({ kind: "fixed_route" as const, name: row.name })),
+      ...coupons.map((row) => ({ kind: "coupon" as const, name: row.name })),
+      ...rules.map((row) => ({ kind: "rule" as const, name: row.name })),
+      ...bands.map((row) => ({ kind: "band" as const, name: row.name })),
     ];
   });
 }
