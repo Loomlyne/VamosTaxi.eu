@@ -1,7 +1,8 @@
 // apps/web/lib/pricing/lines.test.ts
 //
-// Per-leg line proofs (D-06, D-08, D-42, D-45, D-46). Every priced field is
-// null (launch) or a unit-free synthetic integer — never a currency mark.
+// Per-leg line proofs (D-06, D-08, D-11, D-12, D-13, D-14, D-42, D-45, D-46).
+// Every priced field is null (launch) or a unit-free synthetic integer — never
+// a currency mark. Wave 0 D-11 fixtures stay red until 18-03.
 
 import { describe, expect, it } from "vitest";
 import * as fc from "fast-check";
@@ -11,7 +12,9 @@ import {
   buildLegSurchargeLines,
   numberLines,
 } from "./lines";
+import { perKm, roundHalfUp } from "./round";
 import type {
+  DistanceBandRow,
   DistanceRateRow,
   FixedRouteRow,
   QuoteLegInput,
@@ -76,6 +79,20 @@ function fixed(
   };
 }
 
+function band(
+  partial: Pick<DistanceBandRow & { vehicle_class_id: string }, "vehicle_class_id" | "from_km" | "per_km_rappen"> &
+    Partial<DistanceBandRow & { vehicle_class_id: string }>,
+): DistanceBandRow & { vehicle_class_id: string } {
+  return {
+    id: partial.id ?? 1,
+    rate_version_id: partial.rate_version_id ?? 1,
+    vehicle_class_id: partial.vehicle_class_id,
+    from_km: partial.from_km,
+    to_km: partial.to_km === undefined ? null : partial.to_km,
+    per_km_rappen: partial.per_km_rappen,
+  };
+}
+
 function surcharge(partial: Partial<SurchargeRow> & Pick<SurchargeRow, "code">): SurchargeRow {
   return {
     id: partial.id ?? 1,
@@ -92,6 +109,7 @@ function surcharge(partial: Partial<SurchargeRow> & Pick<SurchargeRow, "code">):
 }
 
 const business = cls({ slug: "business" });
+const economy = cls({ slug: "economy" });
 
 const airportZone: ZoneRow = {
   id: "z-a",
@@ -205,35 +223,194 @@ describe("buildFareLine — fixed route (D-08)", () => {
   });
 });
 
-describe("buildFareLine — blended km", () => {
-  const bands = [
-    { id: 1, rate_version_id: 1, from_km: 20, to_km: 50, per_km_rappen: 380 },
-    { id: 2, rate_version_id: 1, from_km: 50, to_km: 100, per_km_rappen: 340 },
-    { id: 3, rate_version_id: 1, from_km: 100, to_km: 150, per_km_rappen: 320 },
-    { id: 4, rate_version_id: 1, from_km: 150, to_km: 200, per_km_rappen: 300 },
-    { id: 5, rate_version_id: 1, from_km: 200, to_km: null, per_km_rappen: 280 },
-  ];
-
-  it("uses the class floor plus blended extra, not base+per_km", () => {
+describe("buildFareLine — D-11 D-12 D-13 D-14 live distance recipe", () => {
+  it("D-11: start + (all metres × per-km) with no bands", () => {
     const line = buildFareLine({
-      leg: leg({ distance_m: 70_000 }),
+      leg: leg({ distance_m: 40_000 }),
       vehicleClass: business,
       distanceRate: rate({
         vehicle_class_id: business.id,
-        min_fare_rappen: 10000,
-        base_fare_rappen: 1,
-        per_km_rappen: 1,
+        base_fare_rappen: 1000,
+        per_km_rappen: 250,
+        min_fare_rappen: 99_999,
+      }),
+      fixedRoutes: [],
+      rateVersionId: 1,
+      distanceBands: [],
+    });
+    expect(line.amount_rappen).toBe(1000 + perKm(250, 40_000));
+    expect(line.i18n_key).toBe("price.line.transfer");
+    expect(line.params).toEqual({ vehicleClass: "business" });
+  });
+
+  it("D-12: 1 km uses that same recipe, no separate minimum", () => {
+    const line = buildFareLine({
+      leg: leg({ distance_m: 1_000 }),
+      vehicleClass: business,
+      distanceRate: rate({
+        vehicle_class_id: business.id,
+        base_fare_rappen: 1000,
+        per_km_rappen: 250,
+        min_fare_rappen: 99_999,
+      }),
+      fixedRoutes: [],
+      rateVersionId: 1,
+      distanceBands: [],
+    });
+    expect(line.amount_rappen).toBe(1000 + perKm(250, 1_000));
+    expect(line.amount_rappen).not.toBe(99_999);
+  });
+
+  it("D-11 D-14: per-class band extras sit on top of class per-km for metres in that slice", () => {
+    const line = buildFareLine({
+      leg: leg({ distance_m: 40_000 }),
+      vehicleClass: economy,
+      distanceRate: rate({
+        vehicle_class_id: economy.id,
+        base_fare_rappen: 1000,
+        per_km_rappen: 200,
+        min_fare_rappen: 8_000,
+      }),
+      fixedRoutes: [],
+      rateVersionId: 1,
+      distanceBands: [
+        band({
+          id: 1,
+          vehicle_class_id: economy.id,
+          from_km: 20,
+          to_km: 50,
+          per_km_rappen: 100,
+        }),
+        band({
+          id: 2,
+          vehicle_class_id: business.id,
+          from_km: 20,
+          to_km: 50,
+          per_km_rappen: 999,
+        }),
+      ],
+    });
+    // start + all 40 km × 200 + 20 km of [20, 40) extra 100. Business band ignored.
+    expect(line.amount_rappen).toBe(1000 + perKm(200, 40_000) + perKm(100, 20_000));
+  });
+
+  it("D-14: From inclusive / To exclusive except open last band (to_km null)", () => {
+    const bands = [
+      band({
+        id: 1,
+        vehicle_class_id: economy.id,
+        from_km: 20,
+        to_km: 50,
+        per_km_rappen: 1000,
+      }),
+      band({
+        id: 2,
+        vehicle_class_id: economy.id,
+        from_km: 50,
+        to_km: null,
+        per_km_rappen: 200,
+      }),
+    ];
+    const atFifty = buildFareLine({
+      leg: leg({ distance_m: 50_000 }),
+      vehicleClass: economy,
+      distanceRate: rate({
+        vehicle_class_id: economy.id,
+        base_fare_rappen: 0,
+        per_km_rappen: 0,
       }),
       fixedRoutes: [],
       rateVersionId: 1,
       distanceBands: bands,
     });
-    expect(line.basis.rule).toBe("blended_km");
-    expect(line.amount_rappen).toBe(28200);
-  });
-});
+    // To exclusive: 30 km in [20, 50), zero in the open last at exactly 50 km.
+    expect(atFifty.amount_rappen).toBe(perKm(1000, 30_000));
 
-describe("buildFareLine — per_km and min-fare (D-06)", () => {
+    const openLast = buildFareLine({
+      leg: leg({ distance_m: 70_000 }),
+      vehicleClass: economy,
+      distanceRate: rate({
+        vehicle_class_id: economy.id,
+        base_fare_rappen: 0,
+        per_km_rappen: 0,
+      }),
+      fixedRoutes: [],
+      rateVersionId: 1,
+      distanceBands: bands,
+    });
+    expect(openLast.amount_rappen).toBe(perKm(1000, 30_000) + perKm(200, 20_000));
+  });
+
+  it("D-14: overlapping bands, higher per_km_rappen wins", () => {
+    const line = buildFareLine({
+      leg: leg({ distance_m: 70_000 }),
+      vehicleClass: economy,
+      distanceRate: rate({
+        vehicle_class_id: economy.id,
+        base_fare_rappen: 0,
+        per_km_rappen: 0,
+      }),
+      fixedRoutes: [],
+      rateVersionId: 1,
+      distanceBands: [
+        band({
+          id: 1,
+          vehicle_class_id: economy.id,
+          from_km: 20,
+          to_km: 50,
+          per_km_rappen: 100,
+        }),
+        band({
+          id: 2,
+          vehicle_class_id: economy.id,
+          from_km: 30,
+          to_km: 60,
+          per_km_rappen: 180,
+        }),
+      ],
+    });
+    expect(line.amount_rappen).toBe(
+      perKm(100, 10_000) + perKm(180, 20_000) + perKm(180, 10_000),
+    );
+  });
+
+  it("D-11 D-12: no DISTANCE_FLOOR_KM and no min_fare_rappen floor on the live path", () => {
+    const line = buildFareLine({
+      leg: leg({ distance_m: 100 }),
+      vehicleClass: business,
+      distanceRate: rate({
+        vehicle_class_id: business.id,
+        base_fare_rappen: 50,
+        per_km_rappen: 100,
+        min_fare_rappen: 500,
+      }),
+      fixedRoutes: [],
+      rateVersionId: 1,
+      distanceBands: [],
+    });
+    // raw = 50 + perKm(100, 100) = 60. min_fare 500 must not raise it.
+    expect(line.amount_rappen).toBe(50 + perKm(100, 100));
+    expect(line.amount_rappen).not.toBe(500);
+  });
+
+  it("D-13: 12.3 km stays 12300 metres into perKm then roundHalfUp to rappen", () => {
+    const line = buildFareLine({
+      leg: leg({ distance_m: 12_300 }),
+      vehicleClass: business,
+      distanceRate: rate({
+        vehicle_class_id: business.id,
+        base_fare_rappen: 1000,
+        per_km_rappen: 250,
+        min_fare_rappen: null,
+      }),
+      fixedRoutes: [],
+      rateVersionId: 1,
+      distanceBands: [],
+    });
+    expect(perKm(250, 12_300)).toBe(roundHalfUp(250 * 12_300, 1_000));
+    expect(line.amount_rappen).toBe(1000 + roundHalfUp(250 * 12_300, 1_000));
+  });
+
   it("computes base + perKm and sets i18n transfer + vehicleClass", () => {
     const line = buildFareLine({
       leg: leg({ distance_m: 2500 }),
@@ -248,31 +425,9 @@ describe("buildFareLine — per_km and min-fare (D-06)", () => {
       rateVersionId: 1,
     });
     // perKm(400, 2500) = roundHalfUp(1_000_000, 1000) = 1000; + base 1000 = 2000
-    expect(line.basis.rule).toBe("per_km");
     expect(line.amount_rappen).toBe(2000);
     expect(line.i18n_key).toBe("price.line.transfer");
     expect(line.params).toEqual({ vehicleClass: "business" });
-    expect(line.basis.min_fare_applied).toBe(false);
-  });
-
-  it("applies min_fare inside the fare line when sum is below minimum", () => {
-    const line = buildFareLine({
-      leg: leg({ distance_m: 100 }),
-      vehicleClass: business,
-      distanceRate: rate({
-        vehicle_class_id: business.id,
-        base_fare_rappen: 50,
-        per_km_rappen: 100,
-        min_fare_rappen: 500,
-      }),
-      fixedRoutes: [],
-      rateVersionId: 1,
-    });
-    // raw = 50 + perKm(100,100)=50+10=60 → min 500
-    expect(line.amount_rappen).toBe(500);
-    expect(line.basis.min_fare_applied).toBe(true);
-    expect(line.basis.base_fare_rappen).toBe(50);
-    expect(line.basis.per_km_rappen).toBe(100);
   });
 
   it("launch state: all fare inputs null → amount null with complete basis", () => {
@@ -284,11 +439,8 @@ describe("buildFareLine — per_km and min-fare (D-06)", () => {
       rateVersionId: 1,
     });
     expect(line.amount_rappen).toBeNull();
-    expect(line.basis.rule).toBe("per_km");
     expect(line.basis.per_km_rappen).toBeNull();
     expect(line.basis.base_fare_rappen).toBeNull();
-    expect(line.basis.min_fare_rappen).toBeNull();
-    expect(line.basis.min_fare_applied).toBe(false);
     expect(line.basis.distance_m).toBe(18400);
   });
 });
