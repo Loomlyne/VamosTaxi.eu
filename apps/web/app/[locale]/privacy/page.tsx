@@ -371,7 +371,7 @@ export default async function PrivacyPage({
         <p>
           {tCommon("email")} <a href={SUPPORT_EMAIL_HREF}>{SUPPORT_EMAIL}</a>{" "}
           {t("with-the-booking-reference-if-there-is-one-we-an")}{" "}
-          <PendingSlot label="Dsr response days" /> {tCommon("days")}
+          <span data-i18n-skip>30</span> {tCommon("days")}
         </p>
         <p>{t("we-may-ask-you-to-confirm-who-you-are-before-we")}</p>
       </section>

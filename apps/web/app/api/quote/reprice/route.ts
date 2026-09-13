@@ -10,7 +10,7 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { wireQuoteAbuse } from "@/lib/abuse/guards";
 import { withRequestContext } from "@/lib/logger";
-import { buildQuotePipelineDeps } from "@/lib/quote/deps";
+import { buildQuotePipelineDeps, isNamedDashboardHost } from "@/lib/quote/deps";
 import { preprocessWidgetTokens } from "@/lib/quote/preprocess";
 import {
   runRepricePipeline,
@@ -55,7 +55,9 @@ export async function POST(request: Request) {
     return errorResponse("untrusted_input");
   }
 
-  const deps = buildQuotePipelineDeps(env);
+  const deps = buildQuotePipelineDeps(env, {
+    dashboardHost: isNamedDashboardHost(request.headers.get("host")),
+  });
 
   try {
     const abuse = await wireQuoteAbuse(env, request);

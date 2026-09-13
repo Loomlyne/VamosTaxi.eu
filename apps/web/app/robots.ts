@@ -6,7 +6,22 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/api/", "/app/", "/dev", "/dev/", "/ops", "/ops/"],
+      disallow: [
+        "/api/",
+        "/app/",
+        "/dev",
+        "/dev/",
+        "/ops",
+        "/ops/",
+        "/checkout",
+        "/confirmation",
+        "/bookings",
+        "/account",
+        "/sign-in",
+        "/sign-up",
+        "/manage-booking",
+        "/reset-password",
+      ],
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
   };

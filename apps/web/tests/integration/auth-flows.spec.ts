@@ -480,15 +480,12 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
     await expect.poll(() => userLocale(email)).toBe("de");
   });
 
-  test("sitemap includes /sign-up and its public route serves the DC auth surface", async ({ request }) => {
-    const xml = await (await request.get(`${baseURL}/sitemap.xml`)).text();
-    expect(xml).toContain("/sign-up");
-    for (const lang of ["en", "de", "fr", "ar"]) {
-      expect(xml).toMatch(new RegExp(`hreflang="${lang}"`));
-    }
-
+  test("/sign-up page serves the DC auth surface (not a sitemap XML entry) (D-31)", async ({ request }) => {
     const html = await (await request.get(`${baseURL}/sign-up`)).text();
     expect(html).toContain('data-auth="1"');
     expect(html).toContain('<dc-import name="AuthForm"');
+
+    const xml = await (await request.get(`${baseURL}/sitemap.xml`)).text();
+    expect(xml).not.toContain("/sign-up");
   });
 });

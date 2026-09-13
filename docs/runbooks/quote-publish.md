@@ -18,14 +18,27 @@ Until those three hold, do not flip.
 Set `PRICING_PREVIEW=true`. Draft numbers appear for **display only**. Checkout
 still 409s: `rate_version_is_live` is trigger-derived from `status`, never from
 the env var (D-33). `PRICING_PREVIEW` must not set `pricing_live`.
+`PRICING_PREVIEW` is not the public-CHF flip: it must not set `public_chf`.
 
 ## The flip
 
+One switch: OPS **Publish** on `https://dashboard.vamostaxi.site/pricing`.
+That click is the public-CHF flip (D-18). Completeness gaps still 409 before
+any write. There is no second owner CLI. Do not `wrangler secret put` for this.
+
+The staff POST `/api/staff/rate-versions/:id/publish` (the DC path) runs both
+updates in one `asStaff` transaction:
+
 ```sql
-UPDATE rate_versions SET status = 'live' WHERE id = :draft_id;
+UPDATE public.rate_versions SET status = 'live' WHERE id = :draft_id;
+UPDATE public.settings SET public_chf = true WHERE id = 1;
 ```
 
-Taken by the owner, not by a merge. That UPDATE is the launch trigger.
+A live `rate_versions` row is not enough. Hosted id 5 already live is **not**
+the flip (D-23). Public amounts stay **CHF 000** until this Publish click
+sets `public_chf`.
+
+Taken by the owner, not by a merge.
 
 ## Watch immediately after
 

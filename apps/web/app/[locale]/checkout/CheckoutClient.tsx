@@ -54,7 +54,7 @@ import {
   recapExtras,
   type CheckoutExtraJson,
 } from "@/lib/checkout/extras-catalog";
-import { payableWithVatRappen, vatOnTopRappen } from "@/lib/checkout/vat";
+import { CH_VAT_RATE_BPS, payableWithVatRappen, vatOnTopRappen } from "@/lib/checkout/vat";
 import { decodeClientSecret } from "@/lib/checkout/client-secret";
 import { chfRappenToDisplay } from "@/lib/fx/format";
 import { useFx } from "@/lib/fx/use-fx";
@@ -106,6 +106,19 @@ function quoteExtras(toggles: ExtraToggles) {
 function couponAlreadyOn(applied: string | null, next: string | null): boolean {
   if (!applied || !next) return false;
   return applied.localeCompare(next, undefined, { sensitivity: "accent" }) === 0;
+}
+
+/** Missing/null → null so caller keeps 81 fallback. Present finite >= 0 → trunc. */
+function readVatBps(value: unknown): number | null {
+  if (value == null || value === "") return null;
+  if (typeof value === "number" && Number.isFinite(value) && value >= 0) {
+    return Math.trunc(value);
+  }
+  if (typeof value === "string") {
+    const n = Number(value);
+    if (Number.isFinite(n) && n >= 0) return Math.trunc(n);
+  }
+  return null;
 }
 
 type CouponFieldKey = "couponNotFound" | "couponNoLongerValid" | "couponAppliedOk";
@@ -253,6 +266,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const [skiRack, setSkiRack] = useState(false);
   const [extraCodes, setExtraCodes] = useState<string[]>([]);
   const [extrasCatalog, setExtrasCatalog] = useState<CheckoutExtraJson[]>([]);
+  const [vatRateBps, setVatRateBps] = useState(CH_VAT_RATE_BPS);
   const [coupon, setCoupon] = useState("");
   const [couponApplied, setCouponApplied] = useState<string | null>(null);
   const [couponRule, setCouponRule] = useState<CouponRuleState | null>(null);
@@ -297,9 +311,17 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         .then((res) => res.json())
         .then((json: unknown) => {
           if (!on || !json || typeof json !== "object") return;
-          const body = json as { ok?: boolean; extras?: CheckoutExtraJson[] };
+          const body = json as {
+            ok?: boolean;
+            extras?: CheckoutExtraJson[];
+            vat_rate_bps?: unknown;
+          };
           if (body.ok && Array.isArray(body.extras)) {
             setExtrasCatalog(body.extras);
+          }
+          if (body.ok) {
+            const bps = readVatBps(body.vat_rate_bps);
+            if (bps != null) setVatRateBps(bps);
           }
         })
         .catch(() => {});
@@ -704,6 +726,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         client_secret_hex?: string;
         publishable_key?: string;
         reference?: string;
+        vat_rate_bps?: unknown;
         code?: string;
         error?: string;
       };
@@ -721,6 +744,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       }
       if (json.publishable_key) setPublishable(json.publishable_key);
       if (json.reference) setReference(json.reference);
+      const intentBps = readVatBps(json.vat_rate_bps);
+      if (intentBps != null) setVatRateBps(intentBps);
       const secret = decodeClientSecret(json.client_secret, json.client_secret_hex);
       clientSecretRef.current = secret;
       setClientSecret(secret);
@@ -1026,7 +1051,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const classRappen = peekLockClassRappen(lockToken, vehicle);
   const extraAdd = extraRappenOutsideLock(peekLockExtras(lockToken), extrasCatalog, extraOn);
   const netRappen = classRappen == null ? null : classRappen + extraAdd;
-  const vatRappen = netRappen == null ? null : vatOnTopRappen(netRappen);
+  const vatRappen = netRappen == null ? null : vatOnTopRappen(netRappen, vatRateBps);
   const chargedRappen =
     netRappen == null || vatRappen == null ? null : netRappen + vatRappen;
   const shown = chfRappenToDisplay(chargedRappen, displayCur, fx.rates?.rates ?? null);
@@ -1035,7 +1060,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const wasNet =
     wasRappen != null && netRappen != null && wasRappen > netRappen ? wasRappen : null;
   const wasShown = chfRappenToDisplay(
-    wasNet == null ? null : payableWithVatRappen(wasNet),
+    wasNet == null ? null : payableWithVatRappen(wasNet, vatRateBps),
     displayCur,
     fx.rates?.rates ?? null,
   );
@@ -1043,7 +1068,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const fareShown = chfRappenToDisplay(fareRappen, displayCur, fx.rates?.rates ?? null);
   const couponOffRappen =
     couponApplied && wasNet != null && chargedRappen != null
-      ? payableWithVatRappen(wasNet) - chargedRappen
+      ? payableWithVatRappen(wasNet, vatRateBps) - chargedRappen
       : null;
   const couponOffShown = chfRappenToDisplay(couponOffRappen, displayCur, fx.rates?.rates ?? null);
   const priceLines =

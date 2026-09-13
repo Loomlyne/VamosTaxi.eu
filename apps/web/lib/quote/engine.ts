@@ -20,6 +20,7 @@
 
 import {
   evaluateCoupon,
+  loadLaunchFlags,
   loadRateBook,
   loadSettingsVersion,
   mintLockDeadline,
@@ -37,6 +38,7 @@ export type QuoteLoaders = {
   loadSettingsVersion: typeof loadSettingsVersion;
   mintLockDeadline: typeof mintLockDeadline;
   evaluateCoupon: typeof evaluateCoupon;
+  loadLaunchFlags: typeof loadLaunchFlags;
 };
 
 const defaultLoaders: QuoteLoaders = {
@@ -44,6 +46,7 @@ const defaultLoaders: QuoteLoaders = {
   loadSettingsVersion,
   mintLockDeadline,
   evaluateCoupon,
+  loadLaunchFlags,
 };
 
 export type LoadAndPriceCoupon = {
@@ -147,19 +150,27 @@ function couponFactsFromEval(typed: string, raw: unknown): {
   };
 }
 
+export type LoadAndPriceOpts = {
+  /** Named dashboard host only. Omitted/false is public-safe. */
+  dashboardHost?: boolean;
+};
+
 export async function loadAndPrice(
   env: CloudflareEnv,
   input: QuoteInput,
   deps: QuoteLoaders = defaultLoaders,
   request?: RequestContext,
+  opts?: LoadAndPriceOpts,
 ): Promise<LoadAndPriceResult> {
-  // D-33: read the preview flag once. An absent binding is falsy; the string
-  // "false" is ALSO falsy here, where a bare truthiness check on the binding
-  // would treat it as true.
-  const preferDraft = env.PRICING_PREVIEW === "true";
+  // D-18/D-33: draft book only when PRICING_PREVIEW is the string true AND
+  // the request Host is a named dashboard host. Public vamostaxi.site is
+  // always live book. Omitted dashboardHost defaults false.
+  const dashboardHost = opts?.dashboardHost === true;
+  const preferDraft = dashboardHost && env.PRICING_PREVIEW === "true";
 
   const rawBook = await deps.loadRateBook(env, { preferDraft }, request);
   const book = rateBookMapper.mapRateBook(rawBook);
+  const flags = await deps.loadLaunchFlags(env, request);
 
   const rawSettings = await deps.loadSettingsVersion(
     env,
@@ -204,7 +215,8 @@ export async function loadAndPrice(
       policy: priced.policy,
       rate_version: publicRateVersion(book.rate_version),
       engine_version: priced.engine_version,
-      pricing_live: rateBookMapper.derivePricingLive(book.rate_version),
+      pricing_live:
+        rateBookMapper.derivePricingLive(book.rate_version) && flags.public_chf,
       settings_version_id: priced.settings_version_id,
       partially_priced_class_slugs: priced.partially_priced_class_slugs,
       computed_at: input.computed_at,

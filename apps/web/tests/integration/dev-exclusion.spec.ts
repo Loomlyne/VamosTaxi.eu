@@ -3,7 +3,9 @@
 // D-28's own three-way contract for the dev-only states gallery (01-UI-SPEC.md §
 // Dev-Only States Gallery, "Production/sitemap exclusion" row): reachable in local dev
 // and on staging (for review), absent from a genuine production deploy, and carrying
-// `X-Robots-Tag: noindex` in every one of those cases.
+// `X-Robots-Tag: noindex` on /dev in every one of those cases.
+// D-03: public home on vamostaxi.site is indexable even when DEPLOY_ENV=staging.
+// Keep /dev noindex.
 //
 // This project builds ONCE (`opennextjs-cloudflare build`/`next build`) and deploys the
 // SAME artifact to `env.staging` and `env.production` — the two differ only in the
@@ -173,6 +175,11 @@ test.describe("Dev gallery production exclusion @dev-exclusion", () => {
       const dePrefixedRes = await fetch(`${baseURL}/de/dev/components/core`);
       expect(dePrefixedRes.headers.get("x-robots-tag")).toMatch(/noindex/i);
 
+      // D-03: public home must not carry noindex even on staging. /dev stays noindex.
+      const homeRes = await fetch(`${baseURL}/`);
+      expect(homeRes.status).toBe(200);
+      expect(homeRes.headers.get("x-robots-tag") ?? "").not.toMatch(/noindex/i);
+
       // The served sitemap and the home page's own alternates carry no dev route —
       // Plan 12's shared PUBLIC_ROUTES list was never extended with one, asserted
       // against the real served output rather than assumed.
@@ -180,7 +187,7 @@ test.describe("Dev gallery production exclusion @dev-exclusion", () => {
       const sitemapBody = await sitemapRes.text();
       expect(sitemapBody).not.toContain("/dev/");
 
-      const homeBody = await (await fetch(`${baseURL}/`)).text();
+      const homeBody = await homeRes.text();
       expect(homeBody).not.toMatch(/hreflang[^>]*dev\//);
     } finally {
       killServer(server);

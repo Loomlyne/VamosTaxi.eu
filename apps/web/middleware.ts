@@ -146,7 +146,7 @@ async function serveOpsDc(
   const out = new NextResponse(html, { status: res.status, headers });
   copyCookies(cookieSource, out);
   out.cookies.set("vamos_dash", "1", { path: "/", sameSite: "lax", secure: true });
-  return applyStagingNoindex(await updateSession(request, out));
+  return applyStagingNoindex(request, await updateSession(request, out));
 }
 
 function qsSecret(): string {
@@ -251,13 +251,13 @@ function isOpsConsolePath(path: string): boolean {
   return false;
 }
 
-function opsConsoleNotFound(cookieSource: NextResponse): NextResponse {
+function opsConsoleNotFound(request: NextRequest, cookieSource: NextResponse): NextResponse {
   const headers = new Headers();
   headers.set("content-type", "text/plain; charset=utf-8");
   headers.set("Cache-Control", "private, no-store");
   const out = new NextResponse("Not Found", { status: 404, headers });
   copyCookies(cookieSource, out);
-  return applyStagingNoindex(out);
+  return applyStagingNoindex(request, out);
 }
 
 async function dashboardHostMiddleware(request: NextRequest): Promise<NextResponse> {
@@ -266,7 +266,7 @@ async function dashboardHostMiddleware(request: NextRequest): Promise<NextRespon
   if (path === "/ops" || path.startsWith("/ops/")) {
     const pub = publicDashboardPath(path);
     const dest = pub === "/" || pub === "" ? "/" : "/login";
-    return applyStagingNoindex(NextResponse.redirect(dashboardAbs(request, dest), 308));
+    return applyStagingNoindex(request, NextResponse.redirect(dashboardAbs(request, dest), 308));
   }
 
   if (process.env.DEPLOY_ENV === "ops-changes") {
@@ -274,12 +274,12 @@ async function dashboardHostMiddleware(request: NextRequest): Promise<NextRespon
       return serveOpsDc(request, new NextResponse(), "ops-login.dc.html", false);
     }
     if (normalizeDashboardPath(path) === "/") {
-      return applyStagingNoindex(NextResponse.redirect(dashboardAbs(request, "/dashboard"), 308));
+      return applyStagingNoindex(request, NextResponse.redirect(dashboardAbs(request, "/dashboard"), 308));
     }
     if (isOpsConsolePath(path)) {
       return serveOpsDc(request, new NextResponse(), "ops.dc.html", true);
     }
-    return opsConsoleNotFound(new NextResponse());
+    return opsConsoleNotFound(request, new NextResponse());
   }
 
   const client = createSupabaseMiddlewareClient(request);
@@ -303,16 +303,18 @@ async function dashboardHostMiddleware(request: NextRequest): Promise<NextRespon
   if (inConsole) {
     if (dashPath === "/") {
       return applyStagingNoindex(
+        request,
         copyCookies(client.response, NextResponse.redirect(dashboardAbs(request, "/dashboard"), 308)),
       );
     }
     if (isOpsConsolePath(path)) {
       return serveOpsDc(request, client.response, "ops.dc.html", true);
     }
-    return opsConsoleNotFound(client.response);
+    return opsConsoleNotFound(request, client.response);
   }
 
   return applyStagingNoindex(
+    request,
     copyCookies(client.response, NextResponse.redirect(dashboardAbs(request, "/login"), 308)),
   );
 }
@@ -331,8 +333,12 @@ function copyCookies(from: NextResponse, to: NextResponse): NextResponse {
   return to;
 }
 
-function applyStagingNoindex(response: NextResponse): NextResponse {
-  if (process.env.DEPLOY_ENV === "staging" || process.env.DEPLOY_ENV === "ops-changes") {
+function applyStagingNoindex(request: NextRequest, response: NextResponse): NextResponse {
+  // D-03: public vamostaxi.site and www.vamostaxi.site stay indexable on Worker
+  // vamos (DEPLOY_ENV staging). D-04: dashboard / ops-changes always noindex.
+  // D-08: env.production is unused — host-split is the indexable path, not an
+  // undefined DEPLOY_ENV.
+  if (isDashboardHost(request) || process.env.DEPLOY_ENV === "ops-changes") {
     response.headers.set("X-Robots-Tag", "noindex");
   }
   return response;
@@ -406,18 +412,21 @@ async function opsStaffGate(request: NextRequest, i18nResponse: NextResponse): P
   if (!isOpsExempt(pathname)) {
     if (!user) {
       return applyStagingNoindex(
+        request,
         copyCookies(client.response, NextResponse.redirect(opsRedirectUrl(request, "/ops/sign-in"))),
       );
     }
     const role = user.app_metadata?.vamos_role;
     if (typeof role !== "string" || role.length === 0) {
       return applyStagingNoindex(
+        request,
         copyCookies(client.response, NextResponse.redirect(opsRedirectUrl(request, "/"))),
       );
     }
     const { data: aal } = await client.supabase.auth.mfa.getAuthenticatorAssuranceLevel();
     if (aal?.currentLevel !== "aal2") {
       return applyStagingNoindex(
+        request,
         copyCookies(client.response, NextResponse.redirect(opsRedirectUrl(request, "/ops/mfa-challenge"))),
       );
     }
@@ -428,11 +437,17 @@ async function opsStaffGate(request: NextRequest, i18nResponse: NextResponse): P
     if (lower === "set-cookie" || lower === "location") return;
     client.response.headers.set(key, value);
   });
-  return applyStagingNoindex(withOpsPathHeader(request, client.response));
+  return applyStagingNoindex(request, withOpsPathHeader(request, client.response));
 }
 
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // D-05: www → apex 301. Canonical is https://vamostaxi.site. No DNS this plan.
+  if (hostnameOf(request) === "www.vamostaxi.site") {
+    const dest = new URL(`https://vamostaxi.site${pathname}${request.nextUrl.search}`);
+    return NextResponse.redirect(dest, 301);
+  }
 
   // This Worker is dashboard-only. Never serve the public site.
   if (process.env.DEPLOY_ENV === "ops-changes") {
@@ -452,7 +467,7 @@ export default async function middleware(request: NextRequest) {
         secure: true,
         maxAge: 31536000,
       });
-      return applyPublicCacheHeaders(request, applyStagingNoindex(res));
+      return applyPublicCacheHeaders(request, applyStagingNoindex(request, res));
     }
   }
 
@@ -461,7 +476,7 @@ export default async function middleware(request: NextRequest) {
     const gone = request.nextUrl.clone();
     gone.pathname = "/__vamos_gone";
     gone.search = "";
-    return applyStagingNoindex(NextResponse.rewrite(gone));
+    return applyStagingNoindex(request, NextResponse.rewrite(gone));
   }
 
   // Named dashboard host: public URLs have no /ops prefix.
@@ -472,27 +487,27 @@ export default async function middleware(request: NextRequest) {
   // Dashboard host is the console, not the public mock gallery.
   if (isDashboardHost(request)) {
     if (!isOpsRequest(pathname)) {
-      return applyStagingNoindex(NextResponse.redirect(opsRedirectUrl(request, "/ops")));
+      return applyStagingNoindex(request, NextResponse.redirect(opsRedirectUrl(request, "/ops")));
     }
   } else {
     const bounced = canonicalPublicFromLeak(pathname) ?? publicPathFromDcFile(pathname);
     if (bounced && bounced !== pathname) {
       const url = request.nextUrl.clone();
       url.pathname = bounced;
-      return applyStagingNoindex(NextResponse.redirect(url, 308));
+      return applyStagingNoindex(request, NextResponse.redirect(url, 308));
     }
     if (should404MockLeak(pathname)) {
       const gone = request.nextUrl.clone();
       gone.pathname = "/__vamos_gone";
       gone.search = "";
-      return applyStagingNoindex(NextResponse.rewrite(gone));
+      return applyStagingNoindex(request, NextResponse.rewrite(gone));
     }
     const mock = dcMockPath(pathname);
     if (mock) {
       const html = await serveDcHtml(request, mock);
       return applyPublicCacheHeaders(
         request,
-        applyStagingNoindex(await updateSession(request, html)),
+        applyStagingNoindex(request, await updateSession(request, html)),
       );
     }
   }
@@ -548,17 +563,11 @@ export default async function middleware(request: NextRequest) {
     finalResponse = await updateSession(request, finalResponse);
   }
 
-  // D-37/T-01-04: staging carries a noindex header so nothing half-built competes with the
-  // live site's search ranking; production must never carry it. `DEPLOY_ENV` is a plain,
-  // non-secret `vars` entry set only under `apps/web/wrangler.jsonc`'s `env.staging` (typed
-  // in `apps/web/lib/env.d.ts`) — undefined under `env.production`, so this branch is a
-  // structural no-op there rather than something a forgotten flag flip could leak.
-  //
-  // Cloudflare Access — the other half of D-37's "staging is gated and unindexed" — is
-  // deferred by explicit owner decision; see docs/build/CLOUDFLARE-RESOURCES.md. This
-  // header alone does not stop a human or scraper from reaching the URL, only from it
-  // ranking if they do.
-  if (process.env.DEPLOY_ENV === "staging") {
+  // D-03/D-04: public vamostaxi.site and www.vamostaxi.site stay indexable even when
+  // Worker vamos runs with DEPLOY_ENV=staging. Dashboard (and ops-changes) always
+  // noindex. env.production is unused (D-08) — host-split is the indexable path,
+  // not an undefined DEPLOY_ENV.
+  if (isDashboardHost(request) || process.env.DEPLOY_ENV === "ops-changes") {
     finalResponse.headers.set("X-Robots-Tag", "noindex");
   }
 

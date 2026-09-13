@@ -24,7 +24,7 @@ import {
   stripeFromEnv,
   stripePublishableKey,
 } from "@/lib/checkout/stripe";
-import { loadRateBook, loadSettingsVersion } from "@/lib/db/quote";
+import { loadLaunchFlags, loadRateBook, loadSettingsVersion } from "@/lib/db/quote";
 import { catalogFromSurcharges } from "@/lib/checkout/extras-catalog";
 import { policyHours } from "@/lib/checkout/policy-settings";
 import { mapRateBook } from "@/lib/pricing/rateBook";
@@ -110,6 +110,7 @@ export async function POST(request: Request) {
     vehicleClassId,
     snapshotPolicy,
     extrasCatalog,
+    loadLaunchFlags: () => loadLaunchFlags(env),
   });
 
   if (!intentRes.ok) return intentRes;

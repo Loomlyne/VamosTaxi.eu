@@ -131,6 +131,14 @@ function ineligiblePrice(
   return "";
 }
 
+/** D-19: public amounts stay CHF 000 until Publish-as-flip. */
+function publicRappen(
+  pricingLive: boolean,
+  rappen: number | null | undefined,
+): number | null {
+  return pricingLive ? rappen ?? null : null;
+}
+
 function linesFor(
   entry: ClassBoardEntry,
   label: (key: string, values?: Record<string, string | number>) => string,
@@ -447,7 +455,13 @@ export function BookingBoard() {
         ? quote.classes.map((entry) => {
             const eligible = entry.eligible;
             const price = eligible
-              ? keep(formatChfRappen(entry.total_rappen, currency, fxRates))
+              ? keep(
+                  formatChfRappen(
+                    publicRappen(quote.pricing_live, entry.total_rappen),
+                    currency,
+                    fxRates,
+                  ),
+                )
               : ineligiblePrice(entry, label);
             return (
               <VehicleCard
@@ -486,10 +500,26 @@ export function BookingBoard() {
         <>
           <PriceSummary
             lines={linesFor(selectedEntry, label, (rappen) =>
-              chfRappenToDisplay(rappen, currency, fxRates),
+              chfRappenToDisplay(
+                publicRappen(quote.pricing_live, rappen),
+                currency,
+                fxRates,
+              ),
             )}
-            total={chfRappenToDisplay(selectedEntry.total_rappen, currency, fxRates).major}
-            currency={chfRappenToDisplay(selectedEntry.total_rappen, currency, fxRates).currency}
+            total={
+              chfRappenToDisplay(
+                publicRappen(quote.pricing_live, selectedEntry.total_rappen),
+                currency,
+                fxRates,
+              ).major
+            }
+            currency={
+              chfRappenToDisplay(
+                publicRappen(quote.pricing_live, selectedEntry.total_rappen),
+                currency,
+                fxRates,
+              ).currency
+            }
             totalLabel={label("price.line.total")}
             note={
               pricingNote ??

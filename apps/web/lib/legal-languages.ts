@@ -1,6 +1,6 @@
 // apps/web/lib/legal-languages.ts
 //
-// D-01 / D-12 / I18N-08. Per-page declared coverage — never runtime detection.
+// D-01 / D-12 / D-27 / I18N-08. Per-page declared coverage — never runtime detection.
 // A detector cannot tell "translated" from "coincidentally identical".
 
 import type { Locale } from "@/i18n/routing";
@@ -13,14 +13,11 @@ export const LEGAL_LANGUAGES: Record<LegalPageId, readonly Locale[]> = {
   privacy: ["en", "de", "fr", "ar"],
   cookies: ["en", "de", "fr", "ar"],
   cancellation: ["en", "de", "fr", "ar"],
-  // Imprint is bilingual only. The mock at app/pages/imprint.dc.html:124 claims
-  // data-vt-legal="en de fr ar" while its content is a data-lang="de|en|both"
-  // toggle with no French or Arabic branch. Phase 1's dictionary migration
-  // nonetheless produced fr/ar values for imprint's English spans. An unreviewed
-  // machine translation of a legally binding imprint — whose own text says the
-  // German version is the binding one — is exactly the claim I18N-08 forbids.
-  // Changing this value is an owner decision after a real translation review.
-  imprint: ["en", "de"],
+  // D-27 (11-10): imprint is four languages after extract + same-pass translation.
+  // .eu imprint does not say the German version is binding, so that sentence was
+  // dropped rather than invented. I18N-08 still forbids claiming a language we
+  // did not actually fill.
+  imprint: ["en", "de", "fr", "ar"],
 };
 
 /**

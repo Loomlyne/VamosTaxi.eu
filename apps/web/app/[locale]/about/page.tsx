@@ -44,6 +44,7 @@ export default async function AboutPage({
           <ProseSection id="story-h" labelledBy="story-h-title">
             <h2 id="story-h-title">{t("who-we-are")}</h2>
             <p>{t("vamos-taxi-gmbh-was-registered-in-dietikon-in-th")}</p>
+            <p>{t("founder-led-and-answerable")}</p>
             <p>{t("we-are-a-scheduled-operator-you-cannot-hail-us-o")}</p>
           </ProseSection>
           <ProseSection id="promise-h" labelledBy="promise-h-title">

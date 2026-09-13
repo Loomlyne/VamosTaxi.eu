@@ -37,6 +37,7 @@ export type SettingsRow = {
   sms_reminder: boolean;
   ops_alerts: boolean;
   chauffeur_turnaround_minutes: number;
+  vat_rate_bps: number;
   updated_at: string;
 };
 
@@ -57,6 +58,7 @@ export type SettingsInput = {
   sms_reminder: boolean;
   ops_alerts: boolean;
   chauffeur_turnaround_minutes: number;
+  vat_rate_bps: number;
 };
 
 export type CancellationTier =
@@ -132,6 +134,7 @@ type SettingsSql = {
   sms_reminder: boolean;
   ops_alerts: boolean;
   chauffeur_turnaround_minutes: number;
+  vat_rate_bps: number;
   updated_at: Date | string;
 };
 
@@ -272,6 +275,7 @@ function mapSettings(row: SettingsSql): SettingsRow {
       row.chauffeur_turnaround_minutes,
       "settings-turnaround",
     ),
+    vat_rate_bps: requiredNumber(row.vat_rate_bps, "settings-vat"),
     updated_at: asIso(row.updated_at),
   };
 }
@@ -288,6 +292,9 @@ export function assertSettingsInput(input: SettingsInput): SettingsInput {
     input.chauffeur_turnaround_minutes < 0
   ) {
     throw new SettingsInputError("chauffeur_turnaround_minutes", "settings-error-turnaround");
+  }
+  if (!Number.isInteger(input.vat_rate_bps) || input.vat_rate_bps < 0) {
+    throw new SettingsInputError("vat_rate_bps", "settings-error-vat");
   }
 
   const company = input.company.trim();
@@ -321,7 +328,7 @@ export async function loadSettings(env: CloudflareEnv, claims: VamosClaims): Pro
         default_lang, default_currency,
         accepts_cash, accepts_card, accepts_twint, accepts_invoice,
         email_confirmation, email_reminder, sms_reminder, ops_alerts,
-        chauffeur_turnaround_minutes, updated_at
+        chauffeur_turnaround_minutes, vat_rate_bps, updated_at
       from public.settings
       where id = 1
     `;

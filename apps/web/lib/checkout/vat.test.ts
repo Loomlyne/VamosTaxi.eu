@@ -1,5 +1,13 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { payableWithVatRappen, vatIncludedRappen, vatOnTopRappen } from "./vat";
+import {
+  CH_VAT_RATE_BPS,
+  payableWithVatRappen,
+  vatIncludedRappen,
+  vatOnTopRappen,
+} from "./vat";
 
 describe("vatIncludedRappen", () => {
   it("takes 8.1% out of a Van floor without adding on top", () => {
@@ -42,5 +50,49 @@ describe("vatOnTopRappen", () => {
     expect(vatOnTopRappen(-1)).toBe(0);
     expect(vatOnTopRappen(Number.NaN)).toBe(0);
     expect(payableWithVatRappen(0)).toBe(0);
+  });
+});
+
+describe("injected bps / fallback 81 (D-22)", () => {
+  it("CH_VAT_RATE_BPS is 81, not 7.7", () => {
+    expect(CH_VAT_RATE_BPS).toBe(81);
+    expect(CH_VAT_RATE_BPS).not.toBe(77);
+  });
+
+  it("omitted bps falls back to 81", () => {
+    expect(vatOnTopRappen(10_000)).toBe(810);
+    expect(payableWithVatRappen(10_000)).toBe(10_810);
+  });
+
+  it("vatOnTopRappen(net, bps) uses the argument; omitted bps falls back to 81", () => {
+    expect(vatOnTopRappen(10_000, 81)).toBe(810);
+    expect(payableWithVatRappen(10_000, 81)).toBe(10_810);
+    expect(vatOnTopRappen(10_000)).toBe(810);
+  });
+
+  it("vatOnTopRappen(10000, 0) is 0; payable keeps the net", () => {
+    expect(vatOnTopRappen(10_000, 0)).toBe(0);
+    expect(payableWithVatRappen(10_000, 0)).toBe(10_000);
+  });
+
+  it("null bps falls back to 81", () => {
+    expect(vatOnTopRappen(10_000, null)).toBe(810);
+    expect(payableWithVatRappen(10_000, null)).toBe(10_810);
+  });
+});
+
+describe("intent / receipt pass settings bps (D-22)", () => {
+  const here = dirname(fileURLToPath(import.meta.url));
+
+  it("okIntentResponse JSON includes vat_rate_bps next to amount_rappen", () => {
+    const intent = readFileSync(join(here, "intent.ts"), "utf8");
+    expect(intent).toMatch(/amount_rappen:\s*chargedRappen,\s*vat_rate_bps:\s*vatRateBps/s);
+    expect(intent).toMatch(/payableWithVatRappen\(netRappen \+ extraAdd, vatRateBps\)/);
+    expect(intent).toContain("loadLaunchFlags");
+  });
+
+  it("receipt VAT line passes vatRateBps into vatOnTopRappen", () => {
+    const receipt = readFileSync(join(here, "confirmation-receipt.ts"), "utf8");
+    expect(receipt).toMatch(/vatOnTopRappen\(fareRappen \+ extraSum, args\.vatRateBps\)/);
   });
 });

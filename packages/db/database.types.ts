@@ -1703,9 +1703,11 @@ export type Database = {
           id: number
           ops_alerts: boolean
           phone: string
+          public_chf: boolean
           sms_reminder: boolean
           uid_number: string
           updated_at: string
+          vat_rate_bps: number
         }
         Insert: {
           accepts_card?: boolean
@@ -1723,9 +1725,11 @@ export type Database = {
           id?: number
           ops_alerts?: boolean
           phone?: string
+          public_chf?: boolean
           sms_reminder?: boolean
           uid_number?: string
           updated_at?: string
+          vat_rate_bps?: number
         }
         Update: {
           accepts_card?: boolean
@@ -1743,9 +1747,11 @@ export type Database = {
           id?: number
           ops_alerts?: boolean
           phone?: string
+          public_chf?: boolean
           sms_reminder?: boolean
           uid_number?: string
           updated_at?: string
+          vat_rate_bps?: number
         }
         Relationships: []
       }

@@ -132,6 +132,8 @@ export function receiptPriceSplit(args: {
   totalRappen: number | null | undefined;
   extraRappen: Partial<Record<PayLinkExtraCode, number>>;
   discountRappen?: number | null;
+  /** loadLaunchFlags().vat_rate_bps. Omitted/null → 81. */
+  vatRateBps?: number | null;
 }): {
   fareRappen: number;
   vatRappen: number;
@@ -151,7 +153,7 @@ export function receiptPriceSplit(args: {
   const discount =
     args.discountRappen != null && Number.isFinite(args.discountRappen) ? Math.abs(args.discountRappen) : 0;
   const fareRappen = Math.max(0, gross - vatIncludedRappen(gross) - extraSum + discount);
-  const vatRappen = vatOnTopRappen(fareRappen + extraSum);
+  const vatRappen = vatOnTopRappen(fareRappen + extraSum, args.vatRateBps);
   const couponRappen = Math.max(0, fareRappen + extraSum + vatRappen - gross);
   const couponPercent =
     discount > 0 && fareRappen > 0 ? Math.round((discount / fareRappen) * 100) : null;
