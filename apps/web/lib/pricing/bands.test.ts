@@ -1,18 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { blendedExtraRappen } from "./bands";
+import { classBandExtrasRappen } from "./bands";
 import { perKm } from "./round";
 import type { DistanceBandRow } from "./types";
-
-/** Wave 0 D-14: band fixtures carry vehicle_class_id. Kernel filter lands in 18-03. */
-type BandFixture = DistanceBandRow & { vehicle_class_id: string };
 
 const ECONOMY = "vc-economy";
 const BUSINESS = "vc-business";
 
 function band(
-  partial: Pick<BandFixture, "vehicle_class_id" | "from_km" | "per_km_rappen"> &
-    Partial<BandFixture>,
-): BandFixture {
+  partial: Pick<DistanceBandRow, "vehicle_class_id" | "from_km" | "per_km_rappen"> &
+    Partial<DistanceBandRow>,
+): DistanceBandRow {
   return {
     id: partial.id ?? 1,
     rate_version_id: partial.rate_version_id ?? 1,
@@ -23,18 +20,7 @@ function band(
   };
 }
 
-function extrasForClass(
-  distanceM: number,
-  bands: BandFixture[],
-  vehicleClassId: string,
-): number {
-  return blendedExtraRappen(
-    distanceM,
-    bands.filter((row) => row.vehicle_class_id === vehicleClassId),
-  );
-}
-
-describe("blendedExtraRappen — D-11 D-12 D-13 D-14 per-class extras on top of all km", () => {
+describe("classBandExtrasRappen — D-11 D-12 D-13 D-14 per-class extras on top of all km", () => {
   it("D-11: extras accrue below 20 km — not a DISTANCE_FLOOR_KM lump", () => {
     const rows = [
       band({
@@ -45,7 +31,7 @@ describe("blendedExtraRappen — D-11 D-12 D-13 D-14 per-class extras on top of 
       }),
     ];
     // 10 km sits inside [0, 20). Live recipe: 10 km × 50, not a class-floor lump.
-    expect(extrasForClass(10_000, rows, ECONOMY)).toBe(perKm(50, 10_000));
+    expect(classBandExtrasRappen(10_000, rows, ECONOMY)).toBe(perKm(50, 10_000));
   });
 
   it("D-14: per-class extras sit on top of class per-km for metres in that slice", () => {
@@ -66,8 +52,8 @@ describe("blendedExtraRappen — D-11 D-12 D-13 D-14 per-class extras on top of 
       }),
     ];
     // 40 km → metres in [20, 40) = 20 km at economy 380, not business 999.
-    expect(extrasForClass(40_000, rows, ECONOMY)).toBe(perKm(380, 20_000));
-    expect(extrasForClass(40_000, rows, BUSINESS)).toBe(perKm(999, 20_000));
+    expect(classBandExtrasRappen(40_000, rows, ECONOMY)).toBe(perKm(380, 20_000));
+    expect(classBandExtrasRappen(40_000, rows, BUSINESS)).toBe(perKm(999, 20_000));
   });
 
   it("D-14: From inclusive / To exclusive except open last (to_km null)", () => {
@@ -95,17 +81,17 @@ describe("blendedExtraRappen — D-11 D-12 D-13 D-14 per-class extras on top of 
       }),
     ];
     // Exactly 20 km: From inclusive is a boundary — zero metres inside [20, 50).
-    expect(extrasForClass(20_000, rows, ECONOMY)).toBe(0);
+    expect(classBandExtrasRappen(20_000, rows, ECONOMY)).toBe(0);
     // 20 km + 1 m: first metre of [20, 50) at 1000 rappen/km → 1 rappen.
-    expect(extrasForClass(20_001, rows, ECONOMY)).toBe(perKm(1000, 1));
+    expect(classBandExtrasRappen(20_001, rows, ECONOMY)).toBe(perKm(1000, 1));
     // Exactly 50 km: To exclusive — 30 km in [20, 50), zero in [50, 100).
-    expect(extrasForClass(50_000, rows, ECONOMY)).toBe(perKm(1000, 30_000));
+    expect(classBandExtrasRappen(50_000, rows, ECONOMY)).toBe(perKm(1000, 30_000));
     // 51 km: 30 km @ 1000 plus 1 km @ 2000.
-    expect(extrasForClass(51_000, rows, ECONOMY)).toBe(
+    expect(classBandExtrasRappen(51_000, rows, ECONOMY)).toBe(
       perKm(1000, 30_000) + perKm(2000, 1_000),
     );
     // Open last: 120 km uses [100, ∞) for 20 km.
-    expect(extrasForClass(120_000, rows, ECONOMY)).toBe(
+    expect(classBandExtrasRappen(120_000, rows, ECONOMY)).toBe(
       perKm(1000, 30_000) + perKm(2000, 50_000) + perKm(300, 20_000),
     );
   });
@@ -128,13 +114,25 @@ describe("blendedExtraRappen — D-11 D-12 D-13 D-14 per-class extras on top of 
       }),
     ];
     // 70 km: [20,30) @ 100 + [30,50) @ 180 + [50,60) @ 180.
-    expect(extrasForClass(70_000, rows, ECONOMY)).toBe(
+    expect(classBandExtrasRappen(70_000, rows, ECONOMY)).toBe(
       perKm(100, 10_000) + perKm(180, 20_000) + perKm(180, 10_000),
     );
   });
 
   it("D-11 D-12: no bands → extra is 0; fare is start + all-km per-km elsewhere", () => {
-    expect(extrasForClass(40_000, [], ECONOMY)).toBe(0);
-    expect(extrasForClass(1_000, [], ECONOMY)).toBe(0);
+    expect(classBandExtrasRappen(40_000, [], ECONOMY)).toBe(0);
+    expect(classBandExtrasRappen(1_000, [], ECONOMY)).toBe(0);
+  });
+
+  it("D-14: extras require vehicle_class_id — other classes do not leak", () => {
+    const rows = [
+      band({
+        vehicle_class_id: BUSINESS,
+        from_km: 0,
+        to_km: 10,
+        per_km_rappen: 500,
+      }),
+    ];
+    expect(classBandExtrasRappen(5_000, rows, ECONOMY)).toBe(0);
   });
 });
