@@ -87,6 +87,27 @@ describe("unpaid card cancel + 24h expire", () => {
     expect(expire).toContain("checkout_expire_unpaid");
   });
 
+  it("checkout_expire_unpaid uses quote_lock_expires_at, not created_at + 24 hours (D-22)", () => {
+    const sql = readFileSync(
+      join(WEB_ROOT, "../../packages/db/supabase/migrations/20260913180000_ops_pricing_source.sql"),
+      "utf8",
+    );
+    const expire = readFileSync(join(WEB_ROOT, "lib/checkout/expire-unpaid.ts"), "utf8");
+    const fn = sql.slice(
+      sql.indexOf("create or replace function public.checkout_expire_unpaid"),
+      sql.indexOf("revoke all on function public.checkout_expire_unpaid"),
+    );
+    expect(fn).toContain("quote_lock_expires_at");
+    expect(fn).toMatch(/b\.status = 'pending'/);
+    expect(fn).not.toMatch(/created_at\s*\+\s*interval\s+'24 hours'/);
+    expect(fn).not.toMatch(/created_at \+ 24/);
+    expect(fn).toMatch(/ps\.quote_lock_expires_at <= now\(\)/);
+    expect(expire).toMatch(/quote_lock_expires_at/);
+    // Paid / confirmed trips are not selected — only pending.
+    expect(fn).not.toMatch(/status = 'paid'/);
+    expect(fn).not.toMatch(/status = 'confirmed'/);
+  });
+
   it("BookingRow unpaid card has Cancel above the hit overlay", () => {
     const row = readFileSync(join(WEB_ROOT, "../../app/pages/BookingRow.dc.html"), "utf8");
     expect(row).toContain("data-bk-payacts");

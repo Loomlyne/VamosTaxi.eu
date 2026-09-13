@@ -4,9 +4,14 @@
 // no database, no network, no Docker. Priced fields stay null except the
 // synthetic integer mix that proves the partially_priced_class path.
 
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { loadAndPrice, type QuoteLoaders } from "./engine";
 import type { DistanceRateRow, QuoteInput } from "../pricing/types";
+
+const here = dirname(fileURLToPath(import.meta.url));
 
 const economy = {
   id: "vc-economy",
@@ -323,6 +328,15 @@ describe("loadAndPrice", () => {
         `preview=${String(c.preview)} dashboardHost=${String(c.dashboardHost)}`,
       ).toBe(c.expected);
     }
+  });
+
+  it("keeps public preferDraft false in source (D-20)", () => {
+    const src = readFileSync(join(here, "engine.ts"), "utf8");
+    expect(src).toMatch(
+      /preferDraft\s*=\s*dashboardHost\s*&&\s*env\.PRICING_PREVIEW\s*===\s*"true"/,
+    );
+    expect(src).toMatch(/HYPERDRIVE_NOCACHE|preferDraft stays false/);
+    expect(src).not.toMatch(/preferDraft\s*=\s*true/);
   });
 
   it("maps a null settings version to no_settings_version", async () => {

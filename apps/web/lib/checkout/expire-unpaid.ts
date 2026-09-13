@@ -1,9 +1,15 @@
 import { asSystem } from "../db/identity";
 
+/**
+ * Hourly worker entry. The RPC (18-02 / D-22) cancels unpaid pending rows
+ * whose price_snapshots.quote_lock_expires_at is past — not created_at + 24h
+ * and not the live book's current lock hours. Paid trips are out of scope
+ * (status = pending only).
+ */
 export async function expireUnpaidBookings(env: CloudflareEnv): Promise<number> {
   const rows = await asSystem(env, async (sql) => {
-    return sql<{ reference: string }[]>`
-      select reference from public.checkout_expire_unpaid()
+    return sql<{ booking_id: string; reference: string }[]>`
+      select booking_id, reference from public.checkout_expire_unpaid()
     `;
   });
   return rows.length;

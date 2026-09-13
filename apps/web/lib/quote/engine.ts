@@ -164,7 +164,9 @@ export async function loadAndPrice(
 ): Promise<LoadAndPriceResult> {
   // D-18/D-33: draft book only when PRICING_PREVIEW is the string true AND
   // the request Host is a named dashboard host. Public vamostaxi.site is
-  // always live book. Omitted dashboardHost defaults false.
+  // always live book (preferDraft stays false). asQuote reads
+  // HYPERDRIVE_NOCACHE so the next quote after Publish is the new book.
+  // Omitted dashboardHost defaults false.
   const dashboardHost = opts?.dashboardHost === true;
   const preferDraft = dashboardHost && env.PRICING_PREVIEW === "true";
 

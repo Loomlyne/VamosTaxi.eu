@@ -4,6 +4,9 @@
 // Secrets are obviously-fake fixed strings. Every class_totals figure is null
 // (D-46) — the lock pins totals, and today every total is null.
 
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   LOCK_KID_CURRENT,
@@ -12,6 +15,8 @@ import {
   type QuoteLockPayload,
   verifyLock,
 } from "./lock";
+
+const here = dirname(fileURLToPath(import.meta.url));
 
 /** Obviously-fake lock secret — not a real credential shape. */
 const FAKE_CURRENT = "test-quote-lock-secret-current-not-real-00";
@@ -85,6 +90,17 @@ describe("mintLock", () => {
     void _exp;
     void secrets;
     expect(true).toBe(true);
+  });
+
+  it("bakes exp from published quote_lock_minutes via quote_lock_deadline, not a Worker clock", () => {
+    const lockSrc = readFileSync(join(here, "lock.ts"), "utf8");
+    const quoteSrc = readFileSync(join(here, "../db/quote.ts"), "utf8");
+    expect(lockSrc).toMatch(/quote_lock_deadline/);
+    expect(lockSrc).toMatch(/quote_lock_expires_at/);
+    expect(lockSrc).toMatch(/quote_lock_minutes/);
+    expect(lockSrc).not.toMatch(/Date\.now/);
+    expect(quoteSrc).toMatch(/quote_lock_deadline/);
+    expect(quoteSrc).toMatch(/asQuote/);
   });
 });
 

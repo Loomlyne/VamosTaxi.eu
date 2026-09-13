@@ -1,10 +1,13 @@
 // apps/web/lib/quote/lock.ts
 //
 // QUOTE-04 lock token: mint / verify / dual-secret rotation (D-24, D-27, D-28).
-// The 24-hour lock (D-31 remainder; settings_versions.quote_lock_minutes) is a
-// server-signed HMAC-SHA256 pin of inputs and version ids — not a KV document
-// (60 s cross-PoP lag is wrong for a gate) and not a price_snapshots row
-// (D-21 forbids the quote-time write).
+// The lock (D-20 / D-31 remainder) is a server-signed HMAC-SHA256 pin of
+// inputs and version ids — not a KV document (60 s cross-PoP lag is wrong for
+// a gate) and not a price_snapshots row (D-21 forbids the quote-time write).
+// Length is hours on the Pricing page, stored as quote_lock_minutes (hours×60
+// in 18-05). Postgres quote_lock_deadline() bakes quote_lock_expires_at from
+// that published minutes value at lock time — never created_at + 24 hours,
+// never the new book's hours after a later Publish.
 //
 // Three pieces of negative space:
 //  1. This module never authors a deadline — `exp` arrives from Postgres via
