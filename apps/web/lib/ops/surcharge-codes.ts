@@ -29,15 +29,33 @@ export const PASSENGER_EXTRA_CODES = [
   "pet",
 ] as const;
 
+/** Automatic predicate kinds — never checkout chips (D-36). */
+export const AUTOMATIC_SURCHARGE_CODES = [
+  "airport_pickup",
+  "night",
+  "waiting_airport",
+  "waiting_city",
+  "waiting",
+  "weekend",
+  "holiday",
+] as const;
+
 export function normalizeSurchargeCode(raw: string): string {
   if (raw === "ski") return "ski_rack";
   if (raw === "waiting") return "waiting_city";
   return raw;
 }
 
+export function isAutomaticSurcharge(code: string): boolean {
+  const n = normalizeSurchargeCode(code);
+  return (AUTOMATIC_SURCHARGE_CODES as readonly string[]).includes(n);
+}
+
+/** Extra-chip membership is the live book, not a closed union (D-35). */
 export function isPassengerExtra(code: string): boolean {
   const n = normalizeSurchargeCode(code);
-  return (PASSENGER_EXTRA_CODES as readonly string[]).includes(n);
+  if (!n || n === "return_trip") return false;
+  return !isAutomaticSurcharge(n);
 }
 
 export function extraWriteFields(code: string): {

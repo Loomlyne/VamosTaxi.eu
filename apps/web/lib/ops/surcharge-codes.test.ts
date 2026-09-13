@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   extraWriteFields,
+  isAutomaticSurcharge,
   isPassengerExtra,
   normalizeSurchargeCode,
 } from "./surcharge-codes";
@@ -18,6 +19,10 @@ describe("surcharge codes", () => {
     expect(isPassengerExtra("pet")).toBe(true);
     expect(isPassengerExtra("night")).toBe(false);
     expect(isPassengerExtra("weekend")).toBe(false);
+    expect(isPassengerExtra("holiday")).toBe(false);
+    expect(isPassengerExtra("waiting_airport")).toBe(false);
+    expect(isAutomaticSurcharge("waiting_airport")).toBe(true);
+    expect(isPassengerExtra("bike_rack")).toBe(true);
   });
 
   it("pairs quantity extras with the quote source", () => {

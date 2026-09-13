@@ -1,6 +1,10 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   catalogFromSurcharges,
+  extraChipIcon,
   extraFaresOn,
   extraIsOn,
   extraIsOnForStep,
@@ -8,7 +12,23 @@ import {
   extraUi,
   recapExtraFares,
   recapExtras,
+  type CheckoutExtraJson,
 } from "./extras-catalog";
+
+const here = dirname(fileURLToPath(import.meta.url));
+const extrasRoute = join(here, "../../app/api/checkout/extras/route.ts");
+
+function row(
+  partial: Partial<CheckoutExtraJson> & Pick<CheckoutExtraJson, "code"> & { active?: boolean },
+): Parameters<typeof catalogFromSurcharges>[0][number] {
+  return {
+    code: partial.code,
+    kind: partial.kind ?? "amount",
+    amount_rappen: partial.amount_rappen ?? 1000,
+    percent: partial.percent ?? null,
+    active: partial.active ?? true,
+  };
+}
 
 describe("checkout extras catalog", () => {
   it("keeps ops extras and drops night", () => {
@@ -48,6 +68,51 @@ describe("checkout extras catalog", () => {
     expect(extras[1]?.kind).toBe("included");
     expect(extras[1]?.toggle).toBe(false);
     expect(extraUi("night")).toBeNull();
+  });
+
+  it("omits a surcharge after it is deleted from the published book", () => {
+    const live = catalogFromSurcharges([
+      row({ code: "child_seat", amount_rappen: 2000 }),
+      row({ code: "pet", amount_rappen: 1500 }),
+    ]);
+    expect(live.map((item) => item.code)).toEqual(["child_seat", "pet"]);
+    const afterDelete = catalogFromSurcharges([row({ code: "child_seat", amount_rappen: 2000 })]);
+    expect(afterDelete.map((item) => item.code)).toEqual(["child_seat"]);
+    expect(afterDelete.some((item) => item.code === "pet")).toBe(false);
+    expect(afterDelete.find((item) => item.code === "pet")).toBeUndefined();
+  });
+
+  it("omits automatic night/weekend/holiday/waiting chips", () => {
+    const extras = catalogFromSurcharges([
+      row({ code: "child_seat" }),
+      row({ code: "night", kind: "percent", amount_rappen: null, percent: "10" }),
+      row({ code: "weekend", kind: "percent", amount_rappen: null, percent: "10" }),
+      row({ code: "holiday", kind: "percent", amount_rappen: null, percent: "10" }),
+      row({ code: "waiting", amount_rappen: 3000 }),
+      row({ code: "waiting_airport", amount_rappen: 4000 }),
+      row({ code: "waiting_city", amount_rappen: 2500 }),
+    ]);
+    expect(extras.map((item) => item.code)).toEqual(["child_seat"]);
+    expect(extras.some((item) => item.code === "waiting_airport")).toBe(false);
+  });
+
+  it("lists a new published chip (pet, ski, unknown slug) and skips inactive", () => {
+    const extras = catalogFromSurcharges([
+      row({ code: "pet", amount_rappen: 1800 }),
+      row({ code: "ski", amount_rappen: 2200 }),
+      row({ code: "bike_rack", amount_rappen: 900 }),
+      row({ code: "child_seat", amount_rappen: 2000, active: false }),
+    ]);
+    expect(extras.map((item) => item.code)).toEqual(["pet", "ski", "bike_rack"]);
+    expect(extraChipIcon("bike_rack")).toBe("user");
+    expect(extraChipIcon("ski")).toBe("snowflake");
+  });
+
+  it("public extras route still loads the live book", () => {
+    const src = readFileSync(extrasRoute, "utf8");
+    expect(src).toContain("preferDraft: false");
+    expect(src).not.toMatch(/preferDraft:\s*true/);
+    expect(src).toContain("vat_rate_bps: flags.vat_rate_bps");
   });
 
   it("lists only selected extras on the recap, using book amounts", () => {

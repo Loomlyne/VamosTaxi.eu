@@ -1,7 +1,7 @@
 // Checkout extras tiles follow the live rate book — the same rows ops priced.
 // Automatic codes (night, weekend, …) stay off the passenger extras card.
 
-import { isPassengerExtra } from "@/lib/ops/surcharge-codes";
+import { isPassengerExtra, normalizeSurchargeCode } from "../ops/surcharge-codes";
 
 export type CheckoutExtraJson = {
   code: string;
@@ -28,7 +28,12 @@ const EXTRA_UI: Record<string, ExtraUi> = {
 };
 
 export function extraUi(code: string): ExtraUi | null {
-  return EXTRA_UI[code] ?? null;
+  return EXTRA_UI[code] ?? EXTRA_UI[normalizeSurchargeCode(code)] ?? null;
+}
+
+/** Unknown extra-chip slugs reuse an Icon from this set — never a new SVG. */
+export function extraChipIcon(code: string): ExtraUi["icon"] {
+  return extraUi(code)?.icon ?? "user";
 }
 
 export type ExtraToggles = {
@@ -155,6 +160,7 @@ type SurchargeLike = {
   active: boolean;
 };
 
+/** Live surcharge chips only. Inactive and automatic kinds are omitted, not CHF 0. */
 export function catalogFromSurcharges(rows: SurchargeLike[]): CheckoutExtraJson[] {
   const out: CheckoutExtraJson[] = [];
   for (const row of rows) {
