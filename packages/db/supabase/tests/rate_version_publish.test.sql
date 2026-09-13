@@ -2,8 +2,9 @@
 --
 -- Proves QUOTE-10 (02-SCHEMA-DRAFT.md §15) — the publish gate is forward-designed, not a
 -- checklist item: exactly one `rate_versions` row may be `live` (D-09), a version cannot go
--- live half-priced (tg_rate_version_transition), and two hardened bypasses the review pass
--- found are closed:
+-- live half-priced (tg_rate_version_transition). D-08 completeness is class name/slug, start
+-- (base_fare_rappen), per-km, and max_pax — the first-X-km floor is not required.
+-- Two hardened bypasses the review pass found are closed:
 --   F-04 / T-02-43 — a `live` row cannot be born by INSERT, skipping the completeness and
 --     attribution gates (tg_rate_version_insert_draft, case h).
 --   F-12 / T-02-44 — a priced row cannot be inserted straight into a non-draft version, out
@@ -16,7 +17,7 @@
 -- caller, per the review pass's T-02-14 finding). `request.jwt.claims.sub` is set to a real
 -- staff/admin uuid throughout so `app.uid()` stamps a real `published_by`.
 begin;
-select plan(18);
+select plan(19);
 
 -- Fixtures ------------------------------------------------------------------------------
 insert into auth.users (id, email, aud, role, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -35,6 +36,7 @@ insert into public.service_zones (slug, iata) values ('rvp-zone-a', 'ZRH'), ('rv
 -- Born draft (F-04's insert trigger nulls attribution, which is null already here).
 insert into public.rate_versions (slug, label) values ('test-matrix', 'Test matrix');
 
+-- D-08: max_pax is required on the class row; slug 'first' is the name/slug key.
 insert into public.distance_rates (rate_version_id, vehicle_class_id, max_pax)
 select rv.id, vc.id, 3
   from public.rate_versions rv, public.vehicle_classes vc
@@ -58,9 +60,21 @@ select throws_ok(
   'draft->live refused while distance_rates has NULL amounts (completeness gate)'
 );
 
+-- D-08: start alone is not enough — per-km still null. Literal 1 is in-transaction-only
+-- (rolled back; never a real CHF amount, D-34).
+update public.distance_rates set base_fare_rappen = 1
+ where rate_version_id = (select id from public.rate_versions where slug = 'test-matrix');
+select throws_ok(
+  $$ update public.rate_versions set status = 'live' where slug = 'test-matrix' $$,
+  '23001',
+  null,
+  'draft->live refused while distance_rates.per_km_rappen is NULL (D-08)'
+);
+
 -- Synthetic, in-transaction-only figures purely to flip the completeness gate — rolled back
--- at the end of this file, never a real CHF amount (D-34).
-update public.distance_rates set base_fare_rappen = 1, per_km_rappen = 2, min_fare_rappen = 3
+-- at the end of this file, never a real CHF amount (D-34). D-08: start + per-km; max_pax
+-- already on the row.
+update public.distance_rates set per_km_rappen = 2
  where rate_version_id = (select id from public.rate_versions where slug = 'test-matrix');
 
 -- (b) Still refused: the surcharges row is priced by kind='percent' but percent is NULL. ----
