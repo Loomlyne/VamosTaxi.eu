@@ -4,12 +4,15 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   catalogFromSurcharges,
+  extraAmountTimesQty,
   extraChipIcon,
   extraFaresOn,
   extraIsOn,
   extraIsOnForStep,
   extraRappenOutsideLock,
   extraUi,
+  capExtraStops,
+  publishedMaxExtraStops,
   recapExtraFares,
   recapExtras,
   type CheckoutExtraJson,
@@ -113,6 +116,35 @@ describe("checkout extras catalog", () => {
     expect(src).toContain("preferDraft: false");
     expect(src).not.toMatch(/preferDraft:\s*true/);
     expect(src).toContain("vat_rate_bps: flags.vat_rate_bps");
+    expect(src).toContain("max_extra_stops: maxStops");
+    expect(src).toContain("publishedMaxExtraStops");
+  });
+
+  it("extra_stop is a chip without a fixed rappen × quantity fare", () => {
+    const catalog = catalogFromSurcharges([
+      row({ code: "extra_stop", amount_rappen: 1500 }),
+      row({ code: "child_seat", amount_rappen: 2000 }),
+      row({ code: "oversized_luggage", amount_rappen: 1000 }),
+      row({ code: "pet", amount_rappen: 1800 }),
+    ]);
+    const stop = catalog.find((item) => item.code === "extra_stop");
+    expect(stop?.amount_rappen).toBeNull();
+    expect(extraAmountTimesQty(2000, 2)).toBe(4000);
+    expect(extraAmountTimesQty(1000, 1)).toBe(1000);
+    expect(extraAmountTimesQty(1800, 2)).toBe(3600);
+    expect(
+      recapExtraFares(catalog, (code) => code === "extra_stop")[0]?.amount_rappen,
+    ).toBeNull();
+  });
+
+  it("caps extra-stop places at the published book field", () => {
+    expect(publishedMaxExtraStops(3)).toBe(3);
+    expect(publishedMaxExtraStops("2")).toBe(2);
+    expect(publishedMaxExtraStops(0)).toBe(0);
+    expect(publishedMaxExtraStops(null)).toBe(0);
+    expect(publishedMaxExtraStops(-1)).toBe(0);
+    expect(capExtraStops(4, 3)).toBe(3);
+    expect(capExtraStops(1, null)).toBe(0);
   });
 
   it("lists only selected extras on the recap, using book amounts", () => {

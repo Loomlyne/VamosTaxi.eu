@@ -703,7 +703,7 @@ describe("buildExtraLines (D-45)", () => {
     expect(lines.every((l) => l.amount_rappen === 200)).toBe(true);
   });
 
-  it("extra_stops: 2 emits ONE line on leg_seq 1 only, amount × 2", () => {
+  it("extra_stops do not emit a fixed rappen × quantity fare (D-37)", () => {
     const stop = surcharge({
       code: "extra_stop",
       kind: "amount",
@@ -718,10 +718,42 @@ describe("buildExtraLines (D-45)", () => {
       extras: { extra_stops: 2 },
       rateVersionId: 1,
     });
-    expect(lines).toHaveLength(1);
-    expect(lines[0]!.leg_seq).toBe(1);
-    expect(lines[0]!.params?.n).toBe(2);
-    expect(lines[0]!.amount_rappen).toBe(300);
+    expect(lines).toHaveLength(0);
+  });
+
+  it("child_seats and oversized still multiply amount × quantity", () => {
+    const child = surcharge({
+      code: "child_seat",
+      kind: "amount",
+      amount_rappen: 200,
+      quantity_source: "child_seats",
+      predicate: { kind: "quantity" },
+      id: 14,
+    });
+    const bag = surcharge({
+      code: "oversized_luggage",
+      kind: "amount",
+      amount_rappen: 100,
+      quantity_source: "oversize_bags",
+      predicate: { kind: "quantity" },
+      id: 16,
+    });
+    const twoSeats = buildExtraLines({
+      legs: [leg({ leg_seq: 1 })],
+      surcharges: [child],
+      extras: { child_seats: 2 },
+      rateVersionId: 1,
+    });
+    expect(twoSeats).toHaveLength(1);
+    expect(twoSeats[0]!.amount_rappen).toBe(400);
+    const bags = buildExtraLines({
+      legs: [leg({ leg_seq: 1 })],
+      surcharges: [bag],
+      extras: { oversize_bags: 3 },
+      rateVersionId: 1,
+    });
+    expect(bags).toHaveLength(1);
+    expect(bags[0]!.amount_rappen).toBe(300);
   });
 
   it("oversized_luggage: true duplicates onto both legs; false emits nothing", () => {

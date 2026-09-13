@@ -483,8 +483,9 @@ function resolveQuantity(
 
 /**
  * D-45: child_seat and oversized_luggage → one line per leg_seq on a return.
- * extra_stop → leg 1 only. Amounts from the pinned rate row only (D-11).
- * Quantity zero emits nothing. Always pass ICU `n`, including n=1.
+ * extra_stop is not a surcharge fare (D-37) — Mapbox places re-run the D-11
+ * distance recipe via hasExtraStops. Quantity zero emits nothing. Always pass
+ * ICU `n`, including n=1.
  */
 export function buildExtraLines(args: BuildExtraLinesArgs): Line[] {
   const { legs, surcharges, extras, rateVersionId } = args;
@@ -495,21 +496,15 @@ export function buildExtraLines(args: BuildExtraLinesArgs): Line[] {
     if (row.quantity_source === null || row.quantity_source === undefined) {
       continue;
     }
+    if (row.quantity_source === "extra_stops") {
+      // D-37: extra stop is Mapbox places on the D-11 distance recipe, not amount × qty.
+      continue;
+    }
     const qty = resolveQuantity(row.quantity_source, extras);
     if (qty <= 0) continue;
 
-    // Which legs receive this extra.
-    let targetLegs: QuoteLegInput[];
-    if (row.quantity_source === "extra_stops") {
-      targetLegs = legs.filter((l) => l.leg_seq === 1);
-      if (targetLegs.length === 0 && legs.length > 0) {
-        // Fall back to first leg if numbering is non-standard.
-        targetLegs = [legs[0]!];
-      }
-    } else {
-      // child_seats, oversize_bags — both legs on a return.
-      targetLegs = [...legs];
-    }
+    // child_seats, oversize_bags — both legs on a return.
+    const targetLegs = [...legs];
 
     for (const leg of targetLegs) {
       let amount: number | null = null;

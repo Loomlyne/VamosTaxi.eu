@@ -108,6 +108,19 @@ export function extraFaresOn(
   return out;
 }
 
+function isExtraStopCode(code: string): boolean {
+  return normalizeSurchargeCode(code) === "extra_stop";
+}
+
+/**
+ * Cap extra-stop places at the published book's max_extra_stops (D-37).
+ * Null/missing max means no extra-stop places — do not invent a count.
+ */
+export function capExtraStops(requested: number, maxFromBook: unknown): number {
+  const req = Number.isFinite(requested) ? Math.max(0, Math.trunc(requested)) : 0;
+  return Math.min(req, publishedMaxExtraStops(maxFromBook));
+}
+
 /** Selected passenger extras that exist on the live book. Amounts stay the book values. */
 export function recapExtraFares(
   catalog: CheckoutExtraJson[],
@@ -121,8 +134,12 @@ export function recapExtraFares(
     out.push({
       code: row.code,
       labelKey: ui.labelKey,
-      icon: ui.icon,
-      amount_rappen: row.kind === "amount" ? row.amount_rappen : null,
+      icon: extraChipIcon(row.code),
+      amount_rappen: isExtraStopCode(row.code)
+        ? null
+        : row.kind === "amount"
+          ? row.amount_rappen
+          : null,
     });
   }
   return out;
@@ -160,6 +177,29 @@ type SurchargeLike = {
   active: boolean;
 };
 
+/** Published `rate_versions.max_extra_stops`. Missing/invalid → 0 (no extra places). */
+export function publishedMaxExtraStops(value: unknown): number {
+  if (typeof value === "number" && Number.isInteger(value) && value >= 0) {
+    return value;
+  }
+  if (typeof value === "string" && /^-?\d+$/.test(value.trim())) {
+    const n = Number(value);
+    if (Number.isInteger(n) && n >= 0) return n;
+  }
+  return 0;
+}
+
+/** Child seat / oversized / pet: book amount × quantity. Extra stop is not this. */
+export function extraAmountTimesQty(
+  amountRappen: number | null,
+  quantity: number,
+): number | null {
+  if (amountRappen == null || !Number.isFinite(amountRappen) || quantity <= 0) {
+    return null;
+  }
+  return amountRappen * quantity;
+}
+
 /** Live surcharge chips only. Inactive and automatic kinds are omitted, not CHF 0. */
 export function catalogFromSurcharges(rows: SurchargeLike[]): CheckoutExtraJson[] {
   const out: CheckoutExtraJson[] = [];
@@ -170,7 +210,7 @@ export function catalogFromSurcharges(rows: SurchargeLike[]): CheckoutExtraJson[
     out.push({
       code: row.code,
       kind: row.kind,
-      amount_rappen: row.amount_rappen,
+      amount_rappen: isExtraStopCode(row.code) ? null : row.amount_rappen,
       percent: row.percent,
       toggle: ui?.toggle ?? true,
     });
