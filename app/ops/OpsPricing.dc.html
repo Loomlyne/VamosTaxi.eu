@@ -51,6 +51,11 @@
 <p style="margin:0;font-size:var(--vt-body-xs);line-height:1.55;color:var(--vt-text-inverse-muted);text-wrap:pretty">{{ tAlertBody }}</p>
 </aside>
 
+<div data-vat-field="1" style="display:flex;flex-direction:column;gap:6px;min-width:0">
+<p data-vat-error="1" style="display:{{ vatErrorDisplay }};margin:0;font-size:var(--vt-body-xs);color:var(--vt-danger)">{{ tVatError }}</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tVatLabel }}" value="{{ vatPercent }}" onChange="{{ setVatPercent }}" suffix="{{ tVatSuffix }}" hint-size="100%,76px"></x-import>
+</div>
+
 </div>
 
 <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
@@ -164,6 +169,7 @@ const T = {
     addRegion:'Add region premium', editRegion:'Edit region premium', deleteRegionTitle:'Delete this region premium?', deleteRegionBody:'It stops applying to new quotes immediately.',
     emptyRegionsTitle:'No region premiums yet', emptyRegionsBody:'Highest matching percent wins, not stacked.',
     searchRegions:'Zone', nounRegion:'region premium', nounRegions:'region premiums',
+    vatLabel:'VAT', vatSuffix:'%', vatError:'VAT must be 0 or more.',
   },
   de: { title:'Preise & Routen', subtitle:'Feste Routen, Distanzregeln und Zuschläge',
     alertTitle:'Jeder Wert hier ist ein Platzhalter', alertBody:'Grundpreise, Kilometersätze, Zuschläge und das Streckenangebot sind noch offene Kundendaten. Nichts auf diesem Bildschirm ist ein echter Vamos-Taxi-Preis.',
@@ -221,6 +227,7 @@ const T = {
     addRegion:'Regionszuschlag hinzufügen', editRegion:'Regionszuschlag bearbeiten', deleteRegionTitle:'Diesen Regionszuschlag löschen?', deleteRegionBody:'Er gilt sofort nicht mehr für neue Offerten.',
     emptyRegionsTitle:'Noch keine Regionszuschläge', emptyRegionsBody:'Der höchste passende Satz gilt, nicht gestapelt.',
     searchRegions:'Zone', nounRegion:'Regionszuschlag', nounRegions:'Regionszuschläge',
+    vatLabel:'MwSt.', vatSuffix:'%', vatError:'MwSt. muss 0 oder mehr sein.',
   },
   fr: { title:'Tarifs & trajets', subtitle:'Trajets fixes, règles de distance et suppléments',
     alertTitle:'Chaque montant ici est un espace réservé', alertBody:'Les tarifs de base, les prix au kilomètre, les suppléments et la liste des trajets fixes sont des données client en attente. Aucun montant de cet écran n\u2019est un vrai prix Vamos Taxi.',
@@ -278,6 +285,7 @@ const T = {
     addRegion:'Ajouter une prime régionale', editRegion:'Modifier la prime régionale', deleteRegionTitle:'Supprimer cette prime régionale ?', deleteRegionBody:'Elle ne s’applique plus aux nouveaux devis, immédiatement.',
     emptyRegionsTitle:'Aucune prime régionale', emptyRegionsBody:'Le pourcentage le plus élevé gagne, sans cumul.',
     searchRegions:'Zone', nounRegion:'prime régionale', nounRegions:'primes régionales',
+    vatLabel:'TVA', vatSuffix:'%', vatError:'La TVA doit être 0 ou plus.',
   },
   ar: { title:'الأسعار والمسارات', subtitle:'مسارات ثابتة وقواعد المسافة والرسوم الإضافية',
     alertTitle:'كل رقم هنا مؤقت', alertBody:'الأسعار الأساسية وأسعار الكيلومتر والرسوم الإضافية وقائمة المسارات الثابتة بيانات ينتظرها المشروع من العميل. لا شيء في هذه الشاشة سعر حقيقي لفاموس تاكسي.',
@@ -335,6 +343,7 @@ const T = {
     addRegion:'إضافة نسبة منطقة', editRegion:'تعديل نسبة المنطقة', deleteRegionTitle:'حذف نسبة المنطقة؟', deleteRegionBody:'تتوقف عن الانطباق على العروض الجديدة فورًا.',
     emptyRegionsTitle:'لا توجد نسب مناطق بعد', emptyRegionsBody:'تُعتمد أعلى نسبة مطابقة، دون تراكم.',
     searchRegions:'المنطقة', nounRegion:'نسبة منطقة', nounRegions:'نسب مناطق',
+    vatLabel:'ضريبة القيمة المضافة', vatSuffix:'%', vatError:'يجب أن تكون الضريبة 0 أو أكثر.',
   },
 };
 
@@ -346,11 +355,14 @@ class Component extends DCLogic {
     draftId: null,
     gaps: [],
     publishCode: '',
+    vatPercent: '8.1',
+    vatError: false,
   };
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
     this._off = window.VamosOps.onAny(() => this.forceUpdate());
     this.loadDraft();
+    this.loadVat();
     this.forceUpdate();
   };
   componentDidMount() {
@@ -363,6 +375,7 @@ class Component extends DCLogic {
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     if (this._off) this._off();
     clearTimeout(this._retry);
+    clearTimeout(this._vatT);
   }
   updateRate(id, patch) { if (window.VamosOps) window.VamosOps.rates.update(id, patch); }
   /* Row saves: VamosOps.routes, VamosOps.rates, VamosOps.surcharges, VamosOps.bands, VamosOps.regionPremiums → PUT /api/staff/rate-book (06-02). */
@@ -381,6 +394,43 @@ class Component extends DCLogic {
       });
     });
   }
+  percentToBps(raw) {
+    const n = Number(String(raw == null ? '' : raw).replace(',', '.').trim());
+    if (!Number.isFinite(n) || n < 0) return null;
+    return Math.round(n * 10);
+  }
+  loadVat() {
+    const api = window.VamosOpsApi;
+    if (!api || typeof api.request !== 'function') return;
+    api.request('GET', '/api/staff/settings').then((json) => {
+      const bps = json && json.ok && json.data ? json.data.vatRateBps : null;
+      if (typeof bps === 'number' && Number.isFinite(bps) && bps >= 0) {
+        this.setState({ vatPercent: String(bps / 10), vatError: false });
+      }
+    });
+  }
+  patchVat(bps) {
+    const api = window.VamosOpsApi;
+    if (!api || typeof api.request !== 'function') return;
+    clearTimeout(this._vatT);
+    this._vatT = setTimeout(() => {
+      api.request('PATCH', '/api/staff/settings', { vat_rate_bps: bps }).then((json) => {
+        if (!json || json.ok !== true) this.setState({ vatError: true });
+      }, () => {
+        this.setState({ vatError: true });
+      });
+    }, 400);
+  }
+  setVatPercent = (v) => {
+    this.setState({ vatPercent: v });
+    const bps = this.percentToBps(v);
+    if (bps === null) {
+      this.setState({ vatError: true });
+      return;
+    }
+    this.setState({ vatError: false });
+    this.patchVat(bps);
+  };
   publish = () => {
     const api = window.VamosOpsApi;
     const id = this.state.draftId;
@@ -456,6 +506,12 @@ class Component extends DCLogic {
       tCompletenessBody: completenessBody,
       tPublish: t.publish,
       tPublishError: this.publishReason(this.state.publishCode, t),
+      tVatLabel: t.vatLabel,
+      tVatSuffix: t.vatSuffix,
+      tVatError: t.vatError,
+      vatPercent: this.state.vatPercent,
+      vatErrorDisplay: this.state.vatError ? 'block' : 'none',
+      setVatPercent: this.setVatPercent,
       gaps,
       gapListDisplay: hasGaps ? 'block' : 'none',
       publishErrorDisplay: this.state.publishCode ? 'block' : 'none',
