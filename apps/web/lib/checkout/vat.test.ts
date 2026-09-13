@@ -71,4 +71,14 @@ describe("injected bps / fallback 81 (D-22)", () => {
     expect(payable(10_000, 81)).toBe(10_810);
     expect(vatOnTop(10_000)).toBe(810);
   });
+
+  it("vatOnTopRappen(10000, 0) is 0; payable keeps the net", () => {
+    expect(vatOnTop(10_000, 0)).toBe(0);
+    expect(payable(10_000, 0)).toBe(10_000);
+  });
+
+  it("null bps falls back to 81", () => {
+    expect(vatOnTop(10_000, null)).toBe(810);
+    expect(payable(10_000, null)).toBe(10_810);
+  });
 });
