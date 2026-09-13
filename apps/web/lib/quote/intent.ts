@@ -84,6 +84,8 @@ export type IntentRecompute = {
   pricing_live: boolean;
   engine_version: string;
   classes: IntentRecomputeClass[];
+  /** Current live rate_versions.id. Stale painted cards refuse (D-21). */
+  live_rate_version_id?: number | null;
 };
 
 export type CheckIntentDeps = {
@@ -191,6 +193,17 @@ export async function checkIntentAgainstLock(
     if (!board.pricing_live || chosen?.total_rappen == null) {
       return refuse("pricing_not_live");
     }
+  }
+
+  // D-21: Select / lock after Publish against a painted card whose book is
+  // no longer live. Server refuse only — home layout stays as-is.
+  const liveId = board.live_rate_version_id;
+  if (
+    typeof payload.rate_version_id === "number" &&
+    typeof liveId === "number" &&
+    payload.rate_version_id !== liveId
+  ) {
+    return refuse("quote_expired");
   }
 
   if (!chosen || chosen.eligible === false) {

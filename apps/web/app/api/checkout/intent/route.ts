@@ -88,10 +88,13 @@ async function postIntent(request: Request) {
   }
 
   let extrasCatalog: ReturnType<typeof catalogFromSurcharges> = [];
+  let liveRateVersionId: number | null = null;
   try {
-    extrasCatalog = catalogFromSurcharges(
-      mapRateBook(await loadRateBook(env, { preferDraft: false })).surcharges,
-    );
+    const liveBook = mapRateBook(await loadRateBook(env, { preferDraft: false }));
+    extrasCatalog = catalogFromSurcharges(liveBook.surcharges);
+    const live = liveBook.rate_version;
+    liveRateVersionId =
+      live && live.status === "live" && typeof live.id === "number" ? live.id : null;
   } catch {
     extrasCatalog = [];
   }
@@ -103,6 +106,7 @@ async function postIntent(request: Request) {
     reprice: (payload) => ({
       pricing_live: true,
       engine_version: payload.engine_version,
+      live_rate_version_id: liveRateVersionId,
       classes: payload.class_totals.map((row) => ({
         slug: row.slug as IntentRecompute["classes"][number]["slug"],
         total_rappen: row.total_rappen,

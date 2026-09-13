@@ -9,6 +9,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { sendExpired, sendPriceChanged } from "@vamos/emails/confirmation";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, "../../../..");
@@ -108,5 +109,49 @@ describe("send.ts remaining lifecycle exports", () => {
     expect(src).toContain("sendTimeChange");
     expect(src).toContain("sendFlightNumber");
     expect(src).toContain("sendReviewRequest");
+  });
+});
+
+describe("D-24 skip-send price-changed and expired", () => {
+  it("sendPriceChanged and sendExpired skip-send until owner copy exists", async () => {
+    const changed = await sendPriceChanged(
+      { RESEND_API_KEY: "re_test" },
+      { locale: "en", contactEmail: "ada@example.test", lockedRappen: 8000 },
+    );
+    const expired = await sendExpired(
+      { RESEND_API_KEY: "re_test" },
+      { locale: "de", contactEmail: "ada@example.test", lockedRappen: 8000 },
+    );
+    expect(changed).toEqual({ ok: true, skipped: true });
+    expect(expired).toEqual({ ok: true, skipped: true });
+    const src = read("packages/emails/src/lib/send.ts");
+    expect(src).toContain("sendPriceChanged");
+    expect(src).toContain("sendExpired");
+    expect(src).toMatch(/export async function sendPriceChanged[\s\S]{0,180}skipped:\s*true/);
+    expect(src).toMatch(/export async function sendExpired[\s\S]{0,180}skipped:\s*true/);
+  });
+
+  it("packages/emails messages have no invented price-changed English body", () => {
+    for (const loc of ["en", "de", "fr", "ar"]) {
+      const raw = read(`packages/emails/src/messages/${loc}.json`);
+      expect(raw).not.toMatch(/price.?changed/i);
+      expect(raw).not.toMatch(/fare has changed/i);
+      expect(raw).not.toMatch(/your quote expired/i);
+      expect(raw).not.toMatch(/lock has expired/i);
+    }
+  });
+
+  it("Publish and expire invoke skip-send; is_test unpaid is skipped", () => {
+    const publish = read(
+      "apps/web/app/[locale]/(ops)/api/staff/rate-versions/[id]/publish/route.ts",
+    );
+    const expire = read("apps/web/lib/checkout/expire-unpaid.ts");
+    const mail = read("apps/web/lib/checkout/lock-mail.ts");
+    expect(publish).toMatch(/notifyPriceChangedForUnpaid/);
+    expect(expire).toMatch(/notifyExpiredForBookings/);
+    expect(mail).toMatch(/sendPriceChanged/);
+    expect(mail).toMatch(/sendExpired/);
+    expect(mail).toMatch(/is_test/);
+    expect(mail).toMatch(/locked_rappen/);
   });
 });

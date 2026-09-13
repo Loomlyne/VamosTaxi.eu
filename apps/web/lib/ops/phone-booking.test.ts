@@ -77,6 +77,8 @@ describe("08-06 phone booking file proofs", () => {
     expect(src).not.toMatch(/createCheckoutSession/);
     expect(src).not.toMatch(/asStaff/);
     expect(src).not.toMatch(/:6543/);
+    expect(src).toMatch(/is_test/);
+    expect(src).toMatch(/is-test/);
     const ops = read("apps/web/app/[locale]/(ops)/api/staff/bookings/[id]/pay-link/route.ts");
     const pub = read("apps/web/app/api/staff/bookings/[id]/pay-link/route.ts");
     expect(ops).toMatch(/withStaff/);
@@ -93,5 +95,29 @@ describe("08-06 phone booking file proofs", () => {
     expect(dict).toMatch(/'New trip':/);
     expect(dict).toMatch(/'Send pay-link':/);
     expect(dict).toMatch(/'Take card':/);
+  });
+});
+
+describe("D-25 phone booking + snapshot CHF", () => {
+  it("OpsNewTrip quotes then posts checkout intent; public preferDraft stays false", () => {
+    const form = read("app/ops/OpsNewTrip.dc.html");
+    expect(form).toMatch(/\/api\/quote/);
+    expect(form).toMatch(/\/api\/checkout\/intent/);
+    const engine = read("apps/web/lib/quote/engine.ts");
+    expect(engine).toMatch(
+      /preferDraft\s*=\s*dashboardHost\s*&&\s*env\.PRICING_PREVIEW\s*===\s*"true"/,
+    );
+    expect(engine).toMatch(/pricing_live/);
+    expect(engine).toMatch(/public_chf/);
+  });
+
+  it("ops detail shows snapshot totalRappen and has no dispatcher amount override", () => {
+    const detail = read("app/ops/OpsDetail.dc.html");
+    expect(detail).toMatch(/totalRappen/);
+    expect(detail).not.toMatch(/amount_rappen\s*=/);
+    expect(detail).not.toMatch(/chargedRappen\s*=/);
+    const map = read("apps/web/lib/ops/bookings-map.ts");
+    expect(map).toMatch(/snapshot_total_rappen/);
+    expect(map).not.toMatch(/paid \? rappen\(row\.charged_rappen\) : 0/);
   });
 });

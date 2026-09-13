@@ -78,6 +78,7 @@ export async function loadBookings(
         p.stripe_checkout_session_id,
         cap.captured_at,
         cap.charged_rappen,
+        snap.total_rappen as snapshot_total_rappen,
         cap.extra_rappen,
         ed.edit_request_id,
         ed.edit_actor,
@@ -142,6 +143,7 @@ export async function loadBookings(
         select
           s.duration_min,
           s.distance_km,
+          s.total_rappen,
           s.coupon_code,
           s.policy,
           s.lines

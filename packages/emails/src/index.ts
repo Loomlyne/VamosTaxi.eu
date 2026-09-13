@@ -62,6 +62,8 @@ export type { ReviewRequestForEmail } from "./ReviewRequestEmail";
 export {
   sendConfirmation,
   sendPayLink,
+  sendPriceChanged,
+  sendExpired,
   sendRefund,
   sendChauffeurAssign,
   sendChauffeurUnassign,
@@ -78,7 +80,13 @@ export {
   CONFIRMATION_TEMPLATE_VERSION,
   LIFECYCLE_OPS_EMAIL,
 } from "./lib/send";
-export type { EmailEnv, ChauffeurDispatchForEmail } from "./lib/send";
+export type {
+  EmailEnv,
+  ChauffeurDispatchForEmail,
+  LockMailSkip,
+  PriceChangedMailInput,
+  ExpiredMailInput,
+} from "./lib/send";
 export { buildInvite } from "./lib/ics";
 export type {
   BookingForEmail,

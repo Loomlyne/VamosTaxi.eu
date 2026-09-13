@@ -231,6 +231,40 @@ export async function sendPayLink(
   }
 }
 
+/**
+ * D-24: price-changed mail after Publish. Owner English is TBC — skip-send
+ * until copy exists. Do not invent a body, subject, or de/fr/ar. Callers pass
+ * the old locked CHF only; never a new-book number.
+ */
+export type LockMailSkip = { ok: true; skipped: true };
+
+export type PriceChangedMailInput = {
+  locale: EmailLocale;
+  contactEmail: string;
+  /** Old locked snapshot, CHF rappen. Never a live-book figure. */
+  lockedRappen: number;
+};
+
+export type ExpiredMailInput = {
+  locale: EmailLocale;
+  contactEmail: string;
+  lockedRappen: number;
+};
+
+export async function sendPriceChanged(
+  _env: EmailEnv,
+  _input: PriceChangedMailInput,
+): Promise<LockMailSkip> {
+  return { ok: true, skipped: true };
+}
+
+export async function sendExpired(
+  _env: EmailEnv,
+  _input: ExpiredMailInput,
+): Promise<LockMailSkip> {
+  return { ok: true, skipped: true };
+}
+
 /** D-60: contact plus company payer when the address is different. */
 export function refundMailRecipients(
   contactEmail: string,

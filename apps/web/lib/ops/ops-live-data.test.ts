@@ -309,9 +309,10 @@ describe("ops live data — comments 8–10", () => {
       payment_created_at: "2026-09-10T08:00:00.000Z",
       stripe_checkout_session_id: "cs_test_open",
       charged_rappen: 18000,
+      snapshot_total_rappen: 18000,
     });
     expect(row.paid).toBe(false);
-    expect(row.totalRappen).toBe(0);
+    expect(row.totalRappen).toBe(18000);
     expect(row.capturedAt).toBe("");
     expect(row.klass).toBe("Van");
     expect(row.vehicle).toBe("");

@@ -8,6 +8,7 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { asStaff } from "@/lib/db/identity";
 import { loadCompleteness, type CompletenessGap } from "@/lib/ops/pricing";
+import { notifyPriceChangedForUnpaid } from "@/lib/checkout/lock-mail";
 import { classifyPricingFailure, forkLiveRateVersion } from "@/lib/ops/rate-book";
 import { jsonErr, jsonOk, withAdmin } from "@/lib/ops/staff-json";
 
@@ -127,6 +128,11 @@ export async function POST(
       const code = publishCode(sql, classified, named);
       const status = code === "forbidden" ? 403 : 409;
       return jsonFail(code, status, named);
+    }
+    try {
+      await notifyPriceChangedForUnpaid(env);
+    } catch {
+      // Skip-send is best-effort. The book is already live.
     }
     return jsonOk({ id, status: "live" });
   })(request);

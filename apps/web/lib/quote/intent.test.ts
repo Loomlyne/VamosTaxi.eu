@@ -4,6 +4,9 @@
 // database touch in this plan.
 
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   checkIntentAgainstLock,
   INTENT_LADDER,
@@ -12,6 +15,9 @@ import {
   type IntentRecompute,
 } from "./intent";
 import { mintLock, type QuoteLockPayload } from "./lock";
+
+const here = dirname(fileURLToPath(import.meta.url));
+const repoRoot = join(here, "../../../../");
 
 const FAKE_CURRENT = "test-quote-lock-secret-current-not-real-00";
 
@@ -492,6 +498,50 @@ describe("checkIntentAgainstLock", () => {
     expect(result).not.toBeInstanceOf(Response);
     expect(result.ok).toBe(true);
   });
+
+  it("refuses Select when quoted rate_version_id is not the current live book (D-21)", async () => {
+    const priced = fixturePayload({
+      rate_version_id: 1,
+      class_totals: [
+        { slug: "economy", total_rappen: 1 },
+        { slug: "business", total_rappen: 1 },
+        { slug: "van", total_rappen: 1 },
+      ],
+    });
+    const token = await mintLock({ current: FAKE_CURRENT }, priced);
+    const result = await checkIntentAgainstLock(
+      body(priced, token),
+      {
+        secrets: { current: FAKE_CURRENT },
+        workerNowIso: NOW,
+        postgresNowIso: NOW,
+        recompute: () => liveRecompute({ live_rate_version_id: 2 }),
+      },
+    );
+    expect(result).toEqual({ ok: false, code: "quote_expired" });
+  });
+
+  it("allows Select when quoted rate_version_id matches live", async () => {
+    const priced = fixturePayload({
+      rate_version_id: 4,
+      class_totals: [
+        { slug: "economy", total_rappen: 1 },
+        { slug: "business", total_rappen: 1 },
+        { slug: "van", total_rappen: 1 },
+      ],
+    });
+    const token = await mintLock({ current: FAKE_CURRENT }, priced);
+    const result = await checkIntentAgainstLock(
+      body(priced, token),
+      {
+        secrets: { current: FAKE_CURRENT },
+        workerNowIso: NOW,
+        postgresNowIso: NOW,
+        recompute: () => liveRecompute({ live_rate_version_id: 4 }),
+      },
+    );
+    expect(result.ok).toBe(true);
+  });
 });
 
 describe("decorative", () => {
@@ -565,5 +615,18 @@ describe("decorative", () => {
       );
       expect(without, entry.name).toEqual(withStep);
     }
+  });
+});
+
+describe("D-21 Select posts the lock, no home layout change", () => {
+  it("home stores vamosQuoteLock and checkout client posts /api/checkout/intent", () => {
+    const home = readFileSync(join(repoRoot, "app/home/home.dc.html"), "utf8");
+    const client = readFileSync(
+      join(repoRoot, "apps/web/app/[locale]/checkout/CheckoutClient.tsx"),
+      "utf8",
+    );
+    expect(home).toMatch(/vamosQuoteLock/);
+    expect(home).toMatch(/\/checkout\/trip/);
+    expect(client).toMatch(/\/api\/checkout\/intent/);
   });
 });

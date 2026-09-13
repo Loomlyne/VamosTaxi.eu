@@ -84,6 +84,7 @@ export type SqlBoardRow = {
   payment_created_at: string | Date | null;
   stripe_checkout_session_id: string | null;
   charged_rappen: number | string | null;
+  snapshot_total_rappen?: number | string | null;
   extra_rappen?: number | string | null;
   refund_rappen?: number | string | null;
   stripe_fee_rappen?: number | string | null;
@@ -276,7 +277,7 @@ export function mapBoardBooking(row: SqlBoardRow): OpsBookingRow {
     payLinkSent,
     cardSession,
     sessionExpiresAt,
-    totalRappen: paid ? rappen(row.charged_rappen) : 0,
+    totalRappen: rappen(row.snapshot_total_rappen) || rappen(row.charged_rappen),
     extraRappen: rappen(row.extra_rappen),
     refundRappen: rappen(row.refund_rappen),
     stripeFeeRappen,
