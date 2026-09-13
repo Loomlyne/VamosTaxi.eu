@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: v1.0 Vamos Taxi V1
 status: executing
-stopped_at: Phase 18 wave 4 plan 18-05 complete. Next: 18-06 Pricing DC.
-last_updated: "2026-09-13T22:53:14.000Z"
-last_activity: 2026-09-14 -- 18-05 draft staff APIs; public_chf still false
+stopped_at: Phase 18 wave 5 plan 18-06 complete. Next: 18-07 checkout extras.
+last_updated: "2026-09-13T23:28:30.000Z"
+last_activity: 2026-09-14 -- 18-06 Pricing DC; public_chf still false
 progress:
   total_phases: 18
   completed_phases: 11
   total_plans: 168
-  completed_plans: 157
-  percent: 93
+  completed_plans: 158
+  percent: 94
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-09-04)
 ## Current Position
 
 Phase: 18 (OPS Pricing source of truth) — EXECUTING
-Plan: 5 of 10 complete
-Status: Wave 4 plan 18-05 complete. Next: 18-06 Pricing DC.
-Last activity: 2026-09-14 -- 18-05 draft staff APIs; public_chf still false
+Plan: 6 of 10 complete
+Status: Wave 5 plan 18-06 complete. Next: 18-07 checkout extras.
+Last activity: 2026-09-14 -- 18-06 Pricing DC; public_chf still false
 
 ## Performance Metrics
 
@@ -40,6 +40,7 @@ Last activity: 2026-09-14 -- 18-05 draft staff APIs; public_chf still false
 | Phase 18 P03 | 5min | 3 tasks | 9 files |
 | Phase 18 P04 | 5min | 3 tasks | 5 files |
 | Phase 18 P05 | 22min | 3 tasks | 24 files |
+| Phase 18 P06 | 29min | 3 tasks | 6 files |
 
 ## Blockers
 
@@ -48,7 +49,7 @@ Owner Publish on `https://dashboard.vamostaxi.site/pricing` still turns public C
 ## Session Continuity
 
 Last session: 2026-09-14
-Stopped at: 18-05 complete (draft staff APIs). Next: 18-06 Pricing DC.
+Stopped at: 18-06 complete (Pricing DC). Next: 18-07 checkout extras.
 Resume: `/gsd:execute-phase 18`
 
 ## Decisions
@@ -56,3 +57,4 @@ Resume: `/gsd:execute-phase 18`
 - [Phase 18]: D-11 live distance fare is start + all-km per-km + classBandExtrasRappen; no 20 km / min_fare floor — Owner recipe D-11/D-12; Wave 0 fixtures from 18-01 are now green
 - [Phase 18]: Publish is the only public flip — one asStaff tx sets live, public_chf true, and vat_rate_bps, then forkLiveRateVersion clones a draft. Dispatcher cannot publish; last successful admin wins with not-draft.
 - [Phase 18]: Overlay Save / VAT / coupons / classes stay on the draft. Preview loads the draft id via asStaff (quote_rate_book(true) still returns live after Publish). Test unpaid cites live rate_version_id for the charge gate, writes draft amounts, sets is_test; account Pay is off.
+- [Phase 18]: dashboard.vamostaxi.site/pricing is the five-tab fare book; /coupons is gone; dispatcher /pricing is not found. Preview recap is the only draft CHF — never Stripe, never public preferDraft.
