@@ -241,8 +241,19 @@ button[data-vt-count]{appearance:none;-webkit-appearance:none;cursor:pointer;fon
 <sc-if value="{{ isSupport }}" hint-placeholder-val="{{ false }}">
 <dc-import name="OpsSupportTicket" hint-size="100%,900px"></dc-import>
 </sc-if>
-<sc-if value="{{ isCoupons }}" hint-placeholder-val="{{ false }}">
-<dc-import name="OpsCoupons" hint-size="100%,900px"></dc-import>
+<sc-if value="{{ isNotFound }}" hint-placeholder-val="{{ false }}">
+<main style="flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:center;padding:40px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" hint-size="440px,260px">
+<div style="width:380px;max-width:100%;display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px">
+<span style="width:56px;height:56px;border-radius:999px;background:var(--vt-charcoal-900);display:flex;align-items:center;justify-content:center">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="search" size="{{ n22 }}" color="var(--vt-accent)" hint-size="22px,22px"></x-import>
+</span>
+<h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:600;letter-spacing:var(--vt-heading-tracking)">{{ tNotFoundTitle }}</h1>
+<p style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary)">{{ tNotFoundBody }}</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="secondary" href="/bookings" hint-size="180px,44px">{{ tNotFoundBack }}</x-import>
+</div>
+</x-import>
+</main>
 </sc-if>
 <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
 <dc-import name="OpsSettings" hint-size="100%,900px"></dc-import>
@@ -253,22 +264,22 @@ button[data-vt-count]{appearance:none;-webkit-appearance:none;cursor:pointer;fon
 </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;start&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dashboard&quot;,&quot;options&quot;:[&quot;dashboard&quot;,&quot;bookings&quot;,&quot;calendar&quot;,&quot;vehicles&quot;,&quot;chauffeurs&quot;,&quot;pricing&quot;,&quot;customers&quot;,&quot;support&quot;,&quot;coupons&quot;,&quot;reviews&quot;,&quot;settings&quot;,&quot;profile&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Console&quot;},&quot;requireSignIn&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Console&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;start&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dashboard&quot;,&quot;options&quot;:[&quot;dashboard&quot;,&quot;bookings&quot;,&quot;calendar&quot;,&quot;vehicles&quot;,&quot;chauffeurs&quot;,&quot;pricing&quot;,&quot;customers&quot;,&quot;support&quot;,&quot;reviews&quot;,&quot;settings&quot;,&quot;profile&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Console&quot;},&quot;requireSignIn&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Console&quot;}}">
 const FLEET = ['vehicles', 'chauffeurs'];
 const CONTENT = ['pages', 'legal'];
 const HASH_TO_PATH = {
   dashboard: '/dashboard', bookings: '/bookings', calendar: '/calendar',
   customers: '/customers', vehicles: '/fleet', chauffeurs: '/fleet/chauffeurs',
   support: '/support', pricing: '/pricing', profile: '/profile', settings: '/settings',
-  coupons: '/coupons', reviews: '/reviews', pages: '/pages', legal: '/legal',
+  reviews: '/reviews', pages: '/pages', legal: '/legal',
   staff: '/dashboard',
 };
 const MENU = { en:'Open navigation', de:'Navigation öffnen', fr:'Ouvrir la navigation', ar:'فتح التنقل' };
 const PROF = {
-  en: { profile:'Profile', settings:'Settings', signOut:'Sign out' },
-  de: { profile:'Profil', settings:'Einstellungen', signOut:'Abmelden' },
-  fr: { profile:'Profil', settings:'Réglages', signOut:'Se déconnecter' },
-  ar: { profile:'الملف الشخصي', settings:'الإعدادات', signOut:'تسجيل الخروج' },
+  en: { profile:'Profile', settings:'Settings', signOut:'Sign out', notFoundTitle:'This page is not found', notFoundBody:'That address is not in this console.', notFoundBack:'Back to bookings' },
+  de: { profile:'Profil', settings:'Einstellungen', signOut:'Abmelden', notFoundTitle:'Diese Seite wurde nicht gefunden', notFoundBody:'Diese Adresse gibt es in dieser Konsole nicht.', notFoundBack:'Zurück zu Buchungen' },
+  fr: { profile:'Profil', settings:'Réglages', signOut:'Se déconnecter', notFoundTitle:'Cette page est introuvable', notFoundBody:'Cette adresse n’existe pas dans cette console.', notFoundBack:'Retour aux réservations' },
+  ar: { profile:'الملف الشخصي', settings:'الإعدادات', signOut:'تسجيل الخروج', notFoundTitle:'هذه الصفحة غير موجودة', notFoundBody:'هذا العنوان ليس في هذه اللوحة.', notFoundBack:'العودة إلى الحجوزات' },
 };
 function avatarUrl(avatar) {
   const value = String(avatar || '');
@@ -309,7 +320,6 @@ function readPath(pathname) {
   if (path === '/pricing') return { route: 'pricing', detailId: null };
   if (path === '/profile') return { route: 'profile', detailId: null };
   if (path === '/settings') return { route: 'settings', detailId: null };
-  if (path === '/coupons') return { route: 'coupons', detailId: null };
   if (path === '/reviews') return { route: 'reviews', detailId: null };
   if (path === '/pages') return { route: 'pages', detailId: null };
   if (path === '/legal') return { route: 'legal', detailId: null };
@@ -410,18 +420,24 @@ class Component extends DCLogic {
     const t = PROF[this.state.lang] || PROF.en;
     const profile = window.VamosOps ? window.VamosOps.profile.get() : {};
     const me = this.state.me || {};
+    const role = me.role || profile.role || '';
+    const isAdmin = role === 'admin';
+    const pricingDenied = r === 'pricing' && !isAdmin;
     return {
       n16: 16, n20: 20, n22: 22,
-      route: r === 'detail' || r === 'newTrip' ? 'bookings' : r,
+      route: r === 'detail' || r === 'newTrip' ? 'bookings' : (pricingDenied ? 'dashboard' : r),
       detailId: this.state.detailId || '',
       fleetSection: r === 'chauffeurs' ? 'chauffeurs' : 'vehicles',
       chauffeurId: r === 'chauffeurs' ? (this.state.detailId || '') : '',
       contentSection: r === 'legal' ? 'legal' : 'pages',
       isContent: CONTENT.indexOf(r) !== -1,
       isDash: r === 'dashboard', isFleet: FLEET.indexOf(r) !== -1,
-      isBookings: r === 'bookings', isNewTrip: r === 'newTrip', isDetail: r === 'detail', isPricing: r === 'pricing',
+      isBookings: r === 'bookings', isNewTrip: r === 'newTrip', isDetail: r === 'detail',
+      isPricing: r === 'pricing' && isAdmin,
+      isNotFound: pricingDenied || r === 'notFound',
       isReviews: r === 'reviews', isCalendar: r === 'calendar', isCustomers: r === 'customers',
-      isCoupons: r === 'coupons', isSupport: r === 'support', isSettings: r === 'settings' || r === 'staff', isProfile: r === 'profile',
+      isSupport: r === 'support', isSettings: r === 'settings' || r === 'staff', isProfile: r === 'profile',
+      tNotFoundTitle: t.notFoundTitle, tNotFoundBody: t.notFoundBody, tNotFoundBack: t.notFoundBack,
       navOpenAttr: this.state.navOpen ? '1' : '0',
       toggleNav: this.toggleNav, closeNav: this.closeNav,
       toggleMenu: this.toggleMenu, closeMenu: this.closeMenu, goPath: this.goPath, signOut: this.signOut,

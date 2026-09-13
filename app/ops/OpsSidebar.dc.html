@@ -132,7 +132,7 @@
 </aside>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:236,&quot;height&quot;:860},&quot;active&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dashboard&quot;,&quot;options&quot;:[&quot;dashboard&quot;,&quot;bookings&quot;,&quot;calendar&quot;,&quot;vehicles&quot;,&quot;chauffeurs&quot;,&quot;pricing&quot;,&quot;customers&quot;,&quot;support&quot;,&quot;coupons&quot;,&quot;pages&quot;,&quot;legal&quot;,&quot;reviews&quot;,&quot;settings&quot;,&quot;profile&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:236,&quot;height&quot;:860},&quot;active&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dashboard&quot;,&quot;options&quot;:[&quot;dashboard&quot;,&quot;bookings&quot;,&quot;calendar&quot;,&quot;vehicles&quot;,&quot;chauffeurs&quot;,&quot;pricing&quot;,&quot;customers&quot;,&quot;support&quot;,&quot;pages&quot;,&quot;legal&quot;,&quot;reviews&quot;,&quot;settings&quot;,&quot;profile&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
 /* One rail for the whole console. The bottom row collapses it to icons and remembers
    that choice; Fleet and Content are groups; the profile row is a menu, not a link. */
 const NAV_TOP = [
@@ -147,7 +147,6 @@ const FLEET = [
 const NAV_BOTTOM = [
   { key:'customers', href:'/customers', icon:'user', en:'Customers', de:'Kunden', fr:'Clients', ar:'العملاء' },
   { key:'support', href:'/support', icon:'mail', en:'Support', de:'Support', fr:'Assistance', ar:'الدعم' },
-  { key:'coupons', href:'/coupons', icon:'ticket', en:'Coupons', de:'Gutscheine', fr:'Codes promo', ar:'القسائم' },
 ];
 /* D-12: these paths are omitted from the DOM for role=dispatcher — never painted disabled. */
 const NAV_ADMIN = [
