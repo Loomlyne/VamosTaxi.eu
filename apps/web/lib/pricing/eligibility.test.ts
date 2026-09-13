@@ -196,6 +196,18 @@ describe("evaluateEligibility", () => {
     expect(van.max_bags).toBe(8);
   });
 
+  it("labels unavailable when hide_from_public is set — still listed, not selectable (D-19)", () => {
+    const book = seededBook();
+    const vanRate = book.distance_rates.find((r) => r.vehicle_class_id === "vc-van");
+    expect(vanRate).toBeDefined();
+    vanRate!.hide_from_public = true;
+    const board = evaluateEligibility(book, input({ pax: 2, bags: 2 }));
+    expect(entry(board, "van").eligible).toBe(false);
+    expect(entry(board, "van").ineligible_reason).toBe("unavailable");
+    expect(board.classes.map((c) => c.slug)).toContain("van");
+    expect(entry(board, "van").total_rappen).toBeNull();
+  });
+
   it("labels unavailable when distance_rates.available is false", () => {
     const board = evaluateEligibility(
       seededBook({ vanAvailable: false }),

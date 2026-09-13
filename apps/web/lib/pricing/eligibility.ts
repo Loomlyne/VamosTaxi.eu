@@ -83,8 +83,11 @@ function reasonForClass(
   pax: number,
   bags: number,
 ): ClassBoardEntry["ineligible_reason"] {
-  // 1. unavailable — distance rate present but taken off sale
+  // 1. unavailable — taken off sale, or hidden from the public board (D-19)
   if (rate !== null && rate.available === false) {
+    return "unavailable";
+  }
+  if (rate !== null && rate.hide_from_public === true) {
     return "unavailable";
   }
 

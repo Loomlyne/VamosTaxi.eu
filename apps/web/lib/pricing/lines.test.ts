@@ -1,8 +1,8 @@
 // apps/web/lib/pricing/lines.test.ts
 //
-// Per-leg line proofs (D-06, D-08, D-11, D-12, D-13, D-14, D-42, D-45, D-46).
+// Per-leg line proofs (D-06, D-11, D-12, D-13, D-14, D-17, D-42, D-45, D-46).
 // Every priced field is null (launch) or a unit-free synthetic integer — never
-// a currency mark. Wave 0 D-11 fixtures stay red until 18-03.
+// a currency mark.
 
 import { describe, expect, it } from "vitest";
 import * as fc from "fast-check";
@@ -80,9 +80,9 @@ function fixed(
 }
 
 function band(
-  partial: Pick<DistanceBandRow & { vehicle_class_id: string }, "vehicle_class_id" | "from_km" | "per_km_rappen"> &
-    Partial<DistanceBandRow & { vehicle_class_id: string }>,
-): DistanceBandRow & { vehicle_class_id: string } {
+  partial: Pick<DistanceBandRow, "vehicle_class_id" | "from_km" | "per_km_rappen"> &
+    Partial<DistanceBandRow>,
+): DistanceBandRow {
   return {
     id: partial.id ?? 1,
     rate_version_id: partial.rate_version_id ?? 1,
@@ -178,7 +178,7 @@ describe("buildFareLine — fixed route (D-08)", () => {
     expect(line.basis).not.toHaveProperty("base_fare_rappen");
   });
 
-  it("matches (dest,origin) as reverse with the same price", () => {
+  it("D-17: does not match B→A as A→B — reverse is a separate row", () => {
     const fr = fixed({
       vehicle_class_id: business.id,
       origin_zone_id: "z-b",
@@ -187,14 +187,58 @@ describe("buildFareLine — fixed route (D-08)", () => {
       live: true,
     });
     const line = buildFareLine({
-      leg: leg({ origin_zone_id: "z-a", dest_zone_id: "z-b" }),
+      leg: leg({ origin_zone_id: "z-a", dest_zone_id: "z-b", distance_m: 1000 }),
       vehicleClass: business,
-      distanceRate: null,
+      distanceRate: rate({
+        vehicle_class_id: business.id,
+        base_fare_rappen: 100,
+        per_km_rappen: 200,
+      }),
       fixedRoutes: [fr],
       rateVersionId: 1,
     });
-    expect(line.basis.matched).toBe("reverse");
-    expect(line.amount_rappen).toBe(4200);
+    expect(line.basis.rule).toBe("per_km");
+    expect(line.basis.matched).toBeUndefined();
+    expect(line.amount_rappen).toBe(100 + perKm(200, 1000));
+    expect(line.amount_rappen).not.toBe(4200);
+  });
+
+  it("D-17: extra stops drop the fixed route and use the distance recipe", () => {
+    const fr = fixed({
+      vehicle_class_id: business.id,
+      origin_zone_id: "z-a",
+      dest_zone_id: "z-b",
+      price_rappen: 5000,
+      live: true,
+    });
+    const viaWaypoints = buildFareLine({
+      leg: leg({ waypoints: [{ mapbox_id: "stop-1" }] }),
+      vehicleClass: business,
+      distanceRate: rate({
+        vehicle_class_id: business.id,
+        base_fare_rappen: 100,
+        per_km_rappen: 50,
+      }),
+      fixedRoutes: [fr],
+      rateVersionId: 1,
+    });
+    expect(viaWaypoints.basis.rule).toBe("per_km");
+    expect(viaWaypoints.amount_rappen).toBe(100 + perKm(50, 10_000));
+
+    const viaFlag = buildFareLine({
+      leg: leg(),
+      vehicleClass: business,
+      distanceRate: rate({
+        vehicle_class_id: business.id,
+        base_fare_rappen: 100,
+        per_km_rappen: 50,
+      }),
+      fixedRoutes: [fr],
+      rateVersionId: 1,
+      hasExtraStops: true,
+    });
+    expect(viaFlag.basis.rule).toBe("per_km");
+    expect(viaFlag.amount_rappen).toBe(100 + perKm(50, 10_000));
   });
 
   it("does not match a live:false fixed route — falls to per-km", () => {

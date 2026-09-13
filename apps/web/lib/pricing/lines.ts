@@ -1,20 +1,20 @@
 // apps/web/lib/pricing/lines.ts
 //
-// Per-leg line construction for the quote pipeline (D-06, D-08, D-45).
+// Per-leg line construction for the quote pipeline (D-06, D-11, D-17, D-45).
 // Fare → percent/amount/included surcharges → quantity extras. Every percent
 // is taken of THAT LEG'S fare line only — never a running total, never another
-// surcharge (D-06). Fixed-route match is bidirectional and records matched
-// direction because months later (origin,dest) alone cannot say which way the
-// ops Pricing table held the row (D-08). Child seat / oversized luggage emit
-// one line per leg_seq on a return; extra_stop is leg 1 only (D-45).
+// surcharge (D-06). Fixed-route match is origin→dest only (D-17); A→B and B→A
+// are separate rows. Extra stops drop the fixed row and use the distance
+// recipe. Child seat / oversized luggage emit one line per leg_seq on a
+// return; extra_stop is leg 1 only (D-45).
 //
 // Negative space: this module reads no clock, performs no I/O, formats nothing,
 // and never decides IF a surcharge applies — that is predicates.ts, called from
-// here. Client-supplied amounts are not parameters; quantities only (D-11).
-// Min-fare is applied inside buildFareLine so no caller can surcharge a
-// below-minimum fare.
+// here. Client-supplied amounts are not parameters; quantities only.
+// Distance fare is start + all-km per-km + class band extras (D-11). min_fare
+// is not a floor.
 
-import { blendedFareRappen } from "./bands";
+import { classBandExtrasRappen } from "./bands";
 import { evaluatePredicate } from "./predicates";
 import { percentOf, percentToHundredths, perKm } from "./round";
 import type {
@@ -130,25 +130,43 @@ export interface BuildFareLineArgs {
   fixedRoutes: FixedRouteRow[];
   rateVersionId: number | null;
   distanceBands?: DistanceBandRow[];
+  /** D-17: extra stop on the journey → skip fixed_routes, use distance recipe. */
+  hasExtraStops?: boolean;
+}
+
+function journeyHasExtraStops(
+  leg: QuoteLegInput,
+  hasExtraStops?: boolean,
+): boolean {
+  if (hasExtraStops === true) return true;
+  return Array.isArray(leg.waypoints) && leg.waypoints.length > 0;
 }
 
 /**
- * D-08: try (origin,dest) then (dest,origin) among live fixed routes for this
- * class. A live:false row is not matched. Fixed route ignores base/per-km/min.
- * Min-fare bites inside the per_km branch only, before any surcharge can see it.
+ * D-17: match live fixed routes origin→dest for this class only. A live:false
+ * row is not matched. Extra stops skip the fixed table. Distance fare is
+ * start + perKm(all metres) + class band extras (D-11). min_fare is not a floor.
  */
 export function buildFareLine(args: BuildFareLineArgs): Line {
-  const { leg, vehicleClass, distanceRate, fixedRoutes, rateVersionId, distanceBands } = args;
+  const {
+    leg,
+    vehicleClass,
+    distanceRate,
+    fixedRoutes,
+    rateVersionId,
+    distanceBands,
+    hasExtraStops,
+  } = args;
   const classId = vehicleClass.id;
   const slug = vehicleClass.slug as VehicleClassSlug;
   const origin = leg.origin_zone_id;
   const dest = leg.dest_zone_id;
+  const extraStops = journeyHasExtraStops(leg, hasExtraStops);
 
-  // D-08 bidirectional match — record matched so a refund can see direction.
-  let matched: "forward" | "reverse" | null = null;
+  let matched: "forward" | null = null;
   let fixed: FixedRouteRow | null = null;
 
-  if (origin !== null && dest !== null) {
+  if (!extraStops && origin !== null && dest !== null) {
     const forward = fixedRoutes.find(
       (r) =>
         r.vehicle_class_id === classId &&
@@ -159,18 +177,6 @@ export function buildFareLine(args: BuildFareLineArgs): Line {
     if (forward) {
       matched = "forward";
       fixed = forward;
-    } else {
-      const reverse = fixedRoutes.find(
-        (r) =>
-          r.vehicle_class_id === classId &&
-          r.live === true &&
-          r.origin_zone_id === dest &&
-          r.dest_zone_id === origin,
-      );
-      if (reverse) {
-        matched = "reverse";
-        fixed = reverse;
-      }
     }
   }
 
@@ -197,62 +203,16 @@ export function buildFareLine(args: BuildFareLineArgs): Line {
   }
 
   const bands = distanceBands ?? [];
-  if (bands.length > 0) {
-    const minFare = distanceRate?.min_fare_rappen ?? null;
-    const distance_m = leg.distance_m;
-    const provisional = seqFor(leg.leg_seq, "fare", "distance_fare");
-    const amount = minFare === null ? null : blendedFareRappen(distance_m, minFare, bands);
-    return {
-      seq: provisional,
-      leg_seq: leg.leg_seq,
-      kind: "fare",
-      code: "distance_fare",
-      i18n_key: "price.line.transfer",
-      params: { vehicleClass: slug },
-      basis: {
-        rule: "blended_km",
-        distance_m,
-        min_fare_rappen: minFare,
-        min_fare_applied: minFare !== null && distance_m <= 20_000,
-        band_count: bands.length,
-      },
-      source_row:
-        distanceRate !== null
-          ? {
-              table: "distance_rates",
-              id: distanceRate.id,
-              ...(rateVersionId !== null ? { rate_version_id: rateVersionId } : {}),
-            }
-          : undefined,
-      amount_rappen: amount,
-    };
-  }
-
-  // Per-km branch. Every basis field present even when amounts are null (launch).
   const base = distanceRate?.base_fare_rappen ?? null;
   const perKmR = distanceRate?.per_km_rappen ?? null;
-  const minFare = distanceRate?.min_fare_rappen ?? null;
   const distance_m = leg.distance_m;
 
-  let raw: number | null = null;
-  let min_fare_applied = false;
   let amount: number | null = null;
-
   if (base !== null && perKmR !== null) {
-    raw = base + perKm(perKmR, distance_m);
-    amount = raw;
-    if (minFare !== null && amount < minFare) {
-      amount = minFare;
-      min_fare_applied = true;
-    }
-  } else if (base === null && perKmR === null && minFare === null) {
-    // Launch state / unpriced — complete basis, null amount.
-    amount = null;
-    min_fare_applied = false;
-  } else if (base !== null && perKmR === null) {
-    amount = null;
-  } else if (base === null && perKmR !== null) {
-    amount = null;
+    amount =
+      base +
+      perKm(perKmR, distance_m) +
+      classBandExtrasRappen(distance_m, bands, classId);
   }
 
   const provisional = seqFor(leg.leg_seq, "fare", "distance_fare");
@@ -268,9 +228,7 @@ export function buildFareLine(args: BuildFareLineArgs): Line {
       distance_m,
       per_km_rappen: perKmR,
       base_fare_rappen: base,
-      min_fare_rappen: minFare,
-      min_fare_applied,
-      ...(raw !== null ? { raw_fare_rappen: raw } : {}),
+      band_count: bands.filter((row) => row.vehicle_class_id === classId).length,
     },
     ...(distanceRate
       ? {
