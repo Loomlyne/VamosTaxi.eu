@@ -32,6 +32,7 @@ export type DistanceRateRow = {
   minFareRappen: number | null;
   maxPax: number;
   available: boolean;
+  hideFromPublic: boolean;
 };
 
 export type FixedRouteRow = {
@@ -65,6 +66,8 @@ export type RateBook = {
   status: RateVersionStatus;
   slug: string;
   label: string;
+  vatRateBps: number | null;
+  quoteLockMinutes: number | null;
   distanceRates: DistanceRateRow[];
   fixedRoutes: FixedRouteRow[];
   surcharges: SurchargeRow[];
@@ -85,6 +88,7 @@ export type DistanceRateInput = {
   minFareRappen: number | null;
   maxPax: number;
   available: boolean;
+  hideFromPublic?: boolean;
 };
 
 export type FixedRouteInput = {
@@ -202,6 +206,7 @@ export function assertDistanceRateInput(input: DistanceRateInput): DistanceRateI
     minFareRappen: rejectNegativeRappen(input.minFareRappen, "rateBook.error-rappen"),
     maxPax: input.maxPax,
     available: input.available,
+    hideFromPublic: input.hideFromPublic === true,
   };
 }
 
@@ -286,6 +291,8 @@ type VersionSqlRow = {
   slug: string;
   label: string;
   status: RateVersionStatus;
+  vat_rate_bps: number | string | null;
+  quote_lock_minutes: number | string | null;
 };
 
 type DistanceSqlRow = {
@@ -298,6 +305,7 @@ type DistanceSqlRow = {
   min_fare_rappen: number | string | null;
   max_pax: number;
   available: boolean;
+  hide_from_public: boolean;
 };
 
 type RouteSqlRow = {
@@ -341,7 +349,7 @@ export async function loadRateBook(
 ): Promise<RateBook | null> {
   return asStaff(env, claims, async (tx) => {
     const versions = await tx<VersionSqlRow[]>`
-      select id, slug, label, status
+      select id, slug, label, status, vat_rate_bps, quote_lock_minutes
         from public.rate_versions
        where id = ${versionId}
        limit 1
@@ -359,7 +367,8 @@ export async function loadRateBook(
         r.per_km_rappen,
         r.min_fare_rappen,
         r.max_pax,
-        r.available
+        r.available,
+        r.hide_from_public
       from public.distance_rates r
       join public.vehicle_classes vc on vc.id = r.vehicle_class_id
       where r.rate_version_id = ${versionId}
@@ -408,6 +417,8 @@ export async function loadRateBook(
       status: version.status,
       slug: version.slug,
       label: version.label,
+      vatRateBps: asRappen(version.vat_rate_bps),
+      quoteLockMinutes: asRappen(version.quote_lock_minutes),
       distanceRates: distance.map((row) => ({
         id: asId(row.id),
         rateVersionId: asId(row.rate_version_id),
@@ -418,6 +429,7 @@ export async function loadRateBook(
         minFareRappen: asRappen(row.min_fare_rappen),
         maxPax: row.max_pax,
         available: row.available,
+        hideFromPublic: row.hide_from_public === true,
       })),
       fixedRoutes: routes.map((row) => ({
         id: asId(row.id),

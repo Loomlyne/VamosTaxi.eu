@@ -26,8 +26,9 @@ describe("Phase 6 finalize — four classes and staff hash", () => {
       "utf8",
     );
     expect(rateBook).toMatch(
-      /CLASS_KEYS = \["economy", "business", "first", "van"\]/,
+      /KNOWN_CLASS_SLUGS = \["economy", "business", "first", "van"\]/,
     );
+    expect(rateBook).toMatch(/CLASS_SLUG = \/\^\[a-z0-9\]/);
     const fleet = read("app/ops/OpsFleet.dc.html");
     expect(fleet).toMatch(/'Economy', 'Business', 'First', 'Van'/);
   });

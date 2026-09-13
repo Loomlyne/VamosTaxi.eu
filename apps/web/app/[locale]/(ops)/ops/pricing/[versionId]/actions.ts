@@ -75,18 +75,19 @@ export async function upsertDistanceRate(
             per_km_rappen = ${parsed.perKmRappen},
             min_fare_rappen = ${parsed.minFareRappen},
             max_pax = ${parsed.maxPax},
-            available = ${parsed.available}
+            available = ${parsed.available},
+            hide_from_public = ${parsed.hideFromPublic}
           where id = ${id} and rate_version_id = ${versionId}
         `;
       } else {
         await tx`
           insert into public.distance_rates (
             rate_version_id, vehicle_class_id, base_fare_rappen, per_km_rappen,
-            min_fare_rappen, max_pax, available
+            min_fare_rappen, max_pax, available, hide_from_public
           ) values (
             ${versionId}, ${parsed.vehicleClassId}, ${parsed.baseFareRappen},
             ${parsed.perKmRappen}, ${parsed.minFareRappen}, ${parsed.maxPax},
-            ${parsed.available}
+            ${parsed.available}, ${parsed.hideFromPublic}
           )
         `;
       }
