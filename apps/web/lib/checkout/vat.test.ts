@@ -6,11 +6,6 @@ import {
   vatOnTopRappen,
 } from "./vat";
 
-type VatOnTop = (netRappen: number, bps?: number | null) => number;
-type Payable = (netRappen: number, bps?: number | null) => number;
-const vatOnTop = vatOnTopRappen as VatOnTop;
-const payable = payableWithVatRappen as Payable;
-
 describe("vatIncludedRappen", () => {
   it("takes 8.1% out of a Van floor without adding on top", () => {
     expect(vatIncludedRappen(15_000)).toBe(1_124);
@@ -62,23 +57,23 @@ describe("injected bps / fallback 81 (D-22)", () => {
   });
 
   it("omitted bps falls back to 81", () => {
-    expect(vatOnTop(10_000)).toBe(810);
-    expect(payable(10_000)).toBe(10_810);
+    expect(vatOnTopRappen(10_000)).toBe(810);
+    expect(payableWithVatRappen(10_000)).toBe(10_810);
   });
 
   it("vatOnTopRappen(net, bps) uses the argument; omitted bps falls back to 81", () => {
-    expect(vatOnTop(10_000, 81)).toBe(810);
-    expect(payable(10_000, 81)).toBe(10_810);
-    expect(vatOnTop(10_000)).toBe(810);
+    expect(vatOnTopRappen(10_000, 81)).toBe(810);
+    expect(payableWithVatRappen(10_000, 81)).toBe(10_810);
+    expect(vatOnTopRappen(10_000)).toBe(810);
   });
 
   it("vatOnTopRappen(10000, 0) is 0; payable keeps the net", () => {
-    expect(vatOnTop(10_000, 0)).toBe(0);
-    expect(payable(10_000, 0)).toBe(10_000);
+    expect(vatOnTopRappen(10_000, 0)).toBe(0);
+    expect(payableWithVatRappen(10_000, 0)).toBe(10_000);
   });
 
   it("null bps falls back to 81", () => {
-    expect(vatOnTop(10_000, null)).toBe(810);
-    expect(payable(10_000, null)).toBe(10_810);
+    expect(vatOnTopRappen(10_000, null)).toBe(810);
+    expect(payableWithVatRappen(10_000, null)).toBe(10_810);
   });
 });
