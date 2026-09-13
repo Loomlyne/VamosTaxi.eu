@@ -16,6 +16,7 @@ import {
   type SettingsInput,
   type SettingsRow,
 } from "@/lib/ops/settings";
+import { CH_VAT_RATE_BPS } from "@/lib/checkout/vat";
 import { jsonErr, jsonOk, withStaff } from "@/lib/ops/staff-json";
 
 export const dynamic = "force-dynamic";
@@ -38,6 +39,22 @@ function asTurnaround(value: unknown, fallback: number): number {
   return fallback;
 }
 
+/** Integer >= 0. Missing → current then 81. Negative / non-finite → throw. */
+function asVatBps(value: unknown, current: number): number {
+  const fallback = Number.isInteger(current) && current >= 0 ? current : CH_VAT_RATE_BPS;
+  if (value === undefined || value === null || value === "") return fallback;
+  let parsed: number | null = null;
+  if (typeof value === "number" && Number.isFinite(value)) parsed = value;
+  else if (typeof value === "string" && value !== "") {
+    const n = Number(value);
+    if (Number.isFinite(n)) parsed = n;
+  }
+  if (parsed === null || parsed < 0) {
+    throw new SettingsInputError("vat_rate_bps", "settings-error-vat");
+  }
+  return Math.trunc(parsed);
+}
+
 /** DC field names. Policy numbers are display-only (D-27). */
 function toDcSettings(settings: SettingsRow, policy: PolicyVersionRow | null) {
   return {
@@ -57,6 +74,7 @@ function toDcSettings(settings: SettingsRow, policy: PolicyVersionRow | null) {
     smsReminder: settings.sms_reminder,
     opsAlerts: settings.ops_alerts,
     chauffeurTurnaround: settings.chauffeur_turnaround_minutes,
+    vatRateBps: settings.vat_rate_bps,
     minAdvance: policy?.min_advance_minutes ?? "",
     cancelWindow: policy?.free_cancel_hours ?? "",
     airportWait: policy?.airport_waiting_minutes ?? "",
@@ -100,6 +118,10 @@ function parseSettingsBody(raw: unknown, current: SettingsRow): SettingsInput {
     chauffeur_turnaround_minutes: asTurnaround(
       body.chauffeur_turnaround_minutes ?? body.chauffeurTurnaround,
       current.chauffeur_turnaround_minutes,
+    ),
+    vat_rate_bps: asVatBps(
+      body.vat_rate_bps ?? body.vatRateBps,
+      current.vat_rate_bps,
     ),
   });
 }
@@ -150,6 +172,7 @@ export const PATCH = withStaff(async (claims, request) => {
           sms_reminder = ${parsed.sms_reminder},
           ops_alerts = ${parsed.ops_alerts},
           chauffeur_turnaround_minutes = ${parsed.chauffeur_turnaround_minutes},
+          vat_rate_bps = ${parsed.vat_rate_bps},
           updated_at = now()
         where id = 1
       `;
