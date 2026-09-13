@@ -31,6 +31,27 @@ export type SettleRow = {
   already_settled: boolean;
 };
 
+export type CaptureGate = {
+  capture: boolean;
+  reason?: "cancelled" | "expired" | "is_test";
+};
+
+export type CaptureGateRow = {
+  status: string;
+  is_test: boolean;
+  expired: boolean;
+};
+
+/** D-23 / D-33: never capture after lock expiry, cancel, or is_test. Paid stays payable. */
+export function captureAllowed(row: CaptureGateRow): CaptureGate {
+  if (row.is_test) return { capture: false, reason: "is_test" };
+  if (row.status === "cancelled") return { capture: false, reason: "cancelled" };
+  if (row.expired && (row.status === "pending" || row.status === "quote")) {
+    return { capture: false, reason: "expired" };
+  }
+  return { capture: true };
+}
+
 export type SettleDeps = {
   begin: (
     eventId: string,
@@ -48,6 +69,11 @@ export type SettleDeps = {
   eventSettle: (eventId: string, error: string | null) => Promise<void>;
   deliverConfirmation: (row: SettleRow) => Promise<void>;
   emit: (level: "debug" | "info" | "warn" | "error", type: string, fields?: Record<string, ScalarValue>) => void;
+  /** When omitted, capture is allowed (unit tests). Production always supplies it. */
+  loadCaptureGate?: (
+    session: Stripe.Checkout.Session | null,
+    objectId: string,
+  ) => Promise<CaptureGate>;
 };
 
 function sqlState(err: unknown): string | undefined {
@@ -134,6 +160,18 @@ export async function handleStripeMessageWithDeps(
     return { ack: true };
   }
 
+  if (outcome === "succeeded" && deps.loadCaptureGate) {
+    const gate = await deps.loadCaptureGate(session, message.objectId);
+    if (!gate.capture) {
+      deps.emit("info", "stripe_event", {
+        reason: gate.reason ?? "expired",
+        eventId: message.eventId,
+      });
+      await deps.eventSettle(message.eventId, gate.reason ?? "expired");
+      return { ack: true };
+    }
+  }
+
   let row: SettleRow;
   try {
     row = await deps.settlePayment({
@@ -193,6 +231,37 @@ export async function handleStripeMessage(
       };
     },
     retrieveSession: (id) => retrieveCheckoutSession(stripe, id),
+    loadCaptureGate: async (session, objectId) => {
+      const sessionId = session?.id ?? (objectId.startsWith("cs_") ? objectId : null);
+      const piId = paymentIntentIdOf(session) ?? (objectId.startsWith("pi_") ? objectId : null);
+      const rows = await asSystem(env, async (sql) => {
+        return sql<CaptureGateRow[]>`
+          select
+            b.status::text as status,
+            coalesce(b.is_test, false) as is_test,
+            (ps.quote_lock_expires_at <= now()) as expired
+          from public.booking_payments as bp
+          join public.bookings as b on b.id = bp.booking_id
+          join public.price_snapshots as ps on ps.id = b.price_snapshot_id
+         where (
+             ${sessionId}::text is not null
+             and bp.stripe_checkout_session_id = ${sessionId}
+           )
+            or (
+             ${piId}::text is not null
+             and bp.stripe_payment_intent_id = ${piId}
+           )
+         limit 1
+        `;
+      });
+      const row = rows[0];
+      if (!row) return { capture: true };
+      return captureAllowed({
+        status: String(row.status ?? ""),
+        is_test: row.is_test === true,
+        expired: row.expired === true,
+      });
+    },
     settlePayment: async (input) => {
       const fx = input.session ? fxFromSession(input.session) : {
         chargedCurrency: "CHF",

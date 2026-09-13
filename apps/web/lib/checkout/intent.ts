@@ -83,6 +83,8 @@ export type CheckoutIntentDeps = {
   extrasCatalog?: CheckoutExtraJson[];
   /** asQuote loadLaunchFlags. Omitted/throw → fail-closed 81. */
   loadLaunchFlags?: () => Promise<{ vat_rate_bps: number }>;
+  /** D-33: test unpaid never opens Stripe. Omitted → not a test booking. */
+  loadQuotePayGate?: (quoteId: string) => Promise<{ is_test: boolean } | null>;
 };
 
 function mapQuoteCode(code: QuoteErrorCode): CheckoutRefusalCode {
@@ -213,6 +215,11 @@ export async function runCheckoutIntent(
 
   if (!checked.ok) {
     return refuse(mapQuoteCode(checked.code));
+  }
+
+  const payGate = await deps.loadQuotePayGate?.(body.quote_id);
+  if (payGate?.is_test) {
+    return refuse("invalid_request");
   }
 
   const payload = checked.payload;

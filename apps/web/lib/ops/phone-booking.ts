@@ -113,6 +113,7 @@ export async function staffPayLink(
         charged_rappen: number | null;
         captured_at: string | Date | null;
         stripe_checkout_session_id: string | null;
+        is_test: boolean | null;
       }[]
     >`
       select
@@ -137,7 +138,8 @@ export async function staffPayLink(
         l.bags,
         p.charged_rappen,
         p.captured_at,
-        p.stripe_checkout_session_id
+        p.stripe_checkout_session_id,
+        b.is_test
       from public.bookings b
       left join lateral (
         select *
@@ -161,6 +163,7 @@ export async function staffPayLink(
     if (!row) return { ok: false, code: "not-found" };
     const frozen = ["cancelled", "refunded", "completed", "no-show", "no_show"].includes(row.status);
     if (frozen) return { ok: false, code: "frozen" };
+    if (row.is_test === true) return { ok: false, code: "is-test" };
     if (row.captured_at) return { ok: false, code: "already-paid" };
     const email = String(row.contact_email ?? "").trim();
     if (!email) return { ok: false, code: "no-email" };

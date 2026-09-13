@@ -84,6 +84,15 @@ export async function POST(request: Request) {
     throw err;
   }
 
+  const testRows = await asCheckout(env, null, (sql) => sql<{ is_test: boolean | null }[]>`
+    select is_test from public.bookings
+     where id = ${String(row.booking_id)}::uuid
+     limit 1
+  `);
+  if (testRows[0]?.is_test === true) {
+    return refuse("invalid_request");
+  }
+
   const charged = row.charged_rappen == null ? null : Number(row.charged_rappen);
   if (charged == null || !Number.isFinite(charged) || charged <= 0) {
     return refuse("payment_window_closed");

@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { handleStripeMessageWithDeps, pgTextArrayLiteral, type SettleDeps } from "./settle";
+import {
+  captureAllowed,
+  handleStripeMessageWithDeps,
+  pgTextArrayLiteral,
+  type SettleDeps,
+} from "./settle";
 import type { StripeQueueMessage } from "./webhook";
 import type Stripe from "stripe";
 
@@ -144,5 +149,57 @@ describe("handleStripeMessageWithDeps", () => {
     const result = await handleStripeMessageWithDeps(message(), d);
     expect(result).toEqual({ ack: true });
     expect(d.deliverConfirmation).toHaveBeenCalledTimes(1);
+  });
+
+  it("acks a paid checkout.session.completed without succeeded settle when the unpaid lock expired (D-23)", async () => {
+    const d = deps({
+      loadCaptureGate: vi.fn(async () => ({ capture: false, reason: "expired" })),
+    });
+    const result = await handleStripeMessageWithDeps(message(), d);
+    expect(result).toEqual({ ack: true });
+    expect(d.settlePayment).not.toHaveBeenCalled();
+    expect(d.deliverConfirmation).not.toHaveBeenCalled();
+    expect(d.eventSettle).toHaveBeenCalledWith("evt_1", "expired");
+  });
+
+  it("acks without capture when the unpaid trip is cancelled", async () => {
+    const d = deps({
+      loadCaptureGate: vi.fn(async () => ({ capture: false, reason: "cancelled" })),
+    });
+    const result = await handleStripeMessageWithDeps(message(), d);
+    expect(result).toEqual({ ack: true });
+    expect(d.settlePayment).not.toHaveBeenCalled();
+  });
+
+  it("acks without capture when bookings.is_test (D-33)", async () => {
+    const d = deps({
+      loadCaptureGate: vi.fn(async () => ({ capture: false, reason: "is_test" })),
+    });
+    const result = await handleStripeMessageWithDeps(message(), d);
+    expect(result).toEqual({ ack: true });
+    expect(d.settlePayment).not.toHaveBeenCalled();
+  });
+});
+
+describe("captureAllowed", () => {
+  it("blocks expired pending, cancelled, and is_test; allows paid after lock expiry", () => {
+    expect(captureAllowed({ status: "pending", is_test: false, expired: true })).toEqual({
+      capture: false,
+      reason: "expired",
+    });
+    expect(captureAllowed({ status: "cancelled", is_test: false, expired: false })).toEqual({
+      capture: false,
+      reason: "cancelled",
+    });
+    expect(captureAllowed({ status: "pending", is_test: true, expired: false })).toEqual({
+      capture: false,
+      reason: "is_test",
+    });
+    expect(captureAllowed({ status: "paid", is_test: false, expired: true })).toEqual({
+      capture: true,
+    });
+    expect(captureAllowed({ status: "pending", is_test: false, expired: false })).toEqual({
+      capture: true,
+    });
   });
 });

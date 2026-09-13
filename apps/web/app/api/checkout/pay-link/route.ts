@@ -111,6 +111,16 @@ export async function POST(request: Request) {
     snapshotPolicy,
     extrasCatalog,
     loadLaunchFlags: () => loadLaunchFlags(env),
+    loadQuotePayGate: async (quoteId) => {
+      const rows = await asCheckout(env, null, (sql) => sql<{ is_test: boolean | null }[]>`
+        select is_test from public.bookings
+         where quote_id = ${quoteId}::uuid
+         limit 1
+      `);
+      const row = rows[0];
+      if (!row) return null;
+      return { is_test: row.is_test === true };
+    },
   });
 
   if (!intentRes.ok) return intentRes;

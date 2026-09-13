@@ -11,8 +11,8 @@ import {
   type OpsMustFixKind,
   type OpsMustFixTrip,
 } from "@vamos/emails/confirmation";
-import { asSystem } from "@/lib/db/identity";
-import { SUPPORT_EMAIL } from "@/lib/contact-channels";
+import { asSystem } from "../db/identity";
+import { SUPPORT_EMAIL } from "../contact-channels";
 
 export type { OpsMustFixKind, OpsMustFixTrip };
 

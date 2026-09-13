@@ -1,7 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { handleStripeWebhook, type WebhookDeps } from "./webhook";
 import { WebhookVerificationError } from "./webhook-verify";
 import type Stripe from "stripe";
+
+const here = dirname(fileURLToPath(import.meta.url));
 
 function event(overrides: Partial<Stripe.Event> = {}): Stripe.Event {
   return {
@@ -106,5 +111,12 @@ describe("handleStripeWebhook", () => {
     const raw = '{"id":"evt"}';
     await handleStripeWebhook(raw, "t=1,v1=abc", d);
     expect(d.verify).toHaveBeenCalledWith(raw, "t=1,v1=abc");
+  });
+
+  it("never captures or marks paid (D-23)", () => {
+    const src = readFileSync(join(here, "webhook.ts"), "utf8");
+    expect(src).not.toMatch(/settlePayment/);
+    expect(src).not.toMatch(/sk_live_/);
+    expect(src).toMatch(/never captures/);
   });
 });

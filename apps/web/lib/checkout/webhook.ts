@@ -1,7 +1,8 @@
 // apps/web/lib/checkout/webhook.ts
 //
 // D-13 / D-16: verify, record, enqueue, 200. No state machine. Stripe times
-// out a slow endpoint and retries it.
+// out a slow endpoint and retries it. Capture lives on the queue consumer
+// (settle.ts). This handler never marks paid and never captures.
 
 import type Stripe from "stripe";
 import { WebhookVerificationError } from "./webhook-verify";

@@ -1,4 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { mintLock, type QuoteLockPayload } from "../quote/lock";
 import { runCheckoutIntent, type CheckoutIntentDeps } from "./intent";
 import type { CheckoutIntentRequest } from "./intent-schema";
@@ -6,6 +9,7 @@ import type { CheckoutIntentRequest } from "./intent-schema";
 const SECRETS = { current: "lock-secret-current" };
 const NOW = "2026-09-05T12:00:00.000Z";
 const EXP = "2026-09-05T13:00:00.000Z";
+const here = dirname(fileURLToPath(import.meta.url));
 
 function payload(overrides: Partial<QuoteLockPayload> = {}): QuoteLockPayload {
   return {
@@ -577,5 +581,57 @@ describe("runCheckoutIntent", () => {
       expect.objectContaining({ code: "distance_fare", amount_rappen: 8810 }),
       expect.objectContaining({ code: "child_seat", amount_rappen: 2000 }),
     ]);
+  });
+
+  it("refuses bookings.is_test and never creates a Stripe session (D-33)", async () => {
+    const p = payload();
+    const body = await bodyFor(p);
+    const create = vi.fn(async () => {
+      throw new Error("must not create Stripe session");
+    });
+    const res = await runCheckoutIntent(
+      body,
+      deps(p, {
+        loadQuotePayGate: async () => ({ is_test: true }),
+        createCheckoutSession: create as unknown as CheckoutIntentDeps["createCheckoutSession"],
+      }),
+    );
+    expect(res.status).toBe(400);
+    expect(((await res.json()) as { code: string }).code).toBe("invalid_request");
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("charges the locked snapshot amount before expiry", async () => {
+    const p = payload();
+    const body = await bodyFor(p);
+    let charged = 0;
+    const res = await runCheckoutIntent(
+      body,
+      deps(p, {
+        createCheckoutSession: async (input) => {
+          charged = input.chargedRappen;
+          return {
+            id: "cs_test_1",
+            client_secret: "cs_test_1_secret",
+            payment_intent: "pi_test_1",
+            status: "open",
+          } as never;
+        },
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect(charged).toBe(8648);
+    expect(((await res.json()) as { amount_rappen: number }).amount_rappen).toBe(8648);
+  });
+});
+
+describe("18-08 Stripe gates", () => {
+  it("has no sk_live_ and does not filter payment methods (D-26)", () => {
+    for (const name of ["intent.ts", "settle.ts", "webhook.ts", "stripe.ts"]) {
+      const src = readFileSync(join(here, name), "utf8");
+      expect(src, name).not.toMatch(/sk_live_/);
+    }
+    const stripe = readFileSync(join(here, "stripe.ts"), "utf8");
+    expect(stripe).toMatch(/Do not pass `payment_method_types`/);
   });
 });
