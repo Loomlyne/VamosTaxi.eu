@@ -6,8 +6,11 @@
 // by plan 04-11's handler from plan 04-09's quote_settings_version read.
 //
 // D-17: named live fixed_routes pair in either order, otherwise both ends
-// inside settings_versions.service_area_geojson. D-41: min_advance_minutes
-// is read from the argument — this module never invents a number.
+// inside the published snapshot polygon (rate_versions.service_area_geojson
+// copied onto settings_versions at Publish). D-39: Vamos quotes only when
+// pickup and dropoff are both inside; either pin outside is out_of_service_area
+// and classes are not offered. D-41: min_advance_minutes is read from the
+// argument — this module never invents a number.
 //
 // Negative space: no I/O, no clock, no Mapbox, no database. Point-in-polygon
 // is ray-casting here because PostGIS is not installed (Phase 2 ships
@@ -225,12 +228,14 @@ export function checkServiceArea(input: ServiceAreaInput): ServiceAreaResult {
   }
 
   if (input.polygon === null) {
-    // service_area_geojson NULL fails closed: skipping the check means quoting
-    // anywhere on Earth. Renders as a labelled TBC gap (ADR-011), not as
-    // "we do not serve you".
+    // Published snapshot polygon NULL fails closed: skipping the check means
+    // quoting anywhere on Earth. Renders as a labelled TBC gap (ADR-011), not
+    // as "we do not serve you".
     return { ok: false, code: "service_area_undefined" };
   }
 
+  // D-39: both pins inside the published polygon. One inside / one outside
+  // is out_of_service_area — classes are not offered.
   const originIn = pointInPolygon(input.origin, input.polygon);
   const destIn = pointInPolygon(input.dest, input.polygon);
   if (originIn && destIn) {

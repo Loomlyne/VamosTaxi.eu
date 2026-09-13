@@ -199,6 +199,8 @@ export interface BuildCouponLineArgs {
  * Percent coupon → percentOf(preCouponTotal); amount coupon → min(amount, total).
  * Amount is a POSITIVE magnitude; sign lives in kind (D-07).
  * basis.clamped records whether the amount coupon bit the ceiling.
+ * D-16: coupon applies to the pre-VAT fare+extras total and never drives
+ * payable below 0 (clamped to preCouponTotal).
  */
 export function buildCouponLine(args: BuildCouponLineArgs): Line {
   const { coupon, preCouponTotal } = args;

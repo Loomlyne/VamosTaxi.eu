@@ -273,8 +273,25 @@ describe("checkServiceArea", () => {
   });
 
   it("refuses out_of_service_area when exactly one end is inside the polygon", () => {
-    const result = checkServiceArea({
+    const originIn = checkServiceArea({
       origin: { lng: 2, lat: 2 },
+      dest: { lng: 20, lat: 20 },
+      polygon: SQUARE,
+      fixedRoutes: [],
+    });
+    expect(originIn).toEqual({ ok: false, code: "out_of_service_area" });
+    const destIn = checkServiceArea({
+      origin: { lng: 20, lat: 20 },
+      dest: { lng: 2, lat: 2 },
+      polygon: SQUARE,
+      fixedRoutes: [],
+    });
+    expect(destIn).toEqual({ ok: false, code: "out_of_service_area" });
+  });
+
+  it("refuses out_of_service_area when both ends are outside the polygon", () => {
+    const result = checkServiceArea({
+      origin: { lng: -2, lat: -2 },
       dest: { lng: 20, lat: 20 },
       polygon: SQUARE,
       fixedRoutes: [],

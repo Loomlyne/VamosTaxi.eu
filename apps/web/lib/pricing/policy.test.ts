@@ -269,6 +269,37 @@ describe("buildCouponLine (D-06, D-07)", () => {
     expect(line.kind).toBe("discount");
   });
 
+  it("D-16: coupon applies before VAT and payable never goes negative", () => {
+    const pre = 1000;
+    const line = buildCouponLine({
+      coupon: {
+        id: 9,
+        code: "BIG",
+        kind: "amount",
+        percent: null,
+        amount_rappen: 50_000,
+      },
+      preCouponTotal: pre,
+    });
+    expect(line.basis.of).toBe("pre_coupon_total");
+    expect(line.amount_rappen).toBe(pre);
+    const payable = pre - (line.amount_rappen ?? 0);
+    expect(payable).toBe(0);
+    expect(payable).toBeGreaterThanOrEqual(0);
+    const percent = buildCouponLine({
+      coupon: {
+        id: 10,
+        code: "ALL",
+        kind: "percent",
+        percent: "100",
+        amount_rappen: null,
+      },
+      preCouponTotal: pre,
+    });
+    expect(percent.basis.of).toBe("pre_coupon_total");
+    expect(pre - (percent.amount_rappen ?? 0)).toBe(0);
+  });
+
   it("property: coupon of any magnitude yields non-negative remainder", () => {
     fc.assert(
       fc.property(
