@@ -443,6 +443,12 @@ async function opsStaffGate(request: NextRequest, i18nResponse: NextResponse): P
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // D-05: www → apex 301. Canonical is https://vamostaxi.site. No DNS this plan.
+  if (hostnameOf(request) === "www.vamostaxi.site") {
+    const dest = new URL(`https://vamostaxi.site${pathname}${request.nextUrl.search}`);
+    return NextResponse.redirect(dest, 301);
+  }
+
   // This Worker is dashboard-only. Never serve the public site.
   if (process.env.DEPLOY_ENV === "ops-changes") {
     return dashboardHostMiddleware(request);
