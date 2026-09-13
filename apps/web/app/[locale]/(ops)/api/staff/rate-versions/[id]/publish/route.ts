@@ -2,11 +2,13 @@
 //
 // POST /api/staff/rate-versions/:id/publish — withAdmin, SQLSTATE only (D-13).
 // Envelope { ok:false, code:"incomplete"|"not-draft"|…, gaps? }. No err.message.
+// D-02: this asStaff tx is the only public_chf flip. D-03: VAT applies here.
+// D-06: clone a new draft after success. Never flip public_chf back off.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { asStaff } from "@/lib/db/identity";
 import { loadCompleteness, type CompletenessGap } from "@/lib/ops/pricing";
-import { classifyPricingFailure } from "@/lib/ops/rate-book";
+import { classifyPricingFailure, forkLiveRateVersion } from "@/lib/ops/rate-book";
 import { jsonErr, jsonOk, withAdmin } from "@/lib/ops/staff-json";
 
 export const dynamic = "force-dynamic";
@@ -35,6 +37,21 @@ function publishCode(
   return "unknown";
 }
 
+function asNullableInt(value: number | string | null | undefined): number | null {
+  if (value == null) return null;
+  const n = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(n) ? Math.trunc(n) : null;
+}
+
+type PublishVersionRow = {
+  id: number | string;
+  label: string;
+  status: string;
+  vat_rate_bps: number | string | null;
+  quote_lock_minutes: number | string | null;
+  service_area_geojson: unknown;
+};
+
 export async function POST(
   request: Request,
   context: { params: Promise<{ id: string }> },
@@ -50,8 +67,51 @@ export async function POST(
     }
     try {
       await asStaff(env, claims, async (tx) => {
-        await tx`update public.rate_versions set status = 'live' where id = ${id}`;
-        await tx`update public.settings set public_chf = true where id = 1`;
+        const locked = await tx<PublishVersionRow[]>`
+          select id, label, status, vat_rate_bps, quote_lock_minutes, service_area_geojson
+            from public.rate_versions
+           where id = ${id}
+           for update
+        `;
+        const row = locked[0];
+        if (!row || row.status !== "draft") {
+          const err = new Error("not-draft") as Error & { code: string };
+          err.code = "23001";
+          throw err;
+        }
+        const vatBps = asNullableInt(row.vat_rate_bps);
+        const lockMinutes = asNullableInt(row.quote_lock_minutes);
+        const serviceArea = row.service_area_geojson ?? null;
+        await tx`
+          update public.rate_versions
+             set status = 'retired'
+           where status = 'live' and id <> ${id}
+        `;
+        await tx`
+          update public.rate_versions
+             set status = 'live',
+                 published_at = now(),
+                 published_by = ${claims.sub}
+           where id = ${id} and status = 'draft'
+        `;
+        await tx`
+          update public.settings
+             set public_chf = true,
+                 vat_rate_bps = coalesce(${vatBps}, vat_rate_bps)
+           where id = 1
+        `;
+        await tx`
+          update public.settings_versions
+             set quote_lock_minutes = coalesce(${lockMinutes}, quote_lock_minutes),
+                 service_area_geojson = coalesce(${serviceArea}, service_area_geojson)
+           where id = (
+             select sv.id from public.settings_versions sv
+              where sv.effective_from <= now()
+              order by sv.effective_from desc
+              limit 1
+           )
+        `;
+        await forkLiveRateVersion(env, claims, { id, label: row.label }, tx);
         return null;
       });
     } catch (err) {

@@ -83,4 +83,45 @@ describe("Publish-as-flip public_chf (D-18)", () => {
     expect(publishUpdate).not.toMatch(/PRICING_PREVIEW/);
     expect(actionsUpdate).not.toMatch(/PRICING_PREVIEW/);
   });
+
+  it("D-03: same asStaff tx applies vat_rate_bps from the rate_versions row", () => {
+    const publish = webSource(PUBLISH_ROUTE);
+    expect(publish).toMatch(
+      /asStaff\([\s\S]*public_chf\s*=\s*true[\s\S]*vat_rate_bps/,
+    );
+    expect(publish).toMatch(/vat_rate_bps = coalesce\(/);
+    expect(publish).not.toMatch(/PRICING_PREVIEW/);
+  });
+
+  it("D-06: forkLiveRateVersion runs in the same tx after public_chf", () => {
+    const publish = webSource(PUBLISH_ROUTE);
+    expect(publish).toMatch(/forkLiveRateVersion/);
+    expect(publish).toMatch(
+      /asStaff\([\s\S]*public_chf\s*=\s*true[\s\S]*forkLiveRateVersion/,
+    );
+    expect(publish).not.toMatch(/function unpublish/i);
+    expect(publish).not.toMatch(/export async function DELETE/);
+    expect(publish).not.toMatch(/set\s+status\s*=\s*'draft'/i);
+  });
+
+  it("D-09: fork copies hide, classed bands, rules, coupons, and draft VAT/lock", () => {
+    const fork = webSource("lib/ops/rate-book.ts");
+    expect(fork).toMatch(/export async function forkLiveRateVersion/);
+    expect(fork).toMatch(/hide_from_public/);
+    expect(fork).toMatch(/vehicle_class_id, from_km, to_km, per_km_rappen/);
+    expect(fork).toMatch(/rate_version_rules/);
+    expect(fork).toMatch(/insert into public\.coupons/);
+    expect(fork).toMatch(
+      /vat_rate_bps, quote_lock_minutes, service_area_geojson/,
+    );
+    expect(fork).toMatch(/free_wait_minutes, max_extra_stops/);
+    expect(fork.match(/export async function fork/g)?.length).toBe(1);
+  });
+
+  it("dual-mount publish route remains export { POST }", () => {
+    const reexport = webSource(PUBLISH_REEXPORT);
+    expect(reexport).toMatch(/export const dynamic = "force-dynamic"/);
+    expect(reexport).toMatch(/export \{ POST \}/);
+    expect(reexport).not.toMatch(/export async function POST/);
+  });
 });

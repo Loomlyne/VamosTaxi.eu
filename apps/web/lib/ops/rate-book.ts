@@ -8,9 +8,12 @@
 // 23514/P0001 against 20260823000008_rate_versions.sql — every raise on these
 // paths is `using errcode = 'restrict_violation'`. Do not "fix" this back.
 
+import type postgres from "postgres";
 import { asStaff, type VamosClaims } from "../db/identity";
 import { mapSqlState } from "./sqlstate";
 import type { RateVersionStatus } from "./pricing";
+
+type StaffTx = postgres.TransactionSql;
 
 export type { RateVersionStatus };
 
@@ -496,71 +499,126 @@ export async function loadVehicleClassOptions(
 
 export { vehicleClassLabelKey } from "./vehicle-class-label";
 
+/**
+ * Clone a live or retired book into a new draft (D-06 / D-09).
+ * When `tx` is passed, the copy joins that asStaff transaction — Publish
+ * must clone in the same tx as the public_chf / VAT flip.
+ */
+async function cloneRateVersionFrom(
+  tx: StaffTx,
+  source: { id: number; label: string },
+): Promise<number> {
+  const slug = `ops-draft-from-${source.id}`;
+  const existing = await tx<{ id: number | string }[]>`
+    select id from public.rate_versions
+    where slug = ${slug} and status = 'draft'
+    limit 1
+  `;
+  if (existing[0]) return asId(existing[0].id);
+
+  const created = await tx<{ id: number | string }[]>`
+    insert into public.rate_versions (
+      slug, label, status,
+      vat_rate_bps, quote_lock_minutes, service_area_geojson,
+      free_wait_minutes, max_extra_stops
+    )
+    select
+      ${slug},
+      ${`${source.label} draft`},
+      'draft',
+      vat_rate_bps, quote_lock_minutes, service_area_geojson,
+      free_wait_minutes, max_extra_stops
+      from public.rate_versions
+     where id = ${source.id}
+    returning id
+  `;
+  const newId = asId(created[0]!.id);
+
+  await tx`
+    insert into public.distance_rates (
+      rate_version_id, vehicle_class_id, base_fare_rappen, per_km_rappen,
+      min_fare_rappen, max_pax, available, hide_from_public
+    )
+    select ${newId}, vehicle_class_id, base_fare_rappen, per_km_rappen,
+           min_fare_rappen, max_pax, available, hide_from_public
+      from public.distance_rates
+     where rate_version_id = ${source.id}
+  `;
+  await tx`
+    insert into public.fixed_routes (
+      rate_version_id, origin_zone_id, dest_zone_id, vehicle_class_id, price_rappen, live
+    )
+    select ${newId}, origin_zone_id, dest_zone_id, vehicle_class_id, price_rappen, live
+      from public.fixed_routes
+     where rate_version_id = ${source.id}
+  `;
+  await tx`
+    insert into public.rate_version_rules (rate_version_id, kind, payload)
+    select ${newId}, kind, payload
+      from public.rate_version_rules
+     where rate_version_id = ${source.id}
+     order by id
+  `;
+  await tx`
+    insert into public.surcharges (
+      rate_version_id, code, kind, amount_rappen, percent, applies_to, active,
+      predicate, quantity_source, rule_id
+    )
+    select
+      ${newId}, s.code, s.kind, s.amount_rappen, s.percent, s.applies_to, s.active,
+      s.predicate, s.quantity_source,
+      (
+        select n.id
+          from public.rate_version_rules n
+          join public.rate_version_rules o on o.id = s.rule_id
+         where n.rate_version_id = ${newId}
+           and n.kind is not distinct from o.kind
+           and n.payload is not distinct from o.payload
+         order by n.id
+         limit 1
+      )
+      from public.surcharges s
+     where s.rate_version_id = ${source.id}
+  `;
+  await tx`
+    insert into public.distance_bands (
+      rate_version_id, vehicle_class_id, from_km, to_km, per_km_rappen
+    )
+    select ${newId}, vehicle_class_id, from_km, to_km, per_km_rappen
+      from public.distance_bands
+     where rate_version_id = ${source.id}
+  `;
+  await tx`
+    insert into public.region_premiums (
+      rate_version_id, zone_id, percent
+    )
+    select ${newId}, zone_id, percent
+      from public.region_premiums
+     where rate_version_id = ${source.id}
+  `;
+  // unique(code) still global until a later unique(rate_version_id, code).
+  // Skip colliding codes so Publish is not 409 duplicate (D-06 clone).
+  await tx`
+    insert into public.coupons (
+      code, kind, percent, amount_rappen, valid_from, valid_until,
+      global_limit, per_user_limit, active, note, rate_version_id
+    )
+    select
+      code, kind, percent, amount_rappen, valid_from, valid_until,
+      global_limit, per_user_limit, active, note, ${newId}
+      from public.coupons
+     where rate_version_id = ${source.id}
+    on conflict (code) do nothing
+  `;
+  return newId;
+}
+
 export async function forkLiveRateVersion(
   env: CloudflareEnv,
   claims: VamosClaims,
-  live: { id: number; label: string },
+  source: { id: number; label: string },
+  tx?: StaffTx,
 ): Promise<number> {
-  return asStaff(env, claims, async (tx) => {
-    const slug = `ops-draft-from-${live.id}`;
-    const existing = await tx<{ id: number | string }[]>`
-      select id from public.rate_versions
-      where slug = ${slug} and status = 'draft'
-      limit 1
-    `;
-    if (existing[0]) return asId(existing[0].id);
-
-    const created = await tx<{ id: number | string }[]>`
-      insert into public.rate_versions (slug, label, status)
-      values (${slug}, ${`${live.label} draft`}, 'draft')
-      returning id
-    `;
-    const newId = asId(created[0]!.id);
-
-    await tx`
-      insert into public.distance_rates (
-        rate_version_id, vehicle_class_id, base_fare_rappen, per_km_rappen,
-        min_fare_rappen, max_pax, available
-      )
-      select ${newId}, vehicle_class_id, base_fare_rappen, per_km_rappen,
-             min_fare_rappen, max_pax, available
-        from public.distance_rates
-       where rate_version_id = ${live.id}
-    `;
-    await tx`
-      insert into public.fixed_routes (
-        rate_version_id, origin_zone_id, dest_zone_id, vehicle_class_id, price_rappen, live
-      )
-      select ${newId}, origin_zone_id, dest_zone_id, vehicle_class_id, price_rappen, live
-        from public.fixed_routes
-       where rate_version_id = ${live.id}
-    `;
-    await tx`
-      insert into public.surcharges (
-        rate_version_id, code, kind, amount_rappen, percent, applies_to, active,
-        predicate, quantity_source
-      )
-      select ${newId}, code, kind, amount_rappen, percent, applies_to, active,
-             predicate, quantity_source
-        from public.surcharges
-       where rate_version_id = ${live.id}
-    `;
-    await tx`
-      insert into public.distance_bands (
-        rate_version_id, from_km, to_km, per_km_rappen
-      )
-      select ${newId}, from_km, to_km, per_km_rappen
-        from public.distance_bands
-       where rate_version_id = ${live.id}
-    `;
-    await tx`
-      insert into public.region_premiums (
-        rate_version_id, zone_id, percent
-      )
-      select ${newId}, zone_id, percent
-        from public.region_premiums
-       where rate_version_id = ${live.id}
-    `;
-    return newId;
-  });
+  if (tx) return cloneRateVersionFrom(tx, source);
+  return asStaff(env, claims, (inner) => cloneRateVersionFrom(inner, source));
 }
