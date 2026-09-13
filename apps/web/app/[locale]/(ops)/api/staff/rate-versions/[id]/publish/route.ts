@@ -28,8 +28,8 @@ function publishCode(
   classified: ReturnType<typeof classifyPricingFailure>,
   gaps: CompletenessGap[],
 ): string {
-  if (gaps.length > 0) return "incomplete";
   if (classified.kind === "frozen") return "not-draft";
+  if (gaps.length > 0) return "incomplete";
   if (classified.kind === "check" || sql === "P0001" || sql === "23514") return "incomplete";
   if (classified.kind === "duplicate") return "duplicate";
   if (classified.kind === "forbidden") return "forbidden";

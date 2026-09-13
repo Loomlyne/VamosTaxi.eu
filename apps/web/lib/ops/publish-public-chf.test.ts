@@ -124,4 +124,32 @@ describe("Publish-as-flip public_chf (D-18)", () => {
     expect(reexport).toMatch(/export \{ POST \}/);
     expect(reexport).not.toMatch(/export async function POST/);
   });
+
+  it("D-07: Publish is withAdmin, not withStaff", () => {
+    const publish = webSource(PUBLISH_ROUTE);
+    expect(publish).toMatch(/withAdmin/);
+    expect(publish).not.toMatch(/withStaff/);
+    expect(publish).toMatch(/jsonFail\("incomplete", 409, gaps\)/);
+  });
+
+  it("D-07: last-write-wins returns not-draft with the gaps envelope", () => {
+    const publish = webSource(PUBLISH_ROUTE);
+    expect(publish).toMatch(/not-draft/);
+    expect(publish).toMatch(
+      /if \(classified\.kind === "frozen"\) return "not-draft";/,
+    );
+    expect(publish).toMatch(
+      /classified\.kind === "frozen"[\s\S]*if \(gaps\.length > 0\) return "incomplete"/,
+    );
+    expect(publish).toMatch(/ok: false, code, gaps/);
+    expect(publish).toMatch(/row\.status !== "draft"/);
+  });
+
+  it("D-09: no unpublish and no DELETE of history rows", () => {
+    const publish = webSource(PUBLISH_ROUTE);
+    expect(publish).not.toMatch(/function unpublish/i);
+    expect(publish).not.toMatch(/export async function DELETE/);
+    expect(publish).not.toMatch(/delete from public\.rate_versions/i);
+    expect(publish).not.toMatch(/set\s+status\s*=\s*'draft'/i);
+  });
 });
