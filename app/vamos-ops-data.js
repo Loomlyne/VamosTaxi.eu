@@ -12,7 +12,12 @@
    Write contract: never mint cu-/cp-/FR- ids. Empty id → POST. UUID or
    numeric id → PATCH/DELETE. Bookings write bookingId (UUID), display id
    stays VT-…. Failed writes return { ok:false, code } and the overlay
-   must stay open. */
+   must stay open.
+
+   Draft fare-book verbs (18-06): publish / discard / preview / createTestUnpaid
+   / cloneIntoDraft hit /api/staff/rate-versions/:id/{publish,discard,clone}
+   and POST /api/staff/rate-book/{preview,test-unpaid}. Preview never charges
+   Stripe and never sets public preferDraft. */
 (function () {
   var subs = [];
 
@@ -648,6 +653,19 @@
     };
   }
 
+  function cleanRule(r) {
+    r = r || {};
+    var payload = r.payload;
+    if (payload && typeof payload === "object") {
+      try { payload = JSON.stringify(payload); } catch (e) { payload = ""; }
+    }
+    return {
+      id: str(r.id),
+      kind: str(r.kind || r.ruleKind),
+      payload: str(payload)
+    };
+  }
+
   function settingsFromPayload(data) {
     var out = {};
     var k;
@@ -693,11 +711,62 @@
     surcharges: rateBookCollection("surcharges", "surcharge", cleanSurcharge),
     bands: rateBookCollection("bands", "band", cleanBand),
     regionPremiums: rateBookCollection("regionPremiums", "region", cleanRegion),
+    rules: rateBookCollection("rules", "rule", cleanRule),
     settings: remoteSingleton("settings", "/api/staff/settings", settingsFromPayload),
     profile: remoteSingleton("profile", "/api/staff/me", profileFromMe),
     onAny: function (fn) { return subscribe(null, fn); },
+    publish: function (id, extra) {
+      if (id == null || id === "") return Promise.resolve({ ok: false, code: "missing-id" });
+      return api("POST", "/api/staff/rate-versions/" + encodeURIComponent(String(id)) + "/publish", extra && typeof extra === "object" ? extra : undefined).then(function (json) {
+        json = json || { ok: false, code: "unknown" };
+        if (json.ok) {
+          bookFetch.loaded = false;
+          bookFetch.json = null;
+          emit(null);
+        }
+        return json;
+      });
+    },
+    discard: function (id) {
+      if (id == null || id === "") return Promise.resolve({ ok: false, code: "missing-id" });
+      return api("POST", "/api/staff/rate-versions/" + encodeURIComponent(String(id)) + "/discard").then(function (json) {
+        json = json || { ok: false, code: "unknown" };
+        if (json.ok) {
+          bookFetch.loaded = false;
+          bookFetch.json = null;
+          emit(null);
+        }
+        return json;
+      });
+    },
+    preview: function (body) {
+      return api("POST", "/api/staff/rate-book/preview", body || {});
+    },
+    createTestUnpaid: function (body) {
+      return api("POST", "/api/staff/rate-book/test-unpaid", body || {});
+    },
+    cloneIntoDraft: function (id) {
+      if (id == null || id === "") return Promise.resolve({ ok: false, code: "missing-id" });
+      return api("POST", "/api/staff/rate-versions/" + encodeURIComponent(String(id)) + "/clone").then(function (json) {
+        json = json || { ok: false, code: "unknown" };
+        if (json.ok) {
+          bookFetch.loaded = false;
+          bookFetch.json = null;
+          emit(null);
+        }
+        return json;
+      });
+    },
+    saveDraftVat: function (bps) {
+      return api("PUT", "/api/staff/rate-book", {
+        kind: "rule",
+        ruleKind: "vat",
+        vat_rate_bps: bps,
+        payload: { vat_rate_bps: bps }
+      });
+    },
     resetAll: function () {
-      ["vehicles", "chauffeurs", "bookings", "customers", "coupons", "routes", "rates", "surcharges", "bands", "regionPremiums", "settings", "profile"]
+      ["vehicles", "chauffeurs", "bookings", "customers", "coupons", "routes", "rates", "surcharges", "bands", "regionPremiums", "rules", "settings", "profile"]
         .forEach(function (k) { window.VamosOps[k].reset(); });
     }
   };
