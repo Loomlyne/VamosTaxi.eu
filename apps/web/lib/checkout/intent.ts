@@ -16,7 +16,7 @@ import { checkoutLegsFromLock, snapshotFromLock } from "./lock-to-rpc";
 import { manageTokenCookie } from "./manage-token";
 import { CHARGE_CURRENCY } from "./currency";
 import { checkoutPaymentIntentId, sessionIsPayable } from "./stripe";
-import { payableWithVatRappen } from "./vat";
+import { CH_VAT_RATE_BPS, payableWithVatRappen } from "./vat";
 
 export type CheckoutCreateBookingRow = {
   booking_id: string;
@@ -81,6 +81,8 @@ export type CheckoutIntentDeps = {
   vehicleClassId: string;
   snapshotPolicy: Record<string, unknown>;
   extrasCatalog?: CheckoutExtraJson[];
+  /** asQuote loadLaunchFlags. Omitted/throw → fail-closed 81. */
+  loadLaunchFlags?: () => Promise<{ vat_rate_bps: number }>;
 };
 
 function mapQuoteCode(code: QuoteErrorCode): CheckoutRefusalCode {
@@ -138,6 +140,21 @@ function utf8Hex(value: string): string {
   return Array.from(new TextEncoder().encode(value), (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+async function vatRateBpsFromFlags(deps: CheckoutIntentDeps): Promise<number> {
+  const load = deps.loadLaunchFlags;
+  if (typeof load !== "function") return CH_VAT_RATE_BPS;
+  try {
+    const flags = await load();
+    const bps = flags.vat_rate_bps;
+    if (typeof bps === "number" && Number.isFinite(bps) && bps >= 0) {
+      return Math.trunc(bps);
+    }
+  } catch {
+    // RPC/column missing — fail closed 81
+  }
+  return CH_VAT_RATE_BPS;
+}
+
 function okIntentResponse(
   row: { reference: string; booking_id: string },
   payable: Stripe.Checkout.Session,
@@ -145,6 +162,7 @@ function okIntentResponse(
   chargedRappen: number,
   expiresAt: Date,
   cookie: string | null,
+  vatRateBps: number,
 ): Response {
   const clientSecret = payable.client_secret;
   if (!clientSecret) return refuse("invalid_request");
@@ -160,6 +178,7 @@ function okIntentResponse(
       expires_at: expiresAt.toISOString(),
       currency: CHARGE_CURRENCY.toUpperCase(),
       amount_rappen: chargedRappen,
+      vat_rate_bps: vatRateBps,
       publishable_key: deps.publishableKey,
     }),
     { status: 200, headers },
@@ -208,7 +227,8 @@ export async function runCheckoutIntent(
     lockHasExtra(payload.extras, code) || lockHasExtra(body.extras, code);
   const extraFares = extraFaresOn(catalog, extraOn);
   const extraAdd = extraRappenOutsideLock(payload.extras, catalog, extraOn);
-  const chargedRappen = payableWithVatRappen(netRappen + extraAdd);
+  const vatRateBps = await vatRateBpsFromFlags(deps);
+  const chargedRappen = payableWithVatRappen(netRappen + extraAdd, vatRateBps);
   if (!deps.vehicleClassId) {
     return refuse("invalid_request");
   }
@@ -226,7 +246,7 @@ export async function runCheckoutIntent(
   const existingOpen = await deps.loadOpenPayment(body.quote_id);
   const reused = await payableFromOpen(existingOpen, deps, chargedRappen);
   if (reused) {
-    return okIntentResponse(reused.row, reused.payable, deps, chargedRappen, expiresAt, null);
+    return okIntentResponse(reused.row, reused.payable, deps, chargedRappen, expiresAt, null, vatRateBps);
   }
 
   const stripeIdempotencyKey = existingOpen
@@ -302,7 +322,7 @@ export async function runCheckoutIntent(
         if (reused.payable.id !== session.id) {
           await deps.expireCheckoutSession(session.id).catch(() => undefined);
         }
-        return okIntentResponse(reused.row, reused.payable, deps, chargedRappen, expiresAt, null);
+        return okIntentResponse(reused.row, reused.payable, deps, chargedRappen, expiresAt, null, vatRateBps);
       }
       try {
         if (existing && existing.stripe_checkout_session_id !== session.id) {
@@ -316,7 +336,7 @@ export async function runCheckoutIntent(
           stripeCheckoutSessionId: session.id,
           chargedRappen,
         });
-        return okIntentResponse(row, session, deps, chargedRappen, expiresAt, null);
+        return okIntentResponse(row, session, deps, chargedRappen, expiresAt, null, vatRateBps);
       } catch (attachErr) {
         await deps.expireCheckoutSession(session.id).catch(() => undefined);
         const attachState = sqlState(attachErr);
@@ -367,5 +387,6 @@ export async function runCheckoutIntent(
     chargedRappen,
     expiresAt,
     manageTokenCookie(token.raw, deps.manageLinkMaxAgeSeconds),
+    vatRateBps,
   );
 }

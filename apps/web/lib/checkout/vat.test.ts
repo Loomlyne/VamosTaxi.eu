@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   CH_VAT_RATE_BPS,
@@ -75,5 +78,21 @@ describe("injected bps / fallback 81 (D-22)", () => {
   it("null bps falls back to 81", () => {
     expect(vatOnTopRappen(10_000, null)).toBe(810);
     expect(payableWithVatRappen(10_000, null)).toBe(10_810);
+  });
+});
+
+describe("intent / receipt pass settings bps (D-22)", () => {
+  const here = dirname(fileURLToPath(import.meta.url));
+
+  it("okIntentResponse JSON includes vat_rate_bps next to amount_rappen", () => {
+    const intent = readFileSync(join(here, "intent.ts"), "utf8");
+    expect(intent).toMatch(/amount_rappen:\s*chargedRappen,\s*vat_rate_bps:\s*vatRateBps/s);
+    expect(intent).toMatch(/payableWithVatRappen\(netRappen \+ extraAdd, vatRateBps\)/);
+    expect(intent).toContain("loadLaunchFlags");
+  });
+
+  it("receipt VAT line passes vatRateBps into vatOnTopRappen", () => {
+    const receipt = readFileSync(join(here, "confirmation-receipt.ts"), "utf8");
+    expect(receipt).toMatch(/vatOnTopRappen\(fareRappen \+ extraSum, args\.vatRateBps\)/);
   });
 });
