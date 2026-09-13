@@ -212,6 +212,8 @@ alter table public.bookings
 comment on column public.bookings.is_test is
   'D-33: admin preview test unpaid. No Stripe, no mail. Ops board marked test. Pay off.';
 
+grant select (is_test) on public.bookings to authenticated, vamos_guest;
+
 -- ---------------------------------------------------------------------------
 -- (7) D-30: rule rows the admin adds; surcharge rows pick one.
 -- ---------------------------------------------------------------------------

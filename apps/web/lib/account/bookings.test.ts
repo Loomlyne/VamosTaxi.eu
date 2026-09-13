@@ -77,7 +77,27 @@ describe("mapAccountBooking", () => {
     );
     expect(row.status).toBe("unpaid");
     expect(row.href).toBe("/checkout/payment");
+    expect(row.pay_url).toBe("/checkout/payment");
+    expect(row.payable).toBe(true);
     expect(row.when).toBe("upcoming");
+  });
+
+  it("turns Pay off when is_test (D-33)", () => {
+    const row = mapAccountBooking(
+      {
+        ...base,
+        status: "pending",
+        is_test: true,
+        scheduled_local: "2026-09-12T04:15",
+        scheduled_at: "2026-09-12T02:15:00.000Z",
+      },
+      now,
+    );
+    expect(row.status).toBe("unpaid");
+    expect(row.pay_url).toBeNull();
+    expect(row.payable).toBe(false);
+    expect(row.href).toBe("/confirmation/VT-26-0720");
+    expect(row.href).not.toBe("/checkout/payment");
   });
 
   it("keeps unpaid in upcoming after the pickup time", () => {
@@ -124,6 +144,7 @@ describe("GET /api/account/bookings", () => {
     expect(src).not.toContain("not in ('quote', 'pending')");
     expect(src).toContain("exists (select 1 from public.reviews");
     expect(src).toContain("has_review");
+    expect(src).toContain("b.is_test");
   });
 });
 

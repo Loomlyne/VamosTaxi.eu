@@ -22,6 +22,7 @@ export type AccountSqlRow = {
   vehicle_plate?: string | null;
   vehicle_model?: string | null;
   has_review?: boolean | null;
+  is_test?: boolean | null;
 };
 
 export type AccountBooking = {
@@ -41,6 +42,8 @@ export type AccountBooking = {
   group: string;
   reviewState: "none" | "requested" | "reviewed";
   reviewHref: string;
+  pay_url: string | null;
+  payable: boolean;
 };
 
 function str(value: unknown): string {
@@ -143,9 +146,21 @@ export function mapAccountBooking(row: AccountSqlRow, now = new Date()): Account
   const ref = str(row.reference);
   const uiStatus = rowStatus(status);
   const review = reviewOf(status, row.has_review === true, ref);
+  const isTest = row.is_test === true;
+  const unpaid = uiStatus === "unpaid";
   return {
     ref,
-    href: uiStatus === "unpaid" ? "/checkout/payment" : ref ? `/confirmation/${ref}` : "/account",
+    href: unpaid
+      ? isTest
+        ? ref
+          ? `/confirmation/${ref}`
+          : "/account"
+        : "/checkout/payment"
+      : ref
+        ? `/confirmation/${ref}`
+        : "/account",
+    pay_url: unpaid && !isTest ? "/checkout/payment" : null,
+    payable: unpaid && !isTest,
     date: when.date,
     time: when.time,
     route: pickup && dropoff ? `${pickup} → ${dropoff}` : pickup || dropoff,

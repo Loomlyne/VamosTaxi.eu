@@ -647,3 +647,85 @@ export async function resolveWritableDraftId(
   if (live) return forkLiveRateVersion(env, claims, live);
   return versions[0]?.id ?? null;
 }
+
+/**
+ * Staff analog of `quote_rate_book(true)` that still returns the draft after a
+ * live row exists. The public RPC prefers live first; preview must not.
+ */
+export async function loadDraftQuoteBookDoc(
+  env: CloudflareEnv,
+  claims: VamosClaims,
+): Promise<unknown> {
+  return asStaff(env, claims, async (tx) => {
+    const drafts = await tx<{ id: number | string }[]>`
+      select id
+        from public.rate_versions
+       where status = 'draft'
+       order by created_at desc, id desc
+       limit 1
+    `;
+    const draftId = drafts[0]?.id;
+    if (draftId == null) {
+      const fallback = await tx<{ result: unknown }[]>`
+        select public.quote_rate_book(true) as result
+      `;
+      return fallback[0]?.result ?? null;
+    }
+    const rows = await tx<{ result: unknown }[]>`
+      select jsonb_build_object(
+        'rate_version', jsonb_build_object(
+          'id', rv.id,
+          'slug', rv.slug,
+          'status', rv.status,
+          'vat_rate_bps', rv.vat_rate_bps,
+          'quote_lock_minutes', rv.quote_lock_minutes
+        ),
+        'classes', (
+          select coalesce(jsonb_agg(to_jsonb(c) order by c.sort_order, c.slug), '[]'::jsonb)
+            from public.vehicle_classes as c
+        ),
+        'distance_rates', (
+          select coalesce(jsonb_agg(to_jsonb(d) order by d.vehicle_class_id), '[]'::jsonb)
+            from public.distance_rates as d
+           where d.rate_version_id = rv.id
+        ),
+        'distance_bands', (
+          select coalesce(jsonb_agg(to_jsonb(b) order by b.vehicle_class_id, b.from_km), '[]'::jsonb)
+            from public.distance_bands as b
+           where b.rate_version_id = rv.id
+        ),
+        'region_premiums', (
+          select coalesce(jsonb_agg(to_jsonb(p) order by p.zone_id), '[]'::jsonb)
+            from public.region_premiums as p
+           where p.rate_version_id = rv.id
+        ),
+        'fixed_routes', (
+          select coalesce(
+                   jsonb_agg(to_jsonb(f) order by f.origin_zone_id, f.dest_zone_id, f.vehicle_class_id),
+                   '[]'::jsonb
+                 )
+            from public.fixed_routes as f
+           where f.rate_version_id = rv.id
+        ),
+        'surcharges', (
+          select coalesce(jsonb_agg(to_jsonb(s) order by s.code), '[]'::jsonb)
+            from public.surcharges as s
+           where s.rate_version_id = rv.id
+        ),
+        'coupons', (
+          select coalesce(jsonb_agg(to_jsonb(cp) order by cp.code), '[]'::jsonb)
+            from public.coupons as cp
+           where cp.rate_version_id = rv.id
+        ),
+        'zones', (
+          select coalesce(jsonb_agg(to_jsonb(z) order by z.slug), '[]'::jsonb)
+            from public.service_zones as z
+        )
+      ) as result
+        from public.rate_versions as rv
+       where rv.id = ${draftId}
+       limit 1
+    `;
+    return rows[0]?.result ?? null;
+  });
+}

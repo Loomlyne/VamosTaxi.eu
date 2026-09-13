@@ -28,6 +28,7 @@ export async function GET(request: Request) {
         l.scheduled_local,
         l.scheduled_at,
         l.pax,
+        b.is_test,
         exists (select 1 from public.reviews r where r.booking_id = b.id) as has_review
       from public.bookings b
       inner join public.booking_legs l
