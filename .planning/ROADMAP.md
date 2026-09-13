@@ -663,12 +663,12 @@ finishes 08-UAT then 12–16 before this phase is discussed.
   3. Checkout extras list is built from this page after Publish.
   4. Must-nots: no invented CHF, no live Stripe keys, no `.eu`, no driver app, no auto-dispatch.
 
-**Plans:** 10 plans
+**Plans:** 1/10 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 18-01-PLAN.md — Wave 0 kernel / completeness / DC source-read tests
+- [x] 18-01-PLAN.md — Wave 0 kernel / completeness / DC source-read tests
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -727,7 +727,7 @@ v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16 → 17
 | 15. Wire Ops #support to APIs | 0/TBD | Not started | - |
 | 16. Staging MX + end-to-end UAT | 0/TBD | Not started | - |
 | 17. Ops chauffeur profile, shift roster, two-driver vehicles | 0/TBD | Not started | - |
-| 18. OPS Pricing source of truth | 0/10 | Planned | - |
+| 18. OPS Pricing source of truth | 1/10 | In Progress|  |
 
 ---
 *Roadmap created: 2026-08-17*
