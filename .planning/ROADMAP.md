@@ -651,10 +651,25 @@ finishes 08-UAT then 12–16 before this phase is discussed.
 **Plans**: TBD (blocked on `/gsd:discuss-phase 17` then signed plan)
 **UI hint**: yes — mock first, no invented dashboard
 
+### Phase 18: OPS Pricing source of truth
+
+**Goal**: `https://dashboard.vamostaxi.site/pricing` is the only fare book. Every add/edit/delete/Publish on that page drives quote, checkout recap, confirmation, ops amounts, Stripe, and new booking mail. New layout, same Vamos tokens. Desktop, tablet, mobile.
+**Depends on**: Phase 11 code merged. Does **not** block owner Publish on the live page. Public stays `CHF 000` until that click. Stripe stays test until the owner says live keys. No `vamostaxi.eu`.
+**Requirements**: See `.planning/phases/18-ops-pricing-source/18-CONTEXT.md`
+**Success Criteria** (what must be TRUE):
+
+  1. Save writes draft only. Publish is the only flip — instant, all-or-nothing, exact errors.
+  2. Distance recipe is start + (all km × per-km) + bands on top. Charge always CHF.
+  3. Checkout extras list is built from this page after Publish.
+  4. Must-nots: no invented CHF, no live Stripe keys, no `.eu`, no driver app, no auto-dispatch.
+
+**Plans**: TBD (UI-SPEC then `/gsd:plan-phase 18`)
+**UI hint**: yes — UI-SPEC in this phase; new structure, `--vt-*` only
+
 ## Progress
 
 **Execution Order:**
-v1.0: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 → 9 → 10 → 11
+v1.0: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 → 9 → 10 → 11 → 18
 v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16 → 17
 
 | Phase | Plans Complete | Status | Completed |
@@ -669,13 +684,14 @@ v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16 → 17
 | 8. Ops Dispatch — Live Board, Assignment & Account Surfaces | 10/10 | Complete    | 2026-09-11 |
 | 9. Booking Lifecycle & Customer Self-Service | 12/12 | Complete    | 2026-09-12 |
 | 10. Hardening — Performance, Security & Compliance | 10/10 | Complete    | 2026-09-12 |
-| 11. Launch Cutover | 11/12 | In Progress|  |
+| 11. Launch Cutover | 11/12 | Complete | 2026-09-13 |
 | 12. Ticket schema + #support mock | 3/3 | Complete    | 2026-09-11 |
 | 13. Staff APIs + outbound Resend replies | 0/TBD | Not started | - |
 | 14. Inbound webhook | 0/TBD | Not started | - |
 | 15. Wire Ops #support to APIs | 0/TBD | Not started | - |
 | 16. Staging MX + end-to-end UAT | 0/TBD | Not started | - |
 | 17. Ops chauffeur profile, shift roster, two-driver vehicles | 0/TBD | Not started | - |
+| 18. OPS Pricing source of truth | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-08-17*
