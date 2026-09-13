@@ -6,7 +6,8 @@
 // surcharge (D-06). Fixed-route match is origin→dest only (D-17); A→B and B→A
 // are separate rows. Extra stops drop the fixed row and use the distance
 // recipe. Child seat / oversized luggage emit one line per leg_seq on a
-// return; extra_stop is leg 1 only (D-45).
+// return. Extra stop is Mapbox places on the D-11 distance recipe, not a
+// chip fare (D-37).
 //
 // Negative space: this module reads no clock, performs no I/O, formats nothing,
 // and never decides IF a surcharge applies — that is predicates.ts, called from
@@ -496,7 +497,7 @@ export function buildExtraLines(args: BuildExtraLinesArgs): Line[] {
     if (row.quantity_source === null || row.quantity_source === undefined) {
       continue;
     }
-    if (row.quantity_source === "extra_stops") {
+    if (row.quantity_source === "extra_stops" || row.code === "extra_stop") {
       // D-37: extra stop is Mapbox places on the D-11 distance recipe, not amount × qty.
       continue;
     }

@@ -162,6 +162,7 @@ export function extraRappenOutsideLock(
   let add = 0;
   for (const row of catalog) {
     if (!on(row.code)) continue;
+    if (isExtraStopCode(row.code)) continue;
     if (row.kind !== "amount" || row.amount_rappen == null) continue;
     if (lockHasExtra(extras, row.code)) continue;
     add += row.amount_rappen;
