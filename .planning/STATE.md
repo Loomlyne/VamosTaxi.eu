@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: v1.0 Vamos Taxi V1
 status: executing
-stopped_at: Phase 18 wave 6 plan 18-07 complete. Next: 18-08 lock hours.
-last_updated: "2026-09-13T23:42:14.000Z"
-last_activity: 2026-09-14 -- 18-07 checkout extras; public_chf still false
+stopped_at: Phase 18 wave 6 plan 18-08 complete. Next: 18-09 extra-wait.
+last_updated: "2026-09-13T23:59:02.000Z"
+last_activity: 2026-09-14 -- 18-08 lock hours; public_chf still false
 progress:
   total_phases: 18
   completed_phases: 11
   total_plans: 168
-  completed_plans: 159
+  completed_plans: 160
   percent: 95
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-09-04)
 ## Current Position
 
 Phase: 18 (OPS Pricing source of truth) — EXECUTING
-Plan: 7 of 10 complete
-Status: Wave 6 plan 18-07 complete. Next: 18-08 lock hours.
-Last activity: 2026-09-14 -- 18-07 checkout extras; public_chf still false
+Plan: 8 of 10 complete
+Status: Wave 6 plan 18-08 complete. Next: 18-09 extra-wait.
+Last activity: 2026-09-14 -- 18-08 lock hours; public_chf still false
 
 ## Performance Metrics
 
@@ -42,6 +42,7 @@ Last activity: 2026-09-14 -- 18-07 checkout extras; public_chf still false
 | Phase 18 P05 | 22min | 3 tasks | 24 files |
 | Phase 18 P06 | 29min | 3 tasks | 6 files |
 | Phase 18 P07 | 10min | 3 tasks | 11 files |
+| Phase 18 P08 | 14min | 3 tasks | 28 files |
 
 ## Blockers
 
@@ -50,7 +51,7 @@ Owner Publish on `https://dashboard.vamostaxi.site/pricing` still turns public C
 ## Session Continuity
 
 Last session: 2026-09-14
-Stopped at: 18-07 complete (checkout extras). Next: 18-08 lock hours.
+Stopped at: 18-08 complete (lock hours). Next: 18-09 extra-wait.
 Resume: `/gsd:execute-phase 18`
 
 ## Decisions
@@ -60,3 +61,4 @@ Resume: `/gsd:execute-phase 18`
 - [Phase 18]: Overlay Save / VAT / coupons / classes stay on the draft. Preview loads the draft id via asStaff (quote_rate_book(true) still returns live after Publish). Test unpaid cites live rate_version_id for the charge gate, writes draft amounts, sets is_test; account Pay is off.
 - [Phase 18]: dashboard.vamostaxi.site/pricing is the five-tab fare book; /coupons is gone; dispatcher /pricing is not found. Preview recap is the only draft CHF — never Stripe, never public preferDraft.
 - [Phase 18]: Checkout extras are published extra-chip rows (automatic night/weekend/holiday/waiting never chips). Extra stop is D-11 on Mapbox places capped at max_extra_stops, not amount × qty. Both pins inside the published polygon; coupon still floors payable at 0 before VAT.
+- [Phase 18]: Unpaid quotes keep locked snapshot CHF until quote_lock_expires_at then auto-cancel; webhook after expiry/cancel/is_test does not capture; price-changed and expired mails skip-send until owner English exists
