@@ -449,6 +449,7 @@
     "extras": "Extras",
     "childSeat": "Kindersitz",
     "meetGreet": "Meet and greet",
+    "freeWait": "Freie Flughafenwartezeit",
     "payment": "Zahlung",
     "chargeIn": "Die Belastung erfolgt in {currency}.",
     "fxRate": "1 CHF = {rate} {code}",

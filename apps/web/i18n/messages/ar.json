@@ -449,6 +449,7 @@
     "extras": "إضافات",
     "childSeat": "مقعد طفل",
     "meetGreet": "استقبال بالاسم",
+    "freeWait": "انتظار مجاني في المطار",
     "payment": "الدفع",
     "chargeIn": "يتم الخصم بـ {currency}.",
     "fxRate": "1 CHF = {rate} {code}",

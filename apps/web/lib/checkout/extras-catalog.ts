@@ -12,14 +12,25 @@ export type CheckoutExtraJson = {
 };
 
 export type ExtraUi = {
-  icon: "baby" | "user" | "luggage" | "map-pin" | "snowflake";
-  labelKey: "childSeat" | "meetGreet" | "extraOversized" | "additional-stop-2" | "extraSki" | "extraPet";
+  icon: "baby" | "user" | "luggage" | "map-pin" | "snowflake" | "clock";
+  labelKey:
+    | "childSeat"
+    | "meetGreet"
+    | "freeWait"
+    | "extraOversized"
+    | "additional-stop-2"
+    | "extraSki"
+    | "extraPet";
   toggle: boolean;
 };
 
+export const FREE_WAIT_CODE = "free_wait";
+export const MEET_GREET_CODE = "meet_greet";
+
 const EXTRA_UI: Record<string, ExtraUi> = {
   child_seat: { icon: "baby", labelKey: "childSeat", toggle: true },
-  meet_greet: { icon: "user", labelKey: "meetGreet", toggle: false },
+  meet_greet: { icon: "user", labelKey: "meetGreet", toggle: true },
+  free_wait: { icon: "clock", labelKey: "freeWait", toggle: true },
   extra_stop: { icon: "map-pin", labelKey: "additional-stop-2", toggle: true },
   oversized_luggage: { icon: "luggage", labelKey: "extraOversized", toggle: true },
   ski: { icon: "snowflake", labelKey: "extraSki", toggle: true },
@@ -42,7 +53,34 @@ export type ExtraToggles = {
   extraStop: boolean;
   skiRack: boolean;
   extraCodes: string[];
+  /** D-38: default on. Explicit false turns the meet card off. */
+  meetGreet?: boolean;
+  /** D-38: default on. Explicit false turns the free-wait card off. */
+  freeWait?: boolean;
+  /**
+   * Free wait applies only on airport pickup. Explicit false is city/other.
+   * Omitted means the caller has not classified the pin — follow the toggle.
+   */
+  airportPickup?: boolean;
 };
+
+function extraToggleDefaultOn(named: boolean | undefined): boolean {
+  return named !== false;
+}
+
+export function airportPickupFromPlace(place: unknown): boolean | undefined {
+  if (!place || typeof place !== "object" || Array.isArray(place)) return undefined;
+  const rec = place as Record<string, unknown>;
+  if (rec.zone_type === "airport") return true;
+  if (typeof rec.zone_type === "string") return false;
+  return undefined;
+}
+
+function freeWaitIsOn(toggles: ExtraToggles): boolean {
+  if (toggles.airportPickup !== true) return false;
+  if (!extraToggleDefaultOn(toggles.meetGreet)) return false;
+  return extraToggleDefaultOn(toggles.freeWait);
+}
 
 /** Recap and tiles follow this booking's toggles. A leftover lock must not paint extras. */
 export function extraIsOn(code: string, toggles: ExtraToggles): boolean {
@@ -50,7 +88,8 @@ export function extraIsOn(code: string, toggles: ExtraToggles): boolean {
   if (code === "oversized_luggage") return toggles.oversized;
   if (code === "extra_stop") return toggles.extraStop;
   if (code === "ski" || code === "ski_rack") return toggles.skiRack;
-  if (code === "meet_greet") return true;
+  if (code === MEET_GREET_CODE) return extraToggleDefaultOn(toggles.meetGreet);
+  if (code === FREE_WAIT_CODE) return freeWaitIsOn(toggles);
   return toggles.extraCodes.includes(code);
 }
 
@@ -60,7 +99,12 @@ export function extraIsOnForStep(
   code: string,
   toggles: ExtraToggles,
 ): boolean {
-  if (step === "trip") return code === "meet_greet";
+  if (step === "trip") {
+    if (code === MEET_GREET_CODE || code === FREE_WAIT_CODE) {
+      return extraIsOn(code, toggles);
+    }
+    return false;
+  }
   return extraIsOn(code, toggles);
 }
 
@@ -201,12 +245,21 @@ export function extraAmountTimesQty(
   return amountRappen * quantity;
 }
 
+const FREE_WAIT_CARD: CheckoutExtraJson = {
+  code: FREE_WAIT_CODE,
+  kind: "included",
+  amount_rappen: null,
+  percent: null,
+  toggle: true,
+};
+
 /** Live surcharge chips only. Inactive and automatic kinds are omitted, not CHF 0. */
 export function catalogFromSurcharges(rows: SurchargeLike[]): CheckoutExtraJson[] {
   const out: CheckoutExtraJson[] = [];
   for (const row of rows) {
     if (!row.active) continue;
     if (!isPassengerExtra(row.code)) continue;
+    if (row.code === FREE_WAIT_CODE) continue;
     const ui = extraUi(row.code);
     out.push({
       code: row.code,
@@ -216,5 +269,7 @@ export function catalogFromSurcharges(rows: SurchargeLike[]): CheckoutExtraJson[
       toggle: ui?.toggle ?? true,
     });
   }
+  // D-38: free airport wait is a catalog card, not the automatic waiting surcharge.
+  out.push({ ...FREE_WAIT_CARD });
   return out;
 }

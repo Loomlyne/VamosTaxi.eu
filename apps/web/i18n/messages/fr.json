@@ -449,6 +449,7 @@
     "extras": "Extras",
     "childSeat": "Siège enfant",
     "meetGreet": "Accueil nominatif",
+    "freeWait": "Attente aéroport offerte",
     "payment": "Paiement",
     "chargeIn": "Le débit est en {currency}.",
     "fxRate": "1 CHF = {rate} {code}",

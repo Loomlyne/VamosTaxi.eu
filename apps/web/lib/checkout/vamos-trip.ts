@@ -47,6 +47,8 @@ export type VamosTrip = {
   oversizedLuggage?: boolean;
   skiRack?: boolean;
   extrasOn?: string[];
+  meetGreet?: boolean;
+  freeWait?: boolean;
   billingKind?: "individual" | "company";
   stops?: number;
   flight?: string;

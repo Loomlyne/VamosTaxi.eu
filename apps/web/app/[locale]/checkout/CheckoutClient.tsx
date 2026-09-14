@@ -47,6 +47,7 @@ import {
   type VamosTrip,
 } from "@/lib/checkout/vamos-trip";
 import {
+  airportPickupFromPlace,
   extraIsOnForStep,
   extraRappenOutsideLock,
   extraUi,
@@ -265,6 +266,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const [extraStop, setExtraStop] = useState(false);
   const [skiRack, setSkiRack] = useState(false);
   const [extraCodes, setExtraCodes] = useState<string[]>([]);
+  const [meetGreet, setMeetGreet] = useState(true);
+  const [freeWait, setFreeWait] = useState(true);
   const [extrasCatalog, setExtrasCatalog] = useState<CheckoutExtraJson[]>([]);
   const [vatRateBps, setVatRateBps] = useState(CH_VAT_RATE_BPS);
   const [coupon, setCoupon] = useState("");
@@ -412,6 +415,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       setExtraStop(false);
       setSkiRack(false);
       setExtraCodes([]);
+      setMeetGreet(true);
+      setFreeWait(true);
       setReference(null);
       setConfirmPay(null);
       setCardComplete(false);
@@ -422,6 +427,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       if (typeof trip?.oversizedLuggage === "boolean") setOversized(trip.oversizedLuggage);
       if (typeof trip?.stops === "number") setExtraStop(trip.stops > 0);
       if (typeof trip?.skiRack === "boolean") setSkiRack(trip.skiRack);
+      if (typeof trip?.meetGreet === "boolean") setMeetGreet(trip.meetGreet);
+      if (typeof trip?.freeWait === "boolean") setFreeWait(trip.freeWait);
       if (Array.isArray(trip?.extrasOn)) {
         setExtraCodes(trip.extrasOn.filter((code): code is string => typeof code === "string"));
       }
@@ -1007,9 +1014,31 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     return "";
   }
   function extraOn(code: string): boolean {
-    return extraIsOnForStep(step, code, { childSeat, oversized, extraStop, skiRack, extraCodes });
+    return extraIsOnForStep(step, code, {
+      childSeat,
+      oversized,
+      extraStop,
+      skiRack,
+      extraCodes,
+      meetGreet,
+      freeWait,
+      airportPickup: airportPickupFromPlace(pickupPlace) !== false,
+    });
   }
   function extraClick(code: string) {
+    if (code === "meet_greet") {
+      const next = !meetGreet;
+      setMeetGreet(next);
+      if (next) setFreeWait(true);
+      writeVamosTrip({ meetGreet: next, ...(next ? { freeWait: true } : {}) });
+      return;
+    }
+    if (code === "free_wait") {
+      const next = !freeWait;
+      setFreeWait(next);
+      writeVamosTrip({ freeWait: next });
+      return;
+    }
     if (code === "child_seat") {
       const next = !childSeat;
       setChildSeat(next);

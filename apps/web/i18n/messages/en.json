@@ -449,6 +449,7 @@
     "extras": "Extras",
     "childSeat": "Child seat",
     "meetGreet": "Meet and greet",
+    "freeWait": "Free airport wait",
     "payment": "Payment",
     "chargeIn": "You are charged in {currency}.",
     "fxRate": "1 CHF = {rate} {code}",
