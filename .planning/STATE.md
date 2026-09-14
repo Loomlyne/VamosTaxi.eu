@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: v1.0 Vamos Taxi V1
 status: executing
-stopped_at: Phase 18 wave 6 plan 18-08 complete. Next: 18-09 extra-wait.
-last_updated: "2026-09-13T23:59:02.000Z"
-last_activity: 2026-09-14 -- 18-08 lock hours; public_chf still false
+stopped_at: Phase 18 wave 7 plan 18-09 complete. Next: 18-10 owner UAT.
+last_updated: "2026-09-14T00:18:36.000Z"
+last_activity: 2026-09-14 -- 18-09 extra-wait CHF 0 at pay; no off-session
 progress:
   total_phases: 18
   completed_phases: 11
   total_plans: 168
-  completed_plans: 160
-  percent: 95
+  completed_plans: 161
+  percent: 96
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-09-04)
 ## Current Position
 
 Phase: 18 (OPS Pricing source of truth) — EXECUTING
-Plan: 8 of 10 complete
-Status: Wave 6 plan 18-08 complete. Next: 18-09 extra-wait.
-Last activity: 2026-09-14 -- 18-08 lock hours; public_chf still false
+Plan: 9 of 10 complete
+Status: Wave 7 plan 18-09 complete. Next: 18-10 owner UAT (do not execute).
+Last activity: 2026-09-14 -- 18-09 extra-wait CHF 0 at pay; no off-session
 
 ## Performance Metrics
 
@@ -43,6 +43,7 @@ Last activity: 2026-09-14 -- 18-08 lock hours; public_chf still false
 | Phase 18 P06 | 29min | 3 tasks | 6 files |
 | Phase 18 P07 | 10min | 3 tasks | 11 files |
 | Phase 18 P08 | 14min | 3 tasks | 28 files |
+| Phase 18 P09 | 17min | 3 tasks | 19 files |
 
 ## Blockers
 
@@ -51,7 +52,7 @@ Owner Publish on `https://dashboard.vamostaxi.site/pricing` still turns public C
 ## Session Continuity
 
 Last session: 2026-09-14
-Stopped at: 18-08 complete (lock hours). Next: 18-09 extra-wait.
+Stopped at: 18-09 complete (extra-wait CHF 0 at pay). Next: 18-10 owner UAT — do not execute 18-10 from this close-out.
 Resume: `/gsd:execute-phase 18`
 
 ## Decisions
@@ -62,3 +63,4 @@ Resume: `/gsd:execute-phase 18`
 - [Phase 18]: dashboard.vamostaxi.site/pricing is the five-tab fare book; /coupons is gone; dispatcher /pricing is not found. Preview recap is the only draft CHF — never Stripe, never public preferDraft.
 - [Phase 18]: Checkout extras are published extra-chip rows (automatic night/weekend/holiday/waiting never chips). Extra stop is D-11 on Mapbox places capped at max_extra_stops, not amount × qty. Both pins inside the published polygon; coupon still floors payable at 0 before VAT.
 - [Phase 18]: Unpaid quotes keep locked snapshot CHF until quote_lock_expires_at then auto-cancel; webhook after expiry/cancel/is_test does not capture; price-changed and expired mails skip-send until owner English exists
+- [Phase 18]: Extra wait after free wait is CHF 0 at pay; meet & greet and free airport wait are two default-on cards; ops mark-arrival writes booking_legs.arrived_at; no off_session / waiting PaymentIntent capture
