@@ -32,6 +32,8 @@ export type CompletenessKind =
 export type CompletenessGap = {
   kind: CompletenessKind;
   name: string;
+  id?: string;
+  missing?: string[];
 };
 
 type VersionQueryRow = {
@@ -48,6 +50,26 @@ type VersionQueryRow = {
 
 function asVersionId(value: number | string): number {
   return typeof value === "number" ? value : Number(value);
+}
+
+function asGapId(value: unknown): string | undefined {
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  if (typeof value === "string" && value.trim()) return value.trim();
+  return undefined;
+}
+
+function asMissing(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === "string" && item.length > 0);
+  }
+  if (typeof value === "string") {
+    return value
+      .replace(/[{}]/g, "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+  return [];
 }
 
 export async function loadRateVersions(
@@ -83,8 +105,19 @@ export async function loadCompleteness(
   versionId: number,
 ): Promise<CompletenessGap[]> {
   return asStaff(env, claims, async (tx) => {
-    const distance = await tx<{ name: string }[]>`
-      select coalesce(nullif(btrim(vc.name), ''), vc.slug) as name
+    const distance = await tx<
+      { id: number | string; name: string; missing: unknown }[]
+    >`
+      select r.id,
+             coalesce(nullif(btrim(vc.name), ''), vc.slug) as name,
+             array_remove(array[
+               case when nullif(btrim(vc.name), '') is null then 'name' end,
+               case when nullif(btrim(vc.photo_path), '') is null then 'photo' end,
+               case when r.base_fare_rappen is null then 'start' end,
+               case when r.per_km_rappen is null then 'per_km' end,
+               case when r.max_pax is null then 'max_pax' end,
+               case when vc.luggage_capacity is null then 'max_bags' end
+             ], null) as missing
         from public.distance_rates r
         left join public.vehicle_classes vc on vc.id = r.vehicle_class_id
        where r.rate_version_id = ${versionId} and r.available
@@ -152,7 +185,12 @@ export async function loadCompleteness(
          and overlap_right.from_km < coalesce(overlap_left.to_km, 1000000000)
     `;
     return [
-      ...distance.map((row) => ({ kind: "distance_rate" as const, name: row.name })),
+      ...distance.map((row) => ({
+        kind: "distance_rate" as const,
+        name: row.name,
+        id: asGapId(row.id),
+        missing: asMissing(row.missing),
+      })),
       ...surcharges.map((row) => ({ kind: "surcharge" as const, name: row.name })),
       ...routes.map((row) => ({ kind: "fixed_route" as const, name: row.name })),
       ...coupons.map((row) => ({ kind: "coupon" as const, name: row.name })),

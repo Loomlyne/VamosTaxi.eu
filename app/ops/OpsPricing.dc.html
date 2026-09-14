@@ -73,7 +73,7 @@
 </div>
 <div style="margin-inline-start:auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:10px">
 <p data-publish-ok="1" style="display:{{ publishOkDisplay }};margin:0;width:100%;font-size:var(--vt-body-xs);color:var(--vt-success);text-align:end">{{ tPublishOk }}</p>
-<p data-publish-error="1" style="display:{{ publishErrorDisplay }};margin:0;width:100%;font-size:var(--vt-body-xs);color:var(--vt-danger);text-align:end">{{ tPublishError }}</p>
+<p data-publish-error="1" style="display:{{ headerPublishErrorDisplay }};margin:0;width:100%;font-size:var(--vt-body-xs);color:var(--vt-danger);text-align:end">{{ tPublishError }}</p>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="danger" onClick="{{ openDiscard }}" disabled="{{ discardDisabled }}" hint-size="130px,44px">{{ tDiscard }}</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ openPublish }}" disabled="{{ publishBusyDisabled }}" hint-size="170px,44px">{{ tPublish }}</x-import>
 </div>
@@ -104,13 +104,13 @@
 
 <sc-if value="{{ isRoutes }}" hint-placeholder-val="{{ true }}">
 <div data-price-pane="1" data-price-swipe="1" data-scroll-native="1">
-<dc-import name="OpsTable" rows="{{ routes }}" columns="{{ routeColumns }}" fields="{{ routeFields }}" blank="{{ routeBlank }}" onSave="{{ saveRoute }}" onDelete="{{ deleteRoute }}" noun="{{ tNounRoute }}" noun-plural="{{ tNounRoutes }}" add-title="{{ tAddRoute }}" edit-title="{{ tEditRoute }}" delete-title="{{ tDeleteRouteTitle }}" label-key="routeLabel" add-label="{{ tAddRoute }}" save-label="{{ tSaveRoute }}" add-save-label="{{ tAddRoute }}" search-placeholder="{{ tSearchRoutes }}" search-keys="{{ routeSearchKeys }}" empty-title="{{ tEmptyRoutesTitle }}" empty-body="{{ tEmptyRoutesBody }}" delete-body="{{ tDeleteRouteBody }}" hint-size="100%,420px"></dc-import>
+<dc-import name="OpsTable" rows="{{ routes }}" columns="{{ routeColumns }}" fields="{{ routeFields }}" blank="{{ routeBlank }}" onSave="{{ saveRoute }}" onDelete="{{ deleteRoute }}" noun="{{ tNounRoute }}" noun-plural="{{ tNounRoutes }}" add-title="{{ tAddRoute }}" edit-title="{{ tEditRoute }}" delete-title="{{ tDeleteRouteTitle }}" label-key="routeLabel" add-label="{{ tAddRoute }}" save-label="{{ tSaveRoute }}" add-save-label="{{ tAddRoute }}" search-placeholder="{{ tSearchRoutes }}" search-keys="{{ routeSearchKeys }}" empty-title="{{ tEmptyRoutesTitle }}" empty-body="{{ tEmptyRoutesBody }}" delete-body="{{ tDeleteRouteBody }}" edit-id="{{ routeEditId }}" edit-tick="{{ routeEditTick }}" hint-size="100%,420px"></dc-import>
 </div>
 </sc-if>
 
 <sc-if value="{{ isDistance }}" hint-placeholder-val="{{ false }}">
 <div data-price-pane="1" data-price-swipe="1" data-scroll-native="1">
-<dc-import name="OpsTable" rows="{{ distanceRows }}" columns="{{ distanceColumns }}" fields="{{ distanceFields }}" blank="{{ distanceBlank }}" onSave="{{ saveDistance }}" onDelete="{{ deleteDistance }}" noun="{{ tNounClass }}" noun-plural="{{ tNounClasses }}" add-title="{{ tAddClass }}" edit-title="{{ tEditClass }}" delete-title="{{ tDeleteClassTitle }}" label-key="klass" add-label="{{ tAddClass }}" save-label="{{ tSaveClass }}" add-save-label="{{ tAddClass }}" search-placeholder="{{ tSearchDistance }}" search-keys="{{ distanceSearchKeys }}" empty-title="{{ tEmptyClassesTitle }}" empty-body="{{ tEmptyClassesBody }}" delete-body="{{ tDeleteClassBody }}" hint-size="100%,420px"></dc-import>
+<dc-import name="OpsTable" rows="{{ distanceRows }}" columns="{{ distanceColumns }}" fields="{{ distanceFields }}" blank="{{ distanceBlank }}" onSave="{{ saveDistance }}" onDelete="{{ deleteDistance }}" noun="{{ tNounClass }}" noun-plural="{{ tNounClasses }}" add-title="{{ tAddClass }}" edit-title="{{ tEditClass }}" delete-title="{{ tDeleteClassTitle }}" label-key="klass" add-label="{{ tAddClass }}" save-label="{{ tSaveClass }}" add-save-label="{{ tAddClass }}" search-placeholder="{{ tSearchDistance }}" search-keys="{{ distanceSearchKeys }}" empty-title="{{ tEmptyClassesTitle }}" empty-body="{{ tEmptyClassesBody }}" delete-body="{{ tDeleteClassBody }}" edit-id="{{ distanceEditId }}" edit-tick="{{ distanceEditTick }}" hint-size="100%,420px"></dc-import>
 <dc-import name="OpsTable" rows="{{ bandRows }}" columns="{{ bandColumns }}" fields="{{ bandFields }}" blank="{{ bandBlank }}" onSave="{{ saveBand }}" onDelete="{{ deleteBand }}" noun="{{ tNounBand }}" noun-plural="{{ tNounBands }}" add-title="{{ tAddBand }}" edit-title="{{ tEditBand }}" delete-title="{{ tDeleteBandTitle }}" label-key="fromKm" add-label="{{ tAddBand }}" save-label="{{ tSaveBand }}" add-save-label="{{ tAddBand }}" search-placeholder="{{ tSearchBands }}" search-keys="{{ bandSearchKeys }}" empty-title="{{ tEmptyBandsTitle }}" empty-body="{{ tEmptyBandsBody }}" delete-body="{{ tDeleteBandBody }}" hint-size="100%,280px"></dc-import>
 </div>
 </sc-if>
@@ -294,12 +294,14 @@ const T = {
     completenessGaps:(n) => n === 1 ? '1 gap before Publish fare book' : n + ' gaps before Publish fare book',
     completenessEmpty:'No draft fare book.',
     gapDistance:'Distance class', gapSurcharge:'Surcharge', gapRoute:'Fixed route', gapCoupon:'Coupon', gapRule:'Rule', gapBand:'Km band', gapBandOverlap:'Overlapping km band',
+    gapFieldName:'name', gapFieldPhoto:'photo', gapFieldStart:'start fare', gapFieldPerKm:'per-km', gapFieldPax:'max passengers', gapFieldBags:'max bags',
+    gapMissing:'{class} — missing {fields}.',
     publishDisabledGaps:'Publish fare book stays off until the gaps are filled.',
     publishDisabledNoDraft:'Publish fare book stays off until a draft exists.',
     publishError:'Publish did not flip — fill the missing fields on this page, then confirm Publish again.',
-    publishGapLead:'Publish did not flip — fill the missing fields on this page, then confirm Publish again.',
+    publishGapLead:'Fill the missing fields listed here, then Publish again.',
     publishByCode:{
-      incomplete:'Publish did not flip — the draft still has unpriced gaps. Fill the missing fields on this page, then confirm Publish again.',
+      incomplete:'Publish did not flip — fill the missing fields on this page, then confirm Publish again.',
       'not-draft':'Publish did not flip — this version is not a draft.',
       duplicate:'Publish did not flip — a live version already occupies this book.',
       forbidden:'Publish did not flip — the database refused this write.',
@@ -378,12 +380,14 @@ const T = {
     completenessGaps:(n) => n === 1 ? '1 Lücke vor Tarifbuch veröffentlichen' : n + ' Lücken vor Tarifbuch veröffentlichen',
     completenessEmpty:'Kein Entwurfs-Tarifbuch.',
     gapDistance:'Distanzklasse', gapSurcharge:'Zuschlag', gapRoute:'Feste Route', gapCoupon:'Gutschein', gapRule:'Regel', gapBand:'Km-Band', gapBandOverlap:'Überlappendes Km-Band',
+    gapFieldName:'Name', gapFieldPhoto:'Foto', gapFieldStart:'Startpreis', gapFieldPerKm:'pro km', gapFieldPax:'max. Passagiere', gapFieldBags:'max. Gepäck',
+    gapMissing:'{class} — fehlt {fields}.',
     publishDisabledGaps:'Tarifbuch veröffentlichen bleibt aus, bis die Lücken gefüllt sind.',
     publishDisabledNoDraft:'Tarifbuch veröffentlichen bleibt aus, bis ein Entwurf existiert.',
     publishError:'Veröffentlichen hat nicht umgestellt — fehlende Felder auf dieser Seite füllen, dann erneut bestätigen.',
-    publishGapLead:'Veröffentlichen hat nicht umgestellt — fehlende Felder auf dieser Seite füllen, dann erneut bestätigen.',
+    publishGapLead:'Die fehlenden Felder hier füllen, dann erneut veröffentlichen.',
     publishByCode:{
-      incomplete:'Veröffentlichen hat nicht umgestellt — der Entwurf hat noch unbezahlte Lücken. Fehlende Felder auf dieser Seite füllen, dann erneut bestätigen.',
+      incomplete:'Veröffentlichen hat nicht umgestellt — fehlende Felder auf dieser Seite füllen, dann erneut bestätigen.',
       'not-draft':'Veröffentlichen hat nicht umgestellt — diese Version ist kein Entwurf.',
       duplicate:'Veröffentlichen hat nicht umgestellt — eine Live-Version belegt dieses Buch bereits.',
       forbidden:'Veröffentlichen hat nicht umgestellt — die Datenbank hat diesen Schreibvorgang abgelehnt.',
@@ -464,12 +468,14 @@ const T = {
     completenessGaps:(n) => n === 1 ? '1 écart avant Publier le livre tarifaire' : n + ' écarts avant Publier le livre tarifaire',
     completenessEmpty:'Pas de brouillon tarifaire.',
     gapDistance:'Classe distance', gapSurcharge:'Supplément', gapRoute:'Trajet fixe', gapCoupon:'Code', gapRule:'Règle', gapBand:'Tranche km', gapBandOverlap:'Tranche km superposée',
+    gapFieldName:'nom', gapFieldPhoto:'photo', gapFieldStart:'départ', gapFieldPerKm:'au km', gapFieldPax:'passagers max', gapFieldBags:'bagages max',
+    gapMissing:'{class} — manque {fields}.',
     publishDisabledGaps:'Publier le livre tarifaire reste inactif tant que les écarts ne sont pas remplis.',
     publishDisabledNoDraft:'Publier le livre tarifaire reste inactif tant qu’un brouillon n’existe pas.',
     publishError:'La publication n’a pas basculé — remplissez les champs manquants sur cette page, puis confirmez à nouveau.',
-    publishGapLead:'La publication n’a pas basculé — remplissez les champs manquants sur cette page, puis confirmez à nouveau.',
+    publishGapLead:'Remplissez les champs manquants listés ici, puis publiez à nouveau.',
     publishByCode:{
-      incomplete:'La publication n’a pas basculé — le brouillon a encore des écarts. Remplissez les champs manquants sur cette page, puis confirmez à nouveau.',
+      incomplete:'La publication n’a pas basculé — remplissez les champs manquants sur cette page, puis confirmez à nouveau.',
       'not-draft':'La publication n’a pas basculé — cette version n’est pas un brouillon.',
       duplicate:'La publication n’a pas basculé — une version live occupe déjà ce livre.',
       forbidden:'La publication n’a pas basculé — la base a refusé cette écriture.',
@@ -550,12 +556,14 @@ const T = {
     completenessGaps:(n) => n === 1 ? 'فجوة واحدة قبل نشر دفتر الأسعار' : n + ' فجوات قبل نشر دفتر الأسعار',
     completenessEmpty:'لا مسودة دفتر أسعار.',
     gapDistance:'فئة المسافة', gapSurcharge:'رسم', gapRoute:'مسار ثابت', gapCoupon:'قسيمة', gapRule:'قاعدة', gapBand:'شريحة كم', gapBandOverlap:'شريحة كم متداخلة',
+    gapFieldName:'الاسم', gapFieldPhoto:'الصورة', gapFieldStart:'سعر البداية', gapFieldPerKm:'لكل كم', gapFieldPax:'الركاب الأقصى', gapFieldBags:'الحقائب الأقصى',
+    gapMissing:'{class} — ناقص {fields}.',
     publishDisabledGaps:'يبقى نشر دفتر الأسعار متوقفًا حتى تُملأ الفجوات.',
     publishDisabledNoDraft:'يبقى نشر دفتر الأسعار متوقفًا حتى توجد مسودة.',
     publishError:'لم ينقلب النشر — املأ الحقول الناقصة في هذه الصفحة ثم أكّد النشر مجددًا.',
-    publishGapLead:'لم ينقلب النشر — املأ الحقول الناقصة في هذه الصفحة ثم أكّد النشر مجددًا.',
+    publishGapLead:'املأ الحقول الناقصة هنا ثم انشر مجددًا.',
     publishByCode:{
-      incomplete:'لم ينقلب النشر — ما زالت المسودة فيها فجوات. املأ الحقول الناقصة في هذه الصفحة ثم أكّد النشر مجددًا.',
+      incomplete:'لم ينقلب النشر — املأ الحقول الناقصة في هذه الصفحة ثم أكّد النشر مجددًا.',
       'not-draft':'لم ينقلب النشر — هذه النسخة ليست مسودة.',
       duplicate:'لم ينقلب النشر — نسخة مباشرة تشغل هذا الكتاب.',
       forbidden:'لم ينقلب النشر — رفضت قاعدة البيانات هذه الكتابة.',
@@ -614,6 +622,10 @@ class Component extends DCLogic {
     publishOk: false,
     showToast: false,
     toastMsg: '',
+    distanceEditId: '',
+    distanceEditTick: 0,
+    routeEditId: '',
+    routeEditTick: 0,
   };
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
@@ -933,9 +945,37 @@ class Component extends DCLogic {
       if (kind === 'coupon') return 'coupons';
       return 'routes';
     };
+    const fieldLabel = (key) => {
+      if (key === 'name') return t.gapFieldName;
+      if (key === 'photo') return t.gapFieldPhoto;
+      if (key === 'start') return t.gapFieldStart;
+      if (key === 'per_km') return t.gapFieldPerKm;
+      if (key === 'max_pax') return t.gapFieldPax;
+      if (key === 'max_bags') return t.gapFieldBags;
+      return key;
+    };
+    const gapLabel = (g) => {
+      const who = g.name || g.id || gapKind(g.kind);
+      const missing = Array.isArray(g.missing) ? g.missing : [];
+      if (!missing.length) return gapKind(g.kind) + ': ' + who + '.';
+      return t.gapMissing.replace('{class}', who).replace('{fields}', missing.map(fieldLabel).join(', '));
+    };
+    const jumpToGap = (g) => {
+      const pane = paneForGap(g.kind);
+      const patch = { pane: pane, publishOpen: false };
+      if (pane === 'distance') {
+        patch.distanceEditId = g.id || g.name || '';
+        patch.distanceEditTick = (this.state.distanceEditTick || 0) + 1;
+      }
+      if (pane === 'routes') {
+        patch.routeEditId = g.id || g.name || '';
+        patch.routeEditTick = (this.state.routeEditTick || 0) + 1;
+      }
+      this.setState(patch);
+    };
     const gaps = rawGaps.map((g) => ({
-      label: t.publishError.replace(/—[\s\S]*$/, '— ' + gapKind(g.kind) + ': ' + (g.name || g.id || '') + '.'),
-      fix: () => this.setState({ pane: paneForGap(g.kind), publishOpen: false }),
+      label: gapLabel(g),
+      fix: () => jumpToGap(g),
     }));
     const hasDraft = this.state.draftId != null;
     const hasGaps = rawGaps.length > 0;
@@ -1012,7 +1052,12 @@ class Component extends DCLogic {
       saveVat: this.saveVat,
       gaps: gaps,
       gapListDisplay: hasGaps ? 'block' : 'none',
-      publishErrorDisplay: this.state.publishCode ? 'block' : 'none',
+      headerPublishErrorDisplay: this.state.publishCode ? 'block' : 'none',
+      publishErrorDisplay: this.state.publishCode && !hasGaps ? 'block' : 'none',
+      distanceEditId: this.state.distanceEditId,
+      distanceEditTick: this.state.distanceEditTick,
+      routeEditId: this.state.routeEditId,
+      routeEditTick: this.state.routeEditTick,
       publishOkDisplay: this.state.publishOk ? 'block' : 'none',
       publishDisabled: role !== 'admin' || !hasDraft,
       publishBusyDisabled: role !== 'admin' || !hasDraft || this.state.publishing,

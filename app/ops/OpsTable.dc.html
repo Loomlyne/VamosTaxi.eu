@@ -501,7 +501,7 @@ class Component extends DCLogic {
     if (editTick !== undefined && editTick !== null && String(editTick) !== '' && String(editTick) !== '0' && String(editTick) !== String(editWas)) {
       const editId = this.props.editId != null ? this.props.editId : this.props['edit-id'];
       const rows = this.props.rows || [];
-      const row = rows.filter((r) => r.id === editId || r.bookingId === editId)[0];
+      const row = rows.filter((r) => String(r.id) === String(editId) || String(r.bookingId) === String(editId) || String(r.klass) === String(editId) || String(r.name) === String(editId))[0];
       if (row) this.startEdit(row);
     }
   }

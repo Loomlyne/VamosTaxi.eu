@@ -104,6 +104,7 @@ describe("loadCompleteness", () => {
     expect(distance).toMatch(/available/);
     expect(distance).toMatch(/vehicle_classes/);
     expect(distance).toMatch(/name/);
+    expect(distance).toMatch(/array_remove/);
     expect(distance).toMatch(/photo_path/);
     expect(distance).toMatch(/luggage_capacity/);
     expect(distance).toMatch(/base_fare_rappen/);
@@ -165,7 +166,10 @@ describe("loadCompleteness", () => {
       const tx = async (strings: TemplateStringsArray) => {
         const sql = sqlOf(strings);
         if (sql.includes("distance_rates")) {
-          return [{ name: "economy" }, { name: "business" }, { name: "van" }];
+          return [
+            { id: 11, name: "van", missing: ["name", "photo"] },
+            { id: 12, name: "business", missing: ["photo"] },
+          ];
         }
         if (sql.includes("surcharges")) {
           return [{ name: "night" }, { name: "airport_pickup" }];
@@ -176,11 +180,11 @@ describe("loadCompleteness", () => {
     });
 
     const gaps = await loadCompleteness(env, adminClaims, 1);
-    expect(gaps.filter((g) => g.kind === "distance_rate").map((g) => g.name)).toEqual([
-      "economy",
-      "business",
-      "van",
-    ]);
+    const distanceGaps = gaps.filter((g) => g.kind === "distance_rate");
+    expect(distanceGaps.map((g) => g.name)).toEqual(["van", "business"]);
+    expect(distanceGaps[0]?.missing).toEqual(["name", "photo"]);
+    expect(distanceGaps[0]?.id).toBe("11");
+    expect(distanceGaps[1]?.missing).toEqual(["photo"]);
     expect(gaps.filter((g) => g.kind === "surcharge").map((g) => g.name)).toEqual([
       "night",
       "airport_pickup",

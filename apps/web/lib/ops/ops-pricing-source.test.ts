@@ -95,6 +95,8 @@ describe("OpsPricing source of truth dual copy (D-27 D-28 D-31)", () => {
     }
     expect(html).toContain("Save VAT");
     expect(html).toContain("Fix this");
+    expect(html).toContain("gapMissing");
+    expect(html).not.toMatch(/publishError\.replace/);
     expect(html).toMatch(/overlap/i);
     expect(html).not.toMatch(/\bEUR\b/);
     expect(html).not.toMatch(/\bUSD\b/);
