@@ -233,6 +233,35 @@ export async function updateBooking(
   });
 }
 
+export async function markArrival(
+  env: CloudflareEnv,
+  claims: VamosClaims,
+  id: string,
+): Promise<UpdateResult> {
+  const key = id.trim();
+  if (!key) return { ok: false, code: "not-found" };
+  return asStaff(env, claims, async (sql) => {
+    const found = await sql<{ id: string }[]>`
+      select id from public.bookings
+      where erased_at is null and (id::text = ${key} or reference = ${key})
+      limit 1
+    `;
+    const bookingId = found[0]?.id;
+    if (!bookingId) return { ok: false, code: "not-found" };
+    await sql`
+      update public.booking_legs
+      set
+        arrived_at = coalesce(arrived_at, now()),
+        updated_at = now()
+      where booking_id = ${bookingId}::uuid
+        and leg_seq = (
+          select min(leg_seq) from public.booking_legs where booking_id = ${bookingId}::uuid
+        )
+    `;
+    return { ok: true };
+  });
+}
+
 export async function eraseBooking(
   env: CloudflareEnv,
   claims: VamosClaims,

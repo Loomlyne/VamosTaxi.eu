@@ -623,6 +623,29 @@ describe("buildLegSurchargeLines (D-06, D-42)", () => {
     void withMinutes;
   });
 
+  it("amount-kind waiting is included with payable 0 at pay (D-38)", () => {
+    const waiting = surcharge({
+      code: "waiting_airport",
+      kind: "amount",
+      amount_rappen: 4000,
+      predicate: { kind: "always" },
+      id: 5,
+    });
+    const lines = buildLegSurchargeLines({
+      leg: leg(),
+      fareLine: farePriced,
+      surcharges: [waiting],
+      zones: [airportZone, cityZone],
+      settings,
+      rateVersionId: 1,
+    });
+    expect(lines).toHaveLength(1);
+    expect(lines[0]!.kind).toBe("included");
+    expect(lines[0]!.amount_rappen).toBe(0);
+    expect(lines[0]!.basis.payable_rappen).toBe(0);
+    expect(lines[0]!.params?.minutes).not.toBe(60);
+  });
+
   it("non-applying predicate emits NO line", () => {
     const night = surcharge({
       code: "night",

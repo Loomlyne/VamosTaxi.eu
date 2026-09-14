@@ -10,7 +10,7 @@
 <x-dc>
 <main data-ops-detail="1" style="flex:1 1 auto;min-width:0;padding:22px 28px 48px">
 <style>
-[data-ops-detail]{display:flex;flex-direction:column;gap:14px}
+[data-ops-detail]{--vt-shadow-accent:none;display:flex;flex-direction:column;gap:14px}
 [data-ops-detail-bar]{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 [data-ops-detail-col]{min-width:0;width:100%;display:flex;flex-direction:column;gap:14px}
 [data-ops-route-leg]{display:grid;grid-template-columns:14px minmax(0,1fr);grid-template-rows:auto auto auto;column-gap:12px;align-items:stretch}
@@ -43,6 +43,9 @@
 </sc-if>
 <sc-if value="{{ canEdit }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="pencil" onClick="{{ openEdit }}" hint-size="140px,36px">{{ tEditBooking }}</x-import>
+</sc-if>
+<sc-if value="{{ canMarkArrival }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="secondary" icon="clock" onClick="{{ markArrival }}" hint-size="140px,36px">{{ tMarkArrival }}</x-import>
 </sc-if>
 <sc-if value="{{ canComplete }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="secondary" onClick="{{ markComplete }}" hint-size="120px,36px">{{ tComplete }}</x-import>
@@ -256,7 +259,7 @@
 </main>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900},&quot;id&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
-const EMPTY_BOOKING = { id:'', time:'', date:'', pickup:'', dropoff:'', vehicle:'', pax:0, bags:0, status:'', total:'CHF 000', totalRappen:0, driver:null, customer:'', email:'', phone:'', flight:'', pay:'', channel:'', km:'' };
+const EMPTY_BOOKING = { id:'', time:'', date:'', pickup:'', dropoff:'', vehicle:'', pax:0, bags:0, status:'', total:'CHF 000', totalRappen:0, driver:null, customer:'', email:'', phone:'', flight:'', pay:'', channel:'', km:'', arrivedAt:'', extraWaitMinutes:0, extraWaitRappen:0 };
 function listBookings() {
   return window.VamosOps ? window.VamosOps.bookings.all() : [];
 }
@@ -386,7 +389,7 @@ const T = {
     refundTitle:'Refund due', refundBody:'Cancelled inside the free window. The customer is emailed that a refund will be issued to their bank account. When you mark it issued, they get a second email.',
     refundedTitle:'Refund issued', refundedBody:'The customer has been emailed that the refund was issued to their bank account.',
     dispatcherNote:'Dispatcher note', dispatcherNotePh:'Add a note visible to dispatch only…',
-    resendVoucher:'Resend voucher', editBooking:'Edit booking', cancelBooking:'Cancel', complete:'Complete', noShow:'No-show', driver:'Driver', manualNote:'Assignment is manual in V1 — there is no driver app and no automatic dispatch.', cancel:'Cancel',
+    resendVoucher:'Resend voucher', editBooking:'Edit booking', cancelBooking:'Cancel', complete:'Complete', noShow:'No-show', markArrival:'Mark arrival', arrived:'Arrived', extraWait:'Extra wait', arrivalFailed:'Could not mark arrival ', driver:'Driver', manualNote:'Assignment is manual in V1 — there is no driver app and no automatic dispatch.', cancel:'Cancel',
     cancelTitle:'Cancel this booking?', cancelBody:'It is marked cancelled. You will still see it under Cancelled.',
     keepBooking:'Keep it', confirmCancel:'Cancel booking', bookingCancelled:'Cancelled ', cancelFailed:'Could not cancel ', refundFailed:'Could not refund ',
     voucherResent:'Voucher re-sent to ', driverAssigned:'Driver assigned to ', unassignedOk:'Assignment cleared for ',
@@ -423,7 +426,7 @@ const T = {
     refundTitle:'Rückerstattung fällig', refundBody:'Storniert innerhalb des kostenlosen Fensters. Der Kunde erhält eine E-Mail, dass die Rückerstattung auf sein Bankkonto ausgezahlt wird. Wenn Sie sie als ausgezahlt markieren, folgt eine zweite E-Mail.',
     refundedTitle:'Rückerstattung ausgezahlt', refundedBody:'Der Kunde wurde per E-Mail informiert, dass die Rückerstattung auf sein Bankkonto ausgezahlt wurde.',
     dispatcherNote:'Dispatcher-Notiz', dispatcherNotePh:'Notiz hinzufügen, nur für Dispatch sichtbar…',
-    resendVoucher:'Gutschein erneut senden', editBooking:'Buchung bearbeiten', cancelBooking:'Stornieren', complete:'Abgeschlossen', noShow:'No-show', driver:'Fahrer', manualNote:'Die Zuweisung erfolgt in V1 manuell — es gibt keine Fahrer-App und keine automatische Vermittlung.', cancel:'Abbrechen',
+    resendVoucher:'Gutschein erneut senden', editBooking:'Buchung bearbeiten', cancelBooking:'Stornieren', complete:'Abgeschlossen', noShow:'No-show', markArrival:'Ankunft markieren', arrived:'Angekommen', extraWait:'Extra-Wartezeit', arrivalFailed:'Ankunft konnte nicht markiert werden ', driver:'Fahrer', manualNote:'Die Zuweisung erfolgt in V1 manuell — es gibt keine Fahrer-App und keine automatische Vermittlung.', cancel:'Abbrechen',
     cancelTitle:'Diese Buchung stornieren?', cancelBody:'Sie wird als storniert markiert. Unter Storniert bleibt sie sichtbar.',
     keepBooking:'Behalten', confirmCancel:'Buchung stornieren', bookingCancelled:'Storniert ', cancelFailed:'Konnte nicht stornieren ', refundFailed:'Konnte nicht erstatten ',
     voucherResent:'Gutschein erneut gesendet an ', driverAssigned:'Fahrer zugewiesen zu ', unassignedOk:'Zuweisung aufgehoben für ',
@@ -466,6 +469,7 @@ const T = {
     refuse:'Refuser',
     refuseFailed:'Impossible de refuser la modification pour ',
     flightBanner:'Numéro de vol mis à jour',
+    markArrival:'Marquer l’arrivée', arrived:'Arrivé', extraWait:'Attente extra', arrivalFailed:'Impossible de marquer l’arrivée ',
   },
   ar: {
     unassign:'إلغاء التعيين', historyEmpty:'لا أحداث بعد.',
@@ -485,6 +489,7 @@ const T = {
     refuse:'رفض',
     refuseFailed:'تعذّر رفض التعديل لـ ',
     flightBanner:'تم تحديث رقم الرحلة',
+    markArrival:'تسجيل الوصول', arrived:'وصل', extraWait:'انتظار إضافي', arrivalFailed:'تعذّر تسجيل الوصول لـ ',
   },
 };
 class Component extends DCLogic {
@@ -598,6 +603,13 @@ class Component extends DCLogic {
       { icon: 'plus', k: t.extras, v: extrasText },
       { icon: 'credit-card', k: t.payment, v: booking.pay },
     ];
+    if (booking.arrivedAt) {
+      tags.push({ icon: 'clock', k: t.arrived, v: String(booking.arrivedAt).slice(11, 16) || '—' });
+    }
+    if (Number(booking.extraWaitMinutes) > 0) {
+      const waitPay = Number(booking.extraWaitRappen) > 0 ? (' · ' + fareLabel(Number(booking.extraWaitRappen))) : '';
+      tags.push({ icon: 'clock', k: t.extraWait, v: String(booking.extraWaitMinutes) + t.minutes + waitPay });
+    }
     if (booking.vehicle && booking.vehicle !== booking.klass) {
       tags.splice(3, 0, { icon: 'car', k: t.vehicleAssigned, v: booking.vehicle });
     }
@@ -656,7 +668,8 @@ class Component extends DCLogic {
       tSendPayLink: t.sendPayLink, tTakeCard: t.takeCard, tPayCard: t.payCard, takeCardOpen: !!this.state.takeCardOpen,
       tDispatcherNote: t.dispatcherNote, tDispatcherNotePh: t.dispatcherNotePh,
       tResendVoucher: t.resendVoucher, tEditBooking: t.editBooking, tCancelBooking: t.cancelBooking,
-      tComplete: t.complete, tNoShow: t.noShow,
+      tComplete: t.complete, tNoShow: t.noShow, tMarkArrival: t.markArrival,
+      canMarkArrival: !frozen && !booking.arrivedAt,
       tSaveEdit: t.saveEdit, tContinue: t.continue, tAccept: t.accept, tRefuse: t.refuse, tCancelEdit: t.cancelEdit, tMarkRefund: t.markRefund,
       tCustomer: t.customer, tPickup: t.pickup, tDropoff: t.dropoff, tDate: t.date, tTime: t.time, tBagsLabel: t.bagsLabel,
       tPendingEditTitle: t.pendingEditTitle, tUnpaidNoEditTitle: t.unpaidNoEditTitle, tUnpaidNoEditBody: t.unpaidNoEditBody, tUnpaidNewTrip: t.unpaidNewTrip,
@@ -777,6 +790,24 @@ class Component extends DCLogic {
       canCancel: !cancelled && booking.status !== 'completed',
       canComplete: !frozen,
       canNoShow: !frozen,
+      markArrival: () => {
+        const id = booking.bookingId || booking.id;
+        const client = window.VamosOpsApi;
+        const ops = window.VamosOps;
+        if (!client || typeof client.request !== 'function') {
+          this.notify(t.arrivalFailed + id);
+          return;
+        }
+        client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { arrived: true }).then((json) => {
+          if (json && json.ok) {
+            if (ops) ops.bookings.reset();
+          } else if (json && json.code === 'frozen') {
+            this.notify(t.frozen);
+          } else {
+            this.notify(t.arrivalFailed + id);
+          }
+        });
+      },
       markComplete: () => {
         const id = booking.bookingId || booking.id;
         const client = window.VamosOpsApi;

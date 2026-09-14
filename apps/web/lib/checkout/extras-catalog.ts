@@ -137,6 +137,11 @@ export type SnapshotExtraFare = {
   amount_rappen: number;
 };
 
+function isWaitingPayableCode(code: string): boolean {
+  const n = normalizeSurchargeCode(code);
+  return n === "waiting_airport" || n === "waiting_city";
+}
+
 /** Selected extras with a book amount — for the snapshot recap, not a live catalog paint. */
 export function extraFaresOn(
   catalog: CheckoutExtraJson[],
@@ -144,6 +149,7 @@ export function extraFaresOn(
 ): SnapshotExtraFare[] {
   const out: SnapshotExtraFare[] = [];
   for (const row of recapExtraFares(catalog, on)) {
+    if (isWaitingPayableCode(row.code) || row.code === FREE_WAIT_CODE) continue;
     if (row.amount_rappen == null || !Number.isFinite(row.amount_rappen) || row.amount_rappen <= 0) {
       continue;
     }
@@ -207,6 +213,7 @@ export function extraRappenOutsideLock(
   for (const row of catalog) {
     if (!on(row.code)) continue;
     if (isExtraStopCode(row.code)) continue;
+    if (isWaitingPayableCode(row.code) || row.code === FREE_WAIT_CODE) continue;
     if (row.kind !== "amount" || row.amount_rappen == null) continue;
     if (lockHasExtra(extras, row.code)) continue;
     add += row.amount_rappen;

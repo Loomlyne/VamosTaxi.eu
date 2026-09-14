@@ -10,6 +10,7 @@ import { notifyReviewRequest } from "@/lib/lifecycle/notify-lifecycle";
 import {
   cancelBooking,
   eraseBooking,
+  markArrival,
   markComplete,
   markNoShow,
   updateBooking,
@@ -69,6 +70,16 @@ export const PATCH = withStaff(async (claims, request) => {
   const record = body as Record<string, unknown>;
   const { env } = getCloudflareContext();
   const status = typeof record.status === "string" ? record.status : "";
+  const arrived = record.arrived === true;
+
+  if (arrived) {
+    const result = await markArrival(env, claims, id);
+    if (!result.ok) {
+      if (result.code === "unpaid") return jsonErr("unpaid", 409);
+      return jsonErr("not-found", 404);
+    }
+    return jsonOk({ id, arrived: true });
+  }
 
   if (status === "cancelled") {
     const result = await cancelBooking(env, claims, id);

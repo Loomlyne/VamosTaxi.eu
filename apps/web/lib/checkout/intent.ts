@@ -234,6 +234,7 @@ export async function runCheckoutIntent(
     lockHasExtra(payload.extras, code) || lockHasExtra(body.extras, code);
   const extraFares = extraFaresOn(catalog, extraOn);
   const extraAdd = extraRappenOutsideLock(payload.extras, catalog, extraOn);
+  // D-38: waiting extra is 0 at pay. extraFaresOn / extraRappenOutsideLock drop it.
   const vatRateBps = await vatRateBpsFromFlags(deps);
   const chargedRappen = payableWithVatRappen(netRappen + extraAdd, vatRateBps);
   if (!deps.vehicleClassId) {

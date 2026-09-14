@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { mintLock, type QuoteLockPayload } from "../quote/lock";
+import { extraFaresOn } from "./extras-catalog";
 import { runCheckoutIntent, type CheckoutIntentDeps } from "./intent";
 import type { CheckoutIntentRequest } from "./intent-schema";
 
@@ -622,6 +623,55 @@ describe("runCheckoutIntent", () => {
     expect(res.status).toBe(200);
     expect(charged).toBe(8648);
     expect(((await res.json()) as { amount_rappen: number }).amount_rappen).toBe(8648);
+  });
+
+  it("does not add waiting extra CHF to the payable snapshot (D-38)", async () => {
+    expect(
+      extraFaresOn(
+        [
+          {
+            code: "waiting_airport",
+            kind: "amount",
+            amount_rappen: 4000,
+            percent: null,
+            toggle: true,
+          },
+          { code: "child_seat", kind: "amount", amount_rappen: 2000, percent: null, toggle: true },
+        ],
+        () => true,
+      ),
+    ).toEqual([{ code: "child_seat", amount_rappen: 2000 }]);
+    const p = payload();
+    const body = await bodyFor(p);
+    body.extras = { child_seats: 1 };
+    let charged = 0;
+    const res = await runCheckoutIntent(
+      body,
+      deps(p, {
+        extrasCatalog: [
+          {
+            code: "waiting_airport",
+            kind: "amount",
+            amount_rappen: 4000,
+            percent: null,
+            toggle: true,
+          },
+          { code: "child_seat", kind: "amount", amount_rappen: 2000, percent: null, toggle: true },
+        ],
+        createCheckoutSession: async (input) => {
+          charged = input.chargedRappen;
+          return {
+            id: "cs_test_1",
+            client_secret: "cs_test_1_secret",
+            payment_intent: "pi_test_1",
+            status: "open",
+          } as never;
+        },
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect(charged).toBe(10810);
+    expect(((await res.json()) as { amount_rappen: number }).amount_rappen).toBe(10810);
   });
 });
 

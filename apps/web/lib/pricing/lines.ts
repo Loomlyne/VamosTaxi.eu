@@ -311,6 +311,10 @@ function zonesMap(zones: ZoneRow[]): Map<string, ZoneRow> {
   return m;
 }
 
+function isWaitingSurcharge(code: string): boolean {
+  return code === "waiting" || code === "waiting_airport" || code === "waiting_city";
+}
+
 function includedMinutes(
   code: string,
   settings: SettingsSnapshot | null,
@@ -359,6 +363,32 @@ export function buildLegSurchargeLines(
       quantity: 0,
     });
     if (!pred.applies) continue;
+
+    if (isWaitingSurcharge(row.code)) {
+      const { minutes, source } = includedMinutes(row.code, settings);
+      const provisional = seqFor(leg.leg_seq, "included", row.code);
+      out.push({
+        seq: provisional,
+        leg_seq: leg.leg_seq,
+        kind: "included",
+        code: row.code,
+        i18n_key: `price.surcharge.${row.code}.label`,
+        params: { minutes },
+        basis: {
+          rule: "included",
+          included_minutes: minutes,
+          source,
+          payable_rappen: 0,
+        },
+        source_row: {
+          table: "surcharges",
+          id: row.id,
+          ...(rateVersionId !== null ? { rate_version_id: rateVersionId } : {}),
+        },
+        amount_rappen: row.kind === "included" ? null : 0,
+      });
+      continue;
+    }
 
     if (row.kind === "included") {
       const { minutes, source } = includedMinutes(row.code, settings);
