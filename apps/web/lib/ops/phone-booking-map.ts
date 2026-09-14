@@ -12,9 +12,12 @@ export function publicPayUrl(locale: string, rawToken: string): string {
 }
 
 export function payLinkVehicleSlug(raw: string): PayLinkVehicle {
-  const s = raw.trim().toLowerCase();
-  if (s === "business" || s === "first" || s === "van") return s;
-  return "economy";
+  const slug = raw
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  return slug || "economy";
 }
 
 export function clientSecretHex(secret: string): string {

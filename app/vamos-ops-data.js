@@ -14,10 +14,9 @@
    stays VT-…. Failed writes return { ok:false, code } and the overlay
    must stay open.
 
-   Draft fare-book verbs (18-06): publish / discard / preview / createTestUnpaid
-   / cloneIntoDraft hit /api/staff/rate-versions/:id/{publish,discard,clone}
-   and POST /api/staff/rate-book/{preview,test-unpaid}. Preview never charges
-   Stripe and never sets public preferDraft. */
+   Draft fare-book verbs: publish / discard / saveDraftVat hit
+   /api/staff/rate-versions/:id/{publish,discard} and PUT rate-book for VAT.
+   OpsPricing does not call Preview or test unpaid. Never sets public preferDraft. */
 (function () {
   var subs = [];
 
@@ -40,7 +39,16 @@
     if (Array.isArray(data)) return data;
     if (data && Array.isArray(data[name])) return data[name];
     if (data && Array.isArray(data.rows)) return data.rows;
-    if (data && typeof data === "object") return [data];
+    if (data && typeof data === "object") {
+      if (
+        (data.versionId != null || data.version_id != null) &&
+        (Array.isArray(data.routes) || Array.isArray(data.rates)) &&
+        !Array.isArray(data[name])
+      ) {
+        return [];
+      }
+      return [data];
+    }
     return [];
   }
 
@@ -71,6 +79,9 @@
         bookFetch.json = json;
         if (ok && json.data && Array.isArray(json.data.zones)) {
           ZONES = json.data.zones.slice();
+        }
+        if (ok && json.data && Array.isArray(json.data.classes)) {
+          CLASSES = json.data.classes.slice();
         }
         var w = bookFetch.waiters.slice();
         bookFetch.waiters = [];
@@ -338,17 +349,22 @@
         if (json && json.ok) {
           bookFetch.loaded = false;
           bookFetch.json = null;
-          var saved = json.data && typeof json.data === "object" && !Array.isArray(json.data)
-            ? clean(json.data)
-            : row;
-          var next = previous.slice();
-          var found = false;
-          var i;
-          for (i = 0; i < next.length; i++) {
-            if (next[i].id === saved.id) { next[i] = saved; found = true; break; }
+          var named = pickRows(json, name);
+          if (json.data && Array.isArray(json.data[name])) {
+            list = named.map(clean);
+          } else {
+            var saved = json.data && typeof json.data === "object" && !Array.isArray(json.data)
+              ? clean(json.data)
+              : row;
+            var next = previous.slice();
+            var found = false;
+            var i;
+            for (i = 0; i < next.length; i++) {
+              if (next[i].id === saved.id) { next[i] = saved; found = true; break; }
+            }
+            if (!found) next.push(saved);
+            list = next;
           }
-          if (!found) next.push(saved);
-          list = next;
         } else {
           list = previous;
         }
@@ -492,6 +508,7 @@
   }
 
   var ZONES = [];
+  var CLASSES = [];
   var LOCATIONS = [
     "Zurich Airport (ZRH)", "Geneva Airport (GVA)", "Zurich city", "Dietikon",
     "Zermatt", "St. Moritz", "Chamonix", "Verbier"
@@ -604,6 +621,8 @@
       id: str(r.id),
       from: str(r.from), to: str(r.to),
       originZoneId: str(r.originZoneId), destZoneId: str(r.destZoneId),
+      fromMapbox: r.fromMapbox && typeof r.fromMapbox === "object" ? r.fromMapbox : undefined,
+      toMapbox: r.toMapbox && typeof r.toMapbox === "object" ? r.toMapbox : undefined,
       economy: cleanMoneySet(r.economy), business: cleanMoneySet(r.business), first: cleanMoneySet(r.first), van: cleanMoneySet(r.van),
       live: !!r.live
     };
@@ -612,22 +631,45 @@
   var RATE_DEFAULT_PAX = { Economy: 4, Business: 4, First: 4, Van: 7 };
   function cleanRate(r) {
     r = r || {};
-    var klass = VEHICLE_CLASSES.indexOf(r.klass) === -1 ? "Economy" : r.klass;
+    var klass = str(r.klass || r.name);
+    var photo = str(r.photo || r.photoPath);
+    if (photo.indexOf("data:") === 0) photo = "";
     return {
-      id: str(r.id) || klass,
+      id: str(r.id),
       klass: klass,
+      name: str(r.name || klass),
+      vehicleClassId: str(r.vehicleClassId),
+      photo: photo,
+      photoPath: photo,
       baseFare: cleanMoneySet(r.baseFare), perKm: cleanMoneySet(r.perKm), minFare: cleanMoneySet(r.minFare),
-      maxPax: num(r.maxPax, RATE_DEFAULT_PAX[klass] || 3),
-      available: r.available === false ? false : true
+      maxPax: num(r.maxPax, 3),
+      maxBags: num(r.maxBags || r.luggageCapacity, 3),
+      available: r.available === false ? false : true,
+      hideFromPublic: !!r.hideFromPublic
     };
   }
 
   var SURCHARGE_KINDS = ["amount", "percent", "included"];
   function cleanSurcharge(s) {
     s = s || {};
+    var type = str(s.type);
+    if (!type) {
+      var code = str(s.code || s.label);
+      if (code === "meet_greet") type = "meet_greet";
+      else if (code === "free_wait") type = "free_wait";
+      else if (code === "extra_wait" || code === "waiting" || code === "waiting_city" || code === "waiting_airport") type = "extra_wait";
+      else type = "checkout_extra";
+    }
     return {
       id: str(s.id),
-      label: str(s.label), rule: str(s.rule),
+      label: str(s.label || s.code || s.name),
+      name: str(s.name || s.label),
+      code: str(s.code || s.label),
+      type: type,
+      icon: str(s.icon),
+      hours: s.hours === undefined || s.hours === null ? "" : s.hours,
+      rule: str(s.rule),
+      ruleId: str(s.ruleId),
       kind: SURCHARGE_KINDS.indexOf(s.kind) === -1 ? "amount" : s.kind,
       amounts: cleanMoneySet(s.amounts), pct: str(s.pct)
     };
@@ -639,7 +681,9 @@
       id: str(b.id),
       fromKm: num(b.fromKm, 0),
       toKm: b.toKm === "" || b.toKm == null ? "" : num(b.toKm, 0),
-      perKm: cleanMoneySet(b.perKm)
+      perKm: cleanMoneySet(b.perKm),
+      klass: str(b.klass || b.vehicleClass),
+      vehicleClassId: str(b.vehicleClassId)
     };
   }
 
@@ -701,6 +745,7 @@
     CURRENCIES: CURRENCIES,
     LOCATIONS: LOCATIONS,
     get ZONES() { return ZONES.slice(); },
+    get CLASSES() { return CLASSES.slice(); },
     vehicles: restCollection("vehicles", cleanVehicle),
     chauffeurs: restCollection("chauffeurs", cleanChauffeur),
     bookings: restCollection("bookings", cleanBooking),

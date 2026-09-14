@@ -2,15 +2,19 @@
 //
 // POST /api/staff/rate-versions/:id/publish — withAdmin, SQLSTATE only (D-13).
 // Envelope { ok:false, code:"incomplete"|"not-draft"|…, gaps? }. No err.message.
-// D-02: this asStaff tx is the only public_chf flip. D-03: VAT applies here.
-// D-06: clone a new draft after success. Never flip public_chf back off.
+// D-01/D-02: this asStaff tx is the only public_chf flip. D-03: after success
+// the console shows this live version — do not clone a new draft here.
+// Next Save starts a new draft (resolveWritableVersionId). D-08: 409 keeps draft.
+// settings_versions is append-only: Publish INSERTs a clone (lock + polygon),
+// it never UPDATE/DELETEs that table.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { asStaff } from "@/lib/db/identity";
 import { loadCompleteness, type CompletenessGap } from "@/lib/ops/pricing";
 import { notifyPriceChangedForUnpaid } from "@/lib/checkout/lock-mail";
-import { classifyPricingFailure, forkLiveRateVersion } from "@/lib/ops/rate-book";
+import { classifyPricingFailure } from "@/lib/ops/rate-book";
 import { jsonErr, jsonOk, withAdmin } from "@/lib/ops/staff-json";
+import { QUOTE_LOCK_MINUTES } from "@/lib/quote/lock";
 
 export const dynamic = "force-dynamic";
 
@@ -81,7 +85,7 @@ export async function POST(
           throw err;
         }
         const vatBps = asNullableInt(row.vat_rate_bps);
-        const lockMinutes = asNullableInt(row.quote_lock_minutes);
+        const lockMinutes = QUOTE_LOCK_MINUTES;
         const serviceAreaJson =
           row.service_area_geojson == null ? null : JSON.stringify(row.service_area_geojson);
         await tx`
@@ -93,7 +97,8 @@ export async function POST(
           update public.rate_versions
              set status = 'live',
                  published_at = now(),
-                 published_by = ${claims.sub}
+                 published_by = ${claims.sub},
+                 quote_lock_minutes = ${QUOTE_LOCK_MINUTES}
            where id = ${id} and status = 'draft'
         `;
         await tx`
@@ -102,18 +107,50 @@ export async function POST(
                  vat_rate_bps = coalesce(${vatBps}, vat_rate_bps)
            where id = 1
         `;
+        // settings_versions is append-only (select+insert). UPDATE is 42501.
+        const publishSlug = `fare-publish-${id}`;
         await tx`
-          update public.settings_versions
-             set quote_lock_minutes = coalesce(${lockMinutes}, quote_lock_minutes),
-                 service_area_geojson = coalesce(${serviceAreaJson}::jsonb, service_area_geojson)
-           where id = (
-             select sv.id from public.settings_versions sv
-              where sv.effective_from <= now()
-              order by sv.effective_from desc
-              limit 1
-           )
+          insert into public.settings_versions (
+            slug, label, created_by, effective_from,
+            free_cancel_hours, modification_deadline_hours, min_advance_minutes,
+            airport_waiting_minutes, city_waiting_minutes, manage_link_validity_days,
+            round_trip_discount_percent, night_window_start, night_window_end, night_window_tz,
+            quote_lock_minutes, checkout_window_minutes, cancellation_tiers,
+            policy_doc_slug, policy_doc_version, service_area_geojson
+          )
+          select
+            ${publishSlug},
+            coalesce(nullif(${row.label}, ''), sv.label),
+            ${claims.sub},
+            now(),
+            sv.free_cancel_hours,
+            sv.modification_deadline_hours,
+            sv.min_advance_minutes,
+            sv.airport_waiting_minutes,
+            sv.city_waiting_minutes,
+            sv.manage_link_validity_days,
+            sv.round_trip_discount_percent,
+            sv.night_window_start,
+            sv.night_window_end,
+            sv.night_window_tz,
+            coalesce(${lockMinutes}, sv.quote_lock_minutes),
+            sv.checkout_window_minutes,
+            sv.cancellation_tiers,
+            sv.policy_doc_slug,
+            sv.policy_doc_version,
+            coalesce(${serviceAreaJson}::jsonb, sv.service_area_geojson)
+          from public.settings_versions as sv
+          where sv.id = (
+            select sv2.id from public.settings_versions as sv2
+             where sv2.effective_from <= now()
+             order by sv2.effective_from desc, sv2.id desc
+             limit 1
+          )
+            and not exists (
+              select 1 from public.settings_versions as existing
+               where existing.slug = ${publishSlug}
+            )
         `;
-        await forkLiveRateVersion(env, claims, { id, label: row.label }, tx);
         return null;
       });
     } catch (err) {

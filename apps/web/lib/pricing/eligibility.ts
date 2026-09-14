@@ -1,9 +1,10 @@
 // apps/web/lib/pricing/eligibility.ts
 //
-// Class eligibility board (D-01, D-02, D-38). Caps come from two tables via
+// Class eligibility board (D-29, D-31, D-32, D-33). Caps come from two tables via
 // LEAST(passenger_capacity, max_pax); bags from luggage_capacity alone.
-// D-38: with Van seeded 8/8 the LEAST rule resolves to 8 — the widget's Van 7
-// is corrected by data, not by a special case. No capacity number is hardcoded.
+// A class with no distance_rate and no fixed_route is omitted (delete ≠ hide).
+// Hide-from-public stays listed, Select off. Pax over max is not offered.
+// No capacity number is hardcoded. No four-class catalog.
 //
 // Negative space: this module never inspects a fare column, calls no clock, and
 // returns a labelled board rather than raising. A 422 is a fact about the
@@ -47,6 +48,16 @@ function distanceRateFor(
   classId: string,
 ): DistanceRateRow | null {
   return book.distance_rates.find((r) => r.vehicle_class_id === classId) ?? null;
+}
+
+/**
+ * A class deleted from the fare book (no distance rate and no fixed route)
+ * is not on the public board. Hide-from-public still has a rate row, so it
+ * stays listed as unavailable.
+ */
+export function classOnOffer(book: RateBook, classId: string): boolean {
+  if (distanceRateFor(book, classId)) return true;
+  return book.fixed_routes.some((row) => row.vehicle_class_id === classId);
 }
 
 /** Matching fixed_routes rows for every leg origin/dest pair on this class. */
@@ -157,7 +168,9 @@ export function evaluateEligibility(
   const pax = input.pax;
   const bags = input.bags;
 
-  const orderedClasses = [...rateBook.classes].sort((a, b) => {
+  const orderedClasses = [...rateBook.classes]
+    .filter((cls) => classOnOffer(rateBook, cls.id))
+    .sort((a, b) => {
     if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
     if (a.slug < b.slug) return -1;
     if (a.slug > b.slug) return 1;

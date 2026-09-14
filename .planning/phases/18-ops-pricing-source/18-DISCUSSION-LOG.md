@@ -153,3 +153,45 @@ Open last band; band From inclusive; region overlap highest %; meet back on rest
 - Search Console / JSON-LD
 - Restore drill on live Zurich
 - Invented mail copy
+
+---
+
+# Restart 2026-09-14 (full re-discuss)
+
+> Audit trail only. Decisions are in 18-CONTEXT.md (D-01…D-35). This supersedes the short restart block written earlier the same day.
+
+**Date:** 2026-09-14
+**Areas discussed:** draft/Publish, live vs draft page, gaps, History removed, staff access, classes, hide/delete, extras, unpaid, money recipe, bands, fixed routes, cantons, Mapbox, surcharges tab rebuild, wait, VAT, coupon, recap, photos/R2, service area
+
+## Draft / Publish
+
+Save creates draft; typing is not a draft; leave without Save = gone; Publish is the only public flip; after Publish the page shows the live book; one whole-book draft; Draft mark; Discard confirm; Publish confirm with change list; exact conflict + jump-to-fix; failed Publish keeps draft; all-or-nothing; required class fields block Publish; no Preview; no History; VAT waits for Publish; quote lock fixed 24h.
+
+## Public classes / extras / unpaid
+
+Delete + Publish = gone; hide-from-public yes; new class any name after Publish; over max pax not offered; extra gone from checkout; stale Select refused; unpaid keep locked amount 24h then cancel; live UAT is done.
+
+## Money
+
+Start + all-km × per-km + bands on top. Owner: 100 + 14.6×12 = 275.20; 12.3×10 = 123. Cents kept. No region. Band overlap blocks Publish. Open last band ok. Fixed route (place or canton→canton) dominates if it matches; else km. Extra stop re-runs km recipe; max 1 stop. Extras × qty before VAT. Meet included CHF 0. Extra wait not in pay-now. Coupon before VAT. Same math everywhere after Publish. Display FX, charge CHF.
+
+## Surcharges tab
+
+Rebuild: one list, type + config dialog only. No night/weekend/holiday. Checkout extras (incl. ski) are a type. Owner pinned live /pricing: rules table is source; dialog nothing extra.
+
+## Mapbox / cantons
+
+Cantons are fixed-route rows, not a quote fence. Mapbox like Google Maps, show everything. No quote only if From/To cannot be resolved.
+
+## Classes / photos
+
+Add/edit/delete any class. Photo required; upload/edit/delete; R2 not local. Required: photo, name, start, per-km, max pax, max bags.
+
+## Claude's Discretion
+
+Mapbox canton read; band UI; Draft mark tokens; jump-to-gap; i18n; dual DC; first wave = public reads live book; no silent extra-wait debit.
+
+## Deferred
+
+Home/checkout layout redesign; live Stripe; `.eu`; invented mail copy; return trips.
+

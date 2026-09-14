@@ -431,9 +431,8 @@ describe("runRepricePipeline", () => {
     expect(directionsRuns.n).toBeGreaterThan(afterQuote);
   });
 
-  it("with extra_stops: 2 and no waypoints key returns ok and does not re-run step 10 (D-18)", async () => {
-    const { ok: first, deps, directionsRuns } = await quoted();
-    const afterQuote = directionsRuns.n;
+  it("with extra_stops: 2 and no waypoints key returns extras_max_stops (D-21)", async () => {
+    const { ok: first, deps } = await quoted();
     const again = await runRepricePipeline(
       {
         quote_id: first.quote_id,
@@ -444,8 +443,7 @@ describe("runRepricePipeline", () => {
       },
       deps,
     );
-    expect(again.ok).toBe(true);
-    expect(directionsRuns.n).toBe(afterQuote);
+    expect(again).toEqual({ ok: false, code: "extras_max_stops" });
   });
 
   it("with extra_stops: 2 and three waypoints returns extras_max_stops", async () => {

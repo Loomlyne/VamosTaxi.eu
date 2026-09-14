@@ -38,6 +38,13 @@ export type VamosTrip = {
   locale?: string;
   display_currency?: string;
   classes?: string[];
+  classOffers?: {
+    slug: string;
+    name?: string;
+    photo?: string;
+    pax?: number;
+    bags?: number;
+  }[];
   detailsComplete?: boolean;
   contact?: VamosTripContact;
   guest?: boolean;
@@ -163,7 +170,7 @@ export function placeText(place: unknown, fallback: string): string {
 }
 
 export function tripVehicle(trip: VamosTrip | null | undefined): string {
-  return trip?.vehicle || trip?.vehicleClass || "economy";
+  return trip?.vehicle || trip?.vehicleClass || "";
 }
 
 export function tripQuoteId(trip: VamosTrip | null | undefined): string {

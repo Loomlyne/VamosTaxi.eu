@@ -61,10 +61,21 @@ export const PATCH = withAdmin(async (claims, request) => {
       const hideRaw = rec.hideFromPublic ?? rec.hide_from_public;
       const maxRaw = rec.maxPax ?? rec.max_pax;
       const name = typeof rec.name === "string" ? rec.name : "";
+      const bagsRaw = rec.maxBags ?? rec.luggageCapacity ?? rec.luggage_capacity;
+      const photoRaw = rec.photoPath ?? rec.photo;
+      const photoPath =
+        photoRaw === null
+          ? null
+          : typeof photoRaw === "string" && !photoRaw.startsWith("data:")
+            ? photoRaw
+            : undefined;
       await patchDraftClass(env, claims, id, draftId, {
         hideFromPublic: typeof hideRaw === "boolean" ? hideRaw : undefined,
         maxPax: typeof maxRaw === "number" && Number.isInteger(maxRaw) ? maxRaw : undefined,
         name: name || undefined,
+        photoPath,
+        luggageCapacity:
+          typeof bagsRaw === "number" && Number.isInteger(bagsRaw) ? bagsRaw : undefined,
       });
     }
     const rows = await loadVehicleClasses(env, claims);
@@ -89,12 +100,26 @@ export const POST = withAdmin(async (claims, request) => {
           : typeof rec.maxPax === "number"
             ? rec.maxPax
             : 3,
-      luggageCapacity: typeof rec.luggageCapacity === "number" ? rec.luggageCapacity : 3,
+      luggageCapacity:
+        typeof rec.luggageCapacity === "number"
+          ? rec.luggageCapacity
+          : typeof rec.maxBags === "number"
+            ? rec.maxBags
+            : 3,
     });
     const { env } = getCloudflareContext();
     const draftId = await resolveWritableDraftId(env, claims);
     if (draftId == null) return jsonErr("not-found", 404);
-    const id = await insertVehicleClassOnDraft(env, claims, { ...input, slug }, draftId);
+    const name = typeof rec.name === "string" ? rec.name.trim() : "";
+    const photoRaw = rec.photoPath ?? rec.photo;
+    const photoPath =
+      typeof photoRaw === "string" && photoRaw && !photoRaw.startsWith("data:") ? photoRaw : null;
+    const id = await insertVehicleClassOnDraft(
+      env,
+      claims,
+      { ...input, slug, name: name || slug, photoPath },
+      draftId,
+    );
     const rows = await loadVehicleClasses(env, claims);
     const created = rows.find((row) => row.id === id);
     return jsonOk(created ? presentVehicleClass(created) : { id }, 201);

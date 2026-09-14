@@ -6,9 +6,11 @@
 import { describe, expect, it } from "vitest";
 import * as fc from "fast-check";
 import {
+  classOnOffer,
   effectiveMaxPax,
   evaluateEligibility,
 } from "./eligibility";
+import { mapRateBook } from "./rateBook";
 import type {
   ClassBoardEntry,
   QuoteInput,
@@ -217,12 +219,11 @@ describe("evaluateEligibility", () => {
     expect(entry(board, "van").eligible).toBe(false);
   });
 
-  it("labels no_rate when the class has no distance_rates row", () => {
-    const board = evaluateEligibility(
-      seededBook({ omitVanRate: true, vanFixedLive: "none" }),
-      input({ pax: 2, bags: 2 }),
-    );
-    expect(entry(board, "van").ineligible_reason).toBe("no_rate");
+  it("omits a class deleted from the fare book — no rate and no fixed route", () => {
+    const book = seededBook({ omitVanRate: true, vanFixedLive: "none" });
+    expect(classOnOffer(book, "vc-van")).toBe(false);
+    const board = evaluateEligibility(book, input({ pax: 2, bags: 2 }));
+    expect(board.classes.map((c) => c.slug)).not.toContain("van");
   });
 
   it("labels route_off for a fixed-route-only journey whose fixed_routes.live is false", () => {
@@ -240,12 +241,12 @@ describe("evaluateEligibility", () => {
     expect(entry(board, "van").ineligible_reason).toBe("unavailable");
   });
 
-  it("applies reason precedence: no_rate outranks pax when rate missing", () => {
+  it("still omits a deleted class when the party is too large", () => {
     const board = evaluateEligibility(
       seededBook({ omitVanRate: true, vanFixedLive: "none" }),
       input({ pax: 99, bags: 2 }),
     );
-    expect(entry(board, "van").ineligible_reason).toBe("no_rate");
+    expect(board.classes.map((c) => c.slug)).not.toContain("van");
   });
 
   it("applies reason precedence: pax outranks bags", () => {
@@ -354,5 +355,123 @@ describe("evaluateEligibility", () => {
       ),
       { numRuns: 100 },
     );
+  });
+});
+
+describe("live-book board (D-29 D-31 D-32 D-33)", () => {
+  function suvBook(opts?: {
+    hide?: boolean;
+    leftoverEconomy?: boolean;
+    suvMaxPax?: number;
+  }): RateBook {
+    const suv = classRow({
+      slug: "suv",
+      id: "vc-suv",
+      passenger_capacity: opts?.suvMaxPax ?? 4,
+      luggage_capacity: 3,
+      sort_order: 1,
+    });
+    const economy = classRow({
+      slug: "economy",
+      id: "vc-economy",
+      passenger_capacity: 3,
+      luggage_capacity: 3,
+      sort_order: 0,
+    });
+    const distance_rates: DistanceRateRow[] = [
+      rateRow({
+        vehicle_class_id: suv.id,
+        max_pax: opts?.suvMaxPax ?? 4,
+      }),
+    ];
+    if (opts?.hide === true) {
+      distance_rates[0]!.hide_from_public = true;
+    }
+    const classes = opts?.leftoverEconomy ? [economy, suv] : [suv];
+    return {
+      rate_version: { id: 1, slug: "live" },
+      classes,
+      distance_rates,
+      distance_bands: [],
+      region_premiums: [],
+      fixed_routes: [],
+      surcharges: [],
+      zones: [],
+    };
+  }
+
+  it("offers a non-ladder slug when it is rated (D-29)", () => {
+    const board = evaluateEligibility(suvBook(), input({ pax: 2, bags: 1 }));
+    expect(board.classes.map((c) => c.slug)).toEqual(["suv"]);
+  });
+
+  it("omits economy when the class row is present but has no rate and no fixed route (D-31)", () => {
+    const book = suvBook({ leftoverEconomy: true });
+    expect(classOnOffer(book, "vc-economy")).toBe(false);
+    const board = evaluateEligibility(book, input({ pax: 2, bags: 1 }));
+    expect(board.classes.map((c) => c.slug)).not.toContain("economy");
+    expect(board.classes.map((c) => c.slug)).toEqual(["suv"]);
+  });
+
+  it("lists hide_from_public as unavailable, still present (D-32)", () => {
+    const board = evaluateEligibility(
+      suvBook({ hide: true }),
+      input({ pax: 2, bags: 1 }),
+    );
+    expect(board.classes.map((c) => c.slug)).toContain("suv");
+    expect(entry(board, "suv").eligible).toBe(false);
+    expect(entry(board, "suv").ineligible_reason).toBe("unavailable");
+  });
+
+  it("does not offer a class when pax exceeds max (D-33)", () => {
+    const board = evaluateEligibility(
+      suvBook({ suvMaxPax: 4 }),
+      input({ pax: 9, bags: 1 }),
+    );
+    expect(entry(board, "suv").eligible).toBe(false);
+    expect(entry(board, "suv").ineligible_reason).toBe("pax");
+  });
+
+  it("mapRateBook.classes length equals rated classes only (T-18-01)", () => {
+    const mapped = mapRateBook({
+      rate_version: { id: 1, slug: "live", status: "live" },
+      classes: [
+        {
+          id: "vc-economy",
+          slug: "economy",
+          passenger_capacity: 3,
+          luggage_capacity: 3,
+          sort_order: 0,
+          active: true,
+        },
+        {
+          id: "vc-suv",
+          slug: "suv",
+          passenger_capacity: 4,
+          luggage_capacity: 3,
+          sort_order: 1,
+          active: true,
+        },
+      ],
+      distance_rates: [
+        {
+          id: 1,
+          rate_version_id: 1,
+          vehicle_class_id: "vc-suv",
+          base_fare_rappen: null,
+          per_km_rappen: null,
+          min_fare_rappen: null,
+          max_pax: 4,
+          available: true,
+        },
+      ],
+      distance_bands: [],
+      region_premiums: [],
+      fixed_routes: [],
+      surcharges: [],
+      zones: [],
+    });
+    expect(mapped.classes).toHaveLength(1);
+    expect(mapped.classes[0]?.slug).toBe("suv");
   });
 });

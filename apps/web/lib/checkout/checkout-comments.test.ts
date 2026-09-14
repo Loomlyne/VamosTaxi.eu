@@ -19,8 +19,9 @@ const home = readFileSync(join(WEB_ROOT, "../../app/home/home.dc.html"), "utf8")
 
 describe("checkout comment pack", () => {
   it("shows class photography on trip", () => {
-    expect(classes).toContain("/assets/photography/class-economy.jpg");
-    expect(classes).toContain("/assets/photography/class-van.jpg");
+    expect(classes).not.toContain("/assets/photography/class-economy.jpg");
+    expect(classes).not.toContain("/assets/photography/class-van.jpg");
+    expect(classes).toContain("offer.photo");
     expect(client).toContain("CheckoutClassCards");
     expect(css).toContain("block-size: 160px");
   });
@@ -270,6 +271,10 @@ describe("checkout comment pack", () => {
     expect(client).toContain("setInterval");
     expect(client).toContain("cache: \"no-store\"");
     expect(client).not.toContain("additional-stops");
+    expect(client).toContain("const extra_stops = toggles.extraStop ? 1 : 0");
+    expect(client).toContain("data-checkout-extra-stop");
+    expect(home).not.toMatch(/country=CH/i);
+    expect(home).not.toMatch(/canton tick/i);
     expect(client).toContain("payCouldNotStart");
     expect(client).toContain('setRefusal("completeCard")');
   });

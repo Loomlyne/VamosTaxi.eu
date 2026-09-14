@@ -1,6 +1,7 @@
-// Per-class km-band extras on top of class per-km (D-11, D-14).
+// Per-class km-band extras on top of class per-km (D-15, D-18).
 // Covered metres are [0, distanceM). A band covers [from_km, to_km);
-// null to_km is open last. Overlapping slices take the higher per_km_rappen.
+// null to_km is open last. Overlap is illegal to Publish; a corrupt book
+// still picks the higher per_km_rappen so a quote can form.
 
 import { perKm } from "./round";
 import type { DistanceBandRow } from "./types";

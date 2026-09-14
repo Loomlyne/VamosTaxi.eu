@@ -16,7 +16,7 @@ function read(rel: string): string {
 }
 
 describe("Phase 6 finalize — four classes and staff hash", () => {
-  it("uses Economy, Business, First, Van everywhere", () => {
+  it("uses Economy, Business, First, Van on ops fleet data", () => {
     const data = read("app/vamos-ops-data.js");
     expect(data).toMatch(
       /VEHICLE_CLASSES = \["Economy", "Business", "First", "Van"\]/,
@@ -25,7 +25,7 @@ describe("Phase 6 finalize — four classes and staff hash", () => {
       join(webRoot, "app/[locale]/(ops)/api/staff/rate-book/route.ts"),
       "utf8",
     );
-    expect(rateBook).toMatch(
+    expect(rateBook).not.toMatch(
       /KNOWN_CLASS_SLUGS = \["economy", "business", "first", "van"\]/,
     );
     expect(rateBook).toMatch(/CLASS_SLUG = \/\^\[a-z0-9\]/);
@@ -33,11 +33,12 @@ describe("Phase 6 finalize — four classes and staff hash", () => {
     expect(fleet).toMatch(/'Economy', 'Business', 'First', 'Van'/);
   });
 
-  it("Support rail goes to #support and Staff stays gone", () => {
+  it("Support rail goes to /support and Staff stays gone", () => {
     const sidebar = read("app/ops/OpsSidebar.dc.html");
     const shell = read("app/ops/ops.dc.html");
-    expect(sidebar).toMatch(/href:'#support'/);
+    expect(sidebar).toMatch(/href:'\/support'/);
     expect(sidebar).not.toMatch(/href:'#staff'/);
+    expect(sidebar).not.toMatch(/href:'\/staff'/);
     expect(shell).toMatch(/isSupport: r === 'support'/);
   });
 
@@ -52,8 +53,14 @@ describe("Phase 6 finalize — four classes and staff hash", () => {
 
   it("pricing distance rules and surcharge codes are structured", () => {
     const pricing = read("app/ops/OpsPricing.dc.html");
-    expect(pricing).toMatch(/distanceRows|SURCHARGE_CODES/);
-    expect(pricing).toMatch(/night|weekend|holiday/);
+    expect(pricing).toMatch(/distanceRows|SURCHARGE_TYPES/);
+    expect(pricing).not.toMatch(/night|weekend|holiday/);
+    expect(pricing).not.toMatch(/id: r\.id \|\| klass/);
+    expect(pricing).not.toMatch(/blank\(\{ id: klass, klass \}\)/);
+    expect(pricing).toMatch(/fromMapbox: rec\.fromMapbox/);
+    expect(pricing).toMatch(/photoKind:'class'/);
+    expect(pricing).toMatch(/typeCheckoutExtra/);
+    expect(pricing).not.toMatch(/hMapboxRoute/);
   });
 
   it("dates are a calendar editor and currency labels stay ISO", () => {

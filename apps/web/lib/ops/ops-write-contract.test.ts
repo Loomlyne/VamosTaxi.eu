@@ -67,6 +67,9 @@ describe("ops write contract", () => {
     expect(table).not.toMatch(/Check name, licence, and photo/);
     expect(table).toMatch(/function maskLicence/);
     expect(table).toMatch(/data-vt-table-scroll="1" data-scroll-native="1" data-lenis-prevent="1"/);
+    expect(table).toMatch(/inset-inline-end:0/);
+    expect(table).toMatch(/f\.key === 'from' \|\| f\.key === 'to'/);
+    expect(table).toMatch(/mapbox_id: hit\.mapbox_id/);
     expect(table).toMatch(/data-vt-editor-foot/);
     expect(table).toMatch(/\[data-vt-editor-foot\]\{[^}]*padding:18px 24px var\(--vt-space-6\)/);
     expect(store).toMatch(/name === "customers" && a\.email && b\.email/);

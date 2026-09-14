@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: v1.0 Vamos Taxi V1
-status: executing
-stopped_at: Phase 18 wave 8 plan 18-10 complete. Owner authorized Worker vamos deploy.
-last_updated: "2026-09-14T06:48:16.000Z"
-last_activity: 2026-09-14 -- 18-10 D-40 gates; deploy authorized; public_chf still false
+milestone_name: milestone
+status: Phase 18 In Progress (restart D-01…D-35). 18-01…18-06 done. 18-07 SQL applied; owner Publish UAT next.
+stopped_at: Hosted SQL applied — owner Publish UAT on .site
+last_updated: "2026-09-14T17:25:00.000Z"
+last_activity: 2026-09-14 -- owner apply of 20260914190000 and 20260914191000 on Zurich
 progress:
-  total_phases: 18
-  completed_phases: 11
-  total_plans: 168
-  completed_plans: 162
-  percent: 96
+  total_phases: 19
+  completed_phases: 9
+  total_plans: 165
+  completed_plans: 158
+  percent: 48
 ---
 
 # Project State
@@ -25,44 +25,38 @@ See: .planning/PROJECT.md (updated 2026-09-04)
 
 ## Current Position
 
-Phase: 18 (OPS Pricing source of truth) — COMPLETE (plans 10/10)
-Plan: 10 of 10 complete
-Status: Wave 8 plan 18-10 complete. Owner authorized Worker vamos staging deploy; agent did not Publish.
-Last activity: 2026-09-14 -- 18-10 D-40 gates; deploy authorized; public_chf still false
+Phase: 18 (OPS Pricing source of truth) — IN PROGRESS (restart 2026-09-14)
+Plan: 18-07 owner Publish UAT. 6/7 executed; hosted SQL applied.
+Status: 18-01…18-06 done. 20260914190000 and 20260914191000 on Zurich. Agent did not Publish. `archive-2026-09-13/` is history — do not execute.
+Last activity: 2026-09-14 -- owner apply of quote_rate_book live-classes + vehicle_class name/photo
 
 ## Performance Metrics
 
 - **v1.0 Core:** Phases 1–11 complete (11-12 owner Publish still open; does not block 18).
 - **v1.1:** Phase 12 complete. 13–17 parked.
-
-| Phase | Plan | Duration | Notes |
-|-------|------|----------|-------|
-| Phase 18 P03 | 5min | 3 tasks | 9 files |
-| Phase 18 P04 | 5min | 3 tasks | 5 files |
-| Phase 18 P05 | 22min | 3 tasks | 24 files |
-| Phase 18 P06 | 29min | 3 tasks | 6 files |
-| Phase 18 P07 | 10min | 3 tasks | 11 files |
-| Phase 18 P08 | 14min | 3 tasks | 28 files |
-| Phase 18 P09 | 17min | 3 tasks | 19 files |
-| Phase 18 P10 | 12min | 3 tasks | 1 file |
+- **Phase 18 restart:** 6/7 plans executed. Ignore archived P03–P10 durations (those were 2026-09-13).
 
 ## Blockers
 
-Owner Publish on `https://dashboard.vamostaxi.site/pricing` still turns public CHF on. Stripe live keys and Search Console submit stay owner-gated. Restore drill deferred (Free plan). Never restore onto yaumjzvylngfjhtuffqs. No `vamostaxi.eu`.
+Owner Publish on `https://dashboard.vamostaxi.site/pricing` is the live-book flip. Stripe live keys and Search Console stay owner-gated. Agent does not click Publish. Agent does not `supabase db push`. Never restore onto yaumjzvylngfjhtuffqs. No `vamostaxi.eu`. No `sk_live_`.
 
 ## Session Continuity
 
-Last session: 2026-09-14
-Stopped at: 18-10 complete (D-40 grep + owner authorized deploy). Next: hard-refresh /pricing; do not click Publish.
-Resume: none for Phase 18 plans.
+Last session: 2026-09-14T17:25:00.000Z
+Stopped at: Hosted SQL applied via db query --linked (not db push, not restore). Next: owner UAT on dashboard.vamostaxi.site /pricing then vamostaxi.site. Agent does not Publish.
+Resume: `.planning/phases/18-ops-pricing-source/18-07-PLAN.md` Task 3 owner UAT bullets
 
 ## Decisions
 
-- [Phase 18]: D-11 live distance fare is start + all-km per-km + classBandExtrasRappen; no 20 km / min_fare floor — Owner recipe D-11/D-12; Wave 0 fixtures from 18-01 are now green
-- [Phase 18]: Publish is the only public flip — one asStaff tx sets live, public_chf true, and vat_rate_bps, then forkLiveRateVersion clones a draft. Dispatcher cannot publish; last successful admin wins with not-draft.
-- [Phase 18]: Overlay Save / VAT / coupons / classes stay on the draft. Preview loads the draft id via asStaff (quote_rate_book(true) still returns live after Publish). Test unpaid cites live rate_version_id for the charge gate, writes draft amounts, sets is_test; account Pay is off.
-- [Phase 18]: dashboard.vamostaxi.site/pricing is the five-tab fare book; /coupons is gone; dispatcher /pricing is not found. Preview recap is the only draft CHF — never Stripe, never public preferDraft.
-- [Phase 18]: Checkout extras are published extra-chip rows (automatic night/weekend/holiday/waiting never chips). Extra stop is D-11 on Mapbox places capped at max_extra_stops, not amount × qty. Both pins inside the published polygon; coupon still floors payable at 0 before VAT.
-- [Phase 18]: Unpaid quotes keep locked snapshot CHF until quote_lock_expires_at then auto-cancel; webhook after expiry/cancel/is_test does not capture; price-changed and expired mails skip-send until owner English exists
-- [Phase 18]: Extra wait after free wait is CHF 0 at pay; meet & greet and free airport wait are two default-on cards; ops mark-arrival writes booking_legs.arrived_at; no off_session / waiting PaymentIntent capture
-- [Phase 18]: D-40 — Worker vamos, no .eu bind, no sk_live_, 18-02 SQL does not set public_chf. First public CHF remains owner Publish. Deploy does not flip public_chf.
+Restart 2026-09-14 **supersedes** 2026-09-13 D-01…D-40. Full text: `.planning/phases/18-ops-pricing-source/18-CONTEXT.md`.
+
+- [Phase 18]: Save writes draft only. Typing without Save is gone. Publish is the only public flip, all-or-nothing, with a change-list confirm and jump-to-gap. Failed Publish keeps the draft.
+- [Phase 18]: After Publish, `/pricing` shows the **live book**. Do not `forkLiveRateVersion` in the Publish tx. Next Save starts a new draft. Discard confirm returns live; public unchanged.
+- [Phase 18]: Four tabs only — Fixed routes · Distance rules · Surcharges & extras · Coupons. **No History. No Preview. No test unpaid** on this page. VAT % on the sticky rail, Save VAT, still waits for Publish.
+- [Phase 18]: `/pricing` is admin only. One staff account. Do not invent a dispatcher role on this page.
+- [Phase 18]: Distance money is start + (all km × per-km) + bands on top (example 100 + 14.6×12 = CHF 275.20). No region %. Band overlap blocks Publish. Charge CHF.
+- [Phase 18]: Public home/checkout/quote offer **only** live-book classes. No hardcoded Economy / Business / First / Van ladder. Delete + Publish = gone. Hide-from-public still listed, Select off, CHF 000.
+- [Phase 18]: Surcharges tab is one list. Checkout extras (including ski) come from that list. No night/weekend/holiday types. Quote lock is hardcoded 24h, not a field.
+- [Phase 18]: Extra wait is not in Stripe pay-now. Meet & greet and free airport wait always on. Extra stop max 1, Mapbox unfenced.
+- [Phase 18]: Worker `vamos`, no `.eu` bind, no `sk_live_`. New SQL is owner-apply. First public CHF remains owner Publish. Deploy does not flip `public_chf`.
+- [Phase 18]: Owner UAT 2026-09-14 failed (homepage still invented Economy after delete+Publish). Phase 18 is not complete until live UAT on `vamostaxi.site` / `dashboard.vamostaxi.site` passes under D-01…D-35.

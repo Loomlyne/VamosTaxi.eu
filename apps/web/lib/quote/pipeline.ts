@@ -20,7 +20,6 @@ import { hasSeenSession } from "../geo/session";
 import {
   checkMinAdvance as defaultCheckMinAdvance,
   checkServiceArea as defaultCheckServiceArea,
-  insideCountryBox,
   publishedServiceAreaPolygon,
   sameCoordinate,
   type FixedRoutePair,
@@ -168,6 +167,7 @@ export type ResolvedPlace = {
   text: string;
   place_id?: string;
   zoneId?: string | null;
+  canton?: string | null;
 };
 
 export type InjectedGuard = () =>
@@ -320,6 +320,7 @@ async function defaultResolvePlace(
     lat: got.place.lat,
     text: got.place.name,
     place_id: got.place.mapbox_id,
+    canton: got.place.canton,
   };
 }
 
@@ -366,6 +367,8 @@ function toQuoteInput(
         duration_s: routedLeg.duration_s,
         origin_zone_id: origin.zoneId ?? null,
         dest_zone_id: dest.zoneId ?? null,
+        origin_canton: origin.canton ?? null,
+        dest_canton: dest.canton ?? null,
         waypoints: i === 0 ? (request.extras?.waypoints ?? []) : [],
       };
     }),
@@ -517,12 +520,6 @@ async function runStep(
       return { ok: true };
     }
     case "country_box": {
-      if (
-        !insideCountryBox(state.pickup!) ||
-        !insideCountryBox(state.dropoff!)
-      ) {
-        return { ok: false, code: "place_out_of_box" };
-      }
       return { ok: true };
     }
     case "service_area": {
@@ -692,7 +689,7 @@ export async function runQuotePipeline(
     extras: request.extras
       ? {
           child_seats: request.extras.child_seats as 0 | 1 | undefined,
-          extra_stops: request.extras.extra_stops as 0 | 1 | 2 | 3 | undefined,
+          extra_stops: request.extras.extra_stops as 0 | 1 | undefined,
           oversized_luggage: request.extras.oversized_luggage,
           waypoints: request.extras.waypoints,
         }
@@ -836,7 +833,7 @@ export async function runRepricePipeline(
   const extras = request.extras
     ? {
         child_seats: request.extras.child_seats as 0 | 1 | undefined,
-        extra_stops: request.extras.extra_stops as 0 | 1 | 2 | 3 | undefined,
+        extra_stops: request.extras.extra_stops as 0 | 1 | undefined,
         oversized_luggage: request.extras.oversized_luggage,
         waypoints: request.extras.waypoints ?? lock.extras?.waypoints,
       }

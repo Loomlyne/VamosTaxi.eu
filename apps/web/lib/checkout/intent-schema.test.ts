@@ -42,13 +42,15 @@ describe("checkoutIntentSchema", () => {
     expect(parsed.success).toBe(false);
   });
 
-  it("coerces empty coupon and display vehicle names", () => {
+  it("accepts kebab vehicle slugs and rejects display names", () => {
     const empty = checkoutIntentSchema.safeParse({ ...valid, coupon: "" });
     expect(empty.success).toBe(true);
     if (empty.success) expect(empty.data.coupon).toBeNull();
     const named = checkoutIntentSchema.safeParse({ ...valid, vehicle_class: "Economy Taxi" });
-    expect(named.success).toBe(true);
-    if (named.success) expect(named.data.vehicle_class).toBe("economy");
+    expect(named.success).toBe(false);
+    const liveSlug = checkoutIntentSchema.safeParse({ ...valid, vehicle_class: "suv" });
+    expect(liveSlug.success).toBe(true);
+    if (liveSlug.success) expect(liveSlug.data.vehicle_class).toBe("suv");
   });
 
   it("accepts a company pay-link without name address VAT", () => {

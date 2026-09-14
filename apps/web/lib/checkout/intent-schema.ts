@@ -17,7 +17,7 @@ const FORBIDDEN_SERVER_FIELDS = [
 const extrasSchema = z
   .object({
     child_seats: z.union([z.literal(0), z.literal(1)]).optional(),
-    extra_stops: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]).optional(),
+    extra_stops: z.union([z.literal(0), z.literal(1)]).optional(),
     oversized_luggage: z.boolean().optional(),
     waypoints: z
       .array(
@@ -29,23 +29,17 @@ const extrasSchema = z
           })
           .strict(),
       )
+      .max(1)
       .optional(),
   })
   .strict()
   .optional();
 
-const VEHICLE_SLUGS = ["economy", "business", "first", "van"] as const;
+const CLASS_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-function parseVehicleClass(raw: string): (typeof VEHICLE_SLUGS)[number] | null {
+function parseVehicleClass(raw: string): string | null {
   const s = raw.trim().toLowerCase();
-  if ((VEHICLE_SLUGS as readonly string[]).includes(s)) {
-    return s as (typeof VEHICLE_SLUGS)[number];
-  }
-  if (s.includes("van")) return "van";
-  if (s.includes("first")) return "first";
-  if (s.includes("business")) return "business";
-  if (s.includes("economy")) return "economy";
-  return null;
+  return CLASS_SLUG.test(s) ? s : null;
 }
 
 const checkoutIntentObject = z

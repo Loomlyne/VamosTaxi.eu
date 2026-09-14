@@ -37,4 +37,9 @@ describe("BookingBoard nulls amounts when !pricing_live (D-19)", () => {
   it("does not hardcode class-floor CHF figures", () => {
     expect(board).not.toMatch(/\b(?:80|100|130|150)\b/);
   });
+
+  it("drops a class the fare book no longer offers", () => {
+    expect(board).toMatch(/publicFleet/);
+    expect(board).toMatch(/ineligible_reason !== "no_rate"/);
+  });
 });

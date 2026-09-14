@@ -18,7 +18,7 @@
 // errors.ts. It performs no I/O and calls no clock.
 
 import { z } from "zod";
-import type { QuoteMode, VehicleClassSlug } from "../pricing/types";
+import type { QuoteMode } from "../pricing/types";
 import { CURRENCY_MARKS, type CurrencyCode } from "../currency";
 
 /** Codes `parseQuoteRequest` can emit — handler maps them via errors.ts. */
@@ -55,23 +55,12 @@ export const FORBIDDEN_CLIENT_PRICE_FIELDS = [
 export type ForbiddenClientPriceField =
   (typeof FORBIDDEN_CLIENT_PRICE_FIELDS)[number];
 
-/**
- * Pre-Mapbox sanity gate (04-RESEARCH.md §12) — NOT the service area.
- * QUOTE-07's polygon check runs after a real route (plan 04-10) and uses a
- * different i18n key on purpose (I-02). This rectangle stops a bogus coordinate
- * costing a Directions unit.
- */
-export const BOX_LAT_MIN = 44.0;
-export const BOX_LAT_MAX = 50.5;
-export const BOX_LNG_MIN = 4.0;
-export const BOX_LNG_MAX = 14.5;
-
 const LOCALE_VALUES = ["en", "de", "fr", "ar"] as const;
 export type QuoteLocale = (typeof LOCALE_VALUES)[number];
 
 const CURRENCY_VALUES = Object.keys(CURRENCY_MARKS) as CurrencyCode[];
 
-const VEHICLE_CLASS_VALUES = ["economy", "business", "van"] as const satisfies readonly VehicleClassSlug[];
+const CLASS_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 const SCHEDULED_LOCAL_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 
@@ -130,7 +119,7 @@ export const ExtrasSchema = z
     child_seats: z.number().int().optional(),
     extra_stops: z.number().int().optional(),
     oversized_luggage: z.boolean().optional(),
-    waypoints: z.array(WaypointSchema).max(3).optional(),
+    waypoints: z.array(WaypointSchema).max(1).optional(),
   })
   .strict();
 
@@ -156,7 +145,7 @@ const QuoteBodySchema = z
     legs: z.array(LegSchema).min(1).max(2),
     pax: z.number().int().min(1).max(16),
     bags: z.number().int().min(0).max(16),
-    preferred_class: z.enum(VEHICLE_CLASS_VALUES).optional(),
+    preferred_class: z.string().regex(CLASS_SLUG).optional(),
     turnstile_token: z.string().min(1).max(2048).optional(),
     geo_session: z.string().min(1).max(128).optional(),
     extras: ExtrasSchema.optional(),
@@ -177,7 +166,7 @@ export const RepriceRequestSchema = z
     display_currency: z.enum(
       CURRENCY_VALUES as [CurrencyCode, ...CurrencyCode[]],
     ),
-    preferred_class: z.enum(VEHICLE_CLASS_VALUES).optional(),
+    preferred_class: z.string().regex(CLASS_SLUG).optional(),
     extras: ExtrasSchema.optional(),
     coupon: z.string().min(1).max(64).nullable().optional(),
     contact_email: z.string().email().max(320).nullable().optional(),
@@ -217,20 +206,6 @@ function findForbiddenField(
   return null;
 }
 
-function coordsInBox(lng: number, lat: number): boolean {
-  return (
-    lat >= BOX_LAT_MIN &&
-    lat <= BOX_LAT_MAX &&
-    lng >= BOX_LNG_MIN &&
-    lng <= BOX_LNG_MAX
-  );
-}
-
-function placeCoordsOutOfBox(place: PlaceInput): boolean {
-  if (place.kind === "retrieve") return false;
-  return !coordsInBox(place.lng, place.lat);
-}
-
 type ParseFailure = {
   ok: false;
   code: ParseQuoteFailureCode;
@@ -249,7 +224,7 @@ function checkExtrasGuards(
   }
 
   if (extras.extra_stops !== undefined) {
-    if (extras.extra_stops < 0 || extras.extra_stops > 3) {
+    if (extras.extra_stops < 0 || extras.extra_stops > 1) {
       return { ok: false, code: "extras_max_stops", field: "extra_stops" };
     }
   }
@@ -259,11 +234,6 @@ function checkExtrasGuards(
     const stops = extras.extra_stops ?? 0;
     if (extras.waypoints.length !== stops) {
       return { ok: false, code: "untrusted_input", field: "waypoints" };
-    }
-    for (const wp of extras.waypoints) {
-      if (!coordsInBox(wp.lng, wp.lat)) {
-        return { ok: false, code: "place_out_of_box", field: "waypoints" };
-      }
     }
   }
 
@@ -335,13 +305,6 @@ export function parseQuoteRequest(body: unknown): ParseQuoteResult {
 
   const extrasFail = checkExtrasGuards(value.extras);
   if (extrasFail) return extrasFail;
-
-  if (placeCoordsOutOfBox(value.pickup)) {
-    return { ok: false, code: "place_out_of_box", field: "pickup" };
-  }
-  if (placeCoordsOutOfBox(value.dropoff)) {
-    return { ok: false, code: "place_out_of_box", field: "dropoff" };
-  }
 
   return { ok: true, value };
 }

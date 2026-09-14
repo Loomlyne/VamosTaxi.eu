@@ -131,7 +131,9 @@ export interface BuildFareLineArgs {
   fixedRoutes: FixedRouteRow[];
   rateVersionId: number | null;
   distanceBands?: DistanceBandRow[];
-  /** D-17: extra stop on the journey → skip fixed_routes, use distance recipe. */
+  /** D-20: airport identity and canton tags live on service_zones. */
+  zones?: ZoneRow[];
+  /** D-21: extra stop on the journey → skip fixed_routes, use distance recipe. */
   hasExtraStops?: boolean;
 }
 
@@ -143,10 +145,62 @@ function journeyHasExtraStops(
   return Array.isArray(leg.waypoints) && leg.waypoints.length > 0;
 }
 
+export function cantonOfZone(zone: ZoneRow | undefined): string | null {
+  if (!zone) return null;
+  for (const tag of zone.tags) {
+    const hit = /^canton:(.+)$/i.exec(tag.trim());
+    if (hit?.[1]) return normalizeCanton(hit[1]);
+  }
+  const slug = /^canton-([a-z0-9]{2,})$/i.exec(zone.slug.trim());
+  return slug?.[1] ? normalizeCanton(slug[1]) : null;
+}
+
+function normalizeCanton(raw: string): string {
+  return raw.trim().toUpperCase().replace(/^CH-/, "");
+}
+
+function airportIdentity(zone: ZoneRow | undefined): string | null {
+  if (!zone || zone.zone_type !== "airport") return null;
+  const iata = zone.iata?.trim().toUpperCase();
+  if (iata) return `iata:${iata}`;
+  return `zone:${zone.id}`;
+}
+
+function samePlaceZone(
+  a: string,
+  b: string,
+  byId: Map<string, ZoneRow>,
+): boolean {
+  if (a === b) return true;
+  const ia = airportIdentity(byId.get(a));
+  const ib = airportIdentity(byId.get(b));
+  return ia != null && ia === ib;
+}
+
+function isCantonFixed(
+  row: FixedRouteRow,
+  byId: Map<string, ZoneRow>,
+): boolean {
+  if (row.kind === "canton") return true;
+  if (row.kind === "place") return false;
+  return (
+    cantonOfZone(byId.get(row.origin_zone_id)) != null &&
+    cantonOfZone(byId.get(row.dest_zone_id)) != null
+  );
+}
+
+function liveClassRows(
+  rows: FixedRouteRow[],
+  classId: string,
+): FixedRouteRow[] {
+  return rows.filter((r) => r.vehicle_class_id === classId && r.live === true);
+}
+
 /**
- * D-17: match live fixed routes origin→dest for this class only. A live:false
- * row is not matched. Extra stops skip the fixed table. Distance fare is
- * start + perKm(all metres) + class band extras (D-11). min_fare is not a floor.
+ * D-19 D-20 D-21: place→place (airport terminal ≡ airport pin) then
+ * canton→canton. No reverse A←B. Extra stops skip the fixed table.
+ * Distance fare is start + perKm(all metres) + class band extras. min_fare
+ * is not a floor. Missing canton rows do not block quotes.
  */
 export function buildFareLine(args: BuildFareLineArgs): Line {
   const {
@@ -156,6 +210,7 @@ export function buildFareLine(args: BuildFareLineArgs): Line {
     fixedRoutes,
     rateVersionId,
     distanceBands,
+    zones,
     hasExtraStops,
   } = args;
   const classId = vehicleClass.id;
@@ -163,21 +218,46 @@ export function buildFareLine(args: BuildFareLineArgs): Line {
   const origin = leg.origin_zone_id;
   const dest = leg.dest_zone_id;
   const extraStops = journeyHasExtraStops(leg, hasExtraStops);
+  const byId = new Map((zones ?? []).map((z) => [z.id, z]));
 
-  let matched: "forward" | null = null;
+  let matched: "forward" | "canton" | null = null;
   let fixed: FixedRouteRow | null = null;
 
-  if (!extraStops && origin !== null && dest !== null) {
-    const forward = fixedRoutes.find(
-      (r) =>
-        r.vehicle_class_id === classId &&
-        r.live === true &&
-        r.origin_zone_id === origin &&
-        r.dest_zone_id === dest,
-    );
-    if (forward) {
-      matched = "forward";
-      fixed = forward;
+  if (!extraStops) {
+    const live = liveClassRows(fixedRoutes, classId);
+    if (origin !== null && dest !== null) {
+      const place = live.find(
+        (r) =>
+          !isCantonFixed(r, byId) &&
+          samePlaceZone(r.origin_zone_id, origin, byId) &&
+          samePlaceZone(r.dest_zone_id, dest, byId),
+      );
+      if (place) {
+        matched = "forward";
+        fixed = place;
+      }
+    }
+    if (!fixed) {
+      const originCanton =
+        (typeof leg.origin_canton === "string" && leg.origin_canton
+          ? normalizeCanton(leg.origin_canton)
+          : null) ?? (origin ? cantonOfZone(byId.get(origin)) : null);
+      const destCanton =
+        (typeof leg.dest_canton === "string" && leg.dest_canton
+          ? normalizeCanton(leg.dest_canton)
+          : null) ?? (dest ? cantonOfZone(byId.get(dest)) : null);
+      if (originCanton && destCanton) {
+        const canton = live.find((r) => {
+          if (!isCantonFixed(r, byId)) return false;
+          const oc = cantonOfZone(byId.get(r.origin_zone_id));
+          const dc = cantonOfZone(byId.get(r.dest_zone_id));
+          return oc === originCanton && dc === destCanton;
+        });
+        if (canton) {
+          matched = "canton";
+          fixed = canton;
+        }
+      }
     }
   }
 

@@ -132,15 +132,19 @@ export function presentVehicles(rows: VehicleRow[]): Record<string, unknown>[] {
 }
 
 export function presentVehicleClass(row: VehicleClassRow): Record<string, unknown> {
+  const photo = row.photoPath;
   return {
     id: row.id,
     slug: row.slug,
     klass: slugToKlass(row.slug),
+    name: row.name || slugToKlass(row.slug),
     passengerCapacity: row.passengerCapacity,
     luggageCapacity: row.luggageCapacity,
     sortOrder: row.sortOrder,
     active: row.active,
     vehicleCount: row.vehicleCount,
+    photoPath: photo && !String(photo).startsWith("data:") ? photo : "",
+    photo: photo && !String(photo).startsWith("data:") ? photo : "",
   };
 }
 

@@ -103,6 +103,8 @@ function mapClass(item: unknown): VehicleClassRow {
     luggage_capacity: row.luggage_capacity as number,
     sort_order: row.sort_order as number,
     active: row.active as boolean,
+    name: typeof row.name === "string" ? row.name : null,
+    photo_path: typeof row.photo_path === "string" ? row.photo_path : null,
   };
 }
 
@@ -156,6 +158,7 @@ function mapFixedRoute(item: unknown): FixedRouteRow {
     vehicle_class_id: row.vehicle_class_id as string,
     price_rappen: (row.price_rappen ?? null) as number | null,
     live: row.live as boolean,
+    kind: row.kind === "canton" ? "canton" : row.kind === "place" ? "place" : undefined,
   };
 }
 
@@ -201,13 +204,24 @@ export function mapRateBook(doc: unknown): MappedRateBook {
       zones: [],
     };
   }
+  const distance_rates = mapList(doc.distance_rates, mapDistanceRate);
+  const fixed_routes = mapList(doc.fixed_routes, mapFixedRoute);
+  const ratedIds = new Set<string>();
+  for (const row of distance_rates) ratedIds.add(row.vehicle_class_id);
+  for (const row of fixed_routes) ratedIds.add(row.vehicle_class_id);
+  // T-18-01 / D-29 / D-31: quote_rate_book may still jsonb_agg every
+  // vehicle_classes row. Drop leftovers the live version does not rate.
+  // Do not fall back to economy/business/first/van.
+  const classes = mapList(doc.classes, mapClass).filter((cls) =>
+    ratedIds.has(cls.id),
+  );
   return {
     rate_version: mapRateVersion(doc.rate_version),
-    classes: mapList(doc.classes, mapClass),
-    distance_rates: mapList(doc.distance_rates, mapDistanceRate),
+    classes,
+    distance_rates,
     distance_bands: mapList(doc.distance_bands, mapDistanceBand),
     region_premiums: mapList(doc.region_premiums, mapRegionPremium),
-    fixed_routes: mapList(doc.fixed_routes, mapFixedRoute),
+    fixed_routes,
     surcharges: mapList(doc.surcharges, mapSurcharge),
     zones: mapList(doc.zones, mapZone),
   };

@@ -26,7 +26,8 @@ export type CompletenessKind =
   | "fixed_route"
   | "coupon"
   | "rule"
-  | "band";
+  | "band"
+  | "band_overlap";
 
 export type CompletenessGap = {
   kind: CompletenessKind;
@@ -83,7 +84,7 @@ export async function loadCompleteness(
 ): Promise<CompletenessGap[]> {
   return asStaff(env, claims, async (tx) => {
     const distance = await tx<{ name: string }[]>`
-      select vc.slug as name
+      select coalesce(nullif(btrim(vc.name), ''), vc.slug) as name
         from public.distance_rates r
         left join public.vehicle_classes vc on vc.id = r.vehicle_class_id
        where r.rate_version_id = ${versionId} and r.available
@@ -93,6 +94,9 @@ export async function loadCompleteness(
            or r.max_pax is null
            or vc.id is null
            or nullif(btrim(vc.slug), '') is null
+           or nullif(btrim(vc.name), '') is null
+           or nullif(btrim(vc.photo_path), '') is null
+           or vc.luggage_capacity is null
          )
     `;
     const surcharges = await tx<{ name: string }[]>`
@@ -135,6 +139,18 @@ export async function loadCompleteness(
        where b.rate_version_id = ${versionId}
          and (b.vehicle_class_id is null or b.per_km_rappen is null)
     `;
+    const bandOverlap = await tx<{ name: string }[]>`
+      select distinct coalesce(nullif(btrim(vc.slug), ''), 'band') as name
+        from public.distance_bands as overlap_left
+        join public.distance_bands as overlap_right
+          on overlap_left.rate_version_id = overlap_right.rate_version_id
+         and overlap_left.vehicle_class_id = overlap_right.vehicle_class_id
+         and overlap_left.id < overlap_right.id
+        left join public.vehicle_classes vc on vc.id = overlap_left.vehicle_class_id
+       where overlap_left.rate_version_id = ${versionId}
+         and overlap_left.from_km < coalesce(overlap_right.to_km, 1000000000)
+         and overlap_right.from_km < coalesce(overlap_left.to_km, 1000000000)
+    `;
     return [
       ...distance.map((row) => ({ kind: "distance_rate" as const, name: row.name })),
       ...surcharges.map((row) => ({ kind: "surcharge" as const, name: row.name })),
@@ -142,6 +158,7 @@ export async function loadCompleteness(
       ...coupons.map((row) => ({ kind: "coupon" as const, name: row.name })),
       ...rules.map((row) => ({ kind: "rule" as const, name: row.name })),
       ...bands.map((row) => ({ kind: "band" as const, name: row.name })),
+      ...bandOverlap.map((row) => ({ kind: "band_overlap" as const, name: row.name })),
     ];
   });
 }

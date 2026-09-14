@@ -20,7 +20,7 @@ import {
   Section,
   Text,
 } from "@react-email/components";
-import type { EmailLocale, PayLinkExtraCode, PayLinkForEmail, PayLinkVehicle } from "./lib/types";
+import type { EmailLocale, PayLinkExtraCode, PayLinkForEmail } from "./lib/types";
 import { t } from "./lib/t";
 import { formatPaidTotal } from "./ConfirmationEmail";
 
@@ -42,12 +42,17 @@ const WHATSAPP_HREF = "https://wa.me/41796267082";
 const LOCK_HOURS = 24;
 const LOGO = "https://vamostaxi.site/brand/logo/wordmark-email.png";
 
-const VEHICLE_KEY: Record<PayLinkVehicle, string> = {
+const VEHICLE_KEY: Record<string, string> = {
   economy: "payLink.vehicleEconomy",
   business: "payLink.vehicleBusiness",
   first: "payLink.vehicleFirst",
   van: "payLink.vehicleVan",
 };
+
+function vehicleLabel(locale: EmailLocale, slug: string): string {
+  const key = VEHICLE_KEY[slug];
+  return key ? t(locale, key) : slug;
+}
 
 const EXTRA_KEY: Record<PayLinkExtraCode, string> = {
   child_seat: "payLink.extraChildSeat",
@@ -145,7 +150,7 @@ export function PayLinkEmail({ link }: { link: PayLinkForEmail }) {
   const dir = locale === "ar" ? "rtl" : "ltr";
   const amount = formatPaidTotal(link.totalRappen);
   const extras = extraLabels(locale, link.extras);
-  const vehicle = t(locale, VEHICLE_KEY[link.vehicleClass]);
+  const vehicle = vehicleLabel(locale, link.vehicleClass);
   const hours = { hours: LOCK_HOURS };
   const pickupWhen = link.scheduledLocal ? formatPickup(link.scheduledLocal, locale) : "";
 
@@ -374,7 +379,7 @@ export function payLinkPlainText(link: PayLinkForEmail): string {
     lines.push(`${t(locale, "timeLabel")} ${formatPickup(link.scheduledLocal, locale)}`);
   }
   if (link.flightNo) lines.push(`${t(locale, "payLink.flightLabel")} ${link.flightNo}`);
-  lines.push(`${t(locale, "vehicleLabel")} ${t(locale, VEHICLE_KEY[link.vehicleClass])}`);
+  lines.push(`${t(locale, "vehicleLabel")} ${vehicleLabel(locale, link.vehicleClass)}`);
   if (link.pax > 0) lines.push(t(locale, "paxLine", { pax: link.pax, bags: link.bags }));
   if (extras.length > 0) lines.push(`${t(locale, "payLink.extrasLabel")} ${extras.join(" · ")}`);
   if (link.coupon) lines.push(`${t(locale, "payLink.couponLabel")} ${link.coupon}`);

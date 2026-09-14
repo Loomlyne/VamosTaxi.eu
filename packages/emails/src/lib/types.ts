@@ -19,7 +19,7 @@ export type BookingLegForEmail = {
   estimatedDurationMinutes: number | null;
 };
 
-export type PayLinkVehicle = "economy" | "business" | "first" | "van";
+export type PayLinkVehicle = string;
 
 export type PayLinkExtraCode = "child_seat" | "oversized_luggage" | "extra_stop";
 

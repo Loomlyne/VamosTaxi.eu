@@ -23,6 +23,10 @@ export type VehicleClassRow = {
   sortOrder: number;
   active: boolean;
   vehicleCount: number;
+  /** D-29: typed display name. Optional until owner SQL apply. */
+  name?: string | null;
+  /** D-30: R2 key under classes/. Optional until owner SQL apply. */
+  photoPath?: string | null;
 };
 
 export type VehicleRow = {
@@ -249,6 +253,8 @@ type ClassSqlRow = {
   sort_order: number;
   active: boolean;
   vehicle_count: number;
+  name?: string | null;
+  photo_path?: string | null;
 };
 
 type VehicleSqlRow = {
@@ -283,6 +289,8 @@ function mapClassRow(row: ClassSqlRow): VehicleClassRow {
     sortOrder: row.sort_order,
     active: row.active,
     vehicleCount: row.vehicle_count,
+    name: typeof row.name === "string" ? row.name : null,
+    photoPath: typeof row.photo_path === "string" ? row.photo_path : null,
   };
 }
 
@@ -319,6 +327,8 @@ export async function loadVehicleClasses(
         vc.luggage_capacity,
         vc.sort_order,
         vc.active,
+        vc.name,
+        vc.photo_path,
         (
           select count(*)::int
           from public.vehicles v

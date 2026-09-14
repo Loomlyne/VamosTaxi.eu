@@ -34,6 +34,12 @@
 [data-vt-unsaved-act]{display:flex;gap:6px;flex:0 0 auto}
 [data-vt-table-scroll]{box-sizing:border-box;max-width:100%;min-width:0;width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
 [data-vt-table-scroll] .vt-tablewrap{overflow:visible;max-inline-size:none;min-inline-size:720px;width:max-content;min-width:100%}
+[data-vt-table-scroll] .vt-table{border-collapse:separate;border-spacing:0}
+[data-vt-table-scroll] .vt-table th:last-child,
+[data-vt-table-scroll] .vt-table td:last-child{position:sticky;inset-inline-end:0;z-index:2;background:var(--vt-bg-surface);border-inline-start:1px solid var(--vt-border-subtle)}
+[data-vt-table-scroll] .vt-table thead th:last-child{background:var(--vt-grey-50);z-index:3}
+[data-vt-table-scroll] .vt-table tbody tr:hover td:last-child{background:var(--vt-grey-50)}
+[data-vt-table-scroll] .vt-table tbody tr[data-selected="true"] td:last-child{background:var(--vt-grey-100)}
 [data-vt-editor-foot]{position:sticky;bottom:0;z-index:3;display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:20px;margin-inline:-24px;padding:18px 24px var(--vt-space-6);border-top:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface)}
 [data-vt-save-err]{box-sizing:border-box;display:flex;align-items:center;gap:10px;padding:8px 14px;margin-bottom:16px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);background:var(--vt-bg-surface);font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)}
 [data-vt-time-wrap] input{all:unset;flex:1 1 auto;min-width:0;width:100%;font:inherit;color:inherit;background:transparent;caret-color:var(--vt-charcoal-900)}
@@ -138,7 +144,7 @@
 </sc-if>
 <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px">
 <sc-for list="{{ formFields }}" as="f" hint-placeholder-count="5">
-<div style="grid-column:{{ f.span }};min-width:0">
+<div style="grid-column:{{ f.span }};min-width:0;display:{{ f.show }}">
 
 <sc-if value="{{ f.isText }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" icon="{{ f.inputIcon }}" label="{{ f.label }}" value="{{ f.value }}" onChange="{{ f.set }}" placeholder="{{ f.placeholder }}" hint="{{ f.hint }}" error="{{ f.error }}" suffix="{{ f.suffix }}" required="{{ f.required }}" hint-size="100%,76px"></x-import>
@@ -509,10 +515,32 @@ class Component extends DCLogic {
     if (this._ac) { try { this._ac.abort(); } catch (e) {} }
   }
   suggestKind(f) {
+    if (f.suggest) return f.suggest;
     if (f.key === 'id' && String(f.placeholder || '').indexOf('VT') !== -1) return 'ref';
     if (f.key === 'customer') return 'customer';
-    if (f.key === 'pickup' || f.key === 'dropoff' || f.key === 'address') return 'address';
+    if (f.key === 'pickup' || f.key === 'dropoff' || f.key === 'address' || f.key === 'from' || f.key === 'to') return 'address';
     return '';
+  }
+  matchZone(text) {
+    const raw = String(text || '').trim();
+    if (!raw) return null;
+    const zones = (window.VamosOps && window.VamosOps.ZONES) || [];
+    const lower = raw.toLowerCase();
+    const iata = /\(([A-Z]{3})\)/.exec(raw);
+    if (iata) {
+      const byIata = zones.filter((z) => z.iata === iata[1])[0];
+      if (byIata) return byIata;
+    }
+    const exact = zones.filter((z) => {
+      const label = String(z.label || z.slug || '').toLowerCase();
+      const slug = String(z.slug || '').toLowerCase();
+      return label === lower || slug === lower || (z.iata && raw.toUpperCase().indexOf(z.iata) !== -1);
+    })[0];
+    if (exact) return exact;
+    return zones.filter((z) => {
+      const label = String(z.label || '').toLowerCase();
+      return label && lower.indexOf(label) !== -1;
+    })[0] || null;
   }
   withVtPrefix(raw) {
     const s = String(raw || '');
@@ -605,7 +633,13 @@ class Component extends DCLogic {
         const extra = ((j && j.suggestions) || []).map((hit) => {
           const name = hit.name || '';
           const addr = hit.address || hit.context || '';
-          return { value: addr ? (name + ', ' + addr) : name, label: name, note: addr };
+          return {
+            value: addr ? (name + ', ' + addr) : name,
+            label: name,
+            note: addr,
+            mapbox_id: hit.mapbox_id || '',
+            session_token: this._geoTok,
+          };
         }).filter((x) => x.label);
         this.setState((s) => {
           if (!s.sug || s.sug.key !== key) return null;
@@ -619,14 +653,42 @@ class Component extends DCLogic {
       .catch((e) => { if (e && e.name === 'AbortError') return; });
   }
   pickSug = (value) => {
-    const key = (this.state.sug || {}).key;
+    const sug = this.state.sug || {};
+    const key = sug.key;
+    const hit = ((sug.items || []).filter((x) => x.value === value)[0]) || { value: value };
     this.setState({ sug: null });
-    if (key) this.setField(key, value);
+    if (!key) return;
+    this.setField(key, value);
+    if (hit.mapbox_id) {
+      const pin = { mapbox_id: hit.mapbox_id, session_token: hit.session_token || this._geoTok, text: value };
+      const zone = this.matchZone(value);
+      if (key === 'from') {
+        this.setField('fromMapbox', pin);
+        if (zone) this.setField('originZoneId', zone.id);
+      }
+      if (key === 'to') {
+        this.setField('toMapbox', pin);
+        if (zone) this.setField('destZoneId', zone.id);
+      }
+    }
   };
 
   /* Clicking a column header filters on that column. Badge and yes/no columns are
      filterable by nature; anything else opts in with filter:true. */
   filterable(c) { return c.filter === true || c.kind === 'badge' || c.kind === 'bool'; }
+  fieldVisible(f, d) {
+    if (!f || !f.showWhen) return true;
+    const when = f.showWhen;
+    const keys = Object.keys(when);
+    for (let i = 0; i < keys.length; i++) {
+      if (String((d || {})[keys[i]]) !== String(when[keys[i]])) return false;
+    }
+    return true;
+  }
+  rowCanDelete(row) {
+    if (!this.props.canDelete) return true;
+    return this.props.canDelete(row) !== false;
+  }
   optionLabel(key, value) {
     const f = (this.props.fields || []).filter((x) => x.key === key)[0];
     if (f && f.options) {
@@ -715,6 +777,8 @@ class Component extends DCLogic {
     if (code === 'not-found') return 'That row is gone.';
     if (code === 'frozen') return 'The live rate book is locked. Could not open a draft.';
     if (code === 'invalid') return 'The server rejected that row.';
+    if (code === 'mapbox') return 'Pick From and To from the Mapbox list.';
+    if (code === 'fk') return 'That row is still used by another rule. Remove the link first.';
     if (code === 'unpaid') return 'Unpaid bookings cannot take that edit.';
     if (code === 'network') return 'The save did not reach the server.';
     if (code === 'http') return 'The server did not accept that save.';
@@ -752,6 +816,7 @@ class Component extends DCLogic {
     const errors = {};
     fields.forEach((f) => {
       if (!f.required) return;
+      if (!this.fieldVisible(f, d)) return;
       const v = d[f.key];
       if (v === undefined || v === null || String(v).trim() === '') errors[f.key] = this.props.requiredMessage || 'Needed';
     });
@@ -939,7 +1004,7 @@ class Component extends DCLogic {
     if (!DS.IconButton) return null;
     return React.createElement('span', { style:{ display:'flex', gap:6, justifyContent:'flex-end' } },
       ib('pencil', t.editLabel || 'Edit', () => this.startEdit(row)),
-      ib('trash-2', t.deleteLabel || 'Delete', () => this.askDelete(row), 'ghost'));
+      this.rowCanDelete(row) ? ib('trash-2', t.deleteLabel || 'Delete', () => this.askDelete(row), 'ghost') : null);
   }
 
   renderVals() {
@@ -1014,6 +1079,7 @@ class Component extends DCLogic {
         placeholder: f.placeholder || '', suffix: f.suffix || '',
         error: err, required: !!f.required,
         span: f.half ? 'span 1' : 'span 2',
+        show: this.fieldVisible(f, d) ? 'block' : 'none',
         icon: f.icon || 'settings',
         min: minN,
         options: f.options || [],
@@ -1074,10 +1140,11 @@ class Component extends DCLogic {
           const file = e.target && e.target.files && e.target.files[0];
           if (!file) return;
           const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-          let recId = d.id ? String(d.id) : '';
+          const recordKey = f.photoRecordKey || 'id';
+          let recId = d[recordKey] ? String(d[recordKey]) : '';
           if (!uuidRe.test(recId)) {
             recId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : recId;
-            if (uuidRe.test(recId)) this.setField('id', recId);
+            if (uuidRe.test(recId)) this.setField(recordKey, recId);
           }
           const kind = f.photoKind || 'vehicle';
           const upload = f.upload || '/api/photos/upload';
@@ -1164,7 +1231,7 @@ class Component extends DCLogic {
       saveFailed: !!(this.state.saveError),
       deleteError: this.state.deleteError || '',
       deleteFailed: !!(this.state.deleteError),
-      deleteShow: this.state.isNew ? 'none' : 'inline-flex',
+      deleteShow: (this.state.isNew || !this.rowCanDelete(d)) ? 'none' : 'inline-flex',
       formFields, closeEditor: this.closeEditor, save: this.save,
       requestClose: this.requestClose, keepEditing: this.keepEditing, discardClose: this.discardClose,
       closeAttempted: this.state.closeAttempted,

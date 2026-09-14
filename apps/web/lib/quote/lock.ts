@@ -4,9 +4,9 @@
 // The lock (D-20 / D-31 remainder) is a server-signed HMAC-SHA256 pin of
 // inputs and version ids — not a KV document (60 s cross-PoP lag is wrong for
 // a gate) and not a price_snapshots row (D-21 forbids the quote-time write).
-// Length is hours on the Pricing page, stored as quote_lock_minutes (hours×60
-// in 18-05). Postgres quote_lock_deadline() bakes quote_lock_expires_at from
-// that published minutes value at lock time — never created_at + 24 hours,
+// Quote lock length is hardcoded 24 hours = 1440 minutes at Publish (Phase 18 D-13).
+// There is no hours field on /pricing. Postgres quote_lock_deadline() bakes
+// quote_lock_minutes from the live row at lock time — never created_at + 24 hours,
 // never the new book's hours after a later Publish.
 //
 // Three pieces of negative space:
@@ -39,6 +39,9 @@ export const LOCK_KID_CURRENT = "v1";
 
 /** Previous key id accepted only while QUOTE_LOCK_SECRET_PREVIOUS is bound. */
 export const LOCK_KID_PREVIOUS = "v0";
+
+/** Hardcoded quote lock (D-13). 24 hours. Not a /pricing field. */
+export const QUOTE_LOCK_MINUTES = 1440;
 
 /**
  * Place pin on a lock leg. Coordinates are numbers the engine already resolved;
@@ -76,7 +79,7 @@ export interface QuoteLockLeg {
  */
 export interface QuoteLockExtras {
   child_seats?: 0 | 1;
-  extra_stops?: 0 | 1 | 2 | 3;
+  extra_stops?: 0 | 1;
   oversized_luggage?: boolean;
   waypoints?: Array<{ lng: number; lat: number; text: string }>;
 }

@@ -23,6 +23,7 @@ describe("fleet persist — 08-03", () => {
     expect(data).not.toMatch(/supabase_realtime/);
     expect(data).toMatch(/function pickRows/);
     expect(data).toMatch(/typeof data === ["']object["']/);
+    expect(data).toMatch(/Array\.isArray\(data\.routes\) \|\| Array\.isArray\(data\.rates\)/);
     expect(data).not.toMatch(
       /save:\s*function\s*\(\)\s*\{\s*emit\(name\);\s*return list\.slice\(\);\s*\}/,
     );

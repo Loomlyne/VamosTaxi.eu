@@ -11,67 +11,94 @@
 <style>
 :root{--vt-shadow-accent:none}
 .vt-input--focus{box-shadow:none}
-[data-price-head]{display:flex;flex-wrap:wrap;align-items:center;gap:var(--vt-space-4);padding:var(--vt-space-4) var(--vt-space-7);background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle)}
-[data-price-head] h1{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:600;line-height:1.18;letter-spacing:var(--vt-heading-tracking);white-space:nowrap}
-[data-price-actions]{margin-inline-start:auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:var(--vt-space-2)}
-[data-price-body]{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--vt-space-4);padding:var(--vt-space-6) var(--vt-space-7) var(--vt-space-7);align-items:start}
-[data-price-tabs]{min-width:0}
-[data-price-editor]{display:flex;flex-direction:column;gap:var(--vt-space-6);min-width:0}
-[data-price-pane]{display:flex;flex-direction:column;gap:var(--vt-space-6);min-width:0}
+[data-price-side]{display:flex;flex-direction:column;gap:14px;min-width:0}
+[data-price-editor]{display:flex;flex-direction:column;gap:20px;min-width:0}
+[data-price-pane]{display:flex;flex-direction:column;gap:20px;min-width:0}
 [data-price-swipe]{min-width:0;overflow-x:auto;-webkit-overflow-scrolling:touch}
-[data-price-rail]{display:flex;flex-direction:column;gap:var(--vt-space-4);min-width:0}
-[data-price-kicker]{display:block;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:600;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;line-height:1.45}
-[data-price-preview]{box-sizing:border-box;display:flex;flex-direction:column;gap:var(--vt-space-4);padding:var(--vt-space-4);background:var(--vt-bg-inverse);border-radius:var(--vt-radius-lg);color:var(--vt-text-inverse);min-width:0}
-[data-price-recap]{display:flex;flex-direction:column;gap:var(--vt-space-2);margin:0;padding:0;list-style:none}
-[data-price-recap] li{display:flex;justify-content:space-between;gap:var(--vt-space-2);font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6}
-[data-price-total]{font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:600;line-height:1.18;color:var(--vt-accent)}
-[data-price-live]{display:inline-flex;align-items:center;height:22px;padding-inline:10px;border-radius:999px;background:var(--vt-charcoal-900);color:var(--vt-accent);font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:600;letter-spacing:var(--vt-label-tracking);text-transform:uppercase}
-[data-price-hist]{display:flex;flex-direction:column;gap:var(--vt-space-2);min-width:0}
-[data-price-hist-row]{box-sizing:border-box;display:flex;flex-wrap:wrap;align-items:center;gap:var(--vt-space-2);padding:var(--vt-space-4);background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg)}
+[data-price-hist-filters]{display:flex;align-items:center;max-width:220px;min-width:0}
+[data-price-hist-filters] [data-vt-date]{width:100%;gap:0}
+[data-vt-date]{display:flex;flex-direction:column;gap:6px;min-width:0}
+[data-vt-date-btn]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;height:44px;padding:0 14px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-pill);background:var(--vt-white);color:var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium);cursor:pointer;overflow:hidden}
+[data-vt-date-btn]:hover{border-color:var(--vt-charcoal-900)}
+[data-vt-date-btn][aria-expanded="true"]{border-color:var(--vt-charcoal-900)}
+[data-vt-date-label]{flex:1 1 auto;min-width:0;text-align:start;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[data-vt-date-label][data-vt-date-empty="1"]{color:var(--vt-text-muted);font-weight:var(--vt-weight-regular)}
+[data-vt-date-year]{all:unset;box-sizing:border-box;width:4.4em;height:28px;padding:0 8px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-pill);text-align:center;font-family:var(--vt-font-display);font-size:13px;font-weight:600;letter-spacing:.04em;color:var(--vt-charcoal-900);background:var(--vt-white)}
+[data-vt-date-year]:focus{border-color:var(--vt-charcoal-900)}
+[data-vt-date-pop]{position:fixed;z-index:220;box-sizing:border-box;width:280px;padding:12px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg)}
+[data-vt-date-nav]{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+[data-vt-date-nav] strong{flex:1 1 auto;text-align:center;font-family:var(--vt-font-display);font-size:14px;font-weight:600}
+[data-vt-date-nav] button{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:999px;cursor:pointer;color:var(--vt-charcoal-900)}
+[data-vt-date-nav] button:hover{background:var(--vt-grey-50)}
+[data-vt-date-wd]{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;margin-bottom:4px}
+[data-vt-date-wd] span{text-align:center;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--vt-text-muted);padding:4px 0}
+[data-vt-date-grid]{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}
+[data-vt-date-day]{all:unset;box-sizing:border-box;display:grid;place-items:center;height:32px;border-radius:999px;cursor:pointer;font-family:var(--vt-font-display);font-size:13px;font-weight:600;color:var(--vt-text-primary)}
+[data-vt-date-day]:hover{background:var(--vt-grey-50)}
+[data-vt-date-day][data-on="1"]{background:var(--vt-charcoal-900);color:var(--vt-accent)}
+[data-vt-date-day][data-mute="1"]{cursor:default;color:transparent;pointer-events:none}
+[data-price-hist]{box-sizing:border-box;display:flex;flex-direction:column;min-width:0;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);overflow:hidden}
+[data-price-hist-row]{box-sizing:border-box;display:flex;flex-wrap:nowrap;align-items:center;gap:var(--vt-space-4);padding:14px 16px;border-block-end:1px solid var(--vt-border-subtle)}
+[data-price-hist-row]:last-child{border-block-end:0}
+[data-price-hist-row][data-live="1"] [data-price-hist-lead]{background:var(--vt-charcoal-900);border-color:transparent;color:var(--vt-accent)}
+[data-price-hist-lead]{flex:0 0 auto;display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:var(--vt-radius-md);background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);color:var(--vt-charcoal-700)}
+[data-price-hist-main]{flex:1 1 auto;min-width:0}
+[data-price-hist-title]{display:block;font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium);color:var(--vt-text-primary);line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[data-price-hist-sub]{display:block;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-muted);line-height:1.4;margin-block-start:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[data-price-hist-meta]{display:flex;flex-wrap:nowrap;align-items:center;gap:var(--vt-space-2);margin-inline-start:auto;flex:0 0 auto}
 [data-price-warn]{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary)}
 [data-price-err]{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-danger)}
-[data-price-empty]{display:flex;flex-direction:column;gap:var(--vt-space-2);padding:var(--vt-space-6);border:1px dashed var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface)}
-[data-price-empty] h2{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:600;line-height:1.18}
-[data-price-empty] p{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary)}
+[data-price-empty]{display:flex;flex-direction:column;gap:var(--vt-space-2);padding:22px 24px;border:1px dashed var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface)}
+[data-price-empty] h2{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:1.25}
+[data-price-empty] p{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);line-height:1.55;color:var(--vt-text-muted)}
 @media (max-width:767px){
-[data-price-head]{gap:var(--vt-space-2);padding:var(--vt-space-4)}
-[data-price-actions]{width:100%;margin-inline-start:0;justify-content:flex-start}
-[data-price-body]{padding:var(--vt-space-4)}
-}
-@media (min-width:768px) and (max-width:999px){
-[data-price-rail]{position:static}
+[data-price-hist-row]{flex-wrap:wrap}
+[data-price-hist-meta]{margin-inline-start:0;width:100%;flex-wrap:wrap}
 }
 @media (min-width:1000px){
-[data-price-body]{grid-template-columns:220px minmax(0,1fr) 280px}
-[data-price-rail]{position:sticky;top:24px}
+[data-price-side]{position:sticky;top:24px}
 }
 </style>
 </helmet>
 <main style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
 
-<header data-price-head="1">
+<header style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle)">
 <div style="min-width:0">
-<h1>{{ tTitle }}</h1>
+<h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);display:flex;flex-wrap:wrap;align-items:center;gap:10px">
+<span>{{ tTitle }}</span>
+<span data-book-mark="1" style="display:{{ draftMarkDisplay }};font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent);background:var(--vt-charcoal-900);padding:4px 10px;border-radius:var(--vt-radius-pill)">{{ tDraftMark }}</span>
+<span data-book-mark="1" style="display:{{ liveMarkDisplay }};font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900);background:var(--vt-accent);padding:4px 10px;border-radius:var(--vt-radius-pill)">{{ tLiveBook }}</span>
+</h1>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSubtitle }}</p>
 </div>
-<div data-price-actions="1">
-<p data-publish-error="1" style="display:{{ publishErrorDisplay }};margin:0;width:100%;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-danger);text-align:end">{{ tPublishError }}</p>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="danger" onClick="{{ openDiscard }}" disabled="{{ discardDisabled }}" hint-size="130px,36px">{{ tDiscard }}</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" onClick="{{ openPublish }}" disabled="{{ publishDisabled }}" hint-size="160px,36px">{{ tPublish }}</x-import>
+<div style="margin-inline-start:auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:10px">
+<p data-publish-ok="1" style="display:{{ publishOkDisplay }};margin:0;width:100%;font-size:var(--vt-body-xs);color:var(--vt-success);text-align:end">{{ tPublishOk }}</p>
+<p data-publish-error="1" style="display:{{ publishErrorDisplay }};margin:0;width:100%;font-size:var(--vt-body-xs);color:var(--vt-danger);text-align:end">{{ tPublishError }}</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="danger" onClick="{{ openDiscard }}" disabled="{{ discardDisabled }}" hint-size="130px,44px">{{ tDiscard }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ openPublish }}" disabled="{{ publishBusyDisabled }}" hint-size="170px,44px">{{ tPublish }}</x-import>
 </div>
 </header>
 
-<div data-price-body="1">
+<div data-set-grid="1" style="padding:26px 32px 48px">
 
-<nav data-price-tabs="1" data-set-rail="1" data-scroll-native="1" data-lenis-prevent="1" aria-label="{{ tTitle }}">
-<sc-for list="{{ panes }}" as="p" hint-placeholder-count="5">
+<div data-price-side="1">
+<nav data-set-rail="1" data-scroll-native="1" data-lenis-prevent="1" aria-label="{{ tTitle }}">
+<sc-for list="{{ panes }}" as="p" hint-placeholder-count="4">
 <button type="button" data-set-item="1" data-on="{{ p.on }}" onClick="{{ p.pick }}" title="{{ p.label }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ p.icon }}" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
 <span style="flex:1 1 auto;min-width:0">
-<span data-price-kicker="1" style="color:{{ p.kickerColor }}">{{ p.label }}</span>
+<span style="display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.label }}</span>
+<span data-set-hint="1">{{ p.hint }}</span>
 </span>
 </button>
 </sc-for>
 </nav>
+<div data-vat-field="1" style="display:flex;flex-direction:column;gap:6px;min-width:0">
+<p data-vat-error="1" style="display:{{ vatErrorDisplay }};margin:0;font-size:var(--vt-body-xs);color:var(--vt-danger)">{{ tVatError }}</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tVatLabel }}" value="{{ vatPercent }}" onChange="{{ setVatPercent }}" suffix="{{ tVatSuffix }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" onClick="{{ saveVat }}" hint-size="110px,36px">{{ tSaveVat }}</x-import>
+</div>
+</div>
 
 <div data-price-editor="1">
 
@@ -85,14 +112,12 @@
 <div data-price-pane="1" data-price-swipe="1" data-scroll-native="1">
 <dc-import name="OpsTable" rows="{{ distanceRows }}" columns="{{ distanceColumns }}" fields="{{ distanceFields }}" blank="{{ distanceBlank }}" onSave="{{ saveDistance }}" onDelete="{{ deleteDistance }}" noun="{{ tNounClass }}" noun-plural="{{ tNounClasses }}" add-title="{{ tAddClass }}" edit-title="{{ tEditClass }}" delete-title="{{ tDeleteClassTitle }}" label-key="klass" add-label="{{ tAddClass }}" save-label="{{ tSaveClass }}" add-save-label="{{ tAddClass }}" search-placeholder="{{ tSearchDistance }}" search-keys="{{ distanceSearchKeys }}" empty-title="{{ tEmptyClassesTitle }}" empty-body="{{ tEmptyClassesBody }}" delete-body="{{ tDeleteClassBody }}" hint-size="100%,420px"></dc-import>
 <dc-import name="OpsTable" rows="{{ bandRows }}" columns="{{ bandColumns }}" fields="{{ bandFields }}" blank="{{ bandBlank }}" onSave="{{ saveBand }}" onDelete="{{ deleteBand }}" noun="{{ tNounBand }}" noun-plural="{{ tNounBands }}" add-title="{{ tAddBand }}" edit-title="{{ tEditBand }}" delete-title="{{ tDeleteBandTitle }}" label-key="fromKm" add-label="{{ tAddBand }}" save-label="{{ tSaveBand }}" add-save-label="{{ tAddBand }}" search-placeholder="{{ tSearchBands }}" search-keys="{{ bandSearchKeys }}" empty-title="{{ tEmptyBandsTitle }}" empty-body="{{ tEmptyBandsBody }}" delete-body="{{ tDeleteBandBody }}" hint-size="100%,280px"></dc-import>
-<dc-import name="OpsTable" rows="{{ regionRows }}" columns="{{ regionColumns }}" fields="{{ regionFields }}" blank="{{ regionBlank }}" onSave="{{ saveRegion }}" onDelete="{{ deleteRegion }}" noun="{{ tNounRegion }}" noun-plural="{{ tNounRegions }}" add-title="{{ tAddRegion }}" edit-title="{{ tEditRegion }}" delete-title="{{ tDeleteRegionTitle }}" label-key="zone" add-label="{{ tAddRegion }}" save-label="{{ tSaveRegion }}" add-save-label="{{ tAddRegion }}" search-placeholder="{{ tSearchRegions }}" search-keys="{{ regionSearchKeys }}" empty-title="{{ tEmptyRegionsTitle }}" empty-body="{{ tEmptyRegionsBody }}" delete-body="{{ tDeleteRegionBody }}" hint-size="100%,280px"></dc-import>
 </div>
 </sc-if>
 
 <sc-if value="{{ isSurcharges }}" hint-placeholder-val="{{ false }}">
 <div data-price-pane="1" data-price-swipe="1" data-scroll-native="1">
-<dc-import name="OpsTable" rows="{{ ruleRows }}" columns="{{ ruleColumns }}" fields="{{ ruleFields }}" blank="{{ ruleBlank }}" onSave="{{ saveRule }}" onDelete="{{ deleteRule }}" noun="{{ tNounRule }}" noun-plural="{{ tNounRules }}" add-title="{{ tAddRule }}" edit-title="{{ tEditRule }}" delete-title="{{ tDeleteRuleTitle }}" label-key="kind" add-label="{{ tAddRule }}" save-label="{{ tSaveRule }}" add-save-label="{{ tAddRule }}" search-placeholder="{{ tSearchRules }}" search-keys="{{ ruleSearchKeys }}" empty-title="{{ tEmptyRulesTitle }}" empty-body="{{ tEmptyRulesBody }}" delete-body="{{ tDeleteRuleBody }}" hint-size="100%,320px"></dc-import>
-<dc-import name="OpsTable" rows="{{ surcharges }}" columns="{{ surchargeColumns }}" fields="{{ surchargeFields }}" blank="{{ surchargeBlank }}" onSave="{{ saveSurcharge }}" onDelete="{{ deleteSurcharge }}" noun="{{ tNounSurcharge }}" noun-plural="{{ tNounSurcharges }}" add-title="{{ tAddSurcharge }}" edit-title="{{ tEditSurcharge }}" delete-title="{{ tDeleteSurchargeTitle }}" label-key="label" add-label="{{ tAddSurcharge }}" save-label="{{ tSaveSurcharge }}" add-save-label="{{ tAddSurcharge }}" search-placeholder="{{ tSearchSurcharges }}" search-keys="{{ surchargeSearchKeys }}" empty-title="{{ tEmptySurchargesTitle }}" empty-body="{{ tEmptySurchargesBody }}" delete-body="{{ tDeleteSurchargeBody }}" hint-size="100%,420px"></dc-import>
+<dc-import name="OpsTable" rows="{{ surcharges }}" columns="{{ surchargeColumns }}" fields="{{ surchargeFields }}" blank="{{ surchargeBlank }}" onSave="{{ saveSurcharge }}" onDelete="{{ deleteSurcharge }}" can-delete="{{ canDeleteSurcharge }}" noun="{{ tNounSurcharge }}" noun-plural="{{ tNounSurcharges }}" add-title="{{ tAddSurcharge }}" edit-title="{{ tEditSurcharge }}" delete-title="{{ tDeleteSurchargeTitle }}" label-key="label" add-label="{{ tAddSurcharge }}" save-label="{{ tSaveSurcharge }}" add-save-label="{{ tAddSurcharge }}" search-placeholder="{{ tSearchSurcharges }}" search-keys="{{ surchargeSearchKeys }}" empty-title="{{ tEmptySurchargesTitle }}" empty-body="{{ tEmptySurchargesBody }}" delete-body="{{ tDeleteSurchargeBody }}" hint-size="100%,420px"></dc-import>
 </div>
 </sc-if>
 
@@ -102,77 +127,25 @@
 </div>
 </sc-if>
 
-<sc-if value="{{ isHistory }}" hint-placeholder-val="{{ false }}">
-<div data-price-pane="1" data-scroll-native="1">
-<sc-if value="{{ historyEmpty }}" hint-placeholder-val="{{ false }}">
-<div data-price-empty="1">
-<h2>{{ tEmptyHistoryTitle }}</h2>
-<p>{{ tEmptyHistoryBody }}</p>
 </div>
-</sc-if>
-<sc-if value="{{ historyHasRows }}" hint-placeholder-val="{{ true }}">
-<div data-price-hist="1">
-<sc-for list="{{ historyRows }}" as="h" hint-placeholder-count="2">
-<div data-price-hist-row="1">
-<div style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:4px">
-<span style="font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:600;line-height:1.18">{{ h.when }}</span>
-<span style="font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary)">{{ h.who }} · {{ h.gapLabel }}</span>
-</div>
-<span data-price-live="1" style="display:{{ h.liveShow }}">{{ tLiveBook }}</span>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" onClick="{{ h.view }}" hint-size="130px,36px">{{ tViewChanges }}</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" onClick="{{ h.clone }}" hint-size="150px,36px">{{ tCloneDraft }}</x-import>
-</div>
-</sc-for>
-</div>
-</sc-if>
-</div>
-</sc-if>
-
-</div>
-
-<aside data-price-rail="1" data-scroll-native="1">
-<div data-vat-field="1" style="display:flex;flex-direction:column;gap:6px;min-width:0">
-<p data-vat-error="1" style="display:{{ vatErrorDisplay }};margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-danger)">{{ tVatError }}</p>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tVatLabel }}" value="{{ vatPercent }}" onChange="{{ setVatPercent }}" suffix="{{ tVatSuffix }}" hint-size="100%,76px"></x-import>
-</div>
-<div data-price-preview="1">
-<span data-price-kicker="1" style="color:var(--vt-accent)">{{ tPreviewKicker }}</span>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tColFrom }}" value="{{ previewFrom }}" onChange="{{ setPreviewFrom }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tColTo }}" value="{{ previewTo }}" onChange="{{ setPreviewTo }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tWhen }}" value="{{ previewWhen }}" onChange="{{ setPreviewWhen }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tPax }}" value="{{ previewPax }}" onChange="{{ setPreviewPax }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tCoupon }}" value="{{ previewCoupon }}" onChange="{{ setPreviewCoupon }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" onClick="{{ runPreview }}" hint-size="100%,36px">{{ tRunPreview }}</x-import>
-<ul data-price-recap="1">
-<li><span>{{ tRecapStart }}</span><span>{{ recapStart }}</span></li>
-<li><span>{{ tRecapKm }}</span><span>{{ recapKm }}</span></li>
-<li><span>{{ tRecapBands }}</span><span>{{ recapBands }}</span></li>
-<li><span>{{ tRecapRegion }}</span><span>{{ recapRegion }}</span></li>
-<li><span>{{ tRecapExtras }}</span><span>{{ recapExtras }}</span></li>
-<li><span>{{ tRecapVat }}</span><span>{{ recapVat }}</span></li>
-<li><span>{{ tRecapTotal }}</span><span data-price-total="1">{{ recapTotal }}</span></li>
-</ul>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tTestEmail }}" value="{{ testEmail }}" onChange="{{ setTestEmail }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" onClick="{{ createTestUnpaid }}" hint-size="100%,36px">{{ tTestUnpaid }}</x-import>
-<p style="display:{{ testNoteDisplay }};margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-inverse-muted)">{{ tTestNote }}</p>
-</div>
-</aside>
-
 </div>
 </main>
 
 <sc-if value="{{ publishOpen }}" hint-placeholder-val="{{ false }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="md" title="{{ tPublishTitle }}" onClose="{{ closePublish }}" hint-size="520px,480px">
+<p data-price-err="1" style="display:{{ publishErrorDisplay }}">{{ tPublishError }}</p>
 <p data-price-err="1" style="display:{{ gapListDisplay }}">{{ tPublishGapLead }}</p>
 <sc-for list="{{ gaps }}" as="g" hint-placeholder-count="1">
-<p data-price-err="1">{{ g.label }}</p>
+<div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px">
+<p data-price-err="1" style="margin:0;flex:1 1 auto">{{ g.label }}</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" onClick="{{ g.fix }}" hint-size="90px,36px">{{ tFixThis }}</x-import>
+</div>
 </sc-for>
 <p data-price-warn="1" style="display:{{ bandWarnDisplay }}">{{ tBandOverlapWarn }}</p>
-<p data-price-warn="1" style="display:{{ regionWarnDisplay }}">{{ tRegionPercentWarn }}</p>
 <p style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary)">{{ tCompletenessBody }}</p>
 <div style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:var(--vt-space-2);margin-top:var(--vt-space-4)">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" onClick="{{ closePublish }}" hint-size="130px,36px">{{ tKeepEditing }}</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" onClick="{{ publish }}" disabled="{{ publishDisabled }}" hint-size="160px,36px">{{ tPublish }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" onClick="{{ publish }}" disabled="{{ publishBusyDisabled }}" hint-size="160px,36px">{{ tPublishAction }}</x-import>
 </div>
 </x-import>
 </sc-if>
@@ -196,78 +169,114 @@
 </x-import>
 </sc-if>
 
+<sc-if value="{{ showToast }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed;inset-inline:0;bottom:24px;z-index:60;display:flex;justify-content:center;pointer-events:none">
+<div style="pointer-events:auto">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Toast" tone="success" onClose="{{ closeToast }}" hint-size="320px,50px">{{ toastMsg }}</x-import>
+</div>
+</div>
+</sc-if>
+
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 const RATE_ICON = { Economy:'car-front', Business:'car', First:'star', Van:'bus' };
 const CLASS_KEYS = ['economy', 'business', 'first', 'van'];
-const SURCHARGE_CODES = [
-  { value: 'night', k: 'ruleNight' },
-  { value: 'weekend', k: 'ruleWeekend' },
-  { value: 'holiday', k: 'ruleHoliday' },
-  { value: 'waiting', k: 'ruleWaiting' },
-  { value: 'extra_stop', k: 'ruleExtraStop' },
-  { value: 'meet_greet', k: 'ruleMeet' },
-  { value: 'child_seat', k: 'ruleChild' },
-  { value: 'oversized_luggage', k: 'ruleOversized' },
-  { value: 'ski_rack', k: 'ruleSki' },
-  { value: 'pet', k: 'rulePet' },
+const SURCHARGE_TYPES = [
+  { value: 'checkout_extra', k: 'typeCheckoutExtra' },
+  { value: 'meet_greet', k: 'typeMeet' },
+  { value: 'free_wait', k: 'typeFreeWait' },
+  { value: 'extra_wait', k: 'typeExtraWait' },
 ];
-const RULE_KINDS = [
-  { value: 'night', k: 'kindNight' },
-  { value: 'weekend', k: 'kindWeekend' },
-  { value: 'holiday', k: 'kindHoliday' },
-  { value: 'waiting', k: 'kindWaiting' },
-  { value: 'quote_lock', k: 'kindLock' },
-  { value: 'free_wait', k: 'kindFreeWait' },
-  { value: 'max_stops', k: 'kindMaxStops' },
-  { value: 'service_area', k: 'kindServiceArea' },
+const EXTRA_ICONS = [
+  { value: 'user', k: 'iconUser' },
+  { value: 'baby', k: 'iconBaby' },
+  { value: 'luggage', k: 'iconLuggage' },
+  { value: 'map-pin', k: 'iconPin' },
+  { value: 'snowflake', k: 'iconSki' },
+  { value: 'clock', k: 'iconClock' },
 ];
+function surchargeTypeOf(code) {
+  const raw = String(code || '');
+  if (raw === 'meet_greet') return 'meet_greet';
+  if (raw === 'free_wait') return 'free_wait';
+  if (raw === 'extra_wait' || raw === 'waiting' || raw === 'waiting_city' || raw === 'waiting_airport') return 'extra_wait';
+  return 'checkout_extra';
+}
+const WD_EN = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const MON_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MON_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const YEAR_MIN = 1900;
+const YEAR_MAX = 2100;
+function pad2(n) { return (n < 10 ? '0' : '') + n; }
+function clampYear(n) {
+  const y = parseInt(n, 10);
+  if (isNaN(y)) return YEAR_MIN;
+  if (y < YEAR_MIN) return YEAR_MIN;
+  if (y > YEAR_MAX) return YEAR_MAX;
+  return y;
+}
+function parseParts(raw) {
+  const s = String(raw || '').trim();
+  if (!s) return null;
+  const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
+  if (iso) return { y: +iso[1], m: +iso[2] - 1, d: +iso[3] };
+  const board = /(?:[A-Za-z]{3}\s+)?(\d{1,2})\s+([A-Za-z]{3})(?:\s+(\d{4}))?/.exec(s);
+  if (!board) return null;
+  const mon = MON_EN.indexOf(board[2]);
+  if (mon === -1) return null;
+  return { y: board[3] ? +board[3] : new Date().getFullYear(), m: mon, d: +board[1] };
+}
+function toIso(p) { return p ? (p.y + '-' + pad2(p.m + 1) + '-' + pad2(p.d)) : ''; }
+function boardDate(p) {
+  if (!p) return '';
+  const dt = new Date(Date.UTC(p.y, p.m, p.d));
+  const dow = (dt.getUTCDay() + 6) % 7;
+  return WD_EN[dow] + ' ' + p.d + ' ' + MON_EN[p.m] + ' ' + p.y;
+}
 const PANES = [
-  { key:'routes', icon:'navigation', tab:'tabRoutes' },
-  { key:'distance', icon:'arrow-left-right', tab:'tabDistance' },
-  { key:'surcharges', icon:'banknote', tab:'tabSurcharges' },
-  { key:'coupons', icon:'ticket', tab:'tabCoupons' },
-  { key:'history', icon:'history', tab:'tabHistory' },
+  { key:'routes', icon:'navigation', tab:'tabRoutes', hint:'hintRoutes' },
+  { key:'distance', icon:'arrow-left-right', tab:'tabDistance', hint:'hintDistance' },
+  { key:'surcharges', icon:'banknote', tab:'tabSurcharges', hint:'hintSurcharges' },
+  { key:'coupons', icon:'ticket', tab:'tabCoupons', hint:'hintCoupons' },
 ];
 const T = {
-  en: { title:'Pricing & routes',
-    tabRoutes:'Fixed routes', tabDistance:'Distance rules', tabSurcharges:'Surcharges & extras', tabCoupons:'Coupons', tabHistory:'History',
+  en: { title:'Pricing & routes', subtitle:'Fixed routes, distance rules, surcharges and coupons',
+    tabRoutes:'Fixed routes', tabDistance:'Distance rules', tabSurcharges:'Surcharges & extras', tabCoupons:'Coupons',
+    hintRoutes:'Place to place, or canton to canton. A to B and B to A are separate.', hintDistance:'Class floors and km bands', hintSurcharges:'Checkout extras, wait, meet and greet', hintCoupons:'Percent or fixed CHF',
     colId:'ID', colFrom:'From', colTo:'To', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Draft',
-    colClass:'Class', colName:'Name', startFare:'Start', perKm:'Per kilometre', maxPax:'Max passengers', hidePublic:'Hide from public', showPublic:'Show on public',
+    colClass:'Class', colName:'Name', startFare:'Start', perKm:'Per kilometre', maxPax:'Max passengers', maxBags:'Max bags', hidePublic:'Hide from public', showPublic:'Show on public',
+    fPhoto:'Photo', choosePhoto:'Choose photo', clearPhoto:'Remove', hClassPhoto:'Required to Publish. Stored on R2, not on this machine.',
     colRule:'Rule', colAppliesWhen:'Applies when', colAmount:'Amount', colKind:'Kind',
     addRoute:'Add route', editRoute:'Edit route', saveRoute:'Save route', deleteRouteTitle:'Delete this route from the draft?', deleteRouteBody:'Delete this route from the draft? Public does not change until Publish.',
-    emptyRoutesTitle:'No fixed routes yet', emptyRoutesBody:'Add a route with Mapbox From and To. Public stays on the last published book until you publish.',
+    emptyRoutesTitle:'No fixed routes yet', emptyRoutesBody:'Add a Mapbox place to place, or a canton to canton. A to B and B to A are separate rows. Public stays on the last published book until you publish.',
     searchRoutes:'From, to or ID', nounRoute:'route', nounRoutes:'routes',
     hRoutePrice:'Leave empty if this class is not offered on this route.', fLive:'Live for booking', hLive:'Off keeps the route in the draft; public does not change until Publish.',
-    hMapboxRoute:'Add Mapbox From and To before you save this route.',
     addClass:'Add class', editClass:'Edit class', saveClass:'Save class', deleteClassTitle:'Delete this class from the draft?', deleteClassBody:'Delete this class from the draft? Public does not change until Publish.',
-    emptyClassesTitle:'No vehicle classes yet', emptyClassesBody:'Add a class with name, start fare, per-kilometre rate, and max passengers.',
+    emptyClassesTitle:'No vehicle classes yet', emptyClassesBody:'Add a class with photo, name, start fare, per-kilometre rate, max passengers and max bags.',
     searchDistance:'Class', nounClass:'class', nounClasses:'classes',
     fromKm:'From km', toKm:'To km', openBand:'Open',
     addBand:'Add band', editBand:'Edit band', saveBand:'Save band', deleteBandTitle:'Delete this band from the draft?', deleteBandBody:'Delete this band from the draft? Public does not change until Publish.',
     emptyBandsTitle:'No km bands yet', emptyBandsBody:'Add a band with From km and a CHF per-kilometre amount for that slice. Open last band is allowed.',
     searchBands:'From km', nounBand:'km band', nounBands:'km bands',
-    colZone:'Zone', colPercent:'Percent',
-    addRegion:'Add region', editRegion:'Edit region', saveRegion:'Save region', deleteRegionTitle:'Delete this region percent from the draft?', deleteRegionBody:'Delete this region percent from the draft? Public does not change until Publish.',
-    emptyRegionsTitle:'No region percents yet', emptyRegionsBody:'Add a Mapbox zone and a percent of start + km + bands.',
-    searchRegions:'Zone', nounRegion:'region percent', nounRegions:'region percents',
     addRule:'Add rule', editRule:'Edit rule', saveRule:'Save rule', deleteRuleTitle:'Delete this rule from the draft?', deleteRuleBody:'Delete this rule from the draft? Public does not change until Publish.',
-    emptyRulesTitle:'No rules yet', emptyRulesBody:'Add a night window, weekend days, holiday date, waiting unit, quote-lock hours, free-wait hours, max extra stops, or Mapbox service area.',
+    emptyRulesTitle:'No rules yet', emptyRulesBody:'Waiting unit, free-wait hours, or Mapbox service area.',
     searchRules:'Kind', nounRule:'rule', nounRules:'rules',
-    kindNight:'Night window', kindWeekend:'Weekend days', kindHoliday:'Holiday date', kindWaiting:'Waiting unit', kindLock:'Quote-lock hours', kindFreeWait:'Free-wait hours', kindMaxStops:'Max extra stops', kindServiceArea:'Service area',
-    fPayload:'Value', hRulePayload:'Night start/end, weekend days, holiday date, waiting unit, hours, or Mapbox area. Timezone is Europe/Zurich.',
+    kindWaiting:'Waiting unit', kindLock:'Quote-lock hours', kindFreeWait:'Free-wait hours', kindMaxStops:'Max extra stops', kindServiceArea:'Service area',
+    fPayload:'Value', hRulePayload:'Waiting unit, hours, or Mapbox area. Timezone is Europe/Zurich.',
     addSurcharge:'Add surcharge', editSurcharge:'Edit surcharge', saveSurcharge:'Save surcharge', deleteSurchargeTitle:'Delete this surcharge from the draft?', deleteSurchargeBody:'Delete this surcharge from the draft? Public does not change until Publish.',
-    emptySurchargesTitle:'No surcharges in this draft', emptySurchargesBody:'Add a surcharge that picks one rule. Checkout extras appear only after Publish.',
-    searchSurcharges:'Rule or note', nounSurcharge:'surcharge', nounSurcharges:'surcharges',
-    fUnit:'Unit', hSurchargeValue:'The amount in CHF, or the percentage — ignored when the unit is Included.',
-    unitAmount:'Fixed amount, CHF', unitPct:'% of the fare', unitIncluded:'Included, no charge', included:'Included',
-    hRule:'Pick the extra. The quote uses this code — not a sentence.',
-    hApplies:'This transfer = one leg. Whole booking = every leg on the booking.',
-    applyLeg:'This transfer', applyBooking:'Whole booking',
-    ruleNight:'Night (22:00–06:00)', ruleWeekend:'Weekend (Saturday–Sunday)', ruleHoliday:'Public holiday',
-    ruleWaiting:'Waiting time', ruleExtraStop:'Extra stop', ruleMeet:'Meet and greet',
-    ruleChild:'Child seat', ruleSki:'Ski / snowboard', rulePet:'Pet', ruleOversized:'Oversized luggage',
-    pickRule:'Picked rule',
+    emptySurchargesTitle:'No surcharges in this draft', emptySurchargesBody:'Add a checkout extra, extra-wait rate, or edit meet and greet and free wait. Meet and greet and free wait stay on for the customer.',
+    searchSurcharges:'Type or name', nounSurcharge:'surcharge', nounSurcharges:'surcharges',
+    surchargeType:'Type', whatThisDoes:'What this does',
+    typeCheckoutExtra:'Checkout extra', typeMeet:'Meet and greet', typeFreeWait:'Free airport wait', typeExtraWait:'Extra wait',
+    doesCheckout:'Shown on checkout after Publish. Delete and Publish removes it — it does not stay as CHF 0.',
+    doesMeet:'Always on for the customer. Amount stays CHF 0. You cannot turn it off.',
+    doesFreeWait:'Always on for airport pickup. Set the free hours. You cannot turn it off.',
+    doesExtraWait:'CHF per hour after free wait. Billed after the ride, not in pay now.',
+    extraName:'Name', extraIcon:'Icon', extraHours:'Free hours', extraWaitRate:'CHF per hour',
+    meetAmount:'Amount', meetAmountHint:'Locked at CHF 0. Included for the customer.',
+    iconUser:'Person', iconBaby:'Child seat', iconLuggage:'Luggage', iconPin:'Stop', iconSki:'Ski', iconClock:'Clock',
+    notDeletableMeet:'Meet and greet stays on. You can edit the amount. You cannot turn it off for the customer.',
+    notDeletableWait:'Free wait stays on. You can edit the hours. You cannot turn it off for the customer.',
     addCoupon:'Add coupon', editCoupon:'Edit coupon', saveCoupon:'Save coupon', deleteCouponTitle:'Delete this coupon from the draft?', deleteCouponBody:'Delete this coupon from the draft? Public does not change until Publish.',
     emptyCouponsTitle:'No coupons in this draft', emptyCouponsBody:'Add a percent-off or fixed-CHF coupon. Public cannot use it until Publish.',
     searchCoupons:'Code', nounCoupon:'coupon', nounCoupons:'coupons',
@@ -276,14 +285,15 @@ const T = {
     hValue:'Percent off or fixed CHF off. Coupon applies before VAT.',
     kPercent:'Percent off', kAmount:'Fixed CHF off',
     paused:'Paused', noEnd:'No end date', unlimited:'no cap',
-    publish:'Publish fare book', discard:'Discard draft', keepEditing:'Keep editing',
+    publish:'Publish fare book', publishing:'Publishing…', discard:'Discard draft', keepEditing:'Keep editing',
     publishTitle:'Publish this fare book?',
-    discardConfirm:'Discard this draft? The last published book stays live. History does not change.',
+    publishOk:'Fare book is live.',
+    discardConfirm:'Discard this draft? The last published book stays live. Public does not change.',
     completenessTitle:'Draft completeness',
     completenessReady:'Every required class field is filled. Publish fare book writes the live book.',
     completenessGaps:(n) => n === 1 ? '1 gap before Publish fare book' : n + ' gaps before Publish fare book',
     completenessEmpty:'No draft fare book.',
-    gapDistance:'Distance class', gapSurcharge:'Surcharge', gapRoute:'Fixed route', gapCoupon:'Coupon', gapRule:'Rule', gapBand:'Km band',
+    gapDistance:'Distance class', gapSurcharge:'Surcharge', gapRoute:'Fixed route', gapCoupon:'Coupon', gapRule:'Rule', gapBand:'Km band', gapBandOverlap:'Overlapping km band',
     publishDisabledGaps:'Publish fare book stays off until the gaps are filled.',
     publishDisabledNoDraft:'Publish fare book stays off until a draft exists.',
     publishError:'Publish did not flip — fill the missing fields on this page, then confirm Publish again.',
@@ -292,60 +302,65 @@ const T = {
       incomplete:'Publish did not flip — the draft still has unpriced gaps. Fill the missing fields on this page, then confirm Publish again.',
       'not-draft':'Publish did not flip — this version is not a draft.',
       duplicate:'Publish did not flip — a live version already occupies this book.',
-      forbidden:'Publish did not flip — only an admin can publish.',
+      forbidden:'Publish did not flip — the database refused this write.',
+      'not-admin':'Publish did not flip — only an admin can publish.',
+      csrf:'Publish did not flip — this page is not allowed to publish from here.',
       fk:'Publish did not flip — a related record is missing.',
       network:'Publish did not flip — the request did not reach the server.',
       unknown:'Publish did not flip — the server did not accept this draft.',
     },
     bandOverlapWarn:'Overlapping km bands: the higher CHF per kilometre wins. You can still publish.',
     regionPercentWarn:'Two matching region percents: the highest percent wins. You can still publish.',
-    vatLabel:'VAT', vatSuffix:'%', vatError:'VAT must be 0 or more.',
-    previewKicker:'Draft preview', recapStart:'Start', recapKm:'Kilometres', recapBands:'Bands', recapRegion:'Region %', recapExtras:'Extras', recapVat:'VAT', recapTotal:'Total',
-    when:'When', pax:'Passengers', coupon:'Coupon', runPreview:'Preview draft', testEmail:'Contact email', testUnpaid:'Create test unpaid',
-    testNote:'Test unpaid uses this draft. It never charges a card and sends no mail.',
-    viewChanges:'View changes', cloneDraft:'Clone into draft', liveBook:'Live book', gapFree:'Gap-free', hasGaps:'Has gaps',
+    vatLabel:'VAT', vatSuffix:'%', vatError:'VAT must be 0 or more.', saveVat:'Save VAT', draftMark:'Draft — not public until Publish', fixThis:'Fix this',
+    liveBook:'Live book',
+    when:'When', pax:'Passengers', coupon:'Coupon',
     emptyHistoryTitle:'No published books yet', emptyHistoryBody:'Publish when every required class field is filled. Public stays CHF 000 until the first Publish.',
+    histDate:'date',
+    histPrevMonth:'Previous month',
+    histNextMonth:'Next month',
+    histYear:'Year',
+    emptyHistoryFilterTitle:'No books on this date',
+    emptyHistoryFilterBody:'Clear the date to see every published book.',
     whoUnknown:'Unknown',
     colFirst:'First',
   },
-  de: { title:'Preise & Routen',
-    tabRoutes:'Feste Routen', tabDistance:'Distanzregeln', tabSurcharges:'Zuschläge & Extras', tabCoupons:'Gutscheine', tabHistory:'Verlauf',
+  de: { title:'Preise & Routen', subtitle:'Feste Routen, Distanzregeln, Zuschläge und Gutscheine',
+    tabRoutes:'Feste Routen', tabDistance:'Distanzregeln', tabSurcharges:'Zuschläge & Extras', tabCoupons:'Gutscheine',
+    hintRoutes:'Ort zu Ort oder Kanton zu Kanton. A nach B und B nach A sind getrennte Zeilen.', hintDistance:'Klassenmindestpreis und km-Bänder', hintSurcharges:'Checkout-Extras, Warten, Meet and greet', hintCoupons:'Prozent oder fester CHF',
     colId:'ID', colFrom:'Von', colTo:'Nach', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Entwurf',
-    colClass:'Klasse', colName:'Name', startFare:'Start', perKm:'Pro Kilometer', maxPax:'Max. Passagiere', hidePublic:'Vor der Öffentlichkeit verbergen', showPublic:'Öffentlich zeigen',
+    colClass:'Klasse', colName:'Name', startFare:'Start', perKm:'Pro Kilometer', maxPax:'Max. Passagiere', maxBags:'Max. Gepäckstücke', hidePublic:'Vor der Öffentlichkeit verbergen', showPublic:'Öffentlich zeigen',
+    fPhoto:'Foto', choosePhoto:'Foto wählen', clearPhoto:'Entfernen', hClassPhoto:'Pflicht vor dem Veröffentlichen. Liegt auf R2, nicht auf diesem Gerät.',
     colRule:'Regel', colAppliesWhen:'Gilt bei', colAmount:'Betrag', colKind:'Art',
     addRoute:'Route hinzufügen', editRoute:'Route bearbeiten', saveRoute:'Route speichern', deleteRouteTitle:'Diese Route aus dem Entwurf löschen?', deleteRouteBody:'Diese Route aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
-    emptyRoutesTitle:'Noch keine festen Routen', emptyRoutesBody:'Route mit Mapbox Von und Nach hinzufügen. Die Öffentlichkeit bleibt auf dem letzten veröffentlichten Buch, bis du veröffentlichst.',
+    emptyRoutesTitle:'Noch keine festen Routen', emptyRoutesBody:'Mapbox Ort zu Ort oder Kanton zu Kanton hinzufügen. A nach B und B nach A sind getrennte Zeilen. Die Öffentlichkeit bleibt auf dem letzten veröffentlichten Buch, bis du veröffentlichst.',
     searchRoutes:'Von, nach oder ID', nounRoute:'Route', nounRoutes:'Routen',
     hRoutePrice:'Leer lassen, wenn diese Klasse auf dieser Route nicht angeboten wird.', fLive:'Für Buchung live', hLive:'Aus behält die Route im Entwurf; die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
-    hMapboxRoute:'Mapbox Von und Nach setzen, bevor du diese Route speicherst.',
     addClass:'Klasse hinzufügen', editClass:'Klasse bearbeiten', saveClass:'Klasse speichern', deleteClassTitle:'Diese Klasse aus dem Entwurf löschen?', deleteClassBody:'Diese Klasse aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
-    emptyClassesTitle:'Noch keine Fahrzeugklassen', emptyClassesBody:'Klasse mit Name, Startpreis, Kilometersatz und max. Passagieren hinzufügen.',
+    emptyClassesTitle:'Noch keine Fahrzeugklassen', emptyClassesBody:'Klasse mit Foto, Name, Startpreis, Kilometersatz, max. Passagieren und max. Gepäckstücken hinzufügen.',
     searchDistance:'Klasse', nounClass:'Klasse', nounClasses:'Klassen',
     fromKm:'Von km', toKm:'Bis km', openBand:'Offen',
     addBand:'Band hinzufügen', editBand:'Band bearbeiten', saveBand:'Band speichern', deleteBandTitle:'Dieses Band aus dem Entwurf löschen?', deleteBandBody:'Dieses Band aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
     emptyBandsTitle:'Noch keine km-Bänder', emptyBandsBody:'Band mit Von-km und einem CHF-Betrag pro Kilometer für diese Scheibe hinzufügen. Offenes letztes Band ist erlaubt.',
     searchBands:'Von km', nounBand:'km-Band', nounBands:'km-Bänder',
-    colZone:'Zone', colPercent:'Prozent',
-    addRegion:'Region hinzufügen', editRegion:'Region bearbeiten', saveRegion:'Region speichern', deleteRegionTitle:'Diesen Regionen-Prozentsatz aus dem Entwurf löschen?', deleteRegionBody:'Diesen Regionen-Prozentsatz aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
-    emptyRegionsTitle:'Noch keine Regionen-Prozente', emptyRegionsBody:'Mapbox-Zone und einen Prozentanteil von Start + km + Bänder hinzufügen.',
-    searchRegions:'Zone', nounRegion:'Regionen-Prozent', nounRegions:'Regionen-Prozente',
     addRule:'Regel hinzufügen', editRule:'Regel bearbeiten', saveRule:'Regel speichern', deleteRuleTitle:'Diese Regel aus dem Entwurf löschen?', deleteRuleBody:'Diese Regel aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
-    emptyRulesTitle:'Noch keine Regeln', emptyRulesBody:'Nachtfenster, Wochenendtage, Feiertag, Warteeinheit, Quote-Lock-Stunden, Freiwarte-Stunden, max. Extra-Stops oder Mapbox-Servicegebiet hinzufügen.',
+    emptyRulesTitle:'Noch keine Regeln', emptyRulesBody:'Warteeinheit, Freiwarte-Stunden oder Mapbox-Servicegebiet.',
     searchRules:'Art', nounRule:'Regel', nounRules:'Regeln',
-    kindNight:'Nachtfenster', kindWeekend:'Wochenendtage', kindHoliday:'Feiertag', kindWaiting:'Warteeinheit', kindLock:'Quote-Lock-Stunden', kindFreeWait:'Freiwarte-Stunden', kindMaxStops:'Max. Extra-Stops', kindServiceArea:'Servicegebiet',
-    fPayload:'Wert', hRulePayload:'Nacht Start/Ende, Wochenendtage, Feiertag, Warteeinheit, Stunden oder Mapbox-Gebiet. Zeitzone ist Europe/Zurich.',
+    kindWaiting:'Warteeinheit', kindLock:'Quote-Lock-Stunden', kindFreeWait:'Freiwarte-Stunden', kindMaxStops:'Max. Extra-Stops', kindServiceArea:'Servicegebiet',
+    fPayload:'Wert', hRulePayload:'Warteeinheit, Stunden oder Mapbox-Gebiet. Zeitzone ist Europe/Zurich.',
     addSurcharge:'Zuschlag hinzufügen', editSurcharge:'Zuschlag bearbeiten', saveSurcharge:'Zuschlag speichern', deleteSurchargeTitle:'Diesen Zuschlag aus dem Entwurf löschen?', deleteSurchargeBody:'Diesen Zuschlag aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
-    emptySurchargesTitle:'Keine Zuschläge in diesem Entwurf', emptySurchargesBody:'Zuschlag hinzufügen, der eine Regel wählt. Checkout-Extras erscheinen erst nach dem Veröffentlichen.',
-    searchSurcharges:'Regel oder Notiz', nounSurcharge:'Zuschlag', nounSurcharges:'Zuschläge',
-    fUnit:'Einheit', hSurchargeValue:'Der Betrag in CHF oder der Prozentsatz — wird bei „Inklusive“ ignoriert.',
-    unitAmount:'Fester Betrag, CHF', unitPct:'% des Fahrpreises', unitIncluded:'Inklusive, ohne Aufpreis', included:'Inklusive',
-    hRule:'Extra wählen. Das Angebot nutzt diesen Code — keinen Satz.',
-    hApplies:'Dieser Transfer = eine Etappe. Ganze Buchung = jede Etappe.',
-    applyLeg:'Dieser Transfer', applyBooking:'Ganze Buchung',
-    ruleNight:'Nacht (22:00–06:00)', ruleWeekend:'Wochenende (Samstag–Sonntag)', ruleHoliday:'Feiertag',
-    ruleWaiting:'Wartezeit', ruleExtraStop:'Extra-Stopp', ruleMeet:'Meet and greet',
-    ruleChild:'Kindersitz', ruleSki:'Ski / Snowboard', rulePet:'Haustier', ruleOversized:'Übergrosses Gepäck',
-    pickRule:'Gewählte Regel',
+    emptySurchargesTitle:'Keine Zuschläge in diesem Entwurf', emptySurchargesBody:'Checkout-Extra, Extra-Wartepreis oder Meet and greet und Freiwarten bearbeiten. Meet and greet und Freiwarten bleiben für den Kunden an.',
+    searchSurcharges:'Typ oder Name', nounSurcharge:'Zuschlag', nounSurcharges:'Zuschläge',
+    surchargeType:'Typ', whatThisDoes:'Was das bewirkt',
+    typeCheckoutExtra:'Checkout-Extra', typeMeet:'Meet and greet', typeFreeWait:'Freiwarten am Flughafen', typeExtraWait:'Extra-Warten',
+    doesCheckout:'Erscheint nach dem Veröffentlichen im Checkout. Löschen und Veröffentlichen entfernt es — es bleibt nicht als CHF 0.',
+    doesMeet:'Für den Kunden immer an. Betrag bleibt CHF 0. Du kannst es nicht ausschalten.',
+    doesFreeWait:'Bei Flughafenabholung immer an. Freie Stunden setzen. Du kannst es nicht ausschalten.',
+    doesExtraWait:'CHF pro Stunde nach dem Freiwarten. Wird nach der Fahrt verrechnet, nicht beim Bezahlen.',
+    extraName:'Name', extraIcon:'Symbol', extraHours:'Freie Stunden', extraWaitRate:'CHF pro Stunde',
+    meetAmount:'Betrag', meetAmountHint:'Auf CHF 0 gesperrt. Für den Kunden inklusive.',
+    iconUser:'Person', iconBaby:'Kindersitz', iconLuggage:'Gepäck', iconPin:'Stopp', iconSki:'Ski', iconClock:'Uhr',
+    notDeletableMeet:'Meet and greet bleibt an. Du kannst den Betrag bearbeiten. Du kannst es für den Kunden nicht ausschalten.',
+    notDeletableWait:'Freiwarten bleibt an. Du kannst die Stunden bearbeiten. Du kannst es für den Kunden nicht ausschalten.',
     addCoupon:'Gutschein hinzufügen', editCoupon:'Gutschein bearbeiten', saveCoupon:'Gutschein speichern', deleteCouponTitle:'Diesen Gutschein aus dem Entwurf löschen?', deleteCouponBody:'Diesen Gutschein aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
     emptyCouponsTitle:'Keine Gutscheine in diesem Entwurf', emptyCouponsBody:'Prozent- oder festen-CHF-Gutschein hinzufügen. Die Öffentlichkeit kann ihn erst nach dem Veröffentlichen nutzen.',
     searchCoupons:'Code', nounCoupon:'Gutschein', nounCoupons:'Gutscheine',
@@ -354,14 +369,15 @@ const T = {
     hValue:'Prozent oder fester CHF. Gutschein gilt vor der MwSt.',
     kPercent:'Prozent Rabatt', kAmount:'Fester CHF-Rabatt',
     paused:'Pausiert', noEnd:'Kein Enddatum', unlimited:'kein Limit',
-    publish:'Tarifbuch veröffentlichen', discard:'Entwurf verwerfen', keepEditing:'Weiter bearbeiten',
+    publish:'Tarifbuch veröffentlichen', publishing:'Veröffentlichen…', discard:'Entwurf verwerfen', keepEditing:'Weiter bearbeiten',
     publishTitle:'Dieses Tarifbuch veröffentlichen?',
-    discardConfirm:'Diesen Entwurf verwerfen? Das letzte veröffentlichte Buch bleibt live. Der Verlauf ändert sich nicht.',
+    publishOk:'Das Tarifbuch ist live.',
+    discardConfirm:'Diesen Entwurf verwerfen? Das letzte veröffentlichte Buch bleibt live. Die Öffentlichkeit ändert sich nicht.',
     completenessTitle:'Entwurfsvollständigkeit',
     completenessReady:'Jedes Pflichtfeld der Klasse ist gefüllt. Tarifbuch veröffentlichen schreibt das Live-Buch.',
     completenessGaps:(n) => n === 1 ? '1 Lücke vor Tarifbuch veröffentlichen' : n + ' Lücken vor Tarifbuch veröffentlichen',
     completenessEmpty:'Kein Entwurfs-Tarifbuch.',
-    gapDistance:'Distanzklasse', gapSurcharge:'Zuschlag', gapRoute:'Feste Route', gapCoupon:'Gutschein', gapRule:'Regel', gapBand:'Km-Band',
+    gapDistance:'Distanzklasse', gapSurcharge:'Zuschlag', gapRoute:'Feste Route', gapCoupon:'Gutschein', gapRule:'Regel', gapBand:'Km-Band', gapBandOverlap:'Überlappendes Km-Band',
     publishDisabledGaps:'Tarifbuch veröffentlichen bleibt aus, bis die Lücken gefüllt sind.',
     publishDisabledNoDraft:'Tarifbuch veröffentlichen bleibt aus, bis ein Entwurf existiert.',
     publishError:'Veröffentlichen hat nicht umgestellt — fehlende Felder auf dieser Seite füllen, dann erneut bestätigen.',
@@ -370,60 +386,67 @@ const T = {
       incomplete:'Veröffentlichen hat nicht umgestellt — der Entwurf hat noch unbezahlte Lücken. Fehlende Felder auf dieser Seite füllen, dann erneut bestätigen.',
       'not-draft':'Veröffentlichen hat nicht umgestellt — diese Version ist kein Entwurf.',
       duplicate:'Veröffentlichen hat nicht umgestellt — eine Live-Version belegt dieses Buch bereits.',
-      forbidden:'Veröffentlichen hat nicht umgestellt — nur ein Admin kann veröffentlichen.',
+      forbidden:'Veröffentlichen hat nicht umgestellt — die Datenbank hat diesen Schreibvorgang abgelehnt.',
+      'not-admin':'Veröffentlichen hat nicht umgestellt — nur ein Admin kann veröffentlichen.',
+      csrf:'Veröffentlichen hat nicht umgestellt — diese Seite darf von hier nicht veröffentlichen.',
       fk:'Veröffentlichen hat nicht umgestellt — ein verknüpfter Datensatz fehlt.',
       network:'Veröffentlichen hat nicht umgestellt — die Anfrage hat den Server nicht erreicht.',
       unknown:'Veröffentlichen hat nicht umgestellt — der Server hat diesen Entwurf nicht angenommen.',
     },
     bandOverlapWarn:'Überlappende km-Bänder: der höhere CHF-Betrag pro Kilometer gewinnt. Du kannst trotzdem veröffentlichen.',
     regionPercentWarn:'Zwei passende Regionen-Prozente: der höchste Prozent gewinnt. Du kannst trotzdem veröffentlichen.',
-    vatLabel:'MwSt.', vatSuffix:'%', vatError:'Die MwSt. muss 0 oder mehr sein.',
+    vatLabel:'MwSt.', vatSuffix:'%', vatError:'Die MwSt. muss 0 oder mehr sein.', saveVat:'MwSt. speichern', draftMark:'Entwurf — nicht öffentlich bis Veröffentlichen', fixThis:'Dies beheben',
     previewKicker:'Entwurfsvorschau', recapStart:'Start', recapKm:'Kilometer', recapBands:'Bänder', recapRegion:'Region %', recapExtras:'Extras', recapVat:'MwSt.', recapTotal:'Total',
-    when:'Wann', pax:'Passagiere', coupon:'Gutschein', runPreview:'Entwurf prüfen', testEmail:'Kontakt-E-Mail', testUnpaid:'Test-unbezahlt anlegen',
+    when:'Wann', pax:'Passagiere', coupon:'Gutschein',
     testNote:'Test-unbezahlt nutzt diesen Entwurf. Es belastet keine Karte und sendet keine Mail.',
     viewChanges:'Änderungen ansehen', cloneDraft:'In den Entwurf klonen', liveBook:'Live-Buch', gapFree:'Lückenfrei', hasGaps:'Mit Lücken',
     emptyHistoryTitle:'Noch keine veröffentlichten Bücher', emptyHistoryBody:'Veröffentlichen, wenn jedes Pflichtfeld der Klasse gefüllt ist. Die Öffentlichkeit bleibt CHF 000 bis zum ersten Veröffentlichen.',
+    histDate:'Datum',
+    histPrevMonth:'Vorheriger Monat',
+    histNextMonth:'Nächster Monat',
+    histYear:'Jahr',
+    emptyHistoryFilterTitle:'Keine Bücher an diesem Datum',
+    emptyHistoryFilterBody:'Datum löschen, um jedes veröffentlichte Buch zu sehen.',
     whoUnknown:'Unbekannt',
     colFirst:'First',
   },
-  fr: { title:'Tarifs & trajets',
-    tabRoutes:'Trajets fixes', tabDistance:'Règles de distance', tabSurcharges:'Suppléments & extras', tabCoupons:'Codes promo', tabHistory:'Historique',
+  fr: { title:'Tarifs & trajets', subtitle:'Trajets fixes, règles de distance, suppléments et codes promo',
+    tabRoutes:'Trajets fixes', tabDistance:'Règles de distance', tabSurcharges:'Suppléments & extras', tabCoupons:'Codes promo',
+    hintRoutes:'Lieu à lieu, ou canton à canton. A vers B et B vers A sont des lignes séparées.', hintDistance:'Plancher de classe et tranches km', hintSurcharges:'Extras de paiement, attente, accueil', hintCoupons:'Pourcent ou CHF fixe',
     colId:'ID', colFrom:'De', colTo:'Vers', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Brouillon',
-    colClass:'Classe', colName:'Nom', startFare:'Départ', perKm:'Par kilomètre', maxPax:'Passagers max.', hidePublic:'Masquer au public', showPublic:'Afficher au public',
+    colClass:'Classe', colName:'Nom', startFare:'Départ', perKm:'Par kilomètre', maxPax:'Passagers max.', maxBags:'Bagages max.', hidePublic:'Masquer au public', showPublic:'Afficher au public',
+    fPhoto:'Photo', choosePhoto:'Choisir une photo', clearPhoto:'Retirer', hClassPhoto:'Obligatoire pour Publier. Stockée sur R2, pas sur cet appareil.',
     colRule:'Règle', colAppliesWhen:'S’applique', colAmount:'Montant', colKind:'Type',
     addRoute:'Ajouter un trajet', editRoute:'Modifier le trajet', saveRoute:'Enregistrer le trajet', deleteRouteTitle:'Supprimer ce trajet du brouillon ?', deleteRouteBody:'Supprimer ce trajet du brouillon ? Le public ne change qu’après Publier.',
-    emptyRoutesTitle:'Pas encore de trajets fixes', emptyRoutesBody:'Ajoutez un trajet avec Mapbox De et Vers. Le public reste sur le dernier livre publié jusqu’à la publication.',
+    emptyRoutesTitle:'Pas encore de trajets fixes', emptyRoutesBody:'Ajoutez un lieu Mapbox à lieu, ou un canton à canton. A vers B et B vers A sont des lignes séparées. Le public reste sur le dernier livre publié jusqu’à la publication.',
     searchRoutes:'De, vers ou ID', nounRoute:'trajet', nounRoutes:'trajets',
     hRoutePrice:'Laissez vide si cette classe n’est pas proposée sur ce trajet.', fLive:'Live à la réservation', hLive:'Désactivé conserve le trajet dans le brouillon ; le public ne change qu’après Publier.',
-    hMapboxRoute:'Ajoutez Mapbox De et Vers avant d’enregistrer ce trajet.',
     addClass:'Ajouter une classe', editClass:'Modifier la classe', saveClass:'Enregistrer la classe', deleteClassTitle:'Supprimer cette classe du brouillon ?', deleteClassBody:'Supprimer cette classe du brouillon ? Le public ne change qu’après Publier.',
-    emptyClassesTitle:'Pas encore de classes', emptyClassesBody:'Ajoutez une classe avec nom, tarif de départ, tarif au kilomètre et passagers max.',
+    emptyClassesTitle:'Pas encore de classes', emptyClassesBody:'Ajoutez une classe avec photo, nom, tarif de départ, tarif au kilomètre, passagers max. et bagages max.',
     searchDistance:'Classe', nounClass:'classe', nounClasses:'classes',
     fromKm:'De km', toKm:'À km', openBand:'Ouvert',
     addBand:'Ajouter une tranche', editBand:'Modifier la tranche', saveBand:'Enregistrer la tranche', deleteBandTitle:'Supprimer cette tranche du brouillon ?', deleteBandBody:'Supprimer cette tranche du brouillon ? Le public ne change qu’après Publier.',
     emptyBandsTitle:'Pas encore de tranches km', emptyBandsBody:'Ajoutez une tranche avec De km et un montant CHF par kilomètre pour cette part. La dernière tranche ouverte est autorisée.',
     searchBands:'De km', nounBand:'tranche km', nounBands:'tranches km',
-    colZone:'Zone', colPercent:'Pourcent',
-    addRegion:'Ajouter une région', editRegion:'Modifier la région', saveRegion:'Enregistrer la région', deleteRegionTitle:'Supprimer ce pourcent de région du brouillon ?', deleteRegionBody:'Supprimer ce pourcent de région du brouillon ? Le public ne change qu’après Publier.',
-    emptyRegionsTitle:'Pas encore de pourcents de région', emptyRegionsBody:'Ajoutez une zone Mapbox et un pourcent de départ + km + tranches.',
-    searchRegions:'Zone', nounRegion:'pourcent de région', nounRegions:'pourcents de région',
     addRule:'Ajouter une règle', editRule:'Modifier la règle', saveRule:'Enregistrer la règle', deleteRuleTitle:'Supprimer cette règle du brouillon ?', deleteRuleBody:'Supprimer cette règle du brouillon ? Le public ne change qu’après Publier.',
-    emptyRulesTitle:'Pas encore de règles', emptyRulesBody:'Ajoutez une fenêtre de nuit, des jours de week-end, une date fériée, une unité d’attente, des heures de verrouillage, des heures d’attente libre, un max d’arrêts extra ou une zone de service Mapbox.',
+    emptyRulesTitle:'Pas encore de règles', emptyRulesBody:'Unité d’attente, heures d’attente libre ou zone de service Mapbox.',
     searchRules:'Type', nounRule:'règle', nounRules:'règles',
-    kindNight:'Fenêtre de nuit', kindWeekend:'Jours de week-end', kindHoliday:'Date fériée', kindWaiting:'Unité d’attente', kindLock:'Heures de verrouillage', kindFreeWait:'Heures d’attente libre', kindMaxStops:'Max d’arrêts extra', kindServiceArea:'Zone de service',
-    fPayload:'Valeur', hRulePayload:'Début/fin de nuit, jours de week-end, date fériée, unité d’attente, heures ou zone Mapbox. Fuseau : Europe/Zurich.',
+    kindWaiting:'Unité d’attente', kindLock:'Heures de verrouillage', kindFreeWait:'Heures d’attente libre', kindMaxStops:'Max d’arrêts extra', kindServiceArea:'Zone de service',
+    fPayload:'Valeur', hRulePayload:'Unité d’attente, heures ou zone Mapbox. Fuseau : Europe/Zurich.',
     addSurcharge:'Ajouter un supplément', editSurcharge:'Modifier le supplément', saveSurcharge:'Enregistrer le supplément', deleteSurchargeTitle:'Supprimer ce supplément du brouillon ?', deleteSurchargeBody:'Supprimer ce supplément du brouillon ? Le public ne change qu’après Publier.',
-    emptySurchargesTitle:'Aucun supplément dans ce brouillon', emptySurchargesBody:'Ajoutez un supplément qui choisit une règle. Les extras de paiement n’apparaissent qu’après Publier.',
-    searchSurcharges:'Règle ou note', nounSurcharge:'supplément', nounSurcharges:'suppléments',
-    fUnit:'Unité', hSurchargeValue:'Le montant en CHF, ou le pourcentage — ignoré si l’unité est Inclus.',
-    unitAmount:'Montant fixe, CHF', unitPct:'% du tarif', unitIncluded:'Inclus, sans supplément', included:'Inclus',
-    hRule:'Choisissez l’extra. L’offre utilise ce code — pas une phrase.',
-    hApplies:'Ce transfert = une étape. Toute la réservation = chaque étape.',
-    applyLeg:'Ce transfert', applyBooking:'Toute la réservation',
-    ruleNight:'Nuit (22:00–06:00)', ruleWeekend:'Week-end (samedi–dimanche)', ruleHoliday:'Jour férié',
-    ruleWaiting:'Temps d’attente', ruleExtraStop:'Arrêt extra', ruleMeet:'Accueil',
-    ruleChild:'Siège enfant', ruleSki:'Ski / snowboard', rulePet:'Animal', ruleOversized:'Bagage hors format',
-    pickRule:'Règle choisie',
+    emptySurchargesTitle:'Aucun supplément dans ce brouillon', emptySurchargesBody:'Ajoutez un extra de paiement, un tarif d’attente extra, ou modifiez l’accueil et l’attente libre. L’accueil et l’attente libre restent activés pour le client.',
+    searchSurcharges:'Type ou nom', nounSurcharge:'supplément', nounSurcharges:'suppléments',
+    surchargeType:'Type', whatThisDoes:'Ce que cela fait',
+    typeCheckoutExtra:'Extra de paiement', typeMeet:'Accueil', typeFreeWait:'Attente libre à l’aéroport', typeExtraWait:'Attente extra',
+    doesCheckout:'Visible au paiement après Publier. Supprimer et Publier l’enlève — il ne reste pas à CHF 0.',
+    doesMeet:'Toujours activé pour le client. Le montant reste CHF 0. Vous ne pouvez pas le couper.',
+    doesFreeWait:'Toujours activé pour une prise en charge aéroport. Réglez les heures libres. Vous ne pouvez pas le couper.',
+    doesExtraWait:'CHF par heure après l’attente libre. Facturé après la course, pas au paiement.',
+    extraName:'Nom', extraIcon:'Icône', extraHours:'Heures libres', extraWaitRate:'CHF par heure',
+    meetAmount:'Montant', meetAmountHint:'Verrouillé à CHF 0. Inclus pour le client.',
+    iconUser:'Personne', iconBaby:'Siège enfant', iconLuggage:'Bagage', iconPin:'Arrêt', iconSki:'Ski', iconClock:'Horloge',
+    notDeletableMeet:'L’accueil reste activé. Vous pouvez modifier le montant. Vous ne pouvez pas le couper pour le client.',
+    notDeletableWait:'L’attente libre reste activée. Vous pouvez modifier les heures. Vous ne pouvez pas la couper pour le client.',
     addCoupon:'Ajouter un code', editCoupon:'Modifier le code', saveCoupon:'Enregistrer le code', deleteCouponTitle:'Supprimer ce code du brouillon ?', deleteCouponBody:'Supprimer ce code du brouillon ? Le public ne change qu’après Publier.',
     emptyCouponsTitle:'Aucun code dans ce brouillon', emptyCouponsBody:'Ajoutez un code en pourcent ou en CHF fixe. Le public ne peut pas l’utiliser avant Publier.',
     searchCoupons:'Code', nounCoupon:'code promo', nounCoupons:'codes promo',
@@ -432,14 +455,15 @@ const T = {
     hValue:'Pourcent ou CHF fixe. Le code s’applique avant la TVA.',
     kPercent:'Pourcent de remise', kAmount:'CHF fixe de remise',
     paused:'En pause', noEnd:'Sans date de fin', unlimited:'sans plafond',
-    publish:'Publier le livre tarifaire', discard:'Jeter le brouillon', keepEditing:'Continuer à modifier',
+    publish:'Publier le livre tarifaire', publishing:'Publication…', discard:'Jeter le brouillon', keepEditing:'Continuer à modifier',
     publishTitle:'Publier ce livre tarifaire ?',
-    discardConfirm:'Jeter ce brouillon ? Le dernier livre publié reste live. L’historique ne change pas.',
+    publishOk:'Le livre tarifaire est live.',
+    discardConfirm:'Jeter ce brouillon ? Le dernier livre publié reste live. Le public ne change pas.',
     completenessTitle:'Complétude du brouillon',
     completenessReady:'Chaque champ obligatoire de classe est rempli. Publier le livre tarifaire écrit le livre live.',
     completenessGaps:(n) => n === 1 ? '1 écart avant Publier le livre tarifaire' : n + ' écarts avant Publier le livre tarifaire',
     completenessEmpty:'Pas de brouillon tarifaire.',
-    gapDistance:'Classe distance', gapSurcharge:'Supplément', gapRoute:'Trajet fixe', gapCoupon:'Code', gapRule:'Règle', gapBand:'Tranche km',
+    gapDistance:'Classe distance', gapSurcharge:'Supplément', gapRoute:'Trajet fixe', gapCoupon:'Code', gapRule:'Règle', gapBand:'Tranche km', gapBandOverlap:'Tranche km superposée',
     publishDisabledGaps:'Publier le livre tarifaire reste inactif tant que les écarts ne sont pas remplis.',
     publishDisabledNoDraft:'Publier le livre tarifaire reste inactif tant qu’un brouillon n’existe pas.',
     publishError:'La publication n’a pas basculé — remplissez les champs manquants sur cette page, puis confirmez à nouveau.',
@@ -448,60 +472,67 @@ const T = {
       incomplete:'La publication n’a pas basculé — le brouillon a encore des écarts. Remplissez les champs manquants sur cette page, puis confirmez à nouveau.',
       'not-draft':'La publication n’a pas basculé — cette version n’est pas un brouillon.',
       duplicate:'La publication n’a pas basculé — une version live occupe déjà ce livre.',
-      forbidden:'La publication n’a pas basculé — seul un admin peut publier.',
+      forbidden:'La publication n’a pas basculé — la base a refusé cette écriture.',
+      'not-admin':'La publication n’a pas basculé — seul un admin peut publier.',
+      csrf:'La publication n’a pas basculé — cette page n’est pas autorisée à publier d’ici.',
       fk:'La publication n’a pas basculé — un enregistrement lié manque.',
       network:'La publication n’a pas basculé — la requête n’a pas atteint le serveur.',
       unknown:'La publication n’a pas basculé — le serveur n’a pas accepté ce brouillon.',
     },
     bandOverlapWarn:'Tranches km qui se chevauchent : le CHF par kilomètre le plus élevé l’emporte. Vous pouvez quand même publier.',
     regionPercentWarn:'Deux pourcents de région qui correspondent : le plus élevé l’emporte. Vous pouvez quand même publier.',
-    vatLabel:'TVA', vatSuffix:'%', vatError:'La TVA doit être 0 ou plus.',
+    vatLabel:'TVA', vatSuffix:'%', vatError:'La TVA doit être 0 ou plus.', saveVat:'Enregistrer la TVA', draftMark:'Brouillon — pas public tant que non publié', fixThis:'Corriger',
     previewKicker:'Aperçu du brouillon', recapStart:'Départ', recapKm:'Kilomètres', recapBands:'Tranches', recapRegion:'Région %', recapExtras:'Extras', recapVat:'TVA', recapTotal:'Total',
-    when:'Quand', pax:'Passagers', coupon:'Code', runPreview:'Aperçu du brouillon', testEmail:'E-mail de contact', testUnpaid:'Créer un impayé test',
+    when:'Quand', pax:'Passagers', coupon:'Code',
     testNote:'L’impayé test utilise ce brouillon. Il ne débite aucune carte et n’envoie aucun mail.',
     viewChanges:'Voir les changements', cloneDraft:'Cloner dans le brouillon', liveBook:'Livre live', gapFree:'Sans écart', hasGaps:'Avec écarts',
     emptyHistoryTitle:'Pas encore de livres publiés', emptyHistoryBody:'Publiez lorsque chaque champ obligatoire de classe est rempli. Le public reste CHF 000 jusqu’à la première publication.',
+    histDate:'date',
+    histPrevMonth:'Mois précédent',
+    histNextMonth:'Mois suivant',
+    histYear:'Année',
+    emptyHistoryFilterTitle:'Aucun livre à cette date',
+    emptyHistoryFilterBody:'Effacez la date pour voir chaque livre publié.',
     whoUnknown:'Inconnu',
     colFirst:'First',
   },
-  ar: { title:'الأسعار والمسارات',
-    tabRoutes:'مسارات ثابتة', tabDistance:'قواعد المسافة', tabSurcharges:'الرسوم والإضافات', tabCoupons:'القسائم', tabHistory:'السجل',
+  ar: { title:'الأسعار والمسارات', subtitle:'مسارات ثابتة وقواعد مسافة ورسوم وقسائم',
+    tabRoutes:'مسارات ثابتة', tabDistance:'قواعد المسافة', tabSurcharges:'الرسوم والإضافات', tabCoupons:'القسائم',
+    hintRoutes:'من مكان إلى مكان أو من كانتون إلى كانتون. من أ إلى ب ومن ب إلى أ صفّان منفصلان.', hintDistance:'أرضية الفئة وشرائح الكم', hintSurcharges:'إضافات الدفع والانتظار والاستقبال', hintCoupons:'نسبة أو فرنك ثابت',
     colId:'المعرّف', colFrom:'من', colTo:'إلى', colEconomy:'اقتصادي', colBusiness:'أعمال', colVan:'فان', colLive:'مباشر', live:'مباشر', draft:'مسودة',
-    colClass:'الفئة', colName:'الاسم', startFare:'البداية', perKm:'لكل كيلومتر', maxPax:'أقصى عدد مسافرين', hidePublic:'إخفاء عن العامة', showPublic:'إظهار للعامة',
+    colClass:'الفئة', colName:'الاسم', startFare:'البداية', perKm:'لكل كيلومتر', maxPax:'أقصى عدد مسافرين', maxBags:'أقصى حقائب', hidePublic:'إخفاء عن العامة', showPublic:'إظهار للعامة',
+    fPhoto:'الصورة', choosePhoto:'اختيار صورة', clearPhoto:'إزالة', hClassPhoto:'مطلوبة للنشر. تُحفظ على R2 وليس على هذا الجهاز.',
     colRule:'القاعدة', colAppliesWhen:'ينطبق عند', colAmount:'المبلغ', colKind:'النوع',
     addRoute:'إضافة مسار', editRoute:'تعديل المسار', saveRoute:'حفظ المسار', deleteRouteTitle:'حذف هذا المسار من المسودة؟', deleteRouteBody:'حذف هذا المسار من المسودة؟ لا يتغير العام حتى النشر.',
-    emptyRoutesTitle:'لا توجد مسارات ثابتة بعد', emptyRoutesBody:'أضف مسارًا مع من وإلى عبر مابوكس. يبقى العام على آخر كتاب منشور حتى تنشر.',
+    emptyRoutesTitle:'لا توجد مسارات ثابتة بعد', emptyRoutesBody:'أضف مكان مابوكس إلى مكان أو كانتون إلى كانتون. من أ إلى ب ومن ب إلى أ صفّان منفصلان. يبقى العام على آخر كتاب منشور حتى تنشر.',
     searchRoutes:'من أو إلى أو المعرّف', nounRoute:'مسار', nounRoutes:'مسارات',
     hRoutePrice:'اتركه فارغًا إن لم تُعرض هذه الفئة على هذا المسار.', fLive:'مباشر للحجز', hLive:'الإيقاف يُبقي المسار في المسودة؛ لا يتغير العام حتى النشر.',
-    hMapboxRoute:'أضف من وإلى عبر مابوكس قبل حفظ هذا المسار.',
     addClass:'إضافة فئة', editClass:'تعديل الفئة', saveClass:'حفظ الفئة', deleteClassTitle:'حذف هذه الفئة من المسودة؟', deleteClassBody:'حذف هذه الفئة من المسودة؟ لا يتغير العام حتى النشر.',
-    emptyClassesTitle:'لا توجد فئات مركبات بعد', emptyClassesBody:'أضف فئة بالاسم وأجرة البداية وسعر الكيلومتر وأقصى عدد مسافرين.',
+    emptyClassesTitle:'لا توجد فئات مركبات بعد', emptyClassesBody:'أضف فئة بالصورة والاسم وأجرة البداية وسعر الكيلومتر وأقصى عدد مسافرين وأقصى حقائب.',
     searchDistance:'الفئة', nounClass:'فئة', nounClasses:'فئات',
     fromKm:'من كم', toKm:'إلى كم', openBand:'مفتوح',
     addBand:'إضافة شريحة', editBand:'تعديل الشريحة', saveBand:'حفظ الشريحة', deleteBandTitle:'حذف هذه الشريحة من المسودة؟', deleteBandBody:'حذف هذه الشريحة من المسودة؟ لا يتغير العام حتى النشر.',
     emptyBandsTitle:'لا توجد شرائح كم بعد', emptyBandsBody:'أضف شريحة بمن كم ومبلغ فرنك لكل كيلومتر لهذه الشريحة. الشريحة الأخيرة المفتوحة مسموحة.',
     searchBands:'من كم', nounBand:'شريحة كم', nounBands:'شرائح كم',
-    colZone:'المنطقة', colPercent:'النسبة',
-    addRegion:'إضافة منطقة', editRegion:'تعديل المنطقة', saveRegion:'حفظ المنطقة', deleteRegionTitle:'حذف نسبة المنطقة من المسودة؟', deleteRegionBody:'حذف نسبة المنطقة من المسودة؟ لا يتغير العام حتى النشر.',
-    emptyRegionsTitle:'لا توجد نسب مناطق بعد', emptyRegionsBody:'أضف منطقة مابوكس ونسبة من البداية + الكم + الشرائح.',
-    searchRegions:'المنطقة', nounRegion:'نسبة منطقة', nounRegions:'نسب مناطق',
     addRule:'إضافة قاعدة', editRule:'تعديل القاعدة', saveRule:'حفظ القاعدة', deleteRuleTitle:'حذف هذه القاعدة من المسودة؟', deleteRuleBody:'حذف هذه القاعدة من المسودة؟ لا يتغير العام حتى النشر.',
-    emptyRulesTitle:'لا توجد قواعد بعد', emptyRulesBody:'أضف نافذة ليل أو أيام عطلة أو تاريخ عطلة أو وحدة انتظار أو ساعات قفل العرض أو ساعات انتظار مجاني أو أقصى توقفات إضافية أو منطقة خدمة مابوكس.',
+    emptyRulesTitle:'لا توجد قواعد بعد', emptyRulesBody:'وحدة انتظار أو ساعات انتظار مجاني أو منطقة خدمة مابوكس.',
     searchRules:'النوع', nounRule:'قاعدة', nounRules:'قواعد',
-    kindNight:'نافذة الليل', kindWeekend:'أيام العطلة', kindHoliday:'تاريخ العطلة', kindWaiting:'وحدة الانتظار', kindLock:'ساعات قفل العرض', kindFreeWait:'ساعات الانتظار المجاني', kindMaxStops:'أقصى توقفات إضافية', kindServiceArea:'منطقة الخدمة',
-    fPayload:'القيمة', hRulePayload:'بداية/نهاية الليل أو أيام العطلة أو تاريخ العطلة أو وحدة الانتظار أو الساعات أو منطقة مابوكس. المنطقة الزمنية Europe/Zurich.',
+    kindWaiting:'وحدة الانتظار', kindLock:'ساعات قفل العرض', kindFreeWait:'ساعات الانتظار المجاني', kindMaxStops:'أقصى توقفات إضافية', kindServiceArea:'منطقة الخدمة',
+    fPayload:'القيمة', hRulePayload:'وحدة الانتظار أو الساعات أو منطقة مابوكس. المنطقة الزمنية Europe/Zurich.',
     addSurcharge:'إضافة رسم', editSurcharge:'تعديل الرسم', saveSurcharge:'حفظ الرسم', deleteSurchargeTitle:'حذف هذا الرسم من المسودة؟', deleteSurchargeBody:'حذف هذا الرسم من المسودة؟ لا يتغير العام حتى النشر.',
-    emptySurchargesTitle:'لا رسوم في هذه المسودة', emptySurchargesBody:'أضف رسمًا يختار قاعدة. تظهر إضافات الدفع بعد النشر فقط.',
-    searchSurcharges:'القاعدة أو الملاحظة', nounSurcharge:'رسم', nounSurcharges:'رسوم',
-    fUnit:'الوحدة', hSurchargeValue:'المبلغ بالفرنك أو النسبة — يُتجاهل عندما تكون الوحدة مشمولة.',
-    unitAmount:'مبلغ ثابت، فرنك', unitPct:'% من الأجرة', unitIncluded:'مشمول بلا رسم', included:'مشمول',
-    hRule:'اختر الإضافة. يستخدم العرض هذا الرمز — لا جملة.',
-    hApplies:'هذا النقل = مرحلة. الحجز كاملًا = كل مرحلة.',
-    applyLeg:'هذا النقل', applyBooking:'الحجز كاملًا',
-    ruleNight:'ليل (22:00–06:00)', ruleWeekend:'عطلة (السبت–الأحد)', ruleHoliday:'عطلة رسمية',
-    ruleWaiting:'وقت الانتظار', ruleExtraStop:'توقف إضافي', ruleMeet:'استقبال',
-    ruleChild:'مقعد طفل', ruleSki:'تزلج', rulePet:'حيوان', ruleOversized:'أمتعة كبيرة',
-    pickRule:'القاعدة المختارة',
+    emptySurchargesTitle:'لا رسوم في هذه المسودة', emptySurchargesBody:'أضف إضافة دفع أو سعر انتظار إضافي أو عدّل الاستقبال والانتظار المجاني. يبقى الاستقبال والانتظار المجاني مفعّلين للعميل.',
+    searchSurcharges:'النوع أو الاسم', nounSurcharge:'رسم', nounSurcharges:'رسوم',
+    surchargeType:'النوع', whatThisDoes:'ماذا يفعل هذا',
+    typeCheckoutExtra:'إضافة الدفع', typeMeet:'الاستقبال', typeFreeWait:'انتظار مجاني في المطار', typeExtraWait:'انتظار إضافي',
+    doesCheckout:'تظهر في الدفع بعد النشر. الحذف ثم النشر يزيلها — لا تبقى كفرنك 0.',
+    doesMeet:'دائمًا مفعّل للعميل. المبلغ يبقى فرنك 0. لا يمكنك إيقافه.',
+    doesFreeWait:'دائمًا مفعّل عند الاستقبال في المطار. عيّن الساعات المجانية. لا يمكنك إيقافه.',
+    doesExtraWait:'فرنك لكل ساعة بعد الانتظار المجاني. يُفوتر بعد الرحلة لا عند الدفع الآن.',
+    extraName:'الاسم', extraIcon:'الأيقونة', extraHours:'ساعات مجانية', extraWaitRate:'فرنك لكل ساعة',
+    meetAmount:'المبلغ', meetAmountHint:'مقفل على فرنك 0. مشمول للعميل.',
+    iconUser:'شخص', iconBaby:'مقعد طفل', iconLuggage:'أمتعة', iconPin:'توقف', iconSki:'تزلج', iconClock:'ساعة',
+    notDeletableMeet:'الاستقبال يبقى مفعّلًا. يمكنك تعديل المبلغ. لا يمكنك إيقافه للعميل.',
+    notDeletableWait:'الانتظار المجاني يبقى مفعّلًا. يمكنك تعديل الساعات. لا يمكنك إيقافه للعميل.',
     addCoupon:'إضافة قسيمة', editCoupon:'تعديل القسيمة', saveCoupon:'حفظ القسيمة', deleteCouponTitle:'حذف هذه القسيمة من المسودة؟', deleteCouponBody:'حذف هذه القسيمة من المسودة؟ لا يتغير العام حتى النشر.',
     emptyCouponsTitle:'لا قسائم في هذه المسودة', emptyCouponsBody:'أضف قسيمة نسبة أو فرنك ثابت. لا يستخدمها العام حتى النشر.',
     searchCoupons:'الرمز', nounCoupon:'قسيمة', nounCoupons:'قسائم',
@@ -510,14 +541,15 @@ const T = {
     hValue:'نسبة أو فرنك ثابت. تُطبَّق القسيمة قبل الضريبة.',
     kPercent:'نسبة مئوية', kAmount:'فرنك ثابت',
     paused:'متوقف', noEnd:'بلا تاريخ انتهاء', unlimited:'بلا حد',
-    publish:'نشر دفتر الأسعار', discard:'تجاهل المسودة', keepEditing:'متابعة التعديل',
+    publish:'نشر دفتر الأسعار', publishing:'جارٍ النشر…', discard:'تجاهل المسودة', keepEditing:'متابعة التعديل',
     publishTitle:'نشر دفتر الأسعار هذا؟',
-    discardConfirm:'تجاهل هذه المسودة؟ يبقى آخر كتاب منشور مباشرًا. لا يتغير السجل.',
+    publishOk:'دفتر الأسعار أصبح مباشرًا.',
+    discardConfirm:'تجاهل هذه المسودة؟ يبقى آخر كتاب منشور مباشرًا. لا يتغير العام.',
     completenessTitle:'اكتمال المسودة',
     completenessReady:'كل حقول الفئة المطلوبة ممتلئة. نشر دفتر الأسعار يكتب الكتاب المباشر.',
     completenessGaps:(n) => n === 1 ? 'فجوة واحدة قبل نشر دفتر الأسعار' : n + ' فجوات قبل نشر دفتر الأسعار',
     completenessEmpty:'لا مسودة دفتر أسعار.',
-    gapDistance:'فئة المسافة', gapSurcharge:'رسم', gapRoute:'مسار ثابت', gapCoupon:'قسيمة', gapRule:'قاعدة', gapBand:'شريحة كم',
+    gapDistance:'فئة المسافة', gapSurcharge:'رسم', gapRoute:'مسار ثابت', gapCoupon:'قسيمة', gapRule:'قاعدة', gapBand:'شريحة كم', gapBandOverlap:'شريحة كم متداخلة',
     publishDisabledGaps:'يبقى نشر دفتر الأسعار متوقفًا حتى تُملأ الفجوات.',
     publishDisabledNoDraft:'يبقى نشر دفتر الأسعار متوقفًا حتى توجد مسودة.',
     publishError:'لم ينقلب النشر — املأ الحقول الناقصة في هذه الصفحة ثم أكّد النشر مجددًا.',
@@ -526,19 +558,27 @@ const T = {
       incomplete:'لم ينقلب النشر — ما زالت المسودة فيها فجوات. املأ الحقول الناقصة في هذه الصفحة ثم أكّد النشر مجددًا.',
       'not-draft':'لم ينقلب النشر — هذه النسخة ليست مسودة.',
       duplicate:'لم ينقلب النشر — نسخة مباشرة تشغل هذا الكتاب.',
-      forbidden:'لم ينقلب النشر — المشرف فقط يمكنه النشر.',
+      forbidden:'لم ينقلب النشر — رفضت قاعدة البيانات هذه الكتابة.',
+      'not-admin':'لم ينقلب النشر — المشرف فقط يمكنه النشر.',
+      csrf:'لم ينقلب النشر — هذه الصفحة غير مسموح لها بالنشر من هنا.',
       fk:'لم ينقلب النشر — سجل مرتبط مفقود.',
       network:'لم ينقلب النشر — لم يصل الطلب إلى الخادم.',
       unknown:'لم ينقلب النشر — لم يقبل الخادم هذه المسودة.',
     },
     bandOverlapWarn:'شرائح كم متداخلة: يفوز الأعلى بالفرنك لكل كيلومتر. يمكنك النشر رغم ذلك.',
     regionPercentWarn:'نسبتا منطقة متطابقتان: تفوز الأعلى. يمكنك النشر رغم ذلك.',
-    vatLabel:'ضريبة القيمة المضافة', vatSuffix:'%', vatError:'يجب أن تكون الضريبة 0 أو أكثر.',
+    vatLabel:'ضريبة القيمة المضافة', vatSuffix:'%', vatError:'يجب أن تكون الضريبة 0 أو أكثر.', saveVat:'حفظ الضريبة', draftMark:'مسودة — ليست عامة حتى النشر', fixThis:'أصلح هذا',
     previewKicker:'معاينة المسودة', recapStart:'البداية', recapKm:'الكيلومترات', recapBands:'الشرائح', recapRegion:'المنطقة %', recapExtras:'الإضافات', recapVat:'الضريبة', recapTotal:'الإجمالي',
-    when:'متى', pax:'المسافرون', coupon:'قسيمة', runPreview:'معاينة المسودة', testEmail:'بريد التواصل', testUnpaid:'إنشاء غير مدفوع للاختبار',
+    when:'متى', pax:'المسافرون', coupon:'قسيمة',
     testNote:'غير المدفوع للاختبار يستخدم هذه المسودة. لا يخصم بطاقة ولا يرسل بريدًا.',
     viewChanges:'عرض التغييرات', cloneDraft:'استنساخ إلى المسودة', liveBook:'الكتاب المباشر', gapFree:'بلا فجوات', hasGaps:'فيه فجوات',
     emptyHistoryTitle:'لا كتب منشورة بعد', emptyHistoryBody:'انشر عندما تُملأ كل حقول الفئة المطلوبة. يبقى العام CHF 000 حتى أول نشر.',
+    histDate:'التاريخ',
+    histPrevMonth:'الشهر السابق',
+    histNextMonth:'الشهر التالي',
+    histYear:'السنة',
+    emptyHistoryFilterTitle:'لا كتب في هذا التاريخ',
+    emptyHistoryFilterBody:'امسح التاريخ لعرض كل كتاب منشور.',
     whoUnknown:'غير معروف',
     colFirst:'فيرست',
   },
@@ -568,6 +608,12 @@ class Component extends DCLogic {
     testEmail: '',
     recap: null,
     testNote: '',
+    histDate: '',
+    dateOpen: null,
+    publishing: false,
+    publishOk: false,
+    showToast: false,
+    toastMsg: '',
   };
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
@@ -576,16 +622,30 @@ class Component extends DCLogic {
     this.loadVat();
     this.forceUpdate();
   };
+  _datePopRef = (el) => { this._datePop = el; };
   componentDidMount() {
     this.bind();
     if (window.VamosLocale && typeof window.VamosLocale.onChange === 'function') {
       this._offLocale = window.VamosLocale.onChange((v) => this.setState({ lang: v.lang, cur: v.cur }));
     }
+    this._dateAway = (e) => {
+      if (!this.state.dateOpen) return;
+      const inPop = this._datePop && this._datePop.contains(e.target);
+      const inBtn = e.target && e.target.closest && e.target.closest('[data-vt-date-btn]');
+      if (!inPop && !inBtn) this.setState({ dateOpen: null });
+    };
+    this._dateEsc = (e) => { if (e.key === 'Escape' && this.state.dateOpen) this.setState({ dateOpen: null }); };
+    document.addEventListener('mousedown', this._dateAway);
+    document.addEventListener('keydown', this._dateEsc);
   }
   componentWillUnmount() {
     if (this._offLocale) this._offLocale();
     if (this._off) this._off();
+    if (this._dateAway) document.removeEventListener('mousedown', this._dateAway);
+    if (this._dateEsc) document.removeEventListener('keydown', this._dateEsc);
     clearTimeout(this._retry);
+    clearTimeout(this._toastT);
+    clearTimeout(this._okT);
   }
   money(v) {
     const loc = window.VamosLocale;
@@ -611,8 +671,9 @@ class Component extends DCLogic {
     api.request('GET', '/api/staff/rate-versions').then((json) => {
       const versions = json && json.ok && json.data && Array.isArray(json.data.versions) ? json.data.versions : [];
       const draft = versions.filter((v) => v.status === 'draft')[0] || null;
+      const live = versions.filter((v) => v.status === 'live')[0] || null;
       const draftId = draft ? draft.id : null;
-      this.setState({ versions: versions, draftId: draftId });
+      this.setState({ versions: versions, draftId: draftId, liveId: live ? live.id : null });
       if (!draftId) { this.setState({ gaps: [] }); return; }
       api.request('GET', '/api/staff/rate-versions/' + draftId).then((j2) => {
         const gaps = j2 && j2.ok && j2.data && Array.isArray(j2.data.gaps) ? j2.data.gaps : [];
@@ -645,39 +706,60 @@ class Component extends DCLogic {
       return;
     }
     this.setState({ vatError: false, vat_rate_bps: bps });
+  };
+  saveVat = () => {
+    const bps = this.percentToBps(this.state.vatPercent);
+    if (bps === null) {
+      this.setState({ vatError: true });
+      return;
+    }
+    this.setState({ vatError: false, vat_rate_bps: bps });
     const ops = window.VamosOps;
     if (ops && typeof ops.saveDraftVat === 'function') ops.saveDraftVat(bps);
   };
-  openPublish = () => this.setState({ publishOpen: true });
+  openPublish = () => this.setState({ publishOpen: true, publishOk: false });
   closePublish = () => this.setState({ publishOpen: false });
   openDiscard = () => this.setState({ discardOpen: true });
   closeDiscard = () => this.setState({ discardOpen: false });
   closeChanges = () => this.setState({ changesOpen: false, changesBody: '' });
+  closeToast = () => this.setState({ showToast: false });
+  notifyPublishOk(msg) {
+    this.setState({ toastMsg: msg, showToast: true, publishOk: true });
+    clearTimeout(this._toastT);
+    clearTimeout(this._okT);
+    this._toastT = setTimeout(() => this.setState({ showToast: false }), 3600);
+    this._okT = setTimeout(() => this.setState({ publishOk: false }), 4000);
+  }
   publish = () => {
     const ops = window.VamosOps;
+    this.setState({ publishing: true, publishCode: '', publishOk: false });
     if (ops && typeof ops.publish === 'function') {
       const run = ops.publish(this.state.draftId, { vat_rate_bps: this.state.vat_rate_bps });
       if (run && typeof run.then === 'function') {
-        run.then((json) => this.afterPublish(json), () => this.setState({ publishCode: 'network' }));
+        run.then((json) => this.afterPublish(json), () => this.setState({ publishing: false, publishCode: 'network', publishOpen: true }));
         return;
       }
     }
     const api = this.api();
     const id = this.state.draftId;
-    if (!api || !id) return;
+    if (!api || !id) {
+      this.setState({ publishing: false, publishCode: 'unknown', publishOpen: true });
+      return;
+    }
     api.request('POST', '/api/staff/rate-versions/' + id + '/publish').then((json) => this.afterPublish(json), () => {
-      this.setState({ publishCode: 'network' });
+      this.setState({ publishing: false, publishCode: 'network', publishOpen: true });
     });
   };
   afterPublish(json) {
+    const t = T[this.state.lang] || T.en;
     if (json && json.ok) {
-      this.setState({ publishCode: '', gaps: [], publishOpen: false });
+      this.setState({ publishing: false, publishCode: '', gaps: [], publishOpen: false });
+      this.notifyPublishOk(t.publishOk);
       this.loadDraft();
       return;
     }
     const gaps = (json && Array.isArray(json.gaps)) ? json.gaps : this.state.gaps;
-    this.setState({ publishCode: (json && json.code) || 'unknown', gaps: gaps, publishOpen: true });
-    this.loadDraft();
+    this.setState({ publishing: false, publishOk: false, publishCode: (json && json.code) || 'unknown', gaps: gaps, publishOpen: true });
   }
   discard = () => {
     const ops = window.VamosOps;
@@ -713,54 +795,6 @@ class Component extends DCLogic {
       if (window.VamosOps && window.VamosOps.resetAll) window.VamosOps.resetAll();
     });
   };
-  runPreview = () => {
-    const ops = window.VamosOps;
-    const body = {
-      from: this.state.previewFrom,
-      to: this.state.previewTo,
-      when: this.state.previewWhen,
-      pax: this.state.previewPax,
-      coupon: this.state.previewCoupon,
-    };
-    if (ops && typeof ops.preview === 'function') {
-      const run = ops.preview(body);
-      if (run && typeof run.then === 'function') {
-        run.then((json) => this.applyPreview(json), () => {});
-        return;
-      }
-    }
-    const api = this.api();
-    if (!api) return;
-    api.request('POST', '/api/staff/rate-book/preview', body).then((json) => this.applyPreview(json));
-  };
-  applyPreview(json) {
-    const classes = json && json.ok && json.data && Array.isArray(json.data.classes) ? json.data.classes : [];
-    const first = classes.filter((c) => c.eligible && c.recap)[0] || classes[0] || null;
-    this.setState({ recap: first && Array.isArray(first.recap) ? first.recap : [] });
-  }
-  createTestUnpaid = () => {
-    const ops = window.VamosOps;
-    const body = {
-      from: this.state.previewFrom,
-      to: this.state.previewTo,
-      when: this.state.previewWhen,
-      pax: this.state.previewPax,
-      coupon: this.state.previewCoupon,
-      email: this.state.testEmail,
-    };
-    if (ops && typeof ops.createTestUnpaid === 'function') {
-      const run = ops.createTestUnpaid(body);
-      if (run && typeof run.then === 'function') {
-        run.then((json) => this.setState({ testNote: json && json.ok ? 'ok' : 'err' }), () => this.setState({ testNote: 'err' }));
-        return;
-      }
-    }
-    const api = this.api();
-    if (!api) return;
-    api.request('POST', '/api/staff/rate-book/test-unpaid', body).then((json) => {
-      this.setState({ testNote: json && json.ok ? 'ok' : 'err' });
-    });
-  };
   publishReason(code, t) {
     if (!code) return '';
     const mapped = t.publishByCode && t.publishByCode[code];
@@ -776,6 +810,85 @@ class Component extends DCLogic {
     } catch (e) {
       return d.toISOString();
     }
+  }
+  zurichYmd(raw) {
+    if (!raw) return '';
+    const d = new Date(raw);
+    if (Number.isNaN(d.getTime())) return '';
+    try {
+      return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Zurich', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+    } catch (e) {
+      return '';
+    }
+  }
+  parseFilterDate(raw) {
+    const s = this.histDateValue(raw);
+    if (!s) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+    const m = s.match(/^(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})$/);
+    if (m) {
+      const day = m[1].length === 1 ? '0' + m[1] : m[1];
+      const month = m[2].length === 1 ? '0' + m[2] : m[2];
+      return m[3] + '-' + month + '-' + day;
+    }
+    return this.zurichYmd(s);
+  }
+  histDateValue(v) {
+    if (v == null || v === '') return '';
+    if (typeof v === 'string' || typeof v === 'number') return String(v).trim();
+    if (typeof v === 'object') {
+      const el = v.target || v.currentTarget;
+      if (el && typeof el.value === 'string') return el.value.trim();
+      if (typeof v.value === 'string') return v.value.trim();
+    }
+    return '';
+  }
+  setHistDate = (v) => this.setState({ histDate: this.histDateValue(v) });
+  toggleHistDate = (e) => {
+    if (this.state.dateOpen) return this.setState({ dateOpen: null });
+    const btn = e && e.currentTarget;
+    const r = btn ? btn.getBoundingClientRect() : null;
+    const parsed = parseParts(this.state.histDate) || (() => {
+      const n = new Date();
+      return { y: n.getFullYear(), m: n.getMonth(), d: n.getDate() };
+    })();
+    parsed.y = clampYear(parsed.y);
+    const top = r ? (r.bottom + 8) : 0;
+    let left = r ? r.left : 0;
+    if (r && left + 280 > window.innerWidth - 12) left = Math.max(12, window.innerWidth - 12 - 280);
+    this.setState({ dateOpen: { y: parsed.y, m: parsed.m, yDraft: String(parsed.y), top, left } });
+  };
+  setHistYear = (e) => {
+    const raw = String((e && e.target && e.target.value) || '').replace(/\D/g, '').slice(0, 4);
+    this.setState((s) => {
+      if (!s.dateOpen) return {};
+      const next = Object.assign({}, s.dateOpen, { yDraft: raw });
+      if (raw.length === 4) {
+        const y = clampYear(raw);
+        next.y = y;
+        next.yDraft = String(y);
+      }
+      return { dateOpen: next };
+    });
+  };
+  stepHistMonth = (n) => this.setState((s) => {
+    if (!s.dateOpen) return {};
+    let m = s.dateOpen.m + n, y = s.dateOpen.y;
+    if (m < 0) { m = 11; y -= 1; }
+    if (m > 11) { m = 0; y += 1; }
+    y = clampYear(y);
+    return { dateOpen: Object.assign({}, s.dateOpen, { y, m, yDraft: String(y) }) };
+  });
+  pickHistDate = (p) => {
+    const iso = toIso({ y: clampYear(p.y), m: p.m, d: p.d });
+    const same = iso === this.state.histDate;
+    this.setState({ histDate: same ? '' : iso, dateOpen: null });
+  };
+  histWho(v, t) {
+    const raw = String((v && (v.published_by || v.created_by)) || '').trim();
+    if (!raw) return t.whoUnknown;
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(raw)) return t.whoUnknown;
+    return raw;
   }
   bandsOverlap(rows) {
     const sorted = (rows || []).slice().sort((a, b) => Number(a.fromKm) - Number(b.fromKm));
@@ -810,83 +923,141 @@ class Component extends DCLogic {
       if (kind === 'surcharge') return t.gapSurcharge;
       if (kind === 'coupon') return t.gapCoupon;
       if (kind === 'rule') return t.gapRule;
+      if (kind === 'band_overlap') return t.gapBandOverlap;
       if (kind === 'band') return t.gapBand;
       return t.gapRoute;
     };
+    const paneForGap = (kind) => {
+      if (kind === 'distance_rate' || kind === 'band' || kind === 'band_overlap' || kind === 'class') return 'distance';
+      if (kind === 'surcharge' || kind === 'rule') return 'surcharges';
+      if (kind === 'coupon') return 'coupons';
+      return 'routes';
+    };
     const gaps = rawGaps.map((g) => ({
       label: t.publishError.replace(/—[\s\S]*$/, '— ' + gapKind(g.kind) + ': ' + (g.name || g.id || '') + '.'),
+      fix: () => this.setState({ pane: paneForGap(g.kind), publishOpen: false }),
     }));
     const hasDraft = this.state.draftId != null;
     const hasGaps = rawGaps.length > 0;
     const completenessBody = !hasDraft ? t.completenessEmpty : hasGaps ? t.completenessGaps(rawGaps.length) : t.completenessReady;
     const locationOptions = ((ops && ops.LOCATIONS) || []).map((l) => ({ value: l, label: l }));
+    const classOptions = ((ops && ops.CLASSES) || []).map((c) => ({
+      value: c.label || c.name || c.slug, label: c.label || c.name || c.slug, id: c.id || '',
+    }));
+    const classIdFor = (klass) => {
+      const hit = ((ops && ops.CLASSES) || []).filter((c) => c.label === klass || c.name === klass || c.slug === klass || c.id === klass)[0];
+      return hit ? hit.id : '';
+    };
     const routesRaw = ops ? ops.routes.all() : [];
     const surchargesRaw = ops ? ops.surcharges.all() : [];
     const rates = ops ? ops.rates.all() : [];
     const bandRowsRaw = ops ? ops.bands.all() : [];
-    const regionRowsRaw = ops ? ops.regionPremiums.all() : [];
     const couponRaw = ops ? ops.coupons.all() : [];
-    const ruleRaw = (ops && ops.rules) ? ops.rules.all() : [];
-    const historyPublished = (this.state.versions || []).filter((v) => v.status === 'live' || v.status === 'retired');
+    const historyPublished = (this.state.versions || []).filter((v) => v.status === 'live' || v.status === 'retired').slice().sort((a, b) => {
+      if (a.status === 'live' && b.status !== 'live') return -1;
+      if (b.status === 'live' && a.status !== 'live') return 1;
+      const ta = new Date(a.published_at || a.created_at || 0).getTime();
+      const tb = new Date(b.published_at || b.created_at || 0).getTime();
+      return tb - ta;
+    });
+    const dayYmd = this.parseFilterDate(this.state.histDate);
+    const historyFiltered = historyPublished.filter((v) => {
+      if (!dayYmd) return true;
+      return this.zurichYmd(v.published_at || v.created_at) === dayYmd;
+    });
+
+    const dateOpen = this.state.dateOpen;
+    const histParts = parseParts(this.state.histDate);
+    const viewY = dateOpen ? dateOpen.y : (histParts ? histParts.y : new Date().getFullYear());
+    const viewM = dateOpen ? dateOpen.m : (histParts ? histParts.m : new Date().getMonth());
+    const first = new Date(Date.UTC(viewY, viewM, 1));
+    const offset = (first.getUTCDay() + 6) % 7;
+    const dim = new Date(Date.UTC(viewY, viewM + 1, 0)).getUTCDate();
+    const histDays = [];
+    for (let i = 0; i < offset; i++) histDays.push({ label:'', on:'0', mute:'1', pick: () => {} });
+    for (let day = 1; day <= dim; day++) {
+      const p = { y: viewY, m: viewM, d: day };
+      const on = histParts && histParts.y === viewY && histParts.m === viewM && histParts.d === day;
+      histDays.push({
+        label: String(day),
+        on: on ? '1' : '0',
+        mute: '0',
+        pick: () => this.pickHistDate(p),
+      });
+    }
 
     return {
-      yes: true, n18: 18,
+      yes: true, n18: 18, n16: 16,
       tTitle: t.title,
+      tSubtitle: t.subtitle,
       panes: PANES.map((p) => ({
-        icon: p.icon, label: t[p.tab],
+        icon: p.icon, label: t[p.tab], hint: t[p.hint],
         on: pane === p.key ? '1' : '0',
-        kickerColor: pane === p.key ? 'var(--vt-accent)' : 'currentColor',
         pick: () => this.setState({ pane: p.key }),
       })),
       isRoutes: pane === 'routes', isDistance: pane === 'distance', isSurcharges: pane === 'surcharges',
-      isCoupons: pane === 'coupons', isHistory: pane === 'history',
-      tPublish: t.publish, tDiscard: t.discard, tKeepEditing: t.keepEditing,
+      isCoupons: pane === 'coupons',
+      tPublish: t.publish, tPublishAction: this.state.publishing ? t.publishing : t.publish, tDiscard: t.discard, tKeepEditing: t.keepEditing,
       tPublishTitle: t.publishTitle, tDiscardConfirm: t.discardConfirm,
       tPublishError: this.publishReason(this.state.publishCode, t),
+      tPublishOk: t.publishOk,
       tPublishGapLead: t.publishGapLead,
-      tVatLabel: t.vatLabel, tVatSuffix: t.vatSuffix, tVatError: t.vatError,
+      tVatLabel: t.vatLabel, tVatSuffix: t.vatSuffix, tVatError: t.vatError, tSaveVat: t.saveVat, tFixThis: t.fixThis,
+      tDraftMark: t.draftMark, tLiveBook: t.liveBook,
+      draftMarkDisplay: hasDraft ? 'inline-flex' : 'none',
+      liveMarkDisplay: hasDraft ? 'none' : 'inline-flex',
       vatPercent: this.state.vatPercent,
       vatErrorDisplay: this.state.vatError ? 'block' : 'none',
       setVatPercent: this.setVatPercent,
+      saveVat: this.saveVat,
       gaps: gaps,
       gapListDisplay: hasGaps ? 'block' : 'none',
       publishErrorDisplay: this.state.publishCode ? 'block' : 'none',
-      publishDisabled: role !== 'admin' || !hasDraft || hasGaps,
-      discardDisabled: role !== 'admin' || !hasDraft,
+      publishOkDisplay: this.state.publishOk ? 'block' : 'none',
+      publishDisabled: role !== 'admin' || !hasDraft,
+      publishBusyDisabled: role !== 'admin' || !hasDraft || this.state.publishing,
+      discardDisabled: role !== 'admin' || !hasDraft || this.state.publishing,
+      showToast: this.state.showToast, toastMsg: this.state.toastMsg, closeToast: this.closeToast,
       publish: this.publish, discard: this.discard,
       openPublish: this.openPublish, closePublish: this.closePublish,
       openDiscard: this.openDiscard, closeDiscard: this.closeDiscard,
       publishOpen: this.state.publishOpen, discardOpen: this.state.discardOpen,
       tCompletenessBody: completenessBody,
-      tBandOverlapWarn: t.bandOverlapWarn, tRegionPercentWarn: t.regionPercentWarn,
+      tBandOverlapWarn: t.bandOverlapWarn,
       bandWarnDisplay: this.bandsOverlap(bandRowsRaw) ? 'block' : 'none',
-      regionWarnDisplay: this.regionsOverlap(regionRowsRaw) ? 'block' : 'none',
       tColFrom: t.colFrom, tColTo: t.colTo, tWhen: t.when, tPax: t.pax, tCoupon: t.coupon,
-      tPreviewKicker: t.previewKicker, tRunPreview: t.runPreview, tTestEmail: t.testEmail, tTestUnpaid: t.testUnpaid, tTestNote: t.testNote,
-      tRecapStart: t.recapStart, tRecapKm: t.recapKm, tRecapBands: t.recapBands, tRecapRegion: t.recapRegion,
-      tRecapExtras: t.recapExtras, tRecapVat: t.recapVat, tRecapTotal: t.recapTotal,
-      previewFrom: this.state.previewFrom, previewTo: this.state.previewTo, previewWhen: this.state.previewWhen,
-      previewPax: this.state.previewPax, previewCoupon: this.state.previewCoupon, testEmail: this.state.testEmail,
-      setPreviewFrom: (v) => this.setState({ previewFrom: v }),
-      setPreviewTo: (v) => this.setState({ previewTo: v }),
-      setPreviewWhen: (v) => this.setState({ previewWhen: v }),
-      setPreviewPax: (v) => this.setState({ previewPax: v }),
-      setPreviewCoupon: (v) => this.setState({ previewCoupon: v }),
-      setTestEmail: (v) => this.setState({ testEmail: v }),
-      runPreview: this.runPreview, createTestUnpaid: this.createTestUnpaid,
-      recapStart: this.recapLine('start'), recapKm: this.recapLine('km'), recapBands: this.recapLine('bands'),
-      recapRegion: this.recapLine('region'), recapExtras: this.recapLine('extras'), recapVat: this.recapLine('vat'),
-      recapTotal: this.recapLine('total'),
-      testNoteDisplay: this.state.testNote ? 'block' : 'none',
-      tViewChanges: t.viewChanges, tCloneDraft: t.cloneDraft, tLiveBook: t.liveBook,
       tEmptyHistoryTitle: t.emptyHistoryTitle, tEmptyHistoryBody: t.emptyHistoryBody,
-      historyEmpty: historyPublished.length === 0, historyHasRows: historyPublished.length > 0,
+      tEmptyHistoryFilterTitle: t.emptyHistoryFilterTitle, tEmptyHistoryFilterBody: t.emptyHistoryFilterBody,
+      tHistDate: t.histDate,
+      tHistPrevMonth: t.histPrevMonth,
+      tHistNextMonth: t.histNextMonth,
+      tHistYear: t.histYear,
+      histDateLabel: histParts ? boardDate(histParts) : t.histDate,
+      histDateEmpty: histParts ? '0' : '1',
+      histDateOpen: !!dateOpen,
+      histDateExpanded: dateOpen ? 'true' : 'false',
+      histMonthName: MON_FULL[viewM],
+      histYearValue: dateOpen ? String(dateOpen.yDraft != null ? dateOpen.yDraft : dateOpen.y) : String(viewY),
+      histWeekdays: WD_EN.map((label) => ({ label: label.slice(0, 2) })),
+      histDays,
+      histPopTop: (dateOpen && dateOpen.top) ? dateOpen.top + 'px' : '0px',
+      histPopLeft: (dateOpen && dateOpen.left) ? dateOpen.left + 'px' : '0px',
+      datePopRef: this._datePopRef,
+      toggleHistDate: this.toggleHistDate,
+      histPrevMonth: () => this.stepHistMonth(-1),
+      histNextMonth: () => this.stepHistMonth(1),
+      setHistYear: this.setHistYear,
+      historyFilterShow: historyPublished.length > 0,
+      historyEmpty: historyPublished.length === 0,
+      historyFilterEmpty: historyPublished.length > 0 && historyFiltered.length === 0,
+      historyHasRows: historyFiltered.length > 0,
       changesOpen: this.state.changesOpen, changesBody: this.state.changesBody, closeChanges: this.closeChanges,
-      historyRows: historyPublished.map((v) => ({
+      historyRows: historyFiltered.map((v) => ({
         id: v.id,
         when: this.zurichWhen(v.published_at || v.created_at),
-        who: v.published_by || v.created_by || t.whoUnknown,
+        who: this.histWho(v, t),
         gapLabel: t.gapFree,
+        liveOn: v.status === 'live' ? '1' : '0',
         liveShow: v.status === 'live' ? 'inline-flex' : 'none',
         view: () => this.setState({ changesOpen: true, changesBody: v.note || v.label || String(v.id) }),
         clone: () => this.cloneIntoDraft(v.id),
@@ -909,7 +1080,7 @@ class Component extends DCLogic {
         { key:'live', header: t.colLive, width:'92px', kind:'bool', onLabel:t.live, offLabel:t.draft },
       ],
       routeFields: [
-        { key:'from', label:t.colFrom, half:true, required:true, icon:'map-pin', hint:t.hMapboxRoute },
+        { key:'from', label:t.colFrom, half:true, required:true, icon:'map-pin' },
         { key:'to', label:t.colTo, half:true, required:true, icon:'map-pin' },
         { key:'economy', label:t.colEconomy, half:true, placeholder:'000', hint:t.hRoutePrice, icon:'banknote', suffix:'CHF' },
         { key:'business', label:t.colBusiness, half:true, placeholder:'000', icon:'banknote', suffix:'CHF' },
@@ -924,7 +1095,13 @@ class Component extends DCLogic {
       saveRoute: (rec) => {
         if (!ops) return null;
         const existing = rec.id ? ops.routes.get(rec.id) : null;
-        const patch = { id: rec.id, from: rec.from, to: rec.to, live: rec.live, fromMapbox: rec.from, toMapbox: rec.to };
+        const patch = {
+          id: rec.id, from: rec.from, to: rec.to, live: rec.live,
+          fromMapbox: rec.fromMapbox,
+          toMapbox: rec.toMapbox,
+          originZoneId: rec.originZoneId || (existing && existing.originZoneId) || '',
+          destZoneId: rec.destZoneId || (existing && existing.destZoneId) || '',
+        };
         CLASS_KEYS.forEach((k) => {
           const base = (existing && existing[k]) || {};
           patch[k] = Object.assign({}, base, { CHF: rec[k] });
@@ -938,44 +1115,56 @@ class Component extends DCLogic {
       tSearchRoutes: t.searchRoutes, routeSearchKeys: ['id', 'from', 'to'],
       tEmptyRoutesTitle: t.emptyRoutesTitle, tEmptyRoutesBody: t.emptyRoutesBody,
 
-      distanceRows: ((ops && ops.VEHICLE_CLASSES) || ['Economy', 'Business', 'First', 'Van']).map((klass) => {
-        const r = rates.filter((x) => x.klass === klass)[0] || (ops ? ops.rates.blank({ id: klass, klass }) : { id: klass, klass, baseFare: {}, perKm: {}, maxPax: 3, available: true, hideFromPublic: false });
-        return {
-          id: r.id || klass,
-          klass: r.klass || klass,
-          baseFare: (r.baseFare && r.baseFare.CHF) || '',
-          perKm: (r.perKm && r.perKm.CHF) || '',
-          maxPax: r.maxPax || 3,
-          available: r.available !== false,
-          hideFromPublic: !!r.hideFromPublic,
-        };
-      }),
+      distanceRows: rates.map((r) => ({
+        id: r.id,
+        klass: r.name || r.klass,
+        name: r.name || r.klass,
+        vehicleClassId: r.vehicleClassId || '',
+        photo: r.photo || r.photoPath || '',
+        photoPath: r.photoPath || r.photo || '',
+        baseFare: (r.baseFare && r.baseFare.CHF) || '',
+        perKm: (r.perKm && r.perKm.CHF) || '',
+        maxPax: r.maxPax || 3,
+        maxBags: r.maxBags || r.luggageCapacity || 3,
+        available: r.available !== false,
+        hideFromPublic: !!r.hideFromPublic,
+      })),
       distanceColumns: [
         { key:'klass', header: t.colClass, width:'120px' },
         { key:'baseFare', header: t.startFare, align:'right', width:'110px', lookup:(r) => money(r.baseFare) },
         { key:'perKm', header: t.perKm, align:'right', width:'110px', lookup:(r) => money(r.perKm) },
         { key:'maxPax', header: t.maxPax, width:'90px' },
+        { key:'maxBags', header: t.maxBags, width:'90px' },
         { key:'hideFromPublic', header: t.hidePublic, width:'120px', kind:'bool', onLabel:t.hidePublic, offLabel:t.showPublic },
       ],
       distanceFields: [
+        { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'class', photoRecordKey:'vehicleClassId', upload:'/api/photos/upload', clearLabel:t.clearPhoto, chooseLabel:t.choosePhoto, hint:t.hClassPhoto },
         { key:'klass', label:t.colName, required:true, icon:'car', half:true },
         { key:'baseFare', label:t.startFare, half:true, placeholder:'000', icon:'banknote', suffix:'CHF' },
         { key:'perKm', label:t.perKm, half:true, placeholder:'0.00', icon:'navigation', suffix:'CHF' },
         { key:'maxPax', label:t.maxPax, editor:'number', min:1, half:true, icon:'users' },
+        { key:'maxBags', label:t.maxBags, editor:'number', min:0, half:true, icon:'luggage' },
         { key:'hideFromPublic', label:t.hidePublic, editor:'switch', half:true },
       ],
       distanceBlank: () => {
-        const blank = ops ? ops.rates.blank() : { klass:'', baseFare:{}, perKm:{}, maxPax:3, hideFromPublic:false };
-        return Object.assign({}, blank, { baseFare:'', perKm:'' });
+        const blank = ops ? ops.rates.blank() : { klass:'', baseFare:{}, perKm:{}, maxPax:3, maxBags:3, hideFromPublic:false, photo:'' };
+        return Object.assign({}, blank, { baseFare:'', perKm:'', photo:'', maxBags: blank.maxBags || 3 });
       },
       saveDistance: (rec) => {
         if (!ops) return null;
-        const existing = rec.id ? ops.rates.get(rec.id) : (ops.rates.all().filter((x) => x.klass === rec.klass)[0] || null);
-        const id = (existing && existing.id) || rec.id || rec.klass;
+        const existing = rec.id ? ops.rates.get(rec.id) : (ops.rates.all().filter((x) => x.klass === rec.klass || x.vehicleClassId === rec.vehicleClassId)[0] || null);
+        const id = (existing && existing.id) || rec.id;
+        const photo = (rec.photo || rec.photoPath || '') && String(rec.photo || rec.photoPath).indexOf('data:') !== 0
+          ? (rec.photo || rec.photoPath) : '';
         return ops.rates.upsert({
           id: id,
           klass: rec.klass,
+          name: rec.klass,
+          vehicleClassId: rec.vehicleClassId || (existing && existing.vehicleClassId) || classIdFor(rec.klass),
+          photo: photo,
+          photoPath: photo,
           maxPax: rec.maxPax,
+          maxBags: rec.maxBags,
           available: rec.hideFromPublic ? true : rec.available !== false,
           hideFromPublic: !!rec.hideFromPublic,
           baseFare: Object.assign({}, (existing && existing.baseFare) || {}, { CHF: rec.baseFare }),
@@ -992,26 +1181,31 @@ class Component extends DCLogic {
       bandRows: bandRowsRaw.map((r) => ({
         id: r.id, fromKm: r.fromKm, toKm: r.toKm === '' || r.toKm == null ? '' : r.toKm,
         perKm: (r.perKm && r.perKm.CHF) || '', klass: r.klass || r.vehicleClass || '',
+        vehicleClassId: r.vehicleClassId || classIdFor(r.klass || r.vehicleClass),
       })),
       bandColumns: [
+        { key:'klass', header: t.colClass, width:'120px' },
         { key:'fromKm', header: t.fromKm, width:'110px' },
         { key:'toKm', header: t.toKm, width:'110px', lookup:(r) => (r.toKm === '' || r.toKm == null ? t.openBand : r.toKm) },
         { key:'perKm', header: t.perKm, align:'right', width:'110px', lookup:(r) => money(r.perKm) },
       ],
       bandFields: [
+        { key:'klass', label:t.colClass, editor:'select', required:true, icon:'car',
+          options: classOptions },
         { key:'fromKm', label:t.fromKm, editor:'number', min:0, half:true, icon:'navigation' },
         { key:'toKm', label:t.toKm, editor:'number', min:0, half:true, icon:'navigation', hint:t.openBand },
         { key:'perKm', label:t.perKm, half:true, placeholder:'0.00', icon:'navigation', suffix:'CHF' },
       ],
       bandBlank: () => {
         const blank = ops ? ops.bands.blank() : { fromKm:0, toKm:'', perKm:{} };
-        return Object.assign({}, blank, { perKm:'' });
+        return Object.assign({}, blank, { perKm:'', klass: (classOptions[0] && classOptions[0].value) || '' });
       },
       saveBand: (rec) => {
         if (!ops) return null;
         const existing = rec.id ? ops.bands.get(rec.id) : null;
         return ops.bands.upsert({
-          id: rec.id, fromKm: rec.fromKm, toKm: rec.toKm,
+          id: rec.id, fromKm: rec.fromKm, toKm: rec.toKm, klass: rec.klass,
+          vehicleClassId: rec.vehicleClassId || (existing && existing.vehicleClassId) || classIdFor(rec.klass),
           perKm: Object.assign({}, (existing && existing.perKm) || {}, { CHF: rec.perKm }),
         });
       },
@@ -1022,114 +1216,80 @@ class Component extends DCLogic {
       tSearchBands: t.searchBands, bandSearchKeys: ['fromKm', 'toKm'],
       tEmptyBandsTitle: t.emptyBandsTitle, tEmptyBandsBody: t.emptyBandsBody,
 
-      regionRows: regionRowsRaw.map((r) => Object.assign({}, r, { percent: r.percent || '' })),
-      regionColumns: [
-        { key:'zone', header: t.colZone },
-        { key:'percent', header: t.colPercent, align:'right', width:'110px', lookup:(r) => (r.percent ? r.percent + '%' : '00%') },
-      ],
-      regionFields: [
-        { key:'zone', label:t.colZone, editor:'select', required:true, icon:'map-pin',
-          options: ((ops && ops.ZONES && ops.ZONES.length) ? ops.ZONES.map((z) => ({ value: z.label || z.slug, label: z.label || z.slug })) : locationOptions) },
-        { key:'percent', label:t.colPercent, placeholder:'00', icon:'banknote', suffix:'%' },
-      ],
-      regionBlank: () => (ops ? ops.regionPremiums.blank() : { zone:'', zoneId:'', percent:'' }),
-      saveRegion: (rec) => {
-        if (!ops) return null;
-        const zones = (ops.ZONES || []).slice();
-        const hit = zones.filter((z) => (z.label || z.slug) === rec.zone || z.id === rec.zoneId)[0];
-        return ops.regionPremiums.upsert({ id: rec.id, zone: rec.zone, zoneId: hit ? hit.id : rec.zoneId, percent: rec.percent });
-      },
-      deleteRegion: (id) => ops ? ops.regionPremiums.remove(id) : null,
-      tNounRegion: t.nounRegion, tNounRegions: t.nounRegions,
-      tAddRegion: t.addRegion, tEditRegion: t.editRegion, tSaveRegion: t.saveRegion,
-      tDeleteRegionTitle: t.deleteRegionTitle, tDeleteRegionBody: t.deleteRegionBody,
-      tSearchRegions: t.searchRegions, regionSearchKeys: ['zone'],
-      tEmptyRegionsTitle: t.emptyRegionsTitle, tEmptyRegionsBody: t.emptyRegionsBody,
-
-      ruleRows: ruleRaw.map((r) => Object.assign({}, r, { payload: typeof r.payload === 'string' ? r.payload : (r.payload ? JSON.stringify(r.payload) : '') })),
-      ruleColumns: [
-        { key:'kind', header: t.colKind, lookup:(r) => {
-          const hit = RULE_KINDS.filter((c) => c.value === r.kind)[0];
-          return hit ? t[hit.k] : r.kind;
-        } },
-        { key:'payload', header: t.fPayload },
-      ],
-      ruleFields: [
-        { key:'kind', label:t.colKind, editor:'select', required:true, icon:'clock',
-          options: RULE_KINDS.map((c) => ({ value: c.value, label: t[c.k] })) },
-        { key:'payload', label:t.fPayload, hint:t.hRulePayload, icon:'map-pin' },
-      ],
-      ruleBlank: () => (ops && ops.rules ? ops.rules.blank() : { kind:'night', payload:'' }),
-      saveRule: (rec) => {
-        if (!ops) return null;
-        if (ops.rules) return ops.rules.upsert({ id: rec.id, kind: rec.kind, ruleKind: rec.kind, payload: rec.payload, quoteLockHours: rec.kind === 'quote_lock' ? rec.payload : undefined });
-        return null;
-      },
-      deleteRule: (id) => (ops && ops.rules) ? ops.rules.remove(id) : null,
-      tNounRule: t.nounRule, tNounRules: t.nounRules,
-      tAddRule: t.addRule, tEditRule: t.editRule, tSaveRule: t.saveRule,
-      tDeleteRuleTitle: t.deleteRuleTitle, tDeleteRuleBody: t.deleteRuleBody,
-      tSearchRules: t.searchRules, ruleSearchKeys: ['kind'],
-      tEmptyRulesTitle: t.emptyRulesTitle, tEmptyRulesBody: t.emptyRulesBody,
-
-      surcharges: surchargesRaw.map((r) => Object.assign({}, r, {
-        value: r.kind === 'percent' ? r.pct : r.kind === 'amount' ? ((r.amounts && r.amounts.CHF) || '') : '',
-      })),
+      surcharges: surchargesRaw.map((r) => {
+        const type = r.type || surchargeTypeOf(r.code || r.label);
+        const label = r.name || r.label || r.code || '';
+        return Object.assign({}, r, {
+          type: type,
+          label: label,
+          name: r.name || label,
+          value: type === 'meet_greet' ? '0' : (r.kind === 'percent' ? r.pct : ((r.amounts && r.amounts.CHF) || r.value || '')),
+          hours: r.hours || (ops && ops.freeWaitHours) || '',
+        });
+      }),
       surchargeColumns: [
-        { key:'label', header: t.colRule, lookup:(r) => {
-          const hit = SURCHARGE_CODES.filter((c) => c.value === r.label)[0];
-          return hit ? t[hit.k] : r.label;
+        { key:'type', header: t.surchargeType, width:'160px', lookup:(r) => {
+          const hit = SURCHARGE_TYPES.filter((c) => c.value === (r.type || surchargeTypeOf(r.code || r.label)))[0];
+          return hit ? t[hit.k] : (r.type || r.label);
         } },
-        { key:'rule', header: t.pickRule, lookup:(r) => {
-          const hit = ruleRaw.filter((x) => String(x.id) === String(r.ruleId || r.rule))[0];
-          if (hit) {
-            const k = RULE_KINDS.filter((c) => c.value === hit.kind)[0];
-            return k ? t[k.k] : hit.kind;
-          }
-          return r.rule === 'booking' ? t.applyBooking : (r.rule === 'leg' ? t.applyLeg : (r.rule || ''));
-        } },
+        { key:'label', header: t.colName, lookup:(r) => r.name || r.label || r.code || '' },
         { key:'value', header: t.colAmount, align:'right', width:'150px',
-          lookup:(r) => (r.kind === 'included' ? t.included : r.kind === 'percent' ? '+ ' + (r.value || '00') + '%' : money(r.value)) },
+          lookup:(r) => {
+            const type = r.type || surchargeTypeOf(r.code || r.label);
+            if (type === 'meet_greet') return money('0');
+            if (type === 'free_wait') return (r.hours ? (r.hours + ' h') : '');
+            return money(r.value);
+          } },
       ],
       surchargeFields: [
-        { key:'label', label:t.colRule, editor:'select', required:true, icon:'banknote',
-          options: SURCHARGE_CODES.map((c) => ({ value: c.value, label: t[c.k] })), hint: t.hRule },
-        { key:'ruleId', label:t.pickRule, editor:'select', icon:'clock',
-          options: (ruleRaw.length ? ruleRaw : [{ id:'', kind:'' }]).map((r) => {
-            const k = RULE_KINDS.filter((c) => c.value === r.kind)[0];
-            return { value: String(r.id || ''), label: k ? t[k.k] : (r.kind || t.pickRule) };
-          }) },
-        { key:'rule', label:t.colAppliesWhen, editor:'select', icon:'clock',
-          options: [{ value:'leg', label:t.applyLeg }, { value:'booking', label:t.applyBooking }], hint: t.hApplies },
-        { key:'kind', label:t.fUnit, editor:'select', icon:'banknote', half:true,
-          options:[{ value:'amount', label:t.unitAmount }, { value:'percent', label:t.unitPct }, { value:'included', label:t.unitIncluded }] },
-        { key:'value', label:t.colAmount, placeholder:'00', hint:t.hSurchargeValue, icon:'banknote' },
+        { key:'type', label:t.surchargeType, editor:'select', required:true, icon:'banknote',
+          options: SURCHARGE_TYPES.map((c) => ({ value: c.value, label: t[c.k] })) },
+        { key:'name', label:t.extraName, required:true, icon:'tag', showWhen:{ type:'checkout_extra' }, hint:t.doesCheckout },
+        { key:'value', label:t.colAmount, placeholder:'00', icon:'banknote', suffix:'CHF', showWhen:{ type:'checkout_extra' } },
+        { key:'icon', label:t.extraIcon, editor:'select', icon:'image', showWhen:{ type:'checkout_extra' },
+          options: EXTRA_ICONS.map((c) => ({ value: c.value, label: t[c.k] })) },
+        { key:'value', label:t.meetAmount, placeholder:'0', icon:'banknote', suffix:'CHF', showWhen:{ type:'meet_greet' }, hint:t.doesMeet },
+        { key:'hours', label:t.extraHours, editor:'number', min:1, showWhen:{ type:'free_wait' }, hint:t.doesFreeWait },
+        { key:'value', label:t.extraWaitRate, placeholder:'00', icon:'banknote', suffix:'CHF', showWhen:{ type:'extra_wait' }, hint:t.doesExtraWait },
       ],
       surchargeBlank: () => {
         const blank = ops ? ops.surcharges.blank() : { kind:'amount', amounts:{}, pct:'' };
-        return Object.assign({}, blank, { value:'', label: blank.label || 'night', rule: blank.rule || 'leg' });
+        return Object.assign({}, blank, { type:'checkout_extra', value:'', name:'', icon:'user', hours:1, label:'', rule:'leg' });
       },
       saveSurcharge: (rec) => {
         if (!ops) return;
+        const type = rec.type || 'checkout_extra';
         const existing = rec.id ? ops.surcharges.get(rec.id) : null;
-        const patch = { id: rec.id, label: rec.label, rule: rec.rule, ruleId: rec.ruleId, kind: rec.kind };
-        if (rec.kind === 'percent') {
-          patch.pct = rec.value; patch.amounts = existing ? existing.amounts : undefined;
-        } else if (rec.kind === 'amount') {
-          const base = (existing && existing.amounts) || {};
-          patch.amounts = Object.assign({}, base, { CHF: rec.value });
-          patch.pct = existing ? existing.pct : undefined;
+        const patch = { id: rec.id, type: type, rule: 'leg', icon: rec.icon, hours: rec.hours, name: rec.name };
+        if (type === 'meet_greet') {
+          patch.code = 'meet_greet'; patch.label = 'meet_greet'; patch.kind = 'included'; patch.value = '0';
+        } else if (type === 'free_wait') {
+          patch.code = 'free_wait'; patch.label = 'free_wait'; patch.kind = 'included'; patch.hours = rec.hours || 1;
+        } else if (type === 'extra_wait') {
+          patch.code = 'extra_wait'; patch.label = 'extra_wait'; patch.kind = 'amount';
+          patch.amounts = Object.assign({}, (existing && existing.amounts) || {}, { CHF: rec.value });
         } else {
-          patch.pct = existing ? existing.pct : undefined;
-          patch.amounts = existing ? existing.amounts : undefined;
+          const name = rec.name || rec.label || '';
+          patch.code = name; patch.label = name; patch.name = name; patch.kind = 'amount';
+          patch.amounts = Object.assign({}, (existing && existing.amounts) || {}, { CHF: rec.value });
         }
         return ops.surcharges.upsert(patch);
       },
-      deleteSurcharge: (id) => ops ? ops.surcharges.remove(id) : null,
+      deleteSurcharge: (id) => {
+        if (!ops) return null;
+        const row = ops.surcharges.get(id);
+        const type = row ? (row.type || surchargeTypeOf(row.code || row.label)) : '';
+        if (type === 'meet_greet' || type === 'free_wait') return { ok: false, code: 'not-deletable' };
+        return ops.surcharges.remove(id);
+      },
+      canDeleteSurcharge: (row) => {
+        const type = (row && (row.type || surchargeTypeOf(row.code || row.label))) || '';
+        return type !== 'meet_greet' && type !== 'free_wait';
+      },
       tNounSurcharge: t.nounSurcharge, tNounSurcharges: t.nounSurcharges,
       tAddSurcharge: t.addSurcharge, tEditSurcharge: t.editSurcharge, tSaveSurcharge: t.saveSurcharge,
       tDeleteSurchargeTitle: t.deleteSurchargeTitle, tDeleteSurchargeBody: t.deleteSurchargeBody,
-      tSearchSurcharges: t.searchSurcharges, surchargeSearchKeys: ['label', 'rule'],
+      tSearchSurcharges: t.searchSurcharges, surchargeSearchKeys: ['label', 'type', 'name'],
       tEmptySurchargesTitle: t.emptySurchargesTitle, tEmptySurchargesBody: t.emptySurchargesBody,
 
       couponRows: couponRaw,

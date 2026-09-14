@@ -233,6 +233,7 @@ describe("retrieve / reverse", () => {
       address: "Museumstrasse 1, 8001 Zürich, Switzerland",
       lng: 8.5402,
       lat: 47.3782,
+      canton: null,
     });
   });
 

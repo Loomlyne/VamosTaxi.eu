@@ -1,12 +1,13 @@
 // apps/web/app/[locale]/(ops)/api/staff/rate-versions/[id]/discard/route.ts
 //
-// POST /api/staff/rate-versions/:id/discard — abandon the draft (D-10).
-// History (live/retired) rows stay. Then clone from live, or leave empty.
+// POST /api/staff/rate-versions/:id/discard — abandon the draft (D-06).
+// History (live/retired) rows stay. Do not clone a new draft after delete.
+// GET rate-book then returns live. Public book unchanged.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { asStaff } from "@/lib/db/identity";
 import { loadRateVersions } from "@/lib/ops/pricing";
-import { classifyPricingFailure, forkLiveRateVersion } from "@/lib/ops/rate-book";
+import { classifyPricingFailure } from "@/lib/ops/rate-book";
 import { jsonErr, jsonOk, withAdmin } from "@/lib/ops/staff-json";
 
 export const dynamic = "force-dynamic";
@@ -47,6 +48,5 @@ export const POST = withAdmin(async (claims, request) => {
   }
 
   if (!live) return jsonOk({ discarded: id, versionId: null, empty: true });
-  const nextId = await forkLiveRateVersion(env, claims, live);
-  return jsonOk({ discarded: id, versionId: nextId, empty: false });
+  return jsonOk({ discarded: id, versionId: live.id, empty: false });
 });

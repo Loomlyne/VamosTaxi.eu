@@ -207,7 +207,7 @@ test("a reprice carrying pax is 400 untrusted_input", async () => {
   expect(body.error).toBe("untrusted_input");
 });
 
-test("a reprice with extra_stops: 2 and no waypoints is 200 (D-18)", async () => {
+test("a reprice with extra_stops: 2 is extras_max_stops (D-21)", async () => {
   const quoted = await postQuote(wellFormed());
   expect(quoted.status).toBe(200);
   const first = (await quoted.json()) as {
@@ -221,7 +221,9 @@ test("a reprice with extra_stops: 2 and no waypoints is 200 (D-18)", async () =>
     display_currency: "CHF",
     extras: { extra_stops: 2 },
   });
-  expect(again.status).toBe(200);
+  expect(again.status).toBe(422);
+  const body = (await again.json()) as Record<string, unknown>;
+  expect(body.error).toBe("extras_max_stops");
 });
 
 test("a lock whose HMAC does not verify is 404 quote_not_found, byte-identical to an unknown id", async () => {

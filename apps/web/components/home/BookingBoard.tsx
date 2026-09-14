@@ -31,13 +31,6 @@ import {
 import { BookingCardMount } from "./BookingCardMount";
 import "./BookingBoard.css";
 
-const CLASS_NAMES: Record<VehicleClassSlug, string> = {
-  economy: "Economy",
-  business: "Business",
-  first: "First",
-  van: "Van",
-};
-
 const DIR_KEEP = new Set<string>(DIR_KEEP_PARAMS);
 
 type ErrorBody = {
@@ -91,7 +84,7 @@ function keep(value: ReactNode): ReactNode {
 }
 
 function className(slug: VehicleClassSlug): ReactNode {
-  return keep(CLASS_NAMES[slug] ?? slug);
+  return keep(slug);
 }
 
 function alertTone(tone: RefusalTone): AlertTone {
@@ -116,6 +109,11 @@ function isQuoteOk(data: unknown): data is QuoteResponse {
 
 function cheapestEligible(classes: ClassBoardEntry[]): ClassBoardEntry | null {
   return classes.find((entry) => entry.eligible) ?? null;
+}
+
+/** Deleted from the fare book (no_rate) does not keep a public card. */
+function publicFleet(classes: ClassBoardEntry[]): ClassBoardEntry[] {
+  return classes.filter((entry) => entry.ineligible_reason !== "no_rate");
 }
 
 function ineligiblePrice(
@@ -368,10 +366,11 @@ export function BookingBoard() {
 
   const selectedEntry = useMemo(() => {
     if (!quote) return null;
+    const fleet = publicFleet(quote.classes);
     if (selected) {
-      return quote.classes.find((entry) => entry.slug === selected) ?? null;
+      return fleet.find((entry) => entry.slug === selected) ?? null;
     }
-    return cheapestEligible(quote.classes);
+    return cheapestEligible(fleet);
   }, [quote, selected]);
 
   useEffect(() => {
@@ -399,8 +398,8 @@ export function BookingBoard() {
       case "moved_to":
         return movedTo
           ? label("quote.moved_to", {
-              v: CLASS_NAMES[movedTo.v] ?? movedTo.v,
-              from: CLASS_NAMES[movedTo.from] ?? movedTo.from,
+              v: movedTo.v,
+              from: movedTo.from,
               cap: movedTo.cap,
             })
           : "";
@@ -452,7 +451,7 @@ export function BookingBoard() {
     <div data-bc-board-list="">
       {boardRefusal}
       {quote
-        ? quote.classes.map((entry) => {
+        ? publicFleet(quote.classes).map((entry) => {
             const eligible = entry.eligible;
             const price = eligible
               ? keep(

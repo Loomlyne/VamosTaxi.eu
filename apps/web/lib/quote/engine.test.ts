@@ -339,6 +339,32 @@ describe("loadAndPrice", () => {
     expect(src).not.toMatch(/preferDraft\s*=\s*true/);
   });
 
+  it("omits an unrated leftover class slug from quote.classes (D-29 D-31)", async () => {
+    const leftover = {
+      id: "vc-leftover",
+      slug: "first",
+      passenger_capacity: 3,
+      luggage_capacity: 3,
+      sort_order: 9,
+      active: true,
+    };
+    const book = launchDoc({ id: 1, slug: "live-v1", status: "live" });
+    book.classes = [...book.classes, leftover];
+    const result = await loadAndPrice(
+      fakeEnv(),
+      input(),
+      stubLoaders({ book, settings: settingsDoc() }),
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.quote.classes.map((c) => c.slug)).not.toContain("first");
+    expect(result.quote.classes.map((c) => c.slug)).toEqual([
+      "economy",
+      "business",
+      "van",
+    ]);
+  });
+
   it("maps a null settings version to no_settings_version", async () => {
     const result = await loadAndPrice(
       fakeEnv(),

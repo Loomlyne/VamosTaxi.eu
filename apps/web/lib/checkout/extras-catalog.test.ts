@@ -75,8 +75,8 @@ describe("checkout extras catalog", () => {
     expect(extras[0]?.amount_rappen).toBe(2000);
     expect(extras[0]?.toggle).toBe(true);
     expect(extras[1]?.kind).toBe("included");
-    expect(extras[1]?.toggle).toBe(true);
-    expect(extras.find((item) => item.code === "free_wait")?.toggle).toBe(true);
+    expect(extras[1]?.toggle).toBe(false);
+    expect(extras.find((item) => item.code === "free_wait")?.toggle).toBe(false);
     expect(extraUi("night")).toBeNull();
   });
 
@@ -145,14 +145,14 @@ describe("checkout extras catalog", () => {
     ).toBeNull();
   });
 
-  it("caps extra-stop places at the published book field", () => {
-    expect(publishedMaxExtraStops(3)).toBe(3);
-    expect(publishedMaxExtraStops("2")).toBe(2);
-    expect(publishedMaxExtraStops(0)).toBe(0);
-    expect(publishedMaxExtraStops(null)).toBe(0);
-    expect(publishedMaxExtraStops(-1)).toBe(0);
-    expect(capExtraStops(4, 3)).toBe(3);
-    expect(capExtraStops(1, null)).toBe(0);
+  it("caps extra-stop places at 1 (D-21)", () => {
+    expect(publishedMaxExtraStops(3)).toBe(1);
+    expect(publishedMaxExtraStops("2")).toBe(1);
+    expect(publishedMaxExtraStops(0)).toBe(1);
+    expect(publishedMaxExtraStops(null)).toBe(1);
+    expect(capExtraStops(4, 3)).toBe(1);
+    expect(capExtraStops(1, null)).toBe(1);
+    expect(capExtraStops(0, 9)).toBe(0);
   });
 
   it("lists only selected extras on the recap, using book amounts", () => {
@@ -247,13 +247,13 @@ describe("checkout extras catalog", () => {
         active: true,
       },
     ]);
-    expect(extraUi("meet_greet")?.toggle).toBe(true);
-    expect(extraUi("free_wait")?.toggle).toBe(true);
+    expect(extraUi("meet_greet")?.toggle).toBe(false);
+    expect(extraUi("free_wait")?.toggle).toBe(false);
     const meet = catalog.find((item) => item.code === "meet_greet");
     const wait = catalog.find((item) => item.code === "free_wait");
-    expect(meet?.toggle).toBe(true);
+    expect(meet?.toggle).toBe(false);
     expect(wait?.kind).toBe("included");
-    expect(wait?.toggle).toBe(true);
+    expect(wait?.toggle).toBe(false);
     const defaults = {
       childSeat: false,
       oversized: false,
@@ -262,23 +262,25 @@ describe("checkout extras catalog", () => {
       extraCodes: [],
     };
     expect(extraIsOn("meet_greet", defaults)).toBe(true);
-    expect(extraIsOn("meet_greet", { ...defaults, meetGreet: false })).toBe(false);
+    expect(extraIsOn("meet_greet", { ...defaults, meetGreet: false })).toBe(true);
     expect(extraIsOn("free_wait", defaults)).toBe(false);
     expect(extraIsOn("free_wait", { ...defaults, airportPickup: true })).toBe(true);
     expect(extraIsOn("free_wait", { ...defaults, airportPickup: false })).toBe(false);
     expect(
       extraIsOn("free_wait", { ...defaults, airportPickup: true, freeWait: false }),
-    ).toBe(false);
+    ).toBe(true);
     expect(
       recapExtras(catalog, (code) => extraIsOn(code, { ...defaults, meetGreet: false })),
-    ).toEqual([]);
+    ).toEqual([
+      expect.objectContaining({ code: "meet_greet" }),
+    ]);
     const restored = recapExtras(
       catalog,
       (code) => extraIsOn(code, { ...defaults, airportPickup: true, meetGreet: true }),
     );
     expect(restored.map((row) => row.code)).toEqual(["meet_greet", "free_wait"]);
     expect(extraIsOnForStep("trip", "meet_greet", { ...defaults, meetGreet: false })).toBe(
-      false,
+      true,
     );
     expect(
       extraIsOnForStep("details", "free_wait", { ...defaults, airportPickup: true }),

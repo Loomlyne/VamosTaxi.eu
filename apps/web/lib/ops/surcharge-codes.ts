@@ -11,10 +11,13 @@ export const SURCHARGE_CODES = [
   "oversized_luggage",
   "meet_greet",
   "ski_rack",
+  "ski",
   "pet",
   "weekend",
   "holiday",
   "waiting",
+  "free_wait",
+  "extra_wait",
 ] as const;
 
 export type SurchargeCode = (typeof SURCHARGE_CODES)[number];
@@ -38,6 +41,7 @@ export const AUTOMATIC_SURCHARGE_CODES = [
   "waiting",
   "weekend",
   "holiday",
+  "extra_wait",
 ] as const;
 
 export function normalizeSurchargeCode(raw: string): string {

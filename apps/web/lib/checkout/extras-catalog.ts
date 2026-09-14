@@ -29,8 +29,8 @@ export const MEET_GREET_CODE = "meet_greet";
 
 const EXTRA_UI: Record<string, ExtraUi> = {
   child_seat: { icon: "baby", labelKey: "childSeat", toggle: true },
-  meet_greet: { icon: "user", labelKey: "meetGreet", toggle: true },
-  free_wait: { icon: "clock", labelKey: "freeWait", toggle: true },
+  meet_greet: { icon: "user", labelKey: "meetGreet", toggle: false },
+  free_wait: { icon: "clock", labelKey: "freeWait", toggle: false },
   extra_stop: { icon: "map-pin", labelKey: "additional-stop-2", toggle: true },
   oversized_luggage: { icon: "luggage", labelKey: "extraOversized", toggle: true },
   ski: { icon: "snowflake", labelKey: "extraSki", toggle: true },
@@ -53,9 +53,9 @@ export type ExtraToggles = {
   extraStop: boolean;
   skiRack: boolean;
   extraCodes: string[];
-  /** D-38: default on. Explicit false turns the meet card off. */
+  /** D-34: always on. Not a customer off-switch. */
   meetGreet?: boolean;
-  /** D-38: default on. Explicit false turns the free-wait card off. */
+  /** D-34: always on when pickup is an airport. Not a customer off-switch. */
   freeWait?: boolean;
   /**
    * Free wait applies only on airport pickup. Explicit false is city/other.
@@ -63,10 +63,6 @@ export type ExtraToggles = {
    */
   airportPickup?: boolean;
 };
-
-function extraToggleDefaultOn(named: boolean | undefined): boolean {
-  return named !== false;
-}
 
 export function airportPickupFromPlace(place: unknown): boolean | undefined {
   if (!place || typeof place !== "object" || Array.isArray(place)) return undefined;
@@ -77,9 +73,7 @@ export function airportPickupFromPlace(place: unknown): boolean | undefined {
 }
 
 function freeWaitIsOn(toggles: ExtraToggles): boolean {
-  if (toggles.airportPickup !== true) return false;
-  if (!extraToggleDefaultOn(toggles.meetGreet)) return false;
-  return extraToggleDefaultOn(toggles.freeWait);
+  return toggles.airportPickup === true;
 }
 
 /** Recap and tiles follow this booking's toggles. A leftover lock must not paint extras. */
@@ -88,7 +82,7 @@ export function extraIsOn(code: string, toggles: ExtraToggles): boolean {
   if (code === "oversized_luggage") return toggles.oversized;
   if (code === "extra_stop") return toggles.extraStop;
   if (code === "ski" || code === "ski_rack") return toggles.skiRack;
-  if (code === MEET_GREET_CODE) return extraToggleDefaultOn(toggles.meetGreet);
+  if (code === MEET_GREET_CODE) return true;
   if (code === FREE_WAIT_CODE) return freeWaitIsOn(toggles);
   return toggles.extraCodes.includes(code);
 }
@@ -139,7 +133,7 @@ export type SnapshotExtraFare = {
 
 function isWaitingPayableCode(code: string): boolean {
   const n = normalizeSurchargeCode(code);
-  return n === "waiting_airport" || n === "waiting_city";
+  return n === "waiting_airport" || n === "waiting_city" || n === "extra_wait";
 }
 
 /** Selected extras with a book amount — for the snapshot recap, not a live catalog paint. */
@@ -162,13 +156,15 @@ function isExtraStopCode(code: string): boolean {
   return normalizeSurchargeCode(code) === "extra_stop";
 }
 
+/** Public extra-stop cap is hardcoded 1 (D-21). Ignore the live-book column. */
+export const PUBLIC_MAX_EXTRA_STOPS = 1;
+
 /**
- * Cap extra-stop places at the published book's max_extra_stops (D-37).
- * Null/missing max means no extra-stop places — do not invent a count.
+ * Cap extra-stop places at 1 (D-21). Book max_extra_stops is not the public cap.
  */
-export function capExtraStops(requested: number, maxFromBook: unknown): number {
+export function capExtraStops(requested: number, _maxFromBook?: unknown): number {
   const req = Number.isFinite(requested) ? Math.max(0, Math.trunc(requested)) : 0;
-  return Math.min(req, publishedMaxExtraStops(maxFromBook));
+  return Math.min(req, PUBLIC_MAX_EXTRA_STOPS);
 }
 
 /** Selected passenger extras that exist on the live book. Amounts stay the book values. */
@@ -179,7 +175,7 @@ export function recapExtraFares(
   const out: RecapExtraFare[] = [];
   for (const row of catalog) {
     const ui = extraUi(row.code);
-    if (!ui?.toggle) continue;
+    if (!ui) continue;
     if (!on(row.code)) continue;
     out.push({
       code: row.code,
@@ -229,16 +225,9 @@ type SurchargeLike = {
   active: boolean;
 };
 
-/** Published `rate_versions.max_extra_stops`. Missing/invalid → 0 (no extra places). */
-export function publishedMaxExtraStops(value: unknown): number {
-  if (typeof value === "number" && Number.isInteger(value) && value >= 0) {
-    return value;
-  }
-  if (typeof value === "string" && /^-?\d+$/.test(value.trim())) {
-    const n = Number(value);
-    if (Number.isInteger(n) && n >= 0) return n;
-  }
-  return 0;
+/** Public extra-stop cap is hardcoded 1 (D-21). The live-book column is ignored. */
+export function publishedMaxExtraStops(_value?: unknown): number {
+  return PUBLIC_MAX_EXTRA_STOPS;
 }
 
 /** Child seat / oversized / pet: book amount × quantity. Extra stop is not this. */
@@ -257,7 +246,7 @@ const FREE_WAIT_CARD: CheckoutExtraJson = {
   kind: "included",
   amount_rappen: null,
   percent: null,
-  toggle: true,
+  toggle: false,
 };
 
 /** Live surcharge chips only. Inactive and automatic kinds are omitted, not CHF 0. */

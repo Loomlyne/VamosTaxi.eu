@@ -45,6 +45,8 @@ function leg(partial: Partial<QuoteLegInput> = {}): QuoteLegInput {
     duration_s: partial.duration_s ?? 900,
     origin_zone_id: partial.origin_zone_id ?? "z-a",
     dest_zone_id: partial.dest_zone_id ?? "z-b",
+    origin_canton: partial.origin_canton ?? null,
+    dest_canton: partial.dest_canton ?? null,
     waypoints: partial.waypoints ?? [],
   };
 }
@@ -76,6 +78,7 @@ function fixed(
     vehicle_class_id: partial.vehicle_class_id,
     price_rappen: partial.price_rappen ?? null,
     live: partial.live ?? true,
+    kind: partial.kind,
   };
 }
 
@@ -241,6 +244,223 @@ describe("buildFareLine — fixed route (D-08)", () => {
     expect(viaFlag.amount_rappen).toBe(100 + perKm(50, 10_000));
   });
 
+  it("D-20: exact place wins over canton→canton", () => {
+    const zones: ZoneRow[] = [
+      {
+        id: "z-a",
+        slug: "zurich-hb",
+        iata: null,
+        active: true,
+        zone_type: "city",
+        tags: ["canton:ZH"],
+      },
+      {
+        id: "z-b",
+        slug: "zermatt",
+        iata: null,
+        active: true,
+        zone_type: "ski",
+        tags: ["canton:VS"],
+      },
+      {
+        id: "z-zh",
+        slug: "canton-zh",
+        iata: null,
+        active: true,
+        zone_type: "other",
+        tags: ["canton:ZH"],
+      },
+      {
+        id: "z-vs",
+        slug: "canton-vs",
+        iata: null,
+        active: true,
+        zone_type: "other",
+        tags: ["canton:VS"],
+      },
+    ];
+    const placeRow = fixed({
+      id: 1,
+      vehicle_class_id: business.id,
+      origin_zone_id: "z-a",
+      dest_zone_id: "z-b",
+      price_rappen: 5000,
+      live: true,
+      kind: "place",
+    });
+    const cantonRow = fixed({
+      id: 2,
+      vehicle_class_id: business.id,
+      origin_zone_id: "z-zh",
+      dest_zone_id: "z-vs",
+      price_rappen: 9000,
+      live: true,
+      kind: "canton",
+    });
+    const line = buildFareLine({
+      leg: leg({
+        origin_zone_id: "z-a",
+        dest_zone_id: "z-b",
+        origin_canton: "ZH",
+        dest_canton: "VS",
+        distance_m: 1000,
+      }),
+      vehicleClass: business,
+      distanceRate: rate({
+        vehicle_class_id: business.id,
+        base_fare_rappen: 100,
+        per_km_rappen: 200,
+      }),
+      fixedRoutes: [cantonRow, placeRow],
+      rateVersionId: 1,
+      zones,
+    });
+    expect(line.basis.rule).toBe("fixed_route");
+    expect(line.basis.matched).toBe("forward");
+    expect(line.amount_rappen).toBe(5000);
+  });
+
+  it("D-20: canton→canton when no place row; empty canton table does not block", () => {
+    const zones: ZoneRow[] = [
+      {
+        id: "z-zh",
+        slug: "canton-zh",
+        iata: null,
+        active: true,
+        zone_type: "other",
+        tags: ["canton:ZH"],
+      },
+      {
+        id: "z-vs",
+        slug: "canton-vs",
+        iata: null,
+        active: true,
+        zone_type: "other",
+        tags: ["canton:VS"],
+      },
+      {
+        id: "z-x",
+        slug: "hotel",
+        iata: null,
+        active: true,
+        zone_type: "city",
+        tags: [],
+      },
+      {
+        id: "z-y",
+        slug: "resort",
+        iata: null,
+        active: true,
+        zone_type: "ski",
+        tags: [],
+      },
+    ];
+    const cantonRow = fixed({
+      vehicle_class_id: business.id,
+      origin_zone_id: "z-zh",
+      dest_zone_id: "z-vs",
+      price_rappen: 8800,
+      live: true,
+      kind: "canton",
+    });
+    const cantonHit = buildFareLine({
+      leg: leg({
+        origin_zone_id: "z-x",
+        dest_zone_id: "z-y",
+        origin_canton: "ZH",
+        dest_canton: "VS",
+        distance_m: 1000,
+      }),
+      vehicleClass: business,
+      distanceRate: rate({
+        vehicle_class_id: business.id,
+        base_fare_rappen: 100,
+        per_km_rappen: 200,
+      }),
+      fixedRoutes: [cantonRow],
+      rateVersionId: 1,
+      zones,
+    });
+    expect(cantonHit.basis.matched).toBe("canton");
+    expect(cantonHit.amount_rappen).toBe(8800);
+
+    const noCantonRows = buildFareLine({
+      leg: leg({
+        origin_zone_id: "z-x",
+        dest_zone_id: "z-y",
+        origin_canton: "ZH",
+        dest_canton: "VS",
+        distance_m: 1000,
+      }),
+      vehicleClass: business,
+      distanceRate: rate({
+        vehicle_class_id: business.id,
+        base_fare_rappen: 100,
+        per_km_rappen: 200,
+      }),
+      fixedRoutes: [],
+      rateVersionId: 1,
+      zones,
+    });
+    expect(noCantonRows.basis.rule).toBe("per_km");
+    expect(noCantonRows.amount_rappen).toBe(100 + perKm(200, 1000));
+  });
+
+  it("D-20: airport terminal and saved airport pin are the same airport", () => {
+    const zones: ZoneRow[] = [
+      {
+        id: "z-pin",
+        slug: "zrh-pin",
+        iata: "ZRH",
+        active: true,
+        zone_type: "airport",
+        tags: [],
+      },
+      {
+        id: "z-term",
+        slug: "zrh-t2",
+        iata: "ZRH",
+        active: true,
+        zone_type: "airport",
+        tags: [],
+      },
+      {
+        id: "z-hotel",
+        slug: "hotel",
+        iata: null,
+        active: true,
+        zone_type: "city",
+        tags: [],
+      },
+    ];
+    const row = fixed({
+      vehicle_class_id: business.id,
+      origin_zone_id: "z-pin",
+      dest_zone_id: "z-hotel",
+      price_rappen: 6100,
+      live: true,
+      kind: "place",
+    });
+    const line = buildFareLine({
+      leg: leg({
+        origin_zone_id: "z-term",
+        dest_zone_id: "z-hotel",
+        distance_m: 1000,
+      }),
+      vehicleClass: business,
+      distanceRate: rate({
+        vehicle_class_id: business.id,
+        base_fare_rappen: 100,
+        per_km_rappen: 200,
+      }),
+      fixedRoutes: [row],
+      rateVersionId: 1,
+      zones,
+    });
+    expect(line.basis.matched).toBe("forward");
+    expect(line.amount_rappen).toBe(6100);
+  });
+
   it("does not match a live:false fixed route — falls to per-km", () => {
     const fr = fixed({
       vehicle_class_id: business.id,
@@ -385,7 +605,7 @@ describe("buildFareLine — D-11 D-12 D-13 D-14 live distance recipe", () => {
     expect(openLast.amount_rappen).toBe(perKm(1000, 30_000) + perKm(200, 20_000));
   });
 
-  it("D-14: overlapping bands, higher per_km_rappen wins", () => {
+  it("corrupt overlapping book still prices; Publish must refuse overlap", () => {
     const line = buildFareLine({
       leg: leg({ distance_m: 70_000 }),
       vehicleClass: economy,
@@ -738,7 +958,7 @@ describe("buildExtraLines (D-45)", () => {
     const lines = buildExtraLines({
       legs: legsTwo,
       surcharges: [stop],
-      extras: { extra_stops: 2 },
+      extras: { extra_stops: 1 },
       rateVersionId: 1,
     });
     expect(lines).toHaveLength(0);

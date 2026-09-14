@@ -1,173 +1,173 @@
 # Phase 18: OPS Pricing source of truth - Context
 
 **Gathered:** 2026-09-13
-**Status:** Ready for planning
-**Does not steal Phase 11.** First public CHF is still the owner Publish click on the live page. Do not reopen launch cutover. Do not bind `vamostaxi.eu`. Stripe stays test until the owner says live keys.
+**Restarted:** 2026-09-14
+**Status:** Ready for execution (pre-execution artifacts aligned 2026-09-14)
+**Does not steal Phase 11.** Do not bind `vamostaxi.eu`. Stripe stays test until the owner says live keys. Agent does not click Publish. Agent does not `supabase db push`.
+
+This file **supersedes** the 2026-09-13 D-01…D-40 list wherever they conflict. 2026-09-13 plans live in `archive-2026-09-13/` as history — do not execute them.
 
 ## Phase Boundary
 
-Rebuild `https://dashboard.vamostaxi.site/pricing` as the **only** fare configuration. Every add, edit, delete, and Publish on this page is the source of the route calculation. After a successful Publish, the next home quote, checkout recap, confirmation, ops amounts, Stripe charge, and **new** booking mail all read this published book immediately, all-or-nothing.
+`https://dashboard.vamostaxi.site/pricing` is the **only** fare book. Every add, edit, delete, and Save on that page is a **draft** until **Publish**. After a successful Publish, the next home quote, checkout recap, confirmation, ops amounts, Stripe charge, and new booking mail all read that published book immediately, all-or-nothing.
 
-Until Publish, public and ops board stay on the last published book, or `CHF 000` if there has never been a Publish. Charge is always CHF. Return stays out of V1. No driver app. No auto-dispatch. No live Stripe keys. No `.eu`.
+Public Mapbox works like Google Maps: type, see places, not limited to Switzerland. Charge is always CHF. Return stays out of V1. No live Stripe keys. No `.eu`.
 
-Current `/pricing` stays the fare book until this editor ships. This phase does **not** block Phase 11 Publish.
+**2026-09-14 restart:** Owner UAT proved the public site still invented a four-class ladder after Publish. Phase 18 is not complete. Replan from wave 1. Keep shipping kernel (publish tx, D-11-style money, `/pricing` editor). Do not keep a hardcoded Economy / Business / First / Van public board.
 
 ## Implementation Decisions
 
-### Go-live / Publish
+### Draft / Publish
 
-- **D-01:** Save on a row overlay writes the **draft** immediately. Public, ops board, checkout, Stripe, and new mail do not change until Publish.
-- **D-02:** Publish is the only flip. Next quote uses the new book with no wait. All-or-nothing — if quote, checkout, Stripe, ops, or new mail would disagree, nothing flips. Show the **exact** error and what was not configured. Confirm shows the change list plus errors; the admin fixes visible gaps, then confirms.
-- **D-03:** VAT % waits for the same Publish click. Today’s instant `PATCH` stays until this phase ships.
-- **D-04:** Route Live, deletes, coupon edits, class hide, max pax, night/weekend/holiday/waiting/lock/service area all wait for Publish.
-- **D-05:** Ops board / internal booking totals = published book, or `CHF 000` until first Publish. **Exception:** the preview on this page may show **draft** CHF. That is the only place draft totals appear.
-- **D-06:** No unpublish back to `CHF 000`. Only a later Publish replaces the book. After a successful Publish, a **new draft is cloned from live**. Public stays on the old book until the next Publish.
-- **D-07:** This page is **admin-only**. Dispatcher / non-admin `/pricing` → not found / no access. Two admins: last successful Publish wins; the other sees the exact error.
-- **D-08:** Publish stays blocked until every priced field is filled. Gaps = missing required class fields (**name, start, per-km, max pax**) plus any row the admin added that is still empty. Bands/surcharges may be empty if they never added a row.
-- **D-09:** History is a fifth tab. Empty before first Publish. Cannot delete rows. Current live is marked. Row shows Zurich date/time, who published, gap-free, then details. Details = full change list vs the previous published book. Re-Publish an old book = same as a new Publish (confirm, mails, locks). Cannot edit a past book in place — clone to a new draft, then edit.
-- **D-10:** Discard draft: confirm first. Last published stays live. History unchanged. Page shows a new draft cloned from live. If there has **never** been a Publish: draft gone, page empty, public still `CHF 000`.
+- **D-01:** Anything on `/pricing` (every tab, VAT rail, overlays) stays **draft** until Publish. No exceptions.
+- **D-02:** Typing is not a draft. Leave without Save → those edits are gone. **Save** creates the draft. **Publish** puts that draft on the public site.
+- **D-03:** After Publish, `/pricing` shows the **live book** (what customers see). The next Save starts a new draft.
+- **D-04:** One draft for the **whole fare book**. One Publish flips every tab saved since the last Publish.
+- **D-05:** A saved draft has a **clear Draft mark** — these numbers are not public until Publish.
+- **D-06:** Discard: **confirm**, then draft gone, page shows live book. Public never moved.
+- **D-07:** Publish opens a **confirm dialog with the change list** vs the last published book.
+- **D-08:** Gaps and conflicts: dialog names the **exact** problem and a **button jumps to that section/overlay**. Failed Publish **keeps the draft**. Public unchanged. Fix and Publish again, or Discard and start from the live book.
+- **D-09:** Publish is **all-or-nothing**. If quote, checkout, Stripe, ops, or new mail would disagree, nothing goes live.
+- **D-10:** Publish stays blocked until every required class field is filled (see D-30). Dialog lists exact gaps.
+- **D-11:** **No History tab.** No history list, no Re-Publish of an old book. Tabs: **Fixed routes · Distance rules · Surcharges & extras · Coupons**.
+- **D-12:** **No Preview** on `/pricing`. No test unpaid from this page. VAT % stays on the sticky rail and still waits for Publish (D-01).
+- **D-13:** Quote lock is **fixed 24 hours**, not a field. Unpaid keep the locked old amount until then, then the unpaid trip auto-cancels. They must quote again. Select on home cards with no Select yet + Publish → Select refused; quote again. Paid trips **keep the snapshot**; a later Publish does not change them.
+- **D-14:** `/pricing` is **admin only**. One staff account type. Do not invent a second ops role on this page or in this phase’s copy.
 
-### Money recipe
+### Money recipe (public after Publish)
 
-- **D-11:** Distance class money is **start** (base, not related to included km) **+ (all km × per-km) + bands on top**. Example the owner gave: Economy start 10 + 40 km × per-km. First-X-km floor is **not** extra — **remove that field** from this page.
-- **D-12:** A 1 km trip uses the same recipe. No separate minimum.
-- **D-13:** Exact km × rate (12.3 km stays 12.3), then **normal round to the rappen**. Not Swiss 5-rappen.
-- **D-14:** Km bands are a **separate table per class**. A band amount is **CHF per km in that slice, on top of class per-km**. Open last band (no To) is allowed. From inclusive, To exclusive, except the open last band. No band rows → start + (km × per-km) only. Overlap: warn on confirm, still allow Publish, **higher CHF per km** wins.
-- **D-15:** Region % is percent of **start + km + bands**, before extras/VAT. Two matching zones: highest percent wins (warn, still Publish). Match when the pin is **inside the Mapbox zone**.
-- **D-16:** VAT is percent of fare + extras. **Coupon applies before VAT.** Payable floors at `CHF 0.00`. VAT still waits for Publish (D-03).
-- **D-17:** If From and To match a fixed route **and** the km engine, **fixed route wins**. Match = same Mapbox place; **same airport counts** (terminal vs saved airport pin). A→B and B→A are **separate rows**. Save without Mapbox From and To is blocked. Empty class on a route = that class not offered; other classes still match. An extra stop on a fixed-route trip **switches to the distance recipe** for the new path.
-- **D-18:** Charge always CHF. This page has **no EUR/USD columns**. Mails show CHF only. Header FX converts display on public quote numbers only — no second price book.
-- **D-19:** Admin can **add and remove as many classes** as they want. A class can be **hidden from public** (listed, not selectable, `CHF 000` / Select off) while **ops still sees and can assign it**. If quote pax is over max pax, that class is not offered on the public quote.
+Owner examples (illustration, not live fares):
 
-### Unpaid quotes after Publish
+- Start **100** + **14.6 km × 12** = 100 + 175.2 = **CHF 275.20**
+- **12.3 km × 10** = **CHF 123** km money
 
-- **D-20:** New quotes use the new book immediately. A **locked** checkout keeps the locked amount until it expires or they start over. Quote lock length is a field on this page, in **hours**.
-- **D-21:** Home class cards on screen with **no Select yet** + Publish → Select is **refused**; they must quote again.
-- **D-22:** Unpaid booking, emailed pay-link, and open Stripe session keep the old amount until the lock expires, then the **whole unpaid trip auto-cancels**. They rebook from home.
-- **D-23:** Pay before expiry → charge the locked old amount; confirmation voucher is that **snapshot**, not the new book. Stripe webhook after expiry → **do not capture**.
-- **D-24:** Each Publish sends a branded **price-changed** mail to the booking contact only, booking language (en/de/fr/ar), **old locked amount only** (no new book numbers), button to the existing unpaid / pay page. Skip that mail if they already paid. When the lock expires: second branded **expired** mail, button to the **home booking box**. Account holders see the trip as cancelled on account **and** get the expired mail. Guests get the same two mails. **Owner supplies English later. Do not invent copy.** Translate de/fr/ar in the same sitting when copy exists.
-- **D-25:** Ops board / detail still show the unpaid trip at the old locked amount until expiry. Dispatcher **cannot** take it at a different CHF. Ops manual phone booking uses the **last published book**, or cannot book until first Publish. Never the draft.
-- **D-26:** Any Stripe method (card / Apple Pay / Link) at the locked amount until expiry.
+- **D-15:** Distance class money is **start** (once per trip, not included km) **+ (all km × per-km) + bands on top**. A 1 km trip uses the same recipe. No minimum fare. No first-X-km floor.
+- **D-16:** Per-km and start are typed on `/pricing`. Kilometres stay exact (14.6 stays 14.6). Cents are allowed (3.20, 275.20). Do **not** invent a separate “round to 0.01” product rule beyond keeping the real product of km × rate + start + bands.
+- **D-17:** **No region %.** Delete it from the Distance tab, from calculation, and from recap.
+- **D-18:** **Bands** are an optional table per class. Amount is **CHF per km in that slice, on top of class per-km**. No band rows → start + km only. From **inclusive**, To **exclusive**. Open last band (no To) allowed. **Overlap blocks Publish** until fixed.
+- **D-19:** Price stack for a matching trip: always **able** to compute km. If a **fixed route matches** what they picked on the public booking flow, **that CHF dominates**. Else km + bands.
+- **D-20:** Fixed routes live on the **Fixed routes** tab. Two kinds of row: (1) **Mapbox place → place** (exact From/To; airport terminal and saved airport pin count as the same airport; A→B and B→A are **separate** rows; Save requires both Mapbox places). (2) **Canton → canton**. Exact place match wins over canton→canton. If you add no matching fixed row, use Distance rules. Not adding canton rows does **not** block quotes.
+- **D-21:** Extra stop: they add **one** Mapbox place (max extra stops **hardcoded 1**). Fare **re-runs** start + full new path km × per-km + bands. Not a fixed CHF per stop. Extra stop on a fixed-route trip **switches to the distance recipe**.
+- **D-22:** Checkout extras (child seat, pet, ski, …): **amount × quantity**, after ride money, **before VAT**. Delete the extra and Publish → **gone** from checkout (not a CHF 0 chip).
+- **D-23:** Meet & greet and free airport wait are **always on**; customer cannot turn them off. Meet & greet is **CHF 0 included** (recap may say included). Free wait hours is a field on `/pricing` (set to **1h** now). Extra wait **after** that is **per hour**, amount on `/pricing`. Extra wait is **not** in the Stripe pay-now amount. Ops marks arrival; then extra hours bill. Do not silent-debit the card from this phase.
+- **D-24:** VAT % (rail) is percent of **(ride + extras − coupon)**. Coupon **before VAT**. One coupon per booking. Payable floors at **CHF 0.00**. Public VAT/coupon after Publish only. Coupon codes **case-insensitive**, trim spaces. Percent off or fixed CHF off, dates/cap, all classes.
+- **D-25:** **No night extra. No weekend extra. No holiday extra.**
+- **D-26:** Mapbox on the public flow shows **everything they type**, like Google Maps. **No canton tick-list fence.** No quote only when Mapbox cannot produce a real From and To. Canton is used for **fixed-route matching** (D-20), not to hide the map.
+- **D-27:** After Publish this same math is used by: next home quote, checkout recap, confirmation, ops amounts, Stripe, new booking mail. Header EUR/USD is **display only**. Charge and receipts **CHF**.
+- **D-28:** Checkout recap top to bottom: **start, km, bands, automatic wait if it applies, customer extras, VAT, total**. All CHF. No region. No night/weekend/holiday lines.
 
-### This page UI
+### Classes (public follows the live book)
 
-- **D-27:** **New layout from scratch**, still Vamos tokens (Qurova, `#FDC20B`, `--vt-*` only). UI-SPEC in this phase. **Desktop, tablet, and mobile** — responsiveness is required, not optional.
-- **D-28:** Left tabs: **Fixed routes · Distance rules · Surcharges & extras · Coupons · History**. Old `#coupons` page is **gone**. Add / hide / remove class lives on **Distance rules**.
-- **D-29:** VAT % stays on the **sticky rail**. Discard draft and Publish sit in the **header**. Preview sits in the sticky rail under VAT / Publish. Preview uses the **draft**, inputs = From/To Mapbox, when, class, pax, extras, coupon. Recap top to bottom: start, km, bands, region %, extras, VAT, total. Empty class = `CHF 000` and not selectable. Preview may **create a test unpaid** (see D-33). Preview never charges Stripe.
-- **D-30:** Surcharges pane has **two tables**: (1) **rules** the admin adds (night window start/end, weekend days default Sat–Sun, holiday dates they add, waiting unit they choose — minute / hour / day / anything, quote-lock hours, free-wait hours, max extra stops, service area); (2) **surcharge rows** that pick one of those rules. Every From / To / zone / service-area field is **Mapbox**. Timezone for those windows stays **Europe/Zurich** as a product law, not a field.
-- **D-31:** Drop the charcoal “every figure is a placeholder” note. New words: English first, translate de/fr/ar same sitting. **Arabic RTL**. Phone: same controls, rail scrolls, tables swipe.
-- **D-32:** Publish confirm is a **dialog on this page**, not a separate route.
+- **D-29:** Admin **adds, edits, deletes** any class. No hardcoded four-class ladder on home, checkout, or quote. A new class (any name) appears after Publish with the name they typed.
+- **D-30:** Required to Publish a class: **photo, name, start, per-km, max passengers, max bags**. Photo: upload / replace / delete on any class. Stored on **R2**, not local. No photo → cannot Publish. Public card shows name, photo, seats, bags, price from this book.
+- **D-31:** Delete a class + Publish → **gone** from home and checkout. Not a grey card, not `CHF 000`.
+- **D-32:** **Hide from public** still exists: listed, Select off, `CHF 000`. Board can still assign it.
+- **D-33:** Quote pax over max passengers → class **not offered**.
 
-### Test unpaid from preview
+### Surcharges & extras tab (rebuild from scratch)
 
-- **D-33:** Admin on this page only. Unpaid only — **no Stripe session**. Contact email is typed on the preview. **No mails**. Appears on ops board **marked test**. Dispatch may assign; it is still **not** a paid customer trip. Public `/bookings` for that email may show Needs payment but **Pay is off**. Uses the **draft** even if not Published. Dies on the same lock expiry as real unpaid (auto-cancel).
-
-### Coupons tab
-
-- **D-34:** Percent off **or** fixed CHF off, plus dates / cap. Applies to **all classes**. One coupon per booking. **Coupon before VAT**. Public cannot use a new coupon until Publish. Preview can test a code and include it in recap. Code is **case-insensitive, trim spaces**. Existing unpaid lock **keeps** its coupon and old amount until expiry. If coupon would go below 0 → floor `CHF 0.00`.
-
-### Extras / checkout
-
-- **D-35:** After Publish, the checkout extras list is **built from this page’s surcharge rows**. Delete the row and Publish → that extra **disappears** from checkout (not a CHF 0 chip).
-- **D-36:** Each rule is either **automatic** (night / weekend / holiday / waiting — never a chip; apply when the **scheduled pickup in Zurich** is in that window; night **may cross midnight**) or a **checkout extra chip**. New customer extras (pet, etc.) **must appear on checkout after Publish**. Name: owner types English here; translate de/fr/ar same sitting. Icon from the existing Icon set.
-- **D-37:** Extra stop is **not** a fixed amount. Mapbox place on `/checkout/details`, live re-run of the distance recipe (start + km × per-km + bands + region). Max extra stops is a field on this page. Child seat / oversized / pet: amount on this page × quantity on checkout, recap live. Ski with an amount = paid extra, not request-only.
-- **D-38:** Meet & greet and free airport wait are **two cards**, both auto-on, each can be turned off. Meet off → no meet line; waiting uses the paid rule only. Free wait is **airport pickup only** (and the owner’s “airport to pickup 1h included” is this free-wait field, not a hardcoded 1h forever). Extra waiting after free wait: **CHF 0 at pay**. Ops marks arrival, then extra uses this page’s unit/amount. Owner wants that extra **taken automatically from the saved payment without a confirmation**. Plan must treat SCA / off-session Stripe as a gate — do not invent legal copy.
-- **D-39:** Service area Mapbox on this page. Vamos quotes only when **pickup and dropoff are both inside**. Otherwise no quote — classes not offered.
-
-### vs Phase 11 / launch
-
-- **D-40:** First public CHF is **when the owner clicks Publish on the live page now**. This editor does not block that. Until this editor is live, the **current** Pricing page is still the fare book (Save draft, Publish as today). After that first Publish, this phase’s editor still uses Publish as the only click that updates public / ops / Stripe / new quotes. `vamostaxi.eu` stays forgotten until the owner says so. Live Stripe keys stay owner-gated.
+- **D-34:** **One list.** Each row is a **type** + only that type’s configuration (+ amount if the type has money). Add/Edit dialog: pick type, fields for that type, a short “what this does”. Nothing extra in the dialog. Rules on this table are the source.
+- **D-35:** Checkout extras are a **type in that same dialog** (name, CHF, icon). Ski is a checkout extra like pet. Extra wait / free-wait hours are configured here as that type’s fields (D-23). Quote lock is **not** a row (D-13). Night/weekend/holiday are **not** types (D-25).
 
 ### Claude's Discretion
 
-- Open last km band allowed.
-- Band From inclusive, To exclusive except open last.
-- Overlapping region %: highest wins, warn, still Publish.
-- Meet & greet turned back on: free wait applies again, recap live.
-- Arabic RTL (owner said you decide).
-- Add / hide / remove class on Distance rules pane.
-- History details = overlay/page with full change list.
-- Extra wait clock starts when ops marks arrival.
-- Preview recap line order as D-29.
-- New class required fields after removing first-X-km: name, start, per-km, max pax.
+- How Mapbox admin-area canton is read for canton→canton match when no exact place route exists.
+- Band table UI on Distance rules (From / To / CHF per km).
+- Draft mark visual: charcoal/yellow tokens only, no glow, no pale-yellow tint.
+- Jump-to-gap button: switch tab + open the overlay for that row.
+- Four-language copy same sitting; Arabic RTL.
+- Dual DC: edit `app/` then `node scripts/sync-dc-mock-to-public.mjs`.
+- First new wave: public home / checkout / quote are a **pure read of the live book**. Live UAT (owner Publishes): delete class → no card; change per-km → next quote matches the recipe; new class appears. Agent does not click Publish.
+- `quote_rate_book` must not invent classes. SQL vs Worker filter is a plan choice; owner apply is a numbered gate if SQL changes.
+- Extra-wait SCA / off-session Stripe: do not ship a silent debit.
 
 ## Canonical References
 
 Downstream agents MUST read these before planning or implementing.
 
 ### This discussion
-- `.planning/phases/18-ops-pricing-source/18-CONTEXT.md` — this file
+- `.planning/phases/18-ops-pricing-source/18-CONTEXT.md` — this file (wins on conflict)
+- `.planning/phases/18-ops-pricing-source/18-DISCUSSION-LOG.md` — audit only
+- `.planning/phases/18-ops-pricing-source/18-RESEARCH.md` — 2026-09-14 restart
+- `.planning/phases/18-ops-pricing-source/18-PATTERNS.md` — 2026-09-14 restart analog map (dead: History / Preview / region / fork-after-Publish)
+- `.planning/phases/18-ops-pricing-source/18-UI-SPEC.md` — 2026-09-14 restart, approved (four tabs, VAT-only rail, no History/Preview). CONTEXT still wins if a later discuss changes a D-number.
 
 ### Phase 11 (do not reopen; inherit)
-- `.planning/phases/11-launch-cutover/11-CONTEXT.md` — D-16 this page is the only fare control; D-18 Publish = live book + `public_chf`; D-19 `CHF 000` until that click; D-20 Stripe test until owner says; D-22 no `.eu`
+- `.planning/phases/11-launch-cutover/11-CONTEXT.md` — this page is the only fare control; Publish = live book + `public_chf`; Stripe test; no `.eu`
 - `docs/runbooks/quote-publish.md` — Hyperdrive nocache, snapshot at pay, paid trips never reprice
 
 ### Pricing engine / ops page
-- `app/ops/OpsPricing.dc.html` — current DC (rebuild layout, keep product nouns unless CONTEXT overrides)
-- `apps/web/lib/pricing/priceQuote.ts` — today’s quote recipe; this phase **replaces** first-20-km floor stacking with D-11
-- `apps/web/lib/checkout/vat.ts` — `CH_VAT_RATE_BPS` fallback 81; VAT still from `settings.vat_rate_bps` after Publish
-- `apps/web/app/[locale]/(ops)/api/staff/rate-versions/` — publish path must keep `public_chf` flip
-- `apps/web/app/[locale]/(ops)/api/staff/settings/route.ts` — VAT; this phase must stop applying VAT without Publish
-- `packages/db/supabase/migrations/20260913000001_launch_public_chf_vat.sql` — already applied on Zurich
+- `app/ops/OpsPricing.dc.html` — rebuild tabs/surcharges/draft UX per this CONTEXT
+- `apps/web/lib/pricing/priceQuote.ts` — recipe must match D-15…D-28
+- `apps/web/lib/pricing/eligibility.ts` — delete ≠ hide (D-31 / D-32)
+- `apps/web/lib/checkout/vat.ts` — VAT from published `settings.vat_rate_bps`
+- `apps/web/app/[locale]/(ops)/api/staff/rate-versions/[id]/publish/route.ts` — INSERT clone of `settings_versions`; never UPDATE append-only
+- `packages/db/supabase/migrations/20260913180000_ops_pricing_source.sql` — already applied; do not re-apply; do not `db push`
 
-### Design
-- `CLAUDE.md` — `--vt-*` only, Lucide via `Icon`, amounts `CHF 000` / `CHF 00.00`
-- `app/ops/OpsPricing.dc.html` T blocks en/de/fr/ar
+### Public four-class ladder (must die)
+- `app/home/home.dc.html` — `VEHICLE_CLASSES`
+- `apps/web/components/home/BookingBoard.tsx`
+- `apps/web/app/[locale]/checkout/CheckoutClassCards.tsx`
+- `apps/web/app/[locale]/checkout/CheckoutClient.tsx`
+- `apps/web/app/[locale]/(ops)/api/staff/rate-book/route.ts` — `KNOWN_CLASS_SLUGS`
+- `app/vamos-ops-data.js`
+- `apps/web/lib/quote/intent.ts`
+
+### Design / i18n
+- `CLAUDE.md` — `--vt-*` only, Lucide via `Icon`, amounts `CHF 000` / `CHF 00.00`, `--vt-shadow-accent:none`, `.vt-input--focus{box-shadow:none}`
+- `app/vamos-i18n-dict.js` — en/de/fr/ar same sitting
 
 ### Must-not
 - No `sk_live_`
-- No `vamostaxi.eu` DNS / wrangler bind
+- No `vamostaxi.eu`
 - No restore onto `yaumjzvylngfjhtuffqs`
 - No inventing CHF, legal copy, or mail wording
 - No push `main`; Worker `vamos` staging only until owner says
+- No History, no Preview on `/pricing`, no region %
 
 ## Existing Code Insights
 
 ### Reusable Assets
-- `OpsPricing.dc.html` panes, `OpsTable`, overlay Save → `PUT` rate-book, Publish → `POST /api/staff/rate-versions/:id/publish`
-- `quote_rate_book` RPC + `asQuote` — public quote flags; keep nocache after Publish
-- Checkout extras GET + intent POST already carry `vat_rate_bps`
-- Booking snapshot at pay (do not rewrite confirmation on later Publish)
-- Mapbox retrieve/suggest used on public quote — reuse on this page and extra stop
-- Coupons today live on a separate ops page — **move** into this tab and delete `#coupons`
+- Overlay Save → draft rate-book APIs; Publish → `POST /api/staff/rate-versions/:id/publish`
+- `quote_rate_book` RPC + `asQuote` — keep nocache after Publish
+- Mapbox suggest/retrieve on public quote — keep Google-Maps-like, do not shrink to CH-only
+- Booking snapshot at pay
+- R2 already used for chauffeur photos — class photos follow that pattern
 
 ### Established Patterns
 - Dual DC: `app/ops/` is source; Worker serves `apps/web/public/app/ops/`
-- Admin vs dispatcher hash; this page admin-only
-- Guest unpaid + manage link; lock expiry already exists — reuse for D-22
-- Four locales same sitting; no Language row on legal
+- Four locales same sitting
 
 ### Integration Points
-- `priceQuote` / class floors / bands / region / extras
 - Home class cards + Select
-- `/checkout/details` extras + extra-stop Mapbox + live recap
+- Checkout extras + extra-stop Mapbox + recap
 - Stripe Checkout amount = published book + VAT at **lock** time
-- Resend confirmation = snapshot; new price-changed / expired mails (copy TBC)
-- Ops board amounts + assignment (hidden classes still assignable)
-- Settings `public_chf` / `vat_rate_bps`
+- Ops board amounts + assignment of hidden classes (D-32)
+
+### Landmines
+- Homepage painted four classes after Economy was deleted from the live book
+- After Publish, do **not** immediately fork a draft that makes `/pricing` look unlike public (D-03)
+- Dual DC: do not strip injected `<base href="/app/ops/">` on the public ops copy
 
 ## Specific Ideas
 
-- Owner example (illustration only, not a live fare): Economy start 10 + 40 km × per-km.
-- Extra wait: paid route first; free wait field; then extra per unit **automatically from the bank** without confirmation — SCA / off-session is a plan gate.
-- Extra stop: they add **where** they want to stop; km and total update live on details.
-- History tab under Coupons; click opens the change list.
-- Rules table sits **below** add-surcharge; a surcharge picks a rule.
-- Test unpaid from preview: typed email, board marked test, Pay off.
-- Responsiveness: desktop, tablet, mobile — take it seriously.
+- Owner km example: start 100 + 14.6 × 12 = 275.20; 12.3 × 10 = 123 km line.
+- Extra wait: 2h wait → 1h free + 1h billed; not in pay-now.
+- Surcharges tab: owner pinned live `/pricing` — rules table is the source; add dialog is type + configuration only; show nothing extra in that dialog.
+- Done = live UAT on `vamostaxi.site` / `dashboard.vamostaxi.site`. Owner clicks Publish.
 
 ## Deferred Ideas
 
-- **Redesign home / checkout / confirmation layout** — owner asked; those pages only take **numbers** from this book in this phase. Layout redesign is its own phase.
-- Live Stripe keys — owner gate, not this phase.
-- `vamostaxi.eu` — forgotten until owner says.
-- Google Search Console sitemap submit — after all V1 phases.
-- JSON-LD — not this phase.
-- Practice restore — parked; never restore onto `yaumjzvylngfjhtuffqs`.
-- Mail English copy — owner will supply; do not invent.
-- Extra-wait off-session charge without customer confirmation — may need a legal/Stripe sub-gate inside the plan; do not ship a silent debit without that gate.
+- Redesign home / checkout / confirmation **layout** (numbers and which cards appear are this phase)
+- Live Stripe keys
+- `vamostaxi.eu`
+- Search Console / JSON-LD
+- Invented mail copy (price-changed / expired: skip-send until owner English)
+- Extra-wait automatic card debit without customer confirmation
+- Return trips
 
 ---
 
 *Phase: 18-OPS Pricing source of truth*
 *Context gathered: 2026-09-13*
+*Restart context: 2026-09-14*

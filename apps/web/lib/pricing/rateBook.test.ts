@@ -87,10 +87,32 @@ describe("mapRateBook", () => {
       },
     ];
     const reversed = [classes[1], classes[0]];
+    const distance_rates = [
+      {
+        id: 10,
+        rate_version_id: 1,
+        vehicle_class_id: "vc-van",
+        base_fare_rappen: null,
+        per_km_rappen: null,
+        min_fare_rappen: null,
+        max_pax: 8,
+        available: true,
+      },
+      {
+        id: 11,
+        rate_version_id: 1,
+        vehicle_class_id: "vc-economy",
+        base_fare_rappen: null,
+        per_km_rappen: null,
+        min_fare_rappen: null,
+        max_pax: 3,
+        available: true,
+      },
+    ];
     const asWritten = mapRateBook({
       rate_version: null,
       classes,
-      distance_rates: [],
+      distance_rates,
       fixed_routes: [],
       surcharges: [],
       zones: [],
@@ -98,7 +120,7 @@ describe("mapRateBook", () => {
     const asReversed = mapRateBook({
       rate_version: null,
       classes: reversed,
-      distance_rates: [],
+      distance_rates,
       fixed_routes: [],
       surcharges: [],
       zones: [],
@@ -108,6 +130,47 @@ describe("mapRateBook", () => {
       "vc-economy",
       "vc-van",
     ]);
+  });
+
+  it("drops unrated leftover classes; keeps a non-ladder slug that is rated (D-29 D-31)", () => {
+    const book = mapRateBook({
+      rate_version: { id: 1, slug: "live", status: "live" },
+      classes: [
+        {
+          id: "vc-economy",
+          slug: "economy",
+          passenger_capacity: 3,
+          luggage_capacity: 3,
+          sort_order: 1,
+          active: true,
+        },
+        {
+          id: "vc-suv",
+          slug: "suv",
+          passenger_capacity: 4,
+          luggage_capacity: 3,
+          sort_order: 2,
+          active: true,
+        },
+      ],
+      distance_rates: [
+        {
+          id: 1,
+          rate_version_id: 1,
+          vehicle_class_id: "vc-suv",
+          base_fare_rappen: null,
+          per_km_rappen: null,
+          min_fare_rappen: null,
+          max_pax: 4,
+          available: true,
+        },
+      ],
+      fixed_routes: [],
+      surcharges: [],
+      zones: [],
+    });
+    expect(book.classes.map((c) => c.slug)).toEqual(["suv"]);
+    expect(book.classes).toHaveLength(1);
   });
 
   it("passes an unrecognised predicate kind through to the kernel", () => {

@@ -36,14 +36,15 @@ describe("rate-book overlay Save is draft (D-01 D-04 D-18 D-20)", () => {
     expect(src).not.toMatch(/\bAED\b/);
   });
 
-  it("accepts kind band (and region, rule, coupon) on the writable draft", () => {
+  it("accepts kind band, rule, coupon on the writable draft; rejects region (D-17)", () => {
     const src = webSource(ROUTE);
     expect(src).toMatch(
-      /\["route", "distance", "band", "region", "surcharge", "rule", "coupon"\]/,
+      /\["route", "distance", "band", "surcharge", "rule", "coupon"\]/,
     );
+    expect(src).not.toMatch(/kind === "region"/);
     expect(src).toMatch(/if \(kind === "band"\)/);
     expect(src).toMatch(/insert into public\.distance_bands/);
-    expect(src).toMatch(/insert into public\.region_premiums/);
+    expect(src).not.toMatch(/insert into public\.region_premiums/);
     expect(src).toMatch(/insert into public\.rate_version_rules/);
   });
 
@@ -58,6 +59,28 @@ describe("rate-book overlay Save is draft (D-01 D-04 D-18 D-20)", () => {
   it("blocks Save route without Mapbox From and To (D-17)", () => {
     const src = webSource(ROUTE);
     expect(src).toMatch(/if \(!hasMapboxFromTo\(recBody\)\) return jsonErr\("mapbox", 400\)/);
+  });
+
+  it("hydrates bands, rules, region premiums and zones on GET payload", () => {
+    const src = webSource(ROUTE);
+    expect(src).toMatch(/bands: mockBands\(book\)/);
+    expect(src).toMatch(/regionPremiums: mockRegionPremiums\(book, zones\)/);
+    expect(src).toMatch(/rules: mockRules\(book\)/);
+    expect(src).toMatch(/zones: mockZones\(zones\)/);
+    expect(src).toMatch(/ruleId: row.ruleId == null \? "" : String\(row.ruleId\)/);
+  });
+
+  it("deletes every class row on a From/To pair, not only the grouped id", () => {
+    const src = webSource(ROUTE);
+    expect(src).toMatch(/\(origin_zone_id, dest_zone_id\) in \(/);
+    expect(src).toMatch(/select origin_zone_id, dest_zone_id/);
+  });
+
+  it("writes surcharge without requiring a rules-table row (D-34)", () => {
+    const src = webSource(ROUTE);
+    expect(src).toMatch(/ruleId: optionalId\(body\.ruleId \?\? body\.rule_id\)/);
+    expect(src).not.toMatch(/if \(parsed\.ruleId == null\) return jsonErr\("invalid", 400\)/);
+    expect(src).toMatch(/rule_id = \$\{parsed\.ruleId\}/);
   });
 
   it("dual-mount re-exports GET PUT DELETE", () => {

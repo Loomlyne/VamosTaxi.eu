@@ -96,7 +96,7 @@ describe("classBandExtrasRappen — D-11 D-12 D-13 D-14 per-class extras on top 
     );
   });
 
-  it("D-14: overlapping bands, higher per_km_rappen wins", () => {
+  it("corrupt overlapping book still prices; Publish must refuse overlap", () => {
     const rows = [
       band({
         id: 1,

@@ -24,12 +24,11 @@ const OPS_PUBLIC = join(webRoot, "public/app/ops/ops.dc.html");
 const DATA_CANONICAL = join(repoRoot, "app/vamos-ops-data.js");
 const DATA_PUBLIC = join(webRoot, "public/app/vamos-ops-data.js");
 
-const FIVE_TABS = [
+const FOUR_TABS = [
   "Fixed routes",
   "Distance rules",
   "Surcharges & extras",
   "Coupons",
-  "History",
 ] as const;
 
 const LANGS = ["en", "de", "fr", "ar"] as const;
@@ -49,18 +48,22 @@ describe("OpsPricing source of truth dual copy (D-27 D-28 D-31)", () => {
     byteEqual(SIDEBAR_CANONICAL, SIDEBAR_PUBLIC);
   });
 
-  it("ops.dc.html and vamos-ops-data.js dual copies are byte-equal", () => {
-    byteEqual(OPS_CANONICAL, OPS_PUBLIC);
+  it("ops.dc.html public copy keeps the injected ops base href", () => {
+    expect(existsSync(OPS_CANONICAL)).toBe(true);
+    expect(existsSync(OPS_PUBLIC)).toBe(true);
+    expect(readFileSync(OPS_PUBLIC, "utf8")).toContain('<base href="/app/ops/">');
     byteEqual(DATA_CANONICAL, DATA_PUBLIC);
   });
 
-  it("names five UI-SPEC tabs and header Publish fare book / Discard draft", () => {
+  it("names four UI-SPEC tabs and header Publish fare book / Discard draft", () => {
     const html = readFileSync(PRICING_CANONICAL, "utf8");
-    for (const label of FIVE_TABS) {
+    for (const label of FOUR_TABS) {
       expect(html, label).toContain(label);
     }
+    expect(html).not.toContain("tabHistory");
     expect(html).toContain("Publish fare book");
     expect(html).toContain("Discard draft");
+    expect(html).toContain("Save VAT");
   });
 
   it("D-31: no charcoal placeholder note and no minFare / Minimum fare field", () => {
@@ -85,27 +88,35 @@ describe("OpsPricing source of truth dual copy (D-27 D-28 D-31)", () => {
     expect(html).toMatch(/isNotFound/);
   });
 
-  it("four-language T blocks, Clone into draft, overlap/region Publish warnings, CHF only", () => {
+  it("four-language T blocks, Save VAT, overlap warn, CHF only", () => {
     const html = readFileSync(PRICING_CANONICAL, "utf8");
     for (const lang of LANGS) {
       expect(html, `T.${lang}`).toMatch(new RegExp(`\\n  ${lang}: \\{`));
     }
-    expect(html).toContain("Clone into draft");
+    expect(html).toContain("Save VAT");
+    expect(html).toContain("Fix this");
     expect(html).toMatch(/overlap/i);
-    expect(html).toMatch(/region/i);
     expect(html).not.toMatch(/\bEUR\b/);
     expect(html).not.toMatch(/\bUSD\b/);
     expect(html).not.toMatch(/PATCH['"],\s*['"]\/api\/staff\/settings/);
   });
 
-  it("vamos-ops-data.js wires draft publish/discard/preview/clone and never preferDraft", () => {
+  it("has no History pane; Publish success toast stays; no pale-yellow wash", () => {
+    const html = readFileSync(PRICING_CANONICAL, "utf8");
+    expect(html).not.toContain("tabHistory");
+    expect(html).not.toMatch(/data-price-hist-row=/);
+    expect(html).toMatch(/notifyPublishOk/);
+    expect(html).toMatch(/Fare book is live\./);
+    expect(html).toMatch(/tone="success"/);
+    expect(html).not.toMatch(/--vt-yellow-50/);
+    expect(html).not.toMatch(/--vt-shadow-accent:(?!none)/);
+  });
+
+  it("vamos-ops-data.js wires draft publish/discard and never preferDraft", () => {
     const src = readFileSync(DATA_CANONICAL, "utf8");
-    expect(src).toMatch(/cloneIntoDraft/);
-    expect(src).toMatch(/rate-versions\/.*\/clone/);
     expect(src).toMatch(/rate-versions\/.*\/publish/);
     expect(src).toMatch(/rate-versions\/.*\/discard/);
-    expect(src).toMatch(/rate-book\/preview/);
-    expect(src).toMatch(/rate-book\/test-unpaid/);
+    expect(src).toMatch(/saveDraftVat/);
     expect(src).not.toMatch(/preferDraft\s*[:=]\s*true/);
     expect(src).not.toMatch(/createCheckoutSession/);
     expect(src).not.toMatch(/sk_live_/);

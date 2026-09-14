@@ -4,16 +4,24 @@
 // Keys are generated here; the browser never holds an R2 credential (D-19).
 // Reads go through /photos/<key> (D-23). Zero photos is the shipping state (D-22).
 
-export const PHOTO_PREFIXES = ["vehicles/", "chauffeurs/", "reviews/", "staff/", "site/"] as const;
+export const PHOTO_PREFIXES = [
+  "vehicles/",
+  "chauffeurs/",
+  "reviews/",
+  "staff/",
+  "site/",
+  "classes/",
+] as const;
 
 export type PhotoPrefix = (typeof PHOTO_PREFIXES)[number];
-export type PhotoKind = "vehicle" | "chauffeur" | "review" | "staff";
+export type PhotoKind = "vehicle" | "chauffeur" | "review" | "staff" | "class";
 
 const KIND_TO_PREFIX: Record<PhotoKind, PhotoPrefix> = {
   vehicle: "vehicles/",
   chauffeur: "chauffeurs/",
   review: "reviews/",
   staff: "staff/",
+  class: "classes/",
 };
 
 const MIME_TO_EXT = {
@@ -93,7 +101,13 @@ export function buildPhotoKey(kind: PhotoKind, recordId: string, contentType: st
 }
 
 export function isPhotoKind(value: string): value is PhotoKind {
-  return value === "vehicle" || value === "chauffeur" || value === "review" || value === "staff";
+  return (
+    value === "vehicle" ||
+    value === "chauffeur" ||
+    value === "review" ||
+    value === "staff" ||
+    value === "class"
+  );
 }
 
 export function assertPhotoUpload(file: PhotoUploadInput): asserts file is PhotoUploadInput & {

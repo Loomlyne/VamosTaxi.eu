@@ -96,7 +96,7 @@ describe("loadCompleteness", () => {
 
     const gaps = await loadCompleteness(env, adminClaims, 1);
     expect(gaps).toEqual([]);
-    expect(seen).toHaveLength(6);
+    expect(seen).toHaveLength(7);
 
     const distance = seen.find((s) => s.includes("distance_rates"));
     const surcharges = seen.find((s) => s.includes("surcharges"));
@@ -104,6 +104,8 @@ describe("loadCompleteness", () => {
     expect(distance).toMatch(/available/);
     expect(distance).toMatch(/vehicle_classes/);
     expect(distance).toMatch(/name/);
+    expect(distance).toMatch(/photo_path/);
+    expect(distance).toMatch(/luggage_capacity/);
     expect(distance).toMatch(/base_fare_rappen/);
     expect(distance).toMatch(/per_km_rappen/);
     expect(distance).toMatch(/max_pax/);
@@ -134,6 +136,7 @@ describe("loadCompleteness", () => {
     expect(couponGapQuery).toMatch(/rate_version_id/);
     expect(ruleGapQuery).toMatch(/payload = '\{\}'::jsonb/);
     expect(gaps.filter((g) => g.kind === "band")).toEqual([]);
+    expect(gaps.filter((g) => g.kind === "band_overlap")).toEqual([]);
     expect(gaps.filter((g) => g.kind === "coupon")).toEqual([]);
     expect(gaps.filter((g) => g.kind === "rule")).toEqual([]);
   });
@@ -142,6 +145,7 @@ describe("loadCompleteness", () => {
     vi.mocked(asStaff).mockImplementation(async (_env, _claims, fn) => {
       const tx = async (strings: TemplateStringsArray) => {
         const sql = sqlOf(strings);
+        if (sql.includes("overlap_left")) return [];
         if (sql.includes("distance_bands")) return [{ name: "economy" }];
         if (sql.includes("coupons")) return [{ name: "WELCOME" }];
         if (sql.includes("rate_version_rules")) return [{ name: "night" }];
@@ -182,5 +186,34 @@ describe("loadCompleteness", () => {
       "airport_pickup",
     ]);
     expect(gaps.filter((g) => g.kind === "fixed_route")).toEqual([]);
+  });
+
+  it("D-18: overlapping bands on one class are a Publish gap; open last is not", async () => {
+    vi.mocked(asStaff).mockImplementation(async (_env, _claims, fn) => {
+      const tx = async (strings: TemplateStringsArray) => {
+        const sql = sqlOf(strings);
+        if (sql.includes("overlap_left")) return [{ name: "suv" }];
+        return [];
+      };
+      return fn(tx as never);
+    });
+
+    const gaps = await loadCompleteness(env, adminClaims, 1);
+    expect(gaps.filter((g) => g.kind === "band_overlap").map((g) => g.name)).toEqual(["suv"]);
+    expect(gaps.filter((g) => g.kind === "band")).toEqual([]);
+  });
+
+  it("D-18: open last band without overlap is not a completeness gap", async () => {
+    vi.mocked(asStaff).mockImplementation(async (_env, _claims, fn) => {
+      const tx = async (strings: TemplateStringsArray) => {
+        const sql = sqlOf(strings);
+        if (sql.includes("overlap_left")) return [];
+        return [];
+      };
+      return fn(tx as never);
+    });
+
+    const gaps = await loadCompleteness(env, adminClaims, 1);
+    expect(gaps.filter((g) => g.kind === "band_overlap")).toEqual([]);
   });
 });

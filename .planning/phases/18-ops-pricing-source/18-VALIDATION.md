@@ -4,16 +4,15 @@ slug: ops-pricing-source
 status: draft
 nyquist_compliant: true
 wave_0_complete: false
-created: 2026-09-13
+created: 2026-09-14
 ---
 
-# Phase 18 — Validation Strategy
+# Phase 18 — Validation Strategy (restart 2026-09-14)
 
-> CONTEXT.md D-01…D-40 win. Host is `vamostaxi.site` / `dashboard.vamostaxi.site`. Forget `.eu`.
-> Public `CHF 000` until owner Publish sets `settings.public_chf`. Never invent CHF, legal, or mail copy.
-> Stripe stays test. Agent does not `apply_migration` / `supabase db push` — owner apply is a numbered gate.
-> Absorb leftover `04.3-01-PLAN.md`. Do not execute it as a separate phase.
-> Remapped 2026-09-13 to match 18-01…18-10 PLAN.md (2–3 tasks per plan).
+> CONTEXT.md D-01…D-35 win. 2026-09-13 archive is not executable.
+> `18-PATTERNS.md` and `18-UI-SPEC.md` rewritten and approved 2026-09-14 — same chrome as CONTEXT (four tabs, VAT-only rail, no History/Preview/region).
+> Host `vamostaxi.site` / `dashboard.vamostaxi.site`. No `.eu`. No invented CHF.
+> Stripe test. Agent does not Publish. Agent does not `db push`.
 
 ---
 
@@ -21,73 +20,61 @@ created: 2026-09-13
 
 | Property | Value |
 |----------|-------|
-| **Framework** | Vitest (`apps/web`) + Playwright DC fingerprints |
+| **Framework** | Vitest (`apps/web`) + source-read tests |
 | **Config file** | `apps/web/vitest.config.ts` |
-| **Quick run command** | `pnpm --filter web exec vitest run lib/pricing lib/ops lib/checkout/vat lib/quote` |
-| **Full suite command** | `pnpm --filter web exec vitest run` + `pnpm run typecheck` |
+| **Quick run command** | `pnpm --filter web exec vitest run lib/pricing lib/ops` |
+| **Full suite command** | `pnpm --filter web exec vitest run lib/pricing lib/ops lib/checkout lib/quote` + `pnpm run typecheck` |
 | **Estimated runtime** | ~90 seconds |
 
-Do **not** `vitest run tests/integration/*.spec.ts`. Vitest excludes `tests/integration/**` and `**/*.spec.ts` and sets `passWithNoTests: true`.
+Do **not** `vitest run tests/integration/*.spec.ts` unless a plan says so.
 
 ---
 
 ## Sampling Rate
 
-- **After every task commit:** Vitest on the files that task touched (`lib/pricing`, `lib/ops`, DC `readFileSync` tests)
-- **After every plan wave:** `pnpm --filter web exec vitest run` + typecheck
-- **Before `/gsd:verify-work`:** full Vitest green **and** live dashboard `/pricing` matches DC; public quote still `CHF 000` until owner Publish
+- **After every task commit:** Vitest on files that task touched
+- **After every plan wave:** quick command + typecheck
+- **Before `/gsd:verify-work`:** full command green **and** live UAT checklist (owner Publish)
 - **Max feedback latency:** 90 seconds
 
 ---
 
 ## Per-Task Verification Map
 
-Task IDs lockstep with PLAN.md tasks. Nyquist: no three consecutive tasks without an automated verify. 18-02-03 owner-apply is manual (18-02-02 and 18-03-01 sit around it). 18-10-03 owner UAT is manual (18-10-01 grep sits before it).
+Filled by planner lockstep with PLAN.md task IDs. Nyquist: no three consecutive tasks without automated verify. Owner Publish is the only manual gate.
 
-| Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
-|---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 18-01-01 | 01 | 1 | D-11 D-12 D-13 D-14 | T-18-01 | Wave 0: kernel fixtures start + all-km per-km + per-class bands; no DISTANCE_FLOOR_KM; 1 km same recipe; roundHalfUp rappen | vitest files | `test -f apps/web/lib/pricing/lines.test.ts && test -f apps/web/lib/pricing/bands.test.ts` | ✅ extend | ⬜ pending |
-| 18-01-02 | 01 | 1 | D-08 | T-18-02 | Wave 0: completeness = name/start/per-km/max pax + empty added rows; not min_fare_rappen | grep | `grep -n 'D-08' apps/web/lib/ops/pricing.test.ts` | ✅ extend | ⬜ pending |
-| 18-01-03 | 01 | 1 | D-27 D-28 D-31 | T-18-03 | Wave 0: source-read five tabs, no /coupons, no charcoal placeholder, Publish fare book | file | `test -f apps/web/lib/ops/ops-pricing-source.test.ts` | ❌ W0 | ⬜ pending |
-| 18-02-01 | 02 | 2 | D-08 D-14 D-19 D-20 D-22 D-33 D-34 | T-18-04 T-18-12 | Git migration: bands per class; drop min_fare from trigger; no public_chf = true. Agent does not apply | file + grep | `test -f packages/db/supabase/migrations/20260913180000_ops_pricing_source.sql` | ❌ | ⬜ pending |
-| 18-02-02 | 02 | 2 | D-08 | T-18-02 | pgTAP publish tests drop min_fare_rappen; still refuse null base/per-km/max_pax | grep | `grep -n 'max_pax' packages/db/supabase/tests/rate_version_publish.test.sql` | ✅ extend | ⬜ pending |
-| 18-02-03 | 02 | 2 | D-14 D-19 D-40 | T-18-12 | Numbered owner apply on yaumjzvylngfjhtuffqs. Never restore. Agent does not apply_migration | manual | owner resume-signal | — | ⬜ pending |
-| 18-03-01 | 03 | 3 | D-14 D-19 | T-18-01 | Open VehicleClassSlug; DistanceBandRow.vehicle_class_id; hide_from_public | vitest | `pnpm --filter web exec vitest run lib/pricing/rateBook.test.ts lib/pricing/public-chf.test.ts` | ✅ | ⬜ pending |
-| 18-03-02 | 03 | 3 | D-14 | T-18-01 | bands.ts: extras on top of all km; no DISTANCE_FLOOR_KM | vitest | `pnpm --filter web exec vitest run lib/pricing/bands.test.ts lib/pricing/round.test.ts` | ✅ | ⬜ pending |
-| 18-03-03 | 03 | 3 | D-11 D-12 D-13 D-15 D-17 D-19 | T-18-01 | lines.ts D-11 recipe; no reverse match; extra stop skips fixed | vitest | `pnpm --filter web exec vitest run lib/pricing` | ✅ | ⬜ pending |
-| 18-04-01 | 04 | 4 | D-08 | T-18-02 | loadCompleteness drops min_fare; requires name/start/per-km/max pax | vitest | `pnpm --filter web exec vitest run lib/ops/pricing.test.ts` | ✅ extend | ⬜ pending |
-| 18-04-02 | 04 | 4 | D-02 D-03 D-06 D-09 | T-18-05 T-18-06 T-18-12 | Publish tx: public_chf + vat_rate_bps + forkLiveRateVersion; no unpublish | vitest | `pnpm --filter web exec vitest run lib/ops/publish-public-chf.test.ts` | ✅ extend | ⬜ pending |
-| 18-04-03 | 04 | 4 | D-07 D-09 | T-18-05 | withAdmin Publish; not-draft envelope; no history DELETE | vitest | `pnpm --filter web exec vitest run lib/ops/publish-public-chf.test.ts lib/ops/pricing.test.ts` | ✅ extend | ⬜ pending |
-| 18-05-01 | 05 | 4 | D-01 D-04 D-18 D-20 | T-18-05 T-18-08 | Overlay Save = draft; CHF only; lock hours→minutes | vitest | `pnpm --filter web exec vitest run lib/ops` | ✅ extend | ⬜ pending |
-| 18-05-02 | 05 | 4 | D-03 D-19 D-34 | T-18-06 T-18-07 | Settings PATCH ignores vat_rate_bps; versioned coupons; POST class | vitest | `pnpm --filter web exec vitest run lib/ops lib/checkout/vat.test.ts` | ✅ extend | ⬜ pending |
-| 18-05-03 | 05 | 4 | D-05 D-09 D-10 D-33 | T-18-05 | Discard / preview / test unpaid / clone: withAdmin, no Stripe, no mail, pay_url null for is_test, preferDraft false | vitest | `pnpm --filter web exec vitest run lib/ops lib/quote/engine.test.ts lib/pricing/public-chf.test.ts` | ❌ new routes | ⬜ pending |
-| 18-06-01 | 06 | 5 | D-02 D-09 D-14 D-15 D-18 D-27 D-28 D-29 D-30 D-31 D-32 | T-18-03 T-18-08 | DC rebuild: five tabs, header Discard+Publish, rail VAT+preview, CHF only, overlap warn on confirm | vitest source-read | `pnpm --filter web exec vitest run lib/ops/ops-pricing-source.test.ts lib/ops/ops-pricing-vat-field.test.ts` | ❌ W0 | ⬜ pending |
-| 18-06-02 | 06 | 5 | D-07 D-28 | T-18-03 | No /coupons nav/route; dispatcher /pricing not found | vitest source-read | `pnpm --filter web exec vitest run lib/ops/ops-pricing-source.test.ts` | ✅ extend | ⬜ pending |
-| 18-06-03 | 06 | 5 | D-05 D-09 D-10 D-31 D-33 | T-18-05 | vamos-ops-data draft APIs; dual-copy equality; four-language T | vitest source-read | `pnpm --filter web exec vitest run lib/ops/ops-pricing-source.test.ts` | ✅ extend | ⬜ pending |
-| 18-07-01 | 07 | 6 | D-35 D-36 | T-18-09 | Catalog from published surcharge chips; automatic rules never chips; preferDraft false | vitest | `pnpm --filter web exec vitest run lib/checkout/extras-catalog.test.ts lib/ops/surcharge-codes.test.ts` | ✅ extend | ⬜ pending |
-| 18-07-02 | 07 | 6 | D-37 | T-18-09 | Extra stop re-runs D-11; not amount × qty | vitest | `pnpm --filter web exec vitest run lib/pricing/lines.test.ts lib/checkout/extras-catalog.test.ts` | ✅ extend | ⬜ pending |
-| 18-07-03 | 07 | 6 | D-16 D-39 | T-18-09 | Both pins inside service area; coupon before VAT floors at 0 | vitest | `pnpm --filter web exec vitest run lib/geo/serviceArea.test.ts lib/pricing/policy.test.ts` | ✅ | ⬜ pending |
-| 18-08-01 | 08 | 6 | D-20 D-22 | T-18-10 | New quotes live book; expire at quote_lock_expires_at | vitest | `pnpm --filter web exec vitest run lib/quote/lock.test.ts lib/quote/engine.test.ts lib/checkout/booking-lifecycle.test.ts` | ✅ extend | ⬜ pending |
-| 18-08-02 | 08 | 6 | D-23 D-26 D-33 | T-18-10 | Webhook after expiry does not capture; pay before expiry uses snapshot; is_test intent refused | vitest | `pnpm --filter web exec vitest run lib/checkout/settle.test.ts lib/checkout/webhook.test.ts lib/checkout/intent.test.ts` | ✅ extend | ⬜ pending |
-| 18-08-03 | 08 | 6 | D-21 D-24 D-25 | T-18-05 T-18-10 | Select refuses stale version; skip-send mails; ops snapshot amounts | vitest | `pnpm --filter web exec vitest run lib/quote/intent.test.ts lib/ops/phone-booking.test.ts lib/lifecycle/notify-lifecycle.test.ts` | ✅ extend | ⬜ pending |
-| 18-09-01 | 09 | 7 | D-38 | T-18-11 | Meet & greet and free wait two cards, default on | vitest | `pnpm --filter web exec vitest run lib/checkout/extras-catalog.test.ts` | ✅ extend | ⬜ pending |
-| 18-09-02 | 09 | 7 | D-38 | T-18-11 | Extra wait CHF 0 at pay; ops arrived_at via bookings-write + OpsDetail; no Stripe charge from waiting | vitest | `pnpm --filter web exec vitest run lib/checkout/intent.test.ts lib/pricing/lines.test.ts` | ✅ extend | ⬜ pending |
-| 18-09-03 | 09 | 7 | D-38 | T-18-11 | Grep: no off_session extra-wait debit | vitest source-read | `pnpm --filter web exec vitest run lib/checkout` | ❌ W0 | ⬜ pending |
-| 18-10-01 | 10 | 8 | D-40 | T-18-12 | Worker vamos; no sk_live_; no .eu; SQL has no public_chf = true | vitest grep | `pnpm --filter web exec vitest run lib/pricing/public-chf.test.ts lib/ops/ops-pricing-source.test.ts` | ✅ grep | ⬜ pending |
-| 18-10-02 | 10 | 8 | D-40 | T-18-03 | Dual-DC equality; lib/pricing lib/ops vitest; typecheck | vitest + typecheck | `pnpm --filter web exec vitest run lib/pricing lib/ops lib/checkout/vat.test.ts lib/quote` | ✅ | ⬜ pending |
-| 18-10-03 | 10 | 8 | D-40 | T-18-12 | Owner UAT on live /pricing. Agent does not Publish. Public CHF 000 until owner click | manual | owner resume-signal | — | ⬜ pending |
+Wave 0 must exist before public-board tasks: fixtures for 100+(14.6×12)=275.20 and 12.3×10=123; source-read no History/Preview/region in OpsPricing; no `CLASS_SLUGS` four-tuple on home/checkout.
+
+| Plan | Task | Automated verify |
+|------|------|------------------|
+| 18-01 | 1 Wave 0 files | `test -f` three lib test files |
+| 18-01 | 2 eligibility live-book | `vitest run lib/pricing/eligibility.test.ts` |
+| 18-01 | 3 engine no invented classes | `vitest run lib/pricing/eligibility.test.ts lib/quote/engine.test.ts` |
+| 18-02 | 1 git SQL unapplied | `rg` on `20260914190000_quote_rate_book_live_classes.sql` |
+| 18-02 | 2 home DC + BookingBoard | `vitest run lib/pricing/public-live-book-board.test.ts` |
+| 18-02 | 3 checkout + intent + KNOWN_CLASS_SLUGS | `vitest run lib/pricing/public-live-book-board.test.ts lib/ops/ops-dc-finalize.test.ts lib/quote/intent.test.ts lib/quote/schema.test.ts` |
+| 18-03 | 1 no post-Publish fork | `vitest run lib/ops/publish-public-chf.test.ts` |
+| 18-03 | 2 four tabs Draft/Discard/Publish | `vitest run lib/ops/ops-pricing-tabs.test.ts lib/ops/ops-pricing-vat-field.test.ts` |
+| 18-03 | 3 dual-DC invert Preview tests | `vitest run lib/ops/ops-pricing-tabs.test.ts lib/ops/ops-pricing-source.test.ts lib/ops/ops-pricing-vat-field.test.ts lib/ops/publish-public-chf.test.ts` |
+| 18-04 | 1 D-15 fixtures | `vitest run lib/pricing/d15-recipe.test.ts lib/pricing/lines.test.ts lib/pricing/bands.test.ts` |
+| 18-04 | 2 band overlap 409 | `vitest run lib/ops/pricing.test.ts lib/pricing/bands.test.ts` |
+| 18-04 | 3 drop region tab | `vitest run lib/ops/ops-pricing-tabs.test.ts lib/pricing/d15-recipe.test.ts` + typecheck |
+| 18-05 | 1 place/canton + extra_stops 0\|1 | `vitest run lib/pricing/lines.test.ts lib/quote/schema.test.ts lib/checkout/extras-catalog.test.ts` |
+| 18-05 | 2 Fixed routes tab + Mapbox | `vitest run lib/pricing/lines.test.ts lib/quote/schema.test.ts lib/ops/ops-pricing-tabs.test.ts lib/ops/ops-pricing-vat-field.test.ts` |
+| 18-06 | 1 git class photo SQL | `rg` on `20260914191000_vehicle_class_any_photo.sql` |
+| 18-06 | 2 R2 classes/ + completeness | `vitest run lib/ops/photos.test.ts lib/ops/pricing.test.ts` |
+| 18-06 | 3 one surcharges list | `vitest run lib/checkout/extras-catalog.test.ts lib/ops/ops-pricing-tabs.test.ts lib/ops/ops-dc-finalize.test.ts lib/ops/ops-pricing-vat-field.test.ts` |
+| 18-07 | 1 recap VAT extra-wait | `vitest run lib/checkout/extra-wait-no-offsession.test.ts lib/checkout/vat.test.ts lib/pricing/policy.test.ts lib/checkout/intent.test.ts` |
+| 18-07 | 2 grep gates + typecheck | `vitest run lib/pricing lib/ops lib/checkout lib/quote` + typecheck |
+| 18-07 | 3 [BLOCKING] owner SQL + owner UAT | `test -f` both migrations; owner Publish only |
 
 ---
 
 ## Wave 0 Requirements
 
-- [ ] Extend `apps/web/lib/pricing/lines.test.ts` — D-11 recipe; 1 km; no 20 km floor
-- [ ] Extend `apps/web/lib/pricing/bands.test.ts` — per-class bands on top of class per-km; From inclusive / To exclusive
-- [ ] Completeness tests without `min_fare_rappen`
-- [ ] `apps/web/lib/ops/ops-pricing-source.test.ts` — `readFileSync` both OpsPricing copies: five tab labels, `Publish fare book`, no charcoal placeholder, no `/coupons` in OpsSidebar
-- [ ] Existing `public-chf.test.ts` stays: live row is not the flip
-
-Existing `round.ts` / `vat.ts` / `formatAmount(null)==="CHF 000"` stay. Do not add a second money formatter. Do not `supabase db push`.
+- [ ] `apps/web/lib/pricing/` fixtures for D-15 examples (275.20 and 123)
+- [ ] Source-read test: `OpsPricing.dc.html` has four tabs, no History, no Preview, no region table
+- [ ] Source-read test: home/checkout do not hardcode economy/business/first/van as the offer list
 
 ---
 
@@ -95,21 +82,17 @@ Existing `round.ts` / `vat.ts` / `formatAmount(null)==="CHF 000"` stay. Do not a
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Owner apply schema on `yaumjzvylngfjhtuffqs` | D-14 D-19 | Live Zurich; agent must not apply | Numbered owner sitting. Never restore onto this project. |
-| First public CHF | D-40 | Fare book is owner data | Current or new `/pricing` Publish. Until then public `CHF 000`. |
-| Price-changed / expired mail English | D-24 | Owner supplies copy later | Wire skip-send / TBC. Do not invent. |
-| Extra-wait off-session debit | D-38 | Stripe SCA / legal gate | Do not ship silent capture. |
-| Live dashboard visual | D-27 | DC pixel | `https://dashboard.vamostaxi.site/pricing` after deploy to Worker `vamos`. |
+| Delete class + Publish → no public card | D-31 D-27 | Agent must not Publish | Owner Publish on dashboard; quote on vamostaxi.site |
+| Per-km change → next quote matches recipe | D-15 D-27 | Agent must not Publish | Owner sets start/per-km, Publish, new quote |
+| New class appears after Publish | D-29 D-30 | Agent must not Publish | Owner adds class+photo, Publish, home shows it |
 
 ---
 
 ## Validation Sign-Off
 
-- [x] All tasks have `<automated>` verify or Wave 0 dependencies (18-02-03 / 18-10-03 are owner gates with automated neighbors)
-- [x] Sampling continuity: no 3 consecutive tasks without automated verify
-- [x] Wave 0 covers all MISSING references
-- [x] No watch-mode flags
-- [x] Feedback latency < 90s
-- [x] `nyquist_compliant: true` set in frontmatter
+- [ ] All tasks have automated verify or Wave 0 / owner-gate
+- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
+- [ ] `nyquist_compliant: true`
+- [ ] Feedback latency < 90s
 
 **Approval:** pending

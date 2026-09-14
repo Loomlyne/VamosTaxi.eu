@@ -13,9 +13,9 @@ test.describe("Home fleet availability @customer", () => {
           lock: "test-lock",
           expires_at: "2099-01-01T00:00:00.000Z",
           classes: [
-            { slug: "economy", eligible: true },
-            { slug: "business", eligible: false, ineligible_reason: "pax" },
-            { slug: "van", eligible: true },
+            { slug: "first", eligible: true, total_rappen: 13000 },
+            { slug: "business", eligible: false, ineligible_reason: "pax", effective_max_pax: 4 },
+            { slug: "van", eligible: true, total_rappen: 15000 },
           ],
         }),
       });
@@ -39,6 +39,7 @@ test.describe("Home fleet availability @customer", () => {
 
     const first = page.locator("[data-fleet-card]").filter({ hasText: "First" });
     const business = page.locator("[data-fleet-card]").filter({ hasText: "Business" });
+    await expect(page.locator("[data-fleet-card]").filter({ hasText: "Economy" })).toHaveCount(0);
     await expect(first).toHaveAttribute("role", "button");
     await expect(first).toContainText("Select");
     await expect(business).toHaveAttribute("role", "group");

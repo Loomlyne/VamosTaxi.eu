@@ -39,7 +39,14 @@ const RECORD_ID = "11111111-1111-4111-8111-111111111111";
 
 describe("PHOTO_PREFIXES", () => {
   it("is the closed set of kind prefixes", () => {
-    expect([...PHOTO_PREFIXES]).toEqual(["vehicles/", "chauffeurs/", "reviews/", "staff/", "site/"]);
+    expect([...PHOTO_PREFIXES]).toEqual([
+      "vehicles/",
+      "chauffeurs/",
+      "reviews/",
+      "staff/",
+      "site/",
+      "classes/",
+    ]);
   });
 });
 
@@ -60,12 +67,15 @@ describe("buildPhotoKey", () => {
     expect(key.endsWith(".png")).toBe(true);
   });
 
-  it("maps webp to .webp and review/staff prefixes", () => {
+  it("maps webp to .webp and review/staff/class prefixes", () => {
     expect(buildPhotoKey("review", RECORD_ID, "image/webp")).toMatch(
       new RegExp(`^reviews/${RECORD_ID}/[0-9a-f-]{36}\\.webp$`),
     );
     expect(buildPhotoKey("staff", RECORD_ID, "image/jpeg")).toMatch(
       new RegExp(`^staff/${RECORD_ID}/[0-9a-f-]{36}\\.jpg$`),
+    );
+    expect(buildPhotoKey("class", RECORD_ID, "image/png")).toMatch(
+      new RegExp(`^classes/${RECORD_ID}/[0-9a-f-]{36}\\.png$`),
     );
   });
 
@@ -143,6 +153,7 @@ describe("isReadablePhotoKey / readPhotoKeyFromPathname", () => {
     expect(isReadablePhotoKey(`reviews/${RECORD_ID}/a.webp`)).toBe(true);
     expect(isReadablePhotoKey(`staff/${RECORD_ID}/a.jpg`)).toBe(true);
     expect(isReadablePhotoKey("site/svc-airport.jpg")).toBe(true);
+    expect(isReadablePhotoKey(`classes/${RECORD_ID}/a.jpg`)).toBe(true);
   });
 
   it("returns 404-shape false for a key that does not start with an allow-listed prefix", () => {

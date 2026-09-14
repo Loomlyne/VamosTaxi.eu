@@ -75,6 +75,8 @@ export type RetrievedPlace = {
   address: string;
   lng: number;
   lat: number;
+  /** D-20: Mapbox region code (ZH). Matching only — not a suggest fence. */
+  canton: string | null;
 };
 
 export type RetrieveResult = { place: RetrievedPlace | null };
@@ -171,6 +173,18 @@ function mapSuggestion(raw: unknown): SuggestHit | null {
     address: textField(rec, "full_address", "address", "place_formatted"),
     context: suggestionContext(rec),
   };
+}
+
+function cantonFromProperties(props: Record<string, unknown>): string | null {
+  const ctx = asRecord(props.context);
+  const region = asRecord(ctx?.region);
+  const full =
+    typeof region?.region_code_full === "string" ? region.region_code_full : "";
+  const code = typeof region?.region_code === "string" ? region.region_code : "";
+  const raw = (full || code).trim().toUpperCase();
+  if (!raw) return null;
+  const iso = /^(?:CH-)?([A-Z]{2})$/.exec(raw);
+  return iso?.[1] ?? raw.replace(/^CH-/, "");
 }
 
 function pointFromGeometry(geometry: unknown): GeoPoint | null {
@@ -311,6 +325,7 @@ export async function retrieve(
       address: textField(props, "full_address", "address", "place_formatted"),
       lng: point.lng,
       lat: point.lat,
+      canton: cantonFromProperties(props),
     },
   };
 }

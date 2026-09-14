@@ -63,7 +63,7 @@ import { useVamosLocale } from "@/lib/locale-shim";
 import { formatAmount, type CurrencyCode } from "@/lib/currency";
 import { routing } from "@/i18n/routing";
 import { useCheckoutSettings } from "./CheckoutSettings";
-import { CheckoutClassCards, classFits, firstFittingClass } from "./CheckoutClassCards";
+import { CheckoutClassCards, classFits, firstFittingClass, type CheckoutClassOffer } from "./CheckoutClassCards";
 import { PaymentPanel } from "./PaymentPanel";
 
 const { useRouter } = createNavigation(routing);
@@ -89,18 +89,25 @@ function vehicleLabel(id: string, t: (key: string) => string): string {
   if (id === "business") return t("classBusiness");
   if (id === "first") return t("classFirst");
   if (id === "van") return t("classVan");
-  return t("vehicleClassFallback");
+  return id;
 }
 
-const CLASS_SLUGS = ["economy", "business", "first", "van"] as const;
+const CLASS_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 type ExtraToggles = { childSeat: boolean; oversized: boolean; extraStop: boolean };
 
-function quoteExtras(toggles: ExtraToggles) {
+function quoteExtras(
+  toggles: ExtraToggles,
+  stop?: { lng: number; lat: number; text: string } | null,
+) {
+  const extra_stops = toggles.extraStop ? 1 : 0;
   return {
     child_seats: toggles.childSeat ? 1 : 0,
     oversized_luggage: toggles.oversized,
-    extra_stops: toggles.extraStop ? 1 : 0,
+    extra_stops,
+    ...(extra_stops === 1 && stop
+      ? { waypoints: [stop] }
+      : {}),
   };
 }
 
@@ -204,9 +211,31 @@ function isoTimeFromTrip(trip: VamosTrip | null, time: string): string {
 }
 
 function classList(trip: VamosTrip | null): string[] {
-  const fromTrip = trip?.classes?.filter((id) => CLASS_SLUGS.includes(id as (typeof CLASS_SLUGS)[number]));
+  const fromTrip = trip?.classes?.filter((id) => CLASS_SLUG.test(id));
   if (fromTrip && fromTrip.length > 0) return fromTrip;
-  return [...CLASS_SLUGS];
+  return [];
+}
+
+function classOffersFromTrip(trip: VamosTrip | null): CheckoutClassOffer[] {
+  const stored = trip?.classOffers;
+  if (Array.isArray(stored) && stored.length > 0) {
+    return stored
+      .filter((row) => row && CLASS_SLUG.test(String(row.slug || "")))
+      .map((row) => ({
+        slug: String(row.slug),
+        name: String(row.name || row.slug),
+        photo: String(row.photo || ""),
+        pax: typeof row.pax === "number" && Number.isFinite(row.pax) ? row.pax : 0,
+        bags: typeof row.bags === "number" && Number.isFinite(row.bags) ? row.bags : 0,
+      }));
+  }
+  return classList(trip).map((slug) => ({
+    slug,
+    name: trip?.vehicle === slug ? trip.vehicleName || slug : slug,
+    photo: "",
+    pax: 0,
+    bags: 0,
+  }));
 }
 
 function asDisplayCurrency(cur: string): CurrencyCode {
@@ -214,13 +243,9 @@ function asDisplayCurrency(cur: string): CurrencyCode {
   return "CHF";
 }
 
-function asClassSlug(raw: string): (typeof CLASS_SLUGS)[number] {
+function asClassSlug(raw: string): string {
   const s = raw.trim().toLowerCase();
-  if ((CLASS_SLUGS as readonly string[]).includes(s)) return s as (typeof CLASS_SLUGS)[number];
-  if (s.includes("van")) return "van";
-  if (s.includes("first")) return "first";
-  if (s.includes("business")) return "business";
-  return "economy";
+  return CLASS_SLUG.test(s) ? s : "";
 }
 
 export function CheckoutClient({ step }: CheckoutClientProps) {
@@ -264,6 +289,12 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const [childSeat, setChildSeat] = useState(false);
   const [oversized, setOversized] = useState(false);
   const [extraStop, setExtraStop] = useState(false);
+  const [extraStopText, setExtraStopText] = useState("");
+  const [extraStopWaypoint, setExtraStopWaypoint] = useState<{
+    lng: number;
+    lat: number;
+    text: string;
+  } | null>(null);
   const [skiRack, setSkiRack] = useState(false);
   const [extraCodes, setExtraCodes] = useState<string[]>([]);
   const [meetGreet, setMeetGreet] = useState(true);
@@ -379,7 +410,11 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     setTripSnap(trip);
     const nextPickup = tripPickup(trip);
     const nextDrop = tripDropoff(trip);
-    const nextVehicle = asClassSlug(tripVehicle(trip));
+    const offered = classList(trip);
+    const requested = asClassSlug(tripVehicle(trip));
+    const nextVehicle = offered.includes(requested)
+      ? requested
+      : offered[0] ?? requested;
     const nextDate = isoDateFromTrip(trip, trip?.date ?? "");
     const nextTime = isoTimeFromTrip(trip, trip?.time ?? "");
     setPickup(nextPickup);
@@ -463,13 +498,23 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   }, [draft.quoteId, draft.idempotencyKey, writeDraft]);
 
   useEffect(() => {
-    if (classFits(vehicle, draft.passengers, draft.luggage)) return;
-    const next = firstFittingClass(draft.passengers, draft.luggage);
+    const offered = classOffersFromTrip(tripSnap);
+    const slugs = offered.map((row) => row.slug);
+    if (slugs.length > 0 && !slugs.includes(vehicle)) {
+      const next = firstFittingClass(draft.passengers, draft.luggage, offered);
+      if (next === vehicle) return;
+      setVehicle(next);
+      writeDraft({ vehicleClass: next });
+      writeVamosTrip({ vehicle: next, pax: draft.passengers, bags: draft.luggage });
+      return;
+    }
+    if (classFits(vehicle, draft.passengers, draft.luggage, offered)) return;
+    const next = firstFittingClass(draft.passengers, draft.luggage, offered);
     if (next === vehicle) return;
     setVehicle(next);
     writeDraft({ vehicleClass: next });
     writeVamosTrip({ vehicle: next, pax: draft.passengers, bags: draft.luggage });
-  }, [draft.passengers, draft.luggage, vehicle, writeDraft]);
+  }, [draft.passengers, draft.luggage, vehicle, tripSnap, writeDraft]);
 
   useEffect(() => {
     if (step !== "payment" || gate !== "ok" || clientSecret) return;
@@ -567,9 +612,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           legs: [{ leg_seq: 1, scheduled_local: scheduled, flight_no: draft.flightNumber || null }],
           pax: Math.max(1, draft.passengers),
           bags: Math.max(0, draft.luggage),
-          preferred_class: CLASS_SLUGS.includes(vehicle as (typeof CLASS_SLUGS)[number])
-            ? vehicle
-            : undefined,
+          preferred_class: CLASS_SLUG.test(vehicle) ? vehicle : undefined,
         }),
       });
       const json = (await res.json()) as {
@@ -577,7 +620,15 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         quote_id?: string;
         lock?: string;
         expires_at?: string;
-        classes?: { slug?: string; total_rappen?: number | null }[];
+        classes?: {
+          slug?: string;
+          total_rappen?: number | null;
+          name?: string;
+          photo_url?: string;
+          photo_path?: string;
+          effective_max_pax?: number;
+          max_bags?: number;
+        }[];
       };
       if (!res.ok || json.ok !== true || !json.quote_id || !json.lock) {
         setRefusal("quoteExpired");
@@ -586,6 +637,15 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       const priced = (json.classes ?? [])
         .filter((c) => c.slug && c.total_rappen != null)
         .map((c) => c.slug as string);
+      const classOffers: CheckoutClassOffer[] = (json.classes ?? [])
+        .filter((c) => c.slug && CLASS_SLUG.test(c.slug))
+        .map((c) => ({
+          slug: c.slug as string,
+          name: String(c.name || c.slug),
+          photo: String(c.photo_url || c.photo_path || ""),
+          pax: typeof c.effective_max_pax === "number" ? c.effective_max_pax : 0,
+          bags: typeof c.max_bags === "number" ? c.max_bags : 0,
+        }));
       const next = writeVamosTrip({
         pickup,
         dropoff: destination,
@@ -597,6 +657,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         expires_at: json.expires_at,
         scheduled_local: scheduled,
         classes: priced.length ? priced : classList(trip),
+        classOffers: classOffers.length ? classOffers : classOffersFromTrip(trip),
         pickupPlace,
         dropoffPlace,
         display_currency: displayCur,
@@ -716,7 +777,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           quote_id: quoteId,
           lock,
           vehicle_class: vehicleClass,
-          extras: quoteExtras({ childSeat, oversized, extraStop }),
+          extras: quoteExtras({ childSeat, oversized, extraStop }, extraStopWaypoint),
           coupon: couponApplied || null,
           contact: {
             name,
@@ -780,6 +841,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   async function applyCouponCode(
     code: string | null,
     extras?: Partial<ExtraToggles>,
+    stop: { lng: number; lat: number; text: string } | null = extraStopWaypoint,
   ) {
     const trip = tripSnap ?? readVamosTrip();
     const quoteId = draft.quoteId || tripQuoteId(trip);
@@ -807,7 +869,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           locale,
           display_currency: displayCur,
           coupon: nextCode,
-          extras: quoteExtras({ childSeat: seats, oversized: bags, extraStop: stopsOn }),
+          extras: quoteExtras({ childSeat: seats, oversized: bags, extraStop: stopsOn }, stop),
           contact_email: contact.email.trim() || null,
         }),
       });
@@ -922,7 +984,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           quote_id: quoteId,
           lock,
           vehicle_class: vehicleClass,
-          extras: quoteExtras({ childSeat, oversized, extraStop }),
+          extras: quoteExtras({ childSeat, oversized, extraStop }, extraStopWaypoint),
           coupon: couponApplied,
           contact: {
             name: `${contact.firstName.trim()} ${contact.lastName.trim()}`,
@@ -1057,7 +1119,11 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       const next = !extraStop;
       setExtraStop(next);
       writeVamosTrip({ stops: next ? 1 : 0 });
-      void applyCouponCode(couponApplied, { extraStop: next });
+      if (!next) {
+        setExtraStopText("");
+        setExtraStopWaypoint(null);
+      }
+      void applyCouponCode(couponApplied, { extraStop: next }, next ? extraStopWaypoint : null);
       return;
     }
     if (code === "ski" || code === "ski_rack") {
@@ -1333,6 +1399,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                 vehicle={vehicle}
                 passengers={draft.passengers}
                 luggage={draft.luggage}
+                offered={classOffersFromTrip(tripSnap)}
                 onChange={(id) => {
                   setVehicle(id);
                   writeDraft({ vehicleClass: id });
@@ -1459,6 +1526,62 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                       </button>
                     );
                   })}
+                  {extraStop ? (
+                    <div className="vt-checkout__place" data-checkout-extra-stop>
+                      <PlaceCombo
+                        label={t("additional-stop-2")}
+                        value={extraStopText}
+                        placeholder={tHome("airport-address-or-hotel")}
+                        icon="map-pin"
+                        clearLabel={tCommon("clear")}
+                        testField="extra-stop"
+                        locale={geoLocale(locale)}
+                        onChange={(v) => {
+                          setExtraStopText(v);
+                          setExtraStopWaypoint(null);
+                        }}
+                        onPlace={(place: PlaceRetrieve | null) => {
+                          if (!place) {
+                            setExtraStopWaypoint(null);
+                            return;
+                          }
+                          setExtraStopText(place.text.split(",")[0] ?? place.text);
+                          void (async () => {
+                            try {
+                              const res = await fetch(
+                                `/api/geo/retrieve?mapbox_id=${encodeURIComponent(place.mapbox_id)}` +
+                                  `&session_token=${encodeURIComponent(place.session_token)}` +
+                                  `&locale=${encodeURIComponent(geoLocale(locale))}`,
+                                { credentials: "same-origin" },
+                              );
+                              const json = (await res.json()) as {
+                                place?: { lng?: number; lat?: number } | null;
+                              };
+                              if (
+                                typeof json.place?.lng === "number" &&
+                                typeof json.place?.lat === "number"
+                              ) {
+                                const next = {
+                                  lng: json.place.lng,
+                                  lat: json.place.lat,
+                                  text: place.text,
+                                };
+                                setExtraStopWaypoint(next);
+                                void applyCouponCode(couponApplied, { extraStop: true }, next);
+                              }
+                            } catch {
+                              setExtraStopWaypoint(null);
+                            }
+                          })();
+                        }}
+                        onClear={() => {
+                          setExtraStopText("");
+                          setExtraStopWaypoint(null);
+                          void applyCouponCode(couponApplied, { extraStop: true }, null);
+                        }}
+                      />
+                    </div>
+                  ) : null}
                   <div className="vt-checkout__notes">
                     <Textarea
                       label={t("notes-for-the-driver")}

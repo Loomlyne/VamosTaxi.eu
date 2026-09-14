@@ -1,140 +1,97 @@
 ---
 phase: 18-ops-pricing-source
 plan: 06
-subsystem: pricing
-tags: [D-02, D-05, D-07, D-09, D-10, D-18, D-27, D-28, D-29, D-30, D-31, D-32, D-33, dual-dc, OpsPricing]
-
+subsystem: ops-pricing
+tags: [class-photo, r2, surcharges, extras-catalog, vitest]
 requires:
   - phase: 18-ops-pricing-source
-    provides: Overlay Save writes draft kinds; preview/test unpaid/discard/clone staff APIs
-  - phase: 18-ops-pricing-source
-    provides: Publish-only public_chf + vat_rate_bps in one asStaff tx
+    provides: place then canton; extra stop max 1 (18-05)
 provides:
-  - Five-tab OpsPricing fare book (Fixed routes · Distance rules · Surcharges & extras · Coupons · History)
-  - Header Discard draft + Publish fare book; rail VAT + draft preview recap
-  - /coupons gone; dispatcher /pricing is not found
-  - VamosOps publish/discard/preview/createTestUnpaid/cloneIntoDraft wired to 18-05 routes
-affects: [18-07, 18-08, 18-10]
-
+  - Any kebab class; R2 classes/ photo prefix; Publish completeness wants photo, name, start, per-km, pax, bags
+  - One Surcharges & extras list; checkout extra / meet / free wait / extra wait types
+  - Meet & greet always on CHF 0; free wait always on at airport; extras omitted after delete+Publish
+affects: [18-07 owner SQL apply + UAT]
 tech-stack:
   added: []
-  patterns:
-    - Dual-DC: edit app/ops or app/vamos-ops-data.js then cp byte-equal to apps/web/public/app
-    - Overlay Save stays PUT /api/staff/rate-book; Publish is header POST only
-    - Failed writes return { ok:false, code } and keep overlay / dialog open
-
+  patterns: [class photo via /api/photos/upload kind class; surcharge type dialog via OpsTable showWhen]
 key-files:
-  created: []
+  created:
+    - packages/db/supabase/migrations/20260914191000_vehicle_class_any_photo.sql
   modified:
+    - apps/web/lib/ops/photos.ts
+    - apps/web/lib/ops/pricing.ts
+    - apps/web/lib/ops/fleet-write.ts
+    - apps/web/lib/checkout/extras-catalog.ts
+    - apps/web/lib/ops/surcharge-codes.ts
     - app/ops/OpsPricing.dc.html
-    - app/ops/OpsSidebar.dc.html
-    - app/ops/ops.dc.html
-    - app/ops/OpsCoupons.dc.html
-    - app/vamos-ops-data.js
-    - apps/web/lib/ops/ops-pricing-source.test.ts
-
+    - app/ops/OpsTable.dc.html
+    - apps/web/public/app/ops/OpsPricing.dc.html
 key-decisions:
-  - "dashboard.vamostaxi.site/pricing is the only fare-book chrome; /coupons is gone"
-  - "Dispatcher /pricing is not found, not a disabled editor"
-  - "Preview recap is the only draft CHF; never Stripe and never public preferDraft"
-  - "VAT rail stays on the draft; Publish extra carries vat_rate_bps; no settings PATCH"
-
-patterns-established:
-  - "Five tabs + header Discard/Publish + rail VAT/preview is the OpsPricing layout contract"
-  - "VamosOps draft verbs invalidate the rate-book cache only on ok:true"
-
-requirements-completed: [D-02, D-05, D-07, D-09, D-10, D-18, D-27, D-28, D-29, D-30, D-31, D-32, D-33]
-
-duration: 29min
+  - "SQL 20260914191000 is git-only; owner apply remains 18-07. Completeness and class GET/PATCH select name/photo_path so they 500 until that apply."
+  - "Meet & greet and free wait are not customer toggles. Recap still lists them when extraIsOn is true."
+  - "Night/weekend/holiday types are gone from OpsPricing. Leftover automatic codes stay off checkout chips."
+requirements-completed: [D-10, D-22, D-25, D-29, D-30, D-31, D-32, D-34, D-35]
+duration: 50min
 completed: 2026-09-14
 ---
 
-# Phase 18 Plan 06: Pricing DC Summary
+# Phase 18: OPS Pricing source of truth — 18-06 Summary
 
-**OpsPricing is a five-tab fare-book editor with Discard/Publish in the header and VAT plus draft preview in the rail; /coupons is gone and dispatcher /pricing is not found.**
+**Classes can be any name with a required R2 photo. Surcharges & extras is one typed list. Checkout extras (including ski) come from that list after Publish.**
 
 ## Performance
 
-- **Duration:** 29 min
-- **Started:** 2026-09-13T22:56:20Z
-- **Completed:** 2026-09-13T23:25:35Z
-- **Tasks:** 3 completed
-- **Files modified:** 6 git-tracked (public dual copies stay gitignored and byte-equal)
+- **Duration:** ~50 min
+- **Started:** 2026-09-14T19:53:00Z
+- **Completed:** 2026-09-14T20:12:00Z
+- **Tasks:** 3/3
+- **Files modified:** 20+
 
 ## Accomplishments
 
-- Rebuilt `OpsPricing.dc.html` from 18-UI-SPEC: five tabs, header Discard draft then Publish fare book, rail VAT % (8.1 / 81 bps) plus Start · Kilometres · Bands · Region % · Extras · VAT · Total, Create test unpaid. No charcoal placeholder, no minFare, no EUR/USD columns, no `PATCH /api/staff/settings` for VAT. T en/de/fr/ar same sitting.
-- Dropped NAV_BOTTOM `/coupons` and the ops `/coupons` route. Dispatcher `/pricing` renders the existing not-found Card. `OpsCoupons.dc.html` is a comment-only leftover; coupon fields live in the Pricing Coupons tab.
-- `VamosOps` now exposes `publish` / `discard` / `preview` / `createTestUnpaid` / `cloneIntoDraft` against the 18-05 staff routes. Failed writes stay `{ ok:false, code }` and do not bust the rate-book cache. Wave 0 + 18-06 `ops-pricing-source.test.ts` is green; VAT field test stays green.
+- Git SQL drops the four-slug CHECK, adds `vehicle_classes.name` and `photo_path`. Unapplied.
+- `PHOTO_PREFIXES` includes `classes/`. Upload kind `class` writes R2 only; Save stores `photo_path` on the class.
+- Distance overlay: photo chooser, typed name, start, per-km, max passengers, max bags, hide-from-public.
+- Completeness 409s empty photo/name/start/per-km/max pax/max bags.
+- Surcharges pane is one `OpsTable`. Types: checkout extra, meet and greet, free airport wait, extra wait. No night/weekend/holiday. No rules table.
+- `catalogFromSurcharges` omits a deleted extra (not CHF 0). Meet & greet toggle off (always on). Free wait toggle off, still airport-only.
 
 ## Task Commits
 
-Each task was committed atomically:
+None — production work is uncommitted (standing no-commit-unless-asked).
 
-1. **Task 1: Rebuild OpsPricing layout per UI-SPEC** - `55560e8` (feat)
-2. **Task 2: Drop /coupons and dispatcher /pricing** - `86e9321` (feat)
-3. **Task 3: Wire vamos-ops-data to draft APIs and i18n** - `c870036` (feat)
-
-**Plan metadata:** pending this commit (docs: complete plan)
+1. **Task 1: any-class + photo_path SQL** — already git-only from this session start
+2. **Task 2: R2 class photos + completeness** — photos.ts, fleet-write, pricing.ts, Distance overlay
+3. **Task 3: One surcharges list + extras catalog** — OpsPricing, extras-catalog, surcharge-codes
 
 ## Files Created/Modified
 
-- `app/ops/OpsPricing.dc.html` — UI-SPEC five-tab fare book; dual-copied to `apps/web/public/app/ops/`
-- `app/ops/OpsSidebar.dc.html` — no `/coupons`; NAV_ADMIN keeps Pricing & routes
-- `app/ops/ops.dc.html` — no coupons route; dispatcher `/pricing` is not found
-- `app/ops/OpsCoupons.dc.html` — folded into Pricing Coupons tab; not served as a page
-- `app/vamos-ops-data.js` — draft publish/discard/preview/clone/test-unpaid; `rules` collection
-- `apps/web/lib/ops/ops-pricing-source.test.ts` — dual-copy, five tabs, no `/coupons`, clone, CHF only
+- `20260914191000_vehicle_class_any_photo.sql` — kebab slug CHECK, name, photo_path
+- `photos.ts` — `classes/` prefix, PhotoKind `class`
+- `pricing.ts` — completeness photo/name/bags
+- `OpsPricing.dc.html` — class photo + one surcharge list (dual-DC)
+- `OpsTable.dc.html` — `showWhen`, `photoRecordKey`, `canDelete`
+- `extras-catalog.ts` — meet/free wait not customer toggles
 
-## Decisions Made
+## Decisions & Deviations
 
-- Overlay Save stays PUT draft. Publish is the header confirm POST to `/api/staff/rate-versions/:id/publish`. Preview and test unpaid never create a Stripe session and never set public `preferDraft`.
-- Dispatcher `/pricing` is not found (no disabled chrome). Admin keeps Pricing & routes in NAV_ADMIN.
-- VAT on the rail is draft-side. Publish still sends `vat_rate_bps` in the publish extra. No settings PATCH from this page.
+- Staff GET/PATCH/completeness select `name` and `photo_path`. Until 18-07 apply those queries 500 on hosted. Same gate as 18-02 `quote_rate_book` SQL.
+- Surcharge PUT no longer 400s when `ruleId` is missing. Extra wait is an automatic code (not a checkout chip). Free-wait hours write `rate_versions.free_wait_minutes`.
+- OpsTable `showWhen` hides type-specific fields instead of a custom dialog.
+- Did not click Publish. Did not `db push`. Did not commit.
 
-## Deviations from Plan
+## Verification
 
-### Auto-fixed Issues
+```
+pnpm --filter web exec vitest run \
+  lib/ops/photos.test.ts \
+  lib/ops/pricing.test.ts \
+  lib/checkout/extras-catalog.test.ts \
+  lib/ops/ops-pricing-tabs.test.ts \
+  lib/ops/ops-dc-finalize.test.ts \
+  lib/ops/ops-pricing-vat-field.test.ts \
+  lib/ops/rate-book-draft.test.ts \
+  lib/ops/surcharge-codes.test.ts
+```
 
-**1. [Rule 2 - Missing Critical] Draft VAT has no version-level PUT**
-- **Found during:** Task 3 (wire VamosOps)
-- **Issue:** OpsPricing already calls `saveDraftVat(bps)` so the rail survives reload, but 18-05 rate-book PUT has no `vat_rate_bps` on the version (only `quote_lock_minutes`). Settings PATCH must not write VAT.
-- **Fix:** `VamosOps.saveDraftVat` PUTs `{ kind:"rule", ruleKind:"vat", vat_rate_bps, payload }` onto the draft. Publish still carries `vat_rate_bps` in the extra. Did not expand `rate-book/route.ts` (not in the 18-06 file list).
-- **Files modified:** `app/vamos-ops-data.js`
-- **Verification:** `ops-pricing-source.test.ts` and `ops-pricing-vat-field.test.ts` green; source has `vat_rate_bps` and `8.1`, not `7.7`; no `PATCH /api/staff/settings`
-- **Committed in:** `c870036` (Task 3 commit)
-
----
-
-**Total deviations:** 1 auto-fixed (1 missing critical)
-**Impact on plan:** Necessary so the VAT rail has a draft write path without settings PATCH or a new staff route. No scope creep.
-
-## Issues Encountered
-
-None.
-
-## User Setup Required
-
-None - no external service configuration required.
-
-## Next Phase Readiness
-
-Ready for 18-07 (checkout extras from the published book). Dual-DC copies are byte-equal. `public_chf` still false. Stripe still test. Do not invent CHF. Do not apply migrations / `db push` / restore / click Publish / deploy. No React `/ops`.
-
-## Self-Check: PASSED
-
-- key-files.modified exist on disk
-- `git log --grep=18-06` returns 3 task commits (`55560e8`, `86e9321`, `c870036`)
-- Task 1–3 acceptance_criteria all PASS
-- Dual copies byte-equal for OpsPricing, OpsSidebar, ops.dc.html, vamos-ops-data.js (`cmp` + vitest)
-- `pnpm --filter web exec vitest run lib/ops/ops-pricing-source.test.ts lib/ops/ops-pricing-vat-field.test.ts` — 2 files, 12 tests passed
-- Five tabs, Publish fare book, Discard draft present; no charcoal placeholder, no minFare
-- OpsSidebar has no `href /coupons`; ops.dc.html has no `/coupons` route and dispatcher `/pricing` is not found
-- Four-language T blocks; Clone into draft; overlap/region Publish warnings; no `\bEUR\b` / `\bUSD\b` in the DC
-- vamos-ops-data.js contains `cloneIntoDraft` and POST `.../clone`; no `preferDraft: true`; no Stripe Checkout
-- No React `/ops`; no home/checkout/confirmation layout edits
-- No migration apply / db push / restore / `public_chf true` / invent CHF / deploy / Publish click
-
----
-*Phase: 18-ops-pricing-source*
-*Completed: 2026-09-14*
+59 passed. Dual-DC OpsPricing byte-equal. `ops.dc.html` still has `<base href="/app/ops/">`.

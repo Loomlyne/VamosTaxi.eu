@@ -45,6 +45,10 @@ export interface VehicleClassRow {
   luggage_capacity: number;
   sort_order: number;
   active: boolean;
+  /** D-29: typed display name. Optional until owner SQL apply. */
+  name?: string | null;
+  /** D-30: R2 key under classes/. Optional until owner SQL apply. */
+  photo_path?: string | null;
 }
 
 /**
@@ -94,6 +98,8 @@ export interface FixedRouteRow {
   vehicle_class_id: string;
   price_rappen: number | null;
   live: boolean;
+  /** D-20: canton rows lose to exact place. Missing kind is inferred from zone tags. */
+  kind?: "place" | "canton";
 }
 
 /**
@@ -182,6 +188,9 @@ export interface QuoteLegInput {
   duration_s: number;
   origin_zone_id: string | null;
   dest_zone_id: string | null;
+  /** D-20: Mapbox region code (ZH), not a tick-list fence. */
+  origin_canton?: string | null;
+  dest_canton?: string | null;
   waypoints: unknown[];
 }
 

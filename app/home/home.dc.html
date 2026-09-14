@@ -763,15 +763,25 @@ const FLIGHT_API = {
   },
 };
 
-/** Vehicle categories are an unsupplied, blocking client input (docs/LEGAL-PLACEHOLDER-CHECKLIST.md A13).
- *  Tokens: {VEHICLE_CLASS_n_NAME} {VEHICLE_CLASS_n_MAX_PAX} {VEHICLE_CLASS_n_MAX_BAGS} {VEHICLE_CLASS_n_EXAMPLE}.
- *  Four classes is the demo ladder; the grid and capacity logic hold 2-5 rows with no relayout. */
-const VEHICLE_CLASSES = [
-  { id:'economy', name:'Economy', icon:'car-front', cap:4, bags:3, image:'/photos/site/class-economy.jpg' },
-  { id:'business', name:'Business', icon:'car', cap:4, bags:3, badge:true, image:'/photos/site/class-business.jpg' },
-  { id:'first', name:'First', icon:'car', cap:4, bags:3, image:'/photos/site/class-first.jpg' },
-  { id:'van', name:'Van', icon:'bus', cap:7, bags:8, image:'/photos/site/class-van.jpg' },
-];
+/** Live-book card from quote.classes. No hardcoded Economy/Business/First/Van catalog (D-29). */
+function classFromQuote(c) {
+  const slug = String((c && c.slug) || '');
+  const name = String((c && (c.name || c.label)) || slug);
+  return {
+    id: slug,
+    name: name,
+    icon: 'car',
+    cap: c && c.effective_max_pax != null ? c.effective_max_pax : 0,
+    bags: c && c.max_bags != null ? c.max_bags : 0,
+    image: String((c && (c.photo_url || c.photo_path || c.image)) || ''),
+  };
+}
+function classOnFleet(offer, slug) {
+  return (offer || []).filter((x) => x.id === slug)[0] || null;
+}
+function publicQuoteClass(c) {
+  return !!(c && c.slug && c.ineligible_reason !== 'no_rate');
+}
 const T = {
   en: {
     kicker:'Pre-booked transfers · Zurich', h1:'Land in Zurich.      Your driver is waiting.', sub:'Reliable, fixed-price airport and corporate rides booked in under one minute.',
@@ -1150,6 +1160,7 @@ class Component extends DCLogic {
       autofill: { pickup: null, when: null, dest: null, party: null }, fill: null, picked: null,
       sug: CLOSED, sugIdx: -1, sugFlip: false, fsug: { open: false, items: [] }, fsugIdx: -1, fsugFlip: false,
       quote: { status: 'empty', results: null, inflight: false }, announce: '',
+      fleetOffer: [],
       tier: TIER(), menuOpen: false, sheetOpen: false,
       flightConfirmed: false, flightDateChoice: 'today', pendingTimeUpdate: null,
       focused: { pickup: false, dest: false, when: false },
@@ -1298,7 +1309,7 @@ class Component extends DCLogic {
     if (!r || r.kind === 'hold') return { text: this.fmt(), small: false };
     if (r.kind === 'price') return { text: this.fmtAmount(r.total_rappen), small: false };
     if (r.kind === 'na') {
-      const v = VEHICLE_CLASSES.find((x) => x.id === id);
+      const v = classOnFleet(this.state.fleetOffer, id);
       const cap = v ? (r.sub === 'bags' ? v.bags : v.cap) : r.n;
       return { text: (r.sub === 'bags' ? t.upToBags : t.upToPax).replace('{n}', String(cap)), small: true };
     }
@@ -1332,24 +1343,26 @@ class Component extends DCLogic {
         this.setState({ quote: Object.assign({}, this.state.quote, { status: 'live', results: prevResults, inflight: false }) }, () => this.revealAll());
         return;
       }
-      const res = {};
-      VEHICLE_CLASSES.forEach((v) => { res[v.id] = { kind: 'hold' }; });
-      this.setState({ quote: { status: 'live', results: res, inflight: false } }, () => this.revealAll());
+      this.setState({ quote: { status: 'live', results: {}, inflight: false } }, () => this.revealAll());
     };
     const applyLive = (res, extra) => {
       if (id !== this.reqSeq) return;
-      this.setState({ quote: Object.assign({ status: 'live', results: res, inflight: false }, extra || {}) }, () => {
+      const offer = (extra && extra.fleetOffer) || this.state.fleetOffer || [];
+      const patch = Object.assign({ status: 'live', results: res, inflight: false }, extra || {});
+      delete patch.fleetOffer;
+      this.setState({ quote: patch, fleetOffer: offer }, () => {
         this.revealAll();
         const t = this.t(); const names = { economy: t.economy, business: t.business, first: t.first, van: t.van };
+        if (this.state.picked && !res[this.state.picked]) this.setState({ picked: null, capacityMoveNote: null });
         if (this.state.picked && res[this.state.picked] && res[this.state.picked].kind === 'na') {
           const from = names[this.state.picked] || this.state.picked;
-          const eligible = VEHICLE_CLASSES.filter((v) => res[v.id] && res[v.id].kind === 'price').sort((a, b) => a.cap - b.cap);
-          if (eligible[0]) this.setState({ picked: eligible[0].id, capacityMoveNote: t.movedTo.replace('{v}', names[eligible[0].id]).replace('{from}', from).replace('{cap}', eligible[0].cap) });
+          const eligible = offer.filter((v) => res[v.id] && res[v.id].kind === 'price').sort((a, b) => a.cap - b.cap);
+          if (eligible[0]) this.setState({ picked: eligible[0].id, capacityMoveNote: t.movedTo.replace('{v}', names[eligible[0].id] || eligible[0].name).replace('{from}', from).replace('{cap}', eligible[0].cap) });
           else this.setState({ picked: null, capacityMoveNote: t.noneFit });
         }
-        const parts = VEHICLE_CLASSES.map((v) => names[v.id] + ' ' + this.labelFor(v.id).text).join(', ');
+        const parts = offer.map((v) => (names[v.id] || v.name) + ' ' + this.labelFor(v.id).text).join(', ');
         const routeStr = r.hourly ? (r.a.n + ' · ' + this.state.hours + ' h') : ((r.a.n.split(',')[0]) + ' → ' + (r.b.n.split(',')[0]));
-        this.setState({ announce: routeStr + ': ' + parts });
+        this.setState({ announce: routeStr + (parts ? (': ' + parts) : '') });
       });
     };
     if (s.mode === 'hourly') {
@@ -1373,19 +1386,20 @@ class Component extends DCLogic {
       .then((j) => {
         if (id !== this.reqSeq) return;
         if (!j || j.ok !== true) { failAll(); return; }
-        const bySlug = {};
-        (j.classes || []).forEach((c) => { bySlug[c.slug] = c; });
         const res = {};
-        VEHICLE_CLASSES.forEach((v) => {
-          const c = bySlug[v.id];
-          const caps = { paxCap: v.cap, bagsCap: v.bags };
-          if (!c) { res[v.id] = Object.assign({ kind: 'hold' }, caps); return; }
-          if (c.total_rappen != null) { res[v.id] = Object.assign({ kind: 'price', total_rappen: c.total_rappen }, caps); return; }
-          if (keepLive && prevResults[v.id] && prevResults[v.id].kind === 'price') { res[v.id] = Object.assign({}, prevResults[v.id], caps); return; }
-          if (!c.eligible) { res[v.id] = Object.assign({ kind: 'na', sub: c.ineligible_reason === 'bags' ? 'bags' : 'pax', n: c.ineligible_reason === 'bags' ? bags : pax }, caps); return; }
-          res[v.id] = Object.assign({ kind: 'hold' }, caps);
+        const offer = [];
+        (j.classes || []).forEach((c) => {
+          if (!publicQuoteClass(c)) return;
+          const meta = classFromQuote(c);
+          const paxCap = meta.cap;
+          const bagsCap = meta.bags;
+          offer.push(meta);
+          const caps = { paxCap: paxCap, bagsCap: bagsCap };
+          if (c.total_rappen != null) { res[c.slug] = Object.assign({ kind: 'price', total_rappen: c.total_rappen }, caps); return; }
+          if (!c.eligible) { res[c.slug] = Object.assign({ kind: 'na', sub: c.ineligible_reason === 'bags' ? 'bags' : 'pax', n: c.ineligible_reason === 'bags' ? bags : pax }, caps); return; }
+          res[c.slug] = Object.assign({ kind: 'hold' }, caps);
         });
-        applyLive(res, { lock: j.lock, quote_id: j.quote_id, expires_at: j.expires_at });
+        applyLive(res, { lock: j.lock, quote_id: j.quote_id, expires_at: j.expires_at, fleetOffer: offer });
       })
       .catch(failAll);
   };
@@ -1949,7 +1963,9 @@ class Component extends DCLogic {
     }
   };
   pick(id) {
-    const klass = VEHICLE_CLASSES.find((v) => v.id === id);
+    const offer = this.state.fleetOffer || [];
+    const klass = classOnFleet(offer, id);
+    if (!klass) return;
     const r = this.state.quote.results;
     const row = r && r[id];
     const paxCap = klass ? klass.cap : 0;
@@ -1961,9 +1977,10 @@ class Component extends DCLogic {
     const s = this.state;
     if (!s.quote.lock || !s.quote.quote_id) { if (!this.state.picked) this.setState({ announce: this.t().needTrip }); return; }
     const priced = [];
-    VEHICLE_CLASSES.forEach((v) => { if (r && r[v.id] && r[v.id].kind === 'price') priced.push(v.id); });
+    offer.forEach((v) => { if (r && r[v.id] && r[v.id].kind === 'price') priced.push(v.id); });
     const when = this.clampWhen(s.dayY, s.dayM, s.day, s.time);
-    const trip = { mode: s.mode === 'hourly' ? 'hourly' : 'one-way', pickup: s.pickupText, dropoff: s.mode === 'hourly' ? (s.hours + ' h — ' + this.t().hourly) : s.dropText, date: s.dayLabel || (s.day ? this.fmtDate(s.day) : ''), selectedDay: s.day, time: s.time, pax: s.pax, bags: s.bags, vehicle: id, vehicleName: (VEHICLE_CLASSES.find((v) => v.id === id) || {}).name || id, quote_id: s.quote.quote_id || null, lock: s.quote.lock || null, expires_at: s.quote.expires_at || null, pickupPlace: placeInput(s.pickupLoc, s.pickupText), dropoffPlace: placeInput(s.dropLoc, s.dropText), scheduled_local: scheduledLocal(when.y, when.m, when.d, when.time), locale: s.lang || 'en', display_currency: s.cur || 'CHF', classes: priced, flight: s.flight || '', flightNumber: s.flight || '' };
+    const classOffers = offer.map((v) => ({ slug: v.id, name: v.name, photo: v.image || '', pax: v.cap, bags: v.bags }));
+    const trip = { mode: s.mode === 'hourly' ? 'hourly' : 'one-way', pickup: s.pickupText, dropoff: s.mode === 'hourly' ? (s.hours + ' h — ' + this.t().hourly) : s.dropText, date: s.dayLabel || (s.day ? this.fmtDate(s.day) : ''), selectedDay: s.day, time: s.time, pax: s.pax, bags: s.bags, vehicle: id, vehicleName: klass.name || id, quote_id: s.quote.quote_id || null, lock: s.quote.lock || null, expires_at: s.quote.expires_at || null, pickupPlace: placeInput(s.pickupLoc, s.pickupText), dropoffPlace: placeInput(s.dropLoc, s.dropText), scheduled_local: scheduledLocal(when.y, when.m, when.d, when.time), locale: s.lang || 'en', display_currency: s.cur || 'CHF', classes: priced, classOffers: classOffers, flight: s.flight || '', flightNumber: s.flight || '' };
     saveTrip(trip);
     this.setState({ picked: id, announce: this.t().savedGo, sug: CLOSED });
     const prefix = (s.lang === 'de' || s.lang === 'fr' || s.lang === 'ar') ? '/' + s.lang : '';
@@ -1981,7 +1998,7 @@ class Component extends DCLogic {
     const t = this.t(); const s = this.state;
     const names = { economy: t.economy, business: t.business, first: t.first, van: t.van };
     const ex = { economy: t.exEconomy, business: t.exBusiness, first: t.exFirst, van: t.exVan };
-    return VEHICLE_CLASSES.map((v) => {
+    return (s.fleetOffer || []).map((v) => {
       const lb = this.labelFor(v.id);
       const r = (s.quote.status === 'live' && s.quote.results) ? s.quote.results[v.id] : null;
       const paxCap = v.cap;
@@ -1990,13 +2007,13 @@ class Component extends DCLogic {
       const ok = !!r && r.kind === 'price' && !tooSmall;
       const unavail = tooSmall || (!!r && r.kind === 'na');
       return {
-        name: names[v.id], examples: ex[v.id], icon: v.icon,
+        name: names[v.id] || v.name, examples: ex[v.id] || '', icon: v.icon,
         hasImage: !!v.image, noImage: !v.image, image: v.image || '',
         hasBadge: !!v.badge, badge: t.mostBooked,
         capText: paxCap + ' ' + t.seats, bagText: bagsCap + ' ' + t.bagsWord,
         skeleton: s.quote.status === 'skeleton',
         dustRef: this.dustRef(v.id),
-        sr: names[v.id] + ': ' + lb.text,
+        sr: (names[v.id] || v.name) + ': ' + lb.text,
         title: ok ? t.selectHint : (tooSmall ? t.doesNotFit : (t.needTrip || lb.text)),
         dis: ok ? null : 'true', locked: ok ? null : '1', role: ok ? 'button' : 'group', tab: ok ? '0' : undefined,
         picked: s.picked === v.id ? '1' : null, isPicked: s.picked === v.id,
@@ -2065,8 +2082,9 @@ class Component extends DCLogic {
     const tripMeta = blank ? t.emptyMeta : modeLabel + (dateStr ? ' · ' + dateStr : '') + (s.time ? ', ' + s.time : '');
     const slots = ['05:30', '06:45', '08:15', '09:30', '11:00', '12:15', '14:00', '16:30', '18:45', '21:15'];
     if (s.time && !slots.includes(s.time)) { slots.push(s.time); slots.sort(); }
-    const priced = s.quote.status === 'live' && !!s.quote.results && VEHICLE_CLASSES.some((v) => s.quote.results[v.id] && s.quote.results[v.id].kind === 'price');
-    const pickedName = s.picked ? ((VEHICLE_CLASSES.find((v) => v.id === s.picked) || {}).id || '') : '';
+    const priced = s.quote.status === 'live' && !!s.quote.results && (s.fleetOffer || []).some((v) => s.quote.results[v.id] && s.quote.results[v.id].kind === 'price');
+    const pickedKlass = s.picked ? classOnFleet(s.fleetOffer, s.picked) : null;
+    const pickedName = pickedKlass ? pickedKlass.id : '';
     const sugRows = this.sugRowsList();
     const sugHasHits = sugRows.some((r) => r.row);
     return {

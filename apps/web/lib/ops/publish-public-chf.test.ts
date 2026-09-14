@@ -93,11 +93,11 @@ describe("Publish-as-flip public_chf (D-18)", () => {
     expect(publish).not.toMatch(/PRICING_PREVIEW/);
   });
 
-  it("D-06: forkLiveRateVersion runs in the same tx after public_chf", () => {
+  it("D-03: Publish does not forkLiveRateVersion after public_chf", () => {
     const publish = webSource(PUBLISH_ROUTE);
-    expect(publish).toMatch(/forkLiveRateVersion/);
+    expect(publish).not.toMatch(/forkLiveRateVersion/);
     expect(publish).toMatch(
-      /asStaff\([\s\S]*public_chf\s*=\s*true[\s\S]*forkLiveRateVersion/,
+      /asStaff\([\s\S]*public_chf\s*=\s*true[\s\S]*insert into public\.settings_versions/,
     );
     expect(publish).not.toMatch(/function unpublish/i);
     expect(publish).not.toMatch(/export async function DELETE/);
@@ -151,5 +151,16 @@ describe("Publish-as-flip public_chf (D-18)", () => {
     expect(publish).not.toMatch(/export async function DELETE/);
     expect(publish).not.toMatch(/delete from public\.rate_versions/i);
     expect(publish).not.toMatch(/set\s+status\s*=\s*'draft'/i);
+  });
+
+  it("copies lock and service area onto a new settings_versions row, never UPDATE", () => {
+    const publish = webSource(PUBLISH_ROUTE);
+    expect(publish).not.toMatch(/update\s+public\.settings_versions/i);
+    expect(publish).toMatch(/insert into public\.settings_versions/);
+    expect(publish).toMatch(/fare-publish-/);
+    expect(publish).toMatch(
+      /asStaff\([\s\S]*public_chf\s*=\s*true[\s\S]*insert into public\.settings_versions/,
+    );
+    expect(publish).not.toMatch(/forkLiveRateVersion/);
   });
 });

@@ -1,135 +1,95 @@
 ---
 phase: 18-ops-pricing-source
 plan: 04
-subsystem: pricing
-tags: [D-02, D-03, D-06, D-07, D-08, D-09, publish, vitest, asStaff]
-
+subsystem: pricing-kernel
+tags: [d15, bands, region, completeness, vitest]
 requires:
   - phase: 18-ops-pricing-source
-    provides: D-11 live distance recipe (start + all-km per-km + per-class band extras)
-  - phase: 18-ops-pricing-source
-    provides: Hosted Zurich per-class bands and D-08 completeness without min_fare
+    provides: four-tab OpsPricing, no post-Publish fork (18-03)
 provides:
-  - D-08 loadCompleteness lockstep with 20260913180000 (name, start, per-km, max pax)
-  - Publish-only public_chf + vat_rate_bps in one asStaff tx
-  - forkLiveRateVersion clone of live/retired source after successful Publish
-affects: [18-05, 18-06, 18-08, 18-10]
-
+  - Distance fare is start + perKm(all metres) + class bands; fixtures 27520 and 12300
+  - Public quote path emits no region_premium line
+  - Band overlap is a Publish completeness gap; open last band without overlap is not
+  - Staff PUT kind region is invalid; Distance tab has no region % copy
+affects: [18-05 fixed routes, 18-07 owner Publish UAT]
 tech-stack:
   added: []
-  patterns:
-    - Completeness 409 with gaps[] before any live write
-    - public_chf and vat_rate_bps move only inside the Publish asStaff tx
-    - forkLiveRateVersion accepts a source version id and optional existing tx
-
+  patterns: [overlap is a Publish 409, not a kernel higher-wins product rule]
 key-files:
   created: []
   modified:
+    - apps/web/lib/pricing/priceQuote.ts
+    - apps/web/lib/pricing/d15-recipe.test.ts
+    - apps/web/lib/pricing/bands.ts
+    - apps/web/lib/pricing/bands.test.ts
+    - apps/web/lib/pricing/lines.test.ts
     - apps/web/lib/ops/pricing.ts
     - apps/web/lib/ops/pricing.test.ts
-    - apps/web/lib/ops/rate-book.ts
-    - apps/web/app/[locale]/(ops)/api/staff/rate-versions/[id]/publish/route.ts
-    - apps/web/lib/ops/publish-public-chf.test.ts
-
+    - apps/web/app/[locale]/(ops)/api/staff/rate-book/route.ts
+    - app/ops/OpsPricing.dc.html
+    - apps/web/public/app/ops/OpsPricing.dc.html
+    - apps/web/lib/ops/ops-pricing-tabs.test.ts
+    - apps/web/lib/ops/rate-book-draft.test.ts
 key-decisions:
-  - "Publish retires other live rows, sets this id live, public_chf true, and VAT in one asStaff tx"
-  - "forkLiveRateVersion joins that tx when passed; one function clones live or retired sources"
-  - "Frozen/not-draft wins over incomplete so the second admin sees the last-write-wins envelope"
-
-patterns-established:
-  - "D-08 checklist is stricter than the trigger on empty coupon/rule/band rows; zero rows are not gaps"
-  - "Dual-mount publish route stays export { POST }"
-
-requirements-completed: [D-02, D-03, D-06, D-07, D-08, D-09]
-
-duration: 5min
+  - "buildRegionPremiumLine stays in lines.ts unused; public priceQuote never calls it (D-17)."
+  - "Corrupt overlapping bands still pick the higher per-km in the kernel so a quote can form; Publish 409s band_overlap (D-18)."
+requirements-completed: [D-15, D-16, D-17, D-18]
+duration: 20min
 completed: 2026-09-14
 ---
 
-# Phase 18 Plan 04: Publish-only flip Summary
+# Phase 18: OPS Pricing source of truth — 18-04 Summary
 
-**Publish is the only public flip: one asStaff tx sets live, `public_chf` true, and `vat_rate_bps` from the version, then clones a new draft. Completeness 409 names exact D-08 gaps. Dispatcher cannot publish; last successful admin Publish wins with `not-draft`.**
+**Distance money is start + all km × per-km + bands. Region % is gone from the public stack and the Distance tab. Overlapping bands cannot Publish.**
 
 ## Performance
 
-- **Duration:** 5 min
-- **Started:** 2026-09-13T22:24:02Z
-- **Completed:** 2026-09-13T22:29:00Z
-- **Tasks:** 3 completed
-- **Files modified:** 5
+- **Duration:** ~20 min
+- **Started:** 2026-09-14T15:05:00Z
+- **Completed:** 2026-09-14T15:12:00Z
+- **Tasks:** 3/3
+- **Files modified:** 12
 
 ## Accomplishments
 
-- `loadCompleteness` matches D-08: name, start, per-km, max pax — no `min_fare_rappen`. Empty added surcharge/route/coupon/rule/band rows are gaps; zero rows are not.
-- Publish tx retires other live rows, stamps `published_at` / `published_by`, sets `public_chf` true, copies VAT onto `settings`, copies lock/service area onto the live `settings_versions` row, then `forkLiveRateVersion`.
-- `forkLiveRateVersion` copies hide-from-public, classed bands, rules, coupons, and draft VAT/lock/geo/wait/stops. One function; live or retired source id.
-- `withAdmin` stays. Frozen/not-draft returns `{ ok: false, code: "not-draft", gaps }`. Dual-mount remains `export { POST }`.
+- `d15-recipe.test.ts` green: 10000 + perKm(1200, 14600) = 27520; 12.3 km × 10 CHF = 12300; 1 km uses the same recipe (no min_fare floor).
+- `priceQuote.ts` no longer emits `region_premium`. Staff `DRAFT_KINDS` dropped `region`; PUT/DELETE kind region is `invalid`.
+- `loadCompleteness` adds `band_overlap` when two `[from, to)` bands on the same class overlap (`to_km` null = +inf). Open last without overlap is not a gap. Publish already 409s any completeness gap.
+- OpsPricing Distance tab: region T strings removed; **Fix this** for overlap jumps to Distance.
 
 ## Task Commits
 
-Each task was committed atomically:
+None — production work is uncommitted (standing no-commit-unless-asked). Ask to commit if you want GSD atomic close-out.
 
-1. **Task 1: loadCompleteness = D-08** - `4a053c6` (feat)
-2. **Task 2: Publish tx applies VAT, clones draft, writes history** - `9308a96` (feat)
-3. **Task 3: Admin-only Publish and last-write-wins error** - `475f270` (feat)
-
-**Plan metadata:** pending this commit (docs: complete plan)
+1. **Task 1: D-15 fixtures + drop region on public path** — priceQuote / d15-recipe
+2. **Task 2: Band overlap blocks Publish** — loadCompleteness + tests
+3. **Task 3: Distance tab + reject kind region + dual-DC** — OpsPricing / rate-book
 
 ## Files Created/Modified
 
-- `apps/web/lib/ops/pricing.ts` — D-08 completeness SQL; lockstep comment on `20260913180000_ops_pricing_source.sql`
-- `apps/web/lib/ops/pricing.test.ts` — D-08 green; empty added rows vs zero rows
-- `apps/web/lib/ops/rate-book.ts` — generalized `forkLiveRateVersion` with optional tx
-- `apps/web/app/[locale]/(ops)/api/staff/rate-versions/[id]/publish/route.ts` — all-or-nothing Publish
-- `apps/web/lib/ops/publish-public-chf.test.ts` — source-read proofs for VAT, fork, withAdmin, not-draft
-- `apps/web/app/api/staff/rate-versions/[id]/publish/route.ts` — **unmodified** re-export
+- `priceQuote.ts` — no `buildRegionPremiumLine`
+- `pricing.ts` — `band_overlap` completeness query (`overlap_left` / `overlap_right`)
+- `rate-book/route.ts` — kinds without region
+- `OpsPricing.dc.html` — no `saveRegion` / region copy; `gapBandOverlap`
+- Dual-DC public copy synced
 
-## Decisions Made
+## Decisions & Deviations
 
-- Completeness is allowed to be stricter than the trigger (coupon/rule/band empty rows) so Publish 409s before a live write.
-- `forkLiveRateVersion` takes an optional `tx` so clone rolls back with the Publish flip. Callers without a tx still open `asStaff`.
-- VAT null on the draft does not clobber `settings.vat_rate_bps` (`coalesce`). Do not invent a number.
-- Coupon copy uses `ON CONFLICT (code) DO NOTHING` because `coupons.code` is still globally unique; a later unique `(rate_version_id, code)` is 18-05 territory.
+- `buildRegionPremiumLine` remains exported from `lines.ts` for leftover tests/helpers; public orchestration does not call it.
+- GET rate-book still hydrates `regionPremiums` from leftover DB rows; staff cannot write them.
+- Full-package `tsc --noEmit` still reports pre-existing settle/settings/seo errors plus `PayLinkVehicle` (four-class union vs live-book slug from 18-02). 18-04 vitest suites are green. PayLink widening is 18-06.
+- Did not click Publish. Did not `db push`. Did not commit.
 
-## Deviations from Plan
+## Verification
 
-### Auto-fixed Issues
+```
+pnpm --filter web exec vitest run \
+  lib/pricing/d15-recipe.test.ts \
+  lib/pricing/lines.test.ts \
+  lib/pricing/bands.test.ts \
+  lib/ops/pricing.test.ts \
+  lib/ops/ops-pricing-tabs.test.ts \
+  lib/ops/rate-book-draft.test.ts
+```
 
-**1. [Rule 2 - Missing Critical] Coupon clone must not 409 unique(code)**
-- **Found during:** Task 2 (Publish tx / fork)
-- **Issue:** `coupons.code` is still globally unique. Copying live coupons onto the new draft would abort the whole Publish tx with 23505.
-- **Fix:** `INSERT … ON CONFLICT (code) DO NOTHING` so D-06 still clones rates/routes/rules. True per-version coupon copies wait on a later unique `(rate_version_id, code)`.
-- **Files modified:** `apps/web/lib/ops/rate-book.ts`
-- **Verification:** `pnpm --filter web exec vitest run lib/ops/publish-public-chf.test.ts` → 10 passed (source-read includes `insert into public.coupons`)
-- **Committed in:** `9308a96` (Task 2)
-
----
-
-**Total deviations:** 1 auto-fixed (1 missing critical)
-**Impact on plan:** Required so first Publish is not blocked by existing coupon codes. No scope creep. Did not apply a migration.
-
-## Issues Encountered
-
-None.
-
-## User Setup Required
-
-None - no external service configuration required.
-
-## Next Phase Readiness
-
-Ready for 18-05 (draft staff APIs, VAT off PATCH, preview / test unpaid / clone). Kernel is D-11. Completeness is D-08. Publish is the only flip. `public_chf` still false on hosted until the owner clicks Publish. Stripe still test. Do not invent CHF. Do not apply migrations / `db push` / restore.
-
-## Self-Check: PASSED
-
-- key-files.modified exist on disk
-- `git log --grep=18-04` returns 3 task commits (`4a053c6`, `9308a96`, `475f270`)
-- Task 1–3 acceptance_criteria all PASS
-- Plan verification: `pnpm --filter web exec vitest run lib/ops/pricing.test.ts lib/ops/publish-public-chf.test.ts` → 2 files, 19 passed
-- Dual-mount remains `export { POST }`
-- No migration apply / db push / restore / live Publish click / deploy
-- `pricing.ts` completeness SQL has no `min_fare_rappen`
-
----
-*Phase: 18-ops-pricing-source*
-*Completed: 2026-09-14*
+58 passed.

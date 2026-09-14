@@ -203,6 +203,8 @@ export async function loadAndPrice(
   const priced = priceQuote(book, [toSettingsRow(settings, input.computed_at)], input, {
     coupon: couponFacts,
   });
+  // quote.classes is the eligibility board (mapRateBook already dropped
+  // unrated leftovers). Never emit book.classes raw.
 
   // Catalogue / engine bug — 500. Never treat a mixed-null class as zero.
   if (priced.partially_priced_class_slugs.length > 0) {

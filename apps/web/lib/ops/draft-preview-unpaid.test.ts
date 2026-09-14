@@ -46,11 +46,11 @@ describe("discard / clone / preview / test-unpaid dual-mount (D-09 D-10)", () =>
     expect(src).toMatch(/label: source\.label/);
   });
 
-  it("discard only deletes the draft then forks live (D-10)", () => {
+  it("discard only deletes the draft and returns live (D-06)", () => {
     const src = webSource(DISCARD);
     expect(src).toMatch(/target\.status !== "draft"/);
     expect(src).toMatch(/delete from public\.rate_versions where id = \$\{id\} and status = 'draft'/);
-    expect(src).toMatch(/forkLiveRateVersion\(env, claims, live\)/);
+    expect(src).not.toMatch(/forkLiveRateVersion/);
     expect(src).not.toMatch(/status = 'live'/);
     expect(src).not.toMatch(/status = 'retired'/);
   });

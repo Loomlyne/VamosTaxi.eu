@@ -159,19 +159,21 @@ export async function updateVehicleClassCapacities(
 export async function insertVehicleClassOnDraft(
   env: CloudflareEnv,
   claims: VamosClaims,
-  parsed: AssertedVehicleClassInput & { slug: string },
+  parsed: AssertedVehicleClassInput & { slug: string; name?: string; photoPath?: string | null },
   draftVersionId: number,
 ): Promise<string> {
   return asStaff(env, claims, async (sql) => {
     const rows = await sql<{ id: string }[]>`
       insert into public.vehicle_classes (
-        slug, passenger_capacity, luggage_capacity, sort_order, active
+        slug, passenger_capacity, luggage_capacity, sort_order, active, name, photo_path
       ) values (
         ${parsed.slug},
         ${parsed.passengerCapacity},
         ${parsed.luggageCapacity},
         ${parsed.sortOrder},
-        ${parsed.active}
+        ${parsed.active},
+        ${parsed.name ?? parsed.slug},
+        ${parsed.photoPath ?? null}
       )
       returning id
     `;
@@ -197,6 +199,8 @@ export async function patchDraftClass(
     hideFromPublic?: boolean;
     maxPax?: number;
     name?: string;
+    photoPath?: string | null;
+    luggageCapacity?: number;
   },
 ): Promise<void> {
   await asStaff(env, claims, async (sql) => {
@@ -204,9 +208,23 @@ export async function patchDraftClass(
       const slug = patch.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
       if (slug) {
         await sql`
-          update public.vehicle_classes set slug = ${slug} where id = ${id}
+          update public.vehicle_classes set slug = ${slug}, name = ${patch.name.trim()} where id = ${id}
+        `;
+      } else {
+        await sql`
+          update public.vehicle_classes set name = ${patch.name.trim()} where id = ${id}
         `;
       }
+    }
+    if (patch.photoPath !== undefined) {
+      await sql`
+        update public.vehicle_classes set photo_path = ${patch.photoPath} where id = ${id}
+      `;
+    }
+    if (patch.luggageCapacity !== undefined) {
+      await sql`
+        update public.vehicle_classes set luggage_capacity = ${patch.luggageCapacity} where id = ${id}
+      `;
     }
     if (patch.hideFromPublic !== undefined || patch.maxPax !== undefined) {
       await sql`

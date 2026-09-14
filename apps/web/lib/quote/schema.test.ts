@@ -81,6 +81,9 @@ describe("parseQuoteRequest — forbidden client price fields (D-35)", () => {
               "geo_session",
               "extras",
               "coupon",
+              "__proto__",
+              "constructor",
+              "prototype",
               ...FORBIDDEN_CLIENT_PRICE_FIELDS,
             ].includes(k),
         ),
@@ -183,44 +186,44 @@ describe("parseQuoteRequest — extras (D-45, D-56)", () => {
     ).toBe(true);
   });
 
-  it("extra_stops: 4 → extras_max_stops", () => {
+  it("extra_stops: 2 → extras_max_stops (D-21)", () => {
     const result = parseQuoteRequest(
-      validBody({ extras: { extra_stops: 4 } }),
+      validBody({ extras: { extra_stops: 2 } }),
     );
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.code).toBe("extras_max_stops");
   });
 
-  it.each([0, 1, 2, 3])("extra_stops: %i parses", (n) => {
+  it.each([0, 1])("extra_stops: %i parses", (n) => {
     expect(
       parseQuoteRequest(validBody({ extras: { extra_stops: n } })).ok,
     ).toBe(true);
   });
 
-  it("extra_stops: 2 with NO waypoints parses (D-56 count-only)", () => {
+  it("extra_stops: 1 with NO waypoints parses (count-only)", () => {
     const result = parseQuoteRequest(
-      validBody({ extras: { extra_stops: 2 } }),
+      validBody({ extras: { extra_stops: 1 } }),
     );
     expect(result.ok).toBe(true);
   });
 
-  it("extra_stops: 2 with waypoints length 3 fails", () => {
+  it("extra_stops: 1 with waypoints length 2 fails", () => {
     const wp = { lng: 8.5, lat: 47.3, text: "Stop" };
     const result = parseQuoteRequest(
       validBody({
-        extras: { extra_stops: 2, waypoints: [wp, wp, wp] },
+        extras: { extra_stops: 1, waypoints: [wp, wp] },
       }),
     );
     expect(result.ok).toBe(false);
   });
 
-  it("extra_stops: 2 with waypoints length 2 parses", () => {
+  it("extra_stops: 1 with waypoints length 1 parses", () => {
     const wp = { lng: 8.5, lat: 47.3, text: "Stop A" };
     const result = parseQuoteRequest(
       validBody({
         extras: {
-          extra_stops: 2,
-          waypoints: [wp, { ...wp, text: "Stop B" }],
+          extra_stops: 1,
+          waypoints: [wp],
         },
       }),
     );
@@ -308,17 +311,14 @@ describe("parseQuoteRequest — legs / coupon / enums / places", () => {
     ).toBe(false);
   });
 
-  it("coords outside CH+neighbours box → place_out_of_box", () => {
-    const result = parseQuoteRequest(
-      validBody({
-        pickup: validPlace({ lng: -0.12, lat: 51.5, text: "London" }),
-      }),
-    );
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.code).toBe("place_out_of_box");
-      expect(result.code).not.toBe("untrusted_input");
-    }
+  it("D-26: coords outside CH still parse — Mapbox is unfenced", () => {
+    expect(
+      parseQuoteRequest(
+        validBody({
+          pickup: validPlace({ lng: -0.12, lat: 51.5, text: "London" }),
+        }),
+      ).ok,
+    ).toBe(true);
   });
 
   it("Zurich coords parse (inside box)", () => {

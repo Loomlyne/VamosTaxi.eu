@@ -169,6 +169,7 @@ export function buildQuotePipelineDeps(
             address: "",
             lng: 8.5417,
             lat: 47.3769,
+            canton: null,
           },
         })
       : undefined,

@@ -658,49 +658,40 @@ finishes 08-UAT then 12–16 before this phase is discussed.
 **Requirements**: See `.planning/phases/18-ops-pricing-source/18-CONTEXT.md`
 **Success Criteria** (what must be TRUE):
 
-  1. Save writes draft only. Publish is the only flip — instant, all-or-nothing, exact errors.
-  2. Distance recipe is start + (all km × per-km) + bands on top. Charge always CHF.
-  3. Checkout extras list is built from this page after Publish.
-  4. Must-nots: no invented CHF, no live Stripe keys, no `.eu`, no driver app, no auto-dispatch.
+  1. Save writes draft only. Publish is the only flip — instant, all-or-nothing, exact errors. After Publish, `/pricing` shows the live book.
+  2. Distance recipe is start + (all km × per-km) + bands on top (example: 100 + 14.6×12 = CHF 275.20). Charge always CHF. No region %.
+  3. Checkout extras list is built from this page after Publish. Surcharges tab is one list. No History. No Preview.
+  4. After Publish, home / checkout / quote offer **only** live-book classes. Delete = gone. No hardcoded Economy / Business / First / Van ladder. Live UAT on `vamostaxi.site`.
+  5. Must-nots: no invented CHF, no live Stripe keys, no `.eu`, no driver app, no auto-dispatch. Agent does not Publish. Agent does not `db push`.
 
-**Plans:** 10/10 plans executed
+**Plans:** 6/7 plans executed
 
 Plans:
 **Wave 1**
 
-- [x] 18-01-PLAN.md — Wave 0 kernel / completeness / DC source-read tests
+- [x] 18-01-PLAN.md — Public quote board = live book (delete omitted, hide listed)
+- [x] 18-02-PLAN.md — Kill four-class ladder on home/checkout; git quote_rate_book SQL
 
-**Wave 2** *(blocked on Wave 1 completion)*
+**Wave 2** *(blocked on Wave 1)*
 
-- [x] 18-02-PLAN.md — Git migration + owner apply (no public_chf)
+- [x] 18-03-PLAN.md — Draft/Publish UX: live after Publish, no History, no Preview
 
-**Wave 3** *(blocked on Wave 2 completion)*
+**Wave 3** *(blocked on Wave 2)*
 
-- [x] 18-03-PLAN.md — D-11 kernel; drop 20 km floor and min_fare
+- [x] 18-04-PLAN.md — Money: start + km × per-km + bands; no region %; overlap blocks Publish
+- [x] 18-05-PLAN.md — Fixed routes place then canton; extra stop max 1; Mapbox unfenced
 
-**Wave 4** *(blocked on Wave 3 completion)*
+**Wave 4** *(blocked on Wave 3)*
 
-- [x] 18-04-PLAN.md — Publish-only flip, completeness, clone draft
-- [x] 18-05-PLAN.md — Draft staff APIs, VAT off PATCH, preview / test unpaid
+- [x] 18-06-PLAN.md — Any class + R2 photo; one surcharges list; extras from that list
 
-**Wave 5** *(blocked on Wave 4 completion)*
+**Wave 5** *(blocked on Wave 4)*
 
-- [x] 18-06-PLAN.md — Rebuild OpsPricing DC; drop /coupons
+- [ ] 18-07-PLAN.md — Same math everywhere; extra wait not in pay-now; owner apply SQL + owner Publish UAT
 
-**Wave 6** *(blocked on Wave 5 completion)*
+History of 2026-09-13: `.planning/phases/18-ops-pricing-source/archive-2026-09-13/`
 
-- [x] 18-07-PLAN.md — Checkout extras from published book; extra-stop recipe
-- [x] 18-08-PLAN.md — Lock hours, expire unpaid, skip-send mails
-
-**Wave 7** *(blocked on Wave 6 completion)*
-
-- [x] 18-09-PLAN.md — Extra-wait CHF 0 at pay; no off-session debit
-
-**Wave 8** *(blocked on Wave 7 completion)*
-
-- [x] 18-10-PLAN.md — Grep gates + owner UAT on live /pricing
-
-**UI hint**: yes — UI-SPEC in this phase; new structure, `--vt-*` only
+**UI hint**: yes — `18-UI-SPEC.md` 2026-09-14 approved (four tabs, VAT-only rail, `--vt-*` only)
 
 ## Progress
 
@@ -727,7 +718,7 @@ v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16 → 17
 | 15. Wire Ops #support to APIs | 0/TBD | Not started | - |
 | 16. Staging MX + end-to-end UAT | 0/TBD | Not started | - |
 | 17. Ops chauffeur profile, shift roster, two-driver vehicles | 0/TBD | Not started | - |
-| 18. OPS Pricing source of truth | 10/10 | Complete    | 2026-09-14 |
+| 18. OPS Pricing source of truth | 6/7 | In Progress | - |
 
 ---
 *Roadmap created: 2026-08-17*

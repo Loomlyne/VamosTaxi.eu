@@ -18,7 +18,6 @@ type StaffTx = postgres.TransactionSql;
 export type { RateVersionStatus };
 
 export { SURCHARGE_CODES, type SurchargeCode } from "./surcharge-codes";
-import { SURCHARGE_CODES, type SurchargeCode } from "./surcharge-codes";
 export type SurchargeKind = "amount" | "percent" | "included";
 export type SurchargeAppliesTo = "leg" | "booking";
 
@@ -53,12 +52,45 @@ export type FixedRouteRow = {
 export type SurchargeRow = {
   id: number;
   rateVersionId: number;
-  code: SurchargeCode;
+  code: string;
   kind: SurchargeKind;
   amountRappen: number | null;
   percent: number | null;
   appliesTo: SurchargeAppliesTo;
   active: boolean;
+  ruleId: number | null;
+};
+
+export type DistanceBandRow = {
+  id: number;
+  rateVersionId: number;
+  vehicleClassId: string;
+  vehicleClassSlug: string;
+  fromKm: number;
+  toKm: number | null;
+  perKmRappen: number | null;
+};
+
+export type RegionPremiumRow = {
+  id: number;
+  rateVersionId: number;
+  zoneId: string;
+  percent: number;
+};
+
+export type RateRuleRow = {
+  id: number;
+  rateVersionId: number;
+  kind: string;
+  payload: unknown;
+};
+
+export type VehicleClassRef = {
+  id: string;
+  slug: string;
+  name?: string | null;
+  photoPath?: string | null;
+  luggageCapacity?: number | null;
 };
 
 export type RateBook = {
@@ -68,9 +100,14 @@ export type RateBook = {
   label: string;
   vatRateBps: number | null;
   quoteLockMinutes: number | null;
+  freeWaitMinutes: number | null;
   distanceRates: DistanceRateRow[];
   fixedRoutes: FixedRouteRow[];
   surcharges: SurchargeRow[];
+  distanceBands: DistanceBandRow[];
+  regionPremiums: RegionPremiumRow[];
+  rules: RateRuleRow[];
+  vehicleClasses: VehicleClassRef[];
 };
 
 export type ServiceZoneRow = {
@@ -106,6 +143,7 @@ export type SurchargeInput = {
   percent: number | null;
   appliesTo: SurchargeAppliesTo;
   active: boolean;
+  ruleId: number | null;
 };
 
 export type ServiceZoneInput = {
@@ -178,8 +216,10 @@ function asPercent(value: number | string | null): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function isSurchargeCode(value: string): value is SurchargeCode {
-  return (SURCHARGE_CODES as readonly string[]).includes(value);
+const KEBAB_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+function isSurchargeCode(value: string): boolean {
+  return KEBAB_SLUG.test(value);
 }
 
 function rejectNegativeRappen(value: number | null, key: string): number | null {
@@ -189,8 +229,6 @@ function rejectNegativeRappen(value: number | null, key: string): number | null 
   }
   return value;
 }
-
-const KEBAB_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export function assertDistanceRateInput(input: DistanceRateInput): DistanceRateInput {
   if (!input.vehicleClassId) {
@@ -244,6 +282,7 @@ export function assertSurchargeInput(input: SurchargeInput): SurchargeInput {
       percent: null,
       appliesTo: input.appliesTo,
       active: input.active,
+      ruleId: input.ruleId ?? null,
     };
   }
   if (input.kind === "percent") {
@@ -258,6 +297,7 @@ export function assertSurchargeInput(input: SurchargeInput): SurchargeInput {
       percent,
       appliesTo: input.appliesTo,
       active: input.active,
+      ruleId: input.ruleId ?? null,
     };
   }
   if (amount != null || percent != null) {
@@ -270,6 +310,7 @@ export function assertSurchargeInput(input: SurchargeInput): SurchargeInput {
     percent: null,
     appliesTo: input.appliesTo,
     active: input.active,
+    ruleId: input.ruleId ?? null,
   };
 }
 
@@ -293,6 +334,7 @@ type VersionSqlRow = {
   status: RateVersionStatus;
   vat_rate_bps: number | string | null;
   quote_lock_minutes: number | string | null;
+  free_wait_minutes?: number | string | null;
 };
 
 type DistanceSqlRow = {
@@ -300,6 +342,9 @@ type DistanceSqlRow = {
   rate_version_id: number | string;
   vehicle_class_id: string;
   vehicle_class_slug: string;
+  vehicle_class_name?: string | null;
+  vehicle_class_photo?: string | null;
+  luggage_capacity?: number | null;
   base_fare_rappen: number | string | null;
   per_km_rappen: number | string | null;
   min_fare_rappen: number | string | null;
@@ -332,6 +377,39 @@ type SurchargeSqlRow = {
   percent: number | string | null;
   applies_to: SurchargeAppliesTo;
   active: boolean;
+  rule_id: number | string | null;
+};
+
+type BandSqlRow = {
+  id: number | string;
+  rate_version_id: number | string;
+  vehicle_class_id: string;
+  vehicle_class_slug: string;
+  from_km: number | string;
+  to_km: number | string | null;
+  per_km_rappen: number | string | null;
+};
+
+type RegionSqlRow = {
+  id: number | string;
+  rate_version_id: number | string;
+  zone_id: string;
+  percent: number | string;
+};
+
+type RuleSqlRow = {
+  id: number | string;
+  rate_version_id: number | string;
+  kind: string;
+  payload: unknown;
+};
+
+type ClassSqlRow = {
+  id: string;
+  slug: string;
+  name?: string | null;
+  photo_path?: string | null;
+  luggage_capacity?: number | null;
 };
 
 type ZoneSqlRow = {
@@ -349,7 +427,7 @@ export async function loadRateBook(
 ): Promise<RateBook | null> {
   return asStaff(env, claims, async (tx) => {
     const versions = await tx<VersionSqlRow[]>`
-      select id, slug, label, status, vat_rate_bps, quote_lock_minutes
+      select id, slug, label, status, vat_rate_bps, quote_lock_minutes, free_wait_minutes
         from public.rate_versions
        where id = ${versionId}
        limit 1
@@ -363,6 +441,9 @@ export async function loadRateBook(
         r.rate_version_id,
         r.vehicle_class_id,
         vc.slug as vehicle_class_slug,
+        vc.name as vehicle_class_name,
+        vc.photo_path as vehicle_class_photo,
+        vc.luggage_capacity,
         r.base_fare_rappen,
         r.per_km_rappen,
         r.min_fare_rappen,
@@ -406,10 +487,46 @@ export async function loadRateBook(
         s.amount_rappen,
         s.percent,
         s.applies_to,
-        s.active
+        s.active,
+        s.rule_id
       from public.surcharges s
       where s.rate_version_id = ${versionId}
       order by s.code
+    `;
+
+    const bands = await tx<BandSqlRow[]>`
+      select
+        b.id,
+        b.rate_version_id,
+        b.vehicle_class_id,
+        vc.slug as vehicle_class_slug,
+        b.from_km,
+        b.to_km,
+        b.per_km_rappen
+      from public.distance_bands b
+      join public.vehicle_classes vc on vc.id = b.vehicle_class_id
+      where b.rate_version_id = ${versionId}
+      order by vc.slug, b.from_km
+    `;
+
+    const regions = await tx<RegionSqlRow[]>`
+      select id, rate_version_id, zone_id, percent
+        from public.region_premiums
+       where rate_version_id = ${versionId}
+       order by zone_id
+    `;
+
+    const rules = await tx<RuleSqlRow[]>`
+      select id, rate_version_id, kind, payload
+        from public.rate_version_rules
+       where rate_version_id = ${versionId}
+       order by id
+    `;
+
+    const classes = await tx<ClassSqlRow[]>`
+      select id, slug, name, photo_path, luggage_capacity
+        from public.vehicle_classes
+       order by sort_order, slug
     `;
 
     return {
@@ -419,6 +536,7 @@ export async function loadRateBook(
       label: version.label,
       vatRateBps: asRappen(version.vat_rate_bps),
       quoteLockMinutes: asRappen(version.quote_lock_minutes),
+      freeWaitMinutes: asRappen(version.free_wait_minutes ?? null),
       distanceRates: distance.map((row) => ({
         id: asId(row.id),
         rateVersionId: asId(row.rate_version_id),
@@ -457,9 +575,38 @@ export async function loadRateBook(
             percent: asPercent(row.percent),
             appliesTo: row.applies_to,
             active: row.active,
+            ruleId: row.rule_id == null ? null : asId(row.rule_id),
           },
         ];
       }),
+      distanceBands: bands.map((row) => ({
+        id: asId(row.id),
+        rateVersionId: asId(row.rate_version_id),
+        vehicleClassId: row.vehicle_class_id,
+        vehicleClassSlug: row.vehicle_class_slug,
+        fromKm: asRappen(row.from_km) ?? 0,
+        toKm: asRappen(row.to_km),
+        perKmRappen: asRappen(row.per_km_rappen),
+      })),
+      regionPremiums: regions.map((row) => ({
+        id: asId(row.id),
+        rateVersionId: asId(row.rate_version_id),
+        zoneId: row.zone_id,
+        percent: asPercent(row.percent) ?? 0,
+      })),
+      rules: rules.map((row) => ({
+        id: asId(row.id),
+        rateVersionId: asId(row.rate_version_id),
+        kind: row.kind,
+        payload: row.payload,
+      })),
+      vehicleClasses: classes.map((row) => ({
+        id: row.id,
+        slug: row.slug,
+        name: typeof row.name === "string" ? row.name : null,
+        photoPath: typeof row.photo_path === "string" ? row.photo_path : null,
+        luggageCapacity: row.luggage_capacity == null ? null : Number(row.luggage_capacity),
+      })),
     };
   });
 }

@@ -83,7 +83,7 @@ describe("ops customers board", () => {
   it("OpsPricing edits the live rate book, not a draft publish chrome", () => {
     const html = readRepo("app/ops/OpsPricing.dc.html");
     expect(html).toBe(readWeb("public/app/ops/OpsPricing.dc.html"));
-    expect(html).toMatch(/VamosOps\.rates/);
+    expect(html).toMatch(/ops\.rates/);
     expect(html).not.toMatch(/data-price-head-publish/);
     expect(html).not.toMatch(/data-pricing-publish/);
     expect(html).not.toMatch(/tCurrencyLabel/);

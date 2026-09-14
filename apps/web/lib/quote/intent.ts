@@ -59,7 +59,7 @@ export const INTENT_LADDER = Object.freeze([
 
 export type IntentStepId = (typeof INTENT_LADDER)[number]["id"];
 
-export type IntentVehicleClass = "economy" | "business" | "first" | "van";
+export type IntentVehicleClass = string;
 
 export type IntentBody = {
   quote_id: string;

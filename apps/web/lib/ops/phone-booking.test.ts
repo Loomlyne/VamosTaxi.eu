@@ -32,10 +32,10 @@ describe("publicPayUrl", () => {
 });
 
 describe("payLinkVehicleSlug", () => {
-  it("maps known classes and defaults to economy", () => {
+  it("maps known classes and keeps a typed kebab slug", () => {
     expect(payLinkVehicleSlug("Business")).toBe("business");
     expect(payLinkVehicleSlug("VAN")).toBe("van");
-    expect(payLinkVehicleSlug("nope")).toBe("economy");
+    expect(payLinkVehicleSlug("SUV Plus")).toBe("suv-plus");
   });
 });
 
