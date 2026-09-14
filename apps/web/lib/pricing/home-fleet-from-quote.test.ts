@@ -25,4 +25,10 @@ describe("home fleet follows the live fare book", () => {
       /keepLive && prevResults\[v\.id\] && prevResults\[v\.id\]\.kind === 'price'/,
     );
   });
+
+  it("loads live-book cards on first paint via GET /api/quote", () => {
+    expect(home).toMatch(/loadFleet\(\)/);
+    expect(home).toMatch(/fetch\('\/api\/quote', \{ headers: \{ accept: 'application\/json' \} \}/);
+    expect(home).not.toMatch(/VEHICLE_CLASSES\s*=\s*\[/);
+  });
 });

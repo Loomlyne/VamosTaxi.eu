@@ -249,10 +249,25 @@ export function BookingBoard() {
   const [selected, setSelected] = useState<VehicleClassSlug | null>(null);
   const [movedTo, setMovedTo] = useState<MovedTo | null>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
+  const [idleClasses, setIdleClasses] = useState<ClassBoardEntry[]>([]);
   const selectedRef = useRef(selected);
   selectedRef.current = selected;
 
   const complete = tripComplete(draft);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/quote", { headers: { accept: "application/json" } })
+      .then((res) => res.json())
+      .then((data: unknown) => {
+        if (cancelled || !isQuoteOk(data)) return;
+        setIdleClasses(publicFleet(data.classes));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -450,10 +465,11 @@ export function BookingBoard() {
   const board = (
     <div data-bc-board-list="">
       {boardRefusal}
-      {quote
-        ? publicFleet(quote.classes).map((entry) => {
-            const eligible = entry.eligible;
-            const price = eligible
+      {(quote ? publicFleet(quote.classes) : idleClasses).map((entry) => {
+            const eligible = !!quote && entry.eligible;
+            const price = !quote
+              ? keep(formatChfRappen(null, currency, fxRates))
+              : eligible
               ? keep(
                   formatChfRappen(
                     publicRappen(quote.pricing_live, entry.total_rappen),
@@ -465,7 +481,7 @@ export function BookingBoard() {
             return (
               <VehicleCard
                 key={entry.slug}
-                name={className(entry.slug)}
+                name={entry.name ? keep(entry.name) : className(entry.slug)}
                 price={price}
                 priceNote={eligible ? label("quote.class.price_note") : undefined}
                 passengers={entry.effective_max_pax}
@@ -475,13 +491,13 @@ export function BookingBoard() {
                 loading={loading}
                 selected={selected === entry.slug}
                 onSelect={() => {
+                  if (!eligible) return;
                   setSelected(entry.slug);
                   setMovedTo(null);
                 }}
               />
             );
-          })
-        : null}
+          })}
     </div>
   );
 

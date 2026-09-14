@@ -26,6 +26,7 @@ import {
   mintLockDeadline,
 } from "../db/quote";
 import { priceQuote, type PriceQuoteOutput } from "../pricing/priceQuote";
+import { decoratePublicClasses } from "../pricing/public-board";
 import type { CouponFacts, SettingsVersionRow } from "../pricing/policy";
 import * as rateBookMapper from "../pricing/rateBook";
 import type { MappedSettingsSnapshot } from "../pricing/rateBook";
@@ -204,7 +205,8 @@ export async function loadAndPrice(
     coupon: couponFacts,
   });
   // quote.classes is the eligibility board (mapRateBook already dropped
-  // unrated leftovers). Never emit book.classes raw.
+  // unrated leftovers). Never emit book.classes raw. Name/photo come from
+  // the live book so idle and priced cards share one catalog (D-29 D-30).
 
   // Catalogue / engine bug — 500. Never treat a mixed-null class as zero.
   if (priced.partially_priced_class_slugs.length > 0) {
@@ -215,7 +217,7 @@ export async function loadAndPrice(
     ok: true,
     quote: {
       no_eligible_class: priced.no_eligible_class,
-      classes: priced.classes,
+      classes: decoratePublicClasses(book, priced.classes),
       policy: priced.policy,
       rate_version: publicRateVersion(book.rate_version),
       engine_version: priced.engine_version,

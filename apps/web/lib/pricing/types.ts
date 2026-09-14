@@ -290,6 +290,10 @@ export interface ClassBoardEntry {
   fixed_route: boolean;
   total_rappen: number | null;
   lines: Line[];
+  /** Typed /pricing name (D-29). Fallback is the slug. */
+  name?: string | null;
+  /** Public /photos/<key> URL from R2 photo_path (D-30). */
+  photo_url?: string | null;
 }
 
 /** Kernel output shape assembled by priceQuote (plan 04-03+) from these modules. */

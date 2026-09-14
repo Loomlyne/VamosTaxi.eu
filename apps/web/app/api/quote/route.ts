@@ -10,7 +10,10 @@
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { wireQuoteAbuse } from "@/lib/abuse/guards";
+import { loadRateBook } from "@/lib/db/quote";
 import { withRequestContext } from "@/lib/logger";
+import { liveBookBoard } from "@/lib/pricing/public-board";
+import { mapRateBook } from "@/lib/pricing/rateBook";
 import { buildQuotePipelineDeps, isNamedDashboardHost } from "@/lib/quote/deps";
 import { preprocessWidgetTokens } from "@/lib/quote/preprocess";
 import {
@@ -20,6 +23,24 @@ import {
 import { errorResponse, quoteResponse } from "@/lib/quote/respond";
 
 export const dynamic = "force-dynamic";
+
+/** Idle home strip: live-book classes, CHF 000 until POST prices a trip. */
+export async function GET() {
+  try {
+    const { env } = getCloudflareContext();
+    const raw = await loadRateBook(env, { preferDraft: false });
+    const book = mapRateBook(raw);
+    return Response.json(
+      { ok: true, classes: liveBookBoard(book) },
+      { headers: { "Cache-Control": "no-store" } },
+    );
+  } catch {
+    return Response.json(
+      { ok: true, classes: [] },
+      { headers: { "Cache-Control": "no-store" } },
+    );
+  }
+}
 
 function refuse(result: PipelineRefusal) {
   if (result.code === "min_advance" && result.params) {

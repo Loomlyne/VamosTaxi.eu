@@ -69,4 +69,12 @@ describe("public live-book board catalogs (D-29 D-31)", () => {
       /KNOWN_CLASS_SLUGS\s*=\s*\[\s*"economy"\s*,\s*"business"\s*,\s*"first"\s*,\s*"van"\s*\]/,
     );
   });
+
+  it("GET /api/quote paints the live book and never a draft", () => {
+    const src = web("app/api/quote/route.ts");
+    expect(src).toMatch(/export async function GET/);
+    expect(src).toContain("liveBookBoard");
+    expect(src).toContain("preferDraft: false");
+    expect(src).not.toMatch(/preferDraft:\s*true/);
+  });
 });

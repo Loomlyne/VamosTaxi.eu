@@ -1262,6 +1262,7 @@ class Component extends DCLogic {
     this._mqs = ['(max-width:699px)', '(max-width:1079px)'].map((q) => { const m = matchMedia(q); m.addEventListener ? m.addEventListener('change', this._onResize) : m.addListener(this._onResize); return m; });
     this._onResize();
     this.askLocation();
+    this.loadFleet();
     document.fonts && document.fonts.ready ? document.fonts.ready.then(() => this.q()) : this.q();
   }
   componentWillUnmount() {
@@ -1324,6 +1325,22 @@ class Component extends DCLogic {
       const lb = this.labelFor(id); this.dusts[id].setText(lb.text, lb.small);
     };
     return this._refs[id];
+  }
+  /** Live-book cards before a trip is priced. POST /api/quote then replaces amounts. */
+  loadFleet() {
+    fetch('/api/quote', { headers: { accept: 'application/json' } })
+      .then((res) => res.json().catch(() => null))
+      .then((j) => {
+        if (!j || j.ok !== true || !Array.isArray(j.classes)) return;
+        if ((this.state.fleetOffer || []).length) return;
+        const offer = [];
+        j.classes.forEach((c) => {
+          if (!publicQuoteClass(c)) return;
+          offer.push(classFromQuote(c));
+        });
+        this.setState({ fleetOffer: offer }, () => this.relabelAll());
+      })
+      .catch(() => {});
   }
   disperseAll() { Object.values(this.dusts).forEach((d) => d.disperse()); }
   revealAll() { Object.entries(this.dusts).forEach(([k, d]) => { const lb = this.labelFor(k); d.reveal(lb.text, lb.small); }); }

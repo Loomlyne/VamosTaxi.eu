@@ -41,5 +41,7 @@ describe("BookingBoard nulls amounts when !pricing_live (D-19)", () => {
   it("drops a class the fare book no longer offers", () => {
     expect(board).toMatch(/publicFleet/);
     expect(board).toMatch(/ineligible_reason !== "no_rate"/);
+    expect(board).toMatch(/idleClasses/);
+    expect(board).toMatch(/fetch\("\/api\/quote"/);
   });
 });
