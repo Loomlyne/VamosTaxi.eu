@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: v1.0 Vamos Taxi V1
 status: executing
-stopped_at: Phase 18 wave 7 plan 18-09 complete. Next: 18-10 owner UAT.
-last_updated: "2026-09-14T00:18:36.000Z"
-last_activity: 2026-09-14 -- 18-09 extra-wait CHF 0 at pay; no off-session
+stopped_at: Phase 18 wave 8 plan 18-10 complete. Owner authorized Worker vamos deploy.
+last_updated: "2026-09-14T06:48:16.000Z"
+last_activity: 2026-09-14 -- 18-10 D-40 gates; deploy authorized; public_chf still false
 progress:
   total_phases: 18
   completed_phases: 11
   total_plans: 168
-  completed_plans: 161
+  completed_plans: 162
   percent: 96
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-09-04)
 
 ## Current Position
 
-Phase: 18 (OPS Pricing source of truth) — EXECUTING
-Plan: 9 of 10 complete
-Status: Wave 7 plan 18-09 complete. Next: 18-10 owner UAT (do not execute).
-Last activity: 2026-09-14 -- 18-09 extra-wait CHF 0 at pay; no off-session
+Phase: 18 (OPS Pricing source of truth) — COMPLETE (plans 10/10)
+Plan: 10 of 10 complete
+Status: Wave 8 plan 18-10 complete. Owner authorized Worker vamos staging deploy; agent did not Publish.
+Last activity: 2026-09-14 -- 18-10 D-40 gates; deploy authorized; public_chf still false
 
 ## Performance Metrics
 
@@ -44,6 +44,7 @@ Last activity: 2026-09-14 -- 18-09 extra-wait CHF 0 at pay; no off-session
 | Phase 18 P07 | 10min | 3 tasks | 11 files |
 | Phase 18 P08 | 14min | 3 tasks | 28 files |
 | Phase 18 P09 | 17min | 3 tasks | 19 files |
+| Phase 18 P10 | 12min | 3 tasks | 1 file |
 
 ## Blockers
 
@@ -52,8 +53,8 @@ Owner Publish on `https://dashboard.vamostaxi.site/pricing` still turns public C
 ## Session Continuity
 
 Last session: 2026-09-14
-Stopped at: 18-09 complete (extra-wait CHF 0 at pay). Next: 18-10 owner UAT — do not execute 18-10 from this close-out.
-Resume: `/gsd:execute-phase 18`
+Stopped at: 18-10 complete (D-40 grep + owner authorized deploy). Next: hard-refresh /pricing; do not click Publish.
+Resume: none for Phase 18 plans.
 
 ## Decisions
 
@@ -64,3 +65,4 @@ Resume: `/gsd:execute-phase 18`
 - [Phase 18]: Checkout extras are published extra-chip rows (automatic night/weekend/holiday/waiting never chips). Extra stop is D-11 on Mapbox places capped at max_extra_stops, not amount × qty. Both pins inside the published polygon; coupon still floors payable at 0 before VAT.
 - [Phase 18]: Unpaid quotes keep locked snapshot CHF until quote_lock_expires_at then auto-cancel; webhook after expiry/cancel/is_test does not capture; price-changed and expired mails skip-send until owner English exists
 - [Phase 18]: Extra wait after free wait is CHF 0 at pay; meet & greet and free airport wait are two default-on cards; ops mark-arrival writes booking_legs.arrived_at; no off_session / waiting PaymentIntent capture
+- [Phase 18]: D-40 — Worker vamos, no .eu bind, no sk_live_, 18-02 SQL does not set public_chf. First public CHF remains owner Publish. Deploy does not flip public_chf.
