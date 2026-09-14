@@ -33,7 +33,8 @@ export const POST = withAdmin(async (claims, request) => {
   }
   const body = parsePreviewBody(raw);
   if (!body) return jsonErr("invalid", 400);
-  if (!emailOk(body.email)) return jsonErr("email", 400);
+  const email = body.email;
+  if (!emailOk(email)) return jsonErr("email", 400);
 
   const { env } = getCloudflareContext();
   const priced = await priceDraftPreview(env, claims, body);
@@ -109,7 +110,7 @@ export const POST = withAdmin(async (claims, request) => {
       createBooking(tx, {
         quoteId: crypto.randomUUID(),
         idempotencyKey: `test-unpaid-${nonce}`,
-        contact: { name: body.contactName, email: body.email, phone: "" },
+        contact: { name: body.contactName, email, phone: "" },
         locale: "en",
         displayCurrency: "CHF",
         snapshot,

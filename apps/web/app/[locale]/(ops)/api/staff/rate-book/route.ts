@@ -642,7 +642,7 @@ export const PUT = withAdmin(async (claims, request) => {
       const code =
         typeof recBody.code === "string" ? recBody.code.trim().toUpperCase() : "";
       if (!code) return jsonErr("invalid", 400);
-      const couponKind = recBody.couponKind === "amount" || recBody.kind === "amount" ? "amount" : "percent";
+      const couponKind = recBody.couponKind === "amount" ? "amount" : "percent";
       const percent = couponKind === "percent" ? percentFromUnknown(recBody.percent ?? recBody.value) : null;
       const amountRappen =
         couponKind === "amount"

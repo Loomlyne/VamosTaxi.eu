@@ -108,7 +108,7 @@ export interface QuoteLockPayload {
   legs: QuoteLockLeg[];
   extras: QuoteLockExtras | null;
   coupon: string | null;
-  class_totals: Array<{ slug: "economy" | "business" | "first" | "van"; total_rappen: number | null }>;
+  class_totals: Array<{ slug: string; total_rappen: number | null }>;
 }
 
 export interface LockSecrets {

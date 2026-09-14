@@ -148,7 +148,7 @@ export function recapForClass(entry: ClassBoardEntry, vatBps: number): RecapLine
   if (!entry.eligible || entry.total_rappen == null) return empty;
 
   const fare = entry.lines.find((line) => line.kind === "fare");
-  const basis = fare?.basis ?? {};
+  const basis = (fare?.basis ?? {}) as Record<string, unknown>;
   const start =
     typeof basis.base_fare_rappen === "number" && Number.isFinite(basis.base_fare_rappen)
       ? basis.base_fare_rappen

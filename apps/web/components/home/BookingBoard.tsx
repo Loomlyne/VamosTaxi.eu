@@ -91,7 +91,7 @@ function keep(value: ReactNode): ReactNode {
 }
 
 function className(slug: VehicleClassSlug): ReactNode {
-  return keep(CLASS_NAMES[slug]);
+  return keep(CLASS_NAMES[slug] ?? slug);
 }
 
 function alertTone(tone: RefusalTone): AlertTone {
@@ -399,8 +399,8 @@ export function BookingBoard() {
       case "moved_to":
         return movedTo
           ? label("quote.moved_to", {
-              v: CLASS_NAMES[movedTo.v],
-              from: CLASS_NAMES[movedTo.from],
+              v: CLASS_NAMES[movedTo.v] ?? movedTo.v,
+              from: CLASS_NAMES[movedTo.from] ?? movedTo.from,
               cap: movedTo.cap,
             })
           : "";

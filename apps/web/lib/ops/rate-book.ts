@@ -88,7 +88,7 @@ export type DistanceRateInput = {
   minFareRappen: number | null;
   maxPax: number;
   available: boolean;
-  hideFromPublic?: boolean;
+  hideFromPublic: boolean;
 };
 
 export type FixedRouteInput = {

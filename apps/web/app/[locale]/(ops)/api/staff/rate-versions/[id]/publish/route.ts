@@ -82,7 +82,8 @@ export async function POST(
         }
         const vatBps = asNullableInt(row.vat_rate_bps);
         const lockMinutes = asNullableInt(row.quote_lock_minutes);
-        const serviceArea = row.service_area_geojson ?? null;
+        const serviceAreaJson =
+          row.service_area_geojson == null ? null : JSON.stringify(row.service_area_geojson);
         await tx`
           update public.rate_versions
              set status = 'retired'
@@ -104,7 +105,7 @@ export async function POST(
         await tx`
           update public.settings_versions
              set quote_lock_minutes = coalesce(${lockMinutes}, quote_lock_minutes),
-                 service_area_geojson = coalesce(${serviceArea}, service_area_geojson)
+                 service_area_geojson = coalesce(${serviceAreaJson}::jsonb, service_area_geojson)
            where id = (
              select sv.id from public.settings_versions sv
               where sv.effective_from <= now()

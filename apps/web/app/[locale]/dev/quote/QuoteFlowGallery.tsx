@@ -165,7 +165,7 @@ function mmss(totalS: number): string {
 }
 
 function className(slug: ClassBoardEntry["slug"]): ReactNode {
-  return <span className="vt-dir-keep">{CLASS_NAMES[slug]}</span>;
+  return <span className="vt-dir-keep">{CLASS_NAMES[slug as keyof typeof CLASS_NAMES] ?? slug}</span>;
 }
 
 function ineligiblePrice(
