@@ -489,27 +489,21 @@ Lift these (plus `MUTED`, fonts) to `chrome.ts`. Point `layout.ts` at them; drop
 
 **If this table listed only A1–A4:** those are the only `[ASSUMED]` / retry-policy claims. Stack versions, GET shape, BCC, overlay contract, and D-01…D-12 are verified or locked.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Has the owner verified `replies.vamostaxi.site` as a Resend *sending* domain?**
-   - What we know: CONTEXT says not yet; MX on `replies.` is SES receiving (Phase 16). D-01 From stays `noreply@`.
-   - What’s unclear: nothing that blocks planning — gate is a boolean constant.
-   - Recommendation: ship `REPLIES_DOMAIN_VERIFIED = false`. Do not ask mid-phase.
+1. **Has the owner verified `replies.vamostaxi.site` as a Resend *sending* domain?** — RESOLVED: ship `REPLIES_DOMAIN_VERIFIED = false`. D-01 From stays `noreply@vamostaxi.site`; Reply-To is the plus-address. Do not ask mid-phase.
+   - What we know: CONTEXT says not yet; MX on `replies.` is SES receiving (Phase 16).
+   - Recommendation: boolean constant only; flip is owner-gated, not planner-gated.
 
-2. **GET `message_id` empty on first retrieve?**
+2. **GET `message_id` empty on first retrieve?** — RESOLVED: retry GET once, then fail closed. No `email.sent` webhook in this phase.
    - What we know: official retrieve example includes `message_id`; changelog says retrieve returns it for every sent email.
-   - What’s unclear: race on `last_event: queued`.
-   - Recommendation: one retry, then fail closed. No webhook in this phase.
+   - What’s unclear: race on `last_event: queued` (handled by the retry).
 
-3. **Should contact customer-ack GET be in the same wave as staff send?**
+3. **Should contact customer-ack GET be in the same wave as staff send?** — RESOLVED: yes, same phase. Persist GET id when Resend sent the ack. Leave EMAIL fallback in place (D-08).
    - What we know: parent id for `In-Reply-To` is the ack. Today it is synthetic.
-   - What’s unclear: whether EMAIL-only acks on staging are common.
-   - Recommendation: **yes, same phase** — persist GET id when Resend sent the ack. Leave EMAIL fallback in place (D-08).
 
-4. **Stable idempotency key vs random UUID?**
+4. **Stable idempotency key vs random UUID?** — RESOLVED: keep per-attempt UUID; do not hash body into the key (two legitimate different replies could collide). Document duplicate-on-retry.
    - What we know: DC `sending` disables double-click. Resend keys last 24h and 409 on payload mismatch.
-   - What’s unclear: whether overlay retries the same body after 503.
-   - Recommendation: keep per-attempt UUID; do not hash body into the key (two legitimate different replies could collide). Document duplicate-on-retry.
 
 **Resolved from the codebase (do not re-ask):**
 
