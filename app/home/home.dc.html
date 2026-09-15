@@ -118,8 +118,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 @keyframes vt-sheet-in{from{transform:translateY(14px);opacity:.5}to{transform:translateY(0);opacity:1}}
 @keyframes vt-slide-up{from{transform:translateY(100%)}to{transform:translateY(0)}}
 [data-fields]{display:grid;gap:10px;grid-template-columns:minmax(0,1fr);grid-template-areas:"flight" "pickup" "swap" "dest" "when" "party"}
+[data-fields][data-trip=fixed]{grid-template-areas:"flight" "route" "when" "party"}
 [data-fields]>[data-f]{position:relative}
-[data-f=pickup]{grid-area:pickup}[data-f=swap]{grid-area:swap}[data-f=dest]{grid-area:dest}[data-f=when]{grid-area:when}[data-f=party]{grid-area:party}[data-f=flight]{grid-area:flight}
+[data-f=pickup]{grid-area:pickup}[data-f=swap]{grid-area:swap}[data-f=dest]{grid-area:dest}[data-f=when]{grid-area:when}[data-f=party]{grid-area:party}[data-f=flight]{grid-area:flight}[data-f=route]{grid-area:route}
+[data-f=route] [role=listbox]{inset-inline:0;min-width:100%;width:100%}
 [data-party]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 [data-fleet-card][data-picked="1"]{border-color:var(--vt-charcoal-900)!important;box-shadow:var(--vt-shadow-lg)}
 [data-fleet-card][data-dim="1"]{opacity:.48}
@@ -163,6 +165,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-price-slot]{width:100%!important}}
 @media (min-width:700px){[data-only-narrow]{display:none!important}
 [data-fields]{grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr);grid-template-areas:"flight flight flight" "pickup swap dest" "when when when" "party party party"}
+[data-fields][data-trip=fixed]{grid-template-columns:minmax(0,1fr);grid-template-areas:"flight" "route" "when" "party"}
 [data-swap]{padding-top:28px;align-items:flex-start}
 [data-party]{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (min-width:700px) and (max-width:1079px){[data-fleet-card]{flex:0 0 236px}}
@@ -170,6 +173,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 @media (min-width:1080px){[data-upto-wide]{display:none!important}
 [data-bookcard]{padding:16px clamp(12px,3vw,18px) 14px}
 [data-fields]{grid-template-columns:152px minmax(0,1.1fr) 44px minmax(0,1.1fr) minmax(0,1.15fr) auto;grid-template-areas:"flight pickup swap dest when party"}
+[data-fields][data-trip=fixed]{grid-template-columns:152px minmax(0,1.6fr) minmax(0,1.15fr) auto;grid-template-areas:"flight route when party"}
 [data-party]{grid-template-columns:repeat(2,108px)}
 [data-fleet-strip]{display:grid;grid-template-columns:repeat(auto-fit,minmax(238px,1fr));gap:10px}[data-fleet-card]{flex:none;max-width:360px}}
 [data-shell]{display:block}
@@ -254,7 +258,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </sc-if>
 </div>
 </sc-if>
-<div data-fields="1" ref="{{ fieldsRef }}">
+<div data-fields="1" data-trip="{{ tripKind }}" ref="{{ fieldsRef }}">
 <div data-f="flight" data-sugroot="1" style="position: relative; min-width: 0; width: 100%" data-om-label="Flight">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tFlight }}" icon="plane" size="md" value="{{ flight }}" onChange="{{ setFlight }}" onFocus="{{ focusFlight }}" onKeyDown="{{ flightKey }}" placeholder="{{ tFlightPh }}" error="{{ flightError }}" hint-size="100%,66px"></x-import>
 <sc-if value="{{ fsugOpen }}" hint-placeholder-val="{{ false }}">
@@ -320,7 +324,15 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </sc-if>
 </div>
 </sc-if>
-</div><div data-sugroot="1" data-f="pickup" style="position:relative;min-width:0" data-om-label="Pickup">
+</div>
+<sc-if value="{{ isFixed }}" hint-placeholder-val="{{ false }}">
+<div data-f="route" style="position:relative;min-width:0" data-om-label="Route">
+<span style="display:block;margin-bottom:6px;font-family:var(--vt-font-body);font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:.02em;color:var(--vt-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ tFixedRoutes }}</span>
+<dc-import name="BrandSelect" size="field" icon="map-pin" value="{{ fixedKey }}" options="{{ fixedOptions }}" onSelect="{{ setFixedRoute }}" a11ylabel="{{ tFixedRoutes }}" hint-size="100%,44px"></dc-import>
+</div>
+</sc-if>
+<sc-if value="{{ notFixed }}" hint-placeholder-val="{{ true }}">
+<div data-sugroot="1" data-f="pickup" style="position:relative;min-width:0" data-om-label="Pickup">
 <span style="display:block;margin-bottom:6px;font-family:var(--vt-font-body);font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:.02em;color:var(--vt-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ tPickup }}</span>
 <div data-vtcombo="1" data-on="{{ pickupOn }}">
 <span data-combo-tile="1" aria-hidden="true" style="background-color: #CCCCCC00"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ pickupIcon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
@@ -406,6 +418,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <dc-import name="StepCounter" label="{{ tHours }}" icon="clock" value="{{ hours }}" min="{{ n0 }}" max="{{ n12 }}" onChange="{{ setHours }}" hint-size="100%,66px"></dc-import>
 </sc-if>
 </div>
+</sc-if>
 <div data-f="when" style="min-width:0">
 <dc-import name="WhenPicker" label="{{ tWhenLbl }}" placeholder="{{ tWhenPh }}" value="{{ date }}" time="{{ time }}" day="{{ day }}" times="{{ timeSlots }}" baseMonth="{{ baseMonth }}" locale="{{ lang }}" groups="{{ tGroups }}" timeTitle="{{ tPickupTime }}" savedLabel="{{ tSaved }}" clearLabel="{{ tClear }}" saveLabel="{{ tSave }}" onClear="{{ whenClear }}" onDay="{{ setDay }}" onTime="{{ setTime }}" onOpenChange="{{ whenOpenChange }}" hint-size="230px,66px"></dc-import>
 <sc-if value="{{ whenRevertShow }}" hint-placeholder-val="{{ false }}">
@@ -461,7 +474,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <span style="position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">{{ v.sr }}</span>
 </div>
 <sc-if value="{{ v.ready }}" hint-placeholder-val="{{ false }}">
-<span aria-hidden="true" style="display:flex;align-items:center;justify-content:center;gap:7px;height:34px;border-radius:999px;background:var(--vt-yellow);color:var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase">{{ tSelectCta }}
+<span aria-hidden="true" style="display:flex;align-items:center;justify-content:center;gap:7px;height:34px;border-radius:999px;background:var(--vt-yellow);color:var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase">{{ v.cta }}
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import></span>
 </sc-if>
 <sc-if value="{{ v.isPicked }}" hint-placeholder-val="{{ false }}">
@@ -469,7 +482,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n14 }}" color="var(--vt-accent)" hint-size="14px,14px"></x-import>{{ tSelectedCta }}</span>
 </sc-if>
 <sc-if value="{{ v.selectOff }}" hint-placeholder-val="{{ false }}">
-<span aria-disabled="true" data-select-cta="1" data-off="1" style="display:flex;align-items:center;justify-content:center;gap:7px;height:34px;border-radius:999px;background:var(--vt-grey-100);color:var(--vt-text-muted);opacity:.55;font-family:var(--vt-font-body);font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase">{{ tSelectCta }}
+<span aria-disabled="true" data-select-cta="1" data-off="1" style="display:flex;align-items:center;justify-content:center;gap:7px;height:34px;border-radius:999px;background:var(--vt-grey-100);color:var(--vt-text-muted);opacity:.55;font-family:var(--vt-font-body);font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase">{{ v.cta }}
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import></span>
 </sc-if>
 <sc-if value="{{ v.skeleton }}" hint-placeholder-val="{{ false }}">
@@ -548,9 +561,11 @@ function locHits(q) {
   const ql = String(q || '').trim().toLowerCase();
   if (!ql) return [];
   const out = [];
-  for (let i = 0; i < LOCS.length && out.length < 5; i++) {
+  for (let i = 0; i < LOCS.length && out.length < 8; i++) {
     const l = LOCS[i];
-    if ((l.n + ' ' + (l.s || '')).toLowerCase().indexOf(ql) === -1) continue;
+    const iata = ((/\(([A-Za-z]{3})\)/.exec(l.n) || [])[1] || '');
+    const hay = (l.id + ' ' + l.n + ' ' + (l.s || '') + ' ' + iata).toLowerCase();
+    if (hay.indexOf(ql) === -1) continue;
     out.push({ id: l.id, n: l.n, s: l.s, icon: l.icon, air: l.air, lat: l.lat, lon: l.lon });
   }
   return out;
@@ -785,7 +800,7 @@ function publicQuoteClass(c) {
 const T = {
   en: {
     kicker:'Pre-booked transfers · Zurich', h1:'Land in Zurich.      Your driver is waiting.', sub:'Reliable, fixed-price airport and corporate rides booked in under one minute.',
-    oneWay:'One way', return_:'Return', hourly:'By the hour', flight:'Flight (optional)', flightPh:'e.g. LX 54', flightErr:'Check the flight number', flightMiss:'No flight on that number today', tapLookup:'Tap to look up this flight', checking:'Looking up the flight…', lands:'lands', departs:'departs',
+    oneWay:'One way', fixedRoutes:'Fixed routes', return_:'Return', hourly:'By the hour', flight:'Flight (optional)', flightPh:'e.g. LX 54', flightErr:'Check the flight number', flightMiss:'No flight on that number today', tapLookup:'Tap to look up this flight', checking:'Looking up the flight…', lands:'lands', departs:'departs',
     st_scheduled:'Scheduled', st_boarding:'Boarding', st_delayed:'Delayed', st_enroute:'En route', st_landed:'Landed', st_cancelled:'Cancelled',
     srcAct:'actual', srcEst:'estimated', srcSched:'scheduled', late:'{n} min late', early:'{n} min early',
     terminalLbl:'Terminal', gateLbl:'Gate', beltLbl:'Belt', aircraftLbl:'Aircraft',
@@ -803,7 +818,7 @@ const T = {
     pickup:'Pickup', pickupPh:'Airport, address or hotel', dest:'Destination', destPh:'Airport, address or hotel', when:'Pickup date & time', pax:'Passengers', bags:'Luggage', hours:'Duration (hours)', swap:'Swap pickup and destination',
     trust:'Fixed price before you pay · free cancellation up to 24 h', month:'August 2026',
     getting:'Getting your fixed price…', selectHint:'Select a class to continue — details & extras next',
-    naPax:'Not available for {n} passengers', naBags:'Not available for {n} bags', quoteErr:'Couldn’t price this — try again', fixed:'Fixed price', allIn:'total, all inclusive', mostBooked:'Most booked',
+    naPax:'Not available for {n} passengers', naBags:'Not available for {n} bags', quoteErr:'Couldn’t price this — try again', routeErr:'No road route to this destination', europeErr:'We operate in Europe', fixed:'Fixed price', allIn:'total, all inclusive', mostBooked:'Most booked',
     economy:'Economy', business:'Business', first:'First', van:'Van', exEconomy:'Sedan or similar', exBusiness:'Executive sedan', exFirst:'S-Class or similar', exVan:'Minivan or similar', seats:'seats', bagsWord:'bags',
     upToPax:'Up to {n} passengers', upToBags:'Up to {n} bags', movedTo:'Moved to {v} — {from} fits up to {cap}.', noneFit:'No class fits this party size yet.',
     flightCardTitle:'Flight details', fcTo:'Departs {ap} at {t} — we take you there.', fcFrom:'Arriving at {ap} at {t} — we\'ll meet you there.',
@@ -813,9 +828,10 @@ const T = {
     menu:'Menu', close:'Close', clear:'Clear', save:'Save', planTitle:'Plan your transfer', showPrices:'Show fixed prices', call:'Call +41 79 626 70 82', callNote:'Talk to dispatch', langLabel:'Language', curLabel:'Currency',
     morning:'Morning', afternoon:'Afternoon', evening:'Evening', pickupTime:'Pickup time', returnTimeLbl:'Return time',
     useLoc:'Use my current location', useLocSub:'GPS · fastest way to set pickup', nearYou:'Near you', popular:'Popular destinations', locating:'Locating…', whenBoth:'Pickup & return', flightChip:'Add a flight number', saved:'Saved',
-    modeOne:'One transfer, one fixed price for the route.', modeReturn:'Return added — set the return date and time too.', modeHourly:'Car and driver stay with you — no destination needed.',
+    modeOne:'One transfer, one fixed price for the route.', modeFixed:'Pick a published route, then passengers, bags and flight.', modeReturn:'Return added — set the return date and time too.', modeHourly:'Car and driver stay with you — no destination needed.',
+    fixedPh:'Choose a route', fixedEmpty:'No live routes yet', fixedMiss:'Couldn’t match that route — try One way',
     fillingFrom:'Filled from {code}', fillPickup:'Pickup', fillWhen:'Date & time', fillDest:'Destination', fillParty:'Passengers & luggage',
-    stepTwo:'Step 2', readyTitle:'Choose your class', readySub:'Fixed price, all inclusive — tap a class to continue.', selectCta:'Select', selectedCta:'Selected', unavailableCta:'Not available right now', doesNotFit:'Does not fit your party',
+    stepTwo:'Step 2', readyTitle:'Choose your class', readySub:'Fixed price, all inclusive — tap a class to continue.', selectCta:'Select', noRoad:'No road', selectedCta:'Selected', unavailableCta:'Not available right now', doesNotFit:'Does not fit your party',
     noFeed:'Flight lookup is unavailable. Enter pickup and time yourself.',
     needTrip:'Add your trip to see prices', emptyTitle:'Plan your transfer', emptyMeta:'Pickup, destination, date & time', whenPh:'Select date & time',
     searching:'Searching places…', geoErr:'Place search unavailable — saved places only', savedPlaces:'Saved places', results:'Search results', routeStat:'{km} km · about {min} min by road',
@@ -843,7 +859,7 @@ const T = {
   },
   de: {
     kicker:'Vorausgebuchte Transfers · Zürich', h1:'Landen Sie in Zürich. Ihr Fahrer wartet bereits.', sub:'Zuverlässige Flughafen- und Geschäftsfahrten zum Festpreis — gebucht in unter einer Minute.',
-    oneWay:'Einfache Fahrt', return_:'Rückfahrt', hourly:'Stundenweise', flight:'Flug (optional)', flightPh:'z. B. LX 54', flightErr:'Prüfen Sie die Flugnummer', flightMiss:'Zu dieser Nummer liegt heute kein Flug vor', tapLookup:'Antippen, um den Flug zu prüfen', checking:'Flug wird gesucht…', lands:'landet', departs:'startet',
+    oneWay:'Einfache Fahrt', fixedRoutes:'Feste Strecken', return_:'Rückfahrt', hourly:'Stundenweise', flight:'Flug (optional)', flightPh:'z. B. LX 54', flightErr:'Prüfen Sie die Flugnummer', flightMiss:'Zu dieser Nummer liegt heute kein Flug vor', tapLookup:'Antippen, um den Flug zu prüfen', checking:'Flug wird gesucht…', lands:'landet', departs:'startet',
     st_scheduled:'Planmässig', st_boarding:'Boarding', st_delayed:'Verspätet', st_enroute:'Unterwegs', st_landed:'Gelandet', st_cancelled:'Annulliert',
     srcAct:'tatsächlich', srcEst:'erwartet', srcSched:'geplant', late:'{n} Min. später', early:'{n} Min. früher',
     terminalLbl:'Terminal', gateLbl:'Gate', beltLbl:'Band', aircraftLbl:'Flugzeug',
@@ -862,7 +878,7 @@ const T = {
     pickup:'Abholort', pickupPh:'Flughafen, Adresse oder Hotel', dest:'Ziel', destPh:'Flughafen, Adresse oder Hotel', when:'Abholdatum & -zeit', pax:'Passagiere', bags:'Gepäck', hours:'Dauer (Stunden)', swap:'Abholort und Ziel tauschen',
     trust:'Festpreis vor der Zahlung · kostenlose Stornierung bis 24 Std.', month:'August 2026',
     getting:'Ihr Festpreis wird berechnet…', selectHint:'Klasse wählen und weiter — Angaben & Extras folgen',
-    naPax:'Nicht verfügbar für {n} Passagiere', naBags:'Nicht verfügbar für {n} Gepäckstücke', quoteErr:'Preis nicht verfügbar — erneut versuchen', fixed:'Festpreis', allIn:'gesamt, alles inklusive', mostBooked:'Meistgebucht',
+    naPax:'Nicht verfügbar für {n} Passagiere', naBags:'Nicht verfügbar für {n} Gepäckstücke', quoteErr:'Preis nicht verfügbar — erneut versuchen', routeErr:'Kein Strassenweg zu diesem Ziel', europeErr:'Wir fahren in Europa', fixed:'Festpreis', allIn:'gesamt, alles inklusive', mostBooked:'Meistgebucht',
     economy:'Economy', business:'Business', first:'First', van:'Van', exEconomy:'Limousine oder ähnlich', exBusiness:'Business-Limousine', exFirst:'S-Klasse oder ähnlich', exVan:'Minivan oder ähnlich', seats:'Plätze', bagsWord:'Gepäckstücke',
     upToPax:'Bis zu {n} Passagiere', upToBags:'Bis zu {n} Gepäckstücke', movedTo:'Zu {v} gewechselt — {from} bietet Platz für bis zu {cap}.', noneFit:'Keine Klasse passt zu dieser Personenzahl.',
     flightCardTitle:'Flugdetails', fcTo:'Abflug {ap} um {t} — wir bringen Sie dorthin.', fcFrom:'Ankunft {ap} um {t} — wir holen Sie dort ab.',
@@ -872,9 +888,10 @@ const T = {
     menu:'Menü', close:'Schliessen', clear:'Löschen', save:'Speichern', planTitle:'Transfer planen', showPrices:'Festpreise anzeigen', call:'+41 79 626 70 82 anrufen', callNote:'Direkt mit der Disposition sprechen', langLabel:'Sprache', curLabel:'Währung',
     morning:'Vormittag', afternoon:'Nachmittag', evening:'Abend', pickupTime:'Abholzeit', returnTimeLbl:'Rückfahrtzeit',
     useLoc:'Aktuellen Standort verwenden', useLocSub:'GPS · schnellster Weg zum Abholort', nearYou:'In Ihrer Nähe', popular:'Beliebte Ziele', locating:'Standort wird ermittelt…', whenBoth:'Hin- & Rückfahrt', flightChip:'Flugnummer hinzufügen', saved:'Gespeichert',
-    modeOne:'Eine Fahrt, ein Festpreis für die Route.', modeReturn:'Rückfahrt hinzugefügt — Datum und Zeit der Rückfahrt festlegen.', modeHourly:'Fahrzeug und Fahrer bleiben bei Ihnen — kein Ziel nötig.',
+    modeOne:'Eine Fahrt, ein Festpreis für die Route.', modeFixed:'Wählen Sie eine hinterlegte Strecke, dann Passagiere, Gepäck und Flug.', modeReturn:'Rückfahrt hinzugefügt — Datum und Zeit der Rückfahrt festlegen.', modeHourly:'Fahrzeug und Fahrer bleiben bei Ihnen — kein Ziel nötig.',
+    fixedPh:'Strecke wählen', fixedEmpty:'Noch keine live Strecken', fixedMiss:'Diese Strecke konnte nicht gefunden werden — versuchen Sie Einfache Fahrt',
     fillingFrom:'Aus {code} ausgefüllt', fillPickup:'Abholort', fillWhen:'Datum & Zeit', fillDest:'Ziel', fillParty:'Passagiere & Gepäck',
-    stepTwo:'Schritt 2', readyTitle:'Klasse wählen', readySub:'Festpreis, alles inklusive — Klasse antippen zum Fortfahren.', selectCta:'Wählen', selectedCta:'Gewählt', unavailableCta:'Derzeit nicht verfügbar', doesNotFit:'Passt nicht zu Ihrer Gruppe',
+    stepTwo:'Schritt 2', readyTitle:'Klasse wählen', readySub:'Festpreis, alles inklusive — Klasse antippen zum Fortfahren.', selectCta:'Wählen', noRoad:'Kein Weg', selectedCta:'Gewählt', unavailableCta:'Derzeit nicht verfügbar', doesNotFit:'Passt nicht zu Ihrer Gruppe',
     needTrip:'Fahrt angeben, um Preise zu sehen', emptyTitle:'Transfer planen', emptyMeta:'Abholort, Ziel, Datum & Zeit', whenPh:'Datum & Zeit wählen',
     searching:'Orte werden gesucht…', geoErr:'Ortssuche nicht verfügbar — nur gespeicherte Orte', savedPlaces:'Gespeicherte Orte', results:'Suchergebnisse', routeStat:'{km} km · etwa {min} Min. Fahrt',
     savedGo:'Gespeichert — Buchung wird geöffnet…', savedSub:'{v} · Angaben und Extras folgen.',
@@ -901,7 +918,7 @@ const T = {
   },
   fr: {
     kicker:'Transferts réservés à l’avance · Zurich', h1:'Vous atterrissez à Zurich. Votre chauffeur vous attend.', sub:'Trajets aéroport et affaires fiables, à prix fixe — réservés en moins d’une minute.',
-    oneWay:'Aller simple', return_:'Aller-retour', hourly:'À l’heure', flight:'Vol (facultatif)', flightPh:'ex. LX 54', flightErr:'Vérifiez le numéro de vol', flightMiss:'Aucun vol sous ce numéro aujourd’hui', tapLookup:'Touchez pour vérifier ce vol', checking:'Recherche du vol…', lands:'atterrit à', departs:'décolle à',
+    oneWay:'Aller simple', fixedRoutes:'Trajets fixes', return_:'Aller-retour', hourly:'À l’heure', flight:'Vol (facultatif)', flightPh:'ex. LX 54', flightErr:'Vérifiez le numéro de vol', flightMiss:'Aucun vol sous ce numéro aujourd’hui', tapLookup:'Touchez pour vérifier ce vol', checking:'Recherche du vol…', lands:'atterrit à', departs:'décolle à',
     st_scheduled:'Prévu', st_boarding:'Embarquement', st_delayed:'Retardé', st_enroute:'En vol', st_landed:'Atterri', st_cancelled:'Annulé',
     srcAct:'réel', srcEst:'estimé', srcSched:'prévu', late:'{n} min de retard', early:'{n} min d’avance',
     terminalLbl:'Terminal', gateLbl:'Porte', beltLbl:'Tapis', aircraftLbl:'Appareil',
@@ -920,22 +937,23 @@ const T = {
     pickup:'Départ', pickupPh:'Aéroport, adresse ou hôtel', dest:'Destination', destPh:'Aéroport, adresse ou hôtel', when:'Date & heure de départ', pax:'Passagers', bags:'Bagages', hours:'Durée (heures)', swap:'Inverser départ et destination',
     trust:'Prix fixe avant paiement · annulation gratuite jusqu’à 24 h', month:'Août 2026',
     getting:'Calcul de votre prix fixe…', selectHint:'Choisissez une classe pour continuer — détails & options ensuite',
-    naPax:'Indisponible pour {n} passagers', naBags:'Indisponible pour {n} bagages', quoteErr:'Tarif indisponible — réessayez', fixed:'Prix fixe', allIn:'total, tout compris', mostBooked:'Le plus réservé',
+    naPax:'Indisponible pour {n} passagers', naBags:'Indisponible pour {n} bagages', quoteErr:'Tarif indisponible — réessayez', routeErr:'Pas d’itinéraire routier vers cette destination', europeErr:'Nous circulons en Europe', fixed:'Prix fixe', allIn:'total, tout compris', mostBooked:'Le plus réservé',
     economy:'Economy', business:'Business', first:'First', van:'Van', exEconomy:'Berline ou similaire', exBusiness:'Berline affaires', exFirst:'Classe S ou similaire', exVan:'Monospace ou similaire', seats:'places', bagsWord:'bagages',
     signIn:'Connexion', customPin:'Utiliser comme point sur la carte', dowRef:'sam.,dim.,lun.,mar.,mer.,jeu.,ven.', mon:'août',
     menu:'Menu', close:'Fermer', clear:'Effacer', save:'Enregistrer', planTitle:'Planifiez votre transfert', showPrices:'Afficher les prix fixes', call:'Appeler le +41 79 626 70 82', callNote:'Parler à la centrale', langLabel:'Langue', curLabel:'Devise',
     morning:'Matin', afternoon:'Après-midi', evening:'Soir', pickupTime:'Heure de départ', returnTimeLbl:'Heure du retour',
     useLoc:'Utiliser ma position actuelle', useLocSub:'GPS · le plus rapide pour le départ', nearYou:'À proximité', popular:'Destinations populaires', locating:'Localisation…', whenBoth:'Départ & retour', flightChip:'Ajouter un numéro de vol', saved:'Enregistré',
-    modeOne:'Un trajet, un prix fixe pour l’itinéraire.', modeReturn:'Retour ajouté — indiquez aussi la date et l’heure du retour.', modeHourly:'Voiture et chauffeur restent avec vous — sans destination.',
+    modeOne:'Un trajet, un prix fixe pour l’itinéraire.', modeFixed:'Choisissez un trajet publié, puis passagers, bagages et vol.', modeReturn:'Retour ajouté — indiquez aussi la date et l’heure du retour.', modeHourly:'Voiture et chauffeur restent avec vous — sans destination.',
+    fixedPh:'Choisir un trajet', fixedEmpty:'Aucun trajet en ligne pour l’instant', fixedMiss:'Ce trajet n’a pas pu être trouvé — essayez Aller simple',
     fillingFrom:'Prérempli depuis {code}', fillPickup:'Départ', fillWhen:'Date & heure', fillDest:'Destination', fillParty:'Passagers & bagages',
-    stepTwo:'Étape 2', readyTitle:'Choisissez votre classe', readySub:'Prix fixe, tout compris — touchez une classe pour continuer.', selectCta:'Choisir', selectedCta:'Choisie', unavailableCta:'Indisponible pour le moment', doesNotFit:'Ne convient pas à votre groupe',
+    stepTwo:'Étape 2', readyTitle:'Choisissez votre classe', readySub:'Prix fixe, tout compris — touchez une classe pour continuer.', selectCta:'Choisir', noRoad:'Sans route', selectedCta:'Choisie', unavailableCta:'Indisponible pour le moment', doesNotFit:'Ne convient pas à votre groupe',
     needTrip:'Renseignez votre trajet pour voir les prix', emptyTitle:'Planifiez votre transfert', emptyMeta:'Départ, destination, date & heure', whenPh:'Choisir date & heure',
     searching:'Recherche de lieux…', geoErr:'Recherche indisponible — lieux enregistrés', savedPlaces:'Lieux enregistrés', results:'Résultats', routeStat:'{km} km · environ {min} min de route',
     savedGo:'Enregistré — ouverture de votre réservation…', savedSub:'{v} · détails et options ensuite.',
   },
   ar: {
     kicker:'نقل محجوز مسبقًا · زيورخ', h1:'تهبط في زيورخ وسائقك في انتظارك.', sub:'مشاوير مطار وشركات موثوقة بسعر ثابت — تُحجز في أقل من دقيقة.',
-    oneWay:'ذهاب فقط', return_:'ذهاب وعودة', hourly:'بالساعة', flight:'رقم الرحلة (اختياري)', flightPh:'مثال LX 54', flightErr:'تحقق من رقم الرحلة', flightMiss:'لا رحلة بهذا الرقم اليوم', tapLookup:'اضغط للتحقق من الرحلة', checking:'جارٍ البحث عن الرحلة…', lands:'يصل', departs:'يقلع',
+    oneWay:'ذهاب فقط', fixedRoutes:'مسارات ثابتة', return_:'ذهاب وعودة', hourly:'بالساعة', flight:'رقم الرحلة (اختياري)', flightPh:'مثال LX 54', flightErr:'تحقق من رقم الرحلة', flightMiss:'لا رحلة بهذا الرقم اليوم', tapLookup:'اضغط للتحقق من الرحلة', checking:'جارٍ البحث عن الرحلة…', lands:'يصل', departs:'يقلع',
     st_scheduled:'مجدولة', st_boarding:'الصعود', st_delayed:'متأخرة', st_enroute:'في الجو', st_landed:'هبطت', st_cancelled:'ملغاة',
     srcAct:'فعلي', srcEst:'متوقع', srcSched:'مجدول', late:'متأخرة {n} دقيقة', early:'مبكرة {n} دقيقة',
     terminalLbl:'المبنى', gateLbl:'البوابة', beltLbl:'الحزام', aircraftLbl:'الطائرة',
@@ -954,15 +972,16 @@ const T = {
     pickup:'نقطة الانطلاق', pickupPh:'مطار أو عنوان أو فندق', dest:'الوجهة', destPh:'مطار أو عنوان أو فندق', when:'تاريخ ووقت الانطلاق', pax:'الركاب', bags:'الأمتعة', hours:'المدة (ساعات)', swap:'تبديل الانطلاق والوجهة',
     trust:'سعر ثابت قبل الدفع · إلغاء مجاني حتى 24 ساعة', month:'أغسطس 2026',
     getting:'جارٍ حساب سعرك الثابت…', selectHint:'اختر فئة للمتابعة — التفاصيل والإضافات تاليًا',
-    naPax:'غير متاحة لـ {n} ركاب', naBags:'غير متاحة لـ {n} حقائب', quoteErr:'تعذّر التسعير — حاول مجددًا', fixed:'سعر ثابت', allIn:'الإجمالي، شامل كل شيء', mostBooked:'الأكثر حجزًا',
+    naPax:'غير متاحة لـ {n} ركاب', naBags:'غير متاحة لـ {n} حقائب', quoteErr:'تعذّر التسعير — حاول مجددًا', routeErr:'لا يوجد مسار بري إلى هذه الوجهة', europeErr:'نعمل في أوروبا', fixed:'سعر ثابت', allIn:'الإجمالي، شامل كل شيء', mostBooked:'الأكثر حجزًا',
     economy:'اكونومي', business:'بيزنس', first:'الأولى', van:'فان', exEconomy:'سيدان أو ما شابه', exBusiness:'سيدان تنفيذية', exFirst:'إس-كلاس أو ما شابه', exVan:'ميني فان أو ما شابه', seats:'مقاعد', bagsWord:'حقائب',
     signIn:'تسجيل الدخول', customPin:'استخدامه كنقطة على الخريطة', dowRef:'السبت,الأحد,الاثنين,الثلاثاء,الأربعاء,الخميس,الجمعة', mon:'أغسطس',
     menu:'القائمة', close:'إغلاق', clear:'مسح', save:'حفظ', planTitle:'خطّط رحلتك', showPrices:'إظهار الأسعار الثابتة', call:'اتصل بنا', callNote:'تحدّث مع قسم التوزيع', langLabel:'اللغة', curLabel:'العملة',
     morning:'صباحًا', afternoon:'بعد الظهر', evening:'مساءً', pickupTime:'وقت الانطلاق', returnTimeLbl:'وقت العودة',
     useLoc:'استخدام موقعي الحالي', useLocSub:'GPS · أسرع طريقة لتحديد الانطلاق', nearYou:'بالقرب منك', popular:'وجهات شائعة', locating:'جارٍ تحديد الموقع…', whenBoth:'الذهاب والعودة', flightChip:'إضافة رقم الرحلة', saved:'تم الحفظ',
-    modeOne:'رحلة واحدة بسعر ثابت للمسار.', modeReturn:'أُضيفت العودة — حدّد تاريخ ووقت العودة أيضًا.', modeHourly:'السيارة والسائق يبقيان معك — دون وجهة.',
+    modeOne:'رحلة واحدة بسعر ثابت للمسار.', modeFixed:'اختر مسارًا منشورًا، ثم الركاب والحقائب والرحلة.', modeReturn:'أُضيفت العودة — حدّد تاريخ ووقت العودة أيضًا.', modeHourly:'السيارة والسائق يبقيان معك — دون وجهة.',
+    fixedPh:'اختر مسارًا', fixedEmpty:'لا مسارات مباشرة بعد', fixedMiss:'تعذّر مطابقة هذا المسار — جرّب ذهاب فقط',
     fillingFrom:'مُعبّأ من {code}', fillPickup:'الانطلاق', fillWhen:'التاريخ والوقت', fillDest:'الوجهة', fillParty:'الركاب والأمتعة',
-    stepTwo:'الخطوة 2', readyTitle:'اختر الفئة', readySub:'سعر ثابت شامل — اختر فئة للمتابعة.', selectCta:'اختيار', selectedCta:'مختارة', unavailableCta:'غير متاح حاليًا', doesNotFit:'لا يناسب مجموعتك',
+    stepTwo:'الخطوة 2', readyTitle:'اختر الفئة', readySub:'سعر ثابت شامل — اختر فئة للمتابعة.', selectCta:'اختيار', noRoad:'لا طريق', selectedCta:'مختارة', unavailableCta:'غير متاح حاليًا', doesNotFit:'لا يناسب مجموعتك',
     needTrip:'أضف تفاصيل رحلتك لعرض الأسعار', emptyTitle:'خطّط رحلتك', emptyMeta:'الانطلاق، الوجهة، التاريخ والوقت', whenPh:'اختر التاريخ والوقت',
     searching:'جارٍ البحث عن الأماكن…', geoErr:'البحث غير متاح — الأماكن المحفوظة فقط', savedPlaces:'أماكن محفوظة', results:'نتائج البحث', routeStat:'{km} كم · نحو {min} دقيقة بالسيارة',
     savedGo:'تم الحفظ — جارٍ فتح حجزك…', savedSub:'{v} · التفاصيل والإضافات تاليًا.',
@@ -1152,14 +1171,14 @@ class Component extends DCLogic {
     return {
       lang: LANGS.includes(lang) ? lang : 'en',
       cur: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosCurrency')) || 'CHF',
-      mode: 'one-way', pickupText: '', pickupLoc: null, dropText: '', dropLoc: null,
+      mode: 'one-way', fixedKey: '', fixedRoutes: [], pickupText: '', pickupLoc: null, dropText: '', dropLoc: null,
       day: null, time: '', returnDay: null, returnTime: '', dayLabel: null, returnLabel: null, dayY: null, dayM: null, returnY: null, returnM: null,
       pax: 1, bags: 0, hours: 0, geo: 'idle',
       flight: '', flightState: 'idle', flightData: null, flightPlan: null, flightSince: '', flightNote: '', changes: [], kept: [],
       touched: { pickup: false, dest: false, when: false }, here: null, hereLoc: null,
       autofill: { pickup: null, when: null, dest: null, party: null }, fill: null, picked: null,
       sug: CLOSED, sugIdx: -1, sugFlip: false, fsug: { open: false, items: [] }, fsugIdx: -1, fsugFlip: false,
-      quote: { status: 'empty', results: null, inflight: false }, announce: '',
+      quote: { status: 'empty', results: null, inflight: false }, announce: '', quoteFail: false,
       fleetOffer: [],
       tier: TIER(), menuOpen: false, sheetOpen: false,
       flightConfirmed: false, flightDateChoice: 'today', pendingTimeUpdate: null,
@@ -1338,7 +1357,7 @@ class Component extends DCLogic {
           if (!publicQuoteClass(c)) return;
           offer.push(classFromQuote(c));
         });
-        this.setState({ fleetOffer: offer }, () => this.relabelAll());
+        this.setState({ fleetOffer: offer, fixedRoutes: Array.isArray(j.fixed_routes) ? j.fixed_routes : [] }, () => this.relabelAll());
       })
       .catch(() => {});
   }
@@ -1348,11 +1367,11 @@ class Component extends DCLogic {
   q = () => { clearTimeout(this._deb); this._deb = setTimeout(this.fireQuote, 300); };
   fireQuote = () => {
     const r = this.routeInfo(); const id = ++this.reqSeq;
-    if (!r.ok) { this.setState({ quote: { status: 'empty', results: null, inflight: false } }); this.relabelAll(); return; }
+    if (!r.ok) { this.setState({ quote: { status: 'empty', results: null, inflight: false }, quoteFail: false }); this.relabelAll(); return; }
     const prevResults = this.state.quote.results;
     const keepLive = this.state.quote.status === 'live' && !!prevResults;
-    if (keepLive) this.setState({ quote: Object.assign({}, this.state.quote, { inflight: true }) });
-    else this.setState({ quote: { status: 'skeleton', results: null, inflight: true } });
+    if (keepLive) this.setState({ quote: Object.assign({}, this.state.quote, { inflight: true }), quoteFail: false });
+    else this.setState({ quote: { status: 'skeleton', results: null, inflight: true }, quoteFail: false });
     const s = this.state;
     const failAll = () => {
       if (id !== this.reqSeq) return;
@@ -1367,7 +1386,7 @@ class Component extends DCLogic {
       const offer = (extra && extra.fleetOffer) || this.state.fleetOffer || [];
       const patch = Object.assign({ status: 'live', results: res, inflight: false }, extra || {});
       delete patch.fleetOffer;
-      this.setState({ quote: patch, fleetOffer: offer }, () => {
+      this.setState({ quote: patch, fleetOffer: offer, quoteFail: false }, () => {
         this.revealAll();
         const t = this.t(); const names = { economy: t.economy, business: t.business, first: t.first, van: t.van };
         if (this.state.picked && !res[this.state.picked]) this.setState({ picked: null, capacityMoveNote: null });
@@ -1402,7 +1421,12 @@ class Component extends DCLogic {
       .then((res) => res.json().catch(() => null))
       .then((j) => {
         if (id !== this.reqSeq) return;
-        if (!j || j.ok !== true) { failAll(); return; }
+        if (!j || j.ok !== true) {
+          const err = j && j.error;
+          const note = err === 'out_of_service_area' ? this.t().europeErr : (err === 'route_unavailable' ? this.t().routeErr : this.t().quoteErr);
+          this.setState({ quote: { status: 'empty', results: null, inflight: false }, quoteFail: true, announce: note }, () => this.relabelAll());
+          return;
+        }
         const res = {};
         const offer = [];
         (j.classes || []).forEach((c) => {
@@ -1416,38 +1440,57 @@ class Component extends DCLogic {
           if (!c.eligible) { res[c.slug] = Object.assign({ kind: 'na', sub: c.ineligible_reason === 'bags' ? 'bags' : 'pax', n: c.ineligible_reason === 'bags' ? bags : pax }, caps); return; }
           res[c.slug] = Object.assign({ kind: 'hold' }, caps);
         });
-        applyLive(res, { lock: j.lock, quote_id: j.quote_id, expires_at: j.expires_at, fleetOffer: offer });
+        const noRoad = !!(j.route && Array.isArray(j.route.legs) && j.route.legs.some((leg) => leg && leg.road === false));
+        applyLive(res, { lock: j.lock, quote_id: j.quote_id, expires_at: j.expires_at, fleetOffer: offer, noRoad: noRoad });
       })
       .catch(failAll);
   };
   snapToFit = (v) => { if (this.state.pax > v.cap) this.setPax(v.cap); if (this.state.bags > v.bags) this.setBags(v.bags); this.setState({ capacityMoveNote: null }); };
   pickLang = (v) => { if (window.VamosLocale) window.VamosLocale.setLang(v); else localStorage.setItem('vamosLang', v); this.setState({ lang: v }, () => this.relabelAll()); };
   pickCur = (v) => { if (window.VamosLocale) window.VamosLocale.setCur(v); else localStorage.setItem('vamosCurrency', v); this.setState({ cur: v }, () => this.relabelAll()); this.q(); };
-  modeNoteFor(m) { const t = this.t(); return m === 'return' ? t.modeReturn : m === 'hourly' ? t.modeHourly : t.modeOne; }
+  modeNoteFor(m) { const t = this.t(); return m === 'fixed' ? t.modeFixed : m === 'return' ? t.modeReturn : m === 'hourly' ? t.modeHourly : t.modeOne; }
   setMode = (m) => {
     const prev = this.state.mode;
     if (m === prev) return;
-    const crossesHourly = (m === 'hourly') !== (prev === 'hourly');
-    const el = crossesHourly && this._fields ? this._fields.querySelector('[data-f="dest"]') : null;
-    const h1 = el ? el.getBoundingClientRect().height : 0;
-    if (el && !REDUCED) { el.style.overflow = 'hidden'; el.style.height = h1 + 'px'; }
     this.setState({ mode: m, picked: null, announce: this.modeNoteFor(m) }, () => {
       this.noteDip();
-      if (!el || REDUCED) { if (crossesHourly) this.pulse(['dest']); return; }
-      requestAnimationFrame(() => {
-        const h2 = el.scrollHeight;
-        try {
-          const anim = el.animate([
-            { height: h1 + 'px', opacity: 1, transform: 'translateY(0)' },
-            { height: Math.max(h1, h2) * 0.94 + 'px', opacity: .5, transform: 'translateY(4px)', offset: .5 },
-            { height: h2 + 'px', opacity: 1, transform: 'translateY(0)' },
-          ], { duration: 220, easing: 'cubic-bezier(.2,0,.2,1)' });
-          anim.onfinish = () => { el.style.height = ''; el.style.overflow = ''; el.style.opacity = ''; el.style.transform = ''; };
-        } catch (e) { el.style.height = ''; el.style.overflow = ''; }
+      if (m === 'fixed' && this.state.fixedKey) this.setFixedRoute(this.state.fixedKey);
+      else this.q();
+    });
+  };
+  setFixedRoute = (key) => {
+    const row = (this.state.fixedRoutes || []).find((r) => r.key === key);
+    if (!row) {
+      this.setState({ fixedKey: '', pickupLoc: null, dropLoc: null }, this.q);
+      return;
+    }
+    this.setState({ fixedKey: key, pickupText: row.from, dropText: row.to, pickupLoc: null, dropLoc: null, picked: null }, () => {
+      Promise.all([this.suggestFirst(row.from), this.suggestFirst(row.to)]).then((pair) => {
+        const a = pair[0]; const b = pair[1];
+        if (!a || !b) {
+          this.setState({ announce: this.t().fixedMiss });
+          return;
+        }
+        this.setState({ pickupLoc: a, pickupText: a.n, dropLoc: b, dropText: b.n }, this.q);
       });
     });
-    this.q();
   };
+  suggestFirst(q) {
+    const token = geoSession();
+    const lang = GEO_LANGS[this.state.lang] || 'en';
+    const local = locHits(q)[0] || null;
+    const url = '/api/geo/suggest?q=' + encodeURIComponent(q) + '&session_token=' + encodeURIComponent(token) + '&locale=' + encodeURIComponent(lang);
+    return fetch(url)
+      .then((r) => r.json().catch(() => null))
+      .then((j) => {
+        const hit = ((j && j.suggestions) || []).find((h) => h && h.mapbox_id && h.name);
+        if (hit) {
+          return { n: hit.name, s: hit.address || hit.context || '', icon: geoHitIcon(hit.name, hit.address || hit.context), mapbox_id: hit.mapbox_id, session_token: token, geoHit: true };
+        }
+        return local;
+      })
+      .catch(() => local);
+  }
   clearFill() { (this._fillTimers || []).forEach(clearTimeout); this._fillTimers = []; }
   /** IATA shape as you type: two-character airline code, a space, up to four digits. */
   fmtFlightInput(raw) {
@@ -1647,17 +1690,19 @@ class Component extends DCLogic {
     this.setState({ time: c.time, day: c.d, dayY: c.y, dayM: c.m, dayLabel: null, pendingTimeUpdate: null }, () => { this.pulse(['when']); this.q(); });
   };
   paintSug(field, q, extra) {
+    const geo = extra || [];
+    if (geo.length) return geo.slice(0, 10);
     const loc = locHits(q);
     const uniq = []; const keys = {};
-    (extra || []).concat(loc).forEach((x) => {
+    loc.forEach((x) => {
       if (!x || !x.n) return;
       const k = (x.n + '|' + (x.s || '')).toLowerCase();
       if (keys[k]) return;
       keys[k] = 1; uniq.push(x);
     });
-    return uniq.slice(0, 5);
+    return uniq.slice(0, 8);
   }
-  /** Live place lookup: Mapbox first, locHits while you type so the list is never empty. */
+  /** Live place lookup: Mapbox first. Saved Swiss pins only while Mapbox is still typing. */
   geoSearch(field, q) {
     if (typeof fetch === 'undefined') return;
     const seq = ++this._geoSeq;
@@ -1665,7 +1710,7 @@ class Component extends DCLogic {
     const ac = (typeof AbortController !== 'undefined') ? new AbortController() : null;
     this._ac = ac;
     this.setState({ geo: 'loading' });
-    const lang = this.state.lang || 'en';
+    const lang = GEO_LANGS[this.state.lang] || 'en';
     const token = geoSession();
     const url = '/api/geo/suggest?q=' + encodeURIComponent(q) + '&session_token=' + encodeURIComponent(token) + '&locale=' + encodeURIComponent(lang);
     const keepList = () => {
@@ -1716,7 +1761,7 @@ class Component extends DCLogic {
       const items = this.paintSug(field, txt, []);
       const patch = { sugFlip: this.flipFor(e), sugIdx: -1, sug: { open: true, field, at, items, saved: [], geoCount: items.length, custom: false, text: txt, typed: true } };
       clearTimeout(this._geoT);
-      if (ql.length >= 3) this._geoT = setTimeout(() => this.geoSearch(field, txt.trim()), 160);
+      if (ql.length >= 2) this._geoT = setTimeout(() => this.geoSearch(field, txt.trim()), 160);
       else { this._geoSeq = (this._geoSeq || 0) + 1; patch.geo = 'idle'; }
       const touch = field === 'pickup' ? 'pickup' : 'dest';
       patch.touched = Object.assign({}, this.state.touched, { [touch]: true });
@@ -1764,7 +1809,7 @@ class Component extends DCLogic {
     const isPickup = f === 'pickup';
     if (isPickup ? s.pickupLoc : s.dropLoc) return;
     const q = ((isPickup ? s.pickupText : s.dropText) || '').trim().toLowerCase();
-    if (q.length < 3) return;
+    if (q.length < 2) return;
     const items = (s.sug && s.sug.items) || this._geoItems || [];
     const hit = items.find((l) => l && (l.n || '').toLowerCase() === q);
     if (!hit) return;
@@ -1818,7 +1863,7 @@ class Component extends DCLogic {
       sug: { open: true, field, at, items, saved: [], geoCount: items.length, custom: false, text: txt, typed: ql.length >= 1 },
     };
     this.setState(patch);
-    if (ql.length >= 3) {
+    if (ql.length >= 2) {
       clearTimeout(this._geoT);
       this._geoT = setTimeout(() => this.geoSearch(field, ql), 160);
     }
@@ -1990,6 +2035,7 @@ class Component extends DCLogic {
     if (klass && (this.state.pax > paxCap || this.state.bags > bagsCap)) return;
     /** Nothing opens until the traveller has actually answered the booking flow. */
     if (!row || row.kind !== 'price') { if (!this.state.picked) this.setState({ announce: this.t().needTrip }); return; }
+    if (this.state.quote && this.state.quote.noRoad) { this.setState({ announce: this.t().noRoad }); return; }
     if (this.state.picked) return;
     const s = this.state;
     if (!s.quote.lock || !s.quote.quote_id) { if (!this.state.picked) this.setState({ announce: this.t().needTrip }); return; }
@@ -2021,8 +2067,9 @@ class Component extends DCLogic {
       const paxCap = v.cap;
       const bagsCap = v.bags;
       const tooSmall = s.pax > paxCap || s.bags > bagsCap;
-      const ok = !!r && r.kind === 'price' && !tooSmall;
-      const unavail = tooSmall || (!!r && r.kind === 'na');
+      const noRoad = !!(s.quote && s.quote.noRoad);
+      const ok = !!r && r.kind === 'price' && !tooSmall && !noRoad;
+      const unavail = tooSmall || (!!r && r.kind === 'na') || noRoad;
       return {
         name: names[v.id] || v.name, examples: ex[v.id] || '', icon: v.icon,
         hasImage: !!v.image, noImage: !v.image, image: v.image || '',
@@ -2031,12 +2078,13 @@ class Component extends DCLogic {
         skeleton: s.quote.status === 'skeleton',
         dustRef: this.dustRef(v.id),
         sr: (names[v.id] || v.name) + ': ' + lb.text,
-        title: ok ? t.selectHint : (tooSmall ? t.doesNotFit : (t.needTrip || lb.text)),
+        title: noRoad ? t.noRoad : (ok ? t.selectHint : (tooSmall ? t.doesNotFit : (t.needTrip || lb.text))),
         dis: ok ? null : 'true', locked: ok ? null : '1', role: ok ? 'button' : 'group', tab: ok ? '0' : undefined,
         picked: s.picked === v.id ? '1' : null, isPicked: s.picked === v.id,
         ready: ok && s.picked !== v.id,
         selectOff: !ok && s.picked !== v.id,
-        dim: ((s.picked && s.picked !== v.id) || tooSmall) ? '1' : null,
+        cta: noRoad && !tooSmall ? t.noRoad : t.selectCta,
+        dim: ((s.picked && s.picked !== v.id) || tooSmall || noRoad) ? '1' : null,
         unavail: unavail ? '1' : null,
         unavailable: false,
         unavailableCta: '',
@@ -2055,9 +2103,8 @@ class Component extends DCLogic {
     const phone = s.tier === 0, sheetOpen = s.sheetOpen;
     const chip = (sel) => sel ? 'background:var(--vt-charcoal-900);color:var(--vt-white);border:1px solid var(--vt-charcoal-900)' : 'background:var(--vt-white);color:var(--vt-text-primary);border:1px solid var(--vt-border-subtle)';
     const head = (v) => String(v || '').split(',')[0].trim();
-    const hourlyOn = this.props.hourlyEnabled ?? false;
     const trackFlights = this.props.flightTrackingEnabled ?? true;
-    const modesList = [{ id: 'one-way', label: t.oneWay }].concat(hourlyOn ? [{ id: 'hourly', label: t.hourly }] : []);
+    const modesList = [{ id: 'one-way', label: t.oneWay }, { id: 'fixed', label: t.fixedRoutes }];
     const modeIdx = Math.max(0, modesList.findIndex((m) => m.id === s.mode));
     const modeCount = modesList.length;
     const fc = (() => {
@@ -2095,7 +2142,7 @@ class Component extends DCLogic {
     const tripRoute = blank ? t.emptyTitle : s.mode === 'hourly'
       ? (head(s.pickupText) || t.pickupPh) + (s.hours ? ' · ' + s.hours + ' h' : '')
       : (head(s.pickupText) || t.pickupPh) + ' → ' + (head(s.dropText) || t.destPh);
-    const modeLabel = s.mode === 'return' ? t.return_ : s.mode === 'hourly' ? t.hourly : t.oneWay;
+    const modeLabel = s.mode === 'fixed' ? t.fixedRoutes : s.mode === 'return' ? t.return_ : s.mode === 'hourly' ? t.hourly : t.oneWay;
     const tripMeta = blank ? t.emptyMeta : modeLabel + (dateStr ? ' · ' + dateStr : '') + (s.time ? ', ' + s.time : '');
     const slots = ['05:30', '06:45', '08:15', '09:30', '11:00', '12:15', '14:00', '16:30', '18:45', '21:15'];
     if (s.time && !slots.includes(s.time)) { slots.push(s.time); slots.sort(); }
@@ -2108,11 +2155,11 @@ class Component extends DCLogic {
       n0: 0, n1: 1, n2: 2, n8: 8, n12: 12, n14: 14, n15: 15, n16: 16, n18: 18, n24: 24,
       modeNoteRef: this.modeNoteRef, fieldsRef: this.fieldsRef, stripRef: this.stripRef,
       modeNote: this.modeNoteFor(s.mode),
-      modeIcon: s.mode === 'return' ? 'arrow-left-right' : s.mode === 'hourly' ? 'clock' : 'arrow-right',
+      modeIcon: s.mode === 'fixed' ? 'map-pin' : s.mode === 'return' ? 'arrow-left-right' : s.mode === 'hourly' ? 'clock' : 'arrow-right',
       destBadge: this.badgeEl(!s.focused.dest ? s.autofill.dest : null),
       stripStep: t.stepTwo,
       stripTitle: s.picked ? t.savedGo : t.readyTitle,
-      stripNote: s.capacityMoveNote || (s.picked ? t.savedSub.replace('{v}', t[pickedName] || pickedName) : priced ? t.readySub : t.needTrip),
+      stripNote: s.capacityMoveNote || (s.picked ? t.savedSub.replace('{v}', t[pickedName] || pickedName) : (s.quote && s.quote.noRoad) ? t.noRoad : priced ? t.readySub : s.quoteFail ? (s.announce || t.quoteErr) : t.needTrip),
       tSelectCta: t.selectCta, tSelectedCta: t.selectedCta,
       yes: true,
       dir: s.lang === 'ar' ? 'rtl' : 'ltr', lang: s.lang, cur: s.cur, pickLang: this.pickLang, pickCur: this.pickCur,
@@ -2123,11 +2170,14 @@ class Component extends DCLogic {
       pillLeft: 'calc(3px + (100% - 6px) * ' + modeIdx + ' / ' + modeCount + ')', pillWidth: 'calc((100% - 6px) / ' + modeCount + ')',
       pillTransition: REDUCED ? 'none' : 'left .22s cubic-bezier(.2,0,.2,1), width .22s cubic-bezier(.2,0,.2,1)',
       tTripType: t.tripType,
-      showModes: modeCount > 1,
-      showModeNote: s.mode !== 'one-way',
-      showModeBar: modeCount > 1 || s.mode !== 'one-way',
+      showModes: true,
+      showModeNote: s.mode === 'fixed',
+      showModeBar: true,
       modes: modesList.map((m) => ({ id: m.id, label: m.label, sel: m.id === s.mode ? 'true' : 'false', color: m.id === s.mode ? 'var(--vt-white)' : 'var(--vt-text-secondary)', pick: () => this.setMode(m.id) })),
       isReturn: s.mode === 'return', isHourly: s.mode === 'hourly', notHourly: s.mode !== 'hourly',
+      isFixed: s.mode === 'fixed', notFixed: s.mode !== 'fixed', tripKind: s.mode === 'fixed' ? 'fixed' : 'one',
+      tFixedRoutes: t.fixedRoutes, fixedKey: s.fixedKey || '', setFixedRoute: this.setFixedRoute,
+      fixedOptions: [{ value: '', label: (s.fixedRoutes || []).length ? t.fixedPh : t.fixedEmpty }].concat((s.fixedRoutes || []).map((r) => ({ value: r.key, label: r.from + ' → ' + r.to }))),
       flight: s.flight, setFlight: this.setFlight, flightKey: this.flightKey,
       flightError: s.flightState === 'err' ? t.flightErr : '',
       fsugNote: s.fsug.note || '', hasFsugNote: !!s.fsug.note,

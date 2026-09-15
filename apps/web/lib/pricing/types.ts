@@ -191,6 +191,14 @@ export interface QuoteLegInput {
   /** D-20: Mapbox region code (ZH), not a tick-list fence. */
   origin_canton?: string | null;
   dest_canton?: string | null;
+  /** Display text from Mapbox retrieve/pin — used to attach service_zones. */
+  origin_place?: string | null;
+  dest_place?: string | null;
+  /**
+   * False when Mapbox driving had no road line. Kilometres still come from
+   * Mapbox (snapped driving, or WGS84 metres between the same pins).
+   */
+  road?: boolean;
   waypoints: unknown[];
 }
 

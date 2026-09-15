@@ -22,6 +22,7 @@ import {
   buildFareLine,
   buildLegSurchargeLines,
   numberLines,
+  attachPlaceZones,
 } from "./lines";
 import {
   buildCouponLine,
@@ -267,9 +268,10 @@ export function priceQuote(
   const settingsRow = currentSettingsVersion(settingsRows, input.computed_at);
   const policy = settingsRow ? buildPolicySnapshot(settingsRow) : null;
   const settings_version_id = settingsRow?.id ?? null;
+  const journey = attachPlaceZones(input, rateBook.zones);
 
   // 3 ELIGIBLE
-  const board = evaluateEligibility(rateBook, input);
+  const board = evaluateEligibility(rateBook, journey);
 
   const partially_priced_class_slugs: string[] = [];
   const classes: ClassBoardEntry[] = board.classes.map((entry) => {
@@ -293,7 +295,7 @@ export function priceQuote(
     const built = buildClassLines(
       cls,
       rateBook,
-      input,
+      journey,
       settingsRow,
       options.coupon,
     );

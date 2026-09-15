@@ -10,6 +10,7 @@ import {
   checkMinAdvance,
   checkServiceArea,
   insideCountryBox,
+  insideEurope,
   pointInPolygon,
   publishedServiceAreaPolygon,
   sameCoordinate,
@@ -23,7 +24,10 @@ const ZERMATT = { lng: 7.7491, lat: 46.0207 };
 const CHAMONIX = { lng: 6.8694, lat: 45.9237 };
 const MALPENSA = { lng: 8.7231, lat: 45.6306 };
 const LONDON = { lng: -0.1278, lat: 51.5074 };
+const PARIS = { lng: 2.3522, lat: 48.8566 };
 const TUNIS = { lng: 10.1815, lat: 36.8065 };
+const NYC = { lng: -74.006, lat: 40.7128 };
+const BEIJING = { lng: 116.4074, lat: 39.9042 };
 const NULL_ISLAND = { lng: 0, lat: 0 };
 
 const SQUARE: PolygonGeometry = {
@@ -132,6 +136,22 @@ describe("sameCoordinate", () => {
     expect(
       sameCoordinate(ZURICH_HB, { lng: ZURICH_HB.lng, lat: ZURICH_HB.lat + dLat11 }),
     ).toBe(false);
+  });
+});
+
+describe("insideEurope", () => {
+  it("includes London, Paris, Zermatt, Chamonix and Malpensa", () => {
+    expect(insideEurope(LONDON)).toBe(true);
+    expect(insideEurope(PARIS)).toBe(true);
+    expect(insideEurope(ZERMATT)).toBe(true);
+    expect(insideEurope(CHAMONIX)).toBe(true);
+    expect(insideEurope(MALPENSA)).toBe(true);
+  });
+
+  it("excludes New York and Beijing", () => {
+    expect(insideEurope(NYC)).toBe(false);
+    expect(insideEurope(BEIJING)).toBe(false);
+    expect(insideEurope(NULL_ISLAND)).toBe(false);
   });
 });
 
@@ -263,51 +283,54 @@ describe("checkServiceArea", () => {
     expect(result).toEqual({ ok: true, matched: "reverse" });
   });
 
-  it("fails closed with service_area_undefined when the polygon is null and no pair matches", () => {
+  it("quotes Zurich–Zermatt in Europe when the polygon is null and no pair matches", () => {
     const result = checkServiceArea({
       origin: ZURICH_HB,
       dest: ZERMATT,
       polygon: null,
       fixedRoutes: [],
     });
-    expect(result).toEqual({ ok: false, code: "service_area_undefined" });
+    expect(result).toEqual({ ok: true });
   });
 
-  it("D-39: both pins must be inside; one inside / one outside is out_of_service_area", () => {
-    const originIn = checkServiceArea({
-      origin: { lng: 2, lat: 2 },
-      dest: { lng: 20, lat: 20 },
+  it("quotes London–Paris even when they sit outside the CH polygon", () => {
+    const result = checkServiceArea({
+      origin: LONDON,
+      dest: PARIS,
       polygon: SQUARE,
+      fixedRoutes: [],
+    });
+    expect(result).toEqual({ ok: true });
+  });
+
+  it("refuses when one pin is in Europe and the other is not", () => {
+    const originIn = checkServiceArea({
+      origin: ZURICH_HB,
+      dest: NYC,
+      polygon: null,
       fixedRoutes: [],
     });
     expect(originIn).toEqual({ ok: false, code: "out_of_service_area" });
     const destIn = checkServiceArea({
-      origin: { lng: 20, lat: 20 },
-      dest: { lng: 2, lat: 2 },
-      polygon: SQUARE,
+      origin: NYC,
+      dest: ZURICH_HB,
+      polygon: null,
       fixedRoutes: [],
     });
     expect(destIn).toEqual({ ok: false, code: "out_of_service_area" });
   });
 
-  it("refuses out_of_service_area when both ends are outside the polygon", () => {
+  it("refuses New York–Beijing", () => {
     const result = checkServiceArea({
-      origin: { lng: -2, lat: -2 },
-      dest: { lng: 20, lat: 20 },
-      polygon: SQUARE,
+      origin: NYC,
+      dest: BEIJING,
+      polygon: null,
       fixedRoutes: [],
     });
     expect(result).toEqual({ ok: false, code: "out_of_service_area" });
   });
 
-  it("accepts both ends inside the published snapshot polygon (D-39)", () => {
-    const result = checkServiceArea({
-      origin: { lng: 1, lat: 1 },
-      dest: { lng: 3, lat: 3 },
-      polygon: SQUARE,
-      fixedRoutes: [],
-    });
-    expect(result).toEqual({ ok: true });
+  it("still publishes the snapshot polygon helper for ops", () => {
     expect(publishedServiceAreaPolygon(SQUARE)).toEqual(SQUARE);
     expect(publishedServiceAreaPolygon(null)).toBeNull();
     expect(publishedServiceAreaPolygon({ type: "Point" })).toBeNull();

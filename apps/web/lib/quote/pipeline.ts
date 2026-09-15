@@ -134,6 +134,7 @@ export type QuoteRouteLeg = {
   geometry: { type: "LineString"; coordinates: [number, number][] };
   origin_zone_id: string | null;
   dest_zone_id: string | null;
+  road?: boolean;
 };
 
 export type QuotePipelineOk = {
@@ -339,6 +340,7 @@ function publicRouteLegs(
       geometry: leg.geometry,
       origin_zone_id: origin.zoneId ?? null,
       dest_zone_id: dest.zoneId ?? null,
+      road: leg.road !== false,
     };
   });
 }
@@ -369,6 +371,9 @@ function toQuoteInput(
         dest_zone_id: dest.zoneId ?? null,
         origin_canton: origin.canton ?? null,
         dest_canton: dest.canton ?? null,
+        origin_place: origin.text,
+        dest_place: dest.text,
+        road: routedLeg.road !== false,
         waypoints: i === 0 ? (request.extras?.waypoints ?? []) : [],
       };
     }),
@@ -399,6 +404,12 @@ function inputFromLock(
         duration_s: live?.duration_s ?? leg.duration_s,
         origin_zone_id: live?.origin_zone_id ?? leg.origin_zone_id,
         dest_zone_id: live?.dest_zone_id ?? leg.dest_zone_id,
+        origin_place: leg.pickup?.text ?? null,
+        dest_place: leg.dropoff?.text ?? null,
+        road:
+          live != null
+            ? live.road !== false
+            : !(leg.distance_m === 0 && leg.duration_s === 0),
         waypoints:
           i === 0 ? (extras?.waypoints ?? leg.waypoints) : leg.waypoints,
       };
@@ -591,8 +602,27 @@ async function runStep(
       // billable shapes are geo. This is Directions v5 driving.
       await countMapboxUnit(deps.env, deps.nowMs);
       const routed = await deps.routeLegs(inputs);
-      if (!routed.ok) return { ok: false, code: routed.code };
-      state.routed = routed.legs;
+      if (!routed.ok) {
+        // Mapbox down / no token: no metres. Do not invent km.
+        state.routed = inputs.map((input, i) => ({
+          leg_seq: (i === 0 ? 1 : 2) as 1 | 2,
+          distance_m: 0,
+          duration_s: 0,
+          geometry: {
+            type: "LineString" as const,
+            coordinates: [
+              [input.origin.lng, input.origin.lat],
+              [input.destination.lng, input.destination.lat],
+            ],
+          },
+          road: false,
+        }));
+        return { ok: true };
+      }
+      state.routed = routed.legs.map((leg) => ({
+        ...leg,
+        road: leg.road !== false,
+      }));
       return { ok: true };
     }
     case "lock_deadline": {
@@ -787,15 +817,33 @@ export async function runRepricePipeline(
           ]
         : [outbound];
     const routed = await deps.routeLegs(inputs);
-    if (!routed.ok) return { ok: false, code: routed.code };
-    routedPublic = routed.legs.map((leg, i) => ({
-      leg_seq: leg.leg_seq,
-      distance_m: leg.distance_m,
-      duration_s: leg.duration_s,
-      geometry: leg.geometry,
-      origin_zone_id: lock.legs[i]?.origin_zone_id ?? null,
-      dest_zone_id: lock.legs[i]?.dest_zone_id ?? null,
-    }));
+    if (!routed.ok) {
+      routedPublic = inputs.map((input, i) => ({
+        leg_seq: (i === 0 ? 1 : 2) as 1 | 2,
+        distance_m: 0,
+        duration_s: 0,
+        geometry: {
+          type: "LineString" as const,
+          coordinates: [
+            [input.origin.lng, input.origin.lat],
+            [input.destination.lng, input.destination.lat],
+          ],
+        },
+        origin_zone_id: lock.legs[i]?.origin_zone_id ?? null,
+        dest_zone_id: lock.legs[i]?.dest_zone_id ?? null,
+        road: false,
+      }));
+    } else {
+      routedPublic = routed.legs.map((leg, i) => ({
+        leg_seq: leg.leg_seq,
+        distance_m: leg.distance_m,
+        duration_s: leg.duration_s,
+        geometry: leg.geometry,
+        origin_zone_id: lock.legs[i]?.origin_zone_id ?? null,
+        dest_zone_id: lock.legs[i]?.dest_zone_id ?? null,
+        road: leg.road !== false,
+      }));
+    }
     const freshExp = await deps.quoteLockDeadline(lock.settings_version_id);
     if (freshExp === null) return { ok: false, code: "no_settings_version" };
     exp = freshExp;

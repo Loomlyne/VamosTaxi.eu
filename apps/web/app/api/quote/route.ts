@@ -12,7 +12,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { wireQuoteAbuse } from "@/lib/abuse/guards";
 import { loadRateBook } from "@/lib/db/quote";
 import { withRequestContext } from "@/lib/logger";
-import { liveBookBoard } from "@/lib/pricing/public-board";
+import { liveBookBoard, publicCatalogRoutes } from "@/lib/pricing/public-board";
 import { mapRateBook } from "@/lib/pricing/rateBook";
 import { buildQuotePipelineDeps, isNamedDashboardHost } from "@/lib/quote/deps";
 import { preprocessWidgetTokens } from "@/lib/quote/preprocess";
@@ -31,12 +31,16 @@ export async function GET() {
     const raw = await loadRateBook(env, { preferDraft: false });
     const book = mapRateBook(raw);
     return Response.json(
-      { ok: true, classes: liveBookBoard(book) },
+      {
+        ok: true,
+        classes: liveBookBoard(book),
+        fixed_routes: publicCatalogRoutes(book),
+      },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch {
     return Response.json(
-      { ok: true, classes: [] },
+      { ok: true, classes: [], fixed_routes: [] },
       { headers: { "Cache-Control": "no-store" } },
     );
   }

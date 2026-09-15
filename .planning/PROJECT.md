@@ -53,6 +53,8 @@ Shipped in the design phase and relied on by everything downstream.
 - ✓ Vendored Lenis scroll with house settings, one instance per page — design phase
 - ✓ Build plan (`docs/build/GSD-LAUNCH.md`), gap audit (`MISSING-FEATURES.md`), 23 per-screen specs — design phase
 - ✓ Codebase map in `.planning/codebase/` — 2026-08-17
+- ✓ `/pricing` is the only fare book — Save = draft, Publish = public, live-book classes only — Phase 18
+- ✓ Distance fare is start + (all km × per-km) + bands; no region %; quote lock 24h; extra wait not in Stripe pay-now — Phase 18
 
 ### Active
 
@@ -66,7 +68,7 @@ Everything here is a hypothesis until it ships and takes a real booking.
 
 **Booking funnel — the core value**
 - [ ] Customer gets a real server-priced quote from the home widget (fixed-route override, per-km, surcharges, coupons)
-- [ ] Quote locks for 30 minutes and survives into checkout
+- ✓ Quote locks for **24 hours** (Phase 18 D-13; was 30 minutes) and survives into checkout
 - [ ] Customer pays by card, Apple Pay, Google Pay or TWINT and receives a confirmation with a manage link and calendar invite
 - [ ] Flight number autofills the landing time, and a delayed arrival shifts the pickup and notifies both sides
 - [ ] Customer cancels self-serve inside the policy tiers and is refunded automatically
@@ -97,7 +99,7 @@ Everything here is a hypothesis until it ships and takes a real booking.
 - Surge pricing, affiliate and hotel partner portals, global multi-country supply
 - **PayPal** — Stripe has no Swiss-merchant PayPal support, so it would mean a second processor, webhook and refund path for one method. Revisit post-launch
 - **Book by the hour** — owner decision 15; the widget tab is removed for V1
-- **"First" vehicle class** — owner decision 13 settles the lineup at three classes
+- **Hardcoded Economy / Business / First / Van public ladder** — Phase 18; public offers follow the live book. Admin may add any class name.
 - **A third-party chat widget or an in-house chat build** — live chat ships as a WhatsApp deep link; a vendor widget injects its own styling and cookies. v1.1 is email tickets, not live chat
 - **Gmail IMAP ingest** — tickets are contact-form rows + Resend inbound webhooks, not a mailbox scrape
 - **Phone-typed tickets / auto-tags** — out of v1.1; statuses only
@@ -160,7 +162,11 @@ and every amount on screen reads `CHF 000`.
 | Ops console is a route group in the same app | One deploy, role-gated, shared session — not a second application | — Pending |
 | Vamos is the carrier, not an intermediary | Owner decision 1; rewrites terms 01/05/13 and voids the archive's liability disclaimer | — Pending |
 | Cancellation tiers 100 % / 75 % / 0 % | Owner decision 2, resolving a live contradiction between the FAQ and the archive policy | — Pending |
-| Three vehicle classes, van 8/8 | Owner decision 13; `first` cut, and the mock's 7/8 was stale | — Pending |
+| Three vehicle classes, van 8/8 | Owner decision 13; `first` cut, and the mock's 7/8 was stale | ⚠ Superseded Phase 18 — any class name from the live book |
+| Live book is `/pricing` Publish | Restart 2026-09-14 D-01…D-35; no hardcoded public ladder | ✓ Phase 18 |
+| Quote lock 24h hardcoded | D-13; unpaid expire then requote; paid keep snapshot | ✓ Phase 18 |
+| Extra wait not in Stripe pay-now | D-23; ops marks arrival; no silent debit | ✓ Phase 18 |
+| Distance = start + all-km × per-km + bands | D-15; no region %; overlap blocks Publish | ✓ Phase 18 |
 | PayPal out of V1 | Stripe has no Swiss-merchant PayPal support; a second processor for one method is not worth 2–3 days against the deadline | — Pending |
 || Live chat is a WhatsApp deep link | Owner wants chat, but no chat exists in any mock; a vendor widget fights the design system and the cookie banner, an in-house build costs 3–5 days | — Pending |
 || v1.1 two-way Support tickets via Resend | Owner 2026-09-04: Ops `#support`, reply from ticket, inbound replies; Gmail stays a copy. Funnel frozen. | — Pending |
@@ -192,4 +198,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-04 after /gsd-new-milestone v1.1 Ops Support*
+*Last updated: 2026-09-15 after Phase 18 (OPS Pricing source of truth)*

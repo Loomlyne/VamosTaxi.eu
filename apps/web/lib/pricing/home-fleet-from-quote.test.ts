@@ -31,4 +31,33 @@ describe("home fleet follows the live fare book", () => {
     expect(home).toMatch(/fetch\('\/api\/quote', \{ headers: \{ accept: 'application\/json' \} \}/);
     expect(home).not.toMatch(/VEHICLE_CLASSES\s*=\s*\[/);
   });
+
+  it("shows quoteErr when POST /api/quote fails instead of the idle needTrip kicker", () => {
+    expect(home).toMatch(/quoteFail: true, announce: note/);
+    expect(home).toMatch(/err === 'out_of_service_area'/);
+    expect(home).toMatch(/err === 'route_unavailable'/);
+    expect(home).toMatch(/s\.quoteFail \? \(s\.announce \|\| t\.quoteErr\) : t\.needTrip/);
+    expect(home).toMatch(/routeErr:'No road route to this destination'/);
+    expect(home).toMatch(/routeErr:'Kein Strassenweg zu diesem Ziel'/);
+    expect(home).toMatch(/routeErr:'Pas d’itinéraire routier vers cette destination'/);
+    expect(home).toMatch(/routeErr:'لا يوجد مسار بري إلى هذه الوجهة'/);
+  });
+
+  it("offers One way and Fixed routes tabs, and No road when Mapbox has no drive", () => {
+    expect(home).toMatch(/id: 'one-way', label: t\.oneWay/);
+    expect(home).toMatch(/id: 'fixed', label: t\.fixedRoutes/);
+    expect(home).toMatch(/noRoad:'No road'/);
+    expect(home).toMatch(/noRoad:'Kein Weg'/);
+    expect(home).toMatch(/noRoad:'Sans route'/);
+    expect(home).toMatch(/noRoad:'لا طريق'/);
+    expect(home).toMatch(/cta: noRoad && !tooSmall \? t\.noRoad : t\.selectCta/);
+    expect(home).toMatch(/europeErr:'We operate in Europe'/);
+  });
+
+  it("does not starve Mapbox typeahead with a five-row Swiss locHits merge", () => {
+    expect(home).toMatch(/if \(geo\.length\) return geo\.slice\(0, 10\)/);
+    expect(home).toMatch(/ql\.length >= 2/);
+    expect(home).toMatch(/GEO_LANGS\[this\.state\.lang\]/);
+    expect(home).not.toMatch(/\(extra \|\| \[\]\)\.concat\(loc\)\.slice\(0, 5\)/);
+  });
 });

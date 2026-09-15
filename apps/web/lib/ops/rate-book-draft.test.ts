@@ -63,6 +63,8 @@ describe("rate-book overlay Save is draft (D-01 D-04 D-18 D-20)", () => {
   it("blocks Save route without Mapbox From and To (D-17)", () => {
     const src = webSource(ROUTE);
     expect(src).toMatch(/if \(!hasMapboxFromTo\(recBody\)\) return jsonErr\("mapbox", 400\)/);
+    expect(src).toMatch(/ensureMapboxZone/);
+    expect(src).toMatch(/insert into public\.service_zones/);
   });
 
   it("hydrates bands, rules, region premiums and zones on GET payload", () => {

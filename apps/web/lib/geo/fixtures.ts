@@ -150,6 +150,76 @@ export const FIXTURE_DIRECTIONS_EMPTY_ROUTES = frozen({
   routes: frozen([] as const),
 });
 
+/** Tilequery: a local path plus a valley road kilometres out (Zermatt → Täsch). */
+export const FIXTURE_TILEQUERY_MAJOR = frozen({
+  type: "FeatureCollection",
+  features: frozen([
+    frozen({
+      type: "Feature",
+      geometry: frozen({
+        type: "Point",
+        coordinates: frozen([7.7492, 46.0208]) as [number, number],
+      }),
+      properties: frozen({
+        class: "path",
+        tilequery: frozen({ distance: 80 }),
+      }),
+    }),
+    frozen({
+      type: "Feature",
+      geometry: frozen({
+        type: "Point",
+        coordinates: frozen([7.7795, 46.0678]) as [number, number],
+      }),
+      properties: frozen({
+        class: "secondary",
+        tilequery: frozen({ distance: 5200 }),
+      }),
+    }),
+  ]),
+});
+
+export const FIXTURE_TILEQUERY_EMPTY = frozen({
+  type: "FeatureCollection",
+  features: frozen([] as const),
+});
+
+/** Tilequery: only the car-free town's own streets — valley road is not in the nearest 10. */
+export const FIXTURE_TILEQUERY_LOCAL = frozen({
+  type: "FeatureCollection",
+  features: frozen([
+    frozen({
+      type: "Feature",
+      geometry: frozen({
+        type: "Point",
+        coordinates: frozen([7.7492, 46.0208]) as [number, number],
+      }),
+      properties: frozen({
+        class: "street",
+        tilequery: frozen({ distance: 40 }),
+      }),
+    }),
+  ]),
+});
+
+/** Tilequery: a road next to the pin (connected town). */
+export const FIXTURE_TILEQUERY_NEAR = frozen({
+  type: "FeatureCollection",
+  features: frozen([
+    frozen({
+      type: "Feature",
+      geometry: frozen({
+        type: "Point",
+        coordinates: frozen([8.5417, 47.3769]) as [number, number],
+      }),
+      properties: frozen({
+        class: "secondary",
+        tilequery: frozen({ distance: 40 }),
+      }),
+    }),
+  ]),
+});
+
 /** Generic 5xx JSON body. Must never be forwarded to a customer. */
 export const FIXTURE_UPSTREAM_500 = frozen({
   message: "internal",

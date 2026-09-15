@@ -2,7 +2,7 @@
 
 **Gathered:** 2026-09-13
 **Restarted:** 2026-09-14
-**Status:** Ready for execution (pre-execution artifacts aligned 2026-09-14)
+**Status:** Complete 2026-09-15 (restart D-01…D-35; 18-UAT + 18-VERIFICATION passed)
 **Does not steal Phase 11.** Do not bind `vamostaxi.eu`. Stripe stays test until the owner says live keys. Agent does not click Publish. Agent does not `supabase db push`.
 
 This file **supersedes** the 2026-09-13 D-01…D-40 list wherever they conflict. 2026-09-13 plans live in `archive-2026-09-13/` as history — do not execute them.

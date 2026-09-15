@@ -1,11 +1,13 @@
 // Idle public board is the live book (D-29 D-31 D-32). No four-class ladder.
 
 import { describe, expect, it } from "vitest";
-import { classDisplayName, liveBookBoard } from "./public-board";
+import { classDisplayName, liveBookBoard, publicCatalogRoutes } from "./public-board";
 import type {
   DistanceRateRow,
+  FixedRouteRow,
   RateBook,
   VehicleClassRow,
+  ZoneRow,
 } from "./types";
 
 function classRow(
@@ -48,7 +50,7 @@ function book(partial: Partial<RateBook> & Pick<RateBook, "classes" | "distance_
     region_premiums: [],
     fixed_routes: partial.fixed_routes ?? [],
     surcharges: [],
-    zones: [],
+    zones: partial.zones ?? [],
   };
 }
 
@@ -95,5 +97,87 @@ describe("liveBookBoard", () => {
     expect(classDisplayName(classRow({ slug: "van", name: "  Van  " }), "van")).toBe(
       "Van",
     );
+  });
+});
+
+describe("publicCatalogRoutes", () => {
+  it("lists unique live place pairs and skips canton and dark rows", () => {
+    const zrh: ZoneRow = {
+      id: "z-zrh",
+      slug: "zurich-airport",
+      iata: "ZRH",
+      active: true,
+      zone_type: "airport",
+      tags: [],
+    };
+    const zermatt: ZoneRow = {
+      id: "z-zermatt",
+      slug: "zermatt",
+      iata: null,
+      active: true,
+      zone_type: "ski",
+      tags: [],
+    };
+    const zh: ZoneRow = {
+      id: "z-zh",
+      slug: "canton-zh",
+      iata: null,
+      active: true,
+      zone_type: "other",
+      tags: ["canton:ZH"],
+    };
+    const vs: ZoneRow = {
+      id: "z-vs",
+      slug: "canton-vs",
+      iata: null,
+      active: true,
+      zone_type: "other",
+      tags: ["canton:VS"],
+    };
+    const live: FixedRouteRow = {
+      id: 1,
+      rate_version_id: 1,
+      origin_zone_id: zrh.id,
+      dest_zone_id: zermatt.id,
+      vehicle_class_id: "vc-economy",
+      price_rappen: 25900,
+      live: true,
+      kind: "place",
+    };
+    const liveVan: FixedRouteRow = {
+      ...live,
+      id: 2,
+      vehicle_class_id: "vc-van",
+    };
+    const dark: FixedRouteRow = {
+      ...live,
+      id: 3,
+      live: false,
+    };
+    const canton: FixedRouteRow = {
+      id: 4,
+      rate_version_id: 1,
+      origin_zone_id: zh.id,
+      dest_zone_id: vs.id,
+      vehicle_class_id: "vc-economy",
+      price_rappen: 10000,
+      live: true,
+      kind: "canton",
+    };
+    const catalog = publicCatalogRoutes(
+      book({
+        classes: [classRow({ slug: "economy" })],
+        distance_rates: [rateRow({ vehicle_class_id: "vc-economy" })],
+        fixed_routes: [live, liveVan, dark, canton],
+        zones: [zrh, zermatt, zh, vs],
+      }),
+    );
+    expect(catalog).toEqual([
+      {
+        key: `${zrh.id}::${zermatt.id}`,
+        from: "Zurich Airport (ZRH)",
+        to: "Zermatt",
+      },
+    ]);
   });
 });

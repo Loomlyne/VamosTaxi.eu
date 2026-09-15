@@ -74,6 +74,7 @@ describe("public live-book board catalogs (D-29 D-31)", () => {
     const src = web("app/api/quote/route.ts");
     expect(src).toMatch(/export async function GET/);
     expect(src).toContain("liveBookBoard");
+    expect(src).toContain("publicCatalogRoutes");
     expect(src).toContain("preferDraft: false");
     expect(src).not.toMatch(/preferDraft:\s*true/);
   });

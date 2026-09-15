@@ -36,7 +36,7 @@
 [data-vt-table-scroll] .vt-tablewrap{overflow:visible;max-inline-size:none;min-inline-size:720px;width:max-content;min-width:100%}
 [data-vt-table-scroll][data-fill="1"] .vt-tablewrap{min-inline-size:0;width:100%;max-inline-size:100%}
 [data-vt-table-scroll] .vt-table{border-collapse:separate;border-spacing:0}
-[data-vt-table-scroll][data-fill="1"] .vt-table{width:100%;table-layout:fixed}
+[data-vt-table-scroll][data-fill="1"] .vt-table{width:100%;table-layout:auto}
 [data-vt-table-scroll][data-fill="1"] .vt-table th:not(:last-child),
 [data-vt-table-scroll][data-fill="1"] .vt-table td:not(:last-child){text-align:start}
 [data-vt-table-scroll] .vt-table th:last-child,
@@ -663,7 +663,7 @@ class Component extends DCLogic {
     const local = (kind === 'address' && (key === 'from' || key === 'to')) ? [] : this.localSuggest(kind, v);
     this.setState({ sug: { key, kind, items: local, local, rect: r } });
     clearTimeout(this._geoT);
-    if (kind === 'address' && String(v || '').trim().length >= 3) {
+    if (kind === 'address' && String(v || '').trim().length >= 2) {
       this._geoT = setTimeout(() => this.geoSearch(key, String(v).trim()), 180);
     }
   }
@@ -1041,7 +1041,7 @@ class Component extends DCLogic {
       const on = !!v;
       return React.createElement('span', { style:{ display:'inline-flex', alignItems:'center', gap:6,
         fontFamily:'var(--vt-font-body)', fontSize:'var(--vt-label-sm)', fontWeight:600, textTransform:'uppercase',
-        letterSpacing:'.09em', padding:'5px 10px', borderRadius:'var(--vt-radius-pill)',
+        letterSpacing:'.09em', padding:'5px 10px', borderRadius:'var(--vt-radius-pill)', whiteSpace:'nowrap',
         background: on ? 'var(--vt-charcoal-900)' : 'var(--vt-grey-100)',
         color: on ? 'var(--vt-accent)' : 'var(--vt-charcoal-700)' } }, on ? (col.onLabel || 'Live') : (col.offLabel || 'Draft'));
     }
@@ -1343,7 +1343,7 @@ class Component extends DCLogic {
       sugPopRef: this._sugPopRef,
       sugTop: (this.state.sug && this.state.sug.rect) ? (this.state.sug.rect.bottom + 8) + 'px' : '0px',
       sugLeft: (this.state.sug && this.state.sug.rect) ? this.state.sug.rect.left + 'px' : '0px',
-      sugWidth: (this.state.sug && this.state.sug.rect) ? Math.max(this.state.sug.rect.width, 240) + 'px' : '240px',
+      sugWidth: (this.state.sug && this.state.sug.rect) ? Math.round(this.state.sug.rect.width) + 'px' : '240px',
       sugItems: ((this.state.sug && this.state.sug.items) || []).map((s) => ({
         label: s.label, note: s.note || '', noteShow: s.note ? 'block' : 'none',
         pick: (e) => { if (e && e.preventDefault) e.preventDefault(); this.pickSug(s.value); },

@@ -6,7 +6,8 @@
 import { renderContactCustomerEmail, renderStaffReplyEmail } from "@vamos/emails";
 import { asStaff, type VamosClaims } from "@/lib/db/identity";
 import { sendContactMessage } from "@/lib/forms/notify";
-import { contactMessageId, threadHeaders } from "@/lib/ops/ticket-mail";
+import { SUPPORT_EMAIL } from "@/lib/contact-channels";
+import { contactMessageId, ticketReplyAddress, threadHeaders } from "@/lib/ops/ticket-mail";
 import { staffPatchStatus, type TicketStatus } from "@/lib/ops/tickets-map";
 
 const STATUSES = new Set<TicketStatus>(["new", "open", "replied", "responded", "closed"]);
@@ -27,6 +28,7 @@ type LoadedTicket = {
   ticket_status: string | null;
   email: string | null;
   locale: string | null;
+  replyToken: string;
   parentId: string;
 };
 
@@ -84,14 +86,20 @@ export async function patchTicket(
   }
 
   const loaded = await asStaff(env, claims, async (sql) => {
-    const rows = await sql<{ ticket_status: string | null; email: string | null; locale: string | null }[]>`
-      select ticket_status, email, locale
+    const rows = await sql<{
+      ticket_status: string | null;
+      email: string | null;
+      locale: string | null;
+      reply_token: string | null;
+    }[]>`
+      select ticket_status, email, locale, reply_token
       from public.contact_submissions
       where id = ${id}::uuid
       limit 1
     `;
     const ticket = rows[0];
     if (!ticket) return null;
+    const replyToken = String(ticket.reply_token ?? "").trim();
     const thread = await sql<{ rfc_message_id: string | null }[]>`
       select rfc_message_id
       from public.support_messages
@@ -102,7 +110,7 @@ export async function patchTicket(
       limit 1
     `;
     const parentId = thread[0]?.rfc_message_id ?? contactMessageId(id);
-    return { ...ticket, parentId } satisfies LoadedTicket;
+    return { ...ticket, replyToken, parentId } satisfies LoadedTicket;
   });
   if (!loaded) return { ok: false, reason: "not-found" };
 
@@ -110,7 +118,7 @@ export async function patchTicket(
   if (current === "closed") return { ok: false, reason: "invalid-status" };
 
   const to = String(loaded.email ?? "").trim();
-  if (!to) return { ok: false, reason: "send-failed" };
+  if (!to || !loaded.replyToken) return { ok: false, reason: "send-failed" };
 
   const outboundId = crypto.randomUUID();
   const headers = threadHeaders(loaded.parentId, outboundId);
@@ -120,14 +128,20 @@ export async function patchTicket(
   const rendered = { ...replyMail, subject: `Re: ${ackSubject}` };
   const rfcId = headers["Message-ID"] ?? null;
 
+  const replyTo = ticketReplyAddress(loaded.replyToken);
   const sent = await sendContactMessage(
     env.RESEND_API_KEY,
     undefined,
     to,
     `staff-reply/${id}/${outboundId}`,
     rendered,
-    env.EMAIL,
-    { headers },
+    undefined,
+    {
+      headers,
+      replyTo,
+      bcc: SUPPORT_EMAIL,
+      allowEmailFallback: false,
+    },
   );
   if (!sent.accepted || !sent.providerId) return { ok: false, reason: "send-failed" };
 

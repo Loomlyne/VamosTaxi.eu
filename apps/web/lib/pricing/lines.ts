@@ -24,6 +24,7 @@ import type {
   FixedRouteRow,
   Line,
   LineKind,
+  QuoteInput,
   QuoteLegInput,
   RegionPremiumRow,
   SettingsSnapshot,
@@ -177,7 +178,44 @@ function samePlaceZone(
   return ia != null && ia === ib;
 }
 
-function isCantonFixed(
+/** D-20 / D-26: attach a Mapbox place name to a seeded or owner-created zone. */
+export function zoneIdMatchingPlace(
+  text: string | null | undefined,
+  zones: readonly ZoneRow[],
+): string | null {
+  if (!text) return null;
+  const hay = text.toLowerCase().replace(/[.-]/g, " ");
+  let best: ZoneRow | null = null;
+  let bestLen = 0;
+  for (const zone of zones) {
+    if (zone.iata && hay.includes(zone.iata.toLowerCase())) return zone.id;
+    const needle = zone.slug.replace(/-/g, " ");
+    if (needle.length >= 4 && hay.includes(needle) && needle.length > bestLen) {
+      best = zone;
+      bestLen = needle.length;
+    }
+  }
+  return best?.id ?? null;
+}
+
+export function attachPlaceZones(
+  input: QuoteInput,
+  zones: readonly ZoneRow[],
+): QuoteInput {
+  if (!zones.length) return input;
+  return {
+    ...input,
+    legs: input.legs.map((leg) => ({
+      ...leg,
+      origin_zone_id:
+        leg.origin_zone_id ?? zoneIdMatchingPlace(leg.origin_place, zones),
+      dest_zone_id:
+        leg.dest_zone_id ?? zoneIdMatchingPlace(leg.dest_place, zones),
+    })),
+  };
+}
+
+export function isCantonFixed(
   row: FixedRouteRow,
   byId: Map<string, ZoneRow>,
 ): boolean {
@@ -287,9 +325,11 @@ export function buildFareLine(args: BuildFareLineArgs): Line {
   const base = distanceRate?.base_fare_rappen ?? null;
   const perKmR = distanceRate?.per_km_rappen ?? null;
   const distance_m = leg.distance_m;
+  const haveMetres = Number.isFinite(distance_m) && distance_m > 0;
+  const unrouted = leg.road === false && !haveMetres;
 
   let amount: number | null = null;
-  if (base !== null && perKmR !== null) {
+  if (haveMetres && base !== null && perKmR !== null) {
     amount =
       base +
       perKm(perKmR, distance_m) +
@@ -310,6 +350,7 @@ export function buildFareLine(args: BuildFareLineArgs): Line {
       per_km_rappen: perKmR,
       base_fare_rappen: base,
       band_count: bands.filter((row) => row.vehicle_class_id === classId).length,
+      ...(unrouted ? { unrouted: true } : {}),
     },
     ...(distanceRate
       ? {

@@ -81,7 +81,7 @@ export function PlaceCombo({
   function search(q: string) {
     abort.current?.abort();
     const n = ++seq.current;
-    if (q.trim().length < 3) {
+    if (q.trim().length < 2) {
       setHits([]);
       return;
     }
@@ -173,7 +173,7 @@ export function PlaceCombo({
           onChange={(e) => typeValue(e.target.value)}
           onFocus={() => {
             setOpen(true);
-            if (value.trim().length >= 3) search(value);
+            if (value.trim().length >= 2) search(value);
           }}
           onKeyDown={onKey}
         />

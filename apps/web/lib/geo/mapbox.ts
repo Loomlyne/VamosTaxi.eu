@@ -1,21 +1,20 @@
 // apps/web/lib/geo/mapbox.ts
 //
-// The only module that holds MAPBOX_TOKEN. Four upstream calls — Search Box
-// suggest + retrieve, Geocoding v6 reverse, Directions v5 driving — and the
-// degraded shapes that let the widget keep working before the owner has an
-// account (D-47).
+// The only module that holds MAPBOX_TOKEN. Search Box suggest + retrieve,
+// Geocoding v6 reverse, Directions v5 driving, and Tilequery (snap a pin
+// onto a valley road when driving returns NoRoute). Degraded shapes let
+// the widget keep working before the owner has an account (D-47).
 //
 // D-14 / Product Terms §1.9 / §2.7.2 / §2.10.1 (PDF 21 July 2026): this
 // module writes nothing to KV, builds no Response, decides no HTTP status,
-// knows nothing about the service area, and never invents a distance. The
-// one legal KV use (our own session-token set, not Licensed Map Content)
-// lives in session.ts, not here. GEO_CACHE is not consulted.
+// and knows nothing about the service area. Kilometres are Mapbox: driving
+// metres when a road exists, otherwise WGS84 metres between the same pins
+// (Mapbox GL / Turf sphere — not a guessed taxi km). GEO_CACHE is not
+// consulted. The one legal KV use lives in session.ts, not here.
 //
-// D-15: language= on suggest, retrieve, and reverse. D-16: one Directions
-// call per leg, profile driving, never a number we did not receive. D-51:
-// no permanent parameter on any call — the persist path is Phase 7's
-// checkout-time Geocoding v6 call; plan 04-14 re-reads the live parameter
-// list at sign-up — this file does not guess it.
+// D-15: language= on suggest, retrieve, and reverse. D-16: profile driving,
+// never Matrix, never driving-traffic. D-51: no permanent parameter on any
+// call — the persist path is Phase 7's checkout-time Geocoding v6 call.
 //
 // fetch is injected and defaults to globalThis.fetch so every case runs with
 // no network: a geo client that can only be tested against a paid account is
@@ -23,8 +22,12 @@
 
 import { withRequestContext } from "../logger";
 import type { QuoteErrorCode } from "../quote/errors";
+import { sphereMetres } from "./serviceArea";
 
 export const MAPBOX_FETCH_TIMEOUT_MS = 8_000;
+
+/** Search Box typeahead. Two characters is enough for IATA prefixes and postcodes. */
+export const MIN_SUGGEST_Q = 2;
 
 /** Zurich HB. Bias only — QUOTE-07 / serviceArea.ts is the gate. */
 const DEFAULT_PROXIMITY = "8.5417,47.3769";
@@ -33,6 +36,41 @@ const SEARCHBOX_SUGGEST = "https://api.mapbox.com/search/searchbox/v1/suggest";
 const SEARCHBOX_RETRIEVE = "https://api.mapbox.com/search/searchbox/v1/retrieve";
 const GEOCODE_REVERSE = "https://api.mapbox.com/search/geocode/v6/reverse";
 const DIRECTIONS_DRIVING = "https://api.mapbox.com/directions/v5/mapbox/driving";
+const TILEQUERY =
+  "https://api.mapbox.com/v4/mapbox.mapbox-streets-v8/tilequery";
+
+const MAJOR_ROAD = new Set([
+  "motorway",
+  "motorway_link",
+  "trunk",
+  "trunk_link",
+  "primary",
+  "primary_link",
+  "secondary",
+  "secondary_link",
+  "tertiary",
+  "tertiary_link",
+]);
+
+const SKIP_ROAD = new Set([
+  "path",
+  "footway",
+  "steps",
+  "pedestrian",
+  "cycleway",
+  "bridleway",
+  "piste",
+  "ferry",
+  "aerialway",
+  "track",
+  "crossing",
+  "sidewalk",
+]);
+
+/** Car-free towns sit on a local graph. The valley road is kilometres out. */
+const LOCAL_ISLAND_M = 2_500;
+const TILEQUERY_RADIUS_M = 25_000;
+const SNAP_NUDGE_M = 8_000;
 
 export type GeoLanguage = "en" | "de" | "fr" | "ar";
 
@@ -107,6 +145,8 @@ export type RouteLeg = {
   distance_m: number;
   duration_s: number;
   geometry: { type: "LineString"; coordinates: [number, number][] };
+  /** False when metres are Mapbox sphere (no driving line), not a road. */
+  road?: boolean;
 };
 
 export type RouteResult =
@@ -243,7 +283,7 @@ export async function suggest(
   deps: MapboxDeps = {},
 ): Promise<SuggestResult> {
   const emit = emitFor("geo.suggest", input.language);
-  if (input.q.length < 3) {
+  if (input.q.length < MIN_SUGGEST_Q) {
     return { suggestions: [] };
   }
   const access = tokenOf(env);
@@ -258,11 +298,11 @@ export async function suggest(
   params.set("language", input.language);
   // Search is worldwide. proximity is rank bias only (Zurich HB default).
   // country= is a Mapbox FILTER, not a bias — it dropped Dubai / anywhere
-  // outside CH. Operating countries are a later owner gate on the quote
-  // service area, not on typeahead.
+  // outside CH. types= is also a FILTER: address,poi,street,place hid
+  // postcodes, regions, localities and some airport/IATA hits. Omit it so
+  // a name, a code, or a postcode can all find the same place.
   params.set("proximity", proximityParam(input.proximity));
-  params.set("types", "address,poi,street,place");
-  params.set("limit", "8");
+  params.set("limit", "10");
   params.set("access_token", access);
   const result = await upstreamGet(fetchImpl, url, emit, "suggest");
   if (result.body === null) {
@@ -372,15 +412,25 @@ export async function reverse(
   };
 }
 
-function coordinatePath(leg: RouteLegInput): string {
-  const points = [leg.origin, ...(leg.waypoints ?? []), leg.destination];
-  return points.map((p) => `${p.lng},${p.lat}`).join(";");
+function pointsOf(leg: RouteLegInput): GeoPoint[] {
+  return [leg.origin, ...(leg.waypoints ?? []), leg.destination];
 }
 
-function mapRoute(body: unknown): Omit<RouteLeg, "leg_seq"> | null {
+function coordinatePath(leg: RouteLegInput): string {
+  return pointsOf(leg)
+    .map((p) => `${p.lng},${p.lat}`)
+    .join(";");
+}
+
+function snapRadiuses(leg: RouteLegInput): string {
+  const n = pointsOf(leg).length;
+  return Array.from({ length: n }, () => "unlimited").join(";");
+}
+
+function mapRoute(body: unknown): Omit<RouteLeg, "leg_seq" | "road"> | null {
   const rec = asRecord(body);
   if (!rec) return null;
-  if (rec.code === "NoRoute") return null;
+  if (rec.code === "NoRoute" || rec.code === "NoSegment") return null;
   const routes = rec.routes;
   if (!Array.isArray(routes) || routes.length === 0) return null;
   const route = asRecord(routes[0]);
@@ -399,6 +449,184 @@ function mapRoute(body: unknown): Omit<RouteLeg, "leg_seq"> | null {
     duration_s: Math.trunc(route.duration),
     geometry: route.geometry as RouteLeg["geometry"],
   };
+}
+
+function sphereLeg(leg: RouteLegInput): Omit<RouteLeg, "leg_seq"> {
+  const points = pointsOf(leg);
+  let metres = 0;
+  for (let i = 1; i < points.length; i += 1) {
+    const prev = points[i - 1];
+    const next = points[i];
+    if (!prev || !next) continue;
+    metres += sphereMetres(prev, next);
+  }
+  return {
+    distance_m: Math.trunc(metres),
+    duration_s: 0,
+    geometry: {
+      type: "LineString",
+      coordinates: points.map((p) => [p.lng, p.lat] as [number, number]),
+    },
+    road: false,
+  };
+}
+
+type RoadCand = { point: GeoPoint; className: string; distance: number };
+
+type RoadHit = { point: GeoPoint; major: boolean };
+
+function roadHitFromTilequery(body: unknown): RoadHit | null {
+  const rec = asRecord(body);
+  const features = rec?.features;
+  if (!Array.isArray(features) || features.length === 0) return null;
+  const cands: RoadCand[] = [];
+  for (const raw of features) {
+    const feature = asRecord(raw);
+    if (!feature) continue;
+    const point = pointFromGeometry(feature.geometry);
+    if (!point) continue;
+    const props = asRecord(feature.properties) ?? {};
+    const className =
+      typeof props.class === "string" ? props.class.toLowerCase() : "";
+    if (SKIP_ROAD.has(className)) continue;
+    const tq = asRecord(props.tilequery);
+    const distance =
+      typeof tq?.distance === "number" && Number.isFinite(tq.distance)
+        ? tq.distance
+        : 0;
+    cands.push({ point, className, distance });
+  }
+  if (cands.length === 0) return null;
+  const majorFar = cands.filter(
+    (c) => MAJOR_ROAD.has(c.className) && c.distance >= LOCAL_ISLAND_M,
+  );
+  const major = cands.filter((c) => MAJOR_ROAD.has(c.className));
+  const pool =
+    majorFar.length > 0 ? majorFar : major.length > 0 ? major : cands;
+  const pick = pool.slice().sort((a, b) => a.distance - b.distance)[0];
+  if (!pick) return null;
+  return { point: pick.point, major: MAJOR_ROAD.has(pick.className) };
+}
+
+function samePin(a: GeoPoint, b: GeoPoint): boolean {
+  return a.lng === b.lng && a.lat === b.lat;
+}
+
+function nudgeToward(from: GeoPoint, toward: GeoPoint, metres: number): GeoPoint {
+  const total = sphereMetres(from, toward);
+  if (!(total > 0)) return from;
+  const t = Math.min(1, metres / total);
+  return {
+    lng: from.lng + (toward.lng - from.lng) * t,
+    lat: from.lat + (toward.lat - from.lat) * t,
+  };
+}
+
+type DirHit =
+  | { kind: "route"; value: Omit<RouteLeg, "leg_seq" | "road"> }
+  | { kind: "none" }
+  | { kind: "down" };
+
+async function fetchDriving(
+  fetchImpl: typeof fetch,
+  access: string,
+  emit: Emit,
+  leg: RouteLegInput,
+): Promise<DirHit> {
+  const url = new URL(`${DIRECTIONS_DRIVING}/${coordinatePath(leg)}`);
+  const params = url.searchParams;
+  params.set("geometries", "geojson");
+  params.set("overview", "full");
+  params.set("alternatives", "false");
+  params.set("steps", "false");
+  params.set("radiuses", snapRadiuses(leg));
+  params.set("access_token", access);
+  const result = await upstreamGet(fetchImpl, url, emit, "directions");
+  if (result.body === null) return { kind: "down" };
+  const parsed = mapRoute(result.body);
+  if (!parsed) return { kind: "none" };
+  return { kind: "route", value: parsed };
+}
+
+async function queryRoads(
+  fetchImpl: typeof fetch,
+  access: string,
+  emit: Emit,
+  pin: GeoPoint,
+): Promise<RoadHit | null> {
+  const url = new URL(`${TILEQUERY}/${pin.lng},${pin.lat}.json`);
+  const params = url.searchParams;
+  params.set("radius", String(TILEQUERY_RADIUS_M));
+  params.set("limit", "10");
+  params.set("layers", "road");
+  params.set("dedupe", "true");
+  params.set("access_token", access);
+  const result = await upstreamGet(fetchImpl, url, emit, "tilequery");
+  if (result.body === null) return null;
+  return roadHitFromTilequery(result.body);
+}
+
+async function snapPinToRoad(
+  fetchImpl: typeof fetch,
+  access: string,
+  emit: Emit,
+  pin: GeoPoint,
+  other: GeoPoint,
+): Promise<GeoPoint> {
+  const nudged = nudgeToward(pin, other, SNAP_NUDGE_M);
+  if (!samePin(nudged, pin)) {
+    const far = await queryRoads(fetchImpl, access, emit, nudged);
+    if (far?.point) return far.point;
+  }
+  const near = await queryRoads(fetchImpl, access, emit, pin);
+  return near?.point ?? pin;
+}
+
+async function snapLegToRoads(
+  fetchImpl: typeof fetch,
+  access: string,
+  emit: Emit,
+  leg: RouteLegInput,
+): Promise<RouteLegInput> {
+  const origin = await snapPinToRoad(
+    fetchImpl,
+    access,
+    emit,
+    leg.origin,
+    leg.destination,
+  );
+  const destination = await snapPinToRoad(
+    fetchImpl,
+    access,
+    emit,
+    leg.destination,
+    leg.origin,
+  );
+  const waypoints = [];
+  for (const wp of leg.waypoints ?? []) {
+    waypoints.push(
+      await snapPinToRoad(fetchImpl, access, emit, wp, leg.destination),
+    );
+  }
+  return {
+    origin,
+    destination,
+    ...(waypoints.length > 0 ? { waypoints } : {}),
+  };
+}
+
+function snapChanged(a: RouteLegInput, b: RouteLegInput): boolean {
+  if (!samePin(a.origin, b.origin)) return true;
+  if (!samePin(a.destination, b.destination)) return true;
+  const aw = a.waypoints ?? [];
+  const bw = b.waypoints ?? [];
+  if (aw.length !== bw.length) return true;
+  for (let i = 0; i < aw.length; i += 1) {
+    const left = aw[i];
+    const right = bw[i];
+    if (!left || !right || !samePin(left, right)) return true;
+  }
+  return false;
 }
 
 export async function routeLegs(
@@ -421,23 +649,27 @@ export async function routeLegs(
     // D-16: profile is mapbox/driving. driving-traffic is a live duration for
     // *now* and the wrong input for a pickup weeks away. Matrix has no
     // geometry, and QUOTE-01 needs the line.
-    const url = new URL(`${DIRECTIONS_DRIVING}/${coordinatePath(leg)}`);
-    const params = url.searchParams;
-    params.set("geometries", "geojson");
-    params.set("overview", "full");
-    params.set("alternatives", "false");
-    params.set("steps", "false");
-    params.set("access_token", access);
-    const result = await upstreamGet(fetchImpl, url, emit, "directions");
-    if (result.body === null) {
-      return { ok: false, code: "route_unavailable" };
-    }
-    const parsed = mapRoute(result.body);
-    if (!parsed) {
+    const first = await fetchDriving(fetchImpl, access, emit, leg);
+    if (first.kind === "down") {
       return { ok: false, code: "route_unavailable" };
     }
     const seq: 1 | 2 = i === 0 ? 1 : 2;
-    mapped.push({ leg_seq: seq, ...parsed });
+    if (first.kind === "route") {
+      mapped.push({ leg_seq: seq, ...first.value, road: true });
+      continue;
+    }
+    const snapped = await snapLegToRoads(fetchImpl, access, emit, leg);
+    if (snapChanged(leg, snapped)) {
+      const second = await fetchDriving(fetchImpl, access, emit, snapped);
+      if (second.kind === "down") {
+        return { ok: false, code: "route_unavailable" };
+      }
+      if (second.kind === "route") {
+        mapped.push({ leg_seq: seq, ...second.value, road: true });
+        continue;
+      }
+    }
+    mapped.push({ leg_seq: seq, ...sphereLeg(leg) });
   }
   return { ok: true, legs: mapped };
 }

@@ -61,6 +61,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 15: Wire Ops #support to APIs** - Live `#support` list, thread, booking_ref+locale, status filters; EN/DE/FR/AR; escaped text
 - [ ] **Phase 16: Staging MX + end-to-end UAT** - Customer Reply-in-Gmail appends to the same ticket; MX only on replies.vamostaxi.site
 - [ ] **Phase 17: Ops chauffeur profile, shift roster, two-driver vehicles** - Fleet row opens a full chauffeur page; shifts auto On/Off; vehicle max 2 drivers (morning/night); Add is idempotent
+- [x] **Phase 18: OPS Pricing source of truth** - `/pricing` is the only fare book; public offers follow Publish (completed 2026-09-15)
 
 ## Phase Details
 
@@ -664,7 +665,7 @@ finishes 08-UAT then 12–16 before this phase is discussed.
   4. After Publish, home / checkout / quote offer **only** live-book classes. Delete = gone. No hardcoded Economy / Business / First / Van ladder. Live UAT on `vamostaxi.site`.
   5. Must-nots: no invented CHF, no live Stripe keys, no `.eu`, no driver app, no auto-dispatch. Agent does not Publish. Agent does not `db push`.
 
-**Plans:** 6/7 plans executed
+**Plans:** 7/7 plans executed
 
 Plans:
 **Wave 1**
@@ -687,7 +688,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4)*
 
-- [ ] 18-07-PLAN.md — Same math everywhere; extra wait not in pay-now; owner apply SQL + owner Publish UAT
+- [x] 18-07-PLAN.md — Same math everywhere; extra wait not in pay-now; owner apply SQL + owner Publish UAT
 
 History of 2026-09-13: `.planning/phases/18-ops-pricing-source/archive-2026-09-13/`
 
@@ -718,7 +719,7 @@ v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16 → 17
 | 15. Wire Ops #support to APIs | 0/TBD | Not started | - |
 | 16. Staging MX + end-to-end UAT | 0/TBD | Not started | - |
 | 17. Ops chauffeur profile, shift roster, two-driver vehicles | 0/TBD | Not started | - |
-| 18. OPS Pricing source of truth | 6/7 | In Progress | - |
+| 18. OPS Pricing source of truth | 7/7 | Complete    | 2026-09-15 |
 
 ---
 *Roadmap created: 2026-08-17*

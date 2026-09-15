@@ -126,7 +126,7 @@ class Component extends DCLogic {
   };
   search = (field, q) => {
     var token = geoSession();
-    if (!token || String(q || '').trim().length < 3) {
+    if (!token || String(q || '').trim().length < 2) {
       this.setState(field === 'pickup' ? { pickupHits: [], pickupOpen: false } : { dropHits: [], dropOpen: false });
       return;
     }

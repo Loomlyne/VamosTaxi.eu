@@ -5,7 +5,7 @@
 // Missing version → JSON 404. Unauthenticated → JSON 401. CHF only. No postgres.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { asStaff } from "@/lib/db/identity";
+import { asStaff, type VamosClaims } from "@/lib/db/identity";
 import { loadRateVersions } from "@/lib/ops/pricing";
 import {
   assertDistanceRateInput,
@@ -35,6 +35,13 @@ import {
   insertCoupon,
   updateCouponRecord,
 } from "@/lib/ops/coupons";
+import {
+  mapboxIdFromPin,
+  placeLabelFromPin,
+  skiZoneType,
+  zoneSlugFromPlace,
+  pgTextArrayLiteral,
+} from "@/lib/ops/mapbox-zone";
 
 export const dynamic = "force-dynamic";
 
@@ -177,6 +184,48 @@ function matchZone(zones: ServiceZoneRow[], value: unknown): ServiceZoneRow | un
     if (slugWords && lower.includes(slugWords)) return true;
     return false;
   });
+}
+
+async function ensureMapboxZone(
+  env: CloudflareEnv,
+  claims: VamosClaims,
+  zones: ServiceZoneRow[],
+  pin: unknown,
+  text: unknown,
+): Promise<ServiceZoneRow | undefined> {
+  const label = placeLabelFromPin(pin, text);
+  const mapboxId = mapboxIdFromPin(pin);
+  if (!label && !mapboxId) return undefined;
+  const slug = zoneSlugFromPlace(label || mapboxId, mapboxId);
+  const existing = zones.find((z) => z.slug === slug) ?? matchZone(zones, label);
+  if (existing) return existing;
+  const zoneType = skiZoneType(label);
+  const tags = mapboxId ? [`mapbox:${mapboxId}`] : [];
+  const name = label || slug;
+  const inserted = await asStaff(env, claims, async (tx) => {
+    const rows = await tx<Array<{ id: string; slug: string; iata: string | null; active: boolean }>>`
+      insert into public.service_zones (slug, iata, active, zone_type, tags)
+      values (${slug}, null, true, ${zoneType}, ${pgTextArrayLiteral(tags)}::text[])
+      on conflict (slug) do update set active = true
+      returning id, slug, iata, active
+    `;
+    const row = rows[0];
+    if (!row) return null;
+    await tx`
+      insert into public.content_strings (key, en, de, fr, ar, non_translatable)
+      values (${`zone.${row.slug}`}, ${name}, ${name}, ${name}, ${name}, true)
+      on conflict (key) do nothing
+    `;
+    return row;
+  });
+  if (!inserted) return undefined;
+  return {
+    id: inserted.id,
+    slug: inserted.slug,
+    iata: inserted.iata,
+    active: inserted.active,
+    label: name,
+  };
 }
 
 function mockRoutes(book: RateBook, zones: ServiceZoneRow[]): Record<string, unknown>[] {
@@ -844,13 +893,27 @@ export const PUT = withAdmin(async (claims, request) => {
     if (!book) return jsonErr("not-found", 404);
     const zones = await loadServiceZones(env, claims);
     const origin =
-      typeof recBody.originZoneId === "string" && recBody.originZoneId
+      (typeof recBody.originZoneId === "string" && recBody.originZoneId
         ? zones.find((z) => z.id === recBody.originZoneId)
-        : matchZone(zones, recBody.from);
+        : matchZone(zones, recBody.from)) ??
+      (await ensureMapboxZone(
+        env,
+        claims,
+        zones,
+        recBody.fromMapbox ?? recBody.from_mapbox_id ?? recBody.originMapbox,
+        recBody.from,
+      ));
     const dest =
-      typeof recBody.destZoneId === "string" && recBody.destZoneId
+      (typeof recBody.destZoneId === "string" && recBody.destZoneId
         ? zones.find((z) => z.id === recBody.destZoneId)
-        : matchZone(zones, recBody.to);
+        : matchZone(zones, recBody.to)) ??
+      (await ensureMapboxZone(
+        env,
+        claims,
+        zones,
+        recBody.toMapbox ?? recBody.to_mapbox_id ?? recBody.destMapbox,
+        recBody.to,
+      ));
     if (!origin || !dest) return jsonErr("mapbox", 400);
     const live = boolish(recBody.live, false);
     const slugSet = new Set<string>();

@@ -56,6 +56,22 @@ describe("sendContactMessage", () => {
     expect(send).toHaveBeenCalledTimes(1);
   });
 
+  it("does not use Cloudflare Email when staff replies disable fallback", async () => {
+    sendResend.mockResolvedValueOnce({ data: null, error: { message: "rejected" } });
+    const send = vi.fn(async () => ({ messageId: "cf-unused" }));
+    await expect(
+      sendContactMessage("re_key", undefined, "guest@example.test", "idem-staff", rendered, { send }, {
+        allowEmailFallback: false,
+        bcc: "info@vamostaxi.site",
+        replyTo: "ticket+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@replies.vamostaxi.site",
+      }),
+    ).resolves.toEqual({ accepted: false, providerSuffix: null, providerId: null });
+    expect(send).not.toHaveBeenCalled();
+    expect(sendResend.mock.calls[0]?.[0]).toMatchObject({
+      bcc: "info@vamostaxi.site",
+    });
+  });
+
   it("sends through Cloudflare Email when Resend is not configured", async () => {
     const send = vi.fn(async () => ({ messageId: "cf-message-abcdef123456" }));
     await expect(

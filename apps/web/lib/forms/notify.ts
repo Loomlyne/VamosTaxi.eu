@@ -8,6 +8,9 @@ const CONTACT_FROM_CF = { email: "noreply@vamostaxi.site", name: "Vamos Taxi" } 
 export type SendContactOptions = {
   replyTo?: string;
   headers?: Record<string, string>;
+  bcc?: string | string[];
+  /** Contact ack may use Cloudflare EMAIL. Staff replies must not. */
+  allowEmailFallback?: boolean;
 };
 
 export function formFailure(code: FormFailureCode, status: 400 | 403 | 503 | 429): Response {
@@ -33,6 +36,7 @@ export async function sendContactMessage(
 ): Promise<{ accepted: boolean; providerSuffix: string | null; providerId: string | null }> {
   void from;
   if (!to) return { accepted: false, providerSuffix: null, providerId: null };
+  const allowEmailFallback = options?.allowEmailFallback !== false;
   const payload = {
     from: CONTACT_FROM,
     to,
@@ -41,16 +45,20 @@ export async function sendContactMessage(
     text: rendered.text,
     ...(options?.replyTo ? { replyTo: options.replyTo } : {}),
     ...(options?.headers ? { headers: options.headers } : {}),
+    ...(options?.bcc ? { bcc: options.bcc } : {}),
   };
   if (apiKey) {
     try {
       const result = await new Resend(apiKey).emails.send(payload, { idempotencyKey });
       const id = result.data?.id;
-      if (typeof id === "string" && id.length > 0) {
+      if (!result.error && typeof id === "string" && id.length > 0) {
         return { accepted: true, providerSuffix: suffixOf(id), providerId: id };
       }
     } catch {
-      // Fall through to Cloudflare Email when bound.
+      // Staff replies fail closed. Contact ack may still use EMAIL.
+    }
+    if (!allowEmailFallback) {
+      return { accepted: false, providerSuffix: null, providerId: null };
     }
   }
   if (email?.send) {

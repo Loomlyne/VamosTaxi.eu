@@ -84,8 +84,8 @@ describe("OpsPricing tabs (D-11 D-12 D-17 D-25)", () => {
     expect(html).toMatch(/vatSavedBps/);
     expect(html).toMatch(/vatSaveOff/);
     expect(html).toMatch(/minDate:'today'/);
-    expect(html).toMatch(/key:'from', label:t.colFrom, required:true/);
-    expect(html).not.toMatch(/key:'from', label:t.colFrom, half:true/);
+    expect(html).toMatch(/key:'hideFromPublic', header: t.hidePublic, width:'180px'/);
+    expect(html).toMatch(/key:'to', label:t.colTo, required:true, icon:'map-pin', half:true/);
     expect(html).toMatch(/fill="1"/);
     expect(html).toMatch(/\/api\/staff\/coupons\/redemptions/);
     expect(html).toMatch(/hNote:'Staff-only reminder/);

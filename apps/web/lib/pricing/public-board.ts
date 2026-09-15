@@ -4,7 +4,14 @@
 
 import { photoUrl } from "../ops/photos";
 import { evaluateEligibility } from "./eligibility";
-import type { ClassBoardEntry, QuoteInput, RateBook, VehicleClassRow } from "./types";
+import { isCantonFixed } from "./lines";
+import type {
+  ClassBoardEntry,
+  QuoteInput,
+  RateBook,
+  VehicleClassRow,
+  ZoneRow,
+} from "./types";
 
 const IDLE_INPUT: QuoteInput = {
   mode: "one_way",
@@ -57,4 +64,46 @@ export function liveBookBoard(book: RateBook): ClassBoardEntry[] {
         total_rappen: null,
       })),
   );
+}
+
+export type PublicCatalogRoute = {
+  key: string;
+  from: string;
+  to: string;
+};
+
+function titleSlug(slug: string): string {
+  return slug
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function zonePublicLabel(zone: ZoneRow | undefined, fallback: string): string {
+  if (!zone) return titleSlug(fallback);
+  const name = titleSlug(zone.slug);
+  const iata = zone.iata?.trim().toUpperCase();
+  if (iata) return `${name} (${iata})`;
+  return name;
+}
+
+/** Unique live place→place rows for the home Fixed routes tab. */
+export function publicCatalogRoutes(book: RateBook): PublicCatalogRoute[] {
+  const byId = new Map(book.zones.map((zone) => [zone.id, zone]));
+  const seen = new Set<string>();
+  const out: PublicCatalogRoute[] = [];
+  for (const row of book.fixed_routes) {
+    if (!row.live) continue;
+    if (isCantonFixed(row, byId)) continue;
+    const key = `${row.origin_zone_id}::${row.dest_zone_id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({
+      key,
+      from: zonePublicLabel(byId.get(row.origin_zone_id), row.origin_zone_id),
+      to: zonePublicLabel(byId.get(row.dest_zone_id), row.dest_zone_id),
+    });
+  }
+  return out;
 }

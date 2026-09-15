@@ -1242,8 +1242,8 @@ class Component extends DCLogic {
         { key:'live', header: t.colLive, width:'92px', kind:'bool', onLabel:t.live, offLabel:t.draft },
       ]),
       routeFields: [
-        { key:'from', label:t.colFrom, required:true, icon:'map-pin' },
-        { key:'to', label:t.colTo, required:true, icon:'map-pin' },
+        { key:'from', label:t.colFrom, required:true, icon:'map-pin', half:true },
+        { key:'to', label:t.colTo, required:true, icon:'map-pin', half:true },
       ].concat(ratedClasses.map((c, i) => ({
         key: c.slug, label:c.label, half:true, placeholder:'000', hint: i === 0 ? t.hRoutePrice : '', icon:'banknote', suffix:'CHF',
       }))).concat([
@@ -1301,7 +1301,7 @@ class Component extends DCLogic {
         { key:'perKm', header: t.perKm, lookup:(r) => moneyOrDash(r.perKm) },
         { key:'maxPax', header: t.maxPax, width:'90px' },
         { key:'maxBags', header: t.maxBags, width:'90px' },
-        { key:'hideFromPublic', header: t.hidePublic, width:'120px', kind:'bool', onLabel:t.hidePublic, offLabel:t.showPublic },
+        { key:'hideFromPublic', header: t.hidePublic, width:'180px', kind:'bool', onLabel:t.hidePublic, offLabel:t.showPublic },
       ],
       distanceFields: [
         { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'class', photoRecordKey:'vehicleClassId', upload:'/api/photos/upload', clearLabel:t.clearPhoto, chooseLabel:t.choosePhoto, hint:t.hClassPhoto },

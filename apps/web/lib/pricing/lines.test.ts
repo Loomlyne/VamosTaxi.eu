@@ -7,10 +7,12 @@
 import { describe, expect, it } from "vitest";
 import * as fc from "fast-check";
 import {
+  attachPlaceZones,
   buildExtraLines,
   buildFareLine,
   buildLegSurchargeLines,
   numberLines,
+  zoneIdMatchingPlace,
 } from "./lines";
 import { perKm, roundHalfUp } from "./round";
 import type {
@@ -43,10 +45,15 @@ function leg(partial: Partial<QuoteLegInput> = {}): QuoteLegInput {
     scheduled_local: partial.scheduled_local ?? "2026-09-04T23:10",
     distance_m: partial.distance_m ?? 10_000,
     duration_s: partial.duration_s ?? 900,
-    origin_zone_id: partial.origin_zone_id ?? "z-a",
-    dest_zone_id: partial.dest_zone_id ?? "z-b",
+    origin_zone_id:
+      partial.origin_zone_id === undefined ? "z-a" : partial.origin_zone_id,
+    dest_zone_id:
+      partial.dest_zone_id === undefined ? "z-b" : partial.dest_zone_id,
     origin_canton: partial.origin_canton ?? null,
     dest_canton: partial.dest_canton ?? null,
+    origin_place: partial.origin_place,
+    dest_place: partial.dest_place,
+    road: partial.road,
     waypoints: partial.waypoints ?? [],
   };
 }
@@ -204,6 +211,98 @@ describe("buildFareLine — fixed route (D-08)", () => {
     expect(line.basis.matched).toBeUndefined();
     expect(line.amount_rappen).toBe(100 + perKm(200, 1000));
     expect(line.amount_rappen).not.toBe(4200);
+  });
+
+  it("D-26: unrouted legs do not invent start+0km — only a matching fixed row prices", () => {
+    const line = buildFareLine({
+      leg: leg({ distance_m: 0, road: false }),
+      vehicleClass: business,
+      distanceRate: rate({
+        vehicle_class_id: business.id,
+        base_fare_rappen: 10_000,
+        per_km_rappen: 1_200,
+      }),
+      fixedRoutes: [],
+      rateVersionId: 1,
+    });
+    expect(line.amount_rappen).toBeNull();
+    expect(line.basis.unrouted).toBe(true);
+  });
+
+  it("D-19: Mapbox metres still take start+km when driving had no road line", () => {
+    const line = buildFareLine({
+      leg: leg({ distance_m: 75_000, road: false }),
+      vehicleClass: business,
+      distanceRate: rate({
+        vehicle_class_id: business.id,
+        base_fare_rappen: 10_000,
+        per_km_rappen: 1_200,
+      }),
+      fixedRoutes: [],
+      rateVersionId: 1,
+    });
+    expect(line.amount_rappen).toBe(10_000 + perKm(1_200, 75_000));
+    expect(line.basis.unrouted).toBeUndefined();
+  });
+
+  it("D-26: unrouted legs still take a live fixed route", () => {
+    const fr = fixed({
+      vehicle_class_id: business.id,
+      origin_zone_id: "z-a",
+      dest_zone_id: "z-b",
+      price_rappen: 61_000,
+      live: true,
+    });
+    const line = buildFareLine({
+      leg: leg({ distance_m: 0, road: false }),
+      vehicleClass: business,
+      distanceRate: rate({
+        vehicle_class_id: business.id,
+        base_fare_rappen: 10_000,
+        per_km_rappen: 1_200,
+      }),
+      fixedRoutes: [fr],
+      rateVersionId: 1,
+    });
+    expect(line.basis.rule).toBe("fixed_route");
+    expect(line.amount_rappen).toBe(61_000);
+  });
+
+  it("D-26: Mapbox place names attach to service_zones so a typed fixed row prices", () => {
+    const zermatt: ZoneRow = {
+      id: "z-zermatt",
+      slug: "zermatt",
+      iata: null,
+      active: true,
+      zone_type: "ski",
+      tags: ["ski"],
+    };
+    expect(
+      zoneIdMatchingPlace("Zermatt, Bahnhofplatz", [zermatt, airportZone]),
+    ).toBe("z-zermatt");
+    const attached = attachPlaceZones(
+      {
+        mode: "one_way",
+        pax: 1,
+        bags: 0,
+        display_currency: "CHF",
+        computed_at: "2026-09-15T12:00:00.000Z",
+        extras: {},
+        coupon: null,
+        legs: [
+          leg({
+            origin_zone_id: null,
+            dest_zone_id: null,
+            origin_place: "Interlaken",
+            dest_place: "Zermatt, Valais",
+            road: false,
+            distance_m: 0,
+          }),
+        ],
+      },
+      [zermatt],
+    );
+    expect(attached.legs[0]?.dest_zone_id).toBe("z-zermatt");
   });
 
   it("D-17: extra stops drop the fixed route and use the distance recipe", () => {

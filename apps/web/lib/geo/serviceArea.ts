@@ -6,11 +6,9 @@
 // by plan 04-11's handler from plan 04-09's quote_settings_version read.
 //
 // D-17: named live fixed_routes pair in either order, otherwise both ends
-// inside the published snapshot polygon (rate_versions.service_area_geojson
-// copied onto settings_versions at Publish). D-39: Vamos quotes only when
-// pickup and dropoff are both inside; either pin outside is out_of_service_area
-// and classes are not offered. D-41: min_advance_minutes is read from the
-// argument — this module never invents a number.
+// inside Europe. D-39 used to mean both pins inside the published snapshot
+// polygon; the owner gate is now Europe, not that polygon. NYC–Beijing is
+// out; London, Chamonix, Malpensa and Zermatt are in.
 //
 // Negative space: no I/O, no clock, no Mapbox, no database. Point-in-polygon
 // is ray-casting here because PostGIS is not installed (Phase 2 ships
@@ -23,15 +21,27 @@ import type { QuoteErrorCode } from "../quote/errors";
 export const SAME_COORDINATE_METRES = 10;
 
 /**
- * Generous Switzerland-plus-neighbours box. Pre-Mapbox refusal, NOT the
- * service area — Chamonix, Zermatt and Milano Malpensa are legitimate
- * destinations the polygon decides on, not this rectangle.
+ * Generous Switzerland-plus-neighbours box. Bias / leftover — not the
+ * service area. Quotes use EUROPE_BOX.
  */
 export const COUNTRY_BOX = {
   lngMin: 3.5,
   lngMax: 14.5,
   latMin: 43.0,
   latMax: 49.5,
+} as const;
+
+/**
+ * Continental Europe plus nearby islands (Iceland, Azores, Canaries, Cyprus).
+ * Both pins must sit in this envelope, unless a live named pair matches.
+ * North African coast at the same latitudes as Sicily can slip in; NYC and
+ * Dubai cannot.
+ */
+export const EUROPE_BOX = {
+  lngMin: -31.5,
+  lngMax: 40.0,
+  latMin: 27.5,
+  latMax: 72.0,
 } as const;
 
 /** WGS84 mean radius in metres — haversine, not a spherical-soccer-ball guess. */
@@ -113,7 +123,8 @@ function toRad(deg: number): number {
   return (deg * Math.PI) / 180;
 }
 
-export function sameCoordinate(a: GeoPoint, b: GeoPoint): boolean {
+/** Mapbox GL / Turf WGS84 sphere metres between two pins. */
+export function sphereMetres(a: GeoPoint, b: GeoPoint): number {
   const dLat = toRad(b.lat - a.lat);
   const dLng = toRad(b.lng - a.lng);
   const lat1 = toRad(a.lat);
@@ -121,9 +132,11 @@ export function sameCoordinate(a: GeoPoint, b: GeoPoint): boolean {
   const hav =
     Math.sin(dLat / 2) ** 2 +
     Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
-  const metres =
-    2 * WGS84_MEAN_RADIUS_M * Math.asin(Math.min(1, Math.sqrt(hav)));
-  return metres <= SAME_COORDINATE_METRES;
+  return 2 * WGS84_MEAN_RADIUS_M * Math.asin(Math.min(1, Math.sqrt(hav)));
+}
+
+export function sameCoordinate(a: GeoPoint, b: GeoPoint): boolean {
+  return sphereMetres(a, b) <= SAME_COORDINATE_METRES;
 }
 
 export function insideCountryBox(point: GeoPoint): boolean {
@@ -132,6 +145,15 @@ export function insideCountryBox(point: GeoPoint): boolean {
     point.lng <= COUNTRY_BOX.lngMax &&
     point.lat >= COUNTRY_BOX.latMin &&
     point.lat <= COUNTRY_BOX.latMax
+  );
+}
+
+export function insideEurope(point: GeoPoint): boolean {
+  return (
+    point.lng >= EUROPE_BOX.lngMin &&
+    point.lng <= EUROPE_BOX.lngMax &&
+    point.lat >= EUROPE_BOX.latMin &&
+    point.lat <= EUROPE_BOX.latMax
   );
 }
 
@@ -244,18 +266,9 @@ export function checkServiceArea(input: ServiceAreaInput): ServiceAreaResult {
     }
   }
 
-  if (input.polygon === null) {
-    // Published snapshot polygon NULL fails closed: skipping the check means
-    // quoting anywhere on Earth. Renders as a labelled TBC gap (ADR-011), not
-    // as "we do not serve you".
-    return { ok: false, code: "service_area_undefined" };
-  }
-
-  // D-39: both pins inside the published polygon. One inside / one outside
-  // is out_of_service_area — classes are not offered.
-  const originIn = pointInPolygon(input.origin, input.polygon);
-  const destIn = pointInPolygon(input.dest, input.polygon);
-  if (originIn && destIn) {
+  // Both pins in Europe. One in / one out is out_of_service_area.
+  // The published polygon is not the gate — Europe is.
+  if (insideEurope(input.origin) && insideEurope(input.dest)) {
     return { ok: true };
   }
   return { ok: false, code: "out_of_service_area" };

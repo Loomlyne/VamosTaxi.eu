@@ -2,51 +2,53 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 18 In Progress (restart D-01…D-35). 18-01…18-06 done. 18-07 SQL applied; owner Publish UAT next.
-stopped_at: Hosted SQL applied — owner Publish UAT on .site
-last_updated: "2026-09-14T17:25:00.000Z"
-last_activity: 2026-09-14 -- owner apply of 20260914190000 and 20260914191000 on Zurich
+status: Phase 13 context gathered. Next: $gsd-plan-phase 13.
+stopped_at: 13-CONTEXT.md written — branded mail pass + staff Resend send
+last_updated: "2026-09-15T12:00:00.000Z"
+last_activity: 2026-09-15 -- discuss-phase 13 CONTEXT
 progress:
   total_phases: 19
-  completed_phases: 9
+  completed_phases: 11
   total_plans: 165
-  completed_plans: 158
-  percent: 48
+  completed_plans: 159
+  percent: 58
 ---
 
 # Project State
 
 **Project:** Vamos Taxi
 **Milestone:** v1.0 Vamos Taxi V1
-See: .planning/PROJECT.md (updated 2026-09-04)
+See: .planning/PROJECT.md (updated 2026-09-15 after Phase 18)
 
 **Core value:** quote → pay → confirmation. Lifecycle after pay is Phase 9.
-**Current focus:** Phase 18 — OPS Pricing source of truth
+**Current focus:** Phase 13 — Staff APIs + outbound Resend replies
 
 ## Current Position
 
-Phase: 18 (OPS Pricing source of truth) — IN PROGRESS (restart 2026-09-14)
-Plan: 18-07 owner Publish UAT. 6/7 executed; hosted SQL applied.
-Status: 18-01…18-06 done. 20260914190000 and 20260914191000 on Zurich. Agent did not Publish. `archive-2026-09-13/` is history — do not execute.
-Last activity: 2026-09-14 -- owner apply of quote_rate_book live-classes + vehicle_class name/photo
+Phase: 13 (Staff APIs + outbound Resend replies) — CONTEXT GATHERED
+Plan: Not started.
+Status: Ready to plan. Phase 18 complete. Funnel logic 7–11 frozen; email *templates* in 13.
+Last activity: 2026-09-15 -- 13-CONTEXT.md
 
 ## Performance Metrics
 
-- **v1.0 Core:** Phases 1–11 complete (11-12 owner Publish still open; does not block 18).
-- **v1.1:** Phase 12 complete. 13–17 parked.
-- **Phase 18 restart:** 6/7 plans executed. Ignore archived P03–P10 durations (those were 2026-09-13).
+- **v1.0 Core:** Phases 1–11 complete (11-12 owner Publish still open; does not block 13).
+- **v1.1:** Phase 12 complete. Phase 18 complete. Next 13 → 14 → 15 → 16 → 17.
+- **Phase 18 restart:** 7/7 plans + 18-UAT (7/7 pass) + 18-VERIFICATION passed.
 
 ## Blockers
 
-Owner Publish on `https://dashboard.vamostaxi.site/pricing` is the live-book flip. Stripe live keys and Search Console stay owner-gated. Agent does not click Publish. Agent does not `supabase db push`. Never restore onto yaumjzvylngfjhtuffqs. No `vamostaxi.eu`. No `sk_live_`.
+Stripe live keys and Search Console stay owner-gated. Agent does not click Publish. Agent does not `supabase db push`. Never restore onto yaumjzvylngfjhtuffqs. No `vamostaxi.eu`. No `sk_live_`. `11-12` remains owner-gated and does not block Phase 13.
 
 ## Session Continuity
 
-Last session: 2026-09-14T17:25:00.000Z
-Stopped at: Hosted SQL applied via db query --linked (not db push, not restore). Next: owner UAT on dashboard.vamostaxi.site /pricing then vamostaxi.site. Agent does not Publish.
-Resume: `.planning/phases/18-ops-pricing-source/18-07-PLAN.md` Task 3 owner UAT bullets
+Last session: 2026-09-15T09:15:00.000Z
+Stopped at: Phase 13 context gathered (`13-CONTEXT.md`).
+Resume: `$gsd-plan-phase 13`
 
 ## Decisions
+
+- [Phase 13]: Staff reply From target is plus-address on `replies.vamostaxi.site`; until Resend verifies that domain, From stays `noreply@vamostaxi.site` and Reply-To is the plus-address. Subject is always `Re:` the contact-ack. BCC `info@` via Resend. Fail closed — no EMAIL. Empty/Closed refuse. Overlay already PATCHes `{ reply }`; generic send error. Brand pass over all `packages/emails` in this phase. Full text: `.planning/phases/13-staff-apis-outbound-resend-replies/13-CONTEXT.md`.
 
 Restart 2026-09-14 **supersedes** 2026-09-13 D-01…D-40. Full text: `.planning/phases/18-ops-pricing-source/18-CONTEXT.md`.
 
@@ -59,4 +61,4 @@ Restart 2026-09-14 **supersedes** 2026-09-13 D-01…D-40. Full text: `.planning/
 - [Phase 18]: Surcharges tab is one list. Checkout extras (including ski) come from that list. No night/weekend/holiday types. Quote lock is hardcoded 24h, not a field.
 - [Phase 18]: Extra wait is not in Stripe pay-now. Meet & greet and free airport wait always on. Extra stop max 1, Mapbox unfenced.
 - [Phase 18]: Worker `vamos`, no `.eu` bind, no `sk_live_`. New SQL is owner-apply. First public CHF remains owner Publish. Deploy does not flip `public_chf`.
-- [Phase 18]: Owner UAT 2026-09-14 failed (homepage still invented Economy after delete+Publish). Phase 18 is not complete until live UAT on `vamostaxi.site` / `dashboard.vamostaxi.site` passes under D-01…D-35.
+- [Phase 18]: Closed 2026-09-15 — 18-UAT 7/7 pass, 18-VERIFICATION passed. Agent did not Publish.

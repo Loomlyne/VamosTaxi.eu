@@ -15,6 +15,9 @@ import {
   FIXTURE_REVERSE_EMPTY,
   FIXTURE_REVERSE_OK,
   FIXTURE_SUGGEST_OK,
+  FIXTURE_TILEQUERY_EMPTY,
+  FIXTURE_TILEQUERY_LOCAL,
+  FIXTURE_TILEQUERY_MAJOR,
   FIXTURE_UPSTREAM_500,
 } from "./fixtures";
 import {
@@ -24,6 +27,7 @@ import {
   routeLegs,
   suggest,
 } from "./mapbox";
+import { sphereMetres } from "./serviceArea";
 
 const TOKEN_ENV = { MAPBOX_TOKEN: "test-mapbox-token-not-a-credential" };
 const NO_TOKEN_ENV = {};
@@ -64,10 +68,10 @@ function lastQueryKeys(url: string): string[] {
 }
 
 describe("suggest", () => {
-  it("returns an empty list without calling fetch when q is shorter than 3 characters", async () => {
+  it("returns an empty list without calling fetch when q is shorter than 2 characters", async () => {
     const fetchFn = vi.fn();
     const result = await suggest(
-      { q: "zh", sessionToken: SESSION, language: "en" },
+      { q: "z", sessionToken: SESSION, language: "en" },
       TOKEN_ENV,
       { fetch: fetchFn },
     );
@@ -134,8 +138,21 @@ describe("suggest", () => {
     expect(calls).toHaveLength(1);
     const params = new URL(calls[0]!.url).searchParams;
     expect(params.has("country")).toBe(false);
+    expect(params.has("types")).toBe(false);
+    expect(params.get("limit")).toBe("10");
     expect(params.get("q")).toBe("dubai airport");
     expect(params.get("proximity")).toBeTruthy();
+  });
+
+  it("calls Search Box for a two-character IATA prefix", async () => {
+    const { fetchFn, calls } = captureFetch(() => jsonResponse(FIXTURE_SUGGEST_OK));
+    await suggest(
+      { q: "ZR", sessionToken: SESSION, language: "en" },
+      TOKEN_ENV,
+      { fetch: fetchFn },
+    );
+    expect(calls).toHaveLength(1);
+    expect(new URL(calls[0]!.url).searchParams.get("q")).toBe("ZR");
   });
 
   it("returns the degraded shape on a 500, not a throw", async () => {
@@ -328,20 +345,87 @@ describe("routeLegs", () => {
     expect("distance_m" in result).toBe(false);
   });
 
-  it("returns route_unavailable on a NoRoute body and produces no number", async () => {
-    const { fetchFn } = captureFetch(() =>
-      jsonResponse(FIXTURE_DIRECTIONS_NO_ROUTE),
-    );
+  it("uses Mapbox sphere metres when driving returns NoRoute", async () => {
+    const { fetchFn, calls } = captureFetch((url) => {
+      if (url.includes("/tilequery/")) {
+        return jsonResponse(FIXTURE_TILEQUERY_EMPTY);
+      }
+      return jsonResponse(FIXTURE_DIRECTIONS_NO_ROUTE);
+    });
     const result = await routeLegs(oneLeg, TOKEN_ENV, { fetch: fetchFn });
-    expect(result).toEqual({ ok: false, code: "route_unavailable" });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const leg = result.legs[0]!;
+    expect(leg.distance_m).toBe(Math.trunc(sphereMetres(ZURICH_HB, ZRH)));
+    expect(leg.distance_m).toBeGreaterThan(0);
+    expect(leg.road).toBe(false);
+    expect(calls.some((c) => c.url.includes("/directions/v5/mapbox/driving/"))).toBe(
+      true,
+    );
   });
 
-  it("returns route_unavailable on an empty routes array and produces no number", async () => {
-    const { fetchFn } = captureFetch(() =>
-      jsonResponse(FIXTURE_DIRECTIONS_EMPTY_ROUTES),
-    );
+  it("uses Mapbox sphere metres when routes is empty", async () => {
+    const { fetchFn } = captureFetch((url) => {
+      if (url.includes("/tilequery/")) {
+        return jsonResponse(FIXTURE_TILEQUERY_EMPTY);
+      }
+      return jsonResponse(FIXTURE_DIRECTIONS_EMPTY_ROUTES);
+    });
     const result = await routeLegs(oneLeg, TOKEN_ENV, { fetch: fetchFn });
-    expect(result).toEqual({ ok: false, code: "route_unavailable" });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.legs[0]!.distance_m).toBe(
+      Math.trunc(sphereMetres(ZURICH_HB, ZRH)),
+    );
+    expect(result.legs[0]!.road).toBe(false);
+  });
+
+  it("retries driving after moving a car-free pin toward the other Mapbox place", async () => {
+    let directions = 0;
+    const { fetchFn, calls } = captureFetch((url) => {
+      if (url.includes("/tilequery/")) {
+        if (url.includes("8.562,47.45") || url.includes("8.5417,47.3769")) {
+          return jsonResponse(FIXTURE_TILEQUERY_LOCAL);
+        }
+        return jsonResponse(FIXTURE_TILEQUERY_MAJOR);
+      }
+      directions += 1;
+      if (directions === 1) return jsonResponse(FIXTURE_DIRECTIONS_NO_ROUTE);
+      return jsonResponse(FIXTURE_DIRECTIONS_OK);
+    });
+    const result = await routeLegs(oneLeg, TOKEN_ENV, { fetch: fetchFn });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.legs[0]!.distance_m).toBe(12345);
+    expect(result.legs[0]!.road).toBe(true);
+    const second = calls.filter((c) =>
+      c.url.includes("/directions/v5/mapbox/driving/"),
+    )[1];
+    expect(second).toBeDefined();
+    expect(second!.url).toContain("7.7795,46.0678");
+  });
+
+  it("uses Mapbox sphere metres from USA to China when driving has no ocean line", async () => {
+    const nyc = { lng: -74.006, lat: 40.7128 };
+    const beijing = { lng: 116.4074, lat: 39.9042 };
+    const { fetchFn } = captureFetch((url) => {
+      if (url.includes("/tilequery/")) {
+        return jsonResponse(FIXTURE_TILEQUERY_EMPTY);
+      }
+      return jsonResponse(FIXTURE_DIRECTIONS_NO_ROUTE);
+    });
+    const result = await routeLegs(
+      [{ origin: nyc, destination: beijing }],
+      TOKEN_ENV,
+      { fetch: fetchFn },
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.legs[0]!.distance_m).toBe(
+      Math.trunc(sphereMetres(nyc, beijing)),
+    );
+    expect(result.legs[0]!.distance_m).toBeGreaterThan(10_000_000);
+    expect(result.legs[0]!.road).toBe(false);
   });
 
   it("builds a semicolon-joined coordinate path in origin-waypoints-destination order", async () => {
@@ -365,6 +449,9 @@ describe("routeLegs", () => {
     expect(calls).toHaveLength(1);
     const path = new URL(calls[0]!.url).pathname;
     expect(path).toContain("8.54,47.37;8.55,47.38;8.56,47.39;8.57,47.4");
+    expect(new URL(calls[0]!.url).searchParams.get("radiuses")).toBe(
+      "unlimited;unlimited;unlimited;unlimited",
+    );
   });
 
   it("returns route_unavailable with no fetch when MAPBOX_TOKEN is absent (D-47)", async () => {

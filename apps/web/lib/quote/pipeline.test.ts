@@ -302,6 +302,16 @@ describe("runQuotePipeline", () => {
     expect(directionsRuns.n).toBe(1);
   });
 
+  it("does not refuse the quote when Directions returns route_unavailable (D-26)", async () => {
+    const result = await runQuotePipeline(
+      validBody(),
+      baseDeps({
+        routeLegs: async () => ({ ok: false, code: "route_unavailable" }),
+      }),
+    );
+    expect(result.ok).toBe(true);
+  });
+
   it("takes exp from quoteLockDeadline; advancing the system clock does not change expires_at", async () => {
     const frozen = "2099-01-01T12:00:00.000Z";
     const depsA = baseDeps({

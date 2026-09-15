@@ -60,15 +60,15 @@ and are final — "matches the mock" is a real acceptance criterion, not a hand-
 
 - [ ] **QUOTE-01**: A customer enters pickup and destination by search or by dropping a pin on the map, and sees the route drawn
 - [ ] **QUOTE-02**: A customer picks one-way or return, date, time, passengers and luggage, clamped to what each vehicle class can carry
-- [ ] **QUOTE-03**: The server returns a price for every eligible vehicle class — a fixed-route price where one is configured, otherwise distance rate plus surcharges
-- [ ] **QUOTE-04**: A quote holds its price for 30 minutes, and an expired quote is refused at payment time by the server, not merely hidden in the UI
+- [x] **QUOTE-03**: The server returns a price for every eligible live-book vehicle class — a fixed-route price where one is configured, otherwise start + (all km × per-km) + bands (Phase 18)
+- [x] **QUOTE-04**: A quote holds its price for 24 hours (hardcoded), and an expired unpaid quote is refused at payment time by the server, not merely hidden in the UI (Phase 18 D-13; was 30 minutes)
 - [ ] **QUOTE-05**: Each booking stores the price breakdown and the rate version it was calculated from, so later pricing changes never alter a historical booking
 - [ ] **QUOTE-06**: A coupon code reduces the quote before payment, and is refused when outside its window or past its usage cap
 - [ ] **QUOTE-07**: A booking is refused when it is inside the minimum advance time or outside the service area, with a message saying which
 - [ ] **QUOTE-08**: Entering a flight number fills in the landing time
 - [ ] **QUOTE-09**: The quote endpoint is rate-limited and challenges anonymous visitors after repeated requests
 - [ ] **QUOTE-10**: Until the CHF matrix is loaded and approved, the engine runs behind `pricing_live=false`, checkout is disabled in production and every amount on screen reads `CHF 000`
-- [ ] **QUOTE-11**: A customer can add a child seat, an additional stop, or declare oversized luggage, and each shows as its own priced line
+- [x] **QUOTE-11**: A customer can add checkout extras from the published surcharges list and one extra Mapbox stop; extra stop re-runs the distance recipe; extra wait is not in Stripe pay-now (Phase 18)
 
 ### Checkout and payment (PAY)
 
@@ -262,15 +262,15 @@ Populated during roadmap creation. Full phase goals and success criteria: `.plan
 | AUTH-06 | Phase 8 | Complete |
 | QUOTE-01 | Phase 4 | Pending |
 | QUOTE-02 | Phase 4 | Pending |
-| QUOTE-03 | Phase 4 | Pending |
-| QUOTE-04 | Phase 4 | Pending |
+| QUOTE-03 | Phase 18 | Complete |
+| QUOTE-04 | Phase 18 | Complete |
 | QUOTE-05 | Phase 4 | Pending |
 | QUOTE-06 | Phase 4 | Pending |
 | QUOTE-07 | Phase 4 | Pending |
 | QUOTE-08 | Phase 4 | Pending |
 | QUOTE-09 | Phase 4 | Pending |
 | QUOTE-10 | Phase 4 | Pending |
-| QUOTE-11 | Phase 4 | Pending |
+| QUOTE-11 | Phase 18 | Complete |
 | PAY-01 | Phase 7 | Complete |
 | PAY-02 | Phase 7 | Complete |
 | PAY-03 | Phase 7 | Complete |
@@ -300,7 +300,7 @@ Populated during roadmap creation. Full phase goals and success criteria: `.plan
 | OPS-03 | Phase 8 | Complete |
 | OPS-04 | Phase 8 | Complete |
 | OPS-05 | Phase 8 | Complete |
-| OPS-06 | Phase 6 | Complete |
+| OPS-06 | Phase 6 + 18 | Complete (fare book revalidated Phase 18) |
 | OPS-07 | Phase 6 | Complete |
 | OPS-08 | Phase 6 | Complete |
 | OPS-09 | Phase 6 | Complete |
@@ -339,4 +339,4 @@ Populated during v1.1 roadmap creation.
 
 ---
 *Requirements defined: 2026-08-17*
-*Last updated: 2026-09-12 — Phase 10 SITE-08 / LAUNCH-02 / LAUNCH-03 / LAUNCH-07 verified. LAUNCH-01 and LAUNCH-04 stay pending.*
+*Last updated: 2026-09-15 — Phase 18 QUOTE-03 / QUOTE-04 / QUOTE-11 complete. QUOTE-10 stays 11-12 (`public_chf`). LAUNCH-01 and LAUNCH-04 stay pending.*

@@ -1,10 +1,11 @@
 ---
 phase: 18
 slug: ops-pricing-source
-status: draft
+status: complete
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-09-14
+updated: 2026-09-15
 ---
 
 # Phase 18 — Validation Strategy (restart 2026-09-14)
@@ -72,9 +73,9 @@ Wave 0 must exist before public-board tasks: fixtures for 100+(14.6×12)=275.20 
 
 ## Wave 0 Requirements
 
-- [ ] `apps/web/lib/pricing/` fixtures for D-15 examples (275.20 and 123)
-- [ ] Source-read test: `OpsPricing.dc.html` has four tabs, no History, no Preview, no region table
-- [ ] Source-read test: home/checkout do not hardcode economy/business/first/van as the offer list
+- [x] `apps/web/lib/pricing/` fixtures for D-15 examples (275.20 and 123)
+- [x] Source-read test: `OpsPricing.dc.html` has four tabs, no History, no Preview, no region table
+- [x] Source-read test: home/checkout do not hardcode economy/business/first/van as the offer list
 
 ---
 
@@ -90,9 +91,9 @@ Wave 0 must exist before public-board tasks: fixtures for 100+(14.6×12)=275.20 
 
 ## Validation Sign-Off
 
-- [ ] All tasks have automated verify or Wave 0 / owner-gate
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] `nyquist_compliant: true`
-- [ ] Feedback latency < 90s
+- [x] All tasks have automated verify or Wave 0 / owner-gate
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] `nyquist_compliant: true`
+- [x] Feedback latency < 90s
 
-**Approval:** pending
+**Approval:** owner close 2026-09-15 (18-07 Task 3). Agent did not Publish. Full `lib/pricing|ops|checkout|quote` + `tsc` still has pre-existing failures recorded in `18-07-SUMMARY.md`.
