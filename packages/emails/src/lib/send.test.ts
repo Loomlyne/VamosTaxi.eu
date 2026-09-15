@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { BookingForEmail } from "./types";
 
@@ -9,7 +12,7 @@ vi.mock("resend", () => ({
   },
 }));
 
-import { CONFIRMATION_TEMPLATE_VERSION, sendConfirmation } from "./send";
+import { CONFIRMATION_TEMPLATE_VERSION, sendConfirmation, sendPriceChanged } from "./send";
 
 const booking: BookingForEmail = {
   reference: "VT-10001",
@@ -74,5 +77,28 @@ describe("sendConfirmation", () => {
     sendMock.mockRejectedValue(new Error("network"));
     const outcome = await sendConfirmation({ RESEND_API_KEY: "re_test" }, booking);
     expect(outcome).toEqual({ ok: false, error: "network" });
+  });
+});
+
+describe("skip-send missing-copy (D-03)", () => {
+  it("source-reads send.ts for missing-copy, From, and bookings@ — never info@", () => {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const src = readFileSync(join(here, "send.ts"), "utf8");
+    expect(src).toContain("missing-copy");
+    expect(src).toContain("hasCopySentinel");
+    expect(src).toContain("Vamos Taxi <noreply@vamostaxi.site>");
+    expect(src).toContain("bookings@vamostaxi.site");
+    expect(src).not.toContain("info@vamostaxi.site");
+    expect(src).toMatch(/export async function sendPriceChanged[\s\S]{0,180}skipped:\s*true/);
+  });
+
+  it("sendPriceChanged still returns skipped true without calling Resend", async () => {
+    sendMock.mockReset();
+    const outcome = await sendPriceChanged(
+      { RESEND_API_KEY: "re_test" },
+      { locale: "en", contactEmail: "ada@example.test", lockedRappen: 10000 },
+    );
+    expect(outcome).toEqual({ ok: true, skipped: true });
+    expect(sendMock).not.toHaveBeenCalled();
   });
 });
