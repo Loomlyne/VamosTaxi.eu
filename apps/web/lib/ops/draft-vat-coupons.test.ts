@@ -47,6 +47,18 @@ describe("coupons wait for Publish (D-34)", () => {
     const lib = webSource("lib/ops/coupons.ts");
     expect(lib).toMatch(/rate_version_id/);
   });
+
+  it("staff can list captured coupon uses from /api/staff/coupons/redemptions", () => {
+    const locale = webSource("app/[locale]/(ops)/api/staff/coupons/redemptions/route.ts");
+    const reexport = webSource("app/api/staff/coupons/redemptions/route.ts");
+    expect(locale).toMatch(/export const GET = withStaff/);
+    expect(locale).toMatch(/loadCouponRedemptions/);
+    expect(reexport).toMatch(/export \{ GET \}/);
+    const lib = webSource("lib/ops/coupons.ts");
+    expect(lib).toMatch(/from public\.coupon_redemptions r/);
+    expect(lib).toMatch(/p\.captured_at is not null/);
+    expect(lib).toMatch(/r\.released_at is null/);
+  });
 });
 
 describe("vehicle-classes POST on the draft (D-19)", () => {

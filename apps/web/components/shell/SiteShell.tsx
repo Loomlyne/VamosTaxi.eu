@@ -61,7 +61,7 @@ export function SiteShell({
       {children}
       {footer}
       <ContactFab />
-      {banner}
+      {isHome ? banner : null}
     </>
   );
 }

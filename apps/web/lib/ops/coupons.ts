@@ -183,6 +183,7 @@ export type DcCoupon = {
   value: string;
   uses: number;
   limit: number;
+  validFrom: string;
   expires: string;
   active: boolean;
   note: string;
@@ -221,6 +222,7 @@ export function toDcCoupon(row: CouponRow): DcCoupon {
           : "00",
     uses: 0,
     limit: row.globalLimit ?? 0,
+    validFrom: dateOnly(row.validFrom),
     expires: dateOnly(row.validUntil),
     active: row.active,
     note: row.note,
@@ -424,6 +426,53 @@ export async function setCouponActiveRecord(
     `;
     const row = rows[0];
     return row ? mapCouponRow(row) : null;
+  });
+}
+
+export type CouponRedemptionListRow = {
+  couponId: number;
+  code: string;
+  redeemedAt: string;
+  bookingId: string;
+  reference: string;
+};
+
+export async function loadCouponRedemptions(
+  env: CloudflareEnv,
+  claims: VamosClaims,
+): Promise<CouponRedemptionListRow[]> {
+  return asStaff(env, claims, async (sql) => {
+    const rows = await sql<
+      {
+        coupon_id: number;
+        code: string;
+        redeemed_at: Date | string;
+        booking_id: string;
+        reference: string;
+      }[]
+    >`
+      select
+        r.coupon_id,
+        cp.code,
+        r.redeemed_at,
+        b.id as booking_id,
+        b.reference
+      from public.coupon_redemptions r
+      join public.coupons cp on cp.id = r.coupon_id
+      join public.bookings b on b.id = r.booking_id
+      join public.booking_payments p on p.id = r.payment_id
+      where r.released_at is null
+        and p.captured_at is not null
+      order by r.redeemed_at desc
+      limit 80
+    `;
+    return rows.map((row) => ({
+      couponId: row.coupon_id,
+      code: row.code,
+      redeemedAt: toIso(row.redeemed_at) ?? "",
+      bookingId: row.booking_id,
+      reference: row.reference,
+    }));
   });
 }
 

@@ -110,6 +110,18 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function couponOnBook(doc: unknown, couponId: number, code: string): boolean {
+  if (!isRecord(doc) || !Array.isArray(doc.coupons)) return false;
+  const needle = code.trim().toUpperCase();
+  return doc.coupons.some((item) => {
+    if (!isRecord(item)) return false;
+    const id = typeof item.id === "number" ? item.id : Number(item.id);
+    const rowCode = typeof item.code === "string" ? item.code.trim().toUpperCase() : "";
+    if (Number.isFinite(id) && id === couponId) return true;
+    return rowCode !== "" && rowCode === needle;
+  });
+}
+
 function couponFactsFromEval(typed: string, raw: unknown): {
   coupon: LoadAndPriceCoupon;
   facts: CouponFacts | null;
@@ -199,6 +211,14 @@ export async function loadAndPrice(
     const mapped = couponFactsFromEval(typed, raw);
     couponEval = mapped.coupon;
     couponFacts = mapped.facts;
+    if (couponFacts && !couponOnBook(rawBook, couponFacts.id, typed)) {
+      couponEval = {
+        code: typed,
+        applied: false,
+        i18n_key: "quote.coupon.error.not_found",
+      };
+      couponFacts = null;
+    }
   }
 
   const priced = priceQuote(book, [toSettingsRow(settings, input.computed_at)], input, {

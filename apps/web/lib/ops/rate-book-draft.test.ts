@@ -46,6 +46,10 @@ describe("rate-book overlay Save is draft (D-01 D-04 D-18 D-20)", () => {
     expect(src).toMatch(/insert into public\.distance_bands/);
     expect(src).not.toMatch(/insert into public\.region_premiums/);
     expect(src).toMatch(/insert into public\.rate_version_rules/);
+    expect(src).toMatch(/if \(kind === "coupon"\)/);
+    expect(src).toMatch(/couponInputFromDc\(recBody\)/);
+    expect(src).toMatch(/insertCoupon\(env, claims, parsed, versionId\)/);
+    expect(src).toMatch(/if \(err instanceof CouponInputError\) return jsonErr\(err\.key, 400\)/);
   });
 
   it("converts quote-lock hours to minutes at the staff boundary (D-20)", () => {
@@ -94,5 +98,47 @@ describe("rate-book overlay Save is draft (D-01 D-04 D-18 D-20)", () => {
     expect(src).not.toMatch(/public_chf/);
     expect(src).not.toMatch(/stripe/i);
     expect(src).not.toMatch(/from "postgres"/);
+  });
+
+  it("D-15: CHF 0 start fare parses through rappen helper, not as a gap", () => {
+    const src = webSource(ROUTE);
+    expect(src).toMatch(/from "@\/lib\/ops\/rappen"/);
+    expect(src).not.toMatch(/if \(value === 0\) return null/);
+    expect(src).not.toMatch(/n === 0\) return null/);
+  });
+
+  it("edits a class already on the draft by vehicleClassId when the row id is from the previous book", () => {
+    const src = webSource(ROUTE);
+    expect(src).toMatch(/function findExistingDistanceRate/);
+    expect(src).toMatch(/findExistingDistanceRate\(book, id, parsed\.vehicleClassId\)/);
+    expect(src).toMatch(/planVehicleClassWrite/);
+    expect(src).toMatch(/insert into public\.vehicle_classes \(\s*id, slug, passenger_capacity/);
+  });
+
+  it("does not UPDATE a photo-minted class id that is not in vehicle_classes", () => {
+    const src = webSource(ROUTE);
+    expect(src).toMatch(/classPlan\.mode === "insert"/);
+    expect(src).toMatch(/fk-missing/);
+    expect(src).not.toMatch(/if \(!vehicleClassId && slug\)/);
+  });
+
+  it("distance Save returns the full book so a forked class id cannot duplicate the Distance row", () => {
+    const src = webSource(ROUTE);
+    expect(src).toMatch(/const payload = bookPayload\(next, zones\);\s*return jsonOk\(payload\);/);
+    expect(src).not.toMatch(/payload\.rates\.find\(\(row\) => row\.vehicleClassId === vehicleClassId\)/);
+  });
+
+  it("writes VAT onto the draft rate_versions row, not as a rules insert (D-12)", () => {
+    const src = webSource(ROUTE);
+    expect(src).toMatch(/if \(ruleKind === "vat"\)/);
+    expect(src).toMatch(/set vat_rate_bps = \$\{bps\}/);
+    expect(src).toMatch(/where id = \$\{versionId\} and status = 'draft'/);
+  });
+
+  it("Fixed route prices are the rated class slugs, not a hardcoded four-ladder", () => {
+    const src = webSource(ROUTE);
+    expect(src).toMatch(/\.\.\.prices,/);
+    expect(src).not.toMatch(/economy: moneyFromRappen\(byClass\.get\("economy"\)/);
+    expect(src).toMatch(/distanceRates\.some\(\(row\) => row\.vehicleClassId === c\.id\)/);
   });
 });

@@ -58,4 +58,38 @@ describe("OpsPricing tabs (D-11 D-12 D-17 D-25)", () => {
     expect(html).toContain("SURCHARGE_TYPES");
     expect(html).not.toContain("ruleRows");
   });
+
+  it("refetches completeness before opening Publish so a filled start fare is not a stale gap", () => {
+    const html = readFileSync(CANONICAL, "utf8");
+    expect(html).toMatch(/openPublish = \(\) => \{[\s\S]*loadDraft\(\)/);
+    expect(html).toContain("moneyOrDash");
+    expect(html).toContain("chfOf");
+  });
+
+  it("Fixed routes columns and fields follow rated classes, not a four-class ladder (D-29)", () => {
+    const html = readFileSync(CANONICAL, "utf8");
+    expect(html).not.toContain("CLASS_KEYS");
+    expect(html).toContain("uniqueByClass");
+    expect(html).toContain("ratedClasses");
+    expect(html).not.toMatch(/key:'economy', header: t.colEconomy/);
+    expect(html).not.toMatch(/key:'van', header: t.colVan/);
+  });
+
+  it("surcharge overlay keeps Type, uses an icon grid, and merges coupon value with % / CHF", () => {
+    const html = readFileSync(CANONICAL, "utf8");
+    expect(html).toMatch(/key:'type', label:t.surchargeType, editor:'select'/);
+    expect(html).toMatch(/editor:'iconGrid'/);
+    expect(html).toMatch(/editor:'amountKind'/);
+    expect(html).not.toMatch(/key:'kind', label:t.fKind, editor:'select'/);
+    expect(html).toMatch(/vatSavedBps/);
+    expect(html).toMatch(/vatSaveOff/);
+    expect(html).toMatch(/minDate:'today'/);
+    expect(html).toMatch(/key:'from', label:t.colFrom, required:true/);
+    expect(html).not.toMatch(/key:'from', label:t.colFrom, half:true/);
+    expect(html).toMatch(/fill="1"/);
+    expect(html).toMatch(/\/api\/staff\/coupons\/redemptions/);
+    expect(html).toMatch(/hNote:'Staff-only reminder/);
+    expect(html).toMatch(/hActive:'Off pauses this code/);
+    expect(html).toMatch(/couponUsesTitle/);
+  });
 });

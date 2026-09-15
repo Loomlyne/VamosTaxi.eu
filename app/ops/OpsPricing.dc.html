@@ -50,9 +50,21 @@
 [data-price-err]{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-danger)}
 [data-price-empty]{display:flex;flex-direction:column;gap:var(--vt-space-2);padding:22px 24px;border:1px dashed var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface)}
 [data-price-empty] h2{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:1.25}
-[data-price-empty] p{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);line-height:1.55;color:var(--vt-text-muted)}
+[data-vat-save] .vt-btn[disabled],
+[data-vat-save] button:disabled{opacity:.45;cursor:default;pointer-events:none}
+[data-vat-save] .vt-btn--primary:not([disabled]):hover,
+[data-vat-save] button:not(:disabled):hover{background:var(--vt-accent-hover)}
+[data-vat-save] .vt-btn:not([disabled]):active,
+[data-vat-save] button:not(:disabled):active{transform:translateY(1px)}
+[data-coupon-uses]{display:flex;flex-direction:column;min-width:0;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);overflow:hidden}
+[data-coupon-uses] h2{margin:0;padding:14px 16px;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);border-block-end:1px solid var(--vt-border-subtle)}
+[data-coupon-use-row]{box-sizing:border-box;display:flex;flex-wrap:nowrap;align-items:center;gap:var(--vt-space-4);padding:14px 16px;border-block-end:1px solid var(--vt-border-subtle);color:inherit;text-decoration:none;cursor:pointer}
+[data-coupon-use-row]:last-child{border-block-end:0}
+[data-coupon-uses] a[data-coupon-use-row]:hover{background:var(--vt-grey-50)}
+[data-coupon-uses] a[data-coupon-use-row]:active{transform:translateY(1px)}
+[data-coupon-uses] [data-price-hist-meta]{text-decoration:underline;text-underline-offset:2px}
 @media (max-width:767px){
-[data-price-hist-row]{flex-wrap:wrap}
+[data-price-hist-row],[data-coupon-use-row]{flex-wrap:wrap}
 [data-price-hist-meta]{margin-inline-start:0;width:100%;flex-wrap:wrap}
 }
 @media (min-width:1000px){
@@ -95,8 +107,14 @@
 </nav>
 <div data-vat-field="1" style="display:flex;flex-direction:column;gap:6px;min-width:0">
 <p data-vat-error="1" style="display:{{ vatErrorDisplay }};margin:0;font-size:var(--vt-body-xs);color:var(--vt-danger)">{{ tVatError }}</p>
+<div style="display:flex;align-items:flex-end;gap:8px;min-width:0">
+<div style="flex:1 1 auto;min-width:0">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tVatLabel }}" value="{{ vatPercent }}" onChange="{{ setVatPercent }}" suffix="{{ tVatSuffix }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" onClick="{{ saveVat }}" hint-size="110px,36px">{{ tSaveVat }}</x-import>
+</div>
+<div data-vat-save="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="{{ vatSaveVariant }}" disabled="{{ vatSaveOff }}" onClick="{{ saveVat }}" hint-size="110px,44px">{{ tSaveVat }}</x-import>
+</div>
+</div>
 </div>
 </div>
 
@@ -104,26 +122,46 @@
 
 <sc-if value="{{ isRoutes }}" hint-placeholder-val="{{ true }}">
 <div data-price-pane="1" data-price-swipe="1" data-scroll-native="1">
-<dc-import name="OpsTable" rows="{{ routes }}" columns="{{ routeColumns }}" fields="{{ routeFields }}" blank="{{ routeBlank }}" onSave="{{ saveRoute }}" onDelete="{{ deleteRoute }}" noun="{{ tNounRoute }}" noun-plural="{{ tNounRoutes }}" add-title="{{ tAddRoute }}" edit-title="{{ tEditRoute }}" delete-title="{{ tDeleteRouteTitle }}" label-key="routeLabel" add-label="{{ tAddRoute }}" save-label="{{ tSaveRoute }}" add-save-label="{{ tAddRoute }}" search-placeholder="{{ tSearchRoutes }}" search-keys="{{ routeSearchKeys }}" empty-title="{{ tEmptyRoutesTitle }}" empty-body="{{ tEmptyRoutesBody }}" delete-body="{{ tDeleteRouteBody }}" edit-id="{{ routeEditId }}" edit-tick="{{ routeEditTick }}" hint-size="100%,420px"></dc-import>
+<dc-import name="OpsTable" fill="1" rows="{{ routes }}" columns="{{ routeColumns }}" fields="{{ routeFields }}" blank="{{ routeBlank }}" onSave="{{ saveRoute }}" onDelete="{{ deleteRoute }}" noun="{{ tNounRoute }}" noun-plural="{{ tNounRoutes }}" add-title="{{ tAddRoute }}" edit-title="{{ tEditRoute }}" delete-title="{{ tDeleteRouteTitle }}" label-key="routeLabel" add-label="{{ tAddRoute }}" save-label="{{ tSaveRoute }}" add-save-label="{{ tAddRoute }}" search-placeholder="{{ tSearchRoutes }}" search-keys="{{ routeSearchKeys }}" empty-title="{{ tEmptyRoutesTitle }}" empty-body="{{ tEmptyRoutesBody }}" delete-body="{{ tDeleteRouteBody }}" edit-id="{{ routeEditId }}" edit-tick="{{ routeEditTick }}" hint-size="100%,420px"></dc-import>
 </div>
 </sc-if>
 
 <sc-if value="{{ isDistance }}" hint-placeholder-val="{{ false }}">
 <div data-price-pane="1" data-price-swipe="1" data-scroll-native="1">
-<dc-import name="OpsTable" rows="{{ distanceRows }}" columns="{{ distanceColumns }}" fields="{{ distanceFields }}" blank="{{ distanceBlank }}" onSave="{{ saveDistance }}" onDelete="{{ deleteDistance }}" noun="{{ tNounClass }}" noun-plural="{{ tNounClasses }}" add-title="{{ tAddClass }}" edit-title="{{ tEditClass }}" delete-title="{{ tDeleteClassTitle }}" label-key="klass" add-label="{{ tAddClass }}" save-label="{{ tSaveClass }}" add-save-label="{{ tAddClass }}" search-placeholder="{{ tSearchDistance }}" search-keys="{{ distanceSearchKeys }}" empty-title="{{ tEmptyClassesTitle }}" empty-body="{{ tEmptyClassesBody }}" delete-body="{{ tDeleteClassBody }}" edit-id="{{ distanceEditId }}" edit-tick="{{ distanceEditTick }}" hint-size="100%,420px"></dc-import>
-<dc-import name="OpsTable" rows="{{ bandRows }}" columns="{{ bandColumns }}" fields="{{ bandFields }}" blank="{{ bandBlank }}" onSave="{{ saveBand }}" onDelete="{{ deleteBand }}" noun="{{ tNounBand }}" noun-plural="{{ tNounBands }}" add-title="{{ tAddBand }}" edit-title="{{ tEditBand }}" delete-title="{{ tDeleteBandTitle }}" label-key="fromKm" add-label="{{ tAddBand }}" save-label="{{ tSaveBand }}" add-save-label="{{ tAddBand }}" search-placeholder="{{ tSearchBands }}" search-keys="{{ bandSearchKeys }}" empty-title="{{ tEmptyBandsTitle }}" empty-body="{{ tEmptyBandsBody }}" delete-body="{{ tDeleteBandBody }}" hint-size="100%,280px"></dc-import>
+<dc-import name="OpsTable" fill="1" rows="{{ distanceRows }}" columns="{{ distanceColumns }}" fields="{{ distanceFields }}" blank="{{ distanceBlank }}" onSave="{{ saveDistance }}" onDelete="{{ deleteDistance }}" noun="{{ tNounClass }}" noun-plural="{{ tNounClasses }}" add-title="{{ tAddClass }}" edit-title="{{ tEditClass }}" delete-title="{{ tDeleteClassTitle }}" label-key="klass" add-label="{{ tAddClass }}" save-label="{{ tSaveClass }}" add-save-label="{{ tAddClass }}" search-placeholder="{{ tSearchDistance }}" search-keys="{{ distanceSearchKeys }}" empty-title="{{ tEmptyClassesTitle }}" empty-body="{{ tEmptyClassesBody }}" delete-body="{{ tDeleteClassBody }}" edit-id="{{ distanceEditId }}" edit-tick="{{ distanceEditTick }}" hint-size="100%,420px"></dc-import>
+<dc-import name="OpsTable" fill="1" rows="{{ bandRows }}" columns="{{ bandColumns }}" fields="{{ bandFields }}" blank="{{ bandBlank }}" onSave="{{ saveBand }}" onDelete="{{ deleteBand }}" noun="{{ tNounBand }}" noun-plural="{{ tNounBands }}" add-title="{{ tAddBand }}" edit-title="{{ tEditBand }}" delete-title="{{ tDeleteBandTitle }}" label-key="fromKm" add-label="{{ tAddBand }}" save-label="{{ tSaveBand }}" add-save-label="{{ tAddBand }}" search-placeholder="{{ tSearchBands }}" search-keys="{{ bandSearchKeys }}" empty-title="{{ tEmptyBandsTitle }}" empty-body="{{ tEmptyBandsBody }}" delete-body="{{ tDeleteBandBody }}" hint-size="100%,280px"></dc-import>
 </div>
 </sc-if>
 
 <sc-if value="{{ isSurcharges }}" hint-placeholder-val="{{ false }}">
 <div data-price-pane="1" data-price-swipe="1" data-scroll-native="1">
-<dc-import name="OpsTable" rows="{{ surcharges }}" columns="{{ surchargeColumns }}" fields="{{ surchargeFields }}" blank="{{ surchargeBlank }}" onSave="{{ saveSurcharge }}" onDelete="{{ deleteSurcharge }}" can-delete="{{ canDeleteSurcharge }}" noun="{{ tNounSurcharge }}" noun-plural="{{ tNounSurcharges }}" add-title="{{ tAddSurcharge }}" edit-title="{{ tEditSurcharge }}" delete-title="{{ tDeleteSurchargeTitle }}" label-key="label" add-label="{{ tAddSurcharge }}" save-label="{{ tSaveSurcharge }}" add-save-label="{{ tAddSurcharge }}" search-placeholder="{{ tSearchSurcharges }}" search-keys="{{ surchargeSearchKeys }}" empty-title="{{ tEmptySurchargesTitle }}" empty-body="{{ tEmptySurchargesBody }}" delete-body="{{ tDeleteSurchargeBody }}" hint-size="100%,420px"></dc-import>
+<dc-import name="OpsTable" fill="1" rows="{{ surcharges }}" columns="{{ surchargeColumns }}" fields="{{ surchargeFields }}" blank="{{ surchargeBlank }}" onSave="{{ saveSurcharge }}" onDelete="{{ deleteSurcharge }}" can-delete="{{ canDeleteSurcharge }}" noun="{{ tNounSurcharge }}" noun-plural="{{ tNounSurcharges }}" add-title="{{ tAddSurcharge }}" edit-title="{{ tEditSurcharge }}" delete-title="{{ tDeleteSurchargeTitle }}" label-key="label" add-label="{{ tAddSurcharge }}" save-label="{{ tSaveSurcharge }}" add-save-label="{{ tAddSurcharge }}" search-placeholder="{{ tSearchSurcharges }}" search-keys="{{ surchargeSearchKeys }}" empty-title="{{ tEmptySurchargesTitle }}" empty-body="{{ tEmptySurchargesBody }}" delete-body="{{ tDeleteSurchargeBody }}" hint-size="100%,420px"></dc-import>
 </div>
 </sc-if>
 
 <sc-if value="{{ isCoupons }}" hint-placeholder-val="{{ false }}">
 <div data-price-pane="1" data-price-swipe="1" data-scroll-native="1">
-<dc-import name="OpsTable" rows="{{ couponRows }}" columns="{{ couponColumns }}" fields="{{ couponFields }}" blank="{{ couponBlank }}" onSave="{{ saveCoupon }}" onDelete="{{ deleteCoupon }}" noun="{{ tNounCoupon }}" noun-plural="{{ tNounCoupons }}" add-title="{{ tAddCoupon }}" edit-title="{{ tEditCoupon }}" delete-title="{{ tDeleteCouponTitle }}" label-key="code" add-label="{{ tAddCoupon }}" save-label="{{ tSaveCoupon }}" add-save-label="{{ tAddCoupon }}" search-placeholder="{{ tSearchCoupons }}" search-keys="{{ couponSearchKeys }}" empty-title="{{ tEmptyCouponsTitle }}" empty-body="{{ tEmptyCouponsBody }}" delete-body="{{ tDeleteCouponBody }}" hint-size="100%,420px"></dc-import>
+<dc-import name="OpsTable" fill="1" rows="{{ couponRows }}" columns="{{ couponColumns }}" fields="{{ couponFields }}" blank="{{ couponBlank }}" onSave="{{ saveCoupon }}" onDelete="{{ deleteCoupon }}" noun="{{ tNounCoupon }}" noun-plural="{{ tNounCoupons }}" add-title="{{ tAddCoupon }}" edit-title="{{ tEditCoupon }}" delete-title="{{ tDeleteCouponTitle }}" label-key="code" add-label="{{ tAddCoupon }}" save-label="{{ tSaveCoupon }}" add-save-label="{{ tAddCoupon }}" search-placeholder="{{ tSearchCoupons }}" search-keys="{{ couponSearchKeys }}" empty-title="{{ tEmptyCouponsTitle }}" empty-body="{{ tEmptyCouponsBody }}" delete-body="{{ tDeleteCouponBody }}" hint-size="100%,420px"></dc-import>
+<sc-if value="{{ couponUsesHas }}" hint-placeholder-val="{{ false }}">
+<div data-coupon-uses="1">
+<h2>{{ tCouponUsesTitle }}</h2>
+<sc-for list="{{ couponUses }}" as="u" hint-placeholder-count="2">
+<a data-coupon-use-row="1" href="{{ u.href }}">
+<div data-price-hist-main="1">
+<span data-price-hist-title="1">{{ u.code }}</span>
+<span data-price-hist-sub="1">{{ u.when }}</span>
+</div>
+<span data-price-hist-meta="1">{{ u.ride }}</span>
+</a>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ couponUsesEmpty }}" hint-placeholder-val="{{ false }}">
+<div data-price-empty="1">
+<h2>{{ tCouponUsesTitle }}</h2>
+<p>{{ tCouponUsesEmpty }}</p>
+</div>
+</sc-if>
 </div>
 </sc-if>
 
@@ -180,7 +218,6 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 const RATE_ICON = { Economy:'car-front', Business:'car', First:'star', Van:'bus' };
-const CLASS_KEYS = ['economy', 'business', 'first', 'van'];
 const SURCHARGE_TYPES = [
   { value: 'checkout_extra', k: 'typeCheckoutExtra' },
   { value: 'meet_greet', k: 'typeMeet' },
@@ -201,6 +238,19 @@ function surchargeTypeOf(code) {
   if (raw === 'free_wait') return 'free_wait';
   if (raw === 'extra_wait' || raw === 'waiting' || raw === 'waiting_city' || raw === 'waiting_airport') return 'extra_wait';
   return 'checkout_extra';
+}
+function classSlugOf(name) {
+  return String(name || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+function uniqueByClass(rows) {
+  const byKey = {};
+  const order = [];
+  (rows || []).forEach((r) => {
+    const key = r.vehicleClassId || ('id:' + r.id);
+    if (!byKey[key]) order.push(key);
+    byKey[key] = r;
+  });
+  return order.map((k) => byKey[k]);
 }
 const WD_EN = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const MON_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -280,9 +330,14 @@ const T = {
     addCoupon:'Add coupon', editCoupon:'Edit coupon', saveCoupon:'Save coupon', deleteCouponTitle:'Delete this coupon from the draft?', deleteCouponBody:'Delete this coupon from the draft? Public does not change until Publish.',
     emptyCouponsTitle:'No coupons in this draft', emptyCouponsBody:'Add a percent-off or fixed-CHF coupon. Public cannot use it until Publish.',
     searchCoupons:'Code', nounCoupon:'coupon', nounCoupons:'coupons',
-    fCode:'Code', fKind:'Discount', fValue:'Value', fLimit:'Redemption cap', fExpires:'Expires', fActive:'In this draft', fNote:'Note',
-    hCode:'What the traveller types. Case-insensitive; spaces are trimmed.',
+    fCode:'Code', fKind:'Discount', fValue:'Value', fLimit:'Redemption cap', fStarts:'Starts', fExpires:'Expires', fActive:'In this draft', fNote:'Note',
+    hCode:'What they type at checkout.',
     hValue:'Percent off or fixed CHF off. Coupon applies before VAT.',
+    hStarts:'First day they can use it. Today or later.',
+    hExpires:'Last day. Empty means no end. Today or later.',
+    hActive:'Off pauses this code at checkout after Publish. On lets them use it.',
+    hNote:'Staff-only reminder. The customer never sees this.',
+    couponUsesTitle:'Captured uses', couponUsesEmpty:'No captured uses yet.',
     kPercent:'Percent off', kAmount:'Fixed CHF off',
     paused:'Paused', noEnd:'No end date', unlimited:'no cap',
     publish:'Publish fare book', publishing:'Publishing…', discard:'Discard draft', keepEditing:'Keep editing',
@@ -366,9 +421,14 @@ const T = {
     addCoupon:'Gutschein hinzufügen', editCoupon:'Gutschein bearbeiten', saveCoupon:'Gutschein speichern', deleteCouponTitle:'Diesen Gutschein aus dem Entwurf löschen?', deleteCouponBody:'Diesen Gutschein aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
     emptyCouponsTitle:'Keine Gutscheine in diesem Entwurf', emptyCouponsBody:'Prozent- oder festen-CHF-Gutschein hinzufügen. Die Öffentlichkeit kann ihn erst nach dem Veröffentlichen nutzen.',
     searchCoupons:'Code', nounCoupon:'Gutschein', nounCoupons:'Gutscheine',
-    fCode:'Code', fKind:'Rabatt', fValue:'Wert', fLimit:'Einlösungslimit', fExpires:'Läuft ab', fActive:'In diesem Entwurf', fNote:'Notiz',
-    hCode:'Was der Reisende eintippt. Gross-/Kleinschreibung egal; Leerzeichen werden entfernt.',
+    fCode:'Code', fKind:'Rabatt', fValue:'Wert', fLimit:'Einlösungslimit', fStarts:'Gültig ab', fExpires:'Läuft ab', fActive:'In diesem Entwurf', fNote:'Notiz',
+    hCode:'Was sie an der Kasse eintippen.',
     hValue:'Prozent oder fester CHF. Gutschein gilt vor der MwSt.',
+    hStarts:'Erster Tag. Heute oder später.',
+    hExpires:'Letzter Tag. Leer = kein Ende. Heute oder später.',
+    hActive:'Aus pausiert den Code nach Veröffentlichen an der Kasse. Ein lässt ihn gelten.',
+    hNote:'Nur intern. Der Kunde sieht das nicht.',
+    couponUsesTitle:'Eingelöste Nutzungen', couponUsesEmpty:'Noch keine eingelösten Nutzungen.',
     kPercent:'Prozent Rabatt', kAmount:'Fester CHF-Rabatt',
     paused:'Pausiert', noEnd:'Kein Enddatum', unlimited:'kein Limit',
     publish:'Tarifbuch veröffentlichen', publishing:'Veröffentlichen…', discard:'Entwurf verwerfen', keepEditing:'Weiter bearbeiten',
@@ -454,9 +514,14 @@ const T = {
     addCoupon:'Ajouter un code', editCoupon:'Modifier le code', saveCoupon:'Enregistrer le code', deleteCouponTitle:'Supprimer ce code du brouillon ?', deleteCouponBody:'Supprimer ce code du brouillon ? Le public ne change qu’après Publier.',
     emptyCouponsTitle:'Aucun code dans ce brouillon', emptyCouponsBody:'Ajoutez un code en pourcent ou en CHF fixe. Le public ne peut pas l’utiliser avant Publier.',
     searchCoupons:'Code', nounCoupon:'code promo', nounCoupons:'codes promo',
-    fCode:'Code', fKind:'Remise', fValue:'Valeur', fLimit:'Plafond', fExpires:'Expire', fActive:'Dans ce brouillon', fNote:'Note',
-    hCode:'Ce que le voyageur saisit. Insensible à la casse ; espaces retirés.',
+    fCode:'Code', fKind:'Remise', fValue:'Valeur', fLimit:'Plafond', fStarts:'Début', fExpires:'Expire', fActive:'Dans ce brouillon', fNote:'Note',
+    hCode:'Ce qu’ils saisissent au paiement.',
     hValue:'Pourcent ou CHF fixe. Le code s’applique avant la TVA.',
+    hStarts:'Premier jour. Aujourd’hui ou plus tard.',
+    hExpires:'Dernier jour. Vide = pas de fin. Aujourd’hui ou plus tard.',
+    hActive:'Off met ce code en pause à la caisse après Publier. On le laisse valable.',
+    hNote:'Rappel interne. Le client ne le voit jamais.',
+    couponUsesTitle:'Utilisations capturées', couponUsesEmpty:'Aucune utilisation capturée pour l’instant.',
     kPercent:'Pourcent de remise', kAmount:'CHF fixe de remise',
     paused:'En pause', noEnd:'Sans date de fin', unlimited:'sans plafond',
     publish:'Publier le livre tarifaire', publishing:'Publication…', discard:'Jeter le brouillon', keepEditing:'Continuer à modifier',
@@ -542,9 +607,14 @@ const T = {
     addCoupon:'إضافة قسيمة', editCoupon:'تعديل القسيمة', saveCoupon:'حفظ القسيمة', deleteCouponTitle:'حذف هذه القسيمة من المسودة؟', deleteCouponBody:'حذف هذه القسيمة من المسودة؟ لا يتغير العام حتى النشر.',
     emptyCouponsTitle:'لا قسائم في هذه المسودة', emptyCouponsBody:'أضف قسيمة نسبة أو فرنك ثابت. لا يستخدمها العام حتى النشر.',
     searchCoupons:'الرمز', nounCoupon:'قسيمة', nounCoupons:'قسائم',
-    fCode:'الرمز', fKind:'الخصم', fValue:'القيمة', fLimit:'حد الاستخدام', fExpires:'ينتهي', fActive:'في هذه المسودة', fNote:'ملاحظة',
-    hCode:'ما يكتبه المسافر. بلا تمييز لحالة الأحرف؛ تُزال المسافات.',
+    fCode:'الرمز', fKind:'الخصم', fValue:'القيمة', fLimit:'حد الاستخدام', fStarts:'يبدأ', fExpires:'ينتهي', fActive:'في هذه المسودة', fNote:'ملاحظة',
+    hCode:'ما يكتبونه عند الدفع.',
     hValue:'نسبة أو فرنك ثابت. تُطبَّق القسيمة قبل الضريبة.',
+    hStarts:'أول يوم. اليوم أو لاحقًا.',
+    hExpires:'آخر يوم. فارغ = بلا نهاية. اليوم أو لاحقًا.',
+    hActive:'إيقاف يوقف الرمز عند الدفع بعد النشر. تشغيل يبقيه صالحًا.',
+    hNote:'تذكير للطاقم فقط. العميل لا يراه.',
+    couponUsesTitle:'استخدامات مقبوضة', couponUsesEmpty:'لا استخدامات مقبوضة بعد.',
     kPercent:'نسبة مئوية', kAmount:'فرنك ثابت',
     paused:'متوقف', noEnd:'بلا تاريخ انتهاء', unlimited:'بلا حد',
     publish:'نشر دفتر الأسعار', publishing:'جارٍ النشر…', discard:'تجاهل المسودة', keepEditing:'متابعة التعديل',
@@ -603,7 +673,9 @@ class Component extends DCLogic {
     publishCode: '',
     vatPercent: '8.1',
     vat_rate_bps: 81,
+    vatSavedBps: 81,
     vatError: false,
+    couponUses: [],
     publishOpen: false,
     discardOpen: false,
     changesOpen: false,
@@ -632,6 +704,7 @@ class Component extends DCLogic {
     this._off = window.VamosOps.onAny(() => this.forceUpdate());
     this.loadDraft();
     this.loadVat();
+    this.loadCouponUses();
     this.forceUpdate();
   };
   _datePopRef = (el) => { this._datePop = el; };
@@ -679,15 +752,15 @@ class Component extends DCLogic {
   }
   loadDraft() {
     const api = this.api();
-    if (!api || typeof api.request !== 'function') return;
-    api.request('GET', '/api/staff/rate-versions').then((json) => {
+    if (!api || typeof api.request !== 'function') return Promise.resolve();
+    return api.request('GET', '/api/staff/rate-versions').then((json) => {
       const versions = json && json.ok && json.data && Array.isArray(json.data.versions) ? json.data.versions : [];
       const draft = versions.filter((v) => v.status === 'draft')[0] || null;
       const live = versions.filter((v) => v.status === 'live')[0] || null;
       const draftId = draft ? draft.id : null;
       this.setState({ versions: versions, draftId: draftId, liveId: live ? live.id : null });
       if (!draftId) { this.setState({ gaps: [] }); return; }
-      api.request('GET', '/api/staff/rate-versions/' + draftId).then((j2) => {
+      return api.request('GET', '/api/staff/rate-versions/' + draftId).then((j2) => {
         const gaps = j2 && j2.ok && j2.data && Array.isArray(j2.data.gaps) ? j2.data.gaps : [];
         this.setState({ gaps: gaps });
       });
@@ -702,22 +775,20 @@ class Component extends DCLogic {
     const api = this.api();
     if (!api || typeof api.request !== 'function') return;
     api.request('GET', '/api/staff/rate-book').then((json) => {
-      const bps = json && json.ok && json.data ? json.data.vatRateBps : null;
-      if (typeof bps === 'number' && Number.isFinite(bps) && bps >= 0) {
-        this.setState({ vatPercent: String(bps / 10), vat_rate_bps: bps, vatError: false });
+      const raw = json && json.ok && json.data ? json.data.vatRateBps : null;
+      const bps = typeof raw === 'number' ? raw : Number(raw);
+      if (Number.isFinite(bps) && bps >= 0) {
+        this.setState({ vatPercent: String(bps / 10), vat_rate_bps: bps, vatSavedBps: bps, vatError: false });
         return;
       }
-      this.setState({ vatPercent: '8.1', vat_rate_bps: 81, vatError: false });
+      this.setState({ vatPercent: '8.1', vat_rate_bps: 81, vatSavedBps: 81, vatError: false });
     });
   }
   setVatPercent = (v) => {
-    this.setState({ vatPercent: v });
-    const bps = this.percentToBps(v);
-    if (bps === null) {
-      this.setState({ vatError: true });
-      return;
-    }
-    this.setState({ vatError: false, vat_rate_bps: bps });
+    const raw = v && typeof v === 'object' && v.target ? v.target.value : v;
+    const text = raw == null ? '' : String(raw);
+    const bps = this.percentToBps(text);
+    this.setState({ vatPercent: text, vatError: bps === null });
   };
   saveVat = () => {
     const bps = this.percentToBps(this.state.vatPercent);
@@ -725,11 +796,38 @@ class Component extends DCLogic {
       this.setState({ vatError: true });
       return;
     }
+    if (bps === this.state.vatSavedBps) return;
     this.setState({ vatError: false, vat_rate_bps: bps });
     const ops = window.VamosOps;
-    if (ops && typeof ops.saveDraftVat === 'function') ops.saveDraftVat(bps);
+    if (!ops || typeof ops.saveDraftVat !== 'function') return;
+    const run = ops.saveDraftVat(bps);
+    if (run && typeof run.then === 'function') {
+      run.then((json) => {
+        if (!json || json.ok !== true) {
+          this.setState({ vatError: true });
+          return;
+        }
+        this.setState({ vatSavedBps: bps, vat_rate_bps: bps });
+      }, () => this.setState({ vatError: true }));
+    }
   };
-  openPublish = () => this.setState({ publishOpen: true, publishOk: false });
+  loadCouponUses() {
+    const api = this.api();
+    if (!api || typeof api.request !== 'function') return;
+    api.request('GET', '/api/staff/coupons/redemptions').then((json) => {
+      const rows = json && json.ok && Array.isArray(json.data) ? json.data : [];
+      this.setState({ couponUses: rows });
+    }, () => this.setState({ couponUses: [] }));
+  }
+  openPublish = () => {
+    this.setState({ publishOk: false });
+    const run = this.loadDraft();
+    if (run && typeof run.then === 'function') {
+      run.then(() => this.setState({ publishOpen: true }));
+      return;
+    }
+    this.setState({ publishOpen: true });
+  };
   closePublish = () => this.setState({ publishOpen: false });
   openDiscard = () => this.setState({ discardOpen: true });
   closeDiscard = () => this.setState({ discardOpen: false });
@@ -927,6 +1025,11 @@ class Component extends DCLogic {
     const ops = window.VamosOps;
     const pane = this.state.pane;
     const money = (v) => this.money(v);
+    const chfOf = (set) => {
+      if (!set || set.CHF == null || set.CHF === '') return '';
+      return String(set.CHF);
+    };
+    const moneyOrDash = (v) => (v === '' || v == null ? '—' : money(v));
     const profile = ops && ops.profile ? ops.profile.get() : {};
     const role = profile.role || '';
     const rawGaps = this.state.gaps || [];
@@ -981,16 +1084,22 @@ class Component extends DCLogic {
     const hasGaps = rawGaps.length > 0;
     const completenessBody = !hasDraft ? t.completenessEmpty : hasGaps ? t.completenessGaps(rawGaps.length) : t.completenessReady;
     const locationOptions = ((ops && ops.LOCATIONS) || []).map((l) => ({ value: l, label: l }));
-    const classOptions = ((ops && ops.CLASSES) || []).map((c) => ({
-      value: c.label || c.name || c.slug, label: c.label || c.name || c.slug, id: c.id || '',
+    const rates = uniqueByClass(ops ? ops.rates.all() : []);
+    const ratedClasses = rates.map((r) => ({
+      slug: classSlugOf(r.klass || r.name) || r.vehicleClassId,
+      label: r.name || r.klass,
+      vehicleClassId: r.vehicleClassId || '',
+    })).filter((c) => c.slug);
+    const classOptions = ratedClasses.map((c) => ({
+      value: c.label, label: c.label, id: c.vehicleClassId,
     }));
     const classIdFor = (klass) => {
-      const hit = ((ops && ops.CLASSES) || []).filter((c) => c.label === klass || c.name === klass || c.slug === klass || c.id === klass)[0];
-      return hit ? hit.id : '';
+      const hit = ratedClasses.filter((c) => c.label === klass || c.slug === klass || c.vehicleClassId === klass)[0]
+        || ((ops && ops.CLASSES) || []).filter((c) => c.label === klass || c.name === klass || c.slug === klass || c.id === klass)[0];
+      return hit ? (hit.vehicleClassId || hit.id) : '';
     };
     const routesRaw = ops ? ops.routes.all() : [];
     const surchargesRaw = ops ? ops.surcharges.all() : [];
-    const rates = ops ? ops.rates.all() : [];
     const bandRowsRaw = ops ? ops.bands.all() : [];
     const couponRaw = ops ? ops.coupons.all() : [];
     const historyPublished = (this.state.versions || []).filter((v) => v.status === 'live' || v.status === 'retired').slice().sort((a, b) => {
@@ -1033,7 +1142,10 @@ class Component extends DCLogic {
       panes: PANES.map((p) => ({
         icon: p.icon, label: t[p.tab], hint: t[p.hint],
         on: pane === p.key ? '1' : '0',
-        pick: () => this.setState({ pane: p.key }),
+        pick: () => {
+          this.setState({ pane: p.key });
+          if (p.key === 'coupons') this.loadCouponUses();
+        },
       })),
       isRoutes: pane === 'routes', isDistance: pane === 'distance', isSurcharges: pane === 'surcharges',
       isCoupons: pane === 'coupons',
@@ -1050,6 +1162,8 @@ class Component extends DCLogic {
       vatErrorDisplay: this.state.vatError ? 'block' : 'none',
       setVatPercent: this.setVatPercent,
       saveVat: this.saveVat,
+      vatSaveVariant: (this.percentToBps(this.state.vatPercent) !== this.state.vatSavedBps && !this.state.vatError) ? 'primary' : 'ghost',
+      vatSaveOff: this.percentToBps(this.state.vatPercent) === this.state.vatSavedBps || this.state.vatError,
       gaps: gaps,
       gapListDisplay: hasGaps ? 'block' : 'none',
       headerPublishErrorDisplay: this.state.publishCode ? 'block' : 'none',
@@ -1108,34 +1222,38 @@ class Component extends DCLogic {
         clone: () => this.cloneIntoDraft(v.id),
       })),
 
-      routes: routesRaw.map((r) => Object.assign({}, r, {
-        routeLabel: r.from + ' \u2013 ' + r.to,
-        economy: (r.economy && r.economy.CHF) || '',
-        business: (r.business && r.business.CHF) || '',
-        first: (r.first && r.first.CHF) || '',
-        van: (r.van && r.van.CHF) || '',
-      })),
+      routes: routesRaw.map((r) => {
+        const row = Object.assign({}, r, {
+          routeLabel: r.from + ' \u2013 ' + r.to,
+        });
+        ratedClasses.forEach((c) => {
+          const packed = r[c.slug] || (r.prices && r.prices[c.slug]) || {};
+          row[c.slug] = packed.CHF || packed || '';
+          if (typeof row[c.slug] === 'object') row[c.slug] = packed.CHF || '';
+        });
+        return row;
+      }),
       routeColumns: [
         { key:'id', header: t.colId, width:'88px', kind:'mono' },
         { key:'from', header: t.colFrom }, { key:'to', header: t.colTo },
-        { key:'economy', header: t.colEconomy, align:'right', width:'96px', lookup:(r) => money(r.economy) },
-        { key:'business', header: t.colBusiness, align:'right', width:'96px', lookup:(r) => money(r.business) },
-        { key:'first', header: t.colFirst, align:'right', width:'88px', lookup:(r) => money(r.first) },
-        { key:'van', header: t.colVan, align:'right', width:'88px', lookup:(r) => money(r.van) },
+      ].concat(ratedClasses.map((c) => ({
+        key: c.slug, header: c.label, lookup:(r) => money(r[c.slug]),
+      }))).concat([
         { key:'live', header: t.colLive, width:'92px', kind:'bool', onLabel:t.live, offLabel:t.draft },
-      ],
+      ]),
       routeFields: [
-        { key:'from', label:t.colFrom, half:true, required:true, icon:'map-pin' },
-        { key:'to', label:t.colTo, half:true, required:true, icon:'map-pin' },
-        { key:'economy', label:t.colEconomy, half:true, placeholder:'000', hint:t.hRoutePrice, icon:'banknote', suffix:'CHF' },
-        { key:'business', label:t.colBusiness, half:true, placeholder:'000', icon:'banknote', suffix:'CHF' },
-        { key:'first', label:t.colFirst, half:true, placeholder:'000', icon:'banknote', suffix:'CHF' },
-        { key:'van', label:t.colVan, half:true, placeholder:'000', icon:'banknote', suffix:'CHF' },
+        { key:'from', label:t.colFrom, required:true, icon:'map-pin' },
+        { key:'to', label:t.colTo, required:true, icon:'map-pin' },
+      ].concat(ratedClasses.map((c, i) => ({
+        key: c.slug, label:c.label, half:true, placeholder:'000', hint: i === 0 ? t.hRoutePrice : '', icon:'banknote', suffix:'CHF',
+      }))).concat([
         { key:'live', label:t.fLive, editor:'switch', half:true, hint:t.hLive },
-      ],
+      ]),
       routeBlank: () => {
-        const blank = ops ? ops.routes.blank() : { economy:{}, business:{}, first:{}, van:{} };
-        return Object.assign({}, blank, { economy:'', business:'', first:'', van:'' });
+        const blank = ops ? ops.routes.blank() : {};
+        const extra = {};
+        ratedClasses.forEach((c) => { extra[c.slug] = ''; });
+        return Object.assign({}, blank, extra);
       },
       saveRoute: (rec) => {
         if (!ops) return null;
@@ -1146,10 +1264,13 @@ class Component extends DCLogic {
           toMapbox: rec.toMapbox,
           originZoneId: rec.originZoneId || (existing && existing.originZoneId) || '',
           destZoneId: rec.destZoneId || (existing && existing.destZoneId) || '',
+          prices: {},
         };
-        CLASS_KEYS.forEach((k) => {
-          const base = (existing && existing[k]) || {};
+        ratedClasses.forEach((c) => {
+          const k = c.slug;
+          const base = (existing && existing[k]) || (existing && existing.prices && existing.prices[k]) || {};
           patch[k] = Object.assign({}, base, { CHF: rec[k] });
+          patch.prices[k] = patch[k];
         });
         return ops.routes.upsert(patch);
       },
@@ -1167,8 +1288,8 @@ class Component extends DCLogic {
         vehicleClassId: r.vehicleClassId || '',
         photo: r.photo || r.photoPath || '',
         photoPath: r.photoPath || r.photo || '',
-        baseFare: (r.baseFare && r.baseFare.CHF) || '',
-        perKm: (r.perKm && r.perKm.CHF) || '',
+        baseFare: chfOf(r.baseFare),
+        perKm: chfOf(r.perKm),
         maxPax: r.maxPax || 3,
         maxBags: r.maxBags || r.luggageCapacity || 3,
         available: r.available !== false,
@@ -1176,8 +1297,8 @@ class Component extends DCLogic {
       })),
       distanceColumns: [
         { key:'klass', header: t.colClass, width:'120px' },
-        { key:'baseFare', header: t.startFare, align:'right', width:'110px', lookup:(r) => money(r.baseFare) },
-        { key:'perKm', header: t.perKm, align:'right', width:'110px', lookup:(r) => money(r.perKm) },
+        { key:'baseFare', header: t.startFare, lookup:(r) => moneyOrDash(r.baseFare) },
+        { key:'perKm', header: t.perKm, lookup:(r) => moneyOrDash(r.perKm) },
         { key:'maxPax', header: t.maxPax, width:'90px' },
         { key:'maxBags', header: t.maxBags, width:'90px' },
         { key:'hideFromPublic', header: t.hidePublic, width:'120px', kind:'bool', onLabel:t.hidePublic, offLabel:t.showPublic },
@@ -1201,7 +1322,7 @@ class Component extends DCLogic {
         const id = (existing && existing.id) || rec.id;
         const photo = (rec.photo || rec.photoPath || '') && String(rec.photo || rec.photoPath).indexOf('data:') !== 0
           ? (rec.photo || rec.photoPath) : '';
-        return ops.rates.upsert({
+        const out = ops.rates.upsert({
           id: id,
           klass: rec.klass,
           name: rec.klass,
@@ -1215,6 +1336,8 @@ class Component extends DCLogic {
           baseFare: Object.assign({}, (existing && existing.baseFare) || {}, { CHF: rec.baseFare }),
           perKm: Object.assign({}, (existing && existing.perKm) || {}, { CHF: rec.perKm }),
         });
+        if (out && typeof out.then === 'function') out.then(() => this.loadDraft());
+        return out;
       },
       deleteDistance: (id) => ops ? ops.rates.remove(id) : null,
       tNounClass: t.nounClass, tNounClasses: t.nounClasses,
@@ -1232,7 +1355,7 @@ class Component extends DCLogic {
         { key:'klass', header: t.colClass, width:'120px' },
         { key:'fromKm', header: t.fromKm, width:'110px' },
         { key:'toKm', header: t.toKm, width:'110px', lookup:(r) => (r.toKm === '' || r.toKm == null ? t.openBand : r.toKm) },
-        { key:'perKm', header: t.perKm, align:'right', width:'110px', lookup:(r) => money(r.perKm) },
+        { key:'perKm', header: t.perKm, lookup:(r) => money(r.perKm) },
       ],
       bandFields: [
         { key:'klass', label:t.colClass, editor:'select', required:true, icon:'car',
@@ -1273,12 +1396,12 @@ class Component extends DCLogic {
         });
       }),
       surchargeColumns: [
-        { key:'type', header: t.surchargeType, width:'160px', lookup:(r) => {
+        { key:'type', header: t.surchargeType, lookup:(r) => {
           const hit = SURCHARGE_TYPES.filter((c) => c.value === (r.type || surchargeTypeOf(r.code || r.label)))[0];
           return hit ? t[hit.k] : (r.type || r.label);
         } },
         { key:'label', header: t.colName, lookup:(r) => r.name || r.label || r.code || '' },
-        { key:'value', header: t.colAmount, align:'right', width:'150px',
+        { key:'value', header: t.colAmount,
           lookup:(r) => {
             const type = r.type || surchargeTypeOf(r.code || r.label);
             if (type === 'meet_greet') return money('0');
@@ -1287,11 +1410,11 @@ class Component extends DCLogic {
           } },
       ],
       surchargeFields: [
-        { key:'type', label:t.surchargeType, editor:'select', required:true, icon:'banknote',
+        { key:'type', label:t.surchargeType, editor:'select', required:true, icon:'layers',
           options: SURCHARGE_TYPES.map((c) => ({ value: c.value, label: t[c.k] })) },
         { key:'name', label:t.extraName, required:true, icon:'tag', showWhen:{ type:'checkout_extra' }, hint:t.doesCheckout },
         { key:'value', label:t.colAmount, placeholder:'00', icon:'banknote', suffix:'CHF', showWhen:{ type:'checkout_extra' } },
-        { key:'icon', label:t.extraIcon, editor:'select', icon:'image', showWhen:{ type:'checkout_extra' },
+        { key:'icon', label:t.extraIcon, editor:'iconGrid', showWhen:{ type:'checkout_extra' },
           options: EXTRA_ICONS.map((c) => ({ value: c.value, label: t[c.k] })) },
         { key:'value', label:t.meetAmount, placeholder:'0', icon:'banknote', suffix:'CHF', showWhen:{ type:'meet_greet' }, hint:t.doesMeet },
         { key:'hours', label:t.extraHours, editor:'number', min:1, showWhen:{ type:'free_wait' }, hint:t.doesFreeWait },
@@ -1340,29 +1463,45 @@ class Component extends DCLogic {
       couponRows: couponRaw,
       couponColumns: [
         { key:'code', header:t.fCode, kind:'mono' },
-        { key:'value', header:t.fValue, width:'150px',
+        { key:'value', header:t.fValue,
           lookup:(r) => (r.kind === 'percent' ? (r.value || '00') + ' %' : money(r.value || '00')) },
-        { key:'expires', header:t.fExpires, width:'150px', lookup:(r) => r.expires || t.noEnd },
-        { key:'active', header:t.fActive, width:'128px', kind:'bool', onLabel:t.live, offLabel:t.paused },
+        { key:'expires', header:t.fExpires, lookup:(r) => r.expires || t.noEnd },
+        { key:'active', header:t.fActive, kind:'bool', onLabel:t.live, offLabel:t.paused },
       ],
       couponFields: [
-        { key:'code', label:t.fCode, half:true, required:true, hint:t.hCode, placeholder:'WELCOME' },
-        { key:'kind', label:t.fKind, editor:'select', icon:'ticket', half:true,
-          options:[{ value:'percent', label:t.kPercent }, { value:'amount', label:t.kAmount }] },
-        { key:'value', label:t.fValue, half:true, placeholder:'00', hint:t.hValue },
+        { key:'code', label:t.fCode, required:true, hint:t.hCode },
+        { key:'value', label:t.fValue, editor:'amountKind', kindKey:'kind', kindLabel:t.fKind, placeholder:'00', hint:t.hValue,
+          kindOptions:[{ value:'percent', label:'%' }, { value:'amount', label:'CHF' }] },
+        { key:'validFrom', label:t.fStarts, editor:'date', half:true, icon:'calendar', minDate:'today', hint:t.hStarts },
+        { key:'expires', label:t.fExpires, editor:'date', half:true, icon:'calendar', minDate:'today', hint:t.hExpires },
         { key:'limit', label:t.fLimit, editor:'number', min:0, half:true },
-        { key:'expires', label:t.fExpires, editor:'date', half:true, icon:'calendar' },
-        { key:'active', label:t.fActive, editor:'switch', half:true },
-        { key:'note', label:t.fNote, editor:'area' },
+        { key:'active', label:t.fActive, editor:'switch', half:true, hint:t.hActive },
+        { key:'note', label:t.fNote, editor:'area', hint:t.hNote },
       ],
-      couponBlank: () => (ops ? ops.coupons.blank() : {}),
-      saveCoupon: (rec) => ops ? ops.coupons.upsert(rec) : null,
+      couponBlank: () => Object.assign({ validFrom:'', expires:'', note:'', active:true, limit:0 }, ops ? ops.coupons.blank() : {}),
+      saveCoupon: (rec) => {
+        if (!ops) return null;
+        const run = ops.coupons.upsert(rec);
+        if (run && typeof run.then === 'function') {
+          run.then((json) => { if (json && json.ok === true) this.loadCouponUses(); });
+        }
+        return run;
+      },
       deleteCoupon: (id) => ops ? ops.coupons.remove(id) : null,
       tNounCoupon: t.nounCoupon, tNounCoupons: t.nounCoupons,
       tAddCoupon: t.addCoupon, tEditCoupon: t.editCoupon, tSaveCoupon: t.saveCoupon,
       tDeleteCouponTitle: t.deleteCouponTitle, tDeleteCouponBody: t.deleteCouponBody,
       tSearchCoupons: t.searchCoupons, couponSearchKeys: ['code', 'note'],
       tEmptyCouponsTitle: t.emptyCouponsTitle, tEmptyCouponsBody: t.emptyCouponsBody,
+      tCouponUsesTitle: t.couponUsesTitle, tCouponUsesEmpty: t.couponUsesEmpty,
+      couponUses: (this.state.couponUses || []).map((row) => ({
+        code: row.code,
+        when: this.zurichWhen(row.redeemedAt),
+        ride: row.reference || row.bookingId,
+        href: '/bookings/' + encodeURIComponent(row.bookingId || row.reference || ''),
+      })),
+      couponUsesHas: (this.state.couponUses || []).length > 0,
+      couponUsesEmpty: (this.state.couponUses || []).length === 0,
     };
   }
 }

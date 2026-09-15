@@ -91,7 +91,7 @@ const FULL_VIEWPORT_MARK = "[4vp]";
 test.beforeEach(async ({ page }, testInfo) => {
   test.skip(
     !testInfo.title.includes(FULL_VIEWPORT_MARK),
-    "Every state in this file carries [4vp] — SiteHeader.css and SiteFooter.css both carry real @media rules (header: min-width:1080px; footer: 768/1024/1280px grid steps), so none of this file's states qualify for the Fidelity Contract's reduced-viewport allowance.",
+    "Every state in this file carries [4vp] — SiteHeader.css and SiteFooter.css both carry real @media rules (header: min-width:1080px; footer: 768/1024px grid steps), so none of this file's states qualify for the Fidelity Contract's reduced-viewport allowance.",
   );
   const externalRequests: string[] = [];
   page.on("request", (request) => {
@@ -300,8 +300,8 @@ test.describe("SiteFooter @component", () => {
   }, testInfo) => {
     // Same 1440-only mock diff as SiteHeader's default state, for a related but
     // distinct reason: SiteFooter.css's own multi-row nav grid (`[data-ft-grid]`,
-    // `grid-template-columns` stepping from 1 to 2/3/4+1 columns across the same
-    // 768/1024/1280 breakpoints CLAUDE.md's Fixed Constraints table documents) means
+    // `grid-template-columns` stepping from 1 to 2 then 4+brand across the same
+    // 768/1024 breakpoints the DC footer uses) means
     // the *narrower* the viewport, the more text rows the mock's own link labels wrap
     // into — and a full-element screenshot's total height is the sum of every one of
     // those rows' own sub-pixel line-box rounding. Reproduced directly: at 1440 (the

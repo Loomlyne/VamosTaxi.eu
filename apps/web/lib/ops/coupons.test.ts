@@ -17,6 +17,7 @@ import {
   couponIdFromRequest,
   couponInputFromDc,
   CouponInputError,
+  loadCouponRedemptions,
   loadCoupons,
   toDcCoupon,
 } from "./coupons";
@@ -140,6 +141,7 @@ describe("toDcCoupon", () => {
     });
     expect(dc.value).toBe("00");
     expect(dc.expires).toBe("2026-12-31");
+    expect(dc.validFrom).toBe("");
     expect(dc.limit).toBe(10);
     expect(dc.active).toBe(false);
   });
@@ -187,5 +189,39 @@ describe("couponIdFromRequest", () => {
   it("reads the last path segment", () => {
     expect(couponIdFromRequest(new Request("http://vamos.test/api/staff/coupons/12"))).toBe(12);
     expect(couponIdFromRequest(new Request("http://vamos.test/api/staff/coupons/cp-x"))).toBeNull();
+  });
+});
+
+describe("loadCouponRedemptions", () => {
+  beforeEach(() => {
+    asStaff.mockReset();
+  });
+
+  it("returns only captured, unreleased uses", async () => {
+    asStaff.mockImplementation(async (_env: unknown, _claims: unknown, fn: (sql: unknown) => Promise<unknown>) => {
+      const sql = Object.assign(
+        async () => [
+          {
+            coupon_id: 2,
+            code: "SAVE10",
+            redeemed_at: "2026-09-14T10:00:00.000Z",
+            booking_id: "11111111-1111-4111-8111-111111111111",
+            reference: "VT-1001",
+          },
+        ],
+        { raw: async () => [] },
+      );
+      return fn(sql);
+    });
+
+    await expect(loadCouponRedemptions(env, claims)).resolves.toEqual([
+      {
+        couponId: 2,
+        code: "SAVE10",
+        redeemedAt: "2026-09-14T10:00:00.000Z",
+        bookingId: "11111111-1111-4111-8111-111111111111",
+        reference: "VT-1001",
+      },
+    ]);
   });
 });

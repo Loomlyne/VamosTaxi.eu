@@ -360,7 +360,10 @@
             var found = false;
             var i;
             for (i = 0; i < next.length; i++) {
-              if (next[i].id === saved.id) { next[i] = saved; found = true; break; }
+              if (String(next[i].id) === String(saved.id)) { next[i] = saved; found = true; break; }
+              if (name === "rates" && saved.vehicleClassId && String(next[i].vehicleClassId) === String(saved.vehicleClassId)) {
+                next[i] = saved; found = true; break;
+              }
             }
             if (!found) next.push(saved);
             list = next;
@@ -611,21 +614,42 @@
       code: str(c.code).toUpperCase(),
       kind: COUPON_KINDS.indexOf(c.kind) === -1 ? "percent" : c.kind,
       value: str(c.value), uses: num(c.uses, 0), limit: num(c.limit, 0),
-      expires: str(c.expires), active: c.active === false ? false : true, note: str(c.note)
+      validFrom: str(c.validFrom || c.valid_from),
+      expires: str(c.expires || c.validUntil || c.valid_until), active: c.active === false ? false : true, note: str(c.note)
     };
   }
 
   function cleanRoute(r) {
     r = r || {};
-    return {
+    var skip = {
+      id: 1, from: 1, to: 1, originZoneId: 1, destZoneId: 1,
+      fromMapbox: 1, toMapbox: 1, live: 1, prices: 1, routeLabel: 1
+    };
+    var out = {
       id: str(r.id),
       from: str(r.from), to: str(r.to),
       originZoneId: str(r.originZoneId), destZoneId: str(r.destZoneId),
       fromMapbox: r.fromMapbox && typeof r.fromMapbox === "object" ? r.fromMapbox : undefined,
       toMapbox: r.toMapbox && typeof r.toMapbox === "object" ? r.toMapbox : undefined,
-      economy: cleanMoneySet(r.economy), business: cleanMoneySet(r.business), first: cleanMoneySet(r.first), van: cleanMoneySet(r.van),
-      live: !!r.live
+      live: !!r.live,
+      prices: {}
     };
+    var prices = r.prices && typeof r.prices === "object" ? r.prices : {};
+    var k;
+    for (k in prices) {
+      if (Object.prototype.hasOwnProperty.call(prices, k)) {
+        out.prices[k] = cleanMoneySet(prices[k]);
+        out[k] = out.prices[k];
+      }
+    }
+    for (k in r) {
+      if (!Object.prototype.hasOwnProperty.call(r, k) || skip[k] || out[k] !== undefined) continue;
+      if (r[k] && typeof r[k] === "object" && !Array.isArray(r[k]) && (r[k].CHF !== undefined || r[k].chf !== undefined)) {
+        out[k] = cleanMoneySet(r[k]);
+        out.prices[k] = out[k];
+      }
+    }
+    return out;
   }
 
   var RATE_DEFAULT_PAX = { Economy: 4, Business: 4, First: 4, Van: 7 };

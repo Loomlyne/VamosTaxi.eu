@@ -45,6 +45,9 @@ describe("OpsPricing VAT field dual copy (D-16 D-22)", () => {
     expect(html).toMatch(/VAT 8\.1|8\.1/);
     expect(html).toContain("vat_rate_bps");
     expect(html).not.toMatch(/7\.7/);
+    expect(html).toMatch(/saveDraftVat\(bps\)/);
+    expect(html).toMatch(/vatSavedBps: bps/);
+    expect(html).toMatch(/v && typeof v === 'object' && v\.target \? v\.target\.value : v/);
   });
 
   it("T.en T.de T.fr T.ar each have VAT label, suffix, and error", () => {

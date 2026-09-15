@@ -471,4 +471,65 @@ describe("loadAndPrice", () => {
       i18n_key: "quote.coupon.error.not_found",
     });
   });
+
+  it("refuses a coupon evaluate_coupon accepts when it is not on the live book (D-24)", async () => {
+    const result = await loadAndPrice(
+      fakeEnv(),
+      { ...input(), coupon: "WELCOME" },
+      {
+        ...stubLoaders({
+          book: { ...launchDoc({ id: 8, slug: "live", status: "live" }), coupons: [] },
+          settings: settingsDoc(),
+        }),
+        evaluateCoupon: async () => ({
+          ok: true,
+          i18n_key: null,
+          coupon_id: 2,
+          kind: "percent",
+          percent: "20.00",
+          amount_rappen: null,
+          code: "WELCOME",
+        }),
+      },
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.coupon).toEqual({
+      code: "WELCOME",
+      applied: false,
+      i18n_key: "quote.coupon.error.not_found",
+    });
+  });
+
+  it("applies a coupon that sits on the live book", async () => {
+    const result = await loadAndPrice(
+      fakeEnv(),
+      { ...input(), coupon: "WELCOME" },
+      {
+        ...stubLoaders({
+          book: {
+            ...launchDoc({ id: 8, slug: "live", status: "live" }),
+            coupons: [{ id: 2, code: "WELCOME", kind: "percent", percent: "20.00", active: true }],
+          },
+          settings: settingsDoc(),
+        }),
+        evaluateCoupon: async () => ({
+          ok: true,
+          i18n_key: null,
+          coupon_id: 2,
+          kind: "percent",
+          percent: "20.00",
+          amount_rappen: null,
+          code: "WELCOME",
+        }),
+      },
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.coupon).toMatchObject({
+      code: "WELCOME",
+      applied: true,
+      kind: "percent",
+    });
+  });
 });

@@ -34,7 +34,11 @@
 [data-vt-unsaved-act]{display:flex;gap:6px;flex:0 0 auto}
 [data-vt-table-scroll]{box-sizing:border-box;max-width:100%;min-width:0;width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
 [data-vt-table-scroll] .vt-tablewrap{overflow:visible;max-inline-size:none;min-inline-size:720px;width:max-content;min-width:100%}
+[data-vt-table-scroll][data-fill="1"] .vt-tablewrap{min-inline-size:0;width:100%;max-inline-size:100%}
 [data-vt-table-scroll] .vt-table{border-collapse:separate;border-spacing:0}
+[data-vt-table-scroll][data-fill="1"] .vt-table{width:100%;table-layout:fixed}
+[data-vt-table-scroll][data-fill="1"] .vt-table th:not(:last-child),
+[data-vt-table-scroll][data-fill="1"] .vt-table td:not(:last-child){text-align:start}
 [data-vt-table-scroll] .vt-table th:last-child,
 [data-vt-table-scroll] .vt-table td:last-child{position:sticky;inset-inline-end:0;z-index:2;background:var(--vt-bg-surface);border-inline-start:1px solid var(--vt-border-subtle)}
 [data-vt-table-scroll] .vt-table thead th:last-child{background:var(--vt-grey-50);z-index:3}
@@ -55,6 +59,8 @@
 [data-vt-date-day]:hover{background:var(--vt-grey-50)}
 [data-vt-date-day][data-on="1"]{background:var(--vt-charcoal-900);color:var(--vt-accent)}
 [data-vt-date-day][data-mute="1"]{cursor:default;color:transparent;pointer-events:none}
+[data-vt-date-day][data-off="1"]{cursor:default;color:var(--vt-text-muted);opacity:.4;pointer-events:none}
+[data-vt-date-day][data-off="1"]:hover{background:transparent}
 [data-vt-time-wrap]{cursor:text}
 [data-vt-time-wrap] input{all:unset;flex:1 1 auto;min-width:0;font:inherit;color:inherit;letter-spacing:.02em}
 [data-vt-sug]{position:fixed;z-index:400;box-sizing:border-box;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg);padding:6px;display:flex;flex-direction:column;gap:2px;max-height:260px;overflow-y:auto}
@@ -62,6 +68,15 @@
 [data-vt-sug-opt]:hover{background:var(--vt-grey-50)}
 [data-vt-sug-lab]{font-size:13px;font-weight:600;color:var(--vt-text-primary);text-align:start}
 [data-vt-sug-note]{font-size:11px;color:var(--vt-text-muted);text-align:start}
+[data-vt-icongrid]{display:flex;flex-direction:column;gap:6px;min-width:0}
+[data-vt-icongrid-row]{display:flex;flex-wrap:wrap;gap:8px;min-width:0}
+[data-vt-iconpick]{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-md);background:var(--vt-white);color:var(--vt-charcoal-900);cursor:pointer}
+[data-vt-iconpick]:hover{border-color:var(--vt-charcoal-900)}
+[data-vt-iconpick][data-on="1"]{background:var(--vt-charcoal-900);color:var(--vt-accent);border-color:var(--vt-charcoal-900)}
+[data-vt-amountkind]{display:flex;flex-direction:column;gap:6px;min-width:0}
+[data-vt-amountkind-row]{display:flex;align-items:stretch;gap:8px;min-width:0}
+[data-vt-amountkind-row] > [data-vt-time-wrap]{flex:1 1 auto;min-width:0}
+[data-vt-amountkind-kind]{flex:0 0 132px;min-width:0}
 </style>
 <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
 
@@ -101,7 +116,7 @@
 </sc-if>
 
 <sc-if value="{{ hasRows }}" hint-placeholder-val="{{ true }}">
-<div data-vt-table-scroll="1" data-scroll-native="1" data-lenis-prevent="1">
+<div data-vt-table-scroll="1" data-fill="{{ tableFill }}" data-scroll-native="1" data-lenis-prevent="1">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Table" columns="{{ tableColumns }}" rows="{{ visibleRows }}" hint-size="100%,320px"></x-import>
 </div>
 </sc-if>
@@ -206,7 +221,7 @@
 </div>
 <div data-vt-date-grid="1">
 <sc-for list="{{ f.days }}" as="day" hint-placeholder-count="35">
-<button type="button" data-vt-date-day="1" data-on="{{ day.on }}" data-mute="{{ day.mute }}" onClick="{{ day.pick }}">{{ day.label }}</button>
+<button type="button" data-vt-date-day="1" data-on="{{ day.on }}" data-mute="{{ day.mute }}" data-off="{{ day.off }}" onClick="{{ day.pick }}">{{ day.label }}</button>
 </sc-for>
 </div>
 </div>
@@ -230,6 +245,35 @@
 <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
 <span data-fld-l="1">{{ f.label }}</span>
 <dc-import name="BrandSelect" size="field" icon="{{ f.icon }}" value="{{ f.value }}" options="{{ f.options }}" multi="{{ f.multi }}" placeholder="{{ f.emptyLabel }}" add-label="{{ f.addLabel }}" on-add="{{ f.startNested }}" onSelect="{{ f.pick }}" a11y-label="{{ f.label }}" hint-size="100%,44px"></dc-import>
+<span style="display:{{ f.hintShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ f.hint }}</span>
+</div>
+</sc-if>
+
+<sc-if value="{{ f.isIconGrid }}" hint-placeholder-val="{{ false }}">
+<div data-vt-icongrid="1">
+<span data-fld-l="1">{{ f.label }}</span>
+<div data-vt-icongrid-row="1">
+<sc-for list="{{ f.iconOptions }}" as="ic" hint-placeholder-count="6">
+<button type="button" data-vt-iconpick="1" data-on="{{ ic.on }}" onClick="{{ ic.pick }}" aria-label="{{ ic.label }}" title="{{ ic.label }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ ic.value }}" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+</button>
+</sc-for>
+</div>
+<span style="display:{{ f.hintShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ f.hint }}</span>
+</div>
+</sc-if>
+
+<sc-if value="{{ f.isAmountKind }}" hint-placeholder-val="{{ false }}">
+<div data-vt-amountkind="1">
+<span data-fld-l="1">{{ f.label }}</span>
+<div data-vt-amountkind-row="1">
+<div data-vt-time-wrap="1">
+<input inputmode="decimal" autocomplete="off" placeholder="{{ f.placeholder }}" value="{{ f.value }}" onChange="{{ f.setAmount }}" aria-label="{{ f.label }}">
+</div>
+<div data-vt-amountkind-kind="1">
+<dc-import name="BrandSelect" size="field" icon="{{ f.kindIcon }}" value="{{ f.kindValue }}" options="{{ f.kindOptions }}" onSelect="{{ f.pickKind }}" a11y-label="{{ f.kindLabel }}" hint-size="132px,44px"></dc-import>
+</div>
+</div>
 <span style="display:{{ f.hintShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ f.hint }}</span>
 </div>
 </sc-if>
@@ -391,6 +435,14 @@ function parseParts(raw) {
   return { y: board[3] ? +board[3] : new Date().getFullYear(), m: mon, d: +board[1] };
 }
 function toIso(p) { return p ? (p.y + '-' + pad2(p.m + 1) + '-' + pad2(p.d)) : ''; }
+function zurichYmdNow() {
+  try {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Zurich', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  } catch (e) {
+    const n = new Date();
+    return n.getFullYear() + '-' + pad2(n.getMonth() + 1) + '-' + pad2(n.getDate());
+  }
+}
 function boardDate(p) {
   if (!p) return '';
   const dt = new Date(Date.UTC(p.y, p.m, p.d));
@@ -608,7 +660,7 @@ class Component extends DCLogic {
     if (!kind) { this.setState({ sug: null }); return; }
     const box = el && (el.closest ? (el.closest('.vt-field') || el.parentElement) : el.parentElement);
     const r = box && box.getBoundingClientRect ? box.getBoundingClientRect() : null;
-    const local = this.localSuggest(kind, v);
+    const local = (kind === 'address' && (key === 'from' || key === 'to')) ? [] : this.localSuggest(kind, v);
     this.setState({ sug: { key, kind, items: local, local, rect: r } });
     clearTimeout(this._geoT);
     if (kind === 'address' && String(v || '').trim().length >= 3) {
@@ -778,12 +830,14 @@ class Component extends DCLogic {
     if (code === 'frozen') return 'The live rate book is locked. Could not open a draft.';
     if (code === 'invalid') return 'The server rejected that row.';
     if (code === 'mapbox') return 'Pick From and To from the Mapbox list.';
-    if (code === 'fk') return 'That row is still used by another rule. Remove the link first.';
+    if (code === 'fk') return 'That save could not link this row. The class it points at is missing, or another row still uses it.';
+    if (code === 'fk-missing') return 'That class is not on file yet. Close this overlay and try again.';
     if (code === 'unpaid') return 'Unpaid bookings cannot take that edit.';
     if (code === 'network') return 'The save did not reach the server.';
     if (code === 'http') return 'The server did not accept that save.';
     if (code === 'csrf') return 'Reload the dashboard and try again.';
     if (code === '23503') return 'That linked row is missing.';
+    if (code === 'duplicate') return 'This class is already on the draft. Close the overlay and save again.';
     if (code === '23505') return 'That value is already on file.';
     if (code === '23514') return 'One of the fields is not a valid value.';
     if (code === '22P02') return 'A field is the wrong type. Check the vehicle id and languages.';
@@ -896,6 +950,10 @@ class Component extends DCLogic {
     return { dateOpen: Object.assign({}, s.dateOpen, { y, m, yDraft: String(y) }) };
   });
   pickDate = (key, p) => {
+    const fields = this.props.fields || [];
+    const field = fields.filter((f) => f.key === key)[0];
+    const ymd = toIso({ y: clampYear(p.y), m: p.m, d: p.d });
+    if (field && field.minDate === 'today' && ymd && ymd < zurichYmdNow()) return;
     const raw = (this.state.draft || {})[key];
     const next = { y: clampYear(p.y), m: p.m, d: p.d };
     this.setField(key, this.writeDate(raw, toIso(next)));
@@ -1026,6 +1084,7 @@ class Component extends DCLogic {
     const histRows = (!this.state.isNew && this.props.historyRows && this.state.draft) ? (this.props.historyRows(d) || []) : [];
     const histCount = histRows.length;
 
+    const tableFill = this.props.fill === '1' || this.props.fill === true || this.props.fill === 1 ? '1' : '0';
     const tableColumns = columns.map((c) => ({
       key: c.key, header: this.filterable(c) ? this.headerCell(c) : c.header, width: c.width, align: c.align,
       render: (row) => this.cell(c, row),
@@ -1051,6 +1110,10 @@ class Component extends DCLogic {
       const isYear = f.editor === 'year' || f.key === 'year';
       const isPhone = f.editor === 'phone' || f.key === 'phone';
       const isLicence = f.editor === 'licence' || f.key === 'licence';
+      const isIconGrid = f.editor === 'iconGrid';
+      const isAmountKind = f.editor === 'amountKind';
+      const kindKey = f.kindKey || 'kind';
+      const kindValue = String(d[kindKey] == null || d[kindKey] === '' ? 'percent' : d[kindKey]);
       const minN = f.min === undefined ? 0 : f.min;
       const num = parseInt(val, 10);
       const nVal = isNaN(num) ? minN : num;
@@ -1064,14 +1127,18 @@ class Component extends DCLogic {
       const dim = new Date(Date.UTC(viewY, viewM + 1, 0)).getUTCDate();
       const days = [];
       for (let i = 0; i < offset; i++) days.push({ label:'', on:'0', mute:'1', pick: () => {} });
+      const minToday = f.minDate === 'today' ? zurichYmdNow() : '';
       for (let day = 1; day <= dim; day++) {
         const p = { y: viewY, m: viewM, d: day };
         const on = parts && parts.y === viewY && parts.m === viewM && parts.d === day;
+        const ymd = toIso(p);
+        const past = !!(minToday && ymd && ymd < minToday);
         days.push({
           label: String(day),
           on: on ? '1' : '0',
           mute: '0',
-          pick: () => this.pickDate(f.key, p),
+          off: past ? '1' : '0',
+          pick: past ? () => {} : () => this.pickDate(f.key, p),
         });
       }
       return {
@@ -1085,14 +1152,31 @@ class Component extends DCLogic {
         options: f.options || [],
         multi: !!f.multi,
         inputIcon: f.icon || FIELD_ICONS[f.key] || '',
-        isText: !isDate && !isTime && !isYear && !isPhone && !isLicence && (f.editor === undefined || f.editor === 'text'),
+        isText: !isDate && !isTime && !isYear && !isPhone && !isLicence && !isIconGrid && !isAmountKind && (f.editor === undefined || f.editor === 'text'),
         isNumber: f.editor === 'number',
         isYear, isPhone, isLicence,
         isDate, isTime,
         isSelect: f.editor === 'select',
+        isIconGrid,
+        isAmountKind,
         isSwitch: f.editor === 'switch',
         isArea: f.editor === 'area',
         isPhoto: f.editor === 'photo',
+        iconOptions: (f.options || []).map((o) => ({
+          value: o.value,
+          label: o.label,
+          on: String(val) === String(o.value) ? '1' : '0',
+          pick: () => this.setField(f.key, o.value),
+        })),
+        kindValue: kindValue,
+        kindLabel: f.kindLabel || f.label,
+        kindIcon: kindValue === 'amount' ? 'banknote' : 'ticket',
+        kindOptions: (f.kindOptions || []).length ? f.kindOptions : [
+          { value: 'percent', label: '%' },
+          { value: 'amount', label: 'CHF' },
+        ],
+        pickKind: (v) => this.setField(kindKey, v),
+        setAmount: (e) => this.setField(f.key, e && e.target ? e.target.value : e),
         value: String(val),
         dateLabel: parts ? boardDate(parts) : (f.placeholder || 'dd / mm / yyyy'),
         dateEmpty: parts ? '0' : '1',
@@ -1221,7 +1305,7 @@ class Component extends DCLogic {
       noMatchBody: this.props.noMatchBody || 'Try a shorter search, or clear it to see everything again.',
       emptyTitle: this.props.emptyTitle || 'Nothing here yet',
       emptyBody: this.props.emptyBody || 'Add the first one and it appears in this table.',
-      tableColumns, visibleRows: visible,
+      tableColumns, tableFill, visibleRows: visible,
       startAdd: this.startAdd,
       editorOpen: !!this.state.draft,
       editorTitle: this.state.isNew ? (this.props.addTitle || 'Add') : (this.props.editTitle || 'Edit'),

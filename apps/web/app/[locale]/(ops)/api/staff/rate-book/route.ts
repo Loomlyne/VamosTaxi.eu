@@ -25,8 +25,16 @@ import {
   type SurchargeInput,
   type SurchargeKind,
 } from "@/lib/ops/rate-book";
+import { isPlaceholderAmount, rappenFromMoneySet, rappenFromUnknown } from "@/lib/ops/rappen";
 import { extraWriteFields, isPassengerExtra, normalizeSurchargeCode } from "@/lib/ops/surcharge-codes";
 import { jsonErr, jsonOk, withAdmin, withStaff } from "@/lib/ops/staff-json";
+import { planVehicleClassWrite } from "@/lib/ops/vehicle-class-write";
+import {
+  CouponInputError,
+  couponInputFromDc,
+  insertCoupon,
+  updateCouponRecord,
+} from "@/lib/ops/coupons";
 
 export const dynamic = "force-dynamic";
 
@@ -109,34 +117,6 @@ function isDraftKind(value: unknown): value is DraftKind {
   return typeof value === "string" && (DRAFT_KINDS as readonly string[]).includes(value);
 }
 
-function isPlaceholderAmount(raw: string): boolean {
-  return raw === "" || raw === "000" || raw === "00" || raw === "0.00" || raw === "—" || raw === "–";
-}
-
-function rappenFromUnknown(value: unknown): number | null {
-  if (value == null) return null;
-  if (typeof value === "number") {
-    if (!Number.isFinite(value)) return null;
-    if (value === 0) return null;
-    return Number.isInteger(value) ? value : Math.round(value * 100);
-  }
-  if (typeof value !== "string") return null;
-  const raw = value.trim();
-  if (isPlaceholderAmount(raw)) return null;
-  const n = Number(raw);
-  if (!Number.isFinite(n) || n === 0) return null;
-  return Math.round(n * 100);
-}
-
-function rappenFromMoneySet(value: unknown): number | null {
-  if (value == null) return null;
-  if (typeof value === "number" || typeof value === "string") return rappenFromUnknown(value);
-  const obj = rec(value);
-  if (!obj) return null;
-  if ("CHF" in obj) return rappenFromUnknown(obj.CHF);
-  return null;
-}
-
 function percentFromUnknown(value: unknown): number | null {
   if (value == null) return null;
   if (typeof value === "number") return Number.isFinite(value) ? value : null;
@@ -214,7 +194,6 @@ function mockRoutes(book: RateBook, zones: ServiceZoneRow[]): Record<string, unk
     if (!first) continue;
     const origin = zoneById.get(first.originZoneId);
     const dest = zoneById.get(first.destZoneId);
-    const byClass = new Map(rows.map((r) => [r.vehicleClassSlug, r]));
     const prices: Record<string, { CHF: string }> = {};
     for (const row of rows) {
       prices[row.vehicleClassSlug] = moneyFromRappen(row.priceRappen);
@@ -225,10 +204,7 @@ function mockRoutes(book: RateBook, zones: ServiceZoneRow[]): Record<string, unk
       to: dest ? zoneDisplay(dest) : first.destSlug,
       originZoneId: first.originZoneId,
       destZoneId: first.destZoneId,
-      economy: moneyFromRappen(byClass.get("economy")?.priceRappen ?? null),
-      business: moneyFromRappen(byClass.get("business")?.priceRappen ?? null),
-      first: moneyFromRappen(byClass.get("first")?.priceRappen ?? null),
-      van: moneyFromRappen(byClass.get("van")?.priceRappen ?? null),
+      ...prices,
       prices,
       live: rows.some((r) => r.live),
     });
@@ -349,7 +325,9 @@ function bookPayload(book: RateBook, zones: ServiceZoneRow[]) {
     regionPremiums: mockRegionPremiums(book, zones),
     rules: mockRules(book),
     zones: mockZones(zones),
-    classes: book.vehicleClasses.map((c) => ({
+    classes: book.vehicleClasses
+      .filter((c) => book.distanceRates.some((row) => row.vehicleClassId === c.id))
+      .map((c) => ({
       id: c.id,
       slug: c.slug,
       label: (c.name && c.name.trim()) || klassLabel(c.slug),
@@ -402,6 +380,7 @@ async function resolveWritableVersionId(
 
 function failWrite(err: unknown): Response {
   if (err instanceof RateBookInputError) return jsonErr(err.key, 400);
+  if (err instanceof CouponInputError) return jsonErr(err.key, 400);
   const classified = classifyPricingFailure(err);
   switch (classified.kind) {
     case "frozen":
@@ -412,8 +391,16 @@ function failWrite(err: unknown): Response {
       return jsonErr("check", 409);
     case "forbidden":
       return jsonErr("forbidden", 403);
-    case "fk":
-      return jsonErr("fk", 400);
+    case "fk": {
+      const detail =
+        typeof err === "object" &&
+        err !== null &&
+        "detail" in err &&
+        typeof (err as { detail: unknown }).detail === "string"
+          ? (err as { detail: string }).detail
+          : "";
+      return jsonErr(/is not present/i.test(detail) ? "fk-missing" : "fk", 400);
+    }
     default:
       return jsonErr("unknown", 500);
   }
@@ -563,24 +550,48 @@ export const PUT = withAdmin(async (claims, request) => {
             ? photoRaw
             : undefined;
       const maxBags = asInt(recBody.maxBags ?? recBody.luggageCapacity) ?? incoming.maxPax;
-      let vehicleClassId = incoming.vehicleClassId;
+      const classPlan = planVehicleClassWrite(
+        incoming.vehicleClassId,
+        slug,
+        book.vehicleClasses,
+      );
+      let vehicleClassId = classPlan.mode === "update" ? classPlan.id : classPlan.id ?? "";
       await asStaff(env, claims, async (tx) => {
-        if (!vehicleClassId) {
+        if (classPlan.mode === "insert") {
           if (!slug) throw new RateBookInputError("rateBook.error-class-required");
-          const created = await tx<{ id: string }[]>`
-            insert into public.vehicle_classes (
-              slug, passenger_capacity, luggage_capacity, sort_order, active, name, photo_path
-            ) values (
-              ${slug}, ${incoming.maxPax}, ${maxBags}, 0, true, ${className || slug},
-              ${photoPath ?? null}
-            )
-            returning id
-          `;
-          vehicleClassId = created[0]?.id ?? "";
+          if (classPlan.id) {
+            const created = await tx<{ id: string }[]>`
+              insert into public.vehicle_classes (
+                id, slug, passenger_capacity, luggage_capacity, sort_order, active, name, photo_path
+              ) values (
+                ${classPlan.id}, ${slug}, ${incoming.maxPax}, ${maxBags}, 0, true,
+                ${className || slug}, ${photoPath ?? null}
+              )
+              returning id
+            `;
+            vehicleClassId = created[0]?.id ?? classPlan.id;
+          } else {
+            const created = await tx<{ id: string }[]>`
+              insert into public.vehicle_classes (
+                slug, passenger_capacity, luggage_capacity, sort_order, active, name, photo_path
+              ) values (
+                ${slug}, ${incoming.maxPax}, ${maxBags}, 0, true, ${className || slug},
+                ${photoPath ?? null}
+              )
+              returning id
+            `;
+            vehicleClassId = created[0]?.id ?? "";
+          }
         } else {
+          vehicleClassId = classPlan.id;
+          const slugTaken = !!(
+            slug &&
+            book.vehicleClasses.some((row) => row.slug === slug && row.id !== vehicleClassId)
+          );
+          const nextSlug = slugTaken ? "" : slug;
           await tx`
             update public.vehicle_classes set
-              slug = coalesce(nullif(${slug}, ''), slug),
+              slug = coalesce(nullif(${nextSlug}, ''), slug),
               name = coalesce(nullif(${className}, ''), name),
               photo_path = coalesce(${photoPath ?? null}, photo_path),
               passenger_capacity = ${incoming.maxPax},
@@ -589,10 +600,7 @@ export const PUT = withAdmin(async (claims, request) => {
           `;
         }
         const parsed = assertDistanceRateInput({ ...incoming, vehicleClassId });
-        const existing =
-          id != null
-            ? book.distanceRates.find((row) => row.id === id)
-            : book.distanceRates.find((row) => row.vehicleClassId === parsed.vehicleClassId);
+        const existing = findExistingDistanceRate(book, id, parsed.vehicleClassId);
         if (existing) {
           await tx`
             update public.distance_rates set
@@ -623,9 +631,7 @@ export const PUT = withAdmin(async (claims, request) => {
       if (!next) return jsonErr("not-found", 404);
       const zones = await loadServiceZones(env, claims);
       const payload = bookPayload(next, zones);
-      const saved =
-        payload.rates.find((row) => row.vehicleClassId === vehicleClassId) ?? payload.rates[0];
-      return jsonOk(saved ?? payload);
+      return jsonOk(payload);
     }
 
     if (kind === "surcharge") {
@@ -760,6 +766,22 @@ export const PUT = withAdmin(async (claims, request) => {
       const ruleKind = ruleKindRaw.trim().toLowerCase().replace(/\s+/g, "_");
       if (!ruleKind) return jsonErr("invalid", 400);
       const payloadObj = rec(recBody.payload) ?? recBody;
+      if (ruleKind === "vat") {
+        const bps = asInt(payloadObj.vat_rate_bps ?? recBody.vat_rate_bps);
+        if (bps == null || bps < 0) return jsonErr("invalid", 400);
+        await asStaff(env, claims, async (tx) => {
+          await tx`
+            update public.rate_versions
+               set vat_rate_bps = ${bps}
+             where id = ${versionId} and status = 'draft'
+          `;
+          return null;
+        });
+        const next = await loadRateBook(env, claims, versionId);
+        if (!next) return jsonErr("not-found", 404);
+        const zones = await loadServiceZones(env, claims);
+        return jsonOk(bookPayload(next, zones));
+      }
       const payload = JSON.stringify({
         hours: payloadObj.hours ?? recBody.quoteLockHours ?? recBody.quote_lock_hours ?? null,
         ...payloadObj,
@@ -802,39 +824,13 @@ export const PUT = withAdmin(async (claims, request) => {
     }
 
     if (kind === "coupon") {
-      const code =
-        typeof recBody.code === "string" ? recBody.code.trim().toUpperCase() : "";
-      if (!code) return jsonErr("invalid", 400);
-      const couponKind = recBody.couponKind === "amount" ? "amount" : "percent";
-      const percent = couponKind === "percent" ? percentFromUnknown(recBody.percent ?? recBody.value) : null;
-      const amountRappen =
-        couponKind === "amount"
-          ? recBody.amountRappen !== undefined
-            ? rappenFromUnknown(recBody.amountRappen)
-            : rappenFromMoneySet(recBody.value ?? recBody.amount)
-          : null;
-      await asStaff(env, claims, async (tx) => {
-        if (id != null) {
-          await tx`
-            update public.coupons set
-              code = ${code},
-              kind = ${couponKind},
-              percent = ${percent},
-              amount_rappen = ${amountRappen},
-              rate_version_id = ${versionId}
-            where id = ${id}
-          `;
-        } else {
-          await tx`
-            insert into public.coupons (
-              code, kind, percent, amount_rappen, active, note, rate_version_id
-            ) values (
-              ${code}, ${couponKind}, ${percent}, ${amountRappen}, true, '', ${versionId}
-            )
-          `;
-        }
-        return null;
-      });
+      const parsed = couponInputFromDc(recBody);
+      if (id != null) {
+        const row = await updateCouponRecord(env, claims, id, parsed);
+        if (!row) return jsonErr("not-found", 404);
+      } else {
+        await insertCoupon(env, claims, parsed, versionId);
+      }
       const next = await loadRateBook(env, claims, versionId);
       if (!next) return jsonErr("not-found", 404);
       const zones = await loadServiceZones(env, claims);
@@ -1023,6 +1019,21 @@ export const DELETE = withAdmin(async (claims, request) => {
     return failWrite(err);
   }
 });
+
+function findExistingDistanceRate(
+  book: RateBook,
+  id: number | null,
+  vehicleClassId: string,
+): DistanceRateRow | undefined {
+  if (id != null) {
+    const byId = book.distanceRates.find((row) => row.id === id);
+    if (byId) return byId;
+  }
+  if (vehicleClassId) {
+    return book.distanceRates.find((row) => row.vehicleClassId === vehicleClassId);
+  }
+  return undefined;
+}
 
 function uniqueClasses(
   rows: DistanceRateRow[],
