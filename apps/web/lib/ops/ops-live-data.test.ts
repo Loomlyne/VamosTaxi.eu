@@ -3,7 +3,7 @@
 // Comment 8–10: customers from bookings, bookings board, no Support fixtures.
 // File proofs + mapper unit tests. No Hyperdrive.
 
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -12,9 +12,33 @@ import { mapTicket } from "./tickets-map";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, "../../../..");
+const webRoot = join(here, "../..");
+const SUPPORT_WRITER = join(repoRoot, "app/ops/OpsSupportTicket.dc.html");
+const SUPPORT_PUBLIC = join(webRoot, "public/app/ops/OpsSupportTicket.dc.html");
+const LANGS = ["en", "de", "fr", "ar"] as const;
 
 function read(rel: string): string {
   return readFileSync(join(repoRoot, rel), "utf8");
+}
+
+function langBlock(src: string, lang: string): string {
+  const start = src.indexOf(`\n  ${lang}: {`);
+  if (start < 0) throw new Error(`T.${lang} not found`);
+  const open = src.indexOf("{", start);
+  let end = src.length;
+  for (const other of LANGS) {
+    if (other === lang) continue;
+    const idx = src.indexOf(`\n  ${other}: {`, open);
+    if (idx > open && idx < end) end = idx;
+  }
+  const closeT = src.indexOf("\n};", open);
+  if (closeT > open && closeT < end) end = closeT;
+  return src.slice(open, end);
+}
+
+function quotedKey(block: string, key: string): string | null {
+  const match = block.match(new RegExp(`${key}\\s*:\\s*(['"])([\\s\\S]*?)\\1`));
+  return match ? match[2] : null;
 }
 
 describe("ops live data — comments 8–10", () => {
@@ -447,5 +471,41 @@ describe("ops live data — comments 8–10", () => {
     const map = read("apps/web/lib/ops/bookings-map.ts");
     expect(map).toMatch(/function mapFareLines/);
     expect(map).toMatch(/fareLines:/);
+  });
+});
+
+describe("Support overlay sendError (D-07)", () => {
+  it("T.en/de/fr/ar each define sendError distinct from loadError and overlay uses tSendError", () => {
+    expect(existsSync(SUPPORT_WRITER)).toBe(true);
+    const html = readFileSync(SUPPORT_WRITER, "utf8");
+    const en = langBlock(html, "en");
+    const sendErrorEn = "Couldn’t send. Try again.";
+    expect(
+      en.includes(`sendError:'${sendErrorEn}'`) || en.includes(`sendError:"${sendErrorEn}"`),
+      "T.en sendError",
+    ).toBe(true);
+    const sendByLang: Record<(typeof LANGS)[number], string | null> = {
+      en: quotedKey(en, "sendError"),
+      de: quotedKey(langBlock(html, "de"), "sendError"),
+      fr: quotedKey(langBlock(html, "fr"), "sendError"),
+      ar: quotedKey(langBlock(html, "ar"), "sendError"),
+    };
+    const loadByLang: Record<(typeof LANGS)[number], string | null> = {
+      en: quotedKey(langBlock(html, "en"), "loadError"),
+      de: quotedKey(langBlock(html, "de"), "loadError"),
+      fr: quotedKey(langBlock(html, "fr"), "loadError"),
+      ar: quotedKey(langBlock(html, "ar"), "loadError"),
+    };
+    for (const lang of LANGS) {
+      expect(langBlock(html, lang), `T.${lang} sendError:`).toMatch(/sendError\s*:/);
+      expect(sendByLang[lang], `T.${lang} sendError`).toBeTruthy();
+      expect(sendByLang[lang], `T.${lang} sendError !== loadError`).not.toBe(loadByLang[lang]);
+    }
+    expect(html).toMatch(/data-ov-err[^>]*>\{\{\s*tSendError\s*\}\}/);
+    expect(html).not.toMatch(/data-ov-err[^>]*>\{\{\s*tLoadError\s*\}\}/);
+    expect(html).toMatch(/tSendError/);
+    expect(read("app/vamos-i18n-dict.js")).not.toMatch(/sendError:/);
+    expect(existsSync(SUPPORT_PUBLIC)).toBe(true);
+    expect(readFileSync(SUPPORT_PUBLIC, "utf8")).toBe(html);
   });
 });

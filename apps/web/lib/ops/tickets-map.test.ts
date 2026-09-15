@@ -42,10 +42,10 @@ describe("staffPatchStatus", () => {
   });
 });
 
-describe("rejectStaffReply", () => {
-  it("rejects any reply key this slice", () => {
-    expect(rejectStaffReply({ reply: "hi" })).toBe(true);
-    expect(rejectStaffReply({ reply: "" })).toBe(true);
+describe("rejectStaffReply (D-12)", () => {
+  it("does not block a reply key so overlay PATCH { reply } can send", () => {
+    expect(rejectStaffReply({ reply: "hi" })).toBe(false);
+    expect(rejectStaffReply({ reply: "" })).toBe(false);
     expect(rejectStaffReply({ status: "open" })).toBe(false);
     expect(rejectStaffReply({})).toBe(false);
   });
