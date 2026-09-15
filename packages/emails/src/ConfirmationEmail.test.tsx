@@ -60,6 +60,12 @@ describe("ConfirmationEmail", () => {
     expect(html).not.toMatch(/\{[a-zA-Z.]+\}/);
     expect(html).toContain("VT-10001");
     expect(html).toContain("CHF 000");
+    expect(html).toContain("wordmark-email.png");
+    expect(html).toContain("#FDC20B");
+    expect(html).toContain('width="216"');
+    expect(html).toContain('height="30"');
+    expect(html).not.toMatch(/yellow-50/);
+    expect(html).not.toMatch(/#FFF8|#FEF3|#FFFBEB/);
     expect(html).toMatchSnapshot();
   });
 
