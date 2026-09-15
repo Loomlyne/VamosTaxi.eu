@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 13-01-PLAN.md
-last_updated: "2026-09-15T13:48:55.671Z"
+stopped_at: Completed 13-02-PLAN.md
+last_updated: "2026-09-15T14:03:33.540Z"
 last_activity: 2026-09-15
 progress:
   total_phases: 19
   completed_phases: 10
   total_plans: 175
-  completed_plans: 160
+  completed_plans: 161
   percent: 53
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-09-15 after Phase 18)
 ## Current Position
 
 Phase: 13 (Staff APIs + outbound Resend replies) — EXECUTING
-Plan: 2 of 10
+Plan: 3 of 10
 Status: Ready to execute
 Last activity: 2026-09-15
 
@@ -42,8 +42,8 @@ Stripe live keys and Search Console stay owner-gated. Agent does not click Publi
 
 ## Session Continuity
 
-Last session: 2026-09-15T13:48:35.927Z
-Stopped at: Completed 13-01-PLAN.md
+Last session: 2026-09-15T14:03:03.705Z
+Stopped at: Completed 13-02-PLAN.md
 Resume: `$gsd-execute-phase 13`
 
 ## Decisions
@@ -63,9 +63,11 @@ Restart 2026-09-14 **supersedes** 2026-09-13 D-01…D-40. Full text: `.planning/
 - [Phase 18]: Worker `vamos`, no `.eu` bind, no `sk_live_`. New SQL is owner-apply. First public CHF remains owner Publish. Deploy does not flip `public_chf`.
 - [Phase 18]: Closed 2026-09-15 — 18-UAT 7/7 pass, 18-VERIFICATION passed. Agent did not Publish.
 - [Phase 13]: Wave 0 web tests lock GET RFC identity, BCC info@, fail-closed send, unminted Message-ID, overlay sendError. From stays noreply; Reply-To is plus-address. GREEN is 13-03/13-07/13-09. — CONTEXT D-01 to D-12. Tests-only plan; production send files not edited.
+- [Phase 13]: Wave 0 emails tests lock staff-reply name/booking_ref/Re:/no WhatsApp, Confirmation wordmark PNG, auth no-Arial, skip-send missing-copy. GREEN is 13-04/13-05. Tests-only; production chrome/contact/layout/send not edited. — CONTEXT D-02 D-03 D-04. StaffReplyEmailData stays { reply } until 13-05; extra keys via type assertion. claimThenSend skip-send must be ok false missing-copy, not ok true skipped.
 
 ## Performance Metrics
 
 | Phase | Plan | Duration | Notes |
 |-------|------|----------|-------|
 | Phase 13 P01 | 10min | 3 tasks | 5 files |
+| Phase 13 P02 | 8min | 3 tasks | 4 files |
