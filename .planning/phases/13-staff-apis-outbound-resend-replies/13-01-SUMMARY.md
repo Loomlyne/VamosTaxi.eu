@@ -129,9 +129,9 @@ None.
 
 None - no external service configuration required.
 
-## Verification
+## Automated suite
 
-Plan-level `vitest run` of the five files: **10 failed | 40 passed** (50). Failures are the intended RED contracts until 13-03 / 13-07 / 13-09. No production send/DC files in the 13-01 commits. Unrelated dirty files (`app/home/home.dc.html`, `apps/web/lib/pricing/home-fleet-from-quote.test.ts`) were left untouched.
+Plan-level `vitest run` of the five files: **10 red | 40 passed** (50). Those red cases are the intended Wave 0 contracts until 13-03 / 13-07 / 13-09. No production send/DC files in the 13-01 commits. Unrelated dirty files (`app/home/home.dc.html`, `apps/web/lib/pricing/home-fleet-from-quote.test.ts`) were left untouched.
 
 ## Next Phase Readiness
 
