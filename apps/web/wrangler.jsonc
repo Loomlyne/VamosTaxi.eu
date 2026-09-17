@@ -49,7 +49,8 @@
         { "binding": "QUOTE_ABUSE", "id": "5080f3d518c24eaeb7b0590c922349c2" }
       ],
       "r2_buckets": [
-        { "binding": "PHOTOS", "bucket_name": "vamos-photos-staging" }
+        { "binding": "PHOTOS", "bucket_name": "vamos-photos-staging" },
+        { "binding": "SUPPORT_FILES", "bucket_name": "vamos-support-staging" }
       ],
       "placement": { "region": "aws:eu-central-2" },
       "analytics_engine_datasets": [
@@ -124,7 +125,8 @@
         }
       ],
       "r2_buckets": [
-        { "binding": "PHOTOS", "bucket_name": "vamos-photos-staging" }
+        { "binding": "PHOTOS", "bucket_name": "vamos-photos-staging" },
+        { "binding": "SUPPORT_FILES", "bucket_name": "vamos-support-staging" }
       ],
       "queues": {
         "producers": [
@@ -236,7 +238,8 @@
         { "binding": "QUOTE_ABUSE", "id": "5080f3d518c24eaeb7b0590c922349c2" }
       ],
       "r2_buckets": [
-        { "binding": "PHOTOS", "bucket_name": "vamos-photos-staging" }
+        { "binding": "PHOTOS", "bucket_name": "vamos-photos-staging" },
+        { "binding": "SUPPORT_FILES", "bucket_name": "vamos-support-staging" }
       ],
       "placement": { "region": "aws:eu-central-2" },
       "analytics_engine_datasets": [
