@@ -7,12 +7,22 @@ type TicketStatus = "new" | "open" | "replied" | "responded" | "closed";
 
 export const REPLY_MAILBOX_HOST = "replies.vamostaxi.site";
 export const CONTACT_FROM = "Vamos Taxi <noreply@vamostaxi.site>";
+/** Owner flips true only after Resend verifies replies.vamostaxi.site as a sending domain (D-09). */
+export const REPLIES_DOMAIN_VERIFIED = false;
 
 const TOKEN = /^[0-9a-f]{32}$/;
 const ANGLE = /^<[^>]+>$/;
 
 export function ticketReplyAddress(token: string): string {
   return `ticket+${token}@${REPLY_MAILBOX_HOST}`;
+}
+
+export function staffSender(token: string): { from: string; replyTo: string } {
+  const plus = ticketReplyAddress(token);
+  if (REPLIES_DOMAIN_VERIFIED) {
+    return { from: `Vamos Taxi <${plus}>`, replyTo: plus };
+  }
+  return { from: CONTACT_FROM, replyTo: plus };
 }
 
 export function contactMessageId(submissionId: string): string {
@@ -74,13 +84,13 @@ export function inboundTicketStatus(_current: TicketStatus): TicketStatus {
   return "responded";
 }
 
-export function threadHeaders(inReplyTo: string, outboundId: string): Record<string, string> {
+export function threadHeaders(inReplyTo: string, priorIds: string | string[] = []): Record<string, string> {
   const parent = asRfcMessageId(inReplyTo);
-  const child = staffMessageId(outboundId);
+  const extras = Array.isArray(priorIds) ? priorIds.map(asRfcMessageId).filter(Boolean) : [];
+  const refs = [parent, ...extras].filter((id, i, all) => id && all.indexOf(id) === i);
   return {
-    "Message-ID": child,
     "In-Reply-To": parent,
-    References: `${parent} ${child}`,
+    References: refs.join(" "),
   };
 }
 
