@@ -70,6 +70,72 @@ export function tokenFromInboundTo(to: unknown): string | null {
   return null;
 }
 
+export function tokenFromInboundTargets(to: unknown, receivedFor?: unknown): string | null {
+  return tokenFromInboundTo(to) ?? tokenFromInboundTo(receivedFor);
+}
+
+function headerRecord(headers: unknown): Record<string, string> {
+  if (!headers || typeof headers !== "object" || Array.isArray(headers)) return {};
+  const out: Record<string, string> = {};
+  for (const [key, value] of Object.entries(headers as Record<string, unknown>)) {
+    const name = key.toLowerCase();
+    if (typeof value === "string") out[name] = value;
+    else if (Array.isArray(value)) out[name] = value.map((item) => String(item)).join(" ");
+  }
+  return out;
+}
+
+function splitRfcIds(raw: string): string[] {
+  return raw
+    .split(/\s+/)
+    .map((part) => asRfcMessageId(part))
+    .filter((id) => id.length > 0);
+}
+
+export function parseInboundHeaders(headers: unknown): {
+  inReplyTo: string[];
+  references: string[];
+  messageId: string;
+} {
+  const map = headerRecord(headers);
+  return {
+    inReplyTo: splitRfcIds(map["in-reply-to"] ?? ""),
+    references: splitRfcIds(map["references"] ?? ""),
+    messageId: asRfcMessageId(map["message-id"] ?? ""),
+  };
+}
+
+function cutAtQuotedBlock(raw: string): number {
+  const lines = raw.split("\n");
+  let seenParagraph = false;
+  let blankAfterParagraph = false;
+  let offset = 0;
+  for (const line of lines) {
+    if (seenParagraph && blankAfterParagraph && line.startsWith(">")) return offset;
+    if (line.trim() === "") {
+      blankAfterParagraph = seenParagraph;
+    } else {
+      if (!line.startsWith(">")) seenParagraph = true;
+      blankAfterParagraph = false;
+    }
+    offset += line.length + 1;
+  }
+  return -1;
+}
+
+export function stripQuotedHistory(text: string): string {
+  const raw = String(text ?? "").replace(/\r\n/g, "\n");
+  let cut = -1;
+  const onWrote = raw.search(/^On .+ wrote:$/m);
+  const original = raw.search(/^-----Original Message-----/m);
+  if (onWrote >= 0) cut = onWrote;
+  if (original >= 0 && (cut < 0 || original < cut)) cut = original;
+  const quoted = cutAtQuotedBlock(raw);
+  if (quoted >= 0 && (cut < 0 || quoted < cut)) cut = quoted;
+  const kept = cut >= 0 ? raw.slice(0, cut) : raw;
+  return clipInboundBody(kept);
+}
+
 export function inboundTicketStatus(_current: TicketStatus): TicketStatus {
   return "responded";
 }
@@ -96,6 +162,10 @@ export type InboundPayload = {
   text?: string;
   html?: string;
   subject?: string;
+  receivedFor?: unknown;
+  messageId?: string;
+  headers?: unknown;
+  attachments?: unknown;
 };
 
 function htmlToText(html: string): string {
@@ -111,10 +181,10 @@ function htmlToText(html: string): string {
 
 export function inboundBody(payload: InboundPayload): string {
   const text = payload.text?.trim() ?? "";
-  if (text) return clipInboundBody(text);
+  if (text) return stripQuotedHistory(text);
   const html = payload.html?.trim() ?? "";
-  if (html) return clipInboundBody(htmlToText(html));
-  return clipInboundBody(payload.subject ?? "");
+  if (html) return stripQuotedHistory(htmlToText(html));
+  return stripQuotedHistory(payload.subject ?? "");
 }
 
 export function inboundFromAddress(raw: string | undefined): string {
@@ -128,7 +198,9 @@ export function readInboundPayload(data: unknown): InboundPayload | null {
   const record = data as Record<string, unknown>;
   const emailId = String(record.email_id ?? record.id ?? "").trim();
   if (!emailId) return null;
-  return {
+  const receivedFor = record.received_for ?? record.receivedFor;
+  const messageIdRaw = record.message_id ?? record.messageId;
+  const payload: InboundPayload = {
     emailId,
     to: record.to,
     from: typeof record.from === "string" ? record.from : undefined,
@@ -136,4 +208,11 @@ export function readInboundPayload(data: unknown): InboundPayload | null {
     html: typeof record.html === "string" ? record.html : undefined,
     subject: typeof record.subject === "string" ? record.subject : undefined,
   };
+  if (receivedFor !== undefined) payload.receivedFor = receivedFor;
+  if (typeof messageIdRaw === "string" && messageIdRaw.trim()) {
+    payload.messageId = messageIdRaw;
+  }
+  if (record.headers !== undefined) payload.headers = record.headers;
+  if (record.attachments !== undefined) payload.attachments = record.attachments;
+  return payload;
 }
