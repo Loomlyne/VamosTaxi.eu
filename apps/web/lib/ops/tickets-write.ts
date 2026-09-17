@@ -138,6 +138,7 @@ export async function patchTicket(
   if (!to || !loaded.replyToken) return { ok: false, reason: "send-failed" };
 
   const outboundId = crypto.randomUUID();
+  // Overlay retry of send-without-insert can duplicate (Pitfall 5); key is per-attempt UUID on purpose.
   const sender = staffSender(loaded.replyToken);
   const headers = threadHeaders(loaded.parentId, loaded.chain);
   const locale = asEmailLocale(loaded.locale);
@@ -162,9 +163,19 @@ export async function patchTicket(
       replyTo: sender.replyTo,
       bcc: SUPPORT_EMAIL,
       allowEmailFallback: false,
+      from: sender.from,
     },
   );
-  if (!sent.accepted || !sent.providerId) return { ok: false, reason: "send-failed" };
+  const rfcMessageId = sent.rfcMessageId ?? "";
+  if (
+    !sent.accepted ||
+    !sent.providerId ||
+    !sent.rfcMessageId ||
+    sent.rfcMessageId === sent.providerId ||
+    !/^<.+@.+>$/.test(rfcMessageId)
+  ) {
+    return { ok: false, reason: "send-failed" };
+  }
 
   return asStaff(env, claims, async (sql) => {
     await sql`
@@ -185,7 +196,7 @@ export async function patchTicket(
         ${FROM_ADDRESS},
         ${reply},
         ${sent.providerId},
-        ${sent.rfcMessageId ?? null}
+        ${sent.rfcMessageId}
       )
     `;
     return { ok: true as const, status: "replied" as const };
