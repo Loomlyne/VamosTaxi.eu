@@ -19,15 +19,16 @@ import {
 import type { EmailLocale } from "./lib/types";
 import { t } from "./lib/t";
 import { formatPickup } from "./PayLinkEmail";
-
-const CHARCOAL = "#1E1F1F";
-const GREY = "#DEDEDE";
-const MUTED = "#545756";
-const YELLOW = "#FDC20B";
-const WHITE = "#FFFFFF";
-const DISPLAY_FONT = "Qurova, Poppins, system-ui, sans-serif";
-const BODY_FONT = 'Poppins, system-ui, -apple-system, "Segoe UI", sans-serif';
-const LOGO = "https://vamostaxi.site/brand/logo/wordmark-email.png";
+import {
+  BODY_FONT,
+  CHARCOAL,
+  DISPLAY_FONT,
+  GREY,
+  LOGO,
+  MUTED,
+  WHITE,
+  YELLOW,
+} from "./chrome";
 
 const kicker = {
   margin: 0,
