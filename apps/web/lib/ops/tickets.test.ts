@@ -6,6 +6,7 @@ const asStaff = vi.fn();
 vi.mock("@/lib/db/identity", () => ({
   asStaff: (...args: unknown[]) => asStaff(...args),
 }));
+vi.mock("@/lib/ops/tickets-map", async () => import("./tickets-map"));
 
 import { loadTickets } from "./tickets";
 
