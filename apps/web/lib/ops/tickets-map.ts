@@ -27,8 +27,8 @@ export function staffPatchStatus(current: TicketStatus, requested: TicketStatus)
   return null;
 }
 
-export function rejectStaffReply(input: object | null | undefined): boolean {
-  return Boolean(input && Object.prototype.hasOwnProperty.call(input, "reply"));
+export function rejectStaffReply(_input: object | null | undefined): boolean {
+  return false;
 }
 
 export type OpsTicketMessage = {
