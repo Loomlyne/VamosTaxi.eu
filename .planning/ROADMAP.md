@@ -580,7 +580,7 @@ Cloudflare `EMAIL`.
   4. Contact ack stays Cloudflare `EMAIL`. Ticket replies are Resend only.
   5. Must-nots: no `POST /api/quote`, no Staff tab, no live DNS, no `env.production`, no push `main`, funnel Phases 7–11 frozen.
 
-**Plans:** 9/10 plans executed
+**Plans:** 10/10 plans executed
 
 Plans:
 **Wave 1**
@@ -609,7 +609,7 @@ Plans:
 
 **Wave 6** *(blocked on Wave 5)*
 
-- [ ] 13-10-PLAN.md — Must-not greps + live Gmail/BCC human-check
+- [x] 13-10-PLAN.md — Must-not greps + live Gmail/BCC human-check
 
 ### Phase 14: Inbound webhook
 
@@ -743,7 +743,7 @@ v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16 → 17
 | 10. Hardening — Performance, Security & Compliance | 10/10 | Complete    | 2026-09-12 |
 | 11. Launch Cutover | 11/12 | Complete | 2026-09-13 |
 | 12. Ticket schema + #support mock | 3/3 | Complete    | 2026-09-11 |
-| 13. Staff APIs + outbound Resend replies | 9/10 | In Progress|  |
+| 13. Staff APIs + outbound Resend replies | 10/10 | In Progress|  |
 | 14. Inbound webhook | 0/TBD | Not started | - |
 | 15. Wire Ops #support to APIs | 0/TBD | Not started | - |
 | 16. Staging MX + end-to-end UAT | 0/TBD | Not started | - |
