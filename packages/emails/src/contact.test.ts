@@ -44,7 +44,7 @@ describe("contact email renderers (D-02 D-04)", () => {
         reply: `Line one\n${unsafe}`,
         name: `Ada${unsafe}`,
         bookingRef: `VT-10001${unsafe}`,
-      } as { reply: string });
+      });
       expect(rendered.html).toContain("wordmark-email.png");
       expect(rendered.html).toContain("Qurova");
       expect(rendered.html).toContain("Ada");
@@ -66,7 +66,7 @@ describe("contact email renderers (D-02 D-04)", () => {
         reply: "Line one",
         name: "Ada",
         bookingRef: "",
-      } as { reply: string });
+      });
       expect(rendered.html).not.toContain("VT-10001");
       expect(rendered.html).not.toMatch(/VT-/);
     });
