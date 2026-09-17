@@ -23,24 +23,19 @@ import {
 import type { EmailLocale, PayLinkExtraCode, PayLinkForEmail } from "./lib/types";
 import { t } from "./lib/t";
 import { formatPaidTotal } from "./ConfirmationEmail";
-
-/** --vt-charcoal / --vt-charcoal-900 */
-const CHARCOAL = "#1E1F1F";
-/** --vt-grey / --vt-grey-200 — page */
-const GREY = "#DEDEDE";
-/** --vt-charcoal-600 */
-const MUTED = "#545756";
-/** --vt-yellow / --vt-yellow-400 */
-const YELLOW = "#FDC20B";
-/** --vt-white */
-const WHITE = "#FFFFFF";
-
-const DISPLAY_FONT = "Qurova, Poppins, system-ui, sans-serif";
-const BODY_FONT = 'Poppins, system-ui, -apple-system, "Segoe UI", sans-serif';
+import {
+  BODY_FONT,
+  CHARCOAL,
+  DISPLAY_FONT,
+  GREY,
+  LOGO,
+  MUTED,
+  WHITE,
+  YELLOW,
+} from "./chrome";
 
 const WHATSAPP_HREF = "https://wa.me/41796267082";
 const LOCK_HOURS = 24;
-const LOGO = "https://vamostaxi.site/brand/logo/wordmark-email.png";
 
 const VEHICLE_KEY: Record<string, string> = {
   economy: "payLink.vehicleEconomy",
