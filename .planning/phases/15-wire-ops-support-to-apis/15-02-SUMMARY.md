@@ -52,12 +52,18 @@ completed: 2026-09-18
 - `mapTicket` attaches `files[]` by message id; unknown ids ignored.
 - `loadTickets` selects `m.id` and optional `support_message_files`; 42P01 swallowed.
 
+## Task Commits
+
+1. **Tasks 1–2: map + optional files query** — `965333a`
+2. **tickets.test.ts @/ mock so loadTickets vitest runs** — `eaabba8`
+3. **Plan metadata:** 15-02-SUMMARY.md (this file)
+
 ## Files Created/Modified
 
-- `apps/web/lib/ops/tickets-map.ts`
-- `apps/web/lib/ops/tickets-map.test.ts`
-- `apps/web/lib/ops/tickets.ts`
-- `apps/web/lib/ops/tickets.test.ts`
+- `apps/web/lib/ops/tickets-map.ts` — optional `files[]` on messages
+- `apps/web/lib/ops/tickets-map.test.ts` — text body + files-by-id
+- `apps/web/lib/ops/tickets.ts` — `support_message_files` select; 42P01 → []
+- `apps/web/lib/ops/tickets.test.ts` — missing-table stub; relative tickets-map mock
 
 ## Decisions Made
 
