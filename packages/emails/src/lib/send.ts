@@ -120,6 +120,11 @@ function uniqueEmails(to: string | string[]): string[] {
   return [...new Set(list.map((addr) => addr.trim().toLowerCase()).filter(Boolean))];
 }
 
+/** True when t() left a `{key}` sentinel in subject or text. */
+export function hasCopySentinel(text: string): boolean {
+  return /\{[A-Za-z][A-Za-z0-9._-]*\}/.test(text);
+}
+
 async function sendReactMail(
   env: EmailEnv,
   to: string | string[],
@@ -135,6 +140,9 @@ async function sendReactMail(
     const unique = uniqueEmails(to);
     if (unique.length === 0) {
       return { ok: false, error: `no ${failLabel} recipients` };
+    }
+    if (hasCopySentinel(subject) || hasCopySentinel(text)) {
+      return { ok: false, error: "missing-copy" };
     }
     const resend = new Resend(env.RESEND_API_KEY);
     const result = await resend.emails.send({
@@ -167,6 +175,9 @@ export async function sendConfirmation(
       return { ok: false, error: "RESEND_API_KEY is not bound" };
     }
     const { text, subject } = await renderConfirmation(booking);
+    if (hasCopySentinel(subject) || hasCopySentinel(text)) {
+      return { ok: false, error: "missing-copy" };
+    }
     const invite = buildInvite(booking);
     const resend = new Resend(env.RESEND_API_KEY);
     const result = await resend.emails.send({
@@ -300,6 +311,9 @@ export async function sendRefund(
       name: input.name,
       reference: input.reference,
     });
+    if (hasCopySentinel(rendered.subject) || hasCopySentinel(rendered.text)) {
+      return { ok: false, error: "missing-copy" };
+    }
     const resend = new Resend(env.RESEND_API_KEY);
     const result = await resend.emails.send({
       from: FROM,
@@ -336,20 +350,23 @@ async function sendChauffeurDispatch(
     if (!recipient) {
       return { ok: false, error: "no chauffeur recipient" };
     }
+    const subject =
+      kind === "unassign" ? chauffeurUnassignSubject(trip) : chauffeurAssignSubject(trip);
+    const text =
+      kind === "unassign" ? chauffeurUnassignPlainText(trip) : chauffeurAssignPlainText(trip);
+    if (hasCopySentinel(subject) || hasCopySentinel(text)) {
+      return { ok: false, error: "missing-copy" };
+    }
     const resend = new Resend(env.RESEND_API_KEY);
     const result = await resend.emails.send({
       from: FROM,
       to: recipient,
-      subject:
-        kind === "unassign" ? chauffeurUnassignSubject(trip) : chauffeurAssignSubject(trip),
+      subject,
       react:
         kind === "unassign"
           ? ChauffeurUnassignEmail({ trip })
           : ChauffeurAssignEmail({ trip }),
-      text:
-        kind === "unassign"
-          ? chauffeurUnassignPlainText(trip)
-          : chauffeurAssignPlainText(trip),
+      text,
     });
     if (result.error) {
       return { ok: false, error: result.error.message };
