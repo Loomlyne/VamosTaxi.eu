@@ -21,15 +21,31 @@ import {
 import type { EmailLocale } from "./types";
 import { t } from "./t";
 import { formatPickup } from "../PayLinkEmail";
+import {
+  BODY_FONT,
+  CHARCOAL,
+  DISPLAY_FONT,
+  GREY,
+  LOGO,
+  LOGO_HEIGHT,
+  LOGO_WIDTH,
+  MUTED,
+  WHITE,
+  YELLOW,
+} from "../chrome";
 
-export const CHARCOAL = "#1E1F1F";
-export const GREY = "#DEDEDE";
-export const MUTED = "#545756";
-export const YELLOW = "#FDC20B";
-export const WHITE = "#FFFFFF";
-export const DISPLAY_FONT = "Qurova, Poppins, system-ui, sans-serif";
-export const BODY_FONT = 'Poppins, system-ui, -apple-system, "Segoe UI", sans-serif';
-export const LOGO = "https://vamostaxi.site/brand/logo/wordmark-email.png";
+export {
+  BODY_FONT,
+  CHARCOAL,
+  DISPLAY_FONT,
+  GREY,
+  LOGO,
+  LOGO_HEIGHT,
+  LOGO_WIDTH,
+  MUTED,
+  WHITE,
+  YELLOW,
+};
 
 export const kicker = {
   margin: 0,
