@@ -65,6 +65,7 @@
 [data-msg][data-from="note"]{align-self:center;max-width:100%;background:transparent;border-style:dashed;border-width:1px;color:var(--vt-text-muted);font-size:var(--vt-body-xs);text-align:center}
 [data-msg][data-from="staff"] [data-chip]{background:transparent;border-color:rgb(255 255 255 / .28);color:var(--vt-text-inverse)}
 [data-msg] p{white-space:pre-wrap}
+[data-msg] [data-file]{display:block;max-inline-size:100%;object-fit:contain;margin-block-start:8px}
 [data-toolbar]{display:flex;flex-wrap:nowrap;align-items:center;gap:8px;min-width:0}
 [data-filters-btn]{display:block;flex:0 0 auto}
 [data-filters-tags]{display:none}
@@ -202,6 +203,14 @@
 <span style="font-size:var(--vt-body-xs);opacity:.72">{{ m.when }}</span>
 </div>
 <p data-vt-no-i18n="1" style="margin:0;font-size:var(--vt-body-sm);line-height:1.55;text-wrap:pretty">{{ m.body }}</p>
+<sc-for list="{{ m.files }}" as="f" hint-placeholder-count="0">
+<sc-if value="{{ f.showImg }}" hint-placeholder-val="{{ false }}">
+<img data-file="1" src="{{ f.href }}" alt="{{ f.filename }}" />
+</sc-if>
+<sc-if value="{{ f.showLink }}" hint-placeholder-val="{{ false }}">
+<a data-file="1" href="{{ f.href }}">{{ f.filename }}</a>
+</sc-if>
+</sc-for>
 </div>
 </sc-for>
 </div>
@@ -315,7 +324,7 @@ const T = {
     booking:'Booking', bookingPh:'VT-0000', noBooking:'No booking linked', msgs:'Messages', mail:'Email', call:'Call', whatsApp:'WhatsApp',
     phone:'Phone', phonePh:'+41 79 000 00 00', note:'Note', notePh:'Add a detail…',
     searchPh:'Name, email, ref, or message', filter:'Filter', view:'View',
-    expand:'Expand', collapse:'Collapse', saveNote:'Save note' },
+    expand:'Expand', collapse:'Collapse', saveNote:'Save' },
   de: { title:'Support', subtitle:'Kontaktnachrichten als Tickets',
     all:'Alle', new:'Neu', open:'Offen', replied:'Beantwortet', responded:'Kundenantwort', closed:'Geschlossen',
     emptyTitle:'Keine Tickets', emptyBody:'Nichts in diesem Filter.', colEmpty:'Keine Tickets',
@@ -330,7 +339,7 @@ const T = {
     booking:'Buchung', bookingPh:'VT-0000', noBooking:'Keine Buchung verknüpft', msgs:'Nachrichten', mail:'E-Mail', call:'Anrufen', whatsApp:'WhatsApp',
     phone:'Telefon', phonePh:'+41 79 000 00 00', note:'Notiz', notePh:'Detail hinzufügen…',
     searchPh:'Name, E-Mail, Ref. oder Nachricht', filter:'Filter', view:'Ansicht',
-    expand:'Aufklappen', collapse:'Zuklappen', saveNote:'Notiz speichern' },
+    expand:'Aufklappen', collapse:'Zuklappen', saveNote:'Speichern' },
   fr: { title:'Assistance', subtitle:'Messages de contact, en tickets',
     all:'Tous', new:'Nouveau', open:'Ouvert', replied:'Répondu', responded:'Réponse client', closed:'Fermé',
     emptyTitle:'Aucun ticket', emptyBody:'Rien dans ce filtre.', colEmpty:'Aucun ticket',
@@ -345,7 +354,7 @@ const T = {
     booking:'Réservation', bookingPh:'VT-0000', noBooking:'Aucune réservation liée', msgs:'Messages', mail:'E-mail', call:'Appeler', whatsApp:'WhatsApp',
     phone:'Téléphone', phonePh:'+41 79 000 00 00', note:'Note', notePh:'Ajouter un détail…',
     searchPh:'Nom, e-mail, réf. ou message', filter:'Filtrer',
-    expand:'Déplier', collapse:'Replier', saveNote:'Enregistrer la note', view:'Vue' },
+    expand:'Déplier', collapse:'Replier', saveNote:'Enregistrer', view:'Vue' },
   ar: { title:'الدعم', subtitle:'رسائل التواصل كتذاكر',
     all:'الكل', new:'جديد', open:'مفتوح', replied:'تم الرد', responded:'رد العميل', closed:'مغلق',
     emptyTitle:'لا تذاكر', emptyBody:'لا شيء في هذا التصفية.', colEmpty:'لا تذاكر',
@@ -360,14 +369,16 @@ const T = {
     booking:'الحجز', bookingPh:'VT-0000', noBooking:'لا حجز مرتبط', msgs:'رسائل', mail:'بريد', call:'اتصال', whatsApp:'واتساب',
     phone:'الهاتف', phonePh:'+41 79 000 00 00', note:'ملاحظة', notePh:'أضف تفصيلاً…',
     searchPh:'الاسم أو البريد أو المرجع أو الرسالة', filter:'تصفية',
-    expand:'توسيع', collapse:'طي', saveNote:'حفظ الملاحظة', view:'عرض' },
+    expand:'توسيع', collapse:'طي', saveNote:'حفظ', view:'عرض' },
 };
 function cloneTickets(rows) {
   const src = Array.isArray(rows) ? rows : [];
   return src.map((t) => ({
     id: t.id, ticketId: t.ticketId, status: t.status, name: t.name, email: t.email, phone: t.phone,
     bookingRef: t.bookingRef, locale: t.locale, when: t.when, last: t.last, note: t.note || '',
-    messages: (t.messages || []).map((m) => ({ whoKey: m.whoKey, when: m.when, body: m.body })),
+    messages: (t.messages || []).map((m) => ({
+      whoKey: m.whoKey, when: m.when, body: m.body, files: Array.isArray(m.files) ? m.files.slice() : [],
+    })),
   }));
 }
 function stamp() {
@@ -405,8 +416,26 @@ function ticketHay(row) {
   (row.messages || []).forEach((m) => { parts.push(m.body); });
   return parts.join(' ').toLowerCase();
 }
+function fileItems(ticketId, files) {
+  const list = Array.isArray(files) ? files : [];
+  const out = [];
+  for (let i = 0; i < list.length; i++) {
+    const f = list[i];
+    if (!f || f.kept === false || !f.id) continue;
+    const href = '/api/staff/tickets/' + ticketId + '/files/' + f.id;
+    const isImage = String(f.contentType || '').indexOf('image/') === 0;
+    out.push({
+      id: f.id,
+      filename: f.filename || '',
+      href: href,
+      showImg: isImage,
+      showLink: !isImage,
+    });
+  }
+  return out;
+}
 function publishBadge(tickets) {
-  const n = tickets.filter((row) => row.status === 'new').length;
+  const n = tickets.filter((row) => row.status === 'new' || row.status === 'responded').length;
   window.__vamosSupportNew = n;
   window.dispatchEvent(new CustomEvent('vamos:support-badge', { detail: { newCount: n } }));
 }
@@ -444,12 +473,19 @@ class Component extends DCLogic {
         return;
       }
       const tickets = cloneTickets(json.data);
-      this.setState({ tickets: tickets, loadError: false }, () => publishBadge(tickets));
+      this.setState({ tickets: tickets, loadError: false }, () => {
+        publishBadge(tickets);
+        if (this.state.openId) requestAnimationFrame(() => this.scrollThread());
+      });
     }, () => this.setState({ loadError: true }));
   };
   componentDidMount() {
     this._onLocale = (e) => this.setState({ lang: e.detail.lang });
+    this._onFocus = () => this.hydrate();
+    this._onVis = () => { if (document.visibilityState === 'visible') this.hydrate(); };
     window.addEventListener('vamos:locale', this._onLocale);
+    window.addEventListener('focus', this._onFocus);
+    document.addEventListener('visibilitychange', this._onVis);
     if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() });
     if (opsPhone() && this.state.view === 'kanban') this.setState({ view: 'table' });
     this.hydrate();
@@ -457,6 +493,8 @@ class Component extends DCLogic {
   }
   componentWillUnmount() {
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
+    if (this._onFocus) window.removeEventListener('focus', this._onFocus);
+    if (this._onVis) document.removeEventListener('visibilitychange', this._onVis);
     clearTimeout(this._retry);
   }
   setFilter = (key) => this.setState({ filter: key || 'all', filterOpen: false });
@@ -484,19 +522,11 @@ class Component extends DCLogic {
     const id = this.state.openId;
     if (!id) return;
     const row = this.state.tickets.find((t) => t.id === id);
-    const body = String(row && row.note ? row.note : '').trim();
-    if (!body) return;
-    const now = stamp();
-    const tickets = this.state.tickets.map((t) => {
-      if (t.id !== id) return t;
-      return Object.assign({}, t, {
-        note: '',
-        last: now,
-        messages: t.messages.concat([{ whoKey: 'note', when: now, body: body }]),
-      });
-    });
-    this.setState({ tickets: tickets }, () => {
-      requestAnimationFrame(() => this.scrollThread());
+    if (!row) return;
+    this.persistTicket(id, {
+      phone: row.phone || '',
+      booking_ref: row.bookingRef || '',
+      note: String(row.note || '').trim(),
     });
   };
   persistTicket = (id, payload, onFail) => {
@@ -635,7 +665,7 @@ class Component extends DCLogic {
       tSaveNote: t.saveNote, metaOpenAttr: opsHand() ? (this.state.metaOpen ? '1' : '0') : '1',
       showMetaToggle: opsHand(),
       metaToggleLabel: this.state.metaOpen ? t.collapse : t.expand, toggleMeta: this.toggleMeta,
-      noteOff: !(open && String(open.note || '').trim()), saveNote: this.saveNote,
+      noteOff: !open || !!this.state.sending, saveNote: this.saveNote,
       filter: filter, filterOptions: filterOptions, setFilter: this.setFilter,
       query: this.state.query || '', setQuery: this.setQuery,
       loadError: !!this.state.loadError,
@@ -702,6 +732,7 @@ class Component extends DCLogic {
       sendOff: !!this.state.sending || !(this.state.draft && String(this.state.draft).trim()) || !!(open && open.status === 'closed'),
       thread: open ? open.messages.map((m) => ({
         from: m.whoKey, who: whoLabel[m.whoKey] || m.whoKey, when: m.when, body: m.body,
+        files: fileItems(open.id, m.files),
       })) : [],
     };
   }
