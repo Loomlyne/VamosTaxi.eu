@@ -12,6 +12,7 @@ import {
   tokenFromInboundTargets,
   type InboundPayload,
 } from "./ticket-mail";
+import { storeInboundFiles } from "./ticket-inbound-files";
 import type { TicketStatus } from "./tickets-map";
 
 export type { InboundPayload };
@@ -93,7 +94,7 @@ export async function ingestInboundEmail(
       if (inserted.length === 0) return "ok";
 
       const next = inboundTicketStatus(asStatus(ticket.ticket_status));
-      await sql`
+      const insertedMsg = await sql<{ id: string }[]>`
         insert into public.support_messages (
           submission_id, direction, from_address, body_text, rfc_message_id, resend_email_id
         )
@@ -105,7 +106,24 @@ export async function ingestInboundEmail(
           ${inboundRfc || null},
           ${payload.emailId}
         )
+        returning id
       `;
+      const messageId = insertedMsg[0]?.id;
+      if (messageId) {
+        const nextBody = await storeInboundFiles(env, payload.attachments, {
+          sql,
+          submissionId: ticket.id,
+          messageId,
+          bodyText: body,
+        });
+        if (nextBody !== body) {
+          await sql`
+            update public.support_messages
+            set body_text = ${nextBody}
+            where id = ${messageId}::uuid
+          `;
+        }
+      }
       await sql`
         update public.contact_submissions
         set
