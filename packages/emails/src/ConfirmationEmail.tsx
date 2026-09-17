@@ -11,6 +11,7 @@ import {
   Head,
   Hr,
   Html,
+  Img,
   Preview,
   Row,
   Section,
@@ -18,20 +19,16 @@ import {
 } from "@react-email/components";
 import type { BookingForEmail, EmailLocale, PayLinkExtraCode } from "./lib/types";
 import { t } from "./lib/t";
-
-/** --vt-charcoal / --vt-charcoal-900 */
-const CHARCOAL = "#1E1F1F";
-/** --vt-grey / --vt-grey-200 */
-const GREY = "#DEDEDE";
-/** --vt-yellow / --vt-yellow-400 — button fill only */
-const YELLOW = "#FDC20B";
-/** --vt-white */
-const WHITE = "#FFFFFF";
-/** --vt-charcoal-600 */
-const MUTED = "#545756";
-
-const DISPLAY_FONT = 'Qurova, Poppins, system-ui, sans-serif';
-const BODY_FONT = 'Poppins, system-ui, -apple-system, "Segoe UI", sans-serif';
+import {
+  BODY_FONT,
+  CHARCOAL,
+  DISPLAY_FONT,
+  GREY,
+  LOGO,
+  MUTED,
+  WHITE,
+  YELLOW,
+} from "./chrome";
 
 const DISPATCH_PHONE = "+41 79 626 70 82";
 
@@ -84,9 +81,13 @@ export function ConfirmationEmail({ booking }: { booking: BookingForEmail }) {
       <Body style={{ margin: 0, padding: 0, backgroundColor: GREY, color: CHARCOAL, fontFamily: BODY_FONT }}>
         <Container style={{ backgroundColor: WHITE, maxWidth: "560px", margin: "32px auto", padding: "0" }}>
           <Section style={{ padding: "28px 32px 20px" }}>
-            <Text style={{ margin: 0, fontFamily: DISPLAY_FONT, fontSize: "28px", fontWeight: 600, color: CHARCOAL }}>
-              Vamos Taxi
-            </Text>
+            <Img
+              src={LOGO}
+              width={216}
+              height={30}
+              alt="Vamos Taxi"
+              style={{ display: "block", border: "0", outline: "none", width: "216px", height: "30px" }}
+            />
           </Section>
           <Section style={{ height: "4px", backgroundColor: YELLOW, fontSize: 0, lineHeight: "4px" }}>
             &nbsp;
