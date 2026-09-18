@@ -37,7 +37,7 @@ function langBlock(src: string, lang: string): string {
 
 function quotedKey(block: string, key: string): string | null {
   const match = block.match(new RegExp(`${key}\\s*:\\s*(['"])([\\s\\S]*?)\\1`));
-  return match ? match[2] : null;
+  return match?.[2] ?? null;
 }
 
 describe("phase 15 DC #support", () => {
