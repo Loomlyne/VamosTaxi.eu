@@ -22,6 +22,23 @@ begin
   end if;
 end $$;
 
+-- Hosted apply 20260918150707 ops_chauffeur_desk_v2: unique email is D-05.
+-- A 10s double-Add left two rows on the same address; keep the earliest.
+update public.chauffeurs c
+set email = null
+where c.id in (
+  select id from (
+    select id,
+           row_number() over (
+             partition by lower(trim(email))
+             order by created_at, id
+           ) as rn
+    from public.chauffeurs
+    where email is not null and length(trim(email)) > 0
+  ) ranked
+  where rn >= 2
+);
+
 drop index if exists public.chauffeurs_email_lower_uidx;
 create unique index chauffeurs_email_lower_uidx
   on public.chauffeurs (lower(trim(email)))

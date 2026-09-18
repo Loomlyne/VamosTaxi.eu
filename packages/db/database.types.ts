@@ -747,6 +747,35 @@ export type Database = {
           },
         ]
       }
+      chauffeur_leave_ranges: {
+        Row: {
+          chauffeur_id: string
+          from_date: string
+          id: string
+          until_date: string
+        }
+        Insert: {
+          chauffeur_id: string
+          from_date: string
+          id?: string
+          until_date: string
+        }
+        Update: {
+          chauffeur_id?: string
+          from_date?: string
+          id?: string
+          until_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chauffeur_leave_ranges_chauffeur_id_fkey"
+            columns: ["chauffeur_id"]
+            isOneToOne: false
+            referencedRelation: "chauffeurs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chauffeurs: {
         Row: {
           active: boolean
@@ -761,6 +790,10 @@ export type Database = {
           note: string
           phone: string
           photo_path: string | null
+          shift_end: string | null
+          shift_start: string | null
+          shift_tz: string
+          shift_weekdays: number[]
           status: Database["public"]["Enums"]["chauffeur_status"]
           updated_at: string
           user_id: string | null
@@ -778,6 +811,10 @@ export type Database = {
           note?: string
           phone: string
           photo_path?: string | null
+          shift_end?: string | null
+          shift_start?: string | null
+          shift_tz?: string
+          shift_weekdays?: number[]
           status?: Database["public"]["Enums"]["chauffeur_status"]
           updated_at?: string
           user_id?: string | null
@@ -795,6 +832,10 @@ export type Database = {
           note?: string
           phone?: string
           photo_path?: string | null
+          shift_end?: string | null
+          shift_start?: string | null
+          shift_tz?: string
+          shift_weekdays?: number[]
           status?: Database["public"]["Enums"]["chauffeur_status"]
           updated_at?: string
           user_id?: string | null
@@ -2223,6 +2264,39 @@ export type Database = {
           sort_order?: number
         }
         Relationships: []
+      }
+      vehicle_seats: {
+        Row: {
+          chauffeur_id: string
+          seat: string
+          vehicle_id: string
+        }
+        Insert: {
+          chauffeur_id: string
+          seat: string
+          vehicle_id: string
+        }
+        Update: {
+          chauffeur_id?: string
+          seat?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_seats_chauffeur_id_fkey"
+            columns: ["chauffeur_id"]
+            isOneToOne: true
+            referencedRelation: "chauffeurs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicle_seats_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vehicles: {
         Row: {
