@@ -8,6 +8,14 @@
 // import the driver or the db package (Phase 3's fence). This module
 // never logs: the fields it handles must not reach Logpush.
 
+import {
+  parseLeaveRanges,
+  parseShiftClock,
+  parseShiftWeekdays,
+  loadDeskExtras,
+  derivedDuty,
+  type DeskExtras,
+} from "./chauffeur-desk";
 import { asStaff, type VamosClaims } from "../db/identity";
 import { mapSqlState } from "./sqlstate";
 import {
@@ -28,9 +36,11 @@ export {
   LICENCE_EXPIRING_WITHIN_DAYS,
   SPOKEN_CODES,
   SPOKEN_LANGUAGES,
+  ChauffeurDuplicateEmailError,
   ChauffeurInputError,
   isChauffeurStatus,
   licenceState,
+  dutyStatus,
   type AssertedChauffeurInput,
   type ChauffeurDetail,
   type ChauffeurInput,
@@ -94,6 +104,20 @@ function normalizeLanguages(input: string[] | undefined): string[] {
   return [...seen].sort();
 }
 
+export function normalizeChauffeurEmail(email: string | null | undefined): string | null {
+  const trimmed = (email ?? "").trim().toLowerCase();
+  return trimmed || null;
+}
+
+export function emailsMatch(
+  left: string | null | undefined,
+  right: string | null | undefined,
+): boolean {
+  const a = normalizeChauffeurEmail(left);
+  const b = normalizeChauffeurEmail(right);
+  return a !== null && a === b;
+}
+
 export function assertChauffeurInput(input: ChauffeurInput): AssertedChauffeurInput {
   const fullName = input.fullName.trim();
   if (!fullName) {
@@ -129,8 +153,7 @@ export function assertChauffeurInput(input: ChauffeurInput): AssertedChauffeurIn
     licenceExpiresOn = day;
   }
 
-  const status: ChauffeurStatus =
-    input.status && isChauffeurStatus(input.status) ? input.status : "off";
+  const status: ChauffeurStatus = "off";
 
   const photoPath = input.photoPath === undefined ? null : input.photoPath;
   if (photoPath !== null && photoPath.startsWith("data:")) {
@@ -148,6 +171,10 @@ export function assertChauffeurInput(input: ChauffeurInput): AssertedChauffeurIn
     status,
     photoPath,
     note: input.note === undefined ? "" : input.note,
+    shiftWeekdays: parseShiftWeekdays(input.shiftWeekdays ?? []),
+    shiftStart: parseShiftClock(input.shiftStart ?? null),
+    shiftEnd: parseShiftClock(input.shiftEnd ?? null),
+    leaveRanges: parseLeaveRanges(input.leaveRanges ?? []),
   };
 }
 
@@ -195,6 +222,26 @@ function mapListRow(row: ListSqlRow): ChauffeurRow {
     active: row.active,
     createdAt: toIso(row.created_at),
     updatedAt: toIso(row.updated_at),
+    shiftWeekdays: [],
+    shiftStart: null,
+    shiftEnd: null,
+    leaveRanges: [],
+  };
+}
+
+function applyDesk(row: ChauffeurRow, extras: DeskExtras): ChauffeurRow {
+  const shift = extras.shiftByChauffeur.get(row.id);
+  const leaveRanges = extras.leaveByChauffeur.get(row.id) ?? [];
+  const shiftWeekdays = shift?.weekdays ?? [];
+  const shiftStart = shift?.start ?? null;
+  const shiftEnd = shift?.end ?? null;
+  return {
+    ...row,
+    shiftWeekdays,
+    shiftStart,
+    shiftEnd,
+    leaveRanges,
+    status: derivedDuty({ shiftWeekdays, shiftStart, shiftEnd, leaveRanges }),
   };
 }
 
@@ -203,6 +250,10 @@ function mapDetailRow(row: DetailSqlRow): ChauffeurDetail {
     ...mapListRow(row),
     licenceNumber: row.licence_number,
   };
+}
+
+function applyDeskDetail(row: ChauffeurDetail, extras: DeskExtras): ChauffeurDetail {
+  return { ...applyDesk(row, extras), licenceNumber: row.licenceNumber };
 }
 
 // List projection omits the licence number on purpose: no component change
@@ -234,7 +285,8 @@ export async function loadChauffeurDetailsList(
       left join public.vehicles v on v.id = c.default_vehicle_id
       order by c.active desc, c.licence_expires_on asc nulls last, c.full_name asc
     `;
-    return rows.map(mapDetailRow);
+    const extras = await loadDeskExtras(sql);
+    return rows.map((row) => applyDeskDetail(mapDetailRow(row), extras));
   });
 }
 
@@ -263,7 +315,8 @@ export async function loadChauffeurs(
       left join public.vehicles v on v.id = c.default_vehicle_id
       order by c.active desc, c.licence_expires_on asc nulls last, c.full_name asc
     `;
-    return rows.map(mapListRow);
+    const extras = await loadDeskExtras(sql);
+    return rows.map((row) => applyDesk(mapListRow(row), extras));
   });
 }
 
@@ -296,6 +349,47 @@ export async function loadChauffeur(
       limit 1
     `;
     const row = rows[0];
-    return row ? mapDetailRow(row) : null;
+    if (!row) return null;
+    const extras = await loadDeskExtras(sql);
+    return applyDeskDetail(mapDetailRow(row), extras);
+  });
+}
+
+export async function loadChauffeurByEmail(
+  env: CloudflareEnv,
+  claims: VamosClaims,
+  email: string,
+): Promise<ChauffeurDetail | null> {
+  const normalized = normalizeChauffeurEmail(email);
+  if (!normalized) return null;
+  return asStaff(env, claims, async (sql) => {
+    const rows = await sql<DetailSqlRow[]>`
+      select
+        c.id,
+        c.full_name,
+        c.phone,
+        c.email,
+        c.default_vehicle_id,
+        v.plate as default_vehicle_plate,
+        c.licence_number,
+        c.licence_expires_on,
+        c.languages,
+        c.status,
+        c.photo_path,
+        c.note,
+        c.active,
+        c.created_at,
+        c.updated_at
+      from public.chauffeurs c
+      left join public.vehicles v on v.id = c.default_vehicle_id
+      where c.email is not null
+        and length(trim(c.email)) > 0
+        and lower(trim(c.email)) = ${normalized}
+      limit 1
+    `;
+    const row = rows[0];
+    if (!row) return null;
+    const extras = await loadDeskExtras(sql);
+    return applyDeskDetail(mapDetailRow(row), extras);
   });
 }

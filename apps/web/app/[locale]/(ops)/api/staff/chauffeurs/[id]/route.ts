@@ -4,7 +4,8 @@
 // app/api/staff/chauffeurs/[id].
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { assertChauffeurInput, loadChauffeur } from "@/lib/ops/chauffeurs";
+import { assertChauffeurInput, loadChauffeur, loadChauffeurByEmail } from "@/lib/ops/chauffeurs";
+import { ChauffeurDuplicateEmailError } from "@/lib/ops/chauffeurs-model";
 import {
   chauffeurJsonError,
   isUuid,
@@ -28,6 +29,12 @@ export async function PATCH(
       const parsed = parseChauffeurBody(await readJsonBody(request));
       const input = assertChauffeurInput(parsed.input);
       const { env } = getCloudflareContext();
+      if (input.email) {
+        const existing = await loadChauffeurByEmail(env, claims, input.email);
+        if (existing && existing.id !== id) {
+          throw new ChauffeurDuplicateEmailError(existing.id, existing.fullName);
+        }
+      }
       const wrote = await updateChauffeurRow(env, claims, id, input);
       if (!wrote) return jsonErr("not-found", 404, { message: "That chauffeur is gone." });
       const updated = await loadChauffeur(env, claims, id);

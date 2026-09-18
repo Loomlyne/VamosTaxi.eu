@@ -16,7 +16,7 @@ vi.mock("../supabase/server", () => ({
 }));
 
 import { VehicleInputError } from "./fleet";
-import { ChauffeurInputError } from "./chauffeurs-model";
+import { ChauffeurDuplicateEmailError, ChauffeurInputError } from "./chauffeurs-model";
 import { jsonErr, jsonOk, withStaff } from "./staff-json";
 import {
   chauffeurErrorCopy,
@@ -89,6 +89,8 @@ describe("presentVehicles", () => {
         note: "",
         createdAt: "2026-01-01T00:00:00.000Z",
         updatedAt: "2026-01-01T00:00:00.000Z",
+        morningChauffeurId: null,
+        nightChauffeurId: null,
       },
     ]);
     expect(presented[0]?.klass).toBe("Van");
@@ -218,6 +220,20 @@ describe("chauffeurJsonError", () => {
     expect(JSON.stringify(result.body)).not.toMatch(/CHF/);
   });
 
+  it("maps duplicate email to 409 with existingId (D-05)", async () => {
+    const result = await readJson(
+      chauffeurJsonError(new ChauffeurDuplicateEmailError("c-existing", "Ada Driver")),
+    );
+    expect(result.status).toBe(409);
+    expect(result.body).toEqual({
+      ok: false,
+      code: "chauffeurs-duplicate-email",
+      message: "This email is already on file.",
+      existingId: "c-existing",
+      fullName: "Ada Driver",
+    });
+  });
+
   it("maps unknown SQLSTATE to a sentence that includes the code", async () => {
     const result = await readJson(chauffeurJsonError({ code: "42804" }));
     expect(result.status).toBe(500);
@@ -233,6 +249,10 @@ describe("chauffeurErrorCopy", () => {
   it("covers validation, FK, unique, and licence keys", () => {
     expect(chauffeurErrorCopy("chauffeurs-failure-vehicle")).toBe("That vehicle is missing.");
     expect(chauffeurErrorCopy("22P02")).toMatch(/wrong type/);
+  });
+
+  it("covers duplicate email (D-05)", () => {
+    expect(chauffeurErrorCopy("chauffeurs-duplicate-email")).toBe("This email is already on file.");
   });
 });
 

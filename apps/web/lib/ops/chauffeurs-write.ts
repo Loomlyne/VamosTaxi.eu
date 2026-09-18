@@ -5,6 +5,7 @@
 
 import { asStaff, type VamosClaims } from "../db/identity";
 import type { AssertedChauffeurInput } from "./chauffeurs-model";
+import { persistChauffeurDesk } from "./chauffeur-desk";
 
 /** Postgres `text[]` literal. A JS array can bind as a scalar and throw 22P02. */
 function pgTextArrayLiteral(values: string[]): string {
@@ -39,11 +40,13 @@ export async function insertChauffeur(
           true,
           now()
         )
+        ON CONFLICT (id) DO NOTHING
         returning id
       `;
       const row = rows[0];
-      if (!row) throw new Error("insertChauffeur");
-      return row.id;
+      const wrote = row?.id ?? id;
+      await persistChauffeurDesk(sql, wrote, parsed);
+      return wrote;
     }
     const rows = await sql<{ id: string }[]>`
       insert into public.chauffeurs (
@@ -68,6 +71,7 @@ export async function insertChauffeur(
     `;
     const row = rows[0];
     if (!row) throw new Error("insertChauffeur");
+    await persistChauffeurDesk(sql, row.id, parsed);
     return row.id;
   });
 }
@@ -95,7 +99,9 @@ export async function updateChauffeurRow(
       where id = ${id}
       returning id
     `;
-    return Boolean(rows[0]);
+    if (!rows[0]) return false;
+    await persistChauffeurDesk(sql, id, parsed);
+    return true;
   });
 }
 

@@ -9,6 +9,7 @@
 
 import { asStaff, type VamosClaims } from "../db/identity";
 import { mapSqlState } from "./sqlstate";
+import { loadDeskExtras } from "./chauffeur-desk";
 
 export { mapSqlState };
 
@@ -43,6 +44,8 @@ export type VehicleRow = {
   note: string;
   createdAt: string;
   updatedAt: string;
+  morningChauffeurId: string | null;
+  nightChauffeurId: string | null;
 };
 
 export type VehicleOption = {
@@ -60,6 +63,8 @@ export type VehicleInput = {
   status?: VehicleStatus;
   photoPath?: string | null;
   note?: string;
+  morningChauffeurId?: string | null;
+  nightChauffeurId?: string | null;
 };
 
 export type AssertedVehicleInput = {
@@ -72,6 +77,8 @@ export type AssertedVehicleInput = {
   status: VehicleStatus;
   photoPath: string | null;
   note: string;
+  morningChauffeurId: string | null;
+  nightChauffeurId: string | null;
 };
 
 export type VehicleClassInput = {
@@ -213,6 +220,8 @@ export function assertVehicleInput(input: VehicleInput): AssertedVehicleInput {
     status,
     photoPath,
     note: input.note === undefined ? "" : input.note,
+    morningChauffeurId: input.morningChauffeurId ?? null,
+    nightChauffeurId: input.nightChauffeurId ?? null,
   };
 }
 
@@ -311,6 +320,8 @@ function mapVehicleRow(row: VehicleSqlRow): VehicleRow {
     note: row.note,
     createdAt: toIso(row.created_at),
     updatedAt: toIso(row.updated_at),
+    morningChauffeurId: null,
+    nightChauffeurId: null,
   };
 }
 
@@ -365,7 +376,16 @@ export async function loadVehicles(
       inner join public.vehicle_classes vc on vc.id = v.vehicle_class_id
       order by vc.sort_order, v.plate
     `;
-    return rows.map(mapVehicleRow);
+    const extras = await loadDeskExtras(sql);
+    return rows.map((row) => {
+      const mapped = mapVehicleRow(row);
+      const seats = extras.seatsByVehicle.get(mapped.id);
+      return {
+        ...mapped,
+        morningChauffeurId: seats?.morningId ?? null,
+        nightChauffeurId: seats?.nightId ?? null,
+      };
+    });
   });
 }
 

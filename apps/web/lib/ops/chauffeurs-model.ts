@@ -32,6 +32,28 @@ export const LICENCE_EXPIRING_WITHIN_DAYS = 60;
 
 const ZURICH_TZ = "Europe/Zurich";
 
+const ISO_WEEKDAY: Record<string, number> = {
+  Mon: 1,
+  Tue: 2,
+  Wed: 3,
+  Thu: 4,
+  Fri: 5,
+  Sat: 6,
+  Sun: 7,
+};
+
+export type LeaveRange = {
+  from: string;
+  until: string;
+};
+
+export type DutyWindow = {
+  weekdays: readonly number[];
+  start: string | null;
+  end: string | null;
+  leaveRanges?: readonly LeaveRange[];
+};
+
 export type ChauffeurRow = {
   id: string;
   fullName: string;
@@ -47,6 +69,10 @@ export type ChauffeurRow = {
   active: boolean;
   createdAt: string;
   updatedAt: string;
+  shiftWeekdays: number[];
+  shiftStart: string | null;
+  shiftEnd: string | null;
+  leaveRanges: LeaveRange[];
 };
 
 export type ChauffeurDetail = ChauffeurRow & {
@@ -64,6 +90,10 @@ export type ChauffeurInput = {
   status?: ChauffeurStatus;
   photoPath?: string | null;
   note?: string;
+  shiftWeekdays?: number[];
+  shiftStart?: string | null;
+  shiftEnd?: string | null;
+  leaveRanges?: LeaveRange[];
 };
 
 export type AssertedChauffeurInput = {
@@ -77,6 +107,10 @@ export type AssertedChauffeurInput = {
   status: ChauffeurStatus;
   photoPath: string | null;
   note: string;
+  shiftWeekdays: number[];
+  shiftStart: string | null;
+  shiftEnd: string | null;
+  leaveRanges: LeaveRange[];
 };
 
 export class ChauffeurInputError extends Error {
@@ -86,6 +120,19 @@ export class ChauffeurInputError extends Error {
     super(key);
     this.name = "ChauffeurInputError";
     this.key = key;
+  }
+}
+
+export class ChauffeurDuplicateEmailError extends Error {
+  readonly key = "chauffeurs-duplicate-email";
+  readonly existingId: string;
+  readonly fullName: string;
+
+  constructor(existingId: string, fullName: string) {
+    super("chauffeurs-duplicate-email");
+    this.name = "ChauffeurDuplicateEmailError";
+    this.existingId = existingId;
+    this.fullName = fullName;
   }
 }
 
@@ -141,4 +188,69 @@ export function licenceState(
 
 export function isChauffeurStatus(value: string): value is ChauffeurStatus {
   return (CHAUFFEUR_STATUSES as readonly string[]).includes(value);
+}
+
+function zurichClock(now: Date): { civil: string; weekday: number; minutes: number } {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: ZURICH_TZ,
+    weekday: "short",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(now);
+  const pick = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
+  const weekdayName = pick("weekday");
+  const weekday = ISO_WEEKDAY[weekdayName] ?? 0;
+  const year = pick("year");
+  const month = pick("month");
+  const day = pick("day");
+  let hour = Number(pick("hour"));
+  if (hour === 24) hour = 0;
+  const minute = Number(pick("minute"));
+  return {
+    civil: `${year}-${month}-${day}`,
+    weekday,
+    minutes: hour * 60 + minute,
+  };
+}
+
+function parseHm(value: string | null): number | null {
+  if (value == null) return null;
+  const match = /^(\d{1,2}):(\d{2})$/.exec(value.trim());
+  if (!match) return null;
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  if (!Number.isFinite(hour) || !Number.isFinite(minute) || hour > 23 || minute > 59) {
+    return null;
+  }
+  return hour * 60 + minute;
+}
+
+function inLeave(today: string, ranges: readonly LeaveRange[] | undefined): boolean {
+  if (!ranges?.length) return false;
+  return ranges.some((range) => {
+    const from = toCivilDate(range.from);
+    const until = toCivilDate(range.until);
+    if (!from || !until) return false;
+    return from <= today && today <= until;
+  });
+}
+
+function inShiftWindow(nowMinutes: number, start: number, end: number): boolean {
+  if (start === end) return true;
+  if (end > start) return nowMinutes >= start && nowMinutes < end;
+  return nowMinutes >= start || nowMinutes < end;
+}
+
+export function dutyStatus(input: DutyWindow, now: Date = new Date()): ChauffeurStatus {
+  const clock = zurichClock(now);
+  if (inLeave(clock.civil, input.leaveRanges)) return "leave";
+  const start = parseHm(input.start);
+  const end = parseHm(input.end);
+  if (start == null || end == null) return "off";
+  if (!input.weekdays.includes(clock.weekday)) return "off";
+  return inShiftWindow(clock.minutes, start, end) ? "shift" : "off";
 }

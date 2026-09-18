@@ -50,7 +50,8 @@
 <div style="box-sizing:border-box;display:flex;flex-direction:column;gap:12px;padding:18px 20px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg)">
 <span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ tLiveTrips }}</span>
 <sc-if value="{{ noLiveTrips }}" hint-placeholder-val="{{ true }}">
-<p style="margin:0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tNoLiveTrips }}</p>
+<p style="margin:0;font-size:var(--vt-body-sm);font-weight:600;color:var(--vt-text-primary)">{{ tNoLiveTrips }}</p>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);line-height:1.6;color:var(--vt-text-muted)">{{ tNoLiveTripsBody }}</p>
 </sc-if>
 <sc-for list="{{ liveTrips }}" as="trip" hint-placeholder-count="2">
 <a href="{{ trip.href }}" style="box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-grey-50);text-decoration:none;color:inherit">
@@ -59,6 +60,25 @@
 <span style="margin-inline-start:auto;font-size:var(--vt-body-xs);color:var(--vt-text-muted);white-space:nowrap">{{ trip.when }}</span>
 </a>
 </sc-for>
+</div>
+<div style="box-sizing:border-box;display:flex;flex-direction:column;gap:12px;padding:18px 20px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg)">
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ tPastBookings }}</span>
+<sc-if value="{{ noPastBookings }}" hint-placeholder-val="{{ true }}">
+<p style="margin:0;font-size:var(--vt-body-sm);font-weight:600;color:var(--vt-text-primary)">{{ tNoPastBookings }}</p>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);line-height:1.6;color:var(--vt-text-muted)">{{ tNoPastBookingsBody }}</p>
+</sc-if>
+<sc-for list="{{ pastBookings }}" as="trip" hint-placeholder-count="2">
+<a href="{{ trip.href }}" style="box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-grey-50);text-decoration:none;color:inherit">
+<span style="font-family:var(--vt-font-display);font-weight:600;letter-spacing:.04em">{{ trip.ref }}</span>
+<span style="min-width:0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">{{ trip.route }}</span>
+<span style="margin-inline-start:auto;font-size:var(--vt-body-xs);color:var(--vt-text-muted);white-space:nowrap">{{ trip.when }}</span>
+</a>
+</sc-for>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" onClick="{{ saveShift }}" hint-size="120px,36px">{{ tSaveShift }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" onClick="{{ saveLeave }}" hint-size="120px,36px">{{ tSaveLeave }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ keepEditing }}" hint-size="120px,36px">{{ tKeepEditing }}</x-import>
 </div>
 </div>
 </sc-if>
@@ -77,7 +97,7 @@
 </sc-for>
 </div>
 
-<dc-import name="OpsTable" rows="{{ rows }}" columns="{{ columns }}" fields="{{ fields }}" blank="{{ blank }}" onSave="{{ onSave }}" onDelete="{{ onDelete }}" noun="{{ noun }}" noun-plural="{{ nounPlural }}" add-title="{{ addTitle }}" edit-title="{{ editTitle }}" delete-title="{{ deleteTitle }}" label-key="{{ labelKey }}" add-label="{{ addLabel }}" search-placeholder="{{ searchPlaceholder }}" search-keys="{{ searchKeys }}" empty-title="{{ emptyTitle }}" empty-body="{{ emptyBody }}" delete-body="{{ deleteBody }}" nested-title="{{ nestedTitle }}" nested-fields="{{ nestedFields }}" nested-blank="{{ nestedBlank }}" nested-save-label="{{ nestedSaveLabel }}" nested-target-key="{{ nestedTargetKey }}" on-nested-save="{{ onNestedSave }}" hint-size="100%,460px"></dc-import>
+<dc-import name="OpsTable" rows="{{ rows }}" columns="{{ columns }}" fields="{{ fields }}" blank="{{ blank }}" onSave="{{ onSave }}" save-label="{{ saveLabel }}" add-save-label="{{ addSaveLabel }}" onDelete="{{ onDelete }}" noun="{{ noun }}" noun-plural="{{ nounPlural }}" add-title="{{ addTitle }}" edit-title="{{ editTitle }}" delete-title="{{ deleteTitle }}" label-key="{{ labelKey }}" add-label="{{ addLabel }}" search-placeholder="{{ searchPlaceholder }}" search-keys="{{ searchKeys }}" empty-title="{{ emptyTitle }}" empty-body="{{ emptyBody }}" delete-body="{{ deleteBody }}" nested-title="{{ nestedTitle }}" nested-fields="{{ nestedFields }}" nested-blank="{{ nestedBlank }}" nested-save-label="{{ nestedSaveLabel }}" nested-target-key="{{ nestedTargetKey }}" on-nested-save="{{ onNestedSave }}" hint-size="100%,460px"></dc-import>
 
 <p style="margin:0;max-width:78ch;font-size:var(--vt-body-xs);line-height:1.6;color:var(--vt-text-muted);text-wrap:pretty">{{ note }}</p>
 </sc-if>
@@ -103,6 +123,7 @@ const CSTATUS = {
   leave: { tone:'outline', label:'On leave' },
 };
 const LANGUAGE_OPTIONS = ['German', 'French', 'Italian', 'English', 'Arabic'].map((l) => ({ value: l, label: l }));
+const DAY_OPTIONS = [{value:'1',label:'Mon'},{value:'2',label:'Tue'},{value:'3',label:'Wed'},{value:'4',label:'Thu'},{value:'5',label:'Fri'},{value:'6',label:'Sat'},{value:'7',label:'Sun'}];
 const T = {
   en: {
     vehicles:'Vehicles', chauffeurs:'Chauffeurs',
@@ -136,7 +157,7 @@ const T = {
     vNote:'A vehicle is priced by its class, so changing a class price on the Pricing screen changes every vehicle in it. Add vehicles first; chauffeurs are attached to them afterwards.',
     cNote:'Each chauffeur drives one vehicle at a time, and that pairing is what the bookings board assigns against. A chauffeur with no vehicle cannot be given a transfer.',
     cannotAssignNoEmail:'Cannot assign until an email is saved.',
-    liveTrips:'Live trips', noLiveTrips:'No live trips.', profile:'Profile',
+    liveTrips:'Live trips', noLiveTrips:'No live trips', noLiveTripsBody:'Assigned trips that are not finished show here. Open a trip to see it on the board.', pastBookings:'Past bookings', noPastBookings:'No past bookings', noPastBookingsBody:'Finished assigned trips show here. Open a booking to see it on the board.', saveChauffeur:'Save chauffeur', saveShift:'Save shift', saveLeave:'Save leave', keepEditing:'Keep editing', morning:'Morning', night:'Night', fShiftDays:'Shift days', fShiftStart:'Starts', fShiftEnd:'Ends', dupEmail:'This email is already on file.', dupOpen:'Open existing chauffeur', profile:'Profile',
     saveFailed:'Save failed. Try again.',
     offRoadStay:'This vehicle is off the road. Upcoming assigned trips stay on the board — they are not cancelled. Fix them on Needs attention.',
     backChauffeurs:'All chauffeurs',
@@ -173,7 +194,7 @@ const T = {
     vNote:'Ein Fahrzeug wird über seine Klasse bepreist — eine Preisänderung auf dem Preis-Bildschirm gilt für alle Fahrzeuge dieser Klasse. Zuerst Fahrzeuge anlegen, die Chauffeure kommen danach dazu.',
     cNote:'Jeder Chauffeur fährt jeweils ein Fahrzeug, und genau diese Paarung weist das Buchungsboard zu. Ein Chauffeur ohne Fahrzeug kann keinen Transfer bekommen.',
     cannotAssignNoEmail:'Kann nicht zugewiesen werden, bis eine E-Mail gespeichert ist.',
-    liveTrips:'Laufende Fahrten', noLiveTrips:'Keine laufenden Fahrten.', profile:'Profil',
+    liveTrips:'Laufende Fahrten', noLiveTrips:'Keine laufenden Fahrten', noLiveTripsBody:'Zugewiesene Fahrten, die noch nicht beendet sind, erscheinen hier. Eine Fahrt öffnen, um sie auf dem Board zu sehen.', pastBookings:'Frühere Buchungen', noPastBookings:'Keine früheren Buchungen', noPastBookingsBody:'Beendete zugewiesene Fahrten erscheinen hier. Eine Buchung öffnen, um sie auf dem Board zu sehen.', saveChauffeur:'Chauffeur speichern', saveShift:'Schicht speichern', saveLeave:'Abwesenheit speichern', keepEditing:'Weiter bearbeiten', morning:'Morgen', night:'Nacht', fShiftDays:'Schichttage', fShiftStart:'Beginn', fShiftEnd:'Ende', dupEmail:'Diese E-Mail ist bereits erfasst.', dupOpen:'Bestehenden Chauffeur öffnen', profile:'Profil',
     saveFailed:'Speichern fehlgeschlagen. Bitte erneut versuchen.',
     offRoadStay:'Dieses Fahrzeug ist nicht auf der Strasse. Zugewiesene kommende Fahrten bleiben auf dem Board — sie werden nicht storniert. Beheben unter Needs attention.',
     backChauffeurs:'Alle Chauffeure',
@@ -210,7 +231,7 @@ const T = {
     vNote:'Un véhicule est tarifé par sa classe : changer le prix d’une classe sur l’écran Tarifs change tous ses véhicules. Ajoutez d’abord les véhicules ; les chauffeurs y sont rattachés ensuite.',
     cNote:'Chaque chauffeur conduit un véhicule à la fois, et c’est cette association que le tableau des réservations attribue. Un chauffeur sans véhicule ne peut pas recevoir de transfert.',
     cannotAssignNoEmail:'Impossible d’attribuer tant qu’un e-mail n’est pas enregistré.',
-    liveTrips:'Courses en cours', noLiveTrips:'Aucune course en cours.', profile:'Profil',
+    liveTrips:'Courses en cours', noLiveTrips:'Aucune course en cours', noLiveTripsBody:'Les courses assignées non terminées s’affichent ici. Ouvrez une course pour la voir au tableau.', pastBookings:'Réservations passées', noPastBookings:'Aucune réservation passée', noPastBookingsBody:'Les courses assignées terminées s’affichent ici. Ouvrez une réservation pour la voir au tableau.', saveChauffeur:'Enregistrer le chauffeur', saveShift:'Enregistrer le service', saveLeave:'Enregistrer l’absence', keepEditing:'Continuer l’édition', morning:'Matin', night:'Nuit', fShiftDays:'Jours de service', fShiftStart:'Début', fShiftEnd:'Fin', dupEmail:'Cet e-mail est déjà enregistré.', dupOpen:'Ouvrir le chauffeur existant', profile:'Profil',
     saveFailed:'Enregistrement impossible. Réessayez.',
     offRoadStay:'Ce véhicule n’est plus en service. Les courses assignées à venir restent au tableau — elles ne sont pas annulées. Corrigez-les sous Needs attention.',
     backChauffeurs:'Tous les chauffeurs',
@@ -247,7 +268,7 @@ const T = {
     vNote:'تُسعَّر المركبة حسب فئتها، وتغيير سعر الفئة في شاشة الأسعار يغيّر كل مركباتها. أضف المركبات أولًا، ثم يُربط بها السائقون.',
     cNote:'يقود كل سائق مركبة واحدة في كل وقت، وهذا الاقتران هو ما تُسنِده لوحة الحجوزات. السائق بلا مركبة لا يمكن إسناد رحلة إليه.',
     cannotAssignNoEmail:'لا يمكن الإسناد حتى يُحفظ بريد إلكتروني.',
-    liveTrips:'الرحلات الجارية', noLiveTrips:'لا رحلات جارية.', profile:'الملف',
+    liveTrips:'الرحلات الجارية', noLiveTrips:'لا رحلات جارية', noLiveTripsBody:'الرحلات المسندة غير المنتهية تظهر هنا. افتح رحلة لرؤيتها على اللوحة.', pastBookings:'حجوزات سابقة', noPastBookings:'لا حجوزات سابقة', noPastBookingsBody:'الرحلات المسندة المنتهية تظهر هنا. افتح حجزًا لرؤيته على اللوحة.', saveChauffeur:'حفظ السائق', saveShift:'حفظ الوردية', saveLeave:'حفظ الإجازة', keepEditing:'متابعة التحرير', morning:'صباح', night:'ليل', fShiftDays:'أيام الوردية', fShiftStart:'البداية', fShiftEnd:'النهاية', dupEmail:'هذا البريد مسجّل مسبقًا.', dupOpen:'فتح السائق الحالي', profile:'الملف',
     saveFailed:'فشل الحفظ. حاول مرة أخرى.',
     offRoadStay:'هذه المركبة خارج الخدمة. الرحلات المسندة القادمة تبقى على اللوحة — لا تُلغى. عالجها في Needs attention.',
     backChauffeurs:'كل السائقين',
@@ -296,7 +317,6 @@ class Component extends DCLogic {
     const vehicleLabel = (v) => v.klass + ' · ' + (v.plate || v.id);
     const classOptions = ((ops && ops.VEHICLE_CLASSES) || ['Economy', 'Business', 'First', 'Van']).map((c) => ({ value: c, label: c }));
     const vStatusOptions = (ops ? ops.VEHICLE_STATUS : []).map((s) => ({ value: s, label: VSTATUS[s].label }));
-    const cStatusOptions = (ops ? ops.CHAUFFEUR_STATUS : []).map((s) => ({ value: s, label: CSTATUS[s].label }));
     const vehicleOptions = [{ value:'', label: t.none }].concat(vehicles.map((v) => ({ value: v.id, label: vehicleLabel(v) })));
     const chauffeurOptions = chauffeurs.map((c) => ({ value: c.id, label: c.name || c.id }));
 
@@ -344,7 +364,8 @@ class Component extends DCLogic {
       { key:'year', label:t.fYear, editor:'year', half:true, placeholder:'0000' },
       { key:'seats', label:t.fSeats, editor:'number', min:1, half:true },
       { key:'bags', label:t.fBags, editor:'number', min:0, half:true },
-      { key:'chauffeurIds', label:t.fChauffeurs, editor:'select', multi:true, options:chauffeurOptions, icon:'users', addLabel:t.addChauffeur, emptyLabel:t.unassigned, half:true },
+      { key:'morning', label:t.morning, editor:'select', options:chauffeurOptions, icon:'sun', emptyLabel:t.unassigned, half:true, ariaLabel:t.morning },
+      { key:'night', label:t.night, editor:'select', options:chauffeurOptions, icon:'moon', emptyLabel:t.unassigned, half:true, ariaLabel:t.night },
       { key:'status', label:t.fStatus, editor:'select', options:vStatusOptions, icon:'settings', half:true },
       { key:'note', label:t.fNote, editor:'area', placeholder:'' },
     ];
@@ -356,7 +377,9 @@ class Component extends DCLogic {
       { key:'licence', label:t.fLicence, editor:'licence', half:true, placeholder:'CH 000 000', required:true },
       { key:'vehicle', label:t.fVehicle, editor:'select', options:vehicleOptions, icon:'car', hint:t.hVehicle, addLabel:t.addVehicle, emptyLabel:t.noVehicle },
       { key:'languages', label:t.fLanguages, editor:'select', multi:true, options:LANGUAGE_OPTIONS, icon:'globe', half:true },
-      { key:'status', label:t.fStatus, editor:'select', options:cStatusOptions, icon:'user', half:true },
+      { key:'weekdays', label:t.fShiftDays, editor:'select', multi:true, options:DAY_OPTIONS, icon:'calendar', half:true },
+      { key:'start', label:t.fShiftStart, placeholder:'08:00', half:true },
+      { key:'end', label:t.fShiftEnd, placeholder:'18:00', half:true },
       { key:'note', label:t.fNote, editor:'area', placeholder:'' },
     ];
 
@@ -366,6 +389,20 @@ class Component extends DCLogic {
       : null;
     const ended = { cancelled: 1, completed: 1, refunded: 1, 'no-show': 1 };
     const bookings = (isDetail && ops && ops.bookings) ? ops.bookings.all() : [];
+    const tripHref = (b) => ({
+      href: '/bookings/' + encodeURIComponent(b.id),
+      ref: b.id,
+      route: [b.pickup, b.dropoff].filter(Boolean).join(' → ') || '—',
+      when: [b.date, b.time].filter(Boolean).join(' · '),
+    });
+    const matchesChauffeur = (b) => {
+      if (!detail) return false;
+      if (detail.id && b.assignedChauffeurId === detail.id) return true;
+      const email = String(detail.email || '').trim().toLowerCase();
+      if (email && String(b.chauffeurEmail || '').trim().toLowerCase() === email) return true;
+      if (detail.name && (b.chauffeur === detail.name || b.driver === detail.name)) return true;
+      return false;
+    };
     const liveTrips = !detail ? [] : bookings.filter((b) => {
       if (ended[b.status]) return false;
       if (detail.id && b.assignedChauffeurId === detail.id) return true;
@@ -373,12 +410,8 @@ class Component extends DCLogic {
       if (email && String(b.chauffeurEmail || '').trim().toLowerCase() === email) return true;
       if (detail.name && (b.chauffeur === detail.name || b.driver === detail.name)) return true;
       return false;
-    }).map((b) => ({
-      href: '/bookings/' + encodeURIComponent(b.id),
-      ref: b.id,
-      route: [b.pickup, b.dropoff].filter(Boolean).join(' → ') || '—',
-      when: [b.date, b.time].filter(Boolean).join(' · '),
-    }));
+    }).filter(matchesChauffeur).map(tripHref);
+    const pastBookings = !detail ? [] : bookings.filter((b) => ended[b.status] && matchesChauffeur(b)).map(tripHref);
     const vehicleFor = vehicleById[detail && (detail.vehicle || detail.defaultVehicleId)] || null;
     const profileRows = !detail ? [] : [
       { label: t.fName, value: detail.name || '—' },
@@ -403,7 +436,19 @@ class Component extends DCLogic {
       tProfile: t.profile,
       tLiveTrips: t.liveTrips,
       tNoLiveTrips: t.noLiveTrips,
+      tNoLiveTripsBody: t.noLiveTripsBody,
+      tPastBookings: t.pastBookings,
+      tNoPastBookings: t.noPastBookings,
+      tNoPastBookingsBody: t.noPastBookingsBody,
+      tSaveShift: t.saveShift,
+      tSaveLeave: t.saveLeave,
+      tKeepEditing: t.keepEditing,
+      saveShift: () => {},
+      saveLeave: () => {},
+      keepEditing: () => {},
       noLiveTrips: liveTrips.length === 0,
+      noPastBookings: pastBookings.length === 0,
+      pastBookings,
       profileRows,
       liveTrips,
       title: isDetail ? (detail && detail.name ? detail.name : t.chauffeurs) : (isChauffeurs ? t.chauffeurs : t.vehicles),
@@ -429,7 +474,8 @@ class Component extends DCLogic {
         { label:t.cntSeats, value:String(largest), of:t.seats, icon:'users', foot:t.footSeats },
       ],
       rows: isChauffeurs ? chauffeurs : vehicles.map((v) => Object.assign({}, v, {
-        chauffeurIds: chauffeurs.filter((c) => c.vehicle === v.id || c.defaultVehicleId === v.id).map((c) => c.id).join(', '),
+        morning: v.morning || v.morningChauffeurId || '',
+        night: v.night || v.nightChauffeurId || '',
       })),
       columns: isChauffeurs ? chauffeurColumns : vehicleColumns,
       fields: isChauffeurs ? chauffeurFields : vehicleFields,
@@ -440,8 +486,14 @@ class Component extends DCLogic {
           ? Object.assign({}, rec, {
               vehicle: rec.vehicle || rec.defaultVehicleId || '',
               defaultVehicleId: rec.defaultVehicleId || rec.vehicle || '',
+              shiftWeekdays: String(rec.weekdays || '').split(',').map((s) => Number(s.trim())).filter((n) => n >= 1 && n <= 7),
+              shiftStart: rec.start || rec.shiftStart || null,
+              shiftEnd: rec.end || rec.shiftEnd || null,
             })
-          : rec;
+          : Object.assign({}, rec, {
+              morningChauffeurId: rec.morning || rec.morningChauffeurId || null,
+              nightChauffeurId: rec.night || rec.nightChauffeurId || null,
+            });
         return store.upsert(payload).then((json) => {
           if (!json || json.ok !== true) {
             const reason = (json && (json.message || json.error || json.detail)) || t.saveFailed;
@@ -451,27 +503,15 @@ class Component extends DCLogic {
           const next = { saveMsg: '', notice: (!isChauffeurs && payload.status === 'workshop') ? t.offRoadStay : '' };
           this.setState(next);
           if (isChauffeurs || !ops) return json;
-          const ids = String(rec.chauffeurIds || '').split(',').map((s) => s.trim()).filter(Boolean);
-          const jobs = [];
-          chauffeurs.forEach((c) => {
-            if ((c.vehicle === rec.id || c.defaultVehicleId === rec.id) && ids.indexOf(c.id) === -1) {
-              jobs.push(ops.chauffeurs.upsert(Object.assign({}, c, { vehicle: '', defaultVehicleId: '' })));
-            }
-          });
-          ids.forEach((id) => {
-            const c = ops.chauffeurs.get(id);
-            if (c && c.vehicle !== rec.id) {
-              jobs.push(ops.chauffeurs.upsert(Object.assign({}, c, { vehicle: rec.id, defaultVehicleId: rec.id })));
-            }
-          });
-          if (!jobs.length) return json;
-          return Promise.all(jobs).then(function () { return json; });
+          return json;
         });
       },
       onDelete: (id) => { if (store) store.remove(id); },
       noun: isChauffeurs ? t.nounC : t.nounV,
       nounPlural: isChauffeurs ? t.nounCs : t.nounVs,
       addTitle: isChauffeurs ? t.addChauffeur : t.addVehicle,
+      saveLabel: isChauffeurs ? t.saveChauffeur : t.addVehicle,
+      addSaveLabel: isChauffeurs ? t.saveChauffeur : t.addVehicle,
       editTitle: isChauffeurs ? t.editC : t.editV,
       deleteTitle: isChauffeurs ? t.delC : t.delV,
       labelKey: isChauffeurs ? 'name' : 'plate',
