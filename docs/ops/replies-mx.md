@@ -29,10 +29,31 @@ If inbound never arrives after the Resend MX cut:
 4. Do not add apex MX. Do not touch `vamostaxi.eu`.
 5. Leave `REPLIES_DOMAIN_VERIFIED = false` unless 16-03 already flipped it after Verified.
 
-## Applied records
+Note: Resend receiving in region `ap-northeast-1` **is** that SES inbound hostname. Copied from Resend GET domain — not guessed. Rolling back receiving MX means restoring this same value.
 
-*(filled after Resend returns copy-paste records — never guessed)*
+## Applied records (copied from Resend GET domain `replies.vamostaxi.site`)
+
+Zone: `vamostaxi.site` only. Region: `ap-northeast-1` (same as sending domain `vamostaxi.site`).
+
+| Name | Type | Priority | Content | Status at apply |
+|------|------|----------|---------|-----------------|
+| `resend._domainkey.replies` | TXT | — | `p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC1Ie/F0ieMU8/a7i0bDW74UcchCjEH1TT7/t90EjRv3QIaCiFSeLzAY6yboVIG5+5OxT/AWbSfF/qVZD3Ux4GLEFMVNvOcdvdBPUd82shu5MlFewzE+ktwbtf4B9iPZNN4QRZj7zMoARQAmk6exMuQJ/E7MwuPbDm4gLBAIbwy3QIDAQAB` | verified (pre-existing) |
+| `replies` | MX | 10 | `inbound-smtp.ap-northeast-1.amazonaws.com` | verified receiving (Resend receiving MX in this region) |
+| `send.replies` | MX | 10 | `feedback-smtp.ap-northeast-1.amazonses.com` | applied 2026-09-18 |
+| `send.replies` | TXT | — | `v=spf1 include:amazonses.com ~all` | applied 2026-09-18 |
+
+Capabilities after apply: sending=enabled, receiving=enabled.
+
+Public `dig` 2026-09-18 (Cloudflare `1.1.1.1`):
+
+- `replies.vamostaxi.site` MX = `10 inbound-smtp.ap-northeast-1.amazonaws.com.`
+- `vamostaxi.site` MX = empty
+- `vamostaxi.eu` MX = `10 mail.vamostaxi.eu.`
+- `send.replies.vamostaxi.site` MX = `10 feedback-smtp.ap-northeast-1.amazonses.com.`
+- `send.replies.vamostaxi.site` TXT = `v=spf1 include:amazonses.com ~all`
+
+Webhook unchanged: `https://vamostaxi.site/api/webhooks/resend` (`email.received` only).
 
 ## Flag
 
-Still **false** after this plan.
+Still **false** after this plan. 16-03 flips only after Resend sending status is Verified.
