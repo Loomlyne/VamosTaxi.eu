@@ -35,6 +35,12 @@ interface CloudflareEnv {
   PHOTOS: R2Bucket;
 
   /**
+   * Inbound support-mail files (`support/{submissionId}/{messageId}/{fileId}`).
+   * Never PHOTOS. Bound in 14-07; optional so unit tests typecheck without the bucket.
+   */
+  SUPPORT_FILES?: R2Bucket;
+
+  /**
    * Stripe webhook fan-out queue — both producer and consumer bind under this name
    * (`apps/web/wrangler.jsonc` `queues.producers`/`queues.consumers`). Phase 7 (payment) is
    * the first real consumer; `worker.ts`'s `queue()` handler already acks every message as a
