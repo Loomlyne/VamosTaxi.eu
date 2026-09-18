@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { staffMessageId } from "../ops/ticket-mail";
-import { sendContactMessage } from "./notify";
+import { RFC_MESSAGE_ID_GET_GAPS_MS, sendContactMessage } from "./notify";
 
 const rendered = { subject: "Hello", html: "<p>Hi</p>", text: "Hi" };
 const RESEND_UUID = "37e4414c-5e25-4dbc-a071-43552a4bd53b";
@@ -124,30 +124,53 @@ describe("sendContactMessage", () => {
       expect(result.rfcMessageId).not.toBe(staffMessageId(RESEND_UUID));
     });
 
-    it("retries emails.get once when message_id is empty, then returns the RFC id", async () => {
+    it("polls emails.get while message_id is null (queued), then returns the RFC id", async () => {
+      vi.useFakeTimers();
       sendResend.mockResolvedValueOnce({ data: { id: RESEND_UUID }, error: null });
       getResend
-        .mockResolvedValueOnce({ data: { id: RESEND_UUID, message_id: "" }, error: null })
+        .mockResolvedValueOnce({ data: { id: RESEND_UUID, message_id: null }, error: null })
+        .mockResolvedValueOnce({ data: { id: RESEND_UUID, message_id: null }, error: null })
         .mockResolvedValueOnce({ data: { id: RESEND_UUID, message_id: GET_RFC }, error: null });
-      await expect(
-        sendContactMessage("re_key", undefined, "guest@example.test", "idem-retry", rendered, undefined, {
-          allowEmailFallback: false,
-        }),
-      ).resolves.toMatchObject({ accepted: true, rfcMessageId: GET_RFC });
-      expect(getResend).toHaveBeenCalledTimes(2);
+      try {
+        const pending = sendContactMessage(
+          "re_key",
+          undefined,
+          "guest@example.test",
+          "idem-retry",
+          rendered,
+          undefined,
+          { allowEmailFallback: false },
+        );
+        await vi.runAllTimersAsync();
+        await expect(pending).resolves.toMatchObject({ accepted: true, rfcMessageId: GET_RFC });
+        expect(getResend).toHaveBeenCalledTimes(3);
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it("fail-closes when GET stays empty and never calls Cloudflare EMAIL (D-06)", async () => {
+      vi.useFakeTimers();
       sendResend.mockResolvedValueOnce({ data: { id: RESEND_UUID }, error: null });
       getResend.mockResolvedValue({ data: { id: RESEND_UUID, message_id: "" }, error: null });
       const send = vi.fn(async () => ({ messageId: "cf-unused" }));
-      await expect(
-        sendContactMessage("re_key", undefined, "guest@example.test", "idem-empty-get", rendered, { send }, {
-          allowEmailFallback: false,
-        }),
-      ).resolves.toMatchObject({ accepted: false, rfcMessageId: null });
-      expect(getResend).toHaveBeenCalledTimes(2);
-      expect(send).not.toHaveBeenCalled();
+      try {
+        const pending = sendContactMessage(
+          "re_key",
+          undefined,
+          "guest@example.test",
+          "idem-empty-get",
+          rendered,
+          { send },
+          { allowEmailFallback: false },
+        );
+        await vi.runAllTimersAsync();
+        await expect(pending).resolves.toMatchObject({ accepted: false, rfcMessageId: null });
+        expect(getResend).toHaveBeenCalledTimes(RFC_MESSAGE_ID_GET_GAPS_MS.length);
+        expect(send).not.toHaveBeenCalled();
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it("copies options.from Vamos Taxi <noreply@vamostaxi.site> onto the send payload (D-01)", async () => {

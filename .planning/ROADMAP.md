@@ -695,7 +695,14 @@ appends to the same ticket. Apex Gmail `info@` unchanged. No live `vamostaxi.eu`
   4. UAT also proves: intake + reply copies at `info@`; unsigned webhook 4xx on deployed staging; spoofed `From` does not append; `<script>` fixture is escaped in `#support`.
   5. Funnel Phases 7–11 still frozen. Must-nots: no `POST /api/quote`, no Staff tab.
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+- [x] 16-01-PLAN.md — Wave 0: staffSender false-path tests (flag stays false)
+- [x] 16-02-PLAN.md — Resend + Cloudflare receiving MX on replies. only
+- [x] 16-03-PLAN.md — Verified readback → flag true → deploy Worker vamos
+- [ ] 16-04-PLAN.md — Live Gmail UAT (INB-01) — autonomous: false
+
+**UI hint**: observation-only — 16-UI-SPEC.md (no new chrome)
 
 ### Phase 17: Ops chauffeur profile, shift roster, two-driver vehicles
 

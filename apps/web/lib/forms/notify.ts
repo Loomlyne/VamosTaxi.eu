@@ -47,21 +47,26 @@ function closed(partial?: Partial<SendContactResult>): SendContactResult {
   };
 }
 
+/** GET /emails often returns message_id null while last_event is still queued. */
+export const RFC_MESSAGE_ID_GET_GAPS_MS = [0, 300, 700, 1500] as const;
+
 export async function retrieveRfcMessageId(apiKey: string, id: string): Promise<string | null> {
-  const once = async (): Promise<string | null> => {
-    try {
-      const result = await new Resend(apiKey).emails.get(id);
-      const raw = result.data && "message_id" in result.data ? result.data.message_id : undefined;
-      if (result.error || typeof raw !== "string" || raw.length === 0) return null;
-      const normalized = asRfcMessageId(raw);
-      return RFC_MESSAGE_ID.test(normalized) ? normalized : null;
-    } catch {
-      return null;
+  const client = new Resend(apiKey);
+  for (const gap of RFC_MESSAGE_ID_GET_GAPS_MS) {
+    if (gap > 0) {
+      await new Promise((resolve) => setTimeout(resolve, gap));
     }
-  };
-  const first = await once();
-  if (first) return first;
-  return once();
+    try {
+      const result = await client.emails.get(id);
+      const raw = result.data && "message_id" in result.data ? result.data.message_id : undefined;
+      if (result.error || typeof raw !== "string" || raw.length === 0) continue;
+      const normalized = asRfcMessageId(raw);
+      if (RFC_MESSAGE_ID.test(normalized)) return normalized;
+    } catch {
+      continue;
+    }
+  }
+  return null;
 }
 
 export async function sendContactMessage(

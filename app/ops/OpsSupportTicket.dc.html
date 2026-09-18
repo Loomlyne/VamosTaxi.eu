@@ -65,7 +65,16 @@
 [data-msg][data-from="note"]{align-self:center;max-width:100%;background:transparent;border-style:dashed;border-width:1px;color:var(--vt-text-muted);font-size:var(--vt-body-xs);text-align:center}
 [data-msg][data-from="staff"] [data-chip]{background:transparent;border-color:rgb(255 255 255 / .28);color:var(--vt-text-inverse)}
 [data-msg] p{white-space:pre-wrap}
-[data-msg] [data-file]{display:block;max-inline-size:100%;object-fit:contain;margin-block-start:8px}
+[data-files]{display:flex;flex-direction:column;align-items:flex-start;gap:8px;margin-block-start:8px;min-width:0}
+[data-msg][data-from="staff"] [data-files]{align-items:flex-end}
+[data-files] .vt-btn{max-inline-size:100%}
+[data-msg][data-from="staff"] [data-files] .vt-btn{color:var(--vt-text-inverse);border-color:rgb(255 255 255 / .28);background:transparent}
+.vt-dialog__scrim:has(.vt-file-preview){z-index:80}
+.vt-dialog.vt-file-preview{display:flex;flex-direction:column;max-block-size:min(80vh,calc(100dvh - 48px))}
+.vt-file-preview .vt-dialog__body{flex:1 1 auto;min-block-size:0;overflow:hidden;padding:12px 16px 20px}
+[data-preview-img]{display:block;max-inline-size:100%;max-block-size:min(70vh,720px);object-fit:contain;margin-inline:auto}
+[data-preview-pages]{overflow:auto;max-block-size:min(70vh,720px);display:flex;flex-direction:column;gap:12px;min-width:0;min-block-size:0}
+[data-preview-pages] canvas{display:block;inline-size:100%;height:auto;background:var(--vt-bg-page);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md)}
 [data-toolbar]{display:flex;flex-wrap:nowrap;align-items:center;gap:8px;min-width:0}
 [data-filters-btn]{display:block;flex:0 0 auto}
 [data-filters-tags]{display:none}
@@ -203,14 +212,11 @@
 <span style="font-size:var(--vt-body-xs);opacity:.72">{{ m.when }}</span>
 </div>
 <p data-vt-no-i18n="1" style="margin:0;font-size:var(--vt-body-sm);line-height:1.55;text-wrap:pretty">{{ m.body }}</p>
+<div data-files="1">
 <sc-for list="{{ m.files }}" as="f" hint-placeholder-count="0">
-<sc-if value="{{ f.showImg }}" hint-placeholder-val="{{ false }}">
-<img data-file="1" src="{{ f.href }}" alt="{{ f.filename }}" />
-</sc-if>
-<sc-if value="{{ f.showLink }}" hint-placeholder-val="{{ false }}">
-<a data-file="1" href="{{ f.href }}">{{ f.filename }}</a>
-</sc-if>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" sentenceCase="{{ yes }}" icon="{{ f.icon }}" onClick="{{ f.open }}" hint-size="220px,36px">{{ f.filename }}</x-import>
 </sc-for>
+</div>
 </div>
 </sc-for>
 </div>
@@ -300,6 +306,19 @@
 </div>
 
 </div>
+</x-import>
+</sc-if>
+
+<sc-if value="{{ previewOpen }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="lg" className="vt-file-preview" title="{{ previewTitle }}" onClose="{{ closePreview }}" closeLabel="{{ tClose }}" hint-size="960px,720px">
+<sc-if value="{{ previewHasHref }}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{ previewIsImage }}" hint-placeholder-val="{{ false }}">
+<img data-preview-img="1" src="{{ previewHref }}" alt="{{ previewTitle }}" />
+</sc-if>
+<sc-if value="{{ previewIsPdf }}" hint-placeholder-val="{{ false }}">
+<div data-preview-pdf="1" data-preview-pages="1" data-scroll-native="1"></div>
+</sc-if>
+</sc-if>
 </x-import>
 </sc-if>
 
@@ -423,13 +442,16 @@ function fileItems(ticketId, files) {
     const f = list[i];
     if (!f || f.kept === false || !f.id) continue;
     const href = '/api/staff/tickets/' + ticketId + '/files/' + f.id;
-    const isImage = String(f.contentType || '').indexOf('image/') === 0;
+    const type = String(f.contentType || '').toLowerCase();
+    const isImage = type.indexOf('image/') === 0;
+    const isPdf = type === 'application/pdf' || /\.pdf$/i.test(String(f.filename || ''));
     out.push({
       id: f.id,
       filename: f.filename || '',
       href: href,
-      showImg: isImage,
-      showLink: !isImage,
+      isImage: isImage,
+      isPdf: isPdf,
+      icon: isImage ? 'image' : 'file-text',
     });
   }
   return out;
@@ -458,7 +480,7 @@ function opsHand() {
 class Component extends DCLogic {
   state = {
     lang: 'en', filter: 'all', view: opsPhone() ? 'table' : 'kanban', query: '', tickets: [],
-    openId: null, draft: '', sending: false, filterOpen: false, metaOpen: true, loadError: false, overlayError: false,
+    openId: null, draft: '', sending: false, filterOpen: false, metaOpen: true, loadError: false, overlayError: false, preview: null,
     sortNewest: Object.assign({}, SORT_NEWEST),
   };
   hydrate = () => {
@@ -491,11 +513,15 @@ class Component extends DCLogic {
     this.hydrate();
     publishBadge(this.state.tickets);
   }
+  componentDidUpdate() {
+    this.paintPdfPages();
+  }
   componentWillUnmount() {
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     if (this._onFocus) window.removeEventListener('focus', this._onFocus);
     if (this._onVis) document.removeEventListener('visibilitychange', this._onVis);
     clearTimeout(this._retry);
+    this.revokePreview();
   }
   setFilter = (key) => this.setState({ filter: key || 'all', filterOpen: false });
   toggleMeta = () => { if (!opsHand()) return; this.setState({ metaOpen: !this.state.metaOpen }); };
@@ -548,9 +574,10 @@ class Component extends DCLogic {
   openTicket = (id) => {
     const current = this.state.tickets.find((t) => t.id === id);
     if (!current) return;
+    this.revokePreview();
     if (current.status === 'new') {
       const tickets = this.state.tickets.map((t) => t.id === id ? Object.assign({}, t, { status: 'open' }) : t);
-      this.setState({ openId: id, draft: '', tickets: tickets, overlayError: false, metaOpen: !opsHand() }, () => {
+      this.setState({ openId: id, draft: '', tickets: tickets, overlayError: false, preview: null, metaOpen: !opsHand() }, () => {
         publishBadge(tickets);
         requestAnimationFrame(() => this.scrollThread());
       });
@@ -561,12 +588,116 @@ class Component extends DCLogic {
       });
       return;
     }
-    this.setState({ openId: id, draft: '', overlayError: false, metaOpen: !opsHand() }, () => {
+    this.setState({ openId: id, draft: '', overlayError: false, preview: null, metaOpen: !opsHand() }, () => {
       requestAnimationFrame(() => this.scrollThread());
     });
   };
   openRow = (row) => { if (row && row.id) this.openTicket(row.id); };
-  closeOverlay = () => this.setState({ openId: null, draft: '', overlayError: false });
+  revokePreview = () => {
+    if (this._previewUrl) {
+      try { URL.revokeObjectURL(this._previewUrl); } catch (err) {}
+      this._previewUrl = null;
+    }
+    if (this._pdfDoc) {
+      try { this._pdfDoc.destroy(); } catch (err) {}
+      this._pdfDoc = null;
+    }
+  };
+  closeOverlay = () => {
+    this.revokePreview();
+    this.setState({ openId: null, draft: '', overlayError: false, preview: null });
+  };
+  loadPdfJs = () => {
+    if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+    if (this._pdfJsWait) return this._pdfJsWait;
+    this._pdfJsWait = new Promise((resolve, reject) => {
+      const src = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js';
+      const worker = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = () => {
+        const lib = window.pdfjsLib;
+        if (!lib) { reject(new Error('pdfjs')); return; }
+        lib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob(
+          ['importScripts("' + worker + '");'],
+          { type: 'application/javascript' }
+        ));
+        resolve(lib);
+      };
+      s.onerror = () => reject(new Error('pdfjs'));
+      document.head.appendChild(s);
+    });
+    return this._pdfJsWait;
+  };
+  paintPdfPages = () => {
+    const root = document.querySelector('[data-vt-support] [data-preview-pages]');
+    const pdf = this._pdfDoc;
+    if (!root || !pdf) return;
+    const width = root.clientWidth;
+    if (width < 40) {
+      requestAnimationFrame(() => this.paintPdfPages());
+      return;
+    }
+    const mark = String(pdf.numPages);
+    if (root.getAttribute('data-painted') === mark) return;
+    while (root.firstChild) root.removeChild(root.firstChild);
+    root.setAttribute('data-painted', mark);
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const canvas = document.createElement('canvas');
+      canvas.setAttribute('data-preview-page', String(i));
+      root.appendChild(canvas);
+      pdf.getPage(i).then((page) => {
+        if (this._pdfDoc !== pdf) return;
+        const base = page.getViewport({ scale: 1 });
+        const scale = width / base.width;
+        const viewport = page.getViewport({ scale: scale });
+        const ratio = window.devicePixelRatio || 1;
+        canvas.width = Math.floor(viewport.width * ratio);
+        canvas.height = Math.floor(viewport.height * ratio);
+        canvas.style.width = '100%';
+        canvas.style.height = 'auto';
+        const ctx = canvas.getContext('2d');
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+        return page.render({ canvasContext: ctx, viewport: viewport }).promise;
+      });
+    }
+  };
+  openPreview = (file) => {
+    if (!file || !file.href) return;
+    this.revokePreview();
+    const filename = file.filename || '';
+    const isImage = !!file.isImage;
+    const isPdf = !!file.isPdf;
+    this.setState({
+      overlayError: false,
+      preview: { href: '', filename: filename, isImage: isImage, isPdf: isPdf },
+    });
+    fetch(file.href, { credentials: 'include' }).then((res) => {
+      if (!res.ok) throw new Error('file');
+      return res.blob();
+    }).then((blob) => {
+      if (isPdf) {
+        return this.loadPdfJs().then((lib) => blob.arrayBuffer().then((data) => lib.getDocument({ data: data }).promise)).then((pdf) => {
+          this._pdfDoc = pdf;
+          this.setState({
+            preview: { href: 'pages', filename: filename, isImage: false, isPdf: true },
+          });
+        });
+      }
+      const url = URL.createObjectURL(blob);
+      this._previewUrl = url;
+      this.setState({
+        preview: { href: url, filename: filename, isImage: isImage, isPdf: false },
+      });
+    }).catch(() => {
+      this.revokePreview();
+      this.setState({ overlayError: true, preview: null });
+    });
+  };
+  closePreview = () => {
+    this.revokePreview();
+    this.setState({ preview: null });
+  };
   scrollThread = () => {
     const root = document.querySelector('[data-vt-support] [data-thread]');
     if (!root) return;
@@ -722,6 +853,13 @@ class Component extends DCLogic {
       setBooking: this.setBooking,
       setNote: this.setNote,
       closeOverlay: this.closeOverlay,
+      previewOpen: !!this.state.preview,
+      previewTitle: this.state.preview ? this.state.preview.filename : '',
+      previewHref: this.state.preview ? this.state.preview.href : '',
+      previewIsImage: !!(this.state.preview && this.state.preview.isImage),
+      previewIsPdf: !!(this.state.preview && this.state.preview.isPdf),
+      previewHasHref: !!(this.state.preview && this.state.preview.href),
+      closePreview: this.closePreview,
       canReply: !!(open && open.status !== 'closed'),
       isClosed: !!(open && open.status === 'closed'),
       draft: this.state.draft || '',
@@ -732,7 +870,7 @@ class Component extends DCLogic {
       sendOff: !!this.state.sending || !(this.state.draft && String(this.state.draft).trim()) || !!(open && open.status === 'closed'),
       thread: open ? open.messages.map((m) => ({
         from: m.whoKey, who: whoLabel[m.whoKey] || m.whoKey, when: m.when, body: m.body,
-        files: fileItems(open.id, m.files),
+        files: fileItems(open.id, m.files).map((f) => Object.assign({}, f, { open: () => this.openPreview(f) })),
       })) : [],
     };
   }
