@@ -20,7 +20,7 @@ If inbound never arrives after MX cut: stop, revert `replies.` MX to `inbound-sm
 number: 8
 name: Close Ticket then Reply → Responded
 expected: |
-  Overlay shows Closed. After Gmail Reply, same ticket is Responded with a new customer bubble.
+  After Gmail Reply, same ticket is Responded with a new customer bubble.
 awaiting: user
 
 ## Tests
@@ -79,6 +79,7 @@ who: agent Closes; Koss Replies; agent confirms
 action: Agent clicks Close Ticket. Koss Replies again in Gmail (say “sent”). Agent confirms overlay.
 expected: Closed then inbound Reply becomes Responded. Same ticket.
 result: pending
+reported: "Close live: ticket_status closed (owner pass). Awaiting Gmail Reply → Responded."
 awaiting: user
 
 ### 9. No-token drop (D-14)
