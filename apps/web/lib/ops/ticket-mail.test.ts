@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   asRfcMessageId,
@@ -8,6 +11,7 @@ import {
   parseTicketReplyToken,
   readInboundPayload,
   staffMessageId,
+  staffSender,
   threadHeaders,
   ticketReplyAddress,
   tokenFromInboundTo,
@@ -130,5 +134,20 @@ describe("INB-02 D-01 D-06 D-07 Wave 0 strip and RFC parse (RED until 14-02)", (
     const dumped = `${"a".repeat(8001)}\n\nOn Bob wrote:\nquoted history`;
     expect(stripQuotedHistory(dumped).length).toBeLessThanOrEqual(8000);
     expect(clipInboundBody("x".repeat(8001)).length).toBe(8000);
+  });
+});
+
+describe("Phase 16-01 staffSender false path (D-01 D-04)", () => {
+  it("staffSender From is noreply and Reply-To is the plus-address", () => {
+    expect(staffSender(TOKEN)).toEqual({
+      from: "Vamos Taxi <noreply@vamostaxi.site>",
+      replyTo: PLUS,
+    });
+  });
+
+  it("source-read keeps REPLIES_DOMAIN_VERIFIED false and the plus From template", () => {
+    const src = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "ticket-mail.ts"), "utf8");
+    expect(src).toMatch(/REPLIES_DOMAIN_VERIFIED\s*=\s*false/);
+    expect(src).toContain("`Vamos Taxi <${plus}>`");
   });
 });

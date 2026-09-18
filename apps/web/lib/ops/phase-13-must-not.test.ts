@@ -45,6 +45,7 @@ describe("phase 13 must-not greps (RPLY-01 RPLY-02 D-01 D-05 D-08 D-09)", () => 
     expect(code).not.toMatch(/Message-ID/);
   });
 
+  // 16-03 owns inverting D-09 to true after Resend Verified. Do not invert here.
   it("D-09 ticket-mail keeps REPLIES_DOMAIN_VERIFIED false and does not assign Message-ID", () => {
     const src = read(FILES.ticketMail);
     const code = stripLineComments(src);
