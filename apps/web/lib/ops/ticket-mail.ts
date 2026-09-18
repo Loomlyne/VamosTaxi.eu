@@ -173,8 +173,10 @@ export function stripQuotedHistory(text: string): string {
   const raw = String(text ?? "").replace(/\r\n/g, "\n");
   let cut = -1;
   const onWrote = raw.search(/^On .+ wrote:$/m);
+  const onWroteWrapped = raw.search(/^On .+\n<[^>\n]+> wrote:$/m);
   const original = raw.search(/^-----Original Message-----/m);
   if (onWrote >= 0) cut = onWrote;
+  if (onWroteWrapped >= 0 && (cut < 0 || onWroteWrapped < cut)) cut = onWroteWrapped;
   if (original >= 0 && (cut < 0 || original < cut)) cut = original;
   const quoted = cutAtQuotedBlock(raw);
   if (quoted >= 0 && (cut < 0 || quoted < cut)) cut = quoted;

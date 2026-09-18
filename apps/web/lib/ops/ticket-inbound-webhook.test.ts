@@ -43,6 +43,12 @@ describe("14-06 inbound webhook + staff file GET (source-read)", () => {
     expect(src).not.toContain("download_url");
   });
 
+  it("unprefixed /api/staff/tickets/:id/files/:fileId re-exports GET", () => {
+    const src = read("apps/web/app/api/staff/tickets/[id]/files/[fileId]/route.ts");
+    expect(src).toContain("export { GET }");
+    expect(src).toContain("[locale]/(ops)/api/staff/tickets/[id]/files/[fileId]/route");
+  });
+
   it("does not import webhook route from this test file", () => {
     const src = read("apps/web/lib/ops/ticket-inbound-webhook.test.ts");
     expect(src).toContain("readFileSync");

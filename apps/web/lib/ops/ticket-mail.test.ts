@@ -133,6 +133,16 @@ describe("INB-02 D-01 D-06 D-07 Wave 0 strip and RFC parse (RED until 14-02)", (
     expect(out).not.toContain("Yesterday's thread");
   });
 
+  it("D-06 stripQuotedHistory drops Gmail On … <addr> wrote: wrap", async () => {
+    const { stripQuotedHistory } = await loadWave0Mail();
+    const out = stripQuotedHistory(
+      "Utxitc8yviyciycy8c\n\nOn Fri, 18 Sep 2026 at 3:12 PM Vamos Taxi\n<TKT-8EC98A6D@replies.vamostaxi.site> wrote:\nokay no",
+    );
+    expect(out).toBe("Utxitc8yviyciycy8c");
+    expect(out).not.toContain("TKT-8EC98A6D");
+    expect(out).not.toContain("okay no");
+  });
+
   it("D-07 inboundBody/htmlToText on a p-wrapped script tag does not contain the string script", () => {
     const out = inboundBody({
       emailId: "em_html",
