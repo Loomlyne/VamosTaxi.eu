@@ -6,7 +6,7 @@ source:
   - 16-02-SUMMARY.md
   - 16-03-SUMMARY.md
 started: 2026-09-18T10:00:00Z
-updated: 2026-09-18T12:32:08Z
+updated: 2026-09-18T12:37:06Z
 ---
 
 # Phase 16 UAT — staging MX + Reply-in-Gmail
@@ -17,10 +17,10 @@ If inbound never arrives after MX cut: stop, revert `replies.` MX to `inbound-sm
 
 ## Current Test
 
-number: 7
-name: XSS escaped in overlay
+number: 8
+name: Close Ticket then Reply → Responded
 expected: |
-  Customer bubble shows the script as text. No alert. No executed HTML.
+  Overlay shows Closed. After Gmail Reply, same ticket is Responded with a new customer bubble.
 awaiting: user
 
 ## Tests
@@ -71,9 +71,8 @@ reported: "INB-01 live: same ticket 8ec98a6d… status responded, 4 messages, jp
 who: agent, only after Koss says sent
 action: Refresh/focus dashboard Support. Open the same ticket overlay. Click the PDF button.
 expected: new customer bubble on the same ticket. Script text is escaped (not executed). Image and PDF are thread buttons. Nested overlay: pages only, scroll, no PDF viewer chrome.
-result: pending
-reported: "Same ticket + file buttons + PDF pages-only: owner pass. XSS click still owed — Reply body must include <script>alert(1)</script>."
-awaiting: user
+result: pass
+reported: "Owner shot 2026-09-18 14:34 Zurich: customer bubble shows Body must be exactly <script>alert(1)</script> as text. No alert. jpeg button on that bubble."
 
 ### 8. Closed → Reply → Responded (D-13)
 who: agent Closes; Koss Replies; agent confirms
@@ -99,9 +98,9 @@ reported: "Owner 2026-09-18: info@ inbox not created yet — mark as pass for no
 ## Summary
 
 total: 10
-passed: 7
+passed: 8
 issues: 0
-pending: 3
+pending: 2
 skipped: 0
 blocked: 0
 
