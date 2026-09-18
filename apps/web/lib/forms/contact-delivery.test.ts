@@ -111,4 +111,25 @@ describe("deliverContactMessages", () => {
     expect(finalize).toHaveBeenNthCalledWith(1, "customer", "first-lease", undefined);
     expect(finalize).toHaveBeenNthCalledWith(2, "customer", "reclaimed-lease", undefined);
   });
+
+  it("reports accepted when send carries GET identity and still finalizes providerSuffix", async () => {
+    const finalize = vi.fn(async (): Promise<"accepted"> => "accepted");
+    const gateway: ContactDeliveryGateway = {
+      claim: vi.fn(async (message): Promise<ContactDeliveryClaim> => (
+        message === "customer" ? claimed("customer-lease") : { state: "accepted" }
+      )),
+      send: vi.fn(async () => ({
+        accepted: true,
+        providerSuffix: "re_suffix12ab",
+        providerId: "re_1234567890ab",
+        rfcMessageId: "<abc123@resend.dev>",
+        channel: "resend" as const,
+      })),
+      finalize,
+      fail: vi.fn(async () => undefined),
+    };
+
+    await expect(deliverContactMessages(gateway, submissionId)).resolves.toEqual({ accepted: true });
+    expect(finalize).toHaveBeenCalledWith("customer", "customer-lease", "re_suffix12ab");
+  });
 });

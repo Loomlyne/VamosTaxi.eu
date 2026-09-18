@@ -207,7 +207,7 @@
 </div>
 <div data-ov-foot="1">
 <sc-if value="{{ overlayError }}" hint-placeholder-val="{{ false }}">
-<p data-ov-err="1">{{ tLoadError }}</p>
+<p data-ov-err="1">{{ tSendError }}</p>
 </sc-if>
 <sc-if value="{{ canReply }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ tReply }}" rows="{{ nReply }}" value="{{ draft }}" onChange="{{ setDraft }}" placeholder="{{ tReplyPh }}" hint-size="100%,72px"></x-import>
@@ -308,6 +308,7 @@ const T = {
     kanban:'Kanban', table:'Table', colName:'Customer', colEmail:'Email', colPhone:'Phone', colRef:'Ref', colWhen:'When', colLocale:'Locale',
     reply:'Reply', replyPh:'Write a reply…', send:'Send', closedBody:'This ticket is closed. Reopen it to keep working.',
     loadError:'Could not load tickets. Try again.',
+    sendError:'Couldn’t send. Try again.',
     footNew:'Waiting on dispatch', footOpen:'In progress', footMsgs:'Across every ticket', footAll:'On the board',
     cntMsgs:'Messages', cntAll:'Tickets', msgCount:'%n messages',
     ticket:'Ticket', channel:'Channel', channelForm:'Contact form', opened:'Opened', lastAct:'Last activity',
@@ -322,6 +323,7 @@ const T = {
     kanban:'Kanban', table:'Tabelle', colName:'Kunde', colEmail:'E-Mail', colPhone:'Telefon', colRef:'Ref.', colWhen:'Wann', colLocale:'Sprache',
     reply:'Antwort', replyPh:'Antwort schreiben…', send:'Senden', closedBody:'Dieses Ticket ist geschlossen. Öffnen Sie es erneut, um weiterzuarbeiten.',
     loadError:'Tickets konnten nicht geladen werden. Bitte erneut versuchen.',
+    sendError:'Senden fehlgeschlagen. Bitte erneut versuchen.',
     footNew:'Wartet auf Dispatch', footOpen:'In Bearbeitung', footMsgs:'Über alle Tickets', footAll:'Auf dem Board',
     cntMsgs:'Nachrichten', cntAll:'Tickets', msgCount:'%n Nachrichten',
     ticket:'Ticket', channel:'Kanal', channelForm:'Kontaktformular', opened:'Geöffnet', lastAct:'Letzte Aktivität',
@@ -336,6 +338,7 @@ const T = {
     kanban:'Kanban', table:'Tableau', colName:'Client', colEmail:'E-mail', colPhone:'Téléphone', colRef:'Réf.', colWhen:'Quand', colLocale:'Langue',
     reply:'Réponse', replyPh:'Écrire une réponse…', send:'Envoyer', closedBody:'Ce ticket est fermé. Réouvrez-le pour continuer.',
     loadError:'Impossible de charger les tickets. Réessayez.',
+    sendError:'Impossible d’envoyer. Réessayez.',
     footNew:'En attente dispatch', footOpen:'En cours', footMsgs:'Tous tickets confondus', footAll:'Sur le tableau',
     cntMsgs:'Messages', cntAll:'Tickets', msgCount:'%n messages',
     ticket:'Ticket', channel:'Canal', channelForm:'Formulaire de contact', opened:'Ouvert le', lastAct:'Dernière activité',
@@ -350,6 +353,7 @@ const T = {
     kanban:'كانبان', table:'جدول', colName:'العميل', colEmail:'البريد', colPhone:'الهاتف', colRef:'المرجع', colWhen:'متى', colLocale:'اللغة',
     reply:'رد', replyPh:'اكتب رداً…', send:'إرسال', closedBody:'هذه التذكرة مغلقة. أعد فتحها للمتابعة.',
     loadError:'تعذر تحميل التذاكر. حاول مرة أخرى.',
+    sendError:'تعذر الإرسال. حاول مرة أخرى.',
     footNew:'بانتظار التوزيع', footOpen:'قيد المعالجة', footMsgs:'عبر كل التذاكر', footAll:'على اللوحة',
     cntMsgs:'رسائل', cntAll:'تذاكر', msgCount:'%n رسائل',
     ticket:'التذكرة', channel:'القناة', channelForm:'نموذج التواصل', opened:'فُتحت', lastAct:'آخر نشاط',
@@ -624,7 +628,7 @@ class Component extends DCLogic {
       yes: true, n16: 16, n18: 18, n3: 3, n6: 6, nReply: replyRows(this.state.draft),
       tTitle: t.title, tSubtitle: t.subtitle, tEmptyTitle: t.emptyTitle, tEmptyBody: t.emptyBody,
       tStatus: t.status, tClose: t.close, tCloseTicket: t.closeTicket, tReopen: t.reopen, tKanban: t.kanban, tTable: t.table, tColEmpty: t.colEmpty,
-      tReply: t.reply, tReplyPh: t.replyPh, tSend: t.send, tClosedBody: t.closedBody, tLoadError: t.loadError,
+      tReply: t.reply, tReplyPh: t.replyPh, tSend: t.send, tClosedBody: t.closedBody, tLoadError: t.loadError, tSendError: t.sendError,
       tTicket: t.ticket, tChannel: t.channel, tChannelForm: t.channelForm, tOpened: t.opened, tLastAct: t.lastAct,
       tBooking: t.booking, tBookingPh: t.bookingPh, tMsgs: t.msgs, tMail: t.mail, tCall: t.call, tWhatsApp: t.whatsApp,
       tPhone: t.phone, tPhonePh: t.phonePh, tNote: t.note, tNotePh: t.notePh, tSearchPh: t.searchPh, tFilter: t.filter,

@@ -7,7 +7,7 @@ import { renderContactCustomerEmail, renderStaffReplyEmail } from "@vamos/emails
 import { asStaff, type VamosClaims } from "@/lib/db/identity";
 import { sendContactMessage } from "@/lib/forms/notify";
 import { SUPPORT_EMAIL } from "@/lib/contact-channels";
-import { contactMessageId, ticketReplyAddress, threadHeaders } from "@/lib/ops/ticket-mail";
+import { contactMessageId, staffSender, threadHeaders } from "@/lib/ops/ticket-mail";
 import { staffPatchStatus, type TicketStatus } from "@/lib/ops/tickets-map";
 
 const STATUSES = new Set<TicketStatus>(["new", "open", "replied", "responded", "closed"]);
@@ -28,8 +28,11 @@ type LoadedTicket = {
   ticket_status: string | null;
   email: string | null;
   locale: string | null;
+  name: string;
+  bookingRef: string;
   replyToken: string;
   parentId: string;
+  chain: string[];
 };
 
 export type PatchTicketInput = {
@@ -39,7 +42,7 @@ export type PatchTicketInput = {
 
 export type PatchTicketResult =
   | { ok: true; status: TicketStatus }
-  | { ok: false; reason: "not-found" | "invalid-status" | "empty-reply" | "send-failed" };
+  | { ok: false; reason: "not-found" | "invalid-status" | "empty-reply" | "invalid-reply" | "send-failed" };
 
 export async function patchTicket(
   env: CloudflareEnv,
@@ -50,6 +53,7 @@ export async function patchTicket(
   const hasReply = Object.prototype.hasOwnProperty.call(input, "reply");
   const reply = typeof input.reply === "string" ? input.reply.trim() : "";
   if (hasReply && !reply) return { ok: false, reason: "empty-reply" };
+  if (hasReply && reply.length > 8000) return { ok: false, reason: "invalid-reply" };
 
   if (!hasReply) {
     return asStaff(env, claims, async (sql) => {
@@ -88,11 +92,13 @@ export async function patchTicket(
   const loaded = await asStaff(env, claims, async (sql) => {
     const rows = await sql<{
       ticket_status: string | null;
+      name: string | null;
+      booking_ref: string | null;
       email: string | null;
       locale: string | null;
       reply_token: string | null;
     }[]>`
-      select ticket_status, email, locale, reply_token
+      select ticket_status, name, booking_ref, email, locale, reply_token
       from public.contact_submissions
       where id = ${id}::uuid
       limit 1
@@ -107,10 +113,21 @@ export async function patchTicket(
         and rfc_message_id is not null
         and rfc_message_id <> ''
       order by created_at asc
-      limit 1
     `;
-    const parentId = thread[0]?.rfc_message_id ?? contactMessageId(id);
-    return { ...ticket, replyToken, parentId } satisfies LoadedTicket;
+    const chain = thread
+      .map((row) => String(row.rfc_message_id ?? "").trim())
+      .filter(Boolean);
+    const parentId = chain[0] ?? contactMessageId(id);
+    return {
+      ticket_status: ticket.ticket_status,
+      email: ticket.email,
+      locale: ticket.locale,
+      name: String(ticket.name ?? "").trim(),
+      bookingRef: String(ticket.booking_ref ?? "").trim(),
+      replyToken,
+      parentId,
+      chain,
+    } satisfies LoadedTicket;
   });
   if (!loaded) return { ok: false, reason: "not-found" };
 
@@ -121,14 +138,19 @@ export async function patchTicket(
   if (!to || !loaded.replyToken) return { ok: false, reason: "send-failed" };
 
   const outboundId = crypto.randomUUID();
-  const headers = threadHeaders(loaded.parentId, outboundId);
+  // Overlay retry of send-without-insert can duplicate (Pitfall 5); key is per-attempt UUID on purpose.
+  const sender = staffSender(loaded.replyToken);
+  const headers = threadHeaders(loaded.parentId, loaded.chain);
   const locale = asEmailLocale(loaded.locale);
-  const replyMail = renderStaffReplyEmail(locale, { reply });
-  const ackSubject = renderContactCustomerEmail(locale, { name: "there", message: "." }).subject;
+  const replyMail = renderStaffReplyEmail(
+    locale,
+    loaded.bookingRef
+      ? { reply, name: loaded.name, bookingRef: loaded.bookingRef }
+      : { reply, name: loaded.name },
+  );
+  const ackSubject = renderContactCustomerEmail(locale, { name: loaded.name, message: "." }).subject;
   const rendered = { ...replyMail, subject: `Re: ${ackSubject}` };
-  const rfcId = headers["Message-ID"] ?? null;
 
-  const replyTo = ticketReplyAddress(loaded.replyToken);
   const sent = await sendContactMessage(
     env.RESEND_API_KEY,
     undefined,
@@ -138,12 +160,22 @@ export async function patchTicket(
     undefined,
     {
       headers,
-      replyTo,
+      replyTo: sender.replyTo,
       bcc: SUPPORT_EMAIL,
       allowEmailFallback: false,
+      from: sender.from,
     },
   );
-  if (!sent.accepted || !sent.providerId) return { ok: false, reason: "send-failed" };
+  const rfcMessageId = sent.rfcMessageId ?? "";
+  if (
+    !sent.accepted ||
+    !sent.providerId ||
+    !sent.rfcMessageId ||
+    sent.rfcMessageId === sent.providerId ||
+    !/^<.+@.+>$/.test(rfcMessageId)
+  ) {
+    return { ok: false, reason: "send-failed" };
+  }
 
   return asStaff(env, claims, async (sql) => {
     await sql`
@@ -164,7 +196,7 @@ export async function patchTicket(
         ${FROM_ADDRESS},
         ${reply},
         ${sent.providerId},
-        ${rfcId}
+        ${sent.rfcMessageId}
       )
     `;
     return { ok: true as const, status: "replied" as const };

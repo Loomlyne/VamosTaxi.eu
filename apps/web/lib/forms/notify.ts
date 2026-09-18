@@ -1,16 +1,27 @@
 import { Resend } from "resend";
+import { asRfcMessageId } from "../ops/ticket-mail";
 
 export type FormFailureCode = "challenge_failed" | "invalid_input" | "unavailable" | "rate_limited";
 
 const CONTACT_FROM = "Vamos Taxi <noreply@vamostaxi.site>";
 const CONTACT_FROM_CF = { email: "noreply@vamostaxi.site", name: "Vamos Taxi" } as const;
+const RFC_MESSAGE_ID = /^<.+@.+>$/;
 
 export type SendContactOptions = {
+  from?: string;
   replyTo?: string;
   headers?: Record<string, string>;
   bcc?: string | string[];
   /** Contact ack may use Cloudflare EMAIL. Staff replies must not. */
   allowEmailFallback?: boolean;
+};
+
+export type SendContactResult = {
+  accepted: boolean;
+  providerSuffix: string | null;
+  providerId: string | null;
+  rfcMessageId: string | null;
+  channel: "resend" | "email" | null;
 };
 
 export function formFailure(code: FormFailureCode, status: 400 | 403 | 503 | 429): Response {
@@ -25,6 +36,34 @@ function suffixOf(id: string | null): string | null {
   return id && id.length > 0 ? id.slice(-12) : null;
 }
 
+function closed(partial?: Partial<SendContactResult>): SendContactResult {
+  return {
+    accepted: false,
+    providerSuffix: null,
+    providerId: null,
+    rfcMessageId: null,
+    channel: null,
+    ...partial,
+  };
+}
+
+export async function retrieveRfcMessageId(apiKey: string, id: string): Promise<string | null> {
+  const once = async (): Promise<string | null> => {
+    try {
+      const result = await new Resend(apiKey).emails.get(id);
+      const raw = result.data && "message_id" in result.data ? result.data.message_id : undefined;
+      if (result.error || typeof raw !== "string" || raw.length === 0) return null;
+      const normalized = asRfcMessageId(raw);
+      return RFC_MESSAGE_ID.test(normalized) ? normalized : null;
+    } catch {
+      return null;
+    }
+  };
+  const first = await once();
+  if (first) return first;
+  return once();
+}
+
 export async function sendContactMessage(
   apiKey: string | undefined,
   from: string | undefined,
@@ -33,12 +72,13 @@ export async function sendContactMessage(
   rendered: { subject: string; html: string; text: string },
   email?: CloudflareEnv["EMAIL"],
   options?: SendContactOptions,
-): Promise<{ accepted: boolean; providerSuffix: string | null; providerId: string | null }> {
+): Promise<SendContactResult> {
   void from;
-  if (!to) return { accepted: false, providerSuffix: null, providerId: null };
+  if (!to) return closed();
   const allowEmailFallback = options?.allowEmailFallback !== false;
+  const payloadFrom = options?.from && options.from.length > 0 ? options.from : CONTACT_FROM;
   const payload = {
-    from: CONTACT_FROM,
+    from: payloadFrom,
     to,
     subject: rendered.subject,
     html: rendered.html,
@@ -52,13 +92,32 @@ export async function sendContactMessage(
       const result = await new Resend(apiKey).emails.send(payload, { idempotencyKey });
       const id = result.data?.id;
       if (!result.error && typeof id === "string" && id.length > 0) {
-        return { accepted: true, providerSuffix: suffixOf(id), providerId: id };
+        const rfcMessageId = await retrieveRfcMessageId(apiKey, id);
+        if (rfcMessageId) {
+          return {
+            accepted: true,
+            providerSuffix: suffixOf(id),
+            providerId: id,
+            rfcMessageId,
+            channel: "resend",
+          };
+        }
+        if (!allowEmailFallback) {
+          return closed();
+        }
+        return {
+          accepted: true,
+          providerSuffix: suffixOf(id),
+          providerId: id,
+          rfcMessageId: null,
+          channel: "resend",
+        };
       }
     } catch {
       // Staff replies fail closed. Contact ack may still use EMAIL.
     }
     if (!allowEmailFallback) {
-      return { accepted: false, providerSuffix: null, providerId: null };
+      return closed();
     }
   }
   if (email?.send) {
@@ -72,11 +131,17 @@ export async function sendContactMessage(
       });
       const id = result?.messageId;
       return typeof id === "string" && id.length > 0
-        ? { accepted: true, providerSuffix: suffixOf(id), providerId: id }
-        : { accepted: true, providerSuffix: null, providerId: null };
+        ? {
+            accepted: true,
+            providerSuffix: suffixOf(id),
+            providerId: id,
+            rfcMessageId: null,
+            channel: "email",
+          }
+        : { accepted: true, providerSuffix: null, providerId: null, rfcMessageId: null, channel: "email" };
     } catch {
-      return { accepted: false, providerSuffix: null, providerId: null };
+      return closed();
     }
   }
-  return { accepted: false, providerSuffix: null, providerId: null };
+  return closed();
 }

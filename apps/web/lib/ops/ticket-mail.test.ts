@@ -47,13 +47,16 @@ describe("ticket-mail", () => {
     expect(parseTicketReplyToken("ticket+0123456789abcdef0123456789abcdef@vamostaxi.site")).toBeNull();
   });
 
-  it("threads staff mail off the contact Message-ID", () => {
+  it("threads staff mail off the contact Message-ID without minting Message-ID", () => {
+    const outboundId = "22222222-2222-2222-2222-222222222222";
     const parent = contactMessageId("11111111-1111-1111-1111-111111111111");
-    const headers = threadHeaders(parent, "22222222-2222-2222-2222-222222222222");
+    const headers = threadHeaders(parent, outboundId);
     expect(parent).toBe("<c.11111111111111111111111111111111@vamostaxi.site>");
-    expect(headers["In-Reply-To"]).toBe(parent);
-    expect(headers["Message-ID"]).toBe(staffMessageId("22222222-2222-2222-2222-222222222222"));
+    expect(headers["In-Reply-To"]).toBe(asRfcMessageId(parent));
+    expect(headers).not.toHaveProperty("Message-ID");
+    expect(Object.keys(headers)).not.toContain("Message-ID");
     expect(headers.References).toContain(parent);
+    expect(headers.References).not.toContain(staffMessageId(outboundId));
     expect(asRfcMessageId("id@host")).toBe("<id@host>");
   });
 

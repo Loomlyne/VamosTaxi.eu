@@ -580,7 +580,36 @@ Cloudflare `EMAIL`.
   4. Contact ack stays Cloudflare `EMAIL`. Ticket replies are Resend only.
   5. Must-nots: no `POST /api/quote`, no Staff tab, no live DNS, no `env.production`, no push `main`, funnel Phases 7–11 frozen.
 
-**Plans**: TBD
+**Plans:** 10/10 plans executed
+
+Plans:
+**Wave 1**
+
+- [x] 13-01-PLAN.md — Wave 0 web tests (write path, GET identity, overlay sendError)
+- [x] 13-02-PLAN.md — Wave 0 emails tests (staff fields, wordmark, skip-send)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [x] 13-03-PLAN.md — GET-after-send helper, staffSender, unminted threadHeaders
+- [x] 13-04-PLAN.md — chrome.ts + layout + Confirmation wordmark
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [x] 13-05-PLAN.md — Staff reply fields + claim-path skip-send
+- [x] 13-06-PLAN.md — Contact-ack GET RFC persist; EMAIL fallback stays
+- [x] 13-08-PLAN.md — PayLink / OpsMustFix / ChauffeurAssign import chrome
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [x] 13-07-PLAN.md — patchTicket send → GET persist → Replied; BCC info@
+
+**Wave 5** *(blocked on Wave 4)*
+
+- [x] 13-09-PLAN.md — Overlay sendError four languages + dual-DC; invert rejectStaffReply
+
+**Wave 6** *(blocked on Wave 5)*
+
+- [x] 13-10-PLAN.md — Must-not greps + live Gmail/BCC human-check
 
 ### Phase 14: Inbound webhook
 
@@ -714,7 +743,7 @@ v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16 → 17
 | 10. Hardening — Performance, Security & Compliance | 10/10 | Complete    | 2026-09-12 |
 | 11. Launch Cutover | 11/12 | Complete | 2026-09-13 |
 | 12. Ticket schema + #support mock | 3/3 | Complete    | 2026-09-11 |
-| 13. Staff APIs + outbound Resend replies | 0/TBD | Not started | - |
+| 13. Staff APIs + outbound Resend replies | 10/10 | In Progress|  |
 | 14. Inbound webhook | 0/TBD | Not started | - |
 | 15. Wire Ops #support to APIs | 0/TBD | Not started | - |
 | 16. Staging MX + end-to-end UAT | 0/TBD | Not started | - |

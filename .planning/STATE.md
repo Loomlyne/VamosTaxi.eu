@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 13 context gathered. Next: $gsd-plan-phase 13.
-stopped_at: 13-CONTEXT.md written — branded mail pass + staff Resend send
-last_updated: "2026-09-15T12:00:00.000Z"
-last_activity: 2026-09-15 -- discuss-phase 13 CONTEXT
+status: executing
+stopped_at: Completed 13-02-PLAN.md
+last_updated: "2026-09-15T14:03:33.540Z"
+last_activity: 2026-09-15
 progress:
   total_phases: 19
-  completed_phases: 11
-  total_plans: 165
-  completed_plans: 159
-  percent: 58
+  completed_phases: 10
+  total_plans: 175
+  completed_plans: 161
+  percent: 53
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-09-15 after Phase 18)
 
 ## Current Position
 
-Phase: 13 (Staff APIs + outbound Resend replies) — CONTEXT GATHERED
-Plan: Not started.
-Status: Ready to plan. Phase 18 complete. Funnel logic 7–11 frozen; email *templates* in 13.
-Last activity: 2026-09-15 -- 13-CONTEXT.md
+Phase: 13 (Staff APIs + outbound Resend replies) — EXECUTING
+Plan: 3 of 10
+Status: Ready to execute
+Last activity: 2026-09-15
 
 ## Performance Metrics
 
@@ -42,9 +42,9 @@ Stripe live keys and Search Console stay owner-gated. Agent does not click Publi
 
 ## Session Continuity
 
-Last session: 2026-09-15T09:15:00.000Z
-Stopped at: Phase 13 context gathered (`13-CONTEXT.md`).
-Resume: `$gsd-plan-phase 13`
+Last session: 2026-09-15T14:03:03.705Z
+Stopped at: Completed 13-02-PLAN.md
+Resume: `$gsd-execute-phase 13`
 
 ## Decisions
 
@@ -62,3 +62,12 @@ Restart 2026-09-14 **supersedes** 2026-09-13 D-01…D-40. Full text: `.planning/
 - [Phase 18]: Extra wait is not in Stripe pay-now. Meet & greet and free airport wait always on. Extra stop max 1, Mapbox unfenced.
 - [Phase 18]: Worker `vamos`, no `.eu` bind, no `sk_live_`. New SQL is owner-apply. First public CHF remains owner Publish. Deploy does not flip `public_chf`.
 - [Phase 18]: Closed 2026-09-15 — 18-UAT 7/7 pass, 18-VERIFICATION passed. Agent did not Publish.
+- [Phase 13]: Wave 0 web tests lock GET RFC identity, BCC info@, fail-closed send, unminted Message-ID, overlay sendError. From stays noreply; Reply-To is plus-address. GREEN is 13-03/13-07/13-09. — CONTEXT D-01 to D-12. Tests-only plan; production send files not edited.
+- [Phase 13]: Wave 0 emails tests lock staff-reply name/booking_ref/Re:/no WhatsApp, Confirmation wordmark PNG, auth no-Arial, skip-send missing-copy. GREEN is 13-04/13-05. Tests-only; production chrome/contact/layout/send not edited. — CONTEXT D-02 D-03 D-04. StaffReplyEmailData stays { reply } until 13-05; extra keys via type assertion. claimThenSend skip-send must be ok false missing-copy, not ok true skipped.
+
+## Performance Metrics
+
+| Phase | Plan | Duration | Notes |
+|-------|------|----------|-------|
+| Phase 13 P01 | 10min | 3 tasks | 5 files |
+| Phase 13 P02 | 8min | 3 tasks | 4 files |

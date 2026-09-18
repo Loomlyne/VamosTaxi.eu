@@ -69,7 +69,6 @@ export async function POST(request: Request) {
   const from = bindings.CONTACT_EMAIL_FROM ?? process.env.CONTACT_EMAIL_FROM;
   const supportRecipient = bindings.CONTACT_SUPPORT_RECIPIENT ?? process.env.CONTACT_SUPPORT_RECIPIENT;
   const apiKey = bindings.RESEND_API_KEY ?? process.env.RESEND_API_KEY;
-  const rfcId = contactMessageId(submissionId);
   let replyTo: string | undefined;
   try {
     const meta = await asSystem(env, (tx) => tx<{ reply_token: string | null }[]>`
@@ -85,6 +84,10 @@ export async function POST(request: Request) {
     support: renderContactSupportEmail(input.locale, input),
   } satisfies Record<ContactDeliveryMessage, { subject: string; html: string; text: string }>;
 
+  let customerRfcMessageId: string | null | undefined;
+  let customerChannel: "resend" | "email" | null | undefined;
+  let customerAccepted: boolean | undefined;
+
   const delivery = await deliverContactMessages({
     claim: async (message) => {
       try {
@@ -98,17 +101,23 @@ export async function POST(request: Request) {
         return { state: "unavailable" };
       }
     },
-    send: (message, providerIdempotencyKey) => sendContactMessage(
-      apiKey,
-      from,
-      message === "customer" ? input.email : supportRecipient,
-      providerIdempotencyKey,
-      rendered[message],
-      env.EMAIL,
-      message === "customer"
-        ? { replyTo, headers: { "Message-ID": rfcId } }
-        : undefined,
-    ),
+    send: async (message, providerIdempotencyKey) => {
+      const sent = await sendContactMessage(
+        apiKey,
+        from,
+        message === "customer" ? input.email : supportRecipient,
+        providerIdempotencyKey,
+        rendered[message],
+        env.EMAIL,
+        message === "customer" ? { replyTo } : undefined,
+      );
+      if (message === "customer") {
+        customerRfcMessageId = sent.rfcMessageId;
+        customerChannel = sent.channel;
+        customerAccepted = sent.accepted;
+      }
+      return sent;
+    },
     finalize: async (message, leaseToken, providerSuffix) => {
       try {
         const rows = await asSystem(env, (tx) => tx`select public.finalize_contact_delivery(${submissionId}, ${message}, ${leaseToken}, true, ${providerSuffix ?? ""}) as state`);
@@ -128,13 +137,21 @@ export async function POST(request: Request) {
 
   if (delivery.accepted) {
     try {
-      await asSystem(env, (tx) => tx`
-        update public.support_messages
-        set rfc_message_id = ${rfcId}
-        where submission_id = ${submissionId}::uuid
-          and direction = 'inbound_form'
-          and (rfc_message_id is null or rfc_message_id = '')
-      `);
+      const rfc =
+        customerChannel === "resend" && typeof customerRfcMessageId === "string" && /^<.+@.+>$/.test(customerRfcMessageId)
+          ? customerRfcMessageId
+          : customerChannel === "email"
+            ? contactMessageId(submissionId)
+            : null;
+      if (rfc && customerAccepted) {
+        await asSystem(env, (tx) => tx`
+          update public.support_messages
+          set rfc_message_id = ${rfc}
+          where submission_id = ${submissionId}::uuid
+            and direction = 'inbound_form'
+            and (rfc_message_id is null or rfc_message_id = '')
+        `);
+      }
     } catch {
       // Ack already went out; missing RFC id only weakens threading.
     }

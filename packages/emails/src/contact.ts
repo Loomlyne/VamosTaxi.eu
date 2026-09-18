@@ -1,3 +1,13 @@
+import {
+  BODY_FONT,
+  CHARCOAL,
+  DISPLAY_FONT,
+  GREY,
+  LOGO,
+  MUTED,
+  WHITE,
+  YELLOW,
+} from "./chrome";
 import { escapeHtml } from "./escape";
 import { layoutHtml, layoutText } from "./layout";
 import type { EmailLocale } from "./messages";
@@ -10,7 +20,7 @@ export type ContactSupportEmailData = {
   bookingRef: string;
   message: string;
 };
-export type StaffReplyEmailData = { reply: string };
+export type StaffReplyEmailData = { reply: string; name: string; bookingRef?: string };
 
 type Copy = {
   customerSubject: string;
@@ -22,19 +32,13 @@ type Copy = {
   supportHeading: string;
   staffSubject: string;
   staffHeading: string;
+  staffHello: string;
   staffBody: string;
+  staffBookingChip: string;
   staffQuoteLabel: string;
 };
 
 const WHATSAPP_HREF = "https://wa.me/41796267082";
-const LOGO = "https://vamostaxi.site/brand/logo/wordmark-email.png";
-const YELLOW = "#FDC20B";
-const CHARCOAL = "#1E1F1F";
-const GREY = "#DEDEDE";
-const MUTED = "#545756";
-const WHITE = "#FFFFFF";
-const DISPLAY_FONT = "Qurova, Poppins, system-ui, sans-serif";
-const BODY_FONT = 'Poppins, system-ui, -apple-system, "Segoe UI", sans-serif';
 const CONTACT_FOOTER = "+41 79 626 70 82";
 
 const COPY: Record<EmailLocale, Copy> = {
@@ -48,7 +52,9 @@ const COPY: Record<EmailLocale, Copy> = {
     supportHeading: "New contact message",
     staffSubject: "Reply from Vamos Taxi",
     staffHeading: "A reply from Vamos Taxi",
+    staffHello: "Hello, {name}.",
     staffBody: "We wrote back to your message.",
+    staffBookingChip: "Booking {bookingRef}",
     staffQuoteLabel: "Our reply",
   },
   de: {
@@ -61,7 +67,9 @@ const COPY: Record<EmailLocale, Copy> = {
     supportHeading: "Neue Kontaktanfrage",
     staffSubject: "Antwort von Vamos Taxi",
     staffHeading: "Eine Antwort von Vamos Taxi",
+    staffHello: "Hallo, {name}.",
     staffBody: "Wir haben auf Ihre Nachricht geantwortet.",
+    staffBookingChip: "Buchung {bookingRef}",
     staffQuoteLabel: "Unsere Antwort",
   },
   fr: {
@@ -74,7 +82,9 @@ const COPY: Record<EmailLocale, Copy> = {
     supportHeading: "Nouveau message de contact",
     staffSubject: "Réponse de Vamos Taxi",
     staffHeading: "Une réponse de Vamos Taxi",
+    staffHello: "Bonjour, {name}.",
     staffBody: "Nous avons répondu à votre message.",
+    staffBookingChip: "Réservation {bookingRef}",
     staffQuoteLabel: "Notre réponse",
   },
   ar: {
@@ -87,7 +97,9 @@ const COPY: Record<EmailLocale, Copy> = {
     supportHeading: "رسالة تواصل جديدة",
     staffSubject: "رد من Vamos Taxi",
     staffHeading: "رد من Vamos Taxi",
+    staffHello: "مرحبا، {name}.",
     staffBody: "رددنا على رسالتك.",
+    staffBookingChip: "الحجز {bookingRef}",
     staffQuoteLabel: "ردنا",
   },
 };
@@ -161,8 +173,9 @@ function voucherHtml(locale: EmailLocale, headerInner: string, bodyInner: string
 </html>`;
 }
 
-function voucherText(heading: string, body: string, quoteLabel: string, quote: string, cta: string): string {
-  return `Vamos Taxi\n\n${heading}\n\n${body}\n\n${quoteLabel}\n${quote}\n\n${cta}: ${WHATSAPP_HREF}\n\n${CONTACT_FOOTER}`;
+function voucherText(heading: string, body: string, quoteLabel: string, quote: string, cta?: string): string {
+  const ctaBlock = cta ? `\n\n${cta}: ${WHATSAPP_HREF}` : "";
+  return `Vamos Taxi\n\n${heading}\n\n${body}\n\n${quoteLabel}\n${quote}${ctaBlock}\n\n${CONTACT_FOOTER}`;
 }
 
 export function renderContactCustomerEmail(locale: EmailLocale, data: ContactCustomerEmailData) {
@@ -182,14 +195,20 @@ export function renderContactCustomerEmail(locale: EmailLocale, data: ContactCus
 
 export function renderStaffReplyEmail(locale: EmailLocale, data: StaffReplyEmailData) {
   const copy = COPY[locale];
+  const name = data.name.trim();
+  const hello = copy.staffHello.replace("{name}", name);
+  const bookingRef = data.bookingRef?.trim() ?? "";
+  const bookingLine = bookingRef ? copy.staffBookingChip.replace("{bookingRef}", bookingRef) : "";
+  const bookingChip = bookingLine ? mutedHtml(bookingLine) : "";
+  const body = bookingLine ? `${hello}\n\n${copy.staffBody}\n\n${bookingLine}` : `${hello}\n\n${copy.staffBody}`;
   return {
     subject: `Re: ${copy.customerSubject}`,
     html: voucherHtml(
       locale,
-      `${headingHtml(copy.staffHeading)}${mutedHtml(copy.staffBody)}`,
-      `${kickerHtml(copy.staffQuoteLabel)}${quoteHtml(data.reply)}${charcoalPill(WHATSAPP_HREF, copy.customerCta)}`,
+      `${headingHtml(copy.staffHeading)}${mutedHtml(hello)}${mutedHtml(copy.staffBody)}${bookingChip}`,
+      `${kickerHtml(copy.staffQuoteLabel)}${quoteHtml(data.reply)}`,
     ),
-    text: voucherText(copy.staffHeading, copy.staffBody, copy.staffQuoteLabel, data.reply, copy.customerCta),
+    text: voucherText(copy.staffHeading, body, copy.staffQuoteLabel, data.reply),
   };
 }
 

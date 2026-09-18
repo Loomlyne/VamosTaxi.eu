@@ -7,7 +7,13 @@ export type ContactDeliveryClaim =
 
 export type ContactDeliveryGateway = {
   claim(message: ContactDeliveryMessage): Promise<ContactDeliveryClaim>;
-  send(message: ContactDeliveryMessage, providerIdempotencyKey: string): Promise<{ accepted: boolean; providerSuffix?: string | null }>;
+  send(message: ContactDeliveryMessage, providerIdempotencyKey: string): Promise<{
+    accepted: boolean;
+    providerSuffix?: string | null;
+    providerId?: string | null;
+    rfcMessageId?: string | null;
+    channel?: "resend" | "email";
+  }>;
   finalize(message: ContactDeliveryMessage, leaseToken: string, providerSuffix?: string | null): Promise<"accepted" | "unavailable">;
   fail(message: ContactDeliveryMessage, leaseToken: string): Promise<void>;
 };
