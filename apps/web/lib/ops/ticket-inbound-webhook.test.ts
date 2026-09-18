@@ -38,9 +38,16 @@ describe("14-06 inbound webhook + staff file GET (source-read)", () => {
     expect(src).toContain("SUPPORT_FILES");
     expect(src).toContain("Content-Disposition");
     expect(src).toContain("inline");
+    expect(src).toContain("application/pdf");
     expect(src).not.toContain("PHOTOS");
     expect(src).not.toContain("staffOriginAllowed");
     expect(src).not.toContain("download_url");
+  });
+
+  it("unprefixed /api/staff/tickets/:id/files/:fileId re-exports GET", () => {
+    const src = read("apps/web/app/api/staff/tickets/[id]/files/[fileId]/route.ts");
+    expect(src).toContain("export { GET }");
+    expect(src).toContain("[locale]/(ops)/api/staff/tickets/[id]/files/[fileId]/route");
   });
 
   it("does not import webhook route from this test file", () => {

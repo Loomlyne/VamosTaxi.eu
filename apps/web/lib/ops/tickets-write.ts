@@ -211,7 +211,7 @@ export async function patchTicket(
 
   const outboundId = crypto.randomUUID();
   // Overlay retry of send-without-insert can duplicate (Pitfall 5); key is per-attempt UUID on purpose.
-  const sender = staffSender(loaded.replyToken);
+  const sender = staffSender(loaded.replyToken, id);
   const headers = threadHeaders(loaded.parentId, loaded.chain);
   const locale = asEmailLocale(loaded.locale);
   const replyMail = renderStaffReplyEmail(

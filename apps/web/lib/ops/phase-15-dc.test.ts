@@ -85,4 +85,23 @@ describe("phase 15 DC #support", () => {
     expect(html).not.toMatch(/env\.production/);
     expect(sidebar).not.toMatch(/key:'staff'/);
   });
+
+  it("thread files are buttons that open a nested preview overlay", () => {
+    const html = read(SUPPORT_WRITER);
+    expect(html).toMatch(/data-files/);
+    expect(html).toMatch(/f\.open/);
+    expect(html).toMatch(/previewOpen/);
+    expect(html).toMatch(/vt-file-preview/);
+    expect(html).toMatch(/data-preview-img/);
+    expect(html).toMatch(/data-preview-pdf/);
+    expect(html).toMatch(/data-preview-pages/);
+    expect(html).toMatch(/pdfjs-dist/);
+    expect(html).toMatch(/openPreview/);
+    expect(html).toMatch(/createObjectURL/);
+    expect(html).toMatch(/credentials: 'include'/);
+    expect(html).toMatch(/previewHasHref/);
+    expect(html).not.toMatch(/<iframe data-preview-pdf/);
+    expect(html).not.toMatch(/<img data-file/);
+    expect(html).not.toMatch(/<a data-file/);
+  });
 });

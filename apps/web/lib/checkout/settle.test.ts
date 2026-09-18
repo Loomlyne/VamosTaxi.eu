@@ -3,6 +3,7 @@ import {
   captureAllowed,
   handleStripeMessageWithDeps,
   pgTextArrayLiteral,
+  type CaptureGate,
   type SettleDeps,
 } from "./settle";
 import type { StripeQueueMessage } from "./webhook";
@@ -153,7 +154,7 @@ describe("handleStripeMessageWithDeps", () => {
 
   it("acks a paid checkout.session.completed without succeeded settle when the unpaid lock expired (D-23)", async () => {
     const d = deps({
-      loadCaptureGate: vi.fn(async () => ({ capture: false, reason: "expired" })),
+      loadCaptureGate: vi.fn(async (): Promise<CaptureGate> => ({ capture: false, reason: "expired" })),
     });
     const result = await handleStripeMessageWithDeps(message(), d);
     expect(result).toEqual({ ack: true });
@@ -164,7 +165,7 @@ describe("handleStripeMessageWithDeps", () => {
 
   it("acks without capture when the unpaid trip is cancelled", async () => {
     const d = deps({
-      loadCaptureGate: vi.fn(async () => ({ capture: false, reason: "cancelled" })),
+      loadCaptureGate: vi.fn(async (): Promise<CaptureGate> => ({ capture: false, reason: "cancelled" })),
     });
     const result = await handleStripeMessageWithDeps(message(), d);
     expect(result).toEqual({ ack: true });
@@ -173,7 +174,7 @@ describe("handleStripeMessageWithDeps", () => {
 
   it("acks without capture when bookings.is_test (D-33)", async () => {
     const d = deps({
-      loadCaptureGate: vi.fn(async () => ({ capture: false, reason: "is_test" })),
+      loadCaptureGate: vi.fn(async (): Promise<CaptureGate> => ({ capture: false, reason: "is_test" })),
     });
     const result = await handleStripeMessageWithDeps(message(), d);
     expect(result).toEqual({ ack: true });

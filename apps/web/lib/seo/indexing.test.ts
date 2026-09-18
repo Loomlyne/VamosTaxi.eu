@@ -31,7 +31,7 @@ function loadExportedStringArray(src: string, name: string): string[] {
       if (inner < 0 || last <= inner) return null;
       return line.slice(inner + 1, last);
     })
-    .filter((path): path is string => Boolean(path) && path.startsWith("/"));
+    .filter((path): path is string => path != null && path.startsWith("/"));
 }
 
 const SITEMAP_ALLOWLIST = [
