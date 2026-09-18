@@ -1,5 +1,5 @@
 ---
-status: testing
+status: complete
 phase: 16-staging-mx-end-to-end-uat
 source:
   - 16-01-SUMMARY.md
@@ -21,7 +21,6 @@ number: 9
 name: No-token drop
 expected: |
   Mail to replies.vamostaxi.site with no TKT- / ticket+ / RFC match does not create or append a ticket.
-awaiting: user
 
 ## Tests
 
@@ -85,8 +84,8 @@ reported: "Owner: reopened. Hosted ticket_status responded. New inbound 31770cfe
 who: Koss (or throwaway)
 action: Send mail to an address on `replies.vamostaxi.site` with no `ticket+{32hex}` token, no `TKT-{8hex}`, and no RFC In-Reply-To match.
 expected: board does not gain a ticket; existing tickets do not append.
-result: pending
-awaiting: user
+result: pass
+reported: "Received 35abd856 drop@replies. Logged inbound_events. Zero support_messages for that id. TKT-8EC98A6D still 6 messages. No new contact_submissions."
 
 ### 10. info@ inbound not forwarded (D-09 D-10)
 who: Koss
@@ -98,9 +97,9 @@ reported: "Owner 2026-09-18: info@ inbox not created yet — mark as pass for no
 ## Summary
 
 total: 10
-passed: 9
+passed: 10
 issues: 0
-pending: 1
+pending: 0
 skipped: 0
 blocked: 0
 
