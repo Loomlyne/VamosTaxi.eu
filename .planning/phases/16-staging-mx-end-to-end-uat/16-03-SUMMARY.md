@@ -2,41 +2,28 @@
 phase: 16-staging-mx-end-to-end-uat
 plan: 03
 subsystem: infra
-status: blocked
+status: complete
 tags: [resend, flag, deploy]
 
 requires:
   - phase: 16-staging-mx-end-to-end-uat
     provides: 16-02 MX applied
-provides: []
+provides:
+  - REPLIES_DOMAIN_VERIFIED true
+  - Worker vamos deployed
 ---
 
-# Phase 16 Plan 03 Summary — STOP at Verified gate
+# Phase 16 Plan 03 Summary
 
-**Not done.** Did not flip `REPLIES_DOMAIN_VERIFIED`. Did not deploy `vamos`.
+Resend GET `replies.vamostaxi.site` (`430b1d62-f357-4469-ba4f-c81c6320d3cb`) is **verified**. DKIM, sending SPF MX/TXT, and receiving MX all verified.
 
-## Gate
+`REPLIES_DOMAIN_VERIFIED = true`. `staffSender` From + Reply-To are the plus-address. Contact ack still EMAIL. No Message-ID mint. Vitest 34/34.
 
-Resend GET `replies.vamostaxi.site` (`430b1d62-f357-4469-ba4f-c81c6320d3cb`) is **`partially_verified`**.
+## Deploy
 
-| Record | Name | Status |
-| --- | --- | --- |
-| DKIM TXT | `resend._domainkey.replies` | verified |
-| Receiving MX | `replies` → `inbound-smtp.ap-northeast-1.amazonaws.com` | verified |
-| Sending SPF MX | `send.replies` → `feedback-smtp.ap-northeast-1.amazonses.com` | pending |
-| Sending SPF TXT | `send.replies` `v=spf1 include:amazonses.com ~all` | pending |
-
-Re-triggered `POST /domains/{id}/verify`. Status stayed `partially_verified`.
-
-## DNS (copied, not guessed)
-
-Authoritative Cloudflare NS (`magdalena.ns.cloudflare.com`) already serve the copied records. Zone Email Routing is **unconfigured / disabled**. Apex MX empty. `.eu` untouched.
-
-SES custom MAIL FROM can stay pending up to 72h after the MX exists. 16-03 must wait for Resend status **`verified`**, then flip + deploy.
-
-## Must not (held)
-
-- Flag still `false` in `ticket-mail.ts`
-- No Worker deploy
-- No `env.production`
-- No push `main`
+- Worker name: **vamos**
+- Version ID: `a222bb80-2219-4791-a2c0-c1ccfe76fe59`
+- Author: koussayzayeni@gmail.com / account e64b47deef83692806ab23279d53633e
+- Hosts: vamostaxi.site, www.vamostaxi.site, dashboard.vamostaxi.site
+- Unsigned `POST /api/webhooks/resend` → **400 invalid**
+- No `env.production` deploy. No push `main`.

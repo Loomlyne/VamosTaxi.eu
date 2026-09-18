@@ -47,10 +47,8 @@ result: pending
 ### 4. Staff Send (D-01 D-10)
 who: agent
 action: Open `https://dashboard.vamostaxi.site`. Sign in. Support rail. Open the new ticket. Type a reply. Send.
-expected: overlay shows the staff bubble. No new chrome. From after 16-03 is plus-address; until then Reply-To is plus-address.
+expected: overlay shows the staff bubble. No new chrome. From is plus-address after 16-03 (`a222bb80-2219-4791-a2c0-c1ccfe76fe59`).
 result: pending
-blocked_by: prior-phase
-reason: 16-03 flag flip waits Resend sending Verified
 
 ### 5. info@ copy bar (D-09 D-10)
 who: Koss
