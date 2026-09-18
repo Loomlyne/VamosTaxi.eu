@@ -5,6 +5,7 @@
 
 import { asStaff, type VamosClaims } from "../db/identity";
 import type { AssertedVehicleClassInput, AssertedVehicleInput } from "./fleet";
+import { persistVehicleSeats } from "./chauffeur-desk";
 import { tripsFromRows, type OpsMustFixTrip } from "./must-fix-mail";
 
 export async function insertVehicle(
@@ -36,6 +37,7 @@ export async function insertVehicle(
       `;
       const row = rows[0];
       if (!row) throw new Error("insertVehicle");
+      await persistVehicleSeats(sql, row.id, parsed.morningChauffeurId, parsed.nightChauffeurId);
       return row.id;
     }
     const rows = await sql<{ id: string }[]>`
@@ -58,6 +60,7 @@ export async function insertVehicle(
     `;
     const row = rows[0];
     if (!row) throw new Error("insertVehicle");
+    await persistVehicleSeats(sql, row.id, parsed.morningChauffeurId, parsed.nightChauffeurId);
     return row.id;
   });
 }
@@ -89,6 +92,7 @@ export async function updateVehicleRow(
         updated_at = now()
       where id = ${id}
     `;
+    await persistVehicleSeats(sql, id, parsed.morningChauffeurId, parsed.nightChauffeurId);
     if (parsed.status !== "workshop" || previous === "workshop") return [];
     const rows = await sql<
       {

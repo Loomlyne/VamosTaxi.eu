@@ -5,11 +5,14 @@
 // (klass, year, photo, name, licence, vehicle). Never writes CHF.
 
 import {
+  ChauffeurDuplicateEmailError,
   ChauffeurInputError,
   type ChauffeurDetail,
   type ChauffeurInput,
   type ChauffeurRow,
 } from "./chauffeurs-model";
+import { VehicleSeatError } from "./vehicle-seats";
+import { parseLeaveRanges, parseSeatId, parseShiftClock, parseShiftWeekdays } from "./chauffeur-desk";
 import {
   VehicleClassInputError,
   VehicleInputError,
@@ -124,6 +127,10 @@ export function presentVehicle(row: VehicleRow): Record<string, unknown> {
     note: row.note,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
+    morningChauffeurId: row.morningChauffeurId,
+    nightChauffeurId: row.nightChauffeurId,
+    morning: row.morningChauffeurId ?? "",
+    night: row.nightChauffeurId ?? "",
   };
 }
 
@@ -193,6 +200,13 @@ export function presentChauffeur(
     active: row.active,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
+    shiftWeekdays: row.shiftWeekdays,
+    shiftStart: row.shiftStart,
+    shiftEnd: row.shiftEnd,
+    leaveRanges: row.leaveRanges,
+    weekdays: row.shiftWeekdays,
+    start: row.shiftStart,
+    end: row.shiftEnd,
   };
 }
 
@@ -234,6 +248,8 @@ export function parseVehicleBody(body: unknown): ParsedVehicleBody {
       status: rec.status as VehicleInput["status"],
       photoPath,
       note: asString(rec.note),
+      morningChauffeurId: parseSeatId(rec.morningChauffeurId || rec.morning),
+      nightChauffeurId: parseSeatId(rec.nightChauffeurId || rec.night),
     },
   };
 }
@@ -257,6 +273,12 @@ export function parseChauffeurBody(body: unknown): { id: string | null; input: C
       status: rec.status as ChauffeurInput["status"],
       photoPath,
       note: asString(rec.note),
+      shiftWeekdays: parseShiftWeekdays(
+        Array.isArray(rec.shiftWeekdays) ? rec.shiftWeekdays : rec.weekdays,
+      ),
+      shiftStart: parseShiftClock(rec.shiftStart ?? rec.start),
+      shiftEnd: parseShiftClock(rec.shiftEnd ?? rec.end),
+      leaveRanges: parseLeaveRanges(rec.leaveRanges),
     },
   };
 }
@@ -293,6 +315,10 @@ export function chauffeurErrorCopy(code: string): string | null {
   if (code === "chauffeurs-failure-photo") return "Photo must be an uploaded file, not an embedded image.";
   if (code === "chauffeurs-failure-vehicle") return "That vehicle is missing.";
   if (code === "chauffeurs-failure-error") return "The chauffeur could not be saved.";
+  if (code === "chauffeurs-duplicate-email") return "This email is already on file.";
+  if (code === "fleet-seat-morning-taken") return "This vehicle already has a Morning chauffeur.";
+  if (code === "fleet-seat-night-taken") return "This vehicle already has a Night chauffeur.";
+  if (code === "fleet-seat-both-taken") return "This vehicle already has Morning and Night chauffeurs.";
   if (code === "23503") return "That vehicle is missing.";
   if (code === "23505") return "That value is already on file.";
   if (code === "23514") return "One of the fields is not a valid value.";
@@ -313,6 +339,10 @@ function chauffeurConstraintCopy(err: unknown): string | null {
 }
 
 export function fleetJsonError(err: unknown): Response {
+  if (err instanceof VehicleSeatError) {
+    const message = chauffeurErrorCopy(err.key) ?? `Could not save (${err.key}).`;
+    return jsonErr(err.key, 409, { message });
+  }
   if (err instanceof VehicleInputError) return jsonErr(err.key, 400);
   if (err instanceof VehicleClassInputError) return jsonErr(err.key, 400);
   const fleet = mapFleetSqlState(err);
@@ -323,6 +353,17 @@ export function fleetJsonError(err: unknown): Response {
 }
 
 export function chauffeurJsonError(err: unknown): Response {
+  if (err instanceof ChauffeurDuplicateEmailError) {
+    return jsonErr(err.key, 409, {
+      message: chauffeurErrorCopy(err.key) ?? "This email is already on file.",
+      existingId: err.existingId,
+      fullName: err.fullName,
+    });
+  }
+  if (err instanceof VehicleSeatError) {
+    const message = chauffeurErrorCopy(err.key) ?? `Could not save (${err.key}).`;
+    return jsonErr(err.key, 409, { message });
+  }
   if (err instanceof ChauffeurInputError) {
     const message = chauffeurErrorCopy(err.key) ?? `Could not save (${err.key}).`;
     return jsonErr(err.key, 400, { message });

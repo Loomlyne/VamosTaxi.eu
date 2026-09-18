@@ -16,8 +16,10 @@ import {
   LICENCE_EXPIRING_WITHIN_DAYS,
   SPOKEN_LANGUAGES,
   assertChauffeurInput,
+  emailsMatch,
   licenceState,
   loadChauffeur,
+  loadChauffeurByEmail,
   loadChauffeurs,
   ChauffeurInputError,
   type ChauffeurInput,
@@ -156,6 +158,19 @@ describe("assertChauffeurInput", () => {
       assertChauffeurInput(baseInput({ photoPath: "data:image/png;base64,xx" })),
     ).toThrow(ChauffeurInputError);
   });
+
+  it("ignores a client status toggle — duty is computed, asserted status stays off (D-10)", () => {
+    expect(assertChauffeurInput(baseInput({ status: "shift" })).status).toBe("off");
+    expect(assertChauffeurInput(baseInput({ status: "leave" })).status).toBe("off");
+  });
+});
+
+describe("emailsMatch (D-05)", () => {
+  it("matches on lower(trim) and ignores empty", () => {
+    expect(emailsMatch("Ada@Vamos.eu", " ada@vamos.eu ")).toBe(true);
+    expect(emailsMatch("", "ada@vamos.eu")).toBe(false);
+    expect(emailsMatch(null, null)).toBe(false);
+  });
 });
 
 describe("loadChauffeurs", () => {
@@ -168,7 +183,7 @@ describe("loadChauffeurs", () => {
     asStaff.mockImplementation(
       async (_env: unknown, _claims: unknown, fn: (sql: unknown) => Promise<unknown>) => {
         const sql = async (strings: TemplateStringsArray) => {
-          sqlText = strings.join(" ");
+          sqlText += strings.join(" ");
           return [];
         };
         return fn(sql);
@@ -213,5 +228,34 @@ describe("loadChauffeur", () => {
     );
     const row = await loadChauffeur(env, claims, "c1");
     expect(row?.licenceNumber).toBe("CHE-123");
+  });
+});
+
+describe("loadChauffeurByEmail", () => {
+  beforeEach(() => {
+    asStaff.mockReset();
+  });
+
+  it("returns null without querying when email is empty", async () => {
+    asStaff.mockImplementation(async () => {
+      throw new Error("should not query");
+    });
+    expect(await loadChauffeurByEmail(env, claims, "  ")).toBeNull();
+    expect(asStaff).not.toHaveBeenCalled();
+  });
+
+  it("selects by lower(trim(email))", async () => {
+    let sqlText = "";
+    asStaff.mockImplementation(
+      async (_env: unknown, _claims: unknown, fn: (sql: unknown) => Promise<unknown>) => {
+        const sql = async (strings: TemplateStringsArray) => {
+          sqlText += strings.join(" ");
+          return [];
+        };
+        return fn(sql);
+      },
+    );
+    await loadChauffeurByEmail(env, claims, "Ada@Vamos.eu");
+    expect(sqlText).toMatch(/lower\(trim\(c\.email\)\)/);
   });
 });

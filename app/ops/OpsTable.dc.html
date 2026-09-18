@@ -789,7 +789,8 @@ class Component extends DCLogic {
   }
 
   startAdd = () => {
-    const blank = this.props.blank ? this.props.blank() : {};
+    const blank = this.props.blank ? Object.assign({}, this.props.blank()) : {};
+    if (!blank.id && typeof crypto !== 'undefined' && crypto.randomUUID) blank.id = crypto.randomUUID();
     this._original = JSON.stringify(blank);
     this.lockScroll();
     this.setState({ draft: blank, isNew: true, errors: {}, closeAttempted: false, historyOpen: true, sug: null, saveError: '' });
@@ -856,6 +857,11 @@ class Component extends DCLogic {
     return 'Save failed. Try again.';
   }
   finishWrite = (json) => {
+    if (json && (json.error === 'chauffeurs-duplicate-email' || json.code === 'chauffeurs-duplicate-email') && json.existingId) {
+      this.setState({ saving: false, saveError: '', dup: json });
+      if (this.props.onDuplicateEmail) this.props.onDuplicateEmail(json);
+      return;
+    }
     if (!json || json.ok !== true) {
       this.setState({ saving: false, saveError: this.writeError(json || { code: 'save-failed' }) });
       return;
