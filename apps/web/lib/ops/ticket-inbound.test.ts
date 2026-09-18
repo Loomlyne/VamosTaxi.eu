@@ -10,6 +10,7 @@ vi.mock("@/lib/db/identity", () => ({
 const TOKEN = "0123456789abcdef0123456789abcdef";
 const PLUS = `ticket+${TOKEN}@replies.vamostaxi.site`;
 const TICKET_ID = "11111111-1111-4111-8111-111111111111";
+const PUBLIC = "TKT-11111111@replies.vamostaxi.site";
 const RFC_STAFF = "<s.22222222222222222222222222222222@vamostaxi.site>";
 const ENV = {} as CloudflareEnv;
 const UNREADABLE = "Message could not be read.";
@@ -57,6 +58,13 @@ function installSql(state: DbState) {
         const token = String(values[0] ?? "");
         return state.tickets
           .filter((row) => row.reply_token === token)
+          .map((row) => ({ id: row.id, ticket_status: row.ticket_status }));
+      }
+      if (text.includes("contact_submissions") && text.includes("like")) {
+        const like = String(values[0] ?? "").toLowerCase();
+        const prefix = like.replace(/[^0-9a-f]/g, "").slice(0, 8);
+        return state.tickets
+          .filter((row) => row.id.replace(/-/g, "").toLowerCase().startsWith(prefix))
           .map((row) => ({ id: row.id, ticket_status: row.ticket_status }));
       }
       if (text.includes("support_messages") && text.includes("rfc_message_id") && text.includes("select")) {
@@ -137,6 +145,40 @@ describe("INB-02 D-01 D-02 D-04 D-12 Wave 0 ingest (RED until 14-03)", () => {
     expect(result).toBe("ok");
     expect(state.messages).toHaveLength(1);
     expect(state.messages[0]?.submission_id).toBe(TICKET_ID);
+  });
+
+  it("TKT-8hex public mailbox on to appends without plus-token", async () => {
+    const { ingestInboundEmail } = await import("./ticket-inbound");
+    const state = makeState();
+    installSql(state);
+    const result = await ingestInboundEmail(ENV, {
+      emailId: "em_tkt",
+      to: PUBLIC,
+      from: "guest@example.com",
+      text: "Reply to the short mailbox.",
+    });
+    expect(result).toBe("ok");
+    expect(state.messages).toHaveLength(1);
+    expect(state.messages[0]?.submission_id).toBe(TICKET_ID);
+  });
+
+  it("ambiguous TKT prefix does not append", async () => {
+    const { ingestInboundEmail } = await import("./ticket-inbound");
+    const state = makeState({
+      tickets: [
+        { id: TICKET_ID, reply_token: TOKEN, ticket_status: "open" },
+        { id: "11111111-2222-4111-8111-111111111111", reply_token: "b".repeat(32), ticket_status: "open" },
+      ],
+    });
+    installSql(state);
+    const result = await ingestInboundEmail(ENV, {
+      emailId: "em_tkt_collision",
+      to: PUBLIC,
+      from: "guest@example.com",
+      text: "Two tickets share the prefix.",
+    });
+    expect(result).toBe("drop");
+    expect(state.messages).toHaveLength(0);
   });
 
   it("RFC In-Reply-To match when token absent still appends", async () => {

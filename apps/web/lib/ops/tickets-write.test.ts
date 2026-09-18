@@ -41,8 +41,8 @@ const PARENT_RFC = "<c.abc@vamostaxi.site>";
 const GET_RFC = "<111-222-333@email.example.com>";
 const PROVIDER_ID = "37e4414c-5e25-4dbc-a071-43552a4bd53b";
 const PROVIDER_SUFFIX = PROVIDER_ID.slice(-12);
-const PLUS_ADDRESS = `ticket+${REPLY_TOKEN}@replies.vamostaxi.site`;
-const STAFF_FROM = `Vamos Taxi <${PLUS_ADDRESS}>`;
+const PUBLIC_ADDRESS = "TKT-AAAAAAAA@replies.vamostaxi.site";
+const STAFF_FROM = `Vamos Taxi <${PUBLIC_ADDRESS}>`;
 
 const claims: VamosClaims = {
   sub: "11111111-1111-4111-8111-111111111111",
@@ -208,7 +208,7 @@ describe("patchTicket staff reply (RPLY-01 RPLY-02 D-05 D-06 D-10 D-11)", () => 
       expect(Object.keys(headers)).not.toContain("Message-ID");
       expect(options).toMatchObject({
         from: STAFF_FROM,
-        replyTo: PLUS_ADDRESS,
+        replyTo: PUBLIC_ADDRESS,
         bcc: "info@vamostaxi.site",
         allowEmailFallback: false,
       });

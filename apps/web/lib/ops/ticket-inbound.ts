@@ -9,6 +9,7 @@ import {
   inboundFromAddress,
   inboundTicketStatus,
   parseInboundHeaders,
+  publicPrefixFromInboundTargets,
   tokenFromInboundTargets,
   type InboundPayload,
 } from "./ticket-mail";
@@ -40,6 +41,7 @@ export async function ingestInboundEmail(
   payload: InboundPayload,
 ): Promise<"ok" | "drop" | "unavailable"> {
   const token = tokenFromInboundTargets(payload.to, payload.receivedFor);
+  const publicPrefix = publicPrefixFromInboundTargets(payload.to, payload.receivedFor);
   const parsed = parseInboundHeaders(payload.headers);
   const rfcIds = [...parsed.inReplyTo, ...parsed.references].filter((id) => id.length > 0);
   const body = inboundStoredBody(payload);
@@ -58,6 +60,16 @@ export async function ingestInboundEmail(
           limit 1
         `;
         ticket = tickets[0];
+      }
+
+      if (!ticket && publicPrefix) {
+        const tickets = await sql<{ id: string; ticket_status: string | null }[]>`
+          select id, ticket_status
+          from public.contact_submissions
+          where lower(id::text) like ${`${publicPrefix}-%`}
+          limit 2
+        `;
+        if (tickets.length === 1) ticket = tickets[0];
       }
 
       if (!ticket) {

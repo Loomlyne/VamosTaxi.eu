@@ -42,13 +42,15 @@ reported: "400 invalid"
 who: agent may drive public form; Koss may type
 action: Open `https://vamostaxi.site/contact`. Submit a new message this sitting (unique subject/body so it is findable).
 expected: confirmation on the public page. A new ticket appears on dashboard Support.
-result: pending
+result: pass
+reported: "Message received. ticket 8ec98a6d-d411-4ecb-b1eb-6e650290fe87 koussayzayani8@gmail.com status new 2026-09-18T10:32:38Z"
 
 ### 4. Staff Send (D-01 D-10)
 who: agent
 action: Open `https://dashboard.vamostaxi.site`. Sign in. Support rail. Open the new ticket. Type a reply. Send.
-expected: overlay shows the staff bubble. No new chrome. From is plus-address after 16-03 (`a222bb80-2219-4791-a2c0-c1ccfe76fe59`).
-result: pending
+expected: overlay shows the staff bubble. No new chrome. From is `TKT-{id}@replies.vamostaxi.site` (board id). Plus-token still matches old Replies.
+result: pass
+reported: "TKT-8EC98A6D Replied. outbound_staff has Resend id + RFC Message-ID. Gmail From/Reply-To ticket+…@replies.vamostaxi.site"
 
 ### 5. info@ copy bar (D-09 D-10)
 who: Koss

@@ -1,7 +1,8 @@
 // apps/web/lib/ops/ticket-mail.ts
 //
-// Plus-address + RFC threading for Support. Reply-To is replies.vamostaxi.site
-// so inbound never uses apex Gmail MX. Unmatched inbound is dropped.
+// Public mailbox is TKT-{first 8 of uuid}@replies.vamostaxi.site (board id).
+// Plus-token still matches inbound so old Replies land. RFC after that.
+// Unmatched inbound is dropped. Never match on From.
 
 type TicketStatus = "new" | "open" | "replied" | "responded" | "closed";
 
@@ -11,17 +12,26 @@ export const CONTACT_FROM = "Vamos Taxi <noreply@vamostaxi.site>";
 export const REPLIES_DOMAIN_VERIFIED = true;
 
 const TOKEN = /^[0-9a-f]{32}$/;
+const UUID_HEX = /^[0-9a-f]{32}$/;
+const TKT_LOCAL = /^tkt-([0-9a-f]{8})$/i;
 const ANGLE = /^<[^>]+>$/;
 
 export function ticketReplyAddress(token: string): string {
   return `ticket+${token}@${REPLY_MAILBOX_HOST}`;
 }
 
-export function staffSender(token: string): { from: string; replyTo: string } {
-  const plus = ticketReplyAddress(token);
-  if (REPLIES_DOMAIN_VERIFIED) {
-    return { from: `Vamos Taxi <${plus}>`, replyTo: plus };
+export function ticketPublicAddress(submissionId: string): string | null {
+  const hex = submissionId.replace(/-/g, "").toLowerCase();
+  if (!UUID_HEX.test(hex)) return null;
+  return `TKT-${hex.slice(0, 8).toUpperCase()}@${REPLY_MAILBOX_HOST}`;
+}
+
+export function staffSender(token: string, submissionId: string): { from: string; replyTo: string } {
+  const publicAddr = ticketPublicAddress(submissionId);
+  if (REPLIES_DOMAIN_VERIFIED && publicAddr) {
+    return { from: `Vamos Taxi <${publicAddr}>`, replyTo: publicAddr };
   }
+  const plus = ticketReplyAddress(token);
   return { from: CONTACT_FROM, replyTo: plus };
 }
 
@@ -44,44 +54,70 @@ function addressesOf(raw: string): string[] {
   return matches ?? [];
 }
 
-export function parseTicketReplyToken(raw: string | string[] | undefined | null): string | null {
+function localsOnReplies(raw: string | string[] | undefined | null): string[] {
   const values = Array.isArray(raw) ? raw : raw ? [raw] : [];
+  const locals: string[] = [];
   for (const value of values) {
     for (const address of addressesOf(value)) {
       const at = address.lastIndexOf("@");
       if (at < 0) continue;
-      const local = address.slice(0, at);
       const host = address.slice(at + 1).toLowerCase();
       if (host !== REPLY_MAILBOX_HOST) continue;
-      const prefix = "ticket+";
-      if (!local.toLowerCase().startsWith(prefix)) continue;
-      const token = local.slice(prefix.length).toLowerCase();
-      if (TOKEN.test(token)) return token;
+      locals.push(address.slice(0, at));
     }
+  }
+  return locals;
+}
+
+export function parseTicketReplyToken(raw: string | string[] | undefined | null): string | null {
+  for (const local of localsOnReplies(raw)) {
+    const prefix = "ticket+";
+    if (!local.toLowerCase().startsWith(prefix)) continue;
+    const token = local.slice(prefix.length).toLowerCase();
+    if (TOKEN.test(token)) return token;
   }
   return null;
 }
 
-export function tokenFromInboundTo(to: unknown): string | null {
-  if (typeof to === "string") return parseTicketReplyToken(to);
+export function parseTicketPublicPrefix(raw: string | string[] | undefined | null): string | null {
+  for (const local of localsOnReplies(raw)) {
+    const match = TKT_LOCAL.exec(local);
+    if (match?.[1]) return match[1].toLowerCase();
+  }
+  return null;
+}
+
+function inboundAddressParts(to: unknown): string[] {
+  if (typeof to === "string") return [to];
   if (Array.isArray(to)) {
-    const parts = to.map((item) => {
+    return to.map((item) => {
       if (typeof item === "string") return item;
       if (item && typeof item === "object" && "email" in item) {
         return String((item as { email: unknown }).email ?? "");
       }
       return "";
     });
-    return parseTicketReplyToken(parts);
   }
   if (to && typeof to === "object" && "email" in to) {
-    return parseTicketReplyToken(String((to as { email: unknown }).email ?? ""));
+    return [String((to as { email: unknown }).email ?? "")];
   }
-  return null;
+  return [];
+}
+
+export function tokenFromInboundTo(to: unknown): string | null {
+  return parseTicketReplyToken(inboundAddressParts(to));
+}
+
+export function publicPrefixFromInboundTo(to: unknown): string | null {
+  return parseTicketPublicPrefix(inboundAddressParts(to));
 }
 
 export function tokenFromInboundTargets(to: unknown, receivedFor?: unknown): string | null {
   return tokenFromInboundTo(to) ?? tokenFromInboundTo(receivedFor);
+}
+
+export function publicPrefixFromInboundTargets(to: unknown, receivedFor?: unknown): string | null {
+  return publicPrefixFromInboundTo(to) ?? publicPrefixFromInboundTo(receivedFor);
 }
 
 function headerRecord(headers: unknown): Record<string, string> {
