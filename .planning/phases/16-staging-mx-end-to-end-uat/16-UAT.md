@@ -6,7 +6,7 @@ source:
   - 16-02-SUMMARY.md
   - 16-03-SUMMARY.md
 started: 2026-09-18T10:00:00Z
-updated: 2026-09-18T12:37:06Z
+updated: 2026-09-18T13:10:39Z
 ---
 
 # Phase 16 UAT — staging MX + Reply-in-Gmail
@@ -17,10 +17,10 @@ If inbound never arrives after MX cut: stop, revert `replies.` MX to `inbound-sm
 
 ## Current Test
 
-number: 8
-name: Close Ticket then Reply → Responded
+number: 9
+name: No-token drop
 expected: |
-  After Gmail Reply, same ticket is Responded with a new customer bubble.
+  Mail to replies.vamostaxi.site with no TKT- / ticket+ / RFC match does not create or append a ticket.
 awaiting: user
 
 ## Tests
@@ -78,9 +78,8 @@ reported: "Owner shot 2026-09-18 14:34 Zurich: customer bubble shows Body must b
 who: agent Closes; Koss Replies; agent confirms
 action: Agent clicks Close Ticket. Koss Replies again in Gmail (say “sent”). Agent confirms overlay.
 expected: Closed then inbound Reply becomes Responded. Same ticket.
-result: pending
-reported: "Close live: ticket_status closed (owner pass). Awaiting Gmail Reply → Responded."
-awaiting: user
+result: pass
+reported: "Owner: reopened. Hosted ticket_status responded. New inbound 31770cfe body Ok open at 13:10:39Z."
 
 ### 9. No-token drop (D-14)
 who: Koss (or throwaway)
@@ -99,9 +98,9 @@ reported: "Owner 2026-09-18: info@ inbox not created yet — mark as pass for no
 ## Summary
 
 total: 10
-passed: 8
+passed: 9
 issues: 0
-pending: 2
+pending: 1
 skipped: 0
 blocked: 0
 
