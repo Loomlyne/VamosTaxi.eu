@@ -18,7 +18,8 @@ function pathIds(request: Request): { ticketId: string; fileId: string } | null 
 
 function contentDisposition(contentType: string, filename: string): string {
   const safe = filename.replace(/["\\\r\n]/g, "_");
-  const kind = contentType.startsWith("image/") ? "inline" : "attachment";
+  const type = contentType.toLowerCase();
+  const kind = type.startsWith("image/") || type === "application/pdf" ? "inline" : "attachment";
   return `${kind}; filename="${safe}"`;
 }
 
