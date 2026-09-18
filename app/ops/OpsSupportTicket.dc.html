@@ -73,7 +73,8 @@
 .vt-dialog.vt-file-preview{display:flex;flex-direction:column;max-block-size:min(80vh,calc(100dvh - 48px))}
 .vt-file-preview .vt-dialog__body{flex:1 1 auto;min-block-size:0;overflow:hidden;padding:12px 16px 20px}
 [data-preview-img]{display:block;max-inline-size:100%;max-block-size:min(70vh,720px);object-fit:contain;margin-inline:auto}
-[data-preview-pdf]{display:block;inline-size:100%;block-size:min(70vh,720px);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-bg-page)}
+[data-preview-pages]{overflow:auto;max-block-size:min(70vh,720px);display:flex;flex-direction:column;gap:12px;min-width:0;min-block-size:0}
+[data-preview-pages] canvas{display:block;inline-size:100%;height:auto;background:var(--vt-bg-page);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md)}
 [data-toolbar]{display:flex;flex-wrap:nowrap;align-items:center;gap:8px;min-width:0}
 [data-filters-btn]{display:block;flex:0 0 auto}
 [data-filters-tags]{display:none}
@@ -315,7 +316,7 @@
 <img data-preview-img="1" src="{{ previewHref }}" alt="{{ previewTitle }}" />
 </sc-if>
 <sc-if value="{{ previewIsPdf }}" hint-placeholder-val="{{ false }}">
-<iframe data-preview-pdf="1" src="{{ previewHref }}" title="{{ previewTitle }}"></iframe>
+<div data-preview-pdf="1" data-preview-pages="1" data-scroll-native="1"></div>
 </sc-if>
 </sc-if>
 </x-import>
@@ -512,6 +513,9 @@ class Component extends DCLogic {
     this.hydrate();
     publishBadge(this.state.tickets);
   }
+  componentDidUpdate() {
+    this.paintPdfPages();
+  }
   componentWillUnmount() {
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     if (this._onFocus) window.removeEventListener('focus', this._onFocus);
@@ -594,10 +598,69 @@ class Component extends DCLogic {
       try { URL.revokeObjectURL(this._previewUrl); } catch (err) {}
       this._previewUrl = null;
     }
+    if (this._pdfDoc) {
+      try { this._pdfDoc.destroy(); } catch (err) {}
+      this._pdfDoc = null;
+    }
   };
   closeOverlay = () => {
     this.revokePreview();
     this.setState({ openId: null, draft: '', overlayError: false, preview: null });
+  };
+  loadPdfJs = () => {
+    if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+    if (this._pdfJsWait) return this._pdfJsWait;
+    this._pdfJsWait = new Promise((resolve, reject) => {
+      const src = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js';
+      const worker = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = () => {
+        const lib = window.pdfjsLib;
+        if (!lib) { reject(new Error('pdfjs')); return; }
+        lib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob(
+          ['importScripts("' + worker + '");'],
+          { type: 'application/javascript' }
+        ));
+        resolve(lib);
+      };
+      s.onerror = () => reject(new Error('pdfjs'));
+      document.head.appendChild(s);
+    });
+    return this._pdfJsWait;
+  };
+  paintPdfPages = () => {
+    const root = document.querySelector('[data-vt-support] [data-preview-pages]');
+    const pdf = this._pdfDoc;
+    if (!root || !pdf) return;
+    const width = root.clientWidth;
+    if (width < 40) {
+      requestAnimationFrame(() => this.paintPdfPages());
+      return;
+    }
+    const mark = String(pdf.numPages);
+    if (root.getAttribute('data-painted') === mark) return;
+    while (root.firstChild) root.removeChild(root.firstChild);
+    root.setAttribute('data-painted', mark);
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const canvas = document.createElement('canvas');
+      canvas.setAttribute('data-preview-page', String(i));
+      root.appendChild(canvas);
+      pdf.getPage(i).then((page) => {
+        if (this._pdfDoc !== pdf) return;
+        const base = page.getViewport({ scale: 1 });
+        const scale = width / base.width;
+        const viewport = page.getViewport({ scale: scale });
+        const ratio = window.devicePixelRatio || 1;
+        canvas.width = Math.floor(viewport.width * ratio);
+        canvas.height = Math.floor(viewport.height * ratio);
+        canvas.style.width = '100%';
+        canvas.style.height = 'auto';
+        const ctx = canvas.getContext('2d');
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+        return page.render({ canvasContext: ctx, viewport: viewport }).promise;
+      });
+    }
   };
   openPreview = (file) => {
     if (!file || !file.href) return;
@@ -613,12 +676,18 @@ class Component extends DCLogic {
       if (!res.ok) throw new Error('file');
       return res.blob();
     }).then((blob) => {
-      const type = isPdf ? 'application/pdf' : (blob.type || '');
-      const typed = type && blob.type !== type ? new Blob([blob], { type: type }) : blob;
-      const url = URL.createObjectURL(typed);
+      if (isPdf) {
+        return this.loadPdfJs().then((lib) => blob.arrayBuffer().then((data) => lib.getDocument({ data: data }).promise)).then((pdf) => {
+          this._pdfDoc = pdf;
+          this.setState({
+            preview: { href: 'pages', filename: filename, isImage: false, isPdf: true },
+          });
+        });
+      }
+      const url = URL.createObjectURL(blob);
       this._previewUrl = url;
       this.setState({
-        preview: { href: url, filename: filename, isImage: isImage, isPdf: isPdf },
+        preview: { href: url, filename: filename, isImage: isImage, isPdf: false },
       });
     }).catch(() => {
       this.revokePreview();
