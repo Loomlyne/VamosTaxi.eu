@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
   public: {
     Tables: {
       audit_log: {
@@ -252,6 +257,7 @@ export type Database = {
       }
       booking_legs: {
         Row: {
+          arrived_at: string | null
           assigned_chauffeur_id: string | null
           assigned_vehicle_id: string | null
           bags: number
@@ -286,6 +292,7 @@ export type Database = {
           vehicle_class_id: string
         }
         Insert: {
+          arrived_at?: string | null
           assigned_chauffeur_id?: string | null
           assigned_vehicle_id?: string | null
           bags?: number
@@ -320,6 +327,7 @@ export type Database = {
           vehicle_class_id: string
         }
         Update: {
+          arrived_at?: string | null
           assigned_chauffeur_id?: string | null
           assigned_vehicle_id?: string | null
           bags?: number
@@ -647,6 +655,7 @@ export type Database = {
           id: string
           idempotency_key: string | null
           is_return: boolean
+          is_test: boolean
           locale: string
           note: string
           pay_link_sent_at: string | null
@@ -676,6 +685,7 @@ export type Database = {
           id?: string
           idempotency_key?: string | null
           is_return?: boolean
+          is_test?: boolean
           locale?: string
           note?: string
           pay_link_sent_at?: string | null
@@ -705,6 +715,7 @@ export type Database = {
           id?: string
           idempotency_key?: string | null
           is_return?: boolean
+          is_test?: boolean
           locale?: string
           note?: string
           pay_link_sent_at?: string | null
@@ -1096,6 +1107,7 @@ export type Database = {
           note: string
           per_user_limit: number | null
           percent: number | null
+          rate_version_id: number | null
           valid_from: string | null
           valid_until: string | null
         }
@@ -1110,6 +1122,7 @@ export type Database = {
           note?: string
           per_user_limit?: number | null
           percent?: number | null
+          rate_version_id?: number | null
           valid_from?: string | null
           valid_until?: string | null
         }
@@ -1124,10 +1137,19 @@ export type Database = {
           note?: string
           per_user_limit?: number | null
           percent?: number | null
+          rate_version_id?: number | null
           valid_from?: string | null
           valid_until?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "coupons_rate_version_id_fkey"
+            columns: ["rate_version_id"]
+            isOneToOne: false
+            referencedRelation: "rate_versions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       customers: {
         Row: {
@@ -1181,6 +1203,7 @@ export type Database = {
           per_km_rappen: number
           rate_version_id: number
           to_km: number | null
+          vehicle_class_id: string | null
         }
         Insert: {
           from_km: number
@@ -1188,6 +1211,7 @@ export type Database = {
           per_km_rappen: number
           rate_version_id: number
           to_km?: number | null
+          vehicle_class_id?: string | null
         }
         Update: {
           from_km?: number
@@ -1195,6 +1219,7 @@ export type Database = {
           per_km_rappen?: number
           rate_version_id?: number
           to_km?: number | null
+          vehicle_class_id?: string | null
         }
         Relationships: [
           {
@@ -1204,12 +1229,20 @@ export type Database = {
             referencedRelation: "rate_versions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "distance_bands_vehicle_class_id_fkey"
+            columns: ["vehicle_class_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_classes"
+            referencedColumns: ["id"]
+          },
         ]
       }
       distance_rates: {
         Row: {
           available: boolean
           base_fare_rappen: number | null
+          hide_from_public: boolean
           id: number
           max_pax: number
           min_fare_rappen: number | null
@@ -1220,6 +1253,7 @@ export type Database = {
         Insert: {
           available?: boolean
           base_fare_rappen?: number | null
+          hide_from_public?: boolean
           id?: never
           max_pax: number
           min_fare_rappen?: number | null
@@ -1230,6 +1264,7 @@ export type Database = {
         Update: {
           available?: boolean
           base_fare_rappen?: number | null
+          hide_from_public?: boolean
           id?: never
           max_pax?: number
           min_fare_rappen?: number | null
@@ -1497,39 +1532,83 @@ export type Database = {
           },
         ]
       }
+      rate_version_rules: {
+        Row: {
+          id: number
+          kind: string
+          payload: Json
+          rate_version_id: number
+        }
+        Insert: {
+          id?: never
+          kind: string
+          payload?: Json
+          rate_version_id: number
+        }
+        Update: {
+          id?: never
+          kind?: string
+          payload?: Json
+          rate_version_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rate_version_rules_rate_version_id_fkey"
+            columns: ["rate_version_id"]
+            isOneToOne: false
+            referencedRelation: "rate_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rate_versions: {
         Row: {
           created_at: string
           created_by: string | null
+          free_wait_minutes: number | null
           id: number
           label: string
+          max_extra_stops: number | null
           note: string
           published_at: string | null
           published_by: string | null
+          quote_lock_minutes: number | null
+          service_area_geojson: Json | null
           slug: string
           status: Database["public"]["Enums"]["rate_version_status"]
+          vat_rate_bps: number | null
         }
         Insert: {
           created_at?: string
           created_by?: string | null
+          free_wait_minutes?: number | null
           id?: never
           label: string
+          max_extra_stops?: number | null
           note?: string
           published_at?: string | null
           published_by?: string | null
+          quote_lock_minutes?: number | null
+          service_area_geojson?: Json | null
           slug: string
           status?: Database["public"]["Enums"]["rate_version_status"]
+          vat_rate_bps?: number | null
         }
         Update: {
           created_at?: string
           created_by?: string | null
+          free_wait_minutes?: number | null
           id?: never
           label?: string
+          max_extra_stops?: number | null
           note?: string
           published_at?: string | null
           published_by?: string | null
+          quote_lock_minutes?: number | null
+          service_area_geojson?: Json | null
           slug?: string
           status?: Database["public"]["Enums"]["rate_version_status"]
+          vat_rate_bps?: number | null
         }
         Relationships: []
       }
@@ -1967,6 +2046,47 @@ export type Database = {
         }
         Relationships: []
       }
+      support_message_files: {
+        Row: {
+          byte_size: number
+          content_type: string
+          created_at: string
+          filename: string
+          id: string
+          kept: boolean
+          message_id: string
+          r2_key: string | null
+        }
+        Insert: {
+          byte_size: number
+          content_type: string
+          created_at?: string
+          filename: string
+          id?: string
+          kept: boolean
+          message_id: string
+          r2_key?: string | null
+        }
+        Update: {
+          byte_size?: number
+          content_type?: string
+          created_at?: string
+          filename?: string
+          id?: string
+          kept?: boolean
+          message_id?: string
+          r2_key?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_message_files_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "support_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_messages: {
         Row: {
           actor_user_id: string | null
@@ -2026,6 +2146,7 @@ export type Database = {
           predicate: Json
           quantity_source: string | null
           rate_version_id: number
+          rule_id: number | null
         }
         Insert: {
           active?: boolean
@@ -2038,6 +2159,7 @@ export type Database = {
           predicate?: Json
           quantity_source?: string | null
           rate_version_id: number
+          rule_id?: number | null
         }
         Update: {
           active?: boolean
@@ -2050,6 +2172,7 @@ export type Database = {
           predicate?: Json
           quantity_source?: string | null
           rate_version_id?: number
+          rule_id?: number | null
         }
         Relationships: [
           {
@@ -2059,6 +2182,13 @@ export type Database = {
             referencedRelation: "rate_versions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "surcharges_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "rate_version_rules"
+            referencedColumns: ["id"]
+          },
         ]
       }
       vehicle_classes: {
@@ -2066,7 +2196,9 @@ export type Database = {
           active: boolean
           id: string
           luggage_capacity: number
+          name: string | null
           passenger_capacity: number
+          photo_path: string | null
           slug: string
           sort_order: number
         }
@@ -2074,7 +2206,9 @@ export type Database = {
           active?: boolean
           id?: string
           luggage_capacity: number
+          name?: string | null
           passenger_capacity: number
+          photo_path?: string | null
           slug: string
           sort_order?: number
         }
@@ -2082,7 +2216,9 @@ export type Database = {
           active?: boolean
           id?: string
           luggage_capacity?: number
+          name?: string | null
           passenger_capacity?: number
+          photo_path?: string | null
           slug?: string
           sort_order?: number
         }
@@ -2838,12 +2974,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2867,11 +3003,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2892,11 +3028,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2917,11 +3053,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2934,11 +3070,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2976,4 +3112,3 @@ export const Constants = {
     },
   },
 } as const
-
