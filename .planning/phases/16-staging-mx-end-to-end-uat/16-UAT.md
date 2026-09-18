@@ -6,7 +6,7 @@ source:
   - 16-02-SUMMARY.md
   - 16-03-SUMMARY.md
 started: 2026-09-18T10:00:00Z
-updated: 2026-09-18T12:40:00Z
+updated: 2026-09-18T12:32:08Z
 ---
 
 # Phase 16 UAT — staging MX + Reply-in-Gmail
@@ -17,10 +17,10 @@ If inbound never arrives after MX cut: stop, revert `replies.` MX to `inbound-sm
 
 ## Current Test
 
-number: 5
-name: info@ copy bar
+number: 7
+name: XSS escaped in overlay
 expected: |
-  info@ has contact intake + staff Send BCC only. Matched inbound Reply is not forwarded there.
+  Customer bubble shows the script as text. No alert. No executed HTML.
 awaiting: user
 
 ## Tests
@@ -57,23 +57,22 @@ reported: "From/Reply-To TKT-8EC98A6D@replies.vamostaxi.site. Worker vamos 23e08
 who: Koss
 action: Check `info@` Gmail. Agent does not open Gmail.
 expected: contact intake + staff Send BCC only. Matched inbound is not forwarded to info@.
-result: pending
-awaiting: user
+result: pass
+reported: "Owner 2026-09-18: info@ inbox not created yet — mark as pass for now. Do not block Phase 16 on creating that mailbox."
 
 ### 6. Gmail Reply with image + PDF + script text (D-11 D-14 D-16 INB-01)
 who: Koss
 action: In Gmail, Reply to the staff mail. Attach one image and one PDF. Body includes the exact text `<script>alert(1)</script>`. Send. Tell the agent “sent”.
 expected: same ticket (INB-01). Agent does not open Gmail.
-result: pending
-reported: "Reply landed on same ticket (status responded, 4 messages, jpeg+PDF kept). Body was not the script string. XSS click still owed."
-awaiting: user
+result: pass
+reported: "INB-01 live: same ticket 8ec98a6d… status responded, 4 messages, jpeg+PDF kept. Script string was not in that Reply; XSS is test 7."
 
 ### 7. Dashboard confirm after sent (D-15 D-14 D-16)
 who: agent, only after Koss says sent
 action: Refresh/focus dashboard Support. Open the same ticket overlay. Click the PDF button.
 expected: new customer bubble on the same ticket. Script text is escaped (not executed). Image and PDF are thread buttons. Nested overlay: pages only, scroll, no PDF viewer chrome.
 result: pending
-reported: "Same ticket responded. jpeg+PDF buttons. PDF overlay pages-only pass (owner 2026-09-18). XSS click still owed."
+reported: "Same ticket + file buttons + PDF pages-only: owner pass. XSS click still owed — Reply body must include <script>alert(1)</script>."
 awaiting: user
 
 ### 8. Closed → Reply → Responded (D-13)
@@ -94,15 +93,15 @@ awaiting: user
 who: Koss
 action: Confirm `info@` after steps 6–9.
 expected: still only intake + staff BCC. No inbound customer copy.
-result: pending
-awaiting: user
+result: pass
+reported: "Owner 2026-09-18: info@ inbox not created yet — mark as pass for now. Same mailbox as test 5."
 
 ## Summary
 
 total: 10
-passed: 4
+passed: 7
 issues: 0
-pending: 6
+pending: 3
 skipped: 0
 blocked: 0
 
