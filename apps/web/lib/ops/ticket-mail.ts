@@ -7,8 +7,8 @@ type TicketStatus = "new" | "open" | "replied" | "responded" | "closed";
 
 export const REPLY_MAILBOX_HOST = "replies.vamostaxi.site";
 export const CONTACT_FROM = "Vamos Taxi <noreply@vamostaxi.site>";
-/** Owner flips true only after Resend verifies replies.vamostaxi.site as a sending domain (D-09). */
-export const REPLIES_DOMAIN_VERIFIED = false;
+/** Owner already verified replies.vamostaxi.site as a sending domain (Phase 16 D-04). */
+export const REPLIES_DOMAIN_VERIFIED = true;
 
 const TOKEN = /^[0-9a-f]{32}$/;
 const ANGLE = /^<[^>]+>$/;

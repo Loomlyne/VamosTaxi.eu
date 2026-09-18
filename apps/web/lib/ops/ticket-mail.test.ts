@@ -137,17 +137,17 @@ describe("INB-02 D-01 D-06 D-07 Wave 0 strip and RFC parse (RED until 14-02)", (
   });
 });
 
-describe("Phase 16-01 staffSender false path (D-01 D-04)", () => {
-  it("staffSender From is noreply and Reply-To is the plus-address", () => {
+describe("Phase 16-03 staffSender true path (D-01 D-04)", () => {
+  it("staffSender From and Reply-To are the plus-address", () => {
     expect(staffSender(TOKEN)).toEqual({
-      from: "Vamos Taxi <noreply@vamostaxi.site>",
+      from: `Vamos Taxi <${PLUS}>`,
       replyTo: PLUS,
     });
   });
 
-  it("source-read keeps REPLIES_DOMAIN_VERIFIED false and the plus From template", () => {
+  it("source-read keeps REPLIES_DOMAIN_VERIFIED true and the plus From template", () => {
     const src = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "ticket-mail.ts"), "utf8");
-    expect(src).toMatch(/REPLIES_DOMAIN_VERIFIED\s*=\s*false/);
+    expect(src).toMatch(/REPLIES_DOMAIN_VERIFIED\s*=\s*true/);
     expect(src).toContain("`Vamos Taxi <${plus}>`");
   });
 });
