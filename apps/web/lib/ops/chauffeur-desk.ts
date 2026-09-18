@@ -4,7 +4,7 @@
 // tables/columns must not 500 the existing fleet list.
 
 import { dutyStatus, type LeaveRange } from "./chauffeurs-model";
-import { assertVehicleSeats, type VehicleSeat } from "./vehicle-seats";
+import { replaceVehicleSeats, type VehicleSeat } from "./vehicle-seats";
 
 export function isMissingDeskSchema(err: unknown): boolean {
   if (typeof err !== "object" || err === null || !("code" in err)) return false;
@@ -189,6 +189,10 @@ export async function persistVehicleSeats(
   morningId: string | null,
   nightId: string | null,
 ): Promise<void> {
+  const next = replaceVehicleSeats({
+    morningId: parseSeatId(morningId),
+    nightId: parseSeatId(nightId),
+  });
   const current = { morningId: null as string | null, nightId: null as string | null };
   try {
     const rows = await sql<{ seat: string; chauffeur_id: string }[]>`
@@ -203,24 +207,17 @@ export async function persistVehicleSeats(
     throw err;
   }
 
-  let next = { morningId: current.morningId, nightId: current.nightId };
-  const assign = (seat: VehicleSeat, chauffeurId: string | null) => {
-    if (!chauffeurId) {
-      if (seat === "morning") next = { ...next, morningId: null };
-      else next = { ...next, nightId: null };
-      return;
-    }
-    next = assertVehicleSeats({
-      morningId: next.morningId,
-      nightId: next.nightId,
-      chauffeurId,
-      seat,
-    });
-  };
-  assign("morning", morningId);
-  assign("night", nightId);
-
   try {
+    const kept = new Set(
+      [next.morningId, next.nightId].filter((id): id is string => Boolean(id)),
+    );
+    for (const chauffeurId of kept) {
+      await sql`
+        delete from public.vehicle_seats
+         where chauffeur_id = ${chauffeurId}::uuid
+           and vehicle_id <> ${vehicleId}::uuid
+      `;
+    }
     await sql`delete from public.vehicle_seats where vehicle_id = ${vehicleId}::uuid`;
     const pairs: { seat: VehicleSeat; chauffeurId: string }[] = [];
     if (next.morningId) pairs.push({ seat: "morning", chauffeurId: next.morningId });
@@ -236,7 +233,6 @@ export async function persistVehicleSeats(
          where id = ${pair.chauffeurId}::uuid
       `;
     }
-    const kept = new Set(pairs.map((pair) => pair.chauffeurId));
     for (const previous of [current.morningId, current.nightId]) {
       if (previous && !kept.has(previous)) {
         await sql`

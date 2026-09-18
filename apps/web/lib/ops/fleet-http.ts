@@ -12,7 +12,7 @@ import {
   type ChauffeurRow,
 } from "./chauffeurs-model";
 import { VehicleSeatError } from "./vehicle-seats";
-import { parseLeaveRanges, parseShiftClock, parseShiftWeekdays } from "./chauffeur-desk";
+import { parseLeaveRanges, parseSeatId, parseShiftClock, parseShiftWeekdays } from "./chauffeur-desk";
 import {
   VehicleClassInputError,
   VehicleInputError,
@@ -248,8 +248,8 @@ export function parseVehicleBody(body: unknown): ParsedVehicleBody {
       status: rec.status as VehicleInput["status"],
       photoPath,
       note: asString(rec.note),
-      morningChauffeurId: asString(rec.morningChauffeurId || rec.morning) || null,
-      nightChauffeurId: asString(rec.nightChauffeurId || rec.night) || null,
+      morningChauffeurId: parseSeatId(rec.morningChauffeurId || rec.morning),
+      nightChauffeurId: parseSeatId(rec.nightChauffeurId || rec.night),
     },
   };
 }

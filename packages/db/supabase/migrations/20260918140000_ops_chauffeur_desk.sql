@@ -22,8 +22,9 @@ begin
   end if;
 end $$;
 
-create unique index if not exists chauffeurs_email_lower_uidx
-  on public.chauffeurs (lower(email))
+drop index if exists public.chauffeurs_email_lower_uidx;
+create unique index chauffeurs_email_lower_uidx
+  on public.chauffeurs (lower(trim(email)))
   where email is not null and length(trim(email)) > 0;
 
 create table if not exists public.chauffeur_leave_ranges (
@@ -86,3 +87,27 @@ where c.id in (
   ) ranked
   where rn >= 3
 );
+
+alter table public.chauffeur_leave_ranges enable row level security;
+alter table public.vehicle_seats enable row level security;
+
+revoke all on public.chauffeur_leave_ranges from public, anon, authenticated, vamos_edge, vamos_public, vamos_guest;
+revoke all on public.vehicle_seats from public, anon, authenticated, vamos_edge, vamos_public, vamos_guest;
+grant select, insert, update, delete on public.chauffeur_leave_ranges to vamos_staff;
+grant select, insert, update, delete on public.vehicle_seats to vamos_staff;
+
+drop policy if exists chauffeur_leave_ranges_staff_gate on public.chauffeur_leave_ranges;
+create policy chauffeur_leave_ranges_staff_gate on public.chauffeur_leave_ranges
+  as restrictive for all to vamos_staff
+  using ((select app.is_staff())) with check ((select app.is_staff()));
+drop policy if exists chauffeur_leave_ranges_staff_all on public.chauffeur_leave_ranges;
+create policy chauffeur_leave_ranges_staff_all on public.chauffeur_leave_ranges
+  for all to vamos_staff using (true) with check (true);
+
+drop policy if exists vehicle_seats_staff_gate on public.vehicle_seats;
+create policy vehicle_seats_staff_gate on public.vehicle_seats
+  as restrictive for all to vamos_staff
+  using ((select app.is_staff())) with check ((select app.is_staff()));
+drop policy if exists vehicle_seats_staff_all on public.vehicle_seats;
+create policy vehicle_seats_staff_all on public.vehicle_seats
+  for all to vamos_staff using (true) with check (true);

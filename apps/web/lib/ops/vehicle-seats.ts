@@ -51,3 +51,16 @@ export function assertVehicleSeats(input: {
   }
   return { morningId, nightId: chauffeurId };
 }
+
+/** OpsFleet vehicle save posts the full pair. Occupied seats are replaced. */
+export function replaceVehicleSeats(input: {
+  morningId: string | null;
+  nightId: string | null;
+}): VehicleSeats {
+  const morningId = input.morningId || null;
+  const nightId = input.nightId || null;
+  if (morningId && nightId && morningId === nightId) {
+    throw new VehicleSeatError("fleet-seat-both-taken");
+  }
+  return { morningId, nightId };
+}
