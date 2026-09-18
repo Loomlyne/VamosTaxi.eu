@@ -6,7 +6,7 @@ source:
   - 16-02-SUMMARY.md
   - 16-03-SUMMARY.md
 started: 2026-09-18T10:00:00Z
-updated: 2026-09-18T12:25:00Z
+updated: 2026-09-18T12:40:00Z
 ---
 
 # Phase 16 UAT — staging MX + Reply-in-Gmail
@@ -17,10 +17,10 @@ If inbound never arrives after MX cut: stop, revert `replies.` MX to `inbound-sm
 
 ## Current Test
 
-number: 7
-name: PDF overlay pages only (no viewer chrome)
+number: 5
+name: info@ copy bar
 expected: |
-  Nested overlay shows PDF pages. Scroll. No toolbar, thumbs, zoom, download, or print.
+  info@ has contact intake + staff Send BCC only. Matched inbound Reply is not forwarded there.
 awaiting: user
 
 ## Tests
@@ -73,7 +73,7 @@ who: agent, only after Koss says sent
 action: Refresh/focus dashboard Support. Open the same ticket overlay. Click the PDF button.
 expected: new customer bubble on the same ticket. Script text is escaped (not executed). Image and PDF are thread buttons. Nested overlay: pages only, scroll, no PDF viewer chrome.
 result: pending
-reported: "Same ticket responded. Files kept. Canvas PDF preview shipped Worker 23e088fe. Owner visual + XSS still owed."
+reported: "Same ticket responded. jpeg+PDF buttons. PDF overlay pages-only pass (owner 2026-09-18). XSS click still owed."
 awaiting: user
 
 ### 8. Closed → Reply → Responded (D-13)
