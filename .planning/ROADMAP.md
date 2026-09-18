@@ -697,7 +697,7 @@ appends to the same ticket. Apex Gmail `info@` unchanged. No live `vamostaxi.eu`
 
 **Plans**: 4 plans
 
-- [ ] 16-01-PLAN.md — Wave 0: staffSender false-path tests (flag stays false)
+- [x] 16-01-PLAN.md — Wave 0: staffSender false-path tests (flag stays false)
 - [ ] 16-02-PLAN.md — Resend + Cloudflare receiving MX on replies. only
 - [ ] 16-03-PLAN.md — Verified readback → flag true → deploy Worker vamos
 - [ ] 16-04-PLAN.md — Live Gmail UAT (INB-01) — autonomous: false
