@@ -27,9 +27,12 @@ export type ClassifyInboundFileResult = {
   threadLine: string | null;
 };
 
-type SqlTag = {
-  (strings: TemplateStringsArray, ...values: unknown[]): Promise<unknown>;
-};
+type InboundAttachment = ClassifyInboundFileInput & { downloadUrl?: string };
+
+type SqlTag = (
+  strings: TemplateStringsArray,
+  ...values: unknown[]
+) => unknown;
 
 function d10(filename: string): string {
   return `Attachment not kept: ${filename}`;
@@ -59,9 +62,9 @@ export function classifyInboundFile(
   return { keep: true, threadLine: null };
 }
 
-function attachmentList(raw: unknown): ClassifyInboundFileInput & { downloadUrl?: string }[] {
+function attachmentList(raw: unknown): InboundAttachment[] {
   if (!Array.isArray(raw)) return [];
-  const out: (ClassifyInboundFileInput & { downloadUrl?: string })[] = [];
+  const out: InboundAttachment[] = [];
   for (const item of raw) {
     if (!item || typeof item !== "object") continue;
     const rec = item as Record<string, unknown>;

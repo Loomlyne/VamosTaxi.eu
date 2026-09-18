@@ -32,6 +32,7 @@ function valid(over: Partial<SettingsInput> = {}): SettingsInput {
     sms_reminder: false,
     ops_alerts: true,
     chauffeur_turnaround_minutes: 30,
+    vat_rate_bps: 0,
     ...over,
   };
 }
