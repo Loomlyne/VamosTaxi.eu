@@ -111,7 +111,8 @@ Dispatcher Send on `#support` delivers a real Resend mail. The customer gets it 
 - Resend **receiving** MX on `replies.vamostaxi.site` (replace AWS SES) — Phase 16
 - Inbound webhook matching — Phase 14
 - Remaining SUP-03 thread polish if any — Phase 15
-- Attachments (SUP-F02), macros/SLA (SUP-F03)
+- Inbound attachments in the Ops thread — Phase 14 (owner folded SUP-F02 inbound on 2026-09-17). Outbound attach from Send still out.
+- Macros/SLA (SUP-F03)
 - Live `vamostaxi.eu` DNS
 - From plus-address **go-live** until owner verifies `replies.vamostaxi.site` in Resend (D-01 gate)
 

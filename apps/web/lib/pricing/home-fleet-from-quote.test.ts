@@ -56,6 +56,8 @@ describe("home fleet follows the live fare book", () => {
 
   it("does not starve Mapbox typeahead with a five-row Swiss locHits merge", () => {
     expect(home).toMatch(/if \(geo\.length\) return geo\.slice\(0, 10\)/);
+    expect(home).toMatch(/\.slice\(0, 10\)/);
+    expect(home).not.toMatch(/filter\(\(l\) => l && l\.n\)\.slice\(0, 5\)/);
     expect(home).toMatch(/ql\.length >= 2/);
     expect(home).toMatch(/GEO_LANGS\[this\.state\.lang\]/);
     expect(home).not.toMatch(/\(extra \|\| \[\]\)\.concat\(loc\)\.slice\(0, 5\)/);

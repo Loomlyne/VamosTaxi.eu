@@ -56,9 +56,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 10: Hardening — Performance, Security & Compliance** - The site survives a launch surge and never captures data ahead of consent (completed 2026-09-12)
 - [ ] **Phase 11: Launch Cutover** - Vamos Taxi goes live on its real domain with real pricing
 - [x] **Phase 12: Ticket schema + #support mock** - Contact rows become tickets (New/Open/Replied/Responded/Closed); OpsSupportTicket + sidebar `#support`; Staff tab stays gone (completed 2026-09-11)
-- [ ] **Phase 13: Staff APIs + outbound Resend replies** - Dispatcher sends a reply from the ticket; customer Gmail threads; info@ BCC; RFC Message-ID persisted
-- [ ] **Phase 14: Inbound webhook** - Signed Resend webhook appends matched replies; unmatched mail does not create a ticket
-- [ ] **Phase 15: Wire Ops #support to APIs** - Live `#support` list, thread, booking_ref+locale, status filters; EN/DE/FR/AR; escaped text
+- [x] **Phase 13: Staff APIs + outbound Resend replies** - Dispatcher sends a reply from the ticket; customer Gmail threads; info@ BCC; RFC Message-ID persisted (completed 2026-09-18)
+- [x] **Phase 14: Inbound webhook** - Signed Resend webhook appends matched replies; unmatched mail does not create a ticket (completed 2026-09-18)
+- [x] **Phase 15: Wire Ops #support to APIs** - Live `#support` list, thread, booking_ref+locale, status filters; EN/DE/FR/AR; escaped text (completed 2026-09-18)
 - [ ] **Phase 16: Staging MX + end-to-end UAT** - Customer Reply-in-Gmail appends to the same ticket; MX only on replies.vamostaxi.site
 - [ ] **Phase 17: Ops chauffeur profile, shift roster, two-driver vehicles** - Fleet row opens a full chauffeur page; shifts auto On/Off; vehicle max 2 drivers (morning/night); Add is idempotent
 - [x] **Phase 18: OPS Pricing source of truth** - `/pricing` is the only fare book; public offers follow Publish (completed 2026-09-15)
@@ -625,7 +625,33 @@ ticket. Unmatched mail does not become a ticket. Closed stays closed.
   4. Closed stays closed — a customer reply on a Closed ticket does **not** auto-reopen (owner decision).
   5. Must-nots: no `POST /api/quote`, no Staff tab, no live DNS, no `env.production`, no push `main`, funnel Phases 7–11 frozen.
 
-**Plans**: TBD
+**Plans:** 7/7 plans complete
+
+Plans:
+**Wave 1**
+
+- [x] 14-01-PLAN.md — Wave 0 tests (match order, drop, strip, file caps)
+
+**Wave 2**
+
+- [x] 14-02-PLAN.md — quote-strip + received_for / RFC parse
+- [x] 14-04-PLAN.md — support_message_files SQL in git (not applied)
+
+**Wave 3**
+
+- [x] 14-03-PLAN.md — ingest plus-token then RFC; Closed→Responded
+
+**Wave 4**
+
+- [x] 14-05-PLAN.md — R2 SUPPORT_FILES + MIME/size caps
+
+**Wave 5**
+
+- [x] 14-06-PLAN.md — receiving GET + staff file GET
+
+**Wave 6**
+
+- [x] 14-07-PLAN.md — owner apply SQL + staging R2 bind (no MX)
 
 ### Phase 15: Wire Ops #support to APIs
 
@@ -641,7 +667,18 @@ status filters — in EN/DE/FR/AR. Staff tab stays gone. Render escaped text, no
   4. EN/DE/FR/AR same pass; Staff tab gone; stored text is escaped, never raw inbound HTML.
   5. Must-nots: no `POST /api/quote`, no live DNS, no `env.production`, no push `main`, funnel Phases 7–11 frozen. Keep the DC hash console — no Next.js `/ops/support` page.
 
-**Plans**: TBD
+**Plans:** 3/3 plans complete
+
+Plans:
+**Wave 1**
+
+- [x] 15-01-PLAN.md — Save PATCH phone+ref+note; refuse unknown booking_ref
+- [x] 15-02-PLAN.md — GET map files optional; escaped text bodies
+
+**Wave 2**
+
+- [x] 15-03-PLAN.md — DC Save, New+Responded badge, focus hydrate, files in bubble, dual-DC
+
 **UI hint**: yes
 
 ### Phase 16: Staging MX + end-to-end UAT
@@ -743,9 +780,9 @@ v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16 → 17
 | 10. Hardening — Performance, Security & Compliance | 10/10 | Complete    | 2026-09-12 |
 | 11. Launch Cutover | 11/12 | Complete | 2026-09-13 |
 | 12. Ticket schema + #support mock | 3/3 | Complete    | 2026-09-11 |
-| 13. Staff APIs + outbound Resend replies | 10/10 | In Progress|  |
-| 14. Inbound webhook | 0/TBD | Not started | - |
-| 15. Wire Ops #support to APIs | 0/TBD | Not started | - |
+| 13. Staff APIs + outbound Resend replies | 10/10 | Complete    | 2026-09-18 |
+| 14. Inbound webhook | 7/7 | Complete    | 2026-09-18 |
+| 15. Wire Ops #support to APIs | 3/3 | Complete    | 2026-09-18 |
 | 16. Staging MX + end-to-end UAT | 0/TBD | Not started | - |
 | 17. Ops chauffeur profile, shift roster, two-driver vehicles | 0/TBD | Not started | - |
 | 18. OPS Pricing source of truth | 7/7 | Complete    | 2026-09-15 |

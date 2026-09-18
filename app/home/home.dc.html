@@ -1972,7 +1972,7 @@ class Component extends DCLogic {
   /** Rows of the address list. Also the keyboard model — see sugKey. */
   sugRowsList() {
     const s = this.state; const t = this.t(); const sg = s.sug; const rows = [];
-    const items = (sg.items || []).filter((l) => l && l.n).slice(0, 5);
+    const items = (sg.items || []).filter((l) => l && l.n).slice(0, 10);
     if (items.length) {
       rows.push({ head: true, name: t.results });
       items.forEach((l) => {

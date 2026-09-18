@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 13-02-PLAN.md
-last_updated: "2026-09-15T14:03:33.540Z"
-last_activity: 2026-09-15
+stopped_at: Phase 13 #38 + Phase 15 #39 merged to main. Phase 14 already on main. Next is Phase 16.
+last_updated: "2026-09-18T07:54:35.000Z"
+last_activity: 2026-09-18
 progress:
   total_phases: 19
-  completed_phases: 10
-  total_plans: 175
-  completed_plans: 161
-  percent: 53
+  completed_phases: 14
+  total_plans: 185
+  completed_plans: 179
+  percent: 97
 ---
 
 # Project State
@@ -21,19 +21,19 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-15 after Phase 18)
 
 **Core value:** quote → pay → confirmation. Lifecycle after pay is Phase 9.
-**Current focus:** Phase 13 — Staff APIs + outbound Resend replies
+**Current focus:** Phase 16 — Staging MX + end-to-end UAT
 
 ## Current Position
 
-Phase: 13 (Staff APIs + outbound Resend replies) — EXECUTING
-Plan: 3 of 10
-Status: Ready to execute
-Last activity: 2026-09-15
+Phase: 16 (Staging MX + end-to-end UAT) — NOT STARTED
+Plan: 0
+Status: Ready to discuss
+Last activity: 2026-09-18
 
 ## Performance Metrics
 
 - **v1.0 Core:** Phases 1–11 complete (11-12 owner Publish still open; does not block 13).
-- **v1.1:** Phase 12 complete. Phase 18 complete. Next 13 → 14 → 15 → 16 → 17.
+- **v1.1:** Phase 12–15 complete on main (#28, #38, #40, #39). Phase 18 complete. Next 16 → 17.
 - **Phase 18 restart:** 7/7 plans + 18-UAT (7/7 pass) + 18-VERIFICATION passed.
 
 ## Blockers
@@ -42,12 +42,13 @@ Stripe live keys and Search Console stay owner-gated. Agent does not click Publi
 
 ## Session Continuity
 
-Last session: 2026-09-15T14:03:03.705Z
-Stopped at: Completed 13-02-PLAN.md
-Resume: `$gsd-execute-phase 13`
+Last session: 2026-09-18T07:54:35Z
+Stopped at: Merged #38 (Phase 13) and #39 (Phase 15). Phase 14 already on main.
+Resume: `$gsd-discuss-phase 16` — MX + Reply-in-Gmail. Do not start Phase 17.
 
 ## Decisions
 
+- [Phase 14]: Plans signed 2026-09-18. 7 plans / 6 waves. INB-02. Closed+inbound → Responded (D-04; ROADMAP “stays closed” dead). Unmatched ≠ ticket. Plus-token then RFC, never From. Inbound files on SUPPORT_FILES. No MX. No `#support` chrome. No `state planned-phase` while 13 owns current. Full text: `.planning/phases/14-inbound-webhook/14-CONTEXT.md`.
 - [Phase 13]: Staff reply From target is plus-address on `replies.vamostaxi.site`; until Resend verifies that domain, From stays `noreply@vamostaxi.site` and Reply-To is the plus-address. Subject is always `Re:` the contact-ack. BCC `info@` via Resend. Fail closed — no EMAIL. Empty/Closed refuse. Overlay already PATCHes `{ reply }`; generic send error. Brand pass over all `packages/emails` in this phase. Full text: `.planning/phases/13-staff-apis-outbound-resend-replies/13-CONTEXT.md`.
 
 Restart 2026-09-14 **supersedes** 2026-09-13 D-01…D-40. Full text: `.planning/phases/18-ops-pricing-source/18-CONTEXT.md`.

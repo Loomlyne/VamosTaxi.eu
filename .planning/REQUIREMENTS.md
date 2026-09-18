@@ -184,7 +184,7 @@ Tickets **are** `contact_submissions` rows plus a message thread. There is no pa
 ### Inbound (INB)
 
 - [ ] **INB-01**: When the customer hits Reply in Gmail, that mail appends to the **same** ticket
-- [ ] **INB-02**: Mail that is not a reply to an existing ticket does not become a ticket. Ops ignores it. (Safety bar from PROJECT.md — inbound without this is a catch-all inbox.)
+- [x] **INB-02**: Mail that is not a reply to an existing ticket does not become a ticket. Ops ignores it. (Safety bar from PROJECT.md — inbound without this is a catch-all inbox.)
 
 Closed stays closed until a human Reopens it (status Open). Customer reply on a Closed ticket auto-reopens to Responded (Phase 14).
 
@@ -333,7 +333,7 @@ Populated during v1.1 roadmap creation.
 | RPLY-01 | Phase 13 | Pending |
 | RPLY-02 | Phase 13 | Pending |
 | INB-01 | Phase 16 | Pending |
-| INB-02 | Phase 14 | Pending |
+| INB-02 | Phase 14 | Complete |
 
 **v1.1 coverage:** 9 requirements, 9 mapped, unmapped 0 ✓
 
