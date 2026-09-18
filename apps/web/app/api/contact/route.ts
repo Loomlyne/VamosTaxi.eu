@@ -116,7 +116,7 @@ export async function POST(request: Request) {
         customerChannel = sent.channel;
         customerAccepted = sent.accepted;
       }
-      return sent;
+      return { ...sent, channel: sent.channel ?? undefined };
     },
     finalize: async (message, leaseToken, providerSuffix) => {
       try {

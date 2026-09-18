@@ -31,10 +31,18 @@ export function rejectStaffReply(_input: object | null | undefined): boolean {
   return false;
 }
 
+export type OpsTicketFile = {
+  id: string;
+  filename: string;
+  contentType: string;
+  kept: boolean;
+};
+
 export type OpsTicketMessage = {
   whoKey: "customer" | "staff" | "note";
   when: string;
   body: string;
+  files?: OpsTicketFile[];
 };
 
 export type OpsTicketRow = {
@@ -66,6 +74,7 @@ export type SqlSubmission = {
 };
 
 export type SqlMessage = {
+  id?: string;
   submission_id: string;
   direction: string | null;
   body_text: string | null;
@@ -117,7 +126,11 @@ function ticketId(id: string): string {
   return `TKT-${id.replace(/-/g, "").slice(0, 8).toUpperCase()}`;
 }
 
-export function mapTicket(row: SqlSubmission, messages: SqlMessage[]): OpsTicketRow {
+export function mapTicket(
+  row: SqlSubmission,
+  messages: SqlMessage[],
+  filesByMessageId?: Record<string, OpsTicketFile[]>,
+): OpsTicketRow {
   const when = zurichStamp(row.created_at);
   const lastSource = row.last_activity_at ?? messages.at(-1)?.created_at ?? row.created_at;
   const mappedMessages: OpsTicketMessage[] =
@@ -126,12 +139,14 @@ export function mapTicket(row: SqlSubmission, messages: SqlMessage[]): OpsTicket
           whoKey: whoKey(message.direction),
           when: zurichStamp(message.created_at),
           body: str(message.body_text),
+          files: message.id ? (filesByMessageId?.[message.id] ?? []) : [],
         }))
       : [
           {
             whoKey: "customer",
             when,
             body: str(row.message),
+            files: [],
           },
         ];
   return {

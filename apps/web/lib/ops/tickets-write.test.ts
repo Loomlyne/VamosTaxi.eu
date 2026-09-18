@@ -3,12 +3,16 @@
 // Wave 0 (13-01): patchTicket send-path contract (RPLY-01 RPLY-02 D-05 D-06 D-10 D-11).
 // Mock asStaff + sendContactMessage. No Hyperdrive, no live Resend. Stays red until 13-07.
 
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { VamosClaims } from "../db/identity";
 import { staffMessageId } from "./ticket-mail";
 
 const asStaff = vi.fn();
 const { sendContactMessage } = vi.hoisted(() => ({ sendContactMessage: vi.fn() }));
+const { resolveStaffBookingId } = vi.hoisted(() => ({ resolveStaffBookingId: vi.fn() }));
 
 vi.mock("@/lib/db/identity", () => ({
   asStaff: (...args: unknown[]) => asStaff(...args),
@@ -17,10 +21,17 @@ vi.mock("@/lib/db/identity", () => ({
 vi.mock("@/lib/forms/notify", () => ({
   sendContactMessage: (...args: unknown[]) => sendContactMessage(...args),
 }));
+vi.mock("@vamos/emails", () => ({
+  renderContactCustomerEmail: () => ({ subject: "We received your message", html: "", text: "" }),
+  renderStaffReplyEmail: () => ({ subject: "Re:", html: "", text: "" }),
+}));
 
 vi.mock("@/lib/contact-channels", async () => import("../contact-channels"));
 vi.mock("@/lib/ops/ticket-mail", async () => import("./ticket-mail"));
 vi.mock("@/lib/ops/tickets-map", async () => import("./tickets-map"));
+vi.mock("@/lib/ops/resolve-booking-id", () => ({
+  resolveStaffBookingId: (...args: unknown[]) => resolveStaffBookingId(...args),
+}));
 
 import { patchTicket } from "./tickets-write";
 
@@ -71,6 +82,8 @@ function lastSendCall(): unknown[] {
 
 beforeEach(() => {
   asStaff.mockReset();
+  resolveStaffBookingId.mockReset();
+  resolveStaffBookingId.mockResolvedValue("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
   sendContactMessage.mockReset();
   sendContactMessage.mockResolvedValue({
     accepted: true,
@@ -228,5 +241,76 @@ describe("patchTicket staff reply (RPLY-01 RPLY-02 D-05 D-06 D-10 D-11)", () => 
       expect(persistBlob()).toMatch(/insert into public\.support_messages/i);
       expect(persistBlob()).toMatch(/ticket_status = 'replied'/);
     });
+  });
+});
+
+describe("overlay Save (D-04 D-05 D-06 SUP-04)", () => {
+  it("writes phone + empty booking_ref, skips staff_note, never sends", async () => {
+    await expect(
+      patchTicket(env, claims, TICKET_ID, { phone: "+41 79 000 00 00", booking_ref: "", note: "   " }),
+    ).resolves.toEqual({ ok: true, status: "open" });
+    expect(sendContactMessage).not.toHaveBeenCalled();
+    expect(resolveStaffBookingId).not.toHaveBeenCalled();
+    expect(persistBlob()).toMatch(/update public\.contact_submissions/i);
+    expect(persistBlob()).not.toMatch(/insert into public\.support_messages/i);
+    expect(persistValues()).toContain("+41 79 000 00 00");
+    expect(persistValues()).toContain("");
+  });
+
+  it("inserts staff_note for a trimmed note and does not call sendContactMessage", async () => {
+    await expect(
+      patchTicket(env, claims, TICKET_ID, {
+        phone: "+41 79 000 00 00",
+        booking_ref: "VT-10001",
+        note: "  internal  ",
+      }),
+    ).resolves.toEqual({ ok: true, status: "open" });
+    expect(sendContactMessage).not.toHaveBeenCalled();
+    expect(resolveStaffBookingId).toHaveBeenCalled();
+    expect(persistBlob()).toMatch(/insert into public\.support_messages/i);
+    expect(persistBlob()).toMatch(/staff_note/);
+    expect(persistValues()).toContain("internal");
+    expect(persistBlob()).not.toMatch(/ticket_status = 'replied'/);
+  });
+
+  it("refuses unknown booking_ref with invalid-booking-ref and writes nothing", async () => {
+    resolveStaffBookingId.mockResolvedValue(null);
+    await expect(
+      patchTicket(env, claims, TICKET_ID, { phone: "+41", booking_ref: "NOPE", note: "secret" }),
+    ).resolves.toEqual({ ok: false, reason: "invalid-booking-ref" });
+    expect(sendContactMessage).not.toHaveBeenCalled();
+    expect(persistCalls).toHaveLength(0);
+  });
+
+  it("stores the submitted booking_ref string when resolveStaffBookingId returns a uuid", async () => {
+    await expect(
+      patchTicket(env, claims, TICKET_ID, { booking_ref: "VT-10001" }),
+    ).resolves.toEqual({ ok: true, status: "open" });
+    expect(resolveStaffBookingId).toHaveBeenCalled();
+    expect(persistValues()).toContain("VT-10001");
+    expect(persistValues()).not.toContain("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+  });
+
+  it("refuses Save mixed with reply or status", async () => {
+    await expect(
+      patchTicket(env, claims, TICKET_ID, { note: "x", reply: "Thanks." }),
+    ).resolves.toEqual({ ok: false, reason: "invalid-status" });
+    await expect(
+      patchTicket(env, claims, TICKET_ID, { phone: "+41", status: "open" }),
+    ).resolves.toEqual({ ok: false, reason: "invalid-status" });
+    expect(sendContactMessage).not.toHaveBeenCalled();
+    expect(persistCalls).toHaveLength(0);
+  });
+
+  it("PATCH route source parses phone, booking_ref, note and names invalid-booking-ref", () => {
+    const routePath = path.resolve(
+      path.dirname(fileURLToPath(import.meta.url)),
+      "../../app/[locale]/(ops)/api/staff/tickets/[id]/route.ts",
+    );
+    const src = readFileSync(routePath, "utf8");
+    expect(src).toContain("phone");
+    expect(src).toContain("booking_ref");
+    expect(src).toContain("note");
+    expect(src).toContain("invalid-booking-ref");
   });
 });
