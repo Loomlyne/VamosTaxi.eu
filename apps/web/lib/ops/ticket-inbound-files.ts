@@ -28,7 +28,7 @@ export type ClassifyInboundFileResult = {
 };
 
 type SqlTag = {
-  (strings: TemplateStringsArray, ...values: unknown[]): Promise<unknown>;
+  (strings: TemplateStringsArray, ...values: unknown[]): unknown;
 };
 
 function d10(filename: string): string {
@@ -59,7 +59,7 @@ export function classifyInboundFile(
   return { keep: true, threadLine: null };
 }
 
-function attachmentList(raw: unknown): ClassifyInboundFileInput & { downloadUrl?: string }[] {
+function attachmentList(raw: unknown): Array<ClassifyInboundFileInput & { downloadUrl?: string }> {
   if (!Array.isArray(raw)) return [];
   const out: (ClassifyInboundFileInput & { downloadUrl?: string })[] = [];
   for (const item of raw) {
