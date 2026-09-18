@@ -781,7 +781,7 @@ History of 2026-09-13: `.planning/phases/18-ops-pricing-source/archive-2026-09-1
   3. A signed surge proof (discuss locks whether that is 10k concurrent **bookings** vs Phase 10’s 10k **browsers**) fail-closes instead of charging invented CHF or exhausting Hyperdrive silently.
   4. Must-nots: no `.eu` bind, no live Stripe, no GSC submit, no JSON-LD, no driver app, no auto-dispatch, no Staff tab, no practice restore onto live.
 
-**Plans:** TBD after `/gsd:discuss-phase 19` then UI-SPEC then signed PLAN.md
+**Plans:** 3 drafted (19-01 fail-closed tests · 19-02 owner Hyperdrive · 19-03 10k proof). Not checker-stamped. No execute.
 **UI hint**: yes — frozen chrome / observation. No new public screens. Do not skip `19-UI-SPEC.md`.
 
 ## Progress
