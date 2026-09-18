@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 13 #38 + Phase 15 #39 merged to main. Phase 14 already on main. Next is Phase 16.
-last_updated: "2026-09-18T07:54:35.000Z"
+stopped_at: Phase 16 plans checker-approved. Execute on gsd/phase-16-staging-mx-end-to-end-uat worktree.
+last_updated: "2026-09-18T13:20:00.000Z"
 last_activity: 2026-09-18
 progress:
   total_phases: 19
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-09-15 after Phase 18)
 
 ## Current Position
 
-Phase: 16 (Staging MX + end-to-end UAT) — NOT STARTED
+Phase: 16 (Staging MX + end-to-end UAT) — PLANNED
 Plan: 0
-Status: Ready to discuss
+Status: Ready to execute (16-01 → 16-04)
 Last activity: 2026-09-18
 
 ## Performance Metrics
@@ -42,9 +42,9 @@ Stripe live keys and Search Console stay owner-gated. Agent does not click Publi
 
 ## Session Continuity
 
-Last session: 2026-09-18T07:54:35Z
-Stopped at: Merged #38 (Phase 13) and #39 (Phase 15). Phase 14 already on main.
-Resume: `$gsd-discuss-phase 16` — MX + Reply-in-Gmail. Do not start Phase 17.
+Last session: 2026-09-18T13:20:00Z
+Stopped at: Phase 16 plans checker-approved (UI-SPEC APPROVED, plan-checker APPROVED).
+Resume: `$gsd-execute-phase 16` on worktree `.worktrees/phase-16` / `gsd/phase-16-staging-mx-end-to-end-uat`. Do not start Phase 17. Do not switch the dirty `feat/17-ops-chauffeur-desk` checkout.
 
 ## Decisions
 
