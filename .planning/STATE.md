@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-15 after Phase 18)
 
 **Core value:** quote → pay → confirmation. Lifecycle after pay is Phase 9.
-**Current focus:** Phase 16 — Staging MX + end-to-end UAT
+**Current focus:** Phase 17 leftover live close (Worker `vamos` + owner SQL + UAT). Phase 19 is parked until discuss is signed. Do not `state.begin-phase` onto 19.
 
 ## Current Position
 
@@ -45,6 +45,12 @@ Stripe live keys and Search Console stay owner-gated. Agent does not click Publi
 Last session: 2026-09-18T13:20:00Z
 Stopped at: Phase 16 plans checker-approved (UI-SPEC APPROVED, plan-checker APPROVED).
 Resume: `$gsd-execute-phase 16` on worktree `.worktrees/phase-16` / `gsd/phase-16-staging-mx-end-to-end-uat`. Do not start Phase 17. Do not switch the dirty `feat/17-ops-chauffeur-desk` checkout.
+
+## Accumulated Context
+
+### Roadmap Evolution
+
+- Phase 19 added: V1 production close-out leftover live gates and 10k booking surge (2026-09-18). Parked. Hard gate in ROADMAP. Current stays 17 leftover live close.
 
 ## Decisions
 

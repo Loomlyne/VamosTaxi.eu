@@ -62,6 +62,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 16: Staging MX + end-to-end UAT** - Customer Reply-in-Gmail appends to the same ticket; MX only on replies.vamostaxi.site
 - [ ] **Phase 17: Ops chauffeur profile, shift roster, two-driver vehicles** - Fleet row opens a full chauffeur page; shifts auto On/Off; vehicle max 2 drivers (morning/night); Add is idempotent
 - [x] **Phase 18: OPS Pricing source of truth** - `/pricing` is the only fare book; public offers follow Publish (completed 2026-09-15)
+- [ ] **Phase 19: V1 production close-out leftover live gates and 10k booking surge** - Leftover 16/17 live close, then a signed 10k-booking surge proof. No `.eu`. No live Stripe. Agent does not Publish.
 
 ## Phase Details
 
@@ -767,11 +768,28 @@ History of 2026-09-13: `.planning/phases/18-ops-pricing-source/archive-2026-09-1
 
 **UI hint**: yes — `18-UI-SPEC.md` 2026-09-14 approved (four tabs, VAT-only rail, `--vt-*` only)
 
+### Phase 19: V1 production close-out leftover live gates and 10k booking surge
+
+**Goal**: Leftover V1 is live on `vamostaxi.site` (16 paper matches disk, 17 Worker + SQL + UAT), then the quote→pay funnel is proven under a signed surge definition. Public stays `CHF 000` until owner Publish. Stripe stays test until the owner says live keys.
+**HARD GATE:** Do not `state.begin-phase` onto 19 while 17 live UAT is open. Do not discuss/plan/execute 19 until Koss signs discuss. Do not skip UI-SPEC (frozen-chrome / observation contract). No `vamostaxi.eu` DNS. No `sk_live_`. Agent does not click Publish. Agent does not `supabase db push`. Never restore onto `yaumjzvylngfjhtuffqs`. One plan at a time. Kanban parent-gated.
+**Depends on**: Phase 16 UAT 10/10 (disk). Phase 17 code on `main` (#41) still needs Worker `vamos` deploy + owner SQL apply + live UAT. Phase 11-12 stays owner Publish and does not block 16/17 close.
+**Requirements**: Parked until discuss. Do not invent LAUNCH IDs.
+**Success Criteria** (what must be TRUE):
+
+  1. Live Worker `vamos` serves Phase 17 `OpsFleet` (not stale `OpsFleetBoard`). Hosted SQL has shift columns, `chauffeur_leave_ranges`, `vehicle_seats`. 17-UAT tests 4–8 pass on `dashboard.vamostaxi.site`.
+  2. ROADMAP Phase 16 is ticked to match 16-UAT 10/10.
+  3. A signed surge proof (discuss locks whether that is 10k concurrent **bookings** vs Phase 10’s 10k **browsers**) fail-closes instead of charging invented CHF or exhausting Hyperdrive silently.
+  4. Must-nots: no `.eu` bind, no live Stripe, no GSC submit, no JSON-LD, no driver app, no auto-dispatch, no Staff tab, no practice restore onto live.
+
+**Plans:** TBD after `/gsd:discuss-phase 19` then UI-SPEC then signed PLAN.md
+**UI hint**: yes — frozen chrome / observation. No new public screens. Do not skip `19-UI-SPEC.md`.
+
 ## Progress
 
 **Execution Order:**
-v1.0: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 → 9 → 10 → 11 → 18
+v1.0: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 → 9 → 10 → 11 → 18 → 19
 v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16 → 17
+Close-out one-by-one: 17 deploy → 17 SQL apply → 17 UAT → 16 ROADMAP tick → discuss 19 surge → 11-12 owner Publish (never agent)
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -793,6 +811,7 @@ v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16 → 17
 | 16. Staging MX + end-to-end UAT | 0/TBD | Not started | - |
 | 17. Ops chauffeur profile, shift roster, two-driver vehicles | 0/TBD | Not started | - |
 | 18. OPS Pricing source of truth | 7/7 | Complete    | 2026-09-15 |
+| 19. V1 production close-out leftover live gates and 10k booking surge | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-08-17*
