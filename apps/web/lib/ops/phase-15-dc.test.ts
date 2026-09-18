@@ -95,6 +95,9 @@ describe("phase 15 DC #support", () => {
     expect(html).toMatch(/data-preview-img/);
     expect(html).toMatch(/data-preview-pdf/);
     expect(html).toMatch(/openPreview/);
+    expect(html).toMatch(/createObjectURL/);
+    expect(html).toMatch(/credentials: 'include'/);
+    expect(html).toMatch(/previewHasHref/);
     expect(html).not.toMatch(/<img data-file/);
     expect(html).not.toMatch(/<a data-file/);
   });
