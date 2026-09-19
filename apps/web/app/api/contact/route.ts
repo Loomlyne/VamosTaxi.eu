@@ -1,7 +1,7 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { renderContactCustomerEmail, renderContactSupportEmail } from "@vamos/emails";
 import { checkWriteRateLimit } from "@/lib/abuse/rate-limit";
-import { asAnon, asSystem } from "@/lib/db/identity";
+import { asSystem } from "@/lib/db/identity";
 import { deliverContactMessages, type ContactDeliveryMessage } from "@/lib/forms/contact-delivery";
 import { contactSchema } from "@/lib/forms/schemas";
 import { formFailure, formSuccess, sendContactMessage } from "@/lib/forms/notify";
@@ -57,7 +57,7 @@ export async function POST(request: Request) {
 
   let submissionId: string;
   try {
-    const rows = await asAnon(env, (tx) => tx`
+    const rows = await asSystem(env, (tx) => tx`
       select * from public.submit_contact_message(
         ${input.idempotencyKey}, ${input.name}, ${input.email}, ${input.phone},
         ${input.bookingRef}, ${input.message}, ${input.locale}

@@ -134,6 +134,8 @@ describe("contact and review write limiter (D-13, D-16)", () => {
     const writeAt = post.indexOf("submit_contact_message");
     expect(limitAt).toBeGreaterThan(csrfAt);
     expect(writeAt).toBeGreaterThan(limitAt);
+    expect(src).toMatch(/asSystem/);
+    expect(src).not.toMatch(/asAnon/);
     expect(src).toMatch(/verifyTurnstile/);
     expect(src).toMatch(/action:\s*["']contact["']/);
     expect(src).not.toMatch(/from ["']@vamos\/db["']/);
