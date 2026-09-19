@@ -16,6 +16,15 @@ export const routing = defineRouting({
   locales: ["en", "de", "fr", "ar"],
   defaultLocale: "en",
   localePrefix: "as-needed",
+  // Languages live on the page switcher. Do not infer from Accept-Language
+  // (that path also set NEXT_LOCALE on 404s without Secure).
+  localeDetection: false,
+  localeCookie: {
+    path: "/",
+    sameSite: "lax",
+    secure: true,
+    maxAge: 31536000,
+  },
 });
 
 export type Locale = (typeof routing.locales)[number];
