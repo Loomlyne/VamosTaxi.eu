@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { MANAGE_COOKIE_NAME, hashManageToken, readManageCookie } from "@/lib/checkout/manage-token";
 import { paidCancelGuest } from "@/lib/lifecycle/paid-cancel";
+import { accountWriteForbidden } from "@/lib/abuse/account-write";
 import { csrfForbidden } from "@/lib/security/origin";
 
 function json(body: unknown, status = 200): Response {
@@ -25,6 +26,8 @@ function failStatus(code: string): number {
 export async function POST(request: Request): Promise<Response> {
   const blocked = csrfForbidden(request);
   if (blocked) return blocked;
+  const limited = await accountWriteForbidden(request);
+  if (limited) return limited;
   const jar = await cookies();
   let raw = readManageCookie(
     jar.get(MANAGE_COOKIE_NAME)?.value ?? "",

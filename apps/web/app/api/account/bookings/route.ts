@@ -9,6 +9,7 @@ import { MANAGE_COOKIE_NAME, hashManageToken, readManageCookie } from "@/lib/che
 import { asCustomer } from "@/lib/db/identity";
 import { requestCustomerPaidEdit, type CustomerEditAuth } from "@/lib/ops/edit-request";
 import { failStatus, type EditPayload } from "@/lib/ops/edit-request-map";
+import { accountWriteForbidden } from "@/lib/abuse/account-write";
 import { csrfForbidden } from "@/lib/security/origin";
 
 export async function GET(request: Request) {
@@ -87,6 +88,8 @@ function payloadFrom(record: Record<string, unknown>): EditPayload {
 export async function POST(request: Request) {
   const blocked = csrfForbidden(request);
   if (blocked) return blocked;
+  const limited = await accountWriteForbidden(request);
+  if (limited) return limited;
   const claims = await customerClaims(request);
   const jar = await cookies();
   const raw = readManageCookie(jar.get(MANAGE_COOKIE_NAME)?.value ?? "", request.headers.get("cookie"));

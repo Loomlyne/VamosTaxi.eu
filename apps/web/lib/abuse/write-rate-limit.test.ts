@@ -77,6 +77,7 @@ describe("checkWriteRateLimit fail-closed (D-11, D-13)", () => {
     expect(src).toMatch(/contact:/);
     expect(src).toMatch(/review:/);
     expect(src).toMatch(/auth:/);
+    expect(src).toMatch(/account:/);
   });
 
   it("auth Server Actions call the same write limiter", () => {
@@ -84,6 +85,31 @@ describe("checkWriteRateLimit fail-closed (D-11, D-13)", () => {
     expect(src).toMatch(/checkWriteRateLimit/);
     expect(src).toMatch(/kind:\s*["']auth["']/);
     expect(src).toMatch(/QUOTE_RATE_LIMITER_BARE/);
+  });
+
+  it("account/manage cookie POSTs share kind account after CSRF", () => {
+    const helper = readRepo("apps/web/lib/abuse/account-write.ts");
+    expect(helper).toMatch(/kind:\s*["']account["']/);
+    expect(helper).toMatch(/QUOTE_RATE_LIMITER_BARE/);
+    const routes = [
+      "apps/web/app/api/account/prefs/route.ts",
+      "apps/web/app/api/account/bookings/route.ts",
+      "apps/web/app/api/account/bookings/cancel/route.ts",
+      "apps/web/app/api/account/bookings/paid-cancel/route.ts",
+      "apps/web/app/api/account/bookings/time-change/route.ts",
+      "apps/web/app/api/account/bookings/flight/route.ts",
+      "apps/web/app/api/manage/cancel/route.ts",
+      "apps/web/app/api/manage/flight/route.ts",
+      "apps/web/app/api/manage/time-change/route.ts",
+    ];
+    for (const rel of routes) {
+      const src = readRepo(rel);
+      const post = src.slice(src.indexOf("export async function POST"));
+      const csrfAt = post.indexOf("csrfForbidden");
+      const limitAt = post.indexOf("accountWriteForbidden");
+      expect(csrfAt, rel).toBeGreaterThan(-1);
+      expect(limitAt, rel).toBeGreaterThan(csrfAt);
+    }
   });
 });
 

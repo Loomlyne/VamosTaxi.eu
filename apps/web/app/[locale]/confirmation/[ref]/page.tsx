@@ -110,10 +110,8 @@ export default async function ConfirmationPage({
               : "processing";
         }
       } catch {
-        // Cookie is present; identity failed (no Hyperdrive in `next dev`).
-        // Poller still owns status. Never 500 a guest return URL.
-        initialPhase = "processing";
-        booking = pendingTicket(ref);
+        // Worker env is present. A throw is not "this booking is pending".
+        // Same as checkout status HIDDEN — stay hidden, never invent pending.
       }
     }
   }

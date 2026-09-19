@@ -14,6 +14,7 @@ import {
 } from "@/lib/account/prefs";
 import { log } from "@/lib/logger";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { accountWriteForbidden } from "@/lib/abuse/account-write";
 import { csrfForbidden } from "@/lib/security/origin";
 
 const noStore = { "Cache-Control": "private, no-store" };
@@ -65,6 +66,8 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const blocked = csrfForbidden(request);
   if (blocked) return blocked;
+  const limited = await accountWriteForbidden(request);
+  if (limited) return limited;
   const ctx = { requestId: crypto.randomUUID(), route: "/api/account/prefs", locale: null };
   const session = await signedIn(request);
   if (!session) {

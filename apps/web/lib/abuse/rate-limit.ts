@@ -121,7 +121,7 @@ export async function checkRateLimit(
   }
 }
 
-export type WriteRateLimitKind = "consent" | "contact" | "review" | "auth";
+export type WriteRateLimitKind = "consent" | "contact" | "review" | "auth" | "account";
 
 export type CheckWriteRateLimitInput = {
   limiter: RateLimit;
@@ -147,6 +147,7 @@ export function writeRateLimitKeys(
   }
   if (kind === "contact") return [`contact:${ip}`];
   if (kind === "auth") return [`auth:${ip}`];
+  if (kind === "account") return [`account:${ip}`];
   return [`review:${ip}`];
 }
 

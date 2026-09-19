@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 import { MANAGE_COOKIE_NAME, hashManageToken, readManageCookie } from "@/lib/checkout/manage-token";
 import { requestCustomerTimeChange } from "@/lib/ops/edit-request";
 import { failStatus } from "@/lib/ops/edit-request-map";
+import { accountWriteForbidden } from "@/lib/abuse/account-write";
 import { csrfForbidden } from "@/lib/security/origin";
 
 function json(body: unknown, status = 200): Response {
@@ -22,6 +23,8 @@ function str(value: unknown): string {
 export async function POST(request: Request): Promise<Response> {
   const blocked = csrfForbidden(request);
   if (blocked) return blocked;
+  const limited = await accountWriteForbidden(request);
+  if (limited) return limited;
   const jar = await cookies();
   let body: Record<string, unknown> = {};
   try {

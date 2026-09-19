@@ -96,6 +96,15 @@ describe("staff JSON cache", () => {
   });
 });
 
+describe("staff customer 500 (K34)", () => {
+  it("does not echo rec.message on PATCH/DELETE 500", () => {
+    const src = read("apps/web/app/[locale]/(ops)/api/staff/customers/[id]/route.ts");
+    expect(src).not.toMatch(/rec\.message/);
+    expect(src).toMatch(/Customer details could not be saved/);
+    expect(src).toMatch(/This customer could not be removed/);
+  });
+});
+
 describe("08-04 assign file proofs", () => {
   it("migration is SECURITY DEFINER, vamos_system only, GiST kept", () => {
     const sql = read("packages/db/supabase/migrations/20260910164004_ops_assign_leg.sql");
