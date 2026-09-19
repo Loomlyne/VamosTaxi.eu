@@ -76,7 +76,15 @@ describe("staffOriginAllowed", () => {
     expect(staffOriginAllowed("https://vamos-ops-changes.koussayzayeni.workers.dev")).toBe(
       true,
     );
+    expect(
+      staffOriginAllowed("https://preview-vamos-ops-changes.koussayzayeni.workers.dev"),
+    ).toBe(true);
     expect(staffOriginAllowed("https://evil-ops-changes.workers.dev")).toBe(false);
+    expect(staffOriginAllowed("https://evil-ops-changes.koussayzayeni.workers.dev")).toBe(
+      false,
+    );
+    expect(staffOriginAllowed("https://ops-changes.koussayzayeni.workers.dev")).toBe(false);
+    expect(staffOriginAllowed("http://dashboard.vamostaxi.site")).toBe(false);
     expect(staffOriginAllowed("https://evil.example")).toBe(false);
   });
 });

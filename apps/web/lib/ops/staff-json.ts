@@ -30,15 +30,29 @@ export function jsonErr(code: string, status: number, extra?: Record<string, unk
   return Response.json({ ok: false, code, ...(extra ?? {}) }, { status, headers: STAFF_JSON_HEADERS });
 }
 
-const DASHBOARD_HOSTS = new Set(["dashboard.vamostaxi.site", "dashboard.localhost"]);
+const STAFF_CSRF_HOSTS = new Set([
+  "dashboard.vamostaxi.site",
+  "dashboard.localhost",
+  "vamos-ops-changes.koussayzayeni.workers.dev",
+  "vamos-web-ops-changes.koussayzayeni.workers.dev",
+]);
 
-/** CSRF (ASVS L1): if Origin is present on a mutating staff call, it must be the dashboard. */
+function staffHostAllowed(hostname: string): boolean {
+  if (STAFF_CSRF_HOSTS.has(hostname)) return true;
+  return (
+    hostname.endsWith("-vamos-ops-changes.koussayzayeni.workers.dev") ||
+    hostname.endsWith("-vamos-web-ops-changes.koussayzayeni.workers.dev")
+  );
+}
+
+/** CSRF (ASVS L1): mutating staff calls need an allowlisted Origin. Missing Origin is deny. */
 export function staffOriginAllowed(origin: string | null): boolean {
   if (!origin) return false;
   try {
-    const host = new URL(origin).hostname;
-    if (DASHBOARD_HOSTS.has(host)) return true;
-    return host.endsWith(".koussayzayeni.workers.dev") && host.includes("ops-changes");
+    const url = new URL(origin);
+    if (!staffHostAllowed(url.hostname)) return false;
+    if (url.protocol === "https:") return true;
+    return url.protocol === "http:" && url.hostname === "dashboard.localhost";
   } catch {
     return false;
   }
