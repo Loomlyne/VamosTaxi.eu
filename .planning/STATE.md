@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-15 after Phase 18)
 
 **Core value:** quote → pay → confirmation. Lifecycle after pay is Phase 9.
-**Current focus:** Phase 17 leftover live close (Worker `vamos` + owner SQL + UAT). Phase 19 is parked until discuss is signed. Do not `state.begin-phase` onto 19.
+**Current focus:** Phase 17-06 plan review (desk: Button All chauffeurs, hide list Tags, persist Save shift / Save leave). Do not execute 17-06 until owner signs. Phase 19 parked. Do not `state.begin-phase` onto 19.
 
 ## Current Position
 
