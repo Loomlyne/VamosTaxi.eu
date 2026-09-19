@@ -16,6 +16,7 @@ import {
   type InviteErrorCode,
 } from "@/lib/ops/invite";
 import { OpsAuthError, requireAdminClaims, type StaffAuthClient } from "@/lib/ops/session";
+import { staffOriginAllowed } from "@/lib/ops/staff-json";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -61,6 +62,10 @@ export async function POST(request: Request): Promise<Response> {
       return jsonForbidden();
     }
     throw error;
+  }
+
+  if (!staffOriginAllowed(request.headers.get("Origin"))) {
+    return Response.json({ ok: false, code: "csrf" }, { status: 403 });
   }
 
   let raw: unknown;

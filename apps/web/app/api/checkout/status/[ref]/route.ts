@@ -51,6 +51,6 @@ export async function GET(
       paymentStatus: result.paymentStatus,
     });
   } catch {
-    return json({ status: "pending", paymentStatus: null });
+    return json(HIDDEN);
   }
 }
