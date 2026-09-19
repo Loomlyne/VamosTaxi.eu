@@ -65,8 +65,9 @@ describe("security headers (D-32…D-38)", () => {
 
 describe("applySecurityHeaders helper", () => {
   it("sets HSTS CSP XFO nosniff and not sentry", () => {
-    const headers = new Headers();
+    const headers = new Headers({ "x-powered-by": "Next.js" });
     applySecurityHeaders(headers);
+    expect(headers.get("x-powered-by")).toBeNull();
     expect(headers.get("Strict-Transport-Security")).toMatch(/max-age=31536000/);
     expect(headers.get("X-Frame-Options")).toBe("DENY");
     expect(headers.get("X-Content-Type-Options")).toBe("nosniff");

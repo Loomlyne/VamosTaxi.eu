@@ -66,6 +66,8 @@ describe("dc mock URL gate", () => {
     const res = gated as Response;
     expect(res.status).toBe(308);
     expect(res.headers.get("location")).toBe("https://vamostaxi.site/about");
+    expect(res.headers.get("set-cookie") ?? "").toMatch(/NEXT_LOCALE=de/);
+    expect(res.headers.get("set-cookie") ?? "").toMatch(/Secure/i);
   });
 
   it("308s /en to the unprefixed path", () => {

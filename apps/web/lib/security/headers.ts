@@ -17,6 +17,7 @@ export const SECURITY_HEADER_PAIRS: ReadonlyArray<readonly [string, string]> = [
 ];
 
 export function applySecurityHeaders(headers: Headers): void {
+  headers.delete("x-powered-by");
   for (const [key, value] of SECURITY_HEADER_PAIRS) {
     headers.set(key, value);
   }
