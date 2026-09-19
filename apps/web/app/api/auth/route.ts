@@ -58,12 +58,7 @@ function localizedPath(path: string, locale: string): string {
 }
 
 function requestOrigin(request: Request): string {
-  const url = new URL(request.url);
-  return (
-    trustedSiteOrigin(url.host) ??
-    trustedSiteOrigin(request.headers.get("host")) ??
-    "https://vamostaxi.site"
-  );
+  return trustedSiteOrigin(new URL(request.url).host) ?? "https://vamostaxi.site";
 }
 
 const CONSENT_LOCALES = new Set<ConsentLocale>(["en", "de", "fr", "ar"]);

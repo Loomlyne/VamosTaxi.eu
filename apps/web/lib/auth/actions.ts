@@ -50,7 +50,16 @@ function authLog(action: string, locale: string | null, reason: string): void {
 
 async function requestOrigin(): Promise<string> {
   const h = await headers();
-  return trustedSiteOrigin(h.get("host")) ?? "https://vamostaxi.site";
+  const originHeader = h.get("origin");
+  if (originHeader) {
+    try {
+      const pinned = trustedSiteOrigin(new URL(originHeader).host);
+      if (pinned) return pinned;
+    } catch {
+      /* fall through */
+    }
+  }
+  return "https://vamostaxi.site";
 }
 
 /** Fail-open if the Workers rate-limit binding is missing (local next dev). */
