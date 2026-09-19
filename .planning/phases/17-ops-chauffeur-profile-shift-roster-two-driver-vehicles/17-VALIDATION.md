@@ -9,7 +9,7 @@ created: 2026-09-18
 
 # Phase 17 — Validation Strategy
 
-> CONTEXT.md D-01…D-14 win. Host `dashboard.vamostaxi.site`. No `.eu`. No invented CHF.
+> CONTEXT.md D-01…D-18 win. Host `dashboard.vamostaxi.site`. No `.eu`. No invented CHF.
 > Agent does not `db push`. No driver app. No auto-dispatch.
 
 ---
@@ -58,6 +58,9 @@ Nyquist: no three consecutive tasks without automated verify. Owner SQL apply is
 | 17-05 | 1 dash/board KPI computed duty | `vitest run lib/ops/ops-chauffeur-desk.test.ts` |
 | 17-05 | 2 dual-DC sync + no Board stale product | `vitest run lib/ops/ops-dc-finalize.test.ts lib/ops/ops-chauffeur-desk.test.ts` |
 | 17-05 | 3 [BLOCKING] owner SQL apply | `test -f` migration; owner apply only |
+| 17-06 | 1 desk source-read: no Tags on detail, Button All chauffeurs, saveShift/saveLeave not empty | `vitest run lib/ops/ops-chauffeur-desk.test.ts` |
+| 17-06 | 2 persist shift + leave from desk PATCH | `vitest run lib/ops/chauffeurs.test.ts lib/ops/ops-chauffeur-desk.test.ts` |
+| 17-06 | 3 dual-DC + four langs + typecheck | `vitest run lib/ops/ops-dc-finalize.test.ts lib/ops/ops-chauffeur-desk.test.ts` + `pnpm run typecheck` |
 
 ---
 
@@ -89,3 +92,7 @@ Nyquist: no three consecutive tasks without automated verify. Owner SQL apply is
 | D-12 leave | 17-01 + 17-03 + 17-04 |
 | D-13 board/assign | 17-05 |
 | D-14 copy four langs | 17-04 |
+| D-15 no list Tags on desk | 17-06 |
+| D-16 Button All chauffeurs | 17-06 |
+| D-17 persist Save shift / Save leave | 17-06 |
+| D-18 Keep editing Dialog-only | 17-06 |

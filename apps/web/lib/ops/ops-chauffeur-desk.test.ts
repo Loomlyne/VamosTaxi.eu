@@ -87,3 +87,46 @@ describe("insertChauffeur idempotency (D-04)", () => {
     expect(src).toMatch(/ON CONFLICT \(id\)/);
   });
 });
+
+describe("dedicated chauffeur desk (D-15 D-16 D-17 D-18)", () => {
+  it("omits Vehicles/Chauffeurs Tags on the desk (D-15)", () => {
+    const html = read(FLEET);
+    const header = html.slice(html.indexOf("<header"), html.indexOf("</header>"));
+    expect(header).toMatch(/sc-if value="\{\{ isList \}\}"/);
+    expect(header).toMatch(/sc-for list="\{\{ tabs \}\}"/);
+  });
+
+  it("desk back is a Button All chauffeurs, not a muted link (D-16)", () => {
+    const html = read(FLEET);
+    expect(html).toMatch(/tBack/);
+    expect(html).toMatch(/goBack|All chauffeurs/);
+    const header = html.slice(html.indexOf("<header"), html.indexOf("</header>"));
+    expect(header).toContain("Button");
+    expect(header).toMatch(/goBack/);
+    expect(header).not.toMatch(/<a href="\/fleet\/chauffeurs"/);
+  });
+
+  it("Save shift and Save leave are not empty lambdas (D-17)", () => {
+    const html = read(FLEET);
+    expect(html).not.toMatch(/saveShift:\s*\(\)\s*=>\s*\{\s*\}/);
+    expect(html).not.toMatch(/saveLeave:\s*\(\)\s*=>\s*\{\s*\}/);
+    expect(html).toMatch(/tSaveShift/);
+    expect(html).toMatch(/tSaveLeave/);
+    expect(html).toMatch(/fShiftDays|deskDays|weekdays/);
+  });
+
+  it("Keep editing is not a desk header control (D-18)", () => {
+    const html = read(FLEET);
+    const detailStart = html.indexOf('sc-if value="{{ isDetail }}"');
+    const detail = html.slice(detailStart, html.indexOf('sc-if value="{{ isList }}"', detailStart));
+    expect(detail).not.toMatch(/tKeepEditing|keepEditing/);
+  });
+
+  it("cleanChauffeur keeps shift and leave so the desk can persist them", () => {
+    const src = read(join(repoRoot, "app/vamos-ops-data.js"));
+    const start = src.indexOf("function cleanChauffeur");
+    const block = src.slice(start, start + 1600);
+    expect(block).toMatch(/shiftWeekdays/);
+    expect(block).toMatch(/leaveRanges/);
+  });
+});

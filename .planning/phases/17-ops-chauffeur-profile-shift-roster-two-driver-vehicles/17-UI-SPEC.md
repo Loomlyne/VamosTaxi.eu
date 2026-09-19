@@ -12,7 +12,7 @@ reviewed_at: 2026-09-18
 
 > Visual and interaction contract for frontend phases. Generated for gsd-ui-checker.
 >
-> **Canonical:** `17-CONTEXT.md` D-01…D-14 wins on conflict.
+> **Canonical:** `17-CONTEXT.md` D-01…D-18 wins on conflict.
 
 **Framing.** Grow the existing fleet desk — do not invent a second dashboard. Source file: `app/ops/OpsFleet.dc.html`. Live `ops.dc.html` must `dc-import name="OpsFleet"` (today it loads stale `OpsFleetBoard.dc.html`). Dual-DC: then `node scripts/sync-dc-mock-to-public.mjs`. Worker serves `apps/web/public/app/ops/`. Do not strip injected `<base href="/app/ops/">`. Bound Vamos tokens only (`--vt-*`, Qurova, `#FDC20B`). Desktop, tablet, and phone in the same pass. Staff ops (dispatcher). No driver app.
 
@@ -119,7 +119,7 @@ Overlay persist verbs are exact. Dialog dismiss is **Keep editing**.
 | List title (vehicles) | Vehicles |
 | List title (chauffeurs) | Chauffeurs |
 | Desk title | `{full name}` |
-| Back | All chauffeurs |
+| Back | All chauffeurs (desk header **Button**, not a muted link) |
 | Tab Vehicles | Vehicles |
 | Tab Chauffeurs | Chauffeurs |
 | Primary list CTA (chauffeurs) | Add a chauffeur |
@@ -195,7 +195,7 @@ Duty labels stay `On shift` / `Off duty` / `On leave` (existing `CSTATUS` + i18n
 |------|---------|-------|
 | `/fleet` | Vehicles list | Host `https://dashboard.vamostaxi.site/fleet`. Morning + Night single-selects on the vehicle overlay. No `chauffeurIds` multi. |
 | `/fleet/chauffeurs` | Chauffeurs list | Add a chauffeur overlay. Row click → desk, not the Add dialog. |
-| `/fleet/chauffeurs/{id}` | Chauffeur desk | Full page: photo, profile, shift, leave, live trips, past bookings. |
+| `/fleet/chauffeurs/{id}` | Chauffeur desk | Full working page: photo, profile, shift, leave, live trips, past bookings. **No** Vehicles/Chauffeurs Tags. **Button** All chauffeurs. |
 | Duplicate email | `Dialog` on the Add overlay | Not a route. |
 | Save chauffeur / Save shift / Save leave | `Dialog` / overlay on the desk or list | Not routes. |
 | Non-staff | Existing ops gate | Do not invent chrome. |
@@ -226,11 +226,13 @@ Every scroller (table wrapper, overlay body) sets `data-scroll-native` (and `dat
 2. **Header:** Display title Vehicles or Chauffeurs. Inline-end: Vehicles / Chauffeurs `Tag`s (active = accent).
 3. **KPI cards** then **OpsTable**. Add control is the list primary (accent).
 
-### Desktop — chauffeur desk
+### Desktop — chauffeur desk (D-15…D-18)
 
-1. Header: **All chauffeurs** back (Label) · Display name · duty `Badge` (success / neutral / outline — not accent). No Vehicles/Chauffeurs tags on the desk (back is enough). Optional **Edit chauffeur** opens the details overlay.
-2. **Left column:** photo (existing control) · Profile card · Shift card · Leave card.
-3. **Right column:** Live trips · Past bookings. Each row is a link: ref · route · when.
+One chauffeur dossier. Not a second fleet list.
+
+1. **Header (one row):** `Button` size-sm **All chauffeurs** (not accent, not a muted Label link) → `/fleet/chauffeurs`. Display name. Duty `Badge` (success / neutral / outline — not accent). **Edit chauffeur** (outline) opens the details overlay. **No** Vehicles / Chauffeurs `Tag`s. **No** Keep editing on this header.
+2. **Column stack (16px / 24px gaps):** Photo + Profile card → Shift card (ticks + Start + End + **Save shift**) → Leave card (ranges + **Add leave**) → Live trips → Past bookings. Each booking row is a link: ref · route · when.
+3. Desktop ≥1000px may put Live + Past in a second column **after** profile/shift/leave. Phone/tablet: single column, photo above profile.
 
 ### Tablet / phone
 
@@ -258,7 +260,7 @@ Replace `chauffeurIds` multi-select with two fields: **Morning** and **Night** (
 
 **Focal point (desk):** chauffeur name (Display) + duty badge.
 
-**Order the eye follows (desk):** back → name + duty → photo/profile → shift → leave → live trips → past bookings.
+**Order the eye follows (desk):** Button All chauffeurs → name + duty → photo/profile → shift → leave → live trips → past bookings.
 
 Do not compete with Add using accent on overlay saves or Keep editing.
 
@@ -329,7 +331,8 @@ Icon-only actions have a visible text label **or** `aria-label` from the copy ta
 
 ### Shared chrome
 
-- Fleet header tags switch `/fleet` ↔ `/fleet/chauffeurs` via `history.pushState` (existing). No `vt-ops-hash-switch`.
+- Fleet header Tags switch `/fleet` ↔ `/fleet/chauffeurs` via `history.pushState` (existing) **only on list screens**. When `isDetail`, omit those Tags (D-15). No `vt-ops-hash-switch`.
+- Desk Back is `Button` **All chauffeurs** → `/fleet/chauffeurs` (D-16). Not `history.back`. Not `/api/staff/chauffeurs`.
 - Dual DC: edit `app/ops/` then sync. Agent does not `supabase db push`.
 
 ---
@@ -337,6 +340,9 @@ Icon-only actions have a visible text label **or** `aria-label` from the copy ta
 ## Must-nots
 
 - Do not invent a second dashboard or a new route prefix. Keep `/fleet/chauffeurs/{id}`.
+- Do not render Vehicles / Chauffeurs `Tag`s on `/fleet/chauffeurs/{id}` (D-15).
+- Do not leave `saveShift` / `saveLeave` as empty functions (D-17).
+- Do not treat `GET /api/staff/chauffeurs` as a document. That is JSON, not the Fleet page.
 - Do not leave live `dc-import` on `OpsFleetBoard` if the file we edit is `OpsFleet.dc.html`.
 - Do not keep unlimited `chauffeurIds` multi-select.
 - Do not keep a status `<select>` as the way to flip On shift / Off duty / On leave.
@@ -376,5 +382,5 @@ Do not add shadcn. Do not initialize `components.json`. Do not vendor blocks fro
 - [x] Dimension 5 Spacing: PASS
 - [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** approved 2026-09-18
+**Approval:** approved 2026-09-18. **Amendment 2026-09-18 owner UAT:** D-15…D-18 (no list Tags on desk, Button back, persist shift/leave). Checker dimensions unchanged — still Tool: none, four type sizes, reserved accent, copy table verbs.
 **reviewed_at:** 2026-09-18

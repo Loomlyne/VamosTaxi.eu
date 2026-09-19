@@ -41,9 +41,18 @@ This phase does not ship a driver app, auto-dispatch, Staff tab, live `vamostaxi
 - **D-13:** Board On shift count and assign lists follow the computed duty (D-10/D-12), not a leftover manual status. A chauffeur with no vehicle still cannot take a transfer (existing fleet rule). Assignment overlap (OPS-03) stays.
 - **D-14:** Copy: On shift / Off duty / On leave (existing `CSTATUS` labels). Exact refuse strings for D-07 in en/de/fr/ar same sitting.
 
+### Dedicated page — owner UAT 2026-09-18 (D-15…D-18)
+- **D-15:** On `/fleet/chauffeurs/{id}` do **not** show the Vehicles / Chauffeurs header Tags. Those Tags stay on `/fleet` and `/fleet/chauffeurs` only. Sidebar still lists both. The desk is one chauffeur, not a second fleet switcher.
+- **D-16:** Desk header has a real **Button** **All chauffeurs** that goes to `/fleet/chauffeurs`. Not a muted text link. Not `history.back`. Not `/api/staff/chauffeurs`.
+- **D-17:** The desk **is** the working page. Weekday ticks, one Start, one End, **Save shift** persist. Leave list, **Add leave** / **Save leave** persist. Empty `saveShift` / `saveLeave` lambdas are a bug. Profile identity stays **Edit chauffeur** overlay → **Save chauffeur**.
+- **D-18:** **Keep editing** only closes Dialogs. Do not put Keep editing on the desk page as a third dummy control.
+
+`/api/staff/chauffeurs` is the Worker JSON. It is not a page. Do not open it in the Browser pane as the chauffeurs screen.
+
 ### Claude's Discretion
-- SQL shape (junction vs columns), idempotency key for D-04, whether overnight wrap uses `<` on times, how leave ranges are stored, cron vs request-time recompute of status. Must match D-01…D-14.
+- SQL shape (junction vs columns), idempotency key for D-04, whether overnight wrap uses `<` on times, how leave ranges are stored, cron vs request-time recompute of status. Must match D-01…D-18.
 - Overlay verbs stay `Save chauffeur` / `Save leave` / `Save shift` — never CTA `Save` / `Cancel` / `OK`. Dialog dismiss is `Keep editing`.
+- Desk layout may restack (header → profile → shift → leave → trips) as long as tokens, copy table, and D-15…D-18 hold. Do not invent a second dashboard or a new route.
 
 </decisions>
 
