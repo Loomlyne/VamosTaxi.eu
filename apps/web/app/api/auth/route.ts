@@ -36,6 +36,7 @@ import {
 import { mintConsentSubject, readConsentSubject } from "@/lib/consent/cookie";
 import { cfConnectingIp, truncateClientIp } from "@/lib/consent/ip";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { csrfForbidden, trustedSiteOrigin } from "@/lib/security/origin";
 
 export const dynamic = "force-dynamic";
 
@@ -57,10 +58,11 @@ function localizedPath(path: string, locale: string): string {
 
 function requestOrigin(request: Request): string {
   const url = new URL(request.url);
-  const forwarded = request.headers.get("x-forwarded-host");
-  const proto = request.headers.get("x-forwarded-proto") ?? url.protocol.replace(":", "");
-  if (forwarded) return `${proto}://${forwarded}`;
-  return url.origin;
+  return (
+    trustedSiteOrigin(url.host) ??
+    trustedSiteOrigin(request.headers.get("host")) ??
+    "https://vamostaxi.site"
+  );
 }
 
 const CONSENT_LOCALES = new Set<ConsentLocale>(["en", "de", "fr", "ar"]);
@@ -98,6 +100,8 @@ async function appendSignupConsent(
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const blocked = csrfForbidden(request, "auth");
+  if (blocked) return blocked;
   const ctx = { requestId: crypto.randomUUID(), route: "/api/auth", locale: null as string | null };
 
   let raw: unknown;

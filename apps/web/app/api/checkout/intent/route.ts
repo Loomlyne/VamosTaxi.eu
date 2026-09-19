@@ -37,7 +37,6 @@ export async function POST(request: Request) {
       JSON.stringify({
         ok: false,
         error: "intent_unhandled",
-        detail: err instanceof Error ? err.message : String(err),
       }),
       { status: 500, headers: { "content-type": "application/json" } },
     );

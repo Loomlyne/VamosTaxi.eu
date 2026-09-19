@@ -14,6 +14,7 @@ import {
   assertPhotoUpload,
   buildPhotoKey,
 } from "@/lib/ops/photos";
+import { csrfForbidden } from "@/lib/security/origin";
 
 const BOOKING_UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -52,6 +53,8 @@ function mapLookupError(err: unknown): Response {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const blocked = csrfForbidden(request);
+  if (blocked) return blocked;
   const formData = await request.formData();
   const fileRaw = formData.get("file");
   const token = str(formData.get("token"));

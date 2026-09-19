@@ -14,6 +14,7 @@ import { routing } from "@/i18n/routing";
 import type { AuthBanner, AuthSubmitPayload } from "@/components/auth/types";
 import { log } from "@/lib/logger";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { trustedSiteOrigin } from "@/lib/security/origin";
 import {
   localeSchema,
   otpRequestSchema,
@@ -47,9 +48,7 @@ function authLog(action: string, locale: string | null, reason: string): void {
 
 async function requestOrigin(): Promise<string> {
   const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "127.0.0.1:3000";
-  const proto = h.get("x-forwarded-proto") ?? (host.startsWith("127.") || host.startsWith("localhost") ? "http" : "https");
-  return `${proto}://${host}`;
+  return trustedSiteOrigin(h.get("host")) ?? "https://vamostaxi.site";
 }
 
 function localizedHome(locale: string): string {

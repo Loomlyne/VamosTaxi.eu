@@ -367,8 +367,6 @@ export async function runCheckoutIntent(
         JSON.stringify({
           ok: false,
           error: "checkout_rpc_failed",
-          sqlstate: state ?? null,
-          detail: err instanceof Error ? err.message : String(err),
         }),
         { status: 500, headers: { "content-type": "application/json" } },
       );

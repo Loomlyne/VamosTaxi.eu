@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { csrfForbidden, publicOriginAllowed } from "./origin";
+import {
+  authOriginAllowed,
+  csrfForbidden,
+  publicOriginAllowed,
+  trustedSiteOrigin,
+} from "./origin";
 
 describe("publicOriginAllowed", () => {
   it("denies missing Origin", () => {
@@ -21,6 +26,20 @@ describe("publicOriginAllowed", () => {
   });
 });
 
+describe("authOriginAllowed", () => {
+  it("allows public site and dashboard", () => {
+    expect(authOriginAllowed("https://vamostaxi.site")).toBe(true);
+    expect(authOriginAllowed("https://dashboard.vamostaxi.site")).toBe(true);
+    expect(authOriginAllowed("http://dashboard.localhost")).toBe(true);
+  });
+
+  it("denies foreign hosts", () => {
+    expect(authOriginAllowed(null)).toBe(false);
+    expect(authOriginAllowed("https://evil.example")).toBe(false);
+    expect(authOriginAllowed("https://vamostaxi.eu")).toBe(false);
+  });
+});
+
 describe("csrfForbidden", () => {
   it("returns 403 csrf without Origin", () => {
     const res = csrfForbidden(new Request("https://vamostaxi.site/api/account/prefs", { method: "POST" }));
@@ -36,5 +55,27 @@ describe("csrfForbidden", () => {
       }),
     );
     expect(res).toBeNull();
+  });
+
+  it("auth kind allows dashboard Origin", () => {
+    const res = csrfForbidden(
+      new Request("https://vamostaxi.site/api/auth", {
+        method: "POST",
+        headers: { Origin: "https://dashboard.vamostaxi.site" },
+      }),
+      "auth",
+    );
+    expect(res).toBeNull();
+  });
+});
+
+describe("trustedSiteOrigin", () => {
+  it("accepts allowlisted Host and ignores x-forwarded-host injection", () => {
+    expect(trustedSiteOrigin("vamostaxi.site")).toBe("https://vamostaxi.site");
+    expect(trustedSiteOrigin("dashboard.vamostaxi.site")).toBe("https://dashboard.vamostaxi.site");
+    expect(trustedSiteOrigin("localhost:3000")).toBe("http://localhost:3000");
+    expect(trustedSiteOrigin("evil.example")).toBeNull();
+    expect(trustedSiteOrigin("vamostaxi.eu")).toBeNull();
+    expect(trustedSiteOrigin("evil.example, vamostaxi.site")).toBeNull();
   });
 });

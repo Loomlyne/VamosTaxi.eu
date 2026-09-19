@@ -12,6 +12,7 @@ import { hashManageToken } from "@/lib/checkout/manage-token";
 import { asCustomer, asGuest, asSystem } from "@/lib/db/identity";
 import { isReadablePhotoKey } from "@/lib/ops/photos";
 import { verifyTurnstile } from "@/lib/turnstile";
+import { csrfForbidden } from "@/lib/security/origin";
 
 const BOOKING_UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -72,6 +73,8 @@ function str(value: unknown): string {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const blocked = csrfForbidden(request);
+  if (blocked) return blocked;
   const { env } = await getCloudflareContext({ async: true });
   const bindings = env as unknown as Record<string, string | undefined>;
 

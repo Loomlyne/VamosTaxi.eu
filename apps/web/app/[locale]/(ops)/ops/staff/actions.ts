@@ -18,6 +18,7 @@ import {
 } from "@/lib/ops/staff";
 import { OpsAuthError, requireAdminClaims, type StaffAuthClient } from "@/lib/ops/session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { trustedSiteOrigin } from "@/lib/security/origin";
 
 
 const STAFF_PATH = "/ops/staff";
@@ -56,15 +57,13 @@ export async function inviteStaff(input: { email: string; role: string }): Promi
     await requireAdminClaims(supabase);
     const headerList = await headers();
     const cookie = headerList.get("cookie") ?? "";
-    const host = headerList.get("x-forwarded-host") ?? headerList.get("host");
-    if (!host) return { ok: false, key: "staffRoster.error-failed" };
-    const proto =
-      headerList.get("x-forwarded-proto") ?? (host.startsWith("127.") || host.startsWith("localhost") ? "http" : "https");
+    const origin = trustedSiteOrigin(headerList.get("host"));
+    if (!origin) return { ok: false, key: "staffRoster.error-failed" };
     const locale = await getLocale();
     const prefix = locale === "en" ? "" : `/${locale}`;
-    const res = await fetch(`${proto}://${host}${prefix}/api/staff/invite`, {
+    const res = await fetch(`${origin}${prefix}/api/staff/invite`, {
       method: "POST",
-      headers: { "content-type": "application/json", cookie },
+      headers: { "content-type": "application/json", cookie, Origin: origin },
       body: JSON.stringify({ email: parsed.email, role: parsed.role }),
     });
     const body = (await res.json().catch(() => null)) as { ok?: boolean; code?: string } | null;
