@@ -168,7 +168,15 @@ export function gatePublicRequest(request: Request): Response | "not-found" | nu
   if (path === "/api" || path.startsWith("/api/")) {
     const hiddenDev = path === "/api/dev" || path.startsWith("/api/dev/");
     if (hiddenDev) return isDocumentNav(request) ? "not-found" : empty404();
-    if (isDocumentNav(request)) return "not-found";
+    if (isDocumentNav(request)) {
+      if (
+        dashboard &&
+        (path === "/api/staff/chauffeurs" || path.startsWith("/api/staff/chauffeurs/"))
+      ) {
+        return redirectTo(url, "/fleet/chauffeurs", null);
+      }
+      return "not-found";
+    }
     return null;
   }
 

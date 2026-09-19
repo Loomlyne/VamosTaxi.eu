@@ -723,7 +723,7 @@ finishes 08-UAT then 12–16 before this phase is discussed.
   4. Saved shift days + times in Europe/Zurich drive On shift vs Off duty without a manual toggle. Leave the dispatcher marks overrides the clock until it ends.
   5. No chauffeur-profile `.dc.html` exists yet — this phase starts with a signed DC mock, then the port. Must-nots: no driver app, no auto-dispatch, no Staff tab, no live `vamostaxi.eu` DNS, no `env.production`. Funnel Phases 7–11 stay frozen until those phases run.
 
-**Plans:** 17-01…17-05 executed. **17-06 drafted** (desk UAT: Button back, no list Tags, persist shift/leave). Not executed. Owner signs this plan before execute.
+**Plans:** 17-01…17-06 executed on disk (`gsd/phase-17-06-chauffeur-desk`). Live desk + leak gate wait owner **continue** deploy.
 
 **UI hint**: yes — 17-UI-SPEC.md amended D-15…D-18. Same tokens. No second dashboard.
 

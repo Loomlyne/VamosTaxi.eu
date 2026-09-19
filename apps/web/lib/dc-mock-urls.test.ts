@@ -92,6 +92,21 @@ describe("dc mock URL gate", () => {
     expect(gatePublicRequest(req("/api/geo/suggest"))).toBeNull();
   });
 
+  it("does not serve staff JSON as a document; chauffeur API goes to the fleet page", () => {
+    const gated = gatePublicRequest(
+      doc("/api/staff/chauffeurs", { host: "dashboard.vamostaxi.site" }),
+    );
+    expect(gated).toBeInstanceOf(Response);
+    const res = gated as Response;
+    expect(res.status).toBe(308);
+    expect(res.headers.get("location")).toBe(
+      "https://dashboard.vamostaxi.site/fleet/chauffeurs",
+    );
+    expect(
+      gatePublicRequest(req("/api/staff/chauffeurs", { host: "dashboard.vamostaxi.site" })),
+    ).toBeNull();
+  });
+
   it("lets internal asset fetches through", () => {
     expect(
       gatePublicRequest(

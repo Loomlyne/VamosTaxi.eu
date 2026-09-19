@@ -12,16 +12,18 @@
 <header style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle)">
 <div style="min-width:0">
 <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
-<a href="/fleet/chauffeurs" style="display:inline-block;margin:0 0 6px;font-size:var(--vt-body-xs);color:var(--vt-text-muted);text-decoration:none">{{ tBack }}</a>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ goBack }}" hint-size="140px,36px">{{ tBack }}</x-import>
 </sc-if>
 <h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ title }}</h1>
 <p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ subtitle }}</p>
 </div>
+<sc-if value="{{ isList }}" hint-placeholder-val="{{ true }}">
 <div style="margin-inline-start:auto;display:flex;flex-wrap:wrap;align-items:center;gap:8px">
 <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="2">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Tag" active="{{ t.active }}" onClick="{{ t.go }}" hint-size="120px,34px">{{ t.label }}</x-import>
 </sc-for>
 </div>
+</sc-if>
 </header>
 
 <div style="padding:26px 32px 48px;display:flex;flex-direction:column;gap:20px;min-width:0">
@@ -46,6 +48,42 @@
 <span style="font-size:var(--vt-body-sm);color:var(--vt-text-primary)">{{ p.value }}</span>
 </div>
 </sc-for>
+</div>
+<div style="box-sizing:border-box;display:flex;flex-direction:column;gap:12px;padding:18px 20px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg)">
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ tShiftDays }}</span>
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<sc-for list="{{ deskDays }}" as="d" hint-placeholder-count="7">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Tag" active="{{ d.on }}" onClick="{{ d.toggle }}" hint-size="56px,34px">{{ d.label }}</x-import>
+</sc-for>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px">
+<label style="display:flex;flex-direction:column;gap:6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ tShiftStart }}
+<input type="text" value="{{ deskStart }}" oninput="{{ onDeskStart }}" placeholder="08:00" style="box-sizing:border-box;width:100%;padding:8px 10px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-bg-canvas);color:var(--vt-text-primary);font:inherit" />
+</label>
+<label style="display:flex;flex-direction:column;gap:6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ tShiftEnd }}
+<input type="text" value="{{ deskEnd }}" oninput="{{ onDeskEnd }}" placeholder="18:00" style="box-sizing:border-box;width:100%;padding:8px 10px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-bg-canvas);color:var(--vt-text-primary);font:inherit" />
+</label>
+</div>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" onClick="{{ saveShift }}" hint-size="120px,36px">{{ tSaveShift }}</x-import>
+</div>
+<div style="box-sizing:border-box;display:flex;flex-direction:column;gap:12px;padding:18px 20px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg)">
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ tLeave }}</span>
+<sc-if value="{{ noLeave }}" hint-placeholder-val="{{ true }}">
+<p style="margin:0;font-size:var(--vt-body-sm);font-weight:600;color:var(--vt-text-primary)">{{ tNoLeave }}</p>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);line-height:1.6;color:var(--vt-text-muted)">{{ tNoLeaveBody }}</p>
+</sc-if>
+<sc-for list="{{ leaveRows }}" as="leave" hint-placeholder-count="1">
+<p style="margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-primary)">{{ leave.label }}</p>
+</sc-for>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px">
+<label style="display:flex;flex-direction:column;gap:6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ tLeaveFrom }}
+<input type="text" value="{{ deskLeaveFrom }}" oninput="{{ onDeskLeaveFrom }}" placeholder="YYYY-MM-DD" style="box-sizing:border-box;width:100%;padding:8px 10px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-bg-canvas);color:var(--vt-text-primary);font:inherit" />
+</label>
+<label style="display:flex;flex-direction:column;gap:6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ tLeaveUntil }}
+<input type="text" value="{{ deskLeaveUntil }}" oninput="{{ onDeskLeaveUntil }}" placeholder="YYYY-MM-DD" style="box-sizing:border-box;width:100%;padding:8px 10px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-bg-canvas);color:var(--vt-text-primary);font:inherit" />
+</label>
+</div>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" onClick="{{ saveLeave }}" hint-size="120px,36px">{{ tSaveLeave }}</x-import>
 </div>
 <div style="box-sizing:border-box;display:flex;flex-direction:column;gap:12px;padding:18px 20px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg)">
 <span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ tLiveTrips }}</span>
@@ -74,11 +112,6 @@
 <span style="margin-inline-start:auto;font-size:var(--vt-body-xs);color:var(--vt-text-muted);white-space:nowrap">{{ trip.when }}</span>
 </a>
 </sc-for>
-</div>
-<div style="display:flex;flex-wrap:wrap;gap:8px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" onClick="{{ saveShift }}" hint-size="120px,36px">{{ tSaveShift }}</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" onClick="{{ saveLeave }}" hint-size="120px,36px">{{ tSaveLeave }}</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ keepEditing }}" hint-size="120px,36px">{{ tKeepEditing }}</x-import>
 </div>
 </div>
 </sc-if>
@@ -161,6 +194,7 @@ const T = {
     saveFailed:'Save failed. Try again.',
     offRoadStay:'This vehicle is off the road. Upcoming assigned trips stay on the board — they are not cancelled. Fix them on Needs attention.',
     backChauffeurs:'All chauffeurs',
+    leave:'Leave', noLeave:'No leave', noLeaveBody:'Saved ranges show here.', fLeaveFrom:'From', fLeaveUntil:'Until',
   },
   de: {
     vehicles:'Fahrzeuge', chauffeurs:'Chauffeure',
@@ -198,6 +232,7 @@ const T = {
     saveFailed:'Speichern fehlgeschlagen. Bitte erneut versuchen.',
     offRoadStay:'Dieses Fahrzeug ist nicht auf der Strasse. Zugewiesene kommende Fahrten bleiben auf dem Board — sie werden nicht storniert. Beheben unter Needs attention.',
     backChauffeurs:'Alle Chauffeure',
+    leave:'Abwesenheit', noLeave:'Keine Abwesenheit', noLeaveBody:'Gespeicherte Zeiträume erscheinen hier.', fLeaveFrom:'Von', fLeaveUntil:'Bis',
   },
   fr: {
     vehicles:'Véhicules', chauffeurs:'Chauffeurs',
@@ -235,6 +270,7 @@ const T = {
     saveFailed:'Enregistrement impossible. Réessayez.',
     offRoadStay:'Ce véhicule n’est plus en service. Les courses assignées à venir restent au tableau — elles ne sont pas annulées. Corrigez-les sous Needs attention.',
     backChauffeurs:'Tous les chauffeurs',
+    leave:'Absence', noLeave:'Aucune absence', noLeaveBody:'Les périodes enregistrées s’affichent ici.', fLeaveFrom:'Du', fLeaveUntil:'Au',
   },
   ar: {
     vehicles:'المركبات', chauffeurs:'السائقون',
@@ -272,6 +308,7 @@ const T = {
     saveFailed:'فشل الحفظ. حاول مرة أخرى.',
     offRoadStay:'هذه المركبة خارج الخدمة. الرحلات المسندة القادمة تبقى على اللوحة — لا تُلغى. عالجها في Needs attention.',
     backChauffeurs:'كل السائقين',
+    leave:'إجازة', noLeave:'لا إجازة', noLeaveBody:'النطاقات المحفوظة تظهر هنا.', fLeaveFrom:'من', fLeaveUntil:'إلى',
   },
 };
 
@@ -423,6 +460,46 @@ class Component extends DCLogic {
       { label: t.fStatus, value: (CSTATUS[detail.status] || {}).label || detail.status || '—' },
     ];
 
+    const parseDays = (raw) => {
+      if (Array.isArray(raw)) return raw.map((n) => Number(n)).filter((n) => n >= 1 && n <= 7);
+      return String(raw || '').split(',').map((s) => Number(s.trim())).filter((n) => n >= 1 && n <= 7);
+    };
+    const field = (ev) => (ev && ev.target && ev.target.value != null) ? String(ev.target.value) : String(ev || '');
+    const deskWeekdays = Array.isArray(this.state.deskWeekdays)
+      ? this.state.deskWeekdays
+      : parseDays(detail && (detail.shiftWeekdays || detail.weekdays));
+    const deskStart = this.state.deskStart != null
+      ? this.state.deskStart
+      : String((detail && (detail.start || detail.shiftStart)) || '');
+    const deskEnd = this.state.deskEnd != null
+      ? this.state.deskEnd
+      : String((detail && (detail.end || detail.shiftEnd)) || '');
+    const leaveRanges = Array.isArray(this.state.deskLeave)
+      ? this.state.deskLeave
+      : ((detail && Array.isArray(detail.leaveRanges)) ? detail.leaveRanges : []);
+    const persistDesk = (patch) => {
+      if (!store || !detail) return Promise.resolve({ ok: false });
+      return store.upsert(Object.assign({}, detail, {
+        vehicle: detail.vehicle || detail.defaultVehicleId || '',
+        defaultVehicleId: detail.defaultVehicleId || detail.vehicle || '',
+        weekdays: deskWeekdays.join(','),
+        shiftWeekdays: deskWeekdays,
+        start: deskStart,
+        end: deskEnd,
+        shiftStart: deskStart,
+        shiftEnd: deskEnd,
+        leaveRanges,
+      }, patch)).then((json) => {
+        if (!json || json.ok !== true) {
+          const reason = (json && (json.message || json.error || json.detail)) || t.saveFailed;
+          this.setState({ saveMsg: reason, notice: '' });
+          return json;
+        }
+        this.setState({ saveMsg: '', notice: '' });
+        return json;
+      });
+    };
+
     return {
       n18: 18,
       isDetail, isList,
@@ -431,6 +508,10 @@ class Component extends DCLogic {
       hasNotice: !!this.state.notice,
       notice: this.state.notice || '',
       tBack: t.backChauffeurs,
+      goBack: () => {
+        history.pushState({}, '', '/fleet/chauffeurs');
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      },
       tNoEmail: t.cannotAssignNoEmail,
       hasNoEmail: !!(detail && !String(detail.email || '').trim()),
       tProfile: t.profile,
@@ -442,10 +523,49 @@ class Component extends DCLogic {
       tNoPastBookingsBody: t.noPastBookingsBody,
       tSaveShift: t.saveShift,
       tSaveLeave: t.saveLeave,
-      tKeepEditing: t.keepEditing,
-      saveShift: () => {},
-      saveLeave: () => {},
-      keepEditing: () => {},
+      tShiftDays: t.fShiftDays,
+      tShiftStart: t.fShiftStart,
+      tShiftEnd: t.fShiftEnd,
+      tLeave: t.leave,
+      tNoLeave: t.noLeave,
+      tNoLeaveBody: t.noLeaveBody,
+      tLeaveFrom: t.fLeaveFrom,
+      tLeaveUntil: t.fLeaveUntil,
+      deskDays: DAY_OPTIONS.map((d) => {
+        const value = Number(d.value);
+        return {
+          label: d.label,
+          on: deskWeekdays.indexOf(value) !== -1,
+          toggle: () => {
+            const next = deskWeekdays.indexOf(value) !== -1
+              ? deskWeekdays.filter((n) => n !== value)
+              : deskWeekdays.concat(value).sort((a, b) => a - b);
+            this.setState({ deskWeekdays: next });
+          },
+        };
+      }),
+      deskStart,
+      deskEnd,
+      deskLeaveFrom: this.state.deskLeaveFrom || '',
+      deskLeaveUntil: this.state.deskLeaveUntil || '',
+      onDeskStart: (ev) => this.setState({ deskStart: field(ev) }),
+      onDeskEnd: (ev) => this.setState({ deskEnd: field(ev) }),
+      onDeskLeaveFrom: (ev) => this.setState({ deskLeaveFrom: field(ev) }),
+      onDeskLeaveUntil: (ev) => this.setState({ deskLeaveUntil: field(ev) }),
+      leaveRows: leaveRanges.map((r) => ({ label: String(r.from || '') + ' → ' + String(r.until || '') })),
+      noLeave: leaveRanges.length === 0,
+      saveShift: () => persistDesk({}),
+      saveLeave: () => {
+        const from = String(this.state.deskLeaveFrom || '').slice(0, 10);
+        const until = String(this.state.deskLeaveUntil || '').slice(0, 10);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || !/^\d{4}-\d{2}-\d{2}$/.test(until) || until < from) {
+          this.setState({ saveMsg: t.saveFailed, notice: '' });
+          return Promise.resolve({ ok: false });
+        }
+        const next = leaveRanges.concat([{ from, until }]);
+        this.setState({ deskLeave: next, deskLeaveFrom: '', deskLeaveUntil: '' });
+        return persistDesk({ leaveRanges: next });
+      },
       noLiveTrips: liveTrips.length === 0,
       noPastBookings: pastBookings.length === 0,
       pastBookings,

@@ -88,6 +88,18 @@ describe("withStaff / withAdmin", () => {
     createSupabaseServerClient.mockReset();
   });
 
+  it("404s a browser document navigation so staff JSON never paints as a page", async () => {
+    const handler = vi.fn(async () => jsonOk({ leaked: true }));
+    const doc = new Request("http://vamos.test/api/staff/chauffeurs", {
+      headers: { "sec-fetch-dest": "document", accept: "text/html" },
+    });
+    const response = await withStaff(handler)(doc);
+    expect(handler).not.toHaveBeenCalled();
+    expect(response.status).toBe(404);
+    expect(response.headers.get("content-type")).toMatch(/text\/plain/);
+    expect(await response.text()).toBe("Not Found");
+  });
+
   it("returns JSON 401 no-session when there is no user", async () => {
     createSupabaseServerClient.mockResolvedValue(mockClient({ user: null }));
     const result = await readJson(await withStaff(async () => jsonOk({}))(request));

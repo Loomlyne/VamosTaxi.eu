@@ -48,11 +48,25 @@ export function staffStatus(reason: OpsAuthReason): { code: string; status: numb
   return { code: "not-staff", status: 403 };
 }
 
+function isStaffDocumentNav(request: Request): boolean {
+  const dest = (request.headers.get("sec-fetch-dest") || "").toLowerCase();
+  return dest === "document" || dest === "iframe" || dest === "frame" || dest === "embed";
+}
+
 async function staffResponse(
   request: Request,
   requireClaims: (supabase: StaffAuthClient) => Promise<StaffSession>,
   handler: StaffJsonHandler,
 ): Promise<Response> {
+  if (isStaffDocumentNav(request)) {
+    return new Response("Not Found", {
+      status: 404,
+      headers: {
+        "content-type": "text/plain; charset=utf-8",
+        "cache-control": "private, no-store",
+      },
+    });
+  }
   const supabase = (await createSupabaseServerClient()) as StaffAuthClient;
   let claims: StaffSession;
   try {

@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-15 after Phase 18)
 
 **Core value:** quote → pay → confirmation. Lifecycle after pay is Phase 9.
-**Current focus:** Phase 17-06 plan review (desk: Button All chauffeurs, hide list Tags, persist Save shift / Save leave). Do not execute 17-06 until owner signs. Phase 19 parked. Do not `state.begin-phase` onto 19.
+**Current focus:** Phase 17-06 executed on `gsd/phase-17-06-chauffeur-desk`. Live UAT after owner **continue** (Worker `vamos` deploy). Phase 19 parked. Do not `state.begin-phase` onto 19.
 
 ## Current Position
 

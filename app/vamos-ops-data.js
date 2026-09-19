@@ -544,7 +544,14 @@
       languages: Array.isArray(c.languages) ? c.languages.join(", ") : str(c.languages),
       status: CHAUFFEUR_STATUS.indexOf(c.status) === -1 ? "off" : c.status,
       photo: (str(c.photo || c.photoPath).indexOf("data:") === 0) ? "" : str(c.photo || c.photoPath),
-      note: str(c.note)
+      note: str(c.note),
+      shiftWeekdays: Array.isArray(c.shiftWeekdays) ? c.shiftWeekdays : (Array.isArray(c.weekdays) ? c.weekdays : []),
+      weekdays: Array.isArray(c.weekdays) ? c.weekdays : (Array.isArray(c.shiftWeekdays) ? c.shiftWeekdays : []),
+      start: str(c.start || c.shiftStart),
+      end: str(c.end || c.shiftEnd),
+      shiftStart: str(c.shiftStart || c.start),
+      shiftEnd: str(c.shiftEnd || c.end),
+      leaveRanges: Array.isArray(c.leaveRanges) ? c.leaveRanges : []
     };
   }
 
