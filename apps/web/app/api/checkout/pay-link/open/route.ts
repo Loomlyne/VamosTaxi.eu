@@ -11,7 +11,7 @@ import { hashRawToken } from "@/lib/checkout/manage-token";
 import { attachPayment } from "@/lib/checkout/attach-payment";
 import { loadOpenPayment } from "@/lib/checkout/load-open-payment";
 import { payLinkPath } from "@/lib/checkout/pay-link";
-import { publicSiteOrigin } from "@/lib/security/origin";
+import { publicSiteOrigin, csrfForbidden } from "@/lib/security/origin";
 import {
   checkoutPaymentIntentId,
   createCheckoutSession,
@@ -51,6 +51,8 @@ function normalizePayToken(raw: string): string {
 }
 
 export async function POST(request: Request) {
+  const blocked = csrfForbidden(request);
+  if (blocked) return blocked;
   const { env } = getCloudflareContext();
   let json: unknown;
   try {

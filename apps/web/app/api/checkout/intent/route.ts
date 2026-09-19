@@ -25,7 +25,7 @@ import { lookupVehicleClassId, snapshotPolicyFromSettings } from "@/lib/checkout
 import { policyHours } from "@/lib/checkout/policy-settings";
 import { mapRateBook } from "@/lib/pricing/rateBook";
 import type { IntentRecompute } from "@/lib/quote/intent";
-import { publicSiteOrigin } from "@/lib/security/origin";
+import { publicSiteOrigin, csrfForbidden } from "@/lib/security/origin";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +45,8 @@ export async function POST(request: Request) {
 }
 
 async function postIntent(request: Request) {
+  const blocked = csrfForbidden(request);
+  if (blocked) return blocked;
   const { env } = getCloudflareContext();
 
   let json: unknown;

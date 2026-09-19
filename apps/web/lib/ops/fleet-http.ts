@@ -334,7 +334,7 @@ function chauffeurConstraintCopy(err: unknown): string | null {
   if (constraint === "chauffeurs_default_vehicle_id_fkey") return "That vehicle is missing.";
   if (constraint === "chauffeurs_pkey") return "That chauffeur id is already on file.";
   if (constraint === "chauffeurs_user_id_key") return "That login is already linked to a chauffeur.";
-  if (typeof constraint === "string" && constraint) return `Could not save (${constraint}).`;
+  if (typeof constraint === "string" && constraint) return "The chauffeur could not be saved.";
   return null;
 }
 
@@ -393,7 +393,7 @@ export function chauffeurJsonError(err: unknown): Response {
   if (fromConstraint) {
     return jsonErr(code || "error", 409, { message: fromConstraint });
   }
-  const message = code ? `Could not save (Postgres ${code}).` : "The chauffeur could not be saved.";
+  const message = "The chauffeur could not be saved.";
   return jsonErr(code || "error", 500, { message });
 }
 

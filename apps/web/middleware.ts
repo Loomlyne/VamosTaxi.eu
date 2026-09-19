@@ -345,6 +345,7 @@ function applyStagingNoindex(request: NextRequest, response: NextResponse): Next
   // vamos (DEPLOY_ENV staging). D-04: dashboard / ops-changes always noindex.
   // D-08: env.production is unused — host-split is the indexable path, not an
   // undefined DEPLOY_ENV.
+  applySecurityHeaders(response.headers);
   if (isDashboardHost(request) || process.env.DEPLOY_ENV === "ops-changes") {
     response.headers.set("X-Robots-Tag", "noindex");
   }

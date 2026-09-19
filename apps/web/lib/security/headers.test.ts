@@ -74,4 +74,12 @@ describe("applySecurityHeaders helper", () => {
     expect(headers.get("Content-Security-Policy")).not.toMatch(/sentry\.io/);
     expect(SECURITY_HEADER_PAIRS.map(([k]) => k)).toContain("Permissions-Policy");
   });
+
+  it("middleware applyStagingNoindex stamps SECURITY_HEADER_PAIRS", () => {
+    const src = readFileSync(join(repoRoot, "apps/web/middleware.ts"), "utf8");
+    const fnAt = src.indexOf("function applyStagingNoindex");
+    expect(fnAt).toBeGreaterThan(-1);
+    const fn = src.slice(fnAt, src.indexOf("function isNoStorePath"));
+    expect(fn).toMatch(/applySecurityHeaders\(response\.headers\)/);
+  });
 });

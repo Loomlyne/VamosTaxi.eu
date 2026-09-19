@@ -33,4 +33,19 @@ describe("checkout public origin", () => {
       expect(file).not.toContain("new URL(request.url).origin");
     }
   });
+
+  it("checkout writes Origin-CSRF before parse", () => {
+    const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
+    for (const rel of [
+      "app/api/checkout/intent/route.ts",
+      "app/api/checkout/pay-link/route.ts",
+      "app/api/checkout/pay-link/open/route.ts",
+    ]) {
+      const file = readFileSync(join(root, rel), "utf8");
+      const csrfAt = file.indexOf("csrfForbidden(request)");
+      const jsonAt = file.indexOf("request.json()");
+      expect(csrfAt, rel).toBeGreaterThan(-1);
+      expect(jsonAt, rel).toBeGreaterThan(csrfAt);
+    }
+  });
 });

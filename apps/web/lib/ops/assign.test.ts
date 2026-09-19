@@ -105,6 +105,15 @@ describe("staff customer 500 (K34)", () => {
   });
 });
 
+describe("chauffeur JSON 500 (K38)", () => {
+  it("does not echo constraint names or Postgres codes", () => {
+    const src = read("apps/web/lib/ops/fleet-http.ts");
+    expect(src).not.toMatch(/Could not save \(\$\{constraint\}\)/);
+    expect(src).not.toMatch(/Postgres \$\{code\}/);
+    expect(src).toMatch(/The chauffeur could not be saved/);
+  });
+});
+
 describe("08-04 assign file proofs", () => {
   it("migration is SECURITY DEFINER, vamos_system only, GiST kept", () => {
     const sql = read("packages/db/supabase/migrations/20260910164004_ops_assign_leg.sql");
