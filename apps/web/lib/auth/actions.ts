@@ -7,11 +7,13 @@
 
 "use server";
 
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { headers } from "next/headers";
 import { createNavigation } from "next-intl/navigation";
 import { getLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import type { AuthBanner, AuthSubmitPayload } from "@/components/auth/types";
+import { checkWriteRateLimit } from "@/lib/abuse/rate-limit";
 import { log } from "@/lib/logger";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { trustedSiteOrigin } from "@/lib/security/origin";
@@ -51,6 +53,23 @@ async function requestOrigin(): Promise<string> {
   return trustedSiteOrigin(h.get("host")) ?? "https://vamostaxi.site";
 }
 
+/** Fail-open if the Workers rate-limit binding is missing (local next dev). */
+async function authWriteAllowed(): Promise<boolean> {
+  try {
+    const { env } = getCloudflareContext();
+    const h = await headers();
+    const ip = h.get("cf-connecting-ip")?.trim() || "unknown";
+    const limited = await checkWriteRateLimit({
+      limiter: env.QUOTE_RATE_LIMITER_BARE,
+      kind: "auth",
+      ip,
+    });
+    return limited.ok;
+  } catch {
+    return true;
+  }
+}
+
 function localizedHome(locale: string): string {
   return locale === routing.defaultLocale ? "/" : `/${locale}`;
 }
@@ -70,6 +89,7 @@ export async function signInAction(
     authLog("signInAction", loc.success ? loc.data : null, "invalid-input");
     return FORM_CREDENTIALS;
   }
+  if (!(await authWriteAllowed())) return FORM_CREDENTIALS;
 
   const supabase = await createServerSupabaseClient();
   const { result, reason } = await runSignInPassword(supabase, body.data);
@@ -91,6 +111,7 @@ export async function signUpAction(
     authLog("signUpAction", loc.success ? loc.data : null, "invalid-input");
     return { stage: "sent" };
   }
+  if (!(await authWriteAllowed())) return { stage: "sent" };
 
   const origin = await requestOrigin();
   const supabase = await createServerSupabaseClient();
@@ -114,6 +135,7 @@ export async function requestOtpAction(
     authLog("requestOtpAction", loc.success ? loc.data : null, "invalid-input");
     return { stage: "sent" };
   }
+  if (!(await authWriteAllowed())) return { stage: "sent" };
 
   const origin = await requestOrigin();
   const supabase = await createServerSupabaseClient();
@@ -145,6 +167,7 @@ export async function requestPasswordResetAction(
     authLog("requestPasswordResetAction", loc.success ? loc.data : null, "invalid-input");
     return { stage: "sent" };
   }
+  if (!(await authWriteAllowed())) return { stage: "sent" };
 
   const origin = await requestOrigin();
   const supabase = await createServerSupabaseClient();
@@ -164,6 +187,7 @@ export async function updatePasswordAction(password: string): Promise<AuthAction
     authLog("updatePasswordAction", null, "invalid-input");
     return FORM_CREDENTIALS;
   }
+  if (!(await authWriteAllowed())) return FORM_CREDENTIALS;
 
   const supabase = await createServerSupabaseClient();
   const { result, reason } = await runUpdatePassword(supabase, body.data.password);

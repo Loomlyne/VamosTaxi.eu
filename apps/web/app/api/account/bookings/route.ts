@@ -15,7 +15,10 @@ export async function GET(request: Request) {
   const claims = await customerClaims(request);
   const email = claims?.email;
   if (!email) {
-    return NextResponse.json({ bookings: [] }, { status: 401 });
+    return NextResponse.json(
+      { bookings: [] },
+      { status: 401, headers: { "Cache-Control": "private, no-store" } },
+    );
   }
   const { env } = await getCloudflareContext({ async: true });
   const rows = await asCustomer(env, claims, async (sql) => {
@@ -42,7 +45,10 @@ export async function GET(request: Request) {
       limit 50
     `;
   });
-  return NextResponse.json({ bookings: rows.map((row) => mapAccountBooking(row)) });
+  return NextResponse.json(
+    { bookings: rows.map((row) => mapAccountBooking(row)) },
+    { headers: { "Cache-Control": "private, no-store" } },
+  );
 }
 
 function str(value: unknown): string | undefined {

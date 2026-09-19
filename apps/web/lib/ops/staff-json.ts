@@ -20,12 +20,14 @@ export type StaffJsonHandler = (
   request: Request,
 ) => Promise<Response> | Response;
 
+const STAFF_JSON_HEADERS = { "cache-control": "private, no-store" };
+
 export function jsonOk(data: unknown, status = 200): Response {
-  return Response.json({ ok: true, data }, { status });
+  return Response.json({ ok: true, data }, { status, headers: STAFF_JSON_HEADERS });
 }
 
 export function jsonErr(code: string, status: number, extra?: Record<string, unknown>): Response {
-  return Response.json({ ok: false, code, ...(extra ?? {}) }, { status });
+  return Response.json({ ok: false, code, ...(extra ?? {}) }, { status, headers: STAFF_JSON_HEADERS });
 }
 
 const DASHBOARD_HOSTS = new Set(["dashboard.vamostaxi.site", "dashboard.localhost"]);

@@ -15,7 +15,7 @@ vi.mock("../supabase/server", () => ({
   createServerSupabaseClient: () => ({}),
 }));
 
-import { staffOriginAllowed } from "./staff-json";
+import { jsonErr, jsonOk, staffOriginAllowed } from "./staff-json";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, "../../../..");
@@ -78,6 +78,13 @@ describe("staffOriginAllowed", () => {
     );
     expect(staffOriginAllowed("https://evil-ops-changes.workers.dev")).toBe(false);
     expect(staffOriginAllowed("https://evil.example")).toBe(false);
+  });
+});
+
+describe("staff JSON cache", () => {
+  it("marks ok and err private no-store", () => {
+    expect(jsonOk({ n: 1 }).headers.get("cache-control")).toBe("private, no-store");
+    expect(jsonErr("csrf", 403).headers.get("cache-control")).toBe("private, no-store");
   });
 });
 

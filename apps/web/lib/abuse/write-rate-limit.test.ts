@@ -78,6 +78,13 @@ describe("checkWriteRateLimit fail-closed (D-11, D-13)", () => {
     expect(src).toMatch(/review:/);
     expect(src).toMatch(/auth:/);
   });
+
+  it("auth Server Actions call the same write limiter", () => {
+    const src = readRepo("apps/web/lib/auth/actions.ts");
+    expect(src).toMatch(/checkWriteRateLimit/);
+    expect(src).toMatch(/kind:\s*["']auth["']/);
+    expect(src).toMatch(/QUOTE_RATE_LIMITER_BARE/);
+  });
 });
 
 describe("contact and review write limiter (D-13, D-16)", () => {
