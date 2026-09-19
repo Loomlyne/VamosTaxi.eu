@@ -4,6 +4,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 import { customerClaims } from "@/lib/account/session";
 import { paidCancelCustomer } from "@/lib/lifecycle/paid-cancel";
+import { csrfForbidden } from "@/lib/security/origin";
 
 function json(body: unknown, status = 200): Response {
   return NextResponse.json(body, {
@@ -31,6 +32,8 @@ function bookingKey(body: unknown): string {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const blocked = csrfForbidden(request);
+  if (blocked) return blocked;
   const claims = await customerClaims(request);
   if (!claims?.email) return json({ ok: false, code: "unauthorized" }, 401);
 

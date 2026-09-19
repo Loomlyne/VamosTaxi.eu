@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { customerClaims } from "@/lib/account/session";
 import { writeCustomerFlightNo } from "@/lib/ops/edit-request";
 import { failStatus } from "@/lib/ops/edit-request-map";
+import { csrfForbidden } from "@/lib/security/origin";
 
 function json(body: unknown, status = 200): Response {
   return NextResponse.json(body, {
@@ -18,6 +19,8 @@ function str(value: unknown): string {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const blocked = csrfForbidden(request);
+  if (blocked) return blocked;
   const claims = await customerClaims(request);
   if (!claims?.email || !claims.sub) return json({ ok: false, code: "unauthorized" }, 401);
 
