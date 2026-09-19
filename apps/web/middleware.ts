@@ -16,6 +16,7 @@ import {
 } from "./lib/dc-mock-urls";
 import { publicDashboardPath } from "./lib/ops/paths";
 import { vamosRoleFromAccessToken } from "./lib/ops/session";
+import { applySecurityHeaders } from "./lib/security/headers";
 import {
   createSupabaseMiddlewareClient,
   updateSession,
@@ -143,9 +144,15 @@ async function serveOpsDc(
   const headers = new Headers();
   headers.set("content-type", "text/html; charset=utf-8");
   headers.set("Cache-Control", "private, no-store");
+  applySecurityHeaders(headers);
   const out = new NextResponse(html, { status: res.status, headers });
   copyCookies(cookieSource, out);
-  out.cookies.set("vamos_dash", "1", { path: "/", sameSite: "lax", secure: true });
+  out.cookies.set("vamos_dash", "1", {
+    path: "/",
+    sameSite: "lax",
+    secure: true,
+    httpOnly: true,
+  });
   return applyStagingNoindex(request, await updateSession(request, out));
 }
 
@@ -339,6 +346,9 @@ function applyStagingNoindex(request: NextRequest, response: NextResponse): Next
   // D-08: env.production is unused — host-split is the indexable path, not an
   // undefined DEPLOY_ENV.
   if (isDashboardHost(request) || process.env.DEPLOY_ENV === "ops-changes") {
+    response.headers.set("X-Robots-Tag", "noindex");
+  }
+  if (hostnameOf(request).endsWith(".workers.dev")) {
     response.headers.set("X-Robots-Tag", "noindex");
   }
   return response;

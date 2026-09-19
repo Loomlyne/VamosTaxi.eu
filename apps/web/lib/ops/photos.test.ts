@@ -8,6 +8,7 @@ import {
   PHOTO_MAX_BYTES,
   PHOTO_PREFIXES,
   assertPhotoUpload,
+  assertPhotoRecordId,
   buildPhotoKey,
   isReadablePhotoKey,
   photoUrl,
@@ -83,6 +84,12 @@ describe("buildPhotoKey", () => {
     const a = buildPhotoKey("vehicle", RECORD_ID, "image/jpeg");
     const b = buildPhotoKey("vehicle", RECORD_ID, "image/jpeg");
     expect(a).not.toBe(b);
+  });
+
+  it("rejects .. and slash in recordId", () => {
+    expect(() => buildPhotoKey("vehicle", "..", "image/jpeg")).toThrow(PhotoUploadError);
+    expect(() => buildPhotoKey("vehicle", "a/b", "image/jpeg")).toThrow(PhotoUploadError);
+    expect(() => assertPhotoRecordId("..")).toThrow(PhotoUploadError);
   });
 });
 

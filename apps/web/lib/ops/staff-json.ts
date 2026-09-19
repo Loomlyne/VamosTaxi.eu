@@ -32,11 +32,11 @@ const DASHBOARD_HOSTS = new Set(["dashboard.vamostaxi.site", "dashboard.localhos
 
 /** CSRF (ASVS L1): if Origin is present on a mutating staff call, it must be the dashboard. */
 export function staffOriginAllowed(origin: string | null): boolean {
-  if (!origin) return true;
+  if (!origin) return false;
   try {
     const host = new URL(origin).hostname;
     if (DASHBOARD_HOSTS.has(host)) return true;
-    return host.endsWith(".workers.dev") && host.includes("ops-changes");
+    return host.endsWith(".koussayzayeni.workers.dev") && host.includes("ops-changes");
   } catch {
     return false;
   }

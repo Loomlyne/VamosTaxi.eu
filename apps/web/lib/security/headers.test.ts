@@ -6,6 +6,7 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { applySecurityHeaders, SECURITY_HEADER_PAIRS } from "./headers";
 import { describe, expect, it } from "vitest";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -52,5 +53,21 @@ describe("security headers (D-32…D-38)", () => {
     expect(src).toMatch(/X-Robots-Tag/);
     expect(src).toMatch(/noindex/);
     expect(src).toMatch(/\/dev\/:path\*/);
+  });
+
+  it("hides X-Powered-By", () => {
+    expect(readConfig()).toMatch(/poweredByHeader:\s*false/);
+  });
+});
+
+describe("applySecurityHeaders helper", () => {
+  it("sets HSTS CSP XFO and not sentry", () => {
+    const headers = new Headers();
+    applySecurityHeaders(headers);
+    expect(headers.get("Strict-Transport-Security")).toMatch(/max-age=31536000/);
+    expect(headers.get("X-Frame-Options")).toBe("DENY");
+    expect(headers.get("Content-Security-Policy")).toMatch(/unsafe-eval/);
+    expect(headers.get("Content-Security-Policy")).not.toMatch(/sentry\.io/);
+    expect(SECURITY_HEADER_PAIRS.map(([k]) => k)).toContain("Permissions-Policy");
   });
 });

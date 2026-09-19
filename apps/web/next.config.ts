@@ -21,6 +21,8 @@ function gitShortSha(): string | undefined {
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
+
   // Build-time pin for ENGINE_VERSION (plan 04-11). Read at request time
   // from process.env.QUOTE_ENGINE_VERSION; never recomputed per request.
   // CF_PAGES_COMMIT_SHA, then GITHUB_SHA, then git rev-parse --short HEAD.
