@@ -123,13 +123,16 @@ describe("contact and review write limiter (D-13, D-16)", () => {
   it("POST /api/contact rate-limits kind contact before write and returns 429 rate_limited", () => {
     const src = readRepo("apps/web/app/api/contact/route.ts");
     const post = src.slice(src.indexOf("export async function POST"));
+    expect(post).toMatch(/csrfForbidden\(request\)/);
+    const csrfAt = post.indexOf("csrfForbidden");
+    expect(csrfAt).toBeGreaterThan(-1);
     expect(post).toMatch(/checkWriteRateLimit/);
     expect(post).toMatch(/kind:\s*["']contact["']/);
     expect(post).toMatch(/QUOTE_RATE_LIMITER/);
     expect(post).toMatch(/formFailure\(["']rate_limited["'],\s*429\)/);
     const limitAt = post.indexOf("checkWriteRateLimit");
     const writeAt = post.indexOf("submit_contact_message");
-    expect(limitAt).toBeGreaterThan(-1);
+    expect(limitAt).toBeGreaterThan(csrfAt);
     expect(writeAt).toBeGreaterThan(limitAt);
     expect(src).toMatch(/verifyTurnstile/);
     expect(src).toMatch(/action:\s*["']contact["']/);

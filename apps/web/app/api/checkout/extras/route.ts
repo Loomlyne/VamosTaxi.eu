@@ -34,11 +34,14 @@ export async function GET() {
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch {
-    return Response.json({
-      ok: true,
-      extras: [],
-      vat_rate_bps: CH_VAT_RATE_BPS,
-      max_extra_stops: 0,
-    });
+    return Response.json(
+      {
+        ok: true,
+        extras: [],
+        vat_rate_bps: CH_VAT_RATE_BPS,
+        max_extra_stops: 0,
+      },
+      { headers: { "Cache-Control": "no-store" } },
+    );
   }
 }

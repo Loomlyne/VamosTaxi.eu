@@ -64,3 +64,13 @@ describe("quote writes", () => {
     }
   });
 });
+
+describe("checkout extras cache", () => {
+  it("success and catch both send no-store", () => {
+    const src = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), "../../app/api/checkout/extras/route.ts"),
+      "utf8",
+    );
+    expect(src.match(/Cache-Control\": \"no-store\"/g)?.length).toBeGreaterThanOrEqual(2);
+  });
+});

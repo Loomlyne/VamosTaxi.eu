@@ -6,6 +6,7 @@ import { deliverContactMessages, type ContactDeliveryMessage } from "@/lib/forms
 import { contactSchema } from "@/lib/forms/schemas";
 import { formFailure, formSuccess, sendContactMessage } from "@/lib/forms/notify";
 import { contactMessageId, ticketReplyAddress } from "@/lib/ops/ticket-mail";
+import { csrfForbidden } from "@/lib/security/origin";
 import { verifyTurnstile } from "@/lib/turnstile";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +15,8 @@ type ClaimRow = { claim_state?: string; lease_token?: string };
 type SubmitRow = { id?: string };
 
 export async function POST(request: Request) {
+  const csrf = csrfForbidden(request);
+  if (csrf) return csrf;
   const { env } = getCloudflareContext();
   const bindings = env as unknown as Record<string, string | undefined>;
   let raw: unknown;
