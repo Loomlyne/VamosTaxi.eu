@@ -76,6 +76,7 @@ describe("checkWriteRateLimit fail-closed (D-11, D-13)", () => {
     expect(src).toMatch(/consent:/);
     expect(src).toMatch(/contact:/);
     expect(src).toMatch(/review:/);
+    expect(src).toMatch(/auth:/);
   });
 });
 

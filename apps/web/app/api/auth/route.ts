@@ -4,6 +4,7 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { routing } from "@/i18n/routing";
 import { customerClaims } from "@/lib/account/session";
+import { checkWriteRateLimit } from "@/lib/abuse/rate-limit";
 import { log } from "@/lib/logger";
 import {
   localeSchema,
@@ -103,6 +104,15 @@ export async function POST(request: Request): Promise<Response> {
   const blocked = csrfForbidden(request, "auth");
   if (blocked) return blocked;
   const ctx = { requestId: crypto.randomUUID(), route: "/api/auth", locale: null as string | null };
+
+  const { env } = getCloudflareContext();
+  const ip = request.headers.get("cf-connecting-ip")?.trim() || "unknown";
+  const limited = await checkWriteRateLimit({
+    limiter: env.QUOTE_RATE_LIMITER_BARE,
+    kind: "auth",
+    ip,
+  });
+  if (!limited.ok) return json(FORM_CREDENTIALS, 429);
 
   let raw: unknown;
   try {

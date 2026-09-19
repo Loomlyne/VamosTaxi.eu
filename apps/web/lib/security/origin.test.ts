@@ -23,6 +23,8 @@ describe("publicOriginAllowed", () => {
     expect(publicOriginAllowed("https://evil.example")).toBe(false);
     expect(publicOriginAllowed("https://vamostaxi.eu")).toBe(false);
     expect(publicOriginAllowed("https://other.workers.dev")).toBe(false);
+    expect(publicOriginAllowed("https://vamos.koussayzayeni.workers.dev")).toBe(false);
+    expect(publicOriginAllowed("https://evil.koussayzayeni.workers.dev")).toBe(false);
   });
 });
 
@@ -37,6 +39,8 @@ describe("authOriginAllowed", () => {
     expect(authOriginAllowed(null)).toBe(false);
     expect(authOriginAllowed("https://evil.example")).toBe(false);
     expect(authOriginAllowed("https://vamostaxi.eu")).toBe(false);
+    expect(authOriginAllowed("https://evil.koussayzayeni.workers.dev")).toBe(false);
+    expect(authOriginAllowed("https://vamos.koussayzayeni.workers.dev")).toBe(true);
   });
 });
 
@@ -77,5 +81,9 @@ describe("trustedSiteOrigin", () => {
     expect(trustedSiteOrigin("evil.example")).toBeNull();
     expect(trustedSiteOrigin("vamostaxi.eu")).toBeNull();
     expect(trustedSiteOrigin("evil.example, vamostaxi.site")).toBeNull();
+    expect(trustedSiteOrigin("vamos.koussayzayeni.workers.dev")).toBe(
+      "https://vamos.koussayzayeni.workers.dev",
+    );
+    expect(trustedSiteOrigin("evil.koussayzayeni.workers.dev")).toBeNull();
   });
 });
