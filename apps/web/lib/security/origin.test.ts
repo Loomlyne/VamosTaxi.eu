@@ -3,6 +3,7 @@ import {
   authOriginAllowed,
   csrfForbidden,
   publicOriginAllowed,
+  publicSiteOrigin,
   trustedSiteOrigin,
 } from "./origin";
 
@@ -85,5 +86,16 @@ describe("trustedSiteOrigin", () => {
       "https://vamos.koussayzayeni.workers.dev",
     );
     expect(trustedSiteOrigin("evil.koussayzayeni.workers.dev")).toBeNull();
+  });
+});
+
+describe("publicSiteOrigin", () => {
+  it("keeps public hosts and collapses dashboard/workers.dev to vamostaxi.site", () => {
+    expect(publicSiteOrigin("vamostaxi.site")).toBe("https://vamostaxi.site");
+    expect(publicSiteOrigin("www.vamostaxi.site")).toBe("https://www.vamostaxi.site");
+    expect(publicSiteOrigin("localhost:3000")).toBe("http://localhost:3000");
+    expect(publicSiteOrigin("dashboard.vamostaxi.site")).toBe("https://vamostaxi.site");
+    expect(publicSiteOrigin("vamos.koussayzayeni.workers.dev")).toBe("https://vamostaxi.site");
+    expect(publicSiteOrigin("evil.example")).toBe("https://vamostaxi.site");
   });
 });

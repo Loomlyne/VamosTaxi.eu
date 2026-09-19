@@ -29,6 +29,7 @@ import { catalogFromSurcharges } from "@/lib/checkout/extras-catalog";
 import { policyHours } from "@/lib/checkout/policy-settings";
 import { mapRateBook } from "@/lib/pricing/rateBook";
 import type { IntentRecompute } from "@/lib/quote/intent";
+import { publicSiteOrigin } from "@/lib/security/origin";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
   const body = parsed.data;
 
   const stripe = stripeFromEnv(env);
-  const origin = new URL(request.url).origin;
+  const origin = publicSiteOrigin(new URL(request.url).host);
   const current = env.QUOTE_LOCK_SECRET || "";
   const previous = env.QUOTE_LOCK_SECRET_PREVIOUS;
 

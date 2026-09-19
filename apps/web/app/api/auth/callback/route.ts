@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { routing } from "@/i18n/routing";
 import { PUBLIC_ROUTES, type PublicRoute } from "@/lib/metadata";
+import { trustedSiteOrigin } from "@/lib/security/origin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { log } from "@/lib/logger";
 
@@ -36,7 +37,7 @@ function localeHome(locale: string): string {
  * `PUBLIC_ROUTES`. Anything else (off-site, unknown, protocol-relative) falls
  * back to the locale home.
  */
-function validateAuthRedirectTarget(
+export function validateAuthRedirectTarget(
   raw: string | null,
   fallbackLocale: string,
 ): string {
@@ -87,7 +88,7 @@ export async function GET(request: Request): Promise<NextResponse> {
   const type = url.searchParams.get("type");
   const next = url.searchParams.get("next") ?? url.searchParams.get("redirect_to");
   const locale = localeFromNext(next);
-  const origin = url.origin;
+  const origin = trustedSiteOrigin(url.host) ?? "https://vamostaxi.site";
   const ctx = { requestId: crypto.randomUUID(), route: "/api/auth/callback", locale };
 
   const fail = (): NextResponse =>

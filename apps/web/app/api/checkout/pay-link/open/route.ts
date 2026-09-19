@@ -11,6 +11,7 @@ import { hashRawToken } from "@/lib/checkout/manage-token";
 import { attachPayment } from "@/lib/checkout/attach-payment";
 import { loadOpenPayment } from "@/lib/checkout/load-open-payment";
 import { payLinkPath } from "@/lib/checkout/pay-link";
+import { publicSiteOrigin } from "@/lib/security/origin";
 import {
   checkoutPaymentIntentId,
   createCheckoutSession,
@@ -98,7 +99,7 @@ export async function POST(request: Request) {
     return refuse("payment_window_closed");
   }
 
-  const origin = new URL(request.url).origin;
+  const origin = publicSiteOrigin(new URL(request.url).host);
   const locale = asLocale(String(row.locale || "en"));
   const reference = String(row.reference);
   const bookingId = String(row.booking_id);

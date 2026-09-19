@@ -62,3 +62,16 @@ export function trustedSiteOrigin(hostHeader: string | null): string | null {
   const http = hostname === "localhost" || hostname === "dashboard.localhost";
   return `${http ? "http" : "https"}://${host}`;
 }
+
+/** Stripe return URLs and emailed pay links — public site only, never dashboard/workers.dev. */
+export function publicSiteOrigin(hostHeader: string | null): string {
+  const origin = trustedSiteOrigin(hostHeader);
+  if (!origin) return "https://vamostaxi.site";
+  try {
+    const hostname = new URL(origin).hostname;
+    if (hostnameAllowed(hostname, PUBLIC_CSRF_HOSTS)) return origin;
+  } catch {
+    // fall through
+  }
+  return "https://vamostaxi.site";
+}
