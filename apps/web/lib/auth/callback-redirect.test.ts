@@ -49,3 +49,18 @@ describe("checkout public origin", () => {
     }
   });
 });
+
+describe("quote writes", () => {
+  it("Origin-CSRF before parse; dashboardHost from request URL host", () => {
+    const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
+    for (const rel of ["app/api/quote/route.ts", "app/api/quote/reprice/route.ts"]) {
+      const file = readFileSync(join(root, rel), "utf8");
+      const csrfAt = file.indexOf('csrfForbidden(request, "auth")');
+      const jsonAt = file.indexOf("request.json()");
+      expect(csrfAt, rel).toBeGreaterThan(-1);
+      expect(jsonAt, rel).toBeGreaterThan(csrfAt);
+      expect(file).toContain("isNamedDashboardHost(new URL(request.url).host)");
+      expect(file).not.toContain('request.headers.get("host")');
+    }
+  });
+});

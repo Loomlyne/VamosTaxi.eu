@@ -17,6 +17,7 @@ import {
   type PipelineRefusal,
 } from "@/lib/quote/pipeline";
 import { errorResponse, quoteResponse } from "@/lib/quote/respond";
+import { csrfForbidden } from "@/lib/security/origin";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,8 @@ function refuse(result: PipelineRefusal) {
 }
 
 export async function POST(request: Request) {
+  const csrf = csrfForbidden(request, "auth");
+  if (csrf) return csrf;
   const { env } = getCloudflareContext();
   const emit = withRequestContext({
     requestId: crypto.randomUUID(),
@@ -56,7 +59,7 @@ export async function POST(request: Request) {
   }
 
   const deps = buildQuotePipelineDeps(env, {
-    dashboardHost: isNamedDashboardHost(request.headers.get("host")),
+    dashboardHost: isNamedDashboardHost(new URL(request.url).host),
   });
 
   try {

@@ -340,7 +340,7 @@ function chauffeurConstraintCopy(err: unknown): string | null {
 
 export function fleetJsonError(err: unknown): Response {
   if (err instanceof VehicleSeatError) {
-    const message = chauffeurErrorCopy(err.key) ?? `Could not save (${err.key}).`;
+    const message = chauffeurErrorCopy(err.key) ?? "The chauffeur could not be saved.";
     return jsonErr(err.key, 409, { message });
   }
   if (err instanceof VehicleInputError) return jsonErr(err.key, 400);
@@ -361,11 +361,11 @@ export function chauffeurJsonError(err: unknown): Response {
     });
   }
   if (err instanceof VehicleSeatError) {
-    const message = chauffeurErrorCopy(err.key) ?? `Could not save (${err.key}).`;
+    const message = chauffeurErrorCopy(err.key) ?? "The chauffeur could not be saved.";
     return jsonErr(err.key, 409, { message });
   }
   if (err instanceof ChauffeurInputError) {
-    const message = chauffeurErrorCopy(err.key) ?? `Could not save (${err.key}).`;
+    const message = chauffeurErrorCopy(err.key) ?? "The chauffeur could not be saved.";
     return jsonErr(err.key, 400, { message });
   }
   const mapped = mapSqlState(err);

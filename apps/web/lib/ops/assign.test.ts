@@ -110,6 +110,7 @@ describe("chauffeur JSON 500 (K38)", () => {
     const src = read("apps/web/lib/ops/fleet-http.ts");
     expect(src).not.toMatch(/Could not save \(\$\{constraint\}\)/);
     expect(src).not.toMatch(/Postgres \$\{code\}/);
+    expect(src).not.toMatch(/Could not save \(\$\{err\.key\}\)/);
     expect(src).toMatch(/The chauffeur could not be saved/);
   });
 });
