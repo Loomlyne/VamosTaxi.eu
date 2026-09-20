@@ -58,10 +58,12 @@ describe("phase 15 DC #support", () => {
     expect(html).not.toMatch(/innerHTML\s*=/);
   });
 
-  it("badge counts new + responded; hydrate on focus/visibility; no setInterval", () => {
+  it("badge counts new + open only; closed tickets do not increment", () => {
     const html = read(SUPPORT_WRITER);
     expect(html).toMatch(/publishBadge/);
-    expect(html).toMatch(/responded/);
+    expect(html).toMatch(/s === 'new' \|\| s === 'open'/);
+    expect(html).toMatch(/closeTicket[\s\S]*publishBadge\(tickets\)/);
+    expect(html).toMatch(/publishBadge\(reverted\)/);
     expect(html).toMatch(/visibilitychange/);
     expect(html).toMatch(/addEventListener\('focus'/);
     expect(html).not.toMatch(/setInterval/);

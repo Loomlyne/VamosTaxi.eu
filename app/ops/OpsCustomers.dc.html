@@ -51,7 +51,7 @@ const TYPES = {
 };
 const T = {
   en: { title:'Customers', subtitle:'Everyone who has booked, and how to reach them',
-    colName:'Customer', colPhone:'Phone', colType:'Type', colCompany:'Company', colTrips:'Trips',
+    colName:'Customer', colEmail:'Email', colPhone:'Phone', colSince:'Customer since', colType:'Type', colCompany:'Company', colTrips:'Trips',
     cntAll:'Customers', cntCorporate:'Corporate accounts', cntTrips:'Trips booked',
     footAll:'On the books', footCorporate:'Invoiced, not card-paid', footTrips:'Across every customer',
     search:'Name, email, phone or company',
@@ -63,7 +63,7 @@ const T = {
     note:'A customer is anyone who signed in or started checkout with an email.',
   },
   de: { title:'Kunden', subtitle:'Alle, die gebucht haben, und wie man sie erreicht',
-    colName:'Kunde', colPhone:'Telefon', colType:'Typ', colCompany:'Firma', colTrips:'Fahrten',
+    colName:'Kunde', colEmail:'E-Mail', colPhone:'Telefon', colSince:'Kunde seit', colType:'Typ', colCompany:'Firma', colTrips:'Fahrten',
     cntAll:'Kunden', cntCorporate:'Firmenkonten', cntTrips:'Gebuchte Fahrten',
     footAll:'Im Bestand', footCorporate:'Auf Rechnung, nicht per Karte', footTrips:'Über alle Kunden',
     search:'Name, E-Mail, Telefon oder Firma',
@@ -75,7 +75,7 @@ const T = {
     note:'Kunde ist, wer sich angemeldet oder den Checkout mit E-Mail gestartet hat.',
   },
   fr: { title:'Clients', subtitle:'Tous ceux qui ont réservé, et comment les joindre',
-    colName:'Client', colPhone:'Téléphone', colType:'Type', colCompany:'Société', colTrips:'Courses',
+    colName:'Client', colEmail:'E-mail', colPhone:'Téléphone', colSince:'Client depuis', colType:'Type', colCompany:'Société', colTrips:'Courses',
     cntAll:'Clients', cntCorporate:'Comptes entreprises', cntTrips:'Courses réservées',
     footAll:'Au registre', footCorporate:'Facturés, pas payés par carte', footTrips:'Tous clients confondus',
     search:'Nom, e-mail, téléphone ou société',
@@ -87,7 +87,7 @@ const T = {
     note:'Un client est quiconque s’est connecté ou a commencé le paiement avec un e-mail.',
   },
   ar: { title:'العملاء', subtitle:'كل من حجز، وكيفية الوصول إليه',
-    colName:'العميل', colPhone:'الهاتف', colType:'النوع', colCompany:'الشركة', colTrips:'الرحلات',
+    colName:'العميل', colEmail:'البريد الإلكتروني', colPhone:'الهاتف', colSince:'عميل منذ', colType:'النوع', colCompany:'الشركة', colTrips:'الرحلات',
     cntAll:'العملاء', cntCorporate:'حسابات الشركات', cntTrips:'الرحلات المحجوزة',
     footAll:'في السجل', footCorporate:'بفاتورة لا ببطاقة', footTrips:'عبر كل العملاء',
     search:'الاسم أو البريد أو الهاتف أو الشركة',
@@ -180,7 +180,14 @@ class Component extends DCLogic {
         return ops.bookings.all().filter((b) => {
           const be = String(b.email || '').trim().toLowerCase();
           const bp = String(b.phone || '').replace(/\s/g, '');
-          return (email && be === email) || (phone && bp === phone);
+          if (!((email && be === email) || (phone && bp === phone))) return false;
+          const st = String(b.status || '').toLowerCase();
+          const charged = Number(b.totalRappen) > 0 || Number(b.chargedRappen) > 0;
+          const paid = !!b.paid && charged;
+          if (st === 'pending' || st === 'unpaid') return false;
+          if (st === 'cancelled' || st === 'canceled') return paid;
+          const keep = st === 'completed' || st === 'confirmed' || st === 'assigned' || st === 'paid';
+          return keep || paid;
         }).map((b) => {
           const extra = [b.klass, b.pax ? b.pax + ' pax' : '', b.flight].filter(Boolean).join(' · ');
           return {
@@ -204,10 +211,11 @@ class Component extends DCLogic {
       ],
       rows,
       columns: [
-        { key:'name', header:t.colName, kind:'stack', subKey:'email' },
+        { key:'name', header:t.colName, width:'200px' },
+        { key:'email', header:t.colEmail, width:'220px' },
         { key:'phone', header:t.colPhone, width:'170px' },
+        { key:'since', header:t.colSince, width:'150px' },
         { key:'company', header:t.colCompany, width:'190px', lookup:(r) => r.company || '—' },
-        { key:'trips', header:t.colTrips, width:'92px', align:'right' },
         { key:'type', header:t.colType, width:'130px', kind:'badge', tones:TYPES },
       ],
       fields: [

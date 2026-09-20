@@ -5,9 +5,9 @@
    Zero avatars is the shipping state (D-22). */
 (function () {
   var SOURCES = [
-    { id: "google", label: "Google", imported: true },
-    { id: "tripadvisor", label: "Tripadvisor", imported: true },
-    { id: "trustpilot", label: "Trustpilot", imported: true },
+    { id: "google", label: "Google", imported: true, logo: "/assets/reviews/google.svg" },
+    { id: "tripadvisor", label: "Tripadvisor", imported: true, logo: "/assets/reviews/tripadvisor.svg" },
+    { id: "trustpilot", label: "Trustpilot", imported: true, logo: "/assets/reviews/trustpilot.svg" },
     { id: "manual", label: "Collected by us", imported: false }
   ];
 
@@ -164,7 +164,7 @@
         source: "manual",
         rating: 5,
         published: false,
-        verified: false,
+        verified: true,
         avatarPath: null
       });
     },

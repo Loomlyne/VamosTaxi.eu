@@ -36,7 +36,7 @@
 [data-ops-tag]{display:inline-flex;align-items:center;gap:6px;min-height:22px;padding:4px 10px;border:1px solid transparent;border-radius:var(--vt-radius-pill);background:var(--vt-yellow-100);color:var(--vt-yellow-700);font-family:var(--vt-font-body);font-size:var(--vt-label-sm);font-weight:var(--vt-label-weight);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;white-space:nowrap;line-height:1.2}
 [data-vt-driver]{display:block;white-space:nowrap}
 [data-vt-quiet]{color:var(--vt-text-muted);white-space:nowrap}
-[data-vt-fare]{display:block;white-space:nowrap;font-variant-numeric:tabular-nums;font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold)}
+[data-vt-fare]{display:block;white-space:nowrap;font-variant-numeric:tabular-nums;font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);text-align:start}
 </style>
 <main style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
 <header style="display:flex;align-items:center;gap:22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle);flex-wrap:wrap">
@@ -398,7 +398,7 @@ class Component extends DCLogic {
                 ? React.createElement(DS.Badge, { tone: 'warning', icon: 'triangle-alert' }, t.unassignedCell)
                 : React.createElement('span', { 'data-ops-tag': '1' }, t.unassignedCell))
               : React.createElement('span', { 'data-vt-quiet': '1' }, '—')) },
-        { key:'total', header: t.colTotal, width:'112px', align:'right', render:(r) => React.createElement('span', { 'data-vt-fare': '1' }, fareLabel(r.totalRappen)) },
+        { key:'total', header: t.colTotal, width:'112px', align:'start', render:(r) => React.createElement('span', { 'data-vt-fare': '1' }, fareLabel(r.totalRappen)) },
       ],
       visibleRows, openRow: this.openRow,
       filtRef: this._filtRef, openNew: this.openNew, addTick: this.state.addTick || 0, editTick: this.state.editTick || 0, editId: this.state.editId || '',

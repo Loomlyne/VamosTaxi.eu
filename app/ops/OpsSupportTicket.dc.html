@@ -457,7 +457,10 @@ function fileItems(ticketId, files) {
   return out;
 }
 function publishBadge(tickets) {
-  const n = tickets.filter((row) => row.status === 'new' || row.status === 'responded').length;
+  const n = tickets.filter((row) => {
+    const s = row && row.status;
+    return s === 'new' || s === 'open';
+  }).length;
   window.__vamosSupportNew = n;
   window.dispatchEvent(new CustomEvent('vamos:support-badge', { detail: { newCount: n } }));
 }
@@ -710,6 +713,7 @@ class Component extends DCLogic {
     if (!current || current.status === 'closed') return;
     const tickets = this.state.tickets.map((t) => t.id === id ? Object.assign({}, t, { status: 'closed', last: stamp() }) : t);
     this.setState({ tickets: tickets });
+    publishBadge(tickets);
     this.persistTicket(id, { status: 'closed' }, () => this.setState({ overlayError: true }));
   };
   reopenTicket = () => {
@@ -719,9 +723,11 @@ class Component extends DCLogic {
     if (!current || current.status !== 'closed') return;
     const tickets = this.state.tickets.map((t) => t.id === id ? Object.assign({}, t, { status: 'open', last: stamp() }) : t);
     this.setState({ tickets: tickets });
+    publishBadge(tickets);
     this.persistTicket(id, { status: 'open' }, () => {
       const reverted = this.state.tickets.map((t) => t.id === id ? Object.assign({}, t, { status: 'closed' }) : t);
       this.setState({ tickets: reverted, overlayError: true });
+      publishBadge(reverted);
     });
   };
   sendReply = () => {

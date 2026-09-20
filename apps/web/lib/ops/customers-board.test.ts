@@ -72,11 +72,30 @@ describe("ops customers board", () => {
     expect(html).not.toMatch(/Traveller/);
   });
 
+  it("customers table drops Trips and lists email + since; history is paid only", () => {
+    const html = readRepo("app/ops/OpsCustomers.dc.html");
+    expect(html).toBe(readWeb("public/app/ops/OpsCustomers.dc.html"));
+    expect(html).not.toMatch(/key:'trips'/);
+    expect(html).toMatch(/key:'email'/);
+    expect(html).toMatch(/key:'since'/);
+    expect(html).toMatch(/st === 'cancelled' \|\| st === 'canceled'\) return paid/);
+    expect(html).toMatch(/!!b\.paid && charged/);
+  });
+
+  it("OpsBoard fare cell is start-aligned and matches the public twin", () => {
+    const board = readRepo("app/ops/OpsBoard.dc.html");
+    expect(board).toBe(readWeb("public/app/ops/OpsBoard.dc.html"));
+    expect(board).toMatch(/align:'start'/);
+    expect(board).toMatch(/data-vt-fare[^}]*text-align:start/);
+  });
+
   it("OpsDetail Cancel recaps then PATCHes cancelled; History tab is gone", () => {
     const html = readRepo("app/ops/OpsDetail.dc.html");
     expect(html).toBe(readWeb("public/app/ops/OpsDetail.dc.html"));
     expect(html).toMatch(/openCancel/);
     expect(html).toMatch(/status: 'cancelled'/);
+    expect(html).toMatch(/value: 'resend'/);
+    expect(html).toMatch(/\/voucher'/);
     expect(html).toMatch(/saveEdit/);
     const save = html.slice(html.indexOf("saveEdit: () =>"), html.indexOf("markRefund: ()"));
     expect(save).toMatch(/'PATCH'/);

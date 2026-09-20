@@ -56,8 +56,10 @@ describe("reviews JSON dual mount + mock", () => {
     expect(html).not.toMatch(/tViewOnSite|View on site/);
     expect(html).toMatch(/chevron-up/);
     expect(html).toMatch(/chevron-down/);
-    expect(html).toMatch(/tVerifiedHint/);
-    expect(html).toMatch(/tPublishedHint/);
+    expect(html).not.toMatch(/tVerifiedHint/);
+    expect(html).not.toMatch(/tPublishedHint/);
+    expect(html).not.toMatch(/data-av=/);
+    expect(html).toMatch(/logo: s\.logo/);
     expect(html).toMatch(/parseSourceUrl/);
     expect(html).toMatch(/togglePublish/);
     expect(html).toMatch(/data-danger/);

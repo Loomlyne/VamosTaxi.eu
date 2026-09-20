@@ -76,8 +76,6 @@
 </button>
 </div>
 
-<span data-av="1" data-fade="1" aria-hidden="true">{{ r.initials }}</span>
-
 <div data-fade="1" style="flex:1 1 auto;min-width:0">
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px">
 <strong style="font-size:var(--vt-body-md);font-weight:600">{{ r.name }}</strong>
@@ -122,7 +120,6 @@
 
 <div style="display:flex;align-items:flex-start;gap:12px">
 <div style="flex:1 1 auto;min-width:0">
-<p data-panel-k="1">{{ tEditingKicker }}</p>
 <h2 data-panel-h="1">{{ tEditingTitle }}</h2>
 </div>
 <button type="button" data-ico-btn="1" onClick="{{ closePanel }}" aria-label="{{ tClose }}" title="{{ tClose }}">
@@ -130,10 +127,7 @@
 </button>
 </div>
 
-<div style="display:flex;align-items:center;gap:14px">
-<span data-av="1" aria-hidden="true" style="width:64px;height:64px;font-size:20px;flex:0 0 auto">{{ draftInitials }}</span>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tName }}" size="md" value="{{ draftName }}" onChange="{{ setName }}" hint-size="100%,76px"></x-import>
-</div>
 
 <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
 <span data-fld-l="1">{{ tSource }}</span>
@@ -187,17 +181,6 @@
 
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tUrl }}" size="md" icon="external-link" value="{{ draftUrl }}" onChange="{{ setUrl }}" placeholder="{{ tUrlPh }}" hint-size="100%,76px"></x-import>
 <p data-url-err="1" style="display:{{ urlErrorShow }}">{{ tUrlError }}</p>
-
-<div style="display:flex;flex-direction:column;gap:12px;padding-top:14px;border-top:1px solid var(--vt-border-subtle)">
-<div style="display:flex;flex-direction:column;gap:6px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" label="{{ tVerified }}" checked="{{ draftVerified }}" onChange="{{ setVerified }}" hint-size="100%,24px"></x-import>
-<p data-switch-hint="1">{{ tVerifiedHint }}</p>
-</div>
-<div style="display:flex;flex-direction:column;gap:6px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" label="{{ tPublished }}" checked="{{ draftPublished }}" onChange="{{ setPublished }}" hint-size="100%,24px"></x-import>
-<p data-switch-hint="1">{{ tPublishedHint }}</p>
-</div>
-</div>
 
 <div style="display:flex;flex-wrap:wrap;gap:10px;padding-top:14px;border-top:1px solid var(--vt-border-subtle)">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" onClick="{{ closePanel }}" hint-size="110px,36px">{{ tDone }}</x-import>
@@ -445,7 +428,7 @@ class Component extends DCLogic {
     const store = this.store();
     const rows = this.rows();
     const cur = this.current();
-    const sourceOptions = (store ? store.SOURCES : []).map((s) => ({ value: s.id, label: s.label }));
+    const sourceOptions = (store ? store.SOURCES : []).map((s) => ({ value: s.id, label: s.label, logo: s.logo || '' }));
     const classOptions = [{ value: '', label: t.notStated }].concat(CLASSES.map((c) => ({ value: c, label: c })));
 
     const pub = rows.filter((r) => r.published).length;
@@ -493,8 +476,6 @@ class Component extends DCLogic {
       tName: t.name, tSource: t.source, tRating: t.rating,
       tRoute: t.route, tRouteHint: t.routeHint, tNoMatch: t.noMatch, locationFields, tClass: t.vehicleClass, tText: t.text, tTextPh: t.textPh,
       tUrl: t.url, tUrlPh: t.urlPh, tUrlError: t.urlError, tVerified: t.verified, tPublished: t.publishedLabel,
-      tVerifiedHint: t.verifiedHint, tPublishedHint: t.publishedHint,
-      tEditingKicker: t.editingKicker,
       tEditingTitle: cur ? (this.state.isNew && !cur.name ? t.editingNew : cur.name || t.editingNew) : t.editingNew,
 
       addNew: this.addNew, closePanel: this.closePanel,
@@ -512,7 +493,6 @@ class Component extends DCLogic {
           name: r.name || t.editingNew,
           quote: r.text ? '“' + r.text + '”' : '',
           sourceLabel: store ? store.sourceLabel(r.source) : r.source,
-          initials: this.initials(r.name),
           starsShow: r.rating > 0 ? 'flex' : 'none',
           ratingLabel: String(r.rating) + '/5',
           meta: meta, metaShow: meta ? 'inline' : 'none',
@@ -541,9 +521,6 @@ class Component extends DCLogic {
       draftUrl: draftUrl,
       draftSource: cur ? cur.source : 'manual',
       draftClass: cur && cur.vehicleClass ? cur.vehicleClass : '',
-      draftVerified: !!(cur && cur.verified),
-      draftPublished: !!(cur && cur.published),
-      draftInitials: cur ? this.initials(cur.name) : '',
       sourceOptions: sourceOptions,
       classOptions: classOptions,
       ratingButtons: [1, 2, 3, 4, 5].map((n) => ({
@@ -563,8 +540,6 @@ class Component extends DCLogic {
       },
       pickSource: (v) => this.patch({ source: v || 'manual' }),
       pickClass: (v) => this.patch({ vehicleClass: v || '' }),
-      setVerified: (e) => this.patch({ verified: e.target.checked }),
-      setPublished: (e) => this.patch({ published: e.target.checked }),
       removeDraft: () => { if (cur) this.removeRow(cur.id); },
     };
   }
