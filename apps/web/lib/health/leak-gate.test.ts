@@ -83,6 +83,9 @@ describe("no vamostaxi.eu bind (D-28)", () => {
       "",
     );
     expect(production).not.toMatch(/staging\.vamostaxi\.eu/);
+    expect(production).not.toMatch(/pnpm db:push/);
+    expect(production).not.toMatch(/pnpm db:link/);
+    expect(production).not.toMatch(/filter web deploy/);
   });
 });
 

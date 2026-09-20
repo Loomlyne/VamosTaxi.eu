@@ -141,38 +141,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Set up Supabase CLI
-        uses: supabase/setup-cli@ab058987d8d6c725971f6cf9d0b5c98467e30bd1 # v1.7.1
-        with:
-          version: 2.115.0
-
-      # `--include-seed` re-run semantics are D-27/U3, RESOLVED (02-09-SUMMARY.md post-execution
-      # fix): a second push does NOT re-run seed.sql once its content hash is recorded in
-      # supabase_migrations.seed_files -- every seed INSERT is ON CONFLICT regardless, so a
-      # changed seed file re-applying is safe either way. seed.sql also had to be restructured
-      # into a single top-level `do $do$ … $do$;` block -- Supabase's Supavisor pooler
-      # (transaction mode, what this linked connection resolves to) silently truncates a
-      # multi-statement pgx batch to its last statement, which broke `create or replace function
-      # public.__seed_apply()` + `revoke` + `select` as three separate top-level statements.
-      # These secrets are not yet configured (owner-held, see SUPABASE-RESOURCES.md), so this
-      # step fails closed until they exist — the Worker deploy was already blocked on the
-      # Cloudflare secrets (01-VERIFICATION.md). One hosted project exists today (D-37), so
-      # staging and production currently point at the same ref.
-      - name: Apply migrations + seed to production (D-21, D-27)
-        run: pnpm db:link && pnpm db:push
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
-
-      - name: Deploy Worker (production environment)
-        run: pnpm --filter web deploy --env production
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
-      # Do not smoke or bind vamostaxi.eu. Public product is vamostaxi.site.
-      - name: Smoke test — deferred (no production Worker cutover)
+      # K95: never db:push the live bookings project. Never deploy
+      # env.production (Worker name vamos-web-production). Public traffic is
+      # vamos on vamostaxi.site. Cutover stays owner-gated.
+      - name: Production cutover is owner-gated
         run: |
-          echo "No production smoke: do not bind vamostaxi.eu."
-          echo "Staging smoke is https://vamostaxi.site on deploy-staging.yml."
+          echo "K95: skip db:push and env.production deploy."
+          echo "Public Worker is vamos on vamostaxi.site."
