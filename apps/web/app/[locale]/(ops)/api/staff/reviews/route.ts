@@ -32,7 +32,8 @@ export function reviewInputFromBody(body: Record<string, unknown>): ReviewInput 
   const source = SOURCES.has(sourceRaw) ? (sourceRaw as ReviewSource) : undefined;
   const ratingRaw = body.rating;
   const rating = typeof ratingRaw === "number" ? ratingRaw : Number(ratingRaw);
-  const vehicleClassId = str(body.vehicleClassId);
+  const vehicleClassId =
+    str(body.vehicleClassId) || str(body.vehicleClassSlug) || str(body.vehicleClass);
   const avatarPath = str(body.avatarPath ?? body.avatar);
   const sourceUrl = str(body.sourceUrl ?? body.url);
   const sortRaw = body.sortOrder;

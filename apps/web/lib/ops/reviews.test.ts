@@ -15,8 +15,10 @@ import {
   assertNotLocked,
   assertReviewInput,
   loadReviews,
+  lockedContentTouched,
   parseReviewSourceUrl,
   planReorder,
+  resolveVehicleClassId,
   ReviewInputError,
   ReviewLockedError,
   type ReviewRow,
@@ -113,6 +115,35 @@ describe("assertReviewInput", () => {
     ).toThrow(ReviewInputError);
   });
 
+  it("accepts rating 0", () => {
+    const parsed = assertReviewInput({
+      authorName: "A",
+      authorRole: "",
+      body: "",
+      rating: 0,
+      routeLabel: "",
+      vehicleClassId: null,
+      avatarPath: null,
+      sourceUrl: null,
+    });
+    expect(parsed.rating).toBe(0);
+  });
+
+  it("accepts an empty body and an empty name", () => {
+    const parsed = assertReviewInput({
+      authorName: "",
+      authorRole: "",
+      body: "",
+      rating: 5,
+      routeLabel: "",
+      vehicleClassId: null,
+      avatarPath: null,
+      sourceUrl: null,
+    });
+    expect(parsed.authorName).toBe("");
+    expect(parsed.body).toBe("");
+  });
+
   it("accepts null vehicle_class_id, avatar_path and source_url", () => {
     const parsed = assertReviewInput({
       authorName: "A",
@@ -155,6 +186,97 @@ describe("assertReviewInput", () => {
         sourceUrl: "https://",
       }),
     ).toThrow(ReviewInputError);
+  });
+});
+
+describe("lockedContentTouched", () => {
+  it("does not treat name or body edits as a locked rewrite", () => {
+    const current = row({
+      id: "a",
+      source: "google",
+      locked: true,
+      authorName: "First L.",
+      authorRole: "Airport transfer, Zurich",
+      body: "One verbatim sentence",
+      rating: 5,
+    });
+    expect(
+      lockedContentTouched(current, {
+        authorName: "Ada L.",
+        authorRole: current.authorRole,
+        body: "",
+        rating: current.rating,
+        routeLabel: current.routeLabel,
+        vehicleClassId: current.vehicleClassId,
+        avatarPath: current.avatarPath,
+        sourceUrl: current.sourceUrl,
+        source: current.source,
+      }),
+    ).toBe(false);
+  });
+
+  it("still treats role or source changes as a locked rewrite", () => {
+    const current = row({ id: "a", source: "google", locked: true, rating: 5 });
+    expect(
+      lockedContentTouched(current, {
+        authorName: current.authorName,
+        authorRole: current.authorRole,
+        body: current.body,
+        rating: current.rating,
+        routeLabel: current.routeLabel,
+        vehicleClassId: current.vehicleClassId,
+        avatarPath: current.avatarPath,
+        sourceUrl: current.sourceUrl,
+        source: "tripadvisor",
+      }),
+    ).toBe(true);
+  });
+
+  it("does not treat a rating-only change as a locked rewrite", () => {
+    const current = row({ id: "a", source: "google", locked: true, rating: 5 });
+    expect(
+      lockedContentTouched(current, {
+        authorName: current.authorName,
+        authorRole: current.authorRole,
+        body: current.body,
+        rating: 0,
+        routeLabel: current.routeLabel,
+        vehicleClassId: current.vehicleClassId,
+        avatarPath: current.avatarPath,
+        sourceUrl: current.sourceUrl,
+        source: current.source,
+      }),
+    ).toBe(false);
+  });
+});
+
+describe("resolveVehicleClassId", () => {
+  beforeEach(() => {
+    asStaff.mockReset();
+  });
+
+  it("returns a UUID unchanged without a lookup", async () => {
+    const id = "22222222-2222-4222-8222-222222222222";
+    await expect(resolveVehicleClassId(env, claims, id)).resolves.toBe(id);
+    expect(asStaff).not.toHaveBeenCalled();
+  });
+
+  it("returns null for empty", async () => {
+    await expect(resolveVehicleClassId(env, claims, null)).resolves.toBeNull();
+    await expect(resolveVehicleClassId(env, claims, "")).resolves.toBeNull();
+  });
+
+  it("looks up a slug or label", async () => {
+    asStaff.mockImplementation(
+      async (_env: unknown, _claims: unknown, fn: (sql: unknown) => Promise<unknown>) => {
+        const sql = async () => [{ id: "22222222-2222-4222-8222-222222222222" }];
+        return fn(sql);
+      },
+    );
+    await expect(resolveVehicleClassId(env, claims, "Business")).resolves.toBe(
+      "22222222-2222-4222-8222-222222222222",
+    );
+    expect(asStaff).toHaveBeenCalledTimes(1);
   });
 });
 

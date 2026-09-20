@@ -154,9 +154,53 @@ export function planReorder(
  * has no trigger and no policy behind it — the database will happily accept
  * an UPDATE that rewrites a Google review's body. This function is the
  * enforcement, not a convenience.
+ *
+ * Staff may still edit `authorName`, `body` (including empty), and `rating`
+ * on imported rows. Role and source stay behind this gate.
  */
 export function assertNotLocked(row: Pick<ReviewRow, "locked">): void {
   if (row.locked) throw new ReviewLockedError();
+}
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Fields imported rows still cannot rewrite. Name, body, and rating are staff-editable. */
+export function lockedContentTouched(
+  row: Pick<ReviewRow, "authorRole" | "source">,
+  input: ReviewInput,
+): boolean {
+  return (
+    input.authorRole !== row.authorRole ||
+    (input.source ?? row.source) !== row.source
+  );
+}
+
+/**
+ * PATCH may send a vehicle_classes UUID or a slug/label (economy / Economy).
+ * Empty or unknown → null (Not stated).
+ */
+export async function resolveVehicleClassId(
+  env: CloudflareEnv,
+  claims: VamosClaims,
+  value: string | null,
+): Promise<string | null> {
+  if (!value) return null;
+  const raw = value.trim();
+  if (!raw) return null;
+  if (UUID_RE.test(raw)) return raw;
+  const needle = raw.toLowerCase();
+  const slug = needle.replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return asStaff(env, claims, async (sql) => {
+    const rows = await sql<{ id: string }[]>`
+      select id
+        from public.vehicle_classes
+       where lower(slug) = ${slug}
+          or lower(coalesce(name, '')) = ${needle}
+       limit 1
+    `;
+    return rows[0]?.id ?? null;
+  });
 }
 
 /**
@@ -195,9 +239,9 @@ export function assertReviewInput(input: ReviewInput): AssertedReviewInput {
   return {
     externalRef,
     source,
-    authorName: input.authorName,
-    authorRole: input.authorRole,
-    body: input.body,
+    authorName: typeof input.authorName === "string" ? input.authorName : "",
+    authorRole: typeof input.authorRole === "string" ? input.authorRole : "",
+    body: typeof input.body === "string" ? input.body : "",
     rating: input.rating,
     routeLabel: input.routeLabel,
     vehicleClassId,

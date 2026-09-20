@@ -47,6 +47,63 @@ describe("reviews JSON dual mount + mock", () => {
     expect(store).toMatch(/\/api\/staff\/reviews/);
   });
 
+  it("rating 0, custom dropoff, and vehicle class UUID persist on PATCH", () => {
+    const actions = readFileSync(
+      join(webRoot, "app/[locale]/(ops)/ops/reviews/actions.ts"),
+      "utf8",
+    );
+    expect(actions).toMatch(/resolveVehicleClassId/);
+    expect(actions).toMatch(/rating = \$\{parsed\.rating\}/);
+    expect(actions).toMatch(/vehicle_class_id = \$\{vehicleClassId\}/);
+    expect(actions).toMatch(/route_label = \$\{parsed\.routeLabel\}/);
+    const reviews = readFileSync(join(webRoot, "lib/ops/reviews.ts"), "utf8");
+    expect(reviews).toMatch(/input\.authorRole !== row\.authorRole/);
+    expect(reviews).not.toMatch(/input\.rating !== row\.rating/);
+    expect(reviews).toMatch(/export async function resolveVehicleClassId/);
+    const store = readFileSync(join(repoRoot, "app/vamos-reviews.js"), "utf8");
+    expect(store).toMatch(/function classIdFromRow/);
+    expect(store).toMatch(/vehicleClassId: classIdFromRow\(r\)/);
+    const html = readFileSync(join(repoRoot, "app/ops/OpsReviews.dc.html"), "utf8");
+    expect(html).toMatch(/onInput="\{\{ lf\.onChange \}\}"/);
+    expect(html).toMatch(/makeLocField\('dropoff'/);
+    expect(html).toMatch(/cur && cur\.rating === n \? 0 : n/);
+    expect(html).toMatch(/vehicleClassId: slug \? classIdOf\(v\) : null/);
+    const collection = readFileSync(
+      join(webRoot, "app/[locale]/(ops)/api/staff/reviews/route.ts"),
+      "utf8",
+    );
+    expect(collection).toMatch(/vehicleClassSlug/);
+    expect(collection).toMatch(/body\.vehicleClass/);
+  });
+
+  it("staff name/body patches persist on imported rows, including empty body", () => {
+    const actions = readFileSync(
+      join(webRoot, "app/[locale]/(ops)/ops/reviews/actions.ts"),
+      "utf8",
+    );
+    expect(actions).toMatch(/lockedContentTouched/);
+    expect(actions).not.toMatch(/\bcontentTouched\b/);
+    expect(actions).toMatch(/author_name = \$\{parsed\.authorName\}/);
+    expect(actions).toMatch(/body = \$\{parsed\.body\}/);
+    const store = readFileSync(join(repoRoot, "app/vamos-reviews.js"), "utf8");
+    expect(store).toMatch(/r\.body != null/);
+    expect(store).toMatch(/r\.text != null \? String\(r\.text\)/);
+    expect(store).toMatch(/list = nextList/);
+    const html = readFileSync(join(repoRoot, "app/ops/OpsReviews.dc.html"), "utf8");
+    expect(html).toMatch(/setName: \(e\) => this\.patch\(\{ name: e\.target\.value \}\)/);
+    expect(html).toMatch(/setText: \(e\) => this\.patch\(\{ text: e\.target\.value \}\)/);
+  });
+
+  it("public review card shows an original-review icon next to the name", () => {
+    const html = readFileSync(join(repoRoot, "app/home/Reviews.dc.html"), "utf8");
+    expect(html).toMatch(/data-rv-who/);
+    expect(html).toMatch(/data-rv-link/);
+    expect(html).toMatch(/name="external-link"/);
+    expect(html).toMatch(/\[data-rv-link\]\{[^}]*display:inline-flex/);
+    expect(html).toMatch(/aria-label="\{\{ r\.linkLabel \}\}"/);
+    expect(html).not.toMatch(/<a data-rv-link[^>]*>\{\{ r\.linkLabel \}\}/);
+  });
+
   it("OpsReviews has no photo upload, no grip drag, and no View on site", () => {
     const html = readFileSync(join(repoRoot, "app/ops/OpsReviews.dc.html"), "utf8");
     expect(html).not.toMatch(/type="file"/);

@@ -139,7 +139,12 @@
 <div style="display:flex;align-items:center;gap:2px">
 <sc-for list="{{ ratingButtons }}" as="b" hint-placeholder-count="5">
 <button type="button" data-star-btn="1" onClick="{{ b.set }}" aria-label="{{ b.label }}" title="{{ b.label }}">
+<sc-if value="{{ b.useImg }}" hint-placeholder-val="{{ false }}">
+<img src="{{ b.starSrc }}" alt="" width="20" height="20" style="display:block;width:20px;height:20px;object-fit:contain;opacity:{{ b.opacity }}">
+</sc-if>
+<sc-if value="{{ b.useLucide }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n20 }}" color="{{ b.color }}" hint-size="20px,20px"></x-import>
+</sc-if>
 </button>
 </sc-for>
 </div>
@@ -152,7 +157,7 @@
 <div data-locfield="1" style="position:relative;min-width:0">
 <div style="box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;height:44px;padding:0 12px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-pill);background:var(--vt-white)">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
-<input type="text" value="{{ lf.value }}" onChange="{{ lf.onChange }}" onFocus="{{ lf.onFocus }}" placeholder="{{ lf.placeholder }}" aria-label="{{ lf.placeholder }}" autoComplete="off" style="all:unset;box-sizing:border-box;flex:1 1 auto;min-width:0;font-family:var(--vt-font-body);font-size:14px;color:var(--vt-text-primary)">
+<input type="text" value="{{ lf.value }}" onInput="{{ lf.onChange }}" onChange="{{ lf.onChange }}" onFocus="{{ lf.onFocus }}" placeholder="{{ lf.placeholder }}" aria-label="{{ lf.placeholder }}" autoComplete="off" style="all:unset;box-sizing:border-box;flex:1 1 auto;min-width:0;font-family:var(--vt-font-body);font-size:14px;color:var(--vt-text-primary)">
 </div>
 <sc-if value="{{ lf.open }}" hint-placeholder-val="{{ false }}">
 <div role="listbox" aria-label="{{ lf.placeholder }}" style="position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:120;display:flex;flex-direction:column;gap:2px;padding:6px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg);max-height:220px;overflow-y:auto">
@@ -210,8 +215,9 @@
  *
  * One store (app/vamos-reviews.js) holds the list; this screen writes to it and the
  * site reads from it, so a review is published, hidden or reordered in one place.
- * Imported rows (Google, Tripadvisor, Trustpilot) carry the customer's own words:
- * they can be shown, hidden, reordered and annotated with the trip, never reworded.
+ * Imported rows (Google, Tripadvisor, Trustpilot) can still have their name and
+ * review text edited or cleared here. Hide them, reorder them, or add the trip
+ * around them. Everything you type is saved as you go.
  *
  * Order on this screen is order on the site — use the up and down arrows.
  * There is no drag-and-drop.
@@ -319,9 +325,27 @@ const T = {
   }
 };
 const CLASSES = ['Economy', 'Business', 'First', 'Van'];
+function classSlugOf(v) {
+  return String(v || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+function classIdOf(v) {
+  if (!v) return null;
+  const classes = (window.VamosOps && window.VamosOps.CLASSES) || [];
+  const slug = classSlugOf(v);
+  for (let i = 0; i < classes.length; i++) {
+    const c = classes[i] || {};
+    if (!c.id) continue;
+    if (String(c.id) === String(v) || classSlugOf(c.slug) === slug || classSlugOf(c.label) === slug || classSlugOf(c.name) === slug) return c.id;
+  }
+  return null;
+}
 function splitRoute(route) {
-  const parts = String(route || '').split('→').map((s) => s.trim());
-  return { pickup: parts[0] || '', dropoff: parts[1] || '' };
+  const raw = String(route || '');
+  const idx = raw.indexOf('→');
+  if (idx >= 0) return { pickup: raw.slice(0, idx).trim(), dropoff: raw.slice(idx + 1).trim() };
+  const ascii = raw.indexOf('->');
+  if (ascii >= 0) return { pickup: raw.slice(0, ascii).trim(), dropoff: raw.slice(ascii + 2).trim() };
+  return { pickup: raw.trim(), dropoff: '' };
 }
 function joinRoute(pickup, dropoff) {
   pickup = (pickup || '').trim(); dropoff = (dropoff || '').trim();
@@ -361,6 +385,13 @@ class Component extends DCLogic {
       }
       this.forceUpdate();
     });
+    const ops = window.VamosOps;
+    if (ops && ops.rates && typeof ops.rates.all === 'function') {
+      try { ops.rates.all(); } catch (e) {}
+      if (!this._classOff && typeof ops.rates.onChange === 'function') {
+        this._classOff = ops.rates.onChange(() => this.forceUpdate());
+      }
+    }
     this.forceUpdate();
   };
   componentDidMount() {
@@ -373,6 +404,7 @@ class Component extends DCLogic {
   }
   componentWillUnmount() {
     if (this._off) this._off();
+    if (this._classOff) this._classOff();
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     if (this._away) document.removeEventListener('mousedown', this._away);
     clearTimeout(this._retry);
@@ -429,7 +461,12 @@ class Component extends DCLogic {
     const rows = this.rows();
     const cur = this.current();
     const sourceOptions = (store ? store.SOURCES : []).map((s) => ({ value: s.id, label: s.label, logo: s.logo || '' }));
-    const classOptions = [{ value: '', label: t.notStated }].concat(CLASSES.map((c) => ({ value: c, label: c })));
+    const liveClasses = (window.VamosOps && window.VamosOps.CLASSES) || [];
+    const classOptions = [{ value: '', label: t.notStated }].concat(CLASSES.map((label) => {
+      const slug = classSlugOf(label);
+      const hit = liveClasses.filter((c) => classSlugOf(c.slug) === slug || classSlugOf(c.label) === slug || classSlugOf(c.name) === slug)[0];
+      return { value: slug, label: (hit && (hit.label || hit.name)) || label };
+    }));
 
     const pub = rows.filter((r) => r.published).length;
 
@@ -520,14 +557,21 @@ class Component extends DCLogic {
       draftRoute: cur ? cur.route : '',
       draftUrl: draftUrl,
       draftSource: cur ? cur.source : 'manual',
-      draftClass: cur && cur.vehicleClass ? cur.vehicleClass : '',
+      draftClass: cur && cur.vehicleClass ? classSlugOf(cur.vehicleClass) : '',
       sourceOptions: sourceOptions,
       classOptions: classOptions,
-      ratingButtons: [1, 2, 3, 4, 5].map((n) => ({
-        color: cur && n <= cur.rating ? 'var(--vt-yellow)' : 'var(--vt-grey-300)',
-        label: t.starsOf.replace('%n', String(n)),
-        set: () => this.patch({ rating: n }),
-      })),
+      ratingButtons: (function () {
+        const starSrc = cur && store && store.starSrc ? store.starSrc(cur.source) : '';
+        return [1, 2, 3, 4, 5].map((n) => ({
+          color: cur && n <= cur.rating ? 'var(--vt-yellow)' : 'var(--vt-grey-300)',
+          starSrc: starSrc,
+          useImg: !!starSrc,
+          useLucide: !starSrc,
+          opacity: cur && n <= cur.rating ? '1' : '0.22',
+          label: t.starsOf.replace('%n', String(n)),
+          set: () => this.patch({ rating: cur && cur.rating === n ? 0 : n }),
+        }));
+      }).call(this),
       setName: (e) => this.patch({ name: e.target.value }),
       setText: (e) => this.patch({ text: e.target.value }),
       setRoute: (e) => this.patch({ route: e.target.value }),
@@ -539,7 +583,10 @@ class Component extends DCLogic {
         this.patch({ url: parsed || '' });
       },
       pickSource: (v) => this.patch({ source: v || 'manual' }),
-      pickClass: (v) => this.patch({ vehicleClass: v || '' }),
+      pickClass: (v) => {
+        const slug = v ? classSlugOf(v) : '';
+        this.patch({ vehicleClass: slug, vehicleClassId: slug ? classIdOf(v) : null });
+      },
       removeDraft: () => { if (cur) this.removeRow(cur.id); },
     };
   }
