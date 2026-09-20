@@ -157,6 +157,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-swap]{display:flex;align-items:center;justify-content:center;gap:10px}
 [data-bookcard]{padding:12px;display:flex;flex-direction:column;gap:10px}
 [data-book-compact]{display:flex;flex-direction:column;gap:10px}
+[data-trip-tabs]{width:100%;min-width:0;box-sizing:border-box}
 [data-book-slots]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 [data-book-slot]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;min-height:56px;padding:8px 10px;border-radius:var(--vt-radius-field);border:1px solid var(--vt-grey-300);background:var(--vt-grey-50);cursor:pointer;text-align:start;min-width:0;font-family:var(--vt-font-body);transition:border-color .16s cubic-bezier(.2,0,.2,1),background .16s cubic-bezier(.2,0,.2,1)}
 [data-book-slot]:hover{border-color:var(--vt-charcoal-900);background:var(--vt-white)}
@@ -221,7 +222,16 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-display-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);color:var(--vt-white);max-width:16ch;text-wrap:balance">{{ tH1 }}</h1>
 <p style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-lg);line-height:1.6;color:var(--vt-text-inverse-muted);max-width:52ch;text-wrap:pretty">{{ tSub }}</p>
 </div><div id="book" data-bookcard="1" style="margin-top:clamp(20px,4vw,34px);background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-xl);scroll-margin-top:24px">
-
+<sc-if value="{{ showCompactTabs }}" hint-placeholder-val="{{ true }}">
+<div data-upto-wide="1" data-trip-tabs="1">
+<div role="tablist" aria-label="{{ tTripType }}" style="position:relative;display:flex;height:44px;padding:3px;border-radius:999px;background:var(--vt-grey-100);{{ compactTabsCss }}">
+<span aria-hidden="true" style="position:absolute;top:3px;bottom:3px;inset-inline-start:{{ pillLeft }};width:{{ pillWidth }};border-radius:999px;background:var(--vt-charcoal-900);transition:{{ pillTransition }}"></span>
+<sc-for list="{{ modes }}" as="m" hint-placeholder-count="2">
+<button type="button" role="tab" aria-selected="{{ m.sel }}" onClick="{{ m.pick }}" style="all:unset;box-sizing:border-box;position:relative;flex:1 1 0;display:flex;align-items:center;justify-content:center;font-family:var(--vt-font-body);font-size:13px;font-weight:600;letter-spacing:.01em;cursor:pointer;white-space:nowrap;z-index:1;color:{{ m.color }};transition:color .18s ease">{{ m.label }}</button>
+</sc-for>
+</div>
+</div>
+</sc-if>
 <div data-upto-wide="1" data-book-compact="1">
 <div data-book-slots="1">
 <button type="button" data-book-slot="1" onClick="{{ openSheetPickup }}" aria-haspopup="dialog" aria-expanded="{{ openExpanded }}" aria-label="{{ tSlotPickup }}: {{ compactPickup }}">
@@ -264,7 +274,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap">
 <sc-if value="{{ showModes }}" hint-placeholder-val="{{ false }}">
 <div role="tablist" aria-label="{{ tTripType }}" style="position:relative;display:flex;height:44px;padding:3px;border-radius:999px;background:var(--vt-grey-100);{{ tabsWrapCss }}">
-<span aria-hidden="true" style="position:absolute;top:3px;bottom:3px;left:{{ pillLeft }};width:{{ pillWidth }};border-radius:999px;background:var(--vt-charcoal-900);transition:{{ pillTransition }}"></span>
+<span aria-hidden="true" style="position:absolute;top:3px;bottom:3px;inset-inline-start:{{ pillLeft }};width:{{ pillWidth }};border-radius:999px;background:var(--vt-charcoal-900);transition:{{ pillTransition }}"></span>
 <sc-for list="{{ modes }}" as="m" hint-placeholder-count="3">
 <button type="button" role="tab" aria-selected="{{ m.sel }}" onClick="{{ m.pick }}" style="all:unset;box-sizing:border-box;position:relative;flex:1 1 0;display:flex;align-items:center;justify-content:center;font-family:var(--vt-font-body);font-size:13px;font-weight:600;letter-spacing:.01em;cursor:pointer;white-space:nowrap;z-index:1;color:{{ m.color }};transition:color .18s ease">{{ m.label }}</button>
 </sc-for>
@@ -2225,10 +2235,12 @@ class Component extends DCLogic {
       curOptions: Object.keys(CURS).map((v) => ({ value: v, label: v, note: dispCur(v, s.lang) })),
       mode: s.mode, setMode: this.setMode,
       tabsWrapCss: phone ? 'flex:1 1 100%' : 'flex:0 0 auto;min-width:320px',
+      compactTabsCss: 'width:100%;min-width:0;box-sizing:border-box',
       pillLeft: 'calc(3px + (100% - 6px) * ' + modeIdx + ' / ' + modeCount + ')', pillWidth: 'calc((100% - 6px) / ' + modeCount + ')',
-      pillTransition: REDUCED ? 'none' : 'left .22s cubic-bezier(.2,0,.2,1), width .22s cubic-bezier(.2,0,.2,1)',
+      pillTransition: REDUCED ? 'none' : 'inset-inline-start .22s cubic-bezier(.2,0,.2,1), width .22s cubic-bezier(.2,0,.2,1)',
       tTripType: t.tripType,
       showModes: true,
+      showCompactTabs: s.tier < 2 && !sheetOpen,
       showModeNote: s.mode === 'fixed',
       showModeBar: true,
       modes: modesList.map((m) => ({ id: m.id, label: m.label, sel: m.id === s.mode ? 'true' : 'false', color: m.id === s.mode ? 'var(--vt-white)' : 'var(--vt-text-secondary)', pick: () => this.setMode(m.id) })),
