@@ -11,12 +11,24 @@
 <main data-ops-detail="1" style="flex:1 1 auto;min-width:0;padding:22px 28px 48px">
 <style>
 [data-ops-detail]{--vt-shadow-accent:none;display:flex;flex-direction:column;gap:14px}
-[data-ops-detail-bar]{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+[data-ops-detail-bar]{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:start;column-gap:12px;row-gap:10px;width:100%}
+[data-ops-bar-nav]{grid-column:1;display:flex;flex-wrap:nowrap;align-items:center}
+[data-ops-bar-main]{grid-column:2;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
+[data-ops-bar-end]{grid-column:3;justify-self:end;margin-inline-start:auto;display:flex;flex-wrap:nowrap;align-items:center;gap:8px}
+[data-ops-bar-cluster]{display:flex;flex-wrap:nowrap;align-items:center;gap:8px}
+[data-ops-bar-cluster]:not(:has(x-import,button,.vt-btn)){display:none}
+[data-ops-bar-cluster]:has(.vt-btn)~[data-ops-bar-cluster]:has(.vt-btn),[data-ops-bar-cluster]:has(x-import)~[data-ops-bar-cluster]:has(x-import){padding-inline-start:16px;border-inline-start:1px solid var(--vt-border-subtle)}
+@media (max-width:860px){
+[data-ops-detail-bar]{grid-template-columns:auto minmax(0,1fr)}
+[data-ops-bar-nav]{grid-column:1;grid-row:1}
+[data-ops-bar-end]{grid-column:2;grid-row:1;justify-self:end}
+[data-ops-bar-main]{grid-column:1/-1;grid-row:2}
+}
 [data-ops-detail-col]{min-width:0;width:100%;display:flex;flex-direction:column;gap:14px}
 [data-ops-route-leg]{display:grid;grid-template-columns:14px minmax(0,1fr);grid-template-rows:auto auto auto;column-gap:12px;align-items:stretch}
 [data-ops-route-pip]{grid-column:1;grid-row:1;align-self:start;margin-top:4px;position:relative;z-index:1;inline-size:10px;block-size:10px;border-radius:var(--vt-radius-pill);background:var(--vt-accent);border:2px solid var(--vt-charcoal-900);box-sizing:content-box}
 [data-ops-route-pip-end]{grid-column:1;grid-row:3;align-self:start;margin-top:4px;position:relative;z-index:1;inline-size:10px;block-size:10px;border-radius:var(--vt-radius-pill);background:var(--vt-charcoal-900);border:2px solid var(--vt-charcoal-900);box-sizing:content-box}
-[data-ops-route-line]{grid-column:1;grid-row:1/4;justify-self:center;align-self:stretch;width:2px;margin:16px 0;background:var(--vt-charcoal-900);opacity:.28;z-index:0}
+[data-ops-route-line]{grid-column:1;grid-row:1/3;justify-self:center;align-self:stretch;width:2px;margin:4px 0 -4px;background:var(--vt-charcoal-900);opacity:.28;z-index:0}
 [data-ops-history-toggle]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;margin:0 0 12px;cursor:pointer;font:inherit;color:inherit}
 [data-ops-route-stop]{grid-column:2;grid-row:1;min-width:0}
 [data-ops-route-mid]{grid-column:2;grid-row:2;display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0 12px}
@@ -28,22 +40,41 @@
 [data-ops-tags]{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
 [data-ops-tag]{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:4px 10px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);background:var(--vt-bg-surface);font-family:var(--vt-font-body);font-size:var(--vt-body-xs);line-height:1.3;color:var(--vt-text-primary)}
 [data-ops-tag] b{font-weight:600;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-muted);font-size:10px}
+[data-ops-assign-head]{display:flex;align-items:center;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--vt-border-subtle)}
+[data-ops-assign-body]{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:12px}
+[data-ops-assign-list]{flex:1 1 220px;min-width:0}
+[data-ops-assign-side]{flex:0 0 auto;display:flex;align-items:center;gap:8px}
+[data-ops-assign-side]:not(:has(.vt-btn,x-import)){display:none}
+[data-ops-pax] > h3{overflow:visible;white-space:normal}
+[data-ops-pax-grid]{display:grid;grid-template-columns:minmax(7rem,132px) minmax(0,1fr);gap:8px 14px;align-items:start;font-family:var(--vt-font-body);font-size:var(--vt-body-sm)}
+[data-ops-pax-k]{color:var(--vt-text-muted);min-width:0;padding-top:2px}
+[data-ops-pax-v]{min-width:0;overflow-wrap:anywhere;color:var(--vt-text-primary);line-height:1.4}
+[data-ops-pax-facts]{display:inline-flex;align-items:center;gap:12px;flex-wrap:wrap}
+[data-ops-pax-facts] [data-vt-pb]{display:inline-flex;align-items:center;gap:6px}
 </style>
 <div data-ops-detail-bar data-ops-detail-acts>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" icon="chevron-left" onClick="{{ goBack }}" hint-size="auto,36px">{{ tBackToBookings }}</x-import>
+<div data-ops-bar-nav>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="chevron-left" onClick="{{ goBack }}" hint-size="auto,36px">{{ tBackToBookings }}</x-import>
+</div>
+<div data-ops-bar-main>
 <sc-if value="{{ viewing }}" hint-placeholder-val="{{ true }}">
+<div data-ops-bar-cluster data-ops-bar-assign>
 <sc-if value="{{ canAssign }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="{{ assignVariant }}" onClick="{{ openAssignDialog }}" hint-size="170px,36px">{{ assignLabel }}</x-import>
 </sc-if>
 <sc-if value="{{ canUnassign }}" hint-placeholder-val="{{ false }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ confirmUnassign }}" hint-size="110px,36px">{{ tUnassign }}</x-import>
 </sc-if>
+</div>
+<div data-ops-bar-cluster data-ops-bar-utils>
 <sc-if value="{{ canResend }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="secondary" icon="mail" onClick="{{ resendVoucher }}" hint-size="170px,36px">{{ tResendVoucher }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="mail" onClick="{{ resendVoucher }}" hint-size="170px,36px">{{ tResendVoucher }}</x-import>
 </sc-if>
 <sc-if value="{{ canEdit }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="pencil" onClick="{{ openEdit }}" hint-size="140px,36px">{{ tEditBooking }}</x-import>
 </sc-if>
+</div>
+<div data-ops-bar-cluster data-ops-bar-trip>
 <sc-if value="{{ canMarkArrival }}" hint-placeholder-val="{{ false }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="secondary" icon="clock" onClick="{{ markArrival }}" hint-size="140px,36px">{{ tMarkArrival }}</x-import>
 </sc-if>
@@ -53,6 +84,11 @@
 <sc-if value="{{ canNoShow }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ markNoShow }}" hint-size="120px,36px">{{ tNoShow }}</x-import>
 </sc-if>
+</div>
+</sc-if>
+</div>
+<div data-ops-bar-end>
+<sc-if value="{{ viewing }}" hint-placeholder-val="{{ true }}">
 <sc-if value="{{ canCancel }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="danger" icon="x" onClick="{{ openCancel }}" hint-size="110px,36px">{{ tCancelBooking }}</x-import>
 </sc-if>
@@ -61,9 +97,10 @@
 </sc-if>
 </sc-if>
 <sc-if value="{{ editing }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ saveEdit }}" hint-size="150px,36px">{{ tContinue }}</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ cancelEdit }}" hint-size="110px,36px">{{ tCancelEdit }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ saveEdit }}" hint-size="150px,36px">{{ tContinue }}</x-import>
 </sc-if>
+</div>
 </div>
 <div data-ops-detail-col>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" hint-size="100%,600px">
@@ -117,24 +154,33 @@
 </sc-for>
 </div>
 
-<div>
-<div style="display:flex;align-items:flex-end;gap:16px;padding-bottom:12px;border-bottom:1px solid var(--vt-border-subtle)">
+<div data-ops-assign>
+<div data-ops-assign-head>
 <span style="flex:1 1 auto;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:600;color:var(--vt-text-muted)">{{ tAssignment }}</span>
 </div>
-<div style="margin-top:12px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.List" hint-size="100%,120px">
+<div data-ops-assign-body>
+<div data-ops-assign-list>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.List" hint-size="100%,72px">
 <sc-if value="{{ hasDriver }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.ListRow" icon="car-front" title="{{ driverName }}" subtitle="{{ driverSubtitle }}" meta="{{ tOnShift }}" hint-size="100%,60px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.ListRow" icon="car-front" title="{{ driverName }}" subtitle="{{ driverVehicle }}" hint-size="100%,60px"></x-import>
 </sc-if>
 <sc-if value="{{ noDriver }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.ListRow" icon="triangle-alert" title="{{ tNoDriver }}" subtitle="{{ tNoDriverSub }}" hint-size="100%,60px"></x-import>
 </sc-if>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.ListRow" icon="user" title="{{ booking.customer }}" subtitle="{{ booking.email }}" hint-size="100%,60px"></x-import>
 </x-import>
+</div>
+<div data-ops-assign-side>
+<sc-if value="{{ showAssignSide }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ openAssignDialog }}" hint-size="140px,36px">{{ tAssign }}</x-import>
+</sc-if>
+<sc-if value="{{ canUnassign }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ confirmUnassign }}" hint-size="110px,36px">{{ tUnassign }}</x-import>
+</sc-if>
+</div>
 </div>
 </div>
 
-<div>
+<div data-ops-pax>
 <h3 style="margin:0 0 12px;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:600;color:var(--vt-text-muted)">{{ tPassengerTrip }}</h3>
 <sc-if value="{{ editing }}" hint-placeholder-val="{{ false }}">
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
@@ -152,11 +198,18 @@
 </div>
 </sc-if>
 <sc-if value="{{ viewing }}" hint-placeholder-val="{{ true }}">
-<div style="display:grid;grid-template-columns:132px 1fr;gap:8px 14px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm)">
-<span style="color:var(--vt-text-muted)">{{ tEmail }}</span><span data-vt-no-i18n="1">{{ booking.email }}</span>
-<span style="color:var(--vt-text-muted)">{{ tMobile }}</span><span data-vt-no-i18n="1">{{ booking.phone }}</span>
-<span style="color:var(--vt-text-muted)">{{ tPayLink }}</span><span>{{ booking.payLink }}</span>
-<span style="color:var(--vt-text-muted)">{{ tSession }}</span><span>{{ booking.sessionLeft }}</span>
+<div data-ops-pax-grid>
+<span data-ops-pax-k>{{ tCustomer }}</span>
+<span data-ops-pax-v data-vt-no-i18n="1">{{ passengerName }}</span>
+<span data-ops-pax-k>{{ tEmail }}</span>
+<span data-ops-pax-v data-vt-no-i18n="1">{{ emailTitle }}</span>
+<span data-ops-pax-k>{{ tMobile }}</span>
+<span data-ops-pax-v data-vt-no-i18n="1">{{ phoneTitle }}</span>
+<span data-ops-pax-k>{{ tPassengers }}</span>
+<span data-ops-pax-v data-ops-pax-facts>
+<span data-vt-pb="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="users" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import><span data-vt-no-i18n="1">{{ paxText }}</span></span>
+<span data-vt-pb="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="luggage" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import><span data-vt-no-i18n="1">{{ bagsText }}</span></span>
+</span>
 </div>
 </sc-if>
 </div>
@@ -186,9 +239,14 @@
 <div data-ops-history>
 <button type="button" data-ops-history-toggle onClick="{{ toggleHistory }}" aria-expanded="{{ historyOpen }}">
 <span style="flex:1 1 auto;margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:600;color:var(--vt-text-muted)">{{ tHistory }}</span>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ historyChevron }}" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
+<sc-if value="{{ historyOpen }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-up" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
+</sc-if>
+<sc-if value="{{ historyClosed }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
+</sc-if>
 </button>
-<sc-if value="{{ historyOpen }}" hint-placeholder-val="{{ true }}">
+<sc-if value="{{ historyOpen }}" hint-placeholder-val="{{ false }}">
 <sc-if value="{{ historyEmpty }}" hint-placeholder-val="{{ true }}">
 <p style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-muted)">{{ tHistoryEmpty }}</p>
 </sc-if>
@@ -221,8 +279,6 @@
 <sc-if value="{{ isRefunded }}" hint-placeholder-val="{{ false }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="success" title="{{ tRefundedTitle }}" hint-size="100%,70px">{{ tRefundedBody }}</x-import>
 </sc-if>
-
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ tDispatcherNote }}" rows="{{ n2 }}" placeholder="{{ tDispatcherNotePh }}" hint-size="100%,90px"></x-import>
 </div>
 </x-import>
 
@@ -293,39 +349,69 @@ function eventTitle(kind, t) {
 }
 function fareLineLabel(code, klass, t) {
   if (code === 'distance_fare' || code === 'fare' || code === 'transfer') return t.lineTransfer + (klass || '');
-  if (code === 'child_seat') return extraLabel(code);
-  if (code === 'oversized_luggage') return extraLabel(code);
-  if (code === 'extra_stop') return extraLabel(code);
-  if (code === 'meet_greet') return 'Meet and greet';
-  if (code === 'coupon') return t.coupon;
+  if (code === 'child_seat' || code === 'oversized_luggage' || code === 'extra_stop' || code === 'ski' || code === 'ski_rack' || code === 'meet_greet' || code === 'meet-and-greet') return extraLabel(code);
+  if (code === 'coupon' || code === 'discount') return t.coupon;
+  if (code === 'vat' || code === 'mwst') return t.vat;
   return String(code || '').replace(/_/g, ' ');
+}
+function storedVatRappen(booking) {
+  const raw = booking.vatRappen != null ? booking.vatRappen : (booking.vat_rappen != null ? booking.vat_rappen : booking.vat);
+  if (raw == null || raw === '') return null;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+function fareLineHas(lines, codes) {
+  for (let i = 0; i < lines.length; i++) {
+    if (codes.indexOf(lines[i].code) !== -1) return true;
+  }
+  return false;
 }
 function fareBreakdown(booking, t) {
   const klass = booking.klass || booking.vehicle || '';
   const stored = Array.isArray(booking.fareLines) ? booking.fareLines : [];
+  const extras = Array.isArray(booking.extras) ? booking.extras : [];
+  const extraMoney = Number(booking.extraRappen) || 0;
+  const extraCodes = { child_seat:1, oversized_luggage:1, extra_stop:1, ski:1, ski_rack:1, meet_greet:1, 'meet-and-greet':1, extras:1 };
+  const rows = [];
+  const push = (code, label, rappen) => {
+    rows.push({
+      code: code || '',
+      label: label,
+      value: rappen == null || !Number.isFinite(Number(rappen)) ? t.included : fareLabel(rappen),
+    });
+  };
   if (stored.length) {
-    return stored.map((line) => {
+    stored.forEach((line) => {
       const rappen = line.rappen == null || line.rappen === '' ? null : Number(line.rappen);
-      return {
-        label: line.label || fareLineLabel(line.code, klass, t),
-        value: Number.isFinite(rappen) ? fareLabel(rappen) : t.included,
-      };
+      push(line.code, line.label || fareLineLabel(line.code, klass, t), Number.isFinite(rappen) ? rappen : null);
     });
+  } else {
+    const total = Number(booking.totalRappen) || 0;
+    const transfer = extraMoney > 0 && total > extraMoney ? total - extraMoney : total;
+    push('transfer', t.lineTransfer + klass, transfer);
+    if (extraMoney > 0) push('extras', t.extras, extraMoney);
   }
-  const total = Number(booking.totalRappen) || 0;
-  const extra = Number(booking.extraRappen) || 0;
-  const transfer = extra > 0 && total > extra ? total - extra : total;
-  const lines = [{ label: t.lineTransfer + klass, value: fareLabel(transfer) }];
-  if (extra > 0) lines.push({ label: t.extras, value: fareLabel(extra) });
-  else {
-    (Array.isArray(booking.extras) ? booking.extras : []).forEach((code) => {
-      const name = extraLabel(code);
-      if (name) lines.push({ label: name, value: t.included });
-    });
+  const hasExtraMoney = extraMoney > 0 && (fareLineHas(rows, ['extras']) || rows.some((r) => extraCodes[r.code] && r.value !== t.included));
+  if (extraMoney > 0 && !hasExtraMoney && !fareLineHas(rows, ['extras'])) {
+    push('extras', t.extras, extraMoney);
   }
-  if (booking.couponCode) lines.push({ label: t.coupon + ' ' + booking.couponCode, value: t.included });
-  if (Number(booking.refundRappen) > 0) lines.push({ label: t.evRefund, value: fareLabel(booking.refundRappen) });
-  return lines;
+  extras.forEach((code) => {
+    const name = extraLabel(code);
+    if (!name) return;
+    if (rows.some((r) => r.code === code || r.label === name)) return;
+    if (fareLineHas(rows, ['extras']) && extraMoney > 0) return;
+    push(code, name, null);
+  });
+  const vat = storedVatRappen(booking);
+  if (vat != null && !fareLineHas(rows, ['vat', 'mwst'])) push('vat', t.vat, vat);
+  const coupon = String(booking.couponCode || '').trim();
+  if (coupon && !fareLineHas(rows, ['coupon', 'discount'])) {
+    push('coupon', t.coupon + ' ' + coupon, null);
+  }
+  if (Number(booking.refundRappen) > 0 && !fareLineHas(rows, ['refund'])) {
+    push('refund', t.evRefund, booking.refundRappen);
+  }
+  return rows.map((r) => ({ label: r.label, value: r.value }));
 }
 function eventWhen(at) {
   const raw = String(at || '');
@@ -360,6 +446,7 @@ function extraLabel(code) {
   if (code === 'oversized_luggage') return 'Oversized luggage';
   if (code === 'extra_stop') return 'Extra stop';
   if (code === 'meet_greet' || code === 'meet-and-greet') return 'Meet and greet';
+  if (code === 'ski' || code === 'ski_rack') return 'Ski rack';
   return String(code || '');
 }
 function hexToUtf8(hex) {
@@ -388,7 +475,6 @@ const T = {
     sendPayLink:'Send pay-link', takeCard:'Take card', payCard:'Pay', payLinkSent:'Pay-link sent to ', payLinkFailed:'Could not send pay-link ', cardFailed:'Card failed ',
     refundTitle:'Refund due', refundBody:'Cancelled inside the free window. The customer is emailed that a refund will be issued to their bank account. When you mark it issued, they get a second email.',
     refundedTitle:'Refund issued', refundedBody:'The customer has been emailed that the refund was issued to their bank account.',
-    dispatcherNote:'Dispatcher note', dispatcherNotePh:'Add a note visible to dispatch only…',
     resendVoucher:'Resend voucher', editBooking:'Edit booking', cancelBooking:'Cancel', complete:'Complete', noShow:'No-show', markArrival:'Mark arrival', arrived:'Arrived', extraWait:'Extra wait', arrivalFailed:'Could not mark arrival ', driver:'Driver', manualNote:'Assignment is manual in V1 — there is no driver app and no automatic dispatch.', cancel:'Cancel',
     cancelTitle:'Cancel this booking?', cancelBody:'It is marked cancelled. You will still see it under Cancelled.',
     cancelBodyUnpaid:'This unpaid trip is removed. It does not stay under Cancelled.',
@@ -401,7 +487,7 @@ const T = {
     pickChauffeur:'Pick a chauffeur first.', voucherFailed:'Could not resend voucher ',
     website:'Website', stripeWebhook:'Stripe webhook', resend:'Resend', dispatch:'Dispatch',
     lineTransfer:'Transfer, ', lineAirportFee:'Airport pickup fee',
-    coupon:'Coupon', extras:'Extras', noCoupon:'None', noExtras:'None', noFlight:'None', unassigned:'Unassigned', dropUnknown:'Not stored', minutes:' min',
+    coupon:'Coupon', extras:'Extras', vat:'VAT', noCoupon:'None', noExtras:'None', noFlight:'None', unassigned:'Unassigned', dropUnknown:'Not stored', minutes:' min',
     vehicleAssigned:'Vehicle', when:'When',
     cardPaid:'Card payment', cardRefund:'Refund to the card', bookedSite:'Booked on the website', emailed:'Email sent', dispatcher:'Dispatcher',
     saveEdit:'Save changes', cancelEdit:'Cancel', markRefund:'Refund',
@@ -426,7 +512,6 @@ const T = {
     outstandingTitle:'Zahlung ausstehend', outstandingBody:'Keine Kartenzahlung. Zahlungslink senden oder die Checkout-Session abwarten.',
     refundTitle:'Rückerstattung fällig', refundBody:'Storniert innerhalb des kostenlosen Fensters. Der Kunde erhält eine E-Mail, dass die Rückerstattung auf sein Bankkonto ausgezahlt wird. Wenn Sie sie als ausgezahlt markieren, folgt eine zweite E-Mail.',
     refundedTitle:'Rückerstattung ausgezahlt', refundedBody:'Der Kunde wurde per E-Mail informiert, dass die Rückerstattung auf sein Bankkonto ausgezahlt wurde.',
-    dispatcherNote:'Dispatcher-Notiz', dispatcherNotePh:'Notiz hinzufügen, nur für Dispatch sichtbar…',
     resendVoucher:'Gutschein erneut senden', editBooking:'Buchung bearbeiten', cancelBooking:'Stornieren', complete:'Abgeschlossen', noShow:'No-show', markArrival:'Ankunft markieren', arrived:'Angekommen', extraWait:'Extra-Wartezeit', arrivalFailed:'Ankunft konnte nicht markiert werden ', driver:'Fahrer', manualNote:'Die Zuweisung erfolgt in V1 manuell — es gibt keine Fahrer-App und keine automatische Vermittlung.', cancel:'Abbrechen',
     cancelTitle:'Diese Buchung stornieren?', cancelBody:'Sie wird als storniert markiert. Unter Storniert bleibt sie sichtbar.',
     cancelBodyUnpaid:'Diese unbezahlte Fahrt wird entfernt. Unter Storniert bleibt sie nicht.',
@@ -438,6 +523,7 @@ const T = {
     pickChauffeur:'Zuerst einen Fahrer wählen.', voucherFailed:'Gutschein konnte nicht gesendet werden ',
     website:'Website', stripeWebhook:'Stripe-Webhook', resend:'Resend', dispatch:'Dispatch',
     lineTransfer:'Transfer, ', lineAirportFee:'Flughafengebühr',
+    coupon:'Gutschein', extras:'Extras', vat:'MwSt.', included:'Inklusive',
     saveEdit:'Änderungen speichern', cancelEdit:'Abbrechen', markRefund:'Rückerstatten',
     customer:'Name', pickup:'Abholung', dropoff:'Ziel', date:'Datum', time:'Uhrzeit', bagsLabel:'Gepäck',
  continue:'Weiter', accept:'Annehmen',
@@ -454,7 +540,7 @@ const T = {
     flightBanner:'Flugnummer aktualisiert',
  },
   fr: {
-    unassign:'Désassigner', historyEmpty:'Aucun événement.',
+    unassign:'Désassigner', historyEmpty:'Aucun événement.', passengerTrip:'Passager et trajet',
     overlap:'Chevauche {ref} à {time}', noEmail:'Impossible d’assigner tant que ce chauffeur n’a pas d’e-mail.', noVehicle:'Impossible d’assigner tant que ce chauffeur n’a pas de véhicule.',
     notPaid:'Les courses non payées ne peuvent pas être assignées.', frozen:'Cette course est gelée.', capacity:'Ce véhicule ne peut pas prendre les passagers et bagages de cette course.', assignFailed:'Assignation impossible pour ',
     pickChauffeur:'Choisissez d’abord un chauffeur.', voucherFailed:'Impossible de renvoyer le bon ',
@@ -474,9 +560,10 @@ const T = {
     markArrival:'Marquer l’arrivée', arrived:'Arrivé', extraWait:'Attente extra', arrivalFailed:'Impossible de marquer l’arrivée ',
     cancelBodyUnpaid:'Cette course non payée est supprimée. Elle n’apparaît pas sous Annulé.',
     confirmCancelUnpaid:'Supprimer la réservation', bookingRemoved:'Supprimé ',
+    coupon:'Code promo', extras:'Extras', vat:'TVA', included:'Inclus',
   },
   ar: {
-    unassign:'إلغاء التعيين', historyEmpty:'لا أحداث بعد.',
+    unassign:'إلغاء التعيين', historyEmpty:'لا أحداث بعد.', passengerTrip:'الراكب والرحلة',
     overlap:'يتداخل مع {ref} عند {time}', noEmail:'لا يمكن التعيين قبل وجود بريد إلكتروني لهذا السائق.', noVehicle:'لا يمكن التعيين قبل وجود مركبة لهذا السائق.',
     notPaid:'لا يمكن تعيين الرحلات غير المدفوعة.', frozen:'هذه الرحلة مجمّدة.', capacity:'هذه المركبة لا تتسع لركاب وأمتعة هذه الرحلة.', assignFailed:'تعذّر التعيين لـ ',
     pickChauffeur:'اختر سائقاً أولاً.', voucherFailed:'تعذّر إعادة إرسال القسيمة ',
@@ -496,10 +583,11 @@ const T = {
     markArrival:'تسجيل الوصول', arrived:'وصل', extraWait:'انتظار إضافي', arrivalFailed:'تعذّر تسجيل الوصول لـ ',
     cancelBodyUnpaid:'تُحذف هذه الرحلة غير المدفوعة. لن تبقى ضمن الملغاة.',
     confirmCancelUnpaid:'حذف الحجز', bookingRemoved:'حُذف ',
+    coupon:'قسيمة', extras:'إضافات', vat:'ضريبة القيمة المضافة', included:'مشمول',
   },
 };
 class Component extends DCLogic {
-  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', dialogOpen:false, cancelOpen:false, pickDriver:'', toastMsg:'', showToast:false, editing:false, edit:{}, takeCardOpen:false, historyOpen:true };
+  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', dialogOpen:false, cancelOpen:false, pickDriver:'', toastMsg:'', showToast:false, editing:false, edit:{}, takeCardOpen:false, historyOpen:false };
   toggleHistory = () => this.setState((s) => ({ historyOpen: !s.historyOpen }));
   componentDidUpdate(prevProps, prevState) {
     const overlay = !!(this.state.dialogOpen || this.state.cancelOpen);
@@ -620,7 +708,7 @@ class Component extends DCLogic {
       tags.splice(3, 0, { icon: 'car', k: t.vehicleAssigned, v: booking.vehicle });
     }
     return {
-      n2:2, n14:14, n15:15, n16:16, yes:true,
+      n14:14, n15:15, n16:16, yes:true,
       tBackToBookings: t.backToBookings, tMoreActions: t.moreActions, tBookedBy: t.bookedBy,
       goBack: () => {
         history.pushState({}, '', '/bookings');
@@ -660,19 +748,29 @@ class Component extends DCLogic {
           }
         });
       },
-      hasDriver: !!assignedDriver, noDriver: !assignedDriver,
-      driverName: assignedDriver || '', driverSubtitle: booking.vehicle + ' · ' + t.onShift, tOnShift: t.onShift,
+      hasDriver: !!assignedDriver, noDriver: !assignedDriver, showAssignSide: !assignedDriver && canAssign,
+      driverName: assignedDriver || '', driverVehicle: booking.vehicle || '',
       tNoDriver: t.noDriver, tNoDriverSub: t.noDriverSub,
       tPassengerTrip: t.passengerTrip, tPassengers: t.passengers, tBags: t.bags, tVehicleClass: t.vehicleClass,
       tFlight: t.flight, tEmail: t.email, tMobile: t.mobile, tPayment: t.payment, tPayLink: t.payLink, tSession: t.session,
+      passengerName: String(booking.customer || '').trim() || '—',
+      emailTitle: String(booking.email || '').trim() || '—',
+      phoneTitle: String(booking.phone || '').trim() || '—',
+      paxText: String(booking.pax ?? ''),
+      bagsText: String(booking.bags ?? ''),
+      hasEmail: !!String(booking.email || '').trim(),
+      noEmail: !String(booking.email || '').trim(),
+      hasPhone: !!String(booking.phone || '').replace(/[^\d+]/g, ''),
+      noPhone: !String(booking.phone || '').replace(/[^\d+]/g, ''),
+      openMail: () => { const m = String(booking.email || '').trim(); if (m) window.location.href = 'mailto:' + m; },
+      openTel: () => { const p = String(booking.phone || '').replace(/[^\d+]/g, ''); if (p) window.location.href = 'tel:' + p; },
       tFare: t.fare, fareLines, tTotalLabel: booking.paid ? t.paid : t.due, tFareNote: t.fareNote,
       tHistory: t.history, tHistoryEmpty: t.historyEmpty, historyRows, historyEmpty: historyRows.length === 0, historyHas: historyRows.length > 0,
-      historyOpen: this.state.historyOpen !== false, historyChevron: this.state.historyOpen === false ? 'chevron-down' : 'chevron-up', toggleHistory: this.toggleHistory,
+      historyOpen: !!this.state.historyOpen, historyClosed: !this.state.historyOpen, toggleHistory: this.toggleHistory,
       isPending: !booking.paid && !cancelled, isCancelled: booking.status === 'cancelled', isRefunded: booking.status === 'refunded',
       tOutstandingTitle: t.outstandingTitle, tOutstandingBody: t.outstandingBody, tRefundTitle: t.refundTitle, tRefundBody: t.refundBody,
       tRefundedTitle: t.refundedTitle, tRefundedBody: t.refundedBody,
       tSendPayLink: t.sendPayLink, tTakeCard: t.takeCard, tPayCard: t.payCard, takeCardOpen: !!this.state.takeCardOpen,
-      tDispatcherNote: t.dispatcherNote, tDispatcherNotePh: t.dispatcherNotePh,
       tResendVoucher: t.resendVoucher, tEditBooking: t.editBooking, tCancelBooking: t.cancelBooking,
       tComplete: t.complete, tNoShow: t.noShow, tMarkArrival: t.markArrival,
       canMarkArrival: !frozen && !booking.arrivedAt,

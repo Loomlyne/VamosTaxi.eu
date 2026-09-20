@@ -19,8 +19,9 @@
 [data-ops-tools-act]{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:0 0 auto}
 [data-vt-board]{min-width:0;overflow-x:auto;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface)}
 [data-vt-board] .vt-tablewrap{overflow:visible;border:0;border-radius:0;background:transparent}
-[data-vt-board] .vt-table{min-width:1100px;table-layout:fixed}
+[data-vt-board] .vt-table{min-width:880px;width:100%;table-layout:fixed}
 [data-vt-board] .vt-table th,[data-vt-board] .vt-table td{vertical-align:middle;min-width:0}
+[data-vt-board] .vt-table th{overflow:visible;white-space:nowrap}
 [data-vt-board] .vt-table td{padding:12px 14px}
 [data-vt-when]{display:flex;flex-direction:column;gap:2px;line-height:1.25;white-space:nowrap}
 [data-vt-when] strong{font-family:var(--vt-font-display);font-size:var(--vt-figure-sm);font-weight:var(--vt-weight-bold);font-variant-numeric:tabular-nums}
@@ -28,7 +29,12 @@
 [data-vt-stack]{display:flex;flex-direction:column;gap:2px;min-width:0;line-height:1.35}
 [data-vt-clip]{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 [data-vt-sub]{font-size:var(--vt-body-xs);color:var(--vt-text-muted);line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-[data-vt-need]{color:var(--vt-text-primary);font-weight:var(--vt-weight-semibold);white-space:nowrap}
+[data-vt-paxbags]{display:inline-flex;align-items:center;gap:6px;max-width:100%;vertical-align:middle}
+[data-vt-paxbags] [data-vt-pb]{display:inline-flex;align-items:center;gap:4px;min-width:0}
+[data-vt-route]{max-width:148px;overflow:hidden;border-radius:var(--vt-radius-md)}
+[data-vt-route] [data-vt-clip]{font-size:var(--vt-body-sm)}
+[data-ops-tag]{display:inline-flex;align-items:center;gap:6px;min-height:22px;padding:4px 10px;border:1px solid transparent;border-radius:var(--vt-radius-pill);background:var(--vt-yellow-100);color:var(--vt-yellow-700);font-family:var(--vt-font-body);font-size:var(--vt-label-sm);font-weight:var(--vt-label-weight);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;white-space:nowrap;line-height:1.2}
+[data-vt-driver]{display:block;white-space:nowrap}
 [data-vt-quiet]{color:var(--vt-text-muted);white-space:nowrap}
 [data-vt-fare]{display:block;white-space:nowrap;font-variant-numeric:tabular-nums;font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold)}
 </style>
@@ -285,6 +291,7 @@ class Component extends DCLogic {
         String(b[k] == null ? '' : b[k]).toLowerCase().indexOf(q) !== -1);
     });
     const ops = window.VamosOps;
+    const DS = window.VamosTaxiDesignSystem_245af1 || {};
     const classOptions = [{ value: '', label: t.allClasses }].concat(((ops && ops.VEHICLE_CLASSES) || ['Economy', 'Business', 'First', 'Van']).map((c) => ({ value: c, label: c })));
     const statusOptions = [{ value: '', label: t.allStatuses }].concat(((ops && ops.BOOKING_STATUS) || []).map((s) => ({ value: s, label: s })));
     const formClass = ((ops && ops.VEHICLE_CLASSES) || ['Economy', 'Business', 'First', 'Van']).map((c) => ({ value: c, label: c }));
@@ -369,20 +376,27 @@ class Component extends DCLogic {
         { key:'time', header: t.colPickup, width:'100px', render:(r) => React.createElement('span', { 'data-vt-when': '1', title: r.date || '' },
             React.createElement('strong', null, r.time),
             React.createElement('span', { 'data-vt-sub': '1' }, pickupDay(r.date))) },
-        { key:'id', header: t.colRef, width:'118px', render:(r) => React.createElement('span', { 'data-vt-ref': '1', title: r.id }, r.id) },
         { key:'customer', header: t.colCustomer, width:'168px', render:(r) => React.createElement('span', { 'data-vt-stack': '1' },
             React.createElement('span', { 'data-vt-clip': '1', title: r.customer || '' }, r.customer || '—'),
             React.createElement('span', { 'data-vt-sub': '1', title: [r.email, r.phone].filter(Boolean).join(' · ') }, r.phone || r.email || t.noContact)) },
-        { key:'route', header: t.colRoute, render:(r) => React.createElement('span', { 'data-vt-stack': '1' },
+        { key:'route', header: t.colRoute, width:'148px', render:(r) => React.createElement('span', { 'data-vt-stack': '1', 'data-vt-route': '1', title: [r.pickup, r.dropoff].filter(Boolean).join(' → ') },
             React.createElement('span', { 'data-vt-clip': '1', title: r.pickup || '' }, r.pickup || '—'),
             React.createElement('span', { 'data-vt-sub': '1', title: r.dropoff || '' }, r.dropoff ? ('→ ' + r.dropoff) : '')) },
-        { key:'vehicle', header: t.colVehicle, width:'120px', render:(r) => React.createElement('span', { 'data-vt-stack': '1' },
+        { key:'vehicle', header: t.colVehicle, width:'120px', render:(r) => {
+            const Icon = (window.VamosTaxiDesignSystem_245af1 || {}).Icon;
+            return React.createElement('span', { 'data-vt-stack': '1' },
             React.createElement('span', { 'data-vt-clip': '1', title: r.klass || r.vehicle || '' }, r.klass || r.vehicle || '—'),
-            React.createElement('span', { 'data-vt-sub': '1' }, r.pax + ' ' + t.paxShort + ' · ' + r.bags + ' ' + t.bagsShort)) },
-        { key:'driver', header: t.colDriver, width:'140px', render:(r) => r.driver
-            ? React.createElement('span', { 'data-vt-clip': '1', title: r.driver }, r.driver)
+            React.createElement('span', { 'data-vt-sub': '1', 'data-vt-paxbags': '1' },
+              React.createElement('span', { 'data-vt-pb': '1' }, Icon ? React.createElement(Icon, { name:'users', size:14, color:'var(--vt-text-muted)' }) : null, r.pax + ' ' + t.paxShort),
+              '·',
+              React.createElement('span', { 'data-vt-pb': '1' }, Icon ? React.createElement(Icon, { name:'luggage', size:14, color:'var(--vt-text-muted)' }) : null, r.bags + ' ' + t.bagsShort)));
+          } },
+        { key:'driver', header: t.colDriver, width:'168px', render:(r) => r.driver
+            ? React.createElement('span', { 'data-vt-driver': '1', title: r.driver }, r.driver)
             : (isBoardTrip(r)
-              ? React.createElement('span', { 'data-vt-need': '1' }, t.unassignedCell)
+              ? (DS.Badge
+                ? React.createElement(DS.Badge, { tone: 'warning', icon: 'triangle-alert' }, t.unassignedCell)
+                : React.createElement('span', { 'data-ops-tag': '1' }, t.unassignedCell))
               : React.createElement('span', { 'data-vt-quiet': '1' }, '—')) },
         { key:'total', header: t.colTotal, width:'112px', align:'right', render:(r) => React.createElement('span', { 'data-vt-fare': '1' }, fareLabel(r.totalRappen)) },
       ],
