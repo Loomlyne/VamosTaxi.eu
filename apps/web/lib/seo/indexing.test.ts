@@ -137,4 +137,13 @@ describe("robots disallows D-31 (D-31)", () => {
     expect(config).toMatch(/source:\s*"\/review"/);
     expect(config).toMatch(/source:\s*"\/:locale\/review"/);
   });
+
+  it("confirmation and pay-token pages set robots noindex", () => {
+    const confirmation = source("app/[locale]/confirmation/page.tsx");
+    expect(confirmation).toMatch(/robots:\s*\{\s*index:\s*false/);
+    const confirmationRef = source("app/[locale]/confirmation/[ref]/page.tsx");
+    expect(confirmationRef).toContain("const robots = { index: false, follow: false }");
+    const pay = source("app/[locale]/checkout/pay/[token]/page.tsx");
+    expect(pay).toMatch(/robots:\s*\{\s*index:\s*false/);
+  });
 });

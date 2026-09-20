@@ -10,7 +10,7 @@ export async function generateMetadata({
 }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "checkout" });
-  return { title: t("notVisibleTitle") };
+  return { title: t("notVisibleTitle"), robots: { index: false, follow: false } };
 }
 
 export default async function ConfirmationIndexPage({

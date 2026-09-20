@@ -161,8 +161,23 @@ function qsSecret(): string {
   return typeof value === "string" ? value : "";
 }
 
+const REQUEST_HOST_HEADER = "x-vamos-request-host";
+
 function hostnameOf(request: NextRequest): string {
+  try {
+    const host = new URL(request.url).hostname.toLowerCase();
+    if (host.length > 0) return host;
+  } catch {
+    // fall through to Host
+  }
   return (request.headers.get("host") ?? "").split(":")[0]?.toLowerCase() ?? "";
+}
+
+function pinRequestHost(request: NextRequest): NextRequest {
+  const headers = new Headers(request.headers);
+  headers.delete(REQUEST_HOST_HEADER);
+  headers.set(REQUEST_HOST_HEADER, hostnameOf(request));
+  return new NextRequest(request, { headers });
 }
 
 function localeStrippedPath(pathname: string): { localePrefix: string | null; path: string } {
@@ -452,6 +467,7 @@ async function opsStaffGate(request: NextRequest, i18nResponse: NextResponse): P
 }
 
 export default async function middleware(request: NextRequest) {
+  request = pinRequestHost(request);
   const { pathname } = request.nextUrl;
 
   // D-05: www → apex 301. Canonical is https://vamostaxi.site. No DNS this plan.

@@ -213,3 +213,23 @@ describe("flight/contact/reviews/publish cache", () => {
     expect(src).not.toMatch(/Response\.json\(\{ ok: false, code, gaps \}/);
   });
 });
+
+describe("middleware request host", () => {
+  it("hostnameOf prefers request.url hostname and stamps x-vamos-request-host", () => {
+    const file = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), "../../middleware.ts"),
+      "utf8",
+    );
+    expect(file).toContain("new URL(request.url).hostname");
+    expect(file).toContain("x-vamos-request-host");
+    expect(file).toContain("pinRequestHost(request)");
+  });
+
+  it("locale layout reads stamped host before Host", () => {
+    const file = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), "../../app/[locale]/layout.tsx"),
+      "utf8",
+    );
+    expect(file).toContain('headerList.get("x-vamos-request-host") ?? headerList.get("host")');
+  });
+});
