@@ -126,6 +126,16 @@ const nextConfig: NextConfig = {
       { source: "/:locale/bookings", headers: noindex },
       { source: "/coming-soon", headers: noindex },
       { source: "/:locale/coming-soon", headers: noindex },
+      { source: "/sitemap", headers: noindex },
+      { source: "/:locale/sitemap", headers: noindex },
+      { source: "/checkout", headers: noindex },
+      { source: "/checkout/:path*", headers: noindex },
+      { source: "/:locale/checkout", headers: noindex },
+      { source: "/:locale/checkout/:path*", headers: noindex },
+      { source: "/confirmation", headers: noindex },
+      { source: "/confirmation/:path*", headers: noindex },
+      { source: "/:locale/confirmation", headers: noindex },
+      { source: "/:locale/confirmation/:path*", headers: noindex },
       {
         source: "/app/:path*.dc.html",
         headers: [

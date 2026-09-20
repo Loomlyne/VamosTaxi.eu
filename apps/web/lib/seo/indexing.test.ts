@@ -175,4 +175,19 @@ describe("robots disallows D-31 (D-31)", () => {
     expect(robots).toContain('"/coming-soon"');
     expect(robots).toContain('"/booking-detail"');
   });
+
+  it("html sitemap checkout and confirmation HTTP noindex", () => {
+    const mw = source("middleware.ts");
+    expect(mw).toContain('"/sitemap"');
+    expect(mw).toContain('"/checkout"');
+    expect(mw).toContain('"/confirmation"');
+    const robots = source("app/robots.ts");
+    expect(robots).toContain('"/sitemap"');
+    const checkout = source("app/[locale]/checkout/layout.tsx");
+    expect(checkout).toMatch(/robots:\s*\{\s*index:\s*false/);
+    const config = source("next.config.ts");
+    expect(config).toMatch(/source:\s*"\/sitemap"/);
+    expect(config).toMatch(/source:\s*"\/checkout"/);
+    expect(config).toMatch(/source:\s*"\/confirmation"/);
+  });
 });

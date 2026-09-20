@@ -24,6 +24,7 @@ export default function robots(): MetadataRoute.Robots {
         "/review",
         "/coming-soon",
         "/booking-detail",
+        "/sitemap",
       ],
     },
     sitemap: `${SITE_URL}/sitemap.xml`,

@@ -19,7 +19,7 @@ function workerEnv(): CloudflareEnv | null {
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "checkout" });
-  return { title: t("yourTrip") };
+  return { title: t("yourTrip"), robots: { index: false, follow: false } };
 }
 
 export default async function CheckoutLayout({
