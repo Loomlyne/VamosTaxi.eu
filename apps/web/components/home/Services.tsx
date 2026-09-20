@@ -44,8 +44,8 @@ export async function Services({
           title={
             <span id="svc-title">
               {hourly
-                ? tServices("four-services-one-fixed-price-each")
-                : tServices("three-services-one-fixed-price-each")}
+                ? tServices("three-services-one-fixed-price-each")
+                : tServices("two-services-one-fixed-price-each")}
             </span>
           }
           subtitle={tServices("every-one-is-booked-ahead-priced-up-front-and-as")}
@@ -67,14 +67,6 @@ export async function Services({
             tone={tone}
           >
             {tServices("private-transfers-between-swiss-cities-scheduled")}
-          </ServiceCard>
-          <ServiceCard
-            href={serviceHref("corporate")}
-            titleId="corporate-transfers"
-            icon="briefcase"
-            tone={tone}
-          >
-            {tServices("reliable-invoiced-transfers-for-business-travel")}
           </ServiceCard>
           {hourly ? (
             <ServiceCard

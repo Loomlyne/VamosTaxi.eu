@@ -659,7 +659,6 @@
     "cookies-consent": "Cookies & consent",
     "corporate": "Corporate",
     "corporate-invoicing": "Corporate & invoicing",
-    "corporate-transfers": "Corporate transfers",
     "coverage-list-client-slot": "Coverage list — client slot",
     "create-an-account": "Create an account",
     "currency": "Currency",
@@ -1096,7 +1095,7 @@
     "net": "Net",
     "now": "Now",
     "one-minute-of-yours-the-rest-is-ours": "One minute of yours. The rest is ours.",
-    "one-way": "One way",
+    "one-way": "Airport pickup",
     "pickups": "Pickups",
     "pre-booked-transfers-zurich": "Pre-booked transfers · Zurich",
     "professional-drivers": "Professional drivers",
@@ -1111,6 +1110,7 @@
     "vetted-for-airport-and-corporate-travel": "Vetted for airport and corporate travel.",
     "we-drive-from-dietikon-zh-zurich-and-geneva-airp": "We drive from Dietikon ZH — Zurich and Geneva airports, the city, and the Alpine routes we run every week.",
     "why-vamos": "Why Vamos",
+    "your-driver-is-assigned-to-your-booking-and-waits": "Your driver is assigned to your booking and waits at the curb with a name board.",
     "your-driver-is-booked": "Your driver is booked",
     "your-driver-is-booked-for-your-exact-pickup-time": "Your driver is booked for your exact pickup time: pickup scheduled for 06:30, not the nearest available car.",
     "your-flight-lands": "Your flight lands",
@@ -2440,8 +2440,8 @@
     "four-services-one-fixed-price-each": "Four services. One fixed price each.",
     "private": "Private",
     "private-transfers-between-swiss-cities-scheduled": "Private transfers between Swiss cities, scheduled for one exact time.",
-    "reliable-invoiced-transfers-for-business-travel": "Reliable, invoiced transfers for business travel and events.",
-    "three-services-one-fixed-price-each": "Three services. One fixed price each."
+    "three-services-one-fixed-price-each": "Three services. One fixed price each.",
+    "two-services-one-fixed-price-each": "Two services. One fixed price each."
   },
   "statusBadge": {
     "quote": "Quote",

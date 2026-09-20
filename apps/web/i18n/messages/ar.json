@@ -659,7 +659,6 @@
     "cookies-consent": "ملفات تعريف الارتباط والموافقة",
     "corporate": "الشركات",
     "corporate-invoicing": "الشركات والفوترة",
-    "corporate-transfers": "رحلات الشركات",
     "coverage-list-client-slot": "قائمة التغطية — موضع العميل",
     "create-an-account": "إنشاء حساب",
     "currency": "العملة",
@@ -1096,7 +1095,7 @@
     "net": "الصافي",
     "now": "الآن",
     "one-minute-of-yours-the-rest-is-ours": "دقيقة واحدة منك، والباقي علينا.",
-    "one-way": "ذهاب فقط",
+    "one-way": "استقبال في المطار",
     "pickups": "الاستقبالات",
     "pre-booked-transfers-zurich": "نقل محجوز مسبقًا · زيورخ",
     "professional-drivers": "سائقون محترفون",
@@ -1111,6 +1110,7 @@
     "vetted-for-airport-and-corporate-travel": "مختارون لرحلات المطار والأعمال.",
     "we-drive-from-dietikon-zh-zurich-and-geneva-airp": "ننطلق من ديتيكون بزيورخ — مطارا زيورخ وجنيف، والمدينة، والمسارات الألبية التي نسلكها كل أسبوع.",
     "why-vamos": "لماذا فاموس",
+    "your-driver-is-assigned-to-your-booking-and-waits": "يُعيَّن سائقك لحجزك وينتظرك عند الرصيف مع لافتة باسمك.",
     "your-driver-is-booked": "تمّ حجز سائقك",
     "your-driver-is-booked-for-your-exact-pickup-time": "يُحجز سائقك لموعد استقبالك بالضبط: الاستقبال في 06:30، لا أقرب سيارة متاحة.",
     "your-flight-lands": "هبوط رحلتك",
@@ -2440,8 +2440,8 @@
     "four-services-one-fixed-price-each": "أربع خدمات، لكل منها سعر ثابت.",
     "private": "خاص",
     "private-transfers-between-swiss-cities-scheduled": "رحلات خاصة بين المدن السويسرية، مجدولة في وقت محدد.",
-    "reliable-invoiced-transfers-for-business-travel": "رحلات موثوقة بفاتورة لسفر الأعمال والفعاليات.",
-    "three-services-one-fixed-price-each": "ثلاث خدمات، لكل منها سعر ثابت."
+    "three-services-one-fixed-price-each": "ثلاث خدمات، لكل منها سعر ثابت.",
+    "two-services-one-fixed-price-each": "خدمتان، لكل منهما سعر ثابت."
   },
   "statusBadge": {
     "quote": "عرض سعر",

@@ -149,7 +149,6 @@
       'All services': { de: 'Alle Leistungen', fr: 'Tous les services', ar: 'كل الخدمات' },
       'Airport transfers': { de: 'Flughafentransfers', fr: 'Transferts aéroport', ar: 'نقل المطار' },
       'City to city': { de: 'Stadt zu Stadt', fr: 'De ville en ville', ar: 'بين المدن' },
-      'Corporate transfers': { de: 'Geschäftstransfers', fr: 'Transferts d’affaires', ar: 'رحلات الشركات' },
       'Chauffeur by the hour': { de: 'Chauffeur stundenweise', fr: 'Chauffeur à l’heure', ar: 'سائق بالساعة' },
       'Support': { de: 'Hilfe', fr: 'Assistance', ar: 'الدعم' },
       'FAQs': { de: 'Häufige Fragen', fr: 'Questions fréquentes', ar: 'الأسئلة الشائعة' },
@@ -186,11 +185,10 @@
       'Now': { de: 'Jetzt', fr: 'Maintenant', ar: 'الآن' },
 
       /* ── Services section ─────────────────────────────────────────────── */
-      'Three services. One fixed price each.': { de: 'Drei Leistungen. Je ein Fixpreis.', fr: 'Trois services. Un prix fixe chacun.', ar: 'ثلاث خدمات، لكل منها سعر ثابت.' },
+      'Two services. One fixed price each.': { de: 'Zwei Leistungen. Je ein Fixpreis.', fr: 'Deux services. Un prix fixe chacun.', ar: 'خدمتان، لكل منهما سعر ثابت.' },
       'Every one is booked ahead, priced up front and assigned to a driver before you travel.': { de: 'Jede wird im Voraus gebucht, im Voraus bepreist und vor der Fahrt einem Fahrer zugeteilt.', fr: 'Chacun est réservé à l’avance, chiffré d’avance et attribué à un chauffeur avant votre départ.', ar: 'كل خدمة تُحجز مسبقًا ويُحدَّد سعرها مسبقًا ويُعيَّن لها سائق قبل سفرك.' },
       'Fixed-price rides to and from the airport, timed to your flight.': { de: 'Fahrten zum und vom Flughafen zum Fixpreis, abgestimmt auf Ihren Flug.', fr: 'Trajets à prix fixe depuis et vers l’aéroport, calés sur votre vol.', ar: 'رحلات بسعر ثابت من المطار وإليه، موقوتة مع رحلتك الجوية.' },
       'Private transfers between Swiss cities, scheduled for one exact time.': { de: 'Private Transfers zwischen Schweizer Städten, auf eine genaue Zeit geplant.', fr: 'Transferts privés entre villes suisses, programmés à une heure précise.', ar: 'رحلات خاصة بين المدن السويسرية، مجدولة في وقت محدد.' },
-      'Reliable, invoiced transfers for business travel and events.': { de: 'Zuverlässige Transfers auf Rechnung für Geschäftsreisen und Anlässe.', fr: 'Transferts fiables et facturés pour les voyages d’affaires et les événements.', ar: 'رحلات موثوقة بفاتورة لسفر الأعمال والفعاليات.' },
       'Book a driver and vehicle for multiple stops across the day.': { de: 'Fahrer und Fahrzeug für mehrere Stopps über den Tag buchen.', fr: 'Réservez chauffeur et véhicule pour plusieurs arrêts dans la journée.', ar: 'احجز سائقًا ومركبة لعدة محطات على مدار اليوم.' },
       'All four services': { de: 'Alle vier Leistungen', fr: 'Les quatre services', ar: 'الخدمات الأربع' },
       'Every route and vehicle class on one page.': { de: 'Alle Routen und Fahrzeugklassen auf einer Seite.', fr: 'Tous les trajets et toutes les classes sur une seule page.', ar: 'كل المسارات وفئات المركبات في صفحة واحدة.' },
@@ -207,10 +205,7 @@
       'Local Swiss operator': { de: 'Lokaler Schweizer Anbieter', fr: 'Opérateur suisse local', ar: 'مشغّل سويسري محلي' },
       'We drive from Dietikon ZH — Zurich and Geneva airports, the city, and the Alpine routes we run every week.': { de: 'Wir fahren ab Dietikon ZH — Flughäfen Zürich und Genf, die Stadt und die Alpenrouten, die wir jede Woche bedienen.', fr: 'Nous partons de Dietikon ZH — aéroports de Zurich et Genève, la ville, et les routes alpines que nous faisons chaque semaine.', ar: 'ننطلق من ديتيكون بزيورخ — مطارا زيورخ وجنيف، والمدينة، والمسارات الألبية التي نسلكها كل أسبوع.' },
       'Professional drivers': { de: 'Professionelle Fahrer', fr: 'Chauffeurs professionnels', ar: 'سائقون محترفون' },
-      'Vetted for airport and corporate travel.': { de: 'Geprüft für Flughafen- und Geschäftsfahrten.', fr: 'Sélectionnés pour les trajets aéroport et affaires.', ar: 'مختارون لرحلات المطار والأعمال.' },
-      'Claim pending approval': { de: 'Aussage noch nicht freigegeben', fr: 'Affirmation en attente de validation', ar: 'العبارة بانتظار الموافقة' },
-      'Built for business travel': { de: 'Für Geschäftsreisen gemacht', fr: 'Pensé pour les voyages d’affaires', ar: 'مصمّم لسفر الأعمال' },
-      'Invoiced transfers, corporate accounts and scheduling you can plan a week around.': { de: 'Transfers auf Rechnung, Firmenkonten und eine Planung, um die sich eine Woche organisieren lässt.', fr: 'Transferts facturés, comptes entreprise et une planification autour de laquelle organiser sa semaine.', ar: 'رحلات بفاتورة وحسابات للشركات وجدولة تبني عليها أسبوعك.' },
+      'Your driver is assigned to your booking and waits at the curb with a name board.': { de: 'Ihr Fahrer wird Ihrer Buchung zugeteilt und wartet am Strassenrand mit Namensschild.', fr: 'Votre chauffeur est attribué à votre réservation et vous attend au trottoir avec une pancarte.', ar: 'يُعيَّن سائقك لحجزك وينتظرك عند الرصيف مع لافتة باسمك.' },
 
       /* ── Reviews ──────────────────────────────────────────────────────── */
       'Reviews': { de: 'Bewertungen', fr: 'Avis', ar: 'التقييمات' },
