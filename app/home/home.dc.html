@@ -132,8 +132,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-vtcombo] input:focus,[data-vtcombo] input:focus-visible{outline:none;box-shadow:none}
 [data-vtcombo] input{all:unset;-webkit-appearance:none;appearance:none;background:transparent;flex:1 1 auto;min-width:0;height:100%;font-family:var(--vt-font-body);font-size:var(--vt-body-md);color:var(--vt-text-primary);line-height:1.4}
 [data-vtcombo] input::placeholder{color:var(--vt-grey-400)}
-[data-combo-tile]{width:30px;height:30px;flex:0 0 auto;border-radius:9px;background:var(--vt-grey-100);color:var(--vt-charcoal-900);display:inline-flex;align-items:center;justify-content:center;transition:background .16s cubic-bezier(.2,0,.2,1)}
-[data-vtcombo][data-on="1"] [data-combo-tile]{background:var(--vt-grey-100);color:var(--vt-charcoal-900)}
+[data-combo-tile]{width:30px;height:30px;flex:0 0 auto;border-radius:9px;background:transparent;color:var(--vt-charcoal-900);display:inline-flex;align-items:center;justify-content:center;transition:background .16s cubic-bezier(.2,0,.2,1)}
+[data-vtcombo][data-on="1"] [data-combo-tile]{background:transparent;color:var(--vt-charcoal-900)}
 [data-combo-x]{all:unset;box-sizing:border-box;width:28px;height:28px;flex:0 0 auto;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--vt-text-muted);transition:background .16s cubic-bezier(.2,0,.2,1),color .16s cubic-bezier(.2,0,.2,1)}
 [data-combo-x]:hover{background:var(--vt-grey-100);color:var(--vt-charcoal-900)}
 [data-sug]{scrollbar-width:thin;scrollbar-color:var(--vt-grey-300) transparent;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch}
@@ -161,10 +161,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-hero],[data-hero-inner]{min-height:100vh;min-height:100svh}
 [data-fleet-strip]{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;gap:8px;padding-bottom:4px}[data-fleet-card]{flex:0 0 166px;min-width:0;max-width:360px;scroll-snap-align:start}[data-fleet-card][data-unavail="1"] [data-fleet-img]{filter:saturate(.4)}
 @media (max-width:699px){[data-hide-narrow]{display:none!important}
-[data-fleet-img]{height:56px!important}
+[data-fleet-img]{height:88px!important}
 [data-fleet-card]{padding:7px 8px!important;min-height:0!important}
-[data-price-row]{flex-direction:column!important;align-items:stretch!important;gap:3px!important}
-[data-price-slot]{width:100%!important}}
+[data-price-row]{flex-direction:row!important;align-items:baseline!important;gap:8px!important}
+[data-price-slot]{width:92px!important;flex:0 0 92px}}
 @media (min-width:700px){[data-only-narrow]{display:none!important}
 [data-fields]{grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr);grid-template-areas:"flight flight flight" "pickup swap dest" "when when when" "party party party"}
 [data-fields][data-trip=fixed]{grid-template-columns:minmax(0,1fr);grid-template-areas:"flight" "route" "when" "party"}
@@ -173,7 +173,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 @media (min-width:700px) and (max-width:1079px){[data-fleet-card]{flex:0 0 236px}}
 @media (max-width:1079px){[data-only-wide]{display:none!important}
 [data-vtcombo]{height:var(--vt-control-h-md);min-height:var(--vt-control-h-md);max-height:var(--vt-control-h-md);padding:0 7px 0 8px;gap:9px;border-radius:999px;background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle)}
-[data-vtcombo] [data-combo-tile]{background:var(--vt-grey-100)!important;color:var(--vt-charcoal-900)}}
+[data-vtcombo] [data-combo-tile]{background:transparent!important;color:var(--vt-charcoal-900)}}
 @media (min-width:1080px){[data-upto-wide]{display:none!important}
 [data-bookcard]{padding:16px clamp(12px,3vw,18px) 14px}
 [data-fields]{grid-template-columns:152px minmax(0,1.1fr) 44px minmax(0,1.1fr) minmax(0,1.15fr) auto;grid-template-areas:"flight pickup swap dest when party"}
@@ -505,8 +505,12 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <div data-fleet-strip="1" data-hide-narrow="1" ref="{{ stripRef }}" style="margin-top:10px">
 <sc-for list="{{ fleet }}" as="v" hint-placeholder-count="4">
 <div role="{{ v.role }}" tabindex="{{ v.tab }}" aria-disabled="{{ v.dis }}" data-fleet-card="1" data-locked="{{ v.locked }}" data-picked="{{ v.picked }}" data-dim="{{ v.dim }}" data-unavail="{{ v.unavail }}" onClick="{{ v.select }}" onKeyDown="{{ v.key }}" title="{{ v.title }}" style="position:relative;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);padding:8px 10px;min-height:84px;display:flex;flex-direction:column;gap:6px;cursor:pointer;transition:var(--vt-transition-control);view-transition-name:{{ v.vtName }}" style-hover="box-shadow:var(--vt-shadow-md);border-color:var(--vt-grey-300)" style-active="transform:translateY(1px)">
-<div style="display:flex;align-items:flex-start;gap:6px;flex-direction:column">
-<div data-fleet-img="1" style="width:100%;height:130px;border-radius:8px;background:var(--vt-grey-100);overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;flex:0 0 auto">
+<div data-price-row="1" style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;min-width:0">
+<span ref="{{ v.dustRef }}" data-price-slot="1" dir="ltr" style="position:relative;width:92px;height:22px;flex:0 0 auto;display:block;view-transition-name:{{ v.vtPriceName }}"></span>
+<strong title="{{ v.examples }}" style="font-family:var(--vt-font-display);font-size:13px;font-weight:var(--vt-weight-semibold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;text-align:end">{{ v.name }}</strong>
+<span style="position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">{{ v.sr }}</span>
+</div>
+<div data-fleet-img="1" style="width:100%;height:172px;border-radius:8px;background:var(--vt-grey-100);overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;flex:1 1 auto">
 <sc-if value="{{ v.noImage }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ v.icon }}" size="{{ n24 }}" color="var(--vt-grey-500)" hint-size="24px,24px"></x-import></sc-if>
 <sc-if value="{{ v.hasImage }}" hint-placeholder-val="{{ true }}"><img src="{{ v.image }}" alt="" style="width:100%;height:100%;object-fit:cover;display:block"></sc-if>
 <sc-if value="{{ v.hasBadge }}" hint-placeholder-val="{{ false }}">
@@ -517,19 +521,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n16 }}" color="var(--vt-yellow)" hint-size="16px,16px"></x-import></span>
 </sc-if>
 </div>
-<div style="display:flex;flex-direction:row;gap:8px;min-width:0;justify-content:space-between;width:100%;align-items:baseline">
-<strong style="font-family:var(--vt-font-display);font-size:13px;font-weight:var(--vt-weight-semibold);white-space:nowrap">{{ v.name }}</strong>
-<span data-hide-narrow="1" style="font-size:11px;color:var(--vt-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ v.examples }}</span>
-</div>
-</div>
 <div onClick="{{ v.snapClick }}" role="{{ v.capRole }}" tabindex="{{ v.capTab }}" style="display:flex;align-items:center;gap:10px;font-size:11px;color:var(--vt-text-secondary);{{ v.capCss }}">
 <span style="display:inline-flex;align-items:center;gap:5px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="users" size="{{ n12 }}" color="var(--vt-text-muted)" hint-size="12px,12px"></x-import>{{ v.capText }}</span>
 <span style="display:inline-flex;align-items:center;gap:5px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="luggage" size="{{ n12 }}" color="var(--vt-text-muted)" hint-size="12px,12px"></x-import>{{ v.bagText }}</span>
-</div>
-<div data-price-row="1" style="margin-top:auto;display:flex;align-items:flex-end;justify-content:space-between;gap:8px">
-<span style="display:flex;flex-direction:column;gap:1px"><span style="font-size:9px;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ tFixed }}</span><span data-hide-narrow="1" style="font-size:10px;color:var(--vt-text-muted)">{{ tAllIn }}</span></span>
-<span ref="{{ v.dustRef }}" data-price-slot="1" dir="ltr" style="position:relative;width:92px;height:22px;display:block;view-transition-name:{{ v.vtPriceName }}"></span>
-<span style="position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">{{ v.sr }}</span>
 </div>
 <sc-if value="{{ v.ready }}" hint-placeholder-val="{{ false }}">
 <span aria-hidden="true" style="display:flex;align-items:center;justify-content:center;gap:7px;height:34px;border-radius:999px;background:var(--vt-yellow);color:var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase">{{ v.cta }}
@@ -545,9 +539,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </sc-if>
 <sc-if value="{{ v.skeleton }}" hint-placeholder-val="{{ false }}">
 <div style="position:absolute;inset:0;border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);padding:8px 10px;display:flex;flex-direction:column;gap:6px;animation:vt-skelpulse 1.8s ease-in-out infinite">
-<div style="width:40px;height:26px;border-radius:8px;background:var(--vt-grey-100)"></div>
-<div style="width:60%;height:9px;border-radius:6px;background:var(--vt-grey-100)"></div>
-<div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between"><span style="font-size:10px;color:var(--vt-text-muted)">{{ tGetting }}</span><div style="width:60px;height:16px;border-radius:6px;background:var(--vt-grey-200)"></div></div>
+<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><div style="width:72px;height:16px;border-radius:6px;background:var(--vt-grey-200)"></div><div style="width:40%;height:9px;border-radius:6px;background:var(--vt-grey-100)"></div></div>
+<div style="width:100%;flex:1 1 auto;min-height:72px;border-radius:8px;background:var(--vt-grey-100)"></div>
+<div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between"><span style="font-size:10px;color:var(--vt-text-muted)">{{ tGetting }}</span></div>
 </div>
 </sc-if>
 </div>

@@ -112,6 +112,10 @@ class Component extends DCLogic {
     const base = 'box-sizing:border-box;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg);padding:6px;z-index:90;display:flex;flex-direction:column;gap:2px';
     const cap = 'min-width:min(214px,calc(100vw - 24px));max-width:min(214px,calc(100vw - 24px))';
     const hasWin = typeof window !== 'undefined';
+    const inSheet = !!(this._root && typeof this._root.closest === 'function' && this._root.closest('#vt-hd-sheet, [data-hd-locale]'));
+    if (inSheet) {
+      return 'position:absolute;top:calc(100% + 8px);inset-inline-start:0;left:auto;' + cap + ';' + base;
+    }
     if (!rect || !hasWin) {
       return 'position:absolute;top:calc(100% + 8px);inset-inline-end:0;' + cap + ';' + base;
     }
