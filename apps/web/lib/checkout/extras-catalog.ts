@@ -72,18 +72,14 @@ export function airportPickupFromPlace(place: unknown): boolean | undefined {
   return undefined;
 }
 
-function freeWaitIsOn(toggles: ExtraToggles): boolean {
-  return toggles.airportPickup === true;
-}
-
 /** Recap and tiles follow this booking's toggles. A leftover lock must not paint extras. */
 export function extraIsOn(code: string, toggles: ExtraToggles): boolean {
   if (code === "child_seat") return toggles.childSeat;
   if (code === "oversized_luggage") return toggles.oversized;
   if (code === "extra_stop") return toggles.extraStop;
   if (code === "ski" || code === "ski_rack") return toggles.skiRack;
-  if (code === MEET_GREET_CODE) return true;
-  if (code === FREE_WAIT_CODE) return freeWaitIsOn(toggles);
+  // Included dashboard chips recap when they are on the live book (catalog filter).
+  if (code === MEET_GREET_CODE || code === FREE_WAIT_CODE) return true;
   return toggles.extraCodes.includes(code);
 }
 
@@ -93,18 +89,13 @@ export function extraIsOnForStep(
   code: string,
   toggles: ExtraToggles,
 ): boolean {
-  if (step === "trip") {
-    if (code === MEET_GREET_CODE || code === FREE_WAIT_CODE) {
-      return extraIsOn(code, toggles);
-    }
-    return false;
-  }
+  if (step === "trip") return false;
   return extraIsOn(code, toggles);
 }
 
 export type RecapExtraLine = {
   code: string;
-  labelKey: ExtraUi["labelKey"];
+  labelKey: ExtraUi["labelKey"] | null;
   icon: ExtraUi["icon"];
 };
 
@@ -175,11 +166,10 @@ export function recapExtraFares(
   const out: RecapExtraFare[] = [];
   for (const row of catalog) {
     const ui = extraUi(row.code);
-    if (!ui) continue;
     if (!on(row.code)) continue;
     out.push({
       code: row.code,
-      labelKey: ui.labelKey,
+      labelKey: ui?.labelKey ?? null,
       icon: extraChipIcon(row.code),
       amount_rappen: isExtraStopCode(row.code)
         ? null
@@ -241,31 +231,20 @@ export function extraAmountTimesQty(
   return amountRappen * quantity;
 }
 
-const FREE_WAIT_CARD: CheckoutExtraJson = {
-  code: FREE_WAIT_CODE,
-  kind: "included",
-  amount_rappen: null,
-  percent: null,
-  toggle: false,
-};
-
 /** Live surcharge chips only. Inactive and automatic kinds are omitted, not CHF 0. */
 export function catalogFromSurcharges(rows: SurchargeLike[]): CheckoutExtraJson[] {
   const out: CheckoutExtraJson[] = [];
   for (const row of rows) {
     if (!row.active) continue;
     if (!isPassengerExtra(row.code)) continue;
-    if (row.code === FREE_WAIT_CODE) continue;
     const ui = extraUi(row.code);
     out.push({
       code: row.code,
       kind: row.kind,
       amount_rappen: isExtraStopCode(row.code) ? null : row.amount_rappen,
       percent: row.percent,
-      toggle: ui?.toggle ?? true,
+      toggle: row.kind === "included" ? false : (ui?.toggle ?? true),
     });
   }
-  // D-38: free airport wait is a catalog card, not the automatic waiting surcharge.
-  out.push({ ...FREE_WAIT_CARD });
   return out;
 }

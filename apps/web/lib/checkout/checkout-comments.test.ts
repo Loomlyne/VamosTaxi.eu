@@ -230,7 +230,7 @@ describe("checkout comment pack", () => {
     expect(client).toContain("recapExtraFares");
     expect(client).toContain("extraRappenOutsideLock");
     expect(client).toContain("data-checkout-recap-extra");
-    expect(client).toContain("`+ ${t(row.labelKey)}`");
+    expect(client).toContain("row.labelKey ? t(row.labelKey) : row.code.replace(/[_-]+/g, \" \")");
     expect(client).toContain("setCouponField(couponFieldFromEval(json.coupon, true))");
     expect(client).not.toContain('setRefusal("couponNoLongerValid")');
     expect(client).toContain("data-checkout-coupon-used");
@@ -325,7 +325,7 @@ describe("checkout comment pack", () => {
   it("keeps extras on payment recap after coupon and groups the coupon field", () => {
     expect(client.indexOf("setChildSeat(false)")).toBeLessThan(client.indexOf("setChildSeat(trip.childSeat)"));
     expect(client).toContain("childSeat: seats");
-    expect(client).toContain("extraIsOnForStep");
+    expect(client).toContain("extraIsOn");
     expect(client).not.toContain("pinned?.child_seats === 1");
     expect(client).toContain("recapExtraFares");
     expect(client).toContain("data-checkout-recap-extra");

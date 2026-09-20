@@ -48,7 +48,7 @@ import {
 } from "@/lib/checkout/vamos-trip";
 import {
   airportPickupFromPlace,
-  extraIsOnForStep,
+  extraIsOn,
   extraRappenOutsideLock,
   extraUi,
   recapExtraFares,
@@ -297,8 +297,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   } | null>(null);
   const [skiRack, setSkiRack] = useState(false);
   const [extraCodes, setExtraCodes] = useState<string[]>([]);
-  const [meetGreet, setMeetGreet] = useState(true);
-  const [freeWait, setFreeWait] = useState(true);
+  const [meetGreet, setMeetGreet] = useState(false);
+  const [freeWait, setFreeWait] = useState(false);
   const [extrasCatalog, setExtrasCatalog] = useState<CheckoutExtraJson[]>([]);
   const [vatRateBps, setVatRateBps] = useState(CH_VAT_RATE_BPS);
   const [coupon, setCoupon] = useState("");
@@ -450,8 +450,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       setExtraStop(false);
       setSkiRack(false);
       setExtraCodes([]);
-      setMeetGreet(true);
-      setFreeWait(true);
+      setMeetGreet(false);
+      setFreeWait(false);
       setReference(null);
       setConfirmPay(null);
       setCardComplete(false);
@@ -1076,7 +1076,10 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     return "";
   }
   function extraOn(code: string): boolean {
-    return extraIsOnForStep(step, code, {
+    if (step === "trip") return false;
+    const row = extrasCatalog.find((item) => item.code === code);
+    if (row && (row.kind === "included" || row.toggle === false)) return true;
+    return extraIsOn(code, {
       childSeat,
       oversized,
       extraStop,
@@ -1091,8 +1094,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     if (code === "meet_greet") {
       const next = !meetGreet;
       setMeetGreet(next);
-      if (next) setFreeWait(true);
-      writeVamosTrip({ meetGreet: next, ...(next ? { freeWait: true } : {}) });
+      writeVamosTrip({ meetGreet: next });
       return;
     }
     if (code === "free_wait") {
@@ -1178,7 +1180,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
               return {
                 label: (
                   <span data-checkout-recap-extra={row.code}>
-                    {`+ ${t(row.labelKey)}`}
+                    {`+ ${row.labelKey ? t(row.labelKey) : row.code.replace(/[_-]+/g, " ")}`}
                   </span>
                 ),
                 amount: money.major,
@@ -1230,7 +1232,11 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     { icon: "luggage", label: `${draft.luggage} ${tCommon("luggage")}` },
     ...recapExtraRows.map((row) => ({
       icon: row.icon,
-      label: <span data-checkout-recap-extra={row.code}>{t(row.labelKey)}</span>,
+      label: (
+        <span data-checkout-recap-extra={row.code}>
+          {row.labelKey ? t(row.labelKey) : row.code.replace(/[_-]+/g, " ")}
+        </span>
+      ),
     })),
   ];
 
@@ -1589,9 +1595,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                       onChange={(e) => setNotes(e.target.value)}
                       hint={t("meeting-point-gate-code-ski-equipment")}
                     />
-                    {extrasCatalog.some((row) => row.code === "meet_greet") ? null : (
-                      <p className="vt-checkout__included">{t("arrivals-your-driver-waits-with-your-name")}</p>
-                    )}
                   </div>
                 </div>
               </Card>

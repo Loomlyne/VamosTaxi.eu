@@ -70,13 +70,12 @@ describe("checkout extras catalog", () => {
       "child_seat",
       "meet_greet",
       "extra_stop",
-      "free_wait",
     ]);
     expect(extras[0]?.amount_rappen).toBe(2000);
     expect(extras[0]?.toggle).toBe(true);
     expect(extras[1]?.kind).toBe("included");
     expect(extras[1]?.toggle).toBe(false);
-    expect(extras.find((item) => item.code === "free_wait")?.toggle).toBe(false);
+    expect(extras.find((item) => item.code === "free_wait")).toBeUndefined();
     expect(extraUi("night")).toBeNull();
   });
 
@@ -85,9 +84,9 @@ describe("checkout extras catalog", () => {
       row({ code: "child_seat", amount_rappen: 2000 }),
       row({ code: "pet", amount_rappen: 1500 }),
     ]);
-    expect(live.map((item) => item.code)).toEqual(["child_seat", "pet", "free_wait"]);
+    expect(live.map((item) => item.code)).toEqual(["child_seat", "pet"]);
     const afterDelete = catalogFromSurcharges([row({ code: "child_seat", amount_rappen: 2000 })]);
-    expect(afterDelete.map((item) => item.code)).toEqual(["child_seat", "free_wait"]);
+    expect(afterDelete.map((item) => item.code)).toEqual(["child_seat"]);
     expect(afterDelete.some((item) => item.code === "pet")).toBe(false);
     expect(afterDelete.find((item) => item.code === "pet")).toBeUndefined();
   });
@@ -102,7 +101,7 @@ describe("checkout extras catalog", () => {
       row({ code: "waiting_airport", amount_rappen: 4000 }),
       row({ code: "waiting_city", amount_rappen: 2500 }),
     ]);
-    expect(extras.map((item) => item.code)).toEqual(["child_seat", "free_wait"]);
+    expect(extras.map((item) => item.code)).toEqual(["child_seat"]);
     expect(extras.some((item) => item.code === "waiting_airport")).toBe(false);
     expect(extras.some((item) => item.code === "waiting")).toBe(false);
   });
@@ -114,7 +113,7 @@ describe("checkout extras catalog", () => {
       row({ code: "bike_rack", amount_rappen: 900 }),
       row({ code: "child_seat", amount_rappen: 2000, active: false }),
     ]);
-    expect(extras.map((item) => item.code)).toEqual(["pet", "ski", "bike_rack", "free_wait"]);
+    expect(extras.map((item) => item.code)).toEqual(["pet", "ski", "bike_rack"]);
     expect(extraChipIcon("bike_rack")).toBe("user");
     expect(extraChipIcon("ski")).toBe("snowflake");
   });
@@ -237,7 +236,8 @@ describe("checkout extras catalog", () => {
     expect(extraIsOn("pet", { ...on, extraCodes: ["pet"] })).toBe(true);
   });
 
-  it("exposes meet & greet and free wait as two default-on cards (D-38)", () => {
+  it("does not invent meet & greet or free wait unless they are on the live book", () => {
+    expect(catalogFromSurcharges([])).toEqual([]);
     const catalog = catalogFromSurcharges([
       {
         code: "meet_greet",
@@ -246,14 +246,18 @@ describe("checkout extras catalog", () => {
         percent: null,
         active: true,
       },
+      {
+        code: "free_wait",
+        kind: "included",
+        amount_rappen: null,
+        percent: null,
+        active: true,
+      },
     ]);
     expect(extraUi("meet_greet")?.toggle).toBe(false);
     expect(extraUi("free_wait")?.toggle).toBe(false);
-    const meet = catalog.find((item) => item.code === "meet_greet");
-    const wait = catalog.find((item) => item.code === "free_wait");
-    expect(meet?.toggle).toBe(false);
-    expect(wait?.kind).toBe("included");
-    expect(wait?.toggle).toBe(false);
+    expect(catalog.map((item) => item.code)).toEqual(["meet_greet", "free_wait"]);
+    expect(catalog.every((item) => item.toggle === false)).toBe(true);
     const defaults = {
       childSeat: false,
       oversized: false,
@@ -262,29 +266,22 @@ describe("checkout extras catalog", () => {
       extraCodes: [],
     };
     expect(extraIsOn("meet_greet", defaults)).toBe(true);
-    expect(extraIsOn("meet_greet", { ...defaults, meetGreet: false })).toBe(true);
-    expect(extraIsOn("free_wait", defaults)).toBe(false);
-    expect(extraIsOn("free_wait", { ...defaults, airportPickup: true })).toBe(true);
-    expect(extraIsOn("free_wait", { ...defaults, airportPickup: false })).toBe(false);
+    expect(extraIsOn("free_wait", defaults)).toBe(true);
+    expect(extraIsOnForStep("trip", "meet_greet", defaults)).toBe(false);
+    expect(extraIsOnForStep("trip", "free_wait", { ...defaults, airportPickup: true })).toBe(
+      false,
+    );
+    expect(extraIsOnForStep("details", "meet_greet", defaults)).toBe(true);
+    expect(extraIsOnForStep("details", "free_wait", defaults)).toBe(true);
     expect(
-      extraIsOn("free_wait", { ...defaults, airportPickup: true, freeWait: false }),
-    ).toBe(true);
-    expect(
-      recapExtras(catalog, (code) => extraIsOn(code, { ...defaults, meetGreet: false })),
+      recapExtras(catalog, (code) => extraIsOnForStep("details", code, defaults)),
     ).toEqual([
       expect.objectContaining({ code: "meet_greet" }),
+      expect.objectContaining({ code: "free_wait" }),
     ]);
-    const restored = recapExtras(
-      catalog,
-      (code) => extraIsOn(code, { ...defaults, airportPickup: true, meetGreet: true }),
-    );
-    expect(restored.map((row) => row.code)).toEqual(["meet_greet", "free_wait"]);
-    expect(extraIsOnForStep("trip", "meet_greet", { ...defaults, meetGreet: false })).toBe(
-      true,
-    );
     expect(
-      extraIsOnForStep("details", "free_wait", { ...defaults, airportPickup: true }),
-    ).toBe(true);
+      recapExtras(catalog, (code) => extraIsOnForStep("trip", code, defaults)),
+    ).toEqual([]);
     expect(airportPickupFromPlace({ zone_type: "airport" })).toBe(true);
     expect(airportPickupFromPlace({ zone_type: "city" })).toBe(false);
     expect(airportPickupFromPlace(null)).toBeUndefined();

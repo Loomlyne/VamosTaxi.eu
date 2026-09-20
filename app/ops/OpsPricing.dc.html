@@ -1438,22 +1438,17 @@ class Component extends DCLogic {
           patch.amounts = Object.assign({}, (existing && existing.amounts) || {}, { CHF: rec.value });
         } else {
           const name = rec.name || rec.label || '';
-          patch.code = name; patch.label = name; patch.name = name; patch.kind = 'amount';
+          const slug = String(name).trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+          patch.code = slug || name; patch.label = name; patch.name = name; patch.kind = 'amount';
           patch.amounts = Object.assign({}, (existing && existing.amounts) || {}, { CHF: rec.value });
         }
         return ops.surcharges.upsert(patch);
       },
       deleteSurcharge: (id) => {
         if (!ops) return null;
-        const row = ops.surcharges.get(id);
-        const type = row ? (row.type || surchargeTypeOf(row.code || row.label)) : '';
-        if (type === 'meet_greet' || type === 'free_wait') return { ok: false, code: 'not-deletable' };
         return ops.surcharges.remove(id);
       },
-      canDeleteSurcharge: (row) => {
-        const type = (row && (row.type || surchargeTypeOf(row.code || row.label))) || '';
-        return type !== 'meet_greet' && type !== 'free_wait';
-      },
+      canDeleteSurcharge: () => true,
       tNounSurcharge: t.nounSurcharge, tNounSurcharges: t.nounSurcharges,
       tAddSurcharge: t.addSurcharge, tEditSurcharge: t.editSurcharge, tSaveSurcharge: t.saveSurcharge,
       tDeleteSurchargeTitle: t.deleteSurchargeTitle, tDeleteSurchargeBody: t.deleteSurchargeBody,

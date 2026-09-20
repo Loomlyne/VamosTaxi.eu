@@ -60,23 +60,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-svc-cta]:hover [data-svc-cta-btn]{background:var(--vt-charcoal-800)}
 [data-svc-cta]:active [data-svc-cta-btn]{transform:translateY(1px)}
 @media (min-width:768px){[data-svc-track]{gap:32px;grid-template-columns:repeat(2,minmax(0,1fr))}[data-svc-track] > [data-svc-cta]:last-child:nth-child(odd){grid-column:1/-1}}
-@media (max-width:767px) and (prefers-reduced-motion:no-preference){
-[data-svc-sec]{padding:0}
-[data-svc-wrap]{--n:3;--step:65svh;height:calc(100svh + (var(--n) - 1) * var(--step))}
-[data-svc-stage]{position:sticky;top:0;height:100svh;box-sizing:border-box;padding:clamp(18px,4vh,32px) 0;overflow:hidden}
-[data-svc-stage] > [data-svc-inner]{height:100%;display:flex;flex-direction:column;justify-content:center;gap:18px}
-[data-svc-track]{display:block;position:relative;height:clamp(260px,42svh,400px);flex:0 0 auto;overflow:hidden}
-[data-svc-track] > :is([data-sc-name="ServiceCard"],[data-svc-cta]){position:absolute;top:0;inset-inline-start:0;width:100%;height:100%;min-height:0;opacity:0;pointer-events:none;transform:translate3d(0,24%,0) scale(.96);transform-origin:center center;backface-visibility:hidden;will-change:transform,opacity}
-[data-svc-track] > :is([data-sc-name="ServiceCard"],[data-svc-cta]):nth-child(1){transform:none;opacity:1;pointer-events:auto}
-[data-svc-track] > :is([data-sc-name="ServiceCard"],[data-svc-cta])[data-pos="featured"]{transform:none;opacity:1;pointer-events:auto;transition:transform var(--vt-dur-page) var(--vt-ease-out),opacity var(--vt-dur-base) linear;z-index:2}
-[data-svc-track] > :is([data-sc-name="ServiceCard"],[data-svc-cta])[data-pos="next"]{transform:translate3d(0,18%,0) scale(.97);opacity:0;pointer-events:none;transition:transform var(--vt-dur-page) var(--vt-ease-out),opacity var(--vt-dur-base) linear;z-index:1}
-[data-svc-track] > :is([data-sc-name="ServiceCard"],[data-svc-cta])[data-pos="queued"]{transform:translate3d(0,28%,0) scale(.94);opacity:0;pointer-events:none;transition:transform var(--vt-dur-slow) var(--vt-ease-standard),opacity var(--vt-dur-fast) linear}
-[data-svc-track] > :is([data-sc-name="ServiceCard"],[data-svc-cta])[data-pos="gone"]{transform:translate3d(0,-16%,0) scale(.94);opacity:0;pointer-events:none;transition:transform var(--vt-dur-slow) var(--vt-ease-in),opacity var(--vt-dur-slow) var(--vt-ease-standard);z-index:0}
-[data-svc-head]{flex-wrap:wrap;gap:16px}
-[data-svc-ticks]{display:flex;align-items:center;gap:5px;flex:0 0 auto}
-[data-svc-tick]{width:18px;height:2px;background:var(--vt-grey-300);transition:background-color 420ms var(--vt-ease-standard)}
-[data-svc-tick][data-on="1"]{background:var(--vt-charcoal-900)}
-}
 @media (min-width:768px) and (prefers-reduced-motion:no-preference){
 [data-svc-sec]{padding:0}
 [data-svc-wrap]{--n:2;--step:80svh;height:calc(100svh + (var(--n) - 1) * var(--step))}
@@ -172,12 +155,9 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
  * Scroll position (not intercepted wheel deltas) drives the index on purpose: the page can
  * never be trapped, iOS momentum scroll needs no special case, and Tab/focus is unaffected.
  *
- * Below 768px the same pin runs in 'solo' mode: one full-width card at a time, each step
- * receding the featured card up (scale .94) while the next rises from below. Motion follows
- * the scroll axis — not a sideways wipe — and the track clips so rising/receding cards never
- * paint over the heading or into Vehicle Fleet. There is no small zone, so the yellow
- * "All services" button is the final step. With prefers-reduced-motion the CSS falls back to
- * the static card grid at any width and none of this runs.
+ * Below 768px (and whenever prefers-reduced-motion is reduce) this stays a static
+ * one-column card grid: each ServiceCard is fully visible, stacked, no scroll-scrub
+ * and no data-pos carousel. The yellow CTA sits in the same grid after the cards.
  */
 class Component extends DCLogic {
   active = 0; target = 0; lockUntil = 0;
@@ -185,16 +165,15 @@ class Component extends DCLogic {
   trackRef = (el) => { this.track = el; this.sync(true); };
   cards() { return this.track ? Array.prototype.slice.call(this.track.querySelectorAll(':scope > [data-sc-name="ServiceCard"]')) : []; }
   cta() { return this.track ? this.track.querySelector(':scope > [data-svc-cta]') : null; }
-  /** 'grid' = static fallback · 'stage' = big + small two-zone swap · 'solo' = one card, rise from below. */
+  /** 'grid' = static stacked cards · 'stage' = desktop big + small two-zone swap. */
   mode() {
     if (typeof matchMedia === 'undefined') return 'grid';
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return 'grid';
-    return matchMedia('(min-width:768px)').matches ? 'stage' : 'solo';
+    return matchMedia('(min-width:768px)').matches ? 'stage' : 'grid';
   }
-  /** The ordered sequence. On mobile the yellow button is its own step; on the stage it is not. */
+  /** Ordered service cards. The yellow CTA is never a featured slide — only the small slot on stage. */
   slides() {
-    const cards = this.cards(); const cta = this.cta();
-    return this.mode() === 'solo' && cta ? cards.concat([cta]) : cards;
+    return this.cards();
   }
   paint() {
     const cards = this.cards(); const cta = this.cta(); const m = this.mode();
@@ -204,16 +183,12 @@ class Component extends DCLogic {
       if (cta) cta.removeAttribute('data-pos');
       return;
     }
-    const list = this.slides(); const n = list.length;
+    const n = cards.length;
     const a = Math.max(0, Math.min(n - 1, this.active));
-    if (m === 'solo') {
-      list.forEach((c, i) => c.setAttribute('data-pos', i < a ? 'gone' : i === a ? 'featured' : i === a + 1 ? 'next' : 'queued'));
-    } else {
-      cards.forEach((c, i) => {
-        c.setAttribute('data-pos', i < a ? 'gone' : i === a ? 'featured' : i === a + 1 ? 'next' : 'queued');
-      });
-      if (cta) cta.setAttribute('data-pos', a === n - 1 ? 'next' : 'queued');
-    }
+    cards.forEach((c, i) => {
+      c.setAttribute('data-pos', i < a ? 'gone' : i === a ? 'featured' : i === a + 1 ? 'next' : 'queued');
+    });
+    if (cta) cta.setAttribute('data-pos', a === n - 1 ? 'next' : 'queued');
     const ticks = this.track.parentElement.querySelectorAll('[data-svc-tick]');
     Array.prototype.forEach.call(ticks, (t, i) => {
       t.style.display = i >= n ? 'none' : '';
@@ -236,7 +211,7 @@ class Component extends DCLogic {
     if (!this.wrap || !this.track) return;
     const m = this.mode();
     const per = +(this.props.scrollPerStep ?? 80);
-    this.wrap.style.setProperty('--step', (m === 'solo' ? Math.max(45, per - 15) : per) + 'svh');
+    this.wrap.style.setProperty('--step', per + 'svh');
     if (m === 'grid') { this.active = 0; this.target = 0; this.paint(); return; }
     const n = this.slides().length;
     this.wrap.style.setProperty('--n', n);

@@ -755,8 +755,6 @@ async function cloneRateVersionFrom(
       from public.region_premiums
      where rate_version_id = ${source.id}
   `;
-  // unique(code) still global until a later unique(rate_version_id, code).
-  // Skip colliding codes so Publish is not 409 duplicate (D-06 clone).
   await tx`
     insert into public.coupons (
       code, kind, percent, amount_rappen, valid_from, valid_until,
@@ -767,7 +765,7 @@ async function cloneRateVersionFrom(
       global_limit, per_user_limit, active, note, ${newId}
       from public.coupons
      where rate_version_id = ${source.id}
-    on conflict (code) do nothing
+    on conflict (rate_version_id, code) do nothing
   `;
   return newId;
 }
