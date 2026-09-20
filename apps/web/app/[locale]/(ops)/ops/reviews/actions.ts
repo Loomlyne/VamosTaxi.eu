@@ -9,12 +9,13 @@ import {
   assertNotLocked,
   assertReviewInput,
   loadReviews,
+  lockedContentTouched,
+  resolveVehicleClassId,
   mapSqlState,
   planReorder,
   ReviewInputError,
   ReviewLockedError,
   type ReviewInput,
-  type ReviewRow,
 } from "@/lib/ops/reviews";
 import { OpsAuthError, requireStaffClaims, type StaffAuthClient } from "@/lib/ops/session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -62,20 +63,11 @@ function fail(err: unknown): ReviewActionResult {
   return { ok: false, key: "reviews-error" };
 }
 
-function contentTouched(row: ReviewRow, input: ReviewInput): boolean {
-  return (
-    input.authorName !== row.authorName ||
-    input.authorRole !== row.authorRole ||
-    input.body !== row.body ||
-    input.rating !== row.rating ||
-    (input.source ?? row.source) !== row.source
-  );
-}
-
 export async function createReview(input: ReviewInput): Promise<ReviewActionResult> {
   try {
     const parsed = assertReviewInput(input);
     const { env, claims } = await staffDoor();
+    const vehicleClassId = await resolveVehicleClassId(env, claims, parsed.vehicleClassId);
     await asStaff(env, claims, async (sql) => {
       await sql`
         insert into public.reviews (
@@ -101,7 +93,7 @@ export async function createReview(input: ReviewInput): Promise<ReviewActionResu
           ${parsed.body},
           ${parsed.rating},
           ${parsed.routeLabel},
-          ${parsed.vehicleClassId},
+          ${vehicleClassId},
           ${parsed.avatarPath},
           ${parsed.sourceUrl},
           ${parsed.verified},
@@ -126,9 +118,10 @@ export async function updateReview(id: string, input: ReviewInput): Promise<Revi
     const rows = await loadReviews(env, claims);
     const row = rows.find((item) => item.id === id);
     if (!row) return { ok: false, key: "reviews-error" };
-    const rewrite = contentTouched(row, input);
+    const rewrite = lockedContentTouched(row, input);
     if (rewrite) assertNotLocked(row);
     const parsed = assertReviewInput(input);
+    const vehicleClassId = await resolveVehicleClassId(env, claims, parsed.vehicleClassId);
     await asStaff(env, claims, async (sql) => {
       if (rewrite) {
         await sql`
@@ -140,7 +133,7 @@ export async function updateReview(id: string, input: ReviewInput): Promise<Revi
             body = ${parsed.body},
             rating = ${parsed.rating},
             route_label = ${parsed.routeLabel},
-            vehicle_class_id = ${parsed.vehicleClassId},
+            vehicle_class_id = ${vehicleClassId},
             avatar_path = ${parsed.avatarPath},
             source_url = ${parsed.sourceUrl},
             verified = ${parsed.verified},
@@ -152,10 +145,13 @@ export async function updateReview(id: string, input: ReviewInput): Promise<Revi
       } else {
         await sql`
           update public.reviews set
+            author_name = ${parsed.authorName},
+            body = ${parsed.body},
+            rating = ${parsed.rating},
             published = ${parsed.published},
             sort_order = ${parsed.sortOrder},
             verified = ${parsed.verified},
-            vehicle_class_id = ${parsed.vehicleClassId},
+            vehicle_class_id = ${vehicleClassId},
             avatar_path = ${parsed.avatarPath},
             route_label = ${parsed.routeLabel},
             source_url = ${parsed.sourceUrl},

@@ -5,11 +5,16 @@
    Zero avatars is the shipping state (D-22). */
 (function () {
   var SOURCES = [
-    { id: "google", label: "Google", imported: true, logo: "/assets/reviews/google.svg" },
-    { id: "tripadvisor", label: "Tripadvisor", imported: true, logo: "/assets/reviews/tripadvisor.svg" },
-    { id: "trustpilot", label: "Trustpilot", imported: true, logo: "/assets/reviews/trustpilot.svg" },
+    { id: "google", label: "Google", imported: true, logo: "/assets/reviews/google.svg", star: "/assets/reviews/google-star.svg" },
+    { id: "tripadvisor", label: "Tripadvisor", imported: true, logo: "/assets/reviews/tripadvisor.svg", star: "/assets/reviews/tripadvisor-star.svg" },
+    { id: "trustpilot", label: "Trustpilot", imported: true, logo: "/assets/reviews/trustpilot.svg", star: "/assets/reviews/trustpilot-star.svg" },
     { id: "manual", label: "Collected by us", imported: false }
   ];
+
+  function findSource(id) {
+    for (var i = 0; i < SOURCES.length; i++) if (SOURCES[i].id === id) return SOURCES[i];
+    return null;
+  }
 
   var list = [];
   var pending = false;
@@ -30,8 +35,8 @@
   }
 
   function isImported(source) {
-    for (var i = 0; i < SOURCES.length; i++) if (SOURCES[i].id === source) return SOURCES[i].imported;
-    return false;
+    var s = findSource(source);
+    return !!(s && s.imported);
   }
 
   function api(method, path, body) {
@@ -70,9 +75,9 @@
     return {
       id: r.id || "",
       source: src,
-      name: r.authorName || r.name || "",
-      role: r.authorRole || r.role || "",
-      text: r.body || r.text || "",
+      name: r.authorName != null ? String(r.authorName) : (r.name != null ? String(r.name) : ""),
+      role: r.authorRole != null ? String(r.authorRole) : (r.role != null ? String(r.role) : ""),
+      text: r.body != null ? String(r.body) : (r.text != null ? String(r.text) : ""),
       rating: Math.max(0, Math.min(5, +(r.rating) || 0)),
       route: r.routeLabel || r.route || "",
       vehicleClass: r.vehicleClassSlug || r.vehicleClass || "",
@@ -86,15 +91,40 @@
     };
   }
 
+  function classSlugOf(v) {
+    return String(v || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  }
+
+  function classIdFromRow(r) {
+    r = r || {};
+    if (r.vehicleClassId) return r.vehicleClassId;
+    var needle = classSlugOf(r.vehicleClass);
+    if (!needle) return null;
+    var classes = [];
+    try {
+      if (window.VamosOps && window.VamosOps.CLASSES) classes = window.VamosOps.CLASSES;
+    } catch (e) {}
+    var i, c, slug, label;
+    for (i = 0; i < classes.length; i++) {
+      c = classes[i] || {};
+      if (!c.id) continue;
+      if (String(c.id).toLowerCase() === needle) return c.id;
+      slug = classSlugOf(c.slug);
+      label = classSlugOf(c.label || c.name);
+      if (slug === needle || label === needle) return c.id;
+    }
+    return needle;
+  }
+
   function toPayload(r) {
     r = r || {};
     return {
-      authorName: r.name || "",
-      authorRole: r.role || "",
-      body: r.text || "",
+      authorName: r.name != null ? String(r.name) : "",
+      authorRole: r.role != null ? String(r.role) : "",
+      body: r.text != null ? String(r.text) : "",
       rating: r.rating,
       routeLabel: r.route || "",
-      vehicleClassId: r.vehicleClassId || null,
+      vehicleClassId: classIdFromRow(r),
       avatarPath: null,
       sourceUrl: String(r.url || "").trim() || null,
       source: r.source || "manual",
@@ -144,8 +174,16 @@
   window.VamosReviews = {
     SOURCES: SOURCES,
     sourceLabel: function (id) {
-      for (var i = 0; i < SOURCES.length; i++) if (SOURCES[i].id === id) return SOURCES[i].label;
-      return id || "";
+      var s = findSource(id);
+      return s ? s.label : (id || "");
+    },
+    sourceLogo: function (id) {
+      var s = findSource(id);
+      return (s && s.logo) || "";
+    },
+    starSrc: function (id) {
+      var s = findSource(id);
+      return (s && s.star) || "";
     },
     isImported: isImported,
     all: function () { hydrate(); return list.slice(); },
@@ -215,10 +253,13 @@
       var k;
       if (current) for (k in current) merged[k] = current[k];
       for (k in body) merged[k] = body[k];
+      var nextList = previous.map(function (r) { return r.id === id ? fromApi(merged) : r; });
+      list = nextList;
+      emit();
       api("PATCH", base + "/" + encodeURIComponent(id), toPayload(merged)).then(function (json) {
-        afterWrite(json, previous, previous.map(function (r) { return r.id === id ? fromApi(merged) : r; }));
+        afterWrite(json, previous, nextList);
       });
-      return previous.slice();
+      return nextList.slice();
     },
     remove: function (id) {
       var previous = list.slice();

@@ -60,7 +60,9 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-rv][data-dir="-1"] [data-rv-slide][data-was="1"]{transform:translateX(100%)}
 [data-rv-face]{display:flex;flex-direction:column;align-items:center;text-align:center}
 [data-rv-mark]{display:flex;align-items:center;justify-content:center;height:36px;margin-bottom:clamp(12px,1.6vw,16px);font-family:var(--vt-font-display);font-size:20px;font-weight:var(--vt-weight-semibold);letter-spacing:-0.01em;line-height:1;color:var(--vt-text-primary)}
+[data-rv-logo]{display:block;height:28px;width:auto;max-width:200px;object-fit:contain}
 [data-rv-name]{margin-top:0;font-family:var(--vt-font-body);font-size:17px;font-weight:600;letter-spacing:-0.005em;line-height:1.3;color:var(--vt-text-primary)}
+[data-rv-who]{display:inline-flex;align-items:center;justify-content:center;gap:8px;max-width:100%}
 [data-rv-sub]{margin-top:6px;font-size:var(--vt-body-sm);line-height:1.45;color:var(--vt-text-secondary)}
 [data-rv-quote]{box-sizing:border-box;background:var(--vt-white);display:flex;flex-direction:column;justify-content:center;border-top:1px solid var(--vt-grey-200);border-bottom:1px solid var(--vt-grey-200);padding:clamp(30px,5vw,64px) clamp(0px,2.4vw,40px)}
 [data-rv-q]{display:flex;align-items:center;justify-content:center;margin:0;padding:0}
@@ -74,10 +76,12 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-rv-dot]{width:7px;height:7px;border-radius:999px;background:var(--vt-grey-300);transition:background 200ms var(--vt-ease-standard)}
 [data-rv-dot][data-on="1"]{background:var(--vt-yellow);box-shadow:0 0 0 1px var(--vt-charcoal-900)}
 [data-rv-stars]{display:flex;align-items:center;gap:3px;margin-top:12px}
+[data-rv-stars] img{width:14px;height:14px;flex:0 0 auto;object-fit:contain}
 [data-rv-meta]{margin-top:10px;font-size:var(--vt-body-xs);line-height:1.45;color:var(--vt-text-muted);text-align:center;text-wrap:pretty}
 [data-rv-badge]{align-items:center;gap:6px;margin-top:12px;height:24px;padding:0 11px;border-radius:999px;border:1px solid var(--vt-border-subtle);background:var(--vt-white);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-secondary)}
-[data-rv-link]{align-items:center;gap:6px;margin-top:14px;font-size:var(--vt-body-xs);font-weight:600;color:var(--vt-text-primary);text-decoration:none;border-bottom:1px solid var(--vt-grey-300)}
-[data-rv-link]:hover{color:var(--vt-charcoal-900);border-bottom-color:var(--vt-charcoal-900)}
+[data-rv-link]{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;flex:0 0 auto;margin:0;padding:0;border:1px solid var(--vt-charcoal-900);border-radius:999px;background:transparent;color:var(--vt-charcoal-900);text-decoration:none}
+[data-rv-link]:hover{background:var(--vt-yellow);border-color:var(--vt-charcoal-900);color:var(--vt-charcoal-950)}
+[data-rv-link]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
 [data-rv-empty]{box-sizing:border-box;grid-column:1/-1;display:flex;flex-direction:column;gap:8px;padding:clamp(28px,4vw,48px);border:1px solid var(--vt-grey-300);border-radius:20px;background:var(--vt-white)}
 [data-rv-empty] strong{font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)}
 [data-rv-empty] span{font-size:var(--vt-body-sm);line-height:1.6;color:var(--vt-text-secondary);max-width:60ch}
@@ -119,23 +123,39 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <sc-for list="{{ slides }}" as="r" hint-placeholder-count="0">
 <div data-rv-slide="1" data-rv-face="1" data-i="{{ r.i1 }}" data-on="{{ r.on }}">
-<span data-rv-mark="1">{{ r.sourceLabel }}</span>
+<span data-rv-mark="1">
+<sc-if value="{{ r.hasLogo }}" hint-placeholder-val="{{ false }}">
+<img data-rv-logo="1" src="{{ r.logo }}" alt="{{ r.sourceLabel }}">
+</sc-if>
+<sc-if value="{{ r.noLogo }}" hint-placeholder-val="{{ true }}">{{ r.sourceLabel }}</sc-if>
+</span>
+<span data-rv-who="1">
 <strong data-rv-name="1">{{ r.name }}</strong>
+<a data-rv-link="1" href="{{ r.url }}" target="_blank" rel="noopener noreferrer" aria-label="{{ r.linkLabel }}" title="{{ r.linkLabel }}" style="display:{{ r.linkShow }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="external-link" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+</a>
+</span>
 <span data-rv-sub="1">{{ r.route }}</span>
 <span data-rv-stars="1" role="img" aria-label="{{ r.ratingLabel }}" style="display:{{ r.starsShow }}">
+<sc-if value="{{ r.platformStars }}" hint-placeholder-val="{{ false }}">
+<img src="{{ r.starSrc }}" alt="" width="14" height="14" style="opacity:{{ r.o1 }}">
+<img src="{{ r.starSrc }}" alt="" width="14" height="14" style="opacity:{{ r.o2 }}">
+<img src="{{ r.starSrc }}" alt="" width="14" height="14" style="opacity:{{ r.o3 }}">
+<img src="{{ r.starSrc }}" alt="" width="14" height="14" style="opacity:{{ r.o4 }}">
+<img src="{{ r.starSrc }}" alt="" width="14" height="14" style="opacity:{{ r.o5 }}">
+</sc-if>
+<sc-if value="{{ r.vamosStars }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n14 }}" color="{{ r.s1 }}" hint-size="14px,14px"></x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n14 }}" color="{{ r.s2 }}" hint-size="14px,14px"></x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n14 }}" color="{{ r.s3 }}" hint-size="14px,14px"></x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n14 }}" color="{{ r.s4 }}" hint-size="14px,14px"></x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n14 }}" color="{{ r.s5 }}" hint-size="14px,14px"></x-import>
+</sc-if>
 </span>
 <span data-rv-meta="1" style="display:{{ r.metaShow }}">{{ r.meta }}</span>
 <span data-rv-badge="1" style="display:{{ r.verifiedShow }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="shield-check" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>Verified
 </span>
-<a data-rv-link="1" href="{{ r.url }}" target="_blank" rel="noopener" style="display:{{ r.linkShow }}">{{ r.linkLabel }}
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="external-link" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>
-</a>
 </div>
 </sc-for>
 
@@ -279,8 +299,14 @@ class Component extends DCLogic {
     if (this.i >= this.N) this.i = 0;
     const slides = rows.map((r, n) => {
       const label = store ? store.sourceLabel(r.source) : r.source;
+      const logo = store && store.sourceLogo ? store.sourceLogo(r.source) : '';
+      const starSrc = store && store.starSrc ? store.starSrc(r.source) : '';
+      const platformStars = !!starSrc;
       const stars = {};
-      for (let s = 1; s <= 5; s++) stars['s' + s] = s <= r.rating ? 'var(--vt-yellow)' : 'var(--vt-grey-300)';
+      for (let s = 1; s <= 5; s++) {
+        stars['s' + s] = s <= r.rating ? 'var(--vt-yellow)' : 'var(--vt-grey-300)';
+        stars['o' + s] = s <= r.rating ? '1' : '0.22';
+      }
       const meta = r.vehicleClass || '';
       const href = (function () {
         const raw = String(r.url || '').trim();
@@ -297,6 +323,12 @@ class Component extends DCLogic {
         name: r.name,
         route: r.route || '',
         sourceLabel: label,
+        hasLogo: !!logo,
+        noLogo: !logo,
+        logo: logo,
+        starSrc: starSrc,
+        platformStars: platformStars,
+        vamosStars: !platformStars,
         quote: '“' + r.text + '”',
         starsShow: r.rating > 0 ? 'flex' : 'none',
         ratingLabel: t('Rated 5 out of 5').replace('5 out', r.rating + ' out'),
@@ -310,7 +342,7 @@ class Component extends DCLogic {
       }, stars);
     });
     return {
-      n14: 14, n20: 20,
+      n14: 14, n16: 16, n20: 20,
       rootRef: this.rootRef, liveRef: this.liveRef,
       prev: this.prev, next: this.next, key: this.key,
       hoverIn: this.hoverIn, hoverOut: this.hoverOut, focusIn: this.focusIn, focusOut: this.focusOut,
