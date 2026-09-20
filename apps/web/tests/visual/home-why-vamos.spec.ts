@@ -92,7 +92,7 @@ test.describe("Home why-vamos @component", () => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await gotoReady(page, "en");
     const titles = page.locator('[data-state="support-on-driven"] [data-why-t]');
-    await expect(titles).toHaveCount(5);
+    await expect(titles).toHaveCount(4);
     const opacities = await titles.evaluateAll((els) =>
       els.map((el) => getComputedStyle(el).opacity),
     );

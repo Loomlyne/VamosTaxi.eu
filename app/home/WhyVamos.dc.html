@@ -125,7 +125,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-why-layer="1" data-on="{{ img2 }}" style="z-index:2"><image-slot id="why-curb-pickup" src="/photos/site/why-curb-pickup.jpg" shape="rect" placeholder="Vamos driver at the curb — black vehicle, cool daylight, name board" style="width:100%;height:100%"></image-slot></div>
 <div data-why-layer="1" data-on="{{ img3 }}" style="z-index:3"><image-slot id="why-alpine-route" src="/photos/site/why-alpine-route.jpg" shape="rect" placeholder="Vamos vehicle on a ski-corridor route — black vehicle, cool daylight" style="width:100%;height:100%"></image-slot></div>
 <div data-why-layer="1" data-on="{{ img4 }}" style="z-index:4"><image-slot id="why-driver-door" src="/photos/site/why-driver-door.jpg" shape="rect" placeholder="Vamos chauffeur at the rear door — black vehicle, cool daylight, no warm filter" style="width:100%;height:100%"></image-slot></div>
-<div data-why-layer="1" data-on="{{ img5 }}" style="z-index:5"><img src="/photos/site/fleet-van-street.jpg" alt=""></div>
 </div>
 
 <div data-why-list="1">
@@ -179,22 +178,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <span data-why-t="1" style="display:block">Professional drivers</span>
 <sc-if value="{{ showSupport }}" hint-placeholder-val="{{ true }}">
 <span data-why-body="1" style="display:block">
-<span data-why-p="1" style="display:block">Vetted for airport and corporate travel.</span>
-<span data-why-tag="1">Claim pending approval</span>
-</span>
-</sc-if>
-</span>
-<span data-why-prog="1" aria-hidden="true"></span>
-</button>
-
-<button type="button" data-why-row="1" data-i="5" data-on="{{ on5 }}" aria-pressed="{{ pr5 }}" onClick="{{ pick5 }}">
-<span data-why-shot="1" aria-hidden="true"></span>
-<span data-why-num="1" aria-hidden="true">05</span>
-<span style="display:block;min-width:0">
-<span data-why-t="1" style="display:block">Built for business travel</span>
-<sc-if value="{{ showSupport }}" hint-placeholder-val="{{ true }}">
-<span data-why-body="1" style="display:block">
-<span data-why-p="1" style="display:block">Invoiced transfers, corporate accounts and scheduling you can plan a week around.</span>
+<span data-why-p="1" style="display:block">Your driver is assigned to your booking and waits at the curb with a name board.</span>
 </span>
 </sc-if>
 </span>
@@ -229,7 +213,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
  * Every row is literal markup so all copy stays directly editable.
  */
 class Component extends DCLogic {
-  N = 5;
+  N = 4;
   i = 0;
   HEADER = 76;
   rootRef = (el) => { this.root = el; };

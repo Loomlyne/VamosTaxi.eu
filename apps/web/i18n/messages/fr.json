@@ -659,7 +659,6 @@
     "cookies-consent": "Cookies et consentement",
     "corporate": "Entreprises",
     "corporate-invoicing": "Entreprises & facturation",
-    "corporate-transfers": "Transferts d’affaires",
     "coverage-list-client-slot": "Liste de couverture — emplacement client",
     "create-an-account": "Créer un compte",
     "currency": "Devise",
@@ -1096,7 +1095,7 @@
     "net": "Net",
     "now": "Maintenant",
     "one-minute-of-yours-the-rest-is-ours": "Une minute de votre temps. Le reste nous revient.",
-    "one-way": "Aller simple",
+    "one-way": "Prise en charge à l’aéroport",
     "pickups": "Prises en charge",
     "pre-booked-transfers-zurich": "Transferts réservés à l’avance · Zurich",
     "professional-drivers": "Chauffeurs professionnels",
@@ -1111,6 +1110,7 @@
     "vetted-for-airport-and-corporate-travel": "Sélectionnés pour les trajets aéroport et affaires.",
     "we-drive-from-dietikon-zh-zurich-and-geneva-airp": "Nous partons de Dietikon ZH — aéroports de Zurich et Genève, la ville, et les routes alpines que nous faisons chaque semaine.",
     "why-vamos": "Pourquoi Vamos",
+    "your-driver-is-assigned-to-your-booking-and-waits": "Votre chauffeur est attribué à votre réservation et vous attend au trottoir avec une pancarte.",
     "your-driver-is-booked": "Votre chauffeur est réservé",
     "your-driver-is-booked-for-your-exact-pickup-time": "Votre chauffeur est réservé pour votre heure exacte : prise en charge à 06:30, pas la voiture la plus proche.",
     "your-flight-lands": "Votre vol atterrit",
@@ -2440,8 +2440,8 @@
     "four-services-one-fixed-price-each": "Quatre services. Un prix fixe chacun.",
     "private": "Particulier",
     "private-transfers-between-swiss-cities-scheduled": "Transferts privés entre villes suisses, programmés à une heure précise.",
-    "reliable-invoiced-transfers-for-business-travel": "Transferts fiables et facturés pour les voyages d’affaires et les événements.",
-    "three-services-one-fixed-price-each": "Trois services. Un prix fixe chacun."
+    "three-services-one-fixed-price-each": "Trois services. Un prix fixe chacun.",
+    "two-services-one-fixed-price-each": "Deux services. Un prix fixe chacun."
   },
   "statusBadge": {
     "quote": "Devis",

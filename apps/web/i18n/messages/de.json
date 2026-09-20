@@ -659,7 +659,6 @@
     "cookies-consent": "Cookies und Einwilligung",
     "corporate": "Geschäftskunden",
     "corporate-invoicing": "Geschäftskunden & Rechnungen",
-    "corporate-transfers": "Geschäftstransfers",
     "coverage-list-client-slot": "Abdeckungsliste — Kundenplatz",
     "create-an-account": "Konto erstellen",
     "currency": "Währung",
@@ -1096,7 +1095,7 @@
     "net": "Netto",
     "now": "Jetzt",
     "one-minute-of-yours-the-rest-is-ours": "Eine Minute von Ihnen. Den Rest übernehmen wir.",
-    "one-way": "Einfach",
+    "one-way": "Flughafenabholung",
     "pickups": "Abholungen",
     "pre-booked-transfers-zurich": "Vorausgebuchte Transfers · Zürich",
     "professional-drivers": "Professionelle Fahrer",
@@ -1111,6 +1110,7 @@
     "vetted-for-airport-and-corporate-travel": "Geprüft für Flughafen- und Geschäftsfahrten.",
     "we-drive-from-dietikon-zh-zurich-and-geneva-airp": "Wir fahren ab Dietikon ZH — Flughäfen Zürich und Genf, die Stadt und die Alpenrouten, die wir jede Woche bedienen.",
     "why-vamos": "Warum Vamos",
+    "your-driver-is-assigned-to-your-booking-and-waits": "Ihr Fahrer wird Ihrer Buchung zugeteilt und wartet am Strassenrand mit Namensschild.",
     "your-driver-is-booked": "Ihr Fahrer ist gebucht",
     "your-driver-is-booked-for-your-exact-pickup-time": "Ihr Fahrer ist auf Ihre genaue Abholzeit gebucht: Abholung um 06:30, nicht das nächste freie Auto.",
     "your-flight-lands": "Ihr Flug landet",
@@ -2440,8 +2440,8 @@
     "four-services-one-fixed-price-each": "Vier Leistungen. Je ein Fixpreis.",
     "private": "Privat",
     "private-transfers-between-swiss-cities-scheduled": "Private Transfers zwischen Schweizer Städten, auf eine genaue Zeit geplant.",
-    "reliable-invoiced-transfers-for-business-travel": "Zuverlässige Transfers auf Rechnung für Geschäftsreisen und Anlässe.",
-    "three-services-one-fixed-price-each": "Drei Leistungen. Je ein Fixpreis."
+    "three-services-one-fixed-price-each": "Drei Leistungen. Je ein Fixpreis.",
+    "two-services-one-fixed-price-each": "Zwei Leistungen. Je ein Fixpreis."
   },
   "statusBadge": {
     "quote": "Angebot",

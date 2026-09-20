@@ -68,47 +68,13 @@ body{margin:0}
    a plain outlined control; signed in it is not a link at all but a monogram disc that
    opens your account menu, so the bar answers "who am I and where do I go" in one place
    instead of throwing you at a page. Hover changes the fill, never adds a glow. */
-/* The account and notification controls belong to the same family as the phone,
-   language and currency pills — white on the charcoal bar, never a dark control on a
+/* The account control belongs to the same family as the language
+   and currency pills — white on the charcoal bar, never a dark control on a
    dark ground. */
 [data-hd-acct]{position:relative;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;padding:0;border-radius:999px;border:1px solid rgb(30 31 31/.10);background:var(--vt-white);box-shadow:none;font:inherit;color:var(--vt-charcoal-900);text-decoration:none;white-space:nowrap;cursor:pointer;transition:var(--vt-transition-control)}
 [data-hd-acct]:hover{border-color:rgb(30 31 31/.28)}
 [data-hd-acct="disc"]{width:36px;height:36px}
 [data-hd-acct="disc"][aria-expanded="true"]{border-color:var(--vt-charcoal-900)}
-[data-hd-bell]{position:relative;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:36px;height:36px;padding:0;border-radius:999px;border:1px solid rgb(30 31 31/.10);background:var(--vt-white);box-shadow:none;color:var(--vt-charcoal-900);cursor:pointer;transition:var(--vt-transition-control)}
-[data-hd-bell]:hover{border-color:rgb(30 31 31/.28)}
-[data-hd-bell][aria-expanded="true"]{border-color:var(--vt-charcoal-900)}
-[data-hd-count]{position:absolute;top:-3px;inset-inline-end:-3px;min-width:17px;height:17px;padding:0 4px;box-sizing:border-box;display:grid;place-items:center;border-radius:999px;background:var(--vt-accent);border:2px solid var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:10px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--vt-charcoal-900)}
-/* One row, three states. Unread carries the yellow pip and the charcoal tile;
-   read steps back to grey; handled keeps the grey and adds the green tag. */
-[data-hd-note]{position:relative;display:flex;align-items:flex-start;gap:8px;padding:11px 10px;border-radius:10px;transition:var(--vt-transition-control)}
-[data-hd-note]:hover{background:var(--vt-grey-100)}
-[data-hd-note-a]{display:flex;align-items:flex-start;gap:11px;flex:1 1 auto;min-width:0;color:var(--vt-text-primary);text-decoration:none}
-[data-hd-note-i]{flex:0 0 auto;display:grid;place-items:center;width:30px;height:30px;border-radius:999px;background:var(--vt-charcoal-900);color:var(--vt-accent)}
-[data-hd-note][data-state="read"] [data-hd-note-i],[data-hd-note][data-state="done"] [data-hd-note-i]{background:var(--vt-grey-100);color:var(--vt-text-secondary)}
-[data-hd-note][data-state="read"] [data-hd-note-t],[data-hd-note][data-state="done"] [data-hd-note-t]{font-weight:500;color:var(--vt-text-secondary)}
-/* The pip is the control, not just a marker: filled means unread, and clicking
-   it puts a row back to unread after you have read or handled it. */
-[data-hd-pip]{all:unset;box-sizing:border-box;position:relative;flex:0 0 auto;display:grid;place-items:center;width:20px;height:20px;margin-top:5px;border-radius:999px;cursor:pointer}
-[data-hd-pip]::before{content:"";width:8px;height:8px;border-radius:999px;border:1.5px solid var(--vt-grey-400);background:transparent;transition:var(--vt-transition-control)}
-[data-hd-pip][data-on="1"]::before{border-color:var(--vt-accent);background:var(--vt-accent)}
-[data-hd-pip]:hover::before{border-color:var(--vt-charcoal-900)}
-[data-hd-allread][disabled]{opacity:.38;cursor:default}
-[data-hd-allread][disabled]:hover{background:none;color:var(--vt-text-muted)}
-[data-hd-tag]{display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:11px;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-success)}
-[data-hd-act],[data-hd-allread]{all:unset;box-sizing:border-box;position:relative;flex:0 0 auto;display:grid;place-items:center;width:28px;height:28px;border-radius:999px;color:var(--vt-text-muted);cursor:pointer;transition:var(--vt-transition-control)}
-[data-hd-act]{opacity:0}
-[data-hd-note]:hover [data-hd-act],[data-hd-act]:focus-visible,[data-hd-act][aria-pressed="true"]{opacity:1}
-[data-hd-act]:hover,[data-hd-allread]:hover{background:var(--vt-charcoal-900);color:var(--vt-white)}
-/* Handled changes the ground, not the glyph: the check stays exactly as it was
-   and the button fills behind it. */
-[data-hd-act][aria-pressed="true"]{background:var(--vt-grey-200);color:var(--vt-text-muted)}
-[data-hd-act][aria-pressed="true"]:hover{background:var(--vt-charcoal-900);color:var(--vt-white)}
-[data-hd-tiptext]{position:absolute;top:calc(100% + 7px);inset-inline-end:0;z-index:6;padding:5px 9px;border-radius:8px;background:var(--vt-charcoal-900);color:var(--vt-white);font-size:11px;font-weight:500;letter-spacing:0;text-transform:none;line-height:1.3;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity 120ms var(--vt-ease-standard)}
-[data-hd-tip]:hover [data-hd-tiptext],[data-hd-tip]:focus-visible [data-hd-tiptext]{opacity:1}
-[data-hd-note-t]{display:block;font-size:13px;font-weight:600;line-height:1.35;color:var(--vt-text-primary)}
-[data-hd-note-b]{display:block;margin-top:2px;font-size:12px;line-height:1.45;color:var(--vt-text-muted);text-wrap:pretty}
-[data-hd-empty]{margin:0;padding:18px 12px 20px;font-size:13px;line-height:1.5;color:var(--vt-text-muted);text-align:center}
 [data-hd-acctmenu]{position:absolute;top:calc(100% + 12px);inset-inline-end:0;z-index:130;box-sizing:border-box;width:272px;padding:6px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-xl);display:flex;flex-direction:column;gap:2px;animation:vt-hd-in 180ms cubic-bezier(.16,1,.3,1)}
 [data-hd-acctid]{display:flex;align-items:center;gap:11px;min-width:0;margin-bottom:5px;padding:8px 10px 12px;border-bottom:1px solid var(--vt-border-subtle)}
 [data-hd-acctname]{display:block;font-size:14px;font-weight:600;color:var(--vt-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -146,45 +112,6 @@ body{margin:0}
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="user" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import><span>{{ tAcct }}</span></a>
 </sc-if>
 <sc-if value="{{ signedIn }}" hint-placeholder-val="{{ false }}">
-<div ref="{{ bellRootRef }}" style="position:relative;display:inline-flex;flex:0 0 auto">
-<button type="button" data-hd-bell="1" aria-haspopup="menu" aria-expanded="{{ bellExpanded }}" aria-label="{{ tNotifications }}" onClick="{{ toggleBell }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="bell" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
-<sc-if value="{{ hasUnread }}" hint-placeholder-val="{{ false }}"><span data-hd-count="1">{{ unreadCount }}</span></sc-if>
-</button>
-<sc-if value="{{ bellOpen }}" hint-placeholder-val="{{ false }}">
-<div data-hd-acctmenu="1" role="menu" aria-label="{{ tNotifications }}">
-<div data-hd-acctid="1" style="justify-content:space-between;padding:6px 10px 10px">
-<span data-hd-acctname="1">{{ tNotifications }}</span>
-<button type="button" data-hd-allread="1" data-hd-tip="1" disabled="{{ noUnread }}" aria-label="{{ tMarkAll }}" onClick="{{ markAllRead }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
-<span data-hd-tiptext="1">{{ tMarkAll }}</span>
-</button>
-</div>
-<sc-for list="{{ notices }}" as="n" hint-placeholder-count="1">
-<div data-hd-note="1" data-state="{{ n.state }}">
-<a data-hd-note-a="1" href="{{ n.href }}" role="menuitem" onClick="{{ n.open }}">
-<span data-hd-note-i="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ n.icon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
-<span style="min-width:0">
-<span data-hd-note-t="1">{{ n.title }}</span>
-<span data-hd-note-b="1">{{ n.body }}</span>
-<sc-if value="{{ n.isDone }}" hint-placeholder-val="{{ false }}">
-<span data-hd-tag="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>{{ tHandled }}</span>
-</sc-if>
-</span>
-</a>
-<button type="button" data-hd-pip="1" data-hd-tip="1" data-on="{{ n.pipOn }}" aria-label="{{ n.readLabel }}" onClick="{{ n.toggleRead }}">
-<span data-hd-tiptext="1">{{ n.readLabel }}</span>
-</button>
-<button type="button" data-hd-act="1" data-hd-tip="1" aria-pressed="{{ n.donePressed }}" aria-label="{{ n.doneLabel }}" onClick="{{ n.toggleDone }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
-<span data-hd-tiptext="1">{{ n.doneLabel }}</span>
-</button>
-</div>
-</sc-for>
-<sc-if value="{{ noNotices }}" hint-placeholder-val="{{ false }}"><p data-hd-empty="1">{{ tNoNotices }}</p></sc-if>
-</div>
-</sc-if>
-</div>
 <div ref="{{ acctRootRef }}" style="position:relative;display:inline-flex;flex:0 0 auto">
 <button type="button" data-hd-acct="disc" aria-haspopup="menu" aria-expanded="{{ acctExpanded }}" aria-label="{{ tAcct }}" title="{{ acctTitle }}" onClick="{{ toggleAcct }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Avatar" name="{{ acctName }}" src="{{ acctPhoto }}" size="sm" hint-size="32px,32px"></x-import>
@@ -232,7 +159,6 @@ body{margin:0}
 <span style="position:relative;display:inline-flex;flex:0 0 auto">
 <button type="button" aria-label="{{ menuLabel }}" aria-expanded="{{ menuExpanded }}" aria-haspopup="true" onClick="{{ toggleMenu }}" style="all:unset;box-sizing:border-box;width:44px;height:44px;border-radius:999px;background:var(--vt-white);border:1px solid rgb(30 31 31/.10);box-shadow:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ menuIcon }}" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></button>
-<sc-if value="{{ showNarrowCount }}" hint-placeholder-val="{{ false }}"><span data-hd-count="1">{{ unreadCount }}</span></sc-if>
 </span>
 
 <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
@@ -261,36 +187,6 @@ body{margin:0}
 </span>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-right" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></a>
 </sc-if>
-</sc-if>
-<sc-if value="{{ hasNotices }}" hint-placeholder-val="{{ false }}">
-<div style="display:flex;flex-direction:column;gap:2px;margin:0 0 6px;padding-top:6px;border-top:1px solid var(--vt-border-subtle)">
-<span style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:2px 10px 4px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)"><span>{{ tNotifications }}</span>
-<button type="button" data-hd-allread="1" data-hd-tip="1" disabled="{{ noUnread }}" aria-label="{{ tMarkAll }}" onClick="{{ markAllRead }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
-<span data-hd-tiptext="1">{{ tMarkAll }}</span>
-</button></span>
-<sc-for list="{{ notices }}" as="n" hint-placeholder-count="1">
-<div data-hd-note="1" data-state="{{ n.state }}">
-<a data-hd-note-a="1" href="{{ n.href }}" role="menuitem" onClick="{{ n.open }}">
-<span data-hd-note-i="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ n.icon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
-<span style="min-width:0">
-<span data-hd-note-t="1">{{ n.title }}</span>
-<span data-hd-note-b="1">{{ n.body }}</span>
-<sc-if value="{{ n.isDone }}" hint-placeholder-val="{{ false }}">
-<span data-hd-tag="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>{{ tHandled }}</span>
-</sc-if>
-</span>
-</a>
-<button type="button" data-hd-pip="1" data-hd-tip="1" data-on="{{ n.pipOn }}" aria-label="{{ n.readLabel }}" onClick="{{ n.toggleRead }}">
-<span data-hd-tiptext="1">{{ n.readLabel }}</span>
-</button>
-<button type="button" data-hd-act="1" data-hd-tip="1" aria-pressed="{{ n.donePressed }}" aria-label="{{ n.doneLabel }}" onClick="{{ n.toggleDone }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
-<span data-hd-tiptext="1">{{ n.doneLabel }}</span>
-</button>
-</div>
-</sc-for>
-</div>
 </sc-if>
 <sc-if value="{{ signedIn }}">
 <button type="button" data-hd-menuitem="1" role="menuitem" onClick="{{ signOut }}" style="all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:9px;min-height:44px;margin:0 2px 4px;padding:0 16px;border:1px solid var(--vt-border-subtle);border-radius:999px;background:var(--vt-white);color:var(--vt-text-secondary);cursor:pointer;transition:var(--vt-transition-control)">
@@ -336,34 +232,10 @@ body{margin:0}
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1400,&quot;height&quot;:96},&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;inverse&quot;,&quot;options&quot;:[&quot;inverse&quot;,&quot;overlay&quot;],&quot;tsType&quot;:&quot;string&quot;},&quot;cta&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;signInLabel&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Sign in&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;hideAccount&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;lang&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;},&quot;cur&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;},&quot;onLang&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(v:string)=&gt;void&quot;},&quot;onCur&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(v:string)=&gt;void&quot;}}">
 const T = {
-  en: { signIn:'Sign in', account:'Your account', bookings:'Your bookings', manage:'Manage a booking', verify:'Verify your email', signOut:'Sign out', book:'Book a transfer', faq:'FAQs', contact:'Contact', menu:'Menu', close:'Close', call:'Call +41 79 626 70 82', langLabel:'Language', curLabel:'Currency',
-    notifications:'Notifications', noNotices:'Nothing new. Anything about a booking lands here.',
-    markAll:'Mark all as read', markDone:'Mark as handled', markUndone:'Not handled yet', handled:'Handled',
-    markRead:'Mark as read', markUnread:'Mark as unread',
-    attachedT:(n) => 'We found ' + n + (n === 1 ? ' booking' : ' bookings') + ' under your email',
-    attachedB:'They are on your account now, with the same reference and driver details you were emailed.',
-    verifyB:'Open the link we sent you and your receipts and vouchers arrive without a detour.' },
-  de: { signIn:'Anmelden', account:'Ihr Konto', bookings:'Ihre Buchungen', manage:'Buchung verwalten', verify:'E-Mail bestätigen', signOut:'Abmelden', book:'Transfer buchen', faq:'Häufige Fragen', contact:'Kontakt', menu:'Menü', close:'Schliessen', call:'+41 79 626 70 82 anrufen', langLabel:'Sprache', curLabel:'Währung',
-    notifications:'Mitteilungen', noNotices:'Nichts Neues. Alles zu einer Buchung landet hier.',
-    markAll:'Alle als gelesen markieren', markDone:'Als erledigt markieren', markUndone:'Noch nicht erledigt', handled:'Erledigt',
-    markRead:'Als gelesen markieren', markUnread:'Als ungelesen markieren',
-    attachedT:(n) => 'Wir haben ' + n + (n === 1 ? ' Buchung' : ' Buchungen') + ' unter Ihrer E-Mail gefunden',
-    attachedB:'Sie sind jetzt in Ihrem Konto — mit derselben Referenz und denselben Fahrerangaben wie in der E-Mail.',
-    verifyB:'Öffnen Sie den Link, den wir Ihnen gesendet haben, dann kommen Belege und Gutscheine direkt an.' },
-  fr: { signIn:'Connexion', account:'Votre compte', bookings:'Vos réservations', manage:'Gérer une réservation', verify:'Vérifier votre e-mail', signOut:'Déconnexion', book:'Réserver', faq:'Questions fréquentes', contact:'Contact', menu:'Menu', close:'Fermer', call:'Appeler le +41 79 626 70 82', langLabel:'Langue', curLabel:'Devise',
-    notifications:'Notifications', noNotices:'Rien de nouveau. Tout ce qui concerne une réservation arrive ici.',
-    markAll:'Tout marquer comme lu', markDone:'Marquer comme traité', markUndone:'Pas encore traité', handled:'Traité',
-    markRead:'Marquer comme lu', markUnread:'Marquer comme non lu',
-    attachedT:(n) => 'Nous avons trouvé ' + n + (n === 1 ? ' réservation' : ' réservations') + ' sous votre e-mail',
-    attachedB:'Elles sont maintenant sur votre compte, avec la référence et les informations chauffeur reçues par e-mail.',
-    verifyB:'Ouvrez le lien que nous vous avons envoyé et vos reçus et bons arrivent sans détour.' },
-  ar: { signIn:'تسجيل الدخول', account:'حسابك', bookings:'حجوزاتك', manage:'إدارة الحجز', verify:'تأكيد بريدك الإلكتروني', signOut:'تسجيل الخروج', book:'احجز رحلتك', faq:'الأسئلة الشائعة', contact:'اتصل بنا', menu:'القائمة', close:'إغلاق', call:'اتصل بنا', langLabel:'اللغة', curLabel:'العملة',
-    notifications:'الإشعارات', noNotices:'لا جديد. كل ما يخصّ حجزًا يصلك هنا.',
-    markAll:'تعليم الكل كمقروء', markDone:'تعليمه كمُعالَج', markUndone:'لم يُعالَج بعد', handled:'مُعالَج',
-    markRead:'تعليمه كمقروء', markUnread:'تعليمه كغير مقروء',
-    attachedT:(n) => 'وجدنا ' + n + ' حجزًا مسجّلًا ببريدك',
-    attachedB:'أصبحت الآن في حسابك، بالمرجع نفسه وبيانات السائق التي وصلتك بالبريد.',
-    verifyB:'افتح الرابط الذي أرسلناه إليك لتصلك الإيصالات والقسائم مباشرة.' },
+  en: { signIn:'Sign in', account:'Your account', bookings:'Your bookings', manage:'Manage a booking', verify:'Verify your email', signOut:'Sign out', book:'Book a transfer', faq:'FAQs', contact:'Contact', menu:'Menu', close:'Close', call:'Call +41 79 626 70 82', langLabel:'Language', curLabel:'Currency' },
+  de: { signIn:'Anmelden', account:'Ihr Konto', bookings:'Ihre Buchungen', manage:'Buchung verwalten', verify:'E-Mail bestätigen', signOut:'Abmelden', book:'Transfer buchen', faq:'Häufige Fragen', contact:'Kontakt', menu:'Menü', close:'Schliessen', call:'+41 79 626 70 82 anrufen', langLabel:'Sprache', curLabel:'Währung' },
+  fr: { signIn:'Connexion', account:'Votre compte', bookings:'Vos réservations', manage:'Gérer une réservation', verify:'Vérifier votre e-mail', signOut:'Déconnexion', book:'Réserver', faq:'Questions fréquentes', contact:'Contact', menu:'Menu', close:'Fermer', call:'Appeler le +41 79 626 70 82', langLabel:'Langue', curLabel:'Devise' },
+  ar: { signIn:'تسجيل الدخول', account:'حسابك', bookings:'حجوزاتك', manage:'إدارة الحجز', verify:'تأكيد بريدك الإلكتروني', signOut:'تسجيل الخروج', book:'احجز رحلتك', faq:'الأسئلة الشائعة', contact:'اتصل بنا', menu:'القائمة', close:'إغلاق', call:'اتصل بنا', langLabel:'اللغة', curLabel:'العملة' },
 };
 const LANGS = ['en', 'de', 'fr', 'ar'];
 const LANG_NOTE = { en:'English', de:'Deutsch', fr:'Français', ar:'العربية' };
@@ -377,11 +249,6 @@ const readAuth = () => {
     return a && a.email ? a : null;
   } catch (e) { return null; }
 };
-/* Notification state survives the session: unread → read once you open it,
-   handled once you say so. Same store on every surface that shows the bell. */
-const NOTE_KEY = 'vamosNotices';
-const readNotes = () => { try { return JSON.parse(localStorage.getItem(NOTE_KEY) || '{}') || {}; } catch (e) { return {}; } };
-const writeNotes = (m) => { try { localStorage.setItem(NOTE_KEY, JSON.stringify(m)); } catch (e) {} };
 const chip = (on) => on
   ? 'background:var(--vt-charcoal-900);color:var(--vt-white);border:1px solid var(--vt-charcoal-900)'
   : 'background:var(--vt-white);color:var(--vt-text-primary);border:1px solid var(--vt-border-subtle)';
@@ -393,36 +260,21 @@ class Component extends DCLogic {
       lang = localStorage.getItem('vamosLang') || 'en';
       cur = localStorage.getItem('vamosCurrency') || 'CHF';
     } catch (e) {}
-    /* Live never paints gallery guest-booking notices. Sign-out or clearing
-       the browser is what ends a session — not a refresh. */
-    const attached = 0;
-    return { lang: LANGS.indexOf(lang) > -1 ? lang : 'en', cur, menuOpen: false, acctOpen: false, bellOpen: false, floating: false, attached, auth: readAuth(), noteSt: readNotes() };
+    return { lang: LANGS.indexOf(lang) > -1 ? lang : 'en', cur, menuOpen: false, acctOpen: false, floating: false, auth: readAuth() };
   })();
-  _ids = [];
-  setNote = (id, st) => this.setState((s) => {
-    const m = Object.assign({}, s.noteSt); m[id] = st; writeNotes(m); return { noteSt: m };
-  });
-  markAllRead = () => this.setState((s) => {
-    const m = Object.assign({}, s.noteSt);
-    this._ids.forEach((id) => { if (m[id] !== 'done') m[id] = 'read'; });
-    writeNotes(m); return { noteSt: m };
-  });
   _menuRoot = (el) => { this._root = el; };
   _acctRoot = (el) => { this._acct = el; };
-  _bellRoot = (el) => { this._bell = el; };
-  toggleAcct = () => this.setState((s) => ({ acctOpen: !s.acctOpen, bellOpen: false }));
-  toggleBell = () => this.setState((s) => ({ bellOpen: !s.bellOpen, acctOpen: false }));
+  toggleAcct = () => this.setState((s) => ({ acctOpen: !s.acctOpen }));
 
   componentDidMount() {
     /* One store for the whole platform — the choice made here reaches every
        surface through VamosLocale, and any change made elsewhere lands back. */
     this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
     window.addEventListener('vamos:locale', this._onLocale);
-    this._esc = (e) => { if (e.key !== 'Escape') return; if (this.state.menuOpen) this.setState({ menuOpen: false }); if (this.state.acctOpen) this.setState({ acctOpen: false }); if (this.state.bellOpen) this.setState({ bellOpen: false }); };
+    this._esc = (e) => { if (e.key !== 'Escape') return; if (this.state.menuOpen) this.setState({ menuOpen: false }); if (this.state.acctOpen) this.setState({ acctOpen: false }); };
     this._away = (e) => {
       if (this.state.menuOpen && this._root && !this._root.contains(e.target)) this.setState({ menuOpen: false });
       if (this.state.acctOpen && this._acct && !this._acct.contains(e.target)) this.setState({ acctOpen: false });
-      if (this.state.bellOpen && this._bell && !this._bell.contains(e.target)) this.setState({ bellOpen: false });
     };
     this._resize = () => { if (this.state.menuOpen && window.innerWidth >= 1080) this.setState({ menuOpen: false }); };
     /* Only the overlay bar floats — the charcoal one is already sticky and solid. */
@@ -498,50 +350,8 @@ class Component extends DCLogic {
     /* Home drops the CTA while its booking card is on screen. Once you have scrolled
        past it the floating bar carries it, so the way to book is never off the page. */
     const showCta = ((this.props.cta ?? (variant !== 'overlay')) !== false) || floating;
-    const auth = this.state.auth;
-    const unverified = !!auth && auth.emailVerified === false;
-    const raw = [];
-    if (this.state.attached > 0) raw.push({
-      id: 'attached', icon: 'ticket', href: '/account#transfers',
-      title: t.attachedT(this.state.attached), body: t.attachedB,
-    });
-    if (unverified) raw.push({
-      id: 'verify', icon: 'mail', href: '/account#details', title: t.verify, body: t.verifyB,
-    });
-    this._ids = raw.map((n) => n.id);
-    const st = this.state.noteSt || {};
-    const notices = raw.map((n) => {
-      const state = st[n.id] === 'done' ? 'done' : (st[n.id] === 'read' ? 'read' : 'unread');
-      return Object.assign({}, n, {
-        state, isUnread: state === 'unread', isDone: state === 'done',
-        icon: state === 'done' ? 'check' : n.icon,
-        donePressed: state === 'done' ? 'true' : 'false',
-        doneLabel: state === 'done' ? t.markUndone : t.markDone,
-        pipOn: state === 'unread' ? '1' : '0',
-        readLabel: state === 'unread' ? t.markRead : t.markUnread,
-        toggleRead: (e) => {
-          if (e && e.preventDefault) { e.preventDefault(); e.stopPropagation(); }
-          this.setNote(n.id, state === 'unread' ? 'read' : 'unread');
-        },
-        open: () => { if (state === 'unread') this.setNote(n.id, 'read'); },
-        toggleDone: (e) => {
-          if (e && e.preventDefault) { e.preventDefault(); e.stopPropagation(); }
-          this.setNote(n.id, state === 'done' ? 'read' : 'done');
-        },
-      });
-    });
-    const unread = notices.filter((n) => n.state === 'unread').length;
     return {
-      tNotifications: t.notifications, tNoNotices: t.noNotices,
-      tMarkAll: t.markAll, tHandled: t.handled,
-      markAllRead: this.markAllRead,
-      notices, hasNotices: notices.length > 0, noNotices: notices.length === 0,
-      noticeCount: notices.length, unreadCount: unread, hasUnread: unread > 0, noUnread: unread === 0,
-      showNarrowCount: unread > 0 && !this.state.menuOpen,
-      bellOpen: this.state.bellOpen,
-      bellExpanded: this.state.bellOpen ? 'true' : 'false',
-      toggleBell: this.toggleBell, bellRootRef: this._bellRoot,
-      n14: 14, n15: 15, n16: 16, n18: 18, n20: 20, n24: 24, n30: 30,
+      n15: 15, n16: 16, n18: 18, n20: 20, n24: 24, n30: 30,
       variant, showCta, floating, floatAttr: floating ? '1' : null,
       lang, cur,
       langOptions: LANGS.map((v) => ({ value: v, label: v.toUpperCase(), note: LANG_NOTE[v] })),

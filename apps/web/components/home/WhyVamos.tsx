@@ -12,7 +12,7 @@ export type WhyVamosProps = {
   scrollPerStep?: number;
 };
 
-const N = 5;
+const N = 4;
 const HEADER = 76;
 const WIN = 0.45;
 
@@ -57,13 +57,7 @@ export function WhyVamos({
     {
       i: 4,
       title: tHome("professional-drivers"),
-      body: tHome("vetted-for-airport-and-corporate-travel"),
-      tag: tHome("claim-pending-approval"),
-    },
-    {
-      i: 5,
-      title: tHome("built-for-business-travel"),
-      body: tHome("invoiced-transfers-corporate-accounts-and-schedu"),
+      body: tHome("your-driver-is-assigned-to-your-booking-and-waits"),
     },
   ];
 
@@ -296,14 +290,6 @@ export function WhyVamos({
               <div data-why-layer="1" data-on="0" style={{ zIndex: 4 }}>
                 <Image src="/brand/photography/hero-arrivals.jpg" alt={curbAlt} fill sizes="50vw" />
               </div>
-              <div data-why-layer="1" data-on="0" style={{ zIndex: 5 }}>
-                <Image
-                  src="/brand/photography/fleet-van-street.jpg"
-                  alt={fleetAlt}
-                  fill
-                  sizes="50vw"
-                />
-              </div>
             </div>
             <div data-why-list="1">
               {rows.map((row, index) => (
@@ -325,7 +311,6 @@ export function WhyVamos({
                     {showSupportText ? (
                       <span data-why-body="1">
                         <span data-why-p="1">{row.body}</span>
-                        {row.tag ? <span data-why-tag="1">{row.tag}</span> : null}
                       </span>
                     ) : null}
                   </span>

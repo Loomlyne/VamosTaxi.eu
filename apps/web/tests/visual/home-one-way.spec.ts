@@ -2,8 +2,8 @@ import { test, expect, type Page } from "@playwright/test";
 import { serveMock, waitForMockReady } from "../support/mock-harness";
 
 const RETURN_NAME = /^(Return|Rückfahrt|Aller-retour|ذهاب وعودة)$/;
-const ONE_WAY = /^(One way|Einfache Fahrt|Aller simple|ذهاب فقط)$/;
-const FIXED = /^(Fixed routes|Feste Strecken|Trajets fixes|مسارات ثابتة)$/;
+const ONE_WAY = /^(Airport pickup|Flughafenabholung|Prise en charge à l’aéroport|استقبال في المطار)$/;
+const FIXED = /^(City to city|Stadt zu Stadt|De ville en ville|بين المدن)$/;
 
 async function dismissCookies(page: Page) {
   const accept = page.getByRole("button", { name: /Accept all/i });

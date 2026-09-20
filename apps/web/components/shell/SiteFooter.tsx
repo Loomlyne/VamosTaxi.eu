@@ -188,13 +188,6 @@ export function SiteFooter({
           <li>
             <FooterLink href={serviceHref("city")} label={t("city-to-city")} rtl={rtl} />
           </li>
-          <li>
-            <FooterLink
-              href={serviceHref("corporate")}
-              label={t("corporate-transfers")}
-              rtl={rtl}
-            />
-          </li>
         </>
       ),
     },
