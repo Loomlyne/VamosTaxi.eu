@@ -56,4 +56,22 @@ describe("K76 split Workers", () => {
     const ops = wrangler.slice(wrangler.indexOf('"ops-changes"'));
     expect(ops).not.toMatch(/"pattern":\s*"dashboard\.vamostaxi\.site"/);
   });
+
+  it("preview envs do not bind staging Hyperdrive (K96)", () => {
+    const wrangler = source("wrangler.jsonc");
+    const front = wrangler.slice(
+      wrangler.indexOf('"front"'),
+      wrangler.indexOf('"staging": {'),
+    );
+    const ops = wrangler.slice(
+      wrangler.indexOf('"ops-changes"'),
+      wrangler.indexOf('"production": {'),
+    );
+    expect(front).not.toMatch(/HYPERDRIVE/);
+    expect(ops).not.toMatch(/HYPERDRIVE/);
+    expect(front).not.toMatch(/vamos-photos-staging/);
+    expect(ops).not.toMatch(/vamos-photos-staging/);
+    expect(front).toMatch(/"workers_dev":\s*false/);
+    expect(ops).toMatch(/"workers_dev":\s*false/);
+  });
 });
