@@ -78,18 +78,14 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-ft-wm] img{display:block;inline-size:auto;block-size:auto;max-inline-size:100%;max-block-size:84px;object-fit:contain;object-position:inline-start center}
 [data-ft-band-actions]{display:flex;flex-wrap:wrap;align-items:center;gap:12px;max-inline-size:100%}
 [data-ft-band-actions] .vt-btn{flex:0 0 auto}
-[data-ft-langs]{display:inline-flex;flex-wrap:wrap;align-items:center;gap:4px}
-[data-ft-lang]{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;min-inline-size:36px;block-size:36px;padding:0 10px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);color:rgb(255 255 255 / .84);font-family:var(--vt-font-body);font-size:12px;font-weight:700;letter-spacing:.06em;cursor:pointer;transition:color 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),background 140ms cubic-bezier(.2,0,.2,1)}
-[data-ft-lang]:hover{color:var(--vt-accent);border-color:var(--vt-accent)}
-[data-ft-lang][data-on="1"],[data-ft-lang][aria-pressed="true"]{background:var(--vt-white);color:var(--vt-charcoal-900);border-color:var(--vt-white)}
-[data-ft-lang][data-on="1"]:hover,[data-ft-lang][aria-pressed="true"]:hover{color:var(--vt-charcoal-900);border-color:var(--vt-white)}
-[data-ft-lang]:focus-visible{outline:3px solid rgb(253 194 11 / .45);outline-offset:3px}
+[data-ft-langs]{display:inline-flex;flex:0 0 auto;align-items:center}
+[data-ft-langs] [data-vs-btn]{box-shadow:none}
 [data-ft-pay]{margin-block-start:52px;display:flex;flex-wrap:wrap;align-items:center;gap:10px}
 [data-ft-pay-label]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted);margin-inline-end:6px}
-[data-ft-mark]{position:relative;display:inline-flex;align-items:center;justify-content:center;block-size:36px;padding:0 10px;border:1px solid var(--vt-border-inverse);border-radius:var(--vt-radius-xs);background:transparent;box-shadow:none}
-[data-ft-mark] svg{display:block;block-size:16px;inline-size:auto}
-[data-ft-mark][data-pay="mastercard"] svg{block-size:20px}
-[data-ft-vh]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+[data-ft-mark]{display:inline-flex;align-items:center;gap:8px;block-size:36px;padding:0 12px;border:1px solid var(--vt-border-inverse);border-radius:var(--vt-radius-xs);background:transparent;box-shadow:none;color:var(--vt-text-inverse);font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);line-height:1;white-space:nowrap}
+[data-ft-mark] svg{display:block;block-size:16px;inline-size:auto;flex:0 0 auto}
+[data-ft-mark][data-pay="mastercard"] svg{block-size:18px}
+[data-ft-name]{display:inline;color:inherit;font:inherit;white-space:nowrap}
 @media (max-width:767px){[data-ft-wm]{max-inline-size:70%}[data-ft-wm] img{max-block-size:72px}}
 :focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
 </helmet>
@@ -100,10 +96,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <div data-ft-band="1" style="margin-bottom:36px">
 <p style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:1.12;color:var(--vt-text-inverse);max-width:22ch">Booked ahead, priced up front.</p>
 <div data-ft-band-actions="1">
-<div data-ft-langs="1" role="group" aria-label="Language" dir="ltr">
-<sc-for list="{{ langPills }}" as="l" hint-placeholder-count="4">
-<button type="button" data-ft-lang="1" data-on="{{ l.on }}" aria-pressed="{{ l.pressed }}" aria-label="{{ l.aria }}" onClick="{{ l.pick }}" data-vt-no-i18n="1">{{ l.label }}</button>
-</sc-for>
+<div data-ft-langs="1" dir="ltr">
+<dc-import name="BrandSelect" value="{{ lang }}" options="{{ langOptions }}" onSelect="{{ pickLang }}" icon="globe" a11ylabel="Language" hint-size="92px,36px"></dc-import>
 </div>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" href="/#book" iconEnd="arrow-right" hint-size="150px,54px">Book now</x-import>
 </div>
@@ -170,25 +164,25 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <sc-if value="{{ showPaymentMarks }}" hint-placeholder-val="{{ false }}">
 <div data-ft-pay="1">
 <span data-ft-pay-label="1">Payment</span>
-<span data-ft-mark="1" data-pay="visa" role="img" aria-label="Visa">
+<span data-ft-mark="1" data-pay="visa">
 <svg viewBox="0 0 48 16" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true"><path fill="#fff" d="M18.86 13.2 21.5 2.72h3.22L22.07 13.2h-3.21zm14.9-10.24c-.63-.24-1.63-.5-2.88-.5-3.17 0-5.41 1.66-5.43 4.03-.02 1.75 1.59 2.73 2.81 3.31 1.25.6 1.66.98 1.65 1.51 0 .82-.99 1.19-1.91 1.19-1.28 0-1.96-.18-3.01-.64l-.41-.19-.45 2.72c.74.34 2.12.63 3.55.64 3.35 0 5.54-1.64 5.56-4.18.02-1.39-.84-2.45-2.69-3.32-1.12-.56-1.81-.94-1.8-1.51 0-.5.57-1.04 1.81-1.04 1.03-.02 1.78.22 2.36.47l.29.14.43-2.61zm7.41-.26h-2.47c-.76 0-1.33.22-1.67.97l-4.74 10.55h3.34s.55-1.5.67-1.82h4.1c.1.42.39 1.82.39 1.82h2.96L41.17 2.7zm-3.93 7.66c.26-.7 1.27-3.4 1.27-3.4-.02.03.26-.71.42-1.16l.22 1.05s.61 2.93.74 3.51h-2.65zM13.32 2.7l-3.08 8.15-.33-1.66c-.57-1.91-2.35-3.99-4.34-5.02l2.81 9.03h3.35L16.7 2.7h-3.38zM4.86 2.7c-.5-.02-1.92.1-3.09 1.02C.63 4.62.8 5.93.8 5.93h7.52s.07-.79-.29-1.63C7.65 3.47 6.85 2.73 4.86 2.7z"/></svg>
-<span data-ft-vh="1" aria-hidden="true">Visa</span>
+<span data-ft-name="1" data-vt-no-i18n="1">Visa</span>
 </span>
-<span data-ft-mark="1" data-pay="mastercard" role="img" aria-label="Mastercard">
+<span data-ft-mark="1" data-pay="mastercard">
 <svg viewBox="0 0 38 24" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true"><circle cx="14" cy="12" r="8.2" fill="#EB001B"/><circle cx="24" cy="12" r="8.2" fill="#F79E1B"/><path d="M19 5.7a8.2 8.2 0 0 1 0 12.6 8.2 8.2 0 0 1 0-12.6z" fill="#FF5F00"/></svg>
-<span data-ft-vh="1" aria-hidden="true">Mastercard</span>
+<span data-ft-name="1" data-vt-no-i18n="1">Mastercard</span>
 </span>
-<span data-ft-mark="1" data-pay="apple" role="img" aria-label="Apple Pay">
-<svg viewBox="0 0 54 20" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true"><path fill="#fff" d="M11.12 5.18c.42-.5.7-1.18.62-1.86-.66.03-1.46.4-1.93.89-.42.44-.8 1.16-.66 1.84.73.06 1.47-.37 1.97-.87z"/><path fill="#fff" d="M12.05 6.28c-.99.06-1.83.59-2.3.59-.48 0-1.21-.56-2-.55-1.02.02-1.96.59-2.48 1.51-1.06 1.84-.27 4.56.76 6.05.52.73 1.13 1.54 1.93 1.51.78-.03 1.07-.5 2-.5s1.18.5 2 .49c.83-.02 1.36-.74 1.87-1.48.59-.85.83-1.67.84-1.71-.02 0-1.62-.62-1.63-2.46-.01-1.55 1.27-2.29 1.33-2.32-.7-.43-1.6-.48-1.92-.5z"/><text x="16.2" y="14.6" fill="#fff" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="11.2" font-weight="600">Pay</text></svg>
-<span data-ft-vh="1" aria-hidden="true">Apple Pay</span>
+<span data-ft-mark="1" data-pay="apple">
+<svg viewBox="5 3 9 14" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true"><path fill="#fff" d="M11.12 5.18c.42-.5.7-1.18.62-1.86-.66.03-1.46.4-1.93.89-.42.44-.8 1.16-.66 1.84.73.06 1.47-.37 1.97-.87z"/><path fill="#fff" d="M12.05 6.28c-.99.06-1.83.59-2.3.59-.48 0-1.21-.56-2-.55-1.02.02-1.96.59-2.48 1.51-1.06 1.84-.27 4.56.76 6.05.52.73 1.13 1.54 1.93 1.51.78-.03 1.07-.5 2-.5s1.18.5 2 .49c.83-.02 1.36-.74 1.87-1.48.59-.85.83-1.67.84-1.71-.02 0-1.62-.62-1.63-2.46-.01-1.55 1.27-2.29 1.33-2.32-.7-.43-1.6-.48-1.92-.5z"/></svg>
+<span data-ft-name="1" data-vt-no-i18n="1">Apple Pay</span>
 </span>
-<span data-ft-mark="1" data-pay="google" role="img" aria-label="Google Pay">
-<svg viewBox="0 0 56 20" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true"><g transform="translate(1.2,1.6) scale(.7)"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></g><text x="20" y="14.6" fill="#fff" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="11.2" font-weight="600">Pay</text></svg>
-<span data-ft-vh="1" aria-hidden="true">Google Pay</span>
+<span data-ft-mark="1" data-pay="google">
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+<span data-ft-name="1" data-vt-no-i18n="1">Google Pay</span>
 </span>
-<span data-ft-mark="1" data-pay="twint" role="img" aria-label="TWINT">
-<svg viewBox="0 0 78 20" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true"><g transform="translate(0,2)"><polygon points="8,0 8,8 0,8" fill="#00C8D7"/><polygon points="8,0 16,8 8,8" fill="#FF3B6B"/><polygon points="8,16 8,8 0,8" fill="#FFD400"/><polygon points="8,16 16,8 8,8" fill="#7B61FF"/></g><text x="20" y="14.8" fill="#fff" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="11" font-weight="800" letter-spacing=".8">TWINT</text></svg>
-<span data-ft-vh="1" aria-hidden="true">TWINT</span>
+<span data-ft-mark="1" data-pay="twint">
+<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true"><polygon points="8,0 8,8 0,8" fill="#00C8D7"/><polygon points="8,0 16,8 8,8" fill="#FF3B6B"/><polygon points="8,16 8,8 0,8" fill="#FFD400"/><polygon points="8,16 16,8 8,8" fill="#7B61FF"/></svg>
+<span data-ft-name="1" data-vt-no-i18n="1">TWINT</span>
 </span>
 </div>
 </sc-if>
@@ -344,16 +338,9 @@ class Component extends DCLogic {
       showPaymentMarks: this.props.showPaymentMarks ?? true,
       goToFaq: this.goToFaq,
       openCookiePrefs: this.openCookiePrefs,
-      langPills: FT_LANGS.map((v) => {
-        const on = v === this.langOf();
-        return {
-          label: v.toUpperCase(),
-          aria: FT_LANG_NOTE[v],
-          on: on ? '1' : '0',
-          pressed: on ? 'true' : 'false',
-          pick: () => this.setLang(v),
-        };
-      }),
+      lang: this.langOf(),
+      langOptions: FT_LANGS.map((v) => ({ value: v, label: v.toUpperCase(), note: FT_LANG_NOTE[v] })),
+      pickLang: this.setLang,
       copyright: '\u00A9 ' + new Date().getFullYear() + ' Vamos Taxi. All rights reserved.',
     };
   }

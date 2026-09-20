@@ -46,8 +46,9 @@
 .vt-btn[disabled],.vt-btn[aria-disabled="true"]{transform:none}
 input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none;box-shadow:none}
 body{margin:0}
-/* One header, two surfaces. The control row is identical on every page — logo,
-   phone, language, currency, sign in — so the site never changes its mind. */
+/* One header, two surfaces. Desktop: wordmark, language, currency, sign in,
+   book. Mobile: full wordmark + menu disc; language/currency live in the sheet.
+   Public contact is the FAB, never a header tel:. */
 [data-hd="inverse"]{background:var(--vt-bg-inverse);position:sticky;top:0;z-index:40;border-bottom:1px solid var(--vt-border-inverse)}
 [data-hd="overlay"]{background:transparent;position:relative;z-index:120}
 /* Scrolled past its own place on the hero, the overlay bar comes back as a floating
@@ -63,6 +64,39 @@ body{margin:0}
 [data-hd-wide]{display:none}
 [data-hd-narrow]{display:flex}
 @media (min-width:1080px){[data-hd-wide]{display:flex}[data-hd-narrow]{display:none!important}}
+[data-hd-brand]{display:inline-flex;align-items:center;flex:0 0 auto;min-width:0;max-width:100%;border:0;text-decoration:none;overflow:visible}
+[data-hd-brand] img{display:block;width:auto;max-width:100%;object-fit:contain;object-position:left center}
+[dir="rtl"] [data-hd-brand] img{object-position:right center}
+[data-hd-menu-btn]{all:unset;box-sizing:border-box;width:44px;height:44px;border-radius:var(--vt-radius-pill);background:var(--vt-white);border:1px solid rgb(30 31 31/.10);box-shadow:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;transition:var(--vt-transition-control)}
+[data-hd-menu-btn]:hover{border-color:rgb(30 31 31/.28)}
+[data-hd-menu-btn][aria-expanded="true"]{border-color:var(--vt-charcoal-900)}
+[data-hd-menu-btn]:active{transform:scale(.97)}
+[data-hd-scrim],[data-hd-sheet]{display:none}
+[data-hd-cta]{box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:9px;min-height:44px;margin:2px 2px 8px;padding:0 16px;border:1px solid var(--vt-charcoal-900);border-radius:var(--vt-radius-pill);background:var(--vt-yellow);box-shadow:none;text-decoration:none;color:var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:700;letter-spacing:.01em}
+[data-hd-signin]{box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:9px;min-height:44px;margin:2px 2px 8px;padding:0 16px;border:1px solid var(--vt-charcoal-900);border-radius:var(--vt-radius-pill);background:var(--vt-white);box-shadow:none;text-decoration:none;color:var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:600;letter-spacing:.01em;cursor:pointer;transition:var(--vt-transition-control)}
+button[data-hd-signin]{width:calc(100% - 4px);appearance:none;-webkit-appearance:none}
+[data-hd-sec]{display:flex;flex-direction:column;gap:8px;padding:10px 8px 8px}
+[data-hd-kicker]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-hd-chips]{display:flex;flex-wrap:wrap;gap:6px}
+[data-hd-chip]{all:unset;box-sizing:border-box;min-width:44px;height:44px;padding:0 14px;border-radius:var(--vt-radius-pill);display:inline-flex;align-items:center;justify-content:center;font-family:var(--vt-font-body);font-size:13px;font-weight:600;cursor:pointer}
+[data-hd-nav]{display:flex;flex-direction:column;gap:2px;margin-top:4px;padding-top:8px;border-top:1px solid var(--vt-border-subtle)}
+[data-hd-nav] [data-hd-menuitem]{display:flex;align-items:center;min-height:44px;padding:0 12px;border-radius:10px;color:var(--vt-text-primary);font-size:var(--vt-body-sm);text-decoration:none;transition:var(--vt-transition-control)}
+@media (max-width:1079px){
+[data-hd]{overflow:visible}
+[data-hd][data-hd-open="1"]{z-index:420}
+[data-hd="overlay"][data-hd-float="1"][data-hd-open="1"]{-webkit-backdrop-filter:none;backdrop-filter:none}
+[data-hd-row]{padding:0 var(--vt-gutter);min-height:60px;gap:var(--vt-space-3);overflow:visible}
+[data-hd="overlay"] [data-hd-row]{padding:0;min-height:60px}
+[data-hd="overlay"][data-hd-float="1"] [data-hd-row]{padding:0 var(--vt-space-4);min-height:56px}
+[data-hd-brand]{flex:1 1 auto;max-width:calc(100% - 56px)}
+[data-hd-brand] img{height:22px!important}
+[data-hd-scrim]{display:block;position:fixed;inset:0;z-index:1;background:var(--vt-bg-scrim);animation:vt-hd-in var(--vt-dur-fast) var(--vt-ease-out)}
+[data-hd-sheet]{display:flex;flex-direction:column;gap:0;position:absolute;top:calc(100% + var(--vt-space-2));inset-inline:var(--vt-gutter);z-index:2;box-sizing:border-box;max-height:min(78svh,calc(100svh - 76px));overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:var(--vt-space-3);background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg);animation:vt-hd-in var(--vt-dur-fast) var(--vt-ease-out)}
+[data-hd="overlay"] [data-hd-sheet]{inset-inline:0}
+[data-hd="overlay"][data-hd-float="1"] [data-hd-sheet]{inset-inline:0;top:calc(100% + var(--vt-space-2))}
+}
+@media (prefers-reduced-motion:reduce){[data-hd-menu-btn]:active{transform:none}[data-hd-scrim],[data-hd-sheet]{animation:none}}
+@media (prefers-reduced-transparency:reduce){[data-hd-scrim]{background:rgb(17 18 18 / .86)}}
 [data-hd-menuitem]:hover{background:var(--vt-charcoal-900);color:var(--vt-white)}
 /* The account control is the one thing in this bar that is about you. Signed out it is
    a plain outlined control; signed in it is not a link at all but a monogram disc that
@@ -95,17 +129,17 @@ body{margin:0}
 @keyframes vt-hd-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 @media print{[data-hd]{display:none!important}}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
 </helmet>
-<header data-hd="{{ variant }}" data-hd-float="{{ floatAttr }}" data-screen-label="Header">
+<header data-hd="{{ variant }}" data-hd-float="{{ floatAttr }}" data-hd-open="{{ menuOpenAttr }}" ref="{{ menuRootRef }}" data-screen-label="Header">
 <div data-hd-row="1">
 
-<a href="/" aria-label="Vamos Taxi — home" style="display:inline-flex;align-items:center;flex:0 0 auto;border:0;text-decoration:none">
+<a data-hd-brand="1" href="/" aria-label="Vamos Taxi — home">
 <span data-hd-wide="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" form="wordmark" height="{{ n24 }}" hint-size="112px,24px"></x-import></span>
-<span data-hd-narrow="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" form="mark" height="{{ n30 }}" hint-size="30px,30px"></x-import></span>
+<span data-hd-narrow="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" form="wordmark" height="{{ n22 }}" hint-size="160px,22px"></x-import></span>
 </a>
 
 <div data-hd-wide="1" style="margin-inline-start:auto;align-items:center;gap:10px;justify-content:flex-end;min-width:0">
 <dc-import name="BrandSelect" value="{{ lang }}" options="{{ langOptions }}" onSelect="{{ pickLang }}" icon="globe" a11ylabel="Language" hint-size="92px,36px"></dc-import>
-<span data-vt-no-i18n="1" style="display:inline-flex"><dc-import name="BrandSelect" value="{{ cur }}" options="{{ curOptions }}" onSelect="{{ pickCur }}" icon="banknote" a11ylabel="Currency" hint-size="104px,36px"></dc-import></span>
+<span data-hd-cur="1" data-vt-no-i18n="1" style="display:inline-flex"><dc-import name="BrandSelect" value="{{ cur }}" options="{{ curOptions }}" onSelect="{{ pickCur }}" icon="banknote" a11ylabel="Currency" hint-size="104px,36px"></dc-import></span>
 <sc-if value="{{ showAccountLink }}" hint-placeholder-val="{{ true }}">
 <sc-if value="{{ signedOut }}" hint-placeholder-val="{{ true }}">
 <a data-hd-acct="pill" href="{{ acctHref }}">
@@ -155,25 +189,27 @@ body{margin:0}
 </sc-if>
 </div>
 
-<div data-hd-narrow="1" ref="{{ menuRootRef }}" style="position:relative;margin-inline-start:auto;align-items:center;gap:8px;flex:0 0 auto">
-<span style="position:relative;display:inline-flex;flex:0 0 auto">
-<button type="button" aria-label="{{ menuLabel }}" aria-expanded="{{ menuExpanded }}" aria-haspopup="true" onClick="{{ toggleMenu }}" style="all:unset;box-sizing:border-box;width:44px;height:44px;border-radius:999px;background:var(--vt-white);border:1px solid rgb(30 31 31/.10);box-shadow:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto">
+<div data-hd-narrow="1" style="margin-inline-start:auto;align-items:center;flex:0 0 auto">
+<button type="button" data-hd-menu-btn="1" aria-label="{{ menuLabel }}" aria-expanded="{{ menuExpanded }}" aria-haspopup="menu" aria-controls="vt-hd-sheet" onClick="{{ toggleMenu }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ menuIcon }}" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></button>
-</span>
+</div>
+
+</div>
 
 <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
-<div role="menu" aria-label="{{ menuLabel }}" style="position:absolute;top:calc(100% + 10px);inset-inline-end:0;width:min(300px,calc(100vw - 32px));box-sizing:border-box;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-xl);padding:8px;display:flex;flex-direction:column;gap:2px;z-index:130;animation:vt-hd-in 180ms cubic-bezier(.16,1,.3,1)">
+<div data-hd-scrim="1" aria-hidden="true" onClick="{{ closeMenu }}"></div>
+<div data-hd-sheet="1" id="vt-hd-sheet" role="menu" aria-label="{{ menuLabel }}" data-scroll-native="1">
 
 <sc-if value="{{ showCta }}" hint-placeholder-val="{{ true }}">
-<a href="/#book" role="menuitem" style="display:flex;align-items:center;justify-content:center;gap:9px;min-height:44px;margin:2px 2px 4px;padding:0 16px;border:1px solid var(--vt-charcoal-900);border-radius:999px;background:var(--vt-yellow);text-decoration:none;color:var(--vt-charcoal-900);font-size:14px;font-weight:700">
+<a data-hd-cta="1" href="/#book" role="menuitem">
 <span>{{ tBook }}</span><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></a>
 </sc-if>
 
 <sc-if value="{{ showAccountLink }}" hint-placeholder-val="{{ true }}">
 <sc-if value="{{ signedOut }}" hint-placeholder-val="{{ true }}">
-<a data-hd-menuitem="1" href="{{ acctHref }}" role="menuitem" style="display:flex;align-items:center;justify-content:center;gap:9px;min-height:44px;margin:2px 2px 4px;padding:0 16px;border:1px solid var(--vt-charcoal-900);border-radius:999px;background:var(--vt-white);text-decoration:none;color:var(--vt-charcoal-900);transition:var(--vt-transition-control)">
+<a data-hd-signin="1" data-hd-menuitem="1" href="{{ acctHref }}" role="menuitem">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="user" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
-<span style="font-size:14px;font-weight:600;letter-spacing:.01em">{{ tAcct }}</span></a>
+<span>{{ tAcct }}</span></a>
 </sc-if>
 <sc-if value="{{ signedIn }}" hint-placeholder-val="{{ false }}">
 <a data-hd-acctrow="1" href="{{ acctHref }}" role="menuitem" style="display:flex;align-items:center;gap:11px;min-height:56px;margin:2px 2px 6px;padding:8px 12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-bg-surface);text-decoration:none;color:var(--vt-text-primary)">
@@ -189,42 +225,37 @@ body{margin:0}
 </sc-if>
 </sc-if>
 <sc-if value="{{ signedIn }}">
-<button type="button" data-hd-menuitem="1" role="menuitem" onClick="{{ signOut }}" style="all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:9px;min-height:44px;margin:0 2px 4px;padding:0 16px;border:1px solid var(--vt-border-subtle);border-radius:999px;background:var(--vt-white);color:var(--vt-text-secondary);cursor:pointer;transition:var(--vt-transition-control)">
+<button type="button" data-hd-signin="1" data-hd-menuitem="1" role="menuitem" onClick="{{ signOut }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="log-out" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
-<span style="font-size:14px;font-weight:600;letter-spacing:.01em">{{ tSignOut }}</span></button>
+<span>{{ tSignOut }}</span></button>
 </sc-if>
 
-<div style="display:flex;flex-direction:column;gap:7px;padding:2px 10px 6px">
-<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ tLangLabel }}</span>
-<div style="display:flex;flex-wrap:wrap;gap:6px">
+<div data-hd-sec="1">
+<span data-hd-kicker="1">{{ tLangLabel }}</span>
+<div data-hd-chips="1">
 <sc-for list="{{ menuLangs }}" as="o" hint-placeholder-count="4">
-<button type="button" onClick="{{ o.pick }}" title="{{ o.note }}" style="all:unset;box-sizing:border-box;min-width:44px;height:44px;padding:0 14px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--vt-font-body);font-size:13px;font-weight:600;cursor:pointer;{{ o.css }}">{{ o.label }}</button>
+<button type="button" data-hd-chip="1" onClick="{{ o.pick }}" title="{{ o.note }}" style="{{ o.css }}">{{ o.label }}</button>
 </sc-for>
 </div>
 </div>
 
-<div style="display:flex;flex-direction:column;gap:7px;padding:2px 10px 8px">
-<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ tCurLabel }}</span>
-<div data-vt-no-i18n="1" style="display:flex;flex-wrap:wrap;gap:6px">
+<div data-hd-sec="1">
+<span data-hd-kicker="1">{{ tCurLabel }}</span>
+<div data-hd-chips="1" data-vt-no-i18n="1">
 <sc-for list="{{ menuCurs }}" as="o" hint-placeholder-count="4">
-<button type="button" onClick="{{ o.pick }}" title="{{ o.note }}" style="all:unset;box-sizing:border-box;min-width:44px;height:44px;padding:0 14px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--vt-font-body);font-size:13px;font-weight:600;cursor:pointer;{{ o.css }}">{{ o.label }}</button>
+<button type="button" data-hd-chip="1" onClick="{{ o.pick }}" title="{{ o.note }}" style="{{ o.css }}">{{ o.label }}</button>
 </sc-for>
 </div>
 </div>
 
-<sc-if value="{{ showLinks }}" hint-placeholder-val="{{ true }}">
-<div style="display:flex;flex-direction:column;gap:2px;padding-top:6px;border-top:1px solid var(--vt-border-subtle)">
+<div data-hd-nav="1">
 <sc-for list="{{ links }}" as="l" hint-placeholder-count="2">
-<a data-hd-menuitem="1" href="{{ l.href }}" role="menuitem" style="display:flex;align-items:center;min-height:44px;padding:0 12px;border-radius:10px;color:var(--vt-text-primary);font-size:14px;text-decoration:none;transition:var(--vt-transition-control)">{{ l.label }}</a>
+<a data-hd-menuitem="1" href="{{ l.href }}" role="menuitem">{{ l.label }}</a>
 </sc-for>
 </div>
-</sc-if>
 
 </div>
 </sc-if>
-</div>
-
-</div>
 </header>
 <sc-if value="{{ floating }}" hint-placeholder-val="{{ false }}">
 <div data-hd-spacer="1" aria-hidden="true"></div>
@@ -271,12 +302,12 @@ class Component extends DCLogic {
        surface through VamosLocale, and any change made elsewhere lands back. */
     this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
     window.addEventListener('vamos:locale', this._onLocale);
-    this._esc = (e) => { if (e.key !== 'Escape') return; if (this.state.menuOpen) this.setState({ menuOpen: false }); if (this.state.acctOpen) this.setState({ acctOpen: false }); };
+    this._esc = (e) => { if (e.key !== 'Escape') return; if (this.state.menuOpen) this.closeMenu(); if (this.state.acctOpen) this.setState({ acctOpen: false }); };
     this._away = (e) => {
-      if (this.state.menuOpen && this._root && !this._root.contains(e.target)) this.setState({ menuOpen: false });
+      if (this.state.menuOpen && this._root && !this._root.contains(e.target)) this.closeMenu();
       if (this.state.acctOpen && this._acct && !this._acct.contains(e.target)) this.setState({ acctOpen: false });
     };
-    this._resize = () => { if (this.state.menuOpen && window.innerWidth >= 1080) this.setState({ menuOpen: false }); };
+    this._resize = () => { if (this.state.menuOpen && window.innerWidth >= 1080) this.closeMenu(); };
     /* Only the overlay bar floats — the charcoal one is already sticky and solid. */
     this._onScroll = () => {
       if (this._raf) return;
@@ -322,20 +353,25 @@ class Component extends DCLogic {
     document.removeEventListener('keydown', this._esc);
     document.removeEventListener('mousedown', this._away);
     window.removeEventListener('resize', this._resize);
+    this._lock(false);
   }
-  toggleMenu = () => this.setState((s) => ({ menuOpen: !s.menuOpen }));
+  _lock(on) { try { document.body.style.overflow = on ? 'hidden' : ''; } catch (e) {} }
+  closeMenu = () => { this._lock(false); this.setState({ menuOpen: false }); };
+  toggleMenu = () => this.setState((s) => { const menuOpen = !s.menuOpen; this._lock(menuOpen); return { menuOpen }; });
 
   /** Nothing reloads: VamosLocale relabels the whole page in place — this bar,
    *  the sections under it, the footer, and any dialog that is open. */
   lang() { return this.props.lang || this.state.lang; }
   cur() { return this.props.cur || this.state.cur; }
   setLang = (v) => {
+    this._lock(false);
     this.setState({ lang: v, menuOpen: false });
     if (window.VamosLocale) window.VamosLocale.setLang(v);
     else { try { localStorage.setItem('vamosLang', v); } catch (e) {} }
     if (this.props.onLang) this.props.onLang(v);
   };
   setCur = (v) => {
+    this._lock(false);
     this.setState({ cur: v, menuOpen: false });
     if (window.VamosLocale) window.VamosLocale.setCur(v);
     else { try { localStorage.setItem('vamosCurrency', v); } catch (e) {} }
@@ -351,7 +387,7 @@ class Component extends DCLogic {
        past it the floating bar carries it, so the way to book is never off the page. */
     const showCta = ((this.props.cta ?? (variant !== 'overlay')) !== false) || floating;
     return {
-      n15: 15, n16: 16, n18: 18, n20: 20, n24: 24, n30: 30,
+      n15: 15, n16: 16, n18: 18, n20: 20, n22: 22, n24: 24,
       variant, showCta, floating, floatAttr: floating ? '1' : null,
       lang, cur,
       langOptions: LANGS.map((v) => ({ value: v, label: v.toUpperCase(), note: LANG_NOTE[v] })),
@@ -390,14 +426,14 @@ class Component extends DCLogic {
       },
       tBook: t.book, tLangLabel: t.langLabel, tCurLabel: t.curLabel,
       menuOpen: this.state.menuOpen,
+      menuOpenAttr: this.state.menuOpen ? '1' : null,
       menuExpanded: this.state.menuOpen ? 'true' : 'false',
       menuIcon: this.state.menuOpen ? 'x' : 'menu',
       menuLabel: this.state.menuOpen ? t.close : t.menu,
-      toggleMenu: this.toggleMenu, menuRootRef: this._menuRoot,
+      toggleMenu: this.toggleMenu, closeMenu: this.closeMenu, menuRootRef: this._menuRoot,
       menuLangs: LANGS.map((v) => ({ label: v.toUpperCase(), note: LANG_NOTE[v], css: chip(v === lang), pick: () => this.setLang(v) })),
       menuCurs: Object.keys(CUR_NOTE).map((v) => ({ label: v, note: CUR_NOTE[v], css: chip(v === cur), pick: () => this.setCur(v) })),
-      showLinks: showCta,
-      links: [{ href: '/faq', label: t.faq }, { href: '/contact', label: t.contact }],
+      links: [{ href: '/#faq', label: t.faq }, { href: '/contact', label: t.contact }],
     };
   }
 }

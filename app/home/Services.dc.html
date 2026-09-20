@@ -65,12 +65,13 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-svc-wrap]{--n:3;--step:65svh;height:calc(100svh + (var(--n) - 1) * var(--step))}
 [data-svc-stage]{position:sticky;top:0;height:100svh;box-sizing:border-box;padding:clamp(18px,4vh,32px) 0;overflow:hidden}
 [data-svc-stage] > [data-svc-inner]{height:100%;display:flex;flex-direction:column;justify-content:center;gap:18px}
-[data-svc-track]{display:block;position:relative;height:clamp(260px,42svh,400px);flex:0 0 auto}
-[data-svc-track] > :is([data-sc-name="ServiceCard"],[data-svc-cta]){position:absolute;top:0;left:0;width:100%;height:100%;min-height:0;opacity:0;pointer-events:none;transform:translateX(106%);backface-visibility:hidden;will-change:transform,opacity}
-[data-svc-track] > :is([data-sc-name="ServiceCard"],[data-svc-cta]):nth-child(1){transform:translateX(0);opacity:1;pointer-events:auto}
-[data-svc-track] > :is([data-sc-name="ServiceCard"],[data-svc-cta])[data-pos="featured"]{transform:translateX(0);opacity:1;pointer-events:auto;transition:transform 560ms cubic-bezier(.16,1,.3,1),opacity 240ms linear;z-index:2}
-[data-svc-track] > :is([data-sc-name="ServiceCard"],[data-svc-cta]):is([data-pos="queued"],[data-pos="next"]){transform:translateX(106%);opacity:0;transition:transform 420ms var(--vt-ease-standard),opacity 240ms linear}
-[data-svc-track] > :is([data-sc-name="ServiceCard"],[data-svc-cta])[data-pos="gone"]{transform:translateX(-106%);opacity:0;transition:transform 520ms cubic-bezier(.4,0,1,1),opacity 300ms var(--vt-ease-standard);z-index:0}
+[data-svc-track]{display:block;position:relative;height:clamp(260px,42svh,400px);flex:0 0 auto;overflow:hidden}
+[data-svc-track] > :is([data-sc-name="ServiceCard"],[data-svc-cta]){position:absolute;top:0;inset-inline-start:0;width:100%;height:100%;min-height:0;opacity:0;pointer-events:none;transform:translate3d(0,24%,0) scale(.96);transform-origin:center center;backface-visibility:hidden;will-change:transform,opacity}
+[data-svc-track] > :is([data-sc-name="ServiceCard"],[data-svc-cta]):nth-child(1){transform:none;opacity:1;pointer-events:auto}
+[data-svc-track] > :is([data-sc-name="ServiceCard"],[data-svc-cta])[data-pos="featured"]{transform:none;opacity:1;pointer-events:auto;transition:transform var(--vt-dur-page) var(--vt-ease-out),opacity var(--vt-dur-base) linear;z-index:2}
+[data-svc-track] > :is([data-sc-name="ServiceCard"],[data-svc-cta])[data-pos="next"]{transform:translate3d(0,18%,0) scale(.97);opacity:0;pointer-events:none;transition:transform var(--vt-dur-page) var(--vt-ease-out),opacity var(--vt-dur-base) linear;z-index:1}
+[data-svc-track] > :is([data-sc-name="ServiceCard"],[data-svc-cta])[data-pos="queued"]{transform:translate3d(0,28%,0) scale(.94);opacity:0;pointer-events:none;transition:transform var(--vt-dur-slow) var(--vt-ease-standard),opacity var(--vt-dur-fast) linear}
+[data-svc-track] > :is([data-sc-name="ServiceCard"],[data-svc-cta])[data-pos="gone"]{transform:translate3d(0,-16%,0) scale(.94);opacity:0;pointer-events:none;transition:transform var(--vt-dur-slow) var(--vt-ease-in),opacity var(--vt-dur-slow) var(--vt-ease-standard);z-index:0}
 [data-svc-head]{flex-wrap:wrap;gap:16px}
 [data-svc-ticks]{display:flex;align-items:center;gap:5px;flex:0 0 auto}
 [data-svc-tick]{width:18px;height:2px;background:var(--vt-grey-300);transition:background-color 420ms var(--vt-ease-standard)}
@@ -172,10 +173,11 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
  * never be trapped, iOS momentum scroll needs no special case, and Tab/focus is unaffected.
  *
  * Below 768px the same pin runs in 'solo' mode: one full-width card at a time, each step
- * sliding the featured card out to the left while the next enters from the right. There is no
- * small zone there, so the yellow "All services" button becomes the final step of the
- * sequence instead. With prefers-reduced-motion the CSS falls back to the static card grid at
- * any width and none of this runs.
+ * receding the featured card up (scale .94) while the next rises from below. Motion follows
+ * the scroll axis — not a sideways wipe — and the track clips so rising/receding cards never
+ * paint over the heading or into Vehicle Fleet. There is no small zone, so the yellow
+ * "All services" button is the final step. With prefers-reduced-motion the CSS falls back to
+ * the static card grid at any width and none of this runs.
  */
 class Component extends DCLogic {
   active = 0; target = 0; lockUntil = 0;
@@ -183,7 +185,7 @@ class Component extends DCLogic {
   trackRef = (el) => { this.track = el; this.sync(true); };
   cards() { return this.track ? Array.prototype.slice.call(this.track.querySelectorAll(':scope > [data-sc-name="ServiceCard"]')) : []; }
   cta() { return this.track ? this.track.querySelector(':scope > [data-svc-cta]') : null; }
-  /** 'grid' = static fallback · 'stage' = big + small two-zone swap · 'solo' = one card, right to left. */
+  /** 'grid' = static fallback · 'stage' = big + small two-zone swap · 'solo' = one card, rise from below. */
   mode() {
     if (typeof matchMedia === 'undefined') return 'grid';
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return 'grid';
@@ -205,7 +207,7 @@ class Component extends DCLogic {
     const list = this.slides(); const n = list.length;
     const a = Math.max(0, Math.min(n - 1, this.active));
     if (m === 'solo') {
-      list.forEach((c, i) => c.setAttribute('data-pos', i < a ? 'gone' : i === a ? 'featured' : 'queued'));
+      list.forEach((c, i) => c.setAttribute('data-pos', i < a ? 'gone' : i === a ? 'featured' : i === a + 1 ? 'next' : 'queued'));
     } else {
       cards.forEach((c, i) => {
         c.setAttribute('data-pos', i < a ? 'gone' : i === a ? 'featured' : i === a + 1 ? 'next' : 'queued');

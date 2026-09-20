@@ -155,7 +155,23 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-sug-foot]{position:sticky;bottom:-6px;z-index:2;margin:4px -6px -6px;padding:7px 11px;background:var(--vt-bg-surface);border-top:1px solid var(--vt-border-subtle);display:flex;align-items:center;justify-content:flex-end;gap:6px}
 [data-sug-foot] b{display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:4px;background:var(--vt-grey-100);color:var(--vt-charcoal-600);font-size:10px;font-weight:600;letter-spacing:.06em}
 [data-swap]{display:flex;align-items:center;justify-content:center;gap:10px}
-[data-bookcard]{padding:12px}
+[data-bookcard]{padding:12px;display:flex;flex-direction:column;gap:10px}
+[data-book-compact]{display:flex;flex-direction:column;gap:10px}
+[data-book-slots]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+[data-book-slot]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;min-height:56px;padding:8px 10px;border-radius:var(--vt-radius-field);border:1px solid var(--vt-grey-300);background:var(--vt-grey-50);cursor:pointer;text-align:start;min-width:0;font-family:var(--vt-font-body);transition:border-color .16s cubic-bezier(.2,0,.2,1),background .16s cubic-bezier(.2,0,.2,1)}
+[data-book-slot]:hover{border-color:var(--vt-charcoal-900);background:var(--vt-white)}
+[data-book-slot-ico]{width:28px;height:28px;flex:0 0 auto;border-radius:8px;background:var(--vt-grey-100);color:var(--vt-charcoal-900);display:inline-flex;align-items:center;justify-content:center}
+[data-book-slot-copy]{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto}
+[data-book-slot-lbl]{font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:var(--vt-label-tracking);color:var(--vt-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[data-book-slot-val]{font-size:var(--vt-body-sm);font-weight:600;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[data-book-go]{all:unset;box-sizing:border-box;cursor:pointer;transition:background .14s cubic-bezier(.2,0,.2,1)}
+[data-book-go][data-round="1"]{width:56px;min-height:60px;border-radius:var(--vt-radius-field);background:var(--vt-yellow);color:var(--vt-charcoal-900);display:inline-flex;align-items:center;justify-content:center;flex:0 0 56px;align-self:stretch}
+[data-book-go][data-round="1"]:hover{background:var(--vt-accent-hover)}
+[data-book-go][data-round="1"]:active{background:var(--vt-accent-press)}
+[dir="rtl"] [data-book-go][data-round="1"]{transform:scaleX(-1)}
+[data-book-trust]{display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap;padding:10px 2px 2px;border-top:1px solid var(--vt-border-subtle)}
+[data-book-trust] [data-trust]{display:inline-flex;align-items:center;gap:6px;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);line-height:1.35;color:var(--vt-text-muted);white-space:nowrap}
+@media (min-width:700px){[data-book-compact]{flex-direction:row;align-items:stretch;gap:8px}[data-book-slots]{flex:1 1 auto;grid-template-columns:repeat(4,minmax(0,1fr))}[data-book-slot]{min-height:60px}}
 [data-hero],[data-hero-inner]{min-height:100vh;min-height:100svh}
 [data-fleet-strip]{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;gap:8px;padding-bottom:4px}[data-fleet-card]{flex:0 0 166px;min-width:0;max-width:360px;scroll-snap-align:start}[data-fleet-card][data-unavail="1"] [data-fleet-img]{filter:saturate(.4)}
 @media (max-width:699px){[data-hide-narrow]{display:none!important}
@@ -206,29 +222,32 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <p style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-lg);line-height:1.6;color:var(--vt-text-inverse-muted);max-width:52ch;text-wrap:pretty">{{ tSub }}</p>
 </div><div id="book" data-bookcard="1" style="margin-top:clamp(20px,4vw,34px);background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-xl);scroll-margin-top:24px">
 
-<div data-upto-wide="1" style="display:flex;flex-direction:column;gap:9px">
-<button type="button" onClick="{{ openSheet }}" aria-haspopup="dialog" aria-expanded="{{ openExpanded }}" style="all:unset;box-sizing:border-box;display:flex;align-items:center;gap:11px;width:100%;min-height:60px;padding:8px 8px 8px 14px;border-radius:var(--vt-radius-field);border:1px solid var(--vt-grey-300);background:var(--vt-grey-50);cursor:pointer;text-align:start;transition:var(--vt-transition-control)" style-hover="border-color:var(--vt-charcoal-900);background:var(--vt-white)" style-focus="border-color:var(--vt-charcoal-900);box-shadow:var(--vt-ring)">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="search" size="{{ n18 }}" color="var(--vt-charcoal-900)" hint-size="18px,18px"></x-import>
-<span style="display:flex;flex-direction:column;gap:2px;flex:1 1 auto;min-width:0">
-<span style="font-family:var(--vt-font-body);font-size:14px;font-weight:600;color:var(--vt-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ tripRoute }}</span>
-<span style="display:flex;align-items:center;gap:8px;min-width:0">
-<span style="font-size:11.5px;color:var(--vt-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ tripMeta }}</span>
-<sc-if value="{{ showParty }}" hint-placeholder-val="{{ true }}">
-<span style="display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--vt-text-muted);flex:0 0 auto"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="users" size="{{ n13 }}" color="var(--vt-text-muted)" hint-size="13px,13px"></x-import>{{ pax }}</span>
-<span style="display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--vt-text-muted);flex:0 0 auto"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="luggage" size="{{ n13 }}" color="var(--vt-text-muted)" hint-size="13px,13px"></x-import>{{ bags }}</span>
-</sc-if>
-</span>
-</span>
-<span aria-hidden="true" style="width:44px;height:44px;border-radius:999px;background:var(--vt-yellow);display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></span>
+<div data-upto-wide="1" data-book-compact="1">
+<div data-book-slots="1">
+<button type="button" data-book-slot="1" onClick="{{ openSheetPickup }}" aria-haspopup="dialog" aria-expanded="{{ openExpanded }}" aria-label="{{ tSlotPickup }}: {{ compactPickup }}">
+<span data-book-slot-ico="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ pickupIcon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
+<span data-book-slot-copy="1"><span data-book-slot-lbl="1">{{ tSlotPickup }}</span><span data-book-slot-val="1" style="color:{{ pickupTone }}">{{ compactPickup }}</span></span>
 </button>
-
-<div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: space-around">
-<sc-for list="{{ trustBullets }}" as="tb" hint-placeholder-count="3">
-<span data-hide-narrow="{{ tb.hide }}" style="display:inline-flex;align-items:center;gap:6px;font-size:var(--vt-body-xs);color:var(--vt-text-muted);white-space:nowrap">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ tb.icon }}" size="{{ n15 }}" color="{{ tb.color }}" hint-size="15px,15px"></x-import>{{ tb.text }}</span>
-</sc-for>
-</div></div>
+<button type="button" data-book-slot="1" onClick="{{ openSheetDest }}" aria-haspopup="dialog" aria-expanded="{{ openExpanded }}" aria-label="{{ tSlotDest }}: {{ compactDest }}">
+<span data-book-slot-ico="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
+<span data-book-slot-copy="1"><span data-book-slot-lbl="1">{{ tSlotDest }}</span><span data-book-slot-val="1" style="color:{{ destTone }}">{{ compactDest }}</span></span>
+</button>
+<button type="button" data-book-slot="1" onClick="{{ openSheetWhen }}" aria-haspopup="dialog" aria-expanded="{{ openExpanded }}" aria-label="{{ tSlotWhen }}: {{ compactWhen }}">
+<span data-book-slot-ico="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="calendar-days" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
+<span data-book-slot-copy="1"><span data-book-slot-lbl="1">{{ tSlotWhen }}</span><span data-book-slot-val="1" style="color:{{ whenTone }}">{{ compactWhen }}</span></span>
+</button>
+<button type="button" data-book-slot="1" onClick="{{ openSheetParty }}" aria-haspopup="dialog" aria-expanded="{{ openExpanded }}" aria-label="{{ tSlotParty }}: {{ partyLine }}">
+<span data-book-slot-ico="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="users" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
+<span data-book-slot-copy="1"><span data-book-slot-lbl="1">{{ tSlotParty }}</span><span data-book-slot-val="1" style="color:var(--vt-text-primary)">{{ partyLine }}</span></span>
+</button>
+</div>
+<button type="button" data-book-go="1" data-round="1" data-hide-narrow="1" onClick="{{ openSheet }}" aria-haspopup="dialog" aria-expanded="{{ openExpanded }}" aria-label="{{ tShowPrices }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import>
+</button>
+<div data-only-narrow="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="primary" size="lg" block="{{ yes }}" iconEnd="arrow-right" onClick="{{ openSheet }}" hint-size="100%,54px">{{ tShowPrices }}</x-import>
+</div>
+</div>
 
 <div data-shell="1" data-open="{{ openAttr }}" onClick="{{ scrimClick }}">
 <div data-sheetbody="1" ref="{{ sheetRef }}" role="{{ sheetRole }}" aria-modal="{{ sheetModal }}" aria-label="{{ tSheetTitle }}" tabindex="{{ sheetTab }}">
@@ -439,6 +458,12 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </sc-if>
 </div>
 </div>
+<div data-book-trust="1">
+<sc-for list="{{ trustBullets }}" as="tb" hint-placeholder-count="3">
+<span data-trust="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ tb.icon }}" size="{{ n15 }}" color="{{ tb.color }}" hint-size="15px,15px"></x-import>{{ tb.text }}</span>
+</sc-for>
+</div>
 </div><span aria-live="polite" aria-atomic="true" style="position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">{{ announce }}</span><div id="fleet" data-strip-head="1" style="margin-top:16px;display:flex;align-items:baseline;column-gap:10px;row-gap:4px;flex-wrap:wrap;scroll-margin-top:24px">
 <span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">{{ stripStep }}</span>
 <strong style="font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);color:var(--vt-white)">{{ stripTitle }}</strong>
@@ -525,7 +550,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 
 <dc-import name="Reviews" hint-size="100%,780px"></dc-import>
 
-<dc-import name="FAQ" hint-size="100%,640px"></dc-import>
+<dc-import name="FAQ" hint-size="100%,780px"></dc-import>
 
 <dc-import name="SiteFooter" hint-size="100%,520px" show-payment-marks="{{ true }}"></dc-import>
 <dc-import name="CookieBanner" hint-size="0,0"></dc-import>
@@ -947,7 +972,7 @@ const T = {
     fixedPh:'Choisir un trajet', fixedEmpty:'Aucun trajet en ligne pour l’instant', fixedMiss:'Ce trajet n’a pas pu être trouvé — essayez Aller simple',
     fillingFrom:'Prérempli depuis {code}', fillPickup:'Départ', fillWhen:'Date & heure', fillDest:'Destination', fillParty:'Passagers & bagages',
     stepTwo:'Étape 2', readyTitle:'Choisissez votre classe', readySub:'Prix fixe, tout compris — touchez une classe pour continuer.', selectCta:'Choisir', noRoad:'Sans route', selectedCta:'Choisie', unavailableCta:'Indisponible pour le moment', doesNotFit:'Ne convient pas à votre groupe',
-    needTrip:'Renseignez votre trajet pour voir les prix', emptyTitle:'Planifiez votre transfert', emptyMeta:'Départ, destination, date & heure', whenPh:'Choisir date & heure',
+    needTrip:'Renseignez votre trajet pour voir les prix', emptyTitle:'Planifiez votre transfert', emptyMeta:'Départ, destination, date & heure', whenPh:'Choisir date & heure', waiting60:'60 minutes d’attente, incluses',
     searching:'Recherche de lieux…', geoErr:'Recherche indisponible — lieux enregistrés', savedPlaces:'Lieux enregistrés', results:'Résultats', routeStat:'{km} km · environ {min} min de route',
     savedGo:'Enregistré — ouverture de votre réservation…', savedSub:'{v} · détails et options ensuite.',
   },
@@ -982,7 +1007,7 @@ const T = {
     fixedPh:'اختر مسارًا', fixedEmpty:'لا مسارات مباشرة بعد', fixedMiss:'تعذّر مطابقة هذا المسار — جرّب ذهاب فقط',
     fillingFrom:'مُعبّأ من {code}', fillPickup:'الانطلاق', fillWhen:'التاريخ والوقت', fillDest:'الوجهة', fillParty:'الركاب والأمتعة',
     stepTwo:'الخطوة 2', readyTitle:'اختر الفئة', readySub:'سعر ثابت شامل — اختر فئة للمتابعة.', selectCta:'اختيار', noRoad:'لا طريق', selectedCta:'مختارة', unavailableCta:'غير متاح حاليًا', doesNotFit:'لا يناسب مجموعتك',
-    needTrip:'أضف تفاصيل رحلتك لعرض الأسعار', emptyTitle:'خطّط رحلتك', emptyMeta:'الانطلاق، الوجهة، التاريخ والوقت', whenPh:'اختر التاريخ والوقت',
+    needTrip:'أضف تفاصيل رحلتك لعرض الأسعار', emptyTitle:'خطّط رحلتك', emptyMeta:'الانطلاق، الوجهة، التاريخ والوقت', whenPh:'اختر التاريخ والوقت', waiting60:'60 دقيقة انتظار مشمولة',
     searching:'جارٍ البحث عن الأماكن…', geoErr:'البحث غير متاح — الأماكن المحفوظة فقط', savedPlaces:'أماكن محفوظة', results:'نتائج البحث', routeStat:'{km} كم · نحو {min} دقيقة بالسيارة',
     savedGo:'تم الحفظ — جارٍ فتح حجزك…', savedSub:'{v} · التفاصيل والإضافات تاليًا.',
   },
@@ -1837,8 +1862,36 @@ class Component extends DCLogic {
   openSheet = (e) => {
     this._returnFocus = (e && e.currentTarget) || null;
     this.lockScroll(true);
-    this.setState({ sheetOpen: true, menuOpen: false }, () => { if (this._sheet && this._sheet.focus) this._sheet.focus(); });
+    const focus = this._sheetFocus;
+    this.setState({ sheetOpen: true, menuOpen: false }, () => {
+      if (this._sheet && this._sheet.focus) this._sheet.focus();
+      this.focusSheetField(focus);
+      this._sheetFocus = '';
+    });
   };
+  openSheetPickup = (e) => { this._sheetFocus = 'pickup'; this.openSheet(e); };
+  openSheetDest = (e) => { this._sheetFocus = 'dest'; this.openSheet(e); };
+  openSheetWhen = (e) => { this._sheetFocus = 'when'; this.openSheet(e); };
+  openSheetParty = (e) => { this._sheetFocus = 'party'; this.openSheet(e); };
+  focusSheetField(field) {
+    if (!field) return;
+    const root = this._fields || this._sheet;
+    if (!root || !root.querySelector) return;
+    const sel = {
+      pickup: '[data-f="pickup"] input',
+      dest: '[data-f="dest"] input',
+      when: '[data-f="when"] button, [data-f="when"] input',
+      party: '[data-f="party"] button, [data-f="party"] input',
+      flight: '[data-f="flight"] input',
+    }[field];
+    if (!sel) return;
+    const go = () => {
+      const el = root.querySelector(sel);
+      if (el && typeof el.focus === 'function') try { el.focus(); } catch (err) {}
+    };
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(() => setTimeout(go, 40));
+    else setTimeout(go, 80);
+  }
   closeSheet = () => {
     this.lockScroll(false);
     this.setState({ sheetOpen: false, sug: CLOSED, sugIdx: -1 }, () => { const el = this._returnFocus; if (el && el.isConnected) el.focus(); });
@@ -2241,6 +2294,15 @@ class Component extends DCLogic {
       openAttr: s.sheetOpen ? '1' : '0', openExpanded: s.sheetOpen ? 'true' : 'false', sheetRef: this.sheetRef,
       sheetRole: s.sheetOpen ? 'dialog' : undefined, sheetModal: s.sheetOpen ? 'true' : undefined, sheetTab: s.sheetOpen ? -1 : undefined,
       tripRoute: tripRoute, tripMeta: tripMeta, showParty: s.pax > 0 || s.bags > 0,
+      compactPickup: s.pickupText ? head(s.pickupText) : t.pickupPh,
+      pickupTone: s.pickupText ? 'var(--vt-text-primary)' : 'var(--vt-text-muted)',
+      compactDest: s.dropText ? head(s.dropText) : t.destPh,
+      destTone: s.dropText ? 'var(--vt-text-primary)' : 'var(--vt-text-muted)',
+      compactWhen: (dateStr && s.time) ? (dateStr + ', ' + s.time) : (dateStr || t.whenPh),
+      whenTone: (s.day && s.time) ? 'var(--vt-text-primary)' : 'var(--vt-text-muted)',
+      partyLine: String(s.pax) + ' · ' + String(s.bags),
+      tSlotPickup: t.fillPickup, tSlotDest: t.fillDest, tSlotWhen: t.fillWhen, tSlotParty: t.fillParty,
+      openSheetPickup: this.openSheetPickup, openSheetDest: this.openSheetDest, openSheetWhen: this.openSheetWhen, openSheetParty: this.openSheetParty,
       tMenu: t.menu, tClose: t.close, tSheetTitle: t.planTitle, tShowPrices: t.showPrices, tCall: t.call, tCallNote: t.callNote,
       tLangLabel: t.langLabel, tCurLabel: t.curLabel,
       swap: this.swap, tSwap: t.swap,
@@ -2255,9 +2317,9 @@ class Component extends DCLogic {
       sheetCtaDisabled: this.flightRequired() && !this.flightFilled(),
       announce: s.announce,
       trustBullets: (() => { const parts = t.trust.split(' · '); return [
-        { icon: 'banknote', color: 'var(--vt-yellow-700)', text: parts[0] || t.trust, hide: null },
-        { icon: 'shield-check', color: 'var(--vt-success)', text: parts[1] || '', hide: '1' },
-        { icon: 'plane-landing', color: 'var(--vt-yellow-700)', text: t.waiting60, hide: '1' },
+        { icon: 'banknote', color: 'var(--vt-text-muted)', text: parts[0] || t.trust },
+        { icon: 'shield-check', color: 'var(--vt-text-muted)', text: parts[1] || '' },
+        { icon: 'clock', color: 'var(--vt-text-muted)', text: t.waiting60 },
       ].filter((b) => b.text); })(),
       tKicker: (s.service && (SVC_KICKER[s.lang] || SVC_KICKER.en)[s.service]) || t.kicker, tH1: t.h1, tSub: t.sub, tSignIn: t.signIn,
       tFlight: this.flightRequired() ? t.flight : (t.flightOptional || t.flight), tPickup: t.pickup, tPickupPh: t.pickupPh, tDest: t.dest, tDestPh: t.destPh,
