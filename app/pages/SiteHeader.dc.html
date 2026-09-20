@@ -78,7 +78,7 @@ button[data-hd-signin]{width:calc(100% - 4px);appearance:none;-webkit-appearance
 [data-hd-sec]{display:flex;flex-direction:column;gap:8px;padding:10px 8px 8px}
 [data-hd-kicker]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
 [data-hd-nav]{display:flex;flex-direction:column;gap:2px}
-[data-hd-nav] [data-hd-menuitem]{display:flex;align-items:center;min-height:44px;padding:0 12px;border-radius:var(--vt-radius-sm);color:var(--vt-text-primary);font-size:var(--vt-body-sm);text-decoration:none;transition:var(--vt-transition-control)}
+[data-hd-nav] [data-hd-menuitem]{display:flex;align-items:center;gap:11px;min-height:44px;padding:0 12px;border-radius:var(--vt-radius-sm);color:var(--vt-text-primary);font-size:var(--vt-body-sm);text-decoration:none;transition:var(--vt-transition-control)}
 [data-hd-locale]{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;padding:10px 8px 12px;border-bottom:1px solid var(--vt-border-subtle)}
 [data-hd-sheet-head],[data-hd-sheet-body]{display:flex;flex-direction:column;gap:0}
 @media (max-width:1079px){
@@ -92,9 +92,12 @@ button[data-hd-signin]{width:calc(100% - 4px);appearance:none;-webkit-appearance
 [data-hd="overlay"][data-hd-float="1"][data-hd-open="1"] [data-hd-row]{padding:0 var(--vt-gutter);min-height:60px}
 [data-hd-brand]{flex:1 1 auto;max-width:calc(100% - 56px)}
 [data-hd-brand] img{height:22px!important}
-[data-hd-scrim]{display:block;position:fixed;inset:0;z-index:1;background:var(--vt-bg-scrim);animation:vt-hd-fade var(--vt-dur-fast) var(--vt-ease-out)}
-[data-hd-sheet]{display:flex;flex-direction:column;gap:0;position:fixed;inset-block:0;inset-inline-end:0;inset-inline-start:auto;z-index:2;box-sizing:border-box;width:min(22.5rem,86vw);height:100svh;max-height:100svh;overflow:visible;padding:0;background:var(--vt-bg-surface);border:0;border-inline-start:1px solid var(--vt-border-subtle);border-radius:0;box-shadow:var(--vt-shadow-xl);animation:vt-hd-drawer var(--vt-dur-slow) var(--vt-ease-out)}
+[data-hd-scrim]{display:block;position:fixed;inset:0;z-index:1;background:var(--vt-bg-scrim);animation:vt-hd-fade var(--vt-dur-fast) var(--vt-ease-out) both}
+[data-hd-sheet]{display:flex;flex-direction:column;gap:0;position:fixed;inset-block:0;inset-inline-end:0;inset-inline-start:auto;z-index:2;box-sizing:border-box;width:min(22.5rem,86vw);height:100svh;max-height:100svh;overflow:visible;padding:0;background:var(--vt-bg-surface);border:0;border-inline-start:1px solid var(--vt-border-subtle);border-radius:0;box-shadow:var(--vt-shadow-xl);animation:vt-hd-drawer var(--vt-dur-slow) var(--vt-ease-out) both}
 [dir="rtl"] [data-hd-sheet]{animation-name:vt-hd-drawer-rtl}
+[data-hd-scrim][data-hd-closing="1"]{animation:vt-hd-fade-out var(--vt-dur-slow) var(--vt-ease-out) both;pointer-events:none}
+[data-hd-sheet][data-hd-closing="1"]{animation:vt-hd-drawer-out var(--vt-dur-slow) var(--vt-ease-out) both;pointer-events:none}
+[dir="rtl"] [data-hd-sheet][data-hd-closing="1"]{animation-name:vt-hd-drawer-out-rtl}
 [data-hd-sheet-head]{flex:0 0 auto;padding:calc(60px + var(--vt-space-3)) var(--vt-space-3) var(--vt-space-2)}
 [data-hd-sheet-body]{flex:1 1 auto;min-block-size:0;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 var(--vt-space-3) max(var(--vt-space-4),env(safe-area-inset-bottom))}
 [data-hd-sheet-body] [data-hd-sec] + [data-hd-sec]{border-top:1px solid var(--vt-border-subtle)}
@@ -132,8 +135,11 @@ button[data-hd-signin]{width:calc(100% - 4px);appearance:none;-webkit-appearance
 [data-hd-sub]{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--vt-text-muted)}
 @keyframes vt-hd-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 @keyframes vt-hd-fade{from{opacity:0}to{opacity:1}}
+@keyframes vt-hd-fade-out{from{opacity:1}to{opacity:0}}
 @keyframes vt-hd-drawer{from{transform:translateX(100%)}to{transform:none}}
 @keyframes vt-hd-drawer-rtl{from{transform:translateX(-100%)}to{transform:none}}
+@keyframes vt-hd-drawer-out{from{transform:none}to{transform:translateX(100%)}}
+@keyframes vt-hd-drawer-out-rtl{from{transform:none}to{transform:translateX(-100%)}}
 @media print{[data-hd]{display:none!important}}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
 </helmet>
 <header data-hd="{{ variant }}" data-hd-float="{{ floatAttr }}" data-hd-open="{{ menuOpenAttr }}" ref="{{ menuRootRef }}" data-screen-label="Header">
@@ -204,8 +210,8 @@ button[data-hd-signin]{width:calc(100% - 4px);appearance:none;-webkit-appearance
 </div>
 
 <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
-<div data-hd-scrim="1" aria-hidden="true" onClick="{{ closeMenu }}"></div>
-<div data-hd-sheet="1" id="vt-hd-sheet" role="dialog" aria-modal="true" aria-label="{{ tMenu }}">
+<div data-hd-scrim="1" data-hd-closing="{{ menuClosingAttr }}" aria-hidden="true" onClick="{{ closeMenu }}"></div>
+<div data-hd-sheet="1" id="vt-hd-sheet" data-hd-closing="{{ menuClosingAttr }}" role="dialog" aria-modal="true" aria-label="{{ tMenu }}" onAnimationEnd="{{ onSheetAnimEnd }}">
 
 <div data-hd-sheet-head="1">
 <sc-if value="{{ showCta }}" hint-placeholder-val="{{ true }}">
@@ -222,7 +228,7 @@ button[data-hd-signin]{width:calc(100% - 4px);appearance:none;-webkit-appearance
 <sc-if value="{{ signedIn }}" hint-placeholder-val="{{ false }}">
 <a data-hd-acctrow="1" href="{{ acctHref }}" style="display:flex;align-items:center;gap:11px;min-height:56px;margin:2px 2px 6px;padding:8px 12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-bg-surface);text-decoration:none;color:var(--vt-text-primary)">
 <span style="position:relative;display:inline-flex;line-height:0">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Avatar" name="{{ acctName }}" src="{{ acctPhoto }}" size="sm" tone="inverse" hint-size="32px,32px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Avatar" name="{{ acctName }}" src="{{ acctPhoto }}" size="sm" hint-size="32px,32px"></x-import>
 <sc-if value="{{ showUnverified }}"><span aria-hidden="true" style="position:absolute;top:-2px;inset-inline-end:-2px;width:10px;height:10px;border-radius:999px;background:var(--vt-yellow);border:2px solid var(--vt-bg-surface)"></span></sc-if>
 </span>
 <span style="display:flex;flex-direction:column;gap:2px;flex:1 1 auto;min-width:0">
@@ -257,11 +263,18 @@ button[data-hd-signin]{width:calc(100% - 4px);appearance:none;-webkit-appearance
 <div data-hd-sec="1">
 <span data-hd-kicker="1">{{ tHelp }}</span>
 <div data-hd-nav="1">
-<sc-for list="{{ helpLinks }}" as="l" hint-placeholder-count="2">
-<a data-hd-menuitem="1" href="{{ l.href }}">{{ l.label }}</a>
-</sc-for>
-<a data-hd-menuitem="1" href="mailto:info@vamostaxi.site" data-vt-no-i18n="1">info@vamostaxi.site</a>
-<a data-hd-menuitem="1" href="https://wa.me/41796267082" rel="noreferrer noopener">{{ tWhatsApp }}</a>
+<a data-hd-menuitem="1" href="/#faq">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+<span>{{ tFaq }}</span></a>
+<a data-hd-menuitem="1" href="/contact">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+<span>{{ tContact }}</span></a>
+<a data-hd-menuitem="1" href="mailto:info@vamostaxi.site" data-vt-no-i18n="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="mail" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+<span>info@vamostaxi.site</span></a>
+<a data-hd-menuitem="1" href="https://wa.me/41796267082" rel="noreferrer noopener">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="message-circle" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+<span>{{ tWhatsApp }}</span></a>
 </div>
 </div>
 </div>
@@ -300,7 +313,7 @@ class Component extends DCLogic {
       lang = localStorage.getItem('vamosLang') || 'en';
       cur = localStorage.getItem('vamosCurrency') || 'CHF';
     } catch (e) {}
-    return { lang: LANGS.indexOf(lang) > -1 ? lang : 'en', cur, menuOpen: false, acctOpen: false, floating: false, auth: readAuth() };
+    return { lang: LANGS.indexOf(lang) > -1 ? lang : 'en', cur, menuOpen: false, menuClosing: false, acctOpen: false, floating: false, auth: readAuth() };
   })();
   _menuRoot = (el) => { this._root = el; };
   _acctRoot = (el) => { this._acct = el; };
@@ -316,7 +329,7 @@ class Component extends DCLogic {
       if (this.state.menuOpen && this._root && !this._root.contains(e.target)) this.closeMenu();
       if (this.state.acctOpen && this._acct && !this._acct.contains(e.target)) this.setState({ acctOpen: false });
     };
-    this._resize = () => { if (this.state.menuOpen && window.innerWidth >= 1080) this.closeMenu(); };
+    this._resize = () => { if ((this.state.menuOpen || this.state.menuClosing) && window.innerWidth >= 1080) this._finishClose(); };
     /* Only the overlay bar floats — the charcoal one is already sticky and solid. */
     this._onScroll = () => {
       if (this._raf) return;
@@ -358,6 +371,7 @@ class Component extends DCLogic {
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     if (this._onAuth) window.removeEventListener('vamos:auth', this._onAuth);
     if (this._raf) cancelAnimationFrame(this._raf);
+    if (this._closeT) { clearTimeout(this._closeT); this._closeT = 0; }
     window.removeEventListener('scroll', this._onScroll);
     document.removeEventListener('keydown', this._esc);
     document.removeEventListener('mousedown', this._away);
@@ -365,8 +379,36 @@ class Component extends DCLogic {
     this._lock(false);
   }
   _lock(on) { try { document.body.style.overflow = on ? 'hidden' : ''; } catch (e) {} }
-  closeMenu = () => { this._lock(false); this.setState({ menuOpen: false }); };
-  toggleMenu = () => this.setState((s) => { const menuOpen = !s.menuOpen; this._lock(menuOpen); return { menuOpen }; });
+  _reduceMotion() {
+    try { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) { return false; }
+  }
+  _finishClose = () => {
+    if (this._closeT) { clearTimeout(this._closeT); this._closeT = 0; }
+    this._lock(false);
+    if (this.state.menuOpen || this.state.menuClosing) this.setState({ menuOpen: false, menuClosing: false });
+  };
+  closeMenu = () => {
+    if (!this.state.menuOpen || this.state.menuClosing) return;
+    if (this._reduceMotion()) { this._finishClose(); return; }
+    this.setState({ menuClosing: true });
+    if (this._closeT) clearTimeout(this._closeT);
+    this._closeT = setTimeout(this._finishClose, 360);
+  };
+  onSheetAnimEnd = (e) => {
+    if (!this.state.menuClosing) return;
+    if (e && e.target && e.currentTarget && e.target !== e.currentTarget) return;
+    this._finishClose();
+  };
+  toggleMenu = () => {
+    if (this.state.menuClosing) {
+      if (this._closeT) { clearTimeout(this._closeT); this._closeT = 0; }
+      this._lock(true);
+      this.setState({ menuClosing: false, menuOpen: true });
+      return;
+    }
+    if (this.state.menuOpen) this.closeMenu();
+    else { this._lock(true); this.setState({ menuOpen: true }); }
+  };
 
   /** Nothing reloads: VamosLocale relabels the whole page in place — this bar,
    *  the sections under it, the footer, and any dialog that is open. */
@@ -433,17 +475,18 @@ class Component extends DCLogic {
       },
       tBook: t.book, tLangLabel: t.langLabel, tCurLabel: t.curLabel,
       tMenu: t.menu, tSvc: t.svc, tHelp: t.help, tWhatsApp: t.whatsapp,
+      tFaq: t.faq, tContact: t.contact,
       menuOpen: this.state.menuOpen,
       menuOpenAttr: this.state.menuOpen ? '1' : null,
-      menuExpanded: this.state.menuOpen ? 'true' : 'false',
-      menuIcon: this.state.menuOpen ? 'x' : 'menu',
-      menuLabel: this.state.menuOpen ? t.close : t.menu,
-      toggleMenu: this.toggleMenu, closeMenu: this.closeMenu, menuRootRef: this._menuRoot,
+      menuClosingAttr: this.state.menuClosing ? '1' : null,
+      menuExpanded: (this.state.menuOpen && !this.state.menuClosing) ? 'true' : 'false',
+      menuIcon: (this.state.menuOpen && !this.state.menuClosing) ? 'x' : 'menu',
+      menuLabel: (this.state.menuOpen && !this.state.menuClosing) ? t.close : t.menu,
+      toggleMenu: this.toggleMenu, closeMenu: this.closeMenu, onSheetAnimEnd: this.onSheetAnimEnd, menuRootRef: this._menuRoot,
       serviceLinks: [
         { href: '/?service=airport#book', label: t.airport },
         { href: '/?service=city#book', label: t.city },
       ],
-      helpLinks: [{ href: '/#faq', label: t.faq }, { href: '/contact', label: t.contact }],
     };
   }
 }

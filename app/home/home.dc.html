@@ -126,29 +126,28 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-fleet-card][data-picked="1"]{border-color:var(--vt-charcoal-900)!important;box-shadow:var(--vt-shadow-lg)}
 [data-fleet-card][data-dim="1"]{opacity:.48}
 [data-fleet-card][data-locked="1"]{cursor:default}
-[data-vtcombo]{display:flex;align-items:center;gap:9px;height:var(--vt-control-h-md);padding:0 7px 0 8px;box-sizing:border-box;background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:var(--vt-radius-field);transition:border-color .16s cubic-bezier(.2,0,.2,1),background .16s cubic-bezier(.2,0,.2,1)}
+[data-vtcombo]{display:flex;align-items:center;gap:9px;height:var(--vt-control-h-md);min-height:var(--vt-control-h-md);max-height:var(--vt-control-h-md);padding:0 7px 0 8px;box-sizing:border-box;background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:999px;overflow:hidden;transition:border-color .16s cubic-bezier(.2,0,.2,1),background .16s cubic-bezier(.2,0,.2,1)}
 [data-vtcombo]:hover{border-color:var(--vt-grey-300)}
 [data-vtcombo][data-on="1"]{border-color:var(--vt-charcoal-900);background:var(--vt-white)}
 [data-vtcombo] input:focus,[data-vtcombo] input:focus-visible{outline:none;box-shadow:none}
-[data-vtcombo] input{all:unset;flex:1 1 auto;min-width:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);color:var(--vt-text-primary);line-height:1.4}
+[data-vtcombo] input{all:unset;-webkit-appearance:none;appearance:none;background:transparent;flex:1 1 auto;min-width:0;height:100%;font-family:var(--vt-font-body);font-size:var(--vt-body-md);color:var(--vt-text-primary);line-height:1.4}
 [data-vtcombo] input::placeholder{color:var(--vt-grey-400)}
 [data-combo-tile]{width:30px;height:30px;flex:0 0 auto;border-radius:9px;background:var(--vt-grey-100);color:var(--vt-charcoal-900);display:inline-flex;align-items:center;justify-content:center;transition:background .16s cubic-bezier(.2,0,.2,1)}
 [data-vtcombo][data-on="1"] [data-combo-tile]{background:var(--vt-grey-100);color:var(--vt-charcoal-900)}
 [data-combo-x]{all:unset;box-sizing:border-box;width:28px;height:28px;flex:0 0 auto;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--vt-text-muted);transition:background .16s cubic-bezier(.2,0,.2,1),color .16s cubic-bezier(.2,0,.2,1)}
 [data-combo-x]:hover{background:var(--vt-grey-100);color:var(--vt-charcoal-900)}
-[data-sug]{scrollbar-width:thin;scrollbar-color:var(--vt-grey-300) transparent;overscroll-behavior:contain}
+[data-sug]{scrollbar-width:thin;scrollbar-color:var(--vt-grey-300) transparent;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch}
 [data-sug]::-webkit-scrollbar{width:9px}
 [data-sug]::-webkit-scrollbar-thumb{background:var(--vt-grey-300);border-radius:999px;border:3px solid var(--vt-bg-surface)}
 [data-sug-head]{position:sticky;top:-6px;z-index:2;margin:0 -6px;padding:9px 17px 5px;background:var(--vt-bg-surface);font-size:10px;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
 [data-sug-row]{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;cursor:pointer}
-[data-sug-row]:hover{background:var(--vt-grey-50)}
 [data-sug-name],[data-sug-sub]{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-[data-sug-row]:hover [data-sug-name],[data-sug-row]:hover [data-sug-sub]{white-space:normal;overflow:visible;text-overflow:unset}
 [data-sug-tile]{width:28px;height:28px;flex:0 0 auto;border-radius:8px;background:var(--vt-grey-100);color:var(--vt-text-secondary);display:inline-flex;align-items:center;justify-content:center}
 [data-sug-row][data-tone=geo]{outline:1px solid var(--vt-border-subtle);outline-offset:-1px}
 [data-sug-row][data-tone=geo] [data-sug-tile],[data-sug-row][data-tone=pin] [data-sug-tile]{background:var(--vt-charcoal-900);color:var(--vt-white)}
 [data-sug-go]{flex:0 0 auto;display:inline-flex;opacity:0;color:var(--vt-text-muted);transition:opacity .14s ease}
-[data-sug-row]:hover [data-sug-go],[data-sug-row][aria-selected=true] [data-sug-go]{opacity:1}
+[data-sug-row][aria-selected=true] [data-sug-go]{opacity:1}
+@media (hover:hover) and (pointer:fine){[data-sug-row]:hover{background:var(--vt-grey-50)}[data-sug-row]:hover [data-sug-name],[data-sug-row]:hover [data-sug-sub]{white-space:normal;overflow:visible;text-overflow:unset}[data-sug-row]:hover [data-sug-go]{opacity:1}}
 [data-sug-spin]{display:flex;align-items:center;gap:10px;padding:10px 11px;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)}
 [data-spin]{width:14px;height:14px;flex:0 0 auto;border-radius:999px;border:2px solid var(--vt-grey-200);border-top-color:var(--vt-charcoal-900);animation:vt-spin .7s linear infinite}
 @keyframes vt-spin{to{transform:rotate(360deg)}}
@@ -172,7 +171,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-swap]{padding-top:28px;align-items:flex-start}
 [data-party]{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (min-width:700px) and (max-width:1079px){[data-fleet-card]{flex:0 0 236px}}
-@media (max-width:1079px){[data-only-wide]{display:none!important}}
+@media (max-width:1079px){[data-only-wide]{display:none!important}
+[data-vtcombo]{height:var(--vt-control-h-md);min-height:var(--vt-control-h-md);max-height:var(--vt-control-h-md);padding:0 7px 0 8px;gap:9px;border-radius:999px;background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle)}
+[data-vtcombo] [data-combo-tile]{background:var(--vt-grey-100)!important;color:var(--vt-charcoal-900)}}
 @media (min-width:1080px){[data-upto-wide]{display:none!important}
 [data-bookcard]{padding:16px clamp(12px,3vw,18px) 14px}
 [data-fields]{grid-template-columns:152px minmax(0,1.1fr) 44px minmax(0,1.1fr) minmax(0,1.15fr) auto;grid-template-areas:"flight pickup swap dest when party"}
@@ -230,7 +231,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </sc-if>
 </div>
 <sc-if value="{{ sugPC }}" hint-placeholder-val="{{ false }}">
-<div data-sug="1" role="listbox" aria-label="{{ tPickup }}" style="{{ sugCss }}">
+<div data-sug="1" data-scroll-native="1" role="listbox" aria-label="{{ tPickup }}" style="{{ sugCss }}">
 <sc-for list="{{ sugRows }}" as="s" hint-placeholder-count="5">
 <sc-if value="{{ s.head }}" hint-placeholder-val="{{ false }}">
 <span data-sug-head="1">{{ s.name }}</span>
@@ -239,7 +240,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <span data-sug-spin="1"><i data-spin="1" aria-hidden="true"></i>{{ s.name }}</span>
 </sc-if>
 <sc-if value="{{ s.row }}" hint-placeholder-val="{{ true }}">
-<div data-sug-row="1" data-idx="{{ s.idx }}" data-tone="{{ s.tone }}" role="option" aria-selected="{{ s.sel }}" title="{{ s.full }}" onMouseDown="{{ s.pick }}" onClick="{{ s.pick }}" style="{{ s.css }}">
+<div data-sug-row="1" data-idx="{{ s.idx }}" data-tone="{{ s.tone }}" role="option" aria-selected="{{ s.sel }}" title="{{ s.full }}" onMouseDown="{{ s.hold }}" onClick="{{ s.pick }}" style="{{ s.css }}">
 <span data-sug-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ s.icon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
 <span style="display:flex;flex-direction:column;min-width:0;flex:1 1 auto"><span data-sug-name="1" style="font-size:var(--vt-body-sm);font-weight:600;color:var(--vt-text-primary)">{{ s.name }}</span><span data-sug-sub="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ s.sub }}</span></span>
 </div>
@@ -258,7 +259,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </sc-if>
 </div>
 <sc-if value="{{ sugDC }}" hint-placeholder-val="{{ false }}">
-<div data-sug="1" role="listbox" aria-label="{{ tDest }}" style="{{ sugCss }}">
+<div data-sug="1" data-scroll-native="1" role="listbox" aria-label="{{ tDest }}" style="{{ sugCss }}">
 <sc-for list="{{ sugRows }}" as="s" hint-placeholder-count="5">
 <sc-if value="{{ s.head }}" hint-placeholder-val="{{ false }}">
 <span data-sug-head="1">{{ s.name }}</span>
@@ -267,7 +268,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <span data-sug-spin="1"><i data-spin="1" aria-hidden="true"></i>{{ s.name }}</span>
 </sc-if>
 <sc-if value="{{ s.row }}" hint-placeholder-val="{{ true }}">
-<div data-sug-row="1" data-idx="{{ s.idx }}" data-tone="{{ s.tone }}" role="option" aria-selected="{{ s.sel }}" title="{{ s.full }}" onMouseDown="{{ s.pick }}" onClick="{{ s.pick }}" style="{{ s.css }}">
+<div data-sug-row="1" data-idx="{{ s.idx }}" data-tone="{{ s.tone }}" role="option" aria-selected="{{ s.sel }}" title="{{ s.full }}" onMouseDown="{{ s.hold }}" onClick="{{ s.pick }}" style="{{ s.css }}">
 <span data-sug-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ s.icon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
 <span style="display:flex;flex-direction:column;min-width:0;flex:1 1 auto"><span data-sug-name="1" style="font-size:var(--vt-body-sm);font-weight:600;color:var(--vt-text-primary)">{{ s.name }}</span><span data-sug-sub="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ s.sub }}</span></span>
 </div>
@@ -402,7 +403,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </sc-if>
 </div>
 <sc-if value="{{ sugPA }}" hint-placeholder-val="{{ false }}">
-<div data-sug="1" role="listbox" aria-label="{{ tPickup }}" ref="{{ sugRef }}" style="{{ sugCss }}">
+<div data-sug="1" data-scroll-native="1" role="listbox" aria-label="{{ tPickup }}" ref="{{ sugRef }}" style="{{ sugCss }}">
 <sc-for list="{{ sugRows }}" as="s" hint-placeholder-count="5">
 <sc-if value="{{ s.head }}" hint-placeholder-val="{{ false }}">
 <span data-sug-head="1">{{ s.name }}</span>
@@ -411,7 +412,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <span data-sug-spin="1"><i data-spin="1" aria-hidden="true"></i>{{ s.name }}</span>
 </sc-if>
 <sc-if value="{{ s.row }}" hint-placeholder-val="{{ true }}">
-<div data-sug-row="1" data-idx="{{ s.idx }}" data-tone="{{ s.tone }}" role="option" id="{{ s.id }}" aria-selected="{{ s.sel }}" title="{{ s.full }}" onMouseDown="{{ s.pick }}" onClick="{{ s.pick }}" style="{{ s.css }}">
+<div data-sug-row="1" data-idx="{{ s.idx }}" data-tone="{{ s.tone }}" role="option" id="{{ s.id }}" aria-selected="{{ s.sel }}" title="{{ s.full }}" onMouseDown="{{ s.hold }}" onClick="{{ s.pick }}" style="{{ s.css }}">
 <span data-sug-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ s.icon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
 <span style="display:flex;flex-direction:column;min-width:0;flex:1 1 auto"><span data-sug-name="1" style="font-size:var(--vt-body-sm);font-weight:600;color:var(--vt-text-primary)">{{ s.name }}</span><span data-sug-sub="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ s.sub }}</span></span>
 <span data-sug-go="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import></span>
@@ -446,7 +447,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </sc-if>
 </div>
 <sc-if value="{{ sugDA }}" hint-placeholder-val="{{ false }}">
-<div data-sug="1" role="listbox" aria-label="{{ tDest }}" ref="{{ sugRef }}" style="{{ sugCss }}">
+<div data-sug="1" data-scroll-native="1" role="listbox" aria-label="{{ tDest }}" ref="{{ sugRef }}" style="{{ sugCss }}">
 <sc-for list="{{ sugRows }}" as="s" hint-placeholder-count="5">
 <sc-if value="{{ s.head }}" hint-placeholder-val="{{ false }}">
 <span data-sug-head="1">{{ s.name }}</span>
@@ -455,7 +456,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <span data-sug-spin="1"><i data-spin="1" aria-hidden="true"></i>{{ s.name }}</span>
 </sc-if>
 <sc-if value="{{ s.row }}" hint-placeholder-val="{{ true }}">
-<div data-sug-row="1" data-idx="{{ s.idx }}" data-tone="{{ s.tone }}" role="option" id="{{ s.id }}" aria-selected="{{ s.sel }}" title="{{ s.full }}" onMouseDown="{{ s.pick }}" onClick="{{ s.pick }}" style="{{ s.css }}">
+<div data-sug-row="1" data-idx="{{ s.idx }}" data-tone="{{ s.tone }}" role="option" id="{{ s.id }}" aria-selected="{{ s.sel }}" title="{{ s.full }}" onMouseDown="{{ s.hold }}" onClick="{{ s.pick }}" style="{{ s.css }}">
 <span data-sug-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ s.icon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
 <span style="display:flex;flex-direction:column;min-width:0;flex:1 1 auto"><span data-sug-name="1" style="font-size:var(--vt-body-sm);font-weight:600;color:var(--vt-text-primary)">{{ s.name }}</span><span data-sug-sub="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ s.sub }}</span></span>
 <span data-sug-go="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import></span>
@@ -496,12 +497,12 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </sc-if>
 </div>
 </div>
-</div><span aria-live="polite" aria-atomic="true" style="position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">{{ announce }}</span><div id="fleet" data-strip-head="1" style="margin-top:16px;display:flex;align-items:baseline;column-gap:10px;row-gap:4px;flex-wrap:wrap;scroll-margin-top:24px">
+</div><span aria-live="polite" aria-atomic="true" style="position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">{{ announce }}</span><div id="fleet" data-strip-head="1" data-hide-narrow="1" style="margin-top:16px;display:flex;align-items:baseline;column-gap:10px;row-gap:4px;flex-wrap:wrap;scroll-margin-top:24px">
 <span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">{{ stripStep }}</span>
 <strong style="font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);color:var(--vt-white)">{{ stripTitle }}</strong>
 <span style="font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted)">{{ stripNote }}</span>
 </div>
-<div data-fleet-strip="1" ref="{{ stripRef }}" style="margin-top:10px">
+<div data-fleet-strip="1" data-hide-narrow="1" ref="{{ stripRef }}" style="margin-top:10px">
 <sc-for list="{{ fleet }}" as="v" hint-placeholder-count="4">
 <div role="{{ v.role }}" tabindex="{{ v.tab }}" aria-disabled="{{ v.dis }}" data-fleet-card="1" data-locked="{{ v.locked }}" data-picked="{{ v.picked }}" data-dim="{{ v.dim }}" data-unavail="{{ v.unavail }}" onClick="{{ v.select }}" onKeyDown="{{ v.key }}" title="{{ v.title }}" style="position:relative;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);padding:8px 10px;min-height:84px;display:flex;flex-direction:column;gap:6px;cursor:pointer;transition:var(--vt-transition-control);view-transition-name:{{ v.vtName }}" style-hover="box-shadow:var(--vt-shadow-md);border-color:var(--vt-grey-300)" style-active="transform:translateY(1px)">
 <div style="display:flex;align-items:flex-start;gap:6px;flex-direction:column">
@@ -1312,20 +1313,43 @@ class Component extends DCLogic {
       if (this.state.fsug.open && !cl('[data-f="flight"]')) this.setState({ fsug: { open: false, items: [] }, fsugIdx: -1 });
       if (this.state.menuOpen && !cl('[data-menuroot]')) this.setState({ menuOpen: false });
     };
-    this._sugPick = (e) => {
+    this._sugPtr = null;
+    this._sugMoved = false;
+    this._sugPtrDown = (e) => {
       const row = e.target && e.target.closest && e.target.closest('[data-sug-row]');
-      if (!row || !this.state.sug.open) return;
-      const i = +row.getAttribute('data-idx');
-      if (!isFinite(i) || i < 0) return;
-      const rows = this.sugRowsList().filter((r) => r.row);
-      const r = rows[i];
-      if (!r || !r.pick) return;
-      e.preventDefault();
-      e.stopPropagation();
-      r.pick(e);
+      if (!row || !this.state.sug.open) { this._sugPtr = null; return; }
+      this._sugPtr = { x: e.clientX, y: e.clientY };
+      this._sugMoved = false;
+    };
+    this._sugPtrMove = (e) => {
+      if (!this._sugPtr) return;
+      const dx = (e.clientX || 0) - this._sugPtr.x;
+      const dy = (e.clientY || 0) - this._sugPtr.y;
+      if ((dx * dx + dy * dy) >= 64) this._sugMoved = true;
+    };
+    this._sugPtrUp = (e) => {
+      if (!this._sugPtr) return;
+      this._sugPtrMove(e);
+      this._sugPtr = null;
+      if (this._sugMoved) {
+        clearTimeout(this._sugMovedT);
+        this._sugMovedT = setTimeout(() => { this._sugMoved = false; }, 400);
+      }
+    };
+    this._sugBoxScroll = (e) => {
+      const t = e.target;
+      if (t && t.closest && t.closest('[data-sug]')) {
+        this._sugMoved = true;
+        clearTimeout(this._sugMovedT);
+        this._sugMovedT = setTimeout(() => { this._sugMoved = false; }, 400);
+      }
     };
     document.addEventListener('mousedown', this._away);
-    document.addEventListener('pointerdown', this._sugPick, true);
+    document.addEventListener('pointerdown', this._sugPtrDown, true);
+    document.addEventListener('pointermove', this._sugPtrMove, true);
+    document.addEventListener('pointerup', this._sugPtrUp, true);
+    document.addEventListener('pointercancel', this._sugPtrUp, true);
+    document.addEventListener('scroll', this._sugBoxScroll, true);
     this._esc = (e) => { if (e.key !== 'Escape') return; if (this.state.sheetOpen) this.closeSheet(); else if (this.state.menuOpen) this.setState({ menuOpen: false }); };
     document.addEventListener('keydown', this._esc);
     this._onResize = () => {
@@ -1342,7 +1366,7 @@ class Component extends DCLogic {
     document.fonts && document.fonts.ready ? document.fonts.ready.then(() => this.q()) : this.q();
   }
   componentWillUnmount() {
-    if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale); document.removeEventListener('mousedown', this._away); document.removeEventListener('pointerdown', this._sugPick, true); document.removeEventListener('keydown', this._esc); window.removeEventListener('resize', this._onResize); (this._mqs || []).forEach((m) => { m.removeEventListener ? m.removeEventListener('change', this._onResize) : m.removeListener(this._onResize); }); Object.values(this.dusts).forEach((d) => d.destroy()); this.lockScroll(false); this.stopPoll(); clearTimeout(this._deb); clearTimeout(this._ft); clearTimeout(this._geoT); this._geoSeq++; if (this._ac) { try { this._ac.abort(); } catch (e) {} } this.clearFill(); }
+    if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale); document.removeEventListener('mousedown', this._away); document.removeEventListener('pointerdown', this._sugPtrDown, true); document.removeEventListener('pointermove', this._sugPtrMove, true); document.removeEventListener('pointerup', this._sugPtrUp, true); document.removeEventListener('pointercancel', this._sugPtrUp, true); document.removeEventListener('scroll', this._sugBoxScroll, true); document.removeEventListener('keydown', this._esc); window.removeEventListener('resize', this._onResize); clearTimeout(this._sugMovedT); (this._mqs || []).forEach((m) => { m.removeEventListener ? m.removeEventListener('change', this._onResize) : m.removeListener(this._onResize); }); Object.values(this.dusts).forEach((d) => d.destroy()); this.lockScroll(false); this.stopPoll(); clearTimeout(this._deb); clearTimeout(this._ft); clearTimeout(this._geoT); this._geoSeq++; if (this._ac) { try { this._ac.abort(); } catch (e) {} } this.clearFill(); }
   t() { return Object.assign({}, T.en, T[this.state.lang]); }
   /** Idle / First-class hold: design-system placeholder. Live quotes use fmtAmount. */
   fmt() {
@@ -1857,7 +1881,15 @@ class Component extends DCLogic {
     else { patch.dropText = val; patch.dropLoc = null; patch.autofill = Object.assign({}, this.state.autofill, { dest: code }); patch.touched = Object.assign({}, this.state.touched, { dest: false }); }
     this.setState(patch, this.q);
   };
+  holdSug = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+  };
   pickSug = (e, loc) => {
+    if (this._sugMoved) {
+      if (e && e.preventDefault) e.preventDefault();
+      if (e && e.stopPropagation) e.stopPropagation();
+      return;
+    }
     if (e && e.preventDefault) e.preventDefault();
     if (e && e.stopPropagation) e.stopPropagation();
     if (loc && loc.hereBtn) { this.detectLoc(); return; }
@@ -2067,7 +2099,7 @@ class Component extends DCLogic {
       rows.push({ head: true, name: t.results });
       items.forEach((l) => {
         const full = [l.n, l.s].filter(Boolean).join(' · ');
-        rows.push({ row: true, tone: l.geoHit ? 'geo' : '', icon: l.icon, name: l.n, sub: l.s || '', full: full, pick: (e) => this.pickSug(e, l) });
+        rows.push({ row: true, tone: l.geoHit ? 'geo' : '', icon: l.icon, name: l.n, sub: l.s || '', full: full, hold: (e) => this.holdSug(e), pick: (e) => this.pickSug(e, l) });
       });
     }
     if (s.geo === 'loading' && !items.length) rows.push({ spin: true, name: t.searching });

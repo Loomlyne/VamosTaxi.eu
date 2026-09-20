@@ -59,7 +59,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-vs-root="field"] [data-vs-main]{flex:1 1 auto}
 [data-vs-root="field"] [data-vs-mark]{margin-inline-start:auto}
 [data-vs-mark]{flex:0 0 auto;display:inline-grid;place-items:center;height:22px;padding:0 8px;border-radius:var(--vt-radius-pill);background:var(--vt-grey-100);font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--vt-text-secondary)}
-[data-vs-root="field"] [data-vs-btn]:hover [data-vs-mark]{background:var(--vt-grey-200)}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
+[data-vs-root="field"] [data-vs-btn]:hover [data-vs-mark]{background:var(--vt-grey-200)}
+[data-vs-list]{box-sizing:border-box;min-width:min(214px,calc(100vw - 24px));max-width:min(214px,calc(100vw - 24px))}
+:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
 </helmet>
 <div data-vs-root="{{ sizeAttr }}" ref="{{ rootRef }}" style="position:relative;display:inline-flex;flex:0 0 auto;font-family:var(--vt-font-body)">
 <button type="button" data-vs-btn="1" aria-haspopup="listbox" aria-label="{{ a11yLabel }}" onClick="{{ toggle }}">
@@ -73,7 +75,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </sc-if>
 </button>
 <sc-if value="{{ open }}" hint-placeholder-val="{{ false }}">
-<div role="listbox" aria-label="{{ a11yLabel }}" style="position:absolute;top:calc(100% + 8px);inset-inline-end:0;min-width:214px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg);padding:6px;z-index:90;display:flex;flex-direction:column;gap:2px">
+<div data-vs-list="1" role="listbox" aria-label="{{ a11yLabel }}" style="{{ listCss }}">
 <sc-for list="{{ rows }}" as="o" hint-placeholder-count="4">
 <button type="button" role="option" aria-selected="{{ o.selStr }}" onClick="{{ o.pick }}" style="all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border-radius:10px;cursor:pointer;font-family:var(--vt-font-body)" style-hover="background:var(--vt-grey-50)">
 <span style="display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto">
@@ -98,17 +100,77 @@ const DEMO = [
   { value: 'ar', label: 'AR', note: 'العربية' },
 ];
 class Component extends DCLogic {
-  state = { open: false };
+  state = { open: false, rect: null };
   _rootRef = (el) => { this._root = el; };
+  _snapRect() {
+    const el = this._root;
+    if (!el || typeof el.getBoundingClientRect !== 'function') return null;
+    const r = el.getBoundingClientRect();
+    return { left: r.left, right: r.right, top: r.top, bottom: r.bottom };
+  }
+  _listCss(rect) {
+    const base = 'box-sizing:border-box;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg);padding:6px;z-index:90;display:flex;flex-direction:column;gap:2px';
+    const cap = 'min-width:min(214px,calc(100vw - 24px));max-width:min(214px,calc(100vw - 24px))';
+    const hasWin = typeof window !== 'undefined';
+    if (!rect || !hasWin) {
+      return 'position:absolute;top:calc(100% + 8px);inset-inline-end:0;' + cap + ';' + base;
+    }
+    const vv = window.visualViewport;
+    const vw = (vv && vv.width) || window.innerWidth || 1200;
+    const vh = (vv && vv.height) || window.innerHeight || 800;
+    const ox = (vv && vv.offsetLeft) || 0;
+    const oy = (vv && vv.offsetTop) || 0;
+    const pad = 12;
+    const w = Math.min(214, Math.max(0, vw - pad * 2));
+    let rtl = false;
+    try {
+      rtl = getComputedStyle(this._root || document.documentElement).direction === 'rtl';
+    } catch (e) {}
+    /* End-align like the old inset-inline-end:0, then clamp to the visual viewport
+       so a left-side trigger (header drawer) cannot hang the panel off-screen. */
+    let left = rtl ? rect.left : rect.right - w;
+    const minL = ox + pad;
+    const maxL = ox + vw - pad - w;
+    left = Math.round(maxL < minL ? minL : Math.min(Math.max(left, minL), maxL));
+    const gap = 8;
+    const n = (this.props.options && this.props.options.length) || 4;
+    const estH = 12 + n * 44;
+    const roomBelow = (oy + vh) - rect.bottom - pad;
+    const roomAbove = rect.top - oy - pad;
+    const up = roomBelow < Math.min(estH, 160) && roomAbove > roomBelow;
+    const top = up
+      ? Math.round(Math.max(oy + pad, rect.top - estH - gap))
+      : Math.round(rect.bottom + gap);
+    return 'position:fixed;left:' + left + 'px;top:' + top + 'px;width:' + w + 'px;' + cap + ';' + base;
+  }
+  close = () => this.setState({ open: false, rect: null });
+  toggle = () => {
+    if (this.state.open) return this.close();
+    this.setState({ open: true, rect: this._snapRect() });
+  };
   componentDidMount() {
-    this._away = (e) => { if (this.state.open && this._root && !this._root.contains(e.target)) this.setState({ open: false }); };
-    this._esc = (e) => { if (e.key === 'Escape' && this.state.open) this.setState({ open: false }); };
+    this._away = (e) => { if (this.state.open && this._root && !this._root.contains(e.target)) this.close(); };
+    this._esc = (e) => { if (e.key === 'Escape' && this.state.open) this.close(); };
+    this._reflow = () => {
+      if (!this.state.open) return;
+      this.setState({ rect: this._snapRect() });
+    };
     document.addEventListener('mousedown', this._away);
     document.addEventListener('keydown', this._esc);
+    window.addEventListener('resize', this._reflow);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', this._reflow);
+      window.visualViewport.addEventListener('scroll', this._reflow);
+    }
   }
   componentWillUnmount() {
     document.removeEventListener('mousedown', this._away);
     document.removeEventListener('keydown', this._esc);
+    window.removeEventListener('resize', this._reflow);
+    if (window.visualViewport) {
+      window.visualViewport.removeEventListener('resize', this._reflow);
+      window.visualViewport.removeEventListener('scroll', this._reflow);
+    }
   }
   renderVals() {
     const opts = (this.props.options && this.props.options.length) ? this.props.options : DEMO;
@@ -128,12 +190,13 @@ class Component extends DCLogic {
       markLabel: sel ? sel.label : '',
       showNote: field && !!sel && !!sel.note,
       label: sel ? sel.label : '',
+      listCss: this._listCss(this.state.rect),
       rootRef: this._rootRef,
-      toggle: () => this.setState((s) => ({ open: !s.open })),
+      toggle: this.toggle,
       rows: opts.map((o) => ({
         label: o.label, note: o.note || '',
         sel: o.value === val, selStr: o.value === val ? 'true' : 'false',
-        pick: () => { this.setState({ open: false }); if (this.props.onSelect) this.props.onSelect(o.value); },
+        pick: () => { this.close(); if (this.props.onSelect) this.props.onSelect(o.value); },
       })),
     };
   }
