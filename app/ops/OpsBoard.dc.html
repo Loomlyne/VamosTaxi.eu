@@ -13,6 +13,24 @@
 [data-vt-filt-pop]{position:absolute;top:calc(100% + 6px);inset-inline-end:0;z-index:80;box-sizing:border-box;min-width:240px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg)}
 [data-vt-filt-lab]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
 [data-vt-filt-clear]{margin-top:4px}
+[data-ops-tools]{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-width:0}
+[data-ops-search]{flex:1 1 0;min-width:0}
+[data-ops-search] .vt-field,[data-ops-search] .vt-input{width:100%;min-width:0}
+[data-ops-tools-act]{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:0 0 auto}
+[data-vt-board]{min-width:0;overflow-x:auto;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface)}
+[data-vt-board] .vt-tablewrap{overflow:visible;border:0;border-radius:0;background:transparent}
+[data-vt-board] .vt-table{min-width:1100px;table-layout:fixed}
+[data-vt-board] .vt-table th,[data-vt-board] .vt-table td{vertical-align:middle;min-width:0}
+[data-vt-board] .vt-table td{padding:12px 14px}
+[data-vt-when]{display:flex;flex-direction:column;gap:2px;line-height:1.25;white-space:nowrap}
+[data-vt-when] strong{font-family:var(--vt-font-display);font-size:var(--vt-figure-sm);font-weight:var(--vt-weight-bold);font-variant-numeric:tabular-nums}
+[data-vt-ref]{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);font-variant-numeric:tabular-nums;letter-spacing:.02em}
+[data-vt-stack]{display:flex;flex-direction:column;gap:2px;min-width:0;line-height:1.35}
+[data-vt-clip]{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+[data-vt-sub]{font-size:var(--vt-body-xs);color:var(--vt-text-muted);line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+[data-vt-need]{color:var(--vt-text-primary);font-weight:var(--vt-weight-semibold);white-space:nowrap}
+[data-vt-quiet]{color:var(--vt-text-muted);white-space:nowrap}
+[data-vt-fare]{display:block;white-space:nowrap;font-variant-numeric:tabular-nums;font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold)}
 </style>
 <main style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
 <header style="display:flex;align-items:center;gap:22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle);flex-wrap:wrap">
@@ -21,9 +39,6 @@
 <p style="margin:4px 0 0;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tOrdered }}</p>
 </div>
 <div style="margin-left:auto;display:flex;align-items:center;gap:14px">
-<div style="width:280px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" icon="search" placeholder="{{ tSearchPh }}" hint-size="280px,44px"></x-import>
-</div>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" icon="plus" onClick="{{ openNew }}" hint-size="150px,44px">{{ tNewBooking }}</x-import>
 </div>
 </header>
@@ -51,8 +66,11 @@
 </div>
 
 </div>
-<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-<div style="margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+<div data-ops-tools="1">
+<div data-ops-search="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="sm" icon="search" placeholder="{{ tSearchPh }}" value="{{ query }}" onChange="{{ setQuery }}" aria-label="{{ tSearchPh }}" hint-size="100%,36px"></x-import>
+</div>
+<div data-ops-tools-act="1">
   <div data-vt-filt="1" ref="{{ filtRef }}">
     <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" iconEnd="funnel" onClick="{{ toggleMore }}" hint-size="110px,36px">{{ tFilter }}</x-import>
     <sc-if value="{{ moreOpen }}" hint-placeholder-val="{{ false }}">
@@ -72,7 +90,9 @@
   <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" iconEnd="printer" onClick="{{ printBoard }}" hint-size="110px,36px">{{ tPrint }}</x-import>
 </div>
 </div>
+<div data-vt-board="1" data-scroll-native="1" data-lenis-prevent="1">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Table" columns="{{ columns }}" rows="{{ pageRows }}" onRowClick="{{ openRow }}" hint-size="100%,320px"></x-import>
+</div>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" tone="flat" padding="sm" hint-size="100%,60px">
 <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
 <span style="font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tShowing }}</span>
@@ -99,16 +119,6 @@ function zurichYmd(d) {
 function listBookings() {
   return window.VamosOps ? window.VamosOps.bookings.all() : [];
 }
-function sessionLeft(iso) {
-  if (!iso) return '';
-  const ms = Date.parse(iso) - Date.now();
-  if (!Number.isFinite(ms)) return '';
-  if (ms <= 0) return 'Session ended';
-  const m = Math.round(ms / 60000);
-  if (m < 60) return m + ' min left';
-  const h = Math.floor(m / 60);
-  return h + 'h ' + (m % 60) + 'm left';
-}
 function fareLabel(rappen) {
   const n = Number(rappen);
   if (window.VamosLocale && window.VamosLocale.fromChf && Number.isFinite(n) && n > 0) {
@@ -116,58 +126,91 @@ function fareLabel(rappen) {
   }
   return window.VamosLocale ? window.VamosLocale.money('000') : 'CHF 000';
 }
-function payLine(b) {
-  if (b.paidByCard || b.paid) return 'Paid by card';
-  const bits = [];
-  bits.push(b.payLinkSent ? 'Pay-link sent' : 'Pay-link not sent');
-  bits.push(b.cardSession ? 'Card open' : 'Not paid');
-  const left = sessionLeft(b.sessionExpiresAt);
-  if (left) bits.push(left);
-  return bits.join(' · ');
+function pickupDay(date) {
+  const parts = String(date || '').trim().split(/\s+/);
+  if (parts.length >= 2) return parts[0] + ' ' + parts[1];
+  return date || '';
+}
+function isClosedStatus(b) {
+  const s = b.status;
+  return s === 'cancelled' || s === 'refunded' || s === 'completed' || s === 'no-show' || s === 'no_show';
+}
+function isBoardTrip(b) {
+  return !!b.paid && !isClosedStatus(b);
 }
 function isUnpaid(b) {
   return !b.paid && b.status !== 'cancelled' && b.status !== 'refunded' && b.status !== 'completed';
 }
 function isUnassigned(b) {
-  return b.paid && !b.driver && b.status !== 'cancelled' && b.status !== 'completed';
+  return isBoardTrip(b) && !b.driver;
+}
+function isPaidCancelled(b) {
+  return !!b.paid && (b.status === 'cancelled' || b.status === 'refunded');
+}
+function isCompleted(b) {
+  return !!b.paid && (b.status === 'completed' || b.status === 'no-show' || b.status === 'no_show');
 }
 function filterFromLocation() {
   try {
     const raw = new URLSearchParams(location.search).get('filter');
-    const allowed = ['All', 'Today', 'Tomorrow', 'Unassigned', 'Awaiting payment', 'Cancelled'];
+    const allowed = ['All', 'Today', 'Tomorrow', 'Unassigned', 'Awaiting payment', 'Cancelled', 'Completed'];
     return raw && allowed.indexOf(raw) !== -1 ? raw : '';
   } catch (e) {
     return '';
   }
 }
 const T = {
-  en: { bookings:'Bookings', ordered:'Ordered by pickup time', searchPh:'Reference, name, phone or address', newBooking:'New booking',
-    pickupsToday:'Pickups today', pickupsFoot:'Ordered by pickup time', awaitingPayment:'Awaiting payment', awaitingFoot:'Needs a card payment or pay-link',
-    unassigned:'Unassigned', unassignedFoot:'No driver assigned yet', revenue:'Revenue, 7 days', revenueFoot:'Captured fares',
+  en: { bookings:'Bookings', ordered:'Paid trips by pickup time', searchPh:'Reference, name, phone or address', newBooking:'New booking',
+    pickupsToday:'Pickups today', pickupsFoot:'Paid trips still on the board', awaitingPayment:'Awaiting payment', awaitingFoot:'Checkout started, not paid',
+    unassigned:'Unassigned', unassignedFoot:'Paid, no driver yet', revenue:'Revenue, 7 days', revenueFoot:'Captured fares',
     moreFilters:'More filters', export_:'Export CSV', filter:'Filter', print:'Print', boardFilter:'Show', classFilter:'Class', allClasses:'All classes', statusFilter:'Status', allStatuses:'All statuses', clearFilt:'Clear', showingRange:'Showing %a–%b of %c', showingNone:'Nothing to show',
-    prevPage:'Previous page', nextPage:'Next page', filterAll:'All', filterToday:'Today', filterTomorrow:'Tomorrow', filterUnassigned:'Unassigned', filterAwaiting:'Awaiting payment', filterCancelled:'Cancelled',
-    colPickup:'Pickup', colRef:'Ref', colCustomer:'Customer', colRoute:'Route', colVehicle:'Vehicle', colDriver:'Driver', colStatus:'Status', colTotal:'Total', unassignedCell:'Unassigned', bagsShort:'bags',
+    prevPage:'Previous page', nextPage:'Next page', filterAll:'All', filterToday:'Today', filterTomorrow:'Tomorrow', filterUnassigned:'Unassigned', filterAwaiting:'Awaiting payment', filterCancelled:'Cancelled', filterCompleted:'Completed',
+    colPickup:'Pickup', colRef:'Ref', colCustomer:'Customer', colRoute:'Route', colVehicle:'Vehicle', colDriver:'Driver', colTotal:'Total', unassignedCell:'Unassigned', bagsShort:'bags', paxShort:'pax', noContact:'No phone',
     fRef:'Reference', fDate:'Date', fTime:'Pickup time', fCustomer:'Customer', fPickup:'Pickup address', fDropoff:'Drop-off address',
     fClass:'Vehicle class', fPax:'Passengers', fBags:'Bags', fStatus:'Status', fChauffeur:'Chauffeur', fFlight:'Flight number', fNote:'Note',
     none:'No chauffeur', addChauffeur:'Add a chauffeur', cName:'Name', cPhone:'Phone', cLicence:'Licence',
     editBooking:'Edit booking', deleteBooking:'Delete this booking?', noun:'booking', nounPlural:'bookings',
     emptyTitle:'Nothing booked', emptyBody:'Add a booking and it appears on this board.', deleteBody:'The booking is removed from the board.',
   },
-  de: { bookings:'Buchungen', ordered:'Nach Abholzeit sortiert', searchPh:'Referenz, Name, Telefon oder Adresse', newBooking:'Neue Buchung',
-    pickupsToday:'Abholungen heute', pickupsFoot:'Nach Abholzeit sortiert', awaitingPayment:'Zahlung ausstehend', awaitingFoot:'Karte oder Zahlungslink ausstehend',
-    unassigned:'Nicht zugewiesen', unassignedFoot:'Noch kein Fahrer zugewiesen', revenue:'Umsatz, 7 Tage', revenueFoot:'Erfasste Fahrpreise',
+  de: { bookings:'Buchungen', ordered:'Bezahlte Fahrten nach Abholzeit', searchPh:'Referenz, Name, Telefon oder Adresse', newBooking:'Neue Buchung',
+    pickupsToday:'Abholungen heute', pickupsFoot:'Bezahlte Fahrten auf dem Board', awaitingPayment:'Zahlung ausstehend', awaitingFoot:'Checkout begonnen, nicht bezahlt',
+    unassigned:'Nicht zugewiesen', unassignedFoot:'Bezahlt, noch kein Fahrer', revenue:'Umsatz, 7 Tage', revenueFoot:'Erfasste Fahrpreise',
     moreFilters:'Weitere Filter', export_:'CSV exportieren', filter:'Filter', print:'Drucken', boardFilter:'Anzeigen', classFilter:'Klasse', allClasses:'Alle Klassen', statusFilter:'Status', allStatuses:'Alle Status', clearFilt:'Zurücksetzen', showingRange:'Zeigt %a–%b von %c', showingNone:'Nichts anzuzeigen',
-    prevPage:'Vorherige Seite', nextPage:'Nächste Seite', filterAll:'Alle', filterToday:'Heute', filterTomorrow:'Morgen', filterUnassigned:'Nicht zugewiesen', filterAwaiting:'Zahlung ausstehend', filterCancelled:'Storniert',
-    colPickup:'Abholung', colRef:'Ref.', colCustomer:'Kunde', colRoute:'Route', colVehicle:'Fahrzeug', colDriver:'Fahrer', colStatus:'Status', colTotal:'Total', unassignedCell:'Nicht zugewiesen', bagsShort:'Gepäck',
+    prevPage:'Vorherige Seite', nextPage:'Nächste Seite', filterAll:'Alle', filterToday:'Heute', filterTomorrow:'Morgen', filterUnassigned:'Nicht zugewiesen', filterAwaiting:'Zahlung ausstehend', filterCancelled:'Storniert', filterCompleted:'Abgeschlossen',
+    colPickup:'Abholung', colRef:'Ref.', colCustomer:'Kunde', colRoute:'Route', colVehicle:'Fahrzeug', colDriver:'Fahrer', colTotal:'Total', unassignedCell:'Nicht zugewiesen', bagsShort:'Gepäck', paxShort:'Pax', noContact:'Kein Telefon',
     fRef:'Referenz', fDate:'Datum', fTime:'Abholzeit', fCustomer:'Kunde', fPickup:'Abholadresse', fDropoff:'Zieladresse',
     fClass:'Fahrzeugklasse', fPax:'Passagiere', fBags:'Gepäck', fStatus:'Status', fChauffeur:'Chauffeur', fFlight:'Flugnummer', fNote:'Notiz',
     none:'Kein Chauffeur', addChauffeur:'Chauffeur hinzufügen', cName:'Name', cPhone:'Telefon', cLicence:'Ausweis',
     editBooking:'Buchung bearbeiten', deleteBooking:'Diese Buchung löschen?', noun:'Buchung', nounPlural:'Buchungen',
     emptyTitle:'Nichts gebucht', emptyBody:'Buchung hinzufügen — sie erscheint auf diesem Board.', deleteBody:'Die Buchung verschwindet vom Board.',
   },
+  fr: { bookings:'Réservations', ordered:'Courses payées, par heure de prise en charge', searchPh:'Référence, nom, téléphone ou adresse', newBooking:'Nouvelle réservation',
+    pickupsToday:'Prises en charge aujourd’hui', pickupsFoot:'Courses payées encore au tableau', awaitingPayment:'Paiement en attente', awaitingFoot:'Checkout commencé, non payé',
+    unassigned:'Non assigné', unassignedFoot:'Payé, pas encore de chauffeur', revenue:'Recette, 7 jours', revenueFoot:'Tarifs encaissés',
+    moreFilters:'Plus de filtres', export_:'Exporter CSV', filter:'Filtrer', print:'Imprimer', boardFilter:'Afficher', classFilter:'Classe', allClasses:'Toutes les classes', statusFilter:'Statut', allStatuses:'Tous les statuts', clearFilt:'Effacer', showingRange:'Affiche %a–%b sur %c', showingNone:'Rien à afficher',
+    prevPage:'Page précédente', nextPage:'Page suivante', filterAll:'Tout', filterToday:'Aujourd’hui', filterTomorrow:'Demain', filterUnassigned:'Non assigné', filterAwaiting:'Paiement en attente', filterCancelled:'Annulé', filterCompleted:'Terminé',
+    colPickup:'Prise en charge', colRef:'Réf.', colCustomer:'Client', colRoute:'Trajet', colVehicle:'Véhicule', colDriver:'Chauffeur', colTotal:'Total', unassignedCell:'Non assigné', bagsShort:'bagages', paxShort:'pax', noContact:'Pas de téléphone',
+    fRef:'Référence', fDate:'Date', fTime:'Heure de prise en charge', fCustomer:'Client', fPickup:'Adresse de prise en charge', fDropoff:'Adresse de destination',
+    fClass:'Classe de véhicule', fPax:'Passagers', fBags:'Bagages', fStatus:'Statut', fChauffeur:'Chauffeur', fFlight:'Numéro de vol', fNote:'Note',
+    none:'Aucun chauffeur', addChauffeur:'Ajouter un chauffeur', cName:'Nom', cPhone:'Téléphone', cLicence:'Permis',
+    editBooking:'Modifier la réservation', deleteBooking:'Supprimer cette réservation ?', noun:'réservation', nounPlural:'réservations',
+    emptyTitle:'Aucune réservation', emptyBody:'Ajoutez une réservation — elle apparaît sur ce tableau.', deleteBody:'La réservation disparaît du tableau.',
+  },
+  ar: { bookings:'الحجوزات', ordered:'الرحلات المدفوعة حسب وقت الاستلام', searchPh:'المرجع أو الاسم أو الهاتف أو العنوان', newBooking:'حجز جديد',
+    pickupsToday:'الاستلام اليوم', pickupsFoot:'رحلات مدفوعة ما زالت على اللوحة', awaitingPayment:'بانتظار الدفع', awaitingFoot:'بدأ الدفع ولم يكتمل',
+    unassigned:'غير معيّن', unassignedFoot:'مدفوعة بلا سائق بعد', revenue:'الإيراد، 7 أيام', revenueFoot:'الأجور المحصّلة',
+    moreFilters:'مزيد من التصفية', export_:'تصدير CSV', filter:'تصفية', print:'طباعة', boardFilter:'عرض', classFilter:'الفئة', allClasses:'كل الفئات', statusFilter:'الحالة', allStatuses:'كل الحالات', clearFilt:'مسح', showingRange:'عرض %a–%b من %c', showingNone:'لا شيء للعرض',
+    prevPage:'الصفحة السابقة', nextPage:'الصفحة التالية', filterAll:'الكل', filterToday:'اليوم', filterTomorrow:'غداً', filterUnassigned:'غير معيّن', filterAwaiting:'بانتظار الدفع', filterCancelled:'ملغاة', filterCompleted:'مكتملة',
+    colPickup:'الاستلام', colRef:'المرجع', colCustomer:'العميل', colRoute:'المسار', colVehicle:'المركبة', colDriver:'السائق', colTotal:'المجموع', unassignedCell:'غير معيّن', bagsShort:'حقائب', paxShort:'ركاب', noContact:'لا هاتف',
+    fRef:'المرجع', fDate:'التاريخ', fTime:'وقت الاستلام', fCustomer:'العميل', fPickup:'عنوان الاستلام', fDropoff:'عنوان الوصول',
+    fClass:'فئة المركبة', fPax:'الركاب', fBags:'الحقائب', fStatus:'الحالة', fChauffeur:'السائق', fFlight:'رقم الرحلة', fNote:'ملاحظة',
+    none:'لا سائق', addChauffeur:'إضافة سائق', cName:'الاسم', cPhone:'الهاتف', cLicence:'الرخصة',
+    editBooking:'تعديل الحجز', deleteBooking:'حذف هذا الحجز؟', noun:'حجز', nounPlural:'حجوزات',
+    emptyTitle:'لا حجوزات', emptyBody:'أضف حجزاً ليظهر على هذه اللوحة.', deleteBody:'يُحذف الحجز من اللوحة.',
+  },
 };
 class Component extends DCLogic {
-  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', filter: 'All', page: 0, klass: '', statusMore: '', moreOpen: false, addTick: 0, editTick: 0, editId: '' };
+  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', filter: 'All', page: 0, query: '', klass: '', statusMore: '', moreOpen: false, addTick: 0, editTick: 0, editId: '' };
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
     this._off = window.VamosOps.bookings.onChange(() => this.forceUpdate());
@@ -212,29 +255,34 @@ class Component extends DCLogic {
   setClass = (v) => this.setState({ klass: v || '', page: 0 });
   setStatus = (v) => this.setState({ statusMore: v || '', page: 0 });
   setBoardFilter = (v) => this.setState({ filter: v || 'All', page: 0 });
+  setQuery = (e) => this.setState({ query: e && e.target ? e.target.value : '', page: 0 });
   clearFilt = () => this.setState({ klass: '', statusMore: '', filter: 'All', page: 0 });
   renderVals() {
-    const t = T[this.state.lang] || T.en;
+    const t = Object.assign({}, T.en, T[this.state.lang] || {});
     const today = boardDate(new Date());
     const tomorrow = boardDate(new Date(Date.now() + 86400000));
     const todayIso = zurichYmd(new Date());
     const tomorrowIso = zurichYmd(new Date(Date.now() + 86400000));
     const BOOKINGS = listBookings();
     const FILTERS = [
-      { key:'All', label: t.filterAll, test:() => true },
-      { key:'Today', label: t.filterToday, test:(b) => b.dateIso === todayIso || b.date === today },
-      { key:'Tomorrow', label: t.filterTomorrow, test:(b) => b.dateIso === tomorrowIso || b.date === tomorrow },
+      { key:'All', label: t.filterAll, test: isBoardTrip },
+      { key:'Today', label: t.filterToday, test:(b) => isBoardTrip(b) && (b.dateIso === todayIso || b.date === today) },
+      { key:'Tomorrow', label: t.filterTomorrow, test:(b) => isBoardTrip(b) && (b.dateIso === tomorrowIso || b.date === tomorrow) },
       { key:'Unassigned', label: t.filterUnassigned, test: isUnassigned },
       { key:'Awaiting payment', label: t.filterAwaiting, test: isUnpaid },
-      { key:'Cancelled', label: t.filterCancelled, test:(b) => b.status === 'cancelled' },
+      { key:'Cancelled', label: t.filterCancelled, test: isPaidCancelled },
+      { key:'Completed', label: t.filterCompleted, test: isCompleted },
     ];
     const active = FILTERS.find((f) => f.key === this.state.filter) || FILTERS[0];
     const klass = this.state.klass || '';
     const statusMore = this.state.statusMore || '';
+    const q = String(this.state.query || '').trim().toLowerCase();
     const visibleRows = BOOKINGS.filter(active.test).filter((b) => {
       if (klass && b.klass !== klass) return false;
       if (statusMore && b.status !== statusMore) return false;
-      return true;
+      if (!q) return true;
+      return ['id', 'customer', 'name', 'email', 'phone', 'pickup', 'dropoff'].some((k) =>
+        String(b[k] == null ? '' : b[k]).toLowerCase().indexOf(q) !== -1);
     });
     const ops = window.VamosOps;
     const classOptions = [{ value: '', label: t.allClasses }].concat(((ops && ops.VEHICLE_CLASSES) || ['Economy', 'Business', 'First', 'Van']).map((c) => ({ value: c, label: c })));
@@ -249,7 +297,7 @@ class Component extends DCLogic {
     const pageRows = visibleRows.slice(pageStart, pageStart + PAGE_SIZE);
     const showingFrom = visibleRows.length ? pageStart + 1 : 0;
     const showingTo = Math.min(visibleRows.length, pageStart + PAGE_SIZE);
-    const pickupsToday = BOOKINGS.filter((b) => b.dateIso === todayIso || b.date === today).length;
+    const pickupsToday = BOOKINGS.filter((b) => isBoardTrip(b) && (b.dateIso === todayIso || b.date === today)).length;
     const awaitingPayment = BOOKINGS.filter(isUnpaid).length;
     const unassigned = BOOKINGS.filter(isUnassigned).length;
     const weekStart = (() => {
@@ -273,7 +321,6 @@ class Component extends DCLogic {
       const ymd = capturedYmd(b);
       return ymd && ymd >= weekStart && ymd <= todayIso;
     }).reduce((n, b) => n + (Number(b.totalRappen) || 0), 0);
-    const DS = window.VamosTaxiDesignSystem_245af1 || {};
     /* A figure and the filter that shows it are the same thing, so the cards are
        the filter: pressing one narrows the table under it. */
     const card = (key, label, value, icon, foot) => {
@@ -310,6 +357,7 @@ class Component extends DCLogic {
       boardFilterOptions: FILTERS.map((f) => ({ value: f.key, label: f.label })),
       setBoardFilter: this.setBoardFilter,
       moreOpen: !!this.state.moreOpen, toggleMore: this.toggleMore, printBoard: this.printBoard, clearFilt: this.clearFilt,
+      query: this.state.query || '', setQuery: this.setQuery,
       tShowing: visibleRows.length ? t.showingRange.replace('%a', showingFrom).replace('%b', showingTo).replace('%c', visibleRows.length) : t.showingNone,
       tPrevPage: t.prevPage, tNextPage: t.nextPage,
       pageRows,
@@ -318,28 +366,25 @@ class Component extends DCLogic {
       noPrev: page <= 0, noNext: page >= pageCount - 1,
       filters: FILTERS.map((f) => ({ label: f.label, active: f.key === this.state.filter, select: () => this.setState({ filter: f.key, page: 0 }) })),
       columns: [
-        { key:'time', header: t.colPickup, width:'92px', render:(r) => React.createElement('span', { style:{ display:'flex', flexDirection:'column', lineHeight:1.25 } },
-            React.createElement('strong', { style:{ fontFamily:'var(--vt-font-display)', fontSize:'var(--vt-figure-sm)' } }, r.time),
-            React.createElement('span', { style:{ fontSize:'var(--vt-body-xs)', color:'var(--vt-text-muted)' } }, r.date.slice(0, 3))) },
-        { key:'id', header: t.colRef, width:'96px', render:(r) => React.createElement('span', { style:{ fontFamily:'var(--vt-font-display)', fontWeight:600 } }, r.id) },
-        { key:'customer', header: t.colCustomer, width:'180px', render:(r) => React.createElement('span', { style:{ display:'flex', flexDirection:'column', gap:2, lineHeight:1.3 } },
-            React.createElement('span', null, r.customer || '—'),
-            React.createElement('span', { style:{ fontSize:'var(--vt-body-xs)', color:'var(--vt-text-muted)' } }, [r.email, r.phone].filter(Boolean).join(' · ') || 'No contact')) },
-        { key:'route', header: t.colRoute, render:(r) => React.createElement('span', { style:{ display:'flex', flexDirection:'column', gap:2, lineHeight:1.3 } },
-            React.createElement('span', null, r.pickup),
-            React.createElement('span', { style:{ fontSize:'var(--vt-body-xs)', color:'var(--vt-text-muted)' } }, '→ ' + r.dropoff)) },
-        { key:'vehicle', header: t.colVehicle, width:'112px', render:(r) => React.createElement('span', { style:{ display:'flex', flexDirection:'column', gap:2, lineHeight:1.3 } },
-            React.createElement('span', null, r.vehicle),
-            React.createElement('span', { style:{ fontSize:'var(--vt-body-xs)', color:'var(--vt-text-muted)' } }, r.pax + ' pax · ' + r.bags + ' ' + t.bagsShort)) },
-        { key:'driver', header: t.colDriver, width:'120px', render:(r) => r.driver
-            ? React.createElement('span', null, r.driver)
-            : (r.paid
-              ? React.createElement('span', { style:{ color:'var(--vt-danger)', fontWeight:500 } }, t.unassignedCell)
-              : React.createElement('span', { style:{ color:'var(--vt-text-muted)' } }, '—')) },
-        { key:'status', header: t.colStatus, width:'220px', render:(r) => React.createElement('span', { style:{ display:'flex', flexDirection:'column', gap:2, lineHeight:1.3 } },
-            DS.StatusBadge ? React.createElement(DS.StatusBadge, { status: r.status }) : r.status,
-            React.createElement('span', { style:{ fontSize:'var(--vt-body-xs)', color:'var(--vt-text-muted)' } }, payLine(r))) },
-        { key:'total', header: t.colTotal, width:'96px', align:'right', render:(r) => fareLabel(r.totalRappen) },
+        { key:'time', header: t.colPickup, width:'100px', render:(r) => React.createElement('span', { 'data-vt-when': '1', title: r.date || '' },
+            React.createElement('strong', null, r.time),
+            React.createElement('span', { 'data-vt-sub': '1' }, pickupDay(r.date))) },
+        { key:'id', header: t.colRef, width:'118px', render:(r) => React.createElement('span', { 'data-vt-ref': '1', title: r.id }, r.id) },
+        { key:'customer', header: t.colCustomer, width:'168px', render:(r) => React.createElement('span', { 'data-vt-stack': '1' },
+            React.createElement('span', { 'data-vt-clip': '1', title: r.customer || '' }, r.customer || '—'),
+            React.createElement('span', { 'data-vt-sub': '1', title: [r.email, r.phone].filter(Boolean).join(' · ') }, r.phone || r.email || t.noContact)) },
+        { key:'route', header: t.colRoute, render:(r) => React.createElement('span', { 'data-vt-stack': '1' },
+            React.createElement('span', { 'data-vt-clip': '1', title: r.pickup || '' }, r.pickup || '—'),
+            React.createElement('span', { 'data-vt-sub': '1', title: r.dropoff || '' }, r.dropoff ? ('→ ' + r.dropoff) : '')) },
+        { key:'vehicle', header: t.colVehicle, width:'120px', render:(r) => React.createElement('span', { 'data-vt-stack': '1' },
+            React.createElement('span', { 'data-vt-clip': '1', title: r.klass || r.vehicle || '' }, r.klass || r.vehicle || '—'),
+            React.createElement('span', { 'data-vt-sub': '1' }, r.pax + ' ' + t.paxShort + ' · ' + r.bags + ' ' + t.bagsShort)) },
+        { key:'driver', header: t.colDriver, width:'140px', render:(r) => r.driver
+            ? React.createElement('span', { 'data-vt-clip': '1', title: r.driver }, r.driver)
+            : (isBoardTrip(r)
+              ? React.createElement('span', { 'data-vt-need': '1' }, t.unassignedCell)
+              : React.createElement('span', { 'data-vt-quiet': '1' }, '—')) },
+        { key:'total', header: t.colTotal, width:'112px', align:'right', render:(r) => React.createElement('span', { 'data-vt-fare': '1' }, fareLabel(r.totalRappen)) },
       ],
       visibleRows, openRow: this.openRow,
       filtRef: this._filtRef, openNew: this.openNew, addTick: this.state.addTick || 0, editTick: this.state.editTick || 0, editId: this.state.editId || '',

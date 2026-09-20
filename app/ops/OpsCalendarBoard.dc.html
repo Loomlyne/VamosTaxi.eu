@@ -54,7 +54,7 @@
 </div>
 <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr))">
 <sc-for list="{{ cells }}" as="d" hint-placeholder-count="35">
-<button type="button" onClick="{{ d.select }}" aria-pressed="{{ d.pressed }}" style="all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:6px;min-height:116px;padding:9px 10px;border-inline-end:1px solid var(--vt-border-subtle);border-block-end:1px solid var(--vt-border-subtle);background:{{ d.bg }};transition:background 140ms cubic-bezier(.2,0,.2,1)" style-hover="background:var(--vt-grey-50)">
+<button type="button" onClick="{{ d.select }}" aria-pressed="{{ d.pressed }}" style="all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:6px;min-height:116px;padding:9px 10px;border-inline-end:1px solid var(--vt-border-subtle);border-block-end:1px solid var(--vt-border-subtle);background:{{ d.bg }};opacity:{{ d.opacity }};transition:background 140ms cubic-bezier(.2,0,.2,1)" style-hover="background:var(--vt-grey-50)">
 <span style="display:flex;align-items:center;gap:6px">
 <span style="display:grid;place-items:center;min-width:24px;height:24px;padding:0 6px;border-radius:999px;font-family:var(--vt-font-display);font-size:13px;font-weight:600;background:{{ d.numBg }};color:{{ d.numColor }}">{{ d.day }}</span>
 <span style="display:{{ d.countShow }};font-size:11px;font-weight:600;color:var(--vt-text-muted)">{{ d.count }}</span>
@@ -326,6 +326,7 @@ class Component extends DCLogic {
     const ops = window.VamosOps;
     const all = ops ? ops.bookings.all() : [];
     const { y, m, sel } = this.state;
+    const todayZ = zurichYmd();
 
     const byDay = {};
     all.forEach((b) => {
@@ -396,8 +397,9 @@ class Component extends DCLogic {
       cells: cells.map((c) => {
         if (c.blank) return { day:'', chips:[], countShow:'none', moreShow:'none', more:'', count:'',
           unpaidShow:'none', unpaid:'',
-          bg:'var(--vt-grey-50)', numBg:'transparent', numColor:'transparent', pressed:'false', select: () => {} };
+          bg:'var(--vt-grey-50)', numBg:'transparent', numColor:'transparent', opacity:'1', pressed:'false', select: () => {} };
         const on = c.day === sel;
+        const past = y < todayZ.y || (y === todayZ.y && m < todayZ.m) || (y === todayZ.y && m === todayZ.m && c.day < todayZ.sel);
         const paid = c.list.filter(isPaidBooking);
         const unpaidN = c.list.filter(isUnpaidBooking).length;
         const shown = paid.slice(0, 2);
@@ -423,6 +425,7 @@ class Component extends DCLogic {
           bg: on ? 'var(--vt-grey-100)' : 'var(--vt-bg-surface)',
           numBg: on ? 'var(--vt-charcoal-900)' : 'transparent',
           numColor: on ? 'var(--vt-accent)' : 'var(--vt-text-primary)',
+          opacity: past ? '0.8' : '1',
           pressed: on ? 'true' : 'false',
           select: () => this.setState({ sel: c.day }),
         };

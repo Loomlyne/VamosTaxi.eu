@@ -106,13 +106,17 @@ describe("ops live data — comments 8–10", () => {
     expect(list).not.toMatch(/export const POST/);
   });
 
-  it("bookings board defaults to All and does not mention cash", () => {
+  it("bookings board defaults to All paid trips and does not mention cash", () => {
     const board = read("app/ops/OpsBoard.dc.html");
     expect(board).toMatch(/filter: 'All'/);
     expect(board).toMatch(/filterAll/);
+    expect(board).toMatch(/test: isBoardTrip/);
+    expect(board).toMatch(/isPaidCancelled/);
     expect(board).not.toMatch(/cash confirmation/);
-    expect(board).toMatch(/Pay-link not sent/);
+    expect(board).not.toMatch(/StatusBadge/);
     expect(board).toMatch(/colCustomer/);
+    expect(board).toMatch(/data-vt-ref/);
+    expect(board).toMatch(/data-vt-fare/);
   });
 
   it("maps an unpaid quote with an open card session", () => {

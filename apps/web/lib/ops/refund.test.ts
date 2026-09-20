@@ -104,14 +104,15 @@ describe("08-05 refund file proofs", () => {
     expect(w).toMatch(/asSystem/);
   });
 
-  it("OpsDetail Refund POSTs /refund; Cancel stays a separate PATCH", () => {
+  it("OpsDetail Refund POSTs /refund; paid Cancel stays a separate PATCH; unpaid Cancel DELETEs", () => {
     const t = read("app/ops/OpsDetail.dc.html");
     expect(t).toMatch(/\/refund/);
     expect(t).toMatch(/markRefund:'Refund'/);
     expect(t).toMatch(/cancelBooking:'Cancel'/);
     expect(t).toMatch(/status: 'cancelled'/);
+    expect(t).toMatch(/request\('DELETE'/);
     expect(t).not.toMatch(/status: 'refunded'/);
-    expect(t).not.toMatch(/location\.hash/);
+    expect(t).not.toMatch(/location\\.hash/);
     expect(t).not.toMatch(/box-shadow:\s*0 0 \d+px/);
     expect(t).toMatch(/refundFailed/);
   });

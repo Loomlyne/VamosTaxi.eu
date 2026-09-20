@@ -46,7 +46,7 @@ function classSlug(label: string): string | null {
 }
 
 export type CancelResult =
-  | { ok: true; booking: CancelledBooking }
+  | { ok: true; booking: CancelledBooking; erased?: boolean }
   | { ok: false; code: "not-found" | "frozen" | "unknown" };
 
 const BOOKING_UUID =
@@ -63,6 +63,33 @@ export async function cancelBooking(
     ? key
     : await resolveStaffBookingId(env, claims, key);
   if (!bookingId) return { ok: false, code: "not-found" };
+
+  const captured = await asStaff(env, claims, async (sql) => {
+    const rows = await sql<{ id: number }[]>`
+      select 1 as id
+        from public.booking_payments as p
+       where p.booking_id = ${bookingId}::uuid
+         and p.captured_at is not null
+       limit 1
+    `;
+    return rows.length > 0;
+  });
+  if (!captured) {
+    const erased = await eraseBooking(env, claims, bookingId);
+    if (!erased) return { ok: false, code: "not-found" };
+    return {
+      ok: true,
+      erased: true,
+      booking: {
+        id: bookingId,
+        reference: key,
+        email: "",
+        name: "",
+        locale: "en",
+        paid: false,
+      },
+    };
+  }
 
   type CancelRow = {
     booking_id: string;

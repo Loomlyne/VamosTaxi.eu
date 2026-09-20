@@ -391,7 +391,8 @@ const T = {
     dispatcherNote:'Dispatcher note', dispatcherNotePh:'Add a note visible to dispatch only…',
     resendVoucher:'Resend voucher', editBooking:'Edit booking', cancelBooking:'Cancel', complete:'Complete', noShow:'No-show', markArrival:'Mark arrival', arrived:'Arrived', extraWait:'Extra wait', arrivalFailed:'Could not mark arrival ', driver:'Driver', manualNote:'Assignment is manual in V1 — there is no driver app and no automatic dispatch.', cancel:'Cancel',
     cancelTitle:'Cancel this booking?', cancelBody:'It is marked cancelled. You will still see it under Cancelled.',
-    keepBooking:'Keep it', confirmCancel:'Cancel booking', bookingCancelled:'Cancelled ', cancelFailed:'Could not cancel ', refundFailed:'Could not refund ',
+    cancelBodyUnpaid:'This unpaid trip is removed. It does not stay under Cancelled.',
+    keepBooking:'Keep it', confirmCancel:'Cancel booking', confirmCancelUnpaid:'Remove booking', bookingCancelled:'Cancelled ', bookingRemoved:'Removed ', cancelFailed:'Could not cancel ', refundFailed:'Could not refund ',
     voucherResent:'Voucher re-sent to ', driverAssigned:'Driver assigned to ', unassignedOk:'Assignment cleared for ',
     evPayment:'Payment captured', evRefund:'Refund issued', evVoucher:'Voucher sent', evAssigned:'Driver assigned', evVehicle:'Vehicle assigned', evCleared:'Assignment cleared',
     evQuoted:'Quote saved', evCreated:'Booking created', evPayStarted:'Payment started', evStatus:'Status changed', included:'Included',
@@ -428,7 +429,8 @@ const T = {
     dispatcherNote:'Dispatcher-Notiz', dispatcherNotePh:'Notiz hinzufügen, nur für Dispatch sichtbar…',
     resendVoucher:'Gutschein erneut senden', editBooking:'Buchung bearbeiten', cancelBooking:'Stornieren', complete:'Abgeschlossen', noShow:'No-show', markArrival:'Ankunft markieren', arrived:'Angekommen', extraWait:'Extra-Wartezeit', arrivalFailed:'Ankunft konnte nicht markiert werden ', driver:'Fahrer', manualNote:'Die Zuweisung erfolgt in V1 manuell — es gibt keine Fahrer-App und keine automatische Vermittlung.', cancel:'Abbrechen',
     cancelTitle:'Diese Buchung stornieren?', cancelBody:'Sie wird als storniert markiert. Unter Storniert bleibt sie sichtbar.',
-    keepBooking:'Behalten', confirmCancel:'Buchung stornieren', bookingCancelled:'Storniert ', cancelFailed:'Konnte nicht stornieren ', refundFailed:'Konnte nicht erstatten ',
+    cancelBodyUnpaid:'Diese unbezahlte Fahrt wird entfernt. Unter Storniert bleibt sie nicht.',
+    keepBooking:'Behalten', confirmCancel:'Buchung stornieren', confirmCancelUnpaid:'Buchung entfernen', bookingCancelled:'Storniert ', bookingRemoved:'Entfernt ', cancelFailed:'Konnte nicht stornieren ', refundFailed:'Konnte nicht erstatten ',
     voucherResent:'Gutschein erneut gesendet an ', driverAssigned:'Fahrer zugewiesen zu ', unassignedOk:'Zuweisung aufgehoben für ',
     evPayment:'Zahlung erfasst', evRefund:'Rückerstattung ausgezahlt', evVoucher:'Gutschein gesendet', evAssigned:'Fahrer zugewiesen', evVehicle:'Fahrzeug zugewiesen', evCleared:'Zuweisung aufgehoben',
     overlap:'Überschneidet sich mit {ref} um {time}', noEmail:'Zuweisung erst, wenn dieser Chauffeur eine E-Mail hat.', noVehicle:'Zuweisung erst, wenn dieser Chauffeur ein Fahrzeug hat.',
@@ -470,6 +472,8 @@ const T = {
     refuseFailed:'Impossible de refuser la modification pour ',
     flightBanner:'Numéro de vol mis à jour',
     markArrival:'Marquer l’arrivée', arrived:'Arrivé', extraWait:'Attente extra', arrivalFailed:'Impossible de marquer l’arrivée ',
+    cancelBodyUnpaid:'Cette course non payée est supprimée. Elle n’apparaît pas sous Annulé.',
+    confirmCancelUnpaid:'Supprimer la réservation', bookingRemoved:'Supprimé ',
   },
   ar: {
     unassign:'إلغاء التعيين', historyEmpty:'لا أحداث بعد.',
@@ -490,6 +494,8 @@ const T = {
     refuseFailed:'تعذّر رفض التعديل لـ ',
     flightBanner:'تم تحديث رقم الرحلة',
     markArrival:'تسجيل الوصول', arrived:'وصل', extraWait:'انتظار إضافي', arrivalFailed:'تعذّر تسجيل الوصول لـ ',
+    cancelBodyUnpaid:'تُحذف هذه الرحلة غير المدفوعة. لن تبقى ضمن الملغاة.',
+    confirmCancelUnpaid:'حذف الحجز', bookingRemoved:'حُذف ',
   },
 };
 class Component extends DCLogic {
@@ -847,7 +853,7 @@ class Component extends DCLogic {
       openCancel: () => this.setState({ cancelOpen: true }),
       closeCancel: () => this.setState({ cancelOpen: false }),
       cancelOpen: this.state.cancelOpen,
-      tCancelTitle: t.cancelTitle, tCancelBody: t.cancelBody, tKeepBooking: t.keepBooking, tConfirmCancel: t.confirmCancel,
+      tCancelTitle: t.cancelTitle, tCancelBody: booking.paid ? t.cancelBody : t.cancelBodyUnpaid, tKeepBooking: t.keepBooking, tConfirmCancel: booking.paid ? t.confirmCancel : t.confirmCancelUnpaid,
       cancelSubtitle: booking.id,
       cancelWho: booking.customer || booking.email || booking.id,
       cancelRoute: (booking.pickup && booking.dropoff) ? (booking.pickup + ' → ' + booking.dropoff) : (booking.pickup || booking.dropoff || ''),
@@ -855,6 +861,7 @@ class Component extends DCLogic {
       cancelPay: booking.pay || '',
       confirmCancel: () => {
         const id = booking.id;
+        const unpaid = !booking.paid;
         const ops = window.VamosOps;
         const client = window.VamosOpsApi;
         this.setState({ cancelOpen: false });
@@ -862,10 +869,19 @@ class Component extends DCLogic {
           this.notify(t.cancelFailed + id);
           return;
         }
-        client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { status: 'cancelled' }).then((json) => {
+        const req = unpaid
+          ? client.request('DELETE', '/api/staff/bookings/' + encodeURIComponent(id))
+          : client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { status: 'cancelled' });
+        req.then((json) => {
           if (json && json.ok) {
             if (ops) ops.bookings.reset();
-            this.notify(t.bookingCancelled + id);
+            this.notify((unpaid ? t.bookingRemoved : t.bookingCancelled) + id);
+            if (unpaid) {
+              try {
+                history.pushState({}, '', '/bookings');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+              } catch (e) {}
+            }
           } else {
             this.notify(t.cancelFailed + id);
           }
