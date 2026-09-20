@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  isApexAssetPath,
+  pinRequestToApexAssets,
   pinUrlToSni,
   pinUrlToSurface,
   sniFromCf,
@@ -76,5 +78,21 @@ describe("surfaceFromEnv", () => {
   });
   it("staging without surface stays auto", () => {
     expect(surfaceFromEnv({ DEPLOY_ENV: "staging" })).toBe("auto");
+  });
+});
+
+describe("K92 apex asset pin", () => {
+  it("rewrites dashboard /app/ops HTML to apex; leaves /login", () => {
+    expect(isApexAssetPath("/login")).toBe(false);
+    expect(isApexAssetPath("/dashboard")).toBe(false);
+    expect(isApexAssetPath("/api/staff/me")).toBe(false);
+    expect(isApexAssetPath("/app/ops/ops-login.dc.html")).toBe(true);
+    expect(isApexAssetPath("/_next/static/chunks/x.js")).toBe(true);
+    const dash = new Request("https://dashboard.vamostaxi.site/app/ops/ops-login.dc.html");
+    const pinned = pinRequestToApexAssets(dash);
+    expect(new URL(pinned.url).hostname).toBe("vamostaxi.site");
+    expect(new URL(pinned.url).pathname).toBe("/app/ops/ops-login.dc.html");
+    const login = new Request("https://dashboard.vamostaxi.site/login");
+    expect(pinRequestToApexAssets(login)).toBe(login);
   });
 });

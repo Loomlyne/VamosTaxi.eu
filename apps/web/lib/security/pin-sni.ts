@@ -61,6 +61,34 @@ export function pinUrlToSurface(
   return url;
 }
 
+/**
+ * K92: Worker `vamos` Assets are bound to apex/www, not dashboard.
+ * Dashboard documents keep dashboard URL (middleware / 308 Location).
+ * `/app/ops/*`, `/_next/*`, `/brand/*`, and dotted files are rewritten to
+ * apex so OpenNext ASSETS hit. Never rewrite `/api/*` or `/login`.
+ */
+export function isApexAssetPath(pathname: string): boolean {
+  if (pathname === "/api" || pathname.startsWith("/api/")) return false;
+  if (pathname.startsWith("/_next/")) return true;
+  if (pathname.startsWith("/app/ops/")) return true;
+  if (pathname.startsWith("/brand/")) return true;
+  const leaf = pathname.split("/").pop() ?? "";
+  return leaf.includes(".");
+}
+
+export function pinRequestToApexAssets(request: Request): Request {
+  const url = new URL(request.url);
+  if (!isApexAssetPath(url.pathname)) return request;
+  if (url.hostname.toLowerCase() === APEX_HOST) return request;
+  const next = new URL(url.toString());
+  next.hostname = APEX_HOST;
+  const headers = new Headers(request.headers);
+  headers.delete("host");
+  headers.set("host", APEX_HOST);
+  const inbound = new Request(next.toString(), request);
+  return new Request(inbound, { headers });
+}
+
 export function pinRequestToSurface(
   request: Request,
   surface: VamosSurface,

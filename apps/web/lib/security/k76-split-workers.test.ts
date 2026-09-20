@@ -43,6 +43,7 @@ describe("K76 split Workers", () => {
     const gateway = source("dashboard-gateway.ts");
     expect(worker).toMatch(/export class Dashboard extends WorkerEntrypoint/);
     expect(worker).toContain("expireUnpaidBookings");
+    expect(worker).toContain("pinRequestToApexAssets");
     expect(gateway).toMatch(/env\.APP\.fetch/);
     expect(gateway).not.toMatch(/expireUnpaidBookings/);
   });

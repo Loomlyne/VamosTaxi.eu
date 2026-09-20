@@ -12,6 +12,7 @@ import { WorkerEntrypoint } from "cloudflare:workers";
 import { default as handler } from "./.open-next/worker.js";
 import { gatePublicRequest } from "./lib/dc-mock-urls";
 import {
+  pinRequestToApexAssets,
   pinRequestToSurface,
   sniFromCf,
   surfaceFromEnv,
@@ -34,7 +35,9 @@ async function handleFetch(
   surface: VamosSurface,
 ): Promise<Response> {
   const sni = sniFromCf((request as { cf?: unknown }).cf);
-  const inbound = pinRequestToSurface(request, surface, sni);
+  const inbound = pinRequestToApexAssets(
+    pinRequestToSurface(request, surface, sni),
+  );
   const gated = gatePublicRequest(inbound);
   if (gated === "not-found") {
     const gone = new URL(inbound.url);
