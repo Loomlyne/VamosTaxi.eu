@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
-import { MANAGE_COOKIE_NAME, hashManageToken } from "@/lib/checkout/manage-token";
+import { MANAGE_COOKIE_NAME, hashManageToken, rawManageTokenFromRequest } from "@/lib/checkout/manage-token";
 import { asGuest, asSystem } from "@/lib/db/identity";
 
 const NOT_FOUND =
@@ -112,7 +112,7 @@ function cancelWindow(hours: number): "auto_full" | "pending_ops" | "none" {
 }
 
 export async function GET(request: Request): Promise<Response> {
-  const token = new URL(request.url).searchParams.get("token") ?? "";
+  const token = rawManageTokenFromRequest(request);
   const tokenHashHex = token ? await hashManageToken(token) : "";
   if (!tokenHashHex) return json({ ok: false, code: "not-found", error: NOT_FOUND }, 404);
 

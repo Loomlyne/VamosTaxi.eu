@@ -793,11 +793,10 @@ class Component extends DCLogic {
     const tok = helper.token ? helper.token() : '';
     const ref = helper.refQuery ? helper.refQuery() : '';
     const detail = helper.isDetail ? helper.isDetail() : false;
-    if (tok && helper.loadGuest) {
+    if (helper.loadGuest && (tok || !detail)) {
       helper.loadGuest(tok).then((result) => this.applyLoad(result, 'link')).catch(() => this.showError('not-found'));
       return;
     }
-    if (!detail) return;
     if (this.state.signedIn && helper.loadAccount && ref) {
       helper.loadAccount(ref).then((result) => this.applyLoad(result, 'gate')).catch(() => this.showError('not-found'));
       return;

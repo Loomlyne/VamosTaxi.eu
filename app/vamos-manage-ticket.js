@@ -48,7 +48,10 @@
   }
 
   function loadGuest(tok) {
-    return jsonFetch("/api/manage/booking?token=" + encodeURIComponent(tok)).then(
+    var url = tok
+      ? "/api/manage/booking?token=" + encodeURIComponent(tok)
+      : "/api/manage/booking";
+    return jsonFetch(url).then(
       function (r) {
         if (r.ok && r.body && r.body.ok && r.body.booking) {
           return { kind: "booking", booking: r.body.booking, via: "token" };

@@ -59,6 +59,18 @@ export function readManageCookie(jarValue: string, cookieHeader: string | null):
   return "";
 }
 
+/** Cookie first, query only as first-click fallback. Never log the value. */
+export function rawManageTokenFromRequest(request: Request): string {
+  const cookie = readManageCookie("", request.headers.get("cookie"));
+  if (cookie) return cookie;
+  try {
+    const url = new URL(request.url);
+    return (url.searchParams.get("token") ?? url.searchParams.get("mb") ?? "").trim();
+  } catch {
+    return "";
+  }
+}
+
 function toHex(bytes: Uint8Array): string {
   let out = "";
   for (let i = 0; i < bytes.length; i++) {

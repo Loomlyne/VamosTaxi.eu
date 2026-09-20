@@ -16,6 +16,7 @@ import {
 } from "./lib/dc-mock-urls";
 import { publicDashboardPath } from "./lib/ops/paths";
 import { vamosRoleFromAccessToken } from "./lib/ops/session";
+import { MANAGE_COOKIE_NAME } from "./lib/checkout/manage-token";
 import { applySecurityHeaders } from "./lib/security/headers";
 import {
   createSupabaseMiddlewareClient,
@@ -507,6 +508,34 @@ export default async function middleware(request: NextRequest) {
         maxAge: 31536000,
       });
       return applyPublicCacheHeaders(request, applyStagingNoindex(request, res));
+    }
+  }
+
+  // K100: manage token is a secret. Set HttpOnly cookie and 302-strip the query
+  // so Referer and access logs do not keep it. Guest cancel/flight already
+  // prefer vt_manage.
+  if (!isDashboardHost(request)) {
+    const { path } = localeStrippedPath(pathname);
+    if (path === "/manage-booking" || path === "/booking-detail") {
+      const token = (
+        request.nextUrl.searchParams.get("token") ??
+        request.nextUrl.searchParams.get("mb") ??
+        ""
+      ).trim();
+      if (token) {
+        const url = request.nextUrl.clone();
+        url.searchParams.delete("token");
+        url.searchParams.delete("mb");
+        const res = NextResponse.redirect(url, 302);
+        res.cookies.set(MANAGE_COOKIE_NAME, token, {
+          httpOnly: true,
+          sameSite: "lax",
+          secure: true,
+          path: "/",
+          maxAge: 60 * 60 * 24 * 30,
+        });
+        return applyStagingNoindex(request, res);
+      }
     }
   }
 
