@@ -70,6 +70,8 @@ export type PublicCatalogRoute = {
   key: string;
   from: string;
   to: string;
+  from_mapbox_id: string | null;
+  to_mapbox_id: string | null;
 };
 
 function titleSlug(slug: string): string {
@@ -80,16 +82,32 @@ function titleSlug(slug: string): string {
     .join(" ");
 }
 
-function zonePublicLabel(zone: ZoneRow | undefined, fallback: string): string {
-  if (!zone) return titleSlug(fallback);
-  const name = titleSlug(zone.slug);
-  const iata = zone.iata?.trim().toUpperCase();
-  if (iata) return `${name} (${iata})`;
+function mapboxIdFromTags(tags: string[] | undefined): string | null {
+  for (const tag of tags ?? []) {
+    if (typeof tag !== "string" || !tag.startsWith("mapbox:")) continue;
+    const id = tag.slice("mapbox:".length).trim();
+    if (id) return id;
+  }
+  return null;
+}
+
+function zonePublicLabel(
+  zone: ZoneRow | undefined,
+  fallback: string,
+  names?: ReadonlyMap<string, string>,
+): string {
+  const named = zone ? names?.get(zone.slug)?.trim() : "";
+  const name = named || (zone ? titleSlug(zone.slug) : titleSlug(fallback));
+  const iata = zone?.iata?.trim().toUpperCase();
+  if (iata && !name.includes(`(${iata})`)) return `${name} (${iata})`;
   return name;
 }
 
 /** Unique live place→place rows for the home Fixed routes tab. */
-export function publicCatalogRoutes(book: RateBook): PublicCatalogRoute[] {
+export function publicCatalogRoutes(
+  book: RateBook,
+  names?: ReadonlyMap<string, string>,
+): PublicCatalogRoute[] {
   const byId = new Map(book.zones.map((zone) => [zone.id, zone]));
   const seen = new Set<string>();
   const out: PublicCatalogRoute[] = [];
@@ -99,10 +117,14 @@ export function publicCatalogRoutes(book: RateBook): PublicCatalogRoute[] {
     const key = `${row.origin_zone_id}::${row.dest_zone_id}`;
     if (seen.has(key)) continue;
     seen.add(key);
+    const origin = byId.get(row.origin_zone_id);
+    const dest = byId.get(row.dest_zone_id);
     out.push({
       key,
-      from: zonePublicLabel(byId.get(row.origin_zone_id), row.origin_zone_id),
-      to: zonePublicLabel(byId.get(row.dest_zone_id), row.dest_zone_id),
+      from: zonePublicLabel(origin, row.origin_zone_id, names),
+      to: zonePublicLabel(dest, row.dest_zone_id, names),
+      from_mapbox_id: mapboxIdFromTags(origin?.tags),
+      to_mapbox_id: mapboxIdFromTags(dest?.tags),
     });
   }
   return out;

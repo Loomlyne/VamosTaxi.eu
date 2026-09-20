@@ -10,6 +10,7 @@
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { wireQuoteAbuse } from "@/lib/abuse/guards";
+import { getContentStrings } from "@/lib/db/content";
 import { loadRateBook } from "@/lib/db/quote";
 import { withRequestContext } from "@/lib/logger";
 import { liveBookBoard, publicCatalogRoutes } from "@/lib/pricing/public-board";
@@ -31,11 +32,31 @@ export async function GET() {
     const { env } = getCloudflareContext();
     const raw = await loadRateBook(env, { preferDraft: false });
     const book = mapRateBook(raw);
+    let names = new Map<string, string>();
+    try {
+      const keys = [
+        ...new Set(
+          book.zones
+            .map((zone) => zone.slug)
+            .filter((slug) => typeof slug === "string" && slug.length > 0),
+        ),
+      ].map((slug) => `zone.${slug}`);
+      if (keys.length) {
+        const rows = await getContentStrings(env, keys);
+        for (const row of rows) {
+          if (!row.key.startsWith("zone.")) continue;
+          const name = row.en.trim();
+          if (name) names.set(row.key.slice("zone.".length), name);
+        }
+      }
+    } catch {
+      names = new Map();
+    }
     return Response.json(
       {
         ok: true,
         classes: liveBookBoard(book),
-        fixed_routes: publicCatalogRoutes(book),
+        fixed_routes: publicCatalogRoutes(book, names),
       },
       { headers: { "Cache-Control": "private, no-store" } },
     );
