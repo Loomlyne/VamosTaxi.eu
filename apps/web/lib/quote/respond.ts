@@ -23,7 +23,7 @@ import {
 } from "./errors";
 import type { QuotePipelineOk } from "./pipeline";
 
-const NO_STORE = { "Cache-Control": "no-store" } as const;
+const NO_STORE = { "Cache-Control": "private, no-store" } as const;
 
 type ErrorParamsByCode = {
   min_advance: { minutes: number };

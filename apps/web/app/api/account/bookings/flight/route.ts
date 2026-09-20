@@ -11,7 +11,7 @@ import { csrfForbidden } from "@/lib/security/origin";
 function json(body: unknown, status = 200): Response {
   return NextResponse.json(body, {
     status,
-    headers: { "cache-control": "no-store" },
+    headers: { "cache-control": "private, no-store" },
   });
 }
 

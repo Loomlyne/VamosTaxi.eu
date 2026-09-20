@@ -20,7 +20,7 @@ export async function accountWriteForbidden(request: Request): Promise<Response 
     if (!limited.ok) {
       return Response.json(
         { ok: false, code: "rate_limited" },
-        { status: 429, headers: { "cache-control": "no-store" } },
+        { status: 429, headers: { "cache-control": "private, no-store" } },
       );
     }
     return null;

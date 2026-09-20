@@ -37,12 +37,12 @@ export async function GET() {
         classes: liveBookBoard(book),
         fixed_routes: publicCatalogRoutes(book),
       },
-      { headers: { "Cache-Control": "no-store" } },
+      { headers: { "Cache-Control": "private, no-store" } },
     );
   } catch {
     return Response.json(
       { ok: true, classes: [], fixed_routes: [] },
-      { headers: { "Cache-Control": "no-store" } },
+      { headers: { "Cache-Control": "private, no-store" } },
     );
   }
 }
