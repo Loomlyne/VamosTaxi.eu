@@ -90,19 +90,25 @@ async function sendBranded(
   if (error) throw error;
 }
 
+const NO_STORE = { "cache-control": "private, no-store" } as const;
+
+function empty(status: number): Response {
+  return new Response(null, { status, headers: NO_STORE });
+}
+
 export async function POST(request: Request) {
   let env: CloudflareEnv;
   try {
     env = getCloudflareContext().env;
   } catch {
-    return new Response(null, { status: 500 });
+    return empty(500);
   }
   const secret = env.SEND_EMAIL_HOOK_SECRET ?? process.env.SEND_EMAIL_HOOK_SECRET;
   const ctx = { requestId: crypto.randomUUID(), route: "/api/auth/email-hook", locale: null as string | null };
 
   if (!secret) {
     log("error", "email-hook", ctx, { reason: "missing-secret" });
-    return new Response(null, { status: 500 });
+    return empty(500);
   }
 
   const payload = await request.text();
@@ -115,14 +121,14 @@ export async function POST(request: Request) {
   try {
     new Webhook(hookVerifySecret(secret)).verify(payload, headers);
   } catch {
-    return new Response(null, { status: 401 });
+    return empty(401);
   }
 
   let parsed: z.infer<typeof Body>;
   try {
     parsed = Body.parse(JSON.parse(payload));
   } catch {
-    return new Response(null, { status: 400 });
+    return empty(400);
   }
 
   const rawLocale = parsed.user.user_metadata?.[AUTH_LOCALE_METADATA_KEY];
@@ -136,7 +142,7 @@ export async function POST(request: Request) {
   const kind = mapType(parsed.email_data.email_action_type);
   if (!kind) {
     log("info", "email-hook", { ...ctx, locale }, { skipped: parsed.email_data.email_action_type });
-    return new Response(null, { status: 200 });
+    return empty(200);
   }
 
   const link = verifyLink(env.SUPABASE_URL, parsed.email_data);
@@ -153,8 +159,8 @@ export async function POST(request: Request) {
   try {
     await sendBranded(env, parsed.user.email, rendered);
   } catch {
-    return new Response(null, { status: 502 });
+    return empty(502);
   }
 
-  return new Response(null, { status: 200 });
+  return empty(200);
 }

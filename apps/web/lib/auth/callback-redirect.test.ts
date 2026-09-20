@@ -233,3 +233,18 @@ describe("middleware request host", () => {
     expect(file).toContain('headerList.get("x-vamos-request-host") ?? headerList.get("host")');
   });
 });
+
+describe("webhook and email-hook no-store", () => {
+  it("Resend webhook and auth email-hook set private, no-store", () => {
+    const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
+    const webhook = readFileSync(join(root, "app/api/webhooks/resend/route.ts"), "utf8");
+    expect(webhook).toContain("private, no-store");
+    expect(webhook).toContain("function hookText");
+    const hook = readFileSync(join(root, "app/api/auth/email-hook/route.ts"), "utf8");
+    expect(hook).toContain("private, no-store");
+    expect(hook).toContain("function empty");
+    const invite = readFileSync(join(root, "app/api/checkout/invite/[ref]/route.ts"), "utf8");
+    expect(invite).toContain("private, no-store");
+    expect(invite).not.toContain("new Response(null, { status: 404 })");
+  });
+});

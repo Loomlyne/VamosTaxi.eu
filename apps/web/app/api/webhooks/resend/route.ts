@@ -9,6 +9,12 @@ import type { InboundPayload } from "@/lib/ops/ticket-mail";
 
 export const dynamic = "force-dynamic";
 
+const NO_STORE = { "cache-control": "private, no-store" } as const;
+
+function hookText(body: string, status: number): Response {
+  return new Response(body, { status, headers: NO_STORE });
+}
+
 function verifyResend(secret: string, body: string, request: Request): boolean {
   try {
     new Webhook(secret).verify(body, {
@@ -88,25 +94,25 @@ async function hydrateReceiving(
 export async function POST(request: Request) {
   const { env } = getCloudflareContext();
   const secret = env.RESEND_WEBHOOK_SECRET;
-  if (!secret) return new Response("unavailable", { status: 503 });
+  if (!secret) return hookText("unavailable", 503);
   const body = await request.text();
-  if (!verifyResend(secret, body, request)) return new Response("invalid", { status: 400 });
+  if (!verifyResend(secret, body, request)) return hookText("invalid", 400);
 
   let event: { type?: string; data?: unknown };
   try {
     event = JSON.parse(body) as { type?: string; data?: unknown };
   } catch {
-    return new Response("invalid", { status: 400 });
+    return hookText("invalid", 400);
   }
-  if (event.type !== "email.received") return new Response("ok", { status: 200 });
+  if (event.type !== "email.received") return hookText("ok", 200);
 
   const parsed = readInboundPayload(event.data);
-  if (!parsed) return new Response("ok", { status: 200 });
+  if (!parsed) return hookText("ok", 200);
   const apiKey = env.RESEND_API_KEY;
-  if (!apiKey) return new Response("unavailable", { status: 503 });
+  if (!apiKey) return hookText("unavailable", 503);
 
   const payload = await hydrateReceiving(apiKey, parsed, event.data);
   const result = await ingestInboundEmail(env, payload);
-  if (result === "unavailable") return new Response("unavailable", { status: 503 });
-  return new Response("ok", { status: 200 });
+  if (result === "unavailable") return hookText("unavailable", 503);
+  return hookText("ok", 200);
 }

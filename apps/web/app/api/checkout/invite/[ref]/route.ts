@@ -18,7 +18,7 @@ export async function GET(
 ): Promise<Response> {
   const { ref } = await context.params;
   if (!BOOKING_REFERENCE_RE.test(ref)) {
-    return new Response(null, { status: 404 });
+    return new Response(null, { status: 404, headers: { "cache-control": "private, no-store" } });
   }
 
   const jar = await cookies();
@@ -31,17 +31,17 @@ export async function GET(
     env = null;
   }
   if (!env || !raw) {
-    return new Response(null, { status: 404 });
+    return new Response(null, { status: 404, headers: { "cache-control": "private, no-store" } });
   }
 
   const booking = await readBookingForConfirmation(env, raw, ref);
   if (!booking.visible || !isVoucherStatus(booking.status)) {
-    return new Response(null, { status: 404 });
+    return new Response(null, { status: 404, headers: { "cache-control": "private, no-store" } });
   }
 
   const scheduledLocal = wallClock(booking.scheduledLocal);
   if (!scheduledLocal) {
-    return new Response(null, { status: 404 });
+    return new Response(null, { status: 404, headers: { "cache-control": "private, no-store" } });
   }
 
   const payload: BookingForEmail = {
