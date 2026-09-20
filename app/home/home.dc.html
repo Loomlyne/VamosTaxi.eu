@@ -157,21 +157,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-swap]{display:flex;align-items:center;justify-content:center;gap:10px}
 [data-bookcard]{padding:12px;display:flex;flex-direction:column;gap:10px}
 [data-book-compact]{display:flex;flex-direction:column;gap:10px}
-[data-book-slots]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-[data-book-slot]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;min-height:56px;padding:8px 10px;border-radius:var(--vt-radius-field);border:1px solid var(--vt-grey-300);background:var(--vt-grey-50);cursor:pointer;text-align:start;min-width:0;font-family:var(--vt-font-body);transition:border-color .16s cubic-bezier(.2,0,.2,1),background .16s cubic-bezier(.2,0,.2,1)}
-[data-book-slot]:hover{border-color:var(--vt-charcoal-900);background:var(--vt-white)}
-[data-book-slot-ico]{width:28px;height:28px;flex:0 0 auto;border-radius:8px;background:var(--vt-grey-100);color:var(--vt-charcoal-900);display:inline-flex;align-items:center;justify-content:center}
-[data-book-slot-copy]{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto}
-[data-book-slot-lbl]{font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:var(--vt-label-tracking);color:var(--vt-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-[data-book-slot-val]{font-size:var(--vt-body-sm);font-weight:600;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-[data-book-go]{all:unset;box-sizing:border-box;cursor:pointer;transition:background .14s cubic-bezier(.2,0,.2,1)}
-[data-book-go][data-round="1"]{width:56px;min-height:60px;border-radius:var(--vt-radius-field);background:var(--vt-yellow);color:var(--vt-charcoal-900);display:inline-flex;align-items:center;justify-content:center;flex:0 0 56px;align-self:stretch}
-[data-book-go][data-round="1"]:hover{background:var(--vt-accent-hover)}
-[data-book-go][data-round="1"]:active{background:var(--vt-accent-press)}
-[dir="rtl"] [data-book-go][data-round="1"]{transform:scaleX(-1)}
-[data-book-trust]{display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap;padding:10px 2px 2px;border-top:1px solid var(--vt-border-subtle)}
-[data-book-trust] [data-trust]{display:inline-flex;align-items:center;gap:6px;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);line-height:1.35;color:var(--vt-text-muted);white-space:nowrap}
-@media (min-width:700px){[data-book-compact]{flex-direction:row;align-items:stretch;gap:8px}[data-book-slots]{flex:1 1 auto;grid-template-columns:repeat(4,minmax(0,1fr))}[data-book-slot]{min-height:60px}}
+[data-trip-tabs]{width:100%;min-width:0;box-sizing:border-box}
+[data-book-slots]{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}[data-book-slots]>[data-sugroot],[data-book-slots]>[data-book-field]{position:relative;min-width:0}[data-book-slots] [data-party]{width:100%}
 [data-hero],[data-hero-inner]{min-height:100vh;min-height:100svh}
 [data-fleet-strip]{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;gap:8px;padding-bottom:4px}[data-fleet-card]{flex:0 0 166px;min-width:0;max-width:360px;scroll-snap-align:start}[data-fleet-card][data-unavail="1"] [data-fleet-img]{filter:saturate(.4)}
 @media (max-width:699px){[data-hide-narrow]{display:none!important}
@@ -221,32 +208,83 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-display-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);color:var(--vt-white);max-width:16ch;text-wrap:balance">{{ tH1 }}</h1>
 <p style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-lg);line-height:1.6;color:var(--vt-text-inverse-muted);max-width:52ch;text-wrap:pretty">{{ tSub }}</p>
 </div><div id="book" data-bookcard="1" style="margin-top:clamp(20px,4vw,34px);background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-xl);scroll-margin-top:24px">
-
+<sc-if value="{{ showCompactTabs }}" hint-placeholder-val="{{ true }}">
+<div data-upto-wide="1" data-trip-tabs="1">
+<div role="tablist" aria-label="{{ tTripType }}" style="position:relative;display:flex;height:44px;padding:3px;border-radius:999px;background:var(--vt-grey-100);{{ compactTabsCss }}">
+<span aria-hidden="true" style="position:absolute;top:3px;bottom:3px;inset-inline-start:{{ pillLeft }};width:{{ pillWidth }};border-radius:999px;background:var(--vt-charcoal-900);transition:{{ pillTransition }}"></span>
+<sc-for list="{{ modes }}" as="m" hint-placeholder-count="2">
+<button type="button" role="tab" aria-selected="{{ m.sel }}" onClick="{{ m.pick }}" style="all:unset;box-sizing:border-box;position:relative;flex:1 1 0;display:flex;align-items:center;justify-content:center;font-family:var(--vt-font-body);font-size:13px;font-weight:600;letter-spacing:.01em;cursor:pointer;white-space:nowrap;z-index:1;color:{{ m.color }};transition:color .18s ease">{{ m.label }}</button>
+</sc-for>
+</div>
+</div>
+</sc-if>
 <div data-upto-wide="1" data-book-compact="1">
 <div data-book-slots="1">
-<button type="button" data-book-slot="1" onClick="{{ openSheetPickup }}" aria-haspopup="dialog" aria-expanded="{{ openExpanded }}" aria-label="{{ tSlotPickup }}: {{ compactPickup }}">
-<span data-book-slot-ico="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ pickupIcon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
-<span data-book-slot-copy="1"><span data-book-slot-lbl="1">{{ tSlotPickup }}</span><span data-book-slot-val="1" style="color:{{ pickupTone }}">{{ compactPickup }}</span></span>
-</button>
-<button type="button" data-book-slot="1" onClick="{{ openSheetDest }}" aria-haspopup="dialog" aria-expanded="{{ openExpanded }}" aria-label="{{ tSlotDest }}: {{ compactDest }}">
-<span data-book-slot-ico="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
-<span data-book-slot-copy="1"><span data-book-slot-lbl="1">{{ tSlotDest }}</span><span data-book-slot-val="1" style="color:{{ destTone }}">{{ compactDest }}</span></span>
-</button>
-<button type="button" data-book-slot="1" onClick="{{ openSheetWhen }}" aria-haspopup="dialog" aria-expanded="{{ openExpanded }}" aria-label="{{ tSlotWhen }}: {{ compactWhen }}">
-<span data-book-slot-ico="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="calendar-days" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
-<span data-book-slot-copy="1"><span data-book-slot-lbl="1">{{ tSlotWhen }}</span><span data-book-slot-val="1" style="color:{{ whenTone }}">{{ compactWhen }}</span></span>
-</button>
-<button type="button" data-book-slot="1" onClick="{{ openSheetParty }}" aria-haspopup="dialog" aria-expanded="{{ openExpanded }}" aria-label="{{ tSlotParty }}: {{ partyLine }}">
-<span data-book-slot-ico="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="users" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
-<span data-book-slot-copy="1"><span data-book-slot-lbl="1">{{ tSlotParty }}</span><span data-book-slot-val="1" style="color:var(--vt-text-primary)">{{ partyLine }}</span></span>
-</button>
+<div data-sugroot="1" data-book-field="pickup" style="position:relative;min-width:0">
+<span style="display:block;margin-bottom:6px;font-family:var(--vt-font-body);font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:.02em;color:var(--vt-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ tPickup }}</span>
+<div data-vtcombo="1" data-on="{{ pickupOn }}">
+<span data-combo-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ pickupIcon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
+<input type="text" role="combobox" aria-expanded="{{ sugPCStr }}" aria-autocomplete="list" aria-label="{{ tPickup }}" autocomplete="off" spellcheck="false" value="{{ pickupText }}" placeholder="{{ tPickupPh }}" onChange="{{ editPickupC }}" onFocus="{{ focusPickupC }}" onBlur="{{ blurPickupA }}" onKeyDown="{{ sugKey }}">
+<sc-if value="{{ pickupHasText }}" hint-placeholder-val="{{ false }}">
+<button data-combo-x="1" type="button" aria-label="{{ tClear }}" title="{{ tClear }}" onClick="{{ clearPickupC }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></button>
+</sc-if>
 </div>
-<button type="button" data-book-go="1" data-round="1" data-hide-narrow="1" onClick="{{ openSheet }}" aria-haspopup="dialog" aria-expanded="{{ openExpanded }}" aria-label="{{ tShowPrices }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import>
-</button>
-<div data-only-narrow="1">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="primary" size="lg" block="{{ yes }}" iconEnd="arrow-right" onClick="{{ openSheet }}" hint-size="100%,54px">{{ tShowPrices }}</x-import>
+<sc-if value="{{ sugPC }}" hint-placeholder-val="{{ false }}">
+<div data-sug="1" role="listbox" aria-label="{{ tPickup }}" style="{{ sugCss }}">
+<sc-for list="{{ sugRows }}" as="s" hint-placeholder-count="5">
+<sc-if value="{{ s.head }}" hint-placeholder-val="{{ false }}">
+<span data-sug-head="1">{{ s.name }}</span>
+</sc-if>
+<sc-if value="{{ s.spin }}" hint-placeholder-val="{{ false }}">
+<span data-sug-spin="1"><i data-spin="1" aria-hidden="true"></i>{{ s.name }}</span>
+</sc-if>
+<sc-if value="{{ s.row }}" hint-placeholder-val="{{ true }}">
+<div data-sug-row="1" data-idx="{{ s.idx }}" data-tone="{{ s.tone }}" role="option" aria-selected="{{ s.sel }}" title="{{ s.full }}" onMouseDown="{{ s.pick }}" onClick="{{ s.pick }}" style="{{ s.css }}">
+<span data-sug-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ s.icon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
+<span style="display:flex;flex-direction:column;min-width:0;flex:1 1 auto"><span data-sug-name="1" style="font-size:var(--vt-body-sm);font-weight:600;color:var(--vt-text-primary)">{{ s.name }}</span><span data-sug-sub="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ s.sub }}</span></span>
 </div>
+</sc-if>
+</sc-for>
+</div>
+</sc-if>
+</div>
+<div data-sugroot="1" data-book-field="dest" style="position:relative;min-width:0">
+<span style="display:block;margin-bottom:6px;font-family:var(--vt-font-body);font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:.02em;color:var(--vt-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ tDest }}</span>
+<div data-vtcombo="1" data-on="{{ dropOn }}">
+<span data-combo-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
+<input type="text" role="combobox" aria-expanded="{{ sugDCStr }}" aria-autocomplete="list" aria-label="{{ tDest }}" autocomplete="off" spellcheck="false" value="{{ dropText }}" placeholder="{{ tDestPh }}" onChange="{{ editDropC }}" onFocus="{{ focusDropC }}" onBlur="{{ blurDropA }}" onKeyDown="{{ sugKey }}">
+<sc-if value="{{ dropHasText }}" hint-placeholder-val="{{ false }}">
+<button data-combo-x="1" type="button" aria-label="{{ tClear }}" title="{{ tClear }}" onClick="{{ clearDropC }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></button>
+</sc-if>
+</div>
+<sc-if value="{{ sugDC }}" hint-placeholder-val="{{ false }}">
+<div data-sug="1" role="listbox" aria-label="{{ tDest }}" style="{{ sugCss }}">
+<sc-for list="{{ sugRows }}" as="s" hint-placeholder-count="5">
+<sc-if value="{{ s.head }}" hint-placeholder-val="{{ false }}">
+<span data-sug-head="1">{{ s.name }}</span>
+</sc-if>
+<sc-if value="{{ s.spin }}" hint-placeholder-val="{{ false }}">
+<span data-sug-spin="1"><i data-spin="1" aria-hidden="true"></i>{{ s.name }}</span>
+</sc-if>
+<sc-if value="{{ s.row }}" hint-placeholder-val="{{ true }}">
+<div data-sug-row="1" data-idx="{{ s.idx }}" data-tone="{{ s.tone }}" role="option" aria-selected="{{ s.sel }}" title="{{ s.full }}" onMouseDown="{{ s.pick }}" onClick="{{ s.pick }}" style="{{ s.css }}">
+<span data-sug-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ s.icon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
+<span style="display:flex;flex-direction:column;min-width:0;flex:1 1 auto"><span data-sug-name="1" style="font-size:var(--vt-body-sm);font-weight:600;color:var(--vt-text-primary)">{{ s.name }}</span><span data-sug-sub="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ s.sub }}</span></span>
+</div>
+</sc-if>
+</sc-for>
+</div>
+</sc-if>
+</div>
+<div data-book-field="when" style="min-width:0">
+<dc-import name="WhenPicker" label="{{ tWhenLbl }}" placeholder="{{ tWhenPh }}" value="{{ date }}" time="{{ time }}" day="{{ day }}" times="{{ timeSlots }}" baseMonth="{{ baseMonth }}" locale="{{ lang }}" groups="{{ tGroups }}" timeTitle="{{ tPickupTime }}" savedLabel="{{ tSaved }}" clearLabel="{{ tClear }}" saveLabel="{{ tSave }}" onClear="{{ whenClear }}" onDay="{{ setDay }}" onTime="{{ setTime }}" onOpenChange="{{ whenOpenChange }}" hint-size="100%,66px"></dc-import>
+</div>
+<div data-book-field="party" data-party="1">
+<dc-import name="StepCounter" label="{{ tPax }}" icon="users" value="{{ pax }}" min="{{ n0 }}" max="{{ n8 }}" onChange="{{ setPax }}" hint-size="100%,66px"></dc-import>
+<dc-import name="StepCounter" label="{{ tBags }}" icon="luggage" value="{{ bags }}" min="{{ n0 }}" max="{{ n16 }}" onChange="{{ setBags }}" hint-size="100%,66px"></dc-import>
+</div>
+</div>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="primary" size="lg" block="{{ yes }}" iconEnd="arrow-right" onClick="{{ goQuote }}" hint-size="100%,54px">{{ tShowPrices }}</x-import>
 </div>
 
 <div data-shell="1" data-open="{{ openAttr }}" onClick="{{ scrimClick }}">
@@ -264,7 +302,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap">
 <sc-if value="{{ showModes }}" hint-placeholder-val="{{ false }}">
 <div role="tablist" aria-label="{{ tTripType }}" style="position:relative;display:flex;height:44px;padding:3px;border-radius:999px;background:var(--vt-grey-100);{{ tabsWrapCss }}">
-<span aria-hidden="true" style="position:absolute;top:3px;bottom:3px;left:{{ pillLeft }};width:{{ pillWidth }};border-radius:999px;background:var(--vt-charcoal-900);transition:{{ pillTransition }}"></span>
+<span aria-hidden="true" style="position:absolute;top:3px;bottom:3px;inset-inline-start:{{ pillLeft }};width:{{ pillWidth }};border-radius:999px;background:var(--vt-charcoal-900);transition:{{ pillTransition }}"></span>
 <sc-for list="{{ modes }}" as="m" hint-placeholder-count="3">
 <button type="button" role="tab" aria-selected="{{ m.sel }}" onClick="{{ m.pick }}" style="all:unset;box-sizing:border-box;position:relative;flex:1 1 0;display:flex;align-items:center;justify-content:center;font-family:var(--vt-font-body);font-size:13px;font-weight:600;letter-spacing:.01em;cursor:pointer;white-space:nowrap;z-index:1;color:{{ m.color }};transition:color .18s ease">{{ m.label }}</button>
 </sc-for>
@@ -457,12 +495,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </div>
 </sc-if>
 </div>
-</div>
-<div data-book-trust="1">
-<sc-for list="{{ trustBullets }}" as="tb" hint-placeholder-count="3">
-<span data-trust="1">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ tb.icon }}" size="{{ n15 }}" color="{{ tb.color }}" hint-size="15px,15px"></x-import>{{ tb.text }}</span>
-</sc-for>
 </div>
 </div><span aria-live="polite" aria-atomic="true" style="position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">{{ announce }}</span><div id="fleet" data-strip-head="1" style="margin-top:16px;display:flex;align-items:baseline;column-gap:10px;row-gap:4px;flex-wrap:wrap;scroll-margin-top:24px">
 <span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">{{ stripStep }}</span>
@@ -841,7 +873,7 @@ const T = {
     liveFeed:'Live · AeroDataBox',
     geoDenied:'Location off — type your pickup instead', hereLabel:'My current location',
     pickup:'Pickup', pickupPh:'Airport, address or hotel', dest:'Destination', destPh:'Airport, address or hotel', when:'Pickup date & time', pax:'Passengers', bags:'Luggage', hours:'Duration (hours)', swap:'Swap pickup and destination',
-    trust:'Fixed price before you pay · free cancellation up to 24 h', month:'August 2026',
+    month:'August 2026',
     getting:'Getting your fixed price…', selectHint:'Select a class to continue — details & extras next',
     naPax:'Not available for {n} passengers', naBags:'Not available for {n} bags', quoteErr:'Couldn’t price this — try again', routeErr:'No road route to this destination', europeErr:'We operate in Europe', fixed:'Fixed price', allIn:'total, all inclusive', mostBooked:'Most booked',
     economy:'Economy', business:'Business', first:'First', van:'Van', exEconomy:'Sedan or similar', exBusiness:'Executive sedan', exFirst:'S-Class or similar', exVan:'Minivan or similar', seats:'seats', bagsWord:'bags',
@@ -901,7 +933,7 @@ const T = {
     geoDenied:'Standort aus — Abholort eintippen', hereLabel:'Mein aktueller Standort',
     noFeed:'Flugabfrage ist nicht verfügbar. Geben Sie Abholort und Zeit selbst ein.',
     pickup:'Abholort', pickupPh:'Flughafen, Adresse oder Hotel', dest:'Ziel', destPh:'Flughafen, Adresse oder Hotel', when:'Abholdatum & -zeit', pax:'Passagiere', bags:'Gepäck', hours:'Dauer (Stunden)', swap:'Abholort und Ziel tauschen',
-    trust:'Festpreis vor der Zahlung · kostenlose Stornierung bis 24 Std.', month:'August 2026',
+    month:'August 2026',
     getting:'Ihr Festpreis wird berechnet…', selectHint:'Klasse wählen und weiter — Angaben & Extras folgen',
     naPax:'Nicht verfügbar für {n} Passagiere', naBags:'Nicht verfügbar für {n} Gepäckstücke', quoteErr:'Preis nicht verfügbar — erneut versuchen', routeErr:'Kein Strassenweg zu diesem Ziel', europeErr:'Wir fahren in Europa', fixed:'Festpreis', allIn:'gesamt, alles inklusive', mostBooked:'Meistgebucht',
     economy:'Economy', business:'Business', first:'First', van:'Van', exEconomy:'Limousine oder ähnlich', exBusiness:'Business-Limousine', exFirst:'S-Klasse oder ähnlich', exVan:'Minivan oder ähnlich', seats:'Plätze', bagsWord:'Gepäckstücke',
@@ -960,7 +992,7 @@ const T = {
     geoDenied:'Localisation désactivée — saisissez votre départ', hereLabel:'Ma position actuelle',
     noFeed:'La recherche de vol est indisponible. Indiquez le départ et l’heure vous-même.',
     pickup:'Départ', pickupPh:'Aéroport, adresse ou hôtel', dest:'Destination', destPh:'Aéroport, adresse ou hôtel', when:'Date & heure de départ', pax:'Passagers', bags:'Bagages', hours:'Durée (heures)', swap:'Inverser départ et destination',
-    trust:'Prix fixe avant paiement · annulation gratuite jusqu’à 24 h', month:'Août 2026',
+    month:'Août 2026',
     getting:'Calcul de votre prix fixe…', selectHint:'Choisissez une classe pour continuer — détails & options ensuite',
     naPax:'Indisponible pour {n} passagers', naBags:'Indisponible pour {n} bagages', quoteErr:'Tarif indisponible — réessayez', routeErr:'Pas d’itinéraire routier vers cette destination', europeErr:'Nous circulons en Europe', fixed:'Prix fixe', allIn:'total, tout compris', mostBooked:'Le plus réservé',
     economy:'Economy', business:'Business', first:'First', van:'Van', exEconomy:'Berline ou similaire', exBusiness:'Berline affaires', exFirst:'Classe S ou similaire', exVan:'Monospace ou similaire', seats:'places', bagsWord:'bagages',
@@ -995,7 +1027,7 @@ const T = {
     geoDenied:'الموقع مغلق — اكتب نقطة الانطلاق', hereLabel:'موقعي الحالي',
     noFeed:'البحث عن الرحلة غير متاح. أدخل مكان الانطلاق والوقت بنفسك.',
     pickup:'نقطة الانطلاق', pickupPh:'مطار أو عنوان أو فندق', dest:'الوجهة', destPh:'مطار أو عنوان أو فندق', when:'تاريخ ووقت الانطلاق', pax:'الركاب', bags:'الأمتعة', hours:'المدة (ساعات)', swap:'تبديل الانطلاق والوجهة',
-    trust:'سعر ثابت قبل الدفع · إلغاء مجاني حتى 24 ساعة', month:'أغسطس 2026',
+    month:'أغسطس 2026',
     getting:'جارٍ حساب سعرك الثابت…', selectHint:'اختر فئة للمتابعة — التفاصيل والإضافات تاليًا',
     naPax:'غير متاحة لـ {n} ركاب', naBags:'غير متاحة لـ {n} حقائب', quoteErr:'تعذّر التسعير — حاول مجددًا', routeErr:'لا يوجد مسار بري إلى هذه الوجهة', europeErr:'نعمل في أوروبا', fixed:'سعر ثابت', allIn:'الإجمالي، شامل كل شيء', mostBooked:'الأكثر حجزًا',
     economy:'اكونومي', business:'بيزنس', first:'الأولى', van:'فان', exEconomy:'سيدان أو ما شابه', exBusiness:'سيدان تنفيذية', exFirst:'إس-كلاس أو ما شابه', exVan:'ميني فان أو ما شابه', seats:'مقاعد', bagsWord:'حقائب',
@@ -1926,6 +1958,8 @@ class Component extends DCLogic {
   }
   focusPickupA = (e) => this.openPlaceSug('pickup', 'a', e);
   focusDropA = (e) => this.openPlaceSug('dropoff', 'a', e);
+  focusPickupC = (e) => this.openPlaceSug('pickup', 'c', e);
+  focusDropC = (e) => this.openPlaceSug('dropoff', 'c', e);
   blurPickupA = () => { this.commitTypedPlace('pickup'); this.setState((s) => ({ focused: Object.assign({}, s.focused, { pickup: false }) })); };
   blurDropA = () => { this.commitTypedPlace('dropoff'); this.setState((s) => ({ focused: Object.assign({}, s.focused, { dest: false }) })); };
   /** Step 1 of the flight logic: know where the traveller is. Read silently when
@@ -2055,9 +2089,9 @@ class Component extends DCLogic {
     if (top < st + 26) box.scrollTop = Math.max(0, top - 26);
     else if (top + h > st + ch - 30) box.scrollTop = top + h - ch + 30;
   }
-  clearField(field) {
+  clearField(field, at) {
     return () => {
-      const patch = { sugIdx: -1, geo: 'idle', sug: { open: true, field, at: 'a', items: [], saved: [], geoCount: 0, custom: false, text: '', typed: false } };
+      const patch = { sugIdx: -1, geo: 'idle', sug: { open: true, field, at: at || 'a', items: [], saved: [], geoCount: 0, custom: false, text: '', typed: false } };
       if (field === 'pickup') { patch.pickupText = ''; patch.pickupLoc = null; patch.autofill = Object.assign({}, this.state.autofill, { pickup: null }); }
       else { patch.dropText = ''; patch.dropLoc = null; patch.autofill = Object.assign({}, this.state.autofill, { dest: null }); }
       clearTimeout(this._geoT); this._geoSeq = (this._geoSeq || 0) + 1;
@@ -2225,10 +2259,12 @@ class Component extends DCLogic {
       curOptions: Object.keys(CURS).map((v) => ({ value: v, label: v, note: dispCur(v, s.lang) })),
       mode: s.mode, setMode: this.setMode,
       tabsWrapCss: phone ? 'flex:1 1 100%' : 'flex:0 0 auto;min-width:320px',
+      compactTabsCss: 'width:100%;min-width:0;box-sizing:border-box',
       pillLeft: 'calc(3px + (100% - 6px) * ' + modeIdx + ' / ' + modeCount + ')', pillWidth: 'calc((100% - 6px) / ' + modeCount + ')',
-      pillTransition: REDUCED ? 'none' : 'left .22s cubic-bezier(.2,0,.2,1), width .22s cubic-bezier(.2,0,.2,1)',
+      pillTransition: REDUCED ? 'none' : 'inset-inline-start .22s cubic-bezier(.2,0,.2,1), width .22s cubic-bezier(.2,0,.2,1)',
       tTripType: t.tripType,
       showModes: true,
+      showCompactTabs: s.tier < 2 && !sheetOpen,
       showModeNote: s.mode === 'fixed',
       showModeBar: true,
       modes: modesList.map((m) => ({ id: m.id, label: m.label, sel: m.id === s.mode ? 'true' : 'false', color: m.id === s.mode ? 'var(--vt-white)' : 'var(--vt-text-secondary)', pick: () => this.setMode(m.id) })),
@@ -2267,21 +2303,27 @@ class Component extends DCLogic {
       capacityMoveNote: s.capacityMoveNote || '',
       pickupText: s.pickupText, dropText: s.dropText,
       editPickupA: this.editRoute('pickup', 'a'), editDropA: this.editRoute('dropoff', 'a'),
+      editPickupC: this.editRoute('pickup', 'c'), editDropC: this.editRoute('dropoff', 'c'),
       pickupIcon: (s.pickupLoc && s.pickupLoc.air) ? 'plane-landing' : 'map-pin',
       pickupBadge: this.badgeEl(!s.focused.pickup ? s.autofill.pickup : null),
       sugPA: s.sug.open && s.sug.field === 'pickup' && s.sug.at === 'a' && (sugHasHits || s.geo === 'loading'),
       sugDA: s.sug.open && s.sug.field === 'dropoff' && s.sug.at === 'a' && (sugHasHits || s.geo === 'loading'),
+      sugPC: s.sug.open && s.sug.field === 'pickup' && s.sug.at === 'c' && (sugHasHits || s.geo === 'loading'),
+      sugDC: s.sug.open && s.sug.field === 'dropoff' && s.sug.at === 'c' && (sugHasHits || s.geo === 'loading'),
       sugRows: sugRows, sugHasHits: sugHasHits, sugRef: this._sugRef,
       sugPAStr: (s.sug.open && s.sug.field === 'pickup') ? 'true' : 'false',
       sugDAStr: (s.sug.open && s.sug.field === 'dropoff') ? 'true' : 'false',
+      sugPCStr: (s.sug.open && s.sug.field === 'pickup' && s.sug.at === 'c') ? 'true' : 'false',
+      sugDCStr: (s.sug.open && s.sug.field === 'dropoff' && s.sug.at === 'c') ? 'true' : 'false',
       pickupOn: (s.focused.pickup || (s.sug.open && s.sug.field === 'pickup')) ? '1' : '0',
       dropOn: (s.focused.dest || (s.sug.open && s.sug.field === 'dropoff')) ? '1' : '0',
       pickupHasText: !!s.pickupText, dropHasText: !!s.dropText,
       clearPickup: this.clearField('pickup'), clearDrop: this.clearField('dropoff'),
+      clearPickupC: this.clearField('pickup', 'c'), clearDropC: this.clearField('dropoff', 'c'),
       hasPickupBadge: !s.focused.pickup && !!s.autofill.pickup, pickupBadgeCode: s.autofill.pickup || '',
       hasDestBadge: !s.focused.dest && !!s.autofill.dest, destBadgeCode: s.autofill.dest || '',
       tClear: t.clear || 'Clear', tSave: t.save || 'Save', whenClear: this.whenClear, no: false,
-      focusDropA: this.focusDropA,
+      focusDropA: this.focusDropA, focusPickupC: this.focusPickupC, focusDropC: this.focusDropC,
       sugKey: this.sugKey,
       sugCss: LIST_CSS(), fsugCss: LIST_CSS(),
       swapRowCss: s.mode === 'hourly' ? 'display:none' : 'display:flex',
@@ -2290,7 +2332,7 @@ class Component extends DCLogic {
       menuOpen: s.menuOpen, menuExpanded: s.menuOpen ? 'true' : 'false', menuIcon: s.menuOpen ? 'x' : 'menu', toggleMenu: this.toggleMenu,
       menuLangs: LANGS.map((v) => ({ label: v.toUpperCase(), note: dispLang(v), css: chip(v === s.lang), pick: () => { this.setState({ menuOpen: false }); this.pickLang(v); } })),
       menuCurs: Object.keys(CURS).map((v) => ({ label: v, note: dispCur(v, s.lang), css: chip(v === s.cur), pick: () => { this.setState({ menuOpen: false }); this.pickCur(v); } })),
-      sheetOpen: sheetOpen, openSheet: this.openSheet, closeSheet: this.closeSheet, applySheet: this.applySheet, scrimClick: this.scrimClick,
+      sheetOpen: sheetOpen, openSheet: this.openSheet, closeSheet: this.closeSheet, applySheet: this.applySheet, goQuote: () => { this.closeSheet(); this.q(); }, scrimClick: this.scrimClick,
       openAttr: s.sheetOpen ? '1' : '0', openExpanded: s.sheetOpen ? 'true' : 'false', sheetRef: this.sheetRef,
       sheetRole: s.sheetOpen ? 'dialog' : undefined, sheetModal: s.sheetOpen ? 'true' : undefined, sheetTab: s.sheetOpen ? -1 : undefined,
       tripRoute: tripRoute, tripMeta: tripMeta, showParty: s.pax > 0 || s.bags > 0,
@@ -2316,11 +2358,6 @@ class Component extends DCLogic {
       flightReq: this.flightRequired(),
       sheetCtaDisabled: this.flightRequired() && !this.flightFilled(),
       announce: s.announce,
-      trustBullets: (() => { const parts = t.trust.split(' · '); return [
-        { icon: 'banknote', color: 'var(--vt-text-muted)', text: parts[0] || t.trust },
-        { icon: 'shield-check', color: 'var(--vt-text-muted)', text: parts[1] || '' },
-        { icon: 'clock', color: 'var(--vt-text-muted)', text: t.waiting60 },
-      ].filter((b) => b.text); })(),
       tKicker: (s.service && (SVC_KICKER[s.lang] || SVC_KICKER.en)[s.service]) || t.kicker, tH1: t.h1, tSub: t.sub, tSignIn: t.signIn,
       tFlight: this.flightRequired() ? t.flight : (t.flightOptional || t.flight), tPickup: t.pickup, tPickupPh: t.pickupPh, tDest: t.dest, tDestPh: t.destPh,
       tFixed: t.fixed, tAllIn: t.allIn, tGetting: t.getting,

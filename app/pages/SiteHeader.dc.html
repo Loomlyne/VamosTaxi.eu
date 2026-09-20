@@ -77,23 +77,27 @@ body{margin:0}
 button[data-hd-signin]{width:calc(100% - 4px);appearance:none;-webkit-appearance:none}
 [data-hd-sec]{display:flex;flex-direction:column;gap:8px;padding:10px 8px 8px}
 [data-hd-kicker]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
-[data-hd-chips]{display:flex;flex-wrap:wrap;gap:6px}
-[data-hd-chip]{all:unset;box-sizing:border-box;min-width:44px;height:44px;padding:0 14px;border-radius:var(--vt-radius-pill);display:inline-flex;align-items:center;justify-content:center;font-family:var(--vt-font-body);font-size:13px;font-weight:600;cursor:pointer}
-[data-hd-nav]{display:flex;flex-direction:column;gap:2px;margin-top:4px;padding-top:8px;border-top:1px solid var(--vt-border-subtle)}
-[data-hd-nav] [data-hd-menuitem]{display:flex;align-items:center;min-height:44px;padding:0 12px;border-radius:10px;color:var(--vt-text-primary);font-size:var(--vt-body-sm);text-decoration:none;transition:var(--vt-transition-control)}
+[data-hd-nav]{display:flex;flex-direction:column;gap:2px}
+[data-hd-nav] [data-hd-menuitem]{display:flex;align-items:center;min-height:44px;padding:0 12px;border-radius:var(--vt-radius-sm);color:var(--vt-text-primary);font-size:var(--vt-body-sm);text-decoration:none;transition:var(--vt-transition-control)}
+[data-hd-locale]{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;padding:10px 8px 12px;border-bottom:1px solid var(--vt-border-subtle)}
+[data-hd-sheet-head],[data-hd-sheet-body]{display:flex;flex-direction:column;gap:0}
 @media (max-width:1079px){
 [data-hd]{overflow:visible}
-[data-hd][data-hd-open="1"]{z-index:420}
-[data-hd="overlay"][data-hd-float="1"][data-hd-open="1"]{-webkit-backdrop-filter:none;backdrop-filter:none}
-[data-hd-row]{padding:0 var(--vt-gutter);min-height:60px;gap:var(--vt-space-3);overflow:visible}
+[data-hd][data-hd-open="1"]{z-index:420;transform:none}
+[data-hd="overlay"][data-hd-open="1"]{background:var(--vt-bg-inverse)}
+[data-hd="overlay"][data-hd-float="1"][data-hd-open="1"]{top:0;inset-inline:0;border-radius:0;border:0;border-bottom:1px solid var(--vt-border-inverse);background:var(--vt-bg-inverse);box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;animation:none}
+[data-hd-row]{position:relative;z-index:3;padding:0 var(--vt-gutter);min-height:60px;gap:var(--vt-space-3);overflow:visible}
 [data-hd="overlay"] [data-hd-row]{padding:0;min-height:60px}
 [data-hd="overlay"][data-hd-float="1"] [data-hd-row]{padding:0 var(--vt-space-4);min-height:56px}
+[data-hd="overlay"][data-hd-float="1"][data-hd-open="1"] [data-hd-row]{padding:0 var(--vt-gutter);min-height:60px}
 [data-hd-brand]{flex:1 1 auto;max-width:calc(100% - 56px)}
 [data-hd-brand] img{height:22px!important}
-[data-hd-scrim]{display:block;position:fixed;inset:0;z-index:1;background:var(--vt-bg-scrim);animation:vt-hd-in var(--vt-dur-fast) var(--vt-ease-out)}
-[data-hd-sheet]{display:flex;flex-direction:column;gap:0;position:absolute;top:calc(100% + var(--vt-space-2));inset-inline:var(--vt-gutter);z-index:2;box-sizing:border-box;max-height:min(78svh,calc(100svh - 76px));overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:var(--vt-space-3);background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg);animation:vt-hd-in var(--vt-dur-fast) var(--vt-ease-out)}
-[data-hd="overlay"] [data-hd-sheet]{inset-inline:0}
-[data-hd="overlay"][data-hd-float="1"] [data-hd-sheet]{inset-inline:0;top:calc(100% + var(--vt-space-2))}
+[data-hd-scrim]{display:block;position:fixed;inset:0;z-index:1;background:var(--vt-bg-scrim);animation:vt-hd-fade var(--vt-dur-fast) var(--vt-ease-out)}
+[data-hd-sheet]{display:flex;flex-direction:column;gap:0;position:fixed;inset-block:0;inset-inline-end:0;inset-inline-start:auto;z-index:2;box-sizing:border-box;width:min(22.5rem,86vw);height:100svh;max-height:100svh;overflow:visible;padding:0;background:var(--vt-bg-surface);border:0;border-inline-start:1px solid var(--vt-border-subtle);border-radius:0;box-shadow:var(--vt-shadow-xl);animation:vt-hd-drawer var(--vt-dur-slow) var(--vt-ease-out)}
+[dir="rtl"] [data-hd-sheet]{animation-name:vt-hd-drawer-rtl}
+[data-hd-sheet-head]{flex:0 0 auto;padding:calc(60px + var(--vt-space-3)) var(--vt-space-3) var(--vt-space-2)}
+[data-hd-sheet-body]{flex:1 1 auto;min-block-size:0;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 var(--vt-space-3) max(var(--vt-space-4),env(safe-area-inset-bottom))}
+[data-hd-sheet-body] [data-hd-sec] + [data-hd-sec]{border-top:1px solid var(--vt-border-subtle)}
 }
 @media (prefers-reduced-motion:reduce){[data-hd-menu-btn]:active{transform:none}[data-hd-scrim],[data-hd-sheet]{animation:none}}
 @media (prefers-reduced-transparency:reduce){[data-hd-scrim]{background:rgb(17 18 18 / .86)}}
@@ -127,6 +131,9 @@ button[data-hd-signin]{width:calc(100% - 4px);appearance:none;-webkit-appearance
 [data-hd-acctrow]:hover [data-hd-sub]{color:rgb(255 255 255/.7)}
 [data-hd-sub]{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--vt-text-muted)}
 @keyframes vt-hd-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@keyframes vt-hd-fade{from{opacity:0}to{opacity:1}}
+@keyframes vt-hd-drawer{from{transform:translateX(100%)}to{transform:none}}
+@keyframes vt-hd-drawer-rtl{from{transform:translateX(-100%)}to{transform:none}}
 @media print{[data-hd]{display:none!important}}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
 </helmet>
 <header data-hd="{{ variant }}" data-hd-float="{{ floatAttr }}" data-hd-open="{{ menuOpenAttr }}" ref="{{ menuRootRef }}" data-screen-label="Header">
@@ -190,7 +197,7 @@ button[data-hd-signin]{width:calc(100% - 4px);appearance:none;-webkit-appearance
 </div>
 
 <div data-hd-narrow="1" style="margin-inline-start:auto;align-items:center;flex:0 0 auto">
-<button type="button" data-hd-menu-btn="1" aria-label="{{ menuLabel }}" aria-expanded="{{ menuExpanded }}" aria-haspopup="menu" aria-controls="vt-hd-sheet" onClick="{{ toggleMenu }}">
+<button type="button" data-hd-menu-btn="1" aria-label="{{ menuLabel }}" aria-expanded="{{ menuExpanded }}" aria-haspopup="dialog" aria-controls="vt-hd-sheet" onClick="{{ toggleMenu }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ menuIcon }}" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></button>
 </div>
 
@@ -198,21 +205,22 @@ button[data-hd-signin]{width:calc(100% - 4px);appearance:none;-webkit-appearance
 
 <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
 <div data-hd-scrim="1" aria-hidden="true" onClick="{{ closeMenu }}"></div>
-<div data-hd-sheet="1" id="vt-hd-sheet" role="menu" aria-label="{{ menuLabel }}" data-scroll-native="1">
+<div data-hd-sheet="1" id="vt-hd-sheet" role="dialog" aria-modal="true" aria-label="{{ tMenu }}">
 
+<div data-hd-sheet-head="1">
 <sc-if value="{{ showCta }}" hint-placeholder-val="{{ true }}">
-<a data-hd-cta="1" href="/#book" role="menuitem">
+<a data-hd-cta="1" href="/#book">
 <span>{{ tBook }}</span><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></a>
 </sc-if>
 
 <sc-if value="{{ showAccountLink }}" hint-placeholder-val="{{ true }}">
 <sc-if value="{{ signedOut }}" hint-placeholder-val="{{ true }}">
-<a data-hd-signin="1" data-hd-menuitem="1" href="{{ acctHref }}" role="menuitem">
+<a data-hd-signin="1" data-hd-menuitem="1" href="{{ acctHref }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="user" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
 <span>{{ tAcct }}</span></a>
 </sc-if>
 <sc-if value="{{ signedIn }}" hint-placeholder-val="{{ false }}">
-<a data-hd-acctrow="1" href="{{ acctHref }}" role="menuitem" style="display:flex;align-items:center;gap:11px;min-height:56px;margin:2px 2px 6px;padding:8px 12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-bg-surface);text-decoration:none;color:var(--vt-text-primary)">
+<a data-hd-acctrow="1" href="{{ acctHref }}" style="display:flex;align-items:center;gap:11px;min-height:56px;margin:2px 2px 6px;padding:8px 12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-bg-surface);text-decoration:none;color:var(--vt-text-primary)">
 <span style="position:relative;display:inline-flex;line-height:0">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Avatar" name="{{ acctName }}" src="{{ acctPhoto }}" size="sm" tone="inverse" hint-size="32px,32px"></x-import>
 <sc-if value="{{ showUnverified }}"><span aria-hidden="true" style="position:absolute;top:-2px;inset-inline-end:-2px;width:10px;height:10px;border-radius:999px;background:var(--vt-yellow);border:2px solid var(--vt-bg-surface)"></span></sc-if>
@@ -225,33 +233,37 @@ button[data-hd-signin]{width:calc(100% - 4px);appearance:none;-webkit-appearance
 </sc-if>
 </sc-if>
 <sc-if value="{{ signedIn }}">
-<button type="button" data-hd-signin="1" data-hd-menuitem="1" role="menuitem" onClick="{{ signOut }}">
+<button type="button" data-hd-signin="1" data-hd-menuitem="1" onClick="{{ signOut }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="log-out" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
 <span>{{ tSignOut }}</span></button>
 </sc-if>
 
-<div data-hd-sec="1">
-<span data-hd-kicker="1">{{ tLangLabel }}</span>
-<div data-hd-chips="1">
-<sc-for list="{{ menuLangs }}" as="o" hint-placeholder-count="4">
-<button type="button" data-hd-chip="1" onClick="{{ o.pick }}" title="{{ o.note }}" style="{{ o.css }}">{{ o.label }}</button>
-</sc-for>
+<div data-hd-locale="1">
+<dc-import name="BrandSelect" value="{{ lang }}" options="{{ langOptions }}" onSelect="{{ pickLang }}" icon="globe" a11ylabel="Language" hint-size="92px,36px"></dc-import>
+<span data-hd-cur="1" data-vt-no-i18n="1" style="display:inline-flex"><dc-import name="BrandSelect" value="{{ cur }}" options="{{ curOptions }}" onSelect="{{ pickCur }}" icon="banknote" a11ylabel="Currency" hint-size="104px,36px"></dc-import></span>
 </div>
 </div>
 
+<div data-hd-sheet-body="1" data-scroll-native="1">
 <div data-hd-sec="1">
-<span data-hd-kicker="1">{{ tCurLabel }}</span>
-<div data-hd-chips="1" data-vt-no-i18n="1">
-<sc-for list="{{ menuCurs }}" as="o" hint-placeholder-count="4">
-<button type="button" data-hd-chip="1" onClick="{{ o.pick }}" title="{{ o.note }}" style="{{ o.css }}">{{ o.label }}</button>
-</sc-for>
-</div>
-</div>
-
+<span data-hd-kicker="1">{{ tSvc }}</span>
 <div data-hd-nav="1">
-<sc-for list="{{ links }}" as="l" hint-placeholder-count="2">
-<a data-hd-menuitem="1" href="{{ l.href }}" role="menuitem">{{ l.label }}</a>
+<sc-for list="{{ serviceLinks }}" as="l" hint-placeholder-count="2">
+<a data-hd-menuitem="1" href="{{ l.href }}">{{ l.label }}</a>
 </sc-for>
+</div>
+</div>
+
+<div data-hd-sec="1">
+<span data-hd-kicker="1">{{ tHelp }}</span>
+<div data-hd-nav="1">
+<sc-for list="{{ helpLinks }}" as="l" hint-placeholder-count="2">
+<a data-hd-menuitem="1" href="{{ l.href }}">{{ l.label }}</a>
+</sc-for>
+<a data-hd-menuitem="1" href="mailto:info@vamostaxi.site" data-vt-no-i18n="1">info@vamostaxi.site</a>
+<a data-hd-menuitem="1" href="https://wa.me/41796267082" rel="noreferrer noopener">{{ tWhatsApp }}</a>
+</div>
+</div>
 </div>
 
 </div>
@@ -263,10 +275,10 @@ button[data-hd-signin]{width:calc(100% - 4px);appearance:none;-webkit-appearance
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1400,&quot;height&quot;:96},&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;inverse&quot;,&quot;options&quot;:[&quot;inverse&quot;,&quot;overlay&quot;],&quot;tsType&quot;:&quot;string&quot;},&quot;cta&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;signInLabel&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Sign in&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;hideAccount&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;lang&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;},&quot;cur&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;},&quot;onLang&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(v:string)=&gt;void&quot;},&quot;onCur&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(v:string)=&gt;void&quot;}}">
 const T = {
-  en: { signIn:'Sign in', account:'Your account', bookings:'Your bookings', manage:'Manage a booking', verify:'Verify your email', signOut:'Sign out', book:'Book a transfer', faq:'FAQs', contact:'Contact', menu:'Menu', close:'Close', call:'Call +41 79 626 70 82', langLabel:'Language', curLabel:'Currency' },
-  de: { signIn:'Anmelden', account:'Ihr Konto', bookings:'Ihre Buchungen', manage:'Buchung verwalten', verify:'E-Mail bestätigen', signOut:'Abmelden', book:'Transfer buchen', faq:'Häufige Fragen', contact:'Kontakt', menu:'Menü', close:'Schliessen', call:'+41 79 626 70 82 anrufen', langLabel:'Sprache', curLabel:'Währung' },
-  fr: { signIn:'Connexion', account:'Votre compte', bookings:'Vos réservations', manage:'Gérer une réservation', verify:'Vérifier votre e-mail', signOut:'Déconnexion', book:'Réserver', faq:'Questions fréquentes', contact:'Contact', menu:'Menu', close:'Fermer', call:'Appeler le +41 79 626 70 82', langLabel:'Langue', curLabel:'Devise' },
-  ar: { signIn:'تسجيل الدخول', account:'حسابك', bookings:'حجوزاتك', manage:'إدارة الحجز', verify:'تأكيد بريدك الإلكتروني', signOut:'تسجيل الخروج', book:'احجز رحلتك', faq:'الأسئلة الشائعة', contact:'اتصل بنا', menu:'القائمة', close:'إغلاق', call:'اتصل بنا', langLabel:'اللغة', curLabel:'العملة' },
+  en: { signIn:'Sign in', account:'Your account', bookings:'Your bookings', manage:'Manage a booking', verify:'Verify your email', signOut:'Sign out', book:'Book a transfer', faq:'FAQs', contact:'Contact', menu:'Menu', close:'Close', call:'Call +41 79 626 70 82', langLabel:'Language', curLabel:'Currency', svc:'Services', help:'Help', airport:'Airport transfers', city:'City to city', whatsapp:'WhatsApp' },
+  de: { signIn:'Anmelden', account:'Ihr Konto', bookings:'Ihre Buchungen', manage:'Buchung verwalten', verify:'E-Mail bestätigen', signOut:'Abmelden', book:'Transfer buchen', faq:'Häufige Fragen', contact:'Kontakt', menu:'Menü', close:'Schliessen', call:'+41 79 626 70 82 anrufen', langLabel:'Sprache', curLabel:'Währung', svc:'Leistungen', help:'Hilfe', airport:'Flughafentransfers', city:'Stadt zu Stadt', whatsapp:'WhatsApp' },
+  fr: { signIn:'Connexion', account:'Votre compte', bookings:'Vos réservations', manage:'Gérer une réservation', verify:'Vérifier votre e-mail', signOut:'Déconnexion', book:'Réserver', faq:'Questions fréquentes', contact:'Contact', menu:'Menu', close:'Fermer', call:'Appeler le +41 79 626 70 82', langLabel:'Langue', curLabel:'Devise', svc:'Services', help:'Aide', airport:'Transferts aéroport', city:'De ville en ville', whatsapp:'WhatsApp' },
+  ar: { signIn:'تسجيل الدخول', account:'حسابك', bookings:'حجوزاتك', manage:'إدارة الحجز', verify:'تأكيد بريدك الإلكتروني', signOut:'تسجيل الخروج', book:'احجز رحلتك', faq:'الأسئلة الشائعة', contact:'اتصل بنا', menu:'القائمة', close:'إغلاق', call:'اتصل بنا', langLabel:'اللغة', curLabel:'العملة', svc:'خدماتنا', help:'المساعدة', airport:'نقل المطار', city:'بين المدن', whatsapp:'WhatsApp' },
 };
 const LANGS = ['en', 'de', 'fr', 'ar'];
 const LANG_NOTE = { en:'English', de:'Deutsch', fr:'Français', ar:'العربية' };
@@ -280,9 +292,6 @@ const readAuth = () => {
     return a && a.email ? a : null;
   } catch (e) { return null; }
 };
-const chip = (on) => on
-  ? 'background:var(--vt-charcoal-900);color:var(--vt-white);border:1px solid var(--vt-charcoal-900)'
-  : 'background:var(--vt-white);color:var(--vt-text-primary);border:1px solid var(--vt-border-subtle)';
 
 class Component extends DCLogic {
   state = (() => {
@@ -364,15 +373,13 @@ class Component extends DCLogic {
   lang() { return this.props.lang || this.state.lang; }
   cur() { return this.props.cur || this.state.cur; }
   setLang = (v) => {
-    this._lock(false);
-    this.setState({ lang: v, menuOpen: false });
+    this.setState({ lang: v });
     if (window.VamosLocale) window.VamosLocale.setLang(v);
     else { try { localStorage.setItem('vamosLang', v); } catch (e) {} }
     if (this.props.onLang) this.props.onLang(v);
   };
   setCur = (v) => {
-    this._lock(false);
-    this.setState({ cur: v, menuOpen: false });
+    this.setState({ cur: v });
     if (window.VamosLocale) window.VamosLocale.setCur(v);
     else { try { localStorage.setItem('vamosCurrency', v); } catch (e) {} }
     if (this.props.onCur) this.props.onCur(v);
@@ -425,15 +432,18 @@ class Component extends DCLogic {
         });
       },
       tBook: t.book, tLangLabel: t.langLabel, tCurLabel: t.curLabel,
+      tMenu: t.menu, tSvc: t.svc, tHelp: t.help, tWhatsApp: t.whatsapp,
       menuOpen: this.state.menuOpen,
       menuOpenAttr: this.state.menuOpen ? '1' : null,
       menuExpanded: this.state.menuOpen ? 'true' : 'false',
       menuIcon: this.state.menuOpen ? 'x' : 'menu',
       menuLabel: this.state.menuOpen ? t.close : t.menu,
       toggleMenu: this.toggleMenu, closeMenu: this.closeMenu, menuRootRef: this._menuRoot,
-      menuLangs: LANGS.map((v) => ({ label: v.toUpperCase(), note: LANG_NOTE[v], css: chip(v === lang), pick: () => this.setLang(v) })),
-      menuCurs: Object.keys(CUR_NOTE).map((v) => ({ label: v, note: CUR_NOTE[v], css: chip(v === cur), pick: () => this.setCur(v) })),
-      links: [{ href: '/#faq', label: t.faq }, { href: '/contact', label: t.contact }],
+      serviceLinks: [
+        { href: '/?service=airport#book', label: t.airport },
+        { href: '/?service=city#book', label: t.city },
+      ],
+      helpLinks: [{ href: '/#faq', label: t.faq }, { href: '/contact', label: t.contact }],
     };
   }
 }
