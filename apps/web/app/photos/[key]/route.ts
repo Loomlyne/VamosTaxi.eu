@@ -15,13 +15,13 @@ export async function GET(request: Request): Promise<Response> {
   const pathname = new URL(request.url).pathname;
   const key = readPhotoKeyFromPathname(pathname);
   if (!key || !PHOTO_PREFIXES.some((prefix) => key.startsWith(prefix))) {
-    return new Response(null, { status: 404 });
+    return new Response(null, { status: 404, headers: { "cache-control": "private, no-store" } });
   }
 
   const { env } = getCloudflareContext();
   const object = await env.PHOTOS.get(key);
   if (!object) {
-    return new Response(null, { status: 404 });
+    return new Response(null, { status: 404, headers: { "cache-control": "private, no-store" } });
   }
 
   const headers = new Headers();

@@ -362,6 +362,9 @@ const PRIVATE_NOINDEX_PREFIXES = [
   "/manage-booking",
   "/booking-detail",
   "/review",
+  "/account",
+  "/bookings",
+  "/coming-soon",
 ] as const;
 
 function isPrivateNoindexPath(path: string): boolean {

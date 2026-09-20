@@ -107,7 +107,7 @@ function isInternalAsset(request: Request): boolean {
 }
 
 function empty404(): Response {
-  return new Response(null, { status: 404 });
+  return new Response(null, { status: 404, headers: { "cache-control": "private, no-store" } });
 }
 
 function isMockPublicPath(path: string): boolean {

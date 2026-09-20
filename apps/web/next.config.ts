@@ -118,6 +118,14 @@ const nextConfig: NextConfig = {
       { source: "/:locale/reset-password", headers: noindex },
       { source: "/manage-booking", headers: noindex },
       { source: "/:locale/manage-booking", headers: noindex },
+      { source: "/account", headers: noindex },
+      { source: "/account/:path*", headers: noindex },
+      { source: "/:locale/account", headers: noindex },
+      { source: "/:locale/account/:path*", headers: noindex },
+      { source: "/bookings", headers: noindex },
+      { source: "/:locale/bookings", headers: noindex },
+      { source: "/coming-soon", headers: noindex },
+      { source: "/:locale/coming-soon", headers: noindex },
       {
         source: "/app/:path*.dc.html",
         headers: [

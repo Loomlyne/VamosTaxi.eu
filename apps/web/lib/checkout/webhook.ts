@@ -42,7 +42,7 @@ export async function handleStripeWebhook(
         hasSignature: Boolean(signature),
         bodyLength: raw.length,
       });
-      return new Response(null, { status: 400 });
+      return new Response(null, { status: 400, headers: { "cache-control": "private, no-store" } });
     }
     throw err;
   }
@@ -54,7 +54,7 @@ export async function handleStripeWebhook(
   try {
     await deps.record(event, objectId);
   } catch {
-    return new Response(null, { status: 500 });
+    return new Response(null, { status: 500, headers: { "cache-control": "private, no-store" } });
   }
 
   // 4. Enqueue identifiers, not the payload. Divergence from the research
@@ -69,8 +69,8 @@ export async function handleStripeWebhook(
       stripeCreated: event.created,
     });
   } catch {
-    return new Response(null, { status: 500 });
+    return new Response(null, { status: 500, headers: { "cache-control": "private, no-store" } });
   }
 
-  return new Response(null, { status: 200 });
+  return new Response(null, { status: 200, headers: { "cache-control": "private, no-store" } });
 }

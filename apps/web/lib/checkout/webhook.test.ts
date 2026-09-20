@@ -49,6 +49,7 @@ describe("handleStripeWebhook", () => {
     });
     const res = await handleStripeWebhook("{}", null, d);
     expect(res.status).toBe(400);
+    expect(res.headers.get("cache-control")).toBe("private, no-store");
     expect(d.record).not.toHaveBeenCalled();
     expect(d.enqueue).not.toHaveBeenCalled();
   });
