@@ -88,6 +88,7 @@ export const PATCH = withStaff(async (claims, request) => {
       if (result.code === "unknown") return jsonErr("unknown", 500);
       return jsonErr("not-found", 404);
     }
+    if (result.erased) return jsonOk({ id, erased: true });
     return jsonOk({ id, status: "cancelled" });
   }
 

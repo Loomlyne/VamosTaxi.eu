@@ -25,6 +25,8 @@ describe("ops booking id lookup", () => {
     expect(cancel).toMatch(/resolveStaffBookingId/);
     expect(cancel).toMatch(/ops_cancel_booking/);
     expect(cancel).toMatch(/asSystem/);
+    expect(cancel).toMatch(/eraseBooking/);
+    expect(cancel).toMatch(/booking_payments/);
     expect(cancel).not.toMatch(/from public\.bookings/);
   });
 });
