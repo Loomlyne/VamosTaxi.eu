@@ -57,7 +57,15 @@ export async function inviteStaff(input: { email: string; role: string }): Promi
     await requireAdminClaims(supabase);
     const headerList = await headers();
     const cookie = headerList.get("cookie") ?? "";
-    const origin = trustedSiteOrigin(headerList.get("host"));
+    const originHeader = headerList.get("origin");
+    let origin: string | null = null;
+    if (originHeader) {
+      try {
+        origin = trustedSiteOrigin(new URL(originHeader).host);
+      } catch {
+        origin = null;
+      }
+    }
     if (!origin) return { ok: false, key: "staffRoster.error-failed" };
     const locale = await getLocale();
     const prefix = locale === "en" ? "" : `/${locale}`;

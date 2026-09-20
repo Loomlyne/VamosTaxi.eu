@@ -12,13 +12,15 @@ import { failStatus, type EditPayload } from "@/lib/ops/edit-request-map";
 import { accountWriteForbidden } from "@/lib/abuse/account-write";
 import { csrfForbidden } from "@/lib/security/origin";
 
+const noStore = { "Cache-Control": "private, no-store" };
+
 export async function GET(request: Request) {
   const claims = await customerClaims(request);
   const email = claims?.email;
   if (!email) {
     return NextResponse.json(
       { bookings: [] },
-      { status: 401, headers: { "Cache-Control": "private, no-store" } },
+      { status: 401, headers: noStore },
     );
   }
   const { env } = await getCloudflareContext({ async: true });
@@ -48,7 +50,7 @@ export async function GET(request: Request) {
   });
   return NextResponse.json(
     { bookings: rows.map((row) => mapAccountBooking(row)) },
-    { headers: { "Cache-Control": "private, no-store" } },
+    { headers: noStore },
   );
 }
 
@@ -102,7 +104,7 @@ export async function POST(request: Request) {
     auth = { kind: "guest", manageTokenHashHex };
   }
   if (!auth) {
-    return NextResponse.json({ ok: false, code: "unauthorized" }, { status: 401 });
+    return NextResponse.json({ ok: false, code: "unauthorized" }, { status: 401, headers: noStore });
   }
 
   let body: unknown;
@@ -114,7 +116,7 @@ export async function POST(request: Request) {
   const record = body && typeof body === "object" && !Array.isArray(body) ? (body as Record<string, unknown>) : {};
   const bookingKey = str(record.reference) ?? str(record.id) ?? str(record.bookingId) ?? "";
   if (!bookingKey) {
-    return NextResponse.json({ ok: false, code: "not-found" }, { status: 404 });
+    return NextResponse.json({ ok: false, code: "not-found" }, { status: 404, headers: noStore });
   }
 
   const { env } = await getCloudflareContext({ async: true });
@@ -140,12 +142,15 @@ export async function POST(request: Request) {
   }
 
   if (!result.ok) {
-    return NextResponse.json({ ok: false, code: result.code }, { status: failStatus(result.code) });
+    return NextResponse.json({ ok: false, code: result.code }, { status: failStatus(result.code), headers: noStore });
   }
-  return NextResponse.json({
-    ok: true,
-    requestId: result.requestId,
-    bookingId: result.bookingId,
-    status: result.status,
-  });
+  return NextResponse.json(
+    {
+      ok: true,
+      requestId: result.requestId,
+      bookingId: result.bookingId,
+      status: result.status,
+    },
+    { headers: noStore },
+  );
 }

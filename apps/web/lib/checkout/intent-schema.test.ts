@@ -82,6 +82,7 @@ describe("refuse", () => {
       const res = refuse(code);
       const expected = CHECKOUT_REFUSALS[code].status;
       expect(res.status).toBe(expected);
+      expect(res.headers.get("cache-control")).toMatch(/no-store/i);
       if (code === "quote_not_found") {
         expect(res.status).toBe(404);
       } else if (code === "invalid_request" || code === "turnstile_failed") {

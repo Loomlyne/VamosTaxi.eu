@@ -39,7 +39,13 @@ export async function POST(request: Request) {
         ok: false,
         error: "intent_unhandled",
       }),
-      { status: 500, headers: { "content-type": "application/json" } },
+      {
+        status: 500,
+        headers: {
+          "content-type": "application/json",
+          "cache-control": "private, no-store",
+        },
+      },
     );
   }
 }

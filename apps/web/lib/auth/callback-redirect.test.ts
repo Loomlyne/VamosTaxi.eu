@@ -105,3 +105,52 @@ describe("health cache", () => {
     expect(src).toContain("Response.json(body, { headers: HEALTH_HEADERS })");
   });
 });
+
+describe("geo GET cache", () => {
+  it("suggest/retrieve/reverse success JSON is private no-store", () => {
+    const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
+    for (const rel of [
+      "app/api/geo/suggest/route.ts",
+      "app/api/geo/retrieve/route.ts",
+      "app/api/geo/reverse/route.ts",
+    ]) {
+      const file = readFileSync(join(root, rel), "utf8");
+      expect(file, rel).toContain('Cache-Control": "private, no-store"');
+      expect(file, rel).toContain("{ headers: GEO_JSON }");
+    }
+  });
+});
+
+describe("staff invite origin", () => {
+  it("Server Action pins Origin header, not Host", () => {
+    const file = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), "../../app/[locale]/(ops)/ops/staff/actions.ts"),
+      "utf8",
+    );
+    expect(file).toContain('headerList.get("origin")');
+    expect(file).not.toContain('headerList.get("host")');
+  });
+});
+
+describe("pay-link open cache", () => {
+  it("client_secret JSON sends private no-store", () => {
+    const src = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), "../../app/api/checkout/pay-link/open/route.ts"),
+      "utf8",
+    );
+    expect(src).toContain('cache-control": "private, no-store"');
+    expect(src.match(/headers: PAY_JSON/g)?.length).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe("account bookings POST cache", () => {
+  it("POST 401/404/success send private no-store", () => {
+    const src = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), "../../app/api/account/bookings/route.ts"),
+      "utf8",
+    );
+    expect(src).toContain('Cache-Control": "private, no-store"');
+    expect(src).toContain("status: 401, headers: noStore");
+    expect(src).toContain("status: 404, headers: noStore");
+  });
+});

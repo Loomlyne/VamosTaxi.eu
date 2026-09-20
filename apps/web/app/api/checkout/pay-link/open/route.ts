@@ -26,6 +26,8 @@ export const dynamic = "force-dynamic";
 
 const bodySchema = z.object({ token: z.string().min(8) }).strict();
 
+const PAY_JSON = { "cache-control": "private, no-store" };
+
 function bytesToHex(bytes: Uint8Array): string {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
@@ -121,18 +123,21 @@ export async function POST(request: Request) {
     if (sessionIsPayable(stored, charged)) {
       const secret = stored.client_secret;
       if (!secret) return refuse("invalid_request");
-      return Response.json({
-        reference,
-        pickup: String(row.pickup_text ?? ""),
-        dropoff: String(row.dropoff_text ?? ""),
-        expires_at: expiresAt.toISOString(),
-        client_secret: secret,
-        client_secret_hex: utf8Hex(secret),
-        publishable_key: stripePublishableKey(env),
-        currency: CHARGE_CURRENCY.toUpperCase(),
-        amount_rappen: charged,
-        billing_email: payerEmail,
-      });
+      return Response.json(
+        {
+          reference,
+          pickup: String(row.pickup_text ?? ""),
+          dropoff: String(row.dropoff_text ?? ""),
+          expires_at: expiresAt.toISOString(),
+          client_secret: secret,
+          client_secret_hex: utf8Hex(secret),
+          publishable_key: stripePublishableKey(env),
+          currency: CHARGE_CURRENCY.toUpperCase(),
+          amount_rappen: charged,
+          billing_email: payerEmail,
+        },
+        { headers: PAY_JSON },
+      );
     }
   }
 
@@ -171,18 +176,21 @@ export async function POST(request: Request) {
         if (sessionIsPayable(stored, charged)) {
           const secret = stored.client_secret;
           if (!secret) return refuse("invalid_request");
-          return Response.json({
-            reference,
-            pickup: String(row.pickup_text ?? ""),
-            dropoff: String(row.dropoff_text ?? ""),
-            expires_at: expiresAt.toISOString(),
-            client_secret: secret,
-            client_secret_hex: utf8Hex(secret),
-            publishable_key: stripePublishableKey(env),
-            currency: CHARGE_CURRENCY.toUpperCase(),
-            amount_rappen: charged,
-            billing_email: payerEmail,
-          });
+          return Response.json(
+            {
+              reference,
+              pickup: String(row.pickup_text ?? ""),
+              dropoff: String(row.dropoff_text ?? ""),
+              expires_at: expiresAt.toISOString(),
+              client_secret: secret,
+              client_secret_hex: utf8Hex(secret),
+              publishable_key: stripePublishableKey(env),
+              currency: CHARGE_CURRENCY.toUpperCase(),
+              amount_rappen: charged,
+              billing_email: payerEmail,
+            },
+            { headers: PAY_JSON },
+          );
         }
       }
       return refuse("quote_already_booked");
@@ -191,16 +199,19 @@ export async function POST(request: Request) {
     throw err;
   }
 
-  return Response.json({
-    reference,
-    pickup: String(row.pickup_text ?? ""),
-    dropoff: String(row.dropoff_text ?? ""),
-    expires_at: expiresAt.toISOString(),
-    client_secret: session.client_secret,
-    client_secret_hex: utf8Hex(session.client_secret),
-    publishable_key: stripePublishableKey(env),
-    currency: CHARGE_CURRENCY.toUpperCase(),
-    amount_rappen: charged,
-    billing_email: payerEmail,
-  });
+  return Response.json(
+    {
+      reference,
+      pickup: String(row.pickup_text ?? ""),
+      dropoff: String(row.dropoff_text ?? ""),
+      expires_at: expiresAt.toISOString(),
+      client_secret: session.client_secret,
+      client_secret_hex: utf8Hex(session.client_secret),
+      publishable_key: stripePublishableKey(env),
+      currency: CHARGE_CURRENCY.toUpperCase(),
+      amount_rappen: charged,
+      billing_email: payerEmail,
+    },
+    { headers: PAY_JSON },
+  );
 }

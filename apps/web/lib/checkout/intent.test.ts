@@ -283,6 +283,7 @@ describe("runCheckoutIntent", () => {
     expect(json.currency).toBe("CHF");
     expect(json.amount_rappen).toBe(8648);
     expect(json.publishable_key).toBe("pk_test_placeholder");
+    expect(res.headers.get("cache-control")).toMatch(/no-store/i);
     expect(res.headers.get("set-cookie")).toContain("vt_manage=raw-token");
     expect(res.headers.get("set-cookie")).toContain("HttpOnly");
   });
