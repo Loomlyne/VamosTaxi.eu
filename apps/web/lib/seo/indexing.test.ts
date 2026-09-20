@@ -146,4 +146,23 @@ describe("robots disallows D-31 (D-31)", () => {
     const pay = source("app/[locale]/checkout/pay/[token]/page.tsx");
     expect(pay).toMatch(/robots:\s*\{\s*index:\s*false/);
   });
+
+  it("auth and manage-booking DC paths HTTP noindex", () => {
+    const mw = source("middleware.ts");
+    expect(mw).toContain("PRIVATE_NOINDEX_PREFIXES");
+    expect(mw).toContain('"/sign-in"');
+    expect(mw).toContain('"/reset-password"');
+    expect(mw).toContain('"/manage-booking"');
+    expect(mw).toContain("isPrivateNoindexPath");
+    const signIn = source("app/[locale]/sign-in/page.tsx");
+    expect(signIn).toMatch(/robots:\s*\{\s*index:\s*false/);
+    const signUp = source("app/[locale]/sign-up/page.tsx");
+    expect(signUp).toMatch(/robots:\s*\{\s*index:\s*false/);
+    const reset = source("app/[locale]/reset-password/page.tsx");
+    expect(reset).toMatch(/robots:\s*\{\s*index:\s*false/);
+    const config = source("next.config.ts");
+    expect(config).toMatch(/source:\s*"\/sign-in"/);
+    expect(config).toMatch(/source:\s*"\/reset-password"/);
+    expect(config).toMatch(/source:\s*"\/manage-booking"/);
+  });
 });

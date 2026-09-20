@@ -110,6 +110,14 @@ const nextConfig: NextConfig = {
       { source: "/review/:path*", headers: noindex },
       { source: "/:locale/review", headers: noindex },
       { source: "/:locale/review/:path*", headers: noindex },
+      { source: "/sign-in", headers: noindex },
+      { source: "/:locale/sign-in", headers: noindex },
+      { source: "/sign-up", headers: noindex },
+      { source: "/:locale/sign-up", headers: noindex },
+      { source: "/reset-password", headers: noindex },
+      { source: "/:locale/reset-password", headers: noindex },
+      { source: "/manage-booking", headers: noindex },
+      { source: "/:locale/manage-booking", headers: noindex },
       {
         source: "/app/:path*.dc.html",
         headers: [

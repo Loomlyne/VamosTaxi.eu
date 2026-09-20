@@ -23,6 +23,7 @@ export async function generateMetadata({
     title: tCommon("create-an-account"),
     description: tAuth("you-never-need-an-account-to-book-guest-checkout"),
     alternates: buildAlternates("/sign-up"),
+    robots: { index: false, follow: false },
   };
 }
 

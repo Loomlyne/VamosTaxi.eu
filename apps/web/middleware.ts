@@ -355,6 +355,19 @@ function copyCookies(from: NextResponse, to: NextResponse): NextResponse {
   return to;
 }
 
+const PRIVATE_NOINDEX_PREFIXES = [
+  "/sign-in",
+  "/sign-up",
+  "/reset-password",
+  "/manage-booking",
+  "/booking-detail",
+  "/review",
+] as const;
+
+function isPrivateNoindexPath(path: string): boolean {
+  return PRIVATE_NOINDEX_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
+}
+
 function applyStagingNoindex(request: NextRequest, response: NextResponse): NextResponse {
   // D-03: public vamostaxi.site and www.vamostaxi.site stay indexable on Worker
   // vamos (DEPLOY_ENV staging). D-04: dashboard / ops-changes always noindex.
@@ -367,6 +380,7 @@ function applyStagingNoindex(request: NextRequest, response: NextResponse): Next
   if (hostnameOf(request).endsWith(".workers.dev")) {
     response.headers.set("X-Robots-Tag", "noindex");
   }
+  if (isPrivateNoindexPath(stripLocalePath(request.nextUrl.pathname))) response.headers.set("X-Robots-Tag", "noindex, nofollow");
   return response;
 }
 

@@ -25,6 +25,7 @@ export async function generateMetadata({
     title: tCommon("sign-in"),
     description: tAuth("you-never-need-an-account-to-book-guest-checkout"),
     alternates: buildAlternates("/sign-in"),
+    robots: { index: false, follow: false },
   };
 }
 
