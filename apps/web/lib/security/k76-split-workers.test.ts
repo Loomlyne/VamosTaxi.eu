@@ -32,8 +32,10 @@ describe("K76 split Workers", () => {
     expect(dash).toMatch(/"workers_dev":\s*false/);
     expect(dash).toMatch(/"pattern":\s*"dashboard\.vamostaxi\.site"/);
     expect(dash).not.toMatch(/"pattern":\s*"vamostaxi\.site"/);
-    expect(dash).toMatch(/"service":\s*"vamos"/);
-    expect(dash).toMatch(/"entrypoint":\s*"Dashboard"/);
+    expect(dash).toContain('"binding": "APP"');
+    expect(dash).toContain('"binding": "PUBLIC"');
+    expect(dash).toContain('"service": "vamos"');
+    expect(dash).toContain('"entrypoint": "Dashboard"');
     expect(dash).not.toMatch(/queues/);
     expect(dash).not.toMatch(/crons/);
   });
@@ -44,8 +46,9 @@ describe("K76 split Workers", () => {
     expect(worker).toMatch(/export class Dashboard extends WorkerEntrypoint/);
     expect(worker).toContain("expireUnpaidBookings");
     expect(worker).toContain("pinRequestToApexAssets");
-    expect(gateway).toMatch(/env\.APP\.fetch/);
-    expect(gateway).not.toMatch(/expireUnpaidBookings/);
+    expect(gateway).toContain("env.APP.fetch");
+    expect(gateway).toContain("env.PUBLIC.fetch");
+    expect(gateway).not.toContain("expireUnpaidBookings");
   });
 
   it("ops-changes is not bound to dashboard hostname", () => {

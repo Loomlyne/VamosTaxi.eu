@@ -6,12 +6,20 @@
  * Cloudflare routes this Worker by HTTP Host, not TLS SNI. request.cf has
  * no tlsServerName (logged 2026-09-20). If SNI ever appears, reject Host
  * spoofs whose SNI is not dashboard.
+ *
+ * K92: Assets live on Worker `vamos` custom domains (apex/www), not here.
+ * `/app/ops/*` `/_next/*` `/brand/*` and dotted files go to vamos default
+ * fetch on vamostaxi.site so OpenNext ASSETS hit. Documents stay on Dashboard.
  */
+import { isApexAssetPath } from "./lib/security/pin-sni";
+
 export interface Env {
   APP: Fetcher;
+  PUBLIC: Fetcher;
 }
 
 const DASHBOARD_HOST = "dashboard.vamostaxi.site";
+const APEX_HOST = "vamostaxi.site";
 
 function sniOf(request: Request): string | null {
   const cf = (request as { cf?: Record<string, unknown> }).cf;
@@ -25,6 +33,16 @@ function sniOf(request: Request): string | null {
   return null;
 }
 
+function apexAssetRequest(request: Request): Request {
+  const url = new URL(request.url);
+  url.hostname = APEX_HOST;
+  const headers = new Headers(request.headers);
+  headers.delete("host");
+  headers.set("host", APEX_HOST);
+  const inbound = new Request(url.toString(), request);
+  return new Request(inbound, { headers });
+}
+
 export default {
   fetch(request: Request, env: Env): Promise<Response> | Response {
     const sni = sniOf(request);
@@ -33,6 +51,10 @@ export default {
         status: 404,
         headers: { "cache-control": "private, no-store" },
       });
+    }
+    const path = new URL(request.url).pathname;
+    if (isApexAssetPath(path)) {
+      return env.PUBLIC.fetch(apexAssetRequest(request));
     }
     return env.APP.fetch(request);
   },
