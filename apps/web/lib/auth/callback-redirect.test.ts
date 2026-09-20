@@ -171,3 +171,45 @@ describe("review/photo/invite JSON cache", () => {
     }
   });
 });
+
+describe("flight/contact/reviews/publish cache", () => {
+  it("flight success JSON uses FLIGHT_JSON private no-store", () => {
+    const src = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), "../../app/api/flight/[no]/route.ts"),
+      "utf8",
+    );
+    expect(src).toContain('Cache-Control": "private, no-store"');
+    expect(src.match(/headers: FLIGHT_JSON/g)?.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("contact formFailure/formSuccess send private no-store", () => {
+    const src = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), "../forms/notify.ts"),
+      "utf8",
+    );
+    expect(src).toContain('cache-control": "private, no-store"');
+    expect(src).toContain("{ status, headers: NO_STORE }");
+    expect(src).toContain("{ headers: NO_STORE }");
+  });
+
+  it("public reviews GET JSON is private no-store", () => {
+    const src = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), "../../app/api/reviews/route.ts"),
+      "utf8",
+    );
+    expect(src).toContain('cache-control": "private, no-store"');
+    expect(src).toContain("headers: noStore");
+  });
+
+  it("staff publish jsonFail uses jsonErr (staff no-store)", () => {
+    const src = readFileSync(
+      join(
+        dirname(fileURLToPath(import.meta.url)),
+        "../../app/[locale]/(ops)/api/staff/rate-versions/[id]/publish/route.ts",
+      ),
+      "utf8",
+    );
+    expect(src).toContain("return jsonErr(code, status, { gaps })");
+    expect(src).not.toMatch(/Response\.json\(\{ ok: false, code, gaps \}/);
+  });
+});

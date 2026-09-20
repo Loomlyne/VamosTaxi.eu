@@ -25,7 +25,7 @@ function codeOf(err: unknown): string | undefined {
 }
 
 function jsonFail(code: string, status: number, gaps: CompletenessGap[]): Response {
-  return Response.json({ ok: false, code, gaps }, { status });
+  return jsonErr(code, status, { gaps });
 }
 
 function publishCode(

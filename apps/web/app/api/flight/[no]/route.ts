@@ -20,6 +20,8 @@ import { withRequestContext } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
 
+const FLIGHT_JSON = { "Cache-Control": "private, no-store" } as const;
+
 const ZURICH_TZ = "Europe/Zurich";
 const CIVIL_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -133,7 +135,7 @@ export async function GET(
     const cached = await env.GEO_CACHE.get(cacheKey, "json");
     if (cached && typeof cached === "object") {
       emit("info", "flight_lookup", { cache_hit: true, outcome: "ok" });
-      return Response.json({ ok: true, flight: cached, cache_hit: true });
+      return Response.json({ ok: true, flight: cached, cache_hit: true }, { headers: FLIGHT_JSON });
     }
   } catch {
     // Cache read failure must not extend an outage — fall through to lookup.
@@ -164,7 +166,7 @@ export async function GET(
       // Put failure still returns the live lookup.
     }
     emit("info", "flight_lookup", { cache_hit: false, outcome: "ok" });
-    return Response.json({ ok: true, flight, cache_hit: false });
+    return Response.json({ ok: true, flight, cache_hit: false }, { headers: FLIGHT_JSON });
   }
 
   emit("info", "flight_lookup", {
@@ -172,10 +174,13 @@ export async function GET(
     outcome: "disambiguate",
   });
   // disambiguate is never written — a choice is not a fact to replay.
-  return Response.json({
-    ok: true,
-    action: "disambiguate",
-    candidates: result.candidates,
-    i18n_key: "quote.flight.pick_one",
-  });
+  return Response.json(
+    {
+      ok: true,
+      action: "disambiguate",
+      candidates: result.candidates,
+      i18n_key: "quote.flight.pick_one",
+    },
+    { headers: FLIGHT_JSON },
+  );
 }

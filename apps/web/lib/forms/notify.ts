@@ -24,12 +24,14 @@ export type SendContactResult = {
   channel: "resend" | "email" | null;
 };
 
+const NO_STORE = { "cache-control": "private, no-store" } as const;
+
 export function formFailure(code: FormFailureCode, status: 400 | 403 | 503 | 429): Response {
-  return Response.json({ ok: false, code }, { status });
+  return Response.json({ ok: false, code }, { status, headers: NO_STORE });
 }
 
 export function formSuccess(): Response {
-  return Response.json({ ok: true });
+  return Response.json({ ok: true }, { headers: NO_STORE });
 }
 
 function suffixOf(id: string | null): string | null {
