@@ -10,6 +10,7 @@
 // `opennextjs-cloudflare build` and does not exist in source control.
 import { default as handler } from "./.open-next/worker.js";
 import { gatePublicRequest } from "./lib/dc-mock-urls";
+import { pinUrlToSni, sniFromCf } from "./lib/security/pin-sni";
 import { withRequestContext } from "./lib/logger";
 import { isZurichDigestTime, runStaffDigest } from "./lib/ops/digest";
 import { createDigestDependencies } from "./lib/supabase/service";
@@ -22,15 +23,26 @@ import type { StripeQueueMessage } from "./lib/checkout/webhook";
 
 export default {
   async fetch(request, env, ctx) {
-    const gated = gatePublicRequest(request);
+    const url = new URL(request.url);
+    const sni = sniFromCf((request as { cf?: unknown }).cf);
+    const pinned = pinUrlToSni(url, sni);
+    let inbound = request;
+    if (pinned.href !== url.href) {
+      const headers = new Headers(request.headers);
+      headers.delete("host");
+      headers.set("host", pinned.hostname);
+      inbound = new Request(pinned.toString(), request) as typeof request;
+      inbound = new Request(inbound, { headers }) as typeof request;
+    }
+    const gated = gatePublicRequest(inbound);
     if (gated === "not-found") {
-      const url = new URL(request.url);
-      url.pathname = "/__vamos_gone";
-      url.search = "";
-      return handler.fetch(new Request(url, request), env, ctx);
+      const gone = new URL(inbound.url);
+      gone.pathname = "/__vamos_gone";
+      gone.search = "";
+      return handler.fetch(new Request(gone, inbound), env, ctx);
     }
     if (gated) return gated;
-    return handler.fetch(request, env, ctx);
+    return handler.fetch(inbound, env, ctx);
   },
 
   async scheduled(controller, env, _ctx) {
