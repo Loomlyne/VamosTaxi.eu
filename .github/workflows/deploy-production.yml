@@ -1,9 +1,7 @@
 name: Deploy Production
 
 # PLAT-03's production deploy half. Triggers on a tag only — never on a branch push
-# (T-01-06). Phase 11 is the cutover; a stray merge to main must not be able to
-# publish to the vamostaxi.eu apex, which today still serves the live Freshpage site
-# (D-33).
+# (T-01-06). Do not bind vamostaxi.eu. Public product is vamostaxi.site.
 on:
   push:
     tags:
@@ -173,12 +171,8 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      # No-op until Phase 11 (Launch Cutover) points vamostaxi.eu's apex at this
-      # Worker — today the domain still serves the live Freshpage site, so there is
-      # nothing at that hostname yet for a smoke check to assert against (D-33).
-      - name: Smoke test — deferred until Phase 11 cutover
+      # Do not smoke or bind vamostaxi.eu. Public product is vamostaxi.site.
+      - name: Smoke test — deferred (no production Worker cutover)
         run: |
-          echo "No production smoke check yet: vamostaxi.eu still serves the live"
-          echo "Freshpage site until the Phase 11 cutover repoints the apex at this"
-          echo "Worker. deploy-staging.yml already exercises the equivalent curl +"
-          echo "locale assertions against staging.vamostaxi.eu on every main push."
+          echo "No production smoke: do not bind vamostaxi.eu."
+          echo "Staging smoke is https://vamostaxi.site on deploy-staging.yml."

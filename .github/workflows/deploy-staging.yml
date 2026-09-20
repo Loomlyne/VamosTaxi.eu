@@ -2,7 +2,7 @@ name: Deploy Staging
 
 # PLAT-03's staging deploy half: a push to main re-runs the full gate set (a merge
 # queue is not a guarantee that main is green) and, only if it's green, deploys and
-# smoke-tests staging.vamostaxi.eu (D-33).
+# smoke-tests https://vamostaxi.site. Never vamostaxi.eu. Never db:push the live bookings project.
 on:
   push:
     branches: [main]
@@ -114,29 +114,14 @@ jobs:
         with:
           version: 2.115.0
 
-      # `--include-seed` re-run semantics are D-27/U3, RESOLVED (02-09-SUMMARY.md post-execution
-      # fix): a second push does NOT re-run seed.sql once its content hash is recorded in
-      # supabase_migrations.seed_files -- every seed INSERT is ON CONFLICT regardless, so a
-      # changed seed file re-applying is safe either way. seed.sql also had to be restructured
-      # into a single top-level `do $do$ … $do$;` block -- Supabase's Supavisor pooler
-      # (transaction mode, what this linked connection resolves to) silently truncates a
-      # multi-statement pgx batch to its last statement, which broke `create or replace function
-      # public.__seed_apply()` + `revoke` + `select` as three separate top-level statements.
-      # These secrets are not yet configured (owner-held, see SUPABASE-RESOURCES.md), so this
-      # step fails closed until they exist — the Worker deploy was already blocked on the
-      # Cloudflare secrets (01-VERIFICATION.md). One hosted project exists today (D-37), so
-      # staging and production currently point at the same ref.
-      - name: Apply migrations + seed to staging (D-21, D-27)
-        run: pnpm db:link && pnpm db:push
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+      # K94: do not `db:link` / `db:push` from CI. One hosted project holds real paid
+      # bookings (yaumjzvylngfjhtuffqs). Seed-overwrite and fixture rows are not a
+      # GitHub-runner job. Migrations stay owner-pasted.
 
       # `pnpm --filter web run deploy -- --env staging` runs `opennextjs-cloudflare build &&
       # opennextjs-cloudflare deploy -- --env staging`, which wraps `wrangler deploy`; `--env
       # staging` selects the `staging` environment declared in apps/web/wrangler.jsonc (custom
-      # domain staging.vamostaxi.eu). Rule 1 fix (plan 03-07): `pnpm --filter web deploy` alone
+      # domain vamostaxi.site). Rule 1 fix (plan 03-07): `pnpm --filter web deploy` alone
       # (no `run`) invokes PNPM'S OWN built-in `deploy` command (https://pnpm.io/cli/deploy,
       # for packing a workspace project) rather than this package's `deploy` script, so it
       # swallows `--env staging` as an unrecognised pnpm flag and fails with `Unknown option:
@@ -151,16 +136,17 @@ jobs:
       # A deploy that returns 200 but serves the wrong language is a failed deploy —
       # this asserts the locale layer, not only that the process is reachable.
       - name: Smoke test — staging is reachable
-        run: curl -sfI https://staging.vamostaxi.eu | head -1
+        run: curl -sfI https://vamostaxi.site | head -1
 
       - name: Smoke test — German copy renders on the German path
-        run: curl -sf https://staging.vamostaxi.eu/de | grep -q 'lang="de"'
+        run: curl -sf https://vamostaxi.site/de | grep -q 'lang="de"'
 
       - name: Smoke test — Arabic path renders right-to-left
-        run: curl -sf https://staging.vamostaxi.eu/ar | grep -q 'dir="rtl"'
+        run: curl -sf https://vamostaxi.site/ar | grep -q 'dir="rtl"'
 
   data-06:
     name: DATA-06 · deployed isolation proof (D-14, plan 03-07)
+    if: false
     needs: deploy
     runs-on: ubuntu-latest
     # The experiment owns the staging database for its duration (real fixture rows, no

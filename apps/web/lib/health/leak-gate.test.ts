@@ -68,6 +68,22 @@ describe("no vamostaxi.eu bind (D-28)", () => {
       expect(domain).not.toMatch(/vamostaxi\.eu/);
     }
   });
+
+  it("CI does not smoke .eu or db:push the live bookings project (K94)", () => {
+    const staging = readRepo(".github/workflows/deploy-staging.yml").replace(
+      /^\s*#.*$/gm,
+      "",
+    );
+    expect(staging).not.toMatch(/vamostaxi\.eu/);
+    expect(staging).not.toMatch(/db:push/);
+    expect(staging).toMatch(/curl -sfI https:\/\/vamostaxi\.site/);
+    expect(staging).toMatch(/if: false/);
+    const production = readRepo(".github/workflows/deploy-production.yml").replace(
+      /^\s*#.*$/gm,
+      "",
+    );
+    expect(production).not.toMatch(/staging\.vamostaxi\.eu/);
+  });
 });
 
 describe("no Sentry this phase (D-02)", () => {
