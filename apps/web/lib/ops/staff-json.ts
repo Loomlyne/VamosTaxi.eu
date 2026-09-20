@@ -33,16 +33,10 @@ export function jsonErr(code: string, status: number, extra?: Record<string, unk
 const STAFF_CSRF_HOSTS = new Set([
   "dashboard.vamostaxi.site",
   "dashboard.localhost",
-  "vamos-ops-changes.koussayzayeni.workers.dev",
-  "vamos-web-ops-changes.koussayzayeni.workers.dev",
 ]);
 
 function staffHostAllowed(hostname: string): boolean {
-  if (STAFF_CSRF_HOSTS.has(hostname)) return true;
-  return (
-    hostname.endsWith("-vamos-ops-changes.koussayzayeni.workers.dev") ||
-    hostname.endsWith("-vamos-web-ops-changes.koussayzayeni.workers.dev")
-  );
+  return STAFF_CSRF_HOSTS.has(hostname);
 }
 
 /** CSRF (ASVS L1): mutating staff calls need an allowlisted Origin. Missing Origin is deny. */

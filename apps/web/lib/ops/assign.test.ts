@@ -69,22 +69,23 @@ describe("mapAssignSqlError", () => {
 });
 
 describe("staffOriginAllowed", () => {
-  it("denies missing Origin; allows dashboard and this-account ops-changes", () => {
+  it("denies missing Origin; allows dashboard only (K91 — no workers.dev)", () => {
     expect(staffOriginAllowed(null)).toBe(false);
     expect(staffOriginAllowed("https://dashboard.vamostaxi.site")).toBe(true);
     expect(staffOriginAllowed("http://dashboard.localhost:3000")).toBe(true);
     expect(staffOriginAllowed("https://vamos-ops-changes.koussayzayeni.workers.dev")).toBe(
-      true,
+      false,
     );
     expect(
       staffOriginAllowed("https://preview-vamos-ops-changes.koussayzayeni.workers.dev"),
-    ).toBe(true);
+    ).toBe(false);
     expect(staffOriginAllowed("https://evil-ops-changes.workers.dev")).toBe(false);
     expect(staffOriginAllowed("https://evil-ops-changes.koussayzayeni.workers.dev")).toBe(
       false,
     );
     expect(staffOriginAllowed("https://ops-changes.koussayzayeni.workers.dev")).toBe(false);
     expect(staffOriginAllowed("http://dashboard.vamostaxi.site")).toBe(false);
+    expect(staffOriginAllowed("https://vamostaxi.site")).toBe(false);
     expect(staffOriginAllowed("https://evil.example")).toBe(false);
   });
 });
