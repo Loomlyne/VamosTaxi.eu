@@ -11,55 +11,16 @@
   //  3. `HYPERDRIVE_NOCACHE` below is this probe's OWN dedicated 5-origin config, never
   //     `apps/web`'s identity binding of the same name — plan 03-05's checked-in config-id
   //     allowlist test is what enforces that at CI time, once plan 03-07 fills in real ids.
+  // K97: leftover probe package. Never deploy. No Hyperdrive.
   "name": "vamos-isolation-probe-staging",
   "main": "src/index.ts",
   "compatibility_date": "2026-08-20",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
-  "workers_dev": true,
+  "workers_dev": false,
   "observability": { "enabled": true },
-
-  // Runs where the app runs, so the two are comparable (DATA-05). Zurich is the AWS region
-  // backing Supabase project `yaumjzvylngfjhtuffqs` (D-25/D-22), superseding the research
-  // doc's stale Frankfurt-region hint — see 03-CONTEXT.md D-25/D-27.
-  "placement": { "region": "aws:eu-central-2" },
-
   "vars": {
-    "DEPLOY_ENV": "staging",
-    // Not a secret — a Supabase project URL is public (it ships in every browser bundle).
-    // `verifyAccessToken` derives the JWKS endpoint and the expected issuer from it (T-03-18).
-    "SUPABASE_URL": "https://yaumjzvylngfjhtuffqs.supabase.co"
+    "DEPLOY_ENV": "staging"
   },
-
-  "hyperdrive": [
-    {
-      // The dedicated probe config (D-03): cache-disabled, origin-connection-limit=5 (D-43
-      // held this at Cloudflare's own documented floor — see docs/build/CLOUDFLARE-RESOURCES.md
-      // § "D-43 (U32)"), so 32-way-or-higher concurrency makes backend reuse a pigeonhole
-      // certainty rather than luck. Created by plan 03-07 (2026-08-25) as `vamos-probe-staging`.
-      "binding": "HYPERDRIVE_NOCACHE",
-      "id": "49fcf0baedbe44b29b7bc78f81d3421d",
-      "localConnectionString": "postgres://vamos_edge:vamos_edge@127.0.0.1:54322/postgres"
-    },
-    {
-      // The app's own cache-disabled identity config, for the confirming run at the real pool
-      // size (D-03) — origin-connection-limit=20 (D-43-derived, not the research's 25). The
-      // SAME id as `apps/web/wrangler.jsonc`'s own `HYPERDRIVE_NOCACHE` — never the same id as
-      // `HYPERDRIVE_NOCACHE` above (the probe's own dedicated config); plan 03-05's checked-in
-      // allowlist test fails the run if the two ever collide. Created by plan 03-07 as
-      // `vamos-rls-staging`.
-      "binding": "HYPERDRIVE_APP",
-      "id": "71523abbbb7542fdbff01f66d9a858ed",
-      "localConnectionString": "postgres://vamos_edge:vamos_edge@127.0.0.1:54322/postgres"
-    },
-    {
-      // The app's cached, `vamos_public` config — probed only to prove NC6 (D-18): the cached
-      // binding cannot serve identity or billing data at all, ever. origin-connection-limit=12
-      // (D-43-derived, not the research's 15). Created by plan 03-07 as `vamos-public-staging`.
-      "binding": "HYPERDRIVE_CACHED",
-      "id": "b53693800b7e4c1c94205774baa73420",
-      "localConnectionString": "postgres://vamos_public:vamos_public@127.0.0.1:54322/postgres"
-    }
-  ],
 
   "define": {
     // D-20: `opts.probe` is stripped at compile time from every other bundle. This constant is

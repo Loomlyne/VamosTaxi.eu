@@ -84,17 +84,10 @@ jobs:
       - name: Build Worker bundle (OpenNext)
         run: pnpm --filter web exec opennextjs-cloudflare build
 
-      # Preview is owner-secret-gated. An empty token must not fail the merge gate;
-      # the D-25 visual job and the rest of this job still fail closed.
-      - name: Upload preview (Cloudflare Worker version preview)
-        if: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
-        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: apps/web
-          command: versions upload
-          packageManager: pnpm
+      # K98: do not versions-upload from PR CI. That command uses wrangler
+      # name vamos-web and can create a second Worker.
+      - name: Preview upload skipped
+        run: echo K98 skip PR Worker preview upload
 
   # Baselines are committed as `-darwin.png`. ubuntu-latest looks for `-linux.png`
   # and fails regardless of fidelity (01-VERIFICATION.md). D-25 therefore runs on

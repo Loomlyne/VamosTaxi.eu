@@ -87,6 +87,22 @@ describe("no vamostaxi.eu bind (D-28)", () => {
     expect(production).not.toMatch(/pnpm db:link/);
     expect(production).not.toMatch(/filter web deploy/);
   });
+
+  it("isolation-probe wrangler has no Hyperdrive and workers_dev is off (K97)", () => {
+    const probe = readRepo("apps/isolation-probe/wrangler.jsonc").replace(
+      /^\s*\/\/.*$/gm,
+      "",
+    );
+    expect(probe).not.toMatch(/HYPERDRIVE/);
+    expect(probe).not.toMatch(/hyperdrive/);
+    expect(probe).toMatch(/"workers_dev":\s*false/);
+  });
+
+  it("PR CI does not versions-upload a Worker (K98)", () => {
+    const pr = readRepo(".github/workflows/pr.yml").replace(/^\s*#.*$/gm, "");
+    expect(pr).not.toMatch(/command:\s*versions upload/);
+    expect(pr).not.toMatch(/wrangler-action/);
+  });
 });
 
 describe("no Sentry this phase (D-02)", () => {
