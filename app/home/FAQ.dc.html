@@ -49,12 +49,12 @@ body{margin:0}
 a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
 [data-faq-wrap]{box-sizing:border-box;max-width:1200px;margin:0 auto;padding:clamp(56px,7vw,90px) clamp(16px,3.2vw,56px)}
 [data-faq-grid]{display:grid;grid-template-columns:minmax(0,1fr);column-gap:40px;row-gap:44px;align-items:start}
-[data-faq-card]{position:relative;box-sizing:border-box;display:flex;flex-direction:column;min-height:190px;padding:31px 31px 34px;border:1px solid var(--vt-grey-300);border-radius:20px;background:var(--vt-white);transition:background-color 200ms var(--vt-ease-standard),border-color 200ms var(--vt-ease-standard)}
+[data-faq-card]{position:relative;box-sizing:border-box;display:flex;flex-direction:column;min-width:0;min-height:0;padding:var(--vt-space-5);border:1px solid var(--vt-grey-300);border-radius:20px;background:var(--vt-white);overflow:visible;transition:background-color 200ms var(--vt-ease-standard),border-color 200ms var(--vt-ease-standard)}
 [data-faq-card][data-open="1"]{background:var(--vt-white);border-color:var(--vt-grey-300)}
 [data-faq-card][data-open="0"]:hover{border-color:var(--vt-charcoal-900)}
-[data-faq-toggle]{all:unset;box-sizing:border-box;display:block;width:100%;cursor:pointer;font-family:var(--vt-font-display);font-size:24px;font-weight:var(--vt-weight-semibold);letter-spacing:-0.03em;line-height:1.35;color:var(--vt-text-primary);text-align:start;text-wrap:pretty}
+[data-faq-toggle]{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:var(--vt-space-4);width:100%;cursor:pointer;font-family:var(--vt-font-display);font-size:24px;font-weight:var(--vt-weight-semibold);letter-spacing:-0.03em;line-height:1.35;color:var(--vt-text-primary);text-align:start;text-wrap:pretty}[data-faq-q]{min-width:0;flex:1 1 auto}
 [data-faq-toggle]:focus-visible{outline:none;border-radius:10px;box-shadow:var(--vt-ring)}
-[data-faq-circle]{position:absolute;inset-inline-end:30px;bottom:-25px;width:50px;height:50px;border-radius:999px;background:var(--vt-charcoal-900);color:var(--vt-white);display:inline-flex;align-items:center;justify-content:center;transition:background-color 140ms var(--vt-ease-standard),transform 80ms var(--vt-ease-standard)}
+[data-faq-circle]{position:relative;flex:0 0 50px;width:50px;height:50px;border-radius:var(--vt-radius-pill);background:var(--vt-charcoal-900);color:var(--vt-white);display:inline-flex;align-items:center;justify-content:center;transition:background-color 140ms var(--vt-ease-standard),transform 80ms var(--vt-ease-standard)}
 [data-faq-toggle]:hover [data-faq-circle]{background:var(--vt-charcoal-800)}
 [data-faq-card][data-open="1"] [data-faq-circle]{background:var(--vt-yellow);color:var(--vt-charcoal-950)}
 [data-faq-card][data-open="1"] [data-faq-toggle]:hover [data-faq-circle]{background:var(--vt-yellow-600,#e0aa08)}
@@ -82,7 +82,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <div data-faq-card="1" data-open="1">
 <h3 style="margin:0">
-<button type="button" data-faq-toggle="1" id="faq-q1" aria-expanded="true" aria-controls="faq-a1">Is the price I see the final price?
+<button type="button" data-faq-toggle="1" id="faq-q1" aria-expanded="true" aria-controls="faq-a1"><span data-faq-q="1">Is the price I see the final price?</span>
 <span data-faq-circle="1" aria-hidden="true"><span data-faq-chev="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n22 }}" color="currentColor" hint-size="22px,22px"></x-import></span></span>
 </button>
 </h3>
@@ -95,7 +95,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <div data-faq-card="1" data-open="0">
 <h3 style="margin:0">
-<button type="button" data-faq-toggle="1" id="faq-q2" aria-expanded="false" aria-controls="faq-a2">Do I need an account to book?
+<button type="button" data-faq-toggle="1" id="faq-q2" aria-expanded="false" aria-controls="faq-a2"><span data-faq-q="1">Do I need an account to book?</span>
 <span data-faq-circle="1" aria-hidden="true"><span data-faq-chev="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n22 }}" color="currentColor" hint-size="22px,22px"></x-import></span></span>
 </button>
 </h3>
@@ -108,7 +108,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <div data-faq-card="1" data-open="0">
 <h3 style="margin:0">
-<button type="button" data-faq-toggle="1" id="faq-q3" aria-expanded="false" aria-controls="faq-a3">What payment methods do you accept?
+<button type="button" data-faq-toggle="1" id="faq-q3" aria-expanded="false" aria-controls="faq-a3"><span data-faq-q="1">What payment methods do you accept?</span>
 <span data-faq-circle="1" aria-hidden="true"><span data-faq-chev="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n22 }}" color="currentColor" hint-size="22px,22px"></x-import></span></span>
 </button>
 </h3>
@@ -121,7 +121,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <div data-faq-card="1" data-open="0">
 <h3 style="margin:0">
-<button type="button" data-faq-toggle="1" id="faq-q4" aria-expanded="false" aria-controls="faq-a4">How far in advance do I need to book?
+<button type="button" data-faq-toggle="1" id="faq-q4" aria-expanded="false" aria-controls="faq-a4"><span data-faq-q="1">How far in advance do I need to book?</span>
 <span data-faq-circle="1" aria-hidden="true"><span data-faq-chev="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n22 }}" color="currentColor" hint-size="22px,22px"></x-import></span></span>
 </button>
 </h3>
@@ -135,7 +135,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <div data-faq-card="1" data-open="0">
 <h3 style="margin:0">
-<button type="button" data-faq-toggle="1" id="faq-q5" aria-expanded="false" aria-controls="faq-a5">Can I cancel or change my booking?
+<button type="button" data-faq-toggle="1" id="faq-q5" aria-expanded="false" aria-controls="faq-a5"><span data-faq-q="1">Can I cancel or change my booking?</span>
 <span data-faq-circle="1" aria-hidden="true"><span data-faq-chev="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n22 }}" color="currentColor" hint-size="22px,22px"></x-import></span></span>
 </button>
 </h3>
@@ -155,10 +155,11 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:640},&quot;expandMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:400,&quot;min&quot;:0,&quot;max&quot;:400,&quot;step&quot;:20,&quot;unit&quot;:&quot;ms&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;},&quot;singleOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Behaviour&quot;},&quot;startOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Behaviour&quot;}}">
 /**
  * Home · FAQ — layout from Figma /Main/510 (node 32:18065): 3-up 360px card grid, 40px gutter,
- * 20px radius, question inset 31px, and the 50px circular toggle sitting bottom-right with its
- * centre exactly on the card's bottom edge (matrix(0,±1,1,0,…) in the source, so it straddles).
- * Recoloured to Vamos: collapsed white + 1px --vt-grey-300, expanded --vt-grey-50 with no
- * border, Qurova questions / Poppins answers, toggle charcoal with a white Lucide chevron —
+ * 20px radius, Qurova questions / Poppins answers. Closed cards hug the question: no pinned
+ * min-height, 20px token padding, 50px circular chevron in the question row (inline-end of the
+ * toggle) so it cannot hang off the card or force empty charcoal-less space below the Q.
+ * Recoloured to Vamos: collapsed white + 1px --vt-grey-300, toggle charcoal with a white Lucide
+ * chevron (yellow when open) —
  * the source's #5B40FF purple is deliberately not carried over (yellow stays reserved for one
  * primary action per region, and three yellow toggles would break that).
  *

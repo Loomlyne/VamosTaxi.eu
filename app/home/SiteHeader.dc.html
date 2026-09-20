@@ -63,7 +63,6 @@ body{margin:0}
 [data-hd-wide]{display:none}
 [data-hd-narrow]{display:flex}
 @media (min-width:1080px){[data-hd-wide]{display:flex}[data-hd-narrow]{display:none!important}}
-[data-hd-pill]:hover{border-color:rgb(30 31 31/.28)}
 [data-hd-menuitem]:hover{background:var(--vt-charcoal-900);color:var(--vt-white)}
 /* The account control is the one thing in this bar that is about you. Signed out it is
    a plain outlined control; signed in it is not a link at all but a monogram disc that
@@ -139,8 +138,6 @@ body{margin:0}
 </a>
 
 <div data-hd-wide="1" style="margin-inline-start:auto;align-items:center;gap:10px;justify-content:flex-end;min-width:0">
-<a data-hd-pill="1" href="tel:+41796267082" aria-label="+41 79 626 70 82" style="display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px;border-radius:999px;background:var(--vt-white);border:1px solid rgb(30 31 31/.10);box-shadow:none;color:var(--vt-charcoal-900);font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap;transition:var(--vt-transition-control)">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="phone" size="{{ n16 }}" color="var(--vt-charcoal-900)" hint-size="16px,16px"></x-import><span>+41 79 626 70 82</span></a>
 <dc-import name="BrandSelect" value="{{ lang }}" options="{{ langOptions }}" onSelect="{{ pickLang }}" icon="globe" a11ylabel="Language" hint-size="92px,36px"></dc-import>
 <span data-vt-no-i18n="1" style="display:inline-flex"><dc-import name="BrandSelect" value="{{ cur }}" options="{{ curOptions }}" onSelect="{{ pickCur }}" icon="banknote" a11ylabel="Currency" hint-size="104px,36px"></dc-import></span>
 <sc-if value="{{ showAccountLink }}" hint-placeholder-val="{{ true }}">
@@ -232,8 +229,6 @@ body{margin:0}
 </div>
 
 <div data-hd-narrow="1" ref="{{ menuRootRef }}" style="position:relative;margin-inline-start:auto;align-items:center;gap:8px;flex:0 0 auto">
-<a href="tel:+41796267082" aria-label="{{ tCall }}" title="{{ tCall }}" style="width:44px;height:44px;border-radius:999px;background:var(--vt-white);border:1px solid rgb(30 31 31/.10);box-shadow:none;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;flex:0 0 auto">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="phone" size="{{ n18 }}" color="var(--vt-charcoal-900)" hint-size="18px,18px"></x-import></a>
 <span style="position:relative;display:inline-flex;flex:0 0 auto">
 <button type="button" aria-label="{{ menuLabel }}" aria-expanded="{{ menuExpanded }}" aria-haspopup="true" onClick="{{ toggleMenu }}" style="all:unset;box-sizing:border-box;width:44px;height:44px;border-radius:999px;background:var(--vt-white);border:1px solid rgb(30 31 31/.10);box-shadow:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ menuIcon }}" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></button>
@@ -583,7 +578,7 @@ class Component extends DCLogic {
           location.href = '/sign-in';
         });
       },
-      tBook: t.book, tCall: t.call, tLangLabel: t.langLabel, tCurLabel: t.curLabel,
+      tBook: t.book, tLangLabel: t.langLabel, tCurLabel: t.curLabel,
       menuOpen: this.state.menuOpen,
       menuExpanded: this.state.menuOpen ? 'true' : 'false',
       menuIcon: this.state.menuOpen ? 'x' : 'menu',
