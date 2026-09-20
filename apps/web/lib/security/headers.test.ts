@@ -55,6 +55,45 @@ describe("security headers (D-32…D-38)", () => {
     expect(csp).not.toMatch(/vamostaxi\.eu/);
   });
 
+  it("CSP allows Checkout Elements, Link, and card iframes", () => {
+    const csp = headerMap().get("Content-Security-Policy") ?? "";
+    const tokens = (name: string): string[] => {
+      const part = csp
+        .split(";")
+        .map((row) => row.trim())
+        .find((row) => row === name || row.startsWith(`${name} `));
+      return part ? part.split(/\s+/).slice(1) : [];
+    };
+    // Phase 20 CSP listed only js.stripe.com. Checkout ui_mode=elements,
+    // Link, and nested card iframes need the extra Stripe hosts or Pay
+    // (card / Link / emailed pay-link) dies in the browser.
+    expect(tokens("script-src")).toEqual(
+      expect.arrayContaining(["js.stripe.com", "*.js.stripe.com", "checkout.stripe.com"]),
+    );
+    expect(tokens("frame-src")).toEqual(
+      expect.arrayContaining([
+        "js.stripe.com",
+        "*.js.stripe.com",
+        "hooks.stripe.com",
+        "checkout.stripe.com",
+        "link.com",
+        "*.link.com",
+      ]),
+    );
+    expect(tokens("connect-src")).toEqual(
+      expect.arrayContaining([
+        "api.stripe.com",
+        "checkout.stripe.com",
+        "link.com",
+        "*.link.com",
+        "maps.googleapis.com",
+      ]),
+    );
+    expect(tokens("img-src")).toEqual(
+      expect.arrayContaining(["https://*.stripe.com", "https://*.link.com"]),
+    );
+  });
+
   it("keeps /dev noindex rows", () => {
     const src = readConfig();
     expect(src).toMatch(/X-Robots-Tag/);
