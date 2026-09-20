@@ -190,4 +190,13 @@ describe("robots disallows D-31 (D-31)", () => {
     expect(config).toMatch(/source:\s*"\/checkout"/);
     expect(config).toMatch(/source:\s*"\/confirmation"/);
   });
+
+  it("ops and app 404 paths HTTP noindex", () => {
+    const mw = source("middleware.ts");
+    expect(mw).toContain('"/ops"');
+    expect(mw).toContain('"/app"');
+    const config = source("next.config.ts");
+    expect(config).toMatch(/source:\s*"\/ops"/);
+    expect(config).toMatch(/source:\s*"\/app"/);
+  });
 });

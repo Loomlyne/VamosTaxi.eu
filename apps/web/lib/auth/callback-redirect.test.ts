@@ -254,4 +254,13 @@ describe("webhook and email-hook no-store", () => {
     const smoke = readFileSync(join(root, "app/api/dev/db-smoke/route.ts"), "utf8");
     expect(smoke).toContain("private, no-store");
   });
+
+  it("fx 503 is private no-store; 200 stays public cache", () => {
+    const src = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), "../../app/api/fx/route.ts"),
+      "utf8",
+    );
+    expect(src).toContain('CACHE_CONTROL = "public, max-age=3600"');
+    expect(src).toContain('status === 200 ? CACHE_CONTROL : "private, no-store"');
+  });
 });

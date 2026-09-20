@@ -12,7 +12,9 @@ let memo: { at: number; body: FxPayload } | null = null;
 function json(body: unknown, status = 200): Response {
   return Response.json(body, {
     status,
-    headers: { "Cache-Control": CACHE_CONTROL },
+    headers: {
+      "Cache-Control": status === 200 ? CACHE_CONTROL : "private, no-store",
+    },
   });
 }
 

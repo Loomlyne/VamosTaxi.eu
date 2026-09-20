@@ -136,6 +136,12 @@ const nextConfig: NextConfig = {
       { source: "/confirmation/:path*", headers: noindex },
       { source: "/:locale/confirmation", headers: noindex },
       { source: "/:locale/confirmation/:path*", headers: noindex },
+      { source: "/ops", headers: noindex },
+      { source: "/ops/:path*", headers: noindex },
+      { source: "/:locale/ops", headers: noindex },
+      { source: "/:locale/ops/:path*", headers: noindex },
+      { source: "/app", headers: noindex },
+      { source: "/app/:path*", headers: noindex },
       {
         source: "/app/:path*.dc.html",
         headers: [

@@ -368,6 +368,8 @@ const PRIVATE_NOINDEX_PREFIXES = [
   "/sitemap",
   "/checkout",
   "/confirmation",
+  "/ops",
+  "/app",
 ] as const;
 
 function isPrivateNoindexPath(path: string): boolean {
