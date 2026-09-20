@@ -169,4 +169,10 @@ describe("robots disallows D-31 (D-31)", () => {
     expect(config).toMatch(/source:\s*"\/account"/);
     expect(config).toMatch(/source:\s*"\/bookings"/);
   });
+
+  it("coming-soon and booking-detail are robots-disallowed", () => {
+    const robots = source("app/robots.ts");
+    expect(robots).toContain('"/coming-soon"');
+    expect(robots).toContain('"/booking-detail"');
+  });
 });
