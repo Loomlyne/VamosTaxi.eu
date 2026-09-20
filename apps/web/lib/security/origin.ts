@@ -48,7 +48,7 @@ export function csrfForbidden(
   if (ok) return null;
   return Response.json(
     { ok: false, code: "csrf" },
-    { status: 403, headers: { "cache-control": "no-store" } },
+    { status: 403, headers: { "cache-control": "private, no-store" } },
   );
 }
 

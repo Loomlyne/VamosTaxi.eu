@@ -31,6 +31,7 @@ export async function generateMetadata({
   return {
     title: t("submit-review"),
     description: t("review-this-trip"),
+    robots: { index: false, follow: false },
   };
 }
 

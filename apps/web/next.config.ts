@@ -106,6 +106,10 @@ const nextConfig: NextConfig = {
       { source: "/:path*", headers: securityHeaders },
       { source: "/dev/:path*", headers: noindex },
       { source: "/:locale/dev/:path*", headers: noindex },
+      { source: "/review", headers: noindex },
+      { source: "/review/:path*", headers: noindex },
+      { source: "/:locale/review", headers: noindex },
+      { source: "/:locale/review/:path*", headers: noindex },
       {
         source: "/app/:path*.dc.html",
         headers: [

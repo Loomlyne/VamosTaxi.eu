@@ -57,6 +57,7 @@ const SITEMAP_FORBIDDEN = [
   "/reset-password",
   "/ops",
   "/dev",
+  "/review",
 ] as const;
 
 describe("host-split noindex (D-03 D-04)", () => {
@@ -125,5 +126,15 @@ describe("robots disallows D-31 (D-31)", () => {
   it("/dev stays disallowed (keep /dev noindex)", () => {
     const robots = source("app/robots.ts");
     expect(robots).toMatch(/"\/dev"/);
+  });
+
+  it("review token URLs are disallowed and HTTP noindex", () => {
+    const robots = source("app/robots.ts");
+    expect(robots).toContain('"/review"');
+    const review = source("app/[locale]/review/page.tsx");
+    expect(review).toMatch(/robots:\s*\{\s*index:\s*false/);
+    const config = source("next.config.ts");
+    expect(config).toMatch(/source:\s*"\/review"/);
+    expect(config).toMatch(/source:\s*"\/:locale\/review"/);
   });
 });

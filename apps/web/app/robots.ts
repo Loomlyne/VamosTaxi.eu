@@ -21,6 +21,7 @@ export default function robots(): MetadataRoute.Robots {
         "/sign-up",
         "/manage-booking",
         "/reset-password",
+        "/review",
       ],
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
