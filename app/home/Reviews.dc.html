@@ -60,8 +60,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-rv][data-dir="-1"] [data-rv-slide][data-was="1"]{transform:translateX(100%)}
 [data-rv-face]{display:flex;flex-direction:column;align-items:center;text-align:center}
 [data-rv-mark]{display:flex;align-items:center;justify-content:center;height:36px;margin-bottom:clamp(20px,2.6vw,28px);font-family:var(--vt-font-display);font-size:20px;font-weight:var(--vt-weight-semibold);letter-spacing:-0.01em;line-height:1;color:var(--vt-text-primary)}
-[data-rv-av]{display:flex;align-items:center;justify-content:center;width:clamp(112px,12.4vw,148px);height:clamp(112px,12.4vw,148px);border-radius:999px;background:var(--vt-charcoal-900);color:var(--vt-text-inverse);font-family:var(--vt-font-display);font-size:clamp(34px,3.8vw,44px);font-weight:var(--vt-weight-semibold);letter-spacing:.01em;line-height:1}
-[data-rv-name]{margin-top:clamp(18px,2.2vw,24px);font-family:var(--vt-font-body);font-size:17px;font-weight:600;letter-spacing:-0.005em;line-height:1.3;color:var(--vt-text-primary)}
+[data-rv-name]{margin-top:0;font-family:var(--vt-font-body);font-size:17px;font-weight:600;letter-spacing:-0.005em;line-height:1.3;color:var(--vt-text-primary)}
 [data-rv-sub]{margin-top:6px;font-size:var(--vt-body-sm);line-height:1.45;color:var(--vt-text-secondary)}
 [data-rv-quote]{box-sizing:border-box;background:var(--vt-white);display:flex;flex-direction:column;justify-content:center;border-top:1px solid var(--vt-grey-200);border-bottom:1px solid var(--vt-grey-200);padding:clamp(30px,5vw,64px) clamp(0px,2.4vw,40px)}
 [data-rv-q]{display:flex;align-items:center;justify-content:center;margin:0;padding:0}
@@ -112,7 +111,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <sc-for list="{{ slides }}" as="r" hint-placeholder-count="0">
 <div data-rv-slide="1" data-rv-face="1" data-i="{{ r.i1 }}" data-on="{{ r.on }}">
 <span data-rv-mark="1">{{ r.sourceLabel }}</span>
-<span data-rv-av="1" aria-hidden="true">{{ r.initials }}</span>
 <strong data-rv-name="1">{{ r.name }}</strong>
 <span data-rv-sub="1">{{ r.route }}</span>
 <span data-rv-stars="1" role="img" aria-label="{{ r.ratingLabel }}" style="display:{{ r.starsShow }}">
@@ -264,13 +262,6 @@ class Component extends DCLogic {
     if (this._offReviews) this._offReviews();
     if (this._offLocale) this._offLocale();
   }
-  initials(name) {
-    const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
-    if (!parts.length) return '';
-    const first = parts[0][0] || '';
-    const last = parts.length > 1 ? (parts[parts.length - 1][0] || '') : '';
-    return (first + last).toUpperCase();
-  }
   renderVals() {
     const t = (s) => (window.VamosLocale ? window.VamosLocale.t(s) : s);
     const store = window.VamosReviews;
@@ -298,7 +289,6 @@ class Component extends DCLogic {
         route: r.route || '',
         sourceLabel: label,
         quote: '“' + r.text + '”',
-        initials: this.initials(r.name),
         starsShow: r.rating > 0 ? 'flex' : 'none',
         ratingLabel: t('Rated 5 out of 5').replace('5 out', r.rating + ' out'),
         meta: meta,

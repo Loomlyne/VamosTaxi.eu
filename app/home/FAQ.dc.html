@@ -75,6 +75,9 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-faq-a]:last-child{margin-bottom:0}
 [data-faq-a] a{color:var(--vt-charcoal-900);font-weight:var(--vt-weight-medium);text-decoration:none;border-bottom:1px solid var(--vt-grey-300)}
 [data-faq-a] a:hover{color:var(--vt-charcoal-800);border-bottom-color:var(--vt-charcoal-900)}
+[data-faq-acts]{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:12px 0 0;max-width:100%}
+[data-faq-acts] .vt-btn,[data-faq-acts] a{border-bottom:0;text-decoration:none;max-width:100%;box-sizing:border-box}
+@media (max-width:560px){[data-faq-acts] .vt-btn{white-space:normal;height:auto;min-height:var(--vt-control-h-md);padding-block:10px;text-align:center}}
 @media (min-width:900px){
 [data-faq-layout]{grid-template-columns:minmax(240px,.36fr) minmax(0,1fr);column-gap:clamp(40px,5vw,72px);align-items:start}
 [data-faq-intro]{position:sticky;top:96px}
@@ -158,7 +161,10 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-faq-inner="1">
 <p data-faq-a="1">Change or cancel from the link in your confirmation email, or from your account if you made one. A change is effective when we confirm it in writing, not when you send it.</p>
 <p data-faq-a="1">We do not restate the windows or the shares here, on purpose. One page owns them, and it is kept correct.</p>
-<p data-faq-a="1"><a href="/manage-booking">Manage a booking</a> · <a href="/cancellation">Read the cancellation &amp; refund policy</a></p>
+<div data-faq-acts="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" href="/manage-booking" hint-size="190px,44px">Manage a booking</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" href="/cancellation" hint-size="320px,44px">Read the cancellation &amp; refund policy</x-import>
+</div>
 </div>
 </div>
 </div>
