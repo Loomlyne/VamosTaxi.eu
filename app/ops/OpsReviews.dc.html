@@ -8,6 +8,14 @@
 </head>
 <body>
 <x-dc>
+<style>
+[data-order]{display:flex;flex-direction:column;align-items:center;gap:2px;flex:0 0 auto;margin-top:2px}
+[data-order] [data-ico-btn]{width:28px;height:28px}
+[data-ico-btn][data-danger="1"]{color:var(--vt-danger);border-color:var(--vt-danger)}
+[data-ico-btn][data-danger="1"]:hover{background:var(--vt-grey-50);color:var(--vt-danger);border-color:var(--vt-danger)}
+[data-url-err]{margin:0;font-size:var(--vt-body-xs);line-height:1.45;color:var(--vt-danger)}
+[data-sw-hint]{margin:0;font-size:var(--vt-body-xs);line-height:1.5;color:var(--vt-text-muted);text-wrap:pretty}
+</style>
 <main style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
 
 <header style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle)">
@@ -16,7 +24,6 @@
 <p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSubtitle }}</p>
 </div>
 <div style="margin-inline-start:auto;display:flex;align-items:center;gap:10px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="outline" size="sm" icon="external-link" href="../home/home.dc.html#reviews" hint-size="150px,36px">{{ tViewOnSite }}</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" icon="plus" onClick="{{ addNew }}" hint-size="150px,36px">{{ tAdd }}</x-import>
 </div>
 </header>
@@ -41,13 +48,18 @@
 </sc-if>
 
 <sc-for list="{{ rows }}" as="r" hint-placeholder-count="5">
-<div data-row="1" data-sel="{{ r.sel }}" data-off="{{ r.off }}" data-drag="{{ r.dragging }}" data-over="{{ r.over }}" draggable="true" onDragStart="{{ r.dragStart }}" onDragOver="{{ r.dragOver }}" onDrop="{{ r.drop }}" onDragEnd="{{ r.dragEnd }}">
+<div data-row="1" data-sel="{{ r.sel }}" data-off="{{ r.off }}">
 
-<button type="button" data-grip="1" aria-label="{{ tReorder }}" title="{{ tReorder }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="grip-vertical" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+<div data-order="1">
+<button type="button" data-ico-btn="1" onClick="{{ r.up }}" disabled="{{ r.isFirst }}" aria-label="{{ tMoveUp }}" title="{{ tMoveUp }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-up" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
 </button>
+<button type="button" data-ico-btn="1" onClick="{{ r.down }}" disabled="{{ r.isLast }}" aria-label="{{ tMoveDown }}" title="{{ tMoveDown }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+</button>
+</div>
 
-<span data-av="1" data-fade="1" aria-hidden="true" style="background-image:{{ r.photo }};color:{{ r.initialsColor }}">{{ r.initials }}</span>
+<span data-av="1" data-fade="1" aria-hidden="true">{{ r.initials }}</span>
 
 <div data-fade="1" style="flex:1 1 auto;min-width:0">
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px">
@@ -64,25 +76,18 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n12 }}" color="{{ r.s4 }}" hint-size="12px,12px"></x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n12 }}" color="{{ r.s5 }}" hint-size="12px,12px"></x-import>
 </span>
-<span>{{ r.role }}</span>
 <span style="display:{{ r.metaShow }}">{{ r.meta }}</span>
 </div>
 </div>
 
 <div data-act="1">
-<button type="button" data-ico-btn="1" onClick="{{ r.up }}" disabled="{{ r.isFirst }}" aria-label="{{ tMoveUp }}" title="{{ tMoveUp }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-up" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
-</button>
-<button type="button" data-ico-btn="1" onClick="{{ r.down }}" disabled="{{ r.isLast }}" aria-label="{{ tMoveDown }}" title="{{ tMoveDown }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-down" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
-</button>
 <button type="button" data-ico-btn="1" onClick="{{ r.togglePublish }}" aria-label="{{ r.publishLabel }}" title="{{ r.publishLabel }}" aria-pressed="{{ r.publishedAria }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ r.publishIcon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
 </button>
 <button type="button" data-ico-btn="1" onClick="{{ r.edit }}" aria-label="{{ tEdit }}" title="{{ tEdit }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="pencil" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
 </button>
-<button type="button" data-ico-btn="1" data-danger="1" onClick="{{ r.remove }}" aria-label="{{ r.removeLabel }}" title="{{ r.removeLabel }}">
+<button type="button" data-ico-btn="1" data-danger="1" onClick="{{ r.remove }}" aria-label="{{ r.removeLabel }}" title="{{ r.removeLabel }}" style="color:var(--vt-danger);border-color:var(--vt-danger)">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ r.removeIcon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
 </button>
 </div>
@@ -109,18 +114,10 @@
 </div>
 
 <div style="display:flex;align-items:center;gap:14px">
-<span style="position:relative;flex:0 0 auto;display:inline-flex">
-<button type="button" data-av="1" onClick="{{ pickPhoto }}" aria-label="{{ tUpload }}" title="{{ tUpload }}" style="width:64px;height:64px;font-size:20px;padding:0;border:0;cursor:pointer;background-image:{{ draftPhoto }};color:{{ draftInitialsColor }}" style-hover="opacity:.86">{{ draftInitials }}</button>
-<button type="button" onClick="{{ clearPhoto }}" aria-label="{{ tRemovePhoto }}" title="{{ tRemovePhoto }}" style="position:absolute;inset-inline-end:-2px;top:-2px;display:{{ photoClearShow }};align-items:center;justify-content:center;width:24px;height:24px;padding:0;border:2px solid var(--vt-bg-surface);border-radius:999px;background:var(--vt-charcoal-900);color:var(--vt-text-inverse);cursor:pointer" style-hover="background:var(--vt-danger)">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n12 }}" color="currentColor" hint-size="12px,12px"></x-import>
-</button>
-</span>
-<p data-hint="1" style="flex:1 1 auto;min-width:0">{{ tPhotoHint }}</p>
+<span data-av="1" aria-hidden="true" style="width:64px;height:64px;font-size:20px">{{ draftInitials }}</span>
 </div>
-<input type="file" accept="image/*" ref="{{ fileRef }}" onChange="{{ onPhoto }}" style="display:none">
 
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tName }}" size="md" value="{{ draftName }}" onChange="{{ setName }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tRole }}" size="md" value="{{ draftRole }}" onChange="{{ setRole }}" placeholder="{{ tRolePh }}" hint-size="100%,76px"></x-import>
 
 <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
 <span data-fld-l="1">{{ tSource }}</span>
@@ -173,10 +170,17 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ tText }}" rows="{{ n5 }}" value="{{ draftText }}" onChange="{{ setText }}" placeholder="{{ tTextPh }}" hint-size="100%,130px"></x-import>
 
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tUrl }}" size="md" icon="external-link" value="{{ draftUrl }}" onChange="{{ setUrl }}" placeholder="{{ tUrlPh }}" hint-size="100%,76px"></x-import>
+<p data-url-err="1" style="display:{{ urlErrorShow }}">{{ tUrlError }}</p>
 
 <div style="display:flex;flex-direction:column;gap:12px;padding-top:14px;border-top:1px solid var(--vt-border-subtle)">
+<div style="display:flex;flex-direction:column;gap:6px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" label="{{ tVerified }}" checked="{{ draftVerified }}" onChange="{{ setVerified }}" hint-size="100%,24px"></x-import>
+<p data-sw-hint="1">{{ tVerifiedHint }}</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" label="{{ tPublished }}" checked="{{ draftPublished }}" onChange="{{ setPublished }}" hint-size="100%,24px"></x-import>
+<p data-sw-hint="1">{{ tPublishedHint }}</p>
+</div>
 </div>
 
 <div style="display:flex;flex-wrap:wrap;gap:10px;padding-top:14px;border-top:1px solid var(--vt-border-subtle)">
@@ -210,95 +214,99 @@
  * Imported rows (Google, Tripadvisor, Trustpilot) carry the customer's own words:
  * they can be shown, hidden, reordered and annotated with the trip, never reworded.
  *
- * Order on this screen is order on the site — drag a row, or use the up arrow for
- * a keyboard path that does not depend on pointer drag.
+ * Order on this screen is order on the site — use the stacked up/down arrows.
+ * Faces are initials only; there is no photo upload.
  */
 const T = {
   en: {
     title: 'Reviews', subtitle: 'What the home page shows, in this order',
-    viewOnSite: 'View on site', add: 'Add a review',
+    add: 'Add a review',
     lockTitle: 'Imported reviews cannot be reworded',
     lockBody: 'Rows pulled from Google, Tripadvisor or Trustpilot carry the customer’s own words. Hide them, reorder them or add the trip details around them — only reviews you collected yourself can be rewritten.',
     orderNote: 'The site shows published reviews in this order. Move a row with the arrows.',
     published: 'published', hidden: 'hidden', hiddenTag: 'Hidden', imported: 'Imported',
-    reorder: 'Reorder', moveUp: 'Move up', moveDown: 'Move down', edit: 'Edit', remove: 'Remove', confirmRemove: 'Remove — click again',
+    moveUp: 'Move up', moveDown: 'Move down', edit: 'Edit', remove: 'Remove', confirmRemove: 'Remove — click again',
     publish: 'Publish', unpublish: 'Hide from the site',
     emptyTitle: 'No reviews yet', emptyBody: 'Add one by hand, or connect a platform and import what is already written about you.',
     storageNote: '',
     panelKicker: 'Editor', idleTitle: 'Pick a review to edit', idleBody: 'Or add one. Everything you type is saved as you go — there is no separate save step.',
     editingKicker: 'Editing', editingNew: 'New review',
-    name: 'Name', role: 'Role or trip', rolePh: 'Airport transfer, Zurich',
+    name: 'Name',
     source: 'Source', rating: 'Rating', route: 'Route', routePh: 'ZRH → Zermatt', pickupPh: 'Pickup', dropoffPh: 'Drop-off', routeHint: 'Pick from known places so the trip reads the same way everywhere.', noMatch: 'No match', vehicleClass: 'Vehicle class',
     text: 'Review', textPh: 'Paste the review exactly as it was written.',
-    url: 'Link to the original', urlPh: 'https://',
+    url: 'Link to the original', urlPh: 'https://', urlError: 'Use a full http or https link, or leave this empty.',
     verified: 'Verified traveller', publishedLabel: 'Published on the site',
-    upload: 'Upload a photo', removePhoto: 'Remove the photo', photoHint: 'Click the circle to upload. Square works best — without a photo the initials show.',
+    verifiedHint: 'Badge that this person actually rode with Vamos — not a made-up quote.',
+    publishedHint: 'When on, this review is visible on the public homepage.',
     lockedNote: 'This review was imported, so the name, the words and the rating are read-only.',
     done: 'Done', close: 'Close', notStated: 'Not stated', starsOf: 'Rate %n out of 5'
   },
   de: {
     title: 'Bewertungen', subtitle: 'Was die Startseite zeigt, in dieser Reihenfolge',
-    viewOnSite: 'Auf der Website', add: 'Bewertung hinzufügen',
+    add: 'Bewertung hinzufügen',
     lockTitle: 'Importierte Bewertungen lassen sich nicht umschreiben',
     lockBody: 'Zeilen von Google, Tripadvisor oder Trustpilot enthalten die Worte der Kundin oder des Kunden. Sie können sie ausblenden, neu ordnen oder die Fahrtdaten ergänzen — umschreiben lässt sich nur, was Sie selbst gesammelt haben.',
     orderNote: 'Die Website zeigt veröffentlichte Bewertungen in dieser Reihenfolge. Verschieben Sie eine Zeile mit den Pfeilen.',
     published: 'veröffentlicht', hidden: 'ausgeblendet', hiddenTag: 'Ausgeblendet', imported: 'Importiert',
-    reorder: 'Umsortieren', moveUp: 'Nach oben', moveDown: 'Nach unten', edit: 'Bearbeiten', remove: 'Entfernen', confirmRemove: 'Entfernen — nochmals klicken',
+    moveUp: 'Nach oben', moveDown: 'Nach unten', edit: 'Bearbeiten', remove: 'Entfernen', confirmRemove: 'Entfernen — nochmals klicken',
     publish: 'Veröffentlichen', unpublish: 'Auf der Website ausblenden',
     emptyTitle: 'Noch keine Bewertungen', emptyBody: 'Fügen Sie eine von Hand hinzu oder verbinden Sie eine Plattform und importieren Sie, was bereits über Sie geschrieben wurde.',
     storageNote: '',
     panelKicker: 'Editor', idleTitle: 'Wählen Sie eine Bewertung', idleBody: 'Oder fügen Sie eine hinzu. Alles wird beim Tippen gespeichert — es gibt keinen separaten Speicherschritt.',
     editingKicker: 'Bearbeiten', editingNew: 'Neue Bewertung',
-    name: 'Name', role: 'Rolle oder Fahrt', rolePh: 'Flughafentransfer, Zürich',
+    name: 'Name',
     source: 'Quelle', rating: 'Bewertung', route: 'Strecke', routePh: 'ZRH → Zermatt', pickupPh: 'Abholung', dropoffPh: 'Ziel', routeHint: 'Aus bekannten Orten wählen, damit die Fahrt überall gleich aussieht.', noMatch: 'Keine Übereinstimmung', vehicleClass: 'Fahrzeugklasse',
     text: 'Bewertung', textPh: 'Fügen Sie die Bewertung genau so ein, wie sie geschrieben wurde.',
-    url: 'Link zum Original', urlPh: 'https://',
+    url: 'Link zum Original', urlPh: 'https://', urlError: 'Geben Sie einen vollständigen http- oder https-Link ein, oder lassen Sie das Feld leer.',
     verified: 'Verifizierte Reisende', publishedLabel: 'Auf der Website veröffentlicht',
-    upload: 'Foto hochladen', removePhoto: 'Foto entfernen', photoHint: 'Auf den Kreis klicken, um ein Foto hochzuladen. Quadratisch passt am besten — ohne Foto erscheinen die Initialen.',
+    verifiedHint: 'Abzeichen, dass diese Person wirklich mit Vamos gefahren ist — kein erfundenes Zitat.',
+    publishedHint: 'Wenn eingeschaltet, erscheint die Bewertung auf der öffentlichen Startseite.',
     lockedNote: 'Diese Bewertung wurde importiert; Name, Text und Sterne sind schreibgeschützt.',
     done: 'Fertig', close: 'Schliessen', notStated: 'Keine Angabe', starsOf: '%n von 5 Sternen geben'
   },
   fr: {
     title: 'Avis', subtitle: 'Ce que la page d’accueil affiche, dans cet ordre',
-    viewOnSite: 'Voir sur le site', add: 'Ajouter un avis',
+    add: 'Ajouter un avis',
     lockTitle: 'Les avis importés ne peuvent pas être réécrits',
     lockBody: 'Les lignes venant de Google, Tripadvisor ou Trustpilot contiennent les mots du client. Vous pouvez les masquer, les réordonner ou ajouter les détails du trajet — seuls les avis que vous avez recueillis peuvent être réécrits.',
     orderNote: 'Le site affiche les avis publiés dans cet ordre. Déplacez une ligne avec les flèches.',
     published: 'publiés', hidden: 'masqués', hiddenTag: 'Masqué', imported: 'Importé',
-    reorder: 'Réordonner', moveUp: 'Monter', moveDown: 'Descendre', edit: 'Modifier', remove: 'Supprimer', confirmRemove: 'Supprimer — cliquez à nouveau',
+    moveUp: 'Monter', moveDown: 'Descendre', edit: 'Modifier', remove: 'Supprimer', confirmRemove: 'Supprimer — cliquez à nouveau',
     publish: 'Publier', unpublish: 'Masquer sur le site',
     emptyTitle: 'Aucun avis pour l’instant', emptyBody: 'Ajoutez-en un à la main, ou connectez une plateforme et importez ce qui est déjà écrit sur vous.',
     storageNote: '',
     panelKicker: 'Éditeur', idleTitle: 'Choisissez un avis à modifier', idleBody: 'Ou ajoutez-en un. Tout est enregistré au fur et à mesure — pas d’étape de sauvegarde.',
     editingKicker: 'Modification', editingNew: 'Nouvel avis',
-    name: 'Nom', role: 'Rôle ou trajet', rolePh: 'Transfert aéroport, Zurich',
+    name: 'Nom',
     source: 'Source', rating: 'Note', route: 'Trajet', routePh: 'ZRH → Zermatt', pickupPh: 'Prise en charge', dropoffPh: 'Destination', routeHint: 'Choisissez parmi les lieux connus pour un trajet toujours lisible de la même façon.', noMatch: 'Aucun résultat', vehicleClass: 'Classe de véhicule',
     text: 'Avis', textPh: 'Collez l’avis exactement tel qu’il a été écrit.',
-    url: 'Lien vers l’original', urlPh: 'https://',
+    url: 'Lien vers l’original', urlPh: 'https://', urlError: 'Saisissez un lien http ou https complet, ou laissez vide.',
     verified: 'Voyageur vérifié', publishedLabel: 'Publié sur le site',
-    upload: 'Téléverser une photo', removePhoto: 'Retirer la photo', photoHint: 'Cliquez sur le cercle pour téléverser. Le carré fonctionne le mieux — sans photo, les initiales s’affichent.',
+    verifiedHint: 'Badge indiquant que cette personne a vraiment voyagé avec Vamos — pas une citation inventée.',
+    publishedHint: 'Si activé, l’avis est visible sur la page d’accueil publique.',
     lockedNote: 'Cet avis a été importé : le nom, le texte et la note sont en lecture seule.',
     done: 'Terminé', close: 'Fermer', notStated: 'Non précisé', starsOf: 'Donner %n sur 5'
   },
   ar: {
     title: 'التقييمات', subtitle: 'ما تعرضه الصفحة الرئيسية، بهذا الترتيب',
-    viewOnSite: 'عرض في الموقع', add: 'إضافة تقييم',
+    add: 'إضافة تقييم',
     lockTitle: 'لا يمكن إعادة صياغة التقييمات المستوردة',
     lockBody: 'الصفوف الواردة من Google أو Tripadvisor أو Trustpilot تحمل كلمات العميل نفسه. يمكنك إخفاؤها أو إعادة ترتيبها أو إضافة تفاصيل الرحلة — أما إعادة الصياغة فتقتصر على التقييمات التي جمعتموها بأنفسكم.',
     orderNote: 'يعرض الموقع التقييمات المنشورة بهذا الترتيب. حرّك الصف بالأسهم.',
     published: 'منشورة', hidden: 'مخفية', hiddenTag: 'مخفي', imported: 'مستورد',
-    reorder: 'إعادة الترتيب', moveUp: 'تحريك لأعلى', moveDown: 'تحريك لأسفل', edit: 'تحرير', remove: 'حذف', confirmRemove: 'حذف — انقر مرة أخرى',
+    moveUp: 'تحريك لأعلى', moveDown: 'تحريك لأسفل', edit: 'تحرير', remove: 'حذف', confirmRemove: 'حذف — انقر مرة أخرى',
     publish: 'نشر', unpublish: 'إخفاء من الموقع',
     emptyTitle: 'لا توجد تقييمات بعد', emptyBody: 'أضف واحدًا يدويًا، أو اربط منصة واستورد ما كُتب عنكم بالفعل.',
     storageNote: '',
     panelKicker: 'المحرر', idleTitle: 'اختر تقييمًا للتحرير', idleBody: 'أو أضف واحدًا. يُحفظ كل شيء أثناء الكتابة — لا توجد خطوة حفظ منفصلة.',
     editingKicker: 'تحرير', editingNew: 'تقييم جديد',
-    name: 'الاسم', role: 'الصفة أو الرحلة', rolePh: 'نقل من المطار، زيورخ',
+    name: 'الاسم',
     source: 'المصدر', rating: 'التقييم', route: 'المسار', routePh: 'ZRH → تسرمات', pickupPh: 'الانطلاق', dropoffPh: 'الوجهة', routeHint: 'اختر من الأماكن المعروفة ليظهر المسار بالشكل نفسه في كل مكان.', noMatch: 'لا توجد نتيجة', vehicleClass: 'فئة المركبة',
     text: 'نص التقييم', textPh: 'الصق التقييم كما كُتب تمامًا.',
-    url: 'رابط الأصل', urlPh: 'https://',
+    url: 'رابط الأصل', urlPh: 'https://', urlError: 'استخدم رابط http أو https كاملاً، أو اترك الحقل فارغًا.',
     verified: 'مسافر موثّق', publishedLabel: 'منشور في الموقع',
-    upload: 'رفع صورة', removePhoto: 'إزالة الصورة', photoHint: 'انقر على الدائرة لرفع صورة. الصورة المربعة أنسب — وبدون صورة تظهر الأحرف الأولى.',
+    verifiedHint: 'شارة تفيد أن هذا الشخص ركب فعلاً مع Vamos — وليست اقتباسًا مختلقًا.',
+    publishedHint: 'عند التشغيل يظهر التقييم في الصفحة الرئيسية العلنية.',
     lockedNote: 'هذا التقييم مستورد، لذا الاسم والنص والتقييم للقراءة فقط.',
     done: 'تم', close: 'إغلاق', notStated: 'غير محدد', starsOf: 'إعطاء %n من 5'
   }

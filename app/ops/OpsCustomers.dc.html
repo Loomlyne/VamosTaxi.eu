@@ -41,10 +41,12 @@
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900}}">
 /* Customers — list hydrates from GET /api/staff/customers via
    VamosOps.customers. Save PATCHes /api/staff/customers/:id (name,
-   email, phone, type, company, since, note) onto customers + bookings.
-   Click opens /customers/{email}. History lists that email’s bookings
-   under Notes; a row opens /bookings/{ref} (was #detail/<id>) so Cancel
-   still lives on OpsDetail. Empty list is empty. Delete tombstones. */
+   email, phone) onto customers + bookings. Type, company, trips, note
+   and since are not writable from the editor; since is first-booking
+   date, shown read-only. Click opens /customers/{email}. History lists
+   that email’s bookings under Notes; a row opens /bookings/{ref}
+   (was #detail/<id>) so Cancel still lives on OpsDetail. Empty list is
+   empty. Delete tombstones. */
 const TYPES = {
   private: { tone:'neutral', label:'Private' },
   corporate: { tone:'inverse', label:'Corporate' },
@@ -58,8 +60,7 @@ const T = {
     noun:'customer', nounPlural:'customers', editTitle:'Customer',
     emptyTitle:'No customers yet', emptyBody:'Anyone who signs in, or starts checkout with an email, appears here.',
     deleteTitle:'Delete this customer?', deleteBody:'They leave this list. Their bookings stay on the board.',
-    fName:'Name', fEmail:'Email', fPhone:'Phone', fType:'Type', fCompany:'Company', fTrips:'Trips booked', fSince:'Customer since', fNote:'Note',
-    hCompany:'Only for a corporate account.', hNote:'Anything a dispatcher should know before the call.',
+    fName:'Name', fEmail:'Email', fPhone:'Phone', fSince:'Customer since',
     history:'History', historyEmpty:'No bookings yet.',
     note:'A customer is anyone who signed in or started checkout with an email.',
   },
@@ -71,8 +72,7 @@ const T = {
     noun:'Kunde', nounPlural:'Kunden', editTitle:'Kunde',
     emptyTitle:'Noch keine Kunden', emptyBody:'Jeder, der sich anmeldet oder den Checkout mit E-Mail startet, erscheint hier.',
     deleteTitle:'Diesen Kunden löschen?', deleteBody:'Sie verschwinden aus dieser Liste. Buchungen bleiben auf dem Board.',
-    fName:'Name', fEmail:'E-Mail', fPhone:'Telefon', fType:'Typ', fCompany:'Firma', fTrips:'Gebuchte Fahrten', fSince:'Kunde seit', fNote:'Notiz',
-    hCompany:'Nur für ein Firmenkonto.', hNote:'Was ein Disponent vor dem Anruf wissen sollte.',
+    fName:'Name', fEmail:'E-Mail', fPhone:'Telefon', fSince:'Kunde seit',
     history:'Verlauf', historyEmpty:'Noch keine Buchungen.',
     note:'Kunde ist, wer sich angemeldet oder den Checkout mit E-Mail gestartet hat.',
   },
@@ -84,8 +84,7 @@ const T = {
     noun:'client', nounPlural:'clients', editTitle:'Client',
     emptyTitle:'Aucun client', emptyBody:'Toute connexion, ou un checkout avec e-mail, apparaît ici.',
     deleteTitle:'Supprimer ce client ?', deleteBody:'Il quitte cette liste. Les réservations restent au tableau.',
-    fName:'Nom', fEmail:'E-mail', fPhone:'Téléphone', fType:'Type', fCompany:'Société', fTrips:'Courses réservées', fSince:'Client depuis', fNote:'Note',
-    hCompany:'Uniquement pour un compte entreprise.', hNote:'Ce qu’un régulateur doit savoir avant l’appel.',
+    fName:'Nom', fEmail:'E-mail', fPhone:'Téléphone', fSince:'Client depuis',
     history:'Historique', historyEmpty:'Aucune réservation pour l’instant.',
     note:'Un client est quiconque s’est connecté ou a commencé le paiement avec un e-mail.',
   },
@@ -97,8 +96,7 @@ const T = {
     noun:'عميل', nounPlural:'عملاء', editTitle:'العميل',
     emptyTitle:'لا يوجد عملاء بعد', emptyBody:'كل من يسجّل الدخول أو يبدأ الدفع بالبريد يظهر هنا.',
     deleteTitle:'حذف هذا العميل؟', deleteBody:'يغادر هذه القائمة. تبقى الحجوزات على اللوحة.',
-    fName:'الاسم', fEmail:'البريد الإلكتروني', fPhone:'الهاتف', fType:'النوع', fCompany:'الشركة', fTrips:'الرحلات المحجوزة', fSince:'عميل منذ', fNote:'ملاحظة',
-    hCompany:'لحسابات الشركات فقط.', hNote:'ما ينبغي أن يعرفه الموزّع قبل الاتصال.',
+    fName:'الاسم', fEmail:'البريد الإلكتروني', fPhone:'الهاتف', fSince:'عميل منذ',
     history:'السجل', historyEmpty:'لا حجوزات بعد.',
     note:'العميل من سجّل الدخول أو بدأ الدفع بالبريد.',
   },
@@ -157,7 +155,6 @@ class Component extends DCLogic {
     const rows = ops ? ops.customers.all() : [];
     const corporate = rows.filter((r) => r.type === 'corporate').length;
     const trips = rows.reduce((n, r) => n + (r.trips || 0), 0);
-    const typeOptions = (ops ? ops.CUSTOMER_TYPES : []).map((v) => ({ value: v, label: TYPES[v].label }));
     return {
       n18: 18,
       tTitle: t.title, tSubtitle: t.subtitle, tSearch: t.search,
@@ -173,8 +170,9 @@ class Component extends DCLogic {
       onCloseEdit: () => { if (customerPathEmail()) goCustomers(''); },
       onSave: (row) => {
         if (!ops || !row) return Promise.resolve({ ok: false, code: "missing-id" });
-        if (row.id) return ops.customers.update(row.id, row);
-        return ops.customers.upsert(row);
+        const patch = { id: row.id, name: row.name, email: row.email, phone: row.phone };
+        if (row.id) return ops.customers.update(row.id, patch);
+        return ops.customers.upsert(patch);
       },
       onDelete: (id) => ops ? ops.customers.remove(id) : null,
       historyRows: (row) => {
@@ -218,11 +216,7 @@ class Component extends DCLogic {
         { key:'name', label:t.fName, half:true, required:true },
         { key:'email', label:t.fEmail, half:true, placeholder:'name@example.com', required:true },
         { key:'phone', label:t.fPhone, half:true, placeholder:'+41 00 000 00 00' },
-        { key:'type', label:t.fType, editor:'select', options:typeOptions, icon:'user', half:true },
-        { key:'company', label:t.fCompany, half:true, hint:t.hCompany },
-        { key:'since', label:t.fSince, editor:'date', half:true, icon:'calendar' },
-        { key:'trips', label:t.fTrips, editor:'number', min:0, half:true },
-        { key:'note', label:t.fNote, editor:'area', hint:t.hNote },
+        { key:'since', label:t.fSince, half:true, icon:'calendar', readonly:true },
       ],
       searchKeys: ['name','email','phone','company'],
     };

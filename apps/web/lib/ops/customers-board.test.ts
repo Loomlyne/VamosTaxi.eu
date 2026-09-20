@@ -30,7 +30,9 @@ describe("ops customers board", () => {
     const src = readWeb("lib/ops/customers.ts");
     expect(src).toMatch(/export async function upsertCustomer/);
     expect(src).toMatch(/phone: asTrimmed\(rec\.phone\)/);
-    expect(src).toMatch(/company: asTrimmed\(rec\.company\)/);
+    expect(src).not.toMatch(/company: asTrimmed\(rec\.company\)/);
+    expect(src).not.toMatch(/type = excluded\.type/);
+    expect(src).not.toMatch(/company_name = \$\{input\.company\}/);
     expect(src).toMatch(/on conflict \(email\) where erased_at is null do update set/);
     expect(detail).toMatch(/upsertCustomer/);
     expect(detail).toMatch(/export async function PATCH/);
@@ -62,8 +64,22 @@ describe("ops customers board", () => {
     expect(html).toMatch(/customers\.update/);
     expect(html).toMatch(/historyRows/);
     expect(html).toMatch(/history-label/);
-    expect(html).toMatch(/#detail\//);
+    expect(html).toMatch(/\/bookings\/' \+ encodeURIComponent\(b\.id\)/);
     expect(html).not.toMatch(/Traveller/);
+  });
+
+  it("customer editor keeps identity fields and drops type, trips, note, company", () => {
+    const html = readRepo("app/ops/OpsCustomers.dc.html");
+    expect(html).toMatch(/key:'name', label:t\.fName/);
+    expect(html).toMatch(/key:'email', label:t\.fEmail/);
+    expect(html).toMatch(/key:'phone', label:t\.fPhone/);
+    expect(html).toMatch(/key:'since', label:t\.fSince, half:true, icon:'calendar', readonly:true/);
+    expect(html).not.toMatch(/key:'type', label:t\.fType/);
+    expect(html).not.toMatch(/key:'trips', label:t\.fTrips/);
+    expect(html).not.toMatch(/key:'note', label:t\.fNote/);
+    expect(html).not.toMatch(/key:'company', label:t\.fCompany/);
+    expect(html).not.toMatch(/hNote:'Anything a dispatcher should know before the call\.'/);
+    expect(html).toMatch(/const patch = \{ id: row\.id, name: row\.name, email: row\.email, phone: row\.phone \}/);
   });
 
   it("OpsDetail Cancel recaps then PATCHes cancelled; History tab is gone", () => {

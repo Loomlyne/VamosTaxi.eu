@@ -34,6 +34,16 @@
     return false;
   }
 
+  function sourceUrlPayload(value) {
+    var u = String(value || "").trim();
+    if (!u) return null;
+    try {
+      var parsed = new URL(u);
+      if ((parsed.protocol === "http:" || parsed.protocol === "https:") && parsed.hostname) return u;
+    } catch (e) {}
+    return null;
+  }
+
   function api(method, path, body) {
     var client = window.VamosOpsApi;
     if (client && typeof client.request === "function") {
@@ -95,8 +105,8 @@
       rating: r.rating,
       routeLabel: r.route || "",
       vehicleClassId: r.vehicleClassId || null,
-      avatarPath: r.avatar || null,
-      sourceUrl: r.url || null,
+      avatarPath: null,
+      sourceUrl: sourceUrlPayload(r.url),
       source: r.source || "manual",
       verified: !!r.verified,
       published: r.published !== false,
@@ -192,10 +202,21 @@
         return previous.slice();
       }
       if (Object.keys(body).length === 1 && Object.prototype.hasOwnProperty.call(body, "published")) {
-        api("PATCH", base + "/" + encodeURIComponent(id), { published: !!body.published }).then(function (json) {
-          afterWrite(json, previous, previous);
+        if (!id) return previous.slice();
+        var published = !!body.published;
+        var nextPublished = previous.map(function (r) {
+          if (r.id !== id) return r;
+          var copy = {};
+          for (var k in r) copy[k] = r[k];
+          copy.published = published;
+          return copy;
         });
-        return previous.slice();
+        list = nextPublished;
+        emit();
+        api("PATCH", base + "/" + encodeURIComponent(id), { published: published }).then(function (json) {
+          afterWrite(json, previous, nextPublished);
+        });
+        return nextPublished.slice();
       }
       var current = null;
       var i;

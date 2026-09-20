@@ -1,105 +1,209 @@
 ---
-status: complete
+status: testing
 phase: 16-staging-mx-end-to-end-uat
 source:
   - 16-01-SUMMARY.md
   - 16-02-SUMMARY.md
   - 16-03-SUMMARY.md
-started: 2026-09-18T10:00:00Z
-updated: 2026-09-18T13:10:39Z
+started: 2026-09-19T13:23:30Z
+updated: 2026-09-19T13:29:00Z
 ---
 
-# Phase 16 UAT — staging MX + Reply-in-Gmail
+# Phase 16 UAT — staging MX + Reply-in-Gmail (INB-01)
 
-Agent never opens Gmail. After Koss says sent, agent confirms on `https://dashboard.vamostaxi.site` Support rail (not `#support` typed, not Staff). Public form: `https://vamostaxi.site/contact`.
+This file is the live script. Do not invent pass. Record only what this sitting observed.
 
-If inbound never arrives after MX cut: stop, revert `replies.` MX to `inbound-smtp.ap-northeast-1.amazonaws.com` (D-08), then debug.
+Agent surface: Hermes in-app browser only.
+- Public: https://vamostaxi.site/contact
+- Ops: https://dashboard.vamostaxi.site then click Support in the left rail
+- Never type #support. Never Staff. Never open Gmail. Never Brave / OS browser.
+
+Koss surface: his real Gmail. Every Gmail / info@ step is `awaiting: user`. Stop and wait.
+
+Prior sitting 2026-09-18 is recorded in 16-04-SUMMARY.md (TKT-8EC98A6D). This script still needs a **new** /contact this sitting. Do not reuse that ticket as the INB-01 proof.
 
 ## Current Test
 
-number: 9
-name: No-token drop
+number: 3
+name: New /contact this sitting (D-12)
 expected: |
-  Mail to replies.vamostaxi.site with no TKT- / ticket+ / RFC match does not create or append a ticket.
+  Public page shows "Your message has been accepted for delivery. Our team will review it."
+  Write down the wall-clock time (Zurich). That row must appear as a new Support ticket in test 4.
+
+## Rules
+
+- One numbered action + expected per step below. Do not skip to a checkpoint.
+- If inbound never arrives after staff Send + Koss Reply: run **Fallback F** immediately. Do not leave a dead Resend MX. Do not touch vamostaxi.eu DNS. Do not push main.
+- Do not enable receiving.forward. Do not add Support chrome.
 
 ## Tests
 
 ### 1. Public DNS (D-03 D-05 D-17)
 who: agent
-action: `dig +short MX replies.vamostaxi.site`; `dig +short MX vamostaxi.site`; `dig +short MX vamostaxi.eu`
-expected: replies MX is the Resend receiving hostname copied in `docs/ops/replies-mx.md` (ap-northeast-1 inbound-smtp). Apex empty. `.eu` still `10 mail.vamostaxi.eu.`
+action: |
+  1. In the repo terminal (not a browser): `dig +short MX replies.vamostaxi.site`
+  2. `dig +short MX vamostaxi.site`
+  3. `dig +short MX vamostaxi.eu`
+expected: |
+  replies MX is `10 inbound-smtp.ap-northeast-1.amazonaws.com.` (Resend receiving hostname copied in docs/ops/replies-mx.md).
+  Apex `vamostaxi.site` MX is empty.
+  `vamostaxi.eu` is still `10 mail.vamostaxi.eu.`
 result: pass
-reported: "replies 10 inbound-smtp.ap-northeast-1.amazonaws.com.; apex empty; eu 10 mail.vamostaxi.eu."
+observed: |
+  2026-09-19 15:29 CEST this sitting:
+  replies: `10 inbound-smtp.ap-northeast-1.amazonaws.com.`
+  apex `vamostaxi.site`: empty
+  `vamostaxi.eu`: `10 mail.vamostaxi.eu.`
 
 ### 2. Unsigned webhook (D-07)
 who: agent
-action: `curl -sS -o /dev/null -w '%{http_code}' -X POST https://vamostaxi.site/api/webhooks/resend -H 'content-type: application/json' -d '{}'`
-expected: `400`
+action: |
+  1. `curl -sS -o /tmp/vt-16-uat-webhook.txt -w '%{http_code}' -X POST https://vamostaxi.site/api/webhooks/resend -H 'content-type: application/json' -d '{}'`
+  2. Print the HTTP code and the body file.
+expected: HTTP `400`. Body mentions invalid / missing signature. Not 200. Not 503.
 result: pass
-reported: "400 invalid (reconfirmed 2026-09-18T12:25Z)"
+observed: |
+  2026-09-19 15:29 CEST this sitting:
+  POST https://vamostaxi.site/api/webhooks/resend unsigned `{}` → HTTP 400 body `invalid`.
 
 ### 3. New /contact this sitting (D-12)
-who: agent may drive public form; Koss may type
-action: Open `https://vamostaxi.site/contact`. Submit a new message this sitting (unique subject/body so it is findable).
-expected: confirmation on the public page. A new ticket appears on dashboard Support.
-result: pass
-reported: "Message received. ticket 8ec98a6d-d411-4ecb-b1eb-6e650290fe87 koussayzayani8@gmail.com"
+who: agent (Hermes in-app browser). Koss may type if the agent cannot complete Turnstile.
+action: |
+  1. Open https://vamostaxi.site/contact in the Hermes in-app browser.
+  2. Expected on screen: heading "Send us a message", fields Name / Email / Phone / Booking reference / message, button "Send message".
+  3. Type Name: `INB-01 UAT`
+  4. Type Email: the Gmail address Koss will Reply from this sitting. Do not invent an address. Ask Koss if unknown.
+  5. Leave Phone and Booking reference empty.
+  6. Type message: `INB-01 UAT 2026-09-19 — unique body, find me on Support`
+  7. Click "Send message". Complete Turnstile if it appears (Koss if human/challenge).
+expected: |
+  Public page shows "Your message has been accepted for delivery. Our team will review it."
+  Write down the wall-clock time (Zurich). That row must appear as a new Support ticket in test 4.
+result: pending
 
 ### 4. Staff Send (D-01 D-10)
-who: agent
-action: Open `https://dashboard.vamostaxi.site`. Sign in. Support rail. Open the new ticket. Type a reply. Send.
-expected: overlay shows the staff bubble. No new chrome. From is `TKT-{id}@replies.vamostaxi.site` (board id). Plus-token still matches old Replies.
-result: pass
-reported: "From/Reply-To TKT-8EC98A6D@replies.vamostaxi.site. Worker vamos 23e088fe."
+who: agent (Hermes in-app browser)
+action: |
+  1. Open https://dashboard.vamostaxi.site in the Hermes in-app browser.
+  2. If Dispatch sign in: fill the staff email, then Bitwarden-fill the password. Never type a password. Never ask Koss to paste it in chat.
+  3. After the console loads, click **Support** in the left rail. Do not type #support. Confirm there is no Staff tab.
+  4. Find the new card from test 3 (name INB-01 UAT / the Gmail used). Click that card.
+  5. Overlay opens. Confirm the first bubble is the contact body from test 3.
+  6. Type in "Write a reply…": `Phase 16 INB-01 staff Send`
+  7. Click **Send**. Wait until the staff bubble is in the thread. Do not click Send again.
+expected: |
+  Same overlay, no new chrome. Staff bubble "Phase 16 INB-01 staff Send" is visible.
+  From for that mail is `TKT-{first 8 of uuid}@replies.vamostaxi.site` (board id). Write the TKT- id here when seen.
+  No "Couldn't send" error. If send fails, stop — do not invent pass.
+result: pending
 
-### 5. info@ copy bar (D-09 D-10)
+### 5. info@ copy bar after Send (D-09 D-10)
 who: Koss
-action: Check `info@` Gmail. Agent does not open Gmail.
-expected: contact intake + staff Send BCC only. Matched inbound is not forwarded to info@.
-result: pass
-reported: "Owner 2026-09-18: info@ inbox not created yet — mark as pass for now. Do not block Phase 16 on creating that mailbox."
+awaiting: user
+action: |
+  1. Agent says: check info@ Gmail for this sitting. Agent does not open Gmail.
+  2. Koss looks at info@ only.
+expected: |
+  Contact intake for the test 3 message and/or staff Send BCC only.
+  No customer inbound copy. No receiving.forward.
+  Koss replies in this chat with what he sees (or "info@ inbox not created").
+result: pending
 
-### 6. Gmail Reply with image + PDF + script text (D-11 D-14 D-16 INB-01)
+### 6. Gmail Reply — image + PDF + script text (D-11 D-14 D-16 INB-01)
 who: Koss
-action: In Gmail, Reply to the staff mail. Attach one image and one PDF. Body includes the exact text `<script>alert(1)</script>`. Send. Tell the agent “sent”.
-expected: same ticket (INB-01). Agent does not open Gmail.
-result: pass
-reported: "INB-01 live: same ticket 8ec98a6d… status responded, 4 messages, jpeg+PDF kept. Script string was not in that Reply; XSS is test 7."
+awaiting: user
+action: |
+  1. Agent says: in Gmail, open the staff mail from test 4. From must be `TKT-________@replies.vamostaxi.site` (fill from test 4). Click Reply. Do not compose a new message to info@.
+  2. Attach one image (jpeg/png) and one PDF.
+  3. Body must include the exact characters `<script>alert(1)</script>` (plain text, not a Gmail HTML widget).
+  4. Send. Tell the agent **sent**.
+  5. Agent never opens Gmail. Agent does not click Gmail links.
+expected: |
+  Koss says **sent**. Same ticket will be confirmed in test 7 (INB-01). If he cannot Reply, stop — do not invent sent.
+result: pending
 
-### 7. Dashboard confirm after sent (D-15 D-14 D-16)
+### 7. Dashboard confirm after sent (INB-01 D-15 D-14 D-16)
 who: agent, only after Koss says sent
-action: Refresh/focus dashboard Support. Open the same ticket overlay. Click the PDF button.
-expected: new customer bubble on the same ticket. Script text is escaped (not executed). Image and PDF are thread buttons. Nested overlay: pages only, scroll, no PDF viewer chrome.
-result: pass
-reported: "Owner shot 2026-09-18 14:34 Zurich: customer bubble shows Body must be exactly <script>alert(1)</script> as text. No alert. jpeg button on that bubble."
+action: |
+  1. If inbound has not appeared after ~2 minutes, run Fallback F. Do not keep waiting on a dead MX.
+  2. Hermes in-app browser: https://dashboard.vamostaxi.site → click Support (do not type #support).
+  3. Open the **same** ticket from test 4 (same TKT- id). Do not open a different new card.
+  4. Read the newest customer bubble. Confirm the script string is visible as text.
+  5. Click the image filename button on that bubble. Nested overlay `vt-file-preview` shows the image. Close the preview.
+  6. Click the PDF filename button. Nested overlay shows PDF pages (canvas), scrollable, no Chrome PDF toolbar/thumbs/zoom chrome.
+expected: |
+  INB-01: same ticket, new customer bubble. Status Responded.
+  `<script>alert(1)</script>` is escaped / shown as text. No JS alert. No innerHTML execute.
+  Image preview works. PDF pages-only preview works (download/filename still on the button).
+  Fail if a second ticket was created for the Reply.
+result: pending
 
 ### 8. Closed → Reply → Responded (D-13)
 who: agent Closes; Koss Replies; agent confirms
-action: Agent clicks Close Ticket. Koss Replies again in Gmail (say “sent”). Agent confirms overlay.
-expected: Closed then inbound Reply becomes Responded. Same ticket.
-result: pass
-reported: "Owner: reopened. Hosted ticket_status responded. New inbound 31770cfe body Ok open at 13:10:39Z."
+action: |
+  1. Agent, same overlay: click **Close Ticket**. Status becomes Closed. Reply box is replaced by "This ticket is closed. Reopen it to keep working."
+  2. Agent stops. awaiting: user
+  3. Koss: in Gmail, Reply again to the same thread (short body `Ok open`). No need for new files. Send. Tell the agent **sent**. Agent does not open Gmail.
+  4. After sent: agent refreshes Support, opens the **same** TKT- overlay.
+expected: |
+  Closed then inbound Reply becomes Responded on the same ticket. New inbound bubble with `Ok open`.
+  Fail if status stays Closed, or a new ticket appears.
+result: pending
+awaiting: user
 
 ### 9. No-token drop (D-14)
-who: Koss (or throwaway)
-action: Send mail to an address on `replies.vamostaxi.site` with no `ticket+{32hex}` token, no `TKT-{8hex}`, and no RFC In-Reply-To match.
-expected: board does not gain a ticket; existing tickets do not append.
-result: pass
-reported: "Received 35abd856 drop@replies. Logged inbound_events. Zero support_messages for that id. TKT-8EC98A6D still 6 messages. No new contact_submissions."
+who: Koss (or a throwaway mailbox he controls)
+awaiting: user
+action: |
+  1. Agent says: send a new mail To `drop@replies.vamostaxi.site` (no `ticket+{32hex}`, no `TKT-{8hex}`, no In-Reply-To of the staff mail). Any short body. Tell the agent **sent**.
+  2. Agent never opens Gmail.
+  3. After sent: agent on Support confirms no new card for that From/subject, and the test 4 ticket message count did not grow.
+expected: |
+  Board does not gain a ticket. Existing tickets do not append. Optional SQL: `support_inbound_events` may log a drop; `support_messages` for that email_id is zero.
+result: pending
 
 ### 10. info@ inbound not forwarded (D-09 D-10)
 who: Koss
-action: Confirm `info@` after steps 6–9.
-expected: still only intake + staff BCC. No inbound customer copy.
-result: pass
-reported: "Owner 2026-09-18: info@ inbox not created yet — mark as pass for now. Same mailbox as test 5."
+awaiting: user
+action: |
+  1. Agent says: check info@ again after tests 6–9. Agent does not open Gmail.
+expected: |
+  Still only intake + staff BCC from this sitting. No copy of the customer Reply, the Closed Reply, or the no-token drop.
+result: pending
+
+### 11. Live-pass grep (INB-01 / Closed→Responded)
+who: agent
+action: |
+  1. Only after tests 7 and 8 have a real `result:` from this sitting (Koss said sent + overlay matched). Do not type pass into those tests to satisfy this grep.
+  2. From repo root: `grep -E 'INB-01|Closed.?Responded' .planning/phases/16-staging-mx-end-to-end-uat/16-UAT.md | grep -i pass`
+expected: |
+  Output includes an INB-01 pass line (test 7) and a Closed→Responded pass line (test 8).
+  Empty grep = not passed. Do not invent those lines.
+result: pending
+
+## Fallback F — inbound never arrives (D-08)
+
+Run only if test 6/8 was sent and the overlay never gets the customer bubble. Owner wait, not a product-failure card unless MX revert itself fails.
+
+who: agent (Cloudflare zone vamostaxi.site only)
+action: |
+  1. Stop UAT. Do not keep Send/Reply retries.
+  2. Revert `replies` MX to SES: type MX, name `replies`, priority 10, content `inbound-smtp.ap-northeast-1.amazonaws.com`.
+  3. Delete leftover Resend MX on `replies` so it is not dual-MX.
+  4. Do not add apex MX. Do not touch vamostaxi.eu. Do not push main.
+  5. Then debug (webhook 400 still, Resend receiving, Worker vamos). Do not flip MX forward again in this file without a new debug note.
+expected: |
+  `dig +short MX replies.vamostaxi.site` is again `10 inbound-smtp.ap-northeast-1.amazonaws.com.`
+  Apex still empty. `.eu` still `10 mail.vamostaxi.eu.`
+  Record test 7/8 as blocked, not pass.
+result: pending
 
 ## Summary
 
-total: 10
-passed: 10
+total: 11
+passed: 2
 issues: 0
-pending: 0
+pending: 9
 skipped: 0
 blocked: 0
 

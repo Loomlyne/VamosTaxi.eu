@@ -13,7 +13,8 @@
 [data-vt-photo-sq] img{inline-size:100%;block-size:100%;object-fit:cover;display:block}
 [data-vt-photo-pick]{position:relative;display:inline-flex;align-items:center;cursor:pointer}
 [data-vt-photo-pick] input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);border:0;white-space:nowrap}
-[data-vt-date],[data-vt-time],[data-vt-step],[data-vt-year],[data-vt-phone]{display:flex;flex-direction:column;gap:6px;min-width:0}
+[data-vt-date],[data-vt-time],[data-vt-step],[data-vt-year],[data-vt-phone],[data-vt-ro]{display:flex;flex-direction:column;gap:6px;min-width:0}
+[data-vt-ro-wrap]{box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;height:44px;padding:0 14px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-pill);background:var(--vt-grey-50);color:var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium);cursor:default;pointer-events:none}
 [data-vt-step-wrap]{box-sizing:border-box;display:flex;align-items:center;height:44px;padding:4px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-pill);background:var(--vt-white)}
 [data-vt-step-wrap]:focus-within{border-color:var(--vt-charcoal-900)}
 [data-vt-step-btn]{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:999px;cursor:pointer;color:var(--vt-charcoal-900);flex:0 0 auto}
@@ -163,6 +164,16 @@
 
 <sc-if value="{{ f.isText }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" icon="{{ f.inputIcon }}" label="{{ f.label }}" value="{{ f.value }}" onChange="{{ f.set }}" placeholder="{{ f.placeholder }}" hint="{{ f.hint }}" error="{{ f.error }}" suffix="{{ f.suffix }}" required="{{ f.required }}" hint-size="100%,76px"></x-import>
+</sc-if>
+
+<sc-if value="{{ f.isReadonly }}" hint-placeholder-val="{{ false }}">
+<div data-vt-ro="1">
+<span data-fld-l="1">{{ f.label }}</span>
+<div data-vt-ro-wrap="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ f.inputIcon }}" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
+<span data-vt-date-label="1">{{ f.roLabel }}</span>
+</div>
+</div>
 </sc-if>
 
 <sc-if value="{{ f.isLicence }}" hint-placeholder-val="{{ false }}">
@@ -415,8 +426,9 @@
 
    columns: [{ key, header, width, align, kind, subKey, tones, emptyLabel, prefix }]
      kind  'text' | 'stack' | 'mono' | 'badge' | 'money' | 'need' | 'bool'
-   fields:  [{ key, label, editor, options, placeholder, hint, required, half, icon }]
-     editor 'text' | 'number' | 'year' | 'phone' | 'date' | 'time' | 'select' | 'switch' | 'area' | 'photo' */
+   fields:  [{ key, label, editor, options, placeholder, hint, required, half, icon, readonly }]
+     editor 'text' | 'number' | 'year' | 'phone' | 'date' | 'time' | 'select' | 'switch' | 'area' | 'photo'
+     readonly skips every editor and paints a non-interactive value (customer since). */
 /* A leading icon is what makes a console field read like the client-facing ones on the
    booking widget, so the schema's key picks the same glyph the front page uses. */
 const WD_EN = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
@@ -510,7 +522,7 @@ const FIELD_ICONS = {
   id:'receipt', ref:'receipt', reference:'receipt', code:'ticket',
   name:'user', customer:'user', contact:'user', company:'briefcase',
   email:'mail', phone:'phone', licence:'shield-check',
-  date:'calendar', time:'clock', expires:'calendar', from:'clock', to:'clock', year:'calendar',
+  date:'calendar', time:'clock', expires:'calendar', since:'calendar', from:'clock', to:'clock', year:'calendar',
   languages:'globe', flight:'plane',
   pickup:'map-pin', dropoff:'map-pin', address:'map-pin', route:'navigation',
   plate:'car', model:'car', vehicle:'car', licence:'shield-check', chauffeur:'users',
@@ -1111,13 +1123,14 @@ class Component extends DCLogic {
       const raw = d[f.key] !== undefined ? d[f.key] : f.value;
       const val = raw === undefined || raw === null ? '' : raw;
       const err = this.state.errors[f.key] || '';
-      const isDate = f.editor === 'date';
-      const isTime = f.editor === 'time';
-      const isYear = f.editor === 'year' || f.key === 'year';
-      const isPhone = f.editor === 'phone' || f.key === 'phone';
-      const isLicence = f.editor === 'licence' || f.key === 'licence';
-      const isIconGrid = f.editor === 'iconGrid';
-      const isAmountKind = f.editor === 'amountKind';
+      const isReadonly = !!f.readonly;
+      const isDate = !isReadonly && f.editor === 'date';
+      const isTime = !isReadonly && f.editor === 'time';
+      const isYear = !isReadonly && (f.editor === 'year' || f.key === 'year');
+      const isPhone = !isReadonly && (f.editor === 'phone' || f.key === 'phone');
+      const isLicence = !isReadonly && (f.editor === 'licence' || f.key === 'licence');
+      const isIconGrid = !isReadonly && f.editor === 'iconGrid';
+      const isAmountKind = !isReadonly && f.editor === 'amountKind';
       const kindKey = f.kindKey || 'kind';
       const kindValue = String(d[kindKey] == null || d[kindKey] === '' ? 'percent' : d[kindKey]);
       const minN = f.min === undefined ? 0 : f.min;
@@ -1158,16 +1171,18 @@ class Component extends DCLogic {
         options: f.options || [],
         multi: !!f.multi,
         inputIcon: f.icon || FIELD_ICONS[f.key] || '',
-        isText: !isDate && !isTime && !isYear && !isPhone && !isLicence && !isIconGrid && !isAmountKind && (f.editor === undefined || f.editor === 'text'),
-        isNumber: f.editor === 'number',
+        isReadonly,
+        isText: !isReadonly && !isDate && !isTime && !isYear && !isPhone && !isLicence && !isIconGrid && !isAmountKind && (f.editor === undefined || f.editor === 'text'),
+        isNumber: !isReadonly && f.editor === 'number',
+        roLabel: parts ? boardDate(parts) : (String(val).trim() ? String(val) : '—'),
         isYear, isPhone, isLicence,
         isDate, isTime,
-        isSelect: f.editor === 'select',
+        isSelect: !isReadonly && f.editor === 'select',
         isIconGrid,
         isAmountKind,
-        isSwitch: f.editor === 'switch',
-        isArea: f.editor === 'area',
-        isPhoto: f.editor === 'photo',
+        isSwitch: !isReadonly && f.editor === 'switch',
+        isArea: !isReadonly && f.editor === 'area',
+        isPhoto: !isReadonly && f.editor === 'photo',
         iconOptions: (f.options || []).map((o) => ({
           value: o.value,
           label: o.label,

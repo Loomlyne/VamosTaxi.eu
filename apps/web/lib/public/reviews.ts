@@ -68,7 +68,7 @@ export async function loadPublishedReviews(env: CloudflareEnv): Promise<PublicRe
     rating: row.rating,
     routeLabel: row.route_label,
     vehicleClassSlug: row.vehicle_class_slug,
-    avatarPath: row.avatar_path,
+    avatarPath: null,
     sourceUrl: row.source_url,
     verified: row.verified,
     published: row.published,
