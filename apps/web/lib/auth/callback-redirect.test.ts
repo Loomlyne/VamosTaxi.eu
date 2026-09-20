@@ -246,5 +246,12 @@ describe("webhook and email-hook no-store", () => {
     const invite = readFileSync(join(root, "app/api/checkout/invite/[ref]/route.ts"), "utf8");
     expect(invite).toContain("private, no-store");
     expect(invite).not.toContain("new Response(null, { status: 404 })");
+    const stripe = readFileSync(join(root, "lib/checkout/webhook.ts"), "utf8");
+    expect(stripe).toContain("private, no-store");
+    expect(stripe).not.toContain("new Response(null, { status: 400 })");
+    const photos = readFileSync(join(root, "app/photos/[key]/route.ts"), "utf8");
+    expect(photos).toContain("private, no-store");
+    const smoke = readFileSync(join(root, "app/api/dev/db-smoke/route.ts"), "utf8");
+    expect(smoke).toContain("private, no-store");
   });
 });
