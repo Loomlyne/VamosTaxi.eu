@@ -141,4 +141,15 @@ describe("dc mock URL gate", () => {
       "https://vamostaxi.site/contact",
     );
   });
+
+  it("ops-changes workers.dev is not a dashboard host (K93)", () => {
+    expect(
+      gatePublicRequest(
+        doc("/login", { host: "vamos-ops-changes.koussayzayeni.workers.dev" }),
+      ),
+    ).toBe("not-found");
+    expect(
+      gatePublicRequest(doc("/login", { host: "dashboard.vamostaxi.site" })),
+    ).toBeNull();
+  });
 });

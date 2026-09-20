@@ -89,12 +89,7 @@ function stripAssetExt(pathname: string): string {
 
 function isDashboardHost(hostname: string): boolean {
   const host = hostname.split(":")[0]?.toLowerCase() ?? "";
-  return (
-    host === "dashboard.vamostaxi.site" ||
-    host === "dashboard.localhost" ||
-    host === "vamos-ops-changes.koussayzayeni.workers.dev" ||
-    host.endsWith("-vamos-ops-changes.koussayzayeni.workers.dev")
-  );
+  return host === "dashboard.vamostaxi.site" || host === "dashboard.localhost";
 }
 
 function isDocumentNav(request: Request): boolean {

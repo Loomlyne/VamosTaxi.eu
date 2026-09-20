@@ -56,6 +56,17 @@ describe("pinUrlToSurface", () => {
         .hostname,
     ).toBe("vamostaxi.site");
   });
+  it("public pins leftover ops-changes Host to apex (K93)", () => {
+    expect(
+      pinUrlToSurface(
+        new URL("https://vamos-ops-changes.koussayzayeni.workers.dev/login"),
+        "public",
+      ).hostname,
+    ).toBe("vamostaxi.site");
+    expect(
+      pinUrlToSurface(new URL("https://evil.example/about"), "public").hostname,
+    ).toBe("vamostaxi.site");
+  });
   it("dashboard ignores Host apex", () => {
     const url = new URL("https://vamostaxi.site/about");
     expect(pinUrlToSurface(url, "dashboard").hostname).toBe(

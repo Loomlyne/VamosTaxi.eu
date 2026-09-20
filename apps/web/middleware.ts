@@ -205,18 +205,9 @@ function isOpsExempt(pathname: string): boolean {
  * `/ops/*` as the dashboard so the gate can be exercised without a
  * hosts-file entry. Do not bind vamostaxi.eu.
  */
-function isOpsChangesPreviewHost(host: string): boolean {
-  return host === "vamos-ops-changes.koussayzayeni.workers.dev"
-    || host.endsWith("-vamos-ops-changes.koussayzayeni.workers.dev")
-    || host === "vamos-web-ops-changes.koussayzayeni.workers.dev"
-    || host.endsWith("-vamos-web-ops-changes.koussayzayeni.workers.dev");
-}
-
 function isNamedDashboardHost(request: NextRequest): boolean {
   const host = hostnameOf(request);
-  return host === "dashboard.vamostaxi.site"
-    || host === "dashboard.localhost"
-    || isOpsChangesPreviewHost(host);
+  return host === "dashboard.vamostaxi.site" || host === "dashboard.localhost";
 }
 
 function isDashboardHost(request: NextRequest): boolean {

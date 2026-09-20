@@ -17,19 +17,10 @@ function hostnameOf(hostHeader: string | null | undefined): string {
   return (hostHeader ?? "").split(":")[0]?.toLowerCase() ?? "";
 }
 
-function isOpsChangesPreviewHost(host: string): boolean {
-  return host === "vamos-ops-changes.koussayzayeni.workers.dev"
-    || host.endsWith("-vamos-ops-changes.koussayzayeni.workers.dev")
-    || host === "vamos-web-ops-changes.koussayzayeni.workers.dev"
-    || host.endsWith("-vamos-web-ops-changes.koussayzayeni.workers.dev");
-}
-
 /** Match middleware isNamedDashboardHost. Public site hosts are false. */
 export function isNamedDashboardHost(hostHeader: string | null | undefined): boolean {
   const host = hostnameOf(hostHeader);
-  return host === "dashboard.vamostaxi.site"
-    || host === "dashboard.localhost"
-    || isOpsChangesPreviewHost(host);
+  return host === "dashboard.vamostaxi.site" || host === "dashboard.localhost";
 }
 
 function stubRouteLegs(legs: RouteLegInput[]) {

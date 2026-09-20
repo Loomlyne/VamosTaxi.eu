@@ -53,12 +53,19 @@ export function pinUrlToSurface(
     next.hostname = DASHBOARD_HOST;
     return next;
   }
-  if (host === DASHBOARD_HOST) {
-    const next = new URL(url.toString());
-    next.hostname = APEX_HOST;
-    return next;
+  // Public Worker: only apex/www/loopback are public hosts. Host spoof of
+  // dashboard or leftover ops-changes.workers.dev must not take the console.
+  if (
+    host === APEX_HOST ||
+    host === "www.vamostaxi.site" ||
+    host === "localhost" ||
+    host === "127.0.0.1"
+  ) {
+    return url;
   }
-  return url;
+  const next = new URL(url.toString());
+  next.hostname = APEX_HOST;
+  return next;
 }
 
 /**
