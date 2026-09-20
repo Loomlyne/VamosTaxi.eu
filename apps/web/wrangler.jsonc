@@ -87,9 +87,9 @@
     "staging": {
       "name": "vamos",
       // Public hostname is vamostaxi.site (zone f0119383…). vamostaxi.eu
-      // is abandoned — no access, never bind it. workers.dev stays on so
-      // staging probes still work. Do not deploy env.production.
-      "workers_dev": true,
+      // is abandoned — no access, never bind it. K88: workers.dev off on
+      // this live Worker — custom domains only. Do not deploy env.production.
+      "workers_dev": false,
       "routes": [
         { "pattern": "vamostaxi.site", "custom_domain": true },
         { "pattern": "www.vamostaxi.site", "custom_domain": true }

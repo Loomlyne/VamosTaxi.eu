@@ -3,7 +3,7 @@
   "name": "vamos-dashboard",
   "main": "dashboard-gateway.ts",
   "compatibility_date": "2026-08-20",
-  "workers_dev": true,
+  "workers_dev": false,
   // Custom domain only. Empty zone Workers Routes stay empty.
   // Never bind vamostaxi.site or www. Never bind vamos-ops-changes.
   "routes": [

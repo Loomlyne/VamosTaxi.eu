@@ -18,6 +18,7 @@ describe("K76 split Workers", () => {
       wrangler.indexOf('"ops-changes"'),
     );
     expect(staging).toMatch(/"VAMOS_SURFACE":\s*"public"/);
+    expect(staging).toMatch(/"workers_dev":\s*false/);
     expect(staging).not.toMatch(
       /"pattern":\s*"dashboard\.vamostaxi\.site"/,
     );
@@ -28,6 +29,7 @@ describe("K76 split Workers", () => {
   it("vamos-dashboard binds dashboard only and service-binds Dashboard entrypoint", () => {
     const dash = source("wrangler.dashboard.jsonc");
     expect(dash).toMatch(/"name":\s*"vamos-dashboard"/);
+    expect(dash).toMatch(/"workers_dev":\s*false/);
     expect(dash).toMatch(/"pattern":\s*"dashboard\.vamostaxi\.site"/);
     expect(dash).not.toMatch(/"pattern":\s*"vamostaxi\.site"/);
     expect(dash).toMatch(/"service":\s*"vamos"/);

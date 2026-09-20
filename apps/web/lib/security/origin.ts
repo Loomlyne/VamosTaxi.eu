@@ -8,7 +8,6 @@ export const AUTH_CSRF_HOSTS = new Set([
   ...Array.from(PUBLIC_CSRF_HOSTS),
   "dashboard.vamostaxi.site",
   "dashboard.localhost",
-  "vamos.koussayzayeni.workers.dev",
 ]);
 
 function hostnameAllowed(hostname: string, hosts: Set<string>): boolean {
