@@ -164,5 +164,9 @@ describe("robots disallows D-31 (D-31)", () => {
     expect(config).toMatch(/source:\s*"\/sign-in"/);
     expect(config).toMatch(/source:\s*"\/reset-password"/);
     expect(config).toMatch(/source:\s*"\/manage-booking"/);
+    expect(mw).toContain('"/account"');
+    expect(mw).toContain('"/bookings"');
+    expect(config).toMatch(/source:\s*"\/account"/);
+    expect(config).toMatch(/source:\s*"\/bookings"/);
   });
 });
