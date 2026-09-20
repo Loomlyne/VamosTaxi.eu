@@ -46,7 +46,7 @@ type ExtraRow = {
 function json(body: unknown, status = 200, rawToken = ""): Response {
   const res = NextResponse.json(body, {
     status,
-    headers: { "cache-control": "no-store" },
+    headers: { "cache-control": "private, no-store" },
   });
   if (rawToken && status === 200) {
     res.cookies.set(MANAGE_COOKIE_NAME, rawToken, {

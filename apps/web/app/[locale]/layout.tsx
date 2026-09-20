@@ -65,7 +65,10 @@ export default async function LocaleLayout({
   const hasConsent = Boolean(
     readConsentSubject(consentValue ? `${CONSENT_COOKIE}=${consentValue}` : null),
   );
-  const onDashboard = isDashboardHost((await headers()).get("host"));
+  const headerList = await headers();
+  const onDashboard = isDashboardHost(
+    headerList.get("x-vamos-request-host") ?? headerList.get("host"),
+  );
   const siteKey = turnstileSiteKey();
   const showBanner = !hasConsent && !onDashboard;
 

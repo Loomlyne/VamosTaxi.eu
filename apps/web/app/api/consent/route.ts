@@ -16,6 +16,7 @@ import {
 } from "@/lib/consent/cookie";
 import { cfConnectingIp, truncateClientIp } from "@/lib/consent/ip";
 import { asAnon } from "@/lib/db/identity";
+import { csrfForbidden } from "@/lib/security/origin";
 import { verifyTurnstile } from "@/lib/turnstile";
 
 export const dynamic = "force-dynamic";
@@ -47,6 +48,8 @@ export function GET(): Response {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const blocked = csrfForbidden(request);
+  if (blocked) return blocked;
   const { env } = getCloudflareContext();
   const bindings = env as unknown as Record<string, string | undefined>;
 

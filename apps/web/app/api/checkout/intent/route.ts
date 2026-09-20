@@ -25,6 +25,7 @@ import { lookupVehicleClassId, snapshotPolicyFromSettings } from "@/lib/checkout
 import { policyHours } from "@/lib/checkout/policy-settings";
 import { mapRateBook } from "@/lib/pricing/rateBook";
 import type { IntentRecompute } from "@/lib/quote/intent";
+import { publicSiteOrigin, csrfForbidden } from "@/lib/security/origin";
 
 export const dynamic = "force-dynamic";
 
@@ -37,14 +38,21 @@ export async function POST(request: Request) {
       JSON.stringify({
         ok: false,
         error: "intent_unhandled",
-        detail: err instanceof Error ? err.message : String(err),
       }),
-      { status: 500, headers: { "content-type": "application/json" } },
+      {
+        status: 500,
+        headers: {
+          "content-type": "application/json",
+          "cache-control": "private, no-store",
+        },
+      },
     );
   }
 }
 
 async function postIntent(request: Request) {
+  const blocked = csrfForbidden(request);
+  if (blocked) return blocked;
   const { env } = getCloudflareContext();
 
   let json: unknown;
@@ -61,7 +69,7 @@ async function postIntent(request: Request) {
   const body = parsed.data;
 
   const stripe = stripeFromEnv(env);
-  const origin = new URL(request.url).origin;
+  const origin = publicSiteOrigin(new URL(request.url).host);
   const current = env.QUOTE_LOCK_SECRET || "";
   const previous = env.QUOTE_LOCK_SECRET_PREVIOUS;
 

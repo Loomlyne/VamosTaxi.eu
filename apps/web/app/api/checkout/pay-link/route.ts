@@ -29,10 +29,13 @@ import { catalogFromSurcharges } from "@/lib/checkout/extras-catalog";
 import { policyHours } from "@/lib/checkout/policy-settings";
 import { mapRateBook } from "@/lib/pricing/rateBook";
 import type { IntentRecompute } from "@/lib/quote/intent";
+import { publicSiteOrigin, csrfForbidden } from "@/lib/security/origin";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
+  const blocked = csrfForbidden(request);
+  if (blocked) return blocked;
   const { env } = getCloudflareContext();
 
   let json: unknown;
@@ -47,7 +50,7 @@ export async function POST(request: Request) {
   const body = parsed.data;
 
   const stripe = stripeFromEnv(env);
-  const origin = new URL(request.url).origin;
+  const origin = publicSiteOrigin(new URL(request.url).host);
   const current = env.QUOTE_LOCK_SECRET || "";
   const previous = env.QUOTE_LOCK_SECRET_PREVIOUS;
 
@@ -181,13 +184,16 @@ export async function POST(request: Request) {
     to,
   );
   if (!sent.ok) {
-    return Response.json({ error: "email_failed", code: "invalid_request" }, { status: 502 });
+    return Response.json({ error: "email_failed", code: "invalid_request" }, { status: 502, headers: { "cache-control": "private, no-store" } });
   }
 
-  return Response.json({
-    ok: true,
-    reference: payload.reference,
-    pay_url: payUrl,
-    expires_at: payload.expires_at,
-  });
+  return Response.json(
+    {
+      ok: true,
+      reference: payload.reference,
+      pay_url: payUrl,
+      expires_at: payload.expires_at,
+    },
+    { headers: { "cache-control": "private, no-store" } },
+  );
 }

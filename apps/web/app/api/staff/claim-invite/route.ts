@@ -4,6 +4,7 @@
 // hook can mint a vamos_role. The SQL function scopes the write to app.uid() and
 // stamps acceptance once. MFA is paused for V1.
 
+import { staffOriginAllowed } from "@/lib/ops/staff-json";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +16,10 @@ function json(body: Record<string, boolean>, status: number): Response {
   });
 }
 
-export async function POST(): Promise<Response> {
+export async function POST(request: Request): Promise<Response> {
+  if (!staffOriginAllowed(request.headers.get("Origin"))) {
+    return json({ ok: false }, 403);
+  }
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },

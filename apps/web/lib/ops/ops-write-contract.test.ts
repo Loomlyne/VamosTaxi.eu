@@ -100,7 +100,7 @@ describe("ops write contract", () => {
     const calendar = readRepo("app/ops/OpsCalendar.dc.html");
     expect(board).toMatch(/editorSave: \(rec\) => ops \? ops\.bookings\.upsert\(rec\) : null/);
     expect(coupons).toMatch(/onSave: \(rec\) => ops \? ops\.coupons\.upsert\(rec\) : null/);
-    expect(customers).toMatch(/return ops\.customers\.upsert\(row\)/);
+    expect(customers).toMatch(/return ops\.customers\.upsert\(patch\)/);
     expect(pricing).toMatch(/return ops\.routes\.upsert\(patch\)/);
     expect(calendar).toMatch(/onSave: \(rec\) => ops \? ops\.bookings\.upsert\(rec\) : null/);
   });

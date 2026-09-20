@@ -7,13 +7,16 @@
 
 "use server";
 
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { headers } from "next/headers";
 import { createNavigation } from "next-intl/navigation";
 import { getLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import type { AuthBanner, AuthSubmitPayload } from "@/components/auth/types";
+import { checkWriteRateLimit } from "@/lib/abuse/rate-limit";
 import { log } from "@/lib/logger";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { trustedSiteOrigin } from "@/lib/security/origin";
 import {
   localeSchema,
   otpRequestSchema,
@@ -47,9 +50,33 @@ function authLog(action: string, locale: string | null, reason: string): void {
 
 async function requestOrigin(): Promise<string> {
   const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "127.0.0.1:3000";
-  const proto = h.get("x-forwarded-proto") ?? (host.startsWith("127.") || host.startsWith("localhost") ? "http" : "https");
-  return `${proto}://${host}`;
+  const originHeader = h.get("origin");
+  if (originHeader) {
+    try {
+      const pinned = trustedSiteOrigin(new URL(originHeader).host);
+      if (pinned) return pinned;
+    } catch {
+      /* fall through */
+    }
+  }
+  return "https://vamostaxi.site";
+}
+
+/** Fail-open if the Workers rate-limit binding is missing (local next dev). */
+async function authWriteAllowed(): Promise<boolean> {
+  try {
+    const { env } = getCloudflareContext();
+    const h = await headers();
+    const ip = h.get("cf-connecting-ip")?.trim() || "unknown";
+    const limited = await checkWriteRateLimit({
+      limiter: env.QUOTE_RATE_LIMITER_BARE,
+      kind: "auth",
+      ip,
+    });
+    return limited.ok;
+  } catch {
+    return true;
+  }
 }
 
 function localizedHome(locale: string): string {
@@ -71,6 +98,7 @@ export async function signInAction(
     authLog("signInAction", loc.success ? loc.data : null, "invalid-input");
     return FORM_CREDENTIALS;
   }
+  if (!(await authWriteAllowed())) return FORM_CREDENTIALS;
 
   const supabase = await createServerSupabaseClient();
   const { result, reason } = await runSignInPassword(supabase, body.data);
@@ -92,6 +120,7 @@ export async function signUpAction(
     authLog("signUpAction", loc.success ? loc.data : null, "invalid-input");
     return { stage: "sent" };
   }
+  if (!(await authWriteAllowed())) return { stage: "sent" };
 
   const origin = await requestOrigin();
   const supabase = await createServerSupabaseClient();
@@ -115,6 +144,7 @@ export async function requestOtpAction(
     authLog("requestOtpAction", loc.success ? loc.data : null, "invalid-input");
     return { stage: "sent" };
   }
+  if (!(await authWriteAllowed())) return { stage: "sent" };
 
   const origin = await requestOrigin();
   const supabase = await createServerSupabaseClient();
@@ -146,6 +176,7 @@ export async function requestPasswordResetAction(
     authLog("requestPasswordResetAction", loc.success ? loc.data : null, "invalid-input");
     return { stage: "sent" };
   }
+  if (!(await authWriteAllowed())) return { stage: "sent" };
 
   const origin = await requestOrigin();
   const supabase = await createServerSupabaseClient();
@@ -165,6 +196,7 @@ export async function updatePasswordAction(password: string): Promise<AuthAction
     authLog("updatePasswordAction", null, "invalid-input");
     return FORM_CREDENTIALS;
   }
+  if (!(await authWriteAllowed())) return FORM_CREDENTIALS;
 
   const supabase = await createServerSupabaseClient();
   const { result, reason } = await runUpdatePassword(supabase, body.data.password);

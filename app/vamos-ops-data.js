@@ -240,6 +240,7 @@
       add: function (rec) {
         var previous = list.slice();
         var row = persistable(clean(rec || {}));
+        if (name === "customers") row = customerWrite(row);
         return api("POST", base, row).then(function (json) {
           var created = json && json.data && typeof json.data === "object" && !Array.isArray(json.data)
             ? clean(json.data)
@@ -260,6 +261,7 @@
           if (name === "bookings" && mergedPatch.date && !mergedPatch.dateIso) {
             mergedPatch = Object.assign({}, mergedPatch, { dateIso: mergedPatch.date });
           }
+          if (name === "customers") mergedPatch = customerWrite(mergedPatch);
           return api("PATCH", base + "/" + encodeURIComponent(writeId), mergedPatch).then(function (json) {
             var next = previous.map(function (r) {
               if (!sameRow(r, current || { id: id, bookingId: writeId }) && String(r.id) !== String(id)) return r;
@@ -610,6 +612,14 @@
       name: str(c.name || c.fullName), email: str(c.email), phone: str(c.phone),
       type: CUSTOMER_TYPES.indexOf(c.type) === -1 ? "private" : c.type,
       company: str(c.company), trips: num(c.trips != null ? c.trips : c.tripCount, 0), since: str(c.since), note: str(c.note)
+    };
+  }
+  function customerWrite(c) {
+    c = c || {};
+    return {
+      name: str(c.name || c.fullName),
+      email: str(c.email),
+      phone: str(c.phone)
     };
   }
 

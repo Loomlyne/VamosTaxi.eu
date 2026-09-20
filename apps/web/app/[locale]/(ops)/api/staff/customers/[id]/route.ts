@@ -75,8 +75,7 @@ export async function PATCH(
       const sql = rec && rec.code ? String(rec.code) : "";
       if (sql === "23505") return jsonErr("23505", 409, { message: "That email is already on file." });
       if (sql === "23514") return jsonErr("23514", 400, { message: "One of the fields is not a valid value." });
-      const message = rec && rec.message ? String(rec.message) : "Customer details could not be saved.";
-      return jsonErr("error", 500, { message });
+      return jsonErr("error", 500, { message: "Customer details could not be saved." });
     }
   })(request);
 }
@@ -93,10 +92,8 @@ export async function DELETE(
       const erased = await eraseCustomer(env, claims, id);
       if (!erased) return jsonErr("not-found", 404);
       return jsonOk({ id });
-    } catch (err) {
-      const rec = err && typeof err === "object" ? (err as { message?: string }) : null;
-      const message = rec && rec.message ? String(rec.message) : "This customer could not be removed.";
-      return jsonErr("error", 500, { message });
+    } catch {
+      return jsonErr("error", 500, { message: "This customer could not be removed." });
     }
   })(request);
 }

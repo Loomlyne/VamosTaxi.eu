@@ -16,17 +16,21 @@ import {
 } from "@/lib/ops/session";
 import {
   PhotoUploadError,
+  assertPhotoRecordId,
   assertPhotoUpload,
   buildPhotoKey,
   isPhotoKind,
 } from "@/lib/ops/photos";
+import { staffOriginAllowed } from "@/lib/ops/staff-json";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
+const noStore = { "cache-control": "private, no-store" };
+
 function authResponse(reason: OpsAuthError["reason"]): Response {
   const status = reason === "no-session" ? 401 : 403;
-  return Response.json({ error: reason }, { status });
+  return Response.json({ error: reason }, { status, headers: noStore });
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -37,6 +41,9 @@ export async function POST(request: Request): Promise<Response> {
     if (err instanceof OpsAuthError) return authResponse(err.reason);
     throw err;
   }
+  if (!staffOriginAllowed(request.headers.get("Origin"))) {
+    return Response.json({ error: "csrf" }, { status: 403, headers: noStore });
+  }
 
   const formData = await request.formData();
   const kindRaw = formData.get("kind");
@@ -44,13 +51,18 @@ export async function POST(request: Request): Promise<Response> {
   const fileRaw = formData.get("file");
 
   if (typeof kindRaw !== "string" || !isPhotoKind(kindRaw)) {
-    return Response.json({ error: "type_not_allowed" }, { status: 400 });
+    return Response.json({ error: "type_not_allowed" }, { status: 400, headers: noStore });
   }
-  if (typeof recordIdRaw !== "string" || recordIdRaw.length === 0 || recordIdRaw.includes("/")) {
-    return Response.json({ error: "type_not_allowed" }, { status: 400 });
+  if (typeof recordIdRaw !== "string" || recordIdRaw.length === 0) {
+    return Response.json({ error: "type_not_allowed" }, { status: 400, headers: noStore });
+  }
+  try {
+    assertPhotoRecordId(recordIdRaw);
+  } catch {
+    return Response.json({ error: "type_not_allowed" }, { status: 400, headers: noStore });
   }
   if (!(fileRaw instanceof File)) {
-    return Response.json({ error: "type_not_allowed" }, { status: 400 });
+    return Response.json({ error: "type_not_allowed" }, { status: 400, headers: noStore });
   }
 
   const bytes = new Uint8Array(await fileRaw.arrayBuffer());
@@ -58,7 +70,7 @@ export async function POST(request: Request): Promise<Response> {
     assertPhotoUpload({ type: fileRaw.type, size: fileRaw.size, bytes });
   } catch (err) {
     if (err instanceof PhotoUploadError) {
-      return Response.json({ error: err.code }, { status: 400 });
+      return Response.json({ error: err.code }, { status: 400, headers: noStore });
     }
     throw err;
   }
@@ -69,5 +81,5 @@ export async function POST(request: Request): Promise<Response> {
     httpMetadata: { contentType: fileRaw.type },
   });
 
-  return Response.json({ key });
+  return Response.json({ key }, { headers: noStore });
 }

@@ -14,6 +14,7 @@ const FIXTURE_REVIEWS: ReviewsItem[] = [
     rating: 5,
     routeLabel: "ZRH → Zurich city",
     avatarPath: null,
+    sourceUrl: "https://maps.google.com/example",
     verified: true,
   },
   {
@@ -24,6 +25,7 @@ const FIXTURE_REVIEWS: ReviewsItem[] = [
     rating: 4,
     routeLabel: "ZRH → Zermatt",
     avatarPath: null,
+    sourceUrl: null,
     verified: false,
   },
   {
@@ -34,6 +36,7 @@ const FIXTURE_REVIEWS: ReviewsItem[] = [
     rating: 5,
     routeLabel: "Zurich → Basel",
     avatarPath: null,
+    sourceUrl: null,
     verified: true,
   },
 ];

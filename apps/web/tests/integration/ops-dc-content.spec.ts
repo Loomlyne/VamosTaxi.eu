@@ -1,7 +1,7 @@
 // apps/web/tests/integration/ops-dc-content.spec.ts
 //
-// OpsContent talks to /api/staff/content. Unauthenticated envelope is JSON 401.
-// Database-free — no Hyperdrive. Dual mount + D-15 three-flag surface.
+// Pages/Legal rail still exists; OpsContent is Coming soon (no CMS editor).
+// Staff content API envelopes stay JSON. Database-free — no Hyperdrive.
 
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -68,23 +68,24 @@ test.describe("GET /api/staff/content @ops-dc-content", () => {
     expect(listRoute).not.toMatch(/publicSql/);
   });
 
-  test("OpsContent is a per-key editor over /api/staff/content, not a page directory", () => {
+  test("OpsContent Pages/Legal is Coming soon, not a CMS editor", () => {
     const mock = readFileSync(join(repoRoot, "app/ops/OpsContent.dc.html"), "utf8");
-    expect(mock).toMatch(/\/api\/staff\/content/);
-    expect(mock).toMatch(/pending_value/);
-    expect(mock).toMatch(/non_translatable/);
-    expect(mock).toMatch(/no_param_reason/);
-    expect(mock).toMatch(/tFlagPending/);
-    expect(mock).toMatch(/tFlagLiteral/);
-    expect(mock).toMatch(/tFlagReason/);
-    expect(mock).not.toMatch(/--vt-yellow-50/);
-    expect(mock).not.toMatch(/become-a-partner/);
-    expect(mock).not.toMatch(/home\.dc\.html/);
+    expect(mock).toMatch(/Coming soon/);
+    expect(mock).toMatch(/Bald verfügbar/);
+    expect(mock).toMatch(/Bientôt disponible/);
+    expect(mock).toMatch(/قريبًا/);
     expect(mock).toMatch(/en: \{/);
     expect(mock).toMatch(/de: \{/);
     expect(mock).toMatch(/fr: \{/);
     expect(mock).toMatch(/ar: \{/);
-    expect(mock).toMatch(/loadLegalCoverage|coverage/);
+    expect(mock).not.toMatch(/\/api\/staff\/content/);
+    expect(mock).not.toMatch(/pending_value/);
+    expect(mock).not.toMatch(/non_translatable/);
+    expect(mock).not.toMatch(/no_param_reason/);
+    expect(mock).not.toMatch(/tFlagPending/);
+    expect(mock).not.toMatch(/coverage/);
+    expect(mock).not.toMatch(/become-a-partner/);
+    expect(mock).not.toMatch(/home\.dc\.html/);
   });
 
   test("public i18n dict has no Become a partner CTA", () => {

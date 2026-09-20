@@ -18,6 +18,7 @@ export async function generateMetadata({
     title: tAuth("save-new-password"),
     description: tAuth("reset-links-work-once-and-only-for-a-short-while"),
     alternates: buildAlternates("/reset-password"),
+    robots: { index: false, follow: false },
   };
 }
 

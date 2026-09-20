@@ -137,7 +137,7 @@ function redirectTo(
   if (prefix) {
     headers.set(
       "set-cookie",
-      `NEXT_LOCALE=${prefix}; Path=/; SameSite=Lax; Max-Age=31536000`,
+      `NEXT_LOCALE=${prefix}; Path=/; SameSite=Lax; Secure; Max-Age=31536000`,
     );
   }
   return new Response(null, { status: 308, headers });

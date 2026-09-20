@@ -12,6 +12,7 @@ import { hashManageToken } from "@/lib/checkout/manage-token";
 import { asCustomer, asGuest, asSystem } from "@/lib/db/identity";
 import { isReadablePhotoKey } from "@/lib/ops/photos";
 import { verifyTurnstile } from "@/lib/turnstile";
+import { csrfForbidden } from "@/lib/security/origin";
 
 const BOOKING_UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -19,8 +20,10 @@ const BOOKING_REF = /^VT-\d{2}-\d{4,5}$/i;
 
 type SubmitRow = { review_id: string; booking_id: string };
 
+const noStore = { "cache-control": "private, no-store" };
+
 function jsonErr(code: string, status: number): Response {
-  return Response.json({ ok: false, code }, { status });
+  return Response.json({ ok: false, code }, { status, headers: noStore });
 }
 
 function messageOf(err: unknown): string {
@@ -72,6 +75,8 @@ function str(value: unknown): string {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const blocked = csrfForbidden(request);
+  if (blocked) return blocked;
   const { env } = await getCloudflareContext({ async: true });
   const bindings = env as unknown as Record<string, string | undefined>;
 
@@ -147,11 +152,14 @@ export async function POST(request: Request): Promise<Response> {
       return mapReviewSqlError(err);
     }
     if (!row?.review_id) return jsonErr("not-found", 404);
-    return Response.json({
-      ok: true,
-      reviewId: row.review_id,
-      bookingId: row.booking_id,
-    });
+    return Response.json(
+      {
+        ok: true,
+        reviewId: row.review_id,
+        bookingId: row.booking_id,
+      },
+      { headers: noStore },
+    );
   }
 
   const email = typeof claims?.email === "string" ? claims.email : "";
@@ -197,9 +205,12 @@ export async function POST(request: Request): Promise<Response> {
     return mapReviewSqlError(err);
   }
   if (!row?.review_id) return jsonErr("not-found", 404);
-  return Response.json({
-    ok: true,
-    reviewId: row.review_id,
-    bookingId: row.booking_id,
-  });
+  return Response.json(
+    {
+      ok: true,
+      reviewId: row.review_id,
+      bookingId: row.booking_id,
+    },
+    { headers: noStore },
+  );
 }

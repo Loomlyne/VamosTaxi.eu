@@ -366,22 +366,10 @@ export type CustomerWrite = {
   fullName: string;
   email: string;
   phone: string;
-  type: CustomerType;
-  company: string;
-  since: string;
-  note: string;
 };
 
 function asTrimmed(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
-}
-
-function parseSinceDay(raw: string): string {
-  const iso = raw.trim();
-  if (/^\d{4}-\d{2}-\d{2}/.test(iso)) return iso.slice(0, 10);
-  const parsed = Date.parse(iso);
-  if (Number.isNaN(parsed)) return dateDay(new Date());
-  return new Date(parsed).toISOString().slice(0, 10);
 }
 
 export function parseCustomerWrite(body: unknown): CustomerWrite | null {
@@ -390,16 +378,10 @@ export function parseCustomerWrite(body: unknown): CustomerWrite | null {
   const fullName = asTrimmed(rec.name) || asTrimmed(rec.fullName);
   const email = asTrimmed(rec.email).toLowerCase();
   if (!fullName || !email.includes("@")) return null;
-  const typeRaw = asTrimmed(rec.type);
-  const type: CustomerType = typeRaw === "corporate" ? "corporate" : "private";
   return {
     fullName,
     email,
     phone: asTrimmed(rec.phone),
-    type,
-    company: asTrimmed(rec.company),
-    since: parseSinceDay(asTrimmed(rec.since)),
-    note: asTrimmed(rec.note),
   };
 }
 
@@ -425,7 +407,6 @@ export async function upsertCustomer(
           limit 1
         `;
     const previousEmail = (seed[0]?.email || fromBooking[0]?.email || "").trim().toLowerCase();
-    const billingKind = input.type === "corporate" ? "company" : "individual";
 
     const written = await sql<{ id: string }[]>`
       insert into public.customers (full_name, email, phone, type, company, since, note, erased_at)
@@ -433,19 +414,15 @@ export async function upsertCustomer(
         ${input.fullName},
         ${input.email},
         ${input.phone},
-        ${input.type},
-        ${input.company},
-        ${input.since}::date,
-        ${input.note},
+        'private',
+        '',
+        now()::date,
+        '',
         null
       )
       on conflict (email) where erased_at is null do update set
         full_name = excluded.full_name,
         phone = excluded.phone,
-        type = excluded.type,
-        company = excluded.company,
-        since = excluded.since,
-        note = excluded.note,
         erased_at = null,
         updated_at = now()
       returning id
@@ -460,8 +437,6 @@ export async function upsertCustomer(
         contact_name = ${input.fullName},
         contact_email = ${input.email},
         contact_phone = ${input.phone},
-        company_name = ${input.company},
-        billing_kind = ${billingKind},
         updated_at = now()
       where erased_at is null
         and (

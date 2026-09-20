@@ -91,11 +91,20 @@ function sniffMatches(bytes: Uint8Array, type: AllowedPhotoMime): boolean {
  * `<prefix><recordId>/<crypto.randomUUID()>.<ext>`.
  * Extension comes from the validated content type — never from an uploaded filename.
  */
+const PHOTO_RECORD_ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
+
+export function assertPhotoRecordId(recordId: string): void {
+  if (!PHOTO_RECORD_ID_RE.test(recordId)) {
+    throw new PhotoUploadError("type_not_allowed");
+  }
+}
+
 export function buildPhotoKey(kind: PhotoKind, recordId: string, contentType: string): string {
   const prefix = KIND_TO_PREFIX[kind];
   if (!prefix || !isAllowedMime(contentType)) {
     throw new PhotoUploadError("type_not_allowed");
   }
+  assertPhotoRecordId(recordId);
   const ext = MIME_TO_EXT[contentType];
   return `${prefix}${recordId}/${crypto.randomUUID()}.${ext}`;
 }

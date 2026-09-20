@@ -76,6 +76,40 @@ describe("checkWriteRateLimit fail-closed (D-11, D-13)", () => {
     expect(src).toMatch(/consent:/);
     expect(src).toMatch(/contact:/);
     expect(src).toMatch(/review:/);
+    expect(src).toMatch(/auth:/);
+    expect(src).toMatch(/account:/);
+  });
+
+  it("auth Server Actions call the same write limiter", () => {
+    const src = readRepo("apps/web/lib/auth/actions.ts");
+    expect(src).toMatch(/checkWriteRateLimit/);
+    expect(src).toMatch(/kind:\s*["']auth["']/);
+    expect(src).toMatch(/QUOTE_RATE_LIMITER_BARE/);
+  });
+
+  it("account/manage cookie POSTs share kind account after CSRF", () => {
+    const helper = readRepo("apps/web/lib/abuse/account-write.ts");
+    expect(helper).toMatch(/kind:\s*["']account["']/);
+    expect(helper).toMatch(/QUOTE_RATE_LIMITER_BARE/);
+    const routes = [
+      "apps/web/app/api/account/prefs/route.ts",
+      "apps/web/app/api/account/bookings/route.ts",
+      "apps/web/app/api/account/bookings/cancel/route.ts",
+      "apps/web/app/api/account/bookings/paid-cancel/route.ts",
+      "apps/web/app/api/account/bookings/time-change/route.ts",
+      "apps/web/app/api/account/bookings/flight/route.ts",
+      "apps/web/app/api/manage/cancel/route.ts",
+      "apps/web/app/api/manage/flight/route.ts",
+      "apps/web/app/api/manage/time-change/route.ts",
+    ];
+    for (const rel of routes) {
+      const src = readRepo(rel);
+      const post = src.slice(src.indexOf("export async function POST"));
+      const csrfAt = post.indexOf("csrfForbidden");
+      const limitAt = post.indexOf("accountWriteForbidden");
+      expect(csrfAt, rel).toBeGreaterThan(-1);
+      expect(limitAt, rel).toBeGreaterThan(csrfAt);
+    }
   });
 });
 
@@ -89,14 +123,19 @@ describe("contact and review write limiter (D-13, D-16)", () => {
   it("POST /api/contact rate-limits kind contact before write and returns 429 rate_limited", () => {
     const src = readRepo("apps/web/app/api/contact/route.ts");
     const post = src.slice(src.indexOf("export async function POST"));
+    expect(post).toMatch(/csrfForbidden\(request\)/);
+    const csrfAt = post.indexOf("csrfForbidden");
+    expect(csrfAt).toBeGreaterThan(-1);
     expect(post).toMatch(/checkWriteRateLimit/);
     expect(post).toMatch(/kind:\s*["']contact["']/);
     expect(post).toMatch(/QUOTE_RATE_LIMITER/);
     expect(post).toMatch(/formFailure\(["']rate_limited["'],\s*429\)/);
     const limitAt = post.indexOf("checkWriteRateLimit");
     const writeAt = post.indexOf("submit_contact_message");
-    expect(limitAt).toBeGreaterThan(-1);
+    expect(limitAt).toBeGreaterThan(csrfAt);
     expect(writeAt).toBeGreaterThan(limitAt);
+    expect(src).toMatch(/asSystem/);
+    expect(src).not.toMatch(/asAnon/);
     expect(src).toMatch(/verifyTurnstile/);
     expect(src).toMatch(/action:\s*["']contact["']/);
     expect(src).not.toMatch(/from ["']@vamos\/db["']/);

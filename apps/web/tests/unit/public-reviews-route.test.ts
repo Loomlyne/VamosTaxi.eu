@@ -102,4 +102,43 @@ describe("loadPublishedReviews", () => {
     const fragments = (sql.mock.calls[0]?.[0] as TemplateStringsArray | undefined) ?? [];
     expect(fragments.join(" ")).toMatch(/published\s*=\s*true/);
   });
+
+  it("drops invalid source_url and never returns an avatar", async () => {
+    const sql = vi.fn().mockResolvedValue([
+      {
+        id: "r2",
+        source: "manual",
+        author_name: "Bea",
+        author_role: "Guest",
+        body: "Quiet car.",
+        rating: 5,
+        route_label: "ZRH → city",
+        vehicle_class_slug: null,
+        avatar_path: "reviews/bea.jpg",
+        source_url: "https://",
+        verified: false,
+        published: true,
+        sort_order: 1,
+      },
+    ]);
+    publicSql.mockReturnValue(sql);
+    const rows = await loadPublishedReviews(env);
+    expect(rows).toEqual([
+      {
+        id: "r2",
+        source: "manual",
+        authorName: "Bea",
+        authorRole: "Guest",
+        body: "Quiet car.",
+        rating: 5,
+        routeLabel: "ZRH → city",
+        vehicleClassSlug: null,
+        avatarPath: null,
+        sourceUrl: null,
+        verified: false,
+        published: true,
+        sortOrder: 1,
+      },
+    ]);
+  });
 });

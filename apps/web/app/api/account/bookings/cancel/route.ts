@@ -4,15 +4,21 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 import { asCustomer } from "@/lib/db/identity";
 import { customerClaims } from "@/lib/account/session";
+import { accountWriteForbidden } from "@/lib/abuse/account-write";
+import { csrfForbidden } from "@/lib/security/origin";
 
 function json(body: unknown, status = 200): Response {
   return NextResponse.json(body, {
     status,
-    headers: { "cache-control": "no-store" },
+    headers: { "cache-control": "private, no-store" },
   });
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const blocked = csrfForbidden(request);
+  if (blocked) return blocked;
+  const limited = await accountWriteForbidden(request);
+  if (limited) return limited;
   const claims = await customerClaims(request);
   const email = claims?.email;
   if (!email) return json({ ok: false }, 401);

@@ -168,7 +168,10 @@ function okIntentResponse(
 ): Response {
   const clientSecret = payable.client_secret;
   if (!clientSecret) return refuse("invalid_request");
-  const headers: Record<string, string> = { "content-type": "application/json" };
+  const headers: Record<string, string> = {
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+  };
   if (cookie) headers["set-cookie"] = cookie;
   return new Response(
     JSON.stringify({
@@ -367,10 +370,14 @@ export async function runCheckoutIntent(
         JSON.stringify({
           ok: false,
           error: "checkout_rpc_failed",
-          sqlstate: state ?? null,
-          detail: err instanceof Error ? err.message : String(err),
         }),
-        { status: 500, headers: { "content-type": "application/json" } },
+        {
+          status: 500,
+          headers: {
+            "content-type": "application/json",
+            "cache-control": "private, no-store",
+          },
+        },
       );
     }
   }

@@ -47,13 +47,21 @@ describe("reviews JSON dual mount + mock", () => {
     expect(store).toMatch(/\/api\/staff\/reviews/);
   });
 
-  it("OpsReviews file control POSTs /api/photos/upload kind=review", () => {
+  it("OpsReviews has no photo upload, no grip drag, and no View on site", () => {
     const html = readFileSync(join(repoRoot, "app/ops/OpsReviews.dc.html"), "utf8");
-    expect(html).toMatch(/type="file"/);
-    expect(html).toMatch(/\/api\/photos\/upload/);
-    expect(html).toMatch(/credentials:\s*['"]include['"]/);
-    expect(html).toMatch(/kind['"]?,\s*['"]review['"]/);
-    expect(html).not.toMatch(/readAsDataURL/);
+    expect(html).not.toMatch(/type="file"/);
+    expect(html).not.toMatch(/\/api\/photos\/upload/);
+    expect(html).not.toMatch(/grip-vertical/);
+    expect(html).not.toMatch(/draggable="true"/);
+    expect(html).not.toMatch(/tViewOnSite|View on site/);
+    expect(html).toMatch(/chevron-up/);
+    expect(html).toMatch(/chevron-down/);
+    expect(html).toMatch(/tVerifiedHint/);
+    expect(html).toMatch(/tPublishedHint/);
+    expect(html).toMatch(/parseSourceUrl/);
+    expect(html).toMatch(/togglePublish/);
+    expect(html).toMatch(/data-danger/);
+    expect(html).toMatch(/--vt-danger/);
     expect(html).toMatch(/isEmpty/);
     expect(html).toMatch(/\/api\/staff\/reviews/);
   });

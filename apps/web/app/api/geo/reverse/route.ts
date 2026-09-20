@@ -21,6 +21,8 @@ import { reverse } from "@/lib/geo/mapbox";
 // runtime bindings and must never be statically evaluated at build).
 export const dynamic = "force-dynamic";
 
+const GEO_JSON = { "Cache-Control": "private, no-store" };
+
 const LOCALES = ["en", "de", "fr", "ar"] as const;
 
 const queryFiniteNumber = z
@@ -74,9 +76,9 @@ export async function GET(request: Request) {
       env,
     );
     emit("info", "geo_reverse", { has_place: result.place ? 1 : 0 });
-    return Response.json({ ok: true, place: result.place });
+    return Response.json({ ok: true, place: result.place }, { headers: GEO_JSON });
   } catch {
     emit("warn", "geo_reverse", { degraded: 1 });
-    return Response.json({ ok: true, place: null });
+    return Response.json({ ok: true, place: null }, { headers: GEO_JSON });
   }
 }

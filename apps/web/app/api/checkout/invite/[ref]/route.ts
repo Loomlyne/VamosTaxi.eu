@@ -75,7 +75,7 @@ export async function GET(
     headers: {
       "content-type": "text/calendar; charset=utf-8",
       "content-disposition": `attachment; filename="${booking.reference}.ics"`,
-      "cache-control": "no-store",
+      "cache-control": "private, no-store",
     },
   });
 }

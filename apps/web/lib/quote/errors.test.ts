@@ -128,6 +128,7 @@ describe("quoteErrorResponse", () => {
     const res = quoteErrorResponse("quote_expired");
     expect(res.status).toBe(409);
     expect(res.headers.get("content-type")).toBe("application/json");
+    expect(res.headers.get("cache-control")).toMatch(/no-store/i);
     const body = (await res.json()) as Record<string, unknown>;
     expect(body.ok).toBe(false);
     expect(body.error).toBe("quote_expired");

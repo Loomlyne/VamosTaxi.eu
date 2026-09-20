@@ -80,7 +80,7 @@ describe("/review page", () => {
     expect(src).toMatch(/company/);
     expect(src).toMatch(/chauffeur/);
     expect(src).toMatch(/overall/);
-    expect(src).toMatch(/\/api\/reviews\/photo/);
+    expect(src).not.toMatch(/\/api\/reviews\/photo/);
     expect(src).toMatch(/\/api\/reviews\/submit/);
     expect(src).not.toMatch(/\bTRIP\b/);
     expect(src).not.toMatch(/LX1234/);

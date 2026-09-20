@@ -112,9 +112,9 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <sc-for list="{{ slides }}" as="r" hint-placeholder-count="0">
 <div data-rv-slide="1" data-rv-face="1" data-i="{{ r.i1 }}" data-on="{{ r.on }}">
 <span data-rv-mark="1">{{ r.sourceLabel }}</span>
-<span data-rv-av="1" aria-hidden="true" style="background-image:{{ r.photo }};background-size:cover;background-position:center;color:{{ r.initialsColor }}">{{ r.initials }}</span>
+<span data-rv-av="1" aria-hidden="true">{{ r.initials }}</span>
 <strong data-rv-name="1">{{ r.name }}</strong>
-<span data-rv-sub="1">{{ r.role }}</span>
+<span data-rv-sub="1">{{ r.route }}</span>
 <span data-rv-stars="1" role="img" aria-label="{{ r.ratingLabel }}" style="display:{{ r.starsShow }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n14 }}" color="{{ r.s1 }}" hint-size="14px,14px"></x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n14 }}" color="{{ r.s2 }}" hint-size="14px,14px"></x-import>
@@ -281,24 +281,31 @@ class Component extends DCLogic {
       const label = store ? store.sourceLabel(r.source) : r.source;
       const stars = {};
       for (let s = 1; s <= 5; s++) stars['s' + s] = s <= r.rating ? 'var(--vt-yellow)' : 'var(--vt-grey-300)';
-      const meta = [r.route, r.vehicleClass].filter(Boolean).join(' · ');
+      const meta = r.vehicleClass || '';
+      const href = (function () {
+        const raw = String(r.url || '').trim();
+        if (!raw) return '';
+        try {
+          const parsed = new URL(raw);
+          if ((parsed.protocol === 'http:' || parsed.protocol === 'https:') && parsed.hostname) return raw;
+        } catch (e) {}
+        return '';
+      })();
       return Object.assign({
         i1: n + 1,
         on: n === this.i ? '1' : '0',
         name: r.name,
-        role: r.role,
+        route: r.route || '',
         sourceLabel: label,
         quote: '“' + r.text + '”',
-        initials: r.avatar ? '' : this.initials(r.name),
-        initialsColor: r.avatar ? 'transparent' : 'var(--vt-text-inverse)',
-        photo: r.avatar ? 'url(' + r.avatar + ')' : 'none',
+        initials: this.initials(r.name),
         starsShow: r.rating > 0 ? 'flex' : 'none',
         ratingLabel: t('Rated 5 out of 5').replace('5 out', r.rating + ' out'),
         meta: meta,
         metaShow: meta ? 'block' : 'none',
         verifiedShow: r.verified ? 'inline-flex' : 'none',
-        url: r.url || '#',
-        linkShow: r.url ? 'inline-flex' : 'none',
+        url: href,
+        linkShow: href ? 'inline-flex' : 'none',
         linkLabel: t('Read on Google').replace('Google', label),
         slideLabel: t('Review 1 of 5').replace('1 of 5', (n + 1) + ' of ' + rows.length),
       }, stars);

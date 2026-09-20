@@ -4,6 +4,7 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { routing } from "@/i18n/routing";
 import { customerClaims } from "@/lib/account/session";
+import { checkWriteRateLimit } from "@/lib/abuse/rate-limit";
 import { log } from "@/lib/logger";
 import {
   localeSchema,
@@ -36,6 +37,7 @@ import {
 import { mintConsentSubject, readConsentSubject } from "@/lib/consent/cookie";
 import { cfConnectingIp, truncateClientIp } from "@/lib/consent/ip";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { csrfForbidden, trustedSiteOrigin } from "@/lib/security/origin";
 
 export const dynamic = "force-dynamic";
 
@@ -56,11 +58,7 @@ function localizedPath(path: string, locale: string): string {
 }
 
 function requestOrigin(request: Request): string {
-  const url = new URL(request.url);
-  const forwarded = request.headers.get("x-forwarded-host");
-  const proto = request.headers.get("x-forwarded-proto") ?? url.protocol.replace(":", "");
-  if (forwarded) return `${proto}://${forwarded}`;
-  return url.origin;
+  return trustedSiteOrigin(new URL(request.url).host) ?? "https://vamostaxi.site";
 }
 
 const CONSENT_LOCALES = new Set<ConsentLocale>(["en", "de", "fr", "ar"]);
@@ -98,7 +96,18 @@ async function appendSignupConsent(
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const blocked = csrfForbidden(request, "auth");
+  if (blocked) return blocked;
   const ctx = { requestId: crypto.randomUUID(), route: "/api/auth", locale: null as string | null };
+
+  const { env } = getCloudflareContext();
+  const ip = request.headers.get("cf-connecting-ip")?.trim() || "unknown";
+  const limited = await checkWriteRateLimit({
+    limiter: env.QUOTE_RATE_LIMITER_BARE,
+    kind: "auth",
+    ip,
+  });
+  if (!limited.ok) return json(FORM_CREDENTIALS, 429);
 
   let raw: unknown;
   try {

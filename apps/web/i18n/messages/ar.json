@@ -2427,6 +2427,7 @@
     "platform-names-are-set-in-type-as-stand-ins-conf": "أسماء المنصات مكتوبة نصًا كبدائل مؤقتة. أكّد أيّ من Google وTripadvisor وTrustpilot لديه ملف فاموس فعّال قبل نشر أي شعار: فالشعار دون حساب خلفه ادّعاء كاذب.",
     "previous-review": "التقييم السابق",
     "rating-label": "التقييم {n} من {max}",
+    "read-the-original": "اقرأ الأصل",
     "reviewPosition": "تقييم {n} من {total}",
     "reviews-appear-here-as-soon-as-they-are-published": "تظهر التقييمات هنا فور نشرها في لوحة التوزيع. لا يُعرض شيء في الأثناء.",
     "what-clients-say-about-us": "ما يقوله عملاؤنا عنا"

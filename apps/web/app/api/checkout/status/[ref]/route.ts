@@ -11,7 +11,7 @@ function json(body: unknown): Response {
     status: 200,
     headers: {
       "content-type": "application/json",
-      "cache-control": "no-store",
+      "cache-control": "private, no-store",
     },
   });
 }
@@ -51,6 +51,6 @@ export async function GET(
       paymentStatus: result.paymentStatus,
     });
   } catch {
-    return json({ status: "pending", paymentStatus: null });
+    return json(HIDDEN);
   }
 }

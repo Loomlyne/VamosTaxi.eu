@@ -7,12 +7,14 @@ import { loadPublishedReviews } from "@/lib/public/reviews";
 
 export const dynamic = "force-dynamic";
 
+const noStore = { "cache-control": "private, no-store" };
+
 function jsonOk(data: unknown, status = 200): Response {
-  return Response.json({ ok: true, data }, { status });
+  return Response.json({ ok: true, data }, { status, headers: noStore });
 }
 
 function methodNotAllowed(): Response {
-  return Response.json({ ok: false, code: "method_not_allowed" }, { status: 405 });
+  return Response.json({ ok: false, code: "method_not_allowed" }, { status: 405, headers: noStore });
 }
 
 export async function GET() {

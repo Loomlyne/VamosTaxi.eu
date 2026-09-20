@@ -31,14 +31,17 @@ export async function GET() {
         vat_rate_bps: flags.vat_rate_bps,
         max_extra_stops: maxStops,
       },
-      { headers: { "Cache-Control": "no-store" } },
+      { headers: { "Cache-Control": "private, no-store" } },
     );
   } catch {
-    return Response.json({
-      ok: true,
-      extras: [],
-      vat_rate_bps: CH_VAT_RATE_BPS,
-      max_extra_stops: 0,
-    });
+    return Response.json(
+      {
+        ok: true,
+        extras: [],
+        vat_rate_bps: CH_VAT_RATE_BPS,
+        max_extra_stops: 0,
+      },
+      { headers: { "Cache-Control": "private, no-store" } },
+    );
   }
 }

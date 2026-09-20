@@ -24,10 +24,11 @@ export async function generateMetadata({
 }) {
   const { locale, ref } = await params;
   const t = await getTranslations({ locale, namespace: "checkout" });
+  const robots = { index: false, follow: false };
   if (!BOOKING_REFERENCE_RE.test(ref)) {
-    return { title: t("notVisibleTitle") };
+    return { title: t("notVisibleTitle"), robots };
   }
-  return { title: `${t("yourDriverIsBooked")} ${ref}` };
+  return { title: `${t("yourDriverIsBooked")} ${ref}`, robots };
 }
 
 function pendingTicket(ref: string): VisibleBooking {
@@ -110,10 +111,8 @@ export default async function ConfirmationPage({
               : "processing";
         }
       } catch {
-        // Cookie is present; identity failed (no Hyperdrive in `next dev`).
-        // Poller still owns status. Never 500 a guest return URL.
-        initialPhase = "processing";
-        booking = pendingTicket(ref);
+        // Worker env is present. A throw is not "this booking is pending".
+        // Same as checkout status HIDDEN — stay hidden, never invent pending.
       }
     }
   }

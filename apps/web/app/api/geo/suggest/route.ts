@@ -24,6 +24,8 @@ import { publicSuggestion, rememberSession, sessionBucket } from "@/lib/geo/sess
 // runtime bindings and must never be statically evaluated at build).
 export const dynamic = "force-dynamic";
 
+const GEO_JSON = { "Cache-Control": "private, no-store" };
+
 const LOCALES = ["en", "de", "fr", "ar"] as const;
 
 const SuggestQuery = z
@@ -78,7 +80,7 @@ export async function GET(request: Request) {
   // rememberSession here: a one-character 200 must not unlock /retrieve
   // (AM-03). The session is recorded only after a real suggest attempt below.
   if (parsed.data.q.length < 2) {
-    return Response.json({ ok: true, suggestions: [] });
+    return Response.json({ ok: true, suggestions: [] }, { headers: GEO_JSON });
   }
 
   const proximity = parseProximity(parsed.data.proximity);
@@ -106,11 +108,11 @@ export async function GET(request: Request) {
       degraded: result.degraded ? 1 : 0,
     });
     if (result.degraded) {
-      return Response.json({ ok: true, suggestions: [], degraded: true });
+      return Response.json({ ok: true, suggestions: [], degraded: true }, { headers: GEO_JSON });
     }
-    return Response.json({ ok: true, suggestions });
+    return Response.json({ ok: true, suggestions }, { headers: GEO_JSON });
   } catch {
     emit("warn", "geo_suggest", { degraded: 1 });
-    return Response.json({ ok: true, suggestions: [], degraded: true });
+    return Response.json({ ok: true, suggestions: [], degraded: true }, { headers: GEO_JSON });
   }
 }

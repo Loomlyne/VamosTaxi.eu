@@ -51,6 +51,7 @@ Resume: `$gsd-execute-phase 16` on worktree `.worktrees/phase-16` / `gsd/phase-1
 ### Roadmap Evolution
 
 - Phase 19 added: V1 production close-out leftover live gates and 10k booking surge (2026-09-18). Parked. Hard gate in ROADMAP. Current stays 17 leftover live close.
+- Phase 20 added: Security audit fix-up (2026-09-19). Does not begin Phase 19. Owner SQL. No `.eu`. No `sk_live_`.
 
 ## Decisions
 

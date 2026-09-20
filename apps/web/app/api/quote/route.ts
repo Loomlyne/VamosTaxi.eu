@@ -21,6 +21,7 @@ import {
   type PipelineRefusal,
 } from "@/lib/quote/pipeline";
 import { errorResponse, quoteResponse } from "@/lib/quote/respond";
+import { csrfForbidden } from "@/lib/security/origin";
 
 export const dynamic = "force-dynamic";
 
@@ -36,12 +37,12 @@ export async function GET() {
         classes: liveBookBoard(book),
         fixed_routes: publicCatalogRoutes(book),
       },
-      { headers: { "Cache-Control": "no-store" } },
+      { headers: { "Cache-Control": "private, no-store" } },
     );
   } catch {
     return Response.json(
       { ok: true, classes: [], fixed_routes: [] },
-      { headers: { "Cache-Control": "no-store" } },
+      { headers: { "Cache-Control": "private, no-store" } },
     );
   }
 }
@@ -57,6 +58,8 @@ function refuse(result: PipelineRefusal) {
 }
 
 export async function POST(request: Request) {
+  const csrf = csrfForbidden(request, "auth");
+  if (csrf) return csrf;
   const { env } = getCloudflareContext();
   let locale: string | null = null;
   const emit = withRequestContext({
@@ -86,7 +89,7 @@ export async function POST(request: Request) {
   }
 
   const deps = buildQuotePipelineDeps(env, {
-    dashboardHost: isNamedDashboardHost(request.headers.get("host")),
+    dashboardHost: isNamedDashboardHost(new URL(request.url).host),
   });
 
   try {

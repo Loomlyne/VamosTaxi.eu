@@ -63,6 +63,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 17: Ops chauffeur profile, shift roster, two-driver vehicles** - Fleet row opens a full chauffeur page; shifts auto On/Off; vehicle max 2 drivers (morning/night); Add is idempotent
 - [x] **Phase 18: OPS Pricing source of truth** - `/pricing` is the only fare book; public offers follow Publish (completed 2026-09-15)
 - [ ] **Phase 19: V1 production close-out leftover live gates and 10k booking surge** - Leftover 16/17 live close, then a signed 10k-booking surge proof. No `.eu`. No live Stripe. Agent does not Publish.
+- [ ] **Phase 20: Security audit fix-up** - Close 2026-09-19 ZAP + RLS + grant findings. No `.eu`. No live Stripe. Owner applies SQL.
 
 ## Phase Details
 
@@ -785,6 +786,19 @@ History of 2026-09-13: `.planning/phases/18-ops-pricing-source/archive-2026-09-1
 **Plans:** 3 drafted (19-01 fail-closed tests · 19-02 owner Hyperdrive · 19-03 10k proof). Not checker-stamped. No execute.
 **UI hint**: yes — frozen chrome / observation. No new public screens. Do not skip `19-UI-SPEC.md`.
 
+### Phase 20: Security audit fix-up
+
+**Goal**: Every confirmed finding from the 2026-09-19 audit is either fixed in code, queued as owner SQL/Auth, or explicitly accepted (DC CSP eval, fail-closed 0-policy tables).
+**Depends on**: live Worker `vamos` (does not block 16/17/19)
+**Requirements**: SEC-01 … SEC-12
+**Success Criteria** (what must be TRUE):
+  1. dashboard.vamostaxi.site/login sends HSTS, CSP, XFO DENY, HttpOnly `vamos_dash`.
+  2. `create_quote_snapshot` and `rls_auto_enable` are not executable by anon/PUBLIC (owner SQL).
+  3. Mutating staff/photo APIs refuse empty Origin.
+  4. `/.well-known/security.txt` is 200. 404s have no `X-Powered-By`. workers.dev is noindex.
+**Plans:** 20-01 headers/cookies · 20-02 CSRF/photos · 20-03 owner SQL · 20-04 MFA/leaked-password owner gates
+**UI hint**: no new screens.
+
 ## Progress
 
 **Execution Order:**
@@ -813,6 +827,7 @@ Close-out one-by-one: 17 deploy → 17 SQL apply → 17 UAT → 16 ROADMAP tick 
 | 17. Ops chauffeur profile, shift roster, two-driver vehicles | 0/TBD | Not started | - |
 | 18. OPS Pricing source of truth | 7/7 | Complete    | 2026-09-15 |
 | 19. V1 production close-out leftover live gates and 10k booking surge | 0/TBD | Not started | - |
+| 20. Security audit fix-up | 0/4 | In progress | - |
 
 ---
 *Roadmap created: 2026-08-17*

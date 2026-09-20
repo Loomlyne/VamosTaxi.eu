@@ -213,6 +213,9 @@ export function quoteErrorResponse(
 
   return new Response(JSON.stringify(body), {
     status: entry.status,
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      "cache-control": "private, no-store",
+    },
   });
 }

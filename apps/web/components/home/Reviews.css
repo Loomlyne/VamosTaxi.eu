@@ -293,6 +293,23 @@
   color: var(--vt-text-secondary);
 }
 
+[data-rv-link] {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-block-start: 14px;
+  font-size: var(--vt-body-xs);
+  font-weight: 600;
+  color: var(--vt-text-primary);
+  text-decoration: none;
+  border-bottom: 1px solid var(--vt-grey-300);
+}
+
+[data-rv-link]:hover {
+  color: var(--vt-charcoal-900);
+  border-bottom-color: var(--vt-charcoal-900);
+}
+
 [data-rv-empty] {
   box-sizing: border-box;
   grid-column: 1 / -1;

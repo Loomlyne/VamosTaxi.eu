@@ -16,6 +16,7 @@ import {
 } from "./lib/dc-mock-urls";
 import { publicDashboardPath } from "./lib/ops/paths";
 import { vamosRoleFromAccessToken } from "./lib/ops/session";
+import { applySecurityHeaders } from "./lib/security/headers";
 import {
   createSupabaseMiddlewareClient,
   updateSession,
@@ -143,9 +144,15 @@ async function serveOpsDc(
   const headers = new Headers();
   headers.set("content-type", "text/html; charset=utf-8");
   headers.set("Cache-Control", "private, no-store");
+  applySecurityHeaders(headers);
   const out = new NextResponse(html, { status: res.status, headers });
   copyCookies(cookieSource, out);
-  out.cookies.set("vamos_dash", "1", { path: "/", sameSite: "lax", secure: true });
+  out.cookies.set("vamos_dash", "1", {
+    path: "/",
+    sameSite: "lax",
+    secure: true,
+    httpOnly: true,
+  });
   return applyStagingNoindex(request, await updateSession(request, out));
 }
 
@@ -154,8 +161,23 @@ function qsSecret(): string {
   return typeof value === "string" ? value : "";
 }
 
+const REQUEST_HOST_HEADER = "x-vamos-request-host";
+
 function hostnameOf(request: NextRequest): string {
+  try {
+    const host = new URL(request.url).hostname.toLowerCase();
+    if (host.length > 0) return host;
+  } catch {
+    // fall through to Host
+  }
   return (request.headers.get("host") ?? "").split(":")[0]?.toLowerCase() ?? "";
+}
+
+function pinRequestHost(request: NextRequest): NextRequest {
+  const headers = new Headers(request.headers);
+  headers.delete(REQUEST_HOST_HEADER);
+  headers.set(REQUEST_HOST_HEADER, hostnameOf(request));
+  return new NextRequest(request, { headers });
 }
 
 function localeStrippedPath(pathname: string): { localePrefix: string | null; path: string } {
@@ -333,14 +355,32 @@ function copyCookies(from: NextResponse, to: NextResponse): NextResponse {
   return to;
 }
 
+const PRIVATE_NOINDEX_PREFIXES = [
+  "/sign-in",
+  "/sign-up",
+  "/reset-password",
+  "/manage-booking",
+  "/booking-detail",
+  "/review",
+] as const;
+
+function isPrivateNoindexPath(path: string): boolean {
+  return PRIVATE_NOINDEX_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
+}
+
 function applyStagingNoindex(request: NextRequest, response: NextResponse): NextResponse {
   // D-03: public vamostaxi.site and www.vamostaxi.site stay indexable on Worker
   // vamos (DEPLOY_ENV staging). D-04: dashboard / ops-changes always noindex.
   // D-08: env.production is unused — host-split is the indexable path, not an
   // undefined DEPLOY_ENV.
+  applySecurityHeaders(response.headers);
   if (isDashboardHost(request) || process.env.DEPLOY_ENV === "ops-changes") {
     response.headers.set("X-Robots-Tag", "noindex");
   }
+  if (hostnameOf(request).endsWith(".workers.dev")) {
+    response.headers.set("X-Robots-Tag", "noindex");
+  }
+  if (isPrivateNoindexPath(stripLocalePath(request.nextUrl.pathname))) response.headers.set("X-Robots-Tag", "noindex, nofollow");
   return response;
 }
 
@@ -441,6 +481,7 @@ async function opsStaffGate(request: NextRequest, i18nResponse: NextResponse): P
 }
 
 export default async function middleware(request: NextRequest) {
+  request = pinRequestHost(request);
   const { pathname } = request.nextUrl;
 
   // D-05: www → apex 301. Canonical is https://vamostaxi.site. No DNS this plan.

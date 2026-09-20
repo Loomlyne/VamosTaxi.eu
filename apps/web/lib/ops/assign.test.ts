@@ -15,7 +15,7 @@ vi.mock("../supabase/server", () => ({
   createServerSupabaseClient: () => ({}),
 }));
 
-import { staffOriginAllowed } from "./staff-json";
+import { jsonErr, jsonOk, staffOriginAllowed } from "./staff-json";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, "../../../..");
@@ -69,14 +69,49 @@ describe("mapAssignSqlError", () => {
 });
 
 describe("staffOriginAllowed", () => {
-  it("allows missing Origin and dashboard hosts", () => {
-    expect(staffOriginAllowed(null)).toBe(true);
+  it("denies missing Origin; allows dashboard and this-account ops-changes", () => {
+    expect(staffOriginAllowed(null)).toBe(false);
     expect(staffOriginAllowed("https://dashboard.vamostaxi.site")).toBe(true);
     expect(staffOriginAllowed("http://dashboard.localhost:3000")).toBe(true);
     expect(staffOriginAllowed("https://vamos-ops-changes.koussayzayeni.workers.dev")).toBe(
       true,
     );
+    expect(
+      staffOriginAllowed("https://preview-vamos-ops-changes.koussayzayeni.workers.dev"),
+    ).toBe(true);
+    expect(staffOriginAllowed("https://evil-ops-changes.workers.dev")).toBe(false);
+    expect(staffOriginAllowed("https://evil-ops-changes.koussayzayeni.workers.dev")).toBe(
+      false,
+    );
+    expect(staffOriginAllowed("https://ops-changes.koussayzayeni.workers.dev")).toBe(false);
+    expect(staffOriginAllowed("http://dashboard.vamostaxi.site")).toBe(false);
     expect(staffOriginAllowed("https://evil.example")).toBe(false);
+  });
+});
+
+describe("staff JSON cache", () => {
+  it("marks ok and err private no-store", () => {
+    expect(jsonOk({ n: 1 }).headers.get("cache-control")).toBe("private, no-store");
+    expect(jsonErr("csrf", 403).headers.get("cache-control")).toBe("private, no-store");
+  });
+});
+
+describe("staff customer 500 (K34)", () => {
+  it("does not echo rec.message on PATCH/DELETE 500", () => {
+    const src = read("apps/web/app/[locale]/(ops)/api/staff/customers/[id]/route.ts");
+    expect(src).not.toMatch(/rec\.message/);
+    expect(src).toMatch(/Customer details could not be saved/);
+    expect(src).toMatch(/This customer could not be removed/);
+  });
+});
+
+describe("chauffeur JSON 500 (K38)", () => {
+  it("does not echo constraint names or Postgres codes", () => {
+    const src = read("apps/web/lib/ops/fleet-http.ts");
+    expect(src).not.toMatch(/Could not save \(\$\{constraint\}\)/);
+    expect(src).not.toMatch(/Postgres \$\{code\}/);
+    expect(src).not.toMatch(/Could not save \(\$\{err\.key\}\)/);
+    expect(src).toMatch(/The chauffeur could not be saved/);
   });
 });
 

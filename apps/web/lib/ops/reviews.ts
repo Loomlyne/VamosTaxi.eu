@@ -159,6 +159,22 @@ export function assertNotLocked(row: Pick<ReviewRow, "locked">): void {
   if (row.locked) throw new ReviewLockedError();
 }
 
+/**
+ * Empty is allowed. Anything else must be an http(s) URL with a host.
+ * Invalid values fail closed — never stored, never rendered as a link.
+ */
+export function parseReviewSourceUrl(value: string | null | undefined): string | null {
+  const raw = typeof value === "string" ? value.trim() : "";
+  if (!raw) return null;
+  try {
+    const url = new URL(raw);
+    if ((url.protocol === "https:" || url.protocol === "http:") && url.hostname) return raw;
+  } catch {
+    /* fail closed */
+  }
+  throw new ReviewInputError("reviews-source-url");
+}
+
 export function assertReviewInput(input: ReviewInput): AssertedReviewInput {
   if (!Number.isInteger(input.rating) || input.rating < 0 || input.rating > 5) {
     throw new ReviewInputError("reviews-rating");
@@ -169,7 +185,7 @@ export function assertReviewInput(input: ReviewInput): AssertedReviewInput {
   const externalRef = input.externalRef ? input.externalRef : null;
   const vehicleClassId = input.vehicleClassId ? input.vehicleClassId : null;
   const avatarPath = input.avatarPath ? input.avatarPath : null;
-  const sourceUrl = input.sourceUrl ? input.sourceUrl : null;
+  const sourceUrl = parseReviewSourceUrl(input.sourceUrl);
   const sortOrder = input.sortOrder == null ? 0 : input.sortOrder;
 
   if (!Number.isInteger(sortOrder)) {

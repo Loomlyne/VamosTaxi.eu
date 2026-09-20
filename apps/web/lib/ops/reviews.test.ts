@@ -15,6 +15,7 @@ import {
   assertNotLocked,
   assertReviewInput,
   loadReviews,
+  parseReviewSourceUrl,
   planReorder,
   ReviewInputError,
   ReviewLockedError,
@@ -127,6 +128,33 @@ describe("assertReviewInput", () => {
     expect(parsed.avatarPath).toBeNull();
     expect(parsed.sourceUrl).toBeNull();
     expect("locked" in parsed).toBe(false);
+  });
+
+  it("accepts an empty source URL and a full http(s) URL", () => {
+    expect(parseReviewSourceUrl("")).toBeNull();
+    expect(parseReviewSourceUrl("  ")).toBeNull();
+    expect(parseReviewSourceUrl("https://maps.google.com/review")).toBe(
+      "https://maps.google.com/review",
+    );
+    expect(parseReviewSourceUrl("http://example.test/r")).toBe("http://example.test/r");
+  });
+
+  it("rejects an invalid source URL fail-closed", () => {
+    expect(() => parseReviewSourceUrl("https://")).toThrow(ReviewInputError);
+    expect(() => parseReviewSourceUrl("javascript:alert(1)")).toThrow(ReviewInputError);
+    expect(() => parseReviewSourceUrl("not-a-url")).toThrow(ReviewInputError);
+    expect(() =>
+      assertReviewInput({
+        authorName: "A",
+        authorRole: "",
+        body: "",
+        rating: 5,
+        routeLabel: "",
+        vehicleClassId: null,
+        avatarPath: null,
+        sourceUrl: "https://",
+      }),
+    ).toThrow(ReviewInputError);
   });
 });
 

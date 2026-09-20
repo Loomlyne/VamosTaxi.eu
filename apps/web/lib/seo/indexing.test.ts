@@ -57,6 +57,7 @@ const SITEMAP_FORBIDDEN = [
   "/reset-password",
   "/ops",
   "/dev",
+  "/review",
 ] as const;
 
 describe("host-split noindex (D-03 D-04)", () => {
@@ -125,5 +126,43 @@ describe("robots disallows D-31 (D-31)", () => {
   it("/dev stays disallowed (keep /dev noindex)", () => {
     const robots = source("app/robots.ts");
     expect(robots).toMatch(/"\/dev"/);
+  });
+
+  it("review token URLs are disallowed and HTTP noindex", () => {
+    const robots = source("app/robots.ts");
+    expect(robots).toContain('"/review"');
+    const review = source("app/[locale]/review/page.tsx");
+    expect(review).toMatch(/robots:\s*\{\s*index:\s*false/);
+    const config = source("next.config.ts");
+    expect(config).toMatch(/source:\s*"\/review"/);
+    expect(config).toMatch(/source:\s*"\/:locale\/review"/);
+  });
+
+  it("confirmation and pay-token pages set robots noindex", () => {
+    const confirmation = source("app/[locale]/confirmation/page.tsx");
+    expect(confirmation).toMatch(/robots:\s*\{\s*index:\s*false/);
+    const confirmationRef = source("app/[locale]/confirmation/[ref]/page.tsx");
+    expect(confirmationRef).toContain("const robots = { index: false, follow: false }");
+    const pay = source("app/[locale]/checkout/pay/[token]/page.tsx");
+    expect(pay).toMatch(/robots:\s*\{\s*index:\s*false/);
+  });
+
+  it("auth and manage-booking DC paths HTTP noindex", () => {
+    const mw = source("middleware.ts");
+    expect(mw).toContain("PRIVATE_NOINDEX_PREFIXES");
+    expect(mw).toContain('"/sign-in"');
+    expect(mw).toContain('"/reset-password"');
+    expect(mw).toContain('"/manage-booking"');
+    expect(mw).toContain("isPrivateNoindexPath");
+    const signIn = source("app/[locale]/sign-in/page.tsx");
+    expect(signIn).toMatch(/robots:\s*\{\s*index:\s*false/);
+    const signUp = source("app/[locale]/sign-up/page.tsx");
+    expect(signUp).toMatch(/robots:\s*\{\s*index:\s*false/);
+    const reset = source("app/[locale]/reset-password/page.tsx");
+    expect(reset).toMatch(/robots:\s*\{\s*index:\s*false/);
+    const config = source("next.config.ts");
+    expect(config).toMatch(/source:\s*"\/sign-in"/);
+    expect(config).toMatch(/source:\s*"\/reset-password"/);
+    expect(config).toMatch(/source:\s*"\/manage-booking"/);
   });
 });
