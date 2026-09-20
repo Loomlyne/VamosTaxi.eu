@@ -184,13 +184,16 @@ export async function POST(request: Request) {
     to,
   );
   if (!sent.ok) {
-    return Response.json({ error: "email_failed", code: "invalid_request" }, { status: 502 });
+    return Response.json({ error: "email_failed", code: "invalid_request" }, { status: 502, headers: { "cache-control": "private, no-store" } });
   }
 
-  return Response.json({
-    ok: true,
-    reference: payload.reference,
-    pay_url: payUrl,
-    expires_at: payload.expires_at,
-  });
+  return Response.json(
+    {
+      ok: true,
+      reference: payload.reference,
+      pay_url: payUrl,
+      expires_at: payload.expires_at,
+    },
+    { headers: { "cache-control": "private, no-store" } },
+  );
 }

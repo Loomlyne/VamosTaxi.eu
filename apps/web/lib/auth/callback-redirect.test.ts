@@ -154,3 +154,20 @@ describe("account bookings POST cache", () => {
     expect(src).toContain("status: 404, headers: noStore");
   });
 });
+
+describe("review/photo/invite JSON cache", () => {
+  it("review photo/submit, staff photos, invite, pay-link send private no-store", () => {
+    const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
+    const files = [
+      "app/api/reviews/photo/route.ts",
+      "app/api/reviews/submit/route.ts",
+      "app/[locale]/(ops)/api/photos/upload/route.ts",
+      "app/[locale]/(ops)/api/staff/invite/route.ts",
+      "app/api/checkout/pay-link/route.ts",
+    ];
+    for (const rel of files) {
+      const file = readFileSync(join(root, rel), "utf8");
+      expect(file, rel).toMatch(/cache-control\": \"private, no-store\"/i);
+    }
+  });
+});

@@ -23,8 +23,10 @@ const BLOCKED = new Set(["quote", "pending", "cancelled", "partially_cancelled"]
 
 type BookingRow = { booking_id: string; status: string };
 
+const noStore = { "cache-control": "private, no-store" };
+
 function jsonErr(code: string, status: number): Response {
-  return Response.json({ ok: false, code }, { status });
+  return Response.json({ ok: false, code }, { status, headers: noStore });
 }
 
 function str(value: unknown): string {
@@ -67,7 +69,7 @@ export async function POST(request: Request): Promise<Response> {
     assertPhotoUpload({ type: fileRaw.type, size: fileRaw.size, bytes });
   } catch (err) {
     if (err instanceof PhotoUploadError) {
-      return Response.json({ error: err.code }, { status: 400 });
+      return Response.json({ error: err.code }, { status: 400, headers: noStore });
     }
     throw err;
   }
@@ -117,5 +119,5 @@ export async function POST(request: Request): Promise<Response> {
     httpMetadata: { contentType: fileRaw.type },
   });
 
-  return Response.json({ key });
+  return Response.json({ key }, { headers: noStore });
 }

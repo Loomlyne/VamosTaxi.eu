@@ -21,12 +21,14 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
+const noStore = { "cache-control": "private, no-store" };
+
 function jsonError(code: InviteErrorCode, status: number): Response {
-  return Response.json({ ok: false, code }, { status });
+  return Response.json({ ok: false, code }, { status, headers: noStore });
 }
 
 function jsonForbidden(): Response {
-  return Response.json({ ok: false }, { status: 403 });
+  return Response.json({ ok: false }, { status: 403, headers: noStore });
 }
 
 function errorStatus(error: unknown): number | undefined {
@@ -65,7 +67,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   if (!staffOriginAllowed(request.headers.get("Origin"))) {
-    return Response.json({ ok: false, code: "csrf" }, { status: 403 });
+    return Response.json({ ok: false, code: "csrf" }, { status: 403, headers: noStore });
   }
 
   let raw: unknown;
@@ -143,5 +145,5 @@ export async function POST(request: Request): Promise<Response> {
     return jsonError(INVITE_ERROR.staff_row_failed, 500);
   }
 
-  return Response.json({ ok: true });
+  return Response.json({ ok: true }, { headers: noStore });
 }
