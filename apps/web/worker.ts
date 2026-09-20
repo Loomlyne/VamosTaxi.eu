@@ -6,11 +6,17 @@
 // console.log shape.
 //
 // Source pattern: https://opennext.js.org/cloudflare/howtos/custom-worker
+import { WorkerEntrypoint } from "cloudflare:workers";
 // @ts-expect-error `.open-next/worker.js` is generated at build time by
 // `opennextjs-cloudflare build` and does not exist in source control.
 import { default as handler } from "./.open-next/worker.js";
 import { gatePublicRequest } from "./lib/dc-mock-urls";
-import { pinUrlToSni, sniFromCf } from "./lib/security/pin-sni";
+import {
+  pinRequestToSurface,
+  sniFromCf,
+  surfaceFromEnv,
+  type VamosSurface,
+} from "./lib/security/pin-sni";
 import { withRequestContext } from "./lib/logger";
 import { isZurichDigestTime, runStaffDigest } from "./lib/ops/digest";
 import { createDigestDependencies } from "./lib/supabase/service";
@@ -21,28 +27,39 @@ import { runReminder24h } from "./lib/lifecycle/reminder";
 import { probeHealth } from "./lib/health/probe";
 import type { StripeQueueMessage } from "./lib/checkout/webhook";
 
+async function handleFetch(
+  request: Request,
+  env: CloudflareEnv,
+  ctx: ExecutionContext,
+  surface: VamosSurface,
+): Promise<Response> {
+  const sni = sniFromCf((request as { cf?: unknown }).cf);
+  const inbound = pinRequestToSurface(request, surface, sni);
+  const gated = gatePublicRequest(inbound);
+  if (gated === "not-found") {
+    const gone = new URL(inbound.url);
+    gone.pathname = "/__vamos_gone";
+    gone.search = "";
+    return handler.fetch(new Request(gone, inbound), env, ctx);
+  }
+  if (gated) return gated;
+  return handler.fetch(inbound, env, ctx);
+}
+
+/**
+ * Named entrypoint for Worker `vamos-dashboard` (service binding).
+ * Internet HTTP cannot call this — only the gateway Worker.
+ * Always dashboard host, even when env.VAMOS_SURFACE is public on `vamos`.
+ */
+export class Dashboard extends WorkerEntrypoint<CloudflareEnv> {
+  fetch(request: Request): Promise<Response> {
+    return handleFetch(request, this.env, this.ctx, "dashboard");
+  }
+}
+
 export default {
   async fetch(request, env, ctx) {
-    const url = new URL(request.url);
-    const sni = sniFromCf((request as { cf?: unknown }).cf);
-    const pinned = pinUrlToSni(url, sni);
-    let inbound = request;
-    if (pinned.href !== url.href) {
-      const headers = new Headers(request.headers);
-      headers.delete("host");
-      headers.set("host", pinned.hostname);
-      inbound = new Request(pinned.toString(), request) as typeof request;
-      inbound = new Request(inbound, { headers }) as typeof request;
-    }
-    const gated = gatePublicRequest(inbound);
-    if (gated === "not-found") {
-      const gone = new URL(inbound.url);
-      gone.pathname = "/__vamos_gone";
-      gone.search = "";
-      return handler.fetch(new Request(gone, inbound), env, ctx);
-    }
-    if (gated) return gated;
-    return handler.fetch(inbound, env, ctx);
+    return handleFetch(request, env, ctx, surfaceFromEnv(env));
   },
 
   async scheduled(controller, env, _ctx) {

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { pinUrlToSni, sniFromCf } from "./pin-sni";
+import {
+  pinUrlToSni,
+  pinUrlToSurface,
+  sniFromCf,
+  surfaceFromEnv,
+} from "./pin-sni";
 
 describe("sniFromCf", () => {
   it("reads tlsServerName", () => {
@@ -29,5 +34,47 @@ describe("pinUrlToSni", () => {
   it("does not rewrite unknown hosts", () => {
     const url = new URL("https://evil.example/about");
     expect(pinUrlToSni(url, "vamostaxi.site").href).toBe(url.href);
+  });
+});
+
+describe("pinUrlToSurface", () => {
+  it("public ignores Host dashboard on apex", () => {
+    const url = new URL("https://dashboard.vamostaxi.site/about");
+    const pinned = pinUrlToSurface(url, "public");
+    expect(pinned.hostname).toBe("vamostaxi.site");
+    expect(pinned.pathname).toBe("/about");
+  });
+  it("public leaves www and apex", () => {
+    expect(
+      pinUrlToSurface(new URL("https://www.vamostaxi.site/faq"), "public")
+        .hostname,
+    ).toBe("www.vamostaxi.site");
+    expect(
+      pinUrlToSurface(new URL("https://vamostaxi.site/about"), "public")
+        .hostname,
+    ).toBe("vamostaxi.site");
+  });
+  it("dashboard ignores Host apex", () => {
+    const url = new URL("https://vamostaxi.site/about");
+    expect(pinUrlToSurface(url, "dashboard").hostname).toBe(
+      "dashboard.vamostaxi.site",
+    );
+  });
+  it("auto without SNI leaves spoofed Host", () => {
+    const url = new URL("https://dashboard.vamostaxi.site/about");
+    expect(pinUrlToSurface(url, "auto", null).href).toBe(url.href);
+  });
+});
+
+describe("surfaceFromEnv", () => {
+  it("reads VAMOS_SURFACE", () => {
+    expect(surfaceFromEnv({ VAMOS_SURFACE: "public" })).toBe("public");
+    expect(surfaceFromEnv({ VAMOS_SURFACE: "dashboard" })).toBe("dashboard");
+  });
+  it("ops-changes is dashboard", () => {
+    expect(surfaceFromEnv({ DEPLOY_ENV: "ops-changes" })).toBe("dashboard");
+  });
+  it("staging without surface stays auto", () => {
+    expect(surfaceFromEnv({ DEPLOY_ENV: "staging" })).toBe("auto");
   });
 });

@@ -5,9 +5,15 @@ export const VAMOS_SURFACES = [
   "dashboard.vamostaxi.site",
 ] as const;
 
-type Surface = (typeof VAMOS_SURFACES)[number];
+type SurfaceHost = (typeof VAMOS_SURFACES)[number];
 
 const SURFACES = new Set<string>(VAMOS_SURFACES);
+
+export const APEX_HOST = "vamostaxi.site";
+export const DASHBOARD_HOST = "dashboard.vamostaxi.site";
+
+/** Worker-owned surface. `auto` is Host/SNI (shared Worker — spoofable). */
+export type VamosSurface = "public" | "dashboard" | "auto";
 
 export function sniFromCf(cf: unknown): string | null {
   if (!cf || typeof cf !== "object") return null;
@@ -24,6 +30,66 @@ export function pinUrlToSni(url: URL, sni: string | null): URL {
   }
   if (url.hostname.toLowerCase() === sni) return url;
   const next = new URL(url.toString());
-  next.hostname = sni as Surface;
+  next.hostname = sni as SurfaceHost;
   return next;
+}
+
+/**
+ * Pin URL host to the Worker this code is running on.
+ * `public` ignores Host: dashboard (apex Worker).
+ * `dashboard` ignores Host: apex (vamos-dashboard gateway entrypoint).
+ * `auto` falls back to SNI pin (no-op when runtime has no tlsServerName).
+ */
+export function pinUrlToSurface(
+  url: URL,
+  surface: VamosSurface,
+  sni: string | null = null,
+): URL {
+  if (surface === "auto") return pinUrlToSni(url, sni);
+  const host = url.hostname.toLowerCase();
+  if (surface === "dashboard") {
+    if (host === DASHBOARD_HOST) return url;
+    const next = new URL(url.toString());
+    next.hostname = DASHBOARD_HOST;
+    return next;
+  }
+  if (host === DASHBOARD_HOST) {
+    const next = new URL(url.toString());
+    next.hostname = APEX_HOST;
+    return next;
+  }
+  return url;
+}
+
+export function pinRequestToSurface(
+  request: Request,
+  surface: VamosSurface,
+  sni: string | null = null,
+): Request {
+  const url = new URL(request.url);
+  const pinned = pinUrlToSurface(url, surface, sni);
+  const headerHost =
+    (request.headers.get("host") ?? "").split(":")[0]?.toLowerCase() ?? "";
+  if (
+    pinned.href === url.href &&
+    headerHost === pinned.hostname.toLowerCase()
+  ) {
+    return request;
+  }
+  const headers = new Headers(request.headers);
+  headers.delete("host");
+  headers.set("host", pinned.hostname);
+  const inbound = new Request(pinned.toString(), request);
+  return new Request(inbound, { headers });
+}
+
+export function surfaceFromEnv(env: {
+  VAMOS_SURFACE?: string;
+  DEPLOY_ENV?: string;
+}): VamosSurface {
+  if (env.VAMOS_SURFACE === "public" || env.VAMOS_SURFACE === "dashboard") {
+    return env.VAMOS_SURFACE;
+  }
+  if (env.DEPLOY_ENV === "ops-changes") return "dashboard";
+  return "auto";
 }

@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "lint:css": "stylelint \"**/*.css\" --ignore-path .gitignore --ignore-path .stylelintignore",
     "preview": "node ../../scripts/sync-dc-mock-to-public.mjs && opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "node ../../scripts/sync-dc-mock-to-public.mjs && opennextjs-cloudflare build && opennextjs-cloudflare deploy"
+    "deploy": "node ../../scripts/sync-dc-mock-to-public.mjs && opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "deploy:dashboard": "wrangler deploy -c wrangler.dashboard.jsonc"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "6.9.0",

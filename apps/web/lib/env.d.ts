@@ -89,6 +89,13 @@ interface CloudflareEnv {
    */
   DEPLOY_ENV?: string;
 
+  /**
+   * K76 Worker surface pin (`public` | `dashboard`). Not a credential.
+   * `public` on Worker `vamos` (apex+www). Dashboard TLS is Worker
+   * `vamos-dashboard` → named entrypoint `Dashboard`, which ignores this var.
+   */
+  VAMOS_SURFACE?: string;
+
   // ── Phase 4 quote / pricing bindings (plan 04-07 owns the full surface) ──
 
   /**

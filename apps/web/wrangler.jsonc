@@ -92,8 +92,10 @@
       "workers_dev": true,
       "routes": [
         { "pattern": "vamostaxi.site", "custom_domain": true },
-        { "pattern": "www.vamostaxi.site", "custom_domain": true },
-        { "pattern": "dashboard.vamostaxi.site", "custom_domain": true }
+        { "pattern": "www.vamostaxi.site", "custom_domain": true }
+        // dashboard.vamostaxi.site is Worker vamos-dashboard
+        // (wrangler.dashboard.jsonc). Do not bind it here. Do not bind
+        // vamos-ops-changes to that hostname.
       ],
       // Plain, non-secret marker (never a credential — see the top-level
       // `vars` comment above) — apps/web/middleware.ts reads this to scope
@@ -106,6 +108,9 @@
       // is trigger-derived from status, not this var).
       "vars": {
         "DEPLOY_ENV": "staging",
+        // K76: this Worker is apex+www only. Host: dashboard is ignored.
+        // Real dashboard TLS hits vamos-dashboard → Dashboard entrypoint.
+        "VAMOS_SURFACE": "public",
         "PRICING_PREVIEW": "true",
         // D-54 / U37: engineering UNIT COUNT sentinel for the daily Mapbox
         // breaker — not a budget, not a franc figure. Trips rather than logs.
