@@ -30,7 +30,7 @@ describe("ops customers board", () => {
     const src = readWeb("lib/ops/customers.ts");
     expect(src).toMatch(/export async function upsertCustomer/);
     expect(src).toMatch(/phone: asTrimmed\(rec\.phone\)/);
-    expect(src).toMatch(/company: asTrimmed\(rec\.company\)/);
+    expect(src).not.toMatch(/company: asTrimmed\(rec\.company\)/);
     expect(src).toMatch(/on conflict \(email\) where erased_at is null do update set/);
     expect(detail).toMatch(/upsertCustomer/);
     expect(detail).toMatch(/export async function PATCH/);
@@ -62,7 +62,13 @@ describe("ops customers board", () => {
     expect(html).toMatch(/customers\.update/);
     expect(html).toMatch(/historyRows/);
     expect(html).toMatch(/history-label/);
-    expect(html).toMatch(/#detail\//);
+    expect(html).toMatch(/\/bookings\/' \+ encodeURIComponent/);
+    expect(html).not.toMatch(/#detail\//);
+    expect(html).not.toMatch(/fType:/);
+    expect(html).not.toMatch(/fTrips:/);
+    expect(html).not.toMatch(/fNote:/);
+    expect(html).not.toMatch(/key:'note'/);
+    expect(html).toMatch(/readonly:true/);
     expect(html).not.toMatch(/Traveller/);
   });
 

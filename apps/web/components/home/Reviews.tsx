@@ -13,6 +13,7 @@ export type ReviewsItem = {
   rating: number;
   routeLabel: string;
   avatarPath: string | null;
+  sourceUrl: string | null;
   verified: boolean;
 };
 
@@ -25,6 +26,20 @@ export type ReviewsProps = {
   showPendingNotice?: boolean;
   state?: ReviewsState;
 };
+
+function reviewHref(url: string | null | undefined): string | null {
+  const raw = typeof url === "string" ? url.trim() : "";
+  if (!raw) return null;
+  try {
+    const parsed = new URL(raw);
+    if ((parsed.protocol === "https:" || parsed.protocol === "http:") && parsed.hostname) {
+      return raw;
+    }
+  } catch {
+    /* fail closed */
+  }
+  return null;
+}
 
 function reducedMotion(): boolean {
   return typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -236,6 +251,7 @@ export function Reviews({
               <div data-rv-stack="1">
                 {reviews.map((review, i) => {
                   const on = i === index;
+                  const href = reviewHref(review.sourceUrl);
                   return (
                     <div
                       key={review.id}
@@ -247,14 +263,10 @@ export function Reviews({
                       aria-hidden={on ? undefined : true}
                     >
                       <span data-rv-av="1">
-                        <Avatar
-                          name={review.authorName}
-                          src={review.avatarPath || undefined}
-                          size="xl"
-                        />
+                        <Avatar name={review.authorName} size="xl" />
                       </span>
                       <strong data-rv-name="1">{review.authorName}</strong>
-                      <span data-rv-sub="1">{review.authorRole}</span>
+                      {review.routeLabel ? <span data-rv-sub="1">{review.routeLabel}</span> : null}
                       {review.rating > 0 ? (
                         <span
                           data-rv-stars="1"
@@ -273,12 +285,22 @@ export function Reviews({
                           ))}
                         </span>
                       ) : null}
-                      {review.routeLabel ? <span data-rv-meta="1">{review.routeLabel}</span> : null}
                       {review.verified ? (
                         <span data-rv-badge="1">
                           <Icon name="shield-check" size={14} color="currentColor" />
                           {tCommon("verified")}
                         </span>
+                      ) : null}
+                      {href ? (
+                        <a
+                          data-rv-link="1"
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {tReviews("read-the-original")}
+                          <Icon name="external-link" size={14} color="currentColor" />
+                        </a>
                       ) : null}
                     </div>
                   );

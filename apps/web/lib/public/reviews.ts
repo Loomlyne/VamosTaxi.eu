@@ -37,6 +37,18 @@ type ReviewSqlRow = {
   sort_order: number;
 };
 
+function publicSourceUrl(value: string | null): string | null {
+  const raw = typeof value === "string" ? value.trim() : "";
+  if (!raw) return null;
+  try {
+    const url = new URL(raw);
+    if ((url.protocol === "https:" || url.protocol === "http:") && url.hostname) return raw;
+  } catch {
+    /* fail closed — never render an invalid href */
+  }
+  return null;
+}
+
 export async function loadPublishedReviews(env: CloudflareEnv): Promise<PublicReview[]> {
   const sql = publicSql(env);
   const rows = await sql<ReviewSqlRow[]>`
@@ -68,8 +80,8 @@ export async function loadPublishedReviews(env: CloudflareEnv): Promise<PublicRe
     rating: row.rating,
     routeLabel: row.route_label,
     vehicleClassSlug: row.vehicle_class_slug,
-    avatarPath: row.avatar_path,
-    sourceUrl: row.source_url,
+    avatarPath: null,
+    sourceUrl: publicSourceUrl(row.source_url),
     verified: row.verified,
     published: row.published,
     sortOrder: row.sort_order,

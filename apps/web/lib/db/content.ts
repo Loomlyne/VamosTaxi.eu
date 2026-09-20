@@ -18,6 +18,7 @@ export type ReviewRow = {
   rating: number;
   routeLabel: string;
   avatarPath: string | null;
+  sourceUrl: string | null;
   verified: boolean;
 };
 
@@ -38,7 +39,7 @@ type ReviewQueryRow = {
   body: string;
   rating: number;
   route_label: string;
-  avatar_path: string | null;
+  source_url: string | null;
   verified: boolean;
 };
 
@@ -60,7 +61,8 @@ function mapReview(row: ReviewQueryRow): ReviewRow {
     body: row.body,
     rating: row.rating,
     routeLabel: row.route_label,
-    avatarPath: row.avatar_path,
+    avatarPath: null,
+    sourceUrl: row.source_url,
     verified: row.verified,
   };
 }
@@ -92,7 +94,7 @@ export function pickLocaleColumn(row: ContentStringRow, locale: ContentLocale): 
 export async function getPublishedReviews(env: CloudflareEnv, limit: number): Promise<ReviewRow[]> {
   const sql = publicSql(env);
   const rows = await sql<ReviewQueryRow[]>`
-    select id, author_name, author_role, body, rating, route_label, avatar_path, verified
+    select id, author_name, author_role, body, rating, route_label, source_url, verified
       from public.reviews
      where published
      order by sort_order, created_at desc

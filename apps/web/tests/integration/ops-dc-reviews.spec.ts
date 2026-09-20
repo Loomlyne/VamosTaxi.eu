@@ -69,12 +69,13 @@ test.describe("GET /api/staff/reviews @ops-dc-reviews", () => {
     expect(store).toMatch(/all:\s*function\s*\(\)\s*\{\s*hydrate\(\);\s*return list\.slice\(\);/);
   });
 
-  test("OpsReviews.dc.html talks to /api/staff/reviews and POSTs /api/photos/upload", () => {
+  test("OpsReviews.dc.html talks to /api/staff/reviews and has no photo upload or drag", () => {
     const html = readFileSync(join(repoRoot, "app/ops/OpsReviews.dc.html"), "utf8");
-    expect(html).toMatch(/type="file"/);
-    expect(html).toMatch(/\/api\/photos\/upload/);
-    expect(html).toMatch(/credentials:\s*['"]include['"]/);
-    expect(html).toMatch(/kind['"]?,\s*['"]review['"]/);
+    expect(html).not.toMatch(/type="file"/);
+    expect(html).not.toMatch(/\/api\/photos\/upload/);
+    expect(html).not.toMatch(/grip-vertical/);
+    expect(html).not.toMatch(/draggable="true"/);
+    expect(html).toMatch(/chevron-up/);
     expect(html).not.toMatch(/readAsDataURL/);
     expect(html).toMatch(/tEmptyTitle/);
     expect(html).toMatch(/isEmpty/);

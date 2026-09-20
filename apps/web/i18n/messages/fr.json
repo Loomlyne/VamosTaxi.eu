@@ -2427,6 +2427,7 @@
     "platform-names-are-set-in-type-as-stand-ins-conf": "Les noms de plateformes sont composés en typographie, en attente. Confirmez laquelle de Google, Tripadvisor et Trustpilot a un profil Vamos actif avant de publier une marque : un logo sans compte derrière est une fausse affirmation.",
     "previous-review": "Avis précédent",
     "rating-label": "Note {n} sur {max}",
+    "read-the-original": "Lire l’original",
     "reviewPosition": "Avis {n} sur {total}",
     "reviews-appear-here-as-soon-as-they-are-published": "Les avis apparaissent ici dès qu’ils sont publiés dans la console. Rien n’est affiché en attendant.",
     "what-clients-say-about-us": "Ce que nos clients disent de nous"

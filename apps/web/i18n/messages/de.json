@@ -2427,6 +2427,7 @@
     "platform-names-are-set-in-type-as-stand-ins-conf": "Die Plattformnamen stehen als Platzhalter im Satz. Klären Sie, welche von Google, Tripadvisor und Trustpilot ein aktives Vamos-Profil hat, bevor ein Zeichen ausgeliefert wird: ein Logo ohne Konto dahinter ist eine falsche Aussage.",
     "previous-review": "Vorherige Bewertung",
     "rating-label": "Bewertet mit {n} von {max}",
+    "read-the-original": "Original lesen",
     "reviewPosition": "Bewertung {n} von {total}",
     "reviews-appear-here-as-soon-as-they-are-published": "Bewertungen erscheinen hier, sobald sie in der Dispatch-Konsole veröffentlicht sind. Bis dahin wird nichts angezeigt.",
     "what-clients-say-about-us": "Was Kundinnen und Kunden über uns sagen"

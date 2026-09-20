@@ -5,6 +5,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ops · Reviews</title>
 <script src="../support.js"></script>
+<style>
+[data-order] {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+[data-order] [data-ico-btn] {
+  width: 28px;
+  height: 28px;
+}
+[data-ico-btn][data-danger] {
+  color: var(--vt-danger);
+}
+[data-switch-hint],
+[data-url-err] {
+  margin: 0;
+  font-size: var(--vt-body-xs);
+  line-height: 1.4;
+  color: var(--vt-text-muted);
+}
+[data-url-err] {
+  color: var(--vt-danger);
+}
+</style>
 </head>
 <body>
 <x-dc>
@@ -16,7 +41,6 @@
 <p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSubtitle }}</p>
 </div>
 <div style="margin-inline-start:auto;display:flex;align-items:center;gap:10px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="outline" size="sm" icon="external-link" href="../home/home.dc.html#reviews" hint-size="150px,36px">{{ tViewOnSite }}</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" icon="plus" onClick="{{ addNew }}" hint-size="150px,36px">{{ tAdd }}</x-import>
 </div>
 </header>
@@ -41,13 +65,18 @@
 </sc-if>
 
 <sc-for list="{{ rows }}" as="r" hint-placeholder-count="5">
-<div data-row="1" data-sel="{{ r.sel }}" data-off="{{ r.off }}" data-drag="{{ r.dragging }}" data-over="{{ r.over }}" draggable="true" onDragStart="{{ r.dragStart }}" onDragOver="{{ r.dragOver }}" onDrop="{{ r.drop }}" onDragEnd="{{ r.dragEnd }}">
+<div data-row="1" data-sel="{{ r.sel }}" data-off="{{ r.off }}">
 
-<button type="button" data-grip="1" aria-label="{{ tReorder }}" title="{{ tReorder }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="grip-vertical" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+<div data-order="1">
+<button type="button" data-ico-btn="1" onClick="{{ r.up }}" disabled="{{ r.isFirst }}" aria-label="{{ tMoveUp }}" title="{{ tMoveUp }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-up" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
 </button>
+<button type="button" data-ico-btn="1" onClick="{{ r.down }}" disabled="{{ r.isLast }}" aria-label="{{ tMoveDown }}" title="{{ tMoveDown }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+</button>
+</div>
 
-<span data-av="1" data-fade="1" aria-hidden="true" style="background-image:{{ r.photo }};color:{{ r.initialsColor }}">{{ r.initials }}</span>
+<span data-av="1" data-fade="1" aria-hidden="true">{{ r.initials }}</span>
 
 <div data-fade="1" style="flex:1 1 auto;min-width:0">
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px">
@@ -64,18 +93,11 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n12 }}" color="{{ r.s4 }}" hint-size="12px,12px"></x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n12 }}" color="{{ r.s5 }}" hint-size="12px,12px"></x-import>
 </span>
-<span>{{ r.role }}</span>
 <span style="display:{{ r.metaShow }}">{{ r.meta }}</span>
 </div>
 </div>
 
 <div data-act="1">
-<button type="button" data-ico-btn="1" onClick="{{ r.up }}" disabled="{{ r.isFirst }}" aria-label="{{ tMoveUp }}" title="{{ tMoveUp }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-up" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
-</button>
-<button type="button" data-ico-btn="1" onClick="{{ r.down }}" disabled="{{ r.isLast }}" aria-label="{{ tMoveDown }}" title="{{ tMoveDown }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-down" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
-</button>
 <button type="button" data-ico-btn="1" onClick="{{ r.togglePublish }}" aria-label="{{ r.publishLabel }}" title="{{ r.publishLabel }}" aria-pressed="{{ r.publishedAria }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ r.publishIcon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
 </button>
@@ -109,18 +131,9 @@
 </div>
 
 <div style="display:flex;align-items:center;gap:14px">
-<span style="position:relative;flex:0 0 auto;display:inline-flex">
-<button type="button" data-av="1" onClick="{{ pickPhoto }}" aria-label="{{ tUpload }}" title="{{ tUpload }}" style="width:64px;height:64px;font-size:20px;padding:0;border:0;cursor:pointer;background-image:{{ draftPhoto }};color:{{ draftInitialsColor }}" style-hover="opacity:.86">{{ draftInitials }}</button>
-<button type="button" onClick="{{ clearPhoto }}" aria-label="{{ tRemovePhoto }}" title="{{ tRemovePhoto }}" style="position:absolute;inset-inline-end:-2px;top:-2px;display:{{ photoClearShow }};align-items:center;justify-content:center;width:24px;height:24px;padding:0;border:2px solid var(--vt-bg-surface);border-radius:999px;background:var(--vt-charcoal-900);color:var(--vt-text-inverse);cursor:pointer" style-hover="background:var(--vt-danger)">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n12 }}" color="currentColor" hint-size="12px,12px"></x-import>
-</button>
-</span>
-<p data-hint="1" style="flex:1 1 auto;min-width:0">{{ tPhotoHint }}</p>
-</div>
-<input type="file" accept="image/*" ref="{{ fileRef }}" onChange="{{ onPhoto }}" style="display:none">
-
+<span data-av="1" aria-hidden="true" style="width:64px;height:64px;font-size:20px;flex:0 0 auto">{{ draftInitials }}</span>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tName }}" size="md" value="{{ draftName }}" onChange="{{ setName }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tRole }}" size="md" value="{{ draftRole }}" onChange="{{ setRole }}" placeholder="{{ tRolePh }}" hint-size="100%,76px"></x-import>
+</div>
 
 <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
 <span data-fld-l="1">{{ tSource }}</span>
@@ -173,10 +186,17 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ tText }}" rows="{{ n5 }}" value="{{ draftText }}" onChange="{{ setText }}" placeholder="{{ tTextPh }}" hint-size="100%,130px"></x-import>
 
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tUrl }}" size="md" icon="external-link" value="{{ draftUrl }}" onChange="{{ setUrl }}" placeholder="{{ tUrlPh }}" hint-size="100%,76px"></x-import>
+<p data-url-err="1" style="display:{{ urlErrorShow }}">{{ tUrlError }}</p>
 
 <div style="display:flex;flex-direction:column;gap:12px;padding-top:14px;border-top:1px solid var(--vt-border-subtle)">
+<div style="display:flex;flex-direction:column;gap:6px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" label="{{ tVerified }}" checked="{{ draftVerified }}" onChange="{{ setVerified }}" hint-size="100%,24px"></x-import>
+<p data-switch-hint="1">{{ tVerifiedHint }}</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" label="{{ tPublished }}" checked="{{ draftPublished }}" onChange="{{ setPublished }}" hint-size="100%,24px"></x-import>
+<p data-switch-hint="1">{{ tPublishedHint }}</p>
+</div>
 </div>
 
 <div style="display:flex;flex-wrap:wrap;gap:10px;padding-top:14px;border-top:1px solid var(--vt-border-subtle)">
@@ -210,13 +230,13 @@
  * Imported rows (Google, Tripadvisor, Trustpilot) carry the customer's own words:
  * they can be shown, hidden, reordered and annotated with the trip, never reworded.
  *
- * Order on this screen is order on the site — drag a row, or use the up arrow for
- * a keyboard path that does not depend on pointer drag.
+ * Order on this screen is order on the site — use the up and down arrows.
+ * There is no drag-and-drop.
  */
 const T = {
   en: {
     title: 'Reviews', subtitle: 'What the home page shows, in this order',
-    viewOnSite: 'View on site', add: 'Add a review',
+    add: 'Add a review',
     lockTitle: 'Imported reviews cannot be reworded',
     lockBody: 'Rows pulled from Google, Tripadvisor or Trustpilot carry the customer’s own words. Hide them, reorder them or add the trip details around them — only reviews you collected yourself can be rewritten.',
     orderNote: 'The site shows published reviews in this order. Move a row with the arrows.',
@@ -231,14 +251,17 @@ const T = {
     source: 'Source', rating: 'Rating', route: 'Route', routePh: 'ZRH → Zermatt', pickupPh: 'Pickup', dropoffPh: 'Drop-off', routeHint: 'Pick from known places so the trip reads the same way everywhere.', noMatch: 'No match', vehicleClass: 'Vehicle class',
     text: 'Review', textPh: 'Paste the review exactly as it was written.',
     url: 'Link to the original', urlPh: 'https://',
+    urlError: 'Enter a full http(s) link, or leave this empty.',
     verified: 'Verified traveller', publishedLabel: 'Published on the site',
+    verifiedHint: 'Badge that this person actually rode with Vamos — not a made-up quote.',
+    publishedHint: 'When on, this review is visible on the public homepage. When off, it is not.',
     upload: 'Upload a photo', removePhoto: 'Remove the photo', photoHint: 'Click the circle to upload. Square works best — without a photo the initials show.',
     lockedNote: 'This review was imported, so the name, the words and the rating are read-only.',
     done: 'Done', close: 'Close', notStated: 'Not stated', starsOf: 'Rate %n out of 5'
   },
   de: {
     title: 'Bewertungen', subtitle: 'Was die Startseite zeigt, in dieser Reihenfolge',
-    viewOnSite: 'Auf der Website', add: 'Bewertung hinzufügen',
+    add: 'Bewertung hinzufügen',
     lockTitle: 'Importierte Bewertungen lassen sich nicht umschreiben',
     lockBody: 'Zeilen von Google, Tripadvisor oder Trustpilot enthalten die Worte der Kundin oder des Kunden. Sie können sie ausblenden, neu ordnen oder die Fahrtdaten ergänzen — umschreiben lässt sich nur, was Sie selbst gesammelt haben.',
     orderNote: 'Die Website zeigt veröffentlichte Bewertungen in dieser Reihenfolge. Verschieben Sie eine Zeile mit den Pfeilen.',
@@ -253,14 +276,17 @@ const T = {
     source: 'Quelle', rating: 'Bewertung', route: 'Strecke', routePh: 'ZRH → Zermatt', pickupPh: 'Abholung', dropoffPh: 'Ziel', routeHint: 'Aus bekannten Orten wählen, damit die Fahrt überall gleich aussieht.', noMatch: 'Keine Übereinstimmung', vehicleClass: 'Fahrzeugklasse',
     text: 'Bewertung', textPh: 'Fügen Sie die Bewertung genau so ein, wie sie geschrieben wurde.',
     url: 'Link zum Original', urlPh: 'https://',
+    urlError: 'Geben Sie einen vollständigen http(s)-Link ein, oder lassen Sie das Feld leer.',
     verified: 'Verifizierte Reisende', publishedLabel: 'Auf der Website veröffentlicht',
+    verifiedHint: 'Abzeichen, dass diese Person wirklich mit Vamos gefahren ist — kein erfundenes Zitat.',
+    publishedHint: 'Wenn eingeschaltet, erscheint diese Bewertung auf der öffentlichen Startseite. Wenn aus, nicht.',
     upload: 'Foto hochladen', removePhoto: 'Foto entfernen', photoHint: 'Auf den Kreis klicken, um ein Foto hochzuladen. Quadratisch passt am besten — ohne Foto erscheinen die Initialen.',
     lockedNote: 'Diese Bewertung wurde importiert; Name, Text und Sterne sind schreibgeschützt.',
     done: 'Fertig', close: 'Schliessen', notStated: 'Keine Angabe', starsOf: '%n von 5 Sternen geben'
   },
   fr: {
     title: 'Avis', subtitle: 'Ce que la page d’accueil affiche, dans cet ordre',
-    viewOnSite: 'Voir sur le site', add: 'Ajouter un avis',
+    add: 'Ajouter un avis',
     lockTitle: 'Les avis importés ne peuvent pas être réécrits',
     lockBody: 'Les lignes venant de Google, Tripadvisor ou Trustpilot contiennent les mots du client. Vous pouvez les masquer, les réordonner ou ajouter les détails du trajet — seuls les avis que vous avez recueillis peuvent être réécrits.',
     orderNote: 'Le site affiche les avis publiés dans cet ordre. Déplacez une ligne avec les flèches.',
@@ -275,14 +301,17 @@ const T = {
     source: 'Source', rating: 'Note', route: 'Trajet', routePh: 'ZRH → Zermatt', pickupPh: 'Prise en charge', dropoffPh: 'Destination', routeHint: 'Choisissez parmi les lieux connus pour un trajet toujours lisible de la même façon.', noMatch: 'Aucun résultat', vehicleClass: 'Classe de véhicule',
     text: 'Avis', textPh: 'Collez l’avis exactement tel qu’il a été écrit.',
     url: 'Lien vers l’original', urlPh: 'https://',
+    urlError: 'Saisissez un lien http(s) complet, ou laissez ce champ vide.',
     verified: 'Voyageur vérifié', publishedLabel: 'Publié sur le site',
+    verifiedHint: 'Badge indiquant que cette personne a vraiment voyagé avec Vamos — pas une citation inventée.',
+    publishedHint: 'Activé, cet avis apparaît sur la page d’accueil publique. Désactivé, il n’y apparaît pas.',
     upload: 'Téléverser une photo', removePhoto: 'Retirer la photo', photoHint: 'Cliquez sur le cercle pour téléverser. Le carré fonctionne le mieux — sans photo, les initiales s’affichent.',
     lockedNote: 'Cet avis a été importé : le nom, le texte et la note sont en lecture seule.',
     done: 'Terminé', close: 'Fermer', notStated: 'Non précisé', starsOf: 'Donner %n sur 5'
   },
   ar: {
     title: 'التقييمات', subtitle: 'ما تعرضه الصفحة الرئيسية، بهذا الترتيب',
-    viewOnSite: 'عرض في الموقع', add: 'إضافة تقييم',
+    add: 'إضافة تقييم',
     lockTitle: 'لا يمكن إعادة صياغة التقييمات المستوردة',
     lockBody: 'الصفوف الواردة من Google أو Tripadvisor أو Trustpilot تحمل كلمات العميل نفسه. يمكنك إخفاؤها أو إعادة ترتيبها أو إضافة تفاصيل الرحلة — أما إعادة الصياغة فتقتصر على التقييمات التي جمعتموها بأنفسكم.',
     orderNote: 'يعرض الموقع التقييمات المنشورة بهذا الترتيب. حرّك الصف بالأسهم.',
@@ -297,7 +326,10 @@ const T = {
     source: 'المصدر', rating: 'التقييم', route: 'المسار', routePh: 'ZRH → تسرمات', pickupPh: 'الانطلاق', dropoffPh: 'الوجهة', routeHint: 'اختر من الأماكن المعروفة ليظهر المسار بالشكل نفسه في كل مكان.', noMatch: 'لا توجد نتيجة', vehicleClass: 'فئة المركبة',
     text: 'نص التقييم', textPh: 'الصق التقييم كما كُتب تمامًا.',
     url: 'رابط الأصل', urlPh: 'https://',
+    urlError: 'أدخل رابط http(s) كاملاً، أو اترك الحقل فارغًا.',
     verified: 'مسافر موثّق', publishedLabel: 'منشور في الموقع',
+    verifiedHint: 'شارة تفيد أن هذا الشخص ركب فعلاً مع فاموس — وليست اقتباسًا مختلقًا.',
+    publishedHint: 'عند التشغيل يظهر هذا التقييم في الصفحة الرئيسية العامة. عند الإيقاف لا يظهر.',
     upload: 'رفع صورة', removePhoto: 'إزالة الصورة', photoHint: 'انقر على الدائرة لرفع صورة. الصورة المربعة أنسب — وبدون صورة تظهر الأحرف الأولى.',
     lockedNote: 'هذا التقييم مستورد، لذا الاسم والنص والتقييم للقراءة فقط.',
     done: 'تم', close: 'إغلاق', notStated: 'غير محدد', starsOf: 'إعطاء %n من 5'
@@ -313,27 +345,26 @@ function joinRoute(pickup, dropoff) {
   if (!pickup && !dropoff) return '';
   return pickup + ' → ' + dropoff;
 }
+function parseSourceUrl(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return null;
+  try {
+    const url = new URL(raw);
+    if ((url.protocol === 'http:' || url.protocol === 'https:') && url.hostname) return raw;
+  } catch (e) {}
+  return false;
+}
 
 class Component extends DCLogic {
   state = {
     lang: 'en', selected: null, isNew: false,
-    dragId: null, overId: null, confirmId: null, locOpen: null
+    confirmId: null, locOpen: null, urlDraft: null
   };
-  fileRef = React.createRef();
 
   /* The store is the single source of truth and is read fresh on every render —
      mirroring it into state left row handlers holding a stale copy, so a second
      click wrote the value it had just written. */
   rows() { const s = window.VamosReviews; return s ? s.all() : []; }
-
-  /* The store and the locale runtime arrive with the page's own scripts, which can
-     land after this screen mounts — so wait for them rather than assuming. */
-  photoCss(avatar) {
-    const key = String(avatar || '');
-    if (!key || key.indexOf('data:') === 0) return 'none';
-    if (key.indexOf('/') === 0 || key.indexOf('http') === 0) return 'url(' + key + ')';
-    return 'url(/photos/' + key + ')';
-  }
   bindStore = () => {
     const store = window.VamosReviews;
     if (!store) { this._retry = setTimeout(this.bindStore, 120); return; }
@@ -391,24 +422,9 @@ class Component extends DCLogic {
     this.rows().forEach((r) => { known[r.id] = true; });
     this._newKnown = known;
     this.after(() => store.add(store.blank()));
-    this.setState({ isNew: true, confirmId: null });
+    this.setState({ isNew: true, confirmId: null, urlDraft: null });
   };
-  closePanel = () => this.setState({ selected: null, isNew: false });
-  pickPhoto = () => { if (this.fileRef.current) this.fileRef.current.click(); };
-  onPhoto = (e) => {
-    const file = e.target && e.target.files && e.target.files[0];
-    e.target.value = '';
-    const cur = this.current();
-    if (!file || !cur || !cur.id) return;
-    const body = new FormData();
-    body.append('kind', 'review');
-    body.append('recordId', cur.id);
-    body.append('file', file);
-    fetch('/api/photos/upload', { method: 'POST', credentials: 'include', body })
-      .then((res) => res.json())
-      .then((json) => { if (json && json.key) this.patch({ avatar: json.key }); });
-  };
-  clearPhoto = () => this.patch({ avatar: '' });
+  closePanel = () => this.setState({ selected: null, isNew: false, urlDraft: null });
 
   /* Two-step delete, no dialog: the first click arms the row and relabels the
      button, the second removes it. Arming clears itself after four seconds. */
@@ -461,20 +477,23 @@ class Component extends DCLogic {
       makeLocField('dropoff', routeParts.dropoff, t.dropoffPh),
     ] : [];
 
+    const draftUrl = this.state.urlDraft != null ? this.state.urlDraft : (cur ? cur.url : '');
+    const urlParsed = parseSourceUrl(draftUrl);
+
     return {
       n12: 12, n14: 14, n16: 16, n18: 18, n20: 20, n5: 5,
-      tTitle: t.title, tSubtitle: t.subtitle, tViewOnSite: t.viewOnSite, tAdd: t.add,
+      tTitle: t.title, tSubtitle: t.subtitle, tAdd: t.add,
       tOrderNote: t.orderNote,
       tPublishedCount: pub + ' ' + t.published,
       tHiddenCount: (rows.length - pub) + ' ' + t.hidden,
-      tHidden: t.hiddenTag, tReorder: t.reorder, tMoveUp: t.moveUp, tMoveDown: t.moveDown, tEdit: t.edit,
+      tHidden: t.hiddenTag, tMoveUp: t.moveUp, tMoveDown: t.moveDown, tEdit: t.edit,
       tEmptyTitle: t.emptyTitle, tEmptyBody: t.emptyBody, tStorageNote: t.storageNote,
       tPanelKicker: t.panelKicker, tIdleTitle: t.idleTitle, tIdleBody: t.idleBody,
       tClose: t.close, tDone: t.done, tRemove: t.remove,
-      tName: t.name, tRole: t.role, tRolePh: t.rolePh, tSource: t.source, tRating: t.rating,
+      tName: t.name, tSource: t.source, tRating: t.rating,
       tRoute: t.route, tRouteHint: t.routeHint, tNoMatch: t.noMatch, locationFields, tClass: t.vehicleClass, tText: t.text, tTextPh: t.textPh,
-      tUrl: t.url, tUrlPh: t.urlPh, tVerified: t.verified, tPublished: t.publishedLabel,
-      tUpload: t.upload, tRemovePhoto: t.removePhoto, tPhotoHint: t.photoHint,
+      tUrl: t.url, tUrlPh: t.urlPh, tUrlError: t.urlError, tVerified: t.verified, tPublished: t.publishedLabel,
+      tVerifiedHint: t.verifiedHint, tPublishedHint: t.publishedHint,
       tEditingKicker: t.editingKicker,
       tEditingTitle: cur ? (this.state.isNew && !cur.name ? t.editingNew : cur.name || t.editingNew) : t.editingNew,
 
@@ -482,6 +501,7 @@ class Component extends DCLogic {
       isEmpty: rows.length === 0,
       editing: !!cur,
       idle: !cur,
+      urlErrorShow: urlParsed === false ? 'block' : 'none',
 
       rows: rows.map((r, i) => {
         const stars = {};
@@ -490,20 +510,15 @@ class Component extends DCLogic {
         const armed = this.state.confirmId === r.id;
         return Object.assign({
           name: r.name || t.editingNew,
-          role: r.role,
           quote: r.text ? '“' + r.text + '”' : '',
           sourceLabel: store ? store.sourceLabel(r.source) : r.source,
-          initials: r.avatar ? '' : this.initials(r.name),
-          initialsColor: r.avatar ? 'transparent' : 'var(--vt-text-inverse)',
-          photo: this.photoCss(r.avatar),
+          initials: this.initials(r.name),
           starsShow: r.rating > 0 ? 'flex' : 'none',
           ratingLabel: String(r.rating) + '/5',
           meta: meta, metaShow: meta ? 'inline' : 'none',
           hiddenShow: r.published ? 'none' : 'inline-flex',
           sel: this.state.selected === r.id ? '1' : '0',
           off: r.published ? '0' : '1',
-          dragging: this.state.dragId === r.id ? '1' : '0',
-          over: this.state.overId === r.id ? '1' : '0',
           isFirst: i === 0,
           isLast: i === rows.length - 1,
           publishIcon: r.published ? 'eye' : 'eye-off',
@@ -511,43 +526,24 @@ class Component extends DCLogic {
           publishedAria: r.published ? 'true' : 'false',
           removeIcon: armed ? 'circle-alert' : 'trash-2',
           removeLabel: armed ? t.confirmRemove : t.remove,
-          edit: () => this.setState({ selected: r.id, isNew: false, confirmId: null }),
+          edit: () => this.setState({ selected: r.id, isNew: false, confirmId: null, urlDraft: null }),
           togglePublish: () => this.after(() => store.update(r.id, { published: !r.published })),
           remove: () => this.removeRow(r.id),
           up: () => this.after(() => store.move(r.id, -1)),
           down: () => this.after(() => store.move(r.id, 1)),
-          dragStart: (e) => {
-            this.setState({ dragId: r.id });
-            if (e.dataTransfer) { e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', r.id); } catch (err) {} }
-          },
-          dragOver: (e) => {
-            e.preventDefault();
-            if (this.state.overId !== r.id) this.setState({ overId: r.id });
-          },
-          drop: (e) => {
-            e.preventDefault();
-            const from = this.state.dragId;
-            if (from && from !== r.id) this.after(() => store.reorder(from, r.id));
-            this.setState({ dragId: null, overId: null });
-          },
-          dragEnd: () => this.setState({ dragId: null, overId: null }),
         }, stars);
       }),
 
       /* Editor */
       draftName: cur ? cur.name : '',
-      draftRole: cur ? cur.role : '',
       draftText: cur ? cur.text : '',
       draftRoute: cur ? cur.route : '',
-      draftUrl: cur ? cur.url : '',
+      draftUrl: draftUrl,
       draftSource: cur ? cur.source : 'manual',
       draftClass: cur && cur.vehicleClass ? cur.vehicleClass : '',
       draftVerified: !!(cur && cur.verified),
       draftPublished: !!(cur && cur.published),
-      draftPhoto: cur ? this.photoCss(cur.avatar) : 'none',
-      draftInitials: cur && !cur.avatar ? this.initials(cur.name) : '',
-      draftInitialsColor: cur && cur.avatar ? 'transparent' : 'var(--vt-text-inverse)',
-      photoClearShow: cur && cur.avatar ? 'inline-flex' : 'none',
+      draftInitials: cur ? this.initials(cur.name) : '',
       sourceOptions: sourceOptions,
       classOptions: classOptions,
       ratingButtons: [1, 2, 3, 4, 5].map((n) => ({
@@ -555,12 +551,16 @@ class Component extends DCLogic {
         label: t.starsOf.replace('%n', String(n)),
         set: () => this.patch({ rating: n }),
       })),
-      fileRef: this.fileRef, pickPhoto: this.pickPhoto, onPhoto: this.onPhoto, clearPhoto: this.clearPhoto,
       setName: (e) => this.patch({ name: e.target.value }),
-      setRole: (e) => this.patch({ role: e.target.value }),
       setText: (e) => this.patch({ text: e.target.value }),
       setRoute: (e) => this.patch({ route: e.target.value }),
-      setUrl: (e) => this.patch({ url: e.target.value }),
+      setUrl: (e) => {
+        const value = e.target.value;
+        this.setState({ urlDraft: value });
+        const parsed = parseSourceUrl(value);
+        if (parsed === false) return;
+        this.patch({ url: parsed || '' });
+      },
       pickSource: (v) => this.patch({ source: v || 'manual' }),
       pickClass: (v) => this.patch({ vehicleClass: v || '' }),
       setVerified: (e) => this.patch({ verified: e.target.checked }),

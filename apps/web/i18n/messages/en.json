@@ -2427,6 +2427,7 @@
     "platform-names-are-set-in-type-as-stand-ins-conf": "Platform names are set in type as stand-ins. Confirm which of Google, Tripadvisor and Trustpilot has a live Vamos profile before any mark ships: a logo with no account behind it is a false claim.",
     "previous-review": "Previous review",
     "rating-label": "Rated {n} of {max}",
+    "read-the-original": "Read the original",
     "reviewPosition": "Review {n} of {total}",
     "reviews-appear-here-as-soon-as-they-are-published": "Reviews appear here as soon as they are published in the dispatch console. Nothing is shown in the meantime.",
     "what-clients-say-about-us": "What clients say about us"

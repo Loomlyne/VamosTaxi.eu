@@ -8,7 +8,6 @@ import { Button, Icon } from "@/components/core";
 import { Textarea } from "@/components/forms";
 import { Alert } from "@/components/feedback";
 import { TurnstileWidget } from "@/components/forms/TurnstileWidget";
-import { PHOTO_MAX_BYTES } from "@/lib/ops/photos";
 import type { Locale } from "@/i18n/routing";
 
 type StarKey = "company" | "chauffeur" | "overall";
@@ -63,7 +62,6 @@ export function ReviewForm({ siteKey, locale, token, bookingRef }: ReviewFormPro
   const [chauffeur, setChauffeur] = useState(0);
   const [overall, setOverall] = useState(0);
   const [comment, setComment] = useState("");
-  const [file, setFile] = useState<File | null>(null);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const [resetNonce, setResetNonce] = useState(0);
@@ -86,33 +84,6 @@ export function ReviewForm({ siteKey, locale, token, bookingRef }: ReviewFormPro
     }
     setBusy(true);
     try {
-      let photoKey: string | undefined;
-      if (file) {
-        if (file.size > PHOTO_MAX_BYTES) {
-          setError("too_large");
-          setBusy(false);
-          return;
-        }
-        const form = new FormData();
-        form.set("file", file);
-        if (token) form.set("token", token);
-        if (bookingRef) form.set("bookingRef", bookingRef);
-        const photoRes = await fetch("/api/reviews/photo", {
-          method: "POST",
-          body: form,
-          credentials: "same-origin",
-        });
-        const photoJson = (await photoRes.json().catch(() => null)) as
-          | { key?: string; code?: string }
-          | null;
-        if (!photoRes.ok || !photoJson?.key) {
-          setError(photoJson?.code ?? "photo-failed");
-          setBusy(false);
-          return;
-        }
-        photoKey = photoJson.key;
-      }
-
       const res = await fetch("/api/reviews/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -124,7 +95,6 @@ export function ReviewForm({ siteKey, locale, token, bookingRef }: ReviewFormPro
           chauffeur,
           overall,
           comment: comment.trim() || undefined,
-          photoKey,
           turnstileToken,
           idempotencyKey,
           locale,
@@ -207,18 +177,6 @@ export function ReviewForm({ siteKey, locale, token, bookingRef }: ReviewFormPro
         disabled={busy}
         rows={4}
       />
-
-      <label className="vt-review-file">
-        <span className="vt-review-stars__label">{t("photo-of-you-optional")}</span>
-        <input
-          type="file"
-          name="photo"
-          accept="image/jpeg,image/png,image/webp"
-          disabled={busy}
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-        />
-        <span className="vt-review-stars__label">{t("jpeg-png-webp-up-to-5-mb")}</span>
-      </label>
 
       <TurnstileWidget
         siteKey={siteKey}

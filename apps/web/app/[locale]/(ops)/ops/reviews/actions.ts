@@ -68,8 +68,7 @@ function contentTouched(row: ReviewRow, input: ReviewInput): boolean {
     input.authorRole !== row.authorRole ||
     input.body !== row.body ||
     input.rating !== row.rating ||
-    (input.source ?? row.source) !== row.source ||
-    (input.sourceUrl ? input.sourceUrl : null) !== row.sourceUrl
+    (input.source ?? row.source) !== row.source
   );
 }
 
@@ -159,6 +158,7 @@ export async function updateReview(id: string, input: ReviewInput): Promise<Revi
             vehicle_class_id = ${parsed.vehicleClassId},
             avatar_path = ${parsed.avatarPath},
             route_label = ${parsed.routeLabel},
+            source_url = ${parsed.sourceUrl},
             updated_at = now()
           where id = ${id}
         `;

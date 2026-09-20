@@ -16,462 +16,64 @@
 </div>
 </header>
 
-<div data-set-grid="1" style="padding:26px 32px 48px">
-
-<nav data-set-rail="1" aria-label="{{ tTitle }}">
-<sc-for list="{{ rail }}" as="p" hint-placeholder-count="6">
-<button type="button" data-set-item="1" data-on="{{ p.on }}" onClick="{{ p.pick }}" title="{{ p.label }}">
-<span style="flex:1 1 auto;min-width:0">
-<span style="display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.label }}</span>
-<span data-set-hint="1">{{ p.hint }}</span>
-</span>
-</button>
-</sc-for>
-</nav>
-
-<div style="display:flex;flex-direction:column;gap:20px;min-width:0">
-
-<p data-hint="1" style="max-width:78ch">{{ tIntro }}</p>
-
-<sc-if value="{{ loadErrorShow }}" hint-placeholder-val="{{ false }}">
-<p data-hint="1" style="color:var(--vt-danger)">{{ tLoadError }}</p>
-</sc-if>
-
-<sc-if value="{{ isLegal }}" hint-placeholder-val="{{ false }}">
-<section style="box-sizing:border-box;display:flex;flex-direction:column;gap:14px;padding:22px 24px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);min-width:0">
-<p data-panel-k="1">{{ tCoverage }}</p>
-<p data-hint="1">{{ tCoverageHint }}</p>
-<sc-for list="{{ coverage }}" as="c" hint-placeholder-count="5">
-<div data-row="1" style="flex-direction:column;align-items:stretch;gap:8px">
-<div style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px">
-<span style="font-size:var(--vt-body-sm);font-weight:500">{{ c.label }}</span>
-<span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ c.counts }}</span>
+<div style="flex:1 1 auto;display:flex;align-items:center;justify-content:center;padding:48px 32px">
+<div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;max-width:42ch">
+<strong style="font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold)">{{ tSoon }}</strong>
+<p style="margin:0;font-size:var(--vt-body-sm);line-height:1.6;color:var(--vt-text-secondary)">{{ tSoonBody }}</p>
 </div>
-<div style="display:flex;flex-wrap:wrap;gap:6px">
-<sc-for list="{{ c.langs }}" as="l" hint-placeholder-count="4">
-<span data-chip="1" data-on="{{ l.on }}" style="background:{{ l.bg }};color:{{ l.color }};border-color:{{ l.border }}">{{ l.label }}</span>
-</sc-for>
-</div>
-<p data-hint="1" style="display:{{ c.pendingShow }}">{{ c.pending }}</p>
-<p data-hint="1" style="display:{{ c.missingShow }};color:var(--vt-text-primary)">{{ c.missing }}</p>
-</div>
-</sc-for>
-</section>
-</sc-if>
-
-<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
-<sc-for list="{{ filters }}" as="f" hint-placeholder-count="6">
-<button type="button" data-tagbtn="1" data-on="{{ f.on }}" onClick="{{ f.pick }}">{{ f.label }}</button>
-</sc-for>
 </div>
 
-<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end">
-<div style="flex:1 1 220px;min-width:0">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tSearch }}" value="{{ search }}" onChange="{{ setSearch }}" hint-size="100%,76px"></x-import>
-</div>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" onClick="{{ applySearch }}" hint-size="120px,44px">{{ tApply }}</x-import>
-</div>
-
-<p data-hint="1">{{ tPage }}</p>
-
-<sc-if value="{{ emptyShow }}" hint-placeholder-val="{{ false }}">
-<div data-empty="1">
-<p data-panel-h="1">{{ tEmptyTitle }}</p>
-<p data-hint="1">{{ tEmptyBody }}</p>
-</div>
-</sc-if>
-
-<sc-for list="{{ keys }}" as="k" hint-placeholder-count="3">
-<section data-content-key="1" data-pending_value="{{ k.pendingAttr }}" data-non_translatable="{{ k.literalAttr }}" data-no_param_reason="{{ k.reasonAttr }}" style="box-sizing:border-box;display:flex;flex-direction:column;gap:14px;padding:20px 22px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);min-width:0;border-inline-start:3px solid {{ k.mark }}">
-<div style="display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:10px">
-<div style="min-width:0">
-<p data-vt-no-i18n="1" data-panel-k="1">{{ k.key }}</p>
-<p data-hint="1" style="display:{{ k.pendingShow }};color:var(--vt-charcoal-900)">{{ tPending }}</p>
-</div>
-<span style="display:{{ k.savedShow }};font-size:var(--vt-body-xs);color:var(--vt-success)">{{ tSaved }}</span>
-</div>
-<p data-hint="1" style="display:{{ k.errShow }};color:var(--vt-danger)">{{ k.err }}</p>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ tEn }}" rows="{{ n3 }}" value="{{ k.en }}" onChange="{{ k.setEn }}" hint-size="100%,110px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ tDe }}" rows="{{ n3 }}" value="{{ k.de }}" onChange="{{ k.setDe }}" hint-size="100%,110px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ tFr }}" rows="{{ n3 }}" value="{{ k.fr }}" onChange="{{ k.setFr }}" hint-size="100%,110px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ tAr }}" rows="{{ n3 }}" value="{{ k.ar }}" onChange="{{ k.setAr }}" hint-size="100%,110px"></x-import>
-</div>
-<div style="display:flex;flex-direction:column;gap:10px;padding-top:8px;border-top:1px solid var(--vt-border-subtle)">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" label="{{ tFlagPending }}" checked="{{ k.pendingValue }}" onChange="{{ k.togglePending }}" hint-size="100%,24px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" label="{{ tFlagLiteral }}" checked="{{ k.nonTranslatable }}" onChange="{{ k.toggleLiteral }}" hint-size="100%,24px"></x-import>
-<div style="display:flex;flex-direction:column;gap:8px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" label="{{ tFlagReason }}" checked="{{ k.hasReason }}" onChange="{{ k.toggleReason }}" hint-size="100%,24px"></x-import>
-<span style="display:{{ k.reasonShow }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tReason }}" value="{{ k.noParamReason }}" onChange="{{ k.setReason }}" hint-size="100%,76px"></x-import>
-</span>
-</div>
-</div>
-<div>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" onClick="{{ k.save }}" disabled="{{ k.saving }}" hint-size="120px,36px">{{ tSave }}</x-import>
-</div>
-</section>
-</sc-for>
-
-<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" onClick="{{ prevPage }}" disabled="{{ prevOff }}" hint-size="110px,36px">{{ tPrev }}</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" onClick="{{ nextPage }}" disabled="{{ nextOff }}" hint-size="110px,36px">{{ tNext }}</x-import>
-</div>
-
-</div>
-</div>
 </main>
-
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900},&quot;section&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;pages&quot;,&quot;options&quot;:[&quot;pages&quot;,&quot;legal&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
-const FILTERS = ['all', 'untranslated', 'pending', 'nonTranslatable', 'noParamOptOut', 'recentlyEdited'];
-const DOC_LABEL = {
-  terms: { en:'Terms', de:'AGB', fr:'CG', ar:'الشروط' },
-  privacy: { en:'Privacy', de:'Datenschutz', fr:'Confidentialité', ar:'الخصوصية' },
-  cookies: { en:'Cookies', de:'Cookies', fr:'Cookies', ar:'الكوكيز' },
-  imprint: { en:'Imprint', de:'Impressum', fr:'Mentions légales', ar:'بيانات الناشر' },
-  cancellation: { en:'Cancellation', de:'Storno', fr:'Annulation', ar:'الإلغاء' },
-};
+/* Pages and Legal stay in the rail. The CMS editor is gone — Coming soon. */
 const T = {
   en: {
-    pages:'Content', pagesSub:'Edit content_strings in four languages',
-    legal:'Legal coverage', legalSub:'What exists per document and locale',
-    pagesIntro:'Each key has English, German, French and Arabic, plus three separate flags. Pending value, not translatable, and a no-param reason stay independent — never one translatable switch.',
-    legalIntro:'Coverage says which locales are present. A missing locale is named as missing. Imprint TBC is an ordinary pending-value row, not special copy.',
-    coverage:'Language coverage', coverageHint:'Counts are presence, not a translation of the legal text.',
-    search:'Search keys', apply:'Apply', save:'Save', saved:'Saved',
-    emptyTitle:'No keys on this page', emptyBody:'Pick another namespace or filter.',
-    loadError:'Could not load content_strings.',
-    pending:'Pending value — a labelled gap, not a stated fact.',
-    flagPending:'pending_value', flagLiteral:'non_translatable', flagReason:'no_param_reason',
-    reason:'Reason (required when the flag is on)',
-    en:'EN', de:'DE', fr:'FR', ar:'AR',
-    prev:'Previous', next:'Next', page:'Keys on this page',
-    missing:'missing', present:'present', pendingCount:'pending_value rows',
-    all:'All', untranslated:'Untranslated', pendingFilter:'Pending', nonTranslatable:'Not translatable', noParamOptOut:'No-param reason', recentlyEdited:'Edited',
-    keys:'keys'
+    pages: 'Pages', legal: 'Legal',
+    pagesSub: 'Public site copy', legalSub: 'Terms, privacy and imprint',
+    soon: 'Coming soon',
+    soonBody: 'This section is not ready yet. The public pages stay as they are.',
   },
   de: {
-    pages:'Inhalte', pagesSub:'content_strings in vier Sprachen bearbeiten',
-    legal:'Rechtliche Abdeckung', legalSub:'Was pro Dokument und Sprache vorliegt',
-    pagesIntro:'Jeder Schlüssel hat Englisch, Deutsch, Französisch und Arabisch sowie drei getrennte Flags. Ausstehender Wert, nicht übersetzbar und No-Param-Grund bleiben unabhängig — nie ein einziger „übersetzbar“-Schalter.',
-    legalIntro:'Die Abdeckung nennt vorhandene Sprachen. Eine fehlende Sprache wird als fehlend bezeichnet. Impressum TBC ist eine gewöhnliche pending_value-Zeile, kein Sondertext.',
-    coverage:'Sprachabdeckung', coverageHint:'Zählungen sind Präsenz, keine Übersetzung des Rechtstexts.',
-    search:'Schlüssel suchen', apply:'Anwenden', save:'Speichern', saved:'Gespeichert',
-    emptyTitle:'Keine Schlüssel auf dieser Seite', emptyBody:'Anderen Namensraum oder Filter wählen.',
-    loadError:'content_strings konnten nicht geladen werden.',
-    pending:'Ausstehender Wert — eine beschriftete Lücke, keine Aussage.',
-    flagPending:'pending_value', flagLiteral:'non_translatable', flagReason:'no_param_reason',
-    reason:'Grund (pflicht, wenn das Flag an ist)',
-    en:'EN', de:'DE', fr:'FR', ar:'AR',
-    prev:'Zurück', next:'Weiter', page:'Schlüssel auf dieser Seite',
-    missing:'fehlt', present:'vorhanden', pendingCount:'pending_value-Zeilen',
-    all:'Alle', untranslated:'Unübersetzt', pendingFilter:'Ausstehend', nonTranslatable:'Nicht übersetzbar', noParamOptOut:'No-Param-Grund', recentlyEdited:'Bearbeitet',
-    keys:'Schlüssel'
+    pages: 'Seiten', legal: 'Rechtliches',
+    pagesSub: 'Texte der öffentlichen Website', legalSub: 'AGB, Datenschutz und Impressum',
+    soon: 'Bald verfügbar',
+    soonBody: 'Dieser Bereich ist noch nicht fertig. Die öffentlichen Seiten bleiben unverändert.',
   },
   fr: {
-    pages:'Contenu', pagesSub:'Modifier content_strings dans quatre langues',
-    legal:'Couverture juridique', legalSub:'Ce qui existe par document et langue',
-    pagesIntro:'Chaque clé a l’anglais, l’allemand, le français et l’arabe, plus trois drapeaux distincts. Valeur en attente, non traduisible et motif no-param restent indépendants — jamais un seul interrupteur « traduisible ».',
-    legalIntro:'La couverture indique les langues présentes. Une langue absente est nommée absente. L’imprint TBC est une ligne pending_value ordinaire, pas un texte inventé.',
-    coverage:'Couverture linguistique', coverageHint:'Les comptes sont une présence, pas une traduction du texte juridique.',
-    search:'Rechercher des clés', apply:'Appliquer', save:'Enregistrer', saved:'Enregistré',
-    emptyTitle:'Aucune clé sur cette page', emptyBody:'Choisir un autre espace de noms ou filtre.',
-    loadError:'Impossible de charger content_strings.',
-    pending:'Valeur en attente — un trou étiqueté, pas un fait.',
-    flagPending:'pending_value', flagLiteral:'non_translatable', flagReason:'no_param_reason',
-    reason:'Motif (obligatoire si le drapeau est actif)',
-    en:'EN', de:'DE', fr:'FR', ar:'AR',
-    prev:'Précédent', next:'Suivant', page:'Clés sur cette page',
-    missing:'manquant', present:'présent', pendingCount:'lignes pending_value',
-    all:'Tout', untranslated:'Non traduit', pendingFilter:'En attente', nonTranslatable:'Non traduisible', noParamOptOut:'Motif no-param', recentlyEdited:'Modifié',
-    keys:'clés'
+    pages: 'Pages', legal: 'Mentions légales',
+    pagesSub: 'Textes du site public', legalSub: 'Conditions, confidentialité et mentions',
+    soon: 'Bientôt disponible',
+    soonBody: 'Cette section n’est pas encore prête. Les pages publiques restent telles quelles.',
   },
   ar: {
-    pages:'المحتوى', pagesSub:'تحرير content_strings بأربع لغات',
-    legal:'تغطية المستندات القانونية', legalSub:'ما يوجد لكل مستند ولغة',
-    pagesIntro:'لكل مفتاح إنجليزية وألمانية وفرنسية وعربية، مع ثلاث علامات منفصلة. القيمة المعلّقة وغير القابل للترجمة وسبب no-param تبقى مستقلة — وليست مفتاحًا واحدًا للترجمة.',
-    legalIntro:'التغطية تبيّن اللغات الموجودة. اللغة الناقصة تُسمّى ناقصة. بيانات الناشر TBC صف pending_value عادي وليست نصًا مخترعًا.',
-    coverage:'تغطية اللغات', coverageHint:'الأعداد حضور وليست ترجمة للنص القانوني.',
-    search:'البحث في المفاتيح', apply:'تطبيق', save:'حفظ', saved:'تم الحفظ',
-    emptyTitle:'لا مفاتيح في هذه الصفحة', emptyBody:'اختر نطاق أسماء أو عامل تصفية آخر.',
-    loadError:'تعذّر تحميل content_strings.',
-    pending:'قيمة معلّقة — فجوة موسومة وليست حقيقة.',
-    flagPending:'pending_value', flagLiteral:'non_translatable', flagReason:'no_param_reason',
-    reason:'السبب (مطلوب عند تفعيل العلامة)',
-    en:'EN', de:'DE', fr:'FR', ar:'AR',
-    prev:'السابق', next:'التالي', page:'المفاتيح في هذه الصفحة',
-    missing:'غير موجود', present:'موجود', pendingCount:'صفوف pending_value',
-    all:'الكل', untranslated:'غير مترجم', pendingFilter:'معلّق', nonTranslatable:'غير قابل للترجمة', noParamOptOut:'سبب no-param', recentlyEdited:'معدَّل',
-    keys:'مفاتيح'
+    pages: 'الصفحات', legal: 'قانوني',
+    pagesSub: 'نصوص الموقع العام', legalSub: 'الشروط والخصوصية والبيان القانوني',
+    soon: 'قريبًا',
+    soonBody: 'هذا القسم غير جاهز بعد. تبقى الصفحات العامة كما هي.',
   },
 };
-const FILTER_LABEL = {
-  all:'all', untranslated:'untranslated', pending:'pendingFilter',
-  nonTranslatable:'nonTranslatable', noParamOptOut:'noParamOptOut', recentlyEdited:'recentlyEdited',
-};
-
-function api(method, path, body) {
-  var client = window.VamosOpsApi;
-  if (client && typeof client.request === 'function') return client.request(method, path, body);
-  var opts = { method: method, credentials: 'include' };
-  if (body !== undefined) {
-    opts.headers = { 'Content-Type': 'application/json' };
-    opts.body = JSON.stringify(body);
-  }
-  return fetch(path, opts).then(function (res) {
-    return res.text().then(function (text) {
-      var json = null;
-      if (text) { try { json = JSON.parse(text); } catch (e) { json = null; } }
-      if (json && typeof json === 'object') return json;
-      return { ok: false, code: 'http', status: res.status };
-    });
-  }).catch(function () { return { ok: false, code: 'network' }; });
-}
-
-function blankDraft(row) {
-  return {
-    en: row.en || '',
-    de: row.de == null ? '' : row.de,
-    fr: row.fr == null ? '' : row.fr,
-    ar: row.ar == null ? '' : row.ar,
-    pendingValue: !!row.pendingValue,
-    nonTranslatable: !!row.nonTranslatable,
-    noParamReason: row.noParamReason == null ? '' : row.noParamReason,
-  };
-}
-
 class Component extends DCLogic {
-  state = {
-    lang: 'en',
-    namespace: null,
-    filter: 'all',
-    search: '',
-    offset: 0,
-    limit: 50,
-    namespaces: [],
-    rows: [],
-    total: 0,
-    coverage: [],
-    drafts: {},
-    loading: true,
-    loadError: false,
-    saving: {},
-    saveError: {},
-    saveOk: {},
-  };
+  state = { lang: 'en' };
   componentDidMount() {
     this._onLocale = (e) => this.setState({ lang: e.detail.lang });
     window.addEventListener('vamos:locale', this._onLocale);
     if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() });
-    this.reload();
   }
   componentWillUnmount() {
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
   }
-  componentDidUpdate(prev) {
-    if (prev && prev.section !== this.props.section) {
-      this.setState({ namespace: null, offset: 0, drafts: {}, saveError: {}, saveOk: {} }, () => this.reload());
-    }
-  }
-  listPath() {
-    const legal = this.props.section === 'legal';
-    const ns = legal ? 'legal' : (this.state.namespace || '');
-    const q = [
-      'filter=' + encodeURIComponent(this.state.filter || 'all'),
-      'limit=' + String(this.state.limit || 50),
-      'offset=' + String(this.state.offset || 0),
-    ];
-    if (ns) q.push('namespace=' + encodeURIComponent(ns));
-    if (this.state.search) q.push('search=' + encodeURIComponent(this.state.search));
-    return '/api/staff/content?' + q.join('&');
-  }
-  reload() {
-    this.setState({ loading: true, loadError: false });
-    api('GET', this.listPath()).then((json) => {
-      if (!json || json.ok === false) {
-        this.setState({ loading: false, loadError: true, rows: [], namespaces: [], total: 0, coverage: [] });
-        return;
-      }
-      const data = json.data || {};
-      const namespaces = Array.isArray(data.namespaces) ? data.namespaces : [];
-      const legalNow = this.props.section === 'legal';
-      if (!legalNow && !this.state.namespace) {
-        const first = namespaces.filter((n) => n.namespace !== 'legal')[0];
-        if (first) {
-          this.setState({ namespaces, coverage: Array.isArray(data.coverage) ? data.coverage : [], namespace: first.namespace, offset: 0 }, () => this.reload());
-          return;
-        }
-      }
-      const rows = Array.isArray(data.rows) ? data.rows : [];
-      const drafts = Object.assign({}, this.state.drafts);
-      rows.forEach((row) => {
-        if (!drafts[row.key]) drafts[row.key] = blankDraft(row);
-      });
-      this.setState({
-        loading: false,
-        loadError: false,
-        namespaces,
-        rows,
-        total: typeof data.total === 'number' ? data.total : rows.length,
-        coverage: Array.isArray(data.coverage) ? data.coverage : [],
-        drafts,
-      });
-    });
-  }
-  patchDraft(key, part) {
-    const drafts = Object.assign({}, this.state.drafts);
-    drafts[key] = Object.assign({}, drafts[key] || {}, part);
-    const saveOk = Object.assign({}, this.state.saveOk);
-    saveOk[key] = false;
-    this.setState({ drafts, saveOk });
-  }
-  saveKey(key) {
-    const d = this.state.drafts[key];
-    if (!d) return;
-    const enc = encodeURIComponent(key);
-    const saving = Object.assign({}, this.state.saving, { [key]: true });
-    const saveError = Object.assign({}, this.state.saveError, { [key]: '' });
-    this.setState({ saving, saveError });
-    const values = {
-      en: d.en,
-      de: d.de === '' ? null : d.de,
-      fr: d.fr === '' ? null : d.fr,
-      ar: d.ar === '' ? null : d.ar,
-    };
-    const flags = {
-      pendingValue: !!d.pendingValue,
-      nonTranslatable: !!d.nonTranslatable,
-      noParamReason: d.noParamReason ? d.noParamReason : null,
-    };
-    api('PATCH', '/api/staff/content/' + enc, values).then((json) => {
-      if (!json || json.ok === false) {
-        const nextErr = Object.assign({}, this.state.saveError, { [key]: (json && json.code) || 'content-error-unknown' });
-        const nextSaving = Object.assign({}, this.state.saving, { [key]: false });
-        this.setState({ saveError: nextErr, saving: nextSaving });
-        return;
-      }
-      return api('PATCH', '/api/staff/content/' + enc + '/flags', flags).then((flagJson) => {
-        const nextSaving = Object.assign({}, this.state.saving, { [key]: false });
-        if (!flagJson || flagJson.ok === false) {
-          const nextErr = Object.assign({}, this.state.saveError, { [key]: (flagJson && flagJson.code) || 'content-error-unknown' });
-          this.setState({ saveError: nextErr, saving: nextSaving });
-          return;
-        }
-        const nextOk = Object.assign({}, this.state.saveOk, { [key]: true });
-        const nextErr = Object.assign({}, this.state.saveError, { [key]: '' });
-        this.setState({ saving: nextSaving, saveOk: nextOk, saveError: nextErr });
-      });
-    });
-  }
   renderVals() {
-    const lang = this.state.lang;
-    const t = T[lang] || T.en;
+    const t = T[this.state.lang] || T.en;
     const legal = this.props.section === 'legal';
-    const selectedNs = legal ? 'legal' : this.state.namespace;
-    const railSource = (this.state.namespaces || []).filter((n) => legal ? n.namespace === 'legal' : n.namespace !== 'legal');
-    const rail = railSource.map((n) => ({
-      label: n.namespace,
-      hint: String(n.count) + ' ' + t.keys,
-      on: n.namespace === selectedNs ? '1' : '0',
-      pick: () => this.setState({ namespace: n.namespace, offset: 0 }, () => this.reload()),
-    }));
-    if (!legal && rail.length && !selectedNs) {
-      /* first paint: pick the first namespace once rows for "all" may be mixed */
-    }
-    const filters = FILTERS.map((id) => ({
-      label: t[FILTER_LABEL[id]] || id,
-      on: this.state.filter === id ? '1' : '0',
-      pick: () => this.setState({ filter: id, offset: 0 }, () => this.reload()),
-    }));
-    const LANGS = ['en', 'de', 'fr', 'ar'];
-    const coverage = (this.state.coverage || []).map((c) => {
-      const labelMap = DOC_LABEL[c.slug] || { en: c.slug, de: c.slug, fr: c.slug, ar: c.slug };
-      const present = c.present || { en: 0, de: 0, fr: 0, ar: 0 };
-      const total = c.total || 0;
-      const missingLangs = LANGS.filter((code) => (present[code] || 0) < total);
-      const langs = LANGS.map((code) => {
-        const ok = (present[code] || 0) >= total && total > 0;
-        return {
-          label: code.toUpperCase() + ' ' + (ok ? t.present : t.missing),
-          on: ok ? '1' : '0',
-          bg: ok ? 'var(--vt-white)' : 'var(--vt-charcoal-900)',
-          color: ok ? 'var(--vt-text-secondary)' : 'var(--vt-text-inverse)',
-          border: ok ? 'var(--vt-border-subtle)' : 'var(--vt-charcoal-900)',
-        };
-      });
-      return {
-        label: labelMap[lang] || labelMap.en,
-        counts: String(total) + ' · ' + t.pendingCount + ' ' + String(c.pendingValueCount || 0),
-        langs,
-        pending: t.pendingCount + ': ' + String(c.pendingValueCount || 0),
-        pendingShow: c.pendingValueCount ? 'block' : 'none',
-        missing: missingLangs.length ? missingLangs.map((code) => code.toUpperCase()).join(', ') + ' — ' + t.missing : '',
-        missingShow: missingLangs.length ? 'block' : 'none',
-      };
-    });
-    const keys = (this.state.rows || []).map((row) => {
-      const d = this.state.drafts[row.key] || blankDraft(row);
-      const pending = !!d.pendingValue;
-      const hasReason = !!(d.noParamReason && String(d.noParamReason).length);
-      return {
-        key: row.key,
-        en: d.en, de: d.de, fr: d.fr, ar: d.ar,
-        pendingValue: pending,
-        nonTranslatable: !!d.nonTranslatable,
-        noParamReason: d.noParamReason || '',
-        hasReason,
-        pendingAttr: pending ? '1' : '0',
-        literalAttr: d.nonTranslatable ? '1' : '0',
-        reasonAttr: hasReason ? '1' : '0',
-        pendingShow: pending ? 'block' : 'none',
-        reasonShow: hasReason ? 'block' : 'none',
-        mark: pending ? 'var(--vt-charcoal-900)' : 'var(--vt-border-subtle)',
-        saving: !!this.state.saving[row.key],
-        savedShow: this.state.saveOk[row.key] ? 'inline' : 'none',
-        err: this.state.saveError[row.key] || '',
-        errShow: this.state.saveError[row.key] ? 'block' : 'none',
-        setEn: (e) => this.patchDraft(row.key, { en: e.target.value }),
-        setDe: (e) => this.patchDraft(row.key, { de: e.target.value }),
-        setFr: (e) => this.patchDraft(row.key, { fr: e.target.value }),
-        setAr: (e) => this.patchDraft(row.key, { ar: e.target.value }),
-        togglePending: (e) => this.patchDraft(row.key, { pendingValue: e.target.checked }),
-        toggleLiteral: (e) => this.patchDraft(row.key, { nonTranslatable: e.target.checked }),
-        toggleReason: (e) => this.patchDraft(row.key, { noParamReason: e.target.checked ? (d.noParamReason || ' ') : '' }),
-        setReason: (e) => this.patchDraft(row.key, { noParamReason: e.target.value }),
-        save: () => this.saveKey(row.key),
-      };
-    });
-    const offset = this.state.offset || 0;
-    const limit = this.state.limit || 50;
-    const total = this.state.total || 0;
     return {
-      n3: 3,
       tTitle: legal ? t.legal : t.pages,
       tSubtitle: legal ? t.legalSub : t.pagesSub,
-      tIntro: legal ? t.legalIntro : t.pagesIntro,
-      tCoverage: t.coverage, tCoverageHint: t.coverageHint,
-      tSearch: t.search, tApply: t.apply, tSave: t.save, tSaved: t.saved,
-      tEmptyTitle: t.emptyTitle, tEmptyBody: t.emptyBody,
-      tLoadError: t.loadError, tPending: t.pending,
-      tFlagPending: t.flagPending, tFlagLiteral: t.flagLiteral, tFlagReason: t.flagReason,
-      tReason: t.reason, tEn: t.en, tDe: t.de, tFr: t.fr, tAr: t.ar,
-      tPrev: t.prev, tNext: t.next, tPage: t.page + ' · ' + String(offset + 1) + '–' + String(Math.min(offset + limit, total)) + ' / ' + String(total),
-      isLegal: legal,
-      loadErrorShow: this.state.loadError,
-      emptyShow: !this.state.loading && !this.state.loadError && keys.length === 0,
-      search: this.state.search,
-      setSearch: (e) => this.setState({ search: e.target.value }),
-      applySearch: () => this.setState({ offset: 0 }, () => this.reload()),
-      rail, filters, coverage, keys,
-      prevPage: () => this.setState({ offset: Math.max(0, offset - limit) }, () => this.reload()),
-      nextPage: () => this.setState({ offset: offset + limit }, () => this.reload()),
-      prevOff: offset <= 0,
-      nextOff: offset + limit >= total,
+      tSoon: t.soon,
+      tSoonBody: t.soonBody,
     };
   }
 }
-
 </script>
 </body>
 </html>
