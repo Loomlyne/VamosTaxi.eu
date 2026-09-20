@@ -191,12 +191,14 @@ describe("robots disallows D-31 (D-31)", () => {
     expect(config).toMatch(/source:\s*"\/confirmation"/);
   });
 
-  it("ops and app 404 paths HTTP noindex", () => {
+  it("ops 404 paths HTTP noindex without tagging /app assets", () => {
     const mw = source("middleware.ts");
     expect(mw).toContain('"/ops"');
-    expect(mw).toContain('"/app"');
+    const prefixes = mw.slice(mw.indexOf("PRIVATE_NOINDEX_PREFIXES"), mw.indexOf("] as const"));
+    expect(prefixes).not.toContain('"/app"');
     const config = source("next.config.ts");
     expect(config).toMatch(/source:\s*"\/ops"/);
-    expect(config).toMatch(/source:\s*"\/app"/);
+    expect(config).not.toMatch(/source:\s*"\/app",\s*headers:\s*noindex/);
+    expect(config).not.toMatch(/source:\s*"\/app\/:path\*",\s*headers:\s*noindex/);
   });
 });

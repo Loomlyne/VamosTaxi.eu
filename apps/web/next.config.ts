@@ -140,8 +140,6 @@ const nextConfig: NextConfig = {
       { source: "/ops/:path*", headers: noindex },
       { source: "/:locale/ops", headers: noindex },
       { source: "/:locale/ops/:path*", headers: noindex },
-      { source: "/app", headers: noindex },
-      { source: "/app/:path*", headers: noindex },
       {
         source: "/app/:path*.dc.html",
         headers: [
