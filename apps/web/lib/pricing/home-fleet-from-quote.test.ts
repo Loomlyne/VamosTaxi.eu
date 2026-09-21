@@ -50,7 +50,8 @@ describe("home fleet follows the live fare book", () => {
     expect(home).toMatch(/noRoad:'Kein Weg'/);
     expect(home).toMatch(/noRoad:'Sans route'/);
     expect(home).toMatch(/noRoad:'لا طريق'/);
-    expect(home).toMatch(/cta: noRoad && !tooSmall \? t\.noRoad : t\.selectCta/);
+    expect(home).toMatch(/cta: tooSmall \? t\.doesNotFit : \(noRoad \? t\.noRoad/);
+    expect(home).toMatch(/t\.selectCta/);
     expect(home).toMatch(/europeErr:'We operate in Europe'/);
   });
 

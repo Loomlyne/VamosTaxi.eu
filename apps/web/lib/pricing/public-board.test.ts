@@ -177,6 +177,59 @@ describe("publicCatalogRoutes", () => {
         key: `${zrh.id}::${zermatt.id}`,
         from: "Zurich Airport (ZRH)",
         to: "Zermatt",
+        from_mapbox_id: null,
+        to_mapbox_id: null,
+      },
+    ]);
+  });
+
+  it("uses ops content_strings names and mapbox tags, never demo cities", () => {
+    const origin: ZoneRow = {
+      id: "z-origin",
+      slug: "zurich-airport-the-circle-16-flughafen-ch-8302-k",
+      iata: null,
+      active: true,
+      zone_type: "other",
+      tags: ["mapbox:mbx-origin"],
+    };
+    const dest: ZoneRow = {
+      id: "z-dest",
+      slug: "swiss-national-museum-museumstrasse-2-8001-zu-ri",
+      iata: null,
+      active: true,
+      zone_type: "other",
+      tags: ["mapbox:mbx-dest"],
+    };
+    const live: FixedRouteRow = {
+      id: 1,
+      rate_version_id: 1,
+      origin_zone_id: origin.id,
+      dest_zone_id: dest.id,
+      vehicle_class_id: "vc-economy",
+      price_rappen: 10000,
+      live: true,
+      kind: "place",
+    };
+    const names = new Map([
+      [origin.slug, "Zurich Airport, The Circle 16-Flughafen CH, 8302 Kloten, Switzerland"],
+      [dest.slug, "Swiss National Museum, Museumstrasse 2, 8001 Zürich, Switzerland"],
+    ]);
+    const catalog = publicCatalogRoutes(
+      book({
+        classes: [classRow({ slug: "economy" })],
+        distance_rates: [rateRow({ vehicle_class_id: "vc-economy" })],
+        fixed_routes: [live],
+        zones: [origin, dest],
+      }),
+      names,
+    );
+    expect(catalog).toEqual([
+      {
+        key: `${origin.id}::${dest.id}`,
+        from: "Zurich Airport, The Circle 16-Flughafen CH, 8302 Kloten, Switzerland",
+        to: "Swiss National Museum, Museumstrasse 2, 8001 Zürich, Switzerland",
+        from_mapbox_id: "mbx-origin",
+        to_mapbox_id: "mbx-dest",
       },
     ]);
   });

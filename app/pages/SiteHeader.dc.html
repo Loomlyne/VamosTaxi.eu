@@ -79,7 +79,7 @@ button[data-hd-signin]{width:calc(100% - 4px);appearance:none;-webkit-appearance
 [data-hd-kicker]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
 [data-hd-nav]{display:flex;flex-direction:column;gap:2px}
 [data-hd-nav] [data-hd-menuitem]{display:flex;align-items:center;gap:11px;min-height:44px;padding:0 12px;border-radius:var(--vt-radius-sm);color:var(--vt-text-primary);font-size:var(--vt-body-sm);text-decoration:none;transition:var(--vt-transition-control)}
-[data-hd-locale]{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;padding:10px 8px 12px;border-bottom:1px solid var(--vt-border-subtle)}
+[data-hd-locale]{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;padding:10px 8px 12px;border-bottom:1px solid var(--vt-border-subtle);overflow:visible}
 [data-hd-sheet-head],[data-hd-sheet-body]{display:flex;flex-direction:column;gap:0}
 @media (max-width:1079px){
 [data-hd]{overflow:visible}
@@ -98,7 +98,7 @@ button[data-hd-signin]{width:calc(100% - 4px);appearance:none;-webkit-appearance
 [data-hd-scrim][data-hd-closing="1"]{animation:vt-hd-fade-out var(--vt-dur-slow) var(--vt-ease-out) both;pointer-events:none}
 [data-hd-sheet][data-hd-closing="1"]{animation:vt-hd-drawer-out var(--vt-dur-slow) var(--vt-ease-out) both;pointer-events:none}
 [dir="rtl"] [data-hd-sheet][data-hd-closing="1"]{animation-name:vt-hd-drawer-out-rtl}
-[data-hd-sheet-head]{flex:0 0 auto;padding:calc(60px + var(--vt-space-3)) var(--vt-space-3) var(--vt-space-2)}
+[data-hd-sheet-head]{flex:0 0 auto;padding:calc(60px + var(--vt-space-3)) var(--vt-space-3) var(--vt-space-2);overflow:visible;position:relative;z-index:1}
 [data-hd-sheet-body]{flex:1 1 auto;min-block-size:0;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 var(--vt-space-3) max(var(--vt-space-4),env(safe-area-inset-bottom))}
 [data-hd-sheet-body] [data-hd-sec] + [data-hd-sec]{border-top:1px solid var(--vt-border-subtle)}
 }

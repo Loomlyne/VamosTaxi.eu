@@ -7,6 +7,15 @@
 </head>
 <body>
 <x-dc>
+<style>
+[data-period-pills]{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+[data-period-time]{display:none}
+[data-icon-only] [data-vs-txt]{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+@media (max-width:860px){
+  [data-period-pills]{display:none}
+  [data-period-time]{display:block;flex:0 0 auto}
+}
+</style>
 <main style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
 
 <header style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle)">
@@ -15,9 +24,14 @@
 <p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ subtitle }}</p>
 </div>
 <div style="margin-inline-start:auto;display:flex;flex-wrap:wrap;align-items:center;gap:8px">
+<div data-period-pills="1">
 <sc-for list="{{ periods }}" as="p" hint-placeholder-count="3">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Tag" active="{{ p.active }}" onClick="{{ p.select }}" hint-size="96px,34px">{{ p.label }}</x-import>
 </sc-for>
+</div>
+<div data-period-time="1" data-icon-only="1">
+<dc-import name="BrandSelect" icon="calendar" value="{{ periodValue }}" options="{{ periodOptions }}" onSelect="{{ selectPeriod }}" a11y-label="{{ tTime }}" hint-size="48px,36px"></dc-import>
+</div>
 </div>
 </header>
 
@@ -226,6 +240,7 @@ class Component extends DCLogic {
     this._offFleet = function () { fleetOffV(); fleetOffC(); };
     this.forceUpdate();
   };
+  select = (key) => this.setState({ period: key }, this.loadMoney);
   loadMoney = () => {
     const period = this.state.period;
     fetch('/api/staff/dashboard?period=' + encodeURIComponent(period), { credentials: 'same-origin', cache: 'no-store' })
@@ -299,10 +314,14 @@ class Component extends DCLogic {
       netMoney: fareLabel(netRappen),
       avgMoney: fareLabel(avgRappen),
       subtitle: subs[p.key] || todaySub,
+      tTime: 'Time',
+      periodValue: this.state.period,
+      periodOptions: PERIODS.map((x) => ({ value: x.key, label: x[lang] || x.en })),
+      selectPeriod: this.select,
       periods: PERIODS.map((x) => ({
         label: x[lang] || x.en,
         active: x.key === this.state.period,
-        select: () => this.setState({ period: x.key }, this.loadMoney),
+        select: () => this.select(x.key),
       })),
       counts: [
         { label:'Bookings', value:String(periodBookings.length), of:'', icon:'list', href:bookingsHref, foot:'Taken in this period' },
