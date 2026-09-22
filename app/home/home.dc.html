@@ -123,43 +123,70 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-f=pickup]{grid-area:pickup}[data-f=swap]{grid-area:swap}[data-f=dest]{grid-area:dest}[data-f=when]{grid-area:when}[data-f=party]{grid-area:party}[data-f=flight]{grid-area:flight}[data-f=route]{grid-area:route}
 [data-f=route]{min-width:0}
 [data-route-wrap]{position:relative;min-width:0}
-[data-route-btn]{all:unset;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;gap:2px;width:100%;min-height:52px;padding:8px 40px 8px 14px;border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-bg-surface);color:var(--vt-text-primary);font-family:var(--vt-font-body);cursor:pointer;transition:border-color .16s cubic-bezier(.2,0,.2,1),background .16s cubic-bezier(.2,0,.2,1)}
-[data-route-btn]:hover{border-color:var(--vt-charcoal-900)}
+[data-route-btn]{all:unset;box-sizing:border-box;display:flex;align-items:center;width:100%;height:var(--vt-control-h-md);min-height:var(--vt-control-h-md);max-height:var(--vt-control-h-md);padding:0 12px;padding-inline-start:14px;padding-inline-end:44px;overflow:hidden;border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);background:var(--vt-bg-surface);color:var(--vt-text-primary);font-family:var(--vt-font-body);cursor:pointer;transition:border-color .16s cubic-bezier(.2,0,.2,1),background .16s cubic-bezier(.2,0,.2,1)}
+[data-route-btn]:hover{border-color:var(--vt-grey-300)}
 [data-route-btn][data-on="1"]{border-color:var(--vt-charcoal-900);background:var(--vt-white)}
 [data-route-btn][data-off="1"]{cursor:default;color:var(--vt-text-muted)}
 [data-route-btn][data-off="1"]:hover{border-color:var(--vt-border-subtle)}
 [data-route-btn][data-picked="1"]{padding-inline-end:68px}
-[data-route-from]{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--vt-body-md);font-weight:600;line-height:1.25;text-align:start;color:var(--vt-text-primary)}
-[data-route-to]{display:flex;align-items:center;gap:6px;min-width:0;font-size:var(--vt-body-sm);font-weight:500;line-height:1.25;color:var(--vt-text-secondary)}
-[data-route-to] span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+[data-route-places]{display:flex;align-items:center;gap:10px;min-width:0;width:100%}
+[data-route-from],[data-route-to]{display:block;min-width:0;flex:1 1 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--vt-body-md);font-weight:600;line-height:1.4;text-align:start;color:var(--vt-text-primary)}
+[data-route-join]{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;color:var(--vt-text-muted);pointer-events:none}
+[dir="rtl"] [data-route-join]{transform:scaleX(-1)}
 [data-route-btn][data-ph="1"] [data-route-from],[data-route-btn][data-ph="1"] [data-route-to]{color:var(--vt-grey-400);font-weight:500}
-[data-route-empty]{font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-muted);text-align:start}
+[data-route-btn][data-ph="1"] [data-route-join]{color:var(--vt-grey-400)}
+[data-route-empty]{font-size:var(--vt-body-md);font-weight:500;color:var(--vt-text-muted);text-align:start}
 [data-route-mark]{position:absolute;inset-inline-end:12px;top:50%;transform:translateY(-50%);color:var(--vt-grey-500);display:inline-flex;pointer-events:none}
 [data-route-x]{all:unset;box-sizing:border-box;position:absolute;inset-inline-end:36px;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--vt-text-muted);z-index:2}
 [data-route-x]:hover{background:var(--vt-grey-100);color:var(--vt-charcoal-900)}
 [data-route-list]{position:absolute;z-index:90;inset-inline:0;top:calc(100% + 6px);box-sizing:border-box;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg);padding:6px;display:flex;flex-direction:column;gap:2px;max-height:min(280px,50vh);overflow-y:auto}
-[data-route-opt]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:10px;cursor:pointer;font-family:var(--vt-font-body);text-align:start}
+[data-route-opt]{all:unset;box-sizing:border-box;display:flex;align-items:stretch;gap:10px;width:100%;padding:10px 12px;border-radius:10px;cursor:pointer;font-family:var(--vt-font-body);text-align:start}
 [data-route-opt]:hover,[data-route-opt][aria-selected="true"]{background:var(--vt-grey-50)}
-[data-route-opt-copy]{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 auto}
-[data-route-opt-from]{font-size:var(--vt-body-sm);font-weight:600;color:var(--vt-text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-[data-route-opt-to]{display:flex;align-items:center;gap:6px;font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
-[data-route-opt-to] span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+[data-route-opt]:focus-visible{outline:2px solid var(--vt-charcoal-900);outline-offset:1px}
+[data-route-opt-copy]{display:flex;flex-direction:column;gap:var(--vt-space-2);min-width:0;flex:1 1 auto;width:100%}
+[data-route-opt-place]{display:flex;align-items:flex-start;gap:10px;min-width:0}
+[data-route-opt-ico]{width:28px;height:28px;flex:0 0 auto;border-radius:8px;background:var(--vt-grey-100);color:var(--vt-text-secondary);display:inline-flex;align-items:center;justify-content:center}
+[data-route-opt][aria-selected="true"] [data-route-opt-ico]{background:var(--vt-charcoal-900);color:var(--vt-white)}
+[data-route-opt-meta]{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 auto}
+[data-route-opt-kicker]{font-size:var(--vt-label-sm);font-weight:var(--vt-label-weight);letter-spacing:.02em;color:var(--vt-text-secondary);line-height:1.2}
+[data-route-opt-from],[data-route-opt-to]{font-size:var(--vt-body-sm);font-weight:600;color:var(--vt-text-primary);line-height:1.25;overflow-wrap:break-word;text-wrap:pretty}
 [data-party]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 [data-fleet-card][data-picked="1"]{border-color:var(--vt-charcoal-900)!important;box-shadow:var(--vt-shadow-lg)}
 [data-fleet-card][data-dim="1"]{opacity:.48}
 [data-fleet-card][data-locked="1"]{cursor:default}
-[data-fleet-card]{overflow:hidden;padding:0;min-height:0;box-sizing:border-box}
-[data-fleet-img]{width:100%;height:120px;border-radius:0}
-[data-fleet-skel-photo]{height:120px;width:100%;background:var(--vt-grey-100);flex:0 0 auto}
-[data-fleet-body]{display:flex;flex-direction:column;gap:8px;padding:10px 12px 12px;min-width:0;flex:1 1 auto}
-[data-fleet-name]{font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:var(--vt-heading-leading);color:var(--vt-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-[data-price-row]{display:block;min-width:0}
-[data-price-slot]{position:relative;width:100%;height:32px;display:block;min-width:0}
-[data-fleet-caps]{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;font-size:var(--vt-body-xs);color:var(--vt-text-secondary)}
-[data-fleet-cta]{display:flex;align-items:center;justify-content:center;gap:7px;height:var(--vt-control-h-sm);padding:0 10px;border-radius:var(--vt-radius-pill);font-family:var(--vt-font-body);font-size:var(--vt-label-sm);font-weight:700;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;box-sizing:border-box;white-space:nowrap}
+[data-fleet-card]{padding:8px;gap:10px;min-height:0;min-width:362px;box-sizing:border-box;overflow:hidden;flex-direction:row;align-items:flex-start}
+[data-fleet-img],[data-fleet-skel-photo]{width:146px;height:146px;aspect-ratio:1/1;border-radius:var(--vt-radius-md);background:var(--vt-grey-100);overflow:hidden;flex:0 0 146px}
+[data-fleet-body]{display:flex;flex-direction:column;gap:var(--vt-space-1);padding:0;min-width:0;flex:1 1 auto;justify-content:flex-start;align-self:stretch}
+[data-fleet-head]{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:var(--vt-space-1);min-width:0;width:100%}
+[data-fleet-name]{font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:var(--vt-heading-leading);color:var(--vt-text-primary);min-width:0;width:100%;overflow-wrap:break-word;text-wrap:balance}
+[data-fleet-ex]{font-family:var(--vt-font-body);font-size:var(--vt-body-xs);line-height:1.3;color:var(--vt-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+[data-price-row]{display:block;flex:0 0 auto;min-width:0}
+[data-price-slot]{position:relative;width:92px;height:22px;display:block;flex:none}
+[data-fleet-caps]{display:flex;align-items:center;flex-wrap:nowrap;gap:8px 12px;font-size:var(--vt-body-xs);color:var(--vt-text-secondary);min-width:0;width:100%;white-space:nowrap}
+[data-fleet-foot]{display:flex;flex-direction:column;align-items:stretch;gap:6px;min-width:0;width:100%;margin-top:auto}
+[data-fleet-cta]{display:flex;align-items:center;justify-content:center;gap:7px;height:var(--vt-control-h-sm);padding:0 10px;border-radius:var(--vt-radius-pill);font-family:var(--vt-font-body);font-size:var(--vt-label-sm);font-weight:700;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;box-sizing:border-box;white-space:nowrap;width:100%;flex:0 0 auto}
 [data-fleet-cta="go"]{background:var(--vt-yellow);color:var(--vt-charcoal-900)}
 [data-fleet-cta="on"]{background:var(--vt-charcoal-900);color:var(--vt-white)}
-[data-fleet-cta="off"]{background:transparent;border:var(--vt-border-w) solid var(--vt-border-subtle);color:var(--vt-text-secondary);white-space:normal;line-height:1.15;text-align:center;height:auto;min-height:var(--vt-control-h-sm);padding:6px 10px}
+[data-fleet-cta="off"]{background:transparent;border:var(--vt-border-w) solid var(--vt-border-subtle);color:var(--vt-text-secondary);white-space:nowrap;line-height:1.15;text-align:center}
+[data-dest-strip]{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;gap:8px;padding-bottom:4px}
+[data-dest-card]{all:unset;box-sizing:border-box;display:flex;flex-direction:row;align-items:stretch;justify-content:flex-start;gap:10px;flex:0 0 420px;min-width:420px;max-width:460px;min-height:0;padding:8px;overflow:hidden;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);cursor:pointer;scroll-snap-align:start;font-family:var(--vt-font-body);color:var(--vt-text-primary);transition:box-shadow var(--vt-dur-fast,.2s) ease,border-color var(--vt-dur-fast,.2s) ease}
+[data-dest-card]:hover{border-color:var(--vt-grey-300);box-shadow:var(--vt-shadow-md)}
+[data-dest-card]:focus-visible{outline:3px solid rgb(253 194 11/.45);outline-offset:3px}
+[data-dest-img]{width:204px;height:204px;aspect-ratio:1/1;border-radius:var(--vt-radius-md);background:var(--vt-grey-100);overflow:hidden;flex:0 0 204px;position:relative;display:flex;align-items:center;justify-content:center}
+[data-dest-img] img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
+[data-dest-body]{display:flex;flex-direction:column;gap:var(--vt-space-2);padding:0;min-width:0;flex:1 1 auto;justify-content:flex-start}
+[data-dest-head]{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:var(--vt-space-4);min-width:0;width:100%}
+[data-dest-places]{display:flex;flex-direction:column;gap:var(--vt-space-2);min-width:0;width:100%}
+[data-dest-line]{position:relative;display:flex;align-items:flex-start;gap:var(--vt-space-2);min-width:0;width:100%}
+[data-dest-line]:not(:last-child)::before{content:"";position:absolute;inset-inline-start:6px;top:14px;bottom:calc(-1 * var(--vt-space-2));width:1px;background:var(--vt-grey-300);pointer-events:none}
+[data-dest-ico]{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:12px;height:12px;margin-block-start:1px;color:var(--vt-text-muted);pointer-events:none}
+[data-dest-line]:last-child [data-dest-ico]{color:var(--vt-charcoal-900)}
+[data-dest-copy]{display:flex;flex-direction:column;align-items:flex-start;gap:var(--vt-space-1);min-width:0;flex:1 1 auto}
+[data-dest-kicker]{font-size:var(--vt-label-sm);font-weight:var(--vt-label-weight);letter-spacing:.02em;color:var(--vt-text-secondary);line-height:1.2}
+[data-dest-from],[data-dest-to]{min-width:0;width:100%;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-semibold);line-height:1.35;color:var(--vt-text-primary);overflow-wrap:break-word;text-wrap:pretty}
+[data-dest-foot]{display:flex;flex-direction:column;align-items:stretch;gap:6px;min-width:0;width:100%;margin-top:auto}
+[data-dest-cta]{display:flex;align-items:center;justify-content:center;gap:7px;height:var(--vt-control-h-sm);padding:0 10px;border-radius:var(--vt-radius-pill);font-family:var(--vt-font-body);font-size:var(--vt-label-sm);font-weight:700;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;box-sizing:border-box;white-space:nowrap;width:100%;flex:0 0 auto;background:var(--vt-yellow);color:var(--vt-charcoal-900)}
+[data-dest-empty]{margin:0;font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-inverse-muted)}
 [data-vtcombo]{display:flex;align-items:center;gap:9px;height:var(--vt-control-h-md);min-height:var(--vt-control-h-md);max-height:var(--vt-control-h-md);padding:0 7px 0 8px;box-sizing:border-box;background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:999px;overflow:hidden;transition:border-color .16s cubic-bezier(.2,0,.2,1),background .16s cubic-bezier(.2,0,.2,1)}
 [data-vtcombo]:hover{border-color:var(--vt-grey-300)}
 [data-vtcombo][data-on="1"]{border-color:var(--vt-charcoal-900);background:var(--vt-white)}
@@ -193,17 +220,14 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-trip-tabs]{width:100%;min-width:0;box-sizing:border-box}
 [data-book-slots]{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}[data-book-slots]>[data-sugroot],[data-book-slots]>[data-book-field]{position:relative;min-width:0}[data-book-slots] [data-party]{width:100%}
 [data-hero],[data-hero-inner]{min-height:100vh;min-height:100svh}
-[data-fleet-strip]{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;gap:8px;padding-bottom:4px}[data-fleet-card]{flex:0 0 210px;min-width:0;max-width:360px;scroll-snap-align:start}[data-fleet-card][data-unavail="1"] [data-fleet-img]{filter:saturate(.4)}
-@media (max-width:699px){[data-hide-narrow]{display:none!important}
-[data-fleet-img],[data-fleet-skel-photo]{height:108px}
-[data-fleet-card]{padding:0;min-height:0}
-[data-price-slot]{width:100%;flex:none}}
+[data-fleet-strip]{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;gap:8px;padding-bottom:4px}[data-fleet-card]{flex:0 0 362px;min-width:362px;max-width:402px;scroll-snap-align:start}[data-fleet-card][data-unavail="1"] [data-fleet-img]{filter:saturate(.4)}
+@media (max-width:699px){[data-hide-narrow]{display:none!important}}
 @media (min-width:700px){[data-only-narrow]{display:none!important}
 [data-fields]{grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr);grid-template-areas:"flight flight flight" "pickup swap dest" "when when when" "party party party"}
 [data-fields][data-trip=fixed]{grid-template-columns:minmax(0,1fr);grid-template-areas:"flight" "route" "when" "party"}
 [data-swap]{padding-top:28px;align-items:flex-start}
 [data-party]{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (min-width:700px) and (max-width:1079px){[data-fleet-card]{flex:0 0 248px}}
+@media (min-width:700px) and (max-width:1079px){[data-fleet-card]{flex:0 0 362px;min-width:362px}}
 @media (max-width:1079px){[data-only-wide]{display:none!important}
 [data-vtcombo]{height:var(--vt-control-h-md);min-height:var(--vt-control-h-md);max-height:var(--vt-control-h-md);padding:0 7px 0 8px;gap:9px;border-radius:999px;background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle)}
 [data-vtcombo] [data-combo-tile]{background:transparent!important;color:var(--vt-charcoal-900)}}
@@ -212,7 +236,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-fields]{grid-template-columns:152px minmax(0,1.1fr) 44px minmax(0,1.1fr) minmax(0,1.15fr) auto;grid-template-areas:"flight pickup swap dest when party"}
 [data-fields][data-trip=fixed]{grid-template-columns:152px minmax(0,1.6fr) minmax(0,1.15fr) auto;grid-template-areas:"flight route when party"}
 [data-party]{grid-template-columns:repeat(2,108px)}
-[data-fleet-strip]{display:grid;grid-template-columns:repeat(auto-fit,minmax(238px,1fr));gap:10px}[data-fleet-card]{flex:none;width:100%;max-width:none}[data-fleet-img],[data-fleet-skel-photo]{height:140px}}
+[data-fleet-strip]{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px;justify-content:start}[data-fleet-card]{flex:none;width:100%;min-width:0;max-width:402px}
+[data-dest-strip]{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:10px;justify-content:start}[data-dest-card]{flex:none;width:100%;min-width:0;max-width:460px}}
 [data-shell]{display:block}
 [data-sheetbody]{display:flex;flex-direction:column;gap:14px}
 [data-sheetonly]{display:none}
@@ -425,8 +450,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <span data-route-empty="1">{{ tFixedEmpty }}</span>
 </sc-if>
 <sc-if value="{{ routeHasRows }}" hint-placeholder-val="{{ true }}">
-<span data-route-from="1">{{ routeFrom }}</span>
-<span data-route-to="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n12 }}" color="currentColor" hint-size="12px,12px"></x-import><span>{{ routeTo }}</span></span>
+<span data-route-places="1"><span data-route-from="1">{{ routeFrom }}</span><span data-route-join="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import></span><span data-route-to="1">{{ routeTo }}</span></span>
 </sc-if>
 </button>
 <sc-if value="{{ routePicked }}" hint-placeholder-val="{{ false }}">
@@ -440,8 +464,20 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <sc-for list="{{ routeRows }}" as="r" hint-placeholder-count="2">
 <button type="button" data-route-opt="1" role="option" aria-selected="{{ r.sel }}" title="{{ r.full }}" onClick="{{ r.pick }}">
 <span data-route-opt-copy="1">
+<span data-route-opt-place="1">
+<span data-route-opt-ico="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
+<span data-route-opt-meta="1">
+<span data-route-opt-kicker="1">{{ r.fromLbl }}</span>
 <span data-route-opt-from="1">{{ r.from }}</span>
-<span data-route-opt-to="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n12 }}" color="currentColor" hint-size="12px,12px"></x-import><span>{{ r.to }}</span></span>
+</span>
+</span>
+<span data-route-opt-place="1">
+<span data-route-opt-ico="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="navigation" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
+<span data-route-opt-meta="1">
+<span data-route-opt-kicker="1">{{ r.toLbl }}</span>
+<span data-route-opt-to="1">{{ r.to }}</span>
+</span>
+</span>
 </span>
 </button>
 </sc-for>
@@ -563,12 +599,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <strong style="font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);color:var(--vt-white)">{{ stripTitle }}</strong>
 <span style="font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted)">{{ stripNote }}</span>
 </div>
+<sc-if value="{{ notFixed }}" hint-placeholder-val="{{ true }}">
 <div data-fleet-strip="1" data-hide-narrow="1" ref="{{ stripRef }}" style="margin-top:10px">
 <sc-for list="{{ fleet }}" as="v" hint-placeholder-count="4">
-<div role="{{ v.role }}" tabindex="{{ v.tab }}" aria-disabled="{{ v.dis }}" data-fleet-card="1" data-locked="{{ v.locked }}" data-picked="{{ v.picked }}" data-dim="{{ v.dim }}" data-unavail="{{ v.unavail }}" onClick="{{ v.select }}" onKeyDown="{{ v.key }}" title="{{ v.title }}" style="position:relative;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);padding:0;overflow:hidden;min-height:0;display:flex;flex-direction:column;cursor:pointer;transition:var(--vt-transition-control);view-transition-name:{{ v.vtName }}" style-hover="box-shadow:var(--vt-shadow-md);border-color:var(--vt-grey-300)" style-active="transform:translateY(1px)">
-<div data-fleet-img="1" style="width:100%;background:var(--vt-grey-100);overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;flex:0 0 auto">
+<div role="{{ v.role }}" tabindex="{{ v.tab }}" aria-disabled="{{ v.dis }}" data-fleet-card="1" data-locked="{{ v.locked }}" data-picked="{{ v.picked }}" data-dim="{{ v.dim }}" data-unavail="{{ v.unavail }}" onClick="{{ v.select }}" onKeyDown="{{ v.key }}" title="{{ v.title }}" style="position:relative;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);padding:8px;gap:10px;overflow:hidden;min-height:0;display:flex;flex-direction:row;align-items:flex-start;cursor:pointer;transition:var(--vt-transition-control);view-transition-name:{{ v.vtName }}" style-hover="box-shadow:var(--vt-shadow-md);border-color:var(--vt-grey-300)" style-active="transform:translateY(1px)">
+<div data-fleet-img="1" style="width:146px;height:146px;aspect-ratio:1/1;border-radius:var(--vt-radius-md);background:var(--vt-grey-100);overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;flex:0 0 146px">
 <sc-if value="{{ v.noImage }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ v.icon }}" size="{{ n24 }}" color="var(--vt-grey-500)" hint-size="24px,24px"></x-import></sc-if>
-<sc-if value="{{ v.hasImage }}" hint-placeholder-val="{{ true }}"><img src="{{ v.image }}" alt="" style="width:100%;height:100%;object-fit:cover;display:block"></sc-if>
+<sc-if value="{{ v.hasImage }}" hint-placeholder-val="{{ true }}"><img src="{{ v.image }}" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block"></sc-if>
 <sc-if value="{{ v.hasBadge }}" hint-placeholder-val="{{ false }}">
 <span style="position:absolute;top:8px;inset-inline-start:8px;display:inline-flex;align-items:center;height:18px;padding:0 8px;border-radius:999px;background:var(--vt-yellow);border:1px solid var(--vt-charcoal-900);color:var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap">{{ v.badge }}</span>
 </sc-if>
@@ -578,14 +615,18 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </sc-if>
 </div>
 <div data-fleet-body="1">
+<div data-fleet-head="1">
 <strong data-fleet-name="1" title="{{ v.examples }}">{{ v.name }}</strong>
 <span style="position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">{{ v.sr }}</span>
 <div data-price-row="1">
 <span ref="{{ v.dustRef }}" data-price-slot="1" dir="ltr" style="view-transition-name:{{ v.vtPriceName }}"></span>
 </div>
+</div>
+<span data-fleet-ex="1">{{ v.examples }}</span>
+<div data-fleet-foot="1">
 <div data-fleet-caps="1" onClick="{{ v.snapClick }}" role="{{ v.capRole }}" tabindex="{{ v.capTab }}" style="{{ v.capCss }}">
-<span style="display:inline-flex;align-items:center;gap:5px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="users" size="{{ n12 }}" color="var(--vt-text-muted)" hint-size="12px,12px"></x-import>{{ v.capText }}</span>
-<span style="display:inline-flex;align-items:center;gap:5px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="luggage" size="{{ n12 }}" color="var(--vt-text-muted)" hint-size="12px,12px"></x-import>{{ v.bagText }}</span>
+<span style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;flex:0 0 auto"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="users" size="{{ n12 }}" color="var(--vt-text-muted)" hint-size="12px,12px"></x-import>{{ v.capText }}</span>
+<span style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;flex:0 0 auto"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="luggage" size="{{ n12 }}" color="var(--vt-text-muted)" hint-size="12px,12px"></x-import>{{ v.bagText }}</span>
 </div>
 <sc-if value="{{ v.ready }}" hint-placeholder-val="{{ false }}">
 <span data-fleet-cta="go" aria-hidden="true">{{ v.cta }}
@@ -600,12 +641,15 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import></span>
 </sc-if>
 </div>
+</div>
 <sc-if value="{{ v.skeleton }}" hint-placeholder-val="{{ false }}">
-<div style="position:absolute;inset:0;border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);display:flex;flex-direction:column;overflow:hidden;animation:vt-skelpulse 1.8s ease-in-out infinite">
+<div style="position:absolute;inset:0;border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);padding:8px;display:flex;flex-direction:row;align-items:stretch;gap:10px;box-sizing:border-box;animation:vt-skelpulse 1.8s ease-in-out infinite">
 <div data-fleet-skel-photo="1"></div>
 <div data-fleet-body="1">
+<div data-fleet-head="1">
 <div style="width:52%;height:16px;border-radius:6px;background:var(--vt-grey-200)"></div>
-<div style="width:88px;height:18px;border-radius:6px;background:var(--vt-grey-200)"></div>
+<div style="width:88px;height:18px;border-radius:6px;background:var(--vt-grey-200);flex:0 0 auto"></div>
+</div>
 <div style="width:70%;height:10px;border-radius:6px;background:var(--vt-grey-100)"></div>
 <div style="margin-top:auto;height:var(--vt-control-h-sm);border-radius:999px;background:var(--vt-grey-100);display:flex;align-items:center;justify-content:center"><span style="font-size:10px;color:var(--vt-text-muted)">{{ tGetting }}</span></div>
 </div>
@@ -613,7 +657,39 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </sc-if>
 </div>
 </sc-for>
-</div></div>
+</div>
+</sc-if>
+<sc-if value="{{ isFixed }}" hint-placeholder-val="{{ false }}">
+<div data-dest-strip="1" data-hide-narrow="1" style="margin-top:10px">
+<sc-if value="{{ destEmpty }}" hint-placeholder-val="{{ false }}">
+<p data-dest-empty="1">{{ tFixedEmpty }}</p>
+</sc-if>
+<sc-if value="{{ destHasCards }}" hint-placeholder-val="{{ true }}">
+<sc-for list="{{ destCards }}" as="d" hint-placeholder-count="4">
+<button type="button" data-dest-card="1" title="{{ d.full }}" onClick="{{ d.pick }}">
+<div data-dest-img="1" style="width:204px;height:204px;aspect-ratio:1/1;border-radius:var(--vt-radius-md);background:var(--vt-grey-100);overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;flex:0 0 204px">
+<sc-if value="{{ d.noImage }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n24 }}" color="var(--vt-grey-500)" hint-size="24px,24px"></x-import></sc-if>
+<sc-if value="{{ d.hasImage }}" hint-placeholder-val="{{ false }}"><img src="{{ d.image }}" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block"></sc-if>
+</div>
+<div data-dest-body="1">
+<div data-dest-head="1">
+<div data-dest-places="1">
+<span data-dest-line="1"><span data-dest-ico="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n12 }}" color="currentColor" hint-size="12px,12px"></x-import></span><span data-dest-copy="1"><span data-dest-kicker="1">{{ d.fromLbl }}</span><span data-dest-from="1">{{ d.from }}</span></span></span>
+<span data-dest-line="1"><span data-dest-ico="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n12 }}" color="currentColor" hint-size="12px,12px"></x-import></span><span data-dest-copy="1"><span data-dest-kicker="1">{{ d.toLbl }}</span><span data-dest-to="1">{{ d.to }}</span></span></span>
+</div>
+<div data-price-row="1">
+<span ref="{{ d.dustRef }}" data-price-slot="1" dir="ltr"></span>
+</div>
+</div>
+<div data-dest-foot="1">
+<span data-dest-cta="1">{{ d.cta }}<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import></span>
+</div>
+</div>
+</button>
+</sc-for>
+</sc-if>
+</div>
+</sc-if></div>
 
 
 </div>
@@ -1467,6 +1543,7 @@ class Component extends DCLogic {
   }
   labelFor(id) {
     const q = this.state.quote; const t = this.t();
+    if (String(id || '').indexOf('dest:') === 0) return { text: this.fmt(), small: false };
     if (q.status !== 'live' || !q.results) return { text: this.fmt(), small: false };
     const r = q.results[id];
     if (!r || r.kind === 'hold') return { text: this.fmt(), small: false };
@@ -1517,7 +1594,15 @@ class Component extends DCLogic {
   q = () => { clearTimeout(this._deb); this._deb = setTimeout(this.fireQuote, 300); };
   fireQuote = () => {
     const r = this.routeInfo(); const id = ++this.reqSeq;
-    if (!r.ok) { this.setState({ quote: { status: 'empty', results: null, inflight: false }, quoteFail: false }); this.relabelAll(); return; }
+    if (!r.ok) {
+      if (this._goTripKey) {
+        this._goTripKey = null;
+        this.setState({ quote: { status: 'empty', results: null, inflight: false }, quoteFail: false, announce: this.t().needTrip });
+        this.relabelAll();
+        return;
+      }
+      this.setState({ quote: { status: 'empty', results: null, inflight: false }, quoteFail: false }); this.relabelAll(); return;
+    }
     const prevResults = this.state.quote.results;
     const keepLive = this.state.quote.status === 'live' && !!prevResults;
     if (keepLive) this.setState({ quote: Object.assign({}, this.state.quote, { inflight: true }), quoteFail: false });
@@ -1525,6 +1610,7 @@ class Component extends DCLogic {
     const s = this.state;
     const failAll = () => {
       if (id !== this.reqSeq) return;
+      if (this._goTripKey) this._goTripKey = null;
       if (keepLive) {
         this.setState({ quote: Object.assign({}, this.state.quote, { status: 'live', results: prevResults, inflight: false }) }, () => this.revealAll());
         return;
@@ -1538,6 +1624,13 @@ class Component extends DCLogic {
       delete patch.fleetOffer;
       this.setState({ quote: patch, fleetOffer: offer, quoteFail: false }, () => {
         this.revealAll();
+        if (this._goTripKey && this.state.fixedKey === this._goTripKey && patch.lock && patch.quote_id) {
+          this._goTripKey = null;
+          this.goTripOpen();
+        } else if (this._goTripKey) {
+          this._goTripKey = null;
+          this.setState({ announce: this.t().needTrip });
+        }
         const t = this.t(); const names = { economy: t.economy, business: t.business, first: t.first, van: t.van };
         if (this.state.picked && !res[this.state.picked]) this.setState({ picked: null, capacityMoveNote: null });
         if (this.state.picked && res[this.state.picked] && res[this.state.picked].kind === 'na') {
@@ -1645,6 +1738,7 @@ class Component extends DCLogic {
   setFixedRoute = (key) => {
     const row = (this.state.fixedRoutes || []).find((r) => r.key === key);
     if (!row) {
+      this._goTripKey = null;
       this.setState({ fixedKey: '', pickupLoc: null, dropLoc: null, routeOpen: false, routeIdx: -1 }, this.q);
       return;
     }
@@ -1659,6 +1753,7 @@ class Component extends DCLogic {
       Promise.all([a0 ? Promise.resolve(a0) : this.suggestFirst(row.from), b0 ? Promise.resolve(b0) : this.suggestFirst(row.to)]).then((pair) => {
         const a = pair[0]; const b = pair[1];
         if (!a || !b) {
+          this._goTripKey = null;
           this.setState({ announce: this.t().fixedMiss });
           return;
         }
@@ -2282,6 +2377,38 @@ class Component extends DCLogic {
     const prefix = (s.lang === 'de' || s.lang === 'fr' || s.lang === 'ar') ? '/' + s.lang : '';
     setTimeout(() => { location.href = prefix + '/checkout/trip'; }, REDUCED ? 120 : 420);
   }
+  goFixedDest = (key) => {
+    if (!key) return;
+    const s = this.state;
+    if (s.fixedKey === key && s.quote && s.quote.lock && s.quote.quote_id && s.quote.status === 'live') {
+      this.goTripOpen();
+      return;
+    }
+    this._goTripKey = key;
+    this.setState({ announce: this.t().getting });
+    this.setFixedRoute(key);
+  };
+  goTripOpen = () => {
+    const s = this.state;
+    if (!s.quote.lock || !s.quote.quote_id) { this.setState({ announce: this.t().needTrip }); return; }
+    const offer = s.fleetOffer || [];
+    const r = s.quote.results;
+    const priced = [];
+    offer.forEach((v) => { if (r && r[v.id] && r[v.id].kind === 'price') priced.push(v.id); });
+    const when = this.clampWhen(s.dayY, s.dayM, s.day, s.time);
+    const classOffers = offer.map((v) => ({ slug: v.id, name: v.name, photo: v.image || '', pax: v.cap, bags: v.bags }));
+    const trip = {
+      mode: 'one-way', pickup: s.pickupText, dropoff: s.dropText, date: s.dayLabel || (s.day ? this.fmtDate(s.day) : ''), selectedDay: s.day, time: s.time, pax: s.pax, bags: s.bags,
+      vehicle: '', vehicleName: '', quote_id: s.quote.quote_id || null, lock: s.quote.lock || null, expires_at: s.quote.expires_at || null,
+      pickupPlace: placeInput(s.pickupLoc, s.pickupText), dropoffPlace: placeInput(s.dropLoc, s.dropText),
+      scheduled_local: scheduledLocal(when.y, when.m, when.d, when.time), locale: s.lang || 'en', display_currency: s.cur || 'CHF',
+      classes: priced, classOffers: classOffers, flight: s.flight || '', flightNumber: s.flight || '',
+    };
+    saveTrip(trip);
+    this.setState({ announce: this.t().savedGo, sug: CLOSED });
+    const prefix = (s.lang === 'de' || s.lang === 'fr' || s.lang === 'ar') ? '/' + s.lang : '';
+    setTimeout(() => { location.href = prefix + '/checkout/trip'; }, REDUCED ? 120 : 420);
+  };
   badgeEl(code, glyph) {
     if (!code) return undefined;
     const DSg = (typeof window !== 'undefined' && window.VamosTaxiDesignSystem_245af1) || {};
@@ -2393,8 +2520,8 @@ class Component extends DCLogic {
       modeIcon: s.mode === 'fixed' ? 'map-pin' : s.mode === 'return' ? 'arrow-left-right' : s.mode === 'hourly' ? 'clock' : 'arrow-right',
       destBadge: this.badgeEl(!s.focused.dest ? s.autofill.dest : null),
       stripStep: t.stepTwo,
-      stripTitle: s.picked ? t.savedGo : t.readyTitle,
-      stripNote: s.capacityMoveNote || (s.picked ? t.savedSub.replace('{v}', t[pickedName] || pickedName) : (s.quote && s.quote.noRoad) ? t.noRoad : priced ? t.readySub : s.quoteFail ? (s.announce || t.quoteErr) : t.needTrip),
+      stripTitle: s.mode === 'fixed' ? t.popular : (s.picked ? t.savedGo : t.readyTitle),
+      stripNote: s.mode === 'fixed' ? ((s.fixedRoutes || []).length ? t.modeFixed : t.fixedEmpty) : (s.capacityMoveNote || (s.picked ? t.savedSub.replace('{v}', t[pickedName] || pickedName) : (s.quote && s.quote.noRoad) ? t.noRoad : priced ? t.readySub : s.quoteFail ? (s.announce || t.quoteErr) : t.needTrip)),
       tSelectCta: t.selectCta, tSelectedCta: t.selectedCta,
       yes: true,
       dir: s.lang === 'ar' ? 'rtl' : 'ltr', lang: s.lang, cur: s.cur, pickLang: this.pickLang, pickCur: this.pickCur,
@@ -2423,14 +2550,24 @@ class Component extends DCLogic {
       routePh: s.fixedKey ? '0' : '1',
       routePicked: !!s.fixedKey,
       routePickedAttr: s.fixedKey ? '1' : '0',
-      routeFrom: pickedRoute ? (head(pickedRoute.from) || t.pickup) : t.pickup,
-      routeTo: pickedRoute ? (head(pickedRoute.to) || t.dest) : t.dest,
+      routeFrom: pickedRoute ? (head(pickedRoute.from) || pickedRoute.from) : t.pickup,
+      routeTo: pickedRoute ? (head(pickedRoute.to) || pickedRoute.to) : t.dest,
       routeTitle: pickedRoute ? (pickedRoute.from + ' → ' + pickedRoute.to) : t.fixedPh,
       routeRows: (s.fixedRoutes || []).map((r, i) => ({
         from: head(r.from) || r.from, to: head(r.to) || r.to, full: r.from + ' → ' + r.to,
+        fromLbl: t.pickup, toLbl: t.dest,
         sel: (s.routeIdx === i || r.key === s.fixedKey) ? 'true' : 'false',
         pick: () => this.setFixedRoute(r.key),
       })),
+      destCards: (s.fixedRoutes || []).slice(0, 4).map((r) => ({
+        from: head(r.from) || r.from, to: head(r.to) || r.to, full: r.from + ' → ' + r.to,
+        fromLbl: t.pickup, toLbl: t.dest, cta: t.selectCta,
+        hasImage: !!r.image, noImage: !r.image, image: r.image || '',
+        dustRef: this.dustRef('dest:' + r.key),
+        pick: () => this.goFixedDest(r.key),
+      })),
+      destHasCards: !!(s.fixedRoutes || []).length,
+      destEmpty: s.mode === 'fixed' && !(s.fixedRoutes || []).length,
       flight: s.flight, setFlight: this.setFlight, flightKey: this.flightKey,
       flightError: s.flightState === 'err' ? t.flightErr : '',
       fsugNote: s.fsug.note || '', hasFsugNote: !!s.fsug.note,

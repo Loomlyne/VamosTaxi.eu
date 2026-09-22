@@ -10,9 +10,10 @@
    /api/staff/<name> aliases.
 
    Write contract: never mint cu-/cp-/FR- ids. Empty id → POST. UUID or
-   numeric id → PATCH/DELETE. Bookings write bookingId (UUID), display id
-   stays VT-…. Failed writes return { ok:false, code } and the overlay
-   must stay open.
+   numeric id → PATCH/DELETE except coupons (bigint PK): OpsTable mints a
+   UUID for new rows, so only a numeric id PATCHes; a UUID draft POSTs.
+   Bookings write bookingId (UUID), display id stays VT-…. Failed writes
+   return { ok:false, code } and the overlay must stay open.
 
    Draft fare-book verbs: publish / discard / saveDraftVat hit
    /api/staff/rate-versions/:id/{publish,discard} and PUT rate-book for VAT.
@@ -161,6 +162,12 @@
         var bid = row && row.bookingId;
         if (isUuid(bid)) return String(bid);
       }
+      // coupons.id is bigint. A client UUID is a draft key, not a row.
+      if (name === "coupons") {
+        if (isNumericId(id)) return String(id);
+        if (row && isNumericId(row.id)) return String(row.id);
+        return "";
+      }
       if (isWriteId(id)) return String(id);
       if (row && isWriteId(row.id)) return String(row.id);
       return "";
@@ -168,7 +175,9 @@
 
     function persistable(rec) {
       var row = rec || {};
-      if (!row.id || isMintedId(row.id) || !isWriteId(row.id)) {
+      var dropId = !row.id || isMintedId(row.id) || !isWriteId(row.id);
+      if (name === "coupons" && row.id && !isNumericId(row.id)) dropId = true;
+      if (dropId) {
         var copy = {};
         var k;
         for (k in row) copy[k] = row[k];

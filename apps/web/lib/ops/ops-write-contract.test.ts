@@ -33,6 +33,12 @@ describe("ops write contract", () => {
     expect(store).toMatch(/api\("DELETE", base \+ "\/" \+ encodeURIComponent\(writeId\)/);
   });
 
+  it("POSTs coupon UUID drafts; only numeric coupon ids PATCH", () => {
+    expect(store).toMatch(/if \(name === "coupons"\)/);
+    expect(store).toMatch(/A client UUID is a draft key/);
+    expect(store).toMatch(/if \(name === "coupons" && row\.id && !isNumericId\(row\.id\)\) dropId = true/);
+  });
+
   it("writes bookings by bookingId, not the VT- display ref", () => {
     expect(store).toMatch(/var bid = row && row\.bookingId/);
     expect(store).toMatch(/findRow\(\(patch && patch\.bookingId\) \|\| ""\)/);

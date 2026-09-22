@@ -208,6 +208,24 @@ function expiresToIso(expires: string): string | null {
   return `${trimmed}T00:00:00.000Z`;
 }
 
+/** Zurich calendar day as the same UTC-midnight stamp expires uses. */
+function creationDayIso(now = new Date()): string {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Zurich",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  const lookup = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? "";
+  return `${lookup("year")}-${lookup("month")}-${lookup("day")}T00:00:00.000Z`;
+}
+
+/** Operator no longer picks Starts. Missing validFrom → creation day. */
+export function validFromOnCreate(validFrom: string | null, now = new Date()): string {
+  return validFrom || creationDayIso(now);
+}
+
 /** DC table row. Amount kind always ships value "00" — no CHF discount. */
 export function toDcCoupon(row: CouponRow): DcCoupon {
   return {
@@ -221,7 +239,7 @@ export function toDcCoupon(row: CouponRow): DcCoupon {
           ? String(row.amountRappen / 100)
           : "00",
     uses: 0,
-    limit: row.globalLimit ?? 0,
+    limit: row.globalLimit != null && row.globalLimit >= 1 ? row.globalLimit : 1,
     validFrom: dateOnly(row.validFrom),
     expires: dateOnly(row.validUntil),
     active: row.active,
@@ -237,9 +255,10 @@ export function couponInputFromDc(raw: unknown): CouponInput {
   const body = raw as Record<string, unknown>;
   const kind: CouponKind = body.kind === "amount" ? "amount" : "percent";
   const value = body.value == null ? "" : String(body.value);
-  const limitRaw = body.limit == null || body.limit === "" ? 0 : Number(body.limit);
-  if (!Number.isFinite(limitRaw)) throw new CouponInputError("coupons-limit-integer");
+  const limitRaw = body.limit == null || body.limit === "" ? 1 : Number(body.limit);
+  if (!Number.isInteger(limitRaw) || limitRaw < 1) throw new CouponInputError("coupons-limit-integer");
   const expires = typeof body.expires === "string" ? body.expires : "";
+  // Starts is no longer an editor field. Keep a supplied date for edit/copy; empty → insert defaults.
   const validFromRaw = typeof body.validFrom === "string" ? body.validFrom : typeof body.valid_from === "string" ? body.valid_from : "";
 
   let percent: number | null = null;
@@ -269,7 +288,7 @@ export function couponInputFromDc(raw: unknown): CouponInput {
     amountRappen,
     validFrom: validFromRaw ? expiresToIso(validFromRaw.slice(0, 10)) : null,
     validUntil: expiresToIso(expires),
-    globalLimit: limitRaw === 0 ? null : limitRaw,
+    globalLimit: limitRaw,
     perUserLimit: body.perUserLimit == null || body.perUserLimit === "" ? null : Number(body.perUserLimit),
     active: body.active !== false,
     note: typeof body.note === "string" ? body.note : "",
@@ -320,6 +339,10 @@ export async function insertCoupon(
   rateVersionId?: number | null,
 ): Promise<CouponRow> {
   const parsed = assertCouponInput(input);
+  const validFrom = validFromOnCreate(parsed.validFrom);
+  if (parsed.validUntil && parsed.validUntil <= validFrom) {
+    throw new CouponInputError("coupons-window");
+  }
   return asStaff(env, claims, async (sql) => {
     const rows = await sql<CouponSqlRow[]>`
       insert into public.coupons (
@@ -331,7 +354,7 @@ export async function insertCoupon(
         ${parsed.kind},
         ${parsed.percent},
         ${parsed.amountRappen},
-        ${parsed.validFrom},
+        ${validFrom},
         ${parsed.validUntil},
         ${parsed.globalLimit},
         ${parsed.perUserLimit},

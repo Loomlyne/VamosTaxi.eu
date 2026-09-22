@@ -47,7 +47,7 @@
 [data-vt-table-scroll] .vt-table tbody tr:hover td:last-child{background:var(--vt-grey-50)}
 [data-vt-table-scroll] .vt-table tbody tr[data-selected="true"] td:last-child{background:var(--vt-grey-100)}
 [data-vt-editor-foot]{position:sticky;bottom:0;z-index:3;display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:20px;margin-inline:-24px;padding:18px 24px var(--vt-space-6);border-top:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface)}
-[data-vt-save-err]{box-sizing:border-box;display:flex;align-items:center;gap:10px;padding:8px 14px;margin-bottom:16px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);background:var(--vt-bg-surface);font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)}
+[data-vt-save-err]{box-sizing:border-box;display:flex;align-items:center;gap:10px;padding:8px 14px;margin-bottom:16px;border:1px solid var(--vt-danger);border-radius:var(--vt-radius-pill);background:var(--vt-danger-tint);font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-danger)}
 [data-vt-time-wrap] input{all:unset;flex:1 1 auto;min-width:0;width:100%;font:inherit;color:inherit;background:transparent;caret-color:var(--vt-charcoal-900)}
 [data-vt-date-pop]{position:fixed;z-index:220;box-sizing:border-box;width:280px;padding:12px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg)}
 [data-vt-date-nav]{display:flex;align-items:center;gap:8px;margin-bottom:10px}
@@ -367,7 +367,7 @@
 </span>
 <span style="margin-inline-start:auto;display:flex;flex-wrap:wrap;gap:10px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" onClick="{{ requestClose }}" hint-size="110px,44px">Cancel</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ save }}" hint-size="130px,44px">{{ saveLabel }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ save }}" disabled="{{ saveOff }}" hint-size="130px,44px">{{ saveLabel }}</x-import>
 </span>
 </div>
 </x-import>
@@ -746,6 +746,39 @@ class Component extends DCLogic {
     }
     return true;
   }
+  /* Coupons share this table. Gate the primary from draft completeness only for
+     that schema (code + value) so other editors keep an always-on Save. */
+  isCouponEditor() {
+    const fields = this.props.fields || [];
+    let code = false, value = false;
+    for (let i = 0; i < fields.length; i++) {
+      if (fields[i].key === 'code') code = true;
+      if (fields[i].key === 'value') value = true;
+    }
+    return code && value;
+  }
+  couponValueFilled(d) {
+    const t = String((d && d.value) == null ? '' : d.value).trim();
+    if (!t || t === '00' || t === '0' || t.toUpperCase() === 'NULL') return false;
+    return Number.isFinite(Number(t));
+  }
+  couponDraftReady() {
+    const fields = this.props.fields || [];
+    const d = this.state.draft || {};
+    for (let i = 0; i < fields.length; i++) {
+      const f = fields[i];
+      if (!f.required) continue;
+      if (!this.fieldVisible(f, d)) continue;
+      const v = d[f.key];
+      if (v === undefined || v === null || String(v).trim() === '') return false;
+    }
+    if (this.state.isNew && !this.couponValueFilled(d)) return false;
+    return true;
+  }
+  canSave() {
+    if (!this.isCouponEditor()) return true;
+    return this.couponDraftReady();
+  }
   rowCanDelete(row) {
     if (!this.props.canDelete) return true;
     return this.props.canDelete(row) !== false;
@@ -880,6 +913,7 @@ class Component extends DCLogic {
   };
   save = () => {
     if (this.state.saving) return;
+    if (!this.canSave()) return;
     const fields = this.props.fields || [];
     const d = this.state.draft || {};
     const errors = {};
@@ -1131,6 +1165,7 @@ class Component extends DCLogic {
       const kindKey = f.kindKey || 'kind';
       const kindValue = String(d[kindKey] == null || d[kindKey] === '' ? 'percent' : d[kindKey]);
       const minN = f.min === undefined ? 0 : f.min;
+      const maxN = f.max === undefined ? 99 : f.max;
       const num = parseInt(val, 10);
       const nVal = isNaN(num) ? minN : num;
       const open = this.state.dateOpen;
@@ -1214,7 +1249,7 @@ class Component extends DCLogic {
         setYearDigits: (e) => this.setField(f.key, maskYear(e.target.value)),
         setPhone: (e) => this.setField(f.key, maskPhone(e.target.value)),
         setLicence: (e) => this.setField(f.key, maskLicence(e && e.target ? e.target.value : e)),
-        inc: () => this.setField(f.key, Math.min(99, nVal + 1)),
+        inc: () => this.setField(f.key, Math.min(maxN, nVal + 1)),
         dec: () => this.setField(f.key, Math.max(minN, nVal - 1)),
         checked: !!raw,
         hasAdd: !!f.addLabel,
@@ -1329,6 +1364,7 @@ class Component extends DCLogic {
       editorTitle: this.state.isNew ? (this.props.addTitle || 'Add') : (this.props.editTitle || 'Edit'),
       editorSubtitle: this.state.isNew ? (this.props.editorSubtitle || '') : this.label(d),
       saveLabel: this.state.isNew ? (this.props.addSaveLabel || 'Add') : (this.props.saveLabel || 'Save changes'),
+      saveOff: !this.canSave(),
       saveError: this.state.saveError || '',
       saveFailed: !!(this.state.saveError),
       deleteError: this.state.deleteError || '',

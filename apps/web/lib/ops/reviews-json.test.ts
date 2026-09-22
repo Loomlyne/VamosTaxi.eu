@@ -94,14 +94,23 @@ describe("reviews JSON dual mount + mock", () => {
     expect(html).toMatch(/setText: \(e\) => this\.patch\(\{ text: e\.target\.value \}\)/);
   });
 
-  it("public review card shows an original-review icon next to the name", () => {
+  it("public review card shows a borderless original-review icon after the stars", () => {
     const html = readFileSync(join(repoRoot, "app/home/Reviews.dc.html"), "utf8");
     expect(html).toMatch(/data-rv-who/);
     expect(html).toMatch(/data-rv-link/);
     expect(html).toMatch(/name="external-link"/);
     expect(html).toMatch(/\[data-rv-link\]\{[^}]*display:inline-flex/);
+    expect(html).toMatch(/\[data-rv-link\]\{[^}]*border:0/);
+    expect(html).not.toMatch(/\[data-rv-link\]\{[^}]*border:1px solid/);
     expect(html).toMatch(/aria-label="\{\{ r\.linkLabel \}\}"/);
+    expect(html).toMatch(/rel="noopener noreferrer"/);
     expect(html).not.toMatch(/<a data-rv-link[^>]*>\{\{ r\.linkLabel \}\}/);
+    expect(html).toMatch(
+      /<span data-rv-who="1">\s*<strong data-rv-name="1">\{\{ r\.name \}\}<\/strong>\s*<\/span>/,
+    );
+    expect(html).toMatch(
+      /data-rv-stars[\s\S]*?<\/span>\s*<a data-rv-link="1"/,
+    );
   });
 
   it("OpsReviews has no photo upload, no grip drag, and no View on site", () => {

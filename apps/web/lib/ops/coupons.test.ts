@@ -20,6 +20,7 @@ import {
   loadCouponRedemptions,
   loadCoupons,
   toDcCoupon,
+  validFromOnCreate,
 } from "./coupons";
 
 const claims: VamosClaims = {
@@ -121,7 +122,7 @@ describe("toDcCoupon", () => {
     });
     expect(dc.value).toBe("50");
     expect(dc.uses).toBe(0);
-    expect(dc.limit).toBe(0);
+    expect(dc.limit).toBe(1);
   });
 
   it("ships NULL percent as 00", () => {
@@ -153,14 +154,14 @@ describe("couponInputFromDc", () => {
       code: "TEST",
       kind: "amount",
       value: "25.00",
-      limit: 0,
+      limit: 1,
       expires: "",
       active: true,
       note: "",
     });
     expect(input.amountRappen).toBe(2500);
     expect(input.percent).toBeNull();
-    expect(input.globalLimit).toBeNull();
+    expect(input.globalLimit).toBe(1);
   });
 
   it("accepts amountRappen directly", () => {
@@ -183,12 +184,67 @@ describe("couponInputFromDc", () => {
     expect(couponInputFromDc({ code: "OPEN", kind: "percent", value: "00" }).percent).toBeNull();
     expect(couponInputFromDc({ code: "OPEN", kind: "percent", value: "NULL" }).percent).toBeNull();
   });
+
+  it("leaves validFrom null when the operator does not send Starts", () => {
+    const input = couponInputFromDc({ code: "SAVE10", kind: "percent", value: "10", expires: "" });
+    expect(input.validFrom).toBeNull();
+  });
+
+  it("maps 1/2/10/21/100 onto globalLimit and rejects 0", () => {
+    for (const n of [1, 2, 10, 21, 100]) {
+      expect(couponInputFromDc({ code: "CAP", kind: "percent", value: "10", limit: n }).globalLimit).toBe(n);
+    }
+    expect(couponInputFromDc({ code: "CAP", kind: "percent", value: "10" }).globalLimit).toBe(1);
+    expect(() => couponInputFromDc({ code: "CAP", kind: "percent", value: "10", limit: 0 })).toThrow(CouponInputError);
+  });
+
+  it("maps a filled Add coupon form including a client UUID id", () => {
+    const input = couponInputFromDc({
+      id: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      code: "welcome",
+      kind: "percent",
+      value: "20",
+      uses: 0,
+      limit: 1,
+      validFrom: "2026-09-22",
+      expires: "2026-09-23",
+      active: true,
+      note: "",
+    });
+    expect(input.code).toBe("welcome");
+    expect(input.kind).toBe("percent");
+    expect(input.percent).toBe(20);
+    expect(input.amountRappen).toBeNull();
+    expect(input.validFrom).toBe("2026-09-22T00:00:00.000Z");
+    expect(input.validUntil).toBe("2026-09-23T00:00:00.000Z");
+    expect(input.globalLimit).toBe(1);
+    expect(input.active).toBe(true);
+    expect(assertCouponInput(input).code).toBe("WELCOME");
+  });
+});
+
+describe("validFromOnCreate", () => {
+  it("defaults missing validFrom to the Zurich creation day", () => {
+    // 22:00 UTC on 22 Sep 2026 is 00:00 the next day in Zurich (CEST).
+    expect(validFromOnCreate(null, new Date("2026-09-22T22:00:00.000Z"))).toBe(
+      "2026-09-23T00:00:00.000Z",
+    );
+  });
+
+  it("keeps a supplied validFrom", () => {
+    expect(validFromOnCreate("2026-08-01T00:00:00.000Z")).toBe("2026-08-01T00:00:00.000Z");
+  });
 });
 
 describe("couponIdFromRequest", () => {
   it("reads the last path segment", () => {
     expect(couponIdFromRequest(new Request("http://vamos.test/api/staff/coupons/12"))).toBe(12);
     expect(couponIdFromRequest(new Request("http://vamos.test/api/staff/coupons/cp-x"))).toBeNull();
+    expect(
+      couponIdFromRequest(
+        new Request("http://vamos.test/api/staff/coupons/aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"),
+      ),
+    ).toBeNull();
   });
 });
 

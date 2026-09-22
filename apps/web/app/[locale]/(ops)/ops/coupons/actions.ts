@@ -9,6 +9,7 @@ import {
   assertCouponInput,
   CouponInputError,
   mapSqlState,
+  validFromOnCreate,
   type CouponInput,
 } from "@/lib/ops/coupons";
 import { OpsAuthError, requireStaffClaims, type StaffAuthClient } from "@/lib/ops/session";
@@ -37,6 +38,10 @@ function fail(err: unknown): CouponActionResult {
 export async function createCoupon(input: CouponInput): Promise<CouponActionResult> {
   try {
     const parsed = assertCouponInput(input);
+    const validFrom = validFromOnCreate(parsed.validFrom);
+    if (parsed.validUntil && parsed.validUntil <= validFrom) {
+      throw new CouponInputError("coupons-window");
+    }
     const { env, claims } = await staffDoor();
     await asStaff(env, claims, async (sql) => {
       await sql`
@@ -48,7 +53,7 @@ export async function createCoupon(input: CouponInput): Promise<CouponActionResu
           ${parsed.kind},
           ${parsed.percent},
           ${parsed.amountRappen},
-          ${parsed.validFrom},
+          ${validFrom},
           ${parsed.validUntil},
           ${parsed.globalLimit},
           ${parsed.perUserLimit},
