@@ -463,6 +463,7 @@
     "quoteAlreadyBooked": "هذا العرض لديه حجز بالفعل.",
     "paymentWindowClosed": "أُغلق وقت الدفع. احصل على عرض جديد.",
     "payCouldNotStart": "لم يبدأ الدفع. اضغط ادفع وتابع مرة أخرى.",
+    "emailFailed": "لم يُرسل رابط الدفع. الحجز موجود. أعد إرسال الرابط.",
     "completeCard": "أدخل رقم البطاقة وتاريخ الانتهاء ورمز CVC.",
     "requote": "عرض جديد",
     "freeCancelHours": "إلغاء مجاني حتى {hours} ساعة قبل الاستلام.",
@@ -481,7 +482,7 @@
     "cardCvc": "CVC",
     "cardCountry": "البلد",
     "applePay": "Apple Pay",
-    "payWithApplePay": "ادفع بـ Apple Pay",
+    "payWithExpress": "دفع سريع",
     "payWithLink": "ادفع بـ Link",
     "payWithCard": "ادفع بالبطاقة",
     "stripeLink": "Link",
@@ -2458,6 +2459,7 @@
     "line": {
       "transfer": "نقل، {vehicleClass}",
       "fixed_route": "مسار بسعر ثابت",
+      "city_price": "سعر المدينة",
       "coupon": "قسيمة {code}",
       "round_trip_discount": "خصم الذهاب والإياب، {percent}%",
       "total": "الإجمالي"

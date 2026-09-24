@@ -109,6 +109,20 @@ describe("dc mock URL gate", () => {
     ).toBeNull();
   });
 
+  it("fail-closes other /api/staff/* document navigations so they are never a page", () => {
+    const host = { host: "dashboard.vamostaxi.site" };
+    for (const path of [
+      "/api/staff/me",
+      "/api/staff/bookings",
+      "/api/staff/vehicles",
+      "/api/staff/tickets",
+      "/api/staff/customers",
+    ]) {
+      expect(gatePublicRequest(doc(path, host)), path).toBe("not-found");
+      expect(gatePublicRequest(req(path, host)), path).toBeNull();
+    }
+  });
+
   it("lets internal asset fetches through", () => {
     expect(
       gatePublicRequest(

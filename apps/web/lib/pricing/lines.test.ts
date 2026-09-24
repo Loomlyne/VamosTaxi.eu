@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 import * as fc from "fast-check";
 import {
   attachPlaceZones,
+  buildCityPriceLine,
   buildExtraLines,
   buildFareLine,
   buildLegSurchargeLines,
@@ -68,6 +69,8 @@ function rate(
     base_fare_rappen: partial.base_fare_rappen ?? null,
     per_km_rappen: partial.per_km_rappen ?? null,
     min_fare_rappen: partial.min_fare_rappen ?? null,
+    airport_start_rappen: partial.airport_start_rappen ?? null,
+    city_price_rappen: partial.city_price_rappen ?? null,
     max_pax: partial.max_pax ?? 3,
     available: partial.available ?? true,
   };
@@ -1201,3 +1204,101 @@ describe("numberLines (T5)", () => {
     expect(line.params?.vehicleClass).toBe("business");
   });
 });
+
+describe("Comment 11 fare kinds", () => {
+  const metres = 10_000;
+  const start = 1_000;
+  const per = 200;
+  const km = perKm(per, metres);
+
+  function priced(partial: Partial<DistanceRateRow> = {}) {
+    return rate({
+      vehicle_class_id: business.id,
+      base_fare_rappen: start,
+      per_km_rappen: per,
+      airport_start_rappen: 2_500,
+      city_price_rappen: 700,
+      ...partial,
+    });
+  }
+
+  it("one way is start plus km, and does not add the city price", () => {
+    const line = buildFareLine({
+      leg: leg({ distance_m: metres }),
+      vehicleClass: business,
+      distanceRate: priced(),
+      fixedRoutes: [],
+      rateVersionId: 1,
+      fareKind: "one_way",
+    });
+    expect(line.amount_rappen).toBe(start + km);
+    expect(line.code).toBe("distance_fare");
+    expect(
+      buildCityPriceLine({
+        fareKind: "one_way",
+        cityPriceRappen: 700,
+        distanceRateId: 1,
+        rateVersionId: 1,
+      }),
+    ).toBeNull();
+  });
+
+  it("airport pickup uses a different start and the same per-km, with no fallback", () => {
+    const line = buildFareLine({
+      leg: leg({ distance_m: metres }),
+      vehicleClass: business,
+      distanceRate: priced(),
+      fixedRoutes: [],
+      rateVersionId: 1,
+      fareKind: "airport_pickup",
+    });
+    expect(line.amount_rappen).toBe(2_500 + km);
+    expect(line.basis.start_rappen).toBe(2_500);
+    expect(line.basis.start_source).toBe("airport_start_rappen");
+
+    const unset = buildFareLine({
+      leg: leg({ distance_m: metres }),
+      vehicleClass: business,
+      distanceRate: priced({ airport_start_rappen: null }),
+      fixedRoutes: [],
+      rateVersionId: 1,
+      fareKind: "airport_pickup",
+    });
+    expect(unset.amount_rappen).toBeNull();
+  });
+
+  it("city to city keeps the one-way start and adds exactly one city price", () => {
+    const line = buildFareLine({
+      leg: leg({ distance_m: metres }),
+      vehicleClass: business,
+      distanceRate: priced(),
+      fixedRoutes: [],
+      rateVersionId: 1,
+      fareKind: "city_to_city",
+    });
+    expect(line.amount_rappen).toBe(start + km);
+    const city = buildCityPriceLine({
+      fareKind: "city_to_city",
+      cityPriceRappen: 700,
+      distanceRateId: 1,
+      rateVersionId: 1,
+    });
+    expect(city).not.toBeNull();
+    expect(city!.code).toBe("city_price");
+    expect(city!.leg_seq).toBeNull();
+    expect(city!.amount_rappen).toBe(700);
+    expect(city!.i18n_key).toBe("price.line.city_price");
+  });
+
+  it("an omitted fare kind stays on the one-way formula", () => {
+    const line = buildFareLine({
+      leg: leg({ distance_m: metres }),
+      vehicleClass: business,
+      distanceRate: priced(),
+      fixedRoutes: [],
+      rateVersionId: 1,
+    });
+    expect(line.amount_rappen).toBe(start + km);
+  });
+});
+

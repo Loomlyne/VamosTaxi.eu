@@ -1,34 +1,36 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: executing
-stopped_at: Phase 16 plans checker-approved. Execute on gsd/phase-16-staging-mx-end-to-end-uat worktree.
-last_updated: "2026-09-18T13:20:00.000Z"
-last_activity: 2026-09-18
+milestone: v1.3
+milestone_name: Meta measurement
+status: ready-to-discuss
+stopped_at: Phase 26 lock shipped on the branch. Not merged. Pixel stays off.
+last_updated: "2026-09-23T21:29:19.352Z"
+last_activity: 2026-09-23
 progress:
-  total_phases: 19
-  completed_phases: 14
-  total_plans: 185
-  completed_plans: 179
-  percent: 97
+  total_phases: 30
+  completed_phases: 16
+  total_plans: 213
+  completed_plans: 194
+  percent: 53
 ---
 
 # Project State
 
 **Project:** Vamos Taxi
-**Milestone:** v1.0 Vamos Taxi V1
-See: .planning/PROJECT.md (updated 2026-09-15 after Phase 18)
+**Milestone:** v1.3 Meta measurement
+See: .planning/PROJECT.md (updated 2026-09-23)
 
-**Core value:** quote → pay → confirmation. Lifecycle after pay is Phase 9.
-**Current focus:** Phase 17-06 executed on `gsd/phase-17-06-chauffeur-desk`. Live UAT after owner **continue** (Worker `vamos` deploy). Phase 19 parked. Do not `state.begin-phase` onto 19.
+**Core value:** quote → pay → confirmation. v1.3 measures ads only. It does not change pay.
+**Current focus:** Phase 26 lock is on `gsd/phase-26-legal-gate`, not live. Next is discuss-phase 27. Do not execute 27. Do not load the pixel. v1.2 Phases 21–25 stay planned. No `sk_live_`. No `.eu`.
 
 ## Current Position
 
-Phase: 16 (Staging MX + end-to-end UAT) — PLANNED
-Plan: 0
-Status: Ready to execute (16-01 → 16-04)
-Last activity: 2026-09-18
+Phase: 27
+Plan: Not started
+Status: Ready to discuss
+Last activity: 2026-09-23
+
+Phase 21 execution note (not current): planning complete — 8 plans. Execution started 2026-09-22 on `gsd/phase-21-charge-gate`. That position was Phase 21 EXECUTING, plan 1 of 8. Phase 21 is not complete. Do not execute Phase 16/17/19/20. Do not touch the main checkout from that branch note.
 
 ## Performance Metrics
 
@@ -42,9 +44,11 @@ Stripe live keys and Search Console stay owner-gated. Agent does not click Publi
 
 ## Session Continuity
 
-Last session: 2026-09-18T13:20:00Z
-Stopped at: Phase 16 plans checker-approved (UI-SPEC APPROVED, plan-checker APPROVED).
-Resume: `$gsd-execute-phase 16` on worktree `.worktrees/phase-16` / `gsd/phase-16-staging-mx-end-to-end-uat`. Do not start Phase 17. Do not switch the dirty `feat/17-ops-chauffeur-desk` checkout.
+Last session: 2026-09-23T20:43:35.760Z
+Stopped at: Phase 26 lock shipped on `gsd/phase-26-legal-gate`. Not merged. Pixel stays off.
+Resume: `/gsd:discuss-phase 27`. Do not execute 27. Do not load the pixel. Do not execute Phase 21 while v1.3 is current. Payment plans stay on disk. Do not execute Phase 16/17/19/20. Do not `phases.clear`.
+
+Phase 21 branch session (2026-09-22T19:57:29.795Z, not the resume): Stopped at Phase 21 planning complete — 8 plans. Resume was: Phase 21 executing on gsd/phase-21-charge-gate. Do not execute Phase 16/17/19/20. Do not touch the main checkout.
 
 ## Accumulated Context
 
@@ -52,6 +56,11 @@ Resume: `$gsd-execute-phase 16` on worktree `.worktrees/phase-16` / `gsd/phase-1
 
 - Phase 19 added: V1 production close-out leftover live gates and 10k booking surge (2026-09-18). Parked. Hard gate in ROADMAP. Current stays 17 leftover live close.
 - Phase 20 added: Security audit fix-up (2026-09-19). Does not begin Phase 19. Owner SQL. No `.eu`. No `sk_live_`.
+- Phases 21–25 added: v1.2 Payment (2026-09-22). PAY-08…PAY-18. Leftovers 16/17/19/20 unchanged.
+- v1.3 started (2026-09-23): Meta measurement. Phase 21 is not current. Do not `phases.clear`.
+- Phases 26–29 approved (2026-09-23): v1.3 Meta measurement. META-01…META-14. Next is discuss-phase 26. Phase 21 is not current.
+- Phase 26 lock shipped (2026-09-24) on `gsd/phase-26-legal-gate`. Empty slots. Flag is the literal false. Policy version stays `2026-09-12`. Not merged. Pixel stays off until the owner pastes the four-language lines.
+- Phase 21 execution on `gsd/phase-21-charge-gate` (2026-09-22): planning complete — 8 plans; execution started. Plans 21-01…21-08 stay checked. Progress stays 10/10 in progress. Phase 21 is not complete. Do not execute Phase 16/17/19/20.
 
 ## Decisions
 

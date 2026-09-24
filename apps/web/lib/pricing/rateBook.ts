@@ -117,6 +117,8 @@ function mapDistanceRate(item: unknown): DistanceRateRow {
     base_fare_rappen: (row.base_fare_rappen ?? null) as number | null,
     per_km_rappen: (row.per_km_rappen ?? null) as number | null,
     min_fare_rappen: (row.min_fare_rappen ?? null) as number | null,
+    airport_start_rappen: (row.airport_start_rappen ?? null) as number | null,
+    city_price_rappen: (row.city_price_rappen ?? null) as number | null,
     max_pax: row.max_pax as number,
     available: row.available as boolean,
     hide_from_public:

@@ -42,6 +42,7 @@ import {
   type QuoteLockPayload,
 } from "./lock";
 import type { ClassBoardEntry, PolicySnapshot, QuoteInput } from "../pricing/types";
+import { fareKindOrOneWay } from "../pricing/types";
 import {
   parseQuoteRequest,
   parseRepriceRequest,
@@ -358,6 +359,7 @@ function toQuoteInput(
     bags: request.bags,
     display_currency: request.display_currency,
     computed_at: computedAt,
+    fare_kind: fareKindOrOneWay(request.fare_kind),
     legs: request.legs.map((leg, i) => {
       const routedLeg = routed[i]!;
       const origin = i === 0 ? pickup : dropoff;
@@ -395,6 +397,7 @@ function inputFromLock(
     bags: lock.bags,
     display_currency: lock.display_currency,
     computed_at: computedAt,
+    fare_kind: fareKindOrOneWay(lock.fare_kind),
     legs: lock.legs.map((leg, i) => {
       const live = routed?.[i];
       return {
@@ -679,6 +682,7 @@ export async function runQuotePipeline(
     computed_at: deps.computedAt,
     display_currency: request.display_currency,
     mode: request.mode,
+    fare_kind: fareKindOrOneWay(request.fare_kind),
     pax: request.pax,
     bags: request.bags,
     legs: route.legs.map((leg, i) => {

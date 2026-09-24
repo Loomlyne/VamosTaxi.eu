@@ -37,6 +37,11 @@
 [data-vt-driver]{display:block;white-space:nowrap}
 [data-vt-quiet]{color:var(--vt-text-muted);white-space:nowrap}
 [data-vt-fare]{display:block;white-space:nowrap;font-variant-numeric:tabular-nums;font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);text-align:start}
+[data-ops-stats-wrap]{container:ops-board / inline-size}
+[data-ops-stats]{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:var(--vt-space-4)}
+@container ops-board (max-width:767px){
+  [data-ops-stats]{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
 </style>
 <main style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
 <header style="display:flex;align-items:center;gap:22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle);flex-wrap:wrap">
@@ -49,10 +54,10 @@
 </div>
 </header>
 <div style="padding:26px 32px 40px;display:flex;flex-direction:column;gap:24px;min-width:0">
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(212px,1fr));gap:16px">
+<div data-ops-stats-wrap="1"><div data-ops-stats="1">
 
 <sc-for list="{{ statCards }}" as="s" hint-placeholder-count="3">
-<button type="button" onClick="{{ s.select }}" aria-pressed="{{ s.pressed }}" style="all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:10px;min-height:136px;padding:18px 20px;border-radius:var(--vt-radius-lg);background:{{ s.bg }};border:1px solid {{ s.border }};transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1)" style-hover="border-color:var(--vt-charcoal-900)" style-active="transform:translateY(1px)">
+<button type="button" onClick="{{ s.select }}" aria-pressed="{{ s.pressed }}" style="all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:var(--vt-space-2);min-height:112px;padding-block:var(--vt-space-3);padding-inline:var(--vt-space-4);border-radius:var(--vt-radius-lg);background:{{ s.bg }};border:1px solid {{ s.border }};transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1)" style-hover="border-color:var(--vt-charcoal-900)" style-active="transform:translateY(1px)">
 <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
 <span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:{{ s.labelColor }}">{{ s.label }}</span>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ s.icon }}" size="{{ n18 }}" color="{{ s.iconColor }}" hint-size="18px,18px"></x-import>
@@ -62,7 +67,7 @@
 </button>
 </sc-for>
 
-<div style="box-sizing:border-box;display:flex;flex-direction:column;gap:10px;min-height:136px;padding:18px 20px;border-radius:var(--vt-radius-lg);background:var(--vt-bg-inverse);border:1px solid var(--vt-bg-inverse)">
+<div style="box-sizing:border-box;display:flex;flex-direction:column;gap:var(--vt-space-2);min-height:112px;padding-block:var(--vt-space-3);padding-inline:var(--vt-space-4);border-radius:var(--vt-radius-lg);background:var(--vt-bg-inverse);border:1px solid var(--vt-bg-inverse)">
 <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
 <span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-inverse-muted)">{{ tRevenue }}</span>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="banknote" size="{{ n18 }}" color="var(--vt-accent)" hint-size="18px,18px"></x-import>
@@ -71,6 +76,7 @@
 <span style="margin-top:auto;font-size:var(--vt-body-xs);line-height:1.45;color:var(--vt-text-inverse-muted)">{{ tRevenueFoot }}</span>
 </div>
 
+</div>
 </div>
 <div data-ops-tools="1">
 <div data-ops-search="1">

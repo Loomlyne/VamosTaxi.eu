@@ -96,6 +96,11 @@ export async function createCheckoutSession(
       // Checkout Sessions have no PaymentIntent `automatic_payment_methods`
       // field. Dashboard-configured methods + Adaptive Pricing are the gate
       // (D-09/D-10). Do not pass `payment_method_types`.
+      // Do not exclude paypal, amazon_pay, or twint. Express Checkout can
+      // then show Amazon Pay and PayPal. TWINT is not an Express Checkout
+      // wallet — Stripe shows it on the Payment Element for a Switzerland
+      // customer. The charge is already CHF. Card, Link, and Apple Pay stay.
+      // Apple Pay is a wallet, not a type in this list.
       expand: ["payment_intent"],
       metadata: {
         booking_id: input.bookingId,

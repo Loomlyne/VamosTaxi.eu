@@ -12,9 +12,17 @@
 <style>
 [data-kb]{display:grid;grid-template-columns:repeat(5,minmax(17.5rem,1fr));gap:14px;min-width:0;overflow-x:auto;overflow-y:hidden;align-items:start;padding-block-end:4px}
 [data-kb-col]{box-sizing:border-box;width:auto;min-width:0;min-inline-size:17.5rem;padding:12px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);display:flex;flex-direction:column;gap:10px;min-block-size:280px}
-[data-kb-hd]{display:flex;align-items:center;justify-content:space-between;gap:8px}
-[data-kb-sort]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:6px;cursor:pointer;color:inherit;font:inherit}
-[data-kb-count]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);color:var(--vt-text-muted)}
+[data-kb-col][data-open="0"]{min-block-size:0;gap:0}
+[data-kb-col][data-open="0"] [data-kb-well]{display:none}
+[data-kb-hd]{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+[data-kb-toggle]{box-sizing:border-box;display:flex;align-items:center;gap:6px;flex:1 1 auto;min-width:0;min-block-size:40px;margin:0;padding-inline:2px 6px;border:0;border-radius:var(--vt-radius-sm);background:transparent;color:inherit;font:inherit;text-align:start;cursor:pointer}
+[data-kb-toggle] strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--vt-body-sm);font-weight:600}
+[data-kb-sort]{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:flex-end;gap:6px;flex:0 0 auto;min-block-size:40px;min-inline-size:40px;padding-inline:4px;cursor:pointer;color:inherit;font:inherit}
+[data-kb-sort]:focus-visible,[data-kb-toggle]:focus-visible,[data-kb-see]:focus-visible{outline:2px solid var(--vt-charcoal-900);outline-offset:2px}
+[data-kb-count]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);font-variant-numeric:tabular-nums;color:var(--vt-text-muted)}
+[data-kb-well]{display:flex;flex-direction:column;gap:10px;min-width:0}
+[data-kb-see]{box-sizing:border-box;align-items:center;justify-content:center;width:100%;min-block-size:40px;margin:0;padding:8px 12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-bg-page,var(--vt-grey-50));color:var(--vt-text-primary);font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:600;line-height:1.4;text-align:center;text-wrap:pretty;cursor:pointer}
+[data-kb-see]:hover{border-color:var(--vt-charcoal-900)}
 [data-kb-card]{box-sizing:border-box;display:flex;align-items:flex-start;gap:8px;padding:12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-bg-page,var(--vt-grey-50));cursor:pointer;min-width:0;overflow:hidden;transition:box-shadow 160ms cubic-bezier(.2,0,.2,1),border-color 160ms cubic-bezier(.2,0,.2,1)}
 [data-kb-card]:hover{border-color:var(--vt-charcoal-900)}
 [data-kb-card][data-sel="1"]{border-color:var(--vt-charcoal-900)}
@@ -117,6 +125,10 @@
   [data-ov-actions] .vt-btn{min-block-size:36px}
   [data-person-tel]{display:none!important}
 }
+@media (prefers-reduced-motion: no-preference){
+  [data-kb-toggle],[data-kb-see]{transition:transform 150ms cubic-bezier(0.2, 0, 0, 1)}
+  [data-kb-toggle]:active,[data-kb-see]:active{transform:scale(0.96)}
+}
 @media (prefers-reduced-motion: reduce){
   [data-kb-card]{transition:none}
 }
@@ -164,14 +176,18 @@
 <sc-if value="{{ showKanban }}" hint-placeholder-val="{{ true }}">
 <div data-kb="1" data-scroll-native="1">
 <sc-for list="{{ columns }}" as="col" hint-placeholder-count="5">
-<div data-kb-col="1" data-status="{{ col.status }}">
+<div data-kb-col="1" data-status="{{ col.status }}" data-open="{{ col.openAttr }}">
 <div data-kb-hd="1">
-<strong style="font-size:var(--vt-body-sm);font-weight:600">{{ col.label }}</strong>
+<button type="button" data-kb-toggle="1" aria-expanded="{{ col.expanded }}" aria-controls="{{ col.wellId }}" aria-label="{{ col.toggleLabel }}" onClick="{{ col.toggle }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ col.chevron }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+<strong>{{ col.label }}</strong>
+</button>
 <button type="button" data-kb-sort="1" onClick="{{ col.sort }}">
 <span data-kb-count="1">{{ col.count }}</span>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ col.sortIcon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
 </button>
 </div>
+<div data-kb-well="1" id="{{ col.wellId }}">
 <sc-for list="{{ col.cards }}" as="r" hint-placeholder-count="1">
 <div data-kb-card="1" data-id="{{ r.id }}" data-sel="{{ r.sel }}">
 <button type="button" data-kb-body="1" onClick="{{ r.open }}">
@@ -188,6 +204,8 @@
 </div>
 </sc-for>
 <p data-kb-empty="1" style="display:{{ col.emptyShow }}">{{ tColEmpty }}</p>
+<button type="button" data-kb-see="1" style="display:{{ col.seeShow }}" aria-label="{{ col.seeAllLabel }}" onClick="{{ col.seeAll }}">{{ tSeeAll }}</button>
+</div>
 </div>
 </sc-for>
 </div>
@@ -327,6 +345,7 @@
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900}}">
 /* Support board hydrates from GET /api/staff/tickets. No fixture rows. */
 const STATUSES = ['new', 'open', 'replied', 'responded', 'closed'];
+const KB_CAP = 10;
 const SORT_NEWEST = { new: true, open: true, replied: true, responded: true, closed: true };
 const T = {
   en: { title:'Support', subtitle:'Contact messages, as tickets',
@@ -343,7 +362,8 @@ const T = {
     booking:'Booking', bookingPh:'VT-0000', noBooking:'No booking linked', msgs:'Messages', mail:'Email', call:'Call', whatsApp:'WhatsApp',
     phone:'Phone', phonePh:'+41 79 000 00 00', note:'Note', notePh:'Add a detail…',
     searchPh:'Name, email, ref, or message', filter:'Filter', view:'View',
-    expand:'Expand', collapse:'Collapse', saveNote:'Save' },
+    expand:'Expand', collapse:'Collapse', saveNote:'Save',
+    seeAll:'See all', seeAllCol:'See all %s', collapseCol:'Collapse %s', expandCol:'Expand %s' },
   de: { title:'Support', subtitle:'Kontaktnachrichten als Tickets',
     all:'Alle', new:'Neu', open:'Offen', replied:'Beantwortet', responded:'Kundenantwort', closed:'Geschlossen',
     emptyTitle:'Keine Tickets', emptyBody:'Nichts in diesem Filter.', colEmpty:'Keine Tickets',
@@ -358,7 +378,8 @@ const T = {
     booking:'Buchung', bookingPh:'VT-0000', noBooking:'Keine Buchung verknüpft', msgs:'Nachrichten', mail:'E-Mail', call:'Anrufen', whatsApp:'WhatsApp',
     phone:'Telefon', phonePh:'+41 79 000 00 00', note:'Notiz', notePh:'Detail hinzufügen…',
     searchPh:'Name, E-Mail, Ref. oder Nachricht', filter:'Filter', view:'Ansicht',
-    expand:'Aufklappen', collapse:'Zuklappen', saveNote:'Speichern' },
+    expand:'Aufklappen', collapse:'Zuklappen', saveNote:'Speichern',
+    seeAll:'Alle ansehen', seeAllCol:'Alle ansehen: %s', collapseCol:'Zuklappen %s', expandCol:'Aufklappen %s' },
   fr: { title:'Assistance', subtitle:'Messages de contact, en tickets',
     all:'Tous', new:'Nouveau', open:'Ouvert', replied:'Répondu', responded:'Réponse client', closed:'Fermé',
     emptyTitle:'Aucun ticket', emptyBody:'Rien dans ce filtre.', colEmpty:'Aucun ticket',
@@ -373,7 +394,8 @@ const T = {
     booking:'Réservation', bookingPh:'VT-0000', noBooking:'Aucune réservation liée', msgs:'Messages', mail:'E-mail', call:'Appeler', whatsApp:'WhatsApp',
     phone:'Téléphone', phonePh:'+41 79 000 00 00', note:'Note', notePh:'Ajouter un détail…',
     searchPh:'Nom, e-mail, réf. ou message', filter:'Filtrer',
-    expand:'Déplier', collapse:'Replier', saveNote:'Enregistrer', view:'Vue' },
+    expand:'Déplier', collapse:'Replier', saveNote:'Enregistrer', view:'Vue',
+    seeAll:'Voir tout', seeAllCol:'Voir tout : %s', collapseCol:'Replier %s', expandCol:'Déplier %s' },
   ar: { title:'الدعم', subtitle:'رسائل التواصل كتذاكر',
     all:'الكل', new:'جديد', open:'مفتوح', replied:'تم الرد', responded:'رد العميل', closed:'مغلق',
     emptyTitle:'لا تذاكر', emptyBody:'لا شيء في هذا التصفية.', colEmpty:'لا تذاكر',
@@ -388,7 +410,8 @@ const T = {
     booking:'الحجز', bookingPh:'VT-0000', noBooking:'لا حجز مرتبط', msgs:'رسائل', mail:'بريد', call:'اتصال', whatsApp:'واتساب',
     phone:'الهاتف', phonePh:'+41 79 000 00 00', note:'ملاحظة', notePh:'أضف تفصيلاً…',
     searchPh:'الاسم أو البريد أو المرجع أو الرسالة', filter:'تصفية',
-    expand:'توسيع', collapse:'طي', saveNote:'حفظ', view:'عرض' },
+    expand:'توسيع', collapse:'طي', saveNote:'حفظ', view:'عرض',
+    seeAll:'عرض الكل', seeAllCol:'عرض الكل: %s', collapseCol:'طي %s', expandCol:'توسيع %s' },
 };
 function cloneTickets(rows) {
   const src = Array.isArray(rows) ? rows : [];
@@ -485,6 +508,7 @@ class Component extends DCLogic {
     lang: 'en', filter: 'all', view: opsPhone() ? 'table' : 'kanban', query: '', tickets: [],
     openId: null, draft: '', sending: false, filterOpen: false, metaOpen: true, loadError: false, overlayError: false, preview: null,
     sortNewest: Object.assign({}, SORT_NEWEST),
+    colOpen: { new: true, open: true, replied: true, responded: true, closed: true },
   };
   hydrate = () => {
     const api = window.VamosOpsApi;
@@ -518,6 +542,12 @@ class Component extends DCLogic {
   }
   componentDidUpdate() {
     this.paintPdfPages();
+    if (!this._focusTable) return;
+    this._focusTable = false;
+    const table = document.querySelector('[data-vt-support] [data-tbl-scroll]');
+    if (!table) return;
+    table.tabIndex = -1;
+    table.focus();
   }
   componentWillUnmount() {
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
@@ -537,6 +567,17 @@ class Component extends DCLogic {
     const next = Object.assign({}, this.state.sortNewest);
     next[status] = !next[status];
     this.setState({ sortNewest: next });
+  };
+  toggleCol = (status) => {
+    const cur = this.state.colOpen || {};
+    const next = Object.assign({}, cur);
+    next[status] = cur[status] === false;
+    this.setState({ colOpen: next });
+  };
+  seeColumn = (status) => {
+    this._focusTable = true;
+    this.setView('table');
+    this.setFilter(status);
   };
   patchOpen = (key, val) => {
     const id = this.state.openId;
@@ -783,18 +824,29 @@ class Component extends DCLogic {
       let rows = visible.filter((row) => row.status === k);
       if (this.state.sortNewest[k] === false) rows = rows.slice().reverse();
       const cards = rows.map((row) => cardOf(row, this.state.openId, this.openTicket));
+      const open = (this.state.colOpen || {})[k] !== false;
+      const label = labels[k];
       return {
-        status: k, label: labels[k], count: String(cards.length), cards: cards,
+        status: k, label: label, count: String(cards.length), cards: cards.slice(0, KB_CAP),
         emptyShow: cards.length ? 'none' : 'block',
+        seeShow: cards.length > KB_CAP ? 'flex' : 'none',
+        openAttr: open ? '1' : '0',
+        expanded: open ? 'true' : 'false',
+        chevron: open ? 'chevron-down' : 'chevron-up',
+        wellId: 'kb-well-' + k,
+        toggleLabel: String(open ? t.collapseCol : t.expandCol).replace('%s', label),
+        seeAllLabel: String(t.seeAllCol).replace('%s', label),
         sortIcon: this.state.sortNewest[k] === false ? 'arrow-up' : 'arrow-down',
         sort: () => this.toggleSort(k),
+        toggle: () => this.toggleCol(k),
+        seeAll: () => this.seeColumn(k),
       };
     });
     const phoneDigits = open ? digitsOf(open.phone) : '';
     return {
       yes: true, n16: 16, n18: 18, n3: 3, n6: 6, nReply: replyRows(this.state.draft),
       tTitle: t.title, tSubtitle: t.subtitle, tEmptyTitle: t.emptyTitle, tEmptyBody: t.emptyBody,
-      tStatus: t.status, tClose: t.close, tCloseTicket: t.closeTicket, tReopen: t.reopen, tKanban: t.kanban, tTable: t.table, tColEmpty: t.colEmpty,
+      tStatus: t.status, tClose: t.close, tCloseTicket: t.closeTicket, tReopen: t.reopen, tKanban: t.kanban, tTable: t.table, tColEmpty: t.colEmpty, tSeeAll: t.seeAll,
       tReply: t.reply, tReplyPh: t.replyPh, tSend: t.send, tClosedBody: t.closedBody, tLoadError: t.loadError, tSendError: t.sendError,
       tTicket: t.ticket, tChannel: t.channel, tChannelForm: t.channelForm, tOpened: t.opened, tLastAct: t.lastAct,
       tBooking: t.booking, tBookingPh: t.bookingPh, tMsgs: t.msgs, tMail: t.mail, tCall: t.call, tWhatsApp: t.whatsApp,

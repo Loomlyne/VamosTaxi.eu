@@ -34,6 +34,34 @@ until a human reopens it (no auto-reopen).
 **v1.1 must-nots (every phase):** no `POST /api/quote`, no Staff tab, no live
 `vamostaxi.eu` DNS, no `env.production`, no push to `main`, funnel Phases 7–11 frozen.
 
+## v1.2 Payment
+
+v1.2 unfreezes **pay** on the existing Phase 7 Custom Checkout (`ui_mode: "elements"`).
+Stripe TEST on `vamostaxi.site`. Dummy card must capture. Webhook confirms. Thank-you
+waits on the webhook, not `confirm()`. Later live Stripe is wrangler secrets only — not
+a checkout rewrite. Frozen leftovers 16 MX, 17 chauffeur, 19 close-out, 20 security stay
+parked. Quote/class rebuild and fare Publish are not this milestone. Live book UAT pays
+priced class **mahaha** only; other classes stay `CHF 000`.
+
+**v1.2 must-nots (every phase):** keep Custom Checkout (no hosted Checkout, no
+PaymentIntent-only rewrite); no `sk_live_`; no `.eu`; no invented CHF (unpriced class
+stays `CHF 000`); SQL apply and `wrangler secret put` are owner-gated; do not execute
+or complete Phases 16/17/19/20; no `.ics`; charge always CHF; four languages same pass.
+
+## v1.3 Meta measurement
+
+**Current milestone:** v1.3 Meta measurement. Ads only. It does not change quote, pay,
+or confirmation. After Accept, and only after the owner pastes banner, cookies, and
+privacy lines in en/de/fr/ar, allowed customer pages load pixel `1595596972063765`
+and send PageView. A paid booking sends one Purchase from the settle queue, in the
+CHF Stripe charged. v1.2 Payment (Phases 21–25) stays planned, not current — those
+phase contracts are unchanged. Frozen leftovers 16/17/19/20 stay on disk.
+
+**v1.3 must-nots (every phase):** no `sk_live_`; no `vamostaxi.eu`; no invented legal
+copy; no invented CHF; no hashed email or phone; no browser Purchase; no middle
+events (quote seen, checkout started, pay step). Do not change quote, pay, or
+confirmation. Do not execute or complete Phases 16/17/19/20 or 21–25.
+
 ## Phases
 
 **Phase Numbering:**
@@ -64,6 +92,15 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 18: OPS Pricing source of truth** - `/pricing` is the only fare book; public offers follow Publish (completed 2026-09-15)
 - [ ] **Phase 19: V1 production close-out leftover live gates and 10k booking surge** - Leftover 16/17 live close, then a signed 10k-booking surge proof. No `.eu`. No live Stripe. Agent does not Publish.
 - [ ] **Phase 20: Security audit fix-up** - Close 2026-09-19 ZAP + RLS + grant findings. No `.eu`. No live Stripe. Owner applies SQL.
+- [ ] **Phase 21: Charge gate + visible refusal + payable intent** - Unpriced `CHF 000` and expired 24h lock refuse visibly; priced class returns a reusable `client_secret`
+- [ ] **Phase 22: Card confirm + thank-you webhook wait** - TEST `4242…` captures; decline stays unpaid until webhook; thank-you waits on it
+- [ ] **Phase 23: Wallets + Dashboard methods** - Apple Pay, Google Pay (`auto`), Link, TWINT collector on DC pay; Dashboard methods, not a Worker enum
+- [ ] **Phase 24: Dual-payer, pay-link, mail split** - Token recap pay; first charge wins; traveller manage vs payer receipt
+- [ ] **Phase 25: /bookings unpaid + TEST UAT + secret-swap design** - Unpaid row pays the same session; TEST UAT boring; live keys documented not executed
+- [x] **Phase 26: Legal gate** - Pixel and Purchase stay off until owner banner, cookies, and privacy lines exist in en/de/fr/ar; new policy version; flag stays off (completed 2026-09-23)
+- [ ] **Phase 27: Consent record** - Accept logs Meta on; Dismiss logs Meta off; existing banner until a choice, including a pay link
+- [ ] **Phase 28: Pixel PageView** - Pixel `1595596972063765` sends PageView only on allowed customer pages; click ids saved on the unpaid booking
+- [ ] **Phase 29: Webhook Purchase** - One Purchase from the settle queue in the CHF charged; quote, pay, and confirmation unchanged
 
 ## Phase Details
 
@@ -792,12 +829,213 @@ History of 2026-09-13: `.planning/phases/18-ops-pricing-source/archive-2026-09-1
 **Depends on**: live Worker `vamos` (does not block 16/17/19)
 **Requirements**: SEC-01 … SEC-12
 **Success Criteria** (what must be TRUE):
+
   1. dashboard.vamostaxi.site/login sends HSTS, CSP, XFO DENY, HttpOnly `vamos_dash`.
   2. `create_quote_snapshot` and `rls_auto_enable` are not executable by anon/PUBLIC (owner SQL).
   3. Mutating staff/photo APIs refuse empty Origin.
   4. `/.well-known/security.txt` is 200. 404s have no `X-Powered-By`. workers.dev is noindex.
+
 **Plans:** 20-01 headers/cookies · 20-02 CSRF/photos · 20-03 owner SQL · 20-04 MFA/leaked-password owner gates
 **UI hint**: no new screens.
+
+### Phase 21: Charge gate + visible refusal + payable intent
+
+**Goal**: UAT can tell an unpriced `CHF 000` class from a missing `client_secret`. Stripe
+never opens for an unpriced class. A priced live-book class (**mahaha**) returns a
+reusable `client_secret`. Expired 24h lock refuses visibly; pay-link dies with that lock.
+**Depends on**: Phase 7 (Custom Checkout) and Phase 18 (live book). Not 16/17/19/20.
+**Requirements**: PAY-08, PAY-09
+**Success Criteria** (what must be TRUE):
+
+  1. An unpriced class (`CHF 000`) refuses visibly as `pricing_not_live` / `pricingNotLive` (Alert + requote) and never opens Stripe — missing class id is the same refusal, not a bad request.
+  2. An expired 24h lock refuses visibly as `quoteExpired`; a pay-link dies with that lock; resend does not restart the clock.
+  3. A priced live-book class (**mahaha**) returns a reusable Session `client_secret`; intent reuses `checkout_open_payment` + `sessionIsPayable`.
+  4. `email_failed` stays `email_failed` (502); unpriced/expired/`email_failed` are not collapsed into `payCouldNotStart` / `invalid_request`.
+  5. Must-nots: no invented rappen, no Stripe objects for unpriced, keep Custom Checkout, no `sk_live_`, no `.eu`, no fare Publish, leftovers 16/17/19/20 untouched.
+
+**Plans**:
+**Wave 0**
+
+- [x] 21-01-PLAN.md — Charge-gate kernel
+
+**Wave 1** *(blocked on Wave 0 completion)*
+
+- [x] 21-02-PLAN.md — Silent Select-off
+- [x] 21-03-PLAN.md — Intent refuse before Stripe
+- [x] 21-04-PLAN.md — Pay-link clock and lock_expires_at
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 21-05-PLAN.md — Checkout Pay land and lock-zero
+- [x] 21-06-PLAN.md — Guest Requote cancel
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 21-07-PLAN.md — Token sitting lock-zero
+- [x] 21-08-PLAN.md — Client TEST account gate
+
+**UI hint**: yes — refusal Alerts on existing checkout (DC copy, EN/DE/FR/AR). No new layout.
+
+### Phase 22: Card confirm + thank-you webhook wait
+
+**Goal**: Dummy TEST card is the milestone proof. `4242…` captures. Decline stays unpaid
+and visible. Thank-you waits on the Stripe webhook, not client `confirm()`. After a
+pay-link send, the same session still confirms — Pay and continue never no-ops.
+**Depends on**: Phase 21
+**Requirements**: PAY-10, PAY-12
+**Success Criteria** (what must be TRUE):
+
+  1. Traveller pays a locked quote on `vamostaxi.site` in Stripe TEST with card `4242…` and the charge captures.
+  2. Decline `4000…0002` stays unpaid and visible; booking is not confirmed.
+  3. Thank-you / `/confirmation/{ref}` waits on the webhook (poller); `confirm()` does not mark paid; `return_url` points at that wait room and does not settle there.
+  4. `PaymentPanel` confirm uses real fields only — never `updateBillingAddress(null)`. After pay-link send, same session, confirm still bound; silence is a bug.
+  5. `checkout.session.async_payment_succeeded` joins the succeed path (still retrieve Session; still gate `payment_status === paid`). Handler stays short. No `payment_intent.succeeded` as a second confirm path. Must-nots: keep Custom Checkout, no hosted, no PI-only rewrite, no `sk_live_`, no `.eu`.
+
+**Plans**: TBD
+**UI hint**: yes — confirmation wait-room states on existing DC thank-you. Frozen chrome.
+
+### Phase 23: Wallets + Dashboard methods
+
+**Goal**: Paint the methods PROJECT.md listed on the same DC pay screen. Domain
+registration and Dashboard enablement are this phase, not a Worker enum. TWINT is a
+Checkout PaymentElement collector; skip UAT with a written note if TEST is not Swiss —
+never a fake radio.
+**Depends on**: Phase 22
+**Requirements**: PAY-11
+**Success Criteria** (what must be TRUE):
+
+  1. Express Checkout Element offers Apple Pay, Google Pay (`"auto"`, not `"never"`), and Link (`link: "auto"`); PayPal stays `"never"`.
+  2. TWINT mounts as Checkout PaymentElement (wallets off on that element). If TEST Dashboard cannot offer TWINT, UAT is a written skip — no stub radio, no Worker flag.
+  3. Payment method domains are registered for `vamostaxi.site` and `www.vamostaxi.site` in TEST. Apple association file, if needed, is Dashboard bytes, 200, no locale redirect — not invented.
+  4. 3DS TEST `4000 0000 0000 3220` stays in `requires_action` until webhook; Link OTP table is the TEST path.
+  5. Methods come from TEST Dashboard + Adaptive Pricing — never `payment_method_types`. Must-nots: no PayPal, no `.eu` Apple Pay domain, no package bump unless 6.9.0 blocks TWINT, no `sk_live_`.
+
+**Plans**: TBD
+**UI hint**: yes — wallets + TWINT collector on DC `PaymentPanel`. No fake TWINT control.
+
+### Phase 24: Dual-payer, pay-link, mail split
+
+**Goal**: Someone else can pay a locked quote. Token page is the DC pay screen with recap;
+payer cannot edit the trip. First successful charge wins; loser sees the same confirmation.
+Traveller gets confirmation + manage; other payer gets a receipt only.
+**Depends on**: Phase 22 (card captures) and Phase 23 (same methods on the token page)
+**Requirements**: PAY-14, PAY-15, PAY-16, PAY-17
+**Success Criteria** (what must be TRUE):
+
+  1. Email a pay link requires company name + VAT; address optional; payer email required. Self-pay (card/wallets) does not need business details. No invented VAT format. Schema, SQL, and UI move together (owner applies SQL).
+  2. Recipient pays on `/checkout/pay/[token]` recap-only; cannot edit the trip; methods = checkout. TTL = quote lock 24h; resend does not restart (`pay_link_sent_at` first send).
+  3. Token open reuses the unpaid session (never mints a second payable `cs_`). Two browsers: first succeeded settle wins; loser routes to the same `/confirmation/{ref}` (not `paymentWindowClosed`); no second charge.
+  4. Traveller always gets confirmation page + confirmation email + manage link. Other payer gets a receipt only (no manage). No `.ics`.
+  5. Must-nots: no default vehicle label `"business"`, keep Custom Checkout, no `sk_live_`, no `.eu`, no invented CHF, leftovers 16/17/19/20 untouched.
+
+**Plans**: TBD
+**UI hint**: yes — token recap is the DC pay screen; pay-link company name/VAT fields. Address optional.
+
+### Phase 25: /bookings unpaid + TEST UAT + secret-swap design
+
+**Goal**: An unpaid `/bookings` row pays the existing open session, not a new quote. Full
+TEST UAT on `vamostaxi.site` is boring (success, 3DS, decline, expired, unpriced). TEST→live
+is a runbook (secrets + same-mode publishable/webhook), never executed in this milestone.
+**Depends on**: Phases 21–24
+**Requirements**: PAY-13, PAY-18
+**Success Criteria** (what must be TRUE):
+
+  1. An unpaid `/bookings` row pays the same open session (same `PaymentPanel`, same amount, same `cs_`) — not a new quote and not a new PaymentIntent.
+  2. Home abandon does not cancel a row the customer opened from `/bookings` to finish paying.
+  3. Full UAT on `vamostaxi.site`: success (`4242…`), 3DS, decline, expired lock, unpriced `CHF 000` — all visible refusals or waits, never silent.
+  4. Runbook: TEST→live is `wrangler secret put STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` together, publishable var same mode, new live Dashboard webhook + payment method domains; browser uses the server-provided key (not baked `NEXT_PUBLIC_`). No `sk_live_` in git, chat, or this milestone’s Worker. Staging stays `sk_test_` forever. `is_test` rows never capture after cutover.
+  5. Must-nots: mixed `pk_test_` / `sk_live_` keys, fare Publish, `.eu`, live DB wipe, hosted Checkout, PaymentIntent-only rewrite. SQL apply and secret put stay owner-gated.
+
+**Plans**: TBD
+**UI hint**: observation-only — same `PaymentPanel` on `/bookings`; cutover is a runbook. Frozen chrome. Do not skip `25-UI-SPEC.md`.
+
+### Phase 26: Legal gate
+
+**Goal**: The pixel and the Purchase call stay off until the owner pastes the banner,
+cookies, and privacy lines in en, de, fr, and ar. A new consent policy version means
+an old Accept does not turn Meta on. No drafted sentences. The flag stays off.
+**Depends on**: none in v1.3. Does not start Phases 16/17/19/20 or 21–25.
+**Requirements**: META-01, META-02
+**Success Criteria** (what must be TRUE):
+
+  1. While any of banner, cookies, or privacy lines is missing in en, de, fr, or ar, the legal flag is off and neither the pixel nor the Purchase call can run.
+  2. A new consent policy version is required. An Accept stored under the old version, when marketing was stored off, does not turn Meta on.
+  3. This phase writes no banner, cookies, or privacy sentences. The flag stays off.
+  4. Must-nots: no `sk_live_`, no `vamostaxi.eu`, no invented legal copy, no invented CHF, no hashed email or phone, no browser Purchase, no middle events (quote seen, checkout started, pay step). Do not load `fbevents.js`. Do not change quote, pay, or confirmation.
+
+**Plans:** 2/2 plans complete
+
+Plans:
+
+**Wave 0**
+
+- [x] 26-01-PLAN.md — Wave 0 fail-closed flag and the seven source pins
+
+**Wave 1** *(blocked on Wave 0 completion)*
+
+- [x] 26-02-PLAN.md — Empty Meta TBC slots on the banner, cookies page, and privacy page
+
+**Cross-cutting constraints:**
+
+- The measurement flag stays false and is not derived from copy, env, or a pill scan.
+- No legal sentence is placed in a slot, a dictionary, or a test assertion message.
+- CONSENT_POLICY_VERSION stays 2026-09-12.
+
+**UI hint**: no
+
+### Phase 27: Consent record
+
+**Goal**: Accept logs Meta on. Dismiss logs Meta off. The latest `consent_log` row
+wins. The existing Accept/Dismiss banner shows on customer pages until a choice,
+including a pay link. Ops has no banner. A later Dismiss stops future events.
+**Depends on**: Phase 26
+**Requirements**: META-03, META-04, META-05
+**Success Criteria** (what must be TRUE):
+
+  1. Accept writes a `consent_log` row with Meta on. Dismiss writes Meta off. The latest row wins. No new switches.
+  2. The existing Accept/Dismiss banner shows on every customer page until they choose, including a pay link. Ops has no banner. No new layout.
+  3. A later Dismiss stops future PageView and future Purchase. Accepting after payment does not backfill a Purchase.
+  4. The pixel still never loads on a pay link.
+  5. Must-nots: no `sk_live_`, no `vamostaxi.eu`, no invented legal copy, no invented CHF, no hashed email or phone, no browser Purchase, no middle events (quote seen, checkout started, pay step). Do not change quote, pay, or confirmation.
+
+**Plans**: TBD
+**UI hint**: yes — existing Accept/Dismiss banner shows on customer pages until a choice, including a pay link. No new switches. No new layout. Ops has no banner. Pixel still never loads on a pay link.
+
+### Phase 28: Pixel PageView
+
+**Goal**: After Accept and the legal flag, pixel `1595596972063765` sends PageView
+only on public pages with no token, plus signed-in account and bookings. Click ids
+are saved on the unpaid booking. No new screen.
+**Depends on**: Phase 27
+**Requirements**: META-06, META-07, META-08, META-09
+**Success Criteria** (what must be TRUE):
+
+  1. After Accept and META-01, pixel `1595596972063765` sends PageView only on public pages with no token, plus signed-in account and bookings.
+  2. Ops, a pay link, manage-booking, and any URL with a booking reference never contain the script. A person who dismissed does not get a cached page that contains it.
+  3. No advanced matching and no noscript image. The pixel does not load until the owner confirms in Events Manager that automatic matching and automatic button clicks are off.
+  4. `_fbp` and `_fbc` are saved on the unpaid booking after the pixel sets them. Not in Stripe. A paid booking cannot be updated to backfill them.
+  5. Must-nots: no `sk_live_`, no `vamostaxi.eu`, no invented legal copy, no invented CHF, no hashed email or phone, no browser Purchase, no middle events (quote seen, checkout started, pay step). PageView only. Flag stays off until the owner lines are in. Do not change quote, pay, or confirmation.
+
+**Plans**: TBD
+**UI hint**: no new screen. Pixel `1595596972063765`. PageView only.
+
+### Phase 29: Webhook Purchase
+
+**Goal**: One Purchase from the settle queue after a real CHF charge, in the francs
+Stripe charged, with saved `_fbp` and `_fbc` only. Quote, pay, and confirmation
+do not change.
+**Depends on**: Phase 28
+**Requirements**: META-10, META-11, META-12, META-13, META-14
+**Success Criteria** (what must be TRUE):
+
+  1. One Purchase leaves the settle queue after a real CHF charge. Value is the francs charged. `CHF 000` sends nothing.
+  2. The payload is `_fbp` and `_fbc` only, and only if they were saved. If neither was saved, send nothing. No email, phone, name, route, flight, booking reference, IP, or user-agent.
+  3. The URL sent to Meta is `https://vamostaxi.site` with no path. The event id is ours, one per booking, reused if the queue retries. It is not the booking reference.
+  4. A Meta failure does not unpay the booking and does not change the webhook response. A retry does not send a second Purchase. Staging uses a test event code. The token is a wrangler secret. If Graph rejects this payload, stop and ask. Do not widen it.
+  5. Must-nots: no `sk_live_`, no `vamostaxi.eu`, no invented legal copy, no invented CHF, no hashed email or phone, no browser Purchase, no middle events (quote seen, checkout started, pay step). Do not change quote, pay, or confirmation. Do not call Graph from the thank-you page or as a second Purchase.
+
+**Plans**: TBD
+**UI hint**: no. One Purchase from the settle queue. Do not change quote, pay, or confirmation.
 
 ## Progress
 
@@ -805,6 +1043,8 @@ History of 2026-09-13: `.planning/phases/18-ops-pricing-source/archive-2026-09-1
 v1.0: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 → 9 → 10 → 11 → 18 → 19
 v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16 → 17
 Close-out one-by-one: 17 deploy → 17 SQL apply → 17 UAT → 16 ROADMAP tick → discuss 19 surge → 11-12 owner Publish (never agent)
+v1.2 Payment (leftovers 16/17/19/20 frozen): 21 → 22 → 23 → 24 → 25
+v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 27 → 28 → 29
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -828,10 +1068,21 @@ Close-out one-by-one: 17 deploy → 17 SQL apply → 17 UAT → 16 ROADMAP tick 
 | 18. OPS Pricing source of truth | 7/7 | Complete    | 2026-09-15 |
 | 19. V1 production close-out leftover live gates and 10k booking surge | 0/TBD | Not started | - |
 | 20. Security audit fix-up | 0/4 | In progress | - |
+| 21. Charge gate + visible refusal + payable intent | 10/10 | In Progress|  |
+| 22. Card confirm + thank-you webhook wait | 0/TBD | Not started | - |
+| 23. Wallets + Dashboard methods | 0/TBD | Not started | - |
+| 24. Dual-payer, pay-link, mail split | 0/TBD | Not started | - |
+| 25. /bookings unpaid + TEST UAT + secret-swap design | 0/TBD | Not started | - |
+| 26. Legal gate | 2/2 | Complete    | 2026-09-23 |
+| 27. Consent record | 0/TBD | Not started | - |
+| 28. Pixel PageView | 0/TBD | Not started | - |
+| 29. Webhook Purchase | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-08-17*
-*Granularity: fine (11 phases v1 + 6 phases v1.1)*
-*Coverage: 80/80 v1 + 9/9 v1.1 + 4/4 chauffeur desk (OPS-11–14)*
+*Granularity: fine (11 phases v1 + 6 phases v1.1 + 5 phases v1.2 + 4 phases v1.3)*
+*Coverage: 80/80 v1 + 9/9 v1.1 + 4/4 chauffeur desk (OPS-11–14) + 11/11 v1.2 (PAY-08…PAY-18) + 14/14 v1.3 (META-01…META-14)*
 *v1.1 Ops Support added: 2026-09-04*
 *Phase 17 chauffeur desk added: 2026-09-11*
+*v1.2 Payment added: 2026-09-22 (phases 21–25; leftovers 16/17/19/20 unchanged)*
+*v1.3 Meta measurement added: 2026-09-23 (phases 26–29; v1.2 phases 21–25 unchanged)*

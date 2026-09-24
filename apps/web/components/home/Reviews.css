@@ -240,25 +240,6 @@
   box-shadow: var(--vt-ring);
 }
 
-[data-rv-dots] {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-}
-
-[data-rv-dot] {
-  inline-size: 7px;
-  block-size: 7px;
-  border-radius: 999px;
-  background: var(--vt-grey-300);
-  transition: background 200ms var(--vt-ease-standard);
-}
-
-[data-rv-dot][data-on="1"] {
-  background: var(--vt-yellow);
-  outline: 1px solid var(--vt-charcoal-900);
-}
-
 [data-rv-stars] {
   display: flex;
   align-items: center;
@@ -440,7 +421,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   [data-rv-slide],
-  [data-rv-dot],
   [data-rv-arrow] {
     transition: none;
   }

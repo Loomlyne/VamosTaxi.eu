@@ -18,6 +18,7 @@
 
 import { evaluateEligibility } from "./eligibility";
 import {
+  buildCityPriceLine,
   buildExtraLines,
   buildFareLine,
   buildLegSurchargeLines,
@@ -200,6 +201,7 @@ function buildClassLines(
       distanceBands: book.distance_bands,
       zones: book.zones,
       hasExtraStops,
+      fareKind: input.fare_kind,
     });
     raw.push(fare);
 
@@ -222,6 +224,15 @@ function buildClassLines(
     rateVersionId,
   });
   raw.push(...extras);
+
+  // Comment 11: one city price for the booking, not one per leg or per city.
+  const cityLine = buildCityPriceLine({
+    fareKind: input.fare_kind,
+    cityPriceRappen: distanceRate?.city_price_rappen ?? null,
+    distanceRateId: distanceRate?.id ?? null,
+    rateVersionId,
+  });
+  if (cityLine) raw.push(cityLine);
 
   // Number leg-level lines before booking-level so of_line_seq is stable.
   let lines = numberLines(raw);

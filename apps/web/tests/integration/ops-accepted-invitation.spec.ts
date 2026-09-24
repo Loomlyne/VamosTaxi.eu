@@ -37,6 +37,9 @@ test.describe("accepted staff invitations @ops-accepted-invite", () => {
   test("the live dashboard login claims before redirecting and exposes a real passkey ceremony", () => {
     expect(claimRoute).toMatch(/supabase\.rpc\("staff_claim_invite"\)/);
     expect(claimRoute).toMatch(/supabase\.auth\.refreshSession\(\)/);
+    expect(claimRoute).toContain("authSetCookieHeader");
+    expect(claimRoute).toContain('headers.append("Set-Cookie"');
+    expect(claimRoute).toContain("createServerSupabaseClient(request, { cookies: setCookies })");
     expect(claimRouteReexport).toMatch(/export\s+\{\s*POST\s*\}/);
     expect(authForm).toContain("/api/staff/claim-invite");
     expect(authForm).toContain("navigator.credentials.get");

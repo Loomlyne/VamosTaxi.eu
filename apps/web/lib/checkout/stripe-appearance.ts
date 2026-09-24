@@ -46,5 +46,14 @@ export const VAMOS_STRIPE_APPEARANCE: Appearance = {
       boxShadow: "none",
       backgroundColor: "#F6F6F6",
     },
+    // Card-method surface. variables.borderRadius stays 999px so inputs match
+    // --vt-radius-field. The accordion inherits that and paints a stadium.
+    // 16px is --vt-radius-lg, same as checkout cards. The iframe cannot resolve --vt-*.
+    ".AccordionItem": {
+      borderRadius: "16px",
+    },
+    ".AccordionItem--selected": {
+      borderRadius: "16px",
+    },
   },
 };

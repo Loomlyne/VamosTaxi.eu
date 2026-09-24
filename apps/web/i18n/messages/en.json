@@ -463,6 +463,7 @@
     "quoteAlreadyBooked": "This quote already has a booking.",
     "paymentWindowClosed": "The payment window closed. Get a new quote.",
     "payCouldNotStart": "Payment did not start. Try Pay and continue again.",
+    "emailFailed": "The pay link was not sent. The booking is saved. Send the link again.",
     "completeCard": "Enter the card number, expiry and CVC.",
     "requote": "Get a new quote",
     "freeCancelHours": "Cancel free of charge up to {hours} hours before pickup.",
@@ -481,7 +482,7 @@
     "cardCvc": "CVC",
     "cardCountry": "Country",
     "applePay": "Apple Pay",
-    "payWithApplePay": "Pay with Apple Pay",
+    "payWithExpress": "Express checkout",
     "payWithLink": "Pay with Link",
     "payWithCard": "Pay with Card",
     "stripeLink": "Link",
@@ -2458,6 +2459,7 @@
     "line": {
       "transfer": "Transfer, {vehicleClass}",
       "fixed_route": "Fixed route",
+      "city_price": "City price",
       "coupon": "Coupon {code}",
       "round_trip_discount": "Round-trip discount, {percent} %",
       "total": "Total"

@@ -76,6 +76,7 @@ function deps(p: QuoteLockPayload, patch: Partial<CheckoutIntentDeps> = {}): Che
       raw: "raw-token",
       hash: new Uint8Array(32),
     }),
+    issueManageToken: async () => undefined,
     manageLinkMaxAgeSeconds: 1800,
     createCheckoutSession: async () => {
       order.push("stripe");
@@ -145,9 +146,18 @@ describe("runCheckoutIntent", () => {
   it("returns 409 quote_expired", async () => {
     const p = payload({ exp: "2026-09-05T11:00:00.000Z" });
     const body = await bodyFor(p);
-    const res = await runCheckoutIntent(body, deps(p));
+    const create = vi.fn(async () => {
+      throw new Error("should not create");
+    });
+    const res = await runCheckoutIntent(
+      body,
+      deps(p, {
+        createCheckoutSession: create as unknown as CheckoutIntentDeps["createCheckoutSession"],
+      }),
+    );
     expect(res.status).toBe(409);
     expect(((await res.json()) as { code: string }).code).toBe("quote_expired");
+    expect(create).not.toHaveBeenCalled();
   });
 
   it("returns 409 pricing_not_live", async () => {
@@ -165,6 +175,79 @@ describe("runCheckoutIntent", () => {
     );
     expect(res.status).toBe(409);
     expect(((await res.json()) as { code: string }).code).toBe("pricing_not_live");
+  });
+
+  it("returns 503 with no code for the UAE prefix and does not retrieve or create", async () => {
+    const p = payload();
+    const body = await bodyFor(p);
+    const create = vi.fn(async () => {
+      throw new Error("should not create");
+    });
+    const retrieve = vi.fn(async () => {
+      throw new Error("should not retrieve");
+    });
+    const expire = vi.fn(async () => {
+      throw new Error("should not expire");
+    });
+    const res = await runCheckoutIntent(
+      body,
+      deps(p, {
+        publishableKey: "pk_test_51U65pW",
+        createCheckoutSession: create as unknown as CheckoutIntentDeps["createCheckoutSession"],
+        retrieveCheckoutSession: retrieve as unknown as CheckoutIntentDeps["retrieveCheckoutSession"],
+        expireCheckoutSession: expire as unknown as CheckoutIntentDeps["expireCheckoutSession"],
+      }),
+    );
+    expect(res.status).toBe(503);
+    expect(res.headers.get("cache-control")).toBe("private, no-store");
+    expect(await res.json()).toEqual({ ok: false });
+    expect(create).not.toHaveBeenCalled();
+    expect(retrieve).not.toHaveBeenCalled();
+    expect(expire).not.toHaveBeenCalled();
+  });
+
+  it("returns 409 pricing_not_live for the UAE prefix when pricing is not live", async () => {
+    const p = payload();
+    const body = await bodyFor(p);
+    const create = vi.fn(async () => {
+      throw new Error("should not create");
+    });
+    const res = await runCheckoutIntent(
+      body,
+      deps(p, {
+        publishableKey: "pk_test_51U65pW",
+        createCheckoutSession: create as unknown as CheckoutIntentDeps["createCheckoutSession"],
+        reprice: () => ({
+          pricing_live: false,
+          engine_version: p.engine_version,
+          classes: [{ slug: "economy", total_rappen: null, eligible: true }],
+        }),
+      }),
+    );
+    expect(res.status).toBe(409);
+    const json = (await res.json()) as { code: string };
+    expect(json.code).toBe("pricing_not_live");
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("returns pricing_not_live for an empty vehicle class id", async () => {
+    const p = payload();
+    const body = await bodyFor(p);
+    const create = vi.fn(async () => {
+      throw new Error("should not create");
+    });
+    const res = await runCheckoutIntent(
+      body,
+      deps(p, {
+        vehicleClassId: "",
+        createCheckoutSession: create as unknown as CheckoutIntentDeps["createCheckoutSession"],
+      }),
+    );
+    expect(res.status).toBe(409);
+    const json = (await res.json()) as { code: string };
+    expect(json.code).toBe("pricing_not_live");
+    expect(json.code).not.toBe("invalid_request");
+    expect(create).not.toHaveBeenCalled();
   });
 
   it("returns 409 price_changed", async () => {
@@ -444,6 +527,7 @@ describe("runCheckoutIntent", () => {
     expect(json.reference).toBe("VT-26-0708");
     expect(json.client_secret).toBe("cs_test_stored_secret");
     expect(json.checkout_session_id).toBe("cs_test_stored");
+    expect(res.headers.get("set-cookie")).toContain("vt_manage=raw-token");
   });
 
   it("reuses the unpaid session when createBooking raises 23001", async () => {

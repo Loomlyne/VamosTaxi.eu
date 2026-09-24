@@ -46,6 +46,8 @@ function rateRow(
     base_fare_rappen: partial.base_fare_rappen ?? null,
     per_km_rappen: partial.per_km_rappen ?? null,
     min_fare_rappen: partial.min_fare_rappen ?? null,
+    airport_start_rappen: partial.airport_start_rappen ?? null,
+    city_price_rappen: partial.city_price_rappen ?? null,
     max_pax: partial.max_pax ?? 3,
     available: partial.available ?? true,
   };
@@ -284,6 +286,7 @@ function input(partial: Partial<QuoteInput> = {}): QuoteInput {
     ],
     extras: partial.extras ?? {},
     coupon: partial.coupon ?? null,
+    fare_kind: partial.fare_kind,
   };
 }
 
@@ -609,3 +612,101 @@ describe("priceQuote — return + coupon reconstruction", () => {
     expect(eco.total_rappen).toBe(totals.total_rappen);
   });
 });
+
+describe("Comment 11 formula", () => {
+  function book(extra: Partial<DistanceRateRow> = {}): RateBook {
+    return {
+      rate_version: { id: 1, slug: "comment-11" },
+      classes: [economy],
+      distance_rates: [
+        rateRow({
+          vehicle_class_id: economy.id,
+          id: 11,
+          base_fare_rappen: 1_000,
+          per_km_rappen: 200,
+          airport_start_rappen: 2_500,
+          city_price_rappen: 700,
+          ...extra,
+        }),
+      ],
+      distance_bands: [],
+      fixed_routes: [],
+      region_premiums: [],
+      surcharges: [
+        surcharge({
+          code: "child_seat",
+          kind: "amount",
+          amount_rappen: 500,
+          quantity_source: "child_seats",
+          predicate: { kind: "quantity" },
+          id: 14,
+        }),
+      ],
+      zones: [zoneA, zoneB],
+    };
+  }
+
+  function fareOf(kind: QuoteInput["fare_kind"]) {
+    const result = priceQuote(
+      book(),
+      settingsRows(),
+      input({
+        fare_kind: kind,
+        extras: { child_seats: 1 },
+      }),
+    );
+    const eco = result.classes.find((c) => c.slug === "economy");
+    if (!eco) throw new Error("missing economy");
+    return eco;
+  }
+
+  it("one way is start + km + the selected addon, with no city price", () => {
+    const eco = fareOf("one_way");
+    const fare = eco.lines.find((l) => l.code === "distance_fare");
+    const seat = eco.lines.find((l) => l.code === "child_seat");
+    expect(fare?.amount_rappen).toBe(1_000 + 2_000);
+    expect(seat?.amount_rappen).toBe(500);
+    expect(eco.lines.filter((l) => l.code === "city_price")).toHaveLength(0);
+    expect(eco.total_rappen).toBe(1_000 + 2_000 + 500);
+  });
+
+  it("airport pickup swaps only the start and keeps the same km and addon", () => {
+    const eco = fareOf("airport_pickup");
+    const fare = eco.lines.find((l) => l.code === "distance_fare");
+    expect(fare?.amount_rappen).toBe(2_500 + 2_000);
+    expect(eco.lines.filter((l) => l.code === "city_price")).toHaveLength(0);
+    expect(eco.total_rappen).toBe(2_500 + 2_000 + 500);
+  });
+
+  it("city to city adds exactly one city price on top of one way", () => {
+    const eco = fareOf("city_to_city");
+    const cities = eco.lines.filter((l) => l.code === "city_price");
+    expect(cities).toHaveLength(1);
+    expect(cities[0]?.leg_seq).toBeNull();
+    expect(cities[0]?.amount_rappen).toBe(700);
+    expect(eco.total_rappen).toBe(1_000 + 2_000 + 500 + 700);
+  });
+
+  it("does not invent a city price or an airport start when staff left them empty", () => {
+    const empty = priceQuote(
+      book({ airport_start_rappen: null, city_price_rappen: null }),
+      settingsRows(),
+      input({ fare_kind: "city_to_city" }),
+    );
+    const eco = empty.classes.find((c) => c.slug === "economy");
+    const city = eco?.lines.find((l) => l.code === "city_price");
+    expect(city?.amount_rappen).toBeNull();
+    expect(eco?.total_rappen).toBeNull();
+    expect(empty.partially_priced_class_slugs).toContain("economy");
+
+    const airport = priceQuote(
+      book({ airport_start_rappen: null }),
+      settingsRows(),
+      input({ fare_kind: "airport_pickup" }),
+    );
+    const row = airport.classes.find((c) => c.slug === "economy");
+    expect(row?.lines.find((l) => l.code === "distance_fare")?.amount_rappen).toBeNull();
+    expect(row?.total_rappen).toBeNull();
+  });
+});
+

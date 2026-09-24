@@ -98,6 +98,82 @@ describe("liveBookBoard", () => {
       "Van",
     );
   });
+
+  it("paints a live fixed-route class the idle distance board would drop, with no fare", () => {
+    const van = classRow({
+      slug: "mercedes-benz-v-class",
+      name: "Mercedes-Benz V-Class",
+      sort_order: 0,
+      passenger_capacity: 7,
+      luggage_capacity: 6,
+    });
+    const sclass = classRow({
+      slug: "mercedes-s-class-special",
+      name: "Mercedes S-Class Special",
+      sort_order: 0,
+      passenger_capacity: 3,
+      luggage_capacity: 3,
+    });
+    const economy = classRow({
+      slug: "economy",
+      name: "Economy",
+      sort_order: 1,
+      passenger_capacity: 4,
+      luggage_capacity: 3,
+      photo_path: "classes/economy.jpg",
+    });
+    const leftover = classRow({ slug: "mahaha", name: "mahaha", sort_order: 0 });
+    const fixed: FixedRouteRow = {
+      id: 9,
+      rate_version_id: 1,
+      origin_zone_id: "z-a",
+      dest_zone_id: "z-b",
+      vehicle_class_id: economy.id,
+      price_rappen: 25900,
+      live: true,
+      kind: "place",
+    };
+    const board = liveBookBoard(
+      book({
+        classes: [leftover, economy, sclass, van],
+        distance_rates: [
+          rateRow({ vehicle_class_id: van.id, max_pax: 7 }),
+          rateRow({ vehicle_class_id: sclass.id, max_pax: 3 }),
+        ],
+        fixed_routes: [fixed],
+      }),
+    );
+    expect(board.map((c) => c.slug)).toEqual([
+      "mercedes-benz-v-class",
+      "mercedes-s-class-special",
+      "economy",
+    ]);
+    expect(board.find((c) => c.slug === "economy")?.name).toBe("Economy");
+    expect(board.find((c) => c.slug === "economy")?.total_rappen).toBeNull();
+    expect(board.map((c) => c.slug)).not.toContain("mahaha");
+  });
+
+  it("does not revive a class whose fixed routes are all dark", () => {
+    const economy = classRow({ slug: "economy", sort_order: 1 });
+    const dark: FixedRouteRow = {
+      id: 1,
+      rate_version_id: 1,
+      origin_zone_id: "z-a",
+      dest_zone_id: "z-b",
+      vehicle_class_id: economy.id,
+      price_rappen: 10000,
+      live: false,
+      kind: "place",
+    };
+    const board = liveBookBoard(
+      book({
+        classes: [economy],
+        distance_rates: [],
+        fixed_routes: [dark],
+      }),
+    );
+    expect(board).toEqual([]);
+  });
 });
 
 describe("publicCatalogRoutes", () => {

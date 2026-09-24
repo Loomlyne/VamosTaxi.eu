@@ -16,6 +16,7 @@ import type { PriceLine } from "@/components/transfer";
 import type { CurrencyCode } from "@/lib/currency";
 import { useCurrency } from "@/lib/currency-store";
 import { useBookingDraft } from "@/lib/booking-draft";
+import { classIsSelectable } from "@/lib/checkout/charge-gate";
 import { chfRappenToDisplay, formatChfRappen } from "@/lib/fx/format";
 import { useFx } from "@/lib/fx/use-fx";
 import type { ClassBoardEntry, VehicleClassSlug } from "@/lib/pricing/types";
@@ -467,16 +468,14 @@ export function BookingBoard() {
       {boardRefusal}
       {(quote ? publicFleet(quote.classes) : idleClasses).map((entry) => {
             const eligible = !!quote && entry.eligible;
+            const displayed = quote
+              ? publicRappen(quote.pricing_live, entry.total_rappen)
+              : null;
+            const selectable = eligible && classIsSelectable(displayed);
             const price = !quote
               ? keep(formatChfRappen(null, currency, fxRates))
               : eligible
-              ? keep(
-                  formatChfRappen(
-                    publicRappen(quote.pricing_live, entry.total_rappen),
-                    currency,
-                    fxRates,
-                  ),
-                )
+              ? keep(formatChfRappen(displayed, currency, fxRates))
               : ineligiblePrice(entry, label);
             return (
               <VehicleCard
@@ -487,11 +486,11 @@ export function BookingBoard() {
                 passengers={entry.effective_max_pax}
                 luggage={entry.max_bags}
                 badge={entry.fixed_route ? label("quote.class.fixed_route_badge") : undefined}
-                disabled={!eligible}
+                disabled={!selectable}
                 loading={loading}
-                selected={selected === entry.slug}
+                selected={selectable && selected === entry.slug}
                 onSelect={() => {
-                  if (!eligible) return;
+                  if (!selectable) return;
                   setSelected(entry.slug);
                   setMovedTo(null);
                 }}
@@ -500,11 +499,6 @@ export function BookingBoard() {
           })}
     </div>
   );
-
-  const pricingNote =
-    selectedEntry && selectedEntry.total_rappen == null
-      ? label(REFUSAL_BINDINGS.pricing_not_live.i18n_key)
-      : undefined;
 
   const price = (
     <div data-bc-price-stack="">
@@ -537,10 +531,9 @@ export function BookingBoard() {
             }
             totalLabel={label("price.line.total")}
             note={
-              pricingNote ??
-              (currency !== "CHF" && fxStatus === "down"
+              currency !== "CHF" && fxStatus === "down"
                 ? label("checkout.fxUnavailable")
-                : undefined)
+                : undefined
             }
           />
           {quote.expires_at ? <Countdown remainingS={remainingS} /> : null}

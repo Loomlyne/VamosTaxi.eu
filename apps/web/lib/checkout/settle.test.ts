@@ -172,6 +172,19 @@ describe("handleStripeMessageWithDeps", () => {
     expect(d.settlePayment).not.toHaveBeenCalled();
   });
 
+  it("acks capture_gate_failed when the gate throws and does not settle", async () => {
+    const d = deps({
+      loadCaptureGate: vi.fn(async () => {
+        throw Object.assign(new Error("permission denied for table bookings"), { code: "42501" });
+      }),
+    });
+    const result = await handleStripeMessageWithDeps(message(), d);
+    expect(result).toEqual({ ack: true });
+    expect(d.settlePayment).not.toHaveBeenCalled();
+    expect(d.deliverConfirmation).not.toHaveBeenCalled();
+    expect(d.eventSettle).toHaveBeenCalledWith("evt_1", "capture_gate_failed");
+  });
+
   it("acks without capture when bookings.is_test (D-33)", async () => {
     const d = deps({
       loadCaptureGate: vi.fn(async (): Promise<CaptureGate> => ({ capture: false, reason: "is_test" })),

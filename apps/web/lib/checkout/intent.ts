@@ -9,12 +9,14 @@ import type Stripe from "stripe";
 import { checkIntentAgainstLock, type IntentBody, type IntentRecompute } from "../quote/intent";
 import type { QuoteLockPayload } from "../quote/lock";
 import type { QuoteErrorCode } from "../quote/errors";
+import { refusalForMissingClassId, stripeAccountIsLegacyUaeTest } from "./charge-gate";
 import { refuse, type CheckoutRefusalCode } from "./errors";
 import type { CheckoutIntentRequest } from "./intent-schema";
 import { extraFaresOn, extraRappenOutsideLock, lockHasExtra, type CheckoutExtraJson } from "./extras-catalog";
 import { checkoutLegsFromLock, snapshotFromLock } from "./lock-to-rpc";
 import { manageTokenCookie } from "./manage-token";
 import { CHARGE_CURRENCY } from "./currency";
+import { stripeCheckoutReturnUrl } from "./return-url";
 import { checkoutPaymentIntentId, sessionIsPayable } from "./stripe";
 import { CH_VAT_RATE_BPS, payableWithVatRappen } from "./vat";
 
@@ -32,6 +34,12 @@ export type CheckoutIntentDeps = {
   postgresNowIso: string;
   reprice: (payload: QuoteLockPayload) => IntentRecompute;
   mintManageToken: () => Promise<{ raw: string; hash: Uint8Array }>;
+  /** Stores the minted hash on an existing booking. Required on reuse, where createBooking does not run. */
+  issueManageToken: (args: {
+    bookingId: string;
+    hash: Uint8Array;
+    expiresAt: Date;
+  }) => Promise<void>;
   manageLinkMaxAgeSeconds: number;
   createCheckoutSession: (input: {
     chargedRappen: number;
@@ -157,6 +165,16 @@ async function vatRateBpsFromFlags(deps: CheckoutIntentDeps): Promise<number> {
   return CH_VAT_RATE_BPS;
 }
 
+function legacyUaeAccountStop(): Response {
+  return new Response(JSON.stringify({ ok: false }), {
+    status: 503,
+    headers: {
+      "content-type": "application/json",
+      "cache-control": "private, no-store",
+    },
+  });
+}
+
 function okIntentResponse(
   row: { reference: string; booking_id: string },
   payable: Stripe.Checkout.Session,
@@ -241,10 +259,13 @@ export async function runCheckoutIntent(
   const vatRateBps = await vatRateBpsFromFlags(deps);
   const chargedRappen = payableWithVatRappen(netRappen + extraAdd, vatRateBps);
   if (!deps.vehicleClassId) {
-    return refuse("invalid_request");
+    return refuse(refusalForMissingClassId());
   }
   if (!deps.snapshotPolicy) {
     return refuse("invalid_request");
+  }
+  if (stripeAccountIsLegacyUaeTest(deps.publishableKey)) {
+    return legacyUaeAccountStop();
   }
 
   const token = await deps.mintManageToken();
@@ -257,7 +278,20 @@ export async function runCheckoutIntent(
   const existingOpen = await deps.loadOpenPayment(body.quote_id);
   const reused = await payableFromOpen(existingOpen, deps, chargedRappen);
   if (reused) {
-    return okIntentResponse(reused.row, reused.payable, deps, chargedRappen, expiresAt, null, vatRateBps);
+    await deps.issueManageToken({
+      bookingId: reused.row.booking_id,
+      hash: token.hash,
+      expiresAt: manageExpiresAt,
+    });
+    return okIntentResponse(
+      reused.row,
+      reused.payable,
+      deps,
+      chargedRappen,
+      expiresAt,
+      manageTokenCookie(token.raw, deps.manageLinkMaxAgeSeconds),
+      vatRateBps,
+    );
   }
 
   const stripeIdempotencyKey = existingOpen
@@ -272,7 +306,7 @@ export async function runCheckoutIntent(
     locale: body.locale,
     idempotencyKey: stripeIdempotencyKey,
     expiresAt,
-    returnUrl: deps.returnUrl,
+    returnUrl: stripeCheckoutReturnUrl(new URL(deps.returnUrl).origin, body.locale),
     productName: "Airport transfer",
   });
 
@@ -287,7 +321,7 @@ export async function runCheckoutIntent(
       locale: body.locale,
       idempotencyKey: `${body.idempotency_key}:open`,
       expiresAt,
-      returnUrl: deps.returnUrl,
+      returnUrl: stripeCheckoutReturnUrl(new URL(deps.returnUrl).origin, body.locale),
       productName: "Airport transfer",
     });
     session = await sessionWithSecret(retry, deps.retrieveCheckoutSession);
@@ -333,7 +367,20 @@ export async function runCheckoutIntent(
         if (reused.payable.id !== session.id) {
           await deps.expireCheckoutSession(session.id).catch(() => undefined);
         }
-        return okIntentResponse(reused.row, reused.payable, deps, chargedRappen, expiresAt, null, vatRateBps);
+        await deps.issueManageToken({
+          bookingId: reused.row.booking_id,
+          hash: token.hash,
+          expiresAt: manageExpiresAt,
+        });
+        return okIntentResponse(
+          reused.row,
+          reused.payable,
+          deps,
+          chargedRappen,
+          expiresAt,
+          manageTokenCookie(token.raw, deps.manageLinkMaxAgeSeconds),
+          vatRateBps,
+        );
       }
       try {
         if (existing && existing.stripe_checkout_session_id !== session.id) {
@@ -347,7 +394,20 @@ export async function runCheckoutIntent(
           stripeCheckoutSessionId: session.id,
           chargedRappen,
         });
-        return okIntentResponse(row, session, deps, chargedRappen, expiresAt, null, vatRateBps);
+        await deps.issueManageToken({
+          bookingId: row.booking_id,
+          hash: token.hash,
+          expiresAt: manageExpiresAt,
+        });
+        return okIntentResponse(
+          row,
+          session,
+          deps,
+          chargedRappen,
+          expiresAt,
+          manageTokenCookie(token.raw, deps.manageLinkMaxAgeSeconds),
+          vatRateBps,
+        );
       } catch (attachErr) {
         await deps.expireCheckoutSession(session.id).catch(() => undefined);
         const attachState = sqlState(attachErr);

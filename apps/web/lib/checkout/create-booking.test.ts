@@ -72,6 +72,7 @@ function deps(p: QuoteLockPayload, rec: Recorder, patch: Partial<CheckoutIntentD
       raw: "raw-token",
       hash: new Uint8Array(32),
     }),
+    issueManageToken: async () => undefined,
     manageLinkMaxAgeSeconds: 1800,
     createCheckoutSession: async () => {
       rec.calls.push("stripe:create");

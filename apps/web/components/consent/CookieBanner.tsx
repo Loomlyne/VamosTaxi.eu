@@ -11,6 +11,7 @@ import { routing, type Locale } from "@/i18n/routing";
 import { Button } from "@/components/core";
 import { Alert } from "@/components/feedback";
 import { TurnstileWidget } from "@/components/forms/TurnstileWidget";
+import { PendingSlot } from "@/components/legal";
 
 const { Link } = createNavigation(routing);
 
@@ -175,6 +176,9 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
       <div className="vt-ck-sheet" data-ck-sheet="1">
         <p className="vt-ck-kicker">{tCommon("cookies")}</p>
         <h2 className="vt-ck-title">{t("necessary-cookies-only")}</h2>
+        <div className="vt-ck-meta" data-meta-slot="banner">
+          <PendingSlot label="Meta banner line" />
+        </div>
         <p className="vt-ck-body">
           {t("banner-body")}{" "}
           <Link href="/cookies" className="vt-ck-link">

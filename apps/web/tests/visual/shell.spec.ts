@@ -444,7 +444,7 @@ test.describe("SiteHeader signed-in @component", () => {
     await page.goto(portUrl);
     await page.evaluate(() => document.documentElement.setAttribute("dir", "rtl"));
     await waitForMockReady(page);
-    const menu = page.locator("#root [data-hd-narrow] [data-hd-menu]");
+    const menu = page.locator("#root #vt-hd-sheet");
     await expect(menu).toBeVisible();
     const box = await menu.boundingBox();
     expect(box).toBeTruthy();

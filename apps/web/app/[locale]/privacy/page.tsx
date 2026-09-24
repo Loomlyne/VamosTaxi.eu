@@ -356,6 +356,9 @@ export default async function PrivacyPage({
           {tCommon("cookies-consent")}
         </h2>
         <p>{t("strictly-necessary-cookies-keep-a-booking-workin")}</p>
+        <div className="vt-legal-blank" data-meta-slot="privacy">
+          <PendingSlot label="Meta privacy line" />
+        </div>
         <p>
           <Link href="/cookies">{t("read-the-cookie-policy")}</Link>
           {tCommon("or")}{" "}

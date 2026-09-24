@@ -5,7 +5,7 @@ import { createNavigation } from "next-intl/navigation";
 import { useTranslations } from "next-intl";
 import { Alert } from "@/components/feedback/Alert";
 import { Badge, Button, Card, Icon } from "@/components/core";
-import { Counter, Input, Textarea, WhenPicker, TimePicker } from "@/components/forms";
+import { Counter, Input, Select, Textarea, WhenPicker, TimePicker } from "@/components/forms";
 import { StepIndicator } from "@/components/navigation/StepIndicator";
 import { Tabs } from "@/components/navigation/Tabs";
 import { PriceSummary, RouteSummary, type RouteMetaItem } from "@/components/transfer";
@@ -18,6 +18,7 @@ import {
 import { PlaceCombo, type PlaceRetrieve } from "@/components/forms/PlaceCombo";
 import { e164Phone, isCheckoutEmail } from "@/lib/checkout/contact-validate";
 import { shouldPersistUnpaidBooking } from "@/lib/checkout/booking-lifecycle";
+import { classIsSelectable } from "@/lib/checkout/charge-gate";
 import { readDraft, useBookingDraft } from "@/lib/booking-draft";
 import {
   bouncePath,
@@ -25,6 +26,7 @@ import {
   checkoutWindowHours,
   hasQuoteLock,
   localePath,
+  lockExpired,
   type CheckoutStep,
 } from "@/lib/checkout/steps";
 import {
@@ -57,6 +59,8 @@ import {
 } from "@/lib/checkout/extras-catalog";
 import { CH_VAT_RATE_BPS, payableWithVatRappen, vatOnTopRappen } from "@/lib/checkout/vat";
 import { decodeClientSecret } from "@/lib/checkout/client-secret";
+import { checkoutTraveler } from "@/lib/checkout/checkout-traveler";
+import { readCheckoutSession, writeCheckoutSession } from "@/lib/checkout/checkout-session-store";
 import { chfRappenToDisplay } from "@/lib/fx/format";
 import { useFx } from "@/lib/fx/use-fx";
 import { useVamosLocale } from "@/lib/locale-shim";
@@ -82,6 +86,7 @@ const REFUSAL_KEYS: Record<string, string> = {
   quote_already_booked: "quoteAlreadyBooked",
   payment_window_closed: "paymentWindowClosed",
   invalid_request: "payCouldNotStart",
+  email_failed: "emailFailed",
 };
 
 function vehicleLabel(id: string, t: (key: string) => string): string {
@@ -248,6 +253,13 @@ function asClassSlug(raw: string): string {
   return CLASS_SLUG.test(s) ? s : "";
 }
 
+function fareKindOrOneWay(value: unknown): "one_way" | "airport_pickup" | "city_to_city" {
+  if (value === "one_way" || value === "one-way") return "one_way";
+  if (value === "airport_pickup" || value === "airport-pickup") return "airport_pickup";
+  if (value === "city_to_city" || value === "city-to-city") return "city_to_city";
+  return "one_way";
+}
+
 export function CheckoutClient({ step }: CheckoutClientProps) {
   const { locale, freeCancelHours, checkoutWindowMinutes, publishableKey } =
     useCheckoutSettings();
@@ -309,6 +321,13 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const [wasRappen, setWasRappen] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [refusal, setRefusal] = useState<string | null>(null);
+  const [payError, setPayError] = useState<string | null>(null);
+  useEffect(() => {
+    const pay = new URLSearchParams(window.location.search).get("pay");
+    if (pay === "unpaid" || pay === "failed") setRefusal("payCouldNotStart");
+  }, []);
+  const [quoteLockZero, setQuoteLockZero] = useState(false);
+  const quoteLockZeroRef = useRef(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [clientSecretHex, setClientSecretHex] = useState<string | undefined>();
   const clientSecretRef = useRef<string | null>(null);
@@ -390,7 +409,21 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         };
         setSignedIn(true);
         setAccountContact(next);
-        setContact(next);
+        setContact((current) => {
+          const saved = readVamosTrip()?.contact;
+          const base =
+            current.firstName.trim() || current.email.trim()
+              ? current
+              : saved
+                ? { ...saved, mobile: e164Phone(saved.mobile), email: saved.email.trim() }
+                : current;
+          return {
+            firstName: base.firstName.trim() || next.firstName,
+            lastName: base.lastName.trim() || next.lastName,
+            email: base.email.trim() || next.email,
+            mobile: e164Phone(base.mobile).length >= 10 ? e164Phone(base.mobile) : next.mobile,
+          };
+        });
         setPayerEmail((email) => email || next.email);
         setGuest(false);
       })
@@ -403,7 +436,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   useEffect(() => {
     const trip = readVamosTrip();
     const bounce = bouncePath(step, trip);
-    if (bounce) {
+    const expiredPayLand = step === "payment" && lockExpired(trip);
+    if (bounce && !expiredPayLand) {
       router.replace(bounce);
       return;
     }
@@ -486,6 +520,16 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
             ? crypto.randomUUID()
             : stored.idempotencyKey,
     });
+    if (step === "payment" && incomingQuote) {
+      const stored = readCheckoutSession(incomingQuote);
+      if (stored && !clientSecretRef.current) {
+        clientSecretRef.current = stored.clientSecret;
+        setClientSecret(stored.clientSecret);
+        setClientSecretHex(stored.clientSecretHex);
+        if (stored.publishableKey) setPublishable(stored.publishableKey);
+        if (stored.reference) setReference(stored.reference);
+      }
+    }
     setGate("ok");
   }, [step, router, writeDraft]);
 
@@ -517,33 +561,82 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   }, [draft.passengers, draft.luggage, vehicle, tripSnap, writeDraft]);
 
   useEffect(() => {
-    if (step !== "payment" || gate !== "ok" || clientSecret) return;
-    if (!draft.idempotencyKey) return;
-    if (
-      !contact.firstName.trim() ||
-      !contact.lastName.trim() ||
-      !contact.email.trim() ||
-      !contact.mobile.trim()
-    ) {
+    if (step !== "payment" || gate !== "ok") return;
+    const trip = tripSnap ?? readVamosTrip();
+    const lock = draft.lock || trip?.lock;
+    const past = lockExpired(trip) || quoteLockZero;
+    const unpriced = !classIsSelectable(peekLockClassRappen(lock, vehicle));
+    if (past || unpriced) {
+      setRefusal(past ? "quoteExpired" : "pricingNotLive");
       return;
     }
+    if (clientSecret) return;
     if (intentAttempts.current >= 6) return;
+    const traveler = checkoutTraveler(contact, trip?.contact);
+    if (
+      traveler &&
+      (contact.firstName !== traveler.firstName ||
+        contact.lastName !== traveler.lastName ||
+        contact.email !== traveler.email ||
+        contact.mobile !== traveler.mobile)
+    ) {
+      setContact(traveler);
+    }
     void startPayment({ silent: true }).then((result) => {
-      if (result !== "fail") return;
+      if (result === "ok") return;
       intentAttempts.current += 1;
-      window.setTimeout(() => setIntentTick((n) => n + 1), 700);
+      if (intentAttempts.current >= 6) {
+        setRefusal((current) => current ?? "payCouldNotStart");
+        return;
+      }
+      window.setTimeout(() => setIntentTick((n) => n + 1), 400);
     });
   }, [
     step,
     gate,
     clientSecret,
     draft.idempotencyKey,
+    draft.quoteId,
+    draft.lock,
+    draft.vehicleClass,
+    quoteLockZero,
+    vehicle,
     contact.firstName,
     contact.lastName,
     contact.email,
     contact.mobile,
     intentTick,
+    tripSnap,
   ]);
+
+  function onQuoteLockZero() {
+    quoteLockZeroRef.current = true;
+    setQuoteLockZero(true);
+    setRefusal("quoteExpired");
+    const trip = tripSnap ?? readVamosTrip();
+    const quoteId = draft.quoteId || tripQuoteId(trip);
+    if (!quoteId) return;
+    void fetch("/api/checkout/lock-expire", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ quote_id: quoteId, quoteId }),
+    });
+  }
+
+  useEffect(() => {
+    if (step !== "payment") return;
+    const expiresAt = tripSnap?.expires_at ?? readVamosTrip()?.expires_at;
+    if (!expiresAt) return;
+    const at = Date.parse(expiresAt);
+    if (!Number.isFinite(at)) return;
+    const delay = at - Date.now();
+    if (delay <= 0) {
+      onQuoteLockZero();
+      return;
+    }
+    const id = window.setTimeout(onQuoteLockZero, delay);
+    return () => window.clearTimeout(id);
+  }, [step, tripSnap]);
 
   function validate(): boolean {
     const next: ContactFieldsErrors = {};
@@ -607,6 +700,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           locale,
           display_currency: displayCur,
           mode: "one_way",
+          fare_kind: fareKindOrOneWay((trip as { fare_kind?: unknown } | null)?.fare_kind),
           pickup: pickupPlace,
           dropoff: dropoffPlace,
           legs: [{ leg_seq: 1, scheduled_local: scheduled, flight_no: draft.flightNumber || null }],
@@ -684,6 +778,11 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   }
 
   async function continueDetails() {
+    const tripForPay = tripSnap ?? readVamosTrip();
+    const payLock = draft.lock || tripForPay?.lock;
+    if (!classIsSelectable(peekLockClassRappen(payLock, vehicle))) {
+      return;
+    }
     if (!validate()) return;
     setPasswordError(undefined);
     if (!guest && !signedIn) {
@@ -752,17 +851,39 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     const trip = tripSnap ?? readVamosTrip();
     const quoteId = draft.quoteId || tripQuoteId(trip);
     const lock = draft.lock || trip?.lock;
-    const vehicleClass = asClassSlug(draft.vehicleClass || vehicle);
-    const idempotencyKey = draft.idempotencyKey;
-    const name = `${contact.firstName.trim()} ${contact.lastName.trim()}`.trim();
-    const email = contact.email.trim();
-    const phone = contact.mobile.trim();
+    const vehicleClass = asClassSlug(draft.vehicleClass || vehicle || tripVehicle(trip));
+    let idempotencyKey = draft.idempotencyKey;
+    if (!idempotencyKey && quoteId) {
+      idempotencyKey = crypto.randomUUID();
+      writeDraft({
+        idempotencyKey,
+        quoteId,
+        ...(lock ? { lock } : {}),
+        ...(vehicleClass ? { vehicleClass } : {}),
+      });
+    }
+    const traveler = checkoutTraveler(contact, trip?.contact);
+    const name = traveler ? `${traveler.firstName} ${traveler.lastName}`.trim() : "";
+    const email = traveler?.email ?? "";
+    const phone = traveler?.mobile ?? "";
     if (!quoteId || !lock || !vehicleClass || !idempotencyKey) {
       if (!opts?.silent) setRefusal("quoteExpired");
       return "skip";
     }
-    if (!name || !email || !phone) {
+    if (quoteLockZeroRef.current) {
+      return clientSecretRef.current ? "ok" : "skip";
+    }
+    if (lockExpired(trip) || !classIsSelectable(peekLockClassRappen(lock, vehicleClass))) {
+      if (!opts?.silent) setRefusal(lockExpired(trip) ? "quoteExpired" : "pricingNotLive");
       return "skip";
+    }
+    if (!name || !email || !phone) {
+      if (!opts?.silent) setRefusal("payCouldNotStart");
+      return "skip";
+    }
+    if (peekLockClassRappen(lock, vehicleClass) == null) {
+      if (!opts?.silent || step === "payment") setRefusal("pricingNotLive");
+      return "fail";
     }
     intentStarted.current = true;
     if (!opts?.silent) {
@@ -807,7 +928,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           setCouponField("couponNoLongerValid");
           return "fail";
         }
-        if (!opts?.silent) setRefusal(key);
+        if (!opts?.silent || step === "payment") setRefusal(key);
         return "fail";
       }
       if (json.publishable_key) setPublishable(json.publishable_key);
@@ -820,13 +941,20 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       setClientSecretHex(json.client_secret_hex);
       if (!secret) {
         intentStarted.current = false;
-        if (!opts?.silent) setRefusal("payCouldNotStart");
+        if (!opts?.silent || step === "payment") setRefusal("payCouldNotStart");
         return "fail";
       }
+      writeCheckoutSession({
+        quoteId,
+        clientSecret: secret,
+        clientSecretHex: json.client_secret_hex,
+        publishableKey: json.publishable_key,
+        reference: json.reference,
+      });
       return "ok";
     } catch {
       intentStarted.current = false;
-      if (!opts?.silent) setRefusal("payCouldNotStart");
+      if (!opts?.silent || step === "payment") setRefusal("payCouldNotStart");
       return "fail";
     }
     })();
@@ -957,21 +1085,27 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   }
 
   async function sendPayLink() {
-    if (!validate()) {
-      setRefusal("payCouldNotStart");
-      return;
-    }
     const trip = tripSnap ?? readVamosTrip();
+    const saved = trip?.contact;
+    const traveler = {
+      name: `${(contact.firstName || saved?.firstName || "").trim()} ${(contact.lastName || saved?.lastName || "").trim()}`.trim(),
+      email: (contact.email || saved?.email || "").trim(),
+      phone: e164Phone(contact.mobile || saved?.mobile || ""),
+    };
     const quoteId = draft.quoteId || tripQuoteId(trip);
     const lock = draft.lock || trip?.lock;
-    const vehicleClass = draft.vehicleClass || vehicle;
+    const vehicleClass = asClassSlug(draft.vehicleClass || vehicle);
     const idempotencyKey = draft.idempotencyKey;
     if (!quoteId || !lock || !vehicleClass || !idempotencyKey) {
       setRefusal("quoteExpired");
       return;
     }
+    if (peekLockClassRappen(lock, vehicleClass) == null) {
+      setRefusal("pricingNotLive");
+      return;
+    }
     const payer = payerEmail.trim();
-    if (!isCheckoutEmail(payer)) {
+    if (!isCheckoutEmail(payer) || !traveler.name || !isCheckoutEmail(traveler.email) || traveler.phone.length < 10) {
       return;
     }
     setBusy(true);
@@ -987,9 +1121,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           extras: quoteExtras({ childSeat, oversized, extraStop }, extraStopWaypoint),
           coupon: couponApplied,
           contact: {
-            name: `${contact.firstName.trim()} ${contact.lastName.trim()}`,
-            email: contact.email.trim(),
-            phone: contact.mobile.trim(),
+            name: traveler.name,
+            email: traveler.email,
+            phone: traveler.phone,
           },
           locale,
           display_currency: displayCur,
@@ -1009,30 +1143,45 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         error?: string;
       };
       if (!res.ok) {
-        const key = REFUSAL_KEYS[json.code ?? json.error ?? ""] ?? "payCouldNotStart";
-        setRefusal(key);
+        const key = REFUSAL_KEYS[json.code ?? json.error ?? ""];
+        if (key && key !== "payCouldNotStart") setRefusal(key);
         return;
       }
       if (json.reference) setReference(json.reference);
       if (json.pay_url) setPayUrl(json.pay_url);
     } catch {
-      setRefusal("payCouldNotStart");
+      return;
     } finally {
       setBusy(false);
     }
   }
 
   async function onPay() {
+    if (refusal === "pricingNotLive" || refusal === "quoteExpired" || quoteLockZero) return;
+    const trip = tripSnap ?? readVamosTrip();
+    const lock = draft.lock || trip?.lock;
+    const vehicleClass = asClassSlug(draft.vehicleClass || vehicle);
+    if (
+      !vehicleClass ||
+      peekLockClassRappen(lock, vehicleClass) == null ||
+      !classIsSelectable(peekLockClassRappen(lock, vehicleClass))
+    ) {
+      setRefusal("pricingNotLive");
+      return;
+    }
     if (!cardComplete) {
       setRefusal("completeCard");
       return;
     }
     setBusy(true);
     setRefusal(null);
+    setPayError(null);
     try {
       const started = await startPayment();
       if (started !== "ok") {
-        setRefusal((current) => current ?? "payCouldNotStart");
+        setRefusal((current) =>
+          current === "pricingNotLive" || current === "quoteExpired" ? current : (current ?? "payCouldNotStart"),
+        );
         return;
       }
       const deadline = Date.now() + 25_000;
@@ -1041,26 +1190,71 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       }
       const confirm = confirmPayRef.current;
       if (!confirm) {
-        setRefusal("payCouldNotStart");
+        setRefusal((current) =>
+          current === "pricingNotLive" || current === "quoteExpired" ? current : "payCouldNotStart",
+        );
         return;
       }
       await confirm();
-    } catch {
-      setRefusal("payCouldNotStart");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      if (message && message !== "payCouldNotStart" && message !== "checkout-not-ready") {
+        setPayError(message);
+        return;
+      }
+      setRefusal((current) =>
+        current === "pricingNotLive" || current === "quoteExpired" ? current : "payCouldNotStart",
+      );
     } finally {
       setBusy(false);
     }
   }
 
+  const classFareRappen = peekLockClassRappen(
+    tripSnap?.lock || draft.lock,
+    asClassSlug(draft.vehicleClass || vehicle) || vehicle,
+  );
   const requote =
     refusal === "quoteExpired" ||
     refusal === "priceChanged" ||
     refusal === "engineChanged" ||
-    refusal === "paymentWindowClosed";
+    refusal === "paymentWindowClosed" ||
+    refusal === "pricingNotLive" ||
+    (step === "payment" && classFareRappen == null);
 
   const hours = checkoutWindowHours(checkoutWindowMinutes);
   const currentIndex = step === "trip" ? 0 : step === "details" ? 1 : 2;
   const homeHref = localePath(locale, "/");
+  const payLockToken = tripSnap?.lock || draft.lock;
+  const payClassUnpriced =
+    step === "payment" && !classIsSelectable(peekLockClassRappen(payLockToken, vehicle));
+  const payLockPast = step === "payment" && (quoteLockZero || lockExpired(tripSnap ?? readVamosTrip()));
+  const paySheetAlert = payLockPast ? "quoteExpired" : payClassUnpriced ? "pricingNotLive" : null;
+  const stripeMounted = Boolean(clientSecret);
+  const showDummyFields = payClassUnpriced || (payLockPast && !stripeMounted);
+  const payLocked = stripeMounted && payLockPast;
+
+  async function onCheckoutRequote() {
+    const trip = tripSnap ?? readVamosTrip();
+    const quoteId = draft.quoteId || tripQuoteId(trip);
+    if (!quoteId) return;
+    try {
+      const res = await fetch("/api/checkout/requote", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ quote_id: quoteId, quoteId }),
+      });
+      const json = (await res.json()) as { ok?: boolean };
+      if (!res.ok || json.ok !== true) return;
+      window.localStorage.removeItem("vamosTrip");
+      window.sessionStorage.removeItem("vamosTrip");
+      window.sessionStorage.removeItem("vamosQuoteLock");
+      router.push(homeHref);
+    } catch {
+      return;
+    }
+  }
+
   const railPickup = placeText(tripSnap?.pickupPlace, pickup || draft.pickup);
   const railDrop = placeText(tripSnap?.dropoffPlace, destination || draft.destination);
   const lockToken = tripSnap?.lock || draft.lock;
@@ -1406,6 +1600,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                 passengers={draft.passengers}
                 luggage={draft.luggage}
                 offered={classOffersFromTrip(tripSnap)}
+                lock={lockToken}
                 onChange={(id) => {
                   setVehicle(id);
                   writeDraft({ vehicleClass: id });
@@ -1691,12 +1886,76 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                 />
               </div>
               <div className="vt-checkout__payblock">
+                {paySheetAlert ? (
+                  <Alert role="alert" tone={paySheetAlert === "pricingNotLive" ? "info" : "danger"}>
+                    <span style={{ display: "flex", flexWrap: "wrap", whiteSpace: "normal" }}>
+                      {t(paySheetAlert)}
+                      <Button
+                        variant="ghost"
+                        size="md"
+                        sentenceCase
+                        style={{ whiteSpace: "normal" }}
+                        onClick={() => void onCheckoutRequote()}
+                      >
+                        {t("requote")}
+                      </Button>
+                    </span>
+                  </Alert>
+                ) : null}
                 <div className="vt-checkout__payhead">
                   <h2>{t("payment")}</h2>
                   <p>{t("card-apple-pay-or-twint")}</p>
                 </div>
                 <div className="vt-checkout__paystack">
+                  {!clientSecret && refusal && refusal !== paySheetAlert ? (
+                    <p data-checkout-card-status="error" role="alert">
+                      {t(refusal)}
+                    </p>
+                  ) : null}
+                  {showDummyFields ? (
+                    <div className="vt-checkout__cardblock">
+                      <h2 className="vt-checkout__method">
+                        <Icon name="credit-card" size={16} />
+                        {t("payWithCard")}
+                      </h2>
+                      <div className="vt-checkout__cardfields" data-checkout-dummy-fields>
+                        <Input
+                          size="md"
+                          disabled
+                          label={t("cardNumber")}
+                          value=""
+                          placeholder="1234 1234 1234 1234"
+                          onChange={() => undefined}
+                        />
+                        <Select
+                          size="md"
+                          disabled
+                          label={t("cardCountry")}
+                          value="CH"
+                          options={[{ value: "CH", label: "CH" }]}
+                          onChange={() => undefined}
+                        />
+                        <Input
+                          size="md"
+                          disabled
+                          label={t("cardExpiry")}
+                          value=""
+                          placeholder="MM / YY"
+                          onChange={() => undefined}
+                        />
+                        <Input
+                          size="md"
+                          disabled
+                          label={t("cardCvc")}
+                          value=""
+                          placeholder="CVC"
+                          onChange={() => undefined}
+                        />
+                      </div>
+                    </div>
+                  ) : (
                   <PaymentPanel
+                    locked={payLocked}
                     publishableKey={publishable}
                     clientSecret={clientSecret ?? ""}
                     clientSecretHex={clientSecretHex}
@@ -1707,6 +1966,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                     onReady={onPaymentReady}
                     onComplete={onPaymentComplete}
                   />
+                  )}
                 </div>
               </div>
               <div className="vt-checkout__payfoot">
@@ -1717,9 +1977,10 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                     <span data-tok>{t("cancel-free-of-charge-up-to-24-hours-before-pick")}</span>
                   </p>
                 )}
+                {payError ? <Alert tone="danger">{payError}</Alert> : null}
                 {refusal &&
-                refusal !== "pricingNotLive" &&
-                refusal !== "couponNoLongerValid" ? (
+                refusal !== "couponNoLongerValid" &&
+                refusal !== paySheetAlert ? (
                   <Alert tone={refusal === "pricingNotLive" ? "info" : "danger"}>
                     {refusal === "priceChanged" && hours != null
                       ? t("livePriceChangedLocked", { hours })
@@ -1734,21 +1995,21 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                 <div className="vt-checkout__cta" aria-busy={busy || undefined}>
                   <Button
                     size="lg"
-                    disabled={busy}
+                    disabled={busy || classFareRappen == null || Boolean(paySheetAlert) || payLocked}
                     onClick={() => void onPay()}
                   >
                     {t("pay-and-continue")}
                   </Button>
                   <Button
                     size="lg"
-                    disabled={busy || !isCheckoutEmail(payerEmail)}
+                    disabled={busy || classFareRappen == null || Boolean(paySheetAlert) || payLocked || !isCheckoutEmail(payerEmail)}
                     onClick={() => void sendPayLink()}
                   >
                     {t("sendPayLink")}
                   </Button>
                 </div>
                 {payUrl ? (
-                  <>
+                  <div className="vt-checkout__payresult" role="status" data-checkout-pay-result>
                     <p>{t("payLinkSent")}</p>
                     {reference ? <p>{t("unpaidReference", { reference })}</p> : null}
                     <div className="vt-checkout__paylink">
@@ -1769,7 +2030,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                         {t("whatsappPayLink")}
                       </Button>
                     </div>
-                  </>
+                  </div>
                 ) : null}
                 <p className="vt-checkout__terms">
                   <Icon name="shield-check" size={16} /> {t("by-continuing-you-accept-the-terms-and-the-cance")}
@@ -1815,9 +2076,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                 <span data-tok>{t("cancel-free-of-charge-up-to-24-hours-before-pick")}</span>
               </p>
             )}
-            {refusal &&
-            refusal !== "pricingNotLive" &&
-            refusal !== "couponNoLongerValid" ? (
+            {payError ? <Alert tone="danger">{payError}</Alert> : null}
+            {refusal && !paySheetAlert && refusal !== "couponNoLongerValid" ? (
               <Alert tone={refusal === "pricingNotLive" ? "info" : "danger"}>
                 {refusal === "priceChanged" && hours != null
                   ? t("livePriceChangedLocked", { hours })

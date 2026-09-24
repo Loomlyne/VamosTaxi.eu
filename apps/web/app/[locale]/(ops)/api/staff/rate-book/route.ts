@@ -275,6 +275,8 @@ function mockRates(book: RateBook): Record<string, unknown>[] {
       baseFare: moneyFromRappen(row.baseFareRappen),
       perKm: moneyFromRappen(row.perKmRappen),
       minFare: moneyFromRappen(row.minFareRappen),
+      airportStart: moneyFromRappen(row.airportStartRappen),
+      cityPrice: moneyFromRappen(row.cityPriceRappen),
       maxPax: row.maxPax,
       maxBags: cls?.luggageCapacity ?? "",
       photo,
@@ -475,6 +477,14 @@ function parseDistanceInput(body: Record<string, unknown>, classes: { id: string
       body.perKmRappen !== undefined ? rappenFromUnknown(body.perKmRappen) : rappenFromMoneySet(body.perKm),
     minFareRappen:
       body.minFareRappen !== undefined ? rappenFromUnknown(body.minFareRappen) : rappenFromMoneySet(body.minFare),
+    airportStartRappen:
+      body.airportStartRappen !== undefined
+        ? rappenFromUnknown(body.airportStartRappen)
+        : rappenFromMoneySet(body.airportStart),
+    cityPriceRappen:
+      body.cityPriceRappen !== undefined
+        ? rappenFromUnknown(body.cityPriceRappen)
+        : rappenFromMoneySet(body.cityPrice),
     maxPax: maxPax ?? 1,
     available: boolish(body.available, true),
     hideFromPublic: boolish(body.hideFromPublic ?? body.hide_from_public, false),
@@ -657,6 +667,8 @@ export const PUT = withAdmin(async (claims, request) => {
               base_fare_rappen = ${parsed.baseFareRappen},
               per_km_rappen = ${parsed.perKmRappen},
               min_fare_rappen = ${parsed.minFareRappen},
+              airport_start_rappen = ${parsed.airportStartRappen},
+              city_price_rappen = ${parsed.cityPriceRappen},
               max_pax = ${parsed.maxPax},
               available = ${parsed.available},
               hide_from_public = ${parsed.hideFromPublic}
@@ -666,11 +678,13 @@ export const PUT = withAdmin(async (claims, request) => {
           await tx`
             insert into public.distance_rates (
               rate_version_id, vehicle_class_id, base_fare_rappen, per_km_rappen,
-              min_fare_rappen, max_pax, available, hide_from_public
+              min_fare_rappen, airport_start_rappen, city_price_rappen,
+              max_pax, available, hide_from_public
             ) values (
               ${versionId}, ${parsed.vehicleClassId}, ${parsed.baseFareRappen},
-              ${parsed.perKmRappen}, ${parsed.minFareRappen}, ${parsed.maxPax},
-              ${parsed.available}, ${parsed.hideFromPublic}
+              ${parsed.perKmRappen}, ${parsed.minFareRappen},
+              ${parsed.airportStartRappen}, ${parsed.cityPriceRappen},
+              ${parsed.maxPax}, ${parsed.available}, ${parsed.hideFromPublic}
             )
           `;
         }

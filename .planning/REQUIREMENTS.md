@@ -14,6 +14,148 @@ and are final — "matches the mock" is a real acceptance criterion, not a hand-
 
 ---
 
+## Milestone v1.3 Meta measurement Requirements
+
+**Defined:** 2026-09-23
+**Core value:** quote → pay → confirmation. v1.3 measures ads only. It does not change pay.
+**Sources:** `.planning/PROJECT.md`, `.planning/research/SUMMARY.md`. Owner confirmed this list.
+
+### Legal
+
+- [x] **META-01**: The pixel and the Purchase call stay off until the owner pastes the banner, cookies, and privacy lines in en, de, fr, and ar. Do not draft them.
+  Lock shipped on the branch. The paste has not happened. This check is not a licence to load the pixel.
+- [x] **META-02**: A new consent policy version. An old Accept, from when marketing was stored off, does not turn Meta on.
+
+### Consent
+
+- [ ] **META-03**: Accept logs Meta on. Dismiss logs Meta off. The latest `consent_log` row wins. No new switches.
+- [ ] **META-04**: The banner asks on every customer page until they choose, including a pay link. Ops has no banner. The pixel still never loads on a pay link.
+- [ ] **META-05**: A later Dismiss stops future PageView and future Purchase. Accepting after payment does not backfill a Purchase.
+
+### PageView
+
+- [ ] **META-06**: After Accept and META-01, pixel `1595596972063765` sends PageView only on public pages with no token, plus signed-in account and bookings.
+- [ ] **META-07**: Never ops, never a pay link, never manage-booking, never a booking reference in the URL. A person who dismissed does not get a cached page that contains the script.
+- [ ] **META-08**: No advanced matching and no noscript image. The owner confirms in Events Manager that automatic matching and automatic button clicks are off before the pixel can load.
+- [ ] **META-09**: `_fbp` and `_fbc` are saved on the unpaid booking after the pixel sets them. Not in Stripe. A paid booking cannot be updated to backfill them.
+
+### Purchase
+
+- [ ] **META-10**: One Purchase from the settle queue after a real CHF charge. Value is the francs charged. `CHF 000` sends nothing.
+- [ ] **META-11**: The payload is `_fbp` and `_fbc` only, and only if they were saved. If neither was saved, send nothing. No email, phone, name, route, flight, booking reference, IP, or user-agent.
+- [ ] **META-12**: The URL sent to Meta is `https://vamostaxi.site` with no path. The event id is ours, one per booking, reused if the queue retries. It is not the booking reference.
+- [ ] **META-13**: A Meta failure does not unpay the booking and does not change the webhook response. A retry does not send a second Purchase.
+- [ ] **META-14**: Staging uses a test event code. The token is a wrangler secret. If Graph rejects this payload, stop and ask. Do not widen it.
+
+### v1.3 Future (deferred)
+
+- Middle-funnel events (quote seen, checkout started, pay step)
+- Hashed email or phone
+- Browser Purchase on the thank-you page
+- Dropping the staging test event code so events count in ads
+- Live Stripe account / `sk_live_`
+- `vamostaxi.eu` DNS
+- Refund or negative Purchase
+
+### v1.3 Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| Loading `fbevents.js` before Accept | An ad click is not consent |
+| Meta on ops, pay-link, or manage-booking | Those URLs can carry a token |
+| Invented legal copy | Owner pastes the lines |
+| Zaraz, GTM, or a pixel SDK | No new package |
+| Quote, pay, or confirmation changes | v1.3 measures only |
+
+### v1.3 Traceability
+
+Filled by the roadmapper.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| META-01 | Phase 26 | Complete |
+| META-02 | Phase 26 | Complete |
+| META-03 | Phase 27 | Pending |
+| META-04 | Phase 27 | Pending |
+| META-05 | Phase 27 | Pending |
+| META-06 | Phase 28 | Pending |
+| META-07 | Phase 28 | Pending |
+| META-08 | Phase 28 | Pending |
+| META-09 | Phase 28 | Pending |
+| META-10 | Phase 29 | Pending |
+| META-11 | Phase 29 | Pending |
+| META-12 | Phase 29 | Pending |
+| META-13 | Phase 29 | Pending |
+| META-14 | Phase 29 | Pending |
+
+**v1.3 coverage:** 14 requirements, mapped 14, unmapped 0 ✓
+
+## Milestone v1.2 Payment Requirements
+
+**Defined:** 2026-09-22
+**Core value:** quote → pay → confirmation. v1.2 unfreezes **pay** only (Stripe TEST on `vamostaxi.site`).
+**Sources:** `.planning/PROJECT.md`, `.planning/research/SUMMARY.md`. DC pay mock is the visual spec.
+
+### Charge gate
+
+- [ ] **PAY-08**: Unpriced class (`CHF 000`) refuses visibly (`pricing_not_live`) and never opens Stripe
+- [ ] **PAY-09**: Expired 24h lock refuses visibly; pay-link dies with that lock (resend does not restart it)
+
+### Pay
+
+- [ ] **PAY-10**: Traveller pays a locked quote on `vamostaxi.site` in Stripe TEST with card (`4242…` captures)
+- [ ] **PAY-11**: Apple Pay, Google Pay (`auto`), Link, and TWINT (PaymentElement collector; skip UAT with a note if TEST is not Swiss — no fake radio)
+- [ ] **PAY-12**: Decline and 3DS stay unpaid until webhook; thank-you waits on webhook, not `confirm()`
+- [ ] **PAY-13**: Unpaid `/bookings` row pays the same open session (same `PaymentPanel`)
+
+### Pay link
+
+- [ ] **PAY-14**: Email a pay link requires company name + VAT; address optional; payer email required. Self-pay does not need business details
+- [ ] **PAY-15**: Recipient pays on `/checkout/pay/[token]` recap-only; cannot edit the trip; same methods
+- [ ] **PAY-16**: First successful charge wins; loser sees the same confirmation; no second charge
+- [ ] **PAY-17**: Traveller gets confirmation email + manage link; other payer gets a receipt only
+
+### Cutover
+
+- [ ] **PAY-18**: TEST→live is wrangler secrets + same-mode publishable/webhook; no `sk_live_` in this milestone; browser uses the server-provided key
+
+### v1.2 Future (deferred)
+
+- Calendar invite (`.ics`) on confirmation
+- Quote/class rebuild and owner fare Publish
+- Live Stripe account / `sk_live_` (after this milestone’s TEST UAT)
+- TWINT UAT if the TEST Stripe entity is not Swiss (written skip, not a fake method)
+
+### v1.2 Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| Live `vamostaxi.eu` DNS | Phase 11 |
+| PayPal / cash / Connect / invoice-on-account | Product rulings |
+| Phases 16 MX, 17 chauffeur, 19 close-out, 20 security | Frozen leftovers |
+| Redesign of the DC pay screen | Mocks are the spec |
+| Invented CHF / class fares | Owner Publish only |
+
+### v1.2 Traceability
+
+Filled by the roadmapper.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| PAY-08 | Phase 21 | Pending |
+| PAY-09 | Phase 21 | Pending |
+| PAY-10 | Phase 22 | Pending |
+| PAY-11 | Phase 23 | Pending |
+| PAY-12 | Phase 22 | Pending |
+| PAY-13 | Phase 25 | Pending |
+| PAY-14 | Phase 24 | Pending |
+| PAY-15 | Phase 24 | Pending |
+| PAY-16 | Phase 24 | Pending |
+| PAY-17 | Phase 24 | Pending |
+| PAY-18 | Phase 25 | Pending |
+
+**v1.2 coverage:** 11 requirements, mapped 11, unmapped 0 ✓
+
 ## v1 Requirements
 
 ### Platform (PLAT)
@@ -339,4 +481,4 @@ Populated during v1.1 roadmap creation.
 
 ---
 *Requirements defined: 2026-08-17*
-*Last updated: 2026-09-15 — Phase 18 QUOTE-03 / QUOTE-04 / QUOTE-11 complete. QUOTE-10 stays 11-12 (`public_chf`). LAUNCH-01 and LAUNCH-04 stay pending.*
+*Last updated: 2026-09-22 — v1.2 Traceability filled (PAY-08…PAY-18 → phases 21–25). v1/v1.1 rows unchanged.*

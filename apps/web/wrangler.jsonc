@@ -72,7 +72,7 @@
         // breaker — not a budget, not a franc figure. Trips rather than logs.
         // No Mapbox plan exists yet, so no ceiling in francs can be honest.
         "MAPBOX_DAILY_UNIT_SENTINEL": "5000",
-        "STRIPE_PUBLISHABLE_KEY": "pk_test_51U65pWAJS2YBf21StyCAIaNRFE3eXQ8uo5oPRAjRivypsK0QlEqQ4Orh0sJgRXwJ4fv3Q7GXYr24LbhLYYpRQ7Y9004HRQl69i"
+        "STRIPE_PUBLISHABLE_KEY": "pk_test_51UIZmqHcNp9GZYjzrjt6veTXy3EkAOLiOLfYwc4rXpSxIY7HMLFViyMV7IxirWjmV1OkwVFo1Z5De2YrANVtiB5M002tCIoxfZ"
       },
       "kv_namespaces": [
         { "binding": "GEO_CACHE", "id": "48cd800d63e44c03aa1f49be83d39d7a" },

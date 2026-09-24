@@ -18,7 +18,7 @@
 // errors.ts. It performs no I/O and calls no clock.
 
 import { z } from "zod";
-import type { QuoteMode } from "../pricing/types";
+import { parseFareKind, type FareKind, type QuoteMode } from "../pricing/types";
 import { CURRENCY_MARKS, type CurrencyCode } from "../currency";
 
 /** Codes `parseQuoteRequest` can emit — handler maps them via errors.ts. */
@@ -150,6 +150,11 @@ const QuoteBodySchema = z
     geo_session: z.string().min(1).max(128).optional(),
     extras: ExtrasSchema.optional(),
     coupon: z.string().min(1).max(64).optional(),
+    /**
+     * Comment 11. Optional so older clients stay one way. Not a client price.
+     * Overlap with comment 10: do not treat this as tab chrome.
+     */
+    fare_kind: z.string().max(32).optional(),
   })
   .strict();
 
@@ -306,7 +311,12 @@ export function parseQuoteRequest(body: unknown): ParseQuoteResult {
   const extrasFail = checkExtrasGuards(value.extras);
   if (extrasFail) return extrasFail;
 
-  return { ok: true, value };
+  if (value.fare_kind !== undefined && parseFareKind(value.fare_kind) === null) {
+    return { ok: false, code: "untrusted_input", field: "fare_kind" };
+  }
+  const fareKind: FareKind = parseFareKind(value.fare_kind) ?? "one_way";
+
+  return { ok: true, value: { ...value, fare_kind: fareKind } };
 }
 
 /**
@@ -335,6 +345,7 @@ export function parseRepriceRequest(
     "legs",
     "mode",
     "hours",
+    "fare_kind",
   ] as const) {
     if (key in body) {
       return { ok: false, code: "untrusted_input", field: key };

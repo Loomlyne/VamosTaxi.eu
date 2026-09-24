@@ -59,7 +59,8 @@ describe("dashboard host DC login @ops-dashboard-host", () => {
     expect(authForm).toContain("data-af-eye");
     expect(authForm).toContain("Dispatch sign in");
     expect(authForm).toContain("top:calc((var(--vt-label-md) * var(--vt-body-leading)) + 6px)");
-    expect(authForm).toContain("location.replace('/')");
+    expect(authForm).toContain("location.replace('/dashboard')");
+    expect(authForm).not.toMatch(/location\.replace\('\/'\)/);
     expect(authForm).not.toMatch(/enrollPasskey/);
     const combined = `${login}\n${authForm}`;
     expect(combined).not.toMatch(/Coming soon/);

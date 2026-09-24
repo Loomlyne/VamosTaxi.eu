@@ -2,6 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import { Icon } from "@/components/core";
+import { classIsSelectable } from "@/lib/checkout/charge-gate";
+import { peekLockClassRappen } from "@/lib/checkout/vamos-trip";
 
 export type CheckoutClassOffer = {
   slug: string;
@@ -36,12 +38,14 @@ export function CheckoutClassCards({
   passengers,
   luggage,
   offered,
+  lock,
   onChange,
 }: {
   vehicle: string;
   passengers: number;
   luggage: number;
   offered: CheckoutClassOffer[];
+  lock: string | undefined;
   onChange: (id: string) => void;
 }) {
   const t = useTranslations("checkout");
@@ -51,6 +55,8 @@ export function CheckoutClassCards({
       {offered.map((offer) => {
         const picked = vehicle === offer.slug;
         const fit = classFits(offer.slug, passengers, luggage, offered);
+        const priced = classIsSelectable(peekLockClassRappen(lock, offer.slug));
+        const activatable = fit && priced;
         return (
           <button
             key={offer.slug}
@@ -58,11 +64,13 @@ export function CheckoutClassCards({
             className="vt-checkout__class"
             data-picked={picked ? "true" : "false"}
             data-fit={fit ? "true" : "false"}
+            data-priced={priced ? "true" : "false"}
             aria-pressed={picked}
-            aria-disabled={!fit}
-            disabled={!fit}
+            aria-disabled={!activatable}
+            disabled={!activatable}
             onClick={() => {
-              if (fit) onChange(offer.slug);
+              if (!activatable) return;
+              onChange(offer.slug);
             }}
           >
             <span className="vt-checkout__class-img">

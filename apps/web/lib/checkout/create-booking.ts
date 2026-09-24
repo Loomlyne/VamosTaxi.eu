@@ -83,3 +83,17 @@ export async function createBooking(
     replayed: Boolean(row.replayed),
   };
 }
+
+export async function issueManageToken(
+  sql: postgres.TransactionSql,
+  args: { bookingId: string; hash: Uint8Array; expiresAt: Date },
+): Promise<void> {
+  const tokenHex = byteaHex(args.hash);
+  await sql`
+    select public.checkout_issue_manage_token(
+      ${args.bookingId}::uuid,
+      decode(${tokenHex}, 'hex'),
+      ${args.expiresAt.toISOString()}::timestamptz
+    )
+  `;
+}

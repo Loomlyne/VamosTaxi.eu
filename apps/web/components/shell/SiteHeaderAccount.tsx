@@ -13,8 +13,13 @@ const { Link } = createNavigation(routing);
 export type SessionSnapshot = {
   signedIn: boolean;
   displayName: string | null;
+  /** Present on `/api/auth/session`. Omitted by gallery stubs. */
+  email?: string | null;
   emailConfirmed: boolean;
 };
+
+/** Last fetched snapshot so the sheet can open without a signed-out flash. */
+let sessionCache: SessionSnapshot | null = null;
 
 const SIGNED_OUT: SessionSnapshot = {
   signedIn: false,
@@ -25,6 +30,8 @@ const SIGNED_OUT: SessionSnapshot = {
 export interface SiteHeaderAccountProps {
   variant: "inverse" | "overlay";
   compact?: boolean;
+  /** Narrow drawer account block. The wide bar keeps the disc menu. */
+  placement?: "bar" | "sheet";
   signInLabel: string;
   /** Gallery/tests: skip the session fetch and render this snapshot immediately. */
   snapshot?: SessionSnapshot;
@@ -35,11 +42,14 @@ export interface SiteHeaderAccountProps {
 function parseSnapshot(body: unknown): SessionSnapshot {
   if (!body || typeof body !== "object") return SIGNED_OUT;
   const o = body as Record<string, unknown>;
-  return {
+  const email = typeof o.email === "string" ? o.email.trim() : "";
+  const next: SessionSnapshot = {
     signedIn: o.signedIn === true,
     displayName: typeof o.displayName === "string" && o.displayName.trim() ? o.displayName : null,
+    email: email || null,
     emailConfirmed: o.emailConfirmed === true,
   };
+  return next;
 }
 
 const PHOTO_KEY = "vamosPhoto";
@@ -56,13 +66,14 @@ function readStoredPhoto(): string {
 export function SiteHeaderAccount({
   variant,
   compact = false,
+  placement = "bar",
   signInLabel,
   snapshot: snapshotProp,
   defaultMenuOpen = false,
 }: SiteHeaderAccountProps) {
   const tCommon = useTranslations("common");
   const tHeader = useTranslations("header");
-  const [snapshot, setSnapshot] = useState<SessionSnapshot | null>(snapshotProp ?? null);
+  const [snapshot, setSnapshot] = useState<SessionSnapshot | null>(snapshotProp ?? sessionCache);
   const [menuOpen, setMenuOpen] = useState(defaultMenuOpen);
   const [photoSrc, setPhotoSrc] = useState("");
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -86,7 +97,10 @@ export function SiteHeaderAccount({
     fetch("/api/auth/session")
       .then((res) => res.json())
       .then((body: unknown) => {
-        if (!cancelled) setSnapshot(parseSnapshot(body));
+        if (cancelled) return;
+        const next = parseSnapshot(body);
+        sessionCache = next;
+        setSnapshot(next);
       })
       .catch(() => {
         if (!cancelled) setSnapshot(SIGNED_OUT);
@@ -128,6 +142,48 @@ export function SiteHeaderAccount({
       <span>{signInLabel}</span>
     </Link>
   );
+
+  if (placement === "sheet") {
+    if (!snapshot || !snapshot.signedIn) {
+      return (
+        <Link data-hd-signin="1" data-hd-menuitem="1" href="/sign-in">
+          <Icon name="user" size={18} color="currentColor" />
+          <span>{signInLabel}</span>
+        </Link>
+      );
+    }
+    const sheetName = snapshot.displayName;
+    const first = sheetName?.trim().split(/\s+/).filter(Boolean)[0];
+    const sheetLabel = first || tCommon("your-account");
+    const sheetEmail = snapshot.email?.trim() || "";
+    const sheetUnverified = !snapshot.emailConfirmed;
+    return (
+      <>
+        <Link data-hd-acctrow="1" href="/account">
+          <span data-hd-acctavatar="1">
+            <Avatar
+              src={photoSrc || undefined}
+              name={sheetName ?? undefined}
+              icon={sheetName || photoSrc ? undefined : "user"}
+              size="sm"
+            />
+            {sheetUnverified ? <span data-hd-acctdot="1" aria-hidden="true" /> : null}
+          </span>
+          <span data-hd-acctrow-copy="1">
+            <span data-hd-acctrow-name="1">{sheetLabel}</span>
+            {sheetEmail ? <span data-hd-sub="1">{sheetEmail}</span> : null}
+          </span>
+          <Icon name="chevron-right" size={18} color="currentColor" />
+        </Link>
+        <form action={signOutAction}>
+          <button type="submit" data-hd-signin="1" data-hd-menuitem="1">
+            <Icon name="log-out" size={18} color="currentColor" />
+            <span>{tCommon("sign-out")}</span>
+          </button>
+        </form>
+      </>
+    );
+  }
 
   if (!snapshot || !snapshot.signedIn) {
     return signedOutControl;

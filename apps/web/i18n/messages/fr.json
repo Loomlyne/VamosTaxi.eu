@@ -463,6 +463,7 @@
     "quoteAlreadyBooked": "Ce devis a déjà une réservation.",
     "paymentWindowClosed": "La fenêtre de paiement est close. Demandez un nouveau devis.",
     "payCouldNotStart": "Le paiement n’a pas démarré. Touchez à nouveau Payer et continuer.",
+    "emailFailed": "Le lien de paiement n'a pas été envoyé. La réservation est enregistrée. Renvoyez le lien.",
     "completeCard": "Saisissez le numéro de carte, la date d’expiration et le CVC.",
     "requote": "Nouveau devis",
     "freeCancelHours": "Annulation gratuite jusqu'à {hours} heures avant la prise en charge.",
@@ -481,7 +482,7 @@
     "cardCvc": "CVC",
     "cardCountry": "Pays",
     "applePay": "Apple Pay",
-    "payWithApplePay": "Payer avec Apple Pay",
+    "payWithExpress": "Paiement express",
     "payWithLink": "Payer avec Link",
     "payWithCard": "Payer par carte",
     "stripeLink": "Link",
@@ -2458,6 +2459,7 @@
     "line": {
       "transfer": "Transfert, {vehicleClass}",
       "fixed_route": "Trajet à prix fixe",
+      "city_price": "Prix ville",
       "coupon": "Code promo {code}",
       "round_trip_discount": "Remise aller-retour, {percent} %",
       "total": "Total"

@@ -510,6 +510,19 @@ describe("Support overlay sendError (D-07)", () => {
     expect(html).toMatch(/tSendError/);
     expect(read("app/vamos-i18n-dict.js")).not.toMatch(/sendError:/);
     expect(existsSync(SUPPORT_PUBLIC)).toBe(true);
-    expect(readFileSync(SUPPORT_PUBLIC, "utf8")).toBe(html);
+    const pub = readFileSync(SUPPORT_PUBLIC, "utf8");
+    for (const lang of LANGS) {
+      expect(quotedKey(langBlock(pub, lang), "sendError"), `public T.${lang} sendError`).toBe(sendByLang[lang]);
+    }
+    expect(html).toMatch(/<button type="button" data-kb-toggle/);
+    expect(html).toMatch(/aria-expanded="\{\{ col\.expanded \}\}"/);
+    expect(html).toMatch(/<button type="button" data-kb-see/);
+    expect(html).toMatch(/seeAll:'See all'/);
+    expect(html).not.toMatch(/See more|seeMore/);
+    expect(html).toMatch(/KB_CAP = 10/);
+    expect(html).toMatch(/cards\.slice\(0, KB_CAP\)/);
+    expect(html).toMatch(/this\.setView\('table'\)/);
+    expect(html).toMatch(/this\.setFilter\(status\)/);
+    expect(html).toMatch(/\[data-kb-col\]\[data-open="0"\]\{min-block-size:0/);
   });
 });

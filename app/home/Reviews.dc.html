@@ -66,15 +66,12 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-rv-sub]{margin-top:6px;font-size:var(--vt-body-sm);line-height:1.45;color:var(--vt-text-secondary);max-width:100%;overflow-wrap:break-word}
 [data-rv-quote]{box-sizing:border-box;background:var(--vt-white);display:flex;flex-direction:column;justify-content:center;border-top:1px solid var(--vt-grey-200);border-bottom:1px solid var(--vt-grey-200);padding:clamp(30px,5vw,64px) clamp(0px,2.4vw,40px);min-height:260px}
 [data-rv-q]{display:flex;align-items:center;justify-content:center;margin:0;padding:0}
-[data-rv-text]{margin:0;max-width:min(34ch,100%);margin-inline:auto;font-family:var(--vt-font-display);font-size:clamp(21px,2.35vw,28px);font-weight:var(--vt-weight-semibold);letter-spacing:-0.02em;line-height:1.45;text-align:center;text-wrap:pretty;overflow-wrap:break-word;color:var(--vt-text-primary)}
+[data-rv-text]{margin:0;max-width:min(34ch,100%);margin-inline:auto;font-family:var(--vt-font-body);font-size:clamp(21px,2.35vw,28px);font-weight:var(--vt-weight-semibold);letter-spacing:0;line-height:1.45;text-align:center;text-wrap:pretty;overflow-wrap:break-word;color:var(--vt-text-primary)}
 [data-rv-nav]{display:flex;align-items:center;justify-content:center;gap:clamp(18px,2.4vw,30px);margin-top:clamp(4px,1vw,10px)}
 [data-rv-arrow]{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:50px;height:50px;flex:0 0 auto;padding:0;border:1px solid var(--vt-charcoal-900);border-radius:999px;background:transparent;color:var(--vt-charcoal-900);cursor:pointer;transition:var(--vt-transition-control)}
 [data-rv-arrow]:hover{background:var(--vt-yellow);border-color:var(--vt-charcoal-900);color:var(--vt-charcoal-950)}
 [data-rv-arrow]:active{transform:translateY(1px)}
 [data-rv-arrow]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
-[data-rv-dots]{display:flex;align-items:center;gap:13px}
-[data-rv-dot]{width:7px;height:7px;border-radius:999px;background:var(--vt-grey-300);transition:background 200ms var(--vt-ease-standard)}
-[data-rv-dot][data-on="1"]{background:var(--vt-yellow);box-shadow:0 0 0 1px var(--vt-charcoal-900)}
 [data-rv-stars]{display:flex;align-items:center;gap:var(--vt-space-1);margin-top:var(--vt-space-3)}
 [data-rv-stars] img{width:30px;height:30px;flex:0 0 auto;object-fit:contain}
 [data-rv-meta]{margin-top:10px;font-size:var(--vt-body-xs);line-height:1.45;color:var(--vt-text-muted);text-align:center;text-wrap:pretty}
@@ -89,29 +86,43 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-rv-note-k]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
 [data-rv-note] ul{margin:0;padding-inline-start:18px;display:flex;flex-direction:column;gap:6px}
 [data-rv-note] li{font-size:var(--vt-body-sm);line-height:1.6;color:var(--vt-text-secondary);max-width:82ch;text-wrap:pretty}
-@media (min-width:400px){
+@media (min-width:700px){
 [data-rv-grid]{--rv-gap:20px;grid-template-columns:minmax(148px,360fr) minmax(0,760fr);gap:0;column-gap:var(--rv-gap)}
 [data-rv-card],[data-rv-quote]{min-width:0}
 [data-rv-card]{grid-column:1;padding-bottom:124px;padding-inline:clamp(10px,2vw,36px);border-radius:20px 0 0 20px}
 [data-rv-quote]{grid-column:2;margin-inline-start:calc(var(--rv-gap)*-1);padding-inline-start:calc(var(--rv-gap) + clamp(0px,2.4vw,40px));border-inline-end:1px solid var(--vt-grey-200);border-start-end-radius:20px;border-end-end-radius:20px}
 [data-rv-nav]{position:absolute;bottom:37px;inset-inline-start:0;box-sizing:border-box;width:calc((100% - var(--rv-gap)) * 0.32143);min-width:148px;max-width:calc(50% - var(--rv-gap)/2);margin-top:0;gap:6px}
 [data-rv-arrow]{width:28px;height:28px}
-[data-rv-dots]{gap:6px}
 }
-@media (min-width:600px){
+@media (min-width:700px){
 [data-rv-grid]{--rv-gap:40px;grid-template-columns:minmax(0,360fr) minmax(0,760fr)}
 [data-rv-card]{padding-inline:clamp(var(--vt-space-3),2vw,36px)}
 [data-rv-nav]{min-width:0;max-width:none;width:calc((100% - var(--rv-gap)) * 0.32143);gap:var(--vt-space-1)}
 [data-rv-arrow]{width:var(--vt-control-h-md);height:var(--vt-control-h-md)}
-[data-rv-dots]{gap:var(--vt-space-2)}
+}
+/* Phone stack — same break as home [data-hide-narrow]. Wins over any earlier two-column rule. */
+@media (max-width:699px){
+[data-rv-grid]{grid-template-columns:minmax(0,1fr);gap:0;column-gap:0;row-gap:0}
+[data-rv-card]{grid-column:1 / -1;min-width:0;min-height:0;padding:16px 20px 12px;border-radius:20px 20px 0 0}
+[data-rv-card] [data-rv-stack]{min-height:0;margin:0}
+[data-rv-mark]{height:28px;margin-bottom:8px}
+[data-rv-logo]{height:24px}
+[data-rv-sub]{margin-top:2px}
+[data-rv-stars]{margin-top:8px}
+[data-rv-stars] img{width:22px;height:22px}
+[data-rv-link]{margin-top:2px}
+[data-rv-meta]{margin-top:4px}
+[data-rv-badge]{margin-top:6px}
+[data-rv-quote]{grid-column:1 / -1;min-width:0;min-height:0;margin-inline-start:0;padding:16px 20px 18px;border-inline-end:0;border-bottom:0;border-radius:0 0 20px 20px}
+[data-rv-nav]{position:static;bottom:auto;inset-inline-start:auto;grid-column:1 / -1;box-sizing:border-box;width:auto;min-width:0;max-width:100%;margin-top:16px;gap:clamp(18px,2.4vw,30px);flex-wrap:wrap;justify-content:center}
+[data-rv-arrow]{width:var(--vt-control-h-md);height:var(--vt-control-h-md)}
 }
 @media (min-width:900px){
 [data-rv-card]{padding-inline:clamp(20px,2.6vw,36px)}
 [data-rv-nav]{gap:clamp(18px,2.4vw,30px)}
 [data-rv-arrow]{width:50px;height:50px}
-[data-rv-dots]{gap:13px}
 }
-@media (prefers-reduced-motion:reduce){[data-rv-slide],[data-rv-dot],[data-rv-arrow]{transition:none}}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
+@media (prefers-reduced-motion:reduce){[data-rv-slide],[data-rv-arrow]{transition:none}}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
 </helmet>
 <section id="reviews" data-rv="1" data-dir="1" data-screen-label="Reviews" aria-labelledby="reviews-title" ref="{{ rootRef }}" style="color:var(--vt-text-primary);font-family:var(--vt-font-body);position:relative;overflow:hidden">
 <div aria-hidden="true" style="position:absolute;inset:0;background-image:url(data:image/png;base64,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);background-size:88px 88px;background-repeat:repeat;opacity:.028;pointer-events:none;z-index:0"></div>
@@ -184,11 +195,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <button type="button" data-rv-arrow="1" aria-label="Previous review" onClick="{{ prev }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-left" size="{{ n20 }}" color="currentColor" hint-size="20px,20px"></x-import>
 </button>
-<div data-rv-dots="1" aria-hidden="true">
-<sc-for list="{{ slides }}" as="r" hint-placeholder-count="0">
-<span data-rv-dot="1" data-i="{{ r.i1 }}" data-on="{{ r.on }}"></span>
-</sc-for>
-</div>
 <button type="button" data-rv-arrow="1" aria-label="Next review" onClick="{{ next }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-right" size="{{ n20 }}" color="currentColor" hint-size="20px,20px"></x-import>
 </button>
@@ -206,8 +212,8 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 /**
  * Home · Reviews — structure from Figma /Main/263 (node 315:25968): H2 over a two-up block,
  * a 360-wide rounded info card on the left and a 760-wide quote panel ruled top and bottom on
- * the right, geometry verbatim (20px radius, 40px gap, 50px pagination circles, gap 30, 88px
- * dot row). Recoloured to Vamos: card --vt-grey-50, type Qurova/Poppins, hairlines the brand
+ * the right, geometry verbatim (20px radius, 40px gap, 50px pagination circles, gap 30).
+ * No dot pager — more reviews would overflow it. Arrows only. Recoloured to Vamos: card --vt-grey-50, type Qurova/Poppins, hairlines the brand
  * grey #DEDEDE, both arrows outlined charcoal — the reference's purple is gone entirely.
  *
  * Both stacks (card identity, quote) hold all slides as literal markup in one grid cell,
@@ -245,9 +251,6 @@ class Component extends DCLogic {
       el.setAttribute('data-was', !on && this.fromI != null && n === this.fromI + 1 ? '1' : '0');
       if (on) el.removeAttribute('aria-hidden'); else el.setAttribute('aria-hidden', 'true');
     });
-    this.root.querySelectorAll('[data-rv-dot]').forEach((el) => {
-      el.setAttribute('data-on', +el.getAttribute('data-i') === this.i + 1 ? '1' : '0');
-    });
   }
   step(d, manual) {
     if (this.N < 2) return;
@@ -277,15 +280,24 @@ class Component extends DCLogic {
     else if (e.key === 'ArrowLeft') { e.preventDefault(); this.step(-1, true); }
   };
   vis = () => { if (document.hidden) clearTimeout(this.t); else this.arm(); };
+  /* Helmet injects vamos-reviews.js after the first paint. If we only subscribe
+     when the store is already there, the card stays the empty shells. */
+  bindReviews() {
+    const store = window.VamosReviews;
+    if (!store || this._offReviews) return;
+    this._offReviews = store.onChange(() => { this.i = 0; this.forceUpdate(); });
+    this.forceUpdate();
+  }
   componentDidMount() {
     document.addEventListener('visibilitychange', this.vis);
-    /* One store for the whole platform: the ops Reviews screen writes, this reads.
-       Published rows only — hiding a review in the console hides it here. */
-    const store = window.VamosReviews;
-    if (store) {
-      this.forceUpdate();
-      this._offReviews = store.onChange(() => { this.i = 0; this.forceUpdate(); });
-    }
+    this._onReviewsEvent = () => { this.i = 0; this.forceUpdate(); };
+    window.addEventListener('vamos:reviews', this._onReviewsEvent);
+    this.bindReviews();
+    this._reviewsWait = setInterval(() => {
+      this.bindReviews();
+      if (this._offReviews) clearInterval(this._reviewsWait);
+    }, 50);
+    this._reviewsStop = setTimeout(() => clearInterval(this._reviewsWait), 10000);
     if (window.VamosLocale) {
       this._offLocale = window.VamosLocale.onChange((v) => this.setState({ lang: v.lang }));
     }
@@ -293,7 +305,10 @@ class Component extends DCLogic {
   componentDidUpdate() { this.boot(); }
   componentWillUnmount() {
     clearTimeout(this.t);
+    clearInterval(this._reviewsWait);
+    clearTimeout(this._reviewsStop);
     document.removeEventListener('visibilitychange', this.vis);
+    if (this._onReviewsEvent) window.removeEventListener('vamos:reviews', this._onReviewsEvent);
     if (this._offReviews) this._offReviews();
     if (this._offLocale) this._offLocale();
   }

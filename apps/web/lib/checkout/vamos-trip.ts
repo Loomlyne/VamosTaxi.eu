@@ -37,6 +37,8 @@ export type VamosTrip = {
   scheduled_local?: string;
   locale?: string;
   display_currency?: string;
+  /** Comment 11. Home writes this. Checkout relock must send the same key. */
+  fare_kind?: "one_way" | "airport_pickup" | "city_to_city";
   classes?: string[];
   classOffers?: {
     slug: string;

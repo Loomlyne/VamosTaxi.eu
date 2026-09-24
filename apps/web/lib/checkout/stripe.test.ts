@@ -79,6 +79,12 @@ describe("stripe module", () => {
     expect(params.expires_at).toBe(stripeSessionExpiresAtUnix(expiresAt));
     expect(opts).toEqual({ idempotencyKey: "idem-1" });
     expect(params).not.toHaveProperty("payment_method_types");
+    const excluded = (params.excluded_payment_method_types ?? []) as string[];
+    expect(excluded).not.toContain("paypal");
+    expect(excluded).not.toContain("amazon_pay");
+    expect(excluded).not.toContain("twint");
+    expect(excluded).not.toContain("card");
+    expect(excluded).not.toContain("link");
     expect(JSON.stringify(params)).not.toMatch(/accepts_/);
   });
 

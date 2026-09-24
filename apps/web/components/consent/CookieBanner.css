@@ -48,6 +48,16 @@
   color: var(--vt-text-primary);
 }
 
+.vt-ck-meta {
+  display: block;
+  margin-block: 0 var(--vt-space-2);
+  min-inline-size: 0;
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-body-sm);
+  font-weight: var(--vt-weight-regular);
+  line-height: var(--vt-body-leading);
+}
+
 .vt-ck-body {
   margin: 0 0 18px;
   font-size: var(--vt-body-sm);

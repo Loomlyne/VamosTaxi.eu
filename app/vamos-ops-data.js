@@ -692,6 +692,7 @@
       photo: photo,
       photoPath: photo,
       baseFare: cleanMoneySet(r.baseFare), perKm: cleanMoneySet(r.perKm), minFare: cleanMoneySet(r.minFare),
+      airportStart: cleanMoneySet(r.airportStart), cityPrice: cleanMoneySet(r.cityPrice),
       maxPax: num(r.maxPax, 3),
       maxBags: num(r.maxBags || r.luggageCapacity, 3),
       available: r.available === false ? false : true,

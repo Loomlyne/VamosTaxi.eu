@@ -23,6 +23,27 @@ export type VehicleClassSlug = string;
 /** D-03: only one_way | return reach the kernel; other modes are refused at the HTTP boundary. */
 export type QuoteMode = "one_way" | "return";
 
+/**
+ * Comment 11 fare formula. Not a trip mode (that stays one_way | return).
+ * Overlap with comment 10: the booking card's current tab id `one-way` is
+ * Airport pickup. A future One way tab must send `one_way` here. This type
+ * does not own tab chrome.
+ */
+export type FareKind = "one_way" | "airport_pickup" | "city_to_city";
+
+/** Unknown tokens are null so the HTTP boundary can refuse them. */
+export function parseFareKind(value: unknown): FareKind | null {
+  if (value === "one_way" || value === "one-way") return "one_way";
+  if (value === "airport_pickup" || value === "airport-pickup") return "airport_pickup";
+  if (value === "city_to_city" || value === "city-to-city") return "city_to_city";
+  return null;
+}
+
+/** Missing fare kind prices as one way. Never invents a start or a city price. */
+export function fareKindOrOneWay(value: unknown): FareKind {
+  return parseFareKind(value) ?? "one_way";
+}
+
 /** service_zones.zone_type (plan 04-04 additive column; D-10). */
 export type ZoneType = "airport" | "city" | "ski" | "other";
 
@@ -66,6 +87,16 @@ export interface DistanceRateRow {
   available: boolean;
   /** D-19: listed on the public board, not selectable, amount null. */
   hide_from_public?: boolean;
+  /**
+   * Comment 11. Airport pickup start. NULL until staff set it — never fall
+   * back to base_fare_rappen. Same per_km as one way.
+   */
+  airport_start_rappen?: number | null;
+  /**
+   * Comment 11. Exactly one city-to-city add on top of start + km. NULL until
+   * staff set it. Not a stack of per-city fees.
+   */
+  city_price_rappen?: number | null;
 }
 
 /**
@@ -215,6 +246,11 @@ export interface QuoteInput {
   legs: QuoteLegInput[];
   extras: Record<string, number>;
   coupon: string | null;
+  /**
+   * Comment 11. Omitted means one_way so older locks keep today's formula.
+   * Airport pickup and city to city change the start or add one city price.
+   */
+  fare_kind?: FareKind;
 }
 
 /** Line kind on the snapshot / board. */

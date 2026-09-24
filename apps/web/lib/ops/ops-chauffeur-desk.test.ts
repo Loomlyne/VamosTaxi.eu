@@ -47,12 +47,14 @@ describe("Ops chauffeur desk Wave 0 (D-01 D-07 D-10 D-14)", () => {
     expect(html).toMatch(/Night/);
   });
 
-  it("overlay verbs are Save chauffeur / Save shift / Save leave; dismiss Keep editing", () => {
+  it("overlay verb is Save chauffeur; dismiss is Keep editing; shift and leave cards are gone", () => {
     const html = read(FLEET);
     expect(html).toContain("Save chauffeur");
-    expect(html).toContain("Save shift");
-    expect(html).toContain("Save leave");
     expect(html).toContain("Keep editing");
+    expect(html).not.toContain("Save shift");
+    expect(html).not.toContain("Save leave");
+    expect(html).not.toContain("saveShift");
+    expect(html).not.toContain("saveLeave");
   });
 
   it("empty live/past copy has a next step and no sample VT- on the desk empty path", () => {
@@ -106,20 +108,54 @@ describe("dedicated chauffeur desk (D-15 D-16 D-17 D-18)", () => {
     expect(header).not.toMatch(/<a href="\/fleet\/chauffeurs"/);
   });
 
-  it("Save shift and Save leave are not empty lambdas (D-17)", () => {
+  it("detail page has no shift-days or leave editor; overlay still carries weekdays (D-17)", () => {
     const html = read(FLEET);
-    expect(html).not.toMatch(/saveShift:\s*\(\)\s*=>\s*\{\s*\}/);
-    expect(html).not.toMatch(/saveLeave:\s*\(\)\s*=>\s*\{\s*\}/);
-    expect(html).toMatch(/tSaveShift/);
-    expect(html).toMatch(/tSaveLeave/);
-    expect(html).toMatch(/fShiftDays|deskDays|weekdays/);
+    expect(html).not.toMatch(/saveShift/);
+    expect(html).not.toMatch(/saveLeave/);
+    expect(html).not.toMatch(/deskDays/);
+    expect(html).not.toMatch(/tShiftDays|tLeaveFrom|onDeskLeave/);
+    expect(html).toMatch(/key:'weekdays'/);
+    expect(html).toMatch(/shiftWeekdays/);
+    expect(html).toMatch(/c\.status === ['"]shift['"]/);
+  });
+
+  it("chauffeur profile is a person header with duty badge and fact grid", () => {
+    const html = read(FLEET);
+    expect(html).toContain('data-ch-profile="1"');
+    expect(html).toMatch(/inline-size:64px/);
+    expect(html).toMatch(/dutyTone/);
+    expect(html).toMatch(/dutyLabel/);
+    expect(html).toMatch(/profileFacts/);
+    expect(html).toContain("shield-check");
+    expect(html).toContain("fVehicle");
+    expect(html).not.toContain("profileRows");
+    expect(html).toContain("Live trips");
+    expect(html).toContain("Past bookings");
   });
 
   it("Keep editing is not a desk header control (D-18)", () => {
     const html = read(FLEET);
-    const detailStart = html.indexOf('sc-if value="{{ isDetail }}"');
-    const detail = html.slice(detailStart, html.indexOf('sc-if value="{{ isList }}"', detailStart));
-    expect(detail).not.toMatch(/tKeepEditing|keepEditing/);
+    const header = html.slice(html.indexOf("<header"), html.indexOf("</header>"));
+    expect(header).not.toMatch(/tKeepEditing|keepEditing/);
+  });
+
+  it("desk header has duty Badge and Edit chauffeur (D-17)", () => {
+    const html = read(FLEET);
+    const header = html.slice(html.indexOf("<header"), html.indexOf("</header>"));
+    expect(header).toMatch(/Badge/);
+    expect(header).toMatch(/dutyTone/);
+    expect(header).toMatch(/dutyLabel/);
+    expect(header).toMatch(/tEditC/);
+    expect(header).toMatch(/openDeskEdit/);
+    expect(header).not.toMatch(/variant=\"accent\"/);
+  });
+
+  it("desk Edit chauffeur opens the OpsTable overlay without the list table", () => {
+    const html = read(FLEET);
+    expect(html).toMatch(/embedded=\"\{\{ isDetail \}\}\"/);
+    expect(html).toMatch(/edit-id=\"\{\{ deskEditId \}\}\"/);
+    expect(html).toMatch(/edit-tick=\"\{\{ deskEditTick \}\}\"/);
+    expect(html).toMatch(/openDeskEdit/);
   });
 
   it("cleanChauffeur keeps shift and leave so the desk can persist them", () => {

@@ -48,6 +48,8 @@ describe("checkout comment pack", () => {
     expect(client).not.toContain("billingIndividual");
     expect(client).toContain("businessDetails");
     expect(client).toContain("sendPayLink");
+    expect(client).toContain("data-checkout-pay-result");
+    expect(css).toContain("vt-checkout__payresult");
     expect(client).toContain("pay-and-continue");
     expect(client).toContain("block");
     expect(client).not.toContain("payNow");
@@ -56,6 +58,18 @@ describe("checkout comment pack", () => {
     expect(client).not.toMatch(/name=["']acct["']/);
     expect(client.indexOf("continue-as-guest")).toBeGreaterThan(client.indexOf('step === "details"'));
     expect(client.indexOf("continue-as-guest")).toBeLessThan(client.indexOf("businessDetails"));
+  });
+
+  it("emails the payer and does not charge the card", () => {
+    const send = client.slice(
+      client.indexOf("async function sendPayLink"),
+      client.indexOf("async function onPay"),
+    );
+    expect(send).toContain('"/api/checkout/pay-link"');
+    expect(send).toContain("payer_email: payer");
+    expect(send).toContain("trip?.contact");
+    expect(send).not.toContain("validate()");
+    expect(send).not.toContain('setRefusal("payCouldNotStart")');
   });
 
   it("drops the flight card and paints extras from the live book", () => {
@@ -138,18 +152,26 @@ describe("checkout comment pack", () => {
     expect(payPanel).toContain("function CheckoutWallets");
     expect(payPanel).toContain('state?.type !== "success"');
     expect(payPanel).toContain('if (checkout.type !== "success")');
-    expect(payPanel).toContain("payWithApplePay");
+    expect(payPanel).toContain("payWithExpress");
     expect(payPanel).toContain("payWithCard");
     expect(payPanel).toContain("vt-checkout__cardblock");
-    expect(payPanel).toContain("CardNumberElement");
-    expect(payPanel).toContain("CardExpiryElement");
-    expect(payPanel).toContain("CardCvcElement");
-    expect(payPanel).not.toContain("<PaymentElement");
+    expect(payPanel).not.toContain("CardNumberElement");
+    expect(payPanel).not.toContain("stripe.createPaymentMethod");
+    expect(payPanel).not.toContain("paymentMethod: card.id");
+    expect(payPanel).toContain("CheckoutProvider");
+    expect(payPanel).toContain('if (checkout.type !== "success") return null');
+    expect(payPanel).not.toContain('throw new Error("payCouldNotStart")');
+    expect(payPanel).toContain("<PaymentElement");
+    expect(payPanel).toContain("result.error.message");
+    const cardConfirm = payPanel.slice(payPanel.indexOf("checkout.confirm({"), payPanel.indexOf("expressCheckoutConfirmEvent"));
+    expect(cardConfirm).not.toContain("returnUrl");
+    expect(payPanel).not.toContain("updateEmail");
+    expect(payPanel).not.toContain('if (!destination) showStripeError');
     expect(payPanel).not.toContain("ConfirmBinder");
     expect(client).toContain("confirmPayRef");
     expect(client).toContain('?? "payCouldNotStart"');
     expect(client).toContain("onComplete={onPaymentComplete}");
-    expect(payPanel).toContain("onComplete(numberOk && expiryOk && cvcOk)");
+    expect(payPanel).toContain("onComplete(event.complete)");
     expect(client).not.toContain('payMethod === "link"');
     expect(client).not.toContain("busy && !clientSecret");
     expect(client).toContain("clientSecret ?? \"\"");
@@ -161,7 +183,7 @@ describe("checkout comment pack", () => {
     expect(client).toContain("aria-busy={busy || undefined}");
     expect(client).not.toContain('refusal !== "payCouldNotStart"');
     expect(client).not.toContain("companyReady");
-    expect(client).toContain("disabled={busy || !isCheckoutEmail(payerEmail)}");
+    expect(client).toContain("disabled={busy || classFareRappen == null || !isCheckoutEmail(payerEmail)}");
     expect(client).toContain("couponAlreadyOn");
     expect(client).toContain("billingKindFromFields");
     expect(client).toContain("isCheckoutEmail(payerEmail)");
@@ -197,33 +219,25 @@ describe("checkout comment pack", () => {
     expect(payPanel).toContain("data-checkout-express");
     expect(payPanel).toContain("data-checkout-card-fields");
     expect(payPanel).not.toContain("ACCT-000028");
-    expect(payPanel).toContain("1234 1234 1234 1234");
-    expect(payPanel).toContain('t("cardCountry")');
-    expect(payPanel.indexOf('t("cardNumber")')).toBeLessThan(payPanel.indexOf('t("cardCountry")'));
-    expect(payPanel.indexOf('t("cardCountry")')).toBeLessThan(payPanel.indexOf('t("cardExpiry")'));
-    expect(payPanel.indexOf('t("cardExpiry")')).toBeLessThan(payPanel.indexOf('t("cardCvc")'));
+    expect(payPanel).toContain('amazonPay: "auto"');
     expect(payPanel).toContain('applePay: "always"');
     expect(payPanel).toContain('link: "auto"');
+    expect(payPanel).toContain('paypal: "auto"');
+    expect(payPanel).not.toContain('paypal: "never"');
     expect(payPanel).toContain('googlePay: "never"');
     expect(payPanel).toContain('overflow: "auto"');
-    expect(payPanel).toContain('"link", "apple_pay"');
-    expect(payPanel).toContain("disableLink: false");
+    expect(payPanel).toContain('"apple_pay", "amazon_pay", "paypal", "link"');
     expect(payPanel).not.toContain("billingAddress:");
-    expect(payPanel).toContain("updateBillingAddress");
+    expect(payPanel).not.toContain("updateEmail");
     expect(payPanel).not.toContain("vt-checkout__link-layer");
     expect(payPanel).not.toContain("vt-checkout__link-open");
     expect(payPanel).toContain("availablePaymentMethods");
     expect(payPanel).toContain("hidden={!hasWallets}");
-    expect(payPanel.indexOf('t("cardNumber")')).toBeLessThan(payPanel.indexOf('t("cardCountry")'));
-    expect(payPanel.indexOf('t("cardCountry")')).toBeLessThan(payPanel.indexOf('t("cardExpiry")'));
-    expect(payPanel.indexOf('t("cardExpiry")')).toBeLessThan(payPanel.indexOf('t("cardCvc")'));
     expect(css).toMatch(
       /\.vt-checkout__cardfields[\s\S]*grid-template-columns:\s*minmax\(0, 1fr\) minmax\(0, 1fr\)/,
     );
     expect(css).toContain("[data-checkout-express][hidden]");
     expect(payPanel).toContain("expressCheckoutConfirmEvent");
-    expect(payPanel).toContain("vt-checkout__card-country");
-    expect(payPanel).toContain("address: { country }");
     expect(payPanel).not.toContain("vt-checkout__wallettabs");
     expect(css).toContain(".vt-checkout__card-country");
     expect(client).toContain("recapExtras");
@@ -295,7 +309,7 @@ describe("checkout comment pack", () => {
     expect(client).toContain("vt-checkout__cta");
     expect(css).toContain("vt-checkout__cta");
     expect(css).toMatch(/\.vt-checkout__payfoot[\s\S]*gap:\s*16px/);
-    expect(client).toContain('refusal !== "pricingNotLive"');
+    expect(client).toContain('refusal === "pricingNotLive"');
     expect(css).toContain("grid-template-columns: minmax(0, 1fr) minmax(0, 1fr)");
     expect(css).toContain('[data-checkout-step="payment"]');
     expect(css).toContain("max-inline-size: 880px");

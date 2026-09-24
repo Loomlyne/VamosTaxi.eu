@@ -161,7 +161,17 @@ export async function handleStripeMessageWithDeps(
   }
 
   if (outcome === "succeeded" && deps.loadCaptureGate) {
-    const gate = await deps.loadCaptureGate(session, message.objectId);
+    let gate: CaptureGate;
+    try {
+      gate = await deps.loadCaptureGate(session, message.objectId);
+    } catch {
+      try {
+        await deps.eventSettle(message.eventId, "capture_gate_failed");
+      } catch {
+        return { retry: true };
+      }
+      return { ack: true };
+    }
     if (!gate.capture) {
       deps.emit("info", "stripe_event", {
         reason: gate.reason ?? "expired",
@@ -236,22 +246,8 @@ export async function handleStripeMessage(
       const piId = paymentIntentIdOf(session) ?? (objectId.startsWith("pi_") ? objectId : null);
       const rows = await asSystem(env, async (sql) => {
         return sql<CaptureGateRow[]>`
-          select
-            b.status::text as status,
-            coalesce(b.is_test, false) as is_test,
-            (ps.quote_lock_expires_at <= now()) as expired
-          from public.booking_payments as bp
-          join public.bookings as b on b.id = bp.booking_id
-          join public.price_snapshots as ps on ps.id = b.price_snapshot_id
-         where (
-             ${sessionId}::text is not null
-             and bp.stripe_checkout_session_id = ${sessionId}
-           )
-            or (
-             ${piId}::text is not null
-             and bp.stripe_payment_intent_id = ${piId}
-           )
-         limit 1
+          select status, is_test, expired
+            from public.checkout_capture_gate(${sessionId}, ${piId})
         `;
       });
       const row = rows[0];

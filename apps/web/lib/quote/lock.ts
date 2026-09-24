@@ -106,6 +106,11 @@ export interface QuoteLockPayload {
   computed_at: string;
   display_currency: CurrencyCode;
   mode: "one_way" | "return";
+  /**
+   * Comment 11. Optional so locks minted before this field still verify.
+   * Missing means one way. Present must be one of the three formula keys.
+   */
+  fare_kind?: "one_way" | "airport_pickup" | "city_to_city";
   pax: number;
   bags: number;
   legs: QuoteLockLeg[];
@@ -234,6 +239,10 @@ function isQuoteLockPayload(value: unknown): value is QuoteLockPayload {
     typeof p.settings_version_id === "number" &&
     typeof p.computed_at === "string" &&
     typeof p.mode === "string" &&
+    (p.fare_kind === undefined ||
+      p.fare_kind === "one_way" ||
+      p.fare_kind === "airport_pickup" ||
+      p.fare_kind === "city_to_city") &&
     typeof p.pax === "number" &&
     typeof p.bags === "number" &&
     Array.isArray(p.legs) &&

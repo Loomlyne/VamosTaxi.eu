@@ -21,6 +21,7 @@ import { percentOf, percentToHundredths, perKm } from "./round";
 import type {
   DistanceBandRow,
   DistanceRateRow,
+  FareKind,
   FixedRouteRow,
   Line,
   LineKind,
@@ -33,6 +34,7 @@ import type {
   VehicleClassSlug,
   ZoneRow,
 } from "./types";
+import { fareKindOrOneWay } from "./types";
 
 /** Kind rank for deterministic seq — fare < surcharge < included < discount (T5). */
 const KIND_RANK: Record<string, number> = {
@@ -136,6 +138,12 @@ export interface BuildFareLineArgs {
   zones?: ZoneRow[];
   /** D-21: extra stop on the journey → skip fixed_routes, use distance recipe. */
   hasExtraStops?: boolean;
+  /**
+   * Comment 11. one_way keeps the fixed-route match (D-17). Airport pickup
+   * and city to city use the distance recipe so the start can differ.
+   * Overlap with comment 10: this does not add a One way tab.
+   */
+  fareKind?: FareKind;
 }
 
 function journeyHasExtraStops(
@@ -235,10 +243,50 @@ function liveClassRows(
 }
 
 /**
+ * Comment 11. Exactly one city price, booking-level, like an addon.
+ * Not emitted for one way or airport pickup. Null amount when staff have
+ * not set the price — never a guessed CHF figure.
+ */
+export function buildCityPriceLine(args: {
+  fareKind: FareKind | undefined;
+  cityPriceRappen: number | null;
+  distanceRateId: number | null;
+  rateVersionId: number | null;
+}): Line | null {
+  if (fareKindOrOneWay(args.fareKind) !== "city_to_city") return null;
+  return {
+    seq: 0,
+    leg_seq: null,
+    kind: "extra",
+    code: "city_price",
+    i18n_key: "price.line.city_price",
+    basis: {
+      rule: "city_price",
+      city_price_rappen: args.cityPriceRappen,
+    },
+    ...(args.distanceRateId !== null
+      ? {
+          source_row: {
+            table: "distance_rates",
+            id: args.distanceRateId,
+            ...(args.rateVersionId !== null
+              ? { rate_version_id: args.rateVersionId }
+              : {}),
+          },
+        }
+      : {}),
+    allocation: "pro_rata",
+    amount_rappen: args.cityPriceRappen,
+  };
+}
+
+/**
  * D-19 D-20 D-21: place→place (airport terminal ≡ airport pin) then
  * canton→canton. No reverse A←B. Extra stops skip the fixed table.
  * Distance fare is start + perKm(all metres) + class band extras. min_fare
  * is not a floor. Missing canton rows do not block quotes.
+ * Comment 11: airport pickup swaps the start; city to city keeps this start
+ * and adds one city price outside this line.
  */
 export function buildFareLine(args: BuildFareLineArgs): Line {
   const {
@@ -250,6 +298,7 @@ export function buildFareLine(args: BuildFareLineArgs): Line {
     distanceBands,
     zones,
     hasExtraStops,
+    fareKind,
   } = args;
   const classId = vehicleClass.id;
   const slug = vehicleClass.slug as VehicleClassSlug;
@@ -257,11 +306,14 @@ export function buildFareLine(args: BuildFareLineArgs): Line {
   const dest = leg.dest_zone_id;
   const extraStops = journeyHasExtraStops(leg, hasExtraStops);
   const byId = new Map((zones ?? []).map((z) => [z.id, z]));
+  const kind = fareKindOrOneWay(fareKind);
+  // Comment 11: airport and city-to-city are start + km, not a fixed-route price.
+  const useFixedRoute = kind === "one_way";
 
   let matched: "forward" | "canton" | null = null;
   let fixed: FixedRouteRow | null = null;
 
-  if (!extraStops) {
+  if (useFixedRoute && !extraStops) {
     const live = liveClassRows(fixedRoutes, classId);
     if (origin !== null && dest !== null) {
       const place = live.find(
@@ -322,16 +374,21 @@ export function buildFareLine(args: BuildFareLineArgs): Line {
   }
 
   const bands = distanceBands ?? [];
-  const base = distanceRate?.base_fare_rappen ?? null;
+  const rowBase = distanceRate?.base_fare_rappen ?? null;
+  // Airport pickup uses a different start. Do not fall back to the one-way start.
+  const start =
+    kind === "airport_pickup"
+      ? (distanceRate?.airport_start_rappen ?? null)
+      : rowBase;
   const perKmR = distanceRate?.per_km_rappen ?? null;
   const distance_m = leg.distance_m;
   const haveMetres = Number.isFinite(distance_m) && distance_m > 0;
   const unrouted = leg.road === false && !haveMetres;
 
   let amount: number | null = null;
-  if (haveMetres && base !== null && perKmR !== null) {
+  if (haveMetres && start !== null && perKmR !== null) {
     amount =
-      base +
+      start +
       perKm(perKmR, distance_m) +
       classBandExtrasRappen(distance_m, bands, classId);
   }
@@ -348,8 +405,16 @@ export function buildFareLine(args: BuildFareLineArgs): Line {
       rule: "per_km",
       distance_m,
       per_km_rappen: perKmR,
-      base_fare_rappen: base,
+      base_fare_rappen: rowBase,
       band_count: bands.filter((row) => row.vehicle_class_id === classId).length,
+      ...(kind === "one_way"
+        ? {}
+        : {
+            fare_kind: kind,
+            start_rappen: start,
+            start_source:
+              kind === "airport_pickup" ? "airport_start_rappen" : "base_fare_rappen",
+          }),
       ...(unrouted ? { unrouted: true } : {}),
     },
     ...(distanceRate

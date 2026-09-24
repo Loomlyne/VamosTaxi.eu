@@ -1,7 +1,7 @@
 "use client";
 
 import "./SiteHeader.css";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type AnimationEvent } from "react";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { createNavigation } from "next-intl/navigation";
@@ -152,8 +152,15 @@ function SiteHeaderView({
   const tHeader = useTranslations("header");
 
   const [menuOpen, setMenuOpen] = useState(defaultNarrowOpen);
+  const [menuClosing, setMenuClosing] = useState(false);
   const [floating, setFloating] = useState(false);
-  const menuRootRef = useRef<HTMLDivElement | null>(null);
+  const headerRef = useRef<HTMLElement | null>(null);
+  const sheetCloseRef = useRef<HTMLButtonElement | null>(null);
+  const closeTimerRef = useRef<number | null>(null);
+  const menuOpenRef = useRef(menuOpen);
+  const menuClosingRef = useRef(false);
+  menuOpenRef.current = menuOpen;
+  menuClosingRef.current = menuClosing;
 
   const pathname = usePathname() ?? "";
   const rest = pathname.replace(/^\/(de|fr|ar)(?=\/|$)/, "");
@@ -195,28 +202,89 @@ function SiteHeaderView({
     };
   }, [variant]);
 
+  const finishClose = () => {
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+    menuClosingRef.current = false;
+    setMenuClosing(false);
+    setMenuOpen(false);
+  };
+  const closeMenu = () => {
+    if (!menuOpenRef.current || menuClosingRef.current) return;
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) {
+      finishClose();
+      return;
+    }
+    menuClosingRef.current = true;
+    setMenuClosing(true);
+    closeTimerRef.current = window.setTimeout(finishClose, 360);
+  };
+  const toggleMenu = () => {
+    if (menuClosingRef.current) {
+      if (closeTimerRef.current !== null) {
+        window.clearTimeout(closeTimerRef.current);
+        closeTimerRef.current = null;
+      }
+      menuClosingRef.current = false;
+      setMenuClosing(false);
+      setMenuOpen(true);
+      return;
+    }
+    if (menuOpenRef.current) closeMenu();
+    else setMenuOpen(true);
+  };
+  const onSheetAnimEnd = (event: AnimationEvent<HTMLDivElement>) => {
+    if (!menuClosingRef.current) return;
+    if (event.target !== event.currentTarget) return;
+    finishClose();
+  };
+
   useEffect(() => {
     if (!menuOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     const esc = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMenuOpen(false);
+      if (event.key === "Escape") closeMenu();
     };
     const away = (event: MouseEvent) => {
-      if (menuRootRef.current && !menuRootRef.current.contains(event.target as Node)) {
-        setMenuOpen(false);
+      if (headerRef.current && !headerRef.current.contains(event.target as Node)) {
+        closeMenu();
       }
     };
     const resize = () => {
-      if (window.innerWidth >= 1080) setMenuOpen(false);
+      if (window.innerWidth >= 1080) finishClose();
     };
     document.addEventListener("keydown", esc);
     document.addEventListener("mousedown", away);
     window.addEventListener("resize", resize);
     return () => {
+      document.body.style.overflow = prevOverflow;
       document.removeEventListener("keydown", esc);
       document.removeEventListener("mousedown", away);
       window.removeEventListener("resize", resize);
     };
   }, [menuOpen]);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!menuOpen || menuClosing) return;
+    sheetCloseRef.current?.focus({ preventScroll: true });
+  }, [menuOpen, menuClosing]);
+
+  const pathRef = useRef(pathname);
+  useEffect(() => {
+    if (pathRef.current === pathname) return;
+    pathRef.current = pathname;
+    finishClose();
+  }, [pathname]);
 
   // The mock's own rule, ported verbatim: home drops the CTA while its booking card is
   // on screen, and the floating overlay bar carries it again once you have scrolled past
@@ -227,6 +295,7 @@ function SiteHeaderView({
   const showAccount = !hideAccount;
   const accountLabel = signInLabel || t("sign-in");
   const bookLabel = t("book-a-transfer");
+  const menuExpanded = menuOpen && !menuClosing;
   const menuLabel = menuOpen ? t("close") : t("menu");
 
   const langOptions: BrandSelectOption[] = routing.locales.map((value) => ({
@@ -248,24 +317,24 @@ function SiteHeaderView({
   }));
 
   const pickLang = (value: string) => {
-    setMenuOpen(false);
     if ((routing.locales as readonly string[]).includes(value)) onLang?.(value as Locale);
   };
   const pickCur = (value: string) => {
-    setMenuOpen(false);
     if (CURRENCY_ORDER.includes(value as CurrencyCode)) onCur?.(value as CurrencyCode);
   };
 
-  const menuLinks = [
-    { href: "/faq", label: t("faqs") },
-    { href: "/contact", label: t("contact") },
+  const serviceLinks = [
+    { href: "/?service=airport#book", label: t("airport-transfers") },
+    { href: "/?service=city#book", label: t("city-to-city") },
   ];
 
   return (
     <>
       <header
+        ref={headerRef}
         data-hd={variant}
         data-hd-float={floating ? "1" : undefined}
+        data-hd-open={menuOpen ? "1" : undefined}
         data-screen-label="Header"
       >
         <div data-hd-row="1">
@@ -313,88 +382,123 @@ function SiteHeaderView({
           </div>
 
           {/* ── the narrow control row ───────────────────────────────────────── */}
-          <div data-hd-narrow="1" data-hd-tail="1" ref={menuRootRef}>
+          <div data-hd-narrow="1" data-hd-tail="1">
             <button
               type="button"
-              data-hd-round="1"
+              data-hd-menu-btn="1"
               aria-label={menuLabel}
-              aria-expanded={menuOpen}
-              aria-haspopup="true"
-              onClick={() => setMenuOpen((v) => !v)}
+              aria-expanded={menuExpanded}
+              aria-haspopup="dialog"
+              aria-controls="vt-hd-sheet"
+              onClick={toggleMenu}
             >
               <Icon name={menuOpen ? "x" : "menu"} size={20} color="var(--vt-charcoal-900)" />
             </button>
+          </div>
+        </div>
 
-            {menuOpen ? (
-              <div data-hd-menu="1" role="menu" aria-label={menuLabel}>
+        {menuOpen ? (
+          <>
+            <div
+              data-hd-scrim="1"
+              data-hd-closing={menuClosing ? "1" : undefined}
+              aria-hidden="true"
+              onClick={closeMenu}
+            />
+            <div
+              data-hd-sheet="1"
+              id="vt-hd-sheet"
+              data-hd-closing={menuClosing ? "1" : undefined}
+              role="dialog"
+              aria-modal="true"
+              aria-label={t("menu")}
+              onAnimationEnd={onSheetAnimEnd}
+              onClick={(event) => {
+                if ((event.target as HTMLElement).closest("a")) closeMenu();
+              }}
+            >
+              <div data-hd-sheet-head="1">
+                <button
+                  ref={sheetCloseRef}
+                  type="button"
+                  data-hd-menu-btn="1"
+                  data-hd-sheet-close="1"
+                  aria-label={t("close")}
+                  onClick={closeMenu}
+                >
+                  <Icon name="x" size={20} color="var(--vt-charcoal-900)" />
+                </button>
                 {showCta ? (
-                  <Link data-hd-menucta="1" href="/#book" role="menuitem">
+                  <Link data-hd-cta="1" href="/#book">
                     <span>{bookLabel}</span>
                     <Icon name="arrow-right" size={16} color="currentColor" />
                   </Link>
                 ) : null}
-
                 {showAccount ? (
                   <SiteHeaderAccount
                     variant={variant}
-                    compact
+                    placement="sheet"
                     signInLabel={accountLabel}
                     snapshot={accountSnapshot}
-                    defaultMenuOpen={accountMenuOpen}
                   />
                 ) : null}
-
-                <div data-hd-mgroup="1">
-                  <span data-hd-mlabel="1">{t("language")}</span>
-                  <div data-hd-mchips="1" data-i18n-skip="">
-                    {langOptions.map((o) => (
-                      <button
-                        key={o.value}
-                        type="button"
-                        data-hd-chip="1"
-                        data-on={o.value === lang ? "1" : "0"}
-                        aria-pressed={o.value === lang}
-                        title={o.note}
-                        onClick={() => pickLang(o.value)}
-                      >
-                        {o.label}
-                      </button>
-                    ))}
-                  </div>
+                <div data-hd-locale="1">
+                  <BrandSelect
+                    value={lang}
+                    options={langOptions}
+                    onSelect={pickLang}
+                    icon="globe"
+                    a11yLabel={t("language")}
+                    i18nSkip
+                  />
+                  <span data-hd-cur="1" data-vt-no-i18n="1">
+                    <BrandSelect
+                      value={cur}
+                      options={curOptions}
+                      onSelect={pickCur}
+                      icon="banknote"
+                      a11yLabel={t("currency")}
+                      i18nSkip
+                    />
+                  </span>
                 </div>
-
-                <div data-hd-mgroup="last">
-                  <span data-hd-mlabel="1">{t("currency")}</span>
-                  <div data-hd-mchips="1" data-i18n-skip="">
-                    {curOptions.map((o) => (
-                      <button
-                        key={o.value}
-                        type="button"
-                        data-hd-chip="1"
-                        data-on={o.value === cur ? "1" : "0"}
-                        aria-pressed={o.value === cur}
-                        title={o.note}
-                        onClick={() => pickCur(o.value)}
-                      >
-                        {o.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {showCta ? (
-                  <div data-hd-mlinks="1">
-                    {menuLinks.map((l) => (
-                      <Link key={l.href} data-hd-menuitem="1" href={l.href} role="menuitem">
+              </div>
+              <div data-hd-sheet-body="1">
+                <div data-hd-sec="1">
+                  <span data-hd-kicker="1">{t("services")}</span>
+                  <div data-hd-nav="1">
+                    {serviceLinks.map((l) => (
+                      <Link key={l.href} data-hd-menuitem="1" href={l.href}>
                         {l.label}
                       </Link>
                     ))}
                   </div>
-                ) : null}
+                </div>
+                <div data-hd-sec="1">
+                  <span data-hd-kicker="1">{t("help")}</span>
+                  <div data-hd-nav="1">
+                    <Link data-hd-menuitem="1" href="/#faq">
+                      <Icon name="info" size={18} color="currentColor" />
+                      <span>{t("faqs")}</span>
+                    </Link>
+                    <Link data-hd-menuitem="1" href="/contact">
+                      <Icon name="map-pin" size={18} color="currentColor" />
+                      <span>{t("contact")}</span>
+                    </Link>
+                    <a data-hd-menuitem="1" href="mailto:info@vamostaxi.site" data-vt-no-i18n="1">
+                      <Icon name="mail" size={18} color="currentColor" />
+                      <span>info@vamostaxi.site</span>
+                    </a>
+                    <a data-hd-menuitem="1" href="https://wa.me/41796267082" rel="noreferrer noopener">
+                      <Icon name="message-circle" size={18} color="currentColor" />
+                      <span>{t("whatsapp")}</span>
+                    </a>
+                  </div>
+                </div>
               </div>
-            ) : null}
-          </div>
-        </div>
+            </div>
+          </>
+        ) : null}
       </header>
       {floating ? <div data-hd-spacer="1" aria-hidden="true" /> : null}
     </>

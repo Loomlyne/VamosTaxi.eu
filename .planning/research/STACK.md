@@ -1,20 +1,10 @@
 # Stack Research
 
-**Domain:** v1.1 Ops Support — two-way email tickets in Ops (Resend inbound + ticket replies from the existing Cloudflare Worker, Postgres thread storage)
-**Researched:** 2026-09-04
-**Confidence:** HIGH on Resend send/receive/webhook APIs and MX-conflict rules (official docs, live); HIGH on in-repo versions; MEDIUM on the exact Resend receiving MX hostname (dashboard-generated per domain)
+**Domain:** v1.3 Meta measurement — load `fbevents.js` only after Accept, and send one Purchase from the existing Stripe webhook
+**Researched:** 2026-09-23
+**Confidence:** HIGH on no new package, the official snippet, and Worker `fetch` to Graph. MEDIUM on whether Graph accepts a Purchase whose `user_data` is only `fbp`/`fbc` and whose `event_source_url` is the site origin with no path.
 
-> v1.1 only. Do **not** re-litigate the frozen v1.0 stack. v1.0 research lives in
-> `.planning/research/v1.0-archive/` and is not restated here.
->
-> **Already in place (leave alone):** Cloudflare Workers + OpenNext (`next@15.5.25`,
-> `@opennextjs/cloudflare@1.20.2`, `wrangler@4.124.0`), Worker `vamos`, Supabase Zurich
-> `yaumjzvylngfjhtuffqs` behind Hyperdrive, `postgres@3.4.9`, Cloudflare Email Sending
-> (`env.EMAIL` / `send_email` binding) for the auth hook and contact-form primary send,
-> Resend leftover fallback (`RESEND_API_KEY` already on Worker `vamos`), Resend sending
-> domain `vamostaxi.site` already verified, `@vamos/emails` renderers, `contact_submissions`
-> + `contact_delivery_outbox`, `standardwebhooks@1.0.0` for the **Supabase** Send Email
-> Hook. No Vercel. No driver app. Staging DNS is `vamostaxi.site` only.
+v1.3 only. Do not re-litigate the frozen v1.0 / v1.1 / v1.2 stack. Those files stay in `.planning/research/v1.0-archive/`, `v1.1-archive/`, and `v1.2-archive/`. This milestone does not change quote, pay, or confirmation.
 
 ## Recommended Stack
 
@@ -22,220 +12,201 @@
 
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| `resend` npm | **6.26.0** (latest; repo is on `6.24.0`) | Send ticket replies; verify inbound webhooks; fetch received bodies; optional Gmail copy-forward | Fetch-based SDK already in `apps/web`. `6.26.0` is current as of 2026-09-04 and exposes `emails.send`, `webhooks.verify`, `emails.receiving.get`, `emails.receiving.forward`. Bump; do not add a second mail SDK. |
-| Resend Receiving (custom domain) | Platform; enable on a **new** subdomain `inbound.vamostaxi.site` | MX target for customer Reply-in-Gmail | Official path for “support emails from users.” Any local-part at the receiving domain is accepted, which gives plus-address ticket routing (`support+{ticketId}@inbound.vamostaxi.site`) without IMAP. |
-| Resend webhook `email.received` | Platform (Svix-signed) | Push inbound mail into the Worker | Metadata-only POST; body/headers come from a follow-up `emails.receiving.get`. Designed for serverless body-size limits. Same Worker, new App Router route. |
-| Postgres (existing Supabase) | Hosted 15.x on `yaumjzvylngfjhtuffqs` | Ticket + thread system of record | Tickets are `contact_submissions` rows plus a message thread. Hyperdrive + `postgres.js` already carries staff/system writes; no new datastore. |
-| Cloudflare Worker `vamos` (unchanged host) | existing OpenNext Worker | HTTP inbound webhook + staff reply action | One deploy. New unauthenticated route next to `/api/auth/email-hook` and `/api/contact`. No second Worker. |
+| Official Meta Pixel snippet | Not an npm package. Script `https://connect.facebook.net/en_US/fbevents.js` | One browser event: `PageView`, and only after Accept | Meta's documented base code is that snippet. A wrapper still downloads the same file and cannot refuse to inject it. Pixel id `1595596972063765` is a public constant, not a secret. |
+| Conversions API on Graph | **v26.0** (announced 2026-07-29; available until TBD). CAPI versions last at least two years. | One server `Purchase` | `POST https://graph.facebook.com/v26.0/1595596972063765/events`. The using-the-api sample still shows `v25.0`. Pin the current version, not the sample. Do not call an unversioned host. v20.0 is removed on 2026-09-24. |
+| Worker `fetch` | `wrangler@4.124.0`, `compatibility_date` `2026-08-20`, flags `nodejs_compat` and `global_fetch_strictly_public` | Outbound POST from the existing Worker | The host is public. No SDK and no `axios`. The token stays in the Worker secret. |
+| Existing Stripe settle path | `stripe@22.6.1` | The one Purchase | Send from the consumer the webhook already enqueues, after the existing once-only paid row. Do not add a queue. Do not send from the browser. |
+| Existing Supabase | Project `yaumjzvylngfjhtuffqs`. JS client already `postgres@3.4.9` | Consent bit and the cookie join | `consent_log.marketing` already exists. `booking_payments` already has `charged_rappen` and `charged_currency`. It has no `_fbp` / `_fbc` columns. Add those two nullable text columns on that table. Not a new database. |
+
+The Pixel is a JavaScript snippet that loads `fbevents.js` and then calls `fbq('track', 'PageView')`.[1] By default that library also records URLs, domains, and devices, so it must not load before Accept.[1]
+
+Graph v26.0 is the current Marketing API line, and Graph v20.0 is removed on 2026-09-24.[7] Conversions API versions are supported for at least two years, which is why a pinned `v26.0` path is the stack choice rather than an unversioned URL.[3]
 
 ### Supporting Libraries
 
 | Library | Version | Purpose | When to Use |
 |---------|---------|---------|-------------|
-| `zod` | **4.4.3** (already in `apps/web`) | Validate verified webhook payload + staff reply body | After `resend.webhooks.verify` succeeds. Do not trust `event.data` shape by TypeScript alone. |
-| `@vamos/emails` | workspace | Render ticket-reply HTML/text in en/de/fr/ar | Same package as contact/auth mail. Add a support-reply renderer; do not add `react-email`. |
-| `postgres` (postgres.js) | **3.4.9** (already) | Insert/update tickets and messages through Hyperdrive | Staff reply path (`asStaff` / `vamos_staff`) and webhook path (`asSystem` / `vamos_edge`). Per-request client, same as the rest of the app. |
+| None | — | No runtime dependency | Do not `pnpm add` a pixel, SDK, parameter builder, tag manager, or CMP. |
+| In-repo loader | n/a (a client module) | Inject the official snippet | Only after Accept, the legal-lines flag, and a customer route with no token. Call `fbq('set', 'autoConfig', false, '1595596972063765')` before `init`. Pass no advanced-matching object. Track `PageView` only. |
+| `zod` | **4.4.3** (already in `apps/web`) | Reject a bad CAPI body before POST | Optional. Do not add a Meta schema package. |
+| First-party readable flag | n/a | Tell the browser that Accept meant marketing on | The HttpOnly consent-subject cookie is set for both Accept and Dismiss. It cannot be the pixel gate. Set a separate readable cookie only after the server log succeeds. Clear it on Dismiss. |
+
+`apps/web/lib/consent/bind.ts` passes `marketing: false` on every method today. Accept must pass `true` through the existing `record_consent` argument. Dismiss and `settings_change` stay `false`. Do not add a category switch. `apps/web/components/shell/SiteShell.tsx` renders `CookieBanner` only when the path is home (`isHome ? banner : null`) and already skips ops, dashboard, and `/dev`. Extending that existing banner to customer pages is a placement change, not a new component.
+
+Turn automatic configuration off before `init`. Otherwise the Pixel sends button clicks and page metadata, including Open Graph and Schema.org fields.[2] That is how a PageView-only install leaks form fields and route-shaped titles. The official CSP note is to allow JavaScript from `https://connect.facebook.net`, and the same page says the Pixel loads `/en_US/fbevents.js` and `/signals/config/{pixelID}`.[2]
 
 ### Development Tools
 
 | Tool | Purpose | Notes |
 |------|---------|-------|
-| Resend Dashboard → Domains | Add `inbound.vamostaxi.site`, enable Receiving, copy MX | Staging zone only (`vamostaxi.site`). Confirm receiving record shows “verified” after DNS. |
-| Resend Dashboard → Webhooks | Create endpoint, subscribe **only** to `email.received` | Signing secret → `wrangler secret put RESEND_WEBHOOK_SECRET --env staging`. Endpoint URL is the custom domain, e.g. `https://vamostaxi.site/api/webhooks/resend`. |
-| Resend Dashboard → Receiving | Manual test send to `support@inbound.vamostaxi.site` | Confirms MX before the Worker is wired. Bodies are stored in Resend even if the webhook is down. |
-| `supabase` CLI | Migration for ticket tables + pgTAP | Follow existing `packages/db/supabase/migrations/` numbering and FORCE RLS / `REVOKE EXECUTE FROM PUBLIC` house rules. |
-| `wrangler secret put` | `RESEND_WEBHOOK_SECRET` (new). `RESEND_API_KEY` already present | Never put the signing secret in `wrangler.jsonc` `vars`. |
+| `wrangler secret put META_CAPI_ACCESS_TOKEN` | System-user token | Owner runs it. Staging now, production later. Never `wrangler.jsonc` `vars`, never `NEXT_PUBLIC`, never the repo, never the client. |
+| `wrangler secret put META_CAPI_TEST_EVENT_CODE --env staging` | Meta test event code | Staging only. The code rotates. Production must omit the field. |
+| Events Manager → Test Events | See the staging Purchase | Owner tool. Not a dependency. |
+| Events Manager → automatic advanced matching | Must stay off | Code cannot flip that dashboard switch. `autoConfig: false` is the in-page half. Do not pass email or phone into `fbq('init')`. |
+| Pixel id constant | `1595596972063765` | Same id on staging and production. Public. Not a secret. |
 
 ## Installation
 
 ```bash
-# Only package change for v1.1 — bump, do not add a mail vendor
-npm install resend@6.26.0 --workspace=apps/web
+# No npm install. Do not add a pixel package, the Business SDK, a parameter
+# builder, Zaraz, GTM, or a consent SaaS.
 
-# No new packages. Do not add svix, postal-mime, mailparser, react-email,
-# googleapis, imapflow, or a chat SDK.
+# Already pinned in apps/web/package.json — do not bump for this milestone:
+#   next@15.5.25
+#   react@19.2.8
+#   react-dom@19.2.8
+#   stripe@22.6.1
+#   zod@4.4.3
+#   @opennextjs/cloudflare@1.20.2   (devDependency)
+#   wrangler@4.124.0                (devDependency)
+#   postgres@3.4.9                  (devDependency, already the DB client)
+
+# Owner, after en/de/fr/ar legal lines exist. Not an agent step.
+# wrangler secret put META_CAPI_ACCESS_TOKEN --env staging
+# wrangler secret put META_CAPI_TEST_EVENT_CODE --env staging
 ```
 
 ```ts
-// Ticket reply (staff action on the Worker) — Resend, not env.EMAIL
-const { data, error } = await resend.emails.send(
-  {
-    from: "Vamos Taxi <support@inbound.vamostaxi.site>",
-    to: customerEmail,
-    bcc: ["info@vamostaxi.site"], // Gmail copy of the dispatcher reply
-    replyTo: `support+${ticketId}@inbound.vamostaxi.site`,
-    subject: subject.startsWith("Re:") ? subject : `Re: ${subject}`,
-    html,
-    text,
-    headers: {
-      "In-Reply-To": previousSmtpMessageId,
-      References: [...previousIds, previousSmtpMessageId].join(" "),
-    },
-  },
-  { idempotencyKey: `ticket-reply:${ticketId}:${messageId}` },
-);
+// Browser — official snippet, after every gate below. No <noscript> image.
+// fbq('set', 'autoConfig', false, '1595596972063765')  // before init
+// fbq('init', '1595596972063765')                      // no user-data object
+// fbq('track', 'PageView')                             // the only browser event
 
-// Inbound webhook — raw body, then verify, then fetch content
-const payload = await request.text();
-const event = resend.webhooks.verify({
-  payload,
-  headers: {
-    id: request.headers.get("svix-id") ?? "",
-    timestamp: request.headers.get("svix-timestamp") ?? "",
-    signature: request.headers.get("svix-signature") ?? "",
-  },
-  webhookSecret: env.RESEND_WEBHOOK_SECRET,
-});
-if (event.type === "email.received") {
-  const { data: email } = await resend.emails.receiving.get(event.data.email_id);
-  // persist thread row keyed on email.id (Resend receiving id) — unique
-  await resend.emails.receiving.forward({
-    emailId: event.data.email_id,
-    from: "Vamos Taxi <support@inbound.vamostaxi.site>",
-    to: "info@vamostaxi.site", // Gmail copy of the customer reply
-  });
-}
+// Server — existing settle consumer, not the webhook HTTP handler:
+// POST https://graph.facebook.com/v26.0/1595596972063765/events
+//   ?access_token=<META_CAPI_ACCESS_TOKEN>
+// data[0]:
+//   event_name: "Purchase"
+//   event_time: unix seconds of the charge (not older than 7 days)
+//   action_source: "website"
+//   event_id: the Stripe event id (same id if the queue retries)
+//   event_source_url: "https://vamostaxi.site"   // live public origin only, no path. Production wrangler env is not deployed.
+//   custom_data: { currency: "CHF", value: charged_rappen / 100 }
+//   user_data: { fbp, fbc }                      // omit a key that was not stored
+// staging only: test_event_code from the staging secret
+// production: do not send test_event_code
 ```
 
-## What v1.1 actually adds
+CSP edit is `apps/web/lib/security/headers.ts`. The live policy allows Stripe, Mapbox, and Turnstile. It does not allow Meta. Add only:
 
-### 1. Resend Receiving DNS (staging `vamostaxi.site` only)
+- `script-src`: `https://connect.facebook.net`
+- `connect-src`: `https://connect.facebook.net` and `https://www.facebook.com`
+- `img-src`: `https://www.facebook.com`
 
-- Add Resend domain **`inbound.vamostaxi.site`**. Enable Receiving. Add the MX Resend shows (typical shape `inbound-smtp.<region>.amazonaws.com`; use the dashboard value, do not guess).
-- Verify sending on that subdomain too (SPF/DKIM/CNAME as Resend lists) so `From: support@inbound.vamostaxi.site` is legal. Replies must originate on the **receiving** domain; if `From` is `info@vamostaxi.site` (Gmail MX), customer Reply goes to Gmail and never hits the webhook.
-- **Do not** put Resend receiving MX on apex `vamostaxi.site`. Apex MX stays Gmail so `info@vamostaxi.site` keeps working. Same-priority MX does not dual-deliver; lowest-priority Resend MX on apex would steal the mailbox.
-- Prod `vamostaxi.eu` DNS stays Phase 11. No live MX there.
+Do not add `graph.facebook.com` to the page policy. The Worker `fetch` is not bound by that header. A browser call to Graph would put the token in the client. Do not wildcard `*.facebook.com` or `*.facebook.net`. Do not add `www.instagram.com` or `gw.conversionsapigateway.com` unless a staging PageView is blocked on that host. The fetched `fbevents.js` (421831 bytes, 2026-09-23) names `https://www.facebook.com/tr/` as its endpoint and names the gateway host only as a script-URL allowlist constant. We will not use the gateway.
 
-### 2. Send ticket replies from the Worker via Resend
+Send the Purchase with `POST` to the pixel `/events` edge.[3] `event_time` may be up to 7 days before the send; older than that, Meta rejects the whole request.[3] `event_source_url` is required for website events and must match the verified domain.[6] Send the origin only. A path can carry a pay-link token or a booking reference, and those must not be in the payload. If a test event is rejected for origin-only, stop and ask. Do not send the request path.
 
-- Staff reply action on the existing OpenNext Worker calls `resend.emails.send`. Keep `env.EMAIL` for auth + contact-form confirmation; it has no `In-Reply-To` / `References` / plus-address `replyTo` contract we need for threading.
-- `RESEND_API_KEY` is already on Worker `vamos`. Reuse it.
-- Persist the Resend send `id` and the SMTP `Message-ID` (GET email / webhook now expose it) on the outbound message row so the next reply can set `In-Reply-To` + `References`.
-- Idempotency key per outbound message so a dispatcher double-submit cannot send twice (Resend keys expire after 24 h; our DB unique on message id is the durable guard).
-
-### 3. Inbound customer replies via webhook
-
-- New route, e.g. `POST /api/webhooks/resend`, `dynamic = "force-dynamic"`. Unauthenticated until `webhooks.verify` succeeds — same posture as `/api/auth/email-hook`.
-- Resend signs with **Svix** headers (`svix-id`, `svix-timestamp`, `svix-signature`). That is **not** the Standard Webhooks set (`webhook-id`, …) used by the Supabase auth hook. Do not reuse `standardwebhooks` here; use `resend.webhooks.verify`.
-- Webhook body is metadata only (`email_id`, `from`, `to`, `subject`, `message_id`, attachment list). Always `emails.receiving.get(email_id)` for `html` / `text` / `headers`.
-- Match ticket: plus-address local-part first (`support+{uuid}@…`); else `In-Reply-To` / `References` against stored SMTP ids; else drop (do not auto-open a new ticket from a random inbound — v1.1 tickets come from `contact_submissions` only).
-- Dedupe on `email_id` unique. Return 200 on duplicate so Resend stops retrying. Return 5xx only when persist/fetch failed and a retry is useful. Return 401 on bad signature.
-- Ignore mail from our own sending addresses to avoid bounce/forward loops.
-
-### 4. Gmail `info@vamostaxi.site` stays a copy
-
-- New contact rows already fan out a support copy via `env.EMAIL` to `CONTACT_SUPPORT_RECIPIENT` (keep).
-- Dispatcher replies: `bcc: info@vamostaxi.site`.
-- Customer inbound: `emails.receiving.forward({ to: "info@vamostaxi.site", … })` after the row is stored. Ops is the working inbox; Gmail is not polled.
-
-### 5. Postgres ticket thread storage
-
-Do **not** overload `contact_submissions` with a JSON thread. Add two tables in `public`, RLS on, writes only via staff/system roles (same pattern as `contact_delivery_outbox`).
-
-```sql
--- sketch, not a migration
-create type public.support_ticket_status as enum ('new', 'open', 'replied', 'closed');
-
-create table public.support_tickets (
-  id                     uuid primary key default extensions.gen_random_uuid(),
-  contact_submission_id  uuid not null unique
-                         references public.contact_submissions(id),
-  status                 public.support_ticket_status not null default 'new',
-  customer_email         extensions.citext not null,
-  subject                text not null,
-  inbound_local_part     text not null unique, -- plus-address token
-  last_message_at        timestamptz not null default now(),
-  created_at             timestamptz not null default now(),
-  updated_at             timestamptz not null default now()
-);
-
-create table public.support_ticket_messages (
-  id                 uuid primary key default extensions.gen_random_uuid(),
-  ticket_id          uuid not null references public.support_tickets(id),
-  direction          text not null check (direction in ('inbound', 'outbound')),
-  body_text          text not null,
-  body_html          text,
-  from_address       extensions.citext not null,
-  to_address         extensions.citext not null,
-  smtp_message_id    text,          -- RFC Message-ID; used for In-Reply-To
-  resend_email_id    uuid unique,   -- send id or receiving id; webhook idempotency
-  in_reply_to        text,
-  created_at         timestamptz not null default now()
-);
-```
-
-- Insert a `support_tickets` row (status `new`) when a `contact_submissions` row is created; first message is the form body (not an email).
-- Staff: `SELECT`/`UPDATE` tickets (status only — no auto-tags in v1.1), `SELECT` messages, `INSERT` outbound messages.
-- Webhook: `asSystem` `INSERT` inbound messages. No `anon` grants.
-- `handled_at` on `contact_submissions` can stay; ticket `status` is the Ops source of truth.
-- Attachments: store metadata only if it falls out of the webhook payload. Do not download files to R2 in v1.1 (not in scope).
+`currency` is required on a purchase and must be an ISO 4217 code.[4] The locked charge currency is CHF. `value` is required and must be a monetary amount.[4] Send francs (`charged_rappen / 100`), not rappen. If `charged_rappen` is 0, or `charged_currency` is not `chf`, send nothing. A zero Purchase is both forbidden here and a bad Meta event.
 
 ## Alternatives Considered
 
 | Recommended | Alternative | When to Use Alternative |
 |-------------|-------------|-------------------------|
-| Receiving subdomain `inbound.vamostaxi.site` | Enable receiving MX on apex `vamostaxi.site` | Never while Gmail `info@` must keep working. Apex MX cannot dual-deliver. |
-| `From` + `Reply-To` on `inbound.vamostaxi.site` | `From: info@vamostaxi.site` + `Reply-To` inbound | Only if every customer client honours `Reply-To`. Gmail usually does; some mobile clients reply to `From`. Too risky for “Reply-in-Gmail lands in the ticket.” |
-| `resend.webhooks.verify` | `svix` npm or `standardwebhooks` | `svix` is a duplicate of what the Resend SDK already wraps. `standardwebhooks` is already used for **Supabase** (different header names) — keep it there, do not stretch it to Resend. |
-| `emails.receiving.get` for body | Download raw MIME + `mailparser` / `postal-mime` | Only if v1.1 needed faithful attachment/inline-image passthrough. It does not. Node `mailparser` is a poor Workers fit. |
-| Inline webhook work (verify → get → insert → forward → 200) | New Cloudflare Queue | Queue if fetch+forward regularly exceeds Worker CPU/time and Resend retries become noisy. v1.1 volume (contact form, one operator) does not justify a new queue. |
-| Ticket tables in Postgres | Store threads in Resend / Gmail labels | Resend is not the system of record (Free retention is short). Gmail is a copy. Ops reads Hyperdrive. |
+| Official snippet, injected after the gates | `react-facebook-pixel@1.0.4` | Never on this app. See What NOT to Use. The raw loader is the one that can stay unloaded. |
+| Worker `fetch` to Graph `v26.0` | `facebook-nodejs-business-sdk@24.0.1` | Only if we left Workers and needed the SDK's hashing. We send nothing that needs hashing, and the published SDK is still 24.0.1. |
+| Two columns on existing `booking_payments` | Stripe Checkout Session `metadata` | Metadata means editing `lib/checkout/stripe.ts`. That file already stores `booking_reference`. This milestone does not change pay. Do not copy `booking_reference` into Meta. |
+| Existing `STRIPE_EVENTS` queue | A new Meta queue, or Conversions API Gateway | The webhook handler must stay short. The consumer already retries. Gateway is a separate host. |
+| Origin-only `event_source_url` | The full browser URL | Full URL is what Meta's examples show. Use it only if the owner accepts a path with no token and no booking ref. Default is origin-only. |
+| `event_id` = Stripe `evt_…` | A random UUID per attempt | A random id makes a queue retry look like a second Purchase. Meta's pixel-vs-server dedup is not our once-only gate. |
+
+Meta recommends the Business SDK because it hashes user parameters for you.[8] The package on npm is still that SDK, described as the Marketing API SDK for Javascript and Node.js.[11] That is a reason not to add it here. The milestone sends no email, phone, or name, so there is nothing to hash. `fbp` and `fbc` must not be hashed. The Pixel itself writes `_fbp` after it loads.[9] Do not mint `_fbp` before Accept.
+
+Advertisers who do not send the same event from both the Pixel and the Conversions API do not need pixel-vs-server dedup for that event.[5] Purchase is server-only, so there is no browser Purchase to dedupe. Still send a stable `event_id` so a queue retry is the same event. The real once-only gate is the existing paid row, not a new Meta table.
 
 ## What NOT to Use
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| Gmail IMAP / Gmail API / Pub/Sub / App passwords | Product out of scope. Polling a mailbox is slow, credential-fragile, and misses the contact-form origin. | Contact-form rows + Resend `email.received`. |
-| Live chat (Intercom, Crisp, Tidio, in-house websocket) | Product out of scope. WhatsApp is already a deep link, not a ticket inbox. | Email tickets in Ops `#support`. |
-| New mail vendors (Postmark, Mailgun, SendGrid, Amazon SES direct, AgentMail) | `vamostaxi.site` is already verified on Resend; `RESEND_API_KEY` is already on the Worker. A second vendor is a second webhook, DNS, and failure mode. | Resend 6.26.0. |
-| Cloudflare Email Routing `email()` handler / `postal-mime` | `env.EMAIL` is **sending** (auth + contact). Routing inbound would fight Gmail MX the same way apex Resend MX would. | Resend Receiving on `inbound.`. |
-| `env.EMAIL.send` for ticket replies | Binding cannot set `In-Reply-To` / `References` / plus-address `replyTo` the way Resend `emails.send({ headers })` can. | `resend.emails.send`. |
-| Putting Resend receiving MX on `vamostaxi.site` | Steals or randomly splits `info@` from Gmail. | MX only on `inbound.vamostaxi.site`. |
-| `svix`, `mailparser`, `react-email` | Extra deps. SDK verify + Receiving API + `@vamos/emails` cover v1.1. | Existing packages + `resend@6.26.0`. |
-| New Worker / KV / R2 / Queue / Vercel | Hosting and data path are frozen. | Route + tables on the current Worker and Postgres. |
-| Driver app, live GPS, phone-typed tickets, auto-tags | Frozen / out of v1.1. | Statuses New / Open / Replied / Closed only. |
+| Cloudflare Zaraz | A tag manager. It loads third-party tools outside the Accept gate and the legal-lines flag. Forbidden for this milestone. | The official snippet, injected by our code after those gates |
+| Google Tag Manager | Same problem, plus a new script host and a container that can add `ViewContent` without a code review. | The official snippet |
+| `react-facebook-pixel` | Worse than the raw loader. npm version **1.0.4**, last modified **2022-05-14**, described as "Pixel Kit for React". Release `1.0.4` was published **2020-12-09**. The repo is on React **19.2.8**. The package README's sample sets `autoConfig: true` and passes `em: 'some@email.com'` into `init`. It still downloads the same `fbevents.js`. It has no Accept gate, no legal-lines gate, and no route denylist. | Official snippet, `autoConfig` false, no user-data object |
+| `facebook-nodejs-business-sdk` | npm **24.0.1**, modified **2025-11-21**. Graph **v26.0** shipped **2026-07-29**. Depends on `axios`. Hashes PII, which we must not send. | Worker `fetch` |
+| `capi-param-builder`, `meta-capi-param-builder-clientjs` | Builds `fbp` / `fbc` and also hashes PII and fills IP and referrer. | Read `_fbp` and `_fbc` after Accept. Format `fbc` from `fbclid` only if the cookie is missing, and only after Accept. Do not lowercase `fbclid`. |
+| Conversions API Gateway, Stape, Segment, RudderStack, Elevar | A new hosted or paid pipe. Stack is Workers plus the existing webhook. | Worker `fetch` from the settle consumer |
+| Cookiebot, OneTrust, Iubenda, a second banner, category toggles | New CMP. Accept and Dismiss stay. No new switches. | Existing `CookieBanner`. Show it on customer pages until a choice. Do not draft the legal lines. |
+| `<noscript>` image pixel | The official snippet includes `https://www.facebook.com/tr?...&ev=PageView&noscript=1`. It fires with no JavaScript gate. | Omit it. `img-src` still allows `www.facebook.com` because the script beacons there. |
+| `fbq('track', 'Purchase')` and every other standard or custom event | Browser Purchase double-counts on refresh. Middle events are out. | Browser `PageView` only. One server Purchase. |
+| Browser `fetch` to `graph.facebook.com` | The token would ship to the client. Page CSP is not the fix. | Server settle path |
+| Hashed email, phone, name, `external_id`, `order_id`, `content_ids`, route, flight, booking ref, client IP, user agent | Lock: match the click with `_fbp` and `_fbc` only. `order_id` is a booking reference. IP and user agent raise match quality and are not in that noun list, but the lock still says those two cookies only. If Graph rejects the event, stop and ask. Do not add them to raise the score. | `user_data.fbp` and `user_data.fbc` only |
+| `data_processing_options: ["LDU"]` with an invented country | LDU is the US limited-data flag. Accept is the consent gate. | Omit the field |
+| A new database vendor, or a `meta_events` SaaS | Once-only is the existing payment row. | Existing Supabase. Two nullable columns at most. |
+| Unversioned `graph.facebook.com` | Versions get removed. v20.0 goes on 2026-09-24. | `v26.0` |
+| Loading before the owner lines exist | TBC copy is not a licence to load `fbevents.js`. Do not draft en/de/fr/ar banner, cookies, or privacy lines. | A code flag that stays false until those strings are in |
+| `fbq('consent', 'revoke')` while the script is loaded | The file is already on the page. Dismiss must mean the script never loads, and a later Dismiss must stop future events. | Do not inject. If it was injected, remove it and do not track. |
+| Wildcard CSP, or adding `graph.facebook.com` "because CAPI" | Wider than the script host, and it does not make the server call work. | The three directives above |
+
+`react-facebook-pixel` is the package people reach for, and it is the wrong one here.[10] Its README sample turns `autoConfig` on and puts an email in `init`.[12] That is the opposite of PageView-only and the opposite of "no hashed email". The raw snippet is shorter, matches the current docs, and can be kept out of the document until the gates pass.[1][2]
+
+The test event code is for testing, and production payloads must omit it.[3] Events sent with that code are not dropped. They still enter Events Manager and can be used for targeting.[3] Staging must send the code, on the locked pixel id. Do not add a second pixel to dodge that. Production must not set the secret.
 
 ## Stack Patterns by Variant
 
-**If the customer hits Reply in Gmail after a dispatcher message:**
-- Mail is addressed to `support+{ticketId}@inbound.vamostaxi.site` (Reply-To / From on the receiving domain).
-- Resend fires `email.received` → Worker verifies → `receiving.get` → append inbound row → status `open` → forward copy to `info@`.
+**If the owner has not supplied banner, cookies, and privacy lines in en, de, fr, and ar:**
 
-**If the dispatcher sends a second reply in the same ticket:**
-- Set `In-Reply-To` to the latest SMTP id and `References` to the space-joined history. Subject stays `Re: …`. BCC Gmail again.
+- Do not load `fbevents.js`, even after Accept
+- Do not send Purchase
+- Do not draft the lines to unblock the flag
 
-**If an inbound message cannot be matched to a ticket:**
-- ACK 200, do not create a ticket (v1.1 origin is `contact_submissions` only). Still optional-forward to Gmail so nothing is silently dropped from the copy inbox.
+**If there is no choice yet, or the choice was Dismiss:**
 
-**If `env.EMAIL` is missing in a given Worker env:**
-- Contact/auth keep the existing Resend leftover fallback. Ticket replies still use Resend directly (required, not leftover).
+- Do not load the script
+- A later Dismiss stops future events
+- Accepting after a charge does not backfill a Purchase
+
+**If Accept was logged, the legal-lines flag is on, and the route is a customer page with no token:**
+
+- Load the snippet once
+- `PageView` only, including a later client navigation
+- Never on ops, a pay link, or manage-booking
+
+**If the Worker is staging:**
+
+- Send `test_event_code`
+- Same pixel id
+
+**If the Worker is production:**
+
+- Omit `test_event_code`
+
+**If `charged_rappen` is 0 or the charged currency is not `chf`:**
+
+- Send nothing
+
+**If neither `_fbp` nor `_fbc` was stored before the charge:**
+
+- Send nothing
+- Do not read a cookie that appeared only after a later Accept
+
+**If the queue retries the same Stripe event:**
+
+- Send the same `event_id`
+- Do not send a second Purchase if the paid row already settled
 
 ## Version Compatibility
 
 | Package A | Compatible With | Notes |
 |-----------|-----------------|-------|
-| `resend@6.26.0` | OpenNext Worker (`nodejs_compat`, `compatibility_date` 2026-08-20) | Fetch SDK; `webhooks.verify` + `emails.receiving.*` run in the Node compat runtime. No SubtleCrypto special-case (unlike Stripe’s sync HMAC). |
-| `resend@6.26.0` | `RESEND_API_KEY` already on Worker `vamos` | Same key sends replies and fetches received content. Webhook **signing** secret is a different value (`RESEND_WEBHOOK_SECRET`). |
-| `resend.webhooks.verify` | Headers `svix-id` / `svix-timestamp` / `svix-signature` | Do not pass Supabase `webhook-*` headers. Keep `standardwebhooks@1.0.0` for `/api/auth/email-hook` only. |
-| `emails.receiving.get` | Webhook `data.email_id` | Body is not in the webhook. Must GET. |
-| `postgres@3.4.9` + Hyperdrive | New ticket tables | Same per-request client, `SET LOCAL` RLS, no supabase-js for row queries. |
-| `zod@4.4.3` | Verified Resend JSON | Fine; no upgrade needed. |
-| Cloudflare Email Sending `env.EMAIL` | Auth hook + contact outbox | Unchanged. Not on the ticket reply path. |
+| `next@15.5.25` / `react@19.2.8` / `react-dom@19.2.8` | Official snippet via `document.createElement('script')` | No pixel package. `next/script` is already inside Next. Do not use `strategy="beforeInteractive"`. A conditional `next/script` is still easier to mount too early than a loader that returns null. |
+| `wrangler@4.124.0` + `global_fetch_strictly_public` | `https://graph.facebook.com/v26.0/{pixel}/events` | Public host. No SDK. |
+| `facebook-nodejs-business-sdk@24.0.1` | Marketing API through the 24.0 line, plus `axios@^1.4.0` | Not compatible with a v26.0 pin, and not added. npm modified 2025-11-21. |
+| `react-facebook-pixel@1.0.4` | The README was written against React 16-era samples | Not added. App is React 19.2.8. |
+| `stripe@22.6.1` | Existing `constructEventAsync` + `STRIPE_EVENTS` queue | Do not bump. Do not read `booking_reference` out of session metadata into the Meta body. |
+| Graph `v26.0` | CAPI support floor of two years from release. Changelog says available until TBD. | Re-pin when that TBD becomes a date. Do not ship v20.0. |
+| Live CSP in `headers.ts` | Must gain `connect.facebook.net` and `www.facebook.com` before a PageView can leave the browser | `graph.facebook.com` is a server host. Adding it to CSP does not enable CAPI. |
+| `consent_log.marketing` / `record_consent` | Already the four booleans (`necessary`, `functional`, `analytics`, `marketing`) | Flip the existing marketing argument on Accept. No new column for the bit. New columns are only `_fbp` and `_fbc` on `booking_payments`. |
 
 ## Sources
 
-- `https://resend.com/docs/dashboard/receiving/introduction` — receiving overview, support-email use case. HIGH.
-- `https://resend.com/docs/dashboard/receiving/custom-domains` — enable receiving on a verified domain; MX required. HIGH.
-- `https://resend.com/docs/knowledge-base/how-do-i-avoid-conflicting-with-my-mx-records` — subdomain vs apex MX; same-priority does not dual-deliver; Gmail coexistence. HIGH.
-- `https://resend.com/docs/dashboard/receiving/create-receiving-webhook` — `email.received` metadata-only; must GET content. HIGH.
-- `https://resend.com/docs/dashboard/receiving/get-email-content` — `resend.emails.receiving.get`. HIGH.
-- `https://resend.com/docs/dashboard/receiving/reply-to-emails` — `In-Reply-To` / `References` / `Re:` subject. HIGH.
-- `https://resend.com/docs/dashboard/receiving/forward-emails` — `emails.receiving.forward` for the Gmail copy. HIGH.
-- `https://resend.com/docs/webhooks/verify-webhooks-requests` — raw body, Svix headers, `resend.webhooks.verify`. HIGH.
-- `https://resend.com/docs/api-reference/emails/send-email` — `replyTo`, `bcc`, `headers`, `Idempotency-Key` (24 h). HIGH.
-- npm `resend@6.26.0` (2026-09-03) vs repo `6.24.0`. HIGH.
-- In-repo: `apps/web/package.json`, `apps/web/app/api/contact/route.ts`, `apps/web/lib/forms/notify.ts`, `apps/web/app/api/auth/email-hook/route.ts`, `apps/web/wrangler.jsonc` (`send_email` / Worker `vamos`), `packages/db/supabase/migrations/20260828000002_contact_forms.sql`. HIGH.
-
----
-*Stack research for: v1.1 Ops Support (Resend inbound + Worker ticket replies + Postgres threads)*
-*Researched: 2026-09-04*
+[1] https://developers.facebook.com/docs/meta-pixel/get-started
+[2] https://developers.facebook.com/docs/facebook-pixel/advanced
+[3] https://developers.facebook.com/docs/marketing-api/conversions-api/using-the-api
+[4] https://developers.facebook.com/docs/marketing-api/conversions-api/parameters/custom-data
+[5] https://developers.facebook.com/docs/marketing-api/conversions-api/deduplicate-pixel-and-server-events
+[6] https://developers.facebook.com/docs/marketing-api/conversions-api/parameters/server-event
+[7] https://developers.facebook.com/blog/post/2026/07/29/introducing-graph-api-v26-and-marketing-api-v26
+[8] https://developers.facebook.com/docs/marketing-api/conversions-api/best-practices
+[9] https://developers.facebook.com/docs/marketing-api/conversions-api/parameters/fbp-and-fbc
+[10] https://www.npmjs.com/package/react-facebook-pixel
+[11] https://www.npmjs.com/package/facebook-nodejs-business-sdk
+[12] https://github.com/zsajjad/react-facebook-pixel/blob/master/README.md

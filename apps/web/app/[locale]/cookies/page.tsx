@@ -117,6 +117,9 @@ export default async function CookiesPage({
             ]}
           />
         </div>
+        <div className="vt-legal-blank--row" data-meta-slot="cookies">
+          <PendingSlot label="Meta cookie row" />
+        </div>
       </section>
 
       <section id="analytics">

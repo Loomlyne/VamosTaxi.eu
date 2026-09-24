@@ -1,5 +1,6 @@
 // POST /api/auth — JSON surface for the DC mock (Server Actions stay on the React forms).
-// Cookies are set by @supabase/ssr via createServerSupabaseClient.
+// Session cookies are copied onto this JSON response. next/headers cookies().set
+// does not attach to a hand-built Response on the Worker.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { routing } from "@/i18n/routing";
@@ -36,16 +37,27 @@ import {
 } from "@/lib/consent/bind";
 import { mintConsentSubject, readConsentSubject } from "@/lib/consent/cookie";
 import { cfConnectingIp, truncateClientIp } from "@/lib/consent/ip";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { authSetCookieHeader, createServerSupabaseClient, type AuthSetCookie } from "@/lib/supabase/server";
 import { csrfForbidden, trustedSiteOrigin } from "@/lib/security/origin";
 
 export const dynamic = "force-dynamic";
 
-function json(result: AuthRunResult | ProfileRunResult, status = 200): Response {
-  return Response.json(result, {
-    status,
-    headers: { "Cache-Control": "private, no-store" },
-  });
+function json(
+  result: AuthRunResult | ProfileRunResult,
+  status = 200,
+  setCookies?: readonly string[],
+): Response {
+  const headers = new Headers({ "Cache-Control": "private, no-store" });
+  for (const cookie of setCookies ?? []) headers.append("Set-Cookie", cookie);
+  return Response.json(result, { status, headers });
+}
+
+function sessionJson(
+  result: AuthRunResult | ProfileRunResult,
+  cookies: readonly AuthSetCookie[],
+  status = 200,
+): Response {
+  return json(result, status, cookies.map(authSetCookieHeader));
 }
 
 function localizedHome(locale: string): string {
@@ -126,11 +138,12 @@ export async function POST(request: Request): Promise<Response> {
   ctx.locale = locale;
 
   const origin = requestOrigin(request);
-  const supabase = await createServerSupabaseClient(request);
+  const setCookies: AuthSetCookie[] = [];
+  const supabase = await createServerSupabaseClient(request, { cookies: setCookies });
 
   if (action === "signout") {
     await runSignOut(supabase);
-    return json({ ok: true });
+    return sessionJson({ ok: true }, setCookies);
   }
 
   if (action === "update-password") {
@@ -263,5 +276,5 @@ export async function POST(request: Request): Promise<Response> {
   if (!parsed.success) return json(FORM_CREDENTIALS);
   const { result, reason } = await runSignInPassword(supabase, parsed.data);
   if (reason) log("error", "auth", ctx, { reason, action: "signin" });
-  return json(result);
+  return sessionJson(result, setCookies);
 }

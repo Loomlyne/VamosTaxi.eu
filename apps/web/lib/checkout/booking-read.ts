@@ -15,9 +15,9 @@ export {
   isVoucherStatus,
 } from "./booking-status";
 
-// Guest SELECT only — columns named in 20260823000022_rls_guest.sql. Never
-// `SELECT *`. RLS is the gate: a missing or unknown token hashes to "" or a
-// 64-char hex that matches no row, and the policy returns zero rows.
+// Confirmation reads go through security definers. vamos_guest and
+// authenticated have no SELECT on bookings. A missing token returns null.
+// The page stays hidden. A 42501 must not be the steady state.
 
 export const BOOKING_COLUMNS = [
   "id",
@@ -247,94 +247,27 @@ function firstLeg(rows: LegRow[]): {
   };
 }
 
-async function selectVisibleBooking(sql: SqlTag, reference: string): Promise<VisibleBooking | null> {
-  const bookings = (await sql`
-    select
-      id,
-      reference,
-      customer_id,
-      contact_name,
-      contact_email,
-      contact_phone,
-      is_return,
-      status,
-      locale,
-      display_currency,
-      price_snapshot_id,
-      price_total_rappen,
-      created_at,
-      updated_at
-    from public.bookings
-    where reference = ${reference}
-  `) as unknown as BookingRow[];
-  const booking = bookings[0];
-  if (!booking) return null;
-  const legs = (await sql`
-    select
-      id,
-      booking_id,
-      leg_seq,
-      direction,
-      pickup_text,
-      pickup_place_id,
-      pickup_lat,
-      pickup_lng,
-      dropoff_text,
-      dropoff_place_id,
-      dropoff_lat,
-      dropoff_lng,
-      origin_zone_id,
-      dest_zone_id,
-      scheduled_at,
-      scheduled_local,
-      flight_no,
-      vehicle_class_id,
-      pax,
-      bags,
-      status,
-      scheduled_range,
-      created_at,
-      updated_at
-    from public.booking_legs
-    where booking_id = ${booking.id}
-    order by leg_seq
-  `) as unknown as LegRow[];
-  const snaps = (await sql`
-    select
-      id,
-      booking_id,
-      engine_version,
-      policy,
-      quote_id,
-      lines,
-      subtotal_rappen,
-      discount_rappen,
-      total_rappen,
-      currency,
-      coupon_code,
-      duration_min,
-      distance_km
-    from public.price_snapshots
-    where booking_id = ${booking.id}
-    order by computed_at desc nulls last
-    limit 1
-  `) as unknown as SnapshotRow[];
-  const payments = (await sql`
-    select status, captured_at, charged_rappen
-    from public.booking_payments
-    where booking_id = ${booking.id}
-    order by captured_at desc nulls last, created_at desc
-    limit 1
-  `) as unknown as PaymentRow[];
-  const fareLines = parseFareLines(snaps[0]?.lines);
-  const extras = mergeExtraCodes(extrasFromPolicy(snaps[0]?.policy), fareLines);
-  const payment = payments[0];
+function visibleFromPayload(raw: unknown): VisibleBooking | null {
+  if (!raw || typeof raw !== "object") return null;
+  const payload = raw as {
+    booking?: BookingRow;
+    legs?: LegRow[];
+    snapshot?: SnapshotRow | null;
+    payment?: PaymentRow | null;
+  };
+  const booking = payload.booking;
+  if (!booking?.reference) return null;
+  const legs = Array.isArray(payload.legs) ? payload.legs : [];
+  const snap = payload.snapshot ?? undefined;
+  const payment = payload.payment ?? undefined;
+  const fareLines = parseFareLines(snap?.lines);
+  const extras = mergeExtraCodes(extrasFromPolicy(snap?.policy), fareLines);
   const priceTotalRappen =
     rappenOrNull(booking.price_total_rappen) ??
-    rappenOrNull(snaps[0]?.total_rappen) ??
+    rappenOrNull(snap?.total_rappen) ??
     rappenOrNull(payment?.charged_rappen);
   const vehicleClassSlug = fareLines[0]?.vehicleClass ?? "";
-  const couponCode = asText(snaps[0]?.coupon_code).trim() || null;
+  const couponCode = asText(snap?.coupon_code).trim() || null;
   const leg = firstLeg(legs);
   return {
     visible: true as const,
@@ -353,15 +286,40 @@ async function selectVisibleBooking(sql: SqlTag, reference: string): Promise<Vis
     contactEmail: asText(booking.contact_email).trim(),
     contactPhone: asText(booking.contact_phone).trim(),
     couponCode,
-    discountRappen: rappenOrNull(snaps[0]?.discount_rappen),
-    subtotalRappen: rappenOrNull(snaps[0]?.subtotal_rappen),
+    discountRappen: rappenOrNull(snap?.discount_rappen),
+    subtotalRappen: rappenOrNull(snap?.subtotal_rappen),
     priceTotalRappen,
     fareLines,
-    durationMin: rappenOrNull(snaps[0]?.duration_min),
-    distanceKm: kmOrNull(snaps[0]?.distance_km),
+    durationMin: rappenOrNull(snap?.duration_min),
+    distanceKm: kmOrNull(snap?.distance_km),
     paidAt: capturedAtIso(payment?.captured_at),
     paymentStatus: typeof payment?.status === "string" ? payment.status : null,
   };
+}
+
+async function selectVisibleBooking(
+  sql: SqlTag,
+  reference: string,
+  tokenHashHex: string,
+): Promise<VisibleBooking | null> {
+  const rows = await sql<{ payload: unknown }[]>`
+    select public.guest_confirmation_read(
+      ${reference},
+      decode(${tokenHashHex}, 'hex')
+    ) as payload
+  `;
+  return visibleFromPayload(rows[0]?.payload);
+}
+
+async function selectCustomerBooking(
+  sql: SqlTag,
+  reference: string,
+  customerId: string,
+): Promise<VisibleBooking | null> {
+  const rows = await sql<{ payload: unknown }[]>`
+    select public.customer_confirmation_read(${reference}, ${customerId}::uuid) as payload
+  `;
+  return visibleFromPayload(rows[0]?.payload);
 }
 
 async function loadGuestBooking(
@@ -371,7 +329,7 @@ async function loadGuestBooking(
 ): Promise<VisibleBooking | null> {
   if (!BOOKING_REFERENCE_RE.test(reference)) return null;
   const manageTokenHashHex = rawCookie ? await hashManageToken(rawCookie) : "";
-  return asGuest(env, manageTokenHashHex, async (sql) => selectVisibleBooking(sql, reference));
+  return asGuest(env, manageTokenHashHex, async (sql) => selectVisibleBooking(sql, reference, manageTokenHashHex));
 }
 
 async function loadCustomerBooking(
@@ -380,7 +338,7 @@ async function loadCustomerBooking(
   reference: string,
 ): Promise<VisibleBooking | null> {
   if (!BOOKING_REFERENCE_RE.test(reference)) return null;
-  return asCustomer(env, claims, async (sql) => selectVisibleBooking(sql, reference));
+  return asCustomer(env, claims, async (sql) => selectCustomerBooking(sql, reference, claims.sub));
 }
 
 export async function readBookingForConfirmation(

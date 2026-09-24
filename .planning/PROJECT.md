@@ -12,25 +12,53 @@ The design phase is finished. Every screen already exists as a working `.dc.html
 brand system is vendored, and the build plan is written. This project is the production
 build of that package — not a redesign of it.
 
-## Current Milestone: v1.1 Ops Support
+## Current Milestone: v1.3 Meta measurement
 
-**Goal:** Dispatcher answers contact mail from Ops. Customer replies land in the same ticket.
+**Goal:** After Accept, customer pages send Meta one PageView, and a paid booking sends one Purchase from the Stripe webhook, in the CHF Stripe charged.
 
 **Target features:**
-- Ops `#support` tab (Staff tab stays gone)
-- Tickets from `/contact` rows; statuses New / Open / Replied / Closed
-- Reply from the ticket via Resend
-- Inbound customer replies via Resend webhook, same ticket
-- Gmail `info@vamostaxi.site` still gets a copy
-- Staging DNS only (`vamostaxi.site`)
+- Pixel `1595596972063765` loads only after Accept
+- Public pages with no token in the URL, plus signed-in account and bookings
+- Never ops, never a pay link, never manage-booking
+- Browser event is PageView only
+- Purchase fires once from the Stripe webhook, with `_fbp` and `_fbc` attached
+- No email, phone, name, route, flight number, or booking reference in the payload
+- Unpriced `CHF 000` sends nothing
+- Accept and Dismiss stay. Accept means Meta on. Dismiss means Meta off. Banner asks on every customer page until they choose. No new switches
+- A later Dismiss stops future events. Accepting after payment does not backfill a Purchase
+- Banner, cookies, and privacy lines in en/de/fr/ar come from the owner. Do not draft them. The pixel stays unloaded until those lines are in
+- Conversions API token via `wrangler secret put`. Staging uses a Meta test event code
 
-**Frozen (v1.0):** quote → pay → booking → ops board (Phases 7–11). Not deleted.
+**Frozen:** v1.2 Payment (Phases 21–25 planned, not current). v1.1 leftovers (16 MX, 17 chauffeur, 19 close-out, 20 security) stay on disk. Quote/class rebuild and fare Publish are not this milestone.
+
+## Milestone v1.2 Payment (planned, not current)
+
+**Goal:** From a locked quote, a customer pays on `vamostaxi.site` in Stripe TEST and the
+booking confirms. Later live Stripe account is wrangler secrets only — not another checkout rewrite.
+
+**Target features:**
+- Checkout Pay and continue: card, Apple Pay, Google Pay, TWINT, Link (TEST)
+- `/bookings` unpaid row pays the same way
+- Email a pay link: branded mail with trip recap + button → `/checkout/pay/[token]`
+- Token page is the DC pay screen with recap; payer cannot edit the booking
+- Token methods = same as checkout
+- Traveller and other payer can both complete; first successful charge wins; loser sees the same confirmation
+- Traveller always gets confirmation page + confirmation email + manage link
+- Different payer gets a receipt only (no manage)
+- UAT: success, 3DS, decline, expired/unpriced quote (visible refusal, not silent)
+- Stripe webhook is source of truth for confirmed; thank-you page waits on it
+- Pay link lasts as long as the quote lock (24h), then visible expired
+- To email a pay link: company name + VAT required (existing DC fields); company address optional; payer email required. Self-pay (card/wallets) does not need business details. Do not invent VAT format.
+
+**Frozen:** v1.1 leftovers (16 MX, 17 chauffeur, 19 close-out, 20 security). Quote/class rebuild and fare Publish are not this milestone.
 
 ## Core Value
 
 A customer can book a fixed-price transfer in under a minute and trust that the driver will
 be there. If nothing else works, the booking funnel — quote, pay, confirmation — must.
-v1.1 is a freeze of that funnel to ship the Support inbox.
+v1.2 unfreezes **pay** only. Charge always CHF. Unpriced class stays `CHF 000` and must refuse
+visibly. No invented fares. No `sk_live_`. No `.eu`.
+v1.3 measures ads only. It does not change quote, pay, or confirmation.
 
 ## Business Context
 
@@ -79,12 +107,25 @@ Everything here is a hypothesis until it ships and takes a real booking.
 - [ ] Ops console runs the day: live board, booking detail, assignment, manual phone booking
 - [ ] Legal pages ship with real numbers where the owner has supplied them and labelled TBC pills where not
 
-**v1.1 Ops Support (active now)**
-- [ ] Dispatcher opens `#support` and sees contact tickets from `contact_submissions`
-- [ ] Dispatcher sets status New / Open / Replied / Closed
-- [ ] Dispatcher replies from the ticket; Resend delivers to the customer
-- [ ] Customer Reply-in-Gmail is captured inbound and appended to the same ticket
-- [ ] Support Gmail still receives a copy; Ops is the working inbox
+**v1.3 Meta measurement (active now)**
+- [ ] After Accept, allowed customer pages load pixel `1595596972063765` and send PageView only
+- [ ] A paid booking sends one Purchase from the Stripe webhook, charged CHF, with `_fbp` and `_fbc`
+- [ ] Accept means Meta on. Dismiss means Meta off. The choice is logged server-side. A later Dismiss stops future events
+- [ ] Ops, pay-link, and manage-booking URLs never load the pixel
+- [ ] The pixel stays unloaded until the owner supplies banner, cookies, and privacy lines in en/de/fr/ar
+
+**v1.2 Payment (frozen — planned, not current)**
+- [ ] Traveller pays a locked quote on `vamostaxi.site` in Stripe TEST (card, Apple Pay, Google Pay, TWINT, Link) and the webhook confirms the booking
+- [ ] Thank-you page waits on the webhook, not on `confirm()` alone
+- [ ] Unpaid booking on `/bookings` pays the same way
+- [ ] Email a pay link (company name + VAT required; address optional) sends a branded recap; recipient pays on `/checkout/pay/[token]` and cannot edit the trip
+- [ ] First successful charge wins; the other path shows the same confirmation; no second charge
+- [ ] Traveller gets confirmation email + manage link; other payer gets a receipt only
+- [ ] 3DS, decline, expired lock, and unpriced `CHF 000` class refuse visibly
+- [ ] Live Stripe account later is wrangler secret/config swap only
+
+**v1.1 Ops Support (frozen)**
+- Dispatcher `#support` inbox, Resend reply, inbound webhook — shipped 12–15. Phases 16 MX, 17 chauffeur, 19 close-out, 20 security stay parked.
 
 **Launch**
 - [ ] Site holds 10k concurrent browsers with the database barely touched
@@ -104,6 +145,13 @@ Everything here is a hypothesis until it ships and takes a real booking.
 - **Gmail IMAP ingest** — tickets are contact-form rows + Resend inbound webhooks, not a mailbox scrape
 - **Phone-typed tickets / auto-tags** — out of v1.1; statuses only
 - **Live `vamostaxi.eu` DNS** — still Phase 11; inbound MX is staging `vamostaxi.site` only
+- **Live Stripe account / `sk_live_`** — not v1.2; test mode until an explicit later cutover (secrets only)
+- **Meta middle-funnel events** — quote seen, checkout started, and pay step are not sent. PageView + one Purchase only
+- **Hashed email or phone to Meta** — not v1.3. Match the ad click with `_fbp` and `_fbc` only
+- **Browser Purchase on the thank-you page** — refresh would double-count. The webhook is the only Purchase
+- **Meta on ops, pay-link, or manage-booking** — those URLs can carry a token. PageView would send it to Meta
+- **Calendar invite (.ics) on confirmation** — out of v1.2
+- **Quote/class rebuild and owner fare Publish** — out of v1.2; unpriced class stays `CHF 000`
 - **Live flight tracking on the ops board** — flight data ships at autofill + delay-aware depth only
 - Vercel, anywhere, for anything — hosting or preview deploys
 - Medusa or any commerce framework — its product/cart/order model adds infrastructure and still needs custom booking, pricing and dispatch
@@ -169,7 +217,11 @@ and every amount on screen reads `CHF 000`.
 | Distance = start + all-km × per-km + bands | D-15; no region %; overlap blocks Publish | ✓ Phase 18 |
 | PayPal out of V1 | Stripe has no Swiss-merchant PayPal support; a second processor for one method is not worth 2–3 days against the deadline | — Pending |
 || Live chat is a WhatsApp deep link | Owner wants chat, but no chat exists in any mock; a vendor widget fights the design system and the cookie banner, an in-house build costs 3–5 days | — Pending |
-|| v1.1 two-way Support tickets via Resend | Owner 2026-09-04: Ops `#support`, reply from ticket, inbound replies; Gmail stays a copy. Funnel frozen. | — Pending |
+|| v1.1 two-way Support tickets via Resend | Owner 2026-09-04: Ops `#support`, reply from ticket, inbound replies; Gmail stays a copy. Funnel frozen. | Frozen v1.2 |
+|| v1.2 Payment is Stripe TEST on `vamostaxi.site` | Dummy card must capture; live account later is wrangler secrets only; DC pay mock stays | — Active |
+|| Webhook confirms the booking | Thank-you waits on Stripe webhook, not client `confirm()` | — Active |
+|| Pay-link is someone else | Company name + VAT required; address optional; token page recap-only; payer receipt, traveller manage | — Active |
+|| First charge wins | Traveller and other payer may both complete; loser sees the winner confirmation | — Active |
 | Self-serve cancel stays, human channels are additive | The button honours the tiers and refunds automatically, which keeps refunds off the owner's response time | — Pending |
 | Flight data at autofill + delay-aware depth | Owner put tracking in V1; full live tracking is the expensive tail with the least launch value | — Pending |
 | Consent logged server-side | A browser-only cookie cannot prove consent under nFADP/GDPR; adds a `consent_log` table | — Pending |
@@ -179,6 +231,10 @@ and every amount on screen reads `CHF 000`.
 | Language is a route segment, currency is client state | The `VamosLocale` DOM-walking runtime cannot render correct language server-side; see `.planning/ADR-001-i18n-ssr.md`. The mandated contract survives behind a shim | — Pending |
 | No account is created speculatively | Phase 1 creates each external service when it first needs it; a duplicate is caught by the sign-up flow itself rather than by inspection | — Pending |
 | `apps/web` lands in `Loomlyne/VamosTaxi.eu` | Rather than a separate `vamos-platform` repo; the app sits next to the mocks it is ported from | — Pending |
+| v1.3 Meta is PageView + one webhook Purchase | Ad click is not consent. Browser Purchase double-counts. Middle steps and hashed email/phone wait | — Active |
+| Accept means Meta on; Dismiss means off | Two buttons, every customer page until a choice. No category switches. Marketing was stored false | — Active |
+| Pixel stays unloaded until owner legal lines | Do not invent banner, cookies, or privacy copy. Four languages. TBC is not a licence to load `fbevents.js` | — Active |
+| v1.2 Payment stays planned, not current | Phases 21–25 remain on disk. Phase 21 is not executing while v1.3 is defined | — Active |
 
 ## Evolution
 
@@ -198,4 +254,5 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-15 after Phase 18 (OPS Pricing source of truth)*
+*Last updated: 2026-09-24 — phase 26 lock shipped on the branch, not live. Pixel stays off.*
+*Last updated: 2026-09-22 — milestone v1.2 Payment started*

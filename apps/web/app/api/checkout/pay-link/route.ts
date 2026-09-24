@@ -1,7 +1,8 @@
 // apps/web/app/api/checkout/pay-link/route.ts
 //
 // POST /api/checkout/pay-link. Mints unpaid VT-, emails passenger + payer.
-// 24h clock does not restart on resend. Charge gate unchanged.
+// Token exp is the quote lock exp. Resend mints a new hash and must not
+// restart that clock. Charge-gate refusals return before Stripe.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { sendPayLink } from "@vamos/emails/confirmation";
@@ -9,7 +10,7 @@ import { asCheckout, asQuote } from "@/lib/db/identity";
 import { checkoutPayLinkSchema } from "@/lib/checkout/intent-schema";
 import { refuse } from "@/lib/checkout/errors";
 import { runCheckoutIntent } from "@/lib/checkout/intent";
-import { createBooking } from "@/lib/checkout/create-booking";
+import { createBooking, issueManageToken } from "@/lib/checkout/create-booking";
 import { attachPayment } from "@/lib/checkout/attach-payment";
 import { loadOpenPayment } from "@/lib/checkout/load-open-payment";
 import { mintManageToken } from "@/lib/checkout/manage-token";
@@ -17,6 +18,11 @@ import { setPayLink } from "@/lib/checkout/set-pay-link";
 import { lookupVehicleClassId, snapshotPolicyFromSettings } from "@/lib/checkout/lock-to-rpc";
 import { confirmationRecipients, payLinkEmailFromLock, payLinkPath } from "@/lib/checkout/pay-link";
 import { verifyLock } from "@/lib/quote/lock";
+import {
+  payLinkTokenExpiresAt,
+  refusalForMissingClassId,
+  stripeAccountIsLegacyUaeTest,
+} from "@/lib/checkout/charge-gate";
 import {
   createCheckoutSession,
   expireCheckoutSession,
@@ -32,6 +38,13 @@ import type { IntentRecompute } from "@/lib/quote/intent";
 import { publicSiteOrigin, csrfForbidden } from "@/lib/security/origin";
 
 export const dynamic = "force-dynamic";
+
+const NO_STORE = { "cache-control": "private, no-store" };
+
+/** Payable-path stop. No code field — must not collapse into a charge-gate refusal. */
+function legacyUaePrefixStop(): Response {
+  return Response.json({ ok: false }, { status: 503, headers: NO_STORE });
+}
 
 export async function POST(request: Request) {
   const blocked = csrfForbidden(request);
@@ -49,10 +62,10 @@ export async function POST(request: Request) {
   if (!parsed.success) return refuse("invalid_request");
   const body = parsed.data;
 
-  const stripe = stripeFromEnv(env);
   const origin = publicSiteOrigin(new URL(request.url).host);
   const current = env.QUOTE_LOCK_SECRET || "";
   const previous = env.QUOTE_LOCK_SECRET_PREVIOUS;
+  const lockSecrets = previous ? { current, previous } : { current };
 
   const { postgresNowIso, vehicleClassId } = await asQuote(env, async (sql) => {
     const rows = await sql`select now() as now`;
@@ -63,7 +76,7 @@ export async function POST(request: Request) {
     };
   });
   if (!vehicleClassId) {
-    return refuse("invalid_request");
+    return refuse(refusalForMissingClassId());
   }
 
   const settingsDoc = await loadSettingsVersion(env, postgresNowIso);
@@ -88,9 +101,27 @@ export async function POST(request: Request) {
     extrasCatalog = [];
   }
 
+  const workerNowIso = new Date().toISOString();
+  const nowIso = workerNowIso > postgresNowIso ? workerNowIso : postgresNowIso;
+  const verified = await verifyLock(lockSecrets, body.lock, nowIso);
+  if (!verified.ok && verified.reason === "expired") {
+    return refuse("quote_expired");
+  }
+  const lockPayload = verified.ok ? verified.payload : null;
+  if (lockPayload) {
+    const chosen = lockPayload.class_totals.find((row) => row.slug === body.vehicle_class);
+    if (chosen?.total_rappen == null) {
+      return refuse("pricing_not_live");
+    }
+    if (stripeAccountIsLegacyUaeTest(env.STRIPE_PUBLISHABLE_KEY ?? "")) {
+      return legacyUaePrefixStop();
+    }
+  }
+
+  const stripe = stripeFromEnv(env);
   const intentRes = await runCheckoutIntent(body, {
-    lockSecrets: previous ? { current, previous } : { current },
-    workerNowIso: new Date().toISOString(),
+    lockSecrets,
+    workerNowIso,
     postgresNowIso,
     reprice: (payload) => ({
       pricing_live: true,
@@ -108,6 +139,7 @@ export async function POST(request: Request) {
     expireCheckoutSession: (id) => expireCheckoutSession(stripe, id).then(() => undefined),
     retrieveCheckoutSession: (id) => retrieveCheckoutSession(stripe, id),
     createBooking: (args) => asCheckout(env, null, (sql) => createBooking(sql, args)),
+    issueManageToken: (args) => asCheckout(env, null, (sql) => issueManageToken(sql, args)),
     attachPayment: (args) => asCheckout(env, null, (sql) => attachPayment(sql, args)),
     loadOpenPayment: (quoteId) => asCheckout(env, null, (sql) => loadOpenPayment(sql, quoteId)),
     publishableKey: stripePublishableKey(env),
@@ -120,9 +152,7 @@ export async function POST(request: Request) {
     loadLaunchFlags: () => loadLaunchFlags(env),
     loadQuotePayGate: async (quoteId) => {
       const rows = await asCheckout(env, null, (sql) => sql<{ is_test: boolean | null }[]>`
-        select is_test from public.bookings
-         where quote_id = ${quoteId}::uuid
-         limit 1
+        select public.checkout_booking_is_test(${quoteId}::uuid) as is_test
       `);
       const row = rows[0];
       if (!row) return null;
@@ -137,6 +167,9 @@ export async function POST(request: Request) {
     amount_rappen: number | null;
     expires_at: string;
   };
+  if (!lockPayload) {
+    return refuse("quote_expired");
+  }
 
   const payToken = await mintManageToken();
   await asCheckout(env, null, (sql) =>
@@ -148,22 +181,12 @@ export async function POST(request: Request) {
       companyVat: body.company_vat ?? "",
       payerEmail: body.payer_email,
       tokenHash: payToken.hash,
-      tokenExpiresAt: new Date(payload.expires_at),
+      tokenExpiresAt: payLinkTokenExpiresAt(lockPayload.exp),
     }),
   );
 
   const payUrl = `${origin}${payLinkPath(body.locale, payToken.raw)}`;
   const to = confirmationRecipients(body.contact.email, body.payer_email);
-  const verified = await verifyLock(
-    previous ? { current, previous } : { current },
-    body.lock,
-    "0001-01-01T00:00:00.000Z",
-  );
-  const lockPayload = verified.ok
-    ? verified.payload
-    : "payload" in verified
-      ? verified.payload
-      : null;
   const sent = await sendPayLink(
     { RESEND_API_KEY: env.RESEND_API_KEY ?? "" },
     payLinkEmailFromLock({
@@ -184,7 +207,7 @@ export async function POST(request: Request) {
     to,
   );
   if (!sent.ok) {
-    return Response.json({ error: "email_failed", code: "invalid_request" }, { status: 502, headers: { "cache-control": "private, no-store" } });
+    return Response.json({ error: "email_failed", code: "email_failed" }, { status: 502, headers: { "cache-control": "private, no-store" } });
   }
 
   return Response.json(

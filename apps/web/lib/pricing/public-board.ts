@@ -51,18 +51,62 @@ export function decoratePublicClasses(
   });
 }
 
-/** Rated live-book classes for the idle home strip. Deleted (no_rate) omitted. */
+function sortByBook(book: RateBook, entries: ClassBoardEntry[]): ClassBoardEntry[] {
+  const bySlug = new Map(book.classes.map((cls) => [cls.slug, cls]));
+  return [...entries].sort((a, b) => {
+    const sa = bySlug.get(a.slug)?.sort_order ?? 0;
+    const sb = bySlug.get(b.slug)?.sort_order ?? 0;
+    if (sa !== sb) return sa - sb;
+    if (a.slug < b.slug) return -1;
+    if (a.slug > b.slug) return 1;
+    return 0;
+  });
+}
+
+/**
+ * Idle eligibility has no legs, so a class that is only on a live fixed route
+ * is labelled no_rate and the home strip drops it. It is still a live-book
+ * class — paint the card, never a fare. Dark-only and unrated leftovers stay out.
+ */
+function liveFixedRouteIdleCards(
+  book: RateBook,
+  seen: ReadonlySet<string>,
+): ClassBoardEntry[] {
+  const out: ClassBoardEntry[] = [];
+  for (const cls of book.classes) {
+    if (seen.has(cls.slug) || cls.active === false) continue;
+    const liveFixed = book.fixed_routes.some(
+      (row) => row.vehicle_class_id === cls.id && row.live === true,
+    );
+    if (!liveFixed) continue;
+    out.push({
+      slug: cls.slug,
+      eligible: true,
+      ineligible_reason: null,
+      effective_max_pax: cls.passenger_capacity,
+      max_bags: cls.luggage_capacity,
+      fixed_route: true,
+      lines: [],
+      total_rappen: null,
+    });
+  }
+  return out;
+}
+
+/** Rated live-book classes for the idle home strip. Deleted leftovers omitted. Amounts stay null. */
 export function liveBookBoard(book: RateBook): ClassBoardEntry[] {
   const board = evaluateEligibility(book, IDLE_INPUT);
+  const listed = board.classes
+    .filter((entry) => entry.ineligible_reason !== "no_rate")
+    .map((entry) => ({
+      ...entry,
+      lines: [],
+      total_rappen: null,
+    }));
+  const seen = new Set(listed.map((entry) => entry.slug));
   return decoratePublicClasses(
     book,
-    board.classes
-      .filter((entry) => entry.ineligible_reason !== "no_rate")
-      .map((entry) => ({
-        ...entry,
-        lines: [],
-        total_rappen: null,
-      })),
+    sortByBook(book, [...listed, ...liveFixedRouteIdleCards(book, seen)]),
   );
 }
 

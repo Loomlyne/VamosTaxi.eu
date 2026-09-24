@@ -220,12 +220,14 @@
   padding: 7px 9px;
 }
 
-.vt-checkout__class[data-fit="false"] {
+.vt-checkout__class[data-fit="false"],
+.vt-checkout__class[data-priced="false"] {
   opacity: 0.42;
   cursor: not-allowed;
 }
 
-.vt-checkout__class[data-fit="false"]:hover {
+.vt-checkout__class[data-fit="false"]:hover,
+.vt-checkout__class[data-priced="false"]:hover {
   border-color: var(--vt-border-subtle);
 }
 
@@ -462,6 +464,18 @@
   gap: 12px;
 }
 
+.vt-checkout__cardfields > * {
+  grid-column: 1 / -1;
+}
+
+/* Stripe paints the card surface inside the iframe at variables.borderRadius
+   (pill). Clip the host to the sheet card radius so the visible corners match
+   --vt-radius-lg even if an untargetable node keeps the variable. */
+.vt-checkout__cardfields .StripeElement {
+  border-radius: var(--vt-radius-lg);
+  overflow: hidden;
+}
+
 .vt-checkout__card-country {
   min-inline-size: 0;
 }
@@ -580,10 +594,25 @@
   box-shadow: none;
 }
 
+.vt-checkout__payresult {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--vt-bg-inset);
+  border: var(--vt-border-w) solid var(--vt-border-subtle);
+  border-radius: var(--vt-radius-lg);
+}
+
+.vt-checkout__payresult p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
 .vt-checkout__paylink {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
 }
 
 @media (max-width: 900px) {

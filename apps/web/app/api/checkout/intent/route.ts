@@ -6,9 +6,10 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { asCheckout, asQuote } from "@/lib/db/identity";
 import { checkoutIntentSchema } from "@/lib/checkout/intent-schema";
+import { refusalForMissingClassId } from "@/lib/checkout/charge-gate";
 import { refuse } from "@/lib/checkout/errors";
 import { runCheckoutIntent } from "@/lib/checkout/intent";
-import { createBooking } from "@/lib/checkout/create-booking";
+import { createBooking, issueManageToken } from "@/lib/checkout/create-booking";
 import { attachPayment } from "@/lib/checkout/attach-payment";
 import { loadOpenPayment } from "@/lib/checkout/load-open-payment";
 import { mintManageToken } from "@/lib/checkout/manage-token";
@@ -68,11 +69,6 @@ async function postIntent(request: Request) {
   }
   const body = parsed.data;
 
-  const stripe = stripeFromEnv(env);
-  const origin = publicSiteOrigin(new URL(request.url).host);
-  const current = env.QUOTE_LOCK_SECRET || "";
-  const previous = env.QUOTE_LOCK_SECRET_PREVIOUS;
-
   const { postgresNowIso, vehicleClassId } = await asQuote(env, async (sql) => {
     const rows = await sql`select now() as now`;
     const value = rows[0]?.now;
@@ -82,8 +78,15 @@ async function postIntent(request: Request) {
     };
   });
   if (!vehicleClassId) {
-    return refuse("invalid_request");
+    return refuse(refusalForMissingClassId());
   }
+
+  // Built only when a session op runs, after the class-id refusal.
+  let stripe: ReturnType<typeof stripeFromEnv> | undefined;
+  const stripeClient = () => (stripe ??= stripeFromEnv(env));
+  const origin = publicSiteOrigin(new URL(request.url).host);
+  const current = env.QUOTE_LOCK_SECRET || "";
+  const previous = env.QUOTE_LOCK_SECRET_PREVIOUS;
 
   const settingsDoc = await loadSettingsVersion(env, postgresNowIso);
   const policy = policyHours(settingsDoc);
@@ -123,10 +126,11 @@ async function postIntent(request: Request) {
     }),
     mintManageToken,
     manageLinkMaxAgeSeconds: 30 * 24 * 60 * 60,
-    createCheckoutSession: (input) => createCheckoutSession(stripe, input),
-    expireCheckoutSession: (id) => expireCheckoutSession(stripe, id).then(() => undefined),
-    retrieveCheckoutSession: (id) => retrieveCheckoutSession(stripe, id),
+    createCheckoutSession: (input) => createCheckoutSession(stripeClient(), input),
+    expireCheckoutSession: (id) => expireCheckoutSession(stripeClient(), id).then(() => undefined),
+    retrieveCheckoutSession: (id) => retrieveCheckoutSession(stripeClient(), id),
     createBooking: (args) => asCheckout(env, null, (sql) => createBooking(sql, args)),
+    issueManageToken: (args) => asCheckout(env, null, (sql) => issueManageToken(sql, args)),
     attachPayment: (args) => asCheckout(env, null, (sql) => attachPayment(sql, args)),
     loadOpenPayment: (quoteId) => asCheckout(env, null, (sql) => loadOpenPayment(sql, quoteId)),
     publishableKey: stripePublishableKey(env),
@@ -139,9 +143,7 @@ async function postIntent(request: Request) {
     loadLaunchFlags: () => loadLaunchFlags(env),
     loadQuotePayGate: async (quoteId) => {
       const rows = await asCheckout(env, null, (sql) => sql<{ is_test: boolean | null }[]>`
-        select is_test from public.bookings
-         where quote_id = ${quoteId}::uuid
-         limit 1
+        select public.checkout_booking_is_test(${quoteId}::uuid) as is_test
       `);
       const row = rows[0];
       if (!row) return null;

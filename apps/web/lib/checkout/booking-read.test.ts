@@ -8,10 +8,7 @@ vi.mock("../db/identity", () => ({
 }));
 
 import {
-  BOOKING_COLUMNS,
   BOOKING_REFERENCE_RE,
-  LEG_COLUMNS,
-  SNAPSHOT_COLUMNS,
   readBookingForConfirmation,
   readBookingStatus,
 } from "./booking-read";
@@ -35,10 +32,17 @@ function makeSql(
   const sql = async (strings: TemplateStringsArray, ...values: unknown[]) => {
     const text = strings.join(" ");
     calls.push({ text, values });
-    if (/from public\.bookings/i.test(text)) return bookings;
-    if (/from public\.booking_legs/i.test(text)) return legs;
-    if (/from public\.price_snapshots/i.test(text)) return snapshots;
-    if (/from public\.booking_payments/i.test(text)) return payments;
+    if (/guest_confirmation_read/i.test(text)) {
+      if (!bookings.length) return [{ payload: null }];
+      return [{
+        payload: {
+          booking: bookings[0],
+          legs,
+          snapshot: snapshots[0] ?? null,
+          payment: payments[0] ?? null,
+        },
+      }];
+    }
     return [];
   };
   return { sql, calls };
@@ -96,32 +100,16 @@ describe("readBookingForConfirmation / readBookingStatus", () => {
     expect(result).toEqual({ visible: false });
   });
 
-  it("selects only the granted columns — never SELECT *", async () => {
+  it("reads confirmation through guest_confirmation_read, never the bookings table", async () => {
     const { sql, calls } = makeSql([{ id: "b1", reference: REF, status: "pending" }], [], []);
     asGuest.mockImplementation(async (_env: CloudflareEnv, _hex: string, fn: (s: typeof sql) => unknown) =>
       fn(sql),
     );
     await readBookingForConfirmation(ENV, "", REF);
     const joined = calls.map((c) => c.text).join("\n");
+    expect(joined).toContain("guest_confirmation_read");
+    expect(joined).not.toMatch(/from public\.bookings/i);
     expect(joined).not.toMatch(/select\s+\*/i);
-    const bookingSql = calls.find((c) => /from public\.bookings/i.test(c.text))?.text ?? "";
-    const legSql = calls.find((c) => /from public\.booking_legs/i.test(c.text))?.text ?? "";
-    const snapSql = calls.find((c) => /from public\.price_snapshots/i.test(c.text))?.text ?? "";
-    expect(bookingSql.length).toBeGreaterThan(0);
-    expect(legSql.length).toBeGreaterThan(0);
-    expect(snapSql.length).toBeGreaterThan(0);
-    expect(snapSql).not.toMatch(/vat_rappen/);
-    expect(snapSql).not.toMatch(/quoted_at/);
-    expect(snapSql).not.toMatch(/valid_until/);
-    for (const col of BOOKING_COLUMNS) {
-      expect(bookingSql).toContain(col);
-    }
-    for (const col of LEG_COLUMNS) {
-      expect(legSql).toContain(col);
-    }
-    for (const col of SNAPSHOT_COLUMNS) {
-      expect(snapSql).toContain(col);
-    }
   });
 
   it("visible booking maps the first leg", async () => {
