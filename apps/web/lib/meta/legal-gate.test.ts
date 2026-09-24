@@ -56,7 +56,7 @@ function openTag(src: string, hook: string): string {
 function classNameOf(tag: string): string {
   const found = tag.match(/className="([^"]*)"/);
   expect(found, "className").not.toBeNull();
-  return found![1];
+  return found![1]!;
 }
 
 function onlySlot(src: string, className: string, hook: string, label: string): void {
