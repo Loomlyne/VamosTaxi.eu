@@ -28,4 +28,6 @@ paths = [
 regexTarget = "line"
 regexes = [
   '''data:[a-zA-Z0-9.+-]+/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+''',
+  # Stripe publishable test keys are public. Secret keys stay scanned.
+  '''pk_test_[A-Za-z0-9]+''',
 ]
