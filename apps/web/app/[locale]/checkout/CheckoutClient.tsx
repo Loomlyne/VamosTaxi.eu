@@ -18,7 +18,7 @@ import {
 import { PlaceCombo, type PlaceRetrieve } from "@/components/forms/PlaceCombo";
 import { e164Phone, isCheckoutEmail } from "@/lib/checkout/contact-validate";
 import { shouldPersistUnpaidBooking } from "@/lib/checkout/booking-lifecycle";
-import { classIsSelectable } from "@/lib/checkout/charge-gate";
+import { classIsSelectable, quoteUnpriced } from "@/lib/checkout/charge-gate";
 import { readDraft, useBookingDraft } from "@/lib/booking-draft";
 import {
   bouncePath,
@@ -33,7 +33,9 @@ import {
   formatRailDate,
   formatDistanceKm,
   geoLocale,
+  firstPricedLockSlug,
   peekLockClassRappen,
+  peekLockClassTotals,
   peekLockDistanceM,
   peekLockExtras,
   placeMapboxId,
@@ -95,6 +97,13 @@ function vehicleLabel(id: string, t: (key: string) => string): string {
   if (id === "first") return t("classFirst");
   if (id === "van") return t("classVan");
   return id;
+}
+
+function pickedClassName(slug: string, trip: VamosTrip | null, t: (key: string) => string): string {
+  const named = trip?.classOffers?.find((row) => row.slug === slug)?.name;
+  if (named) return named;
+  if (trip?.vehicle === slug && trip.vehicleName) return trip.vehicleName;
+  return vehicleLabel(slug, t);
 }
 
 const CLASS_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -541,35 +550,60 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     writeDraft({ idempotencyKey: crypto.randomUUID() });
   }, [draft.quoteId, draft.idempotencyKey, writeDraft]);
 
+  function resolvePaySlug(lock: string | undefined, trip: VamosTrip | null | undefined): string {
+    return firstPricedLockSlug(lock, [
+      asClassSlug(draft.vehicleClass || ""),
+      asClassSlug(tripVehicle(trip) || ""),
+      ...(trip?.classes ?? []),
+      vehicle,
+    ]);
+  }
+
   useEffect(() => {
+    // Do not adopt the idle default, or wipe the saved class, before the trip is read.
+    if (!tripSnap) return;
+    const lock = tripSnap.lock || draft.lock;
     const offered = classOffersFromTrip(tripSnap);
+    const priced = resolvePaySlug(lock, tripSnap);
+    if (priced && !classIsSelectable(peekLockClassRappen(lock, vehicle)) && priced !== vehicle) {
+      setVehicle(priced);
+      writeDraft({ vehicleClass: priced });
+      writeVamosTrip({ vehicle: priced, pax: draft.passengers, bags: draft.luggage });
+      return;
+    }
     const slugs = offered.map((row) => row.slug);
+    function pricedFit(candidate: string): string {
+      if (candidate && classIsSelectable(peekLockClassRappen(lock, candidate))) return candidate;
+      return priced && priced !== vehicle ? priced : "";
+    }
     if (slugs.length > 0 && !slugs.includes(vehicle)) {
-      const next = firstFittingClass(draft.passengers, draft.luggage, offered);
-      if (next === vehicle) return;
+      const next = pricedFit(firstFittingClass(draft.passengers, draft.luggage, offered));
+      if (!next || next === vehicle) return;
       setVehicle(next);
       writeDraft({ vehicleClass: next });
       writeVamosTrip({ vehicle: next, pax: draft.passengers, bags: draft.luggage });
       return;
     }
     if (classFits(vehicle, draft.passengers, draft.luggage, offered)) return;
-    const next = firstFittingClass(draft.passengers, draft.luggage, offered);
-    if (next === vehicle) return;
+    const next = pricedFit(firstFittingClass(draft.passengers, draft.luggage, offered));
+    if (!next || next === vehicle) return;
     setVehicle(next);
     writeDraft({ vehicleClass: next });
     writeVamosTrip({ vehicle: next, pax: draft.passengers, bags: draft.luggage });
-  }, [draft.passengers, draft.luggage, vehicle, tripSnap, writeDraft]);
+  }, [draft.passengers, draft.luggage, draft.lock, draft.vehicleClass, vehicle, tripSnap, writeDraft]);
 
   useEffect(() => {
     if (step !== "payment" || gate !== "ok") return;
     const trip = tripSnap ?? readVamosTrip();
     const lock = draft.lock || trip?.lock;
+    const pricedSlug = resolvePaySlug(lock, trip);
     const past = lockExpired(trip) || quoteLockZero;
-    const unpriced = !classIsSelectable(peekLockClassRappen(lock, vehicle));
+    const unpriced = !classIsSelectable(peekLockClassRappen(lock, pricedSlug));
     if (past || unpriced) {
       setRefusal(past ? "quoteExpired" : "pricingNotLive");
       return;
     }
+    setRefusal((current) => (current === "pricingNotLive" ? null : current));
     if (clientSecret) return;
     if (intentAttempts.current >= 6) return;
     const traveler = checkoutTraveler(contact, trip?.contact);
@@ -780,7 +814,17 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   async function continueDetails() {
     const tripForPay = tripSnap ?? readVamosTrip();
     const payLock = draft.lock || tripForPay?.lock;
-    if (!classIsSelectable(peekLockClassRappen(payLock, vehicle))) {
+    const detailsSlug = resolvePaySlug(payLock, tripForPay);
+    if (
+      detailsSlug &&
+      detailsSlug !== vehicle &&
+      !classIsSelectable(peekLockClassRappen(payLock, vehicle))
+    ) {
+      setVehicle(detailsSlug);
+      writeDraft({ vehicleClass: detailsSlug });
+      writeVamosTrip({ vehicle: detailsSlug });
+    }
+    if (!classIsSelectable(peekLockClassRappen(payLock, detailsSlug || vehicle))) {
       return;
     }
     if (!validate()) return;
@@ -851,7 +895,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     const trip = tripSnap ?? readVamosTrip();
     const quoteId = draft.quoteId || tripQuoteId(trip);
     const lock = draft.lock || trip?.lock;
-    const vehicleClass = asClassSlug(draft.vehicleClass || vehicle || tripVehicle(trip));
+    const vehicleClass = asClassSlug(
+      resolvePaySlug(lock, trip) || draft.vehicleClass || vehicle || tripVehicle(trip),
+    );
     let idempotencyKey = draft.idempotencyKey;
     if (!idempotencyKey && quoteId) {
       idempotencyKey = crypto.randomUUID();
@@ -1094,7 +1140,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     };
     const quoteId = draft.quoteId || tripQuoteId(trip);
     const lock = draft.lock || trip?.lock;
-    const vehicleClass = asClassSlug(draft.vehicleClass || vehicle);
+    const vehicleClass = asClassSlug(resolvePaySlug(lock, trip) || draft.vehicleClass || vehicle);
     const idempotencyKey = draft.idempotencyKey;
     if (!quoteId || !lock || !vehicleClass || !idempotencyKey) {
       setRefusal("quoteExpired");
@@ -1160,7 +1206,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     if (refusal === "pricingNotLive" || refusal === "quoteExpired" || quoteLockZero) return;
     const trip = tripSnap ?? readVamosTrip();
     const lock = draft.lock || trip?.lock;
-    const vehicleClass = asClassSlug(draft.vehicleClass || vehicle);
+    const vehicleClass = asClassSlug(resolvePaySlug(lock, trip) || draft.vehicleClass || vehicle);
     if (
       !vehicleClass ||
       peekLockClassRappen(lock, vehicleClass) == null ||
@@ -1210,9 +1256,12 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     }
   }
 
+  const tripForPay = tripSnap ?? readVamosTrip();
+  const payLockToken = tripForPay?.lock || draft.lock;
+  const paySlug = resolvePaySlug(payLockToken, tripForPay);
   const classFareRappen = peekLockClassRappen(
-    tripSnap?.lock || draft.lock,
-    asClassSlug(draft.vehicleClass || vehicle) || vehicle,
+    payLockToken,
+    paySlug || asClassSlug(draft.vehicleClass || vehicle) || vehicle,
   );
   const requote =
     refusal === "quoteExpired" ||
@@ -1225,10 +1274,10 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const hours = checkoutWindowHours(checkoutWindowMinutes);
   const currentIndex = step === "trip" ? 0 : step === "details" ? 1 : 2;
   const homeHref = localePath(locale, "/");
-  const payLockToken = tripSnap?.lock || draft.lock;
   const payClassUnpriced =
-    step === "payment" && !classIsSelectable(peekLockClassRappen(payLockToken, vehicle));
-  const payLockPast = step === "payment" && (quoteLockZero || lockExpired(tripSnap ?? readVamosTrip()));
+    step === "payment" &&
+    quoteUnpriced(peekLockClassTotals(payLockToken).map((row) => row.total_rappen));
+  const payLockPast = step === "payment" && (quoteLockZero || lockExpired(tripForPay));
   const paySheetAlert = payLockPast ? "quoteExpired" : payClassUnpriced ? "pricingNotLive" : null;
   const stripeMounted = Boolean(clientSecret);
   const showDummyFields = payClassUnpriced || (payLockPast && !stripeMounted);
@@ -1339,7 +1388,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     (sum, row) => sum + (row.amount_rappen == null ? 0 : row.amount_rappen),
     0,
   );
-  const classRappen = peekLockClassRappen(lockToken, vehicle);
+  const classRappen = peekLockClassRappen(lockToken, paySlug || vehicle);
   const extraAdd = extraRappenOutsideLock(peekLockExtras(lockToken), extrasCatalog, extraOn);
   const netRappen = classRappen == null ? null : classRappen + extraAdd;
   const vatRappen = netRappen == null ? null : vatOnTopRappen(netRappen, vatRateBps);
@@ -1802,7 +1851,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
               <div className="vt-checkout__recap">
                 <div className="vt-checkout__recap-trip">
                   <Badge tone="accent">{t("charged-now-secured-by-stripe")}</Badge>
-                  <p className="vt-checkout__picked">{vehicleLabel(vehicle, t)}</p>
+                  <p className="vt-checkout__picked">{pickedClassName(paySlug || vehicle, tripForPay, t)}</p>
                   <RouteSummary pickup={railPickup} dropoff={railDrop} meta={railMeta} />
                 </div>
                 <div className="vt-checkout__recap-pay">

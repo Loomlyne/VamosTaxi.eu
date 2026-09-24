@@ -32,28 +32,11 @@
 
 <nav style="display:flex;flex-direction:column;gap:3px">
 
-<sc-for list="{{ navTop }}" as="n" hint-placeholder-count="3">
+<sc-for list="{{ navTop }}" as="n" hint-placeholder-count="4">
 <a href="{{ n.href }}" title="{{ n.label }}" onClick="{{ goPath }}" style="text-decoration:none;box-sizing:border-box;display:flex;align-items:center;justify-content:{{ rowJustify }};gap:11px;height:44px;padding:{{ rowPad }};border-radius:999px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:{{ n.weight }};color:{{ n.color }};background:{{ n.bg }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ n.icon }}" size="{{ n18 }}" color="{{ n.color }}" hint-size="18px,18px"></x-import><span style="display:{{ labelShow }};min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ n.label }}</span>
 </a>
 </sc-for>
-
-<button type="button" onClick="{{ toggleFleet }}" title="{{ tFleet }}" aria-expanded="{{ fleetExpanded }}" style="all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:{{ rowJustify }};gap:11px;height:44px;padding:{{ rowPad }};border-radius:999px;cursor:pointer;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:{{ fleetWeight }};color:{{ fleetColor }};background:{{ fleetBg }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="car-front" size="{{ n18 }}" color="{{ fleetColor }}" hint-size="18px,18px"></x-import><span style="display:{{ labelShow }};flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ tFleet }}</span>
-<span style="display:{{ labelShow }};align-items:center;flex:0 0 auto">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ fleetChevron }}" size="{{ n16 }}" color="{{ fleetColor }}" hint-size="16px,16px"></x-import>
-</span>
-</button>
-
-<sc-if value="{{ fleetOpen }}" hint-placeholder-val="{{ false }}">
-<div style="display:flex;flex-direction:column;gap:2px;padding:2px 0 6px;margin-inline-start:21px;border-inline-start:1px solid var(--vt-border-inverse)">
-<sc-for list="{{ fleetItems }}" as="c" hint-placeholder-count="2">
-<a href="{{ c.href }}" title="{{ c.label }}" onClick="{{ goPath }}" style="text-decoration:none;box-sizing:border-box;display:flex;align-items:center;gap:10px;height:40px;margin-inline-start:8px;padding:0 12px;border-radius:999px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:{{ c.weight }};color:{{ c.color }};background:{{ c.bg }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ c.icon }}" size="{{ n16 }}" color="{{ c.color }}" hint-size="16px,16px"></x-import><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.label }}</span>
-</a>
-</sc-for>
-</div>
-</sc-if>
 
 <sc-for list="{{ navBottom }}" as="n" hint-placeholder-count="3">
 <a href="{{ n.href }}" title="{{ n.label }}" onClick="{{ goPath }}" style="text-decoration:none;box-sizing:border-box;display:flex;align-items:center;justify-content:{{ rowJustify }};gap:11px;height:44px;padding:{{ rowPad }};border-radius:999px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:{{ n.weight }};color:{{ n.color }};background:{{ n.bg }};position:relative">
@@ -132,16 +115,13 @@
 </aside>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:236,&quot;height&quot;:860},&quot;active&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dashboard&quot;,&quot;options&quot;:[&quot;dashboard&quot;,&quot;bookings&quot;,&quot;calendar&quot;,&quot;vehicles&quot;,&quot;chauffeurs&quot;,&quot;pricing&quot;,&quot;customers&quot;,&quot;support&quot;,&quot;pages&quot;,&quot;legal&quot;,&quot;reviews&quot;,&quot;settings&quot;,&quot;profile&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:236,&quot;height&quot;:860},&quot;active&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dashboard&quot;,&quot;options&quot;:[&quot;dashboard&quot;,&quot;bookings&quot;,&quot;calendar&quot;,&quot;chauffeurs&quot;,&quot;pricing&quot;,&quot;customers&quot;,&quot;support&quot;,&quot;pages&quot;,&quot;legal&quot;,&quot;reviews&quot;,&quot;settings&quot;,&quot;profile&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
 /* One rail for the whole console. The bottom row collapses it to icons and remembers
-   that choice; Fleet and Content are groups; the profile row is a menu, not a link. */
+   that choice; Content is a group; the profile row is a menu, not a link. */
 const NAV_TOP = [
   { key:'dashboard', href:'/dashboard', icon:'layout-dashboard', en:'Dashboard', de:'Übersicht', fr:'Tableau de bord', ar:'لوحة المعلومات' },
   { key:'bookings', href:'/bookings', icon:'receipt', en:'Bookings', de:'Buchungen', fr:'Réservations', ar:'الحجوزات' },
   { key:'calendar', href:'/calendar', icon:'calendar-days', en:'Calendar', de:'Kalender', fr:'Calendrier', ar:'التقويم' },
-];
-const FLEET = [
-  { key:'vehicles', href:'/fleet', icon:'car', en:'Vehicles', de:'Fahrzeuge', fr:'Véhicules', ar:'المركبات' },
   { key:'chauffeurs', href:'/fleet/chauffeurs', icon:'users', en:'Chauffeurs', de:'Chauffeure', fr:'Chauffeurs', ar:'السائقون' },
 ];
 const NAV_BOTTOM = [
@@ -164,10 +144,10 @@ function avatarUrl(avatar) {
   return value.charAt(0) === '/' ? value : '/photos/' + value;
 }
 const COPY = {
-  en: { dispatch:'Dispatch', adminRole:'Admin role', signOut:'Sign out', site:'Vamos Taxi site', content:'Content', fleet:'Fleet', collapse:'Collapse sidebar', expand:'Expand sidebar', profile:'Profile', settings:'Settings' },
-  de: { dispatch:'Dispatch', adminRole:'Admin-Rolle', signOut:'Abmelden', site:'Vamos Taxi Website', content:'Inhalte', fleet:'Flotte', collapse:'Seitenleiste einklappen', expand:'Seitenleiste ausklappen', profile:'Profil', settings:'Einstellungen' },
-  fr: { dispatch:'Dispatch', adminRole:'Rôle admin', signOut:'Se déconnecter', site:'Site Vamos Taxi', content:'Contenu', fleet:'Flotte', collapse:'Réduire la barre latérale', expand:'Déployer la barre latérale', profile:'Profil', settings:'Réglages' },
-  ar: { dispatch:'التوزيع', adminRole:'دور المشرف', signOut:'تسجيل الخروج', site:'موقع فاموس تاكسي', content:'المحتوى', fleet:'الأسطول', collapse:'طيّ الشريط الجانبي', expand:'توسيع الشريط الجانبي', profile:'الملف الشخصي', settings:'الإعدادات' },
+  en: { dispatch:'Dispatch', adminRole:'Admin role', signOut:'Sign out', site:'Vamos Taxi site', content:'Content', collapse:'Collapse sidebar', expand:'Expand sidebar', profile:'Profile', settings:'Settings' },
+  de: { dispatch:'Dispatch', adminRole:'Admin-Rolle', signOut:'Abmelden', site:'Vamos Taxi Website', content:'Inhalte', collapse:'Seitenleiste einklappen', expand:'Seitenleiste ausklappen', profile:'Profil', settings:'Einstellungen' },
+  fr: { dispatch:'Dispatch', adminRole:'Rôle admin', signOut:'Se déconnecter', site:'Site Vamos Taxi', content:'Contenu', collapse:'Réduire la barre latérale', expand:'Déployer la barre latérale', profile:'Profil', settings:'Réglages' },
+  ar: { dispatch:'التوزيع', adminRole:'دور المشرف', signOut:'تسجيل الخروج', site:'موقع فاموس تاكسي', content:'المحتوى', collapse:'طيّ الشريط الجانبي', expand:'توسيع الشريط الجانبي', profile:'الملف الشخصي', settings:'الإعدادات' },
 };
 const KEY = 'vamosOpsNavCollapsed';
 
@@ -237,7 +217,6 @@ class Component extends DCLogic {
     const next = !this.groupOpen(key, items);
     this.setState((s) => ({ open: Object.assign({}, s.open, { [key]: next }) }));
   };
-  toggleFleet = this.group('fleet', FLEET);
   toggleContent = this.group('content', CONTENT);
 
   toggleMenu = () => {
@@ -316,7 +295,6 @@ class Component extends DCLogic {
         items: items.map(paint),
       };
     };
-    const fleet = group('fleet', FLEET);
     const content = group('content', CONTENT);
     return {
       n14: 14, n16: 16, n18: 18, n22: 22, n26: 26,
@@ -334,12 +312,10 @@ class Component extends DCLogic {
       railExpanded: col ? 'false' : 'true',
       rowJustify: col ? 'center' : 'flex-start',
       rowPad: col ? '0' : '0 12px',
-      toggleRail: this.toggleRail, toggleFleet: this.toggleFleet, toggleContent: this.toggleContent,
+      toggleRail: this.toggleRail, toggleContent: this.toggleContent,
       toggleMenu: this.toggleMenu, closeMenu: this.closeMenu, goPath: this.goPath, signOut: this.signOut,
       tDispatch: t.dispatch, tSignOut: t.signOut, tSiteLink: t.site,
-      tContent: t.content, tFleet: t.fleet, tProfile: t.profile, tSettings: t.settings,
-      fleetOpen: fleet.open, fleetExpanded: fleet.expanded, fleetChevron: fleet.chevron,
-      fleetBg: fleet.bg, fleetColor: fleet.color, fleetWeight: fleet.weight, fleetItems: fleet.items,
+      tContent: t.content, tProfile: t.profile, tSettings: t.settings,
       contentOpen: content.open, contentExpanded: content.expanded, contentChevron: content.chevron,
       contentBg: content.bg, contentColor: content.color, contentWeight: content.weight, contentItems: content.items,
       menuOpen: this.state.menuOpen,

@@ -218,6 +218,54 @@ export function peekLockClassRappen(lock: string | undefined, slug: string): num
   }
 }
 
+export type LockClassTotal = { slug: string; total_rappen: number | null };
+
+/** Display-only. Does not verify HMAC. Never invents a fare. */
+export function peekLockClassTotals(lock: string | undefined): LockClassTotal[] {
+  if (!lock) return [];
+  const parts = lock.split(".");
+  if (parts.length !== 3 || !parts[1]) return [];
+  try {
+    const json = new TextDecoder().decode(base64urlDecode(parts[1]));
+    const payload: unknown = JSON.parse(json);
+    if (!payload || typeof payload !== "object") return [];
+    const totals = (payload as { class_totals?: unknown }).class_totals;
+    if (!Array.isArray(totals)) return [];
+    const out: LockClassTotal[] = [];
+    for (const row of totals) {
+      if (!row || typeof row !== "object") continue;
+      const slug = (row as { slug?: unknown }).slug;
+      if (typeof slug !== "string" || !slug) continue;
+      const total = (row as { total_rappen?: unknown }).total_rappen;
+      const rappen =
+        typeof total === "number" && Number.isFinite(total) && total >= 0 ? total : null;
+      out.push({ slug, total_rappen: rappen });
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Preferred slug when that class has a fare, otherwise the first priced class
+ * on the lock. Empty when the quote has no fare. Does not invent a price.
+ * An idle slug with a null total is skipped.
+ */
+export function firstPricedLockSlug(lock: string | undefined, preferred: readonly string[]): string {
+  const totals = peekLockClassTotals(lock);
+  const priced = new Set(
+    totals.filter((row) => row.total_rappen != null).map((row) => row.slug),
+  );
+  for (const slug of preferred) {
+    if (slug && priced.has(slug)) return slug;
+  }
+  for (const row of totals) {
+    if (row.total_rappen != null) return row.slug;
+  }
+  return "";
+}
+
 /** Lock rappen → francs for PriceSummary. Null stays the 000 mark. */
 export function rappenToFrancs(rappen: number | null): number | null {
   if (rappen == null) return null;

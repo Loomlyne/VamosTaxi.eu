@@ -91,11 +91,13 @@ describe("insertChauffeur idempotency (D-04)", () => {
 });
 
 describe("dedicated chauffeur desk (D-15 D-16 D-17 D-18)", () => {
-  it("omits Vehicles/Chauffeurs Tags on the desk (D-15)", () => {
+  it("omits Vehicles/Chauffeurs tags — the page is chauffeurs only (D-15)", () => {
     const html = read(FLEET);
     const header = html.slice(html.indexOf("<header"), html.indexOf("</header>"));
-    expect(header).toMatch(/sc-if value="\{\{ isList \}\}"/);
-    expect(header).toMatch(/sc-for list="\{\{ tabs \}\}"/);
+    expect(header).not.toMatch(/sc-for list="\{\{ tabs \}\}"/);
+    expect(header).not.toMatch(/>Vehicles</);
+    expect(html).not.toContain("No vehicles yet");
+    expect(html).toContain("No chauffeurs yet");
   });
 
   it("desk back is a Button All chauffeurs, not a muted link (D-16)", () => {

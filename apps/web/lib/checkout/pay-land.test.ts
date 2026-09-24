@@ -37,6 +37,12 @@ describe("pay land blocked", () => {
     expect(branch).toContain('placeholder="CVC"');
   });
 
+  it("does not close the pay sheet because the idle default class has no fare", () => {
+    expect(client).toContain("quoteUnpriced");
+    expect(client).toContain("firstPricedLockSlug");
+    expect(client).not.toContain("peekLockClassRappen(payLockToken, vehicle)");
+  });
+
   it("returns before startPayment when the class is not selectable or the lock is past", () => {
     const start = client.indexOf("useEffect(() => {", client.indexOf("intentAttempts"));
     const end = client.indexOf("async function continueTrip", start);

@@ -382,6 +382,15 @@
         } else {
           list = previous;
         }
+        if (json && json.ok && name === "rates" && row.cityPairId) {
+          var stamp = String(row.cityPairId);
+          var iStamp;
+          for (iStamp = 0; iStamp < list.length; iStamp++) {
+            var sameId = row.id && String(list[iStamp].id) === String(row.id);
+            var sameClass = row.vehicleClassId && String(list[iStamp].vehicleClassId) === String(row.vehicleClassId);
+            if ((sameId || sameClass) && !list[iStamp].cityPairId) list[iStamp].cityPairId = stamp;
+          }
+        }
         emit(name);
         return json || { ok: false, code: "save-failed" };
       });
@@ -693,6 +702,7 @@
       photoPath: photo,
       baseFare: cleanMoneySet(r.baseFare), perKm: cleanMoneySet(r.perKm), minFare: cleanMoneySet(r.minFare),
       airportStart: cleanMoneySet(r.airportStart), cityPrice: cleanMoneySet(r.cityPrice),
+      cityPairId: str(r.cityPairId),
       maxPax: num(r.maxPax, 3),
       maxBags: num(r.maxBags || r.luggageCapacity, 3),
       available: r.available === false ? false : true,

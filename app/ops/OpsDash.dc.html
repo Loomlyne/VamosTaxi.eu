@@ -83,7 +83,7 @@
 <section style="display:flex;flex-direction:column;gap:12px">
 <h2 style="margin:0;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Operation</h2>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:var(--vt-space-4)">
-<sc-for list="{{ counts }}" as="c" hint-placeholder-count="4">
+<sc-for list="{{ counts }}" as="c" hint-placeholder-count="3">
 <a href="{{ c.href }}" style="box-sizing:border-box;display:flex;flex-direction:column;gap:10px;min-height:var(--vt-space-12);padding:var(--vt-space-4);background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);text-decoration:none;color:inherit;transition:border-color 140ms cubic-bezier(.2,0,.2,1),background 140ms cubic-bezier(.2,0,.2,1)" style-hover="border-color:var(--vt-charcoal-900);background:var(--vt-grey-50)">
 <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
 <span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ c.label }}</span>
@@ -143,19 +143,14 @@
 </section>
 
 <section style="box-sizing:border-box;display:flex;flex-direction:column;gap:14px;padding:22px 24px;background:var(--vt-bg-inverse);border-radius:var(--vt-radius-lg);color:var(--vt-text-inverse)">
-<h2 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);color:var(--vt-text-inverse)">Fleet today</h2>
+<h2 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);color:var(--vt-text-inverse)">Chauffeurs</h2>
 <div style="display:flex;flex-wrap:wrap;gap:22px">
 <span style="display:flex;flex-direction:column;gap:3px;min-width:0">
 <span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-md);font-weight:var(--vt-weight-bold);line-height:1;color:var(--vt-accent)">{{ chauffeursOn }}</span>
 <span style="font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted)">{{ chauffeursNote }}</span>
 </span>
-<span style="display:flex;flex-direction:column;gap:3px;min-width:0">
-<span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-md);font-weight:var(--vt-weight-bold);line-height:1;color:var(--vt-accent)">{{ vehiclesOn }}</span>
-<span style="font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted)">{{ vehiclesNote }}</span>
-</span>
 </div>
 <div style="display:flex;flex-wrap:wrap;gap:10px;padding-top:14px;border-top:1px solid var(--vt-border-inverse)">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="light" href="/fleet" hint-size="120px,36px">Vehicles</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="light" href="/fleet/chauffeurs" hint-size="130px,36px">Chauffeurs</x-import>
 </div>
 </section>
@@ -235,9 +230,7 @@ class Component extends DCLogic {
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
     this._off = window.VamosOps.bookings.onChange(() => this.forceUpdate());
-    const fleetOffV = window.VamosOps.vehicles.onChange(() => this.forceUpdate());
-    const fleetOffC = window.VamosOps.chauffeurs.onChange(() => this.forceUpdate());
-    this._offFleet = function () { fleetOffV(); fleetOffC(); };
+    this._offFleet = window.VamosOps.chauffeurs.onChange(() => this.forceUpdate());
     this.forceUpdate();
   };
   select = (key) => this.setState({ period: key }, this.loadMoney);
@@ -278,7 +271,6 @@ class Component extends DCLogic {
     const ops = window.VamosOps;
     const bookings = ops ? ops.bookings.all() : [];
     const chauffeurs = ops ? ops.chauffeurs.all() : [];
-    const vehicles = ops ? ops.vehicles.all() : [];
     const today = zurichToday();
     const periodKey = p.key;
     const money = this.state.money || { incomeRappen: 0, refundRappen: 0, feeRappen: 0, refunds: [] };
@@ -292,7 +284,6 @@ class Component extends DCLogic {
     const avgRappen = capturedCount ? Math.round(incomeRappen / capturedCount) : 0;
     const zeroMoney = fareLabel(0);
     const onShift = chauffeurs.filter((c) => c.status === 'shift').length;
-    const inService = vehicles.filter((v) => v.status === 'service').length;
     const pickups = periodBookings.filter((b) => b.status !== 'cancelled' && b.status !== 'refunded').length;
     const unassignedPaid = periodBookings.filter((b) => b.paid && !b.driver && b.status !== 'cancelled' && b.status !== 'completed').length;
     const extraRappen = moneyBookings.reduce((n, b) => n + (Number(b.extraRappen) || 0), 0);
@@ -327,7 +318,6 @@ class Component extends DCLogic {
         { label:'Bookings', value:String(periodBookings.length), of:'', icon:'list', href:bookingsHref, foot:'Taken in this period' },
         { label:'Pickups', value:String(pickups), of:'', icon:'car-front', href:pickupsHref, foot:'Scheduled to run' },
         { label:'Chauffeurs on shift', value:String(onShift), of:'/ ' + chauffeurs.length, icon:'users', href:'/fleet/chauffeurs', foot:'Available to assign' },
-        { label:'Vehicles in service', value:String(inService), of:'/ ' + vehicles.length, icon:'car', href:'/fleet', foot:'Rest are off the road' },
       ],
       income: (moneyBookings.some((b) => b.klass === 'First') ? MONEY_IN_CLASSES.concat(['First']) : MONEY_IN_CLASSES).map((label) => ({
         label,
@@ -341,8 +331,6 @@ class Component extends DCLogic {
       ],
       chauffeursOn: onShift + '/' + chauffeurs.length,
       chauffeursNote: 'Chauffeurs on shift',
-      vehiclesOn: inService + '/' + vehicles.length,
-      vehiclesNote: 'Vehicles in service',
     };
   }
 }

@@ -18,9 +18,9 @@
 
 import { evaluateEligibility } from "./eligibility";
 import {
-  buildCityPriceLine,
   buildExtraLines,
   buildFareLine,
+  buildFixedRouteExtraLine,
   buildLegSurchargeLines,
   numberLines,
   attachPlaceZones,
@@ -205,6 +205,25 @@ function buildClassLines(
     });
     raw.push(fare);
 
+    // One extra: the fixed route the class dropdown selected. city_price_rappen
+    // is that pair's copied amount, not a second line. When it is set, only a
+    // route with that amount can match. No selection keeps the geographic
+    // match. No match adds nothing.
+    const selectedExtra = distanceRate?.city_price_rappen ?? null;
+    const eligibleRoutes =
+      selectedExtra == null
+        ? classFixed
+        : classFixed.filter((route) => route.price_rappen === selectedExtra);
+    const pairExtra = buildFixedRouteExtraLine({
+      leg: journeyLeg,
+      vehicleClass: cls,
+      fixedRoutes: eligibleRoutes,
+      rateVersionId,
+      zones: book.zones,
+      hasExtraStops,
+    });
+    if (pairExtra) raw.push(pairExtra);
+
     const surcharges = buildLegSurchargeLines({
       leg: journeyLeg,
       fareLine: fare,
@@ -224,15 +243,6 @@ function buildClassLines(
     rateVersionId,
   });
   raw.push(...extras);
-
-  // Comment 11: one city price for the booking, not one per leg or per city.
-  const cityLine = buildCityPriceLine({
-    fareKind: input.fare_kind,
-    cityPriceRappen: distanceRate?.city_price_rappen ?? null,
-    distanceRateId: distanceRate?.id ?? null,
-    rateVersionId,
-  });
-  if (cityLine) raw.push(cityLine);
 
   // Number leg-level lines before booking-level so of_line_seq is stable.
   let lines = numberLines(raw);

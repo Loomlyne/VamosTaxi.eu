@@ -3,9 +3,10 @@
 // Per-leg line construction for the quote pipeline (D-06, D-11, D-17, D-45).
 // Fare → percent/amount/included surcharges → quantity extras. Every percent
 // is taken of THAT LEG'S fare line only — never a running total, never another
-// surcharge (D-06). Fixed-route match is origin→dest only (D-17); A→B and B→A
-// are separate rows. Extra stops drop the fixed row and use the distance
-// recipe. Child seat / oversized luggage emit one line per leg_seq on a
+// surcharge (D-06). Comment 8: a city-to-city or canton-to-canton pair is an
+// extra on the distance fare, not a replacement and not a Mapbox place pin.
+// A→B and B→A are separate rows. Extra stops skip that extra. Child seat /
+// oversized luggage emit one line per leg_seq on a
 // return. Extra stop is Mapbox places on the D-11 distance recipe, not a
 // chip fare (D-37).
 //
@@ -139,8 +140,8 @@ export interface BuildFareLineArgs {
   /** D-21: extra stop on the journey → skip fixed_routes, use distance recipe. */
   hasExtraStops?: boolean;
   /**
-   * Comment 11. one_way keeps the fixed-route match (D-17). Airport pickup
-   * and city to city use the distance recipe so the start can differ.
+   * Comment 11. Airport pickup uses a different start. Class city price is
+   * a separate line. A Comment 8 pair is not this fare line.
    * Overlap with comment 10: this does not add a One way tab.
    */
   fareKind?: FareKind;
@@ -166,24 +167,6 @@ export function cantonOfZone(zone: ZoneRow | undefined): string | null {
 
 function normalizeCanton(raw: string): string {
   return raw.trim().toUpperCase().replace(/^CH-/, "");
-}
-
-function airportIdentity(zone: ZoneRow | undefined): string | null {
-  if (!zone || zone.zone_type !== "airport") return null;
-  const iata = zone.iata?.trim().toUpperCase();
-  if (iata) return `iata:${iata}`;
-  return `zone:${zone.id}`;
-}
-
-function samePlaceZone(
-  a: string,
-  b: string,
-  byId: Map<string, ZoneRow>,
-): boolean {
-  if (a === b) return true;
-  const ia = airportIdentity(byId.get(a));
-  const ib = airportIdentity(byId.get(b));
-  return ia != null && ia === ib;
 }
 
 /** D-20 / D-26: attach a Mapbox place name to a seeded or owner-created zone. */
@@ -280,99 +263,134 @@ export function buildCityPriceLine(args: {
   };
 }
 
+function isLabelBoundary(ch: string): boolean {
+  return ch === "" || !/[\p{L}\p{N}]/u.test(ch);
+}
+
+function placeHasLabel(
+  place: string | null | undefined,
+  label: string | null | undefined,
+): boolean {
+  if (!place || !label) return false;
+  const needle = label.trim().toLowerCase();
+  if (needle.length < 2) return false;
+  const hay = place.toLowerCase();
+  let from = 0;
+  while (from <= hay.length - needle.length) {
+    const at = hay.indexOf(needle, from);
+    if (at < 0) return false;
+    const before = at === 0 ? "" : hay.charAt(at - 1);
+    const after =
+      at + needle.length >= hay.length ? "" : hay.charAt(at + needle.length);
+    if (isLabelBoundary(before) && isLabelBoundary(after)) return true;
+    from = at + 1;
+  }
+  return false;
+}
+
+function matchCityPair(
+  rows: FixedRouteRow[],
+  leg: QuoteLegInput,
+): FixedRouteRow | null {
+  return (
+    rows.find(
+      (row) =>
+        row.kind === "city" &&
+        placeHasLabel(leg.origin_place, row.origin_label) &&
+        placeHasLabel(leg.dest_place, row.dest_label),
+    ) ?? null
+  );
+}
+
+function matchCantonPair(
+  rows: FixedRouteRow[],
+  leg: QuoteLegInput,
+  byId: Map<string, ZoneRow>,
+): FixedRouteRow | null {
+  const origin = leg.origin_zone_id;
+  const dest = leg.dest_zone_id;
+  const originCanton =
+    (typeof leg.origin_canton === "string" && leg.origin_canton
+      ? normalizeCanton(leg.origin_canton)
+      : null) ?? (origin ? cantonOfZone(byId.get(origin)) : null);
+  const destCanton =
+    (typeof leg.dest_canton === "string" && leg.dest_canton
+      ? normalizeCanton(leg.dest_canton)
+      : null) ?? (dest ? cantonOfZone(byId.get(dest)) : null);
+  if (!originCanton || !destCanton) return null;
+  return (
+    rows.find((row) => {
+      if (!isCantonFixed(row, byId)) return false;
+      const oc = cantonOfZone(byId.get(row.origin_zone_id));
+      const dc = cantonOfZone(byId.get(row.dest_zone_id));
+      return oc === originCanton && dc === destCanton;
+    }) ?? null
+  );
+}
+
 /**
- * D-19 D-20 D-21: place→place (airport terminal ≡ airport pin) then
- * canton→canton. No reverse A←B. Extra stops skip the fixed table.
+ * Comment 8. City-to-city or canton-to-canton extra on the distance fare.
+ * A to B does not match B to A. A Mapbox place pin is not a pair.
+ * No match returns null — never an invented amount.
+ */
+export function buildFixedRouteExtraLine(args: {
+  leg: QuoteLegInput;
+  vehicleClass: VehicleClassRow;
+  fixedRoutes: FixedRouteRow[];
+  rateVersionId: number | null;
+  zones?: ZoneRow[];
+  hasExtraStops?: boolean;
+}): Line | null {
+  const { leg, vehicleClass, fixedRoutes, rateVersionId, zones, hasExtraStops } =
+    args;
+  if (journeyHasExtraStops(leg, hasExtraStops)) return null;
+  const live = liveClassRows(fixedRoutes, vehicleClass.id);
+  const byId = new Map((zones ?? []).map((zone) => [zone.id, zone]));
+  const city = matchCityPair(live, leg);
+  const canton = matchCantonPair(live, leg, byId);
+  // Inside Switzerland a canton row wins. Cross-border has no canton row, so the city pair remains.
+  const fixed = canton ?? city;
+  const matched = canton ? "canton" : city ? "city" : null;
+  if (!fixed || !matched) return null;
+  return {
+    seq: seqFor(leg.leg_seq, "extra", "fixed_route"),
+    leg_seq: leg.leg_seq,
+    kind: "extra",
+    code: "fixed_route",
+    i18n_key: "price.line.fixed_route",
+    basis: {
+      rule: "fixed_route",
+      matched,
+      price_rappen: fixed.price_rappen,
+    },
+    source_row: {
+      table: "fixed_routes",
+      id: fixed.id,
+      ...(rateVersionId !== null ? { rate_version_id: rateVersionId } : {}),
+    },
+    amount_rappen: fixed.price_rappen,
+  };
+}
+
+/**
  * Distance fare is start + perKm(all metres) + class band extras. min_fare
- * is not a floor. Missing canton rows do not block quotes.
- * Comment 11: airport pickup swaps the start; city to city keeps this start
- * and adds one city price outside this line.
+ * is not a floor. A city or canton pair is buildFixedRouteExtraLine, not
+ * this amount. A place pin does not replace this line.
+ * Airport pickup swaps the start. A matching pair is buildFixedRouteExtraLine,
+ * not this amount and not a second city_price line.
  */
 export function buildFareLine(args: BuildFareLineArgs): Line {
   const {
     leg,
     vehicleClass,
     distanceRate,
-    fixedRoutes,
     rateVersionId,
     distanceBands,
-    zones,
-    hasExtraStops,
     fareKind,
   } = args;
   const classId = vehicleClass.id;
   const slug = vehicleClass.slug as VehicleClassSlug;
-  const origin = leg.origin_zone_id;
-  const dest = leg.dest_zone_id;
-  const extraStops = journeyHasExtraStops(leg, hasExtraStops);
-  const byId = new Map((zones ?? []).map((z) => [z.id, z]));
   const kind = fareKindOrOneWay(fareKind);
-  // Comment 11: airport and city-to-city are start + km, not a fixed-route price.
-  const useFixedRoute = kind === "one_way";
-
-  let matched: "forward" | "canton" | null = null;
-  let fixed: FixedRouteRow | null = null;
-
-  if (useFixedRoute && !extraStops) {
-    const live = liveClassRows(fixedRoutes, classId);
-    if (origin !== null && dest !== null) {
-      const place = live.find(
-        (r) =>
-          !isCantonFixed(r, byId) &&
-          samePlaceZone(r.origin_zone_id, origin, byId) &&
-          samePlaceZone(r.dest_zone_id, dest, byId),
-      );
-      if (place) {
-        matched = "forward";
-        fixed = place;
-      }
-    }
-    if (!fixed) {
-      const originCanton =
-        (typeof leg.origin_canton === "string" && leg.origin_canton
-          ? normalizeCanton(leg.origin_canton)
-          : null) ?? (origin ? cantonOfZone(byId.get(origin)) : null);
-      const destCanton =
-        (typeof leg.dest_canton === "string" && leg.dest_canton
-          ? normalizeCanton(leg.dest_canton)
-          : null) ?? (dest ? cantonOfZone(byId.get(dest)) : null);
-      if (originCanton && destCanton) {
-        const canton = live.find((r) => {
-          if (!isCantonFixed(r, byId)) return false;
-          const oc = cantonOfZone(byId.get(r.origin_zone_id));
-          const dc = cantonOfZone(byId.get(r.dest_zone_id));
-          return oc === originCanton && dc === destCanton;
-        });
-        if (canton) {
-          matched = "canton";
-          fixed = canton;
-        }
-      }
-    }
-  }
-
-  if (fixed && matched) {
-    const provisional = seqFor(leg.leg_seq, "fare", "fixed_route");
-    return {
-      seq: provisional,
-      leg_seq: leg.leg_seq,
-      kind: "fare",
-      code: "fixed_route",
-      i18n_key: "price.line.fixed_route",
-      basis: {
-        rule: "fixed_route",
-        matched,
-        price_rappen: fixed.price_rappen,
-      },
-      source_row: {
-        table: "fixed_routes",
-        id: fixed.id,
-        ...(rateVersionId !== null ? { rate_version_id: rateVersionId } : {}),
-      },
-      amount_rappen: fixed.price_rappen,
-    };
-  }
-
   const bands = distanceBands ?? [];
   const rowBase = distanceRate?.base_fare_rappen ?? null;
   // Airport pickup uses a different start. Do not fall back to the one-way start.

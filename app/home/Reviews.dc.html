@@ -222,16 +222,28 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
  * slides on --vt-ease-out. Visibility is not transitioned — the old delayed hidden
  * blanked the active card between ticks. Off-slides can be hidden; on/was stay visible.
  *
- * Autoplay: 1.5s dwell (client-specified), paused while the block is hovered or holds focus, off under
- * prefers-reduced-motion or a hidden tab, and stopped for good the moment either arrow is
- * clicked — a manual reader is never overruled by the timer.
+ * Autoplay: 2.5s dwell (prop default). The import does not pass autoplaySeconds, so a
+ * missing prop must use that default — not a longer fallback that reads as stuck.
+ * Paused while the block is hovered or holds focus, off under prefers-reduced-motion
+ * or a hidden tab, and stopped for good the moment either arrow is clicked — a manual
+ * reader is never overruled by the timer. A pending dwell is not cleared on re-render;
+ * only pause, a manual step, or unmount cancels it.
  */
 class Component extends DCLogic {
   state = { lang: 'en' };
   N = 0;
   i = 0;
   reduced() { return typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches; }
-  dwell() { const s = this.props.autoplaySeconds ?? 6; return s > 0 ? s * 1000 : 0; }
+  dwell() {
+    const raw = this.props.autoplaySeconds;
+    const s = raw == null || raw === '' ? 2.5 : +raw;
+    return s > 0 ? s * 1000 : 0;
+  }
+  clearDwell() { clearTimeout(this.t); this.t = 0; }
+  paused() {
+    return this.stopped || this.hoverP || this.focusP || this.reduced() || !this.dwell()
+      || (typeof document !== 'undefined' && document.hidden);
+  }
   rootRef = (el) => { this.root = el; this.boot(); };
   liveRef = (el) => { this.live = el; };
   boot() {
@@ -254,7 +266,7 @@ class Component extends DCLogic {
   }
   step(d, manual) {
     if (this.N < 2) return;
-    if (manual) { this.stopped = true; clearTimeout(this.t); }
+    if (manual) { this.stopped = true; this.clearDwell(); }
     this.fromI = this.i;
     this.i = (this.i + d + this.N) % this.N;
     if (this.root) this.root.setAttribute('data-dir', d < 0 ? '-1' : '1');
@@ -263,12 +275,11 @@ class Component extends DCLogic {
     else this.arm();
   }
   arm() {
-    clearTimeout(this.t);
-    if (this.stopped || this.hoverP || this.focusP || this.reduced() || !this.dwell()) return;
-    if (typeof document !== 'undefined' && document.hidden) return;
-    this.t = setTimeout(() => this.step(1, false), this.dwell());
+    if (this.paused()) { this.clearDwell(); return; }
+    if (this.t) return;
+    this.t = setTimeout(() => { this.t = 0; this.step(1, false); }, this.dwell());
   }
-  hold(k, v) { this[k] = v; if (v) clearTimeout(this.t); else this.arm(); }
+  hold(k, v) { this[k] = v; if (v) this.clearDwell(); else this.arm(); }
   prev = () => this.step(-1, true);
   next = () => this.step(1, true);
   hoverIn = () => this.hold('hoverP', true);
@@ -279,7 +290,7 @@ class Component extends DCLogic {
     if (e.key === 'ArrowRight') { e.preventDefault(); this.step(1, true); }
     else if (e.key === 'ArrowLeft') { e.preventDefault(); this.step(-1, true); }
   };
-  vis = () => { if (document.hidden) clearTimeout(this.t); else this.arm(); };
+  vis = () => { if (document.hidden) this.clearDwell(); else this.arm(); };
   /* Helmet injects vamos-reviews.js after the first paint. If we only subscribe
      when the store is already there, the card stays the empty shells. */
   bindReviews() {
@@ -304,7 +315,7 @@ class Component extends DCLogic {
   }
   componentDidUpdate() { this.boot(); }
   componentWillUnmount() {
-    clearTimeout(this.t);
+    this.clearDwell();
     clearInterval(this._reviewsWait);
     clearTimeout(this._reviewsStop);
     document.removeEventListener('visibilitychange', this.vis);

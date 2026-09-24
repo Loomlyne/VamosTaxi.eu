@@ -50,10 +50,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-card]{background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm)}
 [data-grp]{display:flex;align-items:center;gap:12px;margin:0;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
 [data-grp]::after{content:"";flex:1 1 auto;height:1px;background:var(--vt-grey-200)}
-[data-empty]{position:relative;overflow:hidden;border-radius:var(--vt-radius-xl);background:var(--vt-bg-inverse);color:var(--vt-text-inverse);display:grid;grid-template-columns:minmax(0,1fr)}
-[data-empty-shot]{position:relative;min-height:210px;background:url(/photos/site/fleet-van-street.jpg) center 62% / cover no-repeat}
-[data-empty-shot]::after{content:"";position:absolute;inset:0;background:var(--vt-scrim-bottom)}
-[data-empty-copy]{padding:clamp(26px,3.4vw,44px)}
 [data-seg]{display:inline-flex;flex-wrap:wrap;gap:2px;padding:3px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:rgb(255 255 255 / .06)}
 [data-seg] button{appearance:none;border:0;background:none;min-height:38px;padding:0 14px;border-radius:var(--vt-radius-pill);font-family:inherit;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);white-space:nowrap;color:var(--vt-text-inverse-muted);cursor:pointer;transition:background 140ms var(--vt-ease-standard),color 140ms var(--vt-ease-standard)}
 [data-seg] button:hover{color:var(--vt-text-inverse)}
@@ -78,12 +74,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-find] button{appearance:none;display:grid;place-items:center;width:34px;height:34px;padding:0;border:0;border-radius:var(--vt-radius-pill);background:var(--vt-grey-100);color:var(--vt-charcoal-900);cursor:pointer}
 [data-find] button:hover{background:var(--vt-grey-200)}
 .vt-iconbtn.vt-view-active,.vt-iconbtn.vt-view-active:hover:not([disabled]){background:var(--vt-charcoal-900);color:var(--vt-white);border-color:var(--vt-charcoal-900)}
-@media (min-width:820px){
-[data-empty]{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr)}
-[data-empty-shot]{min-height:330px}
-[data-empty-shot]::after{background:var(--vt-scrim-left)}
-[dir="rtl"] [data-empty-shot]::after{background:linear-gradient(to left,rgb(17 18 18 / .82) 0%,rgb(17 18 18 / .35) 48%,rgb(17 18 18 / 0) 82%)}
-}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}</style>
 </helmet>
 
@@ -153,22 +143,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </sc-for>
 </div>
 </sc-if>
-</div>
-</sc-if>
-
-<sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
-<div data-empty="1">
-<div data-empty-copy="1">
-<p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">Nothing booked yet</p>
-<h2 style="margin:0 0 14px;max-width:20ch;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty">Your transfers will live here</h2>
-<p style="margin:0 0 10px;max-width:46ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Book a transfer and it appears on this page the moment it is paid — with the fixed price, your voucher and the pickup your driver is holding.</p>
-<p style="margin:0 0 24px;max-width:46ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-inverse-muted)">Zurich Airport, city runs, ski routes and hourly chauffeur work all end up in the same list.</p>
-<div style="display:flex;flex-wrap:wrap;gap:12px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" href="../home/home.dc.html" iconEnd="arrow-right" hint-size="220px,54px">Book a transfer</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" variant="light" href="manage-booking.dc.html" icon="search" hint-size="230px,54px">I have a reference</x-import>
-</div>
-</div>
-<div data-empty-shot="1" role="img" aria-label="A Vamos Taxi V-Class waiting on a Zurich street"></div>
 </div>
 </sc-if>
 
@@ -363,6 +337,7 @@ class Component extends DCLogic {
   }
 
   source() {
+    if (this.state.view === 'empty') return [];
     if (this.state.live) return this.liveGroups();
     const long = this.state.view === 'long';
     const upcoming = this.state.tab === 'upcoming';
@@ -560,12 +535,13 @@ class Component extends DCLogic {
       else groups.push({ label: e.g, rows: [this.row(e.r)] });
     });
 
+    const gallery = v !== 'empty' && !this.state.live;
     const nUp = this.state.live
       ? (this.state.rows || []).filter((r) => r.when === 'upcoming').length
-      : (long ? [] : UP).reduce((n, g) => n + g.rows.length, 0);
+      : (gallery && !long ? UP : []).reduce((n, g) => n + g.rows.length, 0);
     const nPast = this.state.live
       ? (this.state.rows || []).filter((r) => r.when === 'past').length
-      : past.reduce((n, g) => n + g.rows.length, 0);
+      : (gallery ? past : []).reduce((n, g) => n + g.rows.length, 0);
     const shownCount = Math.min(cap, flat.length);
     const auth = s.auth;
 
@@ -577,12 +553,11 @@ class Component extends DCLogic {
       listBtnCss: s.viewMode !== 'grid' ? 'vt-view-active' : '',
       gridBtnCss: s.viewMode === 'grid' ? 'vt-view-active' : '',
 
-      hasList: v === 'populated' || v === 'long' || v === 'loading',
+      hasList: v === 'populated' || v === 'long' || v === 'loading' || v === 'empty',
       isLoading: v === 'loading',
-      isEmpty: v === 'empty',
       hasRows: v !== 'loading' && v !== 'empty' && groups.length > 0,
       noMatch: v !== 'loading' && v !== 'empty' && groups.length === 0 && all.length > 0,
-      tabEmpty: v !== 'loading' && v !== 'empty' && groups.length === 0 && all.length === 0,
+      tabEmpty: v !== 'loading' && groups.length === 0 && all.length === 0,
 
       q: s.q, hasQ: !!s.q, onQ: this.onQ, clearQ: this.clearQ,
       showSearch: v !== 'loading' && all.length > 8,

@@ -734,7 +734,6 @@
       'Per completed transfer': { de: 'Pro abgeschlossenem Transfer', fr: 'Par transfert effectué', ar: 'لكل رحلة مكتملة' },
       'Pickups': { de: 'Abholungen', fr: 'Prises en charge', ar: 'الاستقبالات' },
       'Chauffeurs on shift': { de: 'Chauffeure im Dienst', fr: 'Chauffeurs en service', ar: 'السائقون في الدورية' },
-      'Vehicles in service': { de: 'Fahrzeuge im Einsatz', fr: 'Véhicules en service', ar: 'المركبات في الخدمة' },
       'Taken in this period': { de: 'In diesem Zeitraum eingegangen', fr: 'Reçues sur la période', ar: 'المستلمة في هذه الفترة' },
       'Scheduled to run': { de: 'Geplant', fr: 'Programmées', ar: 'المجدولة' },
       'Available to assign': { de: 'Jetzt zuweisbar', fr: 'Attribuables maintenant', ar: 'متاحون للإسناد' },
@@ -757,7 +756,6 @@
       'No chauffeur yet': { de: 'Noch kein Chauffeur', fr: 'Pas encore de chauffeur', ar: 'لا سائق بعد' },
       'Refunds to issue': { de: 'Offene Rückerstattungen', fr: 'Remboursements à émettre', ar: 'استردادات مستحقة' },
       'Cancelled inside the free window': { de: 'Innerhalb der kostenlosen Frist storniert', fr: 'Annulé dans la fenêtre gratuite', ar: 'أُلغي داخل مدة الإلغاء المجاني' },
-      'Fleet today': { de: 'Flotte heute', fr: 'La flotte aujourd’hui', ar: 'الأسطول اليوم' },
 
       /* ── Ops · fleet ───────────────────────────────────────────────── */
       'Vehicles': { de: 'Fahrzeuge', fr: 'Véhicules', ar: 'المركبات' },

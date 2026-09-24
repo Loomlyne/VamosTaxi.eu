@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { e164Phone, isCheckoutEmail } from "./contact-validate";
-import { mergeVamosTrip, peekLockClassRappen, peekLockExtras, placeMapboxId, placeText, rappenToFrancs, formatRailDate, geoLocale } from "./vamos-trip";
+import { firstPricedLockSlug, mergeVamosTrip, peekLockClassRappen, peekLockClassTotals, peekLockExtras, placeMapboxId, placeText, rappenToFrancs, formatRailDate, geoLocale } from "./vamos-trip";
 
 describe("checkout contact + rail helpers", () => {
   it("stores phone as plus plus digits", () => {
@@ -21,6 +21,28 @@ describe("checkout contact + rail helpers", () => {
     );
     expect(placeText({ text: "The Dolder Grand, Zurich" }, "short")).toBe("The Dolder Grand, Zurich");
     expect(placeText(null, "Zurich HB")).toBe("Zurich HB");
+  });
+
+  it("does not treat an idle null total as the pay class when the trip has a fare", () => {
+    const payload = JSON.stringify({
+      class_totals: [
+        { slug: "economy", total_rappen: null },
+        { slug: "mercedes-benz-v-class", total_rappen: 18500 },
+      ],
+    });
+    const lock = `k1.${Buffer.from(payload).toString("base64url")}.sig`;
+    expect(peekLockClassTotals(lock).map((row) => row.slug)).toEqual([
+      "economy",
+      "mercedes-benz-v-class",
+    ]);
+    expect(peekLockClassRappen(lock, "economy")).toBeNull();
+    expect(firstPricedLockSlug(lock, ["economy"])).toBe("mercedes-benz-v-class");
+    expect(firstPricedLockSlug(lock, ["mercedes-s-class-special", "mercedes-benz-v-class"])).toBe(
+      "mercedes-benz-v-class",
+    );
+    expect(firstPricedLockSlug(lock, [])).toBe("mercedes-benz-v-class");
+    const closed = `k1.${Buffer.from(JSON.stringify({ class_totals: [{ slug: "economy", total_rappen: null }] })).toString("base64url")}.sig`;
+    expect(firstPricedLockSlug(closed, ["economy", "mercedes-benz-v-class"])).toBe("");
   });
 
   it("peeks lock class totals and never invents a fare", () => {

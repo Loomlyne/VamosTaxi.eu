@@ -103,7 +103,21 @@ function CheckoutCard({ onComplete }: { onComplete: (complete: boolean) => void 
     <div className="vt-checkout__cardblock">
       <h2 className="vt-checkout__method">{t("payWithCard")}</h2>
       <div className="vt-checkout__cardfields" data-checkout-card-fields>
-        <PaymentElement onChange={(event) => onComplete(event.complete)} />
+        {/* Stripe FieldOption is only auto | never. No optional-while-shown ZIP.
+            never hides postal code so a missing ZIP does not block confirm.
+            Do not pass a fake postal_code. Card number, expiry, and CVC stay. */}
+        <PaymentElement
+          options={{
+            fields: {
+              billingDetails: {
+                address: {
+                  postalCode: "never",
+                },
+              },
+            },
+          }}
+          onChange={(event) => onComplete(event.complete)}
+        />
       </div>
     </div>
   );

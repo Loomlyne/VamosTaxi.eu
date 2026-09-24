@@ -76,6 +76,13 @@ describe("rate-book overlay Save is draft (D-01 D-04 D-18 D-20)", () => {
     expect(src).toMatch(/ruleId: row.ruleId == null \? "" : String\(row.ruleId\)/);
   });
 
+  it("stores the selected city pair id on the existing draft rule JSON", () => {
+    const src = webSource(ROUTE);
+    expect(src).toMatch(/kind = 'city_pair'/);
+    expect(src).toMatch(/cityPairId: cityPairRuleFor\(book, row.vehicleClassId\)\?\.pairId \?\? ""/);
+    expect(src).not.toMatch(/create table public\.city_pair/);
+  });
+
   it("deletes every class row on a From/To pair, not only the grouped id", () => {
     const src = webSource(ROUTE);
     expect(src).toMatch(/\(origin_zone_id, dest_zone_id\) in \(/);

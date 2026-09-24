@@ -249,6 +249,81 @@ function surchargeTypeOf(code) {
 function classSlugOf(name) {
   return String(name || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
+/* Comment 5. City-to-city pair for the class draft. The paid row has one
+   city_price_rappen, so the pair id rides the same save and the extra is that
+   pair's price for this class. No invented amounts. */
+const cityPairMemory = {};
+function cityPairIdOf(route) {
+  if (!route) return '';
+  if (route.originZoneId && route.destZoneId) return String(route.originZoneId) + '::' + String(route.destZoneId);
+  if (route.id) return 'id:' + String(route.id);
+  const from = String(route.from || '').trim();
+  const to = String(route.to || '').trim();
+  if (!from || !to) return '';
+  return 'name:' + from + '::' + to;
+}
+function cityPairLabelOf(route) {
+  const from = String((route && route.from) || '').trim();
+  const to = String((route && route.to) || '').trim();
+  if (!from || !to) return '';
+  return from + ' \u2013 ' + to;
+}
+function chfPacked(packed) {
+  if (packed == null || packed === '') return '';
+  if (typeof packed === 'number' || typeof packed === 'string') return String(packed);
+  if (typeof packed === 'object' && packed.CHF != null && String(packed.CHF) !== '') return String(packed.CHF);
+  return '';
+}
+function cityPairExtra(route, slug) {
+  if (!route || !slug) return '';
+  return chfPacked(route[slug] || (route.prices && route.prices[slug]) || '');
+}
+function cityPairsFrom(routes) {
+  const out = [];
+  const seen = {};
+  (routes || []).forEach((route) => {
+    const id = cityPairIdOf(route);
+    const label = cityPairLabelOf(route);
+    if (!id || !label || seen[id]) return;
+    seen[id] = 1;
+    out.push({ id: id, label: label, route: route });
+  });
+  return out;
+}
+function cityPairIdFromRules(rate, rules) {
+  if (!rate) return '';
+  const classId = String(rate.vehicleClassId || '');
+  if (!classId) return '';
+  let hit = '';
+  (rules || []).forEach((rule) => {
+    if (!rule || rule.kind !== 'city_pair') return;
+    let payload = rule.payload;
+    if (typeof payload === 'string') {
+      try { payload = JSON.parse(payload); } catch (e) { payload = null; }
+    }
+    if (payload && String(payload.vehicleClassId || '') === classId && payload.pairId) hit = String(payload.pairId);
+  });
+  return hit;
+}
+function cityPairIdForRate(rate, pairs, rules) {
+  if (!rate || !pairs || !pairs.length) return '';
+  const stored = String(rate.cityPairId || cityPairIdFromRules(rate, rules) || '');
+  if (stored && pairs.some((p) => p.id === stored)) return stored;
+  const keys = [
+    String(rate.vehicleClassId || ''),
+    String(rate.id || ''),
+    'name:' + classSlugOf(rate.klass || rate.name),
+  ].filter(Boolean);
+  for (let i = 0; i < keys.length; i++) {
+    const hit = cityPairMemory[keys[i]];
+    if (hit && pairs.some((p) => p.id === hit)) return hit;
+  }
+  const slug = classSlugOf(rate.klass || rate.name);
+  const want = chfPacked(rate.cityPrice);
+  if (!want || !slug) return '';
+  const hits = pairs.filter((p) => cityPairExtra(p.route, slug) === want);
+  return hits.length === 1 ? hits[0].id : '';
+}
 function uniqueByClass(rows) {
   const byKey = {};
   const order = [];
@@ -291,7 +366,7 @@ function boardDate(p) {
   return WD_EN[dow] + ' ' + p.d + ' ' + MON_EN[p.m] + ' ' + p.y;
 }
 const PANES = [
-  { key:'routes', icon:'navigation', tab:'tabRoutes', hint:'hintRoutes' },
+  { key:'routes', icon:'map-pin', tab:'tabRoutes', hint:'hintRoutes' },
   { key:'distance', icon:'arrow-left-right', tab:'tabDistance', hint:'hintDistance' },
   { key:'surcharges', icon:'banknote', tab:'tabSurcharges', hint:'hintSurcharges' },
   { key:'coupons', icon:'ticket', tab:'tabCoupons', hint:'hintCoupons' },
@@ -299,13 +374,13 @@ const PANES = [
 const T = {
   en: { title:'Pricing & routes', subtitle:'Fixed routes, distance rules, surcharges and coupons',
     tabRoutes:'Fixed routes', tabDistance:'Distance rules', tabSurcharges:'Surcharges & extras', tabCoupons:'Coupons',
-    hintRoutes:'Place to place, or canton to canton. A to B and B to A are separate.', hintDistance:'Start, per kilometre, airport start, one city price', fareFormulaTitle:'How this fare is calculated', fareFormulaBody:'One way is the start price plus kilometres times the per-kilometre rate, plus any extras you turn on. Airport pickup uses a different start and the same per-kilometre rate, plus extras. City to city is that one-way fare plus one city price, one add, not a price for each city on the way. Leave airport start or city price empty until you know the amount. Empty stays unpriced.', airportStart:'Airport start', hAirportStart:'Different start for airport pickup. Same per-kilometre rate as Start. Leave empty until you know the amount.', cityPrice:'City price', hCityPrice:'One add on top of one way. Not a price for each city. Leave empty until you know the amount.', hintSurcharges:'Checkout extras, wait, meet and greet', hintCoupons:'Percent or fixed CHF',
+    hintRoutes:'City to city. A to B and B to A are separate.', hintDistance:'Start, per kilometre, airport start, one city price', fareFormulaTitle:'How this fare is calculated', fareFormulaBody:'One way is the start price plus kilometres times the per-kilometre rate. A matching city-to-city or canton-to-canton pair adds that pair extra once. No match adds no extra. Then extras and any surcharge, minus a coupon. Airport pickup uses a different start and the same per-kilometre rate. An empty airport start stays unpriced.', airportStart:'Airport start', cityPrice:'City price and per kilometre', cityPairPick:'Select a city pair', hintSurcharges:'Checkout extras, wait, meet and greet', hintCoupons:'Percent or fixed CHF',
     colId:'ID', colFrom:'From', colTo:'To', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Draft',
     colClass:'Class', colName:'Name', startFare:'Start', perKm:'Per kilometre', maxPax:'Max passengers', maxBags:'Max bags', hidePublic:'Hide from public', showPublic:'Show on public',
     fPhoto:'Photo', choosePhoto:'Choose photo', clearPhoto:'Remove', hClassPhoto:'Required to Publish. Stored on R2, not on this machine.',
     colRule:'Rule', colAppliesWhen:'Applies when', colAmount:'Amount', colKind:'Kind',
     addRoute:'Add route', editRoute:'Edit route', saveRoute:'Save route', deleteRouteTitle:'Delete this route from the draft?', deleteRouteBody:'Delete this route from the draft? Public does not change until Publish.',
-    emptyRoutesTitle:'No fixed routes yet', emptyRoutesBody:'Add a Mapbox place to place, or a canton to canton. A to B and B to A are separate rows. Public stays on the last published book until you publish.',
+    emptyRoutesTitle:'No fixed routes yet', emptyRoutesBody:'Add a city to city, or a canton to canton. A to B and B to A are separate rows. Public stays on the last published book until you publish.',
     searchRoutes:'From, to or ID', nounRoute:'route', nounRoutes:'routes',
     hRoutePrice:'Leave empty if this class is not offered on this route.', fLive:'Live for booking', hLive:'Off keeps the route in the draft; public does not change until Publish.',
     addClass:'Add class', editClass:'Edit class', saveClass:'Save class', deleteClassTitle:'Delete this class from the draft?', deleteClassBody:'Delete this class from the draft? Public does not change until Publish.',
@@ -390,13 +465,13 @@ const T = {
   },
   de: { title:'Preise & Routen', subtitle:'Feste Routen, Distanzregeln, Zuschläge und Gutscheine',
     tabRoutes:'Feste Routen', tabDistance:'Distanzregeln', tabSurcharges:'Zuschläge & Extras', tabCoupons:'Gutscheine',
-    hintRoutes:'Ort zu Ort oder Kanton zu Kanton. A nach B und B nach A sind getrennte Zeilen.', hintDistance:'Start, pro Kilometer, Flughafen-Start, ein Stadtpreis', fareFormulaTitle:'So wird der Preis gerechnet', fareFormulaBody:'Einfache Fahrt ist der Startpreis plus Kilometer mal Kilometersatz, plus die Extras, die du einschaltest. Flughafenabholung nutzt einen anderen Start und denselben Kilometersatz, plus Extras. Stadt zu Stadt ist diese einfache Fahrt plus ein Stadtpreis, ein Zuschlag, nicht ein Preis je Stadt auf dem Weg. Lass Flughafen-Start oder Stadtpreis leer, bis du den Betrag kennst. Leer bleibt ohne Preis.', airportStart:'Flughafen-Start', hAirportStart:'Anderer Start für die Flughafenabholung. Derselbe Kilometersatz wie Start. Leer lassen, bis du den Betrag kennst.', cityPrice:'Stadtpreis', hCityPrice:'Ein Zuschlag auf die einfache Fahrt. Nicht ein Preis je Stadt. Leer lassen, bis du den Betrag kennst.', hintSurcharges:'Checkout-Extras, Warten, Meet and greet', hintCoupons:'Prozent oder fester CHF',
+    hintRoutes:'Stadt zu Stadt. A nach B und B nach A sind getrennt.', hintDistance:'Start, pro Kilometer, Flughafen-Start, ein Stadtpreis', fareFormulaTitle:'So wird der Preis gerechnet', fareFormulaBody:'Einfache Fahrt ist der Startpreis plus Kilometer mal Kilometersatz. Ein passendes Stadt-zu-Stadt- oder Kanton-zu-Kanton-Paar addiert diesen Zuschlag einmal. Kein Treffer, kein Zuschlag. Danach die Extras und ein Aufschlag, minus Gutschein. Die Flughafenabholung nutzt einen anderen Start und denselben Kilometersatz. Ein leerer Flughafen-Start bleibt ohne Preis.', airportStart:'Flughafen-Start', cityPrice:'Stadtpreis und pro Kilometer', cityPairPick:'Stadtpaar wählen', hintSurcharges:'Checkout-Extras, Warten, Meet and greet', hintCoupons:'Prozent oder fester CHF',
     colId:'ID', colFrom:'Von', colTo:'Nach', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Entwurf',
     colClass:'Klasse', colName:'Name', startFare:'Start', perKm:'Pro Kilometer', maxPax:'Max. Passagiere', maxBags:'Max. Gepäckstücke', hidePublic:'Vor der Öffentlichkeit verbergen', showPublic:'Öffentlich zeigen',
     fPhoto:'Foto', choosePhoto:'Foto wählen', clearPhoto:'Entfernen', hClassPhoto:'Pflicht vor dem Veröffentlichen. Liegt auf R2, nicht auf diesem Gerät.',
     colRule:'Regel', colAppliesWhen:'Gilt bei', colAmount:'Betrag', colKind:'Art',
     addRoute:'Route hinzufügen', editRoute:'Route bearbeiten', saveRoute:'Route speichern', deleteRouteTitle:'Diese Route aus dem Entwurf löschen?', deleteRouteBody:'Diese Route aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
-    emptyRoutesTitle:'Noch keine festen Routen', emptyRoutesBody:'Mapbox Ort zu Ort oder Kanton zu Kanton hinzufügen. A nach B und B nach A sind getrennte Zeilen. Die Öffentlichkeit bleibt auf dem letzten veröffentlichten Buch, bis du veröffentlichst.',
+    emptyRoutesTitle:'Noch keine festen Routen', emptyRoutesBody:'Stadt zu Stadt oder Kanton zu Kanton hinzufügen. A nach B und B nach A sind getrennte Zeilen. Die Öffentlichkeit bleibt auf dem letzten veröffentlichten Buch, bis du veröffentlichst.',
     searchRoutes:'Von, nach oder ID', nounRoute:'Route', nounRoutes:'Routen',
     hRoutePrice:'Leer lassen, wenn diese Klasse auf dieser Route nicht angeboten wird.', fLive:'Für Buchung live', hLive:'Aus behält die Route im Entwurf; die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
     addClass:'Klasse hinzufügen', editClass:'Klasse bearbeiten', saveClass:'Klasse speichern', deleteClassTitle:'Diese Klasse aus dem Entwurf löschen?', deleteClassBody:'Diese Klasse aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
@@ -483,13 +558,13 @@ const T = {
   },
   fr: { title:'Tarifs & trajets', subtitle:'Trajets fixes, règles de distance, suppléments et codes promo',
     tabRoutes:'Trajets fixes', tabDistance:'Règles de distance', tabSurcharges:'Suppléments & extras', tabCoupons:'Codes promo',
-    hintRoutes:'Lieu à lieu, ou canton à canton. A vers B et B vers A sont des lignes séparées.', hintDistance:'Départ, au kilomètre, départ aéroport, un prix ville', fareFormulaTitle:'Comment ce prix est calculé', fareFormulaBody:'L’aller simple est le prix de départ plus les kilomètres fois le tarif au kilomètre, plus les extras que vous activez. La prise en charge à l’aéroport utilise un autre départ et le même tarif au kilomètre, plus les extras. De ville en ville, c’est cet aller simple plus un prix ville, un seul ajout, pas un prix par ville traversée. Laissez le départ aéroport ou le prix ville vide tant que vous ne connaissez pas le montant. Vide reste sans prix.', airportStart:'Départ aéroport', hAirportStart:'Autre départ pour la prise en charge à l’aéroport. Même tarif au kilomètre que Départ. Laissez vide tant que vous ne connaissez pas le montant.', cityPrice:'Prix ville', hCityPrice:'Un seul ajout sur l’aller simple. Pas un prix par ville. Laissez vide tant que vous ne connaissez pas le montant.', hintSurcharges:'Extras de paiement, attente, accueil', hintCoupons:'Pourcent ou CHF fixe',
+    hintRoutes:'Ville à ville. A vers B et B vers A sont séparés.', hintDistance:'Départ, au kilomètre, départ aéroport, un prix ville', fareFormulaTitle:'Comment ce prix est calculé', fareFormulaBody:'L’aller simple est le prix de départ plus les kilomètres fois le tarif au kilomètre. Une paire ville à ville ou canton à canton qui correspond ajoute cet extra une fois. Sans correspondance, pas d’extra. Ensuite les extras et un supplément, moins un coupon. La prise en charge à l’aéroport utilise un autre départ et le même tarif au kilomètre. Un départ aéroport vide reste sans prix.', airportStart:'Départ aéroport', cityPrice:'Prix ville et par kilomètre', cityPairPick:'Choisir une paire de villes', hintSurcharges:'Extras de paiement, attente, accueil', hintCoupons:'Pourcent ou CHF fixe',
     colId:'ID', colFrom:'De', colTo:'Vers', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Brouillon',
     colClass:'Classe', colName:'Nom', startFare:'Départ', perKm:'Par kilomètre', maxPax:'Passagers max.', maxBags:'Bagages max.', hidePublic:'Masquer au public', showPublic:'Afficher au public',
     fPhoto:'Photo', choosePhoto:'Choisir une photo', clearPhoto:'Retirer', hClassPhoto:'Obligatoire pour Publier. Stockée sur R2, pas sur cet appareil.',
     colRule:'Règle', colAppliesWhen:'S’applique', colAmount:'Montant', colKind:'Type',
     addRoute:'Ajouter un trajet', editRoute:'Modifier le trajet', saveRoute:'Enregistrer le trajet', deleteRouteTitle:'Supprimer ce trajet du brouillon ?', deleteRouteBody:'Supprimer ce trajet du brouillon ? Le public ne change qu’après Publier.',
-    emptyRoutesTitle:'Pas encore de trajets fixes', emptyRoutesBody:'Ajoutez un lieu Mapbox à lieu, ou un canton à canton. A vers B et B vers A sont des lignes séparées. Le public reste sur le dernier livre publié jusqu’à la publication.',
+    emptyRoutesTitle:'Pas encore de trajets fixes', emptyRoutesBody:'Ajoutez une ville à ville, ou un canton à canton. A vers B et B vers A sont des lignes séparées. Le public reste sur le dernier livre publié jusqu’à la publication.',
     searchRoutes:'De, vers ou ID', nounRoute:'trajet', nounRoutes:'trajets',
     hRoutePrice:'Laissez vide si cette classe n’est pas proposée sur ce trajet.', fLive:'Live à la réservation', hLive:'Désactivé conserve le trajet dans le brouillon ; le public ne change qu’après Publier.',
     addClass:'Ajouter une classe', editClass:'Modifier la classe', saveClass:'Enregistrer la classe', deleteClassTitle:'Supprimer cette classe du brouillon ?', deleteClassBody:'Supprimer cette classe du brouillon ? Le public ne change qu’après Publier.',
@@ -576,13 +651,13 @@ const T = {
   },
   ar: { title:'الأسعار والمسارات', subtitle:'مسارات ثابتة وقواعد مسافة ورسوم وقسائم',
     tabRoutes:'مسارات ثابتة', tabDistance:'قواعد المسافة', tabSurcharges:'الرسوم والإضافات', tabCoupons:'القسائم',
-    hintRoutes:'من مكان إلى مكان أو من كانتون إلى كانتون. من أ إلى ب ومن ب إلى أ صفّان منفصلان.', hintDistance:'البداية، لكل كيلومتر، بداية المطار، سعر مدينة واحد', fareFormulaTitle:'كيف يُحسب هذا السعر', fareFormulaBody:'الذهاب فقط هو سعر البداية زائد الكيلومترات في سعر الكيلومتر، زائد الإضافات التي تفعّلها. الاستقبال في المطار يستخدم بداية مختلفة ونفس سعر الكيلومتر، زائد الإضافات. بين المدن هو حساب الذهاب فقط زائد سعر مدينة واحد، إضافة واحدة، وليس سعراً لكل مدينة على الطريق. اترك بداية المطار أو سعر المدينة فارغاً حتى تعرف المبلغ. الفراغ يبقى بلا سعر.', airportStart:'بداية المطار', hAirportStart:'بداية مختلفة للاستقبال في المطار. نفس سعر الكيلومتر المستخدم في البداية. اتركه فارغاً حتى تعرف المبلغ.', cityPrice:'سعر المدينة', hCityPrice:'إضافة واحدة فوق الذهاب فقط. ليس سعراً لكل مدينة. اتركه فارغاً حتى تعرف المبلغ.', hintSurcharges:'إضافات الدفع والانتظار والاستقبال', hintCoupons:'نسبة أو فرنك ثابت',
+    hintRoutes:'من مدينة إلى مدينة. من أ إلى ب ومن ب إلى أ منفصلان.', hintDistance:'البداية، لكل كيلومتر، بداية المطار، سعر مدينة واحد', fareFormulaTitle:'كيف يُحسب هذا السعر', fareFormulaBody:'الذهاب فقط هو سعر البداية زائد الكيلومترات في سعر الكيلومتر. زوج مدينة إلى مدينة أو كانتون إلى كانتون المطابق يضيف تلك الزيادة مرة واحدة. بلا تطابق لا تُضاف زيادة. ثم الإضافات وأي رسم، ناقص القسيمة. الاستقبال في المطار يستخدم بداية مختلفة ونفس سعر الكيلومتر. بداية مطار فارغة تبقى بلا سعر.', airportStart:'بداية المطار', cityPrice:'سعر المدينة ولكل كيلومتر', cityPairPick:'اختر زوج مدن', hintSurcharges:'إضافات الدفع والانتظار والاستقبال', hintCoupons:'نسبة أو فرنك ثابت',
     colId:'المعرّف', colFrom:'من', colTo:'إلى', colEconomy:'اقتصادي', colBusiness:'أعمال', colVan:'فان', colLive:'مباشر', live:'مباشر', draft:'مسودة',
     colClass:'الفئة', colName:'الاسم', startFare:'البداية', perKm:'لكل كيلومتر', maxPax:'أقصى عدد مسافرين', maxBags:'أقصى حقائب', hidePublic:'إخفاء عن العامة', showPublic:'إظهار للعامة',
     fPhoto:'الصورة', choosePhoto:'اختيار صورة', clearPhoto:'إزالة', hClassPhoto:'مطلوبة للنشر. تُحفظ على R2 وليس على هذا الجهاز.',
     colRule:'القاعدة', colAppliesWhen:'ينطبق عند', colAmount:'المبلغ', colKind:'النوع',
     addRoute:'إضافة مسار', editRoute:'تعديل المسار', saveRoute:'حفظ المسار', deleteRouteTitle:'حذف هذا المسار من المسودة؟', deleteRouteBody:'حذف هذا المسار من المسودة؟ لا يتغير العام حتى النشر.',
-    emptyRoutesTitle:'لا توجد مسارات ثابتة بعد', emptyRoutesBody:'أضف مكان مابوكس إلى مكان أو كانتون إلى كانتون. من أ إلى ب ومن ب إلى أ صفّان منفصلان. يبقى العام على آخر كتاب منشور حتى تنشر.',
+    emptyRoutesTitle:'لا توجد مسارات ثابتة بعد', emptyRoutesBody:'أضف مدينة إلى مدينة أو كانتون إلى كانتون. من أ إلى ب ومن ب إلى أ صفّان منفصلان. يبقى العام على آخر كتاب منشور حتى تنشر.',
     searchRoutes:'من أو إلى أو المعرّف', nounRoute:'مسار', nounRoutes:'مسارات',
     hRoutePrice:'اتركه فارغًا إن لم تُعرض هذه الفئة على هذا المسار.', fLive:'مباشر للحجز', hLive:'الإيقاف يُبقي المسار في المسودة؛ لا يتغير العام حتى النشر.',
     addClass:'إضافة فئة', editClass:'تعديل الفئة', saveClass:'حفظ الفئة', deleteClassTitle:'حذف هذه الفئة من المسودة؟', deleteClassBody:'حذف هذه الفئة من المسودة؟ لا يتغير العام حتى النشر.',
@@ -1106,6 +1181,9 @@ class Component extends DCLogic {
       return hit ? (hit.vehicleClassId || hit.id) : '';
     };
     const routesRaw = ops ? ops.routes.all() : [];
+    const cityPairs = cityPairsFrom(routesRaw);
+    const cityPairOptions = cityPairs.map((p) => ({ value: p.id, label: p.label }));
+    const cityPairEmpty = cityPairs.length ? t.cityPairPick : t.emptyRoutesTitle;
     const surchargesRaw = ops ? ops.surcharges.all() : [];
     const bandRowsRaw = ops ? ops.bands.all() : [];
     const couponRaw = ops ? ops.coupons.all() : [];
@@ -1299,7 +1377,8 @@ class Component extends DCLogic {
         baseFare: chfOf(r.baseFare),
         perKm: chfOf(r.perKm),
         airportStart: chfOf(r.airportStart),
-        cityPrice: chfOf(r.cityPrice),
+        cityPrice: cityPairIdForRate(r, cityPairs, ops ? ops.rules.all() : []),
+        cityPairLabel: (cityPairs.filter((p) => p.id === cityPairIdForRate(r, cityPairs, ops ? ops.rules.all() : []))[0] || {}).label || '',
         maxPax: r.maxPax || 3,
         maxBags: r.maxBags || r.luggageCapacity || 3,
         available: r.available !== false,
@@ -1310,21 +1389,20 @@ class Component extends DCLogic {
         { key:'baseFare', header: t.startFare, lookup:(r) => moneyOrDash(r.baseFare) },
         { key:'perKm', header: t.perKm, lookup:(r) => moneyOrDash(r.perKm) },
         { key:'airportStart', header: t.airportStart, lookup:(r) => moneyOrDash(r.airportStart) },
-        { key:'cityPrice', header: t.cityPrice, lookup:(r) => moneyOrDash(r.cityPrice) },
+        { key:'cityPrice', header: t.cityPrice, lookup:(r) => r.cityPairLabel || '\u2014' },
         { key:'maxPax', header: t.maxPax, width:'90px' },
         { key:'maxBags', header: t.maxBags, width:'90px' },
         { key:'hideFromPublic', header: t.hidePublic, width:'180px', kind:'bool', onLabel:t.hidePublic, offLabel:t.showPublic },
       ],
       distanceFields: [
         { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'class', photoRecordKey:'vehicleClassId', upload:'/api/photos/upload', clearLabel:t.clearPhoto, chooseLabel:t.choosePhoto, hint:t.hClassPhoto },
-        { key:'klass', label:t.colName, required:true, icon:'car', half:true },
-        { key:'baseFare', label:t.startFare, half:true, placeholder:'000', icon:'banknote', suffix:'CHF' },
-        { key:'perKm', label:t.perKm, half:true, placeholder:'0.00', icon:'navigation', suffix:'CHF' },
-        { key:'airportStart', label:t.airportStart, half:true, placeholder:'000', icon:'banknote', suffix:'CHF', hint:t.hAirportStart },
-        { key:'cityPrice', label:t.cityPrice, half:true, placeholder:'000', icon:'banknote', suffix:'CHF', hint:t.hCityPrice },
+        { key:'klass', label:t.colName, required:true, icon:'car' },
+        { key:'baseFare', label:t.startFare, placeholder:'000', icon:'banknote', suffix:'CHF' },
+        { key:'airportStart', label:t.airportStart, placeholder:'000', icon:'banknote', suffix:'CHF' },
+        { key:'cityPrice', label:t.cityPrice, editor:'select', icon:'map-pin', options: cityPairOptions, emptyLabel: cityPairEmpty },
+        { key:'perKm', label:t.perKm, placeholder:'0.00', icon:'navigation', suffix:'CHF' },
         { key:'maxPax', label:t.maxPax, editor:'number', min:1, half:true, icon:'users' },
         { key:'maxBags', label:t.maxBags, editor:'number', min:0, half:true, icon:'luggage' },
-        { key:'hideFromPublic', label:t.hidePublic, editor:'switch', half:true },
       ],
       distanceBlank: () => {
         const blank = ops ? ops.rates.blank() : { klass:'', baseFare:{}, perKm:{}, maxPax:3, maxBags:3, hideFromPublic:false, photo:'' };
@@ -1336,6 +1414,22 @@ class Component extends DCLogic {
         const id = (existing && existing.id) || rec.id;
         const photo = (rec.photo || rec.photoPath || '') && String(rec.photo || rec.photoPath).indexOf('data:') !== 0
           ? (rec.photo || rec.photoPath) : '';
+        const pairId = String(rec.cityPrice || '');
+        const pair = cityPairs.filter((p) => p.id === pairId)[0];
+        const classId = String(rec.vehicleClassId || (existing && existing.vehicleClassId) || classIdFor(rec.klass) || '');
+        const fromBook = ((ops && ops.CLASSES) || []).filter((c) => String(c.id || c.vehicleClassId || '') === classId)[0];
+        const classSlug = (fromBook && fromBook.slug) || classSlugOf(rec.klass) || ((ratedClasses.filter((c) => c.vehicleClassId && c.vehicleClassId === classId)[0] || {}).slug) || '';
+        const pairExtra = pair ? cityPairExtra(pair.route, classSlug) : '';
+        const classKey = String(rec.vehicleClassId || (existing && existing.vehicleClassId) || classIdFor(rec.klass) || id || '');
+        const nameKey = 'name:' + classSlugOf(rec.klass);
+        if (classKey) {
+          if (pairId) cityPairMemory[classKey] = pairId;
+          else delete cityPairMemory[classKey];
+        }
+        if (nameKey !== 'name:') {
+          if (pairId) cityPairMemory[nameKey] = pairId;
+          else delete cityPairMemory[nameKey];
+        }
         const out = ops.rates.upsert({
           id: id,
           klass: rec.klass,
@@ -1350,7 +1444,8 @@ class Component extends DCLogic {
           baseFare: Object.assign({}, (existing && existing.baseFare) || {}, { CHF: rec.baseFare }),
           perKm: Object.assign({}, (existing && existing.perKm) || {}, { CHF: rec.perKm }),
           airportStart: Object.assign({}, (existing && existing.airportStart) || {}, { CHF: rec.airportStart }),
-          cityPrice: Object.assign({}, (existing && existing.cityPrice) || {}, { CHF: rec.cityPrice }),
+          cityPrice: Object.assign({}, (existing && existing.cityPrice) || {}, { CHF: pairExtra }),
+          cityPairId: pairId,
         });
         if (out && typeof out.then === 'function') out.then(() => this.loadDraft());
         return out;

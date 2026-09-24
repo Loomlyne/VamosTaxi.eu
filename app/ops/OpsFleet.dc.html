@@ -23,13 +23,6 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" onClick="{{ openDeskEdit }}" hint-size="140px,36px">{{ tEditC }}</x-import>
 </div>
 </sc-if>
-<sc-if value="{{ isList }}" hint-placeholder-val="{{ true }}">
-<div style="margin-inline-start:auto;display:flex;flex-wrap:wrap;align-items:center;gap:8px">
-<sc-for list="{{ tabs }}" as="t" hint-placeholder-count="2">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Tag" active="{{ t.active }}" onClick="{{ t.go }}" hint-size="120px,34px">{{ t.label }}</x-import>
-</sc-for>
-</div>
-</sc-if>
 </header>
 
 <div style="padding:26px 32px 48px;display:flex;flex-direction:column;gap:20px;min-width:0">
@@ -136,13 +129,10 @@
 </div>
 </main>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900},&quot;section&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;vehicles&quot;,&quot;options&quot;:[&quot;vehicles&quot;,&quot;chauffeurs&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
-/* Fleet — vehicles first, then the chauffeurs who drive them. Adding a vehicle,
-   editing it and taking it off the road all happen here; a chauffeur is attached
-   to a vehicle from the chauffeur side, so the pairing has exactly one owner.
-
-   Every amount stays CHF 000 (design system §2) — a vehicle is priced by its
-   class on the Pricing screen, never per plate. */
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900}}">
+/* Chauffeurs. Pairing still picks one vehicle from the edit overlay.
+   The vehicle list is not an admin screen. A vehicle is priced by its class
+   on the Pricing screen, never per plate. */
 const VSTATUS = {
   service: { tone:'success', label:'In service' },
   idle: { tone:'neutral', label:'Free' },
@@ -171,7 +161,6 @@ const T = {
     nounV:'vehicle', nounVs:'vehicles', nounC:'chauffeur', nounCs:'chauffeurs',
     editV:'Edit vehicle', editC:'Edit chauffeur', delV:'Delete this vehicle?', delC:'Delete this chauffeur?',
     searchVehicles:'Class, model or plate', searchChauffeurs:'Name, phone or licence',
-    emptyVTitle:'No vehicles yet', emptyVBody:'Add the fleet first — chauffeurs are attached to a vehicle afterwards.',
     emptyCTitle:'No chauffeurs yet', emptyCBody:'Add a chauffeur and pair them with one of the vehicles.',
     delVBody:'The vehicle leaves the fleet, and any chauffeur paired with it is left without one.',
     delCBody:'The chauffeur leaves the console. Their vehicle stays in the fleet.',
@@ -209,7 +198,6 @@ const T = {
     nounV:'Fahrzeug', nounVs:'Fahrzeuge', nounC:'Chauffeur', nounCs:'Chauffeure',
     editV:'Fahrzeug bearbeiten', editC:'Chauffeur bearbeiten', delV:'Dieses Fahrzeug löschen?', delC:'Diesen Chauffeur löschen?',
     searchVehicles:'Klasse, Modell oder Kennzeichen', searchChauffeurs:'Name, Telefon oder Ausweis',
-    emptyVTitle:'Noch keine Fahrzeuge', emptyVBody:'Zuerst die Flotte anlegen — Chauffeure werden danach einem Fahrzeug zugeordnet.',
     emptyCTitle:'Noch keine Chauffeure', emptyCBody:'Chauffeur hinzufügen und mit einem Fahrzeug verbinden.',
     delVBody:'Das Fahrzeug verlässt die Flotte, und ein damit verbundener Chauffeur steht ohne da.',
     delCBody:'Der Chauffeur verlässt die Konsole. Sein Fahrzeug bleibt in der Flotte.',
@@ -247,7 +235,6 @@ const T = {
     nounV:'véhicule', nounVs:'véhicules', nounC:'chauffeur', nounCs:'chauffeurs',
     editV:'Modifier le véhicule', editC:'Modifier le chauffeur', delV:'Supprimer ce véhicule ?', delC:'Supprimer ce chauffeur ?',
     searchVehicles:'Classe, modèle ou plaque', searchChauffeurs:'Nom, téléphone ou permis',
-    emptyVTitle:'Aucun véhicule', emptyVBody:'Ajoutez d’abord la flotte — les chauffeurs y sont rattachés ensuite.',
     emptyCTitle:'Aucun chauffeur', emptyCBody:'Ajoutez un chauffeur et associez-le à un véhicule.',
     delVBody:'Le véhicule quitte la flotte, et le chauffeur qui y était associé se retrouve sans.',
     delCBody:'Le chauffeur quitte la console. Son véhicule reste dans la flotte.',
@@ -285,7 +272,6 @@ const T = {
     nounV:'مركبة', nounVs:'مركبات', nounC:'سائق', nounCs:'سائقون',
     editV:'تعديل المركبة', editC:'تعديل السائق', delV:'حذف هذه المركبة؟', delC:'حذف هذا السائق؟',
     searchVehicles:'الفئة أو الطراز أو اللوحة', searchChauffeurs:'الاسم أو الهاتف أو الرخصة',
-    emptyVTitle:'لا توجد مركبات بعد', emptyVBody:'أضف الأسطول أولًا — ثم يُربط السائقون بالمركبات.',
     emptyCTitle:'لا يوجد سائقون بعد', emptyCBody:'أضف سائقًا واربطه بإحدى المركبات.',
     delVBody:'تخرج المركبة من الأسطول، ويبقى السائق المرتبط بها بلا مركبة.',
     delCBody:'يخرج السائق من لوحة التحكم، وتبقى مركبته في الأسطول.',
@@ -332,7 +318,7 @@ class Component extends DCLogic {
   renderVals() {
     const t = T[this.state.lang] || T.en;
     const ops = window.VamosOps;
-    const isChauffeurs = (this.props.section || 'vehicles') === 'chauffeurs';
+    const isChauffeurs = true;
     const chauffeurId = String(this.props.chauffeurId || this.props['chauffeur-id'] || '');
     const isDetail = isChauffeurs && !!chauffeurId;
     const isList = !isDetail;
@@ -341,13 +327,9 @@ class Component extends DCLogic {
 
     const vehicleById = {};
     vehicles.forEach((v) => { vehicleById[v.id] = v; });
-    const chauffeurByVehicle = {};
-    chauffeurs.forEach((c) => { if (c.vehicle) chauffeurByVehicle[c.vehicle] = c; });
 
-    const inService = vehicles.filter((v) => v.status === 'service').length;
     const onShift = chauffeurs.filter((c) => c.status === 'shift').length;
     const paired = chauffeurs.filter((c) => c.vehicle).length;
-    const largest = vehicles.reduce((n, v) => Math.max(n, v.seats), 0);
 
     const vehicleLabel = (v) => v.klass + ' · ' + (v.plate || v.id);
     const classOptions = ((ops && ops.VEHICLE_CLASSES) || ['Economy', 'Business', 'First', 'Van']).map((c) => ({ value: c, label: c }));
@@ -355,26 +337,6 @@ class Component extends DCLogic {
     const vehicleOptions = [{ value:'', label: t.none }].concat(vehicles.map((v) => ({ value: v.id, label: vehicleLabel(v) })));
     const chauffeurOptions = chauffeurs.map((c) => ({ value: c.id, label: c.name || c.id }));
 
-    const vehicleColumns = [
-      { key:'klass', header:t.colVehicle, kind:'stack', subKey:'model' },
-      { key:'plate', header:t.colPlate, width:'132px', kind:'mono' },
-      { key:'cap', header:t.colCapacity, width:'128px', lookup:(r) => r.seats + ' / ' + r.bags },
-      { key:'base', header:t.colBase, width:'108px', align:'right', kind:'money' },
-      { key:'chauffeur', header:t.colChauffeur, width:'150px', kind:'need', emptyLabel:t.unassigned,
-        lookup:(r) => {
-          const list = chauffeurs.filter((c) => c.vehicle === r.id || c.defaultVehicleId === r.id);
-          if (!list.length) return '';
-          return React.createElement('span', null, list.map((c, i) => [
-            i ? ', ' : null,
-            React.createElement('a', {
-              key: c.id,
-              href: '/fleet/chauffeurs/' + encodeURIComponent(c.id),
-              style: { color: 'inherit', textDecoration: 'none' },
-            }, c.name || c.id),
-          ]));
-        } },
-      { key:'status', header:t.colStatus, width:'150px', kind:'badge', tones:VSTATUS },
-    ];
     const chauffeurColumns = [
       { key:'name', header:t.colChauffeur, lookup:(r) => React.createElement('span', {
           style: { display:'flex', flexDirection:'column', gap:2, lineHeight:1.3, minWidth:0 },
@@ -418,7 +380,7 @@ class Component extends DCLogic {
       { key:'note', label:t.fNote, editor:'area', placeholder:'' },
     ];
 
-    const store = ops ? (isChauffeurs ? ops.chauffeurs : ops.vehicles) : null;
+    const store = ops ? ops.chauffeurs : null;
     const detail = isDetail
       ? (chauffeurs.filter((c) => c.id === chauffeurId)[0] || null)
       : null;
@@ -506,89 +468,60 @@ class Component extends DCLogic {
       noPastBookings: pastBookings.length === 0,
       pastBookings,
       liveTrips,
-      title: isDetail ? (detail && detail.name ? detail.name : t.chauffeurs) : (isChauffeurs ? t.chauffeurs : t.vehicles),
-      subtitle: isChauffeurs ? t.cSub : t.vSub,
-      note: isChauffeurs ? t.cNote : t.vNote,
-      tabs: [
-        { label: t.vehicles, active: !isChauffeurs, go: () => {
-          history.pushState({}, '', '/fleet');
-          window.dispatchEvent(new PopStateEvent('popstate'));
-        } },
-        { label: t.chauffeurs, active: isChauffeurs, go: () => {
-          history.pushState({}, '', '/fleet/chauffeurs');
-          window.dispatchEvent(new PopStateEvent('popstate'));
-        } },
-      ],
-      counts: isChauffeurs ? [
+      title: isDetail ? (detail && detail.name ? detail.name : t.chauffeurs) : t.chauffeurs,
+      subtitle: t.cSub,
+      note: t.cNote,
+      counts: [
         { label:t.cntChauffeurs, value:String(chauffeurs.length), of:'', icon:'users', foot:t.footChauffeurs },
         { label:t.cntOnShift, value:String(onShift), of:'/ ' + chauffeurs.length, icon:'clock', foot:t.footShift },
         { label:t.cntWithVehicle, value:String(paired), of:'/ ' + chauffeurs.length, icon:'car', foot:t.footPaired },
-      ] : [
-        { label:t.cntVehicles, value:String(vehicles.length), of:'', icon:'car', foot:t.footFleet },
-        { label:t.cntInService, value:String(inService), of:'/ ' + vehicles.length, icon:'circle-check', foot:t.footVehicles },
-        { label:t.cntSeats, value:String(largest), of:t.seats, icon:'users', foot:t.footSeats },
       ],
-      rows: isChauffeurs ? chauffeurs : vehicles.map((v) => Object.assign({}, v, {
-        morning: v.morning || v.morningChauffeurId || '',
-        night: v.night || v.nightChauffeurId || '',
-      })),
-      columns: isChauffeurs ? chauffeurColumns : vehicleColumns,
-      fields: isChauffeurs ? chauffeurFields : vehicleFields,
+      rows: chauffeurs,
+      columns: chauffeurColumns,
+      fields: chauffeurFields,
       blank: () => (store ? store.blank() : {}),
       onSave: (rec) => {
         if (!store) return Promise.resolve({ ok: false, code: 'save-failed' });
-        const payload = isChauffeurs
-          ? Object.assign({}, rec, {
-              vehicle: rec.vehicle || rec.defaultVehicleId || '',
-              defaultVehicleId: rec.defaultVehicleId || rec.vehicle || '',
-              shiftWeekdays: String(rec.weekdays || '').split(',').map((s) => Number(s.trim())).filter((n) => n >= 1 && n <= 7),
-              shiftStart: rec.start || rec.shiftStart || null,
-              shiftEnd: rec.end || rec.shiftEnd || null,
-            })
-          : Object.assign({}, rec, {
-              morningChauffeurId: rec.morning || rec.morningChauffeurId || null,
-              nightChauffeurId: rec.night || rec.nightChauffeurId || null,
-            });
+        const payload = Object.assign({}, rec, {
+          vehicle: rec.vehicle || rec.defaultVehicleId || '',
+          defaultVehicleId: rec.defaultVehicleId || rec.vehicle || '',
+          shiftWeekdays: String(rec.weekdays || '').split(',').map((s) => Number(s.trim())).filter((n) => n >= 1 && n <= 7),
+          shiftStart: rec.start || rec.shiftStart || null,
+          shiftEnd: rec.end || rec.shiftEnd || null,
+        });
         return store.upsert(payload).then((json) => {
           if (!json || json.ok !== true) {
             const reason = (json && (json.message || json.error || json.detail)) || t.saveFailed;
             this.setState({ saveMsg: reason, notice: '' });
             return json;
           }
-          const next = { saveMsg: '', notice: (!isChauffeurs && payload.status === 'workshop') ? t.offRoadStay : '' };
-          this.setState(next);
-          if (isChauffeurs || !ops) return json;
+          this.setState({ saveMsg: '', notice: '' });
           return json;
         });
       },
       onDelete: (id) => { if (store) store.remove(id); },
-      noun: isChauffeurs ? t.nounC : t.nounV,
-      nounPlural: isChauffeurs ? t.nounCs : t.nounVs,
-      addTitle: isChauffeurs ? t.addChauffeur : t.addVehicle,
-      saveLabel: isChauffeurs ? t.saveChauffeur : t.addVehicle,
-      addSaveLabel: isChauffeurs ? t.saveChauffeur : t.addVehicle,
-      editTitle: isChauffeurs ? t.editC : t.editV,
-      deleteTitle: isChauffeurs ? t.delC : t.delV,
-      labelKey: isChauffeurs ? 'name' : 'plate',
-      addLabel: isChauffeurs ? t.addChauffeur : t.addVehicle,
-      searchPlaceholder: isChauffeurs ? t.searchChauffeurs : t.searchVehicles,
-      searchKeys: isChauffeurs ? ['name','phone','email','licence','languages'] : ['klass','model','plate','year'],
-      emptyTitle: isChauffeurs ? t.emptyCTitle : t.emptyVTitle,
-      emptyBody: isChauffeurs ? t.emptyCBody : t.emptyVBody,
-      deleteBody: isChauffeurs ? t.delCBody : t.delVBody,
-      nestedTitle: isChauffeurs ? t.addVehicle : t.addChauffeur,
-      nestedSaveLabel: isChauffeurs ? t.addVehicle : t.addChauffeur,
-      nestedTargetKey: isChauffeurs ? 'vehicle' : 'chauffeurIds',
-      nestedFields: isChauffeurs
-        ? vehicleFields.filter((f) => f.key !== 'chauffeurIds' && f.key !== 'photo')
-        : chauffeurFields.filter((f) => f.key !== 'vehicle' && f.key !== 'photo'),
-      nestedBlank: () => (ops ? (isChauffeurs ? ops.vehicles.blank() : ops.chauffeurs.blank()) : {}),
-      onNestedSave: (rec, parent) => {
+      noun: t.nounC,
+      nounPlural: t.nounCs,
+      addTitle: t.addChauffeur,
+      saveLabel: t.saveChauffeur,
+      addSaveLabel: t.saveChauffeur,
+      editTitle: t.editC,
+      deleteTitle: t.delC,
+      labelKey: 'name',
+      addLabel: t.addChauffeur,
+      searchPlaceholder: t.searchChauffeurs,
+      searchKeys: ['name','phone','email','licence','languages'],
+      emptyTitle: t.emptyCTitle,
+      emptyBody: t.emptyCBody,
+      deleteBody: t.delCBody,
+      nestedTitle: t.addVehicle,
+      nestedSaveLabel: t.addVehicle,
+      nestedTargetKey: 'vehicle',
+      nestedFields: vehicleFields.filter((f) => f.key !== 'chauffeurIds' && f.key !== 'photo'),
+      nestedBlank: () => (ops ? ops.vehicles.blank() : {}),
+      onNestedSave: (rec) => {
         if (!ops) return Promise.resolve({ ok: false });
-        if (isChauffeurs) return ops.vehicles.upsert(rec);
-        if (parent && parent.id) rec.vehicle = parent.id;
-        rec.defaultVehicleId = rec.defaultVehicleId || rec.vehicle || '';
-        return ops.chauffeurs.upsert(rec);
+        return ops.vehicles.upsert(rec);
       },
     };
   }

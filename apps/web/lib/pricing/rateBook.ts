@@ -160,7 +160,12 @@ function mapFixedRoute(item: unknown): FixedRouteRow {
     vehicle_class_id: row.vehicle_class_id as string,
     price_rappen: (row.price_rappen ?? null) as number | null,
     live: row.live as boolean,
-    kind: row.kind === "canton" ? "canton" : row.kind === "place" ? "place" : undefined,
+    kind:
+      row.kind === "canton" || row.kind === "city" || row.kind === "place"
+        ? row.kind
+        : undefined,
+    origin_label: typeof row.origin_label === "string" ? row.origin_label : null,
+    dest_label: typeof row.dest_label === "string" ? row.dest_label : null,
   };
 }
 

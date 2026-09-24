@@ -261,6 +261,30 @@ function mockRoutes(book: RateBook, zones: ServiceZoneRow[]): Record<string, unk
   return out;
 }
 
+function rulePayload(value: unknown): Record<string, unknown> | null {
+  if (value && typeof value === "object" && !Array.isArray(value)) return value as Record<string, unknown>;
+  if (typeof value !== "string" || value.trim() === "") return null;
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return parsed as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+/** Comment 5. Pair id lives in the existing draft rule JSON. The paid row still has one city_price_rappen. */
+function cityPairRuleFor(book: RateBook, vehicleClassId: string): { id: number; pairId: string } | null {
+  let hit: { id: number; pairId: string } | null = null;
+  for (const rule of book.rules) {
+    if (rule.kind !== "city_pair") continue;
+    const payload = rulePayload(rule.payload);
+    if (!payload || String(payload.vehicleClassId || "") !== vehicleClassId) continue;
+    hit = { id: rule.id, pairId: typeof payload.pairId === "string" ? payload.pairId : "" };
+  }
+  return hit;
+}
+
 function mockRates(book: RateBook): Record<string, unknown>[] {
   const classById = new Map(book.vehicleClasses.map((c) => [c.id, c]));
   return book.distanceRates.map((row) => {
@@ -277,6 +301,7 @@ function mockRates(book: RateBook): Record<string, unknown>[] {
       minFare: moneyFromRappen(row.minFareRappen),
       airportStart: moneyFromRappen(row.airportStartRappen),
       cityPrice: moneyFromRappen(row.cityPriceRappen),
+      cityPairId: cityPairRuleFor(book, row.vehicleClassId)?.pairId ?? "",
       maxPax: row.maxPax,
       maxBags: cls?.luggageCapacity ?? "",
       photo,
@@ -687,6 +712,32 @@ export const PUT = withAdmin(async (claims, request) => {
               ${parsed.maxPax}, ${parsed.available}, ${parsed.hideFromPublic}
             )
           `;
+        }
+        if (Object.prototype.hasOwnProperty.call(recBody, "cityPairId")) {
+          const pairId = typeof recBody.cityPairId === "string" ? recBody.cityPairId.trim() : "";
+          const existingRule = cityPairRuleFor(book, parsed.vehicleClassId);
+          if (!pairId) {
+            if (existingRule) {
+              await tx`
+                delete from public.rate_version_rules
+                where id = ${existingRule.id} and rate_version_id = ${versionId} and kind = 'city_pair'
+              `;
+            }
+          } else {
+            const pairPayload = JSON.stringify({ vehicleClassId: parsed.vehicleClassId, pairId });
+            if (existingRule) {
+              await tx`
+                update public.rate_version_rules
+                   set payload = ${pairPayload}::jsonb
+                 where id = ${existingRule.id} and rate_version_id = ${versionId} and kind = 'city_pair'
+              `;
+            } else {
+              await tx`
+                insert into public.rate_version_rules (rate_version_id, kind, payload)
+                values (${versionId}, 'city_pair', ${pairPayload}::jsonb)
+              `;
+            }
+          }
         }
         return null;
       });

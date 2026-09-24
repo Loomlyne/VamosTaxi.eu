@@ -63,7 +63,9 @@ test.describe("GET /api/staff/vehicles @ops-dc-fleet", () => {
     const html = readFileSync(join(repoRoot, "app/ops/OpsFleet.dc.html"), "utf8");
     expect(html).toContain("/api/photos/upload");
     expect(html).not.toContain("readAsDataURL");
-    expect(html).toContain("emptyVTitle");
-    expect(html).toContain("No vehicles yet");
+    expect(html).toContain("emptyCTitle");
+    expect(html).toContain("No chauffeurs yet");
+    expect(html).not.toContain("No vehicles yet");
+    expect(html).not.toContain("emptyVTitle");
   });
 });

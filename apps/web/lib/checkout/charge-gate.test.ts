@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import {
   classIsSelectable,
   payLinkTokenExpiresAt,
+  quoteUnpriced,
   refusalForMissingClassId,
   stripeAccountIsLegacyUaeTest,
 } from "./charge-gate";
@@ -44,6 +45,19 @@ describe("payLinkTokenExpiresAt", () => {
     expect(resend.getTime()).toBe(first.getTime());
     const windowEnd = Date.now() + 1440 * 60 * 1000;
     expect(Math.abs(first.getTime() - windowEnd)).toBeGreaterThan(60_000);
+  });
+});
+
+describe("quoteUnpriced", () => {
+  it("does not close booking when an idle class is CHF 000 and another class is priced", () => {
+    expect(quoteUnpriced([null, 18500])).toBe(false);
+    expect(quoteUnpriced([null, 0])).toBe(false);
+  });
+
+  it("stays closed when every class total is missing", () => {
+    expect(quoteUnpriced([])).toBe(true);
+    expect(quoteUnpriced([null, null])).toBe(true);
+    expect(quoteUnpriced([Number.NaN])).toBe(true);
   });
 });
 

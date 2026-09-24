@@ -218,7 +218,7 @@ button[data-vt-count]{appearance:none;-webkit-appearance:none;cursor:pointer;fon
 <dc-import name="OpsNewTrip" hint-size="100%,900px"></dc-import>
 </sc-if>
 <sc-if value="{{ isFleet }}" hint-placeholder-val="{{ false }}">
-<dc-import name="OpsFleet" section="{{ fleetSection }}" chauffeur-id="{{ chauffeurId }}" hint-size="100%,900px"></dc-import>
+<dc-import name="OpsFleet" chauffeur-id="{{ chauffeurId }}" hint-size="100%,900px"></dc-import>
 </sc-if>
 <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
 <dc-import name="OpsDetail" id="{{ detailId }}" hint-size="100%,900px"></dc-import>
@@ -264,12 +264,12 @@ button[data-vt-count]{appearance:none;-webkit-appearance:none;cursor:pointer;fon
 </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;start&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dashboard&quot;,&quot;options&quot;:[&quot;dashboard&quot;,&quot;bookings&quot;,&quot;calendar&quot;,&quot;vehicles&quot;,&quot;chauffeurs&quot;,&quot;pricing&quot;,&quot;customers&quot;,&quot;support&quot;,&quot;reviews&quot;,&quot;settings&quot;,&quot;profile&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Console&quot;},&quot;requireSignIn&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Console&quot;}}">
-const FLEET = ['vehicles', 'chauffeurs'];
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;start&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dashboard&quot;,&quot;options&quot;:[&quot;dashboard&quot;,&quot;bookings&quot;,&quot;calendar&quot;,&quot;chauffeurs&quot;,&quot;pricing&quot;,&quot;customers&quot;,&quot;support&quot;,&quot;reviews&quot;,&quot;settings&quot;,&quot;profile&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Console&quot;},&quot;requireSignIn&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Console&quot;}}">
+const FLEET = ['chauffeurs'];
 const CONTENT = ['pages', 'legal'];
 const HASH_TO_PATH = {
   dashboard: '/dashboard', bookings: '/bookings', calendar: '/calendar',
-  customers: '/customers', vehicles: '/fleet', chauffeurs: '/fleet/chauffeurs',
+  customers: '/customers', vehicles: '/fleet/chauffeurs', chauffeurs: '/fleet/chauffeurs',
   support: '/support', pricing: '/pricing', profile: '/profile', settings: '/settings',
   reviews: '/reviews', pages: '/pages', legal: '/legal',
   staff: '/dashboard',
@@ -310,8 +310,7 @@ function readPath(pathname) {
       return { route: 'customers', detailId: null, customerEmail: decodeURIComponent(email) };
     }
   }
-  if (path === '/fleet') return { route: 'vehicles', detailId: null };
-  if (path === '/fleet/chauffeurs') return { route: 'chauffeurs', detailId: null };
+  if (path === '/fleet' || path === '/fleet/chauffeurs') return { route: 'chauffeurs', detailId: null };
   if (path.indexOf('/fleet/chauffeurs/') === 0) {
     const id = path.slice('/fleet/chauffeurs/'.length);
     if (id && id.indexOf('/') === -1) return { route: 'chauffeurs', detailId: decodeURIComponent(id) };
@@ -427,7 +426,6 @@ class Component extends DCLogic {
       n16: 16, n20: 20, n22: 22,
       route: r === 'detail' || r === 'newTrip' ? 'bookings' : (pricingDenied ? 'dashboard' : r),
       detailId: this.state.detailId || '',
-      fleetSection: r === 'chauffeurs' ? 'chauffeurs' : 'vehicles',
       chauffeurId: r === 'chauffeurs' ? (this.state.detailId || '') : '',
       contentSection: r === 'legal' ? 'legal' : 'pages',
       isContent: CONTENT.indexOf(r) !== -1,

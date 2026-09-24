@@ -129,8 +129,15 @@ export interface FixedRouteRow {
   vehicle_class_id: string;
   price_rappen: number | null;
   live: boolean;
-  /** D-20: canton rows lose to exact place. Missing kind is inferred from zone tags. */
-  kind?: "place" | "canton";
+  /**
+   * Comment 8: city and canton pairs are extras on the distance fare.
+   * A place pin is not that extra. Missing kind is inferred from zone tags
+   * only for canton rows.
+   */
+  kind?: "place" | "canton" | "city";
+  /** City or country label, for example Germany or Paris. Not a Mapbox pin. */
+  origin_label?: string | null;
+  dest_label?: string | null;
 }
 
 /**

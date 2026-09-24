@@ -162,6 +162,8 @@ describe("checkout comment pack", () => {
     expect(payPanel).toContain('if (checkout.type !== "success") return null');
     expect(payPanel).not.toContain('throw new Error("payCouldNotStart")');
     expect(payPanel).toContain("<PaymentElement");
+    expect(payPanel).toContain('postalCode: "never"');
+    expect(payPanel).not.toContain("postal_code:");
     expect(payPanel).toContain("result.error.message");
     const cardConfirm = payPanel.slice(payPanel.indexOf("checkout.confirm({"), payPanel.indexOf("expressCheckoutConfirmEvent"));
     expect(cardConfirm).not.toContain("returnUrl");
