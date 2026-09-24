@@ -413,6 +413,34 @@ describe("live-book board (D-29 D-31 D-32 D-33)", () => {
     expect(board.classes.map((c) => c.slug)).toEqual(["suv"]);
   });
 
+  it("omits a dashboard-deleted class even when a rate and a fixed route remain", () => {
+    const economy = classRow({ slug: "economy", sort_order: 1, active: false });
+    const suv = classRow({ slug: "suv", sort_order: 2, passenger_capacity: 4, luggage_capacity: 3 });
+    const book: RateBook = {
+      rate_version: { id: 1, slug: "live" },
+      classes: [economy, suv],
+      distance_rates: [
+        rateRow({ vehicle_class_id: economy.id }),
+        rateRow({ vehicle_class_id: suv.id, id: 2, max_pax: 4 }),
+      ],
+      distance_bands: [],
+      region_premiums: [],
+      fixed_routes: [
+        fixedRow({
+          vehicle_class_id: economy.id,
+          origin_zone_id: "z-a",
+          dest_zone_id: "z-b",
+          live: false,
+        }),
+      ],
+      surcharges: [],
+      zones: [],
+    };
+    expect(classOnOffer(book, economy.id)).toBe(false);
+    const board = evaluateEligibility(book, input({ pax: 2, bags: 1 }));
+    expect(board.classes.map((c) => c.slug)).toEqual(["suv"]);
+  });
+
   it("lists hide_from_public as unavailable, still present (D-32)", () => {
     const board = evaluateEligibility(
       suvBook({ hide: true }),

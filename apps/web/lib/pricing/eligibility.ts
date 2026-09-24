@@ -53,9 +53,12 @@ function distanceRateFor(
 /**
  * A class deleted from the fare book (no distance rate and no fixed route)
  * is not on the public board. Hide-from-public still has a rate row, so it
- * stays listed as unavailable.
+ * stays listed as unavailable. Dashboard delete (`active === false`) is off
+ * the board even when a leftover rate or dark fixed route still points at it.
  */
 export function classOnOffer(book: RateBook, classId: string): boolean {
+  const cls = book.classes.find((row) => row.id === classId);
+  if (cls?.active === false) return false;
   if (distanceRateFor(book, classId)) return true;
   return book.fixed_routes.some((row) => row.vehicle_class_id === classId);
 }
@@ -169,7 +172,7 @@ export function evaluateEligibility(
   const bags = input.bags;
 
   const orderedClasses = [...rateBook.classes]
-    .filter((cls) => classOnOffer(rateBook, cls.id))
+    .filter((cls) => cls.active !== false && classOnOffer(rateBook, cls.id))
     .sort((a, b) => {
     if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
     if (a.slug < b.slug) return -1;

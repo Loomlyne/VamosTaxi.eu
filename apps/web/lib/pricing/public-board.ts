@@ -96,8 +96,14 @@ function liveFixedRouteIdleCards(
 /** Rated live-book classes for the idle home strip. Deleted leftovers omitted. Amounts stay null. */
 export function liveBookBoard(book: RateBook): ClassBoardEntry[] {
   const board = evaluateEligibility(book, IDLE_INPUT);
+  const inactive = new Set(
+    book.classes.filter((cls) => cls.active === false).map((cls) => cls.slug),
+  );
   const listed = board.classes
-    .filter((entry) => entry.ineligible_reason !== "no_rate")
+    .filter(
+      (entry) =>
+        entry.ineligible_reason !== "no_rate" && !inactive.has(entry.slug),
+    )
     .map((entry) => ({
       ...entry,
       lines: [],

@@ -174,6 +174,41 @@ describe("liveBookBoard", () => {
     );
     expect(board).toEqual([]);
   });
+
+  it("omits a dashboard-deleted class even when a live rate and a live fixed route remain", () => {
+    const kept = classRow({
+      slug: "mercedes-benz-v-class",
+      name: "Mercedes-Benz V-Class",
+      sort_order: 0,
+    });
+    const gone = classRow({
+      slug: "economy",
+      name: "Economy",
+      sort_order: 1,
+      active: false,
+    });
+    const fixed: FixedRouteRow = {
+      id: 4,
+      rate_version_id: 1,
+      origin_zone_id: "z-a",
+      dest_zone_id: "z-b",
+      vehicle_class_id: gone.id,
+      price_rappen: 25900,
+      live: true,
+      kind: "place",
+    };
+    const board = liveBookBoard(
+      book({
+        classes: [gone, kept],
+        distance_rates: [
+          rateRow({ vehicle_class_id: kept.id }),
+          rateRow({ vehicle_class_id: gone.id, id: 2 }),
+        ],
+        fixed_routes: [fixed],
+      }),
+    );
+    expect(board.map((c) => c.slug)).toEqual(["mercedes-benz-v-class"]);
+  });
 });
 
 describe("publicCatalogRoutes", () => {
