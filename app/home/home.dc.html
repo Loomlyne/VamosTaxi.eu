@@ -216,10 +216,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-sug-foot] b{display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:4px;background:var(--vt-grey-100);color:var(--vt-charcoal-600);font-size:10px;font-weight:600;letter-spacing:.06em}
 [data-swap]{display:flex;align-items:center;justify-content:center;gap:10px}
 [data-bookcard]{padding:12px;display:flex;flex-direction:column;gap:10px}[data-bookcard] [role=tablist] button{padding-inline:10px;min-width:0;overflow:hidden;text-overflow:ellipsis}
-[data-book-compact]{display:flex;flex-direction:column;gap:10px;background:transparent}
+[data-book-compact]{display:flex;flex-direction:column;gap:10px;background:transparent;container-type:inline-size;container-name:bookcompact}
 [data-book-compact] [data-f="route"]{grid-area:auto;grid-column:1/-1;width:100%;min-width:0;z-index:3}
 [data-trip-tabs]{width:100%;min-width:0;box-sizing:border-box;background:transparent}
-[data-book-slots]{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;background:transparent}[data-book-slots]>[data-sugroot],[data-book-slots]>[data-book-field]{position:relative;min-width:0}[data-book-slots] [data-party]{width:100%}[data-book-slots][data-airport="1"]{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"pickup when" "dest dest" "flight flight" "party party";align-items:end}[data-book-slots][data-airport="1"] [data-book-field="pickup"]{grid-area:pickup}[data-book-slots][data-airport="1"] [data-book-field="when"]{grid-area:when}[data-book-slots][data-airport="1"] [data-book-field="dest"]{grid-area:dest}[data-book-slots][data-airport="1"] [data-book-field="flight"]{grid-area:flight}[data-book-slots][data-airport="1"] [data-book-field="party"]{grid-area:party}[data-book-slots][data-airport="1"] [data-book-field],[data-book-slots][data-airport="1"] [data-vtcombo]{min-width:0;max-width:100%}[data-book-slots][data-airport="1"] [data-vtcombo]{width:100%;box-sizing:border-box}[data-book-slots][data-airport="1"] [data-vtcombo] input{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+[data-book-slots]{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;background:transparent}[data-book-slots]>[data-sugroot],[data-book-slots]>[data-book-field]{position:relative;min-width:0}[data-book-slots] [data-party]{width:100%}[data-book-slots][data-airport="1"]{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"pickup pickup" "dest dest" "when flight" "party party";align-items:end}[data-book-slots][data-airport="1"] [data-book-field="pickup"]{grid-area:pickup}[data-book-slots][data-airport="1"] [data-book-field="when"]{grid-area:when}[data-book-slots][data-airport="1"] [data-book-field="dest"]{grid-area:dest}[data-book-slots][data-airport="1"] [data-book-field="flight"]{grid-area:flight}[data-book-slots][data-airport="1"] [data-book-field="party"]{grid-area:party}[data-book-slots][data-airport="1"] [data-book-field],[data-book-slots][data-airport="1"] [data-vtcombo]{min-width:0;max-width:100%}[data-book-slots][data-airport="1"] [data-vtcombo]{width:100%;box-sizing:border-box}[data-book-slots][data-airport="1"] [data-vtcombo] input{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:1079px){#book{min-width:0;max-width:100%}[data-trip-tabs]{max-width:100%;overflow:hidden}[data-trip-tabs] [role=tablist]{max-width:100%;min-width:0;overflow:hidden}[data-trip-tabs] [role=tablist] button{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis}#book [data-book-slots]:has([data-book-field="flight"]){grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"pickup pickup" "dest dest" "when flight" "party party";align-items:end}#book [data-book-slots]:has([data-book-field="flight"]) [data-book-field="pickup"]{grid-area:pickup}#book [data-book-slots]:has([data-book-field="flight"]) [data-book-field="dest"]{grid-area:dest}#book [data-book-slots]:has([data-book-field="flight"]) [data-book-field="when"]{grid-area:when}#book [data-book-slots]:has([data-book-field="flight"]) [data-book-field="flight"]{grid-area:flight}#book [data-book-slots]:has([data-book-field="flight"]) [data-book-field="party"]{grid-area:party}#book [data-book-slots]:has([data-book-field="flight"]) [data-book-field],#book [data-book-slots]:has([data-book-field="flight"]) [data-vtcombo]{min-width:0;max-width:100%}#book [data-book-slots]:has([data-book-field="flight"]) [data-vtcombo]{width:100%;box-sizing:border-box}#book [data-book-slots]:has([data-book-field="flight"]) [data-vtcombo] input{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#book [data-book-slots]:has([data-book-field="flight"]) [data-book-field="flight"]>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+@container bookcompact (max-width:400px){#book [data-book-slots]:has([data-book-field="flight"]){grid-template-columns:minmax(0,1fr);grid-template-areas:"pickup" "dest" "when" "flight" "party"}}
+@media (min-width:1080px){[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]){grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"pickup pickup" "dest dest" "when flight" "party party";align-items:end}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-book-field="pickup"]{grid-area:pickup}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-book-field="dest"]{grid-area:dest}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-book-field="when"]{grid-area:when}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-book-field="flight"]{grid-area:flight}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-book-field="party"]{grid-area:party}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-book-field],[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-vtcombo]{min-width:0;max-width:100%}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-vtcombo]{width:100%;box-sizing:border-box}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-vtcombo] input{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-party]{grid-template-columns:repeat(2,minmax(0,1fr));width:100%}}
 [data-hero],[data-hero-inner]{min-height:100vh;min-height:100svh}
 [data-fleet-strip]{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;gap:8px;padding-bottom:4px;background:transparent}[data-fleet-card]{flex:0 0 362px;min-width:362px;max-width:402px;scroll-snap-align:start}[data-fleet-card][data-unavail="1"] [data-fleet-img]{filter:saturate(.4)}
 @media (max-width:699px){[data-hide-narrow]{display:none!important}}
@@ -384,7 +387,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </div>
 <sc-if value="{{ showFlight }}" hint-placeholder-val="{{ false }}">
 <div data-f="flight" data-sugroot="1" data-book-field="flight" style="position:relative;min-width:0" data-om-label="Flight">
-<span style="display:block;margin-bottom:6px;font-family:var(--vt-font-body);font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:.02em;color:var(--vt-text-secondary)">{{ tFlight }}</span>
+<span style="display:block;margin-bottom:6px;font-family:var(--vt-font-body);font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:.02em;color:var(--vt-text-secondary)">{{ tFlight }}<span aria-hidden="true" style="color:var(--vt-yellow-700)">{{ tFlightMark }}</span></span>
 <div data-vtcombo="1">
 <span data-combo-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plane" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
 <input type="text" aria-label="{{ tFlight }}" aria-required="{{ flightReq }}" autocomplete="off" spellcheck="false" autocapitalize="characters" value="{{ flight }}" placeholder="{{ tFlightPh }}" onChange="{{ setFlight }}" onFocus="{{ focusFlight }}" onKeyDown="{{ flightKey }}">
@@ -416,7 +419,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <dc-import name="StepCounter" label="{{ tBags }}" icon="luggage" value="{{ bags }}" min="{{ n0 }}" max="{{ n16 }}" onChange="{{ setBags }}" hint-size="100%,66px"></dc-import>
 </div>
 </div>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="primary" size="lg" block="{{ yes }}" iconEnd="arrow-right" onClick="{{ goQuote }}" hint-size="100%,54px">{{ tShowPrices }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="primary" size="lg" block="{{ yes }}" iconEnd="arrow-right" disabled="{{ quoteCtaOff }}" onClick="{{ goQuote }}" hint-size="100%,54px">{{ tShowPrices }}</x-import>
 </div>
 
 <div data-shell="1" data-open="{{ openAttr }}" onClick="{{ scrimClick }}">
@@ -449,7 +452,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </sc-if>
 <div data-fields="1" data-trip="{{ tripKind }}" ref="{{ fieldsRef }}">
 <div data-f="flight" data-sugroot="1" style="position: relative; min-width: 0; width: 100%" data-om-label="Flight">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tFlight }}" icon="plane" size="md" value="{{ flight }}" onChange="{{ setFlight }}" onFocus="{{ focusFlight }}" onKeyDown="{{ flightKey }}" placeholder="{{ tFlightPh }}" error="{{ flightError }}" aria-required="{{ flightReq }}" hint-size="100%,66px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="{{ tFlight }}" icon="plane" size="md" value="{{ flight }}" onChange="{{ setFlight }}" onFocus="{{ focusFlight }}" onKeyDown="{{ flightKey }}" placeholder="{{ tFlightPh }}" error="{{ flightError }}" required="{{ flightReq }}" aria-required="{{ flightReq }}" hint-size="100%,66px"></x-import>
 <sc-if value="{{ fsugOpen }}" hint-placeholder-val="{{ false }}">
 <div role="listbox" aria-label="{{ tFlight }}" style="{{ fsugCss }}">
 <sc-if value="{{ hasFsugNote }}" hint-placeholder-val="{{ false }}">
@@ -662,7 +665,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 
 <sc-if value="{{ sheetOpen }}" hint-placeholder-val="{{ false }}">
 <div data-sheetonly="cta" style="position:sticky;bottom:0;background:var(--vt-bg-surface);padding-top:10px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="primary" size="lg" block="{{ yes }}" disabled="{{ sheetCtaDisabled }}" onClick="{{ applySheet }}" hint-size="100%,54px">{{ tShowPrices }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="primary" size="lg" block="{{ yes }}" disabled="{{ quoteCtaOff }}" onClick="{{ applySheet }}" hint-size="100%,54px">{{ tShowPrices }}</x-import>
 </div>
 </sc-if>
 </div>
@@ -1069,7 +1072,7 @@ function publicQuoteClass(c) {
 const T = {
   en: {
     kicker:'Pre-booked transfers · Zurich', h1:'Land in Zurich.      Your driver is waiting.', sub:'Reliable, fixed-price airport and corporate rides booked in under one minute.',
-    point:'One way', oneWay:'Airport pickup', fixedRoutes:'City to city', return_:'Return', hourly:'By the hour', flight:'Flight', flightOptional:'Flight (optional)', flightPh:'e.g. LX 54', flightErr:'Check the flight number', flightMiss:'No flight on that number today', tapLookup:'Tap to look up this flight', checking:'Looking up the flight…', lands:'lands', departs:'departs',
+    point:'One way', oneWay:'Airport pickup', fixedRoutes:'City to city', return_:'Return', hourly:'By the hour', flight:'Flight', flightOptional:'Flight (optional)', flightPh:'e.g. LX 54', flightErr:'Check the flight number', flightNeed:'Enter a flight number', flightMiss:'No flight on that number today', tapLookup:'Tap to look up this flight', checking:'Looking up the flight…', lands:'lands', departs:'departs',
     st_scheduled:'Scheduled', st_boarding:'Boarding', st_delayed:'Delayed', st_enroute:'En route', st_landed:'Landed', st_cancelled:'Cancelled',
     srcAct:'actual', srcEst:'estimated', srcSched:'scheduled', late:'{n} min late', early:'{n} min early',
     terminalLbl:'Terminal', gateLbl:'Gate', beltLbl:'Belt', aircraftLbl:'Aircraft',
@@ -1128,7 +1131,7 @@ const T = {
   },
   de: {
     kicker:'Vorausgebuchte Transfers · Zürich', h1:'Landen Sie in Zürich. Ihr Fahrer wartet bereits.', sub:'Zuverlässige Flughafen- und Geschäftsfahrten zum Festpreis — gebucht in unter einer Minute.',
-    point:'Einfache Fahrt', oneWay:'Flughafenabholung', fixedRoutes:'Stadt zu Stadt', return_:'Rückfahrt', hourly:'Stundenweise', flight:'Flug', flightOptional:'Flug (optional)', flightPh:'z. B. LX 54', flightErr:'Prüfen Sie die Flugnummer', flightMiss:'Zu dieser Nummer liegt heute kein Flug vor', tapLookup:'Antippen, um den Flug zu prüfen', checking:'Flug wird gesucht…', lands:'landet', departs:'startet',
+    point:'Einfache Fahrt', oneWay:'Flughafenabholung', fixedRoutes:'Stadt zu Stadt', return_:'Rückfahrt', hourly:'Stundenweise', flight:'Flug', flightOptional:'Flug (optional)', flightPh:'z. B. LX 54', flightErr:'Prüfen Sie die Flugnummer', flightNeed:'Geben Sie die Flugnummer ein', flightMiss:'Zu dieser Nummer liegt heute kein Flug vor', tapLookup:'Antippen, um den Flug zu prüfen', checking:'Flug wird gesucht…', lands:'landet', departs:'startet',
     st_scheduled:'Planmässig', st_boarding:'Boarding', st_delayed:'Verspätet', st_enroute:'Unterwegs', st_landed:'Gelandet', st_cancelled:'Annulliert',
     srcAct:'tatsächlich', srcEst:'erwartet', srcSched:'geplant', late:'{n} Min. später', early:'{n} Min. früher',
     terminalLbl:'Terminal', gateLbl:'Gate', beltLbl:'Band', aircraftLbl:'Flugzeug',
@@ -1187,7 +1190,7 @@ const T = {
   },
   fr: {
     kicker:'Transferts réservés à l’avance · Zurich', h1:'Vous atterrissez à Zurich. Votre chauffeur vous attend.', sub:'Trajets aéroport et affaires fiables, à prix fixe — réservés en moins d’une minute.',
-    point:'Aller simple', oneWay:'Prise en charge à l’aéroport', fixedRoutes:'De ville en ville', return_:'Aller-retour', hourly:'À l’heure', flight:'Vol', flightOptional:'Vol (facultatif)', flightPh:'ex. LX 54', flightErr:'Vérifiez le numéro de vol', flightMiss:'Aucun vol sous ce numéro aujourd’hui', tapLookup:'Touchez pour vérifier ce vol', checking:'Recherche du vol…', lands:'atterrit à', departs:'décolle à',
+    point:'Aller simple', oneWay:'Prise en charge à l’aéroport', fixedRoutes:'De ville en ville', return_:'Aller-retour', hourly:'À l’heure', flight:'Vol', flightOptional:'Vol (facultatif)', flightPh:'ex. LX 54', flightErr:'Vérifiez le numéro de vol', flightNeed:'Saisissez le numéro de vol', flightMiss:'Aucun vol sous ce numéro aujourd’hui', tapLookup:'Touchez pour vérifier ce vol', checking:'Recherche du vol…', lands:'atterrit à', departs:'décolle à',
     st_scheduled:'Prévu', st_boarding:'Embarquement', st_delayed:'Retardé', st_enroute:'En vol', st_landed:'Atterri', st_cancelled:'Annulé',
     srcAct:'réel', srcEst:'estimé', srcSched:'prévu', late:'{n} min de retard', early:'{n} min d’avance',
     terminalLbl:'Terminal', gateLbl:'Porte', beltLbl:'Tapis', aircraftLbl:'Appareil',
@@ -1222,7 +1225,7 @@ const T = {
   },
   ar: {
     kicker:'نقل محجوز مسبقًا · زيورخ', h1:'تهبط في زيورخ وسائقك في انتظارك.', sub:'مشاوير مطار وشركات موثوقة بسعر ثابت — تُحجز في أقل من دقيقة.',
-    point:'ذهاب فقط', oneWay:'استقبال في المطار', fixedRoutes:'بين المدن', return_:'ذهاب وعودة', hourly:'بالساعة', flight:'رقم الرحلة', flightOptional:'رقم الرحلة (اختياري)', flightPh:'مثال LX 54', flightErr:'تحقق من رقم الرحلة', flightMiss:'لا رحلة بهذا الرقم اليوم', tapLookup:'اضغط للتحقق من الرحلة', checking:'جارٍ البحث عن الرحلة…', lands:'يصل', departs:'يقلع',
+    point:'ذهاب فقط', oneWay:'استقبال في المطار', fixedRoutes:'بين المدن', return_:'ذهاب وعودة', hourly:'بالساعة', flight:'رقم الرحلة', flightOptional:'رقم الرحلة (اختياري)', flightPh:'مثال LX 54', flightErr:'تحقق من رقم الرحلة', flightNeed:'أدخل رقم الرحلة', flightMiss:'لا رحلة بهذا الرقم اليوم', tapLookup:'اضغط للتحقق من الرحلة', checking:'جارٍ البحث عن الرحلة…', lands:'يصل', departs:'يقلع',
     st_scheduled:'مجدولة', st_boarding:'الصعود', st_delayed:'متأخرة', st_enroute:'في الجو', st_landed:'هبطت', st_cancelled:'ملغاة',
     srcAct:'فعلي', srcEst:'متوقع', srcSched:'مجدول', late:'متأخرة {n} دقيقة', early:'مبكرة {n} دقيقة',
     terminalLbl:'المبنى', gateLbl:'البوابة', beltLbl:'الحزام', aircraftLbl:'الطائرة',
@@ -1443,7 +1446,7 @@ class Component extends DCLogic {
       mode: 'point', fixedKey: '', fixedRoutes: [], routeOpen: false, routeIdx: -1, pickupText: '', pickupLoc: null, dropText: '', dropLoc: null,
       day: null, time: '', returnDay: null, returnTime: '', dayLabel: null, returnLabel: null, dayY: null, dayM: null, returnY: null, returnM: null,
       pax: 1, bags: 0, hours: 0, geo: 'idle',
-      flight: '', flightState: 'idle', flightData: null, flightPlan: null, flightSince: '', flightNote: '', changes: [], kept: [],
+      flight: '', flightAsk: false, flightState: 'idle', flightData: null, flightPlan: null, flightSince: '', flightNote: '', changes: [], kept: [],
       touched: { pickup: false, dest: false, when: false }, here: null, hereLoc: null,
       autofill: { pickup: null, when: null, dest: null, party: null }, fill: null, picked: null,
       sug: CLOSED, sugIdx: -1, sugFlip: false, fsug: { open: false, items: [] }, fsugIdx: -1, fsugFlip: false,
@@ -1669,13 +1672,18 @@ class Component extends DCLogic {
   fireQuote = () => {
     const r = this.routeInfo(); const id = ++this.reqSeq;
     if (!r.ok) {
+      const missing = this.flightMissing();
+      const ready = !!(this.state.pickupLoc && this.state.dropLoc && this.state.day && this.state.time);
+      const msg = missing && ready ? (String(this.state.flight || '').trim() ? this.t().flightErr : this.t().flightNeed) : '';
+      const patch = { quote: { status: 'empty', results: null, inflight: false }, quoteFail: false };
       if (this._goTripKey) {
         this._goTripKey = null;
-        this.setState({ quote: { status: 'empty', results: null, inflight: false }, quoteFail: false, announce: this.t().needTrip });
-        this.relabelAll();
-        return;
+        patch.announce = this.t().needTrip;
+      } else if (msg) {
+        patch.announce = msg;
+        patch.flightAsk = true;
       }
-      this.setState({ quote: { status: 'empty', results: null, inflight: false }, quoteFail: false }); this.relabelAll(); return;
+      this.setState(patch); this.relabelAll(); return;
     }
     const prevResults = this.state.quote.results;
     const keepLive = this.state.quote.status === 'live' && !!prevResults;
@@ -1730,6 +1738,12 @@ class Component extends DCLogic {
     const locale = (LANGS.indexOf(s.lang) > -1 ? s.lang : 'en');
     const cur = s.cur || 'CHF';
     const when = this.clampWhen(s.dayY, s.dayM, s.day, s.time);
+    if (this.flightMissing()) {
+      const msg = String(s.flight || '').trim() ? this.t().flightErr : this.t().flightNeed;
+      this.setState({ quote: { status: 'empty', results: null, inflight: false }, quoteFail: false, flightAsk: true, announce: msg });
+      this.relabelAll();
+      return;
+    }
     const legs = [{ leg_seq: 1, scheduled_local: scheduledLocal(when.y, when.m, when.d, when.time), flight_no: s.mode === 'one-way' && this.flightFilled() ? this.flightNum().slice(0, 16) : null }];
     const pax = Math.max(1, parseInt(s.pax, 10) || 1);
     const bags = Math.max(0, parseInt(s.bags, 10) || 0);
@@ -1771,7 +1785,7 @@ class Component extends DCLogic {
     const prev = this.state.mode;
     if (m === prev) return;
     const keepFlight = m === 'one-way' || m === 'point';
-    this.setState({ mode: m, picked: null, announce: this.modeNoteFor(m), routeOpen: false, flight: keepFlight ? this.state.flight : '', flightState: keepFlight ? this.state.flightState : 'idle' }, () => {
+    this.setState({ mode: m, picked: null, announce: this.modeNoteFor(m), routeOpen: false, flightAsk: false, flight: keepFlight ? this.state.flight : '', flightState: keepFlight ? this.state.flightState : 'idle' }, () => {
       this.noteDip();
       if (m === 'fixed') {
         this.loadFleet();
@@ -1860,8 +1874,27 @@ class Component extends DCLogic {
     return clean.slice(0, 2) + (clean.length > 2 ? ' ' + clean.slice(2).replace(/\D/g, '').slice(0, 4) : '');
   }
   flightNum() { return this.state.flight.toUpperCase().replace(/[^A-Z0-9]/g, ''); }
-  /** Optional on One way and Airport pickup. Never gates a quote. */
-  flightRequired() { return false; }
+  /** Required on Airport pickup only. One way and City to city stay optional. Never invent a number. */
+  flightRequired() { return this.state.mode === 'one-way'; }
+  flightMissing() { return this.flightRequired() && !this.flightFilled(); }
+  flightAskAfter(v) {
+    return /^[A-Z0-9]{2}\d{1,4}$/.test(String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '')) ? false : !!this.state.flightAsk;
+  }
+  flightGateOpen() {
+    if (!this.flightMissing()) return false;
+    const s = this.state;
+    return !!s.flightAsk || !!(s.pickupLoc && s.dropLoc && s.day && s.time);
+  }
+  flightGateMsg() {
+    if (!this.flightGateOpen()) return '';
+    const t = this.t();
+    return String(this.state.flight || '').trim() ? t.flightErr : t.flightNeed;
+  }
+  askFlight() {
+    const t = this.t();
+    const msg = String(this.state.flight || '').trim() ? t.flightErr : t.flightNeed;
+    this.setState({ flightAsk: true, announce: msg });
+  }
   /** Resolved place, not typed text. Saved pins set air; Mapbox hits set air or a plane icon. */
   placeIsAirport(loc) {
     if (!loc || loc.custom) return false;
@@ -1884,12 +1917,12 @@ class Component extends DCLogic {
   }
   setFlight = (e) => {
     const v = this.fmtFlightInput(e.target.value);
-    if (!(this.props.flightTrackingEnabled ?? true)) { this.setState({ flight: v }, this.q); return; }
+    if (!(this.props.flightTrackingEnabled ?? true)) { this.setState({ flight: v, flightAsk: this.flightAskAfter(v) }, this.q); return; }
     clearTimeout(this._ft); this.clearFill(); this.stopPoll();
     const cleared = !v.trim();
     /** `autofill` is provenance, not decoration: it survives typing so the next
      *  flight knows which values it may replace and which the traveller owns. */
-    this.setState((s) => ({ flight: v, flightState: 'idle', flightConfirmed: false, fsugFlip: this.flipFor(e), changes: [], kept: [],
+    this.setState((s) => ({ flight: v, flightAsk: this.flightAskAfter(v), flightState: 'idle', flightConfirmed: false, fsugFlip: this.flipFor(e), changes: [], kept: [],
       flightData: cleared ? null : s.flightData, flightPlan: cleared ? null : s.flightPlan }), this.q);
     this.searchFlights(v);
     if (v.replace(/\s/g, '').length >= 3) this._ft = setTimeout(this.lookupFlight, 900);
@@ -2260,7 +2293,8 @@ class Component extends DCLogic {
     this.lockScroll(false);
     this.setState({ sheetOpen: false, sug: CLOSED, sugIdx: -1 }, () => { const el = this._returnFocus; if (el && el.isConnected) el.focus(); });
   };
-  applySheet = () => { if (this.flightRequired() && !this.flightFilled()) return; this.closeSheet(); this.q(); };
+  goQuote = () => { if (this.flightMissing()) { this.askFlight(); return; } this.closeSheet(); this.q(); };
+  applySheet = () => { if (this.flightMissing()) { this.askFlight(); return; } this.closeSheet(); this.q(); };
   scrimClick = (e) => { if (e.target === e.currentTarget) this.closeSheet(); };
   /** The list is a child of its field, so it can never drift: only the direction is measured. */
   flipFor(e) {
@@ -2455,7 +2489,7 @@ class Component extends DCLogic {
     const paxCap = klass ? klass.cap : 0;
     const bagsCap = klass ? klass.bags : 0;
     if (klass && (this.state.pax > paxCap || this.state.bags > bagsCap)) return;
-    if (this.flightRequired() && !this.flightFilled()) { if (!this.state.picked) this.setState({ announce: this.t().needTrip }); return; }
+    if (this.flightMissing()) { if (!this.state.picked) this.askFlight(); return; }
     /** Nothing opens until the traveller has actually answered the booking flow. */
     if (!row || row.kind !== 'price') { if (!this.state.picked) this.setState({ announce: this.t().needTrip }); return; }
     if (this.state.quote && this.state.quote.noRoad) { this.setState({ announce: this.t().noRoad }); return; }
@@ -2535,7 +2569,7 @@ class Component extends DCLogic {
         skeleton: s.quote.status === 'skeleton',
         dustRef: this.dustRef(v.id),
         sr: (names[v.id] || v.name) + ': ' + lb.text,
-        title: noRoad ? t.noRoad : (ok ? t.selectHint : (tooSmall ? t.doesNotFit : (t.needTrip || lb.text))),
+        title: noRoad ? t.noRoad : (ok ? t.selectHint : (tooSmall ? t.doesNotFit : (this.flightGateMsg() || t.needTrip || lb.text))),
         dis: ok ? null : 'true', locked: ok ? null : '1', role: ok ? 'button' : 'group', tab: ok ? '0' : undefined,
         picked: s.picked === v.id ? '1' : null, isPicked: s.picked === v.id,
         ready: ok && s.picked !== v.id,
@@ -2605,6 +2639,7 @@ class Component extends DCLogic {
     const slots = ['05:30', '06:45', '08:15', '09:30', '11:00', '12:15', '14:00', '16:30', '18:45', '21:15'];
     if (s.time && !slots.includes(s.time)) { slots.push(s.time); slots.sort(); }
     const priced = s.quote.status === 'live' && !!s.quote.results && (s.fleetOffer || []).some((v) => s.quote.results[v.id] && s.quote.results[v.id].kind === 'price');
+    const tripNote = s.quoteFail ? (s.announce || t.quoteErr) : t.needTrip;
     const pickedKlass = s.picked ? classOnFleet(s.fleetOffer, s.picked) : null;
     const pickedName = pickedKlass ? pickedKlass.id : '';
     const sugRows = this.sugRowsList();
@@ -2617,7 +2652,7 @@ class Component extends DCLogic {
       destBadge: this.badgeEl(!s.focused.dest ? s.autofill.dest : null),
       stripStep: t.stepTwo,
       stripTitle: s.mode === 'fixed' ? t.popular : (s.picked ? t.savedGo : t.readyTitle),
-      stripNote: s.mode === 'fixed' ? ((s.fixedRoutes || []).length ? t.modeFixed : t.fixedEmpty) : (s.capacityMoveNote || (s.picked ? t.savedSub.replace('{v}', t[pickedName] || pickedName) : (s.quote && s.quote.noRoad) ? t.noRoad : priced ? t.readySub : s.quoteFail ? (s.announce || t.quoteErr) : t.needTrip)),
+      stripNote: s.mode === 'fixed' ? ((s.fixedRoutes || []).length ? t.modeFixed : t.fixedEmpty) : (s.capacityMoveNote || (s.picked ? t.savedSub.replace('{v}', t[pickedName] || pickedName) : (s.quote && s.quote.noRoad) ? t.noRoad : priced ? t.readySub : this.flightGateMsg() || tripNote)),
       tSelectCta: t.selectCta, tSelectedCta: t.selectedCta,
       yes: true,
       dir: s.lang === 'ar' ? 'rtl' : 'ltr', lang: s.lang, cur: s.cur, pickLang: this.pickLang, pickCur: this.pickCur,
@@ -2665,7 +2700,7 @@ class Component extends DCLogic {
       destHasCards: !!(s.fixedRoutes || []).length,
       destEmpty: s.mode === 'fixed' && !(s.fixedRoutes || []).length,
       flight: s.flight, setFlight: this.setFlight, flightKey: this.flightKey,
-      flightError: s.flightState === 'err' ? t.flightErr : '',
+      flightError: this.flightGateMsg() || (s.flightState === 'err' ? t.flightErr : ''),
       fsugNote: s.fsug.note || '', hasFsugNote: !!s.fsug.note,
       focusFlight: this.focusFlight,
       fsugOpen: trackFlights && s.fsug.open && !!s.fsug.items.length,
@@ -2724,7 +2759,7 @@ class Component extends DCLogic {
       menuOpen: s.menuOpen, menuExpanded: s.menuOpen ? 'true' : 'false', menuIcon: s.menuOpen ? 'x' : 'menu', toggleMenu: this.toggleMenu,
       menuLangs: LANGS.map((v) => ({ label: v.toUpperCase(), note: dispLang(v), css: chip(v === s.lang), pick: () => { this.setState({ menuOpen: false }); this.pickLang(v); } })),
       menuCurs: Object.keys(CURS).map((v) => ({ label: v, note: dispCur(v, s.lang), css: chip(v === s.cur), pick: () => { this.setState({ menuOpen: false }); this.pickCur(v); } })),
-      sheetOpen: sheetOpen, openSheet: this.openSheet, closeSheet: this.closeSheet, applySheet: this.applySheet, goQuote: () => { this.closeSheet(); this.q(); }, scrimClick: this.scrimClick,
+      sheetOpen: sheetOpen, openSheet: this.openSheet, closeSheet: this.closeSheet, applySheet: this.applySheet, goQuote: this.goQuote, scrimClick: this.scrimClick,
       openAttr: s.sheetOpen ? '1' : '0', openExpanded: s.sheetOpen ? 'true' : 'false', sheetRef: this.sheetRef,
       sheetRole: s.sheetOpen ? 'dialog' : undefined, sheetModal: s.sheetOpen ? 'true' : undefined, sheetTab: s.sheetOpen ? -1 : undefined,
       tripRoute: tripRoute, tripMeta: tripMeta, showParty: s.pax > 0 || s.bags > 0,
@@ -2747,8 +2782,9 @@ class Component extends DCLogic {
       tPax: t.pax, tBags: t.bags, tHours: t.hours,
       fleet: this.fleetVals(),
       tFlightPh: t.flightPh,
+      tFlightMark: this.flightRequired() ? ' *' : '',
       flightReq: this.flightRequired(),
-      sheetCtaDisabled: this.flightRequired() && !this.flightFilled(),
+      quoteCtaOff: this.flightMissing(),
       announce: s.announce,
       tKicker: (s.service && (SVC_KICKER[s.lang] || SVC_KICKER.en)[s.service]) || t.kicker, tH1: t.h1, tSub: t.sub, tSignIn: t.signIn,
       tFlight: this.flightRequired() ? t.flight : (t.flightOptional || t.flight), tPickup: t.pickup, tPickupPh: t.pickupPh, tDest: t.dest, tDestPh: t.destPh,

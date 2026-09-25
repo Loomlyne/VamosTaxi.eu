@@ -55,9 +55,15 @@ describe("home fleet follows the live fare book", () => {
     expect(home).toMatch(/europeErr:'We operate in Europe'/);
   });
 
-  it("prices airport pickup without a required flight number", () => {
-    expect(home).toMatch(/flightRequired\(\) \{ return false; \}/);
-    expect(home).not.toMatch(/flightRequired\(\) \{ return this\.state\.mode === 'one-way'; \}/);
+  it("requires a flight number on airport pickup and leaves other trips optional", () => {
+    expect(home).toMatch(/flightRequired\(\) \{ return this\.state\.mode === 'one-way'; \}/);
+    expect(home).not.toMatch(/flightRequired\(\) \{ return false; \}/);
+    expect(home).toMatch(/flightNeed:'Enter a flight number'/);
+    expect(home).toMatch(/flightNeed:'Geben Sie die Flugnummer ein'/);
+    expect(home).toMatch(/flightNeed:'Saisissez le numéro de vol'/);
+    expect(home).toMatch(/flightNeed:'أدخل رقم الرحلة'/);
+    expect(home).toMatch(/tFlight: this\.flightRequired\(\) \? t\.flight : \(t\.flightOptional \|\| t\.flight\)/);
+    expect(home).toMatch(/if \(this\.flightMissing\(\)\)/);
   });
 
   it("does not starve Mapbox typeahead with a five-row Swiss locHits merge", () => {

@@ -91,13 +91,13 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-rv-card],[data-rv-quote]{min-width:0}
 [data-rv-card]{grid-column:1;padding-bottom:124px;padding-inline:clamp(10px,2vw,36px);border-radius:20px 0 0 20px}
 [data-rv-quote]{grid-column:2;margin-inline-start:calc(var(--rv-gap)*-1);padding-inline-start:calc(var(--rv-gap) + clamp(0px,2.4vw,40px));border-inline-end:1px solid var(--vt-grey-200);border-start-end-radius:20px;border-end-end-radius:20px}
-[data-rv-nav]{position:absolute;bottom:37px;inset-inline-start:0;box-sizing:border-box;width:calc((100% - var(--rv-gap)) * 0.32143);min-width:148px;max-width:calc(50% - var(--rv-gap)/2);margin-top:0;gap:6px}
+[data-rv-nav]{position:absolute;bottom:37px;inset-inline-start:0;box-sizing:border-box;width:calc((100% - var(--rv-gap)) * 0.32143);min-width:148px;max-width:calc(50% - var(--rv-gap)/2);margin-top:0;gap:var(--vt-space-4)}
 [data-rv-arrow]{width:28px;height:28px}
 }
 @media (min-width:700px){
 [data-rv-grid]{--rv-gap:40px;grid-template-columns:minmax(0,360fr) minmax(0,760fr)}
 [data-rv-card]{padding-inline:clamp(var(--vt-space-3),2vw,36px)}
-[data-rv-nav]{min-width:0;max-width:none;width:calc((100% - var(--rv-gap)) * 0.32143);gap:var(--vt-space-1)}
+[data-rv-nav]{min-width:0;max-width:none;width:calc((100% - var(--rv-gap)) * 0.32143);gap:var(--vt-space-4)}
 [data-rv-arrow]{width:var(--vt-control-h-md);height:var(--vt-control-h-md)}
 }
 /* Phone stack — same break as home [data-hide-narrow]. Wins over any earlier two-column rule. */

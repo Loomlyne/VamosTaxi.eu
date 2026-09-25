@@ -382,7 +382,7 @@ const T = {
     addRoute:'Add route', editRoute:'Edit route', saveRoute:'Save route', deleteRouteTitle:'Delete this route from the draft?', deleteRouteBody:'Delete this route from the draft? Public does not change until Publish.',
     emptyRoutesTitle:'No fixed routes yet', emptyRoutesBody:'Add a city to city, or a canton to canton. A to B and B to A are separate rows. Public stays on the last published book until you publish.',
     searchRoutes:'From, to or ID', nounRoute:'route', nounRoutes:'routes',
-    hRoutePrice:'Leave empty if this class is not offered on this route.', fLive:'Live for booking', hLive:'Off keeps the route in the draft; public does not change until Publish.',
+    hRoutePrice:'Leave empty if this class is not offered on this route.',
     addClass:'Add class', editClass:'Edit class', saveClass:'Save class', deleteClassTitle:'Delete this class from the draft?', deleteClassBody:'Delete this class from the draft? Public does not change until Publish.',
     emptyClassesTitle:'No vehicle classes yet', emptyClassesBody:'Add a class with photo, name, start fare, per-kilometre rate, max passengers and max bags.',
     searchDistance:'Class', nounClass:'class', nounClasses:'classes',
@@ -473,7 +473,7 @@ const T = {
     addRoute:'Route hinzufügen', editRoute:'Route bearbeiten', saveRoute:'Route speichern', deleteRouteTitle:'Diese Route aus dem Entwurf löschen?', deleteRouteBody:'Diese Route aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
     emptyRoutesTitle:'Noch keine festen Routen', emptyRoutesBody:'Stadt zu Stadt oder Kanton zu Kanton hinzufügen. A nach B und B nach A sind getrennte Zeilen. Die Öffentlichkeit bleibt auf dem letzten veröffentlichten Buch, bis du veröffentlichst.',
     searchRoutes:'Von, nach oder ID', nounRoute:'Route', nounRoutes:'Routen',
-    hRoutePrice:'Leer lassen, wenn diese Klasse auf dieser Route nicht angeboten wird.', fLive:'Für Buchung live', hLive:'Aus behält die Route im Entwurf; die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
+    hRoutePrice:'Leer lassen, wenn diese Klasse auf dieser Route nicht angeboten wird.',
     addClass:'Klasse hinzufügen', editClass:'Klasse bearbeiten', saveClass:'Klasse speichern', deleteClassTitle:'Diese Klasse aus dem Entwurf löschen?', deleteClassBody:'Diese Klasse aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
     emptyClassesTitle:'Noch keine Fahrzeugklassen', emptyClassesBody:'Klasse mit Foto, Name, Startpreis, Kilometersatz, max. Passagieren und max. Gepäckstücken hinzufügen.',
     searchDistance:'Klasse', nounClass:'Klasse', nounClasses:'Klassen',
@@ -566,7 +566,7 @@ const T = {
     addRoute:'Ajouter un trajet', editRoute:'Modifier le trajet', saveRoute:'Enregistrer le trajet', deleteRouteTitle:'Supprimer ce trajet du brouillon ?', deleteRouteBody:'Supprimer ce trajet du brouillon ? Le public ne change qu’après Publier.',
     emptyRoutesTitle:'Pas encore de trajets fixes', emptyRoutesBody:'Ajoutez une ville à ville, ou un canton à canton. A vers B et B vers A sont des lignes séparées. Le public reste sur le dernier livre publié jusqu’à la publication.',
     searchRoutes:'De, vers ou ID', nounRoute:'trajet', nounRoutes:'trajets',
-    hRoutePrice:'Laissez vide si cette classe n’est pas proposée sur ce trajet.', fLive:'Live à la réservation', hLive:'Désactivé conserve le trajet dans le brouillon ; le public ne change qu’après Publier.',
+    hRoutePrice:'Laissez vide si cette classe n’est pas proposée sur ce trajet.',
     addClass:'Ajouter une classe', editClass:'Modifier la classe', saveClass:'Enregistrer la classe', deleteClassTitle:'Supprimer cette classe du brouillon ?', deleteClassBody:'Supprimer cette classe du brouillon ? Le public ne change qu’après Publier.',
     emptyClassesTitle:'Pas encore de classes', emptyClassesBody:'Ajoutez une classe avec photo, nom, tarif de départ, tarif au kilomètre, passagers max. et bagages max.',
     searchDistance:'Classe', nounClass:'classe', nounClasses:'classes',
@@ -659,7 +659,7 @@ const T = {
     addRoute:'إضافة مسار', editRoute:'تعديل المسار', saveRoute:'حفظ المسار', deleteRouteTitle:'حذف هذا المسار من المسودة؟', deleteRouteBody:'حذف هذا المسار من المسودة؟ لا يتغير العام حتى النشر.',
     emptyRoutesTitle:'لا توجد مسارات ثابتة بعد', emptyRoutesBody:'أضف مدينة إلى مدينة أو كانتون إلى كانتون. من أ إلى ب ومن ب إلى أ صفّان منفصلان. يبقى العام على آخر كتاب منشور حتى تنشر.',
     searchRoutes:'من أو إلى أو المعرّف', nounRoute:'مسار', nounRoutes:'مسارات',
-    hRoutePrice:'اتركه فارغًا إن لم تُعرض هذه الفئة على هذا المسار.', fLive:'مباشر للحجز', hLive:'الإيقاف يُبقي المسار في المسودة؛ لا يتغير العام حتى النشر.',
+    hRoutePrice:'اتركه فارغًا إن لم تُعرض هذه الفئة على هذا المسار.',
     addClass:'إضافة فئة', editClass:'تعديل الفئة', saveClass:'حفظ الفئة', deleteClassTitle:'حذف هذه الفئة من المسودة؟', deleteClassBody:'حذف هذه الفئة من المسودة؟ لا يتغير العام حتى النشر.',
     emptyClassesTitle:'لا توجد فئات مركبات بعد', emptyClassesBody:'أضف فئة بالصورة والاسم وأجرة البداية وسعر الكيلومتر وأقصى عدد مسافرين وأقصى حقائب.',
     searchDistance:'الفئة', nounClass:'فئة', nounClasses:'فئات',
@@ -1328,13 +1328,11 @@ class Component extends DCLogic {
         { key:'live', header: t.colLive, width:'92px', kind:'bool', onLabel:t.live, offLabel:t.draft },
       ]),
       routeFields: [
-        { key:'from', label:t.colFrom, required:true, icon:'map-pin', half:true },
-        { key:'to', label:t.colTo, required:true, icon:'map-pin', half:true },
+        { key:'from', label:t.colFrom, required:true, icon:'map-pin', half:true, suggest:'address' },
+        { key:'to', label:t.colTo, required:true, icon:'map-pin', half:true, suggest:'address' },
       ].concat(ratedClasses.map((c, i) => ({
         key: c.slug, label:c.label, half:true, placeholder:'000', hint: i === 0 ? t.hRoutePrice : '', icon:'banknote', suffix:'CHF',
-      }))).concat([
-        { key:'live', label:t.fLive, editor:'switch', half:true, hint:t.hLive },
-      ]),
+      }))),
       routeBlank: () => {
         const blank = ops ? ops.routes.blank() : {};
         const extra = {};
@@ -1397,10 +1395,10 @@ class Component extends DCLogic {
       distanceFields: [
         { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'class', photoRecordKey:'vehicleClassId', upload:'/api/photos/upload', clearLabel:t.clearPhoto, chooseLabel:t.choosePhoto, hint:t.hClassPhoto },
         { key:'klass', label:t.colName, required:true, icon:'car' },
-        { key:'baseFare', label:t.startFare, placeholder:'000', icon:'banknote', suffix:'CHF' },
-        { key:'airportStart', label:t.airportStart, placeholder:'000', icon:'banknote', suffix:'CHF' },
-        { key:'cityPrice', label:t.cityPrice, editor:'select', icon:'map-pin', options: cityPairOptions, emptyLabel: cityPairEmpty },
-        { key:'perKm', label:t.perKm, placeholder:'0.00', icon:'navigation', suffix:'CHF' },
+        { key:'baseFare', label:t.startFare, half:true, placeholder:'000', icon:'banknote', suffix:'CHF' },
+        { key:'airportStart', label:t.airportStart, half:true, placeholder:'000', icon:'banknote', suffix:'CHF' },
+        { key:'cityPrice', label:t.cityPrice, half:true, editor:'select', icon:'map-pin', options: cityPairOptions, emptyLabel: cityPairEmpty },
+        { key:'perKm', label:t.perKm, half:true, placeholder:'0.00', icon:'navigation', suffix:'CHF' },
         { key:'maxPax', label:t.maxPax, editor:'number', min:1, half:true, icon:'users' },
         { key:'maxBags', label:t.maxBags, editor:'number', min:0, half:true, icon:'luggage' },
       ],

@@ -70,6 +70,8 @@
 [data-vt-sug-opt]:hover{background:var(--vt-grey-50)}
 [data-vt-sug-lab]{font-size:13px;font-weight:600;color:var(--vt-text-primary);text-align:start}
 [data-vt-sug-note]{font-size:11px;color:var(--vt-text-muted);text-align:start}
+[data-vt-from-sug]{position:absolute;z-index:30;inset-inline-start:0;inset-inline-end:0;top:100%;margin-top:4px;box-sizing:border-box;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg);padding:6px;display:flex;flex-direction:column;gap:2px;max-height:220px;overflow-y:auto}
+[data-vt-to-sug]{position:absolute;z-index:30;inset-inline-start:0;inset-inline-end:0;top:100%;margin-top:4px;box-sizing:border-box;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg);padding:6px;display:flex;flex-direction:column;gap:2px;max-height:220px;overflow-y:auto}
 [data-vt-icongrid]{display:flex;flex-direction:column;gap:6px;min-width:0}
 [data-vt-icongrid-row]{display:flex;flex-wrap:wrap;gap:8px;min-width:0}
 [data-vt-iconpick]{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-md);background:var(--vt-white);color:var(--vt-charcoal-900);cursor:pointer}
@@ -161,10 +163,32 @@
 </sc-if>
 <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px">
 <sc-for list="{{ formFields }}" as="f" hint-placeholder-count="5">
-<div style="grid-column:{{ f.span }};min-width:0;display:{{ f.show }}">
+<div style="grid-column:{{ f.span }};min-width:0;display:{{ f.show }};position:{{ f.sugPos }};z-index:{{ f.sugZ }}">
 
 <sc-if value="{{ f.isText }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" icon="{{ f.inputIcon }}" label="{{ f.label }}" value="{{ f.value }}" onChange="{{ f.set }}" placeholder="{{ f.placeholder }}" hint="{{ f.hint }}" error="{{ f.error }}" suffix="{{ f.suffix }}" required="{{ f.required }}" hint-size="100%,76px"></x-import>
+</sc-if>
+
+<sc-if value="{{ f.fromSug }}" hint-placeholder-val="{{ false }}">
+<div data-vt-from-sug="1" data-scroll-native="1" data-lenis-prevent="1" role="listbox" ref="{{ sugPopRef }}">
+<sc-for list="{{ f.fromSugItems }}" as="s" hint-placeholder-count="3">
+<button type="button" data-vt-sug-opt="1" onMouseDown="{{ s.pick }}">
+<span data-vt-sug-lab="1">{{ s.label }}</span>
+<span data-vt-sug-note="1" style="display:{{ s.noteShow }}">{{ s.note }}</span>
+</button>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ f.toSug }}" hint-placeholder-val="{{ false }}">
+<div data-vt-to-sug="1" data-scroll-native="1" data-lenis-prevent="1" role="listbox" ref="{{ sugPopRef }}">
+<sc-for list="{{ f.toSugItems }}" as="s" hint-placeholder-count="3">
+<button type="button" data-vt-sug-opt="1" onMouseDown="{{ s.pick }}">
+<span data-vt-sug-lab="1">{{ s.label }}</span>
+<span data-vt-sug-note="1" style="display:{{ s.noteShow }}">{{ s.note }}</span>
+</button>
+</sc-for>
+</div>
 </sc-if>
 
 <sc-if value="{{ f.isReadonly }}" hint-placeholder-val="{{ false }}">
@@ -669,11 +693,17 @@ class Component extends DCLogic {
     if (!kind) { this.setState({ sug: null }); return; }
     const box = el && (el.closest ? (el.closest('.vt-field') || el.parentElement) : el.parentElement);
     const r = box && box.getBoundingClientRect ? box.getBoundingClientRect() : null;
+    const mapboxOnly = kind === 'address' && (key === 'from' || key === 'to');
     const local = (kind === 'address' && (key === 'from' || key === 'to')) ? [] : this.localSuggest(kind, v);
-    this.setState({ sug: { key, kind, items: local, local, rect: r } });
+    const q = String(v || '').trim();
+    this.setState({ sug: { key, kind, items: local, local, rect: r, mapboxOnly: mapboxOnly } });
     clearTimeout(this._geoT);
-    if (kind === 'address' && String(v || '').trim().length >= 2) {
-      this._geoT = setTimeout(() => this.geoSearch(key, String(v).trim()), 180);
+    if (kind === 'address' && q.length >= 2) {
+      this._geoT = setTimeout(() => this.geoSearch(key, q), 180);
+    } else if (mapboxOnly) {
+      if (this._ac) { try { this._ac.abort(); } catch (e) {} }
+      this._geoSeq = (this._geoSeq || 0) + 1;
+      this.setState({ sug: null });
     }
   }
   geoSearch(key, q) {
@@ -684,7 +714,8 @@ class Component extends DCLogic {
     const ac = (typeof AbortController !== 'undefined') ? new AbortController() : null;
     this._ac = ac;
     if (!this._geoTok) this._geoTok = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : '00000000-0000-4000-8000-000000000001';
-    const rawLang = (window.VamosLocale && window.VamosLocale.lang) ? window.VamosLocale.lang() : 'en';
+    const langVal = window.VamosLocale && window.VamosLocale.lang;
+    const rawLang = typeof langVal === 'function' ? langVal() : (typeof langVal === 'string' ? langVal : 'en');
     const locale = ['en', 'de', 'fr', 'ar'].indexOf(rawLang) === -1 ? 'en' : rawLang;
     const url = '/api/geo/suggest?q=' + encodeURIComponent(q) + '&session_token=' + encodeURIComponent(this._geoTok) + '&locale=' + encodeURIComponent(locale);
     fetch(url, ac ? { signal: ac.signal } : undefined)
@@ -1263,6 +1294,22 @@ class Component extends DCLogic {
         noPhoto: !(val && String(val).indexOf('data:') !== 0),
         clearShow: (val && String(val).indexOf('data:') !== 0) ? 'inline' : 'none',
         clearLabel: f.clearLabel || 'Remove',
+        fromSug: f.key === 'from' && !!(this.state.sug && this.state.sug.key === 'from' && this.state.sug.items && this.state.sug.items.length),
+        fromSugItems: (f.key === 'from' && this.state.sug && this.state.sug.key === 'from')
+          ? (this.state.sug.items || []).map((s) => ({
+              label: s.label, note: s.note || '', noteShow: s.note ? 'block' : 'none',
+              pick: (e) => { if (e && e.preventDefault) e.preventDefault(); this.pickSug(s.value); },
+            }))
+          : [],
+        toSug: f.key === 'to' && !!(this.state.sug && this.state.sug.key === 'to' && this.state.sug.items && this.state.sug.items.length),
+        toSugItems: (f.key === 'to' && this.state.sug && this.state.sug.key === 'to')
+          ? (this.state.sug.items || []).map((s) => ({
+              label: s.label, note: s.note || '', noteShow: s.note ? 'block' : 'none',
+              pick: (e) => { if (e && e.preventDefault) e.preventDefault(); this.pickSug(s.value); },
+            }))
+          : [],
+        sugPos: ((f.key === 'from' && this.state.sug && this.state.sug.key === 'from') || (f.key === 'to' && this.state.sug && this.state.sug.key === 'to')) ? 'relative' : 'static',
+        sugZ: ((f.key === 'from' && this.state.sug && this.state.sug.key === 'from') || (f.key === 'to' && this.state.sug && this.state.sug.key === 'to')) ? '5' : 'auto',
         set: (e) => {
           const kind = this.suggestKind(f);
           let next = f.editor === 'number' ? parseInt(e.target.value, 10) || 0 : e.target.value;
@@ -1393,7 +1440,7 @@ class Component extends DCLogic {
       confirmBody: this.props.deleteBody || 'This removes it from the console for good.',
       confirmName: this.label(this.state.confirm || {}),
       cancelDelete: this.cancelDelete, confirmDelete: this.confirmDelete,
-      sugOpen: !!(this.state.sug && this.state.sug.items && this.state.sug.items.length),
+      sugOpen: !!(this.state.sug && this.state.sug.key !== 'from' && this.state.sug.key !== 'to' && this.state.sug.items && this.state.sug.items.length),
       sugPopRef: this._sugPopRef,
       sugTop: (this.state.sug && this.state.sug.rect) ? (this.state.sug.rect.bottom + 8) + 'px' : '0px',
       sugLeft: (this.state.sug && this.state.sug.rect) ? this.state.sug.rect.left + 'px' : '0px',
