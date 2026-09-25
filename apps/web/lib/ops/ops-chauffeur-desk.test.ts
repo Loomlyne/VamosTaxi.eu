@@ -116,7 +116,14 @@ describe("dedicated chauffeur desk (D-15 D-16 D-17 D-18)", () => {
     expect(html).not.toMatch(/saveLeave/);
     expect(html).not.toMatch(/deskDays/);
     expect(html).not.toMatch(/tShiftDays|tLeaveFrom|onDeskLeave/);
-    expect(html).toMatch(/key:'weekdays'/);
+    const fieldsAt = html.indexOf("const chauffeurFields");
+    const fields = fieldsAt >= 0 ? html.slice(fieldsAt, html.indexOf("const store", fieldsAt)) : "";
+    expect(fields).not.toMatch(/key:'weekdays'/);
+    expect(fields).not.toMatch(/key:'start'/);
+    expect(fields).not.toMatch(/key:'end'/);
+    const licence = (fields.split("key:'licence'")[1] || "").split("},")[0];
+    expect(licence).not.toMatch(/required/);
+    expect(fields).toMatch(/key:'vehicleClassId'/);
     expect(html).toMatch(/shiftWeekdays/);
     expect(html).toMatch(/c\.status === ['"]shift['"]/);
   });

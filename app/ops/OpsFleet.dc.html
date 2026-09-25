@@ -144,7 +144,6 @@ const CSTATUS = {
   leave: { tone:'outline', label:'On leave' },
 };
 const LANGUAGE_OPTIONS = ['German', 'French', 'Italian', 'English', 'Arabic'].map((l) => ({ value: l, label: l }));
-const DAY_OPTIONS = [{value:'1',label:'Mon'},{value:'2',label:'Tue'},{value:'3',label:'Wed'},{value:'4',label:'Thu'},{value:'5',label:'Fri'},{value:'6',label:'Sat'},{value:'7',label:'Sun'}];
 const T = {
   en: {
     vehicles:'Vehicles', chauffeurs:'Chauffeurs',
@@ -152,7 +151,7 @@ const T = {
     cSub:'Who drives, which vehicle they are on, and whether they are on shift',
     colVehicle:'Vehicle', colPlate:'Plate', colCapacity:'Capacity', colBase:'Base fare',
     colChauffeur:'Chauffeur', colStatus:'Status', colPhone:'Phone', colLicence:'Licence',
-    unassigned:'No chauffeur', noVehicle:'No vehicle',
+    unassigned:'No chauffeur', noVehicle:'No vehicle', noClass:'No class',
     cntVehicles:'Vehicles', cntInService:'In service', cntSeats:'Largest party',
     cntChauffeurs:'Chauffeurs', cntOnShift:'On shift', cntWithVehicle:'With a vehicle',
     footVehicles:'Rest are free or in the workshop', footFleet:'Across the whole fleet', footSeats:'Seats in the largest vehicle',
@@ -169,7 +168,7 @@ const T = {
     fPhoto:'Photo', clearPhoto:'Remove photo', choosePhoto:'Choose photo',
     fChauffeurs:'Associated with chauffeur',
     hClass:'Sets the price — a class is priced once, on the Pricing screen.',
-    hPlate:'As it reads on the plate.', hVehicle:'The vehicle this chauffeur drives.',
+    hPlate:'As it reads on the plate.', hVehicle:'The vehicle this chauffeur drives.', hChauffeurClass:'The class this chauffeur has.',
     hChauffeurs:'One or more chauffeurs for this vehicle. Add a chauffeur if the list is empty.',
     hPhoto:'Leave empty when there is no photograph yet. The file is stored as a key, never in the page.',
     hLanguages:'Shown to the traveller. Pick every language this chauffeur speaks.',
@@ -189,7 +188,7 @@ const T = {
     cSub:'Wer fährt, auf welchem Fahrzeug, und ob er im Dienst ist',
     colVehicle:'Fahrzeug', colPlate:'Kennzeichen', colCapacity:'Kapazität', colBase:'Grundpreis',
     colChauffeur:'Chauffeur', colStatus:'Status', colPhone:'Telefon', colLicence:'Führerausweis',
-    unassigned:'Kein Chauffeur', noVehicle:'Kein Fahrzeug',
+    unassigned:'Kein Chauffeur', noVehicle:'Kein Fahrzeug', noClass:'Keine Klasse',
     cntVehicles:'Fahrzeuge', cntInService:'Im Einsatz', cntSeats:'Grösste Gruppe',
     cntChauffeurs:'Chauffeure', cntOnShift:'Im Dienst', cntWithVehicle:'Mit Fahrzeug',
     footVehicles:'Der Rest ist frei oder in der Werkstatt', footFleet:'In der ganzen Flotte', footSeats:'Plätze im grössten Fahrzeug',
@@ -206,7 +205,7 @@ const T = {
     fPhoto:'Foto', clearPhoto:'Foto entfernen', choosePhoto:'Foto wählen',
     fChauffeurs:'Zugeordnete Chauffeure',
     hClass:'Bestimmt den Preis — eine Klasse wird einmal auf dem Preis-Bildschirm bepreist.',
-    hPlate:'So, wie es auf dem Kennzeichen steht.', hVehicle:'Das Fahrzeug, das dieser Chauffeur fährt.',
+    hPlate:'So, wie es auf dem Kennzeichen steht.', hVehicle:'Das Fahrzeug, das dieser Chauffeur fährt.', hChauffeurClass:'Die Klasse, die dieser Chauffeur hat.',
     hChauffeurs:'Ein oder mehrere Chauffeure für dieses Fahrzeug. Chauffeur hinzufügen, wenn die Liste leer ist.',
     hPhoto:'Leer lassen, wenn noch kein Foto da ist. Die Datei wird als Schlüssel gespeichert, nicht in der Seite.',
     hLanguages:'Für den Reisenden sichtbar. Alle Sprachen wählen, die dieser Chauffeur spricht.',
@@ -226,7 +225,7 @@ const T = {
     cSub:'Qui conduit, sur quel véhicule, et s’il est en service',
     colVehicle:'Véhicule', colPlate:'Plaque', colCapacity:'Capacité', colBase:'Tarif de base',
     colChauffeur:'Chauffeur', colStatus:'Statut', colPhone:'Téléphone', colLicence:'Permis',
-    unassigned:'Aucun chauffeur', noVehicle:'Aucun véhicule',
+    unassigned:'Aucun chauffeur', noVehicle:'Aucun véhicule', noClass:'Aucune classe',
     cntVehicles:'Véhicules', cntInService:'En service', cntSeats:'Groupe le plus grand',
     cntChauffeurs:'Chauffeurs', cntOnShift:'En service', cntWithVehicle:'Avec véhicule',
     footVehicles:'Le reste est libre ou à l’atelier', footFleet:'Sur toute la flotte', footSeats:'Places dans le plus grand véhicule',
@@ -243,7 +242,7 @@ const T = {
     fPhoto:'Photo', clearPhoto:'Retirer la photo', choosePhoto:'Choisir une photo',
     fChauffeurs:'Associé au chauffeur',
     hClass:'Détermine le tarif — une classe est tarifée une fois, sur l’écran Tarifs.',
-    hPlate:'Tel qu’il figure sur la plaque.', hVehicle:'Le véhicule que ce chauffeur conduit.',
+    hPlate:'Tel qu’il figure sur la plaque.', hVehicle:'Le véhicule que ce chauffeur conduit.', hChauffeurClass:'La classe de ce chauffeur.',
     hChauffeurs:'Un ou plusieurs chauffeurs pour ce véhicule. Ajoutez un chauffeur si la liste est vide.',
     hPhoto:'Laissez vide s’il n’y a pas encore de photographie. Le fichier est stocké comme clé, jamais dans la page.',
     hLanguages:'Visibles par le voyageur. Choisissez toutes les langues parlées par ce chauffeur.',
@@ -263,7 +262,7 @@ const T = {
     cSub:'من يقود، وعلى أي مركبة، وهل هو في الدورية',
     colVehicle:'المركبة', colPlate:'اللوحة', colCapacity:'السعة', colBase:'الأجرة الأساسية',
     colChauffeur:'السائق', colStatus:'الحالة', colPhone:'الهاتف', colLicence:'الرخصة',
-    unassigned:'بلا سائق', noVehicle:'بلا مركبة',
+    unassigned:'بلا سائق', noVehicle:'بلا مركبة', noClass:'بلا فئة',
     cntVehicles:'المركبات', cntInService:'في الخدمة', cntSeats:'أكبر مجموعة',
     cntChauffeurs:'السائقون', cntOnShift:'في الدورية', cntWithVehicle:'لديهم مركبة',
     footVehicles:'البقية متاحة أو في الورشة', footFleet:'في كامل الأسطول', footSeats:'مقاعد أكبر مركبة',
@@ -280,7 +279,7 @@ const T = {
     fPhoto:'الصورة', clearPhoto:'إزالة الصورة', choosePhoto:'اختيار صورة',
     fChauffeurs:'مرتبط بالسائق',
     hClass:'تحدّد السعر — تُسعَّر الفئة مرة واحدة في شاشة الأسعار.',
-    hPlate:'كما هو مكتوب على اللوحة.', hVehicle:'المركبة التي يقودها هذا السائق.',
+    hPlate:'كما هو مكتوب على اللوحة.', hVehicle:'المركبة التي يقودها هذا السائق.', hChauffeurClass:'الفئة التي يملكها هذا السائق.',
     hChauffeurs:'سائق واحد أو أكثر لهذه المركبة. أضف سائقًا إن كانت القائمة فارغة.',
     hPhoto:'اتركها فارغة إن لم توجد صورة بعد. يُحفظ الملف كمفتاح، وليس داخل الصفحة.',
     hLanguages:'تظهر للمسافر. اختر كل اللغات التي يتحدثها هذا السائق.',
@@ -336,6 +335,26 @@ class Component extends DCLogic {
     const vStatusOptions = (ops ? ops.VEHICLE_STATUS : []).map((s) => ({ value: s, label: VSTATUS[s].label }));
     const vehicleOptions = [{ value:'', label: t.none }].concat(vehicles.map((v) => ({ value: v.id, label: vehicleLabel(v) })));
     const chauffeurOptions = chauffeurs.map((c) => ({ value: c.id, label: c.name || c.id }));
+    const inactiveClass = { economy: 1, business: 1, first: 1, van: 1, mahaha: 1 };
+    const classNameById = {};
+    const chauffeurClassOptions = [];
+    const rates = (ops && ops.rates) ? ops.rates.all() : [];
+    rates.forEach((r) => {
+      if (!r || r.available !== true) return;
+      const id = String(r.vehicleClassId || '').trim();
+      const name = String(r.name || '').trim();
+      if (!id || !name || classNameById[id]) return;
+      if (inactiveClass[name.toLowerCase()]) return;
+      classNameById[id] = name;
+      chauffeurClassOptions.push({ value: id, label: name });
+    });
+    chauffeurClassOptions.unshift({ value: '', label: t.noClass });
+    const classLabel = (r) => {
+      const saved = String((r && (r.vehicleClassName || r.className)) || '').trim();
+      if (saved) return saved;
+      const id = String((r && r.vehicleClassId) || '').trim();
+      return id && classNameById[id] ? classNameById[id] : '';
+    };
 
     const chauffeurColumns = [
       { key:'name', header:t.colChauffeur, lookup:(r) => React.createElement('span', {
@@ -347,8 +366,8 @@ class Component extends DCLogic {
         }, r.name || r.id),
         r.phone ? React.createElement('span', { style:{ fontSize:'var(--vt-body-xs)', color:'var(--vt-text-muted)' } }, r.phone) : null,
       ) },
-      { key:'vehicle', header:t.colVehicle, width:'190px', kind:'need', emptyLabel:t.noVehicle,
-        lookup:(r) => (vehicleById[r.vehicle || r.defaultVehicleId] ? vehicleLabel(vehicleById[r.vehicle || r.defaultVehicleId]) : '') },
+      { key:'vehicleClassName', header:t.fClass, width:'190px', kind:'need', emptyLabel:t.noClass,
+        lookup:(r) => classLabel(r) },
       { key:'licence', header:t.colLicence, width:'140px', kind:'mono' },
       { key:'status', header:t.colStatus, width:'150px', kind:'badge', tones:CSTATUS },
     ];
@@ -371,12 +390,9 @@ class Component extends DCLogic {
       { key:'name', label:t.fName, half:true, required:true },
       { key:'phone', label:t.fPhone, editor:'phone', half:true, placeholder:'+41 00 000 00 00' },
       { key:'email', label:t.fEmail, half:true, placeholder:'name@example.com' },
-      { key:'licence', label:t.fLicence, editor:'licence', half:true, placeholder:'CH 000 000', required:true },
-      { key:'vehicle', label:t.fVehicle, editor:'select', options:vehicleOptions, icon:'car', hint:t.hVehicle, addLabel:t.addVehicle, emptyLabel:t.noVehicle },
+      { key:'licence', label:t.fLicence, editor:'licence', half:true, placeholder:'CH 000 000' },
+      { key:'vehicleClassId', label:t.fClass, editor:'select', options:chauffeurClassOptions, icon:'car', hint:t.hChauffeurClass, emptyLabel:t.noClass },
       { key:'languages', label:t.fLanguages, editor:'select', multi:true, options:LANGUAGE_OPTIONS, icon:'globe', half:true },
-      { key:'weekdays', label:t.fShiftDays, editor:'select', multi:true, options:DAY_OPTIONS, icon:'calendar', half:true },
-      { key:'start', label:t.fShiftStart, placeholder:'08:00', half:true },
-      { key:'end', label:t.fShiftEnd, placeholder:'18:00', half:true },
       { key:'note', label:t.fNote, editor:'area', placeholder:'' },
     ];
 
@@ -409,7 +425,7 @@ class Component extends DCLogic {
       return false;
     }).filter(matchesChauffeur).map(tripHref);
     const pastBookings = !detail ? [] : bookings.filter((b) => ended[b.status] && matchesChauffeur(b)).map(tripHref);
-    const vehicleFor = vehicleById[detail && (detail.vehicle || detail.defaultVehicleId)] || null;
+    const className = detail ? classLabel(detail) : '';
     const profileName = detail ? (detail.name || '—') : '';
     const profilePhone = detail ? (detail.phone || '—') : '';
     const initials = String((detail && detail.name) || '').trim().split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w.charAt(0)).join('').toUpperCase() || '—';
@@ -417,7 +433,7 @@ class Component extends DCLogic {
     const photoSrc = (!photoRaw || photoRaw.indexOf('data:') === 0) ? '' : (photoRaw.charAt(0) === '/' ? photoRaw : '/photos/' + photoRaw);
     const profileFacts = !detail ? [] : [
       { icon:'mail', label:t.fEmail, value: detail.email || '—', dir: detail.email ? 'ltr' : 'auto' },
-      { icon:'car', label:t.fVehicle, value: vehicleFor ? vehicleLabel(vehicleFor) : t.noVehicle, dir: vehicleFor ? 'ltr' : 'auto' },
+      { icon:'car', label:t.fClass, value: className || t.noClass, dir: className ? 'ltr' : 'auto' },
       { icon:'shield-check', label:t.fLicence, value: detail.licence || '—', dir: detail.licence ? 'ltr' : 'auto' },
       { icon:'globe', label:t.fLanguages, value: detail.languages || '—', dir:'auto' },
     ];
@@ -482,12 +498,18 @@ class Component extends DCLogic {
       blank: () => (store ? store.blank() : {}),
       onSave: (rec) => {
         if (!store) return Promise.resolve({ ok: false, code: 'save-failed' });
+        const classId = String(rec.vehicleClassId || '');
+        const keptVehicle = String(rec.defaultVehicleId || '');
+        const legacyVehicle = String(rec.vehicle || '');
+        const vehicleId = keptVehicle || (legacyVehicle && legacyVehicle !== classId ? legacyVehicle : '');
         const payload = Object.assign({}, rec, {
-          vehicle: rec.vehicle || rec.defaultVehicleId || '',
-          defaultVehicleId: rec.defaultVehicleId || rec.vehicle || '',
-          shiftWeekdays: String(rec.weekdays || '').split(',').map((s) => Number(s.trim())).filter((n) => n >= 1 && n <= 7),
-          shiftStart: rec.start || rec.shiftStart || null,
-          shiftEnd: rec.end || rec.shiftEnd || null,
+          vehicleClassId: classId,
+          vehicleClassName: classNameById[classId] || rec.vehicleClassName || '',
+          vehicle: vehicleId,
+          defaultVehicleId: vehicleId,
+          shiftWeekdays: String(rec.weekdays || rec.shiftWeekdays || '').split(',').map((s) => Number(s.trim())).filter((n) => n >= 1 && n <= 7),
+          shiftStart: rec.shiftStart || rec.start || null,
+          shiftEnd: rec.shiftEnd || rec.end || null,
         });
         return store.upsert(payload).then((json) => {
           if (!json || json.ok !== true) {
@@ -510,7 +532,7 @@ class Component extends DCLogic {
       labelKey: 'name',
       addLabel: t.addChauffeur,
       searchPlaceholder: t.searchChauffeurs,
-      searchKeys: ['name','phone','email','licence','languages'],
+      searchKeys: ['name','phone','email','licence','languages','vehicleClassName'],
       emptyTitle: t.emptyCTitle,
       emptyBody: t.emptyCBody,
       deleteBody: t.delCBody,

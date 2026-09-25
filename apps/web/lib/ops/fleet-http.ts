@@ -189,6 +189,8 @@ export function presentChauffeur(
     email: row.email ?? "",
     defaultVehicleId: row.defaultVehicleId,
     vehicle: row.defaultVehicleId ?? "",
+    vehicleClassId: row.vehicleClassId ?? "",
+    vehicleClassName: row.vehicleClassName ?? "",
     licenceNumber,
     licence: licenceNumber,
     licenceExpiresOn: row.licenceExpiresOn,
@@ -267,6 +269,7 @@ export function parseChauffeurBody(body: unknown): { id: string | null; input: C
       phone: asString(rec.phone),
       email: asString(rec.email) || null,
       defaultVehicleId: asString(rec.defaultVehicleId || rec.vehicle) || null,
+      vehicleClassId: asString(rec.vehicleClassId) || null,
       licenceNumber: asString(rec.licenceNumber || rec.licence),
       licenceExpiresOn: asString(rec.licenceExpiresOn) || null,
       languages: languageCodes(rec.languages),
@@ -314,6 +317,7 @@ export function chauffeurErrorCopy(code: string): string | null {
   if (code === "chauffeurs-failure-languages") return "One of the languages is not supported.";
   if (code === "chauffeurs-failure-photo") return "Photo must be an uploaded file, not an embedded image.";
   if (code === "chauffeurs-failure-vehicle") return "That vehicle is missing.";
+  if (code === "chauffeurs-failure-class") return "That class is missing.";
   if (code === "chauffeurs-failure-error") return "The chauffeur could not be saved.";
   if (code === "chauffeurs-duplicate-email") return "This email is already on file.";
   if (code === "fleet-seat-morning-taken") return "This vehicle already has a Morning chauffeur.";
@@ -332,6 +336,7 @@ function chauffeurConstraintCopy(err: unknown): string | null {
   if (typeof err !== "object" || err === null || !("constraint" in err)) return null;
   const constraint = (err as { constraint: unknown }).constraint;
   if (constraint === "chauffeurs_default_vehicle_id_fkey") return "That vehicle is missing.";
+  if (constraint === "chauffeurs_vehicle_class_id_fkey") return "That class is missing.";
   if (constraint === "chauffeurs_pkey") return "That chauffeur id is already on file.";
   if (constraint === "chauffeurs_user_id_key") return "That login is already linked to a chauffeur.";
   if (typeof constraint === "string" && constraint) return "The chauffeur could not be saved.";
@@ -370,6 +375,13 @@ export function chauffeurJsonError(err: unknown): Response {
   }
   const mapped = mapSqlState(err);
   if (sqlCode(err) === "23503") {
+    const constraint =
+      typeof err === "object" && err !== null && "constraint" in err
+        ? String((err as { constraint: unknown }).constraint ?? "")
+        : "";
+    if (constraint === "chauffeurs_vehicle_class_id_fkey") {
+      return jsonErr("23503", 409, { message: "That class is missing." });
+    }
     return jsonErr("23503", 409, { message: chauffeurErrorCopy("23503") ?? "That vehicle is missing." });
   }
   if (mapped.kind === "unique") {

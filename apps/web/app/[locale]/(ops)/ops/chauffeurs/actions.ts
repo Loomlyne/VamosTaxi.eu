@@ -60,7 +60,7 @@ export async function createChauffeur(
     await asStaff(env, claims, async (sql) => {
       await sql`
         insert into public.chauffeurs (
-          id, full_name, phone, email, default_vehicle_id,
+          id, full_name, phone, email, default_vehicle_id, vehicle_class_id,
           licence_number, licence_expires_on, languages, status,
           photo_path, note, active, updated_at
         ) values (
@@ -69,6 +69,7 @@ export async function createChauffeur(
           ${parsed.phone},
           ${parsed.email},
           ${parsed.defaultVehicleId},
+          ${parsed.vehicleClassId},
           ${parsed.licenceNumber},
           ${parsed.licenceExpiresOn},
           ${parsed.languages},
@@ -103,6 +104,7 @@ export async function updateChauffeur(
           phone = ${parsed.phone},
           email = ${parsed.email},
           default_vehicle_id = ${parsed.defaultVehicleId},
+          vehicle_class_id = ${parsed.vehicleClassId},
           licence_number = ${parsed.licenceNumber},
           licence_expires_on = ${parsed.licenceExpiresOn},
           languages = ${parsed.languages},

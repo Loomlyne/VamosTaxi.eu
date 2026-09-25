@@ -788,6 +788,7 @@ export type Database = {
           licence_expires_on: string | null
           licence_number: string
           note: string
+          vehicle_class_id: string | null
           phone: string
           photo_path: string | null
           shift_end: string | null
@@ -809,6 +810,7 @@ export type Database = {
           licence_expires_on?: string | null
           licence_number: string
           note?: string
+          vehicle_class_id?: string | null
           phone: string
           photo_path?: string | null
           shift_end?: string | null
@@ -830,6 +832,7 @@ export type Database = {
           licence_expires_on?: string | null
           licence_number?: string
           note?: string
+          vehicle_class_id?: string | null
           phone?: string
           photo_path?: string | null
           shift_end?: string | null
@@ -846,6 +849,13 @@ export type Database = {
             columns: ["default_vehicle_id"]
             isOneToOne: false
             referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chauffeurs_vehicle_class_id_fkey"
+            columns: ["vehicle_class_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_classes"
             referencedColumns: ["id"]
           },
         ]

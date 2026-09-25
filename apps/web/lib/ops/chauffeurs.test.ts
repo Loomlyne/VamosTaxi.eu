@@ -112,10 +112,17 @@ describe("licenceState", () => {
 });
 
 describe("assertChauffeurInput", () => {
-  it("rejects an empty full_name, phone and licence_number", () => {
+  it("rejects an empty full_name and phone, and stores a blank licence", () => {
     expect(() => assertChauffeurInput(baseInput({ fullName: "  " }))).toThrow(ChauffeurInputError);
     expect(() => assertChauffeurInput(baseInput({ phone: "   " }))).toThrow(ChauffeurInputError);
-    expect(() => assertChauffeurInput(baseInput({ licenceNumber: "" }))).toThrow(
+    expect(assertChauffeurInput(baseInput({ licenceNumber: "" })).licenceNumber).toBe("");
+    expect(assertChauffeurInput(baseInput({ licenceNumber: "   " })).licenceNumber).toBe("");
+  });
+
+  it("stores an empty class as null and rejects a class id that is not a uuid", () => {
+    expect(assertChauffeurInput(baseInput({ vehicleClassId: "" })).vehicleClassId).toBeNull();
+    expect(assertChauffeurInput(baseInput({ vehicleClassId: null })).vehicleClassId).toBeNull();
+    expect(() => assertChauffeurInput(baseInput({ vehicleClassId: "economy" }))).toThrow(
       ChauffeurInputError,
     );
   });

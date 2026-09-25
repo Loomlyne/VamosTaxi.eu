@@ -54,7 +54,7 @@ const FK_MISSING = "23503";
 
 export type ChauffeurDbFailure =
   | ReturnType<typeof mapSqlState>
-  | { kind: "fk"; code: "23503"; key: "chauffeurs-failure-vehicle" };
+  | { kind: "fk"; code: "23503"; key: "chauffeurs-failure-vehicle" | "chauffeurs-failure-class" };
 
 /**
  * mapSqlState covers 23514 (CHECK) and the shared ops codes.
@@ -65,10 +65,14 @@ export function mapChauffeurSqlState(err: unknown): ChauffeurDbFailure {
   if (typeof err === "object" && err !== null && "code" in err) {
     const code = (err as { code: unknown }).code;
     if (code === FK_MISSING) {
+      const constraint =
+        "constraint" in err ? String((err as { constraint: unknown }).constraint ?? "") : "";
       return {
         kind: "fk",
         code: "23503",
-        key: "chauffeurs-failure-vehicle",
+        key: constraint.includes("vehicle_class_id")
+          ? "chauffeurs-failure-class"
+          : "chauffeurs-failure-vehicle",
       };
     }
   }
@@ -129,10 +133,7 @@ export function assertChauffeurInput(input: ChauffeurInput): AssertedChauffeurIn
     throw new ChauffeurInputError("chauffeurs-failure-phone-required");
   }
 
-  const licenceNumber = input.licenceNumber.trim();
-  if (!licenceNumber) {
-    throw new ChauffeurInputError("chauffeurs-failure-licence-required");
-  }
+  const licenceNumber = (input.licenceNumber ?? "").trim();
 
   const emailRaw = input.email == null ? "" : input.email.trim();
   const email = emailRaw === "" ? null : emailRaw;
@@ -141,6 +142,15 @@ export function assertChauffeurInput(input: ChauffeurInput): AssertedChauffeurIn
   const defaultVehicleId = vehicleRaw === "" ? null : vehicleRaw;
   if (defaultVehicleId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(defaultVehicleId)) {
     throw new ChauffeurInputError("chauffeurs-failure-vehicle");
+  }
+
+  const classRaw = input.vehicleClassId == null ? "" : input.vehicleClassId.trim();
+  const vehicleClassId = classRaw === "" ? null : classRaw;
+  if (
+    vehicleClassId &&
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(vehicleClassId)
+  ) {
+    throw new ChauffeurInputError("chauffeurs-failure-class");
   }
 
   const expiryRaw = input.licenceExpiresOn == null ? "" : input.licenceExpiresOn.trim();
@@ -165,6 +175,7 @@ export function assertChauffeurInput(input: ChauffeurInput): AssertedChauffeurIn
     phone,
     email,
     defaultVehicleId,
+    vehicleClassId,
     licenceNumber,
     licenceExpiresOn,
     languages: normalizeLanguages(input.languages),
@@ -185,6 +196,8 @@ type ListSqlRow = {
   email: string | null;
   default_vehicle_id: string | null;
   default_vehicle_plate: string | null;
+  vehicle_class_id: string | null;
+  vehicle_class_name: string | null;
   licence_expires_on: Date | string | null;
   languages: string[] | null;
   status: string;
@@ -214,6 +227,8 @@ function mapListRow(row: ListSqlRow): ChauffeurRow {
     email: row.email,
     defaultVehicleId: row.default_vehicle_id,
     defaultVehiclePlate: row.default_vehicle_plate,
+    vehicleClassId: row.vehicle_class_id ?? null,
+    vehicleClassName: row.vehicle_class_name ?? null,
     licenceExpiresOn: expiry,
     languages: mapLanguages(row.languages),
     status,
@@ -272,6 +287,8 @@ export async function loadChauffeurDetailsList(
         c.email,
         c.default_vehicle_id,
         v.plate as default_vehicle_plate,
+        c.vehicle_class_id,
+        cls.name as vehicle_class_name,
         c.licence_number,
         c.licence_expires_on,
         c.languages,
@@ -283,6 +300,7 @@ export async function loadChauffeurDetailsList(
         c.updated_at
       from public.chauffeurs c
       left join public.vehicles v on v.id = c.default_vehicle_id
+      left join public.vehicle_classes cls on cls.id = c.vehicle_class_id
       order by c.active desc, c.licence_expires_on asc nulls last, c.full_name asc
     `;
     const extras = await loadDeskExtras(sql);
@@ -303,6 +321,8 @@ export async function loadChauffeurs(
         c.email,
         c.default_vehicle_id,
         v.plate as default_vehicle_plate,
+        c.vehicle_class_id,
+        cls.name as vehicle_class_name,
         c.licence_expires_on,
         c.languages,
         c.status,
@@ -313,6 +333,7 @@ export async function loadChauffeurs(
         c.updated_at
       from public.chauffeurs c
       left join public.vehicles v on v.id = c.default_vehicle_id
+      left join public.vehicle_classes cls on cls.id = c.vehicle_class_id
       order by c.active desc, c.licence_expires_on asc nulls last, c.full_name asc
     `;
     const extras = await loadDeskExtras(sql);
@@ -334,6 +355,8 @@ export async function loadChauffeur(
         c.email,
         c.default_vehicle_id,
         v.plate as default_vehicle_plate,
+        c.vehicle_class_id,
+        cls.name as vehicle_class_name,
         c.licence_number,
         c.licence_expires_on,
         c.languages,
@@ -345,6 +368,7 @@ export async function loadChauffeur(
         c.updated_at
       from public.chauffeurs c
       left join public.vehicles v on v.id = c.default_vehicle_id
+      left join public.vehicle_classes cls on cls.id = c.vehicle_class_id
       where c.id = ${id}
       limit 1
     `;
@@ -371,6 +395,8 @@ export async function loadChauffeurByEmail(
         c.email,
         c.default_vehicle_id,
         v.plate as default_vehicle_plate,
+        c.vehicle_class_id,
+        cls.name as vehicle_class_name,
         c.licence_number,
         c.licence_expires_on,
         c.languages,
@@ -382,6 +408,7 @@ export async function loadChauffeurByEmail(
         c.updated_at
       from public.chauffeurs c
       left join public.vehicles v on v.id = c.default_vehicle_id
+      left join public.vehicle_classes cls on cls.id = c.vehicle_class_id
       where c.email is not null
         and length(trim(c.email)) > 0
         and lower(trim(c.email)) = ${normalized}

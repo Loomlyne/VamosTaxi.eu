@@ -555,11 +555,18 @@
   var CHAUFFEUR_STATUS = ["shift", "off", "leave"];
   function cleanChauffeur(c) {
     c = c || {};
-    var vehicleId = str(c.vehicle || c.defaultVehicleId);
+    var classId = str(c.vehicleClassId);
+    var vehicleId = str(c.defaultVehicleId);
+    if (!vehicleId) {
+      var legacyVehicle = str(c.vehicle);
+      if (legacyVehicle && legacyVehicle !== classId) vehicleId = legacyVehicle;
+    }
     return {
       id: str(c.id),
       name: str(c.name || c.fullName), phone: str(c.phone), email: str(c.email),
-      vehicle: vehicleId, defaultVehicleId: str(c.defaultVehicleId || c.vehicle),
+      vehicle: vehicleId, defaultVehicleId: vehicleId,
+      vehicleClassId: classId,
+      vehicleClassName: str(c.vehicleClassName || c.className),
       licence: str(c.licence || c.licenceNumber),
       languages: Array.isArray(c.languages) ? c.languages.join(", ") : str(c.languages),
       status: CHAUFFEUR_STATUS.indexOf(c.status) === -1 ? "off" : c.status,

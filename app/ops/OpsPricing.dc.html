@@ -50,9 +50,6 @@
 [data-price-err]{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-danger)}
 [data-price-empty]{display:flex;flex-direction:column;gap:var(--vt-space-2);padding:22px 24px;border:1px dashed var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface)}
 [data-price-empty] h2{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:1.25}
-[data-fare-formula]{display:flex;flex-direction:column;gap:6px;min-width:0;max-width:72ch}
-[data-fare-formula] h2{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium);line-height:1.4;color:var(--vt-text-primary);text-wrap:balance;text-align:start}
-[data-fare-formula] p{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);line-height:1.5;color:var(--vt-text-secondary);text-wrap:pretty;text-align:start}
 [data-vat-save] .vt-btn[disabled],
 [data-vat-save] button:disabled{opacity:.45;cursor:default;pointer-events:none}
 [data-vat-save] .vt-btn--primary:not([disabled]):hover,
@@ -131,10 +128,6 @@
 
 <sc-if value="{{ isDistance }}" hint-placeholder-val="{{ false }}">
 <div data-price-pane="1" data-price-swipe="1" data-scroll-native="1">
-<div data-fare-formula="1">
-<h2>{{ tFareFormulaTitle }}</h2>
-<p>{{ tFareFormulaBody }}</p>
-</div>
 <dc-import name="OpsTable" fill="1" rows="{{ distanceRows }}" columns="{{ distanceColumns }}" fields="{{ distanceFields }}" blank="{{ distanceBlank }}" onSave="{{ saveDistance }}" onDelete="{{ deleteDistance }}" noun="{{ tNounClass }}" noun-plural="{{ tNounClasses }}" add-title="{{ tAddClass }}" edit-title="{{ tEditClass }}" delete-title="{{ tDeleteClassTitle }}" label-key="klass" add-label="{{ tAddClass }}" save-label="{{ tSaveClass }}" add-save-label="{{ tAddClass }}" search-placeholder="{{ tSearchDistance }}" search-keys="{{ distanceSearchKeys }}" empty-title="{{ tEmptyClassesTitle }}" empty-body="{{ tEmptyClassesBody }}" delete-body="{{ tDeleteClassBody }}" edit-id="{{ distanceEditId }}" edit-tick="{{ distanceEditTick }}" hint-size="100%,420px"></dc-import>
 <dc-import name="OpsTable" fill="1" rows="{{ bandRows }}" columns="{{ bandColumns }}" fields="{{ bandFields }}" blank="{{ bandBlank }}" onSave="{{ saveBand }}" onDelete="{{ deleteBand }}" noun="{{ tNounBand }}" noun-plural="{{ tNounBands }}" add-title="{{ tAddBand }}" edit-title="{{ tEditBand }}" delete-title="{{ tDeleteBandTitle }}" label-key="fromKm" add-label="{{ tAddBand }}" save-label="{{ tSaveBand }}" add-save-label="{{ tAddBand }}" search-placeholder="{{ tSearchBands }}" search-keys="{{ bandSearchKeys }}" empty-title="{{ tEmptyBandsTitle }}" empty-body="{{ tEmptyBandsBody }}" delete-body="{{ tDeleteBandBody }}" hint-size="100%,280px"></dc-import>
 </div>
@@ -374,7 +367,7 @@ const PANES = [
 const T = {
   en: { title:'Pricing & routes', subtitle:'Fixed routes, distance rules, surcharges and coupons',
     tabRoutes:'Fixed routes', tabDistance:'Distance rules', tabSurcharges:'Surcharges & extras', tabCoupons:'Coupons',
-    hintRoutes:'City to city. A to B and B to A are separate.', hintDistance:'Start, per kilometre, airport start, one city price', fareFormulaTitle:'How this fare is calculated', fareFormulaBody:'One way is the start price plus kilometres times the per-kilometre rate. A matching city-to-city or canton-to-canton pair adds that pair extra once. No match adds no extra. Then extras and any surcharge, minus a coupon. Airport pickup uses a different start and the same per-kilometre rate. An empty airport start stays unpriced.', airportStart:'Airport start', cityPrice:'City price and per kilometre', cityPairPick:'Select a city pair', hintSurcharges:'Checkout extras, wait, meet and greet', hintCoupons:'Percent or fixed CHF',
+    hintRoutes:'City to city. A to B and B to A are separate.', hintDistance:'Start, per kilometre, airport start, one city price', airportStart:'Airport start', cityPrice:'City price and per kilometre', cityPairPick:'Select a city pair', hintSurcharges:'Checkout extras, wait, meet and greet', hintCoupons:'Percent or fixed CHF',
     colId:'ID', colFrom:'From', colTo:'To', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Draft',
     colClass:'Class', colName:'Name', startFare:'Start', perKm:'Per kilometre', maxPax:'Max passengers', maxBags:'Max bags', hidePublic:'Hide from public', showPublic:'Show on public',
     fPhoto:'Photo', choosePhoto:'Choose photo', clearPhoto:'Remove', hClassPhoto:'Required to Publish. Stored on R2, not on this machine.',
@@ -465,7 +458,7 @@ const T = {
   },
   de: { title:'Preise & Routen', subtitle:'Feste Routen, Distanzregeln, Zuschläge und Gutscheine',
     tabRoutes:'Feste Routen', tabDistance:'Distanzregeln', tabSurcharges:'Zuschläge & Extras', tabCoupons:'Gutscheine',
-    hintRoutes:'Stadt zu Stadt. A nach B und B nach A sind getrennt.', hintDistance:'Start, pro Kilometer, Flughafen-Start, ein Stadtpreis', fareFormulaTitle:'So wird der Preis gerechnet', fareFormulaBody:'Einfache Fahrt ist der Startpreis plus Kilometer mal Kilometersatz. Ein passendes Stadt-zu-Stadt- oder Kanton-zu-Kanton-Paar addiert diesen Zuschlag einmal. Kein Treffer, kein Zuschlag. Danach die Extras und ein Aufschlag, minus Gutschein. Die Flughafenabholung nutzt einen anderen Start und denselben Kilometersatz. Ein leerer Flughafen-Start bleibt ohne Preis.', airportStart:'Flughafen-Start', cityPrice:'Stadtpreis und pro Kilometer', cityPairPick:'Stadtpaar wählen', hintSurcharges:'Checkout-Extras, Warten, Meet and greet', hintCoupons:'Prozent oder fester CHF',
+    hintRoutes:'Stadt zu Stadt. A nach B und B nach A sind getrennt.', hintDistance:'Start, pro Kilometer, Flughafen-Start, ein Stadtpreis', airportStart:'Flughafen-Start', cityPrice:'Stadtpreis und pro Kilometer', cityPairPick:'Stadtpaar wählen', hintSurcharges:'Checkout-Extras, Warten, Meet and greet', hintCoupons:'Prozent oder fester CHF',
     colId:'ID', colFrom:'Von', colTo:'Nach', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Entwurf',
     colClass:'Klasse', colName:'Name', startFare:'Start', perKm:'Pro Kilometer', maxPax:'Max. Passagiere', maxBags:'Max. Gepäckstücke', hidePublic:'Vor der Öffentlichkeit verbergen', showPublic:'Öffentlich zeigen',
     fPhoto:'Foto', choosePhoto:'Foto wählen', clearPhoto:'Entfernen', hClassPhoto:'Pflicht vor dem Veröffentlichen. Liegt auf R2, nicht auf diesem Gerät.',
@@ -558,7 +551,7 @@ const T = {
   },
   fr: { title:'Tarifs & trajets', subtitle:'Trajets fixes, règles de distance, suppléments et codes promo',
     tabRoutes:'Trajets fixes', tabDistance:'Règles de distance', tabSurcharges:'Suppléments & extras', tabCoupons:'Codes promo',
-    hintRoutes:'Ville à ville. A vers B et B vers A sont séparés.', hintDistance:'Départ, au kilomètre, départ aéroport, un prix ville', fareFormulaTitle:'Comment ce prix est calculé', fareFormulaBody:'L’aller simple est le prix de départ plus les kilomètres fois le tarif au kilomètre. Une paire ville à ville ou canton à canton qui correspond ajoute cet extra une fois. Sans correspondance, pas d’extra. Ensuite les extras et un supplément, moins un coupon. La prise en charge à l’aéroport utilise un autre départ et le même tarif au kilomètre. Un départ aéroport vide reste sans prix.', airportStart:'Départ aéroport', cityPrice:'Prix ville et par kilomètre', cityPairPick:'Choisir une paire de villes', hintSurcharges:'Extras de paiement, attente, accueil', hintCoupons:'Pourcent ou CHF fixe',
+    hintRoutes:'Ville à ville. A vers B et B vers A sont séparés.', hintDistance:'Départ, au kilomètre, départ aéroport, un prix ville', airportStart:'Départ aéroport', cityPrice:'Prix ville et par kilomètre', cityPairPick:'Choisir une paire de villes', hintSurcharges:'Extras de paiement, attente, accueil', hintCoupons:'Pourcent ou CHF fixe',
     colId:'ID', colFrom:'De', colTo:'Vers', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Brouillon',
     colClass:'Classe', colName:'Nom', startFare:'Départ', perKm:'Par kilomètre', maxPax:'Passagers max.', maxBags:'Bagages max.', hidePublic:'Masquer au public', showPublic:'Afficher au public',
     fPhoto:'Photo', choosePhoto:'Choisir une photo', clearPhoto:'Retirer', hClassPhoto:'Obligatoire pour Publier. Stockée sur R2, pas sur cet appareil.',
@@ -651,7 +644,7 @@ const T = {
   },
   ar: { title:'الأسعار والمسارات', subtitle:'مسارات ثابتة وقواعد مسافة ورسوم وقسائم',
     tabRoutes:'مسارات ثابتة', tabDistance:'قواعد المسافة', tabSurcharges:'الرسوم والإضافات', tabCoupons:'القسائم',
-    hintRoutes:'من مدينة إلى مدينة. من أ إلى ب ومن ب إلى أ منفصلان.', hintDistance:'البداية، لكل كيلومتر، بداية المطار، سعر مدينة واحد', fareFormulaTitle:'كيف يُحسب هذا السعر', fareFormulaBody:'الذهاب فقط هو سعر البداية زائد الكيلومترات في سعر الكيلومتر. زوج مدينة إلى مدينة أو كانتون إلى كانتون المطابق يضيف تلك الزيادة مرة واحدة. بلا تطابق لا تُضاف زيادة. ثم الإضافات وأي رسم، ناقص القسيمة. الاستقبال في المطار يستخدم بداية مختلفة ونفس سعر الكيلومتر. بداية مطار فارغة تبقى بلا سعر.', airportStart:'بداية المطار', cityPrice:'سعر المدينة ولكل كيلومتر', cityPairPick:'اختر زوج مدن', hintSurcharges:'إضافات الدفع والانتظار والاستقبال', hintCoupons:'نسبة أو فرنك ثابت',
+    hintRoutes:'من مدينة إلى مدينة. من أ إلى ب ومن ب إلى أ منفصلان.', hintDistance:'البداية، لكل كيلومتر، بداية المطار، سعر مدينة واحد', airportStart:'بداية المطار', cityPrice:'سعر المدينة ولكل كيلومتر', cityPairPick:'اختر زوج مدن', hintSurcharges:'إضافات الدفع والانتظار والاستقبال', hintCoupons:'نسبة أو فرنك ثابت',
     colId:'المعرّف', colFrom:'من', colTo:'إلى', colEconomy:'اقتصادي', colBusiness:'أعمال', colVan:'فان', colLive:'مباشر', live:'مباشر', draft:'مسودة',
     colClass:'الفئة', colName:'الاسم', startFare:'البداية', perKm:'لكل كيلومتر', maxPax:'أقصى عدد مسافرين', maxBags:'أقصى حقائب', hidePublic:'إخفاء عن العامة', showPublic:'إظهار للعامة',
     fPhoto:'الصورة', choosePhoto:'اختيار صورة', clearPhoto:'إزالة', hClassPhoto:'مطلوبة للنشر. تُحفظ على R2 وليس على هذا الجهاز.',
@@ -1224,7 +1217,6 @@ class Component extends DCLogic {
       yes: true, n18: 18, n16: 16,
       tTitle: t.title,
       tSubtitle: t.subtitle,
-      tFareFormulaTitle: t.fareFormulaTitle, tFareFormulaBody: t.fareFormulaBody,
       panes: PANES.map((p) => ({
         icon: p.icon, label: t[p.tab], hint: t[p.hint],
         on: pane === p.key ? '1' : '0',

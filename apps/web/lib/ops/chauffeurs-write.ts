@@ -22,7 +22,7 @@ export async function insertChauffeur(
     if (id) {
       const rows = await sql<{ id: string }[]>`
         insert into public.chauffeurs (
-          id, full_name, phone, email, default_vehicle_id,
+          id, full_name, phone, email, default_vehicle_id, vehicle_class_id,
           licence_number, licence_expires_on, languages, status,
           photo_path, note, active, updated_at
         ) values (
@@ -31,6 +31,7 @@ export async function insertChauffeur(
           ${parsed.phone},
           ${parsed.email},
           ${parsed.defaultVehicleId},
+          ${parsed.vehicleClassId},
           ${parsed.licenceNumber},
           ${parsed.licenceExpiresOn},
           ${pgTextArrayLiteral(parsed.languages)}::text[],
@@ -50,7 +51,7 @@ export async function insertChauffeur(
     }
     const rows = await sql<{ id: string }[]>`
       insert into public.chauffeurs (
-        full_name, phone, email, default_vehicle_id,
+        full_name, phone, email, default_vehicle_id, vehicle_class_id,
         licence_number, licence_expires_on, languages, status,
         photo_path, note, active, updated_at
       ) values (
@@ -58,6 +59,7 @@ export async function insertChauffeur(
         ${parsed.phone},
         ${parsed.email},
         ${parsed.defaultVehicleId},
+        ${parsed.vehicleClassId},
         ${parsed.licenceNumber},
         ${parsed.licenceExpiresOn},
         ${pgTextArrayLiteral(parsed.languages)}::text[],
@@ -89,6 +91,7 @@ export async function updateChauffeurRow(
         phone = ${parsed.phone},
         email = ${parsed.email},
         default_vehicle_id = ${parsed.defaultVehicleId},
+        vehicle_class_id = ${parsed.vehicleClassId},
         licence_number = ${parsed.licenceNumber},
         licence_expires_on = ${parsed.licenceExpiresOn},
         languages = ${pgTextArrayLiteral(parsed.languages)}::text[],

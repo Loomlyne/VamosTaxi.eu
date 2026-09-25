@@ -162,7 +162,21 @@ describe("parseChauffeurBody", () => {
     expect(parsed.input.fullName).toBe("Ada");
     expect(parsed.input.licenceNumber).toBe("CH 1");
     expect(parsed.input.defaultVehicleId).toBe("11111111-1111-4111-8111-111111111111");
+    expect(parsed.input.vehicleClassId).toBeNull();
     expect(parsed.input.languages).toEqual(["de", "en"]);
+  });
+
+  it("maps vehicleClassId onto the class column, not defaultVehicleId", () => {
+    const parsed = parseChauffeurBody({
+      name: "Ada",
+      phone: "+41 79 000 00 00",
+      licence: "",
+      vehicleClassId: "22222222-2222-4222-8222-222222222222",
+      defaultVehicleId: "11111111-1111-4111-8111-111111111111",
+    });
+    expect(parsed.input.vehicleClassId).toBe("22222222-2222-4222-8222-222222222222");
+    expect(parsed.input.defaultVehicleId).toBe("11111111-1111-4111-8111-111111111111");
+    expect(parsed.input.licenceNumber).toBe("");
   });
 });
 

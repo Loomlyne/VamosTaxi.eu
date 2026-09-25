@@ -61,6 +61,8 @@ export type ChauffeurRow = {
   email: string | null;
   defaultVehicleId: string | null;
   defaultVehiclePlate: string | null;
+  vehicleClassId: string | null;
+  vehicleClassName: string | null;
   licenceExpiresOn: string | null;
   languages: string[];
   status: ChauffeurStatus;
@@ -84,6 +86,7 @@ export type ChauffeurInput = {
   phone: string;
   email?: string | null;
   defaultVehicleId?: string | null;
+  vehicleClassId?: string | null;
   licenceNumber: string;
   licenceExpiresOn?: string | null;
   languages?: string[];
@@ -101,6 +104,7 @@ export type AssertedChauffeurInput = {
   phone: string;
   email: string | null;
   defaultVehicleId: string | null;
+  vehicleClassId: string | null;
   licenceNumber: string;
   licenceExpiresOn: string | null;
   languages: string[];
