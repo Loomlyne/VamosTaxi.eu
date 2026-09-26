@@ -47,21 +47,19 @@
 input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}
 body{margin:0}
 a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
-[data-svc-inner]{box-sizing:border-box;max-width:1200px;margin:0 auto;padding:0 clamp(16px,3.2vw,56px);display:flex;flex-direction:column;align-items:stretch;gap:clamp(28px,4vw,48px)}
-[data-svc-head]{display:flex;flex-direction:column;align-items:flex-start;gap:14px;max-width:58ch}
-[data-svc-track]{display:grid;gap:var(--vt-space-5);grid-template-columns:minmax(0,1fr);width:100%;align-items:stretch;overflow:visible}
-[data-svc-track] > [data-sc-name="ServiceCard"]{min-width:0;min-height:0;position:relative;display:block;width:auto;height:auto;overflow:visible;transform:none;opacity:1;pointer-events:auto}
+[data-svc-inner]{box-sizing:border-box;max-width:1200px;margin:0 auto;padding:0 clamp(16px,3.2vw,56px);display:flex;flex-direction:column;align-items:stretch;gap:var(--vt-space-8)}
+[data-svc-track]{display:grid;gap:var(--vt-space-6);grid-template-columns:minmax(0,1fr);width:100%;align-items:start;overflow:visible}
+[data-svc-track] > [data-sc-name="ServiceCard"]{min-width:0;min-height:min-content;position:relative;display:flex;flex-direction:column;width:auto;height:auto;overflow:visible;transform:none;opacity:1;pointer-events:auto}
 [data-svc-ticks]{display:none}
-[data-svc-cta]{position:relative;box-sizing:border-box;display:flex;flex-direction:column;justify-content:flex-end;gap:var(--vt-space-4);aspect-ratio:4/5;min-height:0;padding:clamp(18px,2.4vw,28px);background:var(--vt-yellow);border-radius:var(--vt-radius-xl);text-decoration:none;color:var(--vt-charcoal-900);overflow:hidden}
+[data-svc-cta]{grid-column:1/-1;position:relative;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;gap:var(--vt-space-4);min-height:0;padding:var(--vt-space-6);background:var(--vt-yellow);border-radius:var(--vt-radius-lg);text-decoration:none;color:var(--vt-charcoal-900)}
 [data-svc-cta]:hover,[data-svc-cta]:focus,[data-svc-cta]:visited{color:var(--vt-charcoal-900)}
 [data-svc-cta]:focus-visible{outline:3px solid var(--vt-charcoal-900);outline-offset:4px}
 [data-svc-cta-kicker]{display:block;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight)}
-[data-svc-cta-title]{display:block;margin-top:var(--vt-space-2);font-family:var(--vt-font-display);font-size:clamp(22px,2.2vw,28px);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:1.12;text-wrap:balance}
+[data-svc-cta-title]{display:block;margin-top:var(--vt-space-2);font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:1.14;text-wrap:balance}
 [data-svc-cta-btn]{display:inline-flex;align-self:flex-start;align-items:center;gap:var(--vt-space-2);min-height:44px;padding:0 var(--vt-space-5);border-radius:999px;background:var(--vt-charcoal-900);color:var(--vt-text-inverse);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;transition:background-color 140ms var(--vt-ease-standard),transform 80ms var(--vt-ease-standard)}
 @media (hover:hover){[data-svc-cta]:hover [data-svc-cta-btn]{background:var(--vt-charcoal-800)}}
 [data-svc-cta]:active [data-svc-cta-btn]{transform:translateY(1px)}
-@media (min-width:640px){[data-svc-track]{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--vt-space-6)}}
-@media (min-width:1024px){[data-svc-track]{grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:var(--vt-space-6)}}
+@media (min-width:768px){[data-svc-track]{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (prefers-reduced-motion:reduce){[data-svc-cta-btn]{transition:none}}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn):not([data-svc-card]){outline:3px solid var(--vt-charcoal-900)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
 </helmet>
 <section data-svc-sec="1" data-screen-label="Services" aria-labelledby="svc-title" style="position:relative;overflow:visible;color:var(--vt-text-primary);font-family:var(--vt-font-body);padding:clamp(56px,7vw,104px) 0">
@@ -74,7 +72,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-svc-head="1" style="display:flex;align-items:flex-start;justify-content:space-between;gap:32px;flex:0 0 auto">
 <div style="display:flex;flex-direction:column;gap:14px;max-width:58ch">
 <p style="margin:0;display:inline-flex;align-self:flex-start;align-items:center;gap:9px;height:32px;padding:0 15px 0 12px;border:1px solid var(--vt-grey-200);border-radius:999px;background:var(--vt-white);font-size:12px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;line-height:1;white-space:nowrap;color:var(--vt-charcoal-900)"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAAChCAYAAABAk7SIAAAEi0lEQVR4AeyUS27bQBQETR1BuU58o1wqZ9F9nEX2YWCuaIA/c379XpcBGYYkznRXF/yYX8852+st4c/8+vF7TrjVI+FWVApEAAEDjZUxKgJmXDVQJwQMNFbGqAiYcdVAnXwFDDRS5qgImHndAN0QMMBImSMiYOZ1A3RDwAAjZY6IgJnXDdANAQOMVDmi1HEIKDWHXxgE9NtcqjECSs3hFwYB/TaXaoyAUnP4hUFAv82lGncVUKo5YSQIIKDEDL4hENB3e4nmCCgxg28IBPTdXqI5AkrM4BsCAbtszyV7BBBwjwzvdyGAgF0wc8keAQTcI8P7XQggYBfMXLJHAAH3yPB+FwII2AWz7yVnzRHwjBCfNyWAgE3xcvgZAQQ8I8TnTQkgYFO8HH5GAAHPCPF5UwII2BQvh58RyCvgWXM+lyCAgBIz+IZAQN/tJZojoMQMviEQ0Hd7ieYIKDGDbwgEzLd9qEYIGGqufGERMN+moRohYKi58oVFwHybhmqEgKHmyhcWAfNtGqpRVQFDNSesBAEElJjBNwQC+m4v0fwxvX9M2V7z6zlne71N//5m2+mzD/8BJf4P+IZAQN/tJZojYJUZOOQuAQS8S47nqhBAwCoYOeQuAQS8S47nqhBAwCoYOeQuAQS8S47nqhBAwCoYfQ8pbY6ApQR5vogAAhbh4+FSAghYSpDniwggYBE+Hi4lgIClBHm+iAACFuHj4VICcQUsbc7zEgQQUGIG3xAI6Lu9RHMElJjBNwQC+m4v0RwBJWbwDYGA8bZPlRgBU80ZrwwCxtssVWIETDVnvDIIGG+zVIkRMNWc8cogYLzNUiX+loCpmlNGggACSszgGwIBfbeXaI6AEjP4hkBA3+0lmiOgxAy+IRDw0vZ8qRUBBGxFlnMvEUDAS5j4UisCCNiKLOdeIoCAlzDxpVYEELAVWc69RAABL2Hy/VLr5gjYmjDnHxJAwEM8fNiaAAK2Jsz5hwQQ8BAPH7YmgICtCXP+IQEEPMTDh60J6ArYujnnSxBAQIkZfEMgoO/2Es0RUGIG3xAI6Lu9RPPH/HrO2V7T+8eU7vXzzy8JYyqH4D9gZaAVjrM6AgGt5tYri4B6m1glQkCrufXKIqDeJlaJENBqbr2yCKi3iVWiLwJaNaesBAEElJjBNwQC+m4v0RwBJWbwDYGAvttLNEdAiRl8QyDgsj2/RhFAwFHkuXchgIALBn6NIoCAo8hz70IAARcM/BpFAAFHkefehQACLhh8f41ujoCjFzC/HwHNBRhdHwFHL2B+PwKaCzC6PgKOXsD8fgQ0F2B0/XECjm7O/RIEEFBiBt8QCOi7vURzBJSYwTcEAvpuL9EcASVm8A2BgP2358YVAQRcweDP/gQQsD9zblwRQMAVDP7sTwAB+zPnxhUBBFzB4M/+BBCwP3PfGzeaI+AGFN7qRwAB+7Hmpg0CCLgBhbf6EUDAfqy5aYMAAm5A4a1+BBCwH2tu2iBgIuBGc96SIICAEjP4hkBA3+0lmiOgxAy+IRDQd3uJ5ggoMYNvCARMvr16PQRUXyh5vv8AAAD//3BQ2wUAAAAGSURBVAMAfqEZH/MwL3sAAAAASUVORK5CYII=" alt="" style="width:13px;height:13px;display:block">Services</p>
-<h2 id="svc-title" style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-display-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:1.08">Core services</h2>
+<h2 id="svc-title" style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-display-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:1.08">Two services. One fixed price each.</h2>
 <p style="margin:0;font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary);text-wrap:pretty">Every one is booked ahead, priced up front and assigned to a driver before you travel.</p>
 </div>
 <span data-svc-ticks="1" aria-hidden="true">
@@ -95,11 +93,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <dc-import name="ServiceCard" href="/?service=city#book" image="/photos/site/svc-city.jpg" image-focus="84% center" title-id="svc-t2" icon="navigation" tone="{{ tone }}" hint-size="100%,auto">
 <h3 data-svc-title="1" id="svc-t2">City to city</h3>
 <span data-svc-desc="1">Private transfers between Swiss cities, scheduled for one exact time.</span>
-</dc-import>
-
-<dc-import name="ServiceCard" href="/about" image="/photos/site/why-driver-door.jpg" image-focus="50% 28%" title-id="svc-t3" icon="users" tone="{{ tone }}" hint-size="100%,auto">
-<h3 data-svc-title="1" id="svc-t3">Professional drivers</h3>
-<span data-svc-desc="1">Your driver is assigned to your booking and waits at the curb with a name board.</span>
 </dc-import>
 
 <sc-if value="{{ showHourly }}" hint-placeholder-val="{{ false }}">

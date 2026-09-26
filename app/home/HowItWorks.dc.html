@@ -206,7 +206,7 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   margin-block-start:0;
   padding:14px;
   background:var(--s-inset);
-  border:var(--vt-border-w) solid var(--vt-yellow);
+  border:var(--vt-border-w) solid var(--s-line);
   border-radius:var(--vt-radius-md);
   box-shadow:none;
 }
@@ -255,7 +255,7 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   line-height:1.2;
   text-transform:uppercase;
   font-variant-numeric:tabular-nums;
-  color:var(--vt-yellow);
+  color:var(--vt-text-inverse-muted);
 }
 [data-mock="meet"] [data-hiw-arrivals-head] span{min-inline-size:0;text-wrap:balance}
 [data-mock="meet"] [data-hiw-arrivals-row]{
@@ -266,10 +266,6 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   min-inline-size:0;
   padding-block:4px;
   border-block-start:1px solid var(--vt-border-inverse);
-}
-[data-mock="meet"] [data-hiw-arrivals-row][data-on="1"]{
-  border-inline-start:2px solid var(--vt-yellow);
-  padding-inline-start:4px;
 }
 [data-mock="meet"] [data-hiw-cell]{display:flex;gap:1px;min-inline-size:0}
 [data-mock="meet"] [data-hiw-cell="st"]{margin-inline-start:auto}
@@ -302,7 +298,6 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   pointer-events:none;
 }
 [data-mock="meet"] [data-hiw-arrivals-row][data-on="1"] [data-hiw-flap]{color:var(--vt-white)}
-[data-mock="meet"] [data-hiw-arrivals-row][data-on="1"] [data-hiw-cell="st"] [data-hiw-flap]{color:var(--vt-yellow)}
 [data-mock="meet"] [data-hiw-flap-reel]{
   display:flex;
   flex-direction:column;
@@ -357,7 +352,7 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   padding-inline:12px;
   background:var(--vt-white);
   color:var(--vt-text-primary);
-  border:var(--vt-border-w) solid var(--vt-yellow);
+  border:var(--vt-border-w) solid var(--vt-border-subtle);
   border-radius:var(--vt-radius-sm);
   box-shadow:var(--vt-shadow-md);
   text-align:center;
@@ -452,7 +447,7 @@ a{color:inherit;text-decoration:none;border-bottom:0}
 [data-mock="pay"] [data-hiw-pay-arrow]{
   flex:0 0 auto;
   display:block;
-  color:var(--vt-yellow);
+  color:var(--s-mut);
 }
 [data-hiw][dir="rtl"] [data-mock="pay"] [data-hiw-pay-arrow]{transform:scaleX(-1)}
 [data-mock="pay"] [data-hiw-pay-when]{
@@ -486,8 +481,8 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   box-shadow:none;
 }
 [data-mock="pay"] [data-hiw-pay-class][data-picked="1"]{
-  border-color:var(--vt-yellow);
-  box-shadow:inset 0 0 0 1px var(--vt-yellow);
+  border-color:var(--s-fg);
+  box-shadow:inset 0 0 0 1px var(--s-fg);
 }
 [data-mock="pay"] [data-hiw-pay-radio]{
   grid-area:radio;
@@ -503,9 +498,9 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   color:transparent;
 }
 [data-mock="pay"] [data-hiw-pay-class][data-picked="1"] [data-hiw-pay-radio]{
-  border-color:var(--vt-yellow);
-  background:var(--vt-yellow);
-  color:var(--vt-charcoal-950);
+  border-color:var(--s-fg);
+  background:var(--s-fg);
+  color:var(--s-card);
 }
 [data-mock="pay"] [data-hiw-pay-radio] svg{display:none}
 [data-mock="pay"] [data-hiw-pay-class][data-picked="1"] [data-hiw-pay-radio] svg{display:block}
@@ -630,19 +625,10 @@ a{color:inherit;text-decoration:none;border-bottom:0}
 }
 [data-hiw-paid]{
   margin:0;
-  display:inline-flex;
-  align-items:center;
-  align-self:flex-start;
-  gap:6px;
-  padding-block:4px;
-  padding-inline:10px;
-  border-radius:var(--vt-radius-pill);
-  background:var(--vt-yellow);
   font-family:var(--vt-font-body);
   font-size:var(--vt-body-sm);
-  font-weight:var(--vt-weight-semibold);
   line-height:1.4;
-  color:var(--vt-charcoal-950);
+  color:var(--s-sec);
 }
 [data-dest-mosaic]{
   display:grid;
@@ -893,17 +879,17 @@ a{color:inherit;text-decoration:none;border-bottom:0}
 [data-tone="dark"] [data-hiw-mock][data-mock="book"] [data-hiw-map-block="b"]{fill:var(--vt-charcoal-600)}
 [data-hiw-mock][data-mock="book"] [data-hiw-map-route]{
   fill:none;
-  stroke:var(--vt-yellow);
+  stroke:var(--s-fg);
   stroke-width:2.5;
   stroke-linecap:round;
   stroke-linejoin:round;
   stroke-dasharray:1;
   stroke-dashoffset:0;
 }
-[data-hiw-mock][data-mock="book"] [data-hiw-map-start]{fill:var(--vt-yellow)}
+[data-hiw-mock][data-mock="book"] [data-hiw-map-start]{fill:var(--s-fg)}
 [data-hiw-mock][data-mock="book"] [data-hiw-map-end]{
   fill:var(--s-inset);
-  stroke:var(--vt-yellow);
+  stroke:var(--s-fg);
   stroke-width:2;
 }
 [data-hiw-mock][data-mock="book"] [data-hiw-map-mover],
@@ -919,7 +905,7 @@ a{color:inherit;text-decoration:none;border-bottom:0}
 }
 [data-tone="dark"] [data-hiw-mock][data-mock="book"] [data-hiw-map-mover-ring]{stroke:var(--vt-charcoal-900)}
 [data-hiw-mock][data-mock="book"] [data-hiw-map-mover]{
-  stroke:var(--vt-yellow);
+  stroke:var(--s-fg);
   stroke-width:6.5;
 }
 [data-hiw-mock][data-mock="book"] [data-hiw-map-label]{
@@ -975,7 +961,7 @@ a{color:inherit;text-decoration:none;border-bottom:0}
 <sc-for list="{{ steps }}" as="s" hint-placeholder-count="3">
 <article data-hiw-card="1">
 <div data-hiw-mock="1" data-mock="{{ s.kind }}" aria-hidden="true">
-<p data-hiw-mock-kicker="1">{{ s.kicker }}</p>
+<p data-hiw-mock-kicker="1">{{ example }}</p>
 <div data-mock-pane="book">
 <svg data-hiw-map="1" viewBox="0 -262 320 720" preserveAspectRatio="xMidYMid slice" fill="none" focusable="false" aria-hidden="true">
 <g data-hiw-map-streets="1">
@@ -1270,9 +1256,7 @@ const T = {
     s2c: 'Name board in hand, at the agreed time. Sixty minutes of airport waiting are included.',
     s3t: 'Fixed price, paid by card',
     s3c: 'The class and the fare are confirmed before you pay. The voucher follows the card payment. One way only.',
-    kickerBook: 'Book',
-    kickerMeet: 'Meet',
-    kickerPay: 'Pay',
+    example: 'Example',
     flight: 'Flight',
     pickup: 'Pickup',
     destination: 'Destination',
@@ -1303,9 +1287,7 @@ const T = {
     s2c: 'Namensschild in der Hand, zur vereinbarten Zeit. Sechzig Minuten Wartezeit am Flughafen sind inklusive.',
     s3t: 'Festpreis, per Karte bezahlt',
     s3c: 'Klasse und Preis stehen fest, bevor Sie zahlen. Der Beleg folgt der Kartenzahlung. Nur einfache Fahrt.',
-    kickerBook: 'Buchen',
-    kickerMeet: 'Treffen',
-    kickerPay: 'Zahlen',
+    example: 'Beispiel',
     flight: 'Flug',
     pickup: 'Abholung',
     destination: 'Ziel',
@@ -1336,9 +1318,7 @@ const T = {
     s2c: "Pancarte au nom du passager, à l'heure convenue. Soixante minutes d'attente à l'aéroport sont incluses.",
     s3t: 'Prix fixe, payé par carte',
     s3c: 'La classe et le tarif sont confirmés avant le paiement. Le reçu suit le paiement par carte. Aller simple seulement.',
-    kickerBook: 'Réserver',
-    kickerMeet: 'Accueil',
-    kickerPay: 'Payer',
+    example: 'Exemple',
     flight: 'Vol',
     pickup: 'Prise en charge',
     destination: 'Destination',
@@ -1369,9 +1349,7 @@ const T = {
     s2c: 'لوحة بالاسم، في الوقت المتفق عليه. ستون دقيقة انتظار في المطار مشمولة.',
     s3t: 'سعر ثابت، مدفوع بالبطاقة',
     s3c: 'الفئة والسعر مؤكدان قبل الدفع. يصل الإيصال بعد الدفع بالبطاقة. ذهاب فقط.',
-    kickerBook: 'احجز',
-    kickerMeet: 'اللقاء',
-    kickerPay: 'ادفع',
+    example: 'مثال',
     flight: 'الرحلة',
     pickup: 'الالتقاط',
     destination: 'الوجهة',
@@ -1507,6 +1485,7 @@ class Component extends DCLogic {
       eyebrow: t.eyebrow,
       title: t.title,
       lede: t.lede,
+      example: t.example,
       flight: t.flight,
       pickup: t.pickup,
       destination: t.destination,
@@ -1526,9 +1505,9 @@ class Component extends DCLogic {
       tiles: tiles,
       rows: rows,
       steps: [
-        { num: '01', kind: 'book', kicker: t.kickerBook, title: t.s1t, copy: t.s1c },
-        { num: '02', kind: 'meet', kicker: t.kickerMeet, title: t.s2t, copy: t.s2c },
-        { num: '03', kind: 'pay', kicker: t.kickerPay, title: t.s3t, copy: t.s3c },
+        { num: '01', kind: 'book', title: t.s1t, copy: t.s1c },
+        { num: '02', kind: 'meet', title: t.s2t, copy: t.s2c },
+        { num: '03', kind: 'pay', title: t.s3t, copy: t.s3c },
       ],
     };
   }
