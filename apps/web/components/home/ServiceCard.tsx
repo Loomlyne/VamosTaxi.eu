@@ -153,7 +153,6 @@ export function ServiceCard({
         {loading ? (
           <span className="vt-svc-skel" />
         ) : photo ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img data-svc-photo="1" src={photo} alt="" />
         ) : (
           <span data-svc-glyph="1">
