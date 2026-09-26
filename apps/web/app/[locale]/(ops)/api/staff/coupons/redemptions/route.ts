@@ -1,5 +1,7 @@
 // GET /api/staff/coupons/redemptions — captured coupon uses for the Coupons tab.
 // Dual-mounted at app/api/staff/coupons/redemptions.
+// Each row adds email (customers.email, else bookings.contact_email) and
+// beforeRappen / afterRappen from price_snapshots (CHF rappen, never a rate).
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { loadCouponRedemptions } from "@/lib/ops/coupons";

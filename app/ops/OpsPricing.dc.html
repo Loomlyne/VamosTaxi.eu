@@ -141,7 +141,7 @@
 
 <sc-if value="{{ isCoupons }}" hint-placeholder-val="{{ false }}">
 <div data-price-pane="1" data-price-swipe="1" data-scroll-native="1">
-<dc-import name="OpsTable" fill="1" rows="{{ couponRows }}" columns="{{ couponColumns }}" fields="{{ couponFields }}" blank="{{ couponBlank }}" onSave="{{ saveCoupon }}" onDelete="{{ deleteCoupon }}" noun="{{ tNounCoupon }}" noun-plural="{{ tNounCoupons }}" add-title="{{ tAddCoupon }}" edit-title="{{ tEditCoupon }}" delete-title="{{ tDeleteCouponTitle }}" label-key="code" add-label="{{ tAddCoupon }}" save-label="{{ tSaveCoupon }}" add-save-label="{{ tAddCoupon }}" search-placeholder="{{ tSearchCoupons }}" search-keys="{{ couponSearchKeys }}" empty-title="{{ tEmptyCouponsTitle }}" empty-body="{{ tEmptyCouponsBody }}" delete-body="{{ tDeleteCouponBody }}" hint-size="100%,420px"></dc-import>
+<dc-import name="OpsTable" fill="1" rows="{{ couponRows }}" columns="{{ couponColumns }}" fields="{{ couponFields }}" blank="{{ couponBlank }}" onSave="{{ saveCoupon }}" onDelete="{{ deleteCoupon }}" noun="{{ tNounCoupon }}" noun-plural="{{ tNounCoupons }}" add-title="{{ tAddCoupon }}" edit-title="{{ tEditCoupon }}" delete-title="{{ tDeleteCouponTitle }}" label-key="code" add-label="{{ tAddCoupon }}" save-label="{{ tSaveCoupon }}" add-save-label="{{ tAddCoupon }}" search-placeholder="{{ tSearchCoupons }}" search-keys="{{ couponSearchKeys }}" empty-title="{{ tEmptyCouponsTitle }}" empty-body="{{ tEmptyCouponsBody }}" delete-body="{{ tDeleteCouponBody }}" historyRows="{{ couponUseHistory }}" history-label="{{ tCouponUsesTitle }}" history-empty-label="{{ tCouponUsesEmpty }}" history-kind="uses" hint-size="100%,420px"></dc-import>
 <sc-if value="{{ couponUsesHas }}" hint-placeholder-val="{{ false }}">
 <div data-coupon-uses="1">
 <h2>{{ tCouponUsesTitle }}</h2>
@@ -405,14 +405,14 @@ const T = {
     addCoupon:'Add coupon', editCoupon:'Edit coupon', saveCoupon:'Save coupon', deleteCouponTitle:'Delete this coupon from the draft?', deleteCouponBody:'Delete this coupon from the draft? Public does not change until Publish.',
     emptyCouponsTitle:'No coupons in this draft', emptyCouponsBody:'Add a percent-off or fixed-CHF coupon. Public cannot use it until Publish.',
     searchCoupons:'Code', nounCoupon:'coupon', nounCoupons:'coupons',
-    fCode:'Code', fKind:'Discount', fValue:'Value', fLimit:'Redemption cap', fStarts:'Starts', fExpires:'Expires', fActive:'In this draft', fNote:'Note',
+    fCode:'Code', fKind:'Discount', fValue:'Value', fLimit:'Redemption cap', fStarts:'Starts', fExpires:'Expires', fActive:'In this draft',
     hCode:'What they type at checkout.',
     hValue:'Percent off or fixed CHF off. Coupon applies before VAT.',
     hLimit:'How many times they can use this code. Checkout stops when uses hit this number.',
     hStarts:'First day they can use it. Today or later.',
     hExpires:'Last day. Empty means no end. Today or later.',
-    hNote:'Staff-only reminder. The customer never sees this.',
     couponUsesTitle:'Captured uses', couponUsesEmpty:'No captured uses yet.',
+    useDate:'Used', useEmail:'Email', useBefore:'Before coupon', useAfter:'After coupon',
     kPercent:'Percent off', kAmount:'Fixed CHF off',
     paused:'Paused', noEnd:'No end date', unlimited:'no cap',
     publish:'Publish fare book', publishing:'Publishing…', discard:'Discard draft', keepEditing:'Keep editing',
@@ -496,14 +496,14 @@ const T = {
     addCoupon:'Gutschein hinzufügen', editCoupon:'Gutschein bearbeiten', saveCoupon:'Gutschein speichern', deleteCouponTitle:'Diesen Gutschein aus dem Entwurf löschen?', deleteCouponBody:'Diesen Gutschein aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
     emptyCouponsTitle:'Keine Gutscheine in diesem Entwurf', emptyCouponsBody:'Prozent- oder festen-CHF-Gutschein hinzufügen. Die Öffentlichkeit kann ihn erst nach dem Veröffentlichen nutzen.',
     searchCoupons:'Code', nounCoupon:'Gutschein', nounCoupons:'Gutscheine',
-    fCode:'Code', fKind:'Rabatt', fValue:'Wert', fLimit:'Einlösungslimit', fStarts:'Gültig ab', fExpires:'Läuft ab', fActive:'In diesem Entwurf', fNote:'Notiz',
+    fCode:'Code', fKind:'Rabatt', fValue:'Wert', fLimit:'Einlösungslimit', fStarts:'Gültig ab', fExpires:'Läuft ab', fActive:'In diesem Entwurf',
     hCode:'Was sie an der Kasse eintippen.',
     hValue:'Prozent oder fester CHF. Gutschein gilt vor der MwSt.',
     hLimit:'Wie oft der Code verwendet werden kann. Die Kasse stoppt, sobald die Nutzungen diese Zahl erreichen.',
     hStarts:'Erster Tag. Heute oder später.',
     hExpires:'Letzter Tag. Leer = kein Ende. Heute oder später.',
-    hNote:'Nur intern. Der Kunde sieht das nicht.',
     couponUsesTitle:'Eingelöste Nutzungen', couponUsesEmpty:'Noch keine eingelösten Nutzungen.',
+    useDate:'Verwendet', useEmail:'E-Mail', useBefore:'Vor dem Gutschein', useAfter:'Nach dem Gutschein',
     kPercent:'Prozent Rabatt', kAmount:'Fester CHF-Rabatt',
     paused:'Pausiert', noEnd:'Kein Enddatum', unlimited:'kein Limit',
     publish:'Tarifbuch veröffentlichen', publishing:'Veröffentlichen…', discard:'Entwurf verwerfen', keepEditing:'Weiter bearbeiten',
@@ -589,14 +589,14 @@ const T = {
     addCoupon:'Ajouter un code', editCoupon:'Modifier le code', saveCoupon:'Enregistrer le code', deleteCouponTitle:'Supprimer ce code du brouillon ?', deleteCouponBody:'Supprimer ce code du brouillon ? Le public ne change qu’après Publier.',
     emptyCouponsTitle:'Aucun code dans ce brouillon', emptyCouponsBody:'Ajoutez un code en pourcent ou en CHF fixe. Le public ne peut pas l’utiliser avant Publier.',
     searchCoupons:'Code', nounCoupon:'code promo', nounCoupons:'codes promo',
-    fCode:'Code', fKind:'Remise', fValue:'Valeur', fLimit:'Plafond', fStarts:'Début', fExpires:'Expire', fActive:'Dans ce brouillon', fNote:'Note',
+    fCode:'Code', fKind:'Remise', fValue:'Valeur', fLimit:'Plafond', fStarts:'Début', fExpires:'Expire', fActive:'Dans ce brouillon',
     hCode:'Ce qu’ils saisissent au paiement.',
     hValue:'Pourcent ou CHF fixe. Le code s’applique avant la TVA.',
     hLimit:'Nombre d’utilisations du code. Le paiement s’arrête lorsque ce nombre est atteint.',
     hStarts:'Premier jour. Aujourd’hui ou plus tard.',
     hExpires:'Dernier jour. Vide = pas de fin. Aujourd’hui ou plus tard.',
-    hNote:'Rappel interne. Le client ne le voit jamais.',
     couponUsesTitle:'Utilisations capturées', couponUsesEmpty:'Aucune utilisation capturée pour l’instant.',
+    useDate:'Utilisé', useEmail:'E-mail', useBefore:'Avant le code', useAfter:'Après le code',
     kPercent:'Pourcent de remise', kAmount:'CHF fixe de remise',
     paused:'En pause', noEnd:'Sans date de fin', unlimited:'sans plafond',
     publish:'Publier le livre tarifaire', publishing:'Publication…', discard:'Jeter le brouillon', keepEditing:'Continuer à modifier',
@@ -682,14 +682,14 @@ const T = {
     addCoupon:'إضافة قسيمة', editCoupon:'تعديل القسيمة', saveCoupon:'حفظ القسيمة', deleteCouponTitle:'حذف هذه القسيمة من المسودة؟', deleteCouponBody:'حذف هذه القسيمة من المسودة؟ لا يتغير العام حتى النشر.',
     emptyCouponsTitle:'لا قسائم في هذه المسودة', emptyCouponsBody:'أضف قسيمة نسبة أو فرنك ثابت. لا يستخدمها العام حتى النشر.',
     searchCoupons:'الرمز', nounCoupon:'قسيمة', nounCoupons:'قسائم',
-    fCode:'الرمز', fKind:'الخصم', fValue:'القيمة', fLimit:'حد الاستخدام', fStarts:'يبدأ', fExpires:'ينتهي', fActive:'في هذه المسودة', fNote:'ملاحظة',
+    fCode:'الرمز', fKind:'الخصم', fValue:'القيمة', fLimit:'حد الاستخدام', fStarts:'يبدأ', fExpires:'ينتهي', fActive:'في هذه المسودة',
     hCode:'ما يكتبونه عند الدفع.',
     hValue:'نسبة أو فرنك ثابت. تُطبَّق القسيمة قبل الضريبة.',
     hLimit:'كم مرة يمكن استخدام الرمز. يتوقف الدفع عند بلوغ هذا العدد.',
     hStarts:'أول يوم. اليوم أو لاحقًا.',
     hExpires:'آخر يوم. فارغ = بلا نهاية. اليوم أو لاحقًا.',
-    hNote:'تذكير للطاقم فقط. العميل لا يراه.',
     couponUsesTitle:'استخدامات مقبوضة', couponUsesEmpty:'لا استخدامات مقبوضة بعد.',
+    useDate:'تاريخ الاستخدام', useEmail:'البريد', useBefore:'قبل القسيمة', useAfter:'بعد القسيمة',
     kPercent:'نسبة مئوية', kAmount:'فرنك ثابت',
     paused:'متوقف', noEnd:'بلا تاريخ انتهاء', unlimited:'بلا حد',
     publish:'نشر دفتر الأسعار', publishing:'جارٍ النشر…', discard:'تجاهل المسودة', keepEditing:'متابعة التعديل',
@@ -816,6 +816,13 @@ class Component extends DCLogic {
   rappenMoney(r) {
     if (r == null || !Number.isFinite(Number(r))) return this.money('000');
     return this.money((Number(r) / 100).toFixed(2));
+  }
+  chfRappen(r) {
+    if (r == null || r === '' || !Number.isFinite(Number(r))) return '\u2014';
+    const figure = (Number(r) / 100).toFixed(2);
+    const loc = window.VamosLocale;
+    if (loc && typeof loc.money === 'function') return loc.money(figure, 'CHF');
+    return 'CHF ' + figure;
   }
   recapLine(code) {
     const recap = this.state.recap || [];
@@ -1570,7 +1577,6 @@ class Component extends DCLogic {
           kindOptions:[{ value:'percent', label:'%' }, { value:'amount', label:'CHF' }] },
         { key:'limit', label:t.fLimit, editor:'number', min:1, max:9999, required:true, half:true },
         { key:'expires', label:t.fExpires, editor:'date', icon:'calendar', minDate:'today', hint:t.hExpires, half:true },
-        { key:'note', label:t.fNote, editor:'area', hint:t.hNote },
       ],
       couponBlank: () => Object.assign({ expires:'', note:'', active:true }, ops ? ops.coupons.blank() : {}, { limit:1 }),
       saveCoupon: (rec) => {
@@ -1588,6 +1594,20 @@ class Component extends DCLogic {
       tSearchCoupons: t.searchCoupons, couponSearchKeys: ['code', 'note'],
       tEmptyCouponsTitle: t.emptyCouponsTitle, tEmptyCouponsBody: t.emptyCouponsBody,
       tCouponUsesTitle: t.couponUsesTitle, tCouponUsesEmpty: t.couponUsesEmpty,
+      couponUseHistory: (row) => {
+        const id = row && row.id != null && String(row.id) !== '' ? String(row.id) : '';
+        if (!id) return [];
+        return (this.state.couponUses || []).filter((u) => String(u.couponId) === id).map((u) => ({
+          when: this.zurichWhen(u.redeemedAt) || '\u2014',
+          email: (u.email && String(u.email).trim()) || '\u2014',
+          before: this.chfRappen(u.beforeRappen),
+          after: this.chfRappen(u.afterRappen),
+          dateLabel: t.useDate,
+          emailLabel: t.useEmail,
+          beforeLabel: t.useBefore,
+          afterLabel: t.useAfter,
+        }));
+      },
       couponUses: (this.state.couponUses || []).map((row) => ({
         code: row.code,
         when: this.zurichWhen(row.redeemedAt),
