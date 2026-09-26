@@ -286,4 +286,35 @@ describe("checkout extras catalog", () => {
     expect(airportPickupFromPlace({ zone_type: "city" })).toBe(false);
     expect(airportPickupFromPlace(null)).toBeUndefined();
   });
+
+  it("shows amount 0 as included and does not charge it; a price is on the quote once", () => {
+    const catalog = catalogFromSurcharges([
+      {
+        code: "child-seat",
+        kind: "amount",
+        amount_rappen: 0,
+        percent: null,
+        active: true,
+        predicate: { kind: "always" },
+      },
+      {
+        code: "ski-bag",
+        kind: "amount",
+        amount_rappen: 100,
+        percent: null,
+        active: true,
+        predicate: { kind: "always" },
+      },
+    ]);
+    const free = catalog.find((row) => row.code === "child-seat");
+    const priced = catalog.find((row) => row.code === "ski-bag");
+    expect(free?.kind).toBe("included");
+    expect(free?.amount_rappen).toBeNull();
+    expect(free?.toggle).toBe(false);
+    expect(priced?.kind).toBe("amount");
+    expect(priced?.amount_rappen).toBe(100);
+    expect(priced?.pricedInQuote).toBe(true);
+    expect(extraFaresOn(catalog, () => true)).toEqual([]);
+    expect(extraRappenOutsideLock(null, catalog, () => true)).toBe(0);
+  });
 });

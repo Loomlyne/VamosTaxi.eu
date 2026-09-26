@@ -75,9 +75,15 @@ describe("OpsPricing tabs (D-11 D-12 D-17 D-25)", () => {
     expect(html).not.toMatch(/key:'van', header: t.colVan/);
   });
 
-  it("surcharge overlay keeps Type, uses an icon grid, and merges coupon value with % / CHF", () => {
+  it("surcharge overlay has no type selector, keeps the icon grid, and merges coupon value with % / CHF", () => {
     const html = readFileSync(CANONICAL, "utf8");
-    expect(html).toMatch(/key:'type', label:t.surchargeType, editor:'select'/);
+    expect(html).not.toMatch(/key:'type', label:t.surchargeType, editor:'select'/);
+    expect(html).not.toMatch(/showWhen:\{ type:'meet_greet' \}/);
+    expect(html).not.toMatch(/showWhen:\{ type:'free_wait' \}/);
+    expect(html).not.toMatch(/showWhen:\{ type:'extra_wait' \}/);
+    expect(html).not.toMatch(/does not stay as CHF 0/);
+    expect(html).not.toMatch(/Delete and Publish removes/);
+    expect(html).toMatch(/type: 'checkout_extra'/);
     expect(html).toMatch(/editor:'iconGrid'/);
     expect(html).toMatch(/editor:'amountKind'/);
     expect(html).not.toMatch(/key:'kind', label:t.fKind, editor:'select'/);

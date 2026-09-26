@@ -1010,6 +1010,32 @@ describe("buildLegSurchargeLines (D-06, D-42)", () => {
     void withMinutes;
   });
 
+  it("does not charge a stated zero checkout extra and does charge 1 CHF", () => {
+    const zero = buildLegSurchargeLines({
+      leg: leg(),
+      fareLine: farePriced,
+      surcharges: [surcharge({ code: "child-seat", kind: "amount", amount_rappen: 0 })],
+      zones: [airportZone, cityZone],
+      settings,
+      rateVersionId: 1,
+    });
+    expect(zero).toHaveLength(1);
+    expect(zero[0]!.kind).toBe("included");
+    expect(zero[0]!.amount_rappen).toBeNull();
+
+    const oneChf = buildLegSurchargeLines({
+      leg: leg(),
+      fareLine: farePriced,
+      surcharges: [surcharge({ code: "ski-bag", kind: "amount", amount_rappen: 100 })],
+      zones: [airportZone, cityZone],
+      settings,
+      rateVersionId: 1,
+    });
+    expect(oneChf).toHaveLength(1);
+    expect(oneChf[0]!.kind).toBe("surcharge");
+    expect(oneChf[0]!.amount_rappen).toBe(100);
+  });
+
   it("amount-kind waiting is included with payable 0 at pay (D-38)", () => {
     const waiting = surcharge({
       code: "waiting_airport",
