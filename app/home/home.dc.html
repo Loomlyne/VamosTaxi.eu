@@ -90,6 +90,7 @@
 <script src="../../assets/lenis-boot.js"></script>
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js?v=10"></script>
+<script src="../vamos-reviews.js"></script>
 <script src="../vamos-page-transition.js"></script>
 <script>(function(){var K='VamosTaxiDesignSystem_245af1',t=0;function go(){var NS=window[K];
 if(!NS||!NS.Icon){if(++t<400)setTimeout(go,25);return;}if(NS.__resPatched)return;NS.__resPatched=1;
@@ -158,7 +159,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-fleet-img],[data-fleet-skel-photo]{width:146px;height:146px;aspect-ratio:1/1;border-radius:var(--vt-radius-md);background:var(--vt-grey-100);overflow:hidden;flex:0 0 146px}
 [data-fleet-body]{display:flex;flex-direction:column;gap:var(--vt-space-1);padding:0;min-width:0;flex:1 1 auto;justify-content:flex-start;align-self:stretch}
 [data-fleet-head]{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:var(--vt-space-1);min-width:0;width:100%}
-[data-fleet-name]{font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:var(--vt-heading-leading);color:var(--vt-text-primary);min-width:0;width:100%;overflow-wrap:normal;word-break:normal;hyphens:manual;text-wrap:pretty}
+[data-fleet-name]{font-family:var(--vt-font-body);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:var(--vt-heading-leading);color:var(--vt-text-primary);min-width:0;width:100%;overflow-wrap:normal;word-break:normal;hyphens:manual;text-wrap:pretty}
 [data-fleet-ex]{font-family:var(--vt-font-body);font-size:var(--vt-body-xs);line-height:1.3;color:var(--vt-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 [data-price-row]{display:block;flex:0 0 auto;min-width:0}
 [data-price-slot]{position:relative;width:92px;height:22px;display:block;flex:none}
@@ -252,7 +253,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-shell][data-open="1"] [data-sheetonly="1"]{display:flex}
 [data-shell][data-open="1"] [data-sheetonly="cta"]{display:block}}
 @media (max-width:699px){[data-shell][data-open="1"] [data-sheetbody]{padding:12px 16px 20px}
-[data-swaprot]{transform:rotate(90deg)}}#book [data-book-compact] [data-book-field]>span,#book [data-book-compact] [data-f=route]>span,#fleet>strong{color:var(--vt-text-inverse)!important}#fleet>span:last-child{color:var(--vt-text-inverse-muted)!important}@media (min-width:1080px){#book [data-sheetbody]{background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-xl);margin:-16px calc(clamp(12px,3vw,18px) * -1) 0;padding:16px clamp(12px,3vw,18px) 14px;box-sizing:border-box}#book [data-sheetbody] [role=tablist]{background:var(--vt-grey-100)}}[data-fleet-card]{transition:box-shadow var(--vt-dur-fast,.2s) ease,border-color var(--vt-dur-fast,.2s) ease}[data-fleet-card] [data-fleet-img]{transition:filter .2s ease}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
+[data-swaprot]{transform:rotate(90deg)}}#fleet>strong{color:var(--vt-text-inverse)!important}#fleet>span:last-child{color:var(--vt-text-inverse-muted)!important}@media (min-width:1080px){#book [data-sheetbody]{background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-xl);margin:-16px calc(clamp(12px,3vw,18px) * -1) 0;padding:16px clamp(12px,3vw,18px) 14px;box-sizing:border-box}#book [data-sheetbody] [role=tablist]{background:var(--vt-grey-100)}}[data-fleet-card]{transition:box-shadow var(--vt-dur-fast,.2s) ease,border-color var(--vt-dur-fast,.2s) ease}[data-fleet-card] [data-fleet-img]{transition:filter .2s ease}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}@media (max-width:1079px){#book{background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-xl)}#book [role=tablist]{background:var(--vt-grey-100)}#book [data-book-inline]{display:flex;flex-direction:column;gap:10px;min-inline-size:0;box-sizing:border-box;background:transparent;box-shadow:none}}@media (min-width:1080px){#book [data-book-inline]{display:none}}[data-hero] [data-trust]{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-block-start:14px;min-inline-size:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);line-height:1.4;color:var(--vt-text-inverse)}[data-hero] [data-trust-word]{font-weight:600}[data-hero] [data-trust-stars]{display:inline-flex;align-items:center;gap:2px;direction:ltr}[data-hero] [data-trust-score]{font-weight:600;font-variant-numeric:tabular-nums;direction:ltr}[data-hero] [data-trust-count],[data-hero] [data-trust-empty]{color:var(--vt-text-inverse-muted)}[data-hero] [data-trust-empty]{color:var(--vt-text-inverse)}[data-hero] [data-trust-mark]{display:block;block-size:16px;inline-size:auto;background:var(--vt-bg-surface);padding-block:2px;padding-inline:6px;border-radius:var(--vt-radius-xs);box-sizing:content-box}[data-hero] [data-trust-link]{color:var(--vt-text-inverse);text-decoration:underline;text-underline-offset:3px}[data-hero] [data-trust-link]:hover{color:var(--vt-accent)}@media (prefers-reduced-motion:reduce){[data-hero] [data-trust-link]{transition:none}}</style>
 </helmet>
 <div style="font-family:var(--vt-font-body);color:var(--vt-text-primary);background:var(--vt-bg-page)">
 
@@ -271,6 +272,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-display-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);color:var(--vt-white);max-width:16ch;text-wrap:balance">{{ tH1 }}</h1>
 <p style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-lg);line-height:1.6;color:var(--vt-text-inverse-muted);max-width:52ch;text-wrap:pretty">{{ tSub }}</p>
 </div><div id="book" data-bookcard="1" style="margin-top:clamp(20px,4vw,34px);scroll-margin-top:24px">
+<div data-book-inline="1">
 <sc-if value="{{ showCompactTabs }}" hint-placeholder-val="{{ true }}">
 <div data-upto-wide="1" data-trip-tabs="1">
 <div role="tablist" aria-label="{{ tTripType }}" style="position:relative;display:flex;height:44px;padding:3px;border-radius:999px;background:var(--vt-grey-100);{{ compactTabsCss }}">
@@ -420,6 +422,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </div>
 </div>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="primary" size="lg" block="{{ yes }}" iconEnd="arrow-right" disabled="{{ quoteCtaOff }}" onClick="{{ goQuote }}" hint-size="100%,54px">{{ tShowPrices }}</x-import>
+</div>
 </div>
 
 <div data-shell="1" data-open="{{ openAttr }}" onClick="{{ scrimClick }}">
@@ -670,6 +673,30 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </sc-if>
 </div>
 </div>
+</div>
+<div data-trust="1">
+<sc-if value="{{ trustEmpty }}" hint-placeholder-val="{{ true }}">
+<span data-trust-empty="1">{{ tTrustEmpty }}</span>
+</sc-if>
+<sc-if value="{{ trustHas }}" hint-placeholder-val="{{ false }}">
+<span data-trust-word="1">{{ trustWord }}</span>
+<sc-if value="{{ trustShowMark }}" hint-placeholder-val="{{ false }}">
+<img data-trust-mark="1" data-vt-no-i18n="1" src="{{ trustLogo }}" alt="{{ trustSource }}">
+</sc-if>
+<span data-trust-stars="1" aria-hidden="true">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n14 }}" color="{{ trustS1 }}" hint-size="14px,14px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n14 }}" color="{{ trustS2 }}" hint-size="14px,14px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n14 }}" color="{{ trustS3 }}" hint-size="14px,14px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n14 }}" color="{{ trustS4 }}" hint-size="14px,14px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n14 }}" color="{{ trustS5 }}" hint-size="14px,14px"></x-import>
+</span>
+<span data-trust-score="1">{{ trustScoreText }}</span>
+<span data-trust-count="1">{{ trustCountText }}</span>
+<sc-if value="{{ trustShowLink }}" hint-placeholder-val="{{ false }}">
+<a data-trust-link="1" href="{{ trustHref }}" target="_blank" rel="noopener noreferrer">{{ tTrustRead }}</a>
+</sc-if>
+</sc-if>
+</div>
 <span aria-live="polite" aria-atomic="true" style="position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">{{ announce }}</span><div id="fleet" data-strip-head="1" data-hide-narrow="1" style="margin-top:16px;display:flex;align-items:baseline;column-gap:10px;row-gap:4px;flex-wrap:wrap;scroll-margin-top:24px;background:transparent">
 <span style="font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">{{ stripStep }}</span>
 <strong style="font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);color:var(--vt-text-primary)">{{ stripTitle }}</strong>
@@ -692,7 +719,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </div>
 <div data-fleet-body="1">
 <div data-fleet-head="1">
-<strong data-fleet-name="1" title="{{ v.examples }}">{{ v.name }}</strong>
+<strong data-fleet-name="1" title="{{ v.examples }}" style="font-family:var(--vt-font-body)">{{ v.name }}</strong>
 <span style="position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">{{ v.sr }}</span>
 <div data-price-row="1">
 <span ref="{{ v.dustRef }}" data-price-slot="1" dir="ltr" style="view-transition-name:{{ v.vtPriceName }}"></span>
@@ -766,7 +793,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </sc-if>
 </div>
 </sc-if>
-</div></div>
+</div>
 
 
 </div>
@@ -1097,7 +1124,7 @@ const T = {
     flightDateLbl:'Which day', today:'Today', tomorrow:'Tomorrow', useFlight:'Use this flight', notMyFlight:'Not my flight',
     removeFlightLbl:'Remove flight', pendingTimeMsg:'Flight time changed to {t} — update?', applyUpdate:'Update', revertTo:'Revert to', tripType:'Trip type',
     signIn:'Sign in', customPin:'Use as map pin', dowRef:'Sat,Sun,Mon,Tue,Wed,Thu,Fri', mon:'Aug',
-    menu:'Menu', close:'Close', clear:'Clear', save:'Save', planTitle:'Plan your transfer', showPrices:'Show fixed prices', call:'Call +41 79 626 70 82', callNote:'Talk to dispatch', langLabel:'Language', curLabel:'Currency',
+    menu:'Menu', close:'Close', clear:'Clear', save:'Save', planTitle:'Plan your transfer', showPrices:'Show fixed prices', trustEmpty:'Guest reviews will show here once they are published.', trustScore:'{n}/5', trustCountOne:'1 review', trustCount:'{n} reviews', trustRead:'Read reviews', trustExcellent:'Excellent', trustGreat:'Great', trustGood:'Good', trustFair:'Fair', trustAria:'Guest reviews', call:'Call +41 79 626 70 82', callNote:'Talk to dispatch', langLabel:'Language', curLabel:'Currency',
     morning:'Morning', afternoon:'Afternoon', evening:'Evening', pickupTime:'Pickup time', returnTimeLbl:'Return time',
     useLoc:'Use my current location', useLocSub:'GPS · fastest way to set pickup', nearYou:'Near you', popular:'Popular destinations', locating:'Locating…', whenBoth:'Pickup & return', flightChip:'Add a flight number', saved:'Saved',
     modeOne:'One transfer, one fixed price for the route.', modeFixed:'Pick a published route, then passengers, bags and flight.', modeReturn:'Return added — set the return date and time too.', modeHourly:'Car and driver stay with you — no destination needed.',
@@ -1157,7 +1184,7 @@ const T = {
     flightDateLbl:'Welcher Tag', today:'Heute', tomorrow:'Morgen', useFlight:'Diesen Flug verwenden', notMyFlight:'Nicht mein Flug',
     removeFlightLbl:'Flug entfernen', pendingTimeMsg:'Flugzeit geändert auf {t} — aktualisieren?', applyUpdate:'Aktualisieren', revertTo:'Zurücksetzen auf', tripType:'Fahrtart',
     signIn:'Anmelden', customPin:'Als Kartenpunkt verwenden', dowRef:'Sa,So,Mo,Di,Mi,Do,Fr', mon:'Aug.',
-    menu:'Menü', close:'Schliessen', clear:'Löschen', save:'Speichern', planTitle:'Transfer planen', showPrices:'Festpreise anzeigen', call:'+41 79 626 70 82 anrufen', callNote:'Direkt mit der Disposition sprechen', langLabel:'Sprache', curLabel:'Währung',
+    menu:'Menü', close:'Schliessen', clear:'Löschen', save:'Speichern', planTitle:'Transfer planen', showPrices:'Festpreise anzeigen', trustEmpty:'Gästebewertungen erscheinen hier, sobald sie veröffentlicht sind.', trustScore:'{n}/5', trustCountOne:'1 Bewertung', trustCount:'{n} Bewertungen', trustRead:'Bewertungen lesen', trustExcellent:'Ausgezeichnet', trustGreat:'Sehr gut', trustGood:'Gut', trustFair:'Ordentlich', trustAria:'Gästebewertungen', call:'+41 79 626 70 82 anrufen', callNote:'Direkt mit der Disposition sprechen', langLabel:'Sprache', curLabel:'Währung',
     morning:'Vormittag', afternoon:'Nachmittag', evening:'Abend', pickupTime:'Abholzeit', returnTimeLbl:'Rückfahrtzeit',
     useLoc:'Aktuellen Standort verwenden', useLocSub:'GPS · schnellster Weg zum Abholort', nearYou:'In Ihrer Nähe', popular:'Beliebte Ziele', locating:'Standort wird ermittelt…', whenBoth:'Hin- & Rückfahrt', flightChip:'Flugnummer hinzufügen', saved:'Gespeichert',
     modeOne:'Eine Fahrt, ein Festpreis für die Route.', modeFixed:'Wählen Sie eine hinterlegte Strecke, dann Passagiere, Gepäck und Flug.', modeReturn:'Rückfahrt hinzugefügt — Datum und Zeit der Rückfahrt festlegen.', modeHourly:'Fahrzeug und Fahrer bleiben bei Ihnen — kein Ziel nötig.',
@@ -1212,7 +1239,7 @@ const T = {
     naPax:'Indisponible pour {n} passagers', naBags:'Indisponible pour {n} bagages', quoteErr:'Tarif indisponible — réessayez', routeErr:'Pas d’itinéraire routier vers cette destination', europeErr:'Nous circulons en Europe', fixed:'Prix fixe', allIn:'total, tout compris', mostBooked:'Le plus réservé',
     economy:'Economy', business:'Business', first:'First', van:'Van', exEconomy:'Berline ou similaire', exBusiness:'Berline affaires', exFirst:'Classe S ou similaire', exVan:'Monospace ou similaire', seats:'places', bagsWord:'bagages',
     signIn:'Connexion', customPin:'Utiliser comme point sur la carte', dowRef:'sam.,dim.,lun.,mar.,mer.,jeu.,ven.', mon:'août',
-    menu:'Menu', close:'Fermer', clear:'Effacer', save:'Enregistrer', planTitle:'Planifiez votre transfert', showPrices:'Afficher les prix fixes', call:'Appeler le +41 79 626 70 82', callNote:'Parler à la centrale', langLabel:'Langue', curLabel:'Devise',
+    menu:'Menu', close:'Fermer', clear:'Effacer', save:'Enregistrer', planTitle:'Planifiez votre transfert', showPrices:'Afficher les prix fixes', trustEmpty:'Les avis s’afficheront ici dès qu’ils seront publiés.', trustScore:'{n}/5', trustCountOne:'1 avis', trustCount:'{n} avis', trustRead:'Lire les avis', trustExcellent:'Excellent', trustGreat:'Très bien', trustGood:'Bien', trustFair:'Correct', trustAria:'Avis des clients', call:'Appeler le +41 79 626 70 82', callNote:'Parler à la centrale', langLabel:'Langue', curLabel:'Devise',
     morning:'Matin', afternoon:'Après-midi', evening:'Soir', pickupTime:'Heure de départ', returnTimeLbl:'Heure du retour',
     useLoc:'Utiliser ma position actuelle', useLocSub:'GPS · le plus rapide pour le départ', nearYou:'À proximité', popular:'Destinations populaires', locating:'Localisation…', whenBoth:'Départ & retour', flightChip:'Ajouter un numéro de vol', saved:'Enregistré',
     modeOne:'Un trajet, un prix fixe pour l’itinéraire.', modeFixed:'Choisissez un trajet publié, puis passagers, bagages et vol.', modeReturn:'Retour ajouté — indiquez aussi la date et l’heure du retour.', modeHourly:'Voiture et chauffeur restent avec vous — sans destination.',
@@ -1247,7 +1274,7 @@ const T = {
     naPax:'غير متاحة لـ {n} ركاب', naBags:'غير متاحة لـ {n} حقائب', quoteErr:'تعذّر التسعير — حاول مجددًا', routeErr:'لا يوجد مسار بري إلى هذه الوجهة', europeErr:'نعمل في أوروبا', fixed:'سعر ثابت', allIn:'الإجمالي، شامل كل شيء', mostBooked:'الأكثر حجزًا',
     economy:'اكونومي', business:'بيزنس', first:'الأولى', van:'فان', exEconomy:'سيدان أو ما شابه', exBusiness:'سيدان تنفيذية', exFirst:'إس-كلاس أو ما شابه', exVan:'ميني فان أو ما شابه', seats:'مقاعد', bagsWord:'حقائب',
     signIn:'تسجيل الدخول', customPin:'استخدامه كنقطة على الخريطة', dowRef:'السبت,الأحد,الاثنين,الثلاثاء,الأربعاء,الخميس,الجمعة', mon:'أغسطس',
-    menu:'القائمة', close:'إغلاق', clear:'مسح', save:'حفظ', planTitle:'خطّط رحلتك', showPrices:'إظهار الأسعار الثابتة', call:'اتصل بنا', callNote:'تحدّث مع قسم التوزيع', langLabel:'اللغة', curLabel:'العملة',
+    menu:'القائمة', close:'إغلاق', clear:'مسح', save:'حفظ', planTitle:'خطّط رحلتك', showPrices:'إظهار الأسعار الثابتة', trustEmpty:'تظهر آراء الضيوف هنا بعد نشرها.', trustScore:'{n}/5', trustCountOne:'تقييم واحد', trustCount:'{n} تقييمات', trustRead:'قراءة التقييمات', trustExcellent:'ممتاز', trustGreat:'جيد جداً', trustGood:'جيد', trustFair:'مقبول', trustAria:'آراء الضيوف', call:'اتصل بنا', callNote:'تحدّث مع قسم التوزيع', langLabel:'اللغة', curLabel:'العملة',
     morning:'صباحًا', afternoon:'بعد الظهر', evening:'مساءً', pickupTime:'وقت الانطلاق', returnTimeLbl:'وقت العودة',
     useLoc:'استخدام موقعي الحالي', useLocSub:'GPS · أسرع طريقة لتحديد الانطلاق', nearYou:'بالقرب منك', popular:'وجهات شائعة', locating:'جارٍ تحديد الموقع…', whenBoth:'الذهاب والعودة', flightChip:'إضافة رقم الرحلة', saved:'تم الحفظ',
     modeOne:'رحلة واحدة بسعر ثابت للمسار.', modeFixed:'اختر مسارًا منشورًا، ثم الركاب والحقائب والرحلة.', modeReturn:'أُضيفت العودة — حدّد تاريخ ووقت العودة أيضًا.', modeHourly:'السيارة والسائق يبقيان معك — دون وجهة.',
@@ -1578,11 +1605,68 @@ class Component extends DCLogic {
     this._onResize();
     this.askLocation();
     this.loadFleet();
+    this._onReviews = () => this.forceUpdate();
+    window.addEventListener('vamos:reviews', this._onReviews);
+    this.bindReviews();
+    this._reviewsWait = setInterval(() => { this.bindReviews(); if (this._offReviews) clearInterval(this._reviewsWait); }, 50);
+    this._reviewsStop = setTimeout(() => clearInterval(this._reviewsWait), 10000);
     document.fonts && document.fonts.ready ? document.fonts.ready.then(() => this.q()) : this.q();
   }
   componentWillUnmount() {
+    clearInterval(this._reviewsWait); clearTimeout(this._reviewsStop); if (this._onReviews) window.removeEventListener('vamos:reviews', this._onReviews); if (this._offReviews) this._offReviews();
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale); document.removeEventListener('mousedown', this._away); document.removeEventListener('pointerdown', this._sugPtrDown, true); document.removeEventListener('pointermove', this._sugPtrMove, true); document.removeEventListener('pointerup', this._sugPtrUp, true); document.removeEventListener('pointercancel', this._sugPtrUp, true); document.removeEventListener('scroll', this._sugBoxScroll, true); document.removeEventListener('keydown', this._esc); window.removeEventListener('resize', this._onResize); clearTimeout(this._sugMovedT); (this._mqs || []).forEach((m) => { m.removeEventListener ? m.removeEventListener('change', this._onResize) : m.removeListener(this._onResize); }); Object.values(this.dusts).forEach((d) => d.destroy()); this.lockScroll(false); this.stopPoll(); clearTimeout(this._deb); clearTimeout(this._ft); clearTimeout(this._geoT); this._geoSeq++; if (this._ac) { try { this._ac.abort(); } catch (e) {} } this.clearFill(); }
   t() { return Object.assign({}, T.en, T[this.state.lang]); }
+  bindReviews() {
+    const store = window.VamosReviews;
+    if (!store || this._offReviews) return;
+    this._offReviews = store.onChange(() => this.forceUpdate());
+    this.forceUpdate();
+  }
+  trustSummary() {
+    const off = 'var(--vt-text-inverse-muted)';
+    const empty = { has: false, score: '', count: '', href: '', logo: '', source: '', word: '', showMark: false, showLink: false, s1: off, s2: off, s3: off, s4: off, s5: off };
+    const store = window.VamosReviews;
+    const rows = store && store.published ? store.published().filter((r) => r && Number(r.rating) > 0) : [];
+    if (!rows.length) return empty;
+    let sum = 0;
+    const sources = {};
+    rows.forEach((r) => {
+      sum += Number(r.rating) || 0;
+      const id = r.source || 'manual';
+      sources[id] = (sources[id] || 0) + 1;
+    });
+    const avg = sum / rows.length;
+    const score = (Math.round(avg * 10) / 10).toFixed(1);
+    const ids = Object.keys(sources);
+    const sole = ids.length === 1 ? ids[0] : '';
+    const hostOf = (raw) => {
+      const s = String(raw || '').trim();
+      if (!s) return '';
+      try {
+        const u = new URL(s);
+        if (u.protocol !== 'http:' && u.protocol !== 'https:') return '';
+        return u.hostname.toLowerCase().replace(/^www\./, '');
+      } catch (e) { return ''; }
+    };
+    const hosts = rows.map((r) => hostOf(r.url)).filter(Boolean);
+    const soleHost = hosts.length && hosts.every((h) => h === hosts[0]) ? hosts[0] : '';
+    const transfeero = soleHost === 'transfeero.com' || (soleHost && soleHost.endsWith('.transfeero.com'));
+    const trustpilotHost = soleHost === 'trustpilot.com' || (soleHost && soleHost.endsWith('.trustpilot.com'));
+    const logo = (sole === 'trustpilot' && trustpilotHost && store.sourceLogo) ? (store.sourceLogo('trustpilot') || '')
+      : ((sole && sole !== 'manual' && sole !== 'trustpilot' && store.sourceLogo) ? (store.sourceLogo(sole) || '') : '');
+    const source = logo && store.sourceLabel ? (store.sourceLabel(sole) || '') : '';
+    let href = '/#reviews';
+    if (sole && soleHost && !transfeero) {
+      const urls = rows.map((r) => String(r.url || '').trim()).filter((u) => hostOf(u) === soleHost);
+      if (urls.length && urls.every((u) => u === urls[0])) href = urls[0];
+    }
+    const filled = Math.max(0, Math.min(5, Math.round(avg)));
+    const on = 'var(--vt-accent)';
+    const star = (n) => n <= filled ? on : off;
+    const tw = this.t();
+    const word = avg >= 4.5 ? (tw.trustExcellent || '') : avg >= 4 ? (tw.trustGreat || '') : avg >= 3 ? (tw.trustGood || '') : (tw.trustFair || '');
+    return { has: true, score, count: String(rows.length), href, logo, source, word, showMark: !!logo, showLink: true, s1: star(1), s2: star(2), s3: star(3), s4: star(4), s5: star(5) };
+  }
   /** Idle / First-class hold: design-system placeholder. Live quotes use fmtAmount. */
   fmt() {
     if (window.VamosLocale) return window.VamosLocale.money('000', this.state.cur);
@@ -2591,6 +2675,7 @@ class Component extends DCLogic {
   }
   renderVals() {
     const t = this.t(); const s = this.state;
+    const trust = this.trustSummary();
     const phone = s.tier === 0, sheetOpen = s.sheetOpen;
     const chip = (sel) => sel ? 'background:var(--vt-charcoal-900);color:var(--vt-white);border:1px solid var(--vt-charcoal-900)' : 'background:var(--vt-white);color:var(--vt-text-primary);border:1px solid var(--vt-border-subtle)';
     const head = (v) => String(v || '').split(',')[0].trim();
@@ -2787,6 +2872,13 @@ class Component extends DCLogic {
       quoteCtaOff: this.flightMissing(),
       announce: s.announce,
       tKicker: (s.service && (SVC_KICKER[s.lang] || SVC_KICKER.en)[s.service]) || t.kicker, tH1: t.h1, tSub: t.sub, tSignIn: t.signIn,
+      tTrustEmpty: t.trustEmpty, tTrustRead: t.trustRead, trustWord: trust.word,
+      trustEmpty: !trust.has, trustHas: trust.has,
+      trustShowMark: trust.showMark, trustLogo: trust.logo, trustSource: trust.source,
+      trustS1: trust.s1, trustS2: trust.s2, trustS3: trust.s3, trustS4: trust.s4, trustS5: trust.s5,
+      trustScoreText: trust.has ? (t.trustScore || '{n}/5').replace('{n}', trust.score) : '',
+      trustCountText: trust.has ? (trust.count === '1' ? (t.trustCountOne || '1 review') : (t.trustCount || '{n} reviews').replace('{n}', trust.count)) : '',
+      trustShowLink: trust.showLink, trustHref: trust.href,
       tFlight: this.flightRequired() ? t.flight : (t.flightOptional || t.flight), tPickup: t.pickup, tPickupPh: t.pickupPh, tDest: t.dest, tDestPh: t.destPh,
       tFixed: t.fixed, tAllIn: t.allIn, tGetting: t.getting,
     };

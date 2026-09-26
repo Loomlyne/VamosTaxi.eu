@@ -48,261 +48,154 @@
 input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}
 body{margin:0}
 a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
-[data-rv-wrap]{box-sizing:border-box;max-width:1200px;margin:0 auto;padding:clamp(56px,7vw,90px) clamp(16px,3.2vw,56px);min-height:480px}
-[data-rv-grid]{position:relative;display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(20px,3vw,28px);align-items:stretch;min-height:260px}
-[data-rv-card]{box-sizing:border-box;display:flex;flex-direction:column;align-items:center;background:var(--vt-white);border-radius:20px;padding:clamp(26px,3vw,40px) clamp(20px,2.6vw,36px) clamp(28px,3vw,36px);min-height:260px}
-[data-rv-stack]{display:grid;width:100%;margin:auto 0;overflow:hidden;min-height:8.5em}
-[data-rv-slide]{grid-area:1/1;z-index:0;visibility:hidden;transform:translateX(100%);pointer-events:none;transition:transform var(--rv-ms,480ms) var(--vt-ease-out)}
-[data-rv-slide][data-on="1"]{z-index:1;visibility:visible;transform:translateX(0);pointer-events:auto}
-[data-rv-slide][data-was="1"]{z-index:0;visibility:visible;transform:translateX(-100%)}
-[data-rv][data-dir="-1"] [data-rv-slide]{transform:translateX(-100%)}
-[data-rv][data-dir="-1"] [data-rv-slide][data-on="1"]{transform:translateX(0)}
-[data-rv][data-dir="-1"] [data-rv-slide][data-was="1"]{transform:translateX(100%)}
-[data-rv-face]{display:flex;flex-direction:column;align-items:center;text-align:center;max-width:100%;min-width:0}
-[data-rv-mark]{display:flex;align-items:center;justify-content:center;height:36px;margin-bottom:clamp(12px,1.6vw,16px);font-family:var(--vt-font-display);font-size:20px;font-weight:var(--vt-weight-semibold);letter-spacing:-0.01em;line-height:1;color:var(--vt-text-primary);max-width:100%}
-[data-rv-logo]{display:block;height:28px;width:auto;max-width:min(200px,100%);object-fit:contain}
-[data-rv-name]{margin-top:0;font-family:var(--vt-font-body);font-size:17px;font-weight:600;letter-spacing:-0.005em;line-height:1.3;color:var(--vt-text-primary)}
-[data-rv-who]{display:inline-flex;align-items:center;justify-content:center;gap:8px;max-width:100%}
-[data-rv-sub]{margin-top:6px;font-size:var(--vt-body-sm);line-height:1.45;color:var(--vt-text-secondary);max-width:100%;overflow-wrap:break-word}
-[data-rv-quote]{box-sizing:border-box;background:var(--vt-white);display:flex;flex-direction:column;justify-content:center;border-top:1px solid var(--vt-grey-200);border-bottom:1px solid var(--vt-grey-200);padding:clamp(30px,5vw,64px) clamp(0px,2.4vw,40px);min-height:260px}
-[data-rv-q]{display:flex;align-items:center;justify-content:center;margin:0;padding:0}
-[data-rv-text]{margin:0;max-width:min(34ch,100%);margin-inline:auto;font-family:var(--vt-font-body);font-size:clamp(21px,2.35vw,28px);font-weight:var(--vt-weight-semibold);letter-spacing:0;line-height:1.45;text-align:center;text-wrap:pretty;overflow-wrap:break-word;color:var(--vt-text-primary)}
-[data-rv-nav]{display:flex;align-items:center;justify-content:center;gap:clamp(18px,2.4vw,30px);margin-top:clamp(4px,1vw,10px)}
-[data-rv-arrow]{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:50px;height:50px;flex:0 0 auto;padding:0;border:1px solid var(--vt-charcoal-900);border-radius:999px;background:transparent;color:var(--vt-charcoal-900);cursor:pointer;transition:var(--vt-transition-control)}
-[data-rv-arrow]:hover{background:var(--vt-yellow);border-color:var(--vt-charcoal-900);color:var(--vt-charcoal-950)}
-[data-rv-arrow]:active{transform:translateY(1px)}
-[data-rv-arrow]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
-[data-rv-stars]{display:flex;align-items:center;gap:var(--vt-space-1);margin-top:var(--vt-space-3)}
-[data-rv-stars] img{width:30px;height:30px;flex:0 0 auto;object-fit:contain}
-[data-rv-meta]{margin-top:10px;font-size:var(--vt-body-xs);line-height:1.45;color:var(--vt-text-muted);text-align:center;text-wrap:pretty}
-[data-rv-badge]{align-items:center;gap:6px;margin-top:12px;height:24px;padding:0 11px;border-radius:999px;border:1px solid var(--vt-border-subtle);background:var(--vt-white);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-secondary)}
-[data-rv-link]{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;flex:0 0 auto;margin-top:var(--vt-space-2);padding:0;border:0;border-radius:999px;background:transparent;color:var(--vt-charcoal-900);text-decoration:none}
-[data-rv-link]:hover{background:var(--vt-yellow);color:var(--vt-charcoal-950)}
+[data-rv-wrap]{box-sizing:border-box;max-width:var(--vt-container-lg);margin-inline:auto;padding-block:clamp(56px,7vw,90px);padding-inline:clamp(16px,3.2vw,56px)}
+[data-rv-head]{display:flex;flex-direction:column;align-items:flex-start;gap:var(--vt-space-3);margin-bottom:clamp(var(--vt-space-7),3.6vw,var(--vt-space-8))}
+[data-rv-kicker]{margin:0;display:inline-flex;align-self:start;align-items:center;gap:9px;min-block-size:32px;padding-block:0;padding-inline:12px 15px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);background:var(--vt-bg-surface);font-family:var(--vt-font-body);font-size:12px;font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;line-height:1;white-space:nowrap;color:var(--vt-charcoal-900)}
+[data-rv-kicker] img{inline-size:13px;block-size:13px;display:block}
+[data-rv-title]{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-display-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);max-width:22ch;text-wrap:balance;text-align:start}
+[data-rv-grid]{display:grid;grid-template-columns:minmax(148px,220px) minmax(0,1fr);column-gap:var(--vt-space-7);row-gap:var(--vt-space-6);align-items:start}
+[data-rv-score]{display:flex;flex-direction:column;align-items:flex-start;gap:var(--vt-space-2);min-width:0;padding-block-start:var(--vt-space-2)}
+[data-rv-score-num]{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-display-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:1;font-variant-numeric:tabular-nums;color:var(--vt-text-primary)}
+[data-rv-score-stars]{display:flex;align-items:center;gap:2px}
+[data-rv-score-stars] img,[data-rv-score-star]{inline-size:20px;block-size:20px;flex:0 0 auto}
+[data-rv-score-cap]{margin:0;max-width:28ch;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-regular);line-height:1.45;color:var(--vt-text-secondary);text-wrap:pretty;text-align:start}
+[data-rv-cards]{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:var(--vt-space-4);margin:0;padding:0;min-width:0;list-style:none}
+[data-rv-item]{display:flex;min-width:0}
+[data-rv-card]{box-sizing:border-box;display:flex;flex-direction:column;gap:var(--vt-space-4);width:100%;min-width:0;padding:var(--vt-space-6);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-xl);background:var(--vt-bg-surface);text-align:start}
+[data-rv-mark]{display:flex;align-items:center;min-block-size:24px;min-width:0}
+[data-rv-logo]{display:block;block-size:18px;inline-size:auto;max-inline-size:100%;object-fit:contain}
+[data-rv-src]{font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);line-height:1.3;color:var(--vt-text-secondary)}
+[data-rv-q]{margin:0;padding:0;flex:1 1 auto}
+[data-rv-text]{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-regular);line-height:1.5;letter-spacing:0;text-align:start;text-wrap:pretty;overflow-wrap:break-word;color:var(--vt-text-primary);quotes:"\201C" "\201D"}
+[dir="rtl"] [data-rv-text]{quotes:"\00AB" "\00BB"}
+[data-rv-text]::before{content:open-quote}
+[data-rv-text]::after{content:close-quote}
+[data-rv-foot]{display:flex;flex-direction:column;align-items:flex-start;gap:var(--vt-space-2);margin-top:auto;min-width:0}
+[data-rv-rate]{display:flex;align-items:center;gap:var(--vt-space-1);min-block-size:44px}
+[data-rv-stars]{display:flex;align-items:center;gap:2px}
+[data-rv-stars] img{inline-size:18px;block-size:18px;flex:0 0 auto}
+[data-rv-link]{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;inline-size:44px;block-size:44px;flex:0 0 auto;margin:0;padding:0;border:0;border-radius:var(--vt-radius-pill);background:transparent;color:var(--vt-charcoal-900);text-decoration:none}
+[data-rv-link]:hover{background:var(--vt-grey-50);color:var(--vt-charcoal-900)}
 [data-rv-link]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
-[data-rv-empty]{box-sizing:border-box;grid-column:1/-1;display:flex;flex-direction:column;gap:8px;padding:clamp(28px,4vw,48px);border:1px solid var(--vt-grey-300);border-radius:20px;background:var(--vt-white)}
-[data-rv-empty] strong{font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)}
-[data-rv-empty] span{font-size:var(--vt-body-sm);line-height:1.6;color:var(--vt-text-secondary);max-width:60ch}
-[data-rv-note]{box-sizing:border-box;margin-top:clamp(26px,3.4vw,40px);padding:16px 18px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-md);display:flex;flex-direction:column;gap:9px}
-[data-rv-note-k]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
-[data-rv-note] ul{margin:0;padding-inline-start:18px;display:flex;flex-direction:column;gap:6px}
-[data-rv-note] li{font-size:var(--vt-body-sm);line-height:1.6;color:var(--vt-text-secondary);max-width:82ch;text-wrap:pretty}
-@media (min-width:700px){
-[data-rv-grid]{--rv-gap:20px;grid-template-columns:minmax(148px,360fr) minmax(0,760fr);gap:0;column-gap:var(--rv-gap)}
-[data-rv-card],[data-rv-quote]{min-width:0}
-[data-rv-card]{grid-column:1;padding-bottom:124px;padding-inline:clamp(10px,2vw,36px);border-radius:20px 0 0 20px}
-[data-rv-quote]{grid-column:2;margin-inline-start:calc(var(--rv-gap)*-1);padding-inline-start:calc(var(--rv-gap) + clamp(0px,2.4vw,40px));border-inline-end:1px solid var(--vt-grey-200);border-start-end-radius:20px;border-end-end-radius:20px}
-[data-rv-nav]{position:absolute;bottom:37px;inset-inline-start:0;box-sizing:border-box;width:calc((100% - var(--rv-gap)) * 0.32143);min-width:148px;max-width:calc(50% - var(--rv-gap)/2);margin-top:0;gap:var(--vt-space-4)}
-[data-rv-arrow]{width:28px;height:28px}
+[data-rv-name]{font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);letter-spacing:0;line-height:1.3;color:var(--vt-text-primary);overflow-wrap:anywhere}
+[data-rv-sub]{font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-regular);line-height:1.45;color:var(--vt-text-secondary);overflow-wrap:anywhere;text-wrap:pretty}
+[data-rv-badge]{display:inline-flex;align-items:center;gap:6px;min-block-size:24px;padding-block:2px;padding-inline:11px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface);font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);line-height:1.3;color:var(--vt-text-secondary);width:fit-content;white-space:normal;overflow-wrap:anywhere;text-align:start}
+[data-rv-empty]{box-sizing:border-box;display:flex;flex-direction:column;align-items:flex-start;gap:var(--vt-space-2);max-width:62ch;padding:var(--vt-space-6);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-xl);background:var(--vt-bg-surface);text-align:start}
+[data-rv-empty] strong{font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);line-height:1.3;color:var(--vt-text-primary)}
+[data-rv-empty] span{font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-regular);line-height:1.6;color:var(--vt-text-secondary);text-wrap:pretty;max-width:60ch}
+@media (max-width:759px){
+[data-rv-grid]{grid-template-columns:minmax(0,1fr)}
+[data-rv-score]{flex-direction:row;flex-wrap:wrap;align-items:center;column-gap:var(--vt-space-4);row-gap:var(--vt-space-2);padding-block-start:0}
+[data-rv-score-cap]{flex-basis:100%;max-width:36ch}
+[data-rv-cards]{grid-template-columns:minmax(0,1fr)}
 }
-@media (min-width:700px){
-[data-rv-grid]{--rv-gap:40px;grid-template-columns:minmax(0,360fr) minmax(0,760fr)}
-[data-rv-card]{padding-inline:clamp(var(--vt-space-3),2vw,36px)}
-[data-rv-nav]{min-width:0;max-width:none;width:calc((100% - var(--rv-gap)) * 0.32143);gap:var(--vt-space-4)}
-[data-rv-arrow]{width:var(--vt-control-h-md);height:var(--vt-control-h-md)}
+@media (prefers-reduced-motion:no-preference){
+[data-rv-link]{transition:background-color var(--vt-dur-fast) var(--vt-ease-standard),color var(--vt-dur-fast) var(--vt-ease-standard)}
 }
-/* Phone stack — same break as home [data-hide-narrow]. Wins over any earlier two-column rule. */
-@media (max-width:699px){
-[data-rv-grid]{grid-template-columns:minmax(0,1fr);gap:0;column-gap:0;row-gap:0}
-[data-rv-card]{grid-column:1 / -1;min-width:0;min-height:0;padding:16px 20px 12px;border-radius:20px 20px 0 0}
-[data-rv-card] [data-rv-stack]{min-height:0;margin:0}
-[data-rv-mark]{height:28px;margin-bottom:8px}
-[data-rv-logo]{height:24px}
-[data-rv-sub]{margin-top:2px}
-[data-rv-stars]{margin-top:8px}
-[data-rv-stars] img{width:22px;height:22px}
-[data-rv-link]{margin-top:2px}
-[data-rv-meta]{margin-top:4px}
-[data-rv-badge]{margin-top:6px}
-[data-rv-quote]{grid-column:1 / -1;min-width:0;min-height:0;margin-inline-start:0;padding:16px 20px 18px;border-inline-end:0;border-bottom:0;border-radius:0 0 20px 20px}
-[data-rv-nav]{position:static;bottom:auto;inset-inline-start:auto;grid-column:1 / -1;box-sizing:border-box;width:auto;min-width:0;max-width:100%;margin-top:16px;gap:clamp(18px,2.4vw,30px);flex-wrap:wrap;justify-content:center}
-[data-rv-arrow]{width:var(--vt-control-h-md);height:var(--vt-control-h-md)}
+@media (prefers-reduced-motion:reduce){
+[data-rv-link]{transition:none}
 }
-@media (min-width:900px){
-[data-rv-card]{padding-inline:clamp(20px,2.6vw,36px)}
-[data-rv-nav]{gap:clamp(18px,2.4vw,30px)}
-[data-rv-arrow]{width:50px;height:50px}
-}
-@media (prefers-reduced-motion:reduce){[data-rv-slide],[data-rv-arrow]{transition:none}}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
+:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}
+</style>
 </helmet>
-<section id="reviews" data-rv="1" data-dir="1" data-screen-label="Reviews" aria-labelledby="reviews-title" ref="{{ rootRef }}" style="color:var(--vt-text-primary);font-family:var(--vt-font-body);position:relative;overflow:hidden">
+<section id="reviews" data-rv="1" data-state="{{ viewState }}" data-screen-label="Reviews" aria-labelledby="reviews-title" aria-busy="{{ busy }}" style="color:var(--vt-text-primary);font-family:var(--vt-font-body);position:relative;overflow:hidden">
 <div aria-hidden="true" style="position:absolute;inset:0;background-image:url(data:image/png;base64,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);background-size:88px 88px;background-repeat:repeat;opacity:.028;pointer-events:none;z-index:0"></div>
 <div data-rv-wrap="1" style="position:relative;z-index:1">
-
-<div style="display:flex;flex-direction:column;gap:14px;margin-bottom:clamp(28px,3.6vw,40px)">
-<p style="margin:0;display:inline-flex;align-self:flex-start;align-items:center;gap:9px;height:32px;padding:0 15px 0 12px;border:1px solid var(--vt-grey-200);border-radius:999px;background:var(--vt-white);font-size:12px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;line-height:1;white-space:nowrap;color:var(--vt-charcoal-900)"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAAChCAYAAABAk7SIAAAEi0lEQVR4AeyUS27bQBQETR1BuU58o1wqZ9F9nEX2YWCuaIA/c379XpcBGYYkznRXF/yYX8852+st4c/8+vF7TrjVI+FWVApEAAEDjZUxKgJmXDVQJwQMNFbGqAiYcdVAnXwFDDRS5qgImHndAN0QMMBImSMiYOZ1A3RDwAAjZY6IgJnXDdANAQOMVDmi1HEIKDWHXxgE9NtcqjECSs3hFwYB/TaXaoyAUnP4hUFAv82lGncVUKo5YSQIIKDEDL4hENB3e4nmCCgxg28IBPTdXqI5AkrM4BsCAbtszyV7BBBwjwzvdyGAgF0wc8keAQTcI8P7XQggYBfMXLJHAAH3yPB+FwII2AWz7yVnzRHwjBCfNyWAgE3xcvgZAQQ8I8TnTQkgYFO8HH5GAAHPCPF5UwII2BQvh58RyCvgWXM+lyCAgBIz+IZAQN/tJZojoMQMviEQ0Hd7ieYIKDGDbwgEzLd9qEYIGGqufGERMN+moRohYKi58oVFwHybhmqEgKHmyhcWAfNtGqpRVQFDNSesBAEElJjBNwQC+m4v0fwxvX9M2V7z6zlne71N//5m2+mzD/8BJf4P+IZAQN/tJZojYJUZOOQuAQS8S47nqhBAwCoYOeQuAQS8S47nqhBAwCoYOeQuAQS8S47nqhBAwCoYfQ8pbY6ApQR5vogAAhbh4+FSAghYSpDniwggYBE+Hi4lgIClBHm+iAACFuHj4VICcQUsbc7zEgQQUGIG3xAI6Lu9RHMElJjBNwQC+m4v0RwBJWbwDYGA8bZPlRgBU80ZrwwCxtssVWIETDVnvDIIGG+zVIkRMNWc8cogYLzNUiX+loCpmlNGggACSszgGwIBfbeXaI6AEjP4hkBA3+0lmiOgxAy+IRDw0vZ8qRUBBGxFlnMvEUDAS5j4UisCCNiKLOdeIoCAlzDxpVYEELAVWc69RAABL2Hy/VLr5gjYmjDnHxJAwEM8fNiaAAK2Jsz5hwQQ8BAPH7YmgICtCXP+IQEEPMTDh60J6ArYujnnSxBAQIkZfEMgoO/2Es0RUGIG3xAI6Lu9RPPH/HrO2V7T+8eU7vXzzy8JYyqH4D9gZaAVjrM6AgGt5tYri4B6m1glQkCrufXKIqDeJlaJENBqbr2yCKi3iVWiLwJaNaesBAEElJjBNwQC+m4v0RwBJWbwDYGAvttLNEdAiRl8QyDgsj2/RhFAwFHkuXchgIALBn6NIoCAo8hz70IAARcM/BpFAAFHkefehQACLhh8f41ujoCjFzC/HwHNBRhdHwFHL2B+PwKaCzC6PgKOXsD8fgQ0F2B0/XECjm7O/RIEEFBiBt8QCOi7vURzBJSYwTcEAvpuL9EcASVm8A2BgP2358YVAQRcweDP/gQQsD9zblwRQMAVDP7sTwAB+zPnxhUBBFzB4M/+BBCwP3PfGzeaI+AGFN7qRwAB+7Hmpg0CCLgBhbf6EUDAfqy5aYMAAm5A4a1+BBCwH2tu2iBgIuBGc96SIICAEjP4hkBA3+0lmiOgxAy+IRDQd3uJ5ggoMYNvCARMvr16PQRUXyh5vv8AAAD//3BQ2wUAAAAGSURBVAMAfqEZH/MwL3sAAAAASUVORK5CYII=" alt="" style="width:13px;height:13px;display:block">Reviews</p>
-<h2 id="reviews-title" style="margin:0;font-family:var(--vt-font-display);font-size:clamp(34px,4.4vw,52px);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:1.06;max-width:24ch;text-wrap:balance">What clients say about us</h2>
+<div data-rv-head="1">
+<p data-rv-kicker="1"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAAChCAYAAABAk7SIAAAEi0lEQVR4AeyUS27bQBQETR1BuU58o1wqZ9F9nEX2YWCuaIA/c379XpcBGYYkznRXF/yYX8852+st4c/8+vF7TrjVI+FWVApEAAEDjZUxKgJmXDVQJwQMNFbGqAiYcdVAnXwFDDRS5qgImHndAN0QMMBImSMiYOZ1A3RDwAAjZY6IgJnXDdANAQOMVDmi1HEIKDWHXxgE9NtcqjECSs3hFwYB/TaXaoyAUnP4hUFAv82lGncVUKo5YSQIIKDEDL4hENB3e4nmCCgxg28IBPTdXqI5AkrM4BsCAbtszyV7BBBwjwzvdyGAgF0wc8keAQTcI8P7XQggYBfMXLJHAAH3yPB+FwII2AWz7yVnzRHwjBCfNyWAgE3xcvgZAQQ8I8TnTQkgYFO8HH5GAAHPCPF5UwII2BQvh58RyCvgWXM+lyCAgBIz+IZAQN/tJZojoMQMviEQ0Hd7ieYIKDGDbwgEzLd9qEYIGGqufGERMN+moRohYKi58oVFwHybhmqEgKHmyhcWAfNtGqpRVQFDNSesBAEElJjBNwQC+m4v0fwxvX9M2V7z6zlne71N//5m2+mzD/8BJf4P+IZAQN/tJZojYJUZOOQuAQS8S47nqhBAwCoYOeQuAQS8S47nqhBAwCoYOeQuAQS8S47nqhBAwCoYfQ8pbY6ApQR5vogAAhbh4+FSAghYSpDniwggYBE+Hi4lgIClBHm+iAACFuHj4VICcQUsbc7zEgQQUGIG3xAI6Lu9RHMElJjBNwQC+m4v0RwBJWbwDYGA8bZPlRgBU80ZrwwCxtssVWIETDVnvDIIGG+zVIkRMNWc8cogYLzNUiX+loCpmlNGggACSszgGwIBfbeXaI6AEjP4hkBA3+0lmiOgxAy+IRDw0vZ8qRUBBGxFlnMvEUDAS5j4UisCCNiKLOdeIoCAlzDxpVYEELAVWc69RAABL2Hy/VLr5gjYmjDnHxJAwEM8fNiaAAK2Jsz5hwQQ8BAPH7YmgICtCXP+IQEEPMTDh60J6ArYujnnSxBAQIkZfEMgoO/2Es0RUGIG3xAI6Lu9RPPH/HrO2V7T+8eU7vXzzy8JYyqH4D9gZaAVjrM6AgGt5tYri4B6m1glQkCrufXKIqDeJlaJENBqbr2yCKi3iVWiLwJaNaesBAEElJjBNwQC+m4v0RwBJWbwDYGAvttLNEdAiRl8QyDgsj2/RhFAwFHkuXchgIALBn6NIoCAo8hz70IAARcM/BpFAAFHkefehQACLhh8f41ujoCjFzC/HwHNBRhdHwFHL2B+PwKaCzC6PgKOXsD8fgQ0F2B0/XECjm7O/RIEEFBiBt8QCOi7vURzBJSYwTcEAvpuL9EcASVm8A2BgP2358YVAQRcweDP/gQQsD9zblwRQMAVDP7sTwAB+zPnxhUBBFzB4M/+BBCwP3PfGzeaI+AGFN7qRwAB+7Hmpg0CCLgBhbf6EUDAfqy5aYMAAm5A4a1+BBCwH2tu2iBgIuBGc96SIICAEjP4hkBA3+0lmiOgxAy+IRDQd3uJ5ggoMYNvCARMvr16PQRUXyh5vv8AAAD//3BQ2wUAAAAGSURBVAMAfqEZH/MwL3sAAAAASUVORK5CYII=" alt="" style="width:13px;height:13px;display:block">Reviews</p>
+<h2 id="reviews-title" data-rv-title="1">What clients say about us</h2>
 </div>
-
-<div data-rv-grid="1" role="group" aria-roledescription="carousel" aria-label="Client reviews" onMouseEnter="{{ hoverIn }}" onMouseLeave="{{ hoverOut }}" onFocus="{{ focusIn }}" onBlur="{{ focusOut }}" onKeyDown="{{ key }}">
-
-<div data-rv-card="1">
-<div data-rv-stack="1">
-
-<sc-for list="{{ slides }}" as="r" hint-placeholder-count="0">
-<div data-rv-slide="1" data-rv-face="1" data-i="{{ r.i1 }}" data-on="{{ r.on }}">
+<sc-if value="{{ showGrid }}" hint-placeholder-val="{{ false }}">
+<div data-rv-grid="1">
+<div data-rv-score="1">
+<p data-rv-score-num="1" data-vt-no-i18n="1" style="display:{{ scoreShow }}">{{ scoreText }}</p>
+<span data-rv-score-stars="1" aria-hidden="true" style="display:{{ scoreShow }}">
+<img src="{{ scoreStar }}" alt="" width="20" height="20" style="opacity:{{ so1 }}">
+<img src="{{ scoreStar }}" alt="" width="20" height="20" style="opacity:{{ so2 }}">
+<img src="{{ scoreStar }}" alt="" width="20" height="20" style="opacity:{{ so3 }}">
+<img src="{{ scoreStar }}" alt="" width="20" height="20" style="opacity:{{ so4 }}">
+<img src="{{ scoreStar }}" alt="" width="20" height="20" style="opacity:{{ so5 }}">
+</span>
+<p data-rv-score-cap="1" data-vt-no-i18n="1">{{ scoreCaption }}</p>
+</div>
+<ul data-rv-cards="1" aria-label="Client reviews">
+<sc-for list="{{ cards }}" as="r" hint-placeholder-count="0">
+<li data-rv-item="1">
+<article data-rv-card="1" data-rv-face="1" data-i="{{ r.i1 }}">
 <span data-rv-mark="1">
 <sc-if value="{{ r.hasLogo }}" hint-placeholder-val="{{ false }}">
-<img data-rv-logo="1" src="{{ r.logo }}" alt="{{ r.sourceLabel }}">
+<img data-rv-logo="1" data-vt-no-i18n="1" src="{{ r.logo }}" alt="{{ r.sourceLabel }}">
 </sc-if>
-<sc-if value="{{ r.noLogo }}" hint-placeholder-val="{{ true }}">{{ r.sourceLabel }}</sc-if>
+<sc-if value="{{ r.noLogo }}" hint-placeholder-val="{{ true }}">
+<span data-rv-src="1">{{ r.sourceLabel }}</span>
+</sc-if>
 </span>
-<span data-rv-who="1">
-<strong data-rv-name="1">{{ r.name }}</strong>
-</span>
-<span data-rv-sub="1">{{ r.route }}</span>
+<blockquote data-rv-q="1">
+<p data-rv-text="1" data-vt-no-i18n="1" dir="auto"><bdi>{{ r.text }}</bdi></p>
+</blockquote>
+<div data-rv-foot="1">
+<div data-rv-rate="1">
 <span data-rv-stars="1" role="img" aria-label="{{ r.ratingLabel }}" style="display:{{ r.starsShow }}">
 <sc-if value="{{ r.platformStars }}" hint-placeholder-val="{{ false }}">
-<img src="{{ r.starSrc }}" alt="" width="30" height="30" style="opacity:{{ r.o1 }}">
-<img src="{{ r.starSrc }}" alt="" width="30" height="30" style="opacity:{{ r.o2 }}">
-<img src="{{ r.starSrc }}" alt="" width="30" height="30" style="opacity:{{ r.o3 }}">
-<img src="{{ r.starSrc }}" alt="" width="30" height="30" style="opacity:{{ r.o4 }}">
-<img src="{{ r.starSrc }}" alt="" width="30" height="30" style="opacity:{{ r.o5 }}">
+<img src="{{ r.starSrc }}" alt="" width="18" height="18" style="opacity:{{ r.o1 }}">
+<img src="{{ r.starSrc }}" alt="" width="18" height="18" style="opacity:{{ r.o2 }}">
+<img src="{{ r.starSrc }}" alt="" width="18" height="18" style="opacity:{{ r.o3 }}">
+<img src="{{ r.starSrc }}" alt="" width="18" height="18" style="opacity:{{ r.o4 }}">
+<img src="{{ r.starSrc }}" alt="" width="18" height="18" style="opacity:{{ r.o5 }}">
 </sc-if>
 <sc-if value="{{ r.vamosStars }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n30 }}" color="{{ r.s1 }}" hint-size="30px,30px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n30 }}" color="{{ r.s2 }}" hint-size="30px,30px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n30 }}" color="{{ r.s3 }}" hint-size="30px,30px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n30 }}" color="{{ r.s4 }}" hint-size="30px,30px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n30 }}" color="{{ r.s5 }}" hint-size="30px,30px"></x-import>
+<img src="{{ r.starSrc }}" alt="" width="18" height="18" style="opacity:{{ r.o1 }}">
+<img src="{{ r.starSrc }}" alt="" width="18" height="18" style="opacity:{{ r.o2 }}">
+<img src="{{ r.starSrc }}" alt="" width="18" height="18" style="opacity:{{ r.o3 }}">
+<img src="{{ r.starSrc }}" alt="" width="18" height="18" style="opacity:{{ r.o4 }}">
+<img src="{{ r.starSrc }}" alt="" width="18" height="18" style="opacity:{{ r.o5 }}">
 </sc-if>
 </span>
-<a data-rv-link="1" href="{{ r.url }}" target="_blank" rel="noopener noreferrer" aria-label="{{ r.linkLabel }}" title="{{ r.linkLabel }}" style="display:{{ r.linkShow }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="external-link" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+<a data-rv-link="1" href="{{ r.url }}" target="_blank" rel="noopener noreferrer" aria-label="{{ r.linkLabel }}" title="{{ r.linkLabel }}" hidden="{{ r.linkHidden }}" style="display:{{ r.linkShow }}">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
 </a>
-<span data-rv-meta="1" style="display:{{ r.metaShow }}">{{ r.meta }}</span>
-<span data-rv-badge="1" style="display:{{ r.verifiedShow }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="shield-check" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>Verified
+</div>
+<span data-rv-who="1" data-vt-no-i18n="1"><strong data-rv-name="1">{{ r.name }}</strong></span>
+<span data-rv-sub="1" data-vt-no-i18n="1" dir="auto" style="display:{{ r.routeShow }}">{{ r.route }}</span>
+<sc-if value="{{ r.verified }}" hint-placeholder-val="{{ false }}">
+<span data-rv-badge="1">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>{{ r.verifiedLabel }}
 </span>
+</sc-if>
 </div>
+</article>
+</li>
 </sc-for>
-
+</ul>
 </div>
+</sc-if>
+<sc-if value="{{ showEmpty }}" hint-placeholder-val="{{ true }}">
+<div data-rv-empty="1">
+<strong>No published reviews yet</strong>
+<span>Reviews from completed transfers appear here once they are published.</span>
 </div>
-
-<div data-rv-quote="1">
-<div data-rv-stack="1">
-
-<sc-for list="{{ slides }}" as="r" hint-placeholder-count="0">
-<blockquote data-rv-slide="1" data-rv-q="1" data-i="{{ r.i1 }}" data-on="{{ r.on }}" role="group" aria-roledescription="slide" aria-label="{{ r.slideLabel }}">
-<p data-rv-text="1">{{ r.quote }}</p>
-</blockquote>
-</sc-for>
-
-</div>
-</div>
-
-<div data-rv-nav="1">
-<button type="button" data-rv-arrow="1" aria-label="Previous review" onClick="{{ prev }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-left" size="{{ n20 }}" color="currentColor" hint-size="20px,20px"></x-import>
-</button>
-<button type="button" data-rv-arrow="1" aria-label="Next review" onClick="{{ next }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-right" size="{{ n20 }}" color="currentColor" hint-size="20px,20px"></x-import>
-</button>
-</div>
-
-</div>
-
-<span ref="{{ liveRef }}" aria-live="polite" style="position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap"></span>
-
+</sc-if>
 </div>
 </section>
 
-</x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:780},&quot;autoplaySeconds&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:2.5,&quot;min&quot;:0,&quot;max&quot;:12,&quot;step&quot;:0.5,&quot;unit&quot;:&quot;s&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;},&quot;slideMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:480,&quot;min&quot;:200,&quot;max&quot;:900,&quot;step&quot;:20,&quot;unit&quot;:&quot;ms&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:720}}">
 /**
- * Home · Reviews — structure from Figma /Main/263 (node 315:25968): H2 over a two-up block,
- * a 360-wide rounded info card on the left and a 760-wide quote panel ruled top and bottom on
- * the right, geometry verbatim (20px radius, 40px gap, 50px pagination circles, gap 30).
- * No dot pager — more reviews would overflow it. Arrows only. Recoloured to Vamos: card --vt-grey-50, type Qurova/Poppins, hairlines the brand
- * grey #DEDEDE, both arrows outlined charcoal — the reference's purple is gone entirely.
- *
- * Both stacks (card identity, quote) hold all slides as literal markup in one grid cell,
- * so the wrap never unmounts and the panel stays as tall as its longest quote — no
- * measuring, no reflow on advance. A step writes data-on/aria-hidden imperatively; CSS
- * slides on --vt-ease-out. Visibility is not transitioned — the old delayed hidden
- * blanked the active card between ticks. Off-slides can be hidden; on/was stay visible.
- *
- * Autoplay: 2.5s dwell (prop default). The import does not pass autoplaySeconds, so a
- * missing prop must use that default — not a longer fallback that reads as stuck.
- * Paused while the block is hovered or holds focus, off under prefers-reduced-motion
- * or a hidden tab, and stopped for good the moment either arrow is clicked — a manual
- * reader is never overruled by the timer. A pending dwell is not cleared on re-render;
- * only pause, a manual step, or unmount cancels it.
+ * Home · Reviews — score column plus a row of cards. Not a carousel.
+ * Published rows come from VamosReviews (GET /api/reviews). An empty store
+ * stays empty: no sample names, no sample quotes, no platform mark unless
+ * that row's source is that platform. The score is the mean of published
+ * ratings that are above zero. It is never a hardcoded figure.
+ * There is no autoplay and no dwell timer. prefers-reduced-motion has
+ * nothing to pause because nothing advances.
  */
 class Component extends DCLogic {
-  state = { lang: 'en' };
-  N = 0;
-  i = 0;
-  reduced() { return typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches; }
-  dwell() {
-    const raw = this.props.autoplaySeconds;
-    const s = raw == null || raw === '' ? 2.5 : +raw;
-    return s > 0 ? s * 1000 : 0;
-  }
-  clearDwell() { clearTimeout(this.t); this.t = 0; }
-  paused() {
-    return this.stopped || this.hoverP || this.focusP || this.reduced() || !this.dwell()
-      || (typeof document !== 'undefined' && document.hidden);
-  }
-  rootRef = (el) => { this.root = el; this.boot(); };
-  liveRef = (el) => { this.live = el; };
-  boot() {
-    if (!this.root) return;
-    this.root.style.setProperty('--rv-ms', (this.props.slideMs ?? 400) + 'ms');
-    this.paint();
-    this.arm();
-  }
-  paint() {
-    if (!this.root) return;
-    this.root.querySelectorAll('[data-rv-slide]').forEach((el) => {
-      const n = +el.getAttribute('data-i');
-      const on = n === this.i + 1;
-      el.setAttribute('data-on', on ? '1' : '0');
-      /* The slide that just left is parked one full width the other way, so the pair travels
-         across the panel together instead of the incoming one arriving over a static ghost. */
-      el.setAttribute('data-was', !on && this.fromI != null && n === this.fromI + 1 ? '1' : '0');
-      if (on) el.removeAttribute('aria-hidden'); else el.setAttribute('aria-hidden', 'true');
-    });
-  }
-  step(d, manual) {
-    if (this.N < 2) return;
-    if (manual) { this.stopped = true; this.clearDwell(); }
-    this.fromI = this.i;
-    this.i = (this.i + d + this.N) % this.N;
-    if (this.root) this.root.setAttribute('data-dir', d < 0 ? '-1' : '1');
-    this.paint();
-    if (manual) { if (this.live) this.live.textContent = 'Review ' + (this.i + 1) + ' of ' + this.N; }
-    else this.arm();
-  }
-  arm() {
-    if (this.paused()) { this.clearDwell(); return; }
-    if (this.t) return;
-    this.t = setTimeout(() => { this.t = 0; this.step(1, false); }, this.dwell());
-  }
-  hold(k, v) { this[k] = v; if (v) this.clearDwell(); else this.arm(); }
-  prev = () => this.step(-1, true);
-  next = () => this.step(1, true);
-  hoverIn = () => this.hold('hoverP', true);
-  hoverOut = () => this.hold('hoverP', false);
-  focusIn = () => this.hold('focusP', true);
-  focusOut = () => this.hold('focusP', false);
-  key = (e) => {
-    if (e.key === 'ArrowRight') { e.preventDefault(); this.step(1, true); }
-    else if (e.key === 'ArrowLeft') { e.preventDefault(); this.step(-1, true); }
-  };
-  vis = () => { if (document.hidden) this.clearDwell(); else this.arm(); };
-  /* Helmet injects vamos-reviews.js after the first paint. If we only subscribe
-     when the store is already there, the card stays the empty shells. */
-  bindReviews() {
-    const store = window.VamosReviews;
-    if (!store || this._offReviews) return;
-    this._offReviews = store.onChange(() => { this.i = 0; this.forceUpdate(); });
-    this.forceUpdate();
-  }
+  state = { lang: 'en', settled: false };
   componentDidMount() {
-    document.addEventListener('visibilitychange', this.vis);
-    this._onReviewsEvent = () => { this.i = 0; this.forceUpdate(); };
-    window.addEventListener('vamos:reviews', this._onReviewsEvent);
+    this._onReviews = () => {
+      clearTimeout(this._settle);
+      this.setState({ settled: true });
+    };
+    window.addEventListener('vamos:reviews', this._onReviews);
     this.bindReviews();
     this._reviewsWait = setInterval(() => {
       this.bindReviews();
@@ -313,77 +206,153 @@ class Component extends DCLogic {
       this._offLocale = window.VamosLocale.onChange((v) => this.setState({ lang: v.lang }));
     }
   }
-  componentDidUpdate() { this.boot(); }
+  bindReviews() {
+    const store = window.VamosReviews;
+    if (!store || this._offReviews) return;
+    this._offReviews = store.onChange(() => {
+      clearTimeout(this._settle);
+      this.setState({ settled: true });
+    });
+    const rows = store.published();
+    if (rows.length) {
+      this.setState({ settled: true });
+    } else if (!this._settle) {
+      /* Already-loaded empty store does not emit. One shot, not a dwell. */
+      this._settle = setTimeout(() => this.setState({ settled: true }), 1200);
+    }
+  }
   componentWillUnmount() {
-    this.clearDwell();
     clearInterval(this._reviewsWait);
     clearTimeout(this._reviewsStop);
-    document.removeEventListener('visibilitychange', this.vis);
-    if (this._onReviewsEvent) window.removeEventListener('vamos:reviews', this._onReviewsEvent);
+    clearTimeout(this._settle);
+    if (this._onReviews) window.removeEventListener('vamos:reviews', this._onReviews);
     if (this._offReviews) this._offReviews();
     if (this._offLocale) this._offLocale();
   }
+  lang() {
+    return (this.state && this.state.lang) || (window.VamosLocale ? window.VamosLocale.lang() : 'en');
+  }
+  caption(n, rated, lang) {
+    const arAvg = (k) => {
+      if (k === 1) return 'المتوسط من تقييم منشور واحد';
+      if (k === 2) return 'المتوسط من تقييمين منشورين';
+      if (k >= 3 && k <= 10) return 'المتوسط من ' + k + ' تقييمات منشورة';
+      return 'المتوسط من ' + k + ' تقييمًا منشورًا';
+    };
+    const arCount = (k) => {
+      if (k === 1) return 'تقييم منشور واحد';
+      if (k === 2) return 'تقييمان منشوران';
+      if (k >= 3 && k <= 10) return k + ' تقييمات منشورة';
+      return k + ' تقييمًا منشورًا';
+    };
+    if (rated) {
+      if (lang === 'de') return n === 1 ? 'Durchschnitt aus 1 veröffentlichten Bewertung' : ('Durchschnitt aus ' + n + ' veröffentlichten Bewertungen');
+      if (lang === 'fr') return n === 1 ? 'Moyenne de 1 avis publié' : ('Moyenne de ' + n + ' avis publiés');
+      if (lang === 'ar') return arAvg(n);
+      return n === 1 ? 'Average of 1 published review' : ('Average of ' + n + ' published reviews');
+    }
+    if (lang === 'de') return n === 1 ? '1 veröffentlichte Bewertung' : (n + ' veröffentlichte Bewertungen');
+    if (lang === 'fr') return n === 1 ? '1 avis publié' : (n + ' avis publiés');
+    if (lang === 'ar') return arCount(n);
+    return n === 1 ? '1 published review' : (n + ' published reviews');
+  }
+  scoreLabel(shown, lang) {
+    if (lang === 'de') return 'Bewertet mit ' + shown + ' von 5';
+    if (lang === 'fr') return 'Noté ' + shown + ' sur 5';
+    if (lang === 'ar') return 'التقييم ' + shown + ' من 5';
+    return 'Rated ' + shown + ' out of 5';
+  }
   renderVals() {
-    const t = (s) => (window.VamosLocale ? window.VamosLocale.t(s) : s);
     const store = window.VamosReviews;
     const rows = store ? store.published() : [];
-    this.N = rows.length;
-    if (this.i >= this.N) this.i = 0;
-    const slides = rows.map((r, n) => {
-      const label = store ? store.sourceLabel(r.source) : r.source;
+    const lang = this.lang();
+    const settled = !!(this.state && this.state.settled) || rows.length > 0;
+    const rated = rows.filter((r) => r.rating > 0);
+    let scoreText = '';
+    let scoreLabel = '';
+    const starOp = { so1: '0.22', so2: '0.22', so3: '0.22', so4: '0.22', so5: '0.22' };
+    if (rated.length) {
+      const sum = rated.reduce((a, r) => a + r.rating, 0);
+      const value = sum / rated.length;
+      const tenths = Math.round(value * 10);
+      const shown = Math.floor(tenths / 10) + ((lang === 'de' || lang === 'fr') ? ',' : '.') + (tenths % 10);
+      scoreText = shown;
+      scoreLabel = this.scoreLabel(shown, lang);
+      for (let s = 1; s <= 5; s++) {
+        const fill = value - (s - 1);
+        starOp['so' + s] = fill >= 1 ? '1' : (fill <= 0 ? '0.22' : String(Math.round(fill * 100) / 100));
+      }
+    }
+    const hrefOf = (raw) => {
+      const v = String(raw || '').trim();
+      if (!v) return '';
+      try {
+        const parsed = new URL(v);
+        if ((parsed.protocol === 'http:' || parsed.protocol === 'https:') && parsed.hostname) return v;
+      } catch (e) {}
+      return '';
+    };
+    const cards = rows.map((r, n) => {
+      const label = store ? store.sourceLabel(r.source) : (r.source || '');
       const logo = store && store.sourceLogo ? store.sourceLogo(r.source) : '';
       const starSrc = store && store.starSrc ? store.starSrc(r.source) : '';
-      const platformStars = !!starSrc;
+      const platform = r.source === 'google' || r.source === 'tripadvisor' || r.source === 'trustpilot';
       const stars = {};
       for (let s = 1; s <= 5; s++) {
         stars['s' + s] = s <= r.rating ? 'var(--vt-yellow)' : 'var(--vt-grey-300)';
         stars['o' + s] = s <= r.rating ? '1' : '0.22';
       }
-      const meta = r.vehicleClass || '';
-      const href = (function () {
-        const raw = String(r.url || '').trim();
-        if (!raw) return '';
-        try {
-          const parsed = new URL(raw);
-          if ((parsed.protocol === 'http:' || parsed.protocol === 'https:') && parsed.hostname) return raw;
-        } catch (e) {}
-        return '';
-      })();
+      const href = hrefOf(r.url);
+      const linkLabel = !href ? ''
+        : (r.source === 'google' ? 'Read on Google'
+          : r.source === 'tripadvisor' ? 'Read on Tripadvisor'
+          : r.source === 'trustpilot' ? 'Read on Trustpilot'
+          : 'Read the review');
+      const verifiedLabel = !r.verified ? ''
+        : (r.source === 'google' ? 'Verified Google review'
+          : r.source === 'tripadvisor' ? 'Verified Tripadvisor review'
+          : r.source === 'trustpilot' ? 'Verified Trustpilot review'
+          : 'Verified');
+      const route = r.route || (!r.route && r.vehicleClass ? r.vehicleClass : '');
       return Object.assign({
         i1: n + 1,
-        on: n === this.i ? '1' : '0',
-        name: r.name,
-        route: r.route || '',
-        sourceLabel: label,
-        hasLogo: !!logo,
-        noLogo: !logo,
-        logo: logo,
-        starSrc: starSrc,
-        platformStars: platformStars,
-        vamosStars: !platformStars,
-        quote: '“' + r.text + '”',
+        name: r.name || '',
+        text: r.text || '',
+        route: route,
+        routeShow: route ? 'block' : 'none',
+        sourceLabel: platform ? label : 'Collected by us',
+        hasLogo: !!(platform && logo),
+        noLogo: !(platform && logo),
+        logo: platform ? logo : '',
+        starSrc: platform ? starSrc : 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDI0IDI0IiBhcmlhLWhpZGRlbj0idHJ1ZSI+PHBhdGggZmlsbD0iI0ZEQzIwQiIgZD0iTTEyIDIuNmwyLjQgNi41aDYuOGwtNS41IDQuMiAyLjEgNi42TDEyIDE2LjIgNi4yIDE5LjlsMi4xLTYuNkwyLjggOS4xaDYuOHoiLz48L3N2Zz4=',
+        platformStars: !!(platform && starSrc),
+        vamosStars: !(platform && starSrc),
         starsShow: r.rating > 0 ? 'flex' : 'none',
-        ratingLabel: t('Rated 5 out of 5').replace('5 out', r.rating + ' out'),
-        meta: meta,
-        metaShow: meta ? 'block' : 'none',
-        verifiedShow: r.verified ? 'inline-flex' : 'none',
-        url: href,
+        ratingLabel: 'Rated ' + r.rating + ' out of 5',
+        verified: !!r.verified,
+        verifiedLabel: verifiedLabel,
+        url: href || '#',
         linkShow: href ? 'inline-flex' : 'none',
-        linkLabel: t('Read on Google').replace('Google', label),
-        slideLabel: t('Review 1 of 5').replace('1 of 5', (n + 1) + ' of ' + rows.length),
+        linkHidden: href ? null : true,
+        linkLabel: linkLabel,
       }, stars);
     });
-    return {
-      n14: 14, n16: 16, n20: 20, n30: 30,
-      rootRef: this.rootRef, liveRef: this.liveRef,
-      prev: this.prev, next: this.next, key: this.key,
-      hoverIn: this.hoverIn, hoverOut: this.hoverOut, focusIn: this.focusIn, focusOut: this.focusOut,
-      slides: slides,
-      hasReviews: slides.length > 0,
-    };
+    return Object.assign({
+      n14: 14, n16: 16, n18: 18, n20: 20,
+      viewState: rows.length ? 'ready' : (settled ? 'empty' : 'loading'),
+      busy: rows.length || settled ? 'false' : 'true',
+      showGrid: rows.length > 0,
+      showEmpty: settled && rows.length === 0,
+      scoreShow: rated.length ? 'flex' : 'none',
+      scoreStar: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDI0IDI0IiBhcmlhLWhpZGRlbj0idHJ1ZSI+PHBhdGggZmlsbD0iI0ZEQzIwQiIgZD0iTTEyIDIuNmwyLjQgNi41aDYuOGwtNS41IDQuMiAyLjEgNi42TDEyIDE2LjIgNi4yIDE5LjlsMi4xLTYuNkwyLjggOS4xaDYuOHoiLz48L3N2Zz4=',
+      scoreText: scoreText,
+      scoreLabel: scoreLabel,
+      scoreCaption: rows.length ? this.caption(rated.length || rows.length, rated.length > 0, lang) : '',
+      cards: cards,
+    }, starOp);
   }
 }
-
 </script>
+
 </body>
 </html>

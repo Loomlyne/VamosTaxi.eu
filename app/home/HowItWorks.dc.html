@@ -31,139 +31,662 @@
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js"></script>
 <script src="../vamos-page-transition.js"></script>
-<style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
-.vt-input--focus{box-shadow:none}
-/* Button hover/press — colour step only, no shadow, no glow */
-.vt-btn{transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
-.vt-btn:hover,.vt-btn:active{box-shadow:none!important}
-.vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
-.vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
-.vt-btn--secondary:hover:not([disabled]){background:var(--vt-charcoal-800)}
-.vt-btn--secondary:active:not([disabled]){transform:translateY(1px)}
-.vt-btn--ghost:hover:not([disabled]),.vt-btn--outline:hover:not([disabled]),.vt-btn--tertiary:hover:not([disabled]){background:var(--vt-grey-50);border-color:var(--vt-charcoal-900)}
-.vt-btn--ghost:active:not([disabled]),.vt-btn--outline:active:not([disabled]),.vt-btn--tertiary:active:not([disabled]){transform:translateY(1px)}
-.vt-btn:focus-visible{box-shadow:var(--vt-ring)!important}
-.vt-btn[disabled],.vt-btn[aria-disabled="true"]{transform:none}.vt-select .vt-input--focus{box-shadow:none}
-input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}
+<style>
+:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
 body{margin:0}
-a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
-[data-hiw]{--s-bg:var(--vt-bg-page);--s-fg:var(--vt-text-primary);--s-sec:var(--vt-charcoal-600);--s-mut:var(--vt-grey-500);--s-rail:var(--vt-grey-300);--s-card:var(--vt-grey-50);--s-med:var(--vt-charcoal-900);background:var(--s-bg);color:var(--s-fg)}
-[data-hiw][data-tone="dark"]{--s-bg:var(--vt-charcoal-900);--s-fg:var(--vt-white);--s-sec:rgb(255 255 255/.72);--s-mut:rgb(255 255 255/.52);--s-rail:rgb(255 255 255/.24);--s-card:rgb(255 255 255/.06);--s-med:var(--vt-charcoal-700)}
-[data-hiw-link]{color:var(--s-fg)}
-[data-hiw-link]:hover{color:var(--vt-yellow-700)}
-[data-hiw][data-tone="dark"] [data-hiw-link]:hover{color:var(--vt-accent)}
-[data-hiw-board]{position:relative;display:flex;flex-direction:column;gap:20px}
-[data-hiw-spine]{position:absolute;top:28px;bottom:28px;left:27px;width:1px;background:var(--s-rail);transform-origin:top center}
-[data-hiw-row]{position:relative;display:grid;grid-template-columns:56px minmax(0,1fr);column-gap:20px;align-items:center}
-[data-hiw-med]{width:56px;height:56px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:var(--s-med);box-shadow:0 0 0 8px var(--s-bg);z-index:1}
-[data-hiw-med][data-accent="1"]{background:var(--vt-accent)}
-[data-hiw-card]{background:var(--s-card);border-radius:var(--vt-radius-lg);padding:18px 20px;min-width:0}
+a{color:inherit;text-decoration:none;border-bottom:0}
+[data-hiw],[data-dest]{
+  --s-bg:var(--vt-bg-page);
+  --s-fg:var(--vt-text-primary);
+  --s-sec:var(--vt-text-secondary);
+  --s-mut:var(--vt-text-muted);
+  --s-line:var(--vt-border-subtle);
+  --s-card:var(--vt-bg-surface);
+  --s-inset:var(--vt-bg-inset);
+  --s-board:var(--vt-bg-inverse);
+  --s-board-fg:var(--vt-text-inverse);
+  --s-board-mut:var(--vt-text-inverse-muted);
+  background:var(--s-bg);
+  color:var(--s-fg);
+}
+[data-hiw][data-tone="dark"],[data-dest][data-tone="dark"]{
+  --s-bg:var(--vt-charcoal-900);
+  --s-fg:var(--vt-text-inverse);
+  --s-sec:rgb(255 255 255/.72);
+  --s-mut:rgb(255 255 255/.52);
+  --s-line:var(--vt-border-inverse);
+  --s-card:var(--vt-charcoal-800);
+  --s-inset:var(--vt-charcoal-700);
+  --s-board:var(--vt-white);
+  --s-board-fg:var(--vt-charcoal-900);
+  --s-board-mut:var(--vt-charcoal-600);
+}
+[data-hiw-wrap],[data-dest-wrap]{
+  box-sizing:border-box;
+  max-inline-size:var(--vt-container-lg);
+  margin-inline:auto;
+  padding-block:clamp(56px,7vw,96px);
+  padding-inline:var(--vt-gutter);
+}
+[data-dest]{border-block-start:1px solid var(--s-line)}
+[data-hiw-head],[data-dest-head]{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:12px;
+  margin-block-end:clamp(28px,4vw,48px);
+}
+[data-hiw-kicker],[data-dest-kicker]{
+  margin:0;
+  font-family:var(--vt-font-body);
+  font-size:var(--vt-label-md);
+  font-weight:var(--vt-label-weight);
+  letter-spacing:var(--vt-label-tracking);
+  text-transform:uppercase;
+  line-height:1.2;
+  color:var(--s-mut);
+}
+[data-hiw-title],[data-dest-title]{
+  margin:0;
+  max-inline-size:16ch;
+  font-family:var(--vt-font-display);
+  font-size:var(--vt-display-3);
+  font-weight:var(--vt-weight-semibold);
+  letter-spacing:var(--vt-display-tracking);
+  line-height:var(--vt-display-leading);
+  text-wrap:balance;
+  color:var(--s-fg);
+}
+[data-hiw-lede],[data-dest-lede]{
+  margin:0;
+  max-inline-size:46ch;
+  font-family:var(--vt-font-body);
+  font-size:var(--vt-body-md);
+  line-height:var(--vt-body-leading);
+  text-wrap:pretty;
+  color:var(--s-sec);
+}
+[data-hiw-grid]{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:16px;
+  align-items:stretch;
+}
 @media (min-width:900px){
-[data-hiw-board]{gap:clamp(20px,2.6vw,34px)}
-[data-hiw-spine]{left:50%;margin-left:-0.5px}
-[data-hiw-row]{grid-template-columns:minmax(0,1fr) 104px minmax(0,1fr);column-gap:0}
-[data-hiw-med]{grid-column:2;justify-self:center}
-[data-hiw-card]{padding:22px 24px}
-[data-hiw-row][data-side="l"] [data-hiw-card]{grid-column:1;grid-row:1}
-[data-hiw-row][data-side="r"] [data-hiw-card]{grid-column:3;grid-row:1}}
-[data-hiw][data-anim="1"] [data-hiw-spine]{transform:scaleY(0);transition:transform 900ms cubic-bezier(.16,1,.3,1)}
-[data-hiw][data-anim="1"] [data-hiw-med]{opacity:0;transform:translateY(14px);transition:opacity 520ms var(--vt-ease-out),transform 560ms cubic-bezier(.16,1,.3,1)}
-[data-hiw][data-anim="1"] [data-hiw-card]{opacity:0;transform:translateY(14px);transition:opacity 560ms var(--vt-ease-out),transform 620ms cubic-bezier(.16,1,.3,1)}
-[data-hiw][data-anim="1"][data-seen="1"] [data-hiw-spine]{transform:scaleY(1)}
-[data-hiw][data-anim="1"][data-seen="1"] [data-hiw-med],[data-hiw][data-anim="1"][data-seen="1"] [data-hiw-card]{opacity:1;transform:none}
-[data-hiw-row][data-i="1"] [data-hiw-med]{transition-delay:60ms}
-[data-hiw-row][data-i="1"] [data-hiw-card]{transition-delay:150ms}
-[data-hiw-row][data-i="2"] [data-hiw-med]{transition-delay:200ms}
-[data-hiw-row][data-i="2"] [data-hiw-card]{transition-delay:290ms}
-[data-hiw-row][data-i="3"] [data-hiw-med]{transition-delay:340ms}
-[data-hiw-row][data-i="3"] [data-hiw-card]{transition-delay:430ms}
-[data-hiw-row][data-i="4"] [data-hiw-med]{transition-delay:480ms}
-[data-hiw-row][data-i="4"] [data-hiw-card]{transition-delay:570ms}
-@media (min-width:900px){
-[data-hiw][data-anim="1"] [data-hiw-row][data-side="l"] [data-hiw-card]{transform:translate(-14px,10px)}
-[data-hiw][data-anim="1"] [data-hiw-row][data-side="r"] [data-hiw-card]{transform:translate(14px,10px)}}
-@media (prefers-reduced-motion:reduce){[data-hiw][data-anim="1"] [data-hiw-spine],[data-hiw][data-anim="1"] [data-hiw-med],[data-hiw][data-anim="1"] [data-hiw-card]{opacity:1;transform:none;transition:none}}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
+  [data-hiw-grid]{grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+}
+[data-hiw-card]{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  min-inline-size:0;
+  padding:20px;
+  background:var(--s-card);
+  border:var(--vt-border-w) solid var(--s-line);
+  border-radius:var(--vt-radius-lg);
+  box-shadow:none;
+}
+[data-hiw-num]{
+  margin:0;
+  font-family:var(--vt-font-display);
+  font-size:var(--vt-figure-sm);
+  font-weight:var(--vt-weight-bold);
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-0.01em;
+  line-height:1;
+  color:var(--s-mut);
+}
+[data-hiw-card] h3{
+  margin:0;
+  font-family:var(--vt-font-display);
+  font-size:var(--vt-heading-3);
+  font-weight:var(--vt-weight-semibold);
+  letter-spacing:var(--vt-heading-tracking);
+  line-height:var(--vt-heading-leading);
+  text-wrap:balance;
+  color:var(--s-fg);
+}
+[data-hiw-copy]{
+  margin:0;
+  max-inline-size:36ch;
+  font-family:var(--vt-font-body);
+  font-size:var(--vt-body-sm);
+  line-height:var(--vt-body-leading);
+  text-wrap:pretty;
+  color:var(--s-sec);
+}
+[data-hiw-mock]{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-block-start:0;
+  padding:14px;
+  background:var(--s-inset);
+  border:var(--vt-border-w) solid var(--s-line);
+  border-radius:var(--vt-radius-md);
+  box-shadow:none;
+}
+[data-hiw-mock-kicker]{
+  margin:0;
+  font-family:var(--vt-font-body);
+  font-size:var(--vt-label-md);
+  font-weight:var(--vt-label-weight);
+  letter-spacing:var(--vt-label-tracking);
+  text-transform:uppercase;
+  line-height:1.2;
+  color:var(--s-mut);
+}
+[data-mock-pane]{display:none;flex-direction:column;gap:8px}
+[data-mock="book"] [data-mock-pane="book"],
+[data-mock="meet"] [data-mock-pane="meet"],
+[data-mock="pay"] [data-mock-pane="pay"]{display:flex}
+[data-hiw-field]{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:12px;
+  min-inline-size:0;
+  padding-block:8px;
+  border-block-end:1px solid var(--s-line);
+}
+[data-hiw-field] span{
+  flex:0 0 auto;
+  font-family:var(--vt-font-body);
+  font-size:var(--vt-label-md);
+  font-weight:var(--vt-label-weight);
+  letter-spacing:0.04em;
+  text-transform:uppercase;
+  color:var(--s-mut);
+}
+[data-hiw-field] strong{
+  min-inline-size:0;
+  font-family:var(--vt-font-body);
+  font-size:var(--vt-body-sm);
+  font-weight:var(--vt-weight-semibold);
+  text-align:end;
+  color:var(--s-fg);
+}
+[data-hiw-route-row]{display:flex;align-items:center;gap:8px;padding-block-start:4px}
+[data-hiw-pip]{
+  flex:0 0 8px;
+  inline-size:8px;
+  block-size:8px;
+  border-radius:var(--vt-radius-pill);
+  background:var(--s-fg);
+}
+[data-hiw-route-track]{
+  position:relative;
+  flex:1 1 auto;
+  block-size:1px;
+  background:var(--s-line);
+}
+[data-hiw-route]{
+  position:absolute;
+  inset-inline-start:0;
+  inset-block-start:0;
+  inline-size:0;
+  block-size:1px;
+  background:var(--s-fg);
+  transition:inline-size 700ms var(--vt-ease-out);
+}
+[data-hiw][data-seen="1"] [data-hiw-route],
+[data-hiw][data-anim="0"] [data-hiw-route]{inline-size:100%}
+[data-hiw-board]{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:6px;
+  padding:16px;
+  background:var(--s-board);
+  color:var(--s-board-fg);
+  border-radius:var(--vt-radius-sm);
+}
+[data-hiw-board] span{
+  font-family:var(--vt-font-body);
+  font-size:var(--vt-label-md);
+  font-weight:var(--vt-label-weight);
+  letter-spacing:var(--vt-label-tracking);
+  text-transform:uppercase;
+  color:var(--s-board-mut);
+}
+[data-hiw-board] strong{
+  font-family:var(--vt-font-display);
+  font-size:var(--vt-heading-3);
+  font-weight:var(--vt-weight-semibold);
+  letter-spacing:var(--vt-heading-tracking);
+  line-height:1.1;
+  color:var(--s-board-fg);
+}
+[data-hiw-fare]{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:12px;
+  padding-block:8px;
+  border-block-end:1px solid var(--s-line);
+}
+[data-hiw-fare] span{
+  min-inline-size:0;
+  font-family:var(--vt-font-body);
+  font-size:var(--vt-body-sm);
+  font-weight:var(--vt-weight-medium);
+  color:var(--s-fg);
+}
+[data-hiw-fare] b{
+  flex:0 0 auto;
+  font-family:var(--vt-font-display);
+  font-size:var(--vt-body-sm);
+  font-weight:var(--vt-weight-semibold);
+  font-variant-numeric:tabular-nums;
+  color:var(--s-fg);
+}
+[data-hiw-paid]{
+  margin:0;
+  font-family:var(--vt-font-body);
+  font-size:var(--vt-body-sm);
+  line-height:1.4;
+  color:var(--s-sec);
+}
+[data-dest-chips]{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-block-end:clamp(20px,3vw,28px);
+}
+[data-dest-chip]{
+  all:unset;
+  box-sizing:border-box;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-block-size:var(--vt-control-h-md);
+  padding-inline:16px;
+  border:var(--vt-border-w) solid var(--s-line);
+  border-radius:var(--vt-radius-pill);
+  background:var(--s-card);
+  color:var(--s-fg);
+  font-family:var(--vt-font-body);
+  font-size:var(--vt-body-sm);
+  font-weight:var(--vt-weight-semibold);
+  line-height:1;
+  cursor:pointer;
+  box-shadow:none;
+  transition:background var(--vt-dur-fast) var(--vt-ease-standard),border-color var(--vt-dur-fast) var(--vt-ease-standard),color var(--vt-dur-fast) var(--vt-ease-standard);
+}
+[data-dest-chip]:hover{background:var(--s-inset);border-color:var(--vt-border-strong)}
+[data-dest-chip][aria-pressed="true"]{
+  background:var(--vt-charcoal-900);
+  border-color:var(--vt-charcoal-900);
+  color:var(--vt-text-inverse);
+}
+[data-tone="dark"] [data-dest-chip][aria-pressed="true"]{
+  background:var(--vt-white);
+  border-color:var(--vt-white);
+  color:var(--vt-charcoal-900);
+}
+[data-dest-mosaic]{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:12px;
+}
+@media (min-width:720px){
+  [data-dest-mosaic]{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+}
+[data-dest-tile]{
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  gap:6px;
+  min-block-size:220px;
+  padding:20px;
+  background:var(--vt-grey-100);
+  border:var(--vt-border-w) solid var(--vt-border-subtle);
+  border-radius:var(--vt-radius-lg);
+  color:var(--vt-text-primary);
+  box-shadow:none;
+  transition:background var(--vt-dur-fast) var(--vt-ease-standard),border-color var(--vt-dur-fast) var(--vt-ease-standard);
+}
+[data-tone="dark"] [data-dest-tile]{
+  background:var(--vt-charcoal-800);
+  border-color:var(--vt-border-inverse);
+  color:var(--vt-text-inverse);
+}
+[data-dest-tile]:hover{background:var(--vt-grey-200);border-color:var(--vt-border-strong)}
+[data-tone="dark"] [data-dest-tile]:hover{background:var(--vt-charcoal-700);border-color:var(--vt-white)}
+[data-dest-tile][data-lead="1"]{min-block-size:280px}
+[data-dest-code]:empty{display:none}
+[data-dest-code]{
+  font-family:var(--vt-font-body);
+  font-size:var(--vt-label-md);
+  font-weight:var(--vt-label-weight);
+  letter-spacing:var(--vt-label-tracking);
+  text-transform:uppercase;
+  color:var(--vt-text-muted);
+}
+[data-tone="dark"] [data-dest-code]{color:var(--vt-text-inverse-muted)}
+[data-dest-name]{
+  font-family:var(--vt-font-display);
+  font-size:var(--vt-heading-2);
+  font-weight:var(--vt-weight-semibold);
+  letter-spacing:var(--vt-heading-tracking);
+  line-height:1.15;
+  text-wrap:balance;
+}
+[data-dest-meta]{
+  font-family:var(--vt-font-body);
+  font-size:var(--vt-body-sm);
+  line-height:1.4;
+  color:var(--vt-text-secondary);
+}
+[data-tone="dark"] [data-dest-meta]{color:var(--vt-text-inverse-muted)}
+[data-dest-rows]{
+  display:grid;
+  grid-template-columns:1fr;
+  margin-block-start:8px;
+  border-block-start:1px solid var(--s-line);
+}
+@media (min-width:720px){
+  [data-dest-rows]{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (min-width:1100px){
+  [data-dest-rows]{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+[data-dest-row]{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-block-size:var(--vt-control-h-lg);
+  padding-block:12px;
+  padding-inline:4px;
+  border-block-end:1px solid var(--s-line);
+  color:var(--s-fg);
+}
+[data-dest-row]:hover [data-dest-row-name]{text-decoration:underline;text-underline-offset:3px}
+[data-dest-row-name]{
+  font-family:var(--vt-font-display);
+  font-size:var(--vt-heading-4);
+  font-weight:var(--vt-weight-semibold);
+  letter-spacing:var(--vt-heading-tracking);
+  line-height:1.2;
+}
+[data-dest-row-meta]{
+  flex:1 1 auto;
+  min-inline-size:0;
+  font-family:var(--vt-font-body);
+  font-size:var(--vt-body-sm);
+  color:var(--s-sec);
+}
+[data-dest-book]{
+  flex:0 0 auto;
+  margin-inline-start:auto;
+  font-family:var(--vt-font-body);
+  font-size:var(--vt-body-sm);
+  font-weight:var(--vt-weight-semibold);
+  color:var(--s-fg);
+}
+:focus-visible:not(input):not(select):not(textarea){
+  outline:3px solid var(--vt-focus);
+  outline-offset:3px;
+  border-radius:var(--vt-radius-xs);
+}
+@media (prefers-reduced-motion:reduce){
+  [data-hiw-route]{inline-size:100%;transition:none}
+  [data-dest-chip],[data-dest-tile]{transition:none}
+}
+</style>
 </helmet>
-<section data-hiw="1" style="position:relative" data-tone="{{ tone }}" data-anim="{{ animAttr }}" data-seen="{{ seenAttr }}" data-screen-label="How it works" aria-labelledby="hiw-title" ref="{{ rootRef }}">
-<div aria-hidden="true" style="position:absolute;inset:0;background-image:url(data:image/png;base64,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);background-size:88px 88px;background-repeat:repeat;opacity:.028;pointer-events:none;z-index:0"></div>
-<div style="box-sizing:border-box;position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:clamp(56px,7vw,104px) clamp(16px,3.2vw,56px)">
 
-<div style="display:flex;flex-direction:column;gap:14px;margin-bottom:clamp(36px,5vw,64px)">
-<p style="margin:0;display:inline-flex;align-self:flex-start;align-items:center;gap:9px;height:32px;padding:0 15px 0 12px;border:1px solid var(--s-rail);border-radius:999px;background:var(--s-bg);font-size:12px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;line-height:1;white-space:nowrap;color:var(--s-fg)"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAAChCAYAAABAk7SIAAAEi0lEQVR4AeyUS27bQBQETR1BuU58o1wqZ9F9nEX2YWCuaIA/c379XpcBGYYkznRXF/yYX8852+st4c/8+vF7TrjVI+FWVApEAAEDjZUxKgJmXDVQJwQMNFbGqAiYcdVAnXwFDDRS5qgImHndAN0QMMBImSMiYOZ1A3RDwAAjZY6IgJnXDdANAQOMVDmi1HEIKDWHXxgE9NtcqjECSs3hFwYB/TaXaoyAUnP4hUFAv82lGncVUKo5YSQIIKDEDL4hENB3e4nmCCgxg28IBPTdXqI5AkrM4BsCAbtszyV7BBBwjwzvdyGAgF0wc8keAQTcI8P7XQggYBfMXLJHAAH3yPB+FwII2AWz7yVnzRHwjBCfNyWAgE3xcvgZAQQ8I8TnTQkgYFO8HH5GAAHPCPF5UwII2BQvh58RyCvgWXM+lyCAgBIz+IZAQN/tJZojoMQMviEQ0Hd7ieYIKDGDbwgEzLd9qEYIGGqufGERMN+moRohYKi58oVFwHybhmqEgKHmyhcWAfNtGqpRVQFDNSesBAEElJjBNwQC+m4v0fwxvX9M2V7z6zlne71N//5m2+mzD/8BJf4P+IZAQN/tJZojYJUZOOQuAQS8S47nqhBAwCoYOeQuAQS8S47nqhBAwCoYOeQuAQS8S47nqhBAwCoYfQ8pbY6ApQR5vogAAhbh4+FSAghYSpDniwggYBE+Hi4lgIClBHm+iAACFuHj4VICcQUsbc7zEgQQUGIG3xAI6Lu9RHMElJjBNwQC+m4v0RwBJWbwDYGA8bZPlRgBU80ZrwwCxtssVWIETDVnvDIIGG+zVIkRMNWc8cogYLzNUiX+loCpmlNGggACSszgGwIBfbeXaI6AEjP4hkBA3+0lmiOgxAy+IRDw0vZ8qRUBBGxFlnMvEUDAS5j4UisCCNiKLOdeIoCAlzDxpVYEELAVWc69RAABL2Hy/VLr5gjYmjDnHxJAwEM8fNiaAAK2Jsz5hwQQ8BAPH7YmgICtCXP+IQEEPMTDh60J6ArYujnnSxBAQIkZfEMgoO/2Es0RUGIG3xAI6Lu9RPPH/HrO2V7T+8eU7vXzzy8JYyqH4D9gZaAVjrM6AgGt5tYri4B6m1glQkCrufXKIqDeJlaJENBqbr2yCKi3iVWiLwJaNaesBAEElJjBNwQC+m4v0RwBJWbwDYGAvttLNEdAiRl8QyDgsj2/RhFAwFHkuXchgIALBn6NIoCAo8hz70IAARcM/BpFAAFHkefehQACLhh8f41ujoCjFzC/HwHNBRhdHwFHL2B+PwKaCzC6PgKOXsD8fgQ0F2B0/XECjm7O/RIEEFBiBt8QCOi7vURzBJSYwTcEAvpuL9EcASVm8A2BgP2358YVAQRcweDP/gQQsD9zblwRQMAVDP7sTwAB+zPnxhUBBFzB4M/+BBCwP3PfGzeaI+AGFN7qRwAB+7Hmpg0CCLgBhbf6EUDAfqy5aYMAAm5A4a1+BBCwH2tu2iBgIuBGc96SIICAEjP4hkBA3+0lmiOgxAy+IRDQd3uJ5ggoMYNvCARMvr16PQRUXyh5vv8AAAD//3BQ2wUAAAAGSURBVAMAfqEZH/MwL3sAAAAASUVORK5CYII=" alt="" style="width:13px;height:13px;display:block">How it works</p>
-<h2 id="hiw-title" style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-display-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:1.08">One minute of yours. The rest is ours.</h2>
+<section data-hiw="1" data-vt-no-i18n="1" data-tone="{{ tone }}" data-anim="{{ animAttr }}" data-seen="{{ seenAttr }}" dir="{{ dir }}" data-screen-label="How it works" aria-labelledby="hiw-title" ref="{{ rootRef }}">
+<div data-hiw-wrap="1">
+<div data-hiw-head="1">
+<p data-hiw-kicker="1">{{ eyebrow }}</p>
+<h2 id="hiw-title" data-hiw-title="1">{{ title }}</h2>
+<p data-hiw-lede="1">{{ lede }}</p>
 </div>
-
+<div data-hiw-grid="1">
+<sc-for list="{{ steps }}" as="s" hint-placeholder-count="3">
+<article data-hiw-card="1">
+<div data-hiw-mock="1" data-mock="{{ s.kind }}" aria-hidden="true">
+<p data-hiw-mock-kicker="1">{{ example }}</p>
+<div data-mock-pane="book">
+<div data-hiw-field="1"><span>{{ flight }}</span><strong>LX 54</strong></div>
+<div data-hiw-field="1"><span>{{ pickup }}</span><strong>Zurich Airport (ZRH)</strong></div>
+<div data-hiw-field="1"><span>{{ destination }}</span><strong>Zurich</strong></div>
+<div data-hiw-route-row="1">
+<span data-hiw-pip="1"></span>
+<span data-hiw-route-track="1"><span data-hiw-route="1"></span></span>
+<span data-hiw-pip="1"></span>
+</div>
+<p data-hiw-paid="1">{{ oneWay }}</p>
+</div>
+<div data-mock-pane="meet">
 <div data-hiw-board="1">
-<div data-hiw-spine="1" aria-hidden="true" ref="{{ spineRef }}"></div>
-<sc-for list="{{ steps }}" as="s" hint-placeholder-count="4">
-<div data-hiw-row="1" data-i="{{ s.i }}" data-side="{{ s.side }}">
-<span data-hiw-med="1" data-accent="{{ s.accent }}" aria-hidden="true">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ s.icon }}" size="{{ n24 }}" color="{{ s.iconColor }}" hint-size="24px,24px"></x-import></span>
-<div data-hiw-card="1">
-<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px">
-<span style="font-family:var(--vt-font-display);font-size:var(--vt-figure-sm);font-weight:var(--vt-weight-bold);letter-spacing:-0.01em;font-variant-numeric:tabular-nums;line-height:1;color:var(--s-fg);white-space:nowrap">{{ s.time }}</span>
-<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--s-mut);white-space:nowrap">{{ s.sub }}</span>
-</div>
-<h3 style="margin:0 0 6px;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:1.2;color:var(--s-fg)">{{ s.title }}</h3>
-<p style="margin:0;font-size:var(--vt-body-sm);line-height:1.6;color:var(--s-sec);max-width:46ch;text-wrap:pretty">{{ s.copy }}</p>
+<span>Vamos</span>
+<strong>{{ yourName }}</strong>
+<span>08:15 · Zurich Airport (ZRH)</span>
 </div>
 </div>
+<div data-mock-pane="pay">
+<div data-hiw-fare="1"><span style="font-family:var(--vt-font-body)">Mercedes-Benz V-Class</span><b>CHF 000</b></div>
+<div data-hiw-fare="1"><span style="font-family:var(--vt-font-body)">Mercedes S-Class Special</span><b>CHF 000</b></div>
+<p data-hiw-paid="1">{{ paid }} · {{ oneWay }}</p>
+</div>
+</div>
+<p data-hiw-num="1">{{ s.num }}</p>
+<h3>{{ s.title }}</h3>
+<p data-hiw-copy="1">{{ s.copy }}</p>
+</article>
 </sc-for>
 </div>
+</div>
+</section>
 
+<section data-dest="1" data-vt-no-i18n="1" data-tone="{{ tone }}" dir="{{ dir }}" data-screen-label="Destinations" aria-labelledby="dest-title">
+<div data-dest-wrap="1">
+<div data-dest-head="1">
+<p data-dest-kicker="1">{{ destEyebrow }}</p>
+<h2 id="dest-title" data-dest-title="1">{{ destTitle }}</h2>
+<p data-dest-lede="1">{{ destLede }}</p>
+</div>
+<div data-dest-chips="1" role="group" aria-label="{{ chipsLabel }}">
+<button type="button" data-dest-chip="1" aria-pressed="{{ prAll }}" onClick="{{ pickAll }}">{{ chipAll }}</button>
+<button type="button" data-dest-chip="1" aria-pressed="{{ prAirport }}" onClick="{{ pickAirport }}">{{ chipAirports }}</button>
+<button type="button" data-dest-chip="1" aria-pressed="{{ prCity }}" onClick="{{ pickCity }}">{{ chipCities }}</button>
+</div>
+<div data-dest-mosaic="1">
+<sc-for list="{{ tiles }}" as="c" hint-placeholder-count="3">
+<a data-dest-tile="1" data-lead="{{ c.lead }}" href="{{ c.href }}" aria-label="{{ c.aria }}">
+<span data-dest-code="1">{{ c.code }}</span>
+<span data-dest-name="1">{{ c.name }}</span>
+<span data-dest-meta="1">{{ c.meta }}</span>
+</a>
+</sc-for>
+</div>
+<sc-if value="{{ showRows }}" hint-placeholder-val="{{ true }}">
+<div data-dest-rows="1">
+<sc-for list="{{ rows }}" as="r" hint-placeholder-count="4">
+<a data-dest-row="1" href="{{ r.href }}" aria-label="{{ r.aria }}">
+<span data-dest-row-name="1">{{ r.name }}</span>
+<span data-dest-row-meta="1">{{ r.meta }}</span>
+<span data-dest-book="1">{{ book }}</span>
+</a>
+</sc-for>
+</div>
+</sc-if>
 </div>
 </section>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;tone&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light'|'dark'&quot;,&quot;section&quot;:&quot;Appearance&quot;},&quot;revealOnScroll&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Motion&quot;}}">
-const DEFAULT_TRIP = { pickup: 'Zurich Airport (ZRH), Terminal 2', dropoff: 'Zurich, Bahnhofstrasse 1', date: 'Fri 14 Aug', time: '08:15' };
-const AIRPORT = /airport|flughafen|a[eé]roport|\((ZRH|GVA|BSL)\)/i;
-function readTrip() {
-  try { return Object.assign({}, DEFAULT_TRIP, JSON.parse(localStorage.getItem('vamosTrip') || '{}')); }
-  catch (e) { return Object.assign({}, DEFAULT_TRIP); }
-}
-function minus(hm, mins) {
-  const p = String(hm || '08:15').split(':');
-  const m = ((+p[0]) * 60 + (+p[1]) - mins + 1440) % 1440;
-  return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
-}
-function shortPlace(s) {
-  const str = String(s || '');
-  const code = str.match(/\((ZRH|GVA|BSL)\)/i);
-  if (code) return code[1].toUpperCase();
-  return str.split(',')[0].trim() || DEFAULT_TRIP.pickup;
+const LANGS = ['en', 'de', 'fr', 'ar'];
+const T = {
+  en: {
+    eyebrow: 'How it works',
+    title: 'One minute of yours. The rest is ours.',
+    lede: 'A route or a flight number, a fixed price paid by card, and a driver waiting at the pickup.',
+    s1t: 'Route or flight number',
+    s1c: 'Type a flight number and the pickup point and time come from the arrival. Or set the route yourself.',
+    s2t: 'Your driver is waiting',
+    s2c: 'Name board in hand, at the agreed time. Sixty minutes of airport waiting are included.',
+    s3t: 'Fixed price, paid by card',
+    s3c: 'The class and the fare are confirmed before you pay. The voucher follows the card payment. One way only.',
+    example: 'Example',
+    flight: 'Flight',
+    pickup: 'Pickup',
+    destination: 'Destination',
+    oneWay: 'One way',
+    yourName: 'Your name',
+    paid: 'Paid by card',
+    destEyebrow: 'Where we drive',
+    destTitle: 'Airports and the places we already drive.',
+    destLede: 'Zurich, Geneva and Basel airports, plus Bern, Lucerne, Lausanne, Interlaken, Zermatt, St. Moritz and Davos. One-way transfers, booked ahead.',
+    chipsLabel: 'Filter places',
+    all: 'All',
+    airports: 'Airports',
+    cities: 'Cities',
+    bookAirport: 'Book an airport transfer',
+    bookCity: 'Book a city transfer',
+    meet: 'Meet in arrivals',
+    cityPickup: 'City pickup',
+    homeTown: 'Our home town',
+    namedRoute: 'Named route',
+    book: 'Book',
+  },
+  de: {
+    eyebrow: 'So funktioniert es',
+    title: 'Eine Minute von Ihnen. Den Rest übernehmen wir.',
+    lede: 'Route oder Flugnummer, Festpreis per Karte, und ein Fahrer, der wartet.',
+    s1t: 'Route oder Flugnummer',
+    s1c: 'Geben Sie eine Flugnummer ein — Abholort und Zeit kommen aus der Ankunft. Oder setzen Sie die Route selbst.',
+    s2t: 'Ihr Fahrer wartet',
+    s2c: 'Namensschild in der Hand, zur vereinbarten Zeit. Sechzig Minuten Wartezeit am Flughafen sind inklusive.',
+    s3t: 'Festpreis, per Karte bezahlt',
+    s3c: 'Klasse und Preis stehen fest, bevor Sie zahlen. Der Beleg folgt der Kartenzahlung. Nur einfache Fahrt.',
+    example: 'Beispiel',
+    flight: 'Flug',
+    pickup: 'Abholung',
+    destination: 'Ziel',
+    oneWay: 'Einfache Fahrt',
+    yourName: 'Ihr Name',
+    paid: 'Per Karte bezahlt',
+    destEyebrow: 'Wohin wir fahren',
+    destTitle: 'Flughäfen und Orte, die wir bereits fahren.',
+    destLede: 'Die Flughäfen Zürich, Genf und Basel, dazu Bern, Luzern, Lausanne, Interlaken, Zermatt, St. Moritz und Davos. Einfache Fahrt, im Voraus gebucht.',
+    chipsLabel: 'Orte filtern',
+    all: 'Alle',
+    airports: 'Flughäfen',
+    cities: 'Städte',
+    bookAirport: 'Flughafentransfer buchen',
+    bookCity: 'Stadttransfer buchen',
+    meet: 'Treffen in der Ankunft',
+    cityPickup: 'Abholung in der Stadt',
+    homeTown: 'Unser Sitz',
+    namedRoute: 'Genannte Route',
+    book: 'Buchen',
+  },
+  fr: {
+    eyebrow: 'Comment ça marche',
+    title: 'Une minute de votre côté. Le reste est pour nous.',
+    lede: 'Un itinéraire ou un numéro de vol, un prix fixe payé par carte, et un chauffeur qui attend.',
+    s1t: 'Itinéraire ou numéro de vol',
+    s1c: "Saisissez un numéro de vol : le point et l'heure de prise en charge viennent de l'arrivée. Ou indiquez l'itinéraire vous-même.",
+    s2t: 'Votre chauffeur attend',
+    s2c: "Pancarte au nom du passager, à l'heure convenue. Soixante minutes d'attente à l'aéroport sont incluses.",
+    s3t: 'Prix fixe, payé par carte',
+    s3c: 'La classe et le tarif sont confirmés avant le paiement. Le reçu suit le paiement par carte. Aller simple seulement.',
+    example: 'Exemple',
+    flight: 'Vol',
+    pickup: 'Prise en charge',
+    destination: 'Destination',
+    oneWay: 'Aller simple',
+    yourName: 'Votre nom',
+    paid: 'Payé par carte',
+    destEyebrow: 'Où nous roulons',
+    destTitle: 'Aéroports et lieux que nous desservons déjà.',
+    destLede: 'Les aéroports de Zurich, Genève et Bâle, plus Berne, Lucerne, Lausanne, Interlaken, Zermatt, Saint-Moritz et Davos. Transferts aller simple, réservés à l’avance.',
+    chipsLabel: 'Filtrer les lieux',
+    all: 'Tous',
+    airports: 'Aéroports',
+    cities: 'Villes',
+    bookAirport: 'Réserver un transfert aéroport',
+    bookCity: 'Réserver un transfert ville',
+    meet: 'Accueil aux arrivées',
+    cityPickup: 'Prise en charge en ville',
+    homeTown: 'Notre siège',
+    namedRoute: 'Trajet déjà nommé',
+    book: 'Réserver',
+  },
+  ar: {
+    eyebrow: 'كيف يعمل',
+    title: 'دقيقة من وقتك. الباقي علينا.',
+    lede: 'مسار أو رقم رحلة، وسعر ثابت يُدفع بالبطاقة، وسائق ينتظر عند الالتقاط.',
+    s1t: 'المسار أو رقم الرحلة',
+    s1c: 'أدخل رقم الرحلة فيأتي مكان الالتقاط ووقته من الوصول. أو حدّد المسار بنفسك.',
+    s2t: 'سائقك ينتظر',
+    s2c: 'لوحة بالاسم، في الوقت المتفق عليه. ستون دقيقة انتظار في المطار مشمولة.',
+    s3t: 'سعر ثابت، مدفوع بالبطاقة',
+    s3c: 'الفئة والسعر مؤكدان قبل الدفع. يصل الإيصال بعد الدفع بالبطاقة. ذهاب فقط.',
+    example: 'مثال',
+    flight: 'الرحلة',
+    pickup: 'الالتقاط',
+    destination: 'الوجهة',
+    oneWay: 'ذهاب فقط',
+    yourName: 'اسمك',
+    paid: 'مدفوع بالبطاقة',
+    destEyebrow: 'إلى أين نسير',
+    destTitle: 'المطارات والأماكن التي نخدمها فعلاً.',
+    destLede: 'مطارات زيورخ وجنيف وبازل، إضافة إلى برن ولوتسيرن ولوزان وإنترلاكن وزيرمات وسانت موريتز ودافوس. نقل باتجاه واحد، يُحجز مسبقاً.',
+    chipsLabel: 'تصفية الأماكن',
+    all: 'الكل',
+    airports: 'المطارات',
+    cities: 'المدن',
+    bookAirport: 'احجز نقل المطار',
+    bookCity: 'احجز نقل المدينة',
+    meet: 'نلتقي في صالة الوصول',
+    cityPickup: 'التقاط من المدينة',
+    homeTown: 'مقرّنا',
+    namedRoute: 'مسار مذكور',
+    book: 'احجز',
+  },
+};
+/* Served airports plus places already named in the product. No extra catalog. */
+const PLACES = [
+  { id: 'zrh', kind: 'airport', code: 'ZRH', name: 'Zurich Airport (ZRH)', href: '/#book', lead: true },
+  { id: 'gva', kind: 'airport', code: 'GVA', name: 'Geneva Airport (GVA)', href: '/#book' },
+  { id: 'bsl', kind: 'airport', code: 'BSL', name: 'Basel EuroAirport (BSL)', href: '/#book' },
+  { id: 'zurich', kind: 'city', code: '', name: 'Zurich', href: '/#book' },
+  { id: 'geneva', kind: 'city', code: '', name: 'Geneva', href: '/#book' },
+  { id: 'basel', kind: 'city', code: '', name: 'Basel', href: '/#book' },
+  { id: 'bern', kind: 'city', code: '', name: 'Bern', href: '/#book' },
+  { id: 'lucerne', kind: 'city', code: '', name: 'Lucerne', href: '/#book' },
+  { id: 'lausanne', kind: 'city', code: '', name: 'Lausanne', href: '/#book' },
+  { id: 'interlaken', kind: 'city', code: '', name: 'Interlaken', href: '/#book' },
+  { id: 'zermatt', kind: 'city', code: '', name: 'Zermatt', href: '/#book' },
+  { id: 'stmoritz', kind: 'city', code: '', name: 'St. Moritz', href: '/#book' },
+  { id: 'davos', kind: 'city', code: '', name: 'Davos', href: '/#book' },
+];
+function readLang() {
+  try {
+    const fromApi = window.VamosLocale && typeof VamosLocale.lang === 'function' ? VamosLocale.lang() : '';
+    const l = fromApi || localStorage.getItem('vamosLang') || 'en';
+    return LANGS.indexOf(l) > -1 ? l : 'en';
+  } catch (e) { return 'en'; }
 }
 class Component extends DCLogic {
   state = (() => {
     const reduce = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-    return { trip: readTrip(), seen: false, anim: !reduce };
+    return { lang: readLang(), filter: 'all', seen: reduce, anim: !reduce };
   })();
   rootRef = (el) => { this.root = el; };
-  spineRef = (el) => { this.spine = el; this.fitSpine(); };
-  /** Pin the rail between the first and last medallion centres. */
-  fitSpine = () => {
-    const sp = this.spine;
-    if (!sp || !sp.parentElement) return;
-    const meds = sp.parentElement.querySelectorAll('[data-hiw-med]');
-    if (meds.length < 2) return;
-    const base = sp.parentElement.getBoundingClientRect();
-    const a = meds[0].getBoundingClientRect();
-    const b = meds[meds.length - 1].getBoundingClientRect();
-    const top = a.top + a.height / 2 - base.top;
-    const h = (b.top + b.height / 2 - base.top) - top;
-    if (h <= 0) return;
-    sp.style.top = Math.round(top) + 'px';
-    sp.style.bottom = 'auto';
-    sp.style.height = Math.round(h) + 'px';
-  };
+  pickAll = () => this.setState({ filter: 'all' });
+  pickAirport = () => this.setState({ filter: 'airport' });
+  pickCity = () => this.setState({ filter: 'city' });
+  t() { return T[this.state.lang] || T.en; }
   componentDidMount() {
-    this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
+    this._onLocale = (e) => {
+      const lang = e && e.detail && LANGS.indexOf(e.detail.lang) > -1 ? e.detail.lang : readLang();
+      this.setState({ lang: lang });
+    };
     window.addEventListener('vamos:locale', this._onLocale);
-    this.onResize = () => { clearTimeout(this._rt); this._rt = setTimeout(this.fitSpine, 120); };
-    window.addEventListener('resize', this.onResize);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(this.fitSpine);
-    setTimeout(this.fitSpine, 120);
-    this.onStore = (e) => { if (!e || e.key === 'vamosTrip') this.setState({ trip: readTrip() }); };
-    window.addEventListener('storage', this.onStore);
     if (!(this.props.revealOnScroll ?? true) || !this.state.anim || typeof IntersectionObserver === 'undefined') {
       this.setState({ anim: false, seen: true });
       return;
@@ -177,48 +700,80 @@ class Component extends DCLogic {
       if (r && r.top < window.innerHeight && r.bottom > 0) this.setState({ seen: true });
     }, 1400);
   }
-  componentDidUpdate() { this.fitSpine(); }
   componentWillUnmount() {
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     if (this.io) this.io.disconnect();
     clearTimeout(this.safety);
-    clearTimeout(this._rt);
-    window.removeEventListener('resize', this.onResize);
-    window.removeEventListener('storage', this.onStore);
   }
-  steps() {
-    const t = this.state.trip;
-    const airport = AIRPORT.test(t.pickup || '');
-    const place = shortPlace(t.pickup);
-    const third = airport
-      ? { time: minus(t.time, 45), sub: t.date, icon: 'plane-landing', title: 'Your flight lands',
-          copy: 'Your pickup is set from the arrival, not from a guess. If the flight moves, the pickup moves with it.' }
-      : { time: '−24 h', sub: 'before pickup', icon: 'user', title: 'A named driver is assigned',
-          copy: 'Dispatch puts a driver and a vehicle against your slot. Free cancellation right up to this point.' };
-    return [
-      { time: 'Now', sub: 'today', icon: 'map-pin', title: 'Route or flight number',
-        copy: 'Type a flight number and the pickup point and time come from the arrival. Nothing to look up yourself.' },
-      { time: '+1 min', sub: 'today', icon: 'credit-card', title: 'Fixed price, paid by card',
-        copy: 'Every class is priced as you type. Review the trip, pay securely, and the voucher lands immediately.' },
-      third,
-      { time: t.time, sub: t.date, icon: 'car-front', accent: '1', title: 'Your driver is waiting at ' + place,
-        copy: 'Name board in hand, at the exact pickup time. Sixty minutes of airport waiting are included.' },
-    ];
+  metaFor(place, t) {
+    if (place.kind === 'airport') return t.meet;
+    if (place.id === 'dietikon') return t.homeTown;
+    if (place.kind === 'route') return t.namedRoute;
+    return t.cityPickup;
+  }
+  paintPlace(place, t) {
+    const book = place.kind === 'airport' ? t.bookAirport : t.bookCity;
+    return {
+      name: place.name,
+      code: place.code,
+      href: place.href,
+      meta: this.metaFor(place, t),
+      aria: book + ', ' + place.name,
+      lead: place.lead && (this.state.filter === 'all' || this.state.filter === 'airport') ? '1' : '0',
+    };
+  }
+  visibleTiles() {
+    const f = this.state.filter;
+    if (f === 'airport') return PLACES.filter((p) => p.kind === 'airport');
+    if (f === 'city') return PLACES.filter((p) => p.kind === 'city');
+    return PLACES.filter((p) => p.kind === 'airport');
+  }
+  visibleRows() {
+    if (this.state.filter !== 'all') return [];
+    return PLACES.filter((p) => p.kind !== 'airport');
   }
   renderVals() {
+    const t = this.t();
+    const f = this.state.filter;
+    const rows = this.visibleRows().map((p) => this.paintPlace(p, t));
     return {
-      n16: 16, n24: 24,
       tone: (this.props.tone ?? 'light') === 'dark' ? 'dark' : 'light',
+      dir: this.state.lang === 'ar' ? 'rtl' : 'ltr',
       animAttr: this.state.anim ? '1' : '0',
       seenAttr: this.state.seen ? '1' : '0',
       rootRef: this.rootRef,
-      spineRef: this.spineRef,
-      steps: this.steps().map((s, i) => ({
-        i: String(i + 1), side: i % 2 === 0 ? 'l' : 'r',
-        time: s.time, sub: s.sub, title: s.title, copy: s.copy, icon: s.icon,
-        accent: s.accent || '0',
-        iconColor: s.accent ? 'var(--vt-charcoal-900)' : 'var(--vt-accent)',
-      })),
+      eyebrow: t.eyebrow,
+      title: t.title,
+      lede: t.lede,
+      example: t.example,
+      flight: t.flight,
+      pickup: t.pickup,
+      destination: t.destination,
+      oneWay: t.oneWay,
+      yourName: t.yourName,
+      paid: t.paid,
+      destEyebrow: t.destEyebrow,
+      destTitle: t.destTitle,
+      destLede: t.destLede,
+      chipsLabel: t.chipsLabel,
+      chipAll: t.all,
+      chipAirports: t.airports,
+      chipCities: t.cities,
+      prAll: f === 'all' ? 'true' : 'false',
+      prAirport: f === 'airport' ? 'true' : 'false',
+      prCity: f === 'city' ? 'true' : 'false',
+      pickAll: this.pickAll,
+      pickAirport: this.pickAirport,
+      pickCity: this.pickCity,
+      book: t.book,
+      showRows: rows.length > 0,
+      tiles: this.visibleTiles().map((p) => this.paintPlace(p, t)),
+      rows: rows,
+      steps: [
+        { num: '01', kind: 'book', title: t.s1t, copy: t.s1c },
+        { num: '02', kind: 'meet', title: t.s2t, copy: t.s2c },
+        { num: '03', kind: 'pay', title: t.s3t, copy: t.s3c },
+      ],
     };
   }
 }
