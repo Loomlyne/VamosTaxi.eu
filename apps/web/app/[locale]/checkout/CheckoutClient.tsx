@@ -1474,7 +1474,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     { icon: "users", label: `${draft.passengers} ${tCommon("passengers")}` },
     { icon: "luggage", label: `${draft.luggage} ${tCommon("luggage")}` },
     ...recapExtraRows.map((row) => ({
-      icon: row.icon,
       label: (
         <span data-checkout-recap-extra={row.code}>
           {row.labelKey ? t(row.labelKey) : row.code.replace(/[_-]+/g, " ")}
@@ -1741,7 +1740,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                     const on = extraOn(extra.code);
                     const price = extraPrice(extra);
                     const label = ui ? t(ui.labelKey) : extra.code.replace(/_/g, " ");
-                    const icon = ui?.icon ?? "user";
                     const toggle = ui?.toggle ?? extra.toggle;
                     const copy = (
                       <span className="vt-checkout__extra-copy">
@@ -1757,7 +1755,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                           data-on="true"
                           data-static="true"
                         >
-                          <Icon name={icon} size={20} />
                           {copy}
                         </div>
                       );
@@ -1771,7 +1768,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                         aria-pressed={on}
                         onClick={() => extraClick(extra.code)}
                       >
-                        <Icon name={icon} size={20} />
                         {copy}
                       </button>
                     );

@@ -98,14 +98,14 @@ function ReceiptRow({
   children,
   ...dd
 }: {
-  icon: IconName;
+  icon?: IconName;
   label: string;
   children: ReactNode;
 } & HTMLAttributes<HTMLElement>) {
   return (
     <div className="vt-confirmation__receipt-row">
       <dt>
-        <Icon name={icon} size={12} />
+        {icon ? <Icon name={icon} size={12} /> : null}
         {label}
       </dt>
       <dd {...dd}>{children}</dd>
@@ -390,12 +390,9 @@ export function BookingVoucher({
           .map((code) => {
             const rappen = extraRappen[code];
             const amount = rappenToMajor(rappen ?? null);
-            const extraIcon: IconName =
-              code === "oversized_luggage" ? "luggage" : code === "extra_stop" ? "map-pin" : "baby";
             return (
               <ReceiptRow
                 key={code}
-                icon={extraIcon}
                 label={t("extras")}
                 data-confirmation-extra={code}
                 data-confirmation-receipt-extra={code}

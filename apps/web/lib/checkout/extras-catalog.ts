@@ -12,7 +12,6 @@ export type CheckoutExtraJson = {
 };
 
 export type ExtraUi = {
-  icon: "baby" | "user" | "luggage" | "map-pin" | "snowflake" | "clock";
   labelKey:
     | "childSeat"
     | "meetGreet"
@@ -28,23 +27,18 @@ export const FREE_WAIT_CODE = "free_wait";
 export const MEET_GREET_CODE = "meet_greet";
 
 const EXTRA_UI: Record<string, ExtraUi> = {
-  child_seat: { icon: "baby", labelKey: "childSeat", toggle: true },
-  meet_greet: { icon: "user", labelKey: "meetGreet", toggle: false },
-  free_wait: { icon: "clock", labelKey: "freeWait", toggle: false },
-  extra_stop: { icon: "map-pin", labelKey: "additional-stop-2", toggle: true },
-  oversized_luggage: { icon: "luggage", labelKey: "extraOversized", toggle: true },
-  ski: { icon: "snowflake", labelKey: "extraSki", toggle: true },
-  ski_rack: { icon: "snowflake", labelKey: "extraSki", toggle: true },
-  pet: { icon: "user", labelKey: "extraPet", toggle: true },
+  child_seat: { labelKey: "childSeat", toggle: true },
+  meet_greet: { labelKey: "meetGreet", toggle: false },
+  free_wait: { labelKey: "freeWait", toggle: false },
+  extra_stop: { labelKey: "additional-stop-2", toggle: true },
+  oversized_luggage: { labelKey: "extraOversized", toggle: true },
+  ski: { labelKey: "extraSki", toggle: true },
+  ski_rack: { labelKey: "extraSki", toggle: true },
+  pet: { labelKey: "extraPet", toggle: true },
 };
 
 export function extraUi(code: string): ExtraUi | null {
   return EXTRA_UI[code] ?? EXTRA_UI[normalizeSurchargeCode(code)] ?? null;
-}
-
-/** Unknown extra-chip slugs reuse an Icon from this set — never a new SVG. */
-export function extraChipIcon(code: string): ExtraUi["icon"] {
-  return extraUi(code)?.icon ?? "user";
 }
 
 export type ExtraToggles = {
@@ -96,7 +90,6 @@ export function extraIsOnForStep(
 export type RecapExtraLine = {
   code: string;
   labelKey: ExtraUi["labelKey"] | null;
-  icon: ExtraUi["icon"];
 };
 
 export type RecapExtraFare = RecapExtraLine & {
@@ -170,7 +163,6 @@ export function recapExtraFares(
     out.push({
       code: row.code,
       labelKey: ui?.labelKey ?? null,
-      icon: extraChipIcon(row.code),
       amount_rappen: isExtraStopCode(row.code)
         ? null
         : row.kind === "amount"
@@ -186,7 +178,7 @@ export function recapExtras(
   catalog: CheckoutExtraJson[],
   on: (code: string) => boolean,
 ): RecapExtraLine[] {
-  return recapExtraFares(catalog, on).map(({ code, labelKey, icon }) => ({ code, labelKey, icon }));
+  return recapExtraFares(catalog, on).map(({ code, labelKey }) => ({ code, labelKey }));
 }
 
 /** Catalog extras the lock does not already pin — never invent a CHF. */

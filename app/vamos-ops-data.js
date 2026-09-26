@@ -764,7 +764,6 @@
       name: str(s.name || s.label),
       code: str(s.code || s.label),
       type: type,
-      icon: str(s.icon),
       hours: s.hours === undefined || s.hours === null ? "" : s.hours,
       rule: str(s.rule),
       ruleId: str(s.ruleId),
