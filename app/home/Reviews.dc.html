@@ -323,9 +323,7 @@ class Component extends DCLogic {
     const ay = Math.abs(dy);
     const horizontal = e.shiftKey || ax > ay;
     if (!horizontal) {
-      /* Keep page scroll free while the cursor sits on the strip. */
-      if (e.cancelable) e.preventDefault();
-      if (!window.__vtLenis) window.scrollBy(0, dy);
+      /* Vertical wheel belongs to the page. Do not cancel it, and do not pause the row. */
       return;
     }
     /* Horizontal only: faster than native, then resume autoplay on pointerleave. */
