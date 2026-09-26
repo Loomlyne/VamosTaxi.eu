@@ -78,6 +78,55 @@ export default defineConfig({
   // test title, which is what `--grep @component` matches against — `--grep @component`
   // and the plain `pnpm test:visual` therefore run the exact same suite until a
   // non-component visual project is added later.
+  //
+  // GitHub's visual job is macos-latest so the darwin screenshot baselines match.
+  // That runner has no Docker, so it cannot `pnpm db:start`. Specs that boot Next
+  // or require that database throw or hang there and block Deploy Staging. They
+  // still run locally. Offline screenshots and file-read checks stay in the gate.
+  ...(process.env.CI
+    ? {
+        testIgnore: [
+          "**/about.spec.ts",
+          "**/account-session-guard.spec.ts",
+          "**/auth-confirm-email.spec.ts",
+          "**/auth-flows.spec.ts",
+          "**/auth-forms.spec.ts",
+          "**/auth-session.spec.ts",
+          "**/auth-signout.spec.ts",
+          "**/checkout.spec.ts",
+          "**/checkout-guest.spec.ts",
+          "**/confirmation.spec.ts",
+          "**/confirmation-poll.spec.ts",
+          "**/contact.spec.ts",
+          "**/contact-form.spec.ts",
+          "**/contact-lifecycle.spec.ts",
+          "**/content-string-edit.spec.ts",
+          "**/currency.spec.ts",
+          "**/dev-exclusion.spec.ts",
+          "**/email-hook.spec.ts",
+          "**/error-pages.spec.ts",
+          "**/faq.spec.ts",
+          "**/feedback-behaviour.spec.ts",
+          "**/home.spec.ts",
+          "**/home-content.spec.ts",
+          "**/home-hero.spec.ts",
+          "**/home-how-it-works.spec.ts",
+          "**/home-reviews.spec.ts",
+          "**/home-services.spec.ts",
+          "**/home-widget.spec.ts",
+          "**/home-why-vamos.spec.ts",
+          "**/lang-switch.spec.ts",
+          "**/legal-cancellation-imprint.spec.ts",
+          "**/legal-notice.spec.ts",
+          "**/legal-privacy-cookies.spec.ts",
+          "**/legal-terms.spec.ts",
+          "**/lenis.spec.ts",
+          "**/public-routes.spec.ts",
+          "**/quote-api.spec.ts",
+          "**/ssr-locale.spec.ts",
+        ],
+      }
+    : {}),
   projects: Object.entries(VIEWPORTS).map(([label, viewport]) => ({
     name: `component-${label}`,
     use: {

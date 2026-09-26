@@ -84,7 +84,10 @@ jobs:
       - name: Install Playwright Chromium
         run: pnpm --filter web exec playwright install chromium
 
+      # Specs that boot Next or need local Postgres are ignored when CI is set
+      # (playwright.config.ts). This runner has no Docker, so those cannot pass here.
       - name: Visual + integration tests (screenshot diffs, D-25)
+        timeout-minutes: 25
         run: pnpm test:visual
 
   deploy:
