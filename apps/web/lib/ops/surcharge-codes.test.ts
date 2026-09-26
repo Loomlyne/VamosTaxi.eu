@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  checkoutExtraKindFromRappen,
   extraWriteFields,
   isAutomaticSurcharge,
   isPassengerExtra,
@@ -34,5 +35,12 @@ describe("surcharge codes", () => {
       predicate: { kind: "always" },
       quantitySource: null,
     });
+  });
+
+  it("treats checkout extra 0 as included and any positive price, including 1 CHF, as an extra", () => {
+    expect(checkoutExtraKindFromRappen(null)).toBeNull();
+    expect(checkoutExtraKindFromRappen(0)).toBe("included");
+    expect(checkoutExtraKindFromRappen(100)).toBe("amount");
+    expect(checkoutExtraKindFromRappen(1)).toBe("amount");
   });
 });

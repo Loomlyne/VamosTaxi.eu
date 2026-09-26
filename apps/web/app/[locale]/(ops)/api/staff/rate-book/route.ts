@@ -26,7 +26,7 @@ import {
   type SurchargeKind,
 } from "@/lib/ops/rate-book";
 import { isPlaceholderAmount, rappenFromMoneySet, rappenFromUnknown } from "@/lib/ops/rappen";
-import { extraWriteFields, isPassengerExtra, normalizeSurchargeCode } from "@/lib/ops/surcharge-codes";
+import { extraWriteFields, isPassengerExtra, normalizeSurchargeCode, checkoutExtraKindFromRappen } from "@/lib/ops/surcharge-codes";
 import { jsonErr, jsonOk, withAdmin, withStaff } from "@/lib/ops/staff-json";
 import { asVehicleClassUuid, planVehicleClassWrite } from "@/lib/ops/vehicle-class-write";
 import {
@@ -325,7 +325,10 @@ function mockSurcharges(book: RateBook): Record<string, unknown>[] {
       rule: row.appliesTo,
       ruleId: row.ruleId == null ? "" : String(row.ruleId),
       kind: row.kind,
-      amounts: moneyFromRappen(row.amountRappen),
+      amounts:
+        row.kind === "included" && (row.amountRappen == null || row.amountRappen === 0)
+          ? { CHF: "0" }
+          : moneyFromRappen(row.amountRappen),
       pct: row.percent == null ? "" : String(row.percent),
       appliesTo: row.appliesTo,
       active: row.active,
@@ -519,6 +522,15 @@ function parseDistanceInput(body: Record<string, unknown>, classes: { id: string
   };
 }
 
+function statedCheckoutRappen(body: Record<string, unknown>): number | null {
+  const value = body.value;
+  if (value !== undefined && value !== null && String(value).trim() !== "") {
+    return rappenFromUnknown(value);
+  }
+  if (body.amountRappen !== undefined) return rappenFromUnknown(body.amountRappen);
+  return rappenFromMoneySet(body.amounts);
+}
+
 function parseSurchargeInput(body: Record<string, unknown>): SurchargeInput {
   const type = typeof body.type === "string" ? body.type : "";
   let raw =
@@ -543,7 +555,8 @@ function parseSurchargeInput(body: Record<string, unknown>): SurchargeInput {
       typeof named === "string"
         ? named.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
         : raw;
-    kindRaw = "amount";
+    const decided = checkoutExtraKindFromRappen(statedCheckoutRappen(body));
+    kindRaw = decided === "included" ? "included" : "amount";
   }
   const code = raw ? normalizeSurchargeCode(raw) : "";
   const kind: SurchargeKind =
@@ -805,6 +818,12 @@ export const PUT = withAdmin(async (claims, request) => {
     }
 
     if (kind === "surcharge") {
+      if (
+        recBody.type === "checkout_extra" &&
+        checkoutExtraKindFromRappen(statedCheckoutRappen(recBody)) == null
+      ) {
+        return jsonErr("invalid", 400);
+      }
       const parsed = assertSurchargeInput(parseSurchargeInput(recBody));
       const extras = isPassengerExtra(parsed.code) ? extraWriteFields(parsed.code) : null;
       const waitMinutes = minutesFromHours(recBody.hours ?? recBody.freeWaitHours);

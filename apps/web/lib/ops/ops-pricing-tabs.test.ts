@@ -74,24 +74,27 @@ describe("OpsPricing tabs (D-11 D-12 D-17 D-25)", () => {
     expect(html).toMatch(/kind:'photo'/);
     expect(html).toMatch(/kind:'grip'/);
     expect(html).toMatch(/onReorder="\{\{ reorderDistance \}\}"/);
-    expect(html).toMatch(/key:'hideFromPublic', header: t.hidePublic, width:'180px', kind:'bool'/);
+    expect(html).toMatch(/key:'hideFromPublic', header: t.hidePublic, kind:'bool', toggle:true/);
     expect(html).toContain("ratedClasses");
     expect(html).not.toMatch(/key:'economy', header: t.colEconomy/);
     expect(html).not.toMatch(/key:'van', header: t.colVan/);
   });
 
-  it("surcharge overlay keeps Type, has no icon picker, and merges coupon value with % / CHF", () => {
+  it("surcharge overlay is name and price only, always checkout extra, and merges coupon value with % / CHF", () => {
     const html = readFileSync(CANONICAL, "utf8");
-    expect(html).toMatch(/key:'type', label:t.surchargeType, editor:'select'/);
+    expect(html).not.toMatch(/key:'type', label:t.surchargeType, editor:'select'/);
     expect(html).not.toMatch(/editor:'iconGrid'/);
     expect(html).not.toMatch(/key:'icon'/);
     expect(html).not.toMatch(/EXTRA_ICONS/);
+    expect(html).not.toMatch(/does not stay as CHF 0/);
+    expect(html).not.toMatch(/Delete and Publish removes/);
+    expect(html).toMatch(/type: 'checkout_extra'/);
     expect(html).toMatch(/editor:'amountKind'/);
     expect(html).not.toMatch(/key:'kind', label:t.fKind, editor:'select'/);
     expect(html).toMatch(/vatSavedBps/);
     expect(html).toMatch(/vatSaveOff/);
     expect(html).toMatch(/minDate:'today'/);
-    expect(html).toMatch(/key:'hideFromPublic', header: t.hidePublic, width:'180px'/);
+    expect(html).toMatch(/key:'hideFromPublic', header: t.hidePublic, kind:'bool', toggle:true/);
     expect(html).toMatch(/key:'to', label:t.colTo, required:true, icon:'map-pin', half:true/);
     expect(html).toMatch(/fill="1"/);
     expect(html).toMatch(/\/api\/staff\/coupons\/redemptions/);

@@ -9,6 +9,8 @@ export type CheckoutExtraJson = {
   amount_rappen: number | null;
   percent: number | string | null;
   toggle: boolean;
+  /** Already on the quote total. Checkout must not add it again. */
+  pricedInQuote?: boolean;
 };
 
 export type ExtraUi = {
@@ -126,11 +128,12 @@ export function extraFaresOn(
   on: (code: string) => boolean,
 ): SnapshotExtraFare[] {
   const out: SnapshotExtraFare[] = [];
-  for (const row of recapExtraFares(catalog, on)) {
+  for (const row of catalog) {
+    if (!on(row.code)) continue;
+    if (row.pricedInQuote) continue;
     if (isWaitingPayableCode(row.code) || row.code === FREE_WAIT_CODE) continue;
-    if (row.amount_rappen == null || !Number.isFinite(row.amount_rappen) || row.amount_rappen <= 0) {
-      continue;
-    }
+    if (isExtraStopCode(row.code)) continue;
+    if (row.kind !== "amount" || row.amount_rappen == null || row.amount_rappen < 1) continue;
     out.push({ code: row.code, amount_rappen: row.amount_rappen });
   }
   return out;
@@ -192,7 +195,8 @@ export function extraRappenOutsideLock(
     if (!on(row.code)) continue;
     if (isExtraStopCode(row.code)) continue;
     if (isWaitingPayableCode(row.code) || row.code === FREE_WAIT_CODE) continue;
-    if (row.kind !== "amount" || row.amount_rappen == null) continue;
+    if (row.pricedInQuote) continue;
+    if (row.kind !== "amount" || row.amount_rappen == null || row.amount_rappen < 1) continue;
     if (lockHasExtra(extras, row.code)) continue;
     add += row.amount_rappen;
   }
@@ -205,7 +209,17 @@ type SurchargeLike = {
   amount_rappen: number | null;
   percent: number | string | null;
   active: boolean;
+  quantity_source?: string | null;
+  predicate?: { kind?: string } | null;
 };
+
+/** Always-on amount rows are already in the quote. Do not charge them twice at checkout. */
+function pricedOnQuote(row: SurchargeLike): boolean {
+  if (row.kind !== "amount") return false;
+  if (row.amount_rappen == null || row.amount_rappen < 1) return false;
+  if (row.quantity_source) return false;
+  return row.predicate?.kind === "always";
+}
 
 /** Public extra-stop cap is hardcoded 1 (D-21). The live-book column is ignored. */
 export function publishedMaxExtraStops(_value?: unknown): number {
@@ -230,12 +244,17 @@ export function catalogFromSurcharges(rows: SurchargeLike[]): CheckoutExtraJson[
     if (!row.active) continue;
     if (!isPassengerExtra(row.code)) continue;
     const ui = extraUi(row.code);
+    const free =
+      !isExtraStopCode(row.code) &&
+      (row.kind === "included" || row.amount_rappen === 0);
+    const inQuote = pricedOnQuote(row);
     out.push({
       code: row.code,
-      kind: row.kind,
-      amount_rappen: isExtraStopCode(row.code) ? null : row.amount_rappen,
+      kind: free ? "included" : row.kind,
+      amount_rappen: isExtraStopCode(row.code) || free ? null : row.amount_rappen,
       percent: row.percent,
-      toggle: row.kind === "included" ? false : (ui?.toggle ?? true),
+      toggle: free || inQuote ? false : (ui?.toggle ?? true),
+      ...(inQuote ? { pricedInQuote: true } : {}),
     });
   }
   return out;

@@ -594,7 +594,8 @@ export function buildLegSurchargeLines(
       continue;
     }
 
-    if (row.kind === "included") {
+    // Stated CHF 0 is included: shown, not added to the fare. A positive amount is charged.
+    if (row.kind === "included" || (row.kind === "amount" && row.amount_rappen === 0)) {
       const { minutes, source } = includedMinutes(row.code, settings);
       const provisional = seqFor(leg.leg_seq, "included", row.code);
       out.push({
@@ -735,6 +736,7 @@ export function buildExtraLines(args: BuildExtraLinesArgs): Line[] {
       // D-37: extra stop is Mapbox places on the D-11 distance recipe, not amount × qty.
       continue;
     }
+    if (row.kind === "included" || row.amount_rappen === 0) continue;
     const qty = resolveQuantity(row.quantity_source, extras);
     if (qty <= 0) continue;
 
