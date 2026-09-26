@@ -4,6 +4,7 @@
 // Mirrors coupons_kind_field and coupons_window so the form fails fast;
 // the named CHECKs remain the real gate.
 
+import type postgres from "postgres";
 import { asStaff, type VamosClaims } from "../db/identity";
 import { mapSqlState } from "./sqlstate";
 
@@ -24,6 +25,8 @@ export type CouponRow = {
   active: boolean;
   note: string;
   createdAt: string;
+  /** Captured, unreleased redemptions. Own row plus the live book's same code. */
+  uses?: number;
 };
 
 export type CouponInput = {
@@ -76,6 +79,7 @@ type CouponSqlRow = {
   active: boolean;
   note: string;
   created_at: Date | string;
+  uses?: number | string | null;
 };
 
 function toIso(value: Date | string | null): string | null {
@@ -173,6 +177,7 @@ function mapCouponRow(row: CouponSqlRow): CouponRow {
     active: row.active,
     note: row.note,
     createdAt: toIso(row.created_at) ?? "",
+    uses: countOrZero(row.uses),
   };
 }
 
@@ -182,6 +187,8 @@ export type DcCoupon = {
   kind: CouponKind;
   value: string;
   uses: number;
+  /** Null when there is no cap. Status reads this, not the form's coerced limit. */
+  cap: number | null;
   limit: number;
   validFrom: string;
   expires: string;
@@ -226,8 +233,10 @@ export function validFromOnCreate(validFrom: string | null, now = new Date()): s
   return validFrom || creationDayIso(now);
 }
 
-/** DC table row. Amount kind always ships value "00" — no CHF discount. */
+/** DC table row. Amount kind ships the stored rappen as a decimal string — no invented price. */
 export function toDcCoupon(row: CouponRow): DcCoupon {
+  const uses = countOrZero(row.uses);
+  const cap = row.globalLimit != null && row.globalLimit >= 1 ? row.globalLimit : null;
   return {
     id: String(row.id),
     code: row.code,
@@ -238,8 +247,10 @@ export function toDcCoupon(row: CouponRow): DcCoupon {
         : row.kind === "amount" && row.amountRappen != null
           ? String(row.amountRappen / 100)
           : "00",
-    uses: 0,
-    limit: row.globalLimit != null && row.globalLimit >= 1 ? row.globalLimit : 1,
+    uses,
+    /** Real cap. Null means unlimited — never coerced to 1 for status. */
+    cap,
+    limit: cap ?? 1,
     validFrom: dateOnly(row.validFrom),
     expires: dateOnly(row.validUntil),
     active: row.active,
@@ -303,6 +314,95 @@ export function couponIdFromRequest(request: Request): number | null {
   return id;
 }
 
+export type CouponTableStatus = "live" | "paused" | "used";
+
+export type CouponUseCount = {
+  couponId: number;
+  code: string;
+  versionStatus: string | null;
+  uses: number;
+};
+
+function countOrZero(value: number | string | null | undefined): number {
+  if (value == null || value === "") return 0;
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(n) || n < 0) return 0;
+  return Math.round(n);
+}
+
+function idOrNull(value: number | string | null | undefined): number | null {
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isInteger(n) || n < 1) return null;
+  return n;
+}
+
+/**
+ * Cap is full when unreleased redemptions reach the limit.
+ * Limit under 1, or a missing cap, is not a cap. 10 is not special.
+ */
+export function couponTableStatus(input: {
+  active: boolean;
+  uses: number;
+  limit: number | null;
+}): CouponTableStatus {
+  const limit = input.limit == null ? NaN : Number(input.limit);
+  const uses = Number(input.uses);
+  if (Number.isFinite(limit) && limit >= 1 && Number.isFinite(uses) && uses >= limit) {
+    return "used";
+  }
+  return input.active ? "live" : "paused";
+}
+
+/** Uses on this coupon id. A missing row is zero, never a stand-in number. */
+export function usesForCoupon(
+  row: { id: number },
+  counts: CouponUseCount[],
+): number {
+  return counts.find((item) => item.couponId === row.id)?.uses ?? 0;
+}
+
+type UseCountSql = {
+  coupon_id: number | string;
+  code: string | null;
+  version_status: string | null;
+  uses: number | string | null;
+};
+
+/** Unreleased redemptions. Same cap as usage_cap: released_at is null, no row cap, no hardcoded count. */
+async function readUseCounts(sql: postgres.TransactionSql): Promise<CouponUseCount[]> {
+  const rows = await sql<UseCountSql[]>`
+    select
+      cp.id as coupon_id,
+      cp.code,
+      rv.status as version_status,
+      count(r.id)::int as uses
+    from public.coupons cp
+    left join public.rate_versions rv on rv.id = cp.rate_version_id
+    join public.coupon_redemptions r
+      on r.coupon_id = cp.id
+     and r.released_at is null
+    group by cp.id, cp.code, rv.status
+  `;
+  return rows.flatMap((row) => {
+    const couponId = idOrNull(row.coupon_id);
+    if (couponId == null || typeof row.code !== "string" || row.code.trim() === "") return [];
+    return [{
+      couponId,
+      code: row.code,
+      versionStatus: row.version_status,
+      uses: countOrZero(row.uses),
+    }];
+  });
+}
+
+async function withUseCount(sql: postgres.TransactionSql, row: CouponSqlRow): Promise<CouponSqlRow> {
+  const counts = await readUseCounts(sql);
+  return {
+    ...row,
+    uses: usesForCoupon({ id: row.id }, counts),
+  };
+}
+
 export async function loadCoupons(
   env: CloudflareEnv,
   claims: VamosClaims,
@@ -328,7 +428,12 @@ export async function loadCoupons(
             from public.coupons
             order by active desc, created_at desc
           `;
-    return rows.map(mapCouponRow);
+    if (rows.length === 0) return [];
+    const counts = await readUseCounts(sql);
+    return rows.map((row) => mapCouponRow({
+      ...row,
+      uses: usesForCoupon({ id: row.id }, counts),
+    }));
   });
 }
 
@@ -378,7 +483,7 @@ export async function insertCoupon(
     `;
     const row = rows[0];
     if (!row) throw new CouponInputError("coupons-error");
-    return mapCouponRow(row);
+    return mapCouponRow(await withUseCount(sql, row));
   });
 }
 
@@ -419,7 +524,7 @@ export async function updateCouponRecord(
         created_at
     `;
     const row = rows[0];
-    return row ? mapCouponRow(row) : null;
+    return row ? mapCouponRow(await withUseCount(sql, row)) : null;
   });
 }
 
@@ -448,7 +553,7 @@ export async function setCouponActiveRecord(
         created_at
     `;
     const row = rows[0];
-    return row ? mapCouponRow(row) : null;
+    return row ? mapCouponRow(await withUseCount(sql, row)) : null;
   });
 }
 

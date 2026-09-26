@@ -250,6 +250,7 @@
         var previous = list.slice();
         var row = persistable(clean(rec || {}));
         if (name === "customers") row = customerWrite(row);
+        if (name === "chauffeurs") row = chauffeurWrite(row);
         return api("POST", base, row).then(function (json) {
           var created = json && json.data && typeof json.data === "object" && !Array.isArray(json.data)
             ? clean(json.data)
@@ -271,6 +272,7 @@
             mergedPatch = Object.assign({}, mergedPatch, { dateIso: mergedPatch.date });
           }
           if (name === "customers") mergedPatch = customerWrite(mergedPatch);
+          if (name === "chauffeurs") mergedPatch = chauffeurWrite(mergedPatch);
           return api("PATCH", base + "/" + encodeURIComponent(writeId), mergedPatch).then(function (json) {
             var next = previous.map(function (r) {
               if (!sameRow(r, current || { id: id, bookingId: writeId }) && String(r.id) !== String(id)) return r;
@@ -583,19 +585,19 @@
   var CHAUFFEUR_STATUS = ["shift", "off", "leave"];
   function cleanChauffeur(c) {
     c = c || {};
-    var classId = str(c.vehicleClassId);
-    var vehicleId = str(c.defaultVehicleId);
+    var classId = str(c.vehicleClassId || c.vehicle_class_id);
+    var vehicleId = str(c.defaultVehicleId || c.default_vehicle_id);
     if (!vehicleId) {
       var legacyVehicle = str(c.vehicle);
       if (legacyVehicle && legacyVehicle !== classId) vehicleId = legacyVehicle;
     }
     return {
       id: str(c.id),
-      name: str(c.name || c.fullName), phone: str(c.phone), email: str(c.email),
+      name: str(c.name || c.fullName || c.full_name), phone: str(c.phone), email: str(c.email),
       vehicle: vehicleId, defaultVehicleId: vehicleId,
       vehicleClassId: classId,
-      vehicleClassName: str(c.vehicleClassName || c.className),
-      licence: str(c.licence || c.licenceNumber),
+      vehicleClassName: str(c.vehicleClassName || c.className || c.vehicle_class_name),
+      licence: str(c.licence || c.licenceNumber || c.licence_number),
       languages: Array.isArray(c.languages) ? c.languages.join(", ") : str(c.languages),
       status: CHAUFFEUR_STATUS.indexOf(c.status) === -1 ? "off" : c.status,
       photo: (str(c.photo || c.photoPath).indexOf("data:") === 0) ? "" : str(c.photo || c.photoPath),
@@ -676,6 +678,51 @@
     };
   }
 
+  // languages is text[] of ISO codes. default_vehicle_id is uuid.
+  // A display string or "" is 22P02. Empty vehicle id is null, never "".
+  var LANG_TO_CODE = {
+    german: "de", french: "fr", italian: "it", english: "en", arabic: "ar",
+    de: "de", fr: "fr", it: "it", en: "en", ar: "ar",
+    spanish: "es", es: "es", portuguese: "pt", pt: "pt",
+    russian: "ru", ru: "ru", turkish: "tr", tr: "tr",
+    albanian: "sq", sq: "sq", croatian: "hr", hr: "hr", polish: "pl", pl: "pl"
+  };
+  function languageCodes(value) {
+    var raw = Array.isArray(value) ? value : String(value == null ? "" : value).split(/[,|]/);
+    var out = [];
+    var i;
+    for (i = 0; i < raw.length; i++) {
+      var token = String(raw[i] || "").trim().toLowerCase();
+      if (!token) continue;
+      var code = LANG_TO_CODE[token] || "";
+      if (!code || out.indexOf(code) !== -1) continue;
+      out.push(code);
+    }
+    return out;
+  }
+  function uuidOrNull(value) {
+    var s = str(value).trim();
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s)) return null;
+    return s;
+  }
+  function chauffeurWrite(c) {
+    c = c || {};
+    var classId = uuidOrNull(c.vehicleClassId);
+    var vehicleId = uuidOrNull(c.defaultVehicleId);
+    if (!vehicleId) {
+      var legacy = uuidOrNull(c.vehicle);
+      if (legacy && legacy !== classId) vehicleId = legacy;
+    }
+    var row = {};
+    var k;
+    for (k in c) row[k] = c[k];
+    row.languages = languageCodes(c.languages);
+    row.defaultVehicleId = vehicleId;
+    row.vehicle = vehicleId;
+    row.vehicleClassId = classId;
+    return row;
+  }
+
   var COUPON_KINDS = ["percent", "amount"];
   function cleanCoupon(c) {
     c = c || {};
@@ -684,6 +731,7 @@
       code: str(c.code).toUpperCase(),
       kind: COUPON_KINDS.indexOf(c.kind) === -1 ? "percent" : c.kind,
       value: str(c.value), uses: num(c.uses, 0), limit: num(c.limit, 0),
+      cap: c.cap == null || c.cap === "" ? null : num(c.cap, 0),
       validFrom: str(c.validFrom || c.valid_from),
       expires: str(c.expires || c.validUntil || c.valid_until), active: c.active === false ? false : true, note: str(c.note)
     };

@@ -73,6 +73,12 @@ export function derivedDuty(input: {
   });
 }
 
+/** Postgres array literal. A JS array binds as a scalar and throws 22P02. */
+function pgSmallintArrayLiteral(values: readonly number[]): string {
+  if (values.length === 0) return "{}";
+  return `{${values.join(",")}}`;
+}
+
 export type DeskShift = {
   weekdays: number[];
   start: string | null;
@@ -163,7 +169,7 @@ export async function persistChauffeurDesk(
   try {
     await sql`
       update public.chauffeurs set
-        shift_weekdays = ${input.shiftWeekdays}::smallint[],
+        shift_weekdays = ${pgSmallintArrayLiteral(input.shiftWeekdays)}::smallint[],
         shift_start = ${input.shiftStart}::time,
         shift_end = ${input.shiftEnd}::time,
         status = ${status}::chauffeur_status,

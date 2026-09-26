@@ -337,22 +337,29 @@ class Component extends DCLogic {
     const chauffeurOptions = chauffeurs.map((c) => ({ value: c.id, label: c.name || c.id }));
     const inactiveClass = { economy: 1, business: 1, first: 1, van: 1, mahaha: 1 };
     const classNameById = {};
+    const rememberClass = (id, name) => {
+      const key = String(id || '').trim();
+      const label = String(name || '').trim();
+      if (!key || !label || classNameById[key]) return;
+      classNameById[key] = label;
+    };
+    ((ops && ops.CLASSES) || []).forEach((c) => rememberClass(c && c.id, c && (c.name || c.label)));
     const chauffeurClassOptions = [];
     const rates = (ops && ops.rates) ? ops.rates.all() : [];
     rates.forEach((r) => {
       if (!r || r.available !== true) return;
       const id = String(r.vehicleClassId || '').trim();
-      const name = String(r.name || '').trim();
-      if (!id || !name || classNameById[id]) return;
-      if (inactiveClass[name.toLowerCase()]) return;
-      classNameById[id] = name;
+      const name = String(r.name || classNameById[id] || '').trim();
+      rememberClass(id, name);
+      if (!id || !name || inactiveClass[name.toLowerCase()]) return;
+      if (chauffeurClassOptions.some((o) => o.value === id)) return;
       chauffeurClassOptions.push({ value: id, label: name });
     });
     chauffeurClassOptions.unshift({ value: '', label: t.noClass });
     const classLabel = (r) => {
-      const saved = String((r && (r.vehicleClassName || r.className)) || '').trim();
+      const saved = String((r && (r.vehicleClassName || r.className || r.vehicle_class_name)) || '').trim();
       if (saved) return saved;
-      const id = String((r && r.vehicleClassId) || '').trim();
+      const id = String((r && (r.vehicleClassId || r.vehicle_class_id)) || '').trim();
       return id && classNameById[id] ? classNameById[id] : '';
     };
 
@@ -363,13 +370,13 @@ class Component extends DCLogic {
         React.createElement('a', {
           href: '/fleet/chauffeurs/' + encodeURIComponent(r.id),
           style: { color: 'inherit', textDecoration: 'none', fontWeight: 500 },
-        }, r.name || r.id),
-        r.phone ? React.createElement('span', { style:{ fontSize:'var(--vt-body-xs)', color:'var(--vt-text-muted)' } }, r.phone) : null,
+        }, r.name || r.fullName || r.full_name || r.id),
+        (r.phone || r.phoneNumber) ? React.createElement('span', { style:{ fontSize:'var(--vt-body-xs)', color:'var(--vt-text-muted)' } }, r.phone || r.phoneNumber) : null,
       ) },
       { key:'vehicleClassName', header:t.fClass, width:'190px', kind:'need', emptyLabel:t.noClass,
         lookup:(r) => classLabel(r) },
-      { key:'licence', header:t.colLicence, width:'140px', kind:'mono' },
-      { key:'status', header:t.colStatus, width:'150px', kind:'badge', tones:CSTATUS },
+      { key:'licence', header:t.colLicence, width:'140px', kind:'mono',
+        lookup:(r) => String((r && (r.licence || r.licenceNumber || r.licence_number)) || '').trim() },
     ];
 
     const vehicleFields = [
@@ -391,8 +398,8 @@ class Component extends DCLogic {
       { key:'phone', label:t.fPhone, editor:'phone', half:true, placeholder:'+41 00 000 00 00' },
       { key:'email', label:t.fEmail, half:true, placeholder:'name@example.com' },
       { key:'licence', label:t.fLicence, editor:'licence', half:true, placeholder:'CH 000 000' },
-      { key:'vehicleClassId', label:t.fClass, editor:'select', options:chauffeurClassOptions, icon:'car', hint:t.hChauffeurClass, emptyLabel:t.noClass },
-      { key:'languages', label:t.fLanguages, editor:'select', multi:true, options:LANGUAGE_OPTIONS, icon:'globe', half:true },
+      { key:'vehicleClassId', label:t.fClass, editor:'select', options:chauffeurClassOptions, icon:'car', hint:t.hChauffeurClass, emptyLabel:t.noClass, half:true, pair:'class-lang' },
+      { key:'languages', label:t.fLanguages, editor:'select', multi:true, options:LANGUAGE_OPTIONS, icon:'globe', half:true, pair:'class-lang' },
       { key:'note', label:t.fNote, editor:'area', placeholder:'' },
     ];
 
@@ -498,15 +505,32 @@ class Component extends DCLogic {
       blank: () => (store ? store.blank() : {}),
       onSave: (rec) => {
         if (!store) return Promise.resolve({ ok: false, code: 'save-failed' });
-        const classId = String(rec.vehicleClassId || '');
-        const keptVehicle = String(rec.defaultVehicleId || '');
-        const legacyVehicle = String(rec.vehicle || '');
-        const vehicleId = keptVehicle || (legacyVehicle && legacyVehicle !== classId ? legacyVehicle : '');
+        const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        const uuidOrNull = (value) => {
+          const s = String(value || '').trim();
+          return uuidRe.test(s) ? s : null;
+        };
+        const langName = { german:'de', french:'fr', italian:'it', english:'en', arabic:'ar', de:'de', fr:'fr', it:'it', en:'en', ar:'ar' };
+        const langCodes = (value) => {
+          const raw = Array.isArray(value) ? value : String(value || '').split(/[,|]/);
+          const out = [];
+          raw.forEach((entry) => {
+            const token = String(entry || '').trim().toLowerCase();
+            const code = langName[token] || '';
+            if (code && out.indexOf(code) === -1) out.push(code);
+          });
+          return out;
+        };
+        const classId = uuidOrNull(rec.vehicleClassId);
+        const keptVehicle = uuidOrNull(rec.defaultVehicleId);
+        const legacyVehicle = uuidOrNull(rec.vehicle);
+        const vehicleId = keptVehicle || (legacyVehicle && legacyVehicle !== classId ? legacyVehicle : null);
         const payload = Object.assign({}, rec, {
           vehicleClassId: classId,
-          vehicleClassName: classNameById[classId] || rec.vehicleClassName || '',
+          vehicleClassName: (classId && classNameById[classId]) || rec.vehicleClassName || '',
           vehicle: vehicleId,
           defaultVehicleId: vehicleId,
+          languages: langCodes(rec.languages),
           shiftWeekdays: String(rec.weekdays || rec.shiftWeekdays || '').split(',').map((s) => Number(s.trim())).filter((n) => n >= 1 && n <= 7),
           shiftStart: rec.shiftStart || rec.start || null,
           shiftEnd: rec.shiftEnd || rec.end || null,

@@ -20,6 +20,7 @@ import {
   licenceState,
   loadChauffeur,
   loadChauffeurByEmail,
+  loadChauffeurDetailsList,
   loadChauffeurs,
   ChauffeurInputError,
   type ChauffeurInput,
@@ -264,5 +265,108 @@ describe("loadChauffeurByEmail", () => {
     );
     await loadChauffeurByEmail(env, claims, "Ada@Vamos.eu");
     expect(sqlText).toMatch(/lower\(trim\(c\.email\)\)/);
+  });
+});
+
+describe("loadChauffeurDetailsList", () => {
+  beforeEach(() => {
+    asStaff.mockReset();
+  });
+
+  function staffReturning(row: Record<string, unknown>) {
+    asStaff.mockImplementation(
+      async (_env: unknown, _claims: unknown, fn: (sql: unknown) => Promise<unknown>) => {
+        const sql = async (strings: TemplateStringsArray) => {
+          const text = strings.join(" ");
+          if (text.includes("vehicle_class_name") || text.includes("cls.name")) return [row];
+          return [];
+        };
+        return fn(sql);
+      },
+    );
+  }
+
+  it("selects the saved class name and keeps name, phone, class, and licence on the row", async () => {
+    let sqlText = "";
+    asStaff.mockImplementation(
+      async (_env: unknown, _claims: unknown, fn: (sql: unknown) => Promise<unknown>) => {
+        const sql = async (strings: TemplateStringsArray) => {
+          sqlText += strings.join(" ");
+          if (!strings.join(" ").includes("vehicle_class_name")) return [];
+          return [
+            {
+              id: "017bc319-36d4-4cae-a6d2-198a4a53087b",
+              full_name: "Koussay",
+              phone: "+971509758018",
+              email: null,
+              default_vehicle_id: null,
+              default_vehicle_plate: null,
+              vehicle_class_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+              vehicle_class_name: "Saden",
+              licence_number: "CH 459 821",
+              licence_expires_on: null,
+              languages: ["en"],
+              status: "off",
+              photo_path: null,
+              note: "",
+              active: true,
+              created_at: "2026-01-01T00:00:00.000Z",
+              updated_at: "2026-01-01T00:00:00.000Z",
+            },
+          ];
+        };
+        return fn(sql);
+      },
+    );
+    const rows = await loadChauffeurDetailsList(env, claims);
+    expect(sqlText).toMatch(/cls\.name as vehicle_class_name/);
+    expect(sqlText).toMatch(/c\.phone/);
+    expect(sqlText).toMatch(/c\.licence_number/);
+    expect(rows[0]?.fullName).toBe("Koussay");
+    expect(rows[0]?.phone).toBe("+971509758018");
+    expect(rows[0]?.vehicleClassName).toBe("Saden");
+    expect(rows[0]?.vehicleClassId).toBe("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
+    expect(rows[0]?.licenceNumber).toBe("CH 459 821");
+  });
+
+  it("does not drop a saved class when the driver returns camelCase columns", async () => {
+    staffReturning({
+      id: "c-camel",
+      fullName: "Koussay",
+      phone: "+971509758018",
+      vehicleClassId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      vehicleClassName: "Saden",
+      licenceNumber: "CH 459 821",
+      status: "off",
+      languages: ["en"],
+      note: "",
+      active: true,
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+    });
+    const rows = await loadChauffeurDetailsList(env, claims);
+    expect(rows[0]?.vehicleClassName).toBe("Saden");
+    expect(rows[0]?.phone).toBe("+971509758018");
+    expect(rows[0]?.licenceNumber).toBe("CH 459 821");
+  });
+
+  it("leaves the class empty when none is saved", async () => {
+    staffReturning({
+      id: "c-empty",
+      full_name: "Koussay",
+      phone: "+971509758018",
+      vehicle_class_id: null,
+      vehicle_class_name: null,
+      licence_number: "CH 459 821",
+      status: "off",
+      languages: [],
+      note: "",
+      active: true,
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+    });
+    const rows = await loadChauffeurDetailsList(env, claims);
+    expect(rows[0]?.vehicleClassName).toBeNull();
+    expect(rows[0]?.vehicleClassId).toBeNull();
   });
 });

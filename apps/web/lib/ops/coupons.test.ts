@@ -17,11 +17,13 @@ import {
   couponIdFromRequest,
   couponInputFromDc,
   CouponInputError,
+  couponTableStatus,
+  couponUseAmounts,
   loadCouponRedemptions,
   loadCoupons,
   toDcCoupon,
+  usesForCoupon,
   validFromOnCreate,
-  couponUseAmounts,
 } from "./coupons";
 
 const claims: VamosClaims = {
@@ -103,6 +105,41 @@ describe("loadCoupons", () => {
     expect(rows[0]?.amountRappen).toBeNull();
     expect(rows[0]?.percent).toBe(10);
   });
+
+  it("uses the unreleased redemption count, not a hardcoded 10", async () => {
+    let calls = 0;
+    asStaff.mockImplementation(async (_env: unknown, _claims: unknown, fn: (sql: unknown) => Promise<unknown>) => {
+      const sql = async () => {
+        calls += 1;
+        if (calls === 1) {
+          return [{
+            id: 7,
+            code: "FULL",
+            kind: "percent",
+            percent: "10.00",
+            amount_rappen: null,
+            valid_from: null,
+            valid_until: null,
+            global_limit: 4,
+            per_user_limit: null,
+            active: true,
+            note: "",
+            created_at: "2026-08-01T00:00:00.000Z",
+          }];
+        }
+        return [{ coupon_id: 7, code: "FULL", version_status: "live", uses: 4 }];
+      };
+      return fn(sql);
+    });
+
+    const rows = await loadCoupons(env, claims);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.uses).toBe(4);
+    const dc = toDcCoupon(rows[0]!);
+    expect(dc.cap).toBe(4);
+    expect(couponTableStatus({ active: dc.active, uses: dc.uses, limit: dc.cap })).toBe("used");
+    expect(couponTableStatus({ active: dc.active, uses: dc.uses, limit: dc.cap })).not.toBe("live");
+  });
 });
 
 describe("toDcCoupon", () => {
@@ -124,6 +161,40 @@ describe("toDcCoupon", () => {
     expect(dc.value).toBe("50");
     expect(dc.uses).toBe(0);
     expect(dc.limit).toBe(1);
+  });
+
+  it("keeps a real redemption count instead of a hardcoded zero", () => {
+    const dc = toDcCoupon({
+      id: 9,
+      code: "WELCOME",
+      kind: "percent",
+      percent: 10,
+      amountRappen: null,
+      validFrom: null,
+      validUntil: null,
+      globalLimit: 10,
+      perUserLimit: null,
+      active: true,
+      note: "",
+      createdAt: "2026-08-01T00:00:00.000Z",
+      uses: 10,
+    });
+    expect(dc.uses).toBe(10);
+    expect(dc.limit).toBe(10);
+    expect(dc.cap).toBe(10);
+    expect(couponTableStatus({ active: dc.active, uses: dc.uses, limit: dc.cap })).toBe("used");
+    expect(couponTableStatus({ active: true, uses: dc.uses, limit: dc.cap })).not.toBe("live");
+  });
+
+  it("stays live when uses are still under the cap, and does not treat 10 as magic", () => {
+    expect(couponTableStatus({ active: true, uses: 9, limit: 10 })).toBe("live");
+    expect(couponTableStatus({ active: true, uses: 3, limit: 3 })).toBe("used");
+    expect(couponTableStatus({ active: true, uses: 4, limit: null })).toBe("live");
+    expect(usesForCoupon({ id: 9 }, [
+      { couponId: 9, code: "WELCOME", versionStatus: "live", uses: 3 },
+      { couponId: 2, code: "OTHER", versionStatus: "live", uses: 10 },
+    ])).toBe(3);
+    expect(usesForCoupon({ id: 9 }, [])).toBe(0);
   });
 
   it("ships NULL percent as 00", () => {
