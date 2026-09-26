@@ -55,11 +55,9 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-rv-title]{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-display-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);max-width:22ch;text-wrap:balance;text-align:start}
 [data-rv-grid]{display:grid;grid-template-columns:minmax(148px,220px) minmax(0,1fr);column-gap:var(--vt-space-7);row-gap:var(--vt-space-6);align-items:start}
 [data-rv-score]{display:flex;flex-direction:column;align-items:flex-start;gap:var(--vt-space-2);min-width:0;padding-block-start:var(--vt-space-2)}
-[data-rv-score-num]{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-display-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:1;font-variant-numeric:tabular-nums;color:var(--vt-text-primary)}
-[data-rv-score-stars]{display:flex;align-items:center;gap:2px}
-[data-rv-score-stars] img,[data-rv-score-star]{inline-size:20px;block-size:20px;flex:0 0 auto}
+[data-rv-score-mark]{display:block;flex:0 0 auto;block-size:var(--vt-space-9);inline-size:calc(var(--vt-space-9) * 2500 / 1163.3);max-inline-size:100%;object-fit:contain;object-position:start;background:transparent;padding:0;border:0;border-radius:0;box-shadow:none}
 [data-rv-score-cap]{margin:0;max-width:28ch;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-regular);line-height:1.45;color:var(--vt-text-secondary);text-wrap:pretty;text-align:start}
-[data-rv-cards]{display:flex;flex-flow:row nowrap;align-items:stretch;gap:var(--vt-space-4);margin:0;padding-block:var(--vt-space-2);padding-inline:0;min-width:0;max-width:100%;list-style:none;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scroll-behavior:auto;scroll-padding-inline:var(--vt-space-3);scrollbar-width:thin;scrollbar-color:var(--vt-grey-300) transparent;-webkit-overflow-scrolling:touch}
+[data-rv-cards]{display:flex;flex-flow:row nowrap;align-items:stretch;gap:var(--vt-space-4);margin:0;padding-block:var(--vt-space-2);padding-inline:0;min-width:0;max-width:100%;list-style:none;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;overscroll-behavior-y:auto;touch-action:pan-x pan-y;scroll-behavior:auto;scroll-padding-inline:var(--vt-space-3);scrollbar-width:thin;scrollbar-color:var(--vt-grey-300) transparent;-webkit-overflow-scrolling:touch}
 [data-rv-item]{display:flex;flex-grow:0;flex-shrink:0;flex-basis:min(calc(var(--vt-space-12) + var(--vt-space-12) + var(--vt-space-8)),calc(100% - var(--vt-space-7)));min-width:0;max-width:100%}
 [data-rv-card]{box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;align-self:start;justify-content:start;gap:var(--vt-space-4);width:100%;min-width:0;height:auto;flex:0 1 auto;padding:var(--vt-space-5);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-xl);background:var(--vt-bg-surface);box-shadow:none;text-align:start}
 [data-rv-mark]{display:flex;align-items:center;min-block-size:var(--vt-space-6);min-width:0;flex:0 1 auto}
@@ -112,17 +110,10 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ false }}">
 <div data-rv-grid="1">
 <div data-rv-score="1">
-<p data-rv-score-num="1" data-vt-no-i18n="1" style="display:{{ scoreShow }}">{{ scoreText }}</p>
-<span data-rv-score-stars="1" aria-hidden="true" style="display:{{ scoreShow }}">
-<img src="{{ scoreStar }}" alt="" width="20" height="20" style="opacity:{{ so1 }}">
-<img src="{{ scoreStar }}" alt="" width="20" height="20" style="opacity:{{ so2 }}">
-<img src="{{ scoreStar }}" alt="" width="20" height="20" style="opacity:{{ so3 }}">
-<img src="{{ scoreStar }}" alt="" width="20" height="20" style="opacity:{{ so4 }}">
-<img src="{{ scoreStar }}" alt="" width="20" height="20" style="opacity:{{ so5 }}">
-</span>
+<img data-rv-score-mark="1" data-vt-no-i18n="1" src="/assets/reviews/trustpilot-stacked-ink.svg" alt="Trustpilot" width="120" height="56">
 <p data-rv-score-cap="1" data-vt-no-i18n="1">{{ scoreCaption }}</p>
 </div>
-<ul data-rv-cards="1" ref="{{ rowRef }}" tabindex="0" data-scroll-native="1" data-lenis-prevent="1" aria-label="Client reviews">
+<ul data-rv-cards="1" ref="{{ rowRef }}" tabindex="0" data-scroll-native="1" aria-label="Client reviews">
 <sc-for list="{{ cards }}" as="r" hint-placeholder-count="0">
 <li data-rv-item="1">
 <article data-rv-card="1" data-rv-face="1" data-i="{{ r.i1 }}">
@@ -193,10 +184,14 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
  * stays empty: no sample names, no sample quotes, no platform mark unless
  * that row's source is that platform. The score is the mean of published
  * ratings that are above zero. It is never a hardcoded figure.
- * The row drifts at 24px/s. Hover and focus pause independently, including
- * focus on a link inside the row. prefers-reduced-motion never starts that
- * drift; the same row still scrolls by hand. Visual copies exist only so the
- * drift can loop without a jump. They are not extra reviews.
+ * The row drifts at 24px/s once it is in view. A hover does not start or
+ * stop that drift, and a vertical page scroll passes through the row. If the
+ * visitor scrolls the row horizontally, the drift pauses until the pointer
+ * leaves. Focus inside the row also pauses it, so a keyboard user can use a
+ * link. prefers-reduced-motion never starts the drift; the same row still
+ * scrolls by hand, and a vertical page scroll still passes through. Visual
+ * copies exist only so the drift can loop without a jump. They are not extra
+ * reviews.
  */
 class Component extends DCLogic {
   state = { lang: 'en', settled: false };
@@ -258,60 +253,113 @@ class Component extends DCLogic {
     this._pos = null;
     this.stopDrift();
     if (this.ro) { this.ro.disconnect(); this.ro = null; }
+    if (this.io) { this.io.disconnect(); this.io = null; }
     if (this.mq && this.onMq) this.mq.removeEventListener('change', this.onMq);
     this.mq = null;
     this.onMq = null;
     if (el) {
-      if (this.onEnter) el.removeEventListener('pointerenter', this.onEnter);
       if (this.onLeave) el.removeEventListener('pointerleave', this.onLeave);
       if (this.onFocusIn) el.removeEventListener('focusin', this.onFocusIn);
       if (this.onFocusOut) el.removeEventListener('focusout', this.onFocusOut);
-      if (this.onDown) el.removeEventListener('pointerdown', this.onDown);
+      if (this.onWheel) el.removeEventListener('wheel', this.onWheel);
+      if (this.onScroll) el.removeEventListener('scroll', this.onScroll);
       this.clearClones(el);
     }
     if (this.onUp) {
       window.removeEventListener('pointerup', this.onUp);
       window.removeEventListener('pointercancel', this.onUp);
     }
-    this.hover = false;
+    this.hand = false;
     this.focus = false;
-    this.drag = false;
+    this.inView = false;
   }
   bindRow(el) {
-    this.hover = false;
+    this.hand = false;
     this.focus = false;
-    this.drag = false;
+    this.inView = false;
     this.loop = 0;
-    this.onEnter = (e) => { if (e.pointerType !== 'touch') this.hover = true; };
-    this.onLeave = () => { this.hover = false; };
+    this.onLeave = () => { this.hand = false; this.kick(); };
     this.onFocusIn = () => { this.focus = true; };
-    this.onFocusOut = (e) => { if (!el.contains(e.relatedTarget)) this.focus = false; };
-    this.onDown = () => { this.drag = true; };
-    this.onUp = () => { this.drag = false; };
-    el.addEventListener('pointerenter', this.onEnter);
+    this.onFocusOut = (e) => {
+      if (!el.contains(e.relatedTarget)) { this.focus = false; this.kick(); }
+    };
+    this.onUp = (e) => {
+      if (e.pointerType === 'touch') { this.hand = false; this.kick(); }
+    };
+    this.onWheel = (e) => this.onRowWheel(e);
+    this.onScroll = () => this.onRowScroll();
     el.addEventListener('pointerleave', this.onLeave);
     el.addEventListener('focusin', this.onFocusIn);
     el.addEventListener('focusout', this.onFocusOut);
-    el.addEventListener('pointerdown', this.onDown);
+    el.addEventListener('wheel', this.onWheel, { passive: false });
+    el.addEventListener('scroll', this.onScroll, { passive: true });
     window.addEventListener('pointerup', this.onUp);
     window.addEventListener('pointercancel', this.onUp);
     this.mq = matchMedia('(prefers-reduced-motion: reduce)');
     this.onMq = () => { this.syncClones(); this.kick(); };
     this.mq.addEventListener('change', this.onMq);
+    const box = el.getBoundingClientRect();
+    this.inView = box.bottom > 0 && box.top < window.innerHeight && box.width > 0;
+    this.io = new IntersectionObserver((entries) => {
+      const hit = entries.some((en) => en.isIntersecting);
+      this.inView = hit;
+      if (!hit && el && !el.matches(':hover')) this.hand = false;
+      if (hit) this.kick();
+    }, { threshold: 0 });
+    this.io.observe(el);
     this.ro = new ResizeObserver(() => this.syncClones());
     this.ro.observe(el);
     this.syncClones();
     this.kick();
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => this.syncClones());
   }
+  onRowWheel(e) {
+    let dx = e.deltaX;
+    let dy = e.deltaY;
+    if (e.deltaMode === 1) { dx *= 16; dy *= 16; }
+    else if (e.deltaMode === 2) { dx *= window.innerHeight; dy *= window.innerHeight; }
+    const ax = Math.abs(dx);
+    const ay = Math.abs(dy);
+    const horizontal = e.shiftKey || ax > ay;
+    if (!horizontal) {
+      /* Cancel the row's default action so overflow-x cannot swallow a
+         vertical wheel. Do not stopPropagation: Lenis still scrolls the page.
+         When Lenis is off, move the page ourselves. */
+      if (e.cancelable) e.preventDefault();
+      if (!window.__vtLenis) window.scrollBy(0, dy);
+      return;
+    }
+    this.hand = true;
+    if (!(e.shiftKey && ax <= ay)) return;
+    if (e.cancelable) e.preventDefault();
+    e.stopPropagation();
+    this.nudge(dy);
+  }
+  onRowScroll() {
+    if (this._writing) return;
+    const el = this.row;
+    if (!el) return;
+    if (this._pos != null && Math.abs(this.readX(el) - this._pos) < 1.5) return;
+    this.hand = true;
+  }
+  nudge(px) {
+    const el = this.row;
+    if (!el || !px) return;
+    const next = this.readX(el) + px;
+    this._writing = true;
+    if (this.loop > 1) this.writeX(el, next);
+    else el.scrollLeft += px;
+    this._writing = false;
+    this._pos = null;
+  }
   paused() {
     const el = this.row;
     const active = typeof document !== 'undefined' ? document.activeElement : null;
     const focused = this.focus || !!(el && active && el.contains(active));
-    return !!(this.hover || focused || this.drag || this.reduceMotion() || !(this.loop > 1));
+    return !!(this.hand || focused || this.reduceMotion() || !this.inView || !(this.loop > 1));
   }
   kick() {
-    if (this.raf || !this.row || this.reduceMotion()) return;
+    if (this.raf || !this.row || this.reduceMotion() || !this.inView) return;
     this.last = 0;
     this.raf = requestAnimationFrame((t) => this.tick(t));
   }
@@ -322,17 +370,16 @@ class Component extends DCLogic {
   }
   tick(ts) {
     this.raf = 0;
-    if (!this.row) return;
-    if (this.reduceMotion()) return;
-    if (!this.paused()) {
-      if (!this.last) this.last = ts;
-      const dt = Math.min(0.05, (ts - this.last) / 1000);
-      this.last = ts;
-      this.advance(this.PX_PER_SEC * dt);
-    } else {
+    if (!this.row || this.reduceMotion() || !this.inView) return;
+    if (this.paused()) {
       this.last = 0;
       this._pos = null;
+      return;
     }
+    if (!this.last) this.last = ts;
+    const dt = Math.min(0.05, (ts - this.last) / 1000);
+    this.last = ts;
+    this.advance(this.PX_PER_SEC * dt);
     this.raf = requestAnimationFrame((t) => this.tick(t));
   }
   originals(el) {
@@ -411,12 +458,16 @@ class Component extends DCLogic {
     const loop = this.loop;
     if (!(loop > 1)) return;
     const n = ((x % loop) + loop) % loop;
-    if (getComputedStyle(el).direction !== 'rtl') { el.scrollLeft = n; return; }
-    const max = Math.max(0, el.scrollWidth - el.clientWidth);
-    const kind = this.rtlKind();
-    if (kind === 'negative') el.scrollLeft = -n;
-    else if (kind === 'reverse') el.scrollLeft = Math.max(0, max - n);
-    else el.scrollLeft = n;
+    this._writing = true;
+    if (getComputedStyle(el).direction !== 'rtl') el.scrollLeft = n;
+    else {
+      const max = Math.max(0, el.scrollWidth - el.clientWidth);
+      const kind = this.rtlKind();
+      if (kind === 'negative') el.scrollLeft = -n;
+      else if (kind === 'reverse') el.scrollLeft = Math.max(0, max - n);
+      else el.scrollLeft = n;
+    }
+    this._writing = false;
   }
   advance(px) {
     const el = this.row;
