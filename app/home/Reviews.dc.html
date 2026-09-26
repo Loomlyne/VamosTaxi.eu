@@ -57,7 +57,8 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-rv-score]{display:flex;flex-direction:column;align-items:flex-start;gap:var(--vt-space-2);min-width:0;padding-block-start:var(--vt-space-2)}
 [data-rv-score-mark]{display:block;flex:0 0 auto;block-size:var(--vt-space-9);inline-size:calc(var(--vt-space-9) * 2500 / 1163.3);max-inline-size:100%;object-fit:contain;object-position:start;background:transparent;padding:0;border:0;border-radius:0;box-shadow:none}
 [data-rv-score-cap]{margin:0;max-width:28ch;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-regular);line-height:1.45;color:var(--vt-text-secondary);text-wrap:pretty;text-align:start}
-[data-rv-cards]{display:flex;flex-flow:row nowrap;align-items:stretch;gap:var(--vt-space-4);margin:0;padding-block:var(--vt-space-2);padding-inline:0;min-width:0;max-width:100%;list-style:none;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;overscroll-behavior-y:auto;touch-action:pan-x pan-y;scroll-behavior:auto;scroll-padding-inline:var(--vt-space-3);scrollbar-width:thin;scrollbar-color:var(--vt-grey-300) transparent;-webkit-overflow-scrolling:touch}
+[data-rv-cards]{display:flex;flex-flow:row nowrap;align-items:stretch;gap:var(--vt-space-4);margin:0;padding-block:var(--vt-space-2);padding-inline:0;min-width:0;max-width:100%;list-style:none;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;overscroll-behavior-y:auto;touch-action:pan-x pan-y;scroll-behavior:auto;scroll-padding-inline:var(--vt-space-3);scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch}
+[data-rv-cards]::-webkit-scrollbar{display:none;width:0;height:0}
 [data-rv-item]{display:flex;flex-grow:0;flex-shrink:0;flex-basis:min(calc(var(--vt-space-12) + var(--vt-space-12) + var(--vt-space-8)),calc(100% - var(--vt-space-7)));min-width:0;max-width:100%}
 [data-rv-card]{box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;align-self:start;justify-content:start;gap:var(--vt-space-4);width:100%;min-width:0;height:auto;flex:0 1 auto;padding:var(--vt-space-5);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-xl);background:var(--vt-bg-surface);box-shadow:none;text-align:start}
 [data-rv-mark]{display:flex;align-items:center;min-block-size:var(--vt-space-6);min-width:0;flex:0 1 auto}
@@ -303,7 +304,7 @@ class Component extends DCLogic {
     this.io = new IntersectionObserver((entries) => {
       const hit = entries.some((en) => en.isIntersecting);
       this.inView = hit;
-      if (!hit && el && !el.matches(':hover')) this.hand = false;
+      if (!hit) this.hand = false;
       if (hit) this.kick();
     }, { threshold: 0 });
     this.io.observe(el);
@@ -322,24 +323,28 @@ class Component extends DCLogic {
     const ay = Math.abs(dy);
     const horizontal = e.shiftKey || ax > ay;
     if (!horizontal) {
-      /* Cancel the row's default action so overflow-x cannot swallow a
-         vertical wheel. Do not stopPropagation: Lenis still scrolls the page.
-         When Lenis is off, move the page ourselves. */
+      /* Keep page scroll free while the cursor sits on the strip. */
       if (e.cancelable) e.preventDefault();
       if (!window.__vtLenis) window.scrollBy(0, dy);
       return;
     }
+    /* Horizontal only: faster than native, then resume autoplay on pointerleave. */
     this.hand = true;
-    if (!(e.shiftKey && ax <= ay)) return;
     if (e.cancelable) e.preventDefault();
     e.stopPropagation();
-    this.nudge(dy);
+    const delta = e.shiftKey && ax <= ay ? dy : dx;
+    this.nudge(delta * 2.4);
   }
   onRowScroll() {
     if (this._writing) return;
     const el = this.row;
     if (!el) return;
-    if (this._pos != null && Math.abs(this.readX(el) - this._pos) < 1.5) return;
+    const x = this.readX(el);
+    if (this._pos != null && Math.abs(x - this._pos) < 2.5) {
+      this._pos = x;
+      return;
+    }
+    /* User drag / trackpad only — autoplay writeX marks _writing so it never lands here. */
     this.hand = true;
   }
   nudge(px) {
@@ -467,6 +472,7 @@ class Component extends DCLogic {
       else if (kind === 'reverse') el.scrollLeft = Math.max(0, max - n);
       else el.scrollLeft = n;
     }
+    this._pos = this.readX(el);
     this._writing = false;
   }
   advance(px) {

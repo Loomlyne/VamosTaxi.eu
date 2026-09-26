@@ -259,10 +259,14 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 
 
 
-<div dir="{{ dir }}" data-hero="1" data-screen-label="Hero" style="position: relative; background: url(&quot;/photos/site/hero-night-fleet.jpg&quot;) center / cover no-repeat; box-shadow: var(--vt-shadow-xl)" data-om-label="Hero section">
-
-<div aria-hidden="true" style="position:absolute;inset:0;overflow:hidden;pointer-events:none"><div aria-hidden="true" style="position:absolute;top:-40px;inset-inline-end:-40px;width:clamp(240px,62vw,620px);height:clamp(240px,62vw,620px);background-image:conic-gradient(from 90deg at 50% 50%, var(--vt-yellow) 0 25%, transparent 0 50%, var(--vt-yellow) 0 75%, transparent 0);background-size:clamp(46px,9.6vw,96px) clamp(46px,9.6vw,96px);opacity:.16;-webkit-mask-image:radial-gradient(72% 72% at 100% 0%, #000 0%, rgb(0 0 0/.35) 46%, transparent 74%);mask-image:radial-gradient(72% 72% at 100% 0%, #000 0%, rgb(0 0 0/.35) 46%, transparent 74%)" data-om-label="Element"></div></div>
-<div aria-hidden="true" style="position:absolute;inset:0;background:linear-gradient(to bottom, rgb(20 21 21/.34) 0%, rgb(20 21 21/.12) 24%, rgb(20 21 21/.82) 100%)"></div>
+<div dir="{{ dir }}" data-hero="1" data-hero-mode="{{ mode }}" data-screen-label="Hero" style="position: relative; background: var(--vt-charcoal-900); box-shadow: var(--vt-shadow-xl)" data-om-label="Hero section">
+<div aria-hidden="true" data-hero-slides="1">
+<span data-hero-slide="1" data-mode="point" data-on="{{ heroPointOn }}" style="background-image:url(&quot;/photos/site/hero-oneway.jpg&quot;)"></span>
+<span data-hero-slide="1" data-mode="one-way" data-on="{{ heroAirportOn }}" style="background-image:url(&quot;/photos/site/hero-airport.jpg&quot;)"></span>
+<span data-hero-slide="1" data-mode="fixed" data-on="{{ heroCityOn }}" style="background-image:url(&quot;/photos/site/hero-city.jpg&quot;)"></span>
+</div>
+<div aria-hidden="true" style="position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:1"><div aria-hidden="true" style="position:absolute;top:-40px;inset-inline-end:-40px;width:clamp(240px,62vw,620px);height:clamp(240px,62vw,620px);background-image:conic-gradient(from 90deg at 50% 50%, var(--vt-yellow) 0 25%, transparent 0 50%, var(--vt-yellow) 0 75%, transparent 0);background-size:clamp(46px,9.6vw,96px) clamp(46px,9.6vw,96px);opacity:.16;-webkit-mask-image:radial-gradient(72% 72% at 100% 0%, #000 0%, rgb(0 0 0/.35) 46%, transparent 74%);mask-image:radial-gradient(72% 72% at 100% 0%, #000 0%, rgb(0 0 0/.35) 46%, transparent 74%)" data-om-label="Element"></div></div>
+<div aria-hidden="true" style="position:absolute;inset:0;z-index:1;background:linear-gradient(to bottom, rgb(20 21 21/.34) 0%, rgb(20 21 21/.12) 24%, rgb(20 21 21/.82) 100%)"></div>
 
 
 <div data-hero-inner="1" style="position: relative; padding: 0 clamp(16px,4.5vw,40px) clamp(26px,4.5vw,40px); display: flex; flex-direction: column; box-sizing: border-box; max-width: 1440px; margin: 0 auto">

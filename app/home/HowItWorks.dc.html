@@ -80,13 +80,25 @@ a{color:inherit;text-decoration:none;border-bottom:0}
 }
 [data-hiw-kicker]{
   margin:0;
+  display:inline-flex;
+  align-self:flex-start;
+  align-items:center;
+  gap:9px;
+  box-sizing:border-box;
+  min-block-size:32px;
+  padding-block:0;
+  padding-inline:12px 15px;
+  border:1px solid var(--vt-border-subtle);
+  border-radius:var(--vt-radius-pill);
+  background:var(--vt-bg-surface);
   font-family:var(--vt-font-body);
-  font-size:var(--vt-label-md);
-  font-weight:var(--vt-label-weight);
+  font-size:12px;
+  font-weight:var(--vt-weight-semibold);
   letter-spacing:var(--vt-label-tracking);
   text-transform:uppercase;
-  line-height:1.2;
-  color:var(--s-mut);
+  line-height:1;
+  white-space:nowrap;
+  color:var(--vt-charcoal-900);
 }
 [data-dest] [data-dest-kicker]{
   margin:0;
@@ -1361,19 +1373,19 @@ const T = {
 };
 /* Served airports plus places already named in the product. No extra catalog. */
 const PLACES = [
-  { id: 'zrh', kind: 'airport', code: 'ZRH', name: 'Zurich Airport (ZRH)', href: '/#book', lead: true },
-  { id: 'gva', kind: 'airport', code: 'GVA', name: 'Geneva Airport (GVA)', href: '/#book' },
-  { id: 'bsl', kind: 'airport', code: 'BSL', name: 'Basel EuroAirport (BSL)', href: '/#book' },
-  { id: 'zurich', kind: 'city', code: '', name: 'Zurich', href: '/#book' },
-  { id: 'geneva', kind: 'city', code: '', name: 'Geneva', href: '/#book' },
-  { id: 'basel', kind: 'city', code: '', name: 'Basel', href: '/#book' },
-  { id: 'bern', kind: 'city', code: '', name: 'Bern', href: '/#book' },
-  { id: 'lucerne', kind: 'city', code: '', name: 'Lucerne', href: '/#book' },
-  { id: 'lausanne', kind: 'city', code: '', name: 'Lausanne', href: '/#book' },
-  { id: 'interlaken', kind: 'city', code: '', name: 'Interlaken', href: '/#book' },
-  { id: 'zermatt', kind: 'city', code: '', name: 'Zermatt', href: '/#book' },
-  { id: 'stmoritz', kind: 'city', code: '', name: 'St. Moritz', href: '/#book' },
-  { id: 'davos', kind: 'city', code: '', name: 'Davos', href: '/#book' },
+  { id: 'zrh', kind: 'airport', code: 'ZRH', name: 'Zurich Airport (ZRH)', href: '/?service=airport#book', lead: true },
+  { id: 'gva', kind: 'airport', code: 'GVA', name: 'Geneva Airport (GVA)', href: '/?service=airport#book' },
+  { id: 'bsl', kind: 'airport', code: 'BSL', name: 'Basel EuroAirport (BSL)', href: '/?service=airport#book' },
+  { id: 'zurich', kind: 'city', code: '', name: 'Zurich', href: '/?service=one-way#book' },
+  { id: 'geneva', kind: 'city', code: '', name: 'Geneva', href: '/?service=one-way#book' },
+  { id: 'basel', kind: 'city', code: '', name: 'Basel', href: '/?service=one-way#book' },
+  { id: 'bern', kind: 'city', code: '', name: 'Bern', href: '/?service=one-way#book' },
+  { id: 'lucerne', kind: 'city', code: '', name: 'Lucerne', href: '/?service=one-way#book' },
+  { id: 'lausanne', kind: 'city', code: '', name: 'Lausanne', href: '/?service=one-way#book' },
+  { id: 'interlaken', kind: 'city', code: '', name: 'Interlaken', href: '/?service=one-way#book' },
+  { id: 'zermatt', kind: 'city', code: '', name: 'Zermatt', href: '/?service=one-way#book' },
+  { id: 'stmoritz', kind: 'city', code: '', name: 'St. Moritz', href: '/?service=one-way#book' },
+  { id: 'davos', kind: 'city', code: '', name: 'Davos', href: '/?service=one-way#book' },
 ];
 function readLang() {
   try {
@@ -1419,17 +1431,19 @@ class Component extends DCLogic {
     if (place.kind === 'route') return t.namedRoute;
     return t.cityPickup;
   }
-  pickDest = (e, name) => {
+  pickDest = (e, name, kind) => {
     if (e && (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || (e.button && e.button > 0))) return;
     if (e && e.preventDefault) e.preventDefault();
     const place = String(name || '').replace(/\s+/g, ' ').trim().slice(0, 200);
     if (place.length < 2) return;
+    const mode = kind === 'airport' ? 'one-way' : 'point';
     try {
-      window.dispatchEvent(new CustomEvent('vamos:dest-pick', { detail: { name: place } }));
+      window.dispatchEvent(new CustomEvent('vamos:dest-pick', { detail: { name: place, mode: mode, kind: kind || '' } }));
     } catch (err) {}
     try {
-      if (location.hash !== '#book' && history.replaceState) {
-        history.replaceState(null, '', (location.pathname || '/') + (location.search || '') + '#book');
+      const q = mode === 'one-way' ? '?service=airport' : '?service=one-way';
+      if (history.replaceState) {
+        history.replaceState(null, '', (location.pathname || '/') + q + '#book');
       }
     } catch (err) {}
     const reduce = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1449,7 +1463,7 @@ class Component extends DCLogic {
       meta: this.metaFor(place, t),
       aria: book + ', ' + place.name,
       lead: place.lead ? '1' : '0',
-      pick: (e) => this.pickDest(e, place.name),
+      pick: (e) => this.pickDest(e, place.name, place.kind),
     };
   }
   visibleTiles() {
