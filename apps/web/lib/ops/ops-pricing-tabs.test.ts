@@ -70,6 +70,11 @@ describe("OpsPricing tabs (D-11 D-12 D-17 D-25)", () => {
     const html = readFileSync(CANONICAL, "utf8");
     expect(html).not.toContain("CLASS_KEYS");
     expect(html).toContain("uniqueByClass");
+    expect(html).toContain("byClassOrder");
+    expect(html).toMatch(/kind:'photo'/);
+    expect(html).toMatch(/kind:'grip'/);
+    expect(html).toMatch(/onReorder="\{\{ reorderDistance \}\}"/);
+    expect(html).toMatch(/key:'hideFromPublic', header: t.hidePublic, width:'180px', kind:'bool'/);
     expect(html).toContain("ratedClasses");
     expect(html).not.toMatch(/key:'economy', header: t.colEconomy/);
     expect(html).not.toMatch(/key:'van', header: t.colVan/);

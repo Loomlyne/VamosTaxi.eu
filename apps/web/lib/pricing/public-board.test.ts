@@ -153,6 +153,38 @@ describe("liveBookBoard", () => {
     expect(board.map((c) => c.slug)).not.toContain("mahaha");
   });
 
+  it("follows vehicle_classes.sort_order for already-public classes and leaves inactive slugs out", () => {
+    const van = classRow({
+      slug: "mercedes-benz-v-class",
+      name: "Mercedes-Benz V-Class",
+      sort_order: 20,
+    });
+    const sclass = classRow({
+      slug: "mercedes-s-class-special",
+      name: "Mercedes S-Class Special",
+      sort_order: 10,
+    });
+    const economy = classRow({ slug: "economy", name: "Economy", sort_order: 0, active: false });
+    const business = classRow({ slug: "business", name: "Business", sort_order: 1, active: false });
+    const first = classRow({ slug: "first", name: "First", sort_order: 2, active: false });
+    const vanLegacy = classRow({ slug: "van", name: "Van", sort_order: 3, active: false });
+    const mahaha = classRow({ slug: "mahaha", name: "mahaha", sort_order: 4, active: false });
+    const board = liveBookBoard(
+      book({
+        classes: [van, economy, sclass, mahaha, business, first, vanLegacy],
+        distance_rates: [
+          rateRow({ vehicle_class_id: van.id, id: 1 }),
+          rateRow({ vehicle_class_id: sclass.id, id: 2 }),
+          rateRow({ vehicle_class_id: economy.id, id: 3 }),
+        ],
+      }),
+    );
+    expect(board.map((c) => c.slug)).toEqual([
+      "mercedes-s-class-special",
+      "mercedes-benz-v-class",
+    ]);
+  });
+
   it("does not revive a class whose fixed routes are all dark", () => {
     const economy = classRow({ slug: "economy", sort_order: 1 });
     const dark: FixedRouteRow = {

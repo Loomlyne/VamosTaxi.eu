@@ -423,6 +423,34 @@
         return upsert(merged);
       },
       upsert: function (rec) { return upsert(rec); },
+      reorder: name === "rates" ? function (order) {
+        var previous = list.slice();
+        var rank = {};
+        (order || []).forEach(function (item, i) {
+          var id = item && (item.vehicleClassId || item.id);
+          if (id) rank[String(id)] = i;
+        });
+        list = list.slice().map(function (r) {
+          var copy = {};
+          var k;
+          for (k in r) copy[k] = r[k];
+          var key = String(r.vehicleClassId || r.id || "");
+          if (rank[key] != null) copy.sortOrder = rank[key];
+          return copy;
+        });
+        emit(name);
+        return api("PUT", putPath, { kind: kind, reorder: true, order: order || [] }).then(function (json) {
+          if (json && json.ok && json.data && Array.isArray(json.data[name])) {
+            bookFetch.loaded = false;
+            bookFetch.json = null;
+            list = pickRows(json, name).map(clean);
+          } else if (!json || json.ok === false) {
+            list = previous;
+          }
+          emit(name);
+          return json || { ok: false, code: "save-failed" };
+        });
+      } : undefined,
       remove: function (id) {
         var previous = list.slice();
         var rec = null;
@@ -705,6 +733,7 @@
       klass: klass,
       name: str(r.name || klass),
       vehicleClassId: str(r.vehicleClassId),
+      vehicleClassSlug: str(r.vehicleClassSlug || r.slug),
       photo: photo,
       photoPath: photo,
       baseFare: cleanMoneySet(r.baseFare), perKm: cleanMoneySet(r.perKm), minFare: cleanMoneySet(r.minFare),
@@ -713,7 +742,8 @@
       maxPax: num(r.maxPax, 3),
       maxBags: num(r.maxBags || r.luggageCapacity, 3),
       available: r.available === false ? false : true,
-      hideFromPublic: !!r.hideFromPublic
+      hideFromPublic: !!r.hideFromPublic,
+      sortOrder: r.sortOrder == null || r.sortOrder === "" ? 0 : num(r.sortOrder, 0)
     };
   }
 

@@ -46,6 +46,11 @@
 [data-vt-table-scroll] .vt-table thead th:last-child{background:var(--vt-grey-50);z-index:3}
 [data-vt-table-scroll] .vt-table tbody tr:hover td:last-child{background:var(--vt-grey-50)}
 [data-vt-table-scroll] .vt-table tbody tr[data-selected="true"] td:last-child{background:var(--vt-grey-100)}
+[data-vt-thumb]{box-sizing:border-box;inline-size:40px;block-size:40px;border-radius:var(--vt-radius-md);border:1px solid var(--vt-border-subtle);background:var(--vt-grey-50);overflow:hidden;display:block}
+[data-vt-thumb] img{inline-size:100%;block-size:100%;object-fit:cover;display:block}
+[data-vt-grip]{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:var(--vt-radius-md);color:var(--vt-text-muted);cursor:grab}
+[data-vt-grip]:hover{background:var(--vt-grey-50);color:var(--vt-text-primary)}
+[data-vt-table-scroll] tr[data-vt-drop="1"] td,[data-vt-table-scroll] tr[data-vt-drop="1"] td:last-child{background:var(--vt-grey-100)}
 [data-vt-editor-foot]{position:sticky;bottom:0;z-index:3;display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:20px;margin-inline:-24px;padding:18px 24px var(--vt-space-6);border-top:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface)}
 [data-vt-save-err]{box-sizing:border-box;display:flex;align-items:center;gap:10px;padding:8px 14px;margin-bottom:16px;border:1px solid var(--vt-danger);border-radius:var(--vt-radius-pill);background:var(--vt-danger-tint);font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-danger)}
 [data-vt-time-wrap] input{all:unset;flex:1 1 auto;min-width:0;width:100%;font:inherit;color:inherit;background:transparent;caret-color:var(--vt-charcoal-900)}
@@ -120,7 +125,7 @@
 </sc-if>
 
 <sc-if value="{{ hasRows }}" hint-placeholder-val="{{ true }}">
-<div data-vt-table-scroll="1" data-fill="{{ tableFill }}" data-scroll-native="1" data-lenis-prevent="1">
+<div data-vt-table-scroll="1" data-fill="{{ tableFill }}" data-scroll-native="1" data-lenis-prevent="1" ref="{{ tableRef }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Table" columns="{{ tableColumns }}" rows="{{ visibleRows }}" hint-size="100%,320px"></x-import>
 </div>
 </sc-if>
@@ -558,6 +563,7 @@ class Component extends DCLogic {
   unlockScroll = () => { try { document.body.style.overflow = ''; } catch (e) {} };
   _sugPopRef = (el) => { this._sugPop = el; };
   _datePopRef = (el) => { this._datePop = el; };
+  _tableRef = (el) => { this._tableEl = el; };
   componentDidMount() {
     this._sugAway = (e) => {
       if (!this.state.sug) return;
@@ -576,6 +582,46 @@ class Component extends DCLogic {
     document.addEventListener('keydown', this._sugEsc);
     document.addEventListener('mousedown', this._dateAway);
     document.addEventListener('keydown', this._dateEsc);
+    this._onRowDragStart = (e) => {
+      if (typeof (this.props.onReorder || this.props['on-reorder']) !== 'function') return;
+      const grip = e.target && e.target.closest ? e.target.closest('[data-vt-grip]') : null;
+      if (!grip || !this._tableEl || !this._tableEl.contains(grip)) return;
+      this._dragId = grip.getAttribute('data-row-id') || '';
+      if (!this._dragId || !e.dataTransfer) return;
+      e.dataTransfer.effectAllowed = 'move';
+      try { e.dataTransfer.setData('text/plain', this._dragId); } catch (err) {}
+      const tr = grip.closest('tr');
+      if (tr && e.dataTransfer.setDragImage) e.dataTransfer.setDragImage(tr, 24, 16);
+    };
+    this._onRowDragOver = (e) => {
+      if (!this._dragId || !this._tableEl) return;
+      const tr = this._dropRow(e);
+      if (!tr) return;
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+      this._markDrop(tr);
+    };
+    this._onRowDrop = (e) => {
+      if (!this._dragId) return;
+      const from = this._dragId;
+      const tr = this._dropRow(e);
+      this._dragId = '';
+      this._markDrop(null);
+      if (!tr) return;
+      e.preventDefault();
+      const to = (tr.querySelector && tr.querySelector('[data-row-id]'))
+        ? tr.querySelector('[data-row-id]').getAttribute('data-row-id') || ''
+        : '';
+      if (to) this.commitReorder(from, to);
+    };
+    this._onRowDragEnd = () => {
+      this._dragId = '';
+      this._markDrop(null);
+    };
+    document.addEventListener('dragstart', this._onRowDragStart);
+    document.addEventListener('dragover', this._onRowDragOver);
+    document.addEventListener('drop', this._onRowDrop);
+    document.addEventListener('dragend', this._onRowDragEnd);
   }
   componentDidUpdate(prev) {
     const tick = this.props.openTick != null ? this.props.openTick : this.props['open-tick'];
@@ -596,8 +642,38 @@ class Component extends DCLogic {
     if (this._sugEsc) document.removeEventListener('keydown', this._sugEsc);
     if (this._dateAway) document.removeEventListener('mousedown', this._dateAway);
     if (this._dateEsc) document.removeEventListener('keydown', this._dateEsc);
+    if (this._onRowDragStart) document.removeEventListener('dragstart', this._onRowDragStart);
+    if (this._onRowDragOver) document.removeEventListener('dragover', this._onRowDragOver);
+    if (this._onRowDrop) document.removeEventListener('drop', this._onRowDrop);
+    if (this._onRowDragEnd) document.removeEventListener('dragend', this._onRowDragEnd);
     clearTimeout(this._geoT);
     if (this._ac) { try { this._ac.abort(); } catch (e) {} }
+  }
+  _dropRow(e) {
+    if (!this._tableEl) return null;
+    const el = e && e.target;
+    const tr = el && el.closest ? el.closest('tr') : null;
+    if (!tr || !this._tableEl.contains(tr)) return null;
+    if (tr.parentElement && String(tr.parentElement.tagName || '').toUpperCase() === 'THEAD') return null;
+    return tr;
+  }
+  _markDrop(tr) {
+    if (!this._tableEl) return;
+    const rows = this._tableEl.querySelectorAll('tr[data-vt-drop]');
+    for (let i = 0; i < rows.length; i++) rows[i].removeAttribute('data-vt-drop');
+    if (tr) tr.setAttribute('data-vt-drop', '1');
+  }
+  commitReorder(fromId, toId) {
+    if (!fromId || !toId || String(fromId) === String(toId)) return;
+    if (typeof (this.props.onReorder || this.props['on-reorder']) !== 'function') return;
+    const rows = (this.props.rows || []).slice();
+    const from = rows.findIndex((r) => String(r.id) === String(fromId));
+    const to = rows.findIndex((r) => String(r.id) === String(toId));
+    if (from < 0 || to < 0) return;
+    const next = rows.slice();
+    const moved = next.splice(from, 1)[0];
+    next.splice(to, 0, moved);
+    (this.props.onReorder || this.props['on-reorder'])(next);
   }
   suggestKind(f) {
     if (f.suggest) return f.suggest;
@@ -1105,6 +1181,29 @@ class Component extends DCLogic {
   cell(col, row) {
     const DS = window.VamosTaxiDesignSystem_245af1 || {};
     const v = row[col.key];
+    if (col.kind === 'grip') {
+      const id = String(row.id || '');
+      return React.createElement('span', {
+        role: 'button',
+        tabIndex: 0,
+        'data-vt-grip': '1',
+        'data-row-id': id,
+        draggable: true,
+        'aria-label': col.label || 'Arrange',
+        title: col.label || 'Arrange',
+        onClick: (e) => { if (e && e.stopPropagation) e.stopPropagation(); },
+      }, DS.Icon ? React.createElement(DS.Icon, { name: 'grip-vertical', size: 16, color: 'currentColor' }) : null);
+    }
+    if (col.kind === 'photo') {
+      const raw = String(row.photo || row.photoPath || '');
+      const src = (!raw || raw.indexOf('data:') === 0) ? '' : (raw.charAt(0) === '/' || raw.indexOf('http://') === 0 || raw.indexOf('https://') === 0 ? raw : '/photos/' + raw);
+      return React.createElement('span', { 'data-vt-thumb': '1', 'aria-hidden': 'true' },
+        src ? React.createElement('img', {
+          src: src,
+          alt: '',
+          onError: (e) => { if (e && e.currentTarget && e.currentTarget.remove) e.currentTarget.remove(); },
+        }) : null);
+    }
     if (col.kind === 'stack') return this.stack(v, row[col.subKey], col.mono);
     if (col.kind === 'mono') return this.stack(v, '', true);
     if (col.kind === 'money') {
@@ -1405,7 +1504,7 @@ class Component extends DCLogic {
       noMatchBody: this.props.noMatchBody || 'Try a shorter search, or clear it to see everything again.',
       emptyTitle: this.props.emptyTitle || 'Nothing here yet',
       emptyBody: this.props.emptyBody || 'Add the first one and it appears in this table.',
-      tableColumns, tableFill, visibleRows: visible,
+      tableColumns, tableFill, visibleRows: visible, tableRef: this._tableRef,
       startAdd: this.startAdd,
       editorOpen: !!this.state.draft,
       editorTitle: this.state.isNew ? (this.props.addTitle || 'Add') : (this.props.editTitle || 'Edit'),
