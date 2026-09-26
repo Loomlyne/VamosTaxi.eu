@@ -21,6 +21,7 @@ import {
   loadCoupons,
   toDcCoupon,
   validFromOnCreate,
+  couponUseAmounts,
 } from "./coupons";
 
 const claims: VamosClaims = {
@@ -263,6 +264,11 @@ describe("loadCouponRedemptions", () => {
             redeemed_at: "2026-09-14T10:00:00.000Z",
             booking_id: "11111111-1111-4111-8111-111111111111",
             reference: "VT-1001",
+            email: "guest@example.test",
+            subtotal_rappen: 10000,
+            surcharges_rappen: 2000,
+            discount_rappen: 1200,
+            total_rappen: 10800,
           },
         ],
         { raw: async () => [] },
@@ -277,7 +283,59 @@ describe("loadCouponRedemptions", () => {
         redeemedAt: "2026-09-14T10:00:00.000Z",
         bookingId: "11111111-1111-4111-8111-111111111111",
         reference: "VT-1001",
+        email: "guest@example.test",
+        beforeRappen: 12000,
+        afterRappen: 10800,
       },
     ]);
+  });
+
+  it("leaves before/after null when snapshot columns are missing", async () => {
+    asStaff.mockImplementation(async (_env: unknown, _claims: unknown, fn: (sql: unknown) => Promise<unknown>) => {
+      const sql = Object.assign(
+        async () => [
+          {
+            coupon_id: 2,
+            code: "SAVE10",
+            redeemed_at: "2026-09-14T10:00:00.000Z",
+            booking_id: "11111111-1111-4111-8111-111111111111",
+            reference: "VT-1001",
+            email: null,
+            subtotal_rappen: null,
+            surcharges_rappen: null,
+            discount_rappen: null,
+            total_rappen: null,
+          },
+        ],
+        { raw: async () => [] },
+      );
+      return fn(sql);
+    });
+
+    await expect(loadCouponRedemptions(env, claims)).resolves.toEqual([
+      {
+        couponId: 2,
+        code: "SAVE10",
+        redeemedAt: "2026-09-14T10:00:00.000Z",
+        bookingId: "11111111-1111-4111-8111-111111111111",
+        reference: "VT-1001",
+        email: "",
+        beforeRappen: null,
+        afterRappen: null,
+      },
+    ]);
+  });
+});
+
+describe("couponUseAmounts", () => {
+  it("does not invent a before figure when the stored identity is broken", () => {
+    expect(
+      couponUseAmounts({
+        subtotal_rappen: 10000,
+        surcharges_rappen: 2000,
+        discount_rappen: 500,
+        total_rappen: 10800,
+      }),
+    ).toEqual({ beforeRappen: null, afterRappen: 10800 });
   });
 });

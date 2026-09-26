@@ -9,10 +9,11 @@ export type CheckoutExtraJson = {
   amount_rappen: number | null;
   percent: number | string | null;
   toggle: boolean;
+  /** Already on the quote total. Checkout must not add it again. */
+  pricedInQuote?: boolean;
 };
 
 export type ExtraUi = {
-  icon: "baby" | "user" | "luggage" | "map-pin" | "snowflake" | "clock";
   labelKey:
     | "childSeat"
     | "meetGreet"
@@ -28,23 +29,18 @@ export const FREE_WAIT_CODE = "free_wait";
 export const MEET_GREET_CODE = "meet_greet";
 
 const EXTRA_UI: Record<string, ExtraUi> = {
-  child_seat: { icon: "baby", labelKey: "childSeat", toggle: true },
-  meet_greet: { icon: "user", labelKey: "meetGreet", toggle: false },
-  free_wait: { icon: "clock", labelKey: "freeWait", toggle: false },
-  extra_stop: { icon: "map-pin", labelKey: "additional-stop-2", toggle: true },
-  oversized_luggage: { icon: "luggage", labelKey: "extraOversized", toggle: true },
-  ski: { icon: "snowflake", labelKey: "extraSki", toggle: true },
-  ski_rack: { icon: "snowflake", labelKey: "extraSki", toggle: true },
-  pet: { icon: "user", labelKey: "extraPet", toggle: true },
+  child_seat: { labelKey: "childSeat", toggle: true },
+  meet_greet: { labelKey: "meetGreet", toggle: false },
+  free_wait: { labelKey: "freeWait", toggle: false },
+  extra_stop: { labelKey: "additional-stop-2", toggle: true },
+  oversized_luggage: { labelKey: "extraOversized", toggle: true },
+  ski: { labelKey: "extraSki", toggle: true },
+  ski_rack: { labelKey: "extraSki", toggle: true },
+  pet: { labelKey: "extraPet", toggle: true },
 };
 
 export function extraUi(code: string): ExtraUi | null {
   return EXTRA_UI[code] ?? EXTRA_UI[normalizeSurchargeCode(code)] ?? null;
-}
-
-/** Unknown extra-chip slugs reuse an Icon from this set — never a new SVG. */
-export function extraChipIcon(code: string): ExtraUi["icon"] {
-  return extraUi(code)?.icon ?? "user";
 }
 
 export type ExtraToggles = {
@@ -96,7 +92,6 @@ export function extraIsOnForStep(
 export type RecapExtraLine = {
   code: string;
   labelKey: ExtraUi["labelKey"] | null;
-  icon: ExtraUi["icon"];
 };
 
 export type RecapExtraFare = RecapExtraLine & {
@@ -133,11 +128,12 @@ export function extraFaresOn(
   on: (code: string) => boolean,
 ): SnapshotExtraFare[] {
   const out: SnapshotExtraFare[] = [];
-  for (const row of recapExtraFares(catalog, on)) {
+  for (const row of catalog) {
+    if (!on(row.code)) continue;
+    if (row.pricedInQuote) continue;
     if (isWaitingPayableCode(row.code) || row.code === FREE_WAIT_CODE) continue;
-    if (row.amount_rappen == null || !Number.isFinite(row.amount_rappen) || row.amount_rappen <= 0) {
-      continue;
-    }
+    if (isExtraStopCode(row.code)) continue;
+    if (row.kind !== "amount" || row.amount_rappen == null || row.amount_rappen < 1) continue;
     out.push({ code: row.code, amount_rappen: row.amount_rappen });
   }
   return out;
@@ -170,7 +166,6 @@ export function recapExtraFares(
     out.push({
       code: row.code,
       labelKey: ui?.labelKey ?? null,
-      icon: extraChipIcon(row.code),
       amount_rappen: isExtraStopCode(row.code)
         ? null
         : row.kind === "amount"
@@ -186,7 +181,7 @@ export function recapExtras(
   catalog: CheckoutExtraJson[],
   on: (code: string) => boolean,
 ): RecapExtraLine[] {
-  return recapExtraFares(catalog, on).map(({ code, labelKey, icon }) => ({ code, labelKey, icon }));
+  return recapExtraFares(catalog, on).map(({ code, labelKey }) => ({ code, labelKey }));
 }
 
 /** Catalog extras the lock does not already pin — never invent a CHF. */
@@ -200,7 +195,8 @@ export function extraRappenOutsideLock(
     if (!on(row.code)) continue;
     if (isExtraStopCode(row.code)) continue;
     if (isWaitingPayableCode(row.code) || row.code === FREE_WAIT_CODE) continue;
-    if (row.kind !== "amount" || row.amount_rappen == null) continue;
+    if (row.pricedInQuote) continue;
+    if (row.kind !== "amount" || row.amount_rappen == null || row.amount_rappen < 1) continue;
     if (lockHasExtra(extras, row.code)) continue;
     add += row.amount_rappen;
   }
@@ -213,7 +209,17 @@ type SurchargeLike = {
   amount_rappen: number | null;
   percent: number | string | null;
   active: boolean;
+  quantity_source?: string | null;
+  predicate?: { kind?: string } | null;
 };
+
+/** Always-on amount rows are already in the quote. Do not charge them twice at checkout. */
+function pricedOnQuote(row: SurchargeLike): boolean {
+  if (row.kind !== "amount") return false;
+  if (row.amount_rappen == null || row.amount_rappen < 1) return false;
+  if (row.quantity_source) return false;
+  return row.predicate?.kind === "always";
+}
 
 /** Public extra-stop cap is hardcoded 1 (D-21). The live-book column is ignored. */
 export function publishedMaxExtraStops(_value?: unknown): number {
@@ -238,12 +244,17 @@ export function catalogFromSurcharges(rows: SurchargeLike[]): CheckoutExtraJson[
     if (!row.active) continue;
     if (!isPassengerExtra(row.code)) continue;
     const ui = extraUi(row.code);
+    const free =
+      !isExtraStopCode(row.code) &&
+      (row.kind === "included" || row.amount_rappen === 0);
+    const inQuote = pricedOnQuote(row);
     out.push({
       code: row.code,
-      kind: row.kind,
-      amount_rappen: isExtraStopCode(row.code) ? null : row.amount_rappen,
+      kind: free ? "included" : row.kind,
+      amount_rappen: isExtraStopCode(row.code) || free ? null : row.amount_rappen,
       percent: row.percent,
-      toggle: row.kind === "included" ? false : (ui?.toggle ?? true),
+      toggle: free || inQuote ? false : (ui?.toggle ?? true),
+      ...(inQuote ? { pricedInQuote: true } : {}),
     });
   }
   return out;

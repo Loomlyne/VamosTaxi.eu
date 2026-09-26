@@ -95,6 +95,7 @@ export type VehicleClassRef = {
   name?: string | null;
   photoPath?: string | null;
   luggageCapacity?: number | null;
+  sortOrder?: number;
 };
 
 export type RateBook = {
@@ -423,6 +424,7 @@ type ClassSqlRow = {
   name?: string | null;
   photo_path?: string | null;
   luggage_capacity?: number | null;
+  sort_order?: number | null;
 };
 
 type ZoneSqlRow = {
@@ -468,7 +470,7 @@ export async function loadRateBook(
       from public.distance_rates r
       join public.vehicle_classes vc on vc.id = r.vehicle_class_id
       where r.rate_version_id = ${versionId}
-      order by vc.slug
+      order by vc.sort_order, vc.slug
     `;
 
     const routes = await tx<RouteSqlRow[]>`
@@ -539,7 +541,7 @@ export async function loadRateBook(
     `;
 
     const classes = await tx<ClassSqlRow[]>`
-      select id, slug, name, photo_path, luggage_capacity
+      select id, slug, name, photo_path, luggage_capacity, sort_order
         from public.vehicle_classes
        order by sort_order, slug
     `;
@@ -623,6 +625,7 @@ export async function loadRateBook(
         name: typeof row.name === "string" ? row.name : null,
         photoPath: typeof row.photo_path === "string" ? row.photo_path : null,
         luggageCapacity: row.luggage_capacity == null ? null : Number(row.luggage_capacity),
+        sortOrder: row.sort_order == null ? 0 : Number(row.sort_order),
       })),
     };
   });

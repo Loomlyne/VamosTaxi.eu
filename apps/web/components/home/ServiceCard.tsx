@@ -29,6 +29,9 @@ export type ServiceCardProps = {
   shineIntensity?: number;
   proximity?: boolean;
   state?: ServiceCardState;
+  /** Optional cover photo for the portrait card. */
+  image?: string;
+  imageFocus?: string;
   /** Gallery-only: paint hover/press/focus without a live pointer. */
   preview?: ServiceCardPreview;
   children?: ReactNode;
@@ -67,11 +70,14 @@ export function ServiceCard({
   shineIntensity = 1.25,
   proximity = true,
   state = "default",
+  image,
+  imageFocus = "center",
   preview,
   children,
   className = "",
 }: ServiceCardProps) {
   const tCommon = useTranslations("common");
+  const tServices = useTranslations("services");
   const headingId = useId();
   const cardRef = useRef<HTMLElement | null>(null);
   const rafRef = useRef(0);
@@ -81,6 +87,7 @@ export function ServiceCard({
   const disabled = state === "disabled";
   const loading = state === "loading";
   const interactive = !disabled && !loading;
+  const photo = (image || "").trim();
 
   const cls = [
     "vt-svc",
@@ -97,6 +104,7 @@ export function ServiceCard({
   const shine = safeHex(shineColor);
   const style = {
     "--card-shine-i": String(shineIntensity),
+    "--svc-focus": imageFocus,
     ...(shine ? { "--card-shine": shine } : {}),
   } as CSSProperties;
 
@@ -144,6 +152,8 @@ export function ServiceCard({
       <span data-svc-media="1" aria-hidden="true">
         {loading ? (
           <span className="vt-svc-skel" />
+        ) : photo ? (
+          <img data-svc-photo="1" src={photo} alt="" />
         ) : (
           <span data-svc-glyph="1">
             <Icon name={glyph} size={44} />
@@ -155,8 +165,11 @@ export function ServiceCard({
           {loading ? <span className="vt-svc-skel vt-svc-skel--line" /> : title}
         </h3>
         <span data-svc-desc="1">{loading ? null : children}</span>
-        <span data-svc-circ="1" aria-hidden="true">
-          <Icon name="arrow-right" size={20} />
+        <span data-svc-more="1">
+          <span>{tServices("learn-more")}</span>
+          <span data-svc-circ="1" aria-hidden="true">
+            <Icon name="arrow-right" size={18} />
+          </span>
         </span>
       </span>
     </>
@@ -166,6 +179,7 @@ export function ServiceCard({
     "data-svc-card": "1",
     "data-tone": tone === "inverse" ? "charcoal" : "grey",
     "data-accent": selected ? "1" : "0",
+    "data-has-image": photo ? "1" : "0",
     "data-state": state,
     "data-preview": preview,
     className: cls,

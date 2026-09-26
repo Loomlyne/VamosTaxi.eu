@@ -878,7 +878,8 @@
     "zurich-geneva": "Zurich · Geneva",
     "form-submit-failed": "Something went wrong. Try again, or call us if it keeps happening.",
     "form-challenge-failed": "The check did not go through. Try again.",
-    "payments-luxembourg-only-if-wallet-is-switched-on": "Payments · Luxembourg — only if that extra method is switched on"
+    "payments-luxembourg-only-if-wallet-is-switched-on": "Payments · Luxembourg — only if that extra method is switched on",
+    "professional-drivers": "Professional drivers"
   },
   "contact": {
     "8953-dietikon-zh-switzerland-post-only-this-is-n": "8953 Dietikon ZH, Switzerland. Post only — this is not a passenger office.",
@@ -2443,7 +2444,11 @@
     "private": "Private",
     "private-transfers-between-swiss-cities-scheduled": "Private transfers between Swiss cities, scheduled for one exact time.",
     "three-services-one-fixed-price-each": "Three services. One fixed price each.",
-    "two-services-one-fixed-price-each": "Two services. One fixed price each."
+    "two-services-one-fixed-price-each": "Two services. One fixed price each.",
+    "core-services": "Core services",
+    "learn-more": "Learn more",
+    "professional-drivers": "Professional drivers",
+    "your-driver-is-assigned-to-your-booking-and-wai": "Your driver is assigned to your booking and waits at the curb with a name board."
   },
   "statusBadge": {
     "quote": "Quote",

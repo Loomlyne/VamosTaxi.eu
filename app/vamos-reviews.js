@@ -4,10 +4,11 @@
    GET/POST/PATCH/DELETE /api/staff/reviews. all() is [] until hydrate (D-35).
    Zero avatars is the shipping state (D-22). */
 (function () {
+  if (window.VamosReviews) return;
   var SOURCES = [
     { id: "google", label: "Google", imported: true, logo: "/assets/reviews/google.svg", star: "/assets/reviews/google-star.svg" },
     { id: "tripadvisor", label: "Tripadvisor", imported: true, logo: "/assets/reviews/tripadvisor.svg", star: "/assets/reviews/tripadvisor-star.svg" },
-    { id: "trustpilot", label: "Trustpilot", imported: true, logo: "/assets/reviews/trustpilot.svg", star: "/assets/reviews/trustpilot-star.svg" },
+    { id: "trustpilot", label: "Trustpilot", imported: true, logo: "/assets/reviews/trustpilot-stacked-ink.svg", star: "/assets/reviews/trustpilot-star.svg" },
     { id: "manual", label: "Collected by us", imported: false }
   ];
 
@@ -191,6 +192,7 @@
       hydrate();
       return list.filter(function (r) { return r.published; });
     },
+    ready: function () { return loaded; },
     get: function (id) {
       hydrate();
       for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];

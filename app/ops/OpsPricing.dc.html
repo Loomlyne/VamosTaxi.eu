@@ -128,8 +128,7 @@
 
 <sc-if value="{{ isDistance }}" hint-placeholder-val="{{ false }}">
 <div data-price-pane="1" data-price-swipe="1" data-scroll-native="1">
-<dc-import name="OpsTable" fill="1" rows="{{ distanceRows }}" columns="{{ distanceColumns }}" fields="{{ distanceFields }}" blank="{{ distanceBlank }}" onSave="{{ saveDistance }}" onDelete="{{ deleteDistance }}" noun="{{ tNounClass }}" noun-plural="{{ tNounClasses }}" add-title="{{ tAddClass }}" edit-title="{{ tEditClass }}" delete-title="{{ tDeleteClassTitle }}" label-key="klass" add-label="{{ tAddClass }}" save-label="{{ tSaveClass }}" add-save-label="{{ tAddClass }}" search-placeholder="{{ tSearchDistance }}" search-keys="{{ distanceSearchKeys }}" empty-title="{{ tEmptyClassesTitle }}" empty-body="{{ tEmptyClassesBody }}" delete-body="{{ tDeleteClassBody }}" edit-id="{{ distanceEditId }}" edit-tick="{{ distanceEditTick }}" hint-size="100%,420px"></dc-import>
-<dc-import name="OpsTable" fill="1" rows="{{ bandRows }}" columns="{{ bandColumns }}" fields="{{ bandFields }}" blank="{{ bandBlank }}" onSave="{{ saveBand }}" onDelete="{{ deleteBand }}" noun="{{ tNounBand }}" noun-plural="{{ tNounBands }}" add-title="{{ tAddBand }}" edit-title="{{ tEditBand }}" delete-title="{{ tDeleteBandTitle }}" label-key="fromKm" add-label="{{ tAddBand }}" save-label="{{ tSaveBand }}" add-save-label="{{ tAddBand }}" search-placeholder="{{ tSearchBands }}" search-keys="{{ bandSearchKeys }}" empty-title="{{ tEmptyBandsTitle }}" empty-body="{{ tEmptyBandsBody }}" delete-body="{{ tDeleteBandBody }}" hint-size="100%,280px"></dc-import>
+<dc-import name="OpsTable" fill="1" rows="{{ distanceRows }}" columns="{{ distanceColumns }}" fields="{{ distanceFields }}" blank="{{ distanceBlank }}" onSave="{{ saveDistance }}" onDelete="{{ deleteDistance }}" noun="{{ tNounClass }}" noun-plural="{{ tNounClasses }}" add-title="{{ tAddClass }}" edit-title="{{ tEditClass }}" delete-title="{{ tDeleteClassTitle }}" label-key="klass" add-label="{{ tAddClass }}" save-label="{{ tSaveClass }}" add-save-label="{{ tAddClass }}" search-placeholder="{{ tSearchDistance }}" search-keys="{{ distanceSearchKeys }}" empty-title="{{ tEmptyClassesTitle }}" empty-body="{{ tEmptyClassesBody }}" delete-body="{{ tDeleteClassBody }}" edit-id="{{ distanceEditId }}" edit-tick="{{ distanceEditTick }}" onReorder="{{ reorderDistance }}" hint-size="100%,420px"></dc-import>
 </div>
 </sc-if>
 
@@ -141,7 +140,7 @@
 
 <sc-if value="{{ isCoupons }}" hint-placeholder-val="{{ false }}">
 <div data-price-pane="1" data-price-swipe="1" data-scroll-native="1">
-<dc-import name="OpsTable" fill="1" rows="{{ couponRows }}" columns="{{ couponColumns }}" fields="{{ couponFields }}" blank="{{ couponBlank }}" onSave="{{ saveCoupon }}" onDelete="{{ deleteCoupon }}" noun="{{ tNounCoupon }}" noun-plural="{{ tNounCoupons }}" add-title="{{ tAddCoupon }}" edit-title="{{ tEditCoupon }}" delete-title="{{ tDeleteCouponTitle }}" label-key="code" add-label="{{ tAddCoupon }}" save-label="{{ tSaveCoupon }}" add-save-label="{{ tAddCoupon }}" search-placeholder="{{ tSearchCoupons }}" search-keys="{{ couponSearchKeys }}" empty-title="{{ tEmptyCouponsTitle }}" empty-body="{{ tEmptyCouponsBody }}" delete-body="{{ tDeleteCouponBody }}" hint-size="100%,420px"></dc-import>
+<dc-import name="OpsTable" fill="1" rows="{{ couponRows }}" columns="{{ couponColumns }}" fields="{{ couponFields }}" blank="{{ couponBlank }}" onSave="{{ saveCoupon }}" onDelete="{{ deleteCoupon }}" noun="{{ tNounCoupon }}" noun-plural="{{ tNounCoupons }}" add-title="{{ tAddCoupon }}" edit-title="{{ tEditCoupon }}" delete-title="{{ tDeleteCouponTitle }}" label-key="code" add-label="{{ tAddCoupon }}" save-label="{{ tSaveCoupon }}" add-save-label="{{ tAddCoupon }}" search-placeholder="{{ tSearchCoupons }}" search-keys="{{ couponSearchKeys }}" empty-title="{{ tEmptyCouponsTitle }}" empty-body="{{ tEmptyCouponsBody }}" delete-body="{{ tDeleteCouponBody }}" historyRows="{{ couponUseHistory }}" history-label="{{ tCouponUsesTitle }}" history-empty-label="{{ tCouponUsesEmpty }}" history-kind="uses" hint-size="100%,420px"></dc-import>
 <sc-if value="{{ couponUsesHas }}" hint-placeholder-val="{{ false }}">
 <div data-coupon-uses="1">
 <h2>{{ tCouponUsesTitle }}</h2>
@@ -223,14 +222,6 @@ const SURCHARGE_TYPES = [
   { value: 'meet_greet', k: 'typeMeet' },
   { value: 'free_wait', k: 'typeFreeWait' },
   { value: 'extra_wait', k: 'typeExtraWait' },
-];
-const EXTRA_ICONS = [
-  { value: 'user', k: 'iconUser' },
-  { value: 'baby', k: 'iconBaby' },
-  { value: 'luggage', k: 'iconLuggage' },
-  { value: 'map-pin', k: 'iconPin' },
-  { value: 'snowflake', k: 'iconSki' },
-  { value: 'clock', k: 'iconClock' },
 ];
 function surchargeTypeOf(code) {
   const raw = String(code || '');
@@ -327,6 +318,20 @@ function uniqueByClass(rows) {
   });
   return order.map((k) => byKey[k]);
 }
+function byClassOrder(rows) {
+  return (rows || []).slice().sort((a, b) => {
+    const sa = Number(a && a.sortOrder);
+    const sb = Number(b && b.sortOrder);
+    const na = isNaN(sa) ? 0 : sa;
+    const nb = isNaN(sb) ? 0 : sb;
+    if (na !== nb) return na - nb;
+    const ka = String((a && a.slug) || '');
+    const kb = String((b && b.slug) || '');
+    if (ka < kb) return -1;
+    if (ka > kb) return 1;
+    return 0;
+  });
+}
 const WD_EN = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const MON_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const MON_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -369,7 +374,7 @@ const T = {
     tabRoutes:'Fixed routes', tabDistance:'Distance rules', tabSurcharges:'Surcharges & extras', tabCoupons:'Coupons',
     hintRoutes:'City to city. A to B and B to A are separate.', hintDistance:'Start, per kilometre, airport start, one city price', airportStart:'Airport start', cityPrice:'City price and per kilometre', cityPairPick:'Select a city pair', hintSurcharges:'Checkout extras, wait, meet and greet', hintCoupons:'Percent or fixed CHF',
     colId:'ID', colFrom:'From', colTo:'To', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Draft',
-    colClass:'Class', colName:'Name', startFare:'Start', perKm:'Per kilometre', maxPax:'Max passengers', maxBags:'Max bags', hidePublic:'Hide from public', showPublic:'Show on public',
+    colClass:'Class', colPhoto:'Photo', arrangeClass:'Drag to arrange classes', colName:'Name', startFare:'Start', perKm:'Per kilometre', maxPax:'Max passengers', maxBags:'Max bags', hidePublic:'Hide from public', hiddenPublic:'Hidden from public', showPublic:'Show on public', shownPublic:'Shown on public',
     fPhoto:'Photo', choosePhoto:'Choose photo', clearPhoto:'Remove', hClassPhoto:'Required to Publish. Stored on R2, not on this machine.',
     colRule:'Rule', colAppliesWhen:'Applies when', colAmount:'Amount', colKind:'Kind',
     addRoute:'Add route', editRoute:'Edit route', saveRoute:'Save route', deleteRouteTitle:'Delete this route from the draft?', deleteRouteBody:'Delete this route from the draft? Public does not change until Publish.',
@@ -379,10 +384,6 @@ const T = {
     addClass:'Add class', editClass:'Edit class', saveClass:'Save class', deleteClassTitle:'Delete this class from the draft?', deleteClassBody:'Delete this class from the draft? Public does not change until Publish.',
     emptyClassesTitle:'No vehicle classes yet', emptyClassesBody:'Add a class with photo, name, start fare, per-kilometre rate, max passengers and max bags.',
     searchDistance:'Class', nounClass:'class', nounClasses:'classes',
-    fromKm:'From km', toKm:'To km', openBand:'Open',
-    addBand:'Add band', editBand:'Edit band', saveBand:'Save band', deleteBandTitle:'Delete this band from the draft?', deleteBandBody:'Delete this band from the draft? Public does not change until Publish.',
-    emptyBandsTitle:'No km bands yet', emptyBandsBody:'Add a band with From km and a CHF per-kilometre amount for that slice. Open last band is allowed.',
-    searchBands:'From km', nounBand:'km band', nounBands:'km bands',
     addRule:'Add rule', editRule:'Edit rule', saveRule:'Save rule', deleteRuleTitle:'Delete this rule from the draft?', deleteRuleBody:'Delete this rule from the draft? Public does not change until Publish.',
     emptyRulesTitle:'No rules yet', emptyRulesBody:'Waiting unit, free-wait hours, or Mapbox service area.',
     searchRules:'Kind', nounRule:'rule', nounRules:'rules',
@@ -393,26 +394,25 @@ const T = {
     searchSurcharges:'Type or name', nounSurcharge:'surcharge', nounSurcharges:'surcharges',
     surchargeType:'Type', whatThisDoes:'What this does',
     typeCheckoutExtra:'Checkout extra', typeMeet:'Meet and greet', typeFreeWait:'Free airport wait', typeExtraWait:'Extra wait',
-    doesCheckout:'Shown on checkout after Publish. Delete and Publish removes it — it does not stay as CHF 0.',
+    doesCheckout:'0 is free and included on checkout. It is not added to the fare. A price, including 1, is an extra and is added to the quoted price.',
     doesMeet:'Always on for the customer. Amount stays CHF 0. You cannot turn it off.',
     doesFreeWait:'Always on for airport pickup. Set the free hours. You cannot turn it off.',
     doesExtraWait:'CHF per hour after free wait. Billed after the ride, not in pay now.',
-    extraName:'Name', extraIcon:'Icon', extraHours:'Free hours', extraWaitRate:'CHF per hour',
+    extraName:'Name', extraHours:'Free hours', extraWaitRate:'CHF per hour',
     meetAmount:'Amount', meetAmountHint:'Locked at CHF 0. Included for the customer.',
-    iconUser:'Person', iconBaby:'Child seat', iconLuggage:'Luggage', iconPin:'Stop', iconSki:'Ski', iconClock:'Clock',
     notDeletableMeet:'Meet and greet stays on. You can edit the amount. You cannot turn it off for the customer.',
     notDeletableWait:'Free wait stays on. You can edit the hours. You cannot turn it off for the customer.',
     addCoupon:'Add coupon', editCoupon:'Edit coupon', saveCoupon:'Save coupon', deleteCouponTitle:'Delete this coupon from the draft?', deleteCouponBody:'Delete this coupon from the draft? Public does not change until Publish.',
     emptyCouponsTitle:'No coupons in this draft', emptyCouponsBody:'Add a percent-off or fixed-CHF coupon. Public cannot use it until Publish.',
     searchCoupons:'Code', nounCoupon:'coupon', nounCoupons:'coupons',
-    fCode:'Code', fKind:'Discount', fValue:'Value', fLimit:'Redemption cap', fStarts:'Starts', fExpires:'Expires', fActive:'In this draft', fNote:'Note',
+    fCode:'Code', fKind:'Discount', fValue:'Value', fLimit:'Redemption cap', fStarts:'Starts', fExpires:'Expires', fActive:'In this draft',
     hCode:'What they type at checkout.',
     hValue:'Percent off or fixed CHF off. Coupon applies before VAT.',
     hLimit:'How many times they can use this code. Checkout stops when uses hit this number.',
     hStarts:'First day they can use it. Today or later.',
     hExpires:'Last day. Empty means no end. Today or later.',
-    hNote:'Staff-only reminder. The customer never sees this.',
     couponUsesTitle:'Captured uses', couponUsesEmpty:'No captured uses yet.',
+    useDate:'Used', useEmail:'Email', useBefore:'Before coupon', useAfter:'After coupon',
     kPercent:'Percent off', kAmount:'Fixed CHF off',
     paused:'Paused', noEnd:'No end date', unlimited:'no cap',
     publish:'Publish fare book', publishing:'Publishing…', discard:'Discard draft', keepEditing:'Keep editing',
@@ -460,7 +460,7 @@ const T = {
     tabRoutes:'Feste Routen', tabDistance:'Distanzregeln', tabSurcharges:'Zuschläge & Extras', tabCoupons:'Gutscheine',
     hintRoutes:'Stadt zu Stadt. A nach B und B nach A sind getrennt.', hintDistance:'Start, pro Kilometer, Flughafen-Start, ein Stadtpreis', airportStart:'Flughafen-Start', cityPrice:'Stadtpreis und pro Kilometer', cityPairPick:'Stadtpaar wählen', hintSurcharges:'Checkout-Extras, Warten, Meet and greet', hintCoupons:'Prozent oder fester CHF',
     colId:'ID', colFrom:'Von', colTo:'Nach', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Entwurf',
-    colClass:'Klasse', colName:'Name', startFare:'Start', perKm:'Pro Kilometer', maxPax:'Max. Passagiere', maxBags:'Max. Gepäckstücke', hidePublic:'Vor der Öffentlichkeit verbergen', showPublic:'Öffentlich zeigen',
+    colClass:'Klasse', colPhoto:'Foto', arrangeClass:'Ziehen, um Klassen zu ordnen', colName:'Name', startFare:'Start', perKm:'Pro Kilometer', maxPax:'Max. Passagiere', maxBags:'Max. Gepäckstücke', hidePublic:'Vor der Öffentlichkeit verbergen', hiddenPublic:'Vor der Öffentlichkeit verborgen', showPublic:'Öffentlich zeigen', shownPublic:'Öffentlich sichtbar',
     fPhoto:'Foto', choosePhoto:'Foto wählen', clearPhoto:'Entfernen', hClassPhoto:'Pflicht vor dem Veröffentlichen. Liegt auf R2, nicht auf diesem Gerät.',
     colRule:'Regel', colAppliesWhen:'Gilt bei', colAmount:'Betrag', colKind:'Art',
     addRoute:'Route hinzufügen', editRoute:'Route bearbeiten', saveRoute:'Route speichern', deleteRouteTitle:'Diese Route aus dem Entwurf löschen?', deleteRouteBody:'Diese Route aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
@@ -470,10 +470,6 @@ const T = {
     addClass:'Klasse hinzufügen', editClass:'Klasse bearbeiten', saveClass:'Klasse speichern', deleteClassTitle:'Diese Klasse aus dem Entwurf löschen?', deleteClassBody:'Diese Klasse aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
     emptyClassesTitle:'Noch keine Fahrzeugklassen', emptyClassesBody:'Klasse mit Foto, Name, Startpreis, Kilometersatz, max. Passagieren und max. Gepäckstücken hinzufügen.',
     searchDistance:'Klasse', nounClass:'Klasse', nounClasses:'Klassen',
-    fromKm:'Von km', toKm:'Bis km', openBand:'Offen',
-    addBand:'Band hinzufügen', editBand:'Band bearbeiten', saveBand:'Band speichern', deleteBandTitle:'Dieses Band aus dem Entwurf löschen?', deleteBandBody:'Dieses Band aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
-    emptyBandsTitle:'Noch keine km-Bänder', emptyBandsBody:'Band mit Von-km und einem CHF-Betrag pro Kilometer für diese Scheibe hinzufügen. Offenes letztes Band ist erlaubt.',
-    searchBands:'Von km', nounBand:'km-Band', nounBands:'km-Bänder',
     addRule:'Regel hinzufügen', editRule:'Regel bearbeiten', saveRule:'Regel speichern', deleteRuleTitle:'Diese Regel aus dem Entwurf löschen?', deleteRuleBody:'Diese Regel aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
     emptyRulesTitle:'Noch keine Regeln', emptyRulesBody:'Warteeinheit, Freiwarte-Stunden oder Mapbox-Servicegebiet.',
     searchRules:'Art', nounRule:'Regel', nounRules:'Regeln',
@@ -484,26 +480,25 @@ const T = {
     searchSurcharges:'Typ oder Name', nounSurcharge:'Zuschlag', nounSurcharges:'Zuschläge',
     surchargeType:'Typ', whatThisDoes:'Was das bewirkt',
     typeCheckoutExtra:'Checkout-Extra', typeMeet:'Meet and greet', typeFreeWait:'Freiwarten am Flughafen', typeExtraWait:'Extra-Warten',
-    doesCheckout:'Erscheint nach dem Veröffentlichen im Checkout. Löschen und Veröffentlichen entfernt es — es bleibt nicht als CHF 0.',
+    doesCheckout:'0 ist gratis und inbegriffen. Es wird nicht zum Fahrpreis addiert. Ein Preis, auch 1, ist ein Extra und wird zum Angebot addiert.',
     doesMeet:'Für den Kunden immer an. Betrag bleibt CHF 0. Du kannst es nicht ausschalten.',
     doesFreeWait:'Bei Flughafenabholung immer an. Freie Stunden setzen. Du kannst es nicht ausschalten.',
     doesExtraWait:'CHF pro Stunde nach dem Freiwarten. Wird nach der Fahrt verrechnet, nicht beim Bezahlen.',
-    extraName:'Name', extraIcon:'Symbol', extraHours:'Freie Stunden', extraWaitRate:'CHF pro Stunde',
+    extraName:'Name', extraHours:'Freie Stunden', extraWaitRate:'CHF pro Stunde',
     meetAmount:'Betrag', meetAmountHint:'Auf CHF 0 gesperrt. Für den Kunden inklusive.',
-    iconUser:'Person', iconBaby:'Kindersitz', iconLuggage:'Gepäck', iconPin:'Stopp', iconSki:'Ski', iconClock:'Uhr',
     notDeletableMeet:'Meet and greet bleibt an. Du kannst den Betrag bearbeiten. Du kannst es für den Kunden nicht ausschalten.',
     notDeletableWait:'Freiwarten bleibt an. Du kannst die Stunden bearbeiten. Du kannst es für den Kunden nicht ausschalten.',
     addCoupon:'Gutschein hinzufügen', editCoupon:'Gutschein bearbeiten', saveCoupon:'Gutschein speichern', deleteCouponTitle:'Diesen Gutschein aus dem Entwurf löschen?', deleteCouponBody:'Diesen Gutschein aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
     emptyCouponsTitle:'Keine Gutscheine in diesem Entwurf', emptyCouponsBody:'Prozent- oder festen-CHF-Gutschein hinzufügen. Die Öffentlichkeit kann ihn erst nach dem Veröffentlichen nutzen.',
     searchCoupons:'Code', nounCoupon:'Gutschein', nounCoupons:'Gutscheine',
-    fCode:'Code', fKind:'Rabatt', fValue:'Wert', fLimit:'Einlösungslimit', fStarts:'Gültig ab', fExpires:'Läuft ab', fActive:'In diesem Entwurf', fNote:'Notiz',
+    fCode:'Code', fKind:'Rabatt', fValue:'Wert', fLimit:'Einlösungslimit', fStarts:'Gültig ab', fExpires:'Läuft ab', fActive:'In diesem Entwurf',
     hCode:'Was sie an der Kasse eintippen.',
     hValue:'Prozent oder fester CHF. Gutschein gilt vor der MwSt.',
     hLimit:'Wie oft der Code verwendet werden kann. Die Kasse stoppt, sobald die Nutzungen diese Zahl erreichen.',
     hStarts:'Erster Tag. Heute oder später.',
     hExpires:'Letzter Tag. Leer = kein Ende. Heute oder später.',
-    hNote:'Nur intern. Der Kunde sieht das nicht.',
     couponUsesTitle:'Eingelöste Nutzungen', couponUsesEmpty:'Noch keine eingelösten Nutzungen.',
+    useDate:'Verwendet', useEmail:'E-Mail', useBefore:'Vor dem Gutschein', useAfter:'Nach dem Gutschein',
     kPercent:'Prozent Rabatt', kAmount:'Fester CHF-Rabatt',
     paused:'Pausiert', noEnd:'Kein Enddatum', unlimited:'kein Limit',
     publish:'Tarifbuch veröffentlichen', publishing:'Veröffentlichen…', discard:'Entwurf verwerfen', keepEditing:'Weiter bearbeiten',
@@ -553,7 +548,7 @@ const T = {
     tabRoutes:'Trajets fixes', tabDistance:'Règles de distance', tabSurcharges:'Suppléments & extras', tabCoupons:'Codes promo',
     hintRoutes:'Ville à ville. A vers B et B vers A sont séparés.', hintDistance:'Départ, au kilomètre, départ aéroport, un prix ville', airportStart:'Départ aéroport', cityPrice:'Prix ville et par kilomètre', cityPairPick:'Choisir une paire de villes', hintSurcharges:'Extras de paiement, attente, accueil', hintCoupons:'Pourcent ou CHF fixe',
     colId:'ID', colFrom:'De', colTo:'Vers', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Brouillon',
-    colClass:'Classe', colName:'Nom', startFare:'Départ', perKm:'Par kilomètre', maxPax:'Passagers max.', maxBags:'Bagages max.', hidePublic:'Masquer au public', showPublic:'Afficher au public',
+    colClass:'Classe', colPhoto:'Photo', arrangeClass:'Glisser pour ordonner les classes', colName:'Nom', startFare:'Départ', perKm:'Par kilomètre', maxPax:'Passagers max.', maxBags:'Bagages max.', hidePublic:'Masquer au public', hiddenPublic:'Masqué au public', showPublic:'Afficher au public', shownPublic:'Visible au public',
     fPhoto:'Photo', choosePhoto:'Choisir une photo', clearPhoto:'Retirer', hClassPhoto:'Obligatoire pour Publier. Stockée sur R2, pas sur cet appareil.',
     colRule:'Règle', colAppliesWhen:'S’applique', colAmount:'Montant', colKind:'Type',
     addRoute:'Ajouter un trajet', editRoute:'Modifier le trajet', saveRoute:'Enregistrer le trajet', deleteRouteTitle:'Supprimer ce trajet du brouillon ?', deleteRouteBody:'Supprimer ce trajet du brouillon ? Le public ne change qu’après Publier.',
@@ -563,10 +558,6 @@ const T = {
     addClass:'Ajouter une classe', editClass:'Modifier la classe', saveClass:'Enregistrer la classe', deleteClassTitle:'Supprimer cette classe du brouillon ?', deleteClassBody:'Supprimer cette classe du brouillon ? Le public ne change qu’après Publier.',
     emptyClassesTitle:'Pas encore de classes', emptyClassesBody:'Ajoutez une classe avec photo, nom, tarif de départ, tarif au kilomètre, passagers max. et bagages max.',
     searchDistance:'Classe', nounClass:'classe', nounClasses:'classes',
-    fromKm:'De km', toKm:'À km', openBand:'Ouvert',
-    addBand:'Ajouter une tranche', editBand:'Modifier la tranche', saveBand:'Enregistrer la tranche', deleteBandTitle:'Supprimer cette tranche du brouillon ?', deleteBandBody:'Supprimer cette tranche du brouillon ? Le public ne change qu’après Publier.',
-    emptyBandsTitle:'Pas encore de tranches km', emptyBandsBody:'Ajoutez une tranche avec De km et un montant CHF par kilomètre pour cette part. La dernière tranche ouverte est autorisée.',
-    searchBands:'De km', nounBand:'tranche km', nounBands:'tranches km',
     addRule:'Ajouter une règle', editRule:'Modifier la règle', saveRule:'Enregistrer la règle', deleteRuleTitle:'Supprimer cette règle du brouillon ?', deleteRuleBody:'Supprimer cette règle du brouillon ? Le public ne change qu’après Publier.',
     emptyRulesTitle:'Pas encore de règles', emptyRulesBody:'Unité d’attente, heures d’attente libre ou zone de service Mapbox.',
     searchRules:'Type', nounRule:'règle', nounRules:'règles',
@@ -577,26 +568,25 @@ const T = {
     searchSurcharges:'Type ou nom', nounSurcharge:'supplément', nounSurcharges:'suppléments',
     surchargeType:'Type', whatThisDoes:'Ce que cela fait',
     typeCheckoutExtra:'Extra de paiement', typeMeet:'Accueil', typeFreeWait:'Attente libre à l’aéroport', typeExtraWait:'Attente extra',
-    doesCheckout:'Visible au paiement après Publier. Supprimer et Publier l’enlève — il ne reste pas à CHF 0.',
+    doesCheckout:'0 est offert et inclus. Il n’est pas ajouté au tarif. Un prix, même 1, est un extra et s’ajoute au devis.',
     doesMeet:'Toujours activé pour le client. Le montant reste CHF 0. Vous ne pouvez pas le couper.',
     doesFreeWait:'Toujours activé pour une prise en charge aéroport. Réglez les heures libres. Vous ne pouvez pas le couper.',
     doesExtraWait:'CHF par heure après l’attente libre. Facturé après la course, pas au paiement.',
-    extraName:'Nom', extraIcon:'Icône', extraHours:'Heures libres', extraWaitRate:'CHF par heure',
+    extraName:'Nom', extraHours:'Heures libres', extraWaitRate:'CHF par heure',
     meetAmount:'Montant', meetAmountHint:'Verrouillé à CHF 0. Inclus pour le client.',
-    iconUser:'Personne', iconBaby:'Siège enfant', iconLuggage:'Bagage', iconPin:'Arrêt', iconSki:'Ski', iconClock:'Horloge',
     notDeletableMeet:'L’accueil reste activé. Vous pouvez modifier le montant. Vous ne pouvez pas le couper pour le client.',
     notDeletableWait:'L’attente libre reste activée. Vous pouvez modifier les heures. Vous ne pouvez pas la couper pour le client.',
     addCoupon:'Ajouter un code', editCoupon:'Modifier le code', saveCoupon:'Enregistrer le code', deleteCouponTitle:'Supprimer ce code du brouillon ?', deleteCouponBody:'Supprimer ce code du brouillon ? Le public ne change qu’après Publier.',
     emptyCouponsTitle:'Aucun code dans ce brouillon', emptyCouponsBody:'Ajoutez un code en pourcent ou en CHF fixe. Le public ne peut pas l’utiliser avant Publier.',
     searchCoupons:'Code', nounCoupon:'code promo', nounCoupons:'codes promo',
-    fCode:'Code', fKind:'Remise', fValue:'Valeur', fLimit:'Plafond', fStarts:'Début', fExpires:'Expire', fActive:'Dans ce brouillon', fNote:'Note',
+    fCode:'Code', fKind:'Remise', fValue:'Valeur', fLimit:'Plafond', fStarts:'Début', fExpires:'Expire', fActive:'Dans ce brouillon',
     hCode:'Ce qu’ils saisissent au paiement.',
     hValue:'Pourcent ou CHF fixe. Le code s’applique avant la TVA.',
     hLimit:'Nombre d’utilisations du code. Le paiement s’arrête lorsque ce nombre est atteint.',
     hStarts:'Premier jour. Aujourd’hui ou plus tard.',
     hExpires:'Dernier jour. Vide = pas de fin. Aujourd’hui ou plus tard.',
-    hNote:'Rappel interne. Le client ne le voit jamais.',
     couponUsesTitle:'Utilisations capturées', couponUsesEmpty:'Aucune utilisation capturée pour l’instant.',
+    useDate:'Utilisé', useEmail:'E-mail', useBefore:'Avant le code', useAfter:'Après le code',
     kPercent:'Pourcent de remise', kAmount:'CHF fixe de remise',
     paused:'En pause', noEnd:'Sans date de fin', unlimited:'sans plafond',
     publish:'Publier le livre tarifaire', publishing:'Publication…', discard:'Jeter le brouillon', keepEditing:'Continuer à modifier',
@@ -646,7 +636,7 @@ const T = {
     tabRoutes:'مسارات ثابتة', tabDistance:'قواعد المسافة', tabSurcharges:'الرسوم والإضافات', tabCoupons:'القسائم',
     hintRoutes:'من مدينة إلى مدينة. من أ إلى ب ومن ب إلى أ منفصلان.', hintDistance:'البداية، لكل كيلومتر، بداية المطار، سعر مدينة واحد', airportStart:'بداية المطار', cityPrice:'سعر المدينة ولكل كيلومتر', cityPairPick:'اختر زوج مدن', hintSurcharges:'إضافات الدفع والانتظار والاستقبال', hintCoupons:'نسبة أو فرنك ثابت',
     colId:'المعرّف', colFrom:'من', colTo:'إلى', colEconomy:'اقتصادي', colBusiness:'أعمال', colVan:'فان', colLive:'مباشر', live:'مباشر', draft:'مسودة',
-    colClass:'الفئة', colName:'الاسم', startFare:'البداية', perKm:'لكل كيلومتر', maxPax:'أقصى عدد مسافرين', maxBags:'أقصى حقائب', hidePublic:'إخفاء عن العامة', showPublic:'إظهار للعامة',
+    colClass:'الفئة', colPhoto:'الصورة', arrangeClass:'اسحب لترتيب الفئات', colName:'الاسم', startFare:'البداية', perKm:'لكل كيلومتر', maxPax:'أقصى عدد مسافرين', maxBags:'أقصى حقائب', hidePublic:'إخفاء عن العامة', hiddenPublic:'مخفي عن العامة', showPublic:'إظهار للعامة', shownPublic:'ظاهر للعامة',
     fPhoto:'الصورة', choosePhoto:'اختيار صورة', clearPhoto:'إزالة', hClassPhoto:'مطلوبة للنشر. تُحفظ على R2 وليس على هذا الجهاز.',
     colRule:'القاعدة', colAppliesWhen:'ينطبق عند', colAmount:'المبلغ', colKind:'النوع',
     addRoute:'إضافة مسار', editRoute:'تعديل المسار', saveRoute:'حفظ المسار', deleteRouteTitle:'حذف هذا المسار من المسودة؟', deleteRouteBody:'حذف هذا المسار من المسودة؟ لا يتغير العام حتى النشر.',
@@ -656,10 +646,6 @@ const T = {
     addClass:'إضافة فئة', editClass:'تعديل الفئة', saveClass:'حفظ الفئة', deleteClassTitle:'حذف هذه الفئة من المسودة؟', deleteClassBody:'حذف هذه الفئة من المسودة؟ لا يتغير العام حتى النشر.',
     emptyClassesTitle:'لا توجد فئات مركبات بعد', emptyClassesBody:'أضف فئة بالصورة والاسم وأجرة البداية وسعر الكيلومتر وأقصى عدد مسافرين وأقصى حقائب.',
     searchDistance:'الفئة', nounClass:'فئة', nounClasses:'فئات',
-    fromKm:'من كم', toKm:'إلى كم', openBand:'مفتوح',
-    addBand:'إضافة شريحة', editBand:'تعديل الشريحة', saveBand:'حفظ الشريحة', deleteBandTitle:'حذف هذه الشريحة من المسودة؟', deleteBandBody:'حذف هذه الشريحة من المسودة؟ لا يتغير العام حتى النشر.',
-    emptyBandsTitle:'لا توجد شرائح كم بعد', emptyBandsBody:'أضف شريحة بمن كم ومبلغ فرنك لكل كيلومتر لهذه الشريحة. الشريحة الأخيرة المفتوحة مسموحة.',
-    searchBands:'من كم', nounBand:'شريحة كم', nounBands:'شرائح كم',
     addRule:'إضافة قاعدة', editRule:'تعديل القاعدة', saveRule:'حفظ القاعدة', deleteRuleTitle:'حذف هذه القاعدة من المسودة؟', deleteRuleBody:'حذف هذه القاعدة من المسودة؟ لا يتغير العام حتى النشر.',
     emptyRulesTitle:'لا توجد قواعد بعد', emptyRulesBody:'وحدة انتظار أو ساعات انتظار مجاني أو منطقة خدمة مابوكس.',
     searchRules:'النوع', nounRule:'قاعدة', nounRules:'قواعد',
@@ -670,26 +656,25 @@ const T = {
     searchSurcharges:'النوع أو الاسم', nounSurcharge:'رسم', nounSurcharges:'رسوم',
     surchargeType:'النوع', whatThisDoes:'ماذا يفعل هذا',
     typeCheckoutExtra:'إضافة الدفع', typeMeet:'الاستقبال', typeFreeWait:'انتظار مجاني في المطار', typeExtraWait:'انتظار إضافي',
-    doesCheckout:'تظهر في الدفع بعد النشر. الحذف ثم النشر يزيلها — لا تبقى كفرنك 0.',
+    doesCheckout:'0 مجاني ومشمول. لا يُضاف إلى الأجرة. أي سعر، بما فيه 1، إضافة تُضاف إلى السعر المعروض.',
     doesMeet:'دائمًا مفعّل للعميل. المبلغ يبقى فرنك 0. لا يمكنك إيقافه.',
     doesFreeWait:'دائمًا مفعّل عند الاستقبال في المطار. عيّن الساعات المجانية. لا يمكنك إيقافه.',
     doesExtraWait:'فرنك لكل ساعة بعد الانتظار المجاني. يُفوتر بعد الرحلة لا عند الدفع الآن.',
-    extraName:'الاسم', extraIcon:'الأيقونة', extraHours:'ساعات مجانية', extraWaitRate:'فرنك لكل ساعة',
+    extraName:'الاسم', extraHours:'ساعات مجانية', extraWaitRate:'فرنك لكل ساعة',
     meetAmount:'المبلغ', meetAmountHint:'مقفل على فرنك 0. مشمول للعميل.',
-    iconUser:'شخص', iconBaby:'مقعد طفل', iconLuggage:'أمتعة', iconPin:'توقف', iconSki:'تزلج', iconClock:'ساعة',
     notDeletableMeet:'الاستقبال يبقى مفعّلًا. يمكنك تعديل المبلغ. لا يمكنك إيقافه للعميل.',
     notDeletableWait:'الانتظار المجاني يبقى مفعّلًا. يمكنك تعديل الساعات. لا يمكنك إيقافه للعميل.',
     addCoupon:'إضافة قسيمة', editCoupon:'تعديل القسيمة', saveCoupon:'حفظ القسيمة', deleteCouponTitle:'حذف هذه القسيمة من المسودة؟', deleteCouponBody:'حذف هذه القسيمة من المسودة؟ لا يتغير العام حتى النشر.',
     emptyCouponsTitle:'لا قسائم في هذه المسودة', emptyCouponsBody:'أضف قسيمة نسبة أو فرنك ثابت. لا يستخدمها العام حتى النشر.',
     searchCoupons:'الرمز', nounCoupon:'قسيمة', nounCoupons:'قسائم',
-    fCode:'الرمز', fKind:'الخصم', fValue:'القيمة', fLimit:'حد الاستخدام', fStarts:'يبدأ', fExpires:'ينتهي', fActive:'في هذه المسودة', fNote:'ملاحظة',
+    fCode:'الرمز', fKind:'الخصم', fValue:'القيمة', fLimit:'حد الاستخدام', fStarts:'يبدأ', fExpires:'ينتهي', fActive:'في هذه المسودة',
     hCode:'ما يكتبونه عند الدفع.',
     hValue:'نسبة أو فرنك ثابت. تُطبَّق القسيمة قبل الضريبة.',
     hLimit:'كم مرة يمكن استخدام الرمز. يتوقف الدفع عند بلوغ هذا العدد.',
     hStarts:'أول يوم. اليوم أو لاحقًا.',
     hExpires:'آخر يوم. فارغ = بلا نهاية. اليوم أو لاحقًا.',
-    hNote:'تذكير للطاقم فقط. العميل لا يراه.',
     couponUsesTitle:'استخدامات مقبوضة', couponUsesEmpty:'لا استخدامات مقبوضة بعد.',
+    useDate:'تاريخ الاستخدام', useEmail:'البريد', useBefore:'قبل القسيمة', useAfter:'بعد القسيمة',
     kPercent:'نسبة مئوية', kAmount:'فرنك ثابت',
     paused:'متوقف', noEnd:'بلا تاريخ انتهاء', unlimited:'بلا حد',
     publish:'نشر دفتر الأسعار', publishing:'جارٍ النشر…', discard:'تجاهل المسودة', keepEditing:'متابعة التعديل',
@@ -816,6 +801,13 @@ class Component extends DCLogic {
   rappenMoney(r) {
     if (r == null || !Number.isFinite(Number(r))) return this.money('000');
     return this.money((Number(r) / 100).toFixed(2));
+  }
+  chfRappen(r) {
+    if (r == null || r === '' || !Number.isFinite(Number(r))) return '\u2014';
+    const figure = (Number(r) / 100).toFixed(2);
+    const loc = window.VamosLocale;
+    if (loc && typeof loc.money === 'function') return loc.money(figure, 'CHF');
+    return 'CHF ' + figure;
   }
   recapLine(code) {
     const recap = this.state.recap || [];
@@ -1338,8 +1330,16 @@ class Component extends DCLogic {
           id: rec.id, from: rec.from, to: rec.to, live: rec.live,
           fromMapbox: rec.fromMapbox,
           toMapbox: rec.toMapbox,
-          originZoneId: rec.originZoneId || (existing && existing.originZoneId) || '',
-          destZoneId: rec.destZoneId || (existing && existing.destZoneId) || '',
+          originZoneId: rec.fromMapbox
+            ? (rec.originZoneId || '')
+            : (existing && String(existing.from || '') === String(rec.from || '')
+              ? (rec.originZoneId || existing.originZoneId || '')
+              : (rec.originZoneId || '')),
+          destZoneId: rec.toMapbox
+            ? (rec.destZoneId || '')
+            : (existing && String(existing.to || '') === String(rec.to || '')
+              ? (rec.destZoneId || existing.destZoneId || '')
+              : (rec.destZoneId || '')),
           prices: {},
         };
         ratedClasses.forEach((c) => {
@@ -1357,13 +1357,15 @@ class Component extends DCLogic {
       tSearchRoutes: t.searchRoutes, routeSearchKeys: ['id', 'from', 'to'],
       tEmptyRoutesTitle: t.emptyRoutesTitle, tEmptyRoutesBody: t.emptyRoutesBody,
 
-      distanceRows: rates.map((r) => ({
+      distanceRows: byClassOrder(uniqueByClass(rates).map((r) => ({
         id: r.id,
         klass: r.name || r.klass,
         name: r.name || r.klass,
         vehicleClassId: r.vehicleClassId || '',
+        slug: r.vehicleClassSlug || r.slug || '',
         photo: r.photo || r.photoPath || '',
         photoPath: r.photoPath || r.photo || '',
+        sortOrder: r.sortOrder == null || r.sortOrder === '' ? 0 : Number(r.sortOrder) || 0,
         baseFare: chfOf(r.baseFare),
         perKm: chfOf(r.perKm),
         airportStart: chfOf(r.airportStart),
@@ -1373,8 +1375,10 @@ class Component extends DCLogic {
         maxBags: r.maxBags || r.luggageCapacity || 3,
         available: r.available !== false,
         hideFromPublic: !!r.hideFromPublic,
-      })),
+      }))),
       distanceColumns: [
+        { key:'__order', header:'', width:'44px', kind:'grip', label: t.arrangeClass },
+        { key:'photo', header: t.colPhoto, width:'64px', kind:'photo' },
         { key:'klass', header: t.colClass, width:'120px' },
         { key:'baseFare', header: t.startFare, lookup:(r) => moneyOrDash(r.baseFare) },
         { key:'perKm', header: t.perKm, lookup:(r) => moneyOrDash(r.perKm) },
@@ -1382,7 +1386,7 @@ class Component extends DCLogic {
         { key:'cityPrice', header: t.cityPrice, lookup:(r) => r.cityPairLabel || '\u2014' },
         { key:'maxPax', header: t.maxPax, width:'90px' },
         { key:'maxBags', header: t.maxBags, width:'90px' },
-        { key:'hideFromPublic', header: t.hidePublic, width:'180px', kind:'bool', onLabel:t.hidePublic, offLabel:t.showPublic },
+        { key:'hideFromPublic', header: t.hidePublic, kind:'bool', toggle:true, onLabel:t.hiddenPublic, offLabel:t.shownPublic },
       ],
       distanceFields: [
         { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'class', photoRecordKey:'vehicleClassId', upload:'/api/photos/upload', clearLabel:t.clearPhoto, chooseLabel:t.choosePhoto, hint:t.hClassPhoto },
@@ -1436,54 +1440,28 @@ class Component extends DCLogic {
           airportStart: Object.assign({}, (existing && existing.airportStart) || {}, { CHF: rec.airportStart }),
           cityPrice: Object.assign({}, (existing && existing.cityPrice) || {}, { CHF: pairExtra }),
           cityPairId: pairId,
+          sortOrder: existing && existing.sortOrder != null ? existing.sortOrder : 0,
+          vehicleClassSlug: classSlug,
         });
         if (out && typeof out.then === 'function') out.then(() => this.loadDraft());
         return out;
       },
       deleteDistance: (id) => ops ? ops.rates.remove(id) : null,
+      reorderDistance: (rows) => {
+        if (!ops || !ops.rates || typeof ops.rates.reorder !== 'function') return null;
+        const order = [];
+        (rows || []).forEach((r) => {
+          const id = String(r.vehicleClassId || '');
+          if (id) order.push({ vehicleClassId: id });
+        });
+        const out = ops.rates.reorder(order);
+        return out;
+      },
       tNounClass: t.nounClass, tNounClasses: t.nounClasses,
       tAddClass: t.addClass, tEditClass: t.editClass, tSaveClass: t.saveClass,
       tDeleteClassTitle: t.deleteClassTitle, tDeleteClassBody: t.deleteClassBody,
       tSearchDistance: t.searchDistance, distanceSearchKeys: ['klass'],
       tEmptyClassesTitle: t.emptyClassesTitle, tEmptyClassesBody: t.emptyClassesBody,
-
-      bandRows: bandRowsRaw.map((r) => ({
-        id: r.id, fromKm: r.fromKm, toKm: r.toKm === '' || r.toKm == null ? '' : r.toKm,
-        perKm: (r.perKm && r.perKm.CHF) || '', klass: r.klass || r.vehicleClass || '',
-        vehicleClassId: r.vehicleClassId || classIdFor(r.klass || r.vehicleClass),
-      })),
-      bandColumns: [
-        { key:'klass', header: t.colClass, width:'120px' },
-        { key:'fromKm', header: t.fromKm, width:'110px' },
-        { key:'toKm', header: t.toKm, width:'110px', lookup:(r) => (r.toKm === '' || r.toKm == null ? t.openBand : r.toKm) },
-        { key:'perKm', header: t.perKm, lookup:(r) => money(r.perKm) },
-      ],
-      bandFields: [
-        { key:'klass', label:t.colClass, editor:'select', required:true, icon:'car',
-          options: classOptions },
-        { key:'fromKm', label:t.fromKm, editor:'number', min:0, half:true, icon:'navigation' },
-        { key:'toKm', label:t.toKm, editor:'number', min:0, half:true, icon:'navigation', hint:t.openBand },
-        { key:'perKm', label:t.perKm, half:true, placeholder:'0.00', icon:'navigation', suffix:'CHF' },
-      ],
-      bandBlank: () => {
-        const blank = ops ? ops.bands.blank() : { fromKm:0, toKm:'', perKm:{} };
-        return Object.assign({}, blank, { perKm:'', klass: (classOptions[0] && classOptions[0].value) || '' });
-      },
-      saveBand: (rec) => {
-        if (!ops) return null;
-        const existing = rec.id ? ops.bands.get(rec.id) : null;
-        return ops.bands.upsert({
-          id: rec.id, fromKm: rec.fromKm, toKm: rec.toKm, klass: rec.klass,
-          vehicleClassId: rec.vehicleClassId || (existing && existing.vehicleClassId) || classIdFor(rec.klass),
-          perKm: Object.assign({}, (existing && existing.perKm) || {}, { CHF: rec.perKm }),
-        });
-      },
-      deleteBand: (id) => ops ? ops.bands.remove(id) : null,
-      tNounBand: t.nounBand, tNounBands: t.nounBands,
-      tAddBand: t.addBand, tEditBand: t.editBand, tSaveBand: t.saveBand,
-      tDeleteBandTitle: t.deleteBandTitle, tDeleteBandBody: t.deleteBandBody,
-      tSearchBands: t.searchBands, bandSearchKeys: ['fromKm', 'toKm'],
-      tEmptyBandsTitle: t.emptyBandsTitle, tEmptyBandsBody: t.emptyBandsBody,
 
       surcharges: surchargesRaw.map((r) => {
         const type = r.type || surchargeTypeOf(r.code || r.label);
@@ -1492,7 +1470,7 @@ class Component extends DCLogic {
           type: type,
           label: label,
           name: r.name || label,
-          value: type === 'meet_greet' ? '0' : (r.kind === 'percent' ? r.pct : ((r.amounts && r.amounts.CHF) || r.value || '')),
+          value: type === 'meet_greet' || (type === 'checkout_extra' && r.kind === 'included') ? '0' : (r.kind === 'percent' ? r.pct : ((r.amounts && r.amounts.CHF) || r.value || '')),
           hours: r.hours || (ops && ops.freeWaitHours) || '',
         });
       }),
@@ -1507,42 +1485,38 @@ class Component extends DCLogic {
             const type = r.type || surchargeTypeOf(r.code || r.label);
             if (type === 'meet_greet') return money('0');
             if (type === 'free_wait') return (r.hours ? (r.hours + ' h') : '');
+            if (type === 'checkout_extra' && (r.kind === 'included' || r.value === '0' || r.value === 0)) return money('0');
             return money(r.value);
           } },
       ],
       surchargeFields: [
-        { key:'type', label:t.surchargeType, editor:'select', required:true, icon:'layers',
-          options: SURCHARGE_TYPES.map((c) => ({ value: c.value, label: t[c.k] })) },
-        { key:'name', label:t.extraName, required:true, icon:'tag', showWhen:{ type:'checkout_extra' }, hint:t.doesCheckout },
-        { key:'value', label:t.colAmount, placeholder:'00', icon:'banknote', suffix:'CHF', showWhen:{ type:'checkout_extra' } },
-        { key:'icon', label:t.extraIcon, editor:'iconGrid', showWhen:{ type:'checkout_extra' },
-          options: EXTRA_ICONS.map((c) => ({ value: c.value, label: t[c.k] })) },
-        { key:'value', label:t.meetAmount, placeholder:'0', icon:'banknote', suffix:'CHF', showWhen:{ type:'meet_greet' }, hint:t.doesMeet },
-        { key:'hours', label:t.extraHours, editor:'number', min:1, showWhen:{ type:'free_wait' }, hint:t.doesFreeWait },
-        { key:'value', label:t.extraWaitRate, placeholder:'00', icon:'banknote', suffix:'CHF', showWhen:{ type:'extra_wait' }, hint:t.doesExtraWait },
+        { key:'name', label:t.extraName, required:true, icon:'tag', hint:t.doesCheckout },
+        { key:'value', label:t.colAmount, placeholder:'0', icon:'banknote', suffix:'CHF' },
       ],
       surchargeBlank: () => {
         const blank = ops ? ops.surcharges.blank() : { kind:'amount', amounts:{}, pct:'' };
-        return Object.assign({}, blank, { type:'checkout_extra', value:'', name:'', icon:'user', hours:1, label:'', rule:'leg' });
+        return Object.assign({}, blank, { type:'checkout_extra', value:'', name:'', hours:1, label:'', rule:'leg' });
       },
       saveSurcharge: (rec) => {
         if (!ops) return;
-        const type = rec.type || 'checkout_extra';
         const existing = rec.id ? ops.surcharges.get(rec.id) : null;
-        const patch = { id: rec.id, type: type, rule: 'leg', icon: rec.icon, hours: rec.hours, name: rec.name };
-        if (type === 'meet_greet') {
-          patch.code = 'meet_greet'; patch.label = 'meet_greet'; patch.kind = 'included'; patch.value = '0';
-        } else if (type === 'free_wait') {
-          patch.code = 'free_wait'; patch.label = 'free_wait'; patch.kind = 'included'; patch.hours = rec.hours || 1;
-        } else if (type === 'extra_wait') {
-          patch.code = 'extra_wait'; patch.label = 'extra_wait'; patch.kind = 'amount';
-          patch.amounts = Object.assign({}, (existing && existing.amounts) || {}, { CHF: rec.value });
-        } else {
-          const name = rec.name || rec.label || '';
-          const slug = String(name).trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
-          patch.code = slug || name; patch.label = name; patch.name = name; patch.kind = 'amount';
-          patch.amounts = Object.assign({}, (existing && existing.amounts) || {}, { CHF: rec.value });
-        }
+        const name = rec.name || rec.label || '';
+        const slug = String(name).trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        const raw = String(rec.value == null ? '' : rec.value).trim().replace(',', '.');
+        const n = raw === '' ? NaN : Number(raw);
+        const included = n === 0;
+        const chf = included ? '0' : rec.value;
+        const patch = {
+          id: rec.id,
+          type: 'checkout_extra',
+          rule: 'leg',
+          name: name,
+          code: slug || name,
+          label: name,
+          kind: included ? 'included' : 'amount',
+          value: chf,
+          amounts: Object.assign({}, (existing && existing.amounts) || {}, { CHF: chf }),
+        };
         return ops.surcharges.upsert(patch);
       },
       deleteSurcharge: (id) => {
@@ -1570,7 +1544,6 @@ class Component extends DCLogic {
           kindOptions:[{ value:'percent', label:'%' }, { value:'amount', label:'CHF' }] },
         { key:'limit', label:t.fLimit, editor:'number', min:1, max:9999, required:true, half:true },
         { key:'expires', label:t.fExpires, editor:'date', icon:'calendar', minDate:'today', hint:t.hExpires, half:true },
-        { key:'note', label:t.fNote, editor:'area', hint:t.hNote },
       ],
       couponBlank: () => Object.assign({ expires:'', note:'', active:true }, ops ? ops.coupons.blank() : {}, { limit:1 }),
       saveCoupon: (rec) => {
@@ -1588,6 +1561,20 @@ class Component extends DCLogic {
       tSearchCoupons: t.searchCoupons, couponSearchKeys: ['code', 'note'],
       tEmptyCouponsTitle: t.emptyCouponsTitle, tEmptyCouponsBody: t.emptyCouponsBody,
       tCouponUsesTitle: t.couponUsesTitle, tCouponUsesEmpty: t.couponUsesEmpty,
+      couponUseHistory: (row) => {
+        const id = row && row.id != null && String(row.id) !== '' ? String(row.id) : '';
+        if (!id) return [];
+        return (this.state.couponUses || []).filter((u) => String(u.couponId) === id).map((u) => ({
+          when: this.zurichWhen(u.redeemedAt) || '\u2014',
+          email: (u.email && String(u.email).trim()) || '\u2014',
+          before: this.chfRappen(u.beforeRappen),
+          after: this.chfRappen(u.afterRappen),
+          dateLabel: t.useDate,
+          emailLabel: t.useEmail,
+          beforeLabel: t.useBefore,
+          afterLabel: t.useAfter,
+        }));
+      },
       couponUses: (this.state.couponUses || []).map((row) => ({
         code: row.code,
         when: this.zurichWhen(row.redeemedAt),

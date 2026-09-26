@@ -30,6 +30,7 @@
 <script src="../../assets/lenis-boot.js"></script>
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js"></script>
+<script src="../vamos-reviews.js"></script>
 <script src="../vamos-page-transition.js"></script>
 <style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-shadow-accent:none}
 .vt-input--focus{box-shadow:none}
@@ -101,6 +102,16 @@ button[data-hd-signin]{width:calc(100% - 4px);appearance:none;-webkit-appearance
 [data-hd-sheet-head]{flex:0 0 auto;padding:calc(60px + var(--vt-space-3)) var(--vt-space-3) var(--vt-space-2);overflow:visible;position:relative;z-index:1}
 [data-hd-sheet-body]{flex:1 1 auto;min-block-size:0;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 var(--vt-space-3) max(var(--vt-space-4),env(safe-area-inset-bottom))}
 [data-hd-sheet-body] [data-hd-sec] + [data-hd-sec]{border-top:1px solid var(--vt-border-subtle)}
+[data-hd-trust]{display:flex;flex-direction:column;align-items:flex-start;gap:var(--vt-space-2);min-inline-size:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);line-height:1.4;color:var(--vt-text-primary)}
+[data-hd-trust-row]{display:flex;flex-wrap:wrap;align-items:center;gap:var(--vt-space-2) var(--vt-space-3);min-inline-size:0}
+[data-hd-trust-word]{font-weight:600;color:var(--vt-text-primary);white-space:nowrap}
+[data-hd-trust-stars]{display:inline-flex;align-items:center;gap:2px;direction:ltr;flex:0 0 auto}
+[data-hd-trust-score]{font-weight:600;font-variant-numeric:tabular-nums;direction:ltr;white-space:nowrap;color:var(--vt-text-primary)}
+[data-hd-trust-count]{color:var(--vt-text-secondary);white-space:nowrap}
+[data-hd-trust-empty]{color:var(--vt-text-secondary);max-inline-size:32ch}
+[data-hd-trust-mark]{display:block;flex:0 0 auto;block-size:var(--vt-space-9);inline-size:calc(var(--vt-space-9) * 2500 / 1163.3);max-inline-size:100%;object-fit:contain;object-position:center;background:transparent;padding:0;border:0;border-radius:0;box-shadow:none}
+[data-hd-trust-link]{display:inline-flex;align-items:center;min-block-size:var(--vt-control-h-md);color:var(--vt-text-link);text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+[data-hd-trust-link]:hover{color:var(--vt-charcoal-700)}
 }
 @media (prefers-reduced-motion:reduce){[data-hd-menu-btn]:active{transform:none}[data-hd-scrim],[data-hd-sheet]{animation:none}}
 @media (prefers-reduced-transparency:reduce){[data-hd-scrim]{background:rgb(17 18 18 / .86)}}
@@ -277,6 +288,33 @@ button[data-hd-signin]{width:calc(100% - 4px);appearance:none;-webkit-appearance
 <span>{{ tWhatsApp }}</span></a>
 </div>
 </div>
+<sc-if value="{{ trustShow }}" hint-placeholder-val="{{ false }}">
+<div data-hd-sec="1" data-hd-trust="1" role="group" aria-label="{{ tTrustAria }}">
+<sc-if value="{{ trustEmpty }}" hint-placeholder-val="{{ false }}">
+<span data-hd-trust-empty="1">{{ tTrustEmpty }}</span>
+</sc-if>
+<sc-if value="{{ trustHas }}" hint-placeholder-val="{{ false }}">
+<img data-hd-trust-mark="1" data-vt-no-i18n="1" src="/assets/reviews/trustpilot-stacked-ink.svg" alt="Trustpilot" width="120" height="56">
+<div data-hd-trust-row="1">
+<span data-hd-trust-word="1" data-vt-no-i18n="1">{{ trustWord }}</span>
+<span data-hd-trust-stars="1" aria-hidden="true">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n14 }}" color="{{ trustS1 }}" hint-size="14px,14px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n14 }}" color="{{ trustS2 }}" hint-size="14px,14px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n14 }}" color="{{ trustS3 }}" hint-size="14px,14px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n14 }}" color="{{ trustS4 }}" hint-size="14px,14px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n14 }}" color="{{ trustS5 }}" hint-size="14px,14px"></x-import>
+</span>
+<span data-hd-trust-score="1" data-vt-no-i18n="1">{{ trustScoreText }}</span>
+</div>
+<div data-hd-trust-row="1">
+<span data-hd-trust-count="1" data-vt-no-i18n="1">{{ trustCountText }}</span>
+<sc-if value="{{ trustShowLink }}" hint-placeholder-val="{{ false }}">
+<a data-hd-trust-link="1" href="{{ trustHref }}" target="{{ trustTarget }}" rel="noopener noreferrer">{{ tTrustRead }}</a>
+</sc-if>
+</div>
+</sc-if>
+</div>
+</sc-if>
 </div>
 
 </div>
@@ -288,10 +326,10 @@ button[data-hd-signin]{width:calc(100% - 4px);appearance:none;-webkit-appearance
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1400,&quot;height&quot;:96},&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;inverse&quot;,&quot;options&quot;:[&quot;inverse&quot;,&quot;overlay&quot;],&quot;tsType&quot;:&quot;string&quot;},&quot;cta&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;signInLabel&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Sign in&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;hideAccount&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;lang&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;},&quot;cur&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;},&quot;onLang&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(v:string)=&gt;void&quot;},&quot;onCur&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(v:string)=&gt;void&quot;}}">
 const T = {
-  en: { signIn:'Sign in', account:'Your account', bookings:'Your bookings', manage:'Manage a booking', verify:'Verify your email', signOut:'Sign out', book:'Book a transfer', faq:'FAQs', contact:'Contact', menu:'Menu', close:'Close', call:'Call +41 79 626 70 82', langLabel:'Language', curLabel:'Currency', svc:'Services', help:'Help', airport:'Airport transfers', city:'City to city', whatsapp:'WhatsApp' },
-  de: { signIn:'Anmelden', account:'Ihr Konto', bookings:'Ihre Buchungen', manage:'Buchung verwalten', verify:'E-Mail bestätigen', signOut:'Abmelden', book:'Transfer buchen', faq:'Häufige Fragen', contact:'Kontakt', menu:'Menü', close:'Schliessen', call:'+41 79 626 70 82 anrufen', langLabel:'Sprache', curLabel:'Währung', svc:'Leistungen', help:'Hilfe', airport:'Flughafentransfers', city:'Stadt zu Stadt', whatsapp:'WhatsApp' },
-  fr: { signIn:'Connexion', account:'Votre compte', bookings:'Vos réservations', manage:'Gérer une réservation', verify:'Vérifier votre e-mail', signOut:'Déconnexion', book:'Réserver', faq:'Questions fréquentes', contact:'Contact', menu:'Menu', close:'Fermer', call:'Appeler le +41 79 626 70 82', langLabel:'Langue', curLabel:'Devise', svc:'Services', help:'Aide', airport:'Transferts aéroport', city:'De ville en ville', whatsapp:'WhatsApp' },
-  ar: { signIn:'تسجيل الدخول', account:'حسابك', bookings:'حجوزاتك', manage:'إدارة الحجز', verify:'تأكيد بريدك الإلكتروني', signOut:'تسجيل الخروج', book:'احجز رحلتك', faq:'الأسئلة الشائعة', contact:'اتصل بنا', menu:'القائمة', close:'إغلاق', call:'اتصل بنا', langLabel:'اللغة', curLabel:'العملة', svc:'خدماتنا', help:'المساعدة', airport:'نقل المطار', city:'بين المدن', whatsapp:'WhatsApp' },
+  en: { signIn:'Sign in', account:'Your account', bookings:'Your bookings', manage:'Manage a booking', verify:'Verify your email', signOut:'Sign out', book:'Book a transfer', faq:'FAQs', contact:'Contact', menu:'Menu', close:'Close', call:'Call +41 79 626 70 82', langLabel:'Language', curLabel:'Currency', svc:'Services', help:'Help', airport:'Airport transfers', city:'City to city', whatsapp:'WhatsApp', trustEmpty:'Guest reviews will show here once they are published.', trustScore:'{n}/5', trustCountOne:'1 review', trustCount:'{n} reviews', trustRead:'Read reviews', trustExcellent:'Excellent', trustGreat:'Great', trustGood:'Good', trustFair:'Fair', trustAria:'Guest reviews' },
+  de: { signIn:'Anmelden', account:'Ihr Konto', bookings:'Ihre Buchungen', manage:'Buchung verwalten', verify:'E-Mail bestätigen', signOut:'Abmelden', book:'Transfer buchen', faq:'Häufige Fragen', contact:'Kontakt', menu:'Menü', close:'Schliessen', call:'+41 79 626 70 82 anrufen', langLabel:'Sprache', curLabel:'Währung', svc:'Leistungen', help:'Hilfe', airport:'Flughafentransfers', city:'Stadt zu Stadt', whatsapp:'WhatsApp', trustEmpty:'Gästebewertungen erscheinen hier, sobald sie veröffentlicht sind.', trustScore:'{n}/5', trustCountOne:'1 Bewertung', trustCount:'{n} Bewertungen', trustRead:'Bewertungen lesen', trustExcellent:'Ausgezeichnet', trustGreat:'Sehr gut', trustGood:'Gut', trustFair:'Ordentlich', trustAria:'Gästebewertungen' },
+  fr: { signIn:'Connexion', account:'Votre compte', bookings:'Vos réservations', manage:'Gérer une réservation', verify:'Vérifier votre e-mail', signOut:'Déconnexion', book:'Réserver', faq:'Questions fréquentes', contact:'Contact', menu:'Menu', close:'Fermer', call:'Appeler le +41 79 626 70 82', langLabel:'Langue', curLabel:'Devise', svc:'Services', help:'Aide', airport:'Transferts aéroport', city:'De ville en ville', whatsapp:'WhatsApp', trustEmpty:'Les avis s’afficheront ici dès qu’ils seront publiés.', trustScore:'{n}/5', trustCountOne:'1 avis', trustCount:'{n} avis', trustRead:'Lire les avis', trustExcellent:'Excellent', trustGreat:'Très bien', trustGood:'Bien', trustFair:'Correct', trustAria:'Avis des clients' },
+  ar: { signIn:'تسجيل الدخول', account:'حسابك', bookings:'حجوزاتك', manage:'إدارة الحجز', verify:'تأكيد بريدك الإلكتروني', signOut:'تسجيل الخروج', book:'احجز رحلتك', faq:'الأسئلة الشائعة', contact:'اتصل بنا', menu:'القائمة', close:'إغلاق', call:'اتصل بنا', langLabel:'اللغة', curLabel:'العملة', svc:'خدماتنا', help:'المساعدة', airport:'نقل المطار', city:'بين المدن', whatsapp:'WhatsApp', trustEmpty:'تظهر آراء الضيوف هنا بعد نشرها.', trustScore:'{n}/5', trustCountOne:'تقييم واحد', trustCount:'{n} تقييمات', trustRead:'قراءة التقييمات', trustExcellent:'ممتاز', trustGreat:'جيد جداً', trustGood:'جيد', trustFair:'مقبول', trustAria:'آراء الضيوف' },
 };
 const LANGS = ['en', 'de', 'fr', 'ar'];
 const LANG_NOTE = { en:'English', de:'Deutsch', fr:'Français', ar:'العربية' };
@@ -348,6 +386,11 @@ class Component extends DCLogic {
     window.addEventListener('resize', this._resize);
     this._onAuth = () => this.setState({ auth: readAuth() });
     window.addEventListener('vamos:auth', this._onAuth);
+    this._onReviews = () => this.forceUpdate();
+    window.addEventListener('vamos:reviews', this._onReviews);
+    this.bindReviews();
+    this._reviewsWait = setInterval(() => { this.bindReviews(); if (this._offReviews) clearInterval(this._reviewsWait); }, 50);
+    this._reviewsStop = setTimeout(() => clearInterval(this._reviewsWait), 10000);
     fetch('/api/auth/session', { credentials: 'same-origin' })
       .then((r) => r.json())
       .then((s) => {
@@ -368,6 +411,10 @@ class Component extends DCLogic {
       .catch(() => {});
   }
   componentWillUnmount() {
+    clearInterval(this._reviewsWait);
+    clearTimeout(this._reviewsStop);
+    if (this._onReviews) window.removeEventListener('vamos:reviews', this._onReviews);
+    if (this._offReviews) this._offReviews();
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     if (this._onAuth) window.removeEventListener('vamos:auth', this._onAuth);
     if (this._raf) cancelAnimationFrame(this._raf);
@@ -377,6 +424,59 @@ class Component extends DCLogic {
     document.removeEventListener('mousedown', this._away);
     window.removeEventListener('resize', this._resize);
     this._lock(false);
+  }
+  bindReviews() {
+    const store = window.VamosReviews;
+    if (!store || this._offReviews) return;
+    this._offReviews = store.onChange(() => { this._reviewsReady = true; this.forceUpdate(); });
+    const rows = store.published ? store.published().filter((r) => r && Number(r.rating) > 0) : [];
+    if (rows.length || (store.ready && store.ready())) this._reviewsReady = true;
+    this.forceUpdate();
+  }
+  /* Same published-row average as the hero. No score until that read lands. */
+  trustSummary() {
+    const off = 'var(--vt-text-muted)';
+    const on = 'var(--vt-charcoal-900)';
+    const blank = { pending: true, has: false, score: '', count: '', href: '', word: '', showLink: false, s1: off, s2: off, s3: off, s4: off, s5: off };
+    const store = window.VamosReviews;
+    if (!store || !store.published) return blank;
+    const rows = store.published().filter((r) => r && Number(r.rating) > 0);
+    if (!rows.length) {
+      return this._reviewsReady ? Object.assign({}, blank, { pending: false }) : blank;
+    }
+    let sum = 0;
+    const sources = {};
+    rows.forEach((r) => {
+      sum += Number(r.rating) || 0;
+      const id = r.source || 'manual';
+      sources[id] = (sources[id] || 0) + 1;
+    });
+    const avg = sum / rows.length;
+    const score = (Math.round(avg * 10) / 10).toFixed(1);
+    const ids = Object.keys(sources);
+    const sole = ids.length === 1 ? ids[0] : '';
+    const hostOf = (raw) => {
+      const s = String(raw || '').trim();
+      if (!s) return '';
+      try {
+        const u = new URL(s);
+        if (u.protocol !== 'http:' && u.protocol !== 'https:') return '';
+        return u.hostname.toLowerCase().replace(/^www\./, '');
+      } catch (e) { return ''; }
+    };
+    const hosts = rows.map((r) => hostOf(r.url)).filter(Boolean);
+    const soleHost = hosts.length && hosts.every((h) => h === hosts[0]) ? hosts[0] : '';
+    const transfeero = soleHost === 'transfeero.com' || (soleHost && soleHost.endsWith('.transfeero.com'));
+    let href = '/#reviews';
+    if (sole && soleHost && !transfeero) {
+      const urls = rows.map((r) => String(r.url || '').trim()).filter((u) => hostOf(u) === soleHost);
+      if (urls.length && urls.every((u) => u === urls[0])) href = urls[0];
+    }
+    const filled = Math.max(0, Math.min(5, Math.round(avg)));
+    const star = (n) => n <= filled ? on : off;
+    const tw = T[this.lang()] || T.en;
+    const word = avg >= 4.5 ? (tw.trustExcellent || '') : avg >= 4 ? (tw.trustGreat || '') : avg >= 3 ? (tw.trustGood || '') : (tw.trustFair || '');
+    return { pending: false, has: true, score, count: String(rows.length), href, word, showLink: true, s1: star(1), s2: star(2), s3: star(3), s4: star(4), s5: star(5) };
   }
   _lock(on) { try { document.body.style.overflow = on ? 'hidden' : ''; } catch (e) {} }
   _reduceMotion() {
@@ -435,8 +535,9 @@ class Component extends DCLogic {
     /* Home drops the CTA while its booking card is on screen. Once you have scrolled
        past it the floating bar carries it, so the way to book is never off the page. */
     const showCta = ((this.props.cta ?? (variant !== 'overlay')) !== false) || floating;
+    const trust = this.trustSummary();
     return {
-      n15: 15, n16: 16, n18: 18, n20: 20, n22: 22, n24: 24,
+      n14: 14, n15: 15, n16: 16, n18: 18, n20: 20, n22: 22, n24: 24,
       variant, showCta, floating, floatAttr: floating ? '1' : null,
       lang, cur,
       langOptions: LANGS.map((v) => ({ value: v, label: v.toUpperCase(), note: LANG_NOTE[v] })),
@@ -476,6 +577,17 @@ class Component extends DCLogic {
       tBook: t.book, tLangLabel: t.langLabel, tCurLabel: t.curLabel,
       tMenu: t.menu, tSvc: t.svc, tHelp: t.help, tWhatsApp: t.whatsapp,
       tFaq: t.faq, tContact: t.contact,
+      tTrustEmpty: t.trustEmpty, tTrustRead: t.trustRead, tTrustAria: t.trustAria,
+      trustWord: trust.word,
+      trustShow: !trust.pending,
+      trustEmpty: !trust.pending && !trust.has,
+      trustHas: trust.has,
+      trustS1: trust.s1, trustS2: trust.s2, trustS3: trust.s3, trustS4: trust.s4, trustS5: trust.s5,
+      trustScoreText: trust.has ? (t.trustScore || '{n}/5').replace('{n}', trust.score) : '',
+      trustCountText: trust.has ? (trust.count === '1' ? (t.trustCountOne || '1 review') : (t.trustCount || '{n} reviews').replace('{n}', trust.count)) : '',
+      trustShowLink: trust.showLink,
+      trustHref: trust.href || '/#reviews',
+      trustTarget: String(trust.href || '').indexOf('http') === 0 ? '_blank' : '_self',
       menuOpen: this.state.menuOpen,
       menuOpenAttr: this.state.menuOpen ? '1' : null,
       menuClosingAttr: this.state.menuClosing ? '1' : null,

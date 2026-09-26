@@ -58,6 +58,12 @@ describe("coupons wait for Publish (D-34)", () => {
     expect(lib).toMatch(/from public\.coupon_redemptions r/);
     expect(lib).toMatch(/p\.captured_at is not null/);
     expect(lib).toMatch(/r\.released_at is null/);
+    expect(lib).toMatch(/b\.contact_email/);
+    expect(lib).toMatch(/c\.email::text/);
+    expect(lib).toMatch(/s\.subtotal_rappen/);
+    expect(lib).toMatch(/s\.total_rappen/);
+    expect(locale).toMatch(/beforeRappen/);
+    expect(reexport).toMatch(/beforeRappen/);
   });
 });
 

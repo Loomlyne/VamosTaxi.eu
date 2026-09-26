@@ -74,19 +74,18 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 @media (min-width:768px){[data-ft-grid]{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:52px 40px}[data-ft-band]{flex-direction:row;align-items:center;justify-content:space-between;gap:32px}
 [data-ft-top],[data-ft-bottom]{flex-direction:row;align-items:center;justify-content:space-between;gap:32px}}
 @media (min-width:1024px){[data-ft-grid]{grid-template-columns:repeat(4,minmax(0,1fr));gap:48px 40px}
-[data-ft-bottom]{margin-top:90px}}[data-ft-wm]{display:block;width:fit-content;max-inline-size:62%;margin-inline-end:auto;overflow:visible}
-[data-ft-wm] img{display:block;inline-size:auto;block-size:auto;max-inline-size:100%;max-block-size:84px;object-fit:contain;object-position:inline-start center}
+[data-ft-bottom]{margin-top:90px}}[data-ft-wm]{display:block;inline-size:min(200px,100%);margin-inline-end:auto;overflow:visible}
+[data-ft-wm] img{display:block;inline-size:100%;block-size:auto;max-inline-size:100%;object-fit:contain;object-position:inline-start center}
 [data-ft-band-actions]{display:flex;flex-wrap:wrap;align-items:center;gap:12px;max-inline-size:100%}
 [data-ft-band-actions] .vt-btn{flex:0 0 auto;height:var(--vt-control-h-lg)}
 [data-ft-langs]{display:inline-flex;flex:0 0 auto;align-items:center}
 [data-ft-langs] [data-vs-btn]{box-shadow:none;height:var(--vt-control-h-lg);padding-inline:20px}
 [data-ft-pay]{margin-block-start:52px;display:flex;flex-wrap:wrap;align-items:center;gap:10px}
 [data-ft-pay-label]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted);margin-inline-end:6px}
-[data-ft-mark]{display:inline-flex;align-items:center;gap:8px;block-size:36px;padding:0 12px;border:1px solid var(--vt-border-inverse);border-radius:var(--vt-radius-xs);background:transparent;box-shadow:none;color:var(--vt-text-inverse);font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);line-height:1;white-space:nowrap}
+[data-ft-mark]{display:inline-flex;align-items:center;gap:var(--vt-space-2);min-block-size:36px;padding-block:0;padding-inline:var(--vt-space-3);border:0;border-radius:var(--vt-radius-xs);background:transparent;box-shadow:none;color:var(--vt-text-inverse);font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);line-height:var(--vt-body-leading-tight);white-space:nowrap;overflow:visible}
 [data-ft-mark] svg{display:block;block-size:16px;inline-size:auto;flex:0 0 auto}
 [data-ft-mark][data-pay="mastercard"] svg{block-size:18px}
-[data-ft-name]{display:inline;color:inherit;font:inherit;white-space:nowrap}
-@media (max-width:767px){[data-ft-wm]{max-inline-size:70%}[data-ft-wm] img{max-block-size:72px}}
+[data-ft-name]{display:inline;position:static;overflow:visible;clip:auto;clip-path:none;inline-size:auto;block-size:auto;margin:0;padding:0;color:inherit;font:inherit;line-height:inherit;white-space:nowrap}
 :focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
 </helmet>
 <footer data-screen-label="Footer" style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);font-family:var(--vt-font-body)">
@@ -125,6 +124,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <div>
 <h2 style="margin:0 0 22px;font-family:var(--vt-font-body);font-size:14px;line-height:1.2;font-weight:var(--vt-weight-medium,500);letter-spacing:0.56px;text-transform:uppercase;color:var(--vt-accent)">Services</h2>
 <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:13px">
+<li><a data-ft-link="1" href="/?service=one-way#book" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">One way</a></li>
 <li><a data-ft-link="1" href="/?service=airport#book" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">Airport transfers</a></li>
 <li><a data-ft-link="1" href="/?service=city#book" style="color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0">City to city</a></li>
 </ul>

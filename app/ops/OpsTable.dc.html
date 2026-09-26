@@ -46,6 +46,11 @@
 [data-vt-table-scroll] .vt-table thead th:last-child{background:var(--vt-grey-50);z-index:3}
 [data-vt-table-scroll] .vt-table tbody tr:hover td:last-child{background:var(--vt-grey-50)}
 [data-vt-table-scroll] .vt-table tbody tr[data-selected="true"] td:last-child{background:var(--vt-grey-100)}
+[data-vt-thumb]{box-sizing:border-box;inline-size:40px;block-size:40px;border-radius:var(--vt-radius-md);border:1px solid var(--vt-border-subtle);background:var(--vt-grey-50);overflow:hidden;display:block}
+[data-vt-thumb] img{inline-size:100%;block-size:100%;object-fit:cover;display:block}
+[data-vt-grip]{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:var(--vt-radius-md);color:var(--vt-text-muted);cursor:grab}
+[data-vt-grip]:hover{background:var(--vt-grey-50);color:var(--vt-text-primary)}
+[data-vt-table-scroll] tr[data-vt-drop="1"] td,[data-vt-table-scroll] tr[data-vt-drop="1"] td:last-child{background:var(--vt-grey-100)}
 [data-vt-editor-foot]{position:sticky;bottom:0;z-index:3;display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:20px;margin-inline:-24px;padding:18px 24px var(--vt-space-6);border-top:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface)}
 [data-vt-save-err]{box-sizing:border-box;display:flex;align-items:center;gap:10px;padding:8px 14px;margin-bottom:16px;border:1px solid var(--vt-danger);border-radius:var(--vt-radius-pill);background:var(--vt-danger-tint);font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-danger)}
 [data-vt-time-wrap] input{all:unset;flex:1 1 auto;min-width:0;width:100%;font:inherit;color:inherit;background:transparent;caret-color:var(--vt-charcoal-900)}
@@ -68,19 +73,22 @@
 [data-vt-sug]{position:fixed;z-index:400;box-sizing:border-box;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg);padding:6px;display:flex;flex-direction:column;gap:2px;max-height:260px;overflow-y:auto}
 [data-vt-sug-opt]{all:unset;box-sizing:border-box;display:flex;flex-direction:column;gap:1px;width:100%;padding:9px 10px;border-radius:10px;cursor:pointer;font-family:var(--vt-font-body)}
 [data-vt-sug-opt]:hover{background:var(--vt-grey-50)}
+[data-vt-sug-opt][data-vt-sug-wait="1"]{color:var(--vt-text-muted)}
+[data-vt-sug-opt][data-vt-sug-wait="pending"]{cursor:default;color:var(--vt-text-muted)}
+[data-vt-sug-opt][data-vt-sug-wait="pending"]:hover{background:transparent}
 [data-vt-sug-lab]{font-size:13px;font-weight:600;color:var(--vt-text-primary);text-align:start}
 [data-vt-sug-note]{font-size:11px;color:var(--vt-text-muted);text-align:start}
 [data-vt-from-sug]{position:absolute;z-index:30;inset-inline-start:0;inset-inline-end:0;top:100%;margin-top:4px;box-sizing:border-box;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg);padding:6px;display:flex;flex-direction:column;gap:2px;max-height:220px;overflow-y:auto}
 [data-vt-to-sug]{position:absolute;z-index:30;inset-inline-start:0;inset-inline-end:0;top:100%;margin-top:4px;box-sizing:border-box;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg);padding:6px;display:flex;flex-direction:column;gap:2px;max-height:220px;overflow-y:auto}
-[data-vt-icongrid]{display:flex;flex-direction:column;gap:6px;min-width:0}
-[data-vt-icongrid-row]{display:flex;flex-wrap:wrap;gap:8px;min-width:0}
-[data-vt-iconpick]{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-md);background:var(--vt-white);color:var(--vt-charcoal-900);cursor:pointer}
-[data-vt-iconpick]:hover{border-color:var(--vt-charcoal-900)}
-[data-vt-iconpick][data-on="1"]{background:var(--vt-charcoal-900);color:var(--vt-accent);border-color:var(--vt-charcoal-900)}
 [data-vt-amountkind]{display:flex;flex-direction:column;gap:6px;min-width:0}
 [data-vt-amountkind-row]{display:flex;align-items:stretch;gap:8px;min-width:0}
 [data-vt-amountkind-row] > [data-vt-time-wrap]{flex:1 1 auto;min-width:0}
 [data-vt-amountkind-kind]{flex:0 0 132px;min-width:0}
+[data-vt-bool]{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;max-width:none;white-space:nowrap;overflow:visible;cursor:pointer;line-height:1.2}
+[data-vt-bool]:focus-visible{outline:2px solid var(--vt-charcoal-900);outline-offset:2px}
+[data-vt-bool][disabled]{cursor:default}
+[data-vt-table-scroll] .vt-table th:has([data-vt-bool-col]),
+[data-vt-table-scroll] .vt-table td:has([data-vt-bool]){overflow:visible;white-space:nowrap;width:auto;min-width:max-content}
 </style>
 <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
 
@@ -119,8 +127,12 @@
 </div>
 </sc-if>
 
+<sc-if value="{{ listSaveFailed }}" hint-placeholder-val="{{ false }}">
+<div data-vt-save-err="1">{{ saveError }}</div>
+</sc-if>
+
 <sc-if value="{{ hasRows }}" hint-placeholder-val="{{ true }}">
-<div data-vt-table-scroll="1" data-fill="{{ tableFill }}" data-scroll-native="1" data-lenis-prevent="1">
+<div data-vt-table-scroll="1" data-fill="{{ tableFill }}" data-scroll-native="1" data-lenis-prevent="1" ref="{{ tableRef }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Table" columns="{{ tableColumns }}" rows="{{ visibleRows }}" hint-size="100%,320px"></x-import>
 </div>
 </sc-if>
@@ -282,20 +294,6 @@
 </div>
 </sc-if>
 
-<sc-if value="{{ f.isIconGrid }}" hint-placeholder-val="{{ false }}">
-<div data-vt-icongrid="1">
-<span data-fld-l="1">{{ f.label }}</span>
-<div data-vt-icongrid-row="1">
-<sc-for list="{{ f.iconOptions }}" as="ic" hint-placeholder-count="6">
-<button type="button" data-vt-iconpick="1" data-on="{{ ic.on }}" onClick="{{ ic.pick }}" aria-label="{{ ic.label }}" title="{{ ic.label }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ ic.value }}" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
-</button>
-</sc-for>
-</div>
-<span style="display:{{ f.hintShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ f.hint }}</span>
-</div>
-</sc-if>
-
 <sc-if value="{{ f.isAmountKind }}" hint-placeholder-val="{{ false }}">
 <div data-vt-amountkind="1">
 <span data-fld-l="1">{{ f.label }}</span>
@@ -367,6 +365,19 @@
 </button>
 <sc-if value="{{ historyOpen }}" hint-placeholder-val="{{ true }}">
 <div data-lenis-prevent="1" data-scroll-native="1" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;max-height:360px;overflow-y:auto;overscroll-behavior:contain">
+<sc-if value="{{ historyUses }}" hint-placeholder-val="{{ false }}">
+<sc-for list="{{ historyList }}" as="h" hint-placeholder-count="0">
+<div data-coupon-use="1" style="box-sizing:border-box;display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-grey-50);width:100%">
+<span style="font-size:12px;color:var(--vt-text-muted)">{{ h.dateLabel }}</span>
+<span style="font-family:var(--vt-font-display);font-size:13px;font-weight:600;color:var(--vt-text-primary)">{{ h.when }}</span>
+<span style="font-size:12px;color:var(--vt-text-muted)">{{ h.emailLabel }}</span>
+<span style="font-size:12px;color:var(--vt-text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ h.email }}</span>
+<span style="font-size:12px;color:var(--vt-text-muted)">{{ h.beforeLabel }} {{ h.before }}</span>
+<span style="font-size:12px;color:var(--vt-text-primary)">{{ h.afterLabel }} {{ h.after }}</span>
+</div>
+</sc-for>
+</sc-if>
+<sc-if value="{{ historyDefault }}" hint-placeholder-val="{{ true }}">
 <sc-for list="{{ historyList }}" as="h" hint-placeholder-count="3">
 <button type="button" onClick="{{ h.open }}" style="box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-grey-50);width:100%;text-align:start;cursor:pointer;font:inherit;color:inherit">
 <span style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 auto">
@@ -378,6 +389,7 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StatusBadge" status="{{ h.status }}" hint-size="auto,22px"></x-import>
 </button>
 </sc-for>
+</sc-if>
 <sc-if value="{{ historyEmpty }}" hint-placeholder-val="{{ false }}">
 <span style="font-size:12px;color:var(--vt-text-muted)">{{ historyEmptyLabel }}</span>
 </sc-if>
@@ -395,6 +407,16 @@
 </span>
 </div>
 </x-import>
+<sc-if value="{{ routeSugOpen }}" hint-placeholder-val="{{ false }}">
+<div data-vt-sug="1" data-vt-route-sug="1" data-scroll-native="1" data-lenis-prevent="1" role="listbox" ref="{{ sugPopRef }}" style="top:{{ sugTop }};left:{{ sugLeft }};width:{{ sugWidth }}">
+<sc-for list="{{ sugItems }}" as="s" hint-placeholder-count="3">
+<button type="button" data-vt-sug-opt="1" data-vt-sug-wait="{{ s.wait }}" onMouseDown="{{ s.pick }}">
+<span data-vt-sug-lab="1">{{ s.label }}</span>
+<span data-vt-sug-note="1" style="display:{{ s.noteShow }}">{{ s.note }}</span>
+</button>
+</sc-for>
+</div>
+</sc-if>
 </sc-if>
 
 <sc-if value="{{ nestedOpen }}" hint-placeholder-val="{{ false }}">
@@ -553,11 +575,12 @@ const FIELD_ICONS = {
 };
 
 class Component extends DCLogic {
-  state = { q: '', draft: null, isNew: false, errors: {}, confirm: null, filters: {}, filterCol: null, closeAttempted: false, historyOpen: true, nested: null, nestedErrors: {}, sug: null, dateOpen: null, saveError: '', deleteError: '', saving: false };
+  state = { q: '', draft: null, isNew: false, errors: {}, confirm: null, filters: {}, filterCol: null, closeAttempted: false, historyOpen: true, nested: null, nestedErrors: {}, sug: null, dateOpen: null, saveError: '', deleteError: '', saving: false, boolPending: {} };
   lockScroll = () => { try { document.body.style.overflow = 'hidden'; } catch (e) {} };
   unlockScroll = () => { try { document.body.style.overflow = ''; } catch (e) {} };
   _sugPopRef = (el) => { this._sugPop = el; };
   _datePopRef = (el) => { this._datePop = el; };
+  _tableRef = (el) => { this._tableEl = el; };
   componentDidMount() {
     this._sugAway = (e) => {
       if (!this.state.sug) return;
@@ -576,6 +599,60 @@ class Component extends DCLogic {
     document.addEventListener('keydown', this._sugEsc);
     document.addEventListener('mousedown', this._dateAway);
     document.addEventListener('keydown', this._dateEsc);
+    this._onRowDragStart = (e) => {
+      if (typeof (this.props.onReorder || this.props['on-reorder']) !== 'function') return;
+      const grip = e.target && e.target.closest ? e.target.closest('[data-vt-grip]') : null;
+      if (!grip || !this._tableEl || !this._tableEl.contains(grip)) return;
+      this._dragId = grip.getAttribute('data-row-id') || '';
+      if (!this._dragId || !e.dataTransfer) return;
+      e.dataTransfer.effectAllowed = 'move';
+      try { e.dataTransfer.setData('text/plain', this._dragId); } catch (err) {}
+      const tr = grip.closest('tr');
+      if (tr && e.dataTransfer.setDragImage) e.dataTransfer.setDragImage(tr, 24, 16);
+    };
+    this._onRowDragOver = (e) => {
+      if (!this._dragId || !this._tableEl) return;
+      const tr = this._dropRow(e);
+      if (!tr) return;
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+      this._markDrop(tr);
+    };
+    this._onRowDrop = (e) => {
+      if (!this._dragId) return;
+      const from = this._dragId;
+      const tr = this._dropRow(e);
+      this._dragId = '';
+      this._markDrop(null);
+      if (!tr) return;
+      e.preventDefault();
+      const to = (tr.querySelector && tr.querySelector('[data-row-id]'))
+        ? tr.querySelector('[data-row-id]').getAttribute('data-row-id') || ''
+        : '';
+      if (to) this.commitReorder(from, to);
+    };
+    this._onRowDragEnd = () => {
+      this._dragId = '';
+      this._markDrop(null);
+    };
+    document.addEventListener('dragstart', this._onRowDragStart);
+    document.addEventListener('dragover', this._onRowDragOver);
+    document.addEventListener('drop', this._onRowDrop);
+    document.addEventListener('dragend', this._onRowDragEnd);
+    this._sugPlace = () => {
+      if (!this.state.sug || !this._sugAnchor || !this._sugAnchor.getBoundingClientRect) return;
+      const box = this._sugAnchor.closest ? (this._sugAnchor.closest('.vt-field') || this._sugAnchor.parentElement) : this._sugAnchor.parentElement;
+      const r = box && box.getBoundingClientRect ? box.getBoundingClientRect() : null;
+      if (!r) return;
+      const prev = this.state.sug.rect;
+      if (prev && Math.abs(prev.top - r.top) < 1 && Math.abs(prev.left - r.left) < 1 && Math.abs((prev.width || 0) - r.width) < 1) return;
+      this.setState((s) => {
+        if (!s.sug) return null;
+        return { sug: Object.assign({}, s.sug, { rect: r }) };
+      });
+    };
+    document.addEventListener('scroll', this._sugPlace, true);
+    window.addEventListener('resize', this._sugPlace);
   }
   componentDidUpdate(prev) {
     const tick = this.props.openTick != null ? this.props.openTick : this.props['open-tick'];
@@ -596,8 +673,42 @@ class Component extends DCLogic {
     if (this._sugEsc) document.removeEventListener('keydown', this._sugEsc);
     if (this._dateAway) document.removeEventListener('mousedown', this._dateAway);
     if (this._dateEsc) document.removeEventListener('keydown', this._dateEsc);
+    if (this._onRowDragStart) document.removeEventListener('dragstart', this._onRowDragStart);
+    if (this._onRowDragOver) document.removeEventListener('dragover', this._onRowDragOver);
+    if (this._onRowDrop) document.removeEventListener('drop', this._onRowDrop);
+    if (this._onRowDragEnd) document.removeEventListener('dragend', this._onRowDragEnd);
+    if (this._sugPlace) {
+      document.removeEventListener('scroll', this._sugPlace, true);
+      window.removeEventListener('resize', this._sugPlace);
+    }
     clearTimeout(this._geoT);
     if (this._ac) { try { this._ac.abort(); } catch (e) {} }
+  }
+  _dropRow(e) {
+    if (!this._tableEl) return null;
+    const el = e && e.target;
+    const tr = el && el.closest ? el.closest('tr') : null;
+    if (!tr || !this._tableEl.contains(tr)) return null;
+    if (tr.parentElement && String(tr.parentElement.tagName || '').toUpperCase() === 'THEAD') return null;
+    return tr;
+  }
+  _markDrop(tr) {
+    if (!this._tableEl) return;
+    const rows = this._tableEl.querySelectorAll('tr[data-vt-drop]');
+    for (let i = 0; i < rows.length; i++) rows[i].removeAttribute('data-vt-drop');
+    if (tr) tr.setAttribute('data-vt-drop', '1');
+  }
+  commitReorder(fromId, toId) {
+    if (!fromId || !toId || String(fromId) === String(toId)) return;
+    if (typeof (this.props.onReorder || this.props['on-reorder']) !== 'function') return;
+    const rows = (this.props.rows || []).slice();
+    const from = rows.findIndex((r) => String(r.id) === String(fromId));
+    const to = rows.findIndex((r) => String(r.id) === String(toId));
+    if (from < 0 || to < 0) return;
+    const next = rows.slice();
+    const moved = next.splice(from, 1)[0];
+    next.splice(to, 0, moved);
+    (this.props.onReorder || this.props['on-reorder'])(next);
   }
   suggestKind(f) {
     if (f.suggest) return f.suggest;
@@ -691,35 +802,56 @@ class Component extends DCLogic {
   }
   runSuggest(key, kind, v, el) {
     if (!kind) { this.setState({ sug: null }); return; }
+    this._sugAnchor = el || null;
     const box = el && (el.closest ? (el.closest('.vt-field') || el.parentElement) : el.parentElement);
     const r = box && box.getBoundingClientRect ? box.getBoundingClientRect() : null;
     const mapboxOnly = kind === 'address' && (key === 'from' || key === 'to');
-    const local = (kind === 'address' && (key === 'from' || key === 'to')) ? [] : this.localSuggest(kind, v);
+    const local = mapboxOnly ? [] : this.localSuggest(kind, v);
     const q = String(v || '').trim();
-    this.setState({ sug: { key, kind, items: local, local, rect: r, mapboxOnly: mapboxOnly } });
+    const items = mapboxOnly && q.length >= 2
+      ? [{ label: this.mapboxCopy('search'), note: '', pending: true, value: '\0pending' }]
+      : local;
+    this.setState({ sug: { key, kind, items: items, local: local, rect: r, mapboxOnly: mapboxOnly, q: q } });
     clearTimeout(this._geoT);
     if (kind === 'address' && q.length >= 2) {
-      this._geoT = setTimeout(() => this.geoSearch(key, q), 180);
+      this._geoT = setTimeout(() => this.geoSearch(key, q, 0), 180);
     } else if (mapboxOnly) {
       if (this._ac) { try { this._ac.abort(); } catch (e) {} }
       this._geoSeq = (this._geoSeq || 0) + 1;
       this.setState({ sug: null });
     }
   }
-  geoSearch(key, q) {
+  geoSearch(key, q, attempt) {
     if (typeof fetch === 'undefined') return;
+    attempt = attempt || 0;
+    clearTimeout(this._geoT);
     this._geoSeq = (this._geoSeq || 0) + 1;
     const seq = this._geoSeq;
     if (this._ac) { try { this._ac.abort(); } catch (e) {} }
     const ac = (typeof AbortController !== 'undefined') ? new AbortController() : null;
     this._ac = ac;
     if (!this._geoTok) this._geoTok = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : '00000000-0000-4000-8000-000000000001';
-    const langVal = window.VamosLocale && window.VamosLocale.lang;
-    const rawLang = typeof langVal === 'function' ? langVal() : (typeof langVal === 'string' ? langVal : 'en');
-    const locale = ['en', 'de', 'fr', 'ar'].indexOf(rawLang) === -1 ? 'en' : rawLang;
+    const locale = this.opsLang();
     const url = '/api/geo/suggest?q=' + encodeURIComponent(q) + '&session_token=' + encodeURIComponent(this._geoTok) + '&locale=' + encodeURIComponent(locale);
-    fetch(url, ac ? { signal: ac.signal } : undefined)
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
+    const routeEnd = key === 'from' || key === 'to';
+    const failOpen = () => {
+      if (seq !== this._geoSeq) return;
+      if (attempt < 2) {
+        clearTimeout(this._geoT);
+        this._geoT = setTimeout(() => {
+          if (seq !== this._geoSeq) return;
+          this.geoSearch(key, q, attempt + 1);
+        }, 320 * (attempt + 1));
+        return;
+      }
+      if (!routeEnd) return;
+      this.setState((s) => {
+        if (!s.sug || s.sug.key !== key) return null;
+        return { sug: Object.assign({}, s.sug, { items: [{ label: this.mapboxCopy('retry'), note: '', retry: true, value: '\0retry' }], failed: true }) };
+      });
+    };
+    fetch(url, ac ? { signal: ac.signal, credentials: 'same-origin' } : { credentials: 'same-origin' })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('http'))))
       .then((j) => {
         if (seq !== this._geoSeq) return;
         const extra = ((j && j.suggestions) || []).map((hit) => {
@@ -732,22 +864,30 @@ class Component extends DCLogic {
             mapbox_id: hit.mapbox_id || '',
             session_token: this._geoTok,
           };
-        }).filter((x) => x.label);
+        }).filter((x) => x.label && (!routeEnd || x.mapbox_id));
+        if (routeEnd && !extra.length) { failOpen(); return; }
+        if (j && j.degraded && !extra.length) { failOpen(); return; }
         this.setState((s) => {
           if (!s.sug || s.sug.key !== key) return null;
-          const local = s.sug.local || [];
+          const local = (s.sug.local || []).filter((x) => x && x.mapbox_id);
           const seen = {};
           local.forEach((x) => { seen[String(x.value).toLowerCase()] = 1; });
           const merged = local.concat(extra.filter((x) => !seen[String(x.value).toLowerCase()])).slice(0, 8);
-          return { sug: Object.assign({}, s.sug, { items: merged }) };
+          return { sug: Object.assign({}, s.sug, { items: merged, failed: false }) };
         });
       })
-      .catch((e) => { if (e && e.name === 'AbortError') return; });
+      .catch((e) => {
+        if (e && e.name === 'AbortError') return;
+        if (seq !== this._geoSeq) return;
+        failOpen();
+      });
   }
   pickSug = (value) => {
+    if (!value || String(value).charAt(0) === '\0') return;
     const sug = this.state.sug || {};
     const key = sug.key;
     const hit = ((sug.items || []).filter((x) => x.value === value)[0]) || { value: value };
+    if (hit.pending || hit.retry) return;
     this.setState({ sug: null });
     if (!key) return;
     this.setField(key, value);
@@ -807,8 +947,9 @@ class Component extends DCLogic {
     return true;
   }
   canSave() {
-    if (!this.isCouponEditor()) return true;
-    return this.couponDraftReady();
+    if (this.isCouponEditor()) return this.couponDraftReady();
+    if (this.isRouteEditor()) return this.routeEndsReady();
+    return true;
   }
   rowCanDelete(row) {
     if (!this.props.canDelete) return true;
@@ -857,6 +998,7 @@ class Component extends DCLogic {
     if (DS.Icon) kids.push(React.createElement(DS.Icon, { key:'i', name:'funnel', size:12, color:'currentColor' }));
     return React.createElement('button', {
       type:'button', 'data-thbtn':'1', 'data-on': on ? '1' : '0',
+      'data-vt-bool-col': c.toggle ? '1' : undefined,
       onClick: () => this.openFilter(c.key),
     }, kids);
   }
@@ -891,9 +1033,80 @@ class Component extends DCLogic {
   setField = (key, value) => this.setState((s) => {
     const d = {}; for (const k in s.draft) d[k] = s.draft[k];
     d[key] = value;
+    if (key === 'from' || key === 'to') {
+      d[key === 'from' ? 'fromMapbox' : 'toMapbox'] = null;
+      d[key === 'from' ? 'originZoneId' : 'destZoneId'] = '';
+    }
     const errors = {}; for (const k in s.errors) if (k !== key) errors[k] = s.errors[k];
     return { draft: d, errors };
   });
+  opsLang() {
+    try {
+      const langVal = window.VamosLocale && window.VamosLocale.lang;
+      const raw = typeof langVal === 'function' ? langVal() : (typeof langVal === 'string' ? langVal : 'en');
+      return ['en', 'de', 'fr', 'ar'].indexOf(raw) === -1 ? 'en' : raw;
+    } catch (e) { return 'en'; }
+  }
+  mapboxCopy(kind) {
+    const lang = this.opsLang();
+    const copy = {
+      pick: {
+        en: 'Pick From and To from the Mapbox list.',
+        de: 'Wählen Sie Von und Nach aus der Mapbox-Liste.',
+        fr: 'Choisissez le départ et l’arrivée dans la liste Mapbox.',
+        ar: 'اختر «من» و«إلى» من قائمة ماب بوكس.',
+      },
+      search: {
+        en: 'Searching Mapbox…',
+        de: 'Mapbox wird gesucht…',
+        fr: 'Recherche Mapbox…',
+        ar: 'جارٍ البحث في ماب بوكس…',
+      },
+      retry: {
+        en: 'Mapbox did not answer. Try again.',
+        de: 'Mapbox hat nicht geantwortet. Erneut versuchen.',
+        fr: 'Mapbox n’a pas répondu. Réessayer.',
+        ar: 'لم يجب ماب بوكس. أعد المحاولة.',
+      },
+    };
+    const row = copy[kind] || copy.pick;
+    return row[lang] || row.en;
+  }
+  isRouteEditor() {
+    const fields = this.props.fields || [];
+    let from = false;
+    let to = false;
+    for (let i = 0; i < fields.length; i++) {
+      if (fields[i].key === 'from') from = true;
+      if (fields[i].key === 'to') to = true;
+    }
+    return from && to;
+  }
+  pinOk(pin, text) {
+    if (!pin || typeof pin !== 'object') return false;
+    if (!String(pin.mapbox_id || '').trim()) return false;
+    const pinned = String(pin.text || '');
+    return !pinned || pinned === String(text || '');
+  }
+  unchangedZoneEnd(key) {
+    let original = null;
+    try { original = this._original ? JSON.parse(this._original) : null; } catch (e) { return false; }
+    if (!original) return false;
+    const d = this.state.draft || {};
+    if (String(original[key] || '') !== String(d[key] || '')) return false;
+    const zoneKey = key === 'from' ? 'originZoneId' : 'destZoneId';
+    return String(original[zoneKey] || d[zoneKey] || '').trim() !== '';
+  }
+  routeEndOk(key) {
+    const d = this.state.draft || {};
+    const pinKey = key === 'from' ? 'fromMapbox' : 'toMapbox';
+    if (this.pinOk(d[pinKey], d[key])) return true;
+    return this.unchangedZoneEnd(key);
+  }
+  routeEndsReady() {
+    if (!this.isRouteEditor()) return true;
+    return this.routeEndOk('from') && this.routeEndOk('to');
+  }
   writeError(json) {
     const code = json && json.code ? String(json.code) : 'save-failed';
     const raw = json && (json.message || json.error || json.detail);
@@ -903,7 +1116,7 @@ class Component extends DCLogic {
     if (code === 'not-found') return 'That row is gone.';
     if (code === 'frozen') return 'The live rate book is locked. Could not open a draft.';
     if (code === 'invalid') return 'The server rejected that row.';
-    if (code === 'mapbox') return 'Pick From and To from the Mapbox list.';
+    if (code === 'mapbox') return this.mapboxCopy('pick');
     if (code === 'fk') return 'That save could not link this row. The class it points at is missing, or another row still uses it.';
     if (code === 'fk-missing') return 'That class is not on file yet. Close this overlay and try again.';
     if (code === 'unpaid') return 'Unpaid bookings cannot take that edit.';
@@ -944,7 +1157,7 @@ class Component extends DCLogic {
   };
   save = () => {
     if (this.state.saving) return;
-    if (!this.canSave()) return;
+    if (this.isCouponEditor() && !this.couponDraftReady()) return;
     const fields = this.props.fields || [];
     const d = this.state.draft || {};
     const errors = {};
@@ -955,6 +1168,13 @@ class Component extends DCLogic {
       if (v === undefined || v === null || String(v).trim() === '') errors[f.key] = this.props.requiredMessage || 'Needed';
     });
     if (Object.keys(errors).length) return this.setState({ errors, saveError: '' });
+    if (this.isRouteEditor() && !this.routeEndsReady()) {
+      const msg = this.mapboxCopy('pick');
+      const more = {};
+      if (!this.routeEndOk('from')) more.from = msg;
+      if (!this.routeEndOk('to')) more.to = msg;
+      return this.setState({ errors: more, saveError: msg, saving: false });
+    }
     this.setState({ saving: true, saveError: '', errors: {} });
     const run = this.state.isNew
       ? (this.props.onSave ? this.props.onSave(d) : null)
@@ -1095,6 +1315,45 @@ class Component extends DCLogic {
   }
 
   /* ── cells ───────────────────────────────────────────────────────────── */
+  boolKey(col, row) {
+    return String(row && row.id) + ':' + (col && col.key);
+  }
+  boolOn(col, row) {
+    const pending = this.state.boolPending || {};
+    const key = this.boolKey(col, row);
+    if (Object.prototype.hasOwnProperty.call(pending, key)) return !!pending[key];
+    return !!(row && col && row[col.key]);
+  }
+  toggleBool = (col, row, e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    if (e && e.preventDefault) e.preventDefault();
+    if (!col || !col.toggle || !row || !col.key) return;
+    if (this.state.saving) return;
+    const key = this.boolKey(col, row);
+    const next = !this.boolOn(col, row);
+    const pending = Object.assign({}, this.state.boolPending || {});
+    pending[key] = next;
+    this.setState({ saving: true, saveError: '', boolPending: pending });
+    const rec = Object.assign({}, row);
+    rec[col.key] = next;
+    const run = this.props.onSave ? this.props.onSave(rec) : null;
+    const done = (json) => {
+      if (!json || json.ok !== true) {
+        const revert = Object.assign({}, this.state.boolPending || {});
+        delete revert[key];
+        this.setState({ saving: false, boolPending: revert, saveError: this.writeError(json || { code: 'save-failed' }) });
+        return;
+      }
+      const clear = Object.assign({}, this.state.boolPending || {});
+      delete clear[key];
+      this.setState({ saving: false, saveError: '', boolPending: clear });
+    };
+    if (run && typeof run.then === 'function') {
+      run.then(done, () => done({ ok: false, code: 'network' }));
+      return;
+    }
+    done(run);
+  };
   stack(main, sub, mono) {
     return React.createElement('span', { style:{ display:'flex', flexDirection:'column', gap:2, lineHeight:1.3, minWidth:0 } },
       React.createElement('span', { style: mono
@@ -1105,6 +1364,29 @@ class Component extends DCLogic {
   cell(col, row) {
     const DS = window.VamosTaxiDesignSystem_245af1 || {};
     const v = row[col.key];
+    if (col.kind === 'grip') {
+      const id = String(row.id || '');
+      return React.createElement('span', {
+        role: 'button',
+        tabIndex: 0,
+        'data-vt-grip': '1',
+        'data-row-id': id,
+        draggable: true,
+        'aria-label': col.label || 'Arrange',
+        title: col.label || 'Arrange',
+        onClick: (e) => { if (e && e.stopPropagation) e.stopPropagation(); },
+      }, DS.Icon ? React.createElement(DS.Icon, { name: 'grip-vertical', size: 16, color: 'currentColor' }) : null);
+    }
+    if (col.kind === 'photo') {
+      const raw = String(row.photo || row.photoPath || '');
+      const src = (!raw || raw.indexOf('data:') === 0) ? '' : (raw.charAt(0) === '/' || raw.indexOf('http://') === 0 || raw.indexOf('https://') === 0 ? raw : '/photos/' + raw);
+      return React.createElement('span', { 'data-vt-thumb': '1', 'aria-hidden': 'true' },
+        src ? React.createElement('img', {
+          src: src,
+          alt: '',
+          onError: (e) => { if (e && e.currentTarget && e.currentTarget.remove) e.currentTarget.remove(); },
+        }) : null);
+    }
     if (col.kind === 'stack') return this.stack(v, row[col.subKey], col.mono);
     if (col.kind === 'mono') return this.stack(v, '', true);
     if (col.kind === 'money') {
@@ -1118,12 +1400,42 @@ class Component extends DCLogic {
         : React.createElement('span', { style:{ color:'var(--vt-danger)', fontWeight:500 } }, col.emptyLabel || '—');
     }
     if (col.kind === 'bool') {
-      const on = !!v;
-      return React.createElement('span', { style:{ display:'inline-flex', alignItems:'center', gap:6,
-        fontFamily:'var(--vt-font-body)', fontSize:'var(--vt-label-sm)', fontWeight:600, textTransform:'uppercase',
-        letterSpacing:'.09em', padding:'5px 10px', borderRadius:'var(--vt-radius-pill)', whiteSpace:'nowrap',
+      const on = this.boolOn(col, row);
+      const label = on ? (col.onLabel || 'Live') : (col.offLabel || 'Draft');
+      const look = {
+        display:'inline-flex', alignItems:'center', justifyContent:'center',
+        boxSizing:'border-box', maxWidth:'none',
+        fontFamily:'var(--vt-font-body)', fontSize:'var(--vt-label-sm)', fontWeight:600,
+        textTransform:'uppercase', letterSpacing:'var(--vt-label-tracking)', lineHeight:1.2,
+        padding:'6px 12px', borderRadius:'var(--vt-radius-pill)', whiteSpace:'nowrap',
+        overflow:'visible',
         background: on ? 'var(--vt-charcoal-900)' : 'var(--vt-grey-100)',
-        color: on ? 'var(--vt-accent)' : 'var(--vt-charcoal-700)' } }, on ? (col.onLabel || 'Live') : (col.offLabel || 'Draft'));
+        color: on ? 'var(--vt-accent)' : 'var(--vt-charcoal-700)',
+      };
+      if (!col.toggle) {
+        return React.createElement('span', { style:{ display:'inline-flex', alignItems:'center', gap:6,
+          fontFamily:'var(--vt-font-body)', fontSize:'var(--vt-label-sm)', fontWeight:600, textTransform:'uppercase',
+          letterSpacing:'.09em', padding:'5px 10px', borderRadius:'var(--vt-radius-pill)', whiteSpace:'nowrap',
+          background: on ? 'var(--vt-charcoal-900)' : 'var(--vt-grey-100)',
+          color: on ? 'var(--vt-accent)' : 'var(--vt-charcoal-700)' } }, label);
+      }
+      const busy = !!this.state.saving;
+      return React.createElement('button', {
+        type:'button',
+        'data-vt-bool':'1',
+        'data-on': on ? '1' : '0',
+        'data-vt-bool-key': col.key,
+        'aria-pressed': on ? 'true' : 'false',
+        'aria-label': label,
+        disabled: busy || undefined,
+        title: label,
+        style: Object.assign({}, look, {
+          cursor: busy ? 'default' : 'pointer',
+          opacity: busy ? 0.55 : 1,
+          border: 0,
+        }),
+        onClick: (e) => this.toggleBool(col, row, e),
+      }, label);
     }
     if (col.kind === 'badge') {
       const s = (col.tones || {})[v] || { tone:'neutral', label:v };
@@ -1191,7 +1503,6 @@ class Component extends DCLogic {
       const isYear = !isReadonly && (f.editor === 'year' || f.key === 'year');
       const isPhone = !isReadonly && (f.editor === 'phone' || f.key === 'phone');
       const isLicence = !isReadonly && (f.editor === 'licence' || f.key === 'licence');
-      const isIconGrid = !isReadonly && f.editor === 'iconGrid';
       const isAmountKind = !isReadonly && f.editor === 'amountKind';
       const kindKey = f.kindKey || 'kind';
       const kindValue = String(d[kindKey] == null || d[kindKey] === '' ? 'percent' : d[kindKey]);
@@ -1235,23 +1546,16 @@ class Component extends DCLogic {
         multi: !!f.multi,
         inputIcon: f.icon || FIELD_ICONS[f.key] || '',
         isReadonly,
-        isText: !isReadonly && !isDate && !isTime && !isYear && !isPhone && !isLicence && !isIconGrid && !isAmountKind && (f.editor === undefined || f.editor === 'text'),
+        isText: !isReadonly && !isDate && !isTime && !isYear && !isPhone && !isLicence && !isAmountKind && (f.editor === undefined || f.editor === 'text'),
         isNumber: !isReadonly && f.editor === 'number',
         roLabel: parts ? boardDate(parts) : (String(val).trim() ? String(val) : '—'),
         isYear, isPhone, isLicence,
         isDate, isTime,
         isSelect: !isReadonly && f.editor === 'select',
-        isIconGrid,
         isAmountKind,
         isSwitch: !isReadonly && f.editor === 'switch',
         isArea: !isReadonly && f.editor === 'area',
         isPhoto: !isReadonly && f.editor === 'photo',
-        iconOptions: (f.options || []).map((o) => ({
-          value: o.value,
-          label: o.label,
-          on: String(val) === String(o.value) ? '1' : '0',
-          pick: () => this.setField(f.key, o.value),
-        })),
         kindValue: kindValue,
         kindLabel: f.kindLabel || f.label,
         kindIcon: kindValue === 'amount' ? 'banknote' : 'ticket',
@@ -1294,20 +1598,10 @@ class Component extends DCLogic {
         noPhoto: !(val && String(val).indexOf('data:') !== 0),
         clearShow: (val && String(val).indexOf('data:') !== 0) ? 'inline' : 'none',
         clearLabel: f.clearLabel || 'Remove',
-        fromSug: f.key === 'from' && !!(this.state.sug && this.state.sug.key === 'from' && this.state.sug.items && this.state.sug.items.length),
-        fromSugItems: (f.key === 'from' && this.state.sug && this.state.sug.key === 'from')
-          ? (this.state.sug.items || []).map((s) => ({
-              label: s.label, note: s.note || '', noteShow: s.note ? 'block' : 'none',
-              pick: (e) => { if (e && e.preventDefault) e.preventDefault(); this.pickSug(s.value); },
-            }))
-          : [],
-        toSug: f.key === 'to' && !!(this.state.sug && this.state.sug.key === 'to' && this.state.sug.items && this.state.sug.items.length),
-        toSugItems: (f.key === 'to' && this.state.sug && this.state.sug.key === 'to')
-          ? (this.state.sug.items || []).map((s) => ({
-              label: s.label, note: s.note || '', noteShow: s.note ? 'block' : 'none',
-              pick: (e) => { if (e && e.preventDefault) e.preventDefault(); this.pickSug(s.value); },
-            }))
-          : [],
+        fromSug: false,
+        fromSugItems: [],
+        toSug: false,
+        toSugItems: [],
         sugPos: ((f.key === 'from' && this.state.sug && this.state.sug.key === 'from') || (f.key === 'to' && this.state.sug && this.state.sug.key === 'to')) ? 'relative' : 'static',
         sugZ: ((f.key === 'from' && this.state.sug && this.state.sug.key === 'from') || (f.key === 'to' && this.state.sug && this.state.sug.key === 'to')) ? '5' : 'auto',
         set: (e) => {
@@ -1405,7 +1699,7 @@ class Component extends DCLogic {
       noMatchBody: this.props.noMatchBody || 'Try a shorter search, or clear it to see everything again.',
       emptyTitle: this.props.emptyTitle || 'Nothing here yet',
       emptyBody: this.props.emptyBody || 'Add the first one and it appears in this table.',
-      tableColumns, tableFill, visibleRows: visible,
+      tableColumns, tableFill, visibleRows: visible, tableRef: this._tableRef,
       startAdd: this.startAdd,
       editorOpen: !!this.state.draft,
       editorTitle: this.state.isNew ? (this.props.addTitle || 'Add') : (this.props.editTitle || 'Edit'),
@@ -1414,6 +1708,7 @@ class Component extends DCLogic {
       saveOff: !this.canSave(),
       saveError: this.state.saveError || '',
       saveFailed: !!(this.state.saveError),
+      listSaveFailed: !!(this.state.saveError) && !this.state.draft,
       deleteError: this.state.deleteError || '',
       deleteFailed: !!(this.state.deleteError),
       deleteShow: (this.state.isNew || !this.rowCanDelete(d)) ? 'none' : 'inline-flex',
@@ -1421,6 +1716,8 @@ class Component extends DCLogic {
       requestClose: this.requestClose, keepEditing: this.keepEditing, discardClose: this.discardClose,
       closeAttempted: this.state.closeAttempted,
       hasHistory: !this.state.isNew && !!this.props.historyRows,
+      historyUses: this.props.historyKind === 'uses',
+      historyDefault: this.props.historyKind !== 'uses',
       historyOpen: this.state.historyOpen,
       historyChevron: this.state.historyOpen ? 'chevron-up' : 'chevron-down',
       toggleHistory: this.toggleHistory,
@@ -1441,13 +1738,35 @@ class Component extends DCLogic {
       confirmName: this.label(this.state.confirm || {}),
       cancelDelete: this.cancelDelete, confirmDelete: this.confirmDelete,
       sugOpen: !!(this.state.sug && this.state.sug.key !== 'from' && this.state.sug.key !== 'to' && this.state.sug.items && this.state.sug.items.length),
+      routeSugOpen: !!(this.state.sug && (this.state.sug.key === 'from' || this.state.sug.key === 'to') && this.state.sug.items && this.state.sug.items.length),
       sugPopRef: this._sugPopRef,
-      sugTop: (this.state.sug && this.state.sug.rect) ? (this.state.sug.rect.bottom + 8) + 'px' : '0px',
+      sugTop: (() => {
+        const r = this.state.sug && this.state.sug.rect;
+        if (!r) return '0px';
+        const gap = 8;
+        const guess = 220;
+        const below = r.bottom + gap;
+        if (typeof window !== 'undefined' && below + guess > window.innerHeight - 12 && r.top - gap - guess > 12) {
+          return Math.max(12, r.top - gap - guess) + 'px';
+        }
+        return below + 'px';
+      })(),
       sugLeft: (this.state.sug && this.state.sug.rect) ? this.state.sug.rect.left + 'px' : '0px',
       sugWidth: (this.state.sug && this.state.sug.rect) ? Math.round(this.state.sug.rect.width) + 'px' : '240px',
       sugItems: ((this.state.sug && this.state.sug.items) || []).map((s) => ({
         label: s.label, note: s.note || '', noteShow: s.note ? 'block' : 'none',
-        pick: (e) => { if (e && e.preventDefault) e.preventDefault(); this.pickSug(s.value); },
+        wait: s.pending ? 'pending' : (s.retry ? '1' : '0'),
+        pick: (e) => {
+          if (e && e.preventDefault) e.preventDefault();
+          if (e && e.stopPropagation) e.stopPropagation();
+          if (s.pending) return;
+          if (s.retry) {
+            const sug = this.state.sug || {};
+            this.geoSearch(sug.key, sug.q || '', 0);
+            return;
+          }
+          this.pickSug(s.value);
+        },
       })),
     };
   }

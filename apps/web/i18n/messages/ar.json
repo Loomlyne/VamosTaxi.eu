@@ -878,7 +878,8 @@
     "zurich-geneva": "زيورخ · جنيف",
     "form-submit-failed": "حدث خطأ. حاول مرة أخرى، أو اتصل بنا إن استمر.",
     "form-challenge-failed": "لم يكتمل التحقق. حاول مرة أخرى.",
-    "payments-luxembourg-only-if-wallet-is-switched-on": "المدفوعات · لوكسمبورغ — فقط إذا كانت الطريقة الإضافية مفعّلة"
+    "payments-luxembourg-only-if-wallet-is-switched-on": "المدفوعات · لوكسمبورغ — فقط إذا كانت الطريقة الإضافية مفعّلة",
+    "professional-drivers": "سائقون محترفون"
   },
   "contact": {
     "8953-dietikon-zh-switzerland-post-only-this-is-n": "8953 ديتيكون، زيورخ، سويسرا. للبريد فقط — وليست مكتبًا لاستقبال الركاب.",
@@ -2443,7 +2444,11 @@
     "private": "خاص",
     "private-transfers-between-swiss-cities-scheduled": "رحلات خاصة بين المدن السويسرية، مجدولة في وقت محدد.",
     "three-services-one-fixed-price-each": "ثلاث خدمات، لكل منها سعر ثابت.",
-    "two-services-one-fixed-price-each": "خدمتان، لكل منهما سعر ثابت."
+    "two-services-one-fixed-price-each": "خدمتان، لكل منهما سعر ثابت.",
+    "core-services": "الخدمات الأساسية",
+    "learn-more": "اعرف المزيد",
+    "professional-drivers": "سائقون محترفون",
+    "your-driver-is-assigned-to-your-booking-and-wai": "يُعيَّن سائقك لحجزك وينتظرك عند الرصيف مع لافتة باسمك."
   },
   "statusBadge": {
     "quote": "عرض سعر",

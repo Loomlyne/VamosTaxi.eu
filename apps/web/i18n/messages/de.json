@@ -878,7 +878,8 @@
     "zurich-geneva": "Zürich · Genf",
     "form-submit-failed": "Etwas ist schiefgelaufen. Versuchen Sie es erneut, oder rufen Sie uns an, wenn es bleibt.",
     "form-challenge-failed": "Die Prüfung ist nicht durchgegangen. Versuchen Sie es erneut.",
-    "payments-luxembourg-only-if-wallet-is-switched-on": "Zahlungen · Luxemburg — nur wenn die Zusatzmethode eingeschaltet ist"
+    "payments-luxembourg-only-if-wallet-is-switched-on": "Zahlungen · Luxemburg — nur wenn die Zusatzmethode eingeschaltet ist",
+    "professional-drivers": "Professionelle Fahrer"
   },
   "contact": {
     "8953-dietikon-zh-switzerland-post-only-this-is-n": "8953 Dietikon ZH, Schweiz. Nur Post — dies ist kein Kundenschalter.",
@@ -2443,7 +2444,11 @@
     "private": "Privat",
     "private-transfers-between-swiss-cities-scheduled": "Private Transfers zwischen Schweizer Städten, auf eine genaue Zeit geplant.",
     "three-services-one-fixed-price-each": "Drei Leistungen. Je ein Fixpreis.",
-    "two-services-one-fixed-price-each": "Zwei Leistungen. Je ein Fixpreis."
+    "two-services-one-fixed-price-each": "Zwei Leistungen. Je ein Fixpreis.",
+    "core-services": "Kernleistungen",
+    "learn-more": "Mehr erfahren",
+    "professional-drivers": "Professionelle Fahrer",
+    "your-driver-is-assigned-to-your-booking-and-wai": "Ihr Fahrer wird Ihrer Buchung zugeteilt und wartet am Strassenrand mit Namensschild."
   },
   "statusBadge": {
     "quote": "Angebot",

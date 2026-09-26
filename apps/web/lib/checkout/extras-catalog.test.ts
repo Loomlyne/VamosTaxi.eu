@@ -5,7 +5,6 @@ import { describe, expect, it } from "vitest";
 import {
   catalogFromSurcharges,
   extraAmountTimesQty,
-  extraChipIcon,
   extraFaresOn,
   extraIsOn,
   extraIsOnForStep,
@@ -114,8 +113,8 @@ describe("checkout extras catalog", () => {
       row({ code: "child_seat", amount_rappen: 2000, active: false }),
     ]);
     expect(extras.map((item) => item.code)).toEqual(["pet", "ski", "bike_rack"]);
-    expect(extraChipIcon("bike_rack")).toBe("user");
-    expect(extraChipIcon("ski")).toBe("snowflake");
+    expect(extraUi("bike_rack")).toBeNull();
+    expect(extraUi("ski")?.labelKey).toBe("extraSki");
   });
 
   it("public extras route still loads the live book", () => {
@@ -172,7 +171,7 @@ describe("checkout extras catalog", () => {
       },
     ]);
     const lines = recapExtras(catalog, (code) => code === "child_seat");
-    expect(lines).toEqual([{ code: "child_seat", labelKey: "childSeat", icon: "baby" }]);
+    expect(lines).toEqual([{ code: "child_seat", labelKey: "childSeat" }]);
     expect(recapExtras([], (code) => code === "extra_stop")).toEqual([]);
   });
 
@@ -187,7 +186,7 @@ describe("checkout extras catalog", () => {
       },
     ]);
     expect(recapExtraFares(catalog, (code) => code === "child_seat")).toEqual([
-      { code: "child_seat", labelKey: "childSeat", icon: "baby", amount_rappen: 2000 },
+      { code: "child_seat", labelKey: "childSeat", amount_rappen: 2000 },
     ]);
     expect(extraRappenOutsideLock(null, catalog, (code) => code === "child_seat")).toBe(2000);
     expect(extraRappenOutsideLock({ child_seats: 1 }, catalog, (code) => code === "child_seat")).toBe(0);
@@ -285,5 +284,36 @@ describe("checkout extras catalog", () => {
     expect(airportPickupFromPlace({ zone_type: "airport" })).toBe(true);
     expect(airportPickupFromPlace({ zone_type: "city" })).toBe(false);
     expect(airportPickupFromPlace(null)).toBeUndefined();
+  });
+
+  it("shows amount 0 as included and does not charge it; a price is on the quote once", () => {
+    const catalog = catalogFromSurcharges([
+      {
+        code: "child-seat",
+        kind: "amount",
+        amount_rappen: 0,
+        percent: null,
+        active: true,
+        predicate: { kind: "always" },
+      },
+      {
+        code: "ski-bag",
+        kind: "amount",
+        amount_rappen: 100,
+        percent: null,
+        active: true,
+        predicate: { kind: "always" },
+      },
+    ]);
+    const free = catalog.find((row) => row.code === "child-seat");
+    const priced = catalog.find((row) => row.code === "ski-bag");
+    expect(free?.kind).toBe("included");
+    expect(free?.amount_rappen).toBeNull();
+    expect(free?.toggle).toBe(false);
+    expect(priced?.kind).toBe("amount");
+    expect(priced?.amount_rappen).toBe(100);
+    expect(priced?.pricedInQuote).toBe(true);
+    expect(extraFaresOn(catalog, () => true)).toEqual([]);
+    expect(extraRappenOutsideLock(null, catalog, () => true)).toBe(0);
   });
 });

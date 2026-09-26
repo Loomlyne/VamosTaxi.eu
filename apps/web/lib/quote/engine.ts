@@ -26,7 +26,7 @@ import {
   mintLockDeadline,
 } from "../db/quote";
 import { priceQuote, type PriceQuoteOutput } from "../pricing/priceQuote";
-import { decoratePublicClasses } from "../pricing/public-board";
+import { decoratePublicClasses, omitHiddenPublicClasses } from "../pricing/public-board";
 import type { CouponFacts, SettingsVersionRow } from "../pricing/policy";
 import * as rateBookMapper from "../pricing/rateBook";
 import type { MappedSettingsSnapshot } from "../pricing/rateBook";
@@ -237,7 +237,10 @@ export async function loadAndPrice(
     ok: true,
     quote: {
       no_eligible_class: priced.no_eligible_class,
-      classes: decoratePublicClasses(book, priced.classes),
+      classes: decoratePublicClasses(
+        book,
+        omitHiddenPublicClasses(book, priced.classes),
+      ),
       policy: priced.policy,
       rate_version: publicRateVersion(book.rate_version),
       engine_version: priced.engine_version,
