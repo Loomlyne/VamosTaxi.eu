@@ -1330,8 +1330,16 @@ class Component extends DCLogic {
           id: rec.id, from: rec.from, to: rec.to, live: rec.live,
           fromMapbox: rec.fromMapbox,
           toMapbox: rec.toMapbox,
-          originZoneId: rec.originZoneId || (existing && existing.originZoneId) || '',
-          destZoneId: rec.destZoneId || (existing && existing.destZoneId) || '',
+          originZoneId: rec.fromMapbox
+            ? (rec.originZoneId || '')
+            : (existing && String(existing.from || '') === String(rec.from || '')
+              ? (rec.originZoneId || existing.originZoneId || '')
+              : (rec.originZoneId || '')),
+          destZoneId: rec.toMapbox
+            ? (rec.destZoneId || '')
+            : (existing && String(existing.to || '') === String(rec.to || '')
+              ? (rec.destZoneId || existing.destZoneId || '')
+              : (rec.destZoneId || '')),
           prices: {},
         };
         ratedClasses.forEach((c) => {
