@@ -52,7 +52,7 @@ describe("OpsPricing tabs (D-11 D-12 D-17 D-25)", () => {
     expect(html).toContain("Draft — not public until Publish");
     expect(html).toContain("Live book");
     expect(html).toContain("Fix this");
-    expect(html).toContain("place to place");
+    expect(html).toContain("city to city");
     expect(html).toContain("canton to canton");
     expect(html).toContain("photoKind:'class'");
     expect(html).toContain("SURCHARGE_TYPES");

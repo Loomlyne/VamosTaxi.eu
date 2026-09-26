@@ -127,7 +127,8 @@ describe("checkout comment pack", () => {
       "utf8",
     );
     expect(payClient).not.toContain("data-checkout-pay-skeleton");
-    expect(payClient).toContain("disabled={paying || busy}");
+    expect(payClient).toContain("const payDisabled = paying || busy || !clientSecret || payLocked;");
+    expect(payClient).toContain("disabled={payDisabled}");
     expect(payClient).not.toContain("disabled={paying || busy || !cardComplete}");
     expect(payClient).toContain("confirmPayRef");
     expect(payClient).toContain("client_secret_hex");
@@ -186,7 +187,7 @@ describe("checkout comment pack", () => {
     expect(client).toContain("aria-busy={busy || undefined}");
     expect(client).not.toContain('refusal !== "payCouldNotStart"');
     expect(client).not.toContain("companyReady");
-    expect(client).toContain("disabled={busy || classFareRappen == null || !isCheckoutEmail(payerEmail)}");
+    expect(client).toContain("disabled={busy || classFareRappen == null || Boolean(paySheetAlert) || payLocked || !isCheckoutEmail(payerEmail)}");
     expect(client).toContain("couponAlreadyOn");
     expect(client).toContain("billingKindFromFields");
     expect(client).toContain("isCheckoutEmail(payerEmail)");
