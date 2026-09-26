@@ -362,6 +362,19 @@
 </button>
 <sc-if value="{{ historyOpen }}" hint-placeholder-val="{{ true }}">
 <div data-lenis-prevent="1" data-scroll-native="1" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;max-height:360px;overflow-y:auto;overscroll-behavior:contain">
+<sc-if value="{{ historyUses }}" hint-placeholder-val="{{ false }}">
+<sc-for list="{{ historyList }}" as="h" hint-placeholder-count="0">
+<div data-coupon-use="1" style="box-sizing:border-box;display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-grey-50);width:100%">
+<span style="font-size:12px;color:var(--vt-text-muted)">{{ h.dateLabel }}</span>
+<span style="font-family:var(--vt-font-display);font-size:13px;font-weight:600;color:var(--vt-text-primary)">{{ h.when }}</span>
+<span style="font-size:12px;color:var(--vt-text-muted)">{{ h.emailLabel }}</span>
+<span style="font-size:12px;color:var(--vt-text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ h.email }}</span>
+<span style="font-size:12px;color:var(--vt-text-muted)">{{ h.beforeLabel }} {{ h.before }}</span>
+<span style="font-size:12px;color:var(--vt-text-primary)">{{ h.afterLabel }} {{ h.after }}</span>
+</div>
+</sc-for>
+</sc-if>
+<sc-if value="{{ historyDefault }}" hint-placeholder-val="{{ true }}">
 <sc-for list="{{ historyList }}" as="h" hint-placeholder-count="3">
 <button type="button" onClick="{{ h.open }}" style="box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-grey-50);width:100%;text-align:start;cursor:pointer;font:inherit;color:inherit">
 <span style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 auto">
@@ -373,6 +386,7 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StatusBadge" status="{{ h.status }}" hint-size="auto,22px"></x-import>
 </button>
 </sc-for>
+</sc-if>
 <sc-if value="{{ historyEmpty }}" hint-placeholder-val="{{ false }}">
 <span style="font-size:12px;color:var(--vt-text-muted)">{{ historyEmptyLabel }}</span>
 </sc-if>
@@ -1573,6 +1587,8 @@ class Component extends DCLogic {
       requestClose: this.requestClose, keepEditing: this.keepEditing, discardClose: this.discardClose,
       closeAttempted: this.state.closeAttempted,
       hasHistory: !this.state.isNew && !!this.props.historyRows,
+      historyUses: this.props.historyKind === 'uses',
+      historyDefault: this.props.historyKind !== 'uses',
       historyOpen: this.state.historyOpen,
       historyChevron: this.state.historyOpen ? 'chevron-up' : 'chevron-down',
       toggleHistory: this.toggleHistory,

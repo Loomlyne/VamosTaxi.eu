@@ -98,7 +98,13 @@ describe("OpsPricing tabs (D-11 D-12 D-17 D-25)", () => {
     expect(html).toMatch(/key:'to', label:t.colTo, required:true, icon:'map-pin', half:true/);
     expect(html).toMatch(/fill="1"/);
     expect(html).toMatch(/\/api\/staff\/coupons\/redemptions/);
-    expect(html).toMatch(/hNote:'Staff-only reminder/);
+    expect(html).not.toMatch(/hNote:/);
+    expect(html).not.toMatch(/key:'note', label:t\.fNote/);
+    expect(html).toMatch(/history-kind="uses"/);
+    expect(html).toMatch(/useBefore:'Before coupon'/);
+    expect(html).toMatch(/useBefore:'Vor dem Gutschein'/);
+    expect(html).toMatch(/useBefore:'Avant le code'/);
+    expect(html).toMatch(/useBefore:'قبل القسيمة'/);
     expect(html).not.toMatch(/key:'active', label:t.fActive, editor:'switch'/);
     expect(html).not.toMatch(/key:'validFrom'/);
     expect(html).toMatch(/key:'expires', label:t.fExpires, editor:'date'/);

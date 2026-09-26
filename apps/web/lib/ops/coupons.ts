@@ -458,7 +458,44 @@ export type CouponRedemptionListRow = {
   redeemedAt: string;
   bookingId: string;
   reference: string;
+  /** customers.email when the redeemer is still on file, else bookings.contact_email. */
+  email: string;
+  /** price_snapshots subtotal + surcharges, only when the stored identity holds. CHF rappen. */
+  beforeRappen: number | null;
+  /** price_snapshots.total_rappen. CHF rappen. Null stays null. */
+  afterRappen: number | null;
 };
+
+function rappenOrNull(value: number | string | null | undefined): number | null {
+  if (value == null || value === "") return null;
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(n)) return null;
+  return Math.round(n);
+}
+
+/**
+ * Before/after from stored snapshot columns only.
+ * Identity: total_rappen = subtotal_rappen + surcharges_rappen − discount_rappen.
+ * A missing column or a broken identity does not get a guessed figure.
+ */
+export function couponUseAmounts(row: {
+  subtotal_rappen?: number | string | null;
+  surcharges_rappen?: number | string | null;
+  discount_rappen?: number | string | null;
+  total_rappen?: number | string | null;
+}): { beforeRappen: number | null; afterRappen: number | null } {
+  const subtotal = rappenOrNull(row.subtotal_rappen);
+  const surcharges = rappenOrNull(row.surcharges_rappen);
+  const discount = rappenOrNull(row.discount_rappen);
+  const total = rappenOrNull(row.total_rappen);
+  if (subtotal == null || surcharges == null || discount == null || total == null) {
+    return { beforeRappen: null, afterRappen: total };
+  }
+  if (subtotal + surcharges - discount !== total) {
+    return { beforeRappen: null, afterRappen: total };
+  }
+  return { beforeRappen: subtotal + surcharges, afterRappen: total };
+}
 
 export async function loadCouponRedemptions(
   env: CloudflareEnv,
@@ -472,6 +509,11 @@ export async function loadCouponRedemptions(
         redeemed_at: Date | string;
         booking_id: string;
         reference: string;
+        email: string | null;
+        subtotal_rappen: number | string | null;
+        surcharges_rappen: number | string | null;
+        discount_rappen: number | string | null;
+        total_rappen: number | string | null;
       }[]
     >`
       select
@@ -479,23 +521,41 @@ export async function loadCouponRedemptions(
         cp.code,
         r.redeemed_at,
         b.id as booking_id,
-        b.reference
+        b.reference,
+        coalesce(
+          case
+            when c.erased_at is null then nullif(btrim(c.email::text), '')
+          end,
+          nullif(btrim(b.contact_email::text), '')
+        ) as email,
+        s.subtotal_rappen,
+        s.surcharges_rappen,
+        s.discount_rappen,
+        s.total_rappen
       from public.coupon_redemptions r
       join public.coupons cp on cp.id = r.coupon_id
       join public.bookings b on b.id = r.booking_id
       join public.booking_payments p on p.id = r.payment_id
+      left join public.price_snapshots s on s.id = p.snapshot_id
+      left join public.customers c on c.id = r.customer_id
       where r.released_at is null
         and p.captured_at is not null
       order by r.redeemed_at desc
       limit 80
     `;
-    return rows.map((row) => ({
-      couponId: row.coupon_id,
-      code: row.code,
-      redeemedAt: toIso(row.redeemed_at) ?? "",
-      bookingId: row.booking_id,
-      reference: row.reference,
-    }));
+    return rows.map((row) => {
+      const amounts = couponUseAmounts(row);
+      return {
+        couponId: row.coupon_id,
+        code: row.code,
+        redeemedAt: toIso(row.redeemed_at) ?? "",
+        bookingId: row.booking_id,
+        reference: row.reference,
+        email: typeof row.email === "string" ? row.email : "",
+        beforeRappen: amounts.beforeRappen,
+        afterRappen: amounts.afterRappen,
+      };
+    });
   });
 }
 
