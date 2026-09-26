@@ -158,11 +158,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-fleet-card]{padding:8px;gap:10px;min-height:0;min-width:362px;box-sizing:border-box;overflow:hidden;flex-direction:row;align-items:flex-start}
 [data-fleet-img],[data-fleet-skel-photo]{width:146px;height:146px;aspect-ratio:1/1;border-radius:var(--vt-radius-md);background:var(--vt-grey-100);overflow:hidden;flex:0 0 146px}
 [data-fleet-body]{display:flex;flex-direction:column;gap:var(--vt-space-1);padding:0;min-width:0;flex:1 1 auto;justify-content:flex-start;align-self:stretch}
-[data-fleet-head]{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:var(--vt-space-1);min-width:0;width:100%}
-[data-fleet-name]{font-family:var(--vt-font-body);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:var(--vt-heading-leading);color:var(--vt-text-primary);min-width:0;width:100%;overflow-wrap:normal;word-break:normal;hyphens:manual;text-wrap:pretty}
-[data-fleet-ex]{font-family:var(--vt-font-body);font-size:var(--vt-body-xs);line-height:1.3;color:var(--vt-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-[data-price-row]{display:block;flex:0 0 auto;min-width:0}
-[data-price-slot]{position:relative;width:92px;height:22px;display:block;flex:none}
+[data-fleet-head]{display:flex;flex-direction:row;align-items:baseline;justify-content:space-between;gap:12px;min-width:0;width:100%}
+[data-fleet-name]{font-family:var(--vt-font-body);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:var(--vt-heading-leading);color:var(--vt-text-primary);min-width:0;flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+[data-fleet-ex]{font-family:var(--vt-font-body);font-size:var(--vt-body-xs);line-height:1.35;color:var(--vt-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;width:100%}
+[data-price-row]{display:inline-flex;align-items:baseline;gap:6px;flex:0 0 auto;margin-inline-start:auto;min-width:0;white-space:nowrap}
+[data-price-slot]{position:relative;min-width:0;height:22px;display:inline-block;flex:none}
 [data-fleet-caps]{display:flex;align-items:center;flex-wrap:nowrap;gap:8px 12px;font-size:var(--vt-body-xs);color:var(--vt-text-secondary);min-width:0;width:100%;white-space:nowrap}
 [data-fleet-foot]{display:flex;flex-direction:column;align-items:stretch;gap:6px;min-width:0;width:100%;margin-top:auto}
 [data-fleet-cta]{display:flex;align-items:center;justify-content:center;gap:7px;height:var(--vt-control-h-sm);padding:0 10px;border-radius:var(--vt-radius-pill);font-family:var(--vt-font-body);font-size:var(--vt-label-sm);font-weight:700;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;box-sizing:border-box;white-space:nowrap;width:100%;flex:0 0 auto}
@@ -225,6 +225,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 @container bookcompact (max-width:400px){#book [data-book-slots]:has([data-book-field="flight"]){grid-template-columns:minmax(0,1fr);grid-template-areas:"pickup" "dest" "when" "flight" "party"}}
 @media (min-width:1080px){[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]){grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"pickup pickup" "dest dest" "when flight" "party party";align-items:end}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-book-field="pickup"]{grid-area:pickup}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-book-field="dest"]{grid-area:dest}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-book-field="when"]{grid-area:when}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-book-field="flight"]{grid-area:flight}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-book-field="party"]{grid-area:party}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-book-field],[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-vtcombo]{min-width:0;max-width:100%}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-vtcombo]{width:100%;box-sizing:border-box}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-vtcombo] input{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-party]{grid-template-columns:repeat(2,minmax(0,1fr));width:100%}}
 [data-hero],[data-hero-inner]{min-height:100vh;min-height:100svh}
+[data-hero-slides]{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+[data-hero-slide]{position:absolute;inset:0;background-position:center top;background-size:cover;background-repeat:no-repeat;opacity:0;transform:scale(1.02);transition:opacity .55s cubic-bezier(.2,0,.2,1),transform .7s cubic-bezier(.2,0,.2,1)}
+[data-hero-slide][data-on="1"]{opacity:1;transform:scale(1)}
+@media (prefers-reduced-motion:reduce){[data-hero-slide]{transition:none;transform:none}}
+[data-hero-inner]{position:relative;z-index:2}
 [data-fleet-strip]{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;gap:8px;padding-bottom:4px;background:transparent}[data-fleet-card]{flex:0 0 362px;min-width:362px;max-width:402px;scroll-snap-align:start}[data-fleet-card][data-unavail="1"] [data-fleet-img]{filter:saturate(.4)}
 @media (max-width:699px){[data-hide-narrow]{display:none!important}}
 @media (min-width:700px){[data-only-narrow]{display:none!important}
@@ -1083,6 +1088,7 @@ const FLIGHT_API = {
 function classFromQuote(c) {
   const slug = String((c && c.slug) || '');
   const name = String((c && (c.name || c.label)) || slug);
+  const blurb = String((c && (c.blurb || c.subtitle || c.tagline || c.examples || c.description)) || '').trim();
   return {
     id: slug,
     name: name,
@@ -1090,6 +1096,7 @@ function classFromQuote(c) {
     cap: c && c.effective_max_pax != null ? c.effective_max_pax : 0,
     bags: c && c.max_bags != null ? c.max_bags : 0,
     image: String((c && (c.photo_url || c.photo_path || c.image)) || ''),
+    examples: blurb,
   };
 }
 function classOnFleet(offer, slug) {
@@ -1120,7 +1127,7 @@ const T = {
     month:'August 2026',
     getting:'Getting your fixed price…', selectHint:'Select a class to continue — details & extras next',
     naPax:'Not available for {n} passengers', naBags:'Not available for {n} bags', quoteErr:'Couldn’t price this — try again', routeErr:'No road route to this destination', europeErr:'We operate in Europe', fixed:'Fixed price', allIn:'total, all inclusive', mostBooked:'Most booked',
-    economy:'Economy', business:'Business', first:'First', van:'Van', exEconomy:'Sedan or similar', exBusiness:'Executive sedan', exFirst:'S-Class or similar', exVan:'Minivan or similar', seats:'seats', bagsWord:'bags',
+    economy:'Economy', business:'Business', first:'First', van:'Van', exEconomy:'Sedan or similar', exBusiness:'Executive sedan', exFirst:'S-Class or similar', exVan:'Minivan or similar', exDefault:'Fixed price · Meet & greet', seats:'seats', bagsWord:'bags',
     upToPax:'Up to {n} passengers', upToBags:'Up to {n} bags', movedTo:'Moved to {v} — {from} fits up to {cap}.', noneFit:'No class fits this party size yet.',
     flightCardTitle:'Flight details', fcTo:'Departs {ap} at {t} — we take you there.', fcFrom:'Arriving at {ap} at {t} — we\'ll meet you there.',
     flightDateLbl:'Which day', today:'Today', tomorrow:'Tomorrow', useFlight:'Use this flight', notMyFlight:'Not my flight',
@@ -1180,7 +1187,7 @@ const T = {
     month:'August 2026',
     getting:'Ihr Festpreis wird berechnet…', selectHint:'Klasse wählen und weiter — Angaben & Extras folgen',
     naPax:'Nicht verfügbar für {n} Passagiere', naBags:'Nicht verfügbar für {n} Gepäckstücke', quoteErr:'Preis nicht verfügbar — erneut versuchen', routeErr:'Kein Strassenweg zu diesem Ziel', europeErr:'Wir fahren in Europa', fixed:'Festpreis', allIn:'gesamt, alles inklusive', mostBooked:'Meistgebucht',
-    economy:'Economy', business:'Business', first:'First', van:'Van', exEconomy:'Limousine oder ähnlich', exBusiness:'Business-Limousine', exFirst:'S-Klasse oder ähnlich', exVan:'Minivan oder ähnlich', seats:'Plätze', bagsWord:'Gepäckstücke',
+    economy:'Economy', business:'Business', first:'First', van:'Van', exEconomy:'Limousine oder ähnlich', exBusiness:'Business-Limousine', exFirst:'S-Klasse oder ähnlich', exVan:'Minivan oder ähnlich', exDefault:'Festpreis · Meet & Greet', seats:'Plätze', bagsWord:'Gepäckstücke',
     upToPax:'Bis zu {n} Passagiere', upToBags:'Bis zu {n} Gepäckstücke', movedTo:'Zu {v} gewechselt — {from} bietet Platz für bis zu {cap}.', noneFit:'Keine Klasse passt zu dieser Personenzahl.',
     flightCardTitle:'Flugdetails', fcTo:'Abflug {ap} um {t} — wir bringen Sie dorthin.', fcFrom:'Ankunft {ap} um {t} — wir holen Sie dort ab.',
     flightDateLbl:'Welcher Tag', today:'Heute', tomorrow:'Morgen', useFlight:'Diesen Flug verwenden', notMyFlight:'Nicht mein Flug',
@@ -1239,7 +1246,7 @@ const T = {
     month:'Août 2026',
     getting:'Calcul de votre prix fixe…', selectHint:'Choisissez une classe pour continuer — détails & options ensuite',
     naPax:'Indisponible pour {n} passagers', naBags:'Indisponible pour {n} bagages', quoteErr:'Tarif indisponible — réessayez', routeErr:'Pas d’itinéraire routier vers cette destination', europeErr:'Nous circulons en Europe', fixed:'Prix fixe', allIn:'total, tout compris', mostBooked:'Le plus réservé',
-    economy:'Economy', business:'Business', first:'First', van:'Van', exEconomy:'Berline ou similaire', exBusiness:'Berline affaires', exFirst:'Classe S ou similaire', exVan:'Monospace ou similaire', seats:'places', bagsWord:'bagages',
+    economy:'Economy', business:'Business', first:'First', van:'Van', exEconomy:'Berline ou similaire', exBusiness:'Berline affaires', exFirst:'Classe S ou similaire', exVan:'Monospace ou similaire', exDefault:'Prix fixe · Accueil', seats:'places', bagsWord:'bagages',
     signIn:'Connexion', customPin:'Utiliser comme point sur la carte', dowRef:'sam.,dim.,lun.,mar.,mer.,jeu.,ven.', mon:'août',
     menu:'Menu', close:'Fermer', clear:'Effacer', save:'Enregistrer', planTitle:'Planifiez votre transfert', showPrices:'Afficher les prix fixes', trustEmpty:'Les avis s’afficheront ici dès qu’ils seront publiés.', trustScore:'{n}/5', trustCountOne:'1 avis', trustCount:'{n} avis', trustRead:'Lire les avis', trustExcellent:'Excellent', trustGreat:'Très bien', trustGood:'Bien', trustFair:'Correct', trustAria:'Avis des clients', call:'Appeler le +41 79 626 70 82', callNote:'Parler à la centrale', langLabel:'Langue', curLabel:'Devise',
     morning:'Matin', afternoon:'Après-midi', evening:'Soir', pickupTime:'Heure de départ', returnTimeLbl:'Heure du retour',
@@ -1274,7 +1281,7 @@ const T = {
     month:'أغسطس 2026',
     getting:'جارٍ حساب سعرك الثابت…', selectHint:'اختر فئة للمتابعة — التفاصيل والإضافات تاليًا',
     naPax:'غير متاحة لـ {n} ركاب', naBags:'غير متاحة لـ {n} حقائب', quoteErr:'تعذّر التسعير — حاول مجددًا', routeErr:'لا يوجد مسار بري إلى هذه الوجهة', europeErr:'نعمل في أوروبا', fixed:'سعر ثابت', allIn:'الإجمالي، شامل كل شيء', mostBooked:'الأكثر حجزًا',
-    economy:'اكونومي', business:'بيزنس', first:'الأولى', van:'فان', exEconomy:'سيدان أو ما شابه', exBusiness:'سيدان تنفيذية', exFirst:'إس-كلاس أو ما شابه', exVan:'ميني فان أو ما شابه', seats:'مقاعد', bagsWord:'حقائب',
+    economy:'اكونومي', business:'بيزنس', first:'الأولى', van:'فان', exEconomy:'سيدان أو ما شابه', exBusiness:'سيدان تنفيذية', exFirst:'إس-كلاس أو ما شابه', exVan:'ميني فان أو ما شابه', exDefault:'سعر ثابت · استقبال', seats:'مقاعد', bagsWord:'حقائب',
     signIn:'تسجيل الدخول', customPin:'استخدامه كنقطة على الخريطة', dowRef:'السبت,الأحد,الاثنين,الثلاثاء,الأربعاء,الخميس,الجمعة', mon:'أغسطس',
     menu:'القائمة', close:'إغلاق', clear:'مسح', save:'حفظ', planTitle:'خطّط رحلتك', showPrices:'إظهار الأسعار الثابتة', trustEmpty:'تظهر آراء الضيوف هنا بعد نشرها.', trustScore:'{n}/5', trustCountOne:'تقييم واحد', trustCount:'{n} تقييمات', trustRead:'قراءة التقييمات', trustExcellent:'ممتاز', trustGreat:'جيد جداً', trustGood:'جيد', trustFair:'مقبول', trustAria:'آراء الضيوف', call:'اتصل بنا', callNote:'تحدّث مع قسم التوزيع', langLabel:'اللغة', curLabel:'العملة',
     morning:'صباحًا', afternoon:'بعد الظهر', evening:'مساءً', pickupTime:'وقت الانطلاق', returnTimeLbl:'وقت العودة',
@@ -1288,7 +1295,7 @@ const T = {
     savedGo:'تم الحفظ — جارٍ فتح حجزك…', savedSub:'{v} · التفاصيل والإضافات تاليًا.',
   },
 };
-const SVC = ['airport', 'city', 'hourly'];
+const SVC = ['airport','city','one-way','point','oneway','hourly'];
 const SVC_KICKER = {
   en: { airport:'Airport transfers · Zurich', city:'City to city · Switzerland', hourly:'Chauffeur by the hour · Zurich' },
   de: { airport:'Flughafentransfers · Zürich', city:'Stadt zu Stadt · Schweiz', hourly:'Chauffeur stundenweise · Zürich' },
@@ -1511,20 +1518,28 @@ class Component extends DCLogic {
     this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur }, () => this.relabelAll());
     window.addEventListener('vamos:locale', this._onLocale);
     this._onDestPick = (e) => {
-      const raw = e && e.detail ? e.detail.name : '';
+      const d = e && e.detail ? e.detail : {};
+      const raw = d.name;
       const name = String(raw || '').replace(/\s+/g, ' ').trim().slice(0, 200);
       if (name.length < 2) return;
+      const modeRaw = String(d.mode || '').trim();
+      const mode = modeRaw === 'one-way' || modeRaw === 'fixed' || modeRaw === 'point' ? modeRaw : null;
       const label = this.t().pickup || '';
-      this.setState((s) => ({
-        pickupText: name,
-        pickupLoc: null,
-        touched: Object.assign({}, s.touched, { pickup: true }),
-        autofill: Object.assign({}, s.autofill, { pickup: null }),
-        sug: CLOSED,
-        sugIdx: -1,
-        announce: label ? (label + ', ' + name) : name,
-      }));
-      this.q();
+      this.setState((s) => {
+        const next = {
+          pickupText: name,
+          pickupLoc: null,
+          touched: Object.assign({}, s.touched, { pickup: true }),
+          autofill: Object.assign({}, s.autofill, { pickup: null }),
+          sug: CLOSED,
+          sugIdx: -1,
+          announce: label ? (label + ', ' + name) : name,
+        };
+        if (mode) next.mode = mode;
+        if (mode === 'fixed') next.fixedKey = '';
+        if (mode && mode !== 'one-way') { next.flight = ''; next.flightData = null; next.flightState = 'idle'; next.flightConfirmed = false; next.flightAsk = false; }
+        return next;
+      }, () => this.q());
     };
     window.addEventListener('vamos:dest-pick', this._onDestPick);
     if (this.state.mode === 'return' || (!(this.props.hourlyEnabled ?? false) && this.state.mode === 'hourly')) this.setState({ mode: 'point' });
@@ -1556,7 +1571,12 @@ class Component extends DCLogic {
       try { if (location.search) svc = new URLSearchParams(location.search).get('service'); } catch (err) {}
       if (svc && SVC.indexOf(svc) > -1) {
         const hourlyOn = (this.props.hourlyEnabled ?? false);
-        this.setState({ service: svc, mode: svc === 'hourly' && hourlyOn ? 'hourly' : 'one-way' }, () => land('book', -24));
+        let mode = 'point';
+        if (svc === 'hourly' && hourlyOn) mode = 'hourly';
+        else if (svc === 'airport') mode = 'one-way';
+        else if (svc === 'city') mode = 'fixed';
+        else if (svc === 'one-way' || svc === 'point' || svc === 'oneway') mode = 'point';
+        this.setState({ service: svc, mode: mode }, () => land('book', -24));
       } else if (location.hash && location.hash.length > 1) {
         /* The hash arrives before React has mounted the section it names, so the
            browser gives up and leaves you on the hero. Run it again now. */
@@ -2663,7 +2683,7 @@ class Component extends DCLogic {
       const ok = !!r && r.kind === 'price' && !tooSmall && !noRoad && !needFlight;
       const unavail = tooSmall || (!!r && r.kind === 'na') || noRoad;
       return {
-        name: String(names[v.id] || v.name || '').replace(/-/g, '\u2060-\u2060'), examples: ex[v.id] || '', icon: v.icon,
+        name: String(names[v.id] || v.name || '').replace(/-/g, '\u2060-\u2060'), examples: ex[v.id] || v.examples || t.exDefault || '', icon: v.icon,
         hasImage: !!v.image, noImage: !v.image, image: v.image || '',
         hasBadge: !!v.badge, badge: t.mostBooked,
         capText: paxCap + ' ' + t.seats, bagText: bagsCap + ' ' + t.bagsWord,
@@ -2761,6 +2781,9 @@ class Component extends DCLogic {
       langOptions: LANGS.map((v) => ({ value: v, label: v.toUpperCase(), note: dispLang(v) })),
       curOptions: Object.keys(CURS).map((v) => ({ value: v, label: v, note: dispCur(v, s.lang) })),
       mode: s.mode, setMode: this.setMode,
+      heroPointOn: s.mode === 'point' || s.mode === 'hourly' || s.mode === 'return' ? '1' : null,
+      heroAirportOn: s.mode === 'one-way' ? '1' : null,
+      heroCityOn: s.mode === 'fixed' ? '1' : null,
       tabsWrapCss: phone ? 'flex:1 1 100%' : (s.mode === 'fixed' ? 'flex:1 1 auto;min-width:min(100%,520px);max-width:100%' : 'flex:0 1 auto;min-width:min(100%,520px);max-width:100%;width:max(520px,calc((100% - 16px) / 2))'),
       compactTabsCss: 'width:100%;min-width:0;box-sizing:border-box',
       pillLeft: 'calc(3px + (100% - 6px) * ' + modeIdx + ' / ' + modeCount + ')', pillWidth: 'calc((100% - 6px) / ' + modeCount + ')',
