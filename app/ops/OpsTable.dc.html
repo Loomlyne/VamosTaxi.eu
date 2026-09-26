@@ -81,6 +81,11 @@
 [data-vt-amountkind-row]{display:flex;align-items:stretch;gap:8px;min-width:0}
 [data-vt-amountkind-row] > [data-vt-time-wrap]{flex:1 1 auto;min-width:0}
 [data-vt-amountkind-kind]{flex:0 0 132px;min-width:0}
+[data-vt-bool]{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;max-width:none;white-space:nowrap;overflow:visible;cursor:pointer;line-height:1.2}
+[data-vt-bool]:focus-visible{outline:2px solid var(--vt-charcoal-900);outline-offset:2px}
+[data-vt-bool][disabled]{cursor:default}
+[data-vt-table-scroll] .vt-table th:has([data-vt-bool-col]),
+[data-vt-table-scroll] .vt-table td:has([data-vt-bool]){overflow:visible;white-space:nowrap;width:auto;min-width:max-content}
 </style>
 <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
 
@@ -117,6 +122,10 @@
 </sc-for>
 <button type="button" data-linkbtn="1" onClick="{{ clearFilters }}">Clear filters</button>
 </div>
+</sc-if>
+
+<sc-if value="{{ listSaveFailed }}" hint-placeholder-val="{{ false }}">
+<div data-vt-save-err="1">{{ saveError }}</div>
 </sc-if>
 
 <sc-if value="{{ hasRows }}" hint-placeholder-val="{{ true }}">
@@ -553,7 +562,7 @@ const FIELD_ICONS = {
 };
 
 class Component extends DCLogic {
-  state = { q: '', draft: null, isNew: false, errors: {}, confirm: null, filters: {}, filterCol: null, closeAttempted: false, historyOpen: true, nested: null, nestedErrors: {}, sug: null, dateOpen: null, saveError: '', deleteError: '', saving: false };
+  state = { q: '', draft: null, isNew: false, errors: {}, confirm: null, filters: {}, filterCol: null, closeAttempted: false, historyOpen: true, nested: null, nestedErrors: {}, sug: null, dateOpen: null, saveError: '', deleteError: '', saving: false, boolPending: {} };
   lockScroll = () => { try { document.body.style.overflow = 'hidden'; } catch (e) {} };
   unlockScroll = () => { try { document.body.style.overflow = ''; } catch (e) {} };
   _sugPopRef = (el) => { this._sugPop = el; };
@@ -857,6 +866,7 @@ class Component extends DCLogic {
     if (DS.Icon) kids.push(React.createElement(DS.Icon, { key:'i', name:'funnel', size:12, color:'currentColor' }));
     return React.createElement('button', {
       type:'button', 'data-thbtn':'1', 'data-on': on ? '1' : '0',
+      'data-vt-bool-col': c.toggle ? '1' : undefined,
       onClick: () => this.openFilter(c.key),
     }, kids);
   }
@@ -1095,6 +1105,45 @@ class Component extends DCLogic {
   }
 
   /* ── cells ───────────────────────────────────────────────────────────── */
+  boolKey(col, row) {
+    return String(row && row.id) + ':' + (col && col.key);
+  }
+  boolOn(col, row) {
+    const pending = this.state.boolPending || {};
+    const key = this.boolKey(col, row);
+    if (Object.prototype.hasOwnProperty.call(pending, key)) return !!pending[key];
+    return !!(row && col && row[col.key]);
+  }
+  toggleBool = (col, row, e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    if (e && e.preventDefault) e.preventDefault();
+    if (!col || !col.toggle || !row || !col.key) return;
+    if (this.state.saving) return;
+    const key = this.boolKey(col, row);
+    const next = !this.boolOn(col, row);
+    const pending = Object.assign({}, this.state.boolPending || {});
+    pending[key] = next;
+    this.setState({ saving: true, saveError: '', boolPending: pending });
+    const rec = Object.assign({}, row);
+    rec[col.key] = next;
+    const run = this.props.onSave ? this.props.onSave(rec) : null;
+    const done = (json) => {
+      if (!json || json.ok !== true) {
+        const revert = Object.assign({}, this.state.boolPending || {});
+        delete revert[key];
+        this.setState({ saving: false, boolPending: revert, saveError: this.writeError(json || { code: 'save-failed' }) });
+        return;
+      }
+      const clear = Object.assign({}, this.state.boolPending || {});
+      delete clear[key];
+      this.setState({ saving: false, saveError: '', boolPending: clear });
+    };
+    if (run && typeof run.then === 'function') {
+      run.then(done, () => done({ ok: false, code: 'network' }));
+      return;
+    }
+    done(run);
+  };
   stack(main, sub, mono) {
     return React.createElement('span', { style:{ display:'flex', flexDirection:'column', gap:2, lineHeight:1.3, minWidth:0 } },
       React.createElement('span', { style: mono
@@ -1118,12 +1167,42 @@ class Component extends DCLogic {
         : React.createElement('span', { style:{ color:'var(--vt-danger)', fontWeight:500 } }, col.emptyLabel || '—');
     }
     if (col.kind === 'bool') {
-      const on = !!v;
-      return React.createElement('span', { style:{ display:'inline-flex', alignItems:'center', gap:6,
-        fontFamily:'var(--vt-font-body)', fontSize:'var(--vt-label-sm)', fontWeight:600, textTransform:'uppercase',
-        letterSpacing:'.09em', padding:'5px 10px', borderRadius:'var(--vt-radius-pill)', whiteSpace:'nowrap',
+      const on = this.boolOn(col, row);
+      const label = on ? (col.onLabel || 'Live') : (col.offLabel || 'Draft');
+      const look = {
+        display:'inline-flex', alignItems:'center', justifyContent:'center',
+        boxSizing:'border-box', maxWidth:'none',
+        fontFamily:'var(--vt-font-body)', fontSize:'var(--vt-label-sm)', fontWeight:600,
+        textTransform:'uppercase', letterSpacing:'var(--vt-label-tracking)', lineHeight:1.2,
+        padding:'6px 12px', borderRadius:'var(--vt-radius-pill)', whiteSpace:'nowrap',
+        overflow:'visible',
         background: on ? 'var(--vt-charcoal-900)' : 'var(--vt-grey-100)',
-        color: on ? 'var(--vt-accent)' : 'var(--vt-charcoal-700)' } }, on ? (col.onLabel || 'Live') : (col.offLabel || 'Draft'));
+        color: on ? 'var(--vt-accent)' : 'var(--vt-charcoal-700)',
+      };
+      if (!col.toggle) {
+        return React.createElement('span', { style:{ display:'inline-flex', alignItems:'center', gap:6,
+          fontFamily:'var(--vt-font-body)', fontSize:'var(--vt-label-sm)', fontWeight:600, textTransform:'uppercase',
+          letterSpacing:'.09em', padding:'5px 10px', borderRadius:'var(--vt-radius-pill)', whiteSpace:'nowrap',
+          background: on ? 'var(--vt-charcoal-900)' : 'var(--vt-grey-100)',
+          color: on ? 'var(--vt-accent)' : 'var(--vt-charcoal-700)' } }, label);
+      }
+      const busy = !!this.state.saving;
+      return React.createElement('button', {
+        type:'button',
+        'data-vt-bool':'1',
+        'data-on': on ? '1' : '0',
+        'data-vt-bool-key': col.key,
+        'aria-pressed': on ? 'true' : 'false',
+        'aria-label': label,
+        disabled: busy || undefined,
+        title: label,
+        style: Object.assign({}, look, {
+          cursor: busy ? 'default' : 'pointer',
+          opacity: busy ? 0.55 : 1,
+          border: 0,
+        }),
+        onClick: (e) => this.toggleBool(col, row, e),
+      }, label);
     }
     if (col.kind === 'badge') {
       const s = (col.tones || {})[v] || { tone:'neutral', label:v };
@@ -1414,6 +1493,7 @@ class Component extends DCLogic {
       saveOff: !this.canSave(),
       saveError: this.state.saveError || '',
       saveFailed: !!(this.state.saveError),
+      listSaveFailed: !!(this.state.saveError) && !this.state.draft,
       deleteError: this.state.deleteError || '',
       deleteFailed: !!(this.state.deleteError),
       deleteShow: (this.state.isNew || !this.rowCanDelete(d)) ? 'none' : 'inline-flex',

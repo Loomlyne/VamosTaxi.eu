@@ -85,7 +85,7 @@ export interface DistanceRateRow {
   min_fare_rappen: number | null;
   max_pax: number;
   available: boolean;
-  /** D-19: listed on the public board, not selectable, amount null. */
+  /** Public catalog omits this class. Eligibility still labels it unavailable (D-19). */
   hide_from_public?: boolean;
   /**
    * Comment 11. Airport pickup start. NULL until staff set it — never fall

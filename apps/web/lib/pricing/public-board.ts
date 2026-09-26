@@ -51,6 +51,27 @@ export function decoratePublicClasses(
   });
 }
 
+function hiddenPublicSlugs(book: RateBook): Set<string> {
+  const byId = new Map(book.classes.map((cls) => [cls.id, cls.slug]));
+  const hidden = new Set<string>();
+  for (const rate of book.distance_rates) {
+    if (rate.hide_from_public !== true) continue;
+    const slug = byId.get(rate.vehicle_class_id);
+    if (slug) hidden.add(slug);
+  }
+  return hidden;
+}
+
+/** Public class catalog omits hide_from_public. Eligibility may still label them unavailable. */
+export function omitHiddenPublicClasses(
+  book: RateBook,
+  classes: ClassBoardEntry[],
+): ClassBoardEntry[] {
+  const hidden = hiddenPublicSlugs(book);
+  if (hidden.size === 0) return classes;
+  return classes.filter((entry) => !hidden.has(entry.slug));
+}
+
 function sortByBook(book: RateBook, entries: ClassBoardEntry[]): ClassBoardEntry[] {
   const bySlug = new Map(book.classes.map((cls) => [cls.slug, cls]));
   return [...entries].sort((a, b) => {
@@ -112,7 +133,10 @@ export function liveBookBoard(book: RateBook): ClassBoardEntry[] {
   const seen = new Set(listed.map((entry) => entry.slug));
   return decoratePublicClasses(
     book,
-    sortByBook(book, [...listed, ...liveFixedRouteIdleCards(book, seen)]),
+    omitHiddenPublicClasses(
+      book,
+      sortByBook(book, [...listed, ...liveFixedRouteIdleCards(book, seen)]),
+    ),
   );
 }
 
