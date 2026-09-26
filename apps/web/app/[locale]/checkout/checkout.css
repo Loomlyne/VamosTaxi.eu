@@ -397,7 +397,7 @@
 }
 
 .vt-checkout__wallettabs {
-  width: 100%;
+  inline-size: 100%;
 }
 
 .vt-checkout__paystack {
@@ -499,7 +499,7 @@
 .vt-checkout__stripe-el {
   flex: 1 1 auto;
   min-inline-size: 0;
-  width: 100%;
+  inline-size: 100%;
 }
 
 .vt-checkout__paystack [data-checkout-express] {

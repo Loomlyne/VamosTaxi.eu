@@ -5,11 +5,10 @@
 // endpoint is the one bridge available before that role exists.
 
 import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 import { test, expect } from "@playwright/test";
 
-const here = dirname(fileURLToPath(import.meta.url));
+const here = __dirname;
 const webRoot = join(here, "../..");
 const repoRoot = join(webRoot, "../..");
 const migration = readFileSync(

@@ -5,13 +5,12 @@
 // no real R2 write.
 
 import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 import { test, expect } from "@playwright/test";
 import { jsonErr, jsonOk, staffStatus } from "../../lib/ops/staff-json";
 
 const RUN_PROJECT = "component-1440";
-const here = dirname(fileURLToPath(import.meta.url));
+const here = __dirname;
 const webRoot = join(here, "../..");
 const repoRoot = join(webRoot, "../..");
 
@@ -54,7 +53,7 @@ test.describe("GET /api/staff/vehicles @ops-dc-fleet", () => {
     expect(vehicles).toMatch(/export\s*\{\s*GET,\s*POST\s*\}/);
     expect(vehicles).toMatch(/\[locale\]\/\(ops\)\/api\/staff\/vehicles\/route/);
     expect(vehicleId).toMatch(/export\s*\{\s*PATCH,\s*DELETE\s*\}/);
-    expect(classes).toMatch(/export\s*\{\s*GET,\s*PATCH\s*\}/);
+    expect(classes).toMatch(/export\s*\{\s*GET,\s*PATCH,\s*POST,\s*DELETE\s*\}/);
     expect(chauffeurs).toMatch(/export\s*\{\s*GET,\s*POST\s*\}/);
     expect(chauffeurId).toMatch(/export\s*\{\s*PATCH,\s*DELETE\s*\}/);
   });

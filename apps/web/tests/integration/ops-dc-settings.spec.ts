@@ -4,13 +4,12 @@
 // Database-free.
 
 import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 import { test, expect } from "@playwright/test";
 import { jsonErr, staffStatus } from "../../lib/ops/staff-json";
 
 const RUN_PROJECT = "component-1440";
-const here = dirname(fileURLToPath(import.meta.url));
+const here = __dirname;
 const webRoot = join(here, "../..");
 const repoRoot = join(webRoot, "../..");
 
@@ -51,12 +50,13 @@ test.describe("06-09 settings/roster/profile @ops-dc-settings", () => {
     expect(profile).toMatch(/\[locale\]\/\(ops\)\/api\/staff\/profile\/route/);
   });
 
-  test("D-12 OpsSidebar omits #pricing and staff-roster unless role=admin", () => {
+  test("D-12 OpsSidebar keeps /pricing on the admin list and does not paint a disabled row", () => {
     const sidebar = readFileSync(join(repoRoot, "app/ops/OpsSidebar.dc.html"), "utf8");
     expect(sidebar).toMatch(/\/api\/staff\/me/);
     expect(sidebar).toMatch(/const NAV_ADMIN = \[/);
-    expect(sidebar).toMatch(/href:'#pricing'/);
-    expect(sidebar).toMatch(/key:'staff-roster'/);
+    expect(sidebar).toMatch(/href:'\/pricing'/);
+    expect(sidebar).not.toMatch(/href:'#pricing'/);
+    expect(sidebar).not.toMatch(/staff-roster/);
     expect(sidebar).toMatch(/isAdmin/);
     expect(sidebar).not.toMatch(/aria-disabled/);
   });

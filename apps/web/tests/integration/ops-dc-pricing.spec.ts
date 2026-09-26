@@ -5,13 +5,12 @@
 // door (same as GET /api/staff/me). This spec locks the mock wiring + dual mount.
 
 import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 import { test, expect } from "@playwright/test";
 import { jsonErr, staffStatus, withAdmin } from "../../lib/ops/staff-json";
 
 const RUN_PROJECT = "component-1440";
-const here = dirname(fileURLToPath(import.meta.url));
+const here = __dirname;
 const webRoot = join(here, "../..");
 const repoRoot = join(webRoot, "../..");
 
@@ -59,21 +58,21 @@ test.describe("OpsPricing draft→publish @ops-dc-pricing", () => {
   test("OpsPricing POSTs publish and keeps row saves on PUT /api/staff/rate-book", () => {
     const html = readFileSync(join(repoRoot, "app/ops/OpsPricing.dc.html"), "utf8");
     expect(html).toMatch(/\/api\/staff\/rate-book/);
-    expect(html).toMatch(/VamosOps\.routes/);
-    expect(html).toMatch(/VamosOps\.rates/);
-    expect(html).toMatch(/VamosOps\.surcharges/);
+    expect(html).toMatch(/ops\.routes/);
+    expect(html).toMatch(/ops\.rates/);
+    expect(html).toMatch(/ops\.surcharges/);
     expect(html).not.toMatch(/data-pricing-publish/);
-    expect(html).toMatch(/data-price-head-publish/);
+    expect(html).toMatch(/onClick="\{\{ openPublish \}\}"/);
     expect(html).not.toMatch(/--vt-yellow-50/);
     expect(html).not.toMatch(/err\.message/);
   });
 
   test("Publish + completeness chrome exists in en/de/fr/ar", () => {
     const html = readFileSync(join(repoRoot, "app/ops/OpsPricing.dc.html"), "utf8");
-    expect(html).toMatch(/en:[\s\S]*publish:'Publish'/);
-    expect(html).toMatch(/de:[\s\S]*publish:'Veröffentlichen'/);
-    expect(html).toMatch(/fr:[\s\S]*publish:'Publier'/);
-    expect(html).toMatch(/ar:[\s\S]*publish:'نشر'/);
+    expect(html).toMatch(/en:[\s\S]*publish:'Publish fare book'/);
+    expect(html).toMatch(/de:[\s\S]*publish:'Tarifbuch veröffentlichen'/);
+    expect(html).toMatch(/fr:[\s\S]*publish:'Publier le livre tarifaire'/);
+    expect(html).toMatch(/ar:[\s\S]*publish:'نشر دفتر الأسعار'/);
     expect(html).toMatch(/en:[\s\S]*completenessTitle:'Draft completeness'/);
     expect(html).toMatch(/de:[\s\S]*completenessTitle:'Entwurfsvollständigkeit'/);
     expect(html).toMatch(/fr:[\s\S]*completenessTitle:'Complétude du brouillon'/);

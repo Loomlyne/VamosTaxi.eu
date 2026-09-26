@@ -283,12 +283,12 @@
   font-weight: 600;
   color: var(--vt-text-primary);
   text-decoration: none;
-  border-bottom: 1px solid var(--vt-grey-300);
+  border-block-end: 1px solid var(--vt-grey-300);
 }
 
 [data-rv-link]:hover {
   color: var(--vt-charcoal-900);
-  border-bottom-color: var(--vt-charcoal-900);
+  border-block-end-color: var(--vt-charcoal-900);
 }
 
 [data-rv-empty] {

@@ -5,12 +5,11 @@
 // Database-free. No next spawn — Playwright is too heavy for this proof.
 
 import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 import { test, expect } from "@playwright/test";
 
 const RUN_PROJECT = "component-1440";
-const here = dirname(fileURLToPath(import.meta.url));
+const here = __dirname;
 const webRoot = join(here, "../..");
 const repoRoot = join(webRoot, "../..");
 
@@ -35,7 +34,7 @@ test.describe("dashboard host DC login @ops-dashboard-host", () => {
       /serveOpsDc\(request, client\.response, "ops-login\.dc\.html"/,
     );
     expect(middleware).toMatch(/serveOpsDc\(request, client\.response, "ops\.dc\.html"/);
-    expect(middleware).not.toMatch(/NextResponse\.rewrite/);
+    expect(middleware).toMatch(/gone\.pathname = "\/__vamos_gone"/);
     expect(middleware).not.toMatch(/\[locale\]\/ops/);
   });
 
