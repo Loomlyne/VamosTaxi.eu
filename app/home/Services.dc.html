@@ -47,47 +47,25 @@
 input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}
 body{margin:0}
 a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
-[data-svc-inner]{box-sizing:border-box;max-width:1200px;margin:0 auto;padding:0 clamp(16px,3.2vw,56px)}
-[data-svc-track]{display:grid;gap:20px;grid-template-columns:minmax(0,1fr)}
-[data-svc-track] > [data-sc-name="ServiceCard"]{min-width:0}
+[data-svc-inner]{box-sizing:border-box;max-width:1200px;margin:0 auto;padding:0 clamp(16px,3.2vw,56px);display:flex;flex-direction:column;align-items:stretch;gap:var(--vt-space-8)}
+[data-svc-track]{display:grid;gap:var(--vt-space-6);grid-template-columns:minmax(0,1fr);width:100%;align-items:stretch}
+[data-svc-track] > [data-sc-name="ServiceCard"]{min-width:0;position:relative;width:auto;height:auto;transform:none;opacity:1;pointer-events:auto}
 [data-svc-ticks]{display:none}
-[data-svc-cta]{position:relative;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;gap:18px;min-height:280px;padding:clamp(22px,2vw,30px);background:var(--vt-yellow);border-radius:var(--vt-radius-lg);text-decoration:none;color:var(--vt-charcoal-900)}
+[data-svc-cta]{grid-column:1/-1;position:relative;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;gap:var(--vt-space-4);min-height:0;padding:var(--vt-space-6);background:var(--vt-yellow);border-radius:var(--vt-radius-lg);text-decoration:none;color:var(--vt-charcoal-900)}
 [data-svc-cta]:hover,[data-svc-cta]:focus,[data-svc-cta]:visited{color:var(--vt-charcoal-900)}
 [data-svc-cta]:focus-visible{outline:3px solid var(--vt-charcoal-900);outline-offset:4px}
 [data-svc-cta-kicker]{display:block;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight)}
-[data-svc-cta-title]{display:block;margin-top:10px;font-family:var(--vt-font-display);font-size:clamp(21px,2.2vw,26px);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:1.12;text-wrap:balance}
-[data-svc-cta-btn]{display:inline-flex;align-self:flex-start;align-items:center;gap:10px;height:48px;padding:0 22px;border-radius:999px;background:var(--vt-charcoal-900);color:#fff;font-size:var(--vt-body-sm);font-weight:600;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;transition:background-color 140ms var(--vt-ease-standard),transform 80ms var(--vt-ease-standard)}
-[data-svc-cta]:hover [data-svc-cta-btn]{background:var(--vt-charcoal-800)}
+[data-svc-cta-title]{display:block;margin-top:var(--vt-space-2);font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:1.14;text-wrap:balance}
+[data-svc-cta-btn]{display:inline-flex;align-self:flex-start;align-items:center;gap:var(--vt-space-2);min-height:44px;padding:0 var(--vt-space-5);border-radius:999px;background:var(--vt-charcoal-900);color:var(--vt-text-inverse);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;transition:background-color 140ms var(--vt-ease-standard),transform 80ms var(--vt-ease-standard)}
+@media (hover:hover){[data-svc-cta]:hover [data-svc-cta-btn]{background:var(--vt-charcoal-800)}}
 [data-svc-cta]:active [data-svc-cta-btn]{transform:translateY(1px)}
-@media (min-width:768px){[data-svc-track]{gap:32px;grid-template-columns:repeat(2,minmax(0,1fr))}[data-svc-track] > [data-svc-cta]:last-child:nth-child(odd){grid-column:1/-1}}
-@media (min-width:768px) and (prefers-reduced-motion:no-preference){
-[data-svc-sec]{padding:0}
-[data-svc-wrap]{--n:2;--step:80svh;height:calc(100svh + (var(--n) - 1) * var(--step))}
-[data-svc-wrap][data-n="3"]{--n:3}
-[data-svc-stage]{position:sticky;top:0;height:100svh;box-sizing:border-box;padding:clamp(20px,3.4vh,44px) 0;overflow:hidden}
-[data-svc-stage] > [data-svc-inner]{height:100%;display:flex;flex-direction:column;justify-content:center;gap:clamp(22px,3.4vh,42px)}
-[data-svc-track]{display:block;position:relative;height:clamp(320px,52svh,520px);flex:0 0 auto}
-[data-svc-track] > :is([data-sc-name="ServiceCard"],[data-svc-cta]){position:absolute;top:0;left:0;width:58%;height:100%;min-height:0;transform-origin:top left;opacity:0;pointer-events:none;backface-visibility:hidden;will-change:transform,opacity}
-[data-svc-track] > [data-sc-name="ServiceCard"]:nth-child(1){transform:translateX(0) scale(1);opacity:1;pointer-events:auto}
-[data-svc-track] > [data-sc-name="ServiceCard"]:nth-child(2){transform:translateX(110.4%) scale(.62);opacity:1;pointer-events:auto}
-[data-svc-track] > [data-sc-name="ServiceCard"][data-pos="featured"]{transform:translateX(0) scale(1);opacity:1;pointer-events:auto;transition:transform 720ms cubic-bezier(.16,1,.3,1),opacity 300ms linear;z-index:2}
-[data-svc-track] > [data-sc-name="ServiceCard"][data-pos="next"]{transform:translateX(110.4%) scale(.62);opacity:1;pointer-events:auto;transition:transform 640ms cubic-bezier(.16,1,.3,1) 40ms,opacity 420ms var(--vt-ease-standard) 140ms;z-index:1}
-[data-svc-track] > [data-sc-name="ServiceCard"][data-pos="queued"]{transform:translateX(126%) scale(.62);opacity:0;transition:transform 420ms var(--vt-ease-standard),opacity 260ms linear}
-[data-svc-track] > [data-sc-name="ServiceCard"][data-pos="gone"]{transform:translateX(-19%) scale(.84);opacity:0;transition:transform 560ms cubic-bezier(.4,0,1,1),opacity 400ms var(--vt-ease-standard);z-index:0}
-[data-svc-track] > [data-sc-name="ServiceCard"]:not([data-pos="featured"]) [data-svc-desc]{opacity:0;transition-delay:0ms}
-[data-svc-track] > [data-svc-cta]{left:64%;width:36%;height:62%;transform:translateX(12%);transition:transform 460ms var(--vt-ease-standard),opacity 260ms linear;z-index:1}
-[data-svc-track] > [data-svc-cta][data-pos="next"]{transform:translateX(0);opacity:1;pointer-events:auto;transition:transform 640ms cubic-bezier(.16,1,.3,1) 40ms,opacity 420ms var(--vt-ease-standard) 140ms}
-[data-svc-title]{font-size:clamp(26px,2.7vw,40px)}
-[data-svc-desc]{font-size:var(--vt-body-md);margin-top:14px}
-[data-svc-ticks]{display:flex;align-items:center;gap:6px;flex:0 0 auto;padding-top:8px}
-[data-svc-tick]{width:24px;height:2px;background:var(--vt-grey-300);transition:background-color 420ms var(--vt-ease-standard)}
-[data-svc-tick][data-on="1"]{background:var(--vt-charcoal-900)}
-}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
+@media (min-width:768px){[data-svc-track]{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (prefers-reduced-motion:reduce){[data-svc-cta-btn]{transition:none}}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid var(--vt-charcoal-900)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
 </helmet>
 <section data-svc-sec="1" data-screen-label="Services" aria-labelledby="svc-title" style="position:relative;color:var(--vt-text-primary);font-family:var(--vt-font-body);padding:clamp(56px,7vw,104px) 0">
 
 <div aria-hidden="true" style="position:absolute;inset:0;background-image:url(data:image/png;base64,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);background-size:88px 88px;background-repeat:repeat;opacity:.028;pointer-events:none;z-index:0"></div>
-<div data-svc-wrap="1" data-n="{{ dataN }}" ref="{{ wrapRef }}" style="position:relative;z-index:1">
+<div data-svc-wrap="1" style="position:relative;z-index:1">
 <div data-svc-stage="1">
 <div data-svc-inner="1">
 
@@ -105,14 +83,14 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </span>
 </div>
 
-<div data-svc-track="1" ref="{{ trackRef }}">
+<div data-svc-track="1">
 
-<dc-import name="ServiceCard" href="/?service=airport#book" image="/photos/site/svc-airport.jpg" title-id="svc-t1" icon="plane-landing" tone="{{ tone }}" hint-size="100%,100%">
+<dc-import name="ServiceCard" href="/?service=airport#book" image="/photos/site/svc-airport.jpg" image-focus="58% center" title-id="svc-t1" icon="plane-landing" tone="{{ tone }}" hint-size="100%,100%">
 <h3 data-svc-title="1" id="svc-t1">Airport transfers</h3>
 <span data-svc-desc="1">Fixed-price rides to and from the airport, timed to your flight.</span>
 </dc-import>
 
-<dc-import name="ServiceCard" href="/?service=city#book" image="/photos/site/svc-city.jpg" title-id="svc-t2" icon="navigation" tone="{{ tone }}" hint-size="100%,100%">
+<dc-import name="ServiceCard" href="/?service=city#book" image="/photos/site/svc-city.jpg" image-focus="84% center" title-id="svc-t2" icon="navigation" tone="{{ tone }}" hint-size="100%,100%">
 <h3 data-svc-title="1" id="svc-t2">City to city</h3>
 <span data-svc-desc="1">Private transfers between Swiss cities, scheduled for one exact time.</span>
 </dc-import>
@@ -140,129 +118,18 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 </section>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;showChauffeurByHour&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Scope&quot;},&quot;mediaTone&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;grey&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;grey&quot;,&quot;tsType&quot;:&quot;'grey'|'charcoal'&quot;,&quot;section&quot;:&quot;Card treatment&quot;},&quot;scrollPerStep&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:50,&quot;max&quot;:140,&quot;step&quot;:5,&quot;unit&quot;:&quot;svh&quot;,&quot;default&quot;:80,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Scroll animation&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;showChauffeurByHour&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Scope&quot;},&quot;mediaTone&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;grey&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;grey&quot;,&quot;tsType&quot;:&quot;'grey'|'charcoal'&quot;,&quot;section&quot;:&quot;Card treatment&quot;}}">
 /**
- * Desktop and tablet (>=768px, motion allowed): the stage pins for exactly one viewport and each
- * `scrollPerStep` of scroll advances one service — the featured card exits left and shrinks,
- * the small card grows into its place, the following card fades into the small zone. Once
- * the last service is featured the small zone is taken by the yellow "All services" button,
- * which is never featured itself: it only ever appears as the small slot at the end.
- *
- * Smoothness rules: one step at a time, never retargeted mid-flight (a 700ms lock queues
- * the next step instead of interrupting), and positions are written as data-pos attributes
- * on the mount elements so stepping never re-renders the template or the cards.
- *
- * Scroll position (not intercepted wheel deltas) drives the index on purpose: the page can
- * never be trapped, iOS momentum scroll needs no special case, and Tab/focus is unaffected.
- *
- * Below 768px (and whenever prefers-reduced-motion is reduce) this stays a static
- * one-column card grid: each ServiceCard is fully visible, stacked, no scroll-scrub
- * and no data-pos carousel. The yellow CTA sits in the same grid after the cards.
+ * Static equal-card grid. Airport and city are always shown. Hourly stays
+ * behind showChauffeurByHour (default false) and must not paint.
  */
 class Component extends DCLogic {
-  active = 0; target = 0; lockUntil = 0;
-  wrapRef = (el) => { this.wrap = el; };
-  trackRef = (el) => { this.track = el; this.sync(true); };
-  cards() { return this.track ? Array.prototype.slice.call(this.track.querySelectorAll(':scope > [data-sc-name="ServiceCard"]')) : []; }
-  cta() { return this.track ? this.track.querySelector(':scope > [data-svc-cta]') : null; }
-  /** 'grid' = static stacked cards · 'stage' = desktop big + small two-zone swap. */
-  mode() {
-    if (typeof matchMedia === 'undefined') return 'grid';
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return 'grid';
-    return matchMedia('(min-width:768px)').matches ? 'stage' : 'grid';
-  }
-  /** Ordered service cards. The yellow CTA is never a featured slide — only the small slot on stage. */
-  slides() {
-    return this.cards();
-  }
-  paint() {
-    const cards = this.cards(); const cta = this.cta(); const m = this.mode();
-    if (!cards.length) return;
-    if (m === 'grid') {
-      cards.forEach((c) => c.removeAttribute('data-pos'));
-      if (cta) cta.removeAttribute('data-pos');
-      return;
-    }
-    const n = cards.length;
-    const a = Math.max(0, Math.min(n - 1, this.active));
-    cards.forEach((c, i) => {
-      c.setAttribute('data-pos', i < a ? 'gone' : i === a ? 'featured' : i === a + 1 ? 'next' : 'queued');
-    });
-    if (cta) cta.setAttribute('data-pos', a === n - 1 ? 'next' : 'queued');
-    const ticks = this.track.parentElement.querySelectorAll('[data-svc-tick]');
-    Array.prototype.forEach.call(ticks, (t, i) => {
-      t.style.display = i >= n ? 'none' : '';
-      if (i <= a) t.setAttribute('data-on', '1'); else t.removeAttribute('data-on');
-    });
-  }
-  /** One step per lock window, so a fast scroll cascades instead of snapping. */
-  step = () => {
-    this._t = 0;
-    if (this.target === this.active) return;
-    const now = performance.now();
-    if (now < this.lockUntil) { this._t = setTimeout(this.step, this.lockUntil - now + 16); return; }
-    this.active += this.target > this.active ? 1 : -1;
-    this.lockUntil = now + 700;
-    this.paint();
-    if (this.target !== this.active) this._t = setTimeout(this.step, 716);
-  };
-  sync = (force) => {
-    this._raf = 0;
-    if (!this.wrap || !this.track) return;
-    const m = this.mode();
-    const per = +(this.props.scrollPerStep ?? 80);
-    this.wrap.style.setProperty('--step', per + 'svh');
-    if (m === 'grid') { this.active = 0; this.target = 0; this.paint(); return; }
-    const n = this.slides().length;
-    this.wrap.style.setProperty('--n', n);
-    const r = this.wrap.getBoundingClientRect();
-    const span = r.height - window.innerHeight;
-    const p = span > 0 ? Math.max(0, Math.min(1, -r.top / span)) : 0;
-    this.target = Math.round(p * (n - 1));
-    if (force) { this.active = this.target; this.lockUntil = 0; this.paint(); }
-    else if (this.target !== this.active && !this._t) this.step();
-  };
-  onScroll = () => { if (!this._raf) this._raf = requestAnimationFrame(() => this.sync(false)); };
-  /** Keyboard: focusing a queued card promotes it, so Tab order never waits on scroll. */
-  onFocusIn = (e) => {
-    if (this.mode() === 'grid' || !this.track) return;
-    const t = e.target;
-    if (!t || !t.closest) return;
-    const list = this.slides();
-    const el = t.closest('[data-svc-cta],[data-sc-name="ServiceCard"]');
-    let i = el ? list.indexOf(el) : -1;
-    if (i < 0 && el) i = list.length - 1;
-    if (i >= 0 && i !== this.active) { this.active = i; this.target = i; this.lockUntil = performance.now() + 700; this.paint(); }
-  };
-  componentDidMount() {
-    window.addEventListener('scroll', this.onScroll, { passive: true });
-    window.addEventListener('resize', this.onScroll);
-    if (this.track) this.track.addEventListener('focusin', this.onFocusIn);
-    this._mq = ['(min-width:768px)', '(prefers-reduced-motion: reduce)'].map((q) => {
-      const m = matchMedia(q); const h = () => this.sync(true);
-      m.addEventListener ? m.addEventListener('change', h) : m.addListener(h);
-      m.__h = h; return m;
-    });
-    this.sync(true);
-  }
-  componentDidUpdate() { this.sync(true); }
-  componentWillUnmount() {
-    window.removeEventListener('scroll', this.onScroll);
-    window.removeEventListener('resize', this.onScroll);
-    if (this.track) this.track.removeEventListener('focusin', this.onFocusIn);
-    (this._mq || []).forEach((m) => { m.removeEventListener ? m.removeEventListener('change', m.__h) : m.removeListener(m.__h); });
-    if (this._raf) cancelAnimationFrame(this._raf);
-    clearTimeout(this._t);
-  }
   renderVals() {
     const hourly = (this.props.showChauffeurByHour ?? false) !== false;
     return {
       n18: 18,
       tone: this.props.mediaTone === 'charcoal' ? 'charcoal' : 'grey',
       showHourly: hourly,
-      dataN: hourly ? '3' : '2',
-      wrapRef: this.wrapRef,
-      trackRef: this.trackRef,
     };
   }
 }

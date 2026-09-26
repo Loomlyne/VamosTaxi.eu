@@ -95,7 +95,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 @media (prefers-reduced-motion:reduce){
 [data-rv-link]{transition:none}
 }
-:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}
+:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid var(--vt-focus)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}
 </style>
 </helmet>
 <section id="reviews" data-rv="1" data-state="{{ viewState }}" data-screen-label="Reviews" aria-labelledby="reviews-title" aria-busy="{{ busy }}" style="color:var(--vt-text-primary);font-family:var(--vt-font-body);position:relative;overflow:hidden">
@@ -177,7 +177,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </sc-if>
 </div>
 </section>
-
+</x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:720}}">
 /**
  * Home · Reviews — score column plus a row of cards. Not a carousel.
