@@ -150,4 +150,16 @@ describe("rate-book overlay Save is draft (D-01 D-04 D-18 D-20)", () => {
     expect(src).not.toMatch(/economy: moneyFromRappen\(byClass\.get\("economy"\)/);
     expect(src).toMatch(/distanceRates\.some\(\(row\) => row\.vehicleClassId === c\.id\)/);
   });
+
+  it("class reorder writes sort_order only and does not flip active or hide_from_public", () => {
+    const src = webSource(ROUTE);
+    const start = src.indexOf("function persistClassOrder");
+    const end = src.indexOf("export const PUT", start);
+    const fn = src.slice(start, end);
+    expect(start).toBeGreaterThan(-1);
+    expect(fn).toContain("set sort_order");
+    expect(fn).not.toContain("set active");
+    expect(fn).not.toContain("hide_from_public");
+    expect(src).toContain('kind === "distance" && recBody.reorder === true');
+  });
 });

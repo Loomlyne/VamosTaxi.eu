@@ -128,7 +128,7 @@
 
 <sc-if value="{{ isDistance }}" hint-placeholder-val="{{ false }}">
 <div data-price-pane="1" data-price-swipe="1" data-scroll-native="1">
-<dc-import name="OpsTable" fill="1" rows="{{ distanceRows }}" columns="{{ distanceColumns }}" fields="{{ distanceFields }}" blank="{{ distanceBlank }}" onSave="{{ saveDistance }}" onDelete="{{ deleteDistance }}" noun="{{ tNounClass }}" noun-plural="{{ tNounClasses }}" add-title="{{ tAddClass }}" edit-title="{{ tEditClass }}" delete-title="{{ tDeleteClassTitle }}" label-key="klass" add-label="{{ tAddClass }}" save-label="{{ tSaveClass }}" add-save-label="{{ tAddClass }}" search-placeholder="{{ tSearchDistance }}" search-keys="{{ distanceSearchKeys }}" empty-title="{{ tEmptyClassesTitle }}" empty-body="{{ tEmptyClassesBody }}" delete-body="{{ tDeleteClassBody }}" edit-id="{{ distanceEditId }}" edit-tick="{{ distanceEditTick }}" hint-size="100%,420px"></dc-import>
+<dc-import name="OpsTable" fill="1" rows="{{ distanceRows }}" columns="{{ distanceColumns }}" fields="{{ distanceFields }}" blank="{{ distanceBlank }}" onSave="{{ saveDistance }}" onDelete="{{ deleteDistance }}" noun="{{ tNounClass }}" noun-plural="{{ tNounClasses }}" add-title="{{ tAddClass }}" edit-title="{{ tEditClass }}" delete-title="{{ tDeleteClassTitle }}" label-key="klass" add-label="{{ tAddClass }}" save-label="{{ tSaveClass }}" add-save-label="{{ tAddClass }}" search-placeholder="{{ tSearchDistance }}" search-keys="{{ distanceSearchKeys }}" empty-title="{{ tEmptyClassesTitle }}" empty-body="{{ tEmptyClassesBody }}" delete-body="{{ tDeleteClassBody }}" edit-id="{{ distanceEditId }}" edit-tick="{{ distanceEditTick }}" onReorder="{{ reorderDistance }}" hint-size="100%,420px"></dc-import>
 <dc-import name="OpsTable" fill="1" rows="{{ bandRows }}" columns="{{ bandColumns }}" fields="{{ bandFields }}" blank="{{ bandBlank }}" onSave="{{ saveBand }}" onDelete="{{ deleteBand }}" noun="{{ tNounBand }}" noun-plural="{{ tNounBands }}" add-title="{{ tAddBand }}" edit-title="{{ tEditBand }}" delete-title="{{ tDeleteBandTitle }}" label-key="fromKm" add-label="{{ tAddBand }}" save-label="{{ tSaveBand }}" add-save-label="{{ tAddBand }}" search-placeholder="{{ tSearchBands }}" search-keys="{{ bandSearchKeys }}" empty-title="{{ tEmptyBandsTitle }}" empty-body="{{ tEmptyBandsBody }}" delete-body="{{ tDeleteBandBody }}" hint-size="100%,280px"></dc-import>
 </div>
 </sc-if>
@@ -327,6 +327,20 @@ function uniqueByClass(rows) {
   });
   return order.map((k) => byKey[k]);
 }
+function byClassOrder(rows) {
+  return (rows || []).slice().sort((a, b) => {
+    const sa = Number(a && a.sortOrder);
+    const sb = Number(b && b.sortOrder);
+    const na = isNaN(sa) ? 0 : sa;
+    const nb = isNaN(sb) ? 0 : sb;
+    if (na !== nb) return na - nb;
+    const ka = String((a && a.slug) || '');
+    const kb = String((b && b.slug) || '');
+    if (ka < kb) return -1;
+    if (ka > kb) return 1;
+    return 0;
+  });
+}
 const WD_EN = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const MON_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const MON_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -369,7 +383,7 @@ const T = {
     tabRoutes:'Fixed routes', tabDistance:'Distance rules', tabSurcharges:'Surcharges & extras', tabCoupons:'Coupons',
     hintRoutes:'City to city. A to B and B to A are separate.', hintDistance:'Start, per kilometre, airport start, one city price', airportStart:'Airport start', cityPrice:'City price and per kilometre', cityPairPick:'Select a city pair', hintSurcharges:'Checkout extras, wait, meet and greet', hintCoupons:'Percent or fixed CHF',
     colId:'ID', colFrom:'From', colTo:'To', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Draft',
-    colClass:'Class', colName:'Name', startFare:'Start', perKm:'Per kilometre', maxPax:'Max passengers', maxBags:'Max bags', hidePublic:'Hide from public', hiddenPublic:'Hidden from public', showPublic:'Show on public', shownPublic:'Shown on public',
+    colClass:'Class', colPhoto:'Photo', arrangeClass:'Drag to arrange classes', colName:'Name', startFare:'Start', perKm:'Per kilometre', maxPax:'Max passengers', maxBags:'Max bags', hidePublic:'Hide from public', hiddenPublic:'Hidden from public', showPublic:'Show on public', shownPublic:'Shown on public',
     fPhoto:'Photo', choosePhoto:'Choose photo', clearPhoto:'Remove', hClassPhoto:'Required to Publish. Stored on R2, not on this machine.',
     colRule:'Rule', colAppliesWhen:'Applies when', colAmount:'Amount', colKind:'Kind',
     addRoute:'Add route', editRoute:'Edit route', saveRoute:'Save route', deleteRouteTitle:'Delete this route from the draft?', deleteRouteBody:'Delete this route from the draft? Public does not change until Publish.',
@@ -460,7 +474,7 @@ const T = {
     tabRoutes:'Feste Routen', tabDistance:'Distanzregeln', tabSurcharges:'Zuschläge & Extras', tabCoupons:'Gutscheine',
     hintRoutes:'Stadt zu Stadt. A nach B und B nach A sind getrennt.', hintDistance:'Start, pro Kilometer, Flughafen-Start, ein Stadtpreis', airportStart:'Flughafen-Start', cityPrice:'Stadtpreis und pro Kilometer', cityPairPick:'Stadtpaar wählen', hintSurcharges:'Checkout-Extras, Warten, Meet and greet', hintCoupons:'Prozent oder fester CHF',
     colId:'ID', colFrom:'Von', colTo:'Nach', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Entwurf',
-    colClass:'Klasse', colName:'Name', startFare:'Start', perKm:'Pro Kilometer', maxPax:'Max. Passagiere', maxBags:'Max. Gepäckstücke', hidePublic:'Vor der Öffentlichkeit verbergen', hiddenPublic:'Vor der Öffentlichkeit verborgen', showPublic:'Öffentlich zeigen', shownPublic:'Öffentlich sichtbar',
+    colClass:'Klasse', colPhoto:'Foto', arrangeClass:'Ziehen, um Klassen zu ordnen', colName:'Name', startFare:'Start', perKm:'Pro Kilometer', maxPax:'Max. Passagiere', maxBags:'Max. Gepäckstücke', hidePublic:'Vor der Öffentlichkeit verbergen', hiddenPublic:'Vor der Öffentlichkeit verborgen', showPublic:'Öffentlich zeigen', shownPublic:'Öffentlich sichtbar',
     fPhoto:'Foto', choosePhoto:'Foto wählen', clearPhoto:'Entfernen', hClassPhoto:'Pflicht vor dem Veröffentlichen. Liegt auf R2, nicht auf diesem Gerät.',
     colRule:'Regel', colAppliesWhen:'Gilt bei', colAmount:'Betrag', colKind:'Art',
     addRoute:'Route hinzufügen', editRoute:'Route bearbeiten', saveRoute:'Route speichern', deleteRouteTitle:'Diese Route aus dem Entwurf löschen?', deleteRouteBody:'Diese Route aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
@@ -553,7 +567,7 @@ const T = {
     tabRoutes:'Trajets fixes', tabDistance:'Règles de distance', tabSurcharges:'Suppléments & extras', tabCoupons:'Codes promo',
     hintRoutes:'Ville à ville. A vers B et B vers A sont séparés.', hintDistance:'Départ, au kilomètre, départ aéroport, un prix ville', airportStart:'Départ aéroport', cityPrice:'Prix ville et par kilomètre', cityPairPick:'Choisir une paire de villes', hintSurcharges:'Extras de paiement, attente, accueil', hintCoupons:'Pourcent ou CHF fixe',
     colId:'ID', colFrom:'De', colTo:'Vers', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Brouillon',
-    colClass:'Classe', colName:'Nom', startFare:'Départ', perKm:'Par kilomètre', maxPax:'Passagers max.', maxBags:'Bagages max.', hidePublic:'Masquer au public', hiddenPublic:'Masqué au public', showPublic:'Afficher au public', shownPublic:'Visible au public',
+    colClass:'Classe', colPhoto:'Photo', arrangeClass:'Glisser pour ordonner les classes', colName:'Nom', startFare:'Départ', perKm:'Par kilomètre', maxPax:'Passagers max.', maxBags:'Bagages max.', hidePublic:'Masquer au public', hiddenPublic:'Masqué au public', showPublic:'Afficher au public', shownPublic:'Visible au public',
     fPhoto:'Photo', choosePhoto:'Choisir une photo', clearPhoto:'Retirer', hClassPhoto:'Obligatoire pour Publier. Stockée sur R2, pas sur cet appareil.',
     colRule:'Règle', colAppliesWhen:'S’applique', colAmount:'Montant', colKind:'Type',
     addRoute:'Ajouter un trajet', editRoute:'Modifier le trajet', saveRoute:'Enregistrer le trajet', deleteRouteTitle:'Supprimer ce trajet du brouillon ?', deleteRouteBody:'Supprimer ce trajet du brouillon ? Le public ne change qu’après Publier.',
@@ -646,7 +660,7 @@ const T = {
     tabRoutes:'مسارات ثابتة', tabDistance:'قواعد المسافة', tabSurcharges:'الرسوم والإضافات', tabCoupons:'القسائم',
     hintRoutes:'من مدينة إلى مدينة. من أ إلى ب ومن ب إلى أ منفصلان.', hintDistance:'البداية، لكل كيلومتر، بداية المطار، سعر مدينة واحد', airportStart:'بداية المطار', cityPrice:'سعر المدينة ولكل كيلومتر', cityPairPick:'اختر زوج مدن', hintSurcharges:'إضافات الدفع والانتظار والاستقبال', hintCoupons:'نسبة أو فرنك ثابت',
     colId:'المعرّف', colFrom:'من', colTo:'إلى', colEconomy:'اقتصادي', colBusiness:'أعمال', colVan:'فان', colLive:'مباشر', live:'مباشر', draft:'مسودة',
-    colClass:'الفئة', colName:'الاسم', startFare:'البداية', perKm:'لكل كيلومتر', maxPax:'أقصى عدد مسافرين', maxBags:'أقصى حقائب', hidePublic:'إخفاء عن العامة', hiddenPublic:'مخفي عن العامة', showPublic:'إظهار للعامة', shownPublic:'ظاهر للعامة',
+    colClass:'الفئة', colPhoto:'الصورة', arrangeClass:'اسحب لترتيب الفئات', colName:'الاسم', startFare:'البداية', perKm:'لكل كيلومتر', maxPax:'أقصى عدد مسافرين', maxBags:'أقصى حقائب', hidePublic:'إخفاء عن العامة', hiddenPublic:'مخفي عن العامة', showPublic:'إظهار للعامة', shownPublic:'ظاهر للعامة',
     fPhoto:'الصورة', choosePhoto:'اختيار صورة', clearPhoto:'إزالة', hClassPhoto:'مطلوبة للنشر. تُحفظ على R2 وليس على هذا الجهاز.',
     colRule:'القاعدة', colAppliesWhen:'ينطبق عند', colAmount:'المبلغ', colKind:'النوع',
     addRoute:'إضافة مسار', editRoute:'تعديل المسار', saveRoute:'حفظ المسار', deleteRouteTitle:'حذف هذا المسار من المسودة؟', deleteRouteBody:'حذف هذا المسار من المسودة؟ لا يتغير العام حتى النشر.',
@@ -1357,13 +1371,15 @@ class Component extends DCLogic {
       tSearchRoutes: t.searchRoutes, routeSearchKeys: ['id', 'from', 'to'],
       tEmptyRoutesTitle: t.emptyRoutesTitle, tEmptyRoutesBody: t.emptyRoutesBody,
 
-      distanceRows: rates.map((r) => ({
+      distanceRows: byClassOrder(uniqueByClass(rates).map((r) => ({
         id: r.id,
         klass: r.name || r.klass,
         name: r.name || r.klass,
         vehicleClassId: r.vehicleClassId || '',
+        slug: r.vehicleClassSlug || r.slug || '',
         photo: r.photo || r.photoPath || '',
         photoPath: r.photoPath || r.photo || '',
+        sortOrder: r.sortOrder == null || r.sortOrder === '' ? 0 : Number(r.sortOrder) || 0,
         baseFare: chfOf(r.baseFare),
         perKm: chfOf(r.perKm),
         airportStart: chfOf(r.airportStart),
@@ -1373,8 +1389,10 @@ class Component extends DCLogic {
         maxBags: r.maxBags || r.luggageCapacity || 3,
         available: r.available !== false,
         hideFromPublic: !!r.hideFromPublic,
-      })),
+      }))),
       distanceColumns: [
+        { key:'__order', header:'', width:'44px', kind:'grip', label: t.arrangeClass },
+        { key:'photo', header: t.colPhoto, width:'64px', kind:'photo' },
         { key:'klass', header: t.colClass, width:'120px' },
         { key:'baseFare', header: t.startFare, lookup:(r) => moneyOrDash(r.baseFare) },
         { key:'perKm', header: t.perKm, lookup:(r) => moneyOrDash(r.perKm) },
@@ -1436,11 +1454,23 @@ class Component extends DCLogic {
           airportStart: Object.assign({}, (existing && existing.airportStart) || {}, { CHF: rec.airportStart }),
           cityPrice: Object.assign({}, (existing && existing.cityPrice) || {}, { CHF: pairExtra }),
           cityPairId: pairId,
+          sortOrder: existing && existing.sortOrder != null ? existing.sortOrder : 0,
+          vehicleClassSlug: classSlug,
         });
         if (out && typeof out.then === 'function') out.then(() => this.loadDraft());
         return out;
       },
       deleteDistance: (id) => ops ? ops.rates.remove(id) : null,
+      reorderDistance: (rows) => {
+        if (!ops || !ops.rates || typeof ops.rates.reorder !== 'function') return null;
+        const order = [];
+        (rows || []).forEach((r) => {
+          const id = String(r.vehicleClassId || '');
+          if (id) order.push({ vehicleClassId: id });
+        });
+        const out = ops.rates.reorder(order);
+        return out;
+      },
       tNounClass: t.nounClass, tNounClasses: t.nounClasses,
       tAddClass: t.addClass, tEditClass: t.editClass, tSaveClass: t.saveClass,
       tDeleteClassTitle: t.deleteClassTitle, tDeleteClassBody: t.deleteClassBody,

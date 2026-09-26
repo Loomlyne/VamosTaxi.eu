@@ -28,7 +28,7 @@ import {
 import { isPlaceholderAmount, rappenFromMoneySet, rappenFromUnknown } from "@/lib/ops/rappen";
 import { extraWriteFields, isPassengerExtra, normalizeSurchargeCode } from "@/lib/ops/surcharge-codes";
 import { jsonErr, jsonOk, withAdmin, withStaff } from "@/lib/ops/staff-json";
-import { planVehicleClassWrite } from "@/lib/ops/vehicle-class-write";
+import { asVehicleClassUuid, planVehicleClassWrite } from "@/lib/ops/vehicle-class-write";
 import {
   CouponInputError,
   couponInputFromDc,
@@ -296,6 +296,7 @@ function mockRates(book: RateBook): Record<string, unknown>[] {
       klass: name,
       name,
       vehicleClassId: row.vehicleClassId,
+      vehicleClassSlug: row.vehicleClassSlug,
       baseFare: moneyFromRappen(row.baseFareRappen),
       perKm: moneyFromRappen(row.perKmRappen),
       minFare: moneyFromRappen(row.minFareRappen),
@@ -306,6 +307,7 @@ function mockRates(book: RateBook): Record<string, unknown>[] {
       maxBags: cls?.luggageCapacity ?? "",
       photo,
       photoPath: photo,
+      sortOrder: cls?.sortOrder ?? 0,
       available: row.available,
       hideFromPublic: row.hideFromPublic,
     };
@@ -410,6 +412,7 @@ function bookPayload(book: RateBook, zones: ServiceZoneRow[]) {
       name: c.name || "",
       photoPath: c.photoPath || "",
       luggageCapacity: c.luggageCapacity ?? "",
+      sortOrder: c.sortOrder ?? 0,
     })),
     vatRateBps: book.vatRateBps,
     quoteLockHours:
@@ -582,6 +585,48 @@ export const GET = withStaff(async (claims, request) => {
   return jsonOk(bookPayload(book, zones));
 });
 
+function classOrderRows(raw: unknown): { id: string; sortOrder: number }[] {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set<string>();
+  const rows: { id: string; sortOrder: number }[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const id = asVehicleClassUuid(String((item as { vehicleClassId?: unknown }).vehicleClassId || ""));
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    const sortOrder = rows.length * 10;
+    if (sortOrder > 32767) break;
+    rows.push({ id, sortOrder });
+  }
+  return rows;
+}
+
+/** Comment 2. Persists class order on vehicle_classes.sort_order only. Does not flip active or hide_from_public. */
+async function persistClassOrder(
+  env: Parameters<typeof loadRateBook>[0],
+  claims: Parameters<typeof loadRateBook>[1],
+  recBody: Record<string, unknown>,
+): Promise<Response> {
+  const rows = classOrderRows(recBody.order);
+  if (!rows.length) return jsonErr("invalid", 400);
+  await asStaff(env, claims, async (tx) => {
+    for (const row of rows) {
+      await tx`
+        update public.vehicle_classes
+           set sort_order = ${row.sortOrder}
+         where id = ${row.id}
+      `;
+    }
+    return null;
+  });
+  const versionId = await resolveVersionId(env, claims, recBody.versionId);
+  if (versionId == null) return jsonOk({ rates: [] });
+  const book = await loadRateBook(env, claims, versionId);
+  if (!book) return jsonOk({ rates: [] });
+  const zones = await loadServiceZones(env, claims);
+  return jsonOk(bookPayload(book, zones));
+}
+
 export const PUT = withAdmin(async (claims, request) => {
   let body: unknown;
   try {
@@ -597,6 +642,13 @@ export const PUT = withAdmin(async (claims, request) => {
   const kind = recBody.kind;
 
   const { env } = getCloudflareContext();
+  if (kind === "distance" && recBody.reorder === true) {
+    try {
+      return await persistClassOrder(env, claims, recBody);
+    } catch (err) {
+      return failWrite(err);
+    }
+  }
   const versionId = await resolveWritableVersionId(env, claims, recBody.versionId);
   if (versionId == null) return jsonErr("not-found", 404);
   const id = optionalId(recBody.id);
@@ -643,12 +695,16 @@ export const PUT = withAdmin(async (claims, request) => {
       await asStaff(env, claims, async (tx) => {
         if (classPlan.mode === "insert") {
           if (!slug) throw new RateBookInputError("rateBook.error-class-required");
+          const maxRows = await tx<{ n: number | string | null }[]>`
+            select coalesce(max(sort_order), 0) as n from public.vehicle_classes
+          `;
+          const nextSort = Math.min(32767, Number(maxRows[0]?.n ?? 0) + 10);
           if (classPlan.id) {
             const created = await tx<{ id: string }[]>`
               insert into public.vehicle_classes (
                 id, slug, passenger_capacity, luggage_capacity, sort_order, active, name, photo_path
               ) values (
-                ${classPlan.id}, ${slug}, ${incoming.maxPax}, ${maxBags}, 0, true,
+                ${classPlan.id}, ${slug}, ${incoming.maxPax}, ${maxBags}, ${nextSort}, true,
                 ${className || slug}, ${photoPath ?? null}
               )
               returning id
@@ -659,7 +715,7 @@ export const PUT = withAdmin(async (claims, request) => {
               insert into public.vehicle_classes (
                 slug, passenger_capacity, luggage_capacity, sort_order, active, name, photo_path
               ) values (
-                ${slug}, ${incoming.maxPax}, ${maxBags}, 0, true, ${className || slug},
+                ${slug}, ${incoming.maxPax}, ${maxBags}, ${nextSort}, true, ${className || slug},
                 ${photoPath ?? null}
               )
               returning id
