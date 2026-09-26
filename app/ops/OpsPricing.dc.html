@@ -129,7 +129,6 @@
 <sc-if value="{{ isDistance }}" hint-placeholder-val="{{ false }}">
 <div data-price-pane="1" data-price-swipe="1" data-scroll-native="1">
 <dc-import name="OpsTable" fill="1" rows="{{ distanceRows }}" columns="{{ distanceColumns }}" fields="{{ distanceFields }}" blank="{{ distanceBlank }}" onSave="{{ saveDistance }}" onDelete="{{ deleteDistance }}" noun="{{ tNounClass }}" noun-plural="{{ tNounClasses }}" add-title="{{ tAddClass }}" edit-title="{{ tEditClass }}" delete-title="{{ tDeleteClassTitle }}" label-key="klass" add-label="{{ tAddClass }}" save-label="{{ tSaveClass }}" add-save-label="{{ tAddClass }}" search-placeholder="{{ tSearchDistance }}" search-keys="{{ distanceSearchKeys }}" empty-title="{{ tEmptyClassesTitle }}" empty-body="{{ tEmptyClassesBody }}" delete-body="{{ tDeleteClassBody }}" edit-id="{{ distanceEditId }}" edit-tick="{{ distanceEditTick }}" hint-size="100%,420px"></dc-import>
-<dc-import name="OpsTable" fill="1" rows="{{ bandRows }}" columns="{{ bandColumns }}" fields="{{ bandFields }}" blank="{{ bandBlank }}" onSave="{{ saveBand }}" onDelete="{{ deleteBand }}" noun="{{ tNounBand }}" noun-plural="{{ tNounBands }}" add-title="{{ tAddBand }}" edit-title="{{ tEditBand }}" delete-title="{{ tDeleteBandTitle }}" label-key="fromKm" add-label="{{ tAddBand }}" save-label="{{ tSaveBand }}" add-save-label="{{ tAddBand }}" search-placeholder="{{ tSearchBands }}" search-keys="{{ bandSearchKeys }}" empty-title="{{ tEmptyBandsTitle }}" empty-body="{{ tEmptyBandsBody }}" delete-body="{{ tDeleteBandBody }}" hint-size="100%,280px"></dc-import>
 </div>
 </sc-if>
 
@@ -379,10 +378,6 @@ const T = {
     addClass:'Add class', editClass:'Edit class', saveClass:'Save class', deleteClassTitle:'Delete this class from the draft?', deleteClassBody:'Delete this class from the draft? Public does not change until Publish.',
     emptyClassesTitle:'No vehicle classes yet', emptyClassesBody:'Add a class with photo, name, start fare, per-kilometre rate, max passengers and max bags.',
     searchDistance:'Class', nounClass:'class', nounClasses:'classes',
-    fromKm:'From km', toKm:'To km', openBand:'Open',
-    addBand:'Add band', editBand:'Edit band', saveBand:'Save band', deleteBandTitle:'Delete this band from the draft?', deleteBandBody:'Delete this band from the draft? Public does not change until Publish.',
-    emptyBandsTitle:'No km bands yet', emptyBandsBody:'Add a band with From km and a CHF per-kilometre amount for that slice. Open last band is allowed.',
-    searchBands:'From km', nounBand:'km band', nounBands:'km bands',
     addRule:'Add rule', editRule:'Edit rule', saveRule:'Save rule', deleteRuleTitle:'Delete this rule from the draft?', deleteRuleBody:'Delete this rule from the draft? Public does not change until Publish.',
     emptyRulesTitle:'No rules yet', emptyRulesBody:'Waiting unit, free-wait hours, or Mapbox service area.',
     searchRules:'Kind', nounRule:'rule', nounRules:'rules',
@@ -470,10 +465,6 @@ const T = {
     addClass:'Klasse hinzufügen', editClass:'Klasse bearbeiten', saveClass:'Klasse speichern', deleteClassTitle:'Diese Klasse aus dem Entwurf löschen?', deleteClassBody:'Diese Klasse aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
     emptyClassesTitle:'Noch keine Fahrzeugklassen', emptyClassesBody:'Klasse mit Foto, Name, Startpreis, Kilometersatz, max. Passagieren und max. Gepäckstücken hinzufügen.',
     searchDistance:'Klasse', nounClass:'Klasse', nounClasses:'Klassen',
-    fromKm:'Von km', toKm:'Bis km', openBand:'Offen',
-    addBand:'Band hinzufügen', editBand:'Band bearbeiten', saveBand:'Band speichern', deleteBandTitle:'Dieses Band aus dem Entwurf löschen?', deleteBandBody:'Dieses Band aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
-    emptyBandsTitle:'Noch keine km-Bänder', emptyBandsBody:'Band mit Von-km und einem CHF-Betrag pro Kilometer für diese Scheibe hinzufügen. Offenes letztes Band ist erlaubt.',
-    searchBands:'Von km', nounBand:'km-Band', nounBands:'km-Bänder',
     addRule:'Regel hinzufügen', editRule:'Regel bearbeiten', saveRule:'Regel speichern', deleteRuleTitle:'Diese Regel aus dem Entwurf löschen?', deleteRuleBody:'Diese Regel aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
     emptyRulesTitle:'Noch keine Regeln', emptyRulesBody:'Warteeinheit, Freiwarte-Stunden oder Mapbox-Servicegebiet.',
     searchRules:'Art', nounRule:'Regel', nounRules:'Regeln',
@@ -563,10 +554,6 @@ const T = {
     addClass:'Ajouter une classe', editClass:'Modifier la classe', saveClass:'Enregistrer la classe', deleteClassTitle:'Supprimer cette classe du brouillon ?', deleteClassBody:'Supprimer cette classe du brouillon ? Le public ne change qu’après Publier.',
     emptyClassesTitle:'Pas encore de classes', emptyClassesBody:'Ajoutez une classe avec photo, nom, tarif de départ, tarif au kilomètre, passagers max. et bagages max.',
     searchDistance:'Classe', nounClass:'classe', nounClasses:'classes',
-    fromKm:'De km', toKm:'À km', openBand:'Ouvert',
-    addBand:'Ajouter une tranche', editBand:'Modifier la tranche', saveBand:'Enregistrer la tranche', deleteBandTitle:'Supprimer cette tranche du brouillon ?', deleteBandBody:'Supprimer cette tranche du brouillon ? Le public ne change qu’après Publier.',
-    emptyBandsTitle:'Pas encore de tranches km', emptyBandsBody:'Ajoutez une tranche avec De km et un montant CHF par kilomètre pour cette part. La dernière tranche ouverte est autorisée.',
-    searchBands:'De km', nounBand:'tranche km', nounBands:'tranches km',
     addRule:'Ajouter une règle', editRule:'Modifier la règle', saveRule:'Enregistrer la règle', deleteRuleTitle:'Supprimer cette règle du brouillon ?', deleteRuleBody:'Supprimer cette règle du brouillon ? Le public ne change qu’après Publier.',
     emptyRulesTitle:'Pas encore de règles', emptyRulesBody:'Unité d’attente, heures d’attente libre ou zone de service Mapbox.',
     searchRules:'Type', nounRule:'règle', nounRules:'règles',
@@ -656,10 +643,6 @@ const T = {
     addClass:'إضافة فئة', editClass:'تعديل الفئة', saveClass:'حفظ الفئة', deleteClassTitle:'حذف هذه الفئة من المسودة؟', deleteClassBody:'حذف هذه الفئة من المسودة؟ لا يتغير العام حتى النشر.',
     emptyClassesTitle:'لا توجد فئات مركبات بعد', emptyClassesBody:'أضف فئة بالصورة والاسم وأجرة البداية وسعر الكيلومتر وأقصى عدد مسافرين وأقصى حقائب.',
     searchDistance:'الفئة', nounClass:'فئة', nounClasses:'فئات',
-    fromKm:'من كم', toKm:'إلى كم', openBand:'مفتوح',
-    addBand:'إضافة شريحة', editBand:'تعديل الشريحة', saveBand:'حفظ الشريحة', deleteBandTitle:'حذف هذه الشريحة من المسودة؟', deleteBandBody:'حذف هذه الشريحة من المسودة؟ لا يتغير العام حتى النشر.',
-    emptyBandsTitle:'لا توجد شرائح كم بعد', emptyBandsBody:'أضف شريحة بمن كم ومبلغ فرنك لكل كيلومتر لهذه الشريحة. الشريحة الأخيرة المفتوحة مسموحة.',
-    searchBands:'من كم', nounBand:'شريحة كم', nounBands:'شرائح كم',
     addRule:'إضافة قاعدة', editRule:'تعديل القاعدة', saveRule:'حفظ القاعدة', deleteRuleTitle:'حذف هذه القاعدة من المسودة؟', deleteRuleBody:'حذف هذه القاعدة من المسودة؟ لا يتغير العام حتى النشر.',
     emptyRulesTitle:'لا توجد قواعد بعد', emptyRulesBody:'وحدة انتظار أو ساعات انتظار مجاني أو منطقة خدمة مابوكس.',
     searchRules:'النوع', nounRule:'قاعدة', nounRules:'قواعد',
@@ -1446,44 +1429,6 @@ class Component extends DCLogic {
       tDeleteClassTitle: t.deleteClassTitle, tDeleteClassBody: t.deleteClassBody,
       tSearchDistance: t.searchDistance, distanceSearchKeys: ['klass'],
       tEmptyClassesTitle: t.emptyClassesTitle, tEmptyClassesBody: t.emptyClassesBody,
-
-      bandRows: bandRowsRaw.map((r) => ({
-        id: r.id, fromKm: r.fromKm, toKm: r.toKm === '' || r.toKm == null ? '' : r.toKm,
-        perKm: (r.perKm && r.perKm.CHF) || '', klass: r.klass || r.vehicleClass || '',
-        vehicleClassId: r.vehicleClassId || classIdFor(r.klass || r.vehicleClass),
-      })),
-      bandColumns: [
-        { key:'klass', header: t.colClass, width:'120px' },
-        { key:'fromKm', header: t.fromKm, width:'110px' },
-        { key:'toKm', header: t.toKm, width:'110px', lookup:(r) => (r.toKm === '' || r.toKm == null ? t.openBand : r.toKm) },
-        { key:'perKm', header: t.perKm, lookup:(r) => money(r.perKm) },
-      ],
-      bandFields: [
-        { key:'klass', label:t.colClass, editor:'select', required:true, icon:'car',
-          options: classOptions },
-        { key:'fromKm', label:t.fromKm, editor:'number', min:0, half:true, icon:'navigation' },
-        { key:'toKm', label:t.toKm, editor:'number', min:0, half:true, icon:'navigation', hint:t.openBand },
-        { key:'perKm', label:t.perKm, half:true, placeholder:'0.00', icon:'navigation', suffix:'CHF' },
-      ],
-      bandBlank: () => {
-        const blank = ops ? ops.bands.blank() : { fromKm:0, toKm:'', perKm:{} };
-        return Object.assign({}, blank, { perKm:'', klass: (classOptions[0] && classOptions[0].value) || '' });
-      },
-      saveBand: (rec) => {
-        if (!ops) return null;
-        const existing = rec.id ? ops.bands.get(rec.id) : null;
-        return ops.bands.upsert({
-          id: rec.id, fromKm: rec.fromKm, toKm: rec.toKm, klass: rec.klass,
-          vehicleClassId: rec.vehicleClassId || (existing && existing.vehicleClassId) || classIdFor(rec.klass),
-          perKm: Object.assign({}, (existing && existing.perKm) || {}, { CHF: rec.perKm }),
-        });
-      },
-      deleteBand: (id) => ops ? ops.bands.remove(id) : null,
-      tNounBand: t.nounBand, tNounBands: t.nounBands,
-      tAddBand: t.addBand, tEditBand: t.editBand, tSaveBand: t.saveBand,
-      tDeleteBandTitle: t.deleteBandTitle, tDeleteBandBody: t.deleteBandBody,
-      tSearchBands: t.searchBands, bandSearchKeys: ['fromKm', 'toKm'],
-      tEmptyBandsTitle: t.emptyBandsTitle, tEmptyBandsBody: t.emptyBandsBody,
 
       surcharges: surchargesRaw.map((r) => {
         const type = r.type || surchargeTypeOf(r.code || r.label);
