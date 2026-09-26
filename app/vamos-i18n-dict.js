@@ -189,6 +189,10 @@
       'Now': { de: 'Jetzt', fr: 'Maintenant', ar: 'الآن' },
 
       /* ── Services section ─────────────────────────────────────────────── */
+      'Any route': { de: 'Jede Route', fr: 'N’importe quel trajet', ar: 'أي مسار' },
+      'Tell us where you are going and we price it now.': { de: 'Sagen Sie uns wohin — wir berechnen den Preis jetzt.', fr: 'Dites-nous où vous allez, nous chiffrons tout de suite.', ar: 'أخبرنا إلى أين تذهب ونحسب السعر الآن.' },
+      'Core services': { de: 'Kernleistungen', fr: 'Services essentiels', ar: 'الخدمات الأساسية' },
+      'Learn more': { de: 'Mehr erfahren', fr: 'En savoir plus', ar: 'اعرف المزيد' },
       'Two services. One fixed price each.': { de: 'Zwei Leistungen. Je ein Fixpreis.', fr: 'Deux services. Un prix fixe chacun.', ar: 'خدمتان، لكل منهما سعر ثابت.' },
       'Every one is booked ahead, priced up front and assigned to a driver before you travel.': { de: 'Jede wird im Voraus gebucht, im Voraus bepreist und vor der Fahrt einem Fahrer zugeteilt.', fr: 'Chacun est réservé à l’avance, chiffré d’avance et attribué à un chauffeur avant votre départ.', ar: 'كل خدمة تُحجز مسبقًا ويُحدَّد سعرها مسبقًا ويُعيَّن لها سائق قبل سفرك.' },
       'Fixed-price rides to and from the airport, timed to your flight.': { de: 'Fahrten zum und vom Flughafen zum Fixpreis, abgestimmt auf Ihren Flug.', fr: 'Trajets à prix fixe depuis et vers l’aéroport, calés sur votre vol.', ar: 'رحلات بسعر ثابت من المطار وإليه، موقوتة مع رحلتك الجوية.' },

@@ -41,13 +41,7 @@ export async function Services({
         <SectionHeader
           id="svc-head"
           eyebrow={tCommon("services")}
-          title={
-            <span id="svc-title">
-              {hourly
-                ? tServices("three-services-one-fixed-price-each")
-                : tServices("two-services-one-fixed-price-each")}
-            </span>
-          }
+          title={<span id="svc-title">{tServices("core-services")}</span>}
           subtitle={tServices("every-one-is-booked-ahead-priced-up-front-and-as")}
           tone={mediaTone === "inverse" ? "inverse" : "default"}
         />
@@ -57,6 +51,8 @@ export async function Services({
             titleId="airport-transfers"
             icon="plane-landing"
             tone={tone}
+            image="/photos/site/svc-airport.jpg"
+            imageFocus="58% center"
           >
             {tServices("fixed-price-rides-to-and-from-the-airport-timed")}
           </ServiceCard>
@@ -65,8 +61,20 @@ export async function Services({
             titleId="city-to-city"
             icon="navigation"
             tone={tone}
+            image="/photos/site/svc-city.jpg"
+            imageFocus="84% center"
           >
             {tServices("private-transfers-between-swiss-cities-scheduled")}
+          </ServiceCard>
+          <ServiceCard
+            href="/about"
+            titleId="professional-drivers"
+            icon="users"
+            tone={tone}
+            image="/photos/site/why-driver-door.jpg"
+            imageFocus="50% 28%"
+          >
+            {tServices("your-driver-is-assigned-to-your-booking-and-wai")}
           </ServiceCard>
           {hourly ? (
             <ServiceCard
@@ -74,6 +82,7 @@ export async function Services({
               titleId="chauffeur-by-the-hour"
               icon="clock"
               tone={tone}
+              image="/photos/site/svc-hourly.jpg"
             >
               {tServices("book-a-driver-and-vehicle-for-multiple-stops-acr")}
             </ServiceCard>
