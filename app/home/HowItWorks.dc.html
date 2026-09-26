@@ -661,19 +661,22 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   inline-size:100%;
   block-size:100%;
   object-fit:cover;
-  object-position:center;
+  object-position:center 32%;
 }
 [data-dest-copy]{
   position:relative;
   z-index:1;
   display:flex;
   flex-direction:column;
+  flex:0 0 auto;
+  align-self:stretch;
   gap:4px;
   margin-inline:-16px;
   margin-block-end:-16px;
   padding:28px 16px 16px;
-  background:linear-gradient(to top, var(--vt-charcoal-900) 0%, var(--vt-charcoal-900) calc(100% - 28px), transparent 100%);
+  background:linear-gradient(to top, var(--vt-charcoal-900) 0px, var(--vt-charcoal-900) 120px, transparent 156px);
 }
+[data-dest-tile] > [data-dest-copy]{flex:0 0 auto}
 [data-dest-code]:empty{display:none}
 [data-dest-code]{
   font-family:var(--vt-font-body);
@@ -1252,7 +1255,7 @@ class Component extends DCLogic {
       name: place.name,
       code: place.code,
       href: place.href,
-      photo: place.kind === 'airport' ? '/photos/site/dest-' + place.id + '.jpg' : '',
+      photo: place.kind === 'airport' ? '/photos/site/dest-' + place.id + '.jpg?v=2' : '',
       meta: this.metaFor(place, t),
       aria: book + ', ' + place.name,
       lead: place.lead && (this.state.filter === 'all' || this.state.filter === 'airport') ? '1' : '0',

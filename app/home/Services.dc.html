@@ -48,8 +48,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 body{margin:0}
 a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
 [data-svc-inner]{box-sizing:border-box;max-width:1200px;margin:0 auto;padding:0 clamp(16px,3.2vw,56px);display:flex;flex-direction:column;align-items:stretch;gap:var(--vt-space-8)}
-[data-svc-track]{display:grid;gap:var(--vt-space-6);grid-template-columns:minmax(0,1fr);width:100%;align-items:stretch}
-[data-svc-track] > [data-sc-name="ServiceCard"]{min-width:0;position:relative;width:auto;height:auto;transform:none;opacity:1;pointer-events:auto}
+[data-svc-track]{display:grid;gap:var(--vt-space-6);grid-template-columns:minmax(0,1fr);width:100%;align-items:start;overflow:visible}
+[data-svc-track] > [data-sc-name="ServiceCard"]{min-width:0;min-height:min-content;position:relative;display:flex;flex-direction:column;width:auto;height:auto;overflow:visible;transform:none;opacity:1;pointer-events:auto}
 [data-svc-ticks]{display:none}
 [data-svc-cta]{grid-column:1/-1;position:relative;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;gap:var(--vt-space-4);min-height:0;padding:var(--vt-space-6);background:var(--vt-yellow);border-radius:var(--vt-radius-lg);text-decoration:none;color:var(--vt-charcoal-900)}
 [data-svc-cta]:hover,[data-svc-cta]:focus,[data-svc-cta]:visited{color:var(--vt-charcoal-900)}
@@ -60,9 +60,9 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 @media (hover:hover){[data-svc-cta]:hover [data-svc-cta-btn]{background:var(--vt-charcoal-800)}}
 [data-svc-cta]:active [data-svc-cta-btn]{transform:translateY(1px)}
 @media (min-width:768px){[data-svc-track]{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (prefers-reduced-motion:reduce){[data-svc-cta-btn]{transition:none}}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid var(--vt-charcoal-900)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
+@media (prefers-reduced-motion:reduce){[data-svc-cta-btn]{transition:none}}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn):not([data-svc-card]){outline:3px solid var(--vt-charcoal-900)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
 </helmet>
-<section data-svc-sec="1" data-screen-label="Services" aria-labelledby="svc-title" style="position:relative;color:var(--vt-text-primary);font-family:var(--vt-font-body);padding:clamp(56px,7vw,104px) 0">
+<section data-svc-sec="1" data-screen-label="Services" aria-labelledby="svc-title" style="position:relative;overflow:visible;color:var(--vt-text-primary);font-family:var(--vt-font-body);padding:clamp(56px,7vw,104px) 0">
 
 <div aria-hidden="true" style="position:absolute;inset:0;background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAACFCAYAAAAenrcsAAAGKElEQVR4AeycsY5bRRSGz9w8QUwFj5CCLt06isQDrEKFeIvVplmlSGjSsHkJIkWioaAJKdLESJEQFe8ANMggUdB5mFnW1sV7s7av59yZM/OtfHbtu9dn/vMdf9pU6fxi5jVKlL78u48+08gber7XiOzf3f009FZhHHurZF7M3qtkDrvTyBt7quQNbnSxOQUBCAwTQJBhLlyFwBUBBLnCwDcIDBNAkGEuXIXAFQFFQa768w0CpgkgiOn1EV6bAIJoE6a/aQIIYnp9hNcmgCDahOlvmoBNQUwjJ7wlAghiaVtknZwAgkyOnAMtEUAQS9si6+QEEGRy5BxoiQCCbG2LlxDoE0CQPg2eQ2CLAIJsAeElBPoEEKRPg+cQ2CKAIFtAeAmBPgEE6dPQfU53gwQQxODSiDwdgU5cd1+j/GL2m0aJWz0JdZq+/Hchb/L/fUSce+nmS6dRsbdOZjnTyesvNPLGnhp5Y8/Onfzxs0YFxz/WKbdyJ399n7pE3EL4gsAWgW7rNS8hAIEeAQTpwbD7lORaBBBEiyx9qyCAIFWskSG0CCCIFln6VkEAQapYI0NoEUAQLbK19G18DgRp/APA+LcTQJDb+fDbxgkgSOMfAMa/nQCC3M6H3zZOAEEa/wDkHN/C2QhiYUtkzEYAQbKh52ALBBDEwpbImI0AgmRDz8EWCCCIhS2R8VACye5HkGQoaVQjAQSpcavMlIwAgiRDSaMaCXR+MTvXqADrhUp5/5NKXu8equQV91ojb+wpobeIpOccWMT+qUvC7lTyBgaps677xb8glyF08nLz5WONEuneauQV8acqef3qlU5euZTQWyVzYKGTuXurkTf21Mkrl1GQ0Lv34CkEILAhgCAbFDyBwE0CCHKTCVcgsCGAIBsUPIHATQIIcpMJVyCwITCpIJtTeQIBIwQQxMiiiJmHAILk4c6pRgggiJFFETMPAQTJw51TjRCoRRAjuIlpjQCCWNsYeSclgCCT4uYwawQQxNrGyDspAQSZFDeHWSOAIDs3xg0tE0CQlrfP7DsJIMhORNzQMgEEaXn7zL6TAILsRMQNLROIgnwVACQvv5g90yi5I/c08oaeb1TyOvd56D3MV+S466G3SmaRNyqZnZ9r5I09VfKG/XRuvnymUSHwU5Xyq3sqeZ38oJJX5JFG3tgz5H0UKj3nwCL2T10h60mo9HlFnqbOuu4X/4KEzDwgAIEhAggyRIVrELgmgCDXIPgBgSECCDJEpYJrjJCGAIKk4UiXSgkgSKWLZaw0BBAkDUe6VEoAQSpdLGOlIYAgaTi21KWpWRGkqXUz7KEEEORQYtzfFAEEaWrdDHsoAQQ5lBj3N0UAQZpad+nDlpcPQcrbCYkKIoAgBS2DKOURQJDydkKiggggSEHLIEp5BBCkvJ2QSIPAyJ4IMhIcb2uDQOd/vPtco8T75zrl7vjF7DJ1iXenYeWP05d/lTrrup8494t4+TZ5if9yfUbKnyL+1+RZr+dPmbPfqxPvLjTKPfjziUaFD/Dfoc7Tl3/o5ssXqUu8vE6fVf6bf7X62j1YfpG6xLv7Kpl9903qrOt+KnlFzvknViDLAwIfIoAgHyLDdQgEAvsIEm7jAYE2CSBIm3tn6j0JIMieoLitTQII0ubemXpPAgiyJyhua5NAZkHahM7UdgggiJ1dkTQDAQTJAJ0j7RBAEDu7ImkGAgiSATpH2iFQryB2dkDSggkgSMHLIVp+AgiSfwckKJgAghS8HKLlJ4Ag+XdAgoIJIMiI5fCWdgggSDu7ZtIRBBBkBDTe0g4BBGln17VP+nsYMHl1br50GuUXM69RIu4fjbzi5Ewlr3MvNfLGnhJ662SWs9g/dYnzFxp5Y8+Q9RON4i+IFPVFmMIIIEhhCyFOWQQQpKx9kKYwAghS2EKIUxYBBClrH6QpjACCFLYQvTh0HkMAQcZQ4z3NEECQZlbNoGMIIMgYarynGQII0syqGXQMAQQZQ433/J9Axa8QpOLlMtrxBBDkeIZ0qJgAglS8XEY7ngCCHM+QDhUTQJCKl1vDaLlnQJDcG+D8ogkgSNHrIVxuAgiSewOcXzQBBCl6PYTLTQBBcm+A83MR2OvcfwEAAP//LvhOGAAAAAZJREFUAwDDV9XQwfXxPQAAAABJRU5ErkJggg==);background-size:88px 88px;background-repeat:repeat;opacity:.028;pointer-events:none;z-index:0"></div>
 <div data-svc-wrap="1" style="position:relative;z-index:1">
@@ -85,18 +85,18 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <div data-svc-track="1">
 
-<dc-import name="ServiceCard" href="/?service=airport#book" image="/photos/site/svc-airport.jpg" image-focus="58% center" title-id="svc-t1" icon="plane-landing" tone="{{ tone }}" hint-size="100%,100%">
+<dc-import name="ServiceCard" href="/?service=airport#book" image="/photos/site/svc-airport.jpg" image-focus="58% center" title-id="svc-t1" icon="plane-landing" tone="{{ tone }}" hint-size="100%,auto">
 <h3 data-svc-title="1" id="svc-t1">Airport transfers</h3>
 <span data-svc-desc="1">Fixed-price rides to and from the airport, timed to your flight.</span>
 </dc-import>
 
-<dc-import name="ServiceCard" href="/?service=city#book" image="/photos/site/svc-city.jpg" image-focus="84% center" title-id="svc-t2" icon="navigation" tone="{{ tone }}" hint-size="100%,100%">
+<dc-import name="ServiceCard" href="/?service=city#book" image="/photos/site/svc-city.jpg" image-focus="84% center" title-id="svc-t2" icon="navigation" tone="{{ tone }}" hint-size="100%,auto">
 <h3 data-svc-title="1" id="svc-t2">City to city</h3>
 <span data-svc-desc="1">Private transfers between Swiss cities, scheduled for one exact time.</span>
 </dc-import>
 
 <sc-if value="{{ showHourly }}" hint-placeholder-val="{{ false }}">
-<dc-import name="ServiceCard" href="/?service=hourly#book" image="/photos/site/svc-hourly.jpg" title-id="svc-t4" icon="clock" tone="{{ tone }}" hint-size="100%,100%">
+<dc-import name="ServiceCard" href="/?service=hourly#book" image="/photos/site/svc-hourly.jpg" title-id="svc-t4" icon="clock" tone="{{ tone }}" hint-size="100%,auto">
 <h3 data-svc-title="1" id="svc-t4">Chauffeur by the hour</h3>
 <span data-svc-desc="1">Book a driver and vehicle for multiple stops across the day.</span>
 </dc-import>

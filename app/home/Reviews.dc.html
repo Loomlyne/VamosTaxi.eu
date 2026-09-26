@@ -59,27 +59,31 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-rv-score-stars]{display:flex;align-items:center;gap:2px}
 [data-rv-score-stars] img,[data-rv-score-star]{inline-size:20px;block-size:20px;flex:0 0 auto}
 [data-rv-score-cap]{margin:0;max-width:28ch;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-regular);line-height:1.45;color:var(--vt-text-secondary);text-wrap:pretty;text-align:start}
-[data-rv-cards]{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:var(--vt-space-4);margin:0;padding:0;min-width:0;list-style:none}
-[data-rv-item]{display:flex;min-width:0}
-[data-rv-card]{box-sizing:border-box;display:flex;flex-direction:column;gap:var(--vt-space-4);width:100%;min-width:0;padding:var(--vt-space-6);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-xl);background:var(--vt-bg-surface);text-align:start}
-[data-rv-mark]{display:flex;align-items:center;min-block-size:24px;min-width:0}
-[data-rv-logo]{display:block;block-size:18px;inline-size:auto;max-inline-size:100%;object-fit:contain}
-[data-rv-src]{font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);line-height:1.3;color:var(--vt-text-secondary)}
-[data-rv-q]{margin:0;padding:0;flex:1 1 auto}
+[data-rv-cards]{display:flex;flex-flow:row nowrap;align-items:stretch;gap:var(--vt-space-4);margin:0;padding-block:var(--vt-space-2);padding-inline:0;min-width:0;max-width:100%;list-style:none;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scroll-behavior:auto;scroll-padding-inline:var(--vt-space-3);scrollbar-width:thin;scrollbar-color:var(--vt-grey-300) transparent;-webkit-overflow-scrolling:touch}
+[data-rv-item]{display:flex;flex-grow:0;flex-shrink:0;flex-basis:min(calc(var(--vt-space-12) + var(--vt-space-12) + var(--vt-space-8)),calc(100% - var(--vt-space-7)));min-width:0;max-width:100%}
+[data-rv-card]{box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;align-self:start;justify-content:start;gap:var(--vt-space-4);width:100%;min-width:0;height:auto;flex:0 1 auto;padding:var(--vt-space-5);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-xl);background:var(--vt-bg-surface);box-shadow:none;text-align:start}
+[data-rv-mark]{display:flex;align-items:center;min-block-size:var(--vt-space-6);min-width:0;flex:0 1 auto}
+[data-rv-logo]{display:block;block-size:18px;inline-size:auto;max-inline-size:100%;object-fit:contain;flex:0 0 auto}
+[data-rv-src]{font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);line-height:1.3;color:var(--vt-text-secondary);overflow-wrap:anywhere}
+[data-rv-q]{margin:0;padding:0;flex:0 0 auto;min-width:0}
 [data-rv-text]{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-regular);line-height:1.5;letter-spacing:0;text-align:start;text-wrap:pretty;overflow-wrap:break-word;color:var(--vt-text-primary);quotes:"\201C" "\201D"}
 [dir="rtl"] [data-rv-text]{quotes:"\00AB" "\00BB"}
 [data-rv-text]::before{content:open-quote}
 [data-rv-text]::after{content:close-quote}
-[data-rv-foot]{display:flex;flex-direction:column;align-items:flex-start;gap:var(--vt-space-2);margin-top:auto;min-width:0}
-[data-rv-rate]{display:flex;align-items:center;gap:var(--vt-space-1);min-block-size:44px}
-[data-rv-stars]{display:flex;align-items:center;gap:2px}
+[data-rv-foot]{display:flex;flex-direction:column;align-items:start;gap:var(--vt-space-2);margin:0;min-width:0;flex:0 0 auto}
+[data-rv-rate]{display:flex;align-items:center;gap:var(--vt-space-1);min-width:0;width:100%}
+[data-rv-stars]{display:flex;align-items:center;gap:2px;min-block-size:var(--vt-space-6)}
 [data-rv-stars] img{inline-size:18px;block-size:18px;flex:0 0 auto}
-[data-rv-link]{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;inline-size:44px;block-size:44px;flex:0 0 auto;margin:0;padding:0;border:0;border-radius:var(--vt-radius-pill);background:transparent;color:var(--vt-charcoal-900);text-decoration:none}
-[data-rv-link]:hover{background:var(--vt-grey-50);color:var(--vt-charcoal-900)}
+[data-rv-link]{position:relative;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;inline-size:var(--vt-control-h-md);block-size:var(--vt-control-h-md);flex:0 0 auto;margin:0;padding:0;border:0;border-radius:var(--vt-radius-pill);background:transparent;color:var(--vt-charcoal-900);text-decoration:none;box-shadow:none}
+@media (hover:hover){[data-rv-link]:hover{background:var(--vt-grey-50);color:var(--vt-charcoal-900)}}
+[data-rv-link]:active{background:var(--vt-grey-100);color:var(--vt-charcoal-900)}
 [data-rv-link]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
+[data-rv-who]{display:flex;flex-direction:column;align-items:start;gap:var(--vt-space-1);min-width:0;max-width:100%}
 [data-rv-name]{font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);letter-spacing:0;line-height:1.3;color:var(--vt-text-primary);overflow-wrap:anywhere}
-[data-rv-sub]{font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-regular);line-height:1.45;color:var(--vt-text-secondary);overflow-wrap:anywhere;text-wrap:pretty}
-[data-rv-badge]{display:inline-flex;align-items:center;gap:6px;min-block-size:24px;padding-block:2px;padding-inline:11px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface);font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);line-height:1.3;color:var(--vt-text-secondary);width:fit-content;white-space:normal;overflow-wrap:anywhere;text-align:start}
+[data-rv-sub]{display:block;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-regular);line-height:1.45;color:var(--vt-text-secondary);overflow-wrap:anywhere;text-wrap:pretty}
+[data-rv-origin]{display:flex;flex-wrap:wrap;align-items:center;gap:var(--vt-space-2);min-width:0;max-width:100%}
+[data-rv-badge]{display:inline-flex;align-items:center;gap:var(--vt-space-1);min-block-size:var(--vt-space-6);padding-block:var(--vt-space-1);padding-inline:var(--vt-space-3);border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface);box-shadow:none;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);line-height:1.3;color:var(--vt-text-secondary);width:fit-content;max-width:100%;white-space:normal;overflow-wrap:anywhere;text-align:start}
+[data-rv-badge] svg{flex:0 0 auto}
 [data-rv-empty]{box-sizing:border-box;display:flex;flex-direction:column;align-items:flex-start;gap:var(--vt-space-2);max-width:62ch;padding:var(--vt-space-6);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-xl);background:var(--vt-bg-surface);text-align:start}
 [data-rv-empty] strong{font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);line-height:1.3;color:var(--vt-text-primary)}
 [data-rv-empty] span{font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-regular);line-height:1.6;color:var(--vt-text-secondary);text-wrap:pretty;max-width:60ch}
@@ -87,13 +91,13 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-rv-grid]{grid-template-columns:minmax(0,1fr)}
 [data-rv-score]{flex-direction:row;flex-wrap:wrap;align-items:center;column-gap:var(--vt-space-4);row-gap:var(--vt-space-2);padding-block-start:0}
 [data-rv-score-cap]{flex-basis:100%;max-width:36ch}
-[data-rv-cards]{grid-template-columns:minmax(0,1fr)}
 }
 @media (prefers-reduced-motion:no-preference){
 [data-rv-link]{transition:background-color var(--vt-dur-fast) var(--vt-ease-standard),color var(--vt-dur-fast) var(--vt-ease-standard)}
 }
 @media (prefers-reduced-motion:reduce){
 [data-rv-link]{transition:none}
+[data-rv-item][data-rv-clone]{display:none}
 }
 :focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid var(--vt-focus)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}
 </style>
@@ -118,18 +122,10 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </span>
 <p data-rv-score-cap="1" data-vt-no-i18n="1">{{ scoreCaption }}</p>
 </div>
-<ul data-rv-cards="1" aria-label="Client reviews">
+<ul data-rv-cards="1" ref="{{ rowRef }}" tabindex="0" data-scroll-native="1" data-lenis-prevent="1" aria-label="Client reviews">
 <sc-for list="{{ cards }}" as="r" hint-placeholder-count="0">
 <li data-rv-item="1">
 <article data-rv-card="1" data-rv-face="1" data-i="{{ r.i1 }}">
-<span data-rv-mark="1">
-<sc-if value="{{ r.hasLogo }}" hint-placeholder-val="{{ false }}">
-<img data-rv-logo="1" data-vt-no-i18n="1" src="{{ r.logo }}" alt="{{ r.sourceLabel }}">
-</sc-if>
-<sc-if value="{{ r.noLogo }}" hint-placeholder-val="{{ true }}">
-<span data-rv-src="1">{{ r.sourceLabel }}</span>
-</sc-if>
-</span>
 <blockquote data-rv-q="1">
 <p data-rv-text="1" data-vt-no-i18n="1" dir="auto"><bdi>{{ r.text }}</bdi></p>
 </blockquote>
@@ -155,13 +151,25 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
 </a>
 </div>
-<span data-rv-who="1" data-vt-no-i18n="1"><strong data-rv-name="1">{{ r.name }}</strong></span>
+<div data-rv-who="1" data-vt-no-i18n="1">
+<strong data-rv-name="1">{{ r.name }}</strong>
 <span data-rv-sub="1" data-vt-no-i18n="1" dir="auto" style="display:{{ r.routeShow }}">{{ r.route }}</span>
+</div>
+<div data-rv-origin="1">
+<span data-rv-mark="1">
+<sc-if value="{{ r.hasLogo }}" hint-placeholder-val="{{ false }}">
+<img data-rv-logo="1" data-vt-no-i18n="1" src="{{ r.logo }}" alt="{{ r.sourceLabel }}">
+</sc-if>
+<sc-if value="{{ r.noLogo }}" hint-placeholder-val="{{ true }}">
+<span data-rv-src="1">{{ r.sourceLabel }}</span>
+</sc-if>
+</span>
 <sc-if value="{{ r.verified }}" hint-placeholder-val="{{ false }}">
 <span data-rv-badge="1">
 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>{{ r.verifiedLabel }}
 </span>
 </sc-if>
+</div>
 </div>
 </article>
 </li>
@@ -180,16 +188,24 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:720}}">
 /**
- * Home · Reviews — score column plus a row of cards. Not a carousel.
+ * Home · Reviews — score column plus one horizontal row of cards.
  * Published rows come from VamosReviews (GET /api/reviews). An empty store
  * stays empty: no sample names, no sample quotes, no platform mark unless
  * that row's source is that platform. The score is the mean of published
  * ratings that are above zero. It is never a hardcoded figure.
- * There is no autoplay and no dwell timer. prefers-reduced-motion has
- * nothing to pause because nothing advances.
+ * The row drifts at 24px/s. Hover and focus pause independently, including
+ * focus on a link inside the row. prefers-reduced-motion never starts that
+ * drift; the same row still scrolls by hand. Visual copies exist only so the
+ * drift can loop without a jump. They are not extra reviews.
  */
 class Component extends DCLogic {
   state = { lang: 'en', settled: false };
+  PX_PER_SEC = 24;
+  rowRef = (el) => {
+    this.unbindRow();
+    this.row = el || null;
+    if (el) this.bindRow(el);
+  };
   componentDidMount() {
     this._onReviews = () => {
       clearTimeout(this._settle);
@@ -205,7 +221,9 @@ class Component extends DCLogic {
     if (window.VamosLocale) {
       this._offLocale = window.VamosLocale.onChange((v) => this.setState({ lang: v.lang }));
     }
+    this.syncClones();
   }
+  componentDidUpdate() { this.syncClones(); }
   bindReviews() {
     const store = window.VamosReviews;
     if (!store || this._offReviews) return;
@@ -228,6 +246,186 @@ class Component extends DCLogic {
     if (this._onReviews) window.removeEventListener('vamos:reviews', this._onReviews);
     if (this._offReviews) this._offReviews();
     if (this._offLocale) this._offLocale();
+    this.unbindRow();
+  }
+  reduceMotion() {
+    return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+  unbindRow() {
+    const el = this.row;
+    this.row = null;
+    this.loop = 0;
+    this._pos = null;
+    this.stopDrift();
+    if (this.ro) { this.ro.disconnect(); this.ro = null; }
+    if (this.mq && this.onMq) this.mq.removeEventListener('change', this.onMq);
+    this.mq = null;
+    this.onMq = null;
+    if (el) {
+      if (this.onEnter) el.removeEventListener('pointerenter', this.onEnter);
+      if (this.onLeave) el.removeEventListener('pointerleave', this.onLeave);
+      if (this.onFocusIn) el.removeEventListener('focusin', this.onFocusIn);
+      if (this.onFocusOut) el.removeEventListener('focusout', this.onFocusOut);
+      if (this.onDown) el.removeEventListener('pointerdown', this.onDown);
+      this.clearClones(el);
+    }
+    if (this.onUp) {
+      window.removeEventListener('pointerup', this.onUp);
+      window.removeEventListener('pointercancel', this.onUp);
+    }
+    this.hover = false;
+    this.focus = false;
+    this.drag = false;
+  }
+  bindRow(el) {
+    this.hover = false;
+    this.focus = false;
+    this.drag = false;
+    this.loop = 0;
+    this.onEnter = (e) => { if (e.pointerType !== 'touch') this.hover = true; };
+    this.onLeave = () => { this.hover = false; };
+    this.onFocusIn = () => { this.focus = true; };
+    this.onFocusOut = (e) => { if (!el.contains(e.relatedTarget)) this.focus = false; };
+    this.onDown = () => { this.drag = true; };
+    this.onUp = () => { this.drag = false; };
+    el.addEventListener('pointerenter', this.onEnter);
+    el.addEventListener('pointerleave', this.onLeave);
+    el.addEventListener('focusin', this.onFocusIn);
+    el.addEventListener('focusout', this.onFocusOut);
+    el.addEventListener('pointerdown', this.onDown);
+    window.addEventListener('pointerup', this.onUp);
+    window.addEventListener('pointercancel', this.onUp);
+    this.mq = matchMedia('(prefers-reduced-motion: reduce)');
+    this.onMq = () => { this.syncClones(); this.kick(); };
+    this.mq.addEventListener('change', this.onMq);
+    this.ro = new ResizeObserver(() => this.syncClones());
+    this.ro.observe(el);
+    this.syncClones();
+    this.kick();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => this.syncClones());
+  }
+  paused() {
+    const el = this.row;
+    const active = typeof document !== 'undefined' ? document.activeElement : null;
+    const focused = this.focus || !!(el && active && el.contains(active));
+    return !!(this.hover || focused || this.drag || this.reduceMotion() || !(this.loop > 1));
+  }
+  kick() {
+    if (this.raf || !this.row || this.reduceMotion()) return;
+    this.last = 0;
+    this.raf = requestAnimationFrame((t) => this.tick(t));
+  }
+  stopDrift() {
+    if (this.raf) cancelAnimationFrame(this.raf);
+    this.raf = 0;
+    this.last = 0;
+  }
+  tick(ts) {
+    this.raf = 0;
+    if (!this.row) return;
+    if (this.reduceMotion()) return;
+    if (!this.paused()) {
+      if (!this.last) this.last = ts;
+      const dt = Math.min(0.05, (ts - this.last) / 1000);
+      this.last = ts;
+      this.advance(this.PX_PER_SEC * dt);
+    } else {
+      this.last = 0;
+      this._pos = null;
+    }
+    this.raf = requestAnimationFrame((t) => this.tick(t));
+  }
+  originals(el) {
+    return [...el.querySelectorAll(':scope > [data-rv-item]:not([data-rv-clone])')];
+  }
+  clearClones(el) {
+    if (!el) return;
+    el.querySelectorAll(':scope > [data-rv-clone]').forEach((n) => n.remove());
+  }
+  syncClones() {
+    const el = this.row;
+    if (!el || this._syncing) return;
+    this._syncing = true;
+    try {
+      const items = this.originals(el);
+      if (this.ro) items.forEach((item) => this.ro.observe(item));
+      const overflows = el.scrollWidth > el.clientWidth + 2;
+      const want = !this.reduceMotion() && items.length > 0 && overflows;
+      const sig = items.map((item) => item.textContent).join('\u0001');
+      const have = el.querySelectorAll(':scope > [data-rv-clone]').length;
+      if (!want) {
+        if (have) this.clearClones(el);
+        this.loop = 0;
+        this._sig = sig;
+        return;
+      }
+      if (have !== items.length || sig !== this._sig) {
+        this.clearClones(el);
+        items.forEach((item) => {
+          const clone = item.cloneNode(true);
+          clone.setAttribute('data-rv-clone', '1');
+          clone.setAttribute('aria-hidden', 'true');
+          clone.querySelectorAll('a, button, [tabindex]').forEach((node) => node.setAttribute('tabindex', '-1'));
+          clone.querySelectorAll('[id]').forEach((node) => node.removeAttribute('id'));
+          el.appendChild(clone);
+        });
+        this._sig = sig;
+      }
+      const first = items[0];
+      const clone = el.querySelector(':scope > [data-rv-clone]');
+      const loop = first && clone ? Math.abs(clone.getBoundingClientRect().left - first.getBoundingClientRect().left) : 0;
+      this.loop = loop > 1 ? loop : 0;
+      this.kick();
+    } finally {
+      this._syncing = false;
+    }
+  }
+  rtlKind() {
+    if (this._rtlKind) return this._rtlKind;
+    const probe = document.createElement('div');
+    probe.dir = 'rtl';
+    probe.style.cssText = 'width:4px;height:1px;overflow:scroll;position:absolute;top:-9999px;visibility:hidden';
+    const inner = document.createElement('div');
+    inner.style.cssText = 'width:8px;height:1px';
+    probe.appendChild(inner);
+    document.body.appendChild(probe);
+    let kind = 'positive';
+    if (probe.scrollLeft > 0) kind = 'reverse';
+    else {
+      probe.scrollLeft = 1;
+      kind = probe.scrollLeft === 0 ? 'negative' : 'positive';
+    }
+    probe.remove();
+    this._rtlKind = kind;
+    return kind;
+  }
+  readX(el) {
+    if (getComputedStyle(el).direction !== 'rtl') return el.scrollLeft;
+    const max = Math.max(0, el.scrollWidth - el.clientWidth);
+    const kind = this.rtlKind();
+    if (kind === 'negative') return -el.scrollLeft;
+    if (kind === 'reverse') return max - el.scrollLeft;
+    return el.scrollLeft;
+  }
+  writeX(el, x) {
+    const loop = this.loop;
+    if (!(loop > 1)) return;
+    const n = ((x % loop) + loop) % loop;
+    if (getComputedStyle(el).direction !== 'rtl') { el.scrollLeft = n; return; }
+    const max = Math.max(0, el.scrollWidth - el.clientWidth);
+    const kind = this.rtlKind();
+    if (kind === 'negative') el.scrollLeft = -n;
+    else if (kind === 'reverse') el.scrollLeft = Math.max(0, max - n);
+    else el.scrollLeft = n;
+  }
+  advance(px) {
+    const el = this.row;
+    if (!el || !(this.loop > 1) || !(px > 0)) return;
+    if (this._pos == null || !isFinite(this._pos)) this._pos = this.readX(el);
+    this._pos += px;
+    const loop = this.loop;
+    this._pos = ((this._pos % loop) + loop) % loop;
+    this.writeX(el, this._pos);
   }
   lang() {
     return (this.state && this.state.lang) || (window.VamosLocale ? window.VamosLocale.lang() : 'en');
@@ -349,6 +547,7 @@ class Component extends DCLogic {
       scoreLabel: scoreLabel,
       scoreCaption: rows.length ? this.caption(rated.length || rows.length, rated.length > 0, lang) : '',
       cards: cards,
+      rowRef: this.rowRef,
     }, starOp);
   }
 }
