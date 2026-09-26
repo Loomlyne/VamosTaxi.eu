@@ -88,9 +88,10 @@ describe("ops write contract", () => {
     expect(table).toMatch(/mapbox_id: hit\.mapbox_id/);
     expect(table).toMatch(/data-vt-editor-foot/);
     expect(table).toMatch(/\[data-vt-editor-foot\]\{[^}]*padding:18px 24px var\(--vt-space-6\)/);
-    expect(table).toMatch(/editor === 'iconGrid'/);
+    expect(table).not.toMatch(/editor === 'iconGrid'/);
     expect(table).toMatch(/editor === 'amountKind'/);
-    expect(table).toMatch(/data-vt-iconpick/);
+    expect(table).not.toMatch(/data-vt-iconpick/);
+    expect(table).not.toMatch(/data-vt-icongrid/);
     expect(table).toMatch(/data-vt-amountkind/);
     expect(store).toMatch(/name === "customers" && a\.email && b\.email/);
     expect(store).toMatch(/name !== "chauffeurs"/);

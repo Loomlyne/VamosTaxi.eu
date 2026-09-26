@@ -72,11 +72,6 @@
 [data-vt-sug-note]{font-size:11px;color:var(--vt-text-muted);text-align:start}
 [data-vt-from-sug]{position:absolute;z-index:30;inset-inline-start:0;inset-inline-end:0;top:100%;margin-top:4px;box-sizing:border-box;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg);padding:6px;display:flex;flex-direction:column;gap:2px;max-height:220px;overflow-y:auto}
 [data-vt-to-sug]{position:absolute;z-index:30;inset-inline-start:0;inset-inline-end:0;top:100%;margin-top:4px;box-sizing:border-box;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg);padding:6px;display:flex;flex-direction:column;gap:2px;max-height:220px;overflow-y:auto}
-[data-vt-icongrid]{display:flex;flex-direction:column;gap:6px;min-width:0}
-[data-vt-icongrid-row]{display:flex;flex-wrap:wrap;gap:8px;min-width:0}
-[data-vt-iconpick]{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-md);background:var(--vt-white);color:var(--vt-charcoal-900);cursor:pointer}
-[data-vt-iconpick]:hover{border-color:var(--vt-charcoal-900)}
-[data-vt-iconpick][data-on="1"]{background:var(--vt-charcoal-900);color:var(--vt-accent);border-color:var(--vt-charcoal-900)}
 [data-vt-amountkind]{display:flex;flex-direction:column;gap:6px;min-width:0}
 [data-vt-amountkind-row]{display:flex;align-items:stretch;gap:8px;min-width:0}
 [data-vt-amountkind-row] > [data-vt-time-wrap]{flex:1 1 auto;min-width:0}
@@ -278,20 +273,6 @@
 <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
 <span data-fld-l="1">{{ f.label }}</span>
 <dc-import name="BrandSelect" size="field" icon="{{ f.icon }}" value="{{ f.value }}" options="{{ f.options }}" multi="{{ f.multi }}" placeholder="{{ f.emptyLabel }}" add-label="{{ f.addLabel }}" on-add="{{ f.startNested }}" onSelect="{{ f.pick }}" a11y-label="{{ f.label }}" hint-size="100%,44px"></dc-import>
-<span style="display:{{ f.hintShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ f.hint }}</span>
-</div>
-</sc-if>
-
-<sc-if value="{{ f.isIconGrid }}" hint-placeholder-val="{{ false }}">
-<div data-vt-icongrid="1">
-<span data-fld-l="1">{{ f.label }}</span>
-<div data-vt-icongrid-row="1">
-<sc-for list="{{ f.iconOptions }}" as="ic" hint-placeholder-count="6">
-<button type="button" data-vt-iconpick="1" data-on="{{ ic.on }}" onClick="{{ ic.pick }}" aria-label="{{ ic.label }}" title="{{ ic.label }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ ic.value }}" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
-</button>
-</sc-for>
-</div>
 <span style="display:{{ f.hintShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ f.hint }}</span>
 </div>
 </sc-if>
@@ -1191,7 +1172,6 @@ class Component extends DCLogic {
       const isYear = !isReadonly && (f.editor === 'year' || f.key === 'year');
       const isPhone = !isReadonly && (f.editor === 'phone' || f.key === 'phone');
       const isLicence = !isReadonly && (f.editor === 'licence' || f.key === 'licence');
-      const isIconGrid = !isReadonly && f.editor === 'iconGrid';
       const isAmountKind = !isReadonly && f.editor === 'amountKind';
       const kindKey = f.kindKey || 'kind';
       const kindValue = String(d[kindKey] == null || d[kindKey] === '' ? 'percent' : d[kindKey]);
@@ -1235,23 +1215,16 @@ class Component extends DCLogic {
         multi: !!f.multi,
         inputIcon: f.icon || FIELD_ICONS[f.key] || '',
         isReadonly,
-        isText: !isReadonly && !isDate && !isTime && !isYear && !isPhone && !isLicence && !isIconGrid && !isAmountKind && (f.editor === undefined || f.editor === 'text'),
+        isText: !isReadonly && !isDate && !isTime && !isYear && !isPhone && !isLicence && !isAmountKind && (f.editor === undefined || f.editor === 'text'),
         isNumber: !isReadonly && f.editor === 'number',
         roLabel: parts ? boardDate(parts) : (String(val).trim() ? String(val) : '—'),
         isYear, isPhone, isLicence,
         isDate, isTime,
         isSelect: !isReadonly && f.editor === 'select',
-        isIconGrid,
         isAmountKind,
         isSwitch: !isReadonly && f.editor === 'switch',
         isArea: !isReadonly && f.editor === 'area',
         isPhoto: !isReadonly && f.editor === 'photo',
-        iconOptions: (f.options || []).map((o) => ({
-          value: o.value,
-          label: o.label,
-          on: String(val) === String(o.value) ? '1' : '0',
-          pick: () => this.setField(f.key, o.value),
-        })),
         kindValue: kindValue,
         kindLabel: f.kindLabel || f.label,
         kindIcon: kindValue === 'amount' ? 'banknote' : 'ticket',

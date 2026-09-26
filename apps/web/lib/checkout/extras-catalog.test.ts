@@ -5,7 +5,6 @@ import { describe, expect, it } from "vitest";
 import {
   catalogFromSurcharges,
   extraAmountTimesQty,
-  extraChipIcon,
   extraFaresOn,
   extraIsOn,
   extraIsOnForStep,
@@ -114,8 +113,8 @@ describe("checkout extras catalog", () => {
       row({ code: "child_seat", amount_rappen: 2000, active: false }),
     ]);
     expect(extras.map((item) => item.code)).toEqual(["pet", "ski", "bike_rack"]);
-    expect(extraChipIcon("bike_rack")).toBe("user");
-    expect(extraChipIcon("ski")).toBe("snowflake");
+    expect(extraUi("bike_rack")).toBeNull();
+    expect(extraUi("ski")?.labelKey).toBe("extraSki");
   });
 
   it("public extras route still loads the live book", () => {
@@ -172,7 +171,7 @@ describe("checkout extras catalog", () => {
       },
     ]);
     const lines = recapExtras(catalog, (code) => code === "child_seat");
-    expect(lines).toEqual([{ code: "child_seat", labelKey: "childSeat", icon: "baby" }]);
+    expect(lines).toEqual([{ code: "child_seat", labelKey: "childSeat" }]);
     expect(recapExtras([], (code) => code === "extra_stop")).toEqual([]);
   });
 
@@ -187,7 +186,7 @@ describe("checkout extras catalog", () => {
       },
     ]);
     expect(recapExtraFares(catalog, (code) => code === "child_seat")).toEqual([
-      { code: "child_seat", labelKey: "childSeat", icon: "baby", amount_rappen: 2000 },
+      { code: "child_seat", labelKey: "childSeat", amount_rappen: 2000 },
     ]);
     expect(extraRappenOutsideLock(null, catalog, (code) => code === "child_seat")).toBe(2000);
     expect(extraRappenOutsideLock({ child_seats: 1 }, catalog, (code) => code === "child_seat")).toBe(0);

@@ -82,6 +82,7 @@ describe("checkout comment pack", () => {
     expect(client).toContain("vt-checkout__extra-price");
     expect(client).toContain("meet_greet");
     expect(client).toContain("vt-checkout__extra");
+    expect(client).not.toContain("<Icon name={icon}");
     expect(client).toContain("setChildSeat(trip.childSeat)");
     expect(client).toContain("useState(false)");
     expect(payPanel).not.toContain("decodeURIComponent(secret)");

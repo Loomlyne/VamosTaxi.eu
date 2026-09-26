@@ -224,14 +224,6 @@ const SURCHARGE_TYPES = [
   { value: 'free_wait', k: 'typeFreeWait' },
   { value: 'extra_wait', k: 'typeExtraWait' },
 ];
-const EXTRA_ICONS = [
-  { value: 'user', k: 'iconUser' },
-  { value: 'baby', k: 'iconBaby' },
-  { value: 'luggage', k: 'iconLuggage' },
-  { value: 'map-pin', k: 'iconPin' },
-  { value: 'snowflake', k: 'iconSki' },
-  { value: 'clock', k: 'iconClock' },
-];
 function surchargeTypeOf(code) {
   const raw = String(code || '');
   if (raw === 'meet_greet') return 'meet_greet';
@@ -397,9 +389,8 @@ const T = {
     doesMeet:'Always on for the customer. Amount stays CHF 0. You cannot turn it off.',
     doesFreeWait:'Always on for airport pickup. Set the free hours. You cannot turn it off.',
     doesExtraWait:'CHF per hour after free wait. Billed after the ride, not in pay now.',
-    extraName:'Name', extraIcon:'Icon', extraHours:'Free hours', extraWaitRate:'CHF per hour',
+    extraName:'Name', extraHours:'Free hours', extraWaitRate:'CHF per hour',
     meetAmount:'Amount', meetAmountHint:'Locked at CHF 0. Included for the customer.',
-    iconUser:'Person', iconBaby:'Child seat', iconLuggage:'Luggage', iconPin:'Stop', iconSki:'Ski', iconClock:'Clock',
     notDeletableMeet:'Meet and greet stays on. You can edit the amount. You cannot turn it off for the customer.',
     notDeletableWait:'Free wait stays on. You can edit the hours. You cannot turn it off for the customer.',
     addCoupon:'Add coupon', editCoupon:'Edit coupon', saveCoupon:'Save coupon', deleteCouponTitle:'Delete this coupon from the draft?', deleteCouponBody:'Delete this coupon from the draft? Public does not change until Publish.',
@@ -488,9 +479,8 @@ const T = {
     doesMeet:'Für den Kunden immer an. Betrag bleibt CHF 0. Du kannst es nicht ausschalten.',
     doesFreeWait:'Bei Flughafenabholung immer an. Freie Stunden setzen. Du kannst es nicht ausschalten.',
     doesExtraWait:'CHF pro Stunde nach dem Freiwarten. Wird nach der Fahrt verrechnet, nicht beim Bezahlen.',
-    extraName:'Name', extraIcon:'Symbol', extraHours:'Freie Stunden', extraWaitRate:'CHF pro Stunde',
+    extraName:'Name', extraHours:'Freie Stunden', extraWaitRate:'CHF pro Stunde',
     meetAmount:'Betrag', meetAmountHint:'Auf CHF 0 gesperrt. Für den Kunden inklusive.',
-    iconUser:'Person', iconBaby:'Kindersitz', iconLuggage:'Gepäck', iconPin:'Stopp', iconSki:'Ski', iconClock:'Uhr',
     notDeletableMeet:'Meet and greet bleibt an. Du kannst den Betrag bearbeiten. Du kannst es für den Kunden nicht ausschalten.',
     notDeletableWait:'Freiwarten bleibt an. Du kannst die Stunden bearbeiten. Du kannst es für den Kunden nicht ausschalten.',
     addCoupon:'Gutschein hinzufügen', editCoupon:'Gutschein bearbeiten', saveCoupon:'Gutschein speichern', deleteCouponTitle:'Diesen Gutschein aus dem Entwurf löschen?', deleteCouponBody:'Diesen Gutschein aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
@@ -581,9 +571,8 @@ const T = {
     doesMeet:'Toujours activé pour le client. Le montant reste CHF 0. Vous ne pouvez pas le couper.',
     doesFreeWait:'Toujours activé pour une prise en charge aéroport. Réglez les heures libres. Vous ne pouvez pas le couper.',
     doesExtraWait:'CHF par heure après l’attente libre. Facturé après la course, pas au paiement.',
-    extraName:'Nom', extraIcon:'Icône', extraHours:'Heures libres', extraWaitRate:'CHF par heure',
+    extraName:'Nom', extraHours:'Heures libres', extraWaitRate:'CHF par heure',
     meetAmount:'Montant', meetAmountHint:'Verrouillé à CHF 0. Inclus pour le client.',
-    iconUser:'Personne', iconBaby:'Siège enfant', iconLuggage:'Bagage', iconPin:'Arrêt', iconSki:'Ski', iconClock:'Horloge',
     notDeletableMeet:'L’accueil reste activé. Vous pouvez modifier le montant. Vous ne pouvez pas le couper pour le client.',
     notDeletableWait:'L’attente libre reste activée. Vous pouvez modifier les heures. Vous ne pouvez pas la couper pour le client.',
     addCoupon:'Ajouter un code', editCoupon:'Modifier le code', saveCoupon:'Enregistrer le code', deleteCouponTitle:'Supprimer ce code du brouillon ?', deleteCouponBody:'Supprimer ce code du brouillon ? Le public ne change qu’après Publier.',
@@ -674,9 +663,8 @@ const T = {
     doesMeet:'دائمًا مفعّل للعميل. المبلغ يبقى فرنك 0. لا يمكنك إيقافه.',
     doesFreeWait:'دائمًا مفعّل عند الاستقبال في المطار. عيّن الساعات المجانية. لا يمكنك إيقافه.',
     doesExtraWait:'فرنك لكل ساعة بعد الانتظار المجاني. يُفوتر بعد الرحلة لا عند الدفع الآن.',
-    extraName:'الاسم', extraIcon:'الأيقونة', extraHours:'ساعات مجانية', extraWaitRate:'فرنك لكل ساعة',
+    extraName:'الاسم', extraHours:'ساعات مجانية', extraWaitRate:'فرنك لكل ساعة',
     meetAmount:'المبلغ', meetAmountHint:'مقفل على فرنك 0. مشمول للعميل.',
-    iconUser:'شخص', iconBaby:'مقعد طفل', iconLuggage:'أمتعة', iconPin:'توقف', iconSki:'تزلج', iconClock:'ساعة',
     notDeletableMeet:'الاستقبال يبقى مفعّلًا. يمكنك تعديل المبلغ. لا يمكنك إيقافه للعميل.',
     notDeletableWait:'الانتظار المجاني يبقى مفعّلًا. يمكنك تعديل الساعات. لا يمكنك إيقافه للعميل.',
     addCoupon:'إضافة قسيمة', editCoupon:'تعديل القسيمة', saveCoupon:'حفظ القسيمة', deleteCouponTitle:'حذف هذه القسيمة من المسودة؟', deleteCouponBody:'حذف هذه القسيمة من المسودة؟ لا يتغير العام حتى النشر.',
@@ -1515,21 +1503,19 @@ class Component extends DCLogic {
           options: SURCHARGE_TYPES.map((c) => ({ value: c.value, label: t[c.k] })) },
         { key:'name', label:t.extraName, required:true, icon:'tag', showWhen:{ type:'checkout_extra' }, hint:t.doesCheckout },
         { key:'value', label:t.colAmount, placeholder:'00', icon:'banknote', suffix:'CHF', showWhen:{ type:'checkout_extra' } },
-        { key:'icon', label:t.extraIcon, editor:'iconGrid', showWhen:{ type:'checkout_extra' },
-          options: EXTRA_ICONS.map((c) => ({ value: c.value, label: t[c.k] })) },
         { key:'value', label:t.meetAmount, placeholder:'0', icon:'banknote', suffix:'CHF', showWhen:{ type:'meet_greet' }, hint:t.doesMeet },
         { key:'hours', label:t.extraHours, editor:'number', min:1, showWhen:{ type:'free_wait' }, hint:t.doesFreeWait },
         { key:'value', label:t.extraWaitRate, placeholder:'00', icon:'banknote', suffix:'CHF', showWhen:{ type:'extra_wait' }, hint:t.doesExtraWait },
       ],
       surchargeBlank: () => {
         const blank = ops ? ops.surcharges.blank() : { kind:'amount', amounts:{}, pct:'' };
-        return Object.assign({}, blank, { type:'checkout_extra', value:'', name:'', icon:'user', hours:1, label:'', rule:'leg' });
+        return Object.assign({}, blank, { type:'checkout_extra', value:'', name:'', hours:1, label:'', rule:'leg' });
       },
       saveSurcharge: (rec) => {
         if (!ops) return;
         const type = rec.type || 'checkout_extra';
         const existing = rec.id ? ops.surcharges.get(rec.id) : null;
-        const patch = { id: rec.id, type: type, rule: 'leg', icon: rec.icon, hours: rec.hours, name: rec.name };
+        const patch = { id: rec.id, type: type, rule: 'leg', hours: rec.hours, name: rec.name };
         if (type === 'meet_greet') {
           patch.code = 'meet_greet'; patch.label = 'meet_greet'; patch.kind = 'included'; patch.value = '0';
         } else if (type === 'free_wait') {
