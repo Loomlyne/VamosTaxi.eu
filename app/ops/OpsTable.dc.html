@@ -36,9 +36,11 @@
 [data-vt-unsaved-act]{display:flex;gap:6px;flex:0 0 auto}
 [data-vt-table-scroll]{box-sizing:border-box;max-width:100%;min-width:0;width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
 [data-vt-table-scroll] .vt-tablewrap{overflow:visible;max-inline-size:none;min-inline-size:720px;width:max-content;min-width:100%}
-[data-vt-table-scroll][data-fill="1"] .vt-tablewrap{min-inline-size:0;width:100%;max-inline-size:100%}
+[data-vt-table-scroll][data-fill="1"] .vt-tablewrap{min-inline-size:0;width:max-content;min-width:100%;max-inline-size:none}
 [data-vt-table-scroll] .vt-table{border-collapse:separate;border-spacing:0}
-[data-vt-table-scroll][data-fill="1"] .vt-table{width:100%;table-layout:auto}
+[data-vt-table-scroll][data-fill="1"] .vt-table{width:max-content;min-width:100%;table-layout:auto}
+[data-vt-table-scroll] .vt-table th:has([data-thbtn]),
+[data-vt-table-scroll] .vt-table td:has([data-vt-bool]){width:auto;min-width:max-content}
 [data-vt-table-scroll][data-fill="1"] .vt-table th:not(:last-child),
 [data-vt-table-scroll][data-fill="1"] .vt-table td:not(:last-child){text-align:start}
 [data-vt-table-scroll] .vt-table th:last-child,
