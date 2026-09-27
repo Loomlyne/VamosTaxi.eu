@@ -288,6 +288,41 @@ function placeHasLabel(
   return false;
 }
 
+function zonePairLabel(zone: ZoneRow | undefined): string | null {
+  if (!zone) return null;
+  const slug = zone.slug.trim();
+  if (!slug || /^canton-/i.test(slug)) return null;
+  const words = slug.split("-").filter(Boolean);
+  if (!words.length) return null;
+  return words
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+/**
+ * Comment 18. The published tab stores zone ids and the row amount.
+ * Quote rows often have no kind. Stamp a city label from the zone slug
+ * so the existing matcher can see them. Do not invent an amount.
+ */
+export function publishedCityToCityRoutes(
+  routes: readonly FixedRouteRow[],
+  zones: readonly ZoneRow[],
+): FixedRouteRow[] {
+  const byId = new Map(zones.map((zone) => [zone.id, zone]));
+  return routes.map((row) => {
+    if (row.kind === "place" || row.kind === "city" || row.kind === "canton") {
+      return row;
+    }
+    if (isCantonFixed(row, byId)) return { ...row, kind: "canton" };
+    return {
+      ...row,
+      kind: "city",
+      origin_label: row.origin_label ?? zonePairLabel(byId.get(row.origin_zone_id)),
+      dest_label: row.dest_label ?? zonePairLabel(byId.get(row.dest_zone_id)),
+    };
+  });
+}
+
 function matchCityPair(
   rows: FixedRouteRow[],
   leg: QuoteLegInput,
@@ -340,17 +375,41 @@ export function buildFixedRouteExtraLine(args: {
   rateVersionId: number | null;
   zones?: ZoneRow[];
   hasExtraStops?: boolean;
+  /**
+   * Comment 18. City-to-city booking reads this tab's published rows.
+   * Untyped rows are city pairs (zone slug as the label). A place pin stays
+   * a place pin. No second city_price line.
+   */
+  publishedPairs?: boolean;
 }): Line | null {
-  const { leg, vehicleClass, fixedRoutes, rateVersionId, zones, hasExtraStops } =
-    args;
+  const { leg, vehicleClass, rateVersionId, zones, hasExtraStops } = args;
   if (journeyHasExtraStops(leg, hasExtraStops)) return null;
+  const zoneRows = zones ?? [];
+  const fixedRoutes = args.publishedPairs
+    ? publishedCityToCityRoutes(args.fixedRoutes, zoneRows)
+    : args.fixedRoutes;
   const live = liveClassRows(fixedRoutes, vehicleClass.id);
-  const byId = new Map((zones ?? []).map((zone) => [zone.id, zone]));
+  const byId = new Map(zoneRows.map((zone) => [zone.id, zone]));
   const city = matchCityPair(live, leg);
   const canton = matchCantonPair(live, leg, byId);
   // Inside Switzerland a canton row wins. Cross-border has no canton row, so the city pair remains.
-  const fixed = canton ?? city;
-  const matched = canton ? "canton" : city ? "city" : null;
+  let fixed = canton ?? city;
+  let matched: "canton" | "city" | null = canton ? "canton" : city ? "city" : null;
+  if (
+    !fixed &&
+    args.publishedPairs &&
+    leg.origin_zone_id &&
+    leg.dest_zone_id
+  ) {
+    fixed =
+      live.find(
+        (row) =>
+          row.kind !== "place" &&
+          row.origin_zone_id === leg.origin_zone_id &&
+          row.dest_zone_id === leg.dest_zone_id,
+      ) ?? null;
+    if (fixed) matched = fixed.kind === "canton" ? "canton" : "city";
+  }
   if (!fixed || !matched) return null;
   return {
     seq: seqFor(leg.leg_seq, "extra", "fixed_route"),

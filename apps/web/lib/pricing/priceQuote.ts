@@ -44,6 +44,7 @@ import type {
   SurchargeRow,
   VehicleClassRow,
 } from "./types";
+import { fareKindOrOneWay } from "./types";
 
 /** Placeholder until plan 04-11 injects quote-engine@<git-sha> from build metadata. */
 export const ENGINE_VERSION_PLACEHOLDER = "quote-engine@dev";
@@ -205,13 +206,13 @@ function buildClassLines(
     });
     raw.push(fare);
 
-    // One extra: the fixed route the class dropdown selected. city_price_rappen
-    // is that pair's copied amount, not a second line. When it is set, only a
-    // route with that amount can match. No selection keeps the geographic
-    // match. No match adds nothing.
+    // Comment 18. City-to-city uses one matching published pair. The class
+    // city_price_rappen is not a second line. Other modes keep the dropdown
+    // amount as a filter so an unselected pair is not added. No match adds nothing.
+    const cityToCity = fareKindOrOneWay(input.fare_kind) === "city_to_city";
     const selectedExtra = distanceRate?.city_price_rappen ?? null;
     const eligibleRoutes =
-      selectedExtra == null
+      cityToCity || selectedExtra == null
         ? classFixed
         : classFixed.filter((route) => route.price_rappen === selectedExtra);
     const pairExtra = buildFixedRouteExtraLine({
@@ -221,6 +222,7 @@ function buildClassLines(
       rateVersionId,
       zones: book.zones,
       hasExtraStops,
+      publishedPairs: cityToCity,
     });
     if (pairExtra) raw.push(pairExtra);
 

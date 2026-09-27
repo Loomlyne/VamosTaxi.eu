@@ -880,21 +880,42 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   color:var(--s-fg);
   pointer-events:none;
 }
-[data-hiw-mock][data-mock="book"] [data-hiw-map-street]{
+[data-hiw-mock][data-mock="book"] [data-hiw-map-road-edge]{
   fill:none;
   stroke:var(--vt-grey-300);
-  stroke-width:1.5;
-  stroke-linecap:square;
+  stroke-width:20;
+  stroke-linecap:round;
+  stroke-linejoin:round;
 }
-[data-tone="dark"] [data-hiw-mock][data-mock="book"] [data-hiw-map-street]{stroke:var(--vt-charcoal-600)}
-[data-hiw-mock][data-mock="book"] [data-hiw-map-block]{fill:var(--vt-white)}
+[data-tone="dark"] [data-hiw-mock][data-mock="book"] [data-hiw-map-road-edge]{stroke:var(--vt-charcoal-600)}
+[data-hiw-mock][data-mock="book"] [data-hiw-map-road]{
+  fill:none;
+  stroke:var(--vt-white);
+  stroke-width:12;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+[data-tone="dark"] [data-hiw-mock][data-mock="book"] [data-hiw-map-road]{stroke:var(--vt-charcoal-900)}
+[data-hiw-mock][data-mock="book"] [data-hiw-map-runway]{fill:var(--vt-charcoal-700)}
+[data-tone="dark"] [data-hiw-mock][data-mock="book"] [data-hiw-map-runway]{fill:var(--vt-charcoal-950)}
+[data-hiw-mock][data-mock="book"] [data-hiw-map-block]{
+  fill:var(--vt-white);
+  stroke:var(--vt-grey-300);
+  stroke-width:1;
+}
 [data-hiw-mock][data-mock="book"] [data-hiw-map-block="b"]{fill:var(--vt-grey-50)}
-[data-tone="dark"] [data-hiw-mock][data-mock="book"] [data-hiw-map-block]{fill:var(--vt-charcoal-800)}
-[data-tone="dark"] [data-hiw-mock][data-mock="book"] [data-hiw-map-block="b"]{fill:var(--vt-charcoal-600)}
+[data-tone="dark"] [data-hiw-mock][data-mock="book"] [data-hiw-map-block]{
+  fill:var(--vt-charcoal-800);
+  stroke:var(--vt-charcoal-600);
+}
+[data-tone="dark"] [data-hiw-mock][data-mock="book"] [data-hiw-map-block="b"]{
+  fill:var(--vt-charcoal-600);
+  stroke:var(--vt-charcoal-800);
+}
 [data-hiw-mock][data-mock="book"] [data-hiw-map-route]{
   fill:none;
   stroke:var(--vt-yellow);
-  stroke-width:2.5;
+  stroke-width:3.5;
   stroke-linecap:round;
   stroke-linejoin:round;
   stroke-dasharray:1;
@@ -902,10 +923,11 @@ a{color:inherit;text-decoration:none;border-bottom:0}
 }
 [data-hiw-mock][data-mock="book"] [data-hiw-map-start]{fill:var(--vt-yellow)}
 [data-hiw-mock][data-mock="book"] [data-hiw-map-end]{
-  fill:var(--s-inset);
+  fill:var(--vt-white);
   stroke:var(--vt-yellow);
-  stroke-width:2;
+  stroke-width:2.25;
 }
+[data-tone="dark"] [data-hiw-mock][data-mock="book"] [data-hiw-map-end]{fill:var(--vt-charcoal-900)}
 [data-hiw-mock][data-mock="book"] [data-hiw-map-mover],
 [data-hiw-mock][data-mock="book"] [data-hiw-map-mover-ring]{
   fill:none;
@@ -914,10 +936,9 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   stroke-dashoffset:0;
 }
 [data-hiw-mock][data-mock="book"] [data-hiw-map-mover-ring]{
-  stroke:var(--vt-white);
+  stroke:var(--s-inset);
   stroke-width:11;
 }
-[data-tone="dark"] [data-hiw-mock][data-mock="book"] [data-hiw-map-mover-ring]{stroke:var(--vt-charcoal-900)}
 [data-hiw-mock][data-mock="book"] [data-hiw-map-mover]{
   stroke:var(--vt-yellow);
   stroke-width:6.5;
@@ -929,7 +950,7 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   letter-spacing:0.04em;
 }
 [data-hiw-mock][data-mock="book"] [data-hiw-map-label="code"]{
-  fill:var(--s-mut);
+  fill:var(--s-sec);
   letter-spacing:var(--vt-label-tracking);
   text-transform:uppercase;
 }
@@ -978,95 +999,26 @@ a{color:inherit;text-decoration:none;border-bottom:0}
 <p data-hiw-mock-kicker="1">{{ s.kicker }}</p>
 <div data-mock-pane="book">
 <svg data-hiw-map="1" viewBox="0 -262 320 720" preserveAspectRatio="xMidYMid slice" fill="none" focusable="false" aria-hidden="true">
-<g data-hiw-map-streets="1">
-<path data-hiw-map-street="1" d="M70 -270V466M128 -270V466M186 -270V466M244 -270V466M-8 -264H328M-8 -224H328M-8 -184H328M-8 -144H328M-8 -104H328M-8 -64H328M-8 -24H328M-8 56H328M-8 96H328M-8 136H328M-8 216H328M-8 256H328M-8 296H328M-8 336H328M-8 376H328M-8 416H328M-8 456H328"/>
-</g>
-<g data-hiw-map-blocks="1">
-<rect data-hiw-map-block="1" x="-8" y="-258" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="76" y="-258" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="134" y="-258" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="192" y="-258" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="250" y="-258" width="78" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="-8" y="-218" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="76" y="-218" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="134" y="-218" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="192" y="-218" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="250" y="-218" width="78" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="-8" y="-178" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="76" y="-178" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="134" y="-178" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="192" y="-178" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="250" y="-178" width="78" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="-8" y="-138" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="76" y="-138" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="134" y="-138" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="192" y="-138" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="250" y="-138" width="78" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="-8" y="-98" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="76" y="-98" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="134" y="-98" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="192" y="-98" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="250" y="-98" width="78" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="-8" y="-58" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="76" y="-58" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="134" y="-58" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="192" y="-58" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="250" y="-58" width="78" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="134" y="-8" width="46" height="58" rx="4"/>
-<rect data-hiw-map-block="b" x="192" y="-8" width="46" height="58" rx="4"/>
-<rect data-hiw-map-block="1" x="250" y="-8" width="78" height="58" rx="4"/>
-<rect data-hiw-map-block="1" x="-8" y="62" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="76" y="62" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="134" y="62" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="192" y="62" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="250" y="62" width="78" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="-8" y="102" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="76" y="102" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="134" y="102" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="192" y="102" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="250" y="102" width="78" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="-8" y="142" width="72" height="66" rx="4"/>
-<rect data-hiw-map-block="b" x="76" y="142" width="46" height="66" rx="4"/>
-<rect data-hiw-map-block="1" x="134" y="142" width="46" height="66" rx="4"/>
-<rect data-hiw-map-block="1" x="250" y="142" width="78" height="66" rx="4"/>
-<rect data-hiw-map-block="1" x="-8" y="222" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="76" y="222" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="134" y="222" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="192" y="222" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="250" y="222" width="78" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="-8" y="262" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="76" y="262" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="134" y="262" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="192" y="262" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="250" y="262" width="78" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="-8" y="302" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="76" y="302" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="134" y="302" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="192" y="302" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="250" y="302" width="78" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="-8" y="342" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="76" y="342" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="134" y="342" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="192" y="342" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="250" y="342" width="78" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="-8" y="382" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="76" y="382" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="134" y="382" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="192" y="382" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="250" y="382" width="78" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="-8" y="422" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="76" y="422" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="134" y="422" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="192" y="422" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="250" y="422" width="78" height="28" rx="4"/>
-</g>
-<path data-hiw-map-route="1" pathLength="1" d="M46 38C68 38 70 46 70 56L70 128C70 136 78 136 86 136L174 136C186 136 186 148 186 158"/>
-<circle data-hiw-map-start="1" cx="46" cy="38" r="4"/>
-<circle data-hiw-map-end="1" cx="186" cy="158" r="5"/>
-<path data-hiw-map-mover-ring="1" pathLength="1" d="M46 38C68 38 70 46 70 56L70 128C70 136 78 136 86 136L174 136C186 136 186 148 186 158"/>
-<path data-hiw-map-mover="1" pathLength="1" d="M46 38C68 38 70 46 70 56L70 128C70 136 78 136 86 136L174 136C186 136 186 148 186 158"/>
-<text data-hiw-map-label="code" x="80" y="42" font-size="12">ZRH</text>
-<text data-hiw-map-label="city" x="200" y="160" font-size="13">Zurich</text>
+<path data-hiw-map-road-edge="1" d="M136 -180V78C136 104 152 116 184 118H336"/>
+<path data-hiw-map-road="1" d="M136 -180V78C136 104 152 116 184 118H336"/>
+<rect data-hiw-map-runway="1" x="16" y="12" width="104" height="8" rx="4"/>
+<rect data-hiw-map-runway="1" x="28" y="26" width="80" height="8" rx="4"/>
+<rect data-hiw-map-runway="1" x="54" y="12" width="6" height="22" rx="2"/>
+<rect data-hiw-map-block="1" x="16" y="42" width="96" height="18" rx="4"/>
+<rect data-hiw-map-block="1" x="150" y="136" width="42" height="40" rx="4"/>
+<rect data-hiw-map-block="b" x="196" y="136" width="26" height="48" rx="4"/>
+<rect data-hiw-map-block="1" x="226" y="136" width="36" height="24" rx="4"/>
+<rect data-hiw-map-block="1" x="266" y="136" width="28" height="36" rx="4"/>
+<rect data-hiw-map-block="b" x="166" y="204" width="40" height="20" rx="4"/>
+<rect data-hiw-map-block="1" x="210" y="200" width="30" height="28" rx="4"/>
+<rect data-hiw-map-block="1" x="244" y="206" width="22" height="16" rx="3"/>
+<path data-hiw-map-route="1" pathLength="1" d="M136 70V78C136 104 152 116 184 118H232"/>
+<circle data-hiw-map-start="1" cx="136" cy="70" r="5"/>
+<circle data-hiw-map-end="1" cx="232" cy="118" r="6.5"/>
+<path data-hiw-map-mover-ring="1" pathLength="1" d="M136 70V78C136 104 152 116 184 118H232"/>
+<path data-hiw-map-mover="1" pathLength="1" d="M136 70V78C136 104 152 116 184 118H232"/>
+<text data-hiw-map-label="code" x="156" y="69" font-size="12" dominant-baseline="central">ZRH</text>
+<text data-hiw-map-label="city" x="232" y="90" font-size="14" text-anchor="middle" dominant-baseline="central">Zurich</text>
 </svg>
 </div>
 <div data-mock-pane="meet">
