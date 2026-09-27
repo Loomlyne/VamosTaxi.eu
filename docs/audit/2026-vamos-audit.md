@@ -375,3 +375,7 @@ The Worker secret value was not read. Before live keys, this would mean customer
   - No zone has type `canton`, so the canton rule (`lines.ts`) never fires.
   - Zones carry no coordinates or polygons, only a Mapbox place-ID tag, so a pair matches only when the customer picks that exact place ID. **P6 (High):** zones must be real areas (city or canton polygons, or a radius around an airport) so any address inside matches.
 - **Account-level items** (token scopes, URL restrictions, monthly usage) are not exposed by the Mapbox MCP and stay [Unverified].
+
+### Added 2026-09-27 (after the repo became public)
+- **X12 (High):** `main` fails **28 unit tests in 19 files** (`vitest run`: 28 failed | 1603 passed). From 2026-09-26 (run 267), every Actions run died before starting, so #56, #57 and the direct pushes to `main` shipped untested. Failures include the ops dual-copy byte-equality checks, `ops-dashboard-host` (middleware now uses `NextResponse.rewrite`), `quote/respond` contract and error codes, `pay-land`, `customers-board` and `sqlstate`. Plan: its own fix phase before Phase 26.1 code lands; each failing test is triaged as stale test vs real regression with the owner.
+- **S15 (High, owner action):** the repo was switched to **public**, exposing `deliverables/` (invoice, scope of work), this audit's unfixed findings, and `.planning/`. The recommendation is to return it to private; CI minutes are handled by PR #59.
