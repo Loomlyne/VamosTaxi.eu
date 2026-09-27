@@ -42,7 +42,6 @@ Phase 21 execution note (not current): planning complete — 8 plans. Execution 
 
 Stripe live keys and Search Console stay owner-gated. Agent does not click Publish. Agent does not `supabase db push`. Never restore onto yaumjzvylngfjhtuffqs. No `vamostaxi.eu`. No `sk_live_`. `11-12` remains owner-gated and does not block Phase 13.
 
-- test:unit red: apps/web/lib/meta/legal-gate.test.ts (policy version unchanged, flag off) time out at vitest's 5000ms default after PR #60 added ~1161 Darwin visual-baseline PNGs to the tree its walk("") reads; confirmed not a logic bug (passes at 30000ms timeout); needs a timeout raise or a scoped walk before 26.1's baseline is fully green
 
 ## Session Continuity
 
