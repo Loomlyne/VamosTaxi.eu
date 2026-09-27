@@ -36,9 +36,11 @@
 [data-vt-unsaved-act]{display:flex;gap:6px;flex:0 0 auto}
 [data-vt-table-scroll]{box-sizing:border-box;max-width:100%;min-width:0;width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
 [data-vt-table-scroll] .vt-tablewrap{overflow:visible;max-inline-size:none;min-inline-size:720px;width:max-content;min-width:100%}
-[data-vt-table-scroll][data-fill="1"] .vt-tablewrap{min-inline-size:0;width:100%;max-inline-size:100%}
+[data-vt-table-scroll][data-fill="1"] .vt-tablewrap{min-inline-size:0;width:max-content;min-width:100%;max-inline-size:none}
 [data-vt-table-scroll] .vt-table{border-collapse:separate;border-spacing:0}
-[data-vt-table-scroll][data-fill="1"] .vt-table{width:100%;table-layout:auto}
+[data-vt-table-scroll][data-fill="1"] .vt-table{width:max-content;min-width:100%;table-layout:auto}
+[data-vt-table-scroll] .vt-table th:has([data-thbtn]),
+[data-vt-table-scroll] .vt-table td:has([data-vt-bool]){width:auto;min-width:max-content}
 [data-vt-table-scroll][data-fill="1"] .vt-table th:not(:last-child),
 [data-vt-table-scroll][data-fill="1"] .vt-table td:not(:last-child){text-align:start}
 [data-vt-table-scroll] .vt-table th:last-child,
@@ -48,9 +50,12 @@
 [data-vt-table-scroll] .vt-table tbody tr[data-selected="true"] td:last-child{background:var(--vt-grey-100)}
 [data-vt-thumb]{box-sizing:border-box;inline-size:40px;block-size:40px;border-radius:var(--vt-radius-md);border:1px solid var(--vt-border-subtle);background:var(--vt-grey-50);overflow:hidden;display:block}
 [data-vt-thumb] img{inline-size:100%;block-size:100%;object-fit:cover;display:block}
-[data-vt-grip]{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:var(--vt-radius-md);color:var(--vt-text-muted);cursor:grab}
-[data-vt-grip]:hover{background:var(--vt-grey-50);color:var(--vt-text-primary)}
-[data-vt-table-scroll] tr[data-vt-drop="1"] td,[data-vt-table-scroll] tr[data-vt-drop="1"] td:last-child{background:var(--vt-grey-100)}
+[data-vt-order-pair]{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+[data-vt-order]{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:28px;height:22px;border-radius:var(--vt-radius-md);color:var(--vt-text-muted);cursor:pointer}
+[data-vt-order]:hover{background:var(--vt-grey-50);color:var(--vt-text-primary)}
+[data-vt-order]:focus-visible{outline:2px solid var(--vt-charcoal-900);outline-offset:2px}
+[data-vt-order][disabled]{opacity:.35;cursor:default;pointer-events:none}
+[data-vt-table-scroll] .vt-table td:has([data-vt-order-pair]){padding-block:8px;padding-inline:6px;width:44px;white-space:nowrap}
 [data-vt-editor-foot]{position:sticky;bottom:0;z-index:3;display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:20px;margin-inline:-24px;padding:18px 24px var(--vt-space-6);border-top:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface)}
 [data-vt-save-err]{box-sizing:border-box;display:flex;align-items:center;gap:10px;padding:8px 14px;margin-bottom:16px;border:1px solid var(--vt-danger);border-radius:var(--vt-radius-pill);background:var(--vt-danger-tint);font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-danger)}
 [data-vt-time-wrap] input{all:unset;flex:1 1 auto;min-width:0;width:100%;font:inherit;color:inherit;background:transparent;caret-color:var(--vt-charcoal-900)}
@@ -89,6 +94,9 @@
 [data-vt-bool][disabled]{cursor:default}
 [data-vt-table-scroll] .vt-table th:has([data-vt-bool-col]),
 [data-vt-table-scroll] .vt-table td:has([data-vt-bool]){overflow:visible;white-space:nowrap;width:auto;min-width:max-content}
+/* One row, two fields. Wrap only when the row is narrower than both fields. */
+[data-vt-pair]{display:flex;flex-wrap:wrap;align-items:flex-start;gap:var(--vt-space-3);min-width:0}
+[data-vt-pair-field]{box-sizing:border-box;flex:1 1 calc(var(--vt-space-12) + var(--vt-space-6));min-width:min(100%,calc(var(--vt-space-12) + var(--vt-space-6)))}
 </style>
 <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
 
@@ -133,7 +141,7 @@
 
 <sc-if value="{{ hasRows }}" hint-placeholder-val="{{ true }}">
 <div data-vt-table-scroll="1" data-fill="{{ tableFill }}" data-scroll-native="1" data-lenis-prevent="1" ref="{{ tableRef }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Table" columns="{{ tableColumns }}" rows="{{ visibleRows }}" hint-size="100%,320px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Table" columns="{{ tableColumns }}" rows="{{ visibleRows }}" onRowClick="{{ rowClick }}" hint-size="100%,320px"></x-import>
 </div>
 </sc-if>
 
@@ -291,6 +299,20 @@
 <span data-fld-l="1">{{ f.label }}</span>
 <dc-import name="BrandSelect" size="field" icon="{{ f.icon }}" value="{{ f.value }}" options="{{ f.options }}" multi="{{ f.multi }}" placeholder="{{ f.emptyLabel }}" add-label="{{ f.addLabel }}" on-add="{{ f.startNested }}" onSelect="{{ f.pick }}" a11y-label="{{ f.label }}" hint-size="100%,44px"></dc-import>
 <span style="display:{{ f.hintShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ f.hint }}</span>
+</div>
+</sc-if>
+
+<sc-if value="{{ f.isPair }}" hint-placeholder-val="{{ false }}">
+<div data-vt-pair="1">
+<sc-for list="{{ f.slots }}" as="s" hint-placeholder-count="2">
+<div data-vt-pair-field="1">
+<div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+<span data-fld-l="1">{{ s.label }}</span>
+<dc-import name="BrandSelect" size="field" icon="{{ s.icon }}" value="{{ s.value }}" options="{{ s.options }}" multi="{{ s.multi }}" placeholder="{{ s.emptyLabel }}" add-label="{{ s.addLabel }}" on-add="{{ s.startNested }}" onSelect="{{ s.pick }}" a11y-label="{{ s.label }}" hint-size="100%,44px"></dc-import>
+<span style="display:{{ s.hintShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ s.hint }}</span>
+</div>
+</div>
+</sc-for>
 </div>
 </sc-if>
 
@@ -599,46 +621,6 @@ class Component extends DCLogic {
     document.addEventListener('keydown', this._sugEsc);
     document.addEventListener('mousedown', this._dateAway);
     document.addEventListener('keydown', this._dateEsc);
-    this._onRowDragStart = (e) => {
-      if (typeof (this.props.onReorder || this.props['on-reorder']) !== 'function') return;
-      const grip = e.target && e.target.closest ? e.target.closest('[data-vt-grip]') : null;
-      if (!grip || !this._tableEl || !this._tableEl.contains(grip)) return;
-      this._dragId = grip.getAttribute('data-row-id') || '';
-      if (!this._dragId || !e.dataTransfer) return;
-      e.dataTransfer.effectAllowed = 'move';
-      try { e.dataTransfer.setData('text/plain', this._dragId); } catch (err) {}
-      const tr = grip.closest('tr');
-      if (tr && e.dataTransfer.setDragImage) e.dataTransfer.setDragImage(tr, 24, 16);
-    };
-    this._onRowDragOver = (e) => {
-      if (!this._dragId || !this._tableEl) return;
-      const tr = this._dropRow(e);
-      if (!tr) return;
-      e.preventDefault();
-      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
-      this._markDrop(tr);
-    };
-    this._onRowDrop = (e) => {
-      if (!this._dragId) return;
-      const from = this._dragId;
-      const tr = this._dropRow(e);
-      this._dragId = '';
-      this._markDrop(null);
-      if (!tr) return;
-      e.preventDefault();
-      const to = (tr.querySelector && tr.querySelector('[data-row-id]'))
-        ? tr.querySelector('[data-row-id]').getAttribute('data-row-id') || ''
-        : '';
-      if (to) this.commitReorder(from, to);
-    };
-    this._onRowDragEnd = () => {
-      this._dragId = '';
-      this._markDrop(null);
-    };
-    document.addEventListener('dragstart', this._onRowDragStart);
-    document.addEventListener('dragover', this._onRowDragOver);
-    document.addEventListener('drop', this._onRowDrop);
-    document.addEventListener('dragend', this._onRowDragEnd);
     this._sugPlace = () => {
       if (!this.state.sug || !this._sugAnchor || !this._sugAnchor.getBoundingClientRect) return;
       const box = this._sugAnchor.closest ? (this._sugAnchor.closest('.vt-field') || this._sugAnchor.parentElement) : this._sugAnchor.parentElement;
@@ -673,10 +655,6 @@ class Component extends DCLogic {
     if (this._sugEsc) document.removeEventListener('keydown', this._sugEsc);
     if (this._dateAway) document.removeEventListener('mousedown', this._dateAway);
     if (this._dateEsc) document.removeEventListener('keydown', this._dateEsc);
-    if (this._onRowDragStart) document.removeEventListener('dragstart', this._onRowDragStart);
-    if (this._onRowDragOver) document.removeEventListener('dragover', this._onRowDragOver);
-    if (this._onRowDrop) document.removeEventListener('drop', this._onRowDrop);
-    if (this._onRowDragEnd) document.removeEventListener('dragend', this._onRowDragEnd);
     if (this._sugPlace) {
       document.removeEventListener('scroll', this._sugPlace, true);
       window.removeEventListener('resize', this._sugPlace);
@@ -684,31 +662,48 @@ class Component extends DCLogic {
     clearTimeout(this._geoT);
     if (this._ac) { try { this._ac.abort(); } catch (e) {} }
   }
-  _dropRow(e) {
-    if (!this._tableEl) return null;
-    const el = e && e.target;
-    const tr = el && el.closest ? el.closest('tr') : null;
-    if (!tr || !this._tableEl.contains(tr)) return null;
-    if (tr.parentElement && String(tr.parentElement.tagName || '').toUpperCase() === 'THEAD') return null;
-    return tr;
+  listedRows() {
+    const rows = this.props.rows || [];
+    const columns = this.props.columns || [];
+    const q = this.state.q.trim().toLowerCase();
+    const keys = this.props.searchKeys || columns.map((c) => c.key);
+    const fkeys = Object.keys(this.state.filters);
+    const kindOf = {};
+    columns.forEach((c) => { kindOf[c.key] = c.kind; });
+    const filtered = !fkeys.length ? rows : rows.filter((r) => fkeys.every((k) => {
+      const raw = kindOf[k] === 'bool' ? String(!!r[k]) : String(r[k] === undefined || r[k] === null ? '' : r[k]);
+      return raw === String(this.state.filters[k]);
+    }));
+    return !q ? filtered : filtered.filter((r) =>
+      keys.some((k) => String(r[k] === undefined ? '' : r[k]).toLowerCase().indexOf(q) !== -1));
   }
-  _markDrop(tr) {
-    if (!this._tableEl) return;
-    const rows = this._tableEl.querySelectorAll('tr[data-vt-drop]');
-    for (let i = 0; i < rows.length; i++) rows[i].removeAttribute('data-vt-drop');
-    if (tr) tr.setAttribute('data-vt-drop', '1');
-  }
-  commitReorder(fromId, toId) {
-    if (!fromId || !toId || String(fromId) === String(toId)) return;
-    if (typeof (this.props.onReorder || this.props['on-reorder']) !== 'function') return;
+  nudgeRow(row, dir, e) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    if (e && e.preventDefault) e.preventDefault();
+    const reorder = this.props.onReorder || this.props['on-reorder'];
+    if (typeof reorder !== 'function' || this._nudgeLock) return;
+    if (dir !== -1 && dir !== 1) return;
+    const visible = this.listedRows();
+    const index = visible.findIndex((r) => String(r && r.id) === String(row && row.id));
+    const target = index + dir;
+    if (index < 0 || target < 0 || target >= visible.length) return;
+    const fromId = String(visible[index].id || '');
+    const toId = String(visible[target].id || '');
+    if (!fromId || !toId || fromId === toId) return;
     const rows = (this.props.rows || []).slice();
-    const from = rows.findIndex((r) => String(r.id) === String(fromId));
-    const to = rows.findIndex((r) => String(r.id) === String(toId));
+    const from = rows.findIndex((r) => String(r.id) === fromId);
+    const to = rows.findIndex((r) => String(r.id) === toId);
     if (from < 0 || to < 0) return;
     const next = rows.slice();
-    const moved = next.splice(from, 1)[0];
-    next.splice(to, 0, moved);
-    (this.props.onReorder || this.props['on-reorder'])(next);
+    const moved = next[from];
+    next[from] = next[to];
+    next[to] = moved;
+    this._nudgeLock = true;
+    let out = null;
+    try { out = reorder(next); } catch (err) { this._nudgeLock = false; return; }
+    const unlock = () => { this._nudgeLock = false; };
+    if (out && typeof out.then === 'function') out.then(unlock, unlock);
+    else unlock();
   }
   suggestKind(f) {
     if (f.suggest) return f.suggest;
@@ -1364,18 +1359,25 @@ class Component extends DCLogic {
   cell(col, row) {
     const DS = window.VamosTaxiDesignSystem_245af1 || {};
     const v = row[col.key];
-    if (col.kind === 'grip') {
-      const id = String(row.id || '');
-      return React.createElement('span', {
-        role: 'button',
-        tabIndex: 0,
-        'data-vt-grip': '1',
-        'data-row-id': id,
-        draggable: true,
-        'aria-label': col.label || 'Arrange',
-        title: col.label || 'Arrange',
-        onClick: (e) => { if (e && e.stopPropagation) e.stopPropagation(); },
-      }, DS.Icon ? React.createElement(DS.Icon, { name: 'grip-vertical', size: 16, color: 'currentColor' }) : null);
+    if (col.kind === 'order') {
+      const visible = this.listedRows();
+      const index = visible.findIndex((r) => String(r && r.id) === String(row && row.id));
+      const last = visible.length - 1;
+      const upOff = index <= 0;
+      const downOff = index < 0 || index >= last;
+      const btn = (dir, icon, label, off) => React.createElement('button', {
+        type: 'button',
+        'data-vt-order': '1',
+        'data-vt-order-dir': String(dir),
+        'data-row-id': String(row.id || ''),
+        disabled: off || undefined,
+        'aria-label': label,
+        title: label,
+        onClick: (ev) => this.nudgeRow(row, dir, ev),
+      }, DS.Icon ? React.createElement(DS.Icon, { name: icon, size: 16, color: 'currentColor' }) : null);
+      return React.createElement('span', { 'data-vt-order-pair': '1' },
+        btn(-1, 'chevron-up', col.upLabel || 'Move up', upOff),
+        btn(1, 'chevron-down', col.downLabel || 'Move down', downOff));
     }
     if (col.kind === 'photo') {
       const raw = String(row.photo || row.photoPath || '');
@@ -1388,7 +1390,7 @@ class Component extends DCLogic {
         }) : null);
     }
     if (col.kind === 'stack') return this.stack(v, row[col.subKey], col.mono);
-    if (col.kind === 'mono') return this.stack(v, '', true);
+    if (col.kind === 'mono') return this.stack(col.lookup ? col.lookup(row) : v, '', true);
     if (col.kind === 'money') {
       const amt = v === '' || v === undefined || v === null ? '000' : v;
       return window.VamosLocale ? window.VamosLocale.money(amt) : 'CHF ' + amt;
@@ -1409,8 +1411,9 @@ class Component extends DCLogic {
         textTransform:'uppercase', letterSpacing:'var(--vt-label-tracking)', lineHeight:1.2,
         padding:'6px 12px', borderRadius:'var(--vt-radius-pill)', whiteSpace:'nowrap',
         overflow:'visible',
-        background: on ? 'var(--vt-charcoal-900)' : 'var(--vt-grey-100)',
-        color: on ? 'var(--vt-accent)' : 'var(--vt-charcoal-700)',
+        background: on ? 'var(--vt-charcoal-900)' : 'var(--vt-white)',
+        color: on ? 'var(--vt-accent)' : 'var(--vt-charcoal-900)',
+        border: on ? '1px solid var(--vt-charcoal-900)' : '1px solid var(--vt-grey-300)',
       };
       if (!col.toggle) {
         return React.createElement('span', { style:{ display:'inline-flex', alignItems:'center', gap:6,
@@ -1432,9 +1435,25 @@ class Component extends DCLogic {
         style: Object.assign({}, look, {
           cursor: busy ? 'default' : 'pointer',
           opacity: busy ? 0.55 : 1,
-          border: 0,
         }),
         onClick: (e) => this.toggleBool(col, row, e),
+      }, label);
+    }
+    if (col.kind === 'mark') {
+      const tone = (col.tones && col.tones[v]) || {};
+      const label = tone.label != null ? tone.label : (v == null ? '' : String(v));
+      return React.createElement('span', {
+        'data-vt-mark': '1',
+        'data-coupon-status': String(v == null ? '' : v),
+        style: {
+          display:'inline-flex', alignItems:'center',
+          fontFamily:'var(--vt-font-body)', fontSize:'var(--vt-label-sm)', fontWeight:600,
+          textTransform:'uppercase', letterSpacing:'var(--vt-label-tracking)', lineHeight:1.2,
+          padding:'5px 10px', borderRadius:'var(--vt-radius-pill)', whiteSpace:'nowrap',
+          background: tone.bg || 'var(--vt-grey-100)',
+          color: tone.fg || 'var(--vt-charcoal-700)',
+          border: tone.border ? ('1px solid ' + tone.border) : '0',
+        },
       }, label);
     }
     if (col.kind === 'badge') {
@@ -1462,15 +1481,8 @@ class Component extends DCLogic {
     const columns = this.props.columns || [];
     const fields = this.props.fields || [];
     const q = this.state.q.trim().toLowerCase();
-    const keys = this.props.searchKeys || columns.map((c) => c.key);
     const fkeys = Object.keys(this.state.filters);
-    const kindOf = {}; columns.forEach((c) => { kindOf[c.key] = c.kind; });
-    const filtered = !fkeys.length ? rows : rows.filter((r) => fkeys.every((k) => {
-      const raw = kindOf[k] === 'bool' ? String(!!r[k]) : String(r[k] === undefined || r[k] === null ? '' : r[k]);
-      return raw === String(this.state.filters[k]);
-    }));
-    const visible = !q ? filtered : filtered.filter((r) =>
-      keys.some((k) => String(r[k] === undefined ? '' : r[k]).toLowerCase().indexOf(q) !== -1));
+    const visible = this.listedRows();
     const d = this.state.draft || {};
     const noun = this.props.noun || 'row';
     const histRows = (!this.state.isNew && this.props.historyRows && this.state.draft) ? (this.props.historyRows(d) || []) : [];
@@ -1539,6 +1551,7 @@ class Component extends DCLogic {
         placeholder: f.placeholder || '', suffix: f.suffix || '',
         error: err, required: !!f.required,
         span: f.half ? 'span 1' : 'span 2',
+        pair: f.pair || '',
         show: this.fieldVisible(f, d) ? 'block' : 'none',
         icon: f.icon || 'settings',
         min: minN,
@@ -1642,6 +1655,22 @@ class Component extends DCLogic {
         },
       };
     });
+    const editorFields = [];
+    for (let i = 0; i < formFields.length; i++) {
+      const cur = formFields[i];
+      const nxt = formFields[i + 1];
+      if (cur.pair && nxt && nxt.pair === cur.pair && cur.isSelect && nxt.isSelect) {
+        editorFields.push(Object.assign({}, cur, {
+          isPair: true,
+          isSelect: false,
+          span: '1 / -1',
+          slots: [cur, nxt],
+        }));
+        i += 1;
+      } else {
+        editorFields.push(cur);
+      }
+    }
 
     /* Both halves are language-neutral: a slash instead of a joining word, and
        a noun the screen already translated. */
@@ -1700,6 +1729,9 @@ class Component extends DCLogic {
       emptyTitle: this.props.emptyTitle || 'Nothing here yet',
       emptyBody: this.props.emptyBody || 'Add the first one and it appears in this table.',
       tableColumns, tableFill, visibleRows: visible, tableRef: this._tableRef,
+      rowClick: typeof (this.props.onRowClick || this.props['on-row-click']) === 'function'
+        ? (row) => (this.props.onRowClick || this.props['on-row-click'])(row)
+        : undefined,
       startAdd: this.startAdd,
       editorOpen: !!this.state.draft,
       editorTitle: this.state.isNew ? (this.props.addTitle || 'Add') : (this.props.editTitle || 'Edit'),
@@ -1712,7 +1744,7 @@ class Component extends DCLogic {
       deleteError: this.state.deleteError || '',
       deleteFailed: !!(this.state.deleteError),
       deleteShow: (this.state.isNew || !this.rowCanDelete(d)) ? 'none' : 'inline-flex',
-      formFields, closeEditor: this.closeEditor, save: this.save,
+      formFields: editorFields, closeEditor: this.closeEditor, save: this.save,
       requestClose: this.requestClose, keepEditing: this.keepEditing, discardClose: this.discardClose,
       closeAttempted: this.state.closeAttempted,
       hasHistory: !this.state.isNew && !!this.props.historyRows,

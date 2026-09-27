@@ -122,7 +122,8 @@
 
 <sc-if value="{{ isRoutes }}" hint-placeholder-val="{{ true }}">
 <div data-price-pane="1" data-price-swipe="1" data-scroll-native="1">
-<dc-import name="OpsTable" fill="1" rows="{{ routes }}" columns="{{ routeColumns }}" fields="{{ routeFields }}" blank="{{ routeBlank }}" onSave="{{ saveRoute }}" onDelete="{{ deleteRoute }}" noun="{{ tNounRoute }}" noun-plural="{{ tNounRoutes }}" add-title="{{ tAddRoute }}" edit-title="{{ tEditRoute }}" delete-title="{{ tDeleteRouteTitle }}" label-key="routeLabel" add-label="{{ tAddRoute }}" save-label="{{ tSaveRoute }}" add-save-label="{{ tAddRoute }}" search-placeholder="{{ tSearchRoutes }}" search-keys="{{ routeSearchKeys }}" empty-title="{{ tEmptyRoutesTitle }}" empty-body="{{ tEmptyRoutesBody }}" delete-body="{{ tDeleteRouteBody }}" edit-id="{{ routeEditId }}" edit-tick="{{ routeEditTick }}" hint-size="100%,420px"></dc-import>
+<p data-price-err="1" style="display:{{ routeLiveErrorDisplay }}">{{ tRouteLiveFail }}</p>
+<dc-import name="OpsTable" fill="1" rows="{{ routes }}" columns="{{ routeColumns }}" fields="{{ routeFields }}" blank="{{ routeBlank }}" onSave="{{ saveRoute }}" onDelete="{{ deleteRoute }}" onRowClick="{{ publishRoute }}" noun="{{ tNounRoute }}" noun-plural="{{ tNounRoutes }}" add-title="{{ tAddRoute }}" edit-title="{{ tEditRoute }}" delete-title="{{ tDeleteRouteTitle }}" label-key="routeLabel" add-label="{{ tAddRoute }}" save-label="{{ tSaveRoute }}" add-save-label="{{ tAddRoute }}" search-placeholder="{{ tSearchRoutes }}" search-keys="{{ routeSearchKeys }}" empty-title="{{ tEmptyRoutesTitle }}" empty-body="{{ tEmptyRoutesBody }}" delete-body="{{ tDeleteRouteBody }}" edit-id="{{ routeEditId }}" edit-tick="{{ routeEditTick }}" hint-size="100%,420px"></dc-import>
 </div>
 </sc-if>
 
@@ -372,9 +373,9 @@ const PANES = [
 const T = {
   en: { title:'Pricing & routes', subtitle:'Fixed routes, distance rules, surcharges and coupons',
     tabRoutes:'Fixed routes', tabDistance:'Distance rules', tabSurcharges:'Surcharges & extras', tabCoupons:'Coupons',
-    hintRoutes:'City to city. A to B and B to A are separate.', hintDistance:'Start, per kilometre, airport start, one city price', airportStart:'Airport start', cityPrice:'City price and per kilometre', cityPairPick:'Select a city pair', hintSurcharges:'Checkout extras, wait, meet and greet', hintCoupons:'Percent or fixed CHF',
+    hintRoutes:'City to city. A to B and B to A are separate. Click a row and it goes live.', hintDistance:'Start, per kilometre, airport start, one city price', airportStart:'Airport start', cityPrice:'City price and per kilometre', cityPairPick:'Select a city pair', hintSurcharges:'Checkout extras, wait, meet and greet', hintCoupons:'Percent or fixed CHF',
     colId:'ID', colFrom:'From', colTo:'To', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Draft',
-    colClass:'Class', colPhoto:'Photo', arrangeClass:'Drag to arrange classes', colName:'Name', startFare:'Start', perKm:'Per kilometre', maxPax:'Max passengers', maxBags:'Max bags', hidePublic:'Hide from public', hiddenPublic:'Hidden from public', showPublic:'Show on public', shownPublic:'Shown on public',
+    colClass:'Class', colPhoto:'Photo', moveClassUp:'Move class up', moveClassDown:'Move class down', colName:'Name', startFare:'Start', perKm:'Per kilometre', maxPax:'Max passengers', maxBags:'Max bags', hidePublic:'Hide from public', hiddenPublic:'Hidden from public', showPublic:'Show on public', shownPublic:'Shown on public',
     fPhoto:'Photo', choosePhoto:'Choose photo', clearPhoto:'Remove', hClassPhoto:'Required to Publish. Stored on R2, not on this machine.',
     colRule:'Rule', colAppliesWhen:'Applies when', colAmount:'Amount', colKind:'Kind',
     addRoute:'Add route', editRoute:'Edit route', saveRoute:'Save route', deleteRouteTitle:'Delete this route from the draft?', deleteRouteBody:'Delete this route from the draft? Public does not change until Publish.',
@@ -414,10 +415,12 @@ const T = {
     couponUsesTitle:'Captured uses', couponUsesEmpty:'No captured uses yet.',
     useDate:'Used', useEmail:'Email', useBefore:'Before coupon', useAfter:'After coupon',
     kPercent:'Percent off', kAmount:'Fixed CHF off',
-    paused:'Paused', noEnd:'No end date', unlimited:'no cap',
+    paused:'Paused', usedUp:'Used up', noEnd:'No end date', unlimited:'no cap',
     publish:'Publish fare book', publishing:'Publishing…', discard:'Discard draft', keepEditing:'Keep editing',
     publishTitle:'Publish this fare book?',
     publishOk:'Fare book is live.',
+    routeLiveOk:'Route is live.',
+    routeLiveFail:'That route did not go live.',
     discardConfirm:'Discard this draft? The last published book stays live. Public does not change.',
     completenessTitle:'Draft completeness',
     completenessReady:'Every required class field is filled. Publish fare book writes the live book.',
@@ -458,9 +461,9 @@ const T = {
   },
   de: { title:'Preise & Routen', subtitle:'Feste Routen, Distanzregeln, Zuschläge und Gutscheine',
     tabRoutes:'Feste Routen', tabDistance:'Distanzregeln', tabSurcharges:'Zuschläge & Extras', tabCoupons:'Gutscheine',
-    hintRoutes:'Stadt zu Stadt. A nach B und B nach A sind getrennt.', hintDistance:'Start, pro Kilometer, Flughafen-Start, ein Stadtpreis', airportStart:'Flughafen-Start', cityPrice:'Stadtpreis und pro Kilometer', cityPairPick:'Stadtpaar wählen', hintSurcharges:'Checkout-Extras, Warten, Meet and greet', hintCoupons:'Prozent oder fester CHF',
+    hintRoutes:'Stadt zu Stadt. A nach B und B nach A sind getrennt. Zeile anklicken, dann ist sie live.', hintDistance:'Start, pro Kilometer, Flughafen-Start, ein Stadtpreis', airportStart:'Flughafen-Start', cityPrice:'Stadtpreis und pro Kilometer', cityPairPick:'Stadtpaar wählen', hintSurcharges:'Checkout-Extras, Warten, Meet and greet', hintCoupons:'Prozent oder fester CHF',
     colId:'ID', colFrom:'Von', colTo:'Nach', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Entwurf',
-    colClass:'Klasse', colPhoto:'Foto', arrangeClass:'Ziehen, um Klassen zu ordnen', colName:'Name', startFare:'Start', perKm:'Pro Kilometer', maxPax:'Max. Passagiere', maxBags:'Max. Gepäckstücke', hidePublic:'Vor der Öffentlichkeit verbergen', hiddenPublic:'Vor der Öffentlichkeit verborgen', showPublic:'Öffentlich zeigen', shownPublic:'Öffentlich sichtbar',
+    colClass:'Klasse', colPhoto:'Foto', moveClassUp:'Klasse nach oben', moveClassDown:'Klasse nach unten', colName:'Name', startFare:'Start', perKm:'Pro Kilometer', maxPax:'Max. Passagiere', maxBags:'Max. Gepäckstücke', hidePublic:'Vor der Öffentlichkeit verbergen', hiddenPublic:'Vor der Öffentlichkeit verborgen', showPublic:'Öffentlich zeigen', shownPublic:'Öffentlich sichtbar',
     fPhoto:'Foto', choosePhoto:'Foto wählen', clearPhoto:'Entfernen', hClassPhoto:'Pflicht vor dem Veröffentlichen. Liegt auf R2, nicht auf diesem Gerät.',
     colRule:'Regel', colAppliesWhen:'Gilt bei', colAmount:'Betrag', colKind:'Art',
     addRoute:'Route hinzufügen', editRoute:'Route bearbeiten', saveRoute:'Route speichern', deleteRouteTitle:'Diese Route aus dem Entwurf löschen?', deleteRouteBody:'Diese Route aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
@@ -500,10 +503,12 @@ const T = {
     couponUsesTitle:'Eingelöste Nutzungen', couponUsesEmpty:'Noch keine eingelösten Nutzungen.',
     useDate:'Verwendet', useEmail:'E-Mail', useBefore:'Vor dem Gutschein', useAfter:'Nach dem Gutschein',
     kPercent:'Prozent Rabatt', kAmount:'Fester CHF-Rabatt',
-    paused:'Pausiert', noEnd:'Kein Enddatum', unlimited:'kein Limit',
+    paused:'Pausiert', usedUp:'Aufgebraucht', noEnd:'Kein Enddatum', unlimited:'kein Limit',
     publish:'Tarifbuch veröffentlichen', publishing:'Veröffentlichen…', discard:'Entwurf verwerfen', keepEditing:'Weiter bearbeiten',
     publishTitle:'Dieses Tarifbuch veröffentlichen?',
     publishOk:'Das Tarifbuch ist live.',
+    routeLiveOk:'Route ist live.',
+    routeLiveFail:'Diese Route ist nicht live gegangen.',
     discardConfirm:'Diesen Entwurf verwerfen? Das letzte veröffentlichte Buch bleibt live. Die Öffentlichkeit ändert sich nicht.',
     completenessTitle:'Entwurfsvollständigkeit',
     completenessReady:'Jedes Pflichtfeld der Klasse ist gefüllt. Tarifbuch veröffentlichen schreibt das Live-Buch.',
@@ -546,9 +551,9 @@ const T = {
   },
   fr: { title:'Tarifs & trajets', subtitle:'Trajets fixes, règles de distance, suppléments et codes promo',
     tabRoutes:'Trajets fixes', tabDistance:'Règles de distance', tabSurcharges:'Suppléments & extras', tabCoupons:'Codes promo',
-    hintRoutes:'Ville à ville. A vers B et B vers A sont séparés.', hintDistance:'Départ, au kilomètre, départ aéroport, un prix ville', airportStart:'Départ aéroport', cityPrice:'Prix ville et par kilomètre', cityPairPick:'Choisir une paire de villes', hintSurcharges:'Extras de paiement, attente, accueil', hintCoupons:'Pourcent ou CHF fixe',
+    hintRoutes:'Ville à ville. A vers B et B vers A sont séparés. Cliquez une ligne pour la passer live.', hintDistance:'Départ, au kilomètre, départ aéroport, un prix ville', airportStart:'Départ aéroport', cityPrice:'Prix ville et par kilomètre', cityPairPick:'Choisir une paire de villes', hintSurcharges:'Extras de paiement, attente, accueil', hintCoupons:'Pourcent ou CHF fixe',
     colId:'ID', colFrom:'De', colTo:'Vers', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Brouillon',
-    colClass:'Classe', colPhoto:'Photo', arrangeClass:'Glisser pour ordonner les classes', colName:'Nom', startFare:'Départ', perKm:'Par kilomètre', maxPax:'Passagers max.', maxBags:'Bagages max.', hidePublic:'Masquer au public', hiddenPublic:'Masqué au public', showPublic:'Afficher au public', shownPublic:'Visible au public',
+    colClass:'Classe', colPhoto:'Photo', moveClassUp:'Monter la classe', moveClassDown:'Descendre la classe', colName:'Nom', startFare:'Départ', perKm:'Par kilomètre', maxPax:'Passagers max.', maxBags:'Bagages max.', hidePublic:'Masquer au public', hiddenPublic:'Masqué au public', showPublic:'Afficher au public', shownPublic:'Visible au public',
     fPhoto:'Photo', choosePhoto:'Choisir une photo', clearPhoto:'Retirer', hClassPhoto:'Obligatoire pour Publier. Stockée sur R2, pas sur cet appareil.',
     colRule:'Règle', colAppliesWhen:'S’applique', colAmount:'Montant', colKind:'Type',
     addRoute:'Ajouter un trajet', editRoute:'Modifier le trajet', saveRoute:'Enregistrer le trajet', deleteRouteTitle:'Supprimer ce trajet du brouillon ?', deleteRouteBody:'Supprimer ce trajet du brouillon ? Le public ne change qu’après Publier.',
@@ -588,10 +593,12 @@ const T = {
     couponUsesTitle:'Utilisations capturées', couponUsesEmpty:'Aucune utilisation capturée pour l’instant.',
     useDate:'Utilisé', useEmail:'E-mail', useBefore:'Avant le code', useAfter:'Après le code',
     kPercent:'Pourcent de remise', kAmount:'CHF fixe de remise',
-    paused:'En pause', noEnd:'Sans date de fin', unlimited:'sans plafond',
+    paused:'En pause', usedUp:'Épuisé', noEnd:'Sans date de fin', unlimited:'sans plafond',
     publish:'Publier le livre tarifaire', publishing:'Publication…', discard:'Jeter le brouillon', keepEditing:'Continuer à modifier',
     publishTitle:'Publier ce livre tarifaire ?',
     publishOk:'Le livre tarifaire est live.',
+    routeLiveOk:'La route est live.',
+    routeLiveFail:'Cette route n’est pas passée live.',
     discardConfirm:'Jeter ce brouillon ? Le dernier livre publié reste live. Le public ne change pas.',
     completenessTitle:'Complétude du brouillon',
     completenessReady:'Chaque champ obligatoire de classe est rempli. Publier le livre tarifaire écrit le livre live.',
@@ -634,9 +641,9 @@ const T = {
   },
   ar: { title:'الأسعار والمسارات', subtitle:'مسارات ثابتة وقواعد مسافة ورسوم وقسائم',
     tabRoutes:'مسارات ثابتة', tabDistance:'قواعد المسافة', tabSurcharges:'الرسوم والإضافات', tabCoupons:'القسائم',
-    hintRoutes:'من مدينة إلى مدينة. من أ إلى ب ومن ب إلى أ منفصلان.', hintDistance:'البداية، لكل كيلومتر، بداية المطار، سعر مدينة واحد', airportStart:'بداية المطار', cityPrice:'سعر المدينة ولكل كيلومتر', cityPairPick:'اختر زوج مدن', hintSurcharges:'إضافات الدفع والانتظار والاستقبال', hintCoupons:'نسبة أو فرنك ثابت',
+    hintRoutes:'من مدينة إلى مدينة. من أ إلى ب ومن ب إلى أ منفصلان. انقر الصف ليصبح مباشرًا.', hintDistance:'البداية، لكل كيلومتر، بداية المطار، سعر مدينة واحد', airportStart:'بداية المطار', cityPrice:'سعر المدينة ولكل كيلومتر', cityPairPick:'اختر زوج مدن', hintSurcharges:'إضافات الدفع والانتظار والاستقبال', hintCoupons:'نسبة أو فرنك ثابت',
     colId:'المعرّف', colFrom:'من', colTo:'إلى', colEconomy:'اقتصادي', colBusiness:'أعمال', colVan:'فان', colLive:'مباشر', live:'مباشر', draft:'مسودة',
-    colClass:'الفئة', colPhoto:'الصورة', arrangeClass:'اسحب لترتيب الفئات', colName:'الاسم', startFare:'البداية', perKm:'لكل كيلومتر', maxPax:'أقصى عدد مسافرين', maxBags:'أقصى حقائب', hidePublic:'إخفاء عن العامة', hiddenPublic:'مخفي عن العامة', showPublic:'إظهار للعامة', shownPublic:'ظاهر للعامة',
+    colClass:'الفئة', colPhoto:'الصورة', moveClassUp:'تحريك الفئة لأعلى', moveClassDown:'تحريك الفئة لأسفل', colName:'الاسم', startFare:'البداية', perKm:'لكل كيلومتر', maxPax:'أقصى عدد مسافرين', maxBags:'أقصى حقائب', hidePublic:'إخفاء عن العامة', hiddenPublic:'مخفي عن العامة', showPublic:'إظهار للعامة', shownPublic:'ظاهر للعامة',
     fPhoto:'الصورة', choosePhoto:'اختيار صورة', clearPhoto:'إزالة', hClassPhoto:'مطلوبة للنشر. تُحفظ على R2 وليس على هذا الجهاز.',
     colRule:'القاعدة', colAppliesWhen:'ينطبق عند', colAmount:'المبلغ', colKind:'النوع',
     addRoute:'إضافة مسار', editRoute:'تعديل المسار', saveRoute:'حفظ المسار', deleteRouteTitle:'حذف هذا المسار من المسودة؟', deleteRouteBody:'حذف هذا المسار من المسودة؟ لا يتغير العام حتى النشر.',
@@ -676,10 +683,12 @@ const T = {
     couponUsesTitle:'استخدامات مقبوضة', couponUsesEmpty:'لا استخدامات مقبوضة بعد.',
     useDate:'تاريخ الاستخدام', useEmail:'البريد', useBefore:'قبل القسيمة', useAfter:'بعد القسيمة',
     kPercent:'نسبة مئوية', kAmount:'فرنك ثابت',
-    paused:'متوقف', noEnd:'بلا تاريخ انتهاء', unlimited:'بلا حد',
+    paused:'متوقف', usedUp:'مستنفد', noEnd:'بلا تاريخ انتهاء', unlimited:'بلا حد',
     publish:'نشر دفتر الأسعار', publishing:'جارٍ النشر…', discard:'تجاهل المسودة', keepEditing:'متابعة التعديل',
     publishTitle:'نشر دفتر الأسعار هذا؟',
     publishOk:'دفتر الأسعار أصبح مباشرًا.',
+    routeLiveOk:'الطريق أصبح مباشرًا.',
+    routeLiveFail:'لم يصبح هذا الطريق مباشرًا.',
     discardConfirm:'تجاهل هذه المسودة؟ يبقى آخر كتاب منشور مباشرًا. لا يتغير العام.',
     completenessTitle:'اكتمال المسودة',
     completenessReady:'كل حقول الفئة المطلوبة ممتلئة. نشر دفتر الأسعار يكتب الكتاب المباشر.',
@@ -754,6 +763,7 @@ class Component extends DCLogic {
     publishOk: false,
     showToast: false,
     toastMsg: '',
+    routeLiveError: false,
     distanceEditId: '',
     distanceEditTick: 0,
     routeEditId: '',
@@ -878,6 +888,13 @@ class Component extends DCLogic {
       }, () => this.setState({ vatError: true }));
     }
   };
+  couponCapStatus(row) {
+    if (!row) return 'paused';
+    const used = Number(row.uses);
+    const cap = row.cap == null || row.cap === '' ? null : Number(row.cap);
+    if (cap != null && cap >= 1 && Number.isFinite(used) && used >= cap) return 'used';
+    return row.active ? 'live' : 'paused';
+  }
   loadCouponUses() {
     const api = this.api();
     if (!api || typeof api.request !== 'function') return;
@@ -906,6 +923,14 @@ class Component extends DCLogic {
     clearTimeout(this._okT);
     this._toastT = setTimeout(() => this.setState({ showToast: false }), 3600);
     this._okT = setTimeout(() => this.setState({ publishOk: false }), 4000);
+  }
+  notifyRouteLive(msg) {
+    this.setState({ toastMsg: msg, showToast: true, routeLiveError: false });
+    clearTimeout(this._toastT);
+    this._toastT = setTimeout(() => this.setState({ showToast: false }), 3600);
+  }
+  failRouteLive() {
+    this.setState({ routeLiveError: true, showToast: false });
   }
   publish = () => {
     const ops = window.VamosOps;
@@ -1205,6 +1230,52 @@ class Component extends DCLogic {
       });
     }
 
+    const saveRoute = (rec) => {
+      if (!ops) return null;
+      const existing = rec.id ? ops.routes.get(rec.id) : null;
+      const patch = {
+        id: rec.id, from: rec.from, to: rec.to, live: rec.live,
+        fromMapbox: rec.fromMapbox,
+        toMapbox: rec.toMapbox,
+        originZoneId: rec.fromMapbox
+          ? (rec.originZoneId || '')
+          : (existing && String(existing.from || '') === String(rec.from || '')
+            ? (rec.originZoneId || existing.originZoneId || '')
+            : (rec.originZoneId || '')),
+        destZoneId: rec.toMapbox
+          ? (rec.destZoneId || '')
+          : (existing && String(existing.to || '') === String(rec.to || '')
+            ? (rec.destZoneId || existing.destZoneId || '')
+            : (rec.destZoneId || '')),
+        prices: {},
+      };
+      ratedClasses.forEach((c) => {
+        const k = c.slug;
+        const base = (existing && existing[k]) || (existing && existing.prices && existing.prices[k]) || {};
+        patch[k] = Object.assign({}, base, { CHF: rec[k] });
+        patch.prices[k] = patch[k];
+      });
+      return ops.routes.upsert(patch);
+    };
+    const publishRoute = (row) => {
+      if (!row || !ops || this._routeLiveBusy) return;
+      this._routeLiveBusy = true;
+      const run = saveRoute(Object.assign({}, row, { live: true }));
+      const done = (json) => {
+        this._routeLiveBusy = false;
+        if (!json || json.ok !== true) {
+          this.failRouteLive();
+          return;
+        }
+        this.notifyRouteLive(t.routeLiveOk);
+      };
+      if (run && typeof run.then === 'function') {
+        run.then(done, () => done({ ok: false, code: 'network' }));
+        return;
+      }
+      done(run);
+    };
+
     return {
       yes: true, n18: 18, n16: 16,
       tTitle: t.title,
@@ -1243,6 +1314,8 @@ class Component extends DCLogic {
       routeEditId: this.state.routeEditId,
       routeEditTick: this.state.routeEditTick,
       publishOkDisplay: this.state.publishOk ? 'block' : 'none',
+      routeLiveErrorDisplay: this.state.routeLiveError ? 'block' : 'none',
+      tRouteLiveFail: t.routeLiveFail,
       publishDisabled: role !== 'admin' || !hasDraft,
       publishBusyDisabled: role !== 'admin' || !hasDraft || this.state.publishing,
       discardDisabled: role !== 'admin' || !hasDraft || this.state.publishing,
@@ -1308,9 +1381,7 @@ class Component extends DCLogic {
         { key:'from', header: t.colFrom }, { key:'to', header: t.colTo },
       ].concat(ratedClasses.map((c) => ({
         key: c.slug, header: c.label, lookup:(r) => money(r[c.slug]),
-      }))).concat([
-        { key:'live', header: t.colLive, width:'92px', kind:'bool', onLabel:t.live, offLabel:t.draft },
-      ]),
+      }))),
       routeFields: [
         { key:'from', label:t.colFrom, required:true, icon:'map-pin', half:true, suggest:'address' },
         { key:'to', label:t.colTo, required:true, icon:'map-pin', half:true, suggest:'address' },
@@ -1323,33 +1394,8 @@ class Component extends DCLogic {
         ratedClasses.forEach((c) => { extra[c.slug] = ''; });
         return Object.assign({}, blank, extra);
       },
-      saveRoute: (rec) => {
-        if (!ops) return null;
-        const existing = rec.id ? ops.routes.get(rec.id) : null;
-        const patch = {
-          id: rec.id, from: rec.from, to: rec.to, live: rec.live,
-          fromMapbox: rec.fromMapbox,
-          toMapbox: rec.toMapbox,
-          originZoneId: rec.fromMapbox
-            ? (rec.originZoneId || '')
-            : (existing && String(existing.from || '') === String(rec.from || '')
-              ? (rec.originZoneId || existing.originZoneId || '')
-              : (rec.originZoneId || '')),
-          destZoneId: rec.toMapbox
-            ? (rec.destZoneId || '')
-            : (existing && String(existing.to || '') === String(rec.to || '')
-              ? (rec.destZoneId || existing.destZoneId || '')
-              : (rec.destZoneId || '')),
-          prices: {},
-        };
-        ratedClasses.forEach((c) => {
-          const k = c.slug;
-          const base = (existing && existing[k]) || (existing && existing.prices && existing.prices[k]) || {};
-          patch[k] = Object.assign({}, base, { CHF: rec[k] });
-          patch.prices[k] = patch[k];
-        });
-        return ops.routes.upsert(patch);
-      },
+      saveRoute,
+      publishRoute,
       deleteRoute: (id) => ops ? ops.routes.remove(id) : null,
       tNounRoute: t.nounRoute, tNounRoutes: t.nounRoutes,
       tAddRoute: t.addRoute, tEditRoute: t.editRoute, tSaveRoute: t.saveRoute,
@@ -1377,7 +1423,7 @@ class Component extends DCLogic {
         hideFromPublic: !!r.hideFromPublic,
       }))),
       distanceColumns: [
-        { key:'__order', header:'', width:'44px', kind:'grip', label: t.arrangeClass },
+        { key:'__order', header:'', width:'44px', kind:'order', upLabel: t.moveClassUp, downLabel: t.moveClassDown },
         { key:'photo', header: t.colPhoto, width:'64px', kind:'photo' },
         { key:'klass', header: t.colClass, width:'120px' },
         { key:'baseFare', header: t.startFare, lookup:(r) => moneyOrDash(r.baseFare) },
@@ -1530,13 +1576,17 @@ class Component extends DCLogic {
       tSearchSurcharges: t.searchSurcharges, surchargeSearchKeys: ['label', 'type', 'name'],
       tEmptySurchargesTitle: t.emptySurchargesTitle, tEmptySurchargesBody: t.emptySurchargesBody,
 
-      couponRows: couponRaw,
+      couponRows: (couponRaw || []).map((row) => Object.assign({}, row, { capStatus: this.couponCapStatus(row) })),
       couponColumns: [
         { key:'code', header:t.fCode, kind:'mono' },
         { key:'value', header:t.fValue,
           lookup:(r) => (r.kind === 'percent' ? (r.value || '00') + ' %' : money(r.value || '00')) },
         { key:'expires', header:t.fExpires, lookup:(r) => r.expires || t.noEnd },
-        { key:'active', header:t.fActive, kind:'bool', onLabel:t.live, offLabel:t.paused },
+        { key:'capStatus', header:t.fActive, kind:'mark', tones:{
+          live: { label:t.live, bg:'var(--vt-charcoal-900)', fg:'var(--vt-accent)' },
+          paused: { label:t.paused, bg:'var(--vt-grey-100)', fg:'var(--vt-charcoal-700)' },
+          used: { label:t.usedUp, bg:'var(--vt-grey-50)', fg:'var(--vt-text-muted)', border:'var(--vt-border-subtle)' },
+        } },
       ],
       couponFields: [
         { key:'code', label:t.fCode, required:true, hint:t.hCode },

@@ -13,6 +13,7 @@ import {
   type ChauffeurInput,
   type ChauffeurStatus,
 } from "@/lib/ops/chauffeurs";
+import { pgTextArrayLiteral } from "@/lib/ops/mapbox-zone";
 import { OpsAuthError, requireStaffClaims, type StaffAuthClient } from "@/lib/ops/session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -72,7 +73,7 @@ export async function createChauffeur(
           ${parsed.vehicleClassId},
           ${parsed.licenceNumber},
           ${parsed.licenceExpiresOn},
-          ${parsed.languages},
+          ${pgTextArrayLiteral(parsed.languages)}::text[],
           ${parsed.status},
           ${parsed.photoPath},
           ${parsed.note},
@@ -107,7 +108,7 @@ export async function updateChauffeur(
           vehicle_class_id = ${parsed.vehicleClassId},
           licence_number = ${parsed.licenceNumber},
           licence_expires_on = ${parsed.licenceExpiresOn},
-          languages = ${parsed.languages},
+          languages = ${pgTextArrayLiteral(parsed.languages)}::text[],
           status = ${parsed.status},
           photo_path = ${parsed.photoPath},
           note = ${parsed.note},

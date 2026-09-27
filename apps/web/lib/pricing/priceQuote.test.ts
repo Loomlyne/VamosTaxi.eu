@@ -678,26 +678,55 @@ describe("Comment 11 formula", () => {
     expect(eco.total_rappen).toBe(2_500 + 2_000 + 500);
   });
 
-  it("city to city adds exactly one city price on top of one way", () => {
-    const eco = fareOf("city_to_city");
-    const cities = eco.lines.filter((l) => l.code === "city_price");
-    expect(cities).toHaveLength(1);
-    expect(cities[0]?.leg_seq).toBeNull();
-    expect(cities[0]?.amount_rappen).toBe(700);
+  it("city to city uses one published pair and does not add a second city price", () => {
+    const published: FixedRouteRow = {
+      id: 8,
+      rate_version_id: 1,
+      origin_zone_id: "z-a",
+      dest_zone_id: "z-b",
+      vehicle_class_id: economy.id,
+      price_rappen: 700,
+      live: true,
+    };
+    const quoted = priceQuote(
+      { ...book(), fixed_routes: [published] },
+      settingsRows(),
+      input({
+        fare_kind: "city_to_city",
+        extras: { child_seats: 1 },
+      }),
+    );
+    const eco = quoted.classes.find((c) => c.slug === "economy");
+    if (!eco) throw new Error("missing economy");
+    const pairs = eco.lines.filter((l) => l.code === "fixed_route");
+    expect(pairs).toHaveLength(1);
+    expect(pairs[0]?.amount_rappen).toBe(700);
+    expect(pairs[0]?.basis.price_rappen).toBe(published.price_rappen);
+    expect(eco.lines.filter((l) => l.code === "city_price")).toHaveLength(0);
     expect(eco.total_rappen).toBe(1_000 + 2_000 + 500 + 700);
   });
 
-  it("does not invent a city price or an airport start when staff left them empty", () => {
+  it("city to city adds nothing when no published pair matches, and does not invent the class city price", () => {
+    const eco = fareOf("city_to_city");
+    expect(eco.lines.filter((l) => l.code === "city_price")).toHaveLength(0);
+    expect(eco.lines.filter((l) => l.code === "fixed_route")).toHaveLength(0);
+    expect(eco.total_rappen).toBe(1_000 + 2_000 + 500);
+  });
+
+  it("does not invent an airport start when staff left it empty, and a city-to-city miss stays on the distance fare", () => {
     const empty = priceQuote(
       book({ airport_start_rappen: null, city_price_rappen: null }),
       settingsRows(),
       input({ fare_kind: "city_to_city" }),
     );
     const eco = empty.classes.find((c) => c.slug === "economy");
-    const city = eco?.lines.find((l) => l.code === "city_price");
-    expect(city?.amount_rappen).toBeNull();
-    expect(eco?.total_rappen).toBeNull();
-    expect(empty.partially_priced_class_slugs).toContain("economy");
+    expect(eco?.lines.filter((l) => l.code === "city_price")).toHaveLength(0);
+    expect(eco?.lines.filter((l) => l.code === "fixed_route")).toHaveLength(0);
+    expect(eco?.lines.find((l) => l.code === "distance_fare")?.amount_rappen).toBe(
+      1_000 + 2_000,
+    );
+    expect(eco?.total_rappen).toBe(1_000 + 2_000);
+    expect(empty.partially_priced_class_slugs).not.toContain("economy");
 
     const airport = priceQuote(
       book({ airport_start_rappen: null }),

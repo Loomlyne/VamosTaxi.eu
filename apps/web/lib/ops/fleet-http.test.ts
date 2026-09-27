@@ -26,6 +26,7 @@ import {
   parseChauffeurBody,
   parseVehicleBody,
   parseVehicleClassPatch,
+  presentChauffeur,
   presentVehicles,
   slugToKlass,
 } from "./fleet-http";
@@ -164,6 +165,22 @@ describe("parseChauffeurBody", () => {
     expect(parsed.input.defaultVehicleId).toBe("11111111-1111-4111-8111-111111111111");
     expect(parsed.input.vehicleClassId).toBeNull();
     expect(parsed.input.languages).toEqual(["de", "en"]);
+  });
+
+  it("turns a display-language string and an empty vehicle id into codes and null", () => {
+    const parsed = parseChauffeurBody({
+      name: "Ada",
+      phone: "+41 79 000 00 00",
+      licence: "CH 1",
+      defaultVehicleId: "",
+      vehicle: "",
+      vehicleClassId: "22222222-2222-4222-8222-222222222222",
+      languages: "German, English",
+    });
+    expect(parsed.input.defaultVehicleId).toBeNull();
+    expect(parsed.input.vehicleClassId).toBe("22222222-2222-4222-8222-222222222222");
+    expect(parsed.input.languages).toEqual(["de", "en"]);
+    expect(parsed.input.languages).not.toContain("German");
   });
 
   it("maps vehicleClassId onto the class column, not defaultVehicleId", () => {
@@ -306,5 +323,51 @@ describe("jsonErr photo upload non-staff", () => {
     const result = await readJson(jsonErr("not-staff", 403));
     expect(result.status).toBe(403);
     expect(result.body).toEqual({ ok: false, code: "not-staff" });
+  });
+});
+
+describe("presentChauffeur", () => {
+  const saved = {
+    id: "017bc319-36d4-4cae-a6d2-198a4a53087b",
+    fullName: "Koussay",
+    phone: "+971509758018",
+    email: null,
+    defaultVehicleId: null,
+    defaultVehiclePlate: null,
+    vehicleClassId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    vehicleClassName: "Saden",
+    licenceExpiresOn: null,
+    languages: ["en"],
+    status: "off" as const,
+    photoPath: null,
+    note: "",
+    active: true,
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+    shiftWeekdays: [],
+    shiftStart: null,
+    shiftEnd: null,
+    leaveRanges: [],
+    licenceNumber: "CH 459 821",
+  };
+
+  it("puts the saved class name, phone, and licence on the list payload", () => {
+    const json = presentChauffeur(saved);
+    expect(json.vehicleClassName).toBe("Saden");
+    expect(json.className).toBe("Saden");
+    expect(json.name).toBe("Koussay");
+    expect(json.phone).toBe("+971509758018");
+    expect(json.licence).toBe("CH 459 821");
+    expect(json.vehicleClassId).toBe("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
+  });
+
+  it("does not invent a class name when none is saved", () => {
+    const json = presentChauffeur({
+      ...saved,
+      vehicleClassId: null,
+      vehicleClassName: null,
+    });
+    expect(json.vehicleClassName).toBe("");
+    expect(json.className).toBe("");
   });
 });

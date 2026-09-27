@@ -102,10 +102,10 @@
 </sc-for>
 </section>
 
-<section style="box-sizing:border-box;display:flex;flex-direction:column;gap:14px;padding:22px 24px;background:var(--vt-bg-inverse);border-radius:var(--vt-radius-lg);color:var(--vt-text-inverse);min-width:0">
+<section style="box-sizing:border-box;display:flex;flex-direction:column;gap:14px;padding:22px 24px;background:var(--vt-danger);border-radius:var(--vt-radius-lg);color:var(--vt-text-inverse);min-width:0">
 <h2 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);color:var(--vt-text-inverse)">{{ tSession }}</h2>
-<p style="margin:0;font-size:var(--vt-body-sm);line-height:1.55;color:var(--vt-text-inverse-muted);text-wrap:pretty">{{ tSessionBody }}</p>
-<div style="display:flex;flex-wrap:wrap;gap:10px;padding-top:14px;border-top:1px solid var(--vt-border-inverse)">
+<p style="margin:0;font-size:var(--vt-body-sm);line-height:1.55;color:var(--vt-text-inverse);text-wrap:pretty">{{ tSessionBody }}</p>
+<div style="display:flex;flex-wrap:wrap;gap:10px;padding-top:14px;border-top:1px solid color-mix(in srgb, var(--vt-white) 45%, transparent)">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="light" icon="log-out" onClick="{{ signOut }}" hint-size="140px,44px">{{ tSignOut }}</x-import>
 </div>
 </section>

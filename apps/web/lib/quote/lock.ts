@@ -68,6 +68,9 @@ export interface QuoteLockLeg {
   duration_s: number;
   origin_zone_id: string | null;
   dest_zone_id: string | null;
+  /** Comment 18. Optional so locks minted before canton was pinned still verify. */
+  origin_canton?: string | null;
+  dest_canton?: string | null;
   waypoints: Array<{ lng: number; lat: number; text: string }>;
   flight_no: string | null;
   landing_source: string | null;

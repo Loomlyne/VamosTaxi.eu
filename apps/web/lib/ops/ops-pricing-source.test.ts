@@ -25,7 +25,7 @@ const DATA_CANONICAL = join(repoRoot, "app/vamos-ops-data.js");
 const DATA_PUBLIC = join(webRoot, "public/app/vamos-ops-data.js");
 
 const FOUR_TABS = [
-  "Fixed routes",
+  "City to city",
   "Distance rules",
   "Surcharges & extras",
   "Coupons",

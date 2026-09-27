@@ -261,7 +261,7 @@ describe("liveBookBoard", () => {
 });
 
 describe("publicCatalogRoutes", () => {
-  it("lists unique live place pairs and skips canton and dark rows", () => {
+  it("lists published city-to-city pairs even when live is false, and skips canton rows", () => {
     const zrh: ZoneRow = {
       id: "z-zrh",
       slug: "zurich-airport",
@@ -277,6 +277,14 @@ describe("publicCatalogRoutes", () => {
       active: true,
       zone_type: "ski",
       tags: [],
+    };
+    const davos: ZoneRow = {
+      id: "z-davos",
+      slug: "davos",
+      iata: null,
+      active: true,
+      zone_type: "ski",
+      tags: ["mapbox:davos"],
     };
     const zh: ZoneRow = {
       id: "z-zh",
@@ -309,9 +317,10 @@ describe("publicCatalogRoutes", () => {
       id: 2,
       vehicle_class_id: "vc-van",
     };
-    const dark: FixedRouteRow = {
+    const unpublished: FixedRouteRow = {
       ...live,
       id: 3,
+      dest_zone_id: davos.id,
       live: false,
     };
     const canton: FixedRouteRow = {
@@ -328,8 +337,8 @@ describe("publicCatalogRoutes", () => {
       book({
         classes: [classRow({ slug: "economy" })],
         distance_rates: [rateRow({ vehicle_class_id: "vc-economy" })],
-        fixed_routes: [live, liveVan, dark, canton],
-        zones: [zrh, zermatt, zh, vs],
+        fixed_routes: [live, liveVan, unpublished, canton],
+        zones: [zrh, zermatt, davos, zh, vs],
       }),
     );
     expect(catalog).toEqual([
@@ -339,6 +348,13 @@ describe("publicCatalogRoutes", () => {
         to: "Zermatt",
         from_mapbox_id: null,
         to_mapbox_id: null,
+      },
+      {
+        key: `${zrh.id}::${davos.id}`,
+        from: "Zurich Airport (ZRH)",
+        to: "Davos",
+        from_mapbox_id: null,
+        to_mapbox_id: "davos",
       },
     ]);
   });
@@ -390,6 +406,93 @@ describe("publicCatalogRoutes", () => {
         to: "Swiss National Museum, Museumstrasse 2, 8001 Zürich, Switzerland",
         from_mapbox_id: "mbx-origin",
         to_mapbox_id: "mbx-dest",
+      },
+    ]);
+  });
+
+  it("puts the published Zurich Airport pairs into the booking picker when live is false", () => {
+    const origin: ZoneRow = {
+      id: "z-origin",
+      slug: "zurich-airport-the-circle-16-flughafen-ch-8302-k",
+      iata: null,
+      active: true,
+      zone_type: "other",
+      tags: ["mapbox:dXJuOm1ieHBvaTpmNWZiMjZhYy1kOWYwLTQ0ZTQtOTg0NC01Yjc0ZmI2YmQ0ZWM"],
+    };
+    const davos: ZoneRow = {
+      id: "z-davos",
+      slug: "davos-the-grisons-switzerland",
+      iata: null,
+      active: true,
+      zone_type: "ski",
+      tags: ["mapbox:dXJuOm1ieHBsYzphNmdz"],
+    };
+    const moritz: ZoneRow = {
+      id: "z-moritz",
+      slug: "st-moritz-the-grisons-switzerland",
+      iata: null,
+      active: true,
+      zone_type: "ski",
+      tags: ["mapbox:dXJuOm1ieHBsYzpBWjBvTEE"],
+    };
+    const pair = (
+      id: number,
+      dest: ZoneRow,
+      classId: string,
+      price: number | null,
+    ): FixedRouteRow => ({
+      id,
+      rate_version_id: 18,
+      origin_zone_id: origin.id,
+      dest_zone_id: dest.id,
+      vehicle_class_id: classId,
+      price_rappen: price,
+      live: false,
+    });
+    const names = new Map([
+      [origin.slug, "Zurich Airport, The Circle 16-Flughafen CH, 8302 Kloten, Switzerland"],
+      [davos.slug, "Davos, the Grisons, Switzerland"],
+      [moritz.slug, "St. Moritz, the Grisons, Switzerland"],
+    ]);
+    const catalog = publicCatalogRoutes(
+      book({
+        classes: [
+          classRow({ id: "vc-saden", slug: "saden", name: "Saden" }),
+          classRow({ id: "vc-van", slug: "mercedes-benz-v-class", name: "Van" }),
+          classRow({ id: "vc-lux", slug: "van-luxury", name: "Van luxury" }),
+        ],
+        distance_rates: [
+          rateRow({ vehicle_class_id: "vc-saden" }),
+          rateRow({ id: 2, vehicle_class_id: "vc-van" }),
+          rateRow({ id: 3, vehicle_class_id: "vc-lux" }),
+        ],
+        fixed_routes: [
+          pair(47, davos, "vc-van", null),
+          pair(48, davos, "vc-saden", 20000),
+          pair(49, davos, "vc-lux", 30000),
+          pair(44, moritz, "vc-van", null),
+          pair(45, moritz, "vc-saden", 20000),
+          pair(46, moritz, "vc-lux", 30000),
+        ],
+        zones: [origin, davos, moritz],
+      }),
+      names,
+    );
+    const picker = catalog.filter((row) => row && row.key && row.from && row.to);
+    expect(picker).toEqual([
+      {
+        key: `${origin.id}::${davos.id}`,
+        from: "Zurich Airport, The Circle 16-Flughafen CH, 8302 Kloten, Switzerland",
+        to: "Davos, the Grisons, Switzerland",
+        from_mapbox_id: "dXJuOm1ieHBvaTpmNWZiMjZhYy1kOWYwLTQ0ZTQtOTg0NC01Yjc0ZmI2YmQ0ZWM",
+        to_mapbox_id: "dXJuOm1ieHBsYzphNmdz",
+      },
+      {
+        key: `${origin.id}::${moritz.id}`,
+        from: "Zurich Airport, The Circle 16-Flughafen CH, 8302 Kloten, Switzerland",
+        to: "St. Moritz, the Grisons, Switzerland",
+        from_mapbox_id: "dXJuOm1ieHBvaTpmNWZiMjZhYy1kOWYwLTQ0ZTQtOTg0NC01Yjc0ZmI2YmQ0ZWM",
+        to_mapbox_id: "dXJuOm1ieHBsYzpBWjBvTEE",
       },
     ]);
   });

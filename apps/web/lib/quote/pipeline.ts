@@ -407,6 +407,8 @@ function inputFromLock(
         duration_s: live?.duration_s ?? leg.duration_s,
         origin_zone_id: live?.origin_zone_id ?? leg.origin_zone_id,
         dest_zone_id: live?.dest_zone_id ?? leg.dest_zone_id,
+        origin_canton: leg.origin_canton ?? null,
+        dest_canton: leg.dest_canton ?? null,
         origin_place: leg.pickup?.text ?? null,
         dest_place: leg.dropoff?.text ?? null,
         road:
@@ -708,6 +710,8 @@ export async function runQuotePipeline(
         duration_s: leg.duration_s,
         origin_zone_id: leg.origin_zone_id,
         dest_zone_id: leg.dest_zone_id,
+        ...(origin.canton ? { origin_canton: origin.canton } : {}),
+        ...(dest.canton ? { dest_canton: dest.canton } : {}),
         waypoints:
           i === 0
             ? (request.extras?.waypoints ?? []).map((w) => ({

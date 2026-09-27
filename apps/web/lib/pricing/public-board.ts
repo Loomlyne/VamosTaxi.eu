@@ -177,7 +177,12 @@ function zonePublicLabel(
   return name;
 }
 
-/** Unique live place→place rows for the home Fixed routes tab. */
+/**
+ * City-to-city pairs on the published book for the booking picker.
+ * `fixed_routes.live` is the old fixed-route hide switch. A published pair
+ * still belongs in this list when that flag is off — an unpriced class
+ * (CHF 000) cannot be marked live without failing publish. Canton rows stay out.
+ */
 export function publicCatalogRoutes(
   book: RateBook,
   names?: ReadonlyMap<string, string>,
@@ -186,7 +191,6 @@ export function publicCatalogRoutes(
   const seen = new Set<string>();
   const out: PublicCatalogRoute[] = [];
   for (const row of book.fixed_routes) {
-    if (!row.live) continue;
     if (isCantonFixed(row, byId)) continue;
     const key = `${row.origin_zone_id}::${row.dest_zone_id}`;
     if (seen.has(key)) continue;

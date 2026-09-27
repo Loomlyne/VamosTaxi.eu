@@ -216,19 +216,28 @@ function mapLanguages(value: string[] | null): string[] {
   return Array.isArray(value) ? value : [];
 }
 
+function rowText(row: object, snake: string, camel: string): string | null {
+  const bag = row as Record<string, unknown>;
+  const raw = bag[snake] ?? bag[camel];
+  if (raw == null) return null;
+  const text = String(raw).trim();
+  return text || null;
+}
+
 function mapListRow(row: ListSqlRow): ChauffeurRow {
   const status: ChauffeurStatus = isChauffeurStatus(row.status) ? row.status : "off";
-  const expiry =
-    row.licence_expires_on == null ? null : toCivilDate(row.licence_expires_on);
+  const expiryRaw = (row as { licence_expires_on?: Date | string | null }).licence_expires_on
+    ?? (row as { licenceExpiresOn?: Date | string | null }).licenceExpiresOn;
+  const expiry = expiryRaw == null ? null : toCivilDate(expiryRaw);
   return {
     id: row.id,
-    fullName: row.full_name,
-    phone: row.phone,
-    email: row.email,
-    defaultVehicleId: row.default_vehicle_id,
-    defaultVehiclePlate: row.default_vehicle_plate,
-    vehicleClassId: row.vehicle_class_id ?? null,
-    vehicleClassName: row.vehicle_class_name ?? null,
+    fullName: rowText(row, "full_name", "fullName") ?? "",
+    phone: rowText(row, "phone", "phone") ?? "",
+    email: row.email ?? (row as { email?: string | null }).email ?? null,
+    defaultVehicleId: rowText(row, "default_vehicle_id", "defaultVehicleId"),
+    defaultVehiclePlate: rowText(row, "default_vehicle_plate", "defaultVehiclePlate"),
+    vehicleClassId: rowText(row, "vehicle_class_id", "vehicleClassId"),
+    vehicleClassName: rowText(row, "vehicle_class_name", "vehicleClassName"),
     licenceExpiresOn: expiry,
     languages: mapLanguages(row.languages),
     status,
@@ -263,7 +272,7 @@ function applyDesk(row: ChauffeurRow, extras: DeskExtras): ChauffeurRow {
 function mapDetailRow(row: DetailSqlRow): ChauffeurDetail {
   return {
     ...mapListRow(row),
-    licenceNumber: row.licence_number,
+    licenceNumber: rowText(row, "licence_number", "licenceNumber") ?? "",
   };
 }
 
