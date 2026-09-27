@@ -19,7 +19,7 @@
 -- what this file proves; the disable/enable pair never touches anything
 -- this plan did not itself need to backdate.
 begin;
-select plan(39);
+select plan(41);
 
 -- Fixtures --------------------------------------------------------------------------------
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
@@ -44,14 +44,15 @@ values
   ('UCS-OPS-1', 'percent', 10.00, 1, true),
   ('UCS-OPS-PAID-1', 'percent', 10.00, 1, true),
   ('UCS-ABANDON-1', 'percent', 10.00, 1, true),
-  ('UCS-REQUOTE-1', 'percent', 10.00, 1, true);
+  ('UCS-REQUOTE-1', 'percent', 10.00, 1, true),
+  ('UCS-CAP-1', 'percent', 10.00, 1, true);
 
 -- vamos_checkout has no SELECT on public.coupons; resolve ids once here,
 -- under the default (unrestricted) test role, and hand them through.
 create temporary table ucs_coupon as
 select code, id from public.coupons
  where code in (
-   'UCS-CANCEL-1', 'UCS-OPS-1', 'UCS-OPS-PAID-1', 'UCS-ABANDON-1', 'UCS-REQUOTE-1'
+   'UCS-CANCEL-1', 'UCS-OPS-1', 'UCS-OPS-PAID-1', 'UCS-ABANDON-1', 'UCS-REQUOTE-1', 'UCS-CAP-1'
  );
 grant select on ucs_coupon to public;
 
@@ -513,35 +514,66 @@ select is(
 );
 
 -- 7. End-to-end cap reclaim: a global_limit=1 coupon freed by a cancel can be
---    redeemed again by a brand new booking (D-11a's own stated example). ------------------
+--    redeemed again by a brand new booking (D-11a's own stated example). A
+--    dedicated coupon/quote_id pair, self-contained, so the cap-reached
+--    assertion below is not affected by any earlier section's own release. --
+set local role vamos_checkout;
+create temporary table ucs_out_cap_hold as
+  select * from pg_temp.ucs_book(
+    '20000000-0000-4000-8000-000000000103'::uuid, 'ucs-cap-hold',
+    'cs_ucs_cap_hold', 'cs_ucs_cap_hold',
+    decode(repeat('b0', 32), 'hex'), 'ucs-cap-hold@example.test',
+    now() + interval '3 days',
+    (select id from ucs_coupon where code = 'UCS-CAP-1'),
+    'UCS-CAP-1'
+  );
+grant select on ucs_out_cap_hold to public;
+reset role;
+
+select lives_ok(
+  $$ select 1 from ucs_out_cap_hold $$,
+  'cap: first redemption against global_limit=1 succeeds'
+);
+
 set local role vamos_checkout;
 select throws_ok(
   $$
     select * from pg_temp.ucs_book(
-      '20000000-0000-4000-8000-000000000103'::uuid, 'ucs-cap-blocked',
+      '20000000-0000-4000-8000-000000000104'::uuid, 'ucs-cap-blocked',
       'cs_ucs_cap_blocked', 'cs_ucs_cap_blocked',
       decode(repeat('b1', 32), 'hex'), 'ucs-cap-blocked@example.test',
       now() + interval '3 days',
-      (select id from ucs_coupon where code = 'UCS-CANCEL-1'),
-      'UCS-CANCEL-1'
+      (select id from ucs_coupon where code = 'UCS-CAP-1'),
+      'UCS-CAP-1'
     )
   $$,
   '23001', null,
-  'cap: before any cancel, UCS-CANCEL-1 (global_limit=1, already used by ucs-expire) is refused'
+  'cap: before any cancel, UCS-CAP-1 (global_limit=1, already used) is refused'
 );
 reset role;
 
--- The expire cron already released UCS-CANCEL-1''s use in section 2 above, so a
--- brand new booking can redeem it again.
+set local role vamos_checkout;
+select lives_ok(
+  $$
+    select * from public.checkout_abandon_unpaid(
+      '20000000-0000-4000-8000-000000000103'::uuid
+    )
+  $$,
+  'cap: cancelling the cap-holding booking releases its coupon use'
+);
+reset role;
+
+-- The cancel above released UCS-CAP-1''s use, so a brand new booking can
+-- redeem it again.
 set local role vamos_checkout;
 create temporary table ucs_out_reclaim as
   select * from pg_temp.ucs_book(
-    '20000000-0000-4000-8000-000000000104'::uuid, 'ucs-cap-reclaim',
+    '20000000-0000-4000-8000-000000000105'::uuid, 'ucs-cap-reclaim',
     'cs_ucs_cap_reclaim', 'cs_ucs_cap_reclaim',
     decode(repeat('b2', 32), 'hex'), 'ucs-cap-reclaim@example.test',
     now() + interval '3 days',
-    (select id from ucs_coupon where code = 'UCS-CANCEL-1'),
-    'UCS-CANCEL-1'
+    (select id from ucs_coupon where code = 'UCS-CAP-1'),
+    'UCS-CAP-1'
   );
 reset role;
 
@@ -552,9 +584,9 @@ select lives_ok(
 select is(
   (select count(*)::bigint from public.coupon_redemptions r
     join ucs_coupon c on c.id = r.coupon_id
-   where c.code = 'UCS-CANCEL-1' and r.released_at is null),
+   where c.code = 'UCS-CAP-1' and r.released_at is null),
   1::bigint,
-  'cap: exactly one unreleased redemption of UCS-CANCEL-1 after the reclaim'
+  'cap: exactly one unreleased redemption of UCS-CAP-1 after the reclaim'
 );
 
 select * from finish();
