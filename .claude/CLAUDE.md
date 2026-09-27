@@ -290,7 +290,7 @@ be there. If nothing else works, the booking funnel — quote, pay, confirmation
 | ≥ 1181px | desktop | full nav, booking widget floats over hero, ops runs sidebar + sticky detail panel |
 | 1081–1180px | desktop narrow | nav links drop (`.vt-nav-lo`), ops columns collapse at 1240px |
 | 681–1080px | tablet | header 60px, booking widget stacks, hero padding tightens, grids go 2-up at 900px, `.vt-nav-md` drops at 1000px |
-| ≤ 680px | mobile | all 1-up, header phone pill hides at 620px, booking widget stacks first, tables scroll |
+| ≤ 680px | mobile | all 1-up, header shows mark + menu (phone is the ContactFab overlay), booking widget stacks first, tables scroll |
 
 ### Fixed Constraints
 
