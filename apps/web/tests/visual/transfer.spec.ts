@@ -91,6 +91,22 @@ async function diffBothSides(
   await expect(page.locator("#root")).toHaveScreenshot(name, options);
 }
 
+/** Port-only capture for a state whose port deliberately diverges from the bundle. */
+async function portOnly(
+  page: Page,
+  componentName: string,
+  props: Record<string, unknown>,
+  name: string,
+): Promise<void> {
+  const portUrl = await mountPort(portPath(componentName), props, {
+    locale: "en",
+    messages: enMessages,
+  });
+  await page.goto(portUrl);
+  await waitForMockReady(page);
+  await expect(page.locator("#root")).toHaveScreenshot(name);
+}
+
 // ── StatusBadge ───────────────────────────────────────────────────────────────────
 //
 // Three representative statuses (one per distinct tone family) plus the
@@ -164,10 +180,13 @@ test.describe("StatusBadge @component", () => {
 // ── RouteSummary ──────────────────────────────────────────────────────────────────
 
 test.describe("RouteSummary @component", () => {
-  test("one-way (partial — no return leg) — port matches the vendored bundle @component [4vp]", async ({
+  // Owner change 05154ca (2026-09-22): the destination pip sits beside the Destination
+  // kicker, not under the pickup address as the vendored bundle draws it. The port is the
+  // approved look, so these two states are port-only baselines, not bundle diffs.
+  test("one-way (partial — no return leg) — port only, destination pip beside its label (05154ca) @component [4vp]", async ({
     page,
   }) => {
-    await diffBothSides(
+    await portOnly(
       page,
       "RouteSummary",
       {
@@ -178,12 +197,11 @@ test.describe("RouteSummary @component", () => {
         meta: [{ icon: "car-front", label: "Economy" }],
       },
       "routesummary-one-way.png",
-      { messages: enMessages },
     );
   });
 
-  test("with return leg reference — port matches the vendored bundle @component [4vp]", async ({ page }) => {
-    await diffBothSides(
+  test("with return leg reference — port only, destination pip beside its label (05154ca) @component [4vp]", async ({ page }) => {
+    await portOnly(
       page,
       "RouteSummary",
       {
@@ -198,7 +216,6 @@ test.describe("RouteSummary @component", () => {
         ],
       },
       "routesummary-return.png",
-      { messages: enMessages },
     );
   });
 
