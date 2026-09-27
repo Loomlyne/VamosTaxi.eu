@@ -66,6 +66,67 @@ describe("OpsMustFixEmail", () => {
   });
 });
 
+describe("OpsMustFixEmail stuck-payment (D-06)", () => {
+  function stuckPayload(
+    locale: EmailLocale,
+    reference: string | null = "VT-10001",
+  ): OpsMustFixForEmail {
+    return {
+      locale,
+      kind: "stuck-payment",
+      trips: reference
+        ? [{ reference, pickupText: "", dropoffText: "", scheduledLocal: "" }]
+        : [],
+      detail: {
+        eventId: "evt_stuck_1",
+        eventType: "checkout.session.completed",
+        objectId: "cs_test_stuck_1",
+      },
+    };
+  }
+
+  it.each(LOCALES)("renders %s with event id, type, object id and no customer PII", async (locale) => {
+    const html = await render(OpsMustFixEmail({ payload: stuckPayload(locale) }));
+    expect(html).toContain("VT-10001");
+    expect(html).toContain("evt_stuck_1");
+    expect(html).toContain("checkout.session.completed");
+    expect(html).toContain("cs_test_stuck_1");
+    expect(html).not.toContain("a@b.c");
+    expect(html).not.toMatch(/contactEmail|contactName|customer@/i);
+    expect(html).not.toContain("CHF");
+    expect(html).not.toContain("sk_test");
+  });
+
+  it("renders with no reference at all — the alert must still send with no trip row", async () => {
+    const html = await render(OpsMustFixEmail({ payload: stuckPayload("en", null) }));
+    expect(html).toContain("evt_stuck_1");
+    expect(html).toContain("cs_test_stuck_1");
+    expect(html).not.toContain("VT-10001");
+  });
+
+  it("plain text and subject carry the event detail", () => {
+    const p = stuckPayload("en");
+    expect(opsMustFixPlainText(p)).toContain("evt_stuck_1");
+    expect(opsMustFixSubject(p)).toContain("VT-10001");
+  });
+});
+
+describe("OpsMustFixEmail paid-after-cancel", () => {
+  function paidAfterCancelPayload(locale: EmailLocale): OpsMustFixForEmail {
+    return {
+      locale,
+      kind: "paid-after-cancel",
+      trips: [{ reference: "VT-20002", pickupText: "", dropoffText: "", scheduledLocal: "" }],
+    };
+  }
+
+  it.each(LOCALES)("renders %s with the reference and an automatic-refund sentence", async (locale) => {
+    const html = await render(OpsMustFixEmail({ payload: paidAfterCancelPayload(locale) }));
+    expect(html).toContain("VT-20002");
+    expect(html).not.toContain("CHF");
+  });
+});
+
 describe("send envelope", () => {
   it("uses noreply@vamostaxi.site and sendOpsMustFix", () => {
     const here = dirname(fileURLToPath(import.meta.url));
