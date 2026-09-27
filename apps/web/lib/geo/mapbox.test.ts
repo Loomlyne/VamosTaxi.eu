@@ -320,11 +320,11 @@ describe("retrieve / reverse — city id, city name, airport flag, canton on pin
     ...FIXTURE_RETRIEVE_ZURICH_CITY,
     features: Object.freeze([
       Object.freeze({
-        ...FIXTURE_RETRIEVE_ZURICH_CITY.features[0],
+        ...FIXTURE_RETRIEVE_ZURICH_CITY.features[0]!,
         properties: Object.freeze({
-          ...FIXTURE_RETRIEVE_ZURICH_CITY.features[0].properties,
+          ...FIXTURE_RETRIEVE_ZURICH_CITY.features[0]!.properties,
           context: Object.freeze({
-            ...FIXTURE_RETRIEVE_ZURICH_CITY.features[0].properties.context,
+            ...FIXTURE_RETRIEVE_ZURICH_CITY.features[0]!.properties.context,
             place: Object.freeze({
               mapbox_id: "dXJuOm1ieHBsYzpBYWs",
               name: "زيورخ",

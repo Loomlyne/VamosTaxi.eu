@@ -71,6 +71,18 @@ export interface QuoteLockLeg {
   /** Comment 18. Optional so locks minted before canton was pinned still verify. */
   origin_canton?: string | null;
   dest_canton?: string | null;
+  /**
+   * 26.1-09: Mapbox context.place.mapbox_id — language-independent city identity
+   * for D-09 pair matching. Optional so locks minted before this field still verify.
+   */
+  origin_city_id?: string | null;
+  dest_city_id?: string | null;
+  /**
+   * 26.1-09/D-08b: true when the pickup resolved to a Mapbox airport place.
+   * Optional so locks minted before this field still verify (undefined prices
+   * as not-an-airport, never a guess in the other direction).
+   */
+  origin_is_airport?: boolean;
   waypoints: Array<{ lng: number; lat: number; text: string }>;
   flight_no: string | null;
   landing_source: string | null;
