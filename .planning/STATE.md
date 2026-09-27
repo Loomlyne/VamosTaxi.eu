@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Meta measurement
-status: ready-to-discuss
-stopped_at: Phase 26 lock shipped on the branch. Not merged. Pixel stays off.
-last_updated: "2026-09-23T21:29:19.352Z"
+status: Ready to discuss
+stopped_at: Phase 26.1 planned (31 plans, 18 waves); waiting for owner plan-gate signature
+last_updated: "2026-09-27T21:24:06.468Z"
 last_activity: 2026-09-23
 progress:
-  total_phases: 30
-  completed_phases: 16
-  total_plans: 213
-  completed_plans: 194
-  percent: 53
+  total_phases: 31
+  completed_phases: 17
+  total_plans: 246
+  completed_plans: 204
+  percent: 55
 ---
 
 # Project State
@@ -44,8 +44,8 @@ Stripe live keys and Search Console stay owner-gated. Agent does not click Publi
 
 ## Session Continuity
 
-Last session: 2026-09-23T20:43:35.760Z
-Stopped at: Phase 26 lock shipped on `gsd/phase-26-legal-gate`. Not merged. Pixel stays off.
+Last session: 2026-09-27T21:24:06.431Z
+Stopped at: Phase 26.1 planned (31 plans, 18 waves); waiting for owner plan-gate signature
 Resume: `/gsd:discuss-phase 27`. Do not execute 27. Do not load the pixel. Do not execute Phase 21 while v1.3 is current. Payment plans stay on disk. Do not execute Phase 16/17/19/20. Do not `phases.clear`.
 
 Phase 21 branch session (2026-09-22T19:57:29.795Z, not the resume): Stopped at Phase 21 planning complete — 8 plans. Resume was: Phase 21 executing on gsd/phase-21-charge-gate. Do not execute Phase 16/17/19/20. Do not touch the main checkout.
