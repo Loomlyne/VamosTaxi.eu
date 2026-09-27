@@ -22,6 +22,7 @@ import { withRequestContext } from "./lib/logger";
 import { isZurichDigestTime, runStaffDigest } from "./lib/ops/digest";
 import { createDigestDependencies } from "./lib/supabase/service";
 import { handleStripeMessage } from "./lib/checkout/settle";
+import { handleDlqMessage } from "./lib/checkout/dlq";
 import { sweepStuckNotifications } from "./lib/checkout/notify";
 import { expireUnpaidBookings } from "./lib/checkout/expire-unpaid";
 import { runReminder24h } from "./lib/lifecycle/reminder";
@@ -138,6 +139,31 @@ export default {
     // consumers take their bindings here, never from the fetch/RSC-only context helper, and
     // Placement Hints do not pin this handler either. A future consumer opens an identity
     // door the same way: `ctx.waitUntil(asStaff(env, claims, fn))`, never a captured `tx`.
+
+    // D-06: the DLQ is an ordinary queue on the Cloudflare side — its consumer is a second
+    // `consumers[]` entry in wrangler.jsonc, and this same exported `queue()` receives its
+    // batches with `batch.queue` set to the DLQ's own name (Cloudflare Queues JS API:
+    // `MessageBatch.queue` is "The name of the Queue that belongs to this batch."). Branch
+    // first, before the ordinary Stripe-event loop below, and always ack — never retry a
+    // DLQ message into itself (T-26.1-10).
+    if (batch.queue.endsWith("-dlq")) {
+      for (const message of batch.messages) {
+        const emit = withRequestContext({
+          requestId: message.id,
+          route: `queue:${batch.queue}`,
+          locale: null,
+        });
+        try {
+          await handleDlqMessage(env, message.body as StripeQueueMessage);
+        } catch {
+          emit("error", "dlq_handle_failed", { messageId: message.id });
+        }
+        message.ack();
+        emit("info", "dlq", { messageId: message.id, batchSize: batch.messages.length });
+      }
+      return;
+    }
+
     for (const message of batch.messages) {
       const emit = withRequestContext({
         requestId: message.id,
