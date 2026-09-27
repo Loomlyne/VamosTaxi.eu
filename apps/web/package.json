@@ -8,7 +8,7 @@
     "prebuild": "node ../../scripts/sync-dc-mock-to-public.mjs",
     "build": "next build",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "node ../../scripts/sync-dc-mock-to-public.mjs && vitest run",
     "test:watch": "vitest",
     "lint:css": "stylelint \"**/*.css\" --ignore-path .gitignore --ignore-path .stylelintignore",
     "preview": "node ../../scripts/sync-dc-mock-to-public.mjs && opennextjs-cloudflare build && opennextjs-cloudflare preview",
