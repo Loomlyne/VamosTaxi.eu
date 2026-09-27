@@ -238,6 +238,20 @@ export interface QuoteLegInput {
    */
   road?: boolean;
   waypoints: unknown[];
+  /** D-08b: customer-entered flight number. A non-empty value triggers the airport fee. */
+  flight_no?: string | null;
+  /**
+   * 26.1-09: true when the pickup resolves to an airport place (Mapbox), independent
+   * of origin_zone_id's zone_type. D-08b airport-fee trigger.
+   */
+  origin_is_airport?: boolean;
+  /**
+   * 26.1-09: Mapbox context.place.mapbox_id for the pickup — language-independent
+   * city identity for D-09 pair matching. Preferred over the label match in lines.ts.
+   */
+  origin_city_id?: string | null;
+  /** 26.1-09: Mapbox context.place.mapbox_id for the destination. */
+  dest_city_id?: string | null;
 }
 
 /**

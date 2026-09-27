@@ -1,22 +1,28 @@
 // apps/web/lib/pricing/lines.ts
 //
-// Per-leg line construction for the quote pipeline (D-06, D-11, D-17, D-45).
-// Fare → percent/amount/included surcharges → quantity extras. Every percent
-// is taken of THAT LEG'S fare line only — never a running total, never another
-// surcharge (D-06). Comment 8: a city-to-city or canton-to-canton pair is an
-// extra on the distance fare, not a replacement and not a Mapbox place pin.
-// A→B and B→A are separate rows. Extra stops skip that extra. Child seat /
-// oversized luggage emit one line per leg_seq on a
-// return. Extra stop is Mapbox places on the D-11 distance recipe, not a
-// chip fare (D-37).
+// Per-leg line construction for the quote pipeline (D-08, D-08a, D-08b, D-09,
+// D-45). Fare → airport fee → city/canton pair → percent/amount/included
+// surcharges → quantity extras. Every percent is taken of THAT LEG'S fare
+// line only — never a running total, never another surcharge (D-06).
+//
+// D-08: per leg the price is start fare + per-km × km, with no distance band
+// and no minimum fare ever entering the amount. buildAirportFeeLine (D-08b)
+// adds an airport pickup fee on top of that start — it never replaces it —
+// when the pickup is an airport (place resolution or zone_type) or the
+// customer entered a flight number. A city or canton pair (D-09) is a
+// separate extra on top: it applies in both directions and never when pickup
+// and destination resolve to the same place; when both a city and a canton
+// pair match the same leg, only the city pair applies (D-09a). Extra stops
+// skip that pair extra. Child seat / oversized luggage emit one line per
+// leg_seq on a return. Extra stop is Mapbox places on the D-11 distance
+// recipe, not a chip fare (D-37).
 //
 // Negative space: this module reads no clock, performs no I/O, formats nothing,
 // and never decides IF a surcharge applies — that is predicates.ts, called from
-// here. Client-supplied amounts are not parameters; quantities only.
-// Distance fare is start + all-km per-km + class band extras (D-11). min_fare
-// is not a floor.
+// here. Client-supplied amounts are not parameters; quantities only. A
+// client-sent fare_kind is not a pricing trust boundary — airport and pair
+// signals come from server-resolved place/zone fields (26.1-09).
 
-import { classBandExtrasRappen } from "./bands";
 import { evaluatePredicate } from "./predicates";
 import { percentOf, percentToHundredths, perKm } from "./round";
 import type {
@@ -323,20 +329,77 @@ export function publishedCityToCityRoutes(
   });
 }
 
+/** D-09/26.1-10: service_zones tag `mapbox_place:<id>` — language-independent city identity. */
+function cityIdOfZone(zone: ZoneRow | undefined): string | null {
+  if (!zone) return null;
+  for (const tag of zone.tags) {
+    const hit = /^mapbox_place:(.+)$/i.exec(tag.trim());
+    if (hit?.[1]) return hit[1];
+  }
+  return null;
+}
+
+/**
+ * D-09: a city pair covers both directions and never applies when pickup and
+ * destination resolve to the same place. Prefers 26.1-09's Mapbox city ids
+ * (language-independent); falls back to the label match when ids are absent.
+ */
 function matchCityPair(
   rows: FixedRouteRow[],
   leg: QuoteLegInput,
+  byId: Map<string, ZoneRow>,
 ): FixedRouteRow | null {
+  const originCityId =
+    leg.origin_city_id ??
+    (leg.origin_zone_id ? cityIdOfZone(byId.get(leg.origin_zone_id)) : null);
+  const destCityId =
+    leg.dest_city_id ??
+    (leg.dest_zone_id ? cityIdOfZone(byId.get(leg.dest_zone_id)) : null);
+
+  if (originCityId && destCityId) {
+    if (originCityId === destCityId) return null; // D-09 same-place guard
+    return (
+      rows.find((row) => {
+        if (row.kind !== "city") return false;
+        const rowOriginId = cityIdOfZone(byId.get(row.origin_zone_id));
+        const rowDestId = cityIdOfZone(byId.get(row.dest_zone_id));
+        if (!rowOriginId || !rowDestId) return false;
+        return (
+          (rowOriginId === originCityId && rowDestId === destCityId) ||
+          (rowOriginId === destCityId && rowDestId === originCityId)
+        );
+      }) ?? null
+    );
+  }
+
+  // Label fallback (no Mapbox city ids resolved yet — pre-26.1-09 legs).
+  const originPlace = leg.origin_place;
+  const destPlace = leg.dest_place;
+  if (
+    originPlace &&
+    destPlace &&
+    originPlace.trim().toLowerCase() === destPlace.trim().toLowerCase()
+  ) {
+    return null; // D-09 same-place guard
+  }
   return (
-    rows.find(
-      (row) =>
-        row.kind === "city" &&
-        placeHasLabel(leg.origin_place, row.origin_label) &&
-        placeHasLabel(leg.dest_place, row.dest_label),
-    ) ?? null
+    rows.find((row) => {
+      if (row.kind !== "city") return false;
+      const forward =
+        placeHasLabel(originPlace, row.origin_label) &&
+        placeHasLabel(destPlace, row.dest_label);
+      const reverse =
+        placeHasLabel(originPlace, row.dest_label) &&
+        placeHasLabel(destPlace, row.origin_label);
+      return forward || reverse;
+    }) ?? null
   );
 }
 
+/**
+ * D-09: a canton pair covers both directions and never applies when pickup
+ * and destination resolve to the same canton.
+ */
 function matchCantonPair(
   rows: FixedRouteRow[],
   leg: QuoteLegInput,
@@ -353,20 +416,26 @@ function matchCantonPair(
       ? normalizeCanton(leg.dest_canton)
       : null) ?? (dest ? cantonOfZone(byId.get(dest)) : null);
   if (!originCanton || !destCanton) return null;
+  if (originCanton === destCanton) return null; // D-09 same-place guard
   return (
     rows.find((row) => {
       if (!isCantonFixed(row, byId)) return false;
       const oc = cantonOfZone(byId.get(row.origin_zone_id));
       const dc = cantonOfZone(byId.get(row.dest_zone_id));
-      return oc === originCanton && dc === destCanton;
+      return (
+        (oc === originCanton && dc === destCanton) ||
+        (oc === destCanton && dc === originCanton)
+      );
     }) ?? null
   );
 }
 
 /**
- * Comment 8. City-to-city or canton-to-canton extra on the distance fare.
- * A to B does not match B to A. A Mapbox place pin is not a pair.
- * No match returns null — never an invented amount.
+ * Comment 8 / D-09 / D-09a. City-to-city or canton-to-canton extra on the
+ * distance fare. A pair matches both directions; a Mapbox place pin is not a
+ * pair. When both a city and a canton pair match the same leg, the city pair
+ * applies — exactly one pair extra per leg. No match returns null — never an
+ * invented amount.
  */
 export function buildFixedRouteExtraLine(args: {
   leg: QuoteLegInput;
@@ -390,23 +459,26 @@ export function buildFixedRouteExtraLine(args: {
     : args.fixedRoutes;
   const live = liveClassRows(fixedRoutes, vehicleClass.id);
   const byId = new Map(zoneRows.map((zone) => [zone.id, zone]));
-  const city = matchCityPair(live, leg);
+  const city = matchCityPair(live, leg, byId);
   const canton = matchCantonPair(live, leg, byId);
-  // Inside Switzerland a canton row wins. Cross-border has no canton row, so the city pair remains.
-  let fixed = canton ?? city;
-  let matched: "canton" | "city" | null = canton ? "canton" : city ? "city" : null;
+  // D-09a: when both match the same leg, the city pair applies — one route extra per leg.
+  let fixed = city ?? canton;
+  let matched: "canton" | "city" | null = city ? "city" : canton ? "canton" : null;
   if (
     !fixed &&
     args.publishedPairs &&
     leg.origin_zone_id &&
-    leg.dest_zone_id
+    leg.dest_zone_id &&
+    leg.origin_zone_id !== leg.dest_zone_id // D-09 same-place guard
   ) {
     fixed =
       live.find(
         (row) =>
           row.kind !== "place" &&
-          row.origin_zone_id === leg.origin_zone_id &&
-          row.dest_zone_id === leg.dest_zone_id,
+          ((row.origin_zone_id === leg.origin_zone_id &&
+            row.dest_zone_id === leg.dest_zone_id) ||
+            (row.origin_zone_id === leg.dest_zone_id &&
+              row.dest_zone_id === leg.origin_zone_id)),
       ) ?? null;
     if (fixed) matched = fixed.kind === "canton" ? "canton" : "city";
   }
@@ -432,42 +504,27 @@ export function buildFixedRouteExtraLine(args: {
 }
 
 /**
- * Distance fare is start + perKm(all metres) + class band extras. min_fare
- * is not a floor. A city or canton pair is buildFixedRouteExtraLine, not
- * this amount. A place pin does not replace this line.
- * Airport pickup swaps the start. A matching pair is buildFixedRouteExtraLine,
- * not this amount and not a second city_price line.
+ * D-08: distance fare is start (base_fare_rappen, always — never the airport
+ * start) + perKm(all metres). No distance band ever contributes, and
+ * min_fare is not a floor. A city or canton pair is buildFixedRouteExtraLine,
+ * not this amount. A place pin does not replace this line. The airport
+ * pickup fee is buildAirportFeeLine, added on top, never a swap of this
+ * start. `fareKind` is accepted for callers that still pass it but no longer
+ * changes the amount or the start — a client-sent fare_kind is not a pricing
+ * trust boundary (D-08b uses server-resolved airport signals instead).
  */
 export function buildFareLine(args: BuildFareLineArgs): Line {
-  const {
-    leg,
-    vehicleClass,
-    distanceRate,
-    rateVersionId,
-    distanceBands,
-    fareKind,
-  } = args;
-  const classId = vehicleClass.id;
+  const { leg, vehicleClass, distanceRate, rateVersionId } = args;
   const slug = vehicleClass.slug as VehicleClassSlug;
-  const kind = fareKindOrOneWay(fareKind);
-  const bands = distanceBands ?? [];
   const rowBase = distanceRate?.base_fare_rappen ?? null;
-  // Airport pickup uses a different start. Do not fall back to the one-way start.
-  const start =
-    kind === "airport_pickup"
-      ? (distanceRate?.airport_start_rappen ?? null)
-      : rowBase;
   const perKmR = distanceRate?.per_km_rappen ?? null;
   const distance_m = leg.distance_m;
   const haveMetres = Number.isFinite(distance_m) && distance_m > 0;
   const unrouted = leg.road === false && !haveMetres;
 
   let amount: number | null = null;
-  if (haveMetres && start !== null && perKmR !== null) {
-    amount =
-      start +
-      perKm(perKmR, distance_m) +
-      classBandExtrasRappen(distance_m, bands, classId);
+  if (haveMetres && rowBase !== null && perKmR !== null) {
+    amount = rowBase + perKm(perKmR, distance_m);
   }
 
   const provisional = seqFor(leg.leg_seq, "fare", "distance_fare");
@@ -483,15 +540,7 @@ export function buildFareLine(args: BuildFareLineArgs): Line {
       distance_m,
       per_km_rappen: perKmR,
       base_fare_rappen: rowBase,
-      band_count: bands.filter((row) => row.vehicle_class_id === classId).length,
-      ...(kind === "one_way"
-        ? {}
-        : {
-            fare_kind: kind,
-            start_rappen: start,
-            start_source:
-              kind === "airport_pickup" ? "airport_start_rappen" : "base_fare_rappen",
-          }),
+      start_source: "base_fare_rappen",
       ...(unrouted ? { unrouted: true } : {}),
     },
     ...(distanceRate
@@ -506,6 +555,75 @@ export function buildFareLine(args: BuildFareLineArgs): Line {
         }
       : {}),
     amount_rappen: amount,
+  };
+}
+
+type AirportFeeTrigger = "flight_no" | "airport_place" | "airport_zone";
+
+function airportFeeTrigger(
+  leg: QuoteLegInput,
+  zonesById: Map<string, ZoneRow>,
+): AirportFeeTrigger | null {
+  if (typeof leg.flight_no === "string" && leg.flight_no.trim().length > 0) {
+    return "flight_no";
+  }
+  if (leg.origin_is_airport === true) return "airport_place";
+  const zone = leg.origin_zone_id ? zonesById.get(leg.origin_zone_id) : undefined;
+  if (zone?.zone_type === "airport") return "airport_zone";
+  return null;
+}
+
+/**
+ * D-08b: the airport fee applies when the pickup is an airport — by
+ * server-resolved place (`origin_is_airport`, 26.1-09) or by zone_type — or
+ * the customer entered a flight number. A client-sent `fare_kind` never
+ * decides this.
+ */
+export function airportFeeApplies(
+  leg: QuoteLegInput,
+  zonesById: Map<string, ZoneRow> = new Map(),
+): boolean {
+  return airportFeeTrigger(leg, zonesById) !== null;
+}
+
+/**
+ * D-08 / D-08b: airport pickup fee, additive on top of buildFareLine's start —
+ * never a replacement. Null when the trigger is absent. A trigger present with
+ * a null `airport_start_rappen` still emits the line with a null amount
+ * (D-13) — never a guessed figure, never a silent 0.
+ */
+export function buildAirportFeeLine(args: {
+  leg: QuoteLegInput;
+  distanceRate: DistanceRateRow | null;
+  rateVersionId: number | null;
+  zones?: ZoneRow[];
+}): Line | null {
+  const { leg, distanceRate, rateVersionId, zones } = args;
+  const zonesById = new Map((zones ?? []).map((zone) => [zone.id, zone]));
+  const trigger = airportFeeTrigger(leg, zonesById);
+  if (!trigger) return null;
+  return {
+    seq: seqFor(leg.leg_seq, "surcharge", "airport_fee"),
+    leg_seq: leg.leg_seq,
+    kind: "surcharge",
+    code: "airport_fee",
+    i18n_key: "price.line.airport_fee",
+    basis: {
+      rule: "airport_fee",
+      trigger,
+    },
+    ...(distanceRate
+      ? {
+          source_row: {
+            table: "distance_rates",
+            id: distanceRate.id,
+            ...(rateVersionId !== null
+              ? { rate_version_id: rateVersionId }
+              : {}),
+          },
+        }
+      : {}),
+    amount_rappen: distanceRate?.airport_start_rappen ?? null,
   };
 }
 
