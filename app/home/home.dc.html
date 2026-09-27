@@ -699,11 +699,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <img data-trust-mark-word="1" data-vt-no-i18n="1" src="/assets/reviews/trustpilot.svg" alt="" aria-hidden="true" width="163" height="40">
 </span>
 <span data-trust-stars="1" aria-hidden="true">
-<img data-vt-no-i18n="1" src="/assets/reviews/trustpilot-star.svg" alt="" width="21" height="20">
-<img data-vt-no-i18n="1" src="/assets/reviews/trustpilot-star.svg" alt="" width="21" height="20">
-<img data-vt-no-i18n="1" src="/assets/reviews/trustpilot-star.svg" alt="" width="21" height="20">
-<img data-vt-no-i18n="1" src="/assets/reviews/trustpilot-star.svg" alt="" width="21" height="20">
-<img data-vt-no-i18n="1" src="/assets/reviews/trustpilot-star.svg" alt="" width="21" height="20">
+<img data-vt-no-i18n="1" data-trust-star="1" src="/assets/reviews/trustpilot-star.svg" alt="" width="21" height="20" style="opacity:{{ trustO1 }}">
+<img data-vt-no-i18n="1" data-trust-star="2" src="/assets/reviews/trustpilot-star.svg" alt="" width="21" height="20" style="opacity:{{ trustO2 }}">
+<img data-vt-no-i18n="1" data-trust-star="3" src="/assets/reviews/trustpilot-star.svg" alt="" width="21" height="20" style="opacity:{{ trustO3 }}">
+<img data-vt-no-i18n="1" data-trust-star="4" src="/assets/reviews/trustpilot-star.svg" alt="" width="21" height="20" style="opacity:{{ trustO4 }}">
+<img data-vt-no-i18n="1" data-trust-star="5" src="/assets/reviews/trustpilot-star.svg" alt="" width="21" height="20" style="opacity:{{ trustO5 }}">
 </span>
 <span data-trust-score="1">{{ trustScoreText }}</span>
 <span data-trust-count="1">{{ trustCountText }}</span>
@@ -1664,7 +1664,7 @@ class Component extends DCLogic {
   }
   trustSummary() {
     const off = 'var(--vt-text-inverse-muted)';
-    const empty = { has: false, score: '', count: '', href: '', logo: '', source: '', word: '', showMark: false, showLink: false, s1: off, s2: off, s3: off, s4: off, s5: off };
+    const empty = { has: false, score: '', count: '', href: '', logo: '', source: '', word: '', showMark: false, showLink: false, s1: off, s2: off, s3: off, s4: off, s5: off, o1: '0.3', o2: '0.3', o3: '0.3', o4: '0.3', o5: '0.3' };
     const store = window.VamosReviews;
     const rows = store && store.published ? store.published().filter((r) => r && Number(r.rating) > 0) : [];
     if (!rows.length) return empty;
@@ -1701,9 +1701,10 @@ class Component extends DCLogic {
     const filled = Math.max(0, Math.min(5, Math.round(avg)));
     const on = '#00b67a';
     const star = (n) => n <= filled ? on : off;
+    const op = (n) => n <= filled ? '1' : '0.3';
     const tw = this.t();
     const word = avg >= 4.5 ? (tw.trustExcellent || '') : avg >= 4 ? (tw.trustGreat || '') : avg >= 3 ? (tw.trustGood || '') : (tw.trustFair || '');
-    return { has: true, score, count: String(rows.length), href, logo, source, word, showMark: !!logo, showLink: true, s1: star(1), s2: star(2), s3: star(3), s4: star(4), s5: star(5) };
+    return { has: true, score, count: String(rows.length), href, logo, source, word, showMark: !!logo, showLink: true, s1: star(1), s2: star(2), s3: star(3), s4: star(4), s5: star(5), o1: op(1), o2: op(2), o3: op(3), o4: op(4), o5: op(5) };
   }
   /** Idle / First-class hold: design-system placeholder. Live quotes use fmtAmount. */
   fmt() {
@@ -2916,7 +2917,7 @@ class Component extends DCLogic {
       tTrustEmpty: t.trustEmpty, tTrustRead: t.trustRead, trustWord: trust.word,
       trustEmpty: !trust.has, trustHas: trust.has,
       trustShowMark: trust.showMark, trustLogo: trust.logo, trustSource: trust.source,
-      trustS1: trust.s1, trustS2: trust.s2, trustS3: trust.s3, trustS4: trust.s4, trustS5: trust.s5,
+      trustS1: trust.s1, trustS2: trust.s2, trustS3: trust.s3, trustS4: trust.s4, trustS5: trust.s5, trustO1: trust.o1, trustO2: trust.o2, trustO3: trust.o3, trustO4: trust.o4, trustO5: trust.o5,
       trustScoreText: trust.has ? (t.trustScore || '{n}/5').replace('{n}', trust.score) : '',
       trustCountText: trust.has ? (trust.count === '1' ? (t.trustCountOne || '1 review') : (t.trustCount || '{n} reviews').replace('{n}', trust.count)) : '',
       trustShowLink: trust.showLink, trustHref: trust.href,
