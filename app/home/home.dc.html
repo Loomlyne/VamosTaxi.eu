@@ -170,23 +170,28 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-fleet-cta="on"]{background:var(--vt-charcoal-900);color:var(--vt-white)}
 [data-fleet-cta="off"]{background:transparent;border:var(--vt-border-w) solid var(--vt-border-subtle);color:var(--vt-text-secondary);white-space:nowrap;line-height:1.15;text-align:center}
 [data-dest-strip]{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;gap:8px;padding-bottom:4px;background:transparent}
-[data-dest-card]{all:unset;box-sizing:border-box;display:flex;flex-direction:row;align-items:stretch;justify-content:flex-start;gap:10px;flex:0 0 420px;min-width:420px;max-width:460px;min-height:0;padding:8px;overflow:hidden;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);cursor:pointer;scroll-snap-align:start;font-family:var(--vt-font-body);color:var(--vt-text-primary);transition:box-shadow var(--vt-dur-fast,.2s) ease,border-color var(--vt-dur-fast,.2s) ease}
+/* data-fx-* only. HowItWorks [data-dest-copy] is a charcoal gradient and was painting over these labels. */
+[data-dest-card]{all:unset;box-sizing:border-box;display:grid;grid-template-columns:120px minmax(0,1fr);grid-template-areas:"photo stops" "photo price" "cta cta";column-gap:var(--vt-space-3);row-gap:var(--vt-space-3);align-items:start;flex:0 0 420px;min-width:420px;max-width:460px;min-height:0;padding:var(--vt-space-2);overflow:hidden;isolation:isolate;background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);cursor:pointer;scroll-snap-align:start;font-family:var(--vt-font-body);color:var(--vt-text-primary);text-align:start;transition-property:scale,box-shadow,border-color;transition-duration:150ms;transition-timing-function:cubic-bezier(.2,0,0,1)}
+[data-dest-card] *{box-sizing:border-box}
 [data-dest-card]:hover{border-color:var(--vt-grey-300);box-shadow:var(--vt-shadow-md)}
-[data-dest-card]:focus-visible{outline:3px solid rgb(253 194 11/.45);outline-offset:3px}
-[data-dest-img]{width:204px;height:204px;aspect-ratio:1/1;border-radius:var(--vt-radius-md);background:var(--vt-grey-100);overflow:hidden;flex:0 0 204px;position:relative;display:flex;align-items:center;justify-content:center}
-[data-dest-img] img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
-[data-dest-body]{display:flex;flex-direction:column;gap:var(--vt-space-2);padding:0;min-width:0;flex:1 1 auto;justify-content:flex-start}
-[data-dest-head]{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:var(--vt-space-4);min-width:0;width:100%}
-[data-dest-places]{display:flex;flex-direction:column;gap:var(--vt-space-2);min-width:0;width:100%}
-[data-dest-line]{position:relative;display:flex;align-items:flex-start;gap:var(--vt-space-2);min-width:0;width:100%}
-[data-dest-line]:not(:last-child)::before{content:"";position:absolute;inset-inline-start:6px;top:14px;bottom:calc(-1 * var(--vt-space-2));width:1px;background:var(--vt-grey-300);pointer-events:none}
-[data-dest-ico]{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:12px;height:12px;margin-block-start:1px;color:var(--vt-text-muted);pointer-events:none}
-[data-dest-line]:last-child [data-dest-ico]{color:var(--vt-charcoal-900)}
-[data-dest-copy]{display:flex;flex-direction:column;align-items:flex-start;gap:var(--vt-space-1);min-width:0;flex:1 1 auto}
-[data-dest-kicker]{font-size:var(--vt-label-sm);font-weight:var(--vt-label-weight);letter-spacing:.02em;color:var(--vt-text-secondary);line-height:1.2}
-[data-dest-from],[data-dest-to]{min-width:0;width:100%;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-semibold);line-height:1.35;color:var(--vt-text-primary);overflow-wrap:break-word;text-wrap:pretty}
-[data-dest-foot]{display:flex;flex-direction:column;align-items:stretch;gap:6px;min-width:0;width:100%;margin-top:auto}
-[data-dest-cta]{display:flex;align-items:center;justify-content:center;gap:7px;height:var(--vt-control-h-sm);padding:0 10px;border-radius:var(--vt-radius-pill);font-family:var(--vt-font-body);font-size:var(--vt-label-sm);font-weight:700;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;box-sizing:border-box;white-space:nowrap;width:100%;flex:0 0 auto;background:var(--vt-yellow);color:var(--vt-charcoal-900)}
+[data-dest-card]:active{scale:.96}
+[data-dest-card]:focus-visible{outline:3px solid var(--vt-yellow);outline-offset:3px}
+[data-fx-photo]{grid-area:photo;align-self:stretch;z-index:0;min-width:0;min-height:120px;border-radius:var(--vt-radius-sm);background:var(--vt-grey-100);border:var(--vt-border-w) solid var(--vt-border-subtle);overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center}
+[data-fx-photo] img{width:100%;height:100%;object-fit:cover;object-position:center;display:block;border-radius:inherit}
+[data-fx-pin]{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:var(--vt-radius-pill);background:var(--vt-bg-surface);color:var(--vt-grey-500);pointer-events:none}
+[data-fx-stops]{grid-area:stops;z-index:1;display:flex;flex-direction:column;gap:var(--vt-space-3);min-width:0;align-self:start;padding-bottom:var(--vt-space-3);background:transparent}
+[data-fx-stop]{position:relative;display:grid;grid-template-columns:28px minmax(0,1fr);column-gap:10px;align-items:start;min-width:0;margin:0;padding:0;background:transparent;background-image:none;box-shadow:none}
+[data-fx-stop]:not(:last-child)::before{content:"";position:absolute;inset-inline-start:13px;top:28px;bottom:calc(-1 * var(--vt-space-3));width:1px;background:var(--vt-grey-300);pointer-events:none}
+[data-fx-mark]{position:relative;z-index:1;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;flex:0 0 28px;border-radius:var(--vt-radius-sm);background:var(--vt-grey-100);color:var(--vt-text-secondary);pointer-events:none}
+[data-fx-stop][data-fx-end="1"] [data-fx-mark]{background:var(--vt-charcoal-900);color:var(--vt-white)}
+[data-fx-text]{display:flex;flex-direction:column;align-items:flex-start;gap:var(--vt-space-1);min-width:0;margin:0;padding:0;position:static;background:transparent;background-image:none;box-shadow:none}
+[data-fx-kicker]{max-width:100%;margin:0;padding:0;background:transparent;font-size:var(--vt-label-sm);font-weight:var(--vt-label-weight);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;line-height:1.2;color:var(--vt-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[data-fx-place]{min-width:0;width:100%;margin:0;padding:0;background:transparent;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-semibold);line-height:1.4;color:var(--vt-text-primary);overflow-wrap:break-word;text-wrap:pretty}
+[data-fx-price]{grid-area:price;z-index:1;display:flex;align-items:flex-end;align-self:end;justify-self:start;min-width:0;min-height:22px;background:transparent}
+[data-dest-card] [data-price-slot]{position:relative;width:92px;min-width:92px;max-width:92px;height:22px;overflow:hidden;flex:none}
+[data-dest-card] [data-price-slot] span{font-variant-numeric:tabular-nums}
+[data-fx-cta]{grid-area:cta;z-index:1;display:flex;align-items:center;justify-content:center;gap:7px;min-height:var(--vt-control-h-sm);height:auto;padding-block:8px;padding-inline:16px 14px;border-radius:var(--vt-radius-pill);font-family:var(--vt-font-body);font-size:var(--vt-label-sm);font-weight:var(--vt-weight-bold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;line-height:1.2;text-align:center;text-wrap:balance;box-sizing:border-box;width:100%;min-width:0;background:var(--vt-yellow);color:var(--vt-charcoal-900)}
+@media (prefers-reduced-motion:reduce){[data-dest-card]{transition:none}[data-dest-card]:active{scale:1}}
 [data-dest-empty]{margin:0;font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-inverse-muted)}
 [data-vtcombo]{display:flex;align-items:center;gap:9px;height:var(--vt-control-h-md);min-height:var(--vt-control-h-md);max-height:var(--vt-control-h-md);padding:0 7px 0 8px;box-sizing:border-box;background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:999px;overflow:hidden;transition:border-color .16s cubic-bezier(.2,0,.2,1),background .16s cubic-bezier(.2,0,.2,1)}
 [data-vtcombo]:hover{border-color:var(--vt-grey-300)}
@@ -780,24 +785,16 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <sc-if value="{{ destHasCards }}" hint-placeholder-val="{{ true }}">
 <sc-for list="{{ destCards }}" as="d" hint-placeholder-count="4">
 <button type="button" data-dest-card="1" title="{{ d.full }}" onClick="{{ d.pick }}">
-<div data-dest-img="1" style="width:204px;height:204px;aspect-ratio:1/1;border-radius:var(--vt-radius-md);background:var(--vt-grey-100);overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;flex:0 0 204px">
-<sc-if value="{{ d.noImage }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n24 }}" color="var(--vt-grey-500)" hint-size="24px,24px"></x-import></sc-if>
-<sc-if value="{{ d.hasImage }}" hint-placeholder-val="{{ false }}"><img src="{{ d.image }}" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block"></sc-if>
-</div>
-<div data-dest-body="1">
-<div data-dest-head="1">
-<div data-dest-places="1">
-<span data-dest-line="1"><span data-dest-ico="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n12 }}" color="currentColor" hint-size="12px,12px"></x-import></span><span data-dest-copy="1"><span data-dest-kicker="1">{{ d.fromLbl }}</span><span data-dest-from="1">{{ d.from }}</span></span></span>
-<span data-dest-line="1"><span data-dest-ico="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n12 }}" color="currentColor" hint-size="12px,12px"></x-import></span><span data-dest-copy="1"><span data-dest-kicker="1">{{ d.toLbl }}</span><span data-dest-to="1">{{ d.to }}</span></span></span>
-</div>
-<div data-price-row="1">
-<span ref="{{ d.dustRef }}" data-price-slot="1" dir="ltr"></span>
-</div>
-</div>
-<div data-dest-foot="1">
-<span data-dest-cta="1">{{ d.cta }}<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import></span>
-</div>
-</div>
+<span data-fx-photo="1">
+<sc-if value="{{ d.noImage }}" hint-placeholder-val="{{ true }}"><span data-fx-pin="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n24 }}" color="var(--vt-grey-500)" hint-size="24px,24px"></x-import></span></sc-if>
+<sc-if value="{{ d.hasImage }}" hint-placeholder-val="{{ false }}"><img src="{{ d.image }}" alt=""></sc-if>
+</span>
+<span data-fx-stops="1">
+<span data-fx-stop="1"><span data-fx-mark="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span><span data-fx-text="1"><span data-fx-kicker="1">{{ d.fromLbl }}</span><span data-fx-place="1">{{ d.from }}</span></span></span>
+<span data-fx-stop="1" data-fx-end="1"><span data-fx-mark="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="navigation" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span><span data-fx-text="1"><span data-fx-kicker="1">{{ d.toLbl }}</span><span data-fx-place="1">{{ d.to }}</span></span></span>
+</span>
+<span data-fx-price="1"><span ref="{{ d.dustRef }}" data-price-slot="1" dir="ltr"></span></span>
+<span data-fx-cta="1">{{ d.cta }}<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import></span>
 </button>
 </sc-for>
 </sc-if>
@@ -1326,6 +1323,7 @@ class Dust {
     const s = this.sp.style;
     if (this.small) { s.font = '500 12.5px Poppins, sans-serif'; s.letterSpacing = '0'; s.color = 'var(--vt-text-muted)'; s.whiteSpace = 'normal'; s.lineHeight = '1.2'; s.textAlign = this.o.align === 'left' ? 'left' : 'right'; }
     else { s.font = '600 ' + (this.o.size || 26) + 'px Qurova, Poppins, sans-serif'; s.letterSpacing = '-0.01em'; s.color = 'var(--vt-text-primary)'; s.whiteSpace = 'nowrap'; s.lineHeight = '1'; }
+    s.fontVariantNumeric = 'tabular-nums';
   }
   setText(text, small) { this.text = text; this.small = !!small; this.styleSpan(); this.sp.textContent = text; this.sp.style.opacity = '1'; this.cv.style.opacity = '0'; this.parts = []; this.mode = 'idle'; }
   syncSize() { const w = this.el.clientWidth, h = this.el.clientHeight; if (this.cv.width !== w * 2 || this.cv.height !== h * 2) { this.cv.width = w * 2; this.cv.height = h * 2; } }
