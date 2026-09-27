@@ -279,7 +279,7 @@ class Component extends DCLogic {
     this.focus = false;
     this.inView = false;
     this.loop = 0;
-    this.onLeave = () => { this.hand = false; this.kick(); };
+    this.onLeave = () => { this.hand = false; this._axisAt = 0; this.kick(); };
     this.onFocusIn = () => { this.focus = true; };
     this.onFocusOut = (e) => {
       if (!el.contains(e.relatedTarget)) { this.focus = false; this.kick(); }
@@ -321,8 +321,18 @@ class Component extends DCLogic {
     else if (e.deltaMode === 2) { dx *= window.innerHeight; dy *= window.innerHeight; }
     const ax = Math.abs(dx);
     const ay = Math.abs(dy);
-    const horizontal = e.shiftKey || ax > ay;
-    if (!horizontal) {
+    /* One gesture keeps one axis. A trackpad or a finger never swipes perfectly
+       straight, so a vertical page scroll emits stray deltaX frames; judging every
+       frame on its own let those frames read as horizontal, cancel the wheel, and
+       hand a cancelled event to Lenis — which is what stopped the page mid-scroll
+       whenever the pointer crossed the row. The axis is decided once per gesture
+       and held until the visitor lifts off, and horizontal has to win clearly. */
+    const now = e.timeStamp || Date.now();
+    if (!this._axisAt || now - this._axisAt > 180) {
+      this._axis = e.shiftKey || ax > ay * 1.4 ? 'x' : 'y';
+    }
+    this._axisAt = now;
+    if (this._axis !== 'x') {
       /* Vertical wheel belongs to the page. Do not cancel it, and do not pause the row. */
       return;
     }
