@@ -82,6 +82,19 @@ describe("OpsPricing tabs (D-11 D-12 D-17 D-25)", () => {
     expect(html).not.toMatch(/key:'van', header: t.colVan/);
   });
 
+  it("D-08/D-09/D-13: Distance rules labels the fee for what it does and drops the dead city-price input", () => {
+    const html = readFileSync(CANONICAL, "utf8");
+    expect(html).not.toMatch(/key:'cityPrice'/);
+    expect(html).toContain("Airport pickup fee (added to start)");
+    expect(html).toContain("Flughafen-Abholgebühr (zum Start addiert)");
+    expect(html).toContain("Frais aéroport (ajoutés au départ)");
+    expect(html).toContain("رسوم الاستقبال من المطار (تُضاف إلى البداية)");
+    expect(html).toContain(
+      "One pair covers both directions. Click a row and it goes live.",
+    );
+    expect(html).toContain("Start, per kilometre, airport pickup fee");
+  });
+
   it("class order is up and down arrows that save the same sort_order the grip was supposed to", () => {
     const html = readFileSync(CANONICAL, "utf8");
     const table = readFileSync(join(repoRoot, "app/ops/OpsTable.dc.html"), "utf8");
