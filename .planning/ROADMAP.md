@@ -98,6 +98,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 24: Dual-payer, pay-link, mail split** - Token recap pay; first charge wins; traveller manage vs payer receipt
 - [ ] **Phase 25: /bookings unpaid + TEST UAT + secret-swap design** - Unpaid row pays the same session; TEST UAT boring; live keys documented not executed
 - [x] **Phase 26: Legal gate** - Pixel and Purchase stay off until owner banner, cookies, and privacy lines exist in en/de/fr/ar; new policy version; flag stays off (completed 2026-09-23)
+- [ ] **Phase 26.1: Payment and pricing integrity (INSERTED)** - A paid session always confirms; refunds, disputes and DLQ reach the DB; the owner fare formula with 26 cantons; pay-link lock and race; refund rules; three classes; admin sign-in options
 - [ ] **Phase 27: Consent record** - Accept logs Meta on; Dismiss logs Meta off; existing banner until a choice, including a pay link
 - [ ] **Phase 28: Pixel PageView** - Pixel `1595596972063765` sends PageView only on allowed customer pages; click ids saved on the unpaid booking
 - [ ] **Phase 29: Webhook Purchase** - One Purchase from the settle queue in the CHF charged; quote, pay, and confirmation unchanged
@@ -983,6 +984,31 @@ Plans:
 
 **UI hint**: no
 
+### Phase 26.1: Payment and pricing integrity (INSERTED)
+
+**Goal**: Money and security come first. A payment always ends as a confirmed booking,
+every refund and dispute reaches the database, and every price is computed server-side
+from the owner's formula and the dashboard's own numbers. Absorbs the matching parts of
+Phase 22 (webhook wait, paid session always confirms) and Phase 25 (Stripe secret
+alignment). Source: `docs/audit/2026-vamos-audit.md` Phase A; decisions D-01…D-25 in
+`26.1-CONTEXT.md` (signed 2026-09-27).
+**Depends on**: Phase 26. Before 26.2 and 27. Does not start Phases 16/17/19/20 or 21–25. Does not load the pixel.
+**Requirements**: INT-01, INT-02, INT-03, INT-04, INT-05, INT-06, INT-07, INT-08, INT-09
+**Success Criteria** (what must be TRUE):
+
+  1. A successful Stripe payment always ends as a confirmed booking, including a booking that was cancelled or expired while the customer paid; the customer gets the confirmation. Every cancel or expire path also expires the open Stripe session.
+  2. Refunds use the PaymentIntent ID, never `cs_`. `charge.refunded` and `charge.dispute.*` reach the database. A dead-letter consumer with an alert exists, and a stuck `checkout.session.completed` replays safely. The sandbox charge `cs_test_a1lyA5…` has its refund recorded in `booking_refunds`.
+  3. Every leg is priced per D-08: start fare + per-km × km + airport fee (airport pickup or flight number) + matching city/canton pair + enabled surcharges; then coupon %, never below CHF 0; then VAT 8.1 % on top. No minimum fare, no bands. Checkout fails closed when the price book cannot load; `pricing_live` is read, never hard-coded; coupon caps are enforced at payment.
+  4. All 26 cantons exist as Mapbox boundary zones; every canton → different canton pair (both directions) carries CHF 50 for all three classes. Duplicate and point-of-interest zones are cleaned up. Rate book version 18 stays labelled "placeholder, not owner-approved"; the agent never clicks Publish.
+  5. A pay link locks the booking 24 h; the recipient's payment confirms it; unpaid after 24 h it auto-cancels. If the customer pays first, the link shows "already paid". Two simultaneous payers: one is accepted; a second successful charge is refunded automatically.
+  6. Refunds: cancelled > 24 h before pickup → automatic full refund; < 24 h → admin approves and sets the percentage; after the trip → admin accepts or rejects.
+  7. The classes are Economy, Business, Van luxury (Saden → Economy, V-Class → Business, First dropped). Dashboard delete is a hard delete when nothing references the row, otherwise hidden with a reason; `mahaha` goes.
+  8. Only the admin signs in. In account settings the admin can add a passkey, add TOTP, or switch password ↔ magic link, each working end to end; once a factor is enrolled, aal2 is required. Changing password or email requires signing in again. Leaked-password protection is on (owner toggle).
+  9. Must-nots: Stripe sandbox `acct_1UIZmqHcNp9GZYjz` only, no `sk_live_`, no `vamostaxi.eu`, no invented CHF or legal copy, no pixel. The agent never writes to live Supabase `yaumjzvylngfjhtuffqs` (migrations are handed to the owner as SQL) and never makes Stripe dashboard changes or `wrangler secret put`. Four languages and the design laws hold on every touched surface.
+
+**Plans**: TBD
+**UI hint**: yes — pay-link "already paid" page, ops refund approval, admin account-settings sign-in methods, class names.
+
 ### Phase 27: Consent record
 
 **Goal**: Accept logs Meta on. Dismiss logs Meta off. The latest `consent_log` row
@@ -1044,7 +1070,7 @@ v1.0: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 → 9 → 10 → 11 → 18 
 v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16 → 17
 Close-out one-by-one: 17 deploy → 17 SQL apply → 17 UAT → 16 ROADMAP tick → discuss 19 surge → 11-12 owner Publish (never agent)
 v1.2 Payment (leftovers 16/17/19/20 frozen): 21 → 22 → 23 → 24 → 25
-v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 27 → 28 → 29
+v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 26.1 → 27 → 28 → 29
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -1074,6 +1100,7 @@ v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 27 → 
 | 24. Dual-payer, pay-link, mail split | 0/TBD | Not started | - |
 | 25. /bookings unpaid + TEST UAT + secret-swap design | 0/TBD | Not started | - |
 | 26. Legal gate | 2/2 | Complete    | 2026-09-23 |
+| 26.1. Payment and pricing integrity (INSERTED) | 0/TBD | Not started | - |
 | 27. Consent record | 0/TBD | Not started | - |
 | 28. Pixel PageView | 0/TBD | Not started | - |
 | 29. Webhook Purchase | 0/TBD | Not started | - |
@@ -1086,3 +1113,4 @@ v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 27 → 
 *Phase 17 chauffeur desk added: 2026-09-11*
 *v1.2 Payment added: 2026-09-22 (phases 21–25; leftovers 16/17/19/20 unchanged)*
 *v1.3 Meta measurement added: 2026-09-23 (phases 26–29; v1.2 phases 21–25 unchanged)*
+*Phase 26.1 inserted: 2026-09-27 (payment and pricing integrity; INT-01…INT-09; discuss signed the same day)*

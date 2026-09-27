@@ -274,6 +274,18 @@ Filled by the roadmapper.
 
 ---
 
+### Payment and pricing integrity (INT) — Phase 26.1
+
+- [ ] **INT-01**: Only the Vamos Taxi Stripe sandbox is used; the Worker webhook secret matches the sandbox endpoint (owner sets it) (D-01, D-02)
+- [ ] **INT-02**: A successful payment always ends as a confirmed booking, reviving a cancelled or expired one; every cancel or expire path expires the open Stripe session; abandoning payment still auto-cancels (D-03, D-04, D-18, D-19)
+- [ ] **INT-03**: Refunds use the PaymentIntent ID; `charge.refunded` and disputes reach the DB; a DLQ consumer with an alert exists and a stuck session replays safely; the sandbox CHF 77.80 refund is recorded (D-05, D-06, D-07)
+- [ ] **INT-04**: The server prices each leg by the owner formula — lines, then coupon % (floor CHF 0), then VAT 8.1 %; airport fee on airport pickup or flight number; city pair both directions for different places; fails closed; `pricing_live` read; coupon caps enforced at payment (D-08…D-09, D-11, D-12)
+- [ ] **INT-05**: All 26 cantons as boundary zones with canton → different canton CHF 50 for every class; duplicate/POI zones cleaned; every amount from the dashboard; version 18 stays a labelled placeholder and the agent never publishes (D-10, D-10a, D-13)
+- [ ] **INT-06**: A pay link locks the booking 24 h and auto-cancels when unpaid; the recipient's payment confirms; "already paid" when the customer paid first; a race accepts one and auto-refunds a second charge (D-20, D-21, D-22)
+- [ ] **INT-07**: Customer cancel > 24 h before pickup refunds in full automatically; < 24 h needs admin approval with a percentage; after the trip the admin accepts or rejects (D-23, D-24, D-25)
+- [ ] **INT-08**: Classes are Economy, Business, Van luxury; dashboard delete is hard when unreferenced, otherwise hidden with a reason; `mahaha` goes (D-14, D-15)
+- [ ] **INT-09**: Only the admin signs in; passkey, TOTP and password ↔ magic link all work end to end from account settings; aal2 once a factor is enrolled; re-auth before password or email change; leaked-password protection on (D-16, D-16a, D-17)
+
 ## v2 Requirements
 
 Acknowledged, deliberately deferred, and kept in planning so the schema does not paint them
@@ -479,6 +491,23 @@ Populated during v1.1 roadmap creation.
 
 **v1.1 coverage:** 9 requirements, 9 mapped, unmapped 0 ✓
 
+### Phase 26.1 traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| INT-01 | Phase 26.1 | Pending |
+| INT-02 | Phase 26.1 | Pending |
+| INT-03 | Phase 26.1 | Pending |
+| INT-04 | Phase 26.1 | Pending |
+| INT-05 | Phase 26.1 | Pending |
+| INT-06 | Phase 26.1 | Pending |
+| INT-07 | Phase 26.1 | Pending |
+| INT-08 | Phase 26.1 | Pending |
+| INT-09 | Phase 26.1 | Pending |
+
+**Phase 26.1 coverage:** 9 requirements, 9 mapped, unmapped 0 ✓
+
 ---
 *Requirements defined: 2026-08-17*
 *Last updated: 2026-09-22 — v1.2 Traceability filled (PAY-08…PAY-18 → phases 21–25). v1/v1.1 rows unchanged.*
+*Updated 2026-09-27 — INT-01…INT-09 added for inserted Phase 26.1 (payment and pricing integrity).*
