@@ -1009,7 +1009,8 @@ alignment). Source: `docs/audit/2026-vamos-audit.md` Phase A; decisions D-01…D
 **Plans**: 31 plans, 18 waves
 
 Plans:
-- [ ] 26.1-01-PLAN.md — Merge PR #60 baseline; pin sandbox-only Stripe (INT-01)
+
+- [x] 26.1-01-PLAN.md — Merge PR #60 baseline; pin sandbox-only Stripe (INT-01)
 - [ ] 26.1-02-PLAN.md — Settle SQL: revive every cancel (D-03a), requote refund, pi_ write-back, duplicate flag
 - [ ] 26.1-03-PLAN.md — DLQ consumer and stuck-payment alert
 - [ ] 26.1-04-PLAN.md — Pricing kernel: owner formula, airport fee, pairs both ways (D-09a)
@@ -1040,6 +1041,7 @@ Plans:
 - [ ] 26.1-29-PLAN.md — Traveller intent and requote honour the pay-link hold
 - [ ] 26.1-30-PLAN.md — Flight number typed at checkout re-prices; intent refuses mismatch
 - [ ] 26.1-31-PLAN.md — Checkout shows DB class name; tests and project rules use the line-up
+
 **UI hint**: yes — pay-link "already paid" page, ops refund approval, admin account-settings sign-in methods, class names.
 
 ### Phase 27: Consent record
@@ -1133,7 +1135,7 @@ v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 26.1 �
 | 24. Dual-payer, pay-link, mail split | 0/TBD | Not started | - |
 | 25. /bookings unpaid + TEST UAT + secret-swap design | 0/TBD | Not started | - |
 | 26. Legal gate | 2/2 | Complete    | 2026-09-23 |
-| 26.1. Payment and pricing integrity (INSERTED) | 0/31 | Not started | - |
+| 26.1. Payment and pricing integrity (INSERTED) | 1/31 | In Progress|  |
 | 27. Consent record | 0/TBD | Not started | - |
 | 28. Pixel PageView | 0/TBD | Not started | - |
 | 29. Webhook Purchase | 0/TBD | Not started | - |

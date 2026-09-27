@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Meta measurement
-status: Ready to discuss
-stopped_at: Phase 26.1 planned (31 plans, 18 waves); waiting for owner plan-gate signature
-last_updated: "2026-09-27T21:24:06.468Z"
-last_activity: 2026-09-23
+status: executing
+stopped_at: "Phase 26.1 plan 01 complete (merge + INT-01 pin); test:unit blocker recorded"
+last_updated: "2026-09-27T21:43:53.083Z"
+last_activity: 2026-09-27
 progress:
   total_phases: 31
   completed_phases: 17
   total_plans: 246
-  completed_plans: 204
+  completed_plans: 205
   percent: 55
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-23)
 
 **Core value:** quote → pay → confirmation. v1.3 measures ads only. It does not change pay.
-**Current focus:** Phase 26 lock is on `gsd/phase-26-legal-gate`, not live. Next is discuss-phase 27. Do not execute 27. Do not load the pixel. v1.2 Phases 21–25 stay planned. No `sk_live_`. No `.eu`.
+**Current focus:** Phase 26.1 — Payment and pricing integrity
 
 ## Current Position
 
-Phase: 27
-Plan: Not started
-Status: Ready to discuss
-Last activity: 2026-09-23
+Phase: 26.1 (Payment and pricing integrity) — EXECUTING
+Plan: 2 of 31
+Status: Ready to execute
+Last activity: 2026-09-27
 
 Phase 21 execution note (not current): planning complete — 8 plans. Execution started 2026-09-22 on `gsd/phase-21-charge-gate`. That position was Phase 21 EXECUTING, plan 1 of 8. Phase 21 is not complete. Do not execute Phase 16/17/19/20. Do not touch the main checkout from that branch note.
 
@@ -42,10 +42,12 @@ Phase 21 execution note (not current): planning complete — 8 plans. Execution 
 
 Stripe live keys and Search Console stay owner-gated. Agent does not click Publish. Agent does not `supabase db push`. Never restore onto yaumjzvylngfjhtuffqs. No `vamostaxi.eu`. No `sk_live_`. `11-12` remains owner-gated and does not block Phase 13.
 
+- test:unit red: apps/web/lib/meta/legal-gate.test.ts (policy version unchanged, flag off) time out at vitest's 5000ms default after PR #60 added ~1161 Darwin visual-baseline PNGs to the tree its walk("") reads; confirmed not a logic bug (passes at 30000ms timeout); needs a timeout raise or a scoped walk before 26.1's baseline is fully green
+
 ## Session Continuity
 
-Last session: 2026-09-27T21:24:06.431Z
-Stopped at: Phase 26.1 planned (31 plans, 18 waves); waiting for owner plan-gate signature
+Last session: 2026-09-27T21:43:53.079Z
+Stopped at: Phase 26.1 plan 01 complete (merge + INT-01 pin); test:unit blocker recorded
 Resume: `/gsd:discuss-phase 27`. Do not execute 27. Do not load the pixel. Do not execute Phase 21 while v1.3 is current. Payment plans stay on disk. Do not execute Phase 16/17/19/20. Do not `phases.clear`.
 
 Phase 21 branch session (2026-09-22T19:57:29.795Z, not the resume): Stopped at Phase 21 planning complete — 8 plans. Resume was: Phase 21 executing on gsd/phase-21-charge-gate. Do not execute Phase 16/17/19/20. Do not touch the main checkout.
@@ -81,6 +83,7 @@ Restart 2026-09-14 **supersedes** 2026-09-13 D-01…D-40. Full text: `.planning/
 - [Phase 18]: Closed 2026-09-15 — 18-UAT 7/7 pass, 18-VERIFICATION passed. Agent did not Publish.
 - [Phase 13]: Wave 0 web tests lock GET RFC identity, BCC info@, fail-closed send, unminted Message-ID, overlay sendError. From stays noreply; Reply-To is plus-address. GREEN is 13-03/13-07/13-09. — CONTEXT D-01 to D-12. Tests-only plan; production send files not edited.
 - [Phase 13]: Wave 0 emails tests lock staff-reply name/booking_ref/Re:/no WhatsApp, Confirmation wordmark PNG, auth no-Arial, skip-send missing-copy. GREEN is 13-04/13-05. Tests-only; production chrome/contact/layout/send not edited. — CONTEXT D-02 D-03 D-04. StaffReplyEmailData stays { reply } until 13-05; extra keys via type assertion. claimThenSend skip-send must be ok false missing-copy, not ok true skipped.
+- [Phase 26.1]: PR #60 merged into gsd/phase-26.1-payment-pricing (--no-ff, no conflicts); X13/X14 closed on this branch — Baseline must be green before 26.1 code lands per phase success criteria
 
 ## Performance Metrics
 
@@ -88,3 +91,4 @@ Restart 2026-09-14 **supersedes** 2026-09-13 D-01…D-40. Full text: `.planning/
 |-------|------|----------|-------|
 | Phase 13 P01 | 10min | 3 tasks | 5 files |
 | Phase 13 P02 | 8min | 3 tasks | 4 files |
+| Phase 26.1 P01 | 20min | 2 tasks | 1 files |

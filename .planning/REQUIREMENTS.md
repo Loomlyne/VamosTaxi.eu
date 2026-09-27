@@ -24,6 +24,7 @@ and are final — "matches the mock" is a real acceptance criterion, not a hand-
 
 - [x] **META-01**: The pixel and the Purchase call stay off until the owner pastes the banner, cookies, and privacy lines in en, de, fr, and ar. Do not draft them.
   Lock shipped on the branch. The paste has not happened. This check is not a licence to load the pixel.
+
 - [x] **META-02**: A new consent policy version. An old Accept, from when marketing was stored off, does not turn Meta on.
 
 ### Consent
@@ -276,7 +277,7 @@ Filled by the roadmapper.
 
 ### Payment and pricing integrity (INT) — Phase 26.1
 
-- [ ] **INT-01**: Only the Vamos Taxi Stripe sandbox is used; the Worker webhook secret matches the sandbox endpoint (owner sets it) (D-01, D-02)
+- [x] **INT-01**: Only the Vamos Taxi Stripe sandbox is used; the Worker webhook secret matches the sandbox endpoint (owner sets it) (D-01, D-02)
 - [ ] **INT-02**: A successful payment always ends as a confirmed booking, reviving a cancelled or expired one; every cancel or expire path expires the open Stripe session; abandoning payment still auto-cancels (D-03, D-04, D-18, D-19)
 - [ ] **INT-03**: Refunds use the PaymentIntent ID; `charge.refunded` and disputes reach the DB; a DLQ consumer with an alert exists and a stuck session replays safely; the sandbox CHF 77.80 refund is recorded (D-05, D-06, D-07)
 - [ ] **INT-04**: The server prices each leg by the owner formula — lines, then coupon % (floor CHF 0), then VAT 8.1 %; airport fee on airport pickup or flight number; city pair both directions for different places; fails closed; `pricing_live` read; coupon caps enforced at payment (D-08…D-09, D-11, D-12)
@@ -495,7 +496,7 @@ Populated during v1.1 roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INT-01 | Phase 26.1 | Pending |
+| INT-01 | Phase 26.1 | Complete |
 | INT-02 | Phase 26.1 | Pending |
 | INT-03 | Phase 26.1 | Pending |
 | INT-04 | Phase 26.1 | Pending |
