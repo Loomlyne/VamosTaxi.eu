@@ -15,7 +15,7 @@ test.describe("Manage booking lookup gate @customer", () => {
     const signIn = page.getByRole("link", { name: /sign in/i }).first();
     await signIn.focus();
     await page.keyboard.press("Enter");
-    await expect(page).toHaveURL(/\/sign-in$/);
+    await expect(page).toHaveURL(/\/sign-in(\.dc\.html)?$/);
 
     await page.goBack();
     await waitForMockReady(page);
@@ -23,7 +23,7 @@ test.describe("Manage booking lookup gate @customer", () => {
     await page.getByLabel("Email address").fill("customer@example.com");
     await page.getByLabel("Email address").press("Enter");
 
-    await expect(page.getByRole("alert")).toContainText("Online booking lookup is not available yet");
+    await expect(page.getByRole("alert")).toContainText("We could not find this booking.");
     await expect(page.getByRole("heading", { name: "VT-4821" })).toHaveCount(0);
   });
 

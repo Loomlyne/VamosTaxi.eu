@@ -46,7 +46,7 @@ test.describe("ops photo upload @ops-photo", () => {
     expect(key.startsWith(`vehicles/${RECORD_ID}/`)).toBe(true);
     expect(key.endsWith(".jpg")).toBe(true);
     expect(key).not.toContain("portrait");
-    expect([...PHOTO_PREFIXES]).toEqual(["vehicles/", "chauffeurs/", "reviews/", "staff/", "site/"]);
+    expect([...PHOTO_PREFIXES]).toEqual(["vehicles/", "chauffeurs/", "reviews/", "staff/", "site/", "classes/"]);
   });
 
   test("assertPhotoUpload rejects the wrong type, oversize, and magic mismatch", () => {

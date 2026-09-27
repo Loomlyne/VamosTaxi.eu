@@ -39,11 +39,11 @@ jobs:
       - name: Install Playwright Chromium
         run: pnpm --filter web exec playwright install chromium
 
-      # `changed` rewrites only snapshots that no longer match. Behaviour assertions that
+      # test:visual syncs the DC mocks into public/ first. `changed` rewrites only snapshots that no longer match. Behaviour assertions that
       # fail are not screenshots and stay failing; the step continues so the PNGs land.
       - name: Update mismatched screenshots
         timeout-minutes: 40
-        run: pnpm --filter web exec playwright test --update-snapshots=changed || true
+        run: pnpm test:visual --update-snapshots=changed || true
 
       - name: Commit refreshed baselines to this branch
         run: |
