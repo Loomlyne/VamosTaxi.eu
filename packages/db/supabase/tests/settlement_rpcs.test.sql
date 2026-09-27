@@ -5,7 +5,7 @@
 -- claim-then-send + sweep (D-17/D-19/U18). Synthetic figures, rolled back at the
 -- end of this file -- never a real CHF amount (D-34).
 begin;
-select plan(93);
+select plan(94);
 
 -- Fixtures --------------------------------------------------------------------------------
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
@@ -614,7 +614,12 @@ select is(
   'record second-success event'
 );
 
-select throws_ok(
+-- 26.1-02 D-22 superseded this assertion: a second succeeded charge on an
+-- already-succeeded snapshot no longer raises 23505 -- it is flagged
+-- duplicate (see settle_revive.test.sql for the full behaviour). Proven here
+-- only as "does not raise" plus the duplicate status, so this file stays a
+-- true record of checkout_payment_settle's live contract.
+select lives_ok(
   $$
     select public.checkout_payment_settle(
       'evt_settle_second',
@@ -625,9 +630,12 @@ select throws_ok(
       null, null, null, null
     )
   $$,
-  '23505',
-  null,
-  'second succeeded payment on one booking raises 23505 (booking_payments_one_success)'
+  'second succeeded payment on one booking never raises 23505 -- flagged duplicate instead (26.1-02 D-22)'
+);
+select is(
+  (select status from public.booking_payments where stripe_checkout_session_id = 'cs_settle_second'),
+  'duplicate',
+  'second booking_payments row lands as duplicate status (26.1-02 D-22)'
 );
 
 -- Not found --------------------------------------------------------------------

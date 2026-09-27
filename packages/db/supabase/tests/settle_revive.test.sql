@@ -44,6 +44,12 @@ update public.rate_versions set status = 'live' where slug = 'rt-rv';
 insert into public.coupons (code, kind, percent, active)
 values ('RT-REVIVE-10', 'percent', 10.00, true);
 
+-- vamos_checkout has no SELECT on public.coupons; resolve the id once here,
+-- under the default (unrestricted) test role, and hand the id through.
+create temporary table rt_coupon as
+select id from public.coupons where code = 'RT-REVIVE-10';
+grant select on rt_coupon to public;
+
 create temporary table rt_fx as
 select
   vc.id as vehicle_class_id,
@@ -198,6 +204,25 @@ select function_privs_are('public', 'checkout_duplicate_refund_record',
   '{int8,text,rappen,text}'::text[], 'vamos_system', '{EXECUTE}'::text[],
   'checkout_duplicate_refund_record: vamos_system holds EXECUTE');
 
+-- Every event id this file settles needs its own stripe_events row first --
+-- checkout_payment_settle only stamps processed_at on an existing row (it is
+-- not the insert-first ledger step; that is stripe_event_record, tested in
+-- settlement_rpcs.test.sql).
+insert into public.stripe_events (id, type, stripe_created, object_id, payload)
+values
+  ('evt_rt_happy', 'checkout.session.completed', now(), 'cs_rt_happy', '{}'::jsonb),
+  ('evt_rt_multi', 'checkout.session.completed', now(), 'cs_rt_multi_a', '{}'::jsonb),
+  ('evt_rt_expire', 'checkout.session.completed', now(), 'cs_rt_expire', '{}'::jsonb),
+  ('evt_rt_account', 'checkout.session.completed', now(), 'cs_rt_account', '{}'::jsonb),
+  ('evt_rt_abandon', 'checkout.session.completed', now(), 'cs_rt_abandon', '{}'::jsonb),
+  ('evt_rt_staff', 'checkout.session.completed', now(), 'cs_rt_staff', '{}'::jsonb),
+  ('evt_rt_requote', 'checkout.session.completed', now(), 'cs_rt_requote', '{}'::jsonb),
+  ('evt_rt_past', 'checkout.session.completed', now(), 'cs_rt_past', '{}'::jsonb),
+  ('evt_rt_test', 'checkout.session.completed', now(), 'cs_rt_test', '{}'::jsonb),
+  ('evt_rt_dup_1', 'checkout.session.completed', now(), 'cs_rt_dup_1', '{}'::jsonb),
+  ('evt_rt_dup_2', 'checkout.session.completed', now(), 'cs_rt_dup_2', '{}'::jsonb),
+  ('evt_rt_dup_2b', 'checkout.session.completed', now(), 'cs_rt_dup_2', '{}'::jsonb);
+
 -- 1. Happy path: pending booking, cs_ stored at creation, pi_ written back on
 --    settle, booking confirmed (D-05). -----------------------------------------
 set local role vamos_checkout;
@@ -315,7 +340,7 @@ create temporary table rt_out_expire as
     'cs_rt_expire', 'cs_rt_expire',
     decode(repeat('10', 32), 'hex'), 'rt-expire@example.test',
     now() + interval '3 days',
-    (select id from public.coupons where code = 'RT-REVIVE-10'),
+    (select id from rt_coupon),
     'RT-REVIVE-10'
   );
 reset role;
@@ -402,6 +427,7 @@ create temporary table rt_out_account as
     decode(repeat('03', 32), 'hex'), 'rt-account@example.test',
     now() + interval '3 days'
   );
+grant select on rt_out_account to public;
 reset role;
 
 set local role authenticated;
@@ -452,7 +478,7 @@ set local role vamos_checkout;
 select lives_ok(
   $$
     select * from public.checkout_abandon_unpaid(
-      (select b.quote_id from rt_out_abandon o join public.bookings b on b.id = o.booking_id)
+      '10000000-0000-4000-8000-000000000004'::uuid
     )
   $$,
   'abandon: checkout_abandon_unpaid cancels by quote_id'
@@ -498,7 +524,7 @@ reset role;
 select lives_ok(
   $$
     select * from public.ops_cancel_booking(
-      (select booking_id from rt_out_staff), '30000000-0000-4000-8000-000000000005'::uuid
+      (select booking_id from rt_out_staff), null::uuid
     )
   $$,
   'staff: ops_cancel_booking cancels the pending booking'
@@ -536,7 +562,7 @@ set local role vamos_checkout;
 select lives_ok(
   $$
     select * from public.checkout_requote_cancel(
-      (select b.quote_id from rt_out_requote o join public.bookings b on b.id = o.booking_id)
+      '10000000-0000-4000-8000-000000000006'::uuid
     )
   $$,
   'requote: checkout_requote_cancel cancels by quote_id'
@@ -578,6 +604,7 @@ create temporary table rt_out_past as
     decode(repeat('07', 32), 'hex'), 'rt-past@example.test',
     now() - interval '2 days'
   );
+grant select on rt_out_past to public;
 reset role;
 
 set local role authenticated;
@@ -696,7 +723,7 @@ select is(
 select lives_ok(
   $$
     select * from public.ops_cancel_booking(
-      (select booking_id from rt_out_dup), '30000000-0000-4000-8000-000000000009'::uuid
+      (select booking_id from rt_out_dup), null::uuid
     )
   $$,
   'dup: staff cancels the now-paid booking'

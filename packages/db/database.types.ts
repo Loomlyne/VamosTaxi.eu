@@ -2576,6 +2576,18 @@ export type Database = {
           snapshot_id: number
         }[]
       }
+      checkout_duplicate_refund_record: {
+        Args: {
+          p_payment_id: number
+          p_reason: string
+          p_refund_rappen: unknown
+          p_stripe_refund_id: string
+        }
+        Returns: {
+          booking_id: string
+          refund_id: number
+        }[]
+      }
       checkout_expire_unpaid: {
         Args: never
         Returns: {
@@ -2651,9 +2663,17 @@ export type Database = {
         Returns: {
           already_settled: boolean
           booking_id: string
+          charged_rappen: number
           contact_email: string
+          duplicate: boolean
           locale: string
+          other_open_session_ids: string[]
+          payment_id: number
           reference: string
+          refund_reason: string
+          refund_required: boolean
+          revived: boolean
+          snapshot_id: number
         }[]
       }
       checkout_quote_left: { Args: { p_quote_id: string }; Returns: boolean }
