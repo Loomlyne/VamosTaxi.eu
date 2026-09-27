@@ -180,7 +180,10 @@ select set_config(
     'app_metadata', jsonb_build_object('vamos_role', 'dispatcher'))::text,
   true
 );
-select is(app.is_staff(), false, 'D-05: active dispatcher at aal1 is not staff');
+-- Owner decision 2026-09-27 (26.1 D-16/D-16a): only the admin signs in and a second factor is
+-- optional; aal2 is required only once a factor is enrolled (that half lands with Phase 26.1).
+-- An accepted, active staff row at aal1 with no enrolled factor is therefore staff.
+select is(app.is_staff(), true, 'active, accepted staff at aal1 with no enrolled factor is staff');
 
 select set_config(
   'request.jwt.claims',

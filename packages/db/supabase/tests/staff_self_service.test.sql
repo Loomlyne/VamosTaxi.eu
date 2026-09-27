@@ -68,10 +68,12 @@ select function_privs_are(
   'authenticated', '{}'::text[],
   'authenticated holds no EXECUTE on public.staff_update_self(...)'
 );
+-- 20260901000001 grants this to authenticated on purpose: /api/staff/claim-invite calls it as the
+-- invited user, and the function itself only stamps a row whose email matches the caller.
 select function_privs_are(
   'public', 'staff_claim_invite', '{}'::text[],
-  'authenticated', '{}'::text[],
-  'authenticated holds no EXECUTE on public.staff_claim_invite()'
+  'authenticated', array['EXECUTE'],
+  'authenticated holds EXECUTE on public.staff_claim_invite() (invite claim route)'
 );
 
 insert into auth.users (id, email, aud, role, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -219,18 +221,20 @@ select is(
   'second staff_claim_invite leaves accepted_at unchanged'
 );
 
--- aal1 / missing claim: staff_self is empty; claim raises. --------------------------------------
+-- aal1 with no enrolled factor: staff_self returns the row; a repeat claim is a no-op. ---------
+-- Owner decision 2026-09-27 (26.1 D-16/D-16a): only the admin signs in and a second factor is
+-- optional; aal2 is required only once a factor is enrolled (that half lands with Phase 26.1).
+-- An accepted, active staff row at aal1 with no enrolled factor is therefore staff.
 set local role vamos_staff;
 select set_config('request.jwt.claims',
   jsonb_build_object('sub', '06010000-0000-4000-a000-000000000001', 'role', 'authenticated', 'aal', 'aal1',
     'app_metadata', jsonb_build_object('vamos_role', 'dispatcher'))::text,
   true);
-select is((select count(*) from app.staff_self())::int, 0,
-  'dispatcher at aal1 gets zero rows from app.staff_self()');
-select throws_ok(
+select is((select count(*) from app.staff_self())::int, 1,
+  'accepted staff at aal1 (no factor enrolled) gets its own row from app.staff_self()');
+select lives_ok(
   $$ select public.staff_claim_invite() $$,
-  '42501', null,
-  'staff_claim_invite at aal1 raises 42501'
+  'staff_claim_invite at aal1 is an idempotent no-op for an already-accepted row'
 );
 reset role;
 
