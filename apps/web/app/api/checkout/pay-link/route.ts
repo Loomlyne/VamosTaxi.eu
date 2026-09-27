@@ -31,7 +31,7 @@ import {
   stripeFromEnv,
   stripePublishableKey,
 } from "@/lib/checkout/stripe";
-import { loadLaunchFlags, loadSettingsVersion } from "@/lib/db/quote";
+import { evaluateCoupon, loadLaunchFlags, loadSettingsVersion } from "@/lib/db/quote";
 import { policyHours } from "@/lib/checkout/policy-settings";
 import { loadCheckoutReprice } from "@/lib/checkout/reprice";
 import type { IntentRecompute } from "@/lib/quote/intent";
@@ -153,6 +153,7 @@ export async function POST(request: Request) {
     snapshotPolicy,
     extrasCatalog: repriced.extrasCatalog,
     loadLaunchFlags: () => loadLaunchFlags(env),
+    evaluateCoupon: (code, ids) => evaluateCoupon(env, code, ids),
     loadQuotePayGate: async (quoteId) => {
       const rows = await asCheckout(env, null, (sql) => sql<{ is_test: boolean | null }[]>`
         select public.checkout_booking_is_test(${quoteId}::uuid) as is_test

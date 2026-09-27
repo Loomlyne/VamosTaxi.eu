@@ -59,7 +59,7 @@ describe("payableRappen", () => {
     expect(result.chargedRappen).toBe(result.netRappen + result.vatRappen);
   });
 
-  it("never goes below CHF 0 net even if preCoupon undershoots extras", () => {
+  it("never goes below zero net even if preCoupon undershoots extras", () => {
     const result = payableRappen({
       classNetRappen: 0,
       preCouponRappen: 100,

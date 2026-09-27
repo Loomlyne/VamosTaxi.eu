@@ -60,6 +60,7 @@ import {
   type CheckoutExtraJson,
 } from "@/lib/checkout/extras-catalog";
 import { CH_VAT_RATE_BPS, payableWithVatRappen, vatOnTopRappen } from "@/lib/checkout/vat";
+import { payableRappen } from "@/lib/checkout/payable";
 import { decodeClientSecret } from "@/lib/checkout/client-secret";
 import { checkoutTraveler } from "@/lib/checkout/checkout-traveler";
 import { readCheckoutSession, writeCheckoutSession } from "@/lib/checkout/checkout-session-store";
@@ -153,7 +154,12 @@ type CouponEvalJson = {
   percent?: number | string | null;
 };
 
-type CouponRuleState = { kind: "percent" | "amount"; percent: string | null };
+type CouponRuleState = {
+  kind: "percent" | "amount";
+  percent: string | null;
+  /** Hundredths of one percent, for payableRappen (D-08a) — never the display string. */
+  percentHundredths: number | null;
+};
 
 function formatCouponPercent(raw: number | string | null | undefined): string | null {
   if (raw == null || raw === "") return null;
@@ -162,12 +168,23 @@ function formatCouponPercent(raw: number | string | null | undefined): string | 
   return String(Number(n.toFixed(2)));
 }
 
+function couponPercentHundredthsFromRaw(raw: number | string | null | undefined): number | null {
+  if (raw == null || raw === "") return null;
+  const n = typeof raw === "number" ? raw : Number(raw);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return Math.round(n * 100);
+}
+
 function couponRuleFromEval(coupon: CouponEvalJson | undefined): CouponRuleState | null {
   if (!coupon?.applied) return null;
   if (coupon.kind === "percent") {
-    return { kind: "percent", percent: formatCouponPercent(coupon.percent) };
+    return {
+      kind: "percent",
+      percent: formatCouponPercent(coupon.percent),
+      percentHundredths: couponPercentHundredthsFromRaw(coupon.percent),
+    };
   }
-  if (coupon.kind === "amount") return { kind: "amount", percent: null };
+  if (coupon.kind === "amount") return { kind: "amount", percent: null, percentHundredths: null };
   return null;
 }
 
@@ -1434,7 +1451,23 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   );
   const classRappen = peekLockClassRappen(lockToken, paySlug || vehicle);
   const extraAdd = extraRappenOutsideLock(peekLockExtras(lockToken), extrasCatalog, extraOn);
-  const netRappen = classRappen == null ? null : classRappen + extraAdd;
+  // D-08a: a percent coupon discounts checkout extras too. classRappen is
+  // already post-coupon (the signed lock); wasRappen is the class total
+  // from just before this coupon was applied — the same pre-coupon figure
+  // payableRappen needs to gross checkout extras into the discount.
+  const couponPercentHundredths =
+    couponApplied && couponRule?.kind === "percent" ? couponRule.percentHundredths : null;
+  const preCouponRappen = couponPercentHundredths != null ? wasRappen : null;
+  const netRappen =
+    classRappen == null
+      ? null
+      : payableRappen({
+          classNetRappen: classRappen,
+          preCouponRappen,
+          extraAddRappen: extraAdd,
+          couponPercent: couponPercentHundredths,
+          vatRateBps,
+        }).netRappen;
   const vatRappen = netRappen == null ? null : vatOnTopRappen(netRappen, vatRateBps);
   const chargedRappen =
     netRappen == null || vatRappen == null ? null : netRappen + vatRappen;

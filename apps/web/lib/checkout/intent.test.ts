@@ -691,6 +691,118 @@ describe("runCheckoutIntent", () => {
     ]);
   });
 
+  it("refuses coupon_no_longer_valid when the payer-identity re-evaluation refuses (D-11)", async () => {
+    const p = payload();
+    const body = await bodyFor(p);
+    body.coupon = "SAVE10";
+    const create = vi.fn(async () => {
+      throw new Error("must not create Stripe session");
+    });
+    const res = await runCheckoutIntent(
+      body,
+      deps(p, {
+        createCheckoutSession: create as unknown as CheckoutIntentDeps["createCheckoutSession"],
+        evaluateCoupon: async () => ({ ok: false, i18n_key: "quote.coupon.error.usage_cap" }),
+      }),
+    );
+    expect(res.status).toBe(409);
+    expect(((await res.json()) as { code: string }).code).toBe("coupon_no_longer_valid");
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("refuses coupon_no_longer_valid (fail closed) when a coupon is typed but evaluateCoupon is not wired", async () => {
+    const p = payload();
+    const body = await bodyFor(p);
+    body.coupon = "SAVE10";
+    const res = await runCheckoutIntent(body, deps(p, { evaluateCoupon: undefined }));
+    expect(res.status).toBe(409);
+    expect(((await res.json()) as { code: string }).code).toBe("coupon_no_longer_valid");
+  });
+
+  it("passes the evaluated coupon_id to createBooking and discounts checkout extras too (D-08a, D-11)", async () => {
+    const p = payload({ class_totals: [{ slug: "economy", total_rappen: 9000 }] });
+    const body = await bodyFor(p);
+    body.coupon = "SAVE10";
+    body.extras = { child_seats: 1 };
+    const evaluateCoupon = vi.fn(async (code: string, ids: { customerId: string | null; contactEmail: string | null }) => {
+      expect(code).toBe("SAVE10");
+      expect(ids).toEqual({ customerId: null, contactEmail: "ada@example.test" });
+      return { ok: true, i18n_key: null, coupon_id: 42, kind: "percent", percent: "10.00", amount_rappen: null, code: "SAVE10" };
+    });
+    let charged = 0;
+    const seenCouponId: (number | null)[] = [];
+    const res = await runCheckoutIntent(
+      body,
+      deps(p, {
+        evaluateCoupon,
+        reprice: () => ({
+          pricing_live: true,
+          engine_version: p.engine_version,
+          classes: [{ slug: "economy", total_rappen: 9000, eligible: true }],
+        }),
+        extrasCatalog: [
+          { code: "child_seat", kind: "amount", amount_rappen: 2000, percent: null, toggle: true },
+        ],
+        createCheckoutSession: async (input) => {
+          charged = input.chargedRappen;
+          return {
+            id: "cs_test_1",
+            client_secret: "cs_test_1_secret",
+            payment_intent: "pi_test_1",
+            status: "open",
+          } as never;
+        },
+        createBooking: async (args) => {
+          seenCouponId.push(args.couponId);
+          return {
+            booking_id: "00000000-0000-4000-8000-000000000099",
+            reference: "VT-10001",
+            snapshot_id: 1,
+            payment_id: 1,
+            replayed: false,
+          };
+        },
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect(evaluateCoupon).toHaveBeenCalledTimes(1);
+    expect(seenCouponId).toEqual([42]);
+    // preCoupon 10000 (9000 grossed up from 10%) + extras 2000 = 12000; 10% off
+    // = 1200; net 10800; VAT 8.1% = 875 (round-half-up of 874.8); 11675.
+    expect(charged).toBe(11675);
+  });
+
+  it("refuses coupon_no_longer_valid when the cap trigger fires between evaluate and insert (D-11 race)", async () => {
+    const p = payload();
+    const body = await bodyFor(p);
+    body.coupon = "SAVE10";
+    const createErr = Object.assign(new Error("coupon cap"), { code: "23001" });
+    const attachErr = Object.assign(new Error("not found"), { code: "P0002" });
+    const res = await runCheckoutIntent(
+      body,
+      deps(p, {
+        evaluateCoupon: async () => ({
+          ok: true,
+          i18n_key: null,
+          coupon_id: 42,
+          kind: "amount",
+          percent: null,
+          amount_rappen: 500,
+          code: "SAVE10",
+        }),
+        loadOpenPayment: async () => null,
+        createBooking: async () => {
+          throw createErr;
+        },
+        attachPayment: async () => {
+          throw attachErr;
+        },
+      }),
+    );
+    expect(res.status).toBe(409);
+    expect(((await res.json()) as { code: string }).code).toBe("coupon_no_longer_valid");
+  });
+
   it("refuses bookings.is_test and never creates a Stripe session (D-33)", async () => {
     const p = payload();
     const body = await bodyFor(p);
