@@ -251,6 +251,9 @@ describe("retrieve / reverse", () => {
       lng: 8.5402,
       lat: 47.3782,
       canton: null,
+      cityId: null,
+      cityName: null,
+      isAirport: false,
     });
   });
 
@@ -276,7 +279,185 @@ describe("retrieve / reverse", () => {
       address: "Museumstrasse 1, 8001 Zürich, Switzerland",
       lng: 8.5417,
       lat: 47.3769,
+      canton: null,
+      cityId: null,
+      cityName: null,
+      isAirport: false,
     });
+  });
+});
+
+describe("retrieve / reverse — city id, city name, airport flag, canton on pins (D-10, D-08b, 26.1-09)", () => {
+  /** Search Box `/retrieve` of an address inside Zürich (city + canton context). */
+  const FIXTURE_RETRIEVE_ZURICH_CITY = Object.freeze({
+    type: "FeatureCollection",
+    features: Object.freeze([
+      Object.freeze({
+        type: "Feature",
+        geometry: Object.freeze({
+          type: "Point",
+          coordinates: Object.freeze([8.5402, 47.3782]) as [number, number],
+        }),
+        properties: Object.freeze({
+          name: "Bahnhofstrasse 1",
+          mapbox_id: "sbx.fixture.bahnhofstrasse-1",
+          full_address: "Bahnhofstrasse 1, 8001 Zürich, Switzerland",
+          feature_type: "address",
+          context: Object.freeze({
+            region: Object.freeze({ region_code: "ZH", region_code_full: "CH-ZH" }),
+            place: Object.freeze({
+              mapbox_id: "dXJuOm1ieHBsYzpBYWs",
+              name: "Zürich",
+            }),
+          }),
+        }),
+      }),
+    ]),
+  });
+
+  /** Same fixture, Arabic display name for the city — mapbox_id (the identity) is unchanged. */
+  const FIXTURE_RETRIEVE_ZURICH_CITY_AR = Object.freeze({
+    ...FIXTURE_RETRIEVE_ZURICH_CITY,
+    features: Object.freeze([
+      Object.freeze({
+        ...FIXTURE_RETRIEVE_ZURICH_CITY.features[0],
+        properties: Object.freeze({
+          ...FIXTURE_RETRIEVE_ZURICH_CITY.features[0].properties,
+          context: Object.freeze({
+            ...FIXTURE_RETRIEVE_ZURICH_CITY.features[0].properties.context,
+            place: Object.freeze({
+              mapbox_id: "dXJuOm1ieHBsYzpBYWs",
+              name: "زيورخ",
+            }),
+          }),
+        }),
+      }),
+    ]),
+  });
+
+  /** Search Box `/retrieve` of Zurich Airport — POI category names the airport. */
+  const FIXTURE_RETRIEVE_AIRPORT = Object.freeze({
+    type: "FeatureCollection",
+    features: Object.freeze([
+      Object.freeze({
+        type: "Feature",
+        geometry: Object.freeze({
+          type: "Point",
+          coordinates: Object.freeze([8.562, 47.45]) as [number, number],
+        }),
+        properties: Object.freeze({
+          name: "Zurich Airport",
+          mapbox_id: "sbx.fixture.zurich-airport-poi",
+          full_address: "Flughafen Zürich, 8058 Kloten, Switzerland",
+          feature_type: "poi",
+          poi_category: Object.freeze(["airport", "transportation"]),
+          poi_category_ids: Object.freeze(["airport"]),
+          maki: "airport",
+          context: Object.freeze({
+            region: Object.freeze({ region_code: "ZH", region_code_full: "CH-ZH" }),
+            place: Object.freeze({
+              mapbox_id: "dXJuOm1ieHBsYzpLbG90ZW4",
+              name: "Kloten",
+            }),
+          }),
+        }),
+      }),
+    ]),
+  });
+
+  /** Geocoding v6 `/reverse` of a pin with full context (city + canton). */
+  const FIXTURE_REVERSE_ZURICH_CITY = Object.freeze({
+    type: "FeatureCollection",
+    features: Object.freeze([
+      Object.freeze({
+        type: "Feature",
+        geometry: Object.freeze({
+          type: "Point",
+          coordinates: Object.freeze([8.5417, 47.3769]) as [number, number],
+        }),
+        properties: Object.freeze({
+          name: "Museumstrasse 1",
+          full_address: "Museumstrasse 1, 8001 Zürich, Switzerland",
+          place_formatted: "Zürich, Switzerland",
+          feature_type: "address",
+          context: Object.freeze({
+            region: Object.freeze({ region_code: "ZH", region_code_full: "CH-ZH" }),
+            place: Object.freeze({
+              mapbox_id: "dXJuOm1ieHBsYzpBYWs",
+              name: "Zürich",
+            }),
+          }),
+        }),
+      }),
+    ]),
+  });
+
+  it("retrieve of an address in Zürich resolves cityId from context.place.mapbox_id, cityName, canton ZH, isAirport false", async () => {
+    const { fetchFn } = captureFetch(() => jsonResponse(FIXTURE_RETRIEVE_ZURICH_CITY));
+    const result = await retrieve(
+      { mapboxId: "sbx.fixture.bahnhofstrasse-1", sessionToken: SESSION, language: "en" },
+      TOKEN_ENV,
+      { fetch: fetchFn },
+    );
+    expect(result.place?.cityId).toBe("dXJuOm1ieHBsYzpBYWs");
+    expect(result.place?.cityName).toBe("Zürich");
+    expect(result.place?.canton).toBe("ZH");
+    expect(result.place?.isAirport).toBe(false);
+  });
+
+  it("retrieve of Zurich Airport POI (poi_category/poi_category_ids/maki) resolves isAirport true and canton ZH", async () => {
+    const { fetchFn } = captureFetch(() => jsonResponse(FIXTURE_RETRIEVE_AIRPORT));
+    const result = await retrieve(
+      { mapboxId: "sbx.fixture.zurich-airport-poi", sessionToken: SESSION, language: "en" },
+      TOKEN_ENV,
+      { fetch: fetchFn },
+    );
+    expect(result.place?.isAirport).toBe(true);
+    expect(result.place?.canton).toBe("ZH");
+  });
+
+  it("the same place requested in language=ar resolves an identical cityId and canton (names may differ)", async () => {
+    const { fetchFn } = captureFetch((url) =>
+      url.includes("language=ar")
+        ? jsonResponse(FIXTURE_RETRIEVE_ZURICH_CITY_AR)
+        : jsonResponse(FIXTURE_RETRIEVE_ZURICH_CITY),
+    );
+    const en = await retrieve(
+      { mapboxId: "sbx.fixture.bahnhofstrasse-1", sessionToken: SESSION, language: "en" },
+      TOKEN_ENV,
+      { fetch: fetchFn },
+    );
+    const ar = await retrieve(
+      { mapboxId: "sbx.fixture.bahnhofstrasse-1", sessionToken: SESSION, language: "ar" },
+      TOKEN_ENV,
+      { fetch: fetchFn },
+    );
+    expect(ar.place?.cityId).toBe(en.place?.cityId);
+    expect(ar.place?.canton).toBe(en.place?.canton);
+    expect(ar.place?.cityName).not.toBe(en.place?.cityName);
+  });
+
+  it("reverse of a pin populates canton and cityId from context when present", async () => {
+    const { fetchFn } = captureFetch(() => jsonResponse(FIXTURE_REVERSE_ZURICH_CITY));
+    const result = await reverse(
+      { lng: 8.5417, lat: 47.3769, language: "en" },
+      TOKEN_ENV,
+      { fetch: fetchFn },
+    );
+    expect(result.place?.cityId).toBe("dXJuOm1ieHBsYzpBYWs");
+    expect(result.place?.canton).toBe("ZH");
+  });
+
+  it("reverse of a pin with no context returns nulls, never a guess", async () => {
+    const { fetchFn } = captureFetch(() => jsonResponse(FIXTURE_REVERSE_OK));
+    const result = await reverse(
+      { lng: 8.5417, lat: 47.3769, language: "en" },
+      TOKEN_ENV,
+      { fetch: fetchFn },
+    );
+    expect(result.place?.cityId).toBeNull();
+    expect(result.place?.canton).toBeNull();
+    expect(result.place?.isAirport).toBe(false);
   });
 });
 

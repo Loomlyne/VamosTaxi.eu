@@ -115,6 +115,12 @@ export type RetrievedPlace = {
   lat: number;
   /** D-20: Mapbox region code (ZH). Matching only — not a suggest fence. */
   canton: string | null;
+  /** D-10/26.1-09: context.place.mapbox_id — language-independent city identity. */
+  cityId: string | null;
+  /** Display-only city name (may vary by language= — never used for matching). */
+  cityName: string | null;
+  /** D-08b: true when the resolved feature is an airport (POI category/maki). */
+  isAirport: boolean;
 };
 
 export type RetrieveResult = { place: RetrievedPlace | null };
@@ -130,6 +136,14 @@ export type ReversePlace = {
   address: string;
   lng: number;
   lat: number;
+  /** D-20: Mapbox region code (ZH), same as retrieve. Null when context is absent. */
+  canton: string | null;
+  /** D-10/26.1-09: context.place.mapbox_id — language-independent city identity. */
+  cityId: string | null;
+  /** Display-only city name. */
+  cityName: string | null;
+  /** D-08b: true when the resolved feature is an airport (POI category/maki). */
+  isAirport: boolean;
 };
 
 export type ReverseResult = { place: ReversePlace | null };
@@ -225,6 +239,60 @@ function cantonFromProperties(props: Record<string, unknown>): string | null {
   if (!raw) return null;
   const iso = /^(?:CH-)?([A-Z]{2})$/.exec(raw);
   return iso?.[1] ?? raw.replace(/^CH-/, "");
+}
+
+/**
+ * D-10/26.1-09: `context.place.mapbox_id` / `.name` — the official Mapbox city
+ * (place) boundary, language-independent by id. Missing context.place → null,
+ * never a guess (D-10 zones are official Mapbox boundaries, not invented ones).
+ */
+function cityFromProperties(
+  props: Record<string, unknown>,
+): { id: string | null; name: string | null } | null {
+  const ctx = asRecord(props.context);
+  const place = asRecord(ctx?.place);
+  if (!place) return null;
+  const id =
+    typeof place.mapbox_id === "string" && place.mapbox_id.length > 0
+      ? place.mapbox_id
+      : null;
+  const name =
+    typeof place.name === "string" && place.name.length > 0
+      ? place.name
+      : null;
+  return { id, name };
+}
+
+/**
+ * D-08b: airport pickup trigger. Mapbox Search Box / Geocoding v6 POI
+ * features carry `poi_category` (array of category strings) and
+ * `poi_category_ids` (array of category ids); `maki` is the icon name.
+ * Any of the three naming "airport" is enough — never a text-name guess.
+ */
+function isAirportFeature(props: Record<string, unknown>): boolean {
+  const categories = props.poi_category;
+  if (
+    Array.isArray(categories) &&
+    categories.some(
+      (c) => typeof c === "string" && c.toLowerCase().includes("airport"),
+    )
+  ) {
+    return true;
+  }
+  const categoryIds = props.poi_category_ids;
+  if (
+    Array.isArray(categoryIds) &&
+    categoryIds.some(
+      (c) => typeof c === "string" && c.toLowerCase().includes("airport"),
+    )
+  ) {
+    return true;
+  }
+  const maki = props.maki;
+  if (typeof maki === "string" && maki.toLowerCase() === "airport") {
+    return true;
+  }
+  return false;
 }
 
 function pointFromGeometry(geometry: unknown): GeoPoint | null {
@@ -358,6 +426,7 @@ export async function retrieve(
       ? props.mapbox_id
       : input.mapboxId;
   if (!point) return { place: null };
+  const city = cityFromProperties(props);
   return {
     place: {
       mapbox_id: mapboxId,
@@ -366,6 +435,9 @@ export async function retrieve(
       lng: point.lng,
       lat: point.lat,
       canton: cantonFromProperties(props),
+      cityId: city?.id ?? null,
+      cityName: city?.name ?? null,
+      isAirport: isAirportFeature(props),
     },
   };
 }
@@ -402,12 +474,17 @@ export async function reverse(
   const props = asRecord(feature.properties) ?? {};
   const point = pointFromGeometry(feature.geometry);
   if (!point) return { place: null };
+  const city = cityFromProperties(props);
   return {
     place: {
       name: textField(props, "name"),
       address: textField(props, "full_address", "place_formatted", "address"),
       lng: point.lng,
       lat: point.lat,
+      canton: cantonFromProperties(props),
+      cityId: city?.id ?? null,
+      cityName: city?.name ?? null,
+      isAirport: isAirportFeature(props),
     },
   };
 }
