@@ -98,7 +98,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 24: Dual-payer, pay-link, mail split** - Token recap pay; first charge wins; traveller manage vs payer receipt
 - [ ] **Phase 25: /bookings unpaid + TEST UAT + secret-swap design** - Unpaid row pays the same session; TEST UAT boring; live keys documented not executed
 - [x] **Phase 26: Legal gate** - Pixel and Purchase stay off until owner banner, cookies, and privacy lines exist in en/de/fr/ar; new policy version; flag stays off (completed 2026-09-23)
-- [ ] **Phase 26.1: Codebase audit, bug fix & simplify (INSERTED)** - Folder by folder over `apps/web`, `packages/emails`, `packages/db`: find and fix real bugs, then simplify; every unit passes the repo gates; no visible or pay change
+- [ ] **Phase 26.2: Codebase audit, bug fix & simplify (INSERTED)** - Folder by folder over `apps/web`, `packages/emails`, `packages/db`: find and fix real bugs, then simplify; every unit passes the repo gates; no visible or pay change
 - [ ] **Phase 27: Consent record** - Accept logs Meta on; Dismiss logs Meta off; existing banner until a choice, including a pay link
 - [ ] **Phase 28: Pixel PageView** - Pixel `1595596972063765` sends PageView only on allowed customer pages; click ids saved on the unpaid booking
 - [ ] **Phase 29: Webhook Purchase** - One Purchase from the settle queue in the CHF charged; quote, pay, and confirmation unchanged
@@ -984,7 +984,7 @@ Plans:
 
 **UI hint**: no
 
-### Phase 26.1: Codebase audit, bug fix & simplify (INSERTED)
+### Phase 26.2: Codebase audit, bug fix & simplify (INSERTED)
 
 **Goal**: Every production folder is reviewed one unit at a time. Confirmed bugs are fixed
 with a test that fails before and passes after. Code is then simplified (reuse, dead code,
@@ -1075,7 +1075,7 @@ v1.0: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 → 9 → 10 → 11 → 18 
 v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16 → 17
 Close-out one-by-one: 17 deploy → 17 SQL apply → 17 UAT → 16 ROADMAP tick → discuss 19 surge → 11-12 owner Publish (never agent)
 v1.2 Payment (leftovers 16/17/19/20 frozen): 21 → 22 → 23 → 24 → 25
-v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 26.1 → 27 → 28 → 29
+v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 26.1 → 26.2 → 27 → 28 → 29
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -1105,7 +1105,7 @@ v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 26.1 �
 | 24. Dual-payer, pay-link, mail split | 0/TBD | Not started | - |
 | 25. /bookings unpaid + TEST UAT + secret-swap design | 0/TBD | Not started | - |
 | 26. Legal gate | 2/2 | Complete    | 2026-09-23 |
-| 26.1. Codebase audit, bug fix & simplify (INSERTED) | 0/TBD | Not started | - |
+| 26.2. Codebase audit, bug fix & simplify (INSERTED) | 0/TBD | Not started | - |
 | 27. Consent record | 0/TBD | Not started | - |
 | 28. Pixel PageView | 0/TBD | Not started | - |
 | 29. Webhook Purchase | 0/TBD | Not started | - |
@@ -1118,4 +1118,4 @@ v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 26.1 �
 *Phase 17 chauffeur desk added: 2026-09-11*
 *v1.2 Payment added: 2026-09-22 (phases 21–25; leftovers 16/17/19/20 unchanged)*
 *v1.3 Meta measurement added: 2026-09-23 (phases 26–29; v1.2 phases 21–25 unchanged)*
-*Phase 26.1 inserted: 2026-09-27 (codebase audit, bug fix & simplify; AUD-01…AUD-06)*
+*Phase 26.2 inserted: 2026-09-27 (codebase audit, bug fix & simplify; AUD-01…AUD-06)*

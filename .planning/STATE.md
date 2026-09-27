@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Meta measurement
 status: ready-to-discuss
-stopped_at: Phase 26.1 inserted (codebase audit, bug fix & simplify). Next is discuss-phase 26.1.
+stopped_at: Phase 26.2 inserted (codebase audit, bug fix & simplify). Next is discuss-phase 26.2.
 last_updated: "2026-09-27T00:00:00.000Z"
 last_activity: 2026-09-27
 progress:
@@ -21,11 +21,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-23)
 
 **Core value:** quote → pay → confirmation. v1.3 measures ads only. It does not change pay.
-**Current focus:** Phase 26.1 inserted — codebase audit, bug fix & simplify. Next is `/gsd:discuss-phase 26.1`; owner signs discuss, plan, UAT, ship. Phase 26 lock is on `gsd/phase-26-legal-gate`, not live. Discuss-phase 27 follows 26.1. Do not execute 27. Do not load the pixel. v1.2 Phases 21–25 stay planned. No `sk_live_`. No `.eu`.
+**Current focus:** Phase 26.2 inserted — codebase audit, bug fix & simplify. Next is `/gsd:discuss-phase 26.2`; owner signs discuss, plan, UAT, ship. Phase 26 lock is on `gsd/phase-26-legal-gate`, not live. Discuss-phase 27 follows 26.2. Do not execute 27. Do not load the pixel. v1.2 Phases 21–25 stay planned. No `sk_live_`. No `.eu`.
 
 ## Current Position
 
-Phase: 26.1
+Phase: 26.2
 Plan: Not started
 Status: Ready to discuss
 Last activity: 2026-09-27
@@ -46,7 +46,7 @@ Stripe live keys and Search Console stay owner-gated. Agent does not click Publi
 
 Last session: 2026-09-23T20:43:35.760Z
 Stopped at: Phase 26 lock shipped on `gsd/phase-26-legal-gate`. Not merged. Pixel stays off.
-Resume: `/gsd:discuss-phase 26.1`. Then 27. Do not execute 27. Do not load the pixel. Do not execute Phase 21 while v1.3 is current. Payment plans stay on disk. Do not execute Phase 16/17/19/20. Do not `phases.clear`.
+Resume: `/gsd:discuss-phase 26.2`. Then 27. Do not execute 27. Do not load the pixel. Do not execute Phase 21 while v1.3 is current. Payment plans stay on disk. Do not execute Phase 16/17/19/20. Do not `phases.clear`.
 
 Phase 21 branch session (2026-09-22T19:57:29.795Z, not the resume): Stopped at Phase 21 planning complete — 8 plans. Resume was: Phase 21 executing on gsd/phase-21-charge-gate. Do not execute Phase 16/17/19/20. Do not touch the main checkout.
 
@@ -59,7 +59,7 @@ Phase 21 branch session (2026-09-22T19:57:29.795Z, not the resume): Stopped at P
 - Phases 21–25 added: v1.2 Payment (2026-09-22). PAY-08…PAY-18. Leftovers 16/17/19/20 unchanged.
 - v1.3 started (2026-09-23): Meta measurement. Phase 21 is not current. Do not `phases.clear`.
 - Phases 26–29 approved (2026-09-23): v1.3 Meta measurement. META-01…META-14. Next is discuss-phase 26. Phase 21 is not current.
-- Phase 26.1 inserted (2026-09-27): Codebase audit, bug fix & simplify. AUD-01…AUD-06. Folder by folder, one plan per unit, lowest risk first; checkout/pay last and gated; `packages/db` report-only. Next is discuss-phase 26.1.
+- Phase 26.2 inserted (2026-09-27): Codebase audit, bug fix & simplify. AUD-01…AUD-06. Folder by folder, one plan per unit, lowest risk first; checkout/pay last and gated; `packages/db` report-only. Next is discuss-phase 26.2. Renumbered from 26.1 by owner decision the same day; 26.1 is payment and pricing integrity (audit PR #58).
 - Phase 26 lock shipped (2026-09-24) on `gsd/phase-26-legal-gate`. Empty slots. Flag is the literal false. Policy version stays `2026-09-12`. Not merged. Pixel stays off until the owner pastes the four-language lines.
 - Phase 21 execution on `gsd/phase-21-charge-gate` (2026-09-22): planning complete — 8 plans; execution started. Plans 21-01…21-08 stay checked. Progress stays 10/10 in progress. Phase 21 is not complete. Do not execute Phase 16/17/19/20.
 
