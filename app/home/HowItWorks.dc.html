@@ -672,7 +672,12 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   border-radius:var(--vt-radius-lg);
   color:var(--vt-text-inverse);
   text-decoration:none;
+  --dest-zoom:116%;
+  --dest-x:-9.3%;
+  --dest-y:0;
 }
+[data-dest-tile][data-airport="gva"]{--dest-zoom:118%;--dest-x:0;--dest-y:0}
+[data-dest-tile][data-airport="bsl"]{--dest-zoom:122%;--dest-x:-19.5%;--dest-y:-22%}
 [data-dest-tile]::after{
   content:"";
   position:absolute;
@@ -689,12 +694,13 @@ a{color:inherit;text-decoration:none;border-bottom:0}
 [data-dest-tile]:hover{border-color:var(--vt-border-strong)}
 [data-dest-photo]{
   position:absolute;
-  inset:0;
   z-index:0;
-  inline-size:100%;
-  block-size:100%;
+  left:var(--dest-x);
+  top:var(--dest-y);
+  inline-size:var(--dest-zoom);
+  block-size:var(--dest-zoom);
+  max-inline-size:none;
   object-fit:cover;
-  object-position:center 58%;
 }
 [data-dest-copy]{
   position:relative;
@@ -707,7 +713,7 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   margin-inline:-16px;
   margin-block-end:-16px;
   padding:28px 16px 16px;
-  background:linear-gradient(to top, var(--vt-charcoal-900) 0px, var(--vt-charcoal-900) 72px, transparent 108px);
+  background:linear-gradient(to top, color-mix(in oklab, var(--vt-charcoal-900) 78%, transparent) 0px, color-mix(in oklab, var(--vt-charcoal-900) 78%, transparent) 92px, transparent 124px);
 }
 [data-dest-tile] > [data-dest-copy]{flex:0 0 auto}
 [data-dest-code]:empty{display:none}
@@ -762,6 +768,9 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   [data-dest-photo]{
     position:relative;
     inset:auto;
+    left:auto;
+    top:auto;
+    inline-size:100%;
     aspect-ratio:16/10;
     block-size:auto;
   }
@@ -880,21 +889,29 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   color:var(--s-fg);
   pointer-events:none;
 }
-[data-hiw-mock][data-mock="book"] [data-hiw-map-street]{
+[data-hiw-mock][data-mock="book"] [data-hiw-map-ground]{fill:var(--vt-charcoal-900)}
+[data-hiw-mock][data-mock="book"] [data-hiw-map-water]{fill:var(--vt-grey-500)}
+[data-hiw-mock][data-mock="book"] [data-hiw-map-link]{
+  fill:none;
+  stroke:var(--vt-grey-500);
+  stroke-width:2;
+  stroke-linecap:round;
+}
+[data-hiw-mock][data-mock="book"] [data-hiw-map-runway]{fill:var(--vt-grey-500)}
+[data-hiw-mock][data-mock="book"] [data-hiw-map-runway-mark]{
   fill:none;
   stroke:var(--vt-grey-300);
-  stroke-width:1.5;
-  stroke-linecap:square;
+  stroke-width:1.25;
+  stroke-linecap:butt;
+  stroke-dasharray:6 5;
 }
-[data-tone="dark"] [data-hiw-mock][data-mock="book"] [data-hiw-map-street]{stroke:var(--vt-charcoal-600)}
-[data-hiw-mock][data-mock="book"] [data-hiw-map-block]{fill:var(--vt-white)}
-[data-hiw-mock][data-mock="book"] [data-hiw-map-block="b"]{fill:var(--vt-grey-50)}
-[data-tone="dark"] [data-hiw-mock][data-mock="book"] [data-hiw-map-block]{fill:var(--vt-charcoal-800)}
-[data-tone="dark"] [data-hiw-mock][data-mock="book"] [data-hiw-map-block="b"]{fill:var(--vt-charcoal-600)}
+[data-hiw-mock][data-mock="book"] [data-hiw-map-terminal]{fill:var(--vt-grey-300)}
+[data-hiw-mock][data-mock="book"] [data-hiw-map-block]{fill:var(--vt-grey-300)}
+[data-hiw-mock][data-mock="book"] [data-hiw-map-block="b"]{fill:var(--vt-grey-400)}
 [data-hiw-mock][data-mock="book"] [data-hiw-map-route]{
   fill:none;
   stroke:var(--vt-yellow);
-  stroke-width:2.5;
+  stroke-width:4;
   stroke-linecap:round;
   stroke-linejoin:round;
   stroke-dasharray:1;
@@ -902,9 +919,9 @@ a{color:inherit;text-decoration:none;border-bottom:0}
 }
 [data-hiw-mock][data-mock="book"] [data-hiw-map-start]{fill:var(--vt-yellow)}
 [data-hiw-mock][data-mock="book"] [data-hiw-map-end]{
-  fill:var(--s-inset);
+  fill:var(--vt-charcoal-900);
   stroke:var(--vt-yellow);
-  stroke-width:2;
+  stroke-width:2.5;
 }
 [data-hiw-mock][data-mock="book"] [data-hiw-map-mover],
 [data-hiw-mock][data-mock="book"] [data-hiw-map-mover-ring]{
@@ -914,22 +931,21 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   stroke-dashoffset:0;
 }
 [data-hiw-mock][data-mock="book"] [data-hiw-map-mover-ring]{
-  stroke:var(--vt-white);
-  stroke-width:11;
+  stroke:var(--vt-charcoal-900);
+  stroke-width:12;
 }
-[data-tone="dark"] [data-hiw-mock][data-mock="book"] [data-hiw-map-mover-ring]{stroke:var(--vt-charcoal-900)}
 [data-hiw-mock][data-mock="book"] [data-hiw-map-mover]{
   stroke:var(--vt-yellow);
   stroke-width:6.5;
 }
 [data-hiw-mock][data-mock="book"] [data-hiw-map-label]{
-  fill:var(--s-fg);
+  fill:var(--vt-text-inverse);
   font-family:var(--vt-font-body);
-  font-weight:var(--vt-label-weight);
-  letter-spacing:0.04em;
+  font-weight:var(--vt-weight-semibold);
 }
 [data-hiw-mock][data-mock="book"] [data-hiw-map-label="code"]{
-  fill:var(--s-mut);
+  fill:var(--vt-grey-300);
+  font-weight:var(--vt-label-weight);
   letter-spacing:var(--vt-label-tracking);
   text-transform:uppercase;
 }
@@ -977,96 +993,26 @@ a{color:inherit;text-decoration:none;border-bottom:0}
 <div data-hiw-mock="1" data-mock="{{ s.kind }}" aria-hidden="true">
 <p data-hiw-mock-kicker="1">{{ s.kicker }}</p>
 <div data-mock-pane="book">
-<svg data-hiw-map="1" viewBox="0 -262 320 720" preserveAspectRatio="xMidYMid slice" fill="none" focusable="false" aria-hidden="true">
-<g data-hiw-map-streets="1">
-<path data-hiw-map-street="1" d="M70 -270V466M128 -270V466M186 -270V466M244 -270V466M-8 -264H328M-8 -224H328M-8 -184H328M-8 -144H328M-8 -104H328M-8 -64H328M-8 -24H328M-8 56H328M-8 96H328M-8 136H328M-8 216H328M-8 256H328M-8 296H328M-8 336H328M-8 376H328M-8 416H328M-8 456H328"/>
-</g>
-<g data-hiw-map-blocks="1">
-<rect data-hiw-map-block="1" x="-8" y="-258" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="76" y="-258" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="134" y="-258" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="192" y="-258" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="250" y="-258" width="78" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="-8" y="-218" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="76" y="-218" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="134" y="-218" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="192" y="-218" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="250" y="-218" width="78" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="-8" y="-178" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="76" y="-178" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="134" y="-178" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="192" y="-178" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="250" y="-178" width="78" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="-8" y="-138" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="76" y="-138" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="134" y="-138" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="192" y="-138" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="250" y="-138" width="78" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="-8" y="-98" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="76" y="-98" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="134" y="-98" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="192" y="-98" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="250" y="-98" width="78" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="-8" y="-58" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="76" y="-58" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="134" y="-58" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="192" y="-58" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="250" y="-58" width="78" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="134" y="-8" width="46" height="58" rx="4"/>
-<rect data-hiw-map-block="b" x="192" y="-8" width="46" height="58" rx="4"/>
-<rect data-hiw-map-block="1" x="250" y="-8" width="78" height="58" rx="4"/>
-<rect data-hiw-map-block="1" x="-8" y="62" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="76" y="62" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="134" y="62" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="192" y="62" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="250" y="62" width="78" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="-8" y="102" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="76" y="102" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="134" y="102" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="192" y="102" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="250" y="102" width="78" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="-8" y="142" width="72" height="66" rx="4"/>
-<rect data-hiw-map-block="b" x="76" y="142" width="46" height="66" rx="4"/>
-<rect data-hiw-map-block="1" x="134" y="142" width="46" height="66" rx="4"/>
-<rect data-hiw-map-block="1" x="250" y="142" width="78" height="66" rx="4"/>
-<rect data-hiw-map-block="1" x="-8" y="222" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="76" y="222" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="134" y="222" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="192" y="222" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="250" y="222" width="78" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="-8" y="262" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="76" y="262" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="134" y="262" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="192" y="262" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="250" y="262" width="78" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="-8" y="302" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="76" y="302" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="134" y="302" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="192" y="302" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="250" y="302" width="78" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="-8" y="342" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="76" y="342" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="134" y="342" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="192" y="342" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="250" y="342" width="78" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="-8" y="382" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="76" y="382" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="134" y="382" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="192" y="382" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="250" y="382" width="78" height="28" rx="4"/>
-<rect data-hiw-map-block="b" x="-8" y="422" width="72" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="76" y="422" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="134" y="422" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="192" y="422" width="46" height="28" rx="4"/>
-<rect data-hiw-map-block="1" x="250" y="422" width="78" height="28" rx="4"/>
-</g>
-<path data-hiw-map-route="1" pathLength="1" d="M46 38C68 38 70 46 70 56L70 128C70 136 78 136 86 136L174 136C186 136 186 148 186 158"/>
-<circle data-hiw-map-start="1" cx="46" cy="38" r="4"/>
-<circle data-hiw-map-end="1" cx="186" cy="158" r="5"/>
-<path data-hiw-map-mover-ring="1" pathLength="1" d="M46 38C68 38 70 46 70 56L70 128C70 136 78 136 86 136L174 136C186 136 186 148 186 158"/>
-<path data-hiw-map-mover="1" pathLength="1" d="M46 38C68 38 70 46 70 56L70 128C70 136 78 136 86 136L174 136C186 136 186 148 186 158"/>
-<text data-hiw-map-label="code" x="80" y="42" font-size="12">ZRH</text>
-<text data-hiw-map-label="city" x="200" y="160" font-size="13">Zurich</text>
+<svg data-hiw-map="1" viewBox="0 0 320 340" preserveAspectRatio="xMidYMid slice" fill="none" focusable="false" aria-hidden="true">
+<rect data-hiw-map-ground="1" width="320" height="340"/>
+<path data-hiw-map-water="1" d="M0 248C40 232 88 216 140 204C176 192 210 186 256 188C292 190 310 196 320 192V340H0Z"/>
+<rect data-hiw-map-runway="1" x="22" y="20" width="104" height="8" rx="2"/>
+<rect data-hiw-map-runway="1" x="34" y="32" width="68" height="5" rx="2"/>
+<path data-hiw-map-runway-mark="1" d="M32 24H116"/>
+<path data-hiw-map-link="1" d="M48 37V78"/>
+<rect data-hiw-map-terminal="1" x="30" y="64" width="10" height="16" rx="2"/>
+<rect data-hiw-map-terminal="1" x="22" y="78" width="86" height="26" rx="4"/>
+<rect data-hiw-map-block="1" x="198" y="108" width="50" height="34" rx="4"/>
+<rect data-hiw-map-block="b" x="254" y="108" width="50" height="34" rx="4"/>
+<rect data-hiw-map-block="b" x="198" y="148" width="50" height="26" rx="4"/>
+<rect data-hiw-map-block="1" x="254" y="148" width="50" height="26" rx="4"/>
+<path data-hiw-map-route="1" pathLength="1" d="M116 91V142C116 168 150 178 186 180"/>
+<path data-hiw-map-mover-ring="1" pathLength="1" d="M116 91V142C116 168 150 178 186 180"/>
+<path data-hiw-map-mover="1" pathLength="1" d="M116 91V142C116 168 150 178 186 180"/>
+<circle data-hiw-map-start="1" cx="116" cy="91" r="5.5"/>
+<circle data-hiw-map-end="1" cx="186" cy="180" r="6.5"/>
+<text data-hiw-map-label="code" x="130" y="90" font-size="13" dominant-baseline="central">ZRH</text>
+<text data-hiw-map-label="city" x="251" y="94" font-size="16" text-anchor="middle" dominant-baseline="central">Zurich</text>
 </svg>
 </div>
 <div data-mock-pane="meet">
@@ -1197,16 +1143,13 @@ a{color:inherit;text-decoration:none;border-bottom:0}
 <p data-hiw-pay-when="1"><bdi>08:15</bdi> · {{ flight }} <bdi>LX 54</bdi></p>
 </div>
 <div data-hiw-pay-list="1">
-<div data-hiw-pay-class="1" data-picked="1">
+<sc-for list="{{ payClasses }}" as="c" hint-placeholder-count="2">
+<div data-hiw-pay-class="1" data-picked="{{ c.picked }}" data-slug="{{ c.slug }}">
 <span data-hiw-pay-radio="1" aria-hidden="true"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span>
-<span data-hiw-pay-copy="1"><span data-hiw-pay-name="1"><bdi>Mercedes&#8209;Benz V&#8209;Class</bdi></span><span data-hiw-pay-cap="1"><bdi>{{ payVCap }}</bdi></span></span>
-<b data-hiw-pay-amt="1"><bdi>CHF&nbsp;000</bdi></b>
+<span data-hiw-pay-copy="1"><span data-hiw-pay-name="1"><bdi>{{ c.name }}</bdi></span><span data-hiw-pay-cap="1"><bdi>{{ c.cap }}</bdi></span></span>
+<b data-hiw-pay-amt="1"><bdi>{{ c.amt }}</bdi></b>
 </div>
-<div data-hiw-pay-class="1">
-<span data-hiw-pay-radio="1" aria-hidden="true"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span>
-<span data-hiw-pay-copy="1"><span data-hiw-pay-name="1"><bdi>Mercedes S&#8209;Class Special</bdi></span><span data-hiw-pay-cap="1"><bdi>{{ paySCap }}</bdi></span></span>
-<b data-hiw-pay-amt="1"><bdi>CHF&nbsp;000</bdi></b>
-</div>
+</sc-for>
 </div>
 <p data-hiw-paid="1">{{ paid }} · {{ oneWay }}</p>
 </div>
@@ -1230,7 +1173,7 @@ a{color:inherit;text-decoration:none;border-bottom:0}
 <sc-if value="{{ showTiles }}" hint-placeholder-val="{{ true }}">
 <div data-dest-mosaic="1">
 <sc-for list="{{ tiles }}" as="c" hint-placeholder-count="3">
-<a data-dest-tile="1" href="{{ c.href }}" aria-label="{{ c.aria }}" onClick="{{ c.pick }}">
+<a data-dest-tile="1" data-airport="{{ c.id }}" href="{{ c.href }}" aria-label="{{ c.aria }}" onClick="{{ c.pick }}">
 <img data-dest-photo="1" src="{{ c.photo }}" alt="">
 <span data-dest-copy="1">
 <span data-dest-code="1">{{ c.code }}</span>
@@ -1280,8 +1223,7 @@ const T = {
     yourName: 'Your name',
     arrivals: 'Arrivals',
     paid: 'Paid by card',
-    payVCap: '7 seats · 6 bags',
-    paySCap: '3 seats · 3 bags',
+    payCap: '{seats} seats · {bags} bags',
     destEyebrow: 'Where we drive',
     destTitle: 'Airports and the places we already drive.',
     destLede: 'Zurich, Geneva and Basel airports, plus Bern, Lucerne, Lausanne, Interlaken, Zermatt, St. Moritz and Davos. One-way transfers, booked ahead.',
@@ -1313,8 +1255,7 @@ const T = {
     yourName: 'Ihr Name',
     arrivals: 'Ankunft',
     paid: 'Per Karte bezahlt',
-    payVCap: '7 Sitze · 6 Gepäckstücke',
-    paySCap: '3 Sitze · 3 Gepäckstücke',
+    payCap: '{seats} Sitze · {bags} Gepäckstücke',
     destEyebrow: 'Wohin wir fahren',
     destTitle: 'Flughäfen und Orte, die wir bereits fahren.',
     destLede: 'Die Flughäfen Zürich, Genf und Basel, dazu Bern, Luzern, Lausanne, Interlaken, Zermatt, St. Moritz und Davos. Einfache Fahrt, im Voraus gebucht.',
@@ -1346,8 +1287,7 @@ const T = {
     yourName: 'Votre nom',
     arrivals: 'Arrivées',
     paid: 'Payé par carte',
-    payVCap: '7 places · 6 bagages',
-    paySCap: '3 places · 3 bagages',
+    payCap: '{seats} places · {bags} bagages',
     destEyebrow: 'Où nous roulons',
     destTitle: 'Aéroports et lieux que nous desservons déjà.',
     destLede: 'Les aéroports de Zurich, Genève et Bâle, plus Berne, Lucerne, Lausanne, Interlaken, Zermatt, Saint-Moritz et Davos. Transferts aller simple, réservés à l’avance.',
@@ -1379,8 +1319,7 @@ const T = {
     yourName: 'اسمك',
     arrivals: 'الوصول',
     paid: 'مدفوع بالبطاقة',
-    payVCap: '7 مقاعد · 6 حقائب',
-    paySCap: '3 مقاعد · 3 حقائب',
+    payCap: '{seats} مقاعد · {bags} حقائب',
     destEyebrow: 'إلى أين نسير',
     destTitle: 'المطارات والأماكن التي نخدمها فعلاً.',
     destLede: 'مطارات زيورخ وجنيف وبازل، إضافة إلى برن ولوتسيرن ولوزان وإنترلاكن وزيرمات وسانت موريتز ودافوس. نقل باتجاه واحد، يُحجز مسبقاً.',
@@ -1416,19 +1355,88 @@ function readLang() {
     return LANGS.indexOf(l) > -1 ? l : 'en';
   } catch (e) { return 'en'; }
 }
+/* Pay row reads the public catalog. These two slugs only. Never a typed fare. */
+const PAY_SLUGS = ['mercedes-benz-v-class', 'mercedes-s-class-special'];
+const PAY_LADDER = { economy: 1, business: 1, first: 1, van: 1, mahaha: 1 };
+function payHold() { return 'CHF\u00a0000'; }
+function payLiveAmount(rappen, pricingLive) {
+  if (pricingLive !== true) return payHold();
+  const n = Number(rappen);
+  if (!isFinite(n) || n < 0) return payHold();
+  const francs = n / 100;
+  const amount = Math.abs(francs - Math.round(francs)) < 1e-9 ? String(Math.round(francs)) : francs.toFixed(2);
+  return 'CHF\u00a0' + amount;
+}
+function payCatalogName(c) {
+  return String((c && (c.name || c.label)) || '').replace(/\s+/g, ' ').trim();
+}
+function payCatalogRow(c, pricingLive) {
+  const slug = String((c && c.slug) || '');
+  if (!slug || PAY_LADDER[slug] || PAY_SLUGS.indexOf(slug) === -1) return null;
+  if (c.ineligible_reason === 'no_rate') return null;
+  const name = payCatalogName(c);
+  if (!name) return null;
+  const seats = c.effective_max_pax;
+  const bags = c.max_bags;
+  return {
+    slug: slug,
+    name: name,
+    seats: typeof seats === 'number' && isFinite(seats) ? seats : null,
+    bags: typeof bags === 'number' && isFinite(bags) ? bags : null,
+    amt: payLiveAmount(c.total_rappen, pricingLive),
+  };
+}
 class Component extends DCLogic {
   state = (() => {
     const reduce = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-    return { lang: readLang(), seen: reduce, anim: !reduce };
+    return { lang: readLang(), seen: reduce, anim: !reduce, payRows: [] };
   })();
   rootRef = (el) => { this.root = el; };
   t() { return T[this.state.lang] || T.en; }
+  payClasses() {
+    const t = this.t();
+    const tmpl = t.payCap || '{seats} seats · {bags} bags';
+    return (this.state.payRows || []).map((row, i) => {
+      const seats = row.seats;
+      const bags = row.bags;
+      const cap = (typeof seats === 'number' && typeof bags === 'number')
+        ? tmpl.replace('{seats}', String(seats)).replace('{bags}', String(bags))
+        : '';
+      return {
+        slug: row.slug,
+        name: row.name,
+        cap: cap,
+        amt: row.amt || payHold(),
+        picked: i === 0 ? '1' : '0',
+      };
+    });
+  }
+  loadPayClasses() {
+    this._payOn = true;
+    fetch('/api/quote', { headers: { accept: 'application/json' } })
+      .then((res) => res.json().catch(() => null))
+      .then((j) => {
+        if (!this._payOn || !j || j.ok !== true || !Array.isArray(j.classes)) return;
+        const live = j.pricing_live === true;
+        const rows = [];
+        const seen = {};
+        j.classes.forEach((c) => {
+          const row = payCatalogRow(c, live);
+          if (!row || seen[row.slug]) return;
+          seen[row.slug] = 1;
+          rows.push(row);
+        });
+        this.setState({ payRows: rows });
+      })
+      .catch(() => {});
+  }
   componentDidMount() {
     this._onLocale = (e) => {
       const lang = e && e.detail && LANGS.indexOf(e.detail.lang) > -1 ? e.detail.lang : readLang();
       this.setState({ lang: lang });
     };
     window.addEventListener('vamos:locale', this._onLocale);
+    this.loadPayClasses();
     if (!(this.props.revealOnScroll ?? true) || !this.state.anim || typeof IntersectionObserver === 'undefined') {
       this.setState({ anim: false, seen: true });
       return;
@@ -1443,6 +1451,7 @@ class Component extends DCLogic {
     }, 1400);
   }
   componentWillUnmount() {
+    this._payOn = false;
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     if (this.io) this.io.disconnect();
     clearTimeout(this.safety);
@@ -1478,6 +1487,7 @@ class Component extends DCLogic {
   paintPlace(place, t) {
     const book = place.kind === 'airport' ? t.bookAirport : t.bookCity;
     return {
+      id: place.id,
       name: place.name,
       code: place.code,
       href: place.href,
@@ -1515,8 +1525,7 @@ class Component extends DCLogic {
       arrivals: t.arrivals,
       meetMark: 14,
       paid: t.paid,
-      payVCap: t.payVCap,
-      paySCap: t.paySCap,
+      payClasses: this.payClasses(),
       destEyebrow: t.destEyebrow,
       destTitle: t.destTitle,
       destLede: t.destLede,

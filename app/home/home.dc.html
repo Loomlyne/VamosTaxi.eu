@@ -170,23 +170,28 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-fleet-cta="on"]{background:var(--vt-charcoal-900);color:var(--vt-white)}
 [data-fleet-cta="off"]{background:transparent;border:var(--vt-border-w) solid var(--vt-border-subtle);color:var(--vt-text-secondary);white-space:nowrap;line-height:1.15;text-align:center}
 [data-dest-strip]{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;gap:8px;padding-bottom:4px;background:transparent}
-[data-dest-card]{all:unset;box-sizing:border-box;display:flex;flex-direction:row;align-items:stretch;justify-content:flex-start;gap:10px;flex:0 0 420px;min-width:420px;max-width:460px;min-height:0;padding:8px;overflow:hidden;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);cursor:pointer;scroll-snap-align:start;font-family:var(--vt-font-body);color:var(--vt-text-primary);transition:box-shadow var(--vt-dur-fast,.2s) ease,border-color var(--vt-dur-fast,.2s) ease}
+/* data-fx-* only. HowItWorks [data-dest-copy] is a charcoal gradient and was painting over these labels. */
+[data-dest-card]{all:unset;box-sizing:border-box;display:grid;grid-template-columns:120px minmax(0,1fr);grid-template-areas:"photo stops" "photo price" "cta cta";column-gap:var(--vt-space-3);row-gap:var(--vt-space-3);align-items:start;flex:0 0 420px;min-width:420px;max-width:460px;min-height:0;padding:var(--vt-space-2);overflow:hidden;isolation:isolate;background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);cursor:pointer;scroll-snap-align:start;font-family:var(--vt-font-body);color:var(--vt-text-primary);text-align:start;transition-property:scale,box-shadow,border-color;transition-duration:150ms;transition-timing-function:cubic-bezier(.2,0,0,1)}
+[data-dest-card] *{box-sizing:border-box}
 [data-dest-card]:hover{border-color:var(--vt-grey-300);box-shadow:var(--vt-shadow-md)}
-[data-dest-card]:focus-visible{outline:3px solid rgb(253 194 11/.45);outline-offset:3px}
-[data-dest-img]{width:204px;height:204px;aspect-ratio:1/1;border-radius:var(--vt-radius-md);background:var(--vt-grey-100);overflow:hidden;flex:0 0 204px;position:relative;display:flex;align-items:center;justify-content:center}
-[data-dest-img] img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
-[data-dest-body]{display:flex;flex-direction:column;gap:var(--vt-space-2);padding:0;min-width:0;flex:1 1 auto;justify-content:flex-start}
-[data-dest-head]{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:var(--vt-space-4);min-width:0;width:100%}
-[data-dest-places]{display:flex;flex-direction:column;gap:var(--vt-space-2);min-width:0;width:100%}
-[data-dest-line]{position:relative;display:flex;align-items:flex-start;gap:var(--vt-space-2);min-width:0;width:100%}
-[data-dest-line]:not(:last-child)::before{content:"";position:absolute;inset-inline-start:6px;top:14px;bottom:calc(-1 * var(--vt-space-2));width:1px;background:var(--vt-grey-300);pointer-events:none}
-[data-dest-ico]{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:12px;height:12px;margin-block-start:1px;color:var(--vt-text-muted);pointer-events:none}
-[data-dest-line]:last-child [data-dest-ico]{color:var(--vt-charcoal-900)}
-[data-dest-copy]{display:flex;flex-direction:column;align-items:flex-start;gap:var(--vt-space-1);min-width:0;flex:1 1 auto}
-[data-dest-kicker]{font-size:var(--vt-label-sm);font-weight:var(--vt-label-weight);letter-spacing:.02em;color:var(--vt-text-secondary);line-height:1.2}
-[data-dest-from],[data-dest-to]{min-width:0;width:100%;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-semibold);line-height:1.35;color:var(--vt-text-primary);overflow-wrap:break-word;text-wrap:pretty}
-[data-dest-foot]{display:flex;flex-direction:column;align-items:stretch;gap:6px;min-width:0;width:100%;margin-top:auto}
-[data-dest-cta]{display:flex;align-items:center;justify-content:center;gap:7px;height:var(--vt-control-h-sm);padding:0 10px;border-radius:var(--vt-radius-pill);font-family:var(--vt-font-body);font-size:var(--vt-label-sm);font-weight:700;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;box-sizing:border-box;white-space:nowrap;width:100%;flex:0 0 auto;background:var(--vt-yellow);color:var(--vt-charcoal-900)}
+[data-dest-card]:active{scale:.96}
+[data-dest-card]:focus-visible{outline:3px solid var(--vt-yellow);outline-offset:3px}
+[data-fx-photo]{grid-area:photo;align-self:stretch;z-index:0;min-width:0;min-height:120px;border-radius:var(--vt-radius-sm);background:var(--vt-grey-100);border:var(--vt-border-w) solid var(--vt-border-subtle);overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center}
+[data-fx-photo] img{width:100%;height:100%;object-fit:cover;object-position:center;display:block;border-radius:inherit}
+[data-fx-pin]{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:var(--vt-radius-pill);background:var(--vt-bg-surface);color:var(--vt-grey-500);pointer-events:none}
+[data-fx-stops]{grid-area:stops;z-index:1;display:flex;flex-direction:column;gap:var(--vt-space-3);min-width:0;align-self:start;padding-bottom:var(--vt-space-3);background:transparent}
+[data-fx-stop]{position:relative;display:grid;grid-template-columns:28px minmax(0,1fr);column-gap:10px;align-items:start;min-width:0;margin:0;padding:0;background:transparent;background-image:none;box-shadow:none}
+[data-fx-stop]:not(:last-child)::before{content:"";position:absolute;inset-inline-start:13px;top:28px;bottom:calc(-1 * var(--vt-space-3));width:1px;background:var(--vt-grey-300);pointer-events:none}
+[data-fx-mark]{position:relative;z-index:1;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;flex:0 0 28px;border-radius:var(--vt-radius-sm);background:var(--vt-grey-100);color:var(--vt-text-secondary);pointer-events:none}
+[data-fx-stop][data-fx-end="1"] [data-fx-mark]{background:var(--vt-charcoal-900);color:var(--vt-white)}
+[data-fx-text]{display:flex;flex-direction:column;align-items:flex-start;gap:var(--vt-space-1);min-width:0;margin:0;padding:0;position:static;background:transparent;background-image:none;box-shadow:none}
+[data-fx-kicker]{max-width:100%;margin:0;padding:0;background:transparent;font-size:var(--vt-label-sm);font-weight:var(--vt-label-weight);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;line-height:1.2;color:var(--vt-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[data-fx-place]{min-width:0;width:100%;margin:0;padding:0;background:transparent;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-semibold);line-height:1.4;color:var(--vt-text-primary);overflow-wrap:break-word;text-wrap:pretty}
+[data-fx-price]{grid-area:price;z-index:1;display:flex;align-items:flex-end;align-self:end;justify-self:start;min-width:0;min-height:22px;background:transparent}
+[data-dest-card] [data-price-slot]{position:relative;width:92px;min-width:92px;max-width:92px;height:22px;overflow:hidden;flex:none}
+[data-dest-card] [data-price-slot] span{font-variant-numeric:tabular-nums}
+[data-fx-cta]{grid-area:cta;z-index:1;display:flex;align-items:center;justify-content:center;gap:7px;min-height:var(--vt-control-h-sm);height:auto;padding-block:8px;padding-inline:16px 14px;border-radius:var(--vt-radius-pill);font-family:var(--vt-font-body);font-size:var(--vt-label-sm);font-weight:var(--vt-weight-bold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;line-height:1.2;text-align:center;text-wrap:balance;box-sizing:border-box;width:100%;min-width:0;background:var(--vt-yellow);color:var(--vt-charcoal-900)}
+@media (prefers-reduced-motion:reduce){[data-dest-card]{transition:none}[data-dest-card]:active{scale:1}}
 [data-dest-empty]{margin:0;font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-inverse-muted)}
 [data-vtcombo]{display:flex;align-items:center;gap:9px;height:var(--vt-control-h-md);min-height:var(--vt-control-h-md);max-height:var(--vt-control-h-md);padding:0 7px 0 8px;box-sizing:border-box;background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:999px;overflow:hidden;transition:border-color .16s cubic-bezier(.2,0,.2,1),background .16s cubic-bezier(.2,0,.2,1)}
 [data-vtcombo]:hover{border-color:var(--vt-grey-300)}
@@ -258,7 +263,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-shell][data-open="1"] [data-sheetonly="1"]{display:flex}
 [data-shell][data-open="1"] [data-sheetonly="cta"]{display:block}}
 @media (max-width:699px){[data-shell][data-open="1"] [data-sheetbody]{padding:12px 16px 20px}
-[data-swaprot]{transform:rotate(90deg)}}#fleet>strong{color:var(--vt-text-inverse)!important}#fleet>span:last-child{color:var(--vt-text-inverse-muted)!important}@media (min-width:1080px){#book [data-sheetbody]{background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-xl);margin:-16px calc(clamp(12px,3vw,18px) * -1) 0;padding:16px clamp(12px,3vw,18px) 14px;box-sizing:border-box}#book [data-sheetbody] [role=tablist]{background:var(--vt-grey-100)}}[data-fleet-card]{transition:box-shadow var(--vt-dur-fast,.2s) ease,border-color var(--vt-dur-fast,.2s) ease}[data-fleet-card] [data-fleet-img]{transition:filter .2s ease}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}@media (max-width:1079px){#book{background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-xl)}#book [role=tablist]{background:var(--vt-grey-100)}#book [data-book-inline]{display:flex;flex-direction:column;gap:10px;min-inline-size:0;box-sizing:border-box;background:transparent;box-shadow:none}}@media (min-width:1080px){#book [data-book-inline]{display:none}}[data-hero] [data-trust]{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--vt-space-4) var(--vt-space-6);margin-block-start:var(--vt-space-4);min-inline-size:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);line-height:1.4;color:var(--vt-text-inverse)}[data-hero] [data-trust-word]{font-weight:600;white-space:nowrap}[data-hero] [data-trust-stars]{display:inline-flex;align-items:center;gap:2px;direction:ltr;flex:0 0 auto}[data-hero] [data-trust-score]{font-weight:600;font-variant-numeric:tabular-nums;direction:ltr;white-space:nowrap}[data-hero] [data-trust-count]{color:var(--vt-text-inverse-muted);white-space:nowrap}[data-hero] [data-trust-empty]{color:var(--vt-text-inverse)}[data-hero] [data-trust-mark]{display:block;flex:0 0 auto;block-size:var(--vt-space-9);inline-size:min(100%,calc(var(--vt-space-9) * 2500 / 1163.3));max-inline-size:100%;object-fit:contain;object-position:center;background:transparent;padding:0;border:0;border-radius:0;box-shadow:none}[data-hero] [data-trust-link]{color:var(--vt-text-inverse);text-decoration:underline;text-underline-offset:3px;white-space:nowrap}[data-hero] [data-trust-link]:hover{color:var(--vt-white)}@media (prefers-reduced-motion:reduce){[data-hero] [data-trust-link]{transition:none}}</style>
+[data-swaprot]{transform:rotate(90deg)}}#fleet>strong{color:var(--vt-text-inverse)!important}#fleet>span:last-child{color:var(--vt-text-inverse-muted)!important}@media (min-width:1080px){#book [data-sheetbody]{background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-xl);margin:-16px calc(clamp(12px,3vw,18px) * -1) 0;padding:16px clamp(12px,3vw,18px) 14px;box-sizing:border-box}#book [data-sheetbody] [role=tablist]{background:var(--vt-grey-100)}}[data-fleet-card]{transition:box-shadow var(--vt-dur-fast,.2s) ease,border-color var(--vt-dur-fast,.2s) ease}[data-fleet-card] [data-fleet-img]{transition:filter .2s ease}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}@media (max-width:1079px){#book{background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-xl)}#book [role=tablist]{background:var(--vt-grey-100)}#book [data-book-inline]{display:flex;flex-direction:column;gap:10px;min-inline-size:0;box-sizing:border-box;background:transparent;box-shadow:none}}@media (min-width:1080px){#book [data-book-inline]{display:none}}[data-hero] [data-trust]{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--vt-space-4) var(--vt-space-6);margin-block-start:var(--vt-space-4);min-inline-size:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);line-height:1.4;color:var(--vt-text-inverse)}[data-hero] [data-trust-word]{font-weight:600;white-space:nowrap}[data-hero] [data-trust-stars]{display:inline-flex;align-items:center;gap:2px;direction:ltr;flex:0 0 auto}[data-hero] [data-trust-score]{font-weight:600;font-variant-numeric:tabular-nums;direction:ltr;white-space:nowrap}[data-hero] [data-trust-count]{color:var(--vt-text-inverse-muted);white-space:nowrap}[data-hero] [data-trust-empty]{color:var(--vt-text-inverse)}[data-hero] [data-trust-lockup]{position:relative;display:block;flex:0 0 auto;block-size:var(--vt-space-8);inline-size:min(100%,calc(var(--vt-space-8) * 1132.8 / 278.2));max-inline-size:100%}[data-hero] [data-trust-mark],[data-hero] [data-trust-mark-word]{display:block;block-size:100%;inline-size:100%;object-fit:fill;object-position:left center;background:transparent;padding:0;border:0;border-radius:0;box-shadow:none}[data-hero] [data-trust-mark-word]{position:absolute;inset:0;clip-path:inset(0 0 0 25.11%);filter:brightness(0) invert(1);pointer-events:none}[data-hero] [data-trust-stars] img{display:block;flex:0 0 auto;block-size:var(--vt-space-5);inline-size:calc(var(--vt-space-5) * 271.3 / 258);object-fit:contain;background:transparent;padding:0;border:0;border-radius:0;box-shadow:none}[data-hero] [data-trust-link]{color:var(--vt-text-inverse);text-decoration:underline;text-underline-offset:3px;white-space:nowrap}[data-hero] [data-trust-link]:hover{color:var(--vt-white)}@media (prefers-reduced-motion:reduce){[data-hero] [data-trust-link]{transition:none}}</style>
 </helmet>
 <div style="font-family:var(--vt-font-body);color:var(--vt-text-primary);background:var(--vt-bg-page)">
 
@@ -689,13 +694,16 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </sc-if>
 <sc-if value="{{ trustHas }}" hint-placeholder-val="{{ false }}">
 <span data-trust-word="1">{{ trustWord }}</span>
-<img data-trust-mark="1" data-vt-no-i18n="1" src="/assets/reviews/trustpilot-stacked.svg" alt="Trustpilot" width="120" height="56">
+<span data-trust-lockup="1">
+<img data-trust-mark="1" data-vt-no-i18n="1" src="/assets/reviews/trustpilot.svg" alt="Trustpilot" width="163" height="40">
+<img data-trust-mark-word="1" data-vt-no-i18n="1" src="/assets/reviews/trustpilot.svg" alt="" aria-hidden="true" width="163" height="40">
+</span>
 <span data-trust-stars="1" aria-hidden="true">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n14 }}" color="{{ trustS1 }}" hint-size="14px,14px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n14 }}" color="{{ trustS2 }}" hint-size="14px,14px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n14 }}" color="{{ trustS3 }}" hint-size="14px,14px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n14 }}" color="{{ trustS4 }}" hint-size="14px,14px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n14 }}" color="{{ trustS5 }}" hint-size="14px,14px"></x-import>
+<img data-vt-no-i18n="1" data-trust-star="1" src="/assets/reviews/trustpilot-star.svg" alt="" width="21" height="20" style="opacity:{{ trustO1 }}">
+<img data-vt-no-i18n="1" data-trust-star="2" src="/assets/reviews/trustpilot-star.svg" alt="" width="21" height="20" style="opacity:{{ trustO2 }}">
+<img data-vt-no-i18n="1" data-trust-star="3" src="/assets/reviews/trustpilot-star.svg" alt="" width="21" height="20" style="opacity:{{ trustO3 }}">
+<img data-vt-no-i18n="1" data-trust-star="4" src="/assets/reviews/trustpilot-star.svg" alt="" width="21" height="20" style="opacity:{{ trustO4 }}">
+<img data-vt-no-i18n="1" data-trust-star="5" src="/assets/reviews/trustpilot-star.svg" alt="" width="21" height="20" style="opacity:{{ trustO5 }}">
 </span>
 <span data-trust-score="1">{{ trustScoreText }}</span>
 <span data-trust-count="1">{{ trustCountText }}</span>
@@ -777,24 +785,16 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <sc-if value="{{ destHasCards }}" hint-placeholder-val="{{ true }}">
 <sc-for list="{{ destCards }}" as="d" hint-placeholder-count="4">
 <button type="button" data-dest-card="1" title="{{ d.full }}" onClick="{{ d.pick }}">
-<div data-dest-img="1" style="width:204px;height:204px;aspect-ratio:1/1;border-radius:var(--vt-radius-md);background:var(--vt-grey-100);overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;flex:0 0 204px">
-<sc-if value="{{ d.noImage }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n24 }}" color="var(--vt-grey-500)" hint-size="24px,24px"></x-import></sc-if>
-<sc-if value="{{ d.hasImage }}" hint-placeholder-val="{{ false }}"><img src="{{ d.image }}" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block"></sc-if>
-</div>
-<div data-dest-body="1">
-<div data-dest-head="1">
-<div data-dest-places="1">
-<span data-dest-line="1"><span data-dest-ico="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n12 }}" color="currentColor" hint-size="12px,12px"></x-import></span><span data-dest-copy="1"><span data-dest-kicker="1">{{ d.fromLbl }}</span><span data-dest-from="1">{{ d.from }}</span></span></span>
-<span data-dest-line="1"><span data-dest-ico="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n12 }}" color="currentColor" hint-size="12px,12px"></x-import></span><span data-dest-copy="1"><span data-dest-kicker="1">{{ d.toLbl }}</span><span data-dest-to="1">{{ d.to }}</span></span></span>
-</div>
-<div data-price-row="1">
-<span ref="{{ d.dustRef }}" data-price-slot="1" dir="ltr"></span>
-</div>
-</div>
-<div data-dest-foot="1">
-<span data-dest-cta="1">{{ d.cta }}<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import></span>
-</div>
-</div>
+<span data-fx-photo="1">
+<sc-if value="{{ d.noImage }}" hint-placeholder-val="{{ true }}"><span data-fx-pin="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n24 }}" color="var(--vt-grey-500)" hint-size="24px,24px"></x-import></span></sc-if>
+<sc-if value="{{ d.hasImage }}" hint-placeholder-val="{{ false }}"><img src="{{ d.image }}" alt=""></sc-if>
+</span>
+<span data-fx-stops="1">
+<span data-fx-stop="1"><span data-fx-mark="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span><span data-fx-text="1"><span data-fx-kicker="1">{{ d.fromLbl }}</span><span data-fx-place="1">{{ d.from }}</span></span></span>
+<span data-fx-stop="1" data-fx-end="1"><span data-fx-mark="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="navigation" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span><span data-fx-text="1"><span data-fx-kicker="1">{{ d.toLbl }}</span><span data-fx-place="1">{{ d.to }}</span></span></span>
+</span>
+<span data-fx-price="1"><span ref="{{ d.dustRef }}" data-price-slot="1" dir="ltr"></span></span>
+<span data-fx-cta="1">{{ d.cta }}<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import></span>
 </button>
 </sc-for>
 </sc-if>
@@ -1323,6 +1323,7 @@ class Dust {
     const s = this.sp.style;
     if (this.small) { s.font = '500 12.5px Poppins, sans-serif'; s.letterSpacing = '0'; s.color = 'var(--vt-text-muted)'; s.whiteSpace = 'normal'; s.lineHeight = '1.2'; s.textAlign = this.o.align === 'left' ? 'left' : 'right'; }
     else { s.font = '600 ' + (this.o.size || 26) + 'px Qurova, Poppins, sans-serif'; s.letterSpacing = '-0.01em'; s.color = 'var(--vt-text-primary)'; s.whiteSpace = 'nowrap'; s.lineHeight = '1'; }
+    s.fontVariantNumeric = 'tabular-nums';
   }
   setText(text, small) { this.text = text; this.small = !!small; this.styleSpan(); this.sp.textContent = text; this.sp.style.opacity = '1'; this.cv.style.opacity = '0'; this.parts = []; this.mode = 'idle'; }
   syncSize() { const w = this.el.clientWidth, h = this.el.clientHeight; if (this.cv.width !== w * 2 || this.cv.height !== h * 2) { this.cv.width = w * 2; this.cv.height = h * 2; } }
@@ -1663,7 +1664,7 @@ class Component extends DCLogic {
   }
   trustSummary() {
     const off = 'var(--vt-text-inverse-muted)';
-    const empty = { has: false, score: '', count: '', href: '', logo: '', source: '', word: '', showMark: false, showLink: false, s1: off, s2: off, s3: off, s4: off, s5: off };
+    const empty = { has: false, score: '', count: '', href: '', logo: '', source: '', word: '', showMark: false, showLink: false, s1: off, s2: off, s3: off, s4: off, s5: off, o1: '0.3', o2: '0.3', o3: '0.3', o4: '0.3', o5: '0.3' };
     const store = window.VamosReviews;
     const rows = store && store.published ? store.published().filter((r) => r && Number(r.rating) > 0) : [];
     if (!rows.length) return empty;
@@ -1690,7 +1691,7 @@ class Component extends DCLogic {
     const hosts = rows.map((r) => hostOf(r.url)).filter(Boolean);
     const soleHost = hosts.length && hosts.every((h) => h === hosts[0]) ? hosts[0] : '';
     const transfeero = soleHost === 'transfeero.com' || (soleHost && soleHost.endsWith('.transfeero.com'));
-    const logo = '/assets/reviews/trustpilot-stacked.svg';
+    const logo = '/assets/reviews/trustpilot.svg';
     const source = 'Trustpilot';
     let href = '/#reviews';
     if (sole && soleHost && !transfeero) {
@@ -1700,9 +1701,10 @@ class Component extends DCLogic {
     const filled = Math.max(0, Math.min(5, Math.round(avg)));
     const on = '#00b67a';
     const star = (n) => n <= filled ? on : off;
+    const op = (n) => n <= filled ? '1' : '0.3';
     const tw = this.t();
     const word = avg >= 4.5 ? (tw.trustExcellent || '') : avg >= 4 ? (tw.trustGreat || '') : avg >= 3 ? (tw.trustGood || '') : (tw.trustFair || '');
-    return { has: true, score, count: String(rows.length), href, logo, source, word, showMark: !!logo, showLink: true, s1: star(1), s2: star(2), s3: star(3), s4: star(4), s5: star(5) };
+    return { has: true, score, count: String(rows.length), href, logo, source, word, showMark: !!logo, showLink: true, s1: star(1), s2: star(2), s3: star(3), s4: star(4), s5: star(5), o1: op(1), o2: op(2), o3: op(3), o4: op(4), o5: op(5) };
   }
   /** Idle / First-class hold: design-system placeholder. Live quotes use fmtAmount. */
   fmt() {
@@ -2915,7 +2917,7 @@ class Component extends DCLogic {
       tTrustEmpty: t.trustEmpty, tTrustRead: t.trustRead, trustWord: trust.word,
       trustEmpty: !trust.has, trustHas: trust.has,
       trustShowMark: trust.showMark, trustLogo: trust.logo, trustSource: trust.source,
-      trustS1: trust.s1, trustS2: trust.s2, trustS3: trust.s3, trustS4: trust.s4, trustS5: trust.s5,
+      trustS1: trust.s1, trustS2: trust.s2, trustS3: trust.s3, trustS4: trust.s4, trustS5: trust.s5, trustO1: trust.o1, trustO2: trust.o2, trustO3: trust.o3, trustO4: trust.o4, trustO5: trust.o5,
       trustScoreText: trust.has ? (t.trustScore || '{n}/5').replace('{n}', trust.score) : '',
       trustCountText: trust.has ? (trust.count === '1' ? (t.trustCountOne || '1 review') : (t.trustCount || '{n} reviews').replace('{n}', trust.count)) : '',
       trustShowLink: trust.showLink, trustHref: trust.href,
