@@ -50,6 +50,16 @@ export const FORBIDDEN_CLIENT_PRICE_FIELDS = [
   "expires_at",
   "engine_version",
   "hours",
+  // D-08b/D-10 (26.1-09): canton, city and airport facts are server-resolved
+  // from Mapbox only — never accepted from the request body.
+  "origin_canton",
+  "dest_canton",
+  "canton",
+  "origin_city_id",
+  "dest_city_id",
+  "is_airport",
+  "origin_is_airport",
+  "airport",
 ] as const;
 
 export type ForbiddenClientPriceField =

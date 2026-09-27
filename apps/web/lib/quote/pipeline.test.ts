@@ -5,8 +5,9 @@
 // stubs — no Docker, no network.
 
 import { describe, expect, it } from "vitest";
-import type { ClassBoardEntry, PolicySnapshot } from "../pricing/types";
+import type { ClassBoardEntry, PolicySnapshot, QuoteInput } from "../pricing/types";
 import { mintLock } from "./lock";
+import type { QuoteLockPayload } from "./lock";
 import {
   QUOTE_STEPS,
   runQuotePipeline,
@@ -360,6 +361,192 @@ describe("runQuotePipeline", () => {
       baseDeps(),
     );
     expect(result).toEqual({ ok: false, code: "place_unresolved" });
+  });
+
+  describe("boundary facts and flight number thread to the kernel (D-08b, D-10, 26.1-09)", () => {
+    it("threads legs[0].flight_no into QuoteLegInput.flight_no", async () => {
+      let captured: QuoteInput | undefined;
+      const result = await runQuotePipeline(
+        validBody({
+          legs: [
+            { leg_seq: 1, scheduled_local: "2026-09-01T10:30", flight_no: "LX1234" },
+          ],
+        }),
+        baseDeps({
+          loadAndPrice: async (_env, input) => {
+            captured = input;
+            return pricedOk();
+          },
+        }),
+      );
+      expect(result.ok).toBe(true);
+      expect(captured?.legs[0]?.flight_no).toBe("LX1234");
+    });
+
+    it("resolves canton, city id and airport flag for a PIN pickup via reverse (closes the pin-canton gap)", async () => {
+      let captured: QuoteInput | undefined;
+      const result = await runQuotePipeline(
+        validBody(),
+        baseDeps({
+          reverse: async () => ({
+            place: {
+              name: "Zurich Airport",
+              address: "Flughafen Zürich",
+              lng: ZURICH.lng,
+              lat: ZURICH.lat,
+              canton: "ZH",
+              cityId: "place.zurich",
+              cityName: "Zürich",
+              isAirport: true,
+            },
+          }),
+          loadAndPrice: async (_env, input) => {
+            captured = input;
+            return pricedOk();
+          },
+        }),
+      );
+      expect(result.ok).toBe(true);
+      expect(captured?.legs[0]?.origin_canton).toBe("ZH");
+      expect(captured?.legs[0]?.origin_city_id).toBe("place.zurich");
+      expect(captured?.legs[0]?.origin_is_airport).toBe(true);
+    });
+
+    it("an airport POI pickup produces origin_is_airport true and a non-airport pickup produces false", async () => {
+      let captured: QuoteInput | undefined;
+      const nonAirport = await runQuotePipeline(
+        validBody(),
+        baseDeps({
+          reverse: async () => ({
+            place: {
+              name: "Bahnhofstrasse 1",
+              address: "Bahnhofstrasse 1",
+              lng: ZURICH.lng,
+              lat: ZURICH.lat,
+              canton: "ZH",
+              cityId: "place.zurich",
+              cityName: "Zürich",
+              isAirport: false,
+            },
+          }),
+          loadAndPrice: async (_env, input) => {
+            captured = input;
+            return pricedOk();
+          },
+        }),
+      );
+      expect(nonAirport.ok).toBe(true);
+      expect(captured?.legs[0]?.origin_is_airport).toBe(false);
+    });
+  });
+
+  describe("strict schema refuses client-sent boundary facts (D-08b/D-10)", () => {
+    it.each(["origin_canton", "canton", "origin_city_id", "is_airport", "airport"])(
+      "refuses a top-level %s as untrusted_input",
+      async (field) => {
+        const result = await runQuotePipeline(
+          validBody({ [field]: field === "is_airport" ? true : "ZH" }),
+          baseDeps(),
+        );
+        expect(result).toEqual({ ok: false, code: "untrusted_input" });
+      },
+    );
+  });
+});
+
+describe("the lock carries and restores boundary facts across reprice (26.1-09)", () => {
+  it("the lock pins origin_city_id/dest_city_id/origin_is_airport; inputFromLock restores them on a coupon-only reprice", async () => {
+    const directionsRuns = { n: 0 };
+    const deadlineRuns = { n: 0 };
+    const deps = baseDeps({
+      directionsRuns,
+      deadlineRuns,
+      reverse: async () => ({
+        place: {
+          name: "Zurich Airport",
+          address: "Flughafen Zürich",
+          lng: ZURICH.lng,
+          lat: ZURICH.lat,
+          canton: "ZH",
+          cityId: "place.zurich",
+          cityName: "Zürich",
+          isAirport: true,
+        },
+      }),
+    });
+    const first = await runQuotePipeline(validBody(), deps);
+    expect(first.ok).toBe(true);
+    if (!first.ok) return;
+
+    let captured: QuoteInput | undefined;
+    const again = await runRepricePipeline(
+      {
+        quote_id: first.quote_id,
+        lock: first.lock,
+        locale: "en",
+        display_currency: "CHF",
+        coupon: "SAVE10",
+      },
+      {
+        ...deps,
+        loadAndPrice: async (_env, input) => {
+          captured = input;
+          return pricedOk();
+        },
+      },
+    );
+    expect(again.ok).toBe(true);
+    expect(captured?.legs[0]?.origin_city_id).toBe("place.zurich");
+    expect(captured?.legs[0]?.origin_is_airport).toBe(true);
+  });
+
+  it("a lock signed before origin_city_id/dest_city_id/origin_is_airport existed still verifies and prices with those fields undefined", async () => {
+    const oldPayload: QuoteLockPayload = {
+      v: 1,
+      quote_id: "q_pre_26_1_09",
+      exp: "2099-01-01T00:00:00.000Z",
+      engine_version: "quote-engine@test",
+      rate_version_id: null,
+      settings_version_id: 1,
+      computed_at: "2026-08-28T12:00:00.000Z",
+      display_currency: "CHF",
+      mode: "one_way",
+      pax: 2,
+      bags: 1,
+      legs: [
+        {
+          leg_seq: 1,
+          pickup: { lng: ZURICH.lng, lat: ZURICH.lat, text: "Zurich HB" },
+          dropoff: { lng: ZRH.lng, lat: ZRH.lat, text: "ZRH" },
+          scheduled_local: "2026-09-01T10:30:00",
+          distance_m: 12_000,
+          duration_s: 1_200,
+          origin_zone_id: null,
+          dest_zone_id: null,
+          waypoints: [],
+          flight_no: null,
+          landing_source: null,
+        },
+      ],
+      extras: null,
+      coupon: null,
+      class_totals: [],
+    };
+    const token = await mintLock({ current: FAKE_SECRET }, oldPayload);
+    let captured: QuoteInput | undefined;
+    const result = await runRepricePipeline(
+      { quote_id: "q_pre_26_1_09", lock: token, locale: "en", display_currency: "CHF" },
+      baseDeps({
+        loadAndPrice: async (_env, input) => {
+          captured = input;
+          return pricedOk();
+        },
+      }),
+    );
+    expect(result.ok).toBe(true);
+    expect(captured?.legs[0]?.origin_city_id).toBeNull();
+    expect(captured?.legs[0]?.dest_city_id).toBeNull();
+    expect(captured?.legs[0]?.origin_is_airport).toBe(false);
   });
 });
 

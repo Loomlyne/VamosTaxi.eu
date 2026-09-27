@@ -170,6 +170,10 @@ export type ResolvedPlace = {
   place_id?: string;
   zoneId?: string | null;
   canton?: string | null;
+  /** D-10/26.1-09: Mapbox context.place.mapbox_id — language-independent city identity. */
+  cityId?: string | null;
+  /** D-08b/26.1-09: true when the resolved place is a Mapbox airport POI. */
+  isAirport?: boolean;
 };
 
 export type InjectedGuard = () =>
@@ -292,6 +296,9 @@ async function defaultResolvePlace(
   if (place.kind === "pin") {
     const reverse = deps.reverse ?? defaultReverse;
     let text = place.text ?? "";
+    let canton: string | null = null;
+    let cityId: string | null = null;
+    let isAirport = false;
     try {
       // D-37: Geocoding v6 /reverse on the quote path.
       await countMapboxUnit(deps.env, deps.nowMs);
@@ -300,10 +307,17 @@ async function defaultResolvePlace(
         deps.env,
       );
       if (got.place?.name) text = got.place.name;
+      // D-10: reverse now resolves canton/city/airport too — pins used to be
+      // the one path with no canton (Search Box retrieve was the only source).
+      if (got.place) {
+        canton = got.place.canton;
+        cityId = got.place.cityId;
+        isAirport = got.place.isAirport;
+      }
     } catch {
       // Pin already carries coordinates — a reverse miss is not unresolved.
     }
-    return { lng: place.lng, lat: place.lat, text };
+    return { lng: place.lng, lat: place.lat, text, canton, cityId, isAirport };
   }
   const retrieve = deps.retrieve ?? defaultRetrieve;
   // D-37: Search Box /retrieve on the quote path.
@@ -323,6 +337,8 @@ async function defaultResolvePlace(
     text: got.place.name,
     place_id: got.place.mapbox_id,
     canton: got.place.canton,
+    cityId: got.place.cityId,
+    isAirport: got.place.isAirport,
   };
 }
 
@@ -377,6 +393,12 @@ function toQuoteInput(
         dest_place: dest.text,
         road: routedLeg.road !== false,
         waypoints: i === 0 ? (request.extras?.waypoints ?? []) : [],
+        // D-08b/D-10: server-resolved boundary facts — never accepted from the
+        // client body (schema.ts forbids origin_city_id/is_airport/etc).
+        flight_no: leg.flight_no ?? null,
+        origin_is_airport: origin.isAirport === true,
+        origin_city_id: origin.cityId ?? null,
+        dest_city_id: dest.cityId ?? null,
       };
     }),
     extras: extrasToRecord(request.extras),
@@ -417,6 +439,13 @@ function inputFromLock(
             : !(leg.distance_m === 0 && leg.duration_s === 0),
         waypoints:
           i === 0 ? (extras?.waypoints ?? leg.waypoints) : leg.waypoints,
+        // 26.1-09: restore server-resolved facts from the lock. A lock minted
+        // before this field existed verifies with these undefined/false/null —
+        // never re-derived from the reprice body (schema.ts forbids it).
+        flight_no: leg.flight_no ?? null,
+        origin_is_airport: leg.origin_is_airport === true,
+        origin_city_id: leg.origin_city_id ?? null,
+        dest_city_id: leg.dest_city_id ?? null,
       };
     }),
     extras: extrasToRecord(extras ?? lock.extras ?? undefined),
@@ -712,6 +741,9 @@ export async function runQuotePipeline(
         dest_zone_id: leg.dest_zone_id,
         ...(origin.canton ? { origin_canton: origin.canton } : {}),
         ...(dest.canton ? { dest_canton: dest.canton } : {}),
+        ...(origin.cityId ? { origin_city_id: origin.cityId } : {}),
+        ...(dest.cityId ? { dest_city_id: dest.cityId } : {}),
+        ...(origin.isAirport ? { origin_is_airport: true } : {}),
         waypoints:
           i === 0
             ? (request.extras?.waypoints ?? []).map((w) => ({

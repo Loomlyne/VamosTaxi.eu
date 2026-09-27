@@ -177,6 +177,36 @@ describe("verifyLock", () => {
     expect(result).toEqual({ ok: false, reason: "invalid" });
   });
 
+  it("carries optional origin_city_id/dest_city_id/origin_is_airport through mint/verify unchanged (26.1-09)", async () => {
+    const payload = fixturePayload({
+      legs: [
+        {
+          leg_seq: 1,
+          pickup: { lng: 8.55, lat: 47.45, text: "ZRH" },
+          dropoff: { lng: 8.54, lat: 47.37, text: "Zurich" },
+          scheduled_local: "2026-09-01T10:00:00",
+          distance_m: 12000,
+          duration_s: 1200,
+          origin_zone_id: null,
+          dest_zone_id: null,
+          origin_city_id: "place.zrh",
+          dest_city_id: "place.zurich",
+          origin_is_airport: true,
+          waypoints: [],
+          flight_no: "LX1234",
+          landing_source: null,
+        },
+      ],
+    });
+    const token = await mintLock({ current: FAKE_CURRENT }, payload);
+    const result = await verifyLock(
+      { current: FAKE_CURRENT },
+      token,
+      "2026-08-28T11:00:00.000Z",
+    );
+    expect(result).toEqual({ ok: true, payload });
+  });
+
   it("six malformed shapes all return deep-equal invalid (oracle-free, D-28)", async () => {
     const payload = fixturePayload();
     const good = await mintLock({ current: FAKE_CURRENT }, payload);
