@@ -2465,6 +2465,7 @@
     "line": {
       "transfer": "Transfer, {vehicleClass}",
       "fixed_route": "Festpreisroute",
+      "airport_fee": "Flughafen-Abholgebühr",
       "city_price": "Stadtpreis",
       "coupon": "Gutschein {code}",
       "round_trip_discount": "Rabatt für Hin- und Rückfahrt, {percent} %",

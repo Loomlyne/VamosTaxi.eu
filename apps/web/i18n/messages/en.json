@@ -2465,6 +2465,7 @@
     "line": {
       "transfer": "Transfer, {vehicleClass}",
       "fixed_route": "Fixed route",
+      "airport_fee": "Airport pickup fee",
       "city_price": "City price",
       "coupon": "Coupon {code}",
       "round_trip_discount": "Round-trip discount, {percent} %",

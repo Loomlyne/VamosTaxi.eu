@@ -2465,6 +2465,7 @@
     "line": {
       "transfer": "Transfert, {vehicleClass}",
       "fixed_route": "Trajet à prix fixe",
+      "airport_fee": "Frais de prise en charge à l’aéroport",
       "city_price": "Prix ville",
       "coupon": "Code promo {code}",
       "round_trip_discount": "Remise aller-retour, {percent} %",

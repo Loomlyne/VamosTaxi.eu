@@ -2465,6 +2465,7 @@
     "line": {
       "transfer": "نقل، {vehicleClass}",
       "fixed_route": "مسار بسعر ثابت",
+      "airport_fee": "رسوم الاستقبال من المطار",
       "city_price": "سعر المدينة",
       "coupon": "قسيمة {code}",
       "round_trip_discount": "خصم الذهاب والإياب، {percent}%",
