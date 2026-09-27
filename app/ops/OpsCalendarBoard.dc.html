@@ -207,7 +207,7 @@ function isPaidBooking(b) {
   return status === 'paid' || status === 'confirmed' || status === 'assigned' || status === 'completed';
 }
 function isUnpaidBooking(b) {
-  if (!b) return false;
+  if (!b || !b.payLinkSent) return false;
   const status = String(b.status || '');
   if (status === 'cancelled' || status === 'refunded' || status === 'completed') return false;
   return !isPaidBooking(b);

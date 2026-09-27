@@ -1010,6 +1010,8 @@
       'New': { de: 'Neu', fr: 'Nouvelle', ar: 'جديد' },
       'Confirmed': { de: 'Bestätigt', fr: 'Confirmée', ar: 'مؤكَّدة' },
       'Needs payment': { de: 'Zahlung ausstehend', fr: 'Paiement requis', ar: 'يلزم الدفع' },
+      'waiting payment': { de: 'Zahlung offen', fr: 'paiement en attente', ar: 'بانتظار الدفع' },
+      'finished payment': { de: 'Zahlung abgeschlossen', fr: 'paiement terminé', ar: 'اكتمل الدفع' },
       'Refunded': { de: 'Rückerstattet', fr: 'Remboursée', ar: 'مُسترد' },
       'This booking needs payment': { de: 'Diese Buchung braucht eine Zahlung', fr: 'Cette réservation doit être payée', ar: 'هذا الحجز يحتاج إلى دفع' },
       'This booking is cancelled': { de: 'Diese Buchung ist storniert', fr: 'Cette réservation est annulée', ar: 'هذا الحجز ملغى' },

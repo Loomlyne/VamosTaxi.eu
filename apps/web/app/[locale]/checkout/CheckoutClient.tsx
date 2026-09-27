@@ -344,6 +344,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const [publishable, setPublishable] = useState(publishableKey);
   const [reference, setReference] = useState<string | null>(null);
   const [payUrl, setPayUrl] = useState<string | null>(null);
+  const payInFlight = useRef(false);
+  const payLinkKept = useRef(false);
+  const paymentStay = useRef(0);
   const [billingKind, setBillingKind] = useState<"individual" | "company">("individual");
   const [companyName, setCompanyName] = useState("");
   const [companyAddress, setCompanyAddress] = useState("");
@@ -441,6 +444,39 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       on = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (step !== "payment") return;
+    const token = ++paymentStay.current;
+    const abandon = () => {
+      if (payInFlight.current || payLinkKept.current) return;
+      const quoteId = tripQuoteId(readVamosTrip());
+      if (!quoteId) return;
+      try {
+        void fetch("/api/checkout/abandon", {
+          method: "POST",
+          credentials: "same-origin",
+          keepalive: true,
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ quote_id: quoteId }),
+        }).catch(() => undefined);
+        window.localStorage.removeItem("vamosTrip");
+        window.localStorage.removeItem("vamosQuoteLock");
+        window.sessionStorage.removeItem("vamosTrip");
+      } catch {
+        /* unload */
+      }
+    };
+    const onHide = () => abandon();
+    window.addEventListener("pagehide", onHide);
+    return () => {
+      window.removeEventListener("pagehide", onHide);
+      window.setTimeout(() => {
+        if (paymentStay.current !== token) return;
+        abandon();
+      }, 0);
+    };
+  }, [step]);
 
   useEffect(() => {
     const trip = readVamosTrip();
@@ -1193,6 +1229,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         if (key && key !== "payCouldNotStart") setRefusal(key);
         return;
       }
+      payLinkKept.current = true;
       if (json.reference) setReference(json.reference);
       if (json.pay_url) setPayUrl(json.pay_url);
     } catch {
@@ -1222,9 +1259,11 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     setBusy(true);
     setRefusal(null);
     setPayError(null);
+    payInFlight.current = true;
     try {
       const started = await startPayment();
       if (started !== "ok") {
+        payInFlight.current = false;
         setRefusal((current) =>
           current === "pricingNotLive" || current === "quoteExpired" ? current : (current ?? "payCouldNotStart"),
         );
@@ -1236,6 +1275,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       }
       const confirm = confirmPayRef.current;
       if (!confirm) {
+        payInFlight.current = false;
         setRefusal((current) =>
           current === "pricingNotLive" || current === "quoteExpired" ? current : "payCouldNotStart",
         );
@@ -1243,6 +1283,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       }
       await confirm();
     } catch (err) {
+      payInFlight.current = false;
       const message = err instanceof Error ? err.message : "";
       if (message && message !== "payCouldNotStart" && message !== "checkout-not-ready") {
         setPayError(message);

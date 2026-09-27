@@ -65,21 +65,35 @@ describe("mapAccountBooking", () => {
     expect(row.vehicle).not.toMatch(/Business|Economy|Van|First/);
   });
 
-  it("maps unpaid pending onto needs-payment and finish-pay href", () => {
+  it("maps a sent pay-link onto waiting payment, not a resume href", () => {
     const row = mapAccountBooking(
       {
         ...base,
         status: "pending",
+        pay_link_sent_at: "2026-09-10T08:00:00.000Z",
         scheduled_local: "2026-09-12T04:15",
         scheduled_at: "2026-09-12T02:15:00.000Z",
       },
       now,
     );
     expect(row.status).toBe("unpaid");
-    expect(row.href).toBe("/checkout/payment");
-    expect(row.pay_url).toBe("/checkout/payment");
-    expect(row.payable).toBe(true);
+    expect(row.href).toBe("/confirmation/VT-26-0720");
+    expect(row.pay_url).toBeNull();
+    expect(row.payable).toBe(false);
     expect(row.when).toBe("upcoming");
+  });
+
+  it("maps a paid pay-link onto finished payment", () => {
+    const row = mapAccountBooking(
+      {
+        ...base,
+        status: "confirmed",
+        pay_link_sent_at: "2026-09-10T08:00:00.000Z",
+      },
+      now,
+    );
+    expect(row.status).toBe("finished");
+    expect(row.href).toBe("/confirmation/VT-26-0720");
   });
 
   it("turns Pay off when is_test (D-33)", () => {
@@ -145,6 +159,8 @@ describe("GET /api/account/bookings", () => {
     expect(src).toContain("exists (select 1 from public.reviews");
     expect(src).toContain("has_review");
     expect(src).toContain("b.is_test");
+    expect(src).toContain("b.pay_link_sent_at");
+    expect(src).toContain("b.pay_link_sent_at is not null");
   });
 });
 

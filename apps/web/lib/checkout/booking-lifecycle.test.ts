@@ -46,20 +46,38 @@ describe("booking lifecycle", () => {
     expect(shouldPersistUnpaidBooking("payment", filled)).toBe(true);
   });
 
-  it("lists unpaid pending rows and hides quote shells", () => {
+  it("lists a sent pay-link and hides an unpaid row with no email", () => {
     expect(accountListIncludesStatus("quote")).toBe(false);
-    expect(accountListIncludesStatus("pending")).toBe(true);
+    expect(accountListIncludesStatus("pending")).toBe(false);
+    expect(accountListIncludesStatus("pending", true)).toBe(true);
     expect(accountListIncludesStatus("confirmed")).toBe(true);
-    expect(accountUiStatus("pending")).toBe("unpaid");
-    expect(accountBookingHref("pending", "VT-26-0001")).toBe("/checkout/payment");
+    expect(accountUiStatus("pending", true)).toBe("unpaid");
+    expect(accountUiStatus("confirmed", true)).toBe("finished");
+    expect(accountUiStatus("confirmed")).toBe("confirmed");
+    expect(accountBookingHref("pending", "VT-26-0001", true)).toBe("/confirmation/VT-26-0001");
     expect(accountBookingHref("confirmed", "VT-26-0001")).toBe("/confirmation/VT-26-0001");
     expect(shouldAbandonUnpaid("pending")).toBe(true);
+    expect(shouldAbandonUnpaid("pending", true)).toBe(false);
     expect(shouldAbandonUnpaid("confirmed")).toBe(false);
     expect(UNPAID_TTL_HOURS).toBe(24);
   });
 });
 
 describe("home starts a new booking", () => {
+  it("payment page posts abandon on leave and does not resume", () => {
+    const client = readFileSync(
+      join(WEB_ROOT, "app/[locale]/checkout/CheckoutClient.tsx"),
+      "utf8",
+    );
+    const route = readFileSync(join(WEB_ROOT, "app/api/checkout/abandon/route.ts"), "utf8");
+    expect(client).toContain('fetch("/api/checkout/abandon"');
+    expect(client).toContain("pagehide");
+    expect(route).toContain("checkout_abandon_gate");
+    expect(route).toContain("checkout_abandon_unpaid");
+    expect(route).toContain("asCheckout");
+    expect(route).not.toContain("asSystem");
+  });
+
   it("wipes vamosTrip on home mount and abandons the previous unpaid row", () => {
     const home = readFileSync(join(WEB_ROOT, "../../app/home/home.dc.html"), "utf8");
     expect(home).toContain("function beginHomeBooking");
@@ -112,7 +130,7 @@ describe("unpaid card cancel + 24h expire", () => {
     const row = readFileSync(join(WEB_ROOT, "../../app/pages/BookingRow.dc.html"), "utf8");
     expect(row).toContain("data-bk-payacts");
     expect(row).toContain("cancelUnpaid");
-    expect(row).toContain("Unpaid bookings cancel automatically after 24 hours.");
+    expect(row).toContain("A pay link was emailed. It stays here until that link is paid.");
     expect(row).toContain('data-bk-unpaid="{{ unpaidFlag }}"');
     expect(row).toContain("data-bk-mid");
     expect(row).not.toContain('data-bk-ref="1"');

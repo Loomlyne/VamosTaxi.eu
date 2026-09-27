@@ -42,30 +42,41 @@ export function shouldPersistUnpaidBooking(
   return isTravelerComplete(contact);
 }
 
-export function accountListIncludesStatus(status: string): boolean {
-  return status.toLowerCase() !== "quote";
+export function accountListIncludesStatus(status: string, payLinkSent = false): boolean {
+  const s = status.toLowerCase();
+  if (s === "quote") return false;
+  if (s === "pending") return payLinkSent;
+  return true;
 }
 
-export type AccountUiStatus = "unpaid" | "new" | "confirmed" | "assigned" | "completed" | "cancelled";
+export type AccountUiStatus =
+  | "unpaid"
+  | "finished"
+  | "new"
+  | "confirmed"
+  | "assigned"
+  | "completed"
+  | "cancelled";
 
-export function accountUiStatus(status: string): AccountUiStatus {
+export function accountUiStatus(status: string, payLinkSent = false): AccountUiStatus {
   const s = status.toLowerCase();
   if (s === "pending") return "unpaid";
   if (s === "cancelled" || s === "refunded" || s === "no_show") return "cancelled";
   if (s === "completed" || s === "partially_completed") return "completed";
   if (s === "assigned") return "assigned";
+  if ((s === "confirmed" || s === "paid") && payLinkSent) return "finished";
   if (s === "confirmed" || s === "paid") return "confirmed";
   return "new";
 }
 
-export function accountBookingHref(status: string, reference: string): string {
+export function accountBookingHref(status: string, reference: string, payLinkSent = false): string {
   if (!reference) return "/account";
-  if (accountUiStatus(status) === "unpaid") return "/checkout/payment";
+  if (accountUiStatus(status, payLinkSent) === "unpaid") return `/confirmation/${reference}`;
   return `/confirmation/${reference}`;
 }
 
-export function shouldAbandonUnpaid(status: string): boolean {
-  return status.toLowerCase() === "pending";
+export function shouldAbandonUnpaid(status: string, payLinkSent = false): boolean {
+  return status.toLowerCase() === "pending" && !payLinkSent;
 }
 
 /** Unpaid pending rows cancel themselves after this many hours. */
