@@ -6,6 +6,12 @@
 // being wrong here costs efficiency, not correctness. Corroborated against
 // https://docs.stripe.com/checkout/fulfillment (session.completed +
 // payment_status === paid is the documented fulfillment signal).
+//
+// 26.1-05 D-03/D-05/D-18/D-22: a successful charge always ends confirmed or
+// refunded, never silently kept. The capture gate (checkout_capture_gate) is
+// no longer consulted here — checkout_payment_settle v2 (26.1-02) already
+// decides revive vs refund_required for a cancelled/expired/test booking, so
+// settlePayment is always called for a succeeded outcome.
 
 export const dynamic = "force-dynamic";
 
@@ -13,13 +19,21 @@ import type Stripe from "stripe";
 import { asSystem } from "../db/identity";
 import { withRequestContext, type ScalarValue } from "../logger";
 import {
+  createRefund,
+  expireCheckoutSession,
   fxFromSession,
   retrieveCheckoutSession,
   stripeFromEnv,
 } from "./stripe";
+import { stripeAccountIsLegacyUaeTest } from "./charge-gate";
 import type { StripeQueueMessage } from "./webhook";
 import { deliverConfirmation } from "./notify";
-import { deliverOverlapMustFix } from "../ops/must-fix-mail";
+import {
+  deliverOverlapMustFix,
+  deliverPaidAfterCancelAlert,
+  deliverStuckPaymentAlert,
+  type StuckPaymentAlertInput,
+} from "../ops/must-fix-mail";
 
 export type HandleResult = { ack: true } | { retry: true };
 
@@ -29,6 +43,13 @@ export type SettleRow = {
   locale: string;
   contact_email: string;
   already_settled: boolean;
+  revived: boolean;
+  duplicate: boolean;
+  refund_required: boolean;
+  refund_reason: string | null;
+  payment_id: number;
+  charged_rappen: number;
+  other_open_session_ids: string[];
 };
 
 export type CaptureGate = {
@@ -42,7 +63,13 @@ export type CaptureGateRow = {
   expired: boolean;
 };
 
-/** D-23 / D-33: never capture after lock expiry, cancel, or is_test. Paid stays payable. */
+/**
+ * D-23 / D-33: never capture after lock expiry, cancel, or is_test. Paid stays payable.
+ * Kept as a pure predicate for its own tests. Nothing in this file calls it any
+ * more (26.1-05): `checkout_payment_settle` v2 itself decides revive vs
+ * refund_required for a cancelled/expired/test booking (D-03), so the
+ * consumer no longer short-circuits before calling `settlePayment`.
+ */
 export function captureAllowed(row: CaptureGateRow): CaptureGate {
   if (row.is_test) return { capture: false, reason: "is_test" };
   if (row.status === "cancelled") return { capture: false, reason: "cancelled" };
@@ -51,6 +78,23 @@ export function captureAllowed(row: CaptureGateRow): CaptureGate {
   }
   return { capture: true };
 }
+
+/** D-05: metadata every app-created Stripe refund carries so charge.refunded (26.1-08) can tell app refunds from dashboard refunds. */
+export type RefundInput = {
+  paymentIntentId: string;
+  amountRappen: number;
+  idempotencyKey: string;
+  bookingId: string;
+  paymentId: number;
+  reason: string;
+};
+
+export type RecordDuplicateRefundInput = {
+  paymentId: number;
+  stripeRefundId: string;
+  refundRappen: number;
+  reason: string;
+};
 
 export type SettleDeps = {
   begin: (
@@ -68,12 +112,17 @@ export type SettleDeps = {
   }) => Promise<SettleRow>;
   eventSettle: (eventId: string, error: string | null) => Promise<void>;
   deliverConfirmation: (row: SettleRow) => Promise<void>;
+  /** D-22: Stripe-first refund for a settle branch that captured money but must not confirm the trip. */
+  refund: (input: RefundInput) => Promise<{ id: string }>;
+  /** Records the refund decision (idempotent on stripeRefundId) after `refund` succeeds. */
+  recordDuplicateRefund: (input: RecordDuplicateRefundInput) => Promise<void>;
+  /** D-22/D-25a: a payment landed on a booking that cannot run; the charge was refunded. */
+  alertPaidAfterCancel: (bookingKey: string) => Promise<void>;
+  /** No PaymentIntent to refund, or the refund call itself threw. A human must look. */
+  alertStuckPayment: (input: StuckPaymentAlertInput) => Promise<void>;
+  /** D-21/D-22: expire the booking's other open Checkout Sessions after a succeeded settle. */
+  expireSession: (sessionId: string) => Promise<void>;
   emit: (level: "debug" | "info" | "warn" | "error", type: string, fields?: Record<string, ScalarValue>) => void;
-  /** When omitted, capture is allowed (unit tests). Production always supplies it. */
-  loadCaptureGate?: (
-    session: Stripe.Checkout.Session | null,
-    objectId: string,
-  ) => Promise<CaptureGate>;
 };
 
 function sqlState(err: unknown): string | undefined {
@@ -113,6 +162,9 @@ function outcomeFor(
   }
   return "ignore";
 }
+
+/** Reasons a succeeded settle can carry that must never confirm the trip (D-22/D-03b). */
+const PAID_AFTER_CANCEL_REASONS = new Set(["paid_after_cancel", "test_booking", "requote_superseded"]);
 
 export async function handleStripeMessageWithDeps(
   message: StripeQueueMessage,
@@ -160,28 +212,6 @@ export async function handleStripeMessageWithDeps(
     return { ack: true };
   }
 
-  if (outcome === "succeeded" && deps.loadCaptureGate) {
-    let gate: CaptureGate;
-    try {
-      gate = await deps.loadCaptureGate(session, message.objectId);
-    } catch {
-      try {
-        await deps.eventSettle(message.eventId, "capture_gate_failed");
-      } catch {
-        return { retry: true };
-      }
-      return { ack: true };
-    }
-    if (!gate.capture) {
-      deps.emit("info", "stripe_event", {
-        reason: gate.reason ?? "expired",
-        eventId: message.eventId,
-      });
-      await deps.eventSettle(message.eventId, gate.reason ?? "expired");
-      return { ack: true };
-    }
-  }
-
   let row: SettleRow;
   try {
     row = await deps.settlePayment({
@@ -204,9 +234,90 @@ export async function handleStripeMessageWithDeps(
     return { ack: true };
   }
 
-  const extra = session?.metadata?.kind === "extra";
-  if (outcome === "succeeded" && !row.already_settled && !extra) {
-    await deps.deliverConfirmation(row);
+  if (outcome === "succeeded") {
+    const extra = session?.metadata?.kind === "extra";
+
+    if (row.refund_required) {
+      const reason = row.refund_reason ?? "unknown";
+      if (!piId) {
+        // No PaymentIntent to refund. The settle row already stamped
+        // processed_at — this is never retried into itself. A human must
+        // resolve the money manually.
+        deps.emit("warn", "refund_required_no_payment_intent", {
+          eventId: message.eventId,
+          bookingId: row.booking_id,
+          reason,
+        });
+        try {
+          await deps.alertStuckPayment({
+            eventId: message.eventId,
+            type: message.type,
+            objectId: message.objectId,
+            reference: row.reference ?? null,
+          });
+        } catch {
+          // Best-effort alert. The settle outcome itself already landed.
+        }
+      } else {
+        const idempotencyKey = `refund:${row.booking_id}:${row.payment_id}:${reason}`;
+        try {
+          const refund = await deps.refund({
+            paymentIntentId: piId,
+            amountRappen: row.charged_rappen,
+            idempotencyKey,
+            bookingId: row.booking_id,
+            paymentId: row.payment_id,
+            reason,
+          });
+          await deps.recordDuplicateRefund({
+            paymentId: row.payment_id,
+            stripeRefundId: refund.id,
+            refundRappen: row.charged_rappen,
+            reason,
+          });
+          if (PAID_AFTER_CANCEL_REASONS.has(reason)) {
+            try {
+              await deps.alertPaidAfterCancel(row.booking_id);
+            } catch {
+              // Best-effort alert. The refund itself already landed.
+            }
+          }
+        } catch (err) {
+          deps.emit("error", "refund_failed", {
+            eventId: message.eventId,
+            bookingId: row.booking_id,
+            reason,
+          });
+          try {
+            await deps.alertStuckPayment({
+              eventId: message.eventId,
+              type: message.type,
+              objectId: message.objectId,
+              reference: row.reference ?? null,
+            });
+          } catch {
+            // Best-effort alert.
+          }
+        }
+      }
+    } else if (!row.already_settled && !extra) {
+      await deps.deliverConfirmation(row);
+    }
+
+    // D-21/D-22: whoever settled first must expire every other still-open
+    // Checkout Session on this booking, so a second payer sees "already
+    // paid" instead of being charged and refunded.
+    for (const sessionId of row.other_open_session_ids) {
+      try {
+        await deps.expireSession(sessionId);
+      } catch {
+        deps.emit("warn", "expire_session_failed", {
+          eventId: message.eventId,
+          bookingId: row.booking_id,
+          sessionId,
+        });
+      }
+    }
   }
 
   return { ack: true };
@@ -241,23 +352,6 @@ export async function handleStripeMessage(
       };
     },
     retrieveSession: (id) => retrieveCheckoutSession(stripe, id),
-    loadCaptureGate: async (session, objectId) => {
-      const sessionId = session?.id ?? (objectId.startsWith("cs_") ? objectId : null);
-      const piId = paymentIntentIdOf(session) ?? (objectId.startsWith("pi_") ? objectId : null);
-      const rows = await asSystem(env, async (sql) => {
-        return sql<CaptureGateRow[]>`
-          select status, is_test, expired
-            from public.checkout_capture_gate(${sessionId}, ${piId})
-        `;
-      });
-      const row = rows[0];
-      if (!row) return { capture: true };
-      return captureAllowed({
-        status: String(row.status ?? ""),
-        is_test: row.is_test === true,
-        expired: row.expired === true,
-      });
-    },
     settlePayment: async (input) => {
       const fx = input.session ? fxFromSession(input.session) : {
         chargedCurrency: "CHF",
@@ -306,6 +400,15 @@ export async function handleStripeMessage(
           locale: String(row.locale),
           contact_email: String(row.contact_email),
           already_settled: Boolean(row.already_settled),
+          revived: Boolean(row.revived),
+          duplicate: Boolean(row.duplicate),
+          refund_required: Boolean(row.refund_required),
+          refund_reason: row.refund_reason == null ? null : String(row.refund_reason),
+          payment_id: row.payment_id == null ? 0 : Number(row.payment_id),
+          charged_rappen: row.charged_rappen == null ? 0 : Number(row.charged_rappen),
+          other_open_session_ids: Array.isArray(row.other_open_session_ids)
+            ? row.other_open_session_ids.map((id: unknown) => String(id))
+            : [],
         };
       } catch (err) {
         if (extra && sqlState(err) === "23P01") {
@@ -327,6 +430,36 @@ export async function handleStripeMessage(
       });
     },
     deliverConfirmation: (row) => deliverConfirmation(env, row),
+    refund: async (input) => {
+      const refund = await createRefund(stripe, {
+        paymentIntentId: input.paymentIntentId,
+        amountRappen: input.amountRappen,
+        idempotencyKey: input.idempotencyKey,
+        bookingId: input.bookingId,
+        paymentId: input.paymentId,
+        reason: input.reason,
+      });
+      return { id: refund.id };
+    },
+    recordDuplicateRefund: async (input) => {
+      await asSystem(env, async (sql) => {
+        await sql`
+          select public.checkout_duplicate_refund_record(
+            ${input.paymentId},
+            ${input.stripeRefundId},
+            ${input.refundRappen},
+            ${input.reason}
+          )
+        `;
+      });
+    },
+    alertPaidAfterCancel: (bookingKey) => deliverPaidAfterCancelAlert(env, bookingKey),
+    alertStuckPayment: (input) => deliverStuckPaymentAlert(env, input),
+    expireSession: async (sessionId) => {
+      const publishable = env.STRIPE_PUBLISHABLE_KEY || "";
+      if (!publishable || stripeAccountIsLegacyUaeTest(publishable)) return;
+      await expireCheckoutSession(stripe, sessionId);
+    },
     emit,
   });
 }

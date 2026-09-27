@@ -144,12 +144,24 @@ test("out-of-order canceled is superseded; booking stays confirmed @checkout", a
         locale: "en",
         contact_email: "wh-ord@example.test",
         already_settled: false,
+        revived: false,
+        duplicate: false,
+        refund_required: false,
+        refund_reason: null,
+        payment_id: 1,
+        charged_rappen: 8000,
+        other_open_session_ids: [],
       };
     },
     eventSettle: async () => undefined,
     deliverConfirmation: async () => {
       emails += 1;
     },
+    refund: async () => ({ id: "re_never" }),
+    recordDuplicateRefund: async () => undefined,
+    alertPaidAfterCancel: async () => undefined,
+    alertStuckPayment: async () => undefined,
+    expireSession: async () => undefined,
     emit: () => undefined,
   };
 
@@ -193,11 +205,23 @@ test("a second confirmation deliver is not issued when already_settled @checkout
       locale: "en",
       contact_email: "wh-ord@example.test",
       already_settled: true,
+      revived: false,
+      duplicate: false,
+      refund_required: false,
+      refund_reason: null,
+      payment_id: 1,
+      charged_rappen: 8000,
+      other_open_session_ids: [],
     }),
     eventSettle: async () => undefined,
     deliverConfirmation: async () => {
       emails += 1;
     },
+    refund: async () => ({ id: "re_never" }),
+    recordDuplicateRefund: async () => undefined,
+    alertPaidAfterCancel: async () => undefined,
+    alertStuckPayment: async () => undefined,
+    expireSession: async () => undefined,
     emit: () => undefined,
   };
   await handleStripeMessageWithDeps(

@@ -3,8 +3,8 @@ import {
   captureAllowed,
   handleStripeMessageWithDeps,
   pgTextArrayLiteral,
-  type CaptureGate,
   type SettleDeps,
+  type SettleRow,
 } from "./settle";
 import type { StripeQueueMessage } from "./webhook";
 import type Stripe from "stripe";
@@ -29,30 +29,57 @@ function message(patch: Partial<StripeQueueMessage> = {}): StripeQueueMessage {
   };
 }
 
+function settleRow(patch: Partial<SettleRow> = {}): SettleRow {
+  return {
+    booking_id: "11111111-1111-1111-1111-111111111111",
+    reference: "VT-1",
+    locale: "en",
+    contact_email: "a@b.c",
+    already_settled: false,
+    revived: false,
+    duplicate: false,
+    refund_required: false,
+    refund_reason: null,
+    payment_id: 1,
+    charged_rappen: 8000,
+    other_open_session_ids: [],
+    ...patch,
+  };
+}
+
 function deps(patch: Partial<SettleDeps> = {}): SettleDeps & {
   begin: ReturnType<typeof vi.fn>;
   retrieveSession: ReturnType<typeof vi.fn>;
   settlePayment: ReturnType<typeof vi.fn>;
   eventSettle: ReturnType<typeof vi.fn>;
   deliverConfirmation: ReturnType<typeof vi.fn>;
+  refund: ReturnType<typeof vi.fn>;
+  recordDuplicateRefund: ReturnType<typeof vi.fn>;
+  alertPaidAfterCancel: ReturnType<typeof vi.fn>;
+  alertStuckPayment: ReturnType<typeof vi.fn>;
+  expireSession: ReturnType<typeof vi.fn>;
 } {
   const begin = vi.fn(async () => ({ should_process: true, reason: "ok" }));
   const retrieveSession = vi.fn(async () => session());
-  const settlePayment = vi.fn(async () => ({
-    booking_id: "11111111-1111-1111-1111-111111111111",
-    reference: "VT-1",
-    locale: "en",
-    contact_email: "a@b.c",
-    already_settled: false,
-  }));
+  const settlePayment = vi.fn(async () => settleRow());
   const eventSettle = vi.fn(async () => undefined);
   const deliverConfirmation = vi.fn(async () => undefined);
+  const refund = vi.fn(async () => ({ id: "re_test_1" }));
+  const recordDuplicateRefund = vi.fn(async () => undefined);
+  const alertPaidAfterCancel = vi.fn(async () => undefined);
+  const alertStuckPayment = vi.fn(async () => undefined);
+  const expireSession = vi.fn(async () => undefined);
   return {
     begin,
     retrieveSession,
     settlePayment,
     eventSettle,
     deliverConfirmation,
+    refund,
+    recordDuplicateRefund,
+    alertPaidAfterCancel,
+    alertStuckPayment,
+    expireSession,
     emit: () => undefined,
     ...patch,
   } as SettleDeps & {
@@ -61,6 +88,11 @@ function deps(patch: Partial<SettleDeps> = {}): SettleDeps & {
     settlePayment: ReturnType<typeof vi.fn>;
     eventSettle: ReturnType<typeof vi.fn>;
     deliverConfirmation: ReturnType<typeof vi.fn>;
+    refund: ReturnType<typeof vi.fn>;
+    recordDuplicateRefund: ReturnType<typeof vi.fn>;
+    alertPaidAfterCancel: ReturnType<typeof vi.fn>;
+    alertStuckPayment: ReturnType<typeof vi.fn>;
+    expireSession: ReturnType<typeof vi.fn>;
   };
 }
 
@@ -83,6 +115,7 @@ describe("handleStripeMessageWithDeps", () => {
     expect(result).toEqual({ ack: true });
     expect(d.settlePayment).not.toHaveBeenCalled();
     expect(d.deliverConfirmation).not.toHaveBeenCalled();
+    expect(d.refund).not.toHaveBeenCalled();
   });
 
   it("acks superseded without calling the booking-status stub", async () => {
@@ -92,6 +125,15 @@ describe("handleStripeMessageWithDeps", () => {
     const result = await handleStripeMessageWithDeps(message(), d);
     expect(result).toEqual({ ack: true });
     expect(d.settlePayment).not.toHaveBeenCalled();
+  });
+
+  it("a second delivery of the same event never issues a second refund (dedupe stays at begin)", async () => {
+    const d = deps({
+      begin: vi.fn(async () => ({ should_process: false, reason: "already_processed" })),
+    });
+    await handleStripeMessageWithDeps(message(), d);
+    expect(d.settlePayment).not.toHaveBeenCalled();
+    expect(d.refund).not.toHaveBeenCalled();
   });
 
   it("passes both cs_ and pi_ ids into stripe_event_begin", async () => {
@@ -133,13 +175,7 @@ describe("handleStripeMessageWithDeps", () => {
 
   it("does not send a second email when already_settled is true", async () => {
     const d = deps({
-      settlePayment: vi.fn(async () => ({
-        booking_id: "11111111-1111-1111-1111-111111111111",
-        reference: "VT-1",
-        locale: "en",
-        contact_email: "a@b.c",
-        already_settled: true,
-      })),
+      settlePayment: vi.fn(async () => settleRow({ already_settled: true })),
     });
     await handleStripeMessageWithDeps(message(), d);
     expect(d.deliverConfirmation).not.toHaveBeenCalled();
@@ -152,46 +188,145 @@ describe("handleStripeMessageWithDeps", () => {
     expect(d.deliverConfirmation).toHaveBeenCalledTimes(1);
   });
 
-  it("acks a paid checkout.session.completed without succeeded settle when the unpaid lock expired (D-23)", async () => {
+  it("succeeded + revived:true delivers the confirmation once (D-03)", async () => {
     const d = deps({
-      loadCaptureGate: vi.fn(async (): Promise<CaptureGate> => ({ capture: false, reason: "expired" })),
+      settlePayment: vi.fn(async () => settleRow({ revived: true })),
     });
     const result = await handleStripeMessageWithDeps(message(), d);
     expect(result).toEqual({ ack: true });
-    expect(d.settlePayment).not.toHaveBeenCalled();
+    expect(d.deliverConfirmation).toHaveBeenCalledTimes(1);
+    expect(d.refund).not.toHaveBeenCalled();
+  });
+
+  it("succeeded on a cancelled booking still calls settlePayment — the gate is not consulted for cancelled/expired (D-03)", async () => {
+    const d = deps();
+    await handleStripeMessageWithDeps(message(), d);
+    expect(d.settlePayment).toHaveBeenCalledTimes(1);
+  });
+
+  it("refund_required duplicate_charge refunds with the booking:payment:reason idempotency key, records it, sends no confirmation (D-22)", async () => {
+    const d = deps({
+      settlePayment: vi.fn(async () =>
+        settleRow({
+          already_settled: true,
+          refund_required: true,
+          refund_reason: "duplicate_charge",
+          payment_id: 42,
+          charged_rappen: 7780,
+        }),
+      ),
+    });
+    const result = await handleStripeMessageWithDeps(message(), d);
+    expect(result).toEqual({ ack: true });
+    expect(d.refund).toHaveBeenCalledWith({
+      paymentIntentId: "pi_test_1",
+      amountRappen: 7780,
+      idempotencyKey: "refund:11111111-1111-1111-1111-111111111111:42:duplicate_charge",
+      bookingId: "11111111-1111-1111-1111-111111111111",
+      paymentId: 42,
+      reason: "duplicate_charge",
+    });
+    expect(d.recordDuplicateRefund).toHaveBeenCalledWith({
+      paymentId: 42,
+      stripeRefundId: "re_test_1",
+      refundRappen: 7780,
+      reason: "duplicate_charge",
+    });
     expect(d.deliverConfirmation).not.toHaveBeenCalled();
-    expect(d.eventSettle).toHaveBeenCalledWith("evt_1", "expired");
+    expect(d.alertPaidAfterCancel).not.toHaveBeenCalled();
   });
 
-  it("acks without capture when the unpaid trip is cancelled", async () => {
+  it.each(["paid_after_cancel", "test_booking", "requote_superseded"])(
+    "refund_required %s refunds and alerts paid-after-cancel with the booking id",
+    async (reason) => {
+      const d = deps({
+        settlePayment: vi.fn(async () =>
+          settleRow({ refund_required: true, refund_reason: reason }),
+        ),
+      });
+      const result = await handleStripeMessageWithDeps(message(), d);
+      expect(result).toEqual({ ack: true });
+      expect(d.refund).toHaveBeenCalledTimes(1);
+      expect(d.recordDuplicateRefund).toHaveBeenCalledTimes(1);
+      expect(d.alertPaidAfterCancel).toHaveBeenCalledWith(
+        "11111111-1111-1111-1111-111111111111",
+      );
+    },
+  );
+
+  it("succeeded with other_open_session_ids expires each one; a failed expire is logged, not retried", async () => {
+    const emit = vi.fn();
+    const expireSession = vi.fn(async (id: string) => {
+      if (id === "cs_bad") throw new Error("stripe down");
+    });
     const d = deps({
-      loadCaptureGate: vi.fn(async (): Promise<CaptureGate> => ({ capture: false, reason: "cancelled" })),
+      emit,
+      expireSession,
+      settlePayment: vi.fn(async () =>
+        settleRow({ other_open_session_ids: ["cs_ok", "cs_bad"] }),
+      ),
     });
     const result = await handleStripeMessageWithDeps(message(), d);
     expect(result).toEqual({ ack: true });
-    expect(d.settlePayment).not.toHaveBeenCalled();
+    expect(expireSession).toHaveBeenCalledWith("cs_ok");
+    expect(expireSession).toHaveBeenCalledWith("cs_bad");
+    expect(expireSession).toHaveBeenCalledTimes(2);
+    expect(emit).toHaveBeenCalledWith(
+      "warn",
+      "expire_session_failed",
+      expect.objectContaining({ sessionId: "cs_bad" }),
+    );
   });
 
-  it("acks capture_gate_failed when the gate throws and does not settle", async () => {
+  it("a refund dep throw never retries (processed_at already stamped) — alerts stuck payment and acks", async () => {
+    const emit = vi.fn();
+    const alertStuckPayment = vi.fn(async () => undefined);
     const d = deps({
-      loadCaptureGate: vi.fn(async () => {
-        throw Object.assign(new Error("permission denied for table bookings"), { code: "42501" });
+      emit,
+      alertStuckPayment,
+      refund: vi.fn(async () => {
+        throw new Error("card_declined");
       }),
+      settlePayment: vi.fn(async () =>
+        settleRow({ refund_required: true, refund_reason: "duplicate_charge" }),
+      ),
     });
     const result = await handleStripeMessageWithDeps(message(), d);
     expect(result).toEqual({ ack: true });
-    expect(d.settlePayment).not.toHaveBeenCalled();
-    expect(d.deliverConfirmation).not.toHaveBeenCalled();
-    expect(d.eventSettle).toHaveBeenCalledWith("evt_1", "capture_gate_failed");
+    expect(alertStuckPayment).toHaveBeenCalledWith({
+      eventId: "evt_1",
+      type: "checkout.session.completed",
+      objectId: "cs_test_1",
+      reference: "VT-1",
+    });
+    expect(emit).toHaveBeenCalledWith(
+      "error",
+      "refund_failed",
+      expect.objectContaining({ eventId: "evt_1" }),
+    );
+    expect(d.recordDuplicateRefund).not.toHaveBeenCalled();
   });
 
-  it("acks without capture when bookings.is_test (D-33)", async () => {
+  it("a null PaymentIntent id on a refund_required row never calls Stripe — alerts stuck payment and acks", async () => {
+    const alertStuckPayment = vi.fn(async () => undefined);
+    const refund = vi.fn(async () => ({ id: "re_never" }));
     const d = deps({
-      loadCaptureGate: vi.fn(async (): Promise<CaptureGate> => ({ capture: false, reason: "is_test" })),
+      alertStuckPayment,
+      refund,
+      retrieveSession: vi.fn(async () => session({ payment_intent: null })),
+      settlePayment: vi.fn(async () =>
+        settleRow({ refund_required: true, refund_reason: "paid_after_cancel" }),
+      ),
     });
     const result = await handleStripeMessageWithDeps(message(), d);
     expect(result).toEqual({ ack: true });
-    expect(d.settlePayment).not.toHaveBeenCalled();
+    expect(refund).not.toHaveBeenCalled();
+    expect(alertStuckPayment).toHaveBeenCalledWith({
+      eventId: "evt_1",
+      type: "checkout.session.completed",
+      objectId: "cs_test_1",
+      reference: "VT-1",
+    });
   });
 });
 

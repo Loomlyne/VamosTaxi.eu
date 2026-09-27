@@ -273,6 +273,9 @@ export async function acceptPaidEdit(
         paymentIntentId: accepted.original_intent_id,
         amountRappen: refundRappen,
         idempotencyKey: `edit-refund:${accepted.request_id}:${refundRappen}`,
+        bookingId: accepted.booking_id,
+        paymentId: accepted.original_payment_id ?? 0,
+        reason: "modification_credit",
       });
       if (!refund?.id) return { ok: false, code: "stripe-failed" };
       refundId = refund.id;

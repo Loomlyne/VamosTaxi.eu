@@ -78,6 +78,15 @@ describe("08-05 refund file proofs", () => {
     expect(src).not.toMatch(/:6543/);
   });
 
+  it("resolves the PaymentIntent id before createRefund; a null resolution refuses the refund (D-05)", () => {
+    const src = read("apps/web/lib/ops/refund.ts");
+    const resolveAt = src.indexOf("resolvePaymentIntentId(");
+    const createAt = src.indexOf("createRefund(");
+    expect(resolveAt).toBeGreaterThan(-1);
+    expect(resolveAt).toBeLessThan(createAt);
+    expect(src).toMatch(/if \(!paymentIntentId\) return \{ ok: false, code: "stripe-failed" \}/);
+  });
+
   it("staff PATCH no longer markRefunded-without-Stripe", () => {
     const item = read(
       "apps/web/app/[locale]/(ops)/api/staff/bookings/[id]/route.ts",

@@ -146,6 +146,10 @@ export async function createRefund(
     paymentIntentId: string;
     amountRappen: number;
     idempotencyKey: string;
+    /** D-05: every app-created refund carries metadata so charge.refunded (26.1-08) can tell app refunds from dashboard refunds. */
+    bookingId: string;
+    paymentId: number;
+    reason: string;
   },
 ): Promise<Stripe.Refund> {
   return stripe.refunds.create(
@@ -153,9 +157,38 @@ export async function createRefund(
       payment_intent: input.paymentIntentId,
       amount: input.amountRappen,
       reason: "requested_by_customer",
+      metadata: {
+        vamos_source: "app",
+        booking_id: input.bookingId,
+        payment_id: String(input.paymentId),
+        reason: input.reason,
+      },
     },
     { idempotencyKey: input.idempotencyKey },
   );
+}
+
+/**
+ * D-05/X0b: a refund must always target a real PaymentIntent, never a
+ * Checkout Session id. `pi_...` is returned as-is with no Stripe call
+ * (research threat "stale cs_ misroute" — a stored `cs_...` value must be
+ * resolved fresh every time, never cached as a PaymentIntent). `cs_...` is
+ * resolved by retrieving the session and reading its expanded
+ * `payment_intent`; `null` when the session has none yet. Any other prefix
+ * (empty, `ch_...`, garbage) is refused — the caller must not fall back to a
+ * Charge-level refund or mint a new PaymentIntent.
+ */
+export async function resolvePaymentIntentId(
+  stripe: Stripe,
+  storedId: string,
+): Promise<string | null> {
+  if (storedId.startsWith("pi_")) return storedId;
+  if (!storedId.startsWith("cs_")) return null;
+  const session = await retrieveCheckoutSession(stripe, storedId);
+  const pi = session.payment_intent;
+  if (typeof pi === "string" && pi.length > 0) return pi;
+  if (pi && typeof pi === "object" && "id" in pi && typeof pi.id === "string") return pi.id;
+  return null;
 }
 
 /** D-07: expand charge card country + balance_transaction.available_on. Never invent day counts. */

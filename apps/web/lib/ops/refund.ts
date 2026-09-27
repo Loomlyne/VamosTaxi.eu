@@ -6,7 +6,7 @@
 
 import { asStaff, asSystem, type VamosClaims } from "../db/identity";
 import { applyStripeRefund } from "../lifecycle/paid-cancel";
-import { createRefund, stripeFromEnv } from "../checkout/stripe";
+import { createRefund, resolvePaymentIntentId, stripeFromEnv } from "../checkout/stripe";
 import {
   mapRefundSqlError,
   opsRefundAmount,
@@ -143,10 +143,15 @@ export async function refundBooking(
   let fee: number | null = null;
   try {
     const stripe = stripeFromEnv(env);
+    const paymentIntentId = await resolvePaymentIntentId(stripe, payment.paymentIntentId);
+    if (!paymentIntentId) return { ok: false, code: "stripe-failed" };
     const refund = await createRefund(stripe, {
-      paymentIntentId: payment.paymentIntentId,
+      paymentIntentId,
       amountRappen: amount,
       idempotencyKey: `refund:${payment.bookingId}:${payment.paymentId}:ops-remaining:${amount}`,
+      bookingId: payment.bookingId,
+      paymentId: payment.paymentId,
+      reason: "ops_remaining",
     });
     if (!refund?.id) return { ok: false, code: "stripe-failed" };
     refundId = refund.id;

@@ -6,6 +6,7 @@ import {
   createRefund,
   expireCheckoutSession,
   missingEnvError,
+  resolvePaymentIntentId,
   retrieveCheckoutSession,
   stripeFromEnv,
   stripePublishableKey,
@@ -102,12 +103,15 @@ describe("stripe module", () => {
     });
   });
 
-  it("refunds by payment_intent id, never a Charge id", async () => {
+  it("refunds by payment_intent id, never a Charge id, and always carries app-refund metadata (D-05)", async () => {
     const { client, refundCreate } = fakeStripe();
     await createRefund(client, {
       paymentIntentId: "pi_test_1",
       amountRappen: 8000,
       idempotencyKey: "refund-1",
+      bookingId: "00000000-0000-4000-8000-000000000001",
+      paymentId: 41,
+      reason: "customer_cancel",
     });
     const params = refundCreate.mock.calls[0]?.[0] as Record<string, unknown>;
     const opts = refundCreate.mock.calls[0]?.[1] as Record<string, unknown>;
@@ -115,9 +119,49 @@ describe("stripe module", () => {
       payment_intent: "pi_test_1",
       amount: 8000,
       reason: "requested_by_customer",
+      metadata: {
+        vamos_source: "app",
+        booking_id: "00000000-0000-4000-8000-000000000001",
+        payment_id: "41",
+        reason: "customer_cancel",
+      },
     });
     expect(params).not.toHaveProperty("charge");
     expect(opts).toEqual({ idempotencyKey: "refund-1" });
+  });
+
+  describe("resolvePaymentIntentId (D-05/X0b)", () => {
+    it("returns a pi_ id as-is, with no Stripe call", async () => {
+      const { client, retrieve } = fakeStripe();
+      const result = await resolvePaymentIntentId(client, "pi_test_1");
+      expect(result).toBe("pi_test_1");
+      expect(retrieve).not.toHaveBeenCalled();
+    });
+
+    it("resolves a cs_ id by retrieving the session's expanded payment_intent", async () => {
+      const { client, retrieve } = fakeStripe();
+      retrieve.mockResolvedValue({
+        id: "cs_test_a1lyA5",
+        payment_intent: { id: "pi_from_session" },
+      });
+      const result = await resolvePaymentIntentId(client, "cs_test_a1lyA5");
+      expect(result).toBe("pi_from_session");
+      expect(retrieve).toHaveBeenCalledWith("cs_test_a1lyA5", { expand: ["payment_intent"] });
+    });
+
+    it("returns null when a cs_ session has no PaymentIntent yet", async () => {
+      const { client, retrieve } = fakeStripe();
+      retrieve.mockResolvedValue({ id: "cs_test_1", payment_intent: null });
+      expect(await resolvePaymentIntentId(client, "cs_test_1")).toBeNull();
+    });
+
+    it("refuses any other prefix — empty, ch_, or garbage — with no Stripe call", async () => {
+      const { client, retrieve } = fakeStripe();
+      expect(await resolvePaymentIntentId(client, "")).toBeNull();
+      expect(await resolvePaymentIntentId(client, "ch_test_1")).toBeNull();
+      expect(await resolvePaymentIntentId(client, "garbage")).toBeNull();
+      expect(retrieve).not.toHaveBeenCalled();
+    });
   });
 
   it("stamps extra Checkout Session metadata kind extra", async () => {
