@@ -1006,35 +1006,38 @@ alignment). Source: `docs/audit/2026-vamos-audit.md` Phase A; decisions D-01…D
   8. Only the admin signs in. In account settings the admin can add a passkey, add TOTP, or switch password ↔ magic link, each working end to end; once a factor is enrolled, aal2 is required. Changing password or email requires signing in again. Leaked-password protection is on (owner toggle).
   9. Must-nots: Stripe sandbox `acct_1UIZmqHcNp9GZYjz` only, no `sk_live_`, no `vamostaxi.eu`, no invented CHF or legal copy, no pixel. The agent never writes to live Supabase `yaumjzvylngfjhtuffqs` (migrations are handed to the owner as SQL) and never makes Stripe dashboard changes or `wrangler secret put`. Four languages and the design laws hold on every touched surface.
 
-**Plans**: 26 plans, 15 waves
+**Plans**: 29 plans, 18 waves
 
 Plans:
 - [ ] 26.1-01-PLAN.md — Merge PR #60 baseline; pin sandbox-only Stripe (INT-01)
-- [ ] 26.1-02-PLAN.md — Settle SQL: revive, pi_ write-back, duplicate flag
+- [ ] 26.1-02-PLAN.md — Settle SQL: revive (incl. staff cancel), requote refund, pi_ write-back, duplicate flag
 - [ ] 26.1-03-PLAN.md — DLQ consumer and stuck-payment alert
 - [ ] 26.1-04-PLAN.md — Pricing kernel: owner formula, airport fee, pairs both ways
-- [ ] 26.1-05-PLAN.md — Consumer revive/auto-refund; refunds by PaymentIntent
-- [ ] 26.1-06-PLAN.md — Cancel/expire paths expire Stripe sessions; coupon release
+- [ ] 26.1-05-PLAN.md — Consumer revive/auto-refund, expire other sessions; refunds by PaymentIntent
+- [ ] 26.1-06-PLAN.md — Account, cron and staff cancel expire Stripe sessions; coupon release
 - [ ] 26.1-07-PLAN.md — Checkout fail-closed, pricing_live read, coupon caps at payment
-- [ ] 26.1-08-PLAN.md — charge.refunded and disputes reach the DB
-- [ ] 26.1-09-PLAN.md — Mapbox city/canton/airport facts and flight number to the kernel
+- [ ] 26.1-08-PLAN.md — charge.refunded and disputes reach the DB (both arrival orders)
+- [ ] 26.1-09-PLAN.md — Mapbox city/canton/airport facts; flight number re-prices at checkout
 - [ ] 26.1-10-PLAN.md — 26 canton zones, draft pair filler, boundary zones in ops
 - [ ] 26.1-11-PLAN.md — Checkout rows: airport fee and route pair
-- [ ] 26.1-12-PLAN.md — Owner SQL handoff: money wave
+- [ ] 26.1-12-PLAN.md — Owner SQL handoff: money wave (interim window documented)
 - [ ] 26.1-13-PLAN.md — Owner: webhook secret, old webhook, event subscriptions
 - [ ] 26.1-14-PLAN.md — Owner SQL handoff: pricing wave and canton pair fill
-- [ ] 26.1-15-PLAN.md — Pay link 24 h hold from send; pay-link state
+- [ ] 26.1-15-PLAN.md — Pay link 24 h hold from send, honoured by all pay paths
 - [ ] 26.1-16-PLAN.md — Pay-link recipient states: already paid, refunded, expired
 - [ ] 26.1-17-PLAN.md — Refund tiers SQL and admin refund API
 - [ ] 26.1-18-PLAN.md — Ops refund review panel, disputes, customer refund words
-- [ ] 26.1-19-PLAN.md — Classes: Economy/Business/Van luxury; delete or hide with reason
+- [ ] 26.1-19-PLAN.md — Class delete or hide with reason; public filtering; owner names file
 - [ ] 26.1-20-PLAN.md — aal2 only when a factor is enrolled; admin-only console
 - [ ] 26.1-21-PLAN.md — Owner SQL handoff: pay-link, refunds, classes
 - [ ] 26.1-22-PLAN.md — TOTP, step-up, magic-link switch, re-auth (server)
 - [ ] 26.1-23-PLAN.md — Ops settings and sign-in step-up UI
-- [ ] 26.1-24-PLAN.md — Owner: aal2 SQL, leaked-password and passkey toggles
+- [ ] 26.1-24-PLAN.md — Owner: aal2 SQL, leaked-password and passkey decisions
 - [ ] 26.1-25-PLAN.md — Passkey end to end (only if owner enables passkeys)
-- [ ] 26.1-26-PLAN.md — Post-Ship live reconciliation (owner-gated)
+- [ ] 26.1-26-PLAN.md — Owner Ship gate: DLQ queue, re-auth secret, Ship
+- [ ] 26.1-27-PLAN.md — Class names Economy/Business/Van luxury in mocks, tests, dictionary, rules
+- [ ] 26.1-28-PLAN.md — Post-Ship live reconciliation (owner read-only SQL)
+- [ ] 26.1-29-PLAN.md — Breached-password check (only if owner chooses it)
 **UI hint**: yes — pay-link "already paid" page, ops refund approval, admin account-settings sign-in methods, class names.
 
 ### Phase 27: Consent record
@@ -1128,7 +1131,7 @@ v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 26.1 �
 | 24. Dual-payer, pay-link, mail split | 0/TBD | Not started | - |
 | 25. /bookings unpaid + TEST UAT + secret-swap design | 0/TBD | Not started | - |
 | 26. Legal gate | 2/2 | Complete    | 2026-09-23 |
-| 26.1. Payment and pricing integrity (INSERTED) | 0/26 | Not started | - |
+| 26.1. Payment and pricing integrity (INSERTED) | 0/29 | Not started | - |
 | 27. Consent record | 0/TBD | Not started | - |
 | 28. Pixel PageView | 0/TBD | Not started | - |
 | 29. Webhook Purchase | 0/TBD | Not started | - |
