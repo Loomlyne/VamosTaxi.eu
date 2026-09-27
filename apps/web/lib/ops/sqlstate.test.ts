@@ -68,7 +68,8 @@ describe("mapSqlState", () => {
 });
 
 describe("OPS_SQLSTATE", () => {
-  it("is frozen and lists the five codes", () => {
+  // 1a0ac0a added exclusion (23P01) for the booking_legs no-overlap GiST constraints.
+  it("is frozen and lists the six codes", () => {
     expect(Object.isFrozen(OPS_SQLSTATE)).toBe(true);
     expect(OPS_SQLSTATE).toEqual({
       restrict: "23001",
@@ -76,6 +77,7 @@ describe("OPS_SQLSTATE", () => {
       check: "23514",
       privilege: "42501",
       noData: "P0002",
+      exclusion: "23P01",
     });
   });
 });
