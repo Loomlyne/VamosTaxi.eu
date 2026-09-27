@@ -177,6 +177,28 @@ describe("runCheckoutIntent", () => {
     expect(((await res.json()) as { code: string }).code).toBe("pricing_not_live");
   });
 
+  it("returns 409 pricing_not_live when the board says pricing is off even with a priced class (D-12)", async () => {
+    const p = payload();
+    const body = await bodyFor(p);
+    const create = vi.fn(async () => {
+      throw new Error("should not create");
+    });
+    const res = await runCheckoutIntent(
+      body,
+      deps(p, {
+        createCheckoutSession: create as unknown as CheckoutIntentDeps["createCheckoutSession"],
+        reprice: () => ({
+          pricing_live: false,
+          engine_version: p.engine_version,
+          classes: [{ slug: "economy", total_rappen: 8000, eligible: true }],
+        }),
+      }),
+    );
+    expect(res.status).toBe(409);
+    expect(((await res.json()) as { code: string }).code).toBe("pricing_not_live");
+    expect(create).not.toHaveBeenCalled();
+  });
+
   it("returns 503 with no code for the UAE prefix and does not retrieve or create", async () => {
     const p = payload();
     const body = await bodyFor(p);
