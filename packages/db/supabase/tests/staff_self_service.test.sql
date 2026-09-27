@@ -79,10 +79,11 @@ values
   ('06010000-0000-4000-a000-000000000001', 'sss-dispatcher@vamostaxi.eu', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now()),
   ('06010000-0000-4000-a000-000000000002', 'sss-admin@vamostaxi.eu', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now());
 
-insert into public.staff (user_id, role, full_name, phone, lang, digest_email, avatar_path, active)
+-- accepted_at: app.is_staff()/is_admin() ignore unaccepted invites (20260901000001).
+insert into public.staff (user_id, role, full_name, phone, lang, digest_email, avatar_path, active, accepted_at)
 values
-  ('06010000-0000-4000-a000-000000000001', 'dispatcher', 'Before', '+41 00', 'en', true, null, true),
-  ('06010000-0000-4000-a000-000000000002', 'admin', 'Admin Fixture', '+41 11', 'fr', true, 'avatars/admin.png', true);
+  ('06010000-0000-4000-a000-000000000001', 'dispatcher', 'Before', '+41 00', 'en', true, null, true, now()),
+  ('06010000-0000-4000-a000-000000000002', 'admin', 'Admin Fixture', '+41 11', 'fr', true, 'avatars/admin.png', true, now());
 
 create temporary table sss_admin_before as
 select * from public.staff where user_id = '06010000-0000-4000-a000-000000000002';
@@ -182,6 +183,9 @@ select is(
 );
 
 -- staff_claim_invite stamps accepted_at once. ---------------------------------------------------
+-- The fixture row was inserted accepted (so the self-service block above could run); put it back
+-- to a pending invite so this block proves the stamp rather than an already-set value.
+update public.staff set accepted_at = null where user_id = '06010000-0000-4000-a000-000000000001';
 set local role vamos_staff;
 select set_config('request.jwt.claims',
   jsonb_build_object('sub', '06010000-0000-4000-a000-000000000001', 'role', 'authenticated', 'aal', 'aal2',

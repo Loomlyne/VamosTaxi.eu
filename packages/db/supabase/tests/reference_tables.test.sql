@@ -48,13 +48,13 @@ select col_type_is('public', 'customers', 'email', 'extensions.citext', 'custome
 -- the seed (Plan 02-09) supplies the value, this migration never does.
 select col_is_null('public', 'settings_versions', 'round_trip_discount_percent', 'round_trip_discount_percent is nullable (ADR-002 gap discipline)');
 
--- vehicle_classes slug CHECK: D-36 keeps the schema tolerant of the draft's full slug list,
--- but any slug outside it (a typo, not 'first') is still rejected.
+-- vehicle_classes slug CHECK: Phase 18 D-29 (20260914191000) replaced the fixed slug list with
+-- vehicle_classes_slug_kebab -- any kebab slug is a class, anything else is still rejected.
 select throws_ok(
-  $$ insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity) values ('limo', 3, 3) $$,
+  $$ insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity) values ('Limo Class', 3, 3) $$,
   '23514',
   null,
-  'vehicle_classes rejects a slug outside the CHECK list'
+  'vehicle_classes rejects a slug that is not kebab-case (vehicle_classes_slug_kebab)'
 );
 -- DEVIATION (Rule 1, bug fix -- Plan 02-09 seeds a real 'van' row): inserting a second 'van'
 -- now collides with vehicle_classes_slug_key. 'first' is the one CHECK-list slug the seed
