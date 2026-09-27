@@ -98,6 +98,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 24: Dual-payer, pay-link, mail split** - Token recap pay; first charge wins; traveller manage vs payer receipt
 - [ ] **Phase 25: /bookings unpaid + TEST UAT + secret-swap design** - Unpaid row pays the same session; TEST UAT boring; live keys documented not executed
 - [x] **Phase 26: Legal gate** - Pixel and Purchase stay off until owner banner, cookies, and privacy lines exist in en/de/fr/ar; new policy version; flag stays off (completed 2026-09-23)
+- [ ] **Phase 26.1: Codebase audit, bug fix & simplify (INSERTED)** - Folder by folder over `apps/web`, `packages/emails`, `packages/db`: find and fix real bugs, then simplify; every unit passes the repo gates; no visible or pay change
 - [ ] **Phase 27: Consent record** - Accept logs Meta on; Dismiss logs Meta off; existing banner until a choice, including a pay link
 - [ ] **Phase 28: Pixel PageView** - Pixel `1595596972063765` sends PageView only on allowed customer pages; click ids saved on the unpaid booking
 - [ ] **Phase 29: Webhook Purchase** - One Purchase from the settle queue in the CHF charged; quote, pay, and confirmation unchanged
@@ -983,6 +984,36 @@ Plans:
 
 **UI hint**: no
 
+### Phase 26.1: Codebase audit, bug fix & simplify (INSERTED)
+
+**Goal**: Every production folder is reviewed one unit at a time. Confirmed bugs are fixed
+with a test that fails before and passes after. Code is then simplified (reuse, dead code,
+needless abstraction, wasted work) without changing what a user sees or what anyone pays.
+Each unit is its own plan, its own commit, and its own report line.
+**Depends on**: Phase 26. Does not start Phases 16/17/19/20 or 21–25. Does not replace discuss-phase 27; 27 resumes after this phase or when the owner says.
+**Requirements**: AUD-01 … AUD-06
+**Scope map (2026-09-27, seed for research — sizes are non-test lines)**:
+
+  - `apps/web/lib` — ops 11.4k · checkout 4.0k · quote 3.1k · pricing 2.9k · geo 1.3k · lifecycle 0.9k · abuse 0.8k · auth 0.6k · flight 0.5k · db 0.5k · account · fx · security · forms · supabase
+  - `apps/web/app/api` — staff · checkout 1.1k · auth 0.7k · account 0.5k · manage · reviews · geo · quote (0 unit tests)
+  - `apps/web/app/[locale]` — (ops) 6.0k · dev 3.8k · checkout 3.1k · confirmation · legal pages · review · sign-in · reset-password · faq
+  - `apps/web/components` — forms 2.4k · home 2.2k · shell 1.5k · booking · core · transfer · feedback · auth · data · legal · navigation · consent · marketing
+  - `apps/web` root — `middleware.ts`, `worker.ts`, `dashboard-gateway.ts`, `i18n/`
+  - `packages/emails` (37 files) · `packages/db` (142 migrations, report-only)
+  - Out of scope: `app/*.dc.html` + `app/vamos-*.js` mocks (design source), `design-system/`, `archive/`, `assets/` vendored files
+
+**Success Criteria** (what must be TRUE):
+
+  1. Every unit in the scope map has a review record in the phase folder: bugs found, bugs fixed, simplifications applied, items deferred with a reason.
+  2. Every fixed bug has a regression test (unit or db) that fails on the old code and passes on the new.
+  3. After every unit commit: `pnpm typecheck`, `lint`, `lint:css`, `test:unit`, `i18n:check`, `check:numbers`, `check:db-fences`, `check:public-env` all pass. No test is skipped, disabled, or deleted to get green.
+  4. Simplification changes no rendered output, no copy, no route, no API contract, no SQL behaviour. Design laws (no glow, no tinted yellow, `CHF 000`/`data-tok`, four languages) still hold.
+  5. `packages/db`: applied migrations are never edited. Findings become a new migration queued as owner-apply SQL, or a written deferral.
+  6. Must-nots: no `sk_live_`; no `vamostaxi.eu`; no deploy; no `supabase db push`; no invented CHF or legal copy. Quote, pay and confirmation behaviour changes only to fix a confirmed bug, and only with owner sign-off at the plan gate.
+
+**Plans**: TBD (one plan per unit; waves ordered lowest risk first — leaf `lib/*` → `lib/ops` → `lib/quote`+`pricing` → `app/api` → `components` → `app/[locale]` → `packages/emails` → `packages/db` report → checkout/pay last, gated)
+**UI hint**: no new screens. No visible change.
+
 ### Phase 27: Consent record
 
 **Goal**: Accept logs Meta on. Dismiss logs Meta off. The latest `consent_log` row
@@ -1044,7 +1075,7 @@ v1.0: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 → 9 → 10 → 11 → 18 
 v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16 → 17
 Close-out one-by-one: 17 deploy → 17 SQL apply → 17 UAT → 16 ROADMAP tick → discuss 19 surge → 11-12 owner Publish (never agent)
 v1.2 Payment (leftovers 16/17/19/20 frozen): 21 → 22 → 23 → 24 → 25
-v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 27 → 28 → 29
+v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 26.1 → 27 → 28 → 29
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -1074,6 +1105,7 @@ v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 27 → 
 | 24. Dual-payer, pay-link, mail split | 0/TBD | Not started | - |
 | 25. /bookings unpaid + TEST UAT + secret-swap design | 0/TBD | Not started | - |
 | 26. Legal gate | 2/2 | Complete    | 2026-09-23 |
+| 26.1. Codebase audit, bug fix & simplify (INSERTED) | 0/TBD | Not started | - |
 | 27. Consent record | 0/TBD | Not started | - |
 | 28. Pixel PageView | 0/TBD | Not started | - |
 | 29. Webhook Purchase | 0/TBD | Not started | - |
@@ -1086,3 +1118,4 @@ v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 27 → 
 *Phase 17 chauffeur desk added: 2026-09-11*
 *v1.2 Payment added: 2026-09-22 (phases 21–25; leftovers 16/17/19/20 unchanged)*
 *v1.3 Meta measurement added: 2026-09-23 (phases 26–29; v1.2 phases 21–25 unchanged)*
+*Phase 26.1 inserted: 2026-09-27 (codebase audit, bug fix & simplify; AUD-01…AUD-06)*

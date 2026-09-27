@@ -274,6 +274,15 @@ Filled by the roadmapper.
 
 ---
 
+### Codebase audit (AUD) — Phase 26.1
+
+- [ ] **AUD-01**: Every production folder in the Phase 26.1 scope map is reviewed one unit at a time, with a written record per unit
+- [ ] **AUD-02**: Every confirmed bug is fixed with a regression test that fails before and passes after
+- [ ] **AUD-03**: Code is simplified (reuse, dead code, needless abstraction, wasted work) with no change to rendered output, copy, routes, API contracts or SQL behaviour
+- [ ] **AUD-04**: Every unit commit passes typecheck, lint, lint:css, unit tests, i18n, numbers, db-fences and public-env checks — nothing skipped to get green
+- [ ] **AUD-05**: Database findings never edit an applied migration; they become owner-apply SQL or a written deferral
+- [ ] **AUD-06**: Quote, pay and confirmation change only to fix a confirmed bug, and only after owner sign-off at the plan gate
+
 ## v2 Requirements
 
 Acknowledged, deliberately deferred, and kept in planning so the schema does not paint them
@@ -479,6 +488,20 @@ Populated during v1.1 roadmap creation.
 
 **v1.1 coverage:** 9 requirements, 9 mapped, unmapped 0 ✓
 
+### Phase 26.1 traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| AUD-01 | Phase 26.1 | Pending |
+| AUD-02 | Phase 26.1 | Pending |
+| AUD-03 | Phase 26.1 | Pending |
+| AUD-04 | Phase 26.1 | Pending |
+| AUD-05 | Phase 26.1 | Pending |
+| AUD-06 | Phase 26.1 | Pending |
+
+**Phase 26.1 coverage:** 6 requirements, 6 mapped, unmapped 0 ✓
+
 ---
 *Requirements defined: 2026-08-17*
 *Last updated: 2026-09-22 — v1.2 Traceability filled (PAY-08…PAY-18 → phases 21–25). v1/v1.1 rows unchanged.*
+*Updated 2026-09-27 — AUD-01…AUD-06 added for inserted Phase 26.1.*
