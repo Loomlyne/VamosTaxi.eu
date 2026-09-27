@@ -354,5 +354,24 @@ The Worker secret value was not read. Before live keys, this would mean customer
 | 22 | Language URLs | **Yes:** `/de/…`, `/fr/…`, `/ar/…` with hreflang. The switcher still relabels in place. |
 | 23 | Accessibility polish | Yes, **after** compiling, as a separate reviewed step with before/after screenshots: hint grey to at least 4.5:1, booking fields to 54 px, steppers and icons to 44 px. |
 | 24 | Retention | **Follow Swiss rules.** Booking, payment and refund records (the accounting record) are kept 10 years (Swiss Code of Obligations art. 958f). Under the nFADP, all other personal data is kept only as long as its purpose needs; proposed periods go to counsel for sign-off, and nothing is invented here. Stripe event payloads are scrubbed down to IDs and amounts after settlement. |
-| 25 | Support tickets / Intercom | Pending owner answer (see below). |
+| 25 | Support tickets | **Keep the built-in dashboard tickets.** No Slack, no Intercom for now; the info@ alert covers notification. |
 | 26 | Save the audit | Commit `docs/audit/` only to `claude/vamos-taxi-audit-nv3crt`, with a draft PR. No code. |
+| 27 | Old Stripe account | Owner disables the old account's (`…AJS2YBf21S`) webhook to `vamostaxi.site`. Agent prepares the numbered steps. |
+| 28 | Fix plan order | **Signed:** Phase A (money + security) → B (hardening) → compile mocks → polish. Phase A discuss opens next. |
+
+### Mapbox checks (Mapbox MCP connected, 2026-09-27)
+- **Route check:** ZRH Airport (arrivals forecourt) → Swiss National Museum, `mapbox/driving`: **10.19 km, 14 min** (A11/A1L).
+- **The same trip priced with the live book's current Economy ("Saden") numbers:** start 20.00, 2.50/km, airport 30.00.
+
+  | | Owner rule | Code today |
+  |---|---|---|
+  | Subtotal | 20.00 + 30.00 + 25.48 = **CHF 75.48** | 30.00 + 25.48 = **CHF 55.48** |
+  | + VAT 8.1 % | CHF 81.59 | CHF 59.97 |
+
+  This confirms P1.
+- **Service zones (live `service_zones`, 12 rows)** — why P3 means no city pair matches today:
+  - Duplicates: `zrh-airport` next to `zurich-airport-the-circle-16-flughafen-ch-8302-k` (a shopping-centre address), and `st-moritz` next to `st-moritz-the-grisons-switzerland`.
+  - A point of interest stored as a zone: `swiss-national-museum-museumstrasse-2-8001-zu-ri`.
+  - No zone has type `canton`, so the canton rule (`lines.ts`) never fires.
+  - Zones carry no coordinates or polygons, only a Mapbox place-ID tag, so a pair matches only when the customer picks that exact place ID. **P6 (High):** zones must be real areas (city or canton polygons, or a radius around an airport) so any address inside matches.
+- **Account-level items** (token scopes, URL restrictions, monthly usage) are not exposed by the Mapbox MCP and stay [Unverified].
