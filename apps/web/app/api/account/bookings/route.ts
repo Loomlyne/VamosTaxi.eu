@@ -36,12 +36,17 @@ export async function GET(request: Request) {
         l.scheduled_at,
         l.pax,
         b.is_test,
+        b.pay_link_sent_at,
         exists (select 1 from public.reviews r where r.booking_id = b.id) as has_review
       from public.bookings b
       inner join public.booking_legs l
         on l.booking_id = b.id
        and l.leg_seq = 1
       where b.status::text <> 'quote'
+        and (
+          b.status::text <> 'pending'
+          or b.pay_link_sent_at is not null
+        )
         and lower(b.contact_email::text) = lower(${email})
       order by case when b.status::text = 'pending' then 0 else 1 end,
                l.scheduled_at desc nulls last

@@ -1030,7 +1030,7 @@ class Component extends DCLogic {
     const unpaid = s.status === 'pending' || s.status === 'quote';
     const badge = unpaid ? 'pending' : (s.status === 'canceled' ? 'cancelled' : s.status);
     const badgeLabel = unpaid
-      ? 'Needs payment'
+      ? 'waiting payment'
       : badge === 'assigned'
         ? 'Driver assigned'
         : badge === 'no_show' || badge === 'no-show'
@@ -1038,7 +1038,7 @@ class Component extends DCLogic {
           : badge === 'paid'
             ? 'Paid'
             : (badge ? badge.charAt(0).toUpperCase() + badge.slice(1).replace('_', ' ') : '');
-    const totalLabel = s.status === 'refunded' ? 'Refunded' : unpaid ? 'Needs payment' : 'Paid';
+    const totalLabel = s.status === 'refunded' ? 'Refunded' : unpaid ? 'waiting payment' : 'Paid';
     const paid = francs(ticket.priceTotalRappen);
     const lines = paid ? [{ label: 'Fare', value: paid }] : [];
     const chauffeurName = ticket.chauffeurName || '';

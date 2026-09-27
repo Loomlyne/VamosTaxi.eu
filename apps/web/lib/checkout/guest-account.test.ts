@@ -9,8 +9,10 @@ describe("07-14 guest + finish payment", () => {
   it("account Finish payment reads vamosTrip lock", () => {
     const src = readFileSync(join(REPO, "app/pages/account.dc.html"), "utf8");
     const row = readFileSync(join(REPO, "app/pages/BookingRow.dc.html"), "utf8");
-    expect(row).toContain("Finish payment");
-    expect(row).toContain('href="/checkout/payment"');
+    expect(row).toContain("waiting payment");
+    expect(row).toContain("finished payment");
+    expect(row).not.toContain("Finish payment");
+    expect(row).not.toContain("Needs payment");
     expect(src).toContain("vamosTrip");
     expect(src).toContain("cancelCheckout");
     expect(src).not.toContain("data-ac-pay");

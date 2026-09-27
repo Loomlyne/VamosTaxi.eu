@@ -13,6 +13,7 @@ import { runCheckoutIntent } from "@/lib/checkout/intent";
 import { createBooking, issueManageToken } from "@/lib/checkout/create-booking";
 import { attachPayment } from "@/lib/checkout/attach-payment";
 import { loadOpenPayment } from "@/lib/checkout/load-open-payment";
+import { quoteWasLeft } from "@/lib/checkout/quote-left";
 import { mintManageToken } from "@/lib/checkout/manage-token";
 import { setPayLink } from "@/lib/checkout/set-pay-link";
 import { lookupVehicleClassId, snapshotPolicyFromSettings } from "@/lib/checkout/lock-to-rpc";
@@ -77,6 +78,14 @@ export async function POST(request: Request) {
   });
   if (!vehicleClassId) {
     return refuse(refusalForMissingClassId());
+  }
+
+  try {
+    const left = await asCheckout(env, null, (sql) => quoteWasLeft(sql, body.quote_id));
+    if (left) return refuse("quote_already_booked");
+  } catch (err) {
+    const code = err && typeof err === "object" && "code" in err ? (err as { code?: unknown }).code : "";
+    if (code !== "42883") throw err;
   }
 
   const settingsDoc = await loadSettingsVersion(env, postgresNowIso);

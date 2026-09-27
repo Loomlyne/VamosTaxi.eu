@@ -23,6 +23,7 @@ export type AccountSqlRow = {
   vehicle_model?: string | null;
   has_review?: boolean | null;
   is_test?: boolean | null;
+  pay_link_sent_at?: string | Date | null;
 };
 
 export type AccountBooking = {
@@ -37,7 +38,7 @@ export type AccountBooking = {
   chauffeur: string;
   pax: number;
   priceRappen: number;
-  status: "unpaid" | "new" | "confirmed" | "assigned" | "completed" | "cancelled";
+  status: "unpaid" | "finished" | "new" | "confirmed" | "assigned" | "completed" | "cancelled";
   when: "upcoming" | "past";
   group: string;
   reviewState: "none" | "requested" | "reviewed";
@@ -119,12 +120,18 @@ function reviewOf(
   return { reviewState: "none", reviewHref: "" };
 }
 
-function rowStatus(status: string): AccountBooking["status"] {
+function payLinkSent(value: string | Date | null | undefined): boolean {
+  if (value == null) return false;
+  return String(value).trim() !== "";
+}
+
+function rowStatus(status: string, sent: boolean): AccountBooking["status"] {
   const s = status.toLowerCase();
   if (s === "pending") return "unpaid";
   if (s === "cancelled" || s === "refunded" || s === "no_show") return "cancelled";
   if (s === "completed" || s === "partially_completed") return "completed";
   if (s === "assigned") return "assigned";
+  if ((s === "confirmed" || s === "paid") && sent) return "finished";
   if (s === "confirmed" || s === "paid") return "confirmed";
   return "new";
 }
@@ -144,23 +151,14 @@ export function mapAccountBooking(row: AccountSqlRow, now = new Date()): Account
   const pickup = str(row.pickup_text);
   const dropoff = str(row.dropoff_text);
   const ref = str(row.reference);
-  const uiStatus = rowStatus(status);
+  const sent = payLinkSent(row.pay_link_sent_at);
+  const uiStatus = rowStatus(status, sent);
   const review = reviewOf(status, row.has_review === true, ref);
-  const isTest = row.is_test === true;
-  const unpaid = uiStatus === "unpaid";
   return {
     ref,
-    href: unpaid
-      ? isTest
-        ? ref
-          ? `/confirmation/${ref}`
-          : "/account"
-        : "/checkout/payment"
-      : ref
-        ? `/confirmation/${ref}`
-        : "/account",
-    pay_url: unpaid && !isTest ? "/checkout/payment" : null,
-    payable: unpaid && !isTest,
+    href: ref ? `/confirmation/${ref}` : "/account",
+    pay_url: null,
+    payable: false,
     date: when.date,
     time: when.time,
     route: pickup && dropoff ? `${pickup} → ${dropoff}` : pickup || dropoff,

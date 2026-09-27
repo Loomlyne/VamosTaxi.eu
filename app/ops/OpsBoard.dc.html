@@ -151,7 +151,7 @@ function isBoardTrip(b) {
   return !!b.paid && !isClosedStatus(b);
 }
 function isUnpaid(b) {
-  return !b.paid && b.status !== 'cancelled' && b.status !== 'refunded' && b.status !== 'completed';
+  return !!b.payLinkSent && !b.paid && b.status !== 'cancelled' && b.status !== 'refunded' && b.status !== 'completed';
 }
 function isUnassigned(b) {
   return isBoardTrip(b) && !b.driver;
@@ -173,7 +173,7 @@ function filterFromLocation() {
 }
 const T = {
   en: { bookings:'Bookings', ordered:'Paid trips by pickup time', searchPh:'Reference, name, phone or address', newBooking:'New booking',
-    pickupsToday:'Pickups today', pickupsFoot:'Paid trips still on the board', awaitingPayment:'Awaiting payment', awaitingFoot:'Checkout started, not paid',
+    pickupsToday:'Pickups today', pickupsFoot:'Paid trips still on the board', awaitingPayment:'Awaiting payment', awaitingFoot:'Pay link sent, not paid',
     unassigned:'Unassigned', unassignedFoot:'Paid, no driver yet', revenue:'Revenue, 7 days', revenueFoot:'Captured fares',
     moreFilters:'More filters', export_:'Export CSV', filter:'Filter', print:'Print', boardFilter:'Show', classFilter:'Class', allClasses:'All classes', statusFilter:'Status', allStatuses:'All statuses', clearFilt:'Clear', showingRange:'Showing %a–%b of %c', showingNone:'Nothing to show',
     prevPage:'Previous page', nextPage:'Next page', filterAll:'All', filterToday:'Today', filterTomorrow:'Tomorrow', filterUnassigned:'Unassigned', filterAwaiting:'Awaiting payment', filterCancelled:'Cancelled', filterCompleted:'Completed',
@@ -185,7 +185,7 @@ const T = {
     emptyTitle:'Nothing booked', emptyBody:'Add a booking and it appears on this board.', deleteBody:'The booking is removed from the board.',
   },
   de: { bookings:'Buchungen', ordered:'Bezahlte Fahrten nach Abholzeit', searchPh:'Referenz, Name, Telefon oder Adresse', newBooking:'Neue Buchung',
-    pickupsToday:'Abholungen heute', pickupsFoot:'Bezahlte Fahrten auf dem Board', awaitingPayment:'Zahlung ausstehend', awaitingFoot:'Checkout begonnen, nicht bezahlt',
+    pickupsToday:'Abholungen heute', pickupsFoot:'Bezahlte Fahrten auf dem Board', awaitingPayment:'Zahlung ausstehend', awaitingFoot:'Zahllink gesendet, nicht bezahlt',
     unassigned:'Nicht zugewiesen', unassignedFoot:'Bezahlt, noch kein Fahrer', revenue:'Umsatz, 7 Tage', revenueFoot:'Erfasste Fahrpreise',
     moreFilters:'Weitere Filter', export_:'CSV exportieren', filter:'Filter', print:'Drucken', boardFilter:'Anzeigen', classFilter:'Klasse', allClasses:'Alle Klassen', statusFilter:'Status', allStatuses:'Alle Status', clearFilt:'Zurücksetzen', showingRange:'Zeigt %a–%b von %c', showingNone:'Nichts anzuzeigen',
     prevPage:'Vorherige Seite', nextPage:'Nächste Seite', filterAll:'Alle', filterToday:'Heute', filterTomorrow:'Morgen', filterUnassigned:'Nicht zugewiesen', filterAwaiting:'Zahlung ausstehend', filterCancelled:'Storniert', filterCompleted:'Abgeschlossen',
@@ -197,7 +197,7 @@ const T = {
     emptyTitle:'Nichts gebucht', emptyBody:'Buchung hinzufügen — sie erscheint auf diesem Board.', deleteBody:'Die Buchung verschwindet vom Board.',
   },
   fr: { bookings:'Réservations', ordered:'Courses payées, par heure de prise en charge', searchPh:'Référence, nom, téléphone ou adresse', newBooking:'Nouvelle réservation',
-    pickupsToday:'Prises en charge aujourd’hui', pickupsFoot:'Courses payées encore au tableau', awaitingPayment:'Paiement en attente', awaitingFoot:'Checkout commencé, non payé',
+    pickupsToday:'Prises en charge aujourd’hui', pickupsFoot:'Courses payées encore au tableau', awaitingPayment:'Paiement en attente', awaitingFoot:'Lien de paiement envoyé, non payé',
     unassigned:'Non assigné', unassignedFoot:'Payé, pas encore de chauffeur', revenue:'Recette, 7 jours', revenueFoot:'Tarifs encaissés',
     moreFilters:'Plus de filtres', export_:'Exporter CSV', filter:'Filtrer', print:'Imprimer', boardFilter:'Afficher', classFilter:'Classe', allClasses:'Toutes les classes', statusFilter:'Statut', allStatuses:'Tous les statuts', clearFilt:'Effacer', showingRange:'Affiche %a–%b sur %c', showingNone:'Rien à afficher',
     prevPage:'Page précédente', nextPage:'Page suivante', filterAll:'Tout', filterToday:'Aujourd’hui', filterTomorrow:'Demain', filterUnassigned:'Non assigné', filterAwaiting:'Paiement en attente', filterCancelled:'Annulé', filterCompleted:'Terminé',
@@ -209,7 +209,7 @@ const T = {
     emptyTitle:'Aucune réservation', emptyBody:'Ajoutez une réservation — elle apparaît sur ce tableau.', deleteBody:'La réservation disparaît du tableau.',
   },
   ar: { bookings:'الحجوزات', ordered:'الرحلات المدفوعة حسب وقت الاستلام', searchPh:'المرجع أو الاسم أو الهاتف أو العنوان', newBooking:'حجز جديد',
-    pickupsToday:'الاستلام اليوم', pickupsFoot:'رحلات مدفوعة ما زالت على اللوحة', awaitingPayment:'بانتظار الدفع', awaitingFoot:'بدأ الدفع ولم يكتمل',
+    pickupsToday:'الاستلام اليوم', pickupsFoot:'رحلات مدفوعة ما زالت على اللوحة', awaitingPayment:'بانتظار الدفع', awaitingFoot:'أُرسل رابط الدفع ولم يُدفع',
     unassigned:'غير معيّن', unassignedFoot:'مدفوعة بلا سائق بعد', revenue:'الإيراد، 7 أيام', revenueFoot:'الأجور المحصّلة',
     moreFilters:'مزيد من التصفية', export_:'تصدير CSV', filter:'تصفية', print:'طباعة', boardFilter:'عرض', classFilter:'الفئة', allClasses:'كل الفئات', statusFilter:'الحالة', allStatuses:'كل الحالات', clearFilt:'مسح', showingRange:'عرض %a–%b من %c', showingNone:'لا شيء للعرض',
     prevPage:'الصفحة السابقة', nextPage:'الصفحة التالية', filterAll:'الكل', filterToday:'اليوم', filterTomorrow:'غداً', filterUnassigned:'غير معيّن', filterAwaiting:'بانتظار الدفع', filterCancelled:'ملغاة', filterCompleted:'مكتملة',
