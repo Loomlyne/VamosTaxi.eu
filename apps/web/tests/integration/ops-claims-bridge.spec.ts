@@ -95,7 +95,10 @@ test.describe("ops claims bridge @ops-claims", () => {
     expect(await requireStaffClaims(supabase)).toEqual(claims);
   });
 
-  test("aal1 staff session is returned by getStaffClaims and refused by requireStaffClaims with needs-mfa", async () => {
+  // Owner decision 2026-09-27 (26.1 D-16/D-16a): only the admin signs in and a second factor is
+  // optional. With no enrolled factor an aal1 admin session is accepted; requiring aal2 once a
+  // factor is enrolled lands with Phase 26.1.
+  test("aal1 admin session with no enrolled factor is accepted by requireStaffClaims", async () => {
     const supabase = mockClient({
       user: {
         id: "22222222-2222-4222-8222-222222222222",
@@ -108,7 +111,7 @@ test.describe("ops claims bridge @ops-claims", () => {
     const claims = await getStaffClaims(supabase);
     expect(claims?.aal).toBe("aal1");
     expect(claims?.app_metadata?.vamos_role).toBe("admin");
-    await expect(requireStaffClaims(supabase)).rejects.toMatchObject({ reason: "needs-mfa" });
+    expect(await requireStaffClaims(supabase)).toEqual(claims);
   });
 
   test("a session with no vamos_role is not staff", async () => {

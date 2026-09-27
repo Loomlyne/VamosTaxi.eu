@@ -158,7 +158,14 @@ function loadLocale(locale) {
 // other window/DOM API is exercised by the `all()` code path.
 function loadReviews() {
   const src = readFileSync(REVIEWS_PATH, "utf8");
-  const sandbox = { window: { addEventListener() {} } };
+  // 29aa137 (06-08): the store no longer ships a SEED array and hydrates from
+  // /api/staff/reviews; "empty list is the shipping state". A bare sandbox has no
+  // network, so fetch rejects and all() stays [] — the seed carries no reviews.
+  const sandbox = {
+    window: { addEventListener() {} },
+    fetch: () => Promise.reject(new Error("no network in the seed generator")),
+  };
+  sandbox.window.fetch = sandbox.fetch;
   vm.createContext(sandbox);
   vm.runInContext(src, sandbox, { filename: REVIEWS_PATH });
   const api = sandbox.window.VamosReviews;
@@ -172,6 +179,8 @@ function loadReviews() {
 // P7: "The generator's SQL-emitting functions should each hard-code their own conflict target
 // as a constant, not infer it.") ────────────────────────────────────────────────────────────
 function emitInsert({ table, columns, rows, conflictCols, doNothing = false, updateCols }) {
+  // An empty table (e.g. reviews since 29aa137) has no VALUES list; emit a marker, not SQL.
+  if (rows.length === 0) return `-- ${table}: no seed rows`;
   const colList = columns.join(",\n  ");
   const valuesLines = rows.map((r) => `  (${r.join(", ")})`).join(",\n");
   const lines = [];

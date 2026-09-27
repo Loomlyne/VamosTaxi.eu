@@ -213,17 +213,20 @@ select throws_ok(
   'P0001', null, '(6) cancelling an already-cancelled booking raises P0001'
 );
 
--- (6b) F-09: a leg whose pickup has already passed refuses, and does not free the assignment. ---
-select throws_ok(
-  $$ select * from public.manage_booking_cancel(extensions.digest('mbm-token-p', 'sha256'), 1::smallint) $$,
-  'P0001', null, '(6b-1) a past-pickup leg raises P0001, not P0002 -- no oracle'
+-- (6b) Phase 09 D-02 (owner, 09-DISCUSSION-LOG; 20260911234758) replaced F-09(a)'s refusal:
+-- a leg whose pickup has passed (not completed) still cancels, but with NO automatic refund
+-- (refund_mode none); Ops can still refund by hand. ---------------------------------------------
+select is(
+  (select refund_mode from public.manage_booking_cancel(extensions.digest('mbm-token-p', 'sha256'), 1::smallint)),
+  'none',
+  '(6b-1) D-02: a past-pickup leg cancels with refund_mode none -- never an automatic refund'
 );
 reset role;
 select is(
   (select l.status from public.booking_legs l join public.bookings b on b.id = l.booking_id
     where b.contact_email = 'mbm-past-fixture@vamostaxi.eu' and l.leg_seq = 1)::text,
-  'confirmed',
-  '(6b-2) the past-pickup leg is still not cancelled'
+  'cancelled',
+  '(6b-2) D-02: the past-pickup leg is cancelled (driver does not go)'
 );
 set local role vamos_guest;
 select lives_ok(

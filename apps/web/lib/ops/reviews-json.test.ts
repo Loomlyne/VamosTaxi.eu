@@ -105,9 +105,13 @@ describe("reviews JSON dual mount + mock", () => {
     expect(html).toMatch(/aria-label="\{\{ r\.linkLabel \}\}"/);
     expect(html).toMatch(/rel="noopener noreferrer"/);
     expect(html).not.toMatch(/<a data-rv-link[^>]*>\{\{ r\.linkLabel \}\}/);
+    // 92d6af1: the name block is a <div> that also carries the route sub-line.
     expect(html).toMatch(
-      /<span data-rv-who="1">\s*<strong data-rv-name="1">\{\{ r\.name \}\}<\/strong>\s*<\/span>/,
+      /<div data-rv-who="1"[^>]*>\s*<strong data-rv-name="1">\{\{ r\.name \}\}<\/strong>/,
     );
+    // Icons come from the Lucide set through Icon, never hand-drawn SVG (CLAUDE.md).
+    expect(html).not.toMatch(/<svg/);
+    expect(html).toMatch(/<a data-rv-link="1"[^>]*>\s*<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1\.Icon" name="external-link"/);
     expect(html).toMatch(
       /data-rv-stars[\s\S]*?<\/span>\s*<a data-rv-link="1"/,
     );

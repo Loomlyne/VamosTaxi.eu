@@ -2,7 +2,7 @@
 
 export const OPS_ROOT = "/ops";
 
-export const OPS_AUTH_INTERNAL = new Set([
+export const OPS_AUTH_INTERNAL: readonly string[] = Object.freeze([
   "/ops/sign-in",
   "/ops/mfa-challenge",
   "/ops/accept-invite",

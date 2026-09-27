@@ -13,6 +13,10 @@ import { cache } from "react";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { publicSql } from "../db/public";
 import { log } from "../logger";
+import ar from "../../i18n/messages/ar.json";
+import de from "../../i18n/messages/de.json";
+import en from "../../i18n/messages/en.json";
+import fr from "../../i18n/messages/fr.json";
 
 export type RawMessages = Record<string, unknown>;
 
@@ -55,8 +59,13 @@ function readContentSource(): ContentSource {
   return resolveContentSource(raw);
 }
 
+// Static imports, not a templated `import(`…${locale}.json`)`: plain Node ESM (the
+// Playwright integration runner) refuses a dynamic JSON import without an import
+// attribute, while every bundler accepts these. The Worker bundle holds all four anyway.
+const JSON_MESSAGES: Record<ContentLocale, RawMessages> = { en, de, fr, ar };
+
 async function loadJsonMessages(locale: ContentLocale): Promise<RawMessages> {
-  return (await import(`../../i18n/messages/${locale}.json`)).default as RawMessages;
+  return JSON_MESSAGES[locale];
 }
 
 /**

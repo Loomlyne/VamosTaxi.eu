@@ -23,7 +23,7 @@ export type AssignOk = {
 
 export type AssignResult = AssignOk | AssignFail;
 
-const NAMED = new Set(["no-email", "no-vehicle", "not-paid", "frozen", "capacity", "not-found"]);
+const NAMED: readonly string[] = Object.freeze(["no-email", "no-vehicle", "not-paid", "frozen", "capacity", "not-found"]);
 
 function codeOf(err: unknown): string | undefined {
   if (typeof err !== "object" || err === null || !("code" in err)) return undefined;

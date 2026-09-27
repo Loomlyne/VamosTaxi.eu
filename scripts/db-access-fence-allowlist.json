@@ -40,9 +40,14 @@
     "packages/db/src/identity.ts"
   ],
 
-  "_force_dynamic_exempt_comment": "D-06's named allow-list for a file that imports an identity wrapper (or `publicSql`) without carrying `force-dynamic` itself or being a Route Handler. Plan 05-18: `apps/web/lib/db/content.ts` is a library (the first `publicSql` consumer) — `force-dynamic` is meaningless on it, and the fence cannot see the consuming page (05-21), which is where D-10's `force-dynamic` belongs. Phase 5 adds entries one at a time, by name, never a wildcard or a whole-directory exemption.",
+  "_force_dynamic_exempt_comment": "D-06's named allow-list for a file that imports an identity wrapper (or `publicSql`) without carrying `force-dynamic` itself or being a Route Handler. Plan 05-18: `apps/web/lib/db/content.ts` is a library (the first `publicSql` consumer) — `force-dynamic` is meaningless on it, and the fence cannot see the consuming page (05-21), which is where D-10's `force-dynamic` belongs. Phase 5 adds entries one at a time, by name, never a wildcard or a whole-directory exemption. fix/main-green: five more libraries, same situation as content.ts (no route of their own; every consumer already carries force-dynamic) -- lib/ops/resolve-booking-id.ts (asStaff booking-ref lookup, called only from lib/ops/{voucher,bookings-write,refund,assign,tickets-write}.ts), lib/ops/voucher.ts (only consumer: app/[locale]/(ops)/api/staff/bookings/[id]/voucher/route.ts), lib/ops/tickets-write.ts (only consumer: app/[locale]/(ops)/api/staff/tickets/[id]/route.ts), lib/ops/ticket-inbound.ts (asSystem, only consumer: app/api/webhooks/resend/route.ts), lib/public/reviews.ts (publicSql, identity-free, consumers: app/api/reviews/route.ts, the staff reviews routes and the 'use server' ops/reviews/actions.ts).",
   "force_dynamic_exempt": [
     "apps/web/lib/db/content.ts",
+    "apps/web/lib/ops/resolve-booking-id.ts",
+    "apps/web/lib/ops/voucher.ts",
+    "apps/web/lib/ops/tickets-write.ts",
+    "apps/web/lib/ops/ticket-inbound.ts",
+    "apps/web/lib/public/reviews.ts",
     "apps/web/lib/ops/coupons.test.ts",
     "apps/web/lib/ops/pricing.test.ts",
     "apps/web/lib/ops/staff.test.ts"

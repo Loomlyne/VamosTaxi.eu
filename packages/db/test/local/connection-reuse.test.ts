@@ -78,9 +78,11 @@ beforeAll(async () => {
 }, 30_000);
 
 afterAll(async () => {
-  reserved.release();
+  // Optional chaining: if beforeAll threw before these were assigned, the real error is the
+  // one vitest should report -- not a secondary TypeError from this teardown.
+  reserved?.release();
   // The one place `sql.end()` is permitted (the Node process's own test-file teardown).
-  await sql.end();
+  await sql?.end();
 });
 
 describe("connection-reuse (DATA-06 local half, pinned backend)", () => {

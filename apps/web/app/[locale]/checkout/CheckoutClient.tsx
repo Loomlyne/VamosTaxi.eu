@@ -1225,15 +1225,18 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         error?: string;
       };
       if (!res.ok) {
-        const key = REFUSAL_KEYS[json.code ?? json.error ?? ""];
-        if (key && key !== "payCouldNotStart") setRefusal(key);
+        // Every refusal is visible: an unknown code or validate-fail falls back to
+        // payCouldNotStart instead of leaving the payer with a silent button (plan 21-10).
+        const key = REFUSAL_KEYS[json.code ?? json.error ?? ""] ?? "payCouldNotStart";
+        setRefusal(key);
         return;
       }
       payLinkKept.current = true;
       if (json.reference) setReference(json.reference);
       if (json.pay_url) setPayUrl(json.pay_url);
     } catch {
-      return;
+      // A network drop means the link was not sent: say so, never stay silent.
+      setRefusal("emailFailed");
     } finally {
       setBusy(false);
     }

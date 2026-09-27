@@ -290,12 +290,15 @@ select lives_ok(
   'whitelist: moving requires_payment to succeeded succeeds'
 );
 
+-- 08-05 D-31 (20260910170935) made the succeeded-row check value-based so write-once
+-- stripe_fee_rappen can land; a same-value now() inside this transaction is a no-op, so the
+-- probe must actually change captured_at.
 select throws_ok(
-  $$ update public.booking_payments set captured_at = now()
+  $$ update public.booking_payments set captured_at = captured_at + interval '1 second'
       where stripe_payment_intent_id = 'pi_payment_fx_chf' $$,
   '23001',
   null,
-  'whitelist: any UPDATE to a succeeded row raises restrict_violation'
+  'whitelist: any column change to a succeeded row raises restrict_violation'
 );
 
 -- booking_refunds untouched (D-12) -----------------------------------------------------------

@@ -9,7 +9,7 @@ import {
 } from "@/lib/checkout/return-settle";
 import { localePath } from "@/lib/checkout/steps";
 
-const LOCALES = new Set(["en", "de", "fr", "ar"]);
+const LOCALES: readonly string[] = Object.freeze(["en", "de", "fr", "ar"]);
 
 function redirect(location: string): Response {
   return new Response(null, {
@@ -23,7 +23,7 @@ export async function GET(request: Request): Promise<Response> {
   const ref = url.searchParams.get("ref") ?? "";
   const sessionId = url.searchParams.get("session") ?? url.searchParams.get("session_id") ?? "";
   const localeRaw = url.searchParams.get("locale") ?? "en";
-  const locale = LOCALES.has(localeRaw) ? localeRaw : "en";
+  const locale = LOCALES.includes(localeRaw) ? localeRaw : "en";
   const payment = localePath(locale, "/checkout/payment");
   if (!isCheckoutSessionId(sessionId)) return redirect(payment);
   let env: CloudflareEnv | null = null;

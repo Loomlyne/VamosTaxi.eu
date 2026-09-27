@@ -2,7 +2,7 @@
 //
 // Pure Support mapping. Keep Hyperdrive out of this file so vitest can import it.
 
-const STATUSES = new Set(["new", "open", "replied", "responded", "closed"]);
+const STATUSES: readonly string[] = Object.freeze(["new", "open", "replied", "responded", "closed"]);
 
 export type TicketStatus = "new" | "open" | "replied" | "responded" | "closed";
 
@@ -119,7 +119,7 @@ function whoKey(direction: string | null): OpsTicketMessage["whoKey"] {
 
 function ticketStatus(raw: string | null): string {
   const value = str(raw).toLowerCase();
-  return STATUSES.has(value) ? value : "new";
+  return STATUSES.includes(value) ? value : "new";
 }
 
 function ticketId(id: string): string {

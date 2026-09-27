@@ -28,14 +28,14 @@ select function_privs_are(
 select function_privs_are(
   'public', 'submit_contact_message',
   '{text,text,citext,text,text,text,text}'::text[],
-  'anon', '{EXECUTE}'::text[],
-  'anon EXECUTE on submit_contact_message'
+  'anon', '{}'::text[],
+  'anon holds no EXECUTE on submit_contact_message (20260920000002)'
 );
 select function_privs_are(
   'public', 'submit_contact_message',
   '{text,text,citext,text,text,text,text}'::text[],
-  'authenticated', '{EXECUTE}'::text[],
-  'authenticated EXECUTE on submit_contact_message'
+  'authenticated', '{}'::text[],
+  'authenticated holds no EXECUTE on submit_contact_message (20260920000002)'
 );
 
 select table_privs_are('public', 'contact_submissions', 'anon', '{}'::text[], 'anon no table priv contact');
@@ -58,10 +58,15 @@ select throws_ok(
   'anon cannot SELECT contact_submissions'
 );
 
+reset role;
+
+-- Phase 20 (20260920000001/2): the Worker calls the RPC as vamos_system after
+-- Turnstile; anon/authenticated lost EXECUTE (asserted above).
+set local role vamos_system;
 select lives_ok(
   $$ select * from public.submit_contact_message(
        'k-contact-1', 'Anna', 'anna@example.test', '', '', 'Need a quote', 'en') $$,
-  'anon can call submit_contact_message'
+  'vamos_system can call submit_contact_message'
 );
 reset role;
 

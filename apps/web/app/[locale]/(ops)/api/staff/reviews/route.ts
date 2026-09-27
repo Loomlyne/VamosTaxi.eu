@@ -15,7 +15,7 @@ import { loadReviews, type ReviewInput, type ReviewSource } from "@/lib/ops/revi
 
 export const dynamic = "force-dynamic";
 
-const SOURCES = new Set(["google", "tripadvisor", "trustpilot", "manual"]);
+const SOURCES: readonly string[] = Object.freeze(["google", "tripadvisor", "trustpilot", "manual"]);
 
 function str(value: unknown): string {
   return typeof value === "string" ? value : "";
@@ -29,7 +29,7 @@ function actionStatus(result: Extract<ReviewActionResult, { ok: false }>): numbe
 
 export function reviewInputFromBody(body: Record<string, unknown>): ReviewInput {
   const sourceRaw = str(body.source);
-  const source = SOURCES.has(sourceRaw) ? (sourceRaw as ReviewSource) : undefined;
+  const source = SOURCES.includes(sourceRaw) ? (sourceRaw as ReviewSource) : undefined;
   const ratingRaw = body.rating;
   const rating = typeof ratingRaw === "number" ? ratingRaw : Number(ratingRaw);
   const vehicleClassId =

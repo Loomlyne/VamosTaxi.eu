@@ -97,15 +97,19 @@ select is(
 );
 
 -- ── reviews ──────────────────────────────────────────────────────────────────────────────────
-select is((select count(*) from public.reviews)::int, 5, '5 reviews seeded from app/vamos-reviews.js SEED');
-select is((select count(*) from public.reviews where locked)::int, 4, '4 imported reviews are locked (google/tripadvisor/trustpilot)');
-select is((select source::text from public.reviews where external_ref = 'rv-2'), 'tripadvisor', 'rv-2 carries its own source, tripadvisor');
+-- 29aa137 (06-08): the review store ships empty and hydrates from /api/staff/reviews, so the
+-- seed carries no placeholder reviews. Real ones arrive from the platforms (owner decision 11).
+select is((select count(*) from public.reviews)::int, 0, 'no review is seeded: empty list is the shipping state (29aa137)');
+select is((select count(*) from public.reviews where locked)::int, 0, 'no locked (imported) review is seeded');
+select is((select count(*) from public.reviews where published)::int, 0, 'no seeded review is published on the home page');
 
 -- ── content_strings ──────────────────────────────────────────────────────────────────────────
-select is((select count(*) from public.content_strings)::int, 1516, 'content_strings row count matches the flattened en.json key count');
-select is((select count(*) from public.content_strings where pending_value)::int, 20, '20 pending-value keys (ADR-011, Law 04 data-tok)');
+-- Counts track the generated seed header (packages/db/supabase/seed.sql; regenerated in 8b409c7, Phase 6).
+-- Counts are the generator's own output (pnpm db:seed:gen, 2026-09-27).
+select is((select count(*) from public.content_strings)::int, 2501, 'content_strings row count matches the flattened en.json key count');
+select is((select count(*) from public.content_strings where pending_value)::int, 16, '16 pending-value keys (ADR-011, Law 04 data-tok)');
 select is((select count(*) from public.content_strings where non_translatable)::int, 8, '8 non-translatable keys (ADR-012)');
-select is((select count(*) from public.content_strings where no_param_reason is not null)::int, 54, '54 no-param-reason keys (I18N-06)');
+select is((select count(*) from public.content_strings where no_param_reason is not null)::int, 71, '71 no-param-reason keys (I18N-06)');
 select ok(
   (select de is not null and fr is not null and ar is not null from public.content_strings where key = 'price.surcharge.night.rule'),
   'price.surcharge.night.rule (Plan 02-04) has a non-null de/fr/ar translation'

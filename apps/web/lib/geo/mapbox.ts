@@ -39,7 +39,7 @@ const DIRECTIONS_DRIVING = "https://api.mapbox.com/directions/v5/mapbox/driving"
 const TILEQUERY =
   "https://api.mapbox.com/v4/mapbox.mapbox-streets-v8/tilequery";
 
-const MAJOR_ROAD = new Set([
+const MAJOR_ROAD: readonly string[] = Object.freeze([
   "motorway",
   "motorway_link",
   "trunk",
@@ -52,7 +52,7 @@ const MAJOR_ROAD = new Set([
   "tertiary_link",
 ]);
 
-const SKIP_ROAD = new Set([
+const SKIP_ROAD: readonly string[] = Object.freeze([
   "path",
   "footway",
   "steps",
@@ -488,7 +488,7 @@ function roadHitFromTilequery(body: unknown): RoadHit | null {
     const props = asRecord(feature.properties) ?? {};
     const className =
       typeof props.class === "string" ? props.class.toLowerCase() : "";
-    if (SKIP_ROAD.has(className)) continue;
+    if (SKIP_ROAD.includes(className)) continue;
     const tq = asRecord(props.tilequery);
     const distance =
       typeof tq?.distance === "number" && Number.isFinite(tq.distance)
@@ -498,14 +498,14 @@ function roadHitFromTilequery(body: unknown): RoadHit | null {
   }
   if (cands.length === 0) return null;
   const majorFar = cands.filter(
-    (c) => MAJOR_ROAD.has(c.className) && c.distance >= LOCAL_ISLAND_M,
+    (c) => MAJOR_ROAD.includes(c.className) && c.distance >= LOCAL_ISLAND_M,
   );
-  const major = cands.filter((c) => MAJOR_ROAD.has(c.className));
+  const major = cands.filter((c) => MAJOR_ROAD.includes(c.className));
   const pool =
     majorFar.length > 0 ? majorFar : major.length > 0 ? major : cands;
   const pick = pool.slice().sort((a, b) => a.distance - b.distance)[0];
   if (!pick) return null;
-  return { point: pick.point, major: MAJOR_ROAD.has(pick.className) };
+  return { point: pick.point, major: MAJOR_ROAD.includes(pick.className) };
 }
 
 function samePin(a: GeoPoint, b: GeoPoint): boolean {

@@ -70,11 +70,24 @@ export async function seedTwoCustomers(): Promise<{ a: LocalIdentity; b: LocalId
           (${uid}, ${`cr-${label}-${suffix}@example.test`}, 'authenticated', 'authenticated',
            '{}'::jsonb, '{}'::jsonb, now(), now())
       `;
-      const [{ id: customerId }] = await sql<[{ id: string }]>`
-        insert into public.customers (user_id, full_name, email)
-        values (${uid}, ${`Connection Reuse ${displayLabel}`}, ${`cr-cust-${label}-${suffix}@example.test`})
+      // AUTH-01 (migration 20260828000001_customers_auth_link.sql): the
+      // `link_customer_on_signup` trigger on auth.users already created this user's
+      // public.customers row inside the insert above -- the same path a real GoTrue signup
+      // takes. A second, explicit customers insert here would collide on
+      // `customers_user_id_key`, so the fixture reads the trigger-made row back (failing loudly
+      // if the trigger did not fire) and only sets the display name on it.
+      const linked = await sql<{ id: string }[]>`
+        update public.customers
+           set full_name = ${`Connection Reuse ${displayLabel}`}
+         where user_id = ${uid}
         returning id
       `;
+      if (linked.length !== 1) {
+        throw new Error(
+          `local fixture: expected exactly one public.customers row linked to auth user ${uid} by link_customer_on_signup, found ${linked.length}`,
+        );
+      }
+      const customerId = linked[0]!.id;
 
       const references: string[] = [];
       for (let i = 0; i < 3; i++) {
