@@ -1,5 +1,5 @@
 const SESSION_ID = /^cs_(?:test|live)_[A-Za-z0-9]+$/;
-const LOCALES = new Set(["en", "de", "fr", "ar"]);
+const LOCALES: readonly string[] = Object.freeze(["en", "de", "fr", "ar"]);
 
 export function checkoutSessionIdFromSecret(secret: string): string {
   const cut = secret.indexOf("_secret_");
@@ -9,7 +9,7 @@ export function checkoutSessionIdFromSecret(secret: string): string {
 
 export function checkoutPageLocale(pathname: string): string {
   const first = pathname.split("/").filter(Boolean)[0] ?? "";
-  return LOCALES.has(first) && first !== "en" ? first : "en";
+  return LOCALES.includes(first) && first !== "en" ? first : "en";
 }
 
 export function checkoutReturnUrl(
@@ -31,7 +31,7 @@ export function checkoutSettleUrl(
   const url = new URL("/api/checkout/return", origin);
   if (reference) url.searchParams.set("ref", reference);
   url.searchParams.set("session", sessionId);
-  url.searchParams.set("locale", LOCALES.has(locale) ? locale : "en");
+  url.searchParams.set("locale", LOCALES.includes(locale) ? locale : "en");
   return url.toString();
 }
 
@@ -42,6 +42,6 @@ export function checkoutSettleUrl(
  */
 export function stripeCheckoutReturnUrl(origin: string, locale = "en"): string {
   const base = origin.replace(/\/$/, "");
-  const loc = LOCALES.has(locale) ? locale : "en";
+  const loc = LOCALES.includes(locale) ? locale : "en";
   return `${base}/api/checkout/return?locale=${loc}&session_id={CHECKOUT_SESSION_ID}`;
 }

@@ -20,7 +20,7 @@ export type RefundOk = {
 
 export type RefundResult = RefundOk | RefundFail;
 
-const NAMED = new Set([
+const NAMED: readonly string[] = Object.freeze([
   "not-found",
   "not-paid",
   "already-refunded",

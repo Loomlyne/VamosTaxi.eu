@@ -9,8 +9,8 @@ const NOT_FOUND =
   "We could not find this booking. Check the link in your confirmation email.";
 const GONE = "This booking is gone. Start a new trip from home.";
 
-const UNPAID = new Set(["quote", "pending"]);
-const HIDE_CANCEL = new Set(["completed", "no_show", "cancelled", "partially_cancelled"]);
+const UNPAID: readonly string[] = Object.freeze(["quote", "pending"]);
+const HIDE_CANCEL: readonly string[] = Object.freeze(["completed", "no_show", "cancelled", "partially_cancelled"]);
 
 type ReadRow = {
   booking_id: string;
@@ -132,7 +132,7 @@ export async function GET(request: Request): Promise<Response> {
   if (!row?.booking_id) return json({ ok: false, code: "not-found", error: NOT_FOUND }, 404);
 
   const status = str(row.status).toLowerCase();
-  if (UNPAID.has(status)) {
+  if (UNPAID.includes(status)) {
     return json({ ok: false, code: "gone", error: GONE }, 404);
   }
 
@@ -168,7 +168,7 @@ export async function GET(request: Request): Promise<Response> {
   const refunded = refundStatus === "refunded";
   const payoutCountry = str(row.payout_country).toUpperCase() || (refunded ? "CH" : "");
   const windowKind = cancelWindow(hoursBefore(row.original_scheduled_at, new Date()));
-  const canCancel = !HIDE_CANCEL.has(status) && !reviewSubmitted;
+  const canCancel = !HIDE_CANCEL.includes(status) && !reviewSubmitted;
 
   return json(
     {

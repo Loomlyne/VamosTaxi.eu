@@ -1,20 +1,20 @@
-export const PUBLIC_CSRF_HOSTS = new Set([
+export const PUBLIC_CSRF_HOSTS: readonly string[] = Object.freeze([
   "vamostaxi.site",
   "www.vamostaxi.site",
   "localhost",
 ]);
 
-export const AUTH_CSRF_HOSTS = new Set([
-  ...Array.from(PUBLIC_CSRF_HOSTS),
+export const AUTH_CSRF_HOSTS: readonly string[] = Object.freeze([
+  ...PUBLIC_CSRF_HOSTS,
   "dashboard.vamostaxi.site",
   "dashboard.localhost",
 ]);
 
-function hostnameAllowed(hostname: string, hosts: Set<string>): boolean {
-  return hosts.has(hostname);
+function hostnameAllowed(hostname: string, hosts: readonly string[]): boolean {
+  return hosts.includes(hostname);
 }
 
-export function originAllowed(origin: string | null, hosts: Set<string>): boolean {
+export function originAllowed(origin: string | null, hosts: readonly string[]): boolean {
   if (!origin) return false;
   try {
     const url = new URL(origin);
