@@ -170,28 +170,29 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-fleet-cta="on"]{background:var(--vt-charcoal-900);color:var(--vt-white)}
 [data-fleet-cta="off"]{background:transparent;border:var(--vt-border-w) solid var(--vt-border-subtle);color:var(--vt-text-secondary);white-space:nowrap;line-height:1.15;text-align:center}
 [data-dest-strip]{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;gap:8px;padding-bottom:4px;background:transparent}
-/* data-fx-* only. HowItWorks [data-dest-copy] is a charcoal gradient and was painting over these labels. */
-[data-dest-card]{all:unset;box-sizing:border-box;display:grid;grid-template-columns:120px minmax(0,1fr);grid-template-areas:"photo stops" "photo price" "cta cta";column-gap:var(--vt-space-3);row-gap:var(--vt-space-3);align-items:start;flex:0 0 420px;min-width:420px;max-width:460px;min-height:0;padding:var(--vt-space-2);overflow:hidden;isolation:isolate;background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);cursor:pointer;scroll-snap-align:start;font-family:var(--vt-font-body);color:var(--vt-text-primary);text-align:start;transition-property:scale,box-shadow,border-color;transition-duration:150ms;transition-timing-function:cubic-bezier(.2,0,0,1)}
+/* Popular-destination route card. data-fx-* is owned only by [data-dest-card].
+   There is no destination photography, so the card is a typographic route ledger —
+   dim origin overline, destination as the headline — not an empty photo well.
+   HowItWorks [data-dest-copy] is a charcoal gradient; keep these labels opaque. */
+[data-dest-card]{all:unset;box-sizing:border-box;display:flex;flex-direction:column;gap:var(--vt-space-3);flex:0 0 clamp(236px,78vw,320px);min-width:0;max-width:none;padding:var(--vt-space-4);overflow:hidden;isolation:isolate;background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);cursor:pointer;scroll-snap-align:start;font-family:var(--vt-font-body);color:var(--vt-text-primary);text-align:start;transition-property:border-color,box-shadow,translate;transition-duration:var(--vt-dur-fast);transition-timing-function:var(--vt-ease-standard)}
 [data-dest-card] *{box-sizing:border-box}
-[data-dest-card]:hover{border-color:var(--vt-grey-300);box-shadow:var(--vt-shadow-md)}
-[data-dest-card]:active{scale:.96}
+[data-dest-card]:hover{border-color:var(--vt-border-strong);box-shadow:var(--vt-shadow-md);translate:0 -2px}
+[data-dest-card]:active{translate:0 0;box-shadow:var(--vt-shadow-sm)}
 [data-dest-card]:focus-visible{outline:3px solid var(--vt-yellow);outline-offset:3px}
-[data-fx-photo]{grid-area:photo;align-self:stretch;z-index:0;min-width:0;min-height:120px;border-radius:var(--vt-radius-sm);background:var(--vt-grey-100);border:var(--vt-border-w) solid var(--vt-border-subtle);overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center}
-[data-fx-photo] img{width:100%;height:100%;object-fit:cover;object-position:center;display:block;border-radius:inherit}
-[data-fx-pin]{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:var(--vt-radius-pill);background:var(--vt-bg-surface);color:var(--vt-grey-500);pointer-events:none}
-[data-fx-stops]{grid-area:stops;z-index:1;display:flex;flex-direction:column;gap:var(--vt-space-3);min-width:0;align-self:start;padding-bottom:var(--vt-space-3);background:transparent}
-[data-fx-stop]{position:relative;display:grid;grid-template-columns:28px minmax(0,1fr);column-gap:10px;align-items:start;min-width:0;margin:0;padding:0;background:transparent;background-image:none;box-shadow:none}
-[data-fx-stop]:not(:last-child)::before{content:"";position:absolute;inset-inline-start:13px;top:28px;bottom:calc(-1 * var(--vt-space-3));width:1px;background:var(--vt-grey-300);pointer-events:none}
-[data-fx-mark]{position:relative;z-index:1;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;flex:0 0 28px;border-radius:var(--vt-radius-sm);background:var(--vt-grey-100);color:var(--vt-text-secondary);pointer-events:none}
-[data-fx-stop][data-fx-end="1"] [data-fx-mark]{background:var(--vt-charcoal-900);color:var(--vt-white)}
-[data-fx-text]{display:flex;flex-direction:column;align-items:flex-start;gap:var(--vt-space-1);min-width:0;margin:0;padding:0;position:static;background:transparent;background-image:none;box-shadow:none}
-[data-fx-kicker]{max-width:100%;margin:0;padding:0;background:transparent;font-size:var(--vt-label-sm);font-weight:var(--vt-label-weight);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;line-height:1.2;color:var(--vt-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-[data-fx-place]{min-width:0;width:100%;margin:0;padding:0;background:transparent;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-semibold);line-height:1.4;color:var(--vt-text-primary);overflow-wrap:break-word;text-wrap:pretty}
-[data-fx-price]{grid-area:price;z-index:1;display:flex;align-items:flex-end;align-self:end;justify-self:start;min-width:0;min-height:22px;background:transparent}
+[data-fx-route]{display:flex;flex-direction:column;gap:var(--vt-space-1);min-width:0}
+[data-fx-orig],[data-fx-dest]{display:grid;grid-template-columns:24px minmax(0,1fr);column-gap:var(--vt-space-2);align-items:center;min-width:0;margin:0;padding:0;background:transparent;background-image:none;box-shadow:none}
+[data-fx-glyph]{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;flex:0 0 24px;pointer-events:none}
+[data-fx-chip]{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;flex:0 0 24px;border-radius:var(--vt-radius-sm);background:var(--vt-charcoal-900);pointer-events:none}
+[data-fx-from]{min-width:0;margin:0;padding:0;background:transparent;font-size:var(--vt-label-sm);font-weight:var(--vt-label-weight);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;line-height:1.25;color:var(--vt-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[data-fx-to]{min-width:0;margin:0;padding:0;background:transparent;font-size:var(--vt-heading-4);font-weight:var(--vt-weight-extrabold);letter-spacing:var(--vt-heading-tracking);line-height:var(--vt-heading-leading);color:var(--vt-text-primary);overflow-wrap:break-word;text-wrap:balance}
+[data-fx-foot]{display:flex;flex-direction:column;align-items:stretch;gap:var(--vt-space-3);min-width:0;margin-top:auto;padding-top:var(--vt-space-3);border-top:var(--vt-border-w) solid var(--vt-border-subtle);background:transparent}
+[data-fx-farelbl]{margin:0;padding:0;background:transparent;font-size:var(--vt-label-sm);font-weight:var(--vt-label-weight);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;line-height:1.2;color:var(--vt-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[data-fx-price]{display:flex;align-items:center;min-width:0;min-height:22px;margin-top:var(--vt-space-1);background:transparent}
 [data-dest-card] [data-price-slot]{position:relative;width:92px;min-width:92px;max-width:92px;height:22px;overflow:hidden;flex:none}
 [data-dest-card] [data-price-slot] span{font-variant-numeric:tabular-nums}
-[data-fx-cta]{grid-area:cta;z-index:1;display:flex;align-items:center;justify-content:center;gap:7px;min-height:var(--vt-control-h-sm);height:auto;padding-block:8px;padding-inline:16px 14px;border-radius:var(--vt-radius-pill);font-family:var(--vt-font-body);font-size:var(--vt-label-sm);font-weight:var(--vt-weight-bold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;line-height:1.2;text-align:center;text-wrap:balance;box-sizing:border-box;width:100%;min-width:0;background:var(--vt-yellow);color:var(--vt-charcoal-900)}
-@media (prefers-reduced-motion:reduce){[data-dest-card]{transition:none}[data-dest-card]:active{scale:1}}
+[data-fx-cta]{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;min-width:0;min-height:var(--vt-control-h-sm);height:auto;padding-block:8px;padding-inline:16px 14px;border-radius:var(--vt-radius-pill);background:var(--vt-yellow);color:var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:var(--vt-label-sm);font-weight:var(--vt-weight-bold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;line-height:1.2;text-align:center;text-wrap:balance;transition:background-color var(--vt-dur-fast) var(--vt-ease-standard)}
+[data-dest-card]:hover [data-fx-cta]{background:var(--vt-accent-hover)}
+@media (prefers-reduced-motion:reduce){[data-dest-card],[data-fx-cta]{transition:none}[data-dest-card]:hover{translate:none}}
 [data-dest-empty]{margin:0;font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-inverse-muted)}
 [data-vtcombo]{display:flex;align-items:center;gap:9px;height:var(--vt-control-h-md);min-height:var(--vt-control-h-md);max-height:var(--vt-control-h-md);padding:0 7px 0 8px;box-sizing:border-box;background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:999px;overflow:hidden;transition:border-color .16s cubic-bezier(.2,0,.2,1),background .16s cubic-bezier(.2,0,.2,1)}
 [data-vtcombo]:hover{border-color:var(--vt-grey-300)}
@@ -252,7 +253,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-fields][data-trip=fixed]{grid-template-columns:152px minmax(0,1.6fr) minmax(0,1.15fr) auto;grid-template-areas:"flight route when party"}
 [data-party]{grid-template-columns:repeat(2,108px)}
 [data-fleet-strip]{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}[data-fleet-card]{flex:none;width:100%;min-width:0;max-width:none;flex-direction:row;align-items:flex-start}[data-fleet-card] [data-fleet-img]{width:146px;height:146px;flex:0 0 146px;aspect-ratio:1/1}
-[data-dest-strip]{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:10px;justify-content:start}[data-dest-card]{flex:none;width:100%;min-width:0;max-width:460px}}
+[data-dest-strip]{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:10px;justify-content:start}[data-dest-card]{flex:none;width:100%;min-width:0;max-width:none}[data-fx-to]{font-size:var(--vt-heading-3)}}
 [data-shell]{display:block;background:transparent}
 [data-sheetbody]{display:flex;flex-direction:column;gap:14px;background:transparent}
 [data-sheetonly]{display:none}
@@ -784,17 +785,16 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </sc-if>
 <sc-if value="{{ destHasCards }}" hint-placeholder-val="{{ true }}">
 <sc-for list="{{ destCards }}" as="d" hint-placeholder-count="4">
-<button type="button" data-dest-card="1" title="{{ d.full }}" onClick="{{ d.pick }}">
-<span data-fx-photo="1">
-<sc-if value="{{ d.noImage }}" hint-placeholder-val="{{ true }}"><span data-fx-pin="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n24 }}" color="var(--vt-grey-500)" hint-size="24px,24px"></x-import></span></sc-if>
-<sc-if value="{{ d.hasImage }}" hint-placeholder-val="{{ false }}"><img src="{{ d.image }}" alt=""></sc-if>
+<button type="button" data-dest-card="1" title="{{ d.full }}" aria-label="{{ d.aria }}" onClick="{{ d.pick }}">
+<span data-fx-route="1">
+<span data-fx-orig="1"><span data-fx-glyph="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n14 }}" color="var(--vt-grey-500)" hint-size="14px,14px"></x-import></span><span data-fx-from="1">{{ d.from }}</span></span>
+<span data-fx-dest="1"><span data-fx-chip="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="navigation" size="{{ n12 }}" color="var(--vt-yellow)" hint-size="12px,12px"></x-import></span><span data-fx-to="1">{{ d.to }}</span></span>
 </span>
-<span data-fx-stops="1">
-<span data-fx-stop="1"><span data-fx-mark="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span><span data-fx-text="1"><span data-fx-kicker="1">{{ d.fromLbl }}</span><span data-fx-place="1">{{ d.from }}</span></span></span>
-<span data-fx-stop="1" data-fx-end="1"><span data-fx-mark="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="navigation" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span><span data-fx-text="1"><span data-fx-kicker="1">{{ d.toLbl }}</span><span data-fx-place="1">{{ d.to }}</span></span></span>
-</span>
+<span data-fx-foot="1">
+<span data-fx-farelbl="1">{{ d.fareLbl }}</span>
 <span data-fx-price="1"><span ref="{{ d.dustRef }}" data-price-slot="1" dir="ltr"></span></span>
 <span data-fx-cta="1">{{ d.cta }}<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n14 }}" color="var(--vt-charcoal-900)" hint-size="14px,14px"></x-import></span>
+</span>
 </button>
 </sc-for>
 </sc-if>
@@ -2857,8 +2857,9 @@ class Component extends DCLogic {
       })),
       destCards: (s.fixedRoutes || []).slice(0, 4).map((r) => ({
         from: head(r.from) || r.from, to: head(r.to) || r.to, full: r.from + ' → ' + r.to,
-        fromLbl: t.pickup, toLbl: t.dest, cta: t.selectCta,
-        hasImage: !!r.image, noImage: !r.image, image: r.image || '',
+        fromLbl: t.pickup, toLbl: t.dest, cta: t.selectCta, fareLbl: t.fixed,
+        /* Price is a Dust canvas, so the name carries it: pickup → destination → price → select. */
+        aria: t.pickup + ': ' + r.from + ' · ' + t.dest + ': ' + r.to + ' · ' + t.fixed + ' ' + this.fmt() + ' · ' + t.selectCta,
         dustRef: this.dustRef('dest:' + r.key),
         pick: () => this.goFixedDest(r.key),
       })),
