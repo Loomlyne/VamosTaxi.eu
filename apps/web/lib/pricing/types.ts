@@ -252,6 +252,14 @@ export interface QuoteLegInput {
   origin_city_id?: string | null;
   /** 26.1-09: Mapbox context.place.mapbox_id for the destination. */
   dest_city_id?: string | null;
+  /**
+   * 26.1-11: Mapbox context.place.name for the pickup, in the quote language.
+   * Display only — stamped on the pair line's params for the checkout row
+   * ("{origin} – {destination} route"). Never used for matching or amounts.
+   */
+  origin_city_name?: string | null;
+  /** 26.1-11: Mapbox context.place.name for the destination. Display only. */
+  dest_city_name?: string | null;
 }
 
 /**

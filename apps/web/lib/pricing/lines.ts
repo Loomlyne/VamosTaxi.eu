@@ -437,6 +437,21 @@ function matchCantonPair(
  * applies — exactly one pair extra per leg. No match returns null — never an
  * invented amount.
  */
+/**
+ * 26.1-11 / UI-SPEC §8: the pair line names both ends in the leg's own
+ * direction so checkout can label it "{origin} – {destination} route".
+ * Display only — both names must be known and non-blank, otherwise the line
+ * carries no params and checkout falls back to the plain "Route price" label.
+ */
+function pairLineParams(
+  leg: QuoteLegInput,
+): { origin: string; destination: string } | null {
+  const origin = leg.origin_city_name?.trim();
+  const destination = leg.dest_city_name?.trim();
+  if (!origin || !destination) return null;
+  return { origin, destination };
+}
+
 export function buildFixedRouteExtraLine(args: {
   leg: QuoteLegInput;
   vehicleClass: VehicleClassRow;
@@ -483,12 +498,14 @@ export function buildFixedRouteExtraLine(args: {
     if (fixed) matched = fixed.kind === "canton" ? "canton" : "city";
   }
   if (!fixed || !matched) return null;
+  const params = pairLineParams(leg);
   return {
     seq: seqFor(leg.leg_seq, "extra", "fixed_route"),
     leg_seq: leg.leg_seq,
     kind: "extra",
     code: "fixed_route",
     i18n_key: "price.line.fixed_route",
+    ...(params ? { params } : {}),
     basis: {
       rule: "fixed_route",
       matched,
