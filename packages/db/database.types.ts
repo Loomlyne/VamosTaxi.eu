@@ -2540,6 +2540,7 @@ export type Database = {
         Returns: {
           booking_id: string
           reference: string
+          stripe_checkout_session_ids: string[]
         }[]
       }
       checkout_capture_gate: {
@@ -2593,6 +2594,7 @@ export type Database = {
         Returns: {
           booking_id: string
           reference: string
+          stripe_checkout_session_ids: string[]
         }[]
       }
       checkout_extra_payment_settle: {
@@ -2879,6 +2881,7 @@ export type Database = {
           reference: string
           refund_mode: string
           refund_rappen: number
+          stripe_checkout_session_ids: string[]
         }[]
       }
       ops_mark_complete: {
