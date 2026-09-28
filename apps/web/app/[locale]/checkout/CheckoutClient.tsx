@@ -391,6 +391,21 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     setCardComplete(complete);
   }, []);
 
+  /**
+   * Quick 260928-lat: drop the payment session in one place. The card form only
+   * mounts with a client secret, so clearing it unmounts the form; the next form
+   * starts empty and reports completeness only on its first change, so
+   * cardComplete is reset here too. Every path that clears the secret uses this.
+   */
+  function dropPaymentSession(quoteId: string): void {
+    setClientSecret(null);
+    setClientSecretHex(undefined);
+    clientSecretRef.current = null;
+    clearCheckoutSession(quoteId);
+    setConfirmPay(null);
+    setCardComplete(false);
+  }
+
   useEffect(() => {
     let on = true;
     function load() {
@@ -555,10 +570,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     const stored = readDraft();
     const quoteChanged = Boolean(incomingQuote && stored.quoteId && incomingQuote !== stored.quoteId);
     if (quoteChanged) {
-      setClientSecret(null);
-      setClientSecretHex(undefined);
-      clientSecretRef.current = null;
-      if (stored.quoteId) clearCheckoutSession(stored.quoteId);
+      // quoteChanged implies stored.quoteId; an empty id clears no stored entry.
+      dropPaymentSession(stored.quoteId ?? "");
       setChildSeat(false);
       setOversized(false);
       setExtraStop(false);
@@ -567,8 +580,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       setMeetGreet(false);
       setFreeWait(false);
       setReference(null);
-      setConfirmPay(null);
-      setCardComplete(false);
       intentStarted.current = false;
       intentAttempts.current = 0;
     } else if (step !== "trip") {
@@ -1089,11 +1100,13 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
               // is mounted now: Pay (payClickAction "recover_price") and Remove both
               // reprice without the coupon; Send pay link recovers again because the
               // ref is cleared. The stored session is dropped so a reload cannot mount
-              // an older session under the coupon price (260928-rld).
+              // an older session under the coupon price (260928-rld). startPayment runs
+              // only without a secret, so the helper unmounts nothing here; it keeps
+              // cardComplete in step with the missing card form (260928-lat).
               setCouponApplied(lockCoupon);
               couponRecoveryAttempted.current = false;
               intentAttempts.current = INTENT_AUTO_ATTEMPTS;
-              clearCheckoutSession(quoteId);
+              dropPaymentSession(quoteId);
             }
             return "fail";
           }
@@ -1205,11 +1218,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         }));
         setRefusal(null);
         // A Stripe session opened on the old lock no longer matches the price.
-        setClientSecret(null);
-        setClientSecretHex(undefined);
-        clientSecretRef.current = null;
-        clearCheckoutSession(quoteId);
-        setConfirmPay(null);
+        dropPaymentSession(quoteId);
         intentStarted.current = false;
         intentAttempts.current = 0;
         setIntentTick((n) => n + 1);
@@ -1330,12 +1339,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         setWasRappen(null);
       }
       setRefusal(null);
-      setClientSecret(null);
-      setClientSecretHex(undefined);
-      clientSecretRef.current = null;
       // The quote id survives a coupon reprice; the stored session must not (260928-rld).
-      clearCheckoutSession(quoteId);
-      setConfirmPay(null);
+      dropPaymentSession(quoteId);
       intentStarted.current = false;
       intentAttempts.current = 0;
       setIntentTick((n) => n + 1);
@@ -1431,6 +1436,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
             const lockCoupon = peekLockCoupon(readDraft().lock || draft.lock || trip?.lock);
             if (couponRecoveryOutcome({ action: recovery, repriceOk: repriced, lockCoupon }) === "restore_lock_coupon") {
               // Same as startPayment: the failed reprice leaves the coupon-priced lock.
+              // Only the stored session is dropped: the lock did not change, so a card
+              // form already on screen stays mounted and keeps reporting cardComplete.
               setCouponApplied(lockCoupon);
               couponRecoveryAttempted.current = false;
               intentAttempts.current = INTENT_AUTO_ATTEMPTS;

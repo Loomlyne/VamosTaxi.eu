@@ -139,8 +139,9 @@ describe("CheckoutClient stored session wiring (quick 260928-rld)", () => {
       clears.push(at);
       at = client.indexOf("clientSecretRef.current = null;", at + 1);
     }
-    // New quote, flight sync re-sign, coupon/extras reprice re-sign.
-    expect(clears.length).toBe(3);
+    // Quick 260928-lat: the one in-memory clear lives in dropPaymentSession, which
+    // new quote, flight sync re-sign and coupon/extras reprice re-sign all call.
+    expect(clears.length).toBe(1);
     for (const at of clears) {
       expect(client.slice(at, at + 160)).toMatch(/clearCheckoutSession\([^)]+\);/);
     }
@@ -148,14 +149,14 @@ describe("CheckoutClient stored session wiring (quick 260928-rld)", () => {
     for (const fn of ["async function syncFlightToLock(", "async function applyCouponCode("]) {
       const fnAt = client.indexOf(fn);
       const stored = client.indexOf("writeDraft({ quoteId: nextId, lock: json.lock });", fnAt);
-      const cleared = client.indexOf("clearCheckoutSession(quoteId);", fnAt);
+      const cleared = client.indexOf("dropPaymentSession(quoteId);", fnAt);
       expect(stored).toBeGreaterThan(fnAt);
       expect(cleared).toBeGreaterThan(stored);
       expect(cleared).toBeLessThan(client.indexOf("return true;", stored));
     }
     // A new quote drops the old quote's session.
     const quoteChanged = client.slice(client.indexOf("if (quoteChanged) {"), client.indexOf("} else if (step !== \"trip\")"));
-    expect(quoteChanged).toContain("if (stored.quoteId) clearCheckoutSession(stored.quoteId);");
+    expect(quoteChanged).toContain('dropPaymentSession(stored.quoteId ?? "");');
   });
 
   it("a restore_lock_coupon outcome clears the stored session in both refusal branches", () => {
@@ -165,12 +166,15 @@ describe("CheckoutClient stored session wiring (quick 260928-rld)", () => {
       client.slice(startAt, client.indexOf("async function syncFlightToLock(", startAt)),
       client.slice(sendAt, client.indexOf("async function onPay(", sendAt)),
     ];
-    for (const body of bodies) {
+    // startPayment clears through dropPaymentSession (quick 260928-lat); sendPayLink
+    // drops only the stored session because its card form stays mounted.
+    const expected = ["dropPaymentSession(quoteId);", "clearCheckoutSession(quoteId);"];
+    bodies.forEach((body, i) => {
       const at = body.indexOf('=== "restore_lock_coupon"');
       expect(at).toBeGreaterThan(-1);
       const restore = body.slice(at, body.indexOf("}", at));
-      expect(restore).toContain("clearCheckoutSession(quoteId);");
-    }
+      expect(restore).toContain(expected[i]);
+    });
   });
 
   it("the restore effect passes the current lock to the session store", () => {

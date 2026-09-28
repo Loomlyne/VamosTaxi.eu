@@ -504,13 +504,13 @@ describe("CheckoutClient card form unmount resets cardComplete (quick 260928-lat
 
     // New quote.
     const quoteChanged = client.slice(client.indexOf("if (quoteChanged) {"), client.indexOf('} else if (step !== "trip")'));
-    expect(quoteChanged).toContain("dropPaymentSession(stored.quoteId);");
+    expect(quoteChanged).toContain('dropPaymentSession(stored.quoteId ?? "");');
     expect(quoteChanged).toContain("setReference(null);");
     // Flight reprice and coupon/extras reprice: after the new lock is stored, before success.
     for (const [fn, until] of [
       ["async function syncFlightToLock(", "async function applyCouponCode("],
       ["async function applyCouponCode(", "async function sendPayLink("],
-    ]) {
+    ] as const) {
       const body = fnBody(fn, until);
       const stored = body.indexOf("writeDraft({ quoteId: nextId, lock: json.lock });");
       const dropped = body.indexOf("dropPaymentSession(quoteId);", stored);
