@@ -1,0 +1,81 @@
+26.1-14 local expected output of packages/db/owner-sql/26.1-verify-pricing.sql
+Local Supabase (supabase_db_vamos-taxi, all 26.1 migrations applied), 2026-09-28.
+Never run against the hosted project by the agent.
+
+How local differs from live, so the owner's paste will not match line for line:
+  - Local has no zone-cleanup targets, so the three audit slugs read "absent" (live: false after cleanup).
+  - Local has one version, id 1 draft (seed-placeholder). Live has v18 live plus a draft (the audit saw 19).
+  - Local class slugs are economy / business / van. Run B aliases them to the live slugs
+    saden / mercedes-benz-v-class / van-luxury inside a transaction that is rolled back.
+  - The fill value in Run B is the synthetic 1 rappen used by supabase/tests/canton_zones.test.sql.
+    It is not a price. The owner types his own amount.
+
+=== Run A: local as-is (live slugs do not exist locally) ===
+    check_name     |                       item                       |                                                    value
+-------------------+--------------------------------------------------+--------------------------------------------------------------------------------------------------------------
+ zone_type check   | service_zones_zone_type_check                    | CHECK ((zone_type = ANY (ARRAY['airport'::text, 'city'::text, 'canton'::text, 'ski'::text, 'other'::text])))
+ canton zones      | active                                           | 26
+ audit slug active | st-moritz-the-grisons-switzerland                | absent
+ audit slug active | swiss-national-museum-museumstrasse-2-8001-zu-ri | absent
+ audit slug active | zurich-airport-the-circle-16-flughafen-ch-8302-k | absent
+ fill function     | args                                             | p_rate_version_id bigint, p_price_rappen rappen
+ fill function     | returns                                          | integer
+ fill function     | security_definer                                 | true
+ rate version      | id 1                                             | draft | Staging matrix — placeholder, not owner-approved
+ draft x class     | draft 1 / mercedes-benz-v-class                  | distance_rate class missing
+ draft x class     | draft 1 / mercedes-benz-v-class                  | canton_pairs 0
+ draft x class     | draft 1 / mercedes-benz-v-class                  | prices (none)
+ draft x class     | draft 1 / saden                                  | distance_rate class missing
+ draft x class     | draft 1 / saden                                  | canton_pairs 0
+ draft x class     | draft 1 / saden                                  | prices (none)
+ draft x class     | draft 1 / van-luxury                             | distance_rate class missing
+ draft x class     | draft 1 / van-luxury                             | canton_pairs 0
+ draft x class     | draft 1 / van-luxury                             | prices (none)
+(18 rows)
+
+=== Run B1: begin; local classes aliased to live slugs; before fill ===
+ (rows 1-9 identical to Run A)
+ draft x class     | draft 1 / mercedes-benz-v-class                  | distance_rate yes
+ draft x class     | draft 1 / mercedes-benz-v-class                  | canton_pairs 0
+ draft x class     | draft 1 / mercedes-benz-v-class                  | prices (none)
+ draft x class     | draft 1 / saden                                  | distance_rate yes
+ draft x class     | draft 1 / saden                                  | canton_pairs 0
+ draft x class     | draft 1 / saden                                  | prices (none)
+ draft x class     | draft 1 / van-luxury                             | distance_rate yes
+ draft x class     | draft 1 / van-luxury                             | canton_pairs 0
+ draft x class     | draft 1 / van-luxury                             | prices (none)
+(18 rows)
+
+=== select public.ops_fill_canton_pairs(1, 1)  (local draft 1, synthetic 1 rappen) ===
+ rows_inserted
+---------------
+           975
+(1 row)
+
+=== Run B2: after fill ===
+ (rows 1-9 identical to Run A)
+ draft x class     | draft 1 / mercedes-benz-v-class                  | distance_rate yes
+ draft x class     | draft 1 / mercedes-benz-v-class                  | canton_pairs 325
+ draft x class     | draft 1 / mercedes-benz-v-class                  | prices 1
+ draft x class     | draft 1 / saden                                  | distance_rate yes
+ draft x class     | draft 1 / saden                                  | canton_pairs 325
+ draft x class     | draft 1 / saden                                  | prices 1
+ draft x class     | draft 1 / van-luxury                             | distance_rate yes
+ draft x class     | draft 1 / van-luxury                             | canton_pairs 325
+ draft x class     | draft 1 / van-luxury                             | prices 1
+(18 rows)
+
+=== second fill on the same draft (idempotent) ===
+ rows_inserted
+---------------
+             0
+(1 row)
+
+ROLLBACK  (local database left unchanged)
+
+What the owner's live paste should show after his fill:
+  - canton zones active 26; the three audit slugs false; fill function present.
+  - rate version: the live one (v18) still "live | ...placeholder, not owner-approved"; one draft.
+  - per class on that draft: distance_rate yes, canton_pairs 325, prices = exactly his one value.
+  - A class with "distance_rate no" is skipped by the fill (canton_pairs 0). Enter that class's
+    rates in the dashboard draft, then re-run the same fill call; it only adds what is missing.
