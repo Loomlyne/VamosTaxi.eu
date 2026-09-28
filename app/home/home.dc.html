@@ -1799,12 +1799,17 @@ class Component extends DCLogic {
       const ready = !!(this.state.pickupLoc && this.state.dropLoc && this.state.day && this.state.time);
       const msg = missing && ready ? (String(this.state.flight || '').trim() ? this.t().flightErr : this.t().flightNeed) : '';
       const patch = { quote: { status: 'empty', results: null, inflight: false }, quoteFail: false };
+      const phoneGo = !!this._goTripFree;
+      this._goTripFree = null;
+      this._liveSig = null;
       if (this._goTripKey) {
         this._goTripKey = null;
         patch.announce = this.t().needTrip;
       } else if (msg) {
         patch.announce = msg;
         patch.flightAsk = true;
+      } else if (phoneGo) {
+        patch.announce = this.t().needTrip;
       }
       this.setState(patch); this.relabelAll(); return;
     }
@@ -1813,9 +1818,12 @@ class Component extends DCLogic {
     if (keepLive) this.setState({ quote: Object.assign({}, this.state.quote, { inflight: true }), quoteFail: false });
     else this.setState({ quote: { status: 'skeleton', results: null, inflight: true }, quoteFail: false });
     const s = this.state;
+    const sig = this.quoteSig();
     const failAll = () => {
       if (id !== this.reqSeq) return;
       if (this._goTripKey) this._goTripKey = null;
+      this._goTripFree = null;
+      this._liveSig = null;
       if (keepLive) {
         this.setState({ quote: Object.assign({}, this.state.quote, { status: 'live', results: prevResults, inflight: false }) }, () => this.revealAll());
         return;
@@ -1829,11 +1837,18 @@ class Component extends DCLogic {
       delete patch.fleetOffer;
       this.setState({ quote: patch, fleetOffer: offer, quoteFail: false }, () => {
         this.revealAll();
+        const fresh = sig === this.quoteSig();
+        this._liveSig = (patch.lock && patch.quote_id && fresh) ? sig : null;
         if (this._goTripKey && this.state.fixedKey === this._goTripKey && patch.lock && patch.quote_id) {
           this._goTripKey = null;
           this.goTripOpen();
         } else if (this._goTripKey) {
           this._goTripKey = null;
+          this.setState({ announce: this.t().needTrip });
+        }
+        if (this._goTripFree && fresh) {
+          this._goTripFree = null;
+          if (patch.lock && patch.quote_id) { this.goTripOpen(); return; }
           this.setState({ announce: this.t().needTrip });
         }
         const t = this.t(); const names = { economy: t.economy, business: t.business, first: t.first, van: t.van };
@@ -1862,6 +1877,8 @@ class Component extends DCLogic {
     const cur = s.cur || 'CHF';
     const when = this.clampWhen(s.dayY, s.dayM, s.day, s.time);
     if (this.flightMissing()) {
+      this._goTripFree = null;
+      this._liveSig = null;
       const msg = String(s.flight || '').trim() ? this.t().flightErr : this.t().flightNeed;
       this.setState({ quote: { status: 'empty', results: null, inflight: false }, quoteFail: false, flightAsk: true, announce: msg });
       this.relabelAll();
@@ -1877,6 +1894,8 @@ class Component extends DCLogic {
       .then((j) => {
         if (id !== this.reqSeq) return;
         if (!j || j.ok !== true) {
+          this._goTripFree = null;
+          this._liveSig = null;
           const err = j && j.error;
           const note = err === 'out_of_service_area' ? this.t().europeErr : (err === 'route_unavailable' ? this.t().routeErr : this.t().quoteErr);
           this.setState({ quote: { status: 'empty', results: null, inflight: false }, quoteFail: true, announce: note }, () => this.relabelAll());
@@ -2416,8 +2435,27 @@ class Component extends DCLogic {
     this.lockScroll(false);
     this.setState({ sheetOpen: false, sug: CLOSED, sugIdx: -1 }, () => { const el = this._returnFocus; if (el && el.isConnected) el.focus(); });
   };
-  goQuote = () => { if (this.flightMissing()) { this.askFlight(); return; } this.closeSheet(); this.q(); };
-  applySheet = () => { if (this.flightMissing()) { this.askFlight(); return; } this.closeSheet(); this.q(); };
+  goQuote = () => { if (this.flightMissing()) { this.askFlight(); return; } this.closeSheet(); if (this.state.tier === 0) this.phoneToTrip(); else this.q(); };
+  applySheet = () => { if (this.flightMissing()) { this.askFlight(); return; } this.closeSheet(); if (this.state.tier === 0) this.phoneToTrip(); else this.q(); };
+  /** Every input that changes a quote. A live lock is reused only while this is unchanged. */
+  quoteSig = () => {
+    const s = this.state;
+    const place = (loc, text) => (loc && loc.mapbox_id) || text || '';
+    return [s.mode, place(s.pickupLoc, s.pickupText), place(s.dropLoc, s.dropText), s.dayY, s.dayM, s.day, s.time, s.pax, s.bags, String(s.flight || '').trim(), s.cur, s.hours].join('|');
+  };
+  /** Phone only (tier 0): the class strip is hidden under 700px, so SHOW FIXED PRICES goes
+   *  on to /checkout/trip. A live locked quote for the same inputs goes now; otherwise it
+   *  quotes and applyLive continues once lock + quote_id arrive. Every failure clears the flag. */
+  phoneToTrip = () => {
+    const s = this.state;
+    if (s.quote.status === 'live' && !s.quote.inflight && s.quote.lock && s.quote.quote_id && this._liveSig && this._liveSig === this.quoteSig()) {
+      this.goTripOpen();
+      return;
+    }
+    this._goTripFree = true;
+    this.setState({ announce: this.t().getting });
+    this.q();
+  };
   scrimClick = (e) => { if (e.target === e.currentTarget) this.closeSheet(); };
   /** The list is a child of its field, so it can never drift: only the direction is measured. */
   flipFor(e) {
