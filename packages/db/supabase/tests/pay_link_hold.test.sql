@@ -12,7 +12,7 @@
 -- disable/enable append-only trigger pair unpaid_cancel_session.test.sql
 -- uses). Synthetic rappen integers only -- never a real CHF amount (D-13).
 begin;
-select plan(38);
+select plan(41);
 
 -- Fixtures --------------------------------------------------------------------------------
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
@@ -197,7 +197,6 @@ create temporary table plh_e as select * from pg_temp.plh_book(
 create temporary table plh_p as select * from pg_temp.plh_book(
   '21500000-0000-4000-8000-00000000000d'::uuid, 'plh-p', 'cs_plh_p_1', decode(repeat('b4', 32), 'hex'), 'plh-p@example.test');
 reset role;
-grant select on plh_a, plh_n, plh_e, plh_p to public;
 
 -- 0. Schema and grants -------------------------------------------------------------------
 select has_column('public', 'bookings', 'hold_until', 'bookings.hold_until exists (D-20)');

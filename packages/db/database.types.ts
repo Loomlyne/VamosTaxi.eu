@@ -698,6 +698,7 @@ export type Database = {
           customer_id: string | null
           display_currency: Database["public"]["Enums"]["display_currency"]
           erased_at: string | null
+          hold_until: string | null
           id: string
           idempotency_key: string | null
           is_return: boolean
@@ -728,6 +729,7 @@ export type Database = {
           customer_id?: string | null
           display_currency?: Database["public"]["Enums"]["display_currency"]
           erased_at?: string | null
+          hold_until?: string | null
           id?: string
           idempotency_key?: string | null
           is_return?: boolean
@@ -758,6 +760,7 @@ export type Database = {
           customer_id?: string | null
           display_currency?: Database["public"]["Enums"]["display_currency"]
           erased_at?: string | null
+          hold_until?: string | null
           id?: string
           idempotency_key?: string | null
           is_return?: boolean
@@ -2578,6 +2581,10 @@ export type Database = {
           vehicle_class_slug: string
         }[]
       }
+      checkout_booking_hold_until: {
+        Args: { p_quote_id: string }
+        Returns: string
+      }
       checkout_booking_is_test: {
         Args: { p_quote_id: string }
         Returns: boolean
@@ -2699,6 +2706,13 @@ export type Database = {
           snapshot_expires_at: string
           status: Database["public"]["Enums"]["booking_status"]
           token_expires_at: string
+        }[]
+      }
+      checkout_pay_link_state: {
+        Args: { p_session_id?: string; p_token_hash: string }
+        Returns: {
+          reference: string
+          state: string
         }[]
       }
       checkout_payment_settle: {
