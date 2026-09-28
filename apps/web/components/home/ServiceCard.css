@@ -17,6 +17,7 @@
   color: var(--vt-text-inverse);
   background: var(--vt-charcoal-900);
   isolation: isolate;
+  container-type: inline-size;
   transition: transform 80ms var(--vt-ease-standard);
 }
 
@@ -120,13 +121,17 @@
 [data-svc-title] {
   margin: 0;
   font-family: var(--vt-font-display);
-  font-size: clamp(22px, 2.2vw, 28px);
+  /* Capped by card width so one long word (DE "Flughafentransfers") fits
+     the 4-up card at 1440; break-word is the floor if it still cannot. */
+  font-size: min(clamp(22px, 2.2vw, 28px), max(18px, 8.5cqi));
   font-weight: var(--vt-weight-semibold);
   letter-spacing: var(--vt-heading-tracking);
   line-height: 1.12;
   color: var(--vt-text-inverse);
   text-wrap: balance;
+  overflow-wrap: break-word;
   min-inline-size: 0;
+  max-inline-size: 100%;
 }
 
 [data-svc-desc] {
