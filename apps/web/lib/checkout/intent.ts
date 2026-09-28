@@ -14,6 +14,7 @@ import { refuse, type CheckoutRefusalCode } from "./errors";
 import type { CheckoutIntentRequest } from "./intent-schema";
 import { extraFaresOn, extraRappenOutsideLock, lockHasExtra, type CheckoutExtraJson } from "./extras-catalog";
 import { checkoutLegsFromLock, snapshotFromLock } from "./lock-to-rpc";
+import { flightKey } from "./flight-no";
 import { manageTokenCookie } from "./manage-token";
 import { CHARGE_CURRENCY } from "./currency";
 import { stripeCheckoutReturnUrl } from "./return-url";
@@ -254,11 +255,6 @@ function okIntentResponse(
     }),
     { status: 200, headers },
   );
-}
-
-/** Compare flight numbers ignoring case and spacing; blank means none. */
-function flightKey(value: string | null): string {
-  return (value ?? "").replace(/\s+/g, "").toUpperCase();
 }
 
 export async function runCheckoutIntent(
