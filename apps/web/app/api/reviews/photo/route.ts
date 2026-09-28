@@ -19,7 +19,7 @@ import { csrfForbidden } from "@/lib/security/origin";
 const BOOKING_UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const BOOKING_REF = /^VT-\d{2}-\d{4,5}$/i;
-const BLOCKED = new Set(["quote", "pending", "cancelled", "partially_cancelled"]);
+const BLOCKED: readonly string[] = Object.freeze(["quote", "pending", "cancelled", "partially_cancelled"]);
 
 type BookingRow = { booking_id: string; status: string };
 
@@ -112,7 +112,7 @@ export async function POST(request: Request): Promise<Response> {
 
   if (!booking?.booking_id) return jsonErr("not-found", 404);
   const status = booking.status.toLowerCase();
-  if (BLOCKED.has(status)) return jsonErr("not-reviewable", 403);
+  if (BLOCKED.includes(status)) return jsonErr("not-reviewable", 403);
 
   const key = buildPhotoKey("review", booking.booking_id, fileRaw.type);
   await env.PHOTOS.put(key, bytes, {

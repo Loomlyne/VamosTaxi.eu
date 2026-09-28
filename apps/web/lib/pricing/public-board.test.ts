@@ -2,6 +2,7 @@
 
 import { describe, expect, it } from "vitest";
 import { classDisplayName, liveBookBoard, publicCatalogRoutes } from "./public-board";
+import { mapRateBook } from "./rateBook";
 import type {
   DistanceRateRow,
   FixedRouteRow,
@@ -139,7 +140,7 @@ describe("liveBookBoard", () => {
       luggage_capacity: 3,
       photo_path: "classes/economy.jpg",
     });
-    const leftover = classRow({ slug: "mahaha", name: "mahaha", sort_order: 0 });
+    const leftover = classRow({ slug: "first", name: "First", sort_order: 0 });
     const fixed: FixedRouteRow = {
       id: 9,
       rate_version_id: 1,
@@ -167,7 +168,7 @@ describe("liveBookBoard", () => {
     ]);
     expect(board.find((c) => c.slug === "economy")?.name).toBe("Economy");
     expect(board.find((c) => c.slug === "economy")?.total_rappen).toBeNull();
-    expect(board.map((c) => c.slug)).not.toContain("mahaha");
+    expect(board.map((c) => c.slug)).not.toContain("first");
   });
 
   it("follows vehicle_classes.sort_order for already-public classes and leaves inactive slugs out", () => {
@@ -185,10 +186,10 @@ describe("liveBookBoard", () => {
     const business = classRow({ slug: "business", name: "Business", sort_order: 1, active: false });
     const first = classRow({ slug: "first", name: "First", sort_order: 2, active: false });
     const vanLegacy = classRow({ slug: "van", name: "Van", sort_order: 3, active: false });
-    const mahaha = classRow({ slug: "mahaha", name: "mahaha", sort_order: 4, active: false });
+    const retiredEconomy = classRow({ slug: "saden", name: "Economy", sort_order: 4, active: false });
     const board = liveBookBoard(
       book({
-        classes: [van, economy, sclass, mahaha, business, first, vanLegacy],
+        classes: [van, economy, sclass, retiredEconomy, business, first, vanLegacy],
         distance_rates: [
           rateRow({ vehicle_class_id: van.id, id: 1 }),
           rateRow({ vehicle_class_id: sclass.id, id: 2 }),
@@ -457,8 +458,8 @@ describe("publicCatalogRoutes", () => {
     const catalog = publicCatalogRoutes(
       book({
         classes: [
-          classRow({ id: "vc-saden", slug: "saden", name: "Saden" }),
-          classRow({ id: "vc-van", slug: "mercedes-benz-v-class", name: "Van" }),
+          classRow({ id: "vc-saden", slug: "saden", name: "Economy" }),
+          classRow({ id: "vc-van", slug: "mercedes-benz-v-class", name: "Business" }),
           classRow({ id: "vc-lux", slug: "van-luxury", name: "Van luxury" }),
         ],
         distance_rates: [
@@ -495,5 +496,92 @@ describe("publicCatalogRoutes", () => {
         to_mapbox_id: "dXJuOm1ieHBsYzpBWjBvTEE",
       },
     ]);
+  });
+});
+
+describe("hidden classes never reach a public board (26.1-19 D-15)", () => {
+  const liveDoc = (hiddenAt: string | null) => ({
+    rate_version: { id: 18, slug: "live", status: "live" },
+    classes: [
+      {
+        id: "vc-saden",
+        slug: "saden",
+        passenger_capacity: 3,
+        luggage_capacity: 3,
+        sort_order: 0,
+        active: true,
+        name: "Economy",
+        hidden_at: null,
+      },
+      {
+        id: "vc-first",
+        slug: "first",
+        passenger_capacity: 3,
+        luggage_capacity: 3,
+        sort_order: 1,
+        active: hiddenAt === null,
+        name: "First",
+        hidden_at: hiddenAt,
+        hidden_reason: hiddenAt ? "Dropped from the line-up" : null,
+      },
+    ],
+    distance_rates: [
+      {
+        id: 1,
+        rate_version_id: 18,
+        vehicle_class_id: "vc-saden",
+        base_fare_rappen: null,
+        per_km_rappen: null,
+        min_fare_rappen: null,
+        max_pax: 3,
+        available: true,
+      },
+      {
+        id: 2,
+        rate_version_id: 18,
+        vehicle_class_id: "vc-first",
+        base_fare_rappen: null,
+        per_km_rappen: null,
+        min_fare_rappen: null,
+        max_pax: 3,
+        available: true,
+      },
+    ],
+    distance_bands: [],
+    region_premiums: [],
+    fixed_routes: [],
+    surcharges: [],
+    zones: [],
+  });
+
+  it("mapRateBook keeps a rated class that is not hidden", () => {
+    const mapped = mapRateBook(liveDoc(null));
+    expect(mapped.classes.map((c) => c.slug)).toEqual(["saden", "first"]);
+  });
+
+  it("mapRateBook drops a class with hidden_at even while the frozen live version still rates it", () => {
+    const mapped = mapRateBook(liveDoc("2026-09-28T12:00:00Z"));
+    expect(mapped.classes.map((c) => c.slug)).toEqual(["saden"]);
+  });
+
+  it("the home board never lists a hidden class", () => {
+    const mapped = mapRateBook(liveDoc("2026-09-28T12:00:00Z"));
+    const board = liveBookBoard(mapped as unknown as RateBook);
+    expect(board.map((c) => c.slug)).toEqual(["saden"]);
+  });
+
+  it("liveBookBoard also omits a class row carrying hidden_at (defence in depth)", () => {
+    const shown = classRow({ slug: "saden", sort_order: 0 });
+    const hidden = { ...classRow({ slug: "first", sort_order: 1 }), hidden_at: "2026-09-28T12:00:00Z" };
+    const board = liveBookBoard(
+      book({
+        classes: [shown, hidden],
+        distance_rates: [
+          rateRow({ vehicle_class_id: shown.id }),
+          rateRow({ id: 2, vehicle_class_id: hidden.id }),
+        ],
+      }),
+    );
+    expect(board.map((c) => c.slug)).toEqual(["saden"]);
   });
 });

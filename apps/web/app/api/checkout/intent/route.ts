@@ -21,11 +21,10 @@ import {
   stripeFromEnv,
   stripePublishableKey,
 } from "@/lib/checkout/stripe";
-import { loadLaunchFlags, loadRateBook, loadSettingsVersion } from "@/lib/db/quote";
-import { catalogFromSurcharges } from "@/lib/checkout/extras-catalog";
+import { evaluateCoupon, loadLaunchFlags, loadSettingsVersion } from "@/lib/db/quote";
 import { lookupVehicleClassId, snapshotPolicyFromSettings } from "@/lib/checkout/lock-to-rpc";
 import { policyHours } from "@/lib/checkout/policy-settings";
-import { mapRateBook } from "@/lib/pricing/rateBook";
+import { loadCheckoutReprice } from "@/lib/checkout/reprice";
 import type { IntentRecompute } from "@/lib/quote/intent";
 import { publicSiteOrigin, csrfForbidden } from "@/lib/security/origin";
 
@@ -90,6 +89,19 @@ async function postIntent(request: Request) {
     if (code !== "42883") throw err;
   }
 
+  // D-20/D-21 (26.1-29): a sent pay link holds the booking for 24 h; the
+  // traveller's own lock stays payable until then. Read from the database by
+  // quote id — never from the request (T-26.1-90). Null = no link sent.
+  const holdUntilIso = await asCheckout(env, null, async (sql) => {
+    const rows = await sql<{ hold_until: Date | string | null }[]>`
+      select public.checkout_booking_hold_until(${body.quote_id}::uuid) as hold_until
+    `;
+    const value = rows[0]?.hold_until;
+    if (value == null) return null;
+    const at = value instanceof Date ? value : new Date(String(value));
+    return Number.isFinite(at.getTime()) ? at.toISOString() : null;
+  });
+
   // Built only when a session op runs, after the class-id refusal.
   let stripe: ReturnType<typeof stripeFromEnv> | undefined;
   const stripeClient = () => (stripe ??= stripeFromEnv(env));
@@ -107,26 +119,22 @@ async function postIntent(request: Request) {
     return refuse("invalid_request");
   }
 
-  let extrasCatalog: ReturnType<typeof catalogFromSurcharges> = [];
-  let liveRateVersionId: number | null = null;
-  try {
-    const liveBook = mapRateBook(await loadRateBook(env, { preferDraft: false }));
-    extrasCatalog = catalogFromSurcharges(liveBook.surcharges);
-    const live = liveBook.rate_version;
-    liveRateVersionId =
-      live && live.status === "live" && typeof live.id === "number" ? live.id : null;
-  } catch {
-    extrasCatalog = [];
+  // D-12: fail closed when the live book cannot load — never fall back to an
+  // empty extras catalog with pricing left on.
+  const repriced = await loadCheckoutReprice(env);
+  if (!repriced.ok) {
+    return refuse("pricing_not_live");
   }
 
   return runCheckoutIntent(body, {
     lockSecrets: previous ? { current, previous } : { current },
     workerNowIso: new Date().toISOString(),
     postgresNowIso,
+    holdUntilIso,
     reprice: (payload) => ({
-      pricing_live: true,
+      pricing_live: repriced.pricingLive,
       engine_version: payload.engine_version,
-      live_rate_version_id: liveRateVersionId,
+      live_rate_version_id: repriced.liveRateVersionId,
       classes: payload.class_totals.map((row) => ({
         slug: row.slug as IntentRecompute["classes"][number]["slug"],
         total_rappen: row.total_rappen,
@@ -148,8 +156,9 @@ async function postIntent(request: Request) {
     actorCustomerId: null,
     vehicleClassId,
     snapshotPolicy,
-    extrasCatalog,
+    extrasCatalog: repriced.extrasCatalog,
     loadLaunchFlags: () => loadLaunchFlags(env),
+    evaluateCoupon: (code, ids) => evaluateCoupon(env, code, ids),
     loadQuotePayGate: async (quoteId) => {
       const rows = await asCheckout(env, null, (sql) => sql<{ is_test: boolean | null }[]>`
         select public.checkout_booking_is_test(${quoteId}::uuid) as is_test

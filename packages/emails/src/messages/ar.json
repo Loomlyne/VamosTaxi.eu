@@ -56,7 +56,12 @@
     "offRoadHeadline": "المركبة خارج الخدمة",
     "offRoadBody": "الرحلات المسندة القادمة تبقى على اللوحة — لا تُلغى. عالجها في Needs attention.",
     "overlapHeadline": "تعديل مدفوع يكسر السائق المعيَّن",
-    "overlapBody": "الرحلة تبقى. أعد تعيين هذه الرحلة أو الرحلة المتداخلة في Needs attention."
+    "overlapBody": "الرحلة تبقى. أعد تعيين هذه الرحلة أو الرحلة المتداخلة في Needs attention.",
+    "stuckHeadline": "حدث دفع من Stripe عالق",
+    "stuckBody": "أرسلت Stripe هذا الحدث وقد فشل 8 مرات. قد يكون الحجز مدفوعًا لكن غير مؤكد. تحقق من الحجز في لوحة التحكم ومن الحدث في Stripe.",
+    "stuckEventLabel": "حدث Stripe",
+    "paidAfterCancelHeadline": "دُفع بعد الإلغاء — تم الاسترداد",
+    "paidAfterCancelBody": "وصلت دفعة لحجز تعذّر تنفيذه. تم استرداد المبلغ تلقائيًا. لا حاجة إلى أي إجراء ما لم يتواصل العميل."
   },
   "cancellation": {
     "subject": "تم إلغاء الحجز {reference}",

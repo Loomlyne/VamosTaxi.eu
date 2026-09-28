@@ -93,8 +93,9 @@ one. Never hand-roll a header or footer.
 - `variant="inverse"` is the default: charcoal sticky bar. Use it everywhere.
 - `variant="overlay"` is only for a page whose hero already carries a photograph —
   the same control row, transparent, sitting on the image. Home uses it.
-- The control row is fixed and identical on every page: logo, phone pill, language,
-  currency, sign in, and a yellow *Book a transfer* pill. Pass `cta="{{ no }}"` to drop
+- The control row is fixed and identical on every page: logo, language, currency,
+  sign in, and a yellow *Book a transfer* pill. There is no phone pill in the header
+  (removed 2026-09-20, #45): the public phone lives in the `ContactFab` overlay. Pass `cta="{{ no }}"` to drop
   the CTA on a page that already has the booking card in view (home).
 - A page that relabels itself in place without reloading passes
   `lang`/`cur`/`onLang`/`onCur`; otherwise the header stores the choice and reloads.

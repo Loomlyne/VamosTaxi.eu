@@ -128,7 +128,7 @@ describe("errorResponse", () => {
           : errorResponse(code);
       const entry = QUOTE_ERRORS[code];
       expect(res.status, code).toBe(entry.status);
-      expect(res.headers.get("Cache-Control")).toBe("no-store");
+      expect(res.headers.get("Cache-Control")).toBe("private, no-store");
       const body = (await res.json()) as Record<string, unknown>;
       expect(body.ok).toBe(false);
       expect(body.error).toBe(code);
@@ -176,7 +176,7 @@ describe("errorResponse", () => {
 describe("quoteResponse", () => {
   it("emits every field in the contract list and no extra field", async () => {
     const res = quoteResponse(successQuote());
-    expect(res.headers.get("Cache-Control")).toBe("no-store");
+    expect(res.headers.get("Cache-Control")).toBe("private, no-store");
     const body = (await res.json()) as Record<string, unknown>;
     expect(Object.keys(body).sort()).toEqual([...SUCCESS_KEYS].sort());
     expect(body.ok).toBe(true);

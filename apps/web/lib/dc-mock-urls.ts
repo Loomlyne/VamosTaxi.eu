@@ -45,13 +45,13 @@ export const DC_MOCK_CANONICAL: Record<string, string> = {
 };
 
 /** Out of V1 / never a public URL. */
-const LEFTOVER_EXACT = new Set([
+const LEFTOVER_EXACT: readonly string[] = Object.freeze([
   "/become-a-partner",
   "/login",
   "/ops",
 ]);
 
-const DOC_DEST = new Set(["document", "iframe", "embed", "frame", "object"]);
+const DOC_DEST: readonly string[] = Object.freeze(["document", "iframe", "embed", "frame", "object"]);
 
 export function isAccountSection(value: string): value is AccountSection {
   return ACCOUNT_SECTION_SET.has(value);
@@ -94,7 +94,7 @@ function isDashboardHost(hostname: string): boolean {
 
 function isDocumentNav(request: Request): boolean {
   const dest = (request.headers.get("sec-fetch-dest") || "").toLowerCase();
-  return DOC_DEST.has(dest);
+  return DOC_DEST.includes(dest);
 }
 
 function isInternalAsset(request: Request): boolean {
@@ -146,7 +146,7 @@ export function canonicalPublicFromLeak(pathname: string): string | null {
 export function should404MockLeak(pathname: string): boolean {
   if (canonicalPublicFromLeak(pathname)) return false;
   const path = stripAssetExt(pathWithoutLocale(pathname));
-  if (LEFTOVER_EXACT.has(path) || path.startsWith("/ops/")) return true;
+  if (LEFTOVER_EXACT.includes(path) || path.startsWith("/ops/")) return true;
   return isMockPublicPath(path);
 }
 
@@ -180,7 +180,7 @@ export function gatePublicRequest(request: Request): Response | "not-found" | nu
   // Dashboard mocks (`OpsSidebar.dc.html`, design-system, …) must hit CF assets.
   if (dashboard && isOpsAssetPath(path)) return null;
 
-  if (!dashboard && (LEFTOVER_EXACT.has(path) || path.startsWith("/ops/"))) {
+  if (!dashboard && (LEFTOVER_EXACT.includes(path) || path.startsWith("/ops/"))) {
     return "not-found";
   }
 

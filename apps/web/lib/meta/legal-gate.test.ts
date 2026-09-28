@@ -12,7 +12,17 @@ const here = dirname(fileURLToPath(import.meta.url));
 const webRoot = join(here, "../..");
 
 const PIXEL_ID = "1595596972063765";
-const SKIP_DIRS = new Set(["node_modules", ".next", ".wrangler"]);
+// Build output (.open-next, the harness's .next-* dirs), Playwright output and
+// screenshot baselines are generated, not source; walking them pushed this file
+// past vitest's 5 s timeout.
+const SKIP_DIRS = new Set([
+  "node_modules",
+  ".next",
+  ".open-next",
+  ".wrangler",
+  "test-results",
+  "playwright-report",
+]);
 
 function source(rel: string): string {
   return readFileSync(join(webRoot, rel), "utf8");
@@ -24,6 +34,8 @@ function walk(relDir: string): string[] {
   for (const entry of readdirSync(abs, { withFileTypes: true })) {
     if (
       SKIP_DIRS.has(entry.name) ||
+      (entry.isDirectory() &&
+        (entry.name.endsWith("-snapshots") || entry.name.startsWith(".next-"))) ||
       entry.name.startsWith(".dev.vars") ||
       entry.name.startsWith(".env") ||
       entry.isSymbolicLink()

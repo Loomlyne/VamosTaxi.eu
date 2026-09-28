@@ -1423,7 +1423,7 @@ class Component extends DCLogic {
           color: on ? 'var(--vt-accent)' : 'var(--vt-charcoal-700)' } }, label);
       }
       const busy = !!this.state.saving;
-      return React.createElement('button', {
+      const btn = React.createElement('button', {
         type:'button',
         'data-vt-bool':'1',
         'data-on': on ? '1' : '0',
@@ -1438,6 +1438,12 @@ class Component extends DCLogic {
         }),
         onClick: (e) => this.toggleBool(col, row, e),
       }, label);
+      // 26.1-19 D-15: an optional muted caption under the chip (e.g. why a class is hidden).
+      const sub = col.subKey && on ? String(row[col.subKey] || '').trim() : '';
+      if (!sub) return btn;
+      return React.createElement('span', { 'data-vt-bool-wrap':'1', style:{ display:'inline-flex', flexDirection:'column', alignItems:'flex-start', gap:4, minWidth:0 } },
+        btn,
+        React.createElement('span', { 'data-vt-bool-sub':'1', title: sub, style:{ fontFamily:'var(--vt-font-body)', fontSize:'var(--vt-body-xs)', lineHeight:1.35, color:'var(--vt-text-muted)', whiteSpace:'normal', overflowWrap:'anywhere', maxWidth:240 } }, sub));
     }
     if (col.kind === 'mark') {
       const tone = (col.tones && col.tones[v]) || {};

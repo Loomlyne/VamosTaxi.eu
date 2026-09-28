@@ -8,7 +8,7 @@
 export const dynamic = "force-dynamic";
 
 import { CHARGE_CURRENCY } from "../checkout/currency";
-import { createRefund, retrieveRefund, stripeFromEnv } from "../checkout/stripe";
+import { createRefund, resolvePaymentIntentId, retrieveRefund, stripeFromEnv } from "../checkout/stripe";
 import { asCustomer, asGuest, asSystem, type VamosClaims } from "../db/identity";
 import { notifyCancellation, notifyRefundFailed } from "./notify-lifecycle";
 
@@ -32,6 +32,8 @@ export type ApplyStripeRefundInput = {
   paymentIntentId: string;
   amountRappen: number;
   idempotencyKey: string;
+  /** D-05: Stripe refund metadata reason. Defaults to "customer_cancel" for the existing customer/staff cancel callers. */
+  reason?: string;
 };
 
 export type ApplyStripeRefundOk = {
@@ -225,10 +227,18 @@ export async function applyStripeRefund(
   let facts = { payoutCountry: "CH", availableOn: null as string | null };
   try {
     const stripe = stripeFromEnv(env);
+    const paymentIntentId = await resolvePaymentIntentId(stripe, input.paymentIntentId);
+    if (!paymentIntentId) {
+      await markRefundFailed(env, input.bookingId);
+      return { ok: false, code: "stripe-failed" };
+    }
     const created = await createRefund(stripe, {
-      paymentIntentId: input.paymentIntentId,
+      paymentIntentId,
       amountRappen: input.amountRappen,
       idempotencyKey: input.idempotencyKey,
+      bookingId: input.bookingId,
+      paymentId: input.paymentId,
+      reason: input.reason ?? "customer_cancel",
     });
     if (!created?.id) {
       await markRefundFailed(env, input.bookingId);

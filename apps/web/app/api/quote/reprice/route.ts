@@ -6,6 +6,11 @@
 //
 // The pipeline owns Mapbox, KV, the quote identity wrapper, and the
 // preview flag — this file names none of those bindings.
+//
+// D-08b / 26.1-30: the body may carry `legs: [{ leg_seq, flight_no }]` from
+// /checkout/details. runRepricePipeline pins each leg's flight_no into the
+// re-signed lock (same HMAC path as extras/coupon), so the airport fee is in
+// the lock before payment. The rule lives in the pipeline, not here.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { wireQuoteAbuse } from "@/lib/abuse/guards";

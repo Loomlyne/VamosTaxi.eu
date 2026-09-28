@@ -1,0 +1,58 @@
+{
+  "$schema": "./packages/core/schema.json",
+  "name": "Vamos Taxi",
+  "brand": {
+    "wordmark": "Vamos Taxi",
+    "caption": "",
+    "mark": "custom",
+    "logoSrc": "/brand/logo/lockup-primary.svg",
+    "markSrc": "/brand/logo/mark-primary.svg",
+    "variant": "lockup",
+    "placement": "left",
+    "wordmarkCase": null,
+    "wordmarkFont": null,
+    "markTone": null
+  },
+  "color": {
+    "primary": "#1E1F1F",
+    "accent": "#FDC20B",
+    "neutral": "#767877",
+    "success": "#359658",
+    "warning": "#EDB306",
+    "danger": "#CC3430",
+    "info": "#3179A6",
+    "mode": "light"
+  },
+  "radius": {
+    "roundness": null,
+    "pill": true,
+    "overrides": {
+      "card": 16,
+      "panel": 24
+    }
+  },
+  "type": {
+    "preset": null,
+    "display": "Qurova",
+    "body": "Poppins",
+    "mono": null,
+    "buttonCase": "upper"
+  },
+  "density": "comfortable",
+  "surface": {
+    "float": "solid",
+    "shadow": null,
+    "border": "hairline"
+  },
+  "nav": {
+    "front": "bar",
+    "back": "sidebar"
+  },
+  "avatars": {
+    "style": "initials"
+  },
+  "motion": {
+    "enabled": true,
+    "intensity": "subtle"
+  }
+}

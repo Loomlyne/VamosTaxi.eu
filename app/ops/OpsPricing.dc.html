@@ -18,6 +18,11 @@
 [data-price-hist-filters]{display:flex;align-items:center;max-width:220px;min-width:0}
 [data-price-hist-filters] [data-vt-date]{width:100%;gap:0}
 [data-vt-date]{display:flex;flex-direction:column;gap:6px;min-width:0}
+[data-hide-conflict]{display:flex;flex-direction:column;gap:var(--vt-space-3);min-width:0}
+[data-hide-conflict] p{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary);overflow-wrap:anywhere}
+[data-hide-conflict] [data-hide-class]{font-weight:600;color:var(--vt-text-primary)}
+[data-hide-actions]{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:var(--vt-space-2);margin-top:var(--vt-space-2)}
+[data-hide-actions] > *{min-width:0}
 [data-vt-date-btn]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;height:44px;padding:0 14px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-pill);background:var(--vt-white);color:var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium);cursor:pointer;overflow:hidden}
 [data-vt-date-btn]:hover{border-color:var(--vt-charcoal-900)}
 [data-vt-date-btn][aria-expanded="true"]{border-color:var(--vt-charcoal-900)}
@@ -198,6 +203,20 @@
 </x-import>
 </sc-if>
 
+<sc-if value="{{ hideOpen }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="sm" title="{{ tHideConflictTitle }}" onClose="{{ keepVisible }}" hint-size="440px,380px">
+<div data-hide-conflict="1">
+<p data-hide-class="1" data-i18n-skip="1">{{ hideClassName }}</p>
+<p data-hide-body="1">{{ tHideConflictBody }}</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ tHideReason }}" aria-label="{{ tHideReason }}" rows="{{ n3 }}" max-length="{{ hideReasonMax }}" value="{{ hideReason }}" onChange="{{ setHideReason }}" placeholder="{{ tHideReasonPlaceholder }}" error="{{ hideErrorText }}" hint="{{ hideReasonCount }}" hint-size="100%,130px"></x-import>
+<div data-hide-actions="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" onClick="{{ keepVisible }}" hint-size="150px,44px">{{ tHideConflictKeepVisible }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" onClick="{{ submitHide }}" disabled="{{ hideSubmitDisabled }}" hint-size="180px,44px">{{ tHideWithReason }}</x-import>
+</div>
+</div>
+</x-import>
+</sc-if>
+
 <sc-if value="{{ changesOpen }}" hint-placeholder-val="{{ false }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="md" title="{{ tViewChanges }}" onClose="{{ closeChanges }}" hint-size="520px,420px">
 <p style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary);white-space:pre-wrap">{{ changesBody }}</p>
@@ -373,8 +392,8 @@ const PANES = [
 const T = {
   en: { title:'Pricing & routes', subtitle:'City to city, distance rules, surcharges and coupons',
     tabRoutes:'City to city', tabDistance:'Distance rules', tabSurcharges:'Surcharges & extras', tabCoupons:'Coupons',
-    hintRoutes:'City to city. A to B and B to A are separate. Click a row and it goes live.', hintDistance:'Start, per kilometre, airport start, one city price', airportStart:'Airport start', cityPrice:'City price and per kilometre', cityPairPick:'Select a city pair', hintSurcharges:'Checkout extras, wait, meet and greet', hintCoupons:'Percent or fixed CHF',
-    colId:'ID', colFrom:'From', colTo:'To', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Draft',
+    hintRoutes:'One pair covers both directions. Click a row and it goes live.', hintDistance:'Start, per kilometre, airport pickup fee', airportStart:'Airport pickup fee (added to start)', cityPrice:'City price and per kilometre', cityPairPick:'Select a city pair', hintSurcharges:'Checkout extras, wait, meet and greet', hintCoupons:'Percent or fixed CHF',
+    colId:'ID', colFrom:'From', colTo:'To', colEconomy:'Economy', colBusiness:'Business', colLive:'Live', live:'Live', draft:'Draft',
     colClass:'Class', colPhoto:'Photo', moveClassUp:'Move class up', moveClassDown:'Move class down', colName:'Name', startFare:'Start', perKm:'Per kilometre', maxPax:'Max passengers', maxBags:'Max bags', hidePublic:'Hide from public', hiddenPublic:'Hidden from public', showPublic:'Show on public', shownPublic:'Shown on public',
     fPhoto:'Photo', choosePhoto:'Choose photo', clearPhoto:'Remove', hClassPhoto:'Required to Publish. Stored on R2, not on this machine.',
     colRule:'Rule', colAppliesWhen:'Applies when', colAmount:'Amount', colKind:'Kind',
@@ -383,6 +402,7 @@ const T = {
     searchRoutes:'From, to or ID', nounRoute:'route', nounRoutes:'routes',
     hRoutePrice:'Leave empty if this class is not offered on this route.',
     addClass:'Add class', editClass:'Edit class', saveClass:'Save class', deleteClassTitle:'Delete this class from the draft?', deleteClassBody:'Delete this class from the draft? Public does not change until Publish.',
+    hideReason:'Reason', hideReasonPlaceholder:'Why it is hidden, for example: no longer offered', hideConflictTitle:'Can’t delete — still in use', hideConflictBody:'This class has bookings against it. Hide it instead, and say why.', hideConflictKeepVisible:'Keep it visible', hideWithReason:'Hide with a reason', hideError:'The class could not be hidden. Try again.',
     emptyClassesTitle:'No vehicle classes yet', emptyClassesBody:'Add a class with photo, name, start fare, per-kilometre rate, max passengers and max bags.',
     searchDistance:'Class', nounClass:'class', nounClasses:'classes',
     addRule:'Add rule', editRule:'Edit rule', saveRule:'Save rule', deleteRuleTitle:'Delete this rule from the draft?', deleteRuleBody:'Delete this rule from the draft? Public does not change until Publish.',
@@ -457,12 +477,11 @@ const T = {
     emptyHistoryFilterTitle:'No books on this date',
     emptyHistoryFilterBody:'Clear the date to see every published book.',
     whoUnknown:'Unknown',
-    colFirst:'First',
   },
   de: { title:'Preise & Routen', subtitle:'Stadt zu Stadt, Distanzregeln, Zuschläge und Gutscheine',
     tabRoutes:'Stadt zu Stadt', tabDistance:'Distanzregeln', tabSurcharges:'Zuschläge & Extras', tabCoupons:'Gutscheine',
-    hintRoutes:'Stadt zu Stadt. A nach B und B nach A sind getrennt. Zeile anklicken, dann ist sie live.', hintDistance:'Start, pro Kilometer, Flughafen-Start, ein Stadtpreis', airportStart:'Flughafen-Start', cityPrice:'Stadtpreis und pro Kilometer', cityPairPick:'Stadtpaar wählen', hintSurcharges:'Checkout-Extras, Warten, Meet and greet', hintCoupons:'Prozent oder fester CHF',
-    colId:'ID', colFrom:'Von', colTo:'Nach', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Entwurf',
+    hintRoutes:'Ein Paar gilt in beide Richtungen. Zeile anklicken, dann ist sie live.', hintDistance:'Start, pro Kilometer, Flughafen-Abholgebühr', airportStart:'Flughafen-Abholgebühr (zum Start addiert)', cityPrice:'Stadtpreis und pro Kilometer', cityPairPick:'Stadtpaar wählen', hintSurcharges:'Checkout-Extras, Warten, Meet and greet', hintCoupons:'Prozent oder fester CHF',
+    colId:'ID', colFrom:'Von', colTo:'Nach', colEconomy:'Economy', colBusiness:'Business', colLive:'Live', live:'Live', draft:'Entwurf',
     colClass:'Klasse', colPhoto:'Foto', moveClassUp:'Klasse nach oben', moveClassDown:'Klasse nach unten', colName:'Name', startFare:'Start', perKm:'Pro Kilometer', maxPax:'Max. Passagiere', maxBags:'Max. Gepäckstücke', hidePublic:'Vor der Öffentlichkeit verbergen', hiddenPublic:'Vor der Öffentlichkeit verborgen', showPublic:'Öffentlich zeigen', shownPublic:'Öffentlich sichtbar',
     fPhoto:'Foto', choosePhoto:'Foto wählen', clearPhoto:'Entfernen', hClassPhoto:'Pflicht vor dem Veröffentlichen. Liegt auf R2, nicht auf diesem Gerät.',
     colRule:'Regel', colAppliesWhen:'Gilt bei', colAmount:'Betrag', colKind:'Art',
@@ -471,6 +490,7 @@ const T = {
     searchRoutes:'Von, nach oder ID', nounRoute:'Route', nounRoutes:'Routen',
     hRoutePrice:'Leer lassen, wenn diese Klasse auf dieser Route nicht angeboten wird.',
     addClass:'Klasse hinzufügen', editClass:'Klasse bearbeiten', saveClass:'Klasse speichern', deleteClassTitle:'Diese Klasse aus dem Entwurf löschen?', deleteClassBody:'Diese Klasse aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
+    hideReason:'Grund', hideReasonPlaceholder:'Warum sie verborgen ist, zum Beispiel: nicht mehr angeboten', hideConflictTitle:'Löschen nicht möglich — noch in Gebrauch', hideConflictBody:'Diese Klasse hat Buchungen. Verbergen Sie sie stattdessen und nennen Sie den Grund.', hideConflictKeepVisible:'Sichtbar lassen', hideWithReason:'Mit Grund verbergen', hideError:'Die Klasse konnte nicht verborgen werden. Versuchen Sie es erneut.',
     emptyClassesTitle:'Noch keine Fahrzeugklassen', emptyClassesBody:'Klasse mit Foto, Name, Startpreis, Kilometersatz, max. Passagieren und max. Gepäckstücken hinzufügen.',
     searchDistance:'Klasse', nounClass:'Klasse', nounClasses:'Klassen',
     addRule:'Regel hinzufügen', editRule:'Regel bearbeiten', saveRule:'Regel speichern', deleteRuleTitle:'Diese Regel aus dem Entwurf löschen?', deleteRuleBody:'Diese Regel aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
@@ -547,12 +567,11 @@ const T = {
     emptyHistoryFilterTitle:'Keine Bücher an diesem Datum',
     emptyHistoryFilterBody:'Datum löschen, um jedes veröffentlichte Buch zu sehen.',
     whoUnknown:'Unbekannt',
-    colFirst:'First',
   },
   fr: { title:'Tarifs & trajets', subtitle:'De ville en ville, règles de distance, suppléments et codes promo',
     tabRoutes:'De ville en ville', tabDistance:'Règles de distance', tabSurcharges:'Suppléments & extras', tabCoupons:'Codes promo',
-    hintRoutes:'De ville en ville. A vers B et B vers A sont séparés. Cliquez une ligne pour la passer live.', hintDistance:'Départ, au kilomètre, départ aéroport, un prix ville', airportStart:'Départ aéroport', cityPrice:'Prix ville et par kilomètre', cityPairPick:'Choisir une paire de villes', hintSurcharges:'Extras de paiement, attente, accueil', hintCoupons:'Pourcent ou CHF fixe',
-    colId:'ID', colFrom:'De', colTo:'Vers', colEconomy:'Economy', colBusiness:'Business', colVan:'Van', colLive:'Live', live:'Live', draft:'Brouillon',
+    hintRoutes:'Une paire vaut dans les deux sens. Cliquez une ligne pour la passer live.', hintDistance:'Départ, au kilomètre, frais aéroport', airportStart:'Frais aéroport (ajoutés au départ)', cityPrice:'Prix ville et par kilomètre', cityPairPick:'Choisir une paire de villes', hintSurcharges:'Extras de paiement, attente, accueil', hintCoupons:'Pourcent ou CHF fixe',
+    colId:'ID', colFrom:'De', colTo:'Vers', colEconomy:'Economy', colBusiness:'Business', colLive:'Live', live:'Live', draft:'Brouillon',
     colClass:'Classe', colPhoto:'Photo', moveClassUp:'Monter la classe', moveClassDown:'Descendre la classe', colName:'Nom', startFare:'Départ', perKm:'Par kilomètre', maxPax:'Passagers max.', maxBags:'Bagages max.', hidePublic:'Masquer au public', hiddenPublic:'Masqué au public', showPublic:'Afficher au public', shownPublic:'Visible au public',
     fPhoto:'Photo', choosePhoto:'Choisir une photo', clearPhoto:'Retirer', hClassPhoto:'Obligatoire pour Publier. Stockée sur R2, pas sur cet appareil.',
     colRule:'Règle', colAppliesWhen:'S’applique', colAmount:'Montant', colKind:'Type',
@@ -561,6 +580,7 @@ const T = {
     searchRoutes:'De, vers ou ID', nounRoute:'trajet', nounRoutes:'trajets',
     hRoutePrice:'Laissez vide si cette classe n’est pas proposée sur ce trajet.',
     addClass:'Ajouter une classe', editClass:'Modifier la classe', saveClass:'Enregistrer la classe', deleteClassTitle:'Supprimer cette classe du brouillon ?', deleteClassBody:'Supprimer cette classe du brouillon ? Le public ne change qu’après Publier.',
+    hideReason:'Motif', hideReasonPlaceholder:'Pourquoi elle est masquée, par exemple : plus proposée', hideConflictTitle:'Suppression impossible — encore utilisée', hideConflictBody:'Cette classe a des réservations. Masquez-la plutôt, et indiquez pourquoi.', hideConflictKeepVisible:'La laisser visible', hideWithReason:'Masquer avec un motif', hideError:'La classe n’a pas pu être masquée. Réessayez.',
     emptyClassesTitle:'Pas encore de classes', emptyClassesBody:'Ajoutez une classe avec photo, nom, tarif de départ, tarif au kilomètre, passagers max. et bagages max.',
     searchDistance:'Classe', nounClass:'classe', nounClasses:'classes',
     addRule:'Ajouter une règle', editRule:'Modifier la règle', saveRule:'Enregistrer la règle', deleteRuleTitle:'Supprimer cette règle du brouillon ?', deleteRuleBody:'Supprimer cette règle du brouillon ? Le public ne change qu’après Publier.',
@@ -637,12 +657,11 @@ const T = {
     emptyHistoryFilterTitle:'Aucun livre à cette date',
     emptyHistoryFilterBody:'Effacez la date pour voir chaque livre publié.',
     whoUnknown:'Inconnu',
-    colFirst:'First',
   },
   ar: { title:'الأسعار والمسارات', subtitle:'بين المدن وقواعد مسافة ورسوم وقسائم',
     tabRoutes:'بين المدن', tabDistance:'قواعد المسافة', tabSurcharges:'الرسوم والإضافات', tabCoupons:'القسائم',
-    hintRoutes:'بين المدن. من أ إلى ب ومن ب إلى أ منفصلان. انقر الصف ليصبح مباشرًا.', hintDistance:'البداية، لكل كيلومتر، بداية المطار، سعر مدينة واحد', airportStart:'بداية المطار', cityPrice:'سعر المدينة ولكل كيلومتر', cityPairPick:'اختر زوج مدن', hintSurcharges:'إضافات الدفع والانتظار والاستقبال', hintCoupons:'نسبة أو فرنك ثابت',
-    colId:'المعرّف', colFrom:'من', colTo:'إلى', colEconomy:'اقتصادي', colBusiness:'أعمال', colVan:'فان', colLive:'مباشر', live:'مباشر', draft:'مسودة',
+    hintRoutes:'الزوج الواحد يغطي الاتجاهين. انقر الصف ليصبح مباشرًا.', hintDistance:'البداية، لكل كيلومتر، رسوم الاستقبال من المطار', airportStart:'رسوم الاستقبال من المطار (تُضاف إلى البداية)', cityPrice:'سعر المدينة ولكل كيلومتر', cityPairPick:'اختر زوج مدن', hintSurcharges:'إضافات الدفع والانتظار والاستقبال', hintCoupons:'نسبة أو فرنك ثابت',
+    colId:'المعرّف', colFrom:'من', colTo:'إلى', colEconomy:'اقتصادي', colBusiness:'أعمال', colLive:'مباشر', live:'مباشر', draft:'مسودة',
     colClass:'الفئة', colPhoto:'الصورة', moveClassUp:'تحريك الفئة لأعلى', moveClassDown:'تحريك الفئة لأسفل', colName:'الاسم', startFare:'البداية', perKm:'لكل كيلومتر', maxPax:'أقصى عدد مسافرين', maxBags:'أقصى حقائب', hidePublic:'إخفاء عن العامة', hiddenPublic:'مخفي عن العامة', showPublic:'إظهار للعامة', shownPublic:'ظاهر للعامة',
     fPhoto:'الصورة', choosePhoto:'اختيار صورة', clearPhoto:'إزالة', hClassPhoto:'مطلوبة للنشر. تُحفظ على R2 وليس على هذا الجهاز.',
     colRule:'القاعدة', colAppliesWhen:'ينطبق عند', colAmount:'المبلغ', colKind:'النوع',
@@ -651,6 +670,7 @@ const T = {
     searchRoutes:'من أو إلى أو المعرّف', nounRoute:'مسار', nounRoutes:'مسارات',
     hRoutePrice:'اتركه فارغًا إن لم تُعرض هذه الفئة على هذا المسار.',
     addClass:'إضافة فئة', editClass:'تعديل الفئة', saveClass:'حفظ الفئة', deleteClassTitle:'حذف هذه الفئة من المسودة؟', deleteClassBody:'حذف هذه الفئة من المسودة؟ لا يتغير العام حتى النشر.',
+    hideReason:'السبب', hideReasonPlaceholder:'سبب الإخفاء، مثلاً: لم تعد متاحة', hideConflictTitle:'لا يمكن الحذف — ما زالت مستخدمة', hideConflictBody:'لهذه الفئة حجوزات. أخفِها بدلاً من ذلك، واذكر السبب.', hideConflictKeepVisible:'إبقاؤها ظاهرة', hideWithReason:'إخفاء مع ذكر السبب', hideError:'تعذّر إخفاء الفئة. حاول مرة أخرى.',
     emptyClassesTitle:'لا توجد فئات مركبات بعد', emptyClassesBody:'أضف فئة بالصورة والاسم وأجرة البداية وسعر الكيلومتر وأقصى عدد مسافرين وأقصى حقائب.',
     searchDistance:'الفئة', nounClass:'فئة', nounClasses:'فئات',
     addRule:'إضافة قاعدة', editRule:'تعديل القاعدة', saveRule:'حفظ القاعدة', deleteRuleTitle:'حذف هذه القاعدة من المسودة؟', deleteRuleBody:'حذف هذه القاعدة من المسودة؟ لا يتغير العام حتى النشر.',
@@ -727,7 +747,6 @@ const T = {
     emptyHistoryFilterTitle:'لا كتب في هذا التاريخ',
     emptyHistoryFilterBody:'امسح التاريخ لعرض كل كتاب منشور.',
     whoUnknown:'غير معروف',
-    colFirst:'فيرست',
   },
 };
 
@@ -747,6 +766,10 @@ class Component extends DCLogic {
     couponUses: [],
     publishOpen: false,
     discardOpen: false,
+    hideTarget: null,
+    hideReason: '',
+    hideBusy: false,
+    hideError: false,
     changesOpen: false,
     changesBody: '',
     previewFrom: '',
@@ -914,6 +937,45 @@ class Component extends DCLogic {
   };
   closePublish = () => this.setState({ publishOpen: false });
   openDiscard = () => this.setState({ discardOpen: true });
+  /* 26.1-19 D-15: delete a class. Unreferenced -> deleted. Still in use -> this second
+     dialog asks for a reason and hides it everywhere; "Keep it visible" changes nothing. */
+  deleteClassRow = (id, row) => {
+    const ops = window.VamosOps;
+    if (!ops) return null;
+    const classId = row && row.vehicleClassId;
+    if (!classId || !ops.deleteClass) return ops.rates.remove(id);
+    return ops.deleteClass(classId, null).then((json) => {
+      if (json && json.ok === false && json.code === 'in-use') {
+        this.setState({
+          hideTarget: { id: classId, klass: String((row && (row.klass || row.name)) || '') },
+          hideReason: '', hideBusy: false, hideError: false,
+        });
+        return { ok: true };
+      }
+      if (json && json.ok) ops.rates.reset();
+      return json;
+    });
+  };
+  setHideReason = (e) => {
+    const v = e && e.target ? e.target.value : e;
+    this.setState({ hideReason: String(v == null ? '' : v).slice(0, 140), hideError: false });
+  };
+  keepVisible = () => this.setState({ hideTarget: null, hideReason: '', hideBusy: false, hideError: false });
+  submitHide = () => {
+    const ops = window.VamosOps;
+    const target = this.state.hideTarget;
+    const reason = String(this.state.hideReason || '').trim();
+    if (!ops || !ops.deleteClass || !target || !reason || this.state.hideBusy) return;
+    this.setState({ hideBusy: true, hideError: false });
+    ops.deleteClass(target.id, reason).then((json) => {
+      if (json && json.ok) {
+        ops.rates.reset();
+        this.setState({ hideTarget: null, hideReason: '', hideBusy: false, hideError: false });
+        return;
+      }
+      this.setState({ hideBusy: false, hideError: true });
+    }, () => this.setState({ hideBusy: false, hideError: true }));
+  };
   closeDiscard = () => this.setState({ discardOpen: false });
   closeChanges = () => this.setState({ changesOpen: false, changesBody: '' });
   closeToast = () => this.setState({ showToast: false });
@@ -1323,6 +1385,15 @@ class Component extends DCLogic {
       publish: this.publish, discard: this.discard,
       openPublish: this.openPublish, closePublish: this.closePublish,
       openDiscard: this.openDiscard, closeDiscard: this.closeDiscard,
+      hideOpen: !!this.state.hideTarget, hideReason: this.state.hideReason, hideReasonMax: 140,
+      setHideReason: this.setHideReason, keepVisible: this.keepVisible, submitHide: this.submitHide,
+      hideSubmitDisabled: !String(this.state.hideReason || '').trim() || this.state.hideBusy,
+      n3: 3, hideErrorText: this.state.hideError ? t.hideError : '',
+      hideReasonCount: String(String(this.state.hideReason || '').length) + ' / 140',
+      tHideReason: t.hideReason, tHideReasonPlaceholder: t.hideReasonPlaceholder,
+      tHideConflictTitle: t.hideConflictTitle, tHideConflictBody: t.hideConflictBody,
+      tHideConflictKeepVisible: t.hideConflictKeepVisible, tHideWithReason: t.hideWithReason,
+      hideClassName: this.state.hideTarget ? this.state.hideTarget.klass : '',
       publishOpen: this.state.publishOpen, discardOpen: this.state.discardOpen,
       tCompletenessBody: completenessBody,
       tBandOverlapWarn: t.bandOverlapWarn,
@@ -1421,6 +1492,7 @@ class Component extends DCLogic {
         maxBags: r.maxBags || r.luggageCapacity || 3,
         available: r.available !== false,
         hideFromPublic: !!r.hideFromPublic,
+        hiddenReason: String(r.hiddenReason || ''),
       }))),
       distanceColumns: [
         { key:'__order', header:'', width:'44px', kind:'order', upLabel: t.moveClassUp, downLabel: t.moveClassDown },
@@ -1429,17 +1501,15 @@ class Component extends DCLogic {
         { key:'baseFare', header: t.startFare, lookup:(r) => moneyOrDash(r.baseFare) },
         { key:'perKm', header: t.perKm, lookup:(r) => moneyOrDash(r.perKm) },
         { key:'airportStart', header: t.airportStart, lookup:(r) => moneyOrDash(r.airportStart) },
-        { key:'cityPrice', header: t.cityPrice, lookup:(r) => r.cityPairLabel || '\u2014' },
         { key:'maxPax', header: t.maxPax, width:'90px' },
         { key:'maxBags', header: t.maxBags, width:'90px' },
-        { key:'hideFromPublic', header: t.hidePublic, kind:'bool', toggle:true, onLabel:t.hiddenPublic, offLabel:t.shownPublic },
+        { key:'hideFromPublic', header: t.hidePublic, kind:'bool', toggle:true, onLabel:t.hiddenPublic, offLabel:t.shownPublic, subKey:'hiddenReason' },
       ],
       distanceFields: [
         { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'class', photoRecordKey:'vehicleClassId', upload:'/api/photos/upload', clearLabel:t.clearPhoto, chooseLabel:t.choosePhoto, hint:t.hClassPhoto },
         { key:'klass', label:t.colName, required:true, icon:'car' },
         { key:'baseFare', label:t.startFare, half:true, placeholder:'000', icon:'banknote', suffix:'CHF' },
         { key:'airportStart', label:t.airportStart, half:true, placeholder:'000', icon:'banknote', suffix:'CHF' },
-        { key:'cityPrice', label:t.cityPrice, half:true, editor:'select', icon:'map-pin', options: cityPairOptions, emptyLabel: cityPairEmpty },
         { key:'perKm', label:t.perKm, half:true, placeholder:'0.00', icon:'navigation', suffix:'CHF' },
         { key:'maxPax', label:t.maxPax, editor:'number', min:1, half:true, icon:'users' },
         { key:'maxBags', label:t.maxBags, editor:'number', min:0, half:true, icon:'luggage' },
@@ -1492,7 +1562,7 @@ class Component extends DCLogic {
         if (out && typeof out.then === 'function') out.then(() => this.loadDraft());
         return out;
       },
-      deleteDistance: (id) => ops ? ops.rates.remove(id) : null,
+      deleteDistance: (id, row) => ops ? this.deleteClassRow(id, row) : null,
       reorderDistance: (rows) => {
         if (!ops || !ops.rates || typeof ops.rates.reorder !== 'function') return null;
         const order = [];

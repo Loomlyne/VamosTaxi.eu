@@ -56,7 +56,12 @@
     "offRoadHeadline": "Vehicle off the road",
     "offRoadBody": "Upcoming assigned trips stay on the board. They are not cancelled. Fix them on Needs attention.",
     "overlapHeadline": "Paid edit breaks the assigned chauffeur",
-    "overlapBody": "The trip stays. Reassign this trip or the overlapping trip on Needs attention."
+    "overlapBody": "The trip stays. Reassign this trip or the overlapping trip on Needs attention.",
+    "stuckHeadline": "A Stripe payment event is stuck",
+    "stuckBody": "Stripe sent this event and it failed 8 times. The booking may be paid but not confirmed. Check the booking in the dashboard and the event in Stripe.",
+    "stuckEventLabel": "Stripe event",
+    "paidAfterCancelHeadline": "Paid after cancel — refunded",
+    "paidAfterCancelBody": "A payment arrived for a booking that could not run. The charge was refunded automatically. No action is needed unless the customer writes in."
   },
   "cancellation": {
     "subject": "Booking {reference} is cancelled",

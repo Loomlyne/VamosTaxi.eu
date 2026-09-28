@@ -71,6 +71,25 @@ export interface QuoteLockLeg {
   /** Comment 18. Optional so locks minted before canton was pinned still verify. */
   origin_canton?: string | null;
   dest_canton?: string | null;
+  /**
+   * 26.1-09: Mapbox context.place.mapbox_id — language-independent city identity
+   * for D-09 pair matching. Optional so locks minted before this field still verify.
+   */
+  origin_city_id?: string | null;
+  dest_city_id?: string | null;
+  /**
+   * 26.1-11: Mapbox context.place.name at quote time — display only (the pair
+   * row label). Optional so older locks still verify; missing means the row
+   * reads the plain "Route price" label.
+   */
+  origin_city_name?: string | null;
+  dest_city_name?: string | null;
+  /**
+   * 26.1-09/D-08b: true when the pickup resolved to a Mapbox airport place.
+   * Optional so locks minted before this field still verify (undefined prices
+   * as not-an-airport, never a guess in the other direction).
+   */
+  origin_is_airport?: boolean;
   waypoints: Array<{ lng: number; lat: number; text: string }>;
   flight_no: string | null;
   landing_source: string | null;
@@ -120,6 +139,20 @@ export interface QuoteLockPayload {
   extras: QuoteLockExtras | null;
   coupon: string | null;
   class_totals: Array<{ slug: string; total_rappen: number | null }>;
+  /**
+   * 26.1-11 / UI-SPEC §8: per class, the airport pickup fee and matched route
+   * pair lines so checkout shows them as their own rows. Display only — never
+   * read by intent, pay-link or the booking RPC. Omitted when no class has one.
+   */
+  price_rows?: Array<{ slug: string; lines: LockPriceRow[] }>;
+}
+
+/** 26.1-11: one display row pinned on the lock (airport fee or route pair). */
+export interface LockPriceRow {
+  code: "airport_fee" | "fixed_route";
+  leg_seq: number;
+  amount_rappen: number | null;
+  params?: { origin: string; destination: string };
 }
 
 export interface LockSecrets {

@@ -3,11 +3,20 @@
 -- 08-07: paid-edit requests, extra difference snapshot, extra settle does not
 -- rewind pending→paid→confirmed. Charge gate unchanged. EXECUTE vamos_system
 -- only. Rolled back. Synthetic 1-rappen figures only — never a product CHF.
+--
+-- Rows share created_at inside one transaction (now()), so "latest request"
+-- filters out superseded rows instead of relying on created_at order.
 begin;
 select plan(27);
 
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
 values ('ber-class', 4, 4);
+
+-- The seed's only rate version is a draft (D-34), so the extra snapshot that
+-- booking_edit_request_accept inserts would be frozen rate_version_is_live=false
+-- and the charge gate would refuse it. Publish a fixture version instead.
+insert into public.rate_versions (slug, label) values ('ber-rv', 'BER fixture');
+update public.rate_versions set status = 'live' where slug = 'ber-rv';
 
 insert into auth.users (id, email, aud, role, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values (
@@ -62,15 +71,19 @@ select
   'quote-engine@08-07',
   2, 2,
   jsonb_build_array(jsonb_build_object('seq', 1, 'code', 'distance_fare', 'kind', 'fare', 'i18n_key', 'price.line.transfer', 'amount_rappen', 8)),
-  '{}'::jsonb,
+  -- eight-key policy: price_snapshots_policy_shape (20260825000003)
+  jsonb_build_object('cancellation_tiers', '[]'::jsonb, 'free_cancel_hours', 24,
+                     'airport_waiting_minutes', 60, 'city_waiting_minutes', 15,
+                     'settings_version_id', sv.id, 'modification_deadline_hours', 24,
+                     'min_advance_minutes', 180, 'policy_doc', 'test'),
   8, 0, 0, 8,
   now() + interval '1 day',
   now() + interval '1 day',
   b.id,
-  'checkout'
+  'web'
 from public.vehicle_classes vc
 cross join public.bookings b
-cross join lateral (select id from public.rate_versions order by id limit 1) rv
+cross join lateral (select id from public.rate_versions where slug = 'ber-rv') rv
 cross join lateral (select id from public.settings_versions order by id limit 1) sv
 where vc.slug = 'ber-class'
   and b.contact_email in ('ber-paid@vamostaxi.eu', 'ber-same@vamostaxi.eu');
@@ -103,7 +116,11 @@ select
   'quote-engine@08-07-new',
   2, 2,
   jsonb_build_array(jsonb_build_object('seq', 1, 'code', 'distance_fare', 'kind', 'fare', 'i18n_key', 'price.line.transfer', 'amount_rappen', 11)),
-  '{}'::jsonb,
+  -- eight-key policy: price_snapshots_policy_shape (20260825000003)
+  jsonb_build_object('cancellation_tiers', '[]'::jsonb, 'free_cancel_hours', 24,
+                     'airport_waiting_minutes', 60, 'city_waiting_minutes', 15,
+                     'settings_version_id', sv.id, 'modification_deadline_hours', 24,
+                     'min_advance_minutes', 180, 'policy_doc', 'test'),
   11, 0, 0, 11,
   now() + interval '1 day',
   now() + interval '1 day',
@@ -111,7 +128,7 @@ select
   'modification'
 from public.vehicle_classes vc
 cross join public.bookings b
-cross join lateral (select id from public.rate_versions order by id limit 1) rv
+cross join lateral (select id from public.rate_versions where slug = 'ber-rv') rv
 cross join lateral (select id from public.settings_versions order by id limit 1) sv
 where vc.slug = 'ber-class'
   and b.contact_email = 'ber-paid@vamostaxi.eu';
@@ -219,9 +236,9 @@ select lives_ok(
 );
 
 select is(
-  (select extra.total_rappen from public.booking_edit_requests r
+  (select extra.total_rappen::int from public.booking_edit_requests r
      join public.price_snapshots extra on extra.id = r.extra_snapshot_id
-    where r.booking_id = (select paid from fx)
+    where r.booking_id = (select paid from fx) and r.status <> 'superseded'
     order by r.created_at desc limit 1),
   3,
   'extra snapshot total_rappen is the difference (11-8)'
@@ -229,7 +246,7 @@ select is(
 
 select is(
   (select outcome from public.booking_edit_request_accept(
-     (select id from public.booking_edit_requests where booking_id = (select paid from fx) order by created_at desc limit 1),
+     (select id from public.booking_edit_requests where booking_id = (select paid from fx) and status <> 'superseded' order by created_at desc limit 1),
      (select actor from fx)
    ) limit 1),
   'extra_required',
@@ -239,7 +256,7 @@ select is(
 select lives_ok(
   format(
     $f$select public.booking_edit_request_set_extra_session(
-      (select id from public.booking_edit_requests where booking_id = %L::uuid order by created_at desc limit 1),
+      (select id from public.booking_edit_requests where booking_id = %L::uuid and status <> 'superseded' order by created_at desc limit 1),
       'cs_ber_extra'
     )$f$,
     (select paid from fx)

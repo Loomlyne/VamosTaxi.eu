@@ -174,6 +174,7 @@ function pricedBook(): RateBook {
         base_fare_rappen: 1000,
         per_km_rappen: 200,
         min_fare_rappen: 500,
+        airport_start_rappen: 900,
       }),
       rateRow({
         vehicle_class_id: business.id,
@@ -181,6 +182,7 @@ function pricedBook(): RateBook {
         base_fare_rappen: 1500,
         per_km_rappen: 300,
         min_fare_rappen: 800,
+        airport_start_rappen: 1200,
       }),
       rateRow({
         vehicle_class_id: van.id,
@@ -189,6 +191,7 @@ function pricedBook(): RateBook {
         base_fare_rappen: 2000,
         per_km_rappen: 400,
         min_fare_rappen: 1000,
+        airport_start_rappen: 1600,
       }),
     ],
     distance_bands: [],
@@ -613,10 +616,21 @@ describe("priceQuote — return + coupon reconstruction", () => {
   });
 });
 
-describe("Comment 11 formula", () => {
+describe("priceQuote — owner formula: airport fee additive, pair applies regardless of fare_kind (D-08, D-08b, D-09)", () => {
+  // A neutral, non-airport zone keeps these fixtures free of an incidental
+  // airport signal so tests about fare_kind and pairs stay uncoupled from D-08b.
+  const neutralZone: ZoneRow = {
+    id: "z-neutral",
+    slug: "hotel",
+    iata: null,
+    active: true,
+    zone_type: "city",
+    tags: [],
+  };
+
   function book(extra: Partial<DistanceRateRow> = {}): RateBook {
     return {
-      rate_version: { id: 1, slug: "comment-11" },
+      rate_version: { id: 1, slug: "d08" },
       classes: [economy],
       distance_rates: [
         rateRow({
@@ -642,100 +656,126 @@ describe("Comment 11 formula", () => {
           id: 14,
         }),
       ],
-      zones: [zoneA, zoneB],
+      zones: [zoneA, zoneB, neutralZone],
     };
   }
 
-  function fareOf(kind: QuoteInput["fare_kind"]) {
+  function neutralLeg() {
+    return {
+      leg_seq: 1,
+      scheduled_local: "2026-09-04T23:10",
+      distance_m: 10_000,
+      duration_s: 900,
+      origin_zone_id: neutralZone.id,
+      dest_zone_id: zoneB.id,
+      waypoints: [],
+    };
+  }
+
+  function quote(rateBook: RateBook, overrides: Partial<QuoteInput> = {}) {
     const result = priceQuote(
-      book(),
+      rateBook,
       settingsRows(),
       input({
-        fare_kind: kind,
         extras: { child_seats: 1 },
+        legs: [neutralLeg()],
+        ...overrides,
       }),
     );
     const eco = result.classes.find((c) => c.slug === "economy");
     if (!eco) throw new Error("missing economy");
-    return eco;
+    return { result, eco };
   }
 
-  it("one way is start + km + the selected addon, with no city price", () => {
-    const eco = fareOf("one_way");
+  it("D-08b: fare_kind alone does not change the start or add the airport fee", () => {
+    const { eco } = quote(book(), { fare_kind: "airport_pickup" });
     const fare = eco.lines.find((l) => l.code === "distance_fare");
     const seat = eco.lines.find((l) => l.code === "child_seat");
     expect(fare?.amount_rappen).toBe(1_000 + 2_000);
     expect(seat?.amount_rappen).toBe(500);
-    expect(eco.lines.filter((l) => l.code === "city_price")).toHaveLength(0);
+    expect(eco.lines.filter((l) => l.code === "airport_fee")).toHaveLength(0);
     expect(eco.total_rappen).toBe(1_000 + 2_000 + 500);
   });
 
-  it("airport pickup swaps only the start and keeps the same km and addon", () => {
-    const eco = fareOf("airport_pickup");
+  it("D-08b: an airport-zone pickup adds the fee on top, regardless of fare_kind", () => {
+    const { eco } = quote(book(), {
+      legs: [{ ...neutralLeg(), origin_zone_id: zoneA.id }],
+    });
     const fare = eco.lines.find((l) => l.code === "distance_fare");
-    expect(fare?.amount_rappen).toBe(2_500 + 2_000);
-    expect(eco.lines.filter((l) => l.code === "city_price")).toHaveLength(0);
-    expect(eco.total_rappen).toBe(2_500 + 2_000 + 500);
+    const fee = eco.lines.find((l) => l.code === "airport_fee");
+    expect(fare?.amount_rappen).toBe(1_000 + 2_000);
+    expect(fee?.amount_rappen).toBe(2_500);
+    expect(eco.total_rappen).toBe(1_000 + 2_000 + 2_500 + 500);
   });
 
-  it("city to city uses one published pair and does not add a second city price", () => {
+  it("D-09: a published pair applies regardless of fare_kind — the dropdown filter is gone", () => {
     const published: FixedRouteRow = {
       id: 8,
       rate_version_id: 1,
-      origin_zone_id: "z-a",
-      dest_zone_id: "z-b",
+      origin_zone_id: neutralZone.id,
+      dest_zone_id: zoneB.id,
       vehicle_class_id: economy.id,
       price_rappen: 700,
       live: true,
     };
-    const quoted = priceQuote(
+    const { eco } = quote(
       { ...book(), fixed_routes: [published] },
-      settingsRows(),
-      input({
-        fare_kind: "city_to_city",
-        extras: { child_seats: 1 },
-      }),
+      { fare_kind: "one_way" },
     );
-    const eco = quoted.classes.find((c) => c.slug === "economy");
-    if (!eco) throw new Error("missing economy");
     const pairs = eco.lines.filter((l) => l.code === "fixed_route");
     expect(pairs).toHaveLength(1);
     expect(pairs[0]?.amount_rappen).toBe(700);
     expect(pairs[0]?.basis.price_rappen).toBe(published.price_rappen);
-    expect(eco.lines.filter((l) => l.code === "city_price")).toHaveLength(0);
     expect(eco.total_rappen).toBe(1_000 + 2_000 + 500 + 700);
   });
 
-  it("city to city adds nothing when no published pair matches, and does not invent the class city price", () => {
-    const eco = fareOf("city_to_city");
+  it("D-09: a matching pair applies even when distance_rates.city_price_rappen is a different amount", () => {
+    const published: FixedRouteRow = {
+      id: 8,
+      rate_version_id: 1,
+      origin_zone_id: neutralZone.id,
+      dest_zone_id: zoneB.id,
+      vehicle_class_id: economy.id,
+      price_rappen: 700,
+      live: true,
+    };
+    // city_price_rappen (999) no longer gates which published row is eligible.
+    const { eco } = quote(
+      { ...book({ city_price_rappen: 999 }), fixed_routes: [published] },
+      { fare_kind: "one_way" },
+    );
+    const pairs = eco.lines.filter((l) => l.code === "fixed_route");
+    expect(pairs).toHaveLength(1);
+    expect(pairs[0]?.amount_rappen).toBe(700);
+  });
+
+  it("no published pair matches — adds nothing, does not invent a city price", () => {
+    const { eco } = quote(book());
     expect(eco.lines.filter((l) => l.code === "city_price")).toHaveLength(0);
     expect(eco.lines.filter((l) => l.code === "fixed_route")).toHaveLength(0);
     expect(eco.total_rappen).toBe(1_000 + 2_000 + 500);
   });
 
-  it("does not invent an airport start when staff left it empty, and a city-to-city miss stays on the distance fare", () => {
-    const empty = priceQuote(
-      book({ airport_start_rappen: null, city_price_rappen: null }),
-      settingsRows(),
-      input({ fare_kind: "city_to_city" }),
+  it("D-13: an airport signal with airport_start_rappen null leaves the class unpriced, never 0", () => {
+    const { eco, result } = quote(
+      book({ airport_start_rappen: null }),
+      { legs: [{ ...neutralLeg(), origin_zone_id: zoneA.id }] },
     );
-    const eco = empty.classes.find((c) => c.slug === "economy");
-    expect(eco?.lines.filter((l) => l.code === "city_price")).toHaveLength(0);
-    expect(eco?.lines.filter((l) => l.code === "fixed_route")).toHaveLength(0);
-    expect(eco?.lines.find((l) => l.code === "distance_fare")?.amount_rappen).toBe(
+    expect(eco.lines.find((l) => l.code === "distance_fare")?.amount_rappen).toBe(
       1_000 + 2_000,
     );
-    expect(eco?.total_rappen).toBe(1_000 + 2_000);
-    expect(empty.partially_priced_class_slugs).not.toContain("economy");
+    expect(eco.lines.find((l) => l.code === "airport_fee")?.amount_rappen).toBeNull();
+    expect(eco.total_rappen).toBeNull();
+    expect(result.partially_priced_class_slugs).toContain("economy");
+  });
 
-    const airport = priceQuote(
-      book({ airport_start_rappen: null }),
-      settingsRows(),
-      input({ fare_kind: "airport_pickup" }),
+  it("a non-airport pickup with no pair match stays fully priced regardless of a null airport_start_rappen", () => {
+    const { eco, result } = quote(book({ airport_start_rappen: null }));
+    expect(eco.lines.find((l) => l.code === "distance_fare")?.amount_rappen).toBe(
+      1_000 + 2_000,
     );
-    const row = airport.classes.find((c) => c.slug === "economy");
-    expect(row?.lines.find((l) => l.code === "distance_fare")?.amount_rappen).toBeNull();
-    expect(row?.total_rappen).toBeNull();
+    expect(eco.total_rappen).toBe(1_000 + 2_000 + 500);
+    expect(result.partially_priced_class_slugs).not.toContain("economy");
   });
 });
 

@@ -112,6 +112,10 @@ export type VisibleBooking = {
   distanceKm: number | null;
   paidAt: string | null;
   paymentStatus: string | null;
+  /** 26.1-19: refund facts from the confirmation read, so the voucher refund line survives a reload (D-23a). */
+  refundStatus: string | null;
+  refundOwedRappen: number | null;
+  refundedRappen: number | null;
 };
 
 export type BookingRead = HiddenBooking | VisibleBooking;
@@ -125,6 +129,9 @@ type BookingRow = {
   reference: string;
   status: string;
   price_total_rappen: number | string | null;
+  refund_status?: string | null;
+  refund_owed_rappen?: number | string | null;
+  refunded_rappen?: number | string | null;
   contact_name?: string | null;
   contact_email?: string | null;
   contact_phone?: string | null;
@@ -294,6 +301,9 @@ function visibleFromPayload(raw: unknown): VisibleBooking | null {
     distanceKm: kmOrNull(snap?.distance_km),
     paidAt: capturedAtIso(payment?.captured_at),
     paymentStatus: typeof payment?.status === "string" ? payment.status : null,
+    refundStatus: typeof booking.refund_status === "string" ? booking.refund_status : null,
+    refundOwedRappen: rappenOrNull(booking.refund_owed_rappen),
+    refundedRappen: rappenOrNull(booking.refunded_rappen),
   };
 }
 

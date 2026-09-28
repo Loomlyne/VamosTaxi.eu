@@ -2,7 +2,8 @@
 //
 // POST /api/checkout/requote. Guest cancel by quote id. CSRF, then
 // vamos_checkout. Does not mint. ok true only after the stored session
-// was expired, or a successful lookup found no session id.
+// was expired, or a successful lookup found no session id. An open pay-link
+// hold (D-20) answers 409 hold_open and touches nothing.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { asCheckout } from "@/lib/db/identity";
@@ -51,6 +52,28 @@ export async function POST(request: Request) {
   }
   const quoteId = quoteIdFromBody(body);
   if (!quoteId) return refuse("invalid_request");
+
+  // D-20 (26.1-29): a sent pay link holds the booking for 24 h. While that
+  // hold is open, requote leaves the booking and its session alone so the
+  // recipient's link keeps working. Judged on the database clock; the hold is
+  // never taken from the request. A failed read fails closed.
+  let hold: { hold_until: Date | string | null; held: boolean | null } | undefined;
+  try {
+    const rows = await asCheckout(env, null, async (sql) => {
+      return await sql<{ hold_until: Date | string | null; held: boolean | null }[]>`
+        select h.hold_until, coalesce(h.hold_until > now(), false) as held
+          from (select public.checkout_booking_hold_until(${quoteId}::uuid) as hold_until) as h
+      `;
+    });
+    hold = rows[0];
+  } catch {
+    return json({ ok: false, code: "hold_lookup_failed" }, 503);
+  }
+  if (hold?.held === true && hold.hold_until != null) {
+    const until = hold.hold_until instanceof Date ? hold.hold_until : new Date(String(hold.hold_until));
+    const holdUntil = Number.isFinite(until.getTime()) ? until.toISOString() : null;
+    return json({ ok: false, code: "hold_open", hold_until: holdUntil }, 409);
+  }
 
   const publishable = env.STRIPE_PUBLISHABLE_KEY || "";
   let sessionId: string | null;

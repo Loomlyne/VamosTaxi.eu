@@ -23,10 +23,11 @@ values
   ('f0000000-0000-0000-0000-000000000004', 'orr-customer@vamostaxi.eu', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now()),
   ('f0000000-0000-0000-0000-000000000005', 'orr-newhire@vamostaxi.eu', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now());
 
-insert into public.staff (user_id, role, active) values
-  ('f0000000-0000-0000-0000-000000000001', 'dispatcher', true),
-  ('f0000000-0000-0000-0000-000000000002', 'admin', true),
-  ('f0000000-0000-0000-0000-000000000003', 'dispatcher', false);
+-- accepted_at: app.is_staff()/is_admin() ignore unaccepted invites (20260901000001).
+insert into public.staff (user_id, role, active, accepted_at) values
+  ('f0000000-0000-0000-0000-000000000001', 'dispatcher', true, now()),
+  ('f0000000-0000-0000-0000-000000000002', 'admin', true, now()),
+  ('f0000000-0000-0000-0000-000000000003', 'dispatcher', false, now());
 
 insert into public.chauffeurs (full_name, phone, licence_number, note)
 values ('Chauffeur ORR', '+41 00 000 00 03', 'LIC-ORR-1', 'Speaks German');
@@ -86,17 +87,19 @@ select throws_ok(
 );
 reset role;
 
--- (2)-(3) vamos_staff at aal1: policy layer says not staff -- zero rows, INSERT raises 42501. ---
+-- (2)-(3) vamos_staff at aal1 with no enrolled factor: staff, reads and writes chauffeurs. ---
+-- Owner decision 2026-09-27 (26.1 D-16/D-16a): only the admin signs in and a second factor is
+-- optional; aal2 is required only once a factor is enrolled (that half lands with Phase 26.1).
+-- An accepted, active staff row at aal1 with no enrolled factor is therefore staff.
 set local role vamos_staff;
 select set_config('request.jwt.claims',
   jsonb_build_object('sub', 'f0000000-0000-0000-0000-000000000001', 'role', 'authenticated', 'aal', 'aal1',
     'app_metadata', jsonb_build_object('vamos_role', 'dispatcher'))::text,
   true);
-select is((select count(*) from public.chauffeurs)::int, 0, '(2) dispatcher at aal1 sees zero chauffeurs (not staff yet)');
-select throws_ok(
+select is((select count(*) from public.chauffeurs)::int, 1, '(2) accepted staff at aal1 (no factor enrolled) sees the chauffeur');
+select lives_ok(
   $$ insert into public.chauffeurs (full_name, phone, licence_number) values ('X', '+41 0', 'LIC-X') $$,
-  '42501', null,
-  '(3) dispatcher at aal1 cannot INSERT into chauffeurs'
+  '(3) accepted staff at aal1 (no factor enrolled) can INSERT into chauffeurs'
 );
 reset role;
 

@@ -12,21 +12,13 @@ async function dismissCookies(page: Page) {
   }
 }
 
-async function openBookingIfNarrow(page: Page, projectName: string) {
-  if (projectName !== "component-390") return;
-  const summary = page.locator('[data-upto-wide] button[aria-haspopup="dialog"]');
-  await expect(summary).toBeVisible();
-  await summary.click();
-  await expect(page.locator('[data-shell][data-open="1"]')).toBeVisible();
-}
-
 test.describe("Home one-way and fixed-route tabs @component", () => {
-  test("booking box has One way and Fixed routes, never Return @component", async ({ page }, testInfo) => {
+  test("booking box has One way and Fixed routes, never Return @component", async ({ page }) => {
     const url = await serveMock("app/home/home.dc.html");
     await page.goto(url);
     await waitForMockReady(page);
     await dismissCookies(page);
-    await openBookingIfNarrow(page, testInfo.project.name);
+    // The booking card is inline at every width since 8575959 (no phone sheet to open).
 
     await expect(page.getByRole("tab", { name: RETURN_NAME })).toHaveCount(0);
     await expect(page.getByRole("tablist", { name: /Trip type|Fahrtart|Type de trajet|نوع الرحلة/i })).toHaveCount(1);

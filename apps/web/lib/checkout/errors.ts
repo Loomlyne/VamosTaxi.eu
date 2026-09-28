@@ -15,6 +15,10 @@ export const CHECKOUT_REFUSALS = {
   payment_window_closed: { status: 409, action: null },
   invalid_request: { status: 400, action: null },
   turnstile_failed: { status: 400, action: null },
+  // Pay-link open route after a hash miss (26.1-15, D-20/D-21/D-22).
+  pay_link_paid: { status: 409, action: null },
+  pay_link_refunded_duplicate: { status: 409, action: null },
+  pay_link_expired: { status: 409, action: null },
 } as const satisfies Record<string, { status: number; action: "requote" | null }>;
 
 export type CheckoutRefusalCode = keyof typeof CHECKOUT_REFUSALS;

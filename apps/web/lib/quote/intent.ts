@@ -93,6 +93,12 @@ export type CheckIntentDeps = {
   workerNowIso: string;
   postgresNowIso: string;
   recompute: (payload: QuoteLockPayload) => IntentRecompute;
+  /**
+   * D-20/D-21 (26.1-29): `bookings.hold_until` for this quote, read from the
+   * database by the caller — never taken from the request. The lock counts as
+   * unexpired until max(exp, holdUntil). Absent, null or unparsable → exp only.
+   */
+  holdUntilIso?: string | null;
 };
 
 export type IntentOk = {
@@ -109,6 +115,19 @@ export type IntentErr = {
 export type IntentResult = IntentOk | IntentErr;
 
 const NOT_FOUND: IntentErr = { ok: false, code: "quote_not_found" };
+
+/**
+ * The instant the lock stops being payable: its own `exp`, pushed out to the
+ * pay-link hold when one is open and later (D-20). A hold never shortens it.
+ */
+function effectiveExpiry(exp: string, holdUntilIso: string | null | undefined): string {
+  if (typeof holdUntilIso !== "string") return exp;
+  const hold = Date.parse(holdUntilIso);
+  if (!Number.isFinite(hold)) return exp;
+  const own = Date.parse(exp);
+  if (Number.isFinite(own) && hold <= own) return exp;
+  return new Date(hold).toISOString();
+}
 
 function refuse(code: QuoteErrorCode): IntentErr {
   return { ok: false, code };
@@ -163,14 +182,17 @@ export async function checkIntentAgainstLock(
     return NOT_FOUND;
   }
 
-  if (ids.has("worker_expires") && payload.exp <= deps.workerNowIso) {
+  // Signature is verified above whether or not a hold is open (T-26.1-90).
+  const expiresAt = effectiveExpiry(payload.exp, deps.holdUntilIso);
+
+  if (ids.has("worker_expires") && expiresAt <= deps.workerNowIso) {
     return refuse("quote_expired");
   }
 
   // D-49: postgresNowIso is either now() inside the write transaction (frozen
   // clock) or a single-select deadline passed forward (fallback). This module
   // does not open the transaction.
-  if (ids.has("postgres_exp") && payload.exp <= deps.postgresNowIso) {
+  if (ids.has("postgres_exp") && expiresAt <= deps.postgresNowIso) {
     return refuse("quote_expired");
   }
 

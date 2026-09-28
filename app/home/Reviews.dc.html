@@ -82,7 +82,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-rv-sub]{display:block;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-regular);line-height:1.45;color:var(--vt-text-secondary);overflow-wrap:anywhere;text-wrap:pretty}
 [data-rv-origin]{display:flex;flex-wrap:wrap;align-items:center;gap:var(--vt-space-2);min-width:0;max-width:100%}
 [data-rv-badge]{display:inline-flex;align-items:center;gap:var(--vt-space-1);min-block-size:var(--vt-space-6);padding-block:var(--vt-space-1);padding-inline:var(--vt-space-3);border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface);box-shadow:none;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);line-height:1.3;color:var(--vt-text-secondary);width:fit-content;max-width:100%;white-space:normal;overflow-wrap:anywhere;text-align:start}
-[data-rv-badge] svg{flex:0 0 auto}
+[data-rv-badge] > *{flex:0 0 auto}
 [data-rv-empty]{box-sizing:border-box;display:flex;flex-direction:column;align-items:flex-start;gap:var(--vt-space-2);max-width:62ch;padding:var(--vt-space-6);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-xl);background:var(--vt-bg-surface);text-align:start}
 [data-rv-empty] strong{font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);line-height:1.3;color:var(--vt-text-primary)}
 [data-rv-empty] span{font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-regular);line-height:1.6;color:var(--vt-text-secondary);text-wrap:pretty;max-width:60ch}
@@ -140,7 +140,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </sc-if>
 </span>
 <a data-rv-link="1" href="{{ r.url }}" target="_blank" rel="noopener noreferrer" aria-label="{{ r.linkLabel }}" title="{{ r.linkLabel }}" hidden="{{ r.linkHidden }}" style="display:{{ r.linkShow }}">
-<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="external-link" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
 </a>
 </div>
 <div data-rv-who="1" data-vt-no-i18n="1">
@@ -158,7 +158,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </span>
 <sc-if value="{{ r.verified }}" hint-placeholder-val="{{ false }}">
 <span data-rv-badge="1">
-<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>{{ r.verifiedLabel }}
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>{{ r.verifiedLabel }}
 </span>
 </sc-if>
 </div>
@@ -279,7 +279,7 @@ class Component extends DCLogic {
     this.focus = false;
     this.inView = false;
     this.loop = 0;
-    this.onLeave = () => { this.hand = false; this.kick(); };
+    this.onLeave = () => { this.hand = false; this._axisAt = 0; this.kick(); };
     this.onFocusIn = () => { this.focus = true; };
     this.onFocusOut = (e) => {
       if (!el.contains(e.relatedTarget)) { this.focus = false; this.kick(); }
@@ -321,8 +321,18 @@ class Component extends DCLogic {
     else if (e.deltaMode === 2) { dx *= window.innerHeight; dy *= window.innerHeight; }
     const ax = Math.abs(dx);
     const ay = Math.abs(dy);
-    const horizontal = e.shiftKey || ax > ay;
-    if (!horizontal) {
+    /* One gesture keeps one axis. A trackpad or a finger never swipes perfectly
+       straight, so a vertical page scroll emits stray deltaX frames; judging every
+       frame on its own let those frames read as horizontal, cancel the wheel, and
+       hand a cancelled event to Lenis — which is what stopped the page mid-scroll
+       whenever the pointer crossed the row. The axis is decided once per gesture
+       and held until the visitor lifts off, and horizontal has to win clearly. */
+    const now = e.timeStamp || Date.now();
+    if (!this._axisAt || now - this._axisAt > 180) {
+      this._axis = e.shiftKey || ax > ay * 1.4 ? 'x' : 'y';
+    }
+    this._axisAt = now;
+    if (this._axis !== 'x') {
       /* Vertical wheel belongs to the page. Do not cancel it, and do not pause the row. */
       return;
     }

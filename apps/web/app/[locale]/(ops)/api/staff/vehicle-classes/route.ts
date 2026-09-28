@@ -1,7 +1,8 @@
 // apps/web/app/[locale]/(ops)/api/staff/vehicle-classes/route.ts
 //
 // GET list + PATCH capacities / draft hide+max pax+name + POST on the draft.
-// DELETE refused when price_snapshots reference the id (D-19).
+// DELETE: hard delete when unreferenced; in use -> 409 in-use, or hidden with a
+// { reason } (26.1-19 D-15, public.ops_vehicle_class_delete_or_hide).
 // Dual-mounted at app/api/staff/vehicle-classes.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
@@ -19,11 +20,16 @@ import {
   updateVehicleClassCapacities,
 } from "@/lib/ops/fleet-write";
 import { resolveWritableDraftId } from "@/lib/ops/rate-book";
+import {
+  classDeleteReply,
+  parseClassDeleteReason,
+} from "@/lib/ops/vehicle-class-write";
 import { jsonErr, jsonOk, withAdmin, withStaff } from "@/lib/ops/staff-json";
 
 export const dynamic = "force-dynamic";
 
 const CLASS_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const ANY_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
@@ -138,14 +144,18 @@ export const DELETE = withAdmin(async (claims, request) => {
       rec = null;
     }
     const idRaw = (rec && typeof rec.id === "string" && rec.id) || url.searchParams.get("id") || "";
-    if (!idRaw) return jsonErr("invalid", 400);
+    if (!ANY_UUID.test(idRaw)) return jsonErr("invalid", 400);
+    // 26.1-19 D-15: optional reason; with one, a class still in use is hidden instead.
+    const parsed = parseClassDeleteReason(rec ? rec.reason : url.searchParams.get("reason"));
+    if (!parsed.ok) return jsonErr("invalid-reason", 400);
     const { env } = getCloudflareContext();
-    const draftId = await resolveWritableDraftId(env, claims);
-    if (draftId == null) return jsonErr("not-found", 404);
-    const result = await deleteVehicleClassIfUnreferenced(env, claims, idRaw, draftId);
-    if (result === "in-use") return jsonErr("in-use", 409);
-    return jsonOk({ id: idRaw });
+    const result = await deleteVehicleClassIfUnreferenced(env, claims, idRaw, parsed.reason);
+    const reply = classDeleteReply(idRaw, result);
+    return reply.body.ok ? jsonOk(reply.body.data) : jsonErr(String(reply.body.code), reply.status);
   } catch (err) {
+    const code = (err as { code?: unknown } | null)?.code;
+    if (code === "P0002") return jsonErr("not-found", 404);
+    if (code === "42501") return jsonErr("not-admin", 403);
     return fleetJsonError(err);
   }
 });

@@ -100,5 +100,30 @@ export async function createServerSupabaseClient(
   });
 }
 
+/**
+ * A cookie-less server client for re-checking a credential (26.1 D-17 re-auth)
+ * without touching the caller's session: it reads no request cookies and
+ * writes none, so a sign-in on it never replaces the admin's session (or drops
+ * it from aal2 to aal1). Callers sign the throwaway session out when done.
+ */
+export function createIsolatedSupabaseClient() {
+  const { env } = getCloudflareContext();
+  const supabaseUrl = env.SUPABASE_URL ?? process.env.SUPABASE_URL;
+  const supabaseAnonKey = env.SUPABASE_ANON_KEY ?? process.env.SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error("Supabase server credentials are not configured.");
+  }
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return [];
+      },
+      setAll() {
+        // Deliberately dropped: this client's session must never reach the browser.
+      },
+    },
+  });
+}
+
 /** Plan 06-02 name. Same factory — Phase 5 landed `createServerSupabaseClient`. */
 export const createSupabaseServerClient = createServerSupabaseClient;

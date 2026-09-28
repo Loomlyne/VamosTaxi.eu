@@ -44,7 +44,9 @@ describe("pay land blocked", () => {
   });
 
   it("returns before startPayment when the class is not selectable or the lock is past", () => {
-    const start = client.indexOf("useEffect(() => {", client.indexOf("intentAttempts"));
+    // Anchor on the payment-step gate effect itself; other effects now sit between
+    // the intentAttempts ref and it (extras, auth session).
+    const start = client.indexOf('useEffect(() => {\n    if (step !== "payment" || gate !== "ok") return;');
     const end = client.indexOf("async function continueTrip", start);
     expect(start).toBeGreaterThan(-1);
     expect(end).toBeGreaterThan(start);
@@ -58,7 +60,12 @@ describe("pay land blocked", () => {
     expect(effect.indexOf("return;", gate)).toBeLessThan(pay);
     expect(effect).toContain('setRefusal(past ? "quoteExpired" : "pricingNotLive")');
     expect(effect).not.toContain("paymentWindowClosed");
-    expect(effect).not.toContain("payCouldNotStart");
+    // The gate branch never says payCouldNotStart; only intent-retry exhaustion
+    // (b2af7ce) may, and it never overwrites a refusal already shown.
+    expect(effect.slice(0, pay)).not.toContain("payCouldNotStart");
+    expect(effect.split("payCouldNotStart").length - 1).toBe(1);
+    expect(effect).toContain('setRefusal((current) => current ?? "payCouldNotStart")');
+    expect(effect.indexOf("payCouldNotStart")).toBeGreaterThan(pay);
   });
 
   it("does not let onPay replace pricingNotLive or quoteExpired", () => {
@@ -153,6 +160,8 @@ describe("pay lock zero panel", () => {
     expect(stripe).toBeGreaterThan(-1);
     expect(call).toBeGreaterThan(stripe);
     expect(panel.indexOf("loadStripe(", call + 1)).toBe(-1);
-    expect(panel).toContain("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || publishableKey");
+    // b2af7ce: env || prop never reached the Worker key (the bundle inlines a truthy
+    // pk_test_placeholder); stripeBrowserKey still prefers env, then the prop.
+    expect(panel).toContain("stripeBrowserKey(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, publishableKey)");
   });
 });

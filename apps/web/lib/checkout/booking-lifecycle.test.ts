@@ -91,7 +91,11 @@ describe("home starts a new booking", () => {
 
 describe("unpaid card cancel + 24h expire", () => {
   it("account cancel uses asCustomer checkout_cancel_unpaid", () => {
-    const src = readFileSync(join(WEB_ROOT, "app/api/account/bookings/cancel/route.ts"), "utf8");
+    // 26.1-06 moved the RPC call into lib/checkout/cancel-unpaid.ts; the route delegates.
+    const route = readFileSync(join(WEB_ROOT, "app/api/account/bookings/cancel/route.ts"), "utf8");
+    expect(route).toContain("cancelUnpaidForCustomer");
+    expect(route).not.toContain("asSystem");
+    const src = readFileSync(join(WEB_ROOT, "lib/checkout/cancel-unpaid.ts"), "utf8");
     expect(src).toContain("asCustomer");
     expect(src).toContain("checkout_cancel_unpaid");
     expect(src).not.toContain("asSystem");

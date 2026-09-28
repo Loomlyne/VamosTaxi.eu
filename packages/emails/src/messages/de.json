@@ -56,7 +56,12 @@
     "offRoadHeadline": "Fahrzeug nicht auf der Strasse",
     "offRoadBody": "Zugewiesene kommende Fahrten bleiben auf dem Board — sie werden nicht storniert. Beheben unter Needs attention.",
     "overlapHeadline": "Bezahlte Änderung bricht den zugewiesenen Chauffeur",
-    "overlapBody": "Die Fahrt bleibt. Diese Fahrt oder die überlappende Fahrt unter Needs attention neu zuweisen."
+    "overlapBody": "Die Fahrt bleibt. Diese Fahrt oder die überlappende Fahrt unter Needs attention neu zuweisen.",
+    "stuckHeadline": "Ein Stripe-Zahlungsereignis hängt fest",
+    "stuckBody": "Stripe hat dieses Ereignis gesendet, und es ist 8 Mal fehlgeschlagen. Die Buchung ist möglicherweise bezahlt, aber nicht bestätigt. Prüfen Sie die Buchung im Dashboard und das Ereignis in Stripe.",
+    "stuckEventLabel": "Stripe-Ereignis",
+    "paidAfterCancelHeadline": "Nach Stornierung bezahlt — zurückerstattet",
+    "paidAfterCancelBody": "Eine Zahlung ist für eine Buchung eingegangen, die nicht stattfinden konnte. Der Betrag wurde automatisch zurückerstattet. Es ist keine Aktion nötig, ausser wenn sich der Kunde meldet."
   },
   "cancellation": {
     "subject": "Buchung {reference} ist storniert",

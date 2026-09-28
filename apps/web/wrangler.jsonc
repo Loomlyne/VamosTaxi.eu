@@ -105,6 +105,17 @@
             "max_retries": 8,
             // Exhausted messages must be inspectable, not silently dropped.
             "dead_letter_queue": "vamos-stripe-events-staging-dlq"
+          },
+          // D-06: consumer for the DLQ itself. worker.ts routes any batch.queue ending in
+          // "-dlq" to lib/checkout/dlq.ts, which alerts info@ once and always acks. No
+          // max_retries, no dead_letter_queue — end of the line; a DLQ message is never
+          // retried into itself (T-26.1-10). Confirmed on the account read-only via
+          // `wrangler queues list` 2026-09-28: this queue already exists
+          // (id d9395539183a4449972c17d11f0fb7f5, created 2026-09-06), 0 consumers today.
+          {
+            "queue": "vamos-stripe-events-staging-dlq",
+            "max_batch_size": 1,
+            "max_batch_timeout": 30
           }
         ]
       },
@@ -233,6 +244,15 @@
             "max_retries": 8,
             // Exhausted messages must be inspectable, not silently dropped.
             "dead_letter_queue": "vamos-stripe-events-production-dlq"
+          },
+          // D-06: consumer for the DLQ itself — same shape as env.staging above. Not created
+          // on the account yet (`wrangler queues list` 2026-09-28 shows only the staging DLQ,
+          // id d9395539183a4449972c17d11f0fb7f5); production is not deployed until Phase 11
+          // (D-33), so this queue does not need to exist before then.
+          {
+            "queue": "vamos-stripe-events-production-dlq",
+            "max_batch_size": 1,
+            "max_batch_timeout": 30
           }
         ]
       },

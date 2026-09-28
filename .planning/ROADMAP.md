@@ -98,6 +98,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 24: Dual-payer, pay-link, mail split** - Token recap pay; first charge wins; traveller manage vs payer receipt
 - [ ] **Phase 25: /bookings unpaid + TEST UAT + secret-swap design** - Unpaid row pays the same session; TEST UAT boring; live keys documented not executed
 - [x] **Phase 26: Legal gate** - Pixel and Purchase stay off until owner banner, cookies, and privacy lines exist in en/de/fr/ar; new policy version; flag stays off (completed 2026-09-23)
+- [ ] **Phase 26.1: Payment and pricing integrity (INSERTED)** - A paid session always confirms; refunds, disputes and DLQ reach the DB; the owner fare formula with 26 cantons; pay-link lock and race; refund rules; three classes; admin sign-in options
 - [ ] **Phase 27: Consent record** - Accept logs Meta on; Dismiss logs Meta off; existing banner until a choice, including a pay link
 - [ ] **Phase 28: Pixel PageView** - Pixel `1595596972063765` sends PageView only on allowed customer pages; click ids saved on the unpaid booking
 - [ ] **Phase 29: Webhook Purchase** - One Purchase from the settle queue in the CHF charged; quote, pay, and confirmation unchanged
@@ -983,6 +984,88 @@ Plans:
 
 **UI hint**: no
 
+### Phase 26.1: Payment and pricing integrity (INSERTED)
+
+**Goal**: Money and security come first. A payment always ends as a confirmed booking,
+every refund and dispute reaches the database, and every price is computed server-side
+from the owner's formula and the dashboard's own numbers. Absorbs the matching parts of
+Phase 22 (webhook wait, paid session always confirms) and Phase 25 (Stripe secret
+alignment). Source: `docs/audit/2026-vamos-audit.md` Phase A; decisions D-01…D-25 in
+`26.1-CONTEXT.md` (signed 2026-09-27).
+**Depends on**: Phase 26. Before 26.2 and 27. Does not start Phases 16/17/19/20 or 21–25. Does not load the pixel.
+**Requirements**: INT-01, INT-02, INT-03, INT-04, INT-05, INT-06, INT-07, INT-08, INT-09
+**Success Criteria** (what must be TRUE):
+
+  1. A successful Stripe payment always ends as a confirmed booking, including a booking that was cancelled or expired while the customer paid; the customer gets the confirmation. Every cancel or expire path also expires the open Stripe session.
+  2. Refunds use the PaymentIntent ID, never `cs_`. `charge.refunded` and `charge.dispute.*` reach the database. A dead-letter consumer with an alert exists, and a stuck `checkout.session.completed` replays safely. The sandbox charge `cs_test_a1lyA5…` has its refund recorded in `booking_refunds`.
+  3. Every leg is priced per D-08: start fare + per-km × km + airport fee (airport pickup or flight number) + matching city/canton pair + enabled surcharges; then coupon %, never below CHF 0; then VAT 8.1 % on top. No minimum fare, no bands. Checkout fails closed when the price book cannot load; `pricing_live` is read, never hard-coded; coupon caps are enforced at payment.
+  4. All 26 cantons exist as Mapbox boundary zones; every canton → different canton pair (both directions) carries CHF 50 for all three classes. Duplicate and point-of-interest zones are cleaned up. Rate book version 18 stays labelled "placeholder, not owner-approved"; the agent never clicks Publish.
+  5. A pay link locks the booking 24 h; the recipient's payment confirms it; unpaid after 24 h it auto-cancels. If the customer pays first, the link shows "already paid". Two simultaneous payers: one is accepted; a second successful charge is refunded automatically.
+  6. Refunds: cancelled > 24 h before pickup → automatic full refund; < 24 h → admin approves and sets the percentage; after the trip → admin accepts or rejects.
+  7. The classes are Economy, Business, Van luxury (Saden → Economy, V-Class → Business, First dropped). Dashboard delete is a hard delete when nothing references the row, otherwise hidden with a reason; `mahaha` goes.
+  8. Only the admin signs in. In account settings the admin can add a passkey, add TOTP, or switch password ↔ magic link, each working end to end; once a factor is enrolled, aal2 is required. Changing password or email requires signing in again. Leaked-password protection is on (owner toggle).
+  9. Must-nots: Stripe sandbox `acct_1UIZmqHcNp9GZYjz` only, no `sk_live_`, no `vamostaxi.eu`, no invented CHF or legal copy, no pixel. The agent never writes to live Supabase `yaumjzvylngfjhtuffqs` (migrations are handed to the owner as SQL) and never makes Stripe dashboard changes or `wrangler secret put`. Four languages and the design laws hold on every touched surface.
+
+**Plans**: 32 plans, 18 waves
+
+Plans:
+
+- [x] 26.1-01-PLAN.md — Merge PR #60 baseline; pin sandbox-only Stripe (INT-01)
+- [x] 26.1-02-PLAN.md — Settle SQL: revive every cancel (D-03a), requote refund, pi_ write-back, duplicate flag
+- [x] 26.1-03-PLAN.md — DLQ consumer and stuck-payment alert
+- [x] 26.1-04-PLAN.md — Pricing kernel: owner formula, airport fee, pairs both ways (D-09a)
+- [x] 26.1-05-PLAN.md — Consumer revive/auto-refund, expire other sessions; refunds by PaymentIntent
+- [x] 26.1-06-PLAN.md — Account, cron and staff cancel expire Stripe sessions; coupon release
+- [x] 26.1-07-PLAN.md — Checkout fail-closed, pricing_live read, coupon caps at payment
+- [x] 26.1-08-PLAN.md — charge.refunded and disputes reach the DB (both arrival orders)
+- [x] 26.1-09-PLAN.md — Mapbox city/canton/airport facts and flight number into the kernel
+- [x] 26.1-10-PLAN.md — 26 canton zones, draft pair filler, boundary zones in ops
+- [x] 26.1-11-PLAN.md — Checkout rows: airport fee and route pair
+- [x] 26.1-12-PLAN.md — Owner SQL handoff: money wave (interim window documented)
+- [x] 26.1-13-PLAN.md — Owner: webhook secret, old webhook, event subscriptions
+- [x] 26.1-14-PLAN.md — Owner SQL handoff: pricing wave and canton pair fill
+- [x] 26.1-15-PLAN.md — Pay link 24 h hold from send; pay-link state
+- [x] 26.1-16-PLAN.md — Pay-link recipient states: already paid, refunded, expired
+- [x] 26.1-17-PLAN.md — Refund tiers SQL and admin refund API
+- [x] 26.1-18-PLAN.md — Ops refund review panel, disputes, customer refund words
+- [x] 26.1-19-PLAN.md — Class delete or hide with reason; public filtering; owner names file
+- [x] 26.1-20-PLAN.md — aal2 only when a factor is enrolled; admin-only console
+- [x] 26.1-21-PLAN.md — Owner SQL handoff: pay-link, refunds, classes
+- [x] 26.1-22-PLAN.md — TOTP, step-up, magic-link switch, re-auth (server)
+- [x] 26.1-23-PLAN.md — Ops settings and sign-in step-up UI
+- [x] 26.1-24-PLAN.md — Owner: aal2 SQL; Pro + leaked-password on (D-17a); passkey setting (D-16c)
+- [x] 26.1-25-PLAN.md — Passkey end to end (skipped per D-16c if unavailable)
+- [ ] 26.1-26-PLAN.md — Owner Ship gate: DLQ queue, re-auth secret, Ship
+- [x] 26.1-27-PLAN.md — Class line-up in every ops/home mock; OpsNewTrip sends live slugs
+- [ ] 26.1-28-PLAN.md — Post-Ship live reconciliation (owner resend + read-only SQL)
+- [x] 26.1-29-PLAN.md — Traveller intent and requote honour the pay-link hold
+- [x] 26.1-30-PLAN.md — Flight number typed at checkout re-prices; intent refuses mismatch
+- [x] 26.1-31-PLAN.md — Checkout shows DB class name; tests and project rules use the line-up
+- [x] 26.1-32-PLAN.md — Coupon cap at payment: lock's coupon re-evaluated, mismatch refused, client recovers (gap 1, INT-04)
+
+**UI hint**: yes — pay-link "already paid" page, ops refund approval, admin account-settings sign-in methods, class names.
+
+### Phase 26.3: Booking flow simplification (INSERTED)
+
+**Goal**: A customer goes from the home card to paid in two screens. Home asks From, To,
+When and Travellers; on tablet and desktop the card also shows the class prices. One
+checkout page replaces `/checkout/trip`, `/checkout/details` and `/checkout/payment`:
+1 class, 2 who is travelling, 3 payment, with one Pay button. Design source: sketch 001
+Variant A, approved 2026-09-28 (`.planning/sketches/001-simplified-booking-flow/`).
+**Depends on**: 26.1 (payment and pricing integrity) and 26.2 (cleanup) merged first.
+Owner placed it before 27 so the pixel measures the new funnel.
+**Requirements**: TBD in discuss-phase
+**Success Criteria** (draft, signed in discuss):
+
+  1. Home card has no trip-type tabs; an airport pickup is detected from the From address. Passengers and bags are one control.
+  2. On tablet and desktop, the home card shows each class with its price once From and To are set; Select opens checkout with that class chosen. Phone keeps one SEE PRICES button.
+  3. One checkout page: class cards with prices, contact, flight number only for an airport pickup (asked once in the whole flow), extras / driver note / company receipt / voucher collapsed, wallets above card, one Pay button.
+  4. Desktop has a sticky summary rail; phone and tablet have a sticky Total + Pay bar. Pay scrolls to the first error and names it.
+  5. Unpaid booking row rules, pay-link, 3DS return, refresh and Back still work; server-authoritative quote and idempotent booking unchanged.
+  6. Every string in en, de, fr, ar; checked at 1440, 1024, 768, 390 with no sideways scroll; no glow, no tinted yellow, `CHF 000` until pricing is live.
+
+**UI hint**: yes
+
 ### Phase 27: Consent record
 
 **Goal**: Accept logs Meta on. Dismiss logs Meta off. The latest `consent_log` row
@@ -1044,7 +1127,7 @@ v1.0: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 → 9 → 10 → 11 → 18 
 v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16 → 17
 Close-out one-by-one: 17 deploy → 17 SQL apply → 17 UAT → 16 ROADMAP tick → discuss 19 surge → 11-12 owner Publish (never agent)
 v1.2 Payment (leftovers 16/17/19/20 frozen): 21 → 22 → 23 → 24 → 25
-v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 27 → 28 → 29
+v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 26.1 → 27 → 28 → 29
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -1067,13 +1150,17 @@ v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 27 → 
 | 17. Ops chauffeur profile, shift roster, two-driver vehicles | 0/TBD | Not started | - |
 | 18. OPS Pricing source of truth | 7/7 | Complete    | 2026-09-15 |
 | 19. V1 production close-out leftover live gates and 10k booking surge | 0/TBD | Not started | - |
-| 20. Security audit fix-up | 0/4 | In progress | - |
+| 20. Security audit fix-up | 3/5 | In progress | - |
 | 21. Charge gate + visible refusal + payable intent | 10/10 | In Progress|  |
 | 22. Card confirm + thank-you webhook wait | 0/TBD | Not started | - |
 | 23. Wallets + Dashboard methods | 0/TBD | Not started | - |
 | 24. Dual-payer, pay-link, mail split | 0/TBD | Not started | - |
 | 25. /bookings unpaid + TEST UAT + secret-swap design | 0/TBD | Not started | - |
 | 26. Legal gate | 2/2 | Complete    | 2026-09-23 |
+| 26.0. Main green (INSERTED) | part 1 in 26.1 | Parked | - |
+| 26.1. Payment and pricing integrity (INSERTED) | 30/32 | Waiting for owner Ship (26.1-26), then 26.1-28 |  |
+| 26.2. Codebase audit, bug fix and simplify (INSERTED) | 0/TBD | Not started | - |
+| 26.3. Booking flow simplification (INSERTED) | 0/TBD | Not started | - |
 | 27. Consent record | 0/TBD | Not started | - |
 | 28. Pixel PageView | 0/TBD | Not started | - |
 | 29. Webhook Purchase | 0/TBD | Not started | - |
@@ -1086,3 +1173,4 @@ v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 27 → 
 *Phase 17 chauffeur desk added: 2026-09-11*
 *v1.2 Payment added: 2026-09-22 (phases 21–25; leftovers 16/17/19/20 unchanged)*
 *v1.3 Meta measurement added: 2026-09-23 (phases 26–29; v1.2 phases 21–25 unchanged)*
+*Phase 26.1 inserted: 2026-09-27 (payment and pricing integrity; INT-01…INT-09; discuss signed the same day)*

@@ -47,7 +47,12 @@
 input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}
 body{margin:0}
 a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
-[data-svc-card]{position:relative;display:block;box-sizing:border-box;aspect-ratio:4/5;inline-size:100%;min-block-size:0;overflow:hidden;border-radius:var(--vt-radius-xl);text-decoration:none;color:var(--vt-text-inverse);background:var(--vt-charcoal-900);isolation:isolate;box-shadow:none;transition:transform 80ms var(--vt-ease-standard)}
+/* aspect-ratio is the standalone default only. Inside the Services bento the card is
+   stretched to its grid area (see Services.dc.html), so every rule below has to hold
+   at a tall 1x2 column, a 2x2 hero and a short wide band alike. container-type makes
+   the card its own query container so the title/description step up on big tiles
+   without the grid having to reach in and restyle them. */
+[data-svc-card]{position:relative;display:block;box-sizing:border-box;aspect-ratio:4/5;inline-size:100%;min-block-size:0;overflow:hidden;border-radius:var(--vt-radius-xl);text-decoration:none;color:var(--vt-text-inverse);background:var(--vt-charcoal-900);isolation:isolate;box-shadow:none;container-type:inline-size;container-name:svccard;transition:transform 80ms var(--vt-ease-standard)}
 [data-svc-card]:hover,[data-svc-card]:focus,[data-svc-card]:active,[data-svc-card]:visited{color:var(--vt-text-inverse);box-shadow:none}
 [data-svc-card]:focus-visible{outline:3px solid var(--vt-yellow);outline-offset:3px;box-shadow:none}
 [data-svc-card]:active{transform:translateY(1px)}
@@ -59,9 +64,21 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-svc-glyph]{position:relative;z-index:1;display:block;color:var(--vt-charcoal-600);opacity:.34}
 [data-svc-card][data-tone="charcoal"] [data-svc-glyph]{color:var(--vt-grey-100);opacity:.42}
 [data-svc-card][data-has-image="1"] [data-svc-glyph]{display:none}
-[data-svc-foot]{position:absolute;inset-inline:0;bottom:0;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:var(--vt-space-2);box-sizing:border-box;padding:clamp(var(--vt-space-5),2.4vw,var(--vt-space-7));padding-top:clamp(var(--vt-space-9),12%,var(--vt-space-11));background:linear-gradient(to top,color-mix(in srgb,var(--vt-charcoal-900) 88%,transparent) 0%,color-mix(in srgb,var(--vt-charcoal-900) 82%,transparent) 68%,transparent 100%);isolation:isolate;min-inline-size:0}[data-svc-foot]::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:transparent;-webkit-backdrop-filter:var(--vt-blur-panel);backdrop-filter:var(--vt-blur-panel);-webkit-mask-image:linear-gradient(to top,var(--vt-charcoal-900) 0%,var(--vt-charcoal-900) 62%,transparent 100%);mask-image:linear-gradient(to top,var(--vt-charcoal-900) 0%,var(--vt-charcoal-900) 62%,transparent 100%)}
+/* Scrim. The bento gives this card four different footprints, so the ramp is built in
+   px off the foot's own height (not the card's), and the top stop is a soft mid step
+   instead of straight to transparent. White title + 82% white description clear 4.5:1
+   on charcoal-900 at 88% over any photo, at every span. */
+[data-svc-foot]{position:absolute;inset-inline:0;bottom:0;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:var(--vt-space-2);box-sizing:border-box;padding:clamp(var(--vt-space-5),2.4vw,var(--vt-space-7));padding-top:clamp(var(--vt-space-9),12%,var(--vt-space-11));background:linear-gradient(to top,color-mix(in srgb,var(--vt-charcoal-900) 90%,transparent) 0%,color-mix(in srgb,var(--vt-charcoal-900) 86%,transparent) 52%,color-mix(in srgb,var(--vt-charcoal-900) 58%,transparent) 80%,transparent 100%);isolation:isolate;min-inline-size:0}[data-svc-foot]::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:transparent;-webkit-backdrop-filter:var(--vt-blur-panel);backdrop-filter:var(--vt-blur-panel);-webkit-mask-image:linear-gradient(to top,var(--vt-charcoal-900) 0%,var(--vt-charcoal-900) 62%,transparent 100%);mask-image:linear-gradient(to top,var(--vt-charcoal-900) 0%,var(--vt-charcoal-900) 62%,transparent 100%)}
 [data-svc-title]{position:relative;z-index:1;margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:1.12;color:var(--vt-text-inverse);text-wrap:balance;min-inline-size:0}
 [data-svc-desc]{position:relative;z-index:1;display:block;margin:0;font-size:var(--vt-body-xs);line-height:1.5;color:color-mix(in srgb,var(--vt-text-inverse) 82%,transparent);text-wrap:pretty;max-inline-size:36ch;min-inline-size:0}
+/* Bento size step. 480px is above every 1x1 tile (259px desktop, 287px at 640px,
+   358px on a 390px phone, 467px on a 1024px tablet) and below every hero footprint
+   (542px desktop, 599px+ tablet), so only the hero tile takes the bigger type. */
+@container svccard (min-width:480px){
+[data-svc-foot]{gap:var(--vt-space-3)}
+[data-svc-title]{font-size:var(--vt-heading-2)}
+[data-svc-desc]{font-size:var(--vt-body-sm);max-inline-size:48ch}
+}
 @media (prefers-reduced-motion:reduce){[data-svc-card],[data-svc-photo]{transition:none}[data-svc-card]:active,[data-svc-card]:hover [data-svc-photo]{transform:none}}@media (prefers-reduced-transparency:reduce){[data-svc-foot]::before{-webkit-backdrop-filter:none;backdrop-filter:none}}
 :focus-visible:not(input):not(select):not(textarea):not(.vt-btn):not([data-svc-card]){outline:3px solid var(--vt-charcoal-900)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
 </helmet>

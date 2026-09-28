@@ -12,6 +12,7 @@ import { hashRawToken } from "@/lib/checkout/manage-token";
 import { attachPayment } from "@/lib/checkout/attach-payment";
 import { loadOpenPayment } from "@/lib/checkout/load-open-payment";
 import { payLinkPath } from "@/lib/checkout/pay-link";
+import { payLinkSessionId, resolvePayLinkRefusal } from "@/lib/checkout/pay-link-state";
 import { stripeAccountIsLegacyUaeTest } from "@/lib/checkout/charge-gate";
 import { stripeCheckoutReturnUrl } from "@/lib/checkout/return-url";
 import { publicSiteOrigin, csrfForbidden } from "@/lib/security/origin";
@@ -27,7 +28,9 @@ import { CHARGE_CURRENCY, type CheckoutLocale } from "@/lib/checkout/currency";
 
 export const dynamic = "force-dynamic";
 
-const bodySchema = z.object({ token: z.string().min(8) }).strict();
+// session_id: the recipient's own Checkout Session from the Stripe return
+// (26.1-16). Format-checked by payLinkSessionId; anything else is ignored.
+const bodySchema = z.object({ token: z.string().min(8), session_id: z.unknown().optional() }).strict();
 
 const PAY_JSON = { "cache-control": "private, no-store" };
 
@@ -108,6 +111,23 @@ export async function POST(request: Request) {
   }
   if (hash.byteLength === 0) return refuse("invalid_request");
   const tokenHex = bytesToHex(hash);
+  const sessionId = payLinkSessionId(parsed.data.session_id);
+
+  // D-20/D-21/D-22: a link that is no longer payable says why — paid,
+  // refunded as a duplicate, or expired. Never reaches Stripe.
+  const refusePayLink = () =>
+    resolvePayLinkRefusal(
+      {
+        readState: async (sid) => {
+          const rows = await asCheckout(env, null, (sql) => sql<{ state: string; reference: string | null }[]>`
+            select state, reference
+              from public.checkout_pay_link_state(decode(${tokenHex}, 'hex'), ${sid})
+          `);
+          return rows[0] ?? null;
+        },
+      },
+      sessionId,
+    );
 
   let row: Record<string, unknown>;
   try {
@@ -115,11 +135,12 @@ export async function POST(request: Request) {
       select * from public.checkout_pay_link_by_hash(decode(${tokenHex}, 'hex'))
     `);
     const found = rows[0];
-    if (!found) return refuse("quote_expired");
+    if (!found) return refusePayLink();
     row = found as Record<string, unknown>;
   } catch (err) {
     const state = sqlState(err);
-    if (state === "P0002" || state === "23P01") return refuse("quote_expired");
+    if (state === "P0002") return refusePayLink();
+    if (state === "23P01") return refuse("quote_expired");
     throw err;
   }
 

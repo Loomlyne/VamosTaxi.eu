@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { e164Phone, isCheckoutEmail } from "./contact-validate";
-import { firstPricedLockSlug, mergeVamosTrip, peekLockClassRappen, peekLockClassTotals, peekLockExtras, placeMapboxId, placeText, rappenToFrancs, formatRailDate, geoLocale } from "./vamos-trip";
+import { firstPricedLockSlug, mergeVamosTrip, peekLockClassRappen, peekLockClassTotals, peekLockCoupon, peekLockExtras, placeMapboxId, placeText, rappenToFrancs, formatRailDate, geoLocale } from "./vamos-trip";
 
 describe("checkout contact + rail helpers", () => {
   it("stores phone as plus plus digits", () => {
@@ -62,6 +62,22 @@ describe("checkout contact + rail helpers", () => {
     const extrasLock = `k1.${Buffer.from(JSON.stringify({ extras: { child_seats: 1 } })).toString("base64url")}.sig`;
     expect(peekLockExtras(extrasLock)?.child_seats).toBe(1);
     expect(peekLockExtras(lock)).toBeNull();
+  });
+
+  it("peekLockCoupon reads a lock's coupon for display/restore only and returns null for anything that is not a valid lock", () => {
+    const couponLock = `k1.${Buffer.from(JSON.stringify({ coupon: "SAVE10", class_totals: [{ slug: "economy", total_rappen: 8000 }] })).toString("base64url")}.sig`;
+    expect(peekLockCoupon(couponLock)).toBe("SAVE10");
+    const nullCouponLock = `k1.${Buffer.from(JSON.stringify({ coupon: null, class_totals: [{ slug: "economy", total_rappen: 8000 }] })).toString("base64url")}.sig`;
+    expect(peekLockCoupon(nullCouponLock)).toBeNull();
+    const lock = `k1.${Buffer.from(JSON.stringify({ class_totals: [{ slug: "economy", total_rappen: 8000 }] })).toString("base64url")}.sig`;
+    const extrasLock = `k1.${Buffer.from(JSON.stringify({ extras: { child_seats: 1 } })).toString("base64url")}.sig`;
+    expect(peekLockCoupon(lock)).toBeNull();
+    expect(peekLockCoupon(extrasLock)).toBeNull();
+    const emptyCouponLock = `k1.${Buffer.from(JSON.stringify({ coupon: "" })).toString("base64url")}.sig`;
+    expect(peekLockCoupon(emptyCouponLock)).toBeNull();
+    expect(peekLockCoupon("k1.%%%.sig")).toBeNull();
+    expect(peekLockCoupon("not-a-lock")).toBeNull();
+    expect(peekLockCoupon(undefined)).toBeNull();
   });
 
   it("drops the previous quote's flight when a new quote_id lands", () => {
