@@ -450,7 +450,7 @@ describe("/api/auth passkey wiring (source contract, 26.1-25)", () => {
     "utf8",
   );
   const block = (name: string) => {
-    const start = route.indexOf(`action === "${name}"`);
+    const start = route.indexOf(`if (action === "${name}")`);
     expect(start).toBeGreaterThan(-1);
     const next = route.indexOf("if (action === ", start + 10);
     return route.slice(start, next === -1 ? undefined : next);

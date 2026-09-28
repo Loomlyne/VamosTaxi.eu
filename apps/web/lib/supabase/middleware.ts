@@ -54,6 +54,8 @@ export function createSupabaseMiddlewareClient(request: NextRequest) {
   };
   const { url, anonKey } = supabaseAuthEnv();
   const supabase = createServerClient(url, anonKey, {
+    // 26.1-25: the staff gates list the admin's passkeys (auth.passkey.list).
+    auth: { experimental: { passkey: true } },
     cookies: {
       getAll() {
         return request.cookies.getAll();
