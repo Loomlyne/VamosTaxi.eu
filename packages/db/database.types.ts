@@ -2025,6 +2025,7 @@ export type Database = {
           mfa_enrolled: boolean
           phone: string
           role: Database["public"]["Enums"]["staff_role"]
+          sign_in_method: string
           user_id: string
         }
         Insert: {
@@ -2039,6 +2040,7 @@ export type Database = {
           mfa_enrolled?: boolean
           phone?: string
           role: Database["public"]["Enums"]["staff_role"]
+          sign_in_method?: string
           user_id: string
         }
         Update: {
@@ -2053,6 +2055,7 @@ export type Database = {
           mfa_enrolled?: boolean
           phone?: string
           role?: Database["public"]["Enums"]["staff_role"]
+          sign_in_method?: string
           user_id?: string
         }
         Relationships: []
@@ -3105,6 +3108,10 @@ export type Database = {
           lang: string
           user_id: string
         }[]
+      }
+      staff_set_sign_in_method: {
+        Args: { p_method: string }
+        Returns: undefined
       }
       staff_update_self: {
         Args: {
