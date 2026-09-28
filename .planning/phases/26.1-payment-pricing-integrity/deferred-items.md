@@ -55,3 +55,20 @@ next plan to pick up.
 
 - **What:** `apps/web/i18n/messages/*.json` keys `24-hours-to-6-hours-before-pickup`, `6-hours-through-pickup-and-after-pickup` and `from-6-hours-before-pickup` (legal/policy table) still describe the pre-D-24 tiers. `checkout.cancelSheetClose` ("Too close to cancel here. Call us.") is no longer rendered.
 - **Fix:** owner legal copy. Not rewritten by an agent.
+
+## OPEN for 26.2 — The screen totals any priced extra; the server charges three kinds only (pre-Ship verification, 2026-09-28)
+
+- **Found during:** pre-Ship verification at f966e25d (`26.1-VERIFICATION.md`, warning 2).
+- **What:** the checkout total adds every selected amount-kind extra from the price book that the lock does not pin (`apps/web/lib/checkout/extras-catalog.ts` `extraRappenOutsideLock`). The intent body sends child seat, oversized luggage and extra stop only (`CheckoutClient.tsx` `quoteExtras`), and the server recognises those three only (`lockHasExtra`; `apps/web/lib/checkout/intent.ts:321-324`). A fourth kind of passenger extra with a price would show in the total and would not be charged or recorded.
+- **State on live, read-only check 2026-09-28 22:45 (+04):** `GET /api/checkout/extras` returns one extra, `child-seat`. The gap cannot occur with today's price book.
+- **Operating rule until fixed:** do not add a new kind of passenger extra in the dashboard.
+- **Owner decision 2026-09-28:** deferred to 26.2, not part of the 26.1 Ship.
+- **Fix:** the server prices every selected catalog extra from the price book (or the screen shows only the extras the server charges); tests on both sides.
+
+## OPEN for 26.2 — Smaller checkout items from the pre-Ship verification (2026-09-28)
+
+- A second tab that reprices the same quote leaves the first tab with an expired Stripe session until it is reloaded. Pay fails without a charge (`apps/web/lib/checkout/intent.ts:494-497`).
+- A network error or timeout on the intent request still counts toward the six automatic attempts even when the lock changed during the request (`CheckoutClient.tsx` `startPayment`).
+- The wiring of `CheckoutClient.tsx` is covered by source-assertion tests only; there is no component harness for that file. Owner UAT is the behavioural proof.
+- A lock that pins a coupon the quote refused records a redemption when the coupon is valid at payment. Reachable only by a hand-built API request (`intent.ts:341-368`).
+- A permanent settle error is acknowledged without an alert (`apps/web/lib/checkout/settle.ts:282-293`).
