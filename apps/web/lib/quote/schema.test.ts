@@ -372,3 +372,86 @@ describe("RepriceRequestSchema", () => {
     expect(RepriceRequestSchema.safeParse(validReprice).success).toBe(true);
   });
 });
+
+describe("RepriceRequestSchema — per-leg flight number (D-08b, 26.1-30)", () => {
+  const base = {
+    quote_id: "q_abc",
+    lock: "v1.payload.mac",
+    locale: "en",
+    display_currency: "CHF",
+  };
+
+  it("accepts legs with a flight number or an explicit null", () => {
+    const withFlight = parseRepriceRequest({
+      ...base,
+      legs: [{ leg_seq: 1, flight_no: "LX1234" }],
+    });
+    expect(withFlight.ok).toBe(true);
+    if (withFlight.ok) {
+      expect(withFlight.value.legs?.[0]?.flight_no).toBe("LX1234");
+    }
+    expect(
+      parseRepriceRequest({ ...base, legs: [{ leg_seq: 1, flight_no: null }] })
+        .ok,
+    ).toBe(true);
+  });
+
+  it("refuses a flight number longer than 16 characters", () => {
+    const result = parseRepriceRequest({
+      ...base,
+      legs: [{ leg_seq: 1, flight_no: "X".repeat(17) }],
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.code).toBe("untrusted_input");
+      expect(result.field).toBe("legs");
+    }
+  });
+
+  it("refuses journey fields smuggled inside a reprice leg", () => {
+    for (const extra of [
+      { scheduled_local: "2026-09-01T10:30" },
+      { pickup: { kind: "pin", lng: 8.5, lat: 47.4, text: "x" } },
+      { origin_is_airport: true },
+    ]) {
+      const result = parseRepriceRequest({
+        ...base,
+        legs: [{ leg_seq: 1, flight_no: "LX1", ...extra }],
+      });
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.code).toBe("untrusted_input");
+    }
+  });
+
+  it("refuses a repeated leg_seq, a leg_seq outside 1|2, and more than two legs", () => {
+    expect(
+      parseRepriceRequest({
+        ...base,
+        legs: [
+          { leg_seq: 1, flight_no: "LX1" },
+          { leg_seq: 1, flight_no: "LX2" },
+        ],
+      }).ok,
+    ).toBe(false);
+    expect(
+      parseRepriceRequest({ ...base, legs: [{ leg_seq: 3, flight_no: "LX1" }] })
+        .ok,
+    ).toBe(false);
+    expect(
+      parseRepriceRequest({
+        ...base,
+        legs: [
+          { leg_seq: 1, flight_no: "A" },
+          { leg_seq: 2, flight_no: "B" },
+          { leg_seq: 2, flight_no: "C" },
+        ],
+      }).ok,
+    ).toBe(false);
+  });
+
+  it("still refuses unknown top-level keys and the other journey fields", () => {
+    expect(parseRepriceRequest({ ...base, foo: 1 }).ok).toBe(false);
+    expect(parseRepriceRequest({ ...base, pax: 2 }).ok).toBe(false);
+    expect(parseRepriceRequest({ ...base, bags: 1 }).ok).toBe(false);
+  });
+});

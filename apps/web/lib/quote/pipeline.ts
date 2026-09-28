@@ -777,6 +777,36 @@ export async function runQuotePipeline(
   });
 }
 
+/** Trimmed flight number; blank or null means "no flight" (D-08b). */
+function cleanFlightNo(raw: string | null): string | null {
+  const trimmed = raw?.trim() ?? "";
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+/**
+ * Apply reprice `legs[].flight_no` onto the verified lock. Returns null when
+ * the body names a leg the lock does not have (a return leg on a one-way lock).
+ * No `legs` in the body keeps every leg's flight number as locked.
+ */
+function withRepriceFlightNumbers(
+  lock: QuoteLockPayload,
+  overrides: RepriceRequest["legs"],
+): QuoteLockPayload | null {
+  if (!overrides || overrides.length === 0) return lock;
+  for (const override of overrides) {
+    if (!lock.legs.some((leg) => leg.leg_seq === override.leg_seq)) return null;
+  }
+  return {
+    ...lock,
+    legs: lock.legs.map((leg) => {
+      const override = overrides.find((o) => o.leg_seq === leg.leg_seq);
+      return override
+        ? { ...leg, flight_no: cleanFlightNo(override.flight_no) }
+        : leg;
+    }),
+  };
+}
+
 export async function runRepricePipeline(
   body: unknown,
   deps: QuotePipelineDeps,
@@ -804,10 +834,15 @@ export async function runRepricePipeline(
     }
     return { ok: false, code: "quote_not_found" };
   }
-  const lock = verified.payload;
-  if (lock.quote_id !== request.quote_id) {
+  if (verified.payload.quote_id !== request.quote_id) {
     return { ok: false, code: "quote_not_found" };
   }
+  // D-08b / 26.1-30: a flight number typed at /checkout/details is the one
+  // per-leg fact a reprice may change. It is pinned into the re-signed lock
+  // (same HMAC path as extras/coupon) so the kernel adds the airport fee and
+  // the intent can refuse a body whose flight number the lock never priced.
+  const lock = withRepriceFlightNumbers(verified.payload, request.legs);
+  if (!lock) return { ok: false, code: "untrusted_input" };
 
   // D-27: the lock pins extras AND coupon. A waypoint-changing reprice
   // mints a NEW quote_id and a NEW expires_at and re-signs class_totals.

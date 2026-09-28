@@ -95,3 +95,32 @@ describe("refuse", () => {
     }
   });
 });
+
+describe("checkoutIntentSchema — flight_no (D-08b, 26.1-30)", () => {
+  it("accepts an optional flight_no and normalises blank to null", () => {
+    const withFlight = checkoutIntentSchema.safeParse({ ...valid, flight_no: " LX1234 " });
+    expect(withFlight.success).toBe(true);
+    if (withFlight.success) expect(withFlight.data.flight_no).toBe("LX1234");
+    const blank = checkoutIntentSchema.safeParse({ ...valid, flight_no: "  " });
+    expect(blank.success).toBe(true);
+    if (blank.success) expect(blank.data.flight_no).toBeNull();
+    const absent = checkoutIntentSchema.safeParse(valid);
+    expect(absent.success).toBe(true);
+    if (absent.success) expect(absent.data.flight_no).toBeUndefined();
+  });
+
+  it("rejects a flight_no longer than 16 characters", () => {
+    const parsed = checkoutIntentSchema.safeParse({ ...valid, flight_no: "X".repeat(17) });
+    expect(parsed.success).toBe(false);
+  });
+
+  it("pay-link accepts the same flight_no", () => {
+    const parsed = checkoutPayLinkSchema.safeParse({
+      ...valid,
+      flight_no: "LX1234",
+      billing_kind: "individual",
+      payer_email: "ada@example.test",
+    });
+    expect(parsed.success).toBe(true);
+  });
+});
