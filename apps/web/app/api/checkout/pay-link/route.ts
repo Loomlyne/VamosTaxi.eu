@@ -201,7 +201,7 @@ export async function POST(request: Request) {
       payload: lockPayload,
       vehicleClass: body.vehicle_class,
       extras: body.extras,
-      coupon: body.coupon ?? null,
+      coupon: lockPayload.coupon,
       contactName: body.contact.name,
       contactPhone: body.contact.phone,
       companyName: body.company_name ?? "",

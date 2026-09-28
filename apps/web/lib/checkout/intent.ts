@@ -104,8 +104,9 @@ export type CheckoutIntentDeps = {
   loadQuotePayGate?: (quoteId: string) => Promise<{ is_test: boolean } | null>;
   /**
    * D-11: re-evaluated with the payer's identity at payment, never the
-   * quote-time evaluation. Required whenever body.coupon is set — its
-   * absence there is `invalid_request`, not a silent skip.
+   * quote-time evaluation. Required whenever the verified lock's
+   * payload.coupon is set — its absence there is a `coupon_no_longer_valid`
+   * refusal, not a silent skip.
    */
   evaluateCoupon?: (
     code: string,
@@ -324,16 +325,24 @@ export async function runCheckoutIntent(
   // D-38: waiting extra is 0 at pay. extraFaresOn / extraRappenOutsideLock drop it.
   const vatRateBps = await vatRateBpsFromFlags(deps);
 
-  // D-11: re-evaluated with the payer's identity right here — never the
-  // quote-time evaluation, and never trusted from the lock's coupon code.
+  // D-11: the coupon code comes from the verified lock's payload.coupon —
+  // a reprice re-signs class_totals and coupon together (lock.ts:112), so the
+  // lock's coupon is the one that priced netRappen. Per-payer eligibility
+  // (cap, prior redemptions) is still re-evaluated right here against the
+  // payer's identity on every request, never trusted from a stale evaluation.
+  // Both sides fold case and whitespace, as the DB lookup does (upper(p_code)).
   let couponId: number | null = null;
   let couponPercentHundredths: number | null = null;
-  const typedCoupon = body.coupon?.trim();
-  if (typedCoupon) {
+  const lockCoupon = payload.coupon?.trim().toUpperCase() || null;
+  const bodyCoupon = body.coupon?.trim().toUpperCase() || null;
+  if (bodyCoupon !== null && bodyCoupon !== lockCoupon) {
+    return refuse("coupon_no_longer_valid");
+  }
+  if (lockCoupon) {
     if (typeof deps.evaluateCoupon !== "function") {
       return refuse("coupon_no_longer_valid");
     }
-    const raw = await deps.evaluateCoupon(typedCoupon, {
+    const raw = await deps.evaluateCoupon(lockCoupon, {
       customerId: deps.actorCustomerId,
       contactEmail: body.contact.email,
     });
@@ -449,7 +458,7 @@ export async function runCheckoutIntent(
       ),
       legs: checkoutLegsFromLock(payload, deps.vehicleClassId),
       couponId,
-      couponCode: body.coupon ?? null,
+      couponCode: lockCoupon,
       manageTokenHash: token.hash,
       manageTokenExpiresAt: manageExpiresAt,
       stripePaymentIntentId: pi,
