@@ -97,10 +97,26 @@ describe("normalizeTotpCode", () => {
   });
 });
 
+const FRESH = { reauth: { ok: true } } as const;
+
 describe("enrolTotp", () => {
+  it("refuses without a fresh re-auth and never asks Supabase (D-17b)", async () => {
+    const sb = client();
+    expect(await enrolTotp(sb, { reauth: { ok: false, code: "reauth-required" } })).toEqual({
+      ok: false,
+      code: "reauth-required",
+    });
+    expect(
+      await enrolTotp(sb, { reauth: { ok: false, code: "reauth-unavailable" } }),
+    ).toEqual({ ok: false, code: "reauth-unavailable" });
+    expect(sb.auth.mfa.listFactors).not.toHaveBeenCalled();
+    expect(sb.auth.mfa.unenroll).not.toHaveBeenCalled();
+    expect(sb.auth.mfa.enroll).not.toHaveBeenCalled();
+  });
+
   it("returns factorId, qrSvg and secret once", async () => {
     const sb = client();
-    const out = await enrolTotp(sb);
+    const out = await enrolTotp(sb, FRESH);
     expect(out).toEqual({
       ok: true,
       factorId: FACTOR_ID,
@@ -112,13 +128,13 @@ describe("enrolTotp", () => {
 
   it("clears stale unverified TOTP factors before enrolling", async () => {
     const sb = client([unverifiedTotp]);
-    await enrolTotp(sb);
+    await enrolTotp(sb, FRESH);
     expect(sb.auth.mfa.unenroll).toHaveBeenCalledWith({ factorId: "stale-1" });
   });
 
   it("refuses a second TOTP when one is verified", async () => {
     const sb = client([verifiedTotp]);
-    expect(await enrolTotp(sb)).toEqual({ ok: false, code: "mfa-already-enrolled" });
+    expect(await enrolTotp(sb, FRESH)).toEqual({ ok: false, code: "mfa-already-enrolled" });
     expect(sb.auth.mfa.enroll).not.toHaveBeenCalled();
   });
 
@@ -126,7 +142,7 @@ describe("enrolTotp", () => {
     const sb = client([], {
       enroll: vi.fn(async () => ({ data: null, error: { code: "mfa_enroll_disabled", message: "x" } })),
     });
-    expect(await enrolTotp(sb)).toEqual({ ok: false, code: "mfa-enroll-failed" });
+    expect(await enrolTotp(sb, FRESH)).toEqual({ ok: false, code: "mfa-enroll-failed" });
   });
 });
 
