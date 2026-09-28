@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-23)
 Phase: 27
 Plan: Not started
 Status: Ready to discuss
-Last activity: 2026-09-23
+Last activity: 2026-09-28 - Completed quick task 260928-lux: Fix phone booking dead end: Show fixed prices goes to checkout trip
 
 Phase 21 execution note (not current): planning complete — 8 plans. Execution started 2026-09-22 on `gsd/phase-21-charge-gate`. That position was Phase 21 EXECUTING, plan 1 of 8. Phase 21 is not complete. Do not execute Phase 16/17/19/20. Do not touch the main checkout from that branch note.
 
@@ -41,6 +41,12 @@ Phase 21 execution note (not current): planning complete — 8 plans. Execution 
 ## Blockers
 
 Stripe live keys and Search Console stay owner-gated. Agent does not click Publish. Agent does not `supabase db push`. Never restore onto yaumjzvylngfjhtuffqs. No `vamostaxi.eu`. No `sk_live_`. `11-12` remains owner-gated and does not block Phase 13.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260928-lux | Fix phone booking dead end: Show fixed prices goes to checkout trip | 2026-09-28 | 1ef815c3 | [260928-lux-fix-phone-booking-dead-end-show-fixed-pr](./quick/260928-lux-fix-phone-booking-dead-end-show-fixed-pr/) |
 
 ## Session Continuity
 
