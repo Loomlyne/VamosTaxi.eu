@@ -479,3 +479,80 @@ describe("CheckoutClient Pay without a card form (quick 260928-rld)", () => {
     expect(recover).not.toMatch(/\bconfirm|startPayment|setIntentTick|intentAttempts/);
   });
 });
+
+describe("CheckoutClient card form unmount resets cardComplete (quick 260928-lat)", () => {
+  const client = source("app/[locale]/checkout/CheckoutClient.tsx");
+  const HELPER = "function dropPaymentSession(quoteId: string): void {";
+  const helperAt = client.indexOf(HELPER);
+  const helper = helperAt === -1 ? "" : client.slice(helperAt, client.indexOf("\n  }\n", helperAt));
+
+  /** Body of `fn` up to the next top-level function named in `until`. */
+  function fnBody(fn: string, until: string): string {
+    const at = client.indexOf(fn);
+    return client.slice(at, client.indexOf(until, at));
+  }
+
+  it("every path that clears the client secret also resets cardComplete", () => {
+    // The card form mounts only with a client secret, so every clear unmounts it.
+    // Each literal clear lives in the helper, next to the cardComplete reset.
+    expect(client.match(/setClientSecret\(null\)/g)?.length).toBe(1);
+    expect(client.match(/clientSecretRef\.current = null;/g)?.length).toBe(1);
+    expect(client.match(/setCardComplete\(false\)/g)?.length).toBe(1);
+    expect(helper).toContain("setClientSecret(null);");
+    expect(helper).toContain("clientSecretRef.current = null;");
+    expect(helper).toContain("setCardComplete(false);");
+
+    // New quote.
+    const quoteChanged = client.slice(client.indexOf("if (quoteChanged) {"), client.indexOf('} else if (step !== "trip")'));
+    expect(quoteChanged).toContain("dropPaymentSession(stored.quoteId);");
+    expect(quoteChanged).toContain("setReference(null);");
+    // Flight reprice and coupon/extras reprice: after the new lock is stored, before success.
+    for (const [fn, until] of [
+      ["async function syncFlightToLock(", "async function applyCouponCode("],
+      ["async function applyCouponCode(", "async function sendPayLink("],
+    ]) {
+      const body = fnBody(fn, until);
+      const stored = body.indexOf("writeDraft({ quoteId: nextId, lock: json.lock });");
+      const dropped = body.indexOf("dropPaymentSession(quoteId);", stored);
+      expect(stored, fn).toBeGreaterThan(-1);
+      expect(dropped, fn).toBeGreaterThan(stored);
+      expect(dropped, fn).toBeLessThan(body.indexOf("return true;", stored));
+    }
+    // Failed recovery in startPayment: no card form is mounted there.
+    const start = fnBody("async function startPayment(", "async function syncFlightToLock(");
+    const startRestoreAt = start.indexOf('=== "restore_lock_coupon"');
+    expect(start.slice(startRestoreAt, start.indexOf("}", startRestoreAt))).toContain("dropPaymentSession(quoteId);");
+    // Failed recovery in sendPayLink keeps a mounted card form (the lock did not
+    // change), so it drops only the stored session and leaves cardComplete to the
+    // form that is still on screen.
+    const send = fnBody("async function sendPayLink(", "async function onPay(");
+    const sendRestoreAt = send.indexOf('=== "restore_lock_coupon"');
+    const sendRestore = send.slice(sendRestoreAt, send.indexOf("}", sendRestoreAt));
+    expect(sendRestore).toContain("clearCheckoutSession(quoteId);");
+    expect(sendRestore).not.toContain("dropPaymentSession");
+    expect(send).not.toContain("setClientSecret(");
+  });
+
+  it("the payment session is cleared through one helper", () => {
+    expect(client.match(/function dropPaymentSession\(/g)?.length).toBe(1);
+    expect(helperAt).toBeGreaterThan(-1);
+    const order = [
+      "setClientSecret(null);",
+      "setClientSecretHex(undefined);",
+      "clientSecretRef.current = null;",
+      "clearCheckoutSession(quoteId);",
+      "setConfirmPay(null);",
+      "setCardComplete(false);",
+    ].map((line) => helper.indexOf(line));
+    for (const at of order) expect(at).toBeGreaterThan(-1);
+    expect([...order].sort((a, b) => a - b)).toEqual(order);
+    // Nothing else in the file clears these by hand.
+    expect(client.match(/setClientSecretHex\(undefined\)/g)?.length).toBe(1);
+    expect(client.match(/setConfirmPay\(null\)/g)?.length).toBe(1);
+    // clearCheckoutSession: the helper, plus sendPayLink's stored-session-only drop.
+    expect(client.match(/clearCheckoutSession\(quoteId\);/g)?.length).toBe(2);
+    expect(client.match(/clearCheckoutSession\(stored\.quoteId\)/g)).toBeNull();
+    // Definition + new quote + flight reprice + coupon/extras reprice + startPayment recovery.
+    expect(client.match(/dropPaymentSession\(/g)?.length).toBe(5);
+  });
+});
