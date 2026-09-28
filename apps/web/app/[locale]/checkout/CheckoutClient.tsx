@@ -62,6 +62,7 @@ import {
 import { CH_VAT_RATE_BPS, payableWithVatRappen, vatOnTopRappen } from "@/lib/checkout/vat";
 import { payableRappen } from "@/lib/checkout/payable";
 import { decodeClientSecret } from "@/lib/checkout/client-secret";
+import { lockFlightNoDiffers } from "@/lib/checkout/flight-no";
 import { checkoutTraveler } from "@/lib/checkout/checkout-traveler";
 import { readCheckoutSession, writeCheckoutSession } from "@/lib/checkout/checkout-session-store";
 import { chfRappenToDisplay } from "@/lib/fx/format";
@@ -358,6 +359,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const [clientSecretHex, setClientSecretHex] = useState<string | undefined>();
   const clientSecretRef = useRef<string | null>(null);
   const intentGate = useRef<Promise<"ok" | "skip" | "fail"> | null>(null);
+  const flightSyncGate = useRef<Promise<boolean> | null>(null);
   const [publishable, setPublishable] = useState(publishableKey);
   const [reference, setReference] = useState<string | null>(null);
   const [payUrl, setPayUrl] = useState<string | null>(null);
@@ -881,6 +883,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       return;
     }
     if (!validate()) return;
+    // D-08b: the airport fee for a flight number typed here is in the lock
+    // before the payment step opens a Stripe session.
+    if (!(await syncFlightToLock())) return;
     setPasswordError(undefined);
     if (!guest && !signedIn) {
       if (password.length < 8) {
@@ -946,8 +951,10 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     const run = (async (): Promise<"ok" | "skip" | "fail"> => {
     if (clientSecretRef.current) return "ok";
     const trip = tripSnap ?? readVamosTrip();
-    const quoteId = draft.quoteId || tripQuoteId(trip);
-    const lock = draft.lock || trip?.lock;
+    // readDraft(): a flight re-price may have re-signed the lock this tick.
+    const liveDraft = readDraft();
+    const quoteId = liveDraft.quoteId || draft.quoteId || tripQuoteId(trip);
+    const lock = liveDraft.lock || draft.lock || trip?.lock;
     const vehicleClass = asClassSlug(
       resolvePaySlug(lock, trip) || draft.vehicleClass || vehicle || tripVehicle(trip),
     );
@@ -999,6 +1006,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           vehicle_class: vehicleClass,
           extras: quoteExtras({ childSeat, oversized, extraStop }, extraStopWaypoint),
           coupon: couponApplied || null,
+          // D-08b: the server refuses price_changed if the lock never priced it.
+          flight_no: liveDraft.flightNumber.trim() || null,
           contact: {
             name,
             email,
@@ -1062,6 +1071,88 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       return await run;
     } finally {
       if (intentGate.current === run) intentGate.current = null;
+    }
+  }
+
+  /**
+   * D-08b / 26.1-30: the airport fee follows the flight number. When the
+   * details flight number is not the one the lock priced, re-price with it so
+   * the fee is in the re-signed lock before payment. Returns false when the
+   * re-price was refused; the existing refusal copy is shown.
+   */
+  async function syncFlightToLock(): Promise<boolean> {
+    if (flightSyncGate.current) await flightSyncGate.current;
+    const live = readDraft();
+    const trip = tripSnap ?? readVamosTrip();
+    const quoteId = live.quoteId || tripQuoteId(trip);
+    const lock = live.lock || trip?.lock;
+    const flight = live.flightNumber.trim();
+    if (!quoteId || !lock || !lockFlightNoDiffers(lock, flight)) return true;
+    const run = (async (): Promise<boolean> => {
+      setBusy(true);
+      try {
+        const res = await fetch("/api/quote/reprice", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            quote_id: quoteId,
+            lock,
+            locale,
+            display_currency: displayCur,
+            legs: [{ leg_seq: 1, flight_no: flight || null }],
+            contact_email: contact.email.trim() || null,
+          }),
+        });
+        const json = (await res.json()) as {
+          ok?: boolean;
+          lock?: string;
+          quote_id?: string;
+          expires_at?: string;
+          code?: string;
+        };
+        if (!res.ok || !json.ok || !json.lock) {
+          setRefusal(REFUSAL_KEYS[json.code ?? ""] ?? "priceChanged");
+          return false;
+        }
+        const nextId = json.quote_id ?? quoteId;
+        writeDraft({ quoteId: nextId, lock: json.lock });
+        writeVamosTrip({
+          quoteId: nextId,
+          quote_id: nextId,
+          lock: json.lock,
+          expires_at: json.expires_at,
+          flightNumber: flight,
+          flight,
+        });
+        setTripSnap((prev) => ({
+          ...(prev ?? {}),
+          quoteId: nextId,
+          quote_id: nextId,
+          lock: json.lock,
+          expires_at: json.expires_at,
+        }));
+        setRefusal(null);
+        // A Stripe session opened on the old lock no longer matches the price.
+        setClientSecret(null);
+        setClientSecretHex(undefined);
+        clientSecretRef.current = null;
+        setConfirmPay(null);
+        intentStarted.current = false;
+        intentAttempts.current = 0;
+        setIntentTick((n) => n + 1);
+        return true;
+      } catch {
+        setRefusal("priceChanged");
+        return false;
+      } finally {
+        setBusy(false);
+      }
+    })();
+    flightSyncGate.current = run;
+    try {
+      return await run;
+    } finally {
+      if (flightSyncGate.current === run) flightSyncGate.current = null;
     }
   }
 
@@ -1219,6 +1310,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           vehicle_class: vehicleClass,
           extras: quoteExtras({ childSeat, oversized, extraStop }, extraStopWaypoint),
           coupon: couponApplied,
+          flight_no: draft.flightNumber.trim() || null,
           contact: {
             name: traveler.name,
             email: traveler.email,
@@ -1778,6 +1870,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                   onChange={(next) => {
                     writeDraft({ flightNumber: next });
                     writeVamosTrip({ flightNumber: next, flight: next });
+                  }}
+                  onBlur={() => {
+                    void syncFlightToLock();
                   }}
                 />
                 <ContactFields
