@@ -1,20 +1,28 @@
 "use client";
 
-import { useEffect, useRef, useState, type ComponentProps } from "react";
+import { useCallback, useEffect, useRef, useState, type ComponentProps } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Button, Card } from "@/components/core";
+import { Button, Card, Icon } from "@/components/core";
 import { Alert } from "@/components/feedback/Alert";
 import { Input, Select } from "@/components/forms";
 import { formatAmount } from "@/lib/currency";
+import { decodeClientSecret } from "@/lib/checkout/client-secret";
+import {
+  PAY_LINK_POLL_BUDGET_MS,
+  PAY_LINK_POLL_INTERVAL_MS,
+  payLinkSessionKey,
+  payPollStep,
+  payStateFromOpen,
+  sessionIdFromClientSecret,
+  splitAroundMarker,
+  storedPayLinkSessionId,
+  type PayAlertKey,
+  type PayState,
+} from "@/lib/checkout/pay-client-states";
 import { PaymentPanel } from "../../PaymentPanel";
 
-type PayAlertKey =
-  | "pricingNotLive"
-  | "quoteExpired"
-  | "quoteAlreadyBooked"
-  | "paymentWindowClosed"
-  | "completeCard"
-  | "payCouldNotStart";
+/** D-21/D-22: the link is settled — no form, a confirmed-state card instead. */
+type DoneView = "alreadyPaid" | "raceRefunded";
 
 type PayLinkOpenJson = {
   client_secret?: string;
@@ -32,12 +40,38 @@ type PayLinkOpenJson = {
 
 type PanelProps = ComponentProps<typeof PaymentPanel>;
 
-/** Charge-gate codes stay on their Alerts. Unknown opens are not those keys. */
-function chargeGateAlert(code: string | undefined): PayAlertKey | null {
-  if (code === "pricing_not_live") return "pricingNotLive";
-  if (code === "quote_expired") return "quoteExpired";
-  if (code === "quote_already_booked") return "quoteAlreadyBooked";
-  return null;
+/** Placeholder marker so the reference can sit in its own LTR span inside the sentence. */
+const REFERENCE_MARKER = "\u0001";
+
+/** The recipient's own Checkout Session id from an earlier open on this tab. Hint only — the server decides. */
+function readStoredSessionId(token: string): string | null {
+  try {
+    return storedPayLinkSessionId(window.sessionStorage.getItem(payLinkSessionKey(token)));
+  } catch {
+    return null;
+  }
+}
+
+function storeSessionId(token: string, sessionId: string): void {
+  try {
+    window.sessionStorage.setItem(payLinkSessionKey(token), sessionId);
+  } catch {
+    // Private mode or storage off: the in-page ref still carries it.
+  }
+}
+
+async function openPayLink(
+  token: string,
+  sessionId: string | null,
+): Promise<{ ok: boolean; json: PayLinkOpenJson }> {
+  const clean = token.trim().replace(/\s+/g, "");
+  const res = await fetch("/api/checkout/pay-link/open", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(sessionId ? { token: clean, session_id: sessionId } : { token: clean }),
+  });
+  const json = (await res.json()) as PayLinkOpenJson;
+  return { ok: res.ok, json };
 }
 
 /**
@@ -127,6 +161,45 @@ function TokenDummyFields() {
   );
 }
 
+/**
+ * UI-SPEC §1: already paid (D-21, success tone) or charged twice and refunded
+ * (D-22, neutral tone). Static — no action, no card form.
+ */
+function PayLinkDone({ view, reference }: { view: DoneView; reference: string }) {
+  const t = useTranslations("checkout");
+  const paid = view === "alreadyPaid";
+  const body = paid
+    ? splitAroundMarker(t("payLinkAlreadyPaidBody", { reference: REFERENCE_MARKER }), REFERENCE_MARKER)
+    : null;
+  return (
+    <div className="vt-checkout" data-checkout-pay-page data-pay-link-state={view}>
+      <Card padding="lg">
+        <div className="vt-checkout__sheet" data-pay-link-done={view} role="status">
+          <Icon
+            name="circle-check"
+            size={32}
+            color={paid ? "var(--vt-success)" : "var(--vt-text-muted)"}
+          />
+          <h1>{paid ? t("payLinkAlreadyPaidTitle") : t("payLinkRaceRefundedTitle")}</h1>
+          {paid ? (
+            reference && body ? (
+              <p>
+                {body.before}
+                <span className="vt-dir-keep" data-pay-link-reference>
+                  {reference}
+                </span>
+                {body.after}
+              </p>
+            ) : null
+          ) : (
+            <p>{t("payLinkRaceRefundedBody")}</p>
+          )}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
 export function PayClient({ token }: { token: string }) {
   const t = useTranslations("checkout");
   const [busy, setBusy] = useState(true);
@@ -146,8 +219,11 @@ export function PayClient({ token }: { token: string }) {
   const [lockExpiresAt, setLockExpiresAt] = useState<string | null>(null);
   const [payLocked, setPayLocked] = useState(false);
   const [storedQuoteId, setStoredQuoteId] = useState<string | null>(null);
+  const [linkExpired, setLinkExpired] = useState(false);
+  const [done, setDone] = useState<{ view: DoneView; reference: string } | null>(null);
   const confirmPayRef = useRef(confirmPay);
   confirmPayRef.current = confirmPay;
+  const sessionIdRef = useRef<string | null>(null);
 
   function applyRecap(json: PayLinkOpenJson) {
     setReference(json.reference ?? "");
@@ -157,21 +233,32 @@ export function PayClient({ token }: { token: string }) {
     setBillingEmail(json.billing_email ?? "");
   }
 
+  /** Paid / refunded / expired come from the server's state read (26.1-15), never from the browser. */
+  function applyRefusal(state: PayState) {
+    setPayLocked(true);
+    if (state.kind === "alreadyPaid" || state.kind === "raceRefunded") {
+      setDone({ view: state.kind, reference: state.reference });
+      return;
+    }
+    if (state.kind === "expired") {
+      setLinkExpired(true);
+      return;
+    }
+    setError(state.kind === "alert" ? state.key : "paymentWindowClosed");
+  }
+
   useEffect(() => {
     let cancelled = false;
     void (async () => {
       try {
-        const res = await fetch("/api/checkout/pay-link/open", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ token: token.trim().replace(/\s+/g, "") }),
-        });
-        const json = (await res.json()) as PayLinkOpenJson;
+        const stored = readStoredSessionId(token);
+        sessionIdRef.current = stored;
+        const { ok, json } = await openPayLink(token, stored);
         if (cancelled) return;
         applyRecap(json);
-        if (!res.ok) {
-          setPayLocked(true);
-          setError(chargeGateAlert(json.code) ?? "paymentWindowClosed");
+        const state = payStateFromOpen(json);
+        if (!ok) {
+          applyRefusal(state);
           return;
         }
         const openedQuoteId = typeof json.quote_id === "string" ? json.quote_id : null;
@@ -183,6 +270,13 @@ export function PayClient({ token }: { token: string }) {
           setError(zero.locked ? "quoteExpired" : "paymentWindowClosed");
           if (zero.locked) expireStoredCheckoutSession(openedQuoteId);
           return;
+        }
+        const ownSession = sessionIdFromClientSecret(
+          decodeClientSecret(json.client_secret, json.client_secret_hex),
+        );
+        if (ownSession) {
+          sessionIdRef.current = ownSession;
+          storeSessionId(token, ownSession);
         }
         setLockExpiresAt(lockAt);
         setPayLocked(false);
@@ -202,6 +296,38 @@ export function PayClient({ token }: { token: string }) {
       cancelled = true;
     };
   }, [token]);
+
+  /**
+   * D-21/D-22: after the recipient's own payment confirms, ask the link whether
+   * that charge settled (paid — continue to the settle route) or lost the race
+   * (refunded duplicate — show the race card). Same budget as the confirmation
+   * page's poll; on timeout the settle route decides.
+   */
+  const afterOwnPayment = useCallback(
+    async (destination: string) => {
+      setPaying(true);
+      const deadline = Date.now() + PAY_LINK_POLL_BUDGET_MS;
+      while (Date.now() < deadline) {
+        try {
+          const { json } = await openPayLink(token, sessionIdRef.current);
+          const state = payStateFromOpen(json);
+          const step = payPollStep(state);
+          if (step === "raceRefunded" && state.kind === "raceRefunded") {
+            setPayLocked(true);
+            setDone({ view: "raceRefunded", reference: state.reference });
+            setPaying(false);
+            return;
+          }
+          if (step === "continue") break;
+        } catch {
+          // Network blip — keep asking until the budget runs out.
+        }
+        await new Promise((resolve) => setTimeout(resolve, PAY_LINK_POLL_INTERVAL_MS));
+      }
+      window.location.assign(destination);
+    },
+    [token],
+  );
 
   useEffect(() => {
     if (!clientSecret || !lockExpiresAt) return;
@@ -258,6 +384,12 @@ export function PayClient({ token }: { token: string }) {
 
   const amount = formatAmount(amountRappen == null ? null : amountRappen / 100, "CHF");
   const payDisabled = paying || busy || !clientSecret || payLocked;
+  // D-20: on this page a closed lock is the pay link's 24 hours running out —
+  // the recipient's copy, not the booker's "get a new price".
+  const expired = linkExpired || error === "quoteExpired";
+  const genericError = expired ? null : error;
+
+  if (done) return <PayLinkDone view={done.view} reference={done.reference} />;
 
   return (
     <div className="vt-checkout" data-checkout-pay-page>
@@ -274,8 +406,17 @@ export function PayClient({ token }: { token: string }) {
           ) : null}
           <p className="vt-checkout__picked">{amount}</p>
           {stripeError ? <Alert tone="danger">{stripeError}</Alert> : null}
-          <Alert role="alert" tone={error ? alertTone(error) : "danger"} hidden={error == null}>
-            {error ? t(error) : ""}
+          {expired ? (
+            <Alert role="alert" tone="danger" title={t("payLinkExpiredTitle")} data-pay-link-expired>
+              {t("payLinkExpiredBody")}
+            </Alert>
+          ) : null}
+          <Alert
+            role="alert"
+            tone={genericError ? alertTone(genericError) : "danger"}
+            hidden={genericError == null}
+          >
+            {genericError ? t(genericError) : ""}
           </Alert>
           {clientSecret ? (
             <div className="vt-checkout__payblock">
@@ -294,6 +435,7 @@ export function PayClient({ token }: { token: string }) {
                       billingEmail,
                       onReady: (fn) => setConfirmPay(() => fn),
                       onComplete: setCardComplete,
+                      onPaid: afterOwnPayment,
                     },
                     payLocked,
                   )}

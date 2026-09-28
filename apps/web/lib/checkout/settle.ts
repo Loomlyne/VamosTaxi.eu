@@ -46,8 +46,15 @@ import {
   type StuckPaymentAlertInput,
 } from "../ops/must-fix-mail";
 
-/** `delaySeconds` (26.1-08): a retry that must wait, e.g. app_refund_pending, so the retry budget spans minutes. */
-export type HandleResult = { ack: true } | { retry: true; delaySeconds?: number };
+/**
+ * `delaySeconds` (26.1-08): a retry that must wait, e.g. app_refund_pending, so the retry budget spans minutes.
+ * `settled` (26.1-16, D-22): present only when this message settled a duplicate
+ * charge and its refund landed, so the return route can tell the payer. Queue
+ * callers ignore it.
+ */
+export type HandleResult =
+  | { ack: true; settled?: { duplicate: boolean; revived: boolean } }
+  | { retry: true; delaySeconds?: number };
 
 export type SettleRow = {
   booking_id: string;
@@ -285,6 +292,7 @@ export async function handleStripeMessageWithDeps(
     return { ack: true };
   }
 
+  let duplicateRefunded = false;
   if (outcome === "succeeded") {
     const extra = session?.metadata?.kind === "extra";
 
@@ -326,6 +334,7 @@ export async function handleStripeMessageWithDeps(
             refundRappen: row.charged_rappen,
             reason,
           });
+          duplicateRefunded = row.duplicate;
           if (PAID_AFTER_CANCEL_REASONS.includes(reason)) {
             try {
               await deps.alertPaidAfterCancel(row.booking_id);
@@ -371,6 +380,11 @@ export async function handleStripeMessageWithDeps(
     }
   }
 
+  // 26.1-16 (D-22): only a duplicate whose refund landed is reported, so the
+  // return route never tells a payer "refunded" before the money moved.
+  if (duplicateRefunded) {
+    return { ack: true, settled: { duplicate: true, revived: row.revived } };
+  }
   return { ack: true };
 }
 

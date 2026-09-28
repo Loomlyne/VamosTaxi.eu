@@ -178,6 +178,7 @@ export function PaymentPanel({
   locked = false,
   onReady,
   onComplete = noopComplete,
+  onPaid,
 }: {
   publishableKey: string;
   clientSecret: string;
@@ -189,6 +190,11 @@ export function PaymentPanel({
   locked?: boolean;
   onReady: (confirm: () => Promise<void>) => void;
   onComplete?: (complete: boolean) => void;
+  /**
+   * 26.1-16: the pay-link page checks whether this charge settled or lost the
+   * race before it leaves for the settle route. Absent: go there directly.
+   */
+  onPaid?: (destination: string) => Promise<void> | void;
 }) {
   const promise = useMemo(() => browserStripe(publishableKey), [publishableKey]);
   const secret = (decodeClientSecret(clientSecret, clientSecretHex) ?? clientSecret ?? "").trim();
@@ -235,9 +241,11 @@ export function PaymentPanel({
       });
       if (result.type === "error") showStripeError(setError, result.error.message);
       const destination = paidDestination(reference, secret);
-      if (destination) window.location.assign(destination);
+      if (!destination) return;
+      if (onPaid) await onPaid(destination);
+      else window.location.assign(destination);
     });
-  }, [billingEmail, locked, onReady, reference, secret]);
+  }, [billingEmail, locked, onPaid, onReady, reference, secret]);
 
   async function onExpress(event: ExpressConfirmEvent) {
     if (lockedRef.current) {
@@ -261,7 +269,9 @@ export function PaymentPanel({
         event.paymentFailed({ reason: "fail" });
         return;
       }
-      if (destination) window.location.assign(destination);
+      if (!destination) return;
+      if (onPaid) await onPaid(destination);
+      else window.location.assign(destination);
     } catch (err) {
       setError(err instanceof Error ? err.message : "");
       event.paymentFailed({ reason: "fail" });

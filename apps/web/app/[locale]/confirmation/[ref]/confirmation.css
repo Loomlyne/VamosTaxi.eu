@@ -12,6 +12,11 @@
   margin-block-end: 24px;
 }
 
+/* 26.1-16 (D-22): charged twice and refunded — sits between the hero and the voucher. */
+[data-confirmation-charge-refunded] {
+  margin-block-end: 24px;
+}
+
 .vt-confirmation__kicker {
   font-family: var(--vt-font-body);
   font-size: var(--vt-body-sm);
