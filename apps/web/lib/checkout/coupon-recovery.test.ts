@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { couponRefusalAction } from "./coupon-recovery";
+import { couponRecoveryOutcome, couponRefusalAction } from "./coupon-recovery";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const webRoot = join(here, "../..");
@@ -73,6 +73,44 @@ describe("couponRefusalAction (26.1-32, D-11)", () => {
         alreadyRecovered: false,
       }),
     ).toBe("show_refusal");
+  });
+});
+
+describe("couponRecoveryOutcome (quick 260928-cpn)", () => {
+  it("returns recovered when the reprice without coupon succeeded", () => {
+    expect(
+      couponRecoveryOutcome({ action: "reprice_without_coupon", repriceOk: true, lockCoupon: null }),
+    ).toBe("recovered");
+    // A stale peek of the old lock does not matter once the reprice stored a new one.
+    expect(
+      couponRecoveryOutcome({ action: "reprice_without_coupon", repriceOk: true, lockCoupon: "SAVE10" }),
+    ).toBe("recovered");
+  });
+
+  it("returns restore_lock_coupon when the reprice without coupon failed and the lock still prices a coupon", () => {
+    expect(
+      couponRecoveryOutcome({ action: "reprice_without_coupon", repriceOk: false, lockCoupon: "SAVE10" }),
+    ).toBe("restore_lock_coupon");
+  });
+
+  it("returns recovered for drop_body_coupon, which needs no reprice", () => {
+    expect(couponRecoveryOutcome({ action: "drop_body_coupon", repriceOk: false, lockCoupon: null })).toBe(
+      "recovered",
+    );
+    expect(couponRecoveryOutcome({ action: "drop_body_coupon", repriceOk: true, lockCoupon: null })).toBe(
+      "recovered",
+    );
+  });
+
+  it("returns none for show_refusal", () => {
+    expect(couponRecoveryOutcome({ action: "show_refusal", repriceOk: false, lockCoupon: "SAVE10" })).toBe("none");
+    expect(couponRecoveryOutcome({ action: "show_refusal", repriceOk: true, lockCoupon: null })).toBe("none");
+  });
+
+  it("returns none when the reprice failed but the lock carries no coupon", () => {
+    expect(
+      couponRecoveryOutcome({ action: "reprice_without_coupon", repriceOk: false, lockCoupon: null }),
+    ).toBe("none");
   });
 });
 
@@ -176,12 +214,13 @@ describe("CheckoutClient coupon refusal recovery wiring (26.1-32)", () => {
     expect(cleared).toBeLessThan(sendBranch.indexOf('"drop_body_coupon"'));
   });
 
-  it("a reprice_without_coupon or drop_body_coupon result sets the recovery ref before acting, and the ref is only cleared by a hand-applied coupon or a succeeded payment intent", () => {
+  it("a reprice_without_coupon or drop_body_coupon result sets the recovery ref before acting, and the ref is only cleared by a hand-applied coupon, a succeeded payment intent or a failed recovery reprice", () => {
     expect(client).toContain("const couponRecoveryAttempted = useRef(false);");
     expect(client.match(/couponRecoveryAttempted\.current = true;/g)?.length).toBe(4);
     expect(startBranch.match(/couponRecoveryAttempted\.current = true;/g)?.length).toBe(2);
     expect(sendBranch.match(/couponRecoveryAttempted\.current = true;/g)?.length).toBe(2);
-    expect(client.match(/couponRecoveryAttempted\.current = false;/g)?.length).toBe(2);
+    // 2 hand-driven resets + 1 per refusal branch when the recovery reprice failed.
+    expect(client.match(/couponRecoveryAttempted\.current = false;/g)?.length).toBe(4);
     expect(client.match(/await applyCouponCode\(null\)/g)?.length).toBe(2);
 
     // (a) the Apply button, only when it applies a typed code (not Remove).
@@ -219,5 +258,102 @@ describe("CheckoutClient coupon refusal recovery wiring (26.1-32)", () => {
     expect(guard).toBeLessThan(effect.indexOf("setCoupon(lockCoupon);"));
     expect(effect).not.toContain("setCouponRule");
     expect(effect).not.toContain("setWasRappen");
+  });
+
+  /** The reprice_without_coupon block of one refusal branch. */
+  function repriceBlock(branch: string): string {
+    return branch.slice(
+      branch.indexOf('if (recovery === "reprice_without_coupon") {'),
+      branch.indexOf('if (recovery === "drop_body_coupon") {'),
+    );
+  }
+
+  /** The body of the restore_lock_coupon reaction inside one reprice block. */
+  function restoreBlock(reprice: string): string {
+    const at = reprice.indexOf('=== "restore_lock_coupon"');
+    return reprice.slice(at, reprice.indexOf("}", at));
+  }
+
+  it("both refusal branches await applyCouponCode(null) into a result and pass it to couponRecoveryOutcome", () => {
+    expect(client).toContain('from "@/lib/checkout/coupon-recovery"');
+    expect(client).toMatch(/import \{[^}]*\bcouponRecoveryOutcome\b[^}]*\} from "@\/lib\/checkout\/coupon-recovery";/);
+    for (const branch of [startBranch, sendBranch]) {
+      const reprice = repriceBlock(branch);
+      const awaited = reprice.indexOf("const repriced = await applyCouponCode(null);");
+      expect(awaited).toBeGreaterThan(-1);
+      const outcome = reprice.indexOf("couponRecoveryOutcome({");
+      expect(outcome).toBeGreaterThan(awaited);
+      const call = reprice.slice(outcome, reprice.indexOf("})", outcome));
+      expect(call).toContain("action: recovery,");
+      expect(call).toContain("repriceOk: repriced,");
+      expect(call).toContain("lockCoupon");
+      // The lock is re-read after the reprice: a failed reprice leaves the old lock in place.
+      const peek = reprice.indexOf(
+        "const lockCoupon = peekLockCoupon(readDraft().lock || draft.lock || trip?.lock);",
+        awaited,
+      );
+      expect(peek).toBeGreaterThan(awaited);
+      expect(peek).toBeLessThan(outcome);
+    }
+  });
+
+  it("a restore_lock_coupon outcome re-applies the lock's coupon and clears the recovery ref in both branches", () => {
+    for (const branch of [startBranch, sendBranch]) {
+      const reprice = repriceBlock(branch);
+      const restore = restoreBlock(reprice);
+      expect(restore.length).toBeGreaterThan(0);
+      expect(restore).toContain("setCouponApplied(lockCoupon);");
+      expect(restore).toContain("couponRecoveryAttempted.current = false;");
+      // The customer is not charged and nothing retries on its own: the automatic
+      // intent retry stops, and nothing restarts it.
+      expect(restore).toContain("intentAttempts.current = INTENT_AUTO_ATTEMPTS;");
+      expect(restore).not.toContain("intentAttempts.current = 0");
+      expect(restore).not.toContain("setIntentTick");
+      expect(restore).not.toContain("applyCouponCode");
+      expect(restore).not.toContain("setCouponInvalid(false)");
+      // The refusal stays visible with the existing field message.
+      const tail = reprice.slice(reprice.indexOf("const repriced = await applyCouponCode(null);"));
+      expect(tail).toContain("setCouponInvalid(true);");
+      expect(tail).toContain('setCouponField("couponNoLongerValid");');
+      // One reprice per refusal.
+      expect(reprice.match(/applyCouponCode\(/g)?.length).toBe(1);
+    }
+    // The automatic intent effect reads the same cap.
+    expect(client).toContain("const INTENT_AUTO_ATTEMPTS = 6;");
+    expect(client.match(/intentAttempts\.current >= INTENT_AUTO_ATTEMPTS/g)?.length).toBe(2);
+  });
+
+  it("applyCouponCode resolves false on its failure path and in its catch, and true only after the new lock is stored", () => {
+    const applyFnAt = client.indexOf("async function applyCouponCode(");
+    const applyFn = client.slice(applyFnAt, client.indexOf("async function sendPayLink(", applyFnAt));
+    expect(applyFn.slice(0, applyFn.indexOf("{\n"))).toContain("): Promise<boolean>");
+    expect(applyFn).not.toMatch(/\breturn;/);
+
+    const failAt = applyFn.indexOf("if (!res.ok || !json.ok || !json.lock) {");
+    const failPath = applyFn.slice(failAt, applyFn.indexOf("const nextId =", failAt));
+    expect(failAt).toBeGreaterThan(-1);
+    expect(failPath).toContain("return false;");
+    expect(failPath).not.toContain("return true");
+    expect(failPath).not.toContain("intentAttempts");
+    expect(failPath).not.toContain("setIntentTick");
+
+    const catchAt = applyFn.indexOf("} catch {");
+    const catchPath = applyFn.slice(catchAt, applyFn.indexOf("} finally {", catchAt));
+    expect(catchAt).toBeGreaterThan(-1);
+    expect(catchPath).toContain("return false;");
+    expect(catchPath).not.toContain("intentAttempts");
+    expect(catchPath).not.toContain("setIntentTick");
+
+    expect(applyFn.match(/return true;/g)?.length).toBe(1);
+    const stored = applyFn.indexOf("writeDraft({ quoteId: nextId, lock: json.lock });");
+    expect(stored).toBeGreaterThan(-1);
+    expect(applyFn.indexOf("return true;")).toBeGreaterThan(stored);
+    expect(applyFn.indexOf("return true;")).toBeLessThan(catchAt);
+  });
+
+  it("sendPayLink resolves its lock as readDraft().lock || draft.lock || trip?.lock", () => {
+    const head = send.slice(0, send.indexOf("setBusy(true);"));
+    expect(head).toContain("const lock = readDraft().lock || draft.lock || trip?.lock;");
+    expect(head).not.toContain("const lock = draft.lock || trip?.lock;");
   });
 });
