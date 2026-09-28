@@ -66,6 +66,7 @@ import { breakdownRappen, breakdownRows, peekLockPriceRows } from "@/lib/checkou
 import { decodeClientSecret } from "@/lib/checkout/client-secret";
 import { lockFlightNoDiffers } from "@/lib/checkout/flight-no";
 import { couponRecoveryOutcome, couponRefusalAction, payClickAction } from "@/lib/checkout/coupon-recovery";
+import { intentAnswerAction } from "@/lib/checkout/intent-answer";
 import { checkoutTraveler } from "@/lib/checkout/checkout-traveler";
 import { pickedClassName } from "@/lib/checkout/picked-class";
 import {
@@ -358,7 +359,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [clientSecretHex, setClientSecretHex] = useState<string | undefined>();
   const clientSecretRef = useRef<string | null>(null);
-  const intentGate = useRef<Promise<"ok" | "skip" | "fail"> | null>(null);
+  const intentGate = useRef<Promise<"ok" | "skip" | "fail" | "stale"> | null>(null);
   const flightSyncGate = useRef<Promise<boolean> | null>(null);
   const [publishable, setPublishable] = useState(publishableKey);
   const [reference, setReference] = useState<string | null>(null);
@@ -689,7 +690,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       setContact(traveler);
     }
     void startPayment({ silent: true }).then((result) => {
-      if (result === "ok") return;
+      // "stale": the answer was for a lock no longer on screen (quick 260928-lat).
+      // Not a failure; the discard already bumped the tick for a fresh run.
+      if (result === "ok" || result === "stale") return;
       intentAttempts.current += 1;
       if (intentAttempts.current >= INTENT_AUTO_ATTEMPTS) {
         setRefusal((current) => current ?? "payCouldNotStart");
@@ -962,10 +965,10 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     router.push(checkoutStepPath("payment"));
   }
 
-  async function startPayment(opts?: { silent?: boolean }): Promise<"ok" | "skip" | "fail"> {
+  async function startPayment(opts?: { silent?: boolean }): Promise<"ok" | "skip" | "fail" | "stale"> {
     if (clientSecretRef.current) return "ok";
     if (intentGate.current) return intentGate.current;
-    const run = (async (): Promise<"ok" | "skip" | "fail"> => {
+    const run = (async (): Promise<"ok" | "skip" | "fail" | "stale"> => {
     if (clientSecretRef.current) return "ok";
     const trip = tripSnap ?? readVamosTrip();
     // readDraft(): a flight re-price may have re-signed the lock this tick.
@@ -1044,6 +1047,21 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         code?: string;
         error?: string;
       };
+      // Quick 260928-lat: a reprice may have re-signed the lock while this request
+      // was in flight. Decide on the lock on screen now, not the one captured above.
+      const answerLock = readDraft().lock || draft.lock || trip?.lock;
+      if (intentAnswerAction({ sentLock: lock, currentLock: answerLock }) === "discard") {
+        // Success or refusal, the answer is for an amount no longer on screen.
+        // Nothing went wrong for the customer: no card form, no stored session,
+        // no refusal, no coupon recovery. Release the gate (no other run can hold
+        // it) and bump the tick once so the automatic intent starts one run for
+        // the lock on screen. "stale" never counts toward INTENT_AUTO_ATTEMPTS.
+        // The server expires this lock's session when the next one opens.
+        intentStarted.current = false;
+        intentGate.current = null;
+        setIntentTick((n) => n + 1);
+        return "stale";
+      }
       if (!res.ok) {
         intentStarted.current = false;
         const key = REFUSAL_KEYS[json.code ?? json.error ?? ""] ?? "payCouldNotStart";
@@ -1506,6 +1524,11 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     payInFlight.current = true;
     try {
       const started = await startPayment();
+      if (started === "stale") {
+        // The lock changed under this click; the automatic intent opens the new session.
+        payInFlight.current = false;
+        return;
+      }
       if (started !== "ok") {
         payInFlight.current = false;
         setRefusal((current) =>

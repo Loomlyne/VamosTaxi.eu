@@ -55,8 +55,8 @@ describe("CheckoutClient late payment-session answer wiring (quick 260928-lat)",
     expect(reread).toBeGreaterThan(answerAt);
     expect(reread).toBeLessThan(decideAt);
     const call = start.slice(decideAt, start.indexOf("})", decideAt));
-    expect(call).toContain("sentLock: lock,");
-    expect(call).toContain("currentLock: answerLock,");
+    expect(call).toMatch(/\bsentLock: lock\b/);
+    expect(call).toMatch(/\bcurrentLock: answerLock\b/);
     // The decision comes before anything the answer would set.
     for (const later of [
       "if (!res.ok) {",
