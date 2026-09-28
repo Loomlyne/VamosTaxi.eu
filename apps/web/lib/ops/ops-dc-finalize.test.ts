@@ -33,6 +33,25 @@ describe("Phase 6 finalize — class line-up and staff hash", () => {
     expect(fleet).toMatch(/'Economy', 'Business', 'Van luxury'/);
   });
 
+  it("26.1 D-14: every ops list is the three classes and new-trip quotes live slugs", () => {
+    const data = read("app/vamos-ops-data.js");
+    const list = data.match(/VEHICLE_CLASSES = (\[[^\]]*\])/);
+    expect(list && JSON.parse(list[1])).toEqual(["Economy", "Business", "Van luxury"]);
+
+    const newTrip = read("app/ops/OpsNewTrip.dc.html");
+    const block = newTrip.match(/classOptions: \[([\s\S]*?)\]/);
+    const values = [...((block && block[1]) || "").matchAll(/value: '([^']*)'/g)].map((m) => m[1]);
+    expect(values).toEqual(["saden", "mercedes-benz-v-class", "van-luxury"]);
+    expect(newTrip).not.toMatch(/\|\| 'economy'/);
+
+    for (const name of ["OpsFleet", "OpsBoard", "OpsReviews", "OpsDash", "OpsNewTrip", "OpsPricing", "OpsCalendar", "OpsCalendarBoard"]) {
+      const html = read(`app/ops/${name}.dc.html`);
+      expect(html, name).not.toMatch(/'First'|"First"/);
+      expect(html, name).not.toMatch(/mahaha/);
+    }
+    expect(read("app/home/HowItWorks.dc.html")).not.toMatch(/mahaha/);
+  });
+
   it("Support rail goes to /support and Staff stays gone", () => {
     const sidebar = read("app/ops/OpsSidebar.dc.html");
     const shell = read("app/ops/ops.dc.html");

@@ -1357,7 +1357,7 @@ function readLang() {
 }
 /* Pay row reads the public catalog. These two slugs only. Never a typed fare. */
 const PAY_SLUGS = ['mercedes-benz-v-class', 'mercedes-s-class-special'];
-const PAY_LADDER = { economy: 1, business: 1, first: 1, van: 1, mahaha: 1 };
+const PAY_LADDER = { economy: 1, business: 1, first: 1, van: 1 };
 function payHold() { return 'CHF\u00a0000'; }
 function payLiveAmount(rappen, pricingLive) {
   if (pricingLive !== true) return payHold();
