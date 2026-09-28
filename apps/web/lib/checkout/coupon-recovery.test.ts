@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { couponRecoveryOutcome, couponRefusalAction } from "./coupon-recovery";
+import { couponRecoveryOutcome, couponRefusalAction, payClickAction } from "./coupon-recovery";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const webRoot = join(here, "../..");
@@ -221,7 +221,8 @@ describe("CheckoutClient coupon refusal recovery wiring (26.1-32)", () => {
     expect(sendBranch.match(/couponRecoveryAttempted\.current = true;/g)?.length).toBe(2);
     // 2 hand-driven resets + 1 per refusal branch when the recovery reprice failed.
     expect(client.match(/couponRecoveryAttempted\.current = false;/g)?.length).toBe(4);
-    expect(client.match(/await applyCouponCode\(null\)/g)?.length).toBe(2);
+    // Both refusal branches plus the Pay recover_price action (quick 260928-rld).
+    expect(client.match(/await applyCouponCode\(null\)/g)?.length).toBe(3);
 
     // (a) the Apply button, only when it applies a typed code (not Remove).
     const applyAt = client.indexOf('{couponApplied ? tCommon("remove") : tCommon("apply")}');
@@ -355,5 +356,126 @@ describe("CheckoutClient coupon refusal recovery wiring (26.1-32)", () => {
     const head = send.slice(0, send.indexOf("setBusy(true);"));
     expect(head).toContain("const lock = readDraft().lock || draft.lock || trip?.lock;");
     expect(head).not.toContain("const lock = draft.lock || trip?.lock;");
+  });
+});
+
+describe("payClickAction (quick 260928-rld)", () => {
+  it("returns recover_price when no session exists and the lock still prices a refused coupon", () => {
+    expect(
+      payClickAction({ hasSession: false, cardComplete: false, couponInvalid: true, lockCoupon: "SAVE10" }),
+    ).toBe("recover_price");
+    // A stale cardComplete flag does not change it: there is no card form.
+    expect(
+      payClickAction({ hasSession: false, cardComplete: true, couponInvalid: true, lockCoupon: "SAVE10" }),
+    ).toBe("recover_price");
+  });
+
+  it("returns start_session when no session exists and no coupon is in the way", () => {
+    expect(
+      payClickAction({ hasSession: false, cardComplete: false, couponInvalid: false, lockCoupon: null }),
+    ).toBe("start_session");
+    // Refused coupon already repriced out of the lock.
+    expect(
+      payClickAction({ hasSession: false, cardComplete: false, couponInvalid: true, lockCoupon: null }),
+    ).toBe("start_session");
+    // Lock prices a coupon nobody refused.
+    expect(
+      payClickAction({ hasSession: false, cardComplete: true, couponInvalid: false, lockCoupon: "SAVE10" }),
+    ).toBe("start_session");
+  });
+
+  it("returns ask_card when a session exists and the card is incomplete", () => {
+    expect(
+      payClickAction({ hasSession: true, cardComplete: false, couponInvalid: false, lockCoupon: null }),
+    ).toBe("ask_card");
+    expect(
+      payClickAction({ hasSession: true, cardComplete: false, couponInvalid: true, lockCoupon: "SAVE10" }),
+    ).toBe("ask_card");
+  });
+
+  it("returns pay when a session exists and the card is complete", () => {
+    expect(
+      payClickAction({ hasSession: true, cardComplete: true, couponInvalid: false, lockCoupon: null }),
+    ).toBe("pay");
+    expect(
+      payClickAction({ hasSession: true, cardComplete: true, couponInvalid: true, lockCoupon: "SAVE10" }),
+    ).toBe("pay");
+  });
+});
+
+describe("CheckoutClient Pay without a card form (quick 260928-rld)", () => {
+  const client = source("app/[locale]/checkout/CheckoutClient.tsx");
+  const onPayAt = client.indexOf("async function onPay(");
+  const onPay = client.slice(onPayAt, client.indexOf("const tripForPay", onPayAt));
+
+  /** One `if (payAction === "…") { … }` block of onPay, closed at its own indent. */
+  function actionBlock(name: string): string {
+    const at = onPay.indexOf(`if (payAction === "${name}") {`);
+    expect(at).toBeGreaterThan(-1);
+    return onPay.slice(at, onPay.indexOf("\n    }\n", at) + 6);
+  }
+
+  it("onPay decides with payClickAction before the card-complete check", () => {
+    expect(client).toMatch(/import \{[^}]*\bpayClickAction\b[^}]*\} from "@\/lib\/checkout\/coupon-recovery";/);
+    const decideAt = onPay.indexOf("const payAction = payClickAction({");
+    expect(decideAt).toBeGreaterThan(-1);
+    const call = onPay.slice(decideAt, onPay.indexOf("});", decideAt));
+    expect(call).toContain("hasSession: Boolean(clientSecretRef.current),");
+    expect(call).toContain("cardComplete,");
+    expect(call).toContain("couponInvalid,");
+    expect(call).toContain("lockCoupon: peekLockCoupon(");
+    // The price guards still come first; the card check is now the ask_card action.
+    expect(onPay.indexOf('setRefusal("pricingNotLive");')).toBeLessThan(decideAt);
+    expect(onPay).not.toContain("if (!cardComplete)");
+    const askCard = actionBlock("ask_card");
+    expect(onPay.indexOf(askCard)).toBeGreaterThan(decideAt);
+    expect(askCard).toContain('setRefusal("completeCard");');
+    expect(askCard).toContain("return;");
+    expect(onPay.match(/setRefusal\("completeCard"\)/g)?.length).toBe(1);
+  });
+
+  it("onPay reaches confirm only on the pay action", () => {
+    const payPathAt = onPay.indexOf("if (payAction !== \"pay\") return;");
+    expect(payPathAt).toBeGreaterThan(-1);
+    const before = onPay.slice(0, payPathAt);
+    const after = onPay.slice(payPathAt);
+    // Nothing before the pay gate starts, awaits or calls a confirmation.
+    expect(before).not.toMatch(/\bconfirm\(|startPayment\(|confirmPayRef|payInFlight\.current = true/);
+    expect(onPay.match(/await confirm\(\);/g)?.length).toBe(1);
+    expect(onPay.match(/startPayment\(/g)?.length).toBe(1);
+    expect(after).toContain("await confirm();");
+    expect(after).toContain("const started = await startPayment();");
+    // Every non-pay action returns before the gate.
+    for (const name of ["recover_price", "start_session", "ask_card"]) {
+      const block = actionBlock(name);
+      expect(onPay.indexOf(block)).toBeLessThan(payPathAt);
+      expect(block.trimEnd().slice(0, -1).trimEnd().endsWith("return;")).toBe(true);
+    }
+    // start_session lets the existing effect open the session; it never charges.
+    const start = actionBlock("start_session");
+    expect(start).toContain("intentAttempts.current = 0;");
+    expect(start).toContain("setIntentTick((n) => n + 1);");
+    expect(start).toContain('current === "pricingNotLive" || current === "quoteExpired" ? current');
+  });
+
+  it("a recover_price click reprices once and never confirms", () => {
+    const recover = actionBlock("recover_price");
+    expect(recover.match(/applyCouponCode\(/g)?.length).toBe(1);
+    const awaited = recover.indexOf("const repriced = await applyCouponCode(null);");
+    expect(awaited).toBeGreaterThan(-1);
+    // A second click while the reprice runs does nothing.
+    const guard = recover.indexOf("if (payRecovering.current) return;");
+    expect(guard).toBeGreaterThan(-1);
+    expect(guard).toBeLessThan(awaited);
+    expect(recover.indexOf("payRecovering.current = true;")).toBeLessThan(awaited);
+    expect(recover).toContain("payRecovering.current = false;");
+    expect(client).toContain("const payRecovering = useRef(false);");
+    // The refusal message stays; a failed reprice says Payment did not start.
+    const tail = recover.slice(awaited);
+    expect(tail).toContain("setCouponInvalid(true);");
+    expect(tail).toContain('setCouponField("couponNoLongerValid");');
+    expect(tail).toContain("if (!repriced)");
+    expect(tail).toContain('"payCouldNotStart"');
+    expect(recover).not.toMatch(/\bconfirm|startPayment|setIntentTick|intentAttempts/);
   });
 });
